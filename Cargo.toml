@@ -1,0 +1,10 @@
+[package]
+name = "bitcoin-atoms"
+description = "Bitcoin atom utilies"
+version = "0.0.0"
+license = "CC0-1.0"
+edition = "2021"
+
+[dependencies]
+bitcoincore-rpc = "0.14.0"
+dirs = "4.0.0"
