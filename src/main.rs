@@ -38,39 +38,54 @@ fn main() -> Result<()> {
     let block = client.get_block(&hash)?;
 
     for (i, transaction) in block.txdata.iter().enumerate() {
+      let txid = transaction.txid();
       if i == 0 {
-        atoms.insert(
-          OutPoint {
-            txid: transaction.txid(),
-            vout: 0,
-          },
-          height,
-        );
+        atoms.insert(OutPoint { txid, vout: 0 }, height);
       } else {
-        let transferred = transaction
+        let mut transferred = transaction
           .input
           .iter()
-          .map(|txin| atoms.remove(&txin.previous_output))
+          .map(|txin| atoms.remove_entry(&txin.previous_output))
           .flatten()
-          .collect::<Vec<u64>>();
+          .collect::<Vec<(OutPoint, u64)>>();
 
-        if !transferred.is_empty() {
-          eprintln!(
-            "Transferring {} atoms: {:?}",
-            transferred.len(),
-            transferred
-          );
+        if transferred.is_empty() {
+          continue;
         }
 
-        let value = transaction
+        eprintln!(
+          "Transferring {} atoms: {:?}",
+          transferred.len(),
+          transferred,
+        );
+
+        let total = transaction
           .output
           .iter()
           .map(|txout| txout.value)
           .sum::<u64>();
 
+        let value_per_atom = total / transferred.len() as u64;
+
+        let mut tally = 0;
         for (vout, output) in transaction.output.iter().enumerate() {
-          todo!("Transfer atoms proportionally according to output value");
+          let vout = vout as u32;
+
+          tally += output.value;
+
+          while tally >= value_per_atom {
+            let (old_outpoint, atom) = transferred.remove(0);
+            let new_outpoint = OutPoint { vout, txid };
+            eprintln!(
+              "Transferring atom {} from {} to {}",
+              atom, old_outpoint, new_outpoint
+            );
+            atoms.insert(new_outpoint, atom);
+            tally -= value_per_atom;
+          }
         }
+
+        assert!(transferred.is_empty());
       }
     }
   }
