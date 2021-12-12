@@ -33,6 +33,7 @@ dependencies = [
 name = "bitcoin-atoms"
 version = "0.0.0"
 dependencies = [
+ "bitcoin",
  "bitcoincore-rpc",
  "dirs",
 ]
