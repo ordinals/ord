@@ -65,15 +65,13 @@ fn main() -> Result<()> {
           .map(|txout| txout.value)
           .sum::<u64>();
 
-        let value_per_atom = total / transferred.len() as u64;
-
-        let mut tally = 0;
+        let mut pending = 0;
         for (vout, output) in transaction.output.iter().enumerate() {
           let vout = vout as u32;
 
-          tally += output.value;
+          pending += output.value * transferred.len() as u64;
 
-          while tally >= value_per_atom {
+          while pending >= total {
             let (old_outpoint, atom) = transferred.remove(0);
             let new_outpoint = OutPoint { vout, txid };
             eprintln!(
@@ -81,7 +79,7 @@ fn main() -> Result<()> {
               atom, old_outpoint, new_outpoint
             );
             atoms.insert(new_outpoint, atom);
-            tally -= value_per_atom;
+            pending -= total;
           }
         }
 
