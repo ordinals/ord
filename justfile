@@ -1,0 +1,2 @@
+catalog:
+  cargo run catalog
