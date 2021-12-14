@@ -3,7 +3,7 @@ use {
   bitcoin::blockdata::transaction::OutPoint,
   bitcoincore_rpc::{Auth, Client, RpcApi},
   serde::Deserialize,
-  std::collections::BTreeMap,
+  std::{collections::BTreeMap, fs::File, io, path::PathBuf},
   structopt::StructOpt,
 };
 

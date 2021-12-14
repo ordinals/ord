@@ -9,6 +9,9 @@ edition = "2021"
 bitcoin = "0.27.1"
 bitcoincore-rpc = "0.14.0"
 dirs = "4.0.0"
+memmap = "0.7.0"
+mmap = "0.1.1"
+redb = "0.0.1"
 reqwest = { version = "0.11.7", features = ["blocking", "json"]}
 serde = { version = "1.0.131", features = ["derive"] }
 structopt = "0.3.25"
