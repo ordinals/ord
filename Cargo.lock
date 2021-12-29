@@ -236,7 +236,7 @@ dependencies = [
 [[package]]
 name = "redb"
 version = "0.0.1"
-source = "git+https://github.com/cberner/redb.git?branch=get_range#14f9f86a63df3113ce4eedb1904087be397424b5"
+source = "git+https://github.com/cberner/redb.git?branch=corruption#d8a74df2f8163a11674c1b3ec82576060167f95f"
 dependencies = [
  "libc",
  "memmap2",
