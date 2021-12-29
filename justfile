@@ -2,4 +2,4 @@ catalog:
   cargo run catalog
 
 watch:
-  cargo watch --clear --exec ltest
+  cargo watch --clear --exec 'ltest --release'
