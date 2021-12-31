@@ -1,7 +1,10 @@
 use {
   arguments::Arguments,
   bitcoin::{blockdata::constants::genesis_block, consensus::Decodable, Block, Network},
-  redb::{Database, MultiMapTable, ReadOnlyMultiMapTable, ReadOnlyTable, Table},
+  redb::{
+    Database, MultimapTable, ReadOnlyMultimapTable, ReadOnlyTable, ReadableMultimapTable,
+    ReadableTable, Table,
+  },
   std::{fs, ops::Deref},
   structopt::StructOpt,
 };

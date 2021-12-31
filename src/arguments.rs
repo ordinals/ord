@@ -23,7 +23,7 @@ impl Arguments {
         {
           let tx = db.begin_write()?;
 
-          let mut descendents: MultiMapTable<[u8], [u8]> = tx.open_multimap_table(DESCENDENTS)?;
+          let mut descendents: MultimapTable<[u8], [u8]> = tx.open_multimap_table(DESCENDENTS)?;
 
           let mut block_offsets: Table<[u8], u64> = tx.open_table(BLOCK_OFFSETS)?;
 
@@ -31,6 +31,8 @@ impl Arguments {
             fs::read("/Users/rodarmor/Library/Application Support/Bitcoin/blocks/blk00000.dat")?;
 
           let mut i = 0;
+
+          let mut count = 0;
 
           loop {
             if i == blocks.len() {
@@ -56,7 +58,11 @@ impl Arguments {
             )?;
 
             block_offsets.insert(block.block_hash().deref(), &(offset as u64))?;
+
+            count += 1;
           }
+
+          eprintln!("Inserted {} blocks…", count);
 
           tx.commit()?;
         }
@@ -72,7 +78,7 @@ impl Arguments {
 
           let read = db.begin_read()?;
 
-          let descendents: ReadOnlyMultiMapTable<[u8], [u8]> =
+          let descendents: ReadOnlyMultimapTable<[u8], [u8]> =
             read.open_multimap_table(DESCENDENTS)?;
 
           let mut queue = vec![(
@@ -84,17 +90,12 @@ impl Arguments {
           )];
 
           while let Some((block, height)) = queue.pop() {
-            if height > 200 {
-              break;
-            }
-
-            dbg!("inserting block a height {}", height);
             heights.insert(block.as_ref(), &height)?;
             hashes.insert(&height, block.as_ref())?;
 
             let mut iter = descendents.get(&block)?;
 
-            while let Some((_parent, descendent)) = iter.next() {
+            while let Some(descendent) = iter.next() {
               queue.push((descendent.to_vec(), height + 1));
             }
           }
