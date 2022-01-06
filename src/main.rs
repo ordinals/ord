@@ -1,17 +1,15 @@
 use {
   arguments::Arguments,
-  bitcoin::blockdata::transaction::OutPoint,
-  bitcoincore_rpc::{Auth, Client, RpcApi},
-  serde::Deserialize,
-  std::collections::BTreeMap,
+  bitcoin::{blockdata::constants::genesis_block, consensus::Decodable, Block, Network},
+  redb::{
+    Database, MultimapTable, ReadOnlyMultimapTable, ReadOnlyTable, ReadableMultimapTable,
+    ReadableTable, Table,
+  },
+  std::{fs, ops::Deref},
   structopt::StructOpt,
 };
 
 mod arguments;
-mod catalog;
-mod client;
-mod price;
-mod supply;
 
 type Result<T, E = Box<dyn std::error::Error>> = std::result::Result<T, E>;
 
