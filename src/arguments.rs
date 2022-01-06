@@ -17,7 +17,7 @@ impl Arguments {
         let tempdir = tempfile::tempdir()?;
 
         let db = unsafe {
-          Database::open(tempdir.path().join("bitcoin.redb"), 4096 * 1024 * 1024).unwrap()
+          Database::open(tempdir.path().join("bitcoin.redb"), 4096 * 1024 * 1024 * 10).unwrap()
         };
 
         {
