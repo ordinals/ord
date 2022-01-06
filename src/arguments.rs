@@ -1,5 +1,5 @@
-use std::path::PathBuf;
 use super::*;
+use std::path::PathBuf;
 
 const CHILDREN: &str = "children";
 const HEIGHTS: &str = "heights";
@@ -8,13 +8,22 @@ const HEIGHTS_TO_HASHES: &str = "height_to_hashes";
 
 #[derive(StructOpt)]
 pub enum Arguments {
-  FindSatoshi { #[structopt(long)] blocksdir: PathBuf, n: u64, at_height: u64 },
+  FindSatoshi {
+    #[structopt(long)]
+    blocksdir: PathBuf,
+    n: u64,
+    at_height: u64,
+  },
 }
 
 impl Arguments {
   pub fn run(self) -> Result<()> {
     match self {
-      Self::FindSatoshi { blocksdir, n, at_height } => {
+      Self::FindSatoshi {
+        blocksdir,
+        n,
+        at_height,
+      } => {
         let tempdir = tempfile::tempdir()?;
         let blockfile = blocksdir.join("blk00000.dat");
 
@@ -53,10 +62,7 @@ impl Arguments {
 
             let block = Block::consensus_decode(bytes)?;
 
-            children.insert(
-              &block.header.prev_blockhash,
-              &block.block_hash(),
-            )?;
+            children.insert(&block.header.prev_blockhash, &block.block_hash())?;
 
             block_offsets.insert(&block.block_hash(), &(offset as u64))?;
 
@@ -79,8 +85,7 @@ impl Arguments {
 
           let read = db.begin_read()?;
 
-          let children: ReadOnlyMultimapTable<[u8], [u8]> =
-            read.open_multimap_table(CHILDREN)?;
+          let children: ReadOnlyMultimapTable<[u8], [u8]> = read.open_multimap_table(CHILDREN)?;
 
           let mut queue = vec![(
             genesis_block(Network::Bitcoin)

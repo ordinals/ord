@@ -1,11 +1,11 @@
-use std::fs::File;
-use std::io;
-use std::io::{Seek, SeekFrom, Write};
-use bitcoin::{Block, BlockHeader, Network, OutPoint, Transaction, TxIn, TxOut};
-use bitcoin::blockdata::constants::{COIN_VALUE, genesis_block, MAX_SEQUENCE};
+use bitcoin::blockdata::constants::{genesis_block, COIN_VALUE, MAX_SEQUENCE};
 use bitcoin::blockdata::script;
 use bitcoin::consensus::Encodable;
 use bitcoin::hashes::sha256d;
+use bitcoin::{Block, BlockHeader, Network, OutPoint, Transaction, TxIn, TxOut};
+use std::fs::File;
+use std::io;
+use std::io::{Seek, SeekFrom, Write};
 use {
   executable_path::executable_path,
   std::{error::Error, process::Command, str},
@@ -23,8 +23,9 @@ fn generate_transaction(height: usize) -> Transaction {
   };
 
   // Inputs
-  let in_script = script::Builder::new().push_scriptint(height as i64)
-      .into_script();
+  let in_script = script::Builder::new()
+    .push_scriptint(height as i64)
+    .into_script();
   ret.input.push(TxIn {
     previous_output: OutPoint::null(),
     script_sig: in_script,
@@ -36,7 +37,7 @@ fn generate_transaction(height: usize) -> Transaction {
   let out_script = script::Builder::new().into_script();
   ret.output.push(TxOut {
     value: 50 * COIN_VALUE,
-    script_pubkey: out_script
+    script_pubkey: out_script,
   });
 
   // end
@@ -71,7 +72,7 @@ fn populate_blockfile(mut output: File, height: usize) -> io::Result<()> {
         merkle_root,
         time: 0,
         bits: 0,
-        nonce: 0
+        nonce: 0,
       },
       txdata: vec![tx],
     };
@@ -88,7 +89,13 @@ fn find_satoshi_zero() -> Result {
   let tmpdir = tempfile::tempdir()?;
   populate_blockfile(File::create(tmpdir.path().join("blk00000.dat"))?, 0)?;
   let output = Command::new(executable_path("bitcoin-atoms"))
-    .args(["find-satoshi", "--blocksdir", tmpdir.path().to_str().unwrap(), "0", "0"])
+    .args([
+      "find-satoshi",
+      "--blocksdir",
+      tmpdir.path().to_str().unwrap(),
+      "0",
+      "0",
+    ])
     .output()?;
 
   if !output.status.success() {
@@ -112,7 +119,13 @@ fn find_first_satoshi_of_second_block() -> Result {
   let tmpdir = tempfile::tempdir()?;
   populate_blockfile(File::create(tmpdir.path().join("blk00000.dat"))?, 1)?;
   let output = Command::new(executable_path("bitcoin-atoms"))
-    .args(["find-satoshi", "--blocksdir", tmpdir.path().to_str().unwrap(), "5000000000", "1"])
+    .args([
+      "find-satoshi",
+      "--blocksdir",
+      tmpdir.path().to_str().unwrap(),
+      "5000000000",
+      "1",
+    ])
     .output()?;
 
   if !output.status.success() {
