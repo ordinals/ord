@@ -16,7 +16,7 @@ impl Arguments {
     match self {
       Self::FindSatoshi { blocksdir, n, at_height } => {
         let tempdir = tempfile::tempdir()?;
-        let blocksdir = blocksdir.join("blk00000.dat");
+        let blockfile = blocksdir.join("blk00000.dat");
 
         let db = unsafe {
           Database::open(tempdir.path().join("bitcoin.redb"), 4096 * 1024 * 1024 * 10).unwrap()
@@ -29,7 +29,7 @@ impl Arguments {
 
           let mut block_offsets: Table<[u8], u64> = tx.open_table(BLOCK_OFFSETS)?;
 
-          let blocks = fs::read(&blocksdir)?;
+          let blocks = fs::read(&blockfile)?;
 
           let mut i = 0;
 
@@ -121,7 +121,7 @@ impl Arguments {
           i = 0;
         }
 
-        let blocks = fs::read(&blocksdir)?;
+        let blocks = fs::read(&blockfile)?;
 
         assert_eq!(&blocks[i..i + 4], &[0xf9, 0xbe, 0xb4, 0xd9]);
         i += 4;
