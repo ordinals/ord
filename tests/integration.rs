@@ -44,12 +44,12 @@ fn generate_transaction(height: usize) -> Transaction {
 }
 
 fn serialize_block(output: &mut File, block: &Block) -> io::Result<()> {
-  output.write(&[0xf9, 0xbe, 0xb4, 0xd9])?;
+  output.write_all(&[0xf9, 0xbe, 0xb4, 0xd9])?;
   let size_field = output.stream_position()?;
-  output.write(&[0u8; 4])?;
+  output.write_all(&[0u8; 4])?;
   let size = block.consensus_encode(&mut *output)?;
   output.seek(SeekFrom::Start(size_field))?;
-  output.write(&(size as u32).to_le_bytes())?;
+  output.write_all(&(size as u32).to_le_bytes())?;
   output.seek(SeekFrom::Current(size as i64))?;
 
   Ok(())
