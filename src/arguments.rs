@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use super::*;
 
 const DESCENDENTS: &str = "descendents";
@@ -7,14 +8,15 @@ const HASHES: &str = "hashes";
 
 #[derive(StructOpt)]
 pub enum Arguments {
-  FindSatoshi { n: u64, at_height: u64 },
+  FindSatoshi { #[structopt(long)] blocksdir: PathBuf, n: u64, at_height: u64 },
 }
 
 impl Arguments {
   pub fn run(self) -> Result<()> {
     match self {
-      Self::FindSatoshi { n, at_height } => {
+      Self::FindSatoshi { blocksdir, n, at_height } => {
         let tempdir = tempfile::tempdir()?;
+        let blocksdir = blocksdir.join("blk00000.dat");
 
         let db = unsafe {
           Database::open(tempdir.path().join("bitcoin.redb"), 4096 * 1024 * 1024 * 10).unwrap()
@@ -27,8 +29,7 @@ impl Arguments {
 
           let mut block_offsets: Table<[u8], u64> = tx.open_table(BLOCK_OFFSETS)?;
 
-          let blocks =
-            fs::read("/Users/rodarmor/Library/Application Support/Bitcoin/blocks/blk00000.dat")?;
+          let blocks = fs::read(&blocksdir)?;
 
           let mut i = 0;
 
@@ -120,8 +121,7 @@ impl Arguments {
           i = 0;
         }
 
-        let blocks =
-          fs::read("/Users/rodarmor/Library/Application Support/Bitcoin/blocks/blk00000.dat")?;
+        let blocks = fs::read(&blocksdir)?;
 
         assert_eq!(&blocks[i..i + 4], &[0xf9, 0xbe, 0xb4, 0xd9]);
         i += 4;
