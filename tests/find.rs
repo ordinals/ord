@@ -6,7 +6,7 @@ fn first_satoshi() -> Result {
   populate_blockfile(File::create(tmpdir.path().join("blk00000.dat"))?, 0)?;
   let output = Command::new(executable_path("sat-tracker"))
     .args([
-      "find-satoshi",
+      "find",
       "--blocksdir",
       tmpdir.path().to_str().unwrap(),
       "0",
@@ -36,7 +36,7 @@ fn first_satoshi_of_second_block() -> Result {
   populate_blockfile(File::create(tmpdir.path().join("blk00000.dat"))?, 1)?;
   let output = Command::new(executable_path("sat-tracker"))
     .args([
-      "find-satoshi",
+      "find",
       "--blocksdir",
       tmpdir.path().to_str().unwrap(),
       "5000000000",
