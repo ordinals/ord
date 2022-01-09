@@ -1,15 +1,23 @@
-use bitcoin::blockdata::constants::{genesis_block, COIN_VALUE, MAX_SEQUENCE};
-use bitcoin::blockdata::script;
-use bitcoin::consensus::Encodable;
-use bitcoin::hashes::sha256d;
-use bitcoin::{Block, BlockHeader, Network, OutPoint, Transaction, TxIn, TxOut};
-use std::fs::File;
-use std::io;
-use std::io::{Seek, SeekFrom, Write};
 use {
+  bitcoin::{
+    blockdata::constants::{genesis_block, COIN_VALUE, MAX_SEQUENCE},
+    blockdata::script,
+    consensus::Encodable,
+    hashes::sha256d,
+    {Block, BlockHeader, Network, OutPoint, Transaction, TxIn, TxOut},
+  },
   executable_path::executable_path,
-  std::{error::Error, process::Command, str},
+  std::{
+    error::Error,
+    fs::File,
+    io::{self, Seek, SeekFrom, Write},
+    process::Command,
+    str,
+  },
 };
+
+mod find;
+mod range;
 
 type Result = std::result::Result<(), Box<dyn Error>>;
 
@@ -80,66 +88,6 @@ fn populate_blockfile(mut output: File, height: usize) -> io::Result<()> {
     serialize_block(&mut output, &block)?;
     prev_block = block;
   }
-
-  Ok(())
-}
-
-#[test]
-fn find_satoshi_zero() -> Result {
-  let tmpdir = tempfile::tempdir()?;
-  populate_blockfile(File::create(tmpdir.path().join("blk00000.dat"))?, 0)?;
-  let output = Command::new(executable_path("sat-tracker"))
-    .args([
-      "find-satoshi",
-      "--blocksdir",
-      tmpdir.path().to_str().unwrap(),
-      "0",
-      "0",
-    ])
-    .output()?;
-
-  if !output.status.success() {
-    panic!(
-      "Command failed {}: {}",
-      output.status,
-      str::from_utf8(&output.stderr)?
-    );
-  }
-
-  assert_eq!(
-    str::from_utf8(&output.stdout)?,
-    "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0\n"
-  );
-
-  Ok(())
-}
-
-#[test]
-fn find_first_satoshi_of_second_block() -> Result {
-  let tmpdir = tempfile::tempdir()?;
-  populate_blockfile(File::create(tmpdir.path().join("blk00000.dat"))?, 1)?;
-  let output = Command::new(executable_path("sat-tracker"))
-    .args([
-      "find-satoshi",
-      "--blocksdir",
-      tmpdir.path().to_str().unwrap(),
-      "5000000000",
-      "1",
-    ])
-    .output()?;
-
-  if !output.status.success() {
-    panic!(
-      "Command failed {}: {}",
-      output.status,
-      str::from_utf8(&output.stderr)?
-    );
-  }
-
-  assert_eq!(
-    str::from_utf8(&output.stdout)?,
-    "e5fb252959bdc7727c80296dbc53e1583121503bb2e266a609ebc49cf2a74c1d:0\n",
-  );
 
   Ok(())
 }
