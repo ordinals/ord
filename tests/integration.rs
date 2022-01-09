@@ -88,7 +88,7 @@ fn populate_blockfile(mut output: File, height: usize) -> io::Result<()> {
 fn find_satoshi_zero() -> Result {
   let tmpdir = tempfile::tempdir()?;
   populate_blockfile(File::create(tmpdir.path().join("blk00000.dat"))?, 0)?;
-  let output = Command::new(executable_path("bitcoin-atoms"))
+  let output = Command::new(executable_path("sat-tracker"))
     .args([
       "find-satoshi",
       "--blocksdir",
@@ -118,7 +118,7 @@ fn find_satoshi_zero() -> Result {
 fn find_first_satoshi_of_second_block() -> Result {
   let tmpdir = tempfile::tempdir()?;
   populate_blockfile(File::create(tmpdir.path().join("blk00000.dat"))?, 1)?;
-  let output = Command::new(executable_path("bitcoin-atoms"))
+  let output = Command::new(executable_path("sat-tracker"))
     .args([
       "find-satoshi",
       "--blocksdir",

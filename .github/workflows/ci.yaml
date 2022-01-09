@@ -41,7 +41,7 @@ jobs:
 
     - name: Check Lockfile
       run: |
-        cargo update --locked --package bitcoin-atoms
+        cargo update --locked --package sat-tracker
 
     - name: Test
       run: cargo test --all
