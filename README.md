@@ -13,7 +13,7 @@ Satoshis are numbered in the order in which they are mined.
 Satoshi numbers only depend on how many satoshis could have been created in
 previous blocks, not how many were *actually* created.
 
-In particular, this means that block 124724, which underpaid the blcok subsidy
+In particular, this means that block 124724, which underpaid the block subsidy
 by one, does not reduce the serial numbers of satoshis in subsequent blocks by
 one.
 
