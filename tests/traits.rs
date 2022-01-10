@@ -53,6 +53,7 @@ fn nice() -> Result {
   assert!(traits(6969)?.contains("nice"));
   assert!(traits(696969)?.contains("nice"));
   assert!(!traits(696968)?.contains("nice"));
+  assert!(!traits(6969698)?.contains("nice"));
   Ok(())
 }
 

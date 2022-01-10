@@ -27,7 +27,7 @@ pub(crate) fn run(n: u64) -> Result {
     println!("pi");
   }
 
-  if digits.chunks(2).all(|chunk| chunk == &['6', '9']) {
+  if digits.chunks(2).all(|chunk| chunk == ['6', '9']) {
     println!("nice");
   }
 
@@ -38,12 +38,12 @@ pub(crate) fn run(n: u64) -> Result {
   println!(
     "luck:{}/{}",
     digits.iter().filter(|c| **c == '8').count(),
-    digits.iter().count()
+    digits.len()
   );
 
   println!(
     "population:{}",
-    (n * 0x0002000400080010 & 0x1111111111111111) * 0x1111111111111111 >> 60
+    (((n * 0x0002000400080010) & 0x1111111111111111) * 0x1111111111111111) >> 60
   );
 
   println!("name:{}", name(n));
