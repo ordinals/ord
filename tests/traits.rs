@@ -13,13 +13,6 @@ fn traits(n: u64) -> Result<BTreeSet<String>> {
 }
 
 #[test]
-fn zero() -> Result {
-  assert!(traits(0)?.contains("zero"));
-  assert!(!traits(1)?.contains("zero"));
-  Ok(())
-}
-
-#[test]
 fn genesis() -> Result {
   assert!(traits(0)?.contains("genesis"));
   assert!(traits(50 * COIN_VALUE - 1)?.contains("genesis"));
@@ -60,6 +53,7 @@ fn nice() -> Result {
   assert!(traits(6969)?.contains("nice"));
   assert!(traits(696969)?.contains("nice"));
   assert!(!traits(696968)?.contains("nice"));
+  assert!(!traits(6969698)?.contains("nice"));
   Ok(())
 }
 
@@ -93,11 +87,52 @@ fn block() -> Result {
 }
 
 #[test]
+fn lucky() -> Result {
+  assert!(traits(0)?.contains("luck:0/1"));
+  assert!(traits(8)?.contains("luck:1/1"));
+  assert!(traits(88)?.contains("luck:2/2"));
+  assert!(traits(89)?.contains("luck:1/2"));
+  Ok(())
+}
+
+#[test]
 fn shiny() -> Result {
   assert!(traits(0)?.contains("shiny"));
   assert!(!traits(1)?.contains("shiny"));
   assert!(!traits(50 * 100_000_000 - 1)?.contains("shiny"));
   assert!(traits(50 * 100_000_000)?.contains("shiny"));
   assert!(!traits(50 * 100_000_000 + 1)?.contains("shiny"));
+  Ok(())
+}
+
+#[test]
+fn population() -> Result {
+  assert!(traits(0)?.contains("population:0"));
+  assert!(traits(1)?.contains("population:1"));
+  assert!(traits(2)?.contains("population:1"));
+  assert!(traits(3)?.contains("population:2"));
+  assert!(traits(4)?.contains("population:1"));
+  Ok(())
+}
+
+#[test]
+fn square() -> Result {
+  assert!(traits(0)?.contains("square"));
+  assert!(traits(1)?.contains("square"));
+  assert!(!traits(2)?.contains("square"));
+  assert!(traits(4)?.contains("square"));
+  assert!(!traits(5)?.contains("square"));
+  assert!(traits(9)?.contains("square"));
+  Ok(())
+}
+
+#[test]
+fn cube() -> Result {
+  assert!(traits(0)?.contains("cube"));
+  assert!(traits(1)?.contains("cube"));
+  assert!(!traits(2)?.contains("cube"));
+  assert!(traits(8)?.contains("cube"));
+  assert!(!traits(9)?.contains("cube"));
+  assert!(traits(27)?.contains("cube"));
   Ok(())
 }
