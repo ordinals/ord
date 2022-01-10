@@ -19,6 +19,7 @@ use {
 };
 
 mod find;
+mod name;
 mod range;
 mod traits;
 

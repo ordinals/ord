@@ -10,6 +10,7 @@ use {
     ReadableTable, Table,
   },
   std::{
+    cmp::Ordering,
     fs,
     ops::Deref,
     path::{Path, PathBuf},
@@ -19,6 +20,7 @@ use {
 
 mod arguments;
 mod find;
+mod name;
 mod range;
 mod traits;
 
@@ -34,6 +36,20 @@ fn subsidy(height: u64) -> u64 {
   } else {
     0
   }
+}
+
+fn name(mut n: u64) -> String {
+  let mut name = String::new();
+  while n > 0 {
+    name.push(
+      "abcdefghijklmnopqrstuvwxyz"
+        .chars()
+        .nth(((n - 1) % 26) as usize)
+        .unwrap(),
+    );
+    n = (n - 1) / 26;
+  }
+  name.chars().rev().collect()
 }
 
 fn main() -> Result {

@@ -81,3 +81,13 @@ fn name() -> Result {
   assert!(traits(27)?.contains("name:aa"));
   Ok(())
 }
+
+#[test]
+fn block() -> Result {
+  assert!(traits(0)?.contains("block:0"));
+  assert!(traits(1)?.contains("block:0"));
+  assert!(traits(50 * 100_000_000 - 1)?.contains("block:0"));
+  assert!(traits(50 * 100_000_000)?.contains("block:1"));
+  assert!(traits(50 * 100_000_000 + 1)?.contains("block:1"));
+  Ok(())
+}
