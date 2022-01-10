@@ -1,5 +1,38 @@
 use super::*;
 
+fn isqrt(x: u64) -> u64 {
+  let mut a = 1;
+  let mut b = ((x >> 5) + 8).min(65536);
+  loop {
+    let m = (a + b) >> 1;
+    if m * m > x {
+      b = m - 1;
+    } else {
+      a = m + 1;
+    }
+
+    if b < a {
+      break;
+    }
+  }
+  a - 1
+}
+
+fn icbrt(mut x: u64) -> u64 {
+  let mut y = 0;
+  let mut s = 30;
+  while s >= 0 {
+    y = 2 * y;
+    let b = (3 * y * (y + 1) + 1) << s;
+    if x >= b {
+      x = x - b;
+      y = y + 1
+    }
+    s -= 3;
+  }
+  y
+}
+
 pub(crate) fn run(n: u64) -> Result {
   if n < subsidy(0) {
     println!("genesis");
@@ -11,11 +44,11 @@ pub(crate) fn run(n: u64) -> Result {
     println!("odd");
   }
 
-  if (n as f64).sqrt().fract() == 0.0 {
+  if isqrt(n) * isqrt(n) == n {
     println!("square");
   }
 
-  if (n as f64).cbrt().fract() == 0.0 {
+  if icbrt(n) * icbrt(n) * icbrt(n) == n {
     println!("cube");
   }
 
