@@ -21,12 +21,16 @@ pub(crate) fn run(n: u64) -> Result {
     println!("pi");
   }
 
-  if s.replace("69", "") == "" {
+  if s.replace("69", "").is_empty() {
     println!("nice");
   }
 
-  if s.replace("7", "") == "" {
+  if s.replace("7", "").is_empty() {
     println!("angelic");
+  }
+
+  if s.replace("8", "").is_empty() {
+    println!("lucky");
   }
 
   println!("name:{}", name(n));

@@ -91,3 +91,12 @@ fn block() -> Result {
   assert!(traits(50 * 100_000_000 + 1)?.contains("block:1"));
   Ok(())
 }
+
+#[test]
+fn lucky() -> Result {
+  assert!(!traits(0)?.contains("lucky"));
+  assert!(traits(8)?.contains("lucky"));
+  assert!(traits(88)?.contains("lucky"));
+  assert!(!traits(89)?.contains("lucky"));
+  Ok(())
+}
