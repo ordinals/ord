@@ -35,8 +35,7 @@ pub(crate) fn run(n: u64) -> Result {
     name.push(
       "abcdefghijklmnopqrstuvwxyz"
         .chars()
-        .skip(((remainder - 1) % 26) as usize)
-        .next()
+        .nth(((remainder - 1) % 26) as usize)
         .unwrap(),
     );
     remainder = (remainder - 1) / 26;
