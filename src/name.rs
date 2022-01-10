@@ -14,6 +14,10 @@ pub(crate) fn run(needle: &str) -> Result {
       Ordering::Greater => max = guess,
     }
 
+    if max == min {
+      return Err("Could not find name!".into());
+    }
+
     guess = min + (max - min) / 2;
   }
 
