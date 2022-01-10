@@ -2,7 +2,7 @@ use super::*;
 
 pub(crate) fn run(needle: &str) -> Result {
   for c in needle.chars() {
-    if c < 'a' || c > 'z' {
+    if !('a'..='z').contains(&c) {
       return Err("Invalid name".into());
     }
   }
