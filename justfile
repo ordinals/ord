@@ -5,5 +5,5 @@ export RUST_LOG := log
 clippy:
   cargo clippy
 
-watch +args='ltest':
+watch +args='ltest --release':
   cargo watch --clear --exec '{{args}}'
