@@ -8,12 +8,7 @@ pub(crate) fn run(needle: &str) -> Result {
   loop {
     let name = name(guess);
 
-    match name
-      .len()
-      .cmp(&needle.len())
-      .then(name.deref().cmp(needle))
-      .reverse()
-    {
+    match name.len().cmp(&needle.len()).then(name.deref().cmp(needle)) {
       Ordering::Less => min = guess - 1,
       Ordering::Equal => break,
       Ordering::Greater => max = guess + 1,
