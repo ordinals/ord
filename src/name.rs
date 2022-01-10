@@ -14,8 +14,6 @@ pub(crate) fn run(needle: &str) -> Result {
       Ordering::Greater => max = guess + 1,
     }
 
-    eprintln!("{} {}", min, max);
-
     guess = min + (max - min) / 2;
   }
 
