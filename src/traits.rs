@@ -34,6 +34,10 @@ pub(crate) fn run(n: u64) -> Result {
   let mut block = 0;
   let mut mined = 0;
   loop {
+    if n == mined {
+      println!("shiny");
+    }
+
     mined += subsidy(block);
 
     if mined > n {
