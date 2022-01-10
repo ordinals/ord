@@ -43,7 +43,8 @@ pub(crate) fn run(n: u64) -> Result {
 
   println!(
     "population:{}",
-    (((n * 0x0002000400080010) & 0x1111111111111111) * 0x1111111111111111) >> 60
+    (n.wrapping_mul(0x0002000400080010) & 0x1111111111111111).wrapping_mul(0x1111111111111111)
+      >> 60
   );
 
   println!("name:{}", name(n));
