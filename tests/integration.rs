@@ -8,18 +8,93 @@ use {
   },
   executable_path::executable_path,
   std::{
+    collections::BTreeSet,
     error::Error,
-    fs::File,
+    fs::{self, File},
     io::{self, Seek, SeekFrom, Write},
     process::Command,
     str,
   },
+  tempfile::TempDir,
 };
 
 mod find;
 mod range;
+mod traits;
 
-type Result = std::result::Result<(), Box<dyn Error>>;
+type Result<T = ()> = std::result::Result<T, Box<dyn Error>>;
+
+struct Test {
+  args: Vec<String>,
+  expected_stdout: String,
+  ignore_stdout: bool,
+  tempdir: TempDir,
+}
+
+impl Test {
+  fn new() -> Result<Self> {
+    Ok(Self {
+      args: Vec::new(),
+      expected_stdout: String::new(),
+      ignore_stdout: false,
+      tempdir: TempDir::new()?,
+    })
+  }
+
+  fn args(self, args: &[&str]) -> Self {
+    Self {
+      args: self
+        .args
+        .into_iter()
+        .chain(args.iter().cloned().map(str::to_owned))
+        .collect(),
+      ..self
+    }
+  }
+
+  fn expected_stdout(self, expected_stdout: &str) -> Self {
+    Self {
+      expected_stdout: expected_stdout.to_owned(),
+      ..self
+    }
+  }
+
+  fn ignore_stdout(self) -> Self {
+    Self {
+      ignore_stdout: true,
+      ..self
+    }
+  }
+
+  fn run(self) -> Result {
+    self.run_with_stdout().map(|_| ())
+  }
+
+  fn run_with_stdout(self) -> Result<String> {
+    let blocksdir = self.tempdir.path().join("blocks");
+    fs::create_dir(&blocksdir)?;
+    populate_blockfile(File::create(blocksdir.join("blk00000.dat"))?, 1)?;
+
+    let output = Command::new(executable_path("sat-tracker"))
+      .current_dir(&self.tempdir)
+      .args(self.args)
+      .output()?;
+
+    let stderr = str::from_utf8(&output.stderr)?;
+
+    if !output.status.success() {
+      panic!("Test failed: {}\n{}", output.status, stderr);
+    }
+
+    let stdout = str::from_utf8(&output.stdout)?;
+
+    if !self.ignore_stdout {
+      assert_eq!(stdout, self.expected_stdout);
+    }
+
+    Ok(stdout.to_owned())
+  }
+}
 
 fn generate_transaction(height: usize) -> Transaction {
   // Base

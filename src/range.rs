@@ -11,15 +11,3 @@ pub(crate) fn run(height: u64) -> Result {
 
   Ok(())
 }
-
-fn subsidy(height: u64) -> u64 {
-  let subsidy = 50 * COIN_VALUE;
-
-  let halvings = height / 210000;
-
-  if halvings < 64 {
-    subsidy >> halvings
-  } else {
-    0
-  }
-}

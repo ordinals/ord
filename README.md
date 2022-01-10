@@ -55,10 +55,24 @@ fn transfer(transaction: Transaction) {
 }
 ```
 
-The `find` command, unfinished, gives the current outpoint containing a given
-satoshi as of a given height:
+The `find` command, as of yet unfinished, gives the current outpoint containing
+a given satoshi as of a given height:
 
 ```
 $ sat-tracker find --blocksdir ~/.bicoin/blocks 0 0
 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0
+```
+
+
+## Traits
+
+Satoshis have traits, based on their number.
+
+The `traits` command prints out the traits of a given satoshi:
+
+```
+$ sat-tracker traits 0
+zero
+genesis
+even
 ```

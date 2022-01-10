@@ -15,4 +15,4 @@ tempfile = "3.2.0"
 
 [[test]]
 name = "integration"
-path = "tests/lib.rs"
+path = "tests/integration.rs"
