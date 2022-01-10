@@ -1,10 +1,6 @@
 use super::*;
 
 pub(crate) fn run(n: u64) -> Result {
-  if n == 0 {
-    println!("zero");
-  }
-
   if n < subsidy(0) {
     println!("genesis");
   }
@@ -15,23 +11,40 @@ pub(crate) fn run(n: u64) -> Result {
     println!("odd");
   }
 
+  if (n as f64).sqrt().fract() == 0.0 {
+    println!("square");
+  }
+
+  if (n as f64).cbrt().fract() == 0.0 {
+    println!("cube");
+  }
+
+  let digits = n.to_string().chars().collect::<Vec<char>>();
+
   let pi = std::f64::consts::PI.to_string().replace('.', "");
   let s = n.to_string();
   if s == pi[..s.len()] {
     println!("pi");
   }
 
-  if s.replace("69", "").is_empty() {
+  if digits.chunks(2).all(|chunk| chunk == &['6', '9']) {
     println!("nice");
   }
 
-  if s.replace("7", "").is_empty() {
+  if digits.iter().all(|c| *c == '7') {
     println!("angelic");
   }
 
-  if s.replace("8", "").is_empty() {
-    println!("lucky");
-  }
+  println!(
+    "luck:{}/{}",
+    digits.iter().filter(|c| **c == '8').count(),
+    digits.iter().count()
+  );
+
+  println!(
+    "population:{}",
+    (n * 0x0002000400080010 & 0x1111111111111111) * 0x1111111111111111 >> 60
+  );
 
   println!("name:{}", name(n));
 
