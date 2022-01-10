@@ -22,11 +22,12 @@ fn icbrt(mut x: u64) -> u64 {
   let mut y = 0;
   let mut s = 30;
   while s >= 0 {
-    y = 2 * y;
-    let b = (3 * y * (y + 1) + 1) << s;
-    if x >= b {
-      x = x - b;
-      y = y + 1
+    y *= 2;
+    let b = 3 * y * (y + 1) + 1;
+    let bs = b << s;
+    if x >= bs && b == (bs >> s) {
+      x -= b;
+      y += 1
     }
     s -= 3;
   }
