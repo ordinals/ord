@@ -8,7 +8,7 @@ pub(crate) fn run(needle: &str) -> Result {
   }
 
   let mut min = 0;
-  let mut max = 2099999997689999;
+  let mut max = 2099999997690000;
   let mut guess = max / 2;
 
   loop {

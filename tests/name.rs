@@ -25,6 +25,14 @@ fn b() -> Result {
 }
 
 #[test]
+fn end_of_range() -> Result {
+  Test::new()?
+    .args(&["name", "nvtdijuwxlo"])
+    .expected_stdout("2099999997689999\n")
+    .run()
+}
+
+#[test]
 fn out_of_range() -> Result {
   Test::new()?
     .args(&["name", "nvtdijuwxlp"])
