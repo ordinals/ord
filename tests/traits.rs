@@ -100,3 +100,13 @@ fn lucky() -> Result {
   assert!(!traits(89)?.contains("lucky"));
   Ok(())
 }
+
+#[test]
+fn shiny() -> Result {
+  assert!(traits(0)?.contains("shiny"));
+  assert!(!traits(1)?.contains("shiny"));
+  assert!(!traits(50 * 100_000_000 - 1)?.contains("shiny"));
+  assert!(traits(50 * 100_000_000)?.contains("shiny"));
+  assert!(!traits(50 * 100_000_000 + 1)?.contains("shiny"));
+  Ok(())
+}
