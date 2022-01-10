@@ -1,21 +1,29 @@
 use super::*;
 
 pub(crate) fn run(needle: &str) -> Result {
+  for c in needle.chars() {
+    if c < 'a' || c > 'z' {
+      return Err("Invalid name".into());
+    }
+  }
+
   let mut min = 0;
-  let mut max = u64::max_value();
+  let mut max = 2099999997689999;
   let mut guess = max / 2;
 
   loop {
+    log::info!("min max guess: {} {} {}", min, max, guess);
+
     let name = name(guess);
 
     match name.len().cmp(&needle.len()).then(name.deref().cmp(needle)) {
-      Ordering::Less => min = guess,
+      Ordering::Less => min = guess + 1,
       Ordering::Equal => break,
       Ordering::Greater => max = guess,
     }
 
-    if max == min {
-      return Err("Could not find name!".into());
+    if max - min == 0 {
+      return Err("Name out of range".into());
     }
 
     guess = min + (max - min) / 2;

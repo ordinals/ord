@@ -23,3 +23,21 @@ fn b() -> Result {
     .expected_stdout("2\n")
     .run()
 }
+
+#[test]
+fn out_of_range() -> Result {
+  Test::new()?
+    .args(&["name", "nvtdijuwxlp"])
+    .expected_stderr("error: Name out of range\n")
+    .expected_status(1)
+    .run()
+}
+
+#[test]
+fn invalid() -> Result {
+  Test::new()?
+    .args(&["name", "0"])
+    .expected_stderr("error: Invalid name\n")
+    .expected_status(1)
+    .run()
+}

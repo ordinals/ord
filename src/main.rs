@@ -14,6 +14,7 @@ use {
     fs,
     ops::Deref,
     path::{Path, PathBuf},
+    process,
   },
   structopt::StructOpt,
 };
@@ -52,6 +53,11 @@ fn name(mut n: u64) -> String {
   name.chars().rev().collect()
 }
 
-fn main() -> Result {
-  Arguments::from_args().run()
+fn main() {
+  env_logger::init();
+
+  if let Err(error) = Arguments::from_args().run() {
+    eprintln!("error: {}", error);
+    process::exit(1);
+  }
 }
