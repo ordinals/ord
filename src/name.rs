@@ -9,9 +9,9 @@ pub(crate) fn run(needle: &str) -> Result {
     let name = name(guess);
 
     match name.len().cmp(&needle.len()).then(name.deref().cmp(needle)) {
-      Ordering::Less => min = guess - 1,
+      Ordering::Less => min = guess,
       Ordering::Equal => break,
-      Ordering::Greater => max = guess + 1,
+      Ordering::Greater => max = guess,
     }
 
     guess = min + (max - min) / 2;
