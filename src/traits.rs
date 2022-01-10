@@ -90,15 +90,22 @@ pub(crate) fn run(n: u64) -> Result {
       println!("shiny");
     }
 
-    mined += subsidy(block);
+    let subsidy = subsidy(block);
+
+    if subsidy == 0 {
+      println!("block:∞");
+      break;
+    }
+
+    mined += subsidy;
 
     if mined > n {
+      println!("block:{}", block);
       break;
     }
 
     block += 1;
   }
-  println!("block:{}", block);
 
   Ok(())
 }
