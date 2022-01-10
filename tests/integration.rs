@@ -8,6 +8,7 @@ use {
   },
   executable_path::executable_path,
   std::{
+    collections::BTreeSet,
     error::Error,
     fs::{self, File},
     io::{self, Seek, SeekFrom, Write},
@@ -26,6 +27,7 @@ type Result<T = ()> = std::result::Result<T, Box<dyn Error>>;
 struct Test {
   args: Vec<String>,
   expected_stdout: String,
+  ignore_stdout: bool,
   tempdir: TempDir,
 }
 
@@ -34,6 +36,7 @@ impl Test {
     Ok(Self {
       args: Vec::new(),
       expected_stdout: String::new(),
+      ignore_stdout: false,
       tempdir: TempDir::new()?,
     })
   }
@@ -56,7 +59,18 @@ impl Test {
     }
   }
 
+  fn ignore_stdout(self) -> Self {
+    Self {
+      ignore_stdout: true,
+      ..self
+    }
+  }
+
   fn run(self) -> Result {
+    self.run_with_stdout().map(|_| ())
+  }
+
+  fn run_with_stdout(self) -> Result<String> {
     let blocksdir = self.tempdir.path().join("blocks");
     fs::create_dir(&blocksdir)?;
     populate_blockfile(File::create(blocksdir.join("blk00000.dat"))?, 1)?;
@@ -72,9 +86,13 @@ impl Test {
       panic!("Test failed: {}\n{}", output.status, stderr);
     }
 
-    assert_eq!(str::from_utf8(&output.stdout)?, self.expected_stdout);
+    let stdout = str::from_utf8(&output.stdout)?;
 
-    Ok(())
+    if !self.ignore_stdout {
+      assert_eq!(stdout, self.expected_stdout);
+    }
+
+    Ok(stdout.to_owned())
   }
 }
 
