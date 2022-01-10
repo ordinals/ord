@@ -1,5 +1,9 @@
+log := '0'
+
+export RUST_LOG := log
+
 catalog:
   cargo run catalog
 
-watch:
-  cargo watch --clear --exec 'ltest --release'
+watch +args='ltest --release':
+  cargo watch --clear --exec '{{args}}'

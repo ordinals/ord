@@ -51,7 +51,7 @@ pub(crate) fn run(blocksdir: &Path, n: u64, at_height: u64) -> Result<()> {
       count += 1;
     }
 
-    eprintln!("Inserted {} blocks…", count);
+    log::info!("Inserted {} blocks…", count);
 
     tx.commit()?;
   }

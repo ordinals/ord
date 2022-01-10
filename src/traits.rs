@@ -29,18 +29,20 @@ pub(crate) fn run(n: u64) -> Result {
     println!("angelic");
   }
 
-  let mut name = String::new();
-  let mut remainder = n;
-  while remainder > 0 {
-    name.push(
-      "abcdefghijklmnopqrstuvwxyz"
-        .chars()
-        .nth(((remainder - 1) % 26) as usize)
-        .unwrap(),
-    );
-    remainder = (remainder - 1) / 26;
+  println!("name:{}", name(n));
+
+  let mut block = 0;
+  let mut mined = 0;
+  loop {
+    mined += subsidy(block);
+
+    if mined > n {
+      break;
+    }
+
+    block += 1;
   }
-  println!("name:{}", name.chars().rev().collect::<String>());
+  println!("block:{}", block);
 
   Ok(())
 }

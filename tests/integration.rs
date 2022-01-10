@@ -19,6 +19,7 @@ use {
 };
 
 mod find;
+mod name;
 mod range;
 mod traits;
 
@@ -27,6 +28,8 @@ type Result<T = ()> = std::result::Result<T, Box<dyn Error>>;
 struct Test {
   args: Vec<String>,
   expected_stdout: String,
+  expected_stderr: String,
+  expected_status: i32,
   ignore_stdout: bool,
   tempdir: TempDir,
 }
@@ -36,6 +39,8 @@ impl Test {
     Ok(Self {
       args: Vec::new(),
       expected_stdout: String::new(),
+      expected_stderr: String::new(),
+      expected_status: 0,
       ignore_stdout: false,
       tempdir: TempDir::new()?,
     })
@@ -55,6 +60,20 @@ impl Test {
   fn expected_stdout(self, expected_stdout: &str) -> Self {
     Self {
       expected_stdout: expected_stdout.to_owned(),
+      ..self
+    }
+  }
+
+  fn expected_stderr(self, expected_stderr: &str) -> Self {
+    Self {
+      expected_stderr: expected_stderr.to_owned(),
+      ..self
+    }
+  }
+
+  fn expected_status(self, expected_status: i32) -> Self {
+    Self {
+      expected_status,
       ..self
     }
   }
@@ -82,9 +101,11 @@ impl Test {
 
     let stderr = str::from_utf8(&output.stderr)?;
 
-    if !output.status.success() {
+    if output.status.code() != Some(self.expected_status) {
       panic!("Test failed: {}\n{}", output.status, stderr);
     }
+
+    assert_eq!(stderr, self.expected_stderr);
 
     let stdout = str::from_utf8(&output.stdout)?;
 

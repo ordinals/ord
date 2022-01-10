@@ -76,3 +76,15 @@ zero
 genesis
 even
 ```
+
+## Names
+
+The name trait is of particular interest, as it can serve as the basis for a
+decentralized naming system.
+
+The `name` command finds the satoshi with the given name:
+
+```
+$ sat-tracker name nvtdijuwxlp
+2099999997690000
+```

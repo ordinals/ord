@@ -8,6 +8,9 @@ pub enum Arguments {
     n: u64,
     height: u64,
   },
+  Name {
+    name: String,
+  },
   Range {
     height: u64,
   },
@@ -24,6 +27,7 @@ impl Arguments {
         n,
         height,
       } => crate::find::run(&blocksdir, n, height),
+      Self::Name { name } => crate::name::run(&name),
       Self::Range { height } => crate::range::run(height),
       Self::Traits { n } => crate::traits::run(n),
     }
