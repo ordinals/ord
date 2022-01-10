@@ -42,3 +42,42 @@ fn odd() -> Result {
   assert!(!traits(2)?.contains("odd"));
   Ok(())
 }
+
+#[test]
+fn pi() -> Result {
+  assert!(!traits(0)?.contains("pi"));
+  assert!(traits(3)?.contains("pi"));
+  assert!(traits(31)?.contains("pi"));
+  assert!(traits(314)?.contains("pi"));
+  assert!(!traits(3145)?.contains("pi"));
+  Ok(())
+}
+
+#[test]
+fn nice() -> Result {
+  assert!(!traits(0)?.contains("nice"));
+  assert!(traits(69)?.contains("nice"));
+  assert!(traits(6969)?.contains("nice"));
+  assert!(traits(696969)?.contains("nice"));
+  assert!(!traits(696968)?.contains("nice"));
+  Ok(())
+}
+
+#[test]
+fn divine() -> Result {
+  assert!(!traits(0)?.contains("angelic"));
+  assert!(traits(7)?.contains("angelic"));
+  assert!(traits(77)?.contains("angelic"));
+  assert!(traits(777)?.contains("angelic"));
+  assert!(!traits(778)?.contains("angelic"));
+  Ok(())
+}
+
+#[test]
+fn name() -> Result {
+  assert!(traits(0)?.contains("name:"));
+  assert!(traits(1)?.contains("name:a"));
+  assert!(traits(26)?.contains("name:z"));
+  assert!(traits(27)?.contains("name:aa"));
+  Ok(())
+}
