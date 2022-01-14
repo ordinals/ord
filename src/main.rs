@@ -11,13 +11,7 @@ use {
     Database, MultimapTable, ReadOnlyMultimapTable, ReadOnlyTable, ReadableMultimapTable,
     ReadableTable, Table,
   },
-  std::{
-    cmp::Ordering,
-    fs,
-    ops::Deref,
-    path::{Path, PathBuf},
-    process,
-  },
+  std::{cmp::Ordering, fs, ops::Deref, path::PathBuf, process},
   structopt::StructOpt,
 };
 
