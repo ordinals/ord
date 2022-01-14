@@ -8,21 +8,22 @@ Satoshi serial numbers can be used as an addressing scheme for NFTs.
 
 ## Numbering
 
-Satoshis are numbered in the order in which they are mined.
+Satoshis are numbered in descending order, starting at 2099999997689999 in the
+genesis block. Satoshi 0 will be mined in block 6929999, the last block with a
+subsidy.
 
 Satoshi numbers only depend on how many satoshis could have been created in
 previous blocks, not how many were *actually* created.
 
 In particular, this means that block 124724, which underpaid the block subsidy
-by one, does not reduce the serial numbers of satoshis in subsequent blocks by
-one.
+by one, does not affect the serial numbers of satoshis in subsequent blocks.
 
 The `range` command gives the half-open range of satoshis mined in the block at
 a given height:
 
 ```
 $ sat-tracker range 0
-0 50000000000
+2099999997689999 2099994997689999
 ```
 
 See [src/range.rs](src/range.rs) for the numbering algorithm.
@@ -86,5 +87,5 @@ The `name` command finds the satoshi with the given name:
 
 ```
 $ sat-tracker name nvtdijuwxlp
-2099999997690000
+2099999997689999
 ```
