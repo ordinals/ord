@@ -94,6 +94,8 @@ fn lucky() -> Result {
   assert!(traits(8)?.contains("luck:1/1"));
   assert!(traits(88)?.contains("luck:2/2"));
   assert!(traits(89)?.contains("luck:1/2"));
+  assert!(traits(84)?.contains("luck:0/2"));
+  assert!(traits(4)?.contains("luck:-1/1"));
   Ok(())
 }
 
