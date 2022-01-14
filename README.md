@@ -89,3 +89,13 @@ The `name` command finds the satoshi with the given name:
 $ sat-tracker name nvtdijuwxlp
 2099999997689999
 ```
+
+## Open Questions
+
+- Satoshis are numbered in descending order. Numbering them in ascending order
+  would be more natural, but it has the unfortunate consequence that satoshis
+  with short, and thus desirable serial numbers, are stuck in the genesis block
+  coinbase output, which is unspendable. Using descending order does have the
+  nice benefit that they serve as legible count-down to the final satoshi to be
+  mined. However, I'm not totally convinced that this tradeoff is worth the
+  potential confusion.
