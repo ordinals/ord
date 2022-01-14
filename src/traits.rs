@@ -48,6 +48,10 @@ pub(crate) fn run(n: u64) -> Result {
 
   println!("name:{}", name(n));
 
+  if let Some(character) = char::from_u32((n % 0x110000) as u32) {
+    println!("character:{}", character);
+  }
+
   let mut block = 0;
   let mut mined = 0;
   loop {
