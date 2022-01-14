@@ -1,8 +1,8 @@
 use super::*;
 
 pub(crate) fn run(n: u64) -> Result {
-  if n < subsidy(0) {
-    println!("genesis");
+  if n > 2099999997689999 {
+    return Err("Invalid satoshi".into());
   }
 
   if n % 2 == 0 {
@@ -38,34 +38,33 @@ pub(crate) fn run(n: u64) -> Result {
   }
 
   println!(
-    "luck:{}/{}",
+    "luck: {}/{}",
     digits.iter().filter(|c| **c == '8').count() as i64
       - digits.iter().filter(|c| **c == '4').count() as i64,
     digits.len()
   );
 
-  println!("population:{}", pop(n),);
+  println!("population: {}", population(n));
 
-  println!("name:{}", name(n));
+  println!("name: {}", name(n));
+
+  if let Some(character) = char::from_u32((n % 0x110000) as u32) {
+    println!("character: {:?}", character);
+  }
 
   let mut block = 0;
-  let mut mined = 0;
+  let mut remaining = SUPPLY;
   loop {
-    if n == mined {
+    if n == remaining - 1 {
       println!("shiny");
     }
 
     let subsidy = subsidy(block);
 
-    if subsidy == 0 {
-      println!("block:∞");
-      break;
-    }
+    remaining -= subsidy;
 
-    mined += subsidy;
-
-    if mined > n {
-      println!("block:{}", block);
+    if remaining <= n {
+      println!("block: {}", block);
       break;
     }
 
