@@ -8,6 +8,7 @@ autotests = false
 
 [dependencies]
 bitcoin = "0.27.1"
+dirs = "4.0.0"
 env_logger = "0.9.0"
 executable-path = "1.0.0"
 integer-cbrt = "0.1.2"

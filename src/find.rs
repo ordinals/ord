@@ -5,7 +5,23 @@ const HEIGHTS: &str = "heights";
 const BLOCK_OFFSETS: &str = "block_offsets";
 const HEIGHTS_TO_HASHES: &str = "height_to_hashes";
 
-pub(crate) fn run(blocksdir: &Path, n: u64, at_height: u64) -> Result<()> {
+pub(crate) fn run(blocksdir: Option<PathBuf>, n: u64, at_height: u64) -> Result<()> {
+  let blocksdir = if let Some(blocksdir) = blocksdir {
+    blocksdir
+  } else if cfg!(target_os = "macos") {
+    dirs::home_dir()
+      .ok_or("Unable to retrieve home directory")?
+      .join("Library/Application Support/Bitcoin/blocks")
+  } else if cfg!(target_os = "windows") {
+    dirs::data_dir()
+      .ok_or("Unable to retrieve home directory")?
+      .join("Bitcoin/blocks")
+  } else {
+    dirs::home_dir()
+      .ok_or("Unable to retrieve home directory")?
+      .join(".bitcoin/blocks")
+  };
+
   let tempdir = tempfile::tempdir()?;
   let blockfile = blocksdir.join("blk00000.dat");
 

@@ -4,7 +4,7 @@ use super::*;
 pub enum Arguments {
   Find {
     #[structopt(long)]
-    blocksdir: PathBuf,
+    blocksdir: Option<PathBuf>,
     n: u64,
     height: u64,
   },
@@ -27,7 +27,7 @@ impl Arguments {
         blocksdir,
         n,
         height,
-      } => crate::find::run(&blocksdir, n, height),
+      } => crate::find::run(blocksdir, n, height),
       Self::Name { name } => crate::name::run(&name),
       Self::Range { height } => crate::range::run(height),
       Self::Supply => crate::supply::run(),

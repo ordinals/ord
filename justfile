@@ -2,9 +2,11 @@ log := '0'
 
 export RUST_LOG := log
 
-all: clippy
+ci: clippy
+  cargo fmt -- --check
   cargo test --release
   cargo test
+
 
 clippy:
   cargo clippy
