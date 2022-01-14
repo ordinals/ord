@@ -149,6 +149,7 @@ fn cursed() -> Result {
   assert!(traits(1476379997689999)?.contains("cursed"));
   assert!(traits(1476379997689999 - 50 * 100_000_000 + 1)?.contains("cursed"));
   assert!(!traits(1476379997689999 - 50 * 100_000_000)?.contains("cursed"));
+  assert!(!traits(1476374997689999 - 50 * 100_000_000 + 1)?.contains("cursed"));
   Ok(())
 }
 
