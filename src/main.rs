@@ -67,13 +67,13 @@ fn name(mut n: u64) -> String {
   name.chars().rev().collect()
 }
 
-fn pop(mut n: u64) -> u64 {
-  let mut pop = 0;
+fn population(mut n: u64) -> u64 {
+  let mut population = 0;
   while n > 0 {
-    pop += n & 1;
+    population += n & 1;
     n >>= 1;
   }
-  pop
+  population
 }
 
 #[cfg(test)]
@@ -115,9 +115,9 @@ mod tests {
   }
 
   #[test]
-  fn pops() {
-    assert_eq!(pop(0), 0);
-    assert_eq!(pop(1), 1);
-    assert_eq!(pop(u64::max_value()), 64);
+  fn populations() {
+    assert_eq!(population(0), 0);
+    assert_eq!(population(1), 1);
+    assert_eq!(population(u64::max_value()), 64);
   }
 }
