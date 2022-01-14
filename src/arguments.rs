@@ -14,6 +14,7 @@ pub enum Arguments {
   Range {
     height: u64,
   },
+  Supply,
   Traits {
     n: u64,
   },
@@ -29,6 +30,7 @@ impl Arguments {
       } => crate::find::run(&blocksdir, n, height),
       Self::Name { name } => crate::name::run(&name),
       Self::Range { height } => crate::range::run(height),
+      Self::Supply => crate::supply::run(),
       Self::Traits { n } => crate::traits::run(n),
     }
   }

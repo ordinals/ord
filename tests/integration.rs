@@ -16,11 +16,13 @@ use {
     str,
   },
   tempfile::TempDir,
+  unindent::Unindent,
 };
 
 mod find;
 mod name;
 mod range;
+mod supply;
 mod traits;
 
 type Result<T = ()> = std::result::Result<T, Box<dyn Error>>;

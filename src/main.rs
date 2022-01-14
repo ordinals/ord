@@ -5,6 +5,8 @@ use {
     consensus::Decodable,
     Block, Network,
   },
+  integer_cbrt::IntegerCubeRoot,
+  integer_sqrt::IntegerSquareRoot,
   redb::{
     Database, MultimapTable, ReadOnlyMultimapTable, ReadOnlyTable, ReadableMultimapTable,
     ReadableTable, Table,
@@ -23,9 +25,21 @@ mod arguments;
 mod find;
 mod name;
 mod range;
+mod supply;
 mod traits;
 
 type Result<T = (), E = Box<dyn std::error::Error>> = std::result::Result<T, E>;
+
+fn main() {
+  env_logger::init();
+
+  if let Err(error) = Arguments::from_args().run() {
+    eprintln!("error: {}", error);
+    process::exit(1);
+  }
+}
+
+const SUPPLY: u64 = 2099999997690000;
 
 fn subsidy(height: u64) -> u64 {
   let subsidy = 50 * COIN_VALUE;
@@ -53,11 +67,57 @@ fn name(mut n: u64) -> String {
   name.chars().rev().collect()
 }
 
-fn main() {
-  env_logger::init();
+fn pop(mut n: u64) -> u64 {
+  let mut pop = 0;
+  while n > 0 {
+    pop += n & 1;
+    n >>= 1;
+  }
+  pop
+}
 
-  if let Err(error) = Arguments::from_args().run() {
-    eprintln!("error: {}", error);
-    process::exit(1);
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn subsidies() {
+    assert_eq!(subsidy(0), 5000000000);
+    assert_eq!(subsidy(1), 5000000000);
+    assert_eq!(subsidy(210000 - 1), 5000000000);
+    assert_eq!(subsidy(210000), 2500000000);
+    assert_eq!(subsidy(210000 + 1), 2500000000);
+  }
+
+  #[test]
+  fn names() {
+    assert_eq!(name(0), "");
+    assert_eq!(name(1), "a");
+    assert_eq!(name(26), "z");
+    assert_eq!(name(27), "aa");
+  }
+
+  #[test]
+  fn supply() {
+    let mut mined = 0;
+
+    for height in 0.. {
+      let subsidy = subsidy(height);
+
+      if subsidy == 0 {
+        break;
+      }
+
+      mined += subsidy;
+    }
+
+    assert_eq!(SUPPLY, mined);
+  }
+
+  #[test]
+  fn pops() {
+    assert_eq!(pop(0), 0);
+    assert_eq!(pop(1), 1);
+    assert_eq!(pop(u64::max_value()), 64);
   }
 }
