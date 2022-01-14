@@ -71,5 +71,11 @@ pub(crate) fn run(n: u64) -> Result {
     block += 1;
   }
 
+  if n == 1476369997690000 {
+    println!("illusive");
+  } else if block == 124724 {
+    println!("cursed");
+  }
+
   Ok(())
 }

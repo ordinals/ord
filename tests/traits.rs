@@ -141,3 +141,22 @@ fn character() -> Result {
   assert!(traits(0x110041)?.contains("character: 'A'"));
   Ok(())
 }
+
+#[test]
+fn cursed() -> Result {
+  assert!(!traits(0)?.contains("cursed"));
+  assert!(!traits(1476379997690000)?.contains("cursed"));
+  assert!(traits(1476379997689999)?.contains("cursed"));
+  assert!(traits(1476379997689999 - 50 * 100_000_000 + 1)?.contains("cursed"));
+  assert!(!traits(1476379997689999 - 50 * 100_000_000)?.contains("cursed"));
+  assert!(!traits(1476374997689999 - 50 * 100_000_000 + 1)?.contains("cursed"));
+  Ok(())
+}
+
+#[test]
+fn illusive() -> Result {
+  assert!(!traits(1476374997689999 - 50 * 100_000_000 + 2)?.contains("illusive"));
+  assert!(traits(1476374997689999 - 50 * 100_000_000 + 1)?.contains("illusive"));
+  assert!(!traits(1476374997689999 - 50 * 100_000_000 - 1)?.contains("illusive"));
+  Ok(())
+}
