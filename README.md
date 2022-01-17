@@ -70,6 +70,10 @@ $ sat-tracker find --blocksdir ~/.bicoin/blocks 0 0
 
 Satoshis have traits, based on their number.
 
+NB: Traits should be considered *UNSTABLE*. In particular, the satoshis with
+short names will not be available for quite some time, which might be desirable
+to fix, and would require an overhaul of the name trait.
+
 The `traits` command prints out the traits of a given satoshi:
 
 ```
