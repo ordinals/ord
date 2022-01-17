@@ -7,8 +7,9 @@ fn genesis() -> Result {
     .expected_stdout(
       &"
       supply: 2099999997690000
-      first: 2099999997689999
-      last subsidy block: 6929999
+      first: 0
+      last: 2099999997689999
+      last mined in block: 6929999
       "
       .unindent(),
     )

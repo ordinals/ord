@@ -53,17 +53,17 @@ pub(crate) fn run(n: u64) -> Result {
   }
 
   let mut block = 0;
-  let mut remaining = SUPPLY;
+  let mut mined = 0;
   loop {
-    if n == remaining - 1 {
+    if n == mined {
       println!("shiny");
     }
 
     let subsidy = subsidy(block);
 
-    remaining -= subsidy;
+    mined += subsidy;
 
-    if remaining <= n {
+    if mined > n {
       println!("block: {}", block);
       break;
     }
@@ -71,7 +71,7 @@ pub(crate) fn run(n: u64) -> Result {
     block += 1;
   }
 
-  if n == 1476369997690000 {
+  if n == 623624999999999 {
     println!("illusive");
   } else if block == 124724 {
     println!("cursed");
