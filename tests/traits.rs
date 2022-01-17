@@ -61,10 +61,14 @@ fn divine() -> Result {
 
 #[test]
 fn name() -> Result {
-  assert!(traits(0)?.contains("name: "));
-  assert!(traits(1)?.contains("name: a"));
-  assert!(traits(26)?.contains("name: z"));
-  assert!(traits(27)?.contains("name: aa"));
+  assert!(traits(2099999997689999)?.contains("name: "));
+  assert!(traits(2099999997689999 - 1)?.contains("name: a"));
+  assert!(traits(2099999997689999 - 26)?.contains("name: z"));
+  assert!(traits(2099999997689999 - 27)?.contains("name: aa"));
+  assert!(traits(0)?.contains("name: nvtdijuwxlo"));
+  assert!(traits(1)?.contains("name: nvtdijuwxln"));
+  assert!(traits(26)?.contains("name: nvtdijuwxko"));
+  assert!(traits(27)?.contains("name: nvtdijuwxkn"));
   Ok(())
 }
 
