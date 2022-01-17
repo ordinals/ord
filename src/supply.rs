@@ -11,8 +11,9 @@ pub(crate) fn run() -> Result {
   }
 
   println!("supply: {}", SUPPLY);
-  println!("first: {}", SUPPLY - 1);
-  println!("last subsidy block: {}", last);
+  println!("first: {}", 0);
+  println!("last: {}", SUPPLY - 1);
+  println!("last mined in block: {}", last);
 
   Ok(())
 }

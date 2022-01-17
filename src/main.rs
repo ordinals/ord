@@ -47,16 +47,17 @@ fn subsidy(height: u64) -> u64 {
   }
 }
 
-fn name(mut n: u64) -> String {
+fn name(n: u64) -> String {
+  let mut x = SUPPLY - n - 1;
   let mut name = String::new();
-  while n > 0 {
+  while x > 0 {
     name.push(
       "abcdefghijklmnopqrstuvwxyz"
         .chars()
-        .nth(((n - 1) % 26) as usize)
+        .nth(((x - 1) % 26) as usize)
         .unwrap(),
     );
-    n = (n - 1) / 26;
+    x = (x - 1) / 26;
   }
   name.chars().rev().collect()
 }
@@ -85,10 +86,11 @@ mod tests {
 
   #[test]
   fn names() {
-    assert_eq!(name(0), "");
-    assert_eq!(name(1), "a");
-    assert_eq!(name(26), "z");
-    assert_eq!(name(27), "aa");
+    assert_eq!(name(0), "nvtdijuwxlo");
+    assert_eq!(name(1), "nvtdijuwxln");
+    assert_eq!(name(26), "nvtdijuwxko");
+    assert_eq!(name(27), "nvtdijuwxkn");
+    assert_eq!(name(2099999997689999), "");
   }
 
   #[test]

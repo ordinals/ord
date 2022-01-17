@@ -61,20 +61,24 @@ fn divine() -> Result {
 
 #[test]
 fn name() -> Result {
-  assert!(traits(0)?.contains("name: "));
-  assert!(traits(1)?.contains("name: a"));
-  assert!(traits(26)?.contains("name: z"));
-  assert!(traits(27)?.contains("name: aa"));
+  assert!(traits(2099999997689999)?.contains("name: "));
+  assert!(traits(2099999997689999 - 1)?.contains("name: a"));
+  assert!(traits(2099999997689999 - 26)?.contains("name: z"));
+  assert!(traits(2099999997689999 - 27)?.contains("name: aa"));
+  assert!(traits(0)?.contains("name: nvtdijuwxlo"));
+  assert!(traits(1)?.contains("name: nvtdijuwxln"));
+  assert!(traits(26)?.contains("name: nvtdijuwxko"));
+  assert!(traits(27)?.contains("name: nvtdijuwxkn"));
   Ok(())
 }
 
 #[test]
 fn block() -> Result {
-  assert!(traits(2099999997689999)?.contains("block: 0"));
-  assert!(traits(2099999997689998)?.contains("block: 0"));
-  assert!(traits(2099999997689999 - 50 * 100_000_000)?.contains("block: 1"));
-  assert!(traits(0)?.contains("block: 6929999"));
-  assert!(traits(1)?.contains("block: 6929998"));
+  assert!(traits(0)?.contains("block: 0"));
+  assert!(traits(1)?.contains("block: 0"));
+  assert!(traits(50 * 100_000_000)?.contains("block: 1"));
+  assert!(traits(2099999997689999)?.contains("block: 6929999"));
+  assert!(traits(2099999997689998)?.contains("block: 6929998"));
   Ok(())
 }
 
@@ -92,11 +96,11 @@ fn lucky() -> Result {
 #[test]
 fn shiny() -> Result {
   assert!(traits(0)?.contains("shiny"));
-  assert!(traits(1)?.contains("shiny"));
+  assert!(!traits(1)?.contains("shiny"));
   assert!(traits(2099999997689999)?.contains("shiny"));
-  assert!(!traits(2099999997689998)?.contains("shiny"));
-  assert!(traits(2099999997689999 - 50 * 100_000_000)?.contains("shiny"));
-  assert!(!traits(2099999997689999 - 50 * 100_000_000 - 1)?.contains("shiny"));
+  assert!(traits(2099999997689998)?.contains("shiny"));
+  assert!(traits(50 * 100_000_000)?.contains("shiny"));
+  assert!(!traits(50 * 100_000_000 + 1)?.contains("shiny"));
   Ok(())
 }
 
@@ -145,18 +149,16 @@ fn character() -> Result {
 #[test]
 fn cursed() -> Result {
   assert!(!traits(0)?.contains("cursed"));
-  assert!(!traits(1476379997690000)?.contains("cursed"));
-  assert!(traits(1476379997689999)?.contains("cursed"));
-  assert!(traits(1476379997689999 - 50 * 100_000_000 + 1)?.contains("cursed"));
-  assert!(!traits(1476379997689999 - 50 * 100_000_000)?.contains("cursed"));
-  assert!(!traits(1476374997689999 - 50 * 100_000_000 + 1)?.contains("cursed"));
+  assert!(!traits(623624999999999)?.contains("cursed"));
+  assert!(traits(623624999999999 - 1)?.contains("cursed"));
+  assert!(!traits(623624999999999 + 1)?.contains("cursed"));
   Ok(())
 }
 
 #[test]
 fn illusive() -> Result {
-  assert!(!traits(1476374997689999 - 50 * 100_000_000 + 2)?.contains("illusive"));
-  assert!(traits(1476374997689999 - 50 * 100_000_000 + 1)?.contains("illusive"));
-  assert!(!traits(1476374997689999 - 50 * 100_000_000 - 1)?.contains("illusive"));
+  assert!(!traits(1476374997689999 - 1)?.contains("illusive"));
+  assert!(traits(623624999999999)?.contains("illusive"));
+  assert!(!traits(623624999999999 + 1)?.contains("illusive"));
   Ok(())
 }
