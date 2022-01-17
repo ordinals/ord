@@ -16,7 +16,8 @@ Satoshi numbers only depend on how many satoshis could have been created in
 previous blocks, not how many were *actually* created.
 
 In particular, this means that block 124724, which underpaid the block subsidy
-by one, does not reduce the serial numbers of satoshis in subsequent blocks.
+by one satoshi, does not reduce the serial numbers of satoshis in subsequent
+blocks.
 
 The `range` command gives the half-open range of satoshis mined in the block at
 a given height:
