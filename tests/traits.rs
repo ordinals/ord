@@ -76,7 +76,7 @@ fn name() -> Result {
 fn block() -> Result {
   assert!(traits(0)?.contains("block: 0"));
   assert!(traits(1)?.contains("block: 0"));
-  assert!(traits(0 + 50 * 100_000_000)?.contains("block: 1"));
+  assert!(traits(50 * 100_000_000)?.contains("block: 1"));
   assert!(traits(2099999997689999)?.contains("block: 6929999"));
   assert!(traits(2099999997689998)?.contains("block: 6929998"));
   Ok(())
