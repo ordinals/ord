@@ -12,6 +12,8 @@ pub enum Arguments {
     name: String,
   },
   Range {
+    #[structopt(long)]
+    name: bool,
     height: u64,
   },
   Supply,
@@ -29,7 +31,7 @@ impl Arguments {
         height,
       } => crate::find::run(blocksdir, n, height),
       Self::Name { name } => crate::name::run(&name),
-      Self::Range { height } => crate::range::run(height),
+      Self::Range { height, name } => crate::range::run(height, name),
       Self::Supply => crate::supply::run(),
       Self::Traits { n } => crate::traits::run(n),
     }

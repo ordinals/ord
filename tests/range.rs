@@ -31,3 +31,11 @@ fn first_block_without_subsidy() -> Result {
     .expected_stdout("[2099999997690000,2099999997690000)\n")
     .run()
 }
+
+#[test]
+fn genesis_names() -> Result {
+  Test::new()?
+    .args(&["range", "--name", "0"])
+    .expected_stdout("[nvtdijuwxlo,nvtcsezkbtg)\n")
+    .run()
+}

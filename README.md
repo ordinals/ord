@@ -98,6 +98,8 @@ The `name` command finds the satoshi with the given name:
 ```
 $ sat-tracker name nvtdijuwxlo
 0
-$ sat-tracker name nvtdijuwxlo
+$ sat-tracker name hello
 2099999993937872
+$ sat-tracker name ''
+2099999997689999
 ```
