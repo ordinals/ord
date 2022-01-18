@@ -1,4 +1,5 @@
 use {
+  crate::index::Index,
   arguments::Arguments,
   bitcoin::{
     blockdata::constants::{genesis_block, COIN_VALUE},
@@ -11,12 +12,20 @@ use {
     Database, MultimapTable, ReadOnlyMultimapTable, ReadOnlyTable, ReadableMultimapTable,
     ReadableTable, Table,
   },
-  std::{cmp::Ordering, fs, ops::Deref, path::PathBuf, process},
+  std::{
+    cmp::Ordering,
+    fs,
+    ops::Deref,
+    ops::Range,
+    path::{Path, PathBuf},
+    process,
+  },
   structopt::StructOpt,
 };
 
 mod arguments;
 mod find;
+mod index;
 mod name;
 mod range;
 mod supply;
