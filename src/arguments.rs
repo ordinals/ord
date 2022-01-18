@@ -5,7 +5,7 @@ pub enum Arguments {
   Find {
     #[structopt(long)]
     blocksdir: Option<PathBuf>,
-    n: u64,
+    ordinal: u64,
     height: u64,
   },
   Name {
@@ -18,7 +18,7 @@ pub enum Arguments {
   },
   Supply,
   Traits {
-    n: u64,
+    ordinal: u64,
   },
 }
 
@@ -27,13 +27,13 @@ impl Arguments {
     match self {
       Self::Find {
         blocksdir,
-        n,
+        ordinal,
         height,
-      } => crate::find::run(blocksdir, n, height),
+      } => crate::find::run(blocksdir, ordinal, height),
       Self::Name { name } => crate::name::run(&name),
       Self::Range { height, name } => crate::range::run(height, name),
       Self::Supply => crate::supply::run(),
-      Self::Traits { n } => crate::traits::run(n),
+      Self::Traits { ordinal } => crate::traits::run(ordinal),
     }
   }
 }

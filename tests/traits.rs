@@ -1,15 +1,24 @@
 use super::*;
 
-fn traits(n: u64) -> Result<BTreeSet<String>> {
+fn traits(ordinal: u64) -> Result<BTreeSet<String>> {
   Ok(
     Test::new()?
-      .args(&["traits", &n.to_string()])
+      .args(&["traits", &ordinal.to_string()])
       .ignore_stdout()
       .run_with_stdout()?
       .lines()
       .map(str::to_owned)
       .collect(),
   )
+}
+
+#[test]
+fn invalid_ordinal() -> Result {
+  Test::new()?
+    .args(&["traits", "2099999997690000"])
+    .expected_stderr("error: Invalid ordinal\n")
+    .expected_status(1)
+    .run()
 }
 
 #[test]

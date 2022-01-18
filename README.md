@@ -65,8 +65,9 @@ fn transfer(transaction: Transaction) {
 }
 ```
 
-If the coinbase transaction underpays the block subsidy or fees, those ordinal
-numbers are destroyed.
+If the coinbase transaction underpays the block subsidy or fees, those
+satoshis, along with their ordinal numbers, are destroyed and taken out of
+circulation.
 
 The `find` command, as of yet unfinished, gives the current outpoint containing
 the satoshi with a given ordinal at a given height:
@@ -79,13 +80,14 @@ $ ord find --blocksdir ~/.bicoin/blocks 0 0
 
 ## Traits
 
-Satoshis have traits, based on their number.
+Satoshis have traits, based on their ordinal.
 
 NB: Traits should be considered *UNSTABLE*. In particular, the satoshis with
 short names will not be available for quite some time, which might be desirable
 to fix, and would require an overhaul of the name trait.
 
-The `traits` command prints out the traits of a given satoshi:
+The `traits` command prints out the traits of the satoshi with the given
+ordinal:
 
 ```
 $ ord traits 0
@@ -102,13 +104,13 @@ block: 0
 
 ## Names
 
-Each satoshi is assigned a name, consisting of lowercase ASCII characters.
-Satoshi 0 has name `nvtdijuwxlo`, and names get shorter as the satoshi number
-gets larger. This is to ensure that short names aren't locked in the genesis
-block output which is unspendable, and other outputs, which are unlikely to
-ever be spent.
+Each satoshi is assigned a name, consisting of lowercase ASCII characters,
+based on its ordinal. Satoshi 0 has name `nvtdijuwxlo`, and names get shorter
+as the ordinal number gets larger. This is to ensure that short names aren't
+locked in the genesis block output which is unspendable, and other outputs,
+which are unlikely to ever be spent.
 
-The `name` command finds the satoshi with the given name:
+The `name` command prints the ordinal of the satoshi with the given name:
 
 ```
 $ ord name nvtdijuwxlo
