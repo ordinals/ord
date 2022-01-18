@@ -1,6 +1,6 @@
 [package]
-name = "sat-tracker"
-description = "Satoshi tracker"
+name = "ord"
+description = "Bitcoin satoshi ordinal number utility"
 version = "0.0.0"
 license = "CC0-1.0"
 edition = "2021"
