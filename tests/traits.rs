@@ -16,7 +16,7 @@ fn traits(ordinal: u64) -> Result<BTreeSet<String>> {
 fn invalid_ordinal() -> Result {
   Test::new()?
     .args(&["traits", "2099999997690000"])
-    .expected_stderr("error: Invalid ordinal\n")
+    .expected_stderr("error: Invalid value for '<ordinal>': 2099999997690000 is greater than 2099999997689999, the last ordinal\n")
     .expected_status(1)
     .run()
 }

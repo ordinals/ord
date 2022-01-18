@@ -12,7 +12,11 @@ pub(crate) fn run(height: u64, name_range: bool) -> Result {
   }
 
   if name_range {
-    println!("[{},{})", name(start), name(start + subsidy(height)));
+    println!(
+      "[{},{})",
+      name(Ordinal::new(start)?),
+      name(Ordinal::new(start + subsidy(height))?)
+    );
   } else {
     println!("[{},{})", start, start + subsidy(height));
   }

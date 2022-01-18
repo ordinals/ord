@@ -1,5 +1,5 @@
 use {
-  crate::index::Index,
+  crate::{index::Index, ordinal::Ordinal},
   arguments::Arguments,
   bitcoin::{
     blockdata::constants::{genesis_block, COIN_VALUE},
@@ -19,6 +19,7 @@ use {
     ops::Range,
     path::{Path, PathBuf},
     process,
+    str::FromStr,
   },
   structopt::StructOpt,
 };
@@ -27,6 +28,7 @@ mod arguments;
 mod find;
 mod index;
 mod name;
+mod ordinal;
 mod range;
 mod supply;
 mod traits;
@@ -56,8 +58,8 @@ fn subsidy(height: u64) -> u64 {
   }
 }
 
-fn name(ordinal: u64) -> String {
-  let mut x = SUPPLY - ordinal - 1;
+fn name(ordinal: Ordinal) -> String {
+  let mut x = SUPPLY - ordinal.number() - 1;
   let mut name = String::new();
   while x > 0 {
     name.push(
@@ -94,12 +96,13 @@ mod tests {
   }
 
   #[test]
-  fn names() {
-    assert_eq!(name(0), "nvtdijuwxlo");
-    assert_eq!(name(1), "nvtdijuwxln");
-    assert_eq!(name(26), "nvtdijuwxko");
-    assert_eq!(name(27), "nvtdijuwxkn");
-    assert_eq!(name(2099999997689999), "");
+  fn names() -> Result {
+    assert_eq!(name(Ordinal::new(0)?), "nvtdijuwxlo");
+    assert_eq!(name(Ordinal::new(1)?), "nvtdijuwxln");
+    assert_eq!(name(Ordinal::new(26)?), "nvtdijuwxko");
+    assert_eq!(name(Ordinal::new(27)?), "nvtdijuwxkn");
+    assert_eq!(name(Ordinal::new(2099999997689999)?), "");
+    Ok(())
   }
 
   #[test]

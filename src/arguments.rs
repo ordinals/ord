@@ -1,11 +1,11 @@
 use super::*;
 
 #[derive(StructOpt)]
-pub enum Arguments {
+pub(crate) enum Arguments {
   Find {
     #[structopt(long)]
     blocksdir: Option<PathBuf>,
-    ordinal: u64,
+    ordinal: Ordinal,
     height: u64,
   },
   Name {
@@ -18,12 +18,12 @@ pub enum Arguments {
   },
   Supply,
   Traits {
-    ordinal: u64,
+    ordinal: Ordinal,
   },
 }
 
 impl Arguments {
-  pub fn run(self) -> Result<()> {
+  pub(crate) fn run(self) -> Result<()> {
     match self {
       Self::Find {
         blocksdir,
