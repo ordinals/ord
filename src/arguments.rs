@@ -29,7 +29,7 @@ impl Arguments {
         blocksdir,
         ordinal,
         height,
-      } => crate::find::run(blocksdir, ordinal, height),
+      } => crate::find::run(blocksdir.as_deref(), ordinal, height),
       Self::Name { name } => crate::name::run(&name),
       Self::Range { height, name } => crate::range::run(height, name),
       Self::Supply => crate::supply::run(),
