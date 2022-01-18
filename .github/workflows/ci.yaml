@@ -41,7 +41,7 @@ jobs:
 
     - name: Check Lockfile
       run: |
-        cargo update --locked --package sat-tracker
+        cargo update --locked --package ord
 
     - name: Test
       run: cargo test --all

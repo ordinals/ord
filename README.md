@@ -1,41 +1,49 @@
-# Sat Tracker
+# Satoshi Ordinals
 
-A scheme for assigning serial numbers to satoshis upon creation and tracking
-them across subsequent transactions.
+A scheme for assigning ordinal numbers to satoshis and tracking them across
+transactions, and a command-line utility, `ord` for querying information about
+ordinals.
 
-Satoshi serial numbers can be used as an addressing scheme for NFTs.
-
+Ordinal numbers can be used as an addressing scheme for NFTs. In such a scheme,
+the NFT creator would create a message that assigned a new NFT Y to the satoshi
+with ordinal X. The owner of the UTXO containing the satoshi with ordinal X
+owns NFT Y, and can transfer that ownership to another person with a
+transaction that sends ordinal Y to a UTXO that the new owner controls. The
+current owner can sign a message proving that they own a given UTXO, wich also
+serves as proof of ownership of all the NFTs assigned to satoshis within that
+UTXO.
 
 ## Numbering
 
-Satoshis are numbered in ascending order, starting at 0 in the genesis block,
-and ending with 2099999997689999, mined in block 6929999, the last block with a
-subsidy.
+Satoshis are assigned ordinal numbers in the order in which they are mined.
+Ordinals start at 0, for the first satoshi of the genesis block, and end with
+2099999997689999, the only satoshi mined in block 6929999, the last block with
+a subsidy.
 
-Satoshi numbers only depend on how many satoshis could have been created in
-previous blocks, not how many were *actually* created.
+Ordinals depend only on how many satoshis *could* have been mined in previous
+blocks, not how many were *actually* mined.
 
 In particular, this means that block 124724, which underpaid the block subsidy
-by one satoshi, does not reduce the serial numbers of satoshis in subsequent
-blocks.
+by one satoshi, does not reduce the ordinals of satoshis in subsequent blocks.
 
-The `range` command gives the half-open range of satoshis mined in the block at
+The `range` command gives the half-open range of ordinals mined in the block at
 a given height:
 
 ```
-$ sat-tracker range 0
+$ ord range 0
 [0,5000000000)
 ```
 
 See [src/range.rs](src/range.rs) for the numbering algorithm.
 
-
 ## Transfer
 
-Satoshis input to a transaction are transferred to the transaction outputs
-according to the order and value of the inputs and outputs. Satoshis paid as
-fees are assigned in the same fashion to the outputs of the coinbase
-transaction.
+The ordinal numbers on satoshis input to a transaction are transferred to the
+transaction outputs in first-in-first-out order.
+
+Satoshis paid as fees are considered to be inputs to the coinbase transaction,
+after an implicit input containing the block subsidy, in the same order that
+their parent transactions appear in the block.
 
 ```rust
 fn transfer(transaction: Transaction) {
@@ -57,27 +65,32 @@ fn transfer(transaction: Transaction) {
 }
 ```
 
+If the coinbase transaction underpays the block subsidy or fees, those
+satoshis, along with their ordinal numbers, are destroyed and taken out of
+circulation.
+
 The `find` command, as of yet unfinished, gives the current outpoint containing
-a given satoshi as of a given height:
+the satoshi with a given ordinal at a given height:
 
 ```
-$ sat-tracker find --blocksdir ~/.bicoin/blocks 0 0
+$ ord find --blocksdir ~/.bicoin/blocks 0 0
 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0
 ```
 
 
 ## Traits
 
-Satoshis have traits, based on their number.
+Satoshis have traits, based on their ordinal.
 
 NB: Traits should be considered *UNSTABLE*. In particular, the satoshis with
 short names will not be available for quite some time, which might be desirable
 to fix, and would require an overhaul of the name trait.
 
-The `traits` command prints out the traits of a given satoshi:
+The `traits` command prints out the traits of the satoshi with the given
+ordinal:
 
 ```
-$ sat-tracker traits 0
+$ ord traits 0
 even
 square
 cube
@@ -91,19 +104,19 @@ block: 0
 
 ## Names
 
-Each satoshi is assigned a name, consisting of lowercase ASCII characters.
-Satoshi 0 has name `nvtdijuwxlo`, and names get shorter as the satoshi number
-gets larger. This is to ensure that short names aren't locked in the genesis
-block output which is unspendable, and other outputs, which are unlikely to
-ever be spent.
+Each satoshi is assigned a name, consisting of lowercase ASCII characters,
+based on its ordinal. Satoshi 0 has name `nvtdijuwxlo`, and names get shorter
+as the ordinal number gets larger. This is to ensure that short names aren't
+locked in the genesis block output which is unspendable, and other outputs,
+which are unlikely to ever be spent.
 
-The `name` command finds the satoshi with the given name:
+The `name` command prints the ordinal of the satoshi with the given name:
 
 ```
-$ sat-tracker name nvtdijuwxlo
+$ ord name nvtdijuwxlo
 0
-$ sat-tracker name hello
+$ ord name hello
 2099999993937872
-$ sat-tracker name ''
+$ ord name ''
 2099999997689999
 ```

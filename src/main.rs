@@ -47,8 +47,8 @@ fn subsidy(height: u64) -> u64 {
   }
 }
 
-fn name(n: u64) -> String {
-  let mut x = SUPPLY - n - 1;
+fn name(ordinal: u64) -> String {
+  let mut x = SUPPLY - ordinal - 1;
   let mut name = String::new();
   while x > 0 {
     name.push(
@@ -62,11 +62,11 @@ fn name(n: u64) -> String {
   name.chars().rev().collect()
 }
 
-fn population(mut n: u64) -> u64 {
+fn population(mut ordinal: u64) -> u64 {
   let mut population = 0;
-  while n > 0 {
-    population += n & 1;
-    n >>= 1;
+  while ordinal > 0 {
+    population += ordinal & 1;
+    ordinal >>= 1;
   }
   population
 }

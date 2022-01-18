@@ -5,7 +5,7 @@ const HEIGHTS: &str = "heights";
 const BLOCK_OFFSETS: &str = "block_offsets";
 const HEIGHTS_TO_HASHES: &str = "height_to_hashes";
 
-pub(crate) fn run(blocksdir: Option<PathBuf>, n: u64, at_height: u64) -> Result<()> {
+pub(crate) fn run(blocksdir: Option<PathBuf>, ordinal: u64, at_height: u64) -> Result<()> {
   let blocksdir = if let Some(blocksdir) = blocksdir {
     blocksdir
   } else if cfg!(target_os = "macos") {
@@ -107,7 +107,7 @@ pub(crate) fn run(blocksdir: Option<PathBuf>, n: u64, at_height: u64) -> Result<
     write.commit()?;
   }
 
-  let height = n / (50 * 100_000_000);
+  let height = ordinal / (50 * 100_000_000);
   assert!(height < 100);
   assert!(at_height == height);
 
@@ -136,15 +136,15 @@ pub(crate) fn run(blocksdir: Option<PathBuf>, n: u64, at_height: u64) -> Result<
 
   let block = Block::consensus_decode(bytes)?;
 
-  let position = n % (50 * 100_000_000);
+  let position = ordinal % (50 * 100_000_000);
 
-  let mut n = 0;
+  let mut ordinal = 0;
   for (i, output) in block.txdata[0].output.iter().enumerate() {
-    if n + output.value >= position {
+    if ordinal + output.value >= position {
       println!("{}:{}", block.txdata[0].txid(), i);
       break;
     }
-    n += output.value;
+    ordinal += output.value;
   }
 
   Ok(())

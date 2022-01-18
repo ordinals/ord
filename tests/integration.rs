@@ -96,7 +96,7 @@ impl Test {
     fs::create_dir(&blocksdir)?;
     populate_blockfile(File::create(blocksdir.join("blk00000.dat"))?, 1)?;
 
-    let output = Command::new(executable_path("sat-tracker"))
+    let output = Command::new(executable_path("ord"))
       .current_dir(&self.tempdir)
       .args(self.args)
       .output()?;
