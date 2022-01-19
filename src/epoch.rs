@@ -1,7 +1,7 @@
 use super::*;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub(crate) struct Epoch(u64);
+pub(crate) struct Epoch(pub(crate) u64);
 
 impl Epoch {
   pub(crate) const STARTING_ORDINALS: &'static [Ordinal] = &[
@@ -40,25 +40,14 @@ impl Epoch {
     Ordinal::new(2099999997480000),
   ];
 
-  const LAST: Epoch = Self(Self::STARTING_ORDINALS.len() as u64 - 1);
-
   pub(crate) const BLOCKS: u64 = 210000;
-
-  pub(crate) const fn new(inner: u64) -> Self {
-    assert!(inner <= Self::LAST.0);
-    Self(inner)
-  }
-
-  pub(crate) fn n(self) -> u64 {
-    self.0
-  }
 
   pub(crate) fn subsidy(self) -> u64 {
     Height(self.0 * Self::BLOCKS).subsidy()
   }
 
-  pub(crate) fn starting_ordinal(self) -> Ordinal {
-    Self::STARTING_ORDINALS[self.0 as usize]
+  pub(crate) fn starting_ordinal(self) -> Option<Ordinal> {
+    Self::STARTING_ORDINALS.get(self.0 as usize).cloned()
   }
 
   pub(crate) fn starting_height(self) -> Height {
@@ -99,7 +88,7 @@ mod tests {
       mined += subsidy;
     }
 
-    assert_eq!(SUPPLY, mined);
+    assert_eq!(Ordinal::SUPPLY, mined);
   }
 
   #[test]
@@ -110,26 +99,11 @@ mod tests {
 
     for epoch in 0..33 {
       epoch_ordinals.push(ordinal);
-      ordinal += Epoch::BLOCKS * Epoch::new(epoch).subsidy();
+      ordinal += Epoch::BLOCKS * Epoch(epoch).subsidy();
     }
 
     assert_eq!(Epoch::STARTING_ORDINALS, epoch_ordinals);
     assert_eq!(Epoch::STARTING_ORDINALS.len(), 33);
+    assert_eq!(Epoch(33).subsidy(), 0);
   }
-
-  #[test]
-  fn last() {
-    assert_eq!(
-      (Epoch::LAST.starting_height() + Epoch::BLOCKS - 1).subsidy(),
-      1
-    );
-    assert_eq!((Epoch::LAST.starting_height() + Epoch::BLOCKS).subsidy(), 0);
-  }
-
-  // #[test]
-  // fn epochs() {
-  //   assert!(Height(EPOCHS * 210_000).subsidy() == 0);
-  //   assert!(Height(EPOCHS * 210_000 - 1).subsidy() == 1);
-  //   assert_eq!(EPOCHS, 33);
-  // }
 }

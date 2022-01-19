@@ -17,7 +17,7 @@ pub(crate) fn run(blocksdir: Option<&Path>, ordinal: Ordinal, at_height: u64) ->
 
   let block = index.block(height)?;
 
-  let position = ordinal.position();
+  let position = ordinal.subsidy_position();
 
   let mut ordinal = 0;
   for (i, output) in block.txdata[0].output.iter().enumerate() {

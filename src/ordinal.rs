@@ -4,15 +4,17 @@ use super::*;
 pub(crate) struct Ordinal(u64);
 
 impl Ordinal {
-  pub(crate) const LAST: Ordinal = Ordinal::new(SUPPLY - 1);
+  pub(crate) const LAST: Ordinal = Self::new(Self::SUPPLY - 1);
+
+  pub(crate) const SUPPLY: u64 = 2099999997690000;
 
   pub(crate) const fn new(inner: u64) -> Self {
-    assert!(inner < SUPPLY);
+    assert!(inner < Self::SUPPLY);
     Self(inner)
   }
 
   pub(crate) fn new_checked(inner: u64) -> Option<Self> {
-    if inner < SUPPLY {
+    if inner < Self::SUPPLY {
       Some(Self(inner))
     } else {
       None
@@ -20,22 +22,23 @@ impl Ordinal {
   }
 
   pub(crate) fn height(self) -> Height {
-    let epoch = self.epoch();
-
-    epoch.starting_height() + (self.0 - epoch.starting_ordinal().0) / epoch.subsidy()
+    self.epoch().starting_height() + self.epoch_position() / self.epoch().subsidy()
   }
 
   pub(crate) fn epoch(self) -> Epoch {
     self.into()
   }
 
-  pub(crate) fn position(self) -> u64 {
-    let epoch = self.epoch();
-    (self.0 - epoch.starting_ordinal().0) % epoch.subsidy()
+  pub(crate) fn subsidy_position(self) -> u64 {
+    self.epoch_position() % self.epoch().subsidy()
+  }
+
+  pub(crate) fn epoch_position(self) -> u64 {
+    self.0 - self.epoch().starting_ordinal().unwrap().0
   }
 
   pub(crate) fn name(self) -> String {
-    let mut x = SUPPLY - self.0 - 1;
+    let mut x = Self::SUPPLY - self.0 - 1;
     let mut name = String::new();
     while x > 0 {
       name.push(
@@ -90,7 +93,7 @@ impl FromStr for Ordinal {
   fn from_str(s: &str) -> Result<Self, Self::Err> {
     let inner = s.parse()?;
 
-    if inner >= SUPPLY {
+    if inner >= Self::SUPPLY {
       return Err(format!("{} is not a valid ordinal", inner).into());
     }
 
@@ -106,9 +109,12 @@ mod tests {
   fn height() {
     assert_eq!(Ordinal::new(0).height(), 0);
     assert_eq!(Ordinal::new(1).height(), 0);
-    assert_eq!(Ordinal::new(Epoch::new(0).subsidy()).height(), 1);
-    assert_eq!(Ordinal::new(Epoch::new(0).subsidy() * 2).height(), 2);
-    assert_eq!(Epoch::new(2).starting_ordinal().height(), Epoch::BLOCKS * 2);
+    assert_eq!(Ordinal::new(Epoch(0).subsidy()).height(), 1);
+    assert_eq!(Ordinal::new(Epoch(0).subsidy() * 2).height(), 2);
+    assert_eq!(
+      Epoch(2).starting_ordinal().unwrap().height(),
+      Epoch::BLOCKS * 2
+    );
   }
 
   #[test]
@@ -138,19 +144,37 @@ mod tests {
   }
 
   #[test]
-  fn position() {
-    assert_eq!(Ordinal::new(0).position(), 0);
-    assert_eq!(Ordinal::new(1).position(), 1);
+  fn block_position() {
+    assert_eq!(Ordinal::new(0).subsidy_position(), 0);
+    assert_eq!(Ordinal::new(1).subsidy_position(), 1);
     assert_eq!(
-      Ordinal::new(INITIAL_SUBSIDY - 1).position(),
-      INITIAL_SUBSIDY - 1
+      Ordinal::new(Height(0).subsidy() - 1).subsidy_position(),
+      Height(0).subsidy() - 1
     );
-    assert_eq!(Ordinal::new(INITIAL_SUBSIDY).position(), 0);
-    assert_eq!(Ordinal::new(INITIAL_SUBSIDY + 1).position(), 1);
+    assert_eq!(Ordinal::new(Height(0).subsidy()).subsidy_position(), 0);
+    assert_eq!(Ordinal::new(Height(0).subsidy() + 1).subsidy_position(), 1);
     assert_eq!(
-      Ordinal::new(Epoch::new(1).starting_ordinal().n() + Epoch::new(1).subsidy()).position(),
+      Ordinal::new(Epoch(1).starting_ordinal().unwrap().n() + Epoch(1).subsidy())
+        .subsidy_position(),
       0
     );
-    assert_eq!(Ordinal::LAST.position(), 0);
+    assert_eq!(Ordinal::LAST.subsidy_position(), 0);
+  }
+
+  #[test]
+  fn supply() {
+    let mut mined = 0;
+
+    for height in 0.. {
+      let subsidy = Height(height).subsidy();
+
+      if subsidy == 0 {
+        break;
+      }
+
+      mined += subsidy;
+    }
+
+    assert_eq!(Ordinal::SUPPLY, mined);
   }
 }

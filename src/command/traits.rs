@@ -52,7 +52,7 @@ pub(crate) fn run(ordinal: Ordinal) -> Result {
 
   println!("height: {}", ordinal.height());
 
-  if ordinal.position() == 0 {
+  if ordinal.subsidy_position() == 0 {
     println!("shiny");
   }
 

@@ -1,12 +1,11 @@
 use {
-  crate::{consts::*, epoch::Epoch, height::Height, index::Index, ordinal::Ordinal},
+  crate::{epoch::Epoch, height::Height, index::Index, ordinal::Ordinal},
   bitcoin::{
     blockdata::constants::{genesis_block, COIN_VALUE},
     consensus::Decodable,
     Block, Network,
   },
-  command::Command,
-  derive_more::{Add, Display, FromStr},
+  derive_more::Display,
   integer_cbrt::IntegerCubeRoot,
   integer_sqrt::IntegerSquareRoot,
   redb::{
@@ -24,21 +23,19 @@ use {
   structopt::StructOpt,
 };
 
-mod consts;
+mod command;
 mod epoch;
 mod height;
 mod index;
 mod name;
 mod ordinal;
 
-mod command;
-
 type Result<T = (), E = Box<dyn std::error::Error>> = std::result::Result<T, E>;
 
 fn main() {
   env_logger::init();
 
-  if let Err(error) = Command::from_args().run() {
+  if let Err(error) = command::Command::from_args().run() {
     eprintln!("error: {}", error);
     process::exit(1);
   }

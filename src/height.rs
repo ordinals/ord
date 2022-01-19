@@ -9,12 +9,10 @@ impl Height {
   }
 
   pub(crate) fn subsidy(self) -> u64 {
-    let subsidy = INITIAL_SUBSIDY;
-
     let halvings = self.0 / Epoch::BLOCKS;
 
     if halvings < 64 {
-      subsidy >> halvings
+      50 * COIN_VALUE >> halvings
     } else {
       0
     }
