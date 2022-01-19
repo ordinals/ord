@@ -84,12 +84,21 @@ fn name() -> Result {
 }
 
 #[test]
-fn block() -> Result {
+fn height() -> Result {
   assert!(traits(0)?.contains("height: 0"));
   assert!(traits(1)?.contains("height: 0"));
   assert!(traits(50 * 100_000_000)?.contains("height: 1"));
   assert!(traits(2099999997689999)?.contains("height: 6929999"));
   assert!(traits(2099999997689998)?.contains("height: 6929998"));
+  Ok(())
+}
+
+#[test]
+fn epoch() -> Result {
+  assert!(traits(0)?.contains("epoch: 0"));
+  assert!(traits(1)?.contains("epoch: 0"));
+  assert!(traits(50 * 100_000_000 * 210000)?.contains("epoch: 1"));
+  assert!(traits(2099999997689999)?.contains("epoch: 32"));
   Ok(())
 }
 

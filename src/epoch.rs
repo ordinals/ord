@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Display)]
 pub(crate) struct Epoch(pub(crate) u64);
 
 impl Epoch {

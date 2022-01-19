@@ -50,6 +50,8 @@ pub(crate) fn run(ordinal: Ordinal) -> Result {
     println!("character: {:?}", character);
   }
 
+  println!("epoch: {}", ordinal.epoch());
+
   println!("height: {}", ordinal.height());
 
   if ordinal.subsidy_position() == 0 {
