@@ -1,7 +1,7 @@
 use super::*;
 
 pub(crate) fn run(ordinal: Ordinal) -> Result {
-  let n = ordinal.number();
+  let n = ordinal.n();
 
   if n % 2 == 0 {
     println!("even");
@@ -42,37 +42,26 @@ pub(crate) fn run(ordinal: Ordinal) -> Result {
     digits.len()
   );
 
-  println!("population: {}", population(n));
+  println!("population: {}", ordinal.population());
 
-  println!("name: {}", name(ordinal));
+  println!("name: {}", ordinal.name());
 
   if let Some(character) = char::from_u32((n % 0x110000) as u32) {
     println!("character: {:?}", character);
   }
 
-  let mut block = 0;
-  let mut mined = 0;
-  loop {
-    if n == mined {
-      println!("shiny");
-    }
+  println!("height: {}", ordinal.height());
 
-    let subsidy = subsidy(block);
-
-    mined += subsidy;
-
-    if mined > n {
-      println!("block: {}", block);
-      break;
-    }
-
-    block += 1;
+  if ordinal.position() == 0 {
+    println!("shiny");
   }
 
-  if n == 623624999999999 {
-    println!("illusive");
-  } else if block == 124724 {
-    println!("cursed");
+  if ordinal.height() == 124724 {
+    if ordinal == 623624999999999 {
+      println!("illusive");
+    } else {
+      println!("cursed");
+    }
   }
 
   Ok(())

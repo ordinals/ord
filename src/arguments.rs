@@ -2,6 +2,7 @@ use super::*;
 
 #[derive(StructOpt)]
 pub(crate) enum Arguments {
+  Epochs,
   Find {
     #[structopt(long)]
     blocksdir: Option<PathBuf>,
@@ -14,7 +15,7 @@ pub(crate) enum Arguments {
   Range {
     #[structopt(long)]
     name: bool,
-    height: u64,
+    height: Height,
   },
   Supply,
   Traits {
@@ -25,6 +26,7 @@ pub(crate) enum Arguments {
 impl Arguments {
   pub(crate) fn run(self) -> Result<()> {
     match self {
+      Self::Epochs => crate::epochs::run(),
       Self::Find {
         blocksdir,
         ordinal,

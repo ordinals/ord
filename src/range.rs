@@ -1,24 +1,30 @@
 use super::*;
 
-pub(crate) fn run(height: u64, name_range: bool) -> Result {
+pub(crate) fn run(height: Height, name_range: bool) -> Result {
   let mut start = 0;
 
-  for i in 0..height {
-    if subsidy(i) == 0 {
+  for n in 0..height.n() {
+    let subsidy = Height(n).subsidy();
+
+    if subsidy == 0 {
       break;
     }
 
-    start += subsidy(i);
+    start += subsidy;
   }
 
+  let end = start + height.subsidy();
+
   if name_range {
-    println!(
-      "[{},{})",
-      name(Ordinal::new(start)?),
-      name(Ordinal::new(start + subsidy(height))?)
-    );
+    let (start, end) = match (Ordinal::new_checked(start), Ordinal::new_checked(end)) {
+      (Some(start), Some(end)) => (start.name(), end.name()),
+      (Some(start), None) => (start.name(), start.name()),
+      (None, None) => (Ordinal::LAST.name(), Ordinal::LAST.name()),
+      (None, Some(_)) => unreachable!(),
+    };
+    println!("[{},{})", start, end);
   } else {
-    println!("[{},{})", start, start + subsidy(height));
+    println!("[{},{})", start, end);
   }
 
   Ok(())

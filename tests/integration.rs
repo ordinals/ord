@@ -19,6 +19,7 @@ use {
   unindent::Unindent,
 };
 
+mod epochs;
 mod find;
 mod name;
 mod range;
@@ -59,9 +60,9 @@ impl Test {
     }
   }
 
-  fn expected_stdout(self, expected_stdout: &str) -> Self {
+  fn expected_stdout(self, expected_stdout: impl AsRef<str>) -> Self {
     Self {
-      expected_stdout: expected_stdout.to_owned(),
+      expected_stdout: expected_stdout.as_ref().to_owned(),
       ..self
     }
   }

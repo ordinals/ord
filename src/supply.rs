@@ -4,7 +4,7 @@ pub(crate) fn run() -> Result {
   let mut last = 0;
 
   loop {
-    if subsidy(last + 1) == 0 {
+    if Height(last + 1).subsidy() == 0 {
       break;
     }
     last += 1;
