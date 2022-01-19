@@ -43,7 +43,11 @@ impl Epoch {
   pub(crate) const BLOCKS: u64 = 210000;
 
   pub(crate) fn subsidy(self) -> u64 {
-    Height(self.0 * Self::BLOCKS).subsidy()
+    if self.0 < 64 {
+      (50 * COIN_VALUE) >> self.0
+    } else {
+      0
+    }
   }
 
   pub(crate) fn starting_ordinal(self) -> Option<Ordinal> {
@@ -67,6 +71,12 @@ impl From<Ordinal> for Epoch {
       Ok(i) => Epoch(i as u64),
       Err(i) => Epoch(i as u64 - 1),
     }
+  }
+}
+
+impl From<Height> for Epoch {
+  fn from(height: Height) -> Self {
+    Self(height.0 / Self::BLOCKS)
   }
 }
 
@@ -104,6 +114,14 @@ mod tests {
 
     assert_eq!(Epoch::STARTING_ORDINALS, epoch_ordinals);
     assert_eq!(Epoch::STARTING_ORDINALS.len(), 33);
+    assert_eq!(Epoch(33).subsidy(), 0);
+  }
+
+  #[test]
+  fn subsidy() {
+    assert_eq!(Epoch(0).subsidy(), 5000000000);
+    assert_eq!(Epoch(1).subsidy(), 2500000000);
+    assert_eq!(Epoch(32).subsidy(), 1);
     assert_eq!(Epoch(33).subsidy(), 0);
   }
 }

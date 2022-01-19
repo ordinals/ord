@@ -13,6 +13,10 @@ impl Ordinal {
     Self(inner)
   }
 
+  pub(crate) fn n(self) -> u64 {
+    self.0
+  }
+
   pub(crate) fn new_checked(inner: u64) -> Option<Self> {
     if inner < Self::SUPPLY {
       Some(Self(inner))
@@ -50,10 +54,6 @@ impl Ordinal {
       x = (x - 1) / 26;
     }
     name.chars().rev().collect()
-  }
-
-  pub(crate) fn n(self) -> u64 {
-    self.0
   }
 
   pub(crate) fn population(self) -> u64 {

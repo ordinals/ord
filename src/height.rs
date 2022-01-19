@@ -9,13 +9,7 @@ impl Height {
   }
 
   pub(crate) fn subsidy(self) -> u64 {
-    let halvings = self.0 / Epoch::BLOCKS;
-
-    if halvings < 64 {
-      (50 * COIN_VALUE) >> halvings
-    } else {
-      0
-    }
+    Epoch::from(self).subsidy()
   }
 }
 
@@ -54,6 +48,36 @@ mod tests {
   use super::*;
 
   #[test]
+  fn n() {
+    assert_eq!(Height(0).n(), 0);
+    assert_eq!(Height(1).n(), 1);
+  }
+
+  #[test]
+  fn add() {
+    assert_eq!(Height(0) + 1, 1);
+    assert_eq!(Height(1) + 100, 101);
+  }
+
+  #[test]
+  fn sub() {
+    assert_eq!(Height(1) - 1, 0);
+    assert_eq!(Height(100) - 50, 50);
+  }
+
+  #[test]
+  fn eq() {
+    assert_eq!(Height(0), 0);
+    assert_eq!(Height(100), 100);
+  }
+
+  #[test]
+  fn from_str() {
+    assert_eq!("0".parse::<Height>().unwrap(), 0);
+    assert!("foo".parse::<Height>().is_err());
+  }
+
+  #[test]
   fn subsidy() {
     assert_eq!(Height(0).subsidy(), 5000000000);
     assert_eq!(Height(1).subsidy(), 5000000000);
@@ -61,26 +85,4 @@ mod tests {
     assert_eq!(Height(210000).subsidy(), 2500000000);
     assert_eq!(Height(210000 + 1).subsidy(), 2500000000);
   }
-
-  // #[test]
-  // fn mineds() {
-  //   assert_eq!(mined(0), 0);
-  //   assert_eq!(mined(1), 50 * COIN_VALUE);
-  // }
-
-  // #[test]
-  // fn names() {
-  //   assert_eq!(name(Ordinal::new(0)), "nvtdijuwxlo");
-  //   assert_eq!(name(Ordinal::new(1)), "nvtdijuwxln");
-  //   assert_eq!(name(Ordinal::new(26)), "nvtdijuwxko");
-  //   assert_eq!(name(Ordinal::new(27)), "nvtdijuwxkn");
-  //   assert_eq!(name(Ordinal::new(2099999997689999)), "");
-  // }
-
-  // #[test]
-  // fn populations() {
-  //   assert_eq!(population(0), 0);
-  //   assert_eq!(population(1), 1);
-  //   assert_eq!(population(u64::max_value()), 64);
-  // }
 }
