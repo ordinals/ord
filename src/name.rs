@@ -14,7 +14,7 @@ pub(crate) fn run(needle: &str) -> Result {
   loop {
     log::info!("min max guess: {} {} {}", min, max, guess);
 
-    let name = name(guess);
+    let name = Ordinal::new(guess).name();
 
     match name
       .len()
