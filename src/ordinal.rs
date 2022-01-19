@@ -111,11 +111,13 @@ mod tests {
     Ordinal::new(Ordinal::SUPPLY);
   }
 
+  #[test]
   fn n() {
     assert_eq!(Ordinal::new(1).n(), 1);
     assert_eq!(Ordinal::new(100).n(), 100);
   }
 
+  #[test]
   fn new_checked() {
     assert_eq!(Ordinal::new_checked(0).unwrap(), 0);
     assert_eq!(Ordinal::new_checked(Ordinal::SUPPLY), None);
