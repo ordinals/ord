@@ -10,6 +10,9 @@ ci: clippy forbid
 forbid:
   ./bin/forbid
 
+fmt:
+  cargo fmt
+
 clippy:
   cargo clippy
 

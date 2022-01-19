@@ -12,7 +12,7 @@ impl Height {
     let halvings = self.0 / Epoch::BLOCKS;
 
     if halvings < 64 {
-      50 * COIN_VALUE >> halvings
+      (50 * COIN_VALUE) >> halvings
     } else {
       0
     }
