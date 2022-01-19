@@ -1,13 +1,5 @@
 use super::*;
 
-// find:
-// - find ordinal N
-// - find transaction in which is was mined
-// - scan blocks forward to see if that transaction was spent
-// - track position in transactions
-// - finally get to final transaction
-// - print that transaction
-
 pub(crate) fn run(blocksdir: Option<&Path>, ordinal: Ordinal, at_height: u64) -> Result<()> {
   let index = Index::new(blocksdir)?;
 
