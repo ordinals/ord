@@ -106,6 +106,22 @@ mod tests {
   use super::*;
 
   #[test]
+  #[should_panic]
+  fn new_out_of_range_panics() {
+    Ordinal::new(Ordinal::SUPPLY);
+  }
+
+  fn n() {
+    assert_eq!(Ordinal::new(1).n(), 1);
+    assert_eq!(Ordinal::new(100).n(), 100);
+  }
+
+  fn new_checked() {
+    assert_eq!(Ordinal::new_checked(0).unwrap(), 0);
+    assert_eq!(Ordinal::new_checked(Ordinal::SUPPLY), None);
+  }
+
+  #[test]
   fn height() {
     assert_eq!(Ordinal::new(0).height(), 0);
     assert_eq!(Ordinal::new(1).height(), 0);
@@ -144,7 +160,18 @@ mod tests {
   }
 
   #[test]
-  fn block_position() {
+  fn epoch_position() {
+    assert_eq!(Epoch(0).starting_ordinal().unwrap().epoch_position(), 0);
+    assert_eq!(
+      (Epoch(0).starting_ordinal().unwrap() + 100).epoch_position(),
+      100
+    );
+    assert_eq!(Epoch(1).starting_ordinal().unwrap().epoch_position(), 0);
+    assert_eq!(Epoch(2).starting_ordinal().unwrap().epoch_position(), 0);
+  }
+
+  #[test]
+  fn subsidy_position() {
     assert_eq!(Ordinal::new(0).subsidy_position(), 0);
     assert_eq!(Ordinal::new(1).subsidy_position(), 1);
     assert_eq!(
@@ -176,5 +203,37 @@ mod tests {
     }
 
     assert_eq!(Ordinal::SUPPLY, mined);
+  }
+
+  #[test]
+  fn last() {
+    assert_eq!(Ordinal::LAST, Ordinal::SUPPLY - 1);
+  }
+
+  #[test]
+  fn eq() {
+    assert_eq!(Ordinal::new(0), 0);
+    assert_eq!(Ordinal::new(1), 1);
+  }
+
+  #[test]
+  fn add() {
+    assert_eq!(Ordinal::new(0) + 1, 1);
+    assert_eq!(Ordinal::new(1) + 100, 101);
+  }
+
+  #[test]
+  fn add_assign() {
+    let mut ordinal = Ordinal::new(0);
+    ordinal += 1;
+    assert_eq!(ordinal, 1);
+    ordinal += 100;
+    assert_eq!(ordinal, 101);
+  }
+
+  #[test]
+  fn from_str() {
+    assert_eq!("0".parse::<Ordinal>().unwrap(), 0);
+    assert!("foo".parse::<Ordinal>().is_err());
   }
 }
