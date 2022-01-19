@@ -1,7 +1,13 @@
 use super::*;
 
+mod epochs;
+mod find;
+mod range;
+mod supply;
+mod traits;
+
 #[derive(StructOpt)]
-pub(crate) enum Arguments {
+pub(crate) enum Command {
   Epochs,
   Find {
     #[structopt(long)]
@@ -23,19 +29,19 @@ pub(crate) enum Arguments {
   },
 }
 
-impl Arguments {
+impl Command {
   pub(crate) fn run(self) -> Result<()> {
     match self {
-      Self::Epochs => crate::epochs::run(),
+      Self::Epochs => epochs::run(),
       Self::Find {
         blocksdir,
         ordinal,
         height,
-      } => crate::find::run(blocksdir.as_deref(), ordinal, height),
-      Self::Name { name } => crate::name::run(&name),
-      Self::Range { height, name } => crate::range::run(height, name),
-      Self::Supply => crate::supply::run(),
-      Self::Traits { ordinal } => crate::traits::run(ordinal),
+      } => find::run(blocksdir.as_deref(), ordinal, height),
+      Self::Name { name } => name::run(&name),
+      Self::Range { height, name } => range::run(height, name),
+      Self::Supply => supply::run(),
+      Self::Traits { ordinal } => traits::run(ordinal),
     }
   }
 }

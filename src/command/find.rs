@@ -11,7 +11,7 @@ use super::*;
 pub(crate) fn run(blocksdir: Option<&Path>, ordinal: Ordinal, at_height: u64) -> Result<()> {
   let index = Index::new(blocksdir)?;
 
-  let height = ordinal.height();
+  let height = ordinal.height().n();
   assert!(height < 100);
   assert!(at_height == height);
 

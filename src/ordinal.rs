@@ -19,7 +19,7 @@ impl Ordinal {
     }
   }
 
-  pub(crate) fn height(self) -> u64 {
+  pub(crate) fn height(self) -> Height {
     let epoch = self.epoch();
 
     epoch.starting_height() + (self.0 - epoch.starting_ordinal().0) / epoch.subsidy()

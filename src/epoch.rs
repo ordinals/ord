@@ -4,7 +4,7 @@ use super::*;
 pub(crate) struct Epoch(u64);
 
 impl Epoch {
-  const STARTING_ORDINALS: &'static [Ordinal] = &[
+  pub(crate) const STARTING_ORDINALS: &'static [Ordinal] = &[
     Ordinal::new(0),
     Ordinal::new(1050000000000000),
     Ordinal::new(1575000000000000),
@@ -61,8 +61,8 @@ impl Epoch {
     Self::STARTING_ORDINALS[self.0 as usize]
   }
 
-  pub(crate) fn starting_height(self) -> u64 {
-    self.0 * Self::BLOCKS
+  pub(crate) fn starting_height(self) -> Height {
+    Height(self.0 * Self::BLOCKS)
   }
 }
 
@@ -79,4 +79,57 @@ impl From<Ordinal> for Epoch {
       Err(i) => Epoch(i as u64 - 1),
     }
   }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::super::*;
+
+  #[test]
+  fn supply() {
+    let mut mined = 0;
+
+    for height in 0.. {
+      let subsidy = Height(height).subsidy();
+
+      if subsidy == 0 {
+        break;
+      }
+
+      mined += subsidy;
+    }
+
+    assert_eq!(SUPPLY, mined);
+  }
+
+  #[test]
+  fn starting_ordinals() {
+    let mut ordinal = 0;
+
+    let mut epoch_ordinals = Vec::new();
+
+    for epoch in 0..33 {
+      epoch_ordinals.push(ordinal);
+      ordinal += Epoch::BLOCKS * Epoch::new(epoch).subsidy();
+    }
+
+    assert_eq!(Epoch::STARTING_ORDINALS, epoch_ordinals);
+    assert_eq!(Epoch::STARTING_ORDINALS.len(), 33);
+  }
+
+  #[test]
+  fn last() {
+    assert_eq!(
+      (Epoch::LAST.starting_height() + Epoch::BLOCKS - 1).subsidy(),
+      1
+    );
+    assert_eq!((Epoch::LAST.starting_height() + Epoch::BLOCKS).subsidy(), 0);
+  }
+
+  // #[test]
+  // fn epochs() {
+  //   assert!(Height(EPOCHS * 210_000).subsidy() == 0);
+  //   assert!(Height(EPOCHS * 210_000 - 1).subsidy() == 1);
+  //   assert_eq!(EPOCHS, 33);
+  // }
 }

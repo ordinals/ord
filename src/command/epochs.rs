@@ -1,7 +1,7 @@
 use super::*;
 
 pub(crate) fn run() -> Result {
-  for ordinal in EPOCH_ORDINALS {
+  for ordinal in Epoch::STARTING_ORDINALS {
     println!("{}", ordinal);
   }
 

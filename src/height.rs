@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Display)]
 pub(crate) struct Height(pub(crate) u64);
 
 impl Height {
@@ -11,13 +11,29 @@ impl Height {
   pub(crate) fn subsidy(self) -> u64 {
     let subsidy = INITIAL_SUBSIDY;
 
-    let halvings = self.0 / EPOCH_BLOCKS;
+    let halvings = self.0 / Epoch::BLOCKS;
 
     if halvings < 64 {
       subsidy >> halvings
     } else {
       0
     }
+  }
+}
+
+impl Add<u64> for Height {
+  type Output = Self;
+
+  fn add(self, other: u64) -> Height {
+    Self(self.0 + other)
+  }
+}
+
+impl Sub<u64> for Height {
+  type Output = Self;
+
+  fn sub(self, other: u64) -> Height {
+    Self(self.0 - other)
   }
 }
 

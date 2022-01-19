@@ -1,12 +1,12 @@
 use {
-  crate::{consts::*, epoch::Epoch, functions::*, height::Height, index::Index, ordinal::Ordinal},
-  arguments::Arguments,
+  crate::{consts::*, epoch::Epoch, height::Height, index::Index, ordinal::Ordinal},
   bitcoin::{
     blockdata::constants::{genesis_block, COIN_VALUE},
     consensus::Decodable,
     Block, Network,
   },
-  derive_more::{Display, FromStr},
+  command::Command,
+  derive_more::{Add, Display, FromStr},
   integer_cbrt::IntegerCubeRoot,
   integer_sqrt::IntegerSquareRoot,
   redb::{
@@ -16,7 +16,7 @@ use {
   std::{
     cmp::Ordering,
     fs,
-    ops::{Add, AddAssign, Deref, Range},
+    ops::{Add, AddAssign, Deref, Range, Sub},
     path::{Path, PathBuf},
     process,
     str::FromStr,
@@ -24,26 +24,21 @@ use {
   structopt::StructOpt,
 };
 
-mod arguments;
 mod consts;
 mod epoch;
-mod epochs;
-mod find;
-mod functions;
 mod height;
 mod index;
 mod name;
 mod ordinal;
-mod range;
-mod supply;
-mod traits;
+
+mod command;
 
 type Result<T = (), E = Box<dyn std::error::Error>> = std::result::Result<T, E>;
 
 fn main() {
   env_logger::init();
 
-  if let Err(error) = Arguments::from_args().run() {
+  if let Err(error) = Command::from_args().run() {
     eprintln!("error: {}", error);
     process::exit(1);
   }
