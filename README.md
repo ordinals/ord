@@ -50,7 +50,7 @@ fn transfer(transaction: Transaction) {
   let mut ordinals: Vec<u64> = Vec::new();
 
   for input in transaction.inputs {
-    for ordinal in input.ordinal {
+    for ordinal in input.ordinals {
       ordinals.push(ordinal);
     }
   }
@@ -59,7 +59,7 @@ fn transfer(transaction: Transaction) {
     for ordinal in ordinals[0..output.value] {
       output.ordinals.push(ordinal);
     }
-    ordinals = ordinals[output.value..].to_vec();
+    ordinals = ordinals[output.value..].into();
   }
 
   for ordinal in ordinals {
