@@ -51,17 +51,20 @@ fn transfer(transaction: Transaction) {
 
   for input in transaction.inputs {
     for ordinal in input.ordinal {
-      ordinal.push(ordinal);
+      ordinals.push(ordinal);
     }
   }
 
   for output in transaction.outputs {
-    let rest = ordinals.split_off(output.value);
-    output.ordinals = ordinals;
-    ordinals = rest;
+    for ordinal in ordinals[0..output.value] {
+      output.ordinals.push(ordinal);
+    }
+    ordinals = ordinals[output.value..].to_vec();
   }
 
-  coinbase.input.ordinals.extend_from_slice(&ordinals);
+  for ordinal in ordinals {
+    coinbase.input.ordinals.push(ordinals);
+  }
 }
 ```
 
