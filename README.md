@@ -56,10 +56,10 @@ fn transfer(transaction: Transaction) {
   }
 
   for output in transaction.outputs {
-    for ordinal in ordinals[0..output.value] {
+    for ordinal in &ordinals[0..output.value] {
       output.ordinals.push(ordinal);
     }
-    ordinals = ordinals[output.value..].into();
+    ordinals = ordinals.split_off(output.value);
   }
 
   for ordinal in ordinals {
