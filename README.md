@@ -47,21 +47,24 @@ their parent transactions appear in the block.
 
 ```rust
 fn transfer(transaction: Transaction) {
-  let mut numbers = Vec::new();
+  let mut ordinals: Vec<u64> = Vec::new();
 
   for input in transaction.inputs {
-    for number in input.numbers {
-      numbers.push(number);
+    for ordinal in input.ordinals {
+      ordinals.push(ordinal);
     }
   }
 
   for output in transaction.outputs {
-    let rest = numbers.split_off(output.value);
-    output.numbers = numbers;
-    numbers = rest;
+    for ordinal in &ordinals[0..output.value] {
+      output.ordinals.push(ordinal);
+    }
+    ordinals = ordinals.split_off(output.value);
   }
 
-  coinbase.input.numbers.extend_from_slice(&numbers);
+  for ordinal in ordinals {
+    coinbase.input.ordinals.push(ordinals);
+  }
 }
 ```
 
