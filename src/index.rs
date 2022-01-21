@@ -29,7 +29,7 @@ impl Index {
     };
 
     let index = Self {
-      database: unsafe { Database::open("bitcoin.redb", 4096 * 1024 * 1024 * 10)? },
+      database: unsafe { Database::open("index.redb", 4096 * 1024 * 1024 * 10)? },
       blocksdir,
     };
 
