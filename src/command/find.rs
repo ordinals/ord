@@ -9,13 +9,13 @@ pub(crate) fn run(blocksdir: Option<&Path>, ordinal: Ordinal, at_height: u64) ->
 
   let block = index.block(height)?;
 
-  let mut remaining = ordinal.subsidy_position();
-  for (i, output) in block.txdata[0].output.iter().enumerate() {
-    if output.value > remaining {
-      println!("{}:{}", block.txdata[0].txid(), i);
+  let mut offset = ordinal.subsidy_position();
+  for (index, output) in block.txdata[0].output.iter().enumerate() {
+    if output.value > offset {
+      println!("{}:{index}:{offset}", block.txdata[0].txid());
       break;
     }
-    remaining -= output.value;
+    offset -= output.value;
   }
 
   Ok(())
