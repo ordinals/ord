@@ -5,19 +5,17 @@ pub(crate) fn run(blocksdir: Option<&Path>, ordinal: Ordinal, at_height: u64) ->
 
   let height = ordinal.height().n();
   assert!(height < 100);
-  assert!(at_height == height);
+  assert!(height == at_height);
 
   let block = index.block(height)?;
 
-  let position = ordinal.subsidy_position();
-
-  let mut ordinal = 0;
-  for (i, output) in block.txdata[0].output.iter().enumerate() {
-    if ordinal + output.value >= position {
-      println!("{}:{}", block.txdata[0].txid(), i);
+  let mut offset = ordinal.subsidy_position();
+  for (index, output) in block.txdata[0].output.iter().enumerate() {
+    if output.value > offset {
+      println!("{}:{index}:{offset}", block.txdata[0].txid());
       break;
     }
-    ordinal += output.value;
+    offset -= output.value;
   }
 
   Ok(())
