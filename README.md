@@ -72,14 +72,17 @@ If the coinbase transaction underpays the block subsidy or fees, those
 satoshis, along with their ordinal numbers, are destroyed and taken out of
 circulation.
 
-The `find` command, as of yet unfinished, gives the current outpoint containing
+The `find` command, as of yet unfinished, gives the current satpoint containing
 the satoshi with a given ordinal at a given height:
 
 ```
 $ ord find --blocksdir ~/.bicoin/blocks 0 0
-4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0
+4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0
 ```
 
+A satpoint is an outpoint, that is to say a transaction ID and output index,
+followed by the offset into the output itself, and gives the position of the
+satoshi within a particular output.
 
 ## Traits
 
