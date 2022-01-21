@@ -3,7 +3,7 @@ use {
   bitcoin::{
     blockdata::constants::{genesis_block, COIN_VALUE},
     consensus::Decodable,
-    Block, Network,
+    Block, Network, OutPoint, Transaction,
   },
   derive_more::Display,
   integer_cbrt::IntegerCubeRoot,
@@ -14,6 +14,7 @@ use {
   },
   std::{
     cmp::Ordering,
+    fmt::{self, Display, Formatter},
     fs,
     ops::{Add, AddAssign, Deref, Range, Sub},
     path::{Path, PathBuf},

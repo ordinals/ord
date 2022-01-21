@@ -23,3 +23,11 @@ fn first_satoshi_of_second_block() -> Result {
     .expected_stdout("e5fb252959bdc7727c80296dbc53e1583121503bb2e266a609ebc49cf2a74c1d:0:0\n")
     .run()
 }
+
+#[test]
+fn first_satoshi_spent_in_second_block() -> Result {
+  Test::new()?
+    .args(&["find", "--blocksdir", "blocks", "0", "1"])
+    .expected_stdout("xyz:0:0\n")
+    .run()
+}

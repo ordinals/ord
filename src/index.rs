@@ -1,8 +1,8 @@
 use super::*;
 
+const BLOCK_OFFSETS: &str = "block_offsets";
 const CHILDREN: &str = "children";
 const HEIGHTS: &str = "heights";
-const BLOCK_OFFSETS: &str = "block_offsets";
 const HEIGHTS_TO_HASHES: &str = "height_to_hashes";
 
 pub(crate) struct Index {

@@ -159,7 +159,6 @@ fn serialize_block(output: &mut File, block: &Block) -> io::Result<()> {
   output.seek(SeekFrom::Start(size_field))?;
   output.write_all(&(size as u32).to_le_bytes())?;
   output.seek(SeekFrom::Current(size as i64))?;
-
   Ok(())
 }
 
@@ -183,7 +182,6 @@ fn populate_blockfile(mut output: File, height: usize) -> io::Result<()> {
       },
       txdata: vec![tx],
     };
-
     serialize_block(&mut output, &block)?;
     prev_block = block;
   }
