@@ -3,7 +3,7 @@ use super::*;
 #[test]
 fn first_satoshi() -> Result {
   Test::new()?
-    .args(&["find", "--blocksdir", "blocks", "0", "0"])
+    .command("find --blocksdir blocks 0 --as-of-height 0")
     .expected_stdout("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0\n")
     .run()
 }
@@ -11,7 +11,7 @@ fn first_satoshi() -> Result {
 #[test]
 fn second_satoshi() -> Result {
   Test::new()?
-    .args(&["find", "--blocksdir", "blocks", "1", "0"])
+    .command("find --blocksdir blocks 1 --as-of-height 0")
     .expected_stdout("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:1\n")
     .run()
 }
@@ -19,7 +19,7 @@ fn second_satoshi() -> Result {
 #[test]
 fn first_satoshi_of_second_block() -> Result {
   Test::new()?
-    .args(&["find", "--blocksdir", "blocks", "5000000000", "1"])
+    .command("find --blocksdir blocks 5000000000 --as-of-height 1")
     .expected_stdout("e5fb252959bdc7727c80296dbc53e1583121503bb2e266a609ebc49cf2a74c1d:0:0\n")
     .run()
 }
@@ -27,7 +27,7 @@ fn first_satoshi_of_second_block() -> Result {
 #[test]
 fn first_satoshi_spent_in_second_block() -> Result {
   Test::new()?
-    .args(&["find", "--blocksdir", "blocks", "0", "1"])
-    .expected_stdout("xyz:0:0\n")
+    .command("find --blocksdir blocks 0 --as-of-height 1")
+    .expected_stdout("")
     .run()
 }

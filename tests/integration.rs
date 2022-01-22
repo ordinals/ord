@@ -49,6 +49,13 @@ impl Test {
     })
   }
 
+  fn command(self, args: &str) -> Self {
+    Self {
+      args: args.split_whitespace().map(str::to_owned).collect(),
+      ..self
+    }
+  }
+
   fn args(self, args: &[&str]) -> Self {
     Self {
       args: self
@@ -120,7 +127,7 @@ impl Test {
   }
 }
 
-fn generate_transaction(height: usize) -> Transaction {
+fn generate_coinbase_transaction(height: usize) -> Transaction {
   // Base
   let mut ret = Transaction {
     version: 1,
@@ -151,6 +158,35 @@ fn generate_transaction(height: usize) -> Transaction {
   ret
 }
 
+fn generate_spending_transaction(previous_output: OutPoint) -> Transaction {
+  // Base
+  let mut ret = Transaction {
+    version: 1,
+    lock_time: 0,
+    input: vec![],
+    output: vec![],
+  };
+
+  // Inputs
+  let in_script = script::Builder::new().into_script();
+  ret.input.push(TxIn {
+    script_sig: in_script,
+    sequence: MAX_SEQUENCE,
+    witness: vec![],
+    previous_output,
+  });
+
+  // Outputs
+  let out_script = script::Builder::new().into_script();
+  ret.output.push(TxOut {
+    value: 50 * COIN_VALUE,
+    script_pubkey: out_script,
+  });
+
+  // end
+  ret
+}
+
 fn serialize_block(output: &mut File, block: &Block) -> io::Result<()> {
   output.write_all(&[0xf9, 0xbe, 0xb4, 0xd9])?;
   let size_field = output.stream_position()?;
@@ -168,7 +204,7 @@ fn populate_blockfile(mut output: File, height: usize) -> io::Result<()> {
 
   let mut prev_block = genesis.clone();
   for _ in 1..=height {
-    let tx = generate_transaction(height);
+    let tx = generate_coinbase_transaction(height);
     let hash: sha256d::Hash = tx.txid().into();
     let merkle_root = hash.into();
     let block = Block {
@@ -180,7 +216,13 @@ fn populate_blockfile(mut output: File, height: usize) -> io::Result<()> {
         bits: 0,
         nonce: 0,
       },
-      txdata: vec![tx],
+      txdata: vec![
+        tx,
+        generate_spending_transaction(OutPoint {
+          txid: prev_block.txdata[0].txid(),
+          vout: 0,
+        }),
+      ],
     };
     serialize_block(&mut output, &block)?;
     prev_block = block;

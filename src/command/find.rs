@@ -34,16 +34,31 @@ fn find_in_transaction(tx: &Transaction, mut offset: u64) -> SatPoint {
   panic!("Could not find ordinal in transaction!");
 }
 
-pub(crate) fn run(blocksdir: Option<&Path>, ordinal: Ordinal, at_height: u64) -> Result<()> {
+pub(crate) fn run(blocksdir: Option<&Path>, ordinal: Ordinal, as_of_height: u64) -> Result<()> {
   let index = Index::new(blocksdir)?;
 
-  let height = ordinal.height().n();
-  assert!(height < 100);
+  let creation_height = ordinal.height().n();
+  assert!(creation_height < 100);
 
-  let block = index.block(height)?;
+  let block = index.block(creation_height)?.unwrap();
 
   let offset = ordinal.subsidy_position();
-  let satpoint = find_in_transaction(&block.txdata[0], offset);
+  let mut satpoint = find_in_transaction(&block.txdata[0], offset);
+
+  for height in (creation_height + 1)..as_of_height {
+    match index.block(height)? {
+      Some(block) => {
+        for transaction in block.txdata {
+          for input in &transaction.input {
+            if input.previous_output == satpoint.outpoint {
+              satpoint = find_in_transaction(&transaction, satpoint.offset);
+            }
+          }
+        }
+      }
+      None => break,
+    }
+  }
 
   println!("{satpoint}");
 

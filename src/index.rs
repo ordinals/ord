@@ -113,19 +113,24 @@ impl Index {
     Ok(())
   }
 
-  pub(crate) fn block(&self, height: u64) -> Result<Block> {
+  pub(crate) fn block(&self, height: u64) -> Result<Option<Block>> {
     let tx = self.database.begin_read()?;
 
     let heights_to_hashes: ReadOnlyTable<u64, [u8]> = tx.open_table(HEIGHTS_TO_HASHES)?;
-    let guard = heights_to_hashes.get(&height)?.unwrap();
-    let hash = guard.to_value();
 
-    let offsets: ReadOnlyTable<[u8], u64> = tx.open_table(BLOCK_OFFSETS)?;
-    let offset = offsets.get(hash)?.unwrap().to_value() as usize;
+    match heights_to_hashes.get(&height)? {
+      None => return Ok(None),
+      Some(guard) => {
+        let hash = guard.to_value();
 
-    let blocks = fs::read(self.blocksdir.join("blk00000.dat"))?;
+        let offsets: ReadOnlyTable<[u8], u64> = tx.open_table(BLOCK_OFFSETS)?;
+        let offset = offsets.get(hash)?.unwrap().to_value() as usize;
 
-    Self::decode_block_at(&blocks, offset)
+        let blocks = fs::read(self.blocksdir.join("blk00000.dat"))?;
+
+        Ok(Some(Self::decode_block_at(&blocks, offset)?))
+      }
+    }
   }
 
   fn block_range_at(blocks: &[u8], offset: usize) -> Result<Range<usize>> {

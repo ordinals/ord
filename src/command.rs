@@ -12,8 +12,9 @@ pub(crate) enum Command {
   Find {
     #[structopt(long)]
     blocksdir: Option<PathBuf>,
+    #[structopt(long)]
+    as_of_height: u64,
     ordinal: Ordinal,
-    height: u64,
   },
   Name {
     name: String,
@@ -36,8 +37,8 @@ impl Command {
       Self::Find {
         blocksdir,
         ordinal,
-        height,
-      } => find::run(blocksdir.as_deref(), ordinal, height),
+        as_of_height,
+      } => find::run(blocksdir.as_deref(), ordinal, as_of_height),
       Self::Name { name } => name::run(&name),
       Self::Range { height, name } => range::run(height, name),
       Self::Supply => supply::run(),
