@@ -14,6 +14,8 @@ pub(crate) enum Command {
     blocksdir: Option<PathBuf>,
     #[structopt(long)]
     as_of_height: u64,
+    #[structopt(long)]
+    slot: bool,
     ordinal: Ordinal,
   },
   Name {
@@ -35,10 +37,11 @@ impl Command {
     match self {
       Self::Epochs => epochs::run(),
       Self::Find {
+        as_of_height,
         blocksdir,
         ordinal,
-        as_of_height,
-      } => find::run(blocksdir.as_deref(), ordinal, as_of_height),
+        slot,
+      } => find::run(blocksdir.as_deref(), ordinal, as_of_height, slot),
       Self::Name { name } => name::run(&name),
       Self::Range { height, name } => range::run(height, name),
       Self::Supply => supply::run(),
