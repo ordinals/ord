@@ -2,6 +2,7 @@ use super::*;
 
 mod epochs;
 mod find;
+mod list;
 mod range;
 mod supply;
 mod traits;
@@ -13,6 +14,7 @@ pub(crate) enum Command {
   Name {
     name: String,
   },
+  List(list::List),
   Range {
     #[structopt(long)]
     name: bool,
@@ -30,6 +32,7 @@ impl Command {
       Self::Epochs => epochs::run(),
       Self::Find(find) => find.run(),
       Self::Name { name } => name::run(&name),
+      Self::List(list) => list.run(),
       Self::Range { height, name } => range::run(height, name),
       Self::Supply => supply::run(),
       Self::Traits { ordinal } => traits::run(ordinal),

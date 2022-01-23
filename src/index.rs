@@ -44,6 +44,7 @@ impl Index {
   fn index_ranges(&self) -> Result {
     let mut height = 0;
     while let Some(block) = self.block(height)? {
+      eprintln!(".");
       let wtx = self.database.begin_write()?;
       let mut utxords: Table<[u8], [u8]> = wtx.open_table(UTXORDS)?;
 
@@ -55,6 +56,7 @@ impl Index {
       }
 
       for tx in &block.txdata[1..] {
+        eprintln!(".");
         let mut input_ordinal_ranges = VecDeque::new();
         for input in &tx.input {
           let mut key = Vec::new();
@@ -240,5 +242,20 @@ impl Index {
     Ok(Block::consensus_decode(
       &blocks[Self::block_range_at(blocks, offset)?],
     )?)
+  }
+
+  pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Vec<(u64, u64)>> {
+    let rtx = self.database.begin_read()?;
+    let utxords: ReadOnlyTable<[u8], [u8]> = rtx.open_table(UTXORDS)?;
+    let mut key = Vec::new();
+    outpoint.consensus_encode(&mut key)?;
+    let ordinal_ranges = utxords.get(key.as_slice())?.unwrap();
+    let mut output = Vec::new();
+    for chunk in ordinal_ranges.to_value().chunks_exact(16) {
+      let start = u64::from_le_bytes(chunk[0..8].try_into().unwrap());
+      let end = u64::from_le_bytes(chunk[8..16].try_into().unwrap());
+      output.push((start, end));
+    }
+    Ok(output)
   }
 }
