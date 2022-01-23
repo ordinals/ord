@@ -2,7 +2,7 @@ use {
   crate::{epoch::Epoch, height::Height, index::Index, ordinal::Ordinal},
   bitcoin::{
     blockdata::constants::{genesis_block, COIN_VALUE},
-    consensus::Decodable,
+    consensus::{Decodable, Encodable},
     Block, Network, OutPoint, Transaction,
   },
   derive_more::Display,
@@ -14,6 +14,7 @@ use {
   },
   std::{
     cmp::Ordering,
+    collections::VecDeque,
     fmt::{self, Display, Formatter},
     fs,
     ops::{Add, AddAssign, Deref, Range, Sub},

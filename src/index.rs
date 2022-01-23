@@ -4,6 +4,7 @@ const BLOCK_OFFSETS: &str = "block_offsets";
 const CHILDREN: &str = "children";
 const HEIGHTS: &str = "heights";
 const HEIGHTS_TO_HASHES: &str = "height_to_hashes";
+const UTXORDS: &str = "utxords";
 
 pub(crate) struct Index {
   blocksdir: PathBuf,
@@ -35,7 +36,99 @@ impl Index {
 
     index.index_blockfile()?;
 
+    index.index_ranges()?;
+
     Ok(index)
+  }
+
+  fn index_ranges(&self) -> Result {
+    let mut height = 0;
+    while let Some(block) = self.block(height)? {
+      let wtx = self.database.begin_write()?;
+      let mut utxords: Table<[u8], [u8]> = wtx.open_table(UTXORDS)?;
+
+      let mut coinbase_inputs = VecDeque::new();
+
+      let h = Height(height);
+      if let Some(start) = h.starting_ordinal() {
+        coinbase_inputs.push_front((start.n(), (start + h.subsidy()).n()));
+      }
+
+      for tx in &block.txdata[1..] {
+        let mut input_ordinal_ranges = VecDeque::new();
+        for input in &tx.input {
+          let mut key = Vec::new();
+          input.previous_output.consensus_encode(&mut key)?;
+          let ordinal_ranges = utxords.get(key.as_slice())?.unwrap();
+
+          for chunk in ordinal_ranges.to_value().chunks_exact(16) {
+            let start = u64::from_le_bytes(chunk[0..8].try_into().unwrap());
+            let end = u64::from_le_bytes(chunk[8..16].try_into().unwrap());
+            input_ordinal_ranges.push_back((start, end));
+          }
+        }
+        for (vout, output) in tx.output.iter().enumerate() {
+          let mut ordinals = Vec::new();
+          let mut remaining = output.value;
+          while remaining > 0 {
+            let range = input_ordinal_ranges.pop_front().unwrap();
+            let count = range.1 - range.0;
+            let assigned = if count > remaining {
+              let split = range.0 + remaining;
+              input_ordinal_ranges.push_front((split, range.1));
+              (range.0, split)
+            } else {
+              range
+            };
+            ordinals.extend_from_slice(&assigned.0.to_le_bytes());
+            ordinals.extend_from_slice(&assigned.1.to_le_bytes());
+            remaining -= assigned.1 - assigned.0;
+          }
+          let outpoint = OutPoint {
+            txid: tx.txid(),
+            vout: vout as u32,
+          };
+          let mut key = Vec::new();
+          outpoint.consensus_encode(&mut key)?;
+          utxords.insert(&key, &ordinals)?;
+        }
+        coinbase_inputs.extend(&input_ordinal_ranges);
+      }
+
+      {
+        let tx = &block.txdata[0];
+        for (vout, output) in tx.output.iter().enumerate() {
+          let mut ordinals = Vec::new();
+          let mut remaining = output.value;
+          while remaining > 0 {
+            let range = coinbase_inputs.pop_front().unwrap();
+            let count = range.1 - range.0;
+            let assigned = if count > remaining {
+              let split = range.0 + remaining;
+              coinbase_inputs.push_front((split, range.1));
+              (range.0, split)
+            } else {
+              range
+            };
+            ordinals.extend_from_slice(&assigned.0.to_le_bytes());
+            ordinals.extend_from_slice(&assigned.1.to_le_bytes());
+            remaining -= assigned.1 - assigned.0;
+          }
+          let outpoint = OutPoint {
+            txid: tx.txid(),
+            vout: vout as u32,
+          };
+          let mut key = Vec::new();
+          outpoint.consensus_encode(&mut key)?;
+          utxords.insert(&key, &ordinals)?;
+        }
+      }
+
+      wtx.commit()?;
+      height += 1;
+    }
+
+    Ok(())
   }
 
   fn index_blockfile(&self) -> Result {
