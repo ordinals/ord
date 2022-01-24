@@ -44,7 +44,7 @@ impl Index {
   fn index_ranges(&self) -> Result {
     let mut height = 0;
     while let Some(block) = self.block(height)? {
-      eprintln!(".");
+      eprint!(".");
       let wtx = self.database.begin_write()?;
       let mut utxords: Table<[u8], [u8]> = wtx.open_table(UTXORDS)?;
 
@@ -56,7 +56,6 @@ impl Index {
       }
 
       for tx in &block.txdata[1..] {
-        eprintln!(".");
         let mut input_ordinal_ranges = VecDeque::new();
         for input in &tx.input {
           let mut key = Vec::new();
@@ -148,6 +147,7 @@ impl Index {
       let mut count = 0;
 
       loop {
+        eprint!(".");
         if offset == blocks.len() {
           break;
         }
