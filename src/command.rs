@@ -2,6 +2,8 @@ use super::*;
 
 mod epochs;
 mod find;
+mod list;
+mod name;
 mod range;
 mod supply;
 mod traits;
@@ -9,39 +11,24 @@ mod traits;
 #[derive(StructOpt)]
 pub(crate) enum Command {
   Epochs,
-  Find {
-    #[structopt(long)]
-    blocksdir: Option<PathBuf>,
-    ordinal: Ordinal,
-    height: u64,
-  },
-  Name {
-    name: String,
-  },
-  Range {
-    #[structopt(long)]
-    name: bool,
-    height: Height,
-  },
+  Find(find::Find),
+  Name(name::Name),
+  List(list::List),
+  Range(range::Range),
   Supply,
-  Traits {
-    ordinal: Ordinal,
-  },
+  Traits(traits::Traits),
 }
 
 impl Command {
   pub(crate) fn run(self) -> Result<()> {
     match self {
       Self::Epochs => epochs::run(),
-      Self::Find {
-        blocksdir,
-        ordinal,
-        height,
-      } => find::run(blocksdir.as_deref(), ordinal, height),
-      Self::Name { name } => name::run(&name),
-      Self::Range { height, name } => range::run(height, name),
+      Self::Find(find) => find.run(),
+      Self::Name(name) => name.run(),
+      Self::List(list) => list.run(),
+      Self::Range(range) => range.run(),
       Self::Supply => supply::run(),
-      Self::Traits { ordinal } => traits::run(ordinal),
+      Self::Traits(traits) => traits.run(),
     }
   }
 }

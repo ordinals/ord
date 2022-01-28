@@ -1,22 +1,49 @@
 use super::*;
 
-pub(crate) fn run(blocksdir: Option<&Path>, ordinal: Ordinal, at_height: u64) -> Result<()> {
-  let index = Index::new(blocksdir)?;
+#[derive(StructOpt)]
+pub(crate) struct Find {
+  #[structopt(long)]
+  blocksdir: Option<PathBuf>,
+  #[structopt(long)]
+  as_of_height: u64,
+  #[structopt(long)]
+  slot: bool,
+  ordinal: Ordinal,
+}
 
-  let height = ordinal.height().n();
-  assert!(height < 100);
-  assert!(height == at_height);
+impl Find {
+  pub(crate) fn run(self) -> Result<()> {
+    let index = Index::new(self.blocksdir.as_deref())?;
 
-  let block = index.block(height)?;
+    let creation_height = self.ordinal.height().n();
+    let block = index.block(creation_height)?.unwrap();
 
-  let mut offset = ordinal.subsidy_position();
-  for (index, output) in block.txdata[0].output.iter().enumerate() {
-    if output.value > offset {
-      println!("{}:{index}:{offset}", block.txdata[0].txid());
-      break;
+    let offset = self.ordinal.subsidy_position();
+    let mut satpoint = SatPoint::from_transaction_and_offset(&block.txdata[0], offset);
+    let mut slot = (creation_height, 0, satpoint.outpoint.vout, offset);
+
+    for height in (creation_height + 1)..(self.as_of_height + 1) {
+      match index.block(height)? {
+        Some(block) => {
+          for (txindex, transaction) in block.txdata.iter().enumerate() {
+            for input in &transaction.input {
+              if input.previous_output == satpoint.outpoint {
+                satpoint = SatPoint::from_transaction_and_offset(transaction, satpoint.offset);
+                slot = (height, txindex, satpoint.outpoint.vout, satpoint.offset);
+              }
+            }
+          }
+        }
+        None => break,
+      }
     }
-    offset -= output.value;
-  }
 
-  Ok(())
+    if self.slot {
+      println!("{}.{}.{}.{}", slot.0, slot.1, slot.2, slot.3);
+    } else {
+      println!("{satpoint}");
+    }
+
+    Ok(())
+  }
 }

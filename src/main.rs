@@ -1,9 +1,9 @@
 use {
-  crate::{epoch::Epoch, height::Height, index::Index, ordinal::Ordinal},
+  crate::{epoch::Epoch, height::Height, index::Index, ordinal::Ordinal, sat_point::SatPoint},
   bitcoin::{
     blockdata::constants::{genesis_block, COIN_VALUE},
-    consensus::Decodable,
-    Block, Network,
+    consensus::{Decodable, Encodable},
+    Block, Network, OutPoint, Transaction,
   },
   derive_more::Display,
   integer_cbrt::IntegerCubeRoot,
@@ -14,6 +14,8 @@ use {
   },
   std::{
     cmp::Ordering,
+    collections::VecDeque,
+    fmt::{self, Display, Formatter},
     fs,
     ops::{Add, AddAssign, Deref, Range, Sub},
     path::{Path, PathBuf},
@@ -27,8 +29,8 @@ mod command;
 mod epoch;
 mod height;
 mod index;
-mod name;
 mod ordinal;
+mod sat_point;
 
 type Result<T = (), E = Box<dyn std::error::Error>> = std::result::Result<T, E>;
 

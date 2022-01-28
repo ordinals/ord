@@ -11,6 +11,13 @@ impl Height {
   pub(crate) fn subsidy(self) -> u64 {
     Epoch::from(self).subsidy()
   }
+
+  pub(crate) fn starting_ordinal(self) -> Option<Ordinal> {
+    let epoch = Epoch::from(self);
+    let epoch_starting_ordinal = epoch.starting_ordinal()?;
+    let epoch_starting_height = epoch.starting_height();
+    Some(epoch_starting_ordinal + (self - epoch_starting_height.n()).n() * epoch.subsidy())
+  }
 }
 
 impl Add<u64> for Height {
@@ -84,5 +91,24 @@ mod tests {
     assert_eq!(Height(210000 - 1).subsidy(), 5000000000);
     assert_eq!(Height(210000).subsidy(), 2500000000);
     assert_eq!(Height(210000 + 1).subsidy(), 2500000000);
+  }
+
+  #[test]
+  fn starting_ordinal() {
+    assert_eq!(Height(0).starting_ordinal().unwrap(), 0);
+    assert_eq!(Height(1).starting_ordinal().unwrap(), 5000000000);
+    assert_eq!(
+      Height(210000 - 1).starting_ordinal().unwrap(),
+      (210000 - 1) * 5000000000
+    );
+    assert_eq!(
+      Height(210000).starting_ordinal().unwrap(),
+      210000 * 5000000000
+    );
+    assert_eq!(
+      Height(210000 + 1).starting_ordinal().unwrap(),
+      210000 * 5000000000 + 2500000000
+    );
+    assert_eq!(Height(u64::max_value()).starting_ordinal(), None);
   }
 }
