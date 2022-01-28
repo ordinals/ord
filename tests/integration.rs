@@ -12,7 +12,6 @@ use {
     error::Error,
     fs::{self, File},
     io::{self, Seek, SeekFrom, Write},
-    path::Path,
     process::Command,
     str,
   },
