@@ -126,14 +126,9 @@ impl Test {
   }
 
   fn populate_blocksdir(&self, height: usize) -> io::Result<()> {
-    let blocksdir = self.tempdir.path().join("blocks");
-    fs::create_dir(&blocksdir)?;
-    let mut output = File::create(blocksdir.join("blk00000.dat"))?;
+    let mut blocks = Vec::new();
+    blocks.push(genesis_block(Network::Bitcoin));
 
-    let genesis = genesis_block(Network::Bitcoin);
-    serialize_block(&mut output, &genesis)?;
-
-    let mut prev_block = genesis.clone();
     for _ in 1..=height {
       let tx = generate_coinbase_transaction(height);
       let hash: sha256d::Hash = tx.txid().into();
@@ -141,7 +136,7 @@ impl Test {
       let block = Block {
         header: BlockHeader {
           version: 0,
-          prev_blockhash: prev_block.block_hash(),
+          prev_blockhash: blocks.last().unwrap().block_hash(),
           merkle_root,
           time: 0,
           bits: 0,
@@ -150,13 +145,20 @@ impl Test {
         txdata: vec![
           tx,
           generate_spending_transaction(OutPoint {
-            txid: prev_block.txdata[0].txid(),
+            txid: blocks.last().unwrap().txdata[0].txid(),
             vout: 0,
           }),
         ],
       };
+      blocks.push(block);
+    }
+
+    let blocksdir = self.tempdir.path().join("blocks");
+    fs::create_dir(&blocksdir)?;
+    let mut output = File::create(blocksdir.join("blk00000.dat"))?;
+
+    for block in blocks {
       serialize_block(&mut output, &block)?;
-      prev_block = block;
     }
 
     Ok(())
