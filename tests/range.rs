@@ -39,3 +39,11 @@ fn genesis_names() -> Result {
     .expected_stdout("[nvtdijuwxlo,nvtcsezkbtg)\n")
     .run()
 }
+
+#[test]
+fn names_before_last() -> Result {
+  Test::new()?
+    .args(&["range", "--name", "6929998"])
+    .expected_stdout("[a,)\n")
+    .run()
+}
