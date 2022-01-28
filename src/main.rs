@@ -1,5 +1,5 @@
 use {
-  crate::{epoch::Epoch, height::Height, index::Index, ordinal::Ordinal},
+  crate::{epoch::Epoch, height::Height, index::Index, ordinal::Ordinal, sat_point::SatPoint},
   bitcoin::{
     blockdata::constants::{genesis_block, COIN_VALUE},
     consensus::{Decodable, Encodable},
@@ -30,6 +30,7 @@ mod epoch;
 mod height;
 mod index;
 mod ordinal;
+mod sat_point;
 
 type Result<T = (), E = Box<dyn std::error::Error>> = std::result::Result<T, E>;
 
