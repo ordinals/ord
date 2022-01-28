@@ -214,7 +214,7 @@ impl Index {
     let heights_to_hashes: ReadOnlyTable<u64, [u8]> = tx.open_table(Self::HEIGHT_TO_HASH)?;
 
     match heights_to_hashes.get(&height)? {
-      None => return Ok(None),
+      None => Ok(None),
       Some(guard) => {
         let hash = guard.to_value();
 

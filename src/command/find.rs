@@ -28,7 +28,7 @@ impl Find {
           for (txindex, transaction) in block.txdata.iter().enumerate() {
             for input in &transaction.input {
               if input.previous_output == satpoint.outpoint {
-                satpoint = SatPoint::from_transaction_and_offset(&transaction, satpoint.offset);
+                satpoint = SatPoint::from_transaction_and_offset(transaction, satpoint.offset);
                 slot = (height, txindex, satpoint.outpoint.vout, satpoint.offset);
               }
             }
