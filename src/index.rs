@@ -60,7 +60,9 @@ impl Index {
         for input in &tx.input {
           let mut key = Vec::new();
           input.previous_output.consensus_encode(&mut key)?;
-          let ordinal_ranges = outpoint_to_ordinal_ranges.get(key.as_slice())?.unwrap();
+          let ordinal_ranges = outpoint_to_ordinal_ranges
+            .get(key.as_slice())?
+            .ok_or("Could not find outpoint in index")?;
 
           for chunk in ordinal_ranges.to_value().chunks_exact(16) {
             let start = u64::from_le_bytes(chunk[0..8].try_into().unwrap());
@@ -72,7 +74,9 @@ impl Index {
           let mut ordinals = Vec::new();
           let mut remaining = output.value;
           while remaining > 0 {
-            let range = input_ordinal_ranges.pop_front().unwrap();
+            let range = input_ordinal_ranges
+              .pop_front()
+              .ok_or("Found transaction with outputs but no inputs")?;
             let count = range.1 - range.0;
             let assigned = if count > remaining {
               let split = range.0 + remaining;
@@ -102,7 +106,9 @@ impl Index {
           let mut ordinals = Vec::new();
           let mut remaining = output.value;
           while remaining > 0 {
-            let range = coinbase_inputs.pop_front().unwrap();
+            let range = coinbase_inputs
+              .pop_front()
+              .ok_or("Insufficient inputs for coinbase transaction outputs")?;
             let count = range.1 - range.0;
             let assigned = if count > remaining {
               let split = range.0 + remaining;
@@ -220,7 +226,10 @@ impl Index {
         let hash = guard.to_value();
 
         let hash_to_offset: ReadOnlyTable<[u8], u64> = tx.open_table(Self::HASH_TO_OFFSET)?;
-        let offset = hash_to_offset.get(hash)?.unwrap().to_value() as usize;
+        let offset = hash_to_offset
+          .get(hash)?
+          .ok_or("Could not find offset to block in index")?
+          .to_value() as usize;
 
         let blocks = fs::read(self.blocksdir.join("blk00000.dat"))?;
 
@@ -247,11 +256,13 @@ impl Index {
 
   pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Vec<(u64, u64)>> {
     let rtx = self.database.begin_read()?;
-    let outpoint_to_oridnal_ranges: ReadOnlyTable<[u8], [u8]> =
+    let outpoint_to_ordinal_ranges: ReadOnlyTable<[u8], [u8]> =
       rtx.open_table(Self::OUTPOINT_TO_ORDINAL_RANGES)?;
     let mut key = Vec::new();
     outpoint.consensus_encode(&mut key)?;
-    let ordinal_ranges = outpoint_to_oridnal_ranges.get(key.as_slice())?.unwrap();
+    let ordinal_ranges = outpoint_to_ordinal_ranges
+      .get(key.as_slice())?
+      .ok_or("Could not find outpoint in index")?;
     let mut output = Vec::new();
     for chunk in ordinal_ranges.to_value().chunks_exact(16) {
       let start = u64::from_le_bytes(chunk[0..8].try_into().unwrap());
