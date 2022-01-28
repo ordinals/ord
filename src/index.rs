@@ -1,17 +1,17 @@
 use super::*;
 
-const BLOCK_OFFSETS: &str = "block_offsets";
-const CHILDREN: &str = "children";
-const HEIGHTS: &str = "heights";
-const HEIGHTS_TO_HASHES: &str = "height_to_hashes";
-const UTXORDS: &str = "utxords";
-
 pub(crate) struct Index {
   blocksdir: PathBuf,
   database: Database,
 }
 
 impl Index {
+  const HASH_TO_CHILDREN: &'static str = "HASH_TO_CHILDREN";
+  const HASH_TO_HEIGHT: &'static str = "HASH_TO_HEIGHT";
+  const HASH_TO_OFFSET: &'static str = "HASH_TO_OFFSET";
+  const HEIGHT_TO_HASH: &'static str = "HEIGHT_TO_HASH";
+  const OUTPOINT_TO_ORDINAL_RANGES: &'static str = "OUTPOINT_TO_ORDINAL_RANGES";
+
   pub(crate) fn new(blocksdir: Option<&Path>) -> Result<Self> {
     let blocksdir = if let Some(blocksdir) = blocksdir {
       blocksdir.to_owned()
@@ -45,7 +45,7 @@ impl Index {
     let mut height = 0;
     while let Some(block) = self.block(height)? {
       let wtx = self.database.begin_write()?;
-      let mut utxords: Table<[u8], [u8]> = wtx.open_table(UTXORDS)?;
+      let mut utxords: Table<[u8], [u8]> = wtx.open_table(Self::OUTPOINT_TO_ORDINAL_RANGES)?;
 
       let mut coinbase_inputs = VecDeque::new();
 
@@ -135,9 +135,10 @@ impl Index {
     {
       let tx = self.database.begin_write()?;
 
-      let mut children: MultimapTable<[u8], [u8]> = tx.open_multimap_table(CHILDREN)?;
+      let mut children: MultimapTable<[u8], [u8]> =
+        tx.open_multimap_table(Self::HASH_TO_CHILDREN)?;
 
-      let mut block_offsets: Table<[u8], u64> = tx.open_table(BLOCK_OFFSETS)?;
+      let mut block_offsets: Table<[u8], u64> = tx.open_table(Self::HASH_TO_OFFSET)?;
 
       let blocks = fs::read(self.blocksdir.join("blk00000.dat"))?;
 
@@ -171,15 +172,16 @@ impl Index {
     {
       let write = self.database.begin_write()?;
 
-      let mut heights: Table<[u8], u64> = write.open_table(HEIGHTS)?;
-      let mut heights_to_hashes: Table<u64, [u8]> = write.open_table(HEIGHTS_TO_HASHES)?;
+      let mut heights: Table<[u8], u64> = write.open_table(Self::HASH_TO_HEIGHT)?;
+      let mut heights_to_hashes: Table<u64, [u8]> = write.open_table(Self::HEIGHT_TO_HASH)?;
 
       heights.insert(genesis_block(Network::Bitcoin).block_hash().deref(), &0)?;
       heights_to_hashes.insert(&0, genesis_block(Network::Bitcoin).block_hash().deref())?;
 
       let read = self.database.begin_read()?;
 
-      let children: ReadOnlyMultimapTable<[u8], [u8]> = read.open_multimap_table(CHILDREN)?;
+      let children: ReadOnlyMultimapTable<[u8], [u8]> =
+        read.open_multimap_table(Self::HASH_TO_CHILDREN)?;
 
       let mut queue = vec![(
         genesis_block(Network::Bitcoin)
@@ -209,14 +211,14 @@ impl Index {
   pub(crate) fn block(&self, height: u64) -> Result<Option<Block>> {
     let tx = self.database.begin_read()?;
 
-    let heights_to_hashes: ReadOnlyTable<u64, [u8]> = tx.open_table(HEIGHTS_TO_HASHES)?;
+    let heights_to_hashes: ReadOnlyTable<u64, [u8]> = tx.open_table(Self::HEIGHT_TO_HASH)?;
 
     match heights_to_hashes.get(&height)? {
       None => return Ok(None),
       Some(guard) => {
         let hash = guard.to_value();
 
-        let offsets: ReadOnlyTable<[u8], u64> = tx.open_table(BLOCK_OFFSETS)?;
+        let offsets: ReadOnlyTable<[u8], u64> = tx.open_table(Self::HASH_TO_OFFSET)?;
         let offset = offsets.get(hash)?.unwrap().to_value() as usize;
 
         let blocks = fs::read(self.blocksdir.join("blk00000.dat"))?;
@@ -244,7 +246,7 @@ impl Index {
 
   pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Vec<(u64, u64)>> {
     let rtx = self.database.begin_read()?;
-    let utxords: ReadOnlyTable<[u8], [u8]> = rtx.open_table(UTXORDS)?;
+    let utxords: ReadOnlyTable<[u8], [u8]> = rtx.open_table(Self::OUTPOINT_TO_ORDINAL_RANGES)?;
     let mut key = Vec::new();
     outpoint.consensus_encode(&mut key)?;
     let ordinal_ranges = utxords.get(key.as_slice())?.unwrap();
