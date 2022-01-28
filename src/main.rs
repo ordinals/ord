@@ -29,7 +29,6 @@ mod command;
 mod epoch;
 mod height;
 mod index;
-mod name;
 mod ordinal;
 
 type Result<T = (), E = Box<dyn std::error::Error>> = std::result::Result<T, E>;

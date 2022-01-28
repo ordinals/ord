@@ -3,6 +3,7 @@ use super::*;
 mod epochs;
 mod find;
 mod list;
+mod name;
 mod range;
 mod supply;
 mod traits;
@@ -11,19 +12,11 @@ mod traits;
 pub(crate) enum Command {
   Epochs,
   Find(find::Find),
-  Name {
-    name: String,
-  },
+  Name(name::Name),
   List(list::List),
-  Range {
-    #[structopt(long)]
-    name: bool,
-    height: Height,
-  },
+  Range(range::Range),
   Supply,
-  Traits {
-    ordinal: Ordinal,
-  },
+  Traits(traits::Traits),
 }
 
 impl Command {
@@ -31,11 +24,11 @@ impl Command {
     match self {
       Self::Epochs => epochs::run(),
       Self::Find(find) => find.run(),
-      Self::Name { name } => name::run(&name),
+      Self::Name(name) => name.run(),
       Self::List(list) => list.run(),
-      Self::Range { height, name } => range::run(height, name),
+      Self::Range(range) => range.run(),
       Self::Supply => supply::run(),
-      Self::Traits { ordinal } => traits::run(ordinal),
+      Self::Traits(traits) => traits.run(),
     }
   }
 }
