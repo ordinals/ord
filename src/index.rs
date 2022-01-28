@@ -44,7 +44,6 @@ impl Index {
   fn index_ranges(&self) -> Result {
     let mut height = 0;
     while let Some(block) = self.block(height)? {
-      eprint!(".");
       let wtx = self.database.begin_write()?;
       let mut utxords: Table<[u8], [u8]> = wtx.open_table(UTXORDS)?;
 
@@ -147,7 +146,6 @@ impl Index {
       let mut count = 0;
 
       loop {
-        eprint!(".");
         if offset == blocks.len() {
           break;
         }
