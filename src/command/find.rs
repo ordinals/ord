@@ -8,7 +8,6 @@ pub(crate) struct Find {
   as_of_height: u64,
   #[structopt(long)]
   slot: bool,
-  #[structopt(long)]
   ordinal: Ordinal,
 }
 
