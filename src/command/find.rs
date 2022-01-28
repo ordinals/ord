@@ -16,7 +16,6 @@ impl Find {
     let index = Index::new(self.blocksdir.as_deref())?;
 
     let creation_height = self.ordinal.height().n();
-    assert!(creation_height < 100);
     let block = index.block(creation_height)?.unwrap();
 
     let offset = self.ordinal.subsidy_position();
