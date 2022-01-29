@@ -3,7 +3,6 @@ use {
     blockdata::constants::{genesis_block, COIN_VALUE, MAX_SEQUENCE},
     blockdata::script,
     consensus::Encodable,
-    hashes::sha256d,
     {Block, BlockHeader, Network, OutPoint, Transaction, TxIn, TxOut},
   },
   executable_path::executable_path,
@@ -101,9 +100,7 @@ impl Test {
   }
 
   fn run_with_stdout(self) -> Result<String> {
-    let blocksdir = self.tempdir.path().join("blocks");
-    fs::create_dir(&blocksdir)?;
-    populate_blockfile(File::create(blocksdir.join("blk00000.dat"))?, 1)?;
+    self.populate_blocksdir()?;
 
     let output = Command::new(executable_path("ord"))
       .current_dir(&self.tempdir)
@@ -125,6 +122,38 @@ impl Test {
     }
 
     Ok(stdout.to_owned())
+  }
+
+  fn populate_blocksdir(&self) -> io::Result<()> {
+    let mut blocks = vec![genesis_block(Network::Bitcoin)];
+
+    blocks.push(Block {
+      header: BlockHeader {
+        version: 0,
+        prev_blockhash: blocks.last().unwrap().block_hash(),
+        merkle_root: Default::default(),
+        time: 0,
+        bits: 0,
+        nonce: 0,
+      },
+      txdata: vec![
+        generate_coinbase_transaction(1),
+        generate_spending_transaction(OutPoint {
+          txid: blocks.last().unwrap().txdata[0].txid(),
+          vout: 0,
+        }),
+      ],
+    });
+
+    let blocksdir = self.tempdir.path().join("blocks");
+    fs::create_dir(&blocksdir)?;
+    let mut output = File::create(blocksdir.join("blk00000.dat"))?;
+
+    for block in blocks {
+      serialize_block(&mut output, &block)?;
+    }
+
+    Ok(())
   }
 }
 
@@ -196,38 +225,5 @@ fn serialize_block(output: &mut File, block: &Block) -> io::Result<()> {
   output.seek(SeekFrom::Start(size_field))?;
   output.write_all(&(size as u32).to_le_bytes())?;
   output.seek(SeekFrom::Current(size as i64))?;
-  Ok(())
-}
-
-fn populate_blockfile(mut output: File, height: usize) -> io::Result<()> {
-  let genesis = genesis_block(Network::Bitcoin);
-  serialize_block(&mut output, &genesis)?;
-
-  let mut prev_block = genesis.clone();
-  for _ in 1..=height {
-    let tx = generate_coinbase_transaction(height);
-    let hash: sha256d::Hash = tx.txid().into();
-    let merkle_root = hash.into();
-    let block = Block {
-      header: BlockHeader {
-        version: 0,
-        prev_blockhash: prev_block.block_hash(),
-        merkle_root,
-        time: 0,
-        bits: 0,
-        nonce: 0,
-      },
-      txdata: vec![
-        tx,
-        generate_spending_transaction(OutPoint {
-          txid: prev_block.txdata[0].txid(),
-          vout: 0,
-        }),
-      ],
-    };
-    serialize_block(&mut output, &block)?;
-    prev_block = block;
-  }
-
   Ok(())
 }
