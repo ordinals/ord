@@ -3,7 +3,6 @@ use {
     blockdata::constants::{genesis_block, COIN_VALUE, MAX_SEQUENCE},
     blockdata::script,
     consensus::Encodable,
-    hashes::sha256d,
     {Block, BlockHeader, Network, OutPoint, Transaction, TxIn, TxOut},
   },
   executable_path::executable_path,
@@ -126,24 +125,20 @@ impl Test {
   }
 
   fn populate_blocksdir(&self, height: usize) -> io::Result<()> {
-    let mut blocks = Vec::new();
-    blocks.push(genesis_block(Network::Bitcoin));
+    let mut blocks = vec![genesis_block(Network::Bitcoin)];
 
     for _ in 1..=height {
-      let tx = generate_coinbase_transaction(height);
-      let hash: sha256d::Hash = tx.txid().into();
-      let merkle_root = hash.into();
       let block = Block {
         header: BlockHeader {
           version: 0,
           prev_blockhash: blocks.last().unwrap().block_hash(),
-          merkle_root,
+          merkle_root: Default::default(),
           time: 0,
           bits: 0,
           nonce: 0,
         },
         txdata: vec![
-          tx,
+          generate_coinbase_transaction(height),
           generate_spending_transaction(OutPoint {
             txid: blocks.last().unwrap().txdata[0].txid(),
             vout: 0,
