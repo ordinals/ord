@@ -10,7 +10,7 @@ use {
     collections::BTreeSet,
     error::Error,
     fs::{self, File},
-    io::{self, Seek, SeekFrom, Write},
+    io::{self, Write},
     process::Command,
     str,
   },
