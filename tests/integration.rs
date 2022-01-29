@@ -100,7 +100,7 @@ impl Test {
   }
 
   fn run_with_stdout(self) -> Result<String> {
-    self.populate_blocksdir(1)?;
+    self.populate_blocksdir()?;
 
     let output = Command::new(executable_path("ord"))
       .current_dir(&self.tempdir)
@@ -124,29 +124,26 @@ impl Test {
     Ok(stdout.to_owned())
   }
 
-  fn populate_blocksdir(&self, height: usize) -> io::Result<()> {
+  fn populate_blocksdir(&self) -> io::Result<()> {
     let mut blocks = vec![genesis_block(Network::Bitcoin)];
 
-    for _ in 1..=height {
-      let block = Block {
-        header: BlockHeader {
-          version: 0,
-          prev_blockhash: blocks.last().unwrap().block_hash(),
-          merkle_root: Default::default(),
-          time: 0,
-          bits: 0,
-          nonce: 0,
-        },
-        txdata: vec![
-          generate_coinbase_transaction(height),
-          generate_spending_transaction(OutPoint {
-            txid: blocks.last().unwrap().txdata[0].txid(),
-            vout: 0,
-          }),
-        ],
-      };
-      blocks.push(block);
-    }
+    blocks.push(Block {
+      header: BlockHeader {
+        version: 0,
+        prev_blockhash: blocks.last().unwrap().block_hash(),
+        merkle_root: Default::default(),
+        time: 0,
+        bits: 0,
+        nonce: 0,
+      },
+      txdata: vec![
+        generate_coinbase_transaction(1),
+        generate_spending_transaction(OutPoint {
+          txid: blocks.last().unwrap().txdata[0].txid(),
+          vout: 0,
+        }),
+      ],
+    });
 
     let blocksdir = self.tempdir.path().join("blocks");
     fs::create_dir(&blocksdir)?;
