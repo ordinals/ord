@@ -35,6 +35,7 @@ struct Test {
   expected_status: i32,
   ignore_stdout: bool,
   tempdir: TempDir,
+  blocks: Vec<Block>,
 }
 
 impl Test {
@@ -46,6 +47,7 @@ impl Test {
       expected_status: 0,
       ignore_stdout: false,
       tempdir: TempDir::new()?,
+      blocks: Vec::new(),
     })
   }
 
@@ -100,7 +102,11 @@ impl Test {
   }
 
   fn run_with_stdout(self) -> Result<String> {
-    self.populate_blocksdir()?;
+    if self.blocks.is_empty() {
+      self.populate_blocksdir()?;
+    } else {
+      self.populate_blocksdir_2()?;
+    }
 
     let output = Command::new(executable_path("ord"))
       .current_dir(&self.tempdir)
@@ -122,6 +128,25 @@ impl Test {
     }
 
     Ok(stdout.to_owned())
+  }
+
+  fn block(mut self) -> Self {
+    if self.blocks.is_empty() {
+      self.blocks.push(genesis_block(Network::Bitcoin));
+    } else {
+      self.blocks.push(Block {
+        header: BlockHeader {
+          version: 0,
+          prev_blockhash: self.blocks.last().unwrap().block_hash(),
+          merkle_root: Default::default(),
+          time: 0,
+          bits: 0,
+          nonce: 0,
+        },
+        txdata: vec![],
+      });
+    }
+    self
   }
 
   fn populate_blocksdir(&self) -> io::Result<()> {
@@ -176,6 +201,22 @@ impl Test {
     let mut blockfile = File::create(blocksdir.join("blk00000.dat"))?;
 
     for block in blocks {
+      let mut encoded = Vec::new();
+      block.consensus_encode(&mut encoded)?;
+      blockfile.write_all(&[0xf9, 0xbe, 0xb4, 0xd9])?;
+      blockfile.write_all(&(encoded.len() as u32).to_le_bytes())?;
+      blockfile.write_all(&encoded)?;
+    }
+
+    Ok(())
+  }
+
+  fn populate_blocksdir_2(&self) -> io::Result<()> {
+    let blocksdir = self.tempdir.path().join("blocks");
+    fs::create_dir(&blocksdir)?;
+    let mut blockfile = File::create(blocksdir.join("blk00000.dat"))?;
+
+    for block in &self.blocks {
       let mut encoded = Vec::new();
       block.consensus_encode(&mut encoded)?;
       blockfile.write_all(&[0xf9, 0xbe, 0xb4, 0xd9])?;
