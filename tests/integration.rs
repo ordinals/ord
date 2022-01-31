@@ -10,7 +10,7 @@ use {
     collections::BTreeSet,
     error::Error,
     fs::{self, File},
-    io::{self, Seek, SeekFrom, Write},
+    io::{self, Write},
     process::Command,
     str,
   },
@@ -137,93 +137,52 @@ impl Test {
         nonce: 0,
       },
       txdata: vec![
-        generate_coinbase_transaction(1),
-        generate_spending_transaction(OutPoint {
-          txid: blocks.last().unwrap().txdata[0].txid(),
-          vout: 0,
-        }),
+        Transaction {
+          version: 1,
+          lock_time: 0,
+          input: vec![TxIn {
+            previous_output: OutPoint::null(),
+            script_sig: script::Builder::new().push_scriptint(1).into_script(),
+            sequence: MAX_SEQUENCE,
+            witness: vec![],
+          }],
+          output: vec![TxOut {
+            value: 50 * COIN_VALUE,
+            script_pubkey: script::Builder::new().into_script(),
+          }],
+        },
+        Transaction {
+          version: 1,
+          lock_time: 0,
+          input: vec![TxIn {
+            script_sig: script::Builder::new().into_script(),
+            sequence: MAX_SEQUENCE,
+            witness: vec![],
+            previous_output: OutPoint {
+              txid: blocks.last().unwrap().txdata[0].txid(),
+              vout: 0,
+            },
+          }],
+          output: vec![TxOut {
+            value: 50 * COIN_VALUE,
+            script_pubkey: script::Builder::new().into_script(),
+          }],
+        },
       ],
     });
 
     let blocksdir = self.tempdir.path().join("blocks");
     fs::create_dir(&blocksdir)?;
-    let mut output = File::create(blocksdir.join("blk00000.dat"))?;
+    let mut blockfile = File::create(blocksdir.join("blk00000.dat"))?;
 
     for block in blocks {
-      serialize_block(&mut output, &block)?;
+      let mut encoded = Vec::new();
+      block.consensus_encode(&mut encoded)?;
+      blockfile.write_all(&[0xf9, 0xbe, 0xb4, 0xd9])?;
+      blockfile.write_all(&(encoded.len() as u32).to_le_bytes())?;
+      blockfile.write_all(&encoded)?;
     }
 
     Ok(())
   }
-}
-
-fn generate_coinbase_transaction(height: usize) -> Transaction {
-  // Base
-  let mut ret = Transaction {
-    version: 1,
-    lock_time: 0,
-    input: vec![],
-    output: vec![],
-  };
-
-  // Inputs
-  let in_script = script::Builder::new()
-    .push_scriptint(height as i64)
-    .into_script();
-  ret.input.push(TxIn {
-    previous_output: OutPoint::null(),
-    script_sig: in_script,
-    sequence: MAX_SEQUENCE,
-    witness: vec![],
-  });
-
-  // Outputs
-  let out_script = script::Builder::new().into_script();
-  ret.output.push(TxOut {
-    value: 50 * COIN_VALUE,
-    script_pubkey: out_script,
-  });
-
-  // end
-  ret
-}
-
-fn generate_spending_transaction(previous_output: OutPoint) -> Transaction {
-  // Base
-  let mut ret = Transaction {
-    version: 1,
-    lock_time: 0,
-    input: vec![],
-    output: vec![],
-  };
-
-  // Inputs
-  let in_script = script::Builder::new().into_script();
-  ret.input.push(TxIn {
-    script_sig: in_script,
-    sequence: MAX_SEQUENCE,
-    witness: vec![],
-    previous_output,
-  });
-
-  // Outputs
-  let out_script = script::Builder::new().into_script();
-  ret.output.push(TxOut {
-    value: 50 * COIN_VALUE,
-    script_pubkey: out_script,
-  });
-
-  // end
-  ret
-}
-
-fn serialize_block(output: &mut File, block: &Block) -> io::Result<()> {
-  output.write_all(&[0xf9, 0xbe, 0xb4, 0xd9])?;
-  let size_field = output.stream_position()?;
-  output.write_all(&[0u8; 4])?;
-  let size = block.consensus_encode(&mut *output)?;
-  output.seek(SeekFrom::Start(size_field))?;
-  output.write_all(&(size as u32).to_le_bytes())?;
-  output.seek(SeekFrom::Current(size as i64))?;
-  Ok(())
 }
