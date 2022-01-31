@@ -258,17 +258,21 @@ impl Index {
     let rtx = self.database.begin_read()?;
     let outpoint_to_ordinal_ranges: ReadOnlyTable<[u8], [u8]> =
       rtx.open_table(Self::OUTPOINT_TO_ORDINAL_RANGES)?;
+
     let mut key = Vec::new();
     outpoint.consensus_encode(&mut key)?;
+
     let ordinal_ranges = outpoint_to_ordinal_ranges
       .get(key.as_slice())?
       .ok_or("Could not find outpoint in index")?;
+
     let mut output = Vec::new();
     for chunk in ordinal_ranges.to_value().chunks_exact(16) {
       let start = u64::from_le_bytes(chunk[0..8].try_into().unwrap());
       let end = u64::from_le_bytes(chunk[8..16].try_into().unwrap());
       output.push((start, end));
     }
+
     Ok(output)
   }
 }

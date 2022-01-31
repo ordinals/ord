@@ -148,7 +148,9 @@ impl Test {
           lock_time: 0,
           input: vec![TxIn {
             previous_output: OutPoint::null(),
-            script_sig: script::Builder::new().push_scriptint(1).into_script(),
+            script_sig: script::Builder::new()
+              .push_scriptint(self.blocks.len().try_into().unwrap())
+              .into_script(),
             sequence: MAX_SEQUENCE,
             witness: vec![],
           }],
