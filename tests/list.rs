@@ -17,6 +17,8 @@ fn second_coinbase_transaction() -> Result {
     .command(
       "list --blocksdir blocks e5fb252959bdc7727c80296dbc53e1583121503bb2e266a609ebc49cf2a74c1d:0",
     )
+    .block()
+    .block()
     .expected_stdout("[5000000000,10000000000)\n")
     .run()
 }

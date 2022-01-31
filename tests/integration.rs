@@ -143,7 +143,20 @@ impl Test {
           bits: 0,
           nonce: 0,
         },
-        txdata: vec![],
+        txdata: vec![Transaction {
+          version: 1,
+          lock_time: 0,
+          input: vec![TxIn {
+            previous_output: OutPoint::null(),
+            script_sig: script::Builder::new().push_scriptint(1).into_script(),
+            sequence: MAX_SEQUENCE,
+            witness: vec![],
+          }],
+          output: vec![TxOut {
+            value: 50 * COIN_VALUE,
+            script_pubkey: script::Builder::new().into_script(),
+          }],
+        }],
       });
     }
     self
