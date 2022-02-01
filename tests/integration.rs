@@ -1,6 +1,6 @@
 use {
   bitcoin::{
-    blockdata::constants::{genesis_block, COIN_VALUE},
+    blockdata::constants::COIN_VALUE,
     blockdata::script,
     consensus::Encodable,
     {Block, BlockHeader, Network, OutPoint, Transaction, TxIn, TxOut},

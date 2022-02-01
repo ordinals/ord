@@ -1,7 +1,7 @@
 use {
   crate::{epoch::Epoch, height::Height, index::Index, ordinal::Ordinal, sat_point::SatPoint},
   bitcoin::{
-    blockdata::constants::{genesis_block, COIN_VALUE},
+    blockdata::constants::COIN_VALUE,
     consensus::{Decodable, Encodable},
     Block, Network, OutPoint, Transaction,
   },
