@@ -4,7 +4,7 @@ use super::*;
 fn first_satoshi() -> Result {
   Test::new()?
     .command("find --blocksdir blocks 0 --as-of-height 0")
-    .expected_stdout("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0\n")
+    .expected_stdout("0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0:0\n")
     .block()
     .run()
 }
@@ -22,7 +22,7 @@ fn first_satoshi_slot() -> Result {
 fn second_satoshi() -> Result {
   Test::new()?
     .command("find --blocksdir blocks 1 --as-of-height 0")
-    .expected_stdout("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:1\n")
+    .expected_stdout("0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0:1\n")
     .block()
     .run()
 }
@@ -60,7 +60,7 @@ fn first_satoshi_of_second_block_slot() -> Result {
 fn first_satoshi_spent_in_second_block() -> Result {
   Test::new()?
     .command("find --blocksdir blocks 0 --as-of-height 1")
-    .expected_stdout("72e60639a1dcc6263ed214a1db0dc9545bf65d9327e5a60e84bd3db7fbb4c2fa:0:0\n")
+    .expected_stdout("d0a9c70e6c8d890ee5883973a716edc1609eab42a9bc32594bdafc935bb4fad0:0:0\n")
     .block()
     .block()
     .transaction(&[(0, 0, 0)], 1)

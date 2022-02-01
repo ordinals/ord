@@ -4,7 +4,7 @@ use super::*;
 fn first_coinbase_transaction() -> Result {
   Test::new()?
     .command(
-      "list --blocksdir blocks 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
+      "list --blocksdir blocks 0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0",
     )
     .block()
     .expected_stdout("[0,5000000000)\n")
@@ -40,7 +40,7 @@ fn third_coinbase_transaction_is_not_duplicate() -> Result {
 fn split_ranges_are_tracked_correctly() -> Result {
   Test::new()?
     .command(
-      "list --blocksdir blocks 7ab338c0e46c95c119ba8ff0a3f6cf64f56f35ba5553a399fdd38169cca00be3:0",
+      "list --blocksdir blocks a3f7b03f71988d4f91fea260405dbf3f3586eb134ad01dad15de63053e4985d0:0",
     )
     .block()
     .block()
@@ -50,7 +50,7 @@ fn split_ranges_are_tracked_correctly() -> Result {
 
   Test::new()?
     .command(
-      "list --blocksdir blocks 7ab338c0e46c95c119ba8ff0a3f6cf64f56f35ba5553a399fdd38169cca00be3:1",
+      "list --blocksdir blocks a3f7b03f71988d4f91fea260405dbf3f3586eb134ad01dad15de63053e4985d0:1",
     )
     .block()
     .block()
@@ -63,7 +63,7 @@ fn split_ranges_are_tracked_correctly() -> Result {
 fn merge_ranges_are_tracked_correctly() -> Result {
   Test::new()?
     .command(
-      "list --blocksdir blocks fe283c08e46269a7bbe36b629bc2be55d604152419818e94330477c9c3487eec:0",
+      "list --blocksdir blocks db7d0407c1548d2ceb00fd37447dfe723b954cc69cd5cbfd6b020f667db807a2:0",
     )
     .block()
     .block()

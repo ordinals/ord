@@ -1,6 +1,6 @@
 use {
   bitcoin::{
-    blockdata::constants::{genesis_block, COIN_VALUE},
+    blockdata::constants::COIN_VALUE,
     blockdata::script,
     consensus::Encodable,
     {Block, BlockHeader, Network, OutPoint, Transaction, TxIn, TxOut},
@@ -134,40 +134,40 @@ impl Test {
   }
 
   fn block_with_coinbase(mut self, coinbase: bool) -> Self {
-    if self.blocks.is_empty() {
-      self.blocks.push(genesis_block(Network::Bitcoin));
-    } else {
-      self.blocks.push(Block {
-        header: BlockHeader {
+    self.blocks.push(Block {
+      header: BlockHeader {
+        version: 0,
+        prev_blockhash: self
+          .blocks
+          .last()
+          .map(Block::block_hash)
+          .unwrap_or_default(),
+        merkle_root: Default::default(),
+        time: 0,
+        bits: 0,
+        nonce: 0,
+      },
+      txdata: if coinbase {
+        vec![Transaction {
           version: 0,
-          prev_blockhash: self.blocks.last().unwrap().block_hash(),
-          merkle_root: Default::default(),
-          time: 0,
-          bits: 0,
-          nonce: 0,
-        },
-        txdata: if coinbase {
-          vec![Transaction {
-            version: 0,
-            lock_time: 0,
-            input: vec![TxIn {
-              previous_output: OutPoint::null(),
-              script_sig: script::Builder::new()
-                .push_scriptint(self.blocks.len().try_into().unwrap())
-                .into_script(),
-              sequence: 0,
-              witness: vec![],
-            }],
-            output: vec![TxOut {
-              value: 50 * COIN_VALUE,
-              script_pubkey: script::Builder::new().into_script(),
-            }],
-          }]
-        } else {
-          Vec::new()
-        },
-      });
-    }
+          lock_time: 0,
+          input: vec![TxIn {
+            previous_output: OutPoint::null(),
+            script_sig: script::Builder::new()
+              .push_scriptint(self.blocks.len().try_into().unwrap())
+              .into_script(),
+            sequence: 0,
+            witness: vec![],
+          }],
+          output: vec![TxOut {
+            value: 50 * COIN_VALUE,
+            script_pubkey: script::Builder::new().into_script(),
+          }],
+        }]
+      } else {
+        Vec::new()
+      },
+    });
     self
   }
 
@@ -226,14 +226,14 @@ impl Test {
     {
       let mut blockfile = File::create(blocksdir.join(format!("blk{:05}.dat", i)))?;
 
-      for block in &self.blocks[start..end] {
+      for (bi, block) in self.blocks[start..end].iter().enumerate() {
         let mut encoded = Vec::new();
         block.consensus_encode(&mut encoded)?;
-        blockfile.write_all(&[0xf9, 0xbe, 0xb4, 0xd9])?;
+        blockfile.write_all(&Network::Bitcoin.magic().to_le_bytes())?;
         blockfile.write_all(&(encoded.len() as u32).to_le_bytes())?;
         blockfile.write_all(&encoded)?;
-        for tx in &block.txdata {
-          eprintln!("{}", tx.txid());
+        for (ti, tx) in block.txdata.iter().enumerate() {
+          eprintln!("{bi}.{ti}: {}", tx.txid());
         }
       }
 
