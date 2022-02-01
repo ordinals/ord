@@ -30,24 +30,26 @@ type Result<T = ()> = std::result::Result<T, Box<dyn Error>>;
 
 struct Test {
   args: Vec<String>,
-  expected_stdout: String,
-  expected_stderr: String,
+  blockfile_ends: Vec<usize>,
+  blocks: Vec<Block>,
   expected_status: i32,
+  expected_stderr: String,
+  expected_stdout: String,
   ignore_stdout: bool,
   tempdir: TempDir,
-  blocks: Vec<Block>,
 }
 
 impl Test {
   fn new() -> Result<Self> {
     Ok(Self {
       args: Vec::new(),
-      expected_stdout: String::new(),
-      expected_stderr: String::new(),
+      blockfile_ends: Vec::new(),
+      blocks: Vec::new(),
       expected_status: 0,
+      expected_stderr: String::new(),
+      expected_stdout: String::new(),
       ignore_stdout: false,
       tempdir: TempDir::new()?,
-      blocks: Vec::new(),
     })
   }
 
@@ -214,12 +216,28 @@ impl Test {
     self
   }
 
+  fn end_blockfile(mut self) -> Self {
+    self.blockfile_ends.push(self.blocks.len());
+    self
+  }
+
   fn populate_blocksdir(&self) -> io::Result<()> {
     let blocksdir = self.tempdir.path().join("blocks");
     fs::create_dir(&blocksdir)?;
+
     let mut blockfile = File::create(blocksdir.join("blk00000.dat"))?;
 
-    for block in &self.blocks {
+    for (i, block) in self.blocks.iter().enumerate() {
+      if i
+        >= self
+          .blockfile_ends
+          .last()
+          .copied()
+          .unwrap_or(usize::max_value())
+      {
+        blockfile = File::create(blocksdir.join(format!("blk{:05}.dat", i)))?;
+      }
+
       let mut encoded = Vec::new();
       block.consensus_encode(&mut encoded)?;
       blockfile.write_all(&[0xf9, 0xbe, 0xb4, 0xd9])?;
