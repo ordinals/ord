@@ -184,7 +184,7 @@ impl Index {
         }
 
         let magic = &blocks[offset..offset + 4];
-        if magic != &Network::Bitcoin.magic().to_le_bytes() {
+        if magic != Network::Bitcoin.magic().to_le_bytes() {
           return Err(format!("Unknown magic bytes: {:?}", magic).into());
         }
 
