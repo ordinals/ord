@@ -11,6 +11,7 @@ use {
     error::Error,
     fs::{self, File},
     io::{self, Write},
+    iter,
     process::Command,
     str,
   },
@@ -30,24 +31,26 @@ type Result<T = ()> = std::result::Result<T, Box<dyn Error>>;
 
 struct Test {
   args: Vec<String>,
-  expected_stdout: String,
-  expected_stderr: String,
+  blockfiles: Vec<usize>,
+  blocks: Vec<Block>,
   expected_status: i32,
+  expected_stderr: String,
+  expected_stdout: String,
   ignore_stdout: bool,
   tempdir: TempDir,
-  blocks: Vec<Block>,
 }
 
 impl Test {
   fn new() -> Result<Self> {
     Ok(Self {
       args: Vec::new(),
-      expected_stdout: String::new(),
-      expected_stderr: String::new(),
+      blockfiles: Vec::new(),
+      blocks: Vec::new(),
       expected_status: 0,
+      expected_stderr: String::new(),
+      expected_stdout: String::new(),
       ignore_stdout: false,
       tempdir: TempDir::new()?,
-      blocks: Vec::new(),
     })
   }
 
@@ -126,41 +129,11 @@ impl Test {
     Ok(stdout.to_owned())
   }
 
-  fn block(mut self) -> Self {
-    if self.blocks.is_empty() {
-      self.blocks.push(genesis_block(Network::Bitcoin));
-    } else {
-      self.blocks.push(Block {
-        header: BlockHeader {
-          version: 0,
-          prev_blockhash: self.blocks.last().unwrap().block_hash(),
-          merkle_root: Default::default(),
-          time: 0,
-          bits: 0,
-          nonce: 0,
-        },
-        txdata: vec![Transaction {
-          version: 0,
-          lock_time: 0,
-          input: vec![TxIn {
-            previous_output: OutPoint::null(),
-            script_sig: script::Builder::new()
-              .push_scriptint(self.blocks.len().try_into().unwrap())
-              .into_script(),
-            sequence: 0,
-            witness: vec![],
-          }],
-          output: vec![TxOut {
-            value: 50 * COIN_VALUE,
-            script_pubkey: script::Builder::new().into_script(),
-          }],
-        }],
-      });
-    }
-    self
+  fn block(self) -> Self {
+    self.block_with_coinbase(true)
   }
 
-  fn block_without_coinbase(mut self) -> Self {
+  fn block_with_coinbase(mut self, coinbase: bool) -> Self {
     if self.blocks.is_empty() {
       self.blocks.push(genesis_block(Network::Bitcoin));
     } else {
@@ -173,7 +146,26 @@ impl Test {
           bits: 0,
           nonce: 0,
         },
-        txdata: Vec::new(),
+        txdata: if coinbase {
+          vec![Transaction {
+            version: 0,
+            lock_time: 0,
+            input: vec![TxIn {
+              previous_output: OutPoint::null(),
+              script_sig: script::Builder::new()
+                .push_scriptint(self.blocks.len().try_into().unwrap())
+                .into_script(),
+              sequence: 0,
+              witness: vec![],
+            }],
+            output: vec![TxOut {
+              value: 50 * COIN_VALUE,
+              script_pubkey: script::Builder::new().into_script(),
+            }],
+          }]
+        } else {
+          Vec::new()
+        },
       });
     }
     self
@@ -214,20 +206,38 @@ impl Test {
     self
   }
 
+  fn blockfile(mut self) -> Self {
+    self.blockfiles.push(self.blocks.len());
+    self
+  }
+
   fn populate_blocksdir(&self) -> io::Result<()> {
     let blocksdir = self.tempdir.path().join("blocks");
     fs::create_dir(&blocksdir)?;
-    let mut blockfile = File::create(blocksdir.join("blk00000.dat"))?;
 
-    for block in &self.blocks {
-      let mut encoded = Vec::new();
-      block.consensus_encode(&mut encoded)?;
-      blockfile.write_all(&[0xf9, 0xbe, 0xb4, 0xd9])?;
-      blockfile.write_all(&(encoded.len() as u32).to_le_bytes())?;
-      blockfile.write_all(&encoded)?;
-      for tx in &block.txdata {
-        eprintln!("{}", tx.txid());
+    let mut start = 0;
+
+    for (i, end) in self
+      .blockfiles
+      .iter()
+      .copied()
+      .chain(iter::once(self.blocks.len()))
+      .enumerate()
+    {
+      let mut blockfile = File::create(blocksdir.join(format!("blk{:05}.dat", i)))?;
+
+      for block in &self.blocks[start..end] {
+        let mut encoded = Vec::new();
+        block.consensus_encode(&mut encoded)?;
+        blockfile.write_all(&[0xf9, 0xbe, 0xb4, 0xd9])?;
+        blockfile.write_all(&(encoded.len() as u32).to_le_bytes())?;
+        blockfile.write_all(&encoded)?;
+        for tx in &block.txdata {
+          eprintln!("{}", tx.txid());
+        }
       }
+
+      start = end;
     }
 
     Ok(())

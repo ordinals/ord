@@ -9,9 +9,20 @@ the NFT creator would create a message that assigned a new NFT Y to the satoshi
 with ordinal X. The owner of the UTXO containing the satoshi with ordinal X
 owns NFT Y, and can transfer that ownership to another person with a
 transaction that sends ordinal Y to a UTXO that the new owner controls. The
-current owner can sign a message proving that they own a given UTXO, wich also
+current owner can sign a message proving that they own a given UTXO, which also
 serves as proof of ownership of all the NFTs assigned to satoshis within that
 UTXO.
+
+## Index and Caveats
+
+The `ord` command builds an index using the contents of a local `bitcoind`'s
+data directory, which must be halted while the index is built. Currently, the
+index is built every time the `ord` runs, but that is a temporary limitation.
+Reorgs are also not properly handled.
+
+The index is stored in `index.redb`, and should not be concurrently modified
+while an instance of `ord` is running, or used by two `ord` instances
+simultaneously.
 
 ## Numbering
 
