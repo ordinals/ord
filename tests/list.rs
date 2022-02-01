@@ -44,7 +44,7 @@ fn split_ranges_are_tracked_correctly() -> Result {
     )
     .block()
     .block()
-    .transaction((0, 0, 0), 2)
+    .transaction(&[(0, 0, 0)], 2)
     .expected_stdout("[0,2500000000)\n")
     .run()?;
 
@@ -54,7 +54,7 @@ fn split_ranges_are_tracked_correctly() -> Result {
     )
     .block()
     .block()
-    .transaction((0, 0, 0), 2)
+    .transaction(&[(0, 0, 0)], 2)
     .expected_stdout("[2500000000,5000000000)\n")
     .run()
 }
@@ -67,9 +67,9 @@ fn merge_ranges_are_tracked_correctly() -> Result {
     )
     .block()
     .block()
-    .transaction((0, 0, 0), 2)
+    .transaction(&[(0, 0, 0)], 2)
     .block()
-    .transaction_2(&[(1, 1, 0), (1, 1, 1)], 1)
+    .transaction(&[(1, 1, 0), (1, 1, 1)], 1)
     .expected_stdout("[0,2500000000)\n[2500000000,5000000000)\n")
     .run()
 }
