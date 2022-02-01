@@ -54,7 +54,7 @@ impl Epoch {
   pub(crate) fn starting_ordinal(self) -> Ordinal {
     *Self::STARTING_ORDINALS
       .get(self.0 as usize)
-      .unwrap_or(Self::STARTING_ORDINALS.last().unwrap())
+      .unwrap_or_else(|| Self::STARTING_ORDINALS.last().unwrap())
   }
 
   pub(crate) fn starting_height(self) -> Height {
