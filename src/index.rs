@@ -195,19 +195,19 @@ impl Index {
         let bytes = &blocks[start..end];
 
         let block = Block::consensus_decode(bytes)?;
+        let hash = block.block_hash();
 
         if block.header.prev_blockhash == Default::default() {
           let mut hash_to_height: Table<[u8], u64> = tx.open_table(Self::HASH_TO_HEIGHT)?;
           let mut height_to_hash: Table<u64, [u8]> = tx.open_table(Self::HEIGHT_TO_HASH)?;
 
-          let hash = block.block_hash();
           hash_to_height.insert(&hash, &0)?;
           height_to_hash.insert(&0, &hash)?;
         }
 
         hash_to_children.insert(&block.header.prev_blockhash, &block.block_hash())?;
 
-        hash_to_block.insert(&block.block_hash(), bytes)?;
+        hash_to_block.insert(&hash, bytes)?;
 
         offset = end;
 
@@ -227,16 +227,10 @@ impl Index {
       let hash_to_children: ReadOnlyMultimapTable<[u8], [u8]> =
         read.open_multimap_table(Self::HASH_TO_CHILDREN)?;
 
-      let mut queue = vec![(
-        genesis_block(Network::Bitcoin)
-          .block_hash()
-          .deref()
-          .to_vec(),
-        0,
-      )];
-
       let mut hash_to_height: Table<[u8], u64> = write.open_table(Self::HASH_TO_HEIGHT)?;
       let mut height_to_hash: Table<u64, [u8]> = write.open_table(Self::HEIGHT_TO_HASH)?;
+
+      let mut queue = vec![(height_to_hash.get(&0)?.unwrap().to_value().to_vec(), 0)];
 
       while let Some((block, height)) = queue.pop() {
         hash_to_height.insert(block.as_ref(), &height)?;
