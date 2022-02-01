@@ -235,10 +235,10 @@ impl Index {
         0,
       )];
 
-      while let Some((block, height)) = queue.pop() {
-        let mut hash_to_height: Table<[u8], u64> = write.open_table(Self::HASH_TO_HEIGHT)?;
-        let mut height_to_hash: Table<u64, [u8]> = write.open_table(Self::HEIGHT_TO_HASH)?;
+      let mut hash_to_height: Table<[u8], u64> = write.open_table(Self::HASH_TO_HEIGHT)?;
+      let mut height_to_hash: Table<u64, [u8]> = write.open_table(Self::HEIGHT_TO_HASH)?;
 
+      while let Some((block, height)) = queue.pop() {
         hash_to_height.insert(block.as_ref(), &height)?;
         height_to_hash.insert(&height, block.as_ref())?;
 
