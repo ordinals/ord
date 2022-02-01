@@ -30,7 +30,7 @@ impl Index {
     };
 
     let index = Self {
-      database: unsafe { Database::open("index.redb", 50 << 30)? },
+      database: unsafe { Database::open("index.redb", 1 << 40)? },
       blocksdir,
     };
 
@@ -183,15 +183,29 @@ impl Index {
           break;
         }
 
-        let range = Self::block_range_at(&blocks, offset)?;
+        assert_eq!(&blocks[offset..offset + 4], &[0xf9, 0xbe, 0xb4, 0xd9]);
+        let len = u32::from_le_bytes(blocks[offset + 4..offset + 8].try_into()?) as usize;
+        let start = offset + 8;
+        let end = start + len;
 
-        let block = Block::consensus_decode(&blocks[range.clone()])?;
+        let bytes = &blocks[start..end];
+
+        let block = Block::consensus_decode(bytes)?;
+
+        if block.header.prev_blockhash == Default::default() {
+          let mut hash_to_height: Table<[u8], u64> = tx.open_table(Self::HASH_TO_HEIGHT)?;
+          let mut height_to_hash: Table<u64, [u8]> = tx.open_table(Self::HEIGHT_TO_HASH)?;
+
+          let hash = block.block_hash();
+          hash_to_height.insert(&hash, &0)?;
+          height_to_hash.insert(&0, &hash)?;
+        }
 
         hash_to_children.insert(&block.header.prev_blockhash, &block.block_hash())?;
 
-        hash_to_block.insert(&block.block_hash(), &blocks[range.clone()])?;
+        hash_to_block.insert(&block.block_hash(), bytes)?;
 
-        offset = range.end;
+        offset = end;
 
         count += 1;
       }
@@ -260,16 +274,6 @@ impl Index {
         )?))
       }
     }
-  }
-
-  fn block_range_at(blocks: &[u8], offset: usize) -> Result<Range<usize>> {
-    assert_eq!(&blocks[offset..offset + 4], &[0xf9, 0xbe, 0xb4, 0xd9]);
-    let offset = offset + 4;
-
-    let len = u32::from_le_bytes(blocks[offset..offset + 4].try_into()?) as usize;
-    let offset = offset + 4;
-
-    Ok(offset..offset + len)
   }
 
   pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Vec<(u64, u64)>> {
