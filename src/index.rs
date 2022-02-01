@@ -55,11 +55,7 @@ impl Index {
         coinbase_inputs.push_front((start.n(), (start + h.subsidy()).n()));
       }
 
-      for (i, tx) in block.txdata.iter().enumerate() {
-        if i == 0 {
-          continue;
-        }
-
+      for tx in block.txdata.iter().skip(1) {
         let mut input_ordinal_ranges = VecDeque::new();
         for input in &tx.input {
           let mut key = Vec::new();
