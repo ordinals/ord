@@ -1,6 +1,6 @@
 use {
   bitcoin::{
-    blockdata::constants::{genesis_block, COIN_VALUE, MAX_SEQUENCE},
+    blockdata::constants::{genesis_block, COIN_VALUE},
     blockdata::script,
     consensus::Encodable,
     {Block, BlockHeader, Network, OutPoint, Transaction, TxIn, TxOut},
@@ -140,14 +140,14 @@ impl Test {
           nonce: 0,
         },
         txdata: vec![Transaction {
-          version: 1,
+          version: 0,
           lock_time: 0,
           input: vec![TxIn {
             previous_output: OutPoint::null(),
             script_sig: script::Builder::new()
               .push_scriptint(self.blocks.len().try_into().unwrap())
               .into_script(),
-            sequence: MAX_SEQUENCE,
+            sequence: 0,
             witness: vec![],
           }],
           output: vec![TxOut {
@@ -167,7 +167,7 @@ impl Test {
       .sum::<u64>();
 
     let tx = Transaction {
-      version: 1,
+      version: 0,
       lock_time: 0,
       input: slots
         .iter()
@@ -177,7 +177,7 @@ impl Test {
             vout: slot.2,
           },
           script_sig: script::Builder::new().into_script(),
-          sequence: MAX_SEQUENCE,
+          sequence: 0,
           witness: vec![],
         })
         .collect(),
