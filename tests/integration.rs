@@ -126,7 +126,7 @@ impl Test {
     Ok(stdout.to_owned())
   }
 
-  fn block(mut self) -> Self {
+  fn block(mut self, coinbase: bool) -> Self {
     if self.blocks.is_empty() {
       self.blocks.push(genesis_block(Network::Bitcoin));
     } else {
@@ -139,41 +139,26 @@ impl Test {
           bits: 0,
           nonce: 0,
         },
-        txdata: vec![Transaction {
-          version: 0,
-          lock_time: 0,
-          input: vec![TxIn {
-            previous_output: OutPoint::null(),
-            script_sig: script::Builder::new()
-              .push_scriptint(self.blocks.len().try_into().unwrap())
-              .into_script(),
-            sequence: 0,
-            witness: vec![],
-          }],
-          output: vec![TxOut {
-            value: 50 * COIN_VALUE,
-            script_pubkey: script::Builder::new().into_script(),
-          }],
-        }],
-      });
-    }
-    self
-  }
-
-  fn block_no_coinbase(mut self) -> Self {
-    if self.blocks.is_empty() {
-      self.blocks.push(genesis_block(Network::Bitcoin));
-    } else {
-      self.blocks.push(Block {
-        header: BlockHeader {
-          version: 0,
-          prev_blockhash: self.blocks.last().unwrap().block_hash(),
-          merkle_root: Default::default(),
-          time: 0,
-          bits: 0,
-          nonce: 0,
+        txdata: if coinbase {
+          vec![Transaction {
+            version: 0,
+            lock_time: 0,
+            input: vec![TxIn {
+              previous_output: OutPoint::null(),
+              script_sig: script::Builder::new()
+                .push_scriptint(self.blocks.len().try_into().unwrap())
+                .into_script(),
+              sequence: 0,
+              witness: vec![],
+            }],
+            output: vec![TxOut {
+              value: 50 * COIN_VALUE,
+              script_pubkey: script::Builder::new().into_script(),
+            }],
+          }]
+        } else {
+          Vec::new()
         },
-        txdata: Vec::new(),
       });
     }
     self
