@@ -11,6 +11,7 @@ use {
     error::Error,
     fs::{self, File},
     io::{self, Write},
+    iter,
     process::Command,
     str,
   },
@@ -220,7 +221,7 @@ impl Test {
       .blockfiles
       .iter()
       .copied()
-      .chain([self.blocks.len()])
+      .chain(iter::once(self.blocks.len()))
       .enumerate()
     {
       let mut blockfile = File::create(blocksdir.join(format!("blk{:05}.dat", i)))?;
