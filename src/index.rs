@@ -183,7 +183,11 @@ impl Index {
           break;
         }
 
-        assert_eq!(&blocks[offset..offset + 4], &[0xf9, 0xbe, 0xb4, 0xd9]);
+        let magic = &blocks[offset..offset + 4];
+        if magic != &Network::Bitcoin.magic().to_le_bytes() {
+          return Err(format!("Unknown magic bytes: {:?}", magic).into());
+        }
+
         let len = u32::from_le_bytes(blocks[offset + 4..offset + 8].try_into()?) as usize;
         let start = offset + 8;
         let end = start + len;
@@ -220,9 +224,6 @@ impl Index {
 
       let mut hash_to_height: Table<[u8], u64> = write.open_table(Self::HASH_TO_HEIGHT)?;
       let mut height_to_hash: Table<u64, [u8]> = write.open_table(Self::HEIGHT_TO_HASH)?;
-
-      hash_to_height.insert(genesis_block(Network::Bitcoin).block_hash().deref(), &0)?;
-      height_to_hash.insert(&0, genesis_block(Network::Bitcoin).block_hash().deref())?;
 
       let read = self.database.begin_read()?;
 

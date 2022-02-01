@@ -18,7 +18,7 @@ use {
     fmt::{self, Display, Formatter},
     fs::{self, File},
     io,
-    ops::{Add, AddAssign, Deref, Range, Sub},
+    ops::{Add, AddAssign, Deref, Sub},
     path::{Path, PathBuf},
     process,
     str::FromStr,

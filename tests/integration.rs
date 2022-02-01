@@ -229,7 +229,7 @@ impl Test {
       for block in &self.blocks[start..end] {
         let mut encoded = Vec::new();
         block.consensus_encode(&mut encoded)?;
-        blockfile.write_all(&[0xf9, 0xbe, 0xb4, 0xd9])?;
+        blockfile.write_all(&Network::Bitcoin.magic().to_le_bytes())?;
         blockfile.write_all(&(encoded.len() as u32).to_le_bytes())?;
         blockfile.write_all(&encoded)?;
         for tx in &block.txdata {
