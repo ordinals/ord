@@ -24,7 +24,7 @@ impl Ordinal {
   }
 
   pub(crate) fn epoch_position(self) -> u64 {
-    self.0 - self.epoch().starting_ordinal().unwrap().0
+    self.0 - self.epoch().starting_ordinal().0
   }
 
   pub(crate) fn name(self) -> String {
@@ -89,10 +89,7 @@ mod tests {
     assert_eq!(Ordinal(1).height(), 0);
     assert_eq!(Ordinal(Epoch(0).subsidy()).height(), 1);
     assert_eq!(Ordinal(Epoch(0).subsidy() * 2).height(), 2);
-    assert_eq!(
-      Epoch(2).starting_ordinal().unwrap().height(),
-      Epoch::BLOCKS * 2
-    );
+    assert_eq!(Epoch(2).starting_ordinal().height(), Epoch::BLOCKS * 2);
   }
 
   #[test]
@@ -123,13 +120,10 @@ mod tests {
 
   #[test]
   fn epoch_position() {
-    assert_eq!(Epoch(0).starting_ordinal().unwrap().epoch_position(), 0);
-    assert_eq!(
-      (Epoch(0).starting_ordinal().unwrap() + 100).epoch_position(),
-      100
-    );
-    assert_eq!(Epoch(1).starting_ordinal().unwrap().epoch_position(), 0);
-    assert_eq!(Epoch(2).starting_ordinal().unwrap().epoch_position(), 0);
+    assert_eq!(Epoch(0).starting_ordinal().epoch_position(), 0);
+    assert_eq!((Epoch(0).starting_ordinal() + 100).epoch_position(), 100);
+    assert_eq!(Epoch(1).starting_ordinal().epoch_position(), 0);
+    assert_eq!(Epoch(2).starting_ordinal().epoch_position(), 0);
   }
 
   #[test]
@@ -143,7 +137,7 @@ mod tests {
     assert_eq!(Ordinal(Height(0).subsidy()).subsidy_position(), 0);
     assert_eq!(Ordinal(Height(0).subsidy() + 1).subsidy_position(), 1);
     assert_eq!(
-      Ordinal(Epoch(1).starting_ordinal().unwrap().n() + Epoch(1).subsidy()).subsidy_position(),
+      Ordinal(Epoch(1).starting_ordinal().n() + Epoch(1).subsidy()).subsidy_position(),
       0
     );
     assert_eq!(Ordinal::LAST.subsidy_position(), 0);

@@ -38,6 +38,7 @@ impl Epoch {
     Ordinal(2099999996220000),
     Ordinal(2099999997060000),
     Ordinal(2099999997480000),
+    Ordinal(Ordinal::SUPPLY),
   ];
 
   pub(crate) const BLOCKS: u64 = 210000;
@@ -50,8 +51,10 @@ impl Epoch {
     }
   }
 
-  pub(crate) fn starting_ordinal(self) -> Option<Ordinal> {
-    Self::STARTING_ORDINALS.get(self.0 as usize).cloned()
+  pub(crate) fn starting_ordinal(self) -> Ordinal {
+    *Self::STARTING_ORDINALS
+      .get(self.0 as usize)
+      .unwrap_or(Self::STARTING_ORDINALS.last().unwrap())
   }
 
   pub(crate) fn starting_height(self) -> Height {
@@ -86,16 +89,16 @@ mod tests {
 
   #[test]
   fn starting_ordinal() {
-    assert_eq!(Epoch(0).starting_ordinal().unwrap(), 0);
+    assert_eq!(Epoch(0).starting_ordinal(), 0);
     assert_eq!(
-      Epoch(1).starting_ordinal().unwrap(),
+      Epoch(1).starting_ordinal(),
       Epoch(0).subsidy() * Epoch::BLOCKS
     );
     assert_eq!(
-      Epoch(2).starting_ordinal().unwrap(),
+      Epoch(2).starting_ordinal(),
       (Epoch(0).subsidy() + Epoch(1).subsidy()) * Epoch::BLOCKS
     );
-    assert_eq!(Epoch(33).starting_ordinal(), None);
+    assert_eq!(Epoch(33).starting_ordinal(), Ordinal(Ordinal::SUPPLY));
   }
 
   #[test]
@@ -104,13 +107,13 @@ mod tests {
 
     let mut epoch_ordinals = Vec::new();
 
-    for epoch in 0..33 {
+    for epoch in 0..34 {
       epoch_ordinals.push(ordinal);
       ordinal += Epoch::BLOCKS * Epoch(epoch).subsidy();
     }
 
     assert_eq!(Epoch::STARTING_ORDINALS, epoch_ordinals);
-    assert_eq!(Epoch::STARTING_ORDINALS.len(), 33);
+    assert_eq!(Epoch::STARTING_ORDINALS.len(), 34);
   }
 
   #[test]
@@ -145,8 +148,8 @@ mod tests {
   fn from_ordinal() {
     assert_eq!(Epoch::from(Ordinal(0)), 0);
     assert_eq!(Epoch::from(Ordinal(1)), 0);
-    assert_eq!(Epoch::from(Epoch(1).starting_ordinal().unwrap()), 1);
-    assert_eq!(Epoch::from(Epoch(1).starting_ordinal().unwrap() + 1), 1);
+    assert_eq!(Epoch::from(Epoch(1).starting_ordinal()), 1);
+    assert_eq!(Epoch::from(Epoch(1).starting_ordinal() + 1), 1);
   }
 
   #[test]
