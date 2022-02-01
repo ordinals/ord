@@ -24,19 +24,6 @@ fn second_coinbase_transaction() -> Result {
 }
 
 #[test]
-fn third_coinbase_transaction_is_not_duplicate() -> Result {
-  Test::new()?
-    .command(
-      "list --blocksdir blocks 8aa5103b13b5b233ac417ee31f21820c9284af2b7a2080a142c2d20e1697b0f4:0",
-    )
-    .block()
-    .block()
-    .block()
-    .expected_stdout("[10000000000,15000000000)\n")
-    .run()
-}
-
-#[test]
 fn split_ranges_are_tracked_correctly() -> Result {
   Test::new()?
     .command(
