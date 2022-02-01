@@ -34,7 +34,7 @@ impl Index {
       blocksdir,
     };
 
-    index.index_blockfile()?;
+    index.index_blockfiles()?;
 
     index.index_ranges()?;
 
@@ -137,7 +137,7 @@ impl Index {
     Ok(())
   }
 
-  fn index_blockfile(&self) -> Result {
+  fn index_blockfiles(&self) -> Result {
     let mut blockfiles = 0;
     loop {
       match File::open(self.blocksdir.join(format!("blk{:05}.dat", blockfiles))) {
