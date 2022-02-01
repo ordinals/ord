@@ -102,11 +102,7 @@ impl Test {
   }
 
   fn run_with_stdout(self) -> Result<String> {
-    if self.blocks.is_empty() {
-      self.populate_blocksdir()?;
-    } else {
-      self.populate_blocksdir_2()?;
-    }
+    self.populate_blocksdir()?;
 
     let output = Command::new(executable_path("ord"))
       .current_dir(&self.tempdir)
@@ -164,69 +160,29 @@ impl Test {
     self
   }
 
-  fn populate_blocksdir(&self) -> io::Result<()> {
-    let mut blocks = vec![genesis_block(Network::Bitcoin)];
-
-    blocks.push(Block {
-      header: BlockHeader {
-        version: 0,
-        prev_blockhash: blocks.last().unwrap().block_hash(),
-        merkle_root: Default::default(),
-        time: 0,
-        bits: 0,
-        nonce: 0,
-      },
-      txdata: vec![
-        Transaction {
-          version: 1,
-          lock_time: 0,
-          input: vec![TxIn {
-            previous_output: OutPoint::null(),
-            script_sig: script::Builder::new().push_scriptint(1).into_script(),
-            sequence: MAX_SEQUENCE,
-            witness: vec![],
-          }],
-          output: vec![TxOut {
-            value: 50 * COIN_VALUE,
-            script_pubkey: script::Builder::new().into_script(),
-          }],
+  fn transaction(mut self, slot: (usize, usize, u32)) -> Self {
+    let tx = Transaction {
+      version: 1,
+      lock_time: 0,
+      input: vec![TxIn {
+        previous_output: OutPoint {
+          txid: self.blocks[slot.0].txdata[slot.1].txid(),
+          vout: slot.2,
         },
-        Transaction {
-          version: 1,
-          lock_time: 0,
-          input: vec![TxIn {
-            script_sig: script::Builder::new().into_script(),
-            sequence: MAX_SEQUENCE,
-            witness: vec![],
-            previous_output: OutPoint {
-              txid: blocks.last().unwrap().txdata[0].txid(),
-              vout: 0,
-            },
-          }],
-          output: vec![TxOut {
-            value: 50 * COIN_VALUE,
-            script_pubkey: script::Builder::new().into_script(),
-          }],
-        },
-      ],
-    });
-
-    let blocksdir = self.tempdir.path().join("blocks");
-    fs::create_dir(&blocksdir)?;
-    let mut blockfile = File::create(blocksdir.join("blk00000.dat"))?;
-
-    for block in blocks {
-      let mut encoded = Vec::new();
-      block.consensus_encode(&mut encoded)?;
-      blockfile.write_all(&[0xf9, 0xbe, 0xb4, 0xd9])?;
-      blockfile.write_all(&(encoded.len() as u32).to_le_bytes())?;
-      blockfile.write_all(&encoded)?;
-    }
-
-    Ok(())
+        script_sig: script::Builder::new().into_script(),
+        sequence: MAX_SEQUENCE,
+        witness: vec![],
+      }],
+      output: vec![TxOut {
+        value: 50 * COIN_VALUE,
+        script_pubkey: script::Builder::new().into_script(),
+      }],
+    };
+    self.blocks.last_mut().unwrap().txdata.push(tx);
+    self
   }
 
-  fn populate_blocksdir_2(&self) -> io::Result<()> {
+  fn populate_blocksdir(&self) -> io::Result<()> {
     let blocksdir = self.tempdir.path().join("blocks");
     fs::create_dir(&blocksdir)?;
     let mut blockfile = File::create(blocksdir.join("blk00000.dat"))?;
