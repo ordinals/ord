@@ -6,9 +6,9 @@ pub(crate) struct Index {
 }
 
 impl Index {
+  const HASH_TO_BLOCK: &'static str = "HASH_TO_BLOCK";
   const HASH_TO_CHILDREN: &'static str = "HASH_TO_CHILDREN";
   const HASH_TO_HEIGHT: &'static str = "HASH_TO_HEIGHT";
-  const HASH_TO_OFFSET: &'static str = "HASH_TO_OFFSET";
   const HEIGHT_TO_HASH: &'static str = "HEIGHT_TO_HASH";
   const OUTPOINT_TO_ORDINAL_RANGES: &'static str = "OUTPOINT_TO_ORDINAL_RANGES";
 
@@ -138,15 +138,24 @@ impl Index {
   }
 
   fn index_blockfile(&self) -> Result {
-    {
+    for i in 0.. {
+      let blocks = match fs::read(self.blocksdir.join(format!("blk{:05}.dat", i))) {
+        Ok(blocks) => blocks,
+        Err(err) => {
+          if err.kind() == io::ErrorKind::NotFound {
+            break;
+          } else {
+            return Err(err.into());
+          }
+        }
+      };
+
       let tx = self.database.begin_write()?;
 
       let mut hash_to_children: MultimapTable<[u8], [u8]> =
         tx.open_multimap_table(Self::HASH_TO_CHILDREN)?;
 
-      let mut hash_to_offset: Table<[u8], u64> = tx.open_table(Self::HASH_TO_OFFSET)?;
-
-      let blocks = fs::read(self.blocksdir.join("blk00000.dat"))?;
+      let mut hash_to_block: Table<[u8], [u8]> = tx.open_table(Self::HASH_TO_BLOCK)?;
 
       let mut offset = 0;
 
@@ -163,7 +172,7 @@ impl Index {
 
         hash_to_children.insert(&block.header.prev_blockhash, &block.block_hash())?;
 
-        hash_to_offset.insert(&block.block_hash(), &(offset as u64))?;
+        hash_to_block.insert(&block.block_hash(), &blocks[range.clone()])?;
 
         offset = range.end;
 
@@ -224,15 +233,14 @@ impl Index {
       Some(guard) => {
         let hash = guard.to_value();
 
-        let hash_to_offset: ReadOnlyTable<[u8], u64> = tx.open_table(Self::HASH_TO_OFFSET)?;
-        let offset = hash_to_offset
-          .get(hash)?
-          .ok_or("Could not find offset to block in index")?
-          .to_value() as usize;
+        let hash_to_block: ReadOnlyTable<[u8], [u8]> = tx.open_table(Self::HASH_TO_BLOCK)?;
 
-        let blocks = fs::read(self.blocksdir.join("blk00000.dat"))?;
-
-        Ok(Some(Self::decode_block_at(&blocks, offset)?))
+        Ok(Some(Block::consensus_decode(
+          hash_to_block
+            .get(hash)?
+            .ok_or("Could not find block in index")?
+            .to_value(),
+        )?))
       }
     }
   }
@@ -245,12 +253,6 @@ impl Index {
     let offset = offset + 4;
 
     Ok(offset..offset + len)
-  }
-
-  fn decode_block_at(blocks: &[u8], offset: usize) -> Result<Block> {
-    Ok(Block::consensus_decode(
-      &blocks[Self::block_range_at(blocks, offset)?],
-    )?)
   }
 
   pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Vec<(u64, u64)>> {

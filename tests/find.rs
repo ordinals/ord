@@ -83,7 +83,7 @@ fn regression_empty_block_crash() -> Result {
   Test::new()?
     .command("find --blocksdir blocks 0 --slot --as-of-height 1")
     .block()
-    .block_without_coinbase()
+    .block_with_coinbase(false)
     .expected_stdout("0.0.0.0\n")
     .run()
 }
@@ -94,7 +94,7 @@ fn index_multiple_blockfiles() -> Result {
     .command("find --blocksdir blocks 0 --as-of-height 1 --slot")
     .expected_stdout("1.1.0.0\n")
     .block()
-    .end_blockfile()
+    .blockfile()
     .block()
     .transaction(&[(0, 0, 0)], 1)
     .run()
