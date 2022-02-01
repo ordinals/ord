@@ -58,3 +58,18 @@ fn split_ranges_are_tracked_correctly() -> Result {
     .expected_stdout("[2500000000,5000000000)\n")
     .run()
 }
+
+#[test]
+fn merge_ranges_are_tracked_correctly() -> Result {
+  Test::new()?
+    .command(
+      "list --blocksdir blocks da9ebceb6c8190b64bf69037def994cf41fc871bf824e6c0392167387bc464e5:0",
+    )
+    .block()
+    .block()
+    .transaction((0, 0, 0), 2)
+    .block()
+    .transaction_2(&[(1, 1, 0), (1, 1, 1)], 1)
+    .expected_stdout("[0,2500000000)\n[2500000000,5000000000)\n")
+    .run()
+}

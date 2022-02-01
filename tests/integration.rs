@@ -189,6 +189,45 @@ impl Test {
     self
   }
 
+  fn transaction_2(mut self, slots: &[(usize, usize, u32)], output_count: u64) -> Self {
+    let mut value = 0;
+    for slot in slots {
+      value += self.blocks[slot.0].txdata[slot.1].output[slot.2 as usize].value;
+    }
+
+    let mut output = Vec::new();
+    for _ in 0..output_count {
+      output.push(TxOut {
+        value: value / output_count,
+        script_pubkey: script::Builder::new().into_script(),
+      });
+    }
+
+    let mut input = Vec::new();
+    for slot in slots {
+      input.push(TxIn {
+        previous_output: OutPoint {
+          txid: self.blocks[slot.0].txdata[slot.1].txid(),
+          vout: slot.2,
+        },
+        script_sig: script::Builder::new().into_script(),
+        sequence: MAX_SEQUENCE,
+        witness: vec![],
+      })
+    }
+
+    let tx = Transaction {
+      version: 1,
+      lock_time: 0,
+      input,
+      output,
+    };
+
+    self.blocks.last_mut().unwrap().txdata.push(tx);
+
+    self
+  }
+
   fn populate_blocksdir(&self) -> io::Result<()> {
     let blocksdir = self.tempdir.path().join("blocks");
     fs::create_dir(&blocksdir)?;
