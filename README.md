@@ -18,7 +18,7 @@ UTXO.
 The `ord` command builds an index using the contents of a local `bitcoind`'s
 data directory, which must be halted while the index is built. Currently, the
 index is built every time the `ord` runs, but that is a temporary limitation.
-Reorgs are not currently properly handled.
+Reorgs are also not properly handled.
 
 The index is stored in `index.redb`, and should not be concurrently modified
 while an instance of `ord` is running, or used by two `ord` instances
