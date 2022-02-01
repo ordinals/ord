@@ -30,7 +30,7 @@ impl Index {
     };
 
     let index = Self {
-      database: unsafe { Database::open("index.redb", 1 << 40)? },
+      database: unsafe { Database::open("index.redb", 50 << 30)? },
       blocksdir,
     };
 
