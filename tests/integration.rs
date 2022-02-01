@@ -181,7 +181,7 @@ impl Test {
         sequence: MAX_SEQUENCE,
         witness: vec![],
       }],
-      output
+      output,
     };
 
     self.blocks.last_mut().unwrap().txdata.push(tx);
@@ -200,7 +200,7 @@ impl Test {
       blockfile.write_all(&[0xf9, 0xbe, 0xb4, 0xd9])?;
       blockfile.write_all(&(encoded.len() as u32).to_le_bytes())?;
       blockfile.write_all(&encoded)?;
-      for tx in &block.txdata  {
+      for tx in &block.txdata {
         eprintln!("{}", tx.txid());
       }
     }

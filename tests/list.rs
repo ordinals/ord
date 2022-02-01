@@ -40,7 +40,7 @@ fn third_coinbase_transaction_is_not_duplicate() -> Result {
 fn split_ranges_are_tracked_correctly() -> Result {
   Test::new()?
     .command(
-      "list --blocksdir blocks bba261e0b1195f850136e761c64e4ba75a8a60bc866da5e1b68299af967f332e:0"
+      "list --blocksdir blocks bba261e0b1195f850136e761c64e4ba75a8a60bc866da5e1b68299af967f332e:0",
     )
     .block()
     .block()
@@ -50,7 +50,7 @@ fn split_ranges_are_tracked_correctly() -> Result {
 
   Test::new()?
     .command(
-      "list --blocksdir blocks bba261e0b1195f850136e761c64e4ba75a8a60bc866da5e1b68299af967f332e:1"
+      "list --blocksdir blocks bba261e0b1195f850136e761c64e4ba75a8a60bc866da5e1b68299af967f332e:1",
     )
     .block()
     .block()
