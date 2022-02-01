@@ -27,7 +27,7 @@ fn second_coinbase_transaction() -> Result {
 fn third_coinbase_transaction_is_not_duplicate() -> Result {
   Test::new()?
     .command(
-      "list --blocksdir blocks a224a289ba1d28e50f7b636bbc9d8939e06ad4b884c98270bd07402edcbaf5b6:0"
+      "list --blocksdir blocks a224a289ba1d28e50f7b636bbc9d8939e06ad4b884c98270bd07402edcbaf5b6:0",
     )
     .block()
     .block()
