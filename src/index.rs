@@ -30,7 +30,7 @@ impl Index {
     };
 
     let index = Self {
-      database: unsafe { Database::open("index.redb", 4096 * 1024 * 1024 * 10)? },
+      database: unsafe { Database::open("index.redb", 50 << 30)? },
       blocksdir,
     };
 
@@ -138,6 +138,23 @@ impl Index {
   }
 
   fn index_blockfile(&self) -> Result {
+    let mut blockfiles = 0;
+    loop {
+      match File::open(self.blocksdir.join(format!("blk{:05}.dat", blockfiles))) {
+        Ok(_) => {}
+        Err(err) => {
+          if err.kind() == io::ErrorKind::NotFound {
+            break;
+          } else {
+            return Err(err.into());
+          }
+        }
+      }
+      blockfiles += 1;
+    }
+
+    log::info!("Indexing {} blockfiles…", blockfiles);
+
     for i in 0.. {
       let blocks = match fs::read(self.blocksdir.join(format!("blk{:05}.dat", i))) {
         Ok(blocks) => blocks,
@@ -179,7 +196,7 @@ impl Index {
         count += 1;
       }
 
-      log::info!("Inserted {} blocks…", count);
+      log::info!("{}/{}: Processed {} blocks…", i + 1, blockfiles, count);
 
       tx.commit()?;
     }
