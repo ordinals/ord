@@ -13,6 +13,13 @@ current owner can sign a message proving that they own a given UTXO, wich also
 serves as proof of ownership of all the NFTs assigned to satoshis within that
 UTXO.
 
+## Index and Caveats
+
+The `ord` command builds an index using the contents of a local `bitcoind`'s
+data directory, which must be halted while the index is built. Currently, the
+index is built every time the `ord` runs, but that is a temporary limitation.
+Reorgs are not currently properly handled.
+
 ## Numbering
 
 Satoshis are assigned ordinal numbers in the order in which they are mined.
