@@ -77,3 +77,13 @@ fn first_satoshi_spent_in_second_block_slot() -> Result {
     .transaction(&[(0, 0, 0)], 1)
     .run()
 }
+
+#[test]
+fn regression_empty_block_crash() -> Result {
+  Test::new()?
+    .command("find --blocksdir blocks 0 --slot --as-of-height 1")
+    .block()
+    .block_without_coinbase()
+    .expected_stdout("0.0.0.0\n")
+    .run()
+}

@@ -160,6 +160,25 @@ impl Test {
     self
   }
 
+  fn block_without_coinbase(mut self) -> Self {
+    if self.blocks.is_empty() {
+      self.blocks.push(genesis_block(Network::Bitcoin));
+    } else {
+      self.blocks.push(Block {
+        header: BlockHeader {
+          version: 0,
+          prev_blockhash: self.blocks.last().unwrap().block_hash(),
+          merkle_root: Default::default(),
+          time: 0,
+          bits: 0,
+          nonce: 0,
+        },
+        txdata: Vec::new(),
+      });
+    }
+    self
+  }
+
   fn transaction(mut self, slots: &[(usize, usize, u32)], output_count: u64) -> Self {
     let value = slots
       .iter()
