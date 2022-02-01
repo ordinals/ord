@@ -36,6 +36,8 @@ impl Index {
 
     index.index_blockfiles()?;
 
+    index.index_heights()?;
+
     index.index_ranges()?;
 
     Ok(index)
@@ -220,32 +222,41 @@ impl Index {
       tx.commit()?;
     }
 
-    {
-      let write = self.database.begin_write()?;
+    Ok(())
+  }
 
-      let read = self.database.begin_read()?;
+  fn index_heights(&self) -> Result {
+    let write = self.database.begin_write()?;
 
-      let hash_to_children: ReadOnlyMultimapTable<[u8], [u8]> =
-        read.open_multimap_table(Self::HASH_TO_CHILDREN)?;
+    let read = self.database.begin_read()?;
 
-      let mut hash_to_height: Table<[u8], u64> = write.open_table(Self::HASH_TO_HEIGHT)?;
-      let mut height_to_hash: Table<u64, [u8]> = write.open_table(Self::HEIGHT_TO_HASH)?;
+    let hash_to_children: ReadOnlyMultimapTable<[u8], [u8]> =
+      read.open_multimap_table(Self::HASH_TO_CHILDREN)?;
 
-      let mut queue = vec![(height_to_hash.get(&0)?.unwrap().to_value().to_vec(), 0)];
+    let mut hash_to_height: Table<[u8], u64> = write.open_table(Self::HASH_TO_HEIGHT)?;
+    let mut height_to_hash: Table<u64, [u8]> = write.open_table(Self::HEIGHT_TO_HASH)?;
 
-      while let Some((block, height)) = queue.pop() {
-        hash_to_height.insert(block.as_ref(), &height)?;
-        height_to_hash.insert(&height, block.as_ref())?;
+    let mut queue = vec![(
+      height_to_hash
+        .get(&0)?
+        .ok_or("Could not find genesis block in index")?
+        .to_value()
+        .to_vec(),
+      0,
+    )];
 
-        let mut iter = hash_to_children.get(&block)?;
+    while let Some((block, height)) = queue.pop() {
+      hash_to_height.insert(block.as_ref(), &height)?;
+      height_to_hash.insert(&height, block.as_ref())?;
 
-        while let Some(child) = iter.next() {
-          queue.push((child.to_vec(), height + 1));
-        }
+      let mut iter = hash_to_children.get(&block)?;
+
+      while let Some(child) = iter.next() {
+        queue.push((child.to_vec(), height + 1));
       }
-
-      write.commit()?;
     }
+
+    write.commit()?;
 
     Ok(())
   }
