@@ -35,3 +35,26 @@ fn third_coinbase_transaction_is_not_duplicate() -> Result {
     .expected_stdout("[10000000000,15000000000)\n")
     .run()
 }
+
+#[test]
+fn split_ranges_are_tracked_correctly() -> Result {
+  Test::new()?
+    .command(
+      "list --blocksdir blocks bba261e0b1195f850136e761c64e4ba75a8a60bc866da5e1b68299af967f332e:0"
+    )
+    .block()
+    .block()
+    .transaction((0, 0, 0), 2)
+    .expected_stdout("[0,2500000000)\n")
+    .run()?;
+
+  Test::new()?
+    .command(
+      "list --blocksdir blocks bba261e0b1195f850136e761c64e4ba75a8a60bc866da5e1b68299af967f332e:1"
+    )
+    .block()
+    .block()
+    .transaction((0, 0, 0), 2)
+    .expected_stdout("[2500000000,5000000000)\n")
+    .run()
+}

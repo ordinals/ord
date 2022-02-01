@@ -63,7 +63,7 @@ fn first_satoshi_spent_in_second_block() -> Result {
     .expected_stdout("1e8149c3be0dd66b1cbcb4652d15bea04a9bc8d515c4f544e71bb35a9cba1ed0:0:0\n")
     .block()
     .block()
-    .transaction((0, 0, 0))
+    .transaction((0, 0, 0), 1)
     .run()
 }
 
@@ -74,6 +74,6 @@ fn first_satoshi_spent_in_second_block_slot() -> Result {
     .expected_stdout("1.1.0.0\n")
     .block()
     .block()
-    .transaction((0, 0, 0))
+    .transaction((0, 0, 0), 1)
     .run()
 }

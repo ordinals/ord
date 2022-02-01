@@ -160,7 +160,15 @@ impl Test {
     self
   }
 
-  fn transaction(mut self, slot: (usize, usize, u32)) -> Self {
+  fn transaction(mut self, slot: (usize, usize, u32), output_count: u64) -> Self {
+    let mut output = Vec::new();
+    for _ in 0..output_count {
+      output.push(TxOut {
+        value: self.blocks[slot.0].txdata[slot.1].output[slot.2 as usize].value / output_count,
+        script_pubkey: script::Builder::new().into_script(),
+      });
+    }
+
     let tx = Transaction {
       version: 1,
       lock_time: 0,
@@ -173,12 +181,11 @@ impl Test {
         sequence: MAX_SEQUENCE,
         witness: vec![],
       }],
-      output: vec![TxOut {
-        value: 50 * COIN_VALUE,
-        script_pubkey: script::Builder::new().into_script(),
-      }],
+      output
     };
+
     self.blocks.last_mut().unwrap().txdata.push(tx);
+
     self
   }
 
@@ -193,6 +200,9 @@ impl Test {
       blockfile.write_all(&[0xf9, 0xbe, 0xb4, 0xd9])?;
       blockfile.write_all(&(encoded.len() as u32).to_le_bytes())?;
       blockfile.write_all(&encoded)?;
+      for tx in &block.txdata  {
+        eprintln!("{}", tx.txid());
+      }
     }
 
     Ok(())
