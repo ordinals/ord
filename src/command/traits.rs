@@ -7,6 +7,10 @@ pub(crate) struct Traits {
 
 impl Traits {
   pub(crate) fn run(self) -> Result {
+    if self.ordinal > Ordinal::LAST {
+      return Err("Invalid ordinal".into());
+    }
+
     let n = self.ordinal.n();
 
     if n % 2 == 0 {

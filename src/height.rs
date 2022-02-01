@@ -12,11 +12,11 @@ impl Height {
     Epoch::from(self).subsidy()
   }
 
-  pub(crate) fn starting_ordinal(self) -> Option<Ordinal> {
+  pub(crate) fn starting_ordinal(self) -> Ordinal {
     let epoch = Epoch::from(self);
-    let epoch_starting_ordinal = epoch.starting_ordinal()?;
+    let epoch_starting_ordinal = epoch.starting_ordinal();
     let epoch_starting_height = epoch.starting_height();
-    Some(epoch_starting_ordinal + (self - epoch_starting_height.n()).n() * epoch.subsidy())
+    epoch_starting_ordinal + (self - epoch_starting_height.n()).n() * epoch.subsidy()
   }
 }
 
@@ -95,20 +95,20 @@ mod tests {
 
   #[test]
   fn starting_ordinal() {
-    assert_eq!(Height(0).starting_ordinal().unwrap(), 0);
-    assert_eq!(Height(1).starting_ordinal().unwrap(), 5000000000);
+    assert_eq!(Height(0).starting_ordinal(), 0);
+    assert_eq!(Height(1).starting_ordinal(), 5000000000);
     assert_eq!(
-      Height(210000 - 1).starting_ordinal().unwrap(),
+      Height(210000 - 1).starting_ordinal(),
       (210000 - 1) * 5000000000
     );
+    assert_eq!(Height(210000).starting_ordinal(), 210000 * 5000000000);
     assert_eq!(
-      Height(210000).starting_ordinal().unwrap(),
-      210000 * 5000000000
-    );
-    assert_eq!(
-      Height(210000 + 1).starting_ordinal().unwrap(),
+      Height(210000 + 1).starting_ordinal(),
       210000 * 5000000000 + 2500000000
     );
-    assert_eq!(Height(u64::max_value()).starting_ordinal(), None);
+    assert_eq!(
+      Height(u64::max_value()).starting_ordinal(),
+      *Epoch::STARTING_ORDINALS.last().unwrap()
+    );
   }
 }

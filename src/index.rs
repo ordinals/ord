@@ -51,7 +51,8 @@ impl Index {
       let mut coinbase_inputs = VecDeque::new();
 
       let h = Height(height);
-      if let Some(start) = h.starting_ordinal() {
+      if h.subsidy() > 0 {
+        let start = h.starting_ordinal();
         coinbase_inputs.push_front((start.n(), (start + h.subsidy()).n()));
       }
 

@@ -5,7 +5,7 @@ use {
     consensus::{Decodable, Encodable},
     Block, Network, OutPoint, Transaction,
   },
-  derive_more::Display,
+  derive_more::{Display, FromStr},
   integer_cbrt::IntegerCubeRoot,
   integer_sqrt::IntegerSquareRoot,
   redb::{

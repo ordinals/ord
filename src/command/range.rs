@@ -24,13 +24,7 @@ impl Range {
     let end = start + self.height.subsidy();
 
     if self.name {
-      let (start, end) = match (Ordinal::new_checked(start), Ordinal::new_checked(end)) {
-        (Some(start), Some(end)) => (start.name(), end.name()),
-        (Some(start), None) => (start.name(), start.name()),
-        (None, None) => (Ordinal::LAST.name(), Ordinal::LAST.name()),
-        (None, Some(_)) => unreachable!(),
-      };
-      println!("[{},{})", start, end);
+      println!("[{},{})", Ordinal(start).name(), Ordinal(end).name());
     } else {
       println!("[{},{})", start, end);
     }

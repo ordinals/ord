@@ -36,7 +36,7 @@ fn first_block_without_subsidy() -> Result {
 fn genesis_names() -> Result {
   Test::new()?
     .args(&["range", "--name", "0"])
-    .expected_stdout("[nvtdijuwxlo,nvtcsezkbtg)\n")
+    .expected_stdout("[nvtdijuwxlp,nvtcsezkbth)\n")
     .run()
 }
 
@@ -44,6 +44,22 @@ fn genesis_names() -> Result {
 fn names_before_last() -> Result {
   Test::new()?
     .args(&["range", "--name", "6929998"])
+    .expected_stdout("[b,a)\n")
+    .run()
+}
+
+#[test]
+fn last_name() -> Result {
+  Test::new()?
+    .args(&["range", "--name", "6929999"])
     .expected_stdout("[a,)\n")
+    .run()
+}
+
+#[test]
+fn block_with_no_subsidy_range() -> Result {
+  Test::new()?
+    .args(&["range", "--name", "6930000"])
+    .expected_stdout("[,)\n")
     .run()
 }
