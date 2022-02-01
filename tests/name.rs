@@ -4,7 +4,8 @@ use super::*;
 fn empty() -> Result {
   Test::new()?
     .args(&["name", ""])
-    .expected_stdout("2099999997689999\n")
+    .expected_stderr("error: Invalid name\n")
+    .expected_status(1)
     .run()
 }
 
@@ -12,7 +13,7 @@ fn empty() -> Result {
 fn a() -> Result {
   Test::new()?
     .args(&["name", "a"])
-    .expected_stdout("2099999997689998\n")
+    .expected_stdout("2099999997689999\n")
     .run()
 }
 
@@ -20,14 +21,14 @@ fn a() -> Result {
 fn b() -> Result {
   Test::new()?
     .args(&["name", "b"])
-    .expected_stdout("2099999997689997\n")
+    .expected_stdout("2099999997689998\n")
     .run()
 }
 
 #[test]
 fn end_of_range() -> Result {
   Test::new()?
-    .args(&["name", "nvtdijuwxlo"])
+    .args(&["name", "nvtdijuwxlp"])
     .expected_stdout("0\n")
     .run()
 }
@@ -35,7 +36,7 @@ fn end_of_range() -> Result {
 #[test]
 fn out_of_range() -> Result {
   Test::new()?
-    .args(&["name", "nvtdijuwxlp"])
+    .args(&["name", "nvtdijuwxlr"])
     .expected_stderr("error: Name out of range\n")
     .expected_status(1)
     .run()

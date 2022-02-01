@@ -7,10 +7,8 @@ pub(crate) struct Name {
 
 impl Name {
   pub(crate) fn run(self) -> Result {
-    for c in self.name.chars() {
-      if !('a'..='z').contains(&c) {
-        return Err("Invalid name".into());
-      }
+    if self.name.is_empty() || self.name.chars().any(|c| !('a'..='z').contains(&c)) {
+      return Err("Invalid name".into());
     }
 
     let mut min = 0;
@@ -20,7 +18,7 @@ impl Name {
     loop {
       log::info!("min max guess: {} {} {}", min, max, guess);
 
-      let name = Ordinal::new(guess).name();
+      let name = Ordinal(guess).name();
 
       match name
         .len()

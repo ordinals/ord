@@ -5,39 +5,39 @@ pub(crate) struct Epoch(pub(crate) u64);
 
 impl Epoch {
   pub(crate) const STARTING_ORDINALS: &'static [Ordinal] = &[
-    Ordinal::new(0),
-    Ordinal::new(1050000000000000),
-    Ordinal::new(1575000000000000),
-    Ordinal::new(1837500000000000),
-    Ordinal::new(1968750000000000),
-    Ordinal::new(2034375000000000),
-    Ordinal::new(2067187500000000),
-    Ordinal::new(2083593750000000),
-    Ordinal::new(2091796875000000),
-    Ordinal::new(2095898437500000),
-    Ordinal::new(2097949218750000),
-    Ordinal::new(2098974609270000),
-    Ordinal::new(2099487304530000),
-    Ordinal::new(2099743652160000),
-    Ordinal::new(2099871825870000),
-    Ordinal::new(2099935912620000),
-    Ordinal::new(2099967955890000),
-    Ordinal::new(2099983977420000),
-    Ordinal::new(2099991988080000),
-    Ordinal::new(2099995993410000),
-    Ordinal::new(2099997995970000),
-    Ordinal::new(2099998997250000),
-    Ordinal::new(2099999497890000),
-    Ordinal::new(2099999748210000),
-    Ordinal::new(2099999873370000),
-    Ordinal::new(2099999935950000),
-    Ordinal::new(2099999967240000),
-    Ordinal::new(2099999982780000),
-    Ordinal::new(2099999990550000),
-    Ordinal::new(2099999994330000),
-    Ordinal::new(2099999996220000),
-    Ordinal::new(2099999997060000),
-    Ordinal::new(2099999997480000),
+    Ordinal(0),
+    Ordinal(1050000000000000),
+    Ordinal(1575000000000000),
+    Ordinal(1837500000000000),
+    Ordinal(1968750000000000),
+    Ordinal(2034375000000000),
+    Ordinal(2067187500000000),
+    Ordinal(2083593750000000),
+    Ordinal(2091796875000000),
+    Ordinal(2095898437500000),
+    Ordinal(2097949218750000),
+    Ordinal(2098974609270000),
+    Ordinal(2099487304530000),
+    Ordinal(2099743652160000),
+    Ordinal(2099871825870000),
+    Ordinal(2099935912620000),
+    Ordinal(2099967955890000),
+    Ordinal(2099983977420000),
+    Ordinal(2099991988080000),
+    Ordinal(2099995993410000),
+    Ordinal(2099997995970000),
+    Ordinal(2099998997250000),
+    Ordinal(2099999497890000),
+    Ordinal(2099999748210000),
+    Ordinal(2099999873370000),
+    Ordinal(2099999935950000),
+    Ordinal(2099999967240000),
+    Ordinal(2099999982780000),
+    Ordinal(2099999990550000),
+    Ordinal(2099999994330000),
+    Ordinal(2099999996220000),
+    Ordinal(2099999997060000),
+    Ordinal(2099999997480000),
   ];
 
   pub(crate) const BLOCKS: u64 = 210000;
@@ -143,8 +143,8 @@ mod tests {
 
   #[test]
   fn from_ordinal() {
-    assert_eq!(Epoch::from(Ordinal::new(0)), 0);
-    assert_eq!(Epoch::from(Ordinal::new(1)), 0);
+    assert_eq!(Epoch::from(Ordinal(0)), 0);
+    assert_eq!(Epoch::from(Ordinal(1)), 0);
     assert_eq!(Epoch::from(Epoch(1).starting_ordinal().unwrap()), 1);
     assert_eq!(Epoch::from(Epoch(1).starting_ordinal().unwrap() + 1), 1);
   }

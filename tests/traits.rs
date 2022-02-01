@@ -16,9 +16,7 @@ fn traits(ordinal: u64) -> Result<BTreeSet<String>> {
 fn invalid_ordinal() -> Result {
   Test::new()?
     .args(&["traits", "2099999997690000"])
-    .expected_stderr(
-      "error: Invalid value for '<ordinal>': 2099999997690000 is not a valid ordinal\n",
-    )
+    .expected_stderr("error: Invalid ordinal\n")
     .expected_status(1)
     .run()
 }
@@ -72,14 +70,14 @@ fn divine() -> Result {
 
 #[test]
 fn name() -> Result {
-  assert!(traits(2099999997689999)?.contains("name: "));
-  assert!(traits(2099999997689999 - 1)?.contains("name: a"));
-  assert!(traits(2099999997689999 - 26)?.contains("name: z"));
-  assert!(traits(2099999997689999 - 27)?.contains("name: aa"));
-  assert!(traits(0)?.contains("name: nvtdijuwxlo"));
-  assert!(traits(1)?.contains("name: nvtdijuwxln"));
-  assert!(traits(26)?.contains("name: nvtdijuwxko"));
-  assert!(traits(27)?.contains("name: nvtdijuwxkn"));
+  assert!(traits(2099999997689999)?.contains("name: a"));
+  assert!(traits(2099999997689999 - 1)?.contains("name: b"));
+  assert!(traits(2099999997689999 - 25)?.contains("name: z"));
+  assert!(traits(2099999997689999 - 26)?.contains("name: aa"));
+  assert!(traits(0)?.contains("name: nvtdijuwxlp"));
+  assert!(traits(1)?.contains("name: nvtdijuwxlo"));
+  assert!(traits(26)?.contains("name: nvtdijuwxkp"));
+  assert!(traits(27)?.contains("name: nvtdijuwxko"));
   Ok(())
 }
 
