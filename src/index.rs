@@ -30,7 +30,7 @@ impl Index {
     };
 
     let index = Self {
-      database: unsafe { Database::open("index.redb", 4096 * 1024 * 1024 * 10)? },
+      database: unsafe { Database::open("index.redb", 50 << 30)? },
       blocksdir,
     };
 
@@ -196,12 +196,7 @@ impl Index {
         count += 1;
       }
 
-      log::info!(
-        "Processed blockfile {} of {} containing {} blocks…",
-        i + 1,
-        blockfiles,
-        count
-      );
+      log::info!("{}/{}: Processed {} blocks…", i + 1, blockfiles, count);
 
       tx.commit()?;
     }
