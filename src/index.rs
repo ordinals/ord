@@ -222,9 +222,6 @@ impl Index {
     {
       let write = self.database.begin_write()?;
 
-      let mut hash_to_height: Table<[u8], u64> = write.open_table(Self::HASH_TO_HEIGHT)?;
-      let mut height_to_hash: Table<u64, [u8]> = write.open_table(Self::HEIGHT_TO_HASH)?;
-
       let read = self.database.begin_read()?;
 
       let hash_to_children: ReadOnlyMultimapTable<[u8], [u8]> =
@@ -239,6 +236,9 @@ impl Index {
       )];
 
       while let Some((block, height)) = queue.pop() {
+        let mut hash_to_height: Table<[u8], u64> = write.open_table(Self::HASH_TO_HEIGHT)?;
+        let mut height_to_hash: Table<u64, [u8]> = write.open_table(Self::HEIGHT_TO_HASH)?;
+
         hash_to_height.insert(block.as_ref(), &height)?;
         height_to_hash.insert(&height, block.as_ref())?;
 
