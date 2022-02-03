@@ -16,5 +16,8 @@ fmt:
 clippy:
   cargo clippy
 
+bench:
+  cargo criterion
+
 watch +args='ltest --release':
   cargo watch --clear --exec '{{args}}'

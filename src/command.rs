@@ -2,6 +2,7 @@ use super::*;
 
 mod epochs;
 mod find;
+mod index;
 mod list;
 mod name;
 mod range;
@@ -12,8 +13,9 @@ mod traits;
 pub(crate) enum Command {
   Epochs,
   Find(find::Find),
-  Name(name::Name),
+  Index(index::Index),
   List(list::List),
+  Name(name::Name),
   Range(range::Range),
   Supply,
   Traits(traits::Traits),
@@ -24,6 +26,7 @@ impl Command {
     match self {
       Self::Epochs => epochs::run(),
       Self::Find(find) => find.run(),
+      Self::Index(index) => index.run(),
       Self::Name(name) => name.run(),
       Self::List(list) => list.run(),
       Self::Range(range) => range.run(),
