@@ -23,3 +23,10 @@ unindent = "0.1.7"
 [[test]]
 name = "integration"
 path = "tests/integration.rs"
+
+[dev-dependencies]
+criterion = "0.3.5"
+
+[[bench]]
+name = "my_benchmark"
+harness = false
