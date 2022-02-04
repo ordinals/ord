@@ -130,10 +130,10 @@ impl Test {
   }
 
   fn block(self) -> Self {
-    self.block_with_coinbase(true)
+    self.block_with_coinbase(true, true)
   }
 
-  fn block_with_coinbase(mut self, coinbase: bool) -> Self {
+  fn block_with_coinbase(mut self, coinbase: bool, include_height: bool) -> Self {
     self.blocks.push(Block {
       header: BlockHeader {
         version: 0,
@@ -153,9 +153,13 @@ impl Test {
           lock_time: 0,
           input: vec![TxIn {
             previous_output: OutPoint::null(),
-            script_sig: script::Builder::new()
-              .push_scriptint(self.blocks.len().try_into().unwrap())
-              .into_script(),
+            script_sig: if include_height {
+              script::Builder::new()
+                .push_scriptint(self.blocks.len().try_into().unwrap())
+                .into_script()
+            } else {
+              script::Builder::new().into_script()
+            },
             sequence: 0,
             witness: vec![],
           }],

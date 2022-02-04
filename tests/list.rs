@@ -73,3 +73,17 @@ fn merge_ranges_are_tracked_correctly() -> Result {
     .expected_stdout("[0,2500000000)\n[2500000000,5000000000)\n")
     .run()
 }
+
+#[test]
+fn duplicate_transaction_range() -> Result {
+  Test::new()?
+    .command(
+      "list --blocksdir blocks d63a320a4b404d7933ca788e8f185f10e31e03bf6ab9fa4595bfedc2fcc5a4a8:0",
+    )
+    .block_with_coinbase(true, false)
+    .block_with_coinbase(true, false)
+    .block()
+    .transaction(&[(0, 0, 0)], 1)
+    .expected_stdout("[5000000000,10000000000)\n")
+    .run()
+}
