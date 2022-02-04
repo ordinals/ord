@@ -31,20 +31,22 @@ fn bench(c: &mut Criterion) -> Result {
   std::fs::create_dir(&blocksdir)?;
   let mut blockfile = File::create(blocksdir.join("blk00000.dat"))?;
 
-  while blockfile.stream_position()? < 1 << 20 {
-    let block = Block {
+  let mut blocks = Vec::new();
+
+  for height in 0..1000 {
+    blocks.push(Block {
       header: BlockHeader {
         bits: 0,
         merkle_root: Default::default(),
         nonce: 0,
-        prev_blockhash: Default::default(),
+        prev_blockhash: blocks.last().map(Block::block_hash).unwrap_or_default(),
         time: 0,
         version: 0,
       },
       txdata: vec![Transaction {
         input: vec![TxIn {
           previous_output: OutPoint::null(),
-          script_sig: script::Builder::new().push_scriptint(0).into_script(),
+          script_sig: script::Builder::new().push_scriptint(height).into_script(),
           sequence: 0,
           witness: vec![],
         }],
@@ -55,14 +57,20 @@ fn bench(c: &mut Criterion) -> Result {
         }],
         version: 0,
       }],
-    };
+    });
+  }
 
+  for block in blocks {
     let mut encoded = Vec::new();
     block.consensus_encode(&mut encoded)?;
     blockfile.write_all(&Network::Bitcoin.magic().to_le_bytes())?;
     blockfile.write_all(&(encoded.len() as u32).to_le_bytes())?;
     blockfile.write_all(&encoded)?;
   }
+
+  blockfile.flush()?;
+
+  eprintln!("Blockfile is {} bytes", blockfile.stream_position()?);
 
   let mut group = c.benchmark_group("flat-sampling-example");
   group.sampling_mode(SamplingMode::Flat);
