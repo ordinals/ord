@@ -44,7 +44,7 @@ jobs:
         cargo update --locked --package ord
 
     - name: Test
-      run: cargo test --all
+      run: cargo test --all --release
 
     - name: Clippy
       run: cargo clippy --all --all-targets
