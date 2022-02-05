@@ -329,8 +329,9 @@ dependencies = [
 
 [[package]]
 name = "redb"
-version = "0.0.3"
-source = "git+https://github.com/cberner/redb.git?rev=bf905c870114f2710fbd36aefcd07b35cccfe1f7#bf905c870114f2710fbd36aefcd07b35cccfe1f7"
+version = "0.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "203f19c79e67a9514966531c381db94b9f235989bd504613215cdc80ce30efaa"
 dependencies = [
  "libc",
  "memmap2",
