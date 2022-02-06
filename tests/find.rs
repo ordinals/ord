@@ -63,7 +63,7 @@ fn first_satoshi_spent_in_second_block() -> Result {
     .expected_stdout("d0a9c70e6c8d890ee5883973a716edc1609eab42a9bc32594bdafc935bb4fad0:0:0\n")
     .block()
     .block()
-    .transaction(&[(0, 0, 0)], 1)
+    .transaction(&[(0, 0, 0)], 1, 0)
     .run()
 }
 
@@ -74,7 +74,7 @@ fn first_satoshi_spent_in_second_block_slot() -> Result {
     .expected_stdout("1.1.0.0\n")
     .block()
     .block()
-    .transaction(&[(0, 0, 0)], 1)
+    .transaction(&[(0, 0, 0)], 1, 0)
     .run()
 }
 
@@ -99,6 +99,6 @@ fn index_multiple_blockfiles() -> Result {
     .block()
     .blockfile()
     .block()
-    .transaction(&[(0, 0, 0)], 1)
+    .transaction(&[(0, 0, 0)], 1, 0)
     .run()
 }

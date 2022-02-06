@@ -44,7 +44,7 @@ fn split_ranges_are_tracked_correctly() -> Result {
     )
     .block()
     .block()
-    .transaction(&[(0, 0, 0)], 2)
+    .transaction(&[(0, 0, 0)], 2, 0)
     .expected_stdout("[0,2500000000)\n")
     .run()?;
 
@@ -54,7 +54,7 @@ fn split_ranges_are_tracked_correctly() -> Result {
     )
     .block()
     .block()
-    .transaction(&[(0, 0, 0)], 2)
+    .transaction(&[(0, 0, 0)], 2, 0)
     .expected_stdout("[2500000000,5000000000)\n")
     .run()
 }
@@ -67,9 +67,9 @@ fn merge_ranges_are_tracked_correctly() -> Result {
     )
     .block()
     .block()
-    .transaction(&[(0, 0, 0)], 2)
+    .transaction(&[(0, 0, 0)], 2, 0)
     .block()
-    .transaction(&[(1, 1, 0), (1, 1, 1)], 1)
+    .transaction(&[(1, 1, 0), (1, 1, 1)], 1, 0)
     .expected_stdout("[0,2500000000)\n[2500000000,5000000000)\n")
     .run()
 }
@@ -89,7 +89,7 @@ fn duplicate_transaction_range() -> Result {
       ..Default::default()
     })
     .block()
-    .transaction(&[(0, 0, 0)], 1)
+    .transaction(&[(0, 0, 0)], 1, 0)
     .expected_stdout("[5000000000,10000000000)\n")
     .run()
 }
@@ -105,5 +105,38 @@ fn underpay_subsidy() -> Result {
       ..Default::default()
     })
     .expected_stdout("[0,4999999999)\n")
+    .run()
+}
+
+#[test]
+fn fee_paying_transaction_range() -> Result {
+  Test::new()?
+    .command(
+      "list --blocksdir blocks fa8e9a127d8030727ce6f2190ddfd87d0910e3aa31985da529ee5c20ca120941:0",
+    )
+    .block()
+    .block()
+    .transaction(&[(0, 0, 0)], 2, 10)
+    .expected_stdout("[0,2499999995)\n")
+    .run()?;
+
+  Test::new()?
+    .command(
+      "list --blocksdir blocks fa8e9a127d8030727ce6f2190ddfd87d0910e3aa31985da529ee5c20ca120941:1",
+    )
+    .block()
+    .block()
+    .transaction(&[(0, 0, 0)], 2, 10)
+    .expected_stdout("[2499999995,4999999990)\n")
+    .run()?;
+
+  Test::new()?
+    .command(
+      "list --blocksdir blocks 9068a11b8769174363376b606af9a4b8b29dd7b13d013f4b0cbbd457db3c3ce5:0",
+    )
+    .block()
+    .block()
+    .transaction(&[(0, 0, 0)], 2, 10)
+    .expected_stdout("[5000000000,10000000000)\n[4999999990,5000000000)\n")
     .run()
 }

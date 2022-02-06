@@ -200,11 +200,13 @@ impl Test {
     self
   }
 
-  fn transaction(mut self, slots: &[(usize, usize, u32)], output_count: u64) -> Self {
-    let value = slots
+  fn transaction(mut self, slots: &[(usize, usize, u32)], output_count: u64, fee: u64) -> Self {
+    let input_value = slots
       .iter()
       .map(|slot| self.blocks[slot.0].txdata[slot.1].output[slot.2 as usize].value)
       .sum::<u64>();
+
+    let output_value = input_value - fee;
 
     let tx = Transaction {
       version: 0,
@@ -223,7 +225,7 @@ impl Test {
         .collect(),
       output: vec![
         TxOut {
-          value: value / output_count,
+          value: output_value / output_count,
           script_pubkey: script::Builder::new().into_script(),
         };
         output_count.try_into().unwrap()
