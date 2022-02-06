@@ -139,10 +139,10 @@ impl Test {
   }
 
   fn block(self) -> Self {
-    self.block_with_coinbase(true, true)
+    self.block_with_coinbase(true, true, 50 * COIN_VALUE)
   }
 
-  fn block_with_coinbase(mut self, coinbase: bool, include_height: bool) -> Self {
+  fn block_with_coinbase(mut self, coinbase: bool, include_height: bool, subsidy: u64) -> Self {
     self.blocks.push(Block {
       header: BlockHeader {
         version: 0,
@@ -173,7 +173,7 @@ impl Test {
             witness: vec![],
           }],
           output: vec![TxOut {
-            value: 50 * COIN_VALUE,
+            value: subsidy,
             script_pubkey: script::Builder::new().into_script(),
           }],
         }]
