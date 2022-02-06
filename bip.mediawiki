@@ -1,0 +1,129 @@
+<pre>
+  BIP: ?
+  Layer: Applications
+  Title: Ordinal Numbers
+  Author: Casey Rodarmor <casey@rodarmor.com>
+  Discussions-To: https://github.com/casey/ord
+  Comments-Summary: No comments yet.
+  Comments-URI: https://github.com/casey/ord/wiki/Comments
+  Status: Draft
+  Type: Informational
+  Created: 2022-02-04
+  License: PD
+</pre>
+
+== Introduction ==
+
+=== Abstract ===
+
+TODO: A short (~200 word) description of the technical issue being addressed.
+
+=== Copyright ===
+
+This work is placed in the public domain.
+
+=== Motivation ===
+
+TODO: The motivation is critical for BIPs that want to change the Bitcoin protocol. It should clearly explain why the existing protocol is inadequate to address the problem that the BIP solves.
+
+== Description ==
+
+=== Design ===
+
+TODO: Discuss design at a high level.
+
+=== Specification ===
+
+TODO: The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any of the current Bitcoin platforms.
+
+== Discussion ==
+
+=== Rationale ===
+
+TODO: The rationale fleshes out the specification by describing what motivated the design and why particular design decisions were made. It should describe alternate designs that were considered and related work. The rationale should provide evidence of consensus within the community and discuss important objections or concerns raised during discussion.
+
+TODO: Discuss off-chain validation.
+
+TODO Discuss trade offs:
+- complexity vs simplicity
+- on chain vs off-chain validation
+
+=== Security ===
+
+TODO: Any security trade offs or implications?
+
+=== Privacy considerations ===
+
+TODO: Discuss privacy impact on users. Discuss that scheme is opt-in, so no privacy impact for non users. Discuss that NFTs are off-chain, so although ordinals are trackable on-chain, their contents can be held in private.
+
+=== Fungability considerations ===
+
+TODO: Discuss that fungability is not affected for non-users.
+
+=== Backward compatibility ===
+
+TODO: Say that it's compatibile with everything and can just be ignored.
+
+== Applications ==
+
+TODO
+
+=== Accounts ===
+
+TODO
+
+=== Collectable Sats ===
+
+TODO
+
+=== NFTs ===
+
+TODO
+
+Domains, art, membership.
+
+=== Stablecoins ===
+
+TODO
+
+TODO: describe redemption promises
+
+=== Colored Coins ===
+
+TODO
+
+=== Name Service ==
+
+TODO: Discuss ordinal names.
+
+=== PKI Key Rotation ==
+
+TODO
+
+=== Lightning Compatibility ===
+
+TODO
+
+=== State Chain Compatibility ===
+
+TODO
+
+=== Covenant Compatiblity ===
+
+TODO
+
+=== Limited Issuance via Fraud Proofs ===
+
+TODO
+
+== Reference implementation ==
+
+TODO: Talk about reference implementation at https://github.com/casey/ord and its status.
+
+== References ==
+
+TODO: Mention prior art, alternative schemes. Colored coins, aliases, etc.
+
+== Acknowledgements ==
+
+TODO: Everyone who helped. All remaining errors are my own.
