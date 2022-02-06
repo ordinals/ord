@@ -94,7 +94,7 @@ fn underpay_subsidy() -> Result {
     .command(
       "list --blocksdir blocks 12d57183977a1df616bafbb7dafbb4249e59d8f796ba556ad6bb75f0fa9fe0ea:0",
     )
-    .block_with_coinbase(true, true, 5000000000 - 1)
+    .block_with_coinbase(true, true, 50 * COIN_VALUE - 1)
     .expected_stdout("[0,4999999999)\n")
     .run()
 }
