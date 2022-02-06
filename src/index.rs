@@ -116,14 +116,11 @@ impl Index {
       }
 
       if let Some(tx) = block.txdata.first() {
-        log::info!("{:?}", &coinbase_inputs);
-
         for (vout, output) in tx.output.iter().enumerate() {
           let mut ordinals = Vec::new();
 
           let mut remaining = output.value;
           while remaining > 0 {
-            log::info!("{}", remaining);
             let range = coinbase_inputs
               .pop_front()
               .ok_or("Insufficient inputs for coinbase transaction outputs")?;
