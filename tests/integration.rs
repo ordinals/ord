@@ -6,6 +6,7 @@ use {
     {Block, BlockHeader, Network, OutPoint, Transaction, TxIn, TxOut},
   },
   executable_path::executable_path,
+  regex::Regex,
   std::{
     collections::BTreeSet,
     error::Error,
@@ -17,7 +18,6 @@ use {
   },
   tempfile::TempDir,
   unindent::Unindent,
-  regex::Regex
 };
 
 mod epochs;
@@ -241,7 +241,14 @@ impl Test {
 
     let block = self.blocks.last_mut().unwrap();
 
-    block.txdata.first_mut().unwrap().output.first_mut().unwrap().value += fee;
+    block
+      .txdata
+      .first_mut()
+      .unwrap()
+      .output
+      .first_mut()
+      .unwrap()
+      .value += fee;
     block.txdata.push(tx);
 
     self
