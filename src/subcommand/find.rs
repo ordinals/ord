@@ -12,8 +12,8 @@ pub(crate) struct Find {
 }
 
 impl Find {
-  pub(crate) fn run(self) -> Result<()> {
-    let index = Index::new(self.blocksdir.as_deref())?;
+  pub(crate) fn run(self, index_size: Option<usize>) -> Result<()> {
+    let index = Index::new(self.blocksdir.as_deref(), index_size)?;
 
     let creation_height = self.ordinal.height().n();
     let block = index.block(creation_height)?.unwrap();

@@ -21,6 +21,7 @@ use {
 
 mod epochs;
 mod find;
+mod index;
 mod list;
 mod name;
 mod range;
@@ -28,6 +29,11 @@ mod supply;
 mod traits;
 
 type Result<T = ()> = std::result::Result<T, Box<dyn Error>>;
+
+struct Output {
+  stdout: String,
+  tempdir: TempDir,
+}
 
 struct Test {
   args: Vec<String>,
@@ -101,10 +107,10 @@ impl Test {
   }
 
   fn run(self) -> Result {
-    self.run_with_stdout().map(|_| ())
+    self.output().map(|_| ())
   }
 
-  fn run_with_stdout(self) -> Result<String> {
+  fn output(self) -> Result<Output> {
     self.populate_blocksdir()?;
 
     let output = Command::new(executable_path("ord"))
@@ -126,7 +132,10 @@ impl Test {
       assert_eq!(stdout, self.expected_stdout);
     }
 
-    Ok(stdout.to_owned())
+    Ok(Output {
+      stdout: stdout.to_string(),
+      tempdir: self.tempdir,
+    })
   }
 
   fn block(self) -> Self {

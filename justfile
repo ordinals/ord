@@ -4,7 +4,6 @@ export RUST_LOG := log
 
 ci: clippy forbid
   cargo fmt -- --check
-  cargo test --release
   cargo test
 
 forbid:
@@ -16,5 +15,5 @@ fmt:
 clippy:
   cargo clippy
 
-watch +args='ltest --release':
+watch +args='ltest':
   cargo watch --clear --exec '{{args}}'

@@ -12,7 +12,7 @@ impl Index {
   const HEIGHT_TO_HASH: &'static str = "HEIGHT_TO_HASH";
   const OUTPOINT_TO_ORDINAL_RANGES: &'static str = "OUTPOINT_TO_ORDINAL_RANGES";
 
-  pub(crate) fn new(blocksdir: Option<&Path>) -> Result<Self> {
+  pub(crate) fn new(blocksdir: Option<&Path>, index_size: Option<usize>) -> Result<Self> {
     let blocksdir = if let Some(blocksdir) = blocksdir {
       blocksdir.to_owned()
     } else if cfg!(target_os = "macos") {
@@ -30,7 +30,7 @@ impl Index {
     };
 
     let index = Self {
-      database: unsafe { Database::open("index.redb", 50 << 30)? },
+      database: unsafe { Database::open("index.redb", index_size.unwrap_or(1 << 20))? },
       blocksdir,
     };
 
