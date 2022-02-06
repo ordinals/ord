@@ -243,7 +243,7 @@ impl Test {
           value: output_value / options.output_count as u64,
           script_pubkey: script::Builder::new().into_script(),
         };
-        options.output_count.try_into().unwrap()
+        options.output_count
       ],
     };
 
