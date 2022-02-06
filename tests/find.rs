@@ -83,7 +83,10 @@ fn regression_empty_block_crash() -> Result {
   Test::new()?
     .command("find --blocksdir blocks 0 --slot --as-of-height 1")
     .block()
-    .block_with_coinbase(false, true)
+    .block_with_coinbase(Coinbase {
+      include_coinbase_transaction: false,
+      ..Default::default()
+    })
     .expected_stdout("0.0.0.0\n")
     .run()
 }

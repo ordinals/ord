@@ -35,6 +35,22 @@ struct Output {
   tempdir: TempDir,
 }
 
+struct Coinbase {
+  include_coinbase_transaction: bool,
+  include_height: bool,
+  subsidy: u64,
+}
+
+impl Default for Coinbase {
+  fn default() -> Self {
+    Self {
+      include_coinbase_transaction: true,
+      include_height: true,
+      subsidy: 50 * COIN_VALUE,
+    }
+  }
+}
+
 struct Test {
   args: Vec<String>,
   blockfiles: Vec<usize>,
@@ -139,10 +155,10 @@ impl Test {
   }
 
   fn block(self) -> Self {
-    self.block_with_coinbase(true, true)
+    self.block_with_coinbase(Coinbase::default())
   }
 
-  fn block_with_coinbase(mut self, coinbase: bool, include_height: bool) -> Self {
+  fn block_with_coinbase(mut self, coinbase: Coinbase) -> Self {
     self.blocks.push(Block {
       header: BlockHeader {
         version: 0,
@@ -156,13 +172,13 @@ impl Test {
         bits: 0,
         nonce: 0,
       },
-      txdata: if coinbase {
+      txdata: if coinbase.include_coinbase_transaction {
         vec![Transaction {
           version: 0,
           lock_time: 0,
           input: vec![TxIn {
             previous_output: OutPoint::null(),
-            script_sig: if include_height {
+            script_sig: if coinbase.include_height {
               script::Builder::new()
                 .push_scriptint(self.blocks.len().try_into().unwrap())
                 .into_script()
@@ -173,7 +189,7 @@ impl Test {
             witness: vec![],
           }],
           output: vec![TxOut {
-            value: 50 * COIN_VALUE,
+            value: coinbase.subsidy,
             script_pubkey: script::Builder::new().into_script(),
           }],
         }]
