@@ -5,7 +5,8 @@ fn traits(ordinal: u64) -> Result<BTreeSet<String>> {
     Test::new()?
       .args(&["traits", &ordinal.to_string()])
       .ignore_stdout()
-      .run_with_stdout()?
+      .output()?
+      .stdout
       .lines()
       .map(str::to_owned)
       .collect(),
