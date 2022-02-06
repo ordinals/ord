@@ -55,7 +55,7 @@ impl Default for CoinbaseOptions {
 struct TransactionOptions<'a> {
   slots: &'a [(usize, usize, usize)],
   output_count: usize,
-  fee: u64
+  fee: u64,
 }
 
 struct Test {
@@ -214,7 +214,8 @@ impl Test {
   }
 
   fn transaction(mut self, options: TransactionOptions) -> Self {
-    let input_value = options.slots
+    let input_value = options
+      .slots
       .iter()
       .map(|slot| self.blocks[slot.0].txdata[slot.1].output[slot.2].value)
       .sum::<u64>();
@@ -224,7 +225,8 @@ impl Test {
     let tx = Transaction {
       version: 0,
       lock_time: 0,
-      input: options.slots
+      input: options
+        .slots
         .iter()
         .map(|slot| TxIn {
           previous_output: OutPoint {
