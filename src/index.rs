@@ -60,9 +60,11 @@ impl Index {
 
       for tx in block.txdata.iter().skip(1) {
         let mut input_ordinal_ranges = VecDeque::new();
+
         for input in &tx.input {
           let mut key = Vec::new();
           input.previous_output.consensus_encode(&mut key)?;
+
           let ordinal_ranges = outpoint_to_ordinal_ranges
             .get(key.as_slice())?
             .ok_or("Could not find outpoint in index")?;
@@ -73,62 +75,80 @@ impl Index {
             input_ordinal_ranges.push_back((start, end));
           }
         }
+
         for (vout, output) in tx.output.iter().enumerate() {
           let mut ordinals = Vec::new();
+
           let mut remaining = output.value;
           while remaining > 0 {
             let range = input_ordinal_ranges
               .pop_front()
               .ok_or("Found transaction with outputs but no inputs")?;
+
             let count = range.1 - range.0;
+
             let assigned = if count > remaining {
-              let split = range.0 + remaining;
-              input_ordinal_ranges.push_front((split, range.1));
-              (range.0, split)
+              let middle = range.0 + remaining;
+              input_ordinal_ranges.push_front((middle, range.1));
+              (range.0, middle)
             } else {
               range
             };
+
             ordinals.extend_from_slice(&assigned.0.to_le_bytes());
             ordinals.extend_from_slice(&assigned.1.to_le_bytes());
+
             remaining -= assigned.1 - assigned.0;
           }
+
           let outpoint = OutPoint {
             txid: tx.txid(),
             vout: vout as u32,
           };
+
           let mut key = Vec::new();
           outpoint.consensus_encode(&mut key)?;
+
           outpoint_to_ordinal_ranges.insert(&key, &ordinals)?;
         }
+
         coinbase_inputs.extend(&input_ordinal_ranges);
       }
 
       if let Some(tx) = block.txdata.first() {
         for (vout, output) in tx.output.iter().enumerate() {
           let mut ordinals = Vec::new();
+
           let mut remaining = output.value;
           while remaining > 0 {
             let range = coinbase_inputs
               .pop_front()
               .ok_or("Insufficient inputs for coinbase transaction outputs")?;
+
             let count = range.1 - range.0;
+
             let assigned = if count > remaining {
-              let split = range.0 + remaining;
-              coinbase_inputs.push_front((split, range.1));
-              (range.0, split)
+              let middle = range.0 + remaining;
+              coinbase_inputs.push_front((middle, range.1));
+              (range.0, middle)
             } else {
               range
             };
+
             ordinals.extend_from_slice(&assigned.0.to_le_bytes());
             ordinals.extend_from_slice(&assigned.1.to_le_bytes());
+
             remaining -= assigned.1 - assigned.0;
           }
+
           let outpoint = OutPoint {
             txid: tx.txid(),
             vout: vout as u32,
           };
+
           let mut key = Vec::new();
           outpoint.consensus_encode(&mut key)?;
+
           outpoint_to_ordinal_ranges.insert(&key, &ordinals)?;
         }
       }

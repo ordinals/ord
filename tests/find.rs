@@ -63,7 +63,11 @@ fn first_satoshi_spent_in_second_block() -> Result {
     .expected_stdout("d0a9c70e6c8d890ee5883973a716edc1609eab42a9bc32594bdafc935bb4fad0:0:0\n")
     .block()
     .block()
-    .transaction(&[(0, 0, 0)], 1)
+    .transaction(TransactionOptions {
+      slots: &[(0, 0, 0)],
+      output_count: 1,
+      fee: 0,
+    })
     .run()
 }
 
@@ -74,7 +78,11 @@ fn first_satoshi_spent_in_second_block_slot() -> Result {
     .expected_stdout("1.1.0.0\n")
     .block()
     .block()
-    .transaction(&[(0, 0, 0)], 1)
+    .transaction(TransactionOptions {
+      slots: &[(0, 0, 0)],
+      output_count: 1,
+      fee: 0,
+    })
     .run()
 }
 
@@ -83,7 +91,7 @@ fn regression_empty_block_crash() -> Result {
   Test::new()?
     .command("find --blocksdir blocks 0 --slot --as-of-height 1")
     .block()
-    .block_with_coinbase(Coinbase {
+    .block_with_coinbase(CoinbaseOptions {
       include_coinbase_transaction: false,
       ..Default::default()
     })
@@ -99,6 +107,10 @@ fn index_multiple_blockfiles() -> Result {
     .block()
     .blockfile()
     .block()
-    .transaction(&[(0, 0, 0)], 1)
+    .transaction(TransactionOptions {
+      slots: &[(0, 0, 0)],
+      output_count: 1,
+      fee: 0,
+    })
     .run()
 }
