@@ -17,6 +17,7 @@ use {
   },
   tempfile::TempDir,
   unindent::Unindent,
+  regex::Regex
 };
 
 mod epochs;
@@ -140,7 +141,13 @@ impl Test {
       panic!("Test failed: {}\n{}", output.status, stderr);
     }
 
-    assert_eq!(stderr, self.expected_stderr);
+    let re = Regex::new(r"(?m)^\[.*\n")?;
+
+    for m in re.find_iter(stderr) {
+      print!("{}", m.as_str())
+    }
+
+    assert_eq!(re.replace_all(stderr, ""), self.expected_stderr);
 
     let stdout = str::from_utf8(&output.stdout)?;
 
@@ -232,7 +239,10 @@ impl Test {
       ],
     };
 
-    self.blocks.last_mut().unwrap().txdata.push(tx);
+    let block = self.blocks.last_mut().unwrap();
+
+    block.txdata.first_mut().unwrap().output.first_mut().unwrap().value += fee;
+    block.txdata.push(tx);
 
     self
   }

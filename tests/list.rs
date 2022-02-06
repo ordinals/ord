@@ -132,11 +132,26 @@ fn fee_paying_transaction_range() -> Result {
 
   Test::new()?
     .command(
-      "list --blocksdir blocks 9068a11b8769174363376b606af9a4b8b29dd7b13d013f4b0cbbd457db3c3ce5:0",
+      "list --blocksdir blocks e99b3ae1f13c5335222148496220d36026c595861c916c297e3483188312c915:0",
     )
     .block()
     .block()
     .transaction(&[(0, 0, 0)], 2, 10)
     .expected_stdout("[5000000000,10000000000)\n[4999999990,5000000000)\n")
+    .run()
+}
+
+#[test]
+fn two_fee_paying_transaction_range() -> Result {
+  Test::new()?
+    .command(
+      "list --blocksdir blocks 1ed7b177c6886e33d987b15c41407b3b91afcdf211225902f37260678362794b:0",
+    )
+    .block()
+    .block()
+    .block()
+    .transaction(&[(0, 0, 0)], 2, 10)
+    .transaction(&[(1, 0, 0)], 2, 10)
+    .expected_stdout("[10000000000,15000000000)\n[4999999990,5000000000)\n[9999999990,10000000000)\n")
     .run()
 }
