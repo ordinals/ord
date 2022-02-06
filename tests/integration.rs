@@ -36,13 +36,13 @@ struct Output {
   tempdir: TempDir,
 }
 
-struct Coinbase {
+struct CoinbaseOptions {
   include_coinbase_transaction: bool,
   include_height: bool,
   subsidy: u64,
 }
 
-impl Default for Coinbase {
+impl Default for CoinbaseOptions {
   fn default() -> Self {
     Self {
       include_coinbase_transaction: true,
@@ -50,6 +50,12 @@ impl Default for Coinbase {
       subsidy: 50 * COIN_VALUE,
     }
   }
+}
+
+struct TransactionOptions<'a> {
+  slots: &'a [(usize, usize, usize)],
+  output_count: usize,
+  fee: u64
 }
 
 struct Test {
@@ -162,10 +168,10 @@ impl Test {
   }
 
   fn block(self) -> Self {
-    self.block_with_coinbase(Coinbase::default())
+    self.block_with_coinbase(CoinbaseOptions::default())
   }
 
-  fn block_with_coinbase(mut self, coinbase: Coinbase) -> Self {
+  fn block_with_coinbase(mut self, coinbase: CoinbaseOptions) -> Self {
     self.blocks.push(Block {
       header: BlockHeader {
         version: 0,
@@ -207,23 +213,23 @@ impl Test {
     self
   }
 
-  fn transaction(mut self, slots: &[(usize, usize, u32)], output_count: u64, fee: u64) -> Self {
-    let input_value = slots
+  fn transaction(mut self, options: TransactionOptions) -> Self {
+    let input_value = options.slots
       .iter()
-      .map(|slot| self.blocks[slot.0].txdata[slot.1].output[slot.2 as usize].value)
+      .map(|slot| self.blocks[slot.0].txdata[slot.1].output[slot.2].value)
       .sum::<u64>();
 
-    let output_value = input_value - fee;
+    let output_value = input_value - options.fee;
 
     let tx = Transaction {
       version: 0,
       lock_time: 0,
-      input: slots
+      input: options.slots
         .iter()
         .map(|slot| TxIn {
           previous_output: OutPoint {
             txid: self.blocks[slot.0].txdata[slot.1].txid(),
-            vout: slot.2,
+            vout: slot.2 as u32,
           },
           script_sig: script::Builder::new().into_script(),
           sequence: 0,
@@ -232,10 +238,10 @@ impl Test {
         .collect(),
       output: vec![
         TxOut {
-          value: output_value / output_count,
+          value: output_value / options.output_count as u64,
           script_pubkey: script::Builder::new().into_script(),
         };
-        output_count.try_into().unwrap()
+        options.output_count.try_into().unwrap()
       ],
     };
 
@@ -248,7 +254,8 @@ impl Test {
       .output
       .first_mut()
       .unwrap()
-      .value += fee;
+      .value += options.fee;
+
     block.txdata.push(tx);
 
     self
