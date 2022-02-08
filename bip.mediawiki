@@ -44,9 +44,13 @@ TODO: The rationale fleshes out the specification by describing what motivated t
 
 TODO: Discuss off-chain validation.
 
-TODO Discuss trade offs:
+TODO: Discuss trade offs:
 - complexity vs simplicity
 - on chain vs off-chain validation
+
+TODO: Discuss using a system where an account is identified by a slot address.
+
+TODO: Discuss using a system where accounts are just committed to by a tweak. Account isn't unique.
 
 === Security ===
 
