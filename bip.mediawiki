@@ -18,10 +18,6 @@
 
 This BIP defines a scheme for serially numbering all satoshis and tracking these serial numbers across transactions. These serial numbers, termed "ordinal numbers" in the language of this BIP, may serve as a useful primitive for a diverse range of applications, including stablecoins and other colored coins, NFTs, naming services, and identity and reputation systems.
 
-=== Keywords ===
-
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC 2119.
-
 === Copyright ===
 
 This work is placed in the public domain.
@@ -52,7 +48,7 @@ Underpaying the subsidy does not change the ordinal numbers of satoshis mined in
 
 At any given time, the output in which an ordinal resides can be identified. The public key associated with this output could be used to sign messages, such as ownership challenges, related to the ordinals it contains. The specification of a standardized message format for such purpuses is deferred to a later BIP. In the meantime, applications are free to define their own message format and signature scheme for such purposes.
 
-Ordinal aware software MUST NOT mix outputs containing meaningful ordinals with outputs used for other purposes, to avoid inadvertant loss of valuable ordinals, or privacy leaks allowing links between funds. For this reason, ordinal aware software using BIP-32 heirarchical deterministic key generation SHOULD use a key deriviation path specific to ordinals. The specification of this is defferred to a later BIP.
+Ordinal aware software should not mix outputs containing meaningful ordinals with outputs used for other purposes to avoid inadvertant loss of valuable ordinals, or privacy leaks allowing links between funds. For this reason, ordinal aware software using BIP-32 heirarchical deterministic key generation should use a key deriviation path specific to ordinals. The specification of this key derivation path is defferred to a later BIP.
 
 === Specification ===
 
