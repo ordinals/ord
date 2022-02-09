@@ -24,6 +24,15 @@ The index is stored in `index.redb`, and should not be concurrently modified
 while an instance of `ord` is running, or used by two `ord` instances
 simultaneously.
 
+The size of the index scales with the number of ordinal ranges in existance,
+which scales with the number of outputs ever created.
+
+Each tracked ordinal range requires TODO bytes of storage.
+
+As of February, 2022, TODO outputs have been created, so an `ord` index of the
+Bitcoin main chain requires approximately TODO * TODO = TODO bytes of storage
+in total.
+
 ## Numbering
 
 Satoshis are assigned ordinal numbers in the order in which they are mined.
