@@ -16,7 +16,11 @@
 
 === Abstract ===
 
-TODO: A short (~200 word) description of the technical issue being addressed.
+This BIP defines a scheme for serially numbering all satoshis and tracking these serial numbers across transactions. These serial numbers, termed "ordinal numbers" in the language of this BIP, may serve as a useful primitive for a diverse range of applications, including stablecoins and other colored coins, NFTs, naming services, and identity and reputation systems.
+
+=== Keywords ===
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC 2119.
 
 === Copyright ===
 
@@ -26,47 +30,112 @@ This work is placed in the public domain.
 
 TODO: The motivation is critical for BIPs that want to change the Bitcoin protocol. It should clearly explain why the existing protocol is inadequate to address the problem that the BIP solves.
 
+Facilitate the creation of applications that require stable public identities.
+
+Bitcoin lacks a native notion of an account or a user. Although addresses or public keys sort of work, since they're keys, they don't work because privacy is improved by treating individual addresses as ephemeral, and security requires that it be possible to rotate keys.
+
+This BIP defines a scheme for stable, publicly visible identifiers that can be used by any application that needs them. The scheme is intentionally simple, and as much as possible orthogonal to currently existing applications, so that it can interoperate with them.
+
+Users want NFTs. I want to increase the security, durability, and predictability of NFTs, for the benefit of those users, and bring that attention and capital to bitcoin.
+
 == Description ==
 
 === Design ===
 
-TODO: Discuss design at a high level.
+Every satoshi is numbered in the order in which it is mined. These numbers are termed "ordinal numbers", or "ordinals", since they are ordinal numbers in the mathematical sense. Additionally, the word "ordinal" is not used elsewhere in the Bitcoin protocol[0], so is nicely unambiguous.
+
+The ordinal numbers of transaction inputs are transferred to outputs using first-in-first-out order.
+
+The ordinal numbers of satoshis paid as fees assigned to the outputs of coinbase transactions using the same algorithm, according to their transaction's position in the block.
+
+Underpaying the subsidy does not change the ordinal numbers of satoshis mined in subsequent blocks. Ordinals depend only on how many satoshis could have been mined, not how many actually were.
+
+At any given time, the output in which an ordinal resides can be identified. The public key associated with this output could be used to sign messages, such as ownership challenges, related to the ordinals it contains. The specification of a standardized message format for such purpuses is deferred to a later BIP. In the meantime, applications are free to define their own message format and signature scheme for such purposes.
+
+Ordinal aware software MUST NOT mix outputs containing meaningful ordinals with outputs used for other purposes, to avoid inadvertant loss of valuable ordinals, or privacy leaks allowing links between funds. For this reason, ordinal aware software using BIP-32 heirarchical deterministic key generation SHOULD use a key deriviation path specific to ordinals. The specification of this is defferred to a later BIP.
 
 === Specification ===
 
-TODO: The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any of the current Bitcoin platforms.
+Ordinals are created and assigned with the following algorithm:
+
+<pre><code>
+# subsidy of block at given height
+def subsidy(height):
+  return 50 * 100_000_000 >> int(height / 210_000)
+
+# first ordinal of subsidy of block at given height
+def first_ordinal(height):
+  start = 0
+  for height in range(height):
+    start += subsidy(height)
+  return start
+
+# assign ordinals in given block
+def assign_ordinals(block):
+  first = first_ordinal(block.height)
+  last = first + subsidy(block.height)
+  coinbase_ordinals = list(range(first, last))
+
+  for transaction in block.transactions[1:]:
+    ordinals = []
+    for input in transaction.inputs:
+      ordinals.extend(input.ordinals)
+
+    for output in transaction.outputs:
+      output.ordinals = ordinals[:output.value]
+      del ordinals[:output.value]
+
+    coinbase_ordinals.extend(ordinals)
+
+  for output in block.transaction[0].outputs:
+    output.ordinals = coinbase_ordinals[:output.value]
+    del coinbase_ordinals[:output.value]
+</code></pre>
 
 == Discussion ==
 
 === Rationale ===
 
-TODO: The rationale fleshes out the specification by describing what motivated the design and why particular design decisions were made. It should describe alternate designs that were considered and related work. The rationale should provide evidence of consensus within the community and discuss important objections or concerns raised during discussion.
+- no on chain storage (however, if adopted, will presumably increase demand for transactions and utxos)
+- no changes to p2p protocol, block, or transaction representation
+- can be immediately adopted, or ignored
+- existing users are not impacted
+- all satoshis get ordinal numbers, so anonyity set is maximized
+- completely orthoginal to other features, such as number and contents of inputs and outputs, sequence numbers, lock times, witnesses and scripts. this allows ordinals to be used in combination with other applications, including, with small modifications, applications that were not designed with ordinals in mind, such as the lightning network.
+- at any given time, tied to a public key, but public key can be rotated with a transaction
+- extreme simplicity
+- Discuss using a system where an account is identified by a slot address.
+- Discuss using a system where accounts are just committed to by a tweak. Account isn't unique. Can only have one account per output.
+- worse is better
+- fair, all bitcoin holders get new accounts in proportion to their holdings
+- as granular as possible
 
-TODO: Discuss off-chain validation.
+=== Objections ===
 
-TODO: Discuss trade offs:
-- complexity vs simplicity
-- on chain vs off-chain validation
+- privacy: opt in, can ignore it
+- fungibility: probably not a problem, scribbling on a dollar doesn't affect acceptance
+- utxo set size: this is not great.
+- congestion: need fee market
 
-TODO: Discuss using a system where an account is identified by a slot address.
-
-TODO: Discuss using a system where accounts are just committed to by a tweak. Account isn't unique. Can only have one account per output.
+Other objections, and better elaborations of existing objections, are most welcome.
 
 === Security ===
 
-TODO: Any security trade offs or implications?
+Requires following chain to see ordinal pubkeys. This requires care compared to a system where pubkeys are static.
+
+Requires ordinal-aware software to avoid destorying ordinals by sending them in a tx or burning them as fees. I actually think this is good. Standard wallets should not support ordinals, only wallets that are ordinal specific should handle valuable ordinals, which will make them not mix with general purpose funds.
 
 === Privacy considerations ===
 
-TODO: Discuss privacy impact on users. Discuss that scheme is opt-in, so no privacy impact for non users. Discuss that NFTs are off-chain, so although ordinals are trackable on-chain, their contents can be held in private.
+TODO: Discuss that scheme is opt-in, so no privacy impact for non users. Discuss that NFTs and anything associated with accounts are off-chain, so although ordinals are traceable on-chain, their contents can be held in private. This scheme is specifically for things that are desired to be public.
 
-=== Fungability considerations ===
+=== Fungibility considerations ===
 
-TODO: Discuss that fungability is not affected for non-users.
+TODO: Discuss that fungibility is not affected for non-users.
 
 === Backward compatibility ===
 
-TODO: Say that it's compatibile with everything and can just be ignored.
+TODO: Say that it's compatible with everything and can just be ignored.
 
 == Applications ==
 
@@ -120,6 +189,10 @@ TODO
 
 TODO
 
+=== Reputation Systems ===
+
+=== On-chain Identity ===
+
 == Reference implementation ==
 
 TODO: Talk about reference implementation at https://github.com/casey/ord and its status.
@@ -131,3 +204,5 @@ TODO: Mention prior art, alternative schemes. Colored coins, aliases, etc.
 == Acknowledgements ==
 
 TODO: Everyone who helped. All remaining errors are my own.
+
+[0] With the exception of being word #1405 in the BIP-39 Portuguese word list. Me perdoe!
