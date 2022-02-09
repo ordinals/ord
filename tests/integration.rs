@@ -67,6 +67,7 @@ struct Test {
   expected_stdout: String,
   ignore_stdout: bool,
   tempdir: TempDir,
+  reverse_blockfiles: bool,
 }
 
 impl Test {
@@ -80,6 +81,7 @@ impl Test {
       expected_stdout: String::new(),
       ignore_stdout: false,
       tempdir: TempDir::new()?,
+      reverse_blockfiles: false,
     })
   }
 
@@ -125,6 +127,13 @@ impl Test {
   fn ignore_stdout(self) -> Self {
     Self {
       ignore_stdout: true,
+      ..self
+    }
+  }
+
+  fn reverse_blockfiles(self) -> Self {
+    Self {
+      reverse_blockfiles: true,
       ..self
     }
   }
@@ -283,7 +292,16 @@ impl Test {
     {
       let mut blockfile = File::create(blocksdir.join(format!("blk{:05}.dat", i)))?;
 
-      for (bi, block) in self.blocks[start..end].iter().enumerate() {
+      let blocks = self.blocks[start..end].iter().enumerate();
+
+      let blocks: Box<dyn std::iter::Iterator<Item = (usize, &Block)>> = if self.reverse_blockfiles
+      {
+        Box::new(blocks.rev())
+      } else {
+        Box::new(blocks)
+      };
+
+      for (bi, block) in blocks {
         let mut encoded = Vec::new();
         block.consensus_encode(&mut encoded)?;
         blockfile.write_all(&Network::Bitcoin.magic().to_le_bytes())?;
