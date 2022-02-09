@@ -143,7 +143,7 @@ impl Test {
   }
 
   fn output(self) -> Result<Output> {
-    self.populate_blocksdir()?;
+    self.create_blockfiles()?;
 
     let output = Command::new(executable_path("ord"))
       .current_dir(&self.tempdir)
@@ -277,7 +277,7 @@ impl Test {
     self
   }
 
-  fn populate_blocksdir(&self) -> io::Result<()> {
+  fn create_blockfiles(&self) -> io::Result<()> {
     let blocksdir = self.tempdir.path().join("blocks");
     fs::create_dir(&blocksdir)?;
 
