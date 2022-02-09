@@ -67,6 +67,7 @@ struct Test {
   expected_stdout: String,
   ignore_stdout: bool,
   tempdir: TempDir,
+  reverse_blockfiles: bool,
 }
 
 impl Test {
@@ -80,6 +81,7 @@ impl Test {
       expected_stdout: String::new(),
       ignore_stdout: false,
       tempdir: TempDir::new()?,
+      reverse_blockfiles: false,
     })
   }
 
@@ -129,12 +131,19 @@ impl Test {
     }
   }
 
+  fn reverse_blockfiles(self) -> Self {
+    Self {
+      reverse_blockfiles: true,
+      ..self
+    }
+  }
+
   fn run(self) -> Result {
     self.output().map(|_| ())
   }
 
   fn output(self) -> Result<Output> {
-    self.populate_blocksdir()?;
+    self.create_blockfiles()?;
 
     let output = Command::new(executable_path("ord"))
       .current_dir(&self.tempdir)
@@ -268,7 +277,7 @@ impl Test {
     self
   }
 
-  fn populate_blocksdir(&self) -> io::Result<()> {
+  fn create_blockfiles(&self) -> io::Result<()> {
     let blocksdir = self.tempdir.path().join("blocks");
     fs::create_dir(&blocksdir)?;
 
@@ -283,7 +292,16 @@ impl Test {
     {
       let mut blockfile = File::create(blocksdir.join(format!("blk{:05}.dat", i)))?;
 
-      for (bi, block) in self.blocks[start..end].iter().enumerate() {
+      let blocks = self.blocks[start..end].iter().enumerate();
+
+      let blocks: Box<dyn std::iter::Iterator<Item = (usize, &Block)>> = if self.reverse_blockfiles
+      {
+        Box::new(blocks.rev())
+      } else {
+        Box::new(blocks)
+      };
+
+      for (bi, block) in blocks {
         let mut encoded = Vec::new();
         block.consensus_encode(&mut encoded)?;
         blockfile.write_all(&Network::Bitcoin.magic().to_le_bytes())?;
