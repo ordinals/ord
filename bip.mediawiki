@@ -143,51 +143,47 @@ TODO
 
 === Accounts ===
 
-TODO
+Can be used as an account system. Provides key rotation without transfer of ownership, and transfer of ownership.
 
 === Collectable Sats ===
 
-TODO
+Can identify the block, position within block, of sats, so they might be collectable. Creates demand for bitcoin, and is fun.
 
 === NFTs ===
 
-TODO
-
-Domains, art, membership.
+Create NFTs, assign to ordinal, allows tracking and trading. Can be used for art, in-game assets, membership systems, etcetera.
 
 === Stablecoins ===
 
-TODO
-
-TODO: describe redemption promises
+Sign message promising that you will redeem range of ordinals for $1 - the price of 1 satoshi each. (Or 1¢ - 1 satoshi) Issue using transfer, redeem using transfer. Compatible with lightning network, state chains, and probably other things.
 
 === Colored Coins ===
 
-TODO
+Issue shares, etc.
 
 === Name Service ==
 
-TODO: Discuss ordinal names.
+Can assign arbitrary names to ordinals, and track them. User names, domain names, etc. Also came up with a scheme for assigning human readable names to ordinals, based on number. The specifics of this scheme are deferred to a later BIP.
 
-=== PKI Key Rotation ==
+=== PKI ==
 
-TODO
+Use an ordinal as root of trust for PKI scheme. For example, root of trust for DNS.
 
 === Lightning Compatibility ===
 
-TODO
+Because ordinal numbers are orthoginal to rest of bitcoin, lightning network nodes, with small modifications, and a stable coin scheme issue, could do fast fee free payments. Would have to use child-pays-for-parent to pay fees using cardinal outputs, i.e. outputs where the ordinals of satoshis are not important, only the amount of satoshis.
 
 === State Chain Compatibility ===
 
-TODO
+Ruben Somsen's State Chain allows off-chain transfer of whole outputs. These outputs could contain ordinals, and thus state chains could be used for off-chain trasnfer of ordinals. (add link)
 
 === Covenant Compatiblity ===
 
-TODO
+Can be used with covenants.
 
 === Limited Issuance via Fraud Proofs ===
 
-TODO
+NFTs are off chain, so can't use on-chain mechanism for over issuance. However, issued NFTs can commit to limited issuance in the NFT issuance messages, and if they're over issued, or issued too fast, then you can construct a fraud proof.
 
 === Reputation Systems ===
 
