@@ -3,7 +3,6 @@
   Layer: Applications
   Title: Ordinal Numbers
   Author: Casey Rodarmor <casey@rodarmor.com>
-  Discussions-To: https://github.com/casey/ord
   Comments-Summary: No comments yet.
   Comments-URI: https://github.com/casey/ord/discussions/126
   Status: Draft
