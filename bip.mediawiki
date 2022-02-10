@@ -109,9 +109,9 @@ Ordinals are as granular as possible, as bitcoin is not capable of tracking owne
 
 === Objections ===
 
-''Privacy: Ordinal numbers being public, reduce user privacy.''
+''Privacy: Ordinal numbers are public and thus reduce user privacy.''
 
-Ordinal numbers are required to be public, and reduce the privacy of only those users that decide to use them.
+The appllications using ordinal numbers required them to be public, and reduce the privacy of only those users that decide to use them.
 
 ''Fungibility: Ordinal numbers reduce the fungibility of Bitcoin, as ordinals received in a transaction may carry with them some public history.''
 
