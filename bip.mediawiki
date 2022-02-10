@@ -5,7 +5,7 @@
   Author: Casey Rodarmor <casey@rodarmor.com>
   Discussions-To: https://github.com/casey/ord
   Comments-Summary: No comments yet.
-  Comments-URI: https://github.com/casey/ord/wiki/Comments
+  Comments-URI: https://github.com/casey/ord/discussions/126
   Status: Draft
   Type: Informational
   Created: 2022-02-02
@@ -16,7 +16,7 @@
 
 === Abstract ===
 
-This BIP defines a scheme for serially numbering all satoshis and tracking these serial numbers across transactions. These serial numbers, termed "ordinal numbers" in the language of this BIP, may serve as a useful primitive for a diverse range of applications, including stablecoins and other colored coins, NFTs, naming services, and identity and reputation systems.
+This document defines a scheme for numbering and tracking satoshis across transactions. These numbers, "ordinal numbers" in the language of this document, can be used as a useful primitive for a diverse range of applications, including NFTs, reputation systems, and Lightning Network-compatible stablecoins.
 
 === Copyright ===
 
@@ -24,31 +24,25 @@ This work is placed in the public domain.
 
 === Motivation ===
 
-TODO: The motivation is critical for BIPs that want to change the Bitcoin protocol. It should clearly explain why the existing protocol is inadequate to address the problem that the BIP solves.
+Bitcoin has no notion of a stable, public account or identity. Addresses are single-use, and wallet accounts, while permanent, are not publicly visible. Additionally, the use of addresses or public keys as identifiers precludes private key rotation.
 
-Facilitate the creation of applications that require stable public identities.
-
-Bitcoin lacks a native notion of an account or a user. Although addresses or public keys sort of work, since they're keys, they don't work because privacy is improved by treating individual addresses as ephemeral, and security requires that it be possible to rotate keys.
-
-This BIP defines a scheme for stable, publicly visible identifiers that can be used by any application that needs them. The scheme is intentionally simple, and as much as possible orthogonal to currently existing applications, so that it can interoperate with them.
-
-Users want NFTs. I want to increase the security, durability, and predictability of NFTs, for the benefit of those users, and bring that attention and capital to bitcoin.
+Many applications, some of which are detailed in this document, require stable, public identifiers to track identity or ownership. This proposal is motivated by the desire to provide such a system of identifiers.
 
 == Description ==
 
 === Design ===
 
-Every satoshi is numbered in the order in which it is mined. These numbers are termed "ordinal numbers", or "ordinals", since they are ordinal numbers in the mathematical sense. Additionally, the word "ordinal" is not used elsewhere in the Bitcoin protocol[0], so is nicely unambiguous.
+Every satoshi is serially numbered, starting at 0, in the order in which it is mined. These numbers are termed "ordinal numbers", or "ordinals", as they are ordinal numbers in the mathematical sense. The word "ordinal" is nicely unambiguous, as it is not used elsewhere in the Bitcoin protocol[0].
 
-The ordinal numbers of transaction inputs are transferred to outputs using first-in-first-out order.
+The ordinal numbers of transaction inputs are transferred to outputs in first-in-first-out order, according to the size and order of the transactions inputs and outputs.
 
-The ordinal numbers of satoshis paid as fees assigned to the outputs of coinbase transactions using the same algorithm, according to their transaction's position in the block.
+For the purposes of the assignment algorithm, the coinbase transaction is considered to have an implicit input equal in size to the subsidy, followed by an input for every fee-paying transaction in the block, in the order that those transactions appear in the block. The implicit subsidy input carries the block's newly created ordinals, and the implicit fee inputs carry the ordinals that were paid as fees in the block's transactions.
 
 Underpaying the subsidy does not change the ordinal numbers of satoshis mined in subsequent blocks. Ordinals depend only on how many satoshis could have been mined, not how many actually were.
 
-At any given time, the output in which an ordinal resides can be identified. The public key associated with this output could be used to sign messages, such as ownership challenges, related to the ordinals it contains. The specification of a standardized message format for such purpuses is deferred to a later BIP. In the meantime, applications are free to define their own message format and signature scheme for such purposes.
+At any given time, the output in which an ordinal resides can be identified. The public key associated with this output could be used to sign messages, such as ownership challenges, related to the ordinals it contains. The specification of a standardized message format for such purposes is deferred to a later BIP. In the meantime, applications are free to define their own message format and signature scheme for such purposes.
 
-Ordinal aware software should not mix outputs containing meaningful ordinals with outputs used for other purposes to avoid inadvertant loss of valuable ordinals, or privacy leaks allowing links between funds. For this reason, ordinal aware software using BIP-32 heirarchical deterministic key generation should use a key deriviation path specific to ordinals. The specification of this key derivation path is defferred to a later BIP.
+Ordinal aware software should not mix outputs containing meaningful ordinals with outputs used for other purposes to avoid inadvertent loss of valuable ordinals, or privacy leaks allowing links between funds. For this reason, ordinal aware software using BIP-32 hierarchical deterministic key generation should use a key derivation path specific to ordinals. The specification of this key derivation path is deferred to a later BIP.
 
 === Specification ===
 
@@ -92,46 +86,65 @@ def assign_ordinals(block):
 
 === Rationale ===
 
-- no on chain storage (however, if adopted, will presumably increase demand for transactions and utxos)
-- no changes to p2p protocol, block, or transaction representation
-- can be immediately adopted, or ignored
-- existing users are not impacted
-- all satoshis get ordinal numbers, so anonyity set is maximized
-- completely orthoginal to other features, such as number and contents of inputs and outputs, sequence numbers, lock times, witnesses and scripts. this allows ordinals to be used in combination with other applications, including, with small modifications, applications that were not designed with ordinals in mind, such as the lightning network.
-- at any given time, tied to a public key, but public key can be rotated with a transaction
-- extreme simplicity
-- Discuss using a system where an account is identified by a slot address.
-- Discuss using a system where accounts are just committed to by a tweak. Account isn't unique. Can only have one account per output.
-- worse is better
-- fair, all bitcoin holders get new accounts in proportion to their holdings
-- as granular as possible
+Ordinal numbers are designed to be orthogonal to other aspects of the Bitcoin protocol, and can thus be used in conjunction with other layer-one techniques and applications, even ones that were not designed with ordinal numbers in mind.
+
+Ordinal satoshis can be secured using current and future script types. They can be held by single-signature wallets, multi-signature wallets, time-locked, and height-locked in all the usual ways.
+
+This orthogonality also allows them to be used with layer-two applications. A stablecoin issuer could promise to allow redemption of specific ranges of ordinals for $1 United States dollar each. Lightning Network nodes could then be used to create a USD-denominated Lightning Network, using existing software with very modest modifications.
+
+By assigning ordinal numbers to all satoshis without need for an explicit creation step, the anonymity set of ordinal number users is maximized.
+
+Since an ordinal number has an output that contains it, and an output has a public key that controls it, the owner of an ordinal can respond to challenges by signing messages using the public key associated with the controlling UTXO. Additionally, an ordinal can change hands, or its private key can be rotated without a change of ownership, by transferring it to a new output.
+
+Ordinals require no changes to blocks, transactions, or network protocols, and can thus be immediately adopted, or ignored, without impacting existing users.
+
+Ordinals do not have an explicit on-chain footprint. However, a valid objection is that adoption of ordinals will increase demand for outputs, and thus increase the size of the UTXO set that full nodes must track. See the objections section below.
+
+The ordinal number scheme is extremely simple. The specification code above is 19 lines.
+
+Ordinals are fairly assigned. They are not premined, and are assigned proportionally to existing bitcoin holders.
+
+Ordinals are as granular as possible, as bitcoin is not capable of tracking ownership of sub-satoshi values.
 
 === Objections ===
 
-- privacy: opt in, can ignore it
-- fungibility: probably not a problem, scribbling on a dollar doesn't affect acceptance
-- utxo set size: this is not great.
-- congestion: need fee market
+*Privacy: Ordinal numbers being public, reduce user privacy.*
 
-Other objections, and better elaborations of existing objections, are most welcome.
+Ordinal numbers are required to be public, and reduce the privacy of only those users that decide to use them.
+
+*Fungibility: Ordinal numbers reduce the fungibility of Bitcoin, as ordinals received in a transaction may carry with them some public history.*
+
+As anyone can send anyone else any ordinals, any reasonable person will assume that a new owner of a particular ordinal cannot be understood to be the old owner, or have any particular relationship with the old owner.
+
+*Congestion: Adoption of ordinal numbers will increase the demand for transactions, and drive up fees.*
+
+Since Bitcoin requires the development of a robust fee market, this is a strong positive of the proposal.
+
+*UTXO set bloat: Adoption of ordinal numbers will increase the demand for entries in the UTXO set, and thus increase the size of the UTXO set, which all full nodes are required to track.*
+
+The dust limit, which makes outputs with small values difficult to create, should encourage users to create non-dust outputs, and to clean them up once they no longer have use for the ordinals that they contain.
 
 === Security ===
 
-Requires following chain to see ordinal pubkeys. This requires care compared to a system where pubkeys are static.
+The public key associated with an ordinal may change. This requires actively following the blockchain to keep up with key changes, and requires care compared to a system where public keys are static. However, a system with static public keys suffers from an inability for keys to be rotated or accounts to change hands.
 
-Requires ordinal-aware software to avoid destorying ordinals by sending them in a tx or burning them as fees. I actually think this is good. Standard wallets should not support ordinals, only wallets that are ordinal specific should handle valuable ordinals, which will make them not mix with general purpose funds.
+Ordinal-aware software must avoid destroying ordinals by unintentionally relinquishing them in a transaction, either to a non-controlled output or by using them as fees.
 
 === Privacy considerations ===
 
-TODO: Discuss that scheme is opt-in, so no privacy impact for non users. Discuss that NFTs and anything associated with accounts are off-chain, so although ordinals are traceable on-chain, their contents can be held in private. This scheme is specifically for things that are desired to be public.
+Ordinals are opt-in, and should not impact the privacy of existing users.
+
+Ordinals are themselves public, however, this is required by the fact that many of the applications that they are intended to enable require public identifiers.
+
+Ordinal aware software should never mix satoshis which might have some publicly visible data associated with their ordinals with satoshis intended for use in payments or savings, since this would associate that publicly visible data with the users otherwise pseudonymous wallet outputs.
 
 === Fungibility considerations ===
 
-TODO: Discuss that fungibility is not affected for non-users.
+Since any ordinal can be sent to any address at any time, ordinals that are transferred, even those with some public history, should be considered to be fungible with other satoshis with no such history.
 
 === Backward compatibility ===
 
-TODO: Say that it's compatible with everything and can just be ignored.
+Ordinal numbers require no change to the bitcoin network and are thus fully backwards compatible.
 
 == Applications ==
 
@@ -184,6 +197,8 @@ NFTs are off chain, so can't use on-chain mechanism for over issuance. However, 
 === Reputation Systems ===
 
 === On-chain Identity ===
+
+=== DAOs and Voting ===
 
 == Reference implementation ==
 
