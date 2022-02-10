@@ -199,7 +199,7 @@ A judicious NFT issuer will create a new private key to sign a new set of NFTs a
 
 === PKI ===
 
-Instead of individual public keys serving as roots of trust for PKI systems, individual ordinals could be used, allowing key rotation.
+Instead of individual public keys serving as roots of trust for PKI systems, individual ordinals could be used, allowing for key rotation.
 
 === Rare Sats ===
 
@@ -213,7 +213,7 @@ Ordinal numbers are unique, which might encourage collectors and speculators to 
 
 === Reputation Systems ===
 
-Ordinal numbers can serve as the basis for a persistent reputation system, for example of Lightning Network node operators. Unlike the current system of associating reputation with public keys, an ordinal-based reputation system allows for key rotation and reputation transfer.
+Ordinal numbers can serve as the basis for persistent reputation systems, for example one of Lightning Network node operators. Unlike the current system of associating reputation with public keys, an ordinal-based reputation system allows for key rotation and reputation transfer.
 
 === Stablecoins ===
 
