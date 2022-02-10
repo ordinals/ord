@@ -23,7 +23,7 @@ This work is placed in the public domain.
 
 === Motivation ===
 
-Bitcoin has no notion of a stable, public account or identity. Addresses are single-use, and wallet accounts, while permanent, are not publicly visible. Additionally, the use of addresses or public keys as identifiers precludes private key rotation.
+Bitcoin has no notion of a stable, public account or identity. Addresses are single-use, and wallet accounts, while permanent, are not publicly visible. Additionally, the use of addresses or public keys as identifiers precludes private key rotation or transfer of ownership.
 
 Many applications, some of which are detailed in this document, require stable, public identifiers to track identity or ownership. This proposal is motivated by the desire to provide such a system of identifiers.
 
