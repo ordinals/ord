@@ -147,6 +147,82 @@ Since any ordinal can be sent to any address at any time, ordinals that are tran
 
 Ordinal numbers are fully backwards compatible and require no changes to the bitcoin network.
 
+== Applications ==
+
+=== Accounts and Authentication ===
+
+Ordinal numbers can serve as the basis for account and authentication schemes. The account issuer associates a newly created account with an ordinal number in an output controlled by the account owner. The account owner can then log in or take actions related to the account by signing messages with the private key associated with the public key associated with the output that contains the account ordinal. This key is only known to the account owner, preventing unauthorized access.
+
+By transferring the ordinal to a new output, the owner can rotate their private key, or transfer the account to a new owner. Transferring an ordinal requires creating a transaction signed by the current outputs private key, preventing unauthorized transfer of accounts.
+
+=== Colored Coins ===
+
+Ordinals can be used as the basis for colored coin schemes. Unlike other colored coin schemes which use additional outputs or require manipulation of other parts of a transaction, ordinal-based colored schemes can take advantage of the full range of available script types, and other base-layer bitcoin features.
+
+=== Compatibility with Existing and Envisaged Applications ===
+
+Ordinals are compatible with many other current and planned applications.
+
+==== Lightning Network Compatibility ====
+
+Lightning Network channels can be created with inputs whose ordinals are colored coins, for example colored coins honored for redemption by a stablecoin issuer. These channels can be used to conduct instant, low-fee USD-denominated off-chain payments, and would require only modest changes to existing Lightning Network nodes.
+
+On channel close, fees would have to be paid by child-pays-for-parent, to avoid paying stablecoin ordinals as fees.
+
+==== State Chain Compatibility ====
+
+Ruben Somsen's [https://github.com/RubenSomsen/rubensomsen.github.io/blob/master/img/statechains.pdf State Chain proposal] facilitates off-chain transfer of whole outputs, which could contain ordinals with specific meanings, for example stable coins or NFTs, allowing off-chain transfer of such digital assets.
+
+==== Covenant Compatibility ====
+
+Since ordinals are borne by outputs, they can be encumbered by covenants. [https://github.com/bitcoin/bips/blob/master/bip-0119.mediawiki BIP-119] specifies OP_CTV, which contains outputs by pre-committing to a template that constrains how that output may be spent. This template commits to the number, value, and order of spending transaction outputs, which allows constraining how specific ordinals are spent in future transactions.
+
+=== The DNS ===
+
+The DNS root of trust could be defined not as a specific set of public keys, but as a specific set of ordinals, which would allow for easy key rotation and updates to the set.
+
+=== Name Services ===
+
+A scheme, not described in this document, could be used to assign names to ordinals based on their number. These names could then be used as account names.
+
+=== NFTs ===
+
+An artist can issue an NFT by signing a message containing a hash of a work of art that they have created, along with the number of a particular ordinal. The owner of that ordinal is the owner of that NFT, allowing ownership to be proven, and the NFT to be bought and sold, and otherwise change hands.
+
+Such NFTs could be used for art, in-game assets, membership systems, or any other kind of digital asset.
+
+The signed message, which may contain arbitrary attributes and metadata, is not sensitive and can be widely disseminated and replicated, to ensure it is not lost.
+
+Scarcity of such NFTs can be guaranteed by including in the NFT message an encoded promise of the size of the issuance. If this promise is violated by overissuance, the set of issued NFTs serves as an easy-to-verify fraud proof that the issuance limit was exceeded.
+
+A judicious NFT issuer will create a new private key to sign a new set of NFTs and destroy it afterwards, to ensure the limited nature of the NFT set. Multi-party-computation can be used to provide additional assurances that overissuance cannot occur.
+
+=== PKI ===
+
+Instead of individual public keys serving as roots of trust for PKI systems, individual ordinals could be used, allowing key rotation.
+
+=== Rare Sats ===
+
+Ordinal numbers are unique, which might encourage collectors and speculators to collect particular ordinals. Examples of potentially collectable ordinals include:
+
+* The first ordinal in a block, difficulty adjustment period, or halving epoch.
+* Ordinals consisting only of a single repeating digit.
+* Ordinals with a large number of 8s, commonly held to be a lucky digit.
+* Low ordinals mined early in bitcoin's history.
+* Ordinals that were part of unusual blocks or transactions.
+
+=== Reputation Systems ===
+
+Ordinal numbers can serve as the basis for a persistent reputation system, for example of Lightning Network node operators. Unlike the current system of associating reputation with public keys, an ordinal-based reputation system allows for key rotation and reputation transfer.
+
+=== Stablecoins ===
+
+A stablecoin issuer could promise to allow redemption of a range of ordinals for one United States dollar each, minus the price of one satoshi times the number of satoshis so redeemed. Such ordinals could be transacted on-chain and on a slightly modified Lightning Network, as well as other layers.
+
+=== Voting and DAOs ===
+
+A DAO or other organization may decide to allocate voting rights proportionally to ownership of a predetermined range of ordinals. Voting rights can thus be made transferable, and voting may be conducted by signing messages using public keys associated with the outputs holding vote-bearing ordinals.
+
 == Reference implementation ==
 
 This document, along with an implementation of an ordinal index that tracks the position of ordinals in the main chain, is available [https://github.com/casey/ord here].
@@ -162,4 +238,4 @@ For aliases, an implementation of short on-chain identifiers, see BIP 15.
 TODO: Everyone who helped. All remaining errors are my own.
 
 [0] With the exception of being word #1405 in the BIP-39 Portuguese word list. Me perdoe!
-[1] 7303780 is the decimal representation of the ascii string 'ord'.
+[1] 7303780 is the decimal representation of the ASCII string 'ord'.
