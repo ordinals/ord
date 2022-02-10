@@ -147,18 +147,6 @@ Since any ordinal can be sent to any address at any time, ordinals that are tran
 
 Ordinal numbers are fully backwards compatible and require no changes to the bitcoin network.
 
-== Applications ==
-
-=== Accounts and Authentication ===
-
-Ordinal numbers can serve as the basis for account and authentication schemes. The account issuer associates a newly created account with an ordinal number in an output controlled by the account owner. The account owner can then log in and take actions related to the account by signing messages with the private key associated with the public key associated with the output that contains the account ordinal. This key is only known to the account owner, preventing unauthorized access.
-
-By transferring the ordinal to a new output, the owner can rotate their private key, or transfer the account to a new owner. Transferring an ordinal requires creating a transaction signed by the current outputs private key, preventing unauthorized transfer of accounts.
-
-=== Colored Coins ===
-
-Ordinals can be used as the basis for colored coin schemes. Unlike other colored coin schemes which use additional outputs or require manipulation of other parts of a transaction, ordinal-based colored coin schemes can take advantage of the full range of available script types, and other base-layer bitcoin features.
-
 === Compatibility with Existing and Envisaged Applications ===
 
 Ordinals are compatible with many current and planned applications.
@@ -180,6 +168,18 @@ On channel close, fees would have to be paid by child-pays-for-parent, to avoid 
 ==== State Chain Compatibility ====
 
 [https://github.com/RubenSomsen/rubensomsen.github.io/blob/master/img/statechains.pdf The state chain proposal] facilitates off-chain transfer of whole outputs, which could contain ordinals with specific meanings, for example stable coins or NFTs, allowing off-chain transfer of such digital assets.
+
+== Applications ==
+
+=== Accounts and Authentication ===
+
+Ordinal numbers can serve as the basis for account and authentication schemes. The account issuer associates a newly created account with an ordinal number in an output controlled by the account owner. The account owner can then log in and take actions related to the account by signing messages with the private key associated with the public key associated with the output that contains the account ordinal. This key is only known to the account owner, preventing unauthorized access.
+
+By transferring the ordinal to a new output, the owner can rotate their private key, or transfer the account to a new owner. Transferring an ordinal requires creating a transaction signed by the current outputs private key, preventing unauthorized transfer of accounts.
+
+=== Colored Coins ===
+
+Ordinals can be used as the basis for colored coin schemes. Unlike other colored coin schemes which use additional outputs or require manipulation of other parts of a transaction, ordinal-based colored coin schemes can take advantage of the full range of available script types, and other base-layer bitcoin features.
 
 === The DNS ===
 
