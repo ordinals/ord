@@ -183,7 +183,7 @@ The DNS root of trust could be defined not as a specific set of public keys, but
 
 === Name Services ===
 
-A scheme, not described in this document, could be used to assign names to ordinals based on their number. These names could then be used as account names. Many such names would be gibberish, but many would be human readable. A scheme which enumerated strings of the ASCII characters `a` through `z` would assign as names all 10-character and fewer permutations of these characters.
+A scheme, not described in this document, could be used to assign names to ordinals based on their number. These names could then be used as account names. Many such names would be gibberish, but many would be human readable. A scheme which enumerated strings of the ASCII characters `a` through `z` would assign as names all length-10 and shorter permutations of these characters.
 
 === NFTs ===
 
