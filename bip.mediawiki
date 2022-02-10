@@ -193,7 +193,7 @@ Such NFTs could be used for art, in-game assets, membership systems, or any othe
 
 The signed message, which may contain arbitrary attributes and metadata, is not sensitive and can be widely disseminated and replicated, to ensure it is not lost.
 
-Scarcity of such NFTs can be guaranteed by including in the NFT message an encoded promise of the size of the issuance. If this promise is violated by overissuance, the set of issued NFTs serves as an easy-to-verify fraud proof that the issuance limit was exceeded.
+Scarcity of such NFTs can be guaranteed by including in the NFT messages the total number of NFTs to be issued. If this promise is violated, the set of issued NFTs serves as an easy-to-verify fraud proof that the issuance limit was exceeded.
 
 A judicious NFT issuer will create a new private key to sign a new set of NFTs and destroy it afterwards, to ensure the limited nature of the NFT set. Multi-party-computation can be used to provide additional assurances that overissuance cannot occur.
 
