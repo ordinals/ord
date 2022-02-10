@@ -280,6 +280,7 @@ dependencies = [
  "integer-sqrt",
  "log",
  "redb",
+ "regex",
  "structopt",
  "tempfile",
  "unindent",

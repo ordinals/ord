@@ -8,8 +8,8 @@ pub(crate) struct List {
 }
 
 impl List {
-  pub(crate) fn run(self) -> Result<()> {
-    let index = Index::new(self.blocksdir.as_deref())?;
+  pub(crate) fn run(self, index_size: Option<usize>) -> Result<()> {
+    let index = Index::new(self.blocksdir.as_deref(), index_size)?;
     let ranges = index.list(self.outpoint)?;
 
     for (start, end) in ranges {

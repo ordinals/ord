@@ -9,7 +9,7 @@ mod supply;
 mod traits;
 
 #[derive(StructOpt)]
-pub(crate) enum Command {
+pub(crate) enum Subcommand {
   Epochs,
   Find(find::Find),
   Name(name::Name),
@@ -19,13 +19,13 @@ pub(crate) enum Command {
   Traits(traits::Traits),
 }
 
-impl Command {
-  pub(crate) fn run(self) -> Result<()> {
+impl Subcommand {
+  pub(crate) fn run(self, index_size: Option<usize>) -> Result<()> {
     match self {
       Self::Epochs => epochs::run(),
-      Self::Find(find) => find.run(),
+      Self::Find(find) => find.run(index_size),
       Self::Name(name) => name.run(),
-      Self::List(list) => list.run(),
+      Self::List(list) => list.run(index_size),
       Self::Range(range) => range.run(),
       Self::Supply => supply::run(),
       Self::Traits(traits) => traits.run(),
