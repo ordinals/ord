@@ -39,15 +39,17 @@ For the purposes of the assignment algorithm, the coinbase transaction is consid
 
 Underpaying the subsidy does not change the ordinal numbers of satoshis mined in subsequent blocks. Ordinals depend only on how many satoshis could have been mined, not how many actually were.
 
-At any given time, the output in which an ordinal resides can be identified. The public key associated with this output can be used to sign messages, such as ownership challenges, related to the ordinals it contains. The specification of a standardized message format for such purposes is deferred to a later BIP. In the meantime, applications are free to define their own message format and signature scheme for such purposes.
+At any given time, the output in which an ordinal resides can be identified. The public key associated with this output can be used to sign messages, such as ownership challenges, concering to the ordinals it contains. The specification of a standardized message format for such purposes is deferred to a later BIP.
 
-Ordinal aware software should not mix outputs containing meaningful ordinals with outputs used for other purposes to avoid inadvertent loss of valuable ordinals, or privacy leaks allowing links between funds. For this reason, ordinal aware software using BIP-32 hierarchical deterministic key generation should use a key derivation path specific to ordinals. The specification of this key derivation path is deferred to a later BIP.
+Ordinal aware software should not mix outputs containing meaningful ordinals with outputs used for other purposes to avoid inadvertent loss of valuable ordinals, or privacy leaks allowing links between funds. For this reason, ordinal aware software using BIP-32 hierarchical deterministic key generation should use a key derivation path specific to ordinals.
+
+The suggested key derivation path is `m/44'/7303780'/0'/0`. This suggested derivation path has not been standardized and may change in the future[1].
 
 === Specification ===
 
 Ordinals are created and assigned with the following algorithm:
 
-<pre><code>
+<pre>
 # subsidy of block at given height
 def subsidy(height):
   return 50 * 100_000_000 >> int(height / 210_000)
@@ -79,7 +81,7 @@ def assign_ordinals(block):
   for output in block.transaction[0].outputs:
     output.ordinals = coinbase_ordinals[:output.value]
     del coinbase_ordinals[:output.value]
-</code></pre>
+</pre>
 
 == Discussion ==
 
@@ -160,3 +162,4 @@ For aliases, an implementation of short on-chain identifiers, see BIP 15.
 TODO: Everyone who helped. All remaining errors are my own.
 
 [0] With the exception of being word #1405 in the BIP-39 Portuguese word list. Me perdoe!
+[1] 7303780 is the decimal representation of the ascii string 'ord'.
