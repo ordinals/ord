@@ -151,17 +151,17 @@ Ordinal numbers are fully backwards compatible and require no changes to the bit
 
 === Accounts and Authentication ===
 
-Ordinal numbers can serve as the basis for account and authentication schemes. The account issuer associates a newly created account with an ordinal number in an output controlled by the account owner. The account owner can then log in or take actions related to the account by signing messages with the private key associated with the public key associated with the output that contains the account ordinal. This key is only known to the account owner, preventing unauthorized access.
+Ordinal numbers can serve as the basis for account and authentication schemes. The account issuer associates a newly created account with an ordinal number in an output controlled by the account owner. The account owner can then log in and take actions related to the account by signing messages with the private key associated with the public key associated with the output that contains the account ordinal. This key is only known to the account owner, preventing unauthorized access.
 
 By transferring the ordinal to a new output, the owner can rotate their private key, or transfer the account to a new owner. Transferring an ordinal requires creating a transaction signed by the current outputs private key, preventing unauthorized transfer of accounts.
 
 === Colored Coins ===
 
-Ordinals can be used as the basis for colored coin schemes. Unlike other colored coin schemes which use additional outputs or require manipulation of other parts of a transaction, ordinal-based colored schemes can take advantage of the full range of available script types, and other base-layer bitcoin features.
+Ordinals can be used as the basis for colored coin schemes. Unlike other colored coin schemes which use additional outputs or require manipulation of other parts of a transaction, ordinal-based colored coin schemes can take advantage of the full range of available script types, and other base-layer bitcoin features.
 
 === Compatibility with Existing and Envisaged Applications ===
 
-Ordinals are compatible with many other current and planned applications.
+Ordinals are compatible with many current and planned applications.
 
 ==== Lightning Network Compatibility ====
 
@@ -175,7 +175,7 @@ Ruben Somsen's [https://github.com/RubenSomsen/rubensomsen.github.io/blob/master
 
 ==== Covenant Compatibility ====
 
-Since ordinals are borne by outputs, they can be encumbered by covenants. [https://github.com/bitcoin/bips/blob/master/bip-0119.mediawiki BIP-119] specifies OP_CTV, which contains outputs by pre-committing to a template that constrains how that output may be spent. This template commits to the number, value, and order of spending transaction outputs, which allows constraining how specific ordinals are spent in future transactions.
+Since ordinals are borne by outputs, they can be encumbered by covenants. [https://github.com/bitcoin/bips/blob/master/bip-0119.mediawiki BIP-119] specifies OP_CTV, which constraints outputs by pre-committing to a spending transaction template. This template commits to the number, value, and order of spending transaction outputs, which allows constraining how specific ordinals are spent in future transactions.
 
 === The DNS ===
 
@@ -183,7 +183,7 @@ The DNS root of trust could be defined not as a specific set of public keys, but
 
 === Name Services ===
 
-A scheme, not described in this document, could be used to assign names to ordinals based on their number. These names could then be used as account names.
+A scheme, not described in this document, could be used to assign names to ordinals based on their number. These names could then be used as account names. Many such names would be gibberish, but many would be human readable. A scheme which enumerated strings of the ASCII characters `a` through `z` would assign as names all 10-character and fewer permutations of these characters.
 
 === NFTs ===
 
