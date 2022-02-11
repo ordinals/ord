@@ -161,6 +161,10 @@ Lightning Network channels can be created with inputs whose ordinals are colored
 
 On channel close, fees would have to be paid by child-pays-for-parent, to avoid paying stablecoin ordinals as fees.
 
+==== Opendimes and Casascius coins ====
+
+Physical transfer of ordinals can be facilitated by loading them onto bitcoin bearer artifacts, such as Opendimes and Casascius coins.
+
 ==== RGB ====
 
 [https://rgb-org.github.io/ RGB] is a proposed scheme for using sequences of single-use seals to define state transitions of off-chain, client-side-validated state machines, for example smart contract platforms. Such chains of single-use seals could be addressed by an ordinal contained in the output that starts the chain of single-use seals.
