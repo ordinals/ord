@@ -43,3 +43,17 @@ fn out_of_order_blockfiles() -> Result {
     .reverse_blockfiles()
     .run()
 }
+
+#[test]
+fn duplicate_genesis_blocks() -> Result {
+  Test::new()?
+    .command("index --blocksdir blocks")
+    .block()
+    .block_with_coinbase(CoinbaseOptions {
+      default_prev_blockhash: true,
+      ..Default::default()
+    })
+    .expected_status(1)
+    .expected_stderr("error: Duplicate genesis block found\n")
+    .run()
+}

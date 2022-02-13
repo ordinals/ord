@@ -37,6 +37,7 @@ struct Output {
 }
 
 struct CoinbaseOptions {
+  default_prev_blockhash: bool,
   include_coinbase_transaction: bool,
   include_height: bool,
   subsidy: u64,
@@ -45,6 +46,7 @@ struct CoinbaseOptions {
 impl Default for CoinbaseOptions {
   fn default() -> Self {
     Self {
+      default_prev_blockhash: false,
       include_coinbase_transaction: true,
       include_height: true,
       subsidy: 50 * COIN_VALUE,
@@ -184,11 +186,15 @@ impl Test {
     self.blocks.push(Block {
       header: BlockHeader {
         version: 0,
-        prev_blockhash: self
-          .blocks
-          .last()
-          .map(Block::block_hash)
-          .unwrap_or_default(),
+        prev_blockhash: if coinbase.default_prev_blockhash {
+          Default::default()
+        } else {
+          self
+            .blocks
+            .last()
+            .map(Block::block_hash)
+            .unwrap_or_default()
+        },
         merkle_root: Default::default(),
         time: 0,
         bits: 0,
