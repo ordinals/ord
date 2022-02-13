@@ -15,17 +15,18 @@ executable-path = "1.0.0"
 integer-cbrt = "0.1.2"
 integer-sqrt = "0.1.5"
 log = "0.4.14"
-redb = { git = "https://github.com/cberner/redb.git", rev = "bf905c870114f2710fbd36aefcd07b35cccfe1f7" }
+redb = "0.0.4"
 structopt = "0.3.25"
 tempfile = "3.2.0"
 unindent = "0.1.7"
 
+[dev-dependencies]
+criterion = "0.3.5"
+regex = "1.5.4"
+
 [[test]]
 name = "integration"
 path = "tests/integration.rs"
-
-[dev-dependencies]
-criterion = "0.3.5"
 
 [[bench]]
 name = "my_benchmark"

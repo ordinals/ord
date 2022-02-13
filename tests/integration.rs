@@ -6,6 +6,7 @@ use {
     {Block, BlockHeader, Network, OutPoint, Transaction, TxIn, TxOut},
   },
   executable_path::executable_path,
+  regex::Regex,
   std::{
     collections::BTreeSet,
     error::Error,
@@ -21,6 +22,7 @@ use {
 
 mod epochs;
 mod find;
+mod index;
 mod list;
 mod name;
 mod range;
@@ -28,6 +30,33 @@ mod supply;
 mod traits;
 
 type Result<T = ()> = std::result::Result<T, Box<dyn Error>>;
+
+struct Output {
+  stdout: String,
+  tempdir: TempDir,
+}
+
+struct CoinbaseOptions {
+  include_coinbase_transaction: bool,
+  include_height: bool,
+  subsidy: u64,
+}
+
+impl Default for CoinbaseOptions {
+  fn default() -> Self {
+    Self {
+      include_coinbase_transaction: true,
+      include_height: true,
+      subsidy: 50 * COIN_VALUE,
+    }
+  }
+}
+
+struct TransactionOptions<'a> {
+  slots: &'a [(usize, usize, usize)],
+  output_count: usize,
+  fee: u64,
+}
 
 struct Test {
   args: Vec<String>,
@@ -38,6 +67,7 @@ struct Test {
   expected_stdout: String,
   ignore_stdout: bool,
   tempdir: TempDir,
+  reverse_blockfiles: bool,
 }
 
 impl Test {
@@ -51,6 +81,7 @@ impl Test {
       expected_stdout: String::new(),
       ignore_stdout: false,
       tempdir: TempDir::new()?,
+      reverse_blockfiles: false,
     })
   }
 
@@ -100,12 +131,19 @@ impl Test {
     }
   }
 
-  fn run(self) -> Result {
-    self.run_with_stdout().map(|_| ())
+  fn reverse_blockfiles(self) -> Self {
+    Self {
+      reverse_blockfiles: true,
+      ..self
+    }
   }
 
-  fn run_with_stdout(self) -> Result<String> {
-    self.populate_blocksdir()?;
+  fn run(self) -> Result {
+    self.output().map(|_| ())
+  }
+
+  fn output(self) -> Result<Output> {
+    self.create_blockfiles()?;
 
     let output = Command::new(executable_path("ord"))
       .current_dir(&self.tempdir)
@@ -118,7 +156,13 @@ impl Test {
       panic!("Test failed: {}\n{}", output.status, stderr);
     }
 
-    assert_eq!(stderr, self.expected_stderr);
+    let re = Regex::new(r"(?m)^\[.*\n")?;
+
+    for m in re.find_iter(stderr) {
+      print!("{}", m.as_str())
+    }
+
+    assert_eq!(re.replace_all(stderr, ""), self.expected_stderr);
 
     let stdout = str::from_utf8(&output.stdout)?;
 
@@ -126,14 +170,17 @@ impl Test {
       assert_eq!(stdout, self.expected_stdout);
     }
 
-    Ok(stdout.to_owned())
+    Ok(Output {
+      stdout: stdout.to_string(),
+      tempdir: self.tempdir,
+    })
   }
 
   fn block(self) -> Self {
-    self.block_with_coinbase(true, true)
+    self.block_with_coinbase(CoinbaseOptions::default())
   }
 
-  fn block_with_coinbase(mut self, coinbase: bool, include_height: bool) -> Self {
+  fn block_with_coinbase(mut self, coinbase: CoinbaseOptions) -> Self {
     self.blocks.push(Block {
       header: BlockHeader {
         version: 0,
@@ -147,13 +194,13 @@ impl Test {
         bits: 0,
         nonce: 0,
       },
-      txdata: if coinbase {
+      txdata: if coinbase.include_coinbase_transaction {
         vec![Transaction {
           version: 0,
           lock_time: 0,
           input: vec![TxIn {
             previous_output: OutPoint::null(),
-            script_sig: if include_height {
+            script_sig: if coinbase.include_height {
               script::Builder::new()
                 .push_scriptint(self.blocks.len().try_into().unwrap())
                 .into_script()
@@ -164,7 +211,7 @@ impl Test {
             witness: vec![],
           }],
           output: vec![TxOut {
-            value: 50 * COIN_VALUE,
+            value: coinbase.subsidy,
             script_pubkey: script::Builder::new().into_script(),
           }],
         }]
@@ -175,21 +222,25 @@ impl Test {
     self
   }
 
-  fn transaction(mut self, slots: &[(usize, usize, u32)], output_count: u64) -> Self {
-    let value = slots
+  fn transaction(mut self, options: TransactionOptions) -> Self {
+    let input_value = options
+      .slots
       .iter()
-      .map(|slot| self.blocks[slot.0].txdata[slot.1].output[slot.2 as usize].value)
+      .map(|slot| self.blocks[slot.0].txdata[slot.1].output[slot.2].value)
       .sum::<u64>();
+
+    let output_value = input_value - options.fee;
 
     let tx = Transaction {
       version: 0,
       lock_time: 0,
-      input: slots
+      input: options
+        .slots
         .iter()
         .map(|slot| TxIn {
           previous_output: OutPoint {
             txid: self.blocks[slot.0].txdata[slot.1].txid(),
-            vout: slot.2,
+            vout: slot.2 as u32,
           },
           script_sig: script::Builder::new().into_script(),
           sequence: 0,
@@ -198,14 +249,25 @@ impl Test {
         .collect(),
       output: vec![
         TxOut {
-          value: value / output_count,
+          value: output_value / options.output_count as u64,
           script_pubkey: script::Builder::new().into_script(),
         };
-        output_count.try_into().unwrap()
+        options.output_count
       ],
     };
 
-    self.blocks.last_mut().unwrap().txdata.push(tx);
+    let block = self.blocks.last_mut().unwrap();
+
+    block
+      .txdata
+      .first_mut()
+      .unwrap()
+      .output
+      .first_mut()
+      .unwrap()
+      .value += options.fee;
+
+    block.txdata.push(tx);
 
     self
   }
@@ -215,7 +277,7 @@ impl Test {
     self
   }
 
-  fn populate_blocksdir(&self) -> io::Result<()> {
+  fn create_blockfiles(&self) -> io::Result<()> {
     let blocksdir = self.tempdir.path().join("blocks");
     fs::create_dir(&blocksdir)?;
 
@@ -230,7 +292,16 @@ impl Test {
     {
       let mut blockfile = File::create(blocksdir.join(format!("blk{:05}.dat", i)))?;
 
-      for (bi, block) in self.blocks[start..end].iter().enumerate() {
+      let blocks = self.blocks[start..end].iter().enumerate();
+
+      let blocks: Box<dyn std::iter::Iterator<Item = (usize, &Block)>> = if self.reverse_blockfiles
+      {
+        Box::new(blocks.rev())
+      } else {
+        Box::new(blocks)
+      };
+
+      for (bi, block) in blocks {
         let mut encoded = Vec::new();
         block.consensus_encode(&mut encoded)?;
         blockfile.write_all(&Network::Bitcoin.magic().to_le_bytes())?;

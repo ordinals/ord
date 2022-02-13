@@ -1,5 +1,8 @@
 use {
-  crate::{epoch::Epoch, height::Height, index::Index, ordinal::Ordinal, sat_point::SatPoint},
+  crate::{
+    arguments::Arguments, epoch::Epoch, height::Height, index::Index, ordinal::Ordinal,
+    sat_point::SatPoint, subcommand::Subcommand,
+  },
   bitcoin::{
     blockdata::constants::COIN_VALUE,
     consensus::{Decodable, Encodable},
@@ -26,19 +29,20 @@ use {
   structopt::StructOpt,
 };
 
-mod command;
+mod arguments;
 mod epoch;
 mod height;
 mod index;
 mod ordinal;
 mod sat_point;
+mod subcommand;
 
 type Result<T = (), E = Box<dyn std::error::Error>> = std::result::Result<T, E>;
 
 fn main() {
   env_logger::init();
 
-  if let Err(error) = command::Command::from_args().run() {
+  if let Err(error) = Arguments::from_args().run() {
     eprintln!("error: {}", error);
     process::exit(1);
   }
