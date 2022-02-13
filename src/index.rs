@@ -29,8 +29,18 @@ impl Index {
         .join(".bitcoin/blocks")
     };
 
+    let result = unsafe { Database::open("index.redb") };
+
+    let database = match result {
+      Ok(database) => database,
+      Err(redb::Error::DoesNotExist(_)) => unsafe {
+        Database::create("index.redb", index_size.unwrap_or(1 << 20))?
+      },
+      Err(error) => return Err(error.into()),
+    };
+
     let index = Self {
-      database: unsafe { Database::create("index.redb", index_size.unwrap_or(1 << 20))? },
+      database,
       blocksdir,
     };
 
