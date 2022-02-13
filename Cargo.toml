@@ -29,5 +29,5 @@ name = "integration"
 path = "tests/integration.rs"
 
 [[bench]]
-name = "my_benchmark"
+name = "index"
 harness = false

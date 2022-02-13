@@ -20,3 +20,6 @@ bench:
 
 watch +args='ltest':
   cargo watch --clear --exec '{{args}}'
+
+install-dev-deps:
+	cargo install cargo-criterion
