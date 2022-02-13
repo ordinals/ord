@@ -11,7 +11,7 @@ use {
 
 type Result<T = (), E = Box<dyn std::error::Error>> = std::result::Result<T, E>;
 
-fn bench_function(blocksdir: &Path) -> Result {
+fn index(blocksdir: &Path) -> Result {
   let tempdir = TempDir::new()?;
   let binary = env::current_dir()?.join("target/release/ord");
   assert!(Command::new(binary)
@@ -76,9 +76,9 @@ fn main() -> Result {
 
   eprintln!("Blockfile is {} bytes", blockfile.stream_position()?);
 
-  let mut group = criterion.benchmark_group("flat-sampling-example");
+  let mut group = criterion.benchmark_group("index");
   group.sampling_mode(SamplingMode::Flat);
-  group.bench_function("bench", |b| b.iter(|| bench_function(&blocksdir)));
+  group.bench_function("1000 blocks", |b| b.iter(|| index(&blocksdir)));
   group.finish();
 
   criterion.final_summary();
