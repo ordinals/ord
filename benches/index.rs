@@ -24,7 +24,11 @@ fn bench_function(blocksdir: &Path) -> Result {
   Ok(())
 }
 
-fn bench(c: &mut Criterion) -> Result {
+fn main() -> Result {
+  let mut criterion = Criterion::default()
+    .configure_from_args()
+    .measurement_time(Duration::from_secs(60));
+
   let tempdir = TempDir::new()?;
   let blocksdir = tempdir.path().join("blocks");
 
@@ -72,19 +76,12 @@ fn bench(c: &mut Criterion) -> Result {
 
   eprintln!("Blockfile is {} bytes", blockfile.stream_position()?);
 
-  let mut group = c.benchmark_group("flat-sampling-example");
+  let mut group = criterion.benchmark_group("flat-sampling-example");
   group.sampling_mode(SamplingMode::Flat);
   group.bench_function("bench", |b| b.iter(|| bench_function(&blocksdir)));
   group.finish();
 
-  Ok(())
-}
-
-fn main() -> Result {
-  let mut criterion = Criterion::default()
-    .configure_from_args()
-    .measurement_time(Duration::from_secs(10));
-  bench(&mut criterion)?;
   criterion.final_summary();
+
   Ok(())
 }
