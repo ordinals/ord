@@ -15,5 +15,11 @@ fmt:
 clippy:
   cargo clippy
 
+bench:
+  cargo criterion
+
 watch +args='ltest':
   cargo watch --clear --exec '{{args}}'
+
+install-dev-deps:
+  cargo install cargo-criterion
