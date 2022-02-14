@@ -219,10 +219,10 @@ impl Index {
 
         let bytes = &blocks[start..end];
 
-        let block = Block::consensus_decode(bytes)?;
-        let hash = block.block_hash();
+        let header = BlockHeader::consensus_decode(&bytes[0..80])?;
+        let hash = header.block_hash();
 
-        if block.header.prev_blockhash == Default::default() {
+        if header.prev_blockhash == Default::default() {
           if genesis {
             return Err("Duplicate genesis block found".into());
           }
@@ -236,7 +236,7 @@ impl Index {
           genesis = true;
         }
 
-        hash_to_children.insert(&block.header.prev_blockhash, &block.block_hash())?;
+        hash_to_children.insert(&header.prev_blockhash, &hash)?;
 
         hash_to_block.insert(&hash, bytes)?;
 
