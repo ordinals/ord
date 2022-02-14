@@ -6,7 +6,7 @@ use {
   bitcoin::{
     blockdata::constants::COIN_VALUE,
     consensus::{Decodable, Encodable},
-    Block, Network, OutPoint, Transaction,
+    Block, BlockHeader, Network, OutPoint, Transaction,
   },
   derive_more::{Display, FromStr},
   integer_cbrt::IntegerCubeRoot,
