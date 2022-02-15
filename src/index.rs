@@ -6,7 +6,7 @@ pub(crate) struct Index {
 }
 
 impl Index {
-  const HASH_TO_BLOCK: &'static str = "HASH_TO_BLOCK";
+  const HASH_TO_LOCATION: &'static str = "HASH_TO_LOCATION";
   const HASH_TO_CHILDREN: &'static str = "HASH_TO_CHILDREN";
   const HASH_TO_HEIGHT: &'static str = "HASH_TO_HEIGHT";
   const HEIGHT_TO_HASH: &'static str = "HEIGHT_TO_HASH";
@@ -160,42 +160,26 @@ impl Index {
     Ok(())
   }
 
-  fn index_blockfiles(&self) -> Result {
-    let mut blockfiles = 0;
-    loop {
-      match File::open(self.blocksdir.join(format!("blk{:05}.dat", blockfiles))) {
-        Ok(_) => {}
-        Err(err) => {
-          if err.kind() == io::ErrorKind::NotFound {
-            break;
-          } else {
-            return Err(err.into());
-          }
-        }
-      }
-      blockfiles += 1;
-    }
+  fn blockfiles(&self) -> impl Iterator<Item = PathBuf> {
+    let blocksdir = self.blocksdir.clone();
+    (0..)
+      .map(move |i| blocksdir.join(format!("blk{:05}.dat", i)))
+      .take_while(|path| path.is_file())
+  }
 
+  fn index_blockfiles(&self) -> Result {
+    let blockfiles = self.blockfiles().count();
     log::info!("Indexing {} blockfiles…", blockfiles);
 
-    for i in 0.. {
-      let blocks = match fs::read(self.blocksdir.join(format!("blk{:05}.dat", i))) {
-        Ok(blocks) => blocks,
-        Err(err) => {
-          if err.kind() == io::ErrorKind::NotFound {
-            break;
-          } else {
-            return Err(err.into());
-          }
-        }
-      };
+    for (i, path) in self.blockfiles().enumerate() {
+      let blocks = unsafe { Mmap::map(&File::open(path)?)? };
 
       let tx = self.database.begin_write()?;
 
       let mut hash_to_children: MultimapTable<[u8], [u8]> =
         tx.open_multimap_table(Self::HASH_TO_CHILDREN)?;
 
-      let mut hash_to_block: Table<[u8], [u8]> = tx.open_table(Self::HASH_TO_BLOCK)?;
+      let mut hash_to_location: Table<[u8], u64> = tx.open_table(Self::HASH_TO_LOCATION)?;
 
       let mut offset = 0;
 
@@ -209,6 +193,7 @@ impl Index {
         }
 
         let magic = &blocks[offset..offset + 4];
+
         if magic != Network::Bitcoin.magic().to_le_bytes() {
           return Err(format!("Unknown magic bytes: {:?}", magic).into());
         }
@@ -238,7 +223,7 @@ impl Index {
 
         hash_to_children.insert(&header.prev_blockhash, &hash)?;
 
-        hash_to_block.insert(&hash, bytes)?;
+        hash_to_location.insert(&hash, &((i as u64) << 32 | offset as u64))?;
 
         offset = end;
 
@@ -299,14 +284,31 @@ impl Index {
       Some(guard) => {
         let hash = guard.to_value();
 
-        let hash_to_block: ReadOnlyTable<[u8], [u8]> = tx.open_table(Self::HASH_TO_BLOCK)?;
+        let hash_to_location: ReadOnlyTable<[u8], u64> = tx.open_table(Self::HASH_TO_LOCATION)?;
 
-        Ok(Some(Block::consensus_decode(
-          hash_to_block
-            .get(hash)?
-            .ok_or("Could not find block in index")?
-            .to_value(),
-        )?))
+        let location = hash_to_location
+          .get(hash)?
+          .ok_or("Could not find block location in index")?
+          .to_value();
+
+        let path = self.blocksdir.join(format!("blk{:05}.dat", location >> 32));
+
+        let offset = (location & 0xFFFFFFFF) as usize;
+
+        let blocks = unsafe { Mmap::map(&File::open(path)?)? };
+
+        let magic = &blocks[offset..offset + 4];
+        if magic != Network::Bitcoin.magic().to_le_bytes() {
+          return Err(format!("Unknown magic bytes: {:?}", magic).into());
+        }
+
+        let len = u32::from_le_bytes(blocks[offset + 4..offset + 8].try_into()?) as usize;
+        let start = offset + 8;
+        let end = start + len;
+
+        let bytes = &blocks[start..end];
+
+        Ok(Some(Block::consensus_decode(bytes)?))
       }
     }
   }
