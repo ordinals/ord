@@ -235,7 +235,7 @@ impl Index {
         count += 1;
       }
 
-      log::info!("{}/{}: Processed {} blocks…", i + 1, blockfiles + 1, count);
+      log::info!("{}/{}: Processed {} blocks…", i + 1, blockfiles, count);
 
       tx.commit()?;
     }
