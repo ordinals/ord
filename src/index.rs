@@ -6,9 +6,9 @@ pub(crate) struct Index {
 }
 
 impl Index {
-  const HASH_TO_LOCATION: &'static str = "HASH_TO_LOCATION";
   const HASH_TO_CHILDREN: &'static str = "HASH_TO_CHILDREN";
   const HASH_TO_HEIGHT: &'static str = "HASH_TO_HEIGHT";
+  const HASH_TO_LOCATION: &'static str = "HASH_TO_LOCATION";
   const HEIGHT_TO_HASH: &'static str = "HEIGHT_TO_HASH";
   const OUTPOINT_TO_ORDINAL_RANGES: &'static str = "OUTPOINT_TO_ORDINAL_RANGES";
 
@@ -44,6 +44,8 @@ impl Index {
   }
 
   fn index_ranges(&self) -> Result {
+    log::info!("Indexing ranges…");
+
     let mut height = 0;
     while let Some(block) = self.block(height)? {
       let wtx = self.database.begin_write()?;
@@ -160,18 +162,25 @@ impl Index {
     Ok(())
   }
 
-  fn blockfiles(&self) -> impl Iterator<Item = PathBuf> {
-    let blocksdir = self.blocksdir.clone();
-    (0..)
-      .map(move |i| blocksdir.join(format!("blk{:05}.dat", i)))
-      .take_while(|path| path.is_file())
+  fn blockfile_path(&self, i: u64) -> PathBuf {
+    self.blocksdir.join(format!("blk{:05}.dat", i))
   }
 
   fn index_blockfiles(&self) -> Result {
-    let blockfiles = self.blockfiles().count();
+    let blockfiles = (0..)
+      .map(|i| self.blockfile_path(i))
+      .take_while(|path| path.is_file())
+      .count();
+
     log::info!("Indexing {} blockfiles…", blockfiles);
 
-    for (i, path) in self.blockfiles().enumerate() {
+    for i in 0.. {
+      let path = self.blockfile_path(i);
+
+      if !path.is_file() {
+        break;
+      }
+
       let blocks = unsafe { Mmap::map(&File::open(path)?)? };
 
       let tx = self.database.begin_write()?;
@@ -192,19 +201,15 @@ impl Index {
           break;
         }
 
-        let magic = &blocks[offset..offset + 4];
+        let rest = &blocks[offset..];
 
-        if magic != Network::Bitcoin.magic().to_le_bytes() {
-          return Err(format!("Unknown magic bytes: {:?}", magic).into());
+        if rest.starts_with(&[0, 0, 0, 0]) {
+          break;
         }
 
-        let len = u32::from_le_bytes(blocks[offset + 4..offset + 8].try_into()?) as usize;
-        let start = offset + 8;
-        let end = start + len;
+        let block = Self::extract_block(rest)?;
 
-        let bytes = &blocks[start..end];
-
-        let header = BlockHeader::consensus_decode(&bytes[0..80])?;
+        let header = BlockHeader::consensus_decode(&block[0..80])?;
         let hash = header.block_hash();
 
         if header.prev_blockhash == Default::default() {
@@ -225,12 +230,12 @@ impl Index {
 
         hash_to_location.insert(&hash, &((i as u64) << 32 | offset as u64))?;
 
-        offset = end;
+        offset = offset + 8 + block.len();
 
         count += 1;
       }
 
-      log::info!("{}/{}: Processed {} blocks…", i + 1, blockfiles, count);
+      log::info!("{}/{}: Processed {} blocks…", i + 1, blockfiles + 1, count);
 
       tx.commit()?;
     }
@@ -239,6 +244,8 @@ impl Index {
   }
 
   fn index_heights(&self) -> Result {
+    log::info!("Indexing heights…");
+
     let write = self.database.begin_write()?;
 
     let read = self.database.begin_read()?;
@@ -274,6 +281,17 @@ impl Index {
     Ok(())
   }
 
+  fn extract_block(blocks: &[u8]) -> Result<&[u8]> {
+    let magic = &blocks[0..4];
+    if magic != Network::Bitcoin.magic().to_le_bytes() {
+      return Err(format!("Unknown magic bytes: {:?}", magic).into());
+    }
+
+    let len = u32::from_le_bytes(blocks[4..8].try_into()?) as usize;
+
+    Ok(&blocks[8..8 + len])
+  }
+
   pub(crate) fn block(&self, height: u64) -> Result<Option<Block>> {
     let tx = self.database.begin_read()?;
 
@@ -291,22 +309,13 @@ impl Index {
           .ok_or("Could not find block location in index")?
           .to_value();
 
-        let path = self.blocksdir.join(format!("blk{:05}.dat", location >> 32));
+        let path = self.blockfile_path(location >> 32);
 
         let offset = (location & 0xFFFFFFFF) as usize;
 
         let blocks = unsafe { Mmap::map(&File::open(path)?)? };
 
-        let magic = &blocks[offset..offset + 4];
-        if magic != Network::Bitcoin.magic().to_le_bytes() {
-          return Err(format!("Unknown magic bytes: {:?}", magic).into());
-        }
-
-        let len = u32::from_le_bytes(blocks[offset + 4..offset + 8].try_into()?) as usize;
-        let start = offset + 8;
-        let end = start + len;
-
-        let bytes = &blocks[start..end];
+        let bytes = Self::extract_block(&blocks[offset..])?;
 
         Ok(Some(Block::consensus_decode(bytes)?))
       }
