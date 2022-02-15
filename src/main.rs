@@ -11,6 +11,7 @@ use {
   derive_more::{Display, FromStr},
   integer_cbrt::IntegerCubeRoot,
   integer_sqrt::IntegerSquareRoot,
+  memmap2::Mmap,
   redb::{
     Database, MultimapTable, ReadOnlyMultimapTable, ReadOnlyTable, ReadableMultimapTable,
     ReadableTable, Table,
@@ -19,8 +20,7 @@ use {
     cmp::Ordering,
     collections::VecDeque,
     fmt::{self, Display, Formatter},
-    fs::{self, File},
-    io,
+    fs::File,
     ops::{Add, AddAssign, Deref, Sub},
     path::{Path, PathBuf},
     process,
