@@ -237,6 +237,8 @@ This document, along with an implementation of an ordinal index that tracks the 
 
 == References ==
 
+A variation of this scheme was independently invented a decade ago by jl2012 [https://bitcointalk.org/index.php?topic=117224.0 on the Bitcoin Forum].
+
 For other colored coin proposals see [https://en.bitcoin.it/wiki/Colored_Coins the Bitcoin Wiki entry].
 
 For aliases, an implementation of short on-chain identifiers, see BIP 15.
