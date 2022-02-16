@@ -33,7 +33,7 @@ impl Index {
 
     let database = match result {
       Ok(database) => database,
-      Err(redb::Error::DoesNotExist(_)) => unsafe {
+      Err(redb::Error::Io(error)) if error.kind() == io::ErrorKind::NotFound => unsafe {
         Database::create("index.redb", index_size.unwrap_or(1 << 20))?
       },
       Err(error) => return Err(error.into()),
