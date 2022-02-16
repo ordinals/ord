@@ -30,7 +30,7 @@ impl Index {
     };
 
     let index = Self {
-      database: unsafe { Database::open("index.redb", index_size.unwrap_or(1 << 20))? },
+      database: unsafe { Database::create("index.redb", index_size.unwrap_or(1 << 20))? },
       blocksdir,
     };
 
@@ -71,7 +71,7 @@ impl Index {
             .get(key.as_slice())?
             .ok_or("Could not find outpoint in index")?;
 
-          for chunk in ordinal_ranges.to_value().chunks_exact(16) {
+          for chunk in ordinal_ranges.chunks_exact(16) {
             let start = u64::from_le_bytes(chunk[0..8].try_into().unwrap());
             let end = u64::from_le_bytes(chunk[8..16].try_into().unwrap());
             input_ordinal_ranges.push_back((start, end));
@@ -260,7 +260,6 @@ impl Index {
       height_to_hash
         .get(&0)?
         .ok_or("Could not find genesis block in index")?
-        .to_value()
         .to_vec(),
       0,
     )];
@@ -300,14 +299,13 @@ impl Index {
     match heights_to_hash.get(&height)? {
       None => Ok(None),
       Some(guard) => {
-        let hash = guard.to_value();
+        let hash = guard;
 
         let hash_to_location: ReadOnlyTable<[u8], u64> = tx.open_table(Self::HASH_TO_LOCATION)?;
 
         let location = hash_to_location
           .get(hash)?
-          .ok_or("Could not find block location in index")?
-          .to_value();
+          .ok_or("Could not find block location in index")?;
 
         let path = self.blockfile_path(location >> 32);
 
@@ -335,7 +333,7 @@ impl Index {
       .ok_or("Could not find outpoint in index")?;
 
     let mut output = Vec::new();
-    for chunk in ordinal_ranges.to_value().chunks_exact(16) {
+    for chunk in ordinal_ranges.chunks_exact(16) {
       let start = u64::from_le_bytes(chunk[0..8].try_into().unwrap());
       let end = u64::from_le_bytes(chunk[8..16].try_into().unwrap());
       output.push((start, end));
