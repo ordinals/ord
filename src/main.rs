@@ -6,7 +6,7 @@ use {
   bitcoin::{
     blockdata::constants::COIN_VALUE,
     consensus::{Decodable, Encodable},
-    Block, BlockHeader, Network, OutPoint, Transaction,
+    Block, BlockHash, BlockHeader, Network, OutPoint, Transaction,
   },
   derive_more::{Display, FromStr},
   integer_cbrt::IntegerCubeRoot,
@@ -18,7 +18,7 @@ use {
   },
   std::{
     cmp::Ordering,
-    collections::VecDeque,
+    collections::{HashMap, VecDeque},
     fmt::{self, Display, Formatter},
     fs::File,
     io,

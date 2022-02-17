@@ -1,14 +1,51 @@
 use super::*;
 
+use bitcoincore_rpc::{Auth, Client, RpcApi};
+use std::time::{Duration, Instant};
+
 pub(crate) struct Index {
   blocksdir: PathBuf,
   database: Database,
+  locations: HashMap<BlockHash, Location>,
+  children: HashMap<BlockHash, Vec<BlockHash>>,
+  client: Client,
+  sleep_until: Instant,
 }
+
+struct Location {
+  file: u64,
+  offset: usize,
+  prev: BlockHash,
+  next: BlockHash,
+}
+
+// fn foo() {
+//   let mut current = best_hash();
+//   let mut next = Default::default;
+
+//   loop {
+//     let location = self.locations.get(current);
+
+//     if location.next == next {
+//       break;
+//     }
+
+//     location.next = next;
+
+//     current = location.prev;
+//     next = current;
+//   }
+// }
+
+// get best block hash and height
+// start following prev blocks and setting parent hash
+// once you hit the genesis block
+// go other direction and populate a vec of hashes
+//
 
 impl Index {
   const HASH_TO_CHILDREN: &'static str = "HASH_TO_CHILDREN";
   const HASH_TO_HEIGHT: &'static str = "HASH_TO_HEIGHT";
-  const HASH_TO_LOCATION: &'static str = "HASH_TO_LOCATION";
   const HEIGHT_TO_HASH: &'static str = "HEIGHT_TO_HASH";
   const OUTPOINT_TO_ORDINAL_RANGES: &'static str = "OUTPOINT_TO_ORDINAL_RANGES";
 
@@ -39,25 +76,36 @@ impl Index {
       Err(error) => return Err(error.into()),
     };
 
-    let index = Self {
-      database,
+    let client = Client::new(
+      &"http://localhost:8332",
+      Auth::CookieFile("/Users/rodarmor/Library/Application Support/Bitcoin/.cookie".into()),
+    )
+    .unwrap();
+
+    let mut index = Self {
       blocksdir,
+      database,
+      locations: HashMap::new(),
+      children: HashMap::new(),
+      client,
+      sleep_until: Instant::now(),
     };
 
-    index.index_blockfiles()?;
+    // index.index_blockfiles()?;
 
-    index.index_heights()?;
+    // index.index_heights()?;
 
     index.index_ranges()?;
 
     Ok(index)
   }
 
-  fn index_ranges(&self) -> Result {
+  fn index_ranges(&mut self) -> Result {
     log::info!("Indexing ranges…");
 
     let mut height = 0;
     while let Some(block) = self.block(height)? {
+      eprint!(".");
       let wtx = self.database.begin_write()?;
       let mut outpoint_to_ordinal_ranges: Table<[u8], [u8]> =
         wtx.open_table(Self::OUTPOINT_TO_ORDINAL_RANGES)?;
@@ -176,7 +224,7 @@ impl Index {
     self.blocksdir.join(format!("blk{:05}.dat", i))
   }
 
-  fn index_blockfiles(&self) -> Result {
+  fn index_blockfiles(&mut self) -> Result {
     let blockfiles = (0..)
       .map(|i| self.blockfile_path(i))
       .take_while(|path| path.is_file())
@@ -184,8 +232,8 @@ impl Index {
 
     log::info!("Indexing {} blockfiles…", blockfiles);
 
-    for i in 0.. {
-      let path = self.blockfile_path(i);
+    for file in 0.. {
+      let path = self.blockfile_path(file);
 
       if !path.is_file() {
         break;
@@ -197,8 +245,6 @@ impl Index {
 
       let mut hash_to_children: MultimapTable<[u8], [u8]> =
         tx.open_multimap_table(Self::HASH_TO_CHILDREN)?;
-
-      let mut hash_to_location: Table<[u8], u64> = tx.open_table(Self::HASH_TO_LOCATION)?;
 
       let mut offset = 0;
 
@@ -238,14 +284,28 @@ impl Index {
 
         hash_to_children.insert(&header.prev_blockhash, &hash)?;
 
-        hash_to_location.insert(&hash, &((i as u64) << 32 | offset as u64))?;
+        self
+          .children
+          .entry(header.prev_blockhash)
+          .or_default()
+          .push(hash);
+
+        let location = self.locations.insert(
+          hash,
+          Location {
+            file,
+            offset,
+            prev: header.prev_blockhash,
+            next: Default::default(),
+          },
+        );
 
         offset = offset + 8 + block.len();
 
         count += 1;
       }
 
-      log::info!("{}/{}: Processed {} blocks…", i + 1, blockfiles, count);
+      log::info!("{}/{}: Processed {} blocks…", file + 1, blockfiles, count);
 
       tx.commit()?;
     }
@@ -278,6 +338,8 @@ impl Index {
       hash_to_height.insert(block.as_ref(), &height)?;
       height_to_hash.insert(&height, block.as_ref())?;
 
+      // for child in self.children.get(&block).flatten() {}
+
       let mut iter = hash_to_children.get(&block)?;
 
       while let Some(child) = iter.next() {
@@ -301,29 +363,44 @@ impl Index {
     Ok(&blocks[8..8 + len])
   }
 
-  pub(crate) fn block(&self, height: u64) -> Result<Option<Block>> {
+  fn client(&mut self) -> &Client {
+    let now = Instant::now();
+
+    if self.sleep_until > now {
+      std::thread::sleep(self.sleep_until - now);
+    }
+
+    self.sleep_until = Instant::now() + Duration::from_millis(2);
+
+    &self.client
+  }
+
+  pub(crate) fn block(&mut self, height: u64) -> Result<Option<Block>> {
+    eprintln!("Getting block at height {height}…");
+
+    let hash = self.client().get_block_hash(height)?;
+
+    return Ok(Some(self.client().get_block(&hash)?));
+
+    // ---
+
     let tx = self.database.begin_read()?;
 
     let heights_to_hash: ReadOnlyTable<u64, [u8]> = tx.open_table(Self::HEIGHT_TO_HASH)?;
 
     match heights_to_hash.get(&height)? {
       None => Ok(None),
-      Some(guard) => {
-        let hash = guard;
-
-        let hash_to_location: ReadOnlyTable<[u8], u64> = tx.open_table(Self::HASH_TO_LOCATION)?;
-
-        let location = hash_to_location
-          .get(hash)?
+      Some(hash) => {
+        let location = self
+          .locations
+          .get(hash)
           .ok_or("Could not find block location in index")?;
 
-        let path = self.blockfile_path(location >> 32);
-
-        let offset = (location & 0xFFFFFFFF) as usize;
+        let path = self.blockfile_path(location.file);
 
         let blocks = unsafe { Mmap::map(&File::open(path)?)? };
 
-        let bytes = Self::extract_block(&blocks[offset..])?;
+        let bytes = Self::extract_block(&blocks[location.offset..])?;
 
         Ok(Some(Block::consensus_decode(bytes)?))
       }
