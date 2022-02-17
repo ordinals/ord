@@ -114,3 +114,23 @@ fn index_multiple_blockfiles() -> Result {
     })
     .run()
 }
+
+#[test]
+fn mining_and_spending_transaction_in_same_block() -> Result {
+  Test::new()?
+    .command("find --blocksdir blocks 0 --as-of-height 1 --slot")
+    .block()
+    .block()
+    .transaction(TransactionOptions {
+      slots: &[(0, 0, 0)],
+      output_count: 1,
+      fee: 0,
+    })
+    .transaction(TransactionOptions {
+      slots: &[(1, 1, 0)],
+      output_count: 1,
+      fee: 0,
+    })
+    .expected_stdout("1.2.0.0\n")
+    .run()
+}
