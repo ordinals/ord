@@ -114,6 +114,7 @@ fn index_multiple_blockfiles() -> Result {
     })
     .run()
 }
+
 #[test]
 fn mining_and_spending_transaction_in_same_block() -> Result {
   Test::new()?
