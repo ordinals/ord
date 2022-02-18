@@ -8,7 +8,7 @@ pub(crate) struct Index {
 
 impl Index {
   pub(crate) fn run(self, index_size: Option<usize>) -> Result<()> {
-    crate::Index::new(self.blocksdir.as_deref(), index_size)?;
+    crate::Index::new(self.blocksdir.as_deref(), index_size, "")?;
     Ok(())
   }
 }

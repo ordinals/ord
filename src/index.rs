@@ -1,8 +1,11 @@
 use super::*;
 
+use bitcoincore_rpc::{Auth, Client, RpcApi};
+
 pub(crate) struct Index {
   blocksdir: PathBuf,
   database: Database,
+  client: Client,
 }
 
 impl Index {
@@ -12,7 +15,11 @@ impl Index {
   const HEIGHT_TO_HASH: &'static str = "HEIGHT_TO_HASH";
   const OUTPOINT_TO_ORDINAL_RANGES: &'static str = "OUTPOINT_TO_ORDINAL_RANGES";
 
-  pub(crate) fn new(blocksdir: Option<&Path>, index_size: Option<usize>) -> Result<Self> {
+  pub(crate) fn new(
+    blocksdir: Option<&Path>,
+    index_size: Option<usize>,
+    rpcurl: &str,
+  ) -> Result<Self> {
     let blocksdir = if let Some(blocksdir) = blocksdir {
       blocksdir.to_owned()
     } else if cfg!(target_os = "macos") {
@@ -29,6 +36,8 @@ impl Index {
         .join(".bitcoin/blocks")
     };
 
+    let client = Client::new(rpcurl, Auth::None).unwrap();
+
     let result = unsafe { Database::open("index.redb") };
 
     let database = match result {
@@ -42,11 +51,12 @@ impl Index {
     let index = Self {
       database,
       blocksdir,
+      client,
     };
 
-    index.index_blockfiles()?;
+    // index.index_blockfiles()?;
 
-    index.index_heights()?;
+    // index.index_heights()?;
 
     index.index_ranges()?;
 
@@ -302,31 +312,12 @@ impl Index {
   }
 
   pub(crate) fn block(&self, height: u64) -> Result<Option<Block>> {
-    let tx = self.database.begin_read()?;
-
-    let heights_to_hash: ReadOnlyTable<u64, [u8]> = tx.open_table(Self::HEIGHT_TO_HASH)?;
-
-    match heights_to_hash.get(&height)? {
-      None => Ok(None),
-      Some(guard) => {
-        let hash = guard;
-
-        let hash_to_location: ReadOnlyTable<[u8], u64> = tx.open_table(Self::HASH_TO_LOCATION)?;
-
-        let location = hash_to_location
-          .get(hash)?
-          .ok_or("Could not find block location in index")?;
-
-        let path = self.blockfile_path(location >> 32);
-
-        let offset = (location & 0xFFFFFFFF) as usize;
-
-        let blocks = unsafe { Mmap::map(&File::open(path)?)? };
-
-        let bytes = Self::extract_block(&blocks[offset..])?;
-
-        Ok(Some(Block::consensus_decode(bytes)?))
-      }
+    match self.client.get_block_hash(height) {
+      Ok(hash) => Ok(Some(self.client.get_block(&hash)?)),
+      Err(bitcoincore_rpc::Error::JsonRpc(jsonrpc::error::Error::Rpc(
+        jsonrpc::error::RpcError { code: -8, .. },
+      ))) => Ok(None),
+      Err(err) => Err(err.into()),
     }
   }
 
