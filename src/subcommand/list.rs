@@ -4,14 +4,12 @@ use super::*;
 pub(crate) struct List {
   #[structopt(long)]
   blocksdir: Option<PathBuf>,
-  #[structopt(long)]
-  foo: String,
   outpoint: OutPoint,
 }
 
 impl List {
   pub(crate) fn run(self, index_size: Option<usize>) -> Result<()> {
-    let index = Index::new(self.blocksdir.as_deref(), index_size, &self.foo)?;
+    let index = Index::new(self.blocksdir.as_deref(), index_size)?;
     let ranges = index.list(self.outpoint)?;
 
     for (start, end) in ranges {

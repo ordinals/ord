@@ -198,7 +198,7 @@ impl Test {
   }
 
   fn output(self) -> Result<Output> {
-    {
+    let port = {
       let mut io = jsonrpc_core::IoHandler::default();
       io.extend_with(
         rpc::Server {
@@ -208,17 +208,22 @@ impl Test {
       );
 
       let server = jsonrpc_http_server::ServerBuilder::new(io)
-        .threads(3)
-        .start_http(&"127.0.0.1:10000".parse().unwrap())
+        .threads(1)
+        .start_http(&"127.0.0.1:0".parse().unwrap())
         .unwrap();
 
+      let port = server.address().port();
+
       std::thread::spawn(|| server.wait());
-    }
+
+      port
+    };
 
     self.create_blockfiles()?;
 
     let output = Command::new(executable_path("ord"))
       .current_dir(&self.tempdir)
+      .env("ORD_FOO", format!("http://127.0.0.1:{port}"))
       .args(self.args)
       .output()?;
 
