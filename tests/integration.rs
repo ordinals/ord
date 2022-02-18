@@ -26,6 +26,7 @@ mod index;
 mod list;
 mod name;
 mod range;
+mod stats;
 mod supply;
 mod traits;
 
@@ -74,7 +75,11 @@ struct Test {
 
 impl Test {
   fn new() -> Result<Self> {
-    Ok(Self {
+    Ok(Self::with_tempdir(TempDir::new()?))
+  }
+
+  fn with_tempdir(tempdir: TempDir) -> Self {
+    Self {
       args: Vec::new(),
       blockfiles: Vec::new(),
       blocks: Vec::new(),
@@ -82,9 +87,9 @@ impl Test {
       expected_stderr: String::new(),
       expected_stdout: String::new(),
       ignore_stdout: false,
-      tempdir: TempDir::new()?,
+      tempdir,
       reverse_blockfiles: false,
-    })
+    }
   }
 
   fn command(self, args: &str) -> Self {
@@ -285,7 +290,7 @@ impl Test {
 
   fn create_blockfiles(&self) -> io::Result<()> {
     let blocksdir = self.tempdir.path().join("blocks");
-    fs::create_dir(&blocksdir)?;
+    fs::create_dir_all(&blocksdir)?;
 
     let mut start = 0;
 
