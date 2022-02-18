@@ -1,7 +1,7 @@
 use super::*;
 
 #[test]
-fn foo() -> Result {
+fn basic() -> Result {
   let output = Test::new()?
     .command("index --blocksdir blocks")
     .block()
