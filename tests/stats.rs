@@ -9,13 +9,13 @@ fn basic() -> Result {
 
   Test::with_tempdir(output.tempdir)
     .command("stats")
-    .expected_stdout(
-      "
-        tree height: 2
-        free pages: 56
-        stored bytes: 241
-        overhead bytes: 269
-        fragmented bytes: 97794
+    .stdout_regex(
+      r"
+        tree height: \d+
+        free pages: \d+
+        stored bytes: \d+
+        overhead bytes: \d+
+        fragmented bytes: \d+
       "
       .unindent(),
     )

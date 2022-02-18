@@ -32,6 +32,12 @@ mod traits;
 
 type Result<T = ()> = std::result::Result<T, Box<dyn Error>>;
 
+enum Expected {
+  String(String),
+  Regex(Regex),
+  Ignore,
+}
+
 struct Output {
   stdout: String,
   tempdir: TempDir,
@@ -67,7 +73,7 @@ struct Test {
   blocks: Vec<Block>,
   expected_status: i32,
   expected_stderr: String,
-  expected_stdout: String,
+  expected_stdout: Expected,
   ignore_stdout: bool,
   tempdir: TempDir,
   reverse_blockfiles: bool,
