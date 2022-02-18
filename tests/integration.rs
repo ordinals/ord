@@ -198,7 +198,7 @@ impl Test {
   }
 
   fn output(self) -> Result<Output> {
-    let port = {
+    let (close_handle, port) = {
       let mut io = jsonrpc_core::IoHandler::default();
       io.extend_with(
         rpc::Server {
@@ -214,9 +214,11 @@ impl Test {
 
       let port = server.address().port();
 
+      let close_handle = server.close_handle();
+
       std::thread::spawn(|| server.wait());
 
-      port
+      (close_handle, port)
     };
 
     self.create_blockfiles()?;
@@ -226,6 +228,8 @@ impl Test {
       .env("ORD_FOO", format!("http://127.0.0.1:{port}"))
       .args(self.args)
       .output()?;
+
+    close_handle.close();
 
     let stderr = str::from_utf8(&output.stderr)?;
 
