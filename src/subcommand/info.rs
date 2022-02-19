@@ -7,9 +7,9 @@ pub(crate) fn run() -> Result {
 
   println!("tree height: {}", stats.tree_height());
   println!("free pages: {}", stats.free_pages());
-  println!("stored bytes: {}", stats.stored_bytes());
-  println!("overhead bytes: {}", stats.overhead_bytes());
-  println!("fragmented bytes: {}", stats.fragmented_bytes());
+  println!("stored: {}", Bytes(stats.stored_bytes()));
+  println!("overhead: {}", Bytes(stats.overhead_bytes()));
+  println!("fragmented: {}", Bytes(stats.fragmented_bytes()));
 
   Ok(())
 }

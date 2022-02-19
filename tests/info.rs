@@ -10,9 +10,9 @@ fn basic() -> Result {
       r"
         tree height: \d+
         free pages: \d+
-        stored bytes: \d+
-        overhead bytes: \d+
-        fragmented bytes: \d+
+        stored: .* bytes
+        overhead: .* bytes
+        fragmented: .* KiB
       "
       .unindent(),
     )
