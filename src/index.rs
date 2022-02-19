@@ -10,10 +10,12 @@ pub(crate) struct Index {
 }
 
 impl Index {
+  const HEIGHT_TO_HASH: TableDefinition<'static, u64, [u8]> =
+    TableDefinition::new("HEIGHT_TO_HASH");
   const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<'static, [u8], [u8]> =
     TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
 
-  pub(crate) fn new(options: Options) -> Result<Self> {
+  pub(crate) fn open(options: Options) -> Result<Self> {
     let client = Client::new(
       &options.rpc_url.ok_or("This command requires `--rpc-url`")?,
       options
@@ -32,15 +34,47 @@ impl Index {
       Err(error) => return Err(error.into()),
     };
 
-    let index = Self {
+    Ok(Self {
       client,
       database,
       sleep_until: Cell::new(Instant::now()),
-    };
+    })
+  }
+
+  #[allow(clippy::self_named_constructors)]
+  pub(crate) fn index(options: Options) -> Result<Self> {
+    let index = Self::open(options)?;
 
     index.index_ranges()?;
 
     Ok(index)
+  }
+
+  pub(crate) fn print_info(&self) -> Result {
+    let tx = self.database.begin_write()?;
+
+    let height_to_hash = tx.open_table(&Self::HEIGHT_TO_HASH)?;
+
+    let blocks_indexed = height_to_hash
+      .range_reversed(0..)?
+      .next()
+      .map(|(height, _hash)| height + 1)
+      .unwrap_or(0);
+
+    let outputs_indexed = tx.open_table(&Self::OUTPOINT_TO_ORDINAL_RANGES)?.len()?;
+
+    tx.abort()?;
+
+    let stats = self.database.stats()?;
+
+    println!("blocks indexed: {}", blocks_indexed);
+    println!("outputs indexed: {}", outputs_indexed);
+    println!("tree height: {}", stats.tree_height());
+    println!("free pages: {}", stats.free_pages());
+    println!("stored: {}", Bytes(stats.stored_bytes()));
+    println!("overhead: {}", Bytes(stats.overhead_bytes()));
+    println!("fragmented: {}", Bytes(stats.fragmented_bytes()));
+    Ok(())
   }
 
   fn client(&self) -> &Client {
@@ -62,11 +96,34 @@ impl Index {
   fn index_ranges(&self) -> Result {
     log::info!("Indexing ranges…");
 
-    let mut height = 0;
-    while let Some(block) = self.block(height)? {
+    loop {
+      let wtx = self.database.begin_write()?;
+
+      let mut height_to_hash = wtx.open_table(&Self::HEIGHT_TO_HASH)?;
+      let height = height_to_hash
+        .range_reversed(0..)?
+        .next()
+        .map(|(height, _hash)| height + 1)
+        .unwrap_or(0);
+
       log::info!("Indexing block at height {height}…");
 
-      let wtx = self.database.begin_write()?;
+      let block = match self.block(height)? {
+        Some(block) => block,
+        None => {
+          wtx.abort()?;
+          break;
+        }
+      };
+
+      if let Some(prev_height) = height.checked_sub(1) {
+        let prev_hash = height_to_hash.get(&prev_height)?.unwrap();
+
+        if prev_hash != block.header.prev_blockhash.as_ref() {
+          return Err("Reorg detected at or before {prev_height}".into());
+        }
+      }
+
       let mut outpoint_to_ordinal_ranges = wtx.open_table(&Self::OUTPOINT_TO_ORDINAL_RANGES)?;
 
       let mut coinbase_inputs = VecDeque::new();
@@ -172,8 +229,8 @@ impl Index {
         }
       }
 
+      height_to_hash.insert(&height, &block.block_hash())?;
       wtx.commit()?;
-      height += 1;
     }
 
     Ok(())

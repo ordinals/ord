@@ -8,6 +8,8 @@ fn basic() -> Result {
     .command("info")
     .stdout_regex(
       r"
+        blocks indexed: 1
+        outputs indexed: 1
         tree height: \d+
         free pages: \d+
         stored: .* bytes
