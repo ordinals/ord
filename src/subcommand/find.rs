@@ -10,8 +10,8 @@ pub(crate) struct Find {
 }
 
 impl Find {
-  pub(crate) fn run(self, index_size: Option<usize>) -> Result<()> {
-    let index = Index::new(index_size)?;
+  pub(crate) fn run(self, options: Options) -> Result<()> {
+    let index = Index::new(options)?;
 
     let creation_height = self.ordinal.height().n();
     let block = index.block(creation_height)?.unwrap();

@@ -1,6 +1,6 @@
 use super::*;
 
-pub(crate) fn run(index_size: Option<usize>) -> Result<()> {
-  Index::new(index_size)?;
+pub(crate) fn run(options: Options) -> Result<()> {
+  Index::new(options)?;
   Ok(())
 }

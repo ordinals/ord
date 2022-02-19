@@ -12,13 +12,16 @@ pub(crate) struct Index {
 impl Index {
   const OUTPOINT_TO_ORDINAL_RANGES: &'static str = "OUTPOINT_TO_ORDINAL_RANGES";
 
-  pub(crate) fn new(index_size: Option<usize>) -> Result<Self> {
+  pub(crate) fn new(options: Options) -> Result<Self> {
     let bitcoin_core_rpc_url =
       env::var("ORD_BITCOIN_CORE_RPC_URL").map_err(|err| format!("Failed to get Bitcoin Core JSON RPC URL from ORD_BITCOIN_CORE_RPC_URL environment variable: {err}"))?;
 
     let client = Client::new(
       &bitcoin_core_rpc_url,
-      Auth::CookieFile("/Users/rodarmor/Library/Application Support/Bitcoin/.cookie".into()),
+      options
+        .cookiefile
+        .map(|path| Auth::CookieFile(path))
+        .unwrap_or(Auth::None),
     )?;
 
     let result = unsafe { Database::open("index.redb") };
@@ -26,7 +29,7 @@ impl Index {
     let database = match result {
       Ok(database) => database,
       Err(redb::Error::Io(error)) if error.kind() == io::ErrorKind::NotFound => unsafe {
-        Database::create("index.redb", index_size.unwrap_or(1 << 20))?
+        Database::create("index.redb", options.index_size.unwrap_or(1 << 20))?
       },
       Err(error) => return Err(error.into()),
     };

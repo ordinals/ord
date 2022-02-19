@@ -22,12 +22,12 @@ pub(crate) enum Subcommand {
 }
 
 impl Subcommand {
-  pub(crate) fn run(self, index_size: Option<usize>) -> Result<()> {
+  pub(crate) fn run(self, options: Options) -> Result<()> {
     match self {
       Self::Epochs => epochs::run(),
-      Self::Find(find) => find.run(index_size),
-      Self::Index => index::run(index_size),
-      Self::List(list) => list.run(index_size),
+      Self::Find(find) => find.run(options),
+      Self::Index => index::run(options),
+      Self::List(list) => list.run(options),
       Self::Name(name) => name.run(),
       Self::Range(range) => range.run(),
       Self::Supply => supply::run(),

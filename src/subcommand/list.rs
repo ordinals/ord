@@ -6,8 +6,8 @@ pub(crate) struct List {
 }
 
 impl List {
-  pub(crate) fn run(self, index_size: Option<usize>) -> Result<()> {
-    let index = Index::new(index_size)?;
+  pub(crate) fn run(self, options: Options) -> Result<()> {
+    let index = Index::new(options)?;
     let ranges = index.list(self.outpoint)?;
 
     for (start, end) in ranges {
