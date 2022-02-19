@@ -9,6 +9,7 @@ autotests = false
 [dependencies]
 bitcoin = "0.27.1"
 bitcoincore-rpc = "0.14.0"
+clap = { version = "3.1.0", features = ["derive"] }
 derive_more = "0.99.17"
 dirs = "4.0.0"
 env_logger = "0.9.0"
@@ -18,7 +19,6 @@ integer-sqrt = "0.1.5"
 jsonrpc = "0.12.1"
 log = "0.4.14"
 redb = { version = "0.0.4", git = "https://github.com/cberner/redb.git" }
-structopt = "0.3.25"
 
 [dev-dependencies]
 criterion = "0.3.5"

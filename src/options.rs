@@ -1,11 +1,11 @@
 use super::*;
 
-#[derive(StructOpt)]
+#[derive(Parser)]
 pub(crate) struct Options {
-  #[structopt(long, default_value = "1MiB")]
+  #[clap(long, default_value = "1MiB")]
   pub(crate) index_size: Bytes,
-  #[structopt(long)]
+  #[clap(long)]
   pub(crate) cookie_file: Option<PathBuf>,
-  #[structopt(long)]
+  #[clap(long)]
   pub(crate) rpc_url: Option<String>,
 }

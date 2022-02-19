@@ -4,6 +4,7 @@ use {
     options::Options, ordinal::Ordinal, sat_point::SatPoint, subcommand::Subcommand,
   },
   bitcoin::{blockdata::constants::COIN_VALUE, consensus::Encodable, Block, OutPoint, Transaction},
+  clap::Parser,
   derive_more::{Display, FromStr},
   integer_cbrt::IntegerCubeRoot,
   integer_sqrt::IntegerSquareRoot,
@@ -20,7 +21,6 @@ use {
     str::FromStr,
     time::{Duration, Instant},
   },
-  structopt::StructOpt,
 };
 
 mod arguments;
@@ -33,13 +33,13 @@ mod ordinal;
 mod sat_point;
 mod subcommand;
 
-type Error = Box<dyn std::error::Error>;
+type Error = Box<dyn std::error::Error + Send + Sync>;
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 
 fn main() {
   env_logger::init();
 
-  if let Err(error) = Arguments::from_args().run() {
+  if let Err(error) = Arguments::parse().run() {
     eprintln!("error: {}", error);
     process::exit(1);
   }

@@ -10,7 +10,7 @@ mod range;
 mod supply;
 mod traits;
 
-#[derive(StructOpt)]
+#[derive(Parser)]
 pub(crate) enum Subcommand {
   Epochs,
   Find(find::Find),
