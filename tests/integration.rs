@@ -225,7 +225,10 @@ impl Test {
 
     let output = Command::new(executable_path("ord"))
       .current_dir(&self.tempdir)
-      .env("ORD_FOO", format!("http://127.0.0.1:{port}"))
+      .env(
+        "ORD_BITCOIN_CORE_RPC_URL",
+        format!("http://127.0.0.1:{port}"),
+      )
       .args(self.args)
       .output()?;
 

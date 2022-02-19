@@ -1,20 +1,21 @@
-use super::*;
-
-use bitcoincore_rpc::{Auth, Client, RpcApi};
-use std::env;
+use {
+  super::*,
+  bitcoincore_rpc::{Auth, Client, RpcApi},
+};
 
 pub(crate) struct Index {
-  database: Database,
   client: Client,
+  database: Database,
 }
 
 impl Index {
   const OUTPOINT_TO_ORDINAL_RANGES: &'static str = "OUTPOINT_TO_ORDINAL_RANGES";
 
   pub(crate) fn new(index_size: Option<usize>) -> Result<Self> {
-    let rpcurl = env::var("ORD_FOO").unwrap();
+    let bitcoin_core_rpc_url =
+      env::var("ORD_BITCOIN_CORE_RPC_URL").map_err(|err| format!("Failed to get Bitcoin Core JSON RPC URL from ORD_BITCOIN_CORE_RPC_URL environment variable: {err}"))?;
 
-    let client = Client::new(&rpcurl, Auth::None).unwrap();
+    let client = Client::new(&bitcoin_core_rpc_url, Auth::None).unwrap();
 
     let result = unsafe { Database::open("index.redb") };
 
@@ -27,10 +28,6 @@ impl Index {
     };
 
     let index = Self { database, client };
-
-    // index.index_blockfiles()?;
-
-    // index.index_heights()?;
 
     index.index_ranges()?;
 
