@@ -15,7 +15,7 @@ impl Index {
   const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<'static, [u8], [u8]> =
     TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
 
-  pub(crate) fn new(options: Options) -> Result<Self> {
+  pub(crate) fn open(options: Options) -> Result<Self> {
     let client = Client::new(
       &options.rpc_url.ok_or("This command requires `--rpc-url`")?,
       options
@@ -34,15 +34,46 @@ impl Index {
       Err(error) => return Err(error.into()),
     };
 
-    let index = Self {
+    Ok(Self {
       client,
       database,
       sleep_until: Cell::new(Instant::now()),
-    };
+    })
+  }
+
+  pub(crate) fn index(options: Options) -> Result<Self> {
+    let index = Self::open(options)?;
 
     index.index_ranges()?;
 
     Ok(index)
+  }
+
+  pub(crate) fn print_info(&self) -> Result {
+    let tx = self.database.begin_write()?;
+
+    let height_to_hash = tx.open_table(&Self::HEIGHT_TO_HASH)?;
+
+    let blocks_indexed = height_to_hash
+      .range_reversed(0..)?
+      .next()
+      .map(|(height, _hash)| height + 1)
+      .unwrap_or(0);
+
+    let outputs_indexed = tx.open_table(&Self::OUTPOINT_TO_ORDINAL_RANGES)?.len()?;
+
+    tx.abort()?;
+
+    let stats = self.database.stats()?;
+
+    println!("blocks indexed: {}", blocks_indexed);
+    println!("outputs indexed: {}", outputs_indexed);
+    println!("tree height: {}", stats.tree_height());
+    println!("free pages: {}", stats.free_pages());
+    println!("stored: {}", Bytes(stats.stored_bytes()));
+    println!("overhead: {}", Bytes(stats.overhead_bytes()));
+    println!("fragmented: {}", Bytes(stats.fragmented_bytes()));
+    Ok(())
   }
 
   fn client(&self) -> &Client {

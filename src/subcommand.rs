@@ -33,7 +33,7 @@ impl Subcommand {
       Self::Name(name) => name.run(),
       Self::Range(range) => range.run(),
       Self::Supply => supply::run(),
-      Self::Info => info::run(),
+      Self::Info => info::run(options),
       Self::Traits(traits) => traits.run(),
     }
   }
