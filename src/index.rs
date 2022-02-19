@@ -13,11 +13,8 @@ impl Index {
   const OUTPOINT_TO_ORDINAL_RANGES: &'static str = "OUTPOINT_TO_ORDINAL_RANGES";
 
   pub(crate) fn new(options: Options) -> Result<Self> {
-    let bitcoin_core_rpc_url =
-      env::var("ORD_BITCOIN_CORE_RPC_URL").map_err(|err| format!("Failed to get Bitcoin Core JSON RPC URL from ORD_BITCOIN_CORE_RPC_URL environment variable: {err}"))?;
-
     let client = Client::new(
-      &bitcoin_core_rpc_url,
+      &options.rpc_url.ok_or("This command requires `--rpc-url`")?,
       options
         .cookiefile
         .map(|path| Auth::CookieFile(path))

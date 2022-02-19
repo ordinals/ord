@@ -12,7 +12,6 @@ use {
     cell::Cell,
     cmp::Ordering,
     collections::VecDeque,
-    env,
     fmt::{self, Display, Formatter},
     io,
     ops::{Add, AddAssign, Deref, Sub},
