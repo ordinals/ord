@@ -10,8 +10,10 @@ pub(crate) struct Index {
 }
 
 impl Index {
-  const HEIGHT_TO_HASH: &'static str = "HEIGHT_TO_HASH";
-  const OUTPOINT_TO_ORDINAL_RANGES: &'static str = "OUTPOINT_TO_ORDINAL_RANGES";
+  const HEIGHT_TO_HASH: TableDefinition<'static, u64, [u8]> =
+    TableDefinition::new("HEIGHT_TO_HASH");
+  const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<'static, [u8], [u8]> =
+    TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
 
   pub(crate) fn new(options: Options) -> Result<Self> {
     let client = Client::new(
@@ -27,7 +29,7 @@ impl Index {
     let database = match result {
       Ok(database) => database,
       Err(redb::Error::Io(error)) if error.kind() == io::ErrorKind::NotFound => unsafe {
-        Database::create("index.redb", options.index_size.unwrap_or(1 << 20))?
+        Database::create("index.redb", options.index_size.0)?
       },
       Err(error) => return Err(error.into()),
     };
@@ -65,7 +67,7 @@ impl Index {
     loop {
       let wtx = self.database.begin_write()?;
 
-      let mut height_to_hash: Table<u64, [u8]> = wtx.open_table(Self::HEIGHT_TO_HASH)?;
+      let mut height_to_hash = wtx.open_table(&Self::HEIGHT_TO_HASH)?;
       let height = height_to_hash
         .range_reversed(0..)?
         .next()
@@ -90,8 +92,7 @@ impl Index {
         }
       }
 
-      let mut outpoint_to_ordinal_ranges: Table<[u8], [u8]> =
-        wtx.open_table(Self::OUTPOINT_TO_ORDINAL_RANGES)?;
+      let mut outpoint_to_ordinal_ranges = wtx.open_table(&Self::OUTPOINT_TO_ORDINAL_RANGES)?;
 
       let mut coinbase_inputs = VecDeque::new();
 
@@ -215,8 +216,7 @@ impl Index {
 
   pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Vec<(u64, u64)>> {
     let rtx = self.database.begin_read()?;
-    let outpoint_to_ordinal_ranges: ReadOnlyTable<[u8], [u8]> =
-      rtx.open_table(Self::OUTPOINT_TO_ORDINAL_RANGES)?;
+    let outpoint_to_ordinal_ranges = rtx.open_table(&Self::OUTPOINT_TO_ORDINAL_RANGES)?;
 
     let mut key = Vec::new();
     outpoint.consensus_encode(&mut key)?;
