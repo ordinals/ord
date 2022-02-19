@@ -157,7 +157,7 @@ Since ordinals are borne by outputs, they can be encumbered by covenants. [https
 
 ==== The Lightning Network ====
 
-Lightning Network channels can be created with inputs whose ordinals are colored coins, for example colored coins honored for redemption by a stablecoin issuer. These channels can be used to conduct instant, low-fee USD-denominated off-chain payments, and would require only modest changes to existing Lightning Network nodes.
+The Lightning Network cannot be used to selectively transfer individual non-fungable ordinals, however it can be used to transfer arbitrary amounts of fungible ordinals. Channels can be created with inputs whose ordinals are all colored coins of the same type, for example colored coins honored for redemption by a stablecoin issuer. These channels can be used to conduct instant, low-fee USD-denominated off-chain payments, and would require only modest changes to existing Lightning Network nodes.
 
 On channel close, fees would have to be paid by child-pays-for-parent, to avoid paying stablecoin ordinals as fees.
 
