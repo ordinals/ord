@@ -43,7 +43,7 @@ impl PartialEq<u64> for Height {
 }
 
 impl FromStr for Height {
-  type Err = Box<dyn std::error::Error>;
+  type Err = Error;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
     Ok(Self(s.parse::<u64>()?))
