@@ -33,7 +33,8 @@ mod ordinal;
 mod sat_point;
 mod subcommand;
 
-type Result<T = (), E = Box<dyn std::error::Error>> = std::result::Result<T, E>;
+type Error = Box<dyn std::error::Error>;
+type Result<T = (), E = Error> = std::result::Result<T, E>;
 
 fn main() {
   env_logger::init();

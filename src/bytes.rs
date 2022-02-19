@@ -17,7 +17,7 @@ impl<I: Into<usize>> From<I> for Bytes {
 }
 
 impl FromStr for Bytes {
-  type Err = Box<dyn std::error::Error>;
+  type Err = Error;
 
   fn from_str(text: &str) -> Result<Self, Self::Err> {
     fn is_digit(c: &char) -> bool {
