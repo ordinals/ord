@@ -41,6 +41,7 @@ impl Index {
     })
   }
 
+  #[allow(clippy::self_named_constructors)]
   pub(crate) fn index(options: Options) -> Result<Self> {
     let index = Self::open(options)?;
 
