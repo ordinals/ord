@@ -1,7 +1,7 @@
 use {
   crate::{
-    arguments::Arguments, epoch::Epoch, height::Height, index::Index, ordinal::Ordinal,
-    sat_point::SatPoint, subcommand::Subcommand,
+    arguments::Arguments, epoch::Epoch, height::Height, index::Index, options::Options,
+    ordinal::Ordinal, sat_point::SatPoint, subcommand::Subcommand,
   },
   bitcoin::{blockdata::constants::COIN_VALUE, consensus::Encodable, Block, OutPoint, Transaction},
   derive_more::{Display, FromStr},
@@ -9,14 +9,16 @@ use {
   integer_sqrt::IntegerSquareRoot,
   redb::{Database, ReadOnlyTable, ReadableTable, Table},
   std::{
+    cell::Cell,
     cmp::Ordering,
     collections::VecDeque,
-    env,
     fmt::{self, Display, Formatter},
     io,
     ops::{Add, AddAssign, Deref, Sub},
+    path::PathBuf,
     process,
     str::FromStr,
+    time::{Duration, Instant},
   },
   structopt::StructOpt,
 };
@@ -25,6 +27,7 @@ mod arguments;
 mod epoch;
 mod height;
 mod index;
+mod options;
 mod ordinal;
 mod sat_point;
 mod subcommand;
