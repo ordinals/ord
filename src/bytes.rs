@@ -10,12 +10,6 @@ const EI: usize = PI << 10;
 #[derive(Debug, Eq, PartialEq)]
 pub(crate) struct Bytes(pub(crate) usize);
 
-impl<I: Into<usize>> From<I> for Bytes {
-  fn from(n: I) -> Bytes {
-    Bytes(n.into())
-  }
-}
-
 impl FromStr for Bytes {
   type Err = Error;
 
