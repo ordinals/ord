@@ -6,7 +6,14 @@ use {
   },
   executable_path::executable_path,
   regex::Regex,
-  std::{collections::BTreeSet, error::Error, process::Command, str, thread},
+  std::{
+    collections::BTreeSet,
+    error::Error,
+    process::Command,
+    str,
+    sync::{Arc, Mutex},
+    thread,
+  },
   tempfile::TempDir,
   unindent::Unindent,
 };
@@ -31,6 +38,7 @@ enum Expected {
 }
 
 struct Output {
+  calls: Vec<String>,
   stdout: String,
   tempdir: TempDir,
 }
@@ -142,7 +150,7 @@ impl Test {
   }
 
   fn output(self) -> Result<Output> {
-    let (close_handle, port) = RpcServer::spawn(&self.blocks);
+    let (close_handle, calls, port) = RpcServer::spawn(&self.blocks);
 
     let output = Command::new(executable_path("ord"))
       .current_dir(&self.tempdir)
@@ -178,9 +186,12 @@ impl Test {
       Expected::Ignore => {}
     }
 
+    let calls = calls.lock().unwrap().clone();
+
     Ok(Output {
       stdout: stdout.to_string(),
       tempdir: self.tempdir,
+      calls,
     })
   }
 
