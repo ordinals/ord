@@ -17,7 +17,7 @@ impl Index {
       &options.rpc_url.ok_or("This command requires `--rpc-url`")?,
       options
         .cookie_file
-        .map(|path| Auth::CookieFile(path))
+        .map(Auth::CookieFile)
         .unwrap_or(Auth::None),
     )?;
 
