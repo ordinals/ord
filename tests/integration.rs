@@ -1,13 +1,12 @@
 use {
-  crate::rpc_server::Rpc,
+  crate::rpc_server::RpcServer,
   bitcoin::{
-    blockdata::constants::COIN_VALUE,
-    blockdata::script,
-    {Block, BlockHeader, OutPoint, Transaction, TxIn, TxOut},
+    blockdata::constants::COIN_VALUE, blockdata::script, consensus::Encodable, Block, BlockHash,
+    BlockHeader, OutPoint, Transaction, TxIn, TxOut,
   },
   executable_path::executable_path,
   regex::Regex,
-  std::{collections::BTreeSet, error::Error, process::Command, str},
+  std::{collections::BTreeSet, error::Error, process::Command, str, thread},
   tempfile::TempDir,
   unindent::Unindent,
 };
@@ -125,28 +124,7 @@ impl Test {
   }
 
   fn output(self) -> Result<Output> {
-    let (close_handle, port) = {
-      let mut io = jsonrpc_core::IoHandler::default();
-      io.extend_with(
-        rpc_server::Server {
-          blocks: self.blocks.clone(),
-        }
-        .to_delegate(),
-      );
-
-      let server = jsonrpc_http_server::ServerBuilder::new(io)
-        .threads(1)
-        .start_http(&"127.0.0.1:0".parse().unwrap())
-        .unwrap();
-
-      let port = server.address().port();
-
-      let close_handle = server.close_handle();
-
-      std::thread::spawn(|| server.wait());
-
-      (close_handle, port)
-    };
+    let (close_handle, port) = RpcServer::spawn(&self.blocks);
 
     let output = Command::new(executable_path("ord"))
       .current_dir(&self.tempdir)

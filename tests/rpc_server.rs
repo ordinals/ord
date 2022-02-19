@@ -1,10 +1,10 @@
-use super::Block;
-use bitcoin::{consensus::Encodable, BlockHash};
-use jsonrpc_core::Result;
-use jsonrpc_derive::rpc;
+use {
+  super::*, jsonrpc_core::IoHandler, jsonrpc_core::Result, jsonrpc_derive::rpc,
+  jsonrpc_http_server::CloseHandle, jsonrpc_http_server::ServerBuilder,
+};
 
 #[rpc]
-pub trait Rpc {
+pub trait RpcApi {
   #[rpc(name = "getblockhash")]
   fn getblockhash(&self, height: usize) -> Result<BlockHash>;
 
@@ -12,11 +12,34 @@ pub trait Rpc {
   fn getblock(&self, blockhash: BlockHash, verbosity: u64) -> Result<String>;
 }
 
-pub struct Server {
-  pub blocks: Vec<Block>,
+pub struct RpcServer {
+  blocks: Vec<Block>,
 }
 
-impl Rpc for Server {
+impl RpcServer {
+  pub(crate) fn spawn(blocks: &[Block]) -> (CloseHandle, u16) {
+    let server = Self {
+      blocks: blocks.to_vec(),
+    };
+    let mut io = IoHandler::default();
+    io.extend_with(server.to_delegate());
+
+    let server = ServerBuilder::new(io)
+      .threads(1)
+      .start_http(&"127.0.0.1:0".parse().unwrap())
+      .unwrap();
+
+    let close_handle = server.close_handle();
+
+    let port = server.address().port();
+
+    thread::spawn(|| server.wait());
+
+    (close_handle, port)
+  }
+}
+
+impl RpcApi for RpcServer {
   fn getblockhash(&self, height: usize) -> Result<BlockHash> {
     match self.blocks.get(height) {
       Some(block) => Ok(block.block_hash()),
@@ -24,16 +47,10 @@ impl Rpc for Server {
         jsonrpc_core::types::error::ErrorCode::ServerError(-8),
       )),
     }
-
-    // if height + 1 > self.blocks.len() {
-    //   return Err("bad!");
-    // }
-
-    // Ok(self.blocks[height as usize].block_hash())
   }
 
   fn getblock(&self, blockhash: BlockHash, verbosity: u64) -> Result<String> {
-    assert_eq!(verbosity, 0);
+    assert_eq!(verbosity, 0, "Verbosity level {verbosity} is unsupported");
 
     for block in &self.blocks {
       if block.block_hash() == blockhash {
@@ -43,6 +60,6 @@ impl Rpc for Server {
       }
     }
 
-    panic!()
+    panic!("No block with hash {blockhash}")
   }
 }
