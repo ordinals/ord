@@ -7,7 +7,7 @@ use {
   derive_more::{Display, FromStr},
   integer_cbrt::IntegerCubeRoot,
   integer_sqrt::IntegerSquareRoot,
-  redb::{Database, ReadOnlyTable, ReadableTable, Table},
+  redb::{Database, ReadableTable, TableDefinition},
   std::{
     cell::Cell,
     cmp::Ordering,

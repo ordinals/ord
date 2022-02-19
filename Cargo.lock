@@ -1114,7 +1114,7 @@ dependencies = [
 [[package]]
 name = "redb"
 version = "0.0.4"
-source = "git+https://github.com/cberner/redb.git#1d93dbe103f287622c62a915eb7d22321892f3d6"
+source = "git+https://github.com/cberner/redb.git#8690d6bf17ca2798b3dc7ce2a07b8fb65f64496d"
 dependencies = [
  "libc",
  "memmap2",
@@ -1513,9 +1513,9 @@ checksum = "8ccb82d61f80a663efe1f787a51b16b5a51e3314d6ac365b08639f52387b33f3"
 
 [[package]]
 name = "unindent"
-version = "0.1.7"
+version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f14ee04d9415b52b3aeab06258a3f07093182b88ba0f9b8d203f211a7a7d41c7"
+checksum = "514672a55d7380da379785a4d70ca8386c8883ff7eaae877be4d2081cebe73d8"
 
 [[package]]
 name = "url"
