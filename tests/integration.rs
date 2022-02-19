@@ -14,6 +14,7 @@ use {
 mod epochs;
 mod find;
 mod index;
+mod info;
 mod list;
 mod name;
 mod range;
@@ -22,6 +23,12 @@ mod supply;
 mod traits;
 
 type Result<T = ()> = std::result::Result<T, Box<dyn Error>>;
+
+enum Expected {
+  String(String),
+  Regex(Regex),
+  Ignore,
+}
 
 struct Output {
   stdout: String,
@@ -55,22 +62,24 @@ struct Test {
   blocks: Vec<Block>,
   expected_status: i32,
   expected_stderr: String,
-  expected_stdout: String,
-  ignore_stdout: bool,
+  expected_stdout: Expected,
   tempdir: TempDir,
 }
 
 impl Test {
   fn new() -> Result<Self> {
-    Ok(Self {
+    Ok(Self::with_tempdir(TempDir::new()?))
+  }
+
+  fn with_tempdir(tempdir: TempDir) -> Self {
+    Self {
       args: Vec::new(),
       blocks: Vec::new(),
       expected_status: 0,
       expected_stderr: String::new(),
-      expected_stdout: String::new(),
-      ignore_stdout: false,
-      tempdir: TempDir::new()?,
-    })
+      expected_stdout: Expected::String(String::new()),
+      tempdir,
+    }
   }
 
   fn command(self, args: &str) -> Self {
@@ -93,7 +102,16 @@ impl Test {
 
   fn expected_stdout(self, expected_stdout: impl AsRef<str>) -> Self {
     Self {
-      expected_stdout: expected_stdout.as_ref().to_owned(),
+      expected_stdout: Expected::String(expected_stdout.as_ref().to_owned()),
+      ..self
+    }
+  }
+
+  fn stdout_regex(self, expected_stdout: impl AsRef<str>) -> Self {
+    Self {
+      expected_stdout: Expected::Regex(
+        Regex::new(&format!("^{}$", expected_stdout.as_ref())).unwrap(),
+      ),
       ..self
     }
   }
@@ -114,7 +132,7 @@ impl Test {
 
   fn ignore_stdout(self) -> Self {
     Self {
-      ignore_stdout: true,
+      expected_stdout: Expected::Ignore,
       ..self
     }
   }
@@ -150,8 +168,14 @@ impl Test {
 
     let stdout = str::from_utf8(&output.stdout)?;
 
-    if !self.ignore_stdout {
-      assert_eq!(stdout, self.expected_stdout);
+    match self.expected_stdout {
+      Expected::String(expected_stdout) => assert_eq!(stdout, expected_stdout),
+      Expected::Regex(expected_stdout) => assert!(
+        expected_stdout.is_match(stdout),
+        "stdout did not match regex: {}",
+        stdout
+      ),
+      Expected::Ignore => {}
     }
 
     Ok(Output {
