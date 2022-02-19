@@ -910,7 +910,6 @@ dependencies = [
  "jsonrpc-derive",
  "jsonrpc-http-server",
  "log",
- "memmap2",
  "redb",
  "regex",
  "structopt",

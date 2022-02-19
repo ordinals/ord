@@ -15,7 +15,7 @@ impl Index {
     let bitcoin_core_rpc_url =
       env::var("ORD_BITCOIN_CORE_RPC_URL").map_err(|err| format!("Failed to get Bitcoin Core JSON RPC URL from ORD_BITCOIN_CORE_RPC_URL environment variable: {err}"))?;
 
-    let client = Client::new(&bitcoin_core_rpc_url, Auth::None).unwrap();
+    let client = Client::new(&bitcoin_core_rpc_url, Auth::None)?;
 
     let result = unsafe { Database::open("index.redb") };
 
@@ -27,7 +27,7 @@ impl Index {
       Err(error) => return Err(error.into()),
     };
 
-    let index = Self { database, client };
+    let index = Self { client, database };
 
     index.index_ranges()?;
 
