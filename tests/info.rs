@@ -5,7 +5,7 @@ fn basic() -> Result {
   let output = Test::new()?.command("index").block().output()?;
 
   Test::with_tempdir(output.tempdir)
-    .command("stats")
+    .command("info")
     .stdout_regex(
       r"
         tree height: \d+

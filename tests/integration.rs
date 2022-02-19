@@ -14,11 +14,11 @@ use {
 mod epochs;
 mod find;
 mod index;
+mod info;
 mod list;
 mod name;
 mod range;
 mod rpc_server;
-mod stats;
 mod supply;
 mod traits;
 
