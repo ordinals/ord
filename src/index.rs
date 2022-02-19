@@ -6,6 +6,7 @@ use {
 pub(crate) struct Index {
   client: Client,
   database: Database,
+  sleep_until: Cell<Instant>,
 }
 
 impl Index {
@@ -15,7 +16,10 @@ impl Index {
     let bitcoin_core_rpc_url =
       env::var("ORD_BITCOIN_CORE_RPC_URL").map_err(|err| format!("Failed to get Bitcoin Core JSON RPC URL from ORD_BITCOIN_CORE_RPC_URL environment variable: {err}"))?;
 
-    let client = Client::new(&bitcoin_core_rpc_url, Auth::None)?;
+    let client = Client::new(
+      &bitcoin_core_rpc_url,
+      Auth::CookieFile("/Users/rodarmor/Library/Application Support/Bitcoin/.cookie".into()),
+    )?;
 
     let result = unsafe { Database::open("index.redb") };
 
@@ -27,11 +31,31 @@ impl Index {
       Err(error) => return Err(error.into()),
     };
 
-    let index = Self { client, database };
+    let index = Self {
+      client,
+      database,
+      sleep_until: Cell::new(Instant::now()),
+    };
 
     index.index_ranges()?;
 
     Ok(index)
+  }
+
+  fn client(&self) -> &Client {
+    let now = Instant::now();
+
+    let sleep_until = self.sleep_until.get();
+
+    if sleep_until > now {
+      std::thread::sleep(sleep_until - now);
+    }
+
+    self
+      .sleep_until
+      .set(Instant::now() + Duration::from_millis(2));
+
+    &self.client
   }
 
   fn index_ranges(&self) -> Result {
@@ -39,6 +63,8 @@ impl Index {
 
     let mut height = 0;
     while let Some(block) = self.block(height)? {
+      log::info!("Indexing block at height {height}…");
+
       let wtx = self.database.begin_write()?;
       let mut outpoint_to_ordinal_ranges: Table<[u8], [u8]> =
         wtx.open_table(Self::OUTPOINT_TO_ORDINAL_RANGES)?;
@@ -154,8 +180,8 @@ impl Index {
   }
 
   pub(crate) fn block(&self, height: u64) -> Result<Option<Block>> {
-    match self.client.get_block_hash(height) {
-      Ok(hash) => Ok(Some(self.client.get_block(&hash)?)),
+    match self.client().get_block_hash(height) {
+      Ok(hash) => Ok(Some(self.client().get_block(&hash)?)),
       Err(bitcoincore_rpc::Error::JsonRpc(jsonrpc::error::Error::Rpc(
         jsonrpc::error::RpcError { code: -8, .. },
       ))) => Ok(None),

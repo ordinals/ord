@@ -9,6 +9,7 @@ use {
   integer_sqrt::IntegerSquareRoot,
   redb::{Database, ReadOnlyTable, ReadableTable, Table},
   std::{
+    cell::Cell,
     cmp::Ordering,
     collections::VecDeque,
     env,
@@ -17,6 +18,7 @@ use {
     ops::{Add, AddAssign, Deref, Sub},
     process,
     str::FromStr,
+    time::{Duration, Instant},
   },
   structopt::StructOpt,
 };
