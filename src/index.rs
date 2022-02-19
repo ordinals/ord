@@ -4,35 +4,14 @@ use bitcoincore_rpc::{Auth, Client, RpcApi};
 use std::env;
 
 pub(crate) struct Index {
-  blocksdir: PathBuf,
   database: Database,
   client: Client,
 }
 
 impl Index {
-  const HASH_TO_CHILDREN: &'static str = "HASH_TO_CHILDREN";
-  const HASH_TO_HEIGHT: &'static str = "HASH_TO_HEIGHT";
-  const HASH_TO_LOCATION: &'static str = "HASH_TO_LOCATION";
-  const HEIGHT_TO_HASH: &'static str = "HEIGHT_TO_HASH";
   const OUTPOINT_TO_ORDINAL_RANGES: &'static str = "OUTPOINT_TO_ORDINAL_RANGES";
 
-  pub(crate) fn new(blocksdir: Option<&Path>, index_size: Option<usize>) -> Result<Self> {
-    let blocksdir = if let Some(blocksdir) = blocksdir {
-      blocksdir.to_owned()
-    } else if cfg!(target_os = "macos") {
-      dirs::home_dir()
-        .ok_or("Unable to retrieve home directory")?
-        .join("Library/Application Support/Bitcoin/blocks")
-    } else if cfg!(target_os = "windows") {
-      dirs::data_dir()
-        .ok_or("Unable to retrieve home directory")?
-        .join("Bitcoin/blocks")
-    } else {
-      dirs::home_dir()
-        .ok_or("Unable to retrieve home directory")?
-        .join(".bitcoin/blocks")
-    };
-
+  pub(crate) fn new(index_size: Option<usize>) -> Result<Self> {
     let rpcurl = env::var("ORD_FOO").unwrap();
 
     let client = Client::new(&rpcurl, Auth::None).unwrap();
@@ -47,11 +26,7 @@ impl Index {
       Err(error) => return Err(error.into()),
     };
 
-    let index = Self {
-      database,
-      blocksdir,
-      client,
-    };
+    let index = Self { database, client };
 
     // index.index_blockfiles()?;
 
@@ -179,135 +154,6 @@ impl Index {
     }
 
     Ok(())
-  }
-
-  fn blockfile_path(&self, i: u64) -> PathBuf {
-    self.blocksdir.join(format!("blk{:05}.dat", i))
-  }
-
-  fn index_blockfiles(&self) -> Result {
-    let blockfiles = (0..)
-      .map(|i| self.blockfile_path(i))
-      .take_while(|path| path.is_file())
-      .count();
-
-    log::info!("Indexing {} blockfiles…", blockfiles);
-
-    for i in 0.. {
-      let path = self.blockfile_path(i);
-
-      if !path.is_file() {
-        break;
-      }
-
-      let blocks = unsafe { Mmap::map(&File::open(path)?)? };
-
-      let tx = self.database.begin_write()?;
-
-      let mut hash_to_children: MultimapTable<[u8], [u8]> =
-        tx.open_multimap_table(Self::HASH_TO_CHILDREN)?;
-
-      let mut hash_to_location: Table<[u8], u64> = tx.open_table(Self::HASH_TO_LOCATION)?;
-
-      let mut offset = 0;
-
-      let mut count = 0;
-
-      let mut genesis = false;
-
-      loop {
-        if offset == blocks.len() {
-          break;
-        }
-
-        let rest = &blocks[offset..];
-
-        if rest.starts_with(&[0, 0, 0, 0]) {
-          break;
-        }
-
-        let block = Self::extract_block(rest)?;
-
-        let header = BlockHeader::consensus_decode(&block[0..80])?;
-        let hash = header.block_hash();
-
-        if header.prev_blockhash == Default::default() {
-          if genesis {
-            return Err("Duplicate genesis block found".into());
-          }
-
-          let mut hash_to_height: Table<[u8], u64> = tx.open_table(Self::HASH_TO_HEIGHT)?;
-          let mut height_to_hash: Table<u64, [u8]> = tx.open_table(Self::HEIGHT_TO_HASH)?;
-
-          hash_to_height.insert(&hash, &0)?;
-          height_to_hash.insert(&0, &hash)?;
-
-          genesis = true;
-        }
-
-        hash_to_children.insert(&header.prev_blockhash, &hash)?;
-
-        hash_to_location.insert(&hash, &((i as u64) << 32 | offset as u64))?;
-
-        offset = offset + 8 + block.len();
-
-        count += 1;
-      }
-
-      log::info!("{}/{}: Processed {} blocks…", i + 1, blockfiles, count);
-
-      tx.commit()?;
-    }
-
-    Ok(())
-  }
-
-  fn index_heights(&self) -> Result {
-    log::info!("Indexing heights…");
-
-    let write = self.database.begin_write()?;
-
-    let read = self.database.begin_read()?;
-
-    let hash_to_children: ReadOnlyMultimapTable<[u8], [u8]> =
-      read.open_multimap_table(Self::HASH_TO_CHILDREN)?;
-
-    let mut hash_to_height: Table<[u8], u64> = write.open_table(Self::HASH_TO_HEIGHT)?;
-    let mut height_to_hash: Table<u64, [u8]> = write.open_table(Self::HEIGHT_TO_HASH)?;
-
-    let mut queue = vec![(
-      height_to_hash
-        .get(&0)?
-        .ok_or("Could not find genesis block in index")?
-        .to_vec(),
-      0,
-    )];
-
-    while let Some((block, height)) = queue.pop() {
-      hash_to_height.insert(block.as_ref(), &height)?;
-      height_to_hash.insert(&height, block.as_ref())?;
-
-      let mut iter = hash_to_children.get(&block)?;
-
-      while let Some(child) = iter.next() {
-        queue.push((child.to_vec(), height + 1));
-      }
-    }
-
-    write.commit()?;
-
-    Ok(())
-  }
-
-  fn extract_block(blocks: &[u8]) -> Result<&[u8]> {
-    let magic = &blocks[0..4];
-    if magic != Network::Bitcoin.magic().to_le_bytes() {
-      return Err(format!("Unknown magic bytes: {:?}", magic).into());
-    }
-
-    let len = u32::from_le_bytes(blocks[4..8].try_into()?) as usize;
-
-    Ok(&blocks[8..8 + len])
   }
 
   pub(crate) fn block(&self, height: u64) -> Result<Option<Block>> {

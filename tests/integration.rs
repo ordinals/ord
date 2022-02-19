@@ -61,7 +61,7 @@ mod rpc {
       for block in &self.blocks {
         if block.block_hash() == blockhash {
           let mut encoded = Vec::new();
-          block.consensus_encode(&mut encoded);
+          block.consensus_encode(&mut encoded).unwrap();
           return Ok(hex::encode(encoded));
         }
       }

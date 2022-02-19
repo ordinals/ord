@@ -13,7 +13,7 @@ mod traits;
 pub(crate) enum Subcommand {
   Epochs,
   Find(find::Find),
-  Index(index::Index),
+  Index,
   List(list::List),
   Name(name::Name),
   Range(range::Range),
@@ -26,7 +26,7 @@ impl Subcommand {
     match self {
       Self::Epochs => epochs::run(),
       Self::Find(find) => find.run(index_size),
-      Self::Index(index) => index.run(index_size),
+      Self::Index => index::run(index_size),
       Self::List(list) => list.run(index_size),
       Self::Name(name) => name.run(),
       Self::Range(range) => range.run(),
