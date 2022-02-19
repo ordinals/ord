@@ -20,7 +20,6 @@ impl FromStr for Bytes {
   type Err = Box<dyn std::error::Error>;
 
   fn from_str(text: &str) -> Result<Self, Self::Err> {
-    #[allow(clippy::trivially_copy_pass_by_ref)]
     fn is_digit(c: &char) -> bool {
       matches!(c, '0'..='9' | '.')
     }
