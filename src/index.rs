@@ -106,8 +106,6 @@ impl Index {
         .map(|(height, _hash)| height + 1)
         .unwrap_or(0);
 
-      log::info!("Indexing block at height {height}…");
-
       let block = match self.block(height)? {
         Some(block) => block,
         None => {
@@ -115,6 +113,11 @@ impl Index {
           break;
         }
       };
+
+      log::info!(
+        "Indexing block {height} with {} transactions…",
+        block.txdata.len()
+      );
 
       if let Some(prev_height) = height.checked_sub(1) {
         let prev_hash = height_to_hash.get(&prev_height)?.unwrap();
