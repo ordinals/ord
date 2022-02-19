@@ -16,7 +16,7 @@ impl Index {
     let client = Client::new(
       &options.rpc_url.ok_or("This command requires `--rpc-url`")?,
       options
-        .cookiefile
+        .cookie_file
         .map(|path| Auth::CookieFile(path))
         .unwrap_or(Auth::None),
     )?;

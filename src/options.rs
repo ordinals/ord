@@ -5,7 +5,7 @@ pub(crate) struct Options {
   #[structopt(long)]
   pub(crate) index_size: Option<usize>,
   #[structopt(long)]
-  pub(crate) cookiefile: Option<PathBuf>,
+  pub(crate) cookie_file: Option<PathBuf>,
   #[structopt(long)]
   pub(crate) rpc_url: Option<String>,
 }
