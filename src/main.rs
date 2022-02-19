@@ -1,7 +1,7 @@
 use {
   crate::{
-    arguments::Arguments, epoch::Epoch, height::Height, index::Index, options::Options,
-    ordinal::Ordinal, sat_point::SatPoint, subcommand::Subcommand,
+    arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height, index::Index,
+    options::Options, ordinal::Ordinal, sat_point::SatPoint, subcommand::Subcommand,
   },
   bitcoin::{blockdata::constants::COIN_VALUE, consensus::Encodable, Block, OutPoint, Transaction},
   derive_more::{Display, FromStr},
@@ -24,6 +24,7 @@ use {
 };
 
 mod arguments;
+mod bytes;
 mod epoch;
 mod height;
 mod index;

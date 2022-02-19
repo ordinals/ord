@@ -27,7 +27,7 @@ impl Index {
     let database = match result {
       Ok(database) => database,
       Err(redb::Error::Io(error)) if error.kind() == io::ErrorKind::NotFound => unsafe {
-        Database::create("index.redb", options.index_size.unwrap_or(1 << 20))?
+        Database::create("index.redb", options.index_size.0)?
       },
       Err(error) => return Err(error.into()),
     };
