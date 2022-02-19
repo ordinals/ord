@@ -27,19 +27,3 @@ fn custom_index_size() -> Result {
 
   Ok(())
 }
-
-#[test]
-fn out_of_order_blockfiles() -> Result {
-  Test::new()?
-    .command("find 0 --as-of-height 1 --slot")
-    .expected_stdout("1.1.0.0\n")
-    .block()
-    .block()
-    .transaction(TransactionOptions {
-      slots: &[(0, 0, 0)],
-      output_count: 1,
-      fee: 0,
-    })
-    .reverse_blockfiles()
-    .run()
-}

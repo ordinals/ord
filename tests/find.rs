@@ -100,22 +100,6 @@ fn regression_empty_block_crash() -> Result {
 }
 
 #[test]
-fn index_multiple_blockfiles() -> Result {
-  Test::new()?
-    .command("find 0 --as-of-height 1 --slot")
-    .expected_stdout("1.1.0.0\n")
-    .block()
-    .blockfile()
-    .block()
-    .transaction(TransactionOptions {
-      slots: &[(0, 0, 0)],
-      output_count: 1,
-      fee: 0,
-    })
-    .run()
-}
-
-#[test]
 fn mining_and_spending_transaction_in_same_block() -> Result {
   Test::new()?
     .command("find 0 --as-of-height 1 --slot")

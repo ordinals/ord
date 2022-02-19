@@ -3,20 +3,11 @@ use {
   bitcoin::{
     blockdata::constants::COIN_VALUE,
     blockdata::script,
-    consensus::Encodable,
-    {Block, BlockHeader, Network, OutPoint, Transaction, TxIn, TxOut},
+    {Block, BlockHeader, OutPoint, Transaction, TxIn, TxOut},
   },
   executable_path::executable_path,
   regex::Regex,
-  std::{
-    collections::BTreeSet,
-    error::Error,
-    fs::{self, File},
-    io::{self, Write},
-    iter,
-    process::Command,
-    str,
-  },
+  std::{collections::BTreeSet, error::Error, process::Command, str},
   tempfile::TempDir,
   unindent::Unindent,
 };
@@ -64,28 +55,24 @@ struct TransactionOptions<'a> {
 
 struct Test {
   args: Vec<String>,
-  blockfiles: Vec<usize>,
   blocks: Vec<Block>,
   expected_status: i32,
   expected_stderr: String,
   expected_stdout: String,
   ignore_stdout: bool,
   tempdir: TempDir,
-  reverse_blockfiles: bool,
 }
 
 impl Test {
   fn new() -> Result<Self> {
     Ok(Self {
       args: Vec::new(),
-      blockfiles: Vec::new(),
       blocks: Vec::new(),
       expected_status: 0,
       expected_stderr: String::new(),
       expected_stdout: String::new(),
       ignore_stdout: false,
       tempdir: TempDir::new()?,
-      reverse_blockfiles: false,
     })
   }
 
@@ -135,13 +122,6 @@ impl Test {
     }
   }
 
-  fn reverse_blockfiles(self) -> Self {
-    Self {
-      reverse_blockfiles: true,
-      ..self
-    }
-  }
-
   fn run(self) -> Result {
     self.output().map(|_| ())
   }
@@ -169,8 +149,6 @@ impl Test {
 
       (close_handle, port)
     };
-
-    self.create_blockfiles()?;
 
     let output = Command::new(executable_path("ord"))
       .current_dir(&self.tempdir)
@@ -307,51 +285,5 @@ impl Test {
     block.txdata.push(tx);
 
     self
-  }
-
-  fn blockfile(mut self) -> Self {
-    self.blockfiles.push(self.blocks.len());
-    self
-  }
-
-  fn create_blockfiles(&self) -> io::Result<()> {
-    let blocksdir = self.tempdir.path().join("blocks");
-    fs::create_dir(&blocksdir)?;
-
-    let mut start = 0;
-
-    for (i, end) in self
-      .blockfiles
-      .iter()
-      .copied()
-      .chain(iter::once(self.blocks.len()))
-      .enumerate()
-    {
-      let mut blockfile = File::create(blocksdir.join(format!("blk{:05}.dat", i)))?;
-
-      let blocks = self.blocks[start..end].iter().enumerate();
-
-      let blocks: Box<dyn std::iter::Iterator<Item = (usize, &Block)>> = if self.reverse_blockfiles
-      {
-        Box::new(blocks.rev())
-      } else {
-        Box::new(blocks)
-      };
-
-      for (bi, block) in blocks {
-        let mut encoded = Vec::new();
-        block.consensus_encode(&mut encoded)?;
-        blockfile.write_all(&Network::Bitcoin.magic().to_le_bytes())?;
-        blockfile.write_all(&(encoded.len() as u32).to_le_bytes())?;
-        blockfile.write_all(&encoded)?;
-        for (ti, tx) in block.txdata.iter().enumerate() {
-          eprintln!("{bi}.{ti}: {}", tx.txid());
-        }
-      }
-
-      start = end;
-    }
-
-    Ok(())
   }
 }
