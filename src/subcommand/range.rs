@@ -1,8 +1,8 @@
 use super::*;
 
-#[derive(StructOpt)]
+#[derive(Parser)]
 pub(crate) struct Range {
-  #[structopt(long)]
+  #[clap(long)]
   name: bool,
   height: Height,
 }

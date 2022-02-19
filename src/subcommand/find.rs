@@ -1,10 +1,10 @@
 use super::*;
 
-#[derive(StructOpt)]
+#[derive(Parser)]
 pub(crate) struct Find {
-  #[structopt(long)]
+  #[clap(long)]
   as_of_height: u64,
-  #[structopt(long)]
+  #[clap(long)]
   slot: bool,
   ordinal: Ordinal,
 }

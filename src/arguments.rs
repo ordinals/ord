@@ -1,10 +1,10 @@
 use super::*;
 
-#[derive(StructOpt)]
+#[derive(Parser)]
 pub(crate) struct Arguments {
-  #[structopt(flatten)]
+  #[clap(flatten)]
   options: Options,
-  #[structopt(subcommand)]
+  #[clap(subcommand)]
   subcommand: Subcommand,
 }
 
