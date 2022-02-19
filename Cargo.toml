@@ -8,22 +8,28 @@ autotests = false
 
 [dependencies]
 bitcoin = "0.27.1"
+bitcoincore-rpc = "0.14.0"
 derive_more = "0.99.17"
 dirs = "4.0.0"
 env_logger = "0.9.0"
 executable-path = "1.0.0"
 integer-cbrt = "0.1.2"
 integer-sqrt = "0.1.5"
+jsonrpc = "0.12.1"
 log = "0.4.14"
-memmap2 = "0.5.3"
 redb = { version = "0.0.4", git = "https://github.com/cberner/redb.git" }
 structopt = "0.3.25"
-tempfile = "3.2.0"
-unindent = "0.1.7"
 
 [dev-dependencies]
 criterion = "0.3.5"
+hex = "0.4.3"
+jsonrpc-core = "18.0.0"
+jsonrpc-core-client = "18.0.0"
+jsonrpc-derive = "18.0.0"
+jsonrpc-http-server = "18.0.0"
 regex = "1.5.4"
+tempfile = "3.2.0"
+unindent = "0.1.7"
 
 [[test]]
 name = "integration"

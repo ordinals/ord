@@ -3,8 +3,6 @@ use super::*;
 #[derive(StructOpt)]
 pub(crate) struct Find {
   #[structopt(long)]
-  blocksdir: Option<PathBuf>,
-  #[structopt(long)]
   as_of_height: u64,
   #[structopt(long)]
   slot: bool,
@@ -12,8 +10,8 @@ pub(crate) struct Find {
 }
 
 impl Find {
-  pub(crate) fn run(self, index_size: Option<usize>) -> Result<()> {
-    let index = Index::new(self.blocksdir.as_deref(), index_size)?;
+  pub(crate) fn run(self, options: Options) -> Result<()> {
+    let index = Index::new(options)?;
 
     let creation_height = self.ordinal.height().n();
     let block = index.block(creation_height)?.unwrap();

@@ -1,21 +1,12 @@
 use {
+  crate::rpc_server::RpcServer,
   bitcoin::{
-    blockdata::constants::COIN_VALUE,
-    blockdata::script,
-    consensus::Encodable,
-    {Block, BlockHeader, Network, OutPoint, Transaction, TxIn, TxOut},
+    blockdata::constants::COIN_VALUE, blockdata::script, consensus::Encodable, Block, BlockHash,
+    BlockHeader, OutPoint, Transaction, TxIn, TxOut,
   },
   executable_path::executable_path,
   regex::Regex,
-  std::{
-    collections::BTreeSet,
-    error::Error,
-    fs::{self, File},
-    io::{self, Write},
-    iter,
-    process::Command,
-    str,
-  },
+  std::{collections::BTreeSet, error::Error, process::Command, str, thread},
   tempfile::TempDir,
   unindent::Unindent,
 };
@@ -26,6 +17,7 @@ mod index;
 mod list;
 mod name;
 mod range;
+mod rpc_server;
 mod stats;
 mod supply;
 mod traits;
@@ -44,7 +36,6 @@ struct Output {
 }
 
 struct CoinbaseOptions {
-  default_prev_blockhash: bool,
   include_coinbase_transaction: bool,
   include_height: bool,
   subsidy: u64,
@@ -53,7 +44,6 @@ struct CoinbaseOptions {
 impl Default for CoinbaseOptions {
   fn default() -> Self {
     Self {
-      default_prev_blockhash: false,
       include_coinbase_transaction: true,
       include_height: true,
       subsidy: 50 * COIN_VALUE,
@@ -69,14 +59,11 @@ struct TransactionOptions<'a> {
 
 struct Test {
   args: Vec<String>,
-  blockfiles: Vec<usize>,
   blocks: Vec<Block>,
   expected_status: i32,
   expected_stderr: String,
   expected_stdout: Expected,
-  ignore_stdout: bool,
   tempdir: TempDir,
-  reverse_blockfiles: bool,
 }
 
 impl Test {
@@ -87,14 +74,11 @@ impl Test {
   fn with_tempdir(tempdir: TempDir) -> Self {
     Self {
       args: Vec::new(),
-      blockfiles: Vec::new(),
       blocks: Vec::new(),
       expected_status: 0,
       expected_stderr: String::new(),
-      expected_stdout: String::new(),
-      ignore_stdout: false,
+      expected_stdout: Expected::String(String::new()),
       tempdir,
-      reverse_blockfiles: false,
     }
   }
 
@@ -118,7 +102,16 @@ impl Test {
 
   fn expected_stdout(self, expected_stdout: impl AsRef<str>) -> Self {
     Self {
-      expected_stdout: expected_stdout.as_ref().to_owned(),
+      expected_stdout: Expected::String(expected_stdout.as_ref().to_owned()),
+      ..self
+    }
+  }
+
+  fn stdout_regex(self, expected_stdout: impl AsRef<str>) -> Self {
+    Self {
+      expected_stdout: Expected::Regex(
+        Regex::new(&format!("^{}$", expected_stdout.as_ref())).unwrap(),
+      ),
       ..self
     }
   }
@@ -139,14 +132,7 @@ impl Test {
 
   fn ignore_stdout(self) -> Self {
     Self {
-      ignore_stdout: true,
-      ..self
-    }
-  }
-
-  fn reverse_blockfiles(self) -> Self {
-    Self {
-      reverse_blockfiles: true,
+      expected_stdout: Expected::Ignore,
       ..self
     }
   }
@@ -156,12 +142,15 @@ impl Test {
   }
 
   fn output(self) -> Result<Output> {
-    self.create_blockfiles()?;
+    let (close_handle, port) = RpcServer::spawn(&self.blocks);
 
     let output = Command::new(executable_path("ord"))
       .current_dir(&self.tempdir)
+      .arg(format!("--rpc-url=http://127.0.0.1:{port}"))
       .args(self.args)
       .output()?;
+
+    close_handle.close();
 
     let stderr = str::from_utf8(&output.stderr)?;
 
@@ -179,8 +168,14 @@ impl Test {
 
     let stdout = str::from_utf8(&output.stdout)?;
 
-    if !self.ignore_stdout {
-      assert_eq!(stdout, self.expected_stdout);
+    match self.expected_stdout {
+      Expected::String(expected_stdout) => assert_eq!(stdout, expected_stdout),
+      Expected::Regex(expected_stdout) => assert!(
+        expected_stdout.is_match(stdout),
+        "stdout did not match regex: {}",
+        stdout
+      ),
+      Expected::Ignore => {}
     }
 
     Ok(Output {
@@ -197,15 +192,11 @@ impl Test {
     self.blocks.push(Block {
       header: BlockHeader {
         version: 0,
-        prev_blockhash: if coinbase.default_prev_blockhash {
-          Default::default()
-        } else {
-          self
-            .blocks
-            .last()
-            .map(Block::block_hash)
-            .unwrap_or_default()
-        },
+        prev_blockhash: self
+          .blocks
+          .last()
+          .map(Block::block_hash)
+          .unwrap_or_default(),
         merkle_root: Default::default(),
         time: 0,
         bits: 0,
@@ -287,51 +278,5 @@ impl Test {
     block.txdata.push(tx);
 
     self
-  }
-
-  fn blockfile(mut self) -> Self {
-    self.blockfiles.push(self.blocks.len());
-    self
-  }
-
-  fn create_blockfiles(&self) -> io::Result<()> {
-    let blocksdir = self.tempdir.path().join("blocks");
-    fs::create_dir_all(&blocksdir)?;
-
-    let mut start = 0;
-
-    for (i, end) in self
-      .blockfiles
-      .iter()
-      .copied()
-      .chain(iter::once(self.blocks.len()))
-      .enumerate()
-    {
-      let mut blockfile = File::create(blocksdir.join(format!("blk{:05}.dat", i)))?;
-
-      let blocks = self.blocks[start..end].iter().enumerate();
-
-      let blocks: Box<dyn std::iter::Iterator<Item = (usize, &Block)>> = if self.reverse_blockfiles
-      {
-        Box::new(blocks.rev())
-      } else {
-        Box::new(blocks)
-      };
-
-      for (bi, block) in blocks {
-        let mut encoded = Vec::new();
-        block.consensus_encode(&mut encoded)?;
-        blockfile.write_all(&Network::Bitcoin.magic().to_le_bytes())?;
-        blockfile.write_all(&(encoded.len() as u32).to_le_bytes())?;
-        blockfile.write_all(&encoded)?;
-        for (ti, tx) in block.txdata.iter().enumerate() {
-          eprintln!("{bi}.{ti}: {}", tx.txid());
-        }
-      }
-
-      start = end;
-    }
-
-    Ok(())
   }
 }
