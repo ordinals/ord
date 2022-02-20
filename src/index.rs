@@ -161,99 +161,80 @@ impl Index {
           }
         }
 
-        for (vout, output) in tx.output.iter().enumerate() {
-          let outpoint = OutPoint {
-            txid: tx.txid(),
-            vout: vout as u32,
-          };
-          let mut outpoint_encoded = Vec::new();
-          outpoint.consensus_encode(&mut outpoint_encoded)?;
+        self.index_transaction(
+          tx,
+          &mut input_ordinal_ranges,
+          &mut outpoint_to_ordinal_ranges,
+          &mut ordinal_to_satpoint,
+        )?;
 
-          let mut ordinals = Vec::new();
-
-          let mut remaining = output.value;
-          while remaining > 0 {
-            let range = input_ordinal_ranges
-              .pop_front()
-              .ok_or("Found transaction with outputs but no inputs")?;
-
-            let count = range.1 - range.0;
-
-            let assigned = if count > remaining {
-              let middle = range.0 + remaining;
-              input_ordinal_ranges.push_front((middle, range.1));
-              (range.0, middle)
-            } else {
-              range
-            };
-
-            let mut satpoint = Vec::new();
-            SatPoint {
-              offset: output.value - remaining,
-              outpoint,
-            }
-            .consensus_encode(&mut satpoint)?;
-            ordinal_to_satpoint.insert(&assigned.0, &satpoint)?;
-
-            ordinals.extend_from_slice(&assigned.0.to_le_bytes());
-            ordinals.extend_from_slice(&assigned.1.to_le_bytes());
-
-            remaining -= assigned.1 - assigned.0;
-          }
-
-          outpoint_to_ordinal_ranges.insert(&outpoint_encoded, &ordinals)?;
-        }
-
-        coinbase_inputs.extend(&input_ordinal_ranges);
+        coinbase_inputs.extend(input_ordinal_ranges);
       }
 
       if let Some(tx) = block.txdata.first() {
-        for (vout, output) in tx.output.iter().enumerate() {
-          let outpoint = OutPoint {
-            txid: tx.txid(),
-            vout: vout as u32,
-          };
-          let mut outpoint_encoded = Vec::new();
-          outpoint.consensus_encode(&mut outpoint_encoded)?;
-
-          let mut ordinals = Vec::new();
-
-          let mut remaining = output.value;
-          while remaining > 0 {
-            let range = coinbase_inputs
-              .pop_front()
-              .ok_or("Insufficient inputs for coinbase transaction outputs")?;
-
-            let count = range.1 - range.0;
-
-            let assigned = if count > remaining {
-              let middle = range.0 + remaining;
-              coinbase_inputs.push_front((middle, range.1));
-              (range.0, middle)
-            } else {
-              range
-            };
-
-            let mut satpoint = Vec::new();
-            SatPoint {
-              offset: output.value - remaining,
-              outpoint,
-            }
-            .consensus_encode(&mut satpoint)?;
-            ordinal_to_satpoint.insert(&assigned.0, &satpoint)?;
-
-            ordinals.extend_from_slice(&assigned.0.to_le_bytes());
-            ordinals.extend_from_slice(&assigned.1.to_le_bytes());
-
-            remaining -= assigned.1 - assigned.0;
-          }
-
-          outpoint_to_ordinal_ranges.insert(&outpoint_encoded, &ordinals)?;
-        }
+        self.index_transaction(
+          tx,
+          &mut coinbase_inputs,
+          &mut outpoint_to_ordinal_ranges,
+          &mut ordinal_to_satpoint,
+        )?;
       }
 
       height_to_hash.insert(&height, &block.block_hash())?;
       wtx.commit()?;
+    }
+
+    Ok(())
+  }
+
+  fn index_transaction(
+    &self,
+    tx: &Transaction,
+    input_ordinal_ranges: &mut VecDeque<(u64, u64)>,
+    outpoint_to_ordinal_ranges: &mut Table<[u8], [u8]>,
+    ordinal_to_satpoint: &mut Table<u64, [u8]>,
+  ) -> Result {
+    for (vout, output) in tx.output.iter().enumerate() {
+      let outpoint = OutPoint {
+        txid: tx.txid(),
+        vout: vout as u32,
+      };
+      let mut outpoint_encoded = Vec::new();
+      outpoint.consensus_encode(&mut outpoint_encoded)?;
+
+      let mut ordinals = Vec::new();
+
+      let mut remaining = output.value;
+      while remaining > 0 {
+        let range = input_ordinal_ranges
+          .pop_front()
+          .ok_or("Insufficient inputs for transaction outputs")?;
+
+        let count = range.1 - range.0;
+
+        let assigned = if count > remaining {
+          let middle = range.0 + remaining;
+          input_ordinal_ranges.push_front((middle, range.1));
+          (range.0, middle)
+        } else {
+          range
+        };
+
+        let mut satpoint = Vec::new();
+        SatPoint {
+          offset: output.value - remaining,
+          outpoint,
+        }
+        .consensus_encode(&mut satpoint)?;
+        ordinal_to_satpoint.insert(&assigned.0, &satpoint)?;
+
+        ordinals.extend_from_slice(&assigned.0.to_le_bytes());
+        ordinals.extend_from_slice(&assigned.1.to_le_bytes());
+
+        remaining -= assigned.1 - assigned.0;
+      }
+
+      outpoint_to_ordinal_ranges.insert(&outpoint_encoded, &ordinals)?;
     }
 
     Ok(())

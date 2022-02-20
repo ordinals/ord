@@ -11,7 +11,7 @@ use {
   derive_more::{Display, FromStr},
   integer_cbrt::IntegerCubeRoot,
   integer_sqrt::IntegerSquareRoot,
-  redb::{Database, ReadableTable, TableDefinition},
+  redb::{Database, ReadableTable, Table, TableDefinition},
   std::{
     cell::Cell,
     cmp::Ordering,
