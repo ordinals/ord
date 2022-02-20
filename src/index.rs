@@ -187,19 +187,18 @@ impl Index {
               range
             };
 
-            remaining -= assigned.1 - assigned.0;
-
             let mut satpoint = Vec::new();
             SatPoint {
-              offset: output.value - remaining - 1,
+              offset: output.value - remaining,
               outpoint,
             }
             .consensus_encode(&mut satpoint)?;
-
-            ordinal_to_satpoint.insert(&(assigned.1 - 1), &satpoint)?;
+            ordinal_to_satpoint.insert(&assigned.0, &satpoint)?;
 
             ordinals.extend_from_slice(&assigned.0.to_le_bytes());
             ordinals.extend_from_slice(&assigned.1.to_le_bytes());
+
+            remaining -= assigned.1 - assigned.0;
           }
 
           outpoint_to_ordinal_ranges.insert(&outpoint_encoded, &ordinals)?;
@@ -235,19 +234,18 @@ impl Index {
               range
             };
 
-            remaining -= assigned.1 - assigned.0;
-
             let mut satpoint = Vec::new();
             SatPoint {
-              offset: output.value - remaining - 1,
+              offset: output.value - remaining,
               outpoint,
             }
             .consensus_encode(&mut satpoint)?;
-
-            ordinal_to_satpoint.insert(&(assigned.1 - 1), &satpoint)?;
+            ordinal_to_satpoint.insert(&assigned.0, &satpoint)?;
 
             ordinals.extend_from_slice(&assigned.0.to_le_bytes());
             ordinals.extend_from_slice(&assigned.1.to_le_bytes());
+
+            remaining -= assigned.1 - assigned.0;
           }
 
           outpoint_to_ordinal_ranges.insert(&outpoint_encoded, &ordinals)?;
@@ -275,12 +273,12 @@ impl Index {
     let rtx = self.database.begin_read()?;
     let ordinal_to_satpoint = rtx.open_table(&Self::ORDINAL_TO_SATPOINT)?;
 
-    match ordinal_to_satpoint.range(ordinal.0..)?.next() {
-      Some((end_ordinal, end_satpoint)) => {
-        let end_satpoint = SatPoint::consensus_decode(end_satpoint)?;
+    match ordinal_to_satpoint.range_reversed(0..=ordinal.0)?.next() {
+      Some((start_ordinal, start_satpoint)) => {
+        let start_satpoint = SatPoint::consensus_decode(start_satpoint)?;
         Ok(Some(SatPoint {
-          offset: end_satpoint.offset - (end_ordinal - ordinal.0),
-          outpoint: end_satpoint.outpoint,
+          offset: start_satpoint.offset + (ordinal.0 - start_ordinal),
+          outpoint: start_satpoint.outpoint,
         }))
       }
       None => Ok(None),
