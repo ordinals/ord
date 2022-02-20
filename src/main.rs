@@ -3,7 +3,10 @@ use {
     arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height, index::Index,
     options::Options, ordinal::Ordinal, sat_point::SatPoint, subcommand::Subcommand,
   },
-  bitcoin::{blockdata::constants::COIN_VALUE, consensus::Encodable, Block, OutPoint, Transaction},
+  bitcoin::{
+    blockdata::constants::COIN_VALUE, consensus::Decodable, consensus::Encodable, Block, OutPoint,
+    Transaction,
+  },
   clap::Parser,
   derive_more::{Display, FromStr},
   integer_cbrt::IntegerCubeRoot,

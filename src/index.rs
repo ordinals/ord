@@ -3,6 +3,9 @@ use {
   bitcoincore_rpc::{Auth, Client, RpcApi},
 };
 
+// TODO:
+// - add tests that check find results against list results
+
 pub(crate) struct Index {
   client: Client,
   database: Database,
@@ -14,6 +17,8 @@ impl Index {
     TableDefinition::new("HEIGHT_TO_HASH");
   const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<'static, [u8], [u8]> =
     TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
+  const ORDINAL_TO_SATPOINT: TableDefinition<'static, u64, [u8]> =
+    TableDefinition::new("ORDINAL_TO_SATPOINT");
 
   pub(crate) fn open(options: Options) -> Result<Self> {
     let client = Client::new(
@@ -128,6 +133,7 @@ impl Index {
       }
 
       let mut outpoint_to_ordinal_ranges = wtx.open_table(&Self::OUTPOINT_TO_ORDINAL_RANGES)?;
+      let mut ordinal_to_satpoint = wtx.open_table(&Self::ORDINAL_TO_SATPOINT)?;
 
       let mut coinbase_inputs = VecDeque::new();
 
@@ -156,6 +162,13 @@ impl Index {
         }
 
         for (vout, output) in tx.output.iter().enumerate() {
+          let outpoint = OutPoint {
+            txid: tx.txid(),
+            vout: vout as u32,
+          };
+          let mut outpoint_encoded = Vec::new();
+          outpoint.consensus_encode(&mut outpoint_encoded)?;
+
           let mut ordinals = Vec::new();
 
           let mut remaining = output.value;
@@ -174,21 +187,22 @@ impl Index {
               range
             };
 
+            remaining -= assigned.1 - assigned.0;
+
+            let mut satpoint = Vec::new();
+            SatPoint {
+              offset: output.value - remaining - 1,
+              outpoint,
+            }
+            .consensus_encode(&mut satpoint)?;
+
+            ordinal_to_satpoint.insert(&(assigned.1 - 1), &satpoint)?;
+
             ordinals.extend_from_slice(&assigned.0.to_le_bytes());
             ordinals.extend_from_slice(&assigned.1.to_le_bytes());
-
-            remaining -= assigned.1 - assigned.0;
           }
 
-          let outpoint = OutPoint {
-            txid: tx.txid(),
-            vout: vout as u32,
-          };
-
-          let mut key = Vec::new();
-          outpoint.consensus_encode(&mut key)?;
-
-          outpoint_to_ordinal_ranges.insert(&key, &ordinals)?;
+          outpoint_to_ordinal_ranges.insert(&outpoint_encoded, &ordinals)?;
         }
 
         coinbase_inputs.extend(&input_ordinal_ranges);
@@ -196,6 +210,13 @@ impl Index {
 
       if let Some(tx) = block.txdata.first() {
         for (vout, output) in tx.output.iter().enumerate() {
+          let outpoint = OutPoint {
+            txid: tx.txid(),
+            vout: vout as u32,
+          };
+          let mut outpoint_encoded = Vec::new();
+          outpoint.consensus_encode(&mut outpoint_encoded)?;
+
           let mut ordinals = Vec::new();
 
           let mut remaining = output.value;
@@ -214,21 +235,22 @@ impl Index {
               range
             };
 
+            remaining -= assigned.1 - assigned.0;
+
+            let mut satpoint = Vec::new();
+            SatPoint {
+              offset: output.value - remaining - 1,
+              outpoint,
+            }
+            .consensus_encode(&mut satpoint)?;
+
+            ordinal_to_satpoint.insert(&(assigned.1 - 1), &satpoint)?;
+
             ordinals.extend_from_slice(&assigned.0.to_le_bytes());
             ordinals.extend_from_slice(&assigned.1.to_le_bytes());
-
-            remaining -= assigned.1 - assigned.0;
           }
 
-          let outpoint = OutPoint {
-            txid: tx.txid(),
-            vout: vout as u32,
-          };
-
-          let mut key = Vec::new();
-          outpoint.consensus_encode(&mut key)?;
-
-          outpoint_to_ordinal_ranges.insert(&key, &ordinals)?;
+          outpoint_to_ordinal_ranges.insert(&outpoint_encoded, &ordinals)?;
         }
       }
 
@@ -246,6 +268,22 @@ impl Index {
         jsonrpc::error::RpcError { code: -8, .. },
       ))) => Ok(None),
       Err(err) => Err(err.into()),
+    }
+  }
+
+  pub(crate) fn find(&self, ordinal: Ordinal) -> Result<Option<SatPoint>> {
+    let rtx = self.database.begin_read()?;
+    let ordinal_to_satpoint = rtx.open_table(&Self::ORDINAL_TO_SATPOINT)?;
+
+    match ordinal_to_satpoint.range(ordinal.0..)?.next() {
+      Some((end_ordinal, end_satpoint)) => {
+        let end_satpoint = SatPoint::consensus_decode(end_satpoint)?;
+        Ok(Some(SatPoint {
+          offset: end_satpoint.offset - (end_ordinal - ordinal.0),
+          outpoint: end_satpoint.outpoint,
+        }))
+      }
+      None => Ok(None),
     }
   }
 

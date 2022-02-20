@@ -11,7 +11,17 @@ pub(crate) struct Find {
 
 impl Find {
   pub(crate) fn run(self, options: Options) -> Result<()> {
-    let index = Index::open(options)?;
+    let index = Index::index(options)?;
+
+    if !self.slot {
+      match index.find(self.ordinal)? {
+        Some(satpoint) => {
+          println!("{satpoint}");
+          return Ok(());
+        }
+        None => panic!(),
+      }
+    }
 
     let creation_height = self.ordinal.height().n();
     let block = index.block(creation_height)?.unwrap();
