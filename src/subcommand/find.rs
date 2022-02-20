@@ -9,6 +9,12 @@ pub(crate) struct Find {
   ordinal: Ordinal,
 }
 
+// TODO:
+// - add tests that check find results against list results
+// - fix or remove --as-of-height
+// - key should be ordinal / block / txindex
+// 0..=(ordinal, block, txindex)
+
 impl Find {
   pub(crate) fn run(self, options: Options) -> Result<()> {
     let index = Index::index(options)?;

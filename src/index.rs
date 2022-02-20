@@ -3,9 +3,6 @@ use {
   bitcoincore_rpc::{Auth, Client, RpcApi},
 };
 
-// TODO:
-// - add tests that check find results against list results
-
 pub(crate) struct Index {
   client: Client,
   database: Database,
