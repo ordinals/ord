@@ -270,10 +270,9 @@ impl Index {
       Err(err) => return Err(err.into()),
     };
 
-    if let Some((height, _hash)) = height_to_hash.range_reversed(0..)?.next() {
-      if height < ordinal.height().0 {
-        return Ok(None);
-      }
+    match height_to_hash.range_reversed(0..)?.next() {
+      Some((height, _hash)) if height >= ordinal.height().0 => {}
+      _ => return Ok(None),
     }
 
     let key_to_satpoint = match rtx.open_table(&Self::KEY_TO_SATPOINT) {
