@@ -13,39 +13,42 @@ current owner can sign a message proving that they own a given UTXO, which also
 serves as proof of ownership of all the NFTs assigned to satoshis within that
 UTXO.
 
+See [the BIP](bip.mediawiki) for a comprehensive description of the assignment
+and transfer algorithm.
+
 ## Index and Caveats
 
-The `ord` command builds an index using the contents of a local `bitcoind`'s
-data directory, which must be halted while the index is built. Currently, the
-index is built every time the `ord` runs, but that is a temporary limitation.
-Reorgs are also not properly handled.
+The `ord` command queries `bitcoind` for block data. Most commands require
+`--rpc-url` and `--cookie-file`, which take the URL of a `bitcoind`'s JSON RPC
+API and authentication cookie file respectively.
 
 The index is stored in `index.redb`, and should not be concurrently modified
 while an instance of `ord` is running, or used by two `ord` instances
 simultaneously.
 
+Currently, reorganizations are detected but not handled, the index is slow to
+build and space-inefficient, and the full main chain has not yet been indexed.
+
 ## Numbering
 
 Satoshis are assigned ordinal numbers in the order in which they are mined.
 Ordinals start at 0, for the first satoshi of the genesis block, and end with
-2099999997689999, the only satoshi mined in block 6929999, the last block with
-a subsidy.
+2099999997689999, the only satoshi mined in block 6929999, the last
+subsidy-paying block.
 
 Ordinals depend only on how many satoshis *could* have been mined in previous
 blocks, not how many were *actually* mined.
 
-In particular, this means that block 124724, which underpaid the block subsidy
-by one satoshi, does not reduce the ordinals of satoshis in subsequent blocks.
+In particular, this means that block 124724, which underpaid the subsidy by one
+satoshi, does not reduce the ordinal ranges of subsequent blocks.
 
-The `range` command gives the half-open range of ordinals mined in the block at
-a given height:
+The `range` command gives the half-open range of ordinals that could be mined
+in the block at a given height:
 
 ```
 $ ord range 0
 [0,5000000000)
 ```
-
-See [src/range.rs](src/range.rs) for the numbering algorithm.
 
 ## Transfer
 
@@ -56,38 +59,14 @@ Satoshis paid as fees are considered to be inputs to the coinbase transaction,
 after an implicit input containing the block subsidy, in the same order that
 their parent transactions appear in the block.
 
-```rust
-fn transfer(transaction: Transaction) {
-  let mut ordinals: Vec<u64> = Vec::new();
-
-  for input in transaction.inputs {
-    for ordinal in input.ordinals {
-      ordinals.push(ordinal);
-    }
-  }
-
-  for output in transaction.outputs {
-    for ordinal in &ordinals[0..output.value] {
-      output.ordinals.push(ordinal);
-    }
-    ordinals = ordinals.split_off(output.value);
-  }
-
-  for ordinal in ordinals {
-    coinbase.input.ordinals.push(ordinals);
-  }
-}
-```
-
 If the coinbase transaction underpays the block subsidy or fees, those
-satoshis, along with their ordinal numbers, are destroyed and taken out of
-circulation.
+satoshis, along with their ordinal numbers, are permanently destroyed.
 
-The `find` command, as of yet unfinished, gives the current satpoint containing
-the satoshi with a given ordinal at a given height:
+The `find` command gives the satpoint containing the satoshi with a given
+ordinal:
 
 ```
-$ ord find --blocksdir ~/.bicoin/blocks 0 0
+$ ord find 0
 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0
 ```
 
@@ -99,9 +78,7 @@ satoshi within a particular output.
 
 Satoshis have traits, based on their ordinal.
 
-NB: Traits should be considered *UNSTABLE*. In particular, the satoshis with
-short names will not be available for quite some time, which might be desirable
-to fix, and would require an overhaul of the name trait.
+NB: Traits should be considered *UNSTABLE* and subject to change.
 
 The `traits` command prints out the traits of the satoshi with the given
 ordinal:
