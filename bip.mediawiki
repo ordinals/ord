@@ -83,6 +83,20 @@ def assign_ordinals(block):
     del coinbase_ordinals[:output.value]
 </pre>
 
+=== Terminology and Notation ===
+
+Ordinals may be written as the ordinal number followed by the Romance-language ordinal indicator °, for example 13°.
+
+A satpoint may be used to indicate the location of an ordinal within an output. A satpoint consists of an outpoint, i.e., a transaction ID and output index, with the addition of the offset of the ordinal within that output. For example, if the ordinal in question is at offset 6 in the first output of a transaction can be written as:
+
+`680df1e4d43016571e504b0b142ee43c5c0b83398a97bdcfd94ea6f287322d22:0:6`
+
+A slot may be used to indicate the output of an ordinal without referring to a transaction ID, by substituting the block height and transaction index within the block for the transaction ID. It is written as a dotted quad. For example, the ordinal at offset 100 in the output at offset 1, in the coinbase transaction of block 83 can be written as:
+
+`83.0.1.100`
+
+Satoshis with ordinals that are not valuable or notable can be referred to as cardinal, as their identity does not matter, only the amount. A cardinal output is one whose ordinals are unimportant for the purpose at hand, for example an output used only to provide padding to avoid creating a transaction with an output below the dust limit.
+
 == Discussion ==
 
 === Rationale ===
