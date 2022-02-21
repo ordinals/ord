@@ -58,7 +58,8 @@ impl Index {
     let height_to_hash = tx.open_table(&Self::HEIGHT_TO_HASH)?;
 
     let blocks_indexed = height_to_hash
-      .range_reversed(0..)?
+      .range(0..)?
+      .rev()
       .next()
       .map(|(height, _hash)| height + 1)
       .unwrap_or(0);
@@ -103,7 +104,8 @@ impl Index {
 
       let mut height_to_hash = wtx.open_table(&Self::HEIGHT_TO_HASH)?;
       let height = height_to_hash
-        .range_reversed(0..)?
+        .range(0..)?
+        .rev()
         .next()
         .map(|(height, _hash)| height + 1)
         .unwrap_or(0);
@@ -270,7 +272,7 @@ impl Index {
       Err(err) => return Err(err.into()),
     };
 
-    match height_to_hash.range_reversed(0..)?.next() {
+    match height_to_hash.range(0..)?.rev().next() {
       Some((height, _hash)) if height >= ordinal.height().0 => {}
       _ => return Ok(None),
     }
@@ -282,7 +284,8 @@ impl Index {
     };
 
     match key_to_satpoint
-      .range_reversed([].as_slice()..=Key::new(ordinal).encode().as_slice())?
+      .range([].as_slice()..=Key::new(ordinal).encode().as_slice())?
+      .rev()
       .next()
     {
       Some((start_key, start_satpoint)) => {
