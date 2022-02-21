@@ -107,6 +107,14 @@ Ordinals are fairly assigned. They are not premined, and are assigned proportion
 
 Ordinals are as granular as possible, as bitcoin is not capable of tracking ownership of sub-satoshi values.
 
+=== Transfer and the Dust Limit ===
+
+Any ordinal transfer can be accomplished in a single transaction, but the resulting transaction may contain outputs below the dust limit, and thus be non-standard and difficult to get included in a block. Consider a scenario where Alice owns an output containing the range of ordinals [0,10], the current dust limit is 5 satoshis, and Alice wishes to send send ordinals 4° and 6° to Bob, but retain ordinal 5°. Alice could construct a transaction with three outputs of size 5, 1, and 5, containing ordinals [0,4], 5, and [6,10]. The second output is under the dust limit, and so such a transaction would be non-standard.
+
+This transfer, and indeed any transfer, can be accomplished by breaking the transfer into multiple transactions, with each transaction performing one or more splits and merging in padding outputs as needed.
+
+To wit, Alice could perform the desired transfer in two transactions. The first transaction would send ordinals [0,4] to Bob, and return as change ordinals [5,10] to Alice. The second transaction would take as inputs an output of at least 4 satoshis, the change input, and an additional input of at least one satoshi; and create an output of size 5 to Bob's address, and the remainder as a change output. Both transactions avoid creating any non-standard outputs, but still accomplish the same desired transfer of ordinals.
+
 === Objections ===
 
 ''Privacy: Ordinal numbers are public and thus reduce user privacy.''
@@ -157,7 +165,7 @@ Since ordinals are borne by outputs, they can be encumbered by covenants. [https
 
 ==== The Lightning Network ====
 
-The Lightning Network cannot be used to selectively transfer individual non-fungable ordinals, however it can be used to transfer arbitrary amounts of fungible ordinals. Channels can be created with inputs whose ordinals are all colored coins of the same type, for example colored coins honored for redemption by a stablecoin issuer. These channels can be used to conduct instant, low-fee USD-denominated off-chain payments, and would require only modest changes to existing Lightning Network nodes.
+The Lightning Network cannot be used to selectively transfer individual non-fungible ordinals, however it can be used to transfer arbitrary amounts of fungible ordinals. Channels can be created with inputs whose ordinals are all colored coins of the same type, for example colored coins honored for redemption by a stablecoin issuer. These channels can be used to conduct instant, low-fee USD-denominated off-chain payments, and would require only modest changes to existing Lightning Network nodes.
 
 On channel close, fees would have to be paid by child-pays-for-parent, to avoid paying stablecoin ordinals as fees.
 
