@@ -18,7 +18,7 @@ integer-cbrt = "0.1.2"
 integer-sqrt = "0.1.5"
 jsonrpc = "0.12.1"
 log = "0.4.14"
-redb = { version = "0.0.4", git = "https://github.com/cberner/redb.git" }
+redb = "0.0.5"
 
 [dev-dependencies]
 criterion = "0.3.5"
