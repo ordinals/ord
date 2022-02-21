@@ -85,7 +85,7 @@ def assign_ordinals(block):
 
 === Terminology and Notation ===
 
-Ordinals may be written as the ordinal number followed by the Romance-language ordinal indcator °, for example 13°.
+Ordinals may be written as the ordinal number followed by the Romance-language ordinal indicator °, for example 13°.
 
 A satpoint may be used to indicate the location of an ordinal within an output. A satpoint consists of an outpoint, i.e., a transaction ID and output index, with the addition of the offset of the ordinal within that output. For example, if the ordinal in question is at offset 6 in the first output of a transaction can be written as:
 
@@ -95,7 +95,7 @@ A slot may be used to indicate the output of an ordinal without referring to a t
 
 `83.0.1.100`
 
-Satoshis with ordinals that are not valuable or notable can be refered to as cardinal, as their identity does not matter, only the amount.
+Satoshis with ordinals that are not valuable or notable can be referred to as cardinal, as their identity does not matter, only the amount.
 
 == Discussion ==
 
