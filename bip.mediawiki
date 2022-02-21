@@ -113,7 +113,7 @@ Any ordinal transfer can be accomplished in a single transaction, but the result
 
 This transfer, and indeed any transfer, can be accomplished by breaking the transfer into multiple transactions, with each transaction performing one or more splits and merging in padding outputs as needed.
 
-Alice could perform the desired transfer in two transactions. The first transaction would send ordinals [0,4] to Bob, and return as change ordinals [5,10] to Alice. The second transaction would take as inputs an output of at least 4 satoshis, the change input, and an additional input of at least one satoshi; and create an outputs of size 5 to Bob's address, and the remainder as change. Both transactions avoid creating any non-standard outputs, but still accomplish the same desired transfer of ordinals.
+To wit, Alice could perform the desired transfer in two transactions. The first transaction would send ordinals [0,4] to Bob, and return as change ordinals [5,10] to Alice. The second transaction would take as inputs an output of at least 4 satoshis, the change input, and an additional input of at least one satoshi; and create an output of size 5 to Bob's address, and the remainder as a change output. Both transactions avoid creating any non-standard outputs, but still accomplish the same desired transfer of ordinals.
 
 === Objections ===
 
