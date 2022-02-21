@@ -15,6 +15,7 @@ fn basic() -> Result {
         stored: .* bytes
         overhead: .* bytes
         fragmented: .* KiB
+        index size: 1 MiB
       "
       .unindent(),
     )

@@ -77,6 +77,11 @@ impl Index {
     println!("stored: {}", Bytes(stats.stored_bytes()));
     println!("overhead: {}", Bytes(stats.overhead_bytes()));
     println!("fragmented: {}", Bytes(stats.fragmented_bytes()));
+    println!(
+      "index size: {}",
+      Bytes(std::fs::metadata("index.redb")?.len().try_into()?)
+    );
+
     Ok(())
   }
 
