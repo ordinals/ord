@@ -10,9 +10,7 @@ pub(crate) struct Find {
 }
 
 // TODO:
-// - add tests that check find results against list results
 // - fix or remove --as-of-height
-// - add test for missing satpoint
 // - make --as-of-height optional
 
 impl Find {
@@ -29,10 +27,9 @@ impl Find {
         } else {
           println!("{satpoint}");
         }
+        Ok(())
       }
-      None => panic!(),
+      None => Err("Ordinal has not been mined as of index height".into()),
     }
-
-    Ok(())
   }
 }

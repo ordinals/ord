@@ -23,12 +23,28 @@ impl Key {
     buffer
   }
 
-  pub(crate) fn decode(buffer: &[u8]) -> Self {
-    // Todo: hanlde errors
-    Key {
+  pub(crate) fn decode(buffer: &[u8]) -> Result<Self> {
+    if buffer.len() != 24 {
+      return Err("Buffer too small to decode key from".into());
+    }
+
+    Ok(Key {
       ordinal: u64::from_be_bytes(buffer[0..8].try_into().unwrap()),
       block: u64::from_be_bytes(buffer[8..16].try_into().unwrap()),
       transaction: u64::from_be_bytes(buffer[16..24].try_into().unwrap()),
-    }
+    })
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn decode_error() {
+    assert_eq!(
+      Key::decode(&[]).err().unwrap().to_string(),
+      "Buffer too small to decode key from"
+    );
   }
 }

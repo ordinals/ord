@@ -118,3 +118,22 @@ fn mining_and_spending_transaction_in_same_block() -> Result {
     .expected_stdout("1.2.0.0\n")
     .run()
 }
+
+#[test]
+fn empty_index() -> Result {
+  Test::new()?
+    .expected_stderr("error: Ordinal has not been mined as of index height\n")
+    .expected_status(1)
+    .command("find 0 --as-of-height 0")
+    .run()
+}
+
+#[test]
+fn unmined_satoshi() -> Result {
+  Test::new()?
+    .block()
+    .expected_stderr("error: Ordinal has not been mined as of index height\n")
+    .expected_status(1)
+    .command("find 5000000000 --as-of-height 1")
+    .run()
+}

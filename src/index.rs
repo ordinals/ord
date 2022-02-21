@@ -263,7 +263,27 @@ impl Index {
 
   pub(crate) fn find(&self, ordinal: Ordinal) -> Result<Option<(u64, u64, SatPoint)>> {
     let rtx = self.database.begin_read()?;
-    let key_to_satpoint = rtx.open_table(&Self::KEY_TO_SATPOINT)?;
+
+    let height_to_hash = match rtx.open_table(&Self::HEIGHT_TO_HASH) {
+      Ok(height_to_hash) => height_to_hash,
+      Err(redb::Error::TableDoesNotExist(_)) => return Ok(None),
+      Err(err) => return Err(err.into()),
+    };
+
+    match height_to_hash.range_reversed(0..)?.next() {
+      Some((height, _hash)) => {
+        if height < ordinal.height().0 {
+          return Ok(None);
+        }
+      }
+      _ => {}
+    }
+
+    let key_to_satpoint = match rtx.open_table(&Self::KEY_TO_SATPOINT) {
+      Ok(key_to_satpoint) => key_to_satpoint,
+      Err(redb::Error::TableDoesNotExist(_)) => return Ok(None),
+      Err(err) => return Err(err.into()),
+    };
 
     match key_to_satpoint
       .range_reversed([].as_slice()..=Key::new(ordinal).encode().as_slice())?
@@ -271,7 +291,7 @@ impl Index {
     {
       Some((start_key, start_satpoint)) => {
         let start_satpoint = SatPoint::consensus_decode(start_satpoint)?;
-        let start_key = Key::decode(start_key);
+        let start_key = Key::decode(start_key)?;
         Ok(Some((
           start_key.block,
           start_key.transaction,
