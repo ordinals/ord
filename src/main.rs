@@ -1,14 +1,17 @@
 use {
   crate::{
-    arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height, index::Index,
+    arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height, index::Index, key::Key,
     options::Options, ordinal::Ordinal, sat_point::SatPoint, subcommand::Subcommand,
   },
-  bitcoin::{blockdata::constants::COIN_VALUE, consensus::Encodable, Block, OutPoint, Transaction},
+  bitcoin::{
+    blockdata::constants::COIN_VALUE, consensus::Decodable, consensus::Encodable, Block, OutPoint,
+    Transaction,
+  },
   clap::Parser,
   derive_more::{Display, FromStr},
   integer_cbrt::IntegerCubeRoot,
   integer_sqrt::IntegerSquareRoot,
-  redb::{Database, ReadableTable, TableDefinition},
+  redb::{Database, ReadableTable, Table, TableDefinition},
   std::{
     cell::Cell,
     cmp::Ordering,
@@ -28,6 +31,7 @@ mod bytes;
 mod epoch;
 mod height;
 mod index;
+mod key;
 mod options;
 mod ordinal;
 mod sat_point;

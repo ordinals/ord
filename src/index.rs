@@ -14,6 +14,8 @@ impl Index {
     TableDefinition::new("HEIGHT_TO_HASH");
   const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<'static, [u8], [u8]> =
     TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
+  const KEY_TO_SATPOINT: TableDefinition<'static, [u8], [u8]> =
+    TableDefinition::new("KEY_TO_SATPOINT");
 
   pub(crate) fn open(options: Options) -> Result<Self> {
     let client = Client::new(
@@ -128,6 +130,7 @@ impl Index {
       }
 
       let mut outpoint_to_ordinal_ranges = wtx.open_table(&Self::OUTPOINT_TO_ORDINAL_RANGES)?;
+      let mut key_to_satpoint = wtx.open_table(&Self::KEY_TO_SATPOINT)?;
 
       let mut coinbase_inputs = VecDeque::new();
 
@@ -137,7 +140,7 @@ impl Index {
         coinbase_inputs.push_front((start.n(), (start + h.subsidy()).n()));
       }
 
-      for tx in block.txdata.iter().skip(1) {
+      for (tx_offset, tx) in block.txdata.iter().enumerate().skip(1) {
         let mut input_ordinal_ranges = VecDeque::new();
 
         for input in &tx.input {
@@ -155,85 +158,94 @@ impl Index {
           }
         }
 
-        for (vout, output) in tx.output.iter().enumerate() {
-          let mut ordinals = Vec::new();
+        self.index_transaction(
+          height,
+          tx_offset as u64,
+          tx,
+          &mut input_ordinal_ranges,
+          &mut outpoint_to_ordinal_ranges,
+          &mut key_to_satpoint,
+        )?;
 
-          let mut remaining = output.value;
-          while remaining > 0 {
-            let range = input_ordinal_ranges
-              .pop_front()
-              .ok_or("Found transaction with outputs but no inputs")?;
-
-            let count = range.1 - range.0;
-
-            let assigned = if count > remaining {
-              let middle = range.0 + remaining;
-              input_ordinal_ranges.push_front((middle, range.1));
-              (range.0, middle)
-            } else {
-              range
-            };
-
-            ordinals.extend_from_slice(&assigned.0.to_le_bytes());
-            ordinals.extend_from_slice(&assigned.1.to_le_bytes());
-
-            remaining -= assigned.1 - assigned.0;
-          }
-
-          let outpoint = OutPoint {
-            txid: tx.txid(),
-            vout: vout as u32,
-          };
-
-          let mut key = Vec::new();
-          outpoint.consensus_encode(&mut key)?;
-
-          outpoint_to_ordinal_ranges.insert(&key, &ordinals)?;
-        }
-
-        coinbase_inputs.extend(&input_ordinal_ranges);
+        coinbase_inputs.extend(input_ordinal_ranges);
       }
 
       if let Some(tx) = block.txdata.first() {
-        for (vout, output) in tx.output.iter().enumerate() {
-          let mut ordinals = Vec::new();
-
-          let mut remaining = output.value;
-          while remaining > 0 {
-            let range = coinbase_inputs
-              .pop_front()
-              .ok_or("Insufficient inputs for coinbase transaction outputs")?;
-
-            let count = range.1 - range.0;
-
-            let assigned = if count > remaining {
-              let middle = range.0 + remaining;
-              coinbase_inputs.push_front((middle, range.1));
-              (range.0, middle)
-            } else {
-              range
-            };
-
-            ordinals.extend_from_slice(&assigned.0.to_le_bytes());
-            ordinals.extend_from_slice(&assigned.1.to_le_bytes());
-
-            remaining -= assigned.1 - assigned.0;
-          }
-
-          let outpoint = OutPoint {
-            txid: tx.txid(),
-            vout: vout as u32,
-          };
-
-          let mut key = Vec::new();
-          outpoint.consensus_encode(&mut key)?;
-
-          outpoint_to_ordinal_ranges.insert(&key, &ordinals)?;
-        }
+        self.index_transaction(
+          height,
+          0,
+          tx,
+          &mut coinbase_inputs,
+          &mut outpoint_to_ordinal_ranges,
+          &mut key_to_satpoint,
+        )?;
       }
 
       height_to_hash.insert(&height, &block.block_hash())?;
       wtx.commit()?;
+    }
+
+    Ok(())
+  }
+
+  fn index_transaction(
+    &self,
+    block: u64,
+    tx_offset: u64,
+    tx: &Transaction,
+    input_ordinal_ranges: &mut VecDeque<(u64, u64)>,
+    outpoint_to_ordinal_ranges: &mut Table<[u8], [u8]>,
+    key_to_satpoint: &mut Table<[u8], [u8]>,
+  ) -> Result {
+    for (vout, output) in tx.output.iter().enumerate() {
+      let outpoint = OutPoint {
+        txid: tx.txid(),
+        vout: vout as u32,
+      };
+      let mut outpoint_encoded = Vec::new();
+      outpoint.consensus_encode(&mut outpoint_encoded)?;
+
+      let mut ordinals = Vec::new();
+
+      let mut remaining = output.value;
+      while remaining > 0 {
+        let range = input_ordinal_ranges
+          .pop_front()
+          .ok_or("Insufficient inputs for transaction outputs")?;
+
+        let count = range.1 - range.0;
+
+        let assigned = if count > remaining {
+          let middle = range.0 + remaining;
+          input_ordinal_ranges.push_front((middle, range.1));
+          (range.0, middle)
+        } else {
+          range
+        };
+
+        let mut satpoint = Vec::new();
+        SatPoint {
+          offset: output.value - remaining,
+          outpoint,
+        }
+        .consensus_encode(&mut satpoint)?;
+        key_to_satpoint.insert(
+          &Key {
+            ordinal: assigned.0,
+            block,
+            transaction: tx_offset,
+          }
+          .encode(),
+          &satpoint,
+        )?;
+
+        ordinals.extend_from_slice(&assigned.0.to_le_bytes());
+        ordinals.extend_from_slice(&assigned.1.to_le_bytes());
+
+        remaining -= assigned.1 - assigned.0;
+      }
+
+      outpoint_to_ordinal_ranges.insert(&outpoint_encoded, &ordinals)?;
     }
 
     Ok(())
@@ -246,6 +258,47 @@ impl Index {
         jsonrpc::error::RpcError { code: -8, .. },
       ))) => Ok(None),
       Err(err) => Err(err.into()),
+    }
+  }
+
+  pub(crate) fn find(&self, ordinal: Ordinal) -> Result<Option<(u64, u64, SatPoint)>> {
+    let rtx = self.database.begin_read()?;
+
+    let height_to_hash = match rtx.open_table(&Self::HEIGHT_TO_HASH) {
+      Ok(height_to_hash) => height_to_hash,
+      Err(redb::Error::TableDoesNotExist(_)) => return Ok(None),
+      Err(err) => return Err(err.into()),
+    };
+
+    if let Some((height, _hash)) = height_to_hash.range_reversed(0..)?.next() {
+      if height < ordinal.height().0 {
+        return Ok(None);
+      }
+    }
+
+    let key_to_satpoint = match rtx.open_table(&Self::KEY_TO_SATPOINT) {
+      Ok(key_to_satpoint) => key_to_satpoint,
+      Err(redb::Error::TableDoesNotExist(_)) => return Ok(None),
+      Err(err) => return Err(err.into()),
+    };
+
+    match key_to_satpoint
+      .range_reversed([].as_slice()..=Key::new(ordinal).encode().as_slice())?
+      .next()
+    {
+      Some((start_key, start_satpoint)) => {
+        let start_key = Key::decode(start_key)?;
+        let start_satpoint = SatPoint::consensus_decode(start_satpoint)?;
+        Ok(Some((
+          start_key.block,
+          start_key.transaction,
+          SatPoint {
+            offset: start_satpoint.offset + (ordinal.0 - start_key.ordinal),
+            outpoint: start_satpoint.outpoint,
+          },
+        )))
+      }
+      None => Ok(None),
     }
   }
 
