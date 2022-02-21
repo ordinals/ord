@@ -3,15 +3,9 @@ use super::*;
 #[derive(Parser)]
 pub(crate) struct Find {
   #[clap(long)]
-  as_of_height: u64,
-  #[clap(long)]
   slot: bool,
   ordinal: Ordinal,
 }
-
-// TODO:
-// - fix or remove --as-of-height
-// - make --as-of-height optional
 
 impl Find {
   pub(crate) fn run(self, options: Options) -> Result<()> {
