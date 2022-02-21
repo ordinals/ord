@@ -270,13 +270,10 @@ impl Index {
       Err(err) => return Err(err.into()),
     };
 
-    match height_to_hash.range_reversed(0..)?.next() {
-      Some((height, _hash)) => {
-        if height < ordinal.height().0 {
-          return Ok(None);
-        }
+    if let Some((height, _hash)) = height_to_hash.range_reversed(0..)?.next() {
+      if height < ordinal.height().0 {
+        return Ok(None);
       }
-      _ => {}
     }
 
     let key_to_satpoint = match rtx.open_table(&Self::KEY_TO_SATPOINT) {
@@ -290,8 +287,8 @@ impl Index {
       .next()
     {
       Some((start_key, start_satpoint)) => {
-        let start_satpoint = SatPoint::consensus_decode(start_satpoint)?;
         let start_key = Key::decode(start_key)?;
+        let start_satpoint = SatPoint::consensus_decode(start_satpoint)?;
         Ok(Some((
           start_key.block,
           start_key.transaction,
