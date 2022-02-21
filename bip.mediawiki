@@ -95,7 +95,7 @@ A slot may be used to indicate the output of an ordinal without referring to a t
 
 `83.0.1.100`
 
-Satoshis with ordinals that are not valuable or notable can be referred to as cardinal, as their identity does not matter, only the amount.
+Satoshis with ordinals that are not valuable or notable can be referred to as cardinal, as their identity does not matter, only the amount. A cardinal output is one whose ordinals are unimportant for the purpose at hand, for example an output used only to provide padding to avoid creating a transaction with an output below the dust limit.
 
 == Discussion ==
 
