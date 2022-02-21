@@ -1,6 +1,6 @@
 use {
   crate::{
-    arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height, index::Index,
+    arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height, index::Index, key::Key,
     options::Options, ordinal::Ordinal, sat_point::SatPoint, subcommand::Subcommand,
   },
   bitcoin::{
@@ -31,6 +31,7 @@ mod bytes;
 mod epoch;
 mod height;
 mod index;
+mod key;
 mod options;
 mod ordinal;
 mod sat_point;

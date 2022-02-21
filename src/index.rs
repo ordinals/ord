@@ -14,8 +14,8 @@ impl Index {
     TableDefinition::new("HEIGHT_TO_HASH");
   const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<'static, [u8], [u8]> =
     TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
-  const ORDINAL_TO_SATPOINT: TableDefinition<'static, u64, [u8]> =
-    TableDefinition::new("ORDINAL_TO_SATPOINT");
+  const KEY_TO_SATPOINT: TableDefinition<'static, [u8], [u8]> =
+    TableDefinition::new("KEY_TO_SATPOINT");
 
   pub(crate) fn open(options: Options) -> Result<Self> {
     let client = Client::new(
@@ -130,7 +130,7 @@ impl Index {
       }
 
       let mut outpoint_to_ordinal_ranges = wtx.open_table(&Self::OUTPOINT_TO_ORDINAL_RANGES)?;
-      let mut ordinal_to_satpoint = wtx.open_table(&Self::ORDINAL_TO_SATPOINT)?;
+      let mut key_to_satpoint = wtx.open_table(&Self::KEY_TO_SATPOINT)?;
 
       let mut coinbase_inputs = VecDeque::new();
 
@@ -140,7 +140,7 @@ impl Index {
         coinbase_inputs.push_front((start.n(), (start + h.subsidy()).n()));
       }
 
-      for tx in block.txdata.iter().skip(1) {
+      for (tx_offset, tx) in block.txdata.iter().enumerate().skip(1) {
         let mut input_ordinal_ranges = VecDeque::new();
 
         for input in &tx.input {
@@ -159,10 +159,12 @@ impl Index {
         }
 
         self.index_transaction(
+          height,
+          tx_offset as u64,
           tx,
           &mut input_ordinal_ranges,
           &mut outpoint_to_ordinal_ranges,
-          &mut ordinal_to_satpoint,
+          &mut key_to_satpoint,
         )?;
 
         coinbase_inputs.extend(input_ordinal_ranges);
@@ -170,10 +172,12 @@ impl Index {
 
       if let Some(tx) = block.txdata.first() {
         self.index_transaction(
+          height,
+          0,
           tx,
           &mut coinbase_inputs,
           &mut outpoint_to_ordinal_ranges,
-          &mut ordinal_to_satpoint,
+          &mut key_to_satpoint,
         )?;
       }
 
@@ -186,10 +190,12 @@ impl Index {
 
   fn index_transaction(
     &self,
+    block: u64,
+    tx_offset: u64,
     tx: &Transaction,
     input_ordinal_ranges: &mut VecDeque<(u64, u64)>,
     outpoint_to_ordinal_ranges: &mut Table<[u8], [u8]>,
-    ordinal_to_satpoint: &mut Table<u64, [u8]>,
+    key_to_satpoint: &mut Table<[u8], [u8]>,
   ) -> Result {
     for (vout, output) in tx.output.iter().enumerate() {
       let outpoint = OutPoint {
@@ -223,7 +229,15 @@ impl Index {
           outpoint,
         }
         .consensus_encode(&mut satpoint)?;
-        ordinal_to_satpoint.insert(&assigned.0, &satpoint)?;
+        key_to_satpoint.insert(
+          &Key {
+            ordinal: assigned.0,
+            block,
+            transaction: tx_offset,
+          }
+          .encode(),
+          &satpoint,
+        )?;
 
         ordinals.extend_from_slice(&assigned.0.to_le_bytes());
         ordinals.extend_from_slice(&assigned.1.to_le_bytes());
@@ -247,17 +261,25 @@ impl Index {
     }
   }
 
-  pub(crate) fn find(&self, ordinal: Ordinal) -> Result<Option<SatPoint>> {
+  pub(crate) fn find(&self, ordinal: Ordinal) -> Result<Option<(u64, u64, SatPoint)>> {
     let rtx = self.database.begin_read()?;
-    let ordinal_to_satpoint = rtx.open_table(&Self::ORDINAL_TO_SATPOINT)?;
+    let key_to_satpoint = rtx.open_table(&Self::KEY_TO_SATPOINT)?;
 
-    match ordinal_to_satpoint.range_reversed(0..=ordinal.0)?.next() {
-      Some((start_ordinal, start_satpoint)) => {
+    match key_to_satpoint
+      .range_reversed([].as_slice()..=Key::new(ordinal).encode().as_slice())?
+      .next()
+    {
+      Some((start_key, start_satpoint)) => {
         let start_satpoint = SatPoint::consensus_decode(start_satpoint)?;
-        Ok(Some(SatPoint {
-          offset: start_satpoint.offset + (ordinal.0 - start_ordinal),
-          outpoint: start_satpoint.outpoint,
-        }))
+        let start_key = Key::decode(start_key);
+        Ok(Some((
+          start_key.block,
+          start_key.transaction,
+          SatPoint {
+            offset: start_satpoint.offset + (ordinal.0 - start_key.ordinal),
+            outpoint: start_satpoint.outpoint,
+          },
+        )))
       }
       None => Ok(None),
     }
