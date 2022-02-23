@@ -267,9 +267,5 @@ For other colored coin proposals see [https://en.bitcoin.it/wiki/Colored_Coins t
 
 For aliases, an implementation of short on-chain identifiers, see BIP 15.
 
-== Acknowledgements ==
-
-TODO: Everyone who helped. All remaining errors are my own.
-
 [0] With the exception of being word #1405 in the BIP-39 Portuguese word list. Me perdoe!
 [1] 7303780 is the decimal representation of the ASCII string 'ord'.
