@@ -148,6 +148,8 @@ impl Index {
       }
 
       for (tx_offset, tx) in block.txdata.iter().enumerate().skip(1) {
+        log::trace!("Indexing transaction {tx_offset}…");
+
         let mut input_ordinal_ranges = VecDeque::new();
 
         for input in &tx.input {
