@@ -173,3 +173,39 @@ fn two_fee_paying_transaction_range() -> Result {
     )
     .run()
 }
+
+#[test]
+fn null_output() -> Result {
+  Test::new()?
+    .command("list dbae83e031d45cb5cd9c41ba8030347c3965049792f508be1e5248c92e4cafd4:0")
+    .block()
+    .block()
+    .transaction(TransactionOptions {
+      slots: &[(0, 0, 0)],
+      output_count: 1,
+      fee: 50 * 100_000_000,
+    })
+    .expected_stdout("")
+    .run()
+}
+
+#[test]
+fn null_input() -> Result {
+  Test::new()?
+    .command("list d14f4614fa016228ac097fd29b591703e68a2b9672bbdb59039dc953ff3e9714:0")
+    .block()
+    .block()
+    .transaction(TransactionOptions {
+      slots: &[(0, 0, 0)],
+      output_count: 1,
+      fee: 50 * 100_000_000,
+    })
+    .block()
+    .transaction(TransactionOptions {
+      slots: &[(1, 1, 0)],
+      output_count: 1,
+      fee: 0,
+    })
+    .expected_stdout("")
+    .run()
+}
