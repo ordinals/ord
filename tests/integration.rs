@@ -150,6 +150,12 @@ impl Test {
   }
 
   fn output(self) -> Result<Output> {
+    for (b, block) in self.blocks.iter().enumerate() {
+      for (t, transaction) in block.txdata.iter().enumerate() {
+        eprintln!("{b}.{t}: {}", transaction.txid());
+      }
+    }
+
     let (close_handle, calls, port) = RpcServer::spawn(&self.blocks);
 
     let output = Command::new(executable_path("ord"))
