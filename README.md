@@ -16,6 +16,9 @@ UTXO.
 See [the BIP](bip.mediawiki) for a comprehensive description of the assignment
 and transfer algorithm.
 
+See [the project board](https://github.com/casey/ord/projects/1) for currently
+prioritized issues.
+
 ## Index and Caveats
 
 The `ord` command queries `bitcoind` for block data. Most commands require
