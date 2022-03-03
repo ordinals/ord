@@ -172,12 +172,12 @@ impl<'a> WriteTransaction<'a> {
   pub(crate) fn insert_outpoint(&mut self, outpoint: &[u8], ordinal_ranges: &[u8]) -> Result {
     self
       .outpoint_to_ordinal_ranges
-      .insert(&outpoint, &ordinal_ranges)?;
+      .insert(outpoint, ordinal_ranges)?;
     Ok(())
   }
 
   pub(crate) fn get_ordinal_ranges(&self, outpoint: &[u8]) -> Result<Option<&[u8]>> {
-    Ok(self.outpoint_to_ordinal_ranges.get(&outpoint)?)
+    Ok(self.outpoint_to_ordinal_ranges.get(outpoint)?)
   }
 
   pub(crate) fn insert_satpoint(&mut self, key: &[u8], satpoint: &[u8]) -> Result {

@@ -25,14 +25,14 @@ impl Index {
 
     Ok(Self {
       client,
-      database: Database::open(&options)?,
+      database: Database::open(options)?,
       sleep_until: Cell::new(Instant::now()),
     })
   }
 
   #[allow(clippy::self_named_constructors)]
   pub(crate) fn index(options: &Options) -> Result<Self> {
-    let index = Self::open(&options)?;
+    let index = Self::open(options)?;
 
     index.index_ranges()?;
 
