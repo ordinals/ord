@@ -11,6 +11,7 @@ use {
   derive_more::{Display, FromStr},
   integer_cbrt::IntegerCubeRoot,
   integer_sqrt::IntegerSquareRoot,
+  redb_database::{Database, WriteTransaction},
   std::{
     cell::Cell,
     cmp::Ordering,
@@ -24,9 +25,6 @@ use {
     time::{Duration, Instant},
   },
 };
-
-#[cfg(not(feature = "lmdb"))]
-use redb_database::{Database, WriteTransaction};
 
 mod arguments;
 mod bytes;
