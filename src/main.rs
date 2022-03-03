@@ -1,16 +1,7 @@
 use {
   crate::{
-    arguments::Arguments,
-    bytes::Bytes,
-    database::{Database, WriteTransaction},
-    epoch::Epoch,
-    height::Height,
-    index::Index,
-    key::Key,
-    options::Options,
-    ordinal::Ordinal,
-    sat_point::SatPoint,
-    subcommand::Subcommand,
+    arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height, index::Index, key::Key,
+    options::Options, ordinal::Ordinal, sat_point::SatPoint, subcommand::Subcommand,
   },
   bitcoin::{
     blockdata::constants::COIN_VALUE, consensus::Decodable, consensus::Encodable, Block, BlockHash,
@@ -34,15 +25,18 @@ use {
   },
 };
 
+#[cfg(not(feature = "lmdb"))]
+use redb_database::{Database, WriteTransaction};
+
 mod arguments;
 mod bytes;
-mod database;
 mod epoch;
 mod height;
 mod index;
 mod key;
 mod options;
 mod ordinal;
+mod redb_database;
 mod sat_point;
 mod subcommand;
 
