@@ -20,6 +20,7 @@ executable-path = "1.0.0"
 integer-cbrt = "0.1.2"
 integer-sqrt = "0.1.5"
 jsonrpc = "0.12.1"
+lmdb-rkv = "0.14.0"
 log = "0.4.14"
 redb = "0.0.5"
 
