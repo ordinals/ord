@@ -11,7 +11,6 @@ use {
   derive_more::{Display, FromStr},
   integer_cbrt::IntegerCubeRoot,
   integer_sqrt::IntegerSquareRoot,
-  redb_database::{Database, WriteTransaction},
   std::{
     cell::Cell,
     cmp::Ordering,
@@ -34,9 +33,18 @@ mod index;
 mod key;
 mod options;
 mod ordinal;
-mod redb_database;
 mod sat_point;
 mod subcommand;
+
+#[cfg(not(feature = "lmdb"))]
+mod redb_database;
+#[cfg(not(feature = "lmdb"))]
+use redb_database::{Database, WriteTransaction};
+
+#[cfg(feature = "lmdb")]
+mod lmdb_database;
+#[cfg(feature = "lmdb")]
+use lmdb_database::{Database, WriteTransaction};
 
 type Error = Box<dyn std::error::Error + Send + Sync>;
 type Result<T = (), E = Error> = std::result::Result<T, E>;
