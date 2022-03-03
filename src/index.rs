@@ -10,42 +10,29 @@ pub(crate) struct Index {
 }
 
 impl Index {
-  const HEIGHT_TO_HASH: TableDefinition<'static, u64, [u8]> =
-    TableDefinition::new("HEIGHT_TO_HASH");
-  const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<'static, [u8], [u8]> =
-    TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
-  const KEY_TO_SATPOINT: TableDefinition<'static, [u8], [u8]> =
-    TableDefinition::new("KEY_TO_SATPOINT");
-
-  pub(crate) fn open(options: Options) -> Result<Self> {
+  pub(crate) fn open(options: &Options) -> Result<Self> {
     let client = Client::new(
-      &options.rpc_url.ok_or("This command requires `--rpc-url`")?,
+      options
+        .rpc_url
+        .as_ref()
+        .ok_or("This command requires `--rpc-url`")?,
       options
         .cookie_file
-        .map(Auth::CookieFile)
+        .as_ref()
+        .map(|path| Auth::CookieFile(path.clone()))
         .unwrap_or(Auth::None),
     )?;
 
-    let result = unsafe { Database::open("index.redb") };
-
-    let database = match result {
-      Ok(database) => database,
-      Err(redb::Error::Io(error)) if error.kind() == io::ErrorKind::NotFound => unsafe {
-        Database::create("index.redb", options.index_size.0)?
-      },
-      Err(error) => return Err(error.into()),
-    };
-
     Ok(Self {
       client,
-      database,
+      database: Database::open(&options)?,
       sleep_until: Cell::new(Instant::now()),
     })
   }
 
   #[allow(clippy::self_named_constructors)]
-  pub(crate) fn index(options: Options) -> Result<Self> {
-    let index = Self::open(options)?;
+  pub(crate) fn index(options: &Options) -> Result<Self> {
+    let index = Self::open(&options)?;
 
     index.index_ranges()?;
 
@@ -53,36 +40,7 @@ impl Index {
   }
 
   pub(crate) fn print_info(&self) -> Result {
-    let tx = self.database.begin_write()?;
-
-    let height_to_hash = tx.open_table(&Self::HEIGHT_TO_HASH)?;
-
-    let blocks_indexed = height_to_hash
-      .range(0..)?
-      .rev()
-      .next()
-      .map(|(height, _hash)| height + 1)
-      .unwrap_or(0);
-
-    let outputs_indexed = tx.open_table(&Self::OUTPOINT_TO_ORDINAL_RANGES)?.len()?;
-
-    tx.abort()?;
-
-    let stats = self.database.stats()?;
-
-    println!("blocks indexed: {}", blocks_indexed);
-    println!("outputs indexed: {}", outputs_indexed);
-    println!("tree height: {}", stats.tree_height());
-    println!("free pages: {}", stats.free_pages());
-    println!("stored: {}", Bytes(stats.stored_bytes()));
-    println!("overhead: {}", Bytes(stats.overhead_bytes()));
-    println!("fragmented: {}", Bytes(stats.fragmented_bytes()));
-    println!(
-      "index size: {}",
-      Bytes(std::fs::metadata("index.redb")?.len().try_into()?)
-    );
-
-    Ok(())
+    self.database.print_info()
   }
 
   fn client(&self) -> &Client {
@@ -105,15 +63,9 @@ impl Index {
     log::info!("Indexing ranges…");
 
     loop {
-      let wtx = self.database.begin_write()?;
+      let mut wtx = self.database.begin_write()?;
 
-      let mut height_to_hash = wtx.open_table(&Self::HEIGHT_TO_HASH)?;
-      let height = height_to_hash
-        .range(0..)?
-        .rev()
-        .next()
-        .map(|(height, _hash)| height + 1)
-        .unwrap_or(0);
+      let height = wtx.height()?;
 
       let block = match self.block(height)? {
         Some(block) => block,
@@ -129,15 +81,12 @@ impl Index {
       );
 
       if let Some(prev_height) = height.checked_sub(1) {
-        let prev_hash = height_to_hash.get(&prev_height)?.unwrap();
+        let prev_hash = wtx.blockhash_at_height(prev_height)?.unwrap();
 
         if prev_hash != block.header.prev_blockhash.as_ref() {
           return Err("Reorg detected at or before {prev_height}".into());
         }
       }
-
-      let mut outpoint_to_ordinal_ranges = wtx.open_table(&Self::OUTPOINT_TO_ORDINAL_RANGES)?;
-      let mut key_to_satpoint = wtx.open_table(&Self::KEY_TO_SATPOINT)?;
 
       let mut coinbase_inputs = VecDeque::new();
 
@@ -156,8 +105,8 @@ impl Index {
           let mut key = Vec::new();
           input.previous_output.consensus_encode(&mut key)?;
 
-          let ordinal_ranges = outpoint_to_ordinal_ranges
-            .get(key.as_slice())?
+          let ordinal_ranges = wtx
+            .get_ordinal_ranges(key.as_slice())?
             .ok_or("Could not find outpoint in index")?;
 
           for chunk in ordinal_ranges.chunks_exact(16) {
@@ -171,26 +120,18 @@ impl Index {
           height,
           tx_offset as u64,
           tx,
+          &mut wtx,
           &mut input_ordinal_ranges,
-          &mut outpoint_to_ordinal_ranges,
-          &mut key_to_satpoint,
         )?;
 
         coinbase_inputs.extend(input_ordinal_ranges);
       }
 
       if let Some(tx) = block.txdata.first() {
-        self.index_transaction(
-          height,
-          0,
-          tx,
-          &mut coinbase_inputs,
-          &mut outpoint_to_ordinal_ranges,
-          &mut key_to_satpoint,
-        )?;
+        self.index_transaction(height, 0, tx, &mut wtx, &mut coinbase_inputs)?;
       }
 
-      height_to_hash.insert(&height, &block.block_hash())?;
+      wtx.set_blockhash_at_height(height, block.block_hash())?;
       wtx.commit()?;
     }
 
@@ -202,18 +143,14 @@ impl Index {
     block: u64,
     tx_offset: u64,
     tx: &Transaction,
+    wtx: &mut WriteTransaction,
     input_ordinal_ranges: &mut VecDeque<(u64, u64)>,
-    outpoint_to_ordinal_ranges: &mut Table<[u8], [u8]>,
-    key_to_satpoint: &mut Table<[u8], [u8]>,
   ) -> Result {
     for (vout, output) in tx.output.iter().enumerate() {
       let outpoint = OutPoint {
         txid: tx.txid(),
         vout: vout as u32,
       };
-      let mut outpoint_encoded = Vec::new();
-      outpoint.consensus_encode(&mut outpoint_encoded)?;
-
       let mut ordinals = Vec::new();
 
       let mut remaining = output.value;
@@ -238,7 +175,7 @@ impl Index {
           outpoint,
         }
         .consensus_encode(&mut satpoint)?;
-        key_to_satpoint.insert(
+        wtx.insert_satpoint(
           &Key {
             ordinal: assigned.0,
             block,
@@ -254,7 +191,9 @@ impl Index {
         remaining -= assigned.1 - assigned.0;
       }
 
-      outpoint_to_ordinal_ranges.insert(&outpoint_encoded, &ordinals)?;
+      let mut outpoint_encoded = Vec::new();
+      outpoint.consensus_encode(&mut outpoint_encoded)?;
+      wtx.insert_outpoint(&outpoint_encoded, &ordinals)?;
     }
 
     Ok(())
@@ -271,64 +210,19 @@ impl Index {
   }
 
   pub(crate) fn find(&self, ordinal: Ordinal) -> Result<Option<(u64, u64, SatPoint)>> {
-    let rtx = self.database.begin_read()?;
-
-    let height_to_hash = match rtx.open_table(&Self::HEIGHT_TO_HASH) {
-      Ok(height_to_hash) => height_to_hash,
-      Err(redb::Error::TableDoesNotExist(_)) => return Ok(None),
-      Err(err) => return Err(err.into()),
-    };
-
-    match height_to_hash.range(0..)?.rev().next() {
-      Some((height, _hash)) if height >= ordinal.height().0 => {}
-      _ => return Ok(None),
-    }
-
-    let key_to_satpoint = match rtx.open_table(&Self::KEY_TO_SATPOINT) {
-      Ok(key_to_satpoint) => key_to_satpoint,
-      Err(redb::Error::TableDoesNotExist(_)) => return Ok(None),
-      Err(err) => return Err(err.into()),
-    };
-
-    match key_to_satpoint
-      .range([].as_slice()..=Key::new(ordinal).encode().as_slice())?
-      .rev()
-      .next()
-    {
-      Some((start_key, start_satpoint)) => {
-        let start_key = Key::decode(start_key)?;
-        let start_satpoint = SatPoint::consensus_decode(start_satpoint)?;
-        Ok(Some((
-          start_key.block,
-          start_key.transaction,
-          SatPoint {
-            offset: start_satpoint.offset + (ordinal.0 - start_key.ordinal),
-            outpoint: start_satpoint.outpoint,
-          },
-        )))
-      }
-      None => Ok(None),
-    }
+    self.database.find(ordinal)
   }
 
   pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Vec<(u64, u64)>> {
-    let rtx = self.database.begin_read()?;
-    let outpoint_to_ordinal_ranges = rtx.open_table(&Self::OUTPOINT_TO_ORDINAL_RANGES)?;
-
-    let mut key = Vec::new();
-    outpoint.consensus_encode(&mut key)?;
-
-    let ordinal_ranges = outpoint_to_ordinal_ranges
-      .get(key.as_slice())?
-      .ok_or("Could not find outpoint in index")?;
-
+    let mut outpoint_encoded = Vec::new();
+    outpoint.consensus_encode(&mut outpoint_encoded)?;
+    let ordinal_ranges = self.database.list(&outpoint_encoded)?;
     let mut output = Vec::new();
     for chunk in ordinal_ranges.chunks_exact(16) {
       let start = u64::from_le_bytes(chunk[0..8].try_into().unwrap());
       let end = u64::from_le_bytes(chunk[8..16].try_into().unwrap());
       output.push((start, end));
     }
-
     Ok(output)
   }
 }
