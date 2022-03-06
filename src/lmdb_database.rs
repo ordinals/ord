@@ -74,16 +74,16 @@ impl Database {
   }
 
   pub(crate) fn find(&self, ordinal: Ordinal) -> Result<Option<(u64, u64, SatPoint)>> {
-    let rtx = self.0.begin_ro_txn()?;
-
     let height_to_hash = self.0.open_db(Some(HEIGHT_TO_HASH))?;
+
+    let _key_to_satpoint = self.0.open_db(Some(KEY_TO_SATPOINT))?;
+
+    let rtx = self.0.begin_ro_txn()?;
 
     match rtx.open_ro_cursor(height_to_hash)?.iter().last() {
       Some(result) if u64::from_be_bytes(result?.0.try_into()?) >= ordinal.height().0 => {}
       _ => return Ok(None),
     }
-
-    let _key_to_satpoint = self.0.open_db(Some(KEY_TO_SATPOINT))?;
 
     // TODO: stuff
 
@@ -142,7 +142,7 @@ impl<'a> WriteTransaction<'a> {
         .open_ro_cursor(self.height_to_hash)?
         .iter()
         .last()
-        .ok_or("Could not retrieve last height")?
+        .transpose()?
         .map(|(height, _hash)| u64::from_be_bytes(height.try_into().unwrap()) + 1)
         .unwrap_or(0),
     )
