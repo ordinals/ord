@@ -32,7 +32,9 @@ impl Index {
     let database = match result {
       Ok(database) => database,
       Err(redb::Error::Io(error)) if error.kind() == io::ErrorKind::NotFound => unsafe {
-        Database::create("index.redb", options.index_size.0)?
+        DatabaseBuilder::new()
+          .set_page_size(2048)
+          .create("index.redb", options.index_size.0)?
       },
       Err(error) => return Err(error.into()),
     };
@@ -63,7 +65,7 @@ impl Index {
   pub(crate) fn print_info(&self) -> Result {
     let tx = self.database.begin_write()?;
 
-    let height_to_hash = tx.open_table(&Self::HEIGHT_TO_HASH)?;
+    let height_to_hash = tx.open_table(Self::HEIGHT_TO_HASH)?;
 
     let blocks_indexed = height_to_hash
       .range(0..)?
@@ -73,7 +75,7 @@ impl Index {
       .unwrap_or(0);
 
     let outputs_indexed = tx
-      .open_table(&Self::OUTPOINT_TO_ORDINAL_RANGE_OFFSET)?
+      .open_table(Self::OUTPOINT_TO_ORDINAL_RANGE_OFFSET)?
       .len()?;
 
     tx.abort()?;
@@ -85,7 +87,7 @@ impl Index {
     println!("tree height: {}", stats.tree_height());
     println!("free pages: {}", stats.free_pages());
     println!("stored: {}", Bytes(stats.stored_bytes()));
-    println!("overhead: {}", Bytes(stats.overhead_bytes()));
+    println!("metadata: {}", Bytes(stats.metadata_bytes()));
     println!("fragmented: {}", Bytes(stats.fragmented_bytes()));
     println!(
       "index size: {}",
@@ -115,9 +117,11 @@ impl Index {
     log::info!("Indexing ranges…");
 
     loop {
-      let wtx = self.database.begin_write()?;
+      let mut wtx = self.database.begin_write()?;
 
-      let mut height_to_hash = wtx.open_table(&Self::HEIGHT_TO_HASH)?;
+      wtx.set_durability(Durability::Eventual);
+
+      let mut height_to_hash = wtx.open_table(Self::HEIGHT_TO_HASH)?;
       let height = height_to_hash
         .range(0..)?
         .rev()
@@ -147,8 +151,8 @@ impl Index {
       }
 
       let mut outpoint_to_ordinal_range_offset =
-        wtx.open_table(&Self::OUTPOINT_TO_ORDINAL_RANGE_OFFSET)?;
-      let mut key_to_satpoint = wtx.open_table(&Self::KEY_TO_SATPOINT)?;
+        wtx.open_table(Self::OUTPOINT_TO_ORDINAL_RANGE_OFFSET)?;
+      let mut key_to_satpoint = wtx.open_table(Self::KEY_TO_SATPOINT)?;
 
       let mut coinbase_inputs = VecDeque::new();
 
@@ -205,6 +209,10 @@ impl Index {
 
       height_to_hash.insert(&height, &block.block_hash())?;
       wtx.commit()?;
+
+      if INTERRUPT_RECEIVED.load(atomic::Ordering::Relaxed) {
+        break;
+      }
     }
 
     Ok(())
@@ -301,7 +309,7 @@ impl Index {
   pub(crate) fn find(&self, ordinal: Ordinal) -> Result<Option<(u64, u64, SatPoint)>> {
     let rtx = self.database.begin_read()?;
 
-    let height_to_hash = match rtx.open_table(&Self::HEIGHT_TO_HASH) {
+    let height_to_hash = match rtx.open_table(Self::HEIGHT_TO_HASH) {
       Ok(height_to_hash) => height_to_hash,
       Err(redb::Error::TableDoesNotExist(_)) => return Ok(None),
       Err(err) => return Err(err.into()),
@@ -312,7 +320,7 @@ impl Index {
       _ => return Ok(None),
     }
 
-    let key_to_satpoint = match rtx.open_table(&Self::KEY_TO_SATPOINT) {
+    let key_to_satpoint = match rtx.open_table(Self::KEY_TO_SATPOINT) {
       Ok(key_to_satpoint) => key_to_satpoint,
       Err(redb::Error::TableDoesNotExist(_)) => return Ok(None),
       Err(err) => return Err(err.into()),
@@ -342,7 +350,7 @@ impl Index {
   pub(crate) fn list(&mut self, outpoint: OutPoint) -> Result<Vec<(u64, u64)>> {
     let rtx = self.database.begin_read()?;
     let outpoint_to_ordinal_range_offset =
-      rtx.open_table(&Self::OUTPOINT_TO_ORDINAL_RANGE_OFFSET)?;
+      rtx.open_table(Self::OUTPOINT_TO_ORDINAL_RANGE_OFFSET)?;
 
     let mut key = Vec::new();
     outpoint.consensus_encode(&mut key)?;

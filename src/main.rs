@@ -11,7 +11,7 @@ use {
   derive_more::{Display, FromStr},
   integer_cbrt::IntegerCubeRoot,
   integer_sqrt::IntegerSquareRoot,
-  redb::{Database, ReadableTable, Table, TableDefinition},
+  redb::{Database, DatabaseBuilder, Durability, ReadableTable, Table, TableDefinition},
   std::{
     cell::Cell,
     cmp::Ordering,
@@ -23,7 +23,10 @@ use {
     path::PathBuf,
     process,
     str::FromStr,
-    sync::Mutex,
+    sync::{
+      atomic::{self, AtomicBool},
+      Mutex,
+    },
     time::{Duration, Instant},
   },
 };
@@ -42,8 +45,15 @@ mod subcommand;
 type Error = Box<dyn std::error::Error + Send + Sync>;
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 
+const INTERRUPT_RECEIVED: AtomicBool = AtomicBool::new(false);
+
 fn main() {
   env_logger::init();
+
+  ctrlc::set_handler(move || {
+    INTERRUPT_RECEIVED.store(true, atomic::Ordering::Relaxed);
+  })
+  .expect("Failed to set ctrl-c handler");
 
   if let Err(error) = Arguments::parse().run() {
     eprintln!("error: {}", error);

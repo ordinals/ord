@@ -1,3 +1,5 @@
 .idea/
+/flamegraph.svg
 /index.redb
 /target
+/ordinal-ranges

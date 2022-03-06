@@ -13,7 +13,7 @@ fn basic() -> Result {
         tree height: \d+
         free pages: \d+
         stored: .* bytes
-        overhead: .* bytes
+        metadata: .* bytes
         fragmented: .* KiB
         index size: 1 MiB
       "

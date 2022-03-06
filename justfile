@@ -23,3 +23,17 @@ watch +args='ltest':
 
 install-dev-deps:
   cargo install cargo-criterion
+
+clean:
+  rm -rf index.redb index.lmdb ordinal-ranges
+
+run command='index':
+  RUST_LOG=info \
+  cargo \
+  run \
+  --release \
+  -- \
+  --index-size 4TiB \
+  --rpc-url 127.0.0.1:8332 \
+  --cookie-file ~/Library/Application\ Support/Bitcoin/.cookie \
+  {{command}}
