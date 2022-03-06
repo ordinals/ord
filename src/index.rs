@@ -7,13 +7,14 @@ pub(crate) struct Index {
   client: Client,
   database: Database,
   sleep_until: Cell<Instant>,
+  ordinal_ranges: Mutex<File>,
 }
 
 impl Index {
   const HEIGHT_TO_HASH: TableDefinition<'static, u64, [u8]> =
     TableDefinition::new("HEIGHT_TO_HASH");
-  const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<'static, [u8], [u8]> =
-    TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
+  const OUTPOINT_TO_ORDINAL_RANGE_OFFSET: TableDefinition<'static, [u8], u64> =
+    TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGE_OFFSET");
   const KEY_TO_SATPOINT: TableDefinition<'static, [u8], [u8]> =
     TableDefinition::new("KEY_TO_SATPOINT");
 
@@ -40,12 +41,19 @@ impl Index {
       client,
       database,
       sleep_until: Cell::new(Instant::now()),
+      ordinal_ranges: Mutex::new(
+        File::options()
+          .create(true)
+          .write(true)
+          .read(true)
+          .open("ordinal-ranges")?,
+      ),
     })
   }
 
   #[allow(clippy::self_named_constructors)]
   pub(crate) fn index(options: Options) -> Result<Self> {
-    let index = Self::open(options)?;
+    let mut index = Self::open(options)?;
 
     index.index_ranges()?;
 
@@ -64,7 +72,9 @@ impl Index {
       .map(|(height, _hash)| height + 1)
       .unwrap_or(0);
 
-    let outputs_indexed = tx.open_table(&Self::OUTPOINT_TO_ORDINAL_RANGES)?.len()?;
+    let outputs_indexed = tx
+      .open_table(&Self::OUTPOINT_TO_ORDINAL_RANGE_OFFSET)?
+      .len()?;
 
     tx.abort()?;
 
@@ -101,7 +111,7 @@ impl Index {
     &self.client
   }
 
-  fn index_ranges(&self) -> Result {
+  fn index_ranges(&mut self) -> Result {
     log::info!("Indexing ranges…");
 
     loop {
@@ -136,7 +146,8 @@ impl Index {
         }
       }
 
-      let mut outpoint_to_ordinal_ranges = wtx.open_table(&Self::OUTPOINT_TO_ORDINAL_RANGES)?;
+      let mut outpoint_to_ordinal_range_offset =
+        wtx.open_table(&Self::OUTPOINT_TO_ORDINAL_RANGE_OFFSET)?;
       let mut key_to_satpoint = wtx.open_table(&Self::KEY_TO_SATPOINT)?;
 
       let mut coinbase_inputs = VecDeque::new();
@@ -156,9 +167,11 @@ impl Index {
           let mut key = Vec::new();
           input.previous_output.consensus_encode(&mut key)?;
 
-          let ordinal_ranges = outpoint_to_ordinal_ranges
+          let offset = outpoint_to_ordinal_range_offset
             .get(key.as_slice())?
             .ok_or("Could not find outpoint in index")?;
+
+          let ordinal_ranges = self.read_ordinal_ranges(offset)?;
 
           for chunk in ordinal_ranges.chunks_exact(16) {
             let start = u64::from_le_bytes(chunk[0..8].try_into().unwrap());
@@ -172,7 +185,7 @@ impl Index {
           tx_offset as u64,
           tx,
           &mut input_ordinal_ranges,
-          &mut outpoint_to_ordinal_ranges,
+          &mut outpoint_to_ordinal_range_offset,
           &mut key_to_satpoint,
         )?;
 
@@ -185,7 +198,7 @@ impl Index {
           0,
           tx,
           &mut coinbase_inputs,
-          &mut outpoint_to_ordinal_ranges,
+          &mut outpoint_to_ordinal_range_offset,
           &mut key_to_satpoint,
         )?;
       }
@@ -203,7 +216,7 @@ impl Index {
     tx_offset: u64,
     tx: &Transaction,
     input_ordinal_ranges: &mut VecDeque<(u64, u64)>,
-    outpoint_to_ordinal_ranges: &mut Table<[u8], [u8]>,
+    outpoint_to_ordinal_range_offset: &mut Table<[u8], u64>,
     key_to_satpoint: &mut Table<[u8], [u8]>,
   ) -> Result {
     for (vout, output) in tx.output.iter().enumerate() {
@@ -254,10 +267,25 @@ impl Index {
         remaining -= assigned.1 - assigned.0;
       }
 
-      outpoint_to_ordinal_ranges.insert(&outpoint_encoded, &ordinals)?;
+      let mut file = self.ordinal_ranges.lock().unwrap();
+      let offset = file.seek(SeekFrom::End(0))?;
+      file.write(&ordinals.len().to_le_bytes())?;
+      file.write(&ordinals)?;
+      outpoint_to_ordinal_range_offset.insert(&outpoint_encoded, &offset)?;
     }
 
     Ok(())
+  }
+
+  fn read_ordinal_ranges(&self, offset: u64) -> Result<Vec<u8>> {
+    let mut file = self.ordinal_ranges.lock().unwrap();
+    file.seek(SeekFrom::Start(offset))?;
+    let mut buf: [u8; 8] = [0, 0, 0, 0, 0, 0, 0, 0];
+    file.read_exact(&mut buf)?;
+    let len = u64::from_le_bytes(buf);
+    let mut ordinal_ranges = vec![0; len as usize];
+    file.read_exact(&mut ordinal_ranges)?;
+    Ok(ordinal_ranges)
   }
 
   pub(crate) fn block(&self, height: u64) -> Result<Option<Block>> {
@@ -311,16 +339,19 @@ impl Index {
     }
   }
 
-  pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Vec<(u64, u64)>> {
+  pub(crate) fn list(&mut self, outpoint: OutPoint) -> Result<Vec<(u64, u64)>> {
     let rtx = self.database.begin_read()?;
-    let outpoint_to_ordinal_ranges = rtx.open_table(&Self::OUTPOINT_TO_ORDINAL_RANGES)?;
+    let outpoint_to_ordinal_range_offset =
+      rtx.open_table(&Self::OUTPOINT_TO_ORDINAL_RANGE_OFFSET)?;
 
     let mut key = Vec::new();
     outpoint.consensus_encode(&mut key)?;
 
-    let ordinal_ranges = outpoint_to_ordinal_ranges
+    let ordinal_range_offset = outpoint_to_ordinal_range_offset
       .get(key.as_slice())?
       .ok_or("Could not find outpoint in index")?;
+
+    let ordinal_ranges = self.read_ordinal_ranges(ordinal_range_offset)?;
 
     let mut output = Vec::new();
     for chunk in ordinal_ranges.chunks_exact(16) {
