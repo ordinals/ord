@@ -65,7 +65,7 @@ impl Index {
     loop {
       let mut wtx = self.database.begin_write()?;
 
-      let height = dbg!(wtx.height()?);
+      let height = wtx.height()?;
 
       let block = match self.block(height)? {
         Some(block) => block,

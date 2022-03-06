@@ -23,3 +23,12 @@ watch +args='ltest':
 
 install-dev-deps:
   cargo install cargo-criterion
+
+run:
+  RUST_LOG=info \
+  cargo run --release \
+  -- \
+  --index-size 100GiB \
+  --rpc-url 127.0.0.1:8332 \
+  --cookie-file ~/Library/Application\ Support/Bitcoin/.cookie \
+  index
