@@ -36,14 +36,14 @@ mod ordinal;
 mod sat_point;
 mod subcommand;
 
-#[cfg(not(feature = "lmdb"))]
-mod redb_database;
-#[cfg(not(feature = "lmdb"))]
-use redb_database::{Database, WriteTransaction};
+// #[cfg(not(feature = "lmdb"))]
+// mod redb_database;
+// #[cfg(not(feature = "lmdb"))]
+// use redb_database::{Database, WriteTransaction};
 
-#[cfg(feature = "lmdb")]
+// #[cfg(feature = "lmdb")]
 mod lmdb_database;
-#[cfg(feature = "lmdb")]
+// #[cfg(feature = "lmdb")]
 use lmdb_database::{Database, WriteTransaction};
 
 type Error = Box<dyn std::error::Error + Send + Sync>;

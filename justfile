@@ -19,7 +19,7 @@ bench:
   cargo criterion
 
 watch +args='ltest':
-  cargo watch --clear --exec '{{args}}'
+  cargo watch --clear --exec '{{args}} --features lmdb'
 
 install-dev-deps:
   cargo install cargo-criterion
