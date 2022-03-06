@@ -19,6 +19,7 @@ impl Database {
 
     let result = Environment::new()
       .set_map_size(options.index_size.0)
+      .set_max_dbs(3)
       .open(path);
 
     match result {
@@ -28,6 +29,7 @@ impl Database {
         Ok(Self(
           Environment::new()
             .set_map_size(options.index_size.0)
+            .set_max_dbs(3)
             .open(path)?,
         ))
       }
@@ -108,14 +110,14 @@ pub(crate) struct WriteTransaction<'a> {
 
 impl<'a> WriteTransaction<'a> {
   pub(crate) fn new(environment: &'a Environment) -> Result<Self> {
-    let tx = environment.begin_rw_txn()?;
-
     let height_to_hash = environment.create_db(Some(HEIGHT_TO_HASH), DatabaseFlags::empty())?;
 
     let outpoint_to_ordinal_ranges =
       environment.create_db(Some(OUTPOINT_TO_ORDINAL_RANGES), DatabaseFlags::empty())?;
 
     let key_to_satpoint = environment.create_db(Some(KEY_TO_SATPOINT), DatabaseFlags::empty())?;
+
+    let tx = environment.begin_rw_txn()?;
 
     Ok(Self {
       inner: tx,
