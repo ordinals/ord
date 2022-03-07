@@ -1,13 +1,8 @@
-use super::*;
-
-// use lmdb::{
-//   Cursor, Database as Table, DatabaseFlags,  Error, RwTransaction, Transaction,
-//   WriteFlags,
-// };
-
-use lmdb_zero::{self as lmdb, EnvBuilder, Environment};
-
-use std::{fs, path::Path};
+use {
+  super::*,
+  lmdb_zero::{self as lmdb, EnvBuilder, Environment},
+  std::{fs, path::Path},
+};
 
 const HEIGHT_TO_HASH: &'static str = "HEIGHT_TO_HASH";
 const OUTPOINT_TO_ORDINAL_RANGES: &'static str = "OUTPOINT_TO_ORDINAL_RANGES";

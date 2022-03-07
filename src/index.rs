@@ -75,8 +75,14 @@ impl Index {
         }
       };
 
+      let time: DateTime<Utc> = DateTime::from_utc(
+        NaiveDateTime::from_timestamp(block.header.time as i64, 0),
+        Utc,
+      );
+
       log::info!(
-        "Indexing block {height} with {} transactions…",
+        "Indexing block {height} at {} with {} transactions…",
+        time,
         block.txdata.len()
       );
 
@@ -133,6 +139,10 @@ impl Index {
 
       wtx.set_blockhash_at_height(height, block.block_hash())?;
       wtx.commit()?;
+
+      if INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
+        break;
+      }
     }
 
     Ok(())
