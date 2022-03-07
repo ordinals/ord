@@ -51,7 +51,7 @@ use lmdb_database::{Database, WriteTransaction};
 type Error = Box<dyn std::error::Error + Send + Sync>;
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 
-const INTERRUPTS: AtomicU64 = AtomicU64::new(0);
+static INTERRUPTS: AtomicU64 = AtomicU64::new(0);
 
 fn main() {
   env_logger::init();

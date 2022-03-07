@@ -64,6 +64,8 @@ impl Index {
 
     loop {
       let mut wtx = self.database.begin_write()?;
+      let mut ordinal_ranges_read = 0;
+      let mut ordinal_ranges_written = 0;
 
       let height = wtx.height()?;
 
@@ -119,6 +121,7 @@ impl Index {
             let start = u64::from_le_bytes(chunk[0..8].try_into().unwrap());
             let end = u64::from_le_bytes(chunk[8..16].try_into().unwrap());
             input_ordinal_ranges.push_back((start, end));
+            ordinal_ranges_read += 1;
           }
         }
 
@@ -128,17 +131,27 @@ impl Index {
           tx,
           &mut wtx,
           &mut input_ordinal_ranges,
+          &mut ordinal_ranges_written,
         )?;
 
         coinbase_inputs.extend(input_ordinal_ranges);
       }
 
       if let Some(tx) = block.txdata.first() {
-        self.index_transaction(height, 0, tx, &mut wtx, &mut coinbase_inputs)?;
+        self.index_transaction(
+          height,
+          0,
+          tx,
+          &mut wtx,
+          &mut coinbase_inputs,
+          &mut ordinal_ranges_written,
+        )?;
       }
 
       wtx.set_blockhash_at_height(height, block.block_hash())?;
       wtx.commit()?;
+
+      log::info!("Read/written: {ordinal_ranges_read}/{ordinal_ranges_written}");
 
       if INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
         break;
@@ -155,6 +168,7 @@ impl Index {
     tx: &Transaction,
     wtx: &mut WriteTransaction,
     input_ordinal_ranges: &mut VecDeque<(u64, u64)>,
+    ordinal_ranges_written: &mut u64,
   ) -> Result {
     for (vout, output) in tx.output.iter().enumerate() {
       let outpoint = OutPoint {
@@ -179,26 +193,28 @@ impl Index {
           range
         };
 
-        let mut satpoint = Vec::new();
-        SatPoint {
-          offset: output.value - remaining,
-          outpoint,
-        }
-        .consensus_encode(&mut satpoint)?;
-        wtx.insert_satpoint(
-          &Key {
-            ordinal: assigned.0,
-            block,
-            transaction: tx_offset,
-          }
-          .encode(),
-          &satpoint,
-        )?;
+        // let mut satpoint = Vec::new();
+        // SatPoint {
+        //   offset: output.value - remaining,
+        //   outpoint,
+        // }
+        // .consensus_encode(&mut satpoint)?;
+        // wtx.insert_satpoint(
+        //   &Key {
+        //     ordinal: assigned.0,
+        //     block,
+        //     transaction: tx_offset,
+        //   }
+        //   .encode(),
+        //   &satpoint,
+        // )?;
 
         ordinals.extend_from_slice(&assigned.0.to_le_bytes());
         ordinals.extend_from_slice(&assigned.1.to_le_bytes());
 
         remaining -= assigned.1 - assigned.0;
+
+        *ordinal_ranges_written += 1;
       }
 
       let mut outpoint_encoded = Vec::new();

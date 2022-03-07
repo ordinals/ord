@@ -30,6 +30,7 @@ clean:
 run:
   RUST_LOG=info \
   cargo run --release \
+  --features lmdb \
   -- \
   --index-size 4TiB \
   --rpc-url 127.0.0.1:8332 \
