@@ -841,26 +841,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "06e509672465a0504304aa87f9f176f2b2b716ed8fb105ebe5c02dc6dce96a94"
 
 [[package]]
-name = "liblmdb-sys"
-version = "0.2.2"
-dependencies = [
- "gcc",
- "libc",
-]
-
-[[package]]
-name = "lmdb-zero"
-version = "0.4.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "13416eee745b087c22934f35f1f24da22da41ba2a5ce197143d168ce055cc58d"
-dependencies = [
- "bitflags 0.9.1",
- "libc",
- "liblmdb-sys",
- "supercow",
-]
-
-[[package]]
 name = "lock_api"
 version = "0.4.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1020,12 +1000,35 @@ dependencies = [
  "jsonrpc-core-client",
  "jsonrpc-derive",
  "jsonrpc-http-server",
- "lmdb-zero",
  "log",
+ "ord-lmdb-zero",
+ "rayon",
  "redb",
  "regex",
  "tempfile",
  "unindent",
+]
+
+[[package]]
+name = "ord-liblmdb-sys"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0708b9f740bd632d4fe7468b314c4c45d994811a811e82acc193ced0f6b358ba"
+dependencies = [
+ "gcc",
+ "libc",
+]
+
+[[package]]
+name = "ord-lmdb-zero"
+version = "0.4.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f6186bbfce46615119f72e26acfe341b79a88c18c2d994d3e4b2c9029a24bf09"
+dependencies = [
+ "bitflags 0.9.1",
+ "libc",
+ "ord-liblmdb-sys",
+ "supercow",
 ]
 
 [[package]]

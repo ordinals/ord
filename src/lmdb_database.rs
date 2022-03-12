@@ -1,12 +1,26 @@
 use {
   super::*,
-  lmdb_zero::{self as lmdb, EnvBuilder, Environment},
+  ord_lmdb_zero::{self as lmdb, EnvBuilder, Environment},
   std::{fs, path::Path},
 };
 
 const HEIGHT_TO_HASH: &'static str = "HEIGHT_TO_HASH";
-const OUTPOINT_TO_ORDINAL_RANGES: &'static str = "OUTPOINT_TO_ORDINAL_RANGES";
 const KEY_TO_SATPOINT: &'static str = "KEY_TO_SATPOINT";
+const OUTPOINT_TO_ORDINAL_RANGES: &'static str = "OUTPOINT_TO_ORDINAL_RANGES";
+
+trait LmdbResultExt<T> {
+  fn into_option(self) -> Result<Option<T>>;
+}
+
+impl<T> LmdbResultExt<T> for lmdb::Result<T> {
+  fn into_option(self) -> Result<Option<T>> {
+    match self {
+      Ok(value) => Ok(Some(value)),
+      Err(lmdb::Error::Code(-30798)) => Ok(None),
+      Err(error) => Err(error.into()),
+    }
+  }
+}
 
 pub(crate) struct Database(Environment);
 
@@ -35,53 +49,60 @@ impl Database {
   }
 
   pub(crate) fn print_info(&self) -> Result {
-    // let tx = self.begin_write()?;
+    let stat = self.0.stat()?;
 
-    // let blocks_indexed = tx.height()?;
+    let blocks_indexed = self.height()?;
 
-    // let outputs_indexed = tx.outputs_indexed()?;
+    println!("blocks indexed: {}", blocks_indexed);
+    println!(
+      "data and metadata: {}",
+      ((stat.branch_pages + stat.leaf_pages + stat.overflow_pages) as u64) * stat.psize as u64
+    );
 
-    // tx.abort()?;
-
-    // let stats = self.0.stat()?;
-
-    // println!("blocks indexed: {}", blocks_indexed);
-    // println!("outputs indexed: {}", outputs_indexed);
-    // println!("tree height: {}", stats.depth());
-    // // println!("free pages: {}", stats.free_pages());
-    // println!(
-    //   "stored: {}",
-    //   Bytes(
-    //     (stats.branch_pages() + stats.leaf_pages() + stats.overflow_pages())
-    //       * stats.page_size() as usize
-    //   )
-    // );
-    // // println!("overhead: {}", Bytes(stats.overhead_bytes()));
-    // // println!("fragmented: {}", Bytes(stats.fragmented_bytes()));
-    // println!(
-    //   "index size: {}",
-    //   Bytes(std::fs::metadata("index.lmdb")?.len().try_into()?)
-    // );
-
-    // Ok(())
-    todo!()
+    Ok(())
   }
 
-  pub(crate) fn find(&self, ordinal: Ordinal) -> Result<Option<(u64, u64, SatPoint)>> {
-    // let height_to_hash = self.0.open_db(Some(HEIGHT_TO_HASH))?;
+  pub(crate) fn find(&self, ordinal: Ordinal) -> Result<Option<(Vec<u8>, Vec<u8>)>> {
+    let key_to_satpoint = lmdb::Database::open(
+      &self.0,
+      Some(KEY_TO_SATPOINT),
+      &lmdb::DatabaseOptions::new(lmdb::db::CREATE),
+    )?;
 
-    // let _key_to_satpoint = self.0.open_db(Some(KEY_TO_SATPOINT))?;
+    let tx = lmdb::ReadTransaction::new(&self.0)?;
 
-    // let rtx = self.0.begin_ro_txn()?;
+    let mut cursor = tx.cursor(key_to_satpoint)?;
 
-    // match rtx.open_ro_cursor(height_to_hash)?.iter().last() {
-    //   Some(result) if u64::from_be_bytes(result?.0.try_into()?) >= ordinal.height().0 => {}
-    //   _ => return Ok(None),
-    // }
+    let key = Key::new(ordinal).encode();
 
-    // TODO: stuff
+    let access = tx.access();
+    cursor.seek_range_k::<[u8], [u8]>(&access, key.as_slice());
 
-    todo!()
+    Ok(
+      cursor
+        .prev::<[u8], [u8]>(&access)
+        .into_option()?
+        .map(|(start_key, start_satpoint)| (start_key.to_vec(), start_satpoint.to_vec())),
+    )
+  }
+
+  pub(crate) fn height(&self) -> Result<u64> {
+    let height_to_hash = lmdb::Database::open(
+      &self.0,
+      Some(HEIGHT_TO_HASH),
+      &lmdb::DatabaseOptions::new(lmdb::db::CREATE),
+    )?;
+
+    let tx = lmdb::ReadTransaction::new(&self.0)?;
+
+    let height = tx
+      .cursor(&height_to_hash)?
+      .last::<[u8], [u8]>(&tx.access())
+      .into_option()?
+      .map(|(key, _value)| u64::from_be_bytes(key.try_into().unwrap()) + 1)
+      .unwrap_or_default();
+
+    Ok(height)
   }
 
   pub(crate) fn list(&self, outpoint: &[u8]) -> Result<Vec<u8>> {
@@ -89,23 +110,22 @@ impl Database {
       &self.0,
       Some(OUTPOINT_TO_ORDINAL_RANGES),
       &lmdb::DatabaseOptions::new(lmdb::db::CREATE),
+    )?;
+
+    Ok(
+      lmdb::ReadTransaction::new(&self.0)?
+        .access()
+        .get::<[u8], [u8]>(outpoint_to_ordinal_ranges, outpoint)?
+        .to_vec(),
     )
-    .unwrap();
-
-    let tx = lmdb::ReadTransaction::new(&self.0).unwrap();
-
-    let access = tx.access();
-
-    let value: &[u8] = access.get(outpoint_to_ordinal_ranges, outpoint).unwrap();
-
-    Ok(value.to_vec())
   }
 }
 
 pub(crate) struct WriteTransaction<'a> {
-  inner: lmdb::WriteTransaction<'a>,
   env: &'a Environment,
   height_to_hash: lmdb::Database<'a>,
+  lmdb_write_transaction: lmdb::WriteTransaction<'a>,
+  key_to_satpoint: lmdb::Database<'a>,
   outpoint_to_ordinal_ranges: lmdb::Database<'a>,
 }
 
@@ -115,35 +135,28 @@ impl<'a> WriteTransaction<'a> {
       environment,
       Some(HEIGHT_TO_HASH),
       &lmdb::DatabaseOptions::new(lmdb::db::CREATE),
-    )
-    .unwrap();
+    )?;
 
     let outpoint_to_ordinal_ranges = lmdb::Database::open(
       environment,
       Some(OUTPOINT_TO_ORDINAL_RANGES),
       &lmdb::DatabaseOptions::new(lmdb::db::CREATE),
-    )
-    .unwrap();
+    )?;
 
-    // let outpoint_to_ordinal_ranges =
-    //   environment.create_db(Some(), DatabaseFlags::empty())?;
+    let key_to_satpoint = lmdb::Database::open(
+      environment,
+      Some(KEY_TO_SATPOINT),
+      &lmdb::DatabaseOptions::new(lmdb::db::CREATE),
+    )?;
 
-    // let key_to_satpoint = environment.create_db(Some(KEY_TO_SATPOINT), DatabaseFlags::empty())?;
-
-    let tx = lmdb::WriteTransaction::new(environment.clone()).unwrap();
-
-    // Ok(Self {
-    //   inner: tx,
-    //   height_to_hash,
-    //   outpoint_to_ordinal_ranges,
-    //   key_to_satpoint,
-    // })
+    let lmdb_write_transaction = lmdb::WriteTransaction::new(environment.clone())?;
 
     Ok(Self {
-      inner: tx,
+      lmdb_write_transaction,
       env: environment,
       height_to_hash,
       outpoint_to_ordinal_ranges,
+      key_to_satpoint,
     })
   }
 
@@ -152,118 +165,78 @@ impl<'a> WriteTransaction<'a> {
   }
 
   pub(crate) fn commit(self) -> Result {
-    Ok(self.inner.commit()?)
+    Ok(self.lmdb_write_transaction.commit()?)
   }
 
   pub(crate) fn height(&self) -> Result<u64> {
-    // Ok(
-    //   self
-    //     .inner
-    //     .open_ro_cursor(self.height_to_hash)?
-    //     .iter()
-    //     .last()
-    //     .transpose()?
-    //     .map(|(height, _hash)| u64::from_be_bytes(height.try_into().unwrap()) + 1)
-    //     .unwrap_or(0),
-    // )
-    let mut cursor = self.inner.cursor(&self.height_to_hash).unwrap();
-
-    let access = self.inner.access();
-
-    let last: (&[u8], &[u8]) = match cursor.last(&access) {
-      Ok(kv) => kv,
-      Err(lmdb::Error::Code(-30798)) => return Ok(0),
-      Err(error) => return Err(error.into()),
-    };
-
-    Ok(u64::from_be_bytes(last.0.try_into().unwrap()) + 1)
-  }
-
-  pub(crate) fn outputs_indexed(&self) -> Result<u64> {
-    // Ok(
-    //   self
-    //     .inner
-    //     .open_ro_cursor(self.outpoint_to_ordinal_ranges)?
-    //     .iter()
-    //     .count()
-    //     .try_into()?,
-    // )
-    todo!()
+    Ok(
+      self
+        .lmdb_write_transaction
+        .cursor(&self.height_to_hash)?
+        .last::<[u8], [u8]>(&self.lmdb_write_transaction.access())
+        .into_option()?
+        .map(|(key, _value)| u64::from_be_bytes(key.try_into().unwrap()) + 1)
+        .unwrap_or_default(),
+    )
   }
 
   pub(crate) fn blockhash_at_height(&self, height: u64) -> Result<Option<Vec<u8>>> {
-    let access = self.inner.access();
-
-    let value: &[u8] = match access.get(&self.height_to_hash, &height.to_be_bytes()) {
-      Ok(value) => value,
-      Err(lmdb::Error::Code(-30798)) => return Ok(None),
-      Err(error) => return Err(error.into()),
-    };
-
-    Ok(Some(value.to_vec()))
+    Ok(
+      self
+        .lmdb_write_transaction
+        .access()
+        .get::<[u8], [u8]>(&self.height_to_hash, &height.to_be_bytes())
+        .into_option()?
+        .map(|value| value.to_vec()),
+    )
   }
 
   pub(crate) fn set_blockhash_at_height(&mut self, height: u64, blockhash: BlockHash) -> Result {
-    let mut write = self.inner.access();
-
-    write
-      .put(
-        &self.height_to_hash,
-        &height.to_be_bytes(),
-        blockhash.as_ref(),
-        lmdb::put::Flags::empty(),
-      )
-      .unwrap();
-
-    // Ok(self.inner.put(
-    //   self.outpoint_to_ordinal_ranges,
-    //   &outpoint,
-    //   &ordinal_ranges,
-    //   WriteFlags::empty(),
-    // )?)
-
+    self.lmdb_write_transaction.access().put(
+      &self.height_to_hash,
+      &height.to_be_bytes(),
+      blockhash.as_ref(),
+      lmdb::put::Flags::empty(),
+    )?;
     Ok(())
   }
 
   pub(crate) fn insert_outpoint(&mut self, outpoint: &[u8], ordinal_ranges: &[u8]) -> Result {
-    let mut write = self.inner.access();
+    self.lmdb_write_transaction.access().put(
+      &self.outpoint_to_ordinal_ranges,
+      outpoint,
+      ordinal_ranges,
+      lmdb::put::Flags::empty(),
+    )?;
+    Ok(())
+  }
 
-    write
-      .put(
-        &self.outpoint_to_ordinal_ranges,
-        outpoint,
-        ordinal_ranges,
-        lmdb::put::Flags::empty(),
-      )
-      .unwrap();
-
-    // Ok(self.inner.put(
-    //   self.outpoint_to_ordinal_ranges,
-    //   &outpoint,
-    //   &ordinal_ranges,
-    //   WriteFlags::empty(),
-    // )?)
+  pub(crate) fn remove_outpoint(&mut self, outpoint: &[u8]) -> Result {
+    self
+      .lmdb_write_transaction
+      .access()
+      .del_key(&self.outpoint_to_ordinal_ranges, outpoint)?;
     Ok(())
   }
 
   pub(crate) fn get_ordinal_ranges(&self, outpoint: &[u8]) -> Result<Option<Vec<u8>>> {
-    let access = self.inner.access();
-
-    let value: &[u8] = match access.get(&self.outpoint_to_ordinal_ranges, outpoint) {
-      Ok(value) => value,
-      Err(lmdb::Error::Code(-30798)) => return Ok(None),
-      Err(error) => return Err(error.into()),
-    };
-
-    Ok(Some(value.to_vec()))
+    Ok(
+      self
+        .lmdb_write_transaction
+        .access()
+        .get::<[u8], [u8]>(&self.outpoint_to_ordinal_ranges, outpoint)
+        .into_option()?
+        .map(|value| value.to_vec()),
+    )
   }
 
   pub(crate) fn insert_satpoint(&mut self, key: &[u8], satpoint: &[u8]) -> Result {
-    // Ok(
-    //   self
-    //     .inner
-    //     .put(self.key_to_satpoint, &key, &satpoint, WriteFlags::empty())?,
-    // )
+    self.lmdb_write_transaction.access().put(
+      &self.key_to_satpoint,
+      key,
+      satpoint,
+      lmdb::put::Flags::empty(),
+    )?;
     Ok(())
   }
 }

@@ -62,7 +62,7 @@ impl Database {
     Ok(())
   }
 
-  pub(crate) fn find(&self, ordinal: Ordinal) -> Result<Option<(u64, u64, SatPoint)>> {
+  pub(crate) fn find(&self, ordinal: Ordinal) -> Result<Option<(Vec<u8>, Vec<u8>)>> {
     let rtx = self.0.begin_read()?;
 
     let height_to_hash = match rtx.open_table(&HEIGHT_TO_HASH) {
@@ -87,18 +87,7 @@ impl Database {
       .rev()
       .next()
     {
-      Some((start_key, start_satpoint)) => {
-        let start_key = Key::decode(start_key)?;
-        let start_satpoint = SatPoint::consensus_decode(start_satpoint)?;
-        Ok(Some((
-          start_key.block,
-          start_key.transaction,
-          SatPoint {
-            offset: start_satpoint.offset + (ordinal.0 - start_key.ordinal),
-            outpoint: start_satpoint.outpoint,
-          },
-        )))
-      }
+      Some((start_key, start_satpoint)) => Ok(Some((start_key.to_vec(), start_satpoint.to_vec()))),
       None => Ok(None),
     }
   }

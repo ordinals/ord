@@ -129,11 +129,20 @@ fn empty_index() -> Result {
 }
 
 #[test]
-fn unmined_satoshi() -> Result {
+fn unmined_satoshi_in_second_block() -> Result {
   Test::new()?
     .block()
     .expected_stderr("error: Ordinal has not been mined as of index height\n")
     .expected_status(1)
     .command("find 5000000000")
+    .run()
+}
+
+#[test]
+fn unmined_satoshi_in_first_block() -> Result {
+  Test::new()?
+    .expected_stderr("error: Ordinal has not been mined as of index height\n")
+    .expected_status(1)
+    .command("find 0")
     .run()
 }

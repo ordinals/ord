@@ -26,13 +26,3 @@ install-dev-deps:
 
 clean:
   rm -rf index.lmdb index.redb
-
-run:
-  RUST_LOG=info \
-  cargo run --release \
-  --features lmdb \
-  -- \
-  --index-size 4TiB \
-  --rpc-url 127.0.0.1:8332 \
-  --cookie-file ~/Library/Application\ Support/Bitcoin/.cookie \
-  index

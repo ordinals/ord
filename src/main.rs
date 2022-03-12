@@ -5,7 +5,7 @@ use {
   },
   bitcoin::{
     blockdata::constants::COIN_VALUE, consensus::Decodable, consensus::Encodable, Block, BlockHash,
-    OutPoint, Transaction,
+    OutPoint, Transaction, Txid,
   },
   chrono::{DateTime, NaiveDateTime, Utc},
   clap::Parser,
@@ -38,14 +38,14 @@ mod ordinal;
 mod sat_point;
 mod subcommand;
 
-#[cfg(not(feature = "lmdb"))]
+#[cfg(feature = "redb")]
 mod redb_database;
-#[cfg(not(feature = "lmdb"))]
+#[cfg(feature = "redb")]
 use redb_database::{Database, WriteTransaction};
 
-#[cfg(feature = "lmdb")]
+#[cfg(not(feature = "redb"))]
 mod lmdb_database;
-#[cfg(feature = "lmdb")]
+#[cfg(not(feature = "redb"))]
 use lmdb_database::{Database, WriteTransaction};
 
 type Error = Box<dyn std::error::Error + Send + Sync>;
@@ -59,7 +59,7 @@ fn main() {
   ctrlc::set_handler(move || {
     let interrupts = INTERRUPTS.fetch_add(1, atomic::Ordering::Relaxed);
 
-    if interrupts > 0 {
+    if interrupts > 5 {
       process::exit(1);
     }
   })
