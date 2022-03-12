@@ -80,9 +80,8 @@ impl Index {
     let mut wtx = self.database.begin_write()?;
 
     loop {
-      let mut start = Instant::now();
+      let start = Instant::now();
       let mut ordinal_ranges_written = 0;
-      let mut outputs = 0;
 
       let height = wtx.height()?;
 
@@ -159,7 +158,6 @@ impl Index {
         )?;
 
         coinbase_inputs.extend(input_ordinal_ranges);
-        outputs += tx.output.len();
       }
 
       if let Some((txid, tx)) = txdata.first() {
@@ -172,8 +170,6 @@ impl Index {
           &mut coinbase_inputs,
           &mut ordinal_ranges_written,
         )?;
-
-        outputs += tx.output.len();
       }
 
       wtx.set_blockhash_at_height(height, block.block_hash())?;

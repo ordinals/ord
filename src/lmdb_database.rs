@@ -1,7 +1,7 @@
 use {
   super::*,
   ord_lmdb_zero::{self as lmdb, EnvBuilder, Environment},
-  std::{fs, path::Path},
+  std::fs,
 };
 
 const HEIGHT_TO_HASH: &'static str = "HEIGHT_TO_HASH";
@@ -33,8 +33,8 @@ impl Database {
     let env = unsafe {
       let mut builder = EnvBuilder::new()?;
 
-      builder.set_maxdbs(3);
-      builder.set_mapsize(options.index_size.0);
+      builder.set_maxdbs(3)?;
+      builder.set_mapsize(options.index_size.0)?;
 
       builder
         .open(path, lmdb::open::Flags::empty(), 0o600)
@@ -76,7 +76,9 @@ impl Database {
     let key = Key::new(ordinal).encode();
 
     let access = tx.access();
-    cursor.seek_range_k::<[u8], [u8]>(&access, key.as_slice());
+    cursor
+      .seek_range_k::<[u8], [u8]>(&access, key.as_slice())
+      .into_option()?;
 
     Ok(
       cursor
@@ -122,7 +124,6 @@ impl Database {
 }
 
 pub(crate) struct WriteTransaction<'a> {
-  env: &'a Environment,
   height_to_hash: lmdb::Database<'a>,
   lmdb_write_transaction: lmdb::WriteTransaction<'a>,
   key_to_satpoint: lmdb::Database<'a>,
@@ -153,15 +154,10 @@ impl<'a> WriteTransaction<'a> {
 
     Ok(Self {
       lmdb_write_transaction,
-      env: environment,
       height_to_hash,
       outpoint_to_ordinal_ranges,
       key_to_satpoint,
     })
-  }
-
-  pub(crate) fn abort(self) -> Result {
-    Ok(())
   }
 
   pub(crate) fn commit(self) -> Result {
