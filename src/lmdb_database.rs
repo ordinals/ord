@@ -107,7 +107,7 @@ impl Database {
     Ok(height)
   }
 
-  pub(crate) fn list(&self, outpoint: &[u8]) -> Result<Vec<u8>> {
+  pub(crate) fn list(&self, outpoint: &[u8]) -> Result<Option<Vec<u8>>> {
     let outpoint_to_ordinal_ranges = &lmdb::Database::open(
       &self.0,
       Some(OUTPOINT_TO_ORDINAL_RANGES),
@@ -117,8 +117,9 @@ impl Database {
     Ok(
       lmdb::ReadTransaction::new(&self.0)?
         .access()
-        .get::<[u8], [u8]>(outpoint_to_ordinal_ranges, outpoint)?
-        .to_vec(),
+        .get::<[u8], [u8]>(outpoint_to_ordinal_ranges, outpoint)
+        .into_option()?
+        .map(|ranges| ranges.to_vec()),
     )
   }
 }

@@ -9,12 +9,14 @@ impl List {
   pub(crate) fn run(self, options: Options) -> Result<()> {
     let index = Index::index(&options)?;
 
-    let ranges = index.list(self.outpoint)?;
-
-    for (start, end) in ranges {
-      println!("[{start},{end})");
+    match index.list(self.outpoint)? {
+      Some(ranges) => {
+        for (start, end) in ranges {
+          println!("[{start},{end})");
+        }
+        Ok(())
+      }
+      None => Err("Output not found".into()),
     }
-
-    Ok(())
   }
 }

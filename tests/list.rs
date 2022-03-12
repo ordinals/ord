@@ -209,3 +209,19 @@ fn null_input() -> Result {
     .expected_stdout("")
     .run()
 }
+
+#[test]
+fn old_transactions_are_pruned() -> Result {
+  Test::new()?
+    .command("list 0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0")
+    .block()
+    .block()
+    .transaction(TransactionOptions {
+      slots: &[(0, 0, 0)],
+      output_count: 1,
+      fee: 50 * 100_000_000,
+    })
+    .expected_stderr("error: Output not found\n")
+    .expected_status(1)
+    .run()
+}

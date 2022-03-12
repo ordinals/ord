@@ -172,7 +172,7 @@ impl Test {
     if output.status.code() != Some(self.expected_status) {
       panic!(
         "Test failed: {}\nstdout:\n{}\nstderr:\n{}",
-        output.status, stderr, stdout
+        output.status, stdout, stderr
       );
     }
 

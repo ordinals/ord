@@ -4,6 +4,10 @@ use {
   rayon::iter::{IntoParallelRefIterator, ParallelIterator},
 };
 
+// todo:
+// - test that old outpoints are getting pruned
+// - test that old satpoints are getting pruned
+
 pub(crate) struct Index {
   client: Client,
   database: Database,
@@ -141,7 +145,8 @@ impl Index {
             .ok_or("Could not find outpoint in index")?;
 
           for chunk in ordinal_ranges.chunks_exact(11) {
-            input_ordinal_ranges.push_back(Self::decode_ordinal_range(chunk.try_into().unwrap()));
+            let range = Self::decode_ordinal_range(chunk.try_into().unwrap());
+            input_ordinal_ranges.push_back(range);
           }
 
           wtx.remove_outpoint(&key)?;
@@ -291,14 +296,19 @@ impl Index {
     }
   }
 
-  pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Vec<(u64, u64)>> {
+  pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<Vec<(u64, u64)>>> {
     let mut outpoint_encoded = Vec::new();
     outpoint.consensus_encode(&mut outpoint_encoded)?;
     let ordinal_ranges = self.database.list(&outpoint_encoded)?;
-    let mut output = Vec::new();
-    for chunk in ordinal_ranges.chunks_exact(11) {
-      output.push(Self::decode_ordinal_range(chunk.try_into().unwrap()));
+    match ordinal_ranges {
+      Some(ordinal_ranges) => {
+        let mut output = Vec::new();
+        for chunk in ordinal_ranges.chunks_exact(11) {
+          output.push(Self::decode_ordinal_range(chunk.try_into().unwrap()));
+        }
+        Ok(Some(output))
+      }
+      None => Ok(None),
     }
-    Ok(output)
   }
 }
