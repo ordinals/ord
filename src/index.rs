@@ -146,6 +146,16 @@ impl Index {
 
           for chunk in ordinal_ranges.chunks_exact(11) {
             let range = Self::decode_ordinal_range(chunk.try_into().unwrap());
+
+            wtx.remove_satpoint(
+              &Key {
+                ordinal: range.0,
+                block: 0,
+                transaction: 0,
+              }
+              .encode(),
+            )?;
+
             input_ordinal_ranges.push_back(range);
           }
 

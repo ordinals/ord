@@ -236,4 +236,12 @@ impl<'a> WriteTransaction<'a> {
     )?;
     Ok(())
   }
+
+  pub(crate) fn remove_satpoint(&mut self, key: &[u8]) -> Result {
+    let mut cursor = self.lmdb_write_transaction.cursor(&self.key_to_satpoint)?;
+    let mut access = self.lmdb_write_transaction.access();
+    cursor.seek_range_k::<[u8], [u8]>(&mut access, key)?;
+    cursor.del(&mut access, lmdb::del::Flags::empty())?;
+    Ok(())
+  }
 }
