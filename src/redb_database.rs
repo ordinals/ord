@@ -13,16 +13,23 @@ pub(crate) struct Database(redb::Database);
 
 impl Database {
   pub(crate) fn open(options: &Options) -> Result<Self> {
-    match unsafe { redb::Database::open("index.redb") } {
-      Ok(database) => Ok(Self(database)),
+    let database = match unsafe { redb::Database::open("index.redb") } {
+      Ok(database) => database,
       Err(redb::Error::Io(error)) if error.kind() == io::ErrorKind::NotFound => unsafe {
-        Ok(Self(redb::Database::create(
-          "index.redb",
-          options.index_size.0,
-        )?))
+        redb::Database::create("index.redb", options.index_size.0)?
       },
-      Err(error) => Err(error.into()),
-    }
+      Err(error) => return Err(error.into()),
+    };
+
+    let tx = database.begin_write()?;
+
+    tx.open_table(&HEIGHT_TO_HASH)?;
+    tx.open_table(&OUTPOINT_TO_ORDINAL_RANGES)?;
+    tx.open_table(&KEY_TO_SATPOINT)?;
+
+    tx.commit()?;
+
+    Ok(Self(database))
   }
 
   pub(crate) fn begin_write(&self) -> Result<WriteTransaction> {
@@ -30,7 +37,7 @@ impl Database {
   }
 
   pub(crate) fn print_info(&self) -> Result {
-    let tx = self.0.begin_write()?;
+    let tx = self.0.begin_read()?;
 
     let height_to_hash = tx.open_table(&HEIGHT_TO_HASH)?;
 
@@ -42,8 +49,6 @@ impl Database {
       .unwrap_or(0);
 
     let outputs_indexed = tx.open_table(&OUTPOINT_TO_ORDINAL_RANGES)?.len()?;
-
-    tx.abort()?;
 
     let stats = self.0.stats()?;
 
@@ -62,25 +67,32 @@ impl Database {
     Ok(())
   }
 
+  pub(crate) fn height(&self) -> Result<u64> {
+    let tx = self.0.begin_read()?;
+
+    let height_to_hash = tx.open_table(&HEIGHT_TO_HASH)?;
+
+    Ok(
+      height_to_hash
+        .range(0..)?
+        .rev()
+        .next()
+        .map(|(height, _hash)| height + 1)
+        .unwrap_or(0),
+    )
+  }
+
   pub(crate) fn find(&self, ordinal: Ordinal) -> Result<Option<(Vec<u8>, Vec<u8>)>> {
     let rtx = self.0.begin_read()?;
 
-    let height_to_hash = match rtx.open_table(&HEIGHT_TO_HASH) {
-      Ok(height_to_hash) => height_to_hash,
-      Err(redb::Error::TableDoesNotExist(_)) => return Ok(None),
-      Err(err) => return Err(err.into()),
-    };
+    let height_to_hash = rtx.open_table(&HEIGHT_TO_HASH)?;
 
     match height_to_hash.range(0..)?.rev().next() {
       Some((height, _hash)) if height >= ordinal.height().0 => {}
       _ => return Ok(None),
     }
 
-    let key_to_satpoint = match rtx.open_table(&KEY_TO_SATPOINT) {
-      Ok(key_to_satpoint) => key_to_satpoint,
-      Err(redb::Error::TableDoesNotExist(_)) => return Ok(None),
-      Err(err) => return Err(err.into()),
-    };
+    let key_to_satpoint = rtx.open_table(&KEY_TO_SATPOINT)?;
 
     match key_to_satpoint
       .range([].as_slice()..=Key::new(ordinal).encode().as_slice())?
@@ -127,11 +139,6 @@ impl<'a> WriteTransaction<'a> {
     })
   }
 
-  pub(crate) fn abort(self) -> Result {
-    self.inner.abort()?;
-    Ok(())
-  }
-
   pub(crate) fn commit(self) -> Result {
     self.inner.commit()?;
     Ok(())
@@ -162,6 +169,11 @@ impl<'a> WriteTransaction<'a> {
     self
       .outpoint_to_ordinal_ranges
       .insert(outpoint, ordinal_ranges)?;
+    Ok(())
+  }
+
+  pub(crate) fn remove_outpoint(&mut self, outpoint: &[u8]) -> Result {
+    self.outpoint_to_ordinal_ranges.remove(outpoint)?;
     Ok(())
   }
 
