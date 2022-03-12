@@ -4,10 +4,6 @@ use {
   rayon::iter::{IntoParallelRefIterator, ParallelIterator},
 };
 
-// todo:
-// - test that old outpoints are getting pruned
-// - test that old satpoints are getting pruned
-
 pub(crate) struct Index {
   client: Client,
   database: Database,
@@ -144,19 +140,21 @@ impl Index {
             .get_ordinal_ranges(key.as_slice())?
             .ok_or("Could not find outpoint in index")?;
 
-          for chunk in ordinal_ranges.chunks_exact(11) {
-            let range = Self::decode_ordinal_range(chunk.try_into().unwrap());
+          let new = input_ordinal_ranges.len();
 
+          for chunk in ordinal_ranges.chunks_exact(11) {
+            input_ordinal_ranges.push_back(Self::decode_ordinal_range(chunk.try_into().unwrap()));
+          }
+
+          for (start, _end) in input_ordinal_ranges.range(new..) {
             wtx.remove_satpoint(
               &Key {
-                ordinal: range.0,
+                ordinal: *start,
                 block: 0,
                 transaction: 0,
               }
               .encode(),
             )?;
-
-            input_ordinal_ranges.push_back(range);
           }
 
           wtx.remove_outpoint(&key)?;

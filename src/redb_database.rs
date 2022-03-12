@@ -104,15 +104,14 @@ impl Database {
     }
   }
 
-  pub(crate) fn list(&self, outpoint: &[u8]) -> Result<Vec<u8>> {
+  pub(crate) fn list(&self, outpoint: &[u8]) -> Result<Option<Vec<u8>>> {
     Ok(
       self
         .0
         .begin_read()?
         .open_table(&OUTPOINT_TO_ORDINAL_RANGES)?
         .get(outpoint)?
-        .ok_or("Could not find outpoint in index")?
-        .to_vec(),
+        .map(|outpoint| outpoint.to_vec()),
     )
   }
 }
@@ -183,6 +182,18 @@ impl<'a> WriteTransaction<'a> {
 
   pub(crate) fn insert_satpoint(&mut self, key: &[u8], satpoint: &[u8]) -> Result {
     self.key_to_satpoint.insert(key, satpoint)?;
+    Ok(())
+  }
+
+  pub(crate) fn remove_satpoint(&mut self, key: &[u8]) -> Result {
+    let key = self
+      .key_to_satpoint
+      .range(key..)?
+      .next()
+      .unwrap()
+      .0
+      .to_vec();
+    self.key_to_satpoint.remove(&key)?;
     Ok(())
   }
 }
