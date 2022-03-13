@@ -33,7 +33,7 @@ fn basic() -> Result {
     .stdout_regex(
       r"
         blocks indexed: 1
-        data and metadata: 16384
+        data and metadata: \d+
       "
       .unindent(),
     )
