@@ -4,9 +4,9 @@ use {
   std::fs,
 };
 
-const HEIGHT_TO_HASH: &'static str = "HEIGHT_TO_HASH";
-const KEY_TO_SATPOINT: &'static str = "KEY_TO_SATPOINT";
-const OUTPOINT_TO_ORDINAL_RANGES: &'static str = "OUTPOINT_TO_ORDINAL_RANGES";
+const HEIGHT_TO_HASH: &str = "HEIGHT_TO_HASH";
+const KEY_TO_SATPOINT: &str = "KEY_TO_SATPOINT";
+const OUTPOINT_TO_ORDINAL_RANGES: &str = "OUTPOINT_TO_ORDINAL_RANGES";
 
 trait LmdbResultExt<T> {
   fn into_option(self) -> Result<Option<T>>;
@@ -45,7 +45,7 @@ impl Database {
   }
 
   pub(crate) fn begin_write(&self) -> Result<WriteTransaction> {
-    Ok(WriteTransaction::new(&self.0)?)
+    WriteTransaction::new(&self.0)
   }
 
   pub(crate) fn print_info(&self) -> Result {
@@ -151,7 +151,7 @@ impl<'a> WriteTransaction<'a> {
       &lmdb::DatabaseOptions::new(lmdb::db::CREATE),
     )?;
 
-    let lmdb_write_transaction = lmdb::WriteTransaction::new(environment.clone())?;
+    let lmdb_write_transaction = lmdb::WriteTransaction::new(environment)?;
 
     Ok(Self {
       lmdb_write_transaction,
@@ -240,7 +240,7 @@ impl<'a> WriteTransaction<'a> {
   pub(crate) fn remove_satpoint(&mut self, key: &[u8]) -> Result {
     let mut cursor = self.lmdb_write_transaction.cursor(&self.key_to_satpoint)?;
     let mut access = self.lmdb_write_transaction.access();
-    cursor.seek_range_k::<[u8], [u8]>(&mut access, key)?;
+    cursor.seek_range_k::<[u8], [u8]>(&access, key)?;
     cursor.del(&mut access, lmdb::del::Flags::empty())?;
     Ok(())
   }

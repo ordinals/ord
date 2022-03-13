@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_arguments)]
+
 use {
   crate::{
     arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height, index::Index, key::Key,
