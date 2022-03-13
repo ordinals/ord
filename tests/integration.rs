@@ -28,6 +28,7 @@ mod range;
 mod rpc_server;
 mod supply;
 mod traits;
+mod server;
 
 type Result<T = ()> = std::result::Result<T, Box<dyn Error>>;
 
