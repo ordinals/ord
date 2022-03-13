@@ -56,7 +56,6 @@ jobs:
     - name: Format
       run: |
         cargo fmt --all -- --check
-        cargo fmt --all -- --check --features redb
 
     - name: Check for Forbidden Words
       if: ${{ matrix.os == 'ubuntu-latest' }}
