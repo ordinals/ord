@@ -23,6 +23,3 @@ watch +args='ltest':
 
 install-dev-deps:
   cargo install cargo-criterion
-
-clean:
-  rm -rf index.lmdb index.redb
