@@ -166,10 +166,14 @@ impl Test {
 
     close_handle.close();
 
+    let stdout = str::from_utf8(&output.stdout)?;
     let stderr = str::from_utf8(&output.stderr)?;
 
     if output.status.code() != Some(self.expected_status) {
-      panic!("Test failed: {}\n{}", output.status, stderr);
+      panic!(
+        "Test failed: {}\nstdout:\n{}\nstderr:\n{}",
+        output.status, stdout, stderr
+      );
     }
 
     let re = Regex::new(r"(?m)^\[.*\n")?;
@@ -179,8 +183,6 @@ impl Test {
     }
 
     assert_eq!(re.replace_all(stderr, ""), self.expected_stderr);
-
-    let stdout = str::from_utf8(&output.stdout)?;
 
     match self.expected_stdout {
       Expected::String(expected_stdout) => assert_eq!(stdout, expected_stdout),

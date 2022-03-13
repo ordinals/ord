@@ -1,6 +1,7 @@
 use super::*;
 
 #[test]
+#[cfg(feature = "redb")]
 fn basic() -> Result {
   let output = Test::new()?.command("index").block().output()?;
 
@@ -16,6 +17,23 @@ fn basic() -> Result {
         overhead: .* bytes
         fragmented: .* KiB
         index size: 1 MiB
+      "
+      .unindent(),
+    )
+    .run()
+}
+
+#[test]
+#[cfg(not(feature = "redb"))]
+fn basic() -> Result {
+  let output = Test::new()?.command("index").block().output()?;
+
+  Test::with_tempdir(output.tempdir)
+    .command("info")
+    .stdout_regex(
+      r"
+        blocks indexed: 1
+        data and metadata: \d+
       "
       .unindent(),
     )

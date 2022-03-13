@@ -1,3 +1,4 @@
-.idea/
+/.idea/
+/index.lmdb
 /index.redb
 /target

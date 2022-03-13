@@ -44,13 +44,18 @@ jobs:
         cargo update --locked --package ord
 
     - name: Test
-      run: cargo test --all
+      run: |
+        cargo test --all
+        cargo test --all --features redb
 
     - name: Clippy
-      run: cargo clippy --all --all-targets
+      run: |
+        cargo clippy --all --all-targets
+        cargo clippy --all --all-targets --features redb
 
     - name: Format
-      run: cargo fmt --all -- --check
+      run: |
+        cargo fmt --all -- --check
 
     - name: Check for Forbidden Words
       if: ${{ matrix.os == 'ubuntu-latest' }}

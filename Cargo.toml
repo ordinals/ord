@@ -9,7 +9,9 @@ autotests = false
 [dependencies]
 bitcoin = "0.27.1"
 bitcoincore-rpc = "0.14.0"
+chrono = "0.4.19"
 clap = { version = "3.1.0", features = ["derive"] }
+ctrlc = "3.2.1"
 derive_more = "0.99.17"
 dirs = "4.0.0"
 env_logger = "0.9.0"
@@ -18,7 +20,9 @@ integer-cbrt = "0.1.2"
 integer-sqrt = "0.1.5"
 jsonrpc = "0.12.1"
 log = "0.4.14"
-redb = "0.0.5"
+ord-lmdb-zero = "0.4.5"
+rayon = "1.5.1"
+redb = { version = "0.0.5", optional = true }
 
 [dev-dependencies]
 criterion = "0.3.5"
