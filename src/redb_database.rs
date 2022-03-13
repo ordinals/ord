@@ -3,10 +3,10 @@ use {
   redb::{ReadableTable, TableDefinition},
 };
 
-const HEIGHT_TO_HASH: TableDefinition<'static, u64, [u8]> = TableDefinition::new("HEIGHT_TO_HASH");
-const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<'static, [u8], [u8]> =
+const HEIGHT_TO_HASH: TableDefinition<u64, [u8]> = TableDefinition::new("HEIGHT_TO_HASH");
+const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8], [u8]> =
   TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
-const KEY_TO_SATPOINT: TableDefinition<'static, [u8], [u8]> =
+const KEY_TO_SATPOINT: TableDefinition<[u8], [u8]> =
   TableDefinition::new("KEY_TO_SATPOINT");
 
 pub(crate) struct Database(redb::Database);
