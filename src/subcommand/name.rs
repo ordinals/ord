@@ -8,7 +8,7 @@ pub(crate) struct Name {
 impl Name {
   pub(crate) fn run(self) -> Result {
     if self.name.is_empty() || self.name.chars().any(|c| !('a'..='z').contains(&c)) {
-      return Err("Invalid name".into());
+      return Err(anyhow!("Invalid name"));
     }
 
     let mut min = 0;
@@ -32,7 +32,7 @@ impl Name {
       }
 
       if max - min == 0 {
-        return Err("Name out of range".into());
+        return Err(anyhow!("Name out of range"));
       }
 
       guess = min + (max - min) / 2;

@@ -1,0 +1,58 @@
+[Unit]
+After=network.target
+Description=Ord server
+StartLimitBurst=120
+StartLimitIntervalSec=10m
+
+[Service]
+WorkingDirectory=/var/lib/ord
+Environment="RUST_LOG=info"
+ExecStart=/usr/local/bin/ord \
+  --index-size 1TiB \
+  --rpc-url 127.0.0.1:8332 \
+  --cookie-file /var/lib/bitcoind/.cookie \
+  index
+
+# Process management
+####################
+
+Type=simple
+Restart=on-failure
+TimeoutStopSec=10m
+RestartSec=5s
+
+# Directory creation and permissions
+####################################
+
+User=ord
+Group=ord
+
+# /var/lib/ord
+StateDirectory=ord
+StateDirectoryMode=0700
+
+# Hardening measures
+####################
+
+# Provide a private /tmp and /var/tmp.
+PrivateTmp=true
+
+# Mount /usr, /boot/ and /etc read-only for the process.
+ProtectSystem=full
+
+# Deny access to /home, /root and /run/user
+ProtectHome=true
+
+# Disallow the process and all of its children to gain
+# new privileges through execve().
+NoNewPrivileges=true
+
+# Use a new /dev namespace only populated with API pseudo devices
+# such as /dev/null, /dev/zero and /dev/random.
+PrivateDevices=true
+
+# Deny the creation of writable and executable memory mappings.
+MemoryDenyWriteExecute=true
+
+[Install]
+WantedBy=multi-user.target

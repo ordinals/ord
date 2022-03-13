@@ -16,17 +16,18 @@ impl Index {
       options
         .rpc_url
         .as_ref()
-        .ok_or("This command requires `--rpc-url`")?,
+        .ok_or(anyhow!("This command requires `--rpc-url`"))?,
       options
         .cookie_file
         .as_ref()
         .map(|path| Auth::CookieFile(path.clone()))
         .unwrap_or(Auth::None),
-    )?;
+    )
+    .context("Failed to connect to RPC URL")?;
 
     Ok(Self {
       client,
-      database: Database::open(options)?,
+      database: Database::open(options).context("Failed to open database")?,
       sleep_until: Cell::new(Instant::now()),
     })
   }
@@ -110,7 +111,7 @@ impl Index {
         let prev_hash = wtx.blockhash_at_height(prev_height)?.unwrap();
 
         if prev_hash != block.header.prev_blockhash.as_ref() {
-          return Err("Reorg detected at or before {prev_height}".into());
+          return Err(anyhow!("Reorg detected at or before {prev_height}"));
         }
       }
 
@@ -140,7 +141,7 @@ impl Index {
 
           let ordinal_ranges = wtx
             .get_ordinal_ranges(key.as_slice())?
-            .ok_or("Could not find outpoint in index")?;
+            .ok_or(anyhow!("Could not find outpoint in index"))?;
 
           let new = input_ordinal_ranges.len();
 
@@ -226,7 +227,7 @@ impl Index {
       while remaining > 0 {
         let range = input_ordinal_ranges
           .pop_front()
-          .ok_or("Insufficient inputs for transaction outputs")?;
+          .ok_or(anyhow!("Insufficient inputs for transaction outputs"))?;
 
         let count = range.1 - range.0;
 

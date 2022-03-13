@@ -7,6 +7,7 @@ edition = "2021"
 autotests = false
 
 [dependencies]
+anyhow = "1.0.56"
 bitcoin = "0.27.1"
 bitcoincore-rpc = "0.14.0"
 chrono = "0.4.19"
