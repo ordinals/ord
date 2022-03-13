@@ -45,17 +45,19 @@ impl Index {
   }
 
   fn client(&self) -> &Client {
-    let now = Instant::now();
+    if cfg!(target_os = "macos") {
+      let now = Instant::now();
 
-    let sleep_until = self.sleep_until.get();
+      let sleep_until = self.sleep_until.get();
 
-    if sleep_until > now {
-      std::thread::sleep(sleep_until - now);
+      if sleep_until > now {
+        std::thread::sleep(sleep_until - now);
+      }
+
+      self
+        .sleep_until
+        .set(Instant::now() + Duration::from_millis(2));
     }
-
-    self
-      .sleep_until
-      .set(Instant::now() + Duration::from_millis(2));
 
     &self.client
   }
