@@ -23,3 +23,5 @@ watch +args='ltest':
 
 install-dev-deps:
   cargo install cargo-criterion
+
+deploy:
