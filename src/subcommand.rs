@@ -7,9 +7,9 @@ mod info;
 mod list;
 mod name;
 mod range;
+mod server;
 mod supply;
 mod traits;
-mod server;
 
 #[derive(Parser)]
 pub(crate) enum Subcommand {

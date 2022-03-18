@@ -5,6 +5,7 @@ use {
     arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height, index::Index, key::Key,
     options::Options, ordinal::Ordinal, sat_point::SatPoint, subcommand::Subcommand,
   },
+  axum::{extract, http::StatusCode, response::IntoResponse, routing::get, Json, Router},
   bitcoin::{
     blockdata::constants::COIN_VALUE, consensus::Decodable, consensus::Encodable, Block, BlockHash,
     OutPoint, Transaction, Txid,
@@ -20,13 +21,18 @@ use {
     collections::VecDeque,
     fmt::{self, Display, Formatter},
     io,
+    net::SocketAddr,
     ops::{Add, AddAssign, Deref, Sub},
     path::PathBuf,
     process,
     str::FromStr,
-    sync::atomic::{self, AtomicU64},
+    sync::{
+      atomic::{self, AtomicU64},
+      Arc, Mutex,
+    },
     time::{Duration, Instant},
   },
+  tokio::runtime::Runtime,
 };
 
 mod arguments;
