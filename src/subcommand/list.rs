@@ -16,7 +16,7 @@ impl List {
         }
         Ok(())
       }
-      None => Err("Output not found".into()),
+      None => Err(anyhow!("Output not found")),
     }
   }
 }

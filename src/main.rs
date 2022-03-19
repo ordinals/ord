@@ -5,6 +5,7 @@ use {
     arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height, index::Index, key::Key,
     options::Options, ordinal::Ordinal, sat_point::SatPoint, subcommand::Subcommand,
   },
+  anyhow::{anyhow, Context, Error},
   bitcoin::{
     blockdata::constants::COIN_VALUE, consensus::Decodable, consensus::Encodable, Block, BlockHash,
     OutPoint, Transaction, Txid,
@@ -29,28 +30,27 @@ use {
   },
 };
 
+#[cfg(feature = "redb")]
+use redb_database::{Database, WriteTransaction};
+
+#[cfg(not(feature = "redb"))]
+use lmdb_database::{Database, WriteTransaction};
+
 mod arguments;
 mod bytes;
 mod epoch;
 mod height;
 mod index;
 mod key;
+#[cfg(not(feature = "redb"))]
+mod lmdb_database;
 mod options;
 mod ordinal;
+#[cfg(feature = "redb")]
+mod redb_database;
 mod sat_point;
 mod subcommand;
 
-#[cfg(feature = "redb")]
-mod redb_database;
-#[cfg(feature = "redb")]
-use redb_database::{Database, WriteTransaction};
-
-#[cfg(not(feature = "redb"))]
-mod lmdb_database;
-#[cfg(not(feature = "redb"))]
-use lmdb_database::{Database, WriteTransaction};
-
-type Error = Box<dyn std::error::Error + Send + Sync>;
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 
 static INTERRUPTS: AtomicU64 = AtomicU64::new(0);

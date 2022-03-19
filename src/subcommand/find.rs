@@ -23,7 +23,7 @@ impl Find {
         }
         Ok(())
       }
-      None => Err("Ordinal has not been mined as of index height".into()),
+      None => Err(anyhow!("Ordinal has not been mined as of index height")),
     }
   }
 }
