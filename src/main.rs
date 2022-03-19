@@ -6,6 +6,8 @@ use {
     options::Options, ordinal::Ordinal, sat_point::SatPoint, subcommand::Subcommand,
   },
   anyhow::{anyhow, Context, Error},
+  axum::{extract, http::StatusCode, response::IntoResponse, routing::get, Json, Router},
+  axum_server::Handle,
   bitcoin::{
     blockdata::constants::COIN_VALUE, consensus::Decodable, consensus::Encodable, Block, BlockHash,
     OutPoint, Transaction, Txid,
@@ -15,19 +17,25 @@ use {
   derive_more::{Display, FromStr},
   integer_cbrt::IntegerCubeRoot,
   integer_sqrt::IntegerSquareRoot,
+  lazy_static::lazy_static,
   std::{
     cell::Cell,
     cmp::Ordering,
     collections::VecDeque,
     fmt::{self, Display, Formatter},
     io,
+    net::ToSocketAddrs,
     ops::{Add, AddAssign, Deref, Sub},
     path::PathBuf,
     process,
     str::FromStr,
-    sync::atomic::{self, AtomicU64},
+    sync::{
+      atomic::{self, AtomicU64},
+      Arc, Mutex,
+    },
     time::{Duration, Instant},
   },
+  tokio::runtime::Runtime,
 };
 
 #[cfg(feature = "redb")]
@@ -55,10 +63,20 @@ type Result<T = (), E = Error> = std::result::Result<T, E>;
 
 static INTERRUPTS: AtomicU64 = AtomicU64::new(0);
 
+lazy_static! {
+  static ref LISTENERS: Mutex<Vec<Handle>> = Mutex::new(Vec::new());
+}
+
 fn main() {
   env_logger::init();
 
   ctrlc::set_handler(move || {
+    LISTENERS
+      .lock()
+      .unwrap()
+      .iter()
+      .for_each(|handle| handle.graceful_shutdown(Some(Duration::from_millis(100))));
+
     let interrupts = INTERRUPTS.fetch_add(1, atomic::Ordering::Relaxed);
 
     if interrupts > 5 {

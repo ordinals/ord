@@ -7,6 +7,7 @@ mod info;
 mod list;
 mod name;
 mod range;
+mod server;
 mod supply;
 mod traits;
 
@@ -19,6 +20,7 @@ pub(crate) enum Subcommand {
   Name(name::Name),
   Range(range::Range),
   Supply,
+  Server(server::Server),
   Info,
   Traits(traits::Traits),
 }
@@ -33,6 +35,7 @@ impl Subcommand {
       Self::Name(name) => name.run(),
       Self::Range(range) => range.run(),
       Self::Supply => supply::run(),
+      Self::Server(server) => server.run(options),
       Self::Info => info::run(options),
       Self::Traits(traits) => traits.run(),
     }

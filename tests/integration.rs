@@ -5,14 +5,20 @@ use {
     BlockHeader, OutPoint, Transaction, TxIn, TxOut,
   },
   executable_path::executable_path,
+  nix::{
+    sys::signal::{self, Signal},
+    unistd::Pid,
+  },
   regex::Regex,
   std::{
     collections::BTreeSet,
     error::Error,
-    process::Command,
+    net::TcpListener,
+    process::{Command, Stdio},
     str,
     sync::{Arc, Mutex},
-    thread,
+    thread::{self, sleep},
+    time::{Duration, Instant},
   },
   tempfile::TempDir,
   unindent::Unindent,
@@ -26,6 +32,7 @@ mod list;
 mod name;
 mod range;
 mod rpc_server;
+mod server;
 mod supply;
 mod traits;
 
@@ -71,6 +78,7 @@ struct Test {
   expected_status: i32,
   expected_stderr: String,
   expected_stdout: Expected,
+  requests: Vec<(String, String)>,
   tempdir: TempDir,
 }
 
@@ -86,6 +94,7 @@ impl Test {
       expected_status: 0,
       expected_stderr: String::new(),
       expected_stdout: Expected::String(String::new()),
+      requests: Vec::new(),
       tempdir,
     }
   }
@@ -145,24 +154,82 @@ impl Test {
     }
   }
 
+  fn request(mut self, path: &str, response: &str) -> Self {
+    self.requests.push((path.to_string(), response.to_string()));
+    self
+  }
+
   fn run(self) -> Result {
-    self.output().map(|_| ())
+    self.test(None).map(|_| ())
   }
 
   fn output(self) -> Result<Output> {
+    self.test(None)
+  }
+
+  fn run_server(self, port: u16) -> Result {
+    self.test(Some(port)).map(|_| ())
+  }
+
+  fn test(self, port: Option<u16>) -> Result<Output> {
     for (b, block) in self.blocks.iter().enumerate() {
       for (t, transaction) in block.txdata.iter().enumerate() {
         eprintln!("{b}.{t}: {}", transaction.txid());
       }
     }
 
-    let (close_handle, calls, port) = RpcServer::spawn(&self.blocks);
+    let (close_handle, calls, rpc_server_port) = RpcServer::spawn(&self.blocks);
 
-    let output = Command::new(executable_path("ord"))
+    let child = Command::new(executable_path("ord"))
+      .stdin(Stdio::null())
+      .stdout(Stdio::piped())
+      .stderr(Stdio::piped())
       .current_dir(&self.tempdir)
-      .arg(format!("--rpc-url=http://127.0.0.1:{port}"))
+      .arg(format!("--rpc-url=http://127.0.0.1:{rpc_server_port}"))
       .args(self.args)
-      .output()?;
+      .spawn()?;
+
+    let mut successful_requests = 0;
+
+    if let Some(port) = port {
+      let client = reqwest::blocking::Client::new();
+
+      let start = Instant::now();
+      let mut healthy = false;
+
+      loop {
+        if let Ok(response) = client
+          .get(&format!("http://127.0.0.1:{port}/status"))
+          .send()
+        {
+          if response.status().is_success() {
+            healthy = true;
+            break;
+          }
+        }
+
+        if Instant::now() - start > Duration::from_secs(1) {
+          break;
+        }
+
+        sleep(Duration::from_millis(100));
+      }
+
+      if healthy {
+        for (request, expected_response) in &self.requests {
+          let response = client
+            .get(&format!("http://127.0.0.1:{port}/{request}"))
+            .send()?;
+          assert!(response.status().is_success(), "{:?}", response.status());
+          assert_eq!(response.text()?, *expected_response);
+          successful_requests += 1;
+        }
+      }
+
+      signal::kill(Pid::from_raw(child.id() as i32), Signal::SIGINT)?;
+    }
+
+    let output = child.wait_with_output()?;
 
     close_handle.close();
 
@@ -193,6 +260,12 @@ impl Test {
       ),
       Expected::Ignore => {}
     }
+
+    assert_eq!(
+      successful_requests,
+      self.requests.len(),
+      "Unsuccessful requests"
+    );
 
     let calls = calls.lock().unwrap().clone();
 
