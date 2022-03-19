@@ -5,8 +5,7 @@ use {
     arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height, index::Index, key::Key,
     options::Options, ordinal::Ordinal, sat_point::SatPoint, subcommand::Subcommand,
   },
-  anyhow::Context,
-  anyhow::{anyhow, Error},
+  anyhow::{anyhow, Context, Error},
   bitcoin::{
     blockdata::constants::COIN_VALUE, consensus::Decodable, consensus::Encodable, Block, BlockHash,
     OutPoint, Transaction, Txid,
