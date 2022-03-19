@@ -4,9 +4,9 @@
 
 set -euxo pipefail
 
-apt update
-apt upgrade
-apt install clang
+apt-get update --yes
+apt-get upgrade --yes
+apt-get install --yes clang
 
 which rustup || curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
