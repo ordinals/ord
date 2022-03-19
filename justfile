@@ -25,9 +25,9 @@ install-dev-deps:
   cargo install cargo-criterion
 
 deploy:
-  ssh root@65.108.68.37 rm -rf deploy
-  ssh root@65.108.68.37 git clone https://github.com/casey/ord.git deploy/ord
-  ssh root@65.108.68.37 'cd ./deploy/ord && ./setup'
+  ssh root@65.108.68.37 mkdir -p deploy
+  rsync -avz deploy/checkout root@65.108.68.37:deploy/checkout
+  ssh root@65.108.68.37 'cd deploy && ./checkout'
 
 status:
   ssh root@65.108.68.37 systemctl status bitcoind
