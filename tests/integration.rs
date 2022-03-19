@@ -186,7 +186,7 @@ impl Test {
       .spawn()?;
 
     if !self.requests.is_empty() {
-      sleep(Duration::from_secs(1));
+      sleep(Duration::from_millis(500));
 
       let client = reqwest::blocking::Client::new();
 
