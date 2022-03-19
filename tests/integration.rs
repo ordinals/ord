@@ -13,6 +13,7 @@ use {
   std::{
     collections::BTreeSet,
     error::Error,
+    net::TcpListener,
     process::{Command, Stdio},
     str,
     sync::{Arc, Mutex},
@@ -198,7 +199,7 @@ impl Test {
 
       loop {
         if let Ok(response) = client
-          .get(&format!("http://127.0.0.1:{}/status", port))
+          .get(&format!("http://127.0.0.1:{port}/status"))
           .send()
         {
           if response.status().is_success() {
@@ -217,7 +218,7 @@ impl Test {
       if healthy {
         for (request, expected_response) in &self.requests {
           let response = client
-            .get(&format!("http://127.0.0.1:{}/{request}", port))
+            .get(&format!("http://127.0.0.1:{port}/{request}"))
             .send()?;
           assert!(response.status().is_success(), "{:?}", response.status());
           assert_eq!(response.text()?, *expected_response);
@@ -260,7 +261,11 @@ impl Test {
       Expected::Ignore => {}
     }
 
-    assert_eq!(successful_requests, self.requests.len(), "Unsuccessful requests");
+    assert_eq!(
+      successful_requests,
+      self.requests.len(),
+      "Unsuccessful requests"
+    );
 
     let calls = calls.lock().unwrap().clone();
 

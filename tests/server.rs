@@ -1,10 +1,7 @@
 use super::*;
 
-use std::net::TcpListener;
-
 fn free_port() -> Result<u16> {
-  let listener = TcpListener::bind("127.0.0.1:0")?;
-  Ok(listener.local_addr()?.port())
+  Ok(TcpListener::bind("127.0.0.1:0")?.local_addr()?.port())
 }
 
 #[test]
