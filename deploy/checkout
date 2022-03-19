@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -euxo pipefail
+
+if [[ ! -d ord ]]; then
+  git clone https://github.com/casey/ord.git
+fi
+
+cd ord
+
+git fetch origin
+git checkout -B deploy
+git reset --hard origin/deploy
+git clean --force -d
+./deploy/setup

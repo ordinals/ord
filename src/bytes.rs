@@ -32,7 +32,7 @@ impl FromStr for Bytes {
       "tib" => TI,
       "pib" => PI,
       "eib" => EI,
-      _ => return Err("invalid suffix".into()),
+      _ => return Err(anyhow!("invalid suffix")),
     };
 
     Ok(Bytes((value * multiple as f64) as usize))

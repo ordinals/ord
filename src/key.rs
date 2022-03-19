@@ -25,7 +25,7 @@ impl Key {
 
   pub(crate) fn decode(buffer: &[u8]) -> Result<Self> {
     if buffer.len() != 24 {
-      return Err("Buffer too small to decode key from".into());
+      return Err(anyhow!("Buffer too small to decode key from"));
     }
 
     Ok(Key {
