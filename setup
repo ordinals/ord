@@ -10,7 +10,7 @@ apt-get install --yes clang
 
 if [[ ! -e ~/.cargo/env ]]; then
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-else
+fi
 
 source ~/.cargo/env
 
