@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+# N.B. Bitcoind must be installed as /usr/local/bin/bitcoind.
+
+set -euxo pipefail
+
+apt-get update --yes
+apt-get upgrade --yes
+apt-get install --yes clang
+
+if [[ ! -e ~/.cargo/env ]]; then
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+fi
+
+source ~/.cargo/env
+
+cargo build --release
+cp target/release/ord /usr/local/bin/ord
+
+id --user bitcoin || useradd --system bitcoin
+id --user ord || useradd --system ord
+
+cp deploy/bitcoind.service /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable bitcoind
+systemctl restart bitcoind
+
+setfacl -m ord:x /var/lib/bitcoind
+setfacl -dm ord:r /var/lib/bitcoind
+setfacl -m ord:r /var/lib/bitcoind/.cookie
+
+cp deploy/ord.service /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable ord
+systemctl restart ord
