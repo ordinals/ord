@@ -9,6 +9,8 @@ use {
   std::{
     collections::BTreeSet,
     error::Error,
+    thread::sleep,
+    time::Duration,
     process::Command,
     str,
     sync::{Arc, Mutex},
@@ -69,6 +71,8 @@ struct TransactionOptions<'a> {
 struct Test {
   args: Vec<String>,
   blocks: Vec<Block>,
+  requests: Vec<String>,
+  responses: Vec<String>,
   expected_status: i32,
   expected_stderr: String,
   expected_stdout: Expected,
@@ -84,6 +88,8 @@ impl Test {
     Self {
       args: Vec::new(),
       blocks: Vec::new(),
+      requests: Vec::new(),
+      responses: Vec::new(),
       expected_status: 0,
       expected_stderr: String::new(),
       expected_stdout: Expected::String(String::new()),
@@ -146,8 +152,49 @@ impl Test {
     }
   }
 
+  fn request(mut self, request: &str) -> Self {
+    self.requests.push(request.to_string());
+    self
+  }
+
+  fn response(mut self, response: &str) -> Self {
+    self.responses.push(response.to_string());
+    self
+  }
+
   fn run(self) -> Result {
     self.output().map(|_| ())
+  }
+
+  fn run_server(self) -> Result {
+    // TODO: need to use different ports for different test runs
+    const SERVER_URL: &str = "http://127.0.0.1:3000";
+
+    let (close_handle, _calls, port) = RpcServer::spawn(&self.blocks);
+
+    let mut child = Command::new(executable_path("ord"))
+      .current_dir(&self.tempdir)
+      .args(vec![
+        format!("--rpc-url=http://127.0.0.1:{port}"),
+        "server".to_string(),
+      ])
+      .spawn()?;
+
+    sleep(Duration::from_secs(10));
+
+    let client = reqwest::blocking::Client::new();
+
+    for (request, expected_response) in self.requests.iter().zip(self.responses) {
+      let response = client.get(&format!("{SERVER_URL}/{request}")).send()?;
+      assert!(response.status().is_success(), "{:?}", response.status());
+      assert_eq!(response.text()?, *expected_response);
+    }
+
+    close_handle.close();
+
+    child.kill()?;
+
+    Ok(())
   }
 
   fn output(self) -> Result<Output> {

@@ -34,6 +34,7 @@ jsonrpc-core-client = "18.0.0"
 jsonrpc-derive = "18.0.0"
 jsonrpc-http-server = "18.0.0"
 regex = "1.5.4"
+reqwest = { version = "0.11.9", features = ["blocking"] }
 tempfile = "3.2.0"
 unindent = "0.1.7"
 
