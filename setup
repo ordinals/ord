@@ -8,7 +8,7 @@ apt-get update --yes
 apt-get upgrade --yes
 apt-get install --yes clang
 
-which rustup || curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+which rustup || curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
 id --user ord || useradd --system ord
 id --user bitcoin || useradd --system bitcoin
