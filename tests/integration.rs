@@ -9,12 +9,12 @@ use {
   std::{
     collections::BTreeSet,
     error::Error,
-    thread::sleep,
-    time::Duration,
     process::Command,
     str,
     sync::{Arc, Mutex},
     thread,
+    thread::sleep,
+    time::Duration,
   },
   tempfile::TempDir,
   unindent::Unindent,
@@ -31,6 +31,8 @@ mod rpc_server;
 mod server;
 mod supply;
 mod traits;
+
+const SERVER_URL: &str = "http://127.0.0.1:3000";
 
 type Result<T = ()> = std::result::Result<T, Box<dyn Error>>;
 
@@ -71,8 +73,7 @@ struct TransactionOptions<'a> {
 struct Test {
   args: Vec<String>,
   blocks: Vec<Block>,
-  requests: Vec<String>,
-  responses: Vec<String>,
+  requests: Vec<(String, String)>,
   expected_status: i32,
   expected_stderr: String,
   expected_stdout: Expected,
@@ -89,7 +90,6 @@ impl Test {
       args: Vec::new(),
       blocks: Vec::new(),
       requests: Vec::new(),
-      responses: Vec::new(),
       expected_status: 0,
       expected_stderr: String::new(),
       expected_stdout: Expected::String(String::new()),
@@ -152,13 +152,10 @@ impl Test {
     }
   }
 
-  fn request(mut self, request: &str) -> Self {
-    self.requests.push(request.to_string());
+  fn request(mut self, request: &str, response: &str) -> Self {
     self
-  }
-
-  fn response(mut self, response: &str) -> Self {
-    self.responses.push(response.to_string());
+      .requests
+      .push((request.to_string(), response.to_string()));
     self
   }
 
@@ -167,9 +164,6 @@ impl Test {
   }
 
   fn run_server(self) -> Result {
-    // TODO: need to use different ports for different test runs
-    const SERVER_URL: &str = "http://127.0.0.1:3000";
-
     let (close_handle, _calls, port) = RpcServer::spawn(&self.blocks);
 
     let mut child = Command::new(executable_path("ord"))
@@ -184,7 +178,7 @@ impl Test {
 
     let client = reqwest::blocking::Client::new();
 
-    for (request, expected_response) in self.requests.iter().zip(self.responses) {
+    for (request, expected_response) in self.requests {
       let response = client.get(&format!("{SERVER_URL}/{request}")).send()?;
       assert!(response.status().is_success(), "{:?}", response.status());
       assert_eq!(response.text()?, *expected_response);
