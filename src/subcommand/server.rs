@@ -2,9 +2,9 @@ use super::*;
 
 #[derive(Parser)]
 pub(crate) struct Server {
-  #[clap(long)]
+  #[clap(long, default_value = "0.0.0.0")]
   address: String,
-  #[clap(long)]
+  #[clap(long, default_value = "80")]
   port: u16,
 }
 
