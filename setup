@@ -9,6 +9,7 @@ apt-get upgrade --yes
 apt-get install --yes clang
 
 which rustup || curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+source ~/.cargo/env
 
 cargo build --release
 cp target/release/ord /usr/local/bin/ord
