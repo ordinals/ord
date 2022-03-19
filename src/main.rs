@@ -71,13 +71,13 @@ fn main() {
   env_logger::init();
 
   ctrlc::set_handler(move || {
-    let interrupts = INTERRUPTS.fetch_add(1, atomic::Ordering::Relaxed);
-
     LISTENERS
       .lock()
       .unwrap()
       .iter()
       .for_each(|handle| handle.graceful_shutdown(Some(Duration::from_millis(100))));
+
+    let interrupts = INTERRUPTS.fetch_add(1, atomic::Ordering::Relaxed);
 
     if interrupts > 5 {
       process::exit(1);
