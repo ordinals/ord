@@ -20,7 +20,7 @@ pub(crate) enum Subcommand {
   Name(name::Name),
   Range(range::Range),
   Supply,
-  Server,
+  Server(server::Server),
   Info,
   Traits(traits::Traits),
 }
@@ -35,7 +35,7 @@ impl Subcommand {
       Self::Name(name) => name.run(),
       Self::Range(range) => range.run(),
       Self::Supply => supply::run(),
-      Self::Server => server::run(options),
+      Self::Server(server) => server.run(options),
       Self::Info => info::run(options),
       Self::Traits(traits) => traits.run(),
     }

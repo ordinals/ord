@@ -23,7 +23,7 @@ use {
     collections::VecDeque,
     fmt::{self, Display, Formatter},
     io,
-    net::SocketAddr,
+    net::{SocketAddr, ToSocketAddrs},
     ops::{Add, AddAssign, Deref, Sub},
     path::PathBuf,
     process,
