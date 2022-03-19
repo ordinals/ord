@@ -16,7 +16,7 @@ impl Index {
       options
         .rpc_url
         .as_ref()
-        .ok_or(anyhow!("This command requires `--rpc-url`"))?,
+        .ok_or_else(|| anyhow!("This command requires `--rpc-url`"))?,
       options
         .cookie_file
         .as_ref()
@@ -141,7 +141,7 @@ impl Index {
 
           let ordinal_ranges = wtx
             .get_ordinal_ranges(key.as_slice())?
-            .ok_or(anyhow!("Could not find outpoint in index"))?;
+            .ok_or_else(|| anyhow!("Could not find outpoint in index"))?;
 
           let new = input_ordinal_ranges.len();
 
@@ -227,7 +227,7 @@ impl Index {
       while remaining > 0 {
         let range = input_ordinal_ranges
           .pop_front()
-          .ok_or(anyhow!("Insufficient inputs for transaction outputs"))?;
+          .ok_or_else(|| anyhow!("Insufficient inputs for transaction outputs"))?;
 
         let count = range.1 - range.0;
 
