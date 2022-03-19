@@ -26,7 +26,7 @@ install-dev-deps:
 
 deploy:
   ssh root@65.108.68.37 rm -rf deploy
-  ssh root@65.108.68.37 git clone https://github.com/casey/ord.git --branch deploy deploy/ord
+  ssh root@65.108.68.37 git clone https://github.com/casey/ord.git deploy/ord
   ssh root@65.108.68.37 'cd ./deploy/ord && ./setup'
 
 status:
