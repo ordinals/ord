@@ -1,19 +1,17 @@
 #!/usr/bin/env bash
 
-# N.B. This setup script is missing some steps needed to initialize a
-# freshly provisioned server:
-#
-# - useradd --system ord
-# - useradd --system bitcoin
-# - install bitcoind to /usr/local/bin
-# - install rustup
-# - install git and clang
+# N.B. Bitcoind must be installed as /usr/local/bin/bitcoind.
 
 set -euxo pipefail
 
 apt update
 apt upgrade
 apt install clang
+
+which rustup || curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+id --user ord || useradd --system ord
+id --user bitcoin || useradd --system bitcoin
 
 cp system/bitcoind.service /etc/systemd/system/
 systemctl daemon-reload
