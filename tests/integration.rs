@@ -174,7 +174,7 @@ impl Test {
       ])
       .spawn()?;
 
-    sleep(Duration::from_secs(10));
+    sleep(Duration::from_secs(1));
 
     let client = reqwest::blocking::Client::new();
 

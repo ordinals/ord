@@ -15,6 +15,7 @@ use {
   derive_more::{Display, FromStr},
   integer_cbrt::IntegerCubeRoot,
   integer_sqrt::IntegerSquareRoot,
+  lazy_static::lazy_static,
   std::{
     cell::Cell,
     cmp::Ordering,
@@ -28,6 +29,7 @@ use {
     str::FromStr,
     sync::{
       atomic::{self, AtomicU64},
+      mpsc::Sender,
       Arc, Mutex,
     },
     time::{Duration, Instant},
@@ -60,6 +62,10 @@ type Error = Box<dyn std::error::Error + Send + Sync>;
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 
 static INTERRUPTS: AtomicU64 = AtomicU64::new(0);
+
+lazy_static! {
+  static ref LISTENERS: Mutex<Vec<Sender<()>>> = Mutex::new(Vec::new());
+}
 
 fn main() {
   env_logger::init();

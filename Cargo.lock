@@ -1238,6 +1238,7 @@ dependencies = [
  "jsonrpc-core-client",
  "jsonrpc-derive",
  "jsonrpc-http-server",
+ "lazy_static",
  "log",
  "ord-lmdb-zero",
  "rayon",
