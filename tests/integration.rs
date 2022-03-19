@@ -260,7 +260,7 @@ impl Test {
       Expected::Ignore => {}
     }
 
-    assert_eq!(successful_requests, self.requests.len());
+    assert_eq!(successful_requests, self.requests.len(), "Unsuccessful requests");
 
     let calls = calls.lock().unwrap().clone();
 
