@@ -159,18 +159,18 @@ impl Test {
   }
 
   fn run(self) -> Result {
-    self.foo(None).map(|_| ())
+    self.test(None).map(|_| ())
   }
 
   fn output(self) -> Result<Output> {
-    self.foo(None)
+    self.test(None)
   }
 
   fn run_server(self, port: u16) -> Result {
-    self.foo(Some(port)).map(|_| ())
+    self.test(Some(port)).map(|_| ())
   }
 
-  fn foo(self, port: Option<u16>) -> Result<Output> {
+  fn test(self, port: Option<u16>) -> Result<Output> {
     for (b, block) in self.blocks.iter().enumerate() {
       for (t, transaction) in block.txdata.iter().enumerate() {
         eprintln!("{b}.{t}: {}", transaction.txid());
