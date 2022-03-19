@@ -24,7 +24,7 @@ use {
     collections::VecDeque,
     fmt::{self, Display, Formatter},
     io,
-    net::{SocketAddr, ToSocketAddrs},
+    net::ToSocketAddrs,
     ops::{Add, AddAssign, Deref, Sub},
     path::PathBuf,
     process,
