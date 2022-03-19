@@ -37,15 +37,7 @@ impl Database {
       builder.set_mapsize(options.index_size.0)?;
 
       builder
-        .open(
-          path,
-          if cfg!(target_os = "macos") {
-            lmdb::open::Flags::empty()
-          } else {
-            lmdb::open::WRITEMAP
-          },
-          0o600,
-        )
+        .open(path, lmdb::open::Flags::empty(), 0o600)
         .unwrap()
     };
 
