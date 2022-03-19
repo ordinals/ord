@@ -77,7 +77,7 @@ fn main() {
       .lock()
       .unwrap()
       .iter()
-      .for_each(|handle| handle.graceful_shutdown(None));
+      .for_each(|handle| handle.graceful_shutdown(Some(Duration::from_millis(100))));
 
     if interrupts > 5 {
       process::exit(1);

@@ -13,7 +13,7 @@ use {
   std::{
     collections::BTreeSet,
     error::Error,
-    process::Command,
+    process::{Command, Stdio},
     str,
     sync::{Arc, Mutex},
     thread,
@@ -177,6 +177,9 @@ impl Test {
     let (close_handle, calls, port) = RpcServer::spawn(&self.blocks);
 
     let child = Command::new(executable_path("ord"))
+      .stdin(Stdio::null())
+      .stdout(Stdio::piped())
+      .stderr(Stdio::piped())
       .current_dir(&self.tempdir)
       .arg(format!("--rpc-url=http://127.0.0.1:{port}"))
       .args(self.args)
@@ -192,9 +195,9 @@ impl Test {
         assert!(response.status().is_success(), "{:?}", response.status());
         assert_eq!(response.text()?, *expected_response);
       }
-    }
 
-    signal::kill(Pid::from_raw(child.id() as i32), Signal::SIGINT)?;
+      signal::kill(Pid::from_raw(child.id() as i32), Signal::SIGINT)?;
+    }
 
     let output = child.wait_with_output()?;
 
