@@ -6,6 +6,7 @@ use {
     options::Options, ordinal::Ordinal, sat_point::SatPoint, subcommand::Subcommand,
   },
   axum::{extract, http::StatusCode, response::IntoResponse, routing::get, Json, Router},
+  axum_server::Handle,
   bitcoin::{
     blockdata::constants::COIN_VALUE, consensus::Decodable, consensus::Encodable, Block, BlockHash,
     OutPoint, Transaction, Txid,
@@ -29,7 +30,6 @@ use {
     str::FromStr,
     sync::{
       atomic::{self, AtomicU64},
-      mpsc::Sender,
       Arc, Mutex,
     },
     time::{Duration, Instant},
@@ -64,7 +64,7 @@ type Result<T = (), E = Error> = std::result::Result<T, E>;
 static INTERRUPTS: AtomicU64 = AtomicU64::new(0);
 
 lazy_static! {
-  static ref LISTENERS: Mutex<Vec<Sender<()>>> = Mutex::new(Vec::new());
+  static ref LISTENERS: Mutex<Vec<Handle>> = Mutex::new(Vec::new());
 }
 
 fn main() {
@@ -72,6 +72,12 @@ fn main() {
 
   ctrlc::set_handler(move || {
     let interrupts = INTERRUPTS.fetch_add(1, atomic::Ordering::Relaxed);
+
+    LISTENERS
+      .lock()
+      .unwrap()
+      .iter()
+      .for_each(|handle| handle.graceful_shutdown(None));
 
     if interrupts > 5 {
       process::exit(1);

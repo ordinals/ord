@@ -10,7 +10,12 @@ pub(crate) fn run(options: Options) -> Result {
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
 
-    axum::Server::bind(&addr)
+    let handle = Handle::new();
+
+    LISTENERS.lock().unwrap().push(handle.clone());
+
+    axum_server::Server::bind(addr)
+      .handle(handle)
       .serve(app.into_make_service())
       .await?;
 

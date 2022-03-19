@@ -8,6 +8,7 @@ autotests = false
 
 [dependencies]
 axum = "0.4.8"
+axum-server = "0.3.3"
 bitcoin = "0.27.1"
 bitcoincore-rpc = "0.14.0"
 chrono = "0.4.19"
@@ -34,6 +35,7 @@ jsonrpc-core = "18.0.0"
 jsonrpc-core-client = "18.0.0"
 jsonrpc-derive = "18.0.0"
 jsonrpc-http-server = "18.0.0"
+nix = "0.23.1"
 regex = "1.5.4"
 reqwest = { version = "0.11.9", features = ["blocking"] }
 tempfile = "3.2.0"

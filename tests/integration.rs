@@ -5,6 +5,10 @@ use {
     BlockHeader, OutPoint, Transaction, TxIn, TxOut,
   },
   executable_path::executable_path,
+  nix::{
+    sys::signal::{self, Signal},
+    unistd::Pid,
+  },
   regex::Regex,
   std::{
     collections::BTreeSet,
@@ -163,34 +167,6 @@ impl Test {
     self.output().map(|_| ())
   }
 
-  fn run_server(self) -> Result {
-    let (close_handle, _calls, port) = RpcServer::spawn(&self.blocks);
-
-    let mut child = Command::new(executable_path("ord"))
-      .current_dir(&self.tempdir)
-      .args(vec![
-        format!("--rpc-url=http://127.0.0.1:{port}"),
-        "server".to_string(),
-      ])
-      .spawn()?;
-
-    sleep(Duration::from_secs(1));
-
-    let client = reqwest::blocking::Client::new();
-
-    for (request, expected_response) in self.requests {
-      let response = client.get(&format!("{SERVER_URL}/{request}")).send()?;
-      assert!(response.status().is_success(), "{:?}", response.status());
-      assert_eq!(response.text()?, *expected_response);
-    }
-
-    close_handle.close();
-
-    child.kill()?;
-
-    Ok(())
-  }
-
   fn output(self) -> Result<Output> {
     for (b, block) in self.blocks.iter().enumerate() {
       for (t, transaction) in block.txdata.iter().enumerate() {
@@ -200,11 +176,27 @@ impl Test {
 
     let (close_handle, calls, port) = RpcServer::spawn(&self.blocks);
 
-    let output = Command::new(executable_path("ord"))
+    let child = Command::new(executable_path("ord"))
       .current_dir(&self.tempdir)
       .arg(format!("--rpc-url=http://127.0.0.1:{port}"))
       .args(self.args)
-      .output()?;
+      .spawn()?;
+
+    if !self.requests.is_empty() {
+      sleep(Duration::from_secs(1));
+
+      let client = reqwest::blocking::Client::new();
+
+      for (request, expected_response) in self.requests {
+        let response = client.get(&format!("{SERVER_URL}/{request}")).send()?;
+        assert!(response.status().is_success(), "{:?}", response.status());
+        assert_eq!(response.text()?, *expected_response);
+      }
+    }
+
+    signal::kill(Pid::from_raw(child.id() as i32), Signal::SIGINT)?;
+
+    let output = child.wait_with_output()?;
 
     close_handle.close();
 

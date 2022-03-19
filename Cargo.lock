@@ -84,6 +84,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "axum-server"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f9cfd9dbe28ebde5c0460067ea27c6f3b1d514b699c4e0a5aab0fb63e452a8a8"
+dependencies = [
+ "bytes",
+ "futures-util",
+ "http",
+ "http-body",
+ "hyper",
+ "tokio",
+ "tower-service",
+]
+
+[[package]]
 name = "base64"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1220,6 +1235,7 @@ name = "ord"
 version = "0.0.0"
 dependencies = [
  "axum",
+ "axum-server",
  "bitcoin",
  "bitcoincore-rpc",
  "chrono",
@@ -1240,6 +1256,7 @@ dependencies = [
  "jsonrpc-http-server",
  "lazy_static",
  "log",
+ "nix",
  "ord-lmdb-zero",
  "rayon",
  "redb",
@@ -1883,7 +1900,19 @@ dependencies = [
  "num_cpus",
  "pin-project-lite",
  "socket2",
+ "tokio-macros",
  "winapi",
+]
+
+[[package]]
+name = "tokio-macros"
+version = "1.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b557f72f448c511a979e2564e55d74e6c4432fc96ff4f6241bc6bded342643b7"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
