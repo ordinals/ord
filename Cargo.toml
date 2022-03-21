@@ -7,7 +7,7 @@ edition = "2021"
 autotests = false
 
 [dependencies]
-anyhow = "1.0.56"
+anyhow = { version = "1.0.56", features = ["backtrace"] }
 axum = "0.4.8"
 axum-server = "0.3.3"
 bitcoin = "0.27.1"
