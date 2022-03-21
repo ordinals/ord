@@ -34,6 +34,7 @@ use {
       atomic::{self, AtomicU64},
       Arc, Mutex,
     },
+    thread,
     time::{Duration, Instant},
   },
   tokio::runtime::Runtime,

@@ -17,7 +17,7 @@ use {
     process::{Command, Stdio},
     str,
     sync::{Arc, Mutex},
-    thread,
+    thread::{self, sleep},
     time::{Duration, Instant},
   },
   tempfile::TempDir,
@@ -211,7 +211,7 @@ impl Test {
           break;
         }
 
-        thread::sleep(Duration::from_millis(100));
+        sleep(Duration::from_millis(100));
       }
 
       if healthy {
