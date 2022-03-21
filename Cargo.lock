@@ -1255,6 +1255,7 @@ dependencies = [
  "env_logger",
  "executable-path",
  "hex",
+ "http",
  "integer-cbrt",
  "integer-sqrt",
  "jsonrpc",
@@ -1272,6 +1273,7 @@ dependencies = [
  "reqwest",
  "tempfile",
  "tokio",
+ "tower-http",
  "unindent",
 ]
 

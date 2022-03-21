@@ -1,1 +1,34 @@
-<h1>THERE WILL ONLY EVER BE 2,099,999,997,690,000 ORDINALS</h1>
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ord</title>
+  </head>
+  <body>
+    <h1>THERE WILL ONLY EVER BE 2,099,999,997,690,000 ORDINALS</h1>
+    <h2>List</h2>
+    <form id="list-form">
+      <label for="outpoint">Outpoint:</label>
+      <input type="text" id="outpoint" name="outpoint" />
+      <input type="submit" value="Submit" />
+      <div id="list-result"></div>
+    </form>
+    <script>
+      const API_URL = 'http://api.ordinals.com:8000';
+
+      const list = (outpoint) => {
+        console.log(outpoint);
+        return fetch(`${API_URL}/list/{outpoint}`, { mode: 'cors' })
+          .then((res) => res.json())
+          .then((data) => data)
+          .catch((error) => console.log(error));
+      };
+
+      document.getElementById('list-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        list(document.getElementById('outpoint').value).then(
+          (data) => (document.getElementById('list-result').innerHTML = data)
+        );
+      });
+    </script>
+  </body>
+</html>

@@ -13,10 +13,15 @@ impl Server {
     Runtime::new()?.block_on(async {
       let index = Index::index(&options)?;
 
+      let cors = CorsLayer::new()
+        .allow_methods(vec![http::Method::GET])
+        .allow_origin(Any);
+
       let app = Router::new()
         .route("/list/:outpoint", get(Self::list))
         .route("/status", get(Self::status))
-        .layer(extract::Extension(Arc::new(Mutex::new(index))));
+        .layer(extract::Extension(Arc::new(Mutex::new(index))))
+        .layer(cors);
 
       let addr = (self.address, self.port).to_socket_addrs()?.next().unwrap();
 
