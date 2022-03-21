@@ -15,7 +15,6 @@ fi
 source ~/.cargo/env
 
 cargo build --release
-cp target/release/ord /usr/local/bin/ord
 
 id --user bitcoin || useradd --system bitcoin
 id --user ord || useradd --system ord
@@ -31,5 +30,7 @@ setfacl -m ord:r /var/lib/bitcoind/.cookie
 
 cp deploy/ord.service /etc/systemd/system/
 systemctl daemon-reload
+systemctl stop ord
+cp target/release/ord /usr/local/bin/ord
 systemctl enable ord
 systemctl restart ord

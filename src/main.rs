@@ -2,8 +2,8 @@
 
 use {
   crate::{
-    arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height, index::Index, key::Key,
-    options::Options, ordinal::Ordinal, sat_point::SatPoint, subcommand::Subcommand,
+    arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height, index::Index,
+    options::Options, ordinal::Ordinal, subcommand::Subcommand,
   },
   anyhow::{anyhow, Context, Error},
   axum::{extract, http::StatusCode, response::IntoResponse, routing::get, Json, Router},
@@ -22,6 +22,7 @@ use {
     cell::Cell,
     cmp::Ordering,
     collections::VecDeque,
+    env,
     fmt::{self, Display, Formatter},
     io,
     net::ToSocketAddrs,
@@ -33,6 +34,7 @@ use {
       atomic::{self, AtomicU64},
       Arc, Mutex,
     },
+    thread,
     time::{Duration, Instant},
   },
   tokio::runtime::Runtime,
@@ -50,7 +52,6 @@ mod bytes;
 mod epoch;
 mod height;
 mod index;
-mod key;
 #[cfg(not(feature = "redb"))]
 mod lmdb_database;
 mod options;
@@ -88,6 +89,12 @@ fn main() {
 
   if let Err(error) = Arguments::parse().run() {
     eprintln!("error: {}", error);
+    if env::var_os("RUST_BACKTRACE")
+      .map(|val| val == "1")
+      .unwrap_or_default()
+    {
+      eprintln!("{}", error.backtrace());
+    }
     process::exit(1);
   }
 }
