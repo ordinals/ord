@@ -1,7 +1,5 @@
-const API_URL = 'http://api.ordinals.com:8000';
-
 const list = (outpoint) => {
-  return fetch(`${API_URL}/list/${outpoint}`)
+  return fetch(`http://api.ordinals.com:8000/list/${outpoint}`)
     .then((res) => res.json())
     .then((data) => data)
     .catch((error) => console.log(error));
