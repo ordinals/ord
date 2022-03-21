@@ -9,7 +9,6 @@ fi
 cd ord
 
 git fetch origin
-git checkout -B deploy
-git reset --hard origin/deploy
-git clean --force -d
+git checkout -B master
+git reset --hard origin/master
 ./deploy/setup
