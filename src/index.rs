@@ -52,7 +52,7 @@ impl Index {
       let sleep_until = self.sleep_until.get();
 
       if sleep_until > now {
-        std::thread::sleep(sleep_until - now);
+        thread::sleep(sleep_until - now);
       }
 
       self

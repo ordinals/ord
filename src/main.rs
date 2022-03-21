@@ -22,6 +22,7 @@ use {
     cell::Cell,
     cmp::Ordering,
     collections::VecDeque,
+    env,
     fmt::{self, Display, Formatter},
     io,
     net::ToSocketAddrs,
@@ -33,6 +34,7 @@ use {
       atomic::{self, AtomicU64},
       Arc, Mutex,
     },
+    thread,
     time::{Duration, Instant},
   },
   tokio::runtime::Runtime,
@@ -86,6 +88,12 @@ fn main() {
 
   if let Err(error) = Arguments::parse().run() {
     eprintln!("error: {}", error);
+    if env::var_os("RUST_BACKTRACE")
+      .map(|val| val == "1")
+      .unwrap_or_default()
+    {
+      eprintln!("{}", error.backtrace());
+    }
     process::exit(1);
   }
 }
