@@ -22,6 +22,7 @@ use {
     cell::Cell,
     cmp::Ordering,
     collections::VecDeque,
+    env,
     fmt::{self, Display, Formatter},
     io,
     net::ToSocketAddrs,
@@ -86,7 +87,9 @@ fn main() {
 
   if let Err(error) = Arguments::parse().run() {
     eprintln!("error: {}", error);
-    eprintln!("{}", error.backtrace());
+    if env::var_os("RUST_BACKTRACE") == Some("1".into()) {
+      eprintln!("{}", error.backtrace());
+    }
     process::exit(1);
   }
 }
