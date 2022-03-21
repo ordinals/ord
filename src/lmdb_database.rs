@@ -5,7 +5,6 @@ use {
 };
 
 const HEIGHT_TO_HASH: &str = "HEIGHT_TO_HASH";
-const KEY_TO_SATPOINT: &str = "KEY_TO_SATPOINT";
 const OUTPOINT_TO_ORDINAL_RANGES: &str = "OUTPOINT_TO_ORDINAL_RANGES";
 
 trait LmdbResultExt<T> {
@@ -62,32 +61,6 @@ impl Database {
     Ok(())
   }
 
-  pub(crate) fn find(&self, ordinal: Ordinal) -> Result<Option<(Vec<u8>, Vec<u8>)>> {
-    let key_to_satpoint = lmdb::Database::open(
-      &self.0,
-      Some(KEY_TO_SATPOINT),
-      &lmdb::DatabaseOptions::new(lmdb::db::CREATE),
-    )?;
-
-    let tx = lmdb::ReadTransaction::new(&self.0)?;
-
-    let mut cursor = tx.cursor(key_to_satpoint)?;
-
-    let key = Key::new(ordinal).encode();
-
-    let access = tx.access();
-    cursor
-      .seek_range_k::<[u8], [u8]>(&access, key.as_slice())
-      .into_option()?;
-
-    Ok(
-      cursor
-        .prev::<[u8], [u8]>(&access)
-        .into_option()?
-        .map(|(start_key, start_satpoint)| (start_key.to_vec(), start_satpoint.to_vec())),
-    )
-  }
-
   pub(crate) fn height(&self) -> Result<u64> {
     let height_to_hash = lmdb::Database::open(
       &self.0,
@@ -127,7 +100,6 @@ impl Database {
 pub(crate) struct WriteTransaction<'a> {
   height_to_hash: lmdb::Database<'a>,
   lmdb_write_transaction: lmdb::WriteTransaction<'a>,
-  key_to_satpoint: lmdb::Database<'a>,
   outpoint_to_ordinal_ranges: lmdb::Database<'a>,
 }
 
@@ -145,19 +117,12 @@ impl<'a> WriteTransaction<'a> {
       &lmdb::DatabaseOptions::new(lmdb::db::CREATE),
     )?;
 
-    let key_to_satpoint = lmdb::Database::open(
-      environment,
-      Some(KEY_TO_SATPOINT),
-      &lmdb::DatabaseOptions::new(lmdb::db::CREATE),
-    )?;
-
     let lmdb_write_transaction = lmdb::WriteTransaction::new(environment)?;
 
     Ok(Self {
       lmdb_write_transaction,
       height_to_hash,
       outpoint_to_ordinal_ranges,
-      key_to_satpoint,
     })
   }
 
@@ -225,23 +190,5 @@ impl<'a> WriteTransaction<'a> {
         .into_option()?
         .map(|value| value.to_vec()),
     )
-  }
-
-  pub(crate) fn insert_satpoint(&mut self, key: &[u8], satpoint: &[u8]) -> Result {
-    self.lmdb_write_transaction.access().put(
-      &self.key_to_satpoint,
-      key,
-      satpoint,
-      lmdb::put::Flags::empty(),
-    )?;
-    Ok(())
-  }
-
-  pub(crate) fn remove_satpoint(&mut self, key: &[u8]) -> Result {
-    let mut cursor = self.lmdb_write_transaction.cursor(&self.key_to_satpoint)?;
-    let mut access = self.lmdb_write_transaction.access();
-    cursor.seek_range_k::<[u8], [u8]>(&access, key)?;
-    cursor.del(&mut access, lmdb::del::Flags::empty())?;
-    Ok(())
   }
 }

@@ -25,7 +25,6 @@ use {
 };
 
 mod epochs;
-mod find;
 mod index;
 mod info;
 mod list;

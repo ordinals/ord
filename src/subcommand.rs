@@ -1,7 +1,6 @@
 use super::*;
 
 mod epochs;
-mod find;
 mod index;
 mod info;
 mod list;
@@ -14,7 +13,6 @@ mod traits;
 #[derive(Parser)]
 pub(crate) enum Subcommand {
   Epochs,
-  Find(find::Find),
   Index,
   List(list::List),
   Name(name::Name),
@@ -29,7 +27,6 @@ impl Subcommand {
   pub(crate) fn run(self, options: Options) -> Result<()> {
     match self {
       Self::Epochs => epochs::run(),
-      Self::Find(find) => find.run(options),
       Self::Index => index::run(options),
       Self::List(list) => list.run(options),
       Self::Name(name) => name.run(),
