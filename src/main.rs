@@ -86,6 +86,7 @@ fn main() {
 
   if let Err(error) = Arguments::parse().run() {
     eprintln!("error: {}", error);
+    eprintln!("{}", error.backtrace());
     process::exit(1);
   }
 }
