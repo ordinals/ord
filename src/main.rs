@@ -38,6 +38,7 @@ use {
     time::{Duration, Instant},
   },
   tokio::runtime::Runtime,
+  tower_http::cors::{Any, CorsLayer},
 };
 
 #[cfg(feature = "redb")]
