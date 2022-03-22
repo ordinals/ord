@@ -1,5 +1,4 @@
 async function list(outpoint) {
-  document.getElementById('error').innerHTML = '';
   document.getElementById('result').innerHTML = '';
 
   try {
@@ -10,7 +9,7 @@ async function list(outpoint) {
     if (!response.ok) {
       const text = await response.text();
       document.getElementById(
-        'error'
+        'result'
       ).innerHTML = `${response.statusText}: ${text}`;
       return;
     }
@@ -21,7 +20,7 @@ async function list(outpoint) {
       .map((range) => `[${range[0]}, ${range[1]})<br>`)
       .join('');
   } catch (error) {
-    document.getElementById('error').innerHTML = `Exception: ${error}`;
+    document.getElementById('result').innerHTML = `Exception: ${error}`;
   }
 }
 
