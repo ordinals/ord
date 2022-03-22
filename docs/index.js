@@ -1,12 +1,28 @@
-function list(outpoint) {
-  return fetch(`http://api.ordinals.com:8000/list/${outpoint}`)
-    .then((res) => {
-      document.getElementById('result').innerHTML = res
-        .json()
-        .map((range) => `[${range[0]}, ${range[1]})<br>`)
-        .join('');
-    })
-    .catch((error) => (document.getElementById('error').innerHTML = error));
+async function list(outpoint) {
+  document.getElementById('error').innerHTML = '';
+  document.getElementById('result').innerHTML = '';
+
+  try {
+    const response = await fetch(
+      `http://api.ordinals.com:8000/list/${outpoint}`
+    );
+
+    if (!response.ok) {
+      const text = await response.text();
+      document.getElementById(
+        'error'
+      ).innerHTML = `${response.statusText}: ${text}`;
+      return;
+    }
+
+    const ranges = await response.json();
+
+    document.getElementById('result').innerHTML = ranges
+      .map((range) => `[${range[0]}, ${range[1]})<br>`)
+      .join('');
+  } catch (error) {
+    document.getElementById('error').innerHTML = `Exception: ${error}`;
+  }
 }
 
 document.getElementById('form').addEventListener('submit', (e) => {
