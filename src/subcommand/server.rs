@@ -16,7 +16,10 @@ impl Server {
       let clone = index.clone();
       thread::spawn(move || {
         loop {
-          clone.index_ranges().unwrap();
+          if let Err(error) = clone.index_ranges() {
+            eprintln!("error: {error}");
+            process::exit(1);
+          }
           thread::sleep(Duration::from_secs(10));
         }
       });
