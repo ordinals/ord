@@ -45,33 +45,21 @@
 
     Ordinals transfer in first-in-first-out order. This means that you go through the ordinals in the inputs to a transaction, in order, and assign each ordinal to outputs, in order.
 
-    Let's imagine a transaction with three inputs and two outputs, labeled with their values:
+    Let's imagine a transaction with three inputs and two outputs. The inputs are on the left of the arrow and the outputs are on the right, all labeled with their values:
 
-    <pre>
-    inputs          outputs
-    [2], [1], [3] → [4], [2]
-    </pre>
+    <pre>[2], [1], [3] → [4], [2]</pre>
 
     Now let's label the same transaction with the ordinals that each input contains, and question marks for each output ordinal. Ordinals are long numbers, so let's use letters to represent them:
 
-    <pre>
-    inputs                outputs
-    [a b], [c], [d e f] → [? ? ? ?], [? ?]
-    </pre>
+    <pre>[a b], [c], [d e f] → [? ? ? ?], [? ?]</pre>
 
     To figure out which ordinal goes to which output, go through the input ordinals in order and assign each to a question mark:
 
-    <pre>
-    inputs                outputs
-    [a b], [c], [d e f] → [a b c d], [e f]
-    </pre>
+    <pre>[a b], [c], [d e f] → [a b c d], [e f]</pre>
 
     What about fees, you might ask? Good question! Let's imagine the same transaction, this time with a two satoshi fee. Transactions with fees send more satoshis in the inputs than are received by the outputs, so to make our transaction into one that pays fees, we'll remove the second output:
 
-    <pre>
-    inputs          outputs
-    [2], [1], [3] → [4]
-    </pre>
+    <pre>[2], [1], [3] → [4]</pre>
 
     The ordinals, <var>e</var> and <var>f</var> now have nowhere to go in the outputs, and so go to the miner who mined the block as fees. <a href="https://github.com/casey/ord/blob/master/bip.mediawiki">The BIP</a> has more details, but in short, fees paid by transactions are treated as extra inputs to the coinbase transaction, and are ordered how their corresponding transactions are ordered in the block.
 
