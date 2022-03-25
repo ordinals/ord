@@ -11,11 +11,14 @@ pub(crate) struct Server {
 impl Server {
   pub(crate) fn run(self, options: Options) -> Result {
     Runtime::new()?.block_on(async {
-      let index = Arc::new(Mutex::new(Index::open(&options)?));
+      let index = Arc::new(Index::open(&options)?);
 
       let clone = index.clone();
       thread::spawn(move || {
-        clone.lock().unwrap().index_ranges().unwrap();
+        loop {
+          clone.index_ranges().unwrap();
+          thread::sleep(Duration::from_secs(10));
+        }
       });
 
       let app = Router::new()
@@ -48,9 +51,9 @@ impl Server {
 
   async fn list(
     extract::Path(outpoint): extract::Path<OutPoint>,
-    index: extract::Extension<Arc<Mutex<Index>>>,
+    index: extract::Extension<Arc<Index>>,
   ) -> impl IntoResponse {
-    match index.lock().unwrap().list(outpoint) {
+    match index.list(outpoint) {
       Ok(Some(ranges)) => (StatusCode::OK, Json(Some(ranges))),
       Ok(None) => (StatusCode::NOT_FOUND, Json(None)),
       Err(error) => {
