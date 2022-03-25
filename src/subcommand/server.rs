@@ -11,12 +11,17 @@ pub(crate) struct Server {
 impl Server {
   pub(crate) fn run(self, options: Options) -> Result {
     Runtime::new()?.block_on(async {
-      let index = Index::index(&options)?;
+      let index = Arc::new(Mutex::new(Index::open(&options)?));
+
+      let clone = index.clone();
+      std::thread::spawn(move || {
+          clone.lock().unwrap().index_ranges().unwrap();
+      });
 
       let app = Router::new()
         .route("/list/:outpoint", get(Self::list))
         .route("/status", get(Self::status))
-        .layer(extract::Extension(Arc::new(Mutex::new(index))))
+        .layer(extract::Extension(index))
         .layer(
           CorsLayer::new()
             .allow_methods([http::Method::GET])

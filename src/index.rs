@@ -7,7 +7,7 @@ use {
 pub(crate) struct Index {
   client: Client,
   database: Database,
-  sleep_until: Cell<Instant>,
+  sleep_until: Arc<Mutex<Cell<Instant>>>,
 }
 
 impl Index {
@@ -28,7 +28,7 @@ impl Index {
     Ok(Self {
       client,
       database: Database::open(options).context("Failed to open database")?,
-      sleep_until: Cell::new(Instant::now()),
+      sleep_until: Arc::new(Mutex::new(Cell::new(Instant::now()))),
     })
   }
 
@@ -49,7 +49,7 @@ impl Index {
     if cfg!(target_os = "macos") {
       let now = Instant::now();
 
-      let sleep_until = self.sleep_until.get();
+      let sleep_until = self.sleep_until.lock().unwrap().get();
 
       if sleep_until > now {
         thread::sleep(sleep_until - now);
@@ -57,6 +57,8 @@ impl Index {
 
       self
         .sleep_until
+        .lock()
+        .unwrap()
         .set(Instant::now() + Duration::from_millis(2));
     }
 
@@ -77,7 +79,7 @@ impl Index {
     (base, base + delta)
   }
 
-  fn index_ranges(&self) -> Result {
+  pub(crate) fn index_ranges(&self) -> Result {
     log::info!("Indexing ranges…");
 
     let mut wtx = self.database.begin_write()?;
