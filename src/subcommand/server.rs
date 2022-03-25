@@ -14,8 +14,8 @@ impl Server {
       let index = Arc::new(Mutex::new(Index::open(&options)?));
 
       let clone = index.clone();
-      std::thread::spawn(move || {
-          clone.lock().unwrap().index_ranges().unwrap();
+      thread::spawn(move || {
+        clone.lock().unwrap().index_ranges().unwrap();
       });
 
       let app = Router::new()

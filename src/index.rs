@@ -7,7 +7,6 @@ use {
 pub(crate) struct Index {
   client: Client,
   database: Database,
-  sleep_until: Arc<Mutex<Cell<Instant>>>,
 }
 
 impl Index {
@@ -28,7 +27,6 @@ impl Index {
     Ok(Self {
       client,
       database: Database::open(options).context("Failed to open database")?,
-      sleep_until: Arc::new(Mutex::new(Cell::new(Instant::now()))),
     })
   }
 
@@ -43,26 +41,6 @@ impl Index {
 
   pub(crate) fn print_info(&self) -> Result {
     self.database.print_info()
-  }
-
-  fn client(&self) -> &Client {
-    if cfg!(target_os = "macos") {
-      let now = Instant::now();
-
-      let sleep_until = self.sleep_until.lock().unwrap().get();
-
-      if sleep_until > now {
-        thread::sleep(sleep_until - now);
-      }
-
-      self
-        .sleep_until
-        .lock()
-        .unwrap()
-        .set(Instant::now() + Duration::from_millis(2));
-    }
-
-    &self.client
   }
 
   fn decode_ordinal_range(bytes: [u8; 11]) -> (u64, u64) {
@@ -243,8 +221,8 @@ impl Index {
   }
 
   pub(crate) fn block(&self, height: u64) -> Result<Option<Block>> {
-    match self.client().get_block_hash(height) {
-      Ok(hash) => Ok(Some(self.client().get_block(&hash)?)),
+    match self.client.get_block_hash(height) {
+      Ok(hash) => Ok(Some(self.client.get_block(&hash)?)),
       Err(bitcoincore_rpc::Error::JsonRpc(jsonrpc::error::Error::Rpc(
         jsonrpc::error::RpcError { code: -8, .. },
       ))) => Ok(None),
