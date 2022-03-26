@@ -43,6 +43,11 @@ enum Expected {
   Ignore,
 }
 
+enum Action {
+  Block(Block),
+  Request(String, String),
+}
+
 struct Output {
   calls: Vec<String>,
   stdout: String,
@@ -77,7 +82,7 @@ struct Test {
   expected_status: i32,
   expected_stderr: String,
   expected_stdout: Expected,
-  requests: Vec<(String, String)>,
+  requests: Vec<Action>,
   tempdir: TempDir,
 }
 
@@ -154,7 +159,9 @@ impl Test {
   }
 
   fn request(mut self, path: &str, response: &str) -> Self {
-    self.requests.push((path.to_string(), response.to_string()));
+    self
+      .requests
+      .push(Action::Request(path.to_string(), response.to_string()));
     self
   }
 
@@ -177,7 +184,7 @@ impl Test {
       }
     }
 
-    let (close_handle, calls, rpc_server_port) = RpcServer::spawn(&self.blocks);
+    let (blocks, close_handle, calls, rpc_server_port) = RpcServer::spawn(&self.blocks);
 
     let child = Command::new(executable_path("ord"))
       .stdin(Stdio::null())
@@ -215,13 +222,18 @@ impl Test {
       }
 
       if healthy {
-        for (request, expected_response) in &self.requests {
-          let response = client
-            .get(&format!("http://127.0.0.1:{port}/{request}"))
-            .send()?;
-          assert!(response.status().is_success(), "{:?}", response.status());
-          assert_eq!(response.text()?, *expected_response);
-          successful_requests += 1;
+        for action in &self.requests {
+          match action {
+            Action::Block(block) => blocks.lock().unwrap().push(block.clone()),
+            Action::Request(request, expected_response) => {
+              let response = client
+                .get(&format!("http://127.0.0.1:{port}/{request}"))
+                .send()?;
+              assert!(response.status().is_success(), "{:?}", response.status());
+              assert_eq!(response.text()?, *expected_response);
+              successful_requests += 1;
+            }
+          }
         }
       }
 
@@ -280,7 +292,7 @@ impl Test {
   }
 
   fn block_with_coinbase(mut self, coinbase: CoinbaseOptions) -> Self {
-    self.blocks.push(Block {
+    self.requests.push(Action::Block(Block {
       header: BlockHeader {
         version: 0,
         prev_blockhash: self
@@ -317,7 +329,7 @@ impl Test {
       } else {
         Vec::new()
       },
-    });
+    }));
     self
   }
 
