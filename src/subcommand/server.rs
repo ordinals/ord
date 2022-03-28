@@ -14,14 +14,12 @@ impl Server {
       let index = Arc::new(Index::open(&options)?);
 
       let clone = index.clone();
-      thread::spawn(move || {
-        loop {
-          if let Err(error) = clone.index_ranges() {
-            eprintln!("error: {error}");
-            process::exit(1);
-          }
-          thread::sleep(Duration::from_millis(200));
+      thread::spawn(move || loop {
+        if let Err(error) = clone.index_ranges() {
+          eprintln!("error: {error}");
+          process::exit(1);
         }
+        thread::sleep(Duration::from_millis(200));
       });
 
       let app = Router::new()

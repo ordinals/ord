@@ -19,7 +19,7 @@ pub struct RpcServer {
 
 impl RpcServer {
   pub(crate) fn spawn(
-    blocks: &[Block]
+    blocks: &[Block],
   ) -> (
     Arc<Mutex<Vec<Block>>>,
     CloseHandle,
