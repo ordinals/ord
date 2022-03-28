@@ -19,7 +19,7 @@ pub struct RpcServer {
 
 impl RpcServer {
   pub(crate) fn spawn(
-    blocks: &[Block],
+    blocks: Vec<Block>,
   ) -> (
     Arc<Mutex<Vec<Block>>>,
     CloseHandle,
@@ -28,7 +28,7 @@ impl RpcServer {
   ) {
     let calls = Arc::new(Mutex::new(Vec::new()));
 
-    let blocks = Arc::new(Mutex::new(blocks.to_vec()));
+    let blocks = Arc::new(Mutex::new(blocks));
 
     let server = Self {
       blocks: blocks.clone(),
@@ -60,8 +60,6 @@ impl RpcServer {
 impl RpcApi for RpcServer {
   fn getblockhash(&self, height: usize) -> Result<BlockHash> {
     self.call("getblockhash");
-
-    dbg!(self.blocks.lock().unwrap());
 
     match self.blocks.lock().unwrap().get(height) {
       Some(block) => Ok(block.block_hash()),

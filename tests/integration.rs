@@ -43,9 +43,9 @@ enum Expected {
   Ignore,
 }
 
-enum Action {
+enum Event {
   Block(Block),
-  Request(String, String, u16),
+  Request(String, u16, String),
 }
 
 struct Output {
@@ -81,7 +81,7 @@ struct Test {
   expected_status: i32,
   expected_stderr: String,
   expected_stdout: Expected,
-  requests: Vec<Action>,
+  events: Vec<Event>,
   tempdir: TempDir,
 }
 
@@ -96,7 +96,7 @@ impl Test {
       expected_status: 0,
       expected_stderr: String::new(),
       expected_stdout: Expected::String(String::new()),
-      requests: Vec::new(),
+      events: Vec::new(),
       tempdir,
     }
   }
@@ -156,11 +156,11 @@ impl Test {
     }
   }
 
-  fn request(mut self, path: &str, response: &str, status: u16) -> Self {
-    self.requests.push(Action::Request(
+  fn request(mut self, path: &str, status: u16, response: &str) -> Self {
+    self.events.push(Event::Request(
       path.to_string(),
-      response.to_string(),
       status,
+      response.to_string(),
     ));
     self
   }
@@ -177,28 +177,24 @@ impl Test {
     self.test(Some(port)).map(|_| ())
   }
 
-  fn blocks(&self) -> Vec<Block> {
-    self
-      .requests
-      .iter()
-      .filter_map(|action| match action {
-        Action::Block(block) => Some(block.clone()),
-        _ => None,
-      })
-      .collect()
+  fn blocks(&self) -> impl Iterator<Item = &Block> + '_ {
+    self.events.iter().filter_map(|event| match event {
+      Event::Block(block) => Some(block),
+      _ => None,
+    })
   }
 
   fn test(self, port: Option<u16>) -> Result<Output> {
-    for (b, block) in self.blocks().iter().enumerate() {
+    for (b, block) in self.blocks().enumerate() {
       for (t, transaction) in block.txdata.iter().enumerate() {
         eprintln!("{b}.{t}: {}", transaction.txid());
       }
     }
 
     let (blocks, close_handle, calls, rpc_server_port) = if port.is_some() {
-      RpcServer::spawn(&Vec::new())
+      RpcServer::spawn(Vec::new())
     } else {
-      RpcServer::spawn(&self.blocks())
+      RpcServer::spawn(self.blocks().cloned().collect())
     };
 
     let child = Command::new(executable_path("ord"))
@@ -237,13 +233,13 @@ impl Test {
       }
 
       if healthy {
-        for action in &self.requests {
-          match action {
-            Action::Block(block) => {
+        for event in &self.events {
+          match event {
+            Event::Block(block) => {
               blocks.lock().unwrap().push(block.clone());
               thread::sleep(Duration::from_millis(200));
             }
-            Action::Request(request, expected_response, status) => {
+            Event::Request(request, status, expected_response) => {
               let response = client
                 .get(&format!("http://127.0.0.1:{port}/{request}"))
                 .send()?;
@@ -290,18 +286,15 @@ impl Test {
       Expected::Ignore => {}
     }
 
-    let requests = self
-      .requests
-      .iter()
-      .filter_map(|action| match action {
-        Action::Request(request, response, status) => {
-          Some((request.to_string(), response.to_string(), *status))
-        }
-        _ => None,
-      })
-      .collect::<Vec<(String, String, u16)>>();
-
-    assert_eq!(successful_requests, requests.len(), "Unsuccessful requests");
+    assert_eq!(
+      successful_requests,
+      self
+        .events
+        .iter()
+        .filter(|event| matches!(event, Event::Request(..)))
+        .count(),
+      "Unsuccessful requests"
+    );
 
     let calls = calls.lock().unwrap().clone();
 
@@ -317,7 +310,7 @@ impl Test {
   }
 
   fn block_with_coinbase(mut self, coinbase: CoinbaseOptions) -> Self {
-    self.requests.push(Action::Block(Block {
+    self.events.push(Event::Block(Block {
       header: BlockHeader {
         version: 0,
         prev_blockhash: self
@@ -338,7 +331,7 @@ impl Test {
             previous_output: OutPoint::null(),
             script_sig: if coinbase.include_height {
               script::Builder::new()
-                .push_scriptint(self.blocks().len().try_into().unwrap())
+                .push_scriptint(self.blocks().count().try_into().unwrap())
                 .into_script()
             } else {
               script::Builder::new().into_script()
@@ -362,7 +355,7 @@ impl Test {
     let input_value = options
       .slots
       .iter()
-      .map(|slot| self.blocks()[slot.0].txdata[slot.1].output[slot.2].value)
+      .map(|slot| self.blocks().nth(slot.0).unwrap().txdata[slot.1].output[slot.2].value)
       .sum::<u64>();
 
     let output_value = input_value - options.fee;
@@ -375,7 +368,7 @@ impl Test {
         .iter()
         .map(|slot| TxIn {
           previous_output: OutPoint {
-            txid: self.blocks()[slot.0].txdata[slot.1].txid(),
+            txid: self.blocks().nth(slot.0).unwrap().txdata[slot.1].txid(),
             vout: slot.2 as u32,
           },
           script_sig: script::Builder::new().into_script(),
@@ -393,11 +386,11 @@ impl Test {
     };
 
     let block = self
-      .requests
+      .events
       .iter_mut()
       .rev()
-      .find_map(|action| match action {
-        Action::Block(block) => Some(block),
+      .find_map(|event| match event {
+        Event::Block(block) => Some(block),
         _ => None,
       })
       .unwrap();

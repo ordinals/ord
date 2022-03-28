@@ -13,8 +13,8 @@ fn list() -> Result {
     .block()
     .request(
       "list/0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0",
-      "[[0,5000000000]]",
       200,
+      "[[0,5000000000]]",
     )
     .run_server(port)
 }
@@ -25,7 +25,7 @@ fn status() -> Result {
 
   Test::new()?
     .command(&format!("server --address 127.0.0.1 --port {port}"))
-    .request("status", "", 200)
+    .request("status", 200, "")
     .run_server(port)
 }
 
@@ -37,14 +37,14 @@ fn continuously_index_ranges() -> Result {
     .command(&format!("server --address 127.0.0.1 --port {port}"))
     .request(
       "list/0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0",
-      "null",
       404,
+      "null",
     )
     .block()
     .request(
       "list/0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0",
-      "[[0,5000000000]]",
       200,
+      "[[0,5000000000]]",
     )
     .run_server(port)
 }
