@@ -1,45 +1,39 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Ordinals</title>
-    <script defer src="index.js"></script>
+    <link rel="stylesheet" type="text/css" href="/index.css">
   </head>
   <body>
     <h1>THERE WILL ONLY EVER BE 2,099,999,997,690,000 ORDINALS</h1>
 
-    <h2>List</h2>
-    <form id="form">
-      <label for="outpoint">Outpoint:</label>
-      <input type="text" id="outpoint" name="outpoint" />
-      <input type="submit" value="Submit" />
-      <div id="result"></div>
-    </form>
+    <p>Ordinals are identities for Bitcoin. They can be used for anything that you might want to publicly own and transfer in decentralized fashion. NFTs, accounts, domains. Whatever.</p>
 
-    <h2>About</h2>
+    <p>This website, a draft BIP defining ordinals, and the <code>ord</code> command-line utility are developed on <a href="https://github.com/casey/ord">GitHub</a>.</p>
 
-    Ordinals are identities for Bitcoin. They can be used for anything that you might want to publicly own and transfer in decentralized fashion. NFTs, accounts, domains. Whatever.
+    <p><i>At the moment, ordinals are a fun art project. There are no wallets or markets, and there might never be. Or, they might explode in popularity and take over the world. Who can say?</i></p>
 
-    <i>At the moment, ordinals are a fun art project. There are no wallets or markets, and there might never be. Or, they might explode in popularity and take over the world. Who can say?</i>
+    <h2>What are ordinals?</h2>
 
-    <h3>What are ordinals?</h3>
+    Ordinals are numbers, like this: 804766073970493. Every satoshi, which is ¹⁄₁₀₀₀₀₀₀₀₀ of a bitcoin, has an ordinal, and every ordinal has a satoshi. When a satoshi changes hands, so does its ordinal. There are a lot of satoshis, and so there are a lot of ordinals. Two quadrillion ninety-nine trillion nine hundred ninety-nine billion nine hundred ninety-seven million six hundred ninety thousand, to be precise.
 
-    Ordinals are numbers, like this: 804766073970493. Every satoshi, which is ¹⁄₁₀₀,₀₀₀,₀₀₀ of a bitcoin, has an ordinal, and every ordinal has a satoshi. When a satoshi changes hands, so does its ordinal. There are a lot of satoshis, and so there are a lot of ordinals. Two quadrillion ninety-nine trillion nine hundred ninety-nine billion nine hundred ninety-seven million six hundred ninety thousand, to be precise.
-
-    <h3>What can ordinals do?</h3>
+    <h2>What can ordinals do?</h2>
 
     Ordinals can be used for anything needing a public, persistent, transferable, decentralized identity. This includes NFTs, accounts, stablecoins, PKI, and more. For more ideas, see <a href="https://github.com/casey/ord/blob/master/bip.mediawiki">the BIP</a>.
 
-    <h3>What are ordinals not?</h3>
+    <h2>What are ordinals not?</h2>
 
     Ordinals are not a side chain, do not require any changes to the bitcoin protocol, and are extremely simple.
 
-    <h3>How do ordinals come into existence?</h3>
+    <h2>How do ordinals come into existence?</h2>
 
     Since ordinals map one-to-one to satoshis, new ordinals are created in the same way that new satoshis are created, by miners. Miners don't need to do anything special to create ordinals.
 
     Every block creates new satoshis. These new satoshis are known as the <i>block subsidy</i>. Each new satoshi in each block subsidy is assigned an ordinal, which is just a number, in the order in which it is mined. So, the genesis block subsidy, which created 50 BTC, or 5,000,000,000 satoshis, contains ordinals 0 through 4,999,999,999, and the second block subsidy, which was also worth 50 BTC, contains ordinals 5,000,000,000 through 9,999,999,999.
 
-    <h3>How are ordinals transferred?</h3>
+    <h2>How are ordinals transferred?</h2>
 
     Ordinals are transferred the same way that bitcoin is transferred, with bitcoin transactions. Bitcoin transactions have a bunch of inputs, which is bitcoin being sent, and a bunch of outputs, which are the bitcoin being received. Each output and each input has a value in satoshis.
 
@@ -69,7 +63,7 @@
 
     <pre>[SUBSIDY] [e f] → [SUBSIDY e f]</pre>
 
-    <h3>Where can I read the nitty-gritty technical details?</h3>
+    <h2>Where can I read the nitty-gritty technical details?</h2>
 
     <a href="https://github.com/casey/ord/blob/master/bip.mediawiki">The BIP!</a>
   </body>
