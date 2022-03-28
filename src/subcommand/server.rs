@@ -20,7 +20,7 @@ impl Server {
             eprintln!("error: {error}");
             process::exit(1);
           }
-          thread::sleep(Duration::from_secs(10));
+          thread::sleep(Duration::from_millis(200));
         }
       });
 
