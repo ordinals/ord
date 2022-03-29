@@ -81,7 +81,7 @@ struct TransactionOptions<'a> {
 struct Test {
   args: Vec<String>,
   expected_status: i32,
-  expected_stderr: String,
+  expected_stderr: Option<String>,
   expected_stdout: Expected,
   events: Vec<Event>,
   tempdir: TempDir,
@@ -96,7 +96,7 @@ impl Test {
     Self {
       args: Vec::new(),
       expected_status: 0,
-      expected_stderr: String::new(),
+      expected_stderr: None,
       expected_stdout: Expected::String(String::new()),
       events: Vec::new(),
       tempdir,
@@ -139,7 +139,7 @@ impl Test {
 
   fn expected_stderr(self, expected_stderr: &str) -> Self {
     Self {
-      expected_stderr: expected_stderr.to_owned(),
+      expected_stderr: Some(expected_stderr.to_owned()),
       ..self
     }
   }
@@ -202,7 +202,11 @@ impl Test {
     let child = Command::new(executable_path("ord"))
       .stdin(Stdio::null())
       .stdout(Stdio::piped())
-      .stderr(Stdio::piped())
+      .stderr(if self.expected_stderr.is_some() {
+        Stdio::piped()
+      } else {
+        Stdio::inherit()
+      })
       .current_dir(&self.tempdir)
       .arg(format!("--rpc-url=http://127.0.0.1:{rpc_server_port}"))
       .args(self.args)
@@ -276,7 +280,9 @@ impl Test {
       print!("{}", m.as_str())
     }
 
-    assert_eq!(re.replace_all(stderr, ""), self.expected_stderr);
+    if let Some(expected_stderr) = self.expected_stderr {
+      assert_eq!(re.replace_all(stderr, ""), expected_stderr);
+    }
 
     match self.expected_stdout {
       Expected::String(expected_stdout) => assert_eq!(stdout, expected_stdout),
