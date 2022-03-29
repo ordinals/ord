@@ -58,8 +58,6 @@ impl Index {
   }
 
   pub(crate) fn index_ranges(&self) -> Result {
-    log::info!("Indexing ranges…");
-
     let mut wtx = self.database.begin_write()?;
 
     loop {
