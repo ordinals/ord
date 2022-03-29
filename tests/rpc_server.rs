@@ -13,18 +13,28 @@ pub trait RpcApi {
 }
 
 pub struct RpcServer {
-  blocks: Vec<Block>,
+  blocks: Arc<Mutex<Vec<Block>>>,
   calls: Arc<Mutex<Vec<String>>>,
 }
 
 impl RpcServer {
-  pub(crate) fn spawn(blocks: &[Block]) -> (CloseHandle, Arc<Mutex<Vec<String>>>, u16) {
+  pub(crate) fn spawn(
+    blocks: Vec<Block>,
+  ) -> (
+    Arc<Mutex<Vec<Block>>>,
+    CloseHandle,
+    Arc<Mutex<Vec<String>>>,
+    u16,
+  ) {
     let calls = Arc::new(Mutex::new(Vec::new()));
 
+    let blocks = Arc::new(Mutex::new(blocks));
+
     let server = Self {
-      blocks: blocks.to_vec(),
+      blocks: blocks.clone(),
       calls: calls.clone(),
     };
+
     let mut io = IoHandler::default();
     io.extend_with(server.to_delegate());
 
@@ -39,7 +49,7 @@ impl RpcServer {
 
     thread::spawn(|| server.wait());
 
-    (close_handle, calls, port)
+    (blocks, close_handle, calls, port)
   }
 
   fn call(&self, method: &str) {
@@ -51,7 +61,7 @@ impl RpcApi for RpcServer {
   fn getblockhash(&self, height: usize) -> Result<BlockHash> {
     self.call("getblockhash");
 
-    match self.blocks.get(height) {
+    match self.blocks.lock().unwrap().get(height) {
       Some(block) => Ok(block.block_hash()),
       None => Err(jsonrpc_core::Error::new(
         jsonrpc_core::types::error::ErrorCode::ServerError(-8),
@@ -64,7 +74,7 @@ impl RpcApi for RpcServer {
 
     assert_eq!(verbosity, 0, "Verbosity level {verbosity} is unsupported");
 
-    for block in &self.blocks {
+    for block in self.blocks.lock().unwrap().iter() {
       if block.block_hash() == blockhash {
         let mut encoded = Vec::new();
         block.consensus_encode(&mut encoded).unwrap();

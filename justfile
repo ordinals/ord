@@ -13,7 +13,7 @@ fmt:
   cargo fmt
 
 clippy:
-  cargo clippy
+  cargo clippy --all --all-targets
 
 bench:
   cargo criterion
