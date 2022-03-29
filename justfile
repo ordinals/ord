@@ -32,3 +32,6 @@ deploy branch='master':
 status:
   ssh root@65.108.68.37 systemctl status bitcoind
   ssh root@65.108.68.37 systemctl status ord
+
+serve:
+  python3 -m http.server --directory docs
