@@ -33,5 +33,5 @@ status:
   ssh root@65.108.68.37 systemctl status bitcoind
   ssh root@65.108.68.37 systemctl status ord
 
-serve-docs:
+serve:
   python3 -m http.server --directory docs
