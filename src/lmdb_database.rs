@@ -141,7 +141,7 @@ impl<'a> WriteTransaction<'a> {
       self
         .lmdb_write_transaction
         .access()
-        .get::<[u8], [u8]>(&self.height_to_hash, &height.to_be_bytes())
+        .get::<[u8], [u8]>(self.height_to_hash, &height.to_be_bytes())
         .into_option()?
         .map(|value| value.to_vec()),
     )
@@ -149,7 +149,7 @@ impl<'a> WriteTransaction<'a> {
 
   pub(crate) fn set_blockhash_at_height(&mut self, height: u64, blockhash: BlockHash) -> Result {
     self.lmdb_write_transaction.access().put(
-      &self.height_to_hash,
+      self.height_to_hash,
       &height.to_be_bytes(),
       blockhash.as_ref(),
       lmdb::put::Flags::empty(),
@@ -159,7 +159,7 @@ impl<'a> WriteTransaction<'a> {
 
   pub(crate) fn insert_outpoint(&mut self, outpoint: &[u8], ordinal_ranges: &[u8]) -> Result {
     self.lmdb_write_transaction.access().put(
-      &self.outpoint_to_ordinal_ranges,
+      self.outpoint_to_ordinal_ranges,
       outpoint,
       ordinal_ranges,
       lmdb::put::Flags::empty(),
@@ -171,7 +171,7 @@ impl<'a> WriteTransaction<'a> {
     self
       .lmdb_write_transaction
       .access()
-      .del_key(&self.outpoint_to_ordinal_ranges, outpoint)?;
+      .del_key(self.outpoint_to_ordinal_ranges, outpoint)?;
     Ok(())
   }
 
@@ -180,7 +180,7 @@ impl<'a> WriteTransaction<'a> {
       self
         .lmdb_write_transaction
         .access()
-        .get::<[u8], [u8]>(&self.outpoint_to_ordinal_ranges, outpoint)
+        .get::<[u8], [u8]>(self.outpoint_to_ordinal_ranges, outpoint)
         .into_option()?
         .map(|value| value.to_vec()),
     )
