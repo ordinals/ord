@@ -1,3 +1,5 @@
+#![allow(clippy::type_complexity)]
+
 use {
   crate::rpc_server::RpcServer,
   bitcoin::{
@@ -43,6 +45,11 @@ enum Expected {
   Ignore,
 }
 
+enum Event {
+  Block(Block),
+  Request(String, u16, String),
+}
+
 struct Output {
   calls: Vec<String>,
   stdout: String,
@@ -73,11 +80,10 @@ struct TransactionOptions<'a> {
 
 struct Test {
   args: Vec<String>,
-  blocks: Vec<Block>,
   expected_status: i32,
-  expected_stderr: String,
+  expected_stderr: Option<String>,
   expected_stdout: Expected,
-  requests: Vec<(String, String)>,
+  events: Vec<Event>,
   tempdir: TempDir,
 }
 
@@ -89,11 +95,10 @@ impl Test {
   fn with_tempdir(tempdir: TempDir) -> Self {
     Self {
       args: Vec::new(),
-      blocks: Vec::new(),
       expected_status: 0,
-      expected_stderr: String::new(),
+      expected_stderr: None,
       expected_stdout: Expected::String(String::new()),
-      requests: Vec::new(),
+      events: Vec::new(),
       tempdir,
     }
   }
@@ -134,7 +139,7 @@ impl Test {
 
   fn expected_stderr(self, expected_stderr: &str) -> Self {
     Self {
-      expected_stderr: expected_stderr.to_owned(),
+      expected_stderr: Some(expected_stderr.to_owned()),
       ..self
     }
   }
@@ -153,8 +158,12 @@ impl Test {
     }
   }
 
-  fn request(mut self, path: &str, response: &str) -> Self {
-    self.requests.push((path.to_string(), response.to_string()));
+  fn request(mut self, path: &str, status: u16, response: &str) -> Self {
+    self.events.push(Event::Request(
+      path.to_string(),
+      status,
+      response.to_string(),
+    ));
     self
   }
 
@@ -170,19 +179,34 @@ impl Test {
     self.test(Some(port)).map(|_| ())
   }
 
+  fn blocks(&self) -> impl Iterator<Item = &Block> + '_ {
+    self.events.iter().filter_map(|event| match event {
+      Event::Block(block) => Some(block),
+      _ => None,
+    })
+  }
+
   fn test(self, port: Option<u16>) -> Result<Output> {
-    for (b, block) in self.blocks.iter().enumerate() {
+    for (b, block) in self.blocks().enumerate() {
       for (t, transaction) in block.txdata.iter().enumerate() {
         eprintln!("{b}.{t}: {}", transaction.txid());
       }
     }
 
-    let (close_handle, calls, rpc_server_port) = RpcServer::spawn(&self.blocks);
+    let (blocks, close_handle, calls, rpc_server_port) = if port.is_some() {
+      RpcServer::spawn(Vec::new())
+    } else {
+      RpcServer::spawn(self.blocks().cloned().collect())
+    };
 
     let child = Command::new(executable_path("ord"))
       .stdin(Stdio::null())
       .stdout(Stdio::piped())
-      .stderr(Stdio::piped())
+      .stderr(if self.expected_stderr.is_some() {
+        Stdio::piped()
+      } else {
+        Stdio::inherit()
+      })
       .current_dir(&self.tempdir)
       .arg(format!("--rpc-url=http://127.0.0.1:{rpc_server_port}"))
       .args(self.args)
@@ -215,13 +239,21 @@ impl Test {
       }
 
       if healthy {
-        for (request, expected_response) in &self.requests {
-          let response = client
-            .get(&format!("http://127.0.0.1:{port}/{request}"))
-            .send()?;
-          assert!(response.status().is_success(), "{:?}", response.status());
-          assert_eq!(response.text()?, *expected_response);
-          successful_requests += 1;
+        for event in &self.events {
+          match event {
+            Event::Block(block) => {
+              blocks.lock().unwrap().push(block.clone());
+              thread::sleep(Duration::from_millis(200));
+            }
+            Event::Request(request, status, expected_response) => {
+              let response = client
+                .get(&format!("http://127.0.0.1:{port}/{request}"))
+                .send()?;
+              assert_eq!(response.status().as_u16(), *status);
+              assert_eq!(response.text()?, *expected_response);
+              successful_requests += 1;
+            }
+          }
         }
       }
 
@@ -248,7 +280,9 @@ impl Test {
       print!("{}", m.as_str())
     }
 
-    assert_eq!(re.replace_all(stderr, ""), self.expected_stderr);
+    if let Some(expected_stderr) = self.expected_stderr {
+      assert_eq!(re.replace_all(stderr, ""), expected_stderr);
+    }
 
     match self.expected_stdout {
       Expected::String(expected_stdout) => assert_eq!(stdout, expected_stdout),
@@ -262,7 +296,11 @@ impl Test {
 
     assert_eq!(
       successful_requests,
-      self.requests.len(),
+      self
+        .events
+        .iter()
+        .filter(|event| matches!(event, Event::Request(..)))
+        .count(),
       "Unsuccessful requests"
     );
 
@@ -280,11 +318,11 @@ impl Test {
   }
 
   fn block_with_coinbase(mut self, coinbase: CoinbaseOptions) -> Self {
-    self.blocks.push(Block {
+    self.events.push(Event::Block(Block {
       header: BlockHeader {
         version: 0,
         prev_blockhash: self
-          .blocks
+          .blocks()
           .last()
           .map(Block::block_hash)
           .unwrap_or_default(),
@@ -301,7 +339,7 @@ impl Test {
             previous_output: OutPoint::null(),
             script_sig: if coinbase.include_height {
               script::Builder::new()
-                .push_scriptint(self.blocks.len().try_into().unwrap())
+                .push_scriptint(self.blocks().count().try_into().unwrap())
                 .into_script()
             } else {
               script::Builder::new().into_script()
@@ -317,7 +355,7 @@ impl Test {
       } else {
         Vec::new()
       },
-    });
+    }));
     self
   }
 
@@ -325,7 +363,7 @@ impl Test {
     let input_value = options
       .slots
       .iter()
-      .map(|slot| self.blocks[slot.0].txdata[slot.1].output[slot.2].value)
+      .map(|slot| self.blocks().nth(slot.0).unwrap().txdata[slot.1].output[slot.2].value)
       .sum::<u64>();
 
     let output_value = input_value - options.fee;
@@ -338,7 +376,7 @@ impl Test {
         .iter()
         .map(|slot| TxIn {
           previous_output: OutPoint {
-            txid: self.blocks[slot.0].txdata[slot.1].txid(),
+            txid: self.blocks().nth(slot.0).unwrap().txdata[slot.1].txid(),
             vout: slot.2 as u32,
           },
           script_sig: script::Builder::new().into_script(),
@@ -355,7 +393,15 @@ impl Test {
       ],
     };
 
-    let block = self.blocks.last_mut().unwrap();
+    let block = self
+      .events
+      .iter_mut()
+      .rev()
+      .find_map(|event| match event {
+        Event::Block(block) => Some(block),
+        _ => None,
+      })
+      .unwrap();
 
     block
       .txdata

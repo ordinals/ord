@@ -7,7 +7,6 @@ use {
 pub(crate) struct Index {
   client: Client,
   database: Database,
-  sleep_until: Cell<Instant>,
 }
 
 impl Index {
@@ -28,7 +27,6 @@ impl Index {
     Ok(Self {
       client,
       database: Database::open(options).context("Failed to open database")?,
-      sleep_until: Cell::new(Instant::now()),
     })
   }
 
@@ -45,24 +43,6 @@ impl Index {
     self.database.print_info()
   }
 
-  fn client(&self) -> &Client {
-    if cfg!(target_os = "macos") {
-      let now = Instant::now();
-
-      let sleep_until = self.sleep_until.get();
-
-      if sleep_until > now {
-        thread::sleep(sleep_until - now);
-      }
-
-      self
-        .sleep_until
-        .set(Instant::now() + Duration::from_millis(2));
-    }
-
-    &self.client
-  }
-
   fn decode_ordinal_range(bytes: [u8; 11]) -> (u64, u64) {
     let n = u128::from_le_bytes([
       bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7], bytes[8],
@@ -77,7 +57,7 @@ impl Index {
     (base, base + delta)
   }
 
-  fn index_ranges(&self) -> Result {
+  pub(crate) fn index_ranges(&self) -> Result {
     log::info!("Indexing ranges…");
 
     let mut wtx = self.database.begin_write()?;
@@ -241,8 +221,8 @@ impl Index {
   }
 
   pub(crate) fn block(&self, height: u64) -> Result<Option<Block>> {
-    match self.client().get_block_hash(height) {
-      Ok(hash) => Ok(Some(self.client().get_block(&hash)?)),
+    match self.client.get_block_hash(height) {
+      Ok(hash) => Ok(Some(self.client.get_block(&hash)?)),
       Err(bitcoincore_rpc::Error::JsonRpc(jsonrpc::error::Error::Rpc(
         jsonrpc::error::RpcError { code: -8, .. },
       ))) => Ok(None),
