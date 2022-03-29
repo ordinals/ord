@@ -18,7 +18,7 @@ impl Server {
         if let Err(error) = clone.index_ranges() {
           log::error!("{error}");
         }
-        thread::sleep(Duration::from_millis(200));
+        thread::sleep(Duration::from_millis(100));
       });
 
       let app = Router::new()
