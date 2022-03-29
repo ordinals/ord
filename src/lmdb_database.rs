@@ -21,7 +21,11 @@ impl<T> LmdbResultExt<T> for lmdb::Result<T> {
   }
 }
 
-pub(crate) struct Database(Environment);
+pub(crate) struct Database {
+  environment: Arc<Environment>,
+  height_to_hash: lmdb::Database<'static>,
+  outpoint_to_ordinal_ranges: lmdb::Database<'static>,
+}
 
 impl Database {
   pub(crate) fn open(options: &Options) -> Result<Self> {
@@ -29,26 +33,40 @@ impl Database {
 
     fs::create_dir_all(path)?;
 
-    let env = unsafe {
+    let environment = unsafe {
       let mut builder = EnvBuilder::new()?;
 
       builder.set_maxdbs(3)?;
       builder.set_mapsize(options.index_size.0)?;
 
-      builder
-        .open(path, lmdb::open::Flags::empty(), 0o600)
-        .unwrap()
+      Arc::new(builder.open(path, lmdb::open::Flags::empty(), 0o600)?)
     };
 
-    Ok(Self(env))
+    let height_to_hash = lmdb::Database::open(
+      environment.clone(),
+      Some(HEIGHT_TO_HASH),
+      &lmdb::DatabaseOptions::new(lmdb::db::CREATE),
+    )?;
+
+    let outpoint_to_ordinal_ranges = lmdb::Database::open(
+      environment.clone(),
+      Some(OUTPOINT_TO_ORDINAL_RANGES),
+      &lmdb::DatabaseOptions::new(lmdb::db::CREATE),
+    )?;
+
+    Ok(Self {
+      environment,
+      height_to_hash,
+      outpoint_to_ordinal_ranges,
+    })
   }
 
   pub(crate) fn begin_write(&self) -> Result<WriteTransaction> {
-    WriteTransaction::new(&self.0)
+    WriteTransaction::new(self)
   }
 
   pub(crate) fn print_info(&self) -> Result {
-    let stat = self.0.stat()?;
+    let stat = self.environment.stat()?;
 
     let blocks_indexed = self.height()?;
 
@@ -62,16 +80,10 @@ impl Database {
   }
 
   pub(crate) fn height(&self) -> Result<u64> {
-    let height_to_hash = lmdb::Database::open(
-      &self.0,
-      Some(HEIGHT_TO_HASH),
-      &lmdb::DatabaseOptions::new(lmdb::db::CREATE),
-    )?;
-
-    let tx = lmdb::ReadTransaction::new(&self.0)?;
+    let tx = lmdb::ReadTransaction::new(self.environment.clone())?;
 
     let height = tx
-      .cursor(&height_to_hash)?
+      .cursor(&self.height_to_hash)?
       .last::<[u8], [u8]>(&tx.access())
       .into_option()?
       .map(|(key, _value)| u64::from_be_bytes(key.try_into().unwrap()) + 1)
@@ -81,16 +93,10 @@ impl Database {
   }
 
   pub(crate) fn list(&self, outpoint: &[u8]) -> Result<Option<Vec<u8>>> {
-    let outpoint_to_ordinal_ranges = &lmdb::Database::open(
-      &self.0,
-      Some(OUTPOINT_TO_ORDINAL_RANGES),
-      &lmdb::DatabaseOptions::new(lmdb::db::CREATE),
-    )?;
-
     Ok(
-      lmdb::ReadTransaction::new(&self.0)?
+      lmdb::ReadTransaction::new(self.environment.clone())?
         .access()
-        .get::<[u8], [u8]>(outpoint_to_ordinal_ranges, outpoint)
+        .get::<[u8], [u8]>(&self.outpoint_to_ordinal_ranges, outpoint)
         .into_option()?
         .map(|ranges| ranges.to_vec()),
     )
@@ -98,31 +104,19 @@ impl Database {
 }
 
 pub(crate) struct WriteTransaction<'a> {
-  height_to_hash: lmdb::Database<'a>,
+  height_to_hash: &'a lmdb::Database<'static>,
   lmdb_write_transaction: lmdb::WriteTransaction<'a>,
-  outpoint_to_ordinal_ranges: lmdb::Database<'a>,
+  outpoint_to_ordinal_ranges: &'a lmdb::Database<'static>,
 }
 
 impl<'a> WriteTransaction<'a> {
-  pub(crate) fn new(environment: &'a Environment) -> Result<Self> {
-    let height_to_hash = lmdb::Database::open(
-      environment,
-      Some(HEIGHT_TO_HASH),
-      &lmdb::DatabaseOptions::new(lmdb::db::CREATE),
-    )?;
-
-    let outpoint_to_ordinal_ranges = lmdb::Database::open(
-      environment,
-      Some(OUTPOINT_TO_ORDINAL_RANGES),
-      &lmdb::DatabaseOptions::new(lmdb::db::CREATE),
-    )?;
-
-    let lmdb_write_transaction = lmdb::WriteTransaction::new(environment)?;
+  pub(crate) fn new(database: &'a Database) -> Result<Self> {
+    let lmdb_write_transaction = lmdb::WriteTransaction::new(database.environment.clone())?;
 
     Ok(Self {
       lmdb_write_transaction,
-      height_to_hash,
-      outpoint_to_ordinal_ranges,
+      height_to_hash: &database.height_to_hash,
+      outpoint_to_ordinal_ranges: &database.outpoint_to_ordinal_ranges,
     })
   }
 
@@ -134,7 +128,7 @@ impl<'a> WriteTransaction<'a> {
     Ok(
       self
         .lmdb_write_transaction
-        .cursor(&self.height_to_hash)?
+        .cursor(self.height_to_hash)?
         .last::<[u8], [u8]>(&self.lmdb_write_transaction.access())
         .into_option()?
         .map(|(key, _value)| u64::from_be_bytes(key.try_into().unwrap()) + 1)
@@ -147,7 +141,7 @@ impl<'a> WriteTransaction<'a> {
       self
         .lmdb_write_transaction
         .access()
-        .get::<[u8], [u8]>(&self.height_to_hash, &height.to_be_bytes())
+        .get::<[u8], [u8]>(self.height_to_hash, &height.to_be_bytes())
         .into_option()?
         .map(|value| value.to_vec()),
     )
@@ -155,7 +149,7 @@ impl<'a> WriteTransaction<'a> {
 
   pub(crate) fn set_blockhash_at_height(&mut self, height: u64, blockhash: BlockHash) -> Result {
     self.lmdb_write_transaction.access().put(
-      &self.height_to_hash,
+      self.height_to_hash,
       &height.to_be_bytes(),
       blockhash.as_ref(),
       lmdb::put::Flags::empty(),
@@ -165,7 +159,7 @@ impl<'a> WriteTransaction<'a> {
 
   pub(crate) fn insert_outpoint(&mut self, outpoint: &[u8], ordinal_ranges: &[u8]) -> Result {
     self.lmdb_write_transaction.access().put(
-      &self.outpoint_to_ordinal_ranges,
+      self.outpoint_to_ordinal_ranges,
       outpoint,
       ordinal_ranges,
       lmdb::put::Flags::empty(),
@@ -177,7 +171,7 @@ impl<'a> WriteTransaction<'a> {
     self
       .lmdb_write_transaction
       .access()
-      .del_key(&self.outpoint_to_ordinal_ranges, outpoint)?;
+      .del_key(self.outpoint_to_ordinal_ranges, outpoint)?;
     Ok(())
   }
 
@@ -186,7 +180,7 @@ impl<'a> WriteTransaction<'a> {
       self
         .lmdb_write_transaction
         .access()
-        .get::<[u8], [u8]>(&self.outpoint_to_ordinal_ranges, outpoint)
+        .get::<[u8], [u8]>(self.outpoint_to_ordinal_ranges, outpoint)
         .into_option()?
         .map(|value| value.to_vec()),
     )
