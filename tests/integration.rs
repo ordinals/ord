@@ -1,3 +1,5 @@
+#![allow(clippy::type_complexity)]
+
 use {
   crate::rpc_server::RpcServer,
   bitcoin::{
