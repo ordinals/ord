@@ -19,7 +19,6 @@ use {
   integer_sqrt::IntegerSquareRoot,
   lazy_static::lazy_static,
   std::{
-    cell::Cell,
     cmp::Ordering,
     collections::VecDeque,
     env,
