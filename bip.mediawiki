@@ -54,7 +54,7 @@ Ordinals are created and assigned with the following algorithm:
 <pre>
 # subsidy of block at given height
 def subsidy(height):
-  return 50 * 100_000_000 >> int(height / 210_000)
+  return 50 * 100_000_000 >> height // 210_000
 
 # first ordinal of subsidy of block at given height
 def first_ordinal(height):
@@ -170,6 +170,28 @@ Since any ordinal can be sent to any address at any time, ordinals that are tran
 === Backward compatibility ===
 
 Ordinal numbers are fully backwards compatible and require no changes to the bitcoin network.
+
+=== Drawbacks ===
+
+==== Large Index Size ====
+
+Indexes supporting fast queries related to ordinals are slow to build and consume large amounts of space.
+
+An O(1) index that maps UTXOs to the ordinals that they contain is currently 100GiB. The same index including spent outputs is 10TiB.
+
+An O(1) index supporting the opposite mapping, that of individual ordinals to the UTXO that contains them, has proven to be challenging to implement without optimization.
+
+==== Large Location Proofs ====
+
+A proof can be constructed that demonstrates that a particular ordinal is contained in a particular output, however the proofs are large. Such a proof consists of:
+
+- Block headers
+- A merkle path to the coinbase transaction that created the ordinal
+- The coinbase transaction that created the ordinal
+- And for every spend of that ordinal:
+  - The spend transaction
+  - The transactions that created the inputs before the input that was spent, to determine the values of the preceding inputs, to determine the position of the ordinal
+  - And, if the ordinal was used as fees, all prior transaction in the block in which it was spent, and the coinbase transaction, to determine the location of the ordinal in the outputs.
 
 === Compatibility with Existing and Envisaged Applications ===
 
