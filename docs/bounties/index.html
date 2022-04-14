@@ -1,74 +1,128 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Ordinals</title>
+    <title>Ordinal Bounties</title>
     <link rel="stylesheet" type="text/css" href="/index.css">
   </head>
   <body>
-  <table>
-    <tr>
-      <th>Type</th>
-      <th>Supply</th>
-      <th>Quota</th>
-      <th>Bounty</th>
-      <th>Address</th>
-    </tr>
-    <tr>
-      <td>Legendary</td>
-      <td>3</td>
-      <td>∞</td>
-      <td>1 BTC</td>
-      <td>1PE7u4wbDP2RqfKN6geD1bG57v9Gj9FXm3</td>
-    </tr>
-    <tr>
-      <td>Epic</td>
-      <td>360</td>
-      <td>∞</td>
-      <td>0.01 BTC</td>
-      <td>145Z7PFHyVrwiMWwEcUmDgFbmUbQSU9aap</td>
-    </tr>
-    <tr>
-      <td>Rare</td>
-      <td>~730,000</td>
-      <td>∞</td>
-      <td>0.001 BTC</td>
-      <td>1Hyr94uypwWq5CQffaXHvwUMEyBPp3TUZH</td>
-    </tr>
-    <tr>
-      <td>Illusive</td>
-      <td>1</td>
-      <td>∞</td>
-      <td>0.1 BTC</td>
-      <td>13fq3gND5nHpYVYwnqEL6AuwxF5DBCDj1g</td>
-    </tr>
-    <tr>
-      <td>Cursed</td>
-      <td>4,999,999,999</td>
-      <td>1</td>
-      <td>0.1 BTC</td>
-      <td>17m5rvMpi78zG8RUpCRd6NWWMJtWmu65kg</td>
-    </tr>
-    <tr>
-      <td>Repeater</td>
-      <td>137</td>
-      <td>∞</td>
-      <td>0.025 BTC</td>
-      <td>1KYfzhzGhYepGkWqzmqjRwStuYRkmTzR8r</td>
-    </tr>
-    <tr>
-      <td>Round</td>
-      <td>-</td>
-      <td>15</td>
-      <td>10<sup>trailing zeroes</sup> / 100,000,000 sats</td>
-      <td>1QfaU6QdScFVyZVT2SW4qkQonkYAvBqQY</td>
-    </tr>
-    <tr>
-      <td>Intelligible</td>
-      <td>-</td>
-      <td>100</td>
-      <td>0.001 BTC</td>
-      <td>1E4ZPUF9SQbW6WqLPVkW6q14uwr8CXBtHr</td>
-    </tr>
-  </table>
+    <h1>Ordinal Bounties</h1>
+    <table>
+      <tr>
+        <th>Type</th>
+        <th>Supply</th>
+        <th>Quota</th>
+        <th>Bounty</th>
+        <th>Address</th>
+      </tr>
+      <tr>
+        <td>Legendary</td>
+        <td>3</td>
+        <td>1</td>
+        <td>1 BTC</td>
+        <td>1PE7u4wbDP2RqfKN6geD1bG57v9Gj9FXm3</td>
+      </tr>
+      <tr>
+        <td>Epic</td>
+        <td>360</td>
+        <td>10</td>
+        <td>0.01 BTC</td>
+        <td>145Z7PFHyVrwiMWwEcUmDgFbmUbQSU9aap</td>
+      </tr>
+      <tr>
+        <td>Rare</td>
+        <td>~730,000</td>
+        <td>100</td>
+        <td>0.001 BTC</td>
+        <td>1Hyr94uypwWq5CQffaXHvwUMEyBPp3TUZH</td>
+      </tr>
+      <tr>
+        <td>Illusive</td>
+        <td>1</td>
+        <td>1</td>
+        <td>0.1 BTC</td>
+        <td>13fq3gND5nHpYVYwnqEL6AuwxF5DBCDj1g</td>
+      </tr>
+      <tr>
+        <td>Cursed</td>
+        <td>4,999,999,999</td>
+        <td>1</td>
+        <td>0.1 BTC</td>
+        <td>17m5rvMpi78zG8RUpCRd6NWWMJtWmu65kg</td>
+      </tr>
+      <tr>
+        <td>Repeater</td>
+        <td>137</td>
+        <td>4</td>
+        <td>0.025 BTC</td>
+        <td>1KYfzhzGhYepGkWqzmqjRwStuYRkmTzR8r</td>
+      </tr>
+      <tr>
+        <td>Round</td>
+        <td>-</td>
+        <td>15</td>
+        <td>10<sup>trailing zeroes</sup> / 100,000,000 sats</td>
+        <td>1QfaU6QdScFVyZVT2SW4qkQonkYAvBqQY</td>
+      </tr>
+      <tr>
+        <td>Intelligible</td>
+        <td>-</td>
+        <td>100</td>
+        <td>0.001 BTC</td>
+        <td>1E4ZPUF9SQbW6WqLPVkW6q14uwr8CXBtHr</td>
+      </tr>
+    </table>
+
+    <section>
+      <h2>Definitions</h2>
+
+      <p>A <dfn>legendary</dfn> satoshi is the first satoshi mined in the first block after a halving. They are <em>exceedingly</em> rare. Three have been mined, and there is one legendary sat per 6,336,854 BTC in circulation.</p>
+
+      <p>An <dfn>epic</dfn> satoshi is the first satoshi mined in the first block after a difficulty adjustment period. They are <em>very</em> rare. 361 have been mined, and there is one epic sat per 52,423 BTC in circulation.</p>
+
+      <p>A <dfn>rare</dfn> satoshi is the first satoshi mined in every block. They are moderately rare. More than 730,000 have been mined, and there is one rare sat per 26 BTC in circulation.</p>
+
+      <p>There is only one <dfn>illusive</dfn> satoshi, that with ordinal number 623624999999999. Why is left as an exercise to the reader.</p>
+
+      <p>All sats mined in block 124724 are <dfn>cursed</dfn>. Again, figuring out why is left as an exercise to the reader.</p>
+
+      <p>A <dfn>repeater</dfn> satoshi's ordinal number consists of repititions a single digit, for example, 777777777, or 3333. They are <em>extremely</em> rare. 137 have been mined, or one per 138,138 BTC in circulation.</p>
+
+      <p>A <dfn>round</dfn> satoshi's ordinal number has many trailing zeros. The more, the rarer. To reflect this, the bounty for round satoshies is variable.</p>
+
+      <p>An <dfn>intelligible</dfn> satoshi is one whose <em>name</em> is an word or sentence. The code mapping ordinals to names is <a href="https://github.com/casey/ord/blob/79183599126485e73027fb34686cc0f29f56776d/src/ordinal.rs#L30">here</a>.</p>
+    </section>
+
+    <section>
+      <h2>Rules</h2>
+
+      <ol>
+        <li>Find an ordinal qualifying for a bounty.</li>
+        <li>Make sure that the bounty has not already been claimed by verifying that no transactions have been sent to the bounty address.</li>
+        <li>Send a transaction that sends the ordinal to the bounty address.</li>
+        <li>Send a DM to <a href="https://twitter.com/rodarmor">@rodarmor</a>.</li>
+        <li>The bounty will be sent back to the address that the ordinal was sent from.</li>
+      </ol>
+
+      <p>Questions? Tweet them at <a href="https://twitter.com/rodarmor">@rodarmor</a>.</p>
+    </section>
+    <section>
+      <h2>Discussion</h2>
+
+      <ul>
+        <li>There are no ordinal wallets or transaction construction libraries. However, <a href="https://github.com/casey/ord/blob/master/bip.mediawiki">ordinal theory</a> is extremely simple. A clever hacker should be able to write code to manipulate ordinals in no time.</li>
+
+        <li>Extremely rare ordinals are nearly impossible to find. However, there are ways that an enterprising indivdual of limited means can still obtain rare sats.</li>
+
+        <li>Round and intelligible sats are the easiest to find. You might want to start with them.</li>
+
+        <li>Each of the bounty addresses is an <a href="https://opendime.com/">Opendime</a>, so we don't accidentally lose any rare sats that are sent to us.</li>
+
+        <li>For more information about ordinals, check out the <a href="/">main page</a> for an overview, or the <a href="https://github.com/casey/ord/blob/master/bip.mediawiki">BIP</a> for the technical details.</li>
+
+        <li>Ordinal theory was lost to the sands of time, and is only now being rediscovered. You can help by researching rare ordinals.</li>
+      </ul>
+    </section>
+
+    <p>Good luck and godspeed!</p>
   </body>
 </html>
