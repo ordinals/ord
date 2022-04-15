@@ -26,8 +26,8 @@ fn incremental_indexing() -> Result {
 #[cfg(feature = "redb")]
 fn custom_index_size() -> Result {
   let tempdir = Test::new()?
-    .command("--index-size 2097152 list 0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0")
-    .expected_stdout("[0,5000000000)\n")
+    .command("--index-size 2097152 find 0")
+    .expected_stdout("0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0:0\n")
     .block()
     .output()?
     .tempdir;
@@ -41,10 +41,8 @@ fn custom_index_size() -> Result {
 #[cfg(feature = "redb")]
 fn human_readable_index_size() -> Result {
   let tempdir = Test::new()?
-    .command(
-      "--index-size 2mib list 0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0",
-    )
-    .expected_stdout("[0,5000000000)\n")
+    .command("--index-size 2mib find 0")
+    .expected_stdout("0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0:0\n")
     .block()
     .output()?
     .tempdir;
@@ -58,8 +56,8 @@ fn human_readable_index_size() -> Result {
 #[cfg(feature = "redb")]
 fn default_index_size() -> Result {
   let tempdir = Test::new()?
-    .command("list 0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0")
-    .expected_stdout("[0,5000000000)\n")
+    .command("find 0")
+    .expected_stdout("0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0:0\n")
     .block()
     .output()?
     .tempdir;
