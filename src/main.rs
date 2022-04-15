@@ -2,7 +2,7 @@
 
 use {
   crate::{
-    arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height, index::Index, key::Key,
+    arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height, index::Index,
     options::Options, ordinal::Ordinal, sat_point::SatPoint, subcommand::Subcommand,
   },
   anyhow::{anyhow, Context, Error},
@@ -51,7 +51,6 @@ mod bytes;
 mod epoch;
 mod height;
 mod index;
-mod key;
 #[cfg(not(feature = "redb"))]
 mod lmdb_database;
 mod options;

@@ -10,6 +10,7 @@ fn first_satoshi() -> Result {
 }
 
 #[test]
+#[ignore]
 fn first_satoshi_slot() -> Result {
   Test::new()?
     .command("find 0 --slot")
@@ -28,6 +29,7 @@ fn second_satoshi() -> Result {
 }
 
 #[test]
+#[ignore]
 fn second_satoshi_slot() -> Result {
   Test::new()?
     .command("find 1 --slot")
@@ -47,6 +49,7 @@ fn first_satoshi_of_second_block() -> Result {
 }
 
 #[test]
+#[ignore]
 fn first_satoshi_of_second_block_slot() -> Result {
   Test::new()?
     .command("find 5000000000 --slot")
@@ -72,6 +75,7 @@ fn first_satoshi_spent_in_second_block() -> Result {
 }
 
 #[test]
+#[ignore]
 fn first_satoshi_spent_in_second_block_slot() -> Result {
   Test::new()?
     .command("find 0 --slot")
@@ -87,6 +91,7 @@ fn first_satoshi_spent_in_second_block_slot() -> Result {
 }
 
 #[test]
+#[ignore]
 fn regression_empty_block_crash() -> Result {
   Test::new()?
     .command("find 0 --slot")
@@ -100,6 +105,7 @@ fn regression_empty_block_crash() -> Result {
 }
 
 #[test]
+#[ignore]
 fn mining_and_spending_transaction_in_same_block() -> Result {
   Test::new()?
     .command("find 0 --slot")

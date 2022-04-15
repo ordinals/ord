@@ -43,7 +43,7 @@ impl Index {
     self.database.print_info()
   }
 
-  fn decode_ordinal_range(bytes: [u8; 11]) -> (u64, u64) {
+  pub(crate) fn decode_ordinal_range(bytes: [u8; 11]) -> (u64, u64) {
     let n = u128::from_le_bytes([
       bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7], bytes[8],
       bytes[9], bytes[10], 0, 0, 0, 0, 0,
@@ -121,29 +121,14 @@ impl Index {
             .get_ordinal_ranges(key.as_slice())?
             .ok_or_else(|| anyhow!("Could not find outpoint in index"))?;
 
-          let new = input_ordinal_ranges.len();
-
           for chunk in ordinal_ranges.chunks_exact(11) {
             input_ordinal_ranges.push_back(Self::decode_ordinal_range(chunk.try_into().unwrap()));
-          }
-
-          for (start, _end) in input_ordinal_ranges.range(new..) {
-            wtx.remove_satpoint(
-              &Key {
-                ordinal: *start,
-                block: 0,
-                transaction: 0,
-              }
-              .encode(),
-            )?;
           }
 
           wtx.remove_outpoint(&key)?;
         }
 
         self.index_transaction(
-          height,
-          tx_offset as u64,
           *txid,
           tx,
           &mut wtx,
@@ -156,8 +141,6 @@ impl Index {
 
       if let Some((txid, tx)) = txdata.first() {
         self.index_transaction(
-          height,
-          0,
           *txid,
           tx,
           &mut wtx,
@@ -186,8 +169,6 @@ impl Index {
 
   fn index_transaction(
     &self,
-    block: u64,
-    tx_offset: u64,
     txid: Txid,
     tx: &Transaction,
     wtx: &mut WriteTransaction,
@@ -223,15 +204,6 @@ impl Index {
           outpoint,
         }
         .consensus_encode(&mut satpoint)?;
-        wtx.insert_satpoint(
-          &Key {
-            ordinal: assigned.0,
-            block,
-            transaction: tx_offset,
-          }
-          .encode(),
-          &satpoint,
-        )?;
 
         let base = assigned.0;
         let delta = assigned.1 - assigned.0;
@@ -263,26 +235,12 @@ impl Index {
     }
   }
 
-  pub(crate) fn find(&self, ordinal: Ordinal) -> Result<Option<(u64, u64, SatPoint)>> {
+  pub(crate) fn find(&self, ordinal: Ordinal) -> Result<Option<SatPoint>> {
     if self.database.height()? <= ordinal.height().0 {
       return Ok(None);
     }
 
-    match self.database.find(ordinal)? {
-      Some((start_key, start_satpoint)) => {
-        let start_key = Key::decode(&start_key)?;
-        let start_satpoint = SatPoint::consensus_decode(start_satpoint.as_slice())?;
-        Ok(Some((
-          start_key.block,
-          start_key.transaction,
-          SatPoint {
-            offset: start_satpoint.offset + (ordinal.0 - start_key.ordinal),
-            outpoint: start_satpoint.outpoint,
-          },
-        )))
-      }
-      None => Ok(None),
-    }
+    self.database.find(ordinal)
   }
 
   pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<Vec<(u64, u64)>>> {
