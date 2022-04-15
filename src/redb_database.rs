@@ -6,7 +6,6 @@ use {
 const HEIGHT_TO_HASH: TableDefinition<u64, [u8]> = TableDefinition::new("HEIGHT_TO_HASH");
 const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8], [u8]> =
   TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
-const KEY_TO_SATPOINT: TableDefinition<[u8], [u8]> = TableDefinition::new("KEY_TO_SATPOINT");
 
 pub(crate) struct Database(redb::Database);
 
@@ -24,7 +23,6 @@ impl Database {
 
     tx.open_table(&HEIGHT_TO_HASH)?;
     tx.open_table(&OUTPOINT_TO_ORDINAL_RANGES)?;
-    tx.open_table(&KEY_TO_SATPOINT)?;
 
     tx.commit()?;
 
@@ -122,7 +120,6 @@ pub(crate) struct WriteTransaction<'a> {
   inner: redb::DatabaseTransaction<'a>,
   height_to_hash: redb::Table<'a, u64, [u8]>,
   outpoint_to_ordinal_ranges: redb::Table<'a, [u8], [u8]>,
-  key_to_satpoint: redb::Table<'a, [u8], [u8]>,
 }
 
 impl<'a> WriteTransaction<'a> {
@@ -130,13 +127,11 @@ impl<'a> WriteTransaction<'a> {
     let inner = database.begin_write()?;
     let height_to_hash = inner.open_table(&HEIGHT_TO_HASH)?;
     let outpoint_to_ordinal_ranges = inner.open_table(&OUTPOINT_TO_ORDINAL_RANGES)?;
-    let key_to_satpoint = inner.open_table(&KEY_TO_SATPOINT)?;
 
     Ok(Self {
       inner,
       height_to_hash,
       outpoint_to_ordinal_ranges,
-      key_to_satpoint,
     })
   }
 
@@ -180,22 +175,5 @@ impl<'a> WriteTransaction<'a> {
 
   pub(crate) fn get_ordinal_ranges(&self, outpoint: &[u8]) -> Result<Option<&[u8]>> {
     Ok(self.outpoint_to_ordinal_ranges.get(outpoint)?)
-  }
-
-  pub(crate) fn insert_satpoint(&mut self, key: &[u8], satpoint: &[u8]) -> Result {
-    self.key_to_satpoint.insert(key, satpoint)?;
-    Ok(())
-  }
-
-  pub(crate) fn remove_satpoint(&mut self, key: &[u8]) -> Result {
-    let key = self
-      .key_to_satpoint
-      .range(key..)?
-      .next()
-      .unwrap()
-      .0
-      .to_vec();
-    self.key_to_satpoint.remove(&key)?;
-    Ok(())
   }
 }
