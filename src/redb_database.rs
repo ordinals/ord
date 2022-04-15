@@ -81,26 +81,29 @@ impl Database {
     )
   }
 
-  pub(crate) fn find(&self, ordinal: Ordinal) -> Result<Option<(Vec<u8>, Vec<u8>)>> {
+  pub(crate) fn find(&self, ordinal: Ordinal) -> Result<Option<SatPoint>> {
     let rtx = self.0.begin_read()?;
 
-    let height_to_hash = rtx.open_table(&HEIGHT_TO_HASH)?;
+    let outpoint_to_ordinal_ranges = rtx.open_table(&OUTPOINT_TO_ORDINAL_RANGES)?;
 
-    match height_to_hash.range(0..)?.rev().next() {
-      Some((height, _hash)) if height >= ordinal.height().0 => {}
-      _ => return Ok(None),
+    let mut cursor = outpoint_to_ordinal_ranges.range([]..)?;
+
+    while let Some((key, value)) = cursor.next() {
+      let mut offset = 0;
+      for chunk in value.chunks_exact(11) {
+        let (start, end) = Index::decode_ordinal_range(chunk.try_into().unwrap());
+        if start <= ordinal.0 && ordinal.0 < end {
+          let outpoint: OutPoint = Decodable::consensus_decode(key)?;
+          return Ok(Some(SatPoint {
+            outpoint,
+            offset: offset + ordinal.0 - start,
+          }));
+        }
+        offset += end - start;
+      }
     }
 
-    let key_to_satpoint = rtx.open_table(&KEY_TO_SATPOINT)?;
-
-    match key_to_satpoint
-      .range([].as_slice()..=Key::new(ordinal).encode().as_slice())?
-      .rev()
-      .next()
-    {
-      Some((start_key, start_satpoint)) => Ok(Some((start_key.to_vec(), start_satpoint.to_vec()))),
-      None => Ok(None),
-    }
+    Ok(None)
   }
 
   pub(crate) fn list(&self, outpoint: &[u8]) -> Result<Option<Vec<u8>>> {
