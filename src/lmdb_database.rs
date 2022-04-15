@@ -101,6 +101,31 @@ impl Database {
         .map(|ranges| ranges.to_vec()),
     )
   }
+
+  pub(crate) fn find(&self, ordinal: Ordinal) -> Result<Option<SatPoint>> {
+    let tx = lmdb::ReadTransaction::new(self.environment.clone())?;
+
+    let access = tx.access();
+
+    let mut cursor = tx.cursor(&self.outpoint_to_ordinal_ranges)?;
+
+    while let Some((key, value)) = cursor.next::<[u8], [u8]>(&access).into_option()? {
+      let mut offset = 0;
+      for chunk in value.chunks_exact(11) {
+        let (start, end) = Index::decode_ordinal_range(chunk.try_into().unwrap());
+        if start <= ordinal.0 && ordinal.0 < end {
+          let outpoint: OutPoint = Decodable::consensus_decode(key)?;
+          return Ok(Some(SatPoint {
+            outpoint,
+            offset: offset + ordinal.0 - start,
+          }));
+        }
+        offset += end - start;
+      }
+    }
+
+    Ok(None)
+  }
 }
 
 pub(crate) struct WriteTransaction<'a> {

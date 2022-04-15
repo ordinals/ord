@@ -3,7 +3,7 @@
 use {
   crate::{
     arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height, index::Index,
-    options::Options, ordinal::Ordinal, subcommand::Subcommand,
+    options::Options, ordinal::Ordinal, sat_point::SatPoint, subcommand::Subcommand,
   },
   anyhow::{anyhow, Context, Error},
   axum::{extract, http::StatusCode, response::IntoResponse, routing::get, Json, Router},
