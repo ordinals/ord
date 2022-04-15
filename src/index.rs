@@ -198,13 +198,6 @@ impl Index {
           range
         };
 
-        let mut satpoint = Vec::new();
-        SatPoint {
-          offset: output.value - remaining,
-          outpoint,
-        }
-        .consensus_encode(&mut satpoint)?;
-
         let base = assigned.0;
         let delta = assigned.1 - assigned.0;
 
