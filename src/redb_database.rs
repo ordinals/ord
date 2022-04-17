@@ -64,6 +64,46 @@ impl Database {
     Ok(())
   }
 
+  pub(crate) fn height(&self) -> Result<u64> {
+    let tx = self.0.begin_read()?;
+
+    let height_to_hash = tx.open_table(&HEIGHT_TO_HASH)?;
+
+    Ok(
+      height_to_hash
+        .range(0..)?
+        .rev()
+        .next()
+        .map(|(height, _hash)| height + 1)
+        .unwrap_or(0),
+    )
+  }
+
+  pub(crate) fn find(&self, ordinal: Ordinal) -> Result<Option<SatPoint>> {
+    let rtx = self.0.begin_read()?;
+
+    let outpoint_to_ordinal_ranges = rtx.open_table(&OUTPOINT_TO_ORDINAL_RANGES)?;
+
+    let mut cursor = outpoint_to_ordinal_ranges.range([]..)?;
+
+    while let Some((key, value)) = cursor.next() {
+      let mut offset = 0;
+      for chunk in value.chunks_exact(11) {
+        let (start, end) = Index::decode_ordinal_range(chunk.try_into().unwrap());
+        if start <= ordinal.0 && ordinal.0 < end {
+          let outpoint: OutPoint = Decodable::consensus_decode(key)?;
+          return Ok(Some(SatPoint {
+            outpoint,
+            offset: offset + ordinal.0 - start,
+          }));
+        }
+        offset += end - start;
+      }
+    }
+
+    Ok(None)
+  }
+
   pub(crate) fn list(&self, outpoint: &[u8]) -> Result<Option<Vec<u8>>> {
     Ok(
       self

@@ -43,7 +43,7 @@ impl Index {
     self.database.print_info()
   }
 
-  fn decode_ordinal_range(bytes: [u8; 11]) -> (u64, u64) {
+  pub(crate) fn decode_ordinal_range(bytes: [u8; 11]) -> (u64, u64) {
     let n = u128::from_le_bytes([
       bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7], bytes[8],
       bytes[9], bytes[10], 0, 0, 0, 0, 0,
@@ -226,6 +226,14 @@ impl Index {
       ))) => Ok(None),
       Err(err) => Err(err.into()),
     }
+  }
+
+  pub(crate) fn find(&self, ordinal: Ordinal) -> Result<Option<SatPoint>> {
+    if self.database.height()? <= ordinal.height().0 {
+      return Ok(None);
+    }
+
+    self.database.find(ordinal)
   }
 
   pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<Vec<(u64, u64)>>> {
