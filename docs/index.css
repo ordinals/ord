@@ -10,3 +10,9 @@ body {
   max-width: 100%;
   width: 50rem;
 }
+
+table {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
