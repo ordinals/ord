@@ -18,7 +18,7 @@ clippy:
 bench:
   cargo criterion
 
-watch +args='ltest':
+watch +args='test':
   cargo watch --clear --exec '{{args}}'
 
 install-dev-deps:

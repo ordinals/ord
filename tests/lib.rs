@@ -31,6 +31,7 @@ mod find;
 mod index;
 mod info;
 mod list;
+mod mint;
 mod name;
 mod range;
 mod rpc_server;

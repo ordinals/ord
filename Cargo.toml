@@ -46,7 +46,7 @@ unindent = "0.1.7"
 
 [[test]]
 name = "integration"
-path = "tests/integration.rs"
+path = "tests/lib.rs"
 
 [[bench]]
 name = "index"
