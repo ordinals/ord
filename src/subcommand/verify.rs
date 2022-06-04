@@ -13,7 +13,7 @@ impl Verify {
     let nft = Nft::verify(&encoded)
       .with_context(|| format!("Failed to verify NFT at `{}`", self.path.display()))?;
 
-    todo!();
+    eprintln!("NFT is valid!");
 
     Ok(())
   }

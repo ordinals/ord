@@ -10,9 +10,8 @@ use {
   axum_server::Handle,
   bech32::{FromBase32, ToBase32},
   bitcoin::{
-    blockdata::constants::COIN_VALUE, consensus::Decodable, consensus::Encodable,
-    util::misc::MessageSignature, Address, Block, BlockHash, Network, OutPoint, PrivateKey,
-    Transaction, Txid,
+    blockdata::constants::COIN_VALUE, consensus::Decodable, consensus::Encodable, Address, Block,
+    BlockHash, Network, OutPoint, Transaction, Txid,
   },
   bitcoin_hashes::{sha256d, Hash, HashEngine},
   chrono::{DateTime, NaiveDateTime, Utc},
@@ -22,7 +21,7 @@ use {
   integer_sqrt::IntegerSquareRoot,
   lazy_static::lazy_static,
   qrcode_generator::QrCodeEcc,
-  secp256k1::{ecdsa, rand, Secp256k1, SecretKey},
+  secp256k1::{rand, schnorr::Signature, KeyPair, Secp256k1, SecretKey, XOnlyPublicKey},
   serde::{Deserialize, Serialize},
   std::{
     cmp::Ordering,
@@ -75,6 +74,24 @@ lazy_static! {
   static ref LISTENERS: Mutex<Vec<Handle>> = Mutex::new(Vec::new());
 }
 
+fn decode_bech32(encoded: &str, expected_hrp: &str) -> Result<Vec<u8>> {
+  let (hrp, data, variant) = bech32::decode(&encoded)?;
+
+  if hrp != expected_hrp {
+    return Err(anyhow!(
+      "bech32 string should be have `{}` human-readable prefix but starts with  `{}`",
+      expected_hrp,
+      hrp
+    ));
+  }
+
+  if variant != bech32::Variant::Bech32m {
+    return Err(anyhow!("bech32 strings must use the bech32m variant",));
+  }
+
+  Ok(Vec::from_base32(&data)?)
+}
+
 fn main() {
   env_logger::init();
 
@@ -93,13 +110,17 @@ fn main() {
   })
   .expect("Error setting ctrl-c handler");
 
-  if let Err(error) = Arguments::parse().run() {
-    eprintln!("error: {}", error);
+  if let Err(err) = Arguments::parse().run() {
+    eprintln!("error: {}", err);
+    err
+      .chain()
+      .skip(1)
+      .for_each(|cause| eprintln!("because: {}", cause));
     if env::var_os("RUST_BACKTRACE")
       .map(|val| val == "1")
       .unwrap_or_default()
     {
-      eprintln!("{}", error.backtrace());
+      eprintln!("{}", err.backtrace());
     }
     process::exit(1);
   }

@@ -33,14 +33,13 @@ mod find;
 mod index;
 mod info;
 mod list;
-mod mint;
 mod name;
+mod nft;
 mod range;
 mod rpc_server;
 mod server;
 mod supply;
 mod traits;
-mod verify;
 
 type Result<T = ()> = std::result::Result<T, Box<dyn Error>>;
 
