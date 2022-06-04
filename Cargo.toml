@@ -10,7 +10,9 @@ autotests = false
 anyhow = { version = "1.0.56", features = ["backtrace"] }
 axum = "0.4.8"
 axum-server = "0.3.3"
+bech32 = "0.9.0"
 bitcoin = "0.28.1"
+bitcoin_hashes = "0.10.0"
 bitcoincore-rpc = "0.15.0"
 chrono = "0.4.19"
 clap = { version = "3.1.0", features = ["derive"] }
@@ -30,6 +32,9 @@ qrcode-generator = "4.1.6"
 rayon = "1.5.1"
 redb = { version = "0.0.5", optional = true }
 secp256k1 = { version =  "0.22.1", features = ["rand", "rand-std"] }
+serde = { version = "1.0.137", features = ["derive"] }
+serde_json = "1.0.81"
+sha2 = "0.10.2"
 tokio = { version = "1.17.0", features = ["rt-multi-thread"] }
 tower-http = { version = "0.2.5", features = ["cors"] }
 

@@ -1,9 +1,6 @@
 use super::*;
-use qrcode_generator::QrCodeEcc;
 
 pub(crate) fn run() -> Result {
-  use secp256k1::{rand, Secp256k1, SecretKey};
-
   let mut rng = rand::thread_rng();
   let secret_key = SecretKey::new(&mut rng);
   let secp = Secp256k1::new();
@@ -15,17 +12,15 @@ pub(crate) fn run() -> Result {
   let address_qr_code =
     qrcode_generator::to_svg_to_string(qr_uri, QrCodeEcc::High, 1024, Some(""))?;
 
-  let style = ".break { page-break-before: always; }";
-
   println!(
     r#"<!doctype html>
 <html>
   <head>
     <meta charset="utf-8">
-    <style>{style}</style>
+    <style>.break {{ page-break-before: always; }}</style>
   </head>
   <body>
-    <h1>{address}</h1>
+    <h1>Address: {address}</h1>
 
     {address_qr_code}
 
@@ -33,7 +28,7 @@ pub(crate) fn run() -> Result {
 
     <div class="break"></div>
 
-    <p>Private key (WIF): {private_key_wif}</p>
+    <h2>Private key: {private_key_wif}</h2>
   </body>
 </html>"#
   );

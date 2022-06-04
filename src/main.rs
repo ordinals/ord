@@ -2,28 +2,33 @@
 
 use {
   crate::{
-    arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height, index::Index,
+    arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height, index::Index, nft::Nft,
     options::Options, ordinal::Ordinal, sat_point::SatPoint, subcommand::Subcommand,
   },
   anyhow::{anyhow, Context, Error},
   axum::{extract, http::StatusCode, response::IntoResponse, routing::get, Json, Router},
   axum_server::Handle,
+  bech32::ToBase32,
   bitcoin::{
     blockdata::constants::COIN_VALUE, consensus::Decodable, consensus::Encodable, Address, Block,
     BlockHash, Network, OutPoint, PrivateKey, Transaction, Txid,
   },
+  bitcoin_hashes::{sha256d, Hash, HashEngine},
   chrono::{DateTime, NaiveDateTime, Utc},
   clap::Parser,
   derive_more::{Display, FromStr},
   integer_cbrt::IntegerCubeRoot,
   integer_sqrt::IntegerSquareRoot,
   lazy_static::lazy_static,
+  qrcode_generator::QrCodeEcc,
+  secp256k1::{ecdsa, rand, Secp256k1, SecretKey},
+  serde::Serialize,
   std::{
     cmp::Ordering,
     collections::VecDeque,
     env,
     fmt::{self, Display, Formatter},
-    io,
+    fs, io,
     net::ToSocketAddrs,
     ops::{Add, AddAssign, Deref, Sub},
     path::PathBuf,
@@ -53,6 +58,7 @@ mod height;
 mod index;
 #[cfg(not(feature = "redb"))]
 mod lmdb_database;
+mod nft;
 mod options;
 mod ordinal;
 #[cfg(feature = "redb")]

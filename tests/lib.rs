@@ -2,9 +2,10 @@
 
 use {
   crate::rpc_server::RpcServer,
+  bech32::FromBase32,
   bitcoin::{
     blockdata::constants::COIN_VALUE, blockdata::script, consensus::Encodable, Block, BlockHash,
-    BlockHeader, OutPoint, Transaction, TxIn, TxOut,
+    BlockHeader, OutPoint, Transaction, TxIn, TxOut, Witness,
   },
   executable_path::executable_path,
   nix::{
@@ -15,6 +16,7 @@ use {
   std::{
     collections::BTreeSet,
     error::Error,
+    fs,
     net::TcpListener,
     process::{Command, Stdio},
     str,
@@ -347,7 +349,7 @@ impl Test {
               script::Builder::new().into_script()
             },
             sequence: 0,
-            witness: vec![],
+            witness: Witness::new(),
           }],
           output: vec![TxOut {
             value: coinbase.subsidy,
@@ -383,7 +385,7 @@ impl Test {
           },
           script_sig: script::Builder::new().into_script(),
           sequence: 0,
-          witness: vec![],
+          witness: Witness::new(),
         })
         .collect(),
       output: vec![
@@ -417,5 +419,10 @@ impl Test {
     block.txdata.push(tx);
 
     self
+  }
+
+  fn write(self, path: &str, contents: &str) -> Result<Self> {
+    fs::write(self.tempdir.path().join(path), contents)?;
+    Ok(self)
   }
 }
