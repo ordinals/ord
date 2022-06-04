@@ -1,5 +1,9 @@
 use super::*;
 
+// todo:
+// - print ordinal
+// - print data (or save to file?)
+
 #[test]
 fn simple() -> Result {
   let output = Test::new()?
@@ -20,15 +24,10 @@ fn simple() -> Result {
     )
     .output()?;
 
-  let nft = fs::read_to_string(output.tempdir.path().join("foo.nft"))?;
-
-  let (hrp, data, variant) = bech32::decode(&nft)?;
-  assert_eq!(hrp, "nft");
-  assert_eq!(
-    str::from_utf8(&Vec::<u8>::from_base32(&data)?).unwrap(),
-    r#"{"data":"data1vehk77udsx6","ordinal":0,"signature":"3044022030e28ef01f44ce3bb1205f98f0c4c4b89179572fa60d3a5e352f2ae6fafbe6fc02203b18c26418814c7978868b80cb937f2d6815c3dd6aa0f9021a2f787d78a9285c"}"#,
-  );
-  assert_eq!(variant, bech32::Variant::Bech32m);
+  let output = Test::with_tempdir(output.tempdir)
+    .command("verify foo.nft")
+    .expected_stdout("ordinal: 0\nsigner: bc1...\ndata: foo")
+    .output()?;
 
   Ok(())
 }

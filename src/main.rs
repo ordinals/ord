@@ -8,10 +8,11 @@ use {
   anyhow::{anyhow, Context, Error},
   axum::{extract, http::StatusCode, response::IntoResponse, routing::get, Json, Router},
   axum_server::Handle,
-  bech32::ToBase32,
+  bech32::{FromBase32, ToBase32},
   bitcoin::{
-    blockdata::constants::COIN_VALUE, consensus::Decodable, consensus::Encodable, Address, Block,
-    BlockHash, Network, OutPoint, PrivateKey, Transaction, Txid,
+    blockdata::constants::COIN_VALUE, consensus::Decodable, consensus::Encodable,
+    util::misc::MessageSignature, Address, Block, BlockHash, Network, OutPoint, PrivateKey,
+    Transaction, Txid,
   },
   bitcoin_hashes::{sha256d, Hash, HashEngine},
   chrono::{DateTime, NaiveDateTime, Utc},
@@ -22,7 +23,7 @@ use {
   lazy_static::lazy_static,
   qrcode_generator::QrCodeEcc,
   secp256k1::{ecdsa, rand, Secp256k1, SecretKey},
-  serde::Serialize,
+  serde::{Deserialize, Serialize},
   std::{
     cmp::Ordering,
     collections::VecDeque,

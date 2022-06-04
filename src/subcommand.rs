@@ -12,6 +12,7 @@ mod range;
 mod server;
 mod supply;
 mod traits;
+mod verify;
 
 #[derive(Parser)]
 pub(crate) enum Subcommand {
@@ -27,6 +28,7 @@ pub(crate) enum Subcommand {
   Supply,
   Traits(traits::Traits),
   GeneratePaperWallet,
+  Verify(verify::Verify),
 }
 
 impl Subcommand {
@@ -44,6 +46,7 @@ impl Subcommand {
       Self::Server(server) => server.run(options),
       Self::Info => info::run(options),
       Self::Traits(traits) => traits.run(),
+      Self::Verify(verify) => verify.run(),
     }
   }
 }
