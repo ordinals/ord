@@ -9,7 +9,7 @@ fn mint_and_verify() -> Result {
       "--ordinal",
       "0",
       "--signing-key",
-      "privkey1xtptp3rhkuvn53nn9glwwt2fjf8av0agpadeshhnfwvzw3rnm82svka5c6",
+      "privkey13jcd573rjnnx8nauuc26tec4qwxv7qnyd59f3nwyef65qyp9598s9p8hy6",
       "--data-path",
       "data.txt",
       "--output-path",
@@ -22,7 +22,7 @@ fn mint_and_verify() -> Result {
     .expected_stderr(
       "NFT is valid!
 Ordinal: 0
-Issuer: pubkey1xch9yxvvmqgzntuawmaclzmedvcn5rx7r0kwkl3fh6p9xvkw5drs2jlx8a
+Issuer: pubkey1ny8pdtw4ftxgn0p42cw00mvkjqlks4mk6ju5w9xcwatfhrh3at6qkrsmkm
 Data hash: data1c7k73r785g2f3f49uhpctc0k30kcy2mj4f3uf2dy3gpvy3nwu20q97shse
 ",
     )
