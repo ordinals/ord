@@ -17,7 +17,7 @@ impl Mint {
     let data = fs::read(&self.data_path)
       .with_context(|| format!("Failed to read data from {}", self.data_path.display()))?;
 
-    let secret_key = SecretKey::from_slice(&decode_bech32(&self.signing_key, "secret")?)?;
+    let secret_key = SecretKey::from_slice(&decode_bech32(&self.signing_key, "privkey")?)?;
 
     let nft = Nft::mint(
       self.ordinal,
