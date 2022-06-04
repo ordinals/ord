@@ -14,6 +14,12 @@ pub(crate) fn run() -> Result {
     bech32::Variant::Bech32m,
   )
   .unwrap();
+  let public_key_bech32 = bech32::encode(
+    "pubkey",
+    public_key.serialize().to_base32(),
+    bech32::Variant::Bech32m,
+  )
+  .unwrap();
 
   let address_qr_code =
     qrcode_generator::to_svg_to_string(qr_uri, QrCodeEcc::High, 1024, Some(""))?;
@@ -26,11 +32,13 @@ pub(crate) fn run() -> Result {
     <style>.break {{ page-break-before: always; }}</style>
   </head>
   <body>
+    <h1>Public key: {public_key_bech32}</h1>
+
     <h1>Address: {address}</h1>
 
     {address_qr_code}
 
-    <h2>Ordinals</h2>
+    <h1>Ordinals</h1>
 
     <div class="break"></div>
 

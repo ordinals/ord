@@ -2,7 +2,6 @@
 
 use {
   crate::rpc_server::RpcServer,
-  bech32::FromBase32,
   bitcoin::{
     blockdata::constants::COIN_VALUE, blockdata::script, consensus::Encodable, Block, BlockHash,
     BlockHeader, OutPoint, Transaction, TxIn, TxOut, Witness,

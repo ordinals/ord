@@ -17,10 +17,17 @@ fn mint_and_verify() -> Result {
     ])
     .output()?;
 
-  let output = Test::with_tempdir(output.tempdir)
-    .command("verify foo.nft")
-    .expected_stderr("NFT is valid!\n")
-    .output()?;
+  Test::with_tempdir(output.tempdir)
+    .command("verify --input-path foo.nft")
+    .expected_stderr(
+      "NFT is valid!
+Ordinal: 0
+Issuer: pubkey1xch9yxvvmqgzntuawmaclzmedvcn5rx7r0kwkl3fh6p9xvkw5drs2jlx8a
+Data hash: data1c7k73r785g2f3f49uhpctc0k30kcy2mj4f3uf2dy3gpvy3nwu20q97shse
+",
+    )
+    .expected_stdout("foo")
+    .run()?;
 
   Ok(())
 }

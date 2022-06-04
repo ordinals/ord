@@ -40,6 +40,10 @@ impl Nft {
     })
   }
 
+  pub(crate) fn data(&self) -> &[u8] {
+    &self.data
+  }
+
   pub(crate) fn encode(&self) -> String {
     let mut encoded = Vec::new();
     encoded.extend_from_slice(&self.ordinal.n().to_be_bytes());
@@ -48,6 +52,23 @@ impl Nft {
     encoded.extend_from_slice(self.signature.as_ref());
     encoded.extend_from_slice(&self.data);
     bech32::encode(Self::HRP, encoded.to_base32(), bech32::Variant::Bech32m).unwrap()
+  }
+
+  pub(crate) fn issuer(&self) -> String {
+    bech32::encode(
+      "pubkey",
+      self.public_key.serialize().to_base32(),
+      bech32::Variant::Bech32m,
+    )
+    .unwrap()
+  }
+
+  pub(crate) fn data_hash(&self) -> String {
+    bech32::encode("data", self.data_hash.to_base32(), bech32::Variant::Bech32m).unwrap()
+  }
+
+  pub(crate) fn ordinal(&self) -> Ordinal {
+    self.ordinal
   }
 
   pub(crate) fn verify(encoded: &str) -> Result<Self> {
