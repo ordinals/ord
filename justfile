@@ -35,3 +35,11 @@ status:
 
 serve:
   python3 -m http.server --directory docs
+
+generate-paper-wallet:
+  rm -f wallet.html wallet.pdf
+  cargo run generate-paper-wallet > wallet.html
+  wkhtmltopdf -L 25mm -R 25mm -T 25mm -B 25mm wallet.html wallet.pdf
+
+print-paper-wallet: generate-paper-wallet
+  lp -o sides=two-sided-long-edge wallet.pdf

@@ -9,8 +9,8 @@ use {
   axum::{extract, http::StatusCode, response::IntoResponse, routing::get, Json, Router},
   axum_server::Handle,
   bitcoin::{
-    blockdata::constants::COIN_VALUE, consensus::Decodable, consensus::Encodable, Block, BlockHash,
-    OutPoint, Transaction, Txid,
+    blockdata::constants::COIN_VALUE, consensus::Decodable, consensus::Encodable, Address, Block,
+    BlockHash, Network, OutPoint, PrivateKey, Transaction, Txid,
   },
   chrono::{DateTime, NaiveDateTime, Utc},
   clap::Parser,
