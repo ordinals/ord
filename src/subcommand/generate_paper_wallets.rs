@@ -105,6 +105,12 @@ pub(crate) fn run() -> Result {
   <div class="break"></div>
 
   <p>Private key: {privkey}</p>
+
+  <p>
+    The above private key is a bech32-encoded secp256k1 seckey. The address
+    on the other side is a p2tr address generated using the corresponding
+    public key, with no tweak.
+  </p>
 </body>
 </html>"#
     )?;
