@@ -43,5 +43,5 @@ generate-paper-wallets:
   cat private-keys.txt | cargo run generate-paper-wallets
 
 print-paper-wallet path:
-  wkhtmltopdf -L 25mm -R 25mm -T 25mm -B 25mm {{path}} wallet.pdf
+  wkhtmltopdf -L 25mm -R 25mm -T 50mm -B 25mm {{path}} wallet.pdf
   lp -o sides=two-sided-long-edge wallet.pdf
