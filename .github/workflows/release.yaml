@@ -55,9 +55,11 @@ jobs:
         target: ${{ matrix.target }}
         toolchain: stable
 
-    - name: Update Apt
+    - name: Install Linux Dependencies
       if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: sudo apt-get update
+      run: |
+        sudo apt-get update
+        sudo apt-get install musl-tools libssl-dev pkg-config
 
     - name: Install AArch64 Toolchain
       if: ${{ matrix.target == 'aarch64-unknown-linux-musl' }}
@@ -66,10 +68,6 @@ jobs:
     - name: Install ARM7 Toolchain
       if: ${{ matrix.target == 'armv7-unknown-linux-musleabihf' }}
       run: sudo apt-get install gcc-arm-linux-gnueabihf
-
-    - name: Install Dependencies
-      if: ${{ matrix.target == 'x86_64-unknown-linux-musl' }}
-      run: sudo apt-get install musl-tools libssl-dev pkg-config
 
     - name: Release Type
       id: release-type
