@@ -1,6 +1,7 @@
+/*.html
+/*.pdf
+/*.txt
 /.idea/
-/wallet.html
-/wallet.pdf
 /index.lmdb
 /index.redb
 /target

@@ -36,10 +36,12 @@ status:
 serve:
   python3 -m http.server --directory docs
 
-generate-paper-wallet:
-  rm -f wallet.html wallet.pdf
-  cargo run generate-paper-wallet > wallet.html
-  wkhtmltopdf -L 25mm -R 25mm -T 25mm -B 25mm wallet.html wallet.pdf
+generate-private-key:
+  cargo run generate-private-key
 
-print-paper-wallet: generate-paper-wallet
+generate-paper-wallets:
+  cat private-keys.txt | cargo run generate-paper-wallets
+
+print-paper-wallet path:
+  wkhtmltopdf -L 25mm -R 25mm -T 25mm -B 25mm {{path}} wallet.pdf
   lp -o sides=two-sided-long-edge wallet.pdf

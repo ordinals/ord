@@ -2,7 +2,8 @@ use super::*;
 
 mod epochs;
 mod find;
-mod generate_paper_wallet;
+mod generate_paper_wallets;
+mod generate_private_key;
 mod index;
 mod info;
 mod list;
@@ -18,6 +19,8 @@ mod verify;
 pub(crate) enum Subcommand {
   Epochs,
   Find(find::Find),
+  GeneratePrivateKey,
+  GeneratePaperWallets,
   Index,
   Info,
   List(list::List),
@@ -27,7 +30,6 @@ pub(crate) enum Subcommand {
   Server(server::Server),
   Supply,
   Traits(traits::Traits),
-  GeneratePaperWallet,
   Verify(verify::Verify),
 }
 
@@ -35,7 +37,8 @@ impl Subcommand {
   pub(crate) fn run(self, options: Options) -> Result<()> {
     match self {
       Self::Epochs => epochs::run(),
-      Self::GeneratePaperWallet => generate_paper_wallet::run(),
+      Self::GeneratePrivateKey => generate_private_key::run(),
+      Self::GeneratePaperWallets => generate_paper_wallets::run(),
       Self::Find(find) => find.run(options),
       Self::Index => index::run(options),
       Self::List(list) => list.run(options),

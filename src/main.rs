@@ -29,7 +29,7 @@ use {
     env,
     fmt::{self, Display, Formatter},
     fs,
-    io::{self, Write},
+    io::{self, BufRead, Write},
     net::ToSocketAddrs,
     ops::{Add, AddAssign, Deref, Sub},
     path::PathBuf,
