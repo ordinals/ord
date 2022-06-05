@@ -1,15 +1,15 @@
 [package]
 name = "ord"
 description = "Bitcoin satoshi ordinal number utility"
-version = "0.0.0"
+version = "0.0.1"
 license = "CC0-1.0"
 edition = "2021"
 autotests = false
 
 [dependencies]
 anyhow = { version = "1.0.56", features = ["backtrace"] }
-axum = "0.4.8"
-axum-server = "0.3.3"
+axum = "0.5.6"
+axum-server = "0.4.0"
 bech32 = "0.9.0"
 bitcoin = "0.28.1"
 bitcoin_hashes = "0.10.0"
@@ -37,7 +37,7 @@ serde = { version = "1.0.137", features = ["derive"] }
 serde_json = "1.0.81"
 sha2 = "0.10.2"
 tokio = { version = "1.17.0", features = ["rt-multi-thread"] }
-tower-http = { version = "0.2.5", features = ["cors"] }
+tower-http = { version = "0.3.3", features = ["cors"] }
 
 [dev-dependencies]
 criterion = "0.3.5"
@@ -46,7 +46,7 @@ jsonrpc-core = "18.0.0"
 jsonrpc-core-client = "18.0.0"
 jsonrpc-derive = "18.0.0"
 jsonrpc-http-server = "18.0.0"
-nix = "0.23.1"
+nix = "0.24.1"
 regex = "1.5.4"
 reqwest = { version = "0.11.9", features = ["blocking"] }
 tempfile = "3.2.0"
