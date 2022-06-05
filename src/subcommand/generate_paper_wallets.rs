@@ -21,6 +21,10 @@ pub(crate) fn run() -> Result {
 
     let result = serde_json::from_slice::<ScanTxOutResult>(&output.stdout)?;
 
+    if result.unspents.is_empty() {
+      return Err(anyhow!("Found no utxos"));
+    }
+
     assert_eq!(result.unspents.len(), 1);
 
     let utxo = &result.unspents[0];
@@ -62,12 +66,12 @@ pub(crate) fn run() -> Result {
     let address_qr_code =
       qrcode_generator::to_svg_to_string(qr_uri, QrCodeEcc::High, 1024, Some(""))?;
 
-    let mut wallet = File::create(format!("wallet{i}.html"))?;
-
     let mut ordinals = String::new();
     for (start, end) in ranges {
       ordinals.push_str(&format!("<li>[{start},{end})</li>"));
     }
+
+    let mut wallet = File::create(format!("wallet{i}.html"))?;
 
     write!(
       wallet,
@@ -104,8 +108,6 @@ pub(crate) fn run() -> Result {
 </body>
 </html>"#
     )?;
-
-    break;
   }
 
   Ok(())

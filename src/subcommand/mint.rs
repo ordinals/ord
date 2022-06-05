@@ -2,7 +2,7 @@ use super::*;
 
 #[derive(Parser)]
 pub(crate) struct Mint {
-  #[clap(long, help = "Read NFT contents from <CONTENT_PATH>")]
+  #[clap(long, help = "Read NFT contents from <DATA_PATH>")]
   data_path: PathBuf,
   #[clap(long, help = "Assign NFT to <ORDINAL>")]
   ordinal: Ordinal,
