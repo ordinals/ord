@@ -2,7 +2,7 @@ use {
   bitcoin::{
     blockdata::{constants::COIN_VALUE, script},
     consensus::Encodable,
-    Block, BlockHeader, Network, OutPoint, Transaction, TxIn, TxOut,
+    Block, BlockHeader, Network, OutPoint, Transaction, TxIn, TxOut, Witness,
   },
   criterion::{Criterion, SamplingMode},
   std::{env, fs::File, io::Seek, io::Write, path::Path, process::Command, time::Duration},
@@ -52,7 +52,7 @@ fn main() -> Result {
           previous_output: OutPoint::null(),
           script_sig: script::Builder::new().push_scriptint(height).into_script(),
           sequence: 0,
-          witness: vec![],
+          witness: Witness::new(),
         }],
         lock_time: 0,
         output: vec![TxOut {

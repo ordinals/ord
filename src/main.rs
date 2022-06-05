@@ -76,7 +76,7 @@ lazy_static! {
 }
 
 fn decode_bech32(encoded: &str, expected_hrp: &str) -> Result<Vec<u8>> {
-  let (hrp, data, variant) = bech32::decode(&encoded)?;
+  let (hrp, data, variant) = bech32::decode(encoded)?;
 
   if hrp != expected_hrp {
     return Err(anyhow!(

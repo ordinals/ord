@@ -29,7 +29,7 @@ impl Nft {
 
     let signature = signing_key_pair.sign_schnorr(message_hash);
     message.extend_from_slice(signature.as_ref());
-    message.extend_from_slice(&data);
+    message.extend_from_slice(data);
 
     Ok(Self {
       ordinal,
@@ -72,7 +72,7 @@ impl Nft {
   }
 
   pub(crate) fn verify(encoded: &str) -> Result<Self> {
-    let data = decode_bech32(&encoded, Self::HRP)?;
+    let data = decode_bech32(encoded, Self::HRP)?;
 
     let start = 0;
 
