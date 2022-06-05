@@ -69,7 +69,7 @@ jobs:
 
     - name: Install Dependencies
       if: ${{ matrix.target == 'x86_64-unknown-linux-musl' }}
-      run: sudo apt-get install musl-tools libssl-dev
+      run: sudo apt-get install musl-tools libssl-dev pkg-config
 
     - name: Release Type
       id: release-type
