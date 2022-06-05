@@ -66,13 +66,13 @@ jobs:
         sudo apt-get update
         sudo apt-get install gcc-arm-linux-gnueabihf
 
-    - name: Release Check
-      id: release-check
+    - name: Release Type
+      id: release-type
       run: |
         if [[ ${{ github.ref }} =~ ^refs/tags/[0-9]+[.][0-9]+[.][0-9]+$ ]]; then
-            echo ::set-output name=value::true
+            echo ::set-output name=value::release
         else
-            echo ::set-output name=value::false
+            echo ::set-output name=value::prerelease
         fi
 
     - name: Package
@@ -91,6 +91,6 @@ jobs:
       with:
         draft: false
         files: ${{ steps.package.outputs.archive }}
-        prerelease: ${{ steps.release-check.outputs.value != 'true' }}
+        prerelease: ${{ steps.release-type.outputs.value == 'prerelease' }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
