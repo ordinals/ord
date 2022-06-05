@@ -2,8 +2,9 @@
 
 use {
   crate::{
-    arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height, index::Index, nft::Nft,
-    options::Options, ordinal::Ordinal, sat_point::SatPoint, subcommand::Subcommand,
+    arguments::Arguments, bytes::Bytes, decode_bech32::decode_bech32, epoch::Epoch, height::Height,
+    index::Index, nft::Nft, options::Options, ordinal::Ordinal, sat_point::SatPoint,
+    subcommand::Subcommand,
   },
   anyhow::{anyhow, Context, Error},
   axum::{extract, http::StatusCode, response::IntoResponse, routing::get, Json, Router},
@@ -54,6 +55,7 @@ use lmdb_database::{Database, WriteTransaction};
 
 mod arguments;
 mod bytes;
+mod decode_bech32;
 mod epoch;
 mod height;
 mod index;
@@ -73,24 +75,6 @@ static INTERRUPTS: AtomicU64 = AtomicU64::new(0);
 
 lazy_static! {
   static ref LISTENERS: Mutex<Vec<Handle>> = Mutex::new(Vec::new());
-}
-
-fn decode_bech32(encoded: &str, expected_hrp: &str) -> Result<Vec<u8>> {
-  let (hrp, data, variant) = bech32::decode(encoded)?;
-
-  if hrp != expected_hrp {
-    return Err(anyhow!(
-      "bech32 string should be have `{}` human-readable prefix but starts with  `{}`",
-      expected_hrp,
-      hrp
-    ));
-  }
-
-  if variant != bech32::Variant::Bech32m {
-    return Err(anyhow!("bech32 strings must use the bech32m variant",));
-  }
-
-  Ok(Vec::from_base32(&data)?)
 }
 
 fn main() {
