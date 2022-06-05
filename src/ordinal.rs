@@ -1,6 +1,9 @@
 use super::*;
 
-#[derive(Copy, Clone, Eq, PartialEq, Debug, Display, Ord, PartialOrd, FromStr)]
+#[derive(
+  Copy, Clone, Eq, PartialEq, Debug, Display, Ord, PartialOrd, FromStr, Deserialize, Serialize,
+)]
+#[serde(transparent)]
 pub(crate) struct Ordinal(pub(crate) u64);
 
 impl Ordinal {

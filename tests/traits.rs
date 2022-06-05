@@ -157,10 +157,10 @@ fn cube() -> Result {
 
 #[test]
 fn character() -> Result {
-  assert!(traits(0x000000)?.contains("character: '\\u{0}'"));
+  assert!(traits(0x000000)?.contains("character: '\\0'"));
   assert!(traits(0x000041)?.contains("character: 'A'"));
   assert!(traits(0x01F602)?.contains("character: '😂'"));
-  assert!(traits(0x110000)?.contains("character: '\\u{0}'"));
+  assert!(traits(0x110000)?.contains("character: '\\0'"));
   assert!(traits(0x110041)?.contains("character: 'A'"));
   Ok(())
 }

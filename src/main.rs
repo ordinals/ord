@@ -2,28 +2,35 @@
 
 use {
   crate::{
-    arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height, index::Index,
-    options::Options, ordinal::Ordinal, sat_point::SatPoint, subcommand::Subcommand,
+    arguments::Arguments, bytes::Bytes, decode_bech32::decode_bech32, epoch::Epoch, height::Height,
+    index::Index, nft::Nft, options::Options, ordinal::Ordinal, sat_point::SatPoint,
+    subcommand::Subcommand,
   },
   anyhow::{anyhow, Context, Error},
   axum::{extract, http::StatusCode, response::IntoResponse, routing::get, Json, Router},
   axum_server::Handle,
+  bech32::{FromBase32, ToBase32},
   bitcoin::{
-    blockdata::constants::COIN_VALUE, consensus::Decodable, consensus::Encodable, Block, BlockHash,
-    OutPoint, Transaction, Txid,
+    blockdata::constants::COIN_VALUE, consensus::Decodable, consensus::Encodable, Address, Block,
+    BlockHash, Network, OutPoint, Transaction, Txid,
   },
+  bitcoin_hashes::{sha256d, Hash, HashEngine},
   chrono::{DateTime, NaiveDateTime, Utc},
   clap::Parser,
   derive_more::{Display, FromStr},
   integer_cbrt::IntegerCubeRoot,
   integer_sqrt::IntegerSquareRoot,
   lazy_static::lazy_static,
+  qrcode_generator::QrCodeEcc,
+  secp256k1::{rand, schnorr::Signature, KeyPair, Secp256k1, SecretKey, XOnlyPublicKey},
+  serde::{Deserialize, Serialize},
   std::{
     cmp::Ordering,
     collections::VecDeque,
     env,
     fmt::{self, Display, Formatter},
-    io,
+    fs,
+    io::{self, BufRead, Write},
     net::ToSocketAddrs,
     ops::{Add, AddAssign, Deref, Sub},
     path::PathBuf,
@@ -48,11 +55,13 @@ use lmdb_database::{Database, WriteTransaction};
 
 mod arguments;
 mod bytes;
+mod decode_bech32;
 mod epoch;
 mod height;
 mod index;
 #[cfg(not(feature = "redb"))]
 mod lmdb_database;
+mod nft;
 mod options;
 mod ordinal;
 #[cfg(feature = "redb")]
@@ -86,13 +95,17 @@ fn main() {
   })
   .expect("Error setting ctrl-c handler");
 
-  if let Err(error) = Arguments::parse().run() {
-    eprintln!("error: {}", error);
+  if let Err(err) = Arguments::parse().run() {
+    eprintln!("error: {}", err);
+    err
+      .chain()
+      .skip(1)
+      .for_each(|cause| eprintln!("because: {}", cause));
     if env::var_os("RUST_BACKTRACE")
       .map(|val| val == "1")
       .unwrap_or_default()
     {
-      eprintln!("{}", error.backtrace());
+      eprintln!("{}", err.backtrace());
     }
     process::exit(1);
   }
