@@ -10,7 +10,7 @@ echo "Packaging ord $VERSION for $TARGET..."
 test -f Cargo.lock || cargo generate-lockfile
 
 echo "Building ord..."
-RUSTFLAGS="--deny warnings --codegen $TARGET_RUSTFLAGS" \
+RUSTFLAGS="--deny warnings $TARGET_RUSTFLAGS" \
   cargo build --bin ord --target $TARGET --release
 EXECUTABLE=target/$TARGET/release/ord
 
