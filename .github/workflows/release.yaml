@@ -17,22 +17,10 @@ jobs:
       fail-fast: false
       matrix:
         target:
-        - aarch64-apple-darwin
-        - aarch64-unknown-linux-musl
-        - armv7-unknown-linux-musleabihf
         - x86_64-apple-darwin
         - x86_64-pc-windows-msvc
         - x86_64-unknown-linux-gnu
         include:
-        - target: aarch64-apple-darwin
-          os: macos-latest
-          target_rustflags: ''
-        - target: aarch64-unknown-linux-musl
-          os: ubuntu-latest
-          target_rustflags: '--codegen linker=aarch64-linux-gnu-gcc'
-        - target: armv7-unknown-linux-musleabihf
-          os: ubuntu-latest
-          target_rustflags: '--codegen linker=arm-linux-gnueabihf-gcc'
         - target: x86_64-apple-darwin
           os: macos-latest
           target_rustflags: ''
@@ -60,14 +48,6 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install musl-tools libssl-dev pkg-config
-
-    - name: Install AArch64 Toolchain
-      if: ${{ matrix.target == 'aarch64-unknown-linux-musl' }}
-      run: sudo apt-get install gcc-aarch64-linux-gnu
-
-    - name: Install ARM7 Toolchain
-      if: ${{ matrix.target == 'armv7-unknown-linux-musleabihf' }}
-      run: sudo apt-get install gcc-arm-linux-gnueabihf
 
     - name: Release Type
       id: release-type
