@@ -15,6 +15,7 @@
           packages.ord = naersk-lib.buildPackage {
             pname = "ord";
             root = ./.;
+            nativeBuildInputs = with pkgs; [ rustc cargo openssl pkg-config ];
           };
           defaultPackage = packages.ord;
 
@@ -26,7 +27,7 @@
 
           # `nix develop`
           devShell = pkgs.mkShell {
-            nativeBuildInputs = with pkgs; [ rustc cargo openssl pkg-config];
+            nativeBuildInputs = with pkgs; [ rustc cargo openssl pkg-config ];
           };
         }
     );
