@@ -4,15 +4,15 @@ const ORDINAL_MESSAGE_PREFIX: &[u8] = b"Ordinal Signed Message:";
 
 #[derive(Serialize, Deserialize)]
 pub(crate) struct Nft {
+  data: Vec<u8>,
   metadata: Metadata,
   signature: Signature,
-  data: Vec<u8>,
 }
 
 #[derive(Serialize, Deserialize)]
 struct Metadata {
-  ordinal: Ordinal,
   data_hash: sha256d::Hash,
+  ordinal: Ordinal,
   public_key: XOnlyPublicKey,
 }
 
