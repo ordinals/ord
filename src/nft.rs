@@ -17,8 +17,6 @@ struct Metadata {
 }
 
 impl Nft {
-  const HRP: &'static str = "nft";
-
   pub(crate) fn mint(ordinal: Ordinal, data: &[u8], signing_key_pair: KeyPair) -> Result<Self> {
     let data_hash = sha256::Hash::hash(data);
 
@@ -49,13 +47,8 @@ impl Nft {
     &self.data
   }
 
-  pub(crate) fn encode(&self) -> String {
-    bech32::encode(
-      Self::HRP,
-      serde_cbor::to_vec(self).unwrap().to_base32(),
-      bech32::Variant::Bech32m,
-    )
-    .unwrap()
+  pub(crate) fn encode(&self) -> Vec<u8> {
+    serde_cbor::to_vec(self).unwrap()
   }
 
   pub(crate) fn issuer(&self) -> XOnlyPublicKey {
@@ -70,10 +63,8 @@ impl Nft {
     self.metadata.ordinal
   }
 
-  pub(crate) fn verify(encoded: &str) -> Result<Self> {
-    let data = decode_bech32(encoded, Self::HRP)?;
-
-    let nft = serde_cbor::from_slice::<Nft>(&data)?;
+  pub(crate) fn verify(cbor: &[u8]) -> Result<Self> {
+    let nft = serde_cbor::from_slice::<Nft>(cbor)?;
 
     let data_hash = sha256::Hash::hash(&nft.data);
 

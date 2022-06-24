@@ -2,7 +2,7 @@
 
 use {
   crate::{
-    arguments::Arguments, bytes::Bytes, decode_bech32::decode_bech32, epoch::Epoch, height::Height,
+    arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height,
     index::Index, nft::Nft, options::Options, ordinal::Ordinal, sat_point::SatPoint,
     subcommand::Subcommand,
   },
@@ -56,7 +56,6 @@ use lmdb_database::{Database, WriteTransaction};
 
 mod arguments;
 mod bytes;
-mod decode_bech32;
 mod epoch;
 mod height;
 mod index;
