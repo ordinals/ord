@@ -1590,6 +1590,7 @@ dependencies = [
  "reqwest",
  "secp256k1",
  "serde",
+ "serde_cbor",
  "serde_json",
  "sha2",
  "tempfile",

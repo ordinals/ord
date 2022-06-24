@@ -34,6 +34,7 @@ redb = { version = "0.0.5", optional = true }
 reqwest = { version = "0.11.10", features = ["blocking", "json"] }
 secp256k1 = { version =  "0.22.1", features = ["rand", "rand-std", "global-context"] }
 serde = { version = "1.0.137", features = ["derive"] }
+serde_cbor = "0.11.2"
 serde_json = "1.0.81"
 sha2 = "0.10.2"
 tokio = { version = "1.17.0", features = ["rt-multi-thread"] }
