@@ -28,11 +28,11 @@ impl Nft {
       public_key,
     };
 
-    let mut engine = sha256d::Hash::engine();
+    let mut engine = sha256::Hash::engine();
     engine.input(ORDINAL_MESSAGE_PREFIX);
     engine.input(&serde_cbor::to_vec(&metadata)?);
 
-    let message_hash = secp256k1::Message::from_slice(&sha256d::Hash::from_engine(engine))?;
+    let message_hash = secp256k1::Message::from_slice(&sha256::Hash::from_engine(engine))?;
 
     let signature = signing_key_pair.sign_schnorr(message_hash);
 
@@ -72,11 +72,11 @@ impl Nft {
       return Err(anyhow!("NFT data hash does not match actual data_hash"));
     }
 
-    let mut engine = sha256d::Hash::engine();
+    let mut engine = sha256::Hash::engine();
     engine.input(ORDINAL_MESSAGE_PREFIX);
     engine.input(&serde_cbor::to_vec(&nft.metadata)?);
 
-    let message_hash = secp256k1::Message::from_slice(&sha256d::Hash::from_engine(engine))?;
+    let message_hash = secp256k1::Message::from_slice(&sha256::Hash::from_engine(engine))?;
 
     Secp256k1::new()
       .verify_schnorr(&nft.signature, &message_hash, &nft.metadata.public_key)

@@ -13,7 +13,7 @@ use {
     blockdata::constants::COIN_VALUE, consensus::Decodable, consensus::Encodable,
     util::key::PrivateKey, Address, Block, BlockHash, Network, OutPoint, Transaction, Txid,
   },
-  bitcoin_hashes::{sha256, sha256d, Hash, HashEngine},
+  bitcoin_hashes::{sha256, Hash, HashEngine},
   chrono::{DateTime, NaiveDateTime, Utc},
   clap::Parser,
   derive_more::{Display, FromStr},
