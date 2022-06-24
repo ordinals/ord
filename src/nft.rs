@@ -11,16 +11,14 @@ pub(crate) struct Nft {
 
 #[derive(Serialize, Deserialize)]
 struct Metadata {
-  data_hash: sha256d::Hash,
+  data_hash: sha256::Hash,
   ordinal: Ordinal,
   public_key: XOnlyPublicKey,
 }
 
 impl Nft {
-  const HRP: &'static str = "nft";
-
   pub(crate) fn mint(ordinal: Ordinal, data: &[u8], signing_key_pair: KeyPair) -> Result<Self> {
-    let data_hash = sha256d::Hash::hash(data);
+    let data_hash = sha256::Hash::hash(data);
 
     let public_key = signing_key_pair.public_key();
 
@@ -49,43 +47,26 @@ impl Nft {
     &self.data
   }
 
-  pub(crate) fn encode(&self) -> String {
-    bech32::encode(
-      Self::HRP,
-      serde_cbor::to_vec(self).unwrap().to_base32(),
-      bech32::Variant::Bech32m,
-    )
-    .unwrap()
+  pub(crate) fn encode(&self) -> Vec<u8> {
+    serde_cbor::to_vec(self).unwrap()
   }
 
-  pub(crate) fn issuer(&self) -> String {
-    bech32::encode(
-      "pubkey",
-      self.metadata.public_key.serialize().to_base32(),
-      bech32::Variant::Bech32m,
-    )
-    .unwrap()
+  pub(crate) fn issuer(&self) -> XOnlyPublicKey {
+    self.metadata.public_key
   }
 
-  pub(crate) fn data_hash(&self) -> String {
-    bech32::encode(
-      "data",
-      self.metadata.data_hash.to_base32(),
-      bech32::Variant::Bech32m,
-    )
-    .unwrap()
+  pub(crate) fn data_hash(&self) -> sha256::Hash {
+    self.metadata.data_hash
   }
 
   pub(crate) fn ordinal(&self) -> Ordinal {
     self.metadata.ordinal
   }
 
-  pub(crate) fn verify(encoded: &str) -> Result<Self> {
-    let data = decode_bech32(encoded, Self::HRP)?;
+  pub(crate) fn verify(cbor: &[u8]) -> Result<Self> {
+    let nft = serde_cbor::from_slice::<Nft>(cbor)?;
 
-    let nft = serde_cbor::from_slice::<Nft>(&data)?;
-
-    let data_hash = sha256d::Hash::hash(&nft.data);
+    let data_hash = sha256::Hash::hash(&nft.data);
 
     if data_hash != nft.metadata.data_hash {
       return Err(anyhow!("NFT data hash does not match actual data_hash"));

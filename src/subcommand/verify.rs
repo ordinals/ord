@@ -8,7 +8,7 @@ pub(crate) struct Verify {
 
 impl Verify {
   pub(crate) fn run(self) -> Result {
-    let encoded = fs::read_to_string(&self.input_path)
+    let encoded = fs::read(&self.input_path)
       .with_context(|| format!("Failed to read NFT from `{}`", self.input_path.display()))?;
 
     let nft = Nft::verify(&encoded)

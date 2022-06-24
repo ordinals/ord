@@ -2,19 +2,18 @@
 
 use {
   crate::{
-    arguments::Arguments, bytes::Bytes, decode_bech32::decode_bech32, epoch::Epoch, height::Height,
-    index::Index, nft::Nft, options::Options, ordinal::Ordinal, sat_point::SatPoint,
-    subcommand::Subcommand,
+    arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height, index::Index, nft::Nft,
+    options::Options, ordinal::Ordinal, sat_point::SatPoint, subcommand::Subcommand,
   },
   anyhow::{anyhow, Context, Error},
   axum::{extract, http::StatusCode, response::IntoResponse, routing::get, Json, Router},
   axum_server::Handle,
   bech32::{FromBase32, ToBase32},
   bitcoin::{
-    blockdata::constants::COIN_VALUE, consensus::Decodable, consensus::Encodable, Address, Block,
-    BlockHash, Network, OutPoint, Transaction, Txid,
+    blockdata::constants::COIN_VALUE, consensus::Decodable, consensus::Encodable,
+    util::key::PrivateKey, Address, Block, BlockHash, Network, OutPoint, Transaction, Txid,
   },
-  bitcoin_hashes::{sha256d, Hash, HashEngine},
+  bitcoin_hashes::{sha256, sha256d, Hash, HashEngine},
   chrono::{DateTime, NaiveDateTime, Utc},
   clap::Parser,
   derive_more::{Display, FromStr},
@@ -55,7 +54,6 @@ use lmdb_database::{Database, WriteTransaction};
 
 mod arguments;
 mod bytes;
-mod decode_bech32;
 mod epoch;
 mod height;
 mod index;
