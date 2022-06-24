@@ -2,9 +2,8 @@
 
 use {
   crate::{
-    arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height,
-    index::Index, nft::Nft, options::Options, ordinal::Ordinal, sat_point::SatPoint,
-    subcommand::Subcommand,
+    arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height, index::Index, nft::Nft,
+    options::Options, ordinal::Ordinal, sat_point::SatPoint, subcommand::Subcommand,
   },
   anyhow::{anyhow, Context, Error},
   axum::{extract, http::StatusCode, response::IntoResponse, routing::get, Json, Router},
@@ -12,10 +11,9 @@ use {
   bech32::{FromBase32, ToBase32},
   bitcoin::{
     blockdata::constants::COIN_VALUE, consensus::Decodable, consensus::Encodable,
-    util::key::PrivateKey, Address, Block, BlockHash, Network,
-    OutPoint, Transaction, Txid,
+    util::key::PrivateKey, Address, Block, BlockHash, Network, OutPoint, Transaction, Txid,
   },
-  bitcoin_hashes::{sha256d, sha256, Hash, HashEngine},
+  bitcoin_hashes::{sha256, sha256d, Hash, HashEngine},
   chrono::{DateTime, NaiveDateTime, Utc},
   clap::Parser,
   derive_more::{Display, FromStr},
