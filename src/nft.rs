@@ -11,7 +11,6 @@ pub(crate) struct Nft {
 
 #[derive(Serialize, Deserialize)]
 struct Metadata {
-  data_hash: sha256::Hash,
   ordinal: Ordinal,
   public_key: XOnlyPublicKey,
 }
@@ -24,13 +23,13 @@ impl Nft {
 
     let metadata = Metadata {
       ordinal,
-      data_hash,
       public_key,
     };
 
     let mut engine = sha256::Hash::engine();
     engine.input(ORDINAL_MESSAGE_PREFIX);
     engine.input(&serde_cbor::to_vec(&metadata)?);
+    engine.input(&data_hash);
 
     let message_hash = secp256k1::Message::from_slice(&sha256::Hash::from_engine(engine))?;
 
@@ -56,7 +55,7 @@ impl Nft {
   }
 
   pub(crate) fn data_hash(&self) -> sha256::Hash {
-    self.metadata.data_hash
+    sha256::Hash::hash(&self.data)
   }
 
   pub(crate) fn ordinal(&self) -> Ordinal {
@@ -68,13 +67,10 @@ impl Nft {
 
     let data_hash = sha256::Hash::hash(&nft.data);
 
-    if data_hash != nft.metadata.data_hash {
-      return Err(anyhow!("NFT data hash does not match actual data_hash"));
-    }
-
     let mut engine = sha256::Hash::engine();
     engine.input(ORDINAL_MESSAGE_PREFIX);
     engine.input(&serde_cbor::to_vec(&nft.metadata)?);
+    engine.input(&data_hash);
 
     let message_hash = secp256k1::Message::from_slice(&sha256::Hash::from_engine(engine))?;
 
