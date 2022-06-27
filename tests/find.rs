@@ -14,7 +14,7 @@ fn first_satoshi() -> Result {
 fn first_satoshi_slot() -> Result {
   Test::new()?
     .command("find 0 --slot")
-    .expected_stdout("0.0.0.0\n")
+    .expected_stdout("0x0x0x0\n")
     .block()
     .run()
 }
@@ -33,7 +33,7 @@ fn second_satoshi() -> Result {
 fn second_satoshi_slot() -> Result {
   Test::new()?
     .command("find 1 --slot")
-    .expected_stdout("0.0.0.1\n")
+    .expected_stdout("0x0x0x1\n")
     .block()
     .run()
 }
@@ -53,7 +53,7 @@ fn first_satoshi_of_second_block() -> Result {
 fn first_satoshi_of_second_block_slot() -> Result {
   Test::new()?
     .command("find 5000000000 --slot")
-    .expected_stdout("1.0.0.0\n")
+    .expected_stdout("1x0x0x0\n")
     .block()
     .block()
     .run()
@@ -79,7 +79,7 @@ fn first_satoshi_spent_in_second_block() -> Result {
 fn first_satoshi_spent_in_second_block_slot() -> Result {
   Test::new()?
     .command("find 0 --slot")
-    .expected_stdout("1.1.0.0\n")
+    .expected_stdout("1x1x0x0\n")
     .block()
     .block()
     .transaction(TransactionOptions {
@@ -100,7 +100,7 @@ fn regression_empty_block_crash() -> Result {
       include_coinbase_transaction: false,
       ..Default::default()
     })
-    .expected_stdout("0.0.0.0\n")
+    .expected_stdout("0x0x0x0\n")
     .run()
 }
 
@@ -121,7 +121,7 @@ fn mining_and_spending_transaction_in_same_block() -> Result {
       output_count: 1,
       fee: 0,
     })
-    .expected_stdout("1.2.0.0\n")
+    .expected_stdout("1x2x0x0\n")
     .run()
 }
 
