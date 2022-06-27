@@ -15,7 +15,7 @@ impl Verify {
       .with_context(|| format!("Failed to verify NFT at `{}`", self.input_path.display()))?;
 
     eprintln!("NFT is valid!");
-    eprintln!("Ordinal: {}", nft.ordinal());
+    eprintln!("Ordinal: {}", nft.ordinal()?);
     eprintln!("Issuer: {}", nft.issuer());
     eprintln!("Data hash: {}", nft.data_hash());
 
