@@ -21,14 +21,13 @@ impl Nft {
 
     let public_key = signing_key_pair.public_key();
 
-    let metadata = Metadata { ordinal };
-    let metadata_cbor = serde_cbor::to_vec(&metadata)?;
-    let metadata_hash = sha256::Hash::hash(&metadata_cbor);
+    let metadata = serde_cbor::to_vec(&Metadata { ordinal })?;
+    let metadata_hash = sha256::Hash::hash(&metadata);
 
     let mut engine = sha256::Hash::engine();
     engine.input(ORDINAL_MESSAGE_PREFIX);
-    // We use the metadata hash as input instead of the hashed CBOR for compatibility with Coldcard
-    // signed messages (max 240 chars).
+    // We use the metadata hash instead of the CBOR for compatibility with Coldcard signed messages
+    // which are limited to 240 chars.
     engine.input(&metadata_hash);
     engine.input(&data_hash);
 
@@ -37,7 +36,7 @@ impl Nft {
     let signature = signing_key_pair.sign_schnorr(message_hash);
 
     Ok(Self {
-      metadata: metadata_cbor,
+      metadata,
       signature,
       data: data.into(),
       public_key,
@@ -61,8 +60,7 @@ impl Nft {
   }
 
   pub(crate) fn ordinal(&self) -> Result<Ordinal> {
-    let metadata: Metadata = serde_cbor::from_slice(&self.metadata)?;
-    Ok(metadata.ordinal)
+    Ok(serde_cbor::from_slice::<Metadata>(&self.metadata)?.ordinal)
   }
 
   pub(crate) fn verify(cbor: &[u8]) -> Result<Self> {
