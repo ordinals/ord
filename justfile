@@ -36,6 +36,9 @@ status:
 serve:
   python3 -m http.server --directory docs
 
+deck:
+  slidedeck deck/index.md > docs/deck/index.html
+
 generate-private-key:
   cargo run generate-private-key
 
