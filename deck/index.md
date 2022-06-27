@@ -176,10 +176,14 @@ the UTXO that contains the ordinal is the current owner of the token.
 - This strikes some people as weird, like digital graffiti.
 - In the future, may want to give some special status, like "self-issued" if the NFT is signed with a public key that held the ordinal.
 
+---
+
 # Ordinal NFT Upgrades: Timestamping
 
 - Age is of great interest to NFT collectors
 - Including a timestamp in an NFT is an easy way to prove the age of an NFT
+
+---
 
 # Ordinal NFT Upgrades: Publicity
 
