@@ -170,6 +170,20 @@ the UTXO that contains the ordinal is the current owner of the token.
 
 ---
 
-# DISCLAIMER
+# Ordinal NFT Upgrades: Issued by ordinal owner
 
-[thicccc transaction](https://mempool.space/tx/c3a7786e164bbc7620a90601a1f284cff1a5e93c59978f566a9c7104bc33975a)
+- Currently, anyone can assign an NFT to an ordinal.
+- This strikes some people as weird, like digital graffiti.
+- In the future, may want to give some special status, like "self-issued" if the NFT is signed with a public key that held the ordinal.
+
+# Ordinal NFT Upgrades: Timestamping
+
+- Age is of great interest to NFT collectors
+- Including a timestamp in an NFT is an easy way to prove the age of an NFT
+
+# Ordinal NFT Upgrades: Publicity
+
+- Timestamps prove that an NFT was created before a particular time
+- Timestamps *don't* prove that there wasn't anything that was created earlier
+- It might be desirable to add a public issuance method, i.e. one where the chain can be scanned for such issuences, and a total ordering to be established over them
+- Very reluctant to do this, since this kind of embedding of public data in the Bitcoin blockchain is not very aesthetically pleasing or culturally acceptable to bitcoiners
