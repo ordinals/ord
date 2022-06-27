@@ -7,12 +7,12 @@ pub(crate) struct Nft {
   data: Vec<u8>,
   metadata: Metadata,
   signature: Signature,
+  public_key: XOnlyPublicKey,
 }
 
 #[derive(Serialize, Deserialize)]
 struct Metadata {
   ordinal: Ordinal,
-  public_key: XOnlyPublicKey,
 }
 
 impl Nft {
@@ -21,10 +21,7 @@ impl Nft {
 
     let public_key = signing_key_pair.public_key();
 
-    let metadata = Metadata {
-      ordinal,
-      public_key,
-    };
+    let metadata = Metadata { ordinal };
 
     let mut engine = sha256::Hash::engine();
     engine.input(ORDINAL_MESSAGE_PREFIX);
@@ -39,6 +36,7 @@ impl Nft {
       metadata,
       signature,
       data: data.into(),
+      public_key,
     })
   }
 
@@ -51,7 +49,7 @@ impl Nft {
   }
 
   pub(crate) fn issuer(&self) -> XOnlyPublicKey {
-    self.metadata.public_key
+    self.public_key
   }
 
   pub(crate) fn data_hash(&self) -> sha256::Hash {
@@ -75,7 +73,7 @@ impl Nft {
     let message_hash = secp256k1::Message::from_slice(&sha256::Hash::from_engine(engine))?;
 
     Secp256k1::new()
-      .verify_schnorr(&nft.signature, &message_hash, &nft.metadata.public_key)
+      .verify_schnorr(&nft.signature, &message_hash, &nft.public_key)
       .context("Failed to verify NFT signature")?;
 
     Ok(nft)
