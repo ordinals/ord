@@ -5,15 +5,14 @@ const ORDINAL_MESSAGE_PREFIX: &[u8] = b"Ordinal Signed Message:";
 #[derive(Serialize, Deserialize)]
 pub(crate) struct Nft {
   data: Vec<u8>,
-  metadata: Metadata,
+  metadata: Vec<u8>,
   signature: Signature,
+  public_key: XOnlyPublicKey,
 }
 
 #[derive(Serialize, Deserialize)]
 struct Metadata {
-  data_hash: sha256::Hash,
   ordinal: Ordinal,
-  public_key: XOnlyPublicKey,
 }
 
 impl Nft {
@@ -22,15 +21,15 @@ impl Nft {
 
     let public_key = signing_key_pair.public_key();
 
-    let metadata = Metadata {
-      ordinal,
-      data_hash,
-      public_key,
-    };
+    let metadata = serde_cbor::to_vec(&Metadata { ordinal })?;
+    let metadata_hash = sha256::Hash::hash(&metadata);
 
     let mut engine = sha256::Hash::engine();
     engine.input(ORDINAL_MESSAGE_PREFIX);
-    engine.input(&serde_cbor::to_vec(&metadata)?);
+    // We use the metadata hash instead of the CBOR for compatibility with Coldcard signed messages
+    // which are limited to 240 chars.
+    engine.input(&metadata_hash);
+    engine.input(&data_hash);
 
     let message_hash = secp256k1::Message::from_slice(&sha256::Hash::from_engine(engine))?;
 
@@ -40,6 +39,7 @@ impl Nft {
       metadata,
       signature,
       data: data.into(),
+      public_key,
     })
   }
 
@@ -52,15 +52,15 @@ impl Nft {
   }
 
   pub(crate) fn issuer(&self) -> XOnlyPublicKey {
-    self.metadata.public_key
+    self.public_key
   }
 
   pub(crate) fn data_hash(&self) -> sha256::Hash {
-    self.metadata.data_hash
+    sha256::Hash::hash(&self.data)
   }
 
-  pub(crate) fn ordinal(&self) -> Ordinal {
-    self.metadata.ordinal
+  pub(crate) fn ordinal(&self) -> Result<Ordinal> {
+    Ok(serde_cbor::from_slice::<Metadata>(&self.metadata)?.ordinal)
   }
 
   pub(crate) fn verify(cbor: &[u8]) -> Result<Self> {
@@ -68,18 +68,16 @@ impl Nft {
 
     let data_hash = sha256::Hash::hash(&nft.data);
 
-    if data_hash != nft.metadata.data_hash {
-      return Err(anyhow!("NFT data hash does not match actual data_hash"));
-    }
-
+    let metadata_hash = sha256::Hash::hash(&nft.metadata);
     let mut engine = sha256::Hash::engine();
     engine.input(ORDINAL_MESSAGE_PREFIX);
-    engine.input(&serde_cbor::to_vec(&nft.metadata)?);
+    engine.input(&metadata_hash);
+    engine.input(&data_hash);
 
     let message_hash = secp256k1::Message::from_slice(&sha256::Hash::from_engine(engine))?;
 
     Secp256k1::new()
-      .verify_schnorr(&nft.signature, &message_hash, &nft.metadata.public_key)
+      .verify_schnorr(&nft.signature, &message_hash, &nft.public_key)
       .context("Failed to verify NFT signature")?;
 
     Ok(nft)
