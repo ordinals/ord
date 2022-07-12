@@ -23,8 +23,6 @@ source ~/.cargo/env
 
 cargo install --path . --root /usr/local
 
-setcap CAP_NET_BIND_SERVICE=+eip /usr/local/bin/ord
-
 id --user bitcoin || useradd --system bitcoin
 id --user ord || useradd --system ord
 

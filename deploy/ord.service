@@ -5,6 +5,7 @@ StartLimitBurst=120
 StartLimitIntervalSec=10m
 
 [Service]
+AmbientCapabilities=CAP_NET_BIND_SERVICE
 WorkingDirectory=/var/lib/ord
 Environment=RUST_BACKTRACE=1
 Environment=RUST_LOG=info
