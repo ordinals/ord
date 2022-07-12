@@ -1,4 +1,5 @@
 /.idea/
+/.vagrant
 /index.lmdb
 /index.redb
 /target

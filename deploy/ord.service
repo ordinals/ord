@@ -10,8 +10,8 @@ Environment=RUST_BACKTRACE=1
 Environment=RUST_LOG=info
 ExecStart=/usr/local/bin/ord \
   --index-size 1TiB \
-  --rpc-url 127.0.0.1:8332 \
-  --cookie-file /var/lib/bitcoind/.cookie \
+  --rpc-url 127.0.0.1:38332 \
+  --cookie-file /var/lib/bitcoind/signet/.cookie \
   server \
   --port 8000
 

@@ -6,7 +6,14 @@ set -euxo pipefail
 
 apt-get update --yes
 apt-get upgrade --yes
-apt-get install --yes clang
+apt-get install --yes clang pkg-config libssl-dev acl
+
+if ! which bitcoind; then
+  wget -O bitcoin.tar.gz 'https://bitcoincore.org/bin/bitcoin-core-23.0/bitcoin-23.0-x86_64-linux-gnu.tar.gz'
+  tar -xzvf bitcoin.tar.gz -C /usr/local/bin --strip-components=2 "bitcoin-23.0/bin/bitcoin-cli" "bitcoin-23.0/bin/bitcoind"
+fi
+
+bitcoind --version
 
 if [[ ! -e ~/.cargo/env ]]; then
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -14,7 +21,7 @@ fi
 
 source ~/.cargo/env
 
-cargo build --release
+cargo install --path . --root /usr/local
 
 id --user bitcoin || useradd --system bitcoin
 id --user ord || useradd --system ord
@@ -23,10 +30,11 @@ cp deploy/bitcoind.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable bitcoind
 systemctl restart bitcoind
+sleep 1
 
 setfacl -m ord:x /var/lib/bitcoind
 setfacl -dm ord:r /var/lib/bitcoind
-setfacl -m ord:r /var/lib/bitcoind/.cookie
+setfacl -m ord:r /var/lib/bitcoind/signet/.cookie
 
 cp deploy/ord.service /etc/systemd/system/
 systemctl daemon-reload
@@ -34,3 +42,6 @@ systemctl stop ord
 cp target/release/ord /usr/local/bin/ord
 systemctl enable ord
 systemctl restart ord
+
+sleep 1
+curl http://localhost:8000/list
