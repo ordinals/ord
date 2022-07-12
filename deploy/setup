@@ -32,8 +32,8 @@ systemctl enable bitcoind
 systemctl restart bitcoind
 sleep 1
 
-setfacl -m ord:x /var/lib/bitcoind/signet/
-setfacl -dm ord:r /var/lib/bitcoind/signet/
+setfacl -m ord:x /var/lib/bitcoind
+setfacl -dm ord:r /var/lib/bitcoind
 setfacl -m ord:r /var/lib/bitcoind/signet/.cookie
 
 cp deploy/ord.service /etc/systemd/system/
@@ -42,3 +42,6 @@ systemctl stop ord
 cp target/release/ord /usr/local/bin/ord
 systemctl enable ord
 systemctl restart ord
+
+sleep 1
+curl http://localhost:8000/list
