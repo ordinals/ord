@@ -66,10 +66,10 @@ pub(crate) fn run() -> Result {
     let address_qr_code =
       qrcode_generator::to_svg_to_string(qr_uri, QrCodeEcc::High, 1024, Some(""))?;
 
-    let mut ordinals = String::new();
-    for (start, end) in ranges {
-      ordinals.push_str(&format!("<li>[{start},{end})</li>"));
-    }
+    let ordinals = ranges
+      .iter()
+      .map(|(start, end)| format!("<li>[{start},{end})</li>"))
+      .collect::<String>();
 
     let mut wallet = File::create(format!("wallet{i}.html"))?;
 

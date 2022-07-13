@@ -29,6 +29,20 @@ deploy branch='master':
   rsync -avz deploy/checkout root@65.108.68.37:deploy/checkout
   ssh root@65.108.68.37 'cd deploy && ./checkout {{branch}}'
 
+test-deploy:
+  ssh-keygen -f ~/.ssh/known_hosts -R 192.168.56.4
+  vagrant up
+  ssh-keyscan 192.168.56.4 >> ~/.ssh/known_hosts
+  rsync -avz \
+  --delete \
+  --exclude .git \
+  --exclude target \
+  --exclude .vagrant \
+  --exclude index.lmdb \
+  --exclude index.redb \
+  . root@192.168.56.4:ord
+  ssh root@192.168.56.4 'cd ord && ./deploy/setup'
+
 status:
   ssh root@65.108.68.37 systemctl status bitcoind
   ssh root@65.108.68.37 systemctl status ord
