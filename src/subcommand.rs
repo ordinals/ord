@@ -32,6 +32,7 @@ pub(crate) enum Subcommand {
   Supply,
   Traits(traits::Traits),
   Verify(verify::Verify),
+  #[clap(subcommand)]
   Wallet(wallet::Wallet),
 }
 

@@ -1,17 +1,16 @@
 use super::*;
 
+mod init;
+
 #[derive(Parser)]
-pub(crate) struct Wallet {
-  #[clap(long)]
-  init: bool
+pub(crate) enum Wallet {
+  Init,
 }
 
 impl Wallet {
   pub(crate) fn run(self) -> Result {
-    if self.init {
-      println!("wallet initialized!");
+    match self {
+      Init => init::run(),
     }
-
-    Ok(())
   }
 }
