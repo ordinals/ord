@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, Wallet::*};
 
 mod init;
 
@@ -8,9 +8,9 @@ pub(crate) enum Wallet {
 }
 
 impl Wallet {
-  pub(crate) fn run(self) -> Result {
+  pub(crate) fn run(self, options: Options) -> Result {
     match self {
-      Init => init::run(),
+      Init => init::run(options),
     }
   }
 }
