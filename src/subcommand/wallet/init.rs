@@ -33,7 +33,7 @@ pub(crate) fn run(options: Options) -> Result {
   let wallet = Wallet::new(
     Bip84(key.clone(), KeychainKind::External),
     Some(Bip84(key.clone(), KeychainKind::Internal)),
-    Network::Signet,
+    Network::Regtest,
     MemoryDatabase::new(),
   )?;
 
@@ -46,11 +46,11 @@ pub(crate) fn run(options: Options) -> Result {
         .cookie_file
         .map(|path| Auth::Cookie { file: path })
         .unwrap_or(Auth::None),
-      network: Network::Signet,
+      network: Network::Regtest,
       wallet_name: wallet_name_from_descriptor(
         Bip84(key.clone(), KeychainKind::External),
         Some(Bip84(key, KeychainKind::Internal)),
-        Network::Signet,
+        Network::Regtest,
         &Secp256k1::new(),
       )?,
       skip_blocks: None,
