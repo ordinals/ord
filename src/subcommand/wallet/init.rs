@@ -20,7 +20,7 @@ fn generate_key() -> Result<impl DerivableKey<Segwitv0> + Clone> {
   let password = Some("password".to_string());
 
   let mnemonic: GeneratedKey<_, _> = Mnemonic::generate((WordCount::Words12, Language::English))
-    .map_err(|e| e.expect("Unknown Error"))?;
+    .map_err(|e| e.expect("Failed to generate key"))?;
 
   Ok((mnemonic, password))
 }
@@ -39,14 +39,17 @@ pub(crate) fn run(options: Options) -> Result {
 
   wallet.sync(
     &RpcBlockchain::from_config(&RpcConfig {
-      url: options.rpc_url.unwrap(),
-      auth: Auth::Cookie {
-        file: options.cookie_file.unwrap(),
-      },
+      url: options
+        .rpc_url
+        .ok_or_else(|| anyhow!("This command requires `--rpc-url`"))?,
+      auth: options
+        .cookie_file
+        .map(|path| Auth::Cookie { file: path })
+        .unwrap_or(Auth::None),
       network: Network::Signet,
       wallet_name: wallet_name_from_descriptor(
         Bip84(key.clone(), KeychainKind::External),
-        Some(Bip84(key.clone(), KeychainKind::Internal)),
+        Some(Bip84(key, KeychainKind::Internal)),
         Network::Signet,
         &Secp256k1::new(),
       )?,
