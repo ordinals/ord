@@ -39,6 +39,7 @@ mod rpc_server;
 mod server;
 mod supply;
 mod traits;
+mod version;
 
 type Result<T = ()> = std::result::Result<T, Box<dyn Error>>;
 

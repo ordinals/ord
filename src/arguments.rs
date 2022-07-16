@@ -1,6 +1,7 @@
 use super::*;
 
 #[derive(Parser)]
+#[clap(version)]
 pub(crate) struct Arguments {
   #[clap(flatten)]
   options: Options,
