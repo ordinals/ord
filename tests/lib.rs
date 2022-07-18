@@ -149,11 +149,6 @@ impl Test {
     }
   }
 
-  fn env(mut self, key: &str, value: &str) -> Self {
-    self.env.push((key.to_owned(), value.to_owned()));
-    self
-  }
-
   fn set_home_to_tempdir(mut self) -> Self {
     self.env.push((
       "HOME".to_string(),

@@ -11,7 +11,9 @@ fn get_key() -> Result<impl DerivableKey<Segwitv0> + Clone> {
 }
 
 fn get_wallet() -> Result<bdk::wallet::Wallet<SqliteDatabase>> {
-  let db_path = PathBuf::from(format!("{}/ord", data_dir().unwrap().display()));
+  let db_path = data_dir()
+    .ok_or(anyhow!("Failed to retrieve data dir"))?
+    .join("ord");
 
   if !db_path.exists() {
     fs::create_dir_all(&db_path)?;
@@ -21,7 +23,13 @@ fn get_wallet() -> Result<bdk::wallet::Wallet<SqliteDatabase>> {
     Bip84(get_key()?, KeychainKind::External),
     None,
     Network::Signet,
-    SqliteDatabase::new(format!("{}/wallet.sqlite", db_path.display())),
+    SqliteDatabase::new(
+      db_path
+        .join("wallet.sqlite")
+        .to_str()
+        .ok_or(anyhow!("Failed to convert path to str"))?
+        .to_string(),
+    ),
   )?)
 }
 
