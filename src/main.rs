@@ -11,7 +11,7 @@ use {
   bech32::{FromBase32, ToBase32},
   bitcoin::{
     blockdata::constants::COIN_VALUE, consensus::Decodable, consensus::Encodable,
-    util::key::PrivateKey, Address, Block, BlockHash, Network, OutPoint, Transaction, Txid,
+    util::key::PrivateKey, Address, Block, Network, OutPoint, Transaction, Txid,
   },
   bitcoin_hashes::{sha256, Hash, HashEngine},
   chrono::{DateTime, NaiveDateTime, Utc},
@@ -21,7 +21,7 @@ use {
   integer_sqrt::IntegerSquareRoot,
   lazy_static::lazy_static,
   qrcode_generator::QrCodeEcc,
-  redb::{Database, DatabaseTransaction, ReadableTable, Table, TableDefinition},
+  redb::{Database, ReadableTable, Table, TableDefinition},
   secp256k1::{rand, schnorr::Signature, KeyPair, Secp256k1, SecretKey, XOnlyPublicKey},
   serde::{Deserialize, Serialize},
   std::{

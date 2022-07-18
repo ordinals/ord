@@ -2,10 +2,7 @@ use {
   super::*,
   bitcoincore_rpc::{Auth, Client, RpcApi},
   rayon::iter::{IntoParallelRefIterator, ParallelIterator},
-  write_transaction::WriteTransaction,
 };
-
-mod write_transaction;
 
 const HEIGHT_TO_HASH: TableDefinition<u64, [u8]> = TableDefinition::new("HEIGHT_TO_HASH");
 const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8], [u8]> =
@@ -104,18 +101,25 @@ impl Index {
   }
 
   pub(crate) fn index_ranges(&self) -> Result {
-    let mut wtx = WriteTransaction::new(&self.database)?;
+    let mut wtx = self.database.begin_write()?;
+    let mut height_to_hash = wtx.open_table(&HEIGHT_TO_HASH)?;
+    let mut outpoint_to_ordinal_ranges = wtx.open_table(&OUTPOINT_TO_ORDINAL_RANGES)?;
 
     loop {
       let start = Instant::now();
       let mut ordinal_ranges_written = 0;
 
-      let height = wtx.height()?;
+      let height = height_to_hash
+        .range(0..)?
+        .rev()
+        .next()
+        .map(|(height, _hash)| height + 1)
+        .unwrap_or(0);
 
       let block = match self.block(height)? {
         Some(block) => block,
         None => {
-          wtx.inner.commit()?;
+          wtx.commit()?;
           return Ok(());
         }
       };
@@ -132,7 +136,7 @@ impl Index {
       );
 
       if let Some(prev_height) = height.checked_sub(1) {
-        let prev_hash = wtx.blockhash_at_height(prev_height)?.unwrap();
+        let prev_hash = height_to_hash.get(&prev_height)?.unwrap();
 
         if prev_hash != block.header.prev_blockhash.as_ref() {
           return Err(anyhow!("Reorg detected at or before {prev_height}"));
@@ -163,21 +167,21 @@ impl Index {
           let mut key = Vec::new();
           input.previous_output.consensus_encode(&mut key)?;
 
-          let ordinal_ranges = wtx
-            .get_ordinal_ranges(key.as_slice())?
+          let ordinal_ranges = outpoint_to_ordinal_ranges
+            .get(key.as_slice())?
             .ok_or_else(|| anyhow!("Could not find outpoint in index"))?;
 
           for chunk in ordinal_ranges.chunks_exact(11) {
             input_ordinal_ranges.push_back(Self::decode_ordinal_range(chunk.try_into().unwrap()));
           }
 
-          wtx.remove_outpoint(&key)?;
+          outpoint_to_ordinal_ranges.remove(&key)?;
         }
 
         self.index_transaction(
           *txid,
           tx,
-          &mut wtx.outpoint_to_ordinal_ranges,
+          &mut outpoint_to_ordinal_ranges,
           &mut input_ordinal_ranges,
           &mut ordinal_ranges_written,
         )?;
@@ -189,16 +193,18 @@ impl Index {
         self.index_transaction(
           *txid,
           tx,
-          &mut wtx.outpoint_to_ordinal_ranges,
+          &mut outpoint_to_ordinal_ranges,
           &mut coinbase_inputs,
           &mut ordinal_ranges_written,
         )?;
       }
 
-      wtx.set_blockhash_at_height(height, block.block_hash())?;
+      height_to_hash.insert(&height, &block.block_hash())?;
       if height % 1000 == 0 {
-        wtx.inner.commit()?;
-        wtx = WriteTransaction::new(&self.database)?;
+        wtx.commit()?;
+        wtx = self.database.begin_write()?;
+        height_to_hash = wtx.open_table(&HEIGHT_TO_HASH)?;
+        outpoint_to_ordinal_ranges = wtx.open_table(&OUTPOINT_TO_ORDINAL_RANGES)?;
       }
 
       log::info!(
@@ -207,7 +213,7 @@ impl Index {
       );
 
       if INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
-        wtx.inner.commit()?;
+        wtx.commit()?;
         return Ok(());
       }
     }
