@@ -10,13 +10,40 @@ fn get_key() -> Result<impl DerivableKey<Segwitv0> + Clone> {
   ))
 }
 
+fn init_wallet() -> Result {
+  let db_path = data_dir()
+    .ok_or_else(|| anyhow!("Failed to retrieve data dir"))?
+    .join("ord");
+
+  if db_path.exists() {
+    return Err(anyhow!("Wallet already exists."));
+  }
+
+  fs::create_dir_all(&db_path)?;
+
+  bdk::wallet::Wallet::new(
+    Bip84(get_key()?, KeychainKind::External),
+    None,
+    Network::Signet,
+    SqliteDatabase::new(
+      db_path
+        .join("wallet.sqlite")
+        .to_str()
+        .ok_or_else(|| anyhow!("Failed to convert path to str"))?
+        .to_string(),
+    ),
+  )?;
+
+  Ok(())
+}
+
 fn get_wallet() -> Result<bdk::wallet::Wallet<SqliteDatabase>> {
   let db_path = data_dir()
     .ok_or_else(|| anyhow!("Failed to retrieve data dir"))?
     .join("ord");
 
   if !db_path.exists() {
-    fs::create_dir_all(&db_path)?;
+    return Err(anyhow!("Wallet doesn't exist."));
   }
 
   Ok(bdk::wallet::Wallet::new(
