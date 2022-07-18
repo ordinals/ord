@@ -1,9 +1,9 @@
 use super::*;
 
 pub(crate) struct WriteTransaction<'a> {
-  inner: DatabaseTransaction<'a>,
-  height_to_hash: Table<'a, u64, [u8]>,
-  outpoint_to_ordinal_ranges: Table<'a, [u8], [u8]>,
+  pub(crate) inner: DatabaseTransaction<'a>,
+  pub(crate) height_to_hash: Table<'a, u64, [u8]>,
+  pub(crate) outpoint_to_ordinal_ranges: Table<'a, [u8], [u8]>,
 }
 
 impl<'a> WriteTransaction<'a> {
@@ -37,13 +37,6 @@ impl<'a> WriteTransaction<'a> {
 
   pub(crate) fn set_blockhash_at_height(&mut self, height: u64, blockhash: BlockHash) -> Result {
     self.height_to_hash.insert(&height, &blockhash)?;
-    Ok(())
-  }
-
-  pub(crate) fn insert_outpoint(&mut self, outpoint: &[u8], ordinal_ranges: &[u8]) -> Result {
-    self
-      .outpoint_to_ordinal_ranges
-      .insert(outpoint, ordinal_ranges)?;
     Ok(())
   }
 

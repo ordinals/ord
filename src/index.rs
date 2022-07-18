@@ -177,7 +177,7 @@ impl Index {
         self.index_transaction(
           *txid,
           tx,
-          &mut wtx,
+          &mut wtx.outpoint_to_ordinal_ranges,
           &mut input_ordinal_ranges,
           &mut ordinal_ranges_written,
         )?;
@@ -189,7 +189,7 @@ impl Index {
         self.index_transaction(
           *txid,
           tx,
-          &mut wtx,
+          &mut wtx.outpoint_to_ordinal_ranges,
           &mut coinbase_inputs,
           &mut ordinal_ranges_written,
         )?;
@@ -232,7 +232,7 @@ impl Index {
     &self,
     txid: Txid,
     tx: &Transaction,
-    wtx: &mut WriteTransaction,
+    outpoint_to_ordinal_ranges: &mut Table<[u8], [u8]>,
     input_ordinal_ranges: &mut VecDeque<(u64, u64)>,
     ordinal_ranges_written: &mut u64,
   ) -> Result {
@@ -273,7 +273,7 @@ impl Index {
 
       let mut outpoint_encoded = Vec::new();
       outpoint.consensus_encode(&mut outpoint_encoded)?;
-      wtx.insert_outpoint(&outpoint_encoded, &ordinals)?;
+      outpoint_to_ordinal_ranges.insert(&outpoint_encoded, &ordinals)?;
     }
 
     Ok(())
