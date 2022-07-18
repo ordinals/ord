@@ -4,9 +4,71 @@ use {
   rayon::iter::{IntoParallelRefIterator, ParallelIterator},
 };
 
+pub(crate) struct WriteTransaction<'a> {
+  inner: redb::DatabaseTransaction<'a>,
+  height_to_hash: redb::Table<'a, u64, [u8]>,
+  outpoint_to_ordinal_ranges: redb::Table<'a, [u8], [u8]>,
+}
+
+impl<'a> WriteTransaction<'a> {
+  pub(crate) fn new(database: &'a redb::Database) -> Result<Self> {
+    let inner = database.begin_write()?;
+    let height_to_hash = inner.open_table(&HEIGHT_TO_HASH)?;
+    let outpoint_to_ordinal_ranges = inner.open_table(&OUTPOINT_TO_ORDINAL_RANGES)?;
+
+    Ok(Self {
+      inner,
+      height_to_hash,
+      outpoint_to_ordinal_ranges,
+    })
+  }
+
+  pub(crate) fn commit(self) -> Result {
+    self.inner.commit()?;
+    Ok(())
+  }
+
+  pub(crate) fn height(&self) -> Result<u64> {
+    Ok(
+      self
+        .height_to_hash
+        .range(0..)?
+        .rev()
+        .next()
+        .map(|(height, _hash)| height + 1)
+        .unwrap_or(0),
+    )
+  }
+
+  pub(crate) fn blockhash_at_height(&self, height: u64) -> Result<Option<&[u8]>> {
+    Ok(self.height_to_hash.get(&height)?)
+  }
+
+  pub(crate) fn set_blockhash_at_height(&mut self, height: u64, blockhash: BlockHash) -> Result {
+    self.height_to_hash.insert(&height, &blockhash)?;
+    Ok(())
+  }
+
+  pub(crate) fn insert_outpoint(&mut self, outpoint: &[u8], ordinal_ranges: &[u8]) -> Result {
+    self
+      .outpoint_to_ordinal_ranges
+      .insert(outpoint, ordinal_ranges)?;
+    Ok(())
+  }
+
+  pub(crate) fn remove_outpoint(&mut self, outpoint: &[u8]) -> Result {
+    self.outpoint_to_ordinal_ranges.remove(outpoint)?;
+    Ok(())
+  }
+
+  pub(crate) fn get_ordinal_ranges(&self, outpoint: &[u8]) -> Result<Option<&[u8]>> {
+    Ok(self.outpoint_to_ordinal_ranges.get(outpoint)?)
+  }
+}
+
 pub(crate) struct Index {
   client: Client,
-  database: Database,
+  database: redb::Database,
 }
 
 impl Index {
@@ -24,10 +86,22 @@ impl Index {
     )
     .context("Failed to connect to RPC URL")?;
 
-    Ok(Self {
-      client,
-      database: Database::open(options).context("Failed to open database")?,
-    })
+    let database = match unsafe { redb::Database::open("index.redb") } {
+      Ok(database) => database,
+      Err(redb::Error::Io(error)) if error.kind() == io::ErrorKind::NotFound => unsafe {
+        redb::Database::create("index.redb", options.index_size.0)?
+      },
+      Err(error) => return Err(error.into()),
+    };
+
+    let tx = database.begin_write()?;
+
+    tx.open_table(&HEIGHT_TO_HASH)?;
+    tx.open_table(&OUTPOINT_TO_ORDINAL_RANGES)?;
+
+    tx.commit()?;
+
+    Ok(Self { client, database })
   }
 
   #[allow(clippy::self_named_constructors)]
@@ -40,7 +114,7 @@ impl Index {
   }
 
   pub(crate) fn print_info(&self) -> Result {
-    let tx = self.database.0.begin_read()?;
+    let tx = self.database.begin_read()?;
 
     let height_to_hash = tx.open_table(&HEIGHT_TO_HASH)?;
 
@@ -53,7 +127,7 @@ impl Index {
 
     let outputs_indexed = tx.open_table(&OUTPOINT_TO_ORDINAL_RANGES)?.len()?;
 
-    let stats = self.database.0.stats()?;
+    let stats = self.database.stats()?;
 
     println!("blocks indexed: {}", blocks_indexed);
     println!("outputs indexed: {}", outputs_indexed);
@@ -85,7 +159,7 @@ impl Index {
   }
 
   pub(crate) fn index_ranges(&self) -> Result {
-    let mut wtx = self.database.begin_write()?;
+    let mut wtx = WriteTransaction::new(&self.database)?;
 
     loop {
       let start = Instant::now();
@@ -179,7 +253,7 @@ impl Index {
       wtx.set_blockhash_at_height(height, block.block_hash())?;
       if height % 1000 == 0 {
         wtx.commit()?;
-        wtx = self.database.begin_write()?;
+        wtx = WriteTransaction::new(&self.database)?;
       }
 
       log::info!(
@@ -195,7 +269,7 @@ impl Index {
   }
 
   pub(crate) fn height(&self) -> Result<u64> {
-    let tx = self.database.0.begin_read()?;
+    let tx = self.database.begin_read()?;
 
     let height_to_hash = tx.open_table(&HEIGHT_TO_HASH)?;
 
@@ -275,7 +349,7 @@ impl Index {
       return Ok(None);
     }
 
-    let rtx = self.database.0.begin_read()?;
+    let rtx = self.database.begin_read()?;
 
     let outpoint_to_ordinal_ranges = rtx.open_table(&OUTPOINT_TO_ORDINAL_RANGES)?;
 
@@ -303,7 +377,6 @@ impl Index {
     Ok(
       self
         .database
-        .0
         .begin_read()?
         .open_table(&OUTPOINT_TO_ORDINAL_RANGES)?
         .get(outpoint)?

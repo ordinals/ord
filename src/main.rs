@@ -22,7 +22,6 @@ use {
   lazy_static::lazy_static,
   qrcode_generator::QrCodeEcc,
   redb::{ReadableTable, TableDefinition},
-  redb_database::{Database, WriteTransaction},
   secp256k1::{rand, schnorr::Signature, KeyPair, Secp256k1, SecretKey, XOnlyPublicKey},
   serde::{Deserialize, Serialize},
   std::{
@@ -60,7 +59,6 @@ mod index;
 mod nft;
 mod options;
 mod ordinal;
-mod redb_database;
 mod sat_point;
 mod subcommand;
 
