@@ -151,6 +151,12 @@ impl Test {
       "HOME".to_string(),
       self.tempdir.path().to_str().unwrap().to_string(),
     ));
+
+    self.env.push((
+      "XDG_DATA_HOME".to_string(),
+      self.tempdir.path().to_str().unwrap().to_string(),
+    ));
+
     self
   }
 
