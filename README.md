@@ -1,4 +1,4 @@
-# Satoshi Ordinals
+# Ordinals
 
 A scheme for assigning ordinal numbers to satoshis and tracking them across
 transactions, and a command-line utility, `ord` for querying information about
@@ -18,6 +18,9 @@ and transfer algorithm.
 
 See [the project board](https://github.com/casey/ord/projects/1) for currently
 prioritized issues.
+
+Join [the Discord server](https://discord.gg/87cjuz4FYg) to chat with fellow
+ordinal degenerates.
 
 ## Index and Caveats
 
