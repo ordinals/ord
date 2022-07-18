@@ -23,7 +23,6 @@ fn incremental_indexing() -> Result {
 }
 
 #[test]
-#[cfg(feature = "redb")]
 fn custom_index_size() -> Result {
   let tempdir = Test::new()?
     .command("--index-size 2097152 find 0")
@@ -38,7 +37,6 @@ fn custom_index_size() -> Result {
 }
 
 #[test]
-#[cfg(feature = "redb")]
 fn human_readable_index_size() -> Result {
   let tempdir = Test::new()?
     .command("--index-size 2mib find 0")
@@ -53,7 +51,6 @@ fn human_readable_index_size() -> Result {
 }
 
 #[test]
-#[cfg(feature = "redb")]
 fn default_index_size() -> Result {
   let tempdir = Test::new()?
     .command("find 0")
