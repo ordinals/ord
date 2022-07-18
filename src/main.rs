@@ -21,7 +21,7 @@ use {
     miniscript::miniscript::Segwitv0,
     template::Bip84,
     wallet::{wallet_name_from_descriptor, AddressIndex::LastUnused, SyncOptions},
-    KeychainKind, Wallet,
+    KeychainKind,
   },
   bech32::{FromBase32, ToBase32},
   bitcoin::{
@@ -59,6 +59,7 @@ use {
   },
   tokio::runtime::Runtime,
   tower_http::cors::{Any, CorsLayer},
+  dirs::data_dir
 };
 
 #[cfg(feature = "redb")]

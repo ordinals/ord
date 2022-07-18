@@ -6,6 +6,7 @@ use {
     blockdata::constants::COIN_VALUE, blockdata::script, consensus::Encodable, Block, BlockHash,
     BlockHeader, OutPoint, Transaction, TxIn, TxOut, Witness,
   },
+  dirs::data_dir,
   executable_path::executable_path,
   nix::{
     sys::signal::{self, Signal},
@@ -14,9 +15,11 @@ use {
   regex::Regex,
   std::{
     collections::BTreeSet,
+    env,
     error::Error,
     fs,
     net::TcpListener,
+    path::PathBuf,
     process::{Command, Stdio},
     str,
     sync::{Arc, Mutex},
@@ -85,10 +88,12 @@ struct TransactionOptions<'a> {
 
 struct Test {
   args: Vec<String>,
+  env: Vec<(String, String)>,
+  events: Vec<Event>,
+  expected_path: Option<String>,
   expected_status: i32,
   expected_stderr: Option<String>,
   expected_stdout: Expected,
-  events: Vec<Event>,
   tempdir: TempDir,
 }
 
@@ -100,10 +105,12 @@ impl Test {
   fn with_tempdir(tempdir: TempDir) -> Self {
     Self {
       args: Vec::new(),
+      env: Vec::new(),
+      events: Vec::new(),
+      expected_path: None,
       expected_status: 0,
       expected_stderr: None,
       expected_stdout: Expected::String(String::new()),
-      events: Vec::new(),
       tempdir,
     }
   }
@@ -142,6 +149,19 @@ impl Test {
     }
   }
 
+  fn env(mut self, key: &str, value: &str) -> Self {
+    self.env.push((key.to_owned(), value.to_owned()));
+    self
+  }
+
+  fn set_home_to_tempdir(mut self) -> Self {
+    self.env.push((
+      "HOME".to_string(),
+      self.tempdir.path().to_str().unwrap().to_string(),
+    ));
+    self
+  }
+
   fn expected_stderr(self, expected_stderr: &str) -> Self {
     Self {
       expected_stderr: Some(expected_stderr.to_owned()),
@@ -152,6 +172,13 @@ impl Test {
   fn expected_status(self, expected_status: i32) -> Self {
     Self {
       expected_status,
+      ..self
+    }
+  }
+
+  fn expected_path(self, expected_path: &str) -> Self {
+    Self {
+      expected_path: Some(expected_path.to_owned()),
       ..self
     }
   }
@@ -205,6 +232,7 @@ impl Test {
     };
 
     let child = Command::new(executable_path("ord"))
+      .envs(self.env)
       .stdin(Stdio::null())
       .stdout(Stdio::piped())
       .stderr(if self.expected_stderr.is_some() {
@@ -297,6 +325,15 @@ impl Test {
         stdout
       ),
       Expected::Ignore => {}
+    }
+
+    if let Some(expected_path) = self.expected_path {
+      assert!(PathBuf::from(format!(
+        "{}/{}",
+        self.tempdir.path().display(),
+        expected_path
+      ))
+      .exists());
     }
 
     assert_eq!(
