@@ -15,7 +15,11 @@
 
 === Abstract ===
 
-This document defines a scheme for numbering and tracking satoshis across transactions. These numbers, "ordinal numbers" in the language of this document, can be used as a useful primitive for a diverse range of applications, including NFTs, reputation systems, and Lightning Network-compatible stablecoins.
+This document defines a scheme for numbering and tracking satoshis across
+transactions. These numbers, "ordinal numbers" in the language of this
+document, can be used as a useful primitive for a diverse range of
+applications, including NFTs, reputation systems, and Lightning
+Network-compatible stablecoins.
 
 === Copyright ===
 
@@ -23,29 +27,62 @@ This work is placed in the public domain.
 
 === Motivation ===
 
-Bitcoin has no notion of a stable, public account or identity. Addresses are single-use, and wallet accounts, while permanent, are not publicly visible. Additionally, the use of addresses or public keys as identifiers precludes private key rotation or transfer of ownership.
+Bitcoin has no notion of a stable, public account or identity. Addresses are
+single-use, and wallet accounts, while permanent, are not publicly visible.
+Additionally, the use of addresses or public keys as identifiers precludes
+private key rotation or transfer of ownership.
 
-Many applications, some of which are detailed in this document, require stable, public identifiers tracking identity or ownership. This proposal is motivated by the desire to provide such a system of identifiers.
+Many applications, some of which are detailed in this document, require stable,
+public identifiers tracking identity or ownership. This proposal is motivated
+by the desire to provide such a system of identifiers.
 
 == Description ==
 
 === Design ===
 
-Every satoshi is serially numbered, starting at 0, in the order in which it is mined. These numbers are termed "ordinal numbers", or "ordinals", as they are ordinal numbers in the mathematical sense. The word "ordinal" is nicely unambiguous, as it is not used elsewhere in the Bitcoin protocol[0].
+Every satoshi is serially numbered, starting at 0, in the order in which it is
+mined. These numbers are termed "ordinal numbers", or "ordinals", as they are
+ordinal numbers in the mathematical sense. The word "ordinal" is nicely
+unambiguous, as it is not used elsewhere in the Bitcoin protocol[0].
 
-The ordinal numbers of transaction inputs are transferred to outputs in first-in-first-out order, according to the size and order of the transactions inputs and outputs.
+The ordinal numbers of transaction inputs are transferred to outputs in
+first-in-first-out order, according to the size and order of the transactions
+inputs and outputs.
 
-If a transaction is mined with the same transaction ID as outputs currently in the UTXO set, following the behavior of Bitcoin Core, the new transaction outputs displace the older UTXO set entries, destroying the ordinals contained in any unspent outputs of the first transaction.
+If a transaction is mined with the same transaction ID as outputs currently in
+the UTXO set, following the behavior of Bitcoin Core, the new transaction
+outputs displace the older UTXO set entries, destroying the ordinals contained
+in any unspent outputs of the first transaction. This rule is required to
+handle the two pairs of mainnet transactions with duplicate transaction IDs,
+namely the coinbase transactions of blocks 91812/91842, and 91722/91880, mined
+before [https://github.com/bitcoin/bips/blob/master/bip-0034.mediawiki BIP-34]
+made the creation of transactions with duplicate IDs impossible.
 
-For the purposes of the assignment algorithm, the coinbase transaction is considered to have an implicit input equal in size to the subsidy, followed by an input for every fee-paying transaction in the block, in the order that those transactions appear in the block. The implicit subsidy input carries the block's newly created ordinals. The implicit fee inputs carry the ordinals that were paid as fees in the block's transactions.
+For the purposes of the assignment algorithm, the coinbase transaction is
+considered to have an implicit input equal in size to the subsidy, followed by
+an input for every fee-paying transaction in the block, in the order that those
+transactions appear in the block. The implicit subsidy input carries the
+block's newly created ordinals. The implicit fee inputs carry the ordinals that
+were paid as fees in the block's transactions.
 
-Underpaying the subsidy does not change the ordinal numbers of satoshis mined in subsequent blocks. Ordinals depend only on how many satoshis could have been mined, not how many actually were.
+Underpaying the subsidy does not change the ordinal numbers of satoshis mined
+in subsequent blocks. Ordinals depend only on how many satoshis could have been
+mined, not how many actually were.
 
-At any given time, the output in which an ordinal resides can be identified. The public key associated with this output can be used to sign messages, such as ownership challenges, concerning to the ordinals it contains. The specification of a standardized message format for such purposes is deferred to a later BIP.
+At any given time, the output in which an ordinal resides can be identified.
+The public key associated with this output can be used to sign messages, such
+as ownership challenges, concerning to the ordinals it contains. The
+specification of a standardized message format for such purposes is deferred to
+a later BIP.
 
-Ordinal aware software should not mix outputs containing meaningful ordinals with outputs used for other purposes to avoid inadvertent loss of valuable ordinals, or privacy leaks allowing links between funds. For this reason, ordinal aware software using BIP-32 hierarchical deterministic key generation should use a key derivation path specific to ordinals.
+Ordinal aware software should not mix outputs containing meaningful ordinals
+with outputs used for other purposes to avoid inadvertent loss of valuable
+ordinals, or privacy leaks allowing links between funds. For this reason,
+ordinal aware software using BIP-32 hierarchical deterministic key generation
+should use a key derivation path specific to ordinals.
 
-The suggested key derivation path is `m/44'/7303780'/0'/0`. This suggested derivation path has not been standardized and may change in the future[1].
+The suggested key derivation path is `m/44'/7303780'/0'/0`. This suggested
+derivation path has not been standardized and may change in the future[1].
 
 === Specification ===
 
@@ -87,111 +124,197 @@ def assign_ordinals(block):
 
 === Terminology and Notation ===
 
-Ordinals may be written as the ordinal number followed by the Romance-language ordinal indicator °, for example 13°.
+Ordinals may be written as the ordinal number followed by the Romance-language
+ordinal indicator °, for example 13°.
 
-A satpoint may be used to indicate the location of an ordinal within an output. A satpoint consists of an outpoint, i.e., a transaction ID and output index, with the addition of the offset of the ordinal within that output. For example, if the ordinal in question is at offset 6 in the first output of a transaction can be written as:
+A satpoint may be used to indicate the location of an ordinal within an output.
+A satpoint consists of an outpoint, i.e., a transaction ID and output index,
+with the addition of the offset of the ordinal within that output. For example,
+if the ordinal in question is at offset 6 in the first output of a transaction
+  can be written as:
 
 `680df1e4d43016571e504b0b142ee43c5c0b83398a97bdcfd94ea6f287322d22:0:6`
 
-A slot may be used to indicate the output of an ordinal without referring to a transaction ID, by substituting the block height and transaction index within the block for the transaction ID. It is written as an x'ed quad, similar to a Lightning Network short channel ID with an additional number indicating the offset of the ordinal within the output. For example, the ordinal at offset 100 in the output at offset 1, in the coinbase transaction of block 83 can be written as:
+A slot may be used to indicate the output of an ordinal without referring to a
+transaction ID, by substituting the block height and transaction index within
+the block for the transaction ID. It is written as an x'ed quad, similar to a
+Lightning Network short channel ID with an additional number indicating the
+offset of the ordinal within the output. For example, the ordinal at offset 100
+in the output at offset 1, in the coinbase transaction of block 83 can be
+written as:
 
 `83x0x1x100`
 
-Satoshis with ordinals that are not valuable or notable can be referred to as cardinal, as their identity does not matter, only the amount. A cardinal output is one whose ordinals are unimportant for the purpose at hand, for example an output used only to provide padding to avoid creating a transaction with an output below the dust limit.
+Satoshis with ordinals that are not valuable or notable can be referred to as
+cardinal, as their identity does not matter, only the amount. A cardinal output
+is one whose ordinals are unimportant for the purpose at hand, for example an
+output used only to provide padding to avoid creating a transaction with an
+output below the dust limit.
 
 == Discussion ==
 
 === Rationale ===
 
-Ordinal numbers are designed to be orthogonal to other aspects of the Bitcoin protocol, and can thus be used in conjunction with other layer-one techniques and applications, even ones that were not designed with ordinal numbers in mind.
+Ordinal numbers are designed to be orthogonal to other aspects of the Bitcoin
+protocol, and can thus be used in conjunction with other layer-one techniques
+and applications, even ones that were not designed with ordinal numbers in
+mind.
 
-Ordinal satoshis can be secured using current and future script types. They can be held by single-signature wallets, multi-signature wallets, time-locked, and height-locked in all the usual ways.
+Ordinal satoshis can be secured using current and future script types. They can
+be held by single-signature wallets, multi-signature wallets, time-locked, and
+height-locked in all the usual ways.
 
-This orthogonality also allows them to be used with layer-two applications. A stablecoin issuer can promise to allow redemption of specific ranges of ordinals for $1 United States dollar each. Lightning Network nodes can then be used to create a USD-denominated Lightning Network, using existing software with very modest modifications.
+This orthogonality also allows them to be used with layer-two applications. A
+stablecoin issuer can promise to allow redemption of specific ranges of
+ordinals for $1 United States dollar each. Lightning Network nodes can then be
+used to create a USD-denominated Lightning Network, using existing software
+with very modest modifications.
 
-By assigning ordinal numbers to all satoshis without need for an explicit creation step, the anonymity set of ordinal number users is maximized.
+By assigning ordinal numbers to all satoshis without need for an explicit
+creation step, the anonymity set of ordinal number users is maximized.
 
-Since an ordinal number has an output that contains it, and an output has a public key that controls it, the owner of an ordinal can respond to challenges by signing messages using the public key associated with the controlling UTXO. Additionally, an ordinal can change hands, or its private key can be rotated without a change of ownership, by transferring it to a new output.
+Since an ordinal number has an output that contains it, and an output has a
+public key that controls it, the owner of an ordinal can respond to challenges
+by signing messages using the public key associated with the controlling UTXO.
+Additionally, an ordinal can change hands, or its private key can be rotated
+without a change of ownership, by transferring it to a new output.
 
-Ordinals require no changes to blocks, transactions, or network protocols, and can thus be immediately adopted, or ignored, without impacting existing users.
+Ordinals require no changes to blocks, transactions, or network protocols, and
+can thus be immediately adopted, or ignored, without impacting existing users.
 
-Ordinals do not have an explicit on-chain footprint. However, a valid objection is that adoption of ordinals will increase demand for outputs, and thus increase the size of the UTXO set that full nodes must track. See the objections section below.
+Ordinals do not have an explicit on-chain footprint. However, a valid objection
+is that adoption of ordinals will increase demand for outputs, and thus
+increase the size of the UTXO set that full nodes must track. See the
+objections section below.
 
-The ordinal number scheme is extremely simple. The specification above is 15 lines of code.
+The ordinal number scheme is extremely simple. The specification above is 15
+lines of code.
 
-Ordinals are fairly assigned. They are not premined, and are assigned proportionally to existing bitcoin holders.
+Ordinals are fairly assigned. They are not premined, and are assigned
+proportionally to existing bitcoin holders.
 
-Ordinals are as granular as possible, as bitcoin is not capable of tracking ownership of sub-satoshi values.
+Ordinals are as granular as possible, as bitcoin is not capable of tracking
+ownership of sub-satoshi values.
 
 === Transfer and the Dust Limit ===
 
-Any ordinal transfer can be accomplished in a single transaction, but the resulting transaction may contain outputs below the dust limit, and thus be non-standard and difficult to get included in a block. Consider a scenario where Alice owns an output containing the range of ordinals [0,10], the current dust limit is 5 satoshis, and Alice wishes to send send ordinals 4° and 6° to Bob, but retain ordinal 5°. Alice could construct a transaction with three outputs of size 5, 1, and 5, containing ordinals [0,4], 5, and [6,10]. The second output is under the dust limit, and so such a transaction would be non-standard.
+Any ordinal transfer can be accomplished in a single transaction, but the
+resulting transaction may contain outputs below the dust limit, and thus be
+non-standard and difficult to get included in a block. Consider a scenario
+where Alice owns an output containing the range of ordinals [0,10], the current
+dust limit is 5 satoshis, and Alice wishes to send send ordinals 4° and 6° to
+Bob, but retain ordinal 5°. Alice could construct a transaction with three
+outputs of size 5, 1, and 5, containing ordinals [0,4], 5, and [6,10]. The
+second output is under the dust limit, and so such a transaction would be
+non-standard.
 
-This transfer, and indeed any transfer, can be accomplished by breaking the transfer into multiple transactions, with each transaction performing one or more splits and merging in padding outputs as needed.
+This transfer, and indeed any transfer, can be accomplished by breaking the
+transfer into multiple transactions, with each transaction performing one or
+more splits and merging in padding outputs as needed.
 
-To wit, Alice could perform the desired transfer in two transactions. The first transaction would send ordinals [0,4] to Bob, and return as change ordinals [5,10] to Alice. The second transaction would take as inputs an output of at least 4 satoshis, the change input, and an additional input of at least one satoshi; and create an output of size 5 to Bob's address, and the remainder as a change output. Both transactions avoid creating any non-standard outputs, but still accomplish the same desired transfer of ordinals.
+To wit, Alice could perform the desired transfer in two transactions. The first
+transaction would send ordinals [0,4] to Bob, and return as change ordinals
+[5,10] to Alice. The second transaction would take as inputs an output of at
+least 4 satoshis, the change input, and an additional input of at least one
+satoshi; and create an output of size 5 to Bob's address, and the remainder as
+a change output. Both transactions avoid creating any non-standard outputs, but
+still accomplish the same desired transfer of ordinals.
 
 === Objections ===
 
 ''Privacy: Ordinal numbers are public and thus reduce user privacy.''
 
-The applications using ordinal numbers required them to be public, and reduce the privacy of only those users that decide to use them.
+The applications using ordinal numbers required them to be public, and reduce
+the privacy of only those users that decide to use them.
 
-''Fungibility: Ordinal numbers reduce the fungibility of Bitcoin, as ordinals received in a transaction may carry with them some public history.''
+''Fungibility: Ordinal numbers reduce the fungibility of Bitcoin, as ordinals
+received in a transaction may carry with them some public history.''
 
-As anyone can send anyone else any ordinals, any reasonable person will assume that a new owner of a particular ordinal cannot be understood to be the old owner, or have any particular relationship with the old owner.
+As anyone can send anyone else any ordinals, any reasonable person will assume
+that a new owner of a particular ordinal cannot be understood to be the old
+owner, or have any particular relationship with the old owner.
 
-''Congestion: Adoption of ordinal numbers will increase the demand for transactions, and drive up fees.''
+''Congestion: Adoption of ordinal numbers will increase the demand for
+transactions, and drive up fees.''
 
-Since Bitcoin requires the development of a robust fee market, this is a strong positive of the proposal.
+Since Bitcoin requires the development of a robust fee market, this is a strong
+positive of the proposal.
 
-''UTXO set bloat: Adoption of ordinal numbers will increase the demand for entries in the UTXO set, and thus increase the size of the UTXO set, which all full nodes are required to track.''
+''UTXO set bloat: Adoption of ordinal numbers will increase the demand for
+entries in the UTXO set, and thus increase the size of the UTXO set, which all
+full nodes are required to track.''
 
-The dust limit, which makes outputs with small values difficult to create, should encourage users to create non-dust outputs, and to clean them up once they no longer have use for the ordinals that they contain.
+The dust limit, which makes outputs with small values difficult to create,
+should encourage users to create non-dust outputs, and to clean them up once
+they no longer have use for the ordinals that they contain.
 
 === Security ===
 
-The public key associated with an ordinal may change. This requires actively following the blockchain to keep up with key changes, and requires care compared to a system where public keys are static. However, a system with static public keys suffers from an inability for keys to be rotated or accounts to change hands.
+The public key associated with an ordinal may change. This requires actively
+following the blockchain to keep up with key changes, and requires care
+compared to a system where public keys are static. However, a system with
+static public keys suffers from an inability for keys to be rotated or accounts
+to change hands.
 
-Ordinal-aware software must avoid destroying ordinals by unintentionally relinquishing them in a transaction, either to a non-controlled output or by using them as fees.
+Ordinal-aware software must avoid destroying ordinals by unintentionally
+relinquishing them in a transaction, either to a non-controlled output or by
+using them as fees.
 
 === Privacy considerations ===
 
 Ordinals are opt-in, and should not impact the privacy of existing users.
 
-Ordinals are themselves public, however, this is required by the fact that many of the applications that they are intended to enable require public identifiers.
+Ordinals are themselves public, however, this is required by the fact that many
+of the applications that they are intended to enable require public
+identifiers.
 
-Ordinal aware software should never mix satoshis which might have some publicly visible data associated with their ordinals with satoshis intended for use in payments or savings, since this would associate that publicly visible data with the users otherwise pseudonymous wallet outputs.
+Ordinal aware software should never mix satoshis which might have some publicly
+visible data associated with their ordinals with satoshis intended for use in
+payments or savings, since this would associate that publicly visible data with
+the users otherwise pseudonymous wallet outputs.
 
 === Fungibility considerations ===
 
-Since any ordinal can be sent to any address at any time, ordinals that are transferred, even those with some public history, should be considered to be fungible with other satoshis with no such history.
+Since any ordinal can be sent to any address at any time, ordinals that are
+transferred, even those with some public history, should be considered to be
+fungible with other satoshis with no such history.
 
 === Backward compatibility ===
 
-Ordinal numbers are fully backwards compatible and require no changes to the bitcoin network.
+Ordinal numbers are fully backwards compatible and require no changes to the
+bitcoin network.
 
 === Drawbacks ===
 
 ==== Large Index Size ====
 
-Indexes supporting fast queries related to ordinals are slow to build and consume large amounts of space.
+Indexes supporting fast queries related to ordinals are slow to build and
+consume large amounts of space.
 
-An O(1) index that maps UTXOs to the ordinals that they contain is currently 100GiB. The same index including spent outputs is 10TiB.
+An O(1) index that maps UTXOs to the ordinals that they contain is currently
+100GiB. The same index including spent outputs is 10TiB.
 
-An O(1) index supporting the opposite mapping, that of individual ordinals to the UTXO that contains them, has proven to be challenging to implement without optimization.
+An O(1) index supporting the opposite mapping, that of individual ordinals to
+the UTXO that contains them, has proven to be challenging to implement without
+optimization.
 
 ==== Large Location Proofs ====
 
-A proof can be constructed that demonstrates that a particular ordinal is contained in a particular output, however the proofs are large. Such a proof consists of:
+A proof can be constructed that demonstrates that a particular ordinal is
+contained in a particular output, however the proofs are large. Such a proof
+consists of:
 
 - Block headers
 - A merkle path to the coinbase transaction that created the ordinal
 - The coinbase transaction that created the ordinal
 - And for every spend of that ordinal:
   - The spend transaction
-  - The transactions that created the inputs before the input that was spent, to determine the values of the preceding inputs, to determine the position of the ordinal
-  - And, if the ordinal was used as fees, all prior transaction in the block in which it was spent, and the coinbase transaction, to determine the location of the ordinal in the outputs.
+  - The transactions that created the inputs before the input that was spent,
+    to determine the values of the preceding inputs, to determine the position
+    of the ordinal
+  - And, if the ordinal was used as fees, all prior transaction in the block in
+    which it was spent, and the coinbase transaction, to determine the location
+    of the ordinal in the outputs.
 
 === Compatibility with Existing and Envisaged Applications ===
 
@@ -199,65 +322,119 @@ Ordinals are compatible with many current and planned applications.
 
 ==== Covenants ====
 
-Since ordinals are borne by outputs, they can be encumbered by covenants. [https://github.com/bitcoin/bips/blob/master/bip-0119.mediawiki BIP-119] specifies OP_CTV, which constraints outputs by pre-committing to a spending transaction template. This template commits to the number, value, and order of spending transaction outputs, which allows constraining how specific ordinals are spent in future transactions.
+Since ordinals are borne by outputs, they can be encumbered by covenants.
+[https://github.com/bitcoin/bips/blob/master/bip-0119.mediawiki BIP-119]
+specifies OP_CTV, which constraints outputs by pre-committing to a spending
+transaction template. This template commits to the number, value, and order of
+spending transaction outputs, which allows constraining how specific ordinals
+are spent in future transactions.
 
 ==== The Lightning Network ====
 
-The Lightning Network cannot be used to selectively transfer individual non-fungible ordinals, however it can be used to transfer arbitrary amounts of fungible ordinals. Channels can be created with inputs whose ordinals are all colored coins of the same type, for example colored coins honored for redemption by a stablecoin issuer. These channels can be used to conduct instant, low-fee USD-denominated off-chain payments, and would require only modest changes to existing Lightning Network nodes.
+The Lightning Network cannot be used to selectively transfer individual
+non-fungible ordinals, however it can be used to transfer arbitrary amounts of
+fungible ordinals. Channels can be created with inputs whose ordinals are all
+colored coins of the same type, for example colored coins honored for
+redemption by a stablecoin issuer. These channels can be used to conduct
+instant, low-fee USD-denominated off-chain payments, and would require only
+modest changes to existing Lightning Network nodes.
 
-On channel close, fees would have to be paid by child-pays-for-parent, to avoid paying stablecoin ordinals as fees.
+On channel close, fees would have to be paid by child-pays-for-parent, to avoid
+paying stablecoin ordinals as fees.
 
 ==== Opendimes and Casascius coins ====
 
-Physical transfer of ordinals can be facilitated by loading them onto bitcoin bearer artifacts, such as Opendimes and Casascius coins.
+Physical transfer of ordinals can be facilitated by loading them onto bitcoin
+bearer artifacts, such as Opendimes and Casascius coins.
 
 ==== RGB ====
 
-[https://rgb-org.github.io/ RGB] is a proposed scheme for using sequences of single-use seals to define state transitions of off-chain, client-side-validated state machines, for example smart contract platforms. Such chains of single-use seals could be addressed by an ordinal contained in the output that starts the chain of single-use seals.
+[https://rgb-org.github.io/ RGB] is a proposed scheme for using sequences of
+single-use seals to define state transitions of off-chain,
+client-side-validated state machines, for example smart contract platforms.
+Such chains of single-use seals could be addressed by an ordinal contained in
+the output that starts the chain of single-use seals.
 
 ==== State Chains ====
 
-[https://github.com/RubenSomsen/rubensomsen.github.io/blob/master/img/statechains.pdf The state chain proposal] facilitates off-chain transfer of whole outputs, which could contain ordinals with specific meanings, for example stable coins or NFTs, allowing off-chain transfer of such digital assets.
+[https://github.com/RubenSomsen/rubensomsen.github.io/blob/master/img/statechains.pdf
+The state chain proposal] facilitates off-chain transfer of whole outputs,
+which could contain ordinals with specific meanings, for example stable coins
+or NFTs, allowing off-chain transfer of such digital assets.
 
 == Applications ==
 
 === Accounts and Authentication ===
 
-Ordinal numbers can serve as the basis for account and authentication schemes. The account issuer associates a newly created account with an ordinal number in an output controlled by the account owner. The account owner can then log in and take actions related to the account by signing messages with the private key associated with the public key associated with the output that contains the account ordinal. This key is only known to the account owner, preventing unauthorized access.
+Ordinal numbers can serve as the basis for account and authentication schemes.
+The account issuer associates a newly created account with an ordinal number in
+an output controlled by the account owner. The account owner can then log in
+and take actions related to the account by signing messages with the private
+key associated with the public key associated with the output that contains the
+account ordinal. This key is only known to the account owner, preventing
+unauthorized access.
 
-By transferring the ordinal to a new output, the owner can rotate their private key, or transfer the account to a new owner. Transferring an ordinal requires creating a transaction signed by the current outputs private key, preventing unauthorized transfer of accounts.
+By transferring the ordinal to a new output, the owner can rotate their private
+key, or transfer the account to a new owner. Transferring an ordinal requires
+creating a transaction signed by the current outputs private key, preventing
+unauthorized transfer of accounts.
 
 === Colored Coins ===
 
-Ordinals can be used as the basis for colored coin schemes. Unlike other colored coin schemes which use additional outputs or require manipulation of other parts of a transaction, ordinal-based colored coin schemes can take advantage of the full range of available script types, and other base-layer bitcoin features.
+Ordinals can be used as the basis for colored coin schemes. Unlike other
+colored coin schemes which use additional outputs or require manipulation of
+other parts of a transaction, ordinal-based colored coin schemes can take
+advantage of the full range of available script types, and other base-layer
+bitcoin features.
 
 === The DNS ===
 
-The DNS root of trust could be defined not as a specific set of public keys, but as a specific set of ordinals, which would allow for easy key rotation and updates to the set.
+The DNS root of trust could be defined not as a specific set of public keys,
+but as a specific set of ordinals, which would allow for easy key rotation and
+updates to the set.
 
 === Name Services ===
 
-A scheme, not described in this document, could be used to assign names to ordinals based on their number. These names could then be used as account names. Many such names would be gibberish, but many would be human readable. A scheme which enumerated strings of the ASCII characters `a` through `z` would assign as names all length-10 and shorter permutations of these characters.
+A scheme, not described in this document, could be used to assign names to
+ordinals based on their number. These names could then be used as account
+names. Many such names would be gibberish, but many would be human readable. A
+scheme which enumerated strings of the ASCII characters `a` through `z` would
+assign as names all length-10 and shorter permutations of these characters.
 
 === NFTs ===
 
-An artist can issue an NFT by signing a message containing a hash of a work of art that they have created, along with the number of a particular ordinal. The owner of that ordinal is the owner of that NFT, allowing ownership to be proven, and the NFT to be bought and sold, and otherwise change hands.
+An artist can issue an NFT by signing a message containing a hash of a work of
+art that they have created, along with the number of a particular ordinal. The
+owner of that ordinal is the owner of that NFT, allowing ownership to be
+proven, and the NFT to be bought and sold, and otherwise change hands.
 
-Such NFTs could be used for art, in-game assets, membership systems, or any other kind of digital asset.
+Such NFTs could be used for art, in-game assets, membership systems, or any
+other kind of digital asset.
 
-The signed message, which may contain arbitrary attributes and metadata, is not sensitive and can be widely disseminated and replicated, to ensure it is not lost.
+The signed message, which may contain arbitrary attributes and metadata, is not
+sensitive and can be widely disseminated and replicated, to ensure it is not
+lost.
 
-Scarcity of such NFTs can be guaranteed by including in the NFT messages the total number of NFTs to be issued. If this promise is violated, the set of issued NFTs serves as an easy-to-verify fraud proof that the issuance limit was exceeded.
+Scarcity of such NFTs can be guaranteed by including in the NFT messages the
+total number of NFTs to be issued. If this promise is violated, the set of
+issued NFTs serves as an easy-to-verify fraud proof that the issuance limit was
+exceeded.
 
-A judicious NFT issuer will create a new private key to sign a new set of NFTs and destroy it afterwards, to ensure the limited nature of the NFT set. Multi-party-computation can be used to provide additional assurances that overissuance cannot occur.
+A judicious NFT issuer will create a new private key to sign a new set of NFTs
+and destroy it afterwards, to ensure the limited nature of the NFT set.
+Multi-party-computation can be used to provide additional assurances that
+overissuance cannot occur.
 
 === PKI ===
 
-Instead of individual public keys serving as roots of trust for PKI systems, individual ordinals could be used, allowing for key rotation.
+Instead of individual public keys serving as roots of trust for PKI systems,
+individual ordinals could be used, allowing for key rotation.
 
 === Rare Sats ===
 
-Ordinal numbers are unique, which might encourage collectors and speculators to collect particular ordinals. Examples of potentially collectable ordinals include:
+Ordinal numbers are unique, which might encourage collectors and speculators to
+collect particular ordinals. Examples of potentially collectable ordinals
+include:
 
 * The first ordinal in a block, difficulty adjustment period, or halving epoch.
 * Ordinals consisting only of a single repeating digit.
@@ -267,27 +444,42 @@ Ordinal numbers are unique, which might encourage collectors and speculators to 
 
 === Reputation Systems ===
 
-Ordinal numbers can serve as the basis for persistent reputation systems, for example one of Lightning Network node operators. Unlike the current system of associating reputation with public keys, an ordinal-based reputation system allows for key rotation and reputation transfer.
+Ordinal numbers can serve as the basis for persistent reputation systems, for
+example one of Lightning Network node operators. Unlike the current system of
+associating reputation with public keys, an ordinal-based reputation system
+allows for key rotation and reputation transfer.
 
 === Stablecoins ===
 
-A stablecoin issuer could promise to allow redemption of a range of ordinals for one United States dollar each, minus the price of one satoshi times the number of satoshis so redeemed. Such ordinals could be transacted on-chain and on a slightly modified Lightning Network, as well as other layers.
+A stablecoin issuer could promise to allow redemption of a range of ordinals
+for one United States dollar each, minus the price of one satoshi times the
+number of satoshis so redeemed. Such ordinals could be transacted on-chain
+and on a slightly modified Lightning Network, as well as other layers.
 
 === Voting and DAOs ===
 
-A DAO or other organization may decide to allocate voting rights proportionally to ownership of a predetermined range of ordinals. Voting rights can thus be made transferable, and voting may be conducted by signing messages using public keys associated with the outputs holding vote-bearing ordinals.
+A DAO or other organization may decide to allocate voting rights proportionally
+to ownership of a predetermined range of ordinals. Voting rights can thus be
+made transferable, and voting may be conducted by signing messages using public
+keys associated with the outputs holding vote-bearing ordinals.
 
 == Reference implementation ==
 
-This document, along with an implementation of an ordinal index that tracks the position of ordinals in the main chain, is available [https://github.com/casey/ord here].
+This document, along with an implementation of an ordinal index that tracks the
+position of ordinals in the main chain, is available
+[https://github.com/casey/ord here].
 
 == References ==
 
-A variation of this scheme was independently invented a decade ago by jl2012 [https://bitcointalk.org/index.php?topic=117224.0 on the Bitcoin Forum].
+A variation of this scheme was independently invented a decade ago by jl2012
+[https://bitcointalk.org/index.php?topic=117224.0 on the Bitcoin Forum].
 
-For other colored coin proposals see [https://en.bitcoin.it/wiki/Colored_Coins the Bitcoin Wiki entry].
+For other colored coin proposals see [https://en.bitcoin.it/wiki/Colored_Coins
+the Bitcoin Wiki entry].
 
 For aliases, an implementation of short on-chain identifiers, see BIP 15.
 
-[0] With the exception of being word #1405 in the BIP-39 Portuguese word list. Me perdoe!
+[0] With the exception of being word #1405 in the BIP-39 Portuguese word list.
+Me perdoe!
+
 [1] 7303780 is the decimal representation of the ASCII string 'ord'.
