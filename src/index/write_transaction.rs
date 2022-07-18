@@ -48,9 +48,4 @@ impl<'a> WriteTransaction<'a> {
   pub(crate) fn get_ordinal_ranges(&self, outpoint: &[u8]) -> Result<Option<&[u8]>> {
     Ok(self.outpoint_to_ordinal_ranges.get(outpoint)?)
   }
-
-  pub(crate) fn commit(self) -> Result {
-    self.inner.commit()?;
-    Ok(())
-  }
 }
