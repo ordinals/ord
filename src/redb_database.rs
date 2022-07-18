@@ -50,17 +50,6 @@ impl Database {
 
     Ok(None)
   }
-
-  pub(crate) fn list(&self, outpoint: &[u8]) -> Result<Option<Vec<u8>>> {
-    Ok(
-      self
-        .0
-        .begin_read()?
-        .open_table(&OUTPOINT_TO_ORDINAL_RANGES)?
-        .get(outpoint)?
-        .map(|outpoint| outpoint.to_vec()),
-    )
-  }
 }
 
 pub(crate) struct WriteTransaction<'a> {

@@ -278,10 +278,22 @@ impl Index {
     self.database.find(ordinal)
   }
 
+  pub(crate) fn list_inner(&self, outpoint: &[u8]) -> Result<Option<Vec<u8>>> {
+    Ok(
+      self
+        .database
+        .0
+        .begin_read()?
+        .open_table(&OUTPOINT_TO_ORDINAL_RANGES)?
+        .get(outpoint)?
+        .map(|outpoint| outpoint.to_vec()),
+    )
+  }
+
   pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<Vec<(u64, u64)>>> {
     let mut outpoint_encoded = Vec::new();
     outpoint.consensus_encode(&mut outpoint_encoded)?;
-    let ordinal_ranges = self.database.list(&outpoint_encoded)?;
+    let ordinal_ranges = self.list_inner(&outpoint_encoded)?;
     match ordinal_ranges {
       Some(ordinal_ranges) => {
         let mut output = Vec::new();
