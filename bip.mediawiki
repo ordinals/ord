@@ -475,6 +475,7 @@ the Bitcoin Wiki entry].
 
 For aliases, an implementation of short on-chain identifiers, see BIP 15.
 
-[0] With the exception of being word #1405 in the BIP-39 Portuguese word list. Me perdoe!
+[0] With the exception of being word #1405 in the BIP-39 Portuguese word list.
+Me perdoe!
 
 [1] 7303780 is the decimal representation of the ASCII string 'ord'.
