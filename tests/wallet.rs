@@ -2,17 +2,24 @@ use super::*;
 
 #[test]
 fn init() -> Result {
-  Test::new()?
+  let tempdir = Test::new()?
     .command("wallet init")
     .set_home_to_tempdir()
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
-    .expected_path(if cfg!(target_os = "macos") {
+    .output()?
+    .tempdir;
+
+  assert!(tempdir
+    .path()
+    .join(if cfg!(target_os = "macos") {
       "Library/Application Support/ord/wallet.sqlite"
     } else {
       ".local/share/ord/wallet.sqlite"
     })
-    .run()
+    .exists());
+
+  Ok(())
 }
 
 #[test]

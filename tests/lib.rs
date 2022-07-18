@@ -87,7 +87,6 @@ struct Test {
   args: Vec<String>,
   env: Vec<(String, String)>,
   events: Vec<Event>,
-  expected_path: Option<String>,
   expected_status: i32,
   expected_stderr: Option<String>,
   expected_stdout: Expected,
@@ -104,7 +103,6 @@ impl Test {
       args: Vec::new(),
       env: Vec::new(),
       events: Vec::new(),
-      expected_path: None,
       expected_status: 0,
       expected_stderr: None,
       expected_stdout: Expected::String(String::new()),
@@ -170,13 +168,6 @@ impl Test {
   fn expected_status(self, expected_status: i32) -> Self {
     Self {
       expected_status,
-      ..self
-    }
-  }
-
-  fn expected_path(self, expected_path: &str) -> Self {
-    Self {
-      expected_path: Some(expected_path.to_owned()),
       ..self
     }
   }
@@ -323,10 +314,6 @@ impl Test {
         stdout
       ),
       Expected::Ignore => {}
-    }
-
-    if let Some(expected_path) = self.expected_path {
-      assert!(self.tempdir.path().join(expected_path).exists());
     }
 
     assert_eq!(
