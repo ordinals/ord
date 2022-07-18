@@ -40,7 +40,34 @@ impl Index {
   }
 
   pub(crate) fn print_info(&self) -> Result {
-    self.database.print_info()
+    let tx = self.database.0.begin_read()?;
+
+    let height_to_hash = tx.open_table(&HEIGHT_TO_HASH)?;
+
+    let blocks_indexed = height_to_hash
+      .range(0..)?
+      .rev()
+      .next()
+      .map(|(height, _hash)| height + 1)
+      .unwrap_or(0);
+
+    let outputs_indexed = tx.open_table(&OUTPOINT_TO_ORDINAL_RANGES)?.len()?;
+
+    let stats = self.database.0.stats()?;
+
+    println!("blocks indexed: {}", blocks_indexed);
+    println!("outputs indexed: {}", outputs_indexed);
+    println!("tree height: {}", stats.tree_height());
+    println!("free pages: {}", stats.free_pages());
+    println!("stored: {}", Bytes(stats.stored_bytes()));
+    println!("overhead: {}", Bytes(stats.overhead_bytes()));
+    println!("fragmented: {}", Bytes(stats.fragmented_bytes()));
+    println!(
+      "index size: {}",
+      Bytes(std::fs::metadata("index.redb")?.len().try_into()?)
+    );
+
+    Ok(())
   }
 
   pub(crate) fn decode_ordinal_range(bytes: [u8; 11]) -> (u64, u64) {
