@@ -85,7 +85,7 @@ struct TransactionOptions<'a> {
 
 struct Test {
   args: Vec<String>,
-  env: Vec<(String, String)>,
+  envs: Vec<(String, String)>,
   events: Vec<Event>,
   expected_status: i32,
   expected_stderr: Option<String>,
@@ -101,7 +101,7 @@ impl Test {
   fn with_tempdir(tempdir: TempDir) -> Self {
     Self {
       args: Vec::new(),
-      env: Vec::new(),
+      envs: Vec::new(),
       events: Vec::new(),
       expected_status: 0,
       expected_stderr: None,
@@ -145,12 +145,12 @@ impl Test {
   }
 
   fn set_home_to_tempdir(mut self) -> Self {
-    self.env.push((
+    self.envs.push((
       "HOME".to_string(),
       self.tempdir.path().to_str().unwrap().to_string(),
     ));
 
-    self.env.push((
+    self.envs.push((
       "XDG_DATA_HOME".to_string(),
       self.tempdir.path().to_str().unwrap().to_string(),
     ));
@@ -221,7 +221,7 @@ impl Test {
     };
 
     let child = Command::new(executable_path("ord"))
-      .envs(self.env)
+      .envs(self.envs)
       .stdin(Stdio::null())
       .stdout(Stdio::piped())
       .stderr(if self.expected_stderr.is_some() {
