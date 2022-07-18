@@ -52,7 +52,11 @@ inputs and outputs.
 If a transaction is mined with the same transaction ID as outputs currently in
 the UTXO set, following the behavior of Bitcoin Core, the new transaction
 outputs displace the older UTXO set entries, destroying the ordinals contained
-in any unspent outputs of the first transaction.
+in any unspent outputs of the first transaction. This rule is required to
+handle the two pairs of mainnet transactions with duplicate transaction IDs,
+namely the coinbase transactions of blocks 91812/91842, and 91722/91880, mined
+before [https://github.com/bitcoin/bips/blob/master/bip-0034.mediawiki BIP-34]
+made the creation of transactions with duplicate IDs impossible.
 
 For the purposes of the assignment algorithm, the coinbase transaction is
 considered to have an implicit input equal in size to the subsidy, followed by
