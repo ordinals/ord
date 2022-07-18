@@ -26,21 +26,6 @@ impl Database {
     WriteTransaction::new(&self.0)
   }
 
-  pub(crate) fn height(&self) -> Result<u64> {
-    let tx = self.0.begin_read()?;
-
-    let height_to_hash = tx.open_table(&HEIGHT_TO_HASH)?;
-
-    Ok(
-      height_to_hash
-        .range(0..)?
-        .rev()
-        .next()
-        .map(|(height, _hash)| height + 1)
-        .unwrap_or(0),
-    )
-  }
-
   pub(crate) fn find(&self, ordinal: Ordinal) -> Result<Option<SatPoint>> {
     let rtx = self.0.begin_read()?;
 

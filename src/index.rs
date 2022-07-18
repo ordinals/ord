@@ -194,6 +194,21 @@ impl Index {
     }
   }
 
+  pub(crate) fn height(&self) -> Result<u64> {
+    let tx = self.database.0.begin_read()?;
+
+    let height_to_hash = tx.open_table(&HEIGHT_TO_HASH)?;
+
+    Ok(
+      height_to_hash
+        .range(0..)?
+        .rev()
+        .next()
+        .map(|(height, _hash)| height + 1)
+        .unwrap_or(0),
+    )
+  }
+
   fn index_transaction(
     &self,
     txid: Txid,
@@ -256,7 +271,7 @@ impl Index {
   }
 
   pub(crate) fn find(&self, ordinal: Ordinal) -> Result<Option<SatPoint>> {
-    if self.database.height()? <= ordinal.height().0 {
+    if self.height()? <= ordinal.height().0 {
       return Ok(None);
     }
 
