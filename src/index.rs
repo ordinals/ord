@@ -4,10 +4,14 @@ use {
   rayon::iter::{IntoParallelRefIterator, ParallelIterator},
 };
 
+const HEIGHT_TO_HASH: TableDefinition<u64, [u8]> = TableDefinition::new("HEIGHT_TO_HASH");
+const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8], [u8]> =
+  TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
+
 pub(crate) struct WriteTransaction<'a> {
-  inner: redb::DatabaseTransaction<'a>,
-  height_to_hash: redb::Table<'a, u64, [u8]>,
-  outpoint_to_ordinal_ranges: redb::Table<'a, [u8], [u8]>,
+  inner: DatabaseTransaction<'a>,
+  height_to_hash: Table<'a, u64, [u8]>,
+  outpoint_to_ordinal_ranges: Table<'a, [u8], [u8]>,
 }
 
 impl<'a> WriteTransaction<'a> {
@@ -68,7 +72,7 @@ impl<'a> WriteTransaction<'a> {
 
 pub(crate) struct Index {
   client: Client,
-  database: redb::Database,
+  database: Database,
 }
 
 impl Index {

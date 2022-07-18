@@ -21,7 +21,7 @@ use {
   integer_sqrt::IntegerSquareRoot,
   lazy_static::lazy_static,
   qrcode_generator::QrCodeEcc,
-  redb::{ReadableTable, TableDefinition},
+  redb::{Database, DatabaseTransaction, ReadableTable, Table, TableDefinition},
   secp256k1::{rand, schnorr::Signature, KeyPair, Secp256k1, SecretKey, XOnlyPublicKey},
   serde::{Deserialize, Serialize},
   std::{
@@ -46,10 +46,6 @@ use {
   tokio::runtime::Runtime,
   tower_http::cors::{Any, CorsLayer},
 };
-
-const HEIGHT_TO_HASH: TableDefinition<u64, [u8]> = TableDefinition::new("HEIGHT_TO_HASH");
-const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8], [u8]> =
-  TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
 
 mod arguments;
 mod bytes;
