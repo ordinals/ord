@@ -1280,15 +1280,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2dffe52ecf27772e601905b7522cb4ef790d2cc203488bbd0e2fe85fcb74566d"
 
 [[package]]
-name = "memmap2"
-version = "0.5.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d5172b50c23043ff43dd53e51392f36519d9b35a8f3a410d30ece5d1aedd58ae"
-dependencies = [
- "libc",
-]
-
-[[package]]
 name = "memoffset"
 version = "0.6.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1914,12 +1905,11 @@ dependencies = [
 
 [[package]]
 name = "redb"
-version = "0.0.5"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "49648fe45ea8e0205024fae151ac253398a05dd2cc1eebda32ac0d0e2674e7c1"
+checksum = "73ef901de04afd870ef0bb84980dc24e3cf8425b6cef49102122a446cebf7f2a"
 dependencies = [
  "libc",
- "memmap2",
 ]
 
 [[package]]

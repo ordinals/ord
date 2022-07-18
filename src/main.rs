@@ -21,7 +21,7 @@ use {
   integer_sqrt::IntegerSquareRoot,
   lazy_static::lazy_static,
   qrcode_generator::QrCodeEcc,
-  redb::{Database, ReadableTable, Table, TableDefinition},
+  redb::{Database, ReadableTable, Table, TableDefinition, WriteTransaction},
   secp256k1::{rand, schnorr::Signature, KeyPair, Secp256k1, SecretKey, XOnlyPublicKey},
   serde::{Deserialize, Serialize},
   std::{

@@ -38,8 +38,8 @@ impl Index {
 
     let tx = database.begin_write()?;
 
-    tx.open_table(&HEIGHT_TO_HASH)?;
-    tx.open_table(&OUTPOINT_TO_ORDINAL_RANGES)?;
+    tx.open_table(HEIGHT_TO_HASH)?;
+    tx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
 
     tx.commit()?;
 
@@ -56,9 +56,9 @@ impl Index {
   }
 
   pub(crate) fn print_info(&self) -> Result {
-    let tx = self.database.begin_read()?;
+    let wtx = self.database.begin_write()?;
 
-    let height_to_hash = tx.open_table(&HEIGHT_TO_HASH)?;
+    let height_to_hash = wtx.open_table(HEIGHT_TO_HASH)?;
 
     let blocks_indexed = height_to_hash
       .range(0..)?
@@ -67,16 +67,16 @@ impl Index {
       .map(|(height, _hash)| height + 1)
       .unwrap_or(0);
 
-    let outputs_indexed = tx.open_table(&OUTPOINT_TO_ORDINAL_RANGES)?.len()?;
+    let outputs_indexed = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?.len()?;
 
-    let stats = self.database.stats()?;
+    let stats = wtx.stats()?;
 
     println!("blocks indexed: {}", blocks_indexed);
     println!("outputs indexed: {}", outputs_indexed);
     println!("tree height: {}", stats.tree_height());
     println!("free pages: {}", stats.free_pages());
     println!("stored: {}", Bytes(stats.stored_bytes()));
-    println!("overhead: {}", Bytes(stats.overhead_bytes()));
+    println!("overhead: {}", Bytes(stats.metadata_bytes()));
     println!("fragmented: {}", Bytes(stats.fragmented_bytes()));
     println!(
       "index size: {}",
@@ -102,127 +102,134 @@ impl Index {
 
   pub(crate) fn index_ranges(&self) -> Result {
     let mut wtx = self.database.begin_write()?;
-    let mut height_to_hash = wtx.open_table(&HEIGHT_TO_HASH)?;
-    let mut outpoint_to_ordinal_ranges = wtx.open_table(&OUTPOINT_TO_ORDINAL_RANGES)?;
 
-    loop {
-      let start = Instant::now();
-      let mut ordinal_ranges_written = 0;
+    for i in 0.. {
+      let done = self.index_block(&mut wtx)?;
 
-      let height = height_to_hash
-        .range(0..)?
-        .rev()
-        .next()
-        .map(|(height, _hash)| height + 1)
-        .unwrap_or(0);
-
-      let block = match self.block(height)? {
-        Some(block) => block,
-        None => {
-          wtx.commit()?;
-          return Ok(());
-        }
-      };
-
-      let time: DateTime<Utc> = DateTime::from_utc(
-        NaiveDateTime::from_timestamp(block.header.time as i64, 0),
-        Utc,
-      );
-
-      log::info!(
-        "Block {height} at {} with {} transactions…",
-        time,
-        block.txdata.len()
-      );
-
-      if let Some(prev_height) = height.checked_sub(1) {
-        let prev_hash = height_to_hash.get(&prev_height)?.unwrap();
-
-        if prev_hash != block.header.prev_blockhash.as_ref() {
-          return Err(anyhow!("Reorg detected at or before {prev_height}"));
-        }
+      if done || INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
+        wtx.commit()?;
+        break;
       }
 
-      let mut coinbase_inputs = VecDeque::new();
-
-      let h = Height(height);
-      if h.subsidy() > 0 {
-        let start = h.starting_ordinal();
-        coinbase_inputs.push_front((start.n(), (start + h.subsidy()).n()));
-      }
-
-      let txdata = block
-        .txdata
-        .as_slice()
-        .par_iter()
-        .map(|tx| (tx.txid(), tx))
-        .collect::<Vec<(Txid, &Transaction)>>();
-
-      for (tx_offset, (txid, tx)) in txdata.iter().enumerate().skip(1) {
-        log::trace!("Indexing transaction {tx_offset}…");
-
-        let mut input_ordinal_ranges = VecDeque::new();
-
-        for input in &tx.input {
-          let mut key = Vec::new();
-          input.previous_output.consensus_encode(&mut key)?;
-
-          let ordinal_ranges = outpoint_to_ordinal_ranges
-            .get(key.as_slice())?
-            .ok_or_else(|| anyhow!("Could not find outpoint in index"))?;
-
-          for chunk in ordinal_ranges.chunks_exact(11) {
-            input_ordinal_ranges.push_back(Self::decode_ordinal_range(chunk.try_into().unwrap()));
-          }
-
-          outpoint_to_ordinal_ranges.remove(&key)?;
-        }
-
-        self.index_transaction(
-          *txid,
-          tx,
-          &mut outpoint_to_ordinal_ranges,
-          &mut input_ordinal_ranges,
-          &mut ordinal_ranges_written,
-        )?;
-
-        coinbase_inputs.extend(input_ordinal_ranges);
-      }
-
-      if let Some((txid, tx)) = txdata.first() {
-        self.index_transaction(
-          *txid,
-          tx,
-          &mut outpoint_to_ordinal_ranges,
-          &mut coinbase_inputs,
-          &mut ordinal_ranges_written,
-        )?;
-      }
-
-      height_to_hash.insert(&height, &block.block_hash())?;
-      if height % 1000 == 0 {
+      if i % 1000 == 0 {
         wtx.commit()?;
         wtx = self.database.begin_write()?;
-        height_to_hash = wtx.open_table(&HEIGHT_TO_HASH)?;
-        outpoint_to_ordinal_ranges = wtx.open_table(&OUTPOINT_TO_ORDINAL_RANGES)?;
-      }
-
-      log::info!(
-        "Wrote {ordinal_ranges_written} ordinal ranges in {}ms",
-        (Instant::now() - start).as_millis(),
-      );
-
-      if INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
-        wtx.commit()?;
-        return Ok(());
       }
     }
+
+    Ok(())
+  }
+
+  pub(crate) fn index_block(&self, wtx: &mut WriteTransaction) -> Result<bool> {
+    let mut height_to_hash = wtx.open_table(HEIGHT_TO_HASH)?;
+    let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
+
+    let start = Instant::now();
+    let mut ordinal_ranges_written = 0;
+
+    let height = height_to_hash
+      .range(0..)?
+      .rev()
+      .next()
+      .map(|(height, _hash)| height + 1)
+      .unwrap_or(0);
+
+    let block = match self.block(height)? {
+      Some(block) => block,
+      None => {
+        return Ok(true);
+      }
+    };
+
+    let time: DateTime<Utc> = DateTime::from_utc(
+      NaiveDateTime::from_timestamp(block.header.time as i64, 0),
+      Utc,
+    );
+
+    log::info!(
+      "Block {height} at {} with {} transactions…",
+      time,
+      block.txdata.len()
+    );
+
+    if let Some(prev_height) = height.checked_sub(1) {
+      let prev_hash = height_to_hash.get(&prev_height)?.unwrap();
+
+      if prev_hash != block.header.prev_blockhash.as_ref() {
+        return Err(anyhow!("Reorg detected at or before {prev_height}"));
+      }
+    }
+
+    let mut coinbase_inputs = VecDeque::new();
+
+    let h = Height(height);
+    if h.subsidy() > 0 {
+      let start = h.starting_ordinal();
+      coinbase_inputs.push_front((start.n(), (start + h.subsidy()).n()));
+    }
+
+    let txdata = block
+      .txdata
+      .as_slice()
+      .par_iter()
+      .map(|tx| (tx.txid(), tx))
+      .collect::<Vec<(Txid, &Transaction)>>();
+
+    for (tx_offset, (txid, tx)) in txdata.iter().enumerate().skip(1) {
+      log::trace!("Indexing transaction {tx_offset}…");
+
+      let mut input_ordinal_ranges = VecDeque::new();
+
+      for input in &tx.input {
+        let mut key = Vec::new();
+        input.previous_output.consensus_encode(&mut key)?;
+
+        let ordinal_ranges = outpoint_to_ordinal_ranges
+          .get(key.as_slice())?
+          .ok_or_else(|| anyhow!("Could not find outpoint in index"))?;
+
+        for chunk in ordinal_ranges.chunks_exact(11) {
+          input_ordinal_ranges.push_back(Self::decode_ordinal_range(chunk.try_into().unwrap()));
+        }
+
+        outpoint_to_ordinal_ranges.remove(&key)?;
+      }
+
+      self.index_transaction(
+        *txid,
+        tx,
+        &mut outpoint_to_ordinal_ranges,
+        &mut input_ordinal_ranges,
+        &mut ordinal_ranges_written,
+      )?;
+
+      coinbase_inputs.extend(input_ordinal_ranges);
+    }
+
+    if let Some((txid, tx)) = txdata.first() {
+      self.index_transaction(
+        *txid,
+        tx,
+        &mut outpoint_to_ordinal_ranges,
+        &mut coinbase_inputs,
+        &mut ordinal_ranges_written,
+      )?;
+    }
+
+    height_to_hash.insert(&height, &block.block_hash())?;
+
+    log::info!(
+      "Wrote {ordinal_ranges_written} ordinal ranges in {}ms",
+      (Instant::now() - start).as_millis(),
+    );
+
+    Ok(false)
   }
 
   pub(crate) fn height(&self) -> Result<u64> {
     let tx = self.database.begin_read()?;
 
-    let height_to_hash = tx.open_table(&HEIGHT_TO_HASH)?;
+    let height_to_hash = tx.open_table(HEIGHT_TO_HASH)?;
 
     Ok(
       height_to_hash
@@ -302,7 +309,7 @@ impl Index {
 
     let rtx = self.database.begin_read()?;
 
-    let outpoint_to_ordinal_ranges = rtx.open_table(&OUTPOINT_TO_ORDINAL_RANGES)?;
+    let outpoint_to_ordinal_ranges = rtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
 
     let mut cursor = outpoint_to_ordinal_ranges.range([]..)?;
 
@@ -329,7 +336,7 @@ impl Index {
       self
         .database
         .begin_read()?
-        .open_table(&OUTPOINT_TO_ORDINAL_RANGES)?
+        .open_table(OUTPOINT_TO_ORDINAL_RANGES)?
         .get(outpoint)?
         .map(|outpoint| outpoint.to_vec()),
     )
