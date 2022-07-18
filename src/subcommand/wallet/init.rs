@@ -5,10 +5,10 @@ use bdk::{
     rpc::{Auth, RpcBlockchain, RpcConfig},
     ConfigurableBlockchain,
   },
-  database::memory::MemoryDatabase,
+  database::SqliteDatabase,
   keys::{
     bip39::{Language, Mnemonic, WordCount},
-    DerivableKey, GeneratableKey, GeneratedKey,
+    DerivableKey, GeneratableKey,
   },
   miniscript::miniscript::Segwitv0,
   template::Bip84,
@@ -19,8 +19,8 @@ use bdk::{
 fn generate_key() -> Result<impl DerivableKey<Segwitv0> + Clone> {
   let password = Some("password".to_string());
 
-  let mnemonic: GeneratedKey<_, _> = Mnemonic::generate((WordCount::Words12, Language::English))
-    .map_err(|e| e.expect("Failed to generate key"))?;
+  let mnemonic = Mnemonic::generate((WordCount::Words12, Language::English))
+    .map_err(|err| err.expect("Failed to generate mnemonic"))?;
 
   Ok((mnemonic, password))
 }
@@ -34,7 +34,7 @@ pub(crate) fn run(options: Options) -> Result {
     Bip84(key.clone(), KeychainKind::External),
     Some(Bip84(key.clone(), KeychainKind::Internal)),
     Network::Regtest,
-    MemoryDatabase::new(),
+    SqliteDatabase::new("foo".into()),
   )?;
 
   wallet.sync(
