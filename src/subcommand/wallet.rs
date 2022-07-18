@@ -12,7 +12,7 @@ fn get_key() -> Result<impl DerivableKey<Segwitv0> + Clone> {
 
 fn get_wallet() -> Result<bdk::wallet::Wallet<SqliteDatabase>> {
   let db_path = data_dir()
-    .ok_or(anyhow!("Failed to retrieve data dir"))?
+    .ok_or_else(|| anyhow!("Failed to retrieve data dir"))?
     .join("ord");
 
   if !db_path.exists() {
@@ -27,7 +27,7 @@ fn get_wallet() -> Result<bdk::wallet::Wallet<SqliteDatabase>> {
       db_path
         .join("wallet.sqlite")
         .to_str()
-        .ok_or(anyhow!("Failed to convert path to str"))?
+        .ok_or_else(|| anyhow!("Failed to convert path to str"))?
         .to_string(),
     ),
   )?)

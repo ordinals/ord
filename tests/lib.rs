@@ -6,7 +6,6 @@ use {
     blockdata::constants::COIN_VALUE, blockdata::script, consensus::Encodable, Block, BlockHash,
     BlockHeader, OutPoint, Transaction, TxIn, TxOut, Witness,
   },
-  dirs::data_dir,
   executable_path::executable_path,
   nix::{
     sys::signal::{self, Signal},
@@ -15,11 +14,9 @@ use {
   regex::Regex,
   std::{
     collections::BTreeSet,
-    env,
     error::Error,
     fs,
     net::TcpListener,
-    path::PathBuf,
     process::{Command, Stdio},
     str,
     sync::{Arc, Mutex},
@@ -323,12 +320,7 @@ impl Test {
     }
 
     if let Some(expected_path) = self.expected_path {
-      assert!(PathBuf::from(format!(
-        "{}/{}",
-        self.tempdir.path().display(),
-        expected_path
-      ))
-      .exists());
+      assert!(self.tempdir.path().join(expected_path).exists());
     }
 
     assert_eq!(

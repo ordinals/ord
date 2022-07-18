@@ -9,18 +9,11 @@ use {
   axum::{extract, http::StatusCode, response::IntoResponse, routing::get, Json, Router},
   axum_server::Handle,
   bdk::{
-    blockchain::{
-      rpc::{Auth, RpcBlockchain, RpcConfig},
-      ConfigurableBlockchain,
-    },
     database::SqliteDatabase,
-    keys::{
-      bip39::{Language, Mnemonic, WordCount},
-      DerivableKey, GeneratableKey,
-    },
+    keys::{bip39::Mnemonic, DerivableKey},
     miniscript::miniscript::Segwitv0,
     template::Bip84,
-    wallet::{wallet_name_from_descriptor, AddressIndex::LastUnused, SyncOptions},
+    wallet::AddressIndex::LastUnused,
     KeychainKind,
   },
   bech32::{FromBase32, ToBase32},
@@ -32,6 +25,7 @@ use {
   chrono::{DateTime, NaiveDateTime, Utc},
   clap::Parser,
   derive_more::{Display, FromStr},
+  dirs::data_dir,
   integer_cbrt::IntegerCubeRoot,
   integer_sqrt::IntegerSquareRoot,
   lazy_static::lazy_static,
@@ -59,7 +53,6 @@ use {
   },
   tokio::runtime::Runtime,
   tower_http::cors::{Any, CorsLayer},
-  dirs::data_dir
 };
 
 #[cfg(feature = "redb")]
