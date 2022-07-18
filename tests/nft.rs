@@ -18,7 +18,7 @@ fn mint_and_verify() -> Result {
     .output()?;
 
   Test::with_tempdir(output.tempdir)
-    .command("verify --input-path foo.nft")
+    .command("verify foo.nft")
     .expected_stderr(
       "NFT is valid!
 Ordinal: 0

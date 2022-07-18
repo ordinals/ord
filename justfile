@@ -25,9 +25,9 @@ install-dev-deps:
   cargo install cargo-criterion
 
 deploy branch='master':
-  ssh root@65.108.68.37 mkdir -p deploy
-  rsync -avz deploy/checkout root@65.108.68.37:deploy/checkout
-  ssh root@65.108.68.37 'cd deploy && ./checkout {{branch}}'
+  ssh root@signet.ordinals.com mkdir -p deploy
+  rsync -avz deploy/checkout root@signet.ordinals.com:deploy/checkout
+  ssh root@signet.ordinals.com 'cd deploy && ./checkout {{branch}}'
 
 test-deploy:
   ssh-keygen -f ~/.ssh/known_hosts -R 192.168.56.4
