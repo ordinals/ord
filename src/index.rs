@@ -101,23 +101,17 @@ impl Index {
   }
 
   pub(crate) fn index_ranges(&self) -> Result {
-    let mut wtx = self.database.begin_write()?;
+    loop {
+      let mut wtx = self.database.begin_write()?;
 
-    for i in 0.. {
       let done = self.index_block(&mut wtx)?;
 
-      if done || INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
-        wtx.commit()?;
-        break;
-      }
+      wtx.commit()?;
 
-      if i % 1000 == 0 {
-        wtx.commit()?;
-        wtx = self.database.begin_write()?;
+      if done || INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
+        return Ok(());
       }
     }
-
-    Ok(())
   }
 
   pub(crate) fn index_block(&self, wtx: &mut WriteTransaction) -> Result<bool> {
