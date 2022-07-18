@@ -27,11 +27,6 @@ impl<'a> WriteTransaction<'a> {
     })
   }
 
-  pub(crate) fn commit(self) -> Result {
-    self.inner.commit()?;
-    Ok(())
-  }
-
   pub(crate) fn height(&self) -> Result<u64> {
     Ok(
       self
@@ -174,7 +169,7 @@ impl Index {
       let block = match self.block(height)? {
         Some(block) => block,
         None => {
-          wtx.commit()?;
+          wtx.inner.commit()?;
           return Ok(());
         }
       };
@@ -256,7 +251,7 @@ impl Index {
 
       wtx.set_blockhash_at_height(height, block.block_hash())?;
       if height % 1000 == 0 {
-        wtx.commit()?;
+        wtx.inner.commit()?;
         wtx = WriteTransaction::new(&self.database)?;
       }
 
@@ -266,7 +261,7 @@ impl Index {
       );
 
       if INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
-        wtx.commit()?;
+        wtx.inner.commit()?;
         return Ok(());
       }
     }
