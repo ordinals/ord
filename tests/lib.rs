@@ -15,6 +15,7 @@ use {
   std::{
     collections::BTreeSet,
     error::Error,
+    ffi::OsString,
     fs,
     net::TcpListener,
     process::{Command, Stdio},
@@ -85,7 +86,7 @@ struct TransactionOptions<'a> {
 
 struct Test {
   args: Vec<String>,
-  envs: Vec<(String, String)>,
+  envs: Vec<(OsString, OsString)>,
   events: Vec<Event>,
   expected_status: i32,
   expected_stderr: Option<String>,
@@ -146,13 +147,13 @@ impl Test {
 
   fn set_home_to_tempdir(mut self) -> Self {
     self.envs.push((
-      "HOME".to_string(),
-      self.tempdir.path().to_str().unwrap().to_string(),
+      OsString::from("HOME"),
+      OsString::from(self.tempdir.path().to_str().unwrap()),
     ));
 
     self.envs.push((
-      "XDG_DATA_HOME".to_string(),
-      self.tempdir.path().to_str().unwrap().to_string(),
+      OsString::from("XDG_DATA_HOME".to_string()),
+      OsString::from(self.tempdir.path().to_str().unwrap()),
     ));
 
     self
