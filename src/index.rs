@@ -31,7 +31,7 @@ impl Index {
     let database = match unsafe { redb::Database::open("index.redb") } {
       Ok(database) => database,
       Err(redb::Error::Io(error)) if error.kind() == io::ErrorKind::NotFound => unsafe {
-        redb::Database::create("index.redb", options.index_size.0)?
+        redb::Database::create("index.redb", options.max_index_size.0)?
       },
       Err(error) => return Err(error.into()),
     };
@@ -109,9 +109,11 @@ impl Index {
       wtx.commit()?;
 
       if done || INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
-        return Ok(());
+        break;
       }
     }
+
+    Ok(())
   }
 
   pub(crate) fn index_block(&self, wtx: &mut WriteTransaction) -> Result<bool> {
