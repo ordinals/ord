@@ -4,6 +4,10 @@ use {
   rayon::iter::{IntoParallelRefIterator, ParallelIterator},
 };
 
+const HEIGHT_TO_HASH: TableDefinition<u64, [u8]> = TableDefinition::new("HEIGHT_TO_HASH");
+const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8], [u8]> =
+  TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
+
 pub(crate) struct Index {
   client: Client,
   database: Database,
@@ -24,10 +28,22 @@ impl Index {
     )
     .context("Failed to connect to RPC URL")?;
 
-    Ok(Self {
-      client,
-      database: Database::open(options).context("Failed to open database")?,
-    })
+    let database = match unsafe { redb::Database::open("index.redb") } {
+      Ok(database) => database,
+      Err(redb::Error::Io(error)) if error.kind() == io::ErrorKind::NotFound => unsafe {
+        redb::Database::create("index.redb", options.max_index_size.0)?
+      },
+      Err(error) => return Err(error.into()),
+    };
+
+    let tx = database.begin_write()?;
+
+    tx.open_table(HEIGHT_TO_HASH)?;
+    tx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
+
+    tx.commit()?;
+
+    Ok(Self { client, database })
   }
 
   #[allow(clippy::self_named_constructors)]
@@ -40,7 +56,34 @@ impl Index {
   }
 
   pub(crate) fn print_info(&self) -> Result {
-    self.database.print_info()
+    let wtx = self.database.begin_write()?;
+
+    let height_to_hash = wtx.open_table(HEIGHT_TO_HASH)?;
+
+    let blocks_indexed = height_to_hash
+      .range(0..)?
+      .rev()
+      .next()
+      .map(|(height, _hash)| height + 1)
+      .unwrap_or(0);
+
+    let outputs_indexed = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?.len()?;
+
+    let stats = wtx.stats()?;
+
+    println!("blocks indexed: {}", blocks_indexed);
+    println!("outputs indexed: {}", outputs_indexed);
+    println!("tree height: {}", stats.tree_height());
+    println!("free pages: {}", stats.free_pages());
+    println!("stored: {}", Bytes(stats.stored_bytes()));
+    println!("overhead: {}", Bytes(stats.metadata_bytes()));
+    println!("fragmented: {}", Bytes(stats.fragmented_bytes()));
+    println!(
+      "index size: {}",
+      Bytes(std::fs::metadata("index.redb")?.len().try_into()?)
+    );
+
+    Ok(())
   }
 
   pub(crate) fn decode_ordinal_range(bytes: [u8; 11]) -> (u64, u64) {
@@ -58,120 +101,147 @@ impl Index {
   }
 
   pub(crate) fn index_ranges(&self) -> Result {
-    let mut wtx = self.database.begin_write()?;
-
     loop {
-      let start = Instant::now();
-      let mut ordinal_ranges_written = 0;
+      let mut wtx = self.database.begin_write()?;
 
-      let height = wtx.height()?;
+      let done = self.index_block(&mut wtx)?;
 
-      let block = match self.block(height)? {
-        Some(block) => block,
-        None => {
-          wtx.commit()?;
-          return Ok(());
-        }
-      };
+      wtx.commit()?;
 
-      let time: DateTime<Utc> = DateTime::from_utc(
-        NaiveDateTime::from_timestamp(block.header.time as i64, 0),
-        Utc,
-      );
-
-      log::info!(
-        "Block {height} at {} with {} transactions…",
-        time,
-        block.txdata.len()
-      );
-
-      if let Some(prev_height) = height.checked_sub(1) {
-        let prev_hash = wtx.blockhash_at_height(prev_height)?.unwrap();
-
-        if prev_hash != block.header.prev_blockhash.as_ref() {
-          return Err(anyhow!("Reorg detected at or before {prev_height}"));
-        }
-      }
-
-      let mut coinbase_inputs = VecDeque::new();
-
-      let h = Height(height);
-      if h.subsidy() > 0 {
-        let start = h.starting_ordinal();
-        coinbase_inputs.push_front((start.n(), (start + h.subsidy()).n()));
-      }
-
-      let txdata = block
-        .txdata
-        .as_slice()
-        .par_iter()
-        .map(|tx| (tx.txid(), tx))
-        .collect::<Vec<(Txid, &Transaction)>>();
-
-      for (tx_offset, (txid, tx)) in txdata.iter().enumerate().skip(1) {
-        log::trace!("Indexing transaction {tx_offset}…");
-
-        let mut input_ordinal_ranges = VecDeque::new();
-
-        for input in &tx.input {
-          let mut key = Vec::new();
-          input.previous_output.consensus_encode(&mut key)?;
-
-          let ordinal_ranges = wtx
-            .get_ordinal_ranges(key.as_slice())?
-            .ok_or_else(|| anyhow!("Could not find outpoint in index"))?;
-
-          for chunk in ordinal_ranges.chunks_exact(11) {
-            input_ordinal_ranges.push_back(Self::decode_ordinal_range(chunk.try_into().unwrap()));
-          }
-
-          wtx.remove_outpoint(&key)?;
-        }
-
-        self.index_transaction(
-          *txid,
-          tx,
-          &mut wtx,
-          &mut input_ordinal_ranges,
-          &mut ordinal_ranges_written,
-        )?;
-
-        coinbase_inputs.extend(input_ordinal_ranges);
-      }
-
-      if let Some((txid, tx)) = txdata.first() {
-        self.index_transaction(
-          *txid,
-          tx,
-          &mut wtx,
-          &mut coinbase_inputs,
-          &mut ordinal_ranges_written,
-        )?;
-      }
-
-      wtx.set_blockhash_at_height(height, block.block_hash())?;
-      if height % 1000 == 0 {
-        wtx.commit()?;
-        wtx = self.database.begin_write()?;
-      }
-
-      log::info!(
-        "Wrote {ordinal_ranges_written} ordinal ranges in {}ms",
-        (Instant::now() - start).as_millis(),
-      );
-
-      if INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
-        wtx.commit()?;
-        return Ok(());
+      if done || INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
+        break;
       }
     }
+
+    Ok(())
+  }
+
+  pub(crate) fn index_block(&self, wtx: &mut WriteTransaction) -> Result<bool> {
+    let mut height_to_hash = wtx.open_table(HEIGHT_TO_HASH)?;
+    let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
+
+    let start = Instant::now();
+    let mut ordinal_ranges_written = 0;
+
+    let height = height_to_hash
+      .range(0..)?
+      .rev()
+      .next()
+      .map(|(height, _hash)| height + 1)
+      .unwrap_or(0);
+
+    let block = match self.block(height)? {
+      Some(block) => block,
+      None => {
+        return Ok(true);
+      }
+    };
+
+    let time: DateTime<Utc> = DateTime::from_utc(
+      NaiveDateTime::from_timestamp(block.header.time as i64, 0),
+      Utc,
+    );
+
+    log::info!(
+      "Block {height} at {} with {} transactions…",
+      time,
+      block.txdata.len()
+    );
+
+    if let Some(prev_height) = height.checked_sub(1) {
+      let prev_hash = height_to_hash.get(&prev_height)?.unwrap();
+
+      if prev_hash != block.header.prev_blockhash.as_ref() {
+        return Err(anyhow!("Reorg detected at or before {prev_height}"));
+      }
+    }
+
+    let mut coinbase_inputs = VecDeque::new();
+
+    let h = Height(height);
+    if h.subsidy() > 0 {
+      let start = h.starting_ordinal();
+      coinbase_inputs.push_front((start.n(), (start + h.subsidy()).n()));
+    }
+
+    let txdata = block
+      .txdata
+      .as_slice()
+      .par_iter()
+      .map(|tx| (tx.txid(), tx))
+      .collect::<Vec<(Txid, &Transaction)>>();
+
+    for (tx_offset, (txid, tx)) in txdata.iter().enumerate().skip(1) {
+      log::trace!("Indexing transaction {tx_offset}…");
+
+      let mut input_ordinal_ranges = VecDeque::new();
+
+      for input in &tx.input {
+        let mut key = Vec::new();
+        input.previous_output.consensus_encode(&mut key)?;
+
+        let ordinal_ranges = outpoint_to_ordinal_ranges
+          .get(key.as_slice())?
+          .ok_or_else(|| anyhow!("Could not find outpoint in index"))?;
+
+        for chunk in ordinal_ranges.chunks_exact(11) {
+          input_ordinal_ranges.push_back(Self::decode_ordinal_range(chunk.try_into().unwrap()));
+        }
+
+        outpoint_to_ordinal_ranges.remove(&key)?;
+      }
+
+      self.index_transaction(
+        *txid,
+        tx,
+        &mut outpoint_to_ordinal_ranges,
+        &mut input_ordinal_ranges,
+        &mut ordinal_ranges_written,
+      )?;
+
+      coinbase_inputs.extend(input_ordinal_ranges);
+    }
+
+    if let Some((txid, tx)) = txdata.first() {
+      self.index_transaction(
+        *txid,
+        tx,
+        &mut outpoint_to_ordinal_ranges,
+        &mut coinbase_inputs,
+        &mut ordinal_ranges_written,
+      )?;
+    }
+
+    height_to_hash.insert(&height, &block.block_hash())?;
+
+    log::info!(
+      "Wrote {ordinal_ranges_written} ordinal ranges in {}ms",
+      (Instant::now() - start).as_millis(),
+    );
+
+    Ok(false)
+  }
+
+  pub(crate) fn height(&self) -> Result<u64> {
+    let tx = self.database.begin_read()?;
+
+    let height_to_hash = tx.open_table(HEIGHT_TO_HASH)?;
+
+    Ok(
+      height_to_hash
+        .range(0..)?
+        .rev()
+        .next()
+        .map(|(height, _hash)| height + 1)
+        .unwrap_or(0),
+    )
   }
 
   fn index_transaction(
     &self,
     txid: Txid,
     tx: &Transaction,
-    wtx: &mut WriteTransaction,
+    outpoint_to_ordinal_ranges: &mut Table<[u8], [u8]>,
     input_ordinal_ranges: &mut VecDeque<(u64, u64)>,
     ordinal_ranges_written: &mut u64,
   ) -> Result {
@@ -212,7 +282,7 @@ impl Index {
 
       let mut outpoint_encoded = Vec::new();
       outpoint.consensus_encode(&mut outpoint_encoded)?;
-      wtx.insert_outpoint(&outpoint_encoded, &ordinals)?;
+      outpoint_to_ordinal_ranges.insert(&outpoint_encoded, &ordinals)?;
     }
 
     Ok(())
@@ -229,17 +299,49 @@ impl Index {
   }
 
   pub(crate) fn find(&self, ordinal: Ordinal) -> Result<Option<SatPoint>> {
-    if self.database.height()? <= ordinal.height().0 {
+    if self.height()? <= ordinal.height().0 {
       return Ok(None);
     }
 
-    self.database.find(ordinal)
+    let rtx = self.database.begin_read()?;
+
+    let outpoint_to_ordinal_ranges = rtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
+
+    let mut cursor = outpoint_to_ordinal_ranges.range([]..)?;
+
+    while let Some((key, value)) = cursor.next() {
+      let mut offset = 0;
+      for chunk in value.chunks_exact(11) {
+        let (start, end) = Index::decode_ordinal_range(chunk.try_into().unwrap());
+        if start <= ordinal.0 && ordinal.0 < end {
+          let outpoint: OutPoint = Decodable::consensus_decode(key)?;
+          return Ok(Some(SatPoint {
+            outpoint,
+            offset: offset + ordinal.0 - start,
+          }));
+        }
+        offset += end - start;
+      }
+    }
+
+    Ok(None)
+  }
+
+  pub(crate) fn list_inner(&self, outpoint: &[u8]) -> Result<Option<Vec<u8>>> {
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(OUTPOINT_TO_ORDINAL_RANGES)?
+        .get(outpoint)?
+        .map(|outpoint| outpoint.to_vec()),
+    )
   }
 
   pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<Vec<(u64, u64)>>> {
     let mut outpoint_encoded = Vec::new();
     outpoint.consensus_encode(&mut outpoint_encoded)?;
-    let ordinal_ranges = self.database.list(&outpoint_encoded)?;
+    let ordinal_ranges = self.list_inner(&outpoint_encoded)?;
     match ordinal_ranges {
       Some(ordinal_ranges) => {
         let mut output = Vec::new();
