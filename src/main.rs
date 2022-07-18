@@ -8,6 +8,21 @@ use {
   anyhow::{anyhow, Context, Error},
   axum::{extract, http::StatusCode, response::IntoResponse, routing::get, Json, Router},
   axum_server::Handle,
+  bdk::{
+    blockchain::{
+      rpc::{Auth, RpcBlockchain, RpcConfig},
+      ConfigurableBlockchain,
+    },
+    database::SqliteDatabase,
+    keys::{
+      bip39::{Language, Mnemonic, WordCount},
+      DerivableKey, GeneratableKey,
+    },
+    miniscript::miniscript::Segwitv0,
+    template::Bip84,
+    wallet::{wallet_name_from_descriptor, AddressIndex::LastUnused, SyncOptions},
+    KeychainKind, Wallet,
+  },
   bech32::{FromBase32, ToBase32},
   bitcoin::{
     blockdata::constants::COIN_VALUE, consensus::Decodable, consensus::Encodable,
