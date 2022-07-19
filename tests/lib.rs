@@ -150,11 +150,6 @@ impl Test {
       .envs
       .push((OsString::from("HOME"), OsString::from(self.tempdir.path())));
 
-    self.envs.push((
-      OsString::from("XDG_DATA_HOME".to_string()),
-      OsString::from(self.tempdir.path()),
-    ));
-
     self
   }
 
