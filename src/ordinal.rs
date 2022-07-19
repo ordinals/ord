@@ -18,8 +18,16 @@ impl Ordinal {
     self.epoch().starting_height() + self.epoch_position() / self.epoch().subsidy()
   }
 
+  pub(crate) fn cycle(self) -> u64 {
+    Epoch::from(self).0 / CYCLE_EPOCHS
+  }
+
   pub(crate) fn epoch(self) -> Epoch {
     self.into()
+  }
+
+  pub(crate) fn period(self) -> u64 {
+    self.0 / PERIOD_BLOCKS
   }
 
   pub(crate) fn subsidy_position(self) -> u64 {
@@ -43,16 +51,6 @@ impl Ordinal {
       x = (x - 1) / 26;
     }
     name.chars().rev().collect()
-  }
-
-  pub(crate) fn population(self) -> u64 {
-    let mut n = self.0;
-    let mut population = 0;
-    while n > 0 {
-      population += n & 1;
-      n >>= 1;
-    }
-    population
   }
 }
 
@@ -102,16 +100,6 @@ mod tests {
     assert_eq!(Ordinal(26).name(), "nvtdijuwxkp");
     assert_eq!(Ordinal(27).name(), "nvtdijuwxko");
     assert_eq!(Ordinal(2099999997689999).name(), "a");
-  }
-
-  #[test]
-  fn population() {
-    assert_eq!(Ordinal(0).population(), 0);
-    assert_eq!(Ordinal(1).population(), 1);
-    assert_eq!(
-      Ordinal(0b11111111111111111111111111111111111111111111111111).population(),
-      50
-    );
   }
 
   #[test]
@@ -193,5 +181,16 @@ mod tests {
   fn from_str() {
     assert_eq!("0".parse::<Ordinal>().unwrap(), 0);
     assert!("foo".parse::<Ordinal>().is_err());
+  }
+
+  #[test]
+  fn cycle() {
+    assert_eq!(Epoch::BLOCKS * CYCLE_EPOCHS % PERIOD_BLOCKS, 0);
+
+    for i in 1..CYCLE_EPOCHS {
+      assert_ne!(i * Epoch::BLOCKS % PERIOD_BLOCKS, 0);
+    }
+
+    assert_eq!(CYCLE_EPOCHS * Epoch::BLOCKS % PERIOD_BLOCKS, 0);
   }
 }

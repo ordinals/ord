@@ -17,8 +17,6 @@ use {
   chrono::{DateTime, NaiveDateTime, Utc},
   clap::Parser,
   derive_more::{Display, FromStr},
-  integer_cbrt::IntegerCubeRoot,
-  integer_sqrt::IntegerSquareRoot,
   lazy_static::lazy_static,
   qrcode_generator::QrCodeEcc,
   redb::{Database, ReadableTable, Table, TableDefinition, WriteTransaction},
@@ -46,6 +44,9 @@ use {
   tokio::runtime::Runtime,
   tower_http::cors::{Any, CorsLayer},
 };
+
+const PERIOD_BLOCKS: u64 = 2016;
+const CYCLE_EPOCHS: u64 = 6;
 
 mod arguments;
 mod bytes;
