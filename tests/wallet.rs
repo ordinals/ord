@@ -20,7 +20,7 @@ fn init_existing_wallet() -> Result {
 
   assert!(tempdir.path().join(path("ord/wallet.sqlite")).exists());
 
-  assert!(tempdir.path().join(path("ord/seed.txt")).exists());
+  assert!(tempdir.path().join(path("ord/entropy")).exists());
 
   Test::with_tempdir(tempdir)
     .command("wallet init")
@@ -42,8 +42,13 @@ fn init_nonexistent_wallet() -> Result {
 
   assert!(tempdir.path().join(path("ord/wallet.sqlite")).exists());
 
-  assert!(tempdir.path().join(path("ord/seed.txt")).exists());
+  assert!(tempdir.path().join(path("ord/entropy")).exists());
 
+  Ok(())
+}
+
+#[test]
+fn load_corrupted_entropy() -> Result {
   Ok(())
 }
 

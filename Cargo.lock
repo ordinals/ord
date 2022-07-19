@@ -190,7 +190,6 @@ dependencies = [
  "bdk-macros",
  "bip39",
  "bitcoin",
- "bitcoincore-rpc",
  "electrum-client",
  "js-sys",
  "log",

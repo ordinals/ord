@@ -146,14 +146,13 @@ impl Test {
   }
 
   fn set_home_to_tempdir(mut self) -> Self {
-    self.envs.push((
-      OsString::from("HOME"),
-      OsString::from(self.tempdir.path().to_str().unwrap()),
-    ));
+    self
+      .envs
+      .push((OsString::from("HOME"), OsString::from(self.tempdir.path())));
 
     self.envs.push((
       OsString::from("XDG_DATA_HOME".to_string()),
-      OsString::from(self.tempdir.path().to_str().unwrap()),
+      OsString::from(self.tempdir.path()),
     ));
 
     self

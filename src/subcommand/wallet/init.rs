@@ -1,6 +1,6 @@
 use super::*;
 
-pub(crate) fn run(_options: Options) -> Result {
+pub(crate) fn run() -> Result {
   let path = data_dir()
     .ok_or_else(|| anyhow!("Failed to retrieve data dir"))?
     .join("ord");
@@ -13,7 +13,7 @@ pub(crate) fn run(_options: Options) -> Result {
 
   let seed = Mnemonic::generate_in_with(&mut rand::thread_rng(), Language::English, 12)?;
 
-  fs::write(path.join("seed.txt"), seed.to_entropy())?;
+  fs::write(path.join("entropy"), seed.to_entropy())?;
 
   bdk::wallet::Wallet::new(
     Bip84((seed, None), KeychainKind::External),
