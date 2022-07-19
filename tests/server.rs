@@ -9,7 +9,7 @@ fn list() -> Result {
   let port = free_port()?;
 
   Test::new()?
-    .command(&format!("server --address 127.0.0.1 --port {port}"))
+    .command(&format!("server --address 127.0.0.1 --http-port {port}"))
     .block()
     .request(
       "list/0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0",
@@ -24,7 +24,7 @@ fn status() -> Result {
   let port = free_port()?;
 
   Test::new()?
-    .command(&format!("server --address 127.0.0.1 --port {port}"))
+    .command(&format!("server --address 127.0.0.1 --http-port {port}"))
     .request("status", 200, "")
     .run_server(port)
 }
@@ -34,7 +34,7 @@ fn continuously_index_ranges() -> Result {
   let port = free_port()?;
 
   Test::new()?
-    .command(&format!("server --address 127.0.0.1 --port {port}"))
+    .command(&format!("server --address 127.0.0.1 --http-port {port}"))
     .request(
       "list/0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0",
       404,
