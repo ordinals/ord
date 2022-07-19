@@ -44,16 +44,6 @@ impl Ordinal {
     }
     name.chars().rev().collect()
   }
-
-  pub(crate) fn population(self) -> u64 {
-    let mut n = self.0;
-    let mut population = 0;
-    while n > 0 {
-      population += n & 1;
-      n >>= 1;
-    }
-    population
-  }
 }
 
 impl PartialEq<u64> for Ordinal {
@@ -102,16 +92,6 @@ mod tests {
     assert_eq!(Ordinal(26).name(), "nvtdijuwxkp");
     assert_eq!(Ordinal(27).name(), "nvtdijuwxko");
     assert_eq!(Ordinal(2099999997689999).name(), "a");
-  }
-
-  #[test]
-  fn population() {
-    assert_eq!(Ordinal(0).population(), 0);
-    assert_eq!(Ordinal(1).population(), 1);
-    assert_eq!(
-      Ordinal(0b11111111111111111111111111111111111111111111111111).population(),
-      50
-    );
   }
 
   #[test]
