@@ -1,7 +1,15 @@
 use super::*;
 
+fn path(path: &str) -> String {
+  if cfg!(target_os = "macos") {
+    format!("Library/Application Support/{}", path)
+  } else {
+    format!(".local/share/{}", path)
+  }
+}
+
 #[test]
-fn init() -> Result {
+fn init_existing_wallet() -> Result {
   let tempdir = Test::new()?
     .command("wallet init")
     .set_home_to_tempdir()
@@ -10,14 +18,9 @@ fn init() -> Result {
     .output()?
     .tempdir;
 
-  assert!(tempdir
-    .path()
-    .join(if cfg!(target_os = "macos") {
-      "Library/Application Support/ord/wallet.sqlite"
-    } else {
-      ".local/share/ord/wallet.sqlite"
-    })
-    .exists());
+  assert!(tempdir.path().join(path("ord/wallet.sqlite")).exists());
+
+  assert!(tempdir.path().join(path("ord/seed.txt")).exists());
 
   Test::with_tempdir(tempdir)
     .command("wallet init")
@@ -37,20 +40,15 @@ fn init_nonexistent_wallet() -> Result {
     .output()?
     .tempdir;
 
-  assert!(tempdir
-    .path()
-    .join(if cfg!(target_os = "macos") {
-      "Library/Application Support/ord/wallet.sqlite"
-    } else {
-      ".local/share/ord/wallet.sqlite"
-    })
-    .exists());
+  assert!(tempdir.path().join(path("ord/wallet.sqlite")).exists());
+
+  assert!(tempdir.path().join(path("ord/seed.txt")).exists());
 
   Ok(())
 }
 
 #[test]
-fn fund() -> Result {
+fn fund_existing_wallet() -> Result {
   let tempdir = Test::new()?
     .command("wallet init")
     .set_home_to_tempdir()
@@ -63,7 +61,7 @@ fn fund() -> Result {
   Test::with_tempdir(tempdir)
     .command("wallet fund")
     .set_home_to_tempdir()
-    .expected_stdout("tb1qtprrd8eadw3kd4h44yplkh85mj3hv0qwunj99h\n")
+    .stdout_regex("*\n")
     .run()
 }
 

@@ -10,8 +10,7 @@ use {
   axum_server::Handle,
   bdk::{
     database::SqliteDatabase,
-    keys::{bip39::Mnemonic, DerivableKey},
-    miniscript::miniscript::Segwitv0,
+    keys::bip39::{Language, Mnemonic},
     template::Bip84,
     wallet::AddressIndex::LastUnused,
     KeychainKind,

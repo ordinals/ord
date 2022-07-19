@@ -3,55 +3,26 @@ use super::*;
 mod fund;
 mod init;
 
-fn get_key() -> Result<impl DerivableKey<Segwitv0> + Clone> {
-  Ok((
-    Mnemonic::parse("book fit fly ketchup also elevator scout mind edit fatal where rookie")?,
-    None,
-  ))
-}
-
-fn init_wallet() -> Result {
-  let db_path = data_dir()
-    .ok_or_else(|| anyhow!("Failed to retrieve data dir"))?
-    .join("ord");
-
-  if db_path.exists() {
-    return Err(anyhow!("Wallet already exists."));
-  }
-
-  fs::create_dir_all(&db_path)?;
-
-  bdk::wallet::Wallet::new(
-    Bip84(get_key()?, KeychainKind::External),
-    None,
-    Network::Signet,
-    SqliteDatabase::new(
-      db_path
-        .join("wallet.sqlite")
-        .to_str()
-        .ok_or_else(|| anyhow!("Failed to convert path to str"))?
-        .to_string(),
-    ),
-  )?;
-
-  Ok(())
-}
-
 fn get_wallet() -> Result<bdk::wallet::Wallet<SqliteDatabase>> {
-  let db_path = data_dir()
+  let path = data_dir()
     .ok_or_else(|| anyhow!("Failed to retrieve data dir"))?
     .join("ord");
 
-  if !db_path.exists() {
+  if !path.exists() {
     return Err(anyhow!("Wallet doesn't exist."));
   }
 
+  let entropy = fs::read(path.join("seed.txt"))?;
+
   Ok(bdk::wallet::Wallet::new(
-    Bip84(get_key()?, KeychainKind::External),
+    Bip84(
+      (Mnemonic::from_entropy(&entropy)?, None),
+      KeychainKind::External,
+    ),
     None,
     Network::Signet,
     SqliteDatabase::new(
-      db_path
+      path
         .join("wallet.sqlite")
         .to_str()
         .ok_or_else(|| anyhow!("Failed to convert path to str"))?
