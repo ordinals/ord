@@ -27,7 +27,7 @@ impl Ordinal {
   }
 
   pub(crate) fn period(self) -> u64 {
-    self.0 / 2016
+    self.0 / PERIOD_BLOCKS
   }
 
   pub(crate) fn subsidy_position(self) -> u64 {
