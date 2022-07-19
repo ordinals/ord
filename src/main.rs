@@ -20,6 +20,7 @@ use {
   lazy_static::lazy_static,
   qrcode_generator::QrCodeEcc,
   redb::{Database, ReadableTable, Table, TableDefinition, WriteTransaction},
+  rustls_acme::acme::{LETS_ENCRYPT_PRODUCTION_DIRECTORY, LETS_ENCRYPT_STAGING_DIRECTORY},
   secp256k1::{rand, schnorr::Signature, KeyPair, Secp256k1, SecretKey, XOnlyPublicKey},
   serde::{Deserialize, Serialize},
   std::{
