@@ -49,6 +49,30 @@ fn init_nonexistent_wallet() -> Result {
 
 #[test]
 fn load_corrupted_entropy() -> Result {
+  let tempdir = Test::new()?
+    .command("wallet init")
+    .set_home_to_tempdir()
+    .expected_status(0)
+    .expected_stderr("Wallet initialized.\n")
+    .output()?
+    .tempdir;
+
+  let entropy_path = tempdir.path().join(path("ord/entropy"));
+
+  assert!(entropy_path.exists());
+
+  let mut entropy = fs::read(&entropy_path)?;
+  entropy[0] ^= 0b0000_1000;
+
+  fs::write(&entropy_path, entropy)?;
+
+  Test::with_tempdir(tempdir)
+    .command("wallet fund")
+    .set_home_to_tempdir()
+    .expected_status(1)
+    .expected_stderr("error: ChecksumMismatch\n")
+    .run()?;
+
   Ok(())
 }
 
@@ -66,7 +90,7 @@ fn fund_existing_wallet() -> Result {
   Test::with_tempdir(tempdir)
     .command("wallet fund")
     .set_home_to_tempdir()
-    .stdout_regex("*\n")
+    .stdout_regex("^tb1.*\n")
     .run()
 }
 
