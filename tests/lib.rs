@@ -15,6 +15,7 @@ use {
   std::{
     collections::BTreeMap,
     error::Error,
+    ffi::OsString,
     fs,
     net::TcpListener,
     process::{Command, Stdio},
@@ -40,6 +41,7 @@ mod server;
 mod supply;
 mod traits;
 mod version;
+mod wallet;
 
 type Result<T = ()> = std::result::Result<T, Box<dyn Error>>;
 
@@ -84,10 +86,11 @@ struct TransactionOptions<'a> {
 
 struct Test {
   args: Vec<String>,
+  envs: Vec<(OsString, OsString)>,
+  events: Vec<Event>,
   expected_status: i32,
   expected_stderr: Option<String>,
   expected_stdout: Expected,
-  events: Vec<Event>,
   tempdir: TempDir,
 }
 
@@ -99,10 +102,11 @@ impl Test {
   fn with_tempdir(tempdir: TempDir) -> Self {
     Self {
       args: Vec::new(),
+      envs: Vec::new(),
+      events: Vec::new(),
       expected_status: 0,
       expected_stderr: None,
       expected_stdout: Expected::String(String::new()),
-      events: Vec::new(),
       tempdir,
     }
   }
@@ -139,6 +143,14 @@ impl Test {
       ),
       ..self
     }
+  }
+
+  fn set_home_to_tempdir(mut self) -> Self {
+    self
+      .envs
+      .push((OsString::from("HOME"), OsString::from(self.tempdir.path())));
+
+    self
   }
 
   fn expected_stderr(self, expected_stderr: &str) -> Self {
@@ -204,6 +216,7 @@ impl Test {
     };
 
     let child = Command::new(executable_path("ord"))
+      .envs(self.envs)
       .stdin(Stdio::null())
       .stdout(Stdio::piped())
       .stderr(if self.expected_stderr.is_some() {

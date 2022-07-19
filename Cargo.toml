@@ -10,6 +10,7 @@ autotests = false
 anyhow = { version = "1.0.56", features = ["backtrace"] }
 axum = "0.5.6"
 axum-server = "0.4.0"
+bdk = { version = "0.20.0", features = ["keys-bip39", "sqlite"] }
 bech32 = "0.9.0"
 bitcoin = "0.28.1"
 bitcoin_hashes = "0.10.0"

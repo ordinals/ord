@@ -8,6 +8,13 @@ use {
   anyhow::{anyhow, Context, Error},
   axum::{extract, http::StatusCode, response::IntoResponse, routing::get, Json, Router},
   axum_server::Handle,
+  bdk::{
+    database::SqliteDatabase,
+    keys::bip39::{Language, Mnemonic},
+    template::Bip84,
+    wallet::AddressIndex::LastUnused,
+    KeychainKind,
+  },
   bech32::{FromBase32, ToBase32},
   bitcoin::{
     blockdata::constants::COIN_VALUE, consensus::Decodable, consensus::Encodable,
@@ -17,6 +24,7 @@ use {
   chrono::{DateTime, NaiveDateTime, Utc},
   clap::Parser,
   derive_more::{Display, FromStr},
+  dirs::data_dir,
   lazy_static::lazy_static,
   qrcode_generator::QrCodeEcc,
   redb::{Database, ReadableTable, Table, TableDefinition, WriteTransaction},
