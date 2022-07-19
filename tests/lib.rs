@@ -13,7 +13,7 @@ use {
   },
   regex::Regex,
   std::{
-    collections::BTreeSet,
+    collections::BTreeMap,
     error::Error,
     ffi::OsString,
     fs,

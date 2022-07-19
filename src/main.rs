@@ -18,17 +18,16 @@ use {
   bech32::{FromBase32, ToBase32},
   bitcoin::{
     blockdata::constants::COIN_VALUE, consensus::Decodable, consensus::Encodable,
-    util::key::PrivateKey, Address, Block, BlockHash, Network, OutPoint, Transaction, Txid,
+    util::key::PrivateKey, Address, Block, Network, OutPoint, Transaction, Txid,
   },
   bitcoin_hashes::{sha256, Hash, HashEngine},
   chrono::{DateTime, NaiveDateTime, Utc},
   clap::Parser,
   derive_more::{Display, FromStr},
   dirs::data_dir,
-  integer_cbrt::IntegerCubeRoot,
-  integer_sqrt::IntegerSquareRoot,
   lazy_static::lazy_static,
   qrcode_generator::QrCodeEcc,
+  redb::{Database, ReadableTable, Table, TableDefinition, WriteTransaction},
   secp256k1::{rand, schnorr::Signature, KeyPair, Secp256k1, SecretKey, XOnlyPublicKey},
   serde::{Deserialize, Serialize},
   std::{
@@ -54,24 +53,17 @@ use {
   tower_http::cors::{Any, CorsLayer},
 };
 
-#[cfg(feature = "redb")]
-use redb_database::{Database, WriteTransaction};
-
-#[cfg(not(feature = "redb"))]
-use lmdb_database::{Database, WriteTransaction};
+const PERIOD_BLOCKS: u64 = 2016;
+const CYCLE_EPOCHS: u64 = 6;
 
 mod arguments;
 mod bytes;
 mod epoch;
 mod height;
 mod index;
-#[cfg(not(feature = "redb"))]
-mod lmdb_database;
 mod nft;
 mod options;
 mod ordinal;
-#[cfg(feature = "redb")]
-mod redb_database;
 mod sat_point;
 mod subcommand;
 

@@ -1,16 +1,24 @@
 use super::*;
 
-fn traits(ordinal: u64) -> Result<BTreeSet<String>> {
-  Ok(
-    Test::new()?
-      .args(&["traits", &ordinal.to_string()])
-      .ignore_stdout()
-      .output()?
-      .stdout
-      .lines()
-      .map(str::to_owned)
-      .collect(),
-  )
+fn case(ordinal: u64, name: &str, value: &str) {
+  let stdout = Test::new()
+    .unwrap()
+    .args(&["traits", &ordinal.to_string()])
+    .ignore_stdout()
+    .output()
+    .unwrap()
+    .stdout;
+
+  let map = stdout
+    .lines()
+    .map(|line| line.split_once(": ").unwrap())
+    .collect::<BTreeMap<&str, &str>>();
+
+  assert_eq!(
+    map.get(name),
+    Some(&value),
+    "Invalid value for {name}({ordinal})"
+  );
 }
 
 #[test]
@@ -23,161 +31,106 @@ fn invalid_ordinal() -> Result {
 }
 
 #[test]
-fn even() -> Result {
-  assert!(traits(0)?.contains("even"));
-  assert!(!traits(1)?.contains("even"));
-  assert!(traits(2)?.contains("even"));
-  Ok(())
+fn name() {
+  case(2099999997689999, "name", "a");
+  case(2099999997689999 - 1, "name", "b");
+  case(2099999997689999 - 25, "name", "z");
+  case(2099999997689999 - 26, "name", "aa");
+  case(0, "name", "nvtdijuwxlp");
+  case(1, "name", "nvtdijuwxlo");
+  case(26, "name", "nvtdijuwxkp");
+  case(27, "name", "nvtdijuwxko");
 }
 
 #[test]
-fn odd() -> Result {
-  assert!(!traits(0)?.contains("odd"));
-  assert!(traits(1)?.contains("odd"));
-  assert!(!traits(2)?.contains("odd"));
-  Ok(())
+fn height() {
+  case(0, "height", "0");
+  case(1, "height", "0");
+  case(50 * 100_000_000, "height", "1");
+  case(2099999997689999, "height", "6929999");
+  case(2099999997689998, "height", "6929998");
 }
 
 #[test]
-fn pi() -> Result {
-  assert!(!traits(0)?.contains("pi"));
-  assert!(traits(3)?.contains("pi"));
-  assert!(traits(31)?.contains("pi"));
-  assert!(traits(314)?.contains("pi"));
-  assert!(!traits(3145)?.contains("pi"));
-  Ok(())
+fn cycle() {
+  case(0, "cycle", "0");
+  case(2067187500000000 - 1, "cycle", "0");
+  case(2067187500000000, "cycle", "1");
+  case(2067187500000000 + 1, "cycle", "1");
 }
 
 #[test]
-fn nice() -> Result {
-  assert!(!traits(0)?.contains("nice"));
-  assert!(traits(69)?.contains("nice"));
-  assert!(traits(6969)?.contains("nice"));
-  assert!(traits(696969)?.contains("nice"));
-  assert!(!traits(696968)?.contains("nice"));
-  assert!(!traits(6969698)?.contains("nice"));
-  Ok(())
+fn epoch() {
+  case(0, "epoch", "0");
+  case(1, "epoch", "0");
+  case(50 * 100_000_000 * 210000, "epoch", "1");
+  case(2099999997689999, "epoch", "32");
 }
 
 #[test]
-fn divine() -> Result {
-  assert!(!traits(0)?.contains("angelic"));
-  assert!(traits(7)?.contains("angelic"));
-  assert!(traits(77)?.contains("angelic"));
-  assert!(traits(777)?.contains("angelic"));
-  assert!(!traits(778)?.contains("angelic"));
-  Ok(())
+fn period() {
+  case(0, "period", "0");
+  case(2015, "period", "0");
+  case(2016, "period", "1");
+  case(2017, "period", "1");
 }
 
 #[test]
-fn name() -> Result {
-  assert!(traits(2099999997689999)?.contains("name: a"));
-  assert!(traits(2099999997689999 - 1)?.contains("name: b"));
-  assert!(traits(2099999997689999 - 25)?.contains("name: z"));
-  assert!(traits(2099999997689999 - 26)?.contains("name: aa"));
-  assert!(traits(0)?.contains("name: nvtdijuwxlp"));
-  assert!(traits(1)?.contains("name: nvtdijuwxlo"));
-  assert!(traits(26)?.contains("name: nvtdijuwxkp"));
-  assert!(traits(27)?.contains("name: nvtdijuwxko"));
-  Ok(())
+fn offset() {
+  case(0, "offset", "0");
+  case(50 * 100_000_000 - 1, "offset", "4999999999");
+  case(50 * 100_000_000, "offset", "0");
+  case(50 * 100_000_000 + 1, "offset", "1");
 }
 
 #[test]
-fn height() -> Result {
-  assert!(traits(0)?.contains("height: 0"));
-  assert!(traits(1)?.contains("height: 0"));
-  assert!(traits(50 * 100_000_000)?.contains("height: 1"));
-  assert!(traits(2099999997689999)?.contains("height: 6929999"));
-  assert!(traits(2099999997689998)?.contains("height: 6929998"));
-  Ok(())
+fn degree() {
+  case(0, "degree", "0°0′0″0‴");
+  case(1, "degree", "0°0′0″1‴");
+
+  case(50 * 100_000_000 - 1, "degree", "0°0′0″4999999999‴");
+  case(50 * 100_000_000, "degree", "0°1′1″0‴");
+  case(50 * 100_000_000 + 1, "degree", "0°1′1″1‴");
+
+  case(
+    50 * 100_000_000 * 2016 - 1,
+    "degree",
+    "0°2015′2015″4999999999‴",
+  );
+  case(50 * 100_000_000 * 2016, "degree", "0°2016′0″0‴");
+  case(50 * 100_000_000 * 2016 + 1, "degree", "0°2016′0″1‴");
+
+  case(
+    50 * 100_000_000 * 210000 - 1,
+    "degree",
+    "0°209999′335″4999999999‴",
+  );
+  case(50 * 100_000_000 * 210000, "degree", "0°0′336″0‴");
+  case(50 * 100_000_000 * 210000 + 1, "degree", "0°0′336″1‴");
+
+  case(2067187500000000 - 1, "degree", "0°209999′2015″156249999‴");
+  case(2067187500000000, "degree", "1°0′0″0‴");
+  case(2067187500000000 + 1, "degree", "1°0′0″1‴");
 }
 
 #[test]
-fn epoch() -> Result {
-  assert!(traits(0)?.contains("epoch: 0"));
-  assert!(traits(1)?.contains("epoch: 0"));
-  assert!(traits(50 * 100_000_000 * 210000)?.contains("epoch: 1"));
-  assert!(traits(2099999997689999)?.contains("epoch: 32"));
-  Ok(())
-}
+fn rarity() {
+  case(0, "rarity", "legendary");
+  case(1, "rarity", "common");
 
-#[test]
-fn lucky() -> Result {
-  assert!(traits(0)?.contains("luck: 0/1"));
-  assert!(traits(8)?.contains("luck: 1/1"));
-  assert!(traits(88)?.contains("luck: 2/2"));
-  assert!(traits(89)?.contains("luck: 1/2"));
-  assert!(traits(84)?.contains("luck: 0/2"));
-  assert!(traits(4)?.contains("luck: -1/1"));
-  Ok(())
-}
+  case(50 * 100_000_000 - 1, "rarity", "common");
+  case(50 * 100_000_000, "rarity", "uncommon");
+  case(50 * 100_000_000 + 1, "rarity", "common");
 
-#[test]
-fn shiny() -> Result {
-  assert!(traits(0)?.contains("shiny"));
-  assert!(!traits(1)?.contains("shiny"));
-  assert!(traits(2099999997689999)?.contains("shiny"));
-  assert!(traits(2099999997689998)?.contains("shiny"));
-  assert!(traits(50 * 100_000_000)?.contains("shiny"));
-  assert!(!traits(50 * 100_000_000 + 1)?.contains("shiny"));
-  Ok(())
-}
+  case(50 * 100_000_000 * 2016 - 1, "rarity", "common");
+  case(50 * 100_000_000 * 2016, "rarity", "rare");
+  case(50 * 100_000_000 * 2016 + 1, "rarity", "common");
 
-#[test]
-fn population() -> Result {
-  assert!(traits(0)?.contains("population: 0"));
-  assert!(traits(1)?.contains("population: 1"));
-  assert!(traits(2)?.contains("population: 1"));
-  assert!(traits(3)?.contains("population: 2"));
-  assert!(traits(4)?.contains("population: 1"));
-  Ok(())
-}
+  case(50 * 100_000_000 * 210000 - 1, "rarity", "common");
+  case(50 * 100_000_000 * 210000, "rarity", "epic");
+  case(50 * 100_000_000 * 210000 + 1, "rarity", "common");
 
-#[test]
-fn square() -> Result {
-  assert!(traits(0)?.contains("square"));
-  assert!(traits(1)?.contains("square"));
-  assert!(!traits(2)?.contains("square"));
-  assert!(traits(4)?.contains("square"));
-  assert!(!traits(5)?.contains("square"));
-  assert!(traits(9)?.contains("square"));
-  Ok(())
-}
-
-#[test]
-fn cube() -> Result {
-  assert!(traits(0)?.contains("cube"));
-  assert!(traits(1)?.contains("cube"));
-  assert!(!traits(2)?.contains("cube"));
-  assert!(traits(8)?.contains("cube"));
-  assert!(!traits(9)?.contains("cube"));
-  assert!(traits(27)?.contains("cube"));
-  Ok(())
-}
-
-#[test]
-fn character() -> Result {
-  assert!(traits(0x000000)?.contains("character: '\\0'"));
-  assert!(traits(0x000041)?.contains("character: 'A'"));
-  assert!(traits(0x01F602)?.contains("character: '😂'"));
-  assert!(traits(0x110000)?.contains("character: '\\0'"));
-  assert!(traits(0x110041)?.contains("character: 'A'"));
-  Ok(())
-}
-
-#[test]
-fn cursed() -> Result {
-  assert!(!traits(0)?.contains("cursed"));
-  assert!(!traits(623624999999999)?.contains("cursed"));
-  assert!(traits(623624999999999 - 1)?.contains("cursed"));
-  assert!(!traits(623624999999999 + 1)?.contains("cursed"));
-  Ok(())
-}
-
-#[test]
-fn illusive() -> Result {
-  assert!(!traits(1476374997689999 - 1)?.contains("illusive"));
-  assert!(traits(623624999999999)?.contains("illusive"));
-  assert!(!traits(623624999999999 + 1)?.contains("illusive"));
-  Ok(())
+  case(2067187500000000 - 1, "rarity", "common");
+  case(2067187500000000, "rarity", "legendary");
+  case(2067187500000000 + 1, "rarity", "common");
 }
