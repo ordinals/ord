@@ -71,7 +71,7 @@ impl Server {
 
       use rustls_acme::{caches::DirCache, AcmeConfig};
 
-      let config = AcmeConfig::new(["tunnel.rodarmor.com"])
+      let config = AcmeConfig::new(["api.ordinals.com"])
         .contact(["mailto:casey@rodarmor.com"])
         .cache_option(Some(DirCache::new("/Users/rodarmor/tmp/acme-cache")))
         .directory(if cfg!(test) {
