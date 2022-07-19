@@ -45,6 +45,9 @@ use {
   tower_http::cors::{Any, CorsLayer},
 };
 
+const PERIOD_BLOCKS: u64 = 2016;
+const CYCLE_EPOCHS: u64 = 6;
+
 mod arguments;
 mod bytes;
 mod epoch;

@@ -18,8 +18,16 @@ impl Ordinal {
     self.epoch().starting_height() + self.epoch_position() / self.epoch().subsidy()
   }
 
+  pub(crate) fn cycle(self) -> u64 {
+    Epoch::from(self).0 / CYCLE_EPOCHS
+  }
+
   pub(crate) fn epoch(self) -> Epoch {
     self.into()
+  }
+
+  pub(crate) fn period(self) -> u64 {
+    self.0 / 2016
   }
 
   pub(crate) fn subsidy_position(self) -> u64 {
@@ -173,5 +181,16 @@ mod tests {
   fn from_str() {
     assert_eq!("0".parse::<Ordinal>().unwrap(), 0);
     assert!("foo".parse::<Ordinal>().is_err());
+  }
+
+  #[test]
+  fn cycle() {
+    assert_eq!(Epoch::BLOCKS * CYCLE_EPOCHS % PERIOD_BLOCKS, 0);
+
+    for i in 1..CYCLE_EPOCHS {
+      assert_ne!(i * Epoch::BLOCKS % PERIOD_BLOCKS, 0);
+    }
+
+    assert_eq!(CYCLE_EPOCHS * Epoch::BLOCKS % PERIOD_BLOCKS, 0);
   }
 }
