@@ -1821,6 +1821,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "pyo3-build-config"
+version = "0.16.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b5b65b546c35d8a3b1b2f0ddbac7c6a569d759f357f2b9df884f5d6b719152c8"
+dependencies = [
+ "once_cell",
+ "target-lexicon",
+]
+
+[[package]]
 name = "qrcode-generator"
 version = "4.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2028,11 +2038,12 @@ dependencies = [
 
 [[package]]
 name = "redb"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "73ef901de04afd870ef0bb84980dc24e3cf8425b6cef49102122a446cebf7f2a"
+checksum = "7a5a2959aebb8ec197c3ec39e32b88b14f849163dd2b7fd1f691c529c275cb03"
 dependencies = [
  "libc",
+ "pyo3-build-config",
 ]
 
 [[package]]
@@ -2428,6 +2439,12 @@ name = "sync_wrapper"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "20518fe4a4c9acf048008599e464deb21beeae3d3578418951a189c235a7a9a8"
+
+[[package]]
+name = "target-lexicon"
+version = "0.12.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c02424087780c9b71cc96799eaeddff35af2bc513278cda5c99fc1f5d026d3c1"
 
 [[package]]
 name = "tempfile"
