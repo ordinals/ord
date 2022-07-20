@@ -1647,7 +1647,6 @@ dependencies = [
  "redb",
  "regex",
  "reqwest",
- "secp256k1",
  "serde",
  "serde_cbor",
  "serde_json",
