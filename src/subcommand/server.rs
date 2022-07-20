@@ -54,7 +54,11 @@ use tower::MakeService;
 #[derive(Parser)]
 #[clap(group = ArgGroup::new("port").multiple(false).required(true))]
 pub(crate) struct Server {
-  #[clap(long, default_value = "0.0.0.0")]
+  #[clap(
+    long,
+    default_value = "0.0.0.0",
+    help = "Listen on <ADDRESS> for incoming requests."
+  )]
   address: String,
   #[clap(
     long,
