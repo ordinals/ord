@@ -272,6 +272,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "bitcoin_hashes"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "90064b8dee6815a6470d60bad07bbbaee885c0e12d04177138fa3291a01b7bc4"
+
+[[package]]
 name = "bitcoincore-rpc"
 version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1616,7 +1622,7 @@ dependencies = [
  "bdk",
  "bech32 0.9.0",
  "bitcoin",
- "bitcoin_hashes 0.10.0",
+ "bitcoin_hashes 0.11.0",
  "bitcoincore-rpc",
  "chrono",
  "clap 3.2.13",
