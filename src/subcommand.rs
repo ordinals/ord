@@ -14,13 +14,14 @@ mod server;
 mod supply;
 mod traits;
 mod verify;
+mod wallet;
 
 #[derive(Parser)]
 pub(crate) enum Subcommand {
   Epochs,
   Find(find::Find),
-  GeneratePrivateKey,
   GeneratePaperWallets,
+  GeneratePrivateKey,
   Index,
   Info,
   List(list::List),
@@ -31,25 +32,28 @@ pub(crate) enum Subcommand {
   Supply,
   Traits(traits::Traits),
   Verify(verify::Verify),
+  #[clap(subcommand)]
+  Wallet(wallet::Wallet),
 }
 
 impl Subcommand {
   pub(crate) fn run(self, options: Options) -> Result<()> {
     match self {
       Self::Epochs => epochs::run(),
-      Self::GeneratePrivateKey => generate_private_key::run(),
-      Self::GeneratePaperWallets => generate_paper_wallets::run(),
       Self::Find(find) => find.run(options),
+      Self::GeneratePaperWallets => generate_paper_wallets::run(),
+      Self::GeneratePrivateKey => generate_private_key::run(),
       Self::Index => index::run(options),
-      Self::List(list) => list.run(options),
-      Self::Name(name) => name.run(),
-      Self::Mint(mint) => mint.run(),
-      Self::Range(range) => range.run(),
-      Self::Supply => supply::run(),
-      Self::Server(server) => server.run(options),
       Self::Info => info::run(options),
+      Self::List(list) => list.run(options),
+      Self::Mint(mint) => mint.run(),
+      Self::Name(name) => name.run(),
+      Self::Range(range) => range.run(),
+      Self::Server(server) => server.run(options),
+      Self::Supply => supply::run(),
       Self::Traits(traits) => traits.run(),
       Self::Verify(verify) => verify.run(),
+      Self::Wallet(wallet) => wallet.run(),
     }
   }
 }
