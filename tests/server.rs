@@ -48,3 +48,21 @@ fn continuously_index_ranges() -> Result {
     )
     .run_server(port)
 }
+
+#[test]
+fn http_or_https_port_is_required() -> Result {
+  Test::new()?
+    .command("server --address 127.0.0.1")
+    .stderr_regex("error: The following required arguments were not provided:\n    <--http-port <HTTP_PORT>\\|--https-port <HTTPS_PORT>>\n.*")
+    .expected_status(2)
+    .run()
+}
+
+// #[test]
+// fn http_and_https_port_conflict() -> Result {
+//   Test::new()?
+//     .command("server --address 127.0.0.1 --http-port 0 --https-port 0")
+//     .stderr_regex("error: The following required arguments were not provided:\n    <--http-port <HTTP_PORT>|--https-port <HTTPS_PORT>>\n.*")
+//     .expected_status(2)
+//     .run()
+// }

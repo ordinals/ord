@@ -14,6 +14,14 @@ use tokio_util::compat::FuturesAsyncReadCompatExt;
 use tokio_util::compat::TokioAsyncReadCompatExt;
 use tower::MakeService;
 
+// TODO:
+// - populate directory with pre-generated HTTPS certs and tests HTTPS connection
+// - test that --http-port and --https-port conflict
+// - test that --http-port or --https-port is required
+// - creates directory if required
+// - --https port requires --acme-domain, --acme-cache-directory, and --acme-contact
+// - refactor
+
 // #[structopt(
 //   long,
 //   help = "Store TLS certificates fetched from Let's Encrypt via the ACME protocol in <acme-cache-directory>."
