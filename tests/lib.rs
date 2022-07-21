@@ -89,7 +89,7 @@ struct Test {
   envs: Vec<(OsString, OsString)>,
   events: Vec<Event>,
   expected_status: i32,
-  expected_stderr: Option<String>,
+  expected_stderr: Expected,
   expected_stdout: Expected,
   tempdir: TempDir,
 }
@@ -105,7 +105,7 @@ impl Test {
       envs: Vec::new(),
       events: Vec::new(),
       expected_status: 0,
-      expected_stderr: None,
+      expected_stderr: Expected::Ignore,
       expected_stdout: Expected::String(String::new()),
       tempdir,
     }
@@ -139,7 +139,7 @@ impl Test {
   fn stdout_regex(self, expected_stdout: impl AsRef<str>) -> Self {
     Self {
       expected_stdout: Expected::Regex(
-        Regex::new(&format!("^{}$", expected_stdout.as_ref())).unwrap(),
+        Regex::new(&format!("(?s)^{}$", expected_stdout.as_ref())).unwrap(),
       ),
       ..self
     }
@@ -155,7 +155,16 @@ impl Test {
 
   fn expected_stderr(self, expected_stderr: &str) -> Self {
     Self {
-      expected_stderr: Some(expected_stderr.to_owned()),
+      expected_stderr: Expected::String(expected_stderr.to_owned()),
+      ..self
+    }
+  }
+
+  fn stderr_regex(self, expected_stderr: impl AsRef<str>) -> Self {
+    Self {
+      expected_stderr: Expected::Regex(
+        Regex::new(&format!("(?s)^{}$", expected_stderr.as_ref())).unwrap(),
+      ),
       ..self
     }
   }
@@ -219,7 +228,7 @@ impl Test {
       .envs(self.envs)
       .stdin(Stdio::null())
       .stdout(Stdio::piped())
-      .stderr(if self.expected_stderr.is_some() {
+      .stderr(if !matches!(self.expected_stderr, Expected::Ignore) {
         Stdio::piped()
       } else {
         Stdio::inherit()
@@ -291,21 +300,29 @@ impl Test {
       );
     }
 
-    let re = Regex::new(r"(?m)^\[.*\n")?;
+    let log_line_re = Regex::new(r"(?m)^\[.*\n")?;
 
-    for m in re.find_iter(stderr) {
-      print!("{}", m.as_str())
+    for log_line in log_line_re.find_iter(stderr) {
+      print!("{}", log_line.as_str())
     }
 
-    if let Some(expected_stderr) = self.expected_stderr {
-      assert_eq!(re.replace_all(stderr, ""), expected_stderr);
+    let stripped_stderr = log_line_re.replace_all(stderr, "");
+
+    match self.expected_stderr {
+      Expected::String(expected_stderr) => assert_eq!(stripped_stderr, expected_stderr),
+      Expected::Regex(expected_stderr) => assert!(
+        expected_stderr.is_match(&stripped_stderr),
+        "stderr did not match regex: {:?}",
+        stripped_stderr
+      ),
+      Expected::Ignore => {}
     }
 
     match self.expected_stdout {
       Expected::String(expected_stdout) => assert_eq!(stdout, expected_stdout),
       Expected::Regex(expected_stdout) => assert!(
         expected_stdout.is_match(stdout),
-        "stdout did not match regex: {}",
+        "stdout did not match regex: {:?}",
         stdout
       ),
       Expected::Ignore => {}

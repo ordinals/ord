@@ -25,8 +25,8 @@ fn case(ordinal: u64, name: &str, value: &str) {
 fn invalid_ordinal() -> Result {
   Test::new()?
     .args(&["traits", "2099999997690000"])
-    .expected_stderr("error: Invalid ordinal\n")
-    .expected_status(1)
+    .stderr_regex("error: Invalid value \"2099999997690000\" for '<ORDINAL>': Invalid ordinal\n.*")
+    .expected_status(2)
     .run()
 }
 
@@ -75,9 +75,9 @@ fn epoch() {
 #[test]
 fn period() {
   case(0, "period", "0");
-  case(2015, "period", "0");
-  case(2016, "period", "1");
-  case(2017, "period", "1");
+  case(10075000000000, "period", "0");
+  case(10080000000000, "period", "1");
+  case(10085000000000, "period", "1");
   case(2099999997689999, "period", "3437");
 }
 

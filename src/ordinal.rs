@@ -73,7 +73,11 @@ impl Ordinal {
 
     let cycle_start_epoch = cycle_number * CYCLE_EPOCHS;
 
-    let cycle_progression = period_offset - (epoch_offset % PERIOD_BLOCKS);
+    let cycle_progression = period_offset
+      .checked_sub(epoch_offset % PERIOD_BLOCKS)
+      .ok_or(anyhow!(
+        "Invalid relationship between epoch offset and period offset"
+      ))?;
 
     if cycle_progression % (Epoch::BLOCKS % PERIOD_BLOCKS) != 0 {
       bail!("Invalid relationship between epoch offset and period offset");
@@ -258,6 +262,7 @@ mod tests {
     assert_eq!(parse("0°0′0″0‴").unwrap(), 0);
     assert_eq!(parse("0°0′0″").unwrap(), 0);
     assert_eq!(parse("0°0′0″1‴").unwrap(), 1);
+    assert_eq!(parse("0°2015′2015″0‴").unwrap(), 10075000000000);
     assert_eq!(parse("0°2016′0″0‴").unwrap(), 10080000000000);
     assert_eq!(parse("0°2017′1″0‴").unwrap(), 10085000000000);
     assert_eq!(parse("0°2016′0″1‴").unwrap(), 10080000000001);
