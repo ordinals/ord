@@ -52,16 +52,20 @@ impl Ordinal {
   }
 
   fn from_degree(s: &str) -> Result<Self> {
-    let (cycle_number, rest) = s.split_once('°').unwrap();
+    let (cycle_number, rest) = s.split_once('°').ok_or(anyhow!("Missing degree symbol"))?;
     let cycle_number = cycle_number.parse::<u64>()?;
 
-    let (epoch_offset, rest) = rest.split_once('′').unwrap();
+    let (epoch_offset, rest) = rest
+      .split_once('′')
+      .ok_or(anyhow!("Missing prime symbol"))?;
     let epoch_offset = epoch_offset.parse::<u64>()?;
     if epoch_offset >= Epoch::BLOCKS {
       bail!("Invalid epoch offset");
     }
 
-    let (period_offset, rest) = rest.split_once('″').unwrap();
+    let (period_offset, rest) = rest
+      .split_once('″')
+      .ok_or(anyhow!("Missing double prime symbol"))?;
     let period_offset = period_offset.parse::<u64>()?;
     if period_offset >= PERIOD_BLOCKS {
       bail!("Invalid period offset");
@@ -86,18 +90,6 @@ impl Ordinal {
       None => (0, rest),
     };
 
-    dbg!(
-      s,
-      cycle_progression,
-      cycle_number,
-      epoch_offset,
-      period_offset,
-      cycle_start_epoch,
-      epochs_since_cycle_start,
-      epoch,
-      height,
-    );
-
     if !rest.is_empty() {
       bail!("Trailing characters");
     }
@@ -107,15 +99,6 @@ impl Ordinal {
     }
 
     Ok(height.starting_ordinal() + block_offset)
-
-    // TODO:
-    // - missing zeros
-    // - check for cycle number too large
-    // - check for epoch index too large
-    // - check for period index too large
-    // - check for offset too large
-
-    // assert_eq!("1°0′0″1‴".parse::<Ordinal>().unwrap(), 2067187500000001);
   }
 }
 
