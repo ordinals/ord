@@ -115,7 +115,7 @@ fn degree() {
 
 #[test]
 fn rarity() {
-  case(0, "rarity", "legendary");
+  case(0, "rarity", "mythic");
   case(1, "rarity", "common");
 
   case(50 * 100_000_000 - 1, "rarity", "common");
