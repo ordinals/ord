@@ -52,12 +52,14 @@ impl Ordinal {
   }
 
   fn from_degree(s: &str) -> Result<Self> {
-    let (cycle_number, rest) = s.split_once('°').ok_or(anyhow!("Missing degree symbol"))?;
+    let (cycle_number, rest) = s
+      .split_once('°')
+      .ok_or_else(|| anyhow!("Missing degree symbol"))?;
     let cycle_number = cycle_number.parse::<u64>()?;
 
     let (epoch_offset, rest) = rest
       .split_once('′')
-      .ok_or(anyhow!("Missing prime symbol"))?;
+      .ok_or_else(|| anyhow!("Missing prime symbol"))?;
     let epoch_offset = epoch_offset.parse::<u64>()?;
     if epoch_offset >= Epoch::BLOCKS {
       bail!("Invalid epoch offset");
@@ -65,7 +67,7 @@ impl Ordinal {
 
     let (period_offset, rest) = rest
       .split_once('″')
-      .ok_or(anyhow!("Missing double prime symbol"))?;
+      .ok_or_else(|| anyhow!("Missing double prime symbol"))?;
     let period_offset = period_offset.parse::<u64>()?;
     if period_offset >= PERIOD_BLOCKS {
       bail!("Invalid period offset");
@@ -75,9 +77,7 @@ impl Ordinal {
 
     let cycle_progression = period_offset
       .checked_sub(epoch_offset % PERIOD_BLOCKS)
-      .ok_or(anyhow!(
-        "Invalid relationship between epoch offset and period offset"
-      ))?;
+      .ok_or_else(|| anyhow!("Invalid relationship between epoch offset and period offset"))?;
 
     if cycle_progression % (Epoch::BLOCKS % PERIOD_BLOCKS) != 0 {
       bail!("Invalid relationship between epoch offset and period offset");
