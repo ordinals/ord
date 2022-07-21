@@ -168,6 +168,13 @@ mod tests {
   }
 
   #[test]
+  fn period() {
+    assert_eq!(Ordinal(0).period(), 0);
+    assert_eq!(Ordinal(10080000000000).period(), 1);
+    assert_eq!(Ordinal(2099999997689999).period(), 3437);
+  }
+
+  #[test]
   fn epoch() {
     assert_eq!(Ordinal(0).epoch(), 0);
     assert_eq!(Ordinal(1).epoch(), 0);

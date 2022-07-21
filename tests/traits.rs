@@ -43,6 +43,11 @@ fn name() {
 }
 
 #[test]
+fn number() {
+  case(2099999997689999, "number", "2099999997689999");
+}
+
+#[test]
 fn height() {
   case(0, "height", "0");
   case(1, "height", "0");
