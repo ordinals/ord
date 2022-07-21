@@ -12,15 +12,10 @@ impl Traits {
     }
 
     println!("name: {}", self.ordinal.name());
-
-    println!("cycle: {}", self.ordinal.cycle());
-
-    println!("epoch: {}", self.ordinal.epoch());
-
     println!("height: {}", self.ordinal.height());
-
+    println!("cycle: {}", self.ordinal.cycle());
+    println!("epoch: {}", self.ordinal.epoch());
     println!("period: {}", self.ordinal.period());
-
     println!("offset: {}", self.ordinal.subsidy_position());
 
     let height = self.ordinal.height().n();

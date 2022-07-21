@@ -1,8 +1,6 @@
 use super::*;
 
-#[derive(
-  Copy, Clone, Eq, PartialEq, Debug, Display, Ord, PartialOrd, FromStr, Deserialize, Serialize,
-)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Display, Ord, PartialOrd, Deserialize, Serialize)]
 #[serde(transparent)]
 pub(crate) struct Ordinal(pub(crate) u64);
 
@@ -27,7 +25,7 @@ impl Ordinal {
   }
 
   pub(crate) fn period(self) -> u64 {
-    self.0 / PERIOD_BLOCKS
+    self.height().n() / PERIOD_BLOCKS
   }
 
   pub(crate) fn subsidy_position(self) -> u64 {
@@ -52,6 +50,71 @@ impl Ordinal {
     }
     name.chars().rev().collect()
   }
+
+  fn from_degree(s: &str) -> Result<Self> {
+    let (cycle_number, rest) = s.split_once('°').unwrap();
+    let cycle_number = cycle_number.parse::<u64>().unwrap();
+
+    let (epoch_offset, rest) = rest.split_once('′').unwrap();
+    let epoch_offset = epoch_offset.parse::<u64>().unwrap();
+    if epoch_offset >= Epoch::BLOCKS {
+      bail!("Invalid epoch offset");
+    }
+
+    let (period_offset, rest) = rest.split_once('″').unwrap();
+    let period_offset = period_offset.parse::<u64>().unwrap();
+    if period_offset >= PERIOD_BLOCKS {
+      bail!("Invalid period offset");
+    }
+
+    let cycle_start_epoch = cycle_number * CYCLE_EPOCHS;
+
+    let cycle_progression = period_offset - (epoch_offset % PERIOD_BLOCKS);
+
+    if cycle_progression % (Epoch::BLOCKS % PERIOD_BLOCKS) != 0 {
+      bail!("Invalid relationshiop between epoch offset and period offset");
+    }
+
+    let epochs_since_cycle_start = cycle_progression / (Epoch::BLOCKS % PERIOD_BLOCKS);
+
+    let epoch = cycle_start_epoch + epochs_since_cycle_start;
+
+    let height = Height(epoch * Epoch::BLOCKS + epoch_offset);
+
+    let (block_offset, rest) = rest.split_once('‴').unwrap();
+    let block_offset = block_offset.parse::<u64>().unwrap();
+
+    dbg!(
+      s,
+      cycle_progression,
+      cycle_number,
+      epoch_offset,
+      period_offset,
+      cycle_start_epoch,
+      epochs_since_cycle_start,
+      epoch,
+      height,
+    );
+
+    if !rest.is_empty() {
+      bail!("Trailing characters");
+    }
+
+    if block_offset >= height.subsidy() {
+      bail!("Invalid block offset");
+    }
+
+    Ok(height.starting_ordinal() + block_offset)
+
+    // TODO:
+    // - missing zeros
+    // - check for cycle number too large
+    // - check for epoch index too large
+    // - check for period index too large
+    // - check for offset too large
+
+    // assert_eq!("1°0′0″1‴".parse::<Ordinal>().unwrap(), 2067187500000001);
+  }
 }
 
 impl PartialEq<u64> for Ordinal {
@@ -71,6 +134,23 @@ impl Add<u64> for Ordinal {
 impl AddAssign<u64> for Ordinal {
   fn add_assign(&mut self, other: u64) {
     *self = Ordinal(self.0 + other);
+  }
+}
+
+impl FromStr for Ordinal {
+  type Err = Error;
+
+  fn from_str(s: &str) -> Result<Self> {
+    if s.contains('°') {
+      Self::from_degree(s)
+    } else {
+      let ordinal = Self(s.parse()?);
+      if ordinal > Self::LAST {
+        Err(anyhow!("Invalid ordinal"))
+      } else {
+        Ok(ordinal)
+      }
+    }
   }
 }
 
@@ -177,10 +257,79 @@ mod tests {
     assert_eq!(ordinal, 101);
   }
 
+  fn parse(s: &str) -> Result<Ordinal, String> {
+    s.parse::<Ordinal>().map_err(|e| e.to_string())
+  }
+
   #[test]
-  fn from_str() {
-    assert_eq!("0".parse::<Ordinal>().unwrap(), 0);
-    assert!("foo".parse::<Ordinal>().is_err());
+  fn from_str_degree() {
+    assert_eq!(parse("0°0′0″0‴").unwrap(), 0);
+    assert_eq!(parse("0°0′0″1‴").unwrap(), 1);
+    assert_eq!(parse("0°2016′0″0‴").unwrap(), 10080000000000);
+    assert_eq!(parse("0°2017′1″0‴").unwrap(), 10085000000000);
+    assert_eq!(parse("0°2016′0″1‴").unwrap(), 10080000000001);
+    assert_eq!(parse("0°2017′1″1‴").unwrap(), 10085000000001);
+    assert_eq!(parse("0°209999′335″0‴").unwrap(), 1049995000000000);
+    assert_eq!(parse("0°0′336″0‴").unwrap(), 1050000000000000);
+    assert_eq!(parse("0°0′672″0‴").unwrap(), 1575000000000000);
+    assert_eq!(parse("0°209999′1007″0‴").unwrap(), 1837498750000000);
+    assert_eq!(parse("0°0′1008″0‴").unwrap(), 1837500000000000);
+    assert_eq!(parse("1°0′0″0‴").unwrap(), 2067187500000000);
+    assert_eq!(parse("2°0′0″0‴").unwrap(), 2099487304530000);
+    assert_eq!(parse("3°0′0″0‴").unwrap(), 2099991988080000);
+    assert_eq!(parse("4°0′0″0‴").unwrap(), 2099999873370000);
+    assert_eq!(parse("5°0′0″0‴").unwrap(), 2099999996220000);
+    assert_eq!(parse("5°0′336″0‴").unwrap(), 2099999997060000);
+    assert_eq!(parse("5°0′672″0‴").unwrap(), 2099999997480000);
+    assert_eq!(parse("5°1′673″0‴").unwrap(), 2099999997480001);
+    assert_eq!(parse("5°209999′1007″0‴").unwrap(), 2099999997689999);
+  }
+
+  #[test]
+  fn from_str_number() {
+    assert_eq!(parse("0").unwrap(), 0);
+    assert!(parse("foo").is_err());
+    assert_eq!(parse("2099999997689999").unwrap(), 2099999997689999);
+    assert!(parse("2099999997690000").is_err());
+  }
+
+  #[test]
+  fn from_str_degree_invalid_cycle_number() {
+    assert!(parse("5°0′0″0‴").is_ok());
+    assert!(parse("6°0′0″0‴").is_err());
+  }
+
+  #[test]
+  fn from_str_degree_invalid_epoch_offset() {
+    assert!(parse("0°209999′335″0‴").is_ok());
+    assert!(parse("0°210000′336″0‴").is_err());
+  }
+
+  #[test]
+  fn from_str_degree_invalid_period_offset() {
+    assert!(parse("0°2015′2015″0‴").is_ok());
+    assert!(parse("0°2016′2016″0‴").is_err());
+  }
+
+  #[test]
+  fn from_str_degree_invalid_block_offset() {
+    assert!(parse("0°0′0″4999999999‴").is_ok());
+    assert!(parse("0°0′0″5000000000‴").is_err());
+    assert!(parse("0°209999′335″4999999999‴").is_ok());
+    assert!(parse("0°0′336″4999999999‴").is_err());
+  }
+
+  #[test]
+  fn from_str_degree_invalid_period_block_relationship() {
+    assert!(parse("0°2015′2015″0‴").is_ok());
+    assert!(parse("0°2016′0″0‴").is_ok());
+    assert!(parse("0°2016′1″0‴").is_err());
+  }
+
+  #[test]
+  fn from_str_degree_post_distribution() {
+    assert!(parse("5°209999′1007″0‴").is_ok());
+    assert!(parse("5°0′1008″0‴").is_err());
   }
 
   #[test]

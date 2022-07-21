@@ -73,6 +73,7 @@ fn period() {
   case(2015, "period", "0");
   case(2016, "period", "1");
   case(2017, "period", "1");
+  case(2099999997689999, "period", "3437");
 }
 
 #[test]
@@ -115,7 +116,7 @@ fn degree() {
 
 #[test]
 fn rarity() {
-  case(0, "rarity", "legendary");
+  case(0, "rarity", "mythic");
   case(1, "rarity", "common");
 
   case(50 * 100_000_000 - 1, "rarity", "common");
