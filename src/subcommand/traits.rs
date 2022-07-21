@@ -11,17 +11,12 @@ impl Traits {
       return Err(anyhow!("Invalid ordinal"));
     }
 
-    println!("name: {}", self.ordinal.name());
-
-    println!("cycle: {}", self.ordinal.cycle());
-
-    println!("epoch: {}", self.ordinal.epoch());
-
-    println!("height: {}", self.ordinal.height());
-
-    println!("period: {}", self.ordinal.period());
-
-    println!("offset: {}", self.ordinal.subsidy_position());
+    println!("number: {}", self.ordinal.n());
+    println!(
+      "decimal: {}.{}",
+      self.ordinal.height(),
+      self.ordinal.subsidy_position()
+    );
 
     let height = self.ordinal.height().n();
     let c = height / (CYCLE_EPOCHS * Epoch::BLOCKS);
@@ -29,6 +24,13 @@ impl Traits {
     let p = height % PERIOD_BLOCKS;
     let o = self.ordinal.subsidy_position();
     println!("degree: {c}°{e}′{p}″{o}‴");
+
+    println!("name: {}", self.ordinal.name());
+    println!("height: {}", self.ordinal.height());
+    println!("cycle: {}", self.ordinal.cycle());
+    println!("epoch: {}", self.ordinal.epoch());
+    println!("period: {}", self.ordinal.period());
+    println!("offset: {}", self.ordinal.subsidy_position());
 
     println!(
       "rarity: {}",
