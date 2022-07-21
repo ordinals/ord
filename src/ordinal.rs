@@ -104,6 +104,18 @@ impl Ordinal {
 
     Ok(height.starting_ordinal() + block_offset)
   }
+
+  fn from_decimal(s: &str) -> Result<Self> {
+    let (height, offset) = s.split_once('.').ok_or_else(|| anyhow!("Missing period"))?;
+    let height = Height(height.parse()?);
+    let offset = offset.parse::<u64>()?;
+
+    if offset >= height.subsidy() {
+      bail!("Invalid block offset");
+    }
+
+    Ok(height.starting_ordinal() + offset)
+  }
 }
 
 impl PartialEq<u64> for Ordinal {
@@ -132,6 +144,8 @@ impl FromStr for Ordinal {
   fn from_str(s: &str) -> Result<Self> {
     if s.contains('°') {
       Self::from_degree(s)
+    } else if s.contains('.') {
+      Self::from_decimal(s)
     } else {
       let ordinal = Self(s.parse()?);
       if ordinal > Self::LAST {
@@ -255,6 +269,16 @@ mod tests {
 
   fn parse(s: &str) -> Result<Ordinal, String> {
     s.parse::<Ordinal>().map_err(|e| e.to_string())
+  }
+
+  #[test]
+  fn from_str_decimal() {
+    assert_eq!(parse("0.0").unwrap(), 0);
+    assert_eq!(parse("0.1").unwrap(), 1);
+    assert_eq!(parse("1.0").unwrap(), 50 * 100_000_000);
+    assert_eq!(parse("6929999.0").unwrap(), 2099999997689999);
+    assert!(parse("0.5000000000").is_err());
+    assert!(parse("6930000.0").is_err());
   }
 
   #[test]

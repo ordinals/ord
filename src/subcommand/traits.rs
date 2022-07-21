@@ -12,6 +12,11 @@ impl Traits {
     }
 
     println!("number: {}", self.ordinal.n());
+    println!(
+      "decimal: {}.{}",
+      self.ordinal.height(),
+      self.ordinal.subsidy_position()
+    );
 
     let height = self.ordinal.height().n();
     let c = height / (CYCLE_EPOCHS * Epoch::BLOCKS);
