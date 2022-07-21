@@ -81,7 +81,9 @@ fn epoch() {
 fn period() {
   case(0, "period", "0");
   case(10075000000000, "period", "0");
+  case(10080000000000 - 1, "period", "0");
   case(10080000000000, "period", "1");
+  case(10080000000000 + 1, "period", "1");
   case(10085000000000, "period", "1");
   case(2099999997689999, "period", "3437");
 }
