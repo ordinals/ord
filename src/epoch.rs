@@ -99,6 +99,7 @@ mod tests {
       (Epoch(0).subsidy() + Epoch(1).subsidy()) * Epoch::BLOCKS
     );
     assert_eq!(Epoch(33).starting_ordinal(), Ordinal(Ordinal::SUPPLY));
+    assert_eq!(Epoch(34).starting_ordinal(), Ordinal(Ordinal::SUPPLY));
   }
 
   #[test]
