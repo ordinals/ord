@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Copy, Clone, Debug, Display)]
+#[derive(Copy, Clone, Debug, Display, FromStr)]
 pub(crate) struct Height(pub(crate) u64);
 
 impl Height {
@@ -39,14 +39,6 @@ impl Sub<u64> for Height {
 impl PartialEq<u64> for Height {
   fn eq(&self, other: &u64) -> bool {
     self.0 == *other
-  }
-}
-
-impl FromStr for Height {
-  type Err = Error;
-
-  fn from_str(s: &str) -> Result<Self, Self::Err> {
-    Ok(Self(s.parse::<u64>()?))
   }
 }
 

@@ -33,7 +33,10 @@ impl Nft {
 
     let message_hash = secp256k1::Message::from_slice(&sha256::Hash::from_engine(engine))?;
 
-    let signature = signing_key_pair.sign_schnorr(message_hash);
+    let context = Secp256k1::new();
+
+    let signature =
+      context.sign_schnorr_with_rng(&message_hash, &signing_key_pair, &mut thread_rng());
 
     Ok(Self {
       metadata,

@@ -5,7 +5,7 @@ use {
     arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height, index::Index, nft::Nft,
     options::Options, ordinal::Ordinal, sat_point::SatPoint, subcommand::Subcommand,
   },
-  anyhow::{anyhow, Context, Error},
+  anyhow::{anyhow, bail, Context, Error},
   axum::{extract, http::StatusCode, response::IntoResponse, routing::get, Json, Router},
   axum_server::Handle,
   bdk::{
@@ -18,8 +18,17 @@ use {
   },
   bech32::{FromBase32, ToBase32},
   bitcoin::{
-    blockdata::constants::COIN_VALUE, consensus::Decodable, consensus::Encodable,
-    util::key::PrivateKey, Address, Block, Network, OutPoint, Transaction, Txid,
+    blockdata::constants::COIN_VALUE,
+    consensus::Decodable,
+    consensus::Encodable,
+    secp256k1::{
+      self,
+      rand::{self, thread_rng},
+      schnorr::Signature,
+      KeyPair, Secp256k1, SecretKey, XOnlyPublicKey,
+    },
+    util::key::PrivateKey,
+    Address, Block, Network, OutPoint, Transaction, Txid,
   },
   bitcoin_hashes::{sha256, Hash, HashEngine},
   chrono::{DateTime, NaiveDateTime, Utc},
@@ -29,7 +38,6 @@ use {
   lazy_static::lazy_static,
   qrcode_generator::QrCodeEcc,
   redb::{Database, ReadableTable, Table, TableDefinition, WriteTransaction},
-  secp256k1::{rand, schnorr::Signature, KeyPair, Secp256k1, SecretKey, XOnlyPublicKey},
   serde::{Deserialize, Serialize},
   std::{
     cmp::Ordering,
