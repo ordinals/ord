@@ -32,7 +32,9 @@ impl Traits {
 
     println!(
       "rarity: {}",
-      if o == 0 && p == 0 && e == 0 {
+      if c == 0 && o == 0 && p == 0 && e == 0 {
+        "mythic"
+      } else if o == 0 && p == 0 && e == 0 {
         "legendary"
       } else if o == 0 && e == 0 {
         "epic"
