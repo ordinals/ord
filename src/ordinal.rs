@@ -53,16 +53,16 @@ impl Ordinal {
 
   fn from_degree(s: &str) -> Result<Self> {
     let (cycle_number, rest) = s.split_once('°').unwrap();
-    let cycle_number = cycle_number.parse::<u64>().unwrap();
+    let cycle_number = cycle_number.parse::<u64>()?;
 
     let (epoch_offset, rest) = rest.split_once('′').unwrap();
-    let epoch_offset = epoch_offset.parse::<u64>().unwrap();
+    let epoch_offset = epoch_offset.parse::<u64>()?;
     if epoch_offset >= Epoch::BLOCKS {
       bail!("Invalid epoch offset");
     }
 
     let (period_offset, rest) = rest.split_once('″').unwrap();
-    let period_offset = period_offset.parse::<u64>().unwrap();
+    let period_offset = period_offset.parse::<u64>()?;
     if period_offset >= PERIOD_BLOCKS {
       bail!("Invalid period offset");
     }
@@ -72,7 +72,7 @@ impl Ordinal {
     let cycle_progression = period_offset - (epoch_offset % PERIOD_BLOCKS);
 
     if cycle_progression % (Epoch::BLOCKS % PERIOD_BLOCKS) != 0 {
-      bail!("Invalid relationshiop between epoch offset and period offset");
+      bail!("Invalid relationship between epoch offset and period offset");
     }
 
     let epochs_since_cycle_start = cycle_progression / (Epoch::BLOCKS % PERIOD_BLOCKS);
@@ -81,8 +81,10 @@ impl Ordinal {
 
     let height = Height(epoch * Epoch::BLOCKS + epoch_offset);
 
-    let (block_offset, rest) = rest.split_once('‴').unwrap();
-    let block_offset = block_offset.parse::<u64>().unwrap();
+    let (block_offset, rest) = match rest.split_once('‴') {
+      Some((block_offset, rest)) => (block_offset.parse::<u64>()?, rest),
+      None => (0, rest),
+    };
 
     dbg!(
       s,
@@ -264,6 +266,7 @@ mod tests {
   #[test]
   fn from_str_degree() {
     assert_eq!(parse("0°0′0″0‴").unwrap(), 0);
+    assert_eq!(parse("0°0′0″").unwrap(), 0);
     assert_eq!(parse("0°0′0″1‴").unwrap(), 1);
     assert_eq!(parse("0°2016′0″0‴").unwrap(), 10080000000000);
     assert_eq!(parse("0°2017′1″0‴").unwrap(), 10085000000000);
