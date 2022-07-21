@@ -6,6 +6,14 @@ use {
     blockdata::constants::COIN_VALUE, blockdata::script, consensus::Encodable, Block, BlockHash,
     BlockHeader, OutPoint, Transaction, TxIn, TxOut, Witness,
   },
+  core::str::FromStr,
+  electrsd::bitcoind::{
+    bitcoincore_rpc::{
+      bitcoin::{Address, Amount},
+      RpcApi,
+    },
+    BitcoinD as Bitcoind,
+  },
   executable_path::executable_path,
   nix::{
     sys::signal::{self, Signal},
@@ -57,6 +65,7 @@ enum Event {
 }
 
 struct Output {
+  bitcoind: Bitcoind,
   calls: Vec<String>,
   stdout: String,
   tempdir: TempDir,
@@ -86,6 +95,7 @@ struct TransactionOptions<'a> {
 
 struct Test {
   args: Vec<String>,
+  bitcoind: Bitcoind,
   envs: Vec<(OsString, OsString)>,
   events: Vec<Event>,
   expected_status: i32,
@@ -96,19 +106,23 @@ struct Test {
 
 impl Test {
   fn new() -> Result<Self> {
-    Ok(Self::with_tempdir(TempDir::new()?))
+    Ok(Self::with_tempdir(TempDir::new()?)?)
   }
 
-  fn with_tempdir(tempdir: TempDir) -> Self {
-    Self {
+  fn with_tempdir(tempdir: TempDir) -> Result<Self> {
+    Ok(Self {
       args: Vec::new(),
+      bitcoind: Bitcoind::with_conf(
+        electrsd::bitcoind::downloaded_exe_path()?,
+        &electrsd::bitcoind::Conf::default(),
+      )?,
       envs: Vec::new(),
       events: Vec::new(),
       expected_status: 0,
       expected_stderr: None,
       expected_stdout: Expected::String(String::new()),
       tempdir,
-    }
+    })
   }
 
   fn command(self, args: &str) -> Self {
@@ -215,6 +229,8 @@ impl Test {
       RpcServer::spawn(self.blocks().cloned().collect())
     };
 
+    eprintln!("{}", self.bitcoind.params.rpc_socket.to_string());
+
     let child = Command::new(executable_path("ord"))
       .envs(self.envs)
       .stdin(Stdio::null())
@@ -225,7 +241,12 @@ impl Test {
         Stdio::inherit()
       })
       .current_dir(&self.tempdir)
-      .arg(format!("--rpc-url=http://127.0.0.1:{rpc_server_port}"))
+      // .arg(format!("--rpc-url=http://127.0.0.1:{rpc_server_port}"))
+      .arg(format!(
+        "--rpc-url={}",
+        self.bitcoind.params.rpc_socket.to_string()
+      ))
+      .arg(format!("--cookie-file={}", self.bitcoind.params.cookie_file.display()))
       .args(self.args)
       .spawn()?;
 
@@ -324,9 +345,10 @@ impl Test {
     let calls = calls.lock().unwrap().clone();
 
     Ok(Output {
+      bitcoind: self.bitcoind,
+      calls,
       stdout: stdout.to_string(),
       tempdir: self.tempdir,
-      calls,
     })
   }
 

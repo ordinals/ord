@@ -22,7 +22,7 @@ fn init_existing_wallet() -> Result {
 
   assert!(tempdir.path().join(path("ord/entropy")).exists());
 
-  Test::with_tempdir(tempdir)
+  Test::with_tempdir(tempdir)?
     .command("wallet init")
     .set_home_to_tempdir()
     .expected_status(1)
@@ -66,7 +66,7 @@ fn load_corrupted_entropy() -> Result {
 
   fs::write(&entropy_path, entropy)?;
 
-  Test::with_tempdir(tempdir)
+  Test::with_tempdir(tempdir)?
     .command("wallet fund")
     .set_home_to_tempdir()
     .expected_status(1)
@@ -87,7 +87,7 @@ fn fund_existing_wallet() -> Result {
     .output()?
     .tempdir;
 
-  Test::with_tempdir(tempdir)
+  Test::with_tempdir(tempdir)?
     .command("wallet fund")
     .set_home_to_tempdir()
     .stdout_regex("^tb1.*\n")
@@ -101,5 +101,50 @@ fn fund_nonexistent_wallet() -> Result {
     .set_home_to_tempdir()
     .expected_status(1)
     .expected_stderr("error: Wallet doesn't exist.\n")
+    .run()
+}
+
+#[test]
+fn utxos() -> Result {
+  let output = Test::new()?
+    .command("wallet init")
+    .set_home_to_tempdir()
+    .expected_status(0)
+    .expected_stderr("Wallet initialized.\n")
+    .set_home_to_tempdir()
+    .output()?;
+
+  let output = Test::with_tempdir(output.tempdir)?
+    .command("wallet fund")
+    .set_home_to_tempdir()
+    .stdout_regex("^bcrt1.*\n")
+    .output()?;
+
+  let core_address = output.bitcoind.client.get_new_address(None, None)?;
+
+  output
+    .bitcoind
+    .client
+    .generate_to_address(101, &core_address)?;
+
+  output.bitcoind.client.send_to_address(
+    &Address::from_str(&output.stdout.strip_suffix('\n').unwrap())?,
+    Amount::from_btc(10.0)?,
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+  )?;
+
+  output
+    .bitcoind
+    .client
+    .generate_to_address(1, &core_address)?;
+
+  Test::with_tempdir(output.tempdir)?
+    .command("wallet utxos")
+    .set_home_to_tempdir()
     .run()
 }

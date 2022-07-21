@@ -4,7 +4,7 @@ use super::*;
 fn basic() -> Result {
   let output = Test::new()?.command("index").block().output()?;
 
-  Test::with_tempdir(output.tempdir)
+  Test::with_tempdir(output.tempdir)?
     .command("info")
     .stdout_regex(
       r"
