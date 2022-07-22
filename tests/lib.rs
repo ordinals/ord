@@ -6,6 +6,14 @@ use {
     blockdata::constants::COIN_VALUE, blockdata::script, consensus::Encodable, Block, BlockHash,
     BlockHeader, OutPoint, Transaction, TxIn, TxOut, Witness,
   },
+  core::str::FromStr,
+  electrsd::bitcoind::{
+    bitcoincore_rpc::{
+      bitcoin::{Address, Amount},
+      RpcApi,
+    },
+    BitcoinD as Bitcoind,
+  },
   executable_path::executable_path,
   nix::{
     sys::signal::{self, Signal},
@@ -86,6 +94,7 @@ struct TransactionOptions<'a> {
 
 struct Test {
   args: Vec<String>,
+  bitcoind: Bitcoind,
   envs: Vec<(OsString, OsString)>,
   events: Vec<Event>,
   expected_status: i32,
@@ -96,19 +105,24 @@ struct Test {
 
 impl Test {
   fn new() -> Result<Self> {
-    Ok(Self::with_tempdir(TempDir::new()?))
+    Ok(Self::with_tempdir(TempDir::new()?)?)
   }
 
-  fn with_tempdir(tempdir: TempDir) -> Self {
-    Self {
+  fn with_tempdir(tempdir: TempDir) -> Result<Self> {
+    let mut config = electrsd::bitcoind::Conf::default();
+
+    config.args = vec!["-regtest", "-fallbackfee=0.0001", "-wallet"];
+
+    Ok(Self {
       args: Vec::new(),
+      bitcoind: Bitcoind::with_conf(electrsd::bitcoind::downloaded_exe_path()?, &config)?,
       envs: Vec::new(),
       events: Vec::new(),
       expected_status: 0,
       expected_stderr: Expected::Ignore,
       expected_stdout: Expected::String(String::new()),
       tempdir,
-    }
+    })
   }
 
   fn command(self, args: &str) -> Self {
@@ -234,7 +248,14 @@ impl Test {
         Stdio::inherit()
       })
       .current_dir(&self.tempdir)
-      .arg(format!("--rpc-url=http://127.0.0.1:{rpc_server_port}"))
+      .arg(format!(
+        "--rpc-url={}",
+        self.bitcoind.params.rpc_socket.to_string()
+      ))
+      .arg(format!(
+        "--cookie-file={}",
+        self.bitcoind.params.cookie_file.display()
+      ))
       .args(self.args)
       .spawn()?;
 
@@ -352,44 +373,105 @@ impl Test {
   }
 
   fn block_with_coinbase(mut self, coinbase: CoinbaseOptions) -> Self {
-    self.events.push(Event::Block(Block {
-      header: BlockHeader {
+    // basically just need to replace this `Block` construction
+    // with calls to `bitcoincore_rpc` api
+
+    // 1. Create block
+    // 2. Create transaction
+
+    let core_address = self.bitcoind.client.get_new_address(None, None).unwrap();
+
+    let block_hashes = self
+      .bitcoind
+      .client
+      .generate_to_address(101, &core_address)
+      .unwrap();
+
+    let mut block = self
+      .bitcoind
+      .client
+      .get_block(block_hashes.first().unwrap())
+      .unwrap();
+
+    block.header = BlockHeader {
+      version: 0,
+      prev_blockhash: self
+        .blocks()
+        .last()
+        .map(Block::block_hash)
+        .unwrap_or_default(),
+      merkle_root: Default::default(),
+      time: 0,
+      bits: 0,
+      nonce: 0,
+    };
+
+    block.txdata = if coinbase.include_coinbase_transaction {
+      vec![Transaction {
         version: 0,
-        prev_blockhash: self
-          .blocks()
-          .last()
-          .map(Block::block_hash)
-          .unwrap_or_default(),
-        merkle_root: Default::default(),
-        time: 0,
-        bits: 0,
-        nonce: 0,
-      },
-      txdata: if coinbase.include_coinbase_transaction {
-        vec![Transaction {
-          version: 0,
-          lock_time: 0,
-          input: vec![TxIn {
-            previous_output: OutPoint::null(),
-            script_sig: if coinbase.include_height {
-              script::Builder::new()
-                .push_scriptint(self.blocks().count().try_into().unwrap())
-                .into_script()
-            } else {
-              script::Builder::new().into_script()
-            },
-            sequence: 0,
-            witness: Witness::new(),
-          }],
-          output: vec![TxOut {
-            value: coinbase.subsidy,
-            script_pubkey: script::Builder::new().into_script(),
-          }],
-        }]
-      } else {
-        Vec::new()
-      },
-    }));
+        lock_time: 0,
+        input: vec![TxIn {
+          previous_output: OutPoint::null(),
+          script_sig: if coinbase.include_height {
+            script::Builder::new()
+              .push_scriptint(self.blocks().count().try_into().unwrap())
+              .into_script()
+          } else {
+            script::Builder::new().into_script()
+          },
+          sequence: 0,
+          witness: Witness::new(),
+        }],
+        output: vec![TxOut {
+          value: coinbase.subsidy,
+          script_pubkey: script::Builder::new().into_script(),
+        }],
+      }]
+    } else {
+      Vec::new()
+    };
+
+    // self.events.push(Event::Block(Block {
+    //   header: BlockHeader {
+    //     version: 0,
+    //     prev_blockhash: self
+    //       .blocks()
+    //       .last()
+    //       .map(Block::block_hash)
+    //       .unwrap_or_default(),
+    //     merkle_root: Default::default(),
+    //     time: 0,
+    //     bits: 0,
+    //     nonce: 0,
+    //   },
+    //   txdata: if coinbase.include_coinbase_transaction {
+    //     vec![Transaction {
+    //       version: 0,
+    //       lock_time: 0,
+    //       input: vec![TxIn {
+    //         previous_output: OutPoint::null(),
+    //         script_sig: if coinbase.include_height {
+    //           script::Builder::new()
+    //             .push_scriptint(self.blocks().count().try_into().unwrap())
+    //             .into_script()
+    //         } else {
+    //           script::Builder::new().into_script()
+    //         },
+    //         sequence: 0,
+    //         witness: Witness::new(),
+    //       }],
+    //       output: vec![TxOut {
+    //         value: coinbase.subsidy,
+    //         script_pubkey: script::Builder::new().into_script(),
+    //       }],
+    //     }]
+    //   } else {
+    //     Vec::new()
+    //   },
+    // }));
+
+    self.events.push(Event::Block(block));
+
     self
   }
 

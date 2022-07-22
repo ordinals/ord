@@ -22,7 +22,7 @@ fn init_existing_wallet() -> Result {
 
   assert!(tempdir.path().join(path("ord/entropy")).exists());
 
-  Test::with_tempdir(tempdir)
+  Test::with_tempdir(tempdir)?
     .command("wallet init")
     .set_home_to_tempdir()
     .expected_status(1)
@@ -66,7 +66,7 @@ fn load_corrupted_entropy() -> Result {
 
   fs::write(&entropy_path, entropy)?;
 
-  Test::with_tempdir(tempdir)
+  Test::with_tempdir(tempdir)?
     .command("wallet fund")
     .set_home_to_tempdir()
     .expected_status(1)
@@ -87,7 +87,7 @@ fn fund_existing_wallet() -> Result {
     .output()?
     .tempdir;
 
-  Test::with_tempdir(tempdir)
+  Test::with_tempdir(tempdir)?
     .command("wallet fund")
     .set_home_to_tempdir()
     .stdout_regex("^tb1.*\n")
