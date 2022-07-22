@@ -109,13 +109,12 @@ impl Test {
   }
 
   fn with_tempdir(tempdir: TempDir) -> Result<Self> {
-    let mut config = electrsd::bitcoind::Conf::default();
-
-    config.args = vec!["-regtest", "-fallbackfee=0.0001", "-wallet"];
-
     Ok(Self {
       args: Vec::new(),
-      bitcoind: Bitcoind::with_conf(electrsd::bitcoind::downloaded_exe_path()?, &config)?,
+      bitcoind: Bitcoind::with_conf(
+        electrsd::bitcoind::downloaded_exe_path()?,
+        &electrsd::bitcoind::Conf::default(),
+      )?,
       envs: Vec::new(),
       events: Vec::new(),
       expected_status: 0,
@@ -373,18 +372,12 @@ impl Test {
   }
 
   fn block_with_coinbase(mut self, coinbase: CoinbaseOptions) -> Self {
-    // basically just need to replace this `Block` construction
-    // with calls to `bitcoincore_rpc` api
-
-    // 1. Create block
-    // 2. Create transaction
-
     let core_address = self.bitcoind.client.get_new_address(None, None).unwrap();
 
     let block_hashes = self
       .bitcoind
       .client
-      .generate_to_address(101, &core_address)
+      .generate_to_address(1, &core_address)
       .unwrap();
 
     let mut block = self

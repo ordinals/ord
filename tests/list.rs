@@ -3,8 +3,7 @@ use super::*;
 #[test]
 fn first_coinbase_transaction() -> Result {
   Test::new()?
-    .command("list 0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0")
-    .block()
+    .command("list 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0")
     .expected_stdout("[0,5000000000)\n")
     .run()
 }
