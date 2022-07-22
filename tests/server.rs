@@ -58,11 +58,22 @@ fn http_or_https_port_is_required() -> Result {
     .run()
 }
 
-// #[test]
-// fn http_and_https_port_conflict() -> Result {
-//   Test::new()?
-//     .command("server --address 127.0.0.1 --http-port 0 --https-port 0")
-//     .stderr_regex("error: The following required arguments were not provided:\n    <--http-port <HTTP_PORT>|--https-port <HTTPS_PORT>>\n.*")
-//     .expected_status(2)
-//     .run()
-// }
+#[test]
+fn http_and_https_port_conflict() -> Result {
+  Test::new()?
+    .command("server --address 127.0.0.1 --http-port 0 --https-port 0")
+    .stderr_regex("error: The argument '--http-port <HTTP_PORT>' cannot be used with '--https-port <HTTPS_PORT>'\n.*")
+    .expected_status(2)
+    .run()
+}
+
+#[test]
+fn http_port_requires_acme_domain() -> Result {
+  let port = free_port()?;
+
+  Test::new()?
+    .command("server --address 127.0.0.1 --https-port 0")
+    .stderr_regex("foo")
+    .expected_status(2)
+    .run_server(port)
+}

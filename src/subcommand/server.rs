@@ -15,11 +15,10 @@ use tokio_util::compat::TokioAsyncReadCompatExt;
 use tower::MakeService;
 
 // TODO:
-// - populate directory with pre-generated HTTPS certs and tests HTTPS connection
-// - test that --http-port and --https-port conflict
-// - test that --http-port or --https-port is required
-// - creates directory if required
 // - --https port requires --acme-domain, --acme-cache-directory, and --acme-contact
+// - --acme contact and --acme domains can be passed multiple times
+// - populate directory with pre-generated HTTPS certs and tests HTTPS connection
+// - creates directory if required
 // - refactor
 
 // #[structopt(
@@ -27,11 +26,6 @@ use tower::MakeService;
 //   help = "Store TLS certificates fetched from Let's Encrypt via the ACME protocol in <acme-cache-directory>."
 // )]
 // pub(crate) acme_cache_directory: Option<PathBuf>,
-// #[structopt(
-//   long,
-//   help = "Request TLS certificate for <acme-domain>. This agora instance must be reachable at <acme-domain>:443 to respond to Let's Encrypt ACME challenges."
-// )]
-// pub(crate) acme_domain: Vec<String>,
 // #[structopt(
 //   long,
 //   default_value = "0.0.0.0",
@@ -68,6 +62,11 @@ pub(crate) struct Server {
     help = "Listen on <ADDRESS> for incoming requests."
   )]
   address: String,
+  #[clap(
+    long,
+    help = "Request TLS certificate for <ACME_DOMAIN>. This ord instance must be reachable at <ACME_DOMAIN>:443 to respond to Let's Encrypt ACME challenges."
+  )]
+  pub(crate) acme_domain: Vec<String>,
   #[clap(
     long,
     group = "port",
