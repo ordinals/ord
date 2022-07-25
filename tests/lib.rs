@@ -111,8 +111,8 @@ impl Test {
   fn with_tempdir(tempdir: TempDir) -> Result<Self> {
     let mut conf = electrsd::bitcoind::Conf::default();
 
-    conf.args.push("-blockversion=1");
-    conf.args.push("-testactivationheight=bip34@100");
+    // conf.args.push("-blockversion=1");
+    // conf.args.push("-testactivationheight=bip34@100");
 
     Ok(Self {
       args: Vec::new(),
@@ -474,6 +474,18 @@ impl Test {
   }
 
   fn transaction(mut self, options: TransactionOptions) -> Self {
+    // slot notation (x, y, z)
+    //
+    // x : block  index
+    // y : tx     index
+    // z : output index
+    //
+    // 1. Create raw transaction
+    // - utxos
+    // - outs
+    // - locktime
+    // - replaceable
+
     let input_value = options
       .slots
       .iter()

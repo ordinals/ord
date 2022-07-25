@@ -4,8 +4,7 @@ use super::*;
 fn first_satoshi() -> Result {
   Test::new()?
     .command("find 0")
-    .expected_stdout("0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0:0\n")
-    .block()
+    .expected_stdout("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0\n")
     .run()
 }
 
@@ -23,8 +22,7 @@ fn first_satoshi_slot() -> Result {
 fn second_satoshi() -> Result {
   Test::new()?
     .command("find 1")
-    .expected_stdout("0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0:1\n")
-    .block()
+    .expected_stdout("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:1\n")
     .run()
 }
 
@@ -42,8 +40,7 @@ fn second_satoshi_slot() -> Result {
 fn first_satoshi_of_second_block() -> Result {
   Test::new()?
     .command("find 5000000000")
-    .expected_stdout("9068a11b8769174363376b606af9a4b8b29dd7b13d013f4b0cbbd457db3c3ce5:0:0\n")
-    .block()
+    .expected_stdout("104a8ee40f039ba83ceda9de4c6eb7d8587704168f687b315974d307c93b9caf:0:0\n")
     .block()
     .run()
 }
