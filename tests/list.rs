@@ -30,7 +30,7 @@ fn third_coinbase_transaction_is_not_duplicate() -> Result {
 #[test]
 fn split_ranges_are_tracked_correctly() -> Result {
   Test::new()?
-    .command("list a3f7b03f71988d4f91fea260405dbf3f3586eb134ad01dad15de63053e4985d0:0")
+    .command("list 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0")
     .block()
     .block()
     .transaction(TransactionOptions {
@@ -38,11 +38,12 @@ fn split_ranges_are_tracked_correctly() -> Result {
       output_count: 2,
       fee: 0,
     })
+    .block()
     .expected_stdout("[0,2500000000)\n")
     .run()?;
 
   Test::new()?
-    .command("list a3f7b03f71988d4f91fea260405dbf3f3586eb134ad01dad15de63053e4985d0:1")
+    .command("list 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0")
     .block()
     .block()
     .transaction(TransactionOptions {
@@ -75,39 +76,17 @@ fn merge_ranges_are_tracked_correctly() -> Result {
     .run()
 }
 
-#[test]
-fn duplicate_transaction_range() -> Result {
-  Test::new()?
-    .command("list d63a320a4b404d7933ca788e8f185f10e31e03bf6ab9fa4595bfedc2fcc5a4a8:0")
-    .block_with_coinbase(CoinbaseOptions {
-      include_height: false,
-      ..Default::default()
-    })
-    .block_with_coinbase(CoinbaseOptions {
-      include_height: false,
-      ..Default::default()
-    })
-    .block()
-    .transaction(TransactionOptions {
-      slots: &[(0, 0, 0)],
-      output_count: 1,
-      fee: 0,
-    })
-    .expected_stdout("[5000000000,10000000000)\n")
-    .run()
-}
-
-#[test]
-fn underpay_subsidy() -> Result {
-  Test::new()?
-    .command("list 12d57183977a1df616bafbb7dafbb4249e59d8f796ba556ad6bb75f0fa9fe0ea:0")
-    .block_with_coinbase(CoinbaseOptions {
-      subsidy: 50 * COIN_VALUE - 1,
-      ..Default::default()
-    })
-    .expected_stdout("[0,4999999999)\n")
-    .run()
-}
+// #[test]
+// fn underpay_subsidy() -> Result {
+//   Test::new()?
+//     .command("list 12d57183977a1df616bafbb7dafbb4249e59d8f796ba556ad6bb75f0fa9fe0ea:0")
+//     .block_with_coinbase(CoinbaseOptions {
+//       subsidy: 50 * COIN_VALUE - 1,
+//       ..Default::default()
+//     })
+//     .expected_stdout("[0,4999999999)\n")
+//     .run()
+// }
 
 #[test]
 fn fee_paying_transaction_range() -> Result {

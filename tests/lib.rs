@@ -6,14 +6,14 @@ use {
     blockdata::constants::COIN_VALUE, blockdata::script, consensus::Encodable, Block, BlockHash,
     BlockHeader, OutPoint, Transaction, TxIn, TxOut, Witness,
   },
-  core::str::FromStr,
-  electrsd::bitcoind::{
+  bitcoind::{
     bitcoincore_rpc::{
       bitcoin::{Address, Amount},
       RpcApi,
     },
     BitcoinD as Bitcoind,
   },
+  core::str::FromStr,
   executable_path::executable_path,
   nix::{
     sys::signal::{self, Signal},
@@ -59,9 +59,10 @@ enum Expected {
   Ignore,
 }
 
-enum Event {
-  Block(Block),
+enum Event<'a> {
+  Block,
   Request(String, u16, String),
+  Transaction(TransactionOptions<'a>),
 }
 
 struct Output {
@@ -70,56 +71,38 @@ struct Output {
   tempdir: TempDir,
 }
 
-struct CoinbaseOptions {
-  include_coinbase_transaction: bool,
-  include_height: bool,
-  subsidy: u64,
-}
-
-impl Default for CoinbaseOptions {
-  fn default() -> Self {
-    Self {
-      include_coinbase_transaction: true,
-      include_height: true,
-      subsidy: 50 * COIN_VALUE,
-    }
-  }
-}
-
 struct TransactionOptions<'a> {
   slots: &'a [(usize, usize, usize)],
   output_count: usize,
   fee: u64,
 }
 
-struct Test {
+struct Test<'a> {
+  address: Address,
   args: Vec<String>,
   bitcoind: Bitcoind,
   envs: Vec<(OsString, OsString)>,
-  events: Vec<Event>,
+  events: Vec<Event<'a>>,
   expected_status: i32,
   expected_stderr: Expected,
   expected_stdout: Expected,
   tempdir: TempDir,
 }
 
-impl Test {
+impl<'a> Test<'a> {
   fn new() -> Result<Self> {
     Ok(Self::with_tempdir(TempDir::new()?)?)
   }
 
   fn with_tempdir(tempdir: TempDir) -> Result<Self> {
-    let mut conf = electrsd::bitcoind::Conf::default();
+    let mut conf = bitcoind::Conf::default();
 
-    // conf.args.push("-blockversion=1");
-    // conf.args.push("-testactivationheight=bip34@100");
+    conf.view_stdout = true;
 
     Ok(Self {
+      address: Address::from_str("bcrt1qjcgxtte2ttzmvugn874y0n7j9jc82j0y6qvkvn")?,
       args: Vec::new(),
-      bitcoind: Bitcoind::with_conf(
-        electrsd::bitcoind::downloaded_exe_path()?,
-        &conf
-      )?,
+      bitcoind: Bitcoind::with_conf(bitcoind::downloaded_exe_path()?, &conf)?,
       envs: Vec::new(),
       events: Vec::new(),
       expected_status: 0,
@@ -222,14 +205,65 @@ impl Test {
     self.test(Some(port)).map(|_| ())
   }
 
-  fn blocks(&self) -> impl Iterator<Item = &Block> + '_ {
-    self.events.iter().filter_map(|event| match event {
-      Event::Block(block) => Some(block),
-      _ => None,
-    })
+  fn get_block(&self, height: u64) -> Result<Block> {
+    let block = self
+      .bitcoind
+      .client
+      .get_block(&self.bitcoind.client.get_block_hash(height)?)?;
+
+    Ok(block)
   }
 
   fn test(self, port: Option<u16>) -> Result<Output> {
+    for event in &self.events {
+      match event {
+        Event::Block => {
+          eprintln!("mining block !");
+          self.bitcoind.client.generate_to_address(1, &self.address)?;
+        }
+        Event::Request(request, status, expected_response) => {
+          panic!()
+        }
+        Event::Transaction(options) => {
+          let input_value = options
+            .slots
+            .iter()
+            .map(|slot| {
+              self.get_block(slot.0 as u64).unwrap().txdata[slot.1].output[slot.2].value
+            })
+            .sum::<u64>();
+
+          let output_value = input_value - options.fee;
+
+          let tx = Transaction {
+            version: 0,
+            lock_time: 0,
+            input: options
+              .slots
+              .iter()
+              .map(|slot| TxIn {
+                previous_output: OutPoint {
+                  txid: self.get_block(slot.0 as u64).unwrap().txdata[slot.1].txid(),
+                  vout: slot.2 as u32,
+                },
+                script_sig: script::Builder::new().into_script(),
+                sequence: 0,
+                witness: Witness::new(),
+              })
+              .collect(),
+            output: vec![
+              TxOut {
+                value: output_value / options.output_count as u64,
+                script_pubkey: script::Builder::new().into_script(),
+              };
+              options.output_count
+            ],
+          };
+
+          self.bitcoind.client.send_raw_transaction(&tx)?;
+        }
+      }
+    }
     // for (b, block) in self.blocks().enumerate() {
     //   for (t, transaction) in block.txdata.iter().enumerate() {
     //     eprintln!("{b}.{t}: {}", transaction.txid());
@@ -239,11 +273,11 @@ impl Test {
     let (blocks, close_handle, calls, rpc_server_port) = if port.is_some() {
       RpcServer::spawn(Vec::new())
     } else {
-      RpcServer::spawn(self.blocks().cloned().collect())
+      RpcServer::spawn(Vec::new())
     };
 
     let child = Command::new(executable_path("ord"))
-      .envs(self.envs)
+      .envs(self.envs.clone())
       .stdin(Stdio::null())
       .stdout(Stdio::piped())
       .stderr(if !matches!(self.expected_stderr, Expected::Ignore) {
@@ -260,10 +294,12 @@ impl Test {
         "--cookie-file={}",
         self.bitcoind.params.cookie_file.display()
       ))
-      .args(self.args)
+      .args(self.args.clone())
       .spawn()?;
 
     let mut successful_requests = 0;
+
+    dbg!(port);
 
     if let Some(port) = port {
       let client = reqwest::blocking::Client::new();
@@ -289,12 +325,14 @@ impl Test {
         sleep(Duration::from_millis(100));
       }
 
+      dbg!(healthy);
+
       if healthy {
         for event in &self.events {
           match event {
-            Event::Block(block) => {
-              blocks.lock().unwrap().push(block.clone());
-              thread::sleep(Duration::from_millis(200));
+            Event::Block => {
+              eprintln!("mining block !");
+              self.bitcoind.client.generate_to_address(1, &self.address)?;
             }
             Event::Request(request, status, expected_response) => {
               let response = client
@@ -303,6 +341,44 @@ impl Test {
               assert_eq!(response.status().as_u16(), *status);
               assert_eq!(response.text()?, *expected_response);
               successful_requests += 1;
+            }
+            Event::Transaction(options) => {
+              let input_value = options
+                .slots
+                .iter()
+                .map(|slot| {
+                  self.get_block(slot.0 as u64).unwrap().txdata[slot.1].output[slot.2].value
+                })
+                .sum::<u64>();
+
+              let output_value = input_value - options.fee;
+
+              let tx = Transaction {
+                version: 0,
+                lock_time: 0,
+                input: options
+                  .slots
+                  .iter()
+                  .map(|slot| TxIn {
+                    previous_output: OutPoint {
+                      txid: self.get_block(slot.0 as u64).unwrap().txdata[slot.1].txid(),
+                      vout: slot.2 as u32,
+                    },
+                    script_sig: script::Builder::new().into_script(),
+                    sequence: 0,
+                    witness: Witness::new(),
+                  })
+                  .collect(),
+                output: vec![
+                  TxOut {
+                    value: output_value / options.output_count as u64,
+                    script_pubkey: script::Builder::new().into_script(),
+                  };
+                  options.output_count
+                ],
+              };
+
+              self.bitcoind.client.send_raw_transaction(&tx)?;
             }
           }
         }
@@ -372,174 +448,13 @@ impl Test {
     })
   }
 
-  fn block(self) -> Self {
-    self.block_with_coinbase(CoinbaseOptions::default())
-  }
-
-  fn block_with_coinbase(mut self, coinbase: CoinbaseOptions) -> Self {
-    let address = Address::from_str("bcrt1qjcgxtte2ttzmvugn874y0n7j9jc82j0y6qvkvn").unwrap();
-
-    let block_hashes = self
-      .bitcoind
-      .client
-      .generate_to_address(1, &address)
-      .unwrap();
-
-    let block = self
-      .bitcoind
-      .client
-      .get_block(block_hashes.first().unwrap())
-      .unwrap();
-
-    // block.header = BlockHeader {
-    //   version: 0,
-    //   prev_blockhash: self
-    //     .blocks()
-    //     .last()
-    //     .map(Block::block_hash)
-    //     .unwrap_or_default(),
-    //   merkle_root: Default::default(),
-    //   time: 0,
-    //   bits: 0,
-    //   nonce: 0,
-    // };
-
-    // block.txdata = if coinbase.include_coinbase_transaction {
-    //   vec![Transaction {
-    //     version: 0,
-    //     lock_time: 0,
-    //     input: vec![TxIn {
-    //       previous_output: OutPoint::null(),
-    //       script_sig: if coinbase.include_height {
-    //         script::Builder::new()
-    //           .push_scriptint(self.blocks().count().try_into().unwrap())
-    //           .into_script()
-    //       } else {
-    //         script::Builder::new().into_script()
-    //       },
-    //       sequence: 0,
-    //       witness: Witness::new(),
-    //     }],
-    //     output: vec![TxOut {
-    //       value: coinbase.subsidy,
-    //       script_pubkey: script::Builder::new().into_script(),
-    //     }],
-    //   }]
-    // } else {
-    //   Vec::new()
-    // };
-
-    // self.events.push(Event::Block(Block {
-    //   header: BlockHeader {
-    //     version: 0,
-    //     prev_blockhash: self
-    //       .blocks()
-    //       .last()
-    //       .map(Block::block_hash)
-    //       .unwrap_or_default(),
-    //     merkle_root: Default::default(),
-    //     time: 0,
-    //     bits: 0,
-    //     nonce: 0,
-    //   },
-    //   txdata: if coinbase.include_coinbase_transaction {
-    //     vec![Transaction {
-    //       version: 0,
-    //       lock_time: 0,
-    //       input: vec![TxIn {
-    //         previous_output: OutPoint::null(),
-    //         script_sig: if coinbase.include_height {
-    //           script::Builder::new()
-    //             .push_scriptint(self.blocks().count().try_into().unwrap())
-    //             .into_script()
-    //         } else {
-    //           script::Builder::new().into_script()
-    //         },
-    //         sequence: 0,
-    //         witness: Witness::new(),
-    //       }],
-    //       output: vec![TxOut {
-    //         value: coinbase.subsidy,
-    //         script_pubkey: script::Builder::new().into_script(),
-    //       }],
-    //     }]
-    //   } else {
-    //     Vec::new()
-    //   },
-    // }));
-
-    self.events.push(Event::Block(block));
-
+  fn block(mut self) -> Self {
+    self.events.push(Event::Block);
     self
   }
 
-  fn transaction(mut self, options: TransactionOptions) -> Self {
-    // slot notation (x, y, z)
-    //
-    // x : block  index
-    // y : tx     index
-    // z : output index
-    //
-    // 1. Create raw transaction
-    // - utxos
-    // - outs
-    // - locktime
-    // - replaceable
-
-    let input_value = options
-      .slots
-      .iter()
-      .map(|slot| self.blocks().nth(slot.0).unwrap().txdata[slot.1].output[slot.2].value)
-      .sum::<u64>();
-
-    let output_value = input_value - options.fee;
-
-    let tx = Transaction {
-      version: 0,
-      lock_time: 0,
-      input: options
-        .slots
-        .iter()
-        .map(|slot| TxIn {
-          previous_output: OutPoint {
-            txid: self.blocks().nth(slot.0).unwrap().txdata[slot.1].txid(),
-            vout: slot.2 as u32,
-          },
-          script_sig: script::Builder::new().into_script(),
-          sequence: 0,
-          witness: Witness::new(),
-        })
-        .collect(),
-      output: vec![
-        TxOut {
-          value: output_value / options.output_count as u64,
-          script_pubkey: script::Builder::new().into_script(),
-        };
-        options.output_count
-      ],
-    };
-
-    let block = self
-      .events
-      .iter_mut()
-      .rev()
-      .find_map(|event| match event {
-        Event::Block(block) => Some(block),
-        _ => None,
-      })
-      .unwrap();
-
-    block
-      .txdata
-      .first_mut()
-      .unwrap()
-      .output
-      .first_mut()
-      .unwrap()
-      .value += options.fee;
-
-    block.txdata.push(tx);
-
+  fn transaction(mut self, options: TransactionOptions<'a>) -> Self {
+    self.events.push(Event::Transaction(options));
     self
   }
 

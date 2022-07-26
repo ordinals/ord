@@ -87,19 +87,19 @@ fn first_satoshi_spent_in_second_block_slot() -> Result {
     .run()
 }
 
-#[test]
-#[ignore]
-fn regression_empty_block_crash() -> Result {
-  Test::new()?
-    .command("find 0 --slot")
-    .block()
-    .block_with_coinbase(CoinbaseOptions {
-      include_coinbase_transaction: false,
-      ..Default::default()
-    })
-    .expected_stdout("0x0x0x0\n")
-    .run()
-}
+// #[test]
+// #[ignore]
+// fn regression_empty_block_crash() -> Result {
+//   Test::new()?
+//     .command("find 0 --slot")
+//     .block()
+//     .block_with_coinbase(CoinbaseOptions {
+//       include_coinbase_transaction: false,
+//       ..Default::default()
+//     })
+//     .expected_stdout("0x0x0x0\n")
+//     .run()
+// }
 
 #[test]
 #[ignore]
@@ -123,29 +123,10 @@ fn mining_and_spending_transaction_in_same_block() -> Result {
 }
 
 #[test]
-fn empty_index() -> Result {
-  Test::new()?
-    .expected_stderr("error: Ordinal has not been mined as of index height\n")
-    .expected_status(1)
-    .command("find 0")
-    .run()
-}
-
-#[test]
 fn unmined_satoshi_in_second_block() -> Result {
   Test::new()?
-    .block()
     .expected_stderr("error: Ordinal has not been mined as of index height\n")
     .expected_status(1)
     .command("find 5000000000")
-    .run()
-}
-
-#[test]
-fn unmined_satoshi_in_first_block() -> Result {
-  Test::new()?
-    .expected_stderr("error: Ordinal has not been mined as of index height\n")
-    .expected_status(1)
-    .command("find 0")
     .run()
 }
