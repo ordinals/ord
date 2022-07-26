@@ -28,7 +28,7 @@ impl Ordinal {
     self.height().n() / PERIOD_BLOCKS
   }
 
-  pub(crate) fn subsidy_position(self) -> u64 {
+  pub(crate) fn third(self) -> u64 {
     self.epoch_position() % self.epoch().subsidy()
   }
 
@@ -59,7 +59,7 @@ impl Ordinal {
 
     let (epoch_offset, rest) = rest
       .split_once('′')
-      .ok_or_else(|| anyhow!("Missing prime symbol"))?;
+      .ok_or_else(|| anyhow!("Missing minute symbol"))?;
     let epoch_offset = epoch_offset.parse::<u64>()?;
     if epoch_offset >= Epoch::BLOCKS {
       bail!("Invalid epoch offset");
@@ -67,7 +67,7 @@ impl Ordinal {
 
     let (period_offset, rest) = rest
       .split_once('″')
-      .ok_or_else(|| anyhow!("Missing double prime symbol"))?;
+      .ok_or_else(|| anyhow!("Missing second symbol"))?;
     let period_offset = period_offset.parse::<u64>()?;
     if period_offset >= PERIOD_BLOCKS {
       bail!("Invalid period offset");
@@ -209,19 +209,19 @@ mod tests {
 
   #[test]
   fn subsidy_position() {
-    assert_eq!(Ordinal(0).subsidy_position(), 0);
-    assert_eq!(Ordinal(1).subsidy_position(), 1);
+    assert_eq!(Ordinal(0).third(), 0);
+    assert_eq!(Ordinal(1).third(), 1);
     assert_eq!(
-      Ordinal(Height(0).subsidy() - 1).subsidy_position(),
+      Ordinal(Height(0).subsidy() - 1).third(),
       Height(0).subsidy() - 1
     );
-    assert_eq!(Ordinal(Height(0).subsidy()).subsidy_position(), 0);
-    assert_eq!(Ordinal(Height(0).subsidy() + 1).subsidy_position(), 1);
+    assert_eq!(Ordinal(Height(0).subsidy()).third(), 0);
+    assert_eq!(Ordinal(Height(0).subsidy() + 1).third(), 1);
     assert_eq!(
-      Ordinal(Epoch(1).starting_ordinal().n() + Epoch(1).subsidy()).subsidy_position(),
+      Ordinal(Epoch(1).starting_ordinal().n() + Epoch(1).subsidy()).third(),
       0
     );
-    assert_eq!(Ordinal::LAST.subsidy_position(), 0);
+    assert_eq!(Ordinal::LAST.third(), 0);
   }
 
   #[test]
