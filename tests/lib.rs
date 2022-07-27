@@ -5,7 +5,7 @@ use {
     bitcoin::secp256k1::Secp256k1,
     blockchain::{
       rpc::{Auth, RpcBlockchain, RpcConfig},
-      ConfigurableBlockchain, LogProgress,
+      Blockchain, ConfigurableBlockchain, LogProgress,
     },
     database::MemoryDatabase,
     keys::{
@@ -25,7 +25,6 @@ use {
     network::constants::Network, Block, BlockHash, BlockHeader, OutPoint, Transaction, TxIn, TxOut,
     Witness,
   },
-  core::str::FromStr,
   bitcoind::{
     bitcoincore_rpc::{
       bitcoin::{Address, Amount},
@@ -33,6 +32,7 @@ use {
     },
     BitcoinD as Bitcoind,
   },
+  core::str::FromStr,
   executable_path::executable_path,
   nix::{
     sys::signal::{self, Signal},
@@ -98,6 +98,7 @@ struct TransactionOptions<'a> {
 struct Test<'a> {
   args: Vec<String>,
   bitcoind: Bitcoind,
+  blockchain: RpcBlockchain,
   envs: Vec<(OsString, OsString)>,
   events: Vec<Event<'a>>,
   expected_status: i32,
@@ -120,19 +121,13 @@ impl<'a> Test<'a> {
   }
 
   fn with_tempdir(tempdir: TempDir) -> Result<Self> {
+    env_logger::init();
+
     let mut conf = bitcoind::Conf::default();
 
-    conf.view_stdout = true;
-
-    eprintln!("{}", bitcoind::downloaded_exe_path()?);
+    conf.view_stdout = false;
 
     let bitcoind = Bitcoind::with_conf("bitcoind", &conf)?;
-
-    let block = bitcoind
-      .client
-      .get_block(&bitcoind.client.get_block_hash(0)?)?;
-
-    dbg!(block);
 
     let wallet = Wallet::new(
       Bip84(Self::get_key()?, KeychainKind::External),
@@ -141,24 +136,22 @@ impl<'a> Test<'a> {
       MemoryDatabase::new(),
     )?;
 
-    wallet.sync(
-      &RpcBlockchain::from_config(&RpcConfig {
-        url: bitcoind.params.rpc_socket.to_string(),
-        auth: Auth::Cookie {
-          file: bitcoind.params.cookie_file.clone()
-        },
-        network: Network::Regtest,
-        wallet_name: "test".to_string(),
-        skip_blocks: None,
-      })?,
-      SyncOptions {
-        progress: Some(Box::new(LogProgress)),
+    let blockchain = RpcBlockchain::from_config(&RpcConfig {
+      url: bitcoind.params.rpc_socket.to_string(),
+      auth: Auth::Cookie {
+        file: bitcoind.params.cookie_file.clone(),
       },
-    )?;
+      network: Network::Regtest,
+      wallet_name: "test".to_string(),
+      skip_blocks: None,
+    })?;
+
+    wallet.sync(&blockchain, SyncOptions::default())?;
 
     Ok(Self {
       args: Vec::new(),
       bitcoind,
+      blockchain,
       envs: Vec::new(),
       events: Vec::new(),
       expected_status: 0,
@@ -271,6 +264,33 @@ impl<'a> Test<'a> {
     Ok(block)
   }
 
+  fn sync(&self) -> Result {
+    self.wallet.sync(
+      &RpcBlockchain::from_config(&RpcConfig {
+        url: self.bitcoind.params.rpc_socket.to_string(),
+        auth: Auth::Cookie {
+          file: self.bitcoind.params.cookie_file.clone(),
+        },
+        network: Network::Regtest,
+        wallet_name: "test".to_string(),
+        skip_blocks: None,
+      })?,
+      SyncOptions {
+        progress: Some(Box::new(LogProgress)),
+      },
+    )?;
+
+    Ok(())
+  }
+
+  fn blocks(mut self, n: u64) -> Self {
+    for _ in 0..n {
+      self.events.push(Event::Block);
+    }
+
+    self
+  }
+
   fn test(self, port: Option<u16>) -> Result<Output> {
     for event in &self.events {
       match event {
@@ -279,11 +299,15 @@ impl<'a> Test<'a> {
             .bitcoind
             .client
             .generate_to_address(1, &self.wallet.get_address(AddressIndex::Peek(0))?.address)?;
+
+          self.sync()?;
         }
         Event::Request(request, status, expected_response) => {
           panic!()
         }
         Event::Transaction(options) => {
+          self.sync()?;
+
           let input_value = options
             .slots
             .iter()
@@ -300,9 +324,13 @@ impl<'a> Test<'a> {
                 &options
                   .slots
                   .iter()
-                  .map(|slot| OutPoint {
-                    txid: self.get_block(slot.0 as u64).unwrap().txdata[slot.1].txid(),
-                    vout: slot.2 as u32,
+                  .map(|slot| {
+                    let tx = &self.get_block(slot.0 as u64).unwrap().txdata[slot.1];
+                    dbg!(tx.txid(), tx.wtxid());
+                    OutPoint {
+                      txid: tx.txid(),
+                      vout: slot.2 as u32,
+                    }
                   })
                   .collect::<Vec<OutPoint>>(),
               )
@@ -322,10 +350,7 @@ impl<'a> Test<'a> {
             panic!("Failed to sign transaction");
           }
 
-          self
-            .bitcoind
-            .client
-            .send_raw_transaction(&psbt.extract_tx())?;
+          self.blockchain.broadcast(&psbt.extract_tx())?;
         }
       }
     }
