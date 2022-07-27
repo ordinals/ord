@@ -10,7 +10,7 @@ fn incremental_indexing() -> Result {
 
   // assert_eq!(output.calls, &["getblockhash", "getblock", "getblockhash"]);
 
-  let output = Test::with_tempdir(output.tempdir)?
+  let _output = Test::with_tempdir(output.tempdir)?
     .command("list 9068a11b8769174363376b606af9a4b8b29dd7b13d013f4b0cbbd457db3c3ce5:0")
     .expected_stdout("[5000000000,10000000000)\n")
     .block()

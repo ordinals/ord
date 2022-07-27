@@ -2,37 +2,22 @@
 
 use {
   bdk::{
-    bitcoin::secp256k1::Secp256k1,
     blockchain::{
       rpc::{Auth, RpcBlockchain, RpcConfig},
       Blockchain, ConfigurableBlockchain, LogProgress,
     },
     database::MemoryDatabase,
-    keys::{
-      bip39::{Language, Mnemonic, WordCount},
-      DerivableKey, GeneratableKey,
-    },
+    keys::{bip39::Mnemonic, DerivableKey},
     miniscript::miniscript::Segwitv0,
     template::Bip84,
-    wallet::{
-      signer::SignOptions, wallet_name_from_descriptor, AddressIndex, AddressIndex::LastUnused,
-      SyncOptions, Wallet,
-    },
+    wallet::{signer::SignOptions, AddressIndex, SyncOptions, Wallet},
     KeychainKind,
   },
   bitcoin::{
-    blockdata::constants::COIN_VALUE, blockdata::script, consensus::Encodable,
-    network::constants::Network, Block, BlockHash, BlockHeader, OutPoint, Transaction, TxIn, TxOut,
+    blockdata::script, network::constants::Network, Block, OutPoint, Transaction, TxIn, TxOut,
     Witness,
   },
-  bitcoind::{
-    bitcoincore_rpc::{
-      bitcoin::{Address, Amount},
-      RpcApi,
-    },
-    BitcoinD as Bitcoind,
-  },
-  core::str::FromStr,
+  bitcoind::{bitcoincore_rpc::RpcApi, BitcoinD as Bitcoind},
   executable_path::executable_path,
   nix::{
     sys::signal::{self, Signal},
@@ -45,11 +30,9 @@ use {
     ffi::OsString,
     fs,
     net::TcpListener,
-    path::PathBuf,
     process::{Command, Stdio},
     str,
-    sync::{Arc, Mutex},
-    thread::{self, sleep},
+    thread::sleep,
     time::{Duration, Instant},
   },
   tempfile::TempDir,
@@ -302,7 +285,7 @@ impl<'a> Test<'a> {
 
           self.sync()?;
         }
-        Event::Request(request, status, expected_response) => {
+        Event::Request(_request, _status, _expected_response) => {
           panic!()
         }
         Event::Transaction(options) => {
