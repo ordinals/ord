@@ -2,10 +2,31 @@
 
 use {
   crate::rpc_server::RpcServer,
-  bitcoin::{
-    blockdata::constants::COIN_VALUE, blockdata::script, consensus::Encodable, Block, BlockHash,
-    BlockHeader, OutPoint, Transaction, TxIn, TxOut, Witness,
+  bdk::{
+    bitcoin::secp256k1::Secp256k1,
+    blockchain::{
+      rpc::{Auth, RpcBlockchain, RpcConfig},
+      ConfigurableBlockchain, LogProgress,
+    },
+    database::MemoryDatabase,
+    keys::{
+      bip39::{Language, Mnemonic, WordCount},
+      DerivableKey, GeneratableKey,
+    },
+    miniscript::miniscript::Segwitv0,
+    template::Bip84,
+    wallet::{
+      signer::SignOptions, wallet_name_from_descriptor, AddressIndex, AddressIndex::LastUnused,
+      SyncOptions, Wallet,
+    },
+    KeychainKind,
   },
+  bitcoin::{
+    blockdata::constants::COIN_VALUE, blockdata::script, consensus::Encodable,
+    network::constants::Network, Block, BlockHash, BlockHeader, OutPoint, Transaction, TxIn, TxOut,
+    Witness,
+  },
+  core::str::FromStr,
   bitcoind::{
     bitcoincore_rpc::{
       bitcoin::{Address, Amount},
@@ -13,7 +34,6 @@ use {
     },
     BitcoinD as Bitcoind,
   },
-  core::str::FromStr,
   executable_path::executable_path,
   nix::{
     sys::signal::{self, Signal},
@@ -26,6 +46,7 @@ use {
     ffi::OsString,
     fs,
     net::TcpListener,
+    path::PathBuf,
     process::{Command, Stdio},
     str,
     sync::{Arc, Mutex},
@@ -78,7 +99,6 @@ struct TransactionOptions<'a> {
 }
 
 struct Test<'a> {
-  address: Address,
   args: Vec<String>,
   bitcoind: Bitcoind,
   envs: Vec<(OsString, OsString)>,
@@ -87,6 +107,7 @@ struct Test<'a> {
   expected_stderr: Expected,
   expected_stdout: Expected,
   tempdir: TempDir,
+  wallet: Wallet<MemoryDatabase>,
 }
 
 impl<'a> Test<'a> {
@@ -94,21 +115,58 @@ impl<'a> Test<'a> {
     Ok(Self::with_tempdir(TempDir::new()?)?)
   }
 
+  fn get_key() -> Result<impl DerivableKey<Segwitv0> + Clone> {
+    Ok((
+      Mnemonic::parse("book fit fly ketchup also elevator scout mind edit fatal where rookie")?,
+      None,
+    ))
+  }
+
   fn with_tempdir(tempdir: TempDir) -> Result<Self> {
     let mut conf = bitcoind::Conf::default();
 
     conf.view_stdout = true;
 
+    let bitcoind = Bitcoind::with_conf(bitcoind::downloaded_exe_path()?, &conf)?;
+
+    let block = bitcoind
+      .client
+      .get_block(&bitcoind.client.get_block_hash(0)?)?;
+
+    dbg!(block);
+
+    let wallet = Wallet::new(
+      Bip84(Self::get_key()?, KeychainKind::External),
+      None,
+      Network::Regtest,
+      MemoryDatabase::new(),
+    )?;
+
+    wallet.sync(
+      &RpcBlockchain::from_config(&RpcConfig {
+        url: bitcoind.params.rpc_socket.to_string(),
+        auth: Auth::Cookie {
+          file: bitcoind.params.cookie_file.clone()
+        },
+        network: Network::Regtest,
+        wallet_name: "test".to_string(),
+        skip_blocks: None,
+      })?,
+      SyncOptions {
+        progress: Some(Box::new(LogProgress)),
+      },
+    )?;
+
     Ok(Self {
-      address: Address::from_str("bcrt1qjcgxtte2ttzmvugn874y0n7j9jc82j0y6qvkvn")?,
       args: Vec::new(),
-      bitcoind: Bitcoind::with_conf(bitcoind::downloaded_exe_path()?, &conf)?,
+      bitcoind,
       envs: Vec::new(),
       events: Vec::new(),
       expected_status: 0,
       expected_stderr: Expected::Ignore,
       expected_stdout: Expected::String(String::new()),
       tempdir,
+      wallet,
     })
   }
 
@@ -218,8 +276,10 @@ impl<'a> Test<'a> {
     for event in &self.events {
       match event {
         Event::Block => {
-          eprintln!("mining block !");
-          self.bitcoind.client.generate_to_address(1, &self.address)?;
+          self
+            .bitcoind
+            .client
+            .generate_to_address(1, &self.wallet.get_address(AddressIndex::Peek(0))?.address)?;
         }
         Event::Request(request, status, expected_response) => {
           panic!()
@@ -228,42 +288,49 @@ impl<'a> Test<'a> {
           let input_value = options
             .slots
             .iter()
-            .map(|slot| {
-              self.get_block(slot.0 as u64).unwrap().txdata[slot.1].output[slot.2].value
-            })
+            .map(|slot| self.get_block(slot.0 as u64).unwrap().txdata[slot.1].output[slot.2].value)
             .sum::<u64>();
 
           let output_value = input_value - options.fee;
 
-          let tx = Transaction {
-            version: 0,
-            lock_time: 0,
-            input: options
-              .slots
-              .iter()
-              .map(|slot| TxIn {
-                previous_output: OutPoint {
-                  txid: self.get_block(slot.0 as u64).unwrap().txdata[slot.1].txid(),
-                  vout: slot.2 as u32,
-                },
-                script_sig: script::Builder::new().into_script(),
-                sequence: 0,
-                witness: Witness::new(),
-              })
-              .collect(),
-            output: vec![
-              TxOut {
-                value: output_value / options.output_count as u64,
-                script_pubkey: script::Builder::new().into_script(),
-              };
-              options.output_count
-            ],
+          let (mut psbt, _) = {
+            let mut builder = self.wallet.build_tx();
+
+            builder
+              .add_utxos(
+                &options
+                  .slots
+                  .iter()
+                  .map(|slot| OutPoint {
+                    txid: self.get_block(slot.0 as u64).unwrap().txdata[slot.1].txid(),
+                    vout: slot.2 as u32,
+                  })
+                  .collect::<Vec<OutPoint>>(),
+              )
+              .unwrap()
+              .set_recipients(vec![
+                (
+                  script::Builder::new().into_script(),
+                  output_value / options.output_count as u64
+                );
+                options.output_count
+              ]);
+
+            builder.finish()?
           };
 
-          self.bitcoind.client.send_raw_transaction(&tx)?;
+          if !self.wallet.sign(&mut psbt, SignOptions::default())? {
+            panic!("Failed to sign transaction");
+          }
+
+          self
+            .bitcoind
+            .client
+            .send_raw_transaction(&psbt.extract_tx())?;
         }
       }
     }
+
     // for (b, block) in self.blocks().enumerate() {
     //   for (t, transaction) in block.txdata.iter().enumerate() {
     //     eprintln!("{b}.{t}: {}", transaction.txid());
@@ -331,8 +398,10 @@ impl<'a> Test<'a> {
         for event in &self.events {
           match event {
             Event::Block => {
-              eprintln!("mining block !");
-              self.bitcoind.client.generate_to_address(1, &self.address)?;
+              self.bitcoind.client.generate_to_address(
+                1,
+                &self.wallet.get_address(AddressIndex::LastUnused)?.address,
+              )?;
             }
             Event::Request(request, status, expected_response) => {
               let response = client

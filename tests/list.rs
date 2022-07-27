@@ -11,19 +11,9 @@ fn first_coinbase_transaction() -> Result {
 #[test]
 fn second_coinbase_transaction() -> Result {
   Test::new()?
-    .command("list 104a8ee40f039ba83ceda9de4c6eb7d8587704168f687b315974d307c93b9caf:0")
+    .command("list 150ba822b458a19615e70a604d8dd9d3482fc165fa4e9cc150d74e11916ce8ae:0")
     .block()
     .expected_stdout("[5000000000,10000000000)\n")
-    .run()
-}
-
-#[test]
-fn third_coinbase_transaction_is_not_duplicate() -> Result {
-  Test::new()?
-    .command("list 4e99453697da6fb20ac8cd75113aa56a3e52c341c4bc4a9f8eabfb50a1c1ae70:0")
-    .block()
-    .block()
-    .expected_stdout("[10000000000,15000000000)\n")
     .run()
 }
 
