@@ -109,6 +109,8 @@ impl<'a> Test<'a> {
     let mut conf = bitcoind::Conf::default();
 
     conf.view_stdout = false;
+    conf.args.push("-minrelaytxfee=0");
+    conf.args.push("-blockmintxfee=0");
 
     let bitcoind = Bitcoind::with_conf("bitcoind", &conf)?;
 
@@ -275,6 +277,8 @@ impl<'a> Test<'a> {
   }
 
   fn test(self, port: Option<u16>) -> Result<Output> {
+    let mut height = 0;
+
     for event in &self.events {
       match event {
         Event::Block => {
@@ -282,6 +286,12 @@ impl<'a> Test<'a> {
             .bitcoind
             .client
             .generate_to_address(1, &self.wallet.get_address(AddressIndex::Peek(0))?.address)?;
+
+          height += 1;
+
+          for (t, transaction) in self.get_block(height)?.txdata.iter().enumerate() {
+            eprintln!("{height}.{t}: {}", transaction.txid());
+          }
 
           self.sync()?;
         }
@@ -303,6 +313,8 @@ impl<'a> Test<'a> {
             let mut builder = self.wallet.build_tx();
 
             builder
+              .manually_selected_only()
+              .fee_absolute(0)
               .add_utxos(
                 &options
                   .slots
@@ -316,11 +328,14 @@ impl<'a> Test<'a> {
                     }
                   })
                   .collect::<Vec<OutPoint>>(),
-              )
-              .unwrap()
+              )?
               .set_recipients(vec![
                 (
-                  script::Builder::new().into_script(),
+                  self
+                    .wallet
+                    .get_address(AddressIndex::Peek(0))?
+                    .address
+                    .script_pubkey(),
                   output_value / options.output_count as u64
                 );
                 options.output_count
@@ -333,16 +348,10 @@ impl<'a> Test<'a> {
             panic!("Failed to sign transaction");
           }
 
-          self.blockchain.broadcast(&psbt.extract_tx())?;
+          self.blockchain.broadcast(dbg!(&psbt.extract_tx()))?;
         }
       }
     }
-
-    // for (b, block) in self.blocks().enumerate() {
-    //   for (t, transaction) in block.txdata.iter().enumerate() {
-    //     eprintln!("{b}.{t}: {}", transaction.txid());
-    //   }
-    // }
 
     let child = Command::new(executable_path("ord"))
       .envs(self.envs.clone())
@@ -367,8 +376,6 @@ impl<'a> Test<'a> {
 
     let mut successful_requests = 0;
 
-    dbg!(port);
-
     if let Some(port) = port {
       let client = reqwest::blocking::Client::new();
 
@@ -392,8 +399,6 @@ impl<'a> Test<'a> {
 
         sleep(Duration::from_millis(100));
       }
-
-      dbg!(healthy);
 
       if healthy {
         for event in &self.events {

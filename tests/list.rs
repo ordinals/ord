@@ -20,7 +20,8 @@ fn second_coinbase_transaction() -> Result {
 #[test]
 fn split_ranges_are_tracked_correctly() -> Result {
   Test::new()?
-    .command("list 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0")
+    .command("list bebb64fc274348e2033981e3935bf0cf30105deb1cc00d770b2e96dff7f31149:0")
+    // TODO: useless block generation
     .block()
     .block()
     .blocks(100)
@@ -30,20 +31,20 @@ fn split_ranges_are_tracked_correctly() -> Result {
       fee: 0,
     })
     .block()
-    .expected_stdout("[0,2500000000)\n")
-    .run()?;
-
-  Test::new()?
-    .command("list 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0")
-    .block()
-    .block()
-    .transaction(TransactionOptions {
-      slots: &[(0, 0, 0)],
-      output_count: 2,
-      fee: 0,
-    })
-    .expected_stdout("[2500000000,5000000000)\n")
+    .expected_stdout("[5000000000,7500000000)\n")
     .run()
+
+  // Test::new()?
+  //   .command("list 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0")
+  //   .block()
+  //   .block()
+  //   .transaction(TransactionOptions {
+  //     slots: &[(0, 0, 0)],
+  //     output_count: 2,
+  //     fee: 0,
+  //   })
+  //   .expected_stdout("[2500000000,5000000000)\n")
+  //   .run()
 }
 
 #[test]
