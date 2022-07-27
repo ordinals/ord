@@ -1,7 +1,6 @@
 #![allow(clippy::type_complexity)]
 
 use {
-  crate::rpc_server::RpcServer,
   bdk::{
     bitcoin::secp256k1::Secp256k1,
     blockchain::{
@@ -65,7 +64,6 @@ mod list;
 mod name;
 mod nft;
 mod range;
-mod rpc_server;
 mod server;
 mod supply;
 mod traits;
@@ -87,7 +85,6 @@ enum Event<'a> {
 }
 
 struct Output {
-  calls: Vec<String>,
   stdout: String,
   tempdir: TempDir,
 }
@@ -127,7 +124,9 @@ impl<'a> Test<'a> {
 
     conf.view_stdout = true;
 
-    let bitcoind = Bitcoind::with_conf(bitcoind::downloaded_exe_path()?, &conf)?;
+    eprintln!("{}", bitcoind::downloaded_exe_path()?);
+
+    let bitcoind = Bitcoind::with_conf("bitcoind", &conf)?;
 
     let block = bitcoind
       .client
@@ -337,12 +336,6 @@ impl<'a> Test<'a> {
     //   }
     // }
 
-    let (blocks, close_handle, calls, rpc_server_port) = if port.is_some() {
-      RpcServer::spawn(Vec::new())
-    } else {
-      RpcServer::spawn(Vec::new())
-    };
-
     let child = Command::new(executable_path("ord"))
       .envs(self.envs.clone())
       .stdin(Stdio::null())
@@ -458,8 +451,6 @@ impl<'a> Test<'a> {
 
     let output = child.wait_with_output()?;
 
-    close_handle.close();
-
     let stdout = str::from_utf8(&output.stdout)?;
     let stderr = str::from_utf8(&output.stderr)?;
 
@@ -508,12 +499,9 @@ impl<'a> Test<'a> {
       "Unsuccessful requests"
     );
 
-    let calls = calls.lock().unwrap().clone();
-
     Ok(Output {
       stdout: stdout.to_string(),
       tempdir: self.tempdir,
-      calls,
     })
   }
 
