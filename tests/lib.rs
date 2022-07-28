@@ -104,7 +104,7 @@ impl<'a> Test<'a> {
   }
 
   fn with_tempdir(tempdir: TempDir) -> Result<Self> {
-    env_logger::init();
+    // env_logger::init();
 
     let mut conf = bitcoind::Conf::default();
 
@@ -319,13 +319,9 @@ impl<'a> Test<'a> {
                 &options
                   .slots
                   .iter()
-                  .map(|slot| {
-                    let tx = &self.get_block(slot.0 as u64).unwrap().txdata[slot.1];
-                    dbg!(tx.txid(), tx.wtxid());
-                    OutPoint {
-                      txid: tx.txid(),
-                      vout: slot.2 as u32,
-                    }
+                  .map(|slot| OutPoint {
+                    txid: self.get_block(slot.0 as u64).unwrap().txdata[slot.1].txid(),
+                    vout: slot.2 as u32,
                   })
                   .collect::<Vec<OutPoint>>(),
               )?
@@ -348,7 +344,7 @@ impl<'a> Test<'a> {
             panic!("Failed to sign transaction");
           }
 
-          self.blockchain.broadcast(dbg!(&psbt.extract_tx()))?;
+          self.blockchain.broadcast(&psbt.extract_tx())?;
         }
       }
     }
