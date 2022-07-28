@@ -68,7 +68,7 @@ fn merge_ranges_are_tracked_correctly() -> Result {
 #[test]
 fn fee_paying_transaction_range() -> Result {
   Test::new()?
-    .command("list 0e1565c54057e5480da52d9ea1a24dad4a31462ffc049ab701dd681fb06d2535:0")
+    .command("list a57ccabdca48ada30a5e58459584e43691a56f4fcc51121d8aa9bf1d1c682603:0")
     .blocks(101)
     .transaction(TransactionOptions {
       slots: &[(1, 0, 0)],
@@ -76,11 +76,11 @@ fn fee_paying_transaction_range() -> Result {
       fee: 10,
     })
     .block()
-    .expected_stdout("[0,2499999995)\n")
+    .expected_stdout("[5000000000,7499999995)\n")
     .run()?;
 
   Test::new()?
-    .command("list 0e1565c54057e5480da52d9ea1a24dad4a31462ffc049ab701dd681fb06d2535:1")
+    .command("list a57ccabdca48ada30a5e58459584e43691a56f4fcc51121d8aa9bf1d1c682603:1")
     .blocks(101)
     .transaction(TransactionOptions {
       slots: &[(1, 0, 0)],
@@ -88,11 +88,11 @@ fn fee_paying_transaction_range() -> Result {
       fee: 10,
     })
     .block()
-    .expected_stdout("[2499999995,4999999990)\n")
+    .expected_stdout("[7499999995,9999999990)\n")
     .run()?;
 
   Test::new()?
-    .command("list 0e1565c54057e5480da52d9ea1a24dad4a31462ffc049ab701dd681fb06d2535:0")
+    .command("list 721792011e3200abd01693490de5215b570da0048e55b66514201cb62396e376:0")
     .blocks(101)
     .transaction(TransactionOptions {
       slots: &[(1, 0, 0)],
@@ -100,27 +100,27 @@ fn fee_paying_transaction_range() -> Result {
       fee: 10,
     })
     .block()
-    .expected_stdout("[5000000000,10000000000)\n[4999999990,5000000000)\n")
+    .expected_stdout("[510000000000,515000000000)\n[9999999990,10000000000)\n")
     .run()
 }
 
 #[test]
 fn two_fee_paying_transaction_range() -> Result {
   Test::new()?
-    .command("list 1ed7b177c6886e33d987b15c41407b3b91afcdf211225902f37260678362794b:0")
-    .block()
-    .block()
-    .block()
-    .transaction(TransactionOptions {
-      slots: &[(0, 0, 0)],
-      output_count: 2,
-      fee: 10,
-    })
+    .command("list 669a930de72f7a48e7ca2254fbf6ed056bc15e74dfedd484d02ea727e872c9db:0")
+    .blocks(101)
     .transaction(TransactionOptions {
       slots: &[(1, 0, 0)],
       output_count: 2,
       fee: 10,
     })
+    .block()
+    .transaction(TransactionOptions {
+      slots: &[(102, 1, 0)],
+      output_count: 2,
+      fee: 10,
+    })
+    .block()
     .expected_stdout(
       "[10000000000,15000000000)\n[4999999990,5000000000)\n[9999999990,10000000000)\n",
     )
