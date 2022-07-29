@@ -188,6 +188,7 @@ dependencies = [
 [[package]]
 name = "bdk"
 version = "0.20.1-dev"
+source = "git+https://github.com/terror/bdk.git?branch=dust-limit#eccef3bdadb89dd1b3c0558b7f19bb67b9ae3311"
 dependencies = [
  "ahash",
  "async-trait",

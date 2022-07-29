@@ -10,7 +10,6 @@ autotests = false
 anyhow = { version = "1.0.56", features = ["backtrace"] }
 axum = "0.5.6"
 axum-server = "0.4.0"
-bdk = { path = "../bdk", version = "0.20.1-dev", features = ["rpc", "keys-bip39", "sqlite"] }
 bech32 = "0.9.0"
 bitcoin = "0.28.1"
 bitcoin_hashes = "0.11.0"
@@ -34,6 +33,12 @@ serde_cbor = "0.11.2"
 serde_json = "1.0.81"
 tokio = { version = "1.17.0", features = ["rt-multi-thread"] }
 tower-http = { version = "0.3.3", features = ["cors"] }
+
+[dependencies.bdk]
+git = "https://github.com/terror/bdk.git"
+branch = "dust-limit"
+version = "0.20.1-dev"
+features = ["rpc", "keys-bip39", "sqlite"]
 
 [dev-dependencies]
 bitcoind = { path = "../bitcoind", features = ["23_0"] }
