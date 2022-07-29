@@ -291,8 +291,8 @@ impl Index {
   pub(crate) fn block(&self, height: u64) -> Result<Option<Block>> {
     match self.client.get_block_hash(height) {
       Ok(hash) => Ok(Some(self.client.get_block(&hash)?)),
-      Err(bitcoincore_rpc::Error::JsonRpc(jsonrpc::error::Error::Rpc(
-        jsonrpc::error::RpcError { code: -8, .. },
+      Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(
+        bitcoincore_rpc::jsonrpc::error::RpcError { code: -8, .. },
       ))) => Ok(None),
       Err(err) => Err(err.into()),
     }

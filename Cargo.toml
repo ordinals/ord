@@ -11,9 +11,7 @@ anyhow = { version = "1.0.56", features = ["backtrace"] }
 axum = "0.5.6"
 axum-server = "0.4.0"
 bdk = { version = "0.20.0", features = ["keys-bip39", "sqlite"] }
-bech32 = "0.9.0"
 bitcoin = "0.28.1"
-bitcoin_hashes = "0.11.0"
 bitcoincore-rpc = "0.15.0"
 chrono = "0.4.19"
 clap = { version = "3.1.0", features = ["derive"] }
@@ -21,15 +19,11 @@ ctrlc = "3.2.1"
 derive_more = "0.99.17"
 dirs = "4.0.0"
 env_logger = "0.9.0"
-executable-path = "1.0.0"
 http = "0.2.6"
-jsonrpc = "0.12.1"
 lazy_static = "1.4.0"
 log = "0.4.14"
-qrcode-generator = "4.1.6"
 rayon = "1.5.1"
-redb = "0.3.1"
-reqwest = { version = "0.11.10", features = ["blocking", "json"] }
+redb = "0.4.0"
 serde = { version = "1.0.137", features = ["derive"] }
 serde_cbor = "0.11.2"
 serde_json = "1.0.81"
@@ -37,7 +31,7 @@ tokio = { version = "1.17.0", features = ["rt-multi-thread"] }
 tower-http = { version = "0.3.3", features = ["cors"] }
 
 [dev-dependencies]
-criterion = "0.3.5"
+executable-path = "1.0.0"
 hex = "0.4.3"
 jsonrpc-core = "18.0.0"
 jsonrpc-core-client = "18.0.0"
@@ -45,14 +39,10 @@ jsonrpc-derive = "18.0.0"
 jsonrpc-http-server = "18.0.0"
 nix = "0.24.1"
 regex = "1.5.4"
-reqwest = { version = "0.11.9", features = ["blocking"] }
+reqwest = { version = "0.11.10", features = ["blocking"] }
 tempfile = "3.2.0"
 unindent = "0.1.7"
 
 [[test]]
 name = "integration"
 path = "tests/lib.rs"
-
-[[bench]]
-name = "index"
-harness = false
