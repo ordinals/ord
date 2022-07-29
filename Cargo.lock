@@ -1364,7 +1364,6 @@ dependencies = [
  "executable-path",
  "hex",
  "http",
- "jsonrpc",
  "jsonrpc-core",
  "jsonrpc-core-client",
  "jsonrpc-derive",
@@ -1715,9 +1714,9 @@ dependencies = [
 
 [[package]]
 name = "redb"
-version = "0.3.1"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0dfbe4e6a60b6f8f02c2da9f9c614e71a9da2eac6aaa516aacb980fd1555e577"
+checksum = "43908055ae1fd6233b365cfc372bc3d911e1b5831ca5daa53fe95bd0fba80583"
 dependencies = [
  "libc",
  "pyo3-build-config",
