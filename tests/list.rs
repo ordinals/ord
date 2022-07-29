@@ -144,7 +144,7 @@ fn null_output() -> Result {
 #[test]
 fn null_input() -> Result {
   Test::new()?
-    .command("list 0e1565c54057e5480da52d9ea1a24dad4a31462ffc049ab701dd681fb06d2535:0")
+    .command("list 3dbc87de25bf5a52ddfa8038bda36e09622f4dec7951d81ac43e4b0e8c54bc5b:0")
     .blocks(101)
     .transaction(TransactionOptions {
       slots: &[(1, 0, 0)],
