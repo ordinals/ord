@@ -306,6 +306,8 @@ impl<'a> Test<'a> {
           panic!()
         }
         Event::Transaction(options) => {
+          self.sync()?;
+
           let input_value = options
             .slots
             .iter()
@@ -350,8 +352,6 @@ impl<'a> Test<'a> {
           if !self.wallet.sign(&mut psbt, SignOptions::default())? {
             panic!("Failed to sign transaction");
           }
-
-          // self.blockchain.broadcast(dbg!(&psbt.extract_tx()))?;
 
           self.bitcoind.client.call::<Txid>(
             "sendrawtransaction",

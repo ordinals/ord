@@ -107,22 +107,21 @@ fn fee_paying_transaction_range() -> Result {
 #[test]
 fn two_fee_paying_transaction_range() -> Result {
   Test::new()?
-    .command("list fc37a02d47927a482b67934b9ecaaef687b632efe1a0a49738cd1c177fc3459f:0")
-    .blocks(101)
+    .command("list 7f3b38a0bc60f581fd7f4b178ca2a697575000e212c8752b455ec134d160ea9a:0")
+    .blocks(102)
     .transaction(TransactionOptions {
       slots: &[(1, 0, 0)],
-      output_count: 2,
+      output_count: 1,
       fee: 10,
     })
-    .block()
     .transaction(TransactionOptions {
-      slots: &[(102, 1, 0)],
-      output_count: 2,
+      slots: &[(2, 0, 0)],
+      output_count: 1,
       fee: 10,
     })
     .block()
     .expected_stdout(
-      "[10000000000,15000000000)\n[4999999990,5000000000)\n[9999999990,10000000000)\n",
+      "[515000000000,520000000000)\n[9999999990,10000000000)\n[14999999990,15000000000)\n",
     )
     .run()
 }
