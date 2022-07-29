@@ -4,7 +4,7 @@ use {
   bdk::{
     blockchain::{
       rpc::{Auth, RpcBlockchain, RpcConfig},
-      Blockchain, ConfigurableBlockchain, LogProgress,
+      ConfigurableBlockchain,
     },
     database::MemoryDatabase,
     keys::bip39::Mnemonic,
@@ -259,20 +259,7 @@ impl<'a> Test<'a> {
   }
 
   fn sync(&self) -> Result {
-    self.wallet.sync(
-      &RpcBlockchain::from_config(&RpcConfig {
-        url: self.bitcoind.params.rpc_socket.to_string(),
-        auth: Auth::Cookie {
-          file: self.bitcoind.params.cookie_file.clone(),
-        },
-        network: Network::Regtest,
-        wallet_name: "test".to_string(),
-        skip_blocks: None,
-      })?,
-      SyncOptions {
-        progress: Some(Box::new(LogProgress)),
-      },
-    )?;
+    self.wallet.sync(&self.blockchain, SyncOptions::default())?;
     Ok(())
   }
 
@@ -306,8 +293,6 @@ impl<'a> Test<'a> {
           panic!()
         }
         Event::Transaction(options) => {
-          self.sync()?;
-
           let input_value = options
             .slots
             .iter()
