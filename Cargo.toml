@@ -31,6 +31,7 @@ tokio = { version = "1.17.0", features = ["rt-multi-thread"] }
 tower-http = { version = "0.3.3", features = ["cors"] }
 
 [dev-dependencies]
+executable-path = "1.0.0"
 hex = "0.4.3"
 jsonrpc-core = "18.0.0"
 jsonrpc-core-client = "18.0.0"
@@ -38,10 +39,9 @@ jsonrpc-derive = "18.0.0"
 jsonrpc-http-server = "18.0.0"
 nix = "0.24.1"
 regex = "1.5.4"
+reqwest = { version = "0.11.10", features = ["blocking", "json"] }
 tempfile = "3.2.0"
 unindent = "0.1.7"
-executable-path = "1.0.0"
-reqwest = { version = "0.11.10", features = ["blocking", "json"] }
 
 [[test]]
 name = "integration"
