@@ -73,7 +73,7 @@ fn http_port_requires_acme_flags() -> Result {
 
   Test::new()?
     .command("server --address 127.0.0.1 --https-port 0")
-    .stderr_regex("error: The following required arguments were not provided:\n    --acme-cache-dir <ACME_CACHE_DIR>\n    --acme-domain <ACME_DOMAIN>\n    --acme-contact <ACME_CONTACT>\n.*")
+    .stderr_regex("error: The following required arguments were not provided:\n    --acme-cache <ACME_CACHE>\n    --acme-domain <ACME_DOMAIN>\n    --acme-contact <ACME_CONTACT>\n.*")
     .expected_status(2)
     .run_server(port)
 }
@@ -97,11 +97,11 @@ fn acme_domain_accepts_multiple_values() -> Result {
 }
 
 #[test]
-fn creates_acme_cache_dir() {
+fn creates_acme_cache() {
   let port = free_port().unwrap();
 
   let output = Test::new().unwrap()
-    .command("server --address 127.0.0.1 --https-port 0 --acme-domain foo --acme-cache-dir bar --acme-contact baz")
+    .command("server --address 127.0.0.1 --https-port 0 --acme-domain foo --acme-cache bar --acme-contact mailto:foo@bar.com")
     .run_server_output(port);
 
   assert!(output.tempdir.path().join("bar").is_dir());

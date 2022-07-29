@@ -15,7 +15,7 @@ ExecStart=/usr/local/bin/ord \
   --cookie-file /var/lib/bitcoind/signet/.cookie \
   --acme-domain signet.ordinals.com \
   --acme-contact mailto:casey@rodarmor.com \
-  --acme-cache-dir /var/lib/ord/acme-cache \
+  --acme-cache /var/lib/ord/acme-cache \
   server
 
 # Process management

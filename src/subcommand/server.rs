@@ -44,11 +44,11 @@ pub(crate) struct Server {
     long,
     group = "port",
     help = "Listen on <HTTPS_PORT> for incoming HTTPS requests.",
-    requires_all = &["acme-cache-dir", "acme-domain", "acme-contact"]
+    requires_all = &["acme-cache", "acme-domain", "acme-contact"]
   )]
   https_port: Option<u16>,
-  #[structopt(long, help = "Store ACME TLS certificates in <ACME_CACHE_DIR>.")]
-  acme_cache_dir: Option<PathBuf>,
+  #[structopt(long, help = "Store ACME TLS certificates in <ACME_CACHE>.")]
+  acme_cache: Option<PathBuf>,
   #[structopt(long, help = "Provide ACME contact <ACME_CONTACT>.")]
   acme_contact: Vec<String>,
 }
@@ -100,7 +100,7 @@ impl Server {
 
           let config = AcmeConfig::new(self.acme_domain)
             .contact(self.acme_contact)
-            .cache_option(Some(DirCache::new(self.acme_cache_dir.unwrap())))
+            .cache_option(Some(DirCache::new(self.acme_cache.unwrap())))
             .directory(if cfg!(test) {
               LETS_ENCRYPT_STAGING_DIRECTORY
             } else {
