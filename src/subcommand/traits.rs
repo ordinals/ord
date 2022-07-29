@@ -15,34 +15,35 @@ impl Traits {
     println!(
       "decimal: {}.{}",
       self.ordinal.height(),
-      self.ordinal.subsidy_position()
+      self.ordinal.third()
     );
 
     let height = self.ordinal.height().n();
-    let c = height / (CYCLE_EPOCHS * Epoch::BLOCKS);
-    let e = height % Epoch::BLOCKS;
-    let p = height % PERIOD_BLOCKS;
-    let o = self.ordinal.subsidy_position();
-    println!("degree: {c}°{e}′{p}″{o}‴");
+    let h = height / (CYCLE_EPOCHS * Epoch::BLOCKS);
+    let m = height % Epoch::BLOCKS;
+    let s = height % PERIOD_BLOCKS;
+    let t = self.ordinal.third();
+    println!("degree: {h}°{m}′{s}″{t}‴");
 
     println!("name: {}", self.ordinal.name());
+
     println!("height: {}", self.ordinal.height());
     println!("cycle: {}", self.ordinal.cycle());
     println!("epoch: {}", self.ordinal.epoch());
     println!("period: {}", self.ordinal.period());
-    println!("offset: {}", self.ordinal.subsidy_position());
+    println!("offset: {}", self.ordinal.third());
 
     println!(
       "rarity: {}",
-      if c == 0 && o == 0 && p == 0 && e == 0 {
+      if h == 0 && m == 0 && s == 0 && t == 0 {
         "mythic"
-      } else if o == 0 && p == 0 && e == 0 {
+      } else if m == 0 && s == 0 && t == 0 {
         "legendary"
-      } else if o == 0 && e == 0 {
+      } else if m == 0 && t == 0 {
         "epic"
-      } else if o == 0 && p == 0 {
+      } else if s == 0 && t == 0 {
         "rare"
-      } else if o == 0 {
+      } else if t == 0 {
         "uncommon"
       } else {
         "common"
