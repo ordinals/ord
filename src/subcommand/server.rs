@@ -17,7 +17,7 @@ use tokio_util::compat::TokioAsyncReadCompatExt;
 mod tls_acceptor;
 
 // TODO:
-// - populate directory with pre-generated HTTPS certs and tests HTTPS connection
+// - see if it works
 // - refactor
 
 #[derive(Parser)]
@@ -33,7 +33,7 @@ pub(crate) struct Server {
     long,
     help = "Request ACME TLS certificate for <ACME_DOMAIN>. This ord instance must be reachable at <ACME_DOMAIN>:443 to respond to Let's Encrypt ACME challenges."
   )]
-  pub(crate) acme_domain: Vec<String>,
+  acme_domain: Vec<String>,
   #[clap(
     long,
     group = "port",
