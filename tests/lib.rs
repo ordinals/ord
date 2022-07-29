@@ -12,10 +12,12 @@ use {
     wallet::{signer::SignOptions, AddressIndex, SyncOptions, Wallet},
     KeychainKind,
   },
+  bitcoin::hash_types::Txid,
   bitcoin::{
     blockdata::script, network::constants::Network, Block, OutPoint, Transaction, TxIn, TxOut,
     Witness,
   },
+  bitcoincore_rpc::RawTx,
   bitcoind::{bitcoincore_rpc::RpcApi, BitcoinD as Bitcoind},
   executable_path::executable_path,
   nix::{
@@ -108,6 +110,8 @@ impl<'a> Test<'a> {
     conf.view_stdout = false;
     conf.args.push("-minrelaytxfee=0");
     conf.args.push("-blockmintxfee=0");
+    conf.args.push("-dustrelayfee=0");
+    conf.args.push("-maxtxfee=21000000");
 
     let bitcoind = Bitcoind::with_conf("bitcoind", &conf)?;
 
@@ -293,7 +297,7 @@ impl<'a> Test<'a> {
           height += 1;
 
           for (t, transaction) in self.get_block(height)?.txdata.iter().enumerate() {
-            eprintln!("{height}.{t}: {}", transaction.txid());
+            log::info!("tx: {height}x{t}: {}", transaction.txid());
           }
 
           self.sync()?;
@@ -315,7 +319,8 @@ impl<'a> Test<'a> {
 
             builder
               .manually_selected_only()
-              .fee_absolute(0)
+              .fee_absolute(options.fee)
+              .allow_dust(true)
               .add_utxos(
                 &options
                   .slots
@@ -325,7 +330,8 @@ impl<'a> Test<'a> {
                     vout: slot.2 as u32,
                   })
                   .collect::<Vec<OutPoint>>(),
-              )?
+              )
+              .unwrap()
               .set_recipients(vec![
                 (
                   self
@@ -338,14 +344,19 @@ impl<'a> Test<'a> {
                 options.output_count
               ]);
 
-            builder.finish()?
+            builder.finish().unwrap()
           };
 
           if !self.wallet.sign(&mut psbt, SignOptions::default())? {
             panic!("Failed to sign transaction");
           }
 
-          self.blockchain.broadcast(&psbt.extract_tx())?;
+          // self.blockchain.broadcast(dbg!(&psbt.extract_tx()))?;
+
+          self.bitcoind.client.call::<Txid>(
+            "sendrawtransaction",
+            &[dbg!(psbt.extract_tx()).raw_hex().into(), 21000000.into()],
+          )?;
         }
       }
     }

@@ -107,7 +107,7 @@ fn fee_paying_transaction_range() -> Result {
 #[test]
 fn two_fee_paying_transaction_range() -> Result {
   Test::new()?
-    .command("list 669a930de72f7a48e7ca2254fbf6ed056bc15e74dfedd484d02ea727e872c9db:0")
+    .command("list fc37a02d47927a482b67934b9ecaaef687b632efe1a0a49738cd1c177fc3459f:0")
     .blocks(101)
     .transaction(TransactionOptions {
       slots: &[(1, 0, 0)],
@@ -130,7 +130,7 @@ fn two_fee_paying_transaction_range() -> Result {
 #[test]
 fn null_output() -> Result {
   Test::new()?
-    .command("list 0e1565c54057e5480da52d9ea1a24dad4a31462ffc049ab701dd681fb06d2535:0")
+    .command("list 3dbc87de25bf5a52ddfa8038bda36e09622f4dec7951d81ac43e4b0e8c54bc5b:0")
     .blocks(101)
     .transaction(TransactionOptions {
       slots: &[(1, 0, 0)],
