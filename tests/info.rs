@@ -2,7 +2,7 @@ use super::*;
 
 #[test]
 fn basic() -> Result {
-  let output = Test::new()?.command("index").block().output()?;
+  let output = Test::new()?.command("index").output()?;
 
   Test::with_tempdir(output.tempdir)?
     .command("info")
