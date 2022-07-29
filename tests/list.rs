@@ -130,14 +130,14 @@ fn two_fee_paying_transaction_range() -> Result {
 #[test]
 fn null_output() -> Result {
   Test::new()?
-    .command("list dbae83e031d45cb5cd9c41ba8030347c3965049792f508be1e5248c92e4cafd4:0")
-    .block()
-    .block()
+    .command("list 0e1565c54057e5480da52d9ea1a24dad4a31462ffc049ab701dd681fb06d2535:0")
+    .blocks(101)
     .transaction(TransactionOptions {
-      slots: &[(0, 0, 0)],
+      slots: &[(1, 0, 0)],
       output_count: 1,
       fee: 50 * 100_000_000,
     })
+    .block()
     .expected_stdout("")
     .run()
 }
@@ -145,17 +145,16 @@ fn null_output() -> Result {
 #[test]
 fn null_input() -> Result {
   Test::new()?
-    .command("list d14f4614fa016228ac097fd29b591703e68a2b9672bbdb59039dc953ff3e9714:0")
-    .block()
-    .block()
+    .command("list 0e1565c54057e5480da52d9ea1a24dad4a31462ffc049ab701dd681fb06d2535:0")
+    .blocks(101)
     .transaction(TransactionOptions {
-      slots: &[(0, 0, 0)],
+      slots: &[(1, 0, 0)],
       output_count: 1,
       fee: 50 * 100_000_000,
     })
     .block()
     .transaction(TransactionOptions {
-      slots: &[(1, 1, 0)],
+      slots: &[(102, 1, 0)],
       output_count: 1,
       fee: 0,
     })
@@ -166,11 +165,10 @@ fn null_input() -> Result {
 #[test]
 fn old_transactions_are_pruned() -> Result {
   Test::new()?
-    .command("list 0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0")
-    .block()
-    .block()
+    .command("list 0e1565c54057e5480da52d9ea1a24dad4a31462ffc049ab701dd681fb06d2535:0")
+    .blocks(101)
     .transaction(TransactionOptions {
-      slots: &[(0, 0, 0)],
+      slots: &[(1, 0, 0)],
       output_count: 1,
       fee: 50 * 100_000_000,
     })

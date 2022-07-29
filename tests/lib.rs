@@ -7,8 +7,7 @@ use {
       Blockchain, ConfigurableBlockchain, LogProgress,
     },
     database::MemoryDatabase,
-    keys::{bip39::Mnemonic, DerivableKey},
-    miniscript::miniscript::Segwitv0,
+    keys::bip39::Mnemonic,
     template::Bip84,
     wallet::{signer::SignOptions, AddressIndex, SyncOptions, Wallet},
     KeychainKind,
@@ -32,6 +31,7 @@ use {
     net::TcpListener,
     process::{Command, Stdio},
     str,
+    sync::Once,
     thread::sleep,
     time::{Duration, Instant},
   },
@@ -54,6 +54,8 @@ mod version;
 mod wallet;
 
 type Result<T = ()> = std::result::Result<T, Box<dyn Error>>;
+
+static ONCE: Once = Once::new();
 
 enum Expected {
   String(String),
@@ -93,18 +95,13 @@ struct Test<'a> {
 
 impl<'a> Test<'a> {
   fn new() -> Result<Self> {
-    Ok(Self::with_tempdir(TempDir::new()?)?)
-  }
-
-  fn get_key() -> Result<impl DerivableKey<Segwitv0> + Clone> {
-    Ok((
-      Mnemonic::parse("book fit fly ketchup also elevator scout mind edit fatal where rookie")?,
-      None,
-    ))
+    Self::with_tempdir(TempDir::new()?)
   }
 
   fn with_tempdir(tempdir: TempDir) -> Result<Self> {
-    // env_logger::init();
+    ONCE.call_once(|| {
+      env_logger::init();
+    });
 
     let mut conf = bitcoind::Conf::default();
 
@@ -115,7 +112,13 @@ impl<'a> Test<'a> {
     let bitcoind = Bitcoind::with_conf("bitcoind", &conf)?;
 
     let wallet = Wallet::new(
-      Bip84(Self::get_key()?, KeychainKind::External),
+      Bip84(
+        (
+          Mnemonic::parse("book fit fly ketchup also elevator scout mind edit fatal where rookie")?,
+          None,
+        ),
+        KeychainKind::External,
+      ),
       None,
       Network::Regtest,
       MemoryDatabase::new(),
@@ -131,9 +134,7 @@ impl<'a> Test<'a> {
       skip_blocks: None,
     })?;
 
-    wallet.sync(&blockchain, SyncOptions::default())?;
-
-    Ok(Self {
+    let test = Self {
       args: Vec::new(),
       bitcoind,
       blockchain,
@@ -144,7 +145,11 @@ impl<'a> Test<'a> {
       expected_stdout: Expected::String(String::new()),
       tempdir,
       wallet,
-    })
+    };
+
+    test.sync()?;
+
+    Ok(test)
   }
 
   fn command(self, args: &str) -> Self {
@@ -241,12 +246,12 @@ impl<'a> Test<'a> {
   }
 
   fn get_block(&self, height: u64) -> Result<Block> {
-    let block = self
-      .bitcoind
-      .client
-      .get_block(&self.bitcoind.client.get_block_hash(height)?)?;
-
-    Ok(block)
+    Ok(
+      self
+        .bitcoind
+        .client
+        .get_block(&self.bitcoind.client.get_block_hash(height)?)?,
+    )
   }
 
   fn sync(&self) -> Result {
@@ -264,15 +269,13 @@ impl<'a> Test<'a> {
         progress: Some(Box::new(LogProgress)),
       },
     )?;
-
     Ok(())
   }
 
   fn blocks(mut self, n: u64) -> Self {
-    for _ in 0..n {
-      self.events.push(Event::Block);
-    }
-
+    self
+      .events
+      .extend((0..n).map(|_| Event::Block).collect::<Vec<Event>>());
     self
   }
 
@@ -299,8 +302,6 @@ impl<'a> Test<'a> {
           panic!()
         }
         Event::Transaction(options) => {
-          self.sync()?;
-
           let input_value = options
             .slots
             .iter()
