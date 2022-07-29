@@ -13,10 +13,7 @@ use {
     KeychainKind,
   },
   bitcoin::hash_types::Txid,
-  bitcoin::{
-    blockdata::script, network::constants::Network, Block, OutPoint, Transaction, TxIn, TxOut,
-    Witness,
-  },
+  bitcoin::{network::constants::Network, Block, OutPoint},
   bitcoincore_rpc::RawTx,
   bitcoind::{bitcoincore_rpc::RpcApi, BitcoinD as Bitcoind},
   executable_path::executable_path,
@@ -271,7 +268,60 @@ impl<'a> Test<'a> {
   }
 
   fn test(self, port: Option<u16>) -> Result<Output> {
+    let child = Command::new(executable_path("ord"))
+      .envs(self.envs.clone())
+      .stdin(Stdio::null())
+      .stdout(Stdio::piped())
+      .stderr(if !matches!(self.expected_stderr, Expected::Ignore) {
+        Stdio::piped()
+      } else {
+        Stdio::inherit()
+      })
+      .current_dir(&self.tempdir)
+      .arg(format!(
+        "--rpc-url={}",
+        self.bitcoind.params.rpc_socket.to_string()
+      ))
+      .arg(format!(
+        "--cookie-file={}",
+        self.bitcoind.params.cookie_file.display()
+      ))
+      .args(self.args.clone())
+      .spawn()?;
+
+    log::info!("{}", self.bitcoind.params.rpc_socket.to_string());
+
+    let client = reqwest::blocking::Client::new();
+
+    let healthy = if let Some(port) = port {
+      let start = Instant::now();
+      let mut healthy = false;
+
+      loop {
+        if let Ok(response) = client
+          .get(&format!("http://127.0.0.1:{port}/status"))
+          .send()
+        {
+          if response.status().is_success() {
+            healthy = true;
+            break;
+          }
+        }
+
+        if Instant::now() - start > Duration::from_secs(1) {
+          break;
+        }
+
+        sleep(Duration::from_millis(100));
+      }
+
+      healthy
+    } else {
+      false
+    };
+
     let mut height = 0;
+    let mut successful_requests = 0;
 
     for event in &self.events {
       match event {
@@ -288,9 +338,21 @@ impl<'a> Test<'a> {
           }
 
           self.sync()?;
+
+          std::thread::sleep(Duration::from_millis(200));
         }
-        Event::Request(_request, _status, _expected_response) => {
-          panic!()
+        Event::Request(request, status, expected_response) => {
+          if healthy {
+            let response = client
+              .get(&format!("http://127.0.0.1:{}/{request}", port.unwrap()))
+              .send()?;
+            log::info!("{:?}", response);
+            assert_eq!(response.status().as_u16(), *status);
+            assert_eq!(response.text()?, *expected_response);
+            successful_requests += 1;
+          } else {
+            panic!("Tried to make a request when unhealthy");
+          }
         }
         Event::Transaction(options) => {
           let input_value = options
@@ -317,8 +379,7 @@ impl<'a> Test<'a> {
                     vout: slot.2 as u32,
                   })
                   .collect::<Vec<OutPoint>>(),
-              )
-              .unwrap()
+              )?
               .set_recipients(vec![
                 (
                   self
@@ -331,7 +392,7 @@ impl<'a> Test<'a> {
                 options.output_count
               ]);
 
-            builder.finish().unwrap()
+            builder.finish()?
           };
 
           if !self.wallet.sign(&mut psbt, SignOptions::default())? {
@@ -346,114 +407,7 @@ impl<'a> Test<'a> {
       }
     }
 
-    let child = Command::new(executable_path("ord"))
-      .envs(self.envs.clone())
-      .stdin(Stdio::null())
-      .stdout(Stdio::piped())
-      .stderr(if !matches!(self.expected_stderr, Expected::Ignore) {
-        Stdio::piped()
-      } else {
-        Stdio::inherit()
-      })
-      .current_dir(&self.tempdir)
-      .arg(format!(
-        "--rpc-url={}",
-        self.bitcoind.params.rpc_socket.to_string()
-      ))
-      .arg(format!(
-        "--cookie-file={}",
-        self.bitcoind.params.cookie_file.display()
-      ))
-      .args(self.args.clone())
-      .spawn()?;
-
-    let mut successful_requests = 0;
-
-    if let Some(port) = port {
-      let client = reqwest::blocking::Client::new();
-
-      let start = Instant::now();
-      let mut healthy = false;
-
-      loop {
-        if let Ok(response) = client
-          .get(&format!("http://127.0.0.1:{port}/status"))
-          .send()
-        {
-          if response.status().is_success() {
-            healthy = true;
-            break;
-          }
-        }
-
-        if Instant::now() - start > Duration::from_secs(1) {
-          break;
-        }
-
-        sleep(Duration::from_millis(100));
-      }
-
-      if healthy {
-        for event in &self.events {
-          match event {
-            Event::Block => {
-              self.bitcoind.client.generate_to_address(
-                1,
-                &self.wallet.get_address(AddressIndex::LastUnused)?.address,
-              )?;
-            }
-            Event::Request(request, status, expected_response) => {
-              let response = client
-                .get(&format!("http://127.0.0.1:{port}/{request}"))
-                .send()?;
-              assert_eq!(response.status().as_u16(), *status);
-              assert_eq!(response.text()?, *expected_response);
-              successful_requests += 1;
-            }
-            Event::Transaction(options) => {
-              let input_value = options
-                .slots
-                .iter()
-                .map(|slot| {
-                  self.get_block(slot.0 as u64).unwrap().txdata[slot.1].output[slot.2].value
-                })
-                .sum::<u64>();
-
-              let output_value = input_value - options.fee;
-
-              let tx = Transaction {
-                version: 0,
-                lock_time: 0,
-                input: options
-                  .slots
-                  .iter()
-                  .map(|slot| TxIn {
-                    previous_output: OutPoint {
-                      txid: self.get_block(slot.0 as u64).unwrap().txdata[slot.1].txid(),
-                      vout: slot.2 as u32,
-                    },
-                    script_sig: script::Builder::new().into_script(),
-                    sequence: 0,
-                    witness: Witness::new(),
-                  })
-                  .collect(),
-                output: vec![
-                  TxOut {
-                    value: output_value / options.output_count as u64,
-                    script_pubkey: script::Builder::new().into_script(),
-                  };
-                  options.output_count
-                ],
-              };
-
-              self.bitcoind.client.send_raw_transaction(&tx)?;
-            }
-          }
-        }
-      }
-
-      signal::kill(Pid::from_raw(child.id() as i32), Signal::SIGINT)?;
-    }
+    signal::kill(Pid::from_raw(child.id() as i32), Signal::SIGINT)?;
 
     let output = child.wait_with_output()?;
 

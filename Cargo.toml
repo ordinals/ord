@@ -26,7 +26,7 @@ lazy_static = "1.4.0"
 log = "0.4.14"
 qrcode-generator = "4.1.6"
 rayon = "1.5.1"
-redb = "0.3.1"
+redb = "0.4.0"
 reqwest = { version = "0.11.10", features = ["blocking", "json"] }
 serde = { version = "1.0.137", features = ["derive"] }
 serde_cbor = "0.11.2"
