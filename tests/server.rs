@@ -68,12 +68,41 @@ fn http_and_https_port_conflict() -> Result {
 }
 
 #[test]
-fn http_port_requires_acme_domain() -> Result {
+fn http_port_requires_acme_flags() -> Result {
   let port = free_port()?;
 
   Test::new()?
     .command("server --address 127.0.0.1 --https-port 0")
-    .stderr_regex("foo")
+    .stderr_regex("error: The following required arguments were not provided:\n    --acme-cache-dir <ACME_CACHE_DIR>\n    --acme-domain <ACME_DOMAIN>\n    --acme-contact <ACME_CONTACT>\n.*")
     .expected_status(2)
     .run_server(port)
+}
+
+#[test]
+fn acme_contact_accepts_multiple_values() -> Result {
+  let port = free_port()?;
+
+  Test::new()?
+    .command("server --address 127.0.0.1 --http-port 0 --acme-contact foo --acme-contact bar")
+    .run_server(port)
+}
+
+#[test]
+fn acme_domain_accepts_multiple_values() -> Result {
+  let port = free_port()?;
+
+  Test::new()?
+    .command("server --address 127.0.0.1 --http-port 0 --acme-domain foo --acme-domain bar")
+    .run_server(port)
+}
+
+#[test]
+fn creates_acme_cache_dir() {
+  let port = free_port().unwrap();
+
+  let output = Test::new().unwrap()
+    .command("server --address 127.0.0.1 --https-port 0 --acme-domain foo --acme-cache-dir bar --acme-contact baz")
+    .run_server_output(port);
+
+  assert!(output.tempdir.path().join("bar").is_dir());
 }

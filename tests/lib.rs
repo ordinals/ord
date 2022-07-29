@@ -219,6 +219,10 @@ impl Test {
     self.test(Some(port)).map(|_| ())
   }
 
+  fn run_server_output(self, port: u16) -> Output {
+    self.test(Some(port)).unwrap()
+  }
+
   fn blocks(&self) -> impl Iterator<Item = &Block> + '_ {
     self.events.iter().filter_map(|event| match event {
       Event::Block(block) => Some(block),

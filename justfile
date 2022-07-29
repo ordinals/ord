@@ -65,6 +65,9 @@ print-paper-wallet path:
   wkhtmltopdf -L 25mm -R 25mm -T 50mm -B 25mm {{path}} wallet.pdf
   lp -o sides=two-sided-long-edge wallet.pdf
 
+doc:
+  cargo doc --all --open
+
 # publish current GitHub master branch
 publish:
   #!/usr/bin/env bash

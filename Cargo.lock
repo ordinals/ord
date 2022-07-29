@@ -2237,6 +2237,8 @@ dependencies = [
  "dirs",
  "env_logger",
  "executable-path",
+ "futures 0.3.21",
+ "futures-io",
  "futures-util",
  "hex",
  "http",
