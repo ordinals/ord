@@ -407,7 +407,9 @@ impl<'a> Test<'a> {
       }
     }
 
-    signal::kill(Pid::from_raw(child.id() as i32), Signal::SIGINT)?;
+    if healthy {
+      signal::kill(Pid::from_raw(child.id() as i32), Signal::SIGINT)?;
+    }
 
     let output = child.wait_with_output()?;
 
