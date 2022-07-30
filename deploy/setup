@@ -4,8 +4,6 @@
 
 set -euxo pipefail
 
-domain=$1
-
 apt-get update --yes
 apt-get upgrade --yes
 apt-get install --yes \
