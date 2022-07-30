@@ -1,9 +1,9 @@
 use super::*;
 
 use {
+  self::tls_acceptor::TlsAcceptor,
   clap::ArgGroup,
   rustls_acme::{acme::ACME_TLS_ALPN_NAME, caches::DirCache, AcmeConfig},
-  tls_acceptor::TlsAcceptor,
   tokio_stream::StreamExt,
 };
 
