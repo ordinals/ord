@@ -26,7 +26,7 @@ install-dev-deps:
 
 deploy branch='master':
   ssh root@signet.ordinals.com mkdir -p deploy
-  rsync -avz deploy/checkout root@{{ domain }}:deploy/checkout
+  rsync -avz deploy/checkout root@signet.ordinals.com:deploy/checkout
   ssh root@signet.ordinals.com 'cd deploy && ./checkout {{branch}}'
 
 log:
