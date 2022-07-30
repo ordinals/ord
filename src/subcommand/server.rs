@@ -69,10 +69,6 @@ impl Server {
             .allow_origin(Any),
         );
 
-      let handle = Handle::new();
-
-      LISTENERS.lock().unwrap().push(handle.clone());
-
       let (port, acceptor) = match (self.http_port, self.https_port) {
         (Some(http_port), None) => (http_port, None),
         (None, Some(https_port)) => {
@@ -107,6 +103,10 @@ impl Server {
         .to_socket_addrs()?
         .next()
         .ok_or_else(|| anyhow!("Failed to get socket addrs"))?;
+
+      let handle = Handle::new();
+
+      LISTENERS.lock().unwrap().push(handle.clone());
 
       let server = axum_server::Server::bind(addr).handle(handle);
 
