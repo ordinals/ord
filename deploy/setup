@@ -4,6 +4,8 @@
 
 set -euxo pipefail
 
+domain=$1
+
 apt-get update --yes
 apt-get upgrade --yes
 apt-get install --yes \
@@ -49,4 +51,4 @@ systemctl enable ord
 systemctl restart ord
 
 sleep 1
-curl https://localhost/list
+curl https://$domain/list
