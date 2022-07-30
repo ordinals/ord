@@ -1,25 +1,16 @@
 use super::*;
 
-use async_rustls::rustls::Session;
-use clap::ArgGroup;
-use futures::future::BoxFuture;
-use futures::future::FutureExt;
-use futures::future::TryFutureExt;
-use rustls_acme::{acme::ACME_TLS_ALPN_NAME, caches::DirCache, AcmeConfig};
-use std::marker::Unpin;
-use tls_acceptor::TlsAcceptor;
-use tokio::io::{AsyncRead, AsyncWrite};
-use tokio_stream::StreamExt;
-use tokio_util::compat::Compat;
-use tokio_util::compat::FuturesAsyncReadCompatExt;
-use tokio_util::compat::TokioAsyncReadCompatExt;
+use {
+  clap::ArgGroup,
+  rustls_acme::{acme::ACME_TLS_ALPN_NAME, caches::DirCache, AcmeConfig},
+  tls_acceptor::TlsAcceptor,
+  tokio_stream::StreamExt,
+};
 
 mod tls_acceptor;
 
 // TODO:
-// - see if it works
 // - refactor
-// - post tls acceptor to rustls issue
 
 #[derive(Parser)]
 #[clap(group = ArgGroup::new("port").multiple(false).required(true))]

@@ -1,5 +1,13 @@
 use super::*;
 
+use {
+  async_rustls::rustls::Session,
+  futures::future::{BoxFuture, FutureExt, TryFutureExt},
+  std::marker::Unpin,
+  tokio::io::{AsyncRead, AsyncWrite},
+  tokio_util::compat::{Compat, FuturesAsyncReadCompatExt, TokioAsyncReadCompatExt},
+};
+
 #[derive(Clone)]
 pub(crate) struct TlsAcceptor(pub(crate) async_rustls::TlsAcceptor);
 
