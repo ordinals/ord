@@ -49,4 +49,4 @@ systemctl enable ord
 systemctl restart ord
 
 sleep 1
-curl http://localhost/list
+curl https://localhost/list
