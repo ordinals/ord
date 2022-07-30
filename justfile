@@ -24,10 +24,10 @@ watch +args='test':
 install-dev-deps:
   cargo install cargo-criterion
 
-deploy branch='master' domain='signet.ordinals.com':
-  ssh root@{{domain}} mkdir -p deploy
+deploy branch='master':
+  ssh root@signet.ordinals.com mkdir -p deploy
   rsync -avz deploy/checkout root@{{ domain }}:deploy/checkout
-  ssh root@{{domain}} 'cd deploy && ./checkout {{branch}} {{domain}}'
+  ssh root@signet.ordinals.com 'cd deploy && ./checkout {{branch}}'
 
 log:
   ssh root@signet.ordinals.com 'journalctl -fu ord'

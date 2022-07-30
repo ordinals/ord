@@ -51,4 +51,4 @@ systemctl enable ord
 systemctl restart ord
 
 sleep 1
-curl https://$domain/list
+curl https://signet.ordinals.com/list
