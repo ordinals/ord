@@ -16,7 +16,7 @@ ExecStart=/usr/local/bin/ord \
   server \
   --acme-cache /var/lib/ord/acme-cache \
   --acme-contact mailto:casey@rodarmor.com \
-  --acme-domain signet.ordinals.com \
+  --acme-domain signet.ordinals.com
 
 # Process management
 ####################
