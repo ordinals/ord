@@ -73,24 +73,9 @@ impl Server {
 
       LISTENERS.lock().unwrap().push(handle.clone());
 
-      match (self.http_port, self.https_port) {
-        (Some(http_port), None) => {
-          let addr = (self.address, http_port)
-            .to_socket_addrs()?
-            .next()
-            .ok_or_else(|| anyhow!("Failed to get socket addrs"))?;
-
-          axum_server::Server::bind(addr)
-            .handle(handle)
-            .serve(app.into_make_service())
-            .await?;
-        }
+      let (port, acceptor) = match (self.http_port, self.https_port) {
+        (Some(http_port), None) => (http_port, None),
         (None, Some(https_port)) => {
-          let addr = (self.address, https_port)
-            .to_socket_addrs()?
-            .next()
-            .ok_or_else(|| anyhow!("Failed to get socket addrs"))?;
-
           let config = AcmeConfig::new(self.acme_domain)
             .contact(self.acme_contact)
             .cache_option(Some(DirCache::new(self.acme_cache.unwrap())))
@@ -113,13 +98,26 @@ impl Server {
             }
           });
 
-          axum_server::Server::bind(addr)
-            .handle(handle)
-            .acceptor(TlsAcceptor(acceptor))
-            .serve(app.into_make_service())
-            .await?;
+          (https_port, Some(acceptor))
         }
         (None, None) | (Some(_), Some(_)) => unreachable!(),
+      };
+
+      let addr = (self.address, port)
+        .to_socket_addrs()?
+        .next()
+        .ok_or_else(|| anyhow!("Failed to get socket addrs"))?;
+
+      let server = axum_server::Server::bind(addr).handle(handle);
+
+      match acceptor {
+        Some(acceptor) => {
+          server
+            .acceptor(TlsAcceptor(acceptor))
+            .serve(app.into_make_service())
+            .await?
+        }
+        None => server.serve(app.into_make_service()).await?,
       }
 
       Ok(())
