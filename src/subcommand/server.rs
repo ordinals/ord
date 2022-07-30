@@ -9,9 +9,6 @@ use {
 
 mod tls_acceptor;
 
-// TODO:
-// - refactor
-
 #[derive(Parser)]
 #[clap(group = ArgGroup::new("port").multiple(false).required(true))]
 pub(crate) struct Server {
