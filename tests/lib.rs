@@ -59,10 +59,29 @@ fn free_port() -> Result<u16> {
   Ok(TcpListener::bind("127.0.0.1:0")?.local_addr()?.port())
 }
 
+#[derive(Debug)]
 enum Expected {
   String(String),
   Regex(Regex),
   Ignore,
+}
+
+impl Expected {
+  fn regex(pattern: &str) -> Self {
+    Self::Regex(Regex::new(&format!("^(?s){}$", pattern)).unwrap())
+  }
+
+  fn assert_match(&self, output: &str) {
+    match self {
+      Self::String(string) => assert_eq!(output, string),
+      Self::Regex(regex) => assert!(
+        regex.is_match(output),
+        "output did not match regex: {:?}",
+        output
+      ),
+      Self::Ignore => {}
+    }
+  }
 }
 
 enum Event<'a> {
@@ -228,9 +247,7 @@ impl<'a> Test<'a> {
 
   fn stdout_regex(self, expected_stdout: impl AsRef<str>) -> Self {
     Self {
-      expected_stdout: Expected::Regex(
-        Regex::new(&format!("(?s)^{}$", expected_stdout.as_ref())).unwrap(),
-      ),
+      expected_stdout: Expected::regex(expected_stdout.as_ref()),
       ..self
     }
   }
@@ -252,9 +269,7 @@ impl<'a> Test<'a> {
 
   fn stderr_regex(self, expected_stderr: impl AsRef<str>) -> Self {
     Self {
-      expected_stderr: Expected::Regex(
-        Regex::new(&format!("(?s)^{}$", expected_stderr.as_ref())).unwrap(),
-      ),
+      expected_stderr: Expected::regex(expected_stderr.as_ref()),
       ..self
     }
   }
@@ -300,6 +315,10 @@ impl<'a> Test<'a> {
         .client
         .get_block(&self.client.get_block_hash(height)?)?,
     )
+  }
+
+  fn run_server_output(self, port: u16) -> Output {
+    self.test(Some(port)).unwrap()
   }
 
   fn sync(&self) -> Result {
@@ -481,25 +500,8 @@ impl<'a> Test<'a> {
 
     let stripped_stderr = log_line_re.replace_all(stderr, "");
 
-    match self.expected_stderr {
-      Expected::String(expected_stderr) => assert_eq!(stripped_stderr, expected_stderr),
-      Expected::Regex(expected_stderr) => assert!(
-        expected_stderr.is_match(&stripped_stderr),
-        "stderr did not match regex: {:?}",
-        stripped_stderr
-      ),
-      Expected::Ignore => {}
-    }
-
-    match self.expected_stdout {
-      Expected::String(expected_stdout) => assert_eq!(stdout, expected_stdout),
-      Expected::Regex(expected_stdout) => assert!(
-        expected_stdout.is_match(stdout),
-        "stdout did not match regex: {:?}",
-        stdout
-      ),
-      Expected::Ignore => {}
-    }
+    self.expected_stderr.assert_match(&stripped_stderr);
+    self.expected_stdout.assert_match(stdout);
 
     assert_eq!(
       successful_requests,

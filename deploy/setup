@@ -6,7 +6,12 @@ set -euxo pipefail
 
 apt-get update --yes
 apt-get upgrade --yes
-apt-get install --yes clang pkg-config libssl-dev acl
+apt-get install --yes \
+  acl \
+  clang \
+  libsqlite3-dev\
+  libssl-dev \
+  pkg-config
 
 if ! which bitcoind; then
   wget -O bitcoin.tar.gz 'https://bitcoincore.org/bin/bitcoin-core-23.0/bitcoin-23.0-x86_64-linux-gnu.tar.gz'
@@ -44,4 +49,4 @@ systemctl enable ord
 systemctl restart ord
 
 sleep 1
-curl http://localhost/list
+curl https://signet.ordinals.com/list
