@@ -36,7 +36,7 @@ version = "0.20.1-dev"
 features = ["rpc", "keys-bip39", "sqlite"]
 
 [dev-dependencies]
-bitcoind = { path = "../bitcoind", features = ["23_0"] }
+bitcoind = { git = "https://github.com/terror/bitcoind.git", branch = "wallet", features = ["23_0"] }
 executable-path = "1.0.0"
 hex = "0.4.3"
 nix = "0.24.1"

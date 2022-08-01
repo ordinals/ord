@@ -63,7 +63,7 @@ enum Expected {
 }
 
 enum Event<'a> {
-  Block,
+  Blocks(u64),
   Request(String, u16, String),
   Transaction(TransactionOptions<'a>),
 }
@@ -266,7 +266,7 @@ impl<'a> Test<'a> {
   fn blocks(mut self, n: u64) -> Self {
     self
       .events
-      .extend((0..n).map(|_| Event::Block).collect::<Vec<Event>>());
+      .push(Event::Blocks(n));
     self
   }
 
@@ -321,26 +321,22 @@ impl<'a> Test<'a> {
       (false, None)
     };
 
-    let mut height = 0;
+    // let mut height = 0;
     let mut successful_requests = 0;
 
     for event in &self.events {
       match event {
-        Event::Block => {
+        Event::Blocks(n) => {
           self
             .bitcoind
             .client
-            .generate_to_address(1, &self.wallet.get_address(AddressIndex::Peek(0))?.address)?;
+            .generate_to_address(*n, &self.wallet.get_address(AddressIndex::Peek(0))?.address)?;
 
-          height += 1;
+          // height += 1;
 
-          for (t, transaction) in self.get_block(height)?.txdata.iter().enumerate() {
-            log::info!("tx: {height}x{t}: {}", transaction.txid());
-          }
-
-          self.sync()?;
-
-          sleep(Duration::from_millis(200));
+          // for (t, transaction) in self.get_block(height)?.txdata.iter().enumerate() {
+          //   log::info!("tx: {height}x{t}: {}", transaction.txid());
+          // }
         }
         Event::Request(request, status, expected_response) => {
           if healthy {
@@ -356,6 +352,8 @@ impl<'a> Test<'a> {
           }
         }
         Event::Transaction(options) => {
+          self.sync()?;
+
           let input_value = options
             .slots
             .iter()
@@ -490,8 +488,9 @@ impl<'a> Test<'a> {
     })
   }
 
+  // todo: remove this
   fn block(mut self) -> Self {
-    self.events.push(Event::Block);
+    self.events.push(Event::Blocks(1));
     self
   }
 
