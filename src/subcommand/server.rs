@@ -86,8 +86,8 @@ impl Server {
           let acceptor = state.acceptor();
 
           tokio::spawn(async move {
-            loop {
-              match state.next().await.unwrap() {
+            while let Some(result) = state.next().await {
+              match result {
                 Ok(ok) => log::info!("ACME event: {:?}", ok),
                 Err(err) => log::error!("ACME error: {:?}", err),
               }
