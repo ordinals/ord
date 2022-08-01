@@ -8,7 +8,7 @@ fn list() -> Result {
 
   Test::new()?
     .command(&format!("server --address 127.0.0.1 --http-port {port}"))
-    .block()
+    .blocks(1)
     .request(
       "list/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
       200,
@@ -38,7 +38,7 @@ fn continuously_index_ranges() -> Result {
       404,
       "null",
     )
-    .block()
+    .blocks(1)
     .request(
       "list/150ba822b458a19615e70a604d8dd9d3482fc165fa4e9cc150d74e11916ce8ae:0",
       200,

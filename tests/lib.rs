@@ -141,8 +141,6 @@ impl<'a> Test<'a> {
     let rpc_port = free_port()?;
 
     let bitcoind = Command::new("bitcoind")
-      // todo:
-      // disable network?
       .args(&[
         "-minrelaytxfee=0",
         "-blockmintxfee=0",
@@ -150,6 +148,7 @@ impl<'a> Test<'a> {
         "-maxtxfee=21000000",
         "-datadir=bitcoin",
         "-regtest",
+        "-networkactive=0",
         &format!("-rpcport={rpc_port}"),
       ])
       .current_dir(&tempdir.path())
@@ -326,11 +325,6 @@ impl<'a> Test<'a> {
     Ok(())
   }
 
-  fn blocks(mut self, n: u64) -> Self {
-    self.events.push(Event::Blocks(n));
-    self
-  }
-
   fn test(self, port: Option<u16>) -> Result<Output> {
     let client = reqwest::blocking::Client::new();
 
@@ -376,7 +370,6 @@ impl<'a> Test<'a> {
       (false, None)
     };
 
-    // let mut height = 0;
     let mut successful_requests = 0;
 
     for event in &self.events {
@@ -385,12 +378,6 @@ impl<'a> Test<'a> {
           self
             .client
             .generate_to_address(*n, &self.wallet.get_address(AddressIndex::Peek(0))?.address)?;
-
-          // height += 1;
-
-          // for (t, transaction) in self.get_block(height)?.txdata.iter().enumerate() {
-          //   log::info!("tx: {height}x{t}: {}", transaction.txid());
-          // }
         }
         Event::Request(request, status, expected_response) => {
           if healthy {
@@ -519,9 +506,8 @@ impl<'a> Test<'a> {
     })
   }
 
-  // todo: remove this
-  fn block(mut self) -> Self {
-    self.events.push(Event::Blocks(1));
+  fn blocks(mut self, n: u64) -> Self {
+    self.events.push(Event::Blocks(n));
     self
   }
 

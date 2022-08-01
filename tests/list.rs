@@ -12,7 +12,7 @@ fn first_coinbase_transaction() -> Result {
 fn second_coinbase_transaction() -> Result {
   Test::new()?
     .command("list 150ba822b458a19615e70a604d8dd9d3482fc165fa4e9cc150d74e11916ce8ae:0")
-    .block()
+    .blocks(1)
     .expected_stdout("[5000000000,10000000000)\n")
     .run()
 }
@@ -27,7 +27,7 @@ fn split_ranges_are_tracked_correctly() -> Result {
       output_count: 2,
       fee: 0,
     })
-    .block()
+    .blocks(1)
     .expected_stdout("[5000000000,7500000000)\n")
     .run()?;
 
@@ -39,7 +39,7 @@ fn split_ranges_are_tracked_correctly() -> Result {
       output_count: 2,
       fee: 0,
     })
-    .block()
+    .blocks(1)
     .expected_stdout("[7500000000,10000000000)\n")
     .run()
 }
@@ -54,13 +54,13 @@ fn merge_ranges_are_tracked_correctly() -> Result {
       output_count: 2,
       fee: 0,
     })
-    .block()
+    .blocks(1)
     .transaction(TransactionOptions {
       slots: &[(102, 1, 0), (102, 1, 1)],
       output_count: 1,
       fee: 0,
     })
-    .block()
+    .blocks(1)
     .expected_stdout("[5000000000,7500000000)\n[7500000000,10000000000)\n")
     .run()
 }
@@ -75,7 +75,7 @@ fn fee_paying_transaction_range() -> Result {
       output_count: 2,
       fee: 10,
     })
-    .block()
+    .blocks(1)
     .expected_stdout("[5000000000,7499999995)\n")
     .run()?;
 
@@ -87,7 +87,7 @@ fn fee_paying_transaction_range() -> Result {
       output_count: 2,
       fee: 10,
     })
-    .block()
+    .blocks(1)
     .expected_stdout("[7499999995,9999999990)\n")
     .run()?;
 
@@ -99,7 +99,7 @@ fn fee_paying_transaction_range() -> Result {
       output_count: 2,
       fee: 10,
     })
-    .block()
+    .blocks(1)
     .expected_stdout("[510000000000,515000000000)\n[9999999990,10000000000)\n")
     .run()
 }
@@ -119,7 +119,7 @@ fn two_fee_paying_transaction_range() -> Result {
       output_count: 1,
       fee: 10,
     })
-    .block()
+    .blocks(1)
     .expected_stdout(
       "[515000000000,520000000000)\n[9999999990,10000000000)\n[14999999990,15000000000)\n",
     )
@@ -136,7 +136,7 @@ fn null_output() -> Result {
       output_count: 1,
       fee: 50 * 100_000_000,
     })
-    .block()
+    .blocks(1)
     .expected_stdout("")
     .run()
 }
@@ -151,7 +151,7 @@ fn null_input() -> Result {
       output_count: 1,
       fee: 50 * 100_000_000,
     })
-    .block()
+    .blocks(1)
     .transaction(TransactionOptions {
       slots: &[(102, 1, 0)],
       output_count: 1,
@@ -171,7 +171,7 @@ fn old_transactions_are_pruned() -> Result {
       output_count: 1,
       fee: 50 * 100_000_000,
     })
-    .block()
+    .blocks(1)
     .expected_stderr("error: Output not found\n")
     .expected_status(1)
     .run()
