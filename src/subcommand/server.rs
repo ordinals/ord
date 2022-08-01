@@ -1,11 +1,49 @@
 use super::*;
 
+use {
+  self::tls_acceptor::TlsAcceptor,
+  clap::ArgGroup,
+  rustls_acme::{
+    acme::{ACME_TLS_ALPN_NAME, LETS_ENCRYPT_PRODUCTION_DIRECTORY, LETS_ENCRYPT_STAGING_DIRECTORY},
+    caches::DirCache,
+    AcmeConfig,
+  },
+  tokio_stream::StreamExt,
+};
+
+mod tls_acceptor;
+
 #[derive(Parser)]
+#[clap(group = ArgGroup::new("port").multiple(false).required(true))]
 pub(crate) struct Server {
-  #[clap(long, default_value = "0.0.0.0")]
+  #[clap(
+    long,
+    default_value = "0.0.0.0",
+    help = "Listen on <ADDRESS> for incoming requests."
+  )]
   address: String,
-  #[clap(long, default_value = "80")]
-  port: u16,
+  #[clap(
+    long,
+    help = "Request ACME TLS certificate for <ACME_DOMAIN>. This ord instance must be reachable at <ACME_DOMAIN>:443 to respond to Let's Encrypt ACME challenges."
+  )]
+  acme_domain: Vec<String>,
+  #[clap(
+    long,
+    group = "port",
+    help = "Listen on <HTTP_PORT> for incoming HTTP requests."
+  )]
+  http_port: Option<u16>,
+  #[clap(
+    long,
+    group = "port",
+    help = "Listen on <HTTPS_PORT> for incoming HTTPS requests.",
+    requires_all = &["acme-cache", "acme-domain", "acme-contact"]
+  )]
+  https_port: Option<u16>,
+  #[structopt(long, help = "Store ACME TLS certificates in <ACME_CACHE>.")]
+  acme_cache: Option<PathBuf>,
+  #[structopt(long, help = "Provide ACME contact <ACME_CONTACT>.")]
+  acme_contact: Vec<String>,
 }
 
 impl Server {
@@ -31,7 +69,37 @@ impl Server {
             .allow_origin(Any),
         );
 
-      let addr = (self.address, self.port)
+      let (port, acceptor) = match (self.http_port, self.https_port) {
+        (Some(http_port), None) => (http_port, None),
+        (None, Some(https_port)) => {
+          let config = AcmeConfig::new(self.acme_domain)
+            .contact(self.acme_contact)
+            .cache_option(Some(DirCache::new(self.acme_cache.unwrap())))
+            .directory(if cfg!(test) {
+              LETS_ENCRYPT_STAGING_DIRECTORY
+            } else {
+              LETS_ENCRYPT_PRODUCTION_DIRECTORY
+            });
+
+          let mut state = config.state();
+
+          let acceptor = state.acceptor();
+
+          tokio::spawn(async move {
+            while let Some(result) = state.next().await {
+              match result {
+                Ok(ok) => log::info!("ACME event: {:?}", ok),
+                Err(err) => log::error!("ACME error: {:?}", err),
+              }
+            }
+          });
+
+          (https_port, Some(acceptor))
+        }
+        (None, None) | (Some(_), Some(_)) => unreachable!(),
+      };
+
+      let addr = (self.address, port)
         .to_socket_addrs()?
         .next()
         .ok_or_else(|| anyhow!("Failed to get socket addrs"))?;
@@ -40,12 +108,19 @@ impl Server {
 
       LISTENERS.lock().unwrap().push(handle.clone());
 
-      axum_server::Server::bind(addr)
-        .handle(handle)
-        .serve(app.into_make_service())
-        .await?;
+      let server = axum_server::Server::bind(addr).handle(handle);
 
-      Ok::<(), Error>(())
+      match acceptor {
+        Some(acceptor) => {
+          server
+            .acceptor(TlsAcceptor(acceptor))
+            .serve(app.into_make_service())
+            .await?
+        }
+        None => server.serve(app.into_make_service()).await?,
+      }
+
+      Ok(())
     })
   }
 

@@ -29,6 +29,9 @@ deploy branch='master':
   rsync -avz deploy/checkout root@signet.ordinals.com:deploy/checkout
   ssh root@signet.ordinals.com 'cd deploy && ./checkout {{branch}}'
 
+log:
+  ssh root@signet.ordinals.com 'journalctl -fu ord'
+
 test-deploy:
   ssh-keygen -f ~/.ssh/known_hosts -R 192.168.56.4
   vagrant up
@@ -64,6 +67,9 @@ generate-paper-wallets:
 print-paper-wallet path:
   wkhtmltopdf -L 25mm -R 25mm -T 50mm -B 25mm {{path}} wallet.pdf
   lp -o sides=two-sided-long-edge wallet.pdf
+
+doc:
+  cargo doc --all --open
 
 # publish current GitHub master branch
 publish:

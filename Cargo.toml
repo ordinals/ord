@@ -8,6 +8,7 @@ autotests = false
 
 [dependencies]
 anyhow = { version = "1.0.56", features = ["backtrace"] }
+async-rustls = "0.2.0"
 axum = "0.5.6"
 axum-server = "0.4.0"
 bdk = { version = "0.20.0", features = ["keys-bip39", "sqlite"] }
@@ -19,15 +20,20 @@ ctrlc = "3.2.1"
 derive_more = "0.99.17"
 dirs = "4.0.0"
 env_logger = "0.9.0"
+futures = "0.3.21"
 http = "0.2.6"
 lazy_static = "1.4.0"
 log = "0.4.14"
 rayon = "1.5.1"
 redb = "0.4.0"
+rustls-acme = "0.3.0"
 serde = { version = "1.0.137", features = ["derive"] }
 serde_cbor = "0.11.2"
 serde_json = "1.0.81"
 tokio = { version = "1.17.0", features = ["rt-multi-thread"] }
+tokio-stream = "0.1.9"
+tokio-util = {version = "0.7.3", features = ["compat"] }
+tower = "0.4.13"
 tower-http = { version = "0.3.3", features = ["cors"] }
 
 [dev-dependencies]
@@ -38,8 +44,8 @@ jsonrpc-core-client = "18.0.0"
 jsonrpc-derive = "18.0.0"
 jsonrpc-http-server = "18.0.0"
 nix = "0.24.1"
-regex = "1.5.4"
 reqwest = { version = "0.11.10", features = ["blocking"] }
+regex = "1.6.0"
 tempfile = "3.2.0"
 unindent = "0.1.7"
 

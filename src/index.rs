@@ -58,9 +58,8 @@ impl Index {
   pub(crate) fn print_info(&self) -> Result {
     let wtx = self.database.begin_write()?;
 
-    let height_to_hash = wtx.open_table(HEIGHT_TO_HASH)?;
-
-    let blocks_indexed = height_to_hash
+    let blocks_indexed = wtx
+      .open_table(HEIGHT_TO_HASH)?
       .range(0..)?
       .rev()
       .next()
@@ -82,6 +81,8 @@ impl Index {
       "index size: {}",
       Bytes(std::fs::metadata("index.redb")?.len().try_into()?)
     );
+
+    wtx.abort()?;
 
     Ok(())
   }
