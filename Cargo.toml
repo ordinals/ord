@@ -10,9 +10,7 @@ autotests = false
 anyhow = { version = "1.0.56", features = ["backtrace"] }
 axum = "0.5.6"
 axum-server = "0.4.0"
-bech32 = "0.9.0"
 bitcoin = "0.28.1"
-bitcoin_hashes = "0.11.0"
 bitcoincore-rpc = "0.15.0"
 chrono = "0.4.19"
 clap = { version = "3.1.0", features = ["derive"] }
@@ -20,14 +18,11 @@ ctrlc = "3.2.1"
 derive_more = "0.99.17"
 dirs = "4.0.0"
 env_logger = "0.9.0"
-executable-path = "1.0.0"
 http = "0.2.6"
 lazy_static = "1.4.0"
 log = "0.4.14"
-qrcode-generator = "4.1.6"
 rayon = "1.5.1"
 redb = "0.4.0"
-reqwest = { version = "0.11.10", features = ["blocking", "json"] }
 serde = { version = "1.0.137", features = ["derive"] }
 serde_cbor = "0.11.2"
 serde_json = "1.0.81"
@@ -42,18 +37,14 @@ features = ["rpc", "keys-bip39", "sqlite"]
 
 [dev-dependencies]
 bitcoind = { path = "../bitcoind", features = ["23_0"] }
-criterion = "0.3.5"
+executable-path = "1.0.0"
 hex = "0.4.3"
 nix = "0.24.1"
 regex = "1.5.4"
-reqwest = { version = "0.11.9", features = ["blocking"] }
+reqwest = { version = "0.11.10", features = ["blocking"] }
 tempfile = "3.2.0"
 unindent = "0.1.7"
 
 [[test]]
 name = "integration"
 path = "tests/lib.rs"
-
-[[bench]]
-name = "index"
-harness = false
