@@ -58,32 +58,29 @@ impl Index {
   pub(crate) fn print_info(&self) -> Result {
     let wtx = self.database.begin_write()?;
 
-    {
-      let height_to_hash = wtx.open_table(HEIGHT_TO_HASH)?;
+    let blocks_indexed = wtx
+      .open_table(HEIGHT_TO_HASH)?
+      .range(0..)?
+      .rev()
+      .next()
+      .map(|(height, _hash)| height + 1)
+      .unwrap_or(0);
 
-      let blocks_indexed = height_to_hash
-        .range(0..)?
-        .rev()
-        .next()
-        .map(|(height, _hash)| height + 1)
-        .unwrap_or(0);
+    let outputs_indexed = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?.len()?;
 
-      let outputs_indexed = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?.len()?;
+    let stats = wtx.stats()?;
 
-      let stats = wtx.stats()?;
-
-      println!("blocks indexed: {}", blocks_indexed);
-      println!("outputs indexed: {}", outputs_indexed);
-      println!("tree height: {}", stats.tree_height());
-      println!("free pages: {}", stats.free_pages());
-      println!("stored: {}", Bytes(stats.stored_bytes()));
-      println!("overhead: {}", Bytes(stats.metadata_bytes()));
-      println!("fragmented: {}", Bytes(stats.fragmented_bytes()));
-      println!(
-        "index size: {}",
-        Bytes(std::fs::metadata("index.redb")?.len().try_into()?)
-      );
-    }
+    println!("blocks indexed: {}", blocks_indexed);
+    println!("outputs indexed: {}", outputs_indexed);
+    println!("tree height: {}", stats.tree_height());
+    println!("free pages: {}", stats.free_pages());
+    println!("stored: {}", Bytes(stats.stored_bytes()));
+    println!("overhead: {}", Bytes(stats.metadata_bytes()));
+    println!("fragmented: {}", Bytes(stats.fragmented_bytes()));
+    println!(
+      "index size: {}",
+      Bytes(std::fs::metadata("index.redb")?.len().try_into()?)
+    );
 
     wtx.abort()?;
 
