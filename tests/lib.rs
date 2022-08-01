@@ -105,10 +105,13 @@ impl<'a> Test<'a> {
     let mut conf = bitcoind::Conf::default();
 
     conf.view_stdout = false;
-    conf.args.push("-minrelaytxfee=0");
-    conf.args.push("-blockmintxfee=0");
-    conf.args.push("-dustrelayfee=0");
-    conf.args.push("-maxtxfee=21000000");
+
+    conf.args.extend(&[
+      "-minrelaytxfee=0",
+      "-blockmintxfee=0",
+      "-dustrelayfee=0",
+      "-maxtxfee=21000000",
+    ]);
 
     let bitcoind = Bitcoind::with_conf("bitcoind", &conf)?;
 
@@ -268,32 +271,30 @@ impl<'a> Test<'a> {
   }
 
   fn test(self, port: Option<u16>) -> Result<Output> {
-    let child = Command::new(executable_path("ord"))
-      .envs(self.envs.clone())
-      .stdin(Stdio::null())
-      .stdout(Stdio::piped())
-      .stderr(if !matches!(self.expected_stderr, Expected::Ignore) {
-        Stdio::piped()
-      } else {
-        Stdio::inherit()
-      })
-      .current_dir(&self.tempdir)
-      .arg(format!(
-        "--rpc-url={}",
-        self.bitcoind.params.rpc_socket.to_string()
-      ))
-      .arg(format!(
-        "--cookie-file={}",
-        self.bitcoind.params.cookie_file.display()
-      ))
-      .args(self.args.clone())
-      .spawn()?;
-
-    log::info!("{}", self.bitcoind.params.rpc_socket.to_string());
-
     let client = reqwest::blocking::Client::new();
 
-    let healthy = if let Some(port) = port {
+    let (healthy, child) = if let Some(port) = port {
+      let child = Command::new(executable_path("ord"))
+        .envs(self.envs.clone())
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(if !matches!(self.expected_stderr, Expected::Ignore) {
+          Stdio::piped()
+        } else {
+          Stdio::inherit()
+        })
+        .current_dir(&self.tempdir)
+        .arg(format!(
+          "--rpc-url={}",
+          self.bitcoind.params.rpc_socket.to_string()
+        ))
+        .arg(format!(
+          "--cookie-file={}",
+          self.bitcoind.params.cookie_file.display()
+        ))
+        .args(self.args.clone())
+        .spawn()?;
+
       let start = Instant::now();
       let mut healthy = false;
 
@@ -315,9 +316,9 @@ impl<'a> Test<'a> {
         sleep(Duration::from_millis(100));
       }
 
-      healthy
+      (healthy, Some(child))
     } else {
-      false
+      (false, None)
     };
 
     let mut height = 0;
@@ -339,7 +340,7 @@ impl<'a> Test<'a> {
 
           self.sync()?;
 
-          std::thread::sleep(Duration::from_millis(200));
+          sleep(Duration::from_millis(200));
         }
         Event::Request(request, status, expected_response) => {
           if healthy {
@@ -401,15 +402,37 @@ impl<'a> Test<'a> {
 
           self.bitcoind.client.call::<Txid>(
             "sendrawtransaction",
-            &[dbg!(psbt.extract_tx()).raw_hex().into(), 21000000.into()],
+            &[psbt.extract_tx().raw_hex().into(), 21000000.into()],
           )?;
         }
       }
     }
 
-    if healthy {
+    let child = if let Some(child) = child {
       signal::kill(Pid::from_raw(child.id() as i32), Signal::SIGINT)?;
-    }
+      child
+    } else {
+      Command::new(executable_path("ord"))
+        .envs(self.envs.clone())
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(if !matches!(self.expected_stderr, Expected::Ignore) {
+          Stdio::piped()
+        } else {
+          Stdio::inherit()
+        })
+        .current_dir(&self.tempdir)
+        .arg(format!(
+          "--rpc-url={}",
+          self.bitcoind.params.rpc_socket.to_string()
+        ))
+        .arg(format!(
+          "--cookie-file={}",
+          self.bitcoind.params.cookie_file.display()
+        ))
+        .args(self.args.clone())
+        .spawn()?
+    };
 
     let output = child.wait_with_output()?;
 
