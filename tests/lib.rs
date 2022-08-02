@@ -1,20 +1,22 @@
 #![allow(clippy::type_complexity)]
 
 use {
-  crate::rpc_server::RpcServer,
-  bitcoin::{
-    blockdata::constants::COIN_VALUE, blockdata::script, consensus::Encodable, Block, BlockHash,
-    BlockHeader, OutPoint, Transaction, TxIn, TxOut, Witness,
-  },
-  core::str::FromStr,
-  electrsd::bitcoind::{
-    bitcoincore_rpc::{
-      bitcoin::{Address, Amount},
-      RpcApi,
+  bdk::{
+    blockchain::{
+      rpc::{RpcBlockchain, RpcConfig},
+      ConfigurableBlockchain,
     },
-    BitcoinD as Bitcoind,
+    database::MemoryDatabase,
+    keys::bip39::Mnemonic,
+    template::Bip84,
+    wallet::{signer::SignOptions, AddressIndex, SyncOptions, Wallet},
+    KeychainKind,
   },
+  bitcoin::hash_types::Txid,
+  bitcoin::{network::constants::Network, Block, OutPoint},
+  bitcoincore_rpc::{Client, RawTx, RpcApi},
   executable_path::executable_path,
+  log::LevelFilter,
   nix::{
     sys::signal::{self, Signal},
     unistd::Pid,
@@ -26,10 +28,10 @@ use {
     ffi::OsString,
     fs,
     net::TcpListener,
-    process::{Command, Stdio},
+    process::{Child, Command, Stdio},
     str,
-    sync::{Arc, Mutex},
-    thread::{self, sleep},
+    sync::Once,
+    thread::sleep,
     time::{Duration, Instant},
   },
   tempfile::TempDir,
@@ -44,7 +46,6 @@ mod list;
 mod name;
 mod nft;
 mod range;
-mod rpc_server;
 mod server;
 mod supply;
 mod traits;
@@ -52,6 +53,12 @@ mod version;
 mod wallet;
 
 type Result<T = ()> = std::result::Result<T, Box<dyn Error>>;
+
+static ONCE: Once = Once::new();
+
+fn free_port() -> Result<u16> {
+  Ok(TcpListener::bind("127.0.0.1:0")?.local_addr()?.port())
+}
 
 #[derive(Debug)]
 enum Expected {
@@ -78,32 +85,15 @@ impl Expected {
   }
 }
 
-enum Event {
-  Block(Block),
+enum Event<'a> {
+  Blocks(u64),
   Request(String, u16, String),
+  Transaction(TransactionOptions<'a>),
 }
 
 struct Output {
-  bitcoind: Bitcoind,
-  calls: Vec<String>,
   stdout: String,
   tempdir: TempDir,
-}
-
-struct CoinbaseOptions {
-  include_coinbase_transaction: bool,
-  include_height: bool,
-  subsidy: u64,
-}
-
-impl Default for CoinbaseOptions {
-  fn default() -> Self {
-    Self {
-      include_coinbase_transaction: true,
-      include_height: true,
-      subsidy: 50 * COIN_VALUE,
-    }
-  }
 }
 
 struct TransactionOptions<'a> {
@@ -112,36 +102,126 @@ struct TransactionOptions<'a> {
   fee: u64,
 }
 
-struct Test {
+struct Test<'a> {
   args: Vec<String>,
-  bitcoind: Bitcoind,
+  _bitcoind: Bitcoind,
+  blockchain: RpcBlockchain,
+  client: Client,
+  rpc_port: u16,
   envs: Vec<(OsString, OsString)>,
-  events: Vec<Event>,
+  events: Vec<Event<'a>>,
   expected_status: i32,
   expected_stderr: Expected,
   expected_stdout: Expected,
   tempdir: TempDir,
+  wallet: Wallet<MemoryDatabase>,
 }
 
-impl Test {
+struct Bitcoind(Child);
+
+impl Drop for Bitcoind {
+  fn drop(&mut self) {
+    self.0.kill().unwrap();
+  }
+}
+
+impl<'a> Test<'a> {
   fn new() -> Result<Self> {
-    Ok(Self::with_tempdir(TempDir::new()?)?)
+    Self::with_tempdir(TempDir::new()?)
   }
 
   fn with_tempdir(tempdir: TempDir) -> Result<Self> {
-    Ok(Self {
+    ONCE.call_once(|| {
+      env_logger::init();
+    });
+
+    let datadir = tempdir.path().join("bitcoin");
+
+    fs::create_dir(&datadir).unwrap();
+
+    let rpc_port = free_port()?;
+
+    let bitcoind = Command::new("bitcoind")
+      .stdout(if log::max_level() >= LevelFilter::Info {
+        Stdio::inherit()
+      } else {
+        Stdio::piped()
+      })
+      .args(&[
+        "-minrelaytxfee=0",
+        "-blockmintxfee=0",
+        "-dustrelayfee=0",
+        "-maxtxfee=21000000",
+        "-datadir=bitcoin",
+        "-regtest",
+        "-networkactive=0",
+        &format!("-rpcport={rpc_port}"),
+      ])
+      .current_dir(&tempdir.path())
+      .spawn()?;
+
+    let cookiefile = datadir.join("regtest/.cookie");
+
+    while !cookiefile.is_file() {}
+
+    let client = Client::new(
+      &format!("localhost:{rpc_port}"),
+      bitcoincore_rpc::Auth::CookieFile(cookiefile.clone()),
+    )?;
+
+    loop {
+      let mut attempts = 0;
+      match client.get_blockchain_info() {
+        Ok(_) => break,
+        Err(error) => {
+          attempts += 1;
+          if attempts > 300 {
+            panic!("Failed to connect to bitcoind: {error}");
+          }
+          sleep(Duration::from_millis(100));
+        }
+      }
+    }
+
+    let wallet = Wallet::new(
+      Bip84(
+        (
+          Mnemonic::parse("book fit fly ketchup also elevator scout mind edit fatal where rookie")?,
+          None,
+        ),
+        KeychainKind::External,
+      ),
+      None,
+      Network::Regtest,
+      MemoryDatabase::new(),
+    )?;
+
+    let blockchain = RpcBlockchain::from_config(&RpcConfig {
+      url: format!("localhost:{rpc_port}"),
+      auth: bdk::blockchain::rpc::Auth::Cookie { file: cookiefile },
+      network: Network::Regtest,
+      wallet_name: "test".to_string(),
+      skip_blocks: None,
+    })?;
+
+    let test = Self {
       args: Vec::new(),
-      bitcoind: Bitcoind::with_conf(
-        electrsd::bitcoind::downloaded_exe_path()?,
-        &electrsd::bitcoind::Conf::default(),
-      )?,
+      client,
+      blockchain,
+      _bitcoind: Bitcoind(bitcoind),
       envs: Vec::new(),
       events: Vec::new(),
       expected_status: 0,
       expected_stderr: Expected::Ignore,
       expected_stdout: Expected::String(String::new()),
+      rpc_port,
       tempdir,
-    })
+      wallet,
+    };
+
+    test.sync()?;
+
+    Ok(test)
   }
 
   fn command(self, args: &str) -> Self {
@@ -233,55 +313,43 @@ impl Test {
     self.test(Some(port)).map(|_| ())
   }
 
+  fn get_block(&self, height: u64) -> Result<Block> {
+    Ok(
+      self
+        .client
+        .get_block(&self.client.get_block_hash(height)?)?,
+    )
+  }
+
   fn run_server_output(self, port: u16) -> Output {
     self.test(Some(port)).unwrap()
   }
 
-  fn blocks(&self) -> impl Iterator<Item = &Block> + '_ {
-    self.events.iter().filter_map(|event| match event {
-      Event::Block(block) => Some(block),
-      _ => None,
-    })
+  fn sync(&self) -> Result {
+    self.wallet.sync(&self.blockchain, SyncOptions::default())?;
+    Ok(())
   }
 
   fn test(self, port: Option<u16>) -> Result<Output> {
-    for (b, block) in self.blocks().enumerate() {
-      for (t, transaction) in block.txdata.iter().enumerate() {
-        eprintln!("{b}.{t}: {}", transaction.txid());
-      }
-    }
+    let client = reqwest::blocking::Client::new();
 
-    let (blocks, close_handle, calls, rpc_server_port) = if port.is_some() {
-      RpcServer::spawn(Vec::new())
-    } else {
-      RpcServer::spawn(self.blocks().cloned().collect())
-    };
+    log::info!("Spawning child process...");
 
-    eprintln!("{}", self.bitcoind.params.rpc_socket.to_string());
-
-    let child = Command::new(executable_path("ord"))
-      .envs(self.envs)
-      .stdin(Stdio::null())
-      .stdout(Stdio::piped())
-      .stderr(if !matches!(self.expected_stderr, Expected::Ignore) {
-        Stdio::piped()
-      } else {
-        Stdio::inherit()
-      })
-      .current_dir(&self.tempdir)
-      // .arg(format!("--rpc-url=http://127.0.0.1:{rpc_server_port}"))
-      .arg(format!(
-        "--rpc-url={}",
-        self.bitcoind.params.rpc_socket.to_string()
-      ))
-      .arg(format!("--cookie-file={}", self.bitcoind.params.cookie_file.display()))
-      .args(self.args)
-      .spawn()?;
-
-    let mut successful_requests = 0;
-
-    if let Some(port) = port {
-      let client = reqwest::blocking::Client::new();
+    let (healthy, child) = if let Some(port) = port {
+      let child = Command::new(executable_path("ord"))
+        .envs(self.envs.clone())
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(if !matches!(self.expected_stderr, Expected::Ignore) {
+          Stdio::piped()
+        } else {
+          Stdio::inherit()
+        })
+        .current_dir(&self.tempdir)
+        .arg(format!("--rpc-url=localhost:{}", self.rpc_port))
+        .arg("--cookie-file=bitcoin/regtest/.cookie")
+        .args(self.args.clone())
+        .spawn()?;
 
       let start = Instant::now();
       let mut healthy = false;
@@ -304,31 +372,114 @@ impl Test {
         sleep(Duration::from_millis(100));
       }
 
-      if healthy {
-        for event in &self.events {
-          match event {
-            Event::Block(block) => {
-              blocks.lock().unwrap().push(block.clone());
-              thread::sleep(Duration::from_millis(200));
-            }
-            Event::Request(request, status, expected_response) => {
-              let response = client
-                .get(&format!("http://127.0.0.1:{port}/{request}"))
-                .send()?;
-              assert_eq!(response.status().as_u16(), *status);
-              assert_eq!(response.text()?, *expected_response);
-              successful_requests += 1;
-            }
+      (healthy, Some(child))
+    } else {
+      (false, None)
+    };
+
+    log::info!(
+      "Server status: {}",
+      if healthy { "healthy" } else { "not healthy " }
+    );
+
+    let mut successful_requests = 0;
+
+    for event in &self.events {
+      match event {
+        Event::Blocks(n) => {
+          self
+            .client
+            .generate_to_address(*n, &self.wallet.get_address(AddressIndex::Peek(0))?.address)?;
+        }
+        Event::Request(request, status, expected_response) => {
+          if healthy {
+            let response = client
+              .get(&format!("http://127.0.0.1:{}/{request}", port.unwrap()))
+              .send()?;
+            log::info!("{:?}", response);
+            assert_eq!(response.status().as_u16(), *status);
+            assert_eq!(response.text()?, *expected_response);
+            successful_requests += 1;
+          } else {
+            panic!("Tried to make a request when unhealthy");
           }
         }
-      }
+        Event::Transaction(options) => {
+          self.sync()?;
 
-      signal::kill(Pid::from_raw(child.id() as i32), Signal::SIGINT)?;
+          let input_value = options
+            .slots
+            .iter()
+            .map(|slot| self.get_block(slot.0 as u64).unwrap().txdata[slot.1].output[slot.2].value)
+            .sum::<u64>();
+
+          let output_value = input_value - options.fee;
+
+          let (mut psbt, _) = {
+            let mut builder = self.wallet.build_tx();
+
+            builder
+              .manually_selected_only()
+              .fee_absolute(options.fee)
+              .allow_dust(true)
+              .add_utxos(
+                &options
+                  .slots
+                  .iter()
+                  .map(|slot| OutPoint {
+                    txid: self.get_block(slot.0 as u64).unwrap().txdata[slot.1].txid(),
+                    vout: slot.2 as u32,
+                  })
+                  .collect::<Vec<OutPoint>>(),
+              )?
+              .set_recipients(vec![
+                (
+                  self
+                    .wallet
+                    .get_address(AddressIndex::Peek(0))?
+                    .address
+                    .script_pubkey(),
+                  output_value / options.output_count as u64
+                );
+                options.output_count
+              ]);
+
+            builder.finish()?
+          };
+
+          if !self.wallet.sign(&mut psbt, SignOptions::default())? {
+            panic!("Failed to sign transaction");
+          }
+
+          self.client.call::<Txid>(
+            "sendrawtransaction",
+            &[psbt.extract_tx().raw_hex().into(), 21000000.into()],
+          )?;
+        }
+      }
     }
 
-    let output = child.wait_with_output()?;
+    let child = if let Some(child) = child {
+      signal::kill(Pid::from_raw(child.id() as i32), Signal::SIGINT)?;
+      child
+    } else {
+      Command::new(executable_path("ord"))
+        .envs(self.envs.clone())
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(if !matches!(self.expected_stderr, Expected::Ignore) {
+          Stdio::piped()
+        } else {
+          Stdio::inherit()
+        })
+        .current_dir(&self.tempdir)
+        .arg(format!("--rpc-url=localhost:{}", self.rpc_port))
+        .arg("--cookie-file=bitcoin/regtest/.cookie")
+        .args(self.args.clone())
+        .spawn()?
+    };
 
-    close_handle.close();
+    let output = child.wait_with_output()?;
 
     let stdout = str::from_utf8(&output.stdout)?;
     let stderr = str::from_utf8(&output.stderr)?;
@@ -361,117 +512,19 @@ impl Test {
       "Unsuccessful requests"
     );
 
-    let calls = calls.lock().unwrap().clone();
-
     Ok(Output {
-      bitcoind: self.bitcoind,
-      calls,
       stdout: stdout.to_string(),
       tempdir: self.tempdir,
     })
   }
 
-  fn block(self) -> Self {
-    self.block_with_coinbase(CoinbaseOptions::default())
-  }
-
-  fn block_with_coinbase(mut self, coinbase: CoinbaseOptions) -> Self {
-    self.events.push(Event::Block(Block {
-      header: BlockHeader {
-        version: 0,
-        prev_blockhash: self
-          .blocks()
-          .last()
-          .map(Block::block_hash)
-          .unwrap_or_default(),
-        merkle_root: Default::default(),
-        time: 0,
-        bits: 0,
-        nonce: 0,
-      },
-      txdata: if coinbase.include_coinbase_transaction {
-        vec![Transaction {
-          version: 0,
-          lock_time: 0,
-          input: vec![TxIn {
-            previous_output: OutPoint::null(),
-            script_sig: if coinbase.include_height {
-              script::Builder::new()
-                .push_scriptint(self.blocks().count().try_into().unwrap())
-                .into_script()
-            } else {
-              script::Builder::new().into_script()
-            },
-            sequence: 0,
-            witness: Witness::new(),
-          }],
-          output: vec![TxOut {
-            value: coinbase.subsidy,
-            script_pubkey: script::Builder::new().into_script(),
-          }],
-        }]
-      } else {
-        Vec::new()
-      },
-    }));
+  fn blocks(mut self, n: u64) -> Self {
+    self.events.push(Event::Blocks(n));
     self
   }
 
-  fn transaction(mut self, options: TransactionOptions) -> Self {
-    let input_value = options
-      .slots
-      .iter()
-      .map(|slot| self.blocks().nth(slot.0).unwrap().txdata[slot.1].output[slot.2].value)
-      .sum::<u64>();
-
-    let output_value = input_value - options.fee;
-
-    let tx = Transaction {
-      version: 0,
-      lock_time: 0,
-      input: options
-        .slots
-        .iter()
-        .map(|slot| TxIn {
-          previous_output: OutPoint {
-            txid: self.blocks().nth(slot.0).unwrap().txdata[slot.1].txid(),
-            vout: slot.2 as u32,
-          },
-          script_sig: script::Builder::new().into_script(),
-          sequence: 0,
-          witness: Witness::new(),
-        })
-        .collect(),
-      output: vec![
-        TxOut {
-          value: output_value / options.output_count as u64,
-          script_pubkey: script::Builder::new().into_script(),
-        };
-        options.output_count
-      ],
-    };
-
-    let block = self
-      .events
-      .iter_mut()
-      .rev()
-      .find_map(|event| match event {
-        Event::Block(block) => Some(block),
-        _ => None,
-      })
-      .unwrap();
-
-    block
-      .txdata
-      .first_mut()
-      .unwrap()
-      .output
-      .first_mut()
-      .unwrap()
-      .value += options.fee;
-
-    block.txdata.push(tx);
-
+  fn transaction(mut self, options: TransactionOptions<'a>) -> Self {
+    self.events.push(Event::Transaction(options));
     self
   }
 

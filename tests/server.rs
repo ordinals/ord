@@ -1,18 +1,16 @@
 use super::*;
 
-fn free_port() -> Result<u16> {
-  Ok(TcpListener::bind("127.0.0.1:0")?.local_addr()?.port())
-}
-
 #[test]
 fn list() -> Result {
   let port = free_port()?;
 
+  log::info!("port: {}", port);
+
   Test::new()?
     .command(&format!("server --address 127.0.0.1 --http-port {port}"))
-    .block()
+    .blocks(1)
     .request(
-      "list/0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0",
+      "list/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
       200,
       "[[0,5000000000]]",
     )
@@ -36,15 +34,15 @@ fn continuously_index_ranges() -> Result {
   Test::new()?
     .command(&format!("server --address 127.0.0.1 --http-port {port}"))
     .request(
-      "list/0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0",
+      "list/150ba822b458a19615e70a604d8dd9d3482fc165fa4e9cc150d74e11916ce8ae:0",
       404,
       "null",
     )
-    .block()
+    .blocks(1)
     .request(
-      "list/0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0",
+      "list/150ba822b458a19615e70a604d8dd9d3482fc165fa4e9cc150d74e11916ce8ae:0",
       200,
-      "[[0,5000000000]]",
+      "[[5000000000,10000000000]]",
     )
     .run_server(port)
 }

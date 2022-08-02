@@ -246,6 +246,8 @@ impl Index {
     input_ordinal_ranges: &mut VecDeque<(u64, u64)>,
     ordinal_ranges_written: &mut u64,
   ) -> Result {
+    log::trace!("{txid}: {:?}", tx);
+
     for (vout, output) in tx.output.iter().enumerate() {
       let outpoint = OutPoint {
         vout: vout as u32,
