@@ -92,6 +92,9 @@ enum Event<'a> {
 }
 
 struct Output {
+  bitcoind: Bitcoind,
+  client: Client,
+  rpc_port: u16,
   stdout: String,
   tempdir: TempDir,
 }
@@ -104,15 +107,15 @@ struct TransactionOptions<'a> {
 
 struct Test<'a> {
   args: Vec<String>,
-  _bitcoind: Bitcoind,
+  bitcoind: Bitcoind,
   blockchain: RpcBlockchain,
   client: Client,
-  rpc_port: u16,
   envs: Vec<(OsString, OsString)>,
   events: Vec<Event<'a>>,
   expected_status: i32,
   expected_stderr: Expected,
   expected_stdout: Expected,
+  rpc_port: u16,
   tempdir: TempDir,
   wallet: Wallet<MemoryDatabase>,
 }
@@ -154,7 +157,6 @@ impl<'a> Test<'a> {
         "-maxtxfee=21000000",
         "-datadir=bitcoin",
         "-regtest",
-        "-networkactive=0",
         &format!("-rpcport={rpc_port}"),
       ])
       .current_dir(&tempdir.path())
@@ -208,7 +210,7 @@ impl<'a> Test<'a> {
       args: Vec::new(),
       client,
       blockchain,
-      _bitcoind: Bitcoind(bitcoind),
+      bitcoind: Bitcoind(bitcoind),
       envs: Vec::new(),
       events: Vec::new(),
       expected_status: 0,
@@ -216,6 +218,75 @@ impl<'a> Test<'a> {
       expected_stdout: Expected::String(String::new()),
       rpc_port,
       tempdir,
+      wallet,
+    };
+
+    test.sync()?;
+
+    Ok(test)
+  }
+
+  fn connect(output: Output) -> Result<Self> {
+    ONCE.call_once(|| {
+      env_logger::init();
+    });
+
+    let cookiefile = output.tempdir.path().join("bitcoin/regtest/.cookie");
+
+    let client = Client::new(
+      &format!("127.0.0.1:{}", output.rpc_port),
+      bitcoincore_rpc::Auth::CookieFile(cookiefile.clone()),
+    )?;
+
+    log::info!("Connecting to client...");
+
+    loop {
+      let mut attempts = 0;
+      match client.get_blockchain_info() {
+        Ok(_) => break,
+        Err(error) => {
+          attempts += 1;
+          if attempts > 300 {
+            panic!("Failed to connect to bitcoind: {error}");
+          }
+          sleep(Duration::from_millis(100));
+        }
+      }
+    }
+
+    let wallet = Wallet::new(
+      Bip84(
+        (
+          Mnemonic::parse("book fit fly ketchup also elevator scout mind edit fatal where rookie")?,
+          None,
+        ),
+        KeychainKind::External,
+      ),
+      None,
+      Network::Regtest,
+      MemoryDatabase::new(),
+    )?;
+
+    let blockchain = RpcBlockchain::from_config(&RpcConfig {
+      url: format!("127.0.0.1:{}", output.rpc_port),
+      auth: bdk::blockchain::rpc::Auth::Cookie { file: cookiefile },
+      network: Network::Regtest,
+      wallet_name: "test".to_string(),
+      skip_blocks: None,
+    })?;
+
+    let test = Self {
+      args: Vec::new(),
+      client,
+      blockchain,
+      bitcoind: output.bitcoind,
+      envs: Vec::new(),
+      events: Vec::new(),
+      expected_status: 0,
+      expected_stderr: Expected::Ignore,
+      expected_stdout: Expected::String(String::new()),
+      rpc_port: output.rpc_port,
+      tempdir: output.tempdir,
       wallet,
     };
 
@@ -333,9 +404,9 @@ impl<'a> Test<'a> {
   fn test(self, port: Option<u16>) -> Result<Output> {
     let client = reqwest::blocking::Client::new();
 
-    log::info!("Spawning child process...");
-
     let (healthy, child) = if let Some(port) = port {
+      log::info!("Spawning ord server child process...");
+
       let child = Command::new(executable_path("ord"))
         .envs(self.envs.clone())
         .stdin(Stdio::null())
@@ -346,7 +417,7 @@ impl<'a> Test<'a> {
           Stdio::inherit()
         })
         .current_dir(&self.tempdir)
-        .arg(format!("--rpc-url=localhost:{}", self.rpc_port))
+        .arg(format!("--rpc-url=127.0.0.1:{}", self.rpc_port))
         .arg("--cookie-file=bitcoin/regtest/.cookie")
         .args(self.args.clone())
         .spawn()?;
@@ -379,7 +450,7 @@ impl<'a> Test<'a> {
 
     log::info!(
       "Server status: {}",
-      if healthy { "healthy" } else { "not healthy " }
+      if healthy { "healthy" } else { "unhealthy" }
     );
 
     let mut successful_requests = 0;
@@ -460,9 +531,11 @@ impl<'a> Test<'a> {
     }
 
     let child = if let Some(child) = child {
+      log::info!("Killing server child process...");
       signal::kill(Pid::from_raw(child.id() as i32), Signal::SIGINT)?;
       child
     } else {
+      log::info!("Spawning ord child process...");
       Command::new(executable_path("ord"))
         .envs(self.envs.clone())
         .stdin(Stdio::null())
@@ -473,7 +546,7 @@ impl<'a> Test<'a> {
           Stdio::inherit()
         })
         .current_dir(&self.tempdir)
-        .arg(format!("--rpc-url=localhost:{}", self.rpc_port))
+        .arg(format!("--rpc-url=127.0.0.1:{}", self.rpc_port))
         .arg("--cookie-file=bitcoin/regtest/.cookie")
         .args(self.args.clone())
         .spawn()?
@@ -513,6 +586,9 @@ impl<'a> Test<'a> {
     );
 
     Ok(Output {
+      bitcoind: self.bitcoind,
+      client: self.client,
+      rpc_port: self.rpc_port,
       stdout: stdout.to_string(),
       tempdir: self.tempdir,
     })

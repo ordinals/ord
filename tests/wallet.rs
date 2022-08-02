@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, bitcoin::util::address::Address, std::str::FromStr};
 
 fn path(path: &str) -> String {
   if cfg!(target_os = "macos") {
@@ -10,19 +10,22 @@ fn path(path: &str) -> String {
 
 #[test]
 fn init_existing_wallet() -> Result {
-  let tempdir = Test::new()?
+  let output = Test::new()?
     .command("wallet init")
     .set_home_to_tempdir()
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
-    .output()?
-    .tempdir;
+    .output()?;
 
-  assert!(tempdir.path().join(path("ord/wallet.sqlite")).exists());
+  assert!(output
+    .tempdir
+    .path()
+    .join(path("ord/wallet.sqlite"))
+    .exists());
 
-  assert!(tempdir.path().join(path("ord/entropy")).exists());
+  assert!(output.tempdir.path().join(path("ord/entropy")).exists());
 
-  Test::with_tempdir(tempdir)?
+  Test::connect(output)?
     .command("wallet init")
     .set_home_to_tempdir()
     .expected_status(1)
@@ -49,15 +52,14 @@ fn init_nonexistent_wallet() -> Result {
 
 #[test]
 fn load_corrupted_entropy() -> Result {
-  let tempdir = Test::new()?
+  let output = Test::new()?
     .command("wallet init")
     .set_home_to_tempdir()
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
-    .output()?
-    .tempdir;
+    .output()?;
 
-  let entropy_path = tempdir.path().join(path("ord/entropy"));
+  let entropy_path = output.tempdir.path().join(path("ord/entropy"));
 
   assert!(entropy_path.exists());
 
@@ -66,31 +68,28 @@ fn load_corrupted_entropy() -> Result {
 
   fs::write(&entropy_path, entropy)?;
 
-  Test::with_tempdir(tempdir)?
+  Test::connect(output)?
     .command("wallet fund")
     .set_home_to_tempdir()
     .expected_status(1)
     .expected_stderr("error: ChecksumMismatch\n")
-    .run()?;
-
-  Ok(())
+    .run()
 }
 
 #[test]
 fn fund_existing_wallet() -> Result {
-  let tempdir = Test::new()?
+  let output = Test::new()?
     .command("wallet init")
     .set_home_to_tempdir()
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
     .set_home_to_tempdir()
-    .output()?
-    .tempdir;
+    .output()?;
 
-  Test::with_tempdir(tempdir)?
+  Test::connect(output)?
     .command("wallet fund")
     .set_home_to_tempdir()
-    .stdout_regex("^tb1.*\n")
+    .stdout_regex("^bcrt1.*\n")
     .run()
 }
 
@@ -106,47 +105,34 @@ fn fund_nonexistent_wallet() -> Result {
 
 #[test]
 fn utxos() -> Result {
-  // let output = Test::new()?
-  //   .command("wallet init")
-  //   .set_home_to_tempdir()
-  //   .expected_status(0)
-  //   .expected_stderr("Wallet initialized.\n")
-  //   .set_home_to_tempdir()
-  //   .output()?;
+  let output = Test::new()?
+    .command("wallet init")
+    .set_home_to_tempdir()
+    .expected_status(0)
+    .expected_stderr("Wallet initialized.\n")
+    .set_home_to_tempdir()
+    .output()?;
 
-  // let output = Test::with_tempdir(output.tempdir)?
-  //   .command("wallet fund")
-  //   .set_home_to_tempdir()
-  //   .stdout_regex("^bcrt1.*\n")
-  //   .output()?;
+  let output = Test::connect(output)?
+    .command("wallet fund")
+    .set_home_to_tempdir()
+    .stdout_regex("^bcrt1.*\n")
+    .output()?;
 
-  // let core_address = output.bitcoind.client.get_new_address(None, None)?;
+  output.client.generate_to_address(
+    1,
+    &Address::from_str(
+      &output
+        .stdout
+        .strip_suffix('\n')
+        .ok_or("Failed to convert string to Address")?,
+    )?,
+  )?;
 
-  // output
-  //   .bitcoind
-  //   .client
-  //   .generate_to_address(101, &core_address)?;
-
-  // output.bitcoind.client.send_to_address(
-  //   &Address::from_str(&output.stdout.strip_suffix('\n').unwrap())?,
-  //   Amount::from_btc(10.0)?,
-  //   None,
-  //   None,
-  //   None,
-  //   None,
-  //   None,
-  //   None,
-  // )?;
-
-  // output
-  //   .bitcoind
-  //   .client
-  //   .generate_to_address(1, &core_address)?;
-
-  // Test::with_tempdir(output.tempdir)?
-  //   .command("wallet utxos")
-  //   .set_home_to_tempdir()
-  //   .run()
-
-  Ok(())
+  Test::connect(output)?
+    .command("wallet utxos")
+    .set_home_to_tempdir()
+    .expected_status(0)
+    .expected_stdout("[]\n")
+    .run()
 }
