@@ -2,11 +2,9 @@ use super::*;
 
 fn case(ordinal: u64, name: &str, value: &str) {
   let stdout = Test::new()
-    .unwrap()
     .args(&["traits", &ordinal.to_string()])
     .ignore_stdout()
     .output()
-    .unwrap()
     .stdout;
 
   let map = stdout
@@ -22,12 +20,12 @@ fn case(ordinal: u64, name: &str, value: &str) {
 }
 
 #[test]
-fn invalid_ordinal() -> Result {
-  Test::new()?
+fn invalid_ordinal() {
+  Test::new()
     .args(&["traits", "2099999997690000"])
     .stderr_regex("error: Invalid value \"2099999997690000\" for '<ORDINAL>': Invalid ordinal\n.*")
     .expected_status(2)
-    .run()
+    .run();
 }
 
 #[test]

@@ -1,12 +1,12 @@
 use super::*;
 
 #[test]
-fn list() -> Result {
+fn list() {
   let port = free_port();
 
   log::info!("port: {}", port);
 
-  Test::new()?
+  Test::new()
     .command(&format!("server --address 127.0.0.1 --http-port {port}"))
     .blocks(1)
     .request(
@@ -18,20 +18,20 @@ fn list() -> Result {
 }
 
 #[test]
-fn status() -> Result {
+fn status() {
   let port = free_port();
 
-  Test::new()?
+  Test::new()
     .command(&format!("server --address 127.0.0.1 --http-port {port}"))
     .request("status", 200, "")
     .run_server(port)
 }
 
 #[test]
-fn continuously_index_ranges() -> Result {
+fn continuously_index_ranges() {
   let port = free_port();
 
-  Test::new()?
+  Test::new()
     .command(&format!("server --address 127.0.0.1 --http-port {port}"))
     .request(
       "list/150ba822b458a19615e70a604d8dd9d3482fc165fa4e9cc150d74e11916ce8ae:0",
@@ -48,8 +48,8 @@ fn continuously_index_ranges() -> Result {
 }
 
 #[test]
-fn http_or_https_port_is_required() -> Result {
-  Test::new()?
+fn http_or_https_port_is_required() {
+  Test::new()
     .command("server --address 127.0.0.1")
     .stderr_regex("error: The following required arguments were not provided:\n    <--http-port <HTTP_PORT>\\|--https-port <HTTPS_PORT>>\n.*")
     .expected_status(2)
@@ -57,8 +57,8 @@ fn http_or_https_port_is_required() -> Result {
 }
 
 #[test]
-fn http_and_https_port_conflict() -> Result {
-  Test::new()?
+fn http_and_https_port_conflict() {
+  Test::new()
     .command("server --address 127.0.0.1 --http-port 0 --https-port 0")
     .stderr_regex("error: The argument '--http-port <HTTP_PORT>' cannot be used with '--https-port <HTTPS_PORT>'\n.*")
     .expected_status(2)
@@ -66,10 +66,10 @@ fn http_and_https_port_conflict() -> Result {
 }
 
 #[test]
-fn http_port_requires_acme_flags() -> Result {
+fn http_port_requires_acme_flags() {
   let port = free_port();
 
-  Test::new()?
+  Test::new()
     .command("server --address 127.0.0.1 --https-port 0")
     .stderr_regex("error: The following required arguments were not provided:\n    --acme-cache <ACME_CACHE>\n    --acme-domain <ACME_DOMAIN>\n    --acme-contact <ACME_CONTACT>\n.*")
     .expected_status(2)
@@ -77,19 +77,19 @@ fn http_port_requires_acme_flags() -> Result {
 }
 
 #[test]
-fn acme_contact_accepts_multiple_values() -> Result {
+fn acme_contact_accepts_multiple_values() {
   let port = free_port();
 
-  Test::new()?
+  Test::new()
     .command("server --address 127.0.0.1 --http-port 0 --acme-contact foo --acme-contact bar")
     .run_server(port)
 }
 
 #[test]
-fn acme_domain_accepts_multiple_values() -> Result {
+fn acme_domain_accepts_multiple_values() {
   let port = free_port();
 
-  Test::new()?
+  Test::new()
     .command("server --address 127.0.0.1 --http-port 0 --acme-domain foo --acme-domain bar")
     .run_server(port)
 }
@@ -98,7 +98,7 @@ fn acme_domain_accepts_multiple_values() -> Result {
 fn creates_acme_cache() {
   let port = free_port();
 
-  let output = Test::new().unwrap()
+  let output = Test::new()
     .command("server --address 127.0.0.1 --https-port 0 --acme-domain foo --acme-cache bar --acme-contact mailto:foo@bar.com")
     .run_server_output(port);
 

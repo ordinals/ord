@@ -24,7 +24,6 @@ use {
   regex::Regex,
   std::{
     collections::BTreeMap,
-    error::Error,
     ffi::OsString,
     fs,
     net::TcpListener,
@@ -51,8 +50,6 @@ mod supply;
 mod traits;
 mod version;
 mod wallet;
-
-type Result<T = ()> = std::result::Result<T, Box<dyn Error>>;
 
 static ONCE: Once = Once::new();
 
@@ -218,11 +215,11 @@ impl Drop for State {
 }
 
 impl<'a> Test<'a> {
-  fn new() -> Result<Self> {
+  fn new() -> Self {
     Self::with_state(State::new())
   }
 
-  fn with_state(state: State) -> Result<Self> {
+  fn with_state(state: State) -> Self {
     ONCE.call_once(|| {
       env_logger::init();
     });
@@ -237,9 +234,9 @@ impl<'a> Test<'a> {
       expected_stdout: Expected::String(String::new()),
     };
 
-    test.sync()?;
+    test.sync();
 
-    Ok(test)
+    test
   }
 
   fn command(self, args: &str) -> Self {
@@ -321,40 +318,39 @@ impl<'a> Test<'a> {
     self
   }
 
-  fn run(self) -> Result {
-    self.test(None).map(|_| ())
+  fn run(self) {
+    self.test(None);
   }
 
-  fn output(self) -> Result<Output> {
+  fn output(self) -> Output {
     self.test(None)
   }
 
-  fn run_server(self, port: u16) -> Result {
-    self.test(Some(port)).map(|_| ())
+  fn run_server(self, port: u16) {
+    self.test(Some(port));
   }
 
-  fn get_block(&self, height: u64) -> Result<Block> {
-    Ok(
-      self
-        .state
-        .client
-        .get_block(&self.state.client.get_block_hash(height)?)?,
-    )
+  fn get_block(&self, height: u64) -> Block {
+    self
+      .state
+      .client
+      .get_block(&self.state.client.get_block_hash(height).unwrap())
+      .unwrap()
   }
 
   fn run_server_output(self, port: u16) -> Output {
-    self.test(Some(port)).unwrap()
+    self.test(Some(port))
   }
 
-  fn sync(&self) -> Result {
+  fn sync(&self) {
     self
       .state
       .wallet
-      .sync(&self.state.blockchain, SyncOptions::default())?;
-    Ok(())
+      .sync(&self.state.blockchain, SyncOptions::default())
+      .unwrap();
   }
 
-  fn test(self, port: Option<u16>) -> Result<Output> {
+  fn test(self, port: Option<u16>) -> Output {
     let client = reqwest::blocking::Client::new();
 
     log::info!("Spawning child process...");
@@ -373,7 +369,8 @@ impl<'a> Test<'a> {
         .arg(format!("--rpc-url=localhost:{}", self.state.rpc_port))
         .arg("--cookie-file=bitcoin/regtest/.cookie")
         .args(self.args.clone())
-        .spawn()?;
+        .spawn()
+        .unwrap();
 
       let start = Instant::now();
       let mut healthy = false;
@@ -411,35 +408,41 @@ impl<'a> Test<'a> {
     for event in &self.events {
       match event {
         Event::Blocks(n) => {
-          self.state.client.generate_to_address(
-            *n,
-            &self
-              .state
-              .wallet
-              .get_address(AddressIndex::Peek(0))?
-              .address,
-          )?;
+          self
+            .state
+            .client
+            .generate_to_address(
+              *n,
+              &self
+                .state
+                .wallet
+                .get_address(AddressIndex::Peek(0))
+                .unwrap()
+                .address,
+            )
+            .unwrap();
         }
         Event::Request(request, status, expected_response) => {
           if healthy {
             let response = client
               .get(&format!("http://127.0.0.1:{}/{request}", port.unwrap()))
-              .send()?;
+              .send()
+              .unwrap();
             log::info!("{:?}", response);
             assert_eq!(response.status().as_u16(), *status);
-            assert_eq!(response.text()?, *expected_response);
+            assert_eq!(response.text().unwrap(), *expected_response);
             successful_requests += 1;
           } else {
             panic!("Tried to make a request when unhealthy");
           }
         }
         Event::Transaction(options) => {
-          self.sync()?;
+          self.sync();
 
           let input_value = options
             .slots
             .iter()
-            .map(|slot| self.get_block(slot.0 as u64).unwrap().txdata[slot.1].output[slot.2].value)
+            .map(|slot| self.get_block(slot.0 as u64).txdata[slot.1].output[slot.2].value)
             .sum::<u64>();
 
           let output_value = input_value - options.fee;
@@ -456,17 +459,19 @@ impl<'a> Test<'a> {
                   .slots
                   .iter()
                   .map(|slot| OutPoint {
-                    txid: self.get_block(slot.0 as u64).unwrap().txdata[slot.1].txid(),
+                    txid: self.get_block(slot.0 as u64).txdata[slot.1].txid(),
                     vout: slot.2 as u32,
                   })
                   .collect::<Vec<OutPoint>>(),
-              )?
+              )
+              .unwrap()
               .set_recipients(vec![
                 (
                   self
                     .state
                     .wallet
-                    .get_address(AddressIndex::Peek(0))?
+                    .get_address(AddressIndex::Peek(0))
+                    .unwrap()
                     .address
                     .script_pubkey(),
                   output_value / options.output_count as u64
@@ -474,23 +479,32 @@ impl<'a> Test<'a> {
                 options.output_count
               ]);
 
-            builder.finish()?
+            builder.finish().unwrap()
           };
 
-          if !self.state.wallet.sign(&mut psbt, SignOptions::default())? {
+          if !self
+            .state
+            .wallet
+            .sign(&mut psbt, SignOptions::default())
+            .unwrap()
+          {
             panic!("Failed to sign transaction");
           }
 
-          self.state.client.call::<Txid>(
-            "sendrawtransaction",
-            &[psbt.extract_tx().raw_hex().into(), 21000000.into()],
-          )?;
+          self
+            .state
+            .client
+            .call::<Txid>(
+              "sendrawtransaction",
+              &[psbt.extract_tx().raw_hex().into(), 21000000.into()],
+            )
+            .unwrap();
         }
       }
     }
 
     let child = if let Some(child) = child {
-      signal::kill(Pid::from_raw(child.id() as i32), Signal::SIGINT)?;
+      signal::kill(Pid::from_raw(child.id() as i32), Signal::SIGINT).unwrap();
       child
     } else {
       Command::new(executable_path("ord"))
@@ -506,13 +520,14 @@ impl<'a> Test<'a> {
         .arg(format!("--rpc-url=localhost:{}", self.state.rpc_port))
         .arg("--cookie-file=bitcoin/regtest/.cookie")
         .args(self.args.clone())
-        .spawn()?
+        .spawn()
+        .unwrap()
     };
 
-    let output = child.wait_with_output()?;
+    let output = child.wait_with_output().unwrap();
 
-    let stdout = str::from_utf8(&output.stdout)?;
-    let stderr = str::from_utf8(&output.stderr)?;
+    let stdout = str::from_utf8(&output.stdout).unwrap();
+    let stderr = str::from_utf8(&output.stderr).unwrap();
 
     if output.status.code() != Some(self.expected_status) {
       panic!(
@@ -521,7 +536,7 @@ impl<'a> Test<'a> {
       );
     }
 
-    let log_line_re = Regex::new(r"(?m)^\[.*\n")?;
+    let log_line_re = Regex::new(r"(?m)^\[.*\n").unwrap();
 
     for log_line in log_line_re.find_iter(stderr) {
       print!("{}", log_line.as_str())
@@ -542,10 +557,10 @@ impl<'a> Test<'a> {
       "Unsuccessful requests"
     );
 
-    Ok(Output {
+    Output {
       stdout: stdout.to_string(),
       state: self.state,
-    })
+    }
   }
 
   fn blocks(mut self, n: u64) -> Self {
@@ -558,8 +573,8 @@ impl<'a> Test<'a> {
     self
   }
 
-  fn write(self, path: &str, contents: &str) -> Result<Self> {
-    fs::write(self.state.tempdir.path().join(path), contents)?;
-    Ok(self)
+  fn write(self, path: &str, contents: &str) -> Self {
+    fs::write(self.state.tempdir.path().join(path), contents).unwrap();
+    self
   }
 }

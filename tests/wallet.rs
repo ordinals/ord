@@ -9,13 +9,13 @@ fn path(path: &str) -> String {
 }
 
 #[test]
-fn init_existing_wallet() -> Result {
-  let state = Test::new()?
+fn init_existing_wallet() {
+  let state = Test::new()
     .command("wallet init")
     .set_home_to_tempdir()
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
-    .output()?
+    .output()
     .state;
 
   assert!(state
@@ -26,7 +26,7 @@ fn init_existing_wallet() -> Result {
 
   assert!(state.tempdir.path().join(path("ord/entropy")).exists());
 
-  Test::with_state(state)?
+  Test::with_state(state)
     .command("wallet init")
     .set_home_to_tempdir()
     .expected_status(1)
@@ -35,13 +35,13 @@ fn init_existing_wallet() -> Result {
 }
 
 #[test]
-fn init_nonexistent_wallet() -> Result {
-  let output = Test::new()?
+fn init_nonexistent_wallet() {
+  let output = Test::new()
     .command("wallet init")
     .set_home_to_tempdir()
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
-    .output()?;
+    .output();
 
   assert!(output
     .state
@@ -56,63 +56,59 @@ fn init_nonexistent_wallet() -> Result {
     .path()
     .join(path("ord/entropy"))
     .exists());
-
-  Ok(())
 }
 
 #[test]
-fn load_corrupted_entropy() -> Result {
-  let state = Test::new()?
+fn load_corrupted_entropy() {
+  let state = Test::new()
     .command("wallet init")
     .set_home_to_tempdir()
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
-    .output()?
+    .output()
     .state;
 
   let entropy_path = state.tempdir.path().join(path("ord/entropy"));
 
   assert!(entropy_path.exists());
 
-  let mut entropy = fs::read(&entropy_path)?;
+  let mut entropy = fs::read(&entropy_path).unwrap();
   entropy[0] ^= 0b0000_1000;
 
-  fs::write(&entropy_path, entropy)?;
+  fs::write(&entropy_path, entropy).unwrap();
 
-  Test::with_state(state)?
+  Test::with_state(state)
     .command("wallet fund")
     .set_home_to_tempdir()
     .expected_status(1)
     .expected_stderr("error: ChecksumMismatch\n")
-    .run()?;
-
-  Ok(())
+    .run();
 }
 
 #[test]
-fn fund_existing_wallet() -> Result {
-  let state = Test::new()?
+fn fund_existing_wallet() {
+  let state = Test::new()
     .command("wallet init")
     .set_home_to_tempdir()
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
     .set_home_to_tempdir()
-    .output()?
+    .output()
     .state;
 
-  Test::with_state(state)?
+  Test::with_state(state)
     .command("wallet fund")
     .set_home_to_tempdir()
     .stdout_regex("^tb1.*\n")
-    .run()
+    .run();
 }
 
 #[test]
-fn fund_nonexistent_wallet() -> Result {
-  Test::new()?
+fn fund_nonexistent_wallet() {
+  Test::new()
     .command("wallet fund")
     .set_home_to_tempdir()
     .expected_status(1)
     .expected_stderr("error: Wallet doesn't exist.\n")
-    .run()
+    .run();
 }

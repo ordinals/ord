@@ -1,10 +1,10 @@
 use super::*;
 
 #[test]
-fn basic() -> Result {
-  let output = Test::new()?.command("index").output()?;
+fn basic() {
+  let output = Test::new().command("index").output();
 
-  Test::with_state(output.state)?
+  Test::with_state(output.state)
     .command("info")
     .stdout_regex(
       r"
@@ -19,5 +19,5 @@ fn basic() -> Result {
       "
       .unindent(),
     )
-    .run()
+    .run();
 }
