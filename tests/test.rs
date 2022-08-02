@@ -269,8 +269,4 @@ impl Test {
     fs::write(self.state.tempdir.path().join(path), contents).unwrap();
     self
   }
-
-  pub(crate) fn request(mut self, path: &str, status: u16, expected_response: &str) -> Self {
-    panic!()
-  }
 }

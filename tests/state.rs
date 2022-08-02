@@ -7,6 +7,7 @@ pub(crate) struct State {
   pub(crate) wallet: Wallet<MemoryDatabase>,
   pub(crate) blockchain: RpcBlockchain,
   pub(crate) rpc_port: u16,
+  // server: Child,
 }
 
 impl State {
@@ -60,6 +61,15 @@ impl State {
       sleep(Duration::from_millis(100));
     }
 
+    // let server = Command::new(executable_path("ord"))
+    //   .envs(self.envs.clone())
+    //   .current_dir(&tempdir)
+    //   .arg(format!("--rpc-url=localhost:{}", rpc_port))
+    //   .arg("--cookie-file=bitcoin/regtest/.cookie")
+    //   .args(["ord", "server", "--address", "127.0.0.1", "--http-port"])
+    //   .spawn()
+    //   .unwrap();
+
     let wallet = Wallet::new(
       Bip84(
         (
@@ -95,15 +105,11 @@ impl State {
   }
 
   // pub(crate) fn request(mut self, path: &str, status: u16, expected_response: &str) -> Self {
-  //   let response = self
-  //     .state
-  //     .client
-  //     .get(&format!("http://127.0.0.1:{}/{path}", self.state.rpc_port.unwrap()))
-  //     .send()
-  //     .unwrap();
+  //   let response =
+  //     reqwest::blocking::get(&format!("http://127.0.0.1:{}/{path}", self.rpc_port)).unwrap();
   //   log::info!("{:?}", response);
-  //   assert_eq!(response.status().as_u16(), *status);
-  //   assert_eq!(response.text().unwrap(), *expected_response);
+  //   assert_eq!(response.status().as_u16(), status);
+  //   assert_eq!(response.text().unwrap(), expected_response);
   //   self
   // }
 }
