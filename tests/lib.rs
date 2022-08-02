@@ -18,10 +18,6 @@ use {
   bitcoincore_rpc::{Client, RawTx, RpcApi},
   executable_path::executable_path,
   log::LevelFilter,
-  nix::{
-    sys::signal::{self, Signal},
-    unistd::Pid,
-  },
   regex::Regex,
   std::{
     collections::BTreeMap,
@@ -32,7 +28,7 @@ use {
     str,
     sync::Once,
     thread::sleep,
-    time::{Duration, Instant},
+    time::Duration,
   },
   tempfile::TempDir,
   unindent::Unindent,

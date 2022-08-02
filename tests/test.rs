@@ -106,15 +106,7 @@ impl Test {
   }
 
   pub(crate) fn run(self) {
-    self.test(None);
-  }
-
-  pub(crate) fn output(self) -> Output {
-    self.test(None)
-  }
-
-  pub(crate) fn run_server(self, port: u16) {
-    self.test(Some(port));
+    self.output();
   }
 
   fn get_block(&self, height: u64) -> Block {
@@ -125,10 +117,6 @@ impl Test {
       .unwrap()
   }
 
-  pub(crate) fn run_server_output(self, port: u16) -> Output {
-    self.test(Some(port))
-  }
-
   fn sync(&self) {
     self
       .state
@@ -137,7 +125,7 @@ impl Test {
       .unwrap();
   }
 
-  fn test(self, port: Option<u16>) -> Output {
+  pub(crate) fn output(self) -> Output {
     let output = Command::new(executable_path("ord"))
       .envs(self.envs.clone())
       .stdin(Stdio::null())
@@ -148,7 +136,10 @@ impl Test {
         Stdio::inherit()
       })
       .current_dir(&self.state.tempdir)
-      .arg(format!("--rpc-url=localhost:{}", self.state.rpc_port))
+      .arg(format!(
+        "--rpc-url=localhost:{}",
+        self.state.bitcoind_rpc_port
+      ))
       .arg("--cookie-file=bitcoin/regtest/.cookie")
       .args(self.args.clone())
       .output()
@@ -181,25 +172,12 @@ impl Test {
     }
   }
 
-  pub(crate) fn blocks(mut self, n: u64) -> Self {
-    self
-      .state
-      .client
-      .generate_to_address(
-        n,
-        &self
-          .state
-          .wallet
-          .get_address(AddressIndex::Peek(0))
-          .unwrap()
-          .address,
-      )
-      .unwrap();
-
+  pub(crate) fn blocks(self, n: u64) -> Self {
+    self.state.blocks(n);
     self
   }
 
-  pub(crate) fn transaction(mut self, options: TransactionOptions) -> Self {
+  pub(crate) fn transaction(self, options: TransactionOptions) -> Self {
     self.sync();
 
     let input_value = options
