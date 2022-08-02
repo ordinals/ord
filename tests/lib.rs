@@ -16,6 +16,7 @@ use {
   bitcoin::{network::constants::Network, Block, OutPoint},
   bitcoincore_rpc::{Client, RawTx, RpcApi},
   executable_path::executable_path,
+  log::LevelFilter,
   nix::{
     sys::signal::{self, Signal},
     unistd::Pid,
@@ -141,6 +142,11 @@ impl<'a> Test<'a> {
     let rpc_port = free_port()?;
 
     let bitcoind = Command::new("bitcoind")
+      .stdout(if log::max_level() >= LevelFilter::Info {
+        Stdio::inherit()
+      } else {
+        Stdio::piped()
+      })
       .args(&[
         "-minrelaytxfee=0",
         "-blockmintxfee=0",
@@ -152,8 +158,7 @@ impl<'a> Test<'a> {
         &format!("-rpcport={rpc_port}"),
       ])
       .current_dir(&tempdir.path())
-      .spawn()
-      .unwrap();
+      .spawn()?;
 
     let cookiefile = datadir.join("regtest/.cookie");
 
@@ -328,22 +333,24 @@ impl<'a> Test<'a> {
   fn test(self, port: Option<u16>) -> Result<Output> {
     let client = reqwest::blocking::Client::new();
 
-    let (healthy, child) = if let Some(port) = port {
-      let child = Command::new(executable_path("ord"))
-        .envs(self.envs.clone())
-        .stdin(Stdio::null())
-        .stdout(Stdio::piped())
-        .stderr(if !matches!(self.expected_stderr, Expected::Ignore) {
-          Stdio::piped()
-        } else {
-          Stdio::inherit()
-        })
-        .current_dir(&self.tempdir)
-        .arg(format!("--rpc-url=localhost:{}", self.rpc_port))
-        .arg("--cookie-file=bitcoin/regtest/.cookie")
-        .args(self.args.clone())
-        .spawn()?;
+    log::info!("Spawning child process...");
 
+    let child = Command::new(executable_path("ord"))
+      .envs(self.envs.clone())
+      .stdin(Stdio::null())
+      .stdout(Stdio::piped())
+      .stderr(if !matches!(self.expected_stderr, Expected::Ignore) {
+        Stdio::piped()
+      } else {
+        Stdio::inherit()
+      })
+      .current_dir(&self.tempdir)
+      .arg(format!("--rpc-url=localhost:{}", self.rpc_port))
+      .arg("--cookie-file=bitcoin/regtest/.cookie")
+      .args(self.args.clone())
+      .spawn()?;
+
+    let healthy = if let Some(port) = port {
       let start = Instant::now();
       let mut healthy = false;
 
@@ -365,10 +372,15 @@ impl<'a> Test<'a> {
         sleep(Duration::from_millis(100));
       }
 
-      (healthy, Some(child))
+      healthy
     } else {
-      (false, None)
+      false
     };
+
+    log::info!(
+      "Server status: {}",
+      if healthy { "healthy" } else { "not healthy " }
+    );
 
     let mut successful_requests = 0;
 
@@ -447,25 +459,9 @@ impl<'a> Test<'a> {
       }
     }
 
-    let child = if let Some(child) = child {
+    if port.is_some() {
       signal::kill(Pid::from_raw(child.id() as i32), Signal::SIGINT)?;
-      child
-    } else {
-      Command::new(executable_path("ord"))
-        .envs(self.envs.clone())
-        .stdin(Stdio::null())
-        .stdout(Stdio::piped())
-        .stderr(if !matches!(self.expected_stderr, Expected::Ignore) {
-          Stdio::piped()
-        } else {
-          Stdio::inherit()
-        })
-        .current_dir(&self.tempdir)
-        .arg(format!("--rpc-url=localhost:{}", self.rpc_port))
-        .arg("--cookie-file=bitcoin/regtest/.cookie")
-        .args(self.args.clone())
-        .spawn()?
-    };
+    }
 
     let output = child.wait_with_output()?;
 
