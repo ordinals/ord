@@ -335,22 +335,22 @@ impl<'a> Test<'a> {
 
     log::info!("Spawning child process...");
 
-    let child = Command::new(executable_path("ord"))
-      .envs(self.envs.clone())
-      .stdin(Stdio::null())
-      .stdout(Stdio::piped())
-      .stderr(if !matches!(self.expected_stderr, Expected::Ignore) {
-        Stdio::piped()
-      } else {
-        Stdio::inherit()
-      })
-      .current_dir(&self.tempdir)
-      .arg(format!("--rpc-url=localhost:{}", self.rpc_port))
-      .arg("--cookie-file=bitcoin/regtest/.cookie")
-      .args(self.args.clone())
-      .spawn()?;
+    let (healthy, child) = if let Some(port) = port {
+      let child = Command::new(executable_path("ord"))
+        .envs(self.envs.clone())
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(if !matches!(self.expected_stderr, Expected::Ignore) {
+          Stdio::piped()
+        } else {
+          Stdio::inherit()
+        })
+        .current_dir(&self.tempdir)
+        .arg(format!("--rpc-url=localhost:{}", self.rpc_port))
+        .arg("--cookie-file=bitcoin/regtest/.cookie")
+        .args(self.args.clone())
+        .spawn()?;
 
-    let healthy = if let Some(port) = port {
       let start = Instant::now();
       let mut healthy = false;
 
@@ -372,9 +372,9 @@ impl<'a> Test<'a> {
         sleep(Duration::from_millis(100));
       }
 
-      healthy
+      (healthy, Some(child))
     } else {
-      false
+      (false, None)
     };
 
     log::info!(
@@ -459,9 +459,25 @@ impl<'a> Test<'a> {
       }
     }
 
-    if port.is_some() {
+    let child = if let Some(child) = child {
       signal::kill(Pid::from_raw(child.id() as i32), Signal::SIGINT)?;
-    }
+      child
+    } else {
+      Command::new(executable_path("ord"))
+        .envs(self.envs.clone())
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(if !matches!(self.expected_stderr, Expected::Ignore) {
+          Stdio::piped()
+        } else {
+          Stdio::inherit()
+        })
+        .current_dir(&self.tempdir)
+        .arg(format!("--rpc-url=localhost:{}", self.rpc_port))
+        .arg("--cookie-file=bitcoin/regtest/.cookie")
+        .args(self.args.clone())
+        .spawn()?
+    };
 
     let output = child.wait_with_output()?;
 
