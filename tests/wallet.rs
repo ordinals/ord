@@ -125,7 +125,7 @@ fn utxos() -> Result {
       &output
         .stdout
         .strip_suffix('\n')
-        .ok_or("Failed to convert string to Address")?,
+        .ok_or("Failed to strip suffix")?,
     )?,
   )?;
 
