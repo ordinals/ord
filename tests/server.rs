@@ -2,19 +2,15 @@ use super::*;
 
 #[test]
 fn list() {
-  let port = free_port();
+  let state = State::new();
 
-  log::info!("port: {}", port);
+  state.blocks(1);
 
-  Test::new()
-    .command(&format!("server --address 127.0.0.1 --http-port {port}"))
-    .blocks(1)
-    // .request(
-    //   "list/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
-    //   200,
-    //   "[[0,5000000000]]",
-    // )
-    .run_server(port)
+  state.request(
+    "list/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
+    200,
+    "[[0,5000000000]]",
+  );
 }
 
 #[test]

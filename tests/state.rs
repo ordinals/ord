@@ -6,7 +6,7 @@ pub(crate) struct State {
   pub(crate) client: Client,
   pub(crate) wallet: Wallet<MemoryDatabase>,
   pub(crate) blockchain: RpcBlockchain,
-  pub(crate) rpc_port: u16,
+  pub(crate) bitcoind_rpc_port: u16,
   // server: Child,
 }
 
@@ -104,14 +104,14 @@ impl State {
     }
   }
 
-  // pub(crate) fn request(mut self, path: &str, status: u16, expected_response: &str) -> Self {
-  //   let response =
-  //     reqwest::blocking::get(&format!("http://127.0.0.1:{}/{path}", self.rpc_port)).unwrap();
-  //   log::info!("{:?}", response);
-  //   assert_eq!(response.status().as_u16(), status);
-  //   assert_eq!(response.text().unwrap(), expected_response);
-  //   self
-  // }
+  pub(crate) fn request(mut self, path: &str, status: u16, expected_response: &str) -> Self {
+    let response =
+      reqwest::blocking::get(&format!("http://127.0.0.1:{}/{path}", self.ord_http_port)).unwrap();
+    log::info!("{:?}", response);
+    assert_eq!(response.status().as_u16(), status);
+    assert_eq!(response.text().unwrap(), expected_response);
+    self
+  }
 }
 
 impl Drop for State {
