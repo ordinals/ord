@@ -93,6 +93,19 @@ impl State {
       blockchain,
     }
   }
+
+  // pub(crate) fn request(mut self, path: &str, status: u16, expected_response: &str) -> Self {
+  //   let response = self
+  //     .state
+  //     .client
+  //     .get(&format!("http://127.0.0.1:{}/{path}", self.state.rpc_port.unwrap()))
+  //     .send()
+  //     .unwrap();
+  //   log::info!("{:?}", response);
+  //   assert_eq!(response.status().as_u16(), *status);
+  //   assert_eq!(response.text().unwrap(), *expected_response);
+  //   self
+  // }
 }
 
 impl Drop for State {

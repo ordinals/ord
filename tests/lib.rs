@@ -54,8 +54,6 @@ mod traits;
 mod version;
 mod wallet;
 
-static ONCE: Once = Once::new();
-
 fn free_port() -> u16 {
   TcpListener::bind("127.0.0.1:0")
     .unwrap()
@@ -87,12 +85,6 @@ impl Expected {
       Self::Ignore => {}
     }
   }
-}
-
-enum Event<'a> {
-  Blocks(u64),
-  Request(String, u16, String),
-  Transaction(TransactionOptions<'a>),
 }
 
 struct Output {
