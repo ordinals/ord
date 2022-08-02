@@ -136,3 +136,37 @@ fn utxos() -> Result {
     .stdout_regex("^[a-z0-9]{64}:[0-9]*\n")
     .run()
 }
+
+#[test]
+fn balance() -> Result {
+  let output = Test::new()?
+    .command("wallet init")
+    .set_home_to_tempdir()
+    .expected_status(0)
+    .expected_stderr("Wallet initialized.\n")
+    .set_home_to_tempdir()
+    .output()?;
+
+  let output = Test::connect(output)?
+    .command("wallet fund")
+    .set_home_to_tempdir()
+    .stdout_regex("^bcrt1.*\n")
+    .output()?;
+
+  output.client.generate_to_address(
+    1,
+    &Address::from_str(
+      &output
+        .stdout
+        .strip_suffix('\n')
+        .ok_or("Failed to strip suffix")?,
+    )?,
+  )?;
+
+  Test::connect(output)?
+    .command("wallet balance")
+    .set_home_to_tempdir()
+    .expected_status(0)
+    .expected_stdout("0\n")
+    .run()
+}
