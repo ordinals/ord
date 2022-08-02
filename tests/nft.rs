@@ -17,7 +17,7 @@ fn mint_and_verify() -> Result {
     ])
     .output()?;
 
-  Test::with_tempdir(output.tempdir)?
+  Test::with_state(output.state)?
     .command("verify foo.nft")
     .expected_stderr(
       "NFT is valid!

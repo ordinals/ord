@@ -2,7 +2,7 @@ use super::*;
 
 #[test]
 fn list() -> Result {
-  let port = free_port()?;
+  let port = free_port();
 
   log::info!("port: {}", port);
 
@@ -19,7 +19,7 @@ fn list() -> Result {
 
 #[test]
 fn status() -> Result {
-  let port = free_port()?;
+  let port = free_port();
 
   Test::new()?
     .command(&format!("server --address 127.0.0.1 --http-port {port}"))
@@ -29,7 +29,7 @@ fn status() -> Result {
 
 #[test]
 fn continuously_index_ranges() -> Result {
-  let port = free_port()?;
+  let port = free_port();
 
   Test::new()?
     .command(&format!("server --address 127.0.0.1 --http-port {port}"))
@@ -67,7 +67,7 @@ fn http_and_https_port_conflict() -> Result {
 
 #[test]
 fn http_port_requires_acme_flags() -> Result {
-  let port = free_port()?;
+  let port = free_port();
 
   Test::new()?
     .command("server --address 127.0.0.1 --https-port 0")
@@ -78,7 +78,7 @@ fn http_port_requires_acme_flags() -> Result {
 
 #[test]
 fn acme_contact_accepts_multiple_values() -> Result {
-  let port = free_port()?;
+  let port = free_port();
 
   Test::new()?
     .command("server --address 127.0.0.1 --http-port 0 --acme-contact foo --acme-contact bar")
@@ -87,7 +87,7 @@ fn acme_contact_accepts_multiple_values() -> Result {
 
 #[test]
 fn acme_domain_accepts_multiple_values() -> Result {
-  let port = free_port()?;
+  let port = free_port();
 
   Test::new()?
     .command("server --address 127.0.0.1 --http-port 0 --acme-domain foo --acme-domain bar")
@@ -96,11 +96,11 @@ fn acme_domain_accepts_multiple_values() -> Result {
 
 #[test]
 fn creates_acme_cache() {
-  let port = free_port().unwrap();
+  let port = free_port();
 
   let output = Test::new().unwrap()
     .command("server --address 127.0.0.1 --https-port 0 --acme-domain foo --acme-cache bar --acme-contact mailto:foo@bar.com")
     .run_server_output(port);
 
-  assert!(output.tempdir.path().join("bar").is_dir());
+  assert!(output.state.tempdir.path().join("bar").is_dir());
 }

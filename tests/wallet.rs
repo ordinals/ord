@@ -10,19 +10,23 @@ fn path(path: &str) -> String {
 
 #[test]
 fn init_existing_wallet() -> Result {
-  let tempdir = Test::new()?
+  let state = Test::new()?
     .command("wallet init")
     .set_home_to_tempdir()
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
     .output()?
-    .tempdir;
+    .state;
 
-  assert!(tempdir.path().join(path("ord/wallet.sqlite")).exists());
+  assert!(state
+    .tempdir
+    .path()
+    .join(path("ord/wallet.sqlite"))
+    .exists());
 
-  assert!(tempdir.path().join(path("ord/entropy")).exists());
+  assert!(state.tempdir.path().join(path("ord/entropy")).exists());
 
-  Test::with_tempdir(tempdir)?
+  Test::with_state(state)?
     .command("wallet init")
     .set_home_to_tempdir()
     .expected_status(1)
@@ -32,32 +36,41 @@ fn init_existing_wallet() -> Result {
 
 #[test]
 fn init_nonexistent_wallet() -> Result {
-  let tempdir = Test::new()?
+  let output = Test::new()?
     .command("wallet init")
     .set_home_to_tempdir()
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
-    .output()?
-    .tempdir;
+    .output()?;
 
-  assert!(tempdir.path().join(path("ord/wallet.sqlite")).exists());
+  assert!(output
+    .state
+    .tempdir
+    .path()
+    .join(path("ord/wallet.sqlite"))
+    .exists());
 
-  assert!(tempdir.path().join(path("ord/entropy")).exists());
+  assert!(output
+    .state
+    .tempdir
+    .path()
+    .join(path("ord/entropy"))
+    .exists());
 
   Ok(())
 }
 
 #[test]
 fn load_corrupted_entropy() -> Result {
-  let tempdir = Test::new()?
+  let state = Test::new()?
     .command("wallet init")
     .set_home_to_tempdir()
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
     .output()?
-    .tempdir;
+    .state;
 
-  let entropy_path = tempdir.path().join(path("ord/entropy"));
+  let entropy_path = state.tempdir.path().join(path("ord/entropy"));
 
   assert!(entropy_path.exists());
 
@@ -66,7 +79,7 @@ fn load_corrupted_entropy() -> Result {
 
   fs::write(&entropy_path, entropy)?;
 
-  Test::with_tempdir(tempdir)?
+  Test::with_state(state)?
     .command("wallet fund")
     .set_home_to_tempdir()
     .expected_status(1)
@@ -78,16 +91,16 @@ fn load_corrupted_entropy() -> Result {
 
 #[test]
 fn fund_existing_wallet() -> Result {
-  let tempdir = Test::new()?
+  let state = Test::new()?
     .command("wallet init")
     .set_home_to_tempdir()
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
     .set_home_to_tempdir()
     .output()?
-    .tempdir;
+    .state;
 
-  Test::with_tempdir(tempdir)?
+  Test::with_state(state)?
     .command("wallet fund")
     .set_home_to_tempdir()
     .stdout_regex("^tb1.*\n")

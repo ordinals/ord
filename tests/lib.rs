@@ -56,8 +56,12 @@ type Result<T = ()> = std::result::Result<T, Box<dyn Error>>;
 
 static ONCE: Once = Once::new();
 
-fn free_port() -> Result<u16> {
-  Ok(TcpListener::bind("127.0.0.1:0")?.local_addr()?.port())
+fn free_port() -> u16 {
+  TcpListener::bind("127.0.0.1:0")
+    .unwrap()
+    .local_addr()
+    .unwrap()
+    .port()
 }
 
 #[derive(Debug)]
@@ -93,7 +97,7 @@ enum Event<'a> {
 
 struct Output {
   stdout: String,
-  tempdir: TempDir,
+  state: State,
 }
 
 struct TransactionOptions<'a> {
@@ -104,42 +108,30 @@ struct TransactionOptions<'a> {
 
 struct Test<'a> {
   args: Vec<String>,
-  _bitcoind: Bitcoind,
-  blockchain: RpcBlockchain,
-  client: Client,
-  rpc_port: u16,
   envs: Vec<(OsString, OsString)>,
   events: Vec<Event<'a>>,
   expected_status: i32,
   expected_stderr: Expected,
   expected_stdout: Expected,
+  state: State,
+}
+
+struct State {
+  bitcoind: Child,
   tempdir: TempDir,
+  client: Client,
   wallet: Wallet<MemoryDatabase>,
+  blockchain: RpcBlockchain,
+  rpc_port: u16,
 }
 
-struct Bitcoind(Child);
+impl State {
+  fn new() -> Self {
+    let tempdir = TempDir::new().unwrap();
 
-impl Drop for Bitcoind {
-  fn drop(&mut self) {
-    self.0.kill().unwrap();
-  }
-}
+    fs::create_dir(tempdir.path().join("bitcoin")).unwrap();
 
-impl<'a> Test<'a> {
-  fn new() -> Result<Self> {
-    Self::with_tempdir(TempDir::new()?)
-  }
-
-  fn with_tempdir(tempdir: TempDir) -> Result<Self> {
-    ONCE.call_once(|| {
-      env_logger::init();
-    });
-
-    let datadir = tempdir.path().join("bitcoin");
-
-    fs::create_dir(&datadir).unwrap();
-
-    let rpc_port = free_port()?;
+    let rpc_port = free_port();
 
     let bitcoind = Command::new("bitcoind")
       .stdout(if log::max_level() >= LevelFilter::Info {
@@ -155,38 +147,40 @@ impl<'a> Test<'a> {
         "-datadir=bitcoin",
         "-regtest",
         "-networkactive=0",
+        "-listen=0",
         &format!("-rpcport={rpc_port}"),
       ])
       .current_dir(&tempdir.path())
-      .spawn()?;
+      .spawn()
+      .unwrap();
 
-    let cookiefile = datadir.join("regtest/.cookie");
+    let cookiefile = tempdir.path().join("bitcoin/regtest/.cookie");
 
     while !cookiefile.is_file() {}
 
     let client = Client::new(
       &format!("localhost:{rpc_port}"),
       bitcoincore_rpc::Auth::CookieFile(cookiefile.clone()),
-    )?;
+    )
+    .unwrap();
 
-    loop {
-      let mut attempts = 0;
+    for attempt in 0..=300 {
       match client.get_blockchain_info() {
         Ok(_) => break,
-        Err(error) => {
-          attempts += 1;
-          if attempts > 300 {
-            panic!("Failed to connect to bitcoind: {error}");
+        Err(err) => {
+          if attempt == 300 {
+            panic!("Failed to connect to bitcoind: {err}");
           }
-          sleep(Duration::from_millis(100));
         }
       }
+      sleep(Duration::from_millis(100));
     }
 
     let wallet = Wallet::new(
       Bip84(
         (
-          Mnemonic::parse("book fit fly ketchup also elevator scout mind edit fatal where rookie")?,
+          Mnemonic::parse("book fit fly ketchup also elevator scout mind edit fatal where rookie")
+            .unwrap(),
           None,
         ),
         KeychainKind::External,
@@ -194,7 +188,8 @@ impl<'a> Test<'a> {
       None,
       Network::Regtest,
       MemoryDatabase::new(),
-    )?;
+    )
+    .unwrap();
 
     let blockchain = RpcBlockchain::from_config(&RpcConfig {
       url: format!("localhost:{rpc_port}"),
@@ -202,21 +197,44 @@ impl<'a> Test<'a> {
       network: Network::Regtest,
       wallet_name: "test".to_string(),
       skip_blocks: None,
-    })?;
+    })
+    .unwrap();
+
+    State {
+      tempdir,
+      rpc_port,
+      bitcoind,
+      client,
+      wallet,
+      blockchain,
+    }
+  }
+}
+
+impl Drop for State {
+  fn drop(&mut self) {
+    self.bitcoind.kill().unwrap();
+  }
+}
+
+impl<'a> Test<'a> {
+  fn new() -> Result<Self> {
+    Self::with_state(State::new())
+  }
+
+  fn with_state(state: State) -> Result<Self> {
+    ONCE.call_once(|| {
+      env_logger::init();
+    });
 
     let test = Self {
       args: Vec::new(),
-      client,
-      blockchain,
-      _bitcoind: Bitcoind(bitcoind),
+      state,
       envs: Vec::new(),
       events: Vec::new(),
       expected_status: 0,
       expected_stderr: Expected::Ignore,
       expected_stdout: Expected::String(String::new()),
-      rpc_port,
-      tempdir,
-      wallet,
     };
 
     test.sync()?;
@@ -256,10 +274,12 @@ impl<'a> Test<'a> {
     }
   }
 
+  // TODO: do this always
   fn set_home_to_tempdir(mut self) -> Self {
-    self
-      .envs
-      .push((OsString::from("HOME"), OsString::from(self.tempdir.path())));
+    self.envs.push((
+      OsString::from("HOME"),
+      OsString::from(self.state.tempdir.path()),
+    ));
 
     self
   }
@@ -316,8 +336,9 @@ impl<'a> Test<'a> {
   fn get_block(&self, height: u64) -> Result<Block> {
     Ok(
       self
+        .state
         .client
-        .get_block(&self.client.get_block_hash(height)?)?,
+        .get_block(&self.state.client.get_block_hash(height)?)?,
     )
   }
 
@@ -326,7 +347,10 @@ impl<'a> Test<'a> {
   }
 
   fn sync(&self) -> Result {
-    self.wallet.sync(&self.blockchain, SyncOptions::default())?;
+    self
+      .state
+      .wallet
+      .sync(&self.state.blockchain, SyncOptions::default())?;
     Ok(())
   }
 
@@ -345,8 +369,8 @@ impl<'a> Test<'a> {
         } else {
           Stdio::inherit()
         })
-        .current_dir(&self.tempdir)
-        .arg(format!("--rpc-url=localhost:{}", self.rpc_port))
+        .current_dir(&self.state.tempdir)
+        .arg(format!("--rpc-url=localhost:{}", self.state.rpc_port))
         .arg("--cookie-file=bitcoin/regtest/.cookie")
         .args(self.args.clone())
         .spawn()?;
@@ -387,9 +411,14 @@ impl<'a> Test<'a> {
     for event in &self.events {
       match event {
         Event::Blocks(n) => {
-          self
-            .client
-            .generate_to_address(*n, &self.wallet.get_address(AddressIndex::Peek(0))?.address)?;
+          self.state.client.generate_to_address(
+            *n,
+            &self
+              .state
+              .wallet
+              .get_address(AddressIndex::Peek(0))?
+              .address,
+          )?;
         }
         Event::Request(request, status, expected_response) => {
           if healthy {
@@ -416,7 +445,7 @@ impl<'a> Test<'a> {
           let output_value = input_value - options.fee;
 
           let (mut psbt, _) = {
-            let mut builder = self.wallet.build_tx();
+            let mut builder = self.state.wallet.build_tx();
 
             builder
               .manually_selected_only()
@@ -435,6 +464,7 @@ impl<'a> Test<'a> {
               .set_recipients(vec![
                 (
                   self
+                    .state
                     .wallet
                     .get_address(AddressIndex::Peek(0))?
                     .address
@@ -447,11 +477,11 @@ impl<'a> Test<'a> {
             builder.finish()?
           };
 
-          if !self.wallet.sign(&mut psbt, SignOptions::default())? {
+          if !self.state.wallet.sign(&mut psbt, SignOptions::default())? {
             panic!("Failed to sign transaction");
           }
 
-          self.client.call::<Txid>(
+          self.state.client.call::<Txid>(
             "sendrawtransaction",
             &[psbt.extract_tx().raw_hex().into(), 21000000.into()],
           )?;
@@ -472,8 +502,8 @@ impl<'a> Test<'a> {
         } else {
           Stdio::inherit()
         })
-        .current_dir(&self.tempdir)
-        .arg(format!("--rpc-url=localhost:{}", self.rpc_port))
+        .current_dir(&self.state.tempdir)
+        .arg(format!("--rpc-url=localhost:{}", self.state.rpc_port))
         .arg("--cookie-file=bitcoin/regtest/.cookie")
         .args(self.args.clone())
         .spawn()?
@@ -514,7 +544,7 @@ impl<'a> Test<'a> {
 
     Ok(Output {
       stdout: stdout.to_string(),
-      tempdir: self.tempdir,
+      state: self.state,
     })
   }
 
@@ -529,7 +559,7 @@ impl<'a> Test<'a> {
   }
 
   fn write(self, path: &str, contents: &str) -> Result<Self> {
-    fs::write(self.tempdir.path().join(path), contents)?;
+    fs::write(self.state.tempdir.path().join(path), contents)?;
     Ok(self)
   }
 }
