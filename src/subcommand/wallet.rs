@@ -4,10 +4,6 @@ mod fund;
 mod init;
 mod utxos;
 
-use bdk::blockchain::rpc::{Auth, RpcBlockchain, RpcConfig};
-use bdk::blockchain::ConfigurableBlockchain;
-use bdk::wallet::{wallet_name_from_descriptor, SyncOptions};
-
 fn get_wallet(options: Options) -> Result<bdk::wallet::Wallet<SqliteDatabase>> {
   let path = data_dir()
     .ok_or_else(|| anyhow!("Failed to retrieve data dir"))?
