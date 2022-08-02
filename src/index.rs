@@ -58,9 +58,8 @@ impl Index {
   pub(crate) fn print_info(&self) -> Result {
     let wtx = self.database.begin_write()?;
 
-    let height_to_hash = wtx.open_table(HEIGHT_TO_HASH)?;
-
-    let blocks_indexed = height_to_hash
+    let blocks_indexed = wtx
+      .open_table(HEIGHT_TO_HASH)?
       .range(0..)?
       .rev()
       .next()
@@ -82,6 +81,8 @@ impl Index {
       "index size: {}",
       Bytes(std::fs::metadata("index.redb")?.len().try_into()?)
     );
+
+    wtx.abort()?;
 
     Ok(())
   }
@@ -291,8 +292,8 @@ impl Index {
   pub(crate) fn block(&self, height: u64) -> Result<Option<Block>> {
     match self.client.get_block_hash(height) {
       Ok(hash) => Ok(Some(self.client.get_block(&hash)?)),
-      Err(bitcoincore_rpc::Error::JsonRpc(jsonrpc::error::Error::Rpc(
-        jsonrpc::error::RpcError { code: -8, .. },
+      Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(
+        bitcoincore_rpc::jsonrpc::error::RpcError { code: -8, .. },
       ))) => Ok(None),
       Err(err) => Err(err.into()),
     }

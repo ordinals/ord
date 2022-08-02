@@ -10,10 +10,14 @@ WorkingDirectory=/var/lib/ord
 Environment=RUST_BACKTRACE=1
 Environment=RUST_LOG=info
 ExecStart=/usr/local/bin/ord \
-  --index-size 1TiB \
-  --rpc-url 127.0.0.1:38332 \
   --cookie-file /var/lib/bitcoind/signet/.cookie \
-  server
+  --max-index-size 1TiB \
+  --rpc-url 127.0.0.1:38332 \
+  server \
+  --acme-cache /var/lib/ord/acme-cache \
+  --acme-contact mailto:casey@rodarmor.com \
+  --acme-domain signet.ordinals.com \
+  --https-port 443
 
 # Process management
 ####################
