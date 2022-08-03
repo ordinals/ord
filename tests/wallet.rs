@@ -120,7 +120,7 @@ fn utxos() -> Result {
     .output()?;
 
   output.client.generate_to_address(
-    1,
+    101,
     &Address::from_str(
       &output
         .stdout
@@ -133,6 +133,6 @@ fn utxos() -> Result {
     .command("wallet utxos")
     .set_home_to_tempdir()
     .expected_status(0)
-    .expected_stdout("[]\n")
+    .stdout_regex("^[a-z0-9]{64}:[0-9]*\n")
     .run()
 }
