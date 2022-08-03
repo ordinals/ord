@@ -13,6 +13,7 @@ use {
     KeychainKind,
   },
   bitcoin::hash_types::Txid,
+  bitcoin::util::address::Address,
   bitcoin::{network::constants::Network, Block, OutPoint},
   bitcoincore_rpc::{Client, RawTx, RpcApi},
   executable_path::executable_path,
@@ -22,6 +23,7 @@ use {
     unistd::Pid,
   },
   regex::Regex,
+  std::str::FromStr,
   std::{
     collections::BTreeMap,
     error::Error,

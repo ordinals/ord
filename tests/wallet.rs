@@ -1,4 +1,4 @@
-use {super::*, bitcoin::util::address::Address, std::str::FromStr};
+use super::*;
 
 fn path(path: &str) -> String {
   if cfg!(target_os = "macos") {
@@ -154,7 +154,7 @@ fn balance() -> Result {
     .output()?;
 
   output.client.generate_to_address(
-    1,
+    101,
     &Address::from_str(
       &output
         .stdout
@@ -167,6 +167,6 @@ fn balance() -> Result {
     .command("wallet balance")
     .set_home_to_tempdir()
     .expected_status(0)
-    .expected_stdout("0\n")
+    .expected_stdout("5000000000\n")
     .run()
 }
