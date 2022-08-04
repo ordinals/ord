@@ -119,6 +119,16 @@ impl Test {
   }
 
   fn with_tempdir(tempdir: TempDir) -> Self {
+    let cookie_file = tempdir.path().join(".cookie");
+
+    if !cookie_file.exists() {
+      fs::write(
+        cookie_file,
+        "__cookie__:f5c6aedf2ed57e81856202def76bec8cb63f56e06f5cb04eb996eb831248d95d",
+      )
+      .unwrap();
+    }
+
     Self {
       args: Vec::new(),
       envs: Vec::new(),
@@ -254,6 +264,7 @@ impl Test {
       })
       .current_dir(&self.tempdir)
       .arg(format!("--rpc-url=http://127.0.0.1:{rpc_server_port}"))
+      .arg("--cookie-file=.cookie")
       .args(self.args)
       .spawn()?;
 

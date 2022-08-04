@@ -1,6 +1,6 @@
 use {
   super::*,
-  bitcoincore_rpc::{Auth, Client, RpcApi},
+  bitcoincore_rpc::{Client, RpcApi},
   rayon::iter::{IntoParallelRefIterator, ParallelIterator},
 };
 
@@ -15,18 +15,8 @@ pub(crate) struct Index {
 
 impl Index {
   pub(crate) fn open(options: &Options) -> Result<Self> {
-    let client = Client::new(
-      options
-        .rpc_url
-        .as_ref()
-        .ok_or_else(|| anyhow!("This command requires `--rpc-url`"))?,
-      options
-        .cookie_file
-        .as_ref()
-        .map(|path| Auth::CookieFile(path.clone()))
-        .unwrap_or(Auth::None),
-    )
-    .context("Failed to connect to RPC URL")?;
+    let client = Client::new(&options.rpc_url(), Auth::CookieFile(options.cookie_file()?))
+      .context("Failed to connect to RPC URL")?;
 
     let database = match unsafe { redb::Database::open("index.redb") } {
       Ok(database) => database,
