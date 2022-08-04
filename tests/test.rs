@@ -15,12 +15,6 @@ impl Test {
   }
 
   pub(crate) fn with_state(state: State) -> Self {
-    static ONCE: Once = Once::new();
-
-    ONCE.call_once(|| {
-      env_logger::init();
-    });
-
     let test = Self {
       args: Vec::new(),
       state,
