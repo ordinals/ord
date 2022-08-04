@@ -17,7 +17,7 @@ impl Arguments {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+  use {super::*, std::path::Path};
 
   #[test]
   fn rpc_url_overrides_network() {
@@ -41,10 +41,23 @@ mod tests {
       Arguments::try_parse_from(&["ord", "--cookie-file=/foo/bar", "--network=signet", "index"])
         .unwrap()
         .options
-        .auth()
+        .cookie_file()
         .unwrap(),
-      Auth::CookieFile(PathBuf::from("/foo/bar"))
+      Path::new("/foo/bar")
     );
+  }
+
+  #[test]
+  fn use_default_network() {
+    let arguments = Arguments::try_parse_from(&["ord", "index"]).unwrap();
+
+    assert_eq!(arguments.options.rpc_url(), "127.0.0.1:8333");
+
+    assert!(arguments
+      .options
+      .cookie_file()
+      .unwrap()
+      .ends_with(".cookie"));
   }
 
   #[test]
@@ -53,6 +66,12 @@ mod tests {
 
     assert_eq!(arguments.options.rpc_url(), "127.0.0.1:38333");
 
-    assert!(arguments.options.auth().is_ok())
+    assert!(arguments
+      .options
+      .cookie_file()
+      .unwrap()
+      .display()
+      .to_string()
+      .ends_with("/signet/.cookie"))
   }
 }

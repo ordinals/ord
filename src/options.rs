@@ -29,9 +29,9 @@ impl Options {
       .into()
   }
 
-  pub(crate) fn auth(&self) -> Result<Auth> {
+  pub(crate) fn cookie_file(&self) -> Result<PathBuf> {
     if let Some(cookie_file) = &self.cookie_file {
-      return Ok(Auth::CookieFile(cookie_file.clone()));
+      return Ok(cookie_file.clone());
     }
 
     let mut path = if cfg!(linux) {
@@ -46,6 +46,6 @@ impl Options {
       path.push(self.network.to_string())
     }
 
-    Ok(Auth::CookieFile(path.join(".cookie")))
+    Ok(path.join(".cookie"))
   }
 }

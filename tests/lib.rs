@@ -16,8 +16,7 @@ use {
     collections::BTreeMap,
     error::Error,
     ffi::OsString,
-    fs::{self, File},
-    io::prelude::*,
+    fs,
     net::TcpListener,
     process::{Command, Stdio},
     str,
@@ -120,6 +119,16 @@ impl Test {
   }
 
   fn with_tempdir(tempdir: TempDir) -> Self {
+    let cookie_file = tempdir.path().join(".cookie");
+
+    if !cookie_file.exists() {
+      fs::write(
+        cookie_file,
+        "__cookie__:f5c6aedf2ed57e81856202def76bec8cb63f56e06f5cb04eb996eb831248d95d",
+      )
+      .unwrap();
+    }
+
     Self {
       args: Vec::new(),
       envs: Vec::new(),
@@ -243,11 +252,6 @@ impl Test {
     } else {
       RpcServer::spawn(self.blocks().cloned().collect())
     };
-
-    let mut file = File::create(self.tempdir.path().join(".cookie"))?;
-
-    file
-      .write_all(b"__cookie__:f5c6aedf2ed57e81856202def76bec8cb63f56e06f5cb04eb996eb831248d95d")?;
 
     let child = Command::new(executable_path("ord"))
       .envs(self.envs)
