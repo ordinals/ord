@@ -228,6 +228,23 @@ impl Index {
     )
   }
 
+  pub(crate) fn all(&self) -> Result<Option<Vec<(u64, String)>>> {
+    let mut blocks = Vec::new();
+
+    for height in 0..self.height()? {
+      blocks.push((
+        height,
+        self
+          .block(height)?
+          .ok_or_else(|| anyhow!(format!("Failed to get block at height: {height}")))?
+          .block_hash()
+          .to_string(),
+      ));
+    }
+
+    Ok(Some(blocks))
+  }
+
   fn index_transaction(
     &self,
     txid: Txid,
