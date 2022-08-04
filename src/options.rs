@@ -30,6 +30,10 @@ impl Options {
   }
 
   pub(crate) fn auth(&self) -> Result<Auth> {
+    if let Some(cookie_file) = &self.cookie_file {
+      return Ok(Auth::CookieFile(cookie_file.clone()));
+    }
+
     let mut path = if cfg!(linux) {
       dirs::home_dir()
         .ok_or_else(|| anyhow!("Failed to retrieve home dir"))?
@@ -42,14 +46,6 @@ impl Options {
       path.push(self.network.to_string())
     }
 
-    path.push(".cookie");
-
-    Ok(
-      self
-        .cookie_file
-        .as_ref()
-        .map(|path| Auth::CookieFile(path.clone()))
-        .unwrap_or(Auth::CookieFile(path)),
-    )
+    Ok(Auth::CookieFile(path.join(".cookie")))
   }
 }

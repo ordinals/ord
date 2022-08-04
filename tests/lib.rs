@@ -16,7 +16,8 @@ use {
     collections::BTreeMap,
     error::Error,
     ffi::OsString,
-    fs,
+    fs::{self, File},
+    io::prelude::*,
     net::TcpListener,
     process::{Command, Stdio},
     str,
@@ -243,6 +244,11 @@ impl Test {
       RpcServer::spawn(self.blocks().cloned().collect())
     };
 
+    let mut file = File::create(self.tempdir.path().join(".cookie"))?;
+
+    file
+      .write_all(b"__cookie__:f5c6aedf2ed57e81856202def76bec8cb63f56e06f5cb04eb996eb831248d95d")?;
+
     let child = Command::new(executable_path("ord"))
       .envs(self.envs)
       .stdin(Stdio::null())
@@ -254,6 +260,7 @@ impl Test {
       })
       .current_dir(&self.tempdir)
       .arg(format!("--rpc-url=http://127.0.0.1:{rpc_server_port}"))
+      .arg("--cookie-file=.cookie")
       .args(self.args)
       .spawn()?;
 
