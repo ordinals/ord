@@ -1,4 +1,4 @@
-use {super::*, Network::*};
+use {super::*};
 
 #[derive(Parser)]
 pub(crate) struct Options {
@@ -20,10 +20,10 @@ impl Options {
       .unwrap_or(&format!(
         "127.0.0.1:{}",
         match self.network {
-          Bitcoin => "8333",
-          Regtest => "18443",
-          Signet => "38333",
-          Testnet => "18332",
+          Network::Bitcoin => "8333",
+          Network::Regtest => "18443",
+          Network::Signet => "38333",
+          Network::Testnet => "18332",
         }
       ))
       .into()
