@@ -52,25 +52,11 @@ mod tests {
   fn uses_network_defaults() {
     let arguments = Arguments::try_parse_from(&["ord", "--network=signet", "index"]).unwrap();
 
-    assert_eq!(arguments.options.rpc_url().unwrap(), "127.0.0.1:38333");
-
     assert_eq!(
-      arguments.options.auth().unwrap(),
-      Auth::CookieFile(
-        [
-          if cfg!(macos) {
-            String::from("~/Library/Application\\ Support/")
-          } else if cfg!(windows) {
-            format!("{}\\Bitcoin", env::var("APPDATA").unwrap())
-          } else {
-            String::from("~/.bitcoin")
-          },
-          String::from("signet"),
-          String::from(".cookie"),
-        ]
-        .iter()
-        .collect(),
-      )
+      arguments.options.rpc_url().unwrap(),
+      Network::Signet.rpc_url()
     );
+
+    assert_eq!(arguments.options.auth().unwrap(), Network::Signet.auth());
   }
 }
