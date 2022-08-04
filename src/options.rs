@@ -30,30 +30,26 @@ impl Options {
   }
 
   pub(crate) fn auth(&self) -> Result<Auth> {
-    let path = if cfg!(linux) {
+    let mut path = if cfg!(linux) {
       dirs::home_dir()
         .ok_or_else(|| anyhow!("Failed to retrieve home dir"))?
         .join(".bitcoin")
     } else {
       dirs::data_dir().ok_or_else(|| anyhow!("Failed to retrieve data dir"))?
+    };
+
+    if !matches!(self.network, Network::Bitcoin) {
+      path.push(self.network.to_string())
     }
-    .join(if !matches!(self.network, Network::Bitcoin) {
-      self.network.to_string()
-    } else {
-      String::new()
-    })
-    .join(".cookie");
+
+    path.push(".cookie");
 
     Ok(
       self
         .cookie_file
         .as_ref()
         .map(|path| Auth::CookieFile(path.clone()))
-        .unwrap_or(if path.exists() {
-          Auth::CookieFile(path)
-        } else {
-          Auth::None
-        }),
+        .unwrap_or(Auth::CookieFile(path)),
     )
   }
 }
