@@ -2,9 +2,8 @@
 
 use {
   crate::{
-    arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height, index::Index,
-    network_config::NetworkConfig, nft::Nft, options::Options, ordinal::Ordinal,
-    sat_point::SatPoint, subcommand::Subcommand,
+    arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height, index::Index, nft::Nft,
+    options::Options, ordinal::Ordinal, sat_point::SatPoint, subcommand::Subcommand,
   },
   anyhow::{anyhow, bail, Context, Error},
   axum::{extract, http::StatusCode, response::IntoResponse, routing::get, Json, Router},
@@ -69,7 +68,6 @@ mod bytes;
 mod epoch;
 mod height;
 mod index;
-mod network_config;
 mod nft;
 mod options;
 mod ordinal;

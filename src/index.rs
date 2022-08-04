@@ -15,14 +15,8 @@ pub(crate) struct Index {
 
 impl Index {
   pub(crate) fn open(options: &Options) -> Result<Self> {
-    let client = Client::new(
-      options
-        .rpc_url()
-        .as_ref()
-        .ok_or_else(|| anyhow!("This command requires `--rpc-url` or `--network`"))?,
-      options.auth().unwrap_or(Auth::None),
-    )
-    .context("Failed to connect to RPC URL")?;
+    let client =
+      Client::new(&options.rpc_url(), options.auth()?).context("Failed to connect to RPC URL")?;
 
     let database = match unsafe { redb::Database::open("index.redb") } {
       Ok(database) => database,

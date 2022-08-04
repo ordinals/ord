@@ -30,8 +30,7 @@ mod tests {
       ])
       .unwrap()
       .options
-      .rpc_url()
-      .unwrap(),
+      .rpc_url(),
       "127.0.0.1:1234"
     );
   }
@@ -52,11 +51,8 @@ mod tests {
   fn uses_network_defaults() {
     let arguments = Arguments::try_parse_from(&["ord", "--network=signet", "index"]).unwrap();
 
-    assert_eq!(
-      arguments.options.rpc_url().unwrap(),
-      Network::Signet.rpc_url()
-    );
+    assert_eq!(arguments.options.rpc_url(), "127.0.0.1:38333");
 
-    assert_eq!(arguments.options.auth().unwrap(), Network::Signet.auth());
+    assert!(arguments.options.auth().is_ok())
   }
 }
