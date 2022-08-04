@@ -1,4 +1,4 @@
-use {super::*};
+use super::*;
 
 #[derive(Parser)]
 pub(crate) struct Options {
