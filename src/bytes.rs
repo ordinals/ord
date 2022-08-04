@@ -7,7 +7,7 @@ const TI: usize = GI << 10;
 const PI: usize = TI << 10;
 const EI: usize = PI << 10;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct Bytes(pub(crate) usize);
 
 impl FromStr for Bytes {

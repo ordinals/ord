@@ -1,6 +1,6 @@
 use {
   super::*,
-  bitcoincore_rpc::{Auth, Client, RpcApi},
+  bitcoincore_rpc::{Client, RpcApi},
   rayon::iter::{IntoParallelRefIterator, ParallelIterator},
 };
 
@@ -17,14 +17,10 @@ impl Index {
   pub(crate) fn open(options: &Options) -> Result<Self> {
     let client = Client::new(
       options
-        .rpc_url
+        .rpc_url()
         .as_ref()
-        .ok_or_else(|| anyhow!("This command requires `--rpc-url`"))?,
-      options
-        .cookie_file
-        .as_ref()
-        .map(|path| Auth::CookieFile(path.clone()))
-        .unwrap_or(Auth::None),
+        .ok_or_else(|| anyhow!("This command requires `--rpc-url` or `--network`"))?,
+      options.auth().unwrap_or(Auth::None),
     )
     .context("Failed to connect to RPC URL")?;
 
