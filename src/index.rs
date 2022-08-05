@@ -231,14 +231,16 @@ impl Index {
   pub(crate) fn all(&self) -> Result<Option<Vec<(u64, String)>>> {
     let mut blocks = Vec::new();
 
-    for height in 0..self.height()? {
+    let tx = self.database.begin_read()?;
+
+    let height_to_hash = tx.open_table(HEIGHT_TO_HASH)?;
+
+    let mut cursor = height_to_hash.range(0..)?;
+
+    while let Some((key, value)) = cursor.next() {
       blocks.push((
-        height,
-        self
-          .block(height)?
-          .ok_or_else(|| anyhow!(format!("Failed to get block at height: {height}")))?
-          .block_hash()
-          .to_string(),
+        key,
+        BlockHash::from_hash(sha256d::Hash::from_slice(value)?).to_string(),
       ));
     }
 

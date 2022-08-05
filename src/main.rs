@@ -19,9 +19,9 @@ use {
   },
   bitcoin::{
     blockdata::constants::COIN_VALUE,
-    consensus::Decodable,
-    consensus::Encodable,
-    hashes::{sha256, Hash, HashEngine},
+    consensus::{Decodable, Encodable},
+    hash_types::BlockHash,
+    hashes::{sha256, sha256d, Hash, HashEngine},
     secp256k1::{
       self,
       rand::{self, thread_rng},
