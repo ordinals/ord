@@ -8,10 +8,24 @@ use {
     caches::DirCache,
     AcmeConfig,
   },
+  serde::{de, Deserializer},
   tokio_stream::StreamExt,
 };
 
 mod tls_acceptor;
+
+struct DerializeOrdinalFromStr(Ordinal);
+
+impl<'de> Deserialize<'de> for DerializeOrdinalFromStr {
+  fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+  where
+    D: Deserializer<'de>,
+  {
+    Ok(Self(
+      FromStr::from_str(&String::deserialize(deserializer)?).map_err(de::Error::custom)?,
+    ))
+  }
+}
 
 #[derive(Parser)]
 #[clap(group = ArgGroup::new("port").multiple(false).required(true))]
@@ -126,8 +140,10 @@ impl Server {
     })
   }
 
-  async fn ordinal(extract::Path(ordinal): extract::Path<Ordinal>) -> impl IntoResponse {
-    (StatusCode::OK, Html(format!("")))
+  async fn ordinal(
+    extract::Path(DerializeOrdinalFromStr(ordinal)): extract::Path<DerializeOrdinalFromStr>,
+  ) -> impl IntoResponse {
+    (StatusCode::OK, Html(format!("{ordinal}")))
   }
 
   async fn root(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
