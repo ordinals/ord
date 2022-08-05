@@ -63,11 +63,11 @@ impl Server {
 
       let app = Router::new()
         .route("/", get(Self::root))
+        .route("/api/list/:outpoint", get(Self::api_list))
         .route("/block/:hash", get(Self::block))
-        .route("/range/:start/:end", get(Self::range))
         .route("/ordinal/:ordinal", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
-        .route("/api/list/:outpoint", get(Self::api_list))
+        .route("/range/:start/:end", get(Self::range))
         .route("/status", get(Self::status))
         .layer(extract::Extension(index))
         .layer(
