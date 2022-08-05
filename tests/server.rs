@@ -12,7 +12,7 @@ fn list() -> Result {
     .command(&format!("server --address 127.0.0.1 --http-port {port}"))
     .block()
     .request(
-      "list/0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0",
+      "api/list/0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0",
       200,
       "[[0,5000000000]]",
     )
@@ -36,16 +36,74 @@ fn continuously_index_ranges() -> Result {
   Test::new()?
     .command(&format!("server --address 127.0.0.1 --http-port {port}"))
     .request(
-      "list/0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0",
+      "api/list/0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0",
       404,
       "null",
     )
     .block()
     .request(
-      "list/0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0",
+      "api/list/0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0",
       200,
       "[[0,5000000000]]",
     )
+    .run_server(port)
+}
+
+#[test]
+fn range_end_before_range_start_returns_400() -> Result {
+  let port = free_port()?;
+
+  Test::new()?
+    .command(&format!("server --address 127.0.0.1 --http-port {port}"))
+    .request("range/1/0", 400, "Range Start Greater Than Range End")
+    .run_server(port)
+}
+
+#[test]
+fn invalid_range_start_returns_400() -> Result {
+  let port = free_port()?;
+
+  Test::new()?
+    .command(&format!("server --address 127.0.0.1 --http-port {port}"))
+    .request(
+      "range/foo/0",
+      400,
+      "Invalid URL: invalid digit found in string",
+    )
+    .run_server(port)
+}
+
+#[test]
+fn invalid_range_end_returns_400() -> Result {
+  let port = free_port()?;
+
+  Test::new()?
+    .command(&format!("server --address 127.0.0.1 --http-port {port}"))
+    .request(
+      "range/0/foo",
+      400,
+      "Invalid URL: invalid digit found in string",
+    )
+    .run_server(port)
+}
+
+#[test]
+fn empty_range_returns_400() -> Result {
+  let port = free_port()?;
+
+  Test::new()?
+    .command(&format!("server --address 127.0.0.1 --http-port {port}"))
+    .request("range/0/0", 400, "Empty Range")
+    .run_server(port)
+}
+
+#[test]
+fn range_links_to_first() -> Result {
+  let port = free_port()?;
+
+  Test::new()?
+    .command(&format!("server --address 127.0.0.1 --http-port {port}"))
+    .request("range/0/1", 200, "<a href='/ordinal/0'>first</a>")
     .run_server(port)
 }
 

@@ -63,11 +63,12 @@ impl Server {
 
       let app = Router::new()
         .route("/", get(Self::root))
+        .route("/api/list/:outpoint", get(Self::api_list))
         .route("/block/:hash", get(Self::block))
-        .route("/tx/:txid", get(Self::transaction))
         .route("/ordinal/:ordinal", get(Self::ordinal))
-        .route("/list/:outpoint", get(Self::list))
+        .route("/range/:start/:end", get(Self::range))
         .route("/status", get(Self::status))
+        .route("/tx/:txid", get(Self::transaction))
         .layer(extract::Extension(index))
         .layer(
           CorsLayer::new()
@@ -134,6 +135,28 @@ impl Server {
     extract::Path(DeserializeOrdinalFromStr(ordinal)): extract::Path<DeserializeOrdinalFromStr>,
   ) -> impl IntoResponse {
     (StatusCode::OK, Html(format!("{ordinal}")))
+  }
+
+  async fn range(
+    extract::Path((DeserializeOrdinalFromStr(start), DeserializeOrdinalFromStr(end))): extract::Path<
+      (DeserializeOrdinalFromStr, DeserializeOrdinalFromStr),
+    >,
+  ) -> impl IntoResponse {
+    if start == end {
+      return (StatusCode::BAD_REQUEST, Html("Empty Range".to_string()));
+    }
+
+    if start > end {
+      return (
+        StatusCode::BAD_REQUEST,
+        Html("Range Start Greater Than Range End".to_string()),
+      );
+    }
+
+    (
+      StatusCode::OK,
+      Html(format!("<a href='/ordinal/{start}'>first</a>")),
+    )
   }
 
   async fn root(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
@@ -252,7 +275,7 @@ impl Server {
     }
   }
 
-  async fn list(
+  async fn api_list(
     extract::Path(outpoint): extract::Path<OutPoint>,
     index: extract::Extension<Arc<Index>>,
   ) -> impl IntoResponse {
