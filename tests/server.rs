@@ -50,6 +50,50 @@ fn continuously_index_ranges() -> Result {
 }
 
 #[test]
+fn ordinal_number() -> Result {
+  let port = free_port()?;
+
+  Test::new()?
+    .command(&format!("server --address 127.0.0.1 --http-port {port}"))
+    .request("ordinal/0", 200, "0")
+    .run_server(port)
+}
+
+#[test]
+fn ordinal_decimal() -> Result {
+  let port = free_port()?;
+
+  Test::new()?
+    .command(&format!("server --address 127.0.0.1 --http-port {port}"))
+    .request("ordinal/0.0", 200, "0")
+    .run_server(port)
+}
+
+#[test]
+fn ordinal_degree() -> Result {
+  let port = free_port()?;
+
+  Test::new()?
+    .command(&format!("server --address 127.0.0.1 --http-port {port}"))
+    .request("ordinal/0°0′0″0‴", 200, "0")
+    .run_server(port)
+}
+
+#[test]
+fn ordinal_out_of_range() -> Result {
+  let port = free_port()?;
+
+  Test::new()?
+    .command(&format!("server --address 127.0.0.1 --http-port {port}"))
+    .request(
+      "ordinal/2099999997690000",
+      400,
+      "Invalid URL: Invalid ordinal",
+    )
+    .run_server(port)
+}
+
+#[test]
 fn root() -> Result {
   let port = free_port()?;
 
