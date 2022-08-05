@@ -6,7 +6,9 @@ use {
     options::Options, ordinal::Ordinal, sat_point::SatPoint, subcommand::Subcommand,
   },
   anyhow::{anyhow, bail, Context, Error},
-  axum::{extract, http::StatusCode, response::IntoResponse, routing::get, Json, Router},
+  axum::{
+    extract, http::StatusCode, response::Html, response::IntoResponse, routing::get, Json, Router,
+  },
   axum_server::Handle,
   bdk::{
     database::SqliteDatabase,
