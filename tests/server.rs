@@ -50,6 +50,28 @@ fn continuously_index_ranges() -> Result {
 }
 
 #[test]
+fn root() -> Result {
+  let port = free_port()?;
+
+  Test::new()?
+    .command(&format!("server --address 127.0.0.1 --http-port {port}"))
+    .request("/", 200, "<ul>\n</ul>")
+    .block()
+    .block()
+    .request(
+      "/",
+      200,
+      "
+      <ul>
+        <li>0 - 14508459b221041eab257d2baaa7459775ba748246c8403609eb708f0e57e74b</li>
+        <li>1 - 467a86f0642b1d284376d13a98ef58310caa49502b0f9a560ee222e0a122fe16</li>
+      </ul>
+      ",
+    )
+    .run_server(port)
+}
+
+#[test]
 fn http_or_https_port_is_required() -> Result {
   Test::new()?
     .command("server --address 127.0.0.1")

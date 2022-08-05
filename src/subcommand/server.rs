@@ -60,6 +60,7 @@ impl Server {
       });
 
       let app = Router::new()
+        .route("/", get(Self::root))
         .route("/list/:outpoint", get(Self::list))
         .route("/status", get(Self::status))
         .layer(extract::Extension(index))
@@ -122,6 +123,34 @@ impl Server {
 
       Ok(())
     })
+  }
+
+  async fn root(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
+    match index.all() {
+      Ok(blocks) => (
+        StatusCode::OK,
+        Html(format!(
+          "<ul>\n{}</ul>",
+          blocks
+            .iter()
+            .enumerate()
+            .map(|(height, hash)| format!("  <li>{height} - {hash}</li>\n"))
+            .collect::<String>(),
+        )),
+      ),
+      Err(error) => {
+        eprintln!("Error serving request for root: {error}");
+        (
+          StatusCode::INTERNAL_SERVER_ERROR,
+          Html(
+            StatusCode::INTERNAL_SERVER_ERROR
+              .canonical_reason()
+              .unwrap_or_default()
+              .to_string(),
+          ),
+        )
+      }
+    }
   }
 
   async fn list(

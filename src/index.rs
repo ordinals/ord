@@ -228,6 +228,22 @@ impl Index {
     )
   }
 
+  pub(crate) fn all(&self) -> Result<Vec<sha256d::Hash>> {
+    let mut blocks = Vec::new();
+
+    let tx = self.database.begin_read()?;
+
+    let height_to_hash = tx.open_table(HEIGHT_TO_HASH)?;
+
+    let mut cursor = height_to_hash.range(0..)?;
+
+    while let Some(next) = cursor.next() {
+      blocks.push(sha256d::Hash::from_slice(next.1)?);
+    }
+
+    Ok(blocks)
+  }
+
   fn index_transaction(
     &self,
     txid: Txid,

@@ -6,7 +6,9 @@ use {
     options::Options, ordinal::Ordinal, sat_point::SatPoint, subcommand::Subcommand,
   },
   anyhow::{anyhow, bail, Context, Error},
-  axum::{extract, http::StatusCode, response::IntoResponse, routing::get, Json, Router},
+  axum::{
+    extract, http::StatusCode, response::Html, response::IntoResponse, routing::get, Json, Router,
+  },
   axum_server::Handle,
   bdk::{
     database::SqliteDatabase,
@@ -17,9 +19,8 @@ use {
   },
   bitcoin::{
     blockdata::constants::COIN_VALUE,
-    consensus::Decodable,
-    consensus::Encodable,
-    hashes::{sha256, Hash, HashEngine},
+    consensus::{Decodable, Encodable},
+    hashes::{sha256, sha256d, Hash, HashEngine},
     secp256k1::{
       self,
       rand::{self, thread_rng},
