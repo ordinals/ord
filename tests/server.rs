@@ -181,7 +181,7 @@ fn outpoint_returns_ordinal_ranges() -> Result {
 }
 
 #[test]
-fn invalid_vout_returns_400() -> Result {
+fn invalid_vout_returns_404() -> Result {
   let port = free_port()?;
 
   Test::new()?
