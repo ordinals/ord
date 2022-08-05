@@ -7,13 +7,13 @@ use {
       block::BlockHtml, home::HomeHtml, ordinal::OrdinalHtml, output::OutputHtml, range::RangeHtml,
       transaction::TransactionHtml, Content,
     },
-    tls_acceptor::TlsAcceptor,
   },
   axum::{body, http::header, response::Response},
   clap::ArgGroup,
   rust_embed::RustEmbed,
   rustls_acme::{
-    acme::{ACME_TLS_ALPN_NAME, LETS_ENCRYPT_PRODUCTION_DIRECTORY, LETS_ENCRYPT_STAGING_DIRECTORY},
+    acme::{LETS_ENCRYPT_PRODUCTION_DIRECTORY, LETS_ENCRYPT_STAGING_DIRECTORY},
+    axum::AxumAcceptor,
     caches::DirCache,
     AcmeConfig,
   },
@@ -24,7 +24,6 @@ use {
 
 mod deserialize_ordinal_from_str;
 mod templates;
-mod tls_acceptor;
 
 #[derive(RustEmbed)]
 #[folder = "static"]
@@ -144,7 +143,7 @@ impl Server {
     self.http_port.or(self.https_port).unwrap_or(80)
   }
 
-  fn acceptor(&self) -> Option<TlsAcceptor> {
+  fn acceptor(&self) -> Option<AxumAcceptor> {
     if self.https_port.is_some() {
       let config = AcmeConfig::new(&self.acme_domain)
         .contact(&self.acme_contact)
@@ -159,7 +158,12 @@ impl Server {
 
       let mut state = config.state();
 
-      let acceptor = state.acceptor();
+      let acceptor = state.axum_acceptor(Arc::new(
+        rustls::ServerConfig::builder()
+          .with_safe_defaults()
+          .with_no_client_auth()
+          .with_cert_resolver(state.resolver()),
+      ));
 
       tokio::spawn(async move {
         while let Some(result) = state.next().await {
@@ -170,7 +174,7 @@ impl Server {
         }
       });
 
-      Some(TlsAcceptor(acceptor))
+      Some(acceptor)
     } else {
       None
     }
