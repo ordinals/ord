@@ -63,10 +63,11 @@ impl Server {
 
       let app = Router::new()
         .route("/", get(Self::root))
-        .route("/block/:hash", get(Self::block))
-        .route("/range/:start/:end", get(Self::range))
-        .route("/ordinal/:ordinal", get(Self::ordinal))
         .route("/api/list/:outpoint", get(Self::api_list))
+        .route("/block/:hash", get(Self::block))
+        .route("/ordinal/:ordinal", get(Self::ordinal))
+        .route("/output/:output", get(Self::output))
+        .route("/range/:start/:end", get(Self::range))
         .route("/status", get(Self::status))
         .layer(extract::Extension(index))
         .layer(
@@ -134,6 +135,42 @@ impl Server {
     extract::Path(DeserializeOrdinalFromStr(ordinal)): extract::Path<DeserializeOrdinalFromStr>,
   ) -> impl IntoResponse {
     (StatusCode::OK, Html(format!("{ordinal}")))
+  }
+
+  async fn output(
+    index: extract::Extension<Arc<Index>>,
+    extract::Path(outpoint): extract::Path<OutPoint>,
+  ) -> impl IntoResponse {
+    match index.list(outpoint) {
+      Ok(Some(ranges)) => (
+        StatusCode::OK,
+        Html(format!(
+          "<ul>{}</ul>",
+          ranges
+            .iter()
+            .map(|(start, end)| format!(
+              "<li><a href='/range/{start}/{end}'>[{start},{end})</a></li>"
+            ))
+            .collect::<String>()
+        )),
+      ),
+      Ok(None) => (
+        StatusCode::NOT_FOUND,
+        Html("Output unknown, invalid, or spent.".to_string()),
+      ),
+      Err(err) => {
+        eprintln!("Error serving request for output: {err}");
+        (
+          StatusCode::INTERNAL_SERVER_ERROR,
+          Html(
+            StatusCode::INTERNAL_SERVER_ERROR
+              .canonical_reason()
+              .unwrap_or_default()
+              .to_string(),
+          ),
+        )
+      }
+    }
   }
 
   async fn range(
