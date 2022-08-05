@@ -28,7 +28,7 @@ impl RpcServer {
   ) {
     let calls = Arc::new(Mutex::new(Vec::new()));
 
-    let blocks = Arc::new(Mutex::new(blocks.to_vec()));
+    let blocks = Arc::new(Mutex::new(blocks));
 
     let server = Self {
       blocks: blocks.clone(),
