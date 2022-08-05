@@ -64,6 +64,7 @@ impl Server {
       let app = Router::new()
         .route("/", get(Self::root))
         .route("/block/:hash", get(Self::block))
+        .route("/range/:start/:end", get(Self::range))
         .route("/ordinal/:ordinal", get(Self::ordinal))
         .route("/list/:outpoint", get(Self::list))
         .route("/status", get(Self::status))
@@ -133,6 +134,13 @@ impl Server {
     extract::Path(DeserializeOrdinalFromStr(ordinal)): extract::Path<DeserializeOrdinalFromStr>,
   ) -> impl IntoResponse {
     (StatusCode::OK, Html(format!("{ordinal}")))
+  }
+
+  async fn range(
+    extract::Path(range): extract::Path<(DeserializeOrdinalFromStr, DeserializeOrdinalFromStr)>,
+  ) -> impl IntoResponse {
+    let (start, end) = range;
+    todo!()
   }
 
   async fn root(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
