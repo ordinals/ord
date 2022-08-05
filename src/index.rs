@@ -305,6 +305,22 @@ impl Index {
     }
   }
 
+  pub(crate) fn block_with_hash(&self, hash: sha256d::Hash) -> Result<Option<Block>> {
+    let tx = self.database.begin_read()?;
+
+    let height_to_hash = tx.open_table(HEIGHT_TO_HASH)?;
+
+    for height in 0..self.height()? {
+      if let Some(current_hash) = height_to_hash.get(&height)? {
+        if *current_hash == *hash {
+          return self.block(height);
+        }
+      }
+    }
+
+    Ok(None)
+  }
+
   pub(crate) fn find(&self, ordinal: Ordinal) -> Result<Option<SatPoint>> {
     if self.height()? <= ordinal.height().0 {
       return Ok(None);
