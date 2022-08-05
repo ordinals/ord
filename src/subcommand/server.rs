@@ -1,7 +1,7 @@
 use super::*;
 
 use {
-  self::tls_acceptor::TlsAcceptor,
+  self::{deserialize_ordinal_from_str::DeserializeOrdinalFromStr, tls_acceptor::TlsAcceptor},
   clap::ArgGroup,
   rustls_acme::{
     acme::{ACME_TLS_ALPN_NAME, LETS_ENCRYPT_PRODUCTION_DIRECTORY, LETS_ENCRYPT_STAGING_DIRECTORY},
@@ -12,20 +12,8 @@ use {
   tokio_stream::StreamExt,
 };
 
+mod deserialize_ordinal_from_str;
 mod tls_acceptor;
-
-struct DerializeOrdinalFromStr(Ordinal);
-
-impl<'de> Deserialize<'de> for DerializeOrdinalFromStr {
-  fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-  where
-    D: Deserializer<'de>,
-  {
-    Ok(Self(
-      FromStr::from_str(&String::deserialize(deserializer)?).map_err(de::Error::custom)?,
-    ))
-  }
-}
 
 #[derive(Parser)]
 #[clap(group = ArgGroup::new("port").multiple(false).required(true))]
@@ -141,7 +129,7 @@ impl Server {
   }
 
   async fn ordinal(
-    extract::Path(DerializeOrdinalFromStr(ordinal)): extract::Path<DerializeOrdinalFromStr>,
+    extract::Path(DeserializeOrdinalFromStr(ordinal)): extract::Path<DeserializeOrdinalFromStr>,
   ) -> impl IntoResponse {
     (StatusCode::OK, Html(format!("{ordinal}")))
   }
