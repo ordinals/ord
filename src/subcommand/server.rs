@@ -60,7 +60,7 @@ impl Server {
       });
 
       let app = Router::new()
-        .route("/", get(Self::index))
+        .route("/", get(Self::root))
         .route("/list/:outpoint", get(Self::list))
         .route("/status", get(Self::status))
         .layer(extract::Extension(index))
@@ -125,7 +125,7 @@ impl Server {
     })
   }
 
-  async fn index(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
+  async fn root(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
     match index.all() {
       Ok(blocks) => (
         StatusCode::OK,
@@ -139,8 +139,16 @@ impl Server {
         )),
       ),
       Err(error) => {
-        eprintln!("Error serving request for index: {error}");
-        (StatusCode::INTERNAL_SERVER_ERROR, Html("".to_string()))
+        eprintln!("Error serving request for root: {error}");
+        (
+          StatusCode::INTERNAL_SERVER_ERROR,
+          Html(
+            StatusCode::INTERNAL_SERVER_ERROR
+              .canonical_reason()
+              .unwrap_or_default()
+              .to_string(),
+          ),
+        )
       }
     }
   }
