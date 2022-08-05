@@ -228,7 +228,7 @@ impl Index {
     )
   }
 
-  pub(crate) fn all(&self) -> Result<Option<Vec<(u64, String)>>> {
+  pub(crate) fn all(&self) -> Result<Vec<sha256d::Hash>> {
     let mut blocks = Vec::new();
 
     let tx = self.database.begin_read()?;
@@ -237,11 +237,11 @@ impl Index {
 
     let mut cursor = height_to_hash.range(0..)?;
 
-    while let Some((key, value)) = cursor.next() {
-      blocks.push((key, sha256d::Hash::from_slice(value)?.to_string()));
+    while let Some(next) = cursor.next() {
+      blocks.push(sha256d::Hash::from_slice(next.1)?);
     }
 
-    Ok(Some(blocks))
+    Ok(blocks)
   }
 
   fn index_transaction(

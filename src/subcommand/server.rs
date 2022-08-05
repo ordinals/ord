@@ -127,19 +127,16 @@ impl Server {
 
   async fn index(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
     match index.all() {
-      Ok(Some(blocks)) => (
+      Ok(blocks) => (
         StatusCode::OK,
         Html(format!(
           "<ul>{}</ul>",
           blocks
             .iter()
+            .enumerate()
             .map(|(height, hash)| format!("<li>{height} - {hash}</li>"))
             .collect::<String>(),
         )),
-      ),
-      Ok(None) => (
-        StatusCode::NOT_FOUND,
-        Html("No blocks to display!".to_string()),
       ),
       Err(error) => {
         eprintln!("Error serving request for index: {error}");
