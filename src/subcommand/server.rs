@@ -65,7 +65,7 @@ impl Server {
         .route("/", get(Self::root))
         .route("/block/:hash", get(Self::block))
         .route("/ordinal/:ordinal", get(Self::ordinal))
-        .route("/list/:outpoint", get(Self::list))
+        .route("/api/list/:outpoint", get(Self::list))
         .route("/status", get(Self::status))
         .layer(extract::Extension(index))
         .layer(
