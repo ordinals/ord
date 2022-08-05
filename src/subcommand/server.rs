@@ -130,11 +130,11 @@ impl Server {
       Ok(blocks) => (
         StatusCode::OK,
         Html(format!(
-          "<ul>{}</ul>",
+          "<ul>\n{}</ul>",
           blocks
             .iter()
             .enumerate()
-            .map(|(height, hash)| format!("<li>{height} - {hash}</li>"))
+            .map(|(height, hash)| format!("  <li>{height} - {hash}</li>\n"))
             .collect::<String>(),
         )),
       ),

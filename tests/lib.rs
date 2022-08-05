@@ -306,7 +306,7 @@ impl Test {
                 .get(&format!("http://127.0.0.1:{port}/{request}"))
                 .send()?;
               assert_eq!(response.status().as_u16(), *status);
-              assert_eq!(response.text()?, *expected_response);
+              assert_eq!(response.text()?, *expected_response.unindent().trim_end());
               successful_requests += 1;
             }
           }
