@@ -152,6 +152,50 @@ fn ordinal_out_of_range() -> Result {
 }
 
 #[test]
+fn invalid_outpoint_hash_returns_400() -> Result {
+  let port = free_port()?;
+
+  Test::new()?
+    .command(&format!("server --address 127.0.0.1 --http-port {port}"))
+    .request(
+      "output/foo:0",
+      400,
+      "Invalid URL: error parsing TXID: odd hex string length 3",
+    )
+    .run_server(port)
+}
+
+#[test]
+fn outpoint_returns_ordinal_ranges() -> Result {
+  let port = free_port()?;
+
+  Test::new()?
+    .command(&format!("server --address 127.0.0.1 --http-port {port}"))
+    .block()
+    .request(
+      "output/0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0",
+      200,
+      "<ul><li><a href='/range/0/5000000000'>[0,5000000000)</a></li></ul>",
+    )
+    .run_server(port)
+}
+
+#[test]
+fn invalid_vout_returns_404() -> Result {
+  let port = free_port()?;
+
+  Test::new()?
+    .command(&format!("server --address 127.0.0.1 --http-port {port}"))
+    .block()
+    .request(
+      "output/0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef8:0",
+      404,
+      "Output unknown, invalid, or spent.",
+    )
+    .run_server(port)
+}
+
+#[test]
 fn root() -> Result {
   let port = free_port()?;
 
