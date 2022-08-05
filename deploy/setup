@@ -35,7 +35,11 @@ cp deploy/bitcoind.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable bitcoind
 systemctl restart bitcoind
-sleep 1
+
+while [[ ! -f /var/lib/bitcoind/signet/.cookie ]]; do
+  echo Waiting for bitcoind…
+  sleep 1
+done
 
 setfacl -m ord:x /var/lib/bitcoind
 setfacl -dm ord:r /var/lib/bitcoind
@@ -48,5 +52,7 @@ cp target/release/ord /usr/local/bin/ord
 systemctl enable ord
 systemctl restart ord
 
-sleep 1
-curl https://signet.ordinals.com/list
+while ! curl --fail https://signet.ordinals.com/status; do
+  echo Waiting for ord…
+  sleep 1
+done
