@@ -50,16 +50,12 @@ fn continuously_index_ranges() -> Result {
 }
 
 #[test]
-fn index () -> Result {
+fn index() -> Result {
   let port = free_port()?;
 
   Test::new()?
     .command(&format!("server --address 127.0.0.1 --http-port {port}"))
-    .request(
-      "/",
-      200,
-      "<ul></ul>",
-    )
+    .request("/", 200, "<ul></ul>")
     .block()
     .request(
       "/",
