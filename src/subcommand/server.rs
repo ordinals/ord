@@ -1,16 +1,18 @@
 use super::*;
 
 use {
-  self::tls_acceptor::TlsAcceptor,
+  self::{deserialize_ordinal_from_str::DeserializeOrdinalFromStr, tls_acceptor::TlsAcceptor},
   clap::ArgGroup,
   rustls_acme::{
     acme::{ACME_TLS_ALPN_NAME, LETS_ENCRYPT_PRODUCTION_DIRECTORY, LETS_ENCRYPT_STAGING_DIRECTORY},
     caches::DirCache,
     AcmeConfig,
   },
+  serde::{de, Deserializer},
   tokio_stream::StreamExt,
 };
 
+mod deserialize_ordinal_from_str;
 mod tls_acceptor;
 
 #[derive(Parser)]
@@ -61,6 +63,7 @@ impl Server {
 
       let app = Router::new()
         .route("/", get(Self::root))
+        .route("/ordinal/:ordinal", get(Self::ordinal))
         .route("/list/:outpoint", get(Self::list))
         .route("/status", get(Self::status))
         .layer(extract::Extension(index))
@@ -123,6 +126,12 @@ impl Server {
 
       Ok(())
     })
+  }
+
+  async fn ordinal(
+    extract::Path(DeserializeOrdinalFromStr(ordinal)): extract::Path<DeserializeOrdinalFromStr>,
+  ) -> impl IntoResponse {
+    (StatusCode::OK, Html(format!("{ordinal}")))
   }
 
   async fn root(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
