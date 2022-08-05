@@ -169,7 +169,7 @@ impl Server {
             .txdata
             .iter()
             .enumerate()
-            .map(|(i, tx)| format!("  <li>{i} - {}</li>", tx.txid()))
+            .map(|(i, tx)| format!("  <li>{i} - {}</li>\n", tx.txid()))
             .collect::<String>()
         )),
       ),

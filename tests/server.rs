@@ -72,6 +72,25 @@ fn root() -> Result {
 }
 
 #[test]
+fn transactions() -> Result {
+  let port = free_port()?;
+
+  Test::new()?
+    .command(&format!("server --address 127.0.0.1 --http-port {port}"))
+    .block()
+    .request(
+      "block/14508459b221041eab257d2baaa7459775ba748246c8403609eb708f0e57e74b",
+      200,
+      "
+      <ul>
+        <li>0 - 0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9</li>
+      </ul>
+      ",
+    )
+    .run_server(port)
+}
+
+#[test]
 fn http_or_https_port_is_required() -> Result {
   Test::new()?
     .command("server --address 127.0.0.1")
