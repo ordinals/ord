@@ -50,6 +50,21 @@ fn continuously_index_ranges() -> Result {
 }
 
 #[test]
+fn ordinal() -> Result {
+  let port = free_port()?;
+
+  // TODO:
+  // - request by number
+  // - request by degree
+  // - request by decimal
+
+  Test::new()?
+    .command(&format!("server --address 127.0.0.1 --http-port {port}"))
+    .request("ordinal/0", 200, "")
+    .run_server(port)
+}
+
+#[test]
 fn root() -> Result {
   let port = free_port()?;
 

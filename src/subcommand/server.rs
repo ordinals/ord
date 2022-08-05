@@ -61,6 +61,7 @@ impl Server {
 
       let app = Router::new()
         .route("/", get(Self::root))
+        .route("/ordinal/:ordinal", get(Self::ordinal))
         .route("/list/:outpoint", get(Self::list))
         .route("/status", get(Self::status))
         .layer(extract::Extension(index))
@@ -123,6 +124,10 @@ impl Server {
 
       Ok(())
     })
+  }
+
+  async fn ordinal(extract::Path(ordinal): extract::Path<Ordinal>) -> impl IntoResponse {
+    (StatusCode::OK, Html(format!("")))
   }
 
   async fn root(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
