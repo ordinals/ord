@@ -137,15 +137,15 @@ impl Server {
   }
 
   async fn range(
-    extract::Path((DeserializeOrdinalFromStr(first), DeserializeOrdinalFromStr(end))): extract::Path<
+    extract::Path((DeserializeOrdinalFromStr(start), DeserializeOrdinalFromStr(end))): extract::Path<
       (DeserializeOrdinalFromStr, DeserializeOrdinalFromStr),
     >,
   ) -> impl IntoResponse {
-    if first == end {
+    if start == end {
       return (StatusCode::BAD_REQUEST, Html("Empty Range".to_string()));
     }
 
-    if first > end {
+    if start > end {
       return (
         StatusCode::BAD_REQUEST,
         Html("Range Start Greater Than Range End".to_string()),
@@ -154,7 +154,7 @@ impl Server {
 
     (
       StatusCode::OK,
-      Html(format!("<a href='/ordinal/{first}'>first</a>")),
+      Html(format!("<a href='/ordinal/{start}'>first</a>")),
     )
   }
 
