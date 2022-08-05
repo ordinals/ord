@@ -63,6 +63,7 @@ impl Server {
 
       let app = Router::new()
         .route("/", get(Self::root))
+        .route("/block/:hash", get(Self::block))
         .route("/ordinal/:ordinal", get(Self::ordinal))
         .route("/list/:outpoint", get(Self::list))
         .route("/status", get(Self::status))
@@ -143,12 +144,55 @@ impl Server {
           blocks
             .iter()
             .enumerate()
-            .map(|(height, hash)| format!("  <li>{height} - {hash}</li>\n"))
+            .map(|(height, hash)| format!(
+              "  <li>{height} - <a href='/block/{hash}'>{hash}</a></li>\n"
+            ))
             .collect::<String>(),
         )),
       ),
       Err(error) => {
         eprintln!("Error serving request for root: {error}");
+        (
+          StatusCode::INTERNAL_SERVER_ERROR,
+          Html(
+            StatusCode::INTERNAL_SERVER_ERROR
+              .canonical_reason()
+              .unwrap_or_default()
+              .to_string(),
+          ),
+        )
+      }
+    }
+  }
+
+  async fn block(
+    extract::Path(hash): extract::Path<sha256d::Hash>,
+    index: extract::Extension<Arc<Index>>,
+  ) -> impl IntoResponse {
+    match index.block_with_hash(hash) {
+      Ok(Some(block)) => (
+        StatusCode::OK,
+        Html(format!(
+          "<ul>\n{}</ul>",
+          block
+            .txdata
+            .iter()
+            .enumerate()
+            .map(|(i, tx)| format!("  <li>{i} - {}</li>\n", tx.txid()))
+            .collect::<String>()
+        )),
+      ),
+      Ok(None) => (
+        StatusCode::NOT_FOUND,
+        Html(
+          StatusCode::NOT_FOUND
+            .canonical_reason()
+            .unwrap_or_default()
+            .to_string(),
+        ),
+      ),
+      Err(error) => {
+        eprintln!("Error serving request for block with hash {hash}: {error}");
         (
           StatusCode::INTERNAL_SERVER_ERROR,
           Html(

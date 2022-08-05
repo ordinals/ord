@@ -82,6 +82,8 @@ impl RpcApi for RpcServer {
       }
     }
 
-    panic!("No block with hash {blockhash}")
+    Err(jsonrpc_core::Error::new(
+      jsonrpc_core::types::error::ErrorCode::ServerError(-8),
+    ))
   }
 }

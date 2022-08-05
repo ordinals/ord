@@ -121,7 +121,7 @@ impl Index {
       .map(|(height, _hash)| height + 1)
       .unwrap_or(0);
 
-    let block = match self.block(height)? {
+    let block = match self.block_at_height(height)? {
       Some(block) => block,
       None => {
         return Ok(true);
@@ -295,9 +295,19 @@ impl Index {
     Ok(())
   }
 
-  pub(crate) fn block(&self, height: u64) -> Result<Option<Block>> {
+  pub(crate) fn block_at_height(&self, height: u64) -> Result<Option<Block>> {
     match self.client.get_block_hash(height) {
       Ok(hash) => Ok(Some(self.client.get_block(&hash)?)),
+      Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(
+        bitcoincore_rpc::jsonrpc::error::RpcError { code: -8, .. },
+      ))) => Ok(None),
+      Err(err) => Err(err.into()),
+    }
+  }
+
+  pub(crate) fn block_with_hash(&self, hash: sha256d::Hash) -> Result<Option<Block>> {
+    match self.client.get_block(&BlockHash::from_hash(hash)) {
+      Ok(block) => Ok(Some(block)),
       Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(
         bitcoincore_rpc::jsonrpc::error::RpcError { code: -8, .. },
       ))) => Ok(None),
