@@ -28,7 +28,7 @@ impl RpcServer {
   ) {
     let calls = Arc::new(Mutex::new(Vec::new()));
 
-    let blocks = Arc::new(Mutex::new(blocks));
+    let blocks = Arc::new(Mutex::new(blocks.to_vec()));
 
     let server = Self {
       blocks: blocks.clone(),
@@ -82,6 +82,8 @@ impl RpcApi for RpcServer {
       }
     }
 
-    panic!("No block with hash {blockhash}")
+    Err(jsonrpc_core::Error::new(
+      jsonrpc_core::types::error::ErrorCode::ServerError(-8),
+    ))
   }
 }

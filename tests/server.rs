@@ -97,6 +97,20 @@ fn transactions() -> Result {
 }
 
 #[test]
+fn block_not_found() -> Result {
+  let port = free_port()?;
+
+  Test::new()?
+    .command(&format!("server --address 127.0.0.1 --http-port {port}"))
+    .request(
+      "block/14508459b221041eab257d2baaa7459775ba748246c8403609eb708f0e57e74b",
+      404,
+      "Not Found",
+    )
+    .run_server(port)
+}
+
+#[test]
 fn http_or_https_port_is_required() -> Result {
   Test::new()?
     .command("server --address 127.0.0.1")
