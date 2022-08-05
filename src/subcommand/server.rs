@@ -64,6 +64,7 @@ impl Server {
       let app = Router::new()
         .route("/", get(Self::root))
         .route("/block/:hash", get(Self::block))
+        .route("/tx/:txid", get(Self::transaction))
         .route("/ordinal/:ordinal", get(Self::ordinal))
         .route("/list/:outpoint", get(Self::list))
         .route("/status", get(Self::status))
@@ -178,7 +179,11 @@ impl Server {
             .txdata
             .iter()
             .enumerate()
-            .map(|(i, tx)| format!("  <li>{i} - {}</li>\n", tx.txid()))
+            .map(|(i, tx)| format!(
+              "  <li>{i} - <a href='/tx/{}'>{}</a></li>\n",
+              tx.txid(),
+              tx.txid()
+            ))
             .collect::<String>()
         )),
       ),
@@ -193,6 +198,47 @@ impl Server {
       ),
       Err(error) => {
         eprintln!("Error serving request for block with hash {hash}: {error}");
+        (
+          StatusCode::INTERNAL_SERVER_ERROR,
+          Html(
+            StatusCode::INTERNAL_SERVER_ERROR
+              .canonical_reason()
+              .unwrap_or_default()
+              .to_string(),
+          ),
+        )
+      }
+    }
+  }
+
+  async fn transaction(
+    extract::Path(txid): extract::Path<Txid>,
+    index: extract::Extension<Arc<Index>>,
+  ) -> impl IntoResponse {
+    match index.transaction(txid) {
+      Ok(Some(transaction)) => (
+        StatusCode::OK,
+        Html(format!(
+          "<ul>\n{}</ul>",
+          transaction
+            .output
+            .iter()
+            .enumerate()
+            .map(|(i, _)| format!("  <li>{txid}:{i}</li>\n"))
+            .collect::<String>()
+        )),
+      ),
+      Ok(None) => (
+        StatusCode::NOT_FOUND,
+        Html(
+          StatusCode::NOT_FOUND
+            .canonical_reason()
+            .unwrap_or_default()
+            .to_string(),
+        ),
+      ),
+      Err(error) => {
+        eprintln!("Error serving request for transaction with txid {txid}: {error}");
         (
           StatusCode::INTERNAL_SERVER_ERROR,
           Html(
