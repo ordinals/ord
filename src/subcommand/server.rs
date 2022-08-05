@@ -65,7 +65,7 @@ impl Server {
         .route("/", get(Self::root))
         .route("/block/:hash", get(Self::block))
         .route("/ordinal/:ordinal", get(Self::ordinal))
-        .route("/list/:outpoint", get(Self::list))
+        .route("/api/list/:outpoint", get(Self::api_list))
         .route("/status", get(Self::status))
         .layer(extract::Extension(index))
         .layer(
@@ -206,7 +206,7 @@ impl Server {
     }
   }
 
-  async fn list(
+  async fn api_list(
     extract::Path(outpoint): extract::Path<OutPoint>,
     index: extract::Extension<Arc<Index>>,
   ) -> impl IntoResponse {
