@@ -78,12 +78,18 @@ fn transactions() -> Result {
   Test::new()?
     .command(&format!("server --address 127.0.0.1 --http-port {port}"))
     .block()
+    .transaction(TransactionOptions {
+      slots: &[(0, 0, 0)],
+      output_count: 1,
+      fee: 0,
+    })
     .request(
       "block/14508459b221041eab257d2baaa7459775ba748246c8403609eb708f0e57e74b",
       200,
       "
       <ul>
         <li>0 - 0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9</li>
+        <li>1 - d0a9c70e6c8d890ee5883973a716edc1609eab42a9bc32594bdafc935bb4fad0</li>
       </ul>
       ",
     )
