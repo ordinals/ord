@@ -15,7 +15,12 @@ pub trait RpcApi {
   fn getblock(&self, blockhash: BlockHash, verbosity: u64) -> Result<String>;
 
   #[rpc(name = "getrawtransaction")]
-  fn getrawtransaction(&self, txid: Txid, bs: bool, block_hash: Option<BlockHash>) -> Result<Transaction>;
+  fn getrawtransaction(
+    &self,
+    txid: Txid,
+    verbose: bool,
+    block_hash: Option<BlockHash>,
+  ) -> Result<Transaction>;
 }
 
 pub struct RpcServer {
@@ -93,8 +98,21 @@ impl RpcApi for RpcServer {
     ))
   }
 
-  fn getrawtransaction(&self, txid: Txid, _bs: bool, _block_hash: Option<BlockHash>) -> Result<Transaction> {
+  fn getrawtransaction(
+    &self,
+    txid: Txid,
+    verbose: bool,
+    block_hash: Option<BlockHash>,
+  ) -> Result<Transaction> {
     self.call("getrawtransaction");
+
+    assert_eq!(verbose, false, "Verbose flag {verbose} is unsupported");
+
+    assert_eq!(
+      block_hash, None,
+      "Passing in a block hash {:?} is unsupported",
+      block_hash
+    );
 
     for block in self.blocks.lock().unwrap().iter() {
       for transaction in &block.txdata {
