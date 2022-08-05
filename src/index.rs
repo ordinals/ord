@@ -238,10 +238,7 @@ impl Index {
     let mut cursor = height_to_hash.range(0..)?;
 
     while let Some((key, value)) = cursor.next() {
-      blocks.push((
-        key,
-        BlockHash::from_hash(sha256d::Hash::from_slice(value)?).to_string(),
-      ));
+      blocks.push((key, sha256d::Hash::from_slice(value)?.to_string()));
     }
 
     Ok(Some(blocks))
