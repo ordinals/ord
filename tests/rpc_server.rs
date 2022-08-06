@@ -20,7 +20,7 @@ pub trait RpcApi {
     txid: Txid,
     verbose: bool,
     block_hash: Option<BlockHash>,
-  ) -> Result<Transaction>;
+  ) -> Result<String>;
 }
 
 pub struct RpcServer {
@@ -103,7 +103,7 @@ impl RpcApi for RpcServer {
     txid: Txid,
     verbose: bool,
     block_hash: Option<BlockHash>,
-  ) -> Result<Transaction> {
+  ) -> Result<String> {
     self.call("getrawtransaction");
 
     assert_eq!(verbose, false, "Verbose flag {verbose} is unsupported");
@@ -117,7 +117,9 @@ impl RpcApi for RpcServer {
     for block in self.blocks.lock().unwrap().iter() {
       for transaction in &block.txdata {
         if transaction.txid() == txid {
-          return Ok(transaction.clone());
+          let mut buffer = Vec::new();
+          transaction.consensus_encode(&mut buffer).unwrap();
+          return Ok(hex::encode(buffer));
         }
       }
     }
