@@ -278,7 +278,14 @@ fn outputs() -> Result {
       </ul>
       ",
     )
-    .request("tx/0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9", 200, "foo")
+    .request(
+      "tx/0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9",
+      200,
+      "
+      <ul>
+        <li><a href='/output/0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0'>0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9:0</a></li>
+      </ul>
+      ")
     .run_server(port)
 }
 

@@ -284,7 +284,7 @@ impl Server {
             .output
             .iter()
             .enumerate()
-            .map(|(i, _)| format!("  <li>{txid}:{i}</li>\n"))
+            .map(|(i, _)| format!("  <li><a href='/output/{txid}:{i}'>{txid}:{i}</a></li>\n"))
             .collect::<String>()
         )),
       ),
