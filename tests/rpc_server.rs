@@ -106,7 +106,7 @@ impl RpcApi for RpcServer {
   ) -> Result<String> {
     self.call("getrawtransaction");
 
-    assert_eq!(verbose, false, "Verbose flag {verbose} is unsupported");
+    assert!(!verbose, "Verbose flag {verbose} is unsupported");
 
     assert_eq!(
       block_hash, None,
