@@ -2,7 +2,6 @@ use {
   super::*,
   bitcoincore_rpc::{Client, RpcApi},
   rayon::iter::{IntoParallelRefIterator, ParallelIterator},
-  std::mem,
 };
 
 const HEIGHT_TO_HASH: TableDefinition<u64, [u8]> = TableDefinition::new("HEIGHT_TO_HASH");
@@ -12,46 +11,6 @@ const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8], [u8]> =
 pub(crate) struct Index {
   client: Client,
   database: Database,
-}
-
-pub(crate) struct AbortOnDrop<'a>(Option<WriteTransaction<'a>>);
-
-impl<'a> AbortOnDrop<'a> {
-  fn begin_write(database: &'a Database) -> Result<Self> {
-    Ok(Self(Some(database.begin_write()?)))
-  }
-
-  fn commit(mut self) -> Result<()> {
-    self.take().unwrap().commit()?;
-    Ok(())
-  }
-
-  fn abort(mut self) -> Result<()> {
-    self.take().unwrap().abort()?;
-    Ok(())
-  }
-
-  fn take(&mut self) -> Option<WriteTransaction<'a>> {
-    mem::take(&mut self.0)
-  }
-}
-
-impl<'a> Deref for AbortOnDrop<'a> {
-  type Target = redb::WriteTransaction<'a>;
-
-  fn deref(&self) -> &Self::Target {
-    self.0.as_ref().unwrap()
-  }
-}
-
-impl<'a> Drop for AbortOnDrop<'a> {
-  fn drop(&mut self) {
-    if let Some(wtx) = self.take() {
-      if let Err(err) = wtx.abort() {
-        log::error!("Failed to abort write transaction: {err}");
-      }
-    }
-  }
 }
 
 impl Index {
@@ -67,7 +26,7 @@ impl Index {
       Err(error) => return Err(error.into()),
     };
 
-    let tx = AbortOnDrop::begin_write(&database)?;
+    let tx = database.begin_write()?;
 
     tx.open_table(HEIGHT_TO_HASH)?;
     tx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
@@ -87,7 +46,7 @@ impl Index {
   }
 
   pub(crate) fn print_info(&self) -> Result {
-    let wtx = AbortOnDrop::begin_write(&self.database)?;
+    let wtx = self.database.begin_write()?;
 
     let blocks_indexed = wtx
       .open_table(HEIGHT_TO_HASH)?
@@ -134,7 +93,7 @@ impl Index {
 
   pub(crate) fn index_ranges(&self) -> Result {
     loop {
-      let mut wtx = AbortOnDrop::begin_write(&self.database)?;
+      let mut wtx = self.database.begin_write()?;
 
       let done = self.index_block(&mut wtx)?;
 
@@ -148,7 +107,7 @@ impl Index {
     Ok(())
   }
 
-  pub(crate) fn index_block(&self, wtx: &mut AbortOnDrop) -> Result<bool> {
+  pub(crate) fn index_block(&self, wtx: &mut WriteTransaction) -> Result<bool> {
     let mut height_to_hash = wtx.open_table(HEIGHT_TO_HASH)?;
     let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
 
