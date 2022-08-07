@@ -34,12 +34,14 @@ impl Options {
       return Ok(cookie_file.clone());
     }
 
-    let mut path = if cfg!(linux) {
+    let mut path = if cfg!(target_os = "linux") {
       dirs::home_dir()
         .ok_or_else(|| anyhow!("Failed to retrieve home dir"))?
         .join(".bitcoin")
     } else {
-      dirs::data_dir().ok_or_else(|| anyhow!("Failed to retrieve data dir"))?
+      dirs::data_dir()
+        .ok_or_else(|| anyhow!("Failed to retrieve data dir"))?
+        .join("Bitcoin")
     };
 
     if !matches!(self.network, Network::Bitcoin) {

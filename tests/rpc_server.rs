@@ -1,6 +1,9 @@
 use {
-  super::*, jsonrpc_core::IoHandler, jsonrpc_core::Result, jsonrpc_derive::rpc,
-  jsonrpc_http_server::CloseHandle, jsonrpc_http_server::ServerBuilder,
+  super::*,
+  bitcoin::{hash_types::BlockHash, Txid},
+  jsonrpc_core::{IoHandler, Result},
+  jsonrpc_derive::rpc,
+  jsonrpc_http_server::{CloseHandle, ServerBuilder},
 };
 
 #[rpc]
@@ -10,6 +13,14 @@ pub trait RpcApi {
 
   #[rpc(name = "getblock")]
   fn getblock(&self, blockhash: BlockHash, verbosity: u64) -> Result<String>;
+
+  #[rpc(name = "getrawtransaction")]
+  fn getrawtransaction(
+    &self,
+    txid: Txid,
+    verbose: bool,
+    block_hash: Option<BlockHash>,
+  ) -> Result<String>;
 }
 
 pub struct RpcServer {
@@ -79,6 +90,37 @@ impl RpcApi for RpcServer {
         let mut encoded = Vec::new();
         block.consensus_encode(&mut encoded).unwrap();
         return Ok(hex::encode(encoded));
+      }
+    }
+
+    Err(jsonrpc_core::Error::new(
+      jsonrpc_core::types::error::ErrorCode::ServerError(-8),
+    ))
+  }
+
+  fn getrawtransaction(
+    &self,
+    txid: Txid,
+    verbose: bool,
+    block_hash: Option<BlockHash>,
+  ) -> Result<String> {
+    self.call("getrawtransaction");
+
+    assert!(!verbose, "Verbose flag {verbose} is unsupported");
+
+    assert_eq!(
+      block_hash, None,
+      "Passing in a block hash {:?} is unsupported",
+      block_hash
+    );
+
+    for block in self.blocks.lock().unwrap().iter() {
+      for transaction in &block.txdata {
+        if transaction.txid() == txid {
+          let mut buffer = Vec::new();
+          transaction.consensus_encode(&mut buffer).unwrap();
+          return Ok(hex::encode(buffer));
+        }
       }
     }
 

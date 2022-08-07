@@ -74,4 +74,40 @@ mod tests {
       .to_string()
       .ends_with("/signet/.cookie"))
   }
+
+  #[test]
+  fn mainnet_cookie_file_path() {
+    let arguments = Arguments::try_parse_from(&["ord", "index"]).unwrap();
+
+    let cookie_file = arguments
+      .options
+      .cookie_file()
+      .unwrap()
+      .display()
+      .to_string();
+
+    if cfg!(target_os = "linux") {
+      assert!(cookie_file.ends_with("/.bitcoin/.cookie"));
+    } else {
+      assert!(cookie_file.ends_with("/Bitcoin/.cookie"));
+    }
+  }
+
+  #[test]
+  fn othernet_cookie_file_path() {
+    let arguments = Arguments::try_parse_from(&["ord", "--network=signet", "index"]).unwrap();
+
+    let cookie_file = arguments
+      .options
+      .cookie_file()
+      .unwrap()
+      .display()
+      .to_string();
+
+    if cfg!(target_os = "linux") {
+      assert!(cookie_file.ends_with("/.bitcoin/signet/.cookie"));
+    } else {
+      assert!(cookie_file.ends_with("/Bitcoin/signet/.cookie"));
+    }
+  }
 }

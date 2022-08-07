@@ -3,8 +3,8 @@
 use {
   crate::rpc_server::RpcServer,
   bitcoin::{
-    blockdata::constants::COIN_VALUE, blockdata::script, consensus::Encodable, Block, BlockHash,
-    BlockHeader, OutPoint, Transaction, TxIn, TxOut, Witness,
+    blockdata::constants::COIN_VALUE, blockdata::script, consensus::Encodable, Block, BlockHeader,
+    OutPoint, Transaction, TxIn, TxOut, Witness,
   },
   executable_path::executable_path,
   nix::{
