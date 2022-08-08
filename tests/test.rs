@@ -24,7 +24,7 @@ impl Test {
       expected_stdout: Expected::String(String::new()),
     };
 
-    test.sync();
+    test.state.sync();
 
     test
   }
@@ -103,22 +103,6 @@ impl Test {
     self.output();
   }
 
-  fn get_block(&self, height: u64) -> Block {
-    self
-      .state
-      .client
-      .get_block(&self.state.client.get_block_hash(height).unwrap())
-      .unwrap()
-  }
-
-  fn sync(&self) {
-    self
-      .state
-      .wallet
-      .sync(&self.state.blockchain, SyncOptions::default())
-      .unwrap();
-  }
-
   pub(crate) fn output(self) -> Output {
     let output = Command::new(executable_path("ord"))
       .envs(self.envs.clone())
@@ -172,68 +156,7 @@ impl Test {
   }
 
   pub(crate) fn transaction(self, options: TransactionOptions) -> Self {
-    self.sync();
-
-    let input_value = options
-      .slots
-      .iter()
-      .map(|slot| self.get_block(slot.0 as u64).txdata[slot.1].output[slot.2].value)
-      .sum::<u64>();
-
-    let output_value = input_value - options.fee;
-
-    let (mut psbt, _) = {
-      let mut builder = self.state.wallet.build_tx();
-
-      builder
-        .manually_selected_only()
-        .fee_absolute(options.fee)
-        .allow_dust(true)
-        .add_utxos(
-          &options
-            .slots
-            .iter()
-            .map(|slot| OutPoint {
-              txid: self.get_block(slot.0 as u64).txdata[slot.1].txid(),
-              vout: slot.2 as u32,
-            })
-            .collect::<Vec<OutPoint>>(),
-        )
-        .unwrap()
-        .set_recipients(vec![
-          (
-            self
-              .state
-              .wallet
-              .get_address(AddressIndex::Peek(0))
-              .unwrap()
-              .address
-              .script_pubkey(),
-            output_value / options.output_count as u64
-          );
-          options.output_count
-        ]);
-
-      builder.finish().unwrap()
-    };
-
-    if !self
-      .state
-      .wallet
-      .sign(&mut psbt, SignOptions::default())
-      .unwrap()
-    {
-      panic!("Failed to sign transaction");
-    }
-
-    self
-      .state
-      .client
-      .call::<Txid>(
-        "sendrawtransaction",
-        &[psbt.extract_tx().raw_hex().into(), 21000000.into()],
-      )
-      .unwrap();
+    self.state.transaction(options);
     self
   }
 

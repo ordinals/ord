@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Parser)]
+#[derive(Debug, Parser)]
 pub(crate) struct Mint {
   #[clap(long, help = "Read NFT contents from <DATA_PATH>")]
   data_path: PathBuf,

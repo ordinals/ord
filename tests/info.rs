@@ -12,10 +12,10 @@ fn basic() {
         outputs indexed: 1
         tree height: \d+
         free pages: \d+
-        stored: .* bytes
-        overhead: .* bytes
-        fragmented: .* KiB
-        index size: 1 MiB
+        stored: .*
+        overhead: .*
+        fragmented: .*
+        index size: .*
       "
       .unindent(),
     )

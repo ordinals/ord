@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Parser)]
+#[derive(Debug, Parser)]
 pub(crate) struct Name {
   name: String,
 }

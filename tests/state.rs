@@ -68,10 +68,12 @@ impl State {
 
     let ord_http_port = free_port();
 
+    fs::create_dir(tempdir.path().join("server")).unwrap();
+
     let ord = Command::new(executable_path("ord"))
-      .current_dir(&tempdir)
+      .current_dir(tempdir.path().join("server"))
       .arg(format!("--rpc-url=localhost:{}", bitcoind_rpc_port))
-      .arg("--cookie-file=bitcoin/regtest/.cookie")
+      .arg("--cookie-file=../bitcoin/regtest/.cookie")
       .args([
         "server",
         "--address",
@@ -130,6 +132,20 @@ impl State {
     }
   }
 
+  pub(crate) fn get_block(&self, height: u64) -> Block {
+    self
+      .client
+      .get_block(&self.client.get_block_hash(height).unwrap())
+      .unwrap()
+  }
+
+  pub(crate) fn sync(&self) {
+    self
+      .wallet
+      .sync(&self.blockchain, SyncOptions::default())
+      .unwrap();
+  }
+
   pub(crate) fn blocks(&self, n: u64) {
     self
       .client
@@ -144,6 +160,64 @@ impl State {
       .unwrap();
   }
 
+  pub(crate) fn transaction(&self, options: TransactionOptions) {
+    self.sync();
+
+    let input_value = options
+      .slots
+      .iter()
+      .map(|slot| self.get_block(slot.0 as u64).txdata[slot.1].output[slot.2].value)
+      .sum::<u64>();
+
+    let output_value = input_value - options.fee;
+
+    let (mut psbt, _) = {
+      let mut builder = self.wallet.build_tx();
+
+      builder
+        .manually_selected_only()
+        .fee_absolute(options.fee)
+        .allow_dust(true)
+        .add_utxos(
+          &options
+            .slots
+            .iter()
+            .map(|slot| OutPoint {
+              txid: self.get_block(slot.0 as u64).txdata[slot.1].txid(),
+              vout: slot.2 as u32,
+            })
+            .collect::<Vec<OutPoint>>(),
+        )
+        .unwrap()
+        .set_recipients(vec![
+          (
+            self
+              .wallet
+              .get_address(AddressIndex::Peek(0))
+              .unwrap()
+              .address
+              .script_pubkey(),
+            output_value / options.output_count as u64
+          );
+          options.output_count
+        ]);
+
+      builder.finish().unwrap()
+    };
+
+    if !self.wallet.sign(&mut psbt, SignOptions::default()).unwrap() {
+      panic!("Failed to sign transaction");
+    }
+
+    self
+      .client
+      .call::<Txid>(
+        "sendrawtransaction",
+        &[psbt.extract_tx().raw_hex().into(), 21000000.into()],
+      )
+      .unwrap();
+  }
+
   pub(crate) fn request(&self, path: &str, status: u16, expected_response: &str) {
     let response =
       reqwest::blocking::get(&format!("http://127.0.0.1:{}/{}", self.ord_http_port, path)).unwrap();
@@ -152,9 +226,14 @@ impl State {
 
     assert_eq!(response.status().as_u16(), status);
 
-    assert_eq!(
-      response.text().unwrap(),
-      expected_response.unindent().trim_end()
+    let response_text = response.text().unwrap();
+
+    assert!(
+      Regex::new(expected_response.unindent().trim_end())
+        .unwrap()
+        .is_match(&response_text),
+      "Response text did not match regex: {:?}",
+      &response_text
     );
   }
 }

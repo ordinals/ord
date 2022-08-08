@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Parser)]
+#[derive(Debug, Parser)]
 #[clap(version)]
 pub(crate) struct Arguments {
   #[clap(flatten)]
@@ -109,5 +109,78 @@ mod tests {
     } else {
       assert!(cookie_file.ends_with("/Bitcoin/signet/.cookie"));
     }
+  }
+
+  #[test]
+  fn http_or_https_port_is_required() {
+    let err = Arguments::try_parse_from(&["ord", "server", "--address", "127.0.0.1"])
+      .unwrap_err()
+      .to_string();
+
+    assert!(
+      err.starts_with("error: The following required arguments were not provided:\n    <--http-port <HTTP_PORT>|--https-port <HTTPS_PORT>>\n"),
+      "{}",
+      err
+    );
+  }
+
+  #[test]
+  fn http_and_https_port_conflict() {
+    let err = Arguments::try_parse_from(&["ord", "server", "--http-port=0", "--https-port=0"])
+      .unwrap_err()
+      .to_string();
+
+    assert!(
+      err.starts_with("error: The argument '--http-port <HTTP_PORT>' cannot be used with '--https-port <HTTPS_PORT>'\n"),
+      "{}",
+      err
+    );
+  }
+
+  #[test]
+  fn http_port_requires_acme_flags() {
+    let err = Arguments::try_parse_from(&["ord", "server", "--https-port=0"])
+      .unwrap_err()
+      .to_string();
+
+    assert!(
+      err.starts_with("error: The following required arguments were not provided:\n    --acme-cache <ACME_CACHE>\n    --acme-domain <ACME_DOMAIN>\n    --acme-contact <ACME_CONTACT>\n"),
+      "{}",
+      err
+    );
+  }
+
+  #[test]
+  fn acme_contact_accepts_multiple_values() {
+    assert!(Arguments::try_parse_from(&[
+      "ord",
+      "server",
+      "--address",
+      "127.0.0.1",
+      "--http-port",
+      "0",
+      "--acme-contact",
+      "foo",
+      "--acme-contact",
+      "bar"
+    ])
+    .is_ok());
+  }
+
+  #[test]
+  fn acme_domain_accepts_multiple_values() {
+    assert!(Arguments::try_parse_from(&[
+      "ord",
+      "server",
+      "--address",
+      "127.0.0.1",
+      "--http-port",
+      "0",
+      "--acme-domain",
+      "foo",
+      "--acme-domain",
+      "bar"
+    ])
+    .is_ok());
   }
 }
