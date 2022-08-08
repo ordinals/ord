@@ -138,10 +138,12 @@ fn root() {
 fn transactions() {
   let state = State::new();
 
-  state.blocks(1);
+  state.blocks(101);
+
+  sleep(Duration::from_secs(1));
 
   state.transaction(TransactionOptions {
-    slots: &[(0, 0, 0)],
+    slots: &[(1, 0, 0)],
     output_count: 1,
     fee: 0,
   });
