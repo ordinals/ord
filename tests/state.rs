@@ -209,11 +209,15 @@ impl State {
       panic!("Failed to sign transaction");
     }
 
+    let tx = psbt.extract_tx();
+
+    eprintln!("{}", tx.txid());
+
     self
       .client
       .call::<Txid>(
         "sendrawtransaction",
-        &[psbt.extract_tx().raw_hex().into(), 21000000.into()],
+        &[tx.raw_hex().into(), 21000000.into()],
       )
       .unwrap();
   }
