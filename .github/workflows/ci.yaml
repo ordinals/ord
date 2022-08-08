@@ -38,7 +38,7 @@ jobs:
         toolchain: stable
 
     - name: Install bitcoind
-      run: brew install bitcoind
+      run: brew install bitcoin
 
     - uses: Swatinem/rust-cache@v1
 
