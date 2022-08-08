@@ -37,8 +37,8 @@ jobs:
         override: true
         toolchain: stable
 
-    - name: Install bitcoind
-      run: brew install bitcoin
+    - name: Install dependencies
+      run: brew install bitcoin sqlite
 
     - uses: Swatinem/rust-cache@v1
 
