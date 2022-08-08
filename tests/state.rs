@@ -146,7 +146,7 @@ impl State {
       .unwrap();
   }
 
-  pub(crate) fn blocks(&self, n: u64) {
+  pub(crate) fn blocks(&self, n: u64) -> Vec<bitcoin::BlockHash> {
     self
       .client
       .generate_to_address(
@@ -157,7 +157,7 @@ impl State {
           .unwrap()
           .address,
       )
-      .unwrap();
+      .unwrap()
   }
 
   pub(crate) fn transaction(&self, options: TransactionOptions) {
@@ -211,7 +211,7 @@ impl State {
 
     let tx = psbt.extract_tx();
 
-    eprintln!("{}", tx.txid());
+    eprintln!("YOLO: {}", tx.txid());
 
     self
       .client

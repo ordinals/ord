@@ -148,15 +148,17 @@ fn transactions() {
     fee: 0,
   });
 
+  let blocks = state.blocks(1);
+
   state.request(
-    "block/14508459b221041eab257d2baaa7459775ba748246c8403609eb708f0e57e74b",
+    &format!("block/{}", blocks[0]),
     200,
     "
     <ul>
-      <li>0 - <a href='/tx/0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9'>0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef9</a></li>
-      <li>1 - <a href='/tx/d0a9c70e6c8d890ee5883973a716edc1609eab42a9bc32594bdafc935bb4fad0'>d0a9c70e6c8d890ee5883973a716edc1609eab42a9bc32594bdafc935bb4fad0</a></li>
+      <li>0 - <a href='/tx/[[:xdigit:]]{64}'>[[:xdigit:]]{64}</a></li>
+      <li>1 - <a href='/tx/[[:xdigit:]]{64}'>[[:xdigit:]]{64}</a></li>
     </ul>
-    ",
+  "
   );
 }
 
