@@ -15,7 +15,7 @@ static ONCE: Once = Once::new();
 
 impl State {
   pub(crate) fn new() -> Self {
-    ONCE.call_once(|| env_logger::init());
+    ONCE.call_once(env_logger::init);
 
     let tempdir = TempDir::new().unwrap();
 

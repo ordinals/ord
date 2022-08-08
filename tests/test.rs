@@ -2,7 +2,6 @@ use super::*;
 
 pub(crate) struct Test {
   args: Vec<String>,
-  envs: Vec<(OsString, OsString)>,
   expected_status: i32,
   expected_stderr: Expected,
   expected_stdout: Expected,
@@ -18,7 +17,6 @@ impl Test {
     let test = Self {
       args: Vec::new(),
       state,
-      envs: Vec::new(),
       expected_status: 0,
       expected_stderr: Expected::Ignore,
       expected_stdout: Expected::String(String::new()),
@@ -61,16 +59,6 @@ impl Test {
     }
   }
 
-  // TODO: do this always
-  pub(crate) fn set_home_to_tempdir(mut self) -> Self {
-    self.envs.push((
-      OsString::from("HOME"),
-      OsString::from(self.state.tempdir.path()),
-    ));
-
-    self
-  }
-
   pub(crate) fn expected_stderr(self, expected_stderr: &str) -> Self {
     Self {
       expected_stderr: Expected::String(expected_stderr.to_owned()),
@@ -105,7 +93,7 @@ impl Test {
 
   pub(crate) fn output(self) -> Output {
     let output = Command::new(executable_path("ord"))
-      .envs(self.envs.clone())
+      .env("HOME", self.state.tempdir.path())
       .stdin(Stdio::null())
       .stdout(Stdio::piped())
       .stderr(if !matches!(self.expected_stderr, Expected::Ignore) {

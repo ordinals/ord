@@ -158,7 +158,7 @@ fn transactions() {
       <li>0 - <a href='/tx/[[:xdigit:]]{64}'>[[:xdigit:]]{64}</a></li>
       <li>1 - <a href='/tx/[[:xdigit:]]{64}'>[[:xdigit:]]{64}</a></li>
     </ul>
-  "
+  ",
   );
 }
 

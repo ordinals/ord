@@ -21,7 +21,6 @@ use {
   regex::Regex,
   std::{
     collections::BTreeMap,
-    ffi::OsString,
     fs,
     net::TcpListener,
     process::{Child, Command, Stdio},

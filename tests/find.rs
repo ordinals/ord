@@ -26,7 +26,6 @@ fn second_satoshi() {
     .run();
 }
 
-// TODO: fix ignore tests
 #[test]
 #[ignore]
 fn second_satoshi_slot() {
