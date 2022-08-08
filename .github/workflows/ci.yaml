@@ -37,11 +37,13 @@ jobs:
         override: true
         toolchain: stable
 
+    - name: Install bitcoind
+      run: brew install bitcoind
+
     - uses: Swatinem/rust-cache@v1
 
     - name: Check Lockfile
-      run: |
-        cargo update --locked --package ord
+      run: cargo update --locked --package ord
 
     - name: Test
       run: cargo test --all -- --test-threads=1
