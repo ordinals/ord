@@ -144,13 +144,18 @@ impl State {
       .unwrap();
   }
 
-  pub(crate) fn request(self, path: &str, status: u16, expected_response: &str) -> Self {
+  pub(crate) fn request(&self, path: &str, status: u16, expected_response: &str) {
     let response =
       reqwest::blocking::get(&format!("http://127.0.0.1:{}/{}", self.ord_http_port, path)).unwrap();
+
     log::info!("{:?}", response);
+
     assert_eq!(response.status().as_u16(), status);
-    assert_eq!(response.text().unwrap(), expected_response);
-    self
+
+    assert_eq!(
+      response.text().unwrap(),
+      expected_response.unindent().trim_end()
+    );
   }
 }
 

@@ -1,16 +1,18 @@
 use super::*;
 
 use {
-  self::tls_acceptor::TlsAcceptor,
+  self::{deserialize_ordinal_from_str::DeserializeOrdinalFromStr, tls_acceptor::TlsAcceptor},
   clap::ArgGroup,
   rustls_acme::{
     acme::{ACME_TLS_ALPN_NAME, LETS_ENCRYPT_PRODUCTION_DIRECTORY, LETS_ENCRYPT_STAGING_DIRECTORY},
     caches::DirCache,
     AcmeConfig,
   },
+  serde::{de, Deserializer},
   tokio_stream::StreamExt,
 };
 
+mod deserialize_ordinal_from_str;
 mod tls_acceptor;
 
 #[derive(Parser)]
@@ -60,8 +62,14 @@ impl Server {
       });
 
       let app = Router::new()
-        .route("/list/:outpoint", get(Self::list))
+        .route("/", get(Self::root))
+        .route("/api/list/:outpoint", get(Self::api_list))
+        .route("/block/:hash", get(Self::block))
+        .route("/ordinal/:ordinal", get(Self::ordinal))
+        .route("/output/:output", get(Self::output))
+        .route("/range/:start/:end", get(Self::range))
         .route("/status", get(Self::status))
+        .route("/tx/:txid", get(Self::transaction))
         .layer(extract::Extension(index))
         .layer(
           CorsLayer::new()
@@ -124,7 +132,187 @@ impl Server {
     })
   }
 
-  async fn list(
+  async fn ordinal(
+    extract::Path(DeserializeOrdinalFromStr(ordinal)): extract::Path<DeserializeOrdinalFromStr>,
+  ) -> impl IntoResponse {
+    (StatusCode::OK, Html(format!("{ordinal}")))
+  }
+
+  async fn output(
+    index: extract::Extension<Arc<Index>>,
+    extract::Path(outpoint): extract::Path<OutPoint>,
+  ) -> impl IntoResponse {
+    match index.list(outpoint) {
+      Ok(Some(ranges)) => (
+        StatusCode::OK,
+        Html(format!(
+          "<ul>{}</ul>",
+          ranges
+            .iter()
+            .map(|(start, end)| format!(
+              "<li><a href='/range/{start}/{end}'>[{start},{end})</a></li>"
+            ))
+            .collect::<String>()
+        )),
+      ),
+      Ok(None) => (
+        StatusCode::NOT_FOUND,
+        Html("Output unknown, invalid, or spent.".to_string()),
+      ),
+      Err(err) => {
+        eprintln!("Error serving request for output: {err}");
+        (
+          StatusCode::INTERNAL_SERVER_ERROR,
+          Html(
+            StatusCode::INTERNAL_SERVER_ERROR
+              .canonical_reason()
+              .unwrap_or_default()
+              .to_string(),
+          ),
+        )
+      }
+    }
+  }
+
+  async fn range(
+    extract::Path((DeserializeOrdinalFromStr(start), DeserializeOrdinalFromStr(end))): extract::Path<
+      (DeserializeOrdinalFromStr, DeserializeOrdinalFromStr),
+    >,
+  ) -> impl IntoResponse {
+    if start == end {
+      return (StatusCode::BAD_REQUEST, Html("Empty Range".to_string()));
+    }
+
+    if start > end {
+      return (
+        StatusCode::BAD_REQUEST,
+        Html("Range Start Greater Than Range End".to_string()),
+      );
+    }
+
+    (
+      StatusCode::OK,
+      Html(format!("<a href='/ordinal/{start}'>first</a>")),
+    )
+  }
+
+  async fn root(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
+    match index.all() {
+      Ok(blocks) => (
+        StatusCode::OK,
+        Html(format!(
+          "<ul>\n{}</ul>",
+          blocks
+            .iter()
+            .enumerate()
+            .map(|(height, hash)| format!(
+              "  <li>{height} - <a href='/block/{hash}'>{hash}</a></li>\n"
+            ))
+            .collect::<String>(),
+        )),
+      ),
+      Err(error) => {
+        eprintln!("Error serving request for root: {error}");
+        (
+          StatusCode::INTERNAL_SERVER_ERROR,
+          Html(
+            StatusCode::INTERNAL_SERVER_ERROR
+              .canonical_reason()
+              .unwrap_or_default()
+              .to_string(),
+          ),
+        )
+      }
+    }
+  }
+
+  async fn block(
+    extract::Path(hash): extract::Path<sha256d::Hash>,
+    index: extract::Extension<Arc<Index>>,
+  ) -> impl IntoResponse {
+    match index.block_with_hash(hash) {
+      Ok(Some(block)) => (
+        StatusCode::OK,
+        Html(format!(
+          "<ul>\n{}</ul>",
+          block
+            .txdata
+            .iter()
+            .enumerate()
+            .map(|(i, tx)| format!(
+              "  <li>{i} - <a href='/tx/{}'>{}</a></li>\n",
+              tx.txid(),
+              tx.txid()
+            ))
+            .collect::<String>()
+        )),
+      ),
+      Ok(None) => (
+        StatusCode::NOT_FOUND,
+        Html(
+          StatusCode::NOT_FOUND
+            .canonical_reason()
+            .unwrap_or_default()
+            .to_string(),
+        ),
+      ),
+      Err(error) => {
+        eprintln!("Error serving request for block with hash {hash}: {error}");
+        (
+          StatusCode::INTERNAL_SERVER_ERROR,
+          Html(
+            StatusCode::INTERNAL_SERVER_ERROR
+              .canonical_reason()
+              .unwrap_or_default()
+              .to_string(),
+          ),
+        )
+      }
+    }
+  }
+
+  async fn transaction(
+    extract::Path(txid): extract::Path<Txid>,
+    index: extract::Extension<Arc<Index>>,
+  ) -> impl IntoResponse {
+    match index.transaction(txid) {
+      Ok(Some(transaction)) => (
+        StatusCode::OK,
+        Html(format!(
+          "<ul>\n{}</ul>",
+          transaction
+            .output
+            .iter()
+            .enumerate()
+            .map(|(i, _)| format!("  <li><a href='/output/{txid}:{i}'>{txid}:{i}</a></li>\n"))
+            .collect::<String>()
+        )),
+      ),
+      Ok(None) => (
+        StatusCode::NOT_FOUND,
+        Html(
+          StatusCode::NOT_FOUND
+            .canonical_reason()
+            .unwrap_or_default()
+            .to_string(),
+        ),
+      ),
+      Err(error) => {
+        eprintln!("Error serving request for transaction with txid {txid}: {error}");
+        (
+          StatusCode::INTERNAL_SERVER_ERROR,
+          Html(
+            StatusCode::INTERNAL_SERVER_ERROR
+              .canonical_reason()
+              .unwrap_or_default()
+              .to_string(),
+          ),
+        )
+      }
+    }
+  }
+
+  async fn api_list(
     extract::Path(outpoint): extract::Path<OutPoint>,
     index: extract::Extension<Arc<Index>>,
   ) -> impl IntoResponse {
