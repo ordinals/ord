@@ -1,4 +1,4 @@
-use {super::*, bitcoin::Address, std::str::FromStr};
+use super::*;
 
 fn path(path: &str) -> String {
   if cfg!(target_os = "macos") {
@@ -137,6 +137,6 @@ fn utxos() {
   Test::with_state(output.state)
     .command("wallet utxos")
     .expected_status(0)
-    .stdout_regex("^[a-z0-9]{64}:[0-9]*\n")
+    .stdout_regex("^[[:xdigit:]]{64}:[[:digit:]]*\n")
     .run()
 }

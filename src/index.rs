@@ -95,17 +95,12 @@ impl Index {
     loop {
       let mut wtx = self.database.begin_write()?;
 
-      match self.index_block(&mut wtx) {
-        Ok(done) => {
-          wtx.commit()?;
-          if done || INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
-            break;
-          }
-        }
-        Err(err) => {
-          wtx.abort()?;
-          return Err(err);
-        }
+      let done = self.index_block(&mut wtx)?;
+
+      wtx.commit()?;
+
+      if done || INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
+        break;
       }
     }
 
@@ -257,8 +252,6 @@ impl Index {
     input_ordinal_ranges: &mut VecDeque<(u64, u64)>,
     ordinal_ranges_written: &mut u64,
   ) -> Result {
-    log::trace!("{txid}: {:?}", tx);
-
     for (vout, output) in tx.output.iter().enumerate() {
       let outpoint = OutPoint {
         vout: vout as u32,
@@ -342,7 +335,6 @@ impl Index {
       Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(
         bitcoincore_rpc::jsonrpc::error::RpcError { code: -8, .. },
       ))) => Ok(None),
-
       Err(err) => Err(err.into()),
     }
   }
