@@ -2,7 +2,7 @@ use super::*;
 
 #[test]
 fn list() {
-  let state = State::new();
+  let mut state = State::new();
 
   state.blocks(1);
 
@@ -88,7 +88,7 @@ fn invalid_outpoint_hash_returns_400() {
 
 #[test]
 fn outpoint_returns_ordinal_ranges() {
-  let state = State::new();
+  let mut state = State::new();
 
   state.blocks(1);
 
@@ -103,7 +103,7 @@ fn outpoint_returns_ordinal_ranges() {
 
 #[test]
 fn invalid_vout_returns_404() {
-  let state = State::new();
+  let mut state = State::new();
 
   state.blocks(1);
 
@@ -116,7 +116,7 @@ fn invalid_vout_returns_404() {
 
 #[test]
 fn root() {
-  let state = State::new();
+  let mut state = State::new();
 
   state.blocks(1);
 
@@ -136,7 +136,7 @@ fn root() {
 
 #[test]
 fn transactions() {
-  let state = State::new();
+  let mut state = State::new();
 
   state.blocks(101);
 
@@ -173,7 +173,7 @@ fn block_not_found() {
 
 #[test]
 fn outputs() {
-  let state = State::new();
+  let mut state = State::new();
 
   state.blocks(101);
 

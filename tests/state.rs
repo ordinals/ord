@@ -7,8 +7,8 @@ pub(crate) struct State {
   pub(crate) wallet: Wallet<MemoryDatabase>,
   pub(crate) blockchain: RpcBlockchain,
   pub(crate) bitcoind_rpc_port: u16,
-  ord_http_port: u16,
-  ord: Child,
+  ord_http_port: Option<u16>,
+  ord: Option<Child>,
 }
 
 static ONCE: Once = Once::new();
@@ -66,36 +66,6 @@ impl State {
       sleep(Duration::from_millis(100));
     }
 
-    let ord_http_port = free_port();
-
-    fs::create_dir(tempdir.path().join("server")).unwrap();
-
-    let ord = Command::new(executable_path("ord"))
-      .current_dir(tempdir.path().join("server"))
-      .arg(format!("--rpc-url=localhost:{}", bitcoind_rpc_port))
-      .arg("--cookie-file=../bitcoin/regtest/.cookie")
-      .args([
-        "server",
-        "--address",
-        "127.0.0.1",
-        "--http-port",
-        &ord_http_port.to_string(),
-      ])
-      .spawn()
-      .unwrap();
-
-    for attempt in 0..=300 {
-      match reqwest::blocking::get(&format!("http://127.0.0.1:{ord_http_port}/status")) {
-        Ok(response) if response.status().is_success() => break,
-        result => {
-          if attempt == 300 {
-            panic!("Failed to connect to ord server: {result:?}");
-          }
-        }
-      }
-      sleep(Duration::from_millis(100));
-    }
-
     let wallet = Wallet::new(
       Bip84(
         (
@@ -123,11 +93,11 @@ impl State {
     State {
       tempdir,
       bitcoind_rpc_port,
-      ord_http_port,
+      ord_http_port: None,
       bitcoind,
       client,
       wallet,
-      ord,
+      ord: None,
       blockchain,
     }
   }
@@ -222,29 +192,69 @@ impl State {
       .unwrap();
   }
 
-  pub(crate) fn request(&self, path: &str, status: u16, expected_response: &str) {
-    let response =
-      reqwest::blocking::get(&format!("http://127.0.0.1:{}/{}", self.ord_http_port, path)).unwrap();
+  pub(crate) fn request(&mut self, path: &str, status: u16, expected_response: &str) {
+    if let Some(ord_http_port) = self.ord_http_port {
+      let response =
+        reqwest::blocking::get(&format!("http://127.0.0.1:{}/{}", ord_http_port, path)).unwrap();
 
-    log::info!("{:?}", response);
+      log::info!("{:?}", response);
 
-    assert_eq!(response.status().as_u16(), status);
+      assert_eq!(response.status().as_u16(), status);
 
-    let response_text = response.text().unwrap();
+      let response_text = response.text().unwrap();
 
-    assert!(
-      Regex::new(expected_response.unindent().trim_end())
-        .unwrap()
-        .is_match(&response_text),
-      "Response text did not match regex: {:?}",
-      &response_text
-    );
+      assert!(
+        Regex::new(expected_response.unindent().trim_end())
+          .unwrap()
+          .is_match(&response_text),
+        "Response text did not match regex: {:?}",
+        &response_text
+      );
+    } else {
+      let ord_http_port = free_port();
+
+      fs::create_dir(self.tempdir.path().join("server")).unwrap();
+
+      let ord = Command::new(executable_path("ord"))
+        .current_dir(self.tempdir.path().join("server"))
+        .arg(format!("--rpc-url=localhost:{}", self.bitcoind_rpc_port))
+        .arg("--cookie-file=../bitcoin/regtest/.cookie")
+        .args([
+          "server",
+          "--address",
+          "127.0.0.1",
+          "--http-port",
+          &ord_http_port.to_string(),
+        ])
+        .spawn()
+        .unwrap();
+
+      for attempt in 0..=300 {
+        match reqwest::blocking::get(&format!("http://127.0.0.1:{ord_http_port}/status")) {
+          Ok(response) if response.status().is_success() => break,
+          result => {
+            if attempt == 300 {
+              panic!("Failed to connect to ord server: {result:?}");
+            }
+          }
+        }
+        sleep(Duration::from_millis(100));
+      }
+
+      self.ord = Some(ord);
+      self.ord_http_port = Some(ord_http_port);
+
+      self.request(path, status, expected_response);
+    }
   }
 }
 
 impl Drop for State {
   fn drop(&mut self) {
-    self.ord.kill().unwrap();
+    if let Some(ord) = &mut self.ord {
+      ord.kill().unwrap();
+    }
+
     self.bitcoind.kill().unwrap();
   }
 }
