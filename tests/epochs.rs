@@ -1,8 +1,8 @@
 use super::*;
 
 #[test]
-fn empty() -> Result {
-  Test::new()?
+fn empty() {
+  Test::new()
     .args(&["epochs"])
     .expected_stdout(
       "
@@ -43,5 +43,5 @@ fn empty() -> Result {
       "
       .unindent(),
     )
-    .run()
+    .run();
 }

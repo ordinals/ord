@@ -1,7 +1,3 @@
-log := '0'
-
-export RUST_LOG := log
-
 ci: clippy forbid
   cargo fmt -- --check
   cargo test

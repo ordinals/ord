@@ -11,7 +11,6 @@ anyhow = { version = "1.0.56", features = ["backtrace"] }
 async-rustls = "0.2.0"
 axum = "0.5.6"
 axum-server = "0.4.0"
-bdk = { version = "0.20.0", features = ["keys-bip39", "sqlite"] }
 bitcoin = "0.28.1"
 bitcoincore-rpc = "0.15.0"
 chrono = "0.4.19"
@@ -36,16 +35,19 @@ tokio-util = {version = "0.7.3", features = ["compat"] }
 tower = "0.4.13"
 tower-http = { version = "0.3.3", features = ["cors"] }
 
+[dependencies.bdk]
+git = "https://github.com/terror/bdk.git"
+branch = "dust-limit"
+version = "0.20.1-dev"
+features = ["rpc", "keys-bip39", "sqlite"]
+
 [dev-dependencies]
 executable-path = "1.0.0"
 hex = "0.4.3"
-jsonrpc-core = "18.0.0"
-jsonrpc-core-client = "18.0.0"
-jsonrpc-derive = "18.0.0"
-jsonrpc-http-server = "18.0.0"
+log = "0.4.14"
 nix = "0.24.1"
-reqwest = { version = "0.11.10", features = ["blocking"] }
 regex = "1.6.0"
+reqwest = { version = "0.11.10", features = ["blocking"] }
 tempfile = "3.2.0"
 unindent = "0.1.7"
 

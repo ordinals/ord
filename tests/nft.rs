@@ -1,9 +1,9 @@
 use super::*;
 
 #[test]
-fn mint_and_verify() -> Result {
-  let output = Test::new()?
-    .write("data.txt", "foo")?
+fn mint_and_verify() {
+  let output = Test::new()
+    .write("data.txt", "foo")
     .args(&[
       "mint",
       "--ordinal",
@@ -15,9 +15,9 @@ fn mint_and_verify() -> Result {
       "--output-path",
       "foo.nft",
     ])
-    .output()?;
+    .output();
 
-  Test::with_tempdir(output.tempdir)
+  Test::with_state(output.state)
     .command("verify foo.nft")
     .expected_stderr(
       "NFT is valid!
@@ -27,7 +27,5 @@ Data hash: 2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae
 ",
     )
     .expected_stdout("foo")
-    .run()?;
-
-  Ok(())
+    .run();
 }

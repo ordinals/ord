@@ -1,10 +1,10 @@
 use super::*;
 
 #[test]
-fn flag() -> Result {
-  Test::new()?
+fn flag() {
+  Test::new()
     .command("--version")
     .stdout_regex("ord .*\n")
-    .block()
-    .run()
+    .blocks(1)
+    .run();
 }

@@ -3,7 +3,7 @@ use super::*;
 mod fund;
 mod init;
 
-#[derive(Parser)]
+#[derive(Debug, Parser)]
 pub(crate) enum Wallet {
   Init,
   Fund,

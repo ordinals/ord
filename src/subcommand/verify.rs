@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Parser)]
+#[derive(Debug, Parser)]
 pub(crate) struct Verify {
   #[clap(help = "Read bech32-formatted NFT from <INPUT_PATH>")]
   input_path: PathBuf,

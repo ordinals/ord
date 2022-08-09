@@ -15,7 +15,7 @@ use {
 mod deserialize_ordinal_from_str;
 mod tls_acceptor;
 
-#[derive(Parser)]
+#[derive(Debug, Parser)]
 #[clap(group = ArgGroup::new("port").multiple(false).required(true))]
 pub(crate) struct Server {
   #[clap(

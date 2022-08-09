@@ -1,10 +1,10 @@
 use super::*;
 
 #[test]
-fn basic() -> Result {
-  let output = Test::new()?.command("index").block().output()?;
+fn basic() {
+  let output = Test::new().command("index").output();
 
-  Test::with_tempdir(output.tempdir)
+  Test::with_state(output.state)
     .command("info")
     .stdout_regex(
       r"
@@ -12,12 +12,12 @@ fn basic() -> Result {
         outputs indexed: 1
         tree height: \d+
         free pages: \d+
-        stored: .* bytes
-        overhead: .* bytes
-        fragmented: .* KiB
-        index size: 1 MiB
+        stored: .*
+        overhead: .*
+        fragmented: .*
+        index size: .*
       "
       .unindent(),
     )
-    .run()
+    .run();
 }
