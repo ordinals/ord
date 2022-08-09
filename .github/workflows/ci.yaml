@@ -37,14 +37,16 @@ jobs:
         override: true
         toolchain: stable
 
+    - name: Install dependencies
+      run: brew install bitcoin sqlite
+
     - uses: Swatinem/rust-cache@v1
 
     - name: Check Lockfile
-      run: |
-        cargo update --locked --package ord
+      run: cargo update --locked --package ord
 
     - name: Test
-      run: cargo test --all
+      run: cargo test --all -- --test-threads=1
 
     - name: Clippy
       run: cargo clippy --all --all-targets

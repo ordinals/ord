@@ -1,8 +1,8 @@
 use super::*;
 
 #[test]
-fn genesis() -> Result {
-  Test::new()?
+fn genesis() {
+  Test::new()
     .args(&["supply"])
     .expected_stdout(
       &"
@@ -13,5 +13,5 @@ fn genesis() -> Result {
       "
       .unindent(),
     )
-    .run()
+    .run();
 }

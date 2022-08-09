@@ -1,106 +1,197 @@
 use super::*;
 
 #[test]
-fn list() -> Result {
-  let port = free_port()?;
+fn list() {
+  let mut state = State::new();
 
-  log::info!("port: {}", port);
+  state.blocks(1);
 
-  Test::new()?
-    .command(&format!("server --address 127.0.0.1 --http-port {port}"))
-    .blocks(1)
-    .request(
-      "list/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
-      200,
-      "[[0,5000000000]]",
-    )
-    .run_server(port)
+  sleep(Duration::from_secs(1));
+
+  state.request(
+    "api/list/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
+    200,
+    "[[0,5000000000]]",
+  );
 }
 
 #[test]
-fn status() -> Result {
-  let port = free_port()?;
-
-  Test::new()?
-    .command(&format!("server --address 127.0.0.1 --http-port {port}"))
-    .request("status", 200, "")
-    .run_server(port)
+fn status() {
+  State::new().request("status", 200, "");
 }
 
 #[test]
-fn continuously_index_ranges() -> Result {
-  let port = free_port()?;
-
-  Test::new()?
-    .command(&format!("server --address 127.0.0.1 --http-port {port}"))
-    .request(
-      "list/150ba822b458a19615e70a604d8dd9d3482fc165fa4e9cc150d74e11916ce8ae:0",
-      404,
-      "null",
-    )
-    .blocks(1)
-    .request(
-      "list/150ba822b458a19615e70a604d8dd9d3482fc165fa4e9cc150d74e11916ce8ae:0",
-      200,
-      "[[5000000000,10000000000]]",
-    )
-    .run_server(port)
+fn range_end_before_range_start_returns_400() {
+  State::new().request("range/1/0", 400, "Range Start Greater Than Range End");
 }
 
 #[test]
-fn http_or_https_port_is_required() -> Result {
-  Test::new()?
-    .command("server --address 127.0.0.1")
-    .stderr_regex("error: The following required arguments were not provided:\n    <--http-port <HTTP_PORT>\\|--https-port <HTTPS_PORT>>\n.*")
-    .expected_status(2)
-    .run()
+fn invalid_range_start_returns_400() {
+  State::new().request(
+    "range/foo/0",
+    400,
+    "Invalid URL: invalid digit found in string",
+  );
 }
 
 #[test]
-fn http_and_https_port_conflict() -> Result {
-  Test::new()?
-    .command("server --address 127.0.0.1 --http-port 0 --https-port 0")
-    .stderr_regex("error: The argument '--http-port <HTTP_PORT>' cannot be used with '--https-port <HTTPS_PORT>'\n.*")
-    .expected_status(2)
-    .run()
+fn invalid_range_end_returns_400() {
+  State::new().request(
+    "range/0/foo",
+    400,
+    "Invalid URL: invalid digit found in string",
+  );
 }
 
 #[test]
-fn http_port_requires_acme_flags() -> Result {
-  let port = free_port()?;
-
-  Test::new()?
-    .command("server --address 127.0.0.1 --https-port 0")
-    .stderr_regex("error: The following required arguments were not provided:\n    --acme-cache <ACME_CACHE>\n    --acme-domain <ACME_DOMAIN>\n    --acme-contact <ACME_CONTACT>\n.*")
-    .expected_status(2)
-    .run_server(port)
+fn empty_range_returns_400() {
+  State::new().request("range/0/0", 400, "Empty Range");
 }
 
 #[test]
-fn acme_contact_accepts_multiple_values() -> Result {
-  let port = free_port()?;
-
-  Test::new()?
-    .command("server --address 127.0.0.1 --http-port 0 --acme-contact foo --acme-contact bar")
-    .run_server(port)
+fn range_links_to_first() {
+  State::new().request("range/0/1", 200, "<a href='/ordinal/0'>first</a>");
 }
 
 #[test]
-fn acme_domain_accepts_multiple_values() -> Result {
-  let port = free_port()?;
-
-  Test::new()?
-    .command("server --address 127.0.0.1 --http-port 0 --acme-domain foo --acme-domain bar")
-    .run_server(port)
+fn ordinal_number() {
+  State::new().request("ordinal/0", 200, "0");
 }
 
 #[test]
-fn creates_acme_cache() {
-  let port = free_port().unwrap();
+fn ordinal_decimal() {
+  State::new().request("ordinal/0.0", 200, "0");
+}
 
-  let output = Test::new().unwrap()
-    .command("server --address 127.0.0.1 --https-port 0 --acme-domain foo --acme-cache bar --acme-contact mailto:foo@bar.com")
-    .run_server_output(port);
+#[test]
+fn ordinal_degree() {
+  State::new().request("ordinal/0°0′0″0‴", 200, "0");
+}
 
-  assert!(output.tempdir.path().join("bar").is_dir());
+#[test]
+fn ordinal_out_of_range() {
+  State::new().request(
+    "ordinal/2099999997690000",
+    400,
+    "Invalid URL: Invalid ordinal",
+  );
+}
+
+#[test]
+fn invalid_outpoint_hash_returns_400() {
+  State::new().request(
+    "output/foo:0",
+    400,
+    "Invalid URL: error parsing TXID: odd hex string length 3",
+  );
+}
+
+#[test]
+fn outpoint_returns_ordinal_ranges() {
+  let mut state = State::new();
+
+  state.blocks(1);
+
+  sleep(Duration::from_secs(1));
+
+  state.request(
+    "output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
+    200,
+    "<ul><li><a href='/range/0/5000000000'>\\[0,5000000000\\)</a></li></ul>",
+  );
+}
+
+#[test]
+fn invalid_vout_returns_404() {
+  let mut state = State::new();
+
+  state.blocks(1);
+
+  state.request(
+    "output/0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef8:0",
+    404,
+    "Output unknown, invalid, or spent.",
+  );
+}
+
+#[test]
+fn root() {
+  let mut state = State::new();
+
+  state.blocks(1);
+
+  sleep(Duration::from_secs(1));
+
+  state.request(
+    "/",
+    200,
+    "
+    <ul>
+      <li>0 - <a href='/block/0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206'>0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206</a></li>
+      <li>1 - <a href='/block/[[:xdigit:]]{64}'>[[:xdigit:]]{64}</a></li>
+    </ul>
+    ",
+  );
+}
+
+#[test]
+fn transactions() {
+  let mut state = State::new();
+
+  state.blocks(101);
+
+  sleep(Duration::from_secs(1));
+
+  state.transaction(TransactionOptions {
+    slots: &[(1, 0, 0)],
+    output_count: 1,
+    fee: 0,
+  });
+
+  let blocks = state.blocks(1);
+
+  state.request(
+    &format!("block/{}", blocks[0]),
+    200,
+    "
+    <ul>
+      <li>0 - <a href='/tx/[[:xdigit:]]{64}'>[[:xdigit:]]{64}</a></li>
+      <li>1 - <a href='/tx/[[:xdigit:]]{64}'>[[:xdigit:]]{64}</a></li>
+    </ul>
+  ",
+  );
+}
+
+#[test]
+fn block_not_found() {
+  State::new().request(
+    "block/467a86f0642b1d284376d13a98ef58310caa49502b0f9a560ee222e0a122fe16",
+    404,
+    "Not Found",
+  );
+}
+
+#[test]
+fn outputs() {
+  let mut state = State::new();
+
+  state.blocks(101);
+
+  sleep(Duration::from_secs(1));
+
+  state.transaction(TransactionOptions {
+    slots: &[(1, 0, 0)],
+    output_count: 1,
+    fee: 0,
+  });
+
+  state.request(
+    "tx/30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c",
+    200,
+    "
+    <ul>
+      <li><a href='/output/30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c:0'>30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c:0</a></li>
+    </ul>
+    "
+  );
 }
