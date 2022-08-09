@@ -91,7 +91,7 @@ fn fund_existing_wallet() {
 
   Test::with_state(state)
     .command("wallet fund")
-    .stdout_regex("^tb1.*\n")
+    .stdout_regex("^bcrt1.*\n")
     .run();
 }
 
