@@ -37,8 +37,16 @@ jobs:
         override: true
         toolchain: stable
 
-    - name: Install dependencies
-      run: brew install bitcoin sqlite
+    - name: Install Bitcoin from Homebrew
+      if: ${{ matrix.os == 'macos-latest' }}
+      run: brew install bitcoin
+
+    - name: Install from bitcoincore.org
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      run: |
+        curl -O https://bitcoincore.org/bin/bitcoin-core-23.0/bitcoin-23.0-x86_64-linux-gnu.tar.gz
+        tar xvf bitcoin-23.0-x86_64-linux-gnu.tar.gz
+        cp bitcoin-23.0/bin/bitcoind /usr/local/bin/
 
     - uses: Swatinem/rust-cache@v1
 
