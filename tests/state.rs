@@ -1,5 +1,13 @@
 use super::*;
 
+fn free_port() -> u16 {
+  TcpListener::bind("127.0.0.1:0")
+    .unwrap()
+    .local_addr()
+    .unwrap()
+    .port()
+}
+
 pub(crate) struct State {
   bitcoind: Child,
   pub(crate) tempdir: TempDir,
