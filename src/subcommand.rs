@@ -47,7 +47,7 @@ impl Subcommand {
       Self::Supply => supply::run(),
       Self::Traits(traits) => traits.run(),
       Self::Verify(verify) => verify.run(),
-      Self::Wallet(wallet) => wallet.run(),
+      Self::Wallet(wallet) => wallet.run(options),
     }
   }
 }

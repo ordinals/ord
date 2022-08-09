@@ -11,10 +11,13 @@ use {
   },
   axum_server::Handle,
   bdk::{
+    blockchain::rpc::{Auth, RpcBlockchain, RpcConfig},
+    blockchain::ConfigurableBlockchain,
     database::SqliteDatabase,
     keys::bip39::{Language, Mnemonic},
     template::Bip84,
     wallet::AddressIndex::LastUnused,
+    wallet::{wallet_name_from_descriptor, SyncOptions},
     KeychainKind,
   },
   bitcoin::{
@@ -31,7 +34,6 @@ use {
     util::key::PrivateKey,
     Block, Network, OutPoint, Transaction, Txid,
   },
-  bitcoincore_rpc::Auth,
   chrono::{DateTime, NaiveDateTime, Utc},
   clap::Parser,
   derive_more::{Display, FromStr},

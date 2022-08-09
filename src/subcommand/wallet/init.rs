@@ -1,6 +1,6 @@
 use super::*;
 
-pub(crate) fn run() -> Result {
+pub(crate) fn run(options: Options) -> Result {
   let path = data_dir()
     .ok_or_else(|| anyhow!("Failed to retrieve data dir"))?
     .join("ord");
@@ -15,10 +15,10 @@ pub(crate) fn run() -> Result {
 
   fs::write(path.join("entropy"), seed.to_entropy())?;
 
-  bdk::wallet::Wallet::new(
-    Bip84((seed, None), KeychainKind::External),
+  let wallet = bdk::wallet::Wallet::new(
+    Bip84((seed.clone(), None), KeychainKind::External),
     None,
-    Network::Signet,
+    options.network,
     SqliteDatabase::new(
       path
         .join("wallet.sqlite")
@@ -26,6 +26,24 @@ pub(crate) fn run() -> Result {
         .ok_or_else(|| anyhow!("Failed to convert path to str"))?
         .to_string(),
     ),
+  )?;
+
+  wallet.sync(
+    &RpcBlockchain::from_config(&RpcConfig {
+      url: options.rpc_url(),
+      auth: Auth::Cookie {
+        file: options.cookie_file()?,
+      },
+      network: options.network,
+      wallet_name: wallet_name_from_descriptor(
+        Bip84((seed, None), KeychainKind::External),
+        None,
+        options.network,
+        &Secp256k1::new(),
+      )?,
+      skip_blocks: None,
+    })?,
+    SyncOptions::default(),
   )?;
 
   eprintln!("Wallet initialized.");
