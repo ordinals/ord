@@ -34,7 +34,6 @@ use {
     util::key::PrivateKey,
     Block, Network, OutPoint, Transaction, Txid,
   },
-  bitcoincore_rpc::Auth,
   chrono::{DateTime, NaiveDateTime, Utc},
   clap::Parser,
   derive_more::{Display, FromStr},

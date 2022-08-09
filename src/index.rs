@@ -1,6 +1,6 @@
 use {
   super::*,
-  bitcoincore_rpc::{Client, RpcApi},
+  bitcoincore_rpc::{Auth, Client, RpcApi},
   rayon::iter::{IntoParallelRefIterator, ParallelIterator},
 };
 
