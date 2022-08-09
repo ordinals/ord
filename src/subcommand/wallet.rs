@@ -56,7 +56,7 @@ fn get_wallet(options: Options) -> Result<bdk::wallet::Wallet<SqliteDatabase>> {
   Ok(wallet)
 }
 
-#[derive(Parser)]
+#[derive(Debug, Parser)]
 pub(crate) enum Wallet {
   Balance,
   Fund,

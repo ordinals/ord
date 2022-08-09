@@ -15,18 +15,8 @@ pub(crate) struct Index {
 
 impl Index {
   pub(crate) fn open(options: &Options) -> Result<Self> {
-    let client = Client::new(
-      options
-        .rpc_url
-        .as_ref()
-        .ok_or_else(|| anyhow!("This command requires `--rpc-url`"))?,
-      options
-        .cookie_file
-        .as_ref()
-        .map(|path| Auth::CookieFile(path.clone()))
-        .unwrap_or(Auth::None),
-    )
-    .context("Failed to connect to RPC URL")?;
+    let client = Client::new(&options.rpc_url(), Auth::CookieFile(options.cookie_file()?))
+      .context("Failed to connect to RPC URL")?;
 
     let database = match unsafe { redb::Database::open("index.redb") } {
       Ok(database) => database,
@@ -105,12 +95,17 @@ impl Index {
     loop {
       let mut wtx = self.database.begin_write()?;
 
-      let done = self.index_block(&mut wtx)?;
-
-      wtx.commit()?;
-
-      if done || INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
-        break;
+      match self.index_block(&mut wtx) {
+        Ok(done) => {
+          wtx.commit()?;
+          if done || INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
+            break;
+          }
+        }
+        Err(err) => {
+          wtx.abort()?;
+          return Err(err);
+        }
       }
     }
 
@@ -131,7 +126,7 @@ impl Index {
       .map(|(height, _hash)| height + 1)
       .unwrap_or(0);
 
-    let block = match self.block(height)? {
+    let block = match self.block_at_height(height)? {
       Some(block) => block,
       None => {
         return Ok(true);
@@ -238,6 +233,22 @@ impl Index {
     )
   }
 
+  pub(crate) fn all(&self) -> Result<Vec<sha256d::Hash>> {
+    let mut blocks = Vec::new();
+
+    let tx = self.database.begin_read()?;
+
+    let height_to_hash = tx.open_table(HEIGHT_TO_HASH)?;
+
+    let mut cursor = height_to_hash.range(0..)?;
+
+    while let Some(next) = cursor.next() {
+      blocks.push(sha256d::Hash::from_slice(next.1)?);
+    }
+
+    Ok(blocks)
+  }
+
   fn index_transaction(
     &self,
     txid: Txid,
@@ -291,12 +302,47 @@ impl Index {
     Ok(())
   }
 
-  pub(crate) fn block(&self, height: u64) -> Result<Option<Block>> {
+  pub(crate) fn block_at_height(&self, height: u64) -> Result<Option<Block>> {
     match self.client.get_block_hash(height) {
       Ok(hash) => Ok(Some(self.client.get_block(&hash)?)),
       Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(
         bitcoincore_rpc::jsonrpc::error::RpcError { code: -8, .. },
       ))) => Ok(None),
+      Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(
+        bitcoincore_rpc::jsonrpc::error::RpcError { message, .. },
+      )))
+        if message == "Block not found" =>
+      {
+        Ok(None)
+      }
+      Err(err) => Err(err.into()),
+    }
+  }
+
+  pub(crate) fn block_with_hash(&self, hash: sha256d::Hash) -> Result<Option<Block>> {
+    match self.client.get_block(&BlockHash::from_hash(hash)) {
+      Ok(block) => Ok(Some(block)),
+      Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(
+        bitcoincore_rpc::jsonrpc::error::RpcError { code: -8, .. },
+      ))) => Ok(None),
+      Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(
+        bitcoincore_rpc::jsonrpc::error::RpcError { message, .. },
+      )))
+        if message == "Block not found" =>
+      {
+        Ok(None)
+      }
+      Err(err) => Err(err.into()),
+    }
+  }
+
+  pub(crate) fn transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
+    match self.client.get_raw_transaction(&txid, None) {
+      Ok(transaction) => Ok(Some(transaction)),
+      Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(
+        bitcoincore_rpc::jsonrpc::error::RpcError { code: -8, .. },
+      ))) => Ok(None),
+
       Err(err) => Err(err.into()),
     }
   }

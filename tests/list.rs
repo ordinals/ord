@@ -1,25 +1,25 @@
 use super::*;
 
 #[test]
-fn first_coinbase_transaction() -> Result {
-  Test::new()?
+fn first_coinbase_transaction() {
+  Test::new()
     .command("list 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0")
     .expected_stdout("[0,5000000000)\n")
-    .run()
+    .run();
 }
 
 #[test]
-fn second_coinbase_transaction() -> Result {
-  Test::new()?
+fn second_coinbase_transaction() {
+  Test::new()
     .command("list 150ba822b458a19615e70a604d8dd9d3482fc165fa4e9cc150d74e11916ce8ae:0")
     .blocks(1)
     .expected_stdout("[5000000000,10000000000)\n")
-    .run()
+    .run();
 }
 
 #[test]
-fn split_ranges_are_tracked_correctly() -> Result {
-  Test::new()?
+fn split_ranges_are_tracked_correctly() {
+  Test::new()
     .command("list 36b5e3d6454fdadf762e8adc28140bbf38ee673c68bf05aaac82add84c0ff862:0")
     .blocks(101)
     .transaction(TransactionOptions {
@@ -29,9 +29,9 @@ fn split_ranges_are_tracked_correctly() -> Result {
     })
     .blocks(1)
     .expected_stdout("[5000000000,7500000000)\n")
-    .run()?;
+    .run();
 
-  Test::new()?
+  Test::new()
     .command("list 36b5e3d6454fdadf762e8adc28140bbf38ee673c68bf05aaac82add84c0ff862:1")
     .blocks(101)
     .transaction(TransactionOptions {
@@ -41,12 +41,12 @@ fn split_ranges_are_tracked_correctly() -> Result {
     })
     .blocks(1)
     .expected_stdout("[7500000000,10000000000)\n")
-    .run()
+    .run();
 }
 
 #[test]
-fn merge_ranges_are_tracked_correctly() -> Result {
-  Test::new()?
+fn merge_ranges_are_tracked_correctly() {
+  Test::new()
     .command("list 430f77dcea637d90d82ac561f9f1955119c0d25b690da250ba98872e15e9069f:0")
     .blocks(101)
     .transaction(TransactionOptions {
@@ -62,12 +62,12 @@ fn merge_ranges_are_tracked_correctly() -> Result {
     })
     .blocks(1)
     .expected_stdout("[5000000000,7500000000)\n[7500000000,10000000000)\n")
-    .run()
+    .run();
 }
 
 #[test]
-fn fee_paying_transaction_range() -> Result {
-  Test::new()?
+fn fee_paying_transaction_range() {
+  Test::new()
     .command("list a57ccabdca48ada30a5e58459584e43691a56f4fcc51121d8aa9bf1d1c682603:0")
     .blocks(101)
     .transaction(TransactionOptions {
@@ -77,9 +77,9 @@ fn fee_paying_transaction_range() -> Result {
     })
     .blocks(1)
     .expected_stdout("[5000000000,7499999995)\n")
-    .run()?;
+    .run();
 
-  Test::new()?
+  Test::new()
     .command("list a57ccabdca48ada30a5e58459584e43691a56f4fcc51121d8aa9bf1d1c682603:1")
     .blocks(101)
     .transaction(TransactionOptions {
@@ -89,9 +89,9 @@ fn fee_paying_transaction_range() -> Result {
     })
     .blocks(1)
     .expected_stdout("[7499999995,9999999990)\n")
-    .run()?;
+    .run();
 
-  Test::new()?
+  Test::new()
     .command("list 721792011e3200abd01693490de5215b570da0048e55b66514201cb62396e376:0")
     .blocks(101)
     .transaction(TransactionOptions {
@@ -101,12 +101,12 @@ fn fee_paying_transaction_range() -> Result {
     })
     .blocks(1)
     .expected_stdout("[510000000000,515000000000)\n[9999999990,10000000000)\n")
-    .run()
+    .run();
 }
 
 #[test]
-fn two_fee_paying_transaction_range() -> Result {
-  Test::new()?
+fn two_fee_paying_transaction_range() {
+  Test::new()
     .command("list 7f3b38a0bc60f581fd7f4b178ca2a697575000e212c8752b455ec134d160ea9a:0")
     .blocks(102)
     .transaction(TransactionOptions {
@@ -127,8 +127,8 @@ fn two_fee_paying_transaction_range() -> Result {
 }
 
 #[test]
-fn null_output() -> Result {
-  Test::new()?
+fn null_output() {
+  Test::new()
     .command("list 3dbc87de25bf5a52ddfa8038bda36e09622f4dec7951d81ac43e4b0e8c54bc5b:0")
     .blocks(101)
     .transaction(TransactionOptions {
@@ -142,8 +142,8 @@ fn null_output() -> Result {
 }
 
 #[test]
-fn null_input() -> Result {
-  Test::new()?
+fn null_input() {
+  Test::new()
     .command("list 3dbc87de25bf5a52ddfa8038bda36e09622f4dec7951d81ac43e4b0e8c54bc5b:0")
     .blocks(101)
     .transaction(TransactionOptions {
@@ -162,8 +162,8 @@ fn null_input() -> Result {
 }
 
 #[test]
-fn old_transactions_are_pruned() -> Result {
-  Test::new()?
+fn old_transactions_are_pruned() {
+  Test::new()
     .command("list 150ba822b458a19615e70a604d8dd9d3482fc165fa4e9cc150d74e11916ce8ae:0")
     .blocks(101)
     .transaction(TransactionOptions {

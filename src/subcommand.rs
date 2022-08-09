@@ -14,7 +14,7 @@ mod traits;
 mod verify;
 mod wallet;
 
-#[derive(Parser)]
+#[derive(Debug, Parser)]
 pub(crate) enum Subcommand {
   Epochs,
   Find(find::Find),
