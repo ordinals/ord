@@ -1,7 +1,7 @@
 #![allow(clippy::type_complexity)]
 
 use {
-  self::{state::State, test::Test},
+  self::{state::State, test::Test, transaction_options::TransactionOptions},
   bdk::{
     blockchain::{
       rpc::{RpcBlockchain, RpcConfig},
@@ -13,20 +13,17 @@ use {
     wallet::{signer::SignOptions, AddressIndex, SyncOptions, Wallet},
     KeychainKind,
   },
-  bitcoin::hash_types::Txid,
-  bitcoin::util::address::Address,
-  bitcoin::{network::constants::Network, Block, OutPoint},
+  bitcoin::{hash_types::Txid, network::constants::Network, Address, Block, OutPoint},
   bitcoincore_rpc::{Client, RawTx, RpcApi},
   executable_path::executable_path,
   log::LevelFilter,
   regex::Regex,
-  std::str::FromStr,
   std::{
     collections::BTreeMap,
     fs,
     net::TcpListener,
     process::{Child, Command, Stdio},
-    str,
+    str::{self, FromStr},
     sync::Once,
     thread::sleep,
     time::Duration,
@@ -48,49 +45,6 @@ mod state;
 mod supply;
 mod test;
 mod traits;
+mod transaction_options;
 mod version;
 mod wallet;
-
-fn free_port() -> u16 {
-  TcpListener::bind("127.0.0.1:0")
-    .unwrap()
-    .local_addr()
-    .unwrap()
-    .port()
-}
-
-#[derive(Debug)]
-enum Expected {
-  String(String),
-  Regex(Regex),
-  Ignore,
-}
-
-impl Expected {
-  fn regex(pattern: &str) -> Self {
-    Self::Regex(Regex::new(&format!("^(?s){}$", pattern)).unwrap())
-  }
-
-  fn assert_match(&self, output: &str) {
-    match self {
-      Self::String(string) => assert_eq!(output, string),
-      Self::Regex(regex) => assert!(
-        regex.is_match(output),
-        "output did not match regex: {:?}",
-        output
-      ),
-      Self::Ignore => {}
-    }
-  }
-}
-
-struct Output {
-  state: State,
-  stdout: String,
-}
-
-struct TransactionOptions<'a> {
-  slots: &'a [(usize, usize, usize)],
-  output_count: usize,
-  fee: u64,
-}

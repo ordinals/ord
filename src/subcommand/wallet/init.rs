@@ -18,7 +18,7 @@ pub(crate) fn run(options: Options) -> Result {
   let wallet = bdk::wallet::Wallet::new(
     Bip84((seed.clone(), None), KeychainKind::External),
     None,
-    Network::Regtest,
+    options.network,
     SqliteDatabase::new(
       path
         .join("wallet.sqlite")
@@ -30,18 +30,15 @@ pub(crate) fn run(options: Options) -> Result {
 
   wallet.sync(
     &RpcBlockchain::from_config(&RpcConfig {
-      url: options
-        .rpc_url
-        .ok_or_else(|| anyhow!("This command requires `--rpc-url`"))?,
-      auth: options
-        .cookie_file
-        .map(|path| Auth::Cookie { file: path })
-        .unwrap_or(Auth::None),
-      network: Network::Regtest,
+      url: options.rpc_url(),
+      auth: Auth::Cookie {
+        file: options.cookie_file()?,
+      },
+      network: options.network,
       wallet_name: wallet_name_from_descriptor(
         Bip84((seed, None), KeychainKind::External),
         None,
-        Network::Regtest,
+        options.network,
         &Secp256k1::new(),
       )?,
       skip_blocks: None,
