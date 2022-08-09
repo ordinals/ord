@@ -1,7 +1,7 @@
 use super::*;
 
 pub(crate) fn run(options: Options) -> Result {
-  Ok(println!(
+  println!(
     "{}",
     get_wallet(options)?
       .list_unspent()?
@@ -9,5 +9,6 @@ pub(crate) fn run(options: Options) -> Result {
       .map(|utxo| format!("{}:{}", utxo.outpoint.txid, utxo.outpoint.vout))
       .collect::<Vec<String>>()
       .join("\n")
-  ))
+  );
+  Ok(())
 }

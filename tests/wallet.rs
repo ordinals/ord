@@ -1,4 +1,4 @@
-use {super::*, bitcoin::Address, std::str::FromStr};
+use super::*;
 
 fn path(path: &str) -> String {
   if cfg!(target_os = "macos") {
@@ -124,7 +124,7 @@ fn utxos() {
     .generate_to_address(
       101,
       &Address::from_str(
-        &output
+        output
           .stdout
           .strip_suffix('\n')
           .ok_or("Failed to strip suffix")
@@ -161,7 +161,7 @@ fn balance() {
     .generate_to_address(
       101,
       &Address::from_str(
-        &output
+        output
           .stdout
           .strip_suffix('\n')
           .ok_or("Failed to strip suffix")
