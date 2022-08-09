@@ -150,6 +150,13 @@ fn balance() {
     .output()
     .state;
 
+  let state = Test::with_state(state)
+    .command("--network regtest wallet balance")
+    .expected_status(0)
+    .expected_stdout("0\n")
+    .output()
+    .state;
+
   let output = Test::with_state(state)
     .command("--network regtest wallet fund")
     .stdout_regex("^bcrt1.*\n")
