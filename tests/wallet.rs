@@ -124,7 +124,7 @@ fn utxos() {
     .generate_to_address(
       101,
       &Address::from_str(
-        &output
+        output
           .stdout
           .strip_suffix('\n')
           .ok_or("Failed to strip suffix")
