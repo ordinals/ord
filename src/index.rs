@@ -95,17 +95,12 @@ impl Index {
     loop {
       let mut wtx = self.database.begin_write()?;
 
-      match self.index_block(&mut wtx) {
-        Ok(done) => {
-          wtx.commit()?;
-          if done || INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
-            break;
-          }
-        }
-        Err(err) => {
-          wtx.abort()?;
-          return Err(err);
-        }
+      let done = self.index_block(&mut wtx)?;
+
+      wtx.commit()?;
+
+      if done || INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
+        break;
       }
     }
 
