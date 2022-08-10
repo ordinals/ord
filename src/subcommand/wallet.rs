@@ -2,6 +2,7 @@ use super::*;
 
 mod balance;
 mod fund;
+mod identify;
 mod init;
 mod utxos;
 
@@ -57,6 +58,7 @@ fn get_wallet(options: Options) -> Result<bdk::wallet::Wallet<SqliteDatabase>> {
 pub(crate) enum Wallet {
   Balance,
   Fund,
+  Identify,
   Init,
   Utxos,
 }
@@ -66,6 +68,7 @@ impl Wallet {
     match self {
       Self::Balance => balance::run(options),
       Self::Fund => fund::run(options),
+      Self::Identify => identify::run(options),
       Self::Init => init::run(options),
       Self::Utxos => utxos::run(options),
     }
