@@ -274,13 +274,17 @@ fn send() {
   )
   .unwrap();
 
+  let address = wallet.get_address(AddressIndex::LastUnused).unwrap();
+
   let state = Test::with_state(state)
     .command(&format!(
-      "--network regtest wallet send --address {} --ordinal 5000000001",
-      wallet.get_address(AddressIndex::LastUnused).unwrap()
+      "--network regtest wallet send --address {address} --ordinal 5000000001",
     ))
     .expected_status(0)
-    .expected_stdout("")
+    .stdout_regex(format!(
+      "Sent ordinal 5000000001 to address {address}, {}\n",
+      "[[:xdigit:]]{64}",
+    ))
     .output()
     .state;
 
@@ -288,7 +292,11 @@ fn send() {
     .sync(&state.blockchain, SyncOptions::default())
     .unwrap();
 
+  let utxos = wallet.list_unspent().unwrap();
+
   // TODO: assert that a utxo owned by this wallet
   // contains the ordinal we wanted to send
-  assert!(!wallet.list_unspent().unwrap().is_empty())
+  assert!(!utxos.is_empty());
+
+  log::info!("{:?}", utxos);
 }

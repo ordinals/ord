@@ -66,7 +66,16 @@ impl Send {
       skip_blocks: None,
     })?;
 
-    blockchain.broadcast(&psbt.extract_tx())?;
+    let tx = psbt.extract_tx();
+
+    blockchain.broadcast(&tx)?;
+
+    println!(
+      "Sent ordinal {} to address {}, {}",
+      self.ordinal.0,
+      self.address,
+      tx.txid()
+    );
 
     Ok(())
   }
