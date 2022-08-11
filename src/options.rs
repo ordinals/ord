@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Debug, Parser)]
+#[derive(Clone, Debug, Parser)]
 pub(crate) struct Options {
   #[clap(long, default_value = "10MiB")]
   pub(crate) max_index_size: Bytes,

@@ -1,6 +1,7 @@
-use {super::*, bdk::wallet::signer::SignOptions, bdk::LocalUtxo, bitcoin::Address};
-
-// ord wallet send --address <address> --ordinal <ordinal>
+use {
+  super::*, bdk::blockchain::Blockchain, bdk::blockchain::RpcBlockchain,
+  bdk::wallet::signer::SignOptions, bdk::LocalUtxo, bitcoin::Address,
+};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
@@ -12,30 +13,71 @@ pub(crate) struct Send {
 
 impl Send {
   pub(crate) fn run(self, options: Options) -> Result {
-    let index = Index::index(&options)?;
+    let wallet = get_wallet(options.clone())?;
 
-    let wallet = get_wallet(options)?;
-
-    let utxo = self.find(index, &wallet)?;
+    let utxo = self.find(options.clone(), &wallet)?;
 
     let (mut psbt, _details) = {
       let mut builder = wallet.build_tx();
 
       builder
+        .manually_selected_only()
+        .fee_absolute(0)
+        .allow_dust(true)
         .add_utxo(utxo.outpoint)?
+        // is this even right?
         .add_recipient(self.address.script_pubkey(), utxo.txout.value);
 
       builder.finish()?
     };
 
     if !wallet.sign(&mut psbt, SignOptions::default())? {
-      bail!("Failed to sign transaction.")
+      bail!("Failed to sign transaction.");
     }
+
+    let path = data_dir()
+      .ok_or_else(|| anyhow!("Failed to retrieve data dir"))?
+      .join("ord");
+
+    if !path.exists() {
+      return Err(anyhow!("Wallet doesn't exist."));
+    }
+
+    // todo: get save blockchain somewhere else
+
+    let blockchain = RpcBlockchain::from_config(&RpcConfig {
+      url: options.rpc_url(),
+      auth: Auth::Cookie {
+        file: options.cookie_file()?,
+      },
+      network: options.network,
+      wallet_name: wallet_name_from_descriptor(
+        Bip84(
+          (
+            Mnemonic::from_entropy(&fs::read(path.join("entropy"))?)?,
+            None,
+          ),
+          KeychainKind::External,
+        ),
+        None,
+        options.network,
+        &Secp256k1::new(),
+      )?,
+      skip_blocks: None,
+    })?;
+
+    blockchain.broadcast(&psbt.extract_tx())?;
 
     Ok(())
   }
 
-  fn find(&self, index: Index, wallet: &bdk::wallet::Wallet<SqliteDatabase>) -> Result<LocalUtxo> {
+  fn find(
+    &self,
+    options: Options,
+    wallet: &bdk::wallet::Wallet<SqliteDatabase>,
+  ) -> Result<LocalUtxo> {
+    let index = Index::index(&options)?;
+
     for utxo in wallet.list_unspent()? {
       if let Some(ranges) = index.list(utxo.outpoint)? {
         for (start, end) in ranges {

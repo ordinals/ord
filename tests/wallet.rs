@@ -224,22 +224,6 @@ fn identify() {
 
 #[test]
 fn send() {
-  // wallet we'll send to
-  let _wallet = Wallet::new(
-    Bip84(
-      (
-        Mnemonic::parse("book fit fly ketchup also elevator scout mind edit fatal where rookie")
-          .unwrap(),
-        None,
-      ),
-      KeychainKind::External,
-    ),
-    None,
-    Network::Regtest,
-    MemoryDatabase::new(),
-  )
-  .unwrap();
-
   let state = Test::new()
     .command("--network regtest wallet init")
     .expected_status(0)
@@ -268,9 +252,43 @@ fn send() {
     )
     .unwrap();
 
-  Test::with_state(output.state)
+  let state = Test::with_state(output.state)
     .command("--network regtest wallet identify")
     .expected_status(0)
     .expected_stdout("[5000000000, 10000000000)\n")
-    .run()
+    .output()
+    .state;
+
+  let wallet = Wallet::new(
+    Bip84(
+      (
+        Mnemonic::parse("book fit fly ketchup also elevator scout mind edit fatal where rookie")
+          .unwrap(),
+        None,
+      ),
+      KeychainKind::External,
+    ),
+    None,
+    Network::Regtest,
+    MemoryDatabase::new(),
+  )
+  .unwrap();
+
+  let state = Test::with_state(state)
+    .command(&format!(
+      "--network regtest wallet send --address {} --ordinal 5000000001",
+      wallet.get_address(AddressIndex::LastUnused).unwrap()
+    ))
+    .expected_status(0)
+    .expected_stdout("")
+    .output()
+    .state;
+
+  wallet
+    .sync(&state.blockchain, SyncOptions::default())
+    .unwrap();
+
+  // TODO: assert that a utxo owned by this wallet
+  // contains the ordinal we wanted to send
+  assert!(!wallet.list_unspent().unwrap().is_empty())
 }
