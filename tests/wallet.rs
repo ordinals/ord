@@ -236,21 +236,16 @@ fn send() {
     .stdout_regex("^bcrt1.*\n")
     .output();
 
-  output
-    .state
-    .client
-    .generate_to_address(
-      101,
-      &Address::from_str(
-        output
-          .stdout
-          .strip_suffix('\n')
-          .ok_or("Failed to strip suffix")
-          .unwrap(),
-      )
+  let addr = Address::from_str(
+    output
+      .stdout
+      .strip_suffix('\n')
+      .ok_or("Failed to strip suffix")
       .unwrap(),
-    )
-    .unwrap();
+  )
+  .unwrap();
+
+  output.state.client.generate_to_address(101, &addr).unwrap();
 
   let state = Test::with_state(output.state)
     .command("--network regtest wallet identify")
@@ -292,11 +287,14 @@ fn send() {
     .sync(&state.blockchain, SyncOptions::default())
     .unwrap();
 
-  let utxos = wallet.list_unspent().unwrap();
+  state.client.generate_to_address(1, &addr).unwrap();
 
-  // TODO: assert that a utxo owned by this wallet
-  // contains the ordinal we wanted to send
-  assert!(!utxos.is_empty());
-
-  log::info!("{:?}", utxos);
+  Test::with_state(state)
+    .command(&format!(
+      "--network regtest list {}",
+      wallet.list_unspent().unwrap().first().unwrap().outpoint
+    ))
+    .expected_status(0)
+    .expected_stdout("[5000000000,10000000000)\n")
+    .run()
 }
