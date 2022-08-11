@@ -25,7 +25,6 @@ impl Send {
         .fee_absolute(0)
         .allow_dust(true)
         .add_utxo(utxo.outpoint)?
-        // is this even right?
         .add_recipient(self.address.script_pubkey(), utxo.txout.value);
 
       builder.finish()?
@@ -42,8 +41,6 @@ impl Send {
     if !path.exists() {
       return Err(anyhow!("Wallet doesn't exist."));
     }
-
-    // todo: get save blockchain somewhere else
 
     let blockchain = RpcBlockchain::from_config(&RpcConfig {
       url: options.rpc_url(),
