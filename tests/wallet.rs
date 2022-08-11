@@ -184,3 +184,55 @@ fn balance() {
     .expected_stdout("5000000000\n")
     .run()
 }
+
+#[test]
+fn send() {
+  let wallet = Wallet::new(
+    Bip84(
+      (
+        Mnemonic::parse("book fit fly ketchup also elevator scout mind edit fatal where rookie")
+          .unwrap(),
+        None,
+      ),
+      KeychainKind::External,
+    ),
+    None,
+    Network::Regtest,
+    MemoryDatabase::new(),
+  )
+  .unwrap();
+
+  let state = Test::new()
+    .command("--network regtest wallet init")
+    .expected_status(0)
+    .expected_stderr("Wallet initialized.\n")
+    .output()
+    .state;
+
+  let output = Test::with_state(state)
+    .command("--network regtest wallet fund")
+    .stdout_regex("^bcrt1.*\n")
+    .output();
+
+  output
+    .state
+    .client
+    .generate_to_address(
+      101,
+      &Address::from_str(
+        output
+          .stdout
+          .strip_suffix('\n')
+          .ok_or("Failed to strip suffix")
+          .unwrap(),
+      )
+      .unwrap(),
+    )
+    .unwrap();
+
+  Test::with_state(output.state)
+    .command("--network regtest wallet balance")
+    .expected_status(0)
+    .expected_stdout("5000000000\n")
+    .run()
+}
