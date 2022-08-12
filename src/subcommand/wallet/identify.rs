@@ -3,7 +3,8 @@ use super::*;
 pub(crate) fn run(options: Options) -> Result {
   let index = Index::index(&options)?;
 
-  let ranges = get_wallet(options)?
+  let ranges = OrdWallet::load(&options)?
+    .wallet
     .list_unspent()?
     .iter()
     .map(|utxo| index.list(utxo.outpoint))
