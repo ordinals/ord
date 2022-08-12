@@ -3,7 +3,7 @@
 use {
   crate::{
     arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height, index::Index, nft::Nft,
-    options::Options, ordinal::Ordinal, sat_point::SatPoint, subcommand::Subcommand,
+    options::Options, ordinal::Ordinal, purse::Purse, sat_point::SatPoint, subcommand::Subcommand,
   },
   anyhow::{anyhow, bail, Context, Error},
   axum::{
@@ -12,13 +12,13 @@ use {
   axum_server::Handle,
   bdk::{
     blockchain::rpc::{Auth, RpcBlockchain, RpcConfig},
-    blockchain::ConfigurableBlockchain,
+    blockchain::{Blockchain, ConfigurableBlockchain},
     database::SqliteDatabase,
     keys::bip39::{Language, Mnemonic},
     template::Bip84,
-    wallet::AddressIndex::LastUnused,
+    wallet::{signer::SignOptions, AddressIndex::LastUnused},
     wallet::{wallet_name_from_descriptor, SyncOptions},
-    KeychainKind,
+    KeychainKind, LocalUtxo,
   },
   bitcoin::{
     blockdata::constants::COIN_VALUE,
@@ -32,7 +32,7 @@ use {
       KeyPair, Secp256k1, XOnlyPublicKey,
     },
     util::key::PrivateKey,
-    Block, Network, OutPoint, Transaction, Txid,
+    Address, Block, Network, OutPoint, Transaction, Txid,
   },
   chrono::{DateTime, NaiveDateTime, Utc},
   clap::Parser,
@@ -75,6 +75,7 @@ mod index;
 mod nft;
 mod options;
 mod ordinal;
+mod purse;
 mod sat_point;
 mod subcommand;
 
