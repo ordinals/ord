@@ -214,12 +214,25 @@ fn send_owned_ordinal() {
     .generate_to_address(101, &from_address)
     .unwrap();
 
-  let state = Test::with_state(output.state)
-    .command("--network regtest wallet identify")
+  let mut output = Test::with_state(output.state)
+    .command("--network regtest wallet utxos")
     .expected_status(0)
-    .expected_stdout("[5000000000, 10000000000)\n")
-    .output()
-    .state;
+    .stdout_regex("[[:xdigit:]]{64}:[[:digit:]] 5000000000\n")
+    .output();
+
+  output.state.request(
+    &format!(
+      "api/list/{}",
+      output
+        .stdout
+        .split(' ')
+        .collect::<Vec<&str>>()
+        .first()
+        .unwrap()
+    ),
+    200,
+    "[[5000000000, 10000000000]]",
+  );
 
   let wallet = Wallet::new(
     Bip84(
@@ -238,7 +251,7 @@ fn send_owned_ordinal() {
 
   let to_address = wallet.get_address(AddressIndex::LastUnused).unwrap();
 
-  let state = Test::with_state(state)
+  let state = Test::with_state(output.state)
     .command(&format!(
       "--network regtest wallet send --address {to_address} --ordinal 5000000001",
     ))
@@ -295,12 +308,25 @@ fn send_foreign_ordinal() {
     .generate_to_address(101, &from_address)
     .unwrap();
 
-  let state = Test::with_state(output.state)
-    .command("--network regtest wallet identify")
+  let mut output = Test::with_state(output.state)
+    .command("--network regtest wallet utxos")
     .expected_status(0)
-    .expected_stdout("[5000000000, 10000000000)\n")
-    .output()
-    .state;
+    .stdout_regex("[[:xdigit:]]{64}:[[:digit:]] 5000000000\n")
+    .output();
+
+  output.state.request(
+    &format!(
+      "api/list/{}",
+      output
+        .stdout
+        .split(' ')
+        .collect::<Vec<&str>>()
+        .first()
+        .unwrap()
+    ),
+    200,
+    "[[5000000000, 10000000000]]",
+  );
 
   let wallet = Wallet::new(
     Bip84(
@@ -319,7 +345,7 @@ fn send_foreign_ordinal() {
 
   let to_address = wallet.get_address(AddressIndex::LastUnused).unwrap();
 
-  Test::with_state(state)
+  Test::with_state(output.state)
     .command(&format!(
       "--network regtest wallet send --address {to_address} --ordinal 4999999999",
     ))
