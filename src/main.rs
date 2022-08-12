@@ -3,8 +3,7 @@
 use {
   crate::{
     arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height, index::Index, nft::Nft,
-    options::Options, ordinal::Ordinal, sat_point::SatPoint, subcommand::Subcommand,
-    wallet::Wallet as OrdWallet,
+    options::Options, ordinal::Ordinal, purse::Purse, sat_point::SatPoint, subcommand::Subcommand,
   },
   anyhow::{anyhow, bail, Context, Error},
   axum::{
@@ -76,9 +75,9 @@ mod index;
 mod nft;
 mod options;
 mod ordinal;
+mod purse;
 mod sat_point;
 mod subcommand;
-mod wallet;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 

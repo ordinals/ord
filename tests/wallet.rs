@@ -257,7 +257,7 @@ fn send_owned_ordinal() {
     ))
     .expected_status(0)
     .stdout_regex(format!(
-      "Sent ordinal 5000000001 to address {to_address}, {}\n",
+      "Sent ordinal 5000000001 to address {to_address}: {}\n",
       "[[:xdigit:]]{64}",
     ))
     .output()
@@ -350,6 +350,6 @@ fn send_foreign_ordinal() {
       "--network regtest wallet send --address {to_address} --ordinal 4999999999",
     ))
     .expected_status(1)
-    .expected_stderr("error: No utxo found that contains ordinal 4999999999.\n")
+    .expected_stderr("error: No utxo contains 4999999999˚.\n")
     .run()
 }

@@ -1,13 +1,13 @@
 use super::*;
 
 #[derive(Debug)]
-pub(crate) struct Wallet {
+pub(crate) struct Purse {
   pub(crate) wallet: bdk::wallet::Wallet<SqliteDatabase>,
   pub(crate) blockchain: RpcBlockchain,
 }
 
-impl Wallet {
-  pub(crate) fn setup(options: &Options) -> Result {
+impl Purse {
+  pub(crate) fn init(options: &Options) -> Result {
     let path = data_dir()
       .ok_or_else(|| anyhow!("Failed to retrieve data dir"))?
       .join("ord");
@@ -111,13 +111,13 @@ impl Wallet {
     for utxo in self.wallet.list_unspent()? {
       if let Some(ranges) = index.list(utxo.outpoint)? {
         for (start, end) in ranges {
-          if start <= ordinal.0 && ordinal.0 < end {
+          if ordinal.0 >= start && ordinal.0 < end {
             return Ok(utxo);
           }
         }
       }
     }
 
-    bail!("No utxo found that contains ordinal {}.", ordinal);
+    bail!("No utxo contains {}˚.", ordinal);
   }
 }
