@@ -12,17 +12,18 @@ impl Wallet {
       .ok_or_else(|| anyhow!("Failed to retrieve data dir"))?
       .join("ord");
 
-    if !path.exists() {
-      return Err(anyhow!("Wallet doesn't exist."));
+    if path.exists() {
+      return Err(anyhow!("Wallet already exists."));
     }
 
-    let key = (
-      Mnemonic::from_entropy(&fs::read(path.join("entropy"))?)?,
-      None,
-    );
+    fs::create_dir_all(&path)?;
+
+    let seed = Mnemonic::generate_in_with(&mut rand::thread_rng(), Language::English, 12)?;
+
+    fs::write(path.join("entropy"), seed.to_entropy())?;
 
     let wallet = bdk::wallet::Wallet::new(
-      Bip84(key.clone(), KeychainKind::External),
+      Bip84((seed.clone(), None), KeychainKind::External),
       None,
       options.network,
       SqliteDatabase::new(
@@ -42,7 +43,7 @@ impl Wallet {
         },
         network: options.network,
         wallet_name: wallet_name_from_descriptor(
-          Bip84(key, KeychainKind::External),
+          Bip84((seed, None), KeychainKind::External),
           None,
           options.network,
           &Secp256k1::new(),
@@ -51,6 +52,8 @@ impl Wallet {
       })?,
       SyncOptions::default(),
     )?;
+
+    eprintln!("Wallet initialized.");
 
     Ok(())
   }
