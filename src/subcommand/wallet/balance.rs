@@ -1,6 +1,6 @@
 use super::*;
 
 pub(crate) fn run(options: Options) -> Result {
-  println!("{}", get_wallet(options)?.get_balance()?);
+  println!("{}", Purse::load(&options)?.wallet.get_balance()?);
   Ok(())
 }
