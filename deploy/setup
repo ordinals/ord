@@ -26,6 +26,8 @@ fi
 
 source ~/.cargo/env
 
+rustup update stable
+
 cargo install --path . --root /usr/local
 
 id --user bitcoin || useradd --system bitcoin
