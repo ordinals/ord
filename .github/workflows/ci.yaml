@@ -62,7 +62,7 @@ jobs:
     - name: Check for Forbidden Words
       if: ${{ matrix.os == 'ubuntu-latest' }}
       run: |
-        sudo apt-get update
+        set -euo pipefail
         sudo apt-get install ripgrep
         ./bin/forbid
 
