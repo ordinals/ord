@@ -60,8 +60,10 @@ jobs:
       run: cargo fmt --all -- --check
 
     - name: Check for Forbidden Words
+      if: ${{ matrix.os == 'ubuntu-latest' }}
       run: |
-        echo foo
+        sudo apt-get update
+        sudo apt-get install ripgrep
         exit 1
 
     - name: Test on MacOS
