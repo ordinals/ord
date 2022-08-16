@@ -3,11 +3,7 @@ use super::*;
 use {
   self::{
     deserialize_ordinal_from_str::DeserializeOrdinalFromStr,
-    templates::{
-      ordinal::OrdinalHtml,
-      root::{RootBlock, RootHtml},
-      BaseHtml,
-    },
+    templates::{ordinal::OrdinalHtml, root::RootHtml, BaseHtml},
     tls_acceptor::TlsAcceptor,
   },
   clap::ArgGroup,
@@ -233,12 +229,7 @@ impl Server {
   async fn root(index: extract::Extension<Arc<Index>>) -> BaseHtml {
     // TODO: remove unwrap
     let blocks = index.all().unwrap();
-    BaseHtml::new(RootHtml {
-      blocks: blocks
-        .into_iter()
-        .map(|(height, hash)| RootBlock { height, hash })
-        .collect(),
-    })
+    BaseHtml::new(RootHtml { blocks })
   }
 
   async fn block(
