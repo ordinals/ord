@@ -3,7 +3,7 @@ use super::*;
 use {
   self::{
     deserialize_ordinal_from_str::DeserializeOrdinalFromStr,
-    templates::{ordinal::OrdinalHtml, root::RootHtml, BaseHtml},
+    templates::{ordinal::OrdinalHtml, root::RootHtml, Content},
     tls_acceptor::TlsAcceptor,
   },
   clap::ArgGroup,
@@ -151,7 +151,7 @@ impl Server {
     extract::Path(DeserializeOrdinalFromStr(ordinal)): extract::Path<DeserializeOrdinalFromStr>,
   ) -> impl IntoResponse {
     match index.blocktime(ordinal.height()) {
-      Ok(blocktime) => BaseHtml::new(OrdinalHtml { ordinal, blocktime }).into_response(),
+      Ok(blocktime) => OrdinalHtml { ordinal, blocktime }.index().into_response(),
       Err(err) => {
         eprintln!("Failed to retrieve height from index: {err}");
         (
@@ -228,7 +228,7 @@ impl Server {
 
   async fn root(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
     match index.all() {
-      Ok(blocks) => BaseHtml::new(RootHtml { blocks }).into_response(),
+      Ok(blocks) => RootHtml { blocks }.index().into_response(),
       Err(err) => {
         eprintln!("Error getting blocks: {err}");
         (

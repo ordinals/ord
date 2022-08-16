@@ -5,9 +5,15 @@ pub(crate) struct RootHtml {
   pub(crate) blocks: Vec<(u64, BlockHash)>,
 }
 
-impl Page for RootHtml {
+impl Content for RootHtml {
   fn title(&self) -> String {
     "Ordinal Block Explorer".to_string()
+  }
+
+  fn index(self) -> IndexHtml {
+    IndexHtml {
+      content: Box::new(self),
+    }
   }
 }
 
@@ -18,7 +24,7 @@ mod tests {
   #[test]
   fn root_html() {
     assert_eq!(
-      BaseHtml::new(RootHtml {
+      RootHtml {
         blocks: vec![
           (
             1,
@@ -29,24 +35,14 @@ mod tests {
             "0000000000000000000000000000000000000000000000000000000000000000".parse().unwrap()
           )
         ],
-      })
+      }
       .to_string(),
       "
-        <!doctype html>
-        <html lang=en>
-          <head>
-            <meta charset=utf-8>
-            <title>Ordinal Block Explorer</title>
-          </head>
-          <body>
-            <h1>Recent Blocks</h1>
-            <ul>
-              <li>1 - <a href=/block/1111111111111111111111111111111111111111111111111111111111111111>1111111111111111111111111111111111111111111111111111111111111111</a></li>
-              <li>0 - <a href=/block/0000000000000000000000000000000000000000000000000000000000000000>0000000000000000000000000000000000000000000000000000000000000000</a></li>
-            </ul>
-
-          </body>
-        </html>
+        <h1>Recent Blocks</h1>
+        <ul>
+          <li>1 - <a href=/block/1111111111111111111111111111111111111111111111111111111111111111>1111111111111111111111111111111111111111111111111111111111111111</a></li>
+          <li>0 - <a href=/block/0000000000000000000000000000000000000000000000000000000000000000>0000000000000000000000000000000000000000000000000000000000000000</a></li>
+        </ul>
       "
       .unindent()
     );
