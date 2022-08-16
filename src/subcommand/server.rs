@@ -226,7 +226,7 @@ impl Server {
   }
 
   async fn root(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
-    match index.all() {
+    match index.all(100) {
       Ok(blocks) => (
         StatusCode::OK,
         Html(format!(
@@ -300,7 +300,7 @@ impl Server {
   }
 
   async fn transaction(
-    index: extract::Extension<Arc<Index>>,
+    extract::Extension(index): extract::Extension<Arc<Index>>,
     extract::Path(txid): extract::Path<Txid>,
   ) -> impl IntoResponse {
     match index.transaction(txid) {
