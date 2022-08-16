@@ -64,7 +64,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install ripgrep
-        exit 1
+        ./bin/forbid
 
     - name: Test on MacOS
       if: ${{ matrix.os == 'macos-latest' }}
