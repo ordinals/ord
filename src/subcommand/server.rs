@@ -226,10 +226,23 @@ impl Server {
     )
   }
 
-  async fn root(index: extract::Extension<Arc<Index>>) -> BaseHtml {
-    // TODO: remove unwrap
-    let blocks = index.all().unwrap();
-    BaseHtml::new(RootHtml { blocks })
+  async fn root(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
+    match index.all() {
+      Ok(blocks) => BaseHtml::new(RootHtml { blocks }).into_response(),
+      Err(err) => {
+        eprintln!("Error getting blocks: {err}");
+        (
+          StatusCode::INTERNAL_SERVER_ERROR,
+          Html(
+            StatusCode::INTERNAL_SERVER_ERROR
+              .canonical_reason()
+              .unwrap_or_default()
+              .to_string(),
+          ),
+        )
+          .into_response()
+      }
+    }
   }
 
   async fn block(
