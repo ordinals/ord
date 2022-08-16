@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-# N.B. Bitcoind must be installed as /usr/local/bin/bitcoind.
-
 set -euxo pipefail
 
 apt-get update --yes
