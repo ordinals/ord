@@ -1,8 +1,5 @@
 use super::*;
 
-use bdk::keys::DerivableKey;
-use bdk::miniscript::miniscript::Segwitv0;
-
 #[derive(Debug)]
 pub(crate) struct Purse {
   pub(crate) blockchain: RpcBlockchain,
