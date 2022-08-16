@@ -4,10 +4,10 @@ set -euo pipefail
 
 which rg > /dev/null
 
-if rg --glob !bin/forbid --ignore-case 'dbg!|fixme|todo|xxx'; then
+if rg --glob '!bin/forbid' --ignore-case 'dbg!|fixme|todo|xxx'; then
   echo ripgrep found things
   exit 1
 else
   echo ripgrep didnt find things
-  exit 1
+  exit 0
 fi
