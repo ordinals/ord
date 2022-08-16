@@ -275,7 +275,7 @@ fn send_owned_ordinal() {
       wallet.list_unspent().unwrap().first().unwrap().outpoint
     ))
     .expected_status(0)
-    .expected_stdout("[5000000000,10000000000)\n")
+    .expected_stdout("[5000000000,9999999780)\n")
     .run()
 }
 
