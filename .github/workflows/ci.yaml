@@ -60,7 +60,9 @@ jobs:
       run: cargo fmt --all -- --check
 
     - name: Check for Forbidden Words
-      run: exit 1
+      run: |
+        echo foo
+        exit 1
 
     - name: Test on MacOS
       if: ${{ matrix.os == 'macos-latest' }}
