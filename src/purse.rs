@@ -2,8 +2,8 @@ use super::*;
 
 #[derive(Debug)]
 pub(crate) struct Purse {
-  pub(crate) wallet: bdk::wallet::Wallet<SqliteDatabase>,
   pub(crate) blockchain: RpcBlockchain,
+  pub(crate) wallet: bdk::wallet::Wallet<SqliteDatabase>,
 }
 
 impl Purse {
@@ -35,23 +35,7 @@ impl Purse {
       ),
     )?;
 
-    wallet.sync(
-      &RpcBlockchain::from_config(&RpcConfig {
-        url: options.rpc_url(),
-        auth: Auth::Cookie {
-          file: options.cookie_file()?,
-        },
-        network: options.network,
-        wallet_name: wallet_name_from_descriptor(
-          Bip84((seed, None), KeychainKind::External),
-          None,
-          options.network,
-          &Secp256k1::new(),
-        )?,
-        skip_blocks: None,
-      })?,
-      SyncOptions::default(),
-    )?;
+    wallet.sync(&Self::blockchain(options, seed)?, SyncOptions::default())?;
 
     eprintln!("Wallet initialized.");
 
@@ -67,13 +51,10 @@ impl Purse {
       return Err(anyhow!("Wallet doesn't exist."));
     }
 
-    let key = (
-      Mnemonic::from_entropy(&fs::read(path.join("entropy"))?)?,
-      None,
-    );
+    let seed = Mnemonic::from_entropy(&fs::read(path.join("entropy"))?)?;
 
     let wallet = bdk::wallet::Wallet::new(
-      Bip84(key.clone(), KeychainKind::External),
+      Bip84((seed.clone(), None), KeychainKind::External),
       None,
       options.network,
       SqliteDatabase::new(
@@ -85,24 +66,11 @@ impl Purse {
       ),
     )?;
 
-    let blockchain = RpcBlockchain::from_config(&RpcConfig {
-      url: options.rpc_url(),
-      auth: Auth::Cookie {
-        file: options.cookie_file()?,
-      },
-      network: options.network,
-      wallet_name: wallet_name_from_descriptor(
-        Bip84(key, KeychainKind::External),
-        None,
-        options.network,
-        &Secp256k1::new(),
-      )?,
-      skip_blocks: None,
-    })?;
+    let blockchain = Self::blockchain(options, seed)?;
 
     wallet.sync(&blockchain, SyncOptions::default())?;
 
-    Ok(Self { wallet, blockchain })
+    Ok(Self { blockchain, wallet })
   }
 
   pub(crate) fn find(&self, options: &Options, ordinal: Ordinal) -> Result<LocalUtxo> {
@@ -119,5 +87,22 @@ impl Purse {
     }
 
     bail!("No utxo contains {}˚.", ordinal);
+  }
+
+  fn blockchain(options: &Options, key: Mnemonic) -> Result<RpcBlockchain> {
+    Ok(RpcBlockchain::from_config(&RpcConfig {
+      url: options.rpc_url(),
+      auth: Auth::Cookie {
+        file: options.cookie_file()?,
+      },
+      network: options.network,
+      wallet_name: wallet_name_from_descriptor(
+        Bip84(key, KeychainKind::External),
+        None,
+        options.network,
+        &Secp256k1::new(),
+      )?,
+      skip_blocks: None,
+    })?)
   }
 }
