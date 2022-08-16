@@ -10,9 +10,9 @@ pub(crate) struct Send {
 
 impl Send {
   pub(crate) fn run(self, options: Options) -> Result {
-    let wallet = Purse::load(options)?;
+    let wallet = Purse::load(&options)?;
 
-    let utxo = wallet.find(self.ordinal)?;
+    let utxo = wallet.find(&options, self.ordinal)?;
 
     let (mut psbt, _details) = {
       let mut builder = wallet.wallet.build_tx();

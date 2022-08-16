@@ -3,7 +3,6 @@ use super::*;
 #[derive(Debug)]
 pub(crate) struct Purse {
   pub(crate) blockchain: RpcBlockchain,
-  pub(crate) options: Options,
   pub(crate) wallet: bdk::wallet::Wallet<SqliteDatabase>,
 }
 
@@ -36,17 +35,14 @@ impl Purse {
       ),
     )?;
 
-    wallet.sync(
-      &Self::blockchain(options, (seed, None))?,
-      SyncOptions::default(),
-    )?;
+    wallet.sync(&Self::blockchain(options, seed)?, SyncOptions::default())?;
 
     eprintln!("Wallet initialized.");
 
     Ok(())
   }
 
-  pub(crate) fn load(options: Options) -> Result<Self> {
+  pub(crate) fn load(options: &Options) -> Result<Self> {
     let path = data_dir()
       .ok_or_else(|| anyhow!("Failed to retrieve data dir"))?
       .join("ord");
@@ -55,13 +51,10 @@ impl Purse {
       return Err(anyhow!("Wallet doesn't exist."));
     }
 
-    let key = (
-      Mnemonic::from_entropy(&fs::read(path.join("entropy"))?)?,
-      None,
-    );
+    let seed = Mnemonic::from_entropy(&fs::read(path.join("entropy"))?)?;
 
     let wallet = bdk::wallet::Wallet::new(
-      Bip84(key.clone(), KeychainKind::External),
+      Bip84((seed.clone(), None), KeychainKind::External),
       None,
       options.network,
       SqliteDatabase::new(
@@ -73,19 +66,15 @@ impl Purse {
       ),
     )?;
 
-    let blockchain = Self::blockchain(&options, key)?;
+    let blockchain = Self::blockchain(options, seed)?;
 
     wallet.sync(&blockchain, SyncOptions::default())?;
 
-    Ok(Self {
-      blockchain,
-      options,
-      wallet,
-    })
+    Ok(Self { blockchain, wallet })
   }
 
-  pub(crate) fn find(&self, ordinal: Ordinal) -> Result<LocalUtxo> {
-    let index = Index::index(&self.options)?;
+  pub(crate) fn find(&self, options: &Options, ordinal: Ordinal) -> Result<LocalUtxo> {
+    let index = Index::index(options)?;
 
     for utxo in self.wallet.list_unspent()? {
       if let Some(ranges) = index.list(utxo.outpoint)? {
@@ -100,10 +89,7 @@ impl Purse {
     bail!("No utxo contains {}˚.", ordinal);
   }
 
-  fn blockchain(
-    options: &Options,
-    key: impl DerivableKey<Segwitv0> + Clone,
-  ) -> Result<RpcBlockchain> {
+  fn blockchain(options: &Options, key: Mnemonic) -> Result<RpcBlockchain> {
     Ok(RpcBlockchain::from_config(&RpcConfig {
       url: options.rpc_url(),
       auth: Auth::Cookie {
