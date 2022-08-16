@@ -33,15 +33,9 @@ impl Index {
     let database = match unsafe { redb::Database::open(&database_path) } {
       Ok(database) => database,
       Err(redb::Error::Io(error)) if error.kind() == io::ErrorKind::NotFound => unsafe {
-<<<<<<< HEAD
-        redb::Database::create(&database_path, options.max_index_size.0)?
-||||||| 3bdc256
-        redb::Database::create("index.redb", options.max_index_size.0)?
-=======
         Database::builder()
           .set_write_strategy(WriteStrategy::Throughput)
-          .create("index.redb", options.max_index_size.0)?
->>>>>>> origin/master
+          .create(&database_path, options.max_index_size.0)?
       },
       Err(error) => return Err(error.into()),
     };
