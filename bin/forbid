@@ -6,5 +6,6 @@ which rg > /dev/null
 
 ! rg \
   --glob '!bin/forbid' \
-  --ignore-case 'dbg!|fixme|todo|xxx' \
+  --ignore-case \
+  'dbg!|fixme|todo|xxx' \
   .
