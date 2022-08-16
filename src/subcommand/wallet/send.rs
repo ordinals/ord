@@ -19,9 +19,9 @@ impl Send {
 
       builder
         .manually_selected_only()
-        .fee_absolute(0)
+        .fee_rate(FeeRate::from_sat_per_vb(2.0))
         .add_utxo(utxo.outpoint)?
-        .add_recipient(self.address.script_pubkey(), utxo.txout.value);
+        .drain_to(self.address.script_pubkey());
 
       builder.finish()?
     };
