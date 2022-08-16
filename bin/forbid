@@ -4,6 +4,8 @@ set -euo pipefail
 
 which rg > /dev/null
 
+cat src/main.rs
+
 if rg --glob '!bin/forbid' --ignore-case 'dbg!|fixme|todo|xxx'; then
   echo ripgrep found things
   exit 1
