@@ -358,7 +358,7 @@ impl Index {
   }
 
   pub(crate) fn find(&self, ordinal: Ordinal) -> Result<Option<SatPoint>> {
-    if self.height()? <= ordinal.height().0 {
+    if self.height()? < ordinal.height().0 {
       return Ok(None);
     }
 
