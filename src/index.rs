@@ -15,23 +15,6 @@ pub(crate) struct Index {
   database_path: PathBuf,
 }
 
-struct Rtx<'a>(redb::ReadTransaction<'a>);
-
-impl Rtx<'_> {
-  fn height(&self) -> Result<u64> {
-    let height_to_hash = self.0.open_table(HEIGHT_TO_HASH)?;
-
-    Ok(
-      height_to_hash
-        .range(0..)?
-        .rev()
-        .next()
-        .map(|(height, _hash)| height)
-        .unwrap_or(0),
-    )
-  }
-}
-
 impl Index {
   pub(crate) fn open(options: &Options) -> Result<Self> {
     let rpc_url = options.rpc_url();
@@ -248,20 +231,27 @@ impl Index {
     Ok(false)
   }
 
-  fn begin_read(&self) -> Result<Rtx> {
-    Ok(Rtx(self.database.begin_read()?))
-  }
-
   pub(crate) fn height(&self) -> Result<u64> {
-    Ok(self.begin_read()?.height()?)
+    let tx = self.database.begin_read()?;
+
+    let height_to_hash = tx.open_table(HEIGHT_TO_HASH)?;
+
+    Ok(
+      height_to_hash
+        .range(0..)?
+        .rev()
+        .next()
+        .map(|(height, _hash)| height)
+        .unwrap_or(0),
+    )
   }
 
   pub(crate) fn all(&self) -> Result<Vec<(u64, BlockHash)>> {
     let mut blocks = Vec::new();
 
-    let rtx = self.begin_read()?;
+    let tx = self.database.begin_read()?;
 
-    let height_to_hash = rtx.0.open_table(HEIGHT_TO_HASH)?;
+    let height_to_hash = tx.open_table(HEIGHT_TO_HASH)?;
 
     let mut cursor = height_to_hash.range(0..)?.rev();
 
