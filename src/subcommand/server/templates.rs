@@ -4,12 +4,12 @@ pub(crate) mod ordinal;
 pub(crate) mod root;
 
 #[derive(Display)]
-pub(crate) struct IndexHtml {
+pub(crate) struct PageHtml {
   content: Box<dyn Content>,
 }
 
 pub(crate) trait Content: Display {
   fn title(&self) -> String;
 
-  fn index(self) -> IndexHtml;
+  fn page(self) -> PageHtml;
 }

@@ -10,8 +10,8 @@ impl Content for RootHtml {
     "Ordinal Block Explorer".to_string()
   }
 
-  fn index(self) -> IndexHtml {
-    IndexHtml {
+  fn page(self) -> PageHtml {
+    PageHtml {
       content: Box::new(self),
     }
   }

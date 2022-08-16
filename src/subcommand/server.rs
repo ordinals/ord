@@ -151,7 +151,7 @@ impl Server {
     extract::Path(DeserializeOrdinalFromStr(ordinal)): extract::Path<DeserializeOrdinalFromStr>,
   ) -> impl IntoResponse {
     match index.blocktime(ordinal.height()) {
-      Ok(blocktime) => OrdinalHtml { ordinal, blocktime }.index().into_response(),
+      Ok(blocktime) => OrdinalHtml { ordinal, blocktime }.page().into_response(),
       Err(err) => {
         eprintln!("Failed to retrieve height from index: {err}");
         (
@@ -228,7 +228,7 @@ impl Server {
 
   async fn root(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
     match index.all() {
-      Ok(blocks) => RootHtml { blocks }.index().into_response(),
+      Ok(blocks) => RootHtml { blocks }.page().into_response(),
       Err(err) => {
         eprintln!("Error getting blocks: {err}");
         (
