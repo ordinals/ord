@@ -37,10 +37,6 @@ jobs:
         override: true
         toolchain: stable
 
-    - name: Install Bitcoin from Homebrew
-      if: ${{ matrix.os == 'macos-latest' }}
-      run: brew install bitcoin
-
     - name: Install from bitcoincore.org
       if: ${{ matrix.os == 'ubuntu-latest' }}
       run: |
