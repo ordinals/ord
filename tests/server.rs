@@ -17,7 +17,20 @@ fn list() {
 
 #[test]
 fn status() {
-  State::new().request("status", 200, "");
+  State::new().request("status", 200, "OK");
+}
+
+#[test]
+fn height() {
+  let mut state = State::new();
+
+  state.request("height", 200, "0");
+
+  state.blocks(1);
+
+  sleep(Duration::from_secs(1));
+
+  state.request("height", 200, "1");
 }
 
 #[test]
@@ -28,7 +41,7 @@ fn range_end_before_range_start_returns_400() {
 #[test]
 fn invalid_range_start_returns_400() {
   State::new().request(
-    "range/foo/0",
+    "range/=/0",
     400,
     "Invalid URL: invalid digit found in string",
   );
@@ -37,7 +50,7 @@ fn invalid_range_start_returns_400() {
 #[test]
 fn invalid_range_end_returns_400() {
   State::new().request(
-    "range/0/foo",
+    "range/0/=",
     400,
     "Invalid URL: invalid digit found in string",
   );
@@ -55,17 +68,21 @@ fn range_links_to_first() {
 
 #[test]
 fn ordinal_number() {
-  State::new().request("ordinal/0", 200, "0");
+  State::new().request_regex("ordinal/0", 200, ".*<dl><dt>number</dt><dd>0</dd></dl>.*");
 }
 
 #[test]
 fn ordinal_decimal() {
-  State::new().request("ordinal/0.0", 200, "0");
+  State::new().request_regex("ordinal/0.0", 200, ".*<dl><dt>number</dt><dd>0</dd></dl>.*");
 }
 
 #[test]
 fn ordinal_degree() {
-  State::new().request("ordinal/0°0′0″0‴", 200, "0");
+  State::new().request_regex(
+    "ordinal/0°0′0″0‴",
+    200,
+    ".*<dl><dt>number</dt><dd>0</dd></dl>.*",
+  );
 }
 
 #[test]
@@ -94,10 +111,10 @@ fn outpoint_returns_ordinal_ranges() {
 
   sleep(Duration::from_secs(1));
 
-  state.request(
+  state.request_regex(
     "output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
     200,
-    "<ul><li><a href='/range/0/5000000000'>\\[0,5000000000\\)</a></li></ul>",
+    ".*<ul><li><a href='/range/0/5000000000'>\\[0,5000000000\\)</a></li></ul>.*",
   );
 }
 
@@ -120,17 +137,13 @@ fn root() {
 
   state.blocks(1);
 
-  sleep(Duration::from_secs(1));
-
-  state.request(
+  state.request_regex(
     "/",
     200,
-    "
-    <ul>
-      <li>0 - <a href='/block/0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206'>0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206</a></li>
-      <li>1 - <a href='/block/[[:xdigit:]]{64}'>[[:xdigit:]]{64}</a></li>
-    </ul>
-    ",
+    ".*<ul>
+  <li>1 - <a href='/block/[[:xdigit:]]{64}'>[[:xdigit:]]{64}</a></li>
+  <li>0 - <a href='/block/0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206'>0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206</a></li>
+</ul>.*",
   );
 }
 
@@ -150,15 +163,13 @@ fn transactions() {
 
   let blocks = state.blocks(1);
 
-  state.request(
+  state.request_regex(
     &format!("block/{}", blocks[0]),
     200,
-    "
-    <ul>
-      <li>0 - <a href='/tx/[[:xdigit:]]{64}'>[[:xdigit:]]{64}</a></li>
-      <li>1 - <a href='/tx/[[:xdigit:]]{64}'>[[:xdigit:]]{64}</a></li>
-    </ul>
-  ",
+    ".*<ul>
+  <li>0 - <a href='/tx/[[:xdigit:]]{64}'>[[:xdigit:]]{64}</a></li>
+  <li>1 - <a href='/tx/[[:xdigit:]]{64}'>[[:xdigit:]]{64}</a></li>
+</ul>.*",
   );
 }
 
@@ -177,21 +188,39 @@ fn outputs() {
 
   state.blocks(101);
 
-  sleep(Duration::from_secs(1));
-
   state.transaction(TransactionOptions {
     slots: &[(1, 0, 0)],
     output_count: 1,
     fee: 0,
   });
 
+  state.blocks(1);
+
   state.request(
     "tx/30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c",
     200,
-    "
-    <ul>
-      <li><a href='/output/30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c:0'>30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c:0</a></li>
-    </ul>
-    "
+    "<ul>
+  <li><a href='/output/30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c:0'>30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c:0</a></li>
+</ul>"
+  );
+}
+
+#[test]
+fn unmined_ordinal() {
+  let mut state = State::new();
+  state.request_regex(
+    "ordinal/0",
+    200,
+    ".*<dl><dt>block time</dt><dd>2011-02-02 23:16:42</dd></dl>.*",
+  );
+}
+
+#[test]
+fn mined_ordinal() {
+  let mut state = State::new();
+  state.request_regex(
+    "ordinal/5000000000",
+    200,
+    ".*<dl><dt>block time</dt><dd>.* \\(expected\\)</dd></dl>.*",
   );
 }

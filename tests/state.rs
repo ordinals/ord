@@ -35,9 +35,10 @@ impl State {
       .stdout(if log::max_level() >= LevelFilter::Info {
         Stdio::inherit()
       } else {
-        Stdio::piped()
+        Stdio::null()
       })
       .args(&[
+        "-txindex=1",
         "-minrelaytxfee=0",
         "-blockmintxfee=0",
         "-dustrelayfee=0",
@@ -94,7 +95,7 @@ impl State {
       auth: bdk::blockchain::rpc::Auth::Cookie { file: cookiefile },
       network: Network::Regtest,
       wallet_name: "test".to_string(),
-      skip_blocks: None,
+      sync_params: None,
     })
     .unwrap();
 
@@ -189,8 +190,6 @@ impl State {
 
     let tx = psbt.extract_tx();
 
-    eprintln!("YOLO: {}", tx.txid());
-
     self
       .client
       .call::<Txid>(
@@ -201,30 +200,22 @@ impl State {
   }
 
   pub(crate) fn request(&mut self, path: &str, status: u16, expected_response: &str) {
-    if let Some(ord_http_port) = self.ord_http_port {
-      let response =
-        reqwest::blocking::get(&format!("http://127.0.0.1:{}/{}", ord_http_port, path)).unwrap();
+    self.request_expected(path, status, Expected::String(expected_response.into()));
+  }
 
-      log::info!("{:?}", response);
+  pub(crate) fn request_regex(&mut self, path: &str, status: u16, expected_response: &str) {
+    self.request_expected(path, status, Expected::regex(expected_response));
+  }
 
-      assert_eq!(response.status().as_u16(), status);
-
-      let response_text = response.text().unwrap();
-
-      assert!(
-        Regex::new(expected_response.unindent().trim_end())
-          .unwrap()
-          .is_match(&response_text),
-        "Response text did not match regex: {:?}",
-        &response_text
-      );
-    } else {
+  pub(crate) fn request_expected(&mut self, path: &str, status: u16, expected: Expected) {
+    if self.ord_http_port.is_none() {
       let ord_http_port = free_port();
 
       fs::create_dir(self.tempdir.path().join("server")).unwrap();
 
       let ord = Command::new(executable_path("ord"))
         .current_dir(self.tempdir.path().join("server"))
+        .env("HOME", self.tempdir.path())
         .arg(format!("--rpc-url=localhost:{}", self.bitcoind_rpc_port))
         .arg("--cookie-file=../bitcoin/regtest/.cookie")
         .args([
@@ -251,9 +242,61 @@ impl State {
 
       self.ord = Some(ord);
       self.ord_http_port = Some(ord_http_port);
-
-      self.request(path, status, expected_response);
     }
+
+    for attempt in 0..=300 {
+      let best_hash = self.client.get_best_block_hash().unwrap();
+      let bitcoind_height = self
+        .client
+        .get_block_header_info(&best_hash)
+        .unwrap()
+        .height as u64;
+
+      let ord_height = reqwest::blocking::get(&format!(
+        "http://127.0.0.1:{}/height",
+        self.ord_http_port.unwrap()
+      ))
+      .unwrap()
+      .text()
+      .unwrap()
+      .parse::<u64>()
+      .unwrap();
+
+      if ord_height == bitcoind_height {
+        break;
+      } else {
+        if attempt == 300 {
+          panic!("Ord height {ord_height} did not catch up to bitcoind height {bitcoind_height}");
+        }
+
+        sleep(Duration::from_millis(100));
+      }
+    }
+
+    let response = reqwest::blocking::get(&format!(
+      "http://127.0.0.1:{}/{}",
+      self.ord_http_port.unwrap(),
+      path
+    ))
+    .unwrap();
+
+    log::info!("{:?}", response);
+
+    assert_eq!(response.status().as_u16(), status);
+
+    expected.assert_match(&response.text().unwrap());
+  }
+
+  pub(crate) fn ord_data_dir(&self) -> PathBuf {
+    self
+      .tempdir
+      .path()
+      .join(if cfg!(target_os = "macos") {
+        "Library/Application Support/"
+      } else {
+        ".local/share"
+      })
+      .join("ord")
   }
 }
 
