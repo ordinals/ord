@@ -18,7 +18,7 @@ use {
     template::Bip84,
     wallet::{signer::SignOptions, AddressIndex::LastUnused},
     wallet::{wallet_name_from_descriptor, SyncOptions},
-    KeychainKind, LocalUtxo,
+    FeeRate, KeychainKind, LocalUtxo,
   },
   bitcoin::{
     blockdata::constants::COIN_VALUE,
