@@ -4,7 +4,6 @@ set -euo pipefail
 
 which rg > /dev/null
 
-! rg \
-  --glob !bin/forbid \
-  --ignore-case \
-  'dbg!|fixme|todo|xxx'
+if rg --glob !bin/forbid --ignore-case 'dbg!|fixme|todo|xxx'; then
+  exit 1
+fi
