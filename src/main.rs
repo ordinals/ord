@@ -1,9 +1,10 @@
 #![allow(clippy::too_many_arguments)]
 
 use {
-  crate::{
-    arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height, index::Index, nft::Nft,
-    options::Options, ordinal::Ordinal, purse::Purse, sat_point::SatPoint, subcommand::Subcommand,
+  self::{
+    arguments::Arguments, blocktime::Blocktime, bytes::Bytes, degree::Degree, epoch::Epoch,
+    height::Height, index::Index, nft::Nft, options::Options, ordinal::Ordinal, purse::Purse,
+    sat_point::SatPoint, subcommand::Subcommand,
   },
   anyhow::{anyhow, bail, Context, Error},
   axum::{
@@ -37,8 +38,6 @@ use {
   chrono::{DateTime, NaiveDateTime, Utc},
   clap::Parser,
   derive_more::{Display, FromStr},
-  dirs::data_dir,
-  lazy_static::lazy_static,
   redb::{Database, ReadableTable, Table, TableDefinition, WriteTransaction},
   serde::{Deserialize, Serialize},
   std::{
@@ -68,7 +67,9 @@ const PERIOD_BLOCKS: u64 = 2016;
 const CYCLE_EPOCHS: u64 = 6;
 
 mod arguments;
+mod blocktime;
 mod bytes;
+mod degree;
 mod epoch;
 mod height;
 mod index;
@@ -83,9 +84,7 @@ type Result<T = (), E = Error> = std::result::Result<T, E>;
 
 static INTERRUPTS: AtomicU64 = AtomicU64::new(0);
 
-lazy_static! {
-  static ref LISTENERS: Mutex<Vec<Handle>> = Mutex::new(Vec::new());
-}
+static LISTENERS: Mutex<Vec<Handle>> = Mutex::new(Vec::new());
 
 fn main() {
   env_logger::init();

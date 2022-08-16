@@ -8,30 +8,27 @@ pub(crate) struct Purse {
 
 impl Purse {
   pub(crate) fn init(options: &Options) -> Result {
-    let path = data_dir()
-      .ok_or_else(|| anyhow!("Failed to retrieve data dir"))?
-      .join("ord");
+    let data_dir = options.data_dir()?;
 
-    if path.exists() {
+    let entropy = data_dir.join("entropy");
+
+    if entropy.exists() {
       return Err(anyhow!("Wallet already exists."));
     }
 
-    fs::create_dir_all(&path)?;
-
     let seed = Mnemonic::generate_in_with(&mut rand::thread_rng(), Language::English, 12)?;
 
-    fs::write(path.join("entropy"), seed.to_entropy())?;
+    fs::write(entropy, seed.to_entropy())?;
 
     let wallet = bdk::wallet::Wallet::new(
       Bip84((seed.clone(), None), KeychainKind::External),
       None,
       options.network,
       SqliteDatabase::new(
-        path
+        data_dir
           .join("wallet.sqlite")
           .to_str()
-          .ok_or_else(|| anyhow!("Failed to convert path to str"))?
-          .to_string(),
+          .ok_or_else(|| anyhow!("Failed to convert path to str"))?,
       ),
     )?;
 
@@ -43,26 +40,25 @@ impl Purse {
   }
 
   pub(crate) fn load(options: &Options) -> Result<Self> {
-    let path = data_dir()
-      .ok_or_else(|| anyhow!("Failed to retrieve data dir"))?
-      .join("ord");
+    let data_dir = options.data_dir()?;
 
-    if !path.exists() {
+    let entropy = data_dir.join("entropy");
+
+    if !entropy.exists() {
       return Err(anyhow!("Wallet doesn't exist."));
     }
 
-    let seed = Mnemonic::from_entropy(&fs::read(path.join("entropy"))?)?;
+    let seed = Mnemonic::from_entropy(&fs::read(entropy)?)?;
 
     let wallet = bdk::wallet::Wallet::new(
       Bip84((seed.clone(), None), KeychainKind::External),
       None,
       options.network,
       SqliteDatabase::new(
-        path
+        data_dir
           .join("wallet.sqlite")
           .to_str()
-          .ok_or_else(|| anyhow!("Failed to convert path to str"))?
-          .to_string(),
+          .ok_or_else(|| anyhow!("Failed to convert path to str"))?,
       ),
     )?;
 
@@ -102,7 +98,7 @@ impl Purse {
         options.network,
         &Secp256k1::new(),
       )?,
-      skip_blocks: None,
+      sync_params: None,
     })?)
   }
 }

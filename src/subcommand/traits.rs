@@ -8,48 +8,76 @@ pub(crate) struct Traits {
 impl Traits {
   pub(crate) fn run(self) -> Result {
     if self.ordinal > Ordinal::LAST {
-      return Err(anyhow!("Invalid ordinal"));
+      bail!("Invalid ordinal");
     }
 
-    println!("number: {}", self.ordinal.n());
-    println!(
-      "decimal: {}.{}",
-      self.ordinal.height(),
-      self.ordinal.third()
-    );
-
-    let height = self.ordinal.height().n();
-    let h = height / (CYCLE_EPOCHS * Epoch::BLOCKS);
-    let m = height % Epoch::BLOCKS;
-    let s = height % PERIOD_BLOCKS;
-    let t = self.ordinal.third();
-    println!("degree: {h}°{m}′{s}″{t}‴");
-
-    println!("name: {}", self.ordinal.name());
-
-    println!("height: {}", self.ordinal.height());
-    println!("cycle: {}", self.ordinal.cycle());
-    println!("epoch: {}", self.ordinal.epoch());
-    println!("period: {}", self.ordinal.period());
-    println!("offset: {}", self.ordinal.third());
-
-    println!(
-      "rarity: {}",
-      if h == 0 && m == 0 && s == 0 && t == 0 {
-        "mythic"
-      } else if m == 0 && s == 0 && t == 0 {
-        "legendary"
-      } else if m == 0 && t == 0 {
-        "epic"
-      } else if s == 0 && t == 0 {
-        "rare"
-      } else if t == 0 {
-        "uncommon"
-      } else {
-        "common"
-      }
-    );
+    print!("{}", self);
 
     Ok(())
+  }
+}
+
+impl Display for Traits {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    writeln!(f, "number: {}", self.ordinal.n())?;
+    writeln!(f, "decimal: {}", self.ordinal.decimal())?;
+    writeln!(f, "degree: {}", self.ordinal.degree())?;
+    writeln!(f, "name: {}", self.ordinal.name())?;
+    writeln!(f, "height: {}", self.ordinal.height())?;
+    writeln!(f, "cycle: {}", self.ordinal.cycle())?;
+    writeln!(f, "epoch: {}", self.ordinal.epoch())?;
+    writeln!(f, "period: {}", self.ordinal.period())?;
+    writeln!(f, "offset: {}", self.ordinal.third())?;
+    writeln!(f, "rarity: {}", self.ordinal.rarity())?;
+    Ok(())
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn first() {
+    assert_eq!(
+      Traits {
+        ordinal: Ordinal(0)
+      }
+      .to_string(),
+      "\
+number: 0
+decimal: 0.0
+degree: 0°0′0″0‴
+name: nvtdijuwxlp
+height: 0
+cycle: 0
+epoch: 0
+period: 0
+offset: 0
+rarity: mythic
+",
+    );
+  }
+
+  #[test]
+  fn last() {
+    assert_eq!(
+      Traits {
+        ordinal: Ordinal(2099999997689999)
+      }
+      .to_string(),
+      "\
+number: 2099999997689999
+decimal: 6929999.0
+degree: 5°209999′1007″0‴
+name: a
+height: 6929999
+cycle: 5
+epoch: 32
+period: 3437
+offset: 0
+rarity: uncommon
+",
+    );
   }
 }

@@ -13,6 +13,7 @@ axum = "0.5.6"
 axum-server = "0.4.0"
 bitcoin = "0.28.1"
 bitcoincore-rpc = "0.15.0"
+boilerplate = { version = "0.0.2", features = ["axum"] }
 chrono = "0.4.19"
 clap = { version = "3.1.0", features = ["derive"] }
 ctrlc = "3.2.1"
@@ -21,10 +22,9 @@ dirs = "4.0.0"
 env_logger = "0.9.0"
 futures = "0.3.21"
 http = "0.2.6"
-lazy_static = "1.4.0"
 log = "0.4.14"
 rayon = "1.5.1"
-redb = "0.5.0"
+redb = { version = "0.5.0", git = "https://github.com/cberner/redb", branch = "master" }
 rustls-acme = "0.3.0"
 serde = { version = "1.0.137", features = ["derive"] }
 serde_cbor = "0.11.2"
@@ -46,6 +46,7 @@ executable-path = "1.0.0"
 hex = "0.4.3"
 log = "0.4.14"
 nix = "0.24.1"
+pretty_assertions = "1.2.1"
 regex = "1.6.0"
 reqwest = { version = "0.11.10", features = ["blocking"] }
 tempfile = "3.2.0"

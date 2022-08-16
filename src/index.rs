@@ -12,19 +12,30 @@ const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8], [u8]> =
 pub(crate) struct Index {
   client: Client,
   database: Database,
+  database_path: PathBuf,
 }
 
 impl Index {
   pub(crate) fn open(options: &Options) -> Result<Self> {
-    let client = Client::new(&options.rpc_url(), Auth::CookieFile(options.cookie_file()?))
+    let rpc_url = options.rpc_url();
+    let cookie_file = options.cookie_file()?;
+
+    log::info!(
+      "Connection to Bitcoin Core RPC server at {rpc_url} using credentials from `{}`",
+      cookie_file.display()
+    );
+
+    let client = Client::new(&rpc_url, Auth::CookieFile(cookie_file))
       .context("Failed to connect to RPC URL")?;
 
-    let database = match unsafe { redb::Database::open("index.redb") } {
+    let database_path = options.data_dir()?.join("index.redb");
+
+    let database = match unsafe { redb::Database::open(&database_path) } {
       Ok(database) => database,
       Err(redb::Error::Io(error)) if error.kind() == io::ErrorKind::NotFound => unsafe {
         Database::builder()
           .set_write_strategy(WriteStrategy::Throughput)
-          .create("index.redb", options.max_index_size.0)?
+          .create(&database_path, options.max_index_size.0)?
       },
       Err(error) => return Err(error.into()),
     };
@@ -36,7 +47,11 @@ impl Index {
 
     tx.commit()?;
 
-    Ok(Self { client, database })
+    Ok(Self {
+      client,
+      database,
+      database_path,
+    })
   }
 
   #[allow(clippy::self_named_constructors)]
@@ -72,7 +87,7 @@ impl Index {
     println!("fragmented: {}", Bytes(stats.fragmented_bytes()));
     println!(
       "index size: {}",
-      Bytes(std::fs::metadata("index.redb")?.len().try_into()?)
+      Bytes(std::fs::metadata(&self.database_path)?.len().try_into()?)
     );
 
     wtx.abort()?;
@@ -226,22 +241,22 @@ impl Index {
         .range(0..)?
         .rev()
         .next()
-        .map(|(height, _hash)| height + 1)
+        .map(|(height, _hash)| height)
         .unwrap_or(0),
     )
   }
 
-  pub(crate) fn all(&self) -> Result<Vec<sha256d::Hash>> {
+  pub(crate) fn all(&self) -> Result<Vec<(u64, sha256d::Hash)>> {
     let mut blocks = Vec::new();
 
     let tx = self.database.begin_read()?;
 
     let height_to_hash = tx.open_table(HEIGHT_TO_HASH)?;
 
-    let mut cursor = height_to_hash.range(0..)?;
+    let mut cursor = height_to_hash.range(0..)?.rev();
 
     while let Some(next) = cursor.next() {
-      blocks.push(sha256d::Hash::from_slice(next.1)?);
+      blocks.push((next.0, sha256d::Hash::from_slice(next.1)?));
     }
 
     Ok(blocks)
@@ -343,7 +358,7 @@ impl Index {
   }
 
   pub(crate) fn find(&self, ordinal: Ordinal) -> Result<Option<SatPoint>> {
-    if self.height()? <= ordinal.height().0 {
+    if self.height()? < ordinal.height().0 {
       return Ok(None);
     }
 
@@ -395,6 +410,33 @@ impl Index {
         Ok(Some(output))
       }
       None => Ok(None),
+    }
+  }
+
+  pub(crate) fn blocktime(&self, height: Height) -> Result<Blocktime> {
+    let height = height.n();
+
+    match self.block_at_height(height)? {
+      Some(block) => Ok(Blocktime::Confirmed(block.header.time.into())),
+      None => {
+        let tx = self.database.begin_read()?;
+
+        let current = tx
+          .open_table(HEIGHT_TO_HASH)?
+          .range(0..)?
+          .rev()
+          .next()
+          .map(|(height, _hash)| height)
+          .unwrap_or(0);
+
+        let expected_blocks = height.checked_sub(current).with_context(|| {
+          format!("Current {current} height is greater than ordinal height {height}")
+        })?;
+
+        Ok(Blocktime::Expected(
+          Utc::now().timestamp() + 10 * 60 * expected_blocks as i64,
+        ))
+      }
     }
   }
 }

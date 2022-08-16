@@ -20,10 +20,14 @@ fn init_existing_wallet() {
   assert!(state
     .tempdir
     .path()
-    .join(path("ord/wallet.sqlite"))
+    .join(path("ord/regtest/wallet.sqlite"))
     .exists());
 
-  assert!(state.tempdir.path().join(path("ord/entropy")).exists());
+  assert!(state
+    .tempdir
+    .path()
+    .join(path("ord/regtest/entropy"))
+    .exists());
 
   Test::with_state(state)
     .command("--network regtest wallet init")
@@ -44,14 +48,14 @@ fn init_nonexistent_wallet() {
     .state
     .tempdir
     .path()
-    .join(path("ord/wallet.sqlite"))
+    .join(path("ord/regtest/wallet.sqlite"))
     .exists());
 
   assert!(output
     .state
     .tempdir
     .path()
-    .join(path("ord/entropy"))
+    .join(path("ord/regtest/entropy"))
     .exists());
 }
 
@@ -64,7 +68,7 @@ fn load_corrupted_entropy() {
     .output()
     .state;
 
-  let entropy_path = state.tempdir.path().join(path("ord/entropy"));
+  let entropy_path = state.tempdir.path().join(path("ord/regtest/entropy"));
 
   assert!(entropy_path.exists());
 
@@ -122,7 +126,7 @@ fn utxos() {
     .state
     .client
     .generate_to_address(
-      101,
+      1,
       &Address::from_str(
         output
           .stdout
@@ -211,7 +215,16 @@ fn send_owned_ordinal() {
   output
     .state
     .client
-    .generate_to_address(101, &from_address)
+    .generate_to_address(1, &from_address)
+    .unwrap();
+
+  output
+    .state
+    .client
+    .generate_to_address(
+      100,
+      &Address::from_str("bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw").unwrap(),
+    )
     .unwrap();
 
   let mut output = Test::with_state(output.state)
@@ -231,7 +244,7 @@ fn send_owned_ordinal() {
         .unwrap()
     ),
     200,
-    "[[5000000000, 10000000000]]",
+    "[[5000000000,10000000000]]",
   );
 
   let wallet = Wallet::new(
@@ -257,8 +270,7 @@ fn send_owned_ordinal() {
     ))
     .expected_status(0)
     .stdout_regex(format!(
-      "Sent ordinal 5000000001 to address {to_address}: {}\n",
-      "[[:xdigit:]]{64}",
+      "Sent ordinal 5000000001 to address {to_address}: [[:xdigit:]]{{64}}\n"
     ))
     .output()
     .state;
@@ -305,7 +317,7 @@ fn send_foreign_ordinal() {
   output
     .state
     .client
-    .generate_to_address(101, &from_address)
+    .generate_to_address(1, &from_address)
     .unwrap();
 
   let mut output = Test::with_state(output.state)
@@ -325,7 +337,7 @@ fn send_foreign_ordinal() {
         .unwrap()
     ),
     200,
-    "[[5000000000, 10000000000]]",
+    "[[5000000000,10000000000]]",
   );
 
   let wallet = Wallet::new(

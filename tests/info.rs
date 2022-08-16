@@ -15,7 +15,6 @@ fn basic() {
         stored: .*
         overhead: .*
         fragmented: .*
-        index size: .*
       "
       .unindent(),
     )

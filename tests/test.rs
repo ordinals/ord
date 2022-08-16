@@ -1,30 +1,5 @@
 use super::*;
 
-#[derive(Debug)]
-enum Expected {
-  String(String),
-  Regex(Regex),
-  Ignore,
-}
-
-impl Expected {
-  fn regex(pattern: &str) -> Self {
-    Self::Regex(Regex::new(&format!("^(?s){}$", pattern)).unwrap())
-  }
-
-  fn assert_match(&self, output: &str) {
-    match self {
-      Self::String(string) => assert_eq!(output, string),
-      Self::Regex(regex) => assert!(
-        regex.is_match(output),
-        "output did not match regex: {:?}",
-        output
-      ),
-      Self::Ignore => {}
-    }
-  }
-}
-
 pub(crate) struct Output {
   pub(crate) stdout: String,
   pub(crate) state: State,
@@ -106,13 +81,6 @@ impl Test {
   pub(crate) fn expected_status(self, expected_status: i32) -> Self {
     Self {
       expected_status,
-      ..self
-    }
-  }
-
-  pub(crate) fn ignore_stdout(self) -> Self {
-    Self {
-      expected_stdout: Expected::Ignore,
       ..self
     }
   }

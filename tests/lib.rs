@@ -1,7 +1,7 @@
 #![allow(clippy::type_complexity)]
 
 use {
-  self::{state::State, test::Test, transaction_options::TransactionOptions},
+  self::{expected::Expected, state::State, test::Test, transaction_options::TransactionOptions},
   bdk::{
     blockchain::{
       rpc::{RpcBlockchain, RpcConfig},
@@ -19,9 +19,9 @@ use {
   log::LevelFilter,
   regex::Regex,
   std::{
-    collections::BTreeMap,
     fs,
     net::TcpListener,
+    path::PathBuf,
     process::{Child, Command, Stdio},
     str::{self, FromStr},
     sync::Once,
@@ -33,6 +33,7 @@ use {
 };
 
 mod epochs;
+mod expected;
 mod find;
 mod index;
 mod info;
