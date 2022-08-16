@@ -1,0 +1,6 @@
+    <h1>Recent Blocks</h1>
+    <ul>
+%% for block in &self.blocks {
+      <li>{{block.height}} - <a href=/block/{{block.hash}}>{{block.hash}}</a></li>
+%% }
+    </ul>
