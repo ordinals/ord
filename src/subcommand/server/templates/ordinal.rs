@@ -32,17 +32,19 @@ mod tests {
             <title>0°0′0″0‴</title>
           </head>
           <body>
-            <dl><dt>number</dt><dd>0</dd></dl>
-            <dl><dt>decimal</dt><dd>0.0</dd></dl>
-            <dl><dt>degree</dt><dd>0°0′0″0‴</dd></dl>
-            <dl><dt>name</dt><dd>nvtdijuwxlp</dd></dl>
-            <dl><dt>height</dt><dd>0</dd></dl>
-            <dl><dt>cycle</dt><dd>0</dd></dl>
-            <dl><dt>epoch</dt><dd>0</dd></dl>
-            <dl><dt>period</dt><dd>0</dd></dl>
-            <dl><dt>offset</dt><dd>0</dd></dl>
-            <dl><dt>rarity</dt><dd>mythic</dd></dl>
-            <dl><dt>block time</dt><dd>1970-01-01 00:00:00</dd></dl>
+            <dl>
+              <dt>number</dt><dd>0</dd>
+              <dt>decimal</dt><dd>0.0</dd>
+              <dt>degree</dt><dd>0°0′0″0‴</dd>
+              <dt>name</dt><dd>nvtdijuwxlp</dd>
+              <dt>height</dt><dd>0</dd>
+              <dt>cycle</dt><dd>0</dd>
+              <dt>epoch</dt><dd>0</dd>
+              <dt>period</dt><dd>0</dd>
+              <dt>offset</dt><dd>0</dd>
+              <dt>rarity</dt><dd>mythic</dd>
+              <dt>block time</dt><dd>1970-01-01 00:00:00</dd>
+            </dl>
 
           </body>
         </html>
