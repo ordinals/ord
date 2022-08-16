@@ -35,10 +35,7 @@ impl Purse {
       ),
     )?;
 
-    wallet.sync(
-      &Self::blockchain(options, (seed, None))?,
-      SyncOptions::default(),
-    )?;
+    wallet.sync(&Self::blockchain(options, seed)?, SyncOptions::default())?;
 
     eprintln!("Wallet initialized.");
 
@@ -54,13 +51,10 @@ impl Purse {
       return Err(anyhow!("Wallet doesn't exist."));
     }
 
-    let key = (
-      Mnemonic::from_entropy(&fs::read(path.join("entropy"))?)?,
-      None,
-    );
+    let seed = Mnemonic::from_entropy(&fs::read(path.join("entropy"))?)?;
 
     let wallet = bdk::wallet::Wallet::new(
-      Bip84(key.clone(), KeychainKind::External),
+      Bip84((seed.clone(), None), KeychainKind::External),
       None,
       options.network,
       SqliteDatabase::new(
@@ -72,7 +66,7 @@ impl Purse {
       ),
     )?;
 
-    let blockchain = Self::blockchain(&options, key)?;
+    let blockchain = Self::blockchain(&options, seed)?;
 
     wallet.sync(&blockchain, SyncOptions::default())?;
 
@@ -95,7 +89,7 @@ impl Purse {
     bail!("No utxo contains {}˚.", ordinal);
   }
 
-  fn blockchain(options: &Options, key: (Mnemonic, Option<String>)) -> Result<RpcBlockchain> {
+  fn blockchain(options: &Options, key: Mnemonic) -> Result<RpcBlockchain> {
     Ok(RpcBlockchain::from_config(&RpcConfig {
       url: options.rpc_url(),
       auth: Auth::Cookie {
