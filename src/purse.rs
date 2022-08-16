@@ -66,7 +66,7 @@ impl Purse {
       ),
     )?;
 
-    let blockchain = Self::blockchain(&options, seed)?;
+    let blockchain = Self::blockchain(options, seed)?;
 
     wallet.sync(&blockchain, SyncOptions::default())?;
 
