@@ -15,8 +15,6 @@ use {
     blockchain::{Blockchain, ConfigurableBlockchain},
     database::SqliteDatabase,
     keys::bip39::{Language, Mnemonic},
-    keys::DerivableKey,
-    miniscript::miniscript::Segwitv0,
     template::Bip84,
     wallet::{signer::SignOptions, AddressIndex::LastUnused},
     wallet::{wallet_name_from_descriptor, SyncOptions},
