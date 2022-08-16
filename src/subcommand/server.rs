@@ -226,7 +226,7 @@ impl Server {
   }
 
   async fn root(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
-    match index.all(100) {
+    match index.blocks(100) {
       Ok(blocks) => (
         StatusCode::OK,
         Html(format!(
