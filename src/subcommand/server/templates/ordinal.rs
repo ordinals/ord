@@ -31,8 +31,8 @@ mod tests {
       }
       .to_string(),
       "
+        <h1>Ordinal 0</h1>
         <dl>
-          <dt>number</dt><dd>0</dd>
           <dt>decimal</dt><dd>0.0</dd>
           <dt>degree</dt><dd>0°0′0″0‴</dd>
           <dt>name</dt><dd>nvtdijuwxlp</dd>

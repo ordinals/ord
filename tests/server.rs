@@ -68,17 +68,17 @@ fn range_links_to_first() {
 
 #[test]
 fn ordinal_number() {
-  State::new().request_regex("ordinal/0", 200, ".*<dt>number</dt><dd>0</dd>.*");
+  State::new().request_regex("ordinal/0", 200, ".*<h1>Ordinal 0</h1>.*");
 }
 
 #[test]
 fn ordinal_decimal() {
-  State::new().request_regex("ordinal/0.0", 200, ".*<dt>number</dt><dd>0</dd>.*");
+  State::new().request_regex("ordinal/0.0", 200, ".*<h1>Ordinal 0</h1>.*");
 }
 
 #[test]
 fn ordinal_degree() {
-  State::new().request_regex("ordinal/0°0′0″0‴", 200, ".*<dt>number</dt><dd>0</dd>.*");
+  State::new().request_regex("ordinal/0°0′0″0‴", 200, ".*<h1>Ordinal 0</h1>.*");
 }
 
 #[test]
