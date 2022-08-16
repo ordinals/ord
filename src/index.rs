@@ -2,6 +2,7 @@ use {
   super::*,
   bitcoincore_rpc::{Auth, Client, RpcApi},
   rayon::iter::{IntoParallelRefIterator, ParallelIterator},
+  redb::WriteStrategy,
 };
 
 const HEIGHT_TO_HASH: TableDefinition<u64, [u8]> = TableDefinition::new("HEIGHT_TO_HASH");
@@ -21,7 +22,9 @@ impl Index {
     let database = match unsafe { redb::Database::open("index.redb") } {
       Ok(database) => database,
       Err(redb::Error::Io(error)) if error.kind() == io::ErrorKind::NotFound => unsafe {
-        redb::Database::create("index.redb", options.max_index_size.0)?
+        Database::builder()
+          .set_write_strategy(WriteStrategy::Throughput)
+          .create("index.redb", options.max_index_size.0)?
       },
       Err(error) => return Err(error.into()),
     };
