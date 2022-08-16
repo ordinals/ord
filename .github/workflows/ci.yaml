@@ -66,6 +66,12 @@ jobs:
         sudo apt-get install ripgrep
         ./bin/forbid
 
+    - name: Check for Forbidden Words MacOS
+      if: ${{ matrix.os == 'macos-latest' }}
+      run: |
+        brew install ripgrep
+        ./bin/forbid
+
     - name: Test on MacOS
       if: ${{ matrix.os == 'macos-latest' }}
       run: cargo test --all -- --test-threads=1
