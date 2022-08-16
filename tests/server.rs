@@ -68,21 +68,17 @@ fn range_links_to_first() {
 
 #[test]
 fn ordinal_number() {
-  State::new().request_regex("ordinal/0", 200, ".*<dl><dt>number</dt><dd>0</dd></dl>.*");
+  State::new().request_regex("ordinal/0", 200, ".*<dt>number</dt><dd>0</dd>.*");
 }
 
 #[test]
 fn ordinal_decimal() {
-  State::new().request_regex("ordinal/0.0", 200, ".*<dl><dt>number</dt><dd>0</dd></dl>.*");
+  State::new().request_regex("ordinal/0.0", 200, ".*<dt>number</dt><dd>0</dd>.*");
 }
 
 #[test]
 fn ordinal_degree() {
-  State::new().request_regex(
-    "ordinal/0°0′0″0‴",
-    200,
-    ".*<dl><dt>number</dt><dd>0</dd></dl>.*",
-  );
+  State::new().request_regex("ordinal/0°0′0″0‴", 200, ".*<dt>number</dt><dd>0</dd>.*");
 }
 
 #[test]
@@ -212,7 +208,7 @@ fn unmined_ordinal() {
   state.request_regex(
     "ordinal/0",
     200,
-    ".*<dl><dt>block time</dt><dd>2011-02-02 23:16:42</dd></dl>.*",
+    ".*<dt>block time</dt><dd>2011-02-02 23:16:42</dd>.*",
   );
 }
 
@@ -222,6 +218,6 @@ fn mined_ordinal() {
   state.request_regex(
     "ordinal/5000000000",
     200,
-    ".*<dl><dt>block time</dt><dd>.* \\(expected\\)</dd></dl>.*",
+    ".*<dt>block time</dt><dd>.* \\(expected\\)</dd>.*",
   );
 }
