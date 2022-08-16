@@ -6,4 +6,7 @@ which rg > /dev/null
 
 cat src/main.rs
 
-! rg --glob '!bin/forbid' --ignore-case 'dbg!|fixme|todo|xxx' .
+! rg \
+  --glob '!bin/forbid' \
+  --ignore-case 'dbg!|fixme|todo|xxx' \
+  .
