@@ -80,13 +80,14 @@ impl Server {
         .route("/", get(Self::root))
         .route("/api/list/:outpoint", get(Self::api_list))
         .route("/block/:hash", get(Self::block))
+        .route("/faq", get(Self::faq))
         .route("/height", get(Self::height))
         .route("/ordinal/:ordinal", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
         .route("/range/:start/:end", get(Self::range))
+        .route("/static/*path", get(Self::static_asset))
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
-        .route("/static/*path", get(Self::static_asset))
         .layer(extract::Extension(index))
         .layer(
           CorsLayer::new()
@@ -372,6 +373,26 @@ impl Server {
         )
       }
     }
+  }
+
+  async fn faq() -> impl IntoResponse {
+    static HTML: &'static str = include_str!(concat!(env!("OUT_DIR"), "/faq.html"));
+
+    struct Faq;
+
+    impl Content for Faq {
+      fn title(&self) -> String {
+        "Ordinals FAQ".to_string()
+      }
+    }
+
+    impl Display for Faq {
+      fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        f.write_str(HTML)
+      }
+    }
+
+    Faq.page().into_response()
   }
 }
 

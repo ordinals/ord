@@ -9,12 +9,6 @@ impl Content for RootHtml {
   fn title(&self) -> String {
     "Ordinals".to_string()
   }
-
-  fn page(self) -> PageHtml {
-    PageHtml {
-      content: Box::new(self),
-    }
-  }
 }
 
 #[cfg(test)]

@@ -278,3 +278,9 @@ fn static_asset() {
 }.*",
   );
 }
+
+#[test]
+fn faq() {
+  let mut state = State::new();
+  state.request_regex("faq/", 200, r".*<h1>Ordinals FAQ</h1>.*");
+}

@@ -10,12 +10,6 @@ impl Content for OrdinalHtml {
   fn title(&self) -> String {
     self.ordinal.degree().to_string()
   }
-
-  fn page(self) -> PageHtml {
-    PageHtml {
-      content: Box::new(self),
-    }
-  }
 }
 
 #[cfg(test)]

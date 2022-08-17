@@ -24,12 +24,6 @@ impl Content for TransactionHtml {
   fn title(&self) -> String {
     format!("Transaction {}", self.txid)
   }
-
-  fn page(self) -> PageHtml {
-    PageHtml {
-      content: Box::new(self),
-    }
-  }
 }
 
 #[cfg(test)]
