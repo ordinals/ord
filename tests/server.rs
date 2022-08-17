@@ -162,7 +162,7 @@ fn root_block_limit() {
   state.request_regex(
     "/",
     200,
-    ".*<ul>\n(  <li>[[:digit:]]{3} - <a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){101}</ul>.*"
+    ".*<ul>\n(  <li>[[:digit:]]{3} - <a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){100}</ul>.*"
   );
 }
 
