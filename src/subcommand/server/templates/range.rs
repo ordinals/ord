@@ -23,7 +23,7 @@ mod tests {
   use {super::*, pretty_assertions::assert_eq, unindent::Unindent};
 
   #[test]
-  fn ordinal_html() {
+  fn range_html() {
     assert_eq!(
       RangeHtml {
         start: Ordinal(0),
