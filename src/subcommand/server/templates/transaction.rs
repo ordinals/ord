@@ -6,6 +6,20 @@ pub(crate) struct TransactionHtml {
   outputs: Vec<OutPoint>,
 }
 
+impl TransactionHtml {
+  pub(crate) fn new(transaction: Transaction) -> Self {
+    let txid = transaction.txid();
+    let mut outputs = Vec::new();
+    for vout in 0..transaction.output.len() {
+      outputs.push(OutPoint {
+        txid,
+        vout: vout.try_into().unwrap(),
+      });
+    }
+    Self { txid, outputs }
+  }
+}
+
 impl Content for TransactionHtml {
   fn title(&self) -> String {
     format!("Transaction {}", self.txid)
