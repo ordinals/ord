@@ -2,7 +2,8 @@ use super::*;
 
 use {
   self::{
-    deserialize_ordinal_from_str::DeserializeOrdinalFromStr, templates::OrdinalHtml,
+    deserialize_ordinal_from_str::DeserializeOrdinalFromStr,
+    templates::{ordinal::OrdinalHtml, root::RootHtml, Content},
     tls_acceptor::TlsAcceptor,
   },
   clap::ArgGroup,
@@ -150,7 +151,7 @@ impl Server {
     extract::Path(DeserializeOrdinalFromStr(ordinal)): extract::Path<DeserializeOrdinalFromStr>,
   ) -> impl IntoResponse {
     match index.blocktime(ordinal.height()) {
-      Ok(blocktime) => OrdinalHtml { ordinal, blocktime }.into_response(),
+      Ok(blocktime) => OrdinalHtml { ordinal, blocktime }.page().into_response(),
       Err(err) => {
         eprintln!("Failed to retrieve height from index: {err}");
         (
@@ -227,20 +228,9 @@ impl Server {
 
   async fn root(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
     match index.all() {
-      Ok(blocks) => (
-        StatusCode::OK,
-        Html(format!(
-          "<ul>\n{}</ul>",
-          blocks
-            .iter()
-            .map(|(height, hash)| format!(
-              "  <li>{height} - <a href='/block/{hash}'>{hash}</a></li>\n"
-            ))
-            .collect::<String>(),
-        )),
-      ),
-      Err(error) => {
-        eprintln!("Error serving request for root: {error}");
+      Ok(blocks) => RootHtml { blocks }.page().into_response(),
+      Err(err) => {
+        eprintln!("Error getting blocks: {err}");
         (
           StatusCode::INTERNAL_SERVER_ERROR,
           Html(
@@ -250,6 +240,7 @@ impl Server {
               .to_string(),
           ),
         )
+          .into_response()
       }
     }
   }

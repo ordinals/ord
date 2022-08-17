@@ -68,21 +68,22 @@ fn range_links_to_first() {
 
 #[test]
 fn ordinal_number() {
-  State::new().request_regex("ordinal/0", 200, ".*<dl><dt>number</dt><dd>0</dd></dl>.*");
+  State::new().request_regex("ordinal/0", 200, ".*<h1>Ordinal 0</h1>.*");
 }
 
 #[test]
 fn ordinal_decimal() {
-  State::new().request_regex("ordinal/0.0", 200, ".*<dl><dt>number</dt><dd>0</dd></dl>.*");
+  State::new().request_regex("ordinal/0.0", 200, ".*<h1>Ordinal 0</h1>.*");
 }
 
 #[test]
 fn ordinal_degree() {
-  State::new().request_regex(
-    "ordinal/0°0′0″0‴",
-    200,
-    ".*<dl><dt>number</dt><dd>0</dd></dl>.*",
-  );
+  State::new().request_regex("ordinal/0°0′0″0‴", 200, ".*<h1>Ordinal 0</h1>.*");
+}
+
+#[test]
+fn ordinal_name() {
+  State::new().request_regex("ordinal/nvtdijuwxlp", 200, ".*<h1>Ordinal 0</h1>.*");
 }
 
 #[test]
@@ -140,9 +141,10 @@ fn root() {
   state.request_regex(
     "/",
     200,
-    ".*<ul>
-  <li>1 - <a href='/block/[[:xdigit:]]{64}'>[[:xdigit:]]{64}</a></li>
-  <li>0 - <a href='/block/0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206'>0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206</a></li>
+    ".*<h1>Recent Blocks</h1>
+<ul>
+  <li>1 - <a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
+  <li>0 - <a href=/block/0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206>0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206</a></li>
 </ul>.*",
   );
 }
@@ -211,7 +213,7 @@ fn unmined_ordinal() {
   state.request_regex(
     "ordinal/0",
     200,
-    ".*<dl><dt>block time</dt><dd>2011-02-02 23:16:42</dd></dl>.*",
+    ".*<dt>block time</dt><dd>2011-02-02 23:16:42</dd>.*",
   );
 }
 
@@ -221,6 +223,6 @@ fn mined_ordinal() {
   state.request_regex(
     "ordinal/5000000000",
     200,
-    ".*<dl><dt>block time</dt><dd>.* \\(expected\\)</dd></dl>.*",
+    ".*<dt>block time</dt><dd>.* \\(expected\\)</dd>.*",
   );
 }
