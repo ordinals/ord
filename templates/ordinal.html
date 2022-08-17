@@ -12,12 +12,12 @@
   <dt>block time</dt><dd>{{ self.blocktime }}</dd>
 </dl>
 %% if self.ordinal.n() > 0 {
-<a href=/ordinal/{{self.ordinal.n() - 1}}>Previous</a>
+<a href=/ordinal/{{self.ordinal.n() - 1}}>prev</a>
 %% } else {
-<a>Previous</a>
+<a>prev</a>
 %% }
 %% if self.ordinal < Ordinal::LAST {
-<a href=/ordinal/{{self.ordinal.n() + 1}}>Next</a>
+<a href=/ordinal/{{self.ordinal.n() + 1}}>next</a>
 %% } else {
-<a>Next</a>
+<a>next</a>
 %% }

@@ -44,8 +44,8 @@ mod tests {
           <dt>rarity</dt><dd>mythic</dd>
           <dt>block time</dt><dd>1970-01-01 00:00:00</dd>
         </dl>
-        <a>Previous</a>
-        <a href=/ordinal/1>Next</a>
+        <a>prev</a>
+        <a href=/ordinal/1>next</a>
       "
       .unindent()
     );
@@ -73,8 +73,8 @@ mod tests {
           <dt>rarity</dt><dd>uncommon</dd>
           <dt>block time</dt><dd>1970-01-01 00:00:00</dd>
         </dl>
-        <a href=/ordinal/2099999997689998>Previous</a>
-        <a>Next</a>
+        <a href=/ordinal/2099999997689998>prev</a>
+        <a>next</a>
       "
       .unindent()
     );
@@ -102,8 +102,8 @@ mod tests {
           <dt>rarity</dt><dd>common</dd>
           <dt>block time</dt><dd>1970-01-01 00:00:00</dd>
         </dl>
-        <a href=/ordinal/0>Previous</a>
-        <a href=/ordinal/2>Next</a>
+        <a href=/ordinal/0>prev</a>
+        <a href=/ordinal/2>next</a>
       "
       .unindent()
     );
