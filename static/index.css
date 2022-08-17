@@ -1,3 +1,23 @@
+html {
+  font-family: sans-serif;
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+
+body {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 100%;
+  width: 50rem;
+}
+
+h1 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
 .common, .uncommon, .rare, .epic, .legendary, .mythic {
   border-radius: 0.25rem;
   padding: 0.125rem 0.25rem 0.125rem 0.25rem;
