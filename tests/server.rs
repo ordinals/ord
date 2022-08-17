@@ -105,7 +105,7 @@ fn invalid_outpoint_hash_returns_400() {
 }
 
 #[test]
-fn outpoint_returns_ordinal_ranges() {
+fn output() {
   let mut state = State::new();
 
   state.blocks(1);
@@ -115,7 +115,11 @@ fn outpoint_returns_ordinal_ranges() {
   state.request_regex(
     "output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
     200,
-    ".*<ul><li><a href='/range/0/5000000000'>\\[0,5000000000\\)</a></li></ul>.*",
+    ".*<title>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</title>.*<h1>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</h1>
+<h2>Ordinal Ranges</h2>
+<ul>
+  <li><a href=/range/0/5000000000>\\[0,5000000000\\)</a></li>
+</ul>.*",
   );
 }
 

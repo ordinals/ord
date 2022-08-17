@@ -4,7 +4,8 @@ use {
   self::{
     deserialize_ordinal_from_str::DeserializeOrdinalFromStr,
     templates::{
-      block::BlockHtml, ordinal::OrdinalHtml, root::RootHtml, transaction::TransactionHtml, Content,
+      block::BlockHtml, ordinal::OrdinalHtml, output::OutputHtml, root::RootHtml,
+      transaction::TransactionHtml, Content,
     },
     tls_acceptor::TlsAcceptor,
   },
@@ -175,22 +176,12 @@ impl Server {
     extract::Path(outpoint): extract::Path<OutPoint>,
   ) -> impl IntoResponse {
     match index.list(outpoint) {
-      Ok(Some(ranges)) => (
-        StatusCode::OK,
-        Html(format!(
-          "<ul>{}</ul>",
-          ranges
-            .iter()
-            .map(|(start, end)| format!(
-              "<li><a href='/range/{start}/{end}'>[{start},{end})</a></li>"
-            ))
-            .collect::<String>()
-        )),
-      ),
+      Ok(Some(ranges)) => OutputHtml { outpoint, ranges }.page().into_response(),
       Ok(None) => (
         StatusCode::NOT_FOUND,
         Html("Output unknown, invalid, or spent.".to_string()),
-      ),
+      )
+        .into_response(),
       Err(err) => {
         eprintln!("Error serving request for output: {err}");
         (
@@ -202,6 +193,7 @@ impl Server {
               .to_string(),
           ),
         )
+          .into_response()
       }
     }
   }
