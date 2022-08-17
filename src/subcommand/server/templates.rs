@@ -1,5 +1,6 @@
 use {super::*, boilerplate::Display};
 
+pub(crate) mod block;
 pub(crate) mod ordinal;
 pub(crate) mod root;
 

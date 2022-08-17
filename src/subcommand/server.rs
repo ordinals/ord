@@ -3,7 +3,7 @@ use super::*;
 use {
   self::{
     deserialize_ordinal_from_str::DeserializeOrdinalFromStr,
-    templates::{ordinal::OrdinalHtml, root::RootHtml, Content},
+    templates::{block::BlockHtml, ordinal::OrdinalHtml, root::RootHtml, Content},
     tls_acceptor::TlsAcceptor,
   },
   clap::ArgGroup,
@@ -250,22 +250,7 @@ impl Server {
     index: extract::Extension<Arc<Index>>,
   ) -> impl IntoResponse {
     match index.block_with_hash(hash) {
-      Ok(Some(block)) => (
-        StatusCode::OK,
-        Html(format!(
-          "<ul>\n{}</ul>",
-          block
-            .txdata
-            .iter()
-            .enumerate()
-            .map(|(i, tx)| format!(
-              "  <li>{i} - <a href='/tx/{}'>{}</a></li>\n",
-              tx.txid(),
-              tx.txid()
-            ))
-            .collect::<String>()
-        )),
-      ),
+      Ok(Some(block)) => BlockHtml::new(block).page().into_response(),
       Ok(None) => (
         StatusCode::NOT_FOUND,
         Html(
@@ -274,7 +259,8 @@ impl Server {
             .unwrap_or_default()
             .to_string(),
         ),
-      ),
+      )
+        .into_response(),
       Err(error) => {
         eprintln!("Error serving request for block with hash {hash}: {error}");
         (
@@ -286,6 +272,7 @@ impl Server {
               .to_string(),
           ),
         )
+          .into_response()
       }
     }
   }

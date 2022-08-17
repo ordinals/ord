@@ -150,7 +150,7 @@ fn root() {
 }
 
 #[test]
-fn transactions() {
+fn block() {
   let mut state = State::new();
 
   state.blocks(101);
@@ -168,9 +168,11 @@ fn transactions() {
   state.request_regex(
     &format!("block/{}", blocks[0]),
     200,
-    ".*<ul>
-  <li>0 - <a href='/tx/[[:xdigit:]]{64}'>[[:xdigit:]]{64}</a></li>
-  <li>1 - <a href='/tx/[[:xdigit:]]{64}'>[[:xdigit:]]{64}</a></li>
+    ".*<h1>Block [[:xdigit:]]{64}</h1>
+<h2>Transactions</h2>
+<ul>
+  <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
+  <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
 </ul>.*",
   );
 }
