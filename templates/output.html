@@ -1,0 +1,7 @@
+<h1>Output {{self.outpoint}}</h1>
+<h2>Ordinal Ranges</h2>
+<ul>
+%% for (start, end) in &self.ranges {
+  <li><a href=/range/{{start}}/{{end}}>[{{start}},{{end}})</a></li>
+%% }
+</ul>
