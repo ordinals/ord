@@ -251,7 +251,7 @@ impl Index {
     let height_to_hash = rtx.0.open_table(HEIGHT_TO_HASH)?;
 
     let mut cursor = height_to_hash
-      .range(height.saturating_sub(take)..=height)?
+      .range(height.saturating_sub(take.saturating_sub(1))..=height)?
       .rev();
 
     while let Some(next) = cursor.next() {

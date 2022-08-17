@@ -62,8 +62,16 @@ fn empty_range_returns_400() {
 }
 
 #[test]
-fn range_links_to_first() {
-  State::new().request("range/0/1", 200, "<a href='/ordinal/0'>first</a>");
+fn range() {
+  State::new().request_regex(
+    "range/0/1",
+    200,
+    r".*<title>Ordinal range \[0,1\)</title>.*<h1>Ordinal range \[0,1\)</h1>
+<dl>
+  <dt>size</dt><dd>1</dd>
+  <dt>first</dt><dd><a href=/ordinal/0>0</a></dd>
+</dl>.*",
+  );
 }
 
 #[test]
@@ -162,7 +170,7 @@ fn root_block_limit() {
   state.request_regex(
     "/",
     200,
-    ".*<ul>\n(  <li>[[:digit:]]{3} - <a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){101}</ul>.*"
+    ".*<ul>\n(  <li>[[:digit:]]{3} - <a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){100}</ul>.*"
   );
 }
 

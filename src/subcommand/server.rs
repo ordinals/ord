@@ -4,7 +4,7 @@ use {
   self::{
     deserialize_ordinal_from_str::DeserializeOrdinalFromStr,
     templates::{
-      block::BlockHtml, ordinal::OrdinalHtml, output::OutputHtml, root::RootHtml,
+      block::BlockHtml, ordinal::OrdinalHtml, output::OutputHtml, range::RangeHtml, root::RootHtml,
       transaction::TransactionHtml, Content,
     },
     tls_acceptor::TlsAcceptor,
@@ -16,6 +16,7 @@ use {
     AcmeConfig,
   },
   serde::{de, Deserializer},
+  std::cmp::Ordering,
   tokio_stream::StreamExt,
 };
 
@@ -203,21 +204,15 @@ impl Server {
       (DeserializeOrdinalFromStr, DeserializeOrdinalFromStr),
     >,
   ) -> impl IntoResponse {
-    if start == end {
-      return (StatusCode::BAD_REQUEST, Html("Empty Range".to_string()));
-    }
-
-    if start > end {
-      return (
+    match start.cmp(&end) {
+      Ordering::Equal => (StatusCode::BAD_REQUEST, Html("Empty Range".to_string())).into_response(),
+      Ordering::Greater => (
         StatusCode::BAD_REQUEST,
         Html("Range Start Greater Than Range End".to_string()),
-      );
+      )
+        .into_response(),
+      Ordering::Less => RangeHtml { start, end }.page().into_response(),
     }
-
-    (
-      StatusCode::OK,
-      Html(format!("<a href='/ordinal/{start}'>first</a>")),
-    )
   }
 
   async fn root(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
