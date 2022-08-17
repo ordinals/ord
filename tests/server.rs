@@ -99,7 +99,7 @@ fn ordinal() {
   State::new().request_regex(
     "ordinal/0",
     200,
-    "<title>Ordinal 0</title>.*<h1>Ordinal 0</h1>.*",
+    ".*<title>0°0′0″0‴</title>.*<h1>Ordinal 0</h1>.*",
   );
 }
 
