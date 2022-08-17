@@ -82,6 +82,11 @@ fn ordinal_degree() {
 }
 
 #[test]
+fn ordinal_name() {
+  State::new().request_regex("ordinal/nvtdijuwxlp", 200, ".*<h1>Ordinal 0</h1>.*");
+}
+
+#[test]
 fn ordinal_out_of_range() {
   State::new().request(
     "ordinal/2099999997690000",
