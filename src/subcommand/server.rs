@@ -3,7 +3,9 @@ use super::*;
 use {
   self::{
     deserialize_ordinal_from_str::DeserializeOrdinalFromStr,
-    templates::{block::BlockHtml, ordinal::OrdinalHtml, root::RootHtml, Content},
+    templates::{
+      block::BlockHtml, ordinal::OrdinalHtml, root::RootHtml, transaction::TransactionHtml, Content,
+    },
     tls_acceptor::TlsAcceptor,
   },
   clap::ArgGroup,
@@ -282,18 +284,7 @@ impl Server {
     extract::Path(txid): extract::Path<Txid>,
   ) -> impl IntoResponse {
     match index.transaction(txid) {
-      Ok(Some(transaction)) => (
-        StatusCode::OK,
-        Html(format!(
-          "<ul>\n{}</ul>",
-          transaction
-            .output
-            .iter()
-            .enumerate()
-            .map(|(i, _)| format!("  <li><a href='/output/{txid}:{i}'>{txid}:{i}</a></li>\n"))
-            .collect::<String>()
-        )),
-      ),
+      Ok(Some(transaction)) => TransactionHtml::new(transaction).page().into_response(),
       Ok(None) => (
         StatusCode::NOT_FOUND,
         Html(
@@ -302,7 +293,8 @@ impl Server {
             .unwrap_or_default()
             .to_string(),
         ),
-      ),
+      )
+        .into_response(),
       Err(error) => {
         eprintln!("Error serving request for transaction with txid {txid}: {error}");
         (
@@ -314,6 +306,7 @@ impl Server {
               .to_string(),
           ),
         )
+          .into_response()
       }
     }
   }
