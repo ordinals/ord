@@ -40,22 +40,4 @@ mod tests {
       .unindent()
     );
   }
-
-  #[test]
-  fn empty_range() {
-    assert_eq!(
-      RangeHtml {
-        start: Ordinal(0),
-        end: Ordinal(0),
-      }
-      .to_string(),
-      "
-        <h1>Ordinal range [0,0)</h1>
-        <dl>
-          <dt>size</dt><dd>0</dd>
-        </dl>
-      "
-      .unindent()
-    );
-  }
 }
