@@ -300,7 +300,7 @@ impl Server {
   }
 
   async fn transaction(
-    extract::Extension(index): extract::Extension<Arc<Index>>,
+    index: extract::Extension<Arc<Index>>,
     extract::Path(txid): extract::Path<Txid>,
   ) -> impl IntoResponse {
     match index.transaction(txid) {

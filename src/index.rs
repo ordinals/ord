@@ -5,6 +5,8 @@ use {
   redb::WriteStrategy,
 };
 
+mod rtx;
+
 const HEIGHT_TO_HASH: TableDefinition<u64, [u8]> = TableDefinition::new("HEIGHT_TO_HASH");
 const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8], [u8]> =
   TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
@@ -13,23 +15,6 @@ pub(crate) struct Index {
   client: Client,
   database: Database,
   database_path: PathBuf,
-}
-
-struct Rtx<'a>(redb::ReadTransaction<'a>);
-
-impl Rtx<'_> {
-  fn height(&self) -> Result<u64> {
-    let height_to_hash = self.0.open_table(HEIGHT_TO_HASH)?;
-
-    Ok(
-      height_to_hash
-        .range(0..)?
-        .rev()
-        .next()
-        .map(|(height, _hash)| height)
-        .unwrap_or(0),
-    )
-  }
 }
 
 impl Index {
@@ -248,12 +233,12 @@ impl Index {
     Ok(false)
   }
 
-  fn begin_read(&self) -> Result<Rtx> {
-    Ok(Rtx(self.database.begin_read()?))
+  fn begin_read(&self) -> Result<rtx::Rtx> {
+    Ok(rtx::Rtx(self.database.begin_read()?))
   }
 
   pub(crate) fn height(&self) -> Result<u64> {
-    Ok(self.begin_read()?.height()?)
+    self.begin_read()?.height()
   }
 
   pub(crate) fn blocks(&self, take: u64) -> Result<Vec<(u64, BlockHash)>> {
