@@ -16,6 +16,7 @@ use {
     AcmeConfig,
   },
   serde::{de, Deserializer},
+  std::cmp::Ordering,
   tokio_stream::StreamExt,
 };
 
@@ -203,16 +204,14 @@ impl Server {
       (DeserializeOrdinalFromStr, DeserializeOrdinalFromStr),
     >,
   ) -> impl IntoResponse {
-    if start == end {
-      (StatusCode::BAD_REQUEST, Html("Empty Range".to_string())).into_response()
-    } else if start > end {
-      (
+    match start.cmp(&end) {
+      Ordering::Equal => (StatusCode::BAD_REQUEST, Html("Empty Range".to_string())).into_response(),
+      Ordering::Greater => (
         StatusCode::BAD_REQUEST,
         Html("Range Start Greater Than Range End".to_string()),
       )
-        .into_response()
-    } else {
-      RangeHtml { start, end }.page().into_response()
+        .into_response(),
+      Ordering::Less => RangeHtml { start, end }.page().into_response(),
     }
   }
 
