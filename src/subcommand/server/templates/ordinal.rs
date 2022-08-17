@@ -41,7 +41,7 @@ mod tests {
           <dt>epoch</dt><dd>0</dd>
           <dt>period</dt><dd>0</dd>
           <dt>offset</dt><dd>0</dd>
-          <dt>rarity</dt><dd class=mythic>mythic</dd>
+          <dt>rarity</dt><dd><span class=mythic>mythic</span></dd>
           <dt>block time</dt><dd>1970-01-01 00:00:00</dd>
         </dl>
       "
