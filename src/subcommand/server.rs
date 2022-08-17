@@ -330,8 +330,8 @@ impl Server {
   }
 
   async fn static_asset(extract::Path(path): extract::Path<String>) -> impl IntoResponse {
-    match StaticAssets::get(if path.starts_with("/") {
-      &path[1..]
+    match StaticAssets::get(if let Some(stripped) = path.strip_prefix('/') {
+      stripped
     } else {
       &path
     }) {
