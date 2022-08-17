@@ -14,6 +14,6 @@
 %% if self.ordinal.n() > 0 {
 <a href=/ordinal/{{self.ordinal.n() - 1}}><button>Previous</button></a>
 %% }
-%% if self.ordinal.n() < 2099999997690000 - 1 {
+%% if self.ordinal < Ordinal::LAST {
 <a href=/ordinal/{{self.ordinal.n() + 1}}><button>Next</button></a>
 %% }
