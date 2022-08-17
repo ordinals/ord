@@ -50,6 +50,7 @@ mod tests {
 <html lang=en>
   <head>
     <meta charset=utf-8>
+    <meta name=format-detection content='telephone=no'>
     <title>Foo</title>
   </head>
   <body>
