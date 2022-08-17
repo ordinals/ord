@@ -3,6 +3,7 @@ use {super::*, boilerplate::Display};
 pub(crate) mod block;
 pub(crate) mod ordinal;
 pub(crate) mod root;
+pub(crate) mod transaction;
 
 #[derive(Display)]
 pub(crate) struct PageHtml {

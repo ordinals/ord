@@ -187,7 +187,7 @@ fn block_not_found() {
 }
 
 #[test]
-fn outputs() {
+fn transaction() {
   let mut state = State::new();
 
   state.blocks(101);
@@ -203,7 +203,9 @@ fn outputs() {
   state.request(
     "tx/30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c",
     200,
-    "<ul>
+    "<h1>Transaction 30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c</h1>
+<h2>Outputs</h2>
+<ul>
   <li><a href='/output/30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c:0'>30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c:0</a></li>
 </ul>"
   );
