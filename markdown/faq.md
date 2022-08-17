@@ -1,5 +1,5 @@
-Ordinals FAQ
-============
+Ordinal FAQ
+===========
 
 How many ordinals will there be?
 --------------------------------

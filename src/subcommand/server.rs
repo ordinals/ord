@@ -30,6 +30,23 @@ mod tls_acceptor;
 #[folder = "static"]
 struct StaticAssets;
 
+struct StaticHtml {
+  title: &'static str,
+  html: &'static str,
+}
+
+impl Content for StaticHtml {
+  fn title(&self) -> String {
+    self.title.into()
+  }
+}
+
+impl Display for StaticHtml {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    f.write_str(self.html)
+  }
+}
+
 #[derive(Debug, Parser)]
 #[clap(group = ArgGroup::new("port").multiple(false))]
 pub(crate) struct Server {
@@ -80,6 +97,7 @@ impl Server {
         .route("/", get(Self::root))
         .route("/api/list/:outpoint", get(Self::api_list))
         .route("/block/:hash", get(Self::block))
+        .route("/bounties", get(Self::bounties))
         .route("/faq", get(Self::faq))
         .route("/height", get(Self::height))
         .route("/ordinal/:ordinal", get(Self::ordinal))
@@ -376,23 +394,21 @@ impl Server {
   }
 
   async fn faq() -> impl IntoResponse {
-    static HTML: &'static str = include_str!(concat!(env!("OUT_DIR"), "/faq.html"));
-
-    struct Faq;
-
-    impl Content for Faq {
-      fn title(&self) -> String {
-        "Ordinals FAQ".to_string()
-      }
+    StaticHtml {
+      title: "Ordinal FAQ".into(),
+      html: include_str!(concat!(env!("OUT_DIR"), "/faq.html")),
     }
+    .page()
+    .into_response()
+  }
 
-    impl Display for Faq {
-      fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        f.write_str(HTML)
-      }
+  async fn bounties() -> impl IntoResponse {
+    StaticHtml {
+      title: "Ordinal Bounties".into(),
+      html: include_str!(concat!(env!("OUT_DIR"), "/bounties.html")),
     }
-
-    Faq.page().into_response()
+    .page()
+    .into_response()
   }
 }
 
