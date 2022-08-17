@@ -8,7 +8,7 @@
   <dt>epoch</dt><dd>{{ self.ordinal.epoch() }}</dd>
   <dt>period</dt><dd>{{ self.ordinal.period() }}</dd>
   <dt>offset</dt><dd>{{ self.ordinal.third() }}</dd>
-  <dt>rarity</dt><dd>{{ self.ordinal.rarity() }}</dd>
+  <dt>rarity</dt><dd><span class={{self.ordinal.rarity()}}>{{ self.ordinal.rarity() }}</span></dd>
   <dt>block time</dt><dd>{{ self.blocktime }}</dd>
 </dl>
 %% if self.ordinal.n() > 0 {

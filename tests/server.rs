@@ -95,6 +95,15 @@ fn ordinal_name() {
 }
 
 #[test]
+fn ordinal() {
+  State::new().request_regex(
+    "ordinal/0",
+    200,
+    ".*<title>0°0′0″0‴</title>.*<h1>Ordinal 0</h1>.*",
+  );
+}
+
+#[test]
 fn ordinal_out_of_range() {
   State::new().request(
     "ordinal/2099999997690000",
@@ -253,5 +262,17 @@ fn mined_ordinal() {
     "ordinal/5000000000",
     200,
     ".*<dt>block time</dt><dd>.* \\(expected\\)</dd>.*",
+  );
+}
+
+#[test]
+fn static_asset() {
+  let mut state = State::new();
+  state.request_regex(
+    "static/index.css",
+    200,
+    r".*\.rare \{
+  background-color: cornflowerblue;
+}.*",
   );
 }

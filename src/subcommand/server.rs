@@ -9,7 +9,9 @@ use {
     },
     tls_acceptor::TlsAcceptor,
   },
+  axum::{body, http::header, response::Response},
   clap::ArgGroup,
+  rust_embed::RustEmbed,
   rustls_acme::{
     acme::{ACME_TLS_ALPN_NAME, LETS_ENCRYPT_PRODUCTION_DIRECTORY, LETS_ENCRYPT_STAGING_DIRECTORY},
     caches::DirCache,
@@ -23,6 +25,10 @@ use {
 mod deserialize_ordinal_from_str;
 mod templates;
 mod tls_acceptor;
+
+#[derive(RustEmbed)]
+#[folder = "static"]
+struct StaticAssets;
 
 #[derive(Debug, Parser)]
 #[clap(group = ArgGroup::new("port").multiple(false))]
@@ -80,6 +86,7 @@ impl Server {
         .route("/range/:start/:end", get(Self::range))
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
+        .route("/static/*path", get(Self::static_asset))
         .layer(extract::Extension(index))
         .layer(
           CorsLayer::new()
@@ -320,6 +327,33 @@ impl Server {
         .unwrap_or_default()
         .to_string(),
     )
+  }
+
+  async fn static_asset(extract::Path(path): extract::Path<String>) -> impl IntoResponse {
+    match StaticAssets::get(if let Some(stripped) = path.strip_prefix('/') {
+      stripped
+    } else {
+      &path
+    }) {
+      Some(content) => {
+        let body = body::boxed(body::Full::from(content.data));
+        let mime = mime_guess::from_path(path).first_or_octet_stream();
+        Response::builder()
+          .header(header::CONTENT_TYPE, mime.as_ref())
+          .body(body)
+          .unwrap()
+      }
+      None => (
+        StatusCode::NOT_FOUND,
+        Html(
+          StatusCode::NOT_FOUND
+            .canonical_reason()
+            .unwrap_or_default()
+            .to_string(),
+        ),
+      )
+        .into_response(),
+    }
   }
 
   async fn height(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {

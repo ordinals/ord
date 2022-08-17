@@ -1,0 +1,29 @@
+.common, .uncommon, .rare, .epic, .legendary, .mythic {
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.25rem 0.125rem 0.25rem;
+}
+
+.common {
+  background-color: whitesmoke;
+}
+
+.uncommon {
+  background-color: forestgreen;
+}
+
+.rare {
+  background-color: cornflowerblue;
+}
+
+.epic {
+  background-color: darkorchid;
+}
+
+.legendary {
+  background-color: gold;
+}
+
+.mythic {
+  color: white;
+  background-color: #f2a900;
+}
