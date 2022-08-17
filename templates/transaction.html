@@ -1,0 +1,7 @@
+<h1>Transaction {{self.txid}}</h1>
+<h2>Outputs</h2>
+<ul>
+%% for output in &self.outputs {
+  <li><a href=/output/{{output}}>{{output}}</a></li>
+%% }
+</ul>
