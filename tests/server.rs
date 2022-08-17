@@ -272,7 +272,7 @@ fn static_asset() {
     "static/index.css",
     200,
     r".*\.rare \{
-  color: blue;
+  background-color: cornflowerblue;
 }.*",
   );
 }
