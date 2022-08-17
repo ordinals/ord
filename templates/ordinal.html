@@ -11,3 +11,9 @@
   <dt>rarity</dt><dd>{{ self.ordinal.rarity() }}</dd>
   <dt>block time</dt><dd>{{ self.blocktime }}</dd>
 </dl>
+%% if self.ordinal.n() > 0 {
+<a href=/ordinal/{{self.ordinal.n() - 1}}><button>Previous</button></a>
+%% }
+%% if self.ordinal.n() < 2099999997690000 - 1 {
+<a href=/ordinal/{{self.ordinal.n() + 1}}><button>Next</button></a>
+%% }
