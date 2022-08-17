@@ -44,7 +44,8 @@ mod tests {
           <dt>rarity</dt><dd>mythic</dd>
           <dt>block time</dt><dd>1970-01-01 00:00:00</dd>
         </dl>
-        <a href=/ordinal/1><button>Next</button></a>
+        <a>Previous</a>
+        <a href=/ordinal/1>Next</a>
       "
       .unindent()
     );
@@ -72,7 +73,8 @@ mod tests {
           <dt>rarity</dt><dd>uncommon</dd>
           <dt>block time</dt><dd>1970-01-01 00:00:00</dd>
         </dl>
-        <a href=/ordinal/2099999997689998><button>Previous</button></a>
+        <a href=/ordinal/2099999997689998>Previous</a>
+        <a>Next</a>
       "
       .unindent()
     );
@@ -100,8 +102,8 @@ mod tests {
           <dt>rarity</dt><dd>common</dd>
           <dt>block time</dt><dd>1970-01-01 00:00:00</dd>
         </dl>
-        <a href=/ordinal/0><button>Previous</button></a>
-        <a href=/ordinal/2><button>Next</button></a>
+        <a href=/ordinal/0>Previous</a>
+        <a href=/ordinal/2>Next</a>
       "
       .unindent()
     );
