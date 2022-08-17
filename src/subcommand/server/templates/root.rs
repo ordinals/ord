@@ -7,7 +7,7 @@ pub(crate) struct RootHtml {
 
 impl Content for RootHtml {
   fn title(&self) -> String {
-    "Ordinal Block Explorer".to_string()
+    "Ordinals".to_string()
   }
 
   fn page(self) -> PageHtml {
