@@ -284,7 +284,7 @@ impl Server {
     extract::Path(txid): extract::Path<Txid>,
   ) -> impl IntoResponse {
     match index.transaction(txid) {
-      Ok(Some(transaction)) => TransactionHtml::new(transaction).into_response(),
+      Ok(Some(transaction)) => TransactionHtml::new(transaction).page().into_response(),
       Ok(None) => (
         StatusCode::NOT_FOUND,
         Html(
