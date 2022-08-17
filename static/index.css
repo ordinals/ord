@@ -1,4 +1,10 @@
+.common, .uncommon, .rare, .epic, .legendary, .mythic {
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.25rem 0.125rem 0.25rem;
+}
+
 .common {
+  backgorund-color: white;
 }
 
 .uncommon {
@@ -19,9 +25,4 @@
 
 .mythic {
   background-color: orange;
-}
-
-.common, .uncommon, .rare, .epic, .legendary, .mythic {
-  border-radius: 0.25rem;
-  padding: 0.125rem 0.25rem 0.125rem 0.25rem;
 }
