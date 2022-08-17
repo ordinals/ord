@@ -40,4 +40,23 @@ mod tests {
       .unindent()
     );
   }
+
+  #[test]
+  fn bugfix_broken_link() {
+    assert_eq!(
+      RangeHtml {
+        start: Ordinal(1),
+        end: Ordinal(10),
+      }
+      .to_string(),
+      "
+        <h1>Ordinal range [1,10)</h1>
+        <dl>
+          <dt>size</dt><dd>9</dd>
+          <dt>first</dt><dd><a href=/ordinal/1>1</a></dd>
+        </dl>
+      "
+      .unindent()
+    );
+  }
 }
