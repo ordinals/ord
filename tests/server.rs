@@ -164,7 +164,7 @@ fn root() {
     200,
     ".*<title>Ordinals</title>.*<h1>Ordinals</h1>
 <nav>.*</nav>
-<h1>Recent Blocks</h1>
+<h2>Recent Blocks</h2>
 <ul>
   <li>1 - <a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
   <li>0 - <a href=/block/0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206>0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206</a></li>
