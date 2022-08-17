@@ -163,7 +163,7 @@ fn root_block_limit() {
 }
 
 #[test]
-fn transactions() {
+fn block() {
   let mut state = State::new();
 
   state.blocks(101);
