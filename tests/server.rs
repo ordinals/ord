@@ -150,6 +150,19 @@ fn root() {
 }
 
 #[test]
+fn root_block_limit() {
+  let mut state = State::new();
+
+  state.blocks(200);
+
+  state.request_regex(
+    "/",
+    200,
+    ".*<ul>\n(  <li>[[:digit:]]{3} - <a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){101}</ul>.*"
+  );
+}
+
+#[test]
 fn block() {
   let mut state = State::new();
 
