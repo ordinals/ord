@@ -51,6 +51,7 @@ mod tests {
   <head>
     <meta charset=utf-8>
     <title>Foo</title>
+    <link href=/static/index.css rel=stylesheet>
   </head>
   <body>
 <h1>Foo</h1>

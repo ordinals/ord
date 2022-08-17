@@ -1,23 +1,22 @@
 .common {
-  color: grey;
 }
 
 .uncommon {
-  color: green;
+  background-color: green;
 }
 
 .rare {
-  color: blue;
+  background-color: blue;
 }
 
 .epic {
-  color: purple;
+  background-color: purple;
 }
 
 .legendary {
-  color: gold;
+  background-color: gold;
 }
 
 .mythic {
-  color: orange;
+  background-color: orange;
 }
