@@ -11,3 +11,13 @@
   <dt>rarity</dt><dd>{{ self.ordinal.rarity() }}</dd>
   <dt>block time</dt><dd>{{ self.blocktime }}</dd>
 </dl>
+%% if self.ordinal.n() > 0 {
+<a href=/ordinal/{{self.ordinal.n() - 1}}>prev</a>
+%% } else {
+<a>prev</a>
+%% }
+%% if self.ordinal < Ordinal::LAST {
+<a href=/ordinal/{{self.ordinal.n() + 1}}>next</a>
+%% } else {
+<a>next</a>
+%% }
