@@ -63,14 +63,14 @@ fn empty_range_returns_400() {
 
 #[test]
 fn range() {
-  State::new().request(
+  State::new().request_regex(
     "range/0/1",
     200,
-    ".*<title> Ordinal Range [0,1)</title>.*<h1>Ordinal Range [0,1)</h1>
+    r".*<title>Ordinal range \[0,1\)</title>.*<h1>Ordinal range \[0,1\)</h1>
 <dl>
-  <dt>count</dt><dd>1</dd>
-</dl>
-<a href='/ordinal/0'>first</a>.*",
+  <dt>size</dt><dd>1</dd>
+  <dt>first</dt><dd><a href=/ordinal/0>0</a></dd>
+</dl>.*",
   );
 }
 
