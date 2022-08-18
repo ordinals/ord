@@ -162,7 +162,9 @@ fn root() {
   state.request_regex(
     "/",
     200,
-    ".*<h1>Recent Blocks</h1>
+    ".*<title>Ordinals</title>.*<h1>Ordinals</h1>
+<nav>.*</nav>
+<h2>Recent Blocks</h2>
 <ul>
   <li>1 - <a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
   <li>0 - <a href=/block/0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206>0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206</a></li>
@@ -274,5 +276,25 @@ fn static_asset() {
     r".*\.rare \{
   background-color: cornflowerblue;
 }.*",
+  );
+}
+
+#[test]
+fn faq() {
+  let mut state = State::new();
+  state.request_regex(
+    "faq",
+    200,
+    r".*<title>Ordinal FAQ</title>.*<h1>Ordinal FAQ</h1>.*",
+  );
+}
+
+#[test]
+fn bounties() {
+  let mut state = State::new();
+  state.request_regex(
+    "bounties",
+    200,
+    r".*<title>Ordinal Bounties</title>.*<h1>Ordinal Bounties</h1>.*",
   );
 }
