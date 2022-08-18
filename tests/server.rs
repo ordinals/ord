@@ -154,7 +154,7 @@ fn invalid_vout_returns_404() {
 }
 
 #[test]
-fn root() {
+fn home() {
   let mut state = State::new();
 
   state.blocks(1);
@@ -173,7 +173,7 @@ fn root() {
 }
 
 #[test]
-fn root_block_limit() {
+fn home_block_limit() {
   let mut state = State::new();
 
   state.blocks(200);

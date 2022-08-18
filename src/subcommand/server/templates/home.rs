@@ -30,7 +30,7 @@ mod tests {
   }
 
   #[test]
-  fn root_html() {
+  fn home_html() {
     assert_regex_match!(
 "<h1>Ordinals</h1>
 <nav>.*</nav>
