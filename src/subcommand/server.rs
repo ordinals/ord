@@ -203,11 +203,7 @@ impl Server {
   ) -> impl IntoResponse {
     match index.list(outpoint) {
       Ok(Some(list)) => OutputHtml { outpoint, list }.page().into_response(),
-      Ok(None) => (
-        StatusCode::NOT_FOUND,
-        Html("Output unknown.".to_string()),
-      )
-        .into_response(),
+      Ok(None) => (StatusCode::NOT_FOUND, Html("Output unknown.".to_string())).into_response(),
       Err(err) => {
         eprintln!("Error serving request for output: {err}");
         (
