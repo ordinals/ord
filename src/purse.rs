@@ -73,7 +73,8 @@ impl Purse {
     let index = Index::index(options)?;
 
     for utxo in self.wallet.list_unspent()? {
-      if let Some(ranges) = index.list(utxo.outpoint)? {
+      // TODO: match on result of list
+      if let Some(List::Unspent(ranges)) = index.list(utxo.outpoint)? {
         for (start, end) in ranges {
           if ordinal.0 >= start && ordinal.0 < end {
             return Ok(utxo);

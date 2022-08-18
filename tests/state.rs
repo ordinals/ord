@@ -139,7 +139,7 @@ impl State {
       .unwrap()
   }
 
-  pub(crate) fn transaction(&self, options: TransactionOptions) {
+  pub(crate) fn transaction(&self, options: TransactionOptions) -> Transaction {
     self.sync();
 
     let input_value = options
@@ -197,6 +197,8 @@ impl State {
         &[tx.raw_hex().into(), 21000000.into()],
       )
       .unwrap();
+
+    tx
   }
 
   pub(crate) fn request(&mut self, path: &str, status: u16, expected_response: &str) {

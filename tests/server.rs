@@ -141,16 +141,66 @@ fn output() {
 }
 
 #[test]
-fn invalid_vout_returns_404() {
+fn unknown_output_returns_404() {
   let mut state = State::new();
 
   state.blocks(1);
 
   state.request(
-    "output/0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef8:0",
+    "output/0000000000000000000000000000000000000000000000000000000000000000:0",
     404,
-    "Output unknown, invalid, or spent.",
+    "Output unknown.",
   );
+}
+
+#[test]
+fn spent_output_returns_200() {
+  let mut state = State::new();
+
+  state.blocks(101);
+
+  let transaction = state.transaction(TransactionOptions {
+    slots: &[(1, 0, 0)],
+    output_count: 1,
+    fee: 0,
+  });
+
+  let txid = transaction.txid();
+
+  state.blocks(1);
+
+  state.request_regex(
+    &format!("output/{txid}:0"),
+    200,
+    &format!(
+      ".*<title>Output {txid}:0</title>.*<h1>Output {txid}:0</h1>
+<h2>Ordinal Ranges</h2>
+<ul>
+  <li><a href=/range/5000000000/10000000000>\\[5000000000,10000000000\\)</a></li>
+</ul>.*"
+    ),
+  );
+
+  let transaction = state.transaction(TransactionOptions {
+    slots: &[(102, 1, 0)],
+    output_count: 1,
+    fee: 0,
+  });
+
+  state.blocks(1);
+
+  state.request_regex(
+    &format!("output/{txid}:0"),
+    200,
+    &format!("Output spent in transaction {}.", transaction.txid()),
+  );
+}
+
+#[test]
+fn invalid_output_returns_400() {
+  let mut state = State::new();
+
+  state.request_regex(&format!("output/foo:0"), 400, "bruh");
 }
 
 #[test]

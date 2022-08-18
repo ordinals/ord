@@ -10,11 +10,19 @@ mod rtx;
 const HEIGHT_TO_HASH: TableDefinition<u64, [u8]> = TableDefinition::new("HEIGHT_TO_HASH");
 const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8], [u8]> =
   TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
+const OUTPOINT_TO_TXID: TableDefinition<[u8], [u8]> = TableDefinition::new("OUTPOINT_TO_TXID");
+
+// TODO: USE SERIALIZE FUNCTION
 
 pub(crate) struct Index {
   client: Client,
   database: Database,
   database_path: PathBuf,
+}
+
+pub(crate) enum List {
+  Spent(Txid),
+  Unspent(Vec<(u64, u64)>),
 }
 
 impl Index {
@@ -46,6 +54,7 @@ impl Index {
 
     tx.open_table(HEIGHT_TO_HASH)?;
     tx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
+    tx.open_table(OUTPOINT_TO_TXID)?;
 
     tx.commit()?;
 
@@ -130,6 +139,7 @@ impl Index {
   pub(crate) fn index_block(&self, wtx: &mut WriteTransaction) -> Result<bool> {
     let mut height_to_hash = wtx.open_table(HEIGHT_TO_HASH)?;
     let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
+    let mut outpoint_to_txid = wtx.open_table(OUTPOINT_TO_TXID)?;
 
     let start = Instant::now();
     let mut ordinal_ranges_written = 0;
@@ -206,6 +216,7 @@ impl Index {
         *txid,
         tx,
         &mut outpoint_to_ordinal_ranges,
+        &mut outpoint_to_txid,
         &mut input_ordinal_ranges,
         &mut ordinal_ranges_written,
       )?;
@@ -218,6 +229,7 @@ impl Index {
         *txid,
         tx,
         &mut outpoint_to_ordinal_ranges,
+        &mut outpoint_to_txid,
         &mut coinbase_inputs,
         &mut ordinal_ranges_written,
       )?;
@@ -266,6 +278,7 @@ impl Index {
     txid: Txid,
     tx: &Transaction,
     outpoint_to_ordinal_ranges: &mut Table<[u8], [u8]>,
+    outpoint_to_txid: &mut Table<[u8], [u8]>,
     input_ordinal_ranges: &mut VecDeque<(u64, u64)>,
     ordinal_ranges_written: &mut u64,
   ) -> Result {
@@ -307,6 +320,14 @@ impl Index {
       let mut outpoint_encoded = Vec::new();
       outpoint.consensus_encode(&mut outpoint_encoded)?;
       outpoint_to_ordinal_ranges.insert(&outpoint_encoded, &ordinals)?;
+    }
+
+    for input in &tx.input {
+      let mut outpoint_encoded = Vec::new();
+      input
+        .previous_output
+        .consensus_encode(&mut outpoint_encoded)?;
+      outpoint_to_txid.insert(&outpoint_encoded, &txid)?;
     }
 
     Ok(())
@@ -396,7 +417,7 @@ impl Index {
     )
   }
 
-  pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<Vec<(u64, u64)>>> {
+  pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<List>> {
     let mut outpoint_encoded = Vec::new();
     outpoint.consensus_encode(&mut outpoint_encoded)?;
     let ordinal_ranges = self.list_inner(&outpoint_encoded)?;
@@ -406,9 +427,18 @@ impl Index {
         for chunk in ordinal_ranges.chunks_exact(11) {
           output.push(Self::decode_ordinal_range(chunk.try_into().unwrap()));
         }
-        Ok(Some(output))
+        Ok(Some(List::Unspent(output)))
       }
-      None => Ok(None),
+      None => Ok(
+        self
+          .database
+          .begin_read()?
+          .open_table(OUTPOINT_TO_TXID)?
+          .get(&outpoint_encoded)?
+          .map(|txid| Txid::consensus_decode(txid))
+          .transpose()?
+          .map(|txid| List::Spent(txid)),
+      ),
     }
   }
 
