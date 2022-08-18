@@ -26,7 +26,9 @@ source ~/.cargo/env
 
 rustup update stable
 
-cargo install --path . --root /usr/local
+cargo build --release
+mv /usr/local/bin/ord ord.old
+cp target/release/ord /usr/local/bin/ord
 
 id --user bitcoin || useradd --system bitcoin
 id --user ord || useradd --system ord
@@ -51,6 +53,7 @@ systemctl stop ord
 cp target/release/ord /usr/local/bin/ord
 systemctl enable ord
 systemctl restart ord
+rm ord.old
 
 while ! curl --fail https://signet.ordinals.com/status; do
   echo Waiting for ord…
