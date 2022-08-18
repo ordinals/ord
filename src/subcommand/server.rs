@@ -243,7 +243,7 @@ impl Server {
 
   async fn home(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
     match index.blocks(100) {
-      Ok(blocks) => HomeHtml { blocks }.page().into_response(),
+      Ok(blocks) => HomeHtml::new(blocks).page().into_response(),
       Err(err) => {
         eprintln!("Error getting blocks: {err}");
         (

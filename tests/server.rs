@@ -159,10 +159,10 @@ fn home() {
     ".*<title>Ordinals</title>.*<h1>Ordinals</h1>
 <nav>.*</nav>
 <h2>Recent Blocks</h2>
-<ul>
-  <li>1 - <a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
-  <li>0 - <a href=/block/0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206>0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206</a></li>
-</ul>.*",
+<ol start=1 reversed>
+  <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
+  <li><a href=/block/0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206>0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206</a></li>
+</ol>.*",
   );
 }
 
@@ -175,7 +175,7 @@ fn home_block_limit() {
   state.request_regex(
     "/",
     200,
-    ".*<ul>\n(  <li>[[:digit:]]{3} - <a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){100}</ul>.*"
+    ".*<ol start=200 reversed>\n(  <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){100}</ol>.*"
   );
 }
 

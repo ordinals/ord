@@ -2,7 +2,21 @@ use super::*;
 
 #[derive(Display)]
 pub(crate) struct HomeHtml {
-  pub(crate) blocks: Vec<(u64, BlockHash)>,
+  last: u64,
+  hashes: Vec<BlockHash>,
+}
+
+impl HomeHtml {
+  pub(crate) fn new(blocks: Vec<(u64, BlockHash)>) -> Self {
+    Self {
+      last: blocks
+        .get(0)
+        .map(|(height, _)| height)
+        .cloned()
+        .unwrap_or(0),
+      hashes: blocks.into_iter().map(|(_, hash)| hash).collect(),
+    }
+  }
 }
 
 impl Content for HomeHtml {
@@ -32,25 +46,29 @@ mod tests {
   #[test]
   fn home_html() {
     assert_regex_match!(
-"<h1>Ordinals</h1>
+      "<h1>Ordinals</h1>
 <nav>.*</nav>
 <h2>Recent Blocks</h2>
-<ul>
-  <li>1 - <a href=/block/1111111111111111111111111111111111111111111111111111111111111111>1111111111111111111111111111111111111111111111111111111111111111</a></li>
-  <li>0 - <a href=/block/0000000000000000000000000000000000000000000000000000000000000000>0000000000000000000000000000000000000000000000000000000000000000</a></li>
-</ul>
+<ol start=1 reversed>
+  <li><a href=/block/1{64}>1{64}</a></li>
+  <li><a href=/block/0{64}>0{64}</a></li>
+</ol>
 ",
-      &HomeHtml {
-        blocks: vec![
-          (
-            1,
-            "1111111111111111111111111111111111111111111111111111111111111111".parse().unwrap()
-          ),
-          (
-            0,
-            "0000000000000000000000000000000000000000000000000000000000000000".parse().unwrap()
-          )
-        ],
-      }.to_string());
+      &HomeHtml::new(vec![
+        (
+          1,
+          "1111111111111111111111111111111111111111111111111111111111111111"
+            .parse()
+            .unwrap()
+        ),
+        (
+          0,
+          "0000000000000000000000000000000000000000000000000000000000000000"
+            .parse()
+            .unwrap()
+        )
+      ],)
+      .to_string()
+    );
   }
 }
