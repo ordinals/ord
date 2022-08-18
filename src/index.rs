@@ -1,5 +1,6 @@
 use {
   super::*,
+  bitcoin::consensus::encode::serialize,
   bitcoincore_rpc::{Auth, Client, RpcApi},
   rayon::iter::{IntoParallelRefIterator, ParallelIterator},
   redb::WriteStrategy,
@@ -11,8 +12,6 @@ const HEIGHT_TO_HASH: TableDefinition<u64, [u8]> = TableDefinition::new("HEIGHT_
 const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8], [u8]> =
   TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
 const OUTPOINT_TO_TXID: TableDefinition<[u8], [u8]> = TableDefinition::new("OUTPOINT_TO_TXID");
-
-// TODO: USE SERIALIZE FUNCTION
 
 pub(crate) struct Index {
   client: Client,
@@ -198,11 +197,10 @@ impl Index {
       let mut input_ordinal_ranges = VecDeque::new();
 
       for input in &tx.input {
-        let mut key = Vec::new();
-        input.previous_output.consensus_encode(&mut key)?;
+        let key = serialize(&input.previous_output);
 
         let ordinal_ranges = outpoint_to_ordinal_ranges
-          .get(key.as_slice())?
+          .get(&key)?
           .ok_or_else(|| anyhow!("Could not find outpoint in index"))?;
 
         for chunk in ordinal_ranges.chunks_exact(11) {
@@ -317,17 +315,11 @@ impl Index {
         *ordinal_ranges_written += 1;
       }
 
-      let mut outpoint_encoded = Vec::new();
-      outpoint.consensus_encode(&mut outpoint_encoded)?;
-      outpoint_to_ordinal_ranges.insert(&outpoint_encoded, &ordinals)?;
+      outpoint_to_ordinal_ranges.insert(&serialize(&outpoint), &ordinals)?;
     }
 
     for input in &tx.input {
-      let mut outpoint_encoded = Vec::new();
-      input
-        .previous_output
-        .consensus_encode(&mut outpoint_encoded)?;
-      outpoint_to_txid.insert(&outpoint_encoded, &txid)?;
+      outpoint_to_txid.insert(&serialize(&input.previous_output), &txid)?;
     }
 
     Ok(())
@@ -418,9 +410,10 @@ impl Index {
   }
 
   pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<List>> {
-    let mut outpoint_encoded = Vec::new();
-    outpoint.consensus_encode(&mut outpoint_encoded)?;
+    let outpoint_encoded = serialize(&outpoint);
+
     let ordinal_ranges = self.list_inner(&outpoint_encoded)?;
+
     match ordinal_ranges {
       Some(ordinal_ranges) => {
         let mut output = Vec::new();
