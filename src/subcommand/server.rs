@@ -395,7 +395,7 @@ impl Server {
 
   async fn faq() -> impl IntoResponse {
     StaticHtml {
-      title: "Ordinal FAQ".into(),
+      title: "Ordinal FAQ",
       html: include_str!(concat!(env!("OUT_DIR"), "/faq.html")),
     }
     .page()
@@ -404,7 +404,7 @@ impl Server {
 
   async fn bounties() -> impl IntoResponse {
     StaticHtml {
-      title: "Ordinal Bounties".into(),
+      title: "Ordinal Bounties",
       html: include_str!(concat!(env!("OUT_DIR"), "/bounties.html")),
     }
     .page()

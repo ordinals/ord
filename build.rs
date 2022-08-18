@@ -14,7 +14,7 @@ fn main() {
       continue;
     }
 
-    let input = &fs::read_to_string(&path).unwrap();
+    let input = fs::read_to_string(&path).unwrap();
 
     let parser = Parser::new(&input);
 
