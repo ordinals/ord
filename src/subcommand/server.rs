@@ -4,7 +4,7 @@ use {
   self::{
     deserialize_ordinal_from_str::DeserializeOrdinalFromStr,
     templates::{
-      block::BlockHtml, ordinal::OrdinalHtml, output::OutputHtml, range::RangeHtml, root::RootHtml,
+      block::BlockHtml, ordinal::OrdinalHtml, output::OutputHtml, range::RangeHtml, root::HomeHtml,
       transaction::TransactionHtml, Content,
     },
     tls_acceptor::TlsAcceptor,
@@ -243,7 +243,7 @@ impl Server {
 
   async fn root(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
     match index.blocks(100) {
-      Ok(blocks) => RootHtml { blocks }.page().into_response(),
+      Ok(blocks) => HomeHtml { blocks }.page().into_response(),
       Err(err) => {
         eprintln!("Error getting blocks: {err}");
         (
