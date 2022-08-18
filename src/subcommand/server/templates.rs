@@ -1,10 +1,10 @@
 use {super::*, boilerplate::Display};
 
 pub(crate) mod block;
+pub(crate) mod home;
 pub(crate) mod ordinal;
 pub(crate) mod output;
 pub(crate) mod range;
-pub(crate) mod root;
 pub(crate) mod transaction;
 
 #[derive(Display)]

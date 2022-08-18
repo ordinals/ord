@@ -4,7 +4,7 @@ use {
   self::{
     deserialize_ordinal_from_str::DeserializeOrdinalFromStr,
     templates::{
-      block::BlockHtml, ordinal::OrdinalHtml, output::OutputHtml, range::RangeHtml, root::RootHtml,
+      block::BlockHtml, home::HomeHtml, ordinal::OrdinalHtml, output::OutputHtml, range::RangeHtml,
       transaction::TransactionHtml, Content,
     },
     tls_acceptor::TlsAcceptor,
@@ -94,7 +94,7 @@ impl Server {
       });
 
       let app = Router::new()
-        .route("/", get(Self::root))
+        .route("/", get(Self::home))
         .route("/api/list/:outpoint", get(Self::api_list))
         .route("/block/:hash", get(Self::block))
         .route("/bounties", get(Self::bounties))
@@ -241,9 +241,9 @@ impl Server {
     }
   }
 
-  async fn root(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
+  async fn home(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
     match index.blocks(100) {
-      Ok(blocks) => RootHtml { blocks }.page().into_response(),
+      Ok(blocks) => HomeHtml { blocks }.page().into_response(),
       Err(err) => {
         eprintln!("Error getting blocks: {err}");
         (

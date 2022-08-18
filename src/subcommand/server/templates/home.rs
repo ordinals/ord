@@ -1,11 +1,11 @@
 use super::*;
 
 #[derive(Display)]
-pub(crate) struct RootHtml {
+pub(crate) struct HomeHtml {
   pub(crate) blocks: Vec<(u64, BlockHash)>,
 }
 
-impl Content for RootHtml {
+impl Content for HomeHtml {
   fn title(&self) -> String {
     "Ordinals".to_string()
   }
@@ -30,7 +30,7 @@ mod tests {
   }
 
   #[test]
-  fn root_html() {
+  fn home_html() {
     assert_regex_match!(
 "<h1>Ordinals</h1>
 <nav>.*</nav>
@@ -40,7 +40,7 @@ mod tests {
   <li>0 - <a href=/block/0000000000000000000000000000000000000000000000000000000000000000>0000000000000000000000000000000000000000000000000000000000000000</a></li>
 </ul>
 ",
-      &RootHtml {
+      &HomeHtml {
         blocks: vec![
           (
             1,
