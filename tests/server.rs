@@ -116,7 +116,7 @@ fn output() {
     ".*<title>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</title>.*<h1>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</h1>
 <h2>Ordinal Ranges</h2>
 <ul>
-  <li><a href=/range/0/5000000000>\\[0,5000000000\\)</a></li>
+  <li><a href=/range/0/5000000000 class=mythic>\\[0,5000000000\\)</a></li>
 </ul>.*",
   );
 }
@@ -155,7 +155,7 @@ fn spent_output_returns_200() {
       ".*<title>Output {txid}:0</title>.*<h1>Output {txid}:0</h1>
 <h2>Ordinal Ranges</h2>
 <ul>
-  <li><a href=/range/5000000000/10000000000>\\[5000000000,10000000000\\)</a></li>
+  <li><a href=/range/5000000000/10000000000 class=uncommon>\\[5000000000,10000000000\\)</a></li>
 </ul>.*"
     ),
   );
