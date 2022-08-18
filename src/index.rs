@@ -1,5 +1,6 @@
 use {
   super::*,
+  bitcoin::consensus::encode::serialize,
   bitcoincore_rpc::{Auth, Client, RpcApi},
   rayon::iter::{IntoParallelRefIterator, ParallelIterator},
   redb::WriteStrategy,
@@ -10,11 +11,17 @@ mod rtx;
 const HEIGHT_TO_HASH: TableDefinition<u64, [u8]> = TableDefinition::new("HEIGHT_TO_HASH");
 const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8], [u8]> =
   TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
+const OUTPOINT_TO_TXID: TableDefinition<[u8], [u8]> = TableDefinition::new("OUTPOINT_TO_TXID");
 
 pub(crate) struct Index {
   client: Client,
   database: Database,
   database_path: PathBuf,
+}
+
+pub(crate) enum List {
+  Spent(Txid),
+  Unspent(Vec<(u64, u64)>),
 }
 
 impl Index {
@@ -46,6 +53,7 @@ impl Index {
 
     tx.open_table(HEIGHT_TO_HASH)?;
     tx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
+    tx.open_table(OUTPOINT_TO_TXID)?;
 
     tx.commit()?;
 
@@ -130,6 +138,7 @@ impl Index {
   pub(crate) fn index_block(&self, wtx: &mut WriteTransaction) -> Result<bool> {
     let mut height_to_hash = wtx.open_table(HEIGHT_TO_HASH)?;
     let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
+    let mut outpoint_to_txid = wtx.open_table(OUTPOINT_TO_TXID)?;
 
     let start = Instant::now();
     let mut ordinal_ranges_written = 0;
@@ -188,11 +197,10 @@ impl Index {
       let mut input_ordinal_ranges = VecDeque::new();
 
       for input in &tx.input {
-        let mut key = Vec::new();
-        input.previous_output.consensus_encode(&mut key)?;
+        let key = serialize(&input.previous_output);
 
         let ordinal_ranges = outpoint_to_ordinal_ranges
-          .get(key.as_slice())?
+          .get(&key)?
           .ok_or_else(|| anyhow!("Could not find outpoint in index"))?;
 
         for chunk in ordinal_ranges.chunks_exact(11) {
@@ -206,6 +214,7 @@ impl Index {
         *txid,
         tx,
         &mut outpoint_to_ordinal_ranges,
+        &mut outpoint_to_txid,
         &mut input_ordinal_ranges,
         &mut ordinal_ranges_written,
       )?;
@@ -218,6 +227,7 @@ impl Index {
         *txid,
         tx,
         &mut outpoint_to_ordinal_ranges,
+        &mut outpoint_to_txid,
         &mut coinbase_inputs,
         &mut ordinal_ranges_written,
       )?;
@@ -266,6 +276,7 @@ impl Index {
     txid: Txid,
     tx: &Transaction,
     outpoint_to_ordinal_ranges: &mut Table<[u8], [u8]>,
+    outpoint_to_txid: &mut Table<[u8], [u8]>,
     input_ordinal_ranges: &mut VecDeque<(u64, u64)>,
     ordinal_ranges_written: &mut u64,
   ) -> Result {
@@ -304,9 +315,11 @@ impl Index {
         *ordinal_ranges_written += 1;
       }
 
-      let mut outpoint_encoded = Vec::new();
-      outpoint.consensus_encode(&mut outpoint_encoded)?;
-      outpoint_to_ordinal_ranges.insert(&outpoint_encoded, &ordinals)?;
+      outpoint_to_ordinal_ranges.insert(&serialize(&outpoint), &ordinals)?;
+    }
+
+    for input in &tx.input {
+      outpoint_to_txid.insert(&serialize(&input.previous_output), &txid)?;
     }
 
     Ok(())
@@ -396,19 +409,28 @@ impl Index {
     )
   }
 
-  pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<Vec<(u64, u64)>>> {
-    let mut outpoint_encoded = Vec::new();
-    outpoint.consensus_encode(&mut outpoint_encoded)?;
+  pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<List>> {
+    let outpoint_encoded = serialize(&outpoint);
+
     let ordinal_ranges = self.list_inner(&outpoint_encoded)?;
+
     match ordinal_ranges {
-      Some(ordinal_ranges) => {
-        let mut output = Vec::new();
-        for chunk in ordinal_ranges.chunks_exact(11) {
-          output.push(Self::decode_ordinal_range(chunk.try_into().unwrap()));
-        }
-        Ok(Some(output))
-      }
-      None => Ok(None),
+      Some(ordinal_ranges) => Ok(Some(List::Unspent(
+        ordinal_ranges
+          .chunks_exact(11)
+          .map(|chunk| Self::decode_ordinal_range(chunk.try_into().unwrap()))
+          .collect(),
+      ))),
+      None => Ok(
+        self
+          .database
+          .begin_read()?
+          .open_table(OUTPOINT_TO_TXID)?
+          .get(&outpoint_encoded)?
+          .map(Txid::consensus_decode)
+          .transpose()?
+          .map(List::Spent),
+      ),
     }
   }
 

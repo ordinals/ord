@@ -1,19 +1,6 @@
 use super::*;
 
 #[test]
-fn list() {
-  let mut state = State::new();
-
-  state.blocks(1);
-
-  state.request(
-    "api/list/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
-    200,
-    "[[0,5000000000]]",
-  );
-}
-
-#[test]
 fn status() {
   State::new().request("status", 200, "OK");
 }
@@ -135,15 +122,71 @@ fn output() {
 }
 
 #[test]
-fn invalid_vout_returns_404() {
+fn unknown_output_returns_404() {
   let mut state = State::new();
+
+  state.request(
+    "output/0000000000000000000000000000000000000000000000000000000000000000:0",
+    404,
+    "Output unknown.",
+  );
+}
+
+#[test]
+fn spent_output_returns_200() {
+  let mut state = State::new();
+
+  state.blocks(101);
+
+  let txid = state
+    .transaction(TransactionOptions {
+      slots: &[(1, 0, 0)],
+      output_count: 1,
+      fee: 0,
+    })
+    .txid();
 
   state.blocks(1);
 
-  state.request(
-    "output/0396bc915f141f7de025f72ae9b6bb8dcdb5f444fc245d8fac486ba67a38eef8:0",
-    404,
-    "Output unknown, invalid, or spent.",
+  state.request_regex(
+    &format!("output/{txid}:0"),
+    200,
+    &format!(
+      ".*<title>Output {txid}:0</title>.*<h1>Output {txid}:0</h1>
+<h2>Ordinal Ranges</h2>
+<ul>
+  <li><a href=/range/5000000000/10000000000>\\[5000000000,10000000000\\)</a></li>
+</ul>.*"
+    ),
+  );
+
+  let transaction = state.transaction(TransactionOptions {
+    slots: &[(102, 1, 0)],
+    output_count: 1,
+    fee: 0,
+  });
+
+  state.blocks(1);
+
+  state.request_regex(
+    &format!("output/{txid}:0"),
+    200,
+    &format!(
+      ".*<p>Spent by transaction <a href=/tx/{}>{}</a>.</p>.*",
+      transaction.txid(),
+      transaction.txid()
+    ),
+  );
+}
+
+#[test]
+fn invalid_output_returns_400() {
+  let mut state = State::new();
+
+  state.request_regex(
+    "output/foo:0",
+    400,
+    "Invalid URL: error parsing TXID: odd hex string length 3",
   );
 }
 

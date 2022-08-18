@@ -95,7 +95,6 @@ impl Server {
 
       let app = Router::new()
         .route("/", get(Self::home))
-        .route("/api/list/:outpoint", get(Self::api_list))
         .route("/block/:hash", get(Self::block))
         .route("/bounties", get(Self::bounties))
         .route("/faq", get(Self::faq))
@@ -203,12 +202,8 @@ impl Server {
     extract::Path(outpoint): extract::Path<OutPoint>,
   ) -> impl IntoResponse {
     match index.list(outpoint) {
-      Ok(Some(ranges)) => OutputHtml { outpoint, ranges }.page().into_response(),
-      Ok(None) => (
-        StatusCode::NOT_FOUND,
-        Html("Output unknown, invalid, or spent.".to_string()),
-      )
-        .into_response(),
+      Ok(Some(list)) => OutputHtml { outpoint, list }.page().into_response(),
+      Ok(None) => (StatusCode::NOT_FOUND, Html("Output unknown.".to_string())).into_response(),
       Err(err) => {
         eprintln!("Error serving request for output: {err}");
         (
@@ -320,20 +315,6 @@ impl Server {
           ),
         )
           .into_response()
-      }
-    }
-  }
-
-  async fn api_list(
-    extract::Path(outpoint): extract::Path<OutPoint>,
-    index: extract::Extension<Arc<Index>>,
-  ) -> impl IntoResponse {
-    match index.list(outpoint) {
-      Ok(Some(ranges)) => (StatusCode::OK, Json(Some(ranges))),
-      Ok(None) => (StatusCode::NOT_FOUND, Json(None)),
-      Err(error) => {
-        eprintln!("Error serving request for outpoint {outpoint}: {error}");
-        (StatusCode::INTERNAL_SERVER_ERROR, Json(None))
       }
     }
   }
