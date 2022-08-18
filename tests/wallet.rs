@@ -233,20 +233,6 @@ fn send_owned_ordinal() {
     .stdout_regex("[[:xdigit:]]{64}:[[:digit:]] 5000000000\n")
     .output();
 
-  output.state.request(
-    &format!(
-      "api/list/{}",
-      output
-        .stdout
-        .split(' ')
-        .collect::<Vec<&str>>()
-        .first()
-        .unwrap()
-    ),
-    200,
-    "[[5000000000,10000000000]]",
-  );
-
   let wallet = Wallet::new(
     Bip84(
       (
@@ -325,20 +311,6 @@ fn send_foreign_ordinal() {
     .expected_status(0)
     .stdout_regex("[[:xdigit:]]{64}:[[:digit:]] 5000000000\n")
     .output();
-
-  output.state.request(
-    &format!(
-      "api/list/{}",
-      output
-        .stdout
-        .split(' ')
-        .collect::<Vec<&str>>()
-        .first()
-        .unwrap()
-    ),
-    200,
-    "[[5000000000,10000000000]]",
-  );
 
   let wallet = Wallet::new(
     Bip84(
