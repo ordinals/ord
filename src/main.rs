@@ -2,14 +2,22 @@
 
 use {
   self::{
-    arguments::Arguments, blocktime::Blocktime, bytes::Bytes, degree::Degree, epoch::Epoch,
-    height::Height, index::Index, nft::Nft, options::Options, ordinal::Ordinal, purse::Purse,
-    sat_point::SatPoint, subcommand::Subcommand,
+    arguments::Arguments,
+    blocktime::Blocktime,
+    bytes::Bytes,
+    degree::Degree,
+    epoch::Epoch,
+    height::Height,
+    index::{Index, List},
+    nft::Nft,
+    options::Options,
+    ordinal::Ordinal,
+    purse::Purse,
+    sat_point::SatPoint,
+    subcommand::Subcommand,
   },
   anyhow::{anyhow, bail, Context, Error},
-  axum::{
-    extract, http::StatusCode, response::Html, response::IntoResponse, routing::get, Json, Router,
-  },
+  axum::{extract, http::StatusCode, response::Html, response::IntoResponse, routing::get, Router},
   axum_server::Handle,
   bdk::{
     blockchain::rpc::{Auth, RpcBlockchain, RpcConfig},

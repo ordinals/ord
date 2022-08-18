@@ -1,7 +1,14 @@
 <h1>Output {{self.outpoint}}</h1>
+%% match &self.list {
+%% List::Unspent(ranges) => {
 <h2>Ordinal Ranges</h2>
 <ul>
-%% for (start, end) in &self.ranges {
+%% for (start, end) in ranges {
   <li><a href=/range/{{start}}/{{end}}>[{{start}},{{end}})</a></li>
 %% }
 </ul>
+%% }
+%% List::Spent(txid) => {
+<p>Spent by transaction <a href=/tx/{{ txid }}>{{ txid }}</a>.</p>
+%% }
+%% }

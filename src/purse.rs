@@ -73,11 +73,21 @@ impl Purse {
     let index = Index::index(options)?;
 
     for utxo in self.wallet.list_unspent()? {
-      if let Some(ranges) = index.list(utxo.outpoint)? {
-        for (start, end) in ranges {
-          if ordinal.0 >= start && ordinal.0 < end {
-            return Ok(utxo);
+      match index.list(utxo.outpoint)? {
+        Some(List::Unspent(ranges)) => {
+          for (start, end) in ranges {
+            if ordinal.0 >= start && ordinal.0 < end {
+              return Ok(utxo);
+            }
           }
+        }
+        Some(List::Spent(txid)) => {
+          return Err(anyhow!(
+            "UTXO unspent in wallet but spent in index by transaction {txid}"
+          ));
+        }
+        None => {
+          return Err(anyhow!("UTXO unspent in wallet but not found in index"));
         }
       }
     }

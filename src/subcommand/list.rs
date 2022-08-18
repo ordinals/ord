@@ -10,12 +10,13 @@ impl List {
     let index = Index::index(&options)?;
 
     match index.list(self.outpoint)? {
-      Some(ranges) => {
+      Some(crate::index::List::Unspent(ranges)) => {
         for (start, end) in ranges {
           println!("[{start},{end})");
         }
         Ok(())
       }
+      Some(crate::index::List::Spent(txid)) => Err(anyhow!("Output spent in transaction {txid}")),
       None => Err(anyhow!("Output not found")),
     }
   }

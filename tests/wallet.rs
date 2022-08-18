@@ -227,25 +227,11 @@ fn send_owned_ordinal() {
     )
     .unwrap();
 
-  let mut output = Test::with_state(output.state)
+  let output = Test::with_state(output.state)
     .command("--network regtest wallet utxos")
     .expected_status(0)
     .stdout_regex("[[:xdigit:]]{64}:[[:digit:]] 5000000000\n")
     .output();
-
-  output.state.request(
-    &format!(
-      "api/list/{}",
-      output
-        .stdout
-        .split(' ')
-        .collect::<Vec<&str>>()
-        .first()
-        .unwrap()
-    ),
-    200,
-    "[[5000000000,10000000000]]",
-  );
 
   let wallet = Wallet::new(
     Bip84(
@@ -320,25 +306,11 @@ fn send_foreign_ordinal() {
     .generate_to_address(1, &from_address)
     .unwrap();
 
-  let mut output = Test::with_state(output.state)
+  let output = Test::with_state(output.state)
     .command("--network regtest wallet utxos")
     .expected_status(0)
     .stdout_regex("[[:xdigit:]]{64}:[[:digit:]] 5000000000\n")
     .output();
-
-  output.state.request(
-    &format!(
-      "api/list/{}",
-      output
-        .stdout
-        .split(' ')
-        .collect::<Vec<&str>>()
-        .first()
-        .unwrap()
-    ),
-    200,
-    "[[5000000000,10000000000]]",
-  );
 
   let wallet = Wallet::new(
     Bip84(
