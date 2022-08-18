@@ -435,9 +435,9 @@ impl Index {
           .begin_read()?
           .open_table(OUTPOINT_TO_TXID)?
           .get(&outpoint_encoded)?
-          .map(|txid| Txid::consensus_decode(txid))
+          .map(Txid::consensus_decode)
           .transpose()?
-          .map(|txid| List::Spent(txid)),
+          .map(List::Spent),
       ),
     }
   }

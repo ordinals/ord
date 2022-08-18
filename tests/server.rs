@@ -194,7 +194,7 @@ fn spent_output_returns_200() {
 fn invalid_output_returns_400() {
   let mut state = State::new();
 
-  state.request_regex(&format!("output/foo:0"), 400, "bruh");
+  state.request_regex("output/foo:0", 400, "bruh");
 }
 
 #[test]
