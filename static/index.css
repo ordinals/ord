@@ -65,30 +65,6 @@ span.mythic {
   background-color: #f2a900;
 }
 
-.common-foo {
-  color: whitesmoke;
-}
-
-.uncommon-foo {
-  color: forestgreen;
-}
-
-.rare-foo {
-  color: cornflowerblue;
-}
-
-.epic-foo {
-  color: darkorchid;
-}
-
-.legendary-foo {
-  color: gold;
-}
-
-.mythic-foo {
-  color: #f2a900;
-}
-
 a.common {
   color: grey;
 }
