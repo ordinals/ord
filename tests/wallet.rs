@@ -227,7 +227,7 @@ fn send_owned_ordinal() {
     )
     .unwrap();
 
-  let mut output = Test::with_state(output.state)
+  let output = Test::with_state(output.state)
     .command("--network regtest wallet utxos")
     .expected_status(0)
     .stdout_regex("[[:xdigit:]]{64}:[[:digit:]] 5000000000\n")
@@ -306,7 +306,7 @@ fn send_foreign_ordinal() {
     .generate_to_address(1, &from_address)
     .unwrap();
 
-  let mut output = Test::with_state(output.state)
+  let output = Test::with_state(output.state)
     .command("--network regtest wallet utxos")
     .expected_status(0)
     .stdout_regex("[[:xdigit:]]{64}:[[:digit:]] 5000000000\n")
