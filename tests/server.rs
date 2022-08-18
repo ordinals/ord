@@ -6,8 +6,6 @@ fn list() {
 
   state.blocks(1);
 
-  sleep(Duration::from_secs(1));
-
   state.request(
     "api/list/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
     200,
@@ -27,8 +25,6 @@ fn height() {
   state.request("height", 200, "0");
 
   state.blocks(1);
-
-  sleep(Duration::from_secs(1));
 
   state.request("height", 200, "1");
 }
@@ -127,8 +123,6 @@ fn output() {
 
   state.blocks(1);
 
-  sleep(Duration::from_secs(1));
-
   state.request_regex(
     "output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
     200,
@@ -190,8 +184,6 @@ fn block() {
   let mut state = State::new();
 
   state.blocks(101);
-
-  sleep(Duration::from_secs(1));
 
   state.transaction(TransactionOptions {
     slots: &[(1, 0, 0)],
