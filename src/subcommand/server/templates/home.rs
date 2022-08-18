@@ -3,7 +3,7 @@ use super::*;
 #[derive(Display)]
 pub(crate) struct HomeHtml {
   last: u64,
-  blocks: Vec<(String, BlockHash)>,
+  blocks: Vec<(&'static str, BlockHash)>,
 }
 
 impl HomeHtml {
@@ -16,7 +16,7 @@ impl HomeHtml {
         .unwrap_or(0),
       blocks: blocks
         .into_iter()
-        .map(|(height, hash)| (Height(height).starting_ordinal().rarity().to_string(), hash))
+        .map(|(height, hash)| (Height(height).starting_ordinal().rarity(), hash))
         .collect(),
     }
   }
