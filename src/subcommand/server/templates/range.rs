@@ -28,7 +28,7 @@ mod tests {
         <h1>Ordinal range [0,1)</h1>
         <dl>
           <dt>size</dt><dd>1</dd>
-          <dt>first</dt><dd><a href=/ordinal/0>0</a></dd>
+          <dt>first</dt><dd><a href=/ordinal/0 class=mythic>0</a></dd>
         </dl>
       "
       .unindent()
@@ -47,7 +47,7 @@ mod tests {
         <h1>Ordinal range [1,10)</h1>
         <dl>
           <dt>size</dt><dd>9</dd>
-          <dt>first</dt><dd><a href=/ordinal/1>1</a></dd>
+          <dt>first</dt><dd><a href=/ordinal/1 class=common>1</a></dd>
         </dl>
       "
       .unindent()

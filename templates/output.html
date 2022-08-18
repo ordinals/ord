@@ -4,7 +4,7 @@
 <h2>Ordinal Ranges</h2>
 <ul>
 %% for (start, end) in ranges {
-  <li><a href=/range/{{start}}/{{end}}>[{{start}},{{end}})</a></li>
+  <li><a href=/range/{{start}}/{{end}} class={{Ordinal(*start).rarity()}}>[{{start}},{{end}})</a></li>
 %% }
 </ul>
 %% }
