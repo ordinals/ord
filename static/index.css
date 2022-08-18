@@ -18,6 +18,24 @@ h1 {
   width: 100%;
 }
 
+a {
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+a:visited {
+  color: blue;
+}
+
+nav {
+  display: flex;
+  gap: 1rem;
+  justify-content: left;
+}
+
 .common, .uncommon, .rare, .epic, .legendary, .mythic {
   border-radius: 0.25rem;
   padding: 0.125rem 0.25rem 0.125rem 0.25rem;
@@ -44,6 +62,6 @@ h1 {
 }
 
 .mythic {
-  color: white;
   background-color: #f2a900;
+  color: white;
 }

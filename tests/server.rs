@@ -6,8 +6,6 @@ fn list() {
 
   state.blocks(1);
 
-  sleep(Duration::from_secs(1));
-
   state.request(
     "api/list/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
     200,
@@ -27,8 +25,6 @@ fn height() {
   state.request("height", 200, "0");
 
   state.blocks(1);
-
-  sleep(Duration::from_secs(1));
 
   state.request("height", 200, "1");
 }
@@ -127,8 +123,6 @@ fn output() {
 
   state.blocks(1);
 
-  sleep(Duration::from_secs(1));
-
   state.request_regex(
     "output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
     200,
@@ -204,7 +198,7 @@ fn invalid_output_returns_400() {
 }
 
 #[test]
-fn root() {
+fn home() {
   let mut state = State::new();
 
   state.blocks(1);
@@ -212,16 +206,18 @@ fn root() {
   state.request_regex(
     "/",
     200,
-    ".*<h1>Recent Blocks</h1>
-<ul>
-  <li>1 - <a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
-  <li>0 - <a href=/block/0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206>0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206</a></li>
-</ul>.*",
+    ".*<title>Ordinals</title>.*<h1>Ordinals</h1>
+<nav>.*</nav>
+<h2>Recent Blocks</h2>
+<ol start=1 reversed>
+  <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
+  <li><a href=/block/0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206>0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206</a></li>
+</ol>.*",
   );
 }
 
 #[test]
-fn root_block_limit() {
+fn home_block_limit() {
   let mut state = State::new();
 
   state.blocks(200);
@@ -229,7 +225,7 @@ fn root_block_limit() {
   state.request_regex(
     "/",
     200,
-    ".*<ul>\n(  <li>[[:digit:]]{3} - <a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){100}</ul>.*"
+    ".*<ol start=200 reversed>\n(  <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){100}</ol>.*"
   );
 }
 
@@ -238,8 +234,6 @@ fn block() {
   let mut state = State::new();
 
   state.blocks(101);
-
-  sleep(Duration::from_secs(1));
 
   state.transaction(TransactionOptions {
     slots: &[(1, 0, 0)],
@@ -324,5 +318,25 @@ fn static_asset() {
     r".*\.rare \{
   background-color: cornflowerblue;
 }.*",
+  );
+}
+
+#[test]
+fn faq() {
+  let mut state = State::new();
+  state.request_regex(
+    "faq",
+    200,
+    r".*<title>Ordinal FAQ</title>.*<h1>Ordinal FAQ</h1>.*",
+  );
+}
+
+#[test]
+fn bounties() {
+  let mut state = State::new();
+  state.request_regex(
+    "bounties",
+    200,
+    r".*<title>Ordinal Bounties</title>.*<h1>Ordinal Bounties</h1>.*",
   );
 }

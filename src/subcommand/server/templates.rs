@@ -1,10 +1,10 @@
 use {super::*, boilerplate::Display};
 
 pub(crate) mod block;
+pub(crate) mod home;
 pub(crate) mod ordinal;
 pub(crate) mod output;
 pub(crate) mod range;
-pub(crate) mod root;
 pub(crate) mod transaction;
 
 #[derive(Display)]
@@ -12,10 +12,23 @@ pub(crate) struct PageHtml {
   content: Box<dyn Content>,
 }
 
-pub(crate) trait Content: Display {
+impl PageHtml {
+  pub(crate) fn new<T: Content + 'static>(content: T) -> Self {
+    Self {
+      content: Box::new(content),
+    }
+  }
+}
+
+pub(crate) trait Content: Display + 'static {
   fn title(&self) -> String;
 
-  fn page(self) -> PageHtml;
+  fn page(self) -> PageHtml
+  where
+    Self: Sized,
+  {
+    PageHtml::new(self)
+  }
 }
 
 #[cfg(test)]
@@ -35,12 +48,6 @@ mod tests {
     impl Content for Foo {
       fn title(&self) -> String {
         "Foo".to_string()
-      }
-
-      fn page(self) -> PageHtml {
-        PageHtml {
-          content: Box::new(self),
-        }
       }
     }
 

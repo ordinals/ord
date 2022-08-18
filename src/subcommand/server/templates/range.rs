@@ -10,12 +10,6 @@ impl Content for RangeHtml {
   fn title(&self) -> String {
     format!("Ordinal range [{},{})", self.start, self.end)
   }
-
-  fn page(self) -> PageHtml {
-    PageHtml {
-      content: Box::new(self),
-    }
-  }
 }
 
 #[cfg(test)]

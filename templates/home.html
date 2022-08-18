@@ -1,0 +1,15 @@
+<h1>Ordinals</h1>
+<nav>
+  <a href=https://rodarmor.com/blog/ordinal-theory/>Theory</a>
+  <a href=/faq>FAQ</a>
+  <a href=/bounties>Bounties</a>
+  <a href=https://github.com/casey/ord/blob/master/bip.mediawiki>BIP</a>
+  <a href=https://github.com/casey/ord>GitHub</a>
+  <a href=https://discord.gg/87cjuz4FYg>Discord</a>
+</nav>
+<h2>Recent Blocks</h2>
+<ol start={{self.last}} reversed>
+%% for hash in &self.hashes {
+  <li><a href=/block/{{hash}}>{{hash}}</a></li>
+%% }
+</ol>

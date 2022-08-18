@@ -4,7 +4,7 @@ use {
   self::{
     deserialize_ordinal_from_str::DeserializeOrdinalFromStr,
     templates::{
-      block::BlockHtml, ordinal::OrdinalHtml, output::OutputHtml, range::RangeHtml, root::RootHtml,
+      block::BlockHtml, home::HomeHtml, ordinal::OrdinalHtml, output::OutputHtml, range::RangeHtml,
       transaction::TransactionHtml, Content,
     },
     tls_acceptor::TlsAcceptor,
@@ -29,6 +29,23 @@ mod tls_acceptor;
 #[derive(RustEmbed)]
 #[folder = "static"]
 struct StaticAssets;
+
+struct StaticHtml {
+  title: &'static str,
+  html: &'static str,
+}
+
+impl Content for StaticHtml {
+  fn title(&self) -> String {
+    self.title.into()
+  }
+}
+
+impl Display for StaticHtml {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    f.write_str(self.html)
+  }
+}
 
 #[derive(Debug, Parser)]
 #[clap(group = ArgGroup::new("port").multiple(false))]
@@ -77,15 +94,17 @@ impl Server {
       });
 
       let app = Router::new()
-        .route("/", get(Self::root))
+        .route("/", get(Self::home))
         .route("/block/:hash", get(Self::block))
+        .route("/bounties", get(Self::bounties))
+        .route("/faq", get(Self::faq))
         .route("/height", get(Self::height))
         .route("/ordinal/:ordinal", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
         .route("/range/:start/:end", get(Self::range))
+        .route("/static/*path", get(Self::static_asset))
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
-        .route("/static/*path", get(Self::static_asset))
         .layer(extract::Extension(index))
         .layer(
           CorsLayer::new()
@@ -221,9 +240,9 @@ impl Server {
     }
   }
 
-  async fn root(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
+  async fn home(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
     match index.blocks(100) {
-      Ok(blocks) => RootHtml { blocks }.page().into_response(),
+      Ok(blocks) => HomeHtml::new(blocks).page().into_response(),
       Err(err) => {
         eprintln!("Error getting blocks: {err}");
         (
@@ -357,6 +376,24 @@ impl Server {
         )
       }
     }
+  }
+
+  async fn faq() -> impl IntoResponse {
+    StaticHtml {
+      title: "Ordinal FAQ",
+      html: include_str!(concat!(env!("OUT_DIR"), "/faq.html")),
+    }
+    .page()
+    .into_response()
+  }
+
+  async fn bounties() -> impl IntoResponse {
+    StaticHtml {
+      title: "Ordinal Bounties",
+      html: include_str!(concat!(env!("OUT_DIR"), "/bounties.html")),
+    }
+    .page()
+    .into_response()
   }
 }
 
