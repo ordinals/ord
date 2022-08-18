@@ -66,6 +66,10 @@ span.mythic {
   color: white;
 }
 
+a.common {
+  color: whitesmoke;
+}
+
 a.uncommon {
   color: forestgreen;
 }
