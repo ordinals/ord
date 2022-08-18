@@ -45,14 +45,8 @@ status:
   ssh root@65.108.68.37 systemctl status bitcoind
   ssh root@65.108.68.37 systemctl status ord
 
-serve:
-  python3 -m http.server --directory docs
-
 open:
   open http://localhost
-
-deck:
-  slidedeck deck/index.md > docs/deck/index.html
 
 generate-private-key:
   cargo run generate-private-key
