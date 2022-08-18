@@ -203,8 +203,8 @@ fn home() {
 <nav>.*</nav>
 <h2>Recent Blocks</h2>
 <ol start=1 reversed>
-  <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
-  <li><a href=/block/0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206>0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206</a></li>
+  <li><a href=/block/[[:xdigit:]]{64} class=uncommon>[[:xdigit:]]{64}</a></li>
+  <li><a href=/block/0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206 class=mythic>0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206</a></li>
 </ol>.*",
   );
 }
@@ -218,7 +218,7 @@ fn home_block_limit() {
   state.request_regex(
     "/",
     200,
-    ".*<ol start=200 reversed>\n(  <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){100}</ol>.*"
+    ".*<ol start=200 reversed>\n(  <li><a href=/block/[[:xdigit:]]{64} class=uncommon>[[:xdigit:]]{64}</a></li>\n){100}</ol>.*"
   );
 }
 
