@@ -52,7 +52,7 @@ fn range() {
     r".*<title>Ordinal range \[0,1\)</title>.*<h1>Ordinal range \[0,1\)</h1>
 <dl>
   <dt>size</dt><dd>1</dd>
-  <dt>first</dt><dd><a href=/ordinal/0>0</a></dd>
+  <dt>first</dt><dd><a href=/ordinal/0 class=mythic>0</a></dd>
 </dl>.*",
   );
 }
