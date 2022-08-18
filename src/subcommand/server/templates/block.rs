@@ -19,12 +19,6 @@ impl Content for BlockHtml {
   fn title(&self) -> String {
     format!("Block {}", self.hash)
   }
-
-  fn page(self) -> PageHtml {
-    PageHtml {
-      content: Box::new(self),
-    }
-  }
 }
 
 #[cfg(test)]

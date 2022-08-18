@@ -9,22 +9,38 @@ impl Content for RootHtml {
   fn title(&self) -> String {
     "Ordinals".to_string()
   }
-
-  fn page(self) -> PageHtml {
-    PageHtml {
-      content: Box::new(self),
-    }
-  }
 }
 
 #[cfg(test)]
 mod tests {
-  use {super::*, pretty_assertions::assert_eq, unindent::Unindent};
+  use {super::*, regex::Regex};
+
+  macro_rules! assert_regex_match {
+    ($pattern:expr, $string:expr $(,)?) => {
+      let regex = Regex::new(&format!("^(?s){}$", $pattern)).unwrap();
+      let string = $string;
+
+      if !regex.is_match(string) {
+        panic!(
+          "Regex:\n\n{}\n\n…did not match string:\n\n{}",
+          regex, string
+        );
+      }
+    };
+  }
 
   #[test]
   fn root_html() {
-    assert_eq!(
-      RootHtml {
+    assert_regex_match!(
+"<h1>Ordinals</h1>
+<nav>.*</nav>
+<h2>Recent Blocks</h2>
+<ul>
+  <li>1 - <a href=/block/1111111111111111111111111111111111111111111111111111111111111111>1111111111111111111111111111111111111111111111111111111111111111</a></li>
+  <li>0 - <a href=/block/0000000000000000000000000000000000000000000000000000000000000000>0000000000000000000000000000000000000000000000000000000000000000</a></li>
+</ul>
+",
+      &RootHtml {
         blocks: vec![
           (
             1,
@@ -35,23 +51,6 @@ mod tests {
             "0000000000000000000000000000000000000000000000000000000000000000".parse().unwrap()
           )
         ],
-      }
-      .to_string(),
-      "
-        <h1>Ordinals</h1>
-        <nav>
-          <a href=https://rodarmor.com/blog/ordinal-theory/>Theory</a>
-          <a href=https://github.com/casey/ord/blob/master/bip.mediawiki>BIP</a>
-          <a href=https://github.com/casey/ord>GitHub</a>
-          <a href=https://discord.gg/87cjuz4FYg>Discord</a>
-        </nav>
-        <h2>Recent Blocks</h2>
-        <ul>
-          <li>1 - <a href=/block/1111111111111111111111111111111111111111111111111111111111111111>1111111111111111111111111111111111111111111111111111111111111111</a></li>
-          <li>0 - <a href=/block/0000000000000000000000000000000000000000000000000000000000000000>0000000000000000000000000000000000000000000000000000000000000000</a></li>
-        </ul>
-      "
-      .unindent()
-    );
+      }.to_string());
   }
 }
