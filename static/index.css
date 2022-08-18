@@ -42,7 +42,7 @@ span.common, span.uncommon, span.rare, span.epic, span.legendary, span.mythic {
 }
 
 span.common {
-  background-color: whitesmoke;
+  background-color: grey;
 }
 
 span.uncommon {
@@ -67,7 +67,7 @@ span.mythic {
 }
 
 a.common {
-  color: whitesmoke;
+  color: grey;
 }
 
 a.uncommon {
