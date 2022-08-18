@@ -30,8 +30,8 @@ mod tests {
         <h1>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</h1>
         <h2>Ordinal Ranges</h2>
         <ul>
-          <li><a href=/range/0/1>[0,1)</a></li>
-          <li><a href=/range/1/2>[1,2)</a></li>
+          <li><a href=/range/0/1 class=mythic>[0,1)</a></li>
+          <li><a href=/range/1/2 class=common>[1,2)</a></li>
         </ul>
       "
       .unindent()

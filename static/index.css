@@ -36,32 +36,56 @@ nav {
   justify-content: left;
 }
 
-.common, .uncommon, .rare, .epic, .legendary, .mythic {
+span.common, span.uncommon, span.rare, span.epic, span.legendary, span.mythic {
   border-radius: 0.25rem;
   padding: 0.125rem 0.25rem 0.125rem 0.25rem;
 }
 
-.common {
-  background-color: whitesmoke;
+span.common {
+  background-color: grey;
 }
 
-.uncommon {
+span.uncommon {
   background-color: forestgreen;
 }
 
-.rare {
+span.rare {
   background-color: cornflowerblue;
 }
 
-.epic {
+span.epic {
   background-color: darkorchid;
 }
 
-.legendary {
+span.legendary {
   background-color: gold;
 }
 
-.mythic {
+span.mythic {
   background-color: #f2a900;
   color: white;
+}
+
+a.common {
+  color: grey;
+}
+
+a.uncommon {
+  color: forestgreen;
+}
+
+a.rare {
+  color: cornflowerblue;
+}
+
+a.epic {
+  color: darkorchid;
+}
+
+a.legendary {
+  color: gold;
+}
+
+a.mythic {
+  color: #f2a900;
 }
