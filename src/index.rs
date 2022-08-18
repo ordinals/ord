@@ -415,13 +415,12 @@ impl Index {
     let ordinal_ranges = self.list_inner(&outpoint_encoded)?;
 
     match ordinal_ranges {
-      Some(ordinal_ranges) => {
-        let mut output = Vec::new();
-        for chunk in ordinal_ranges.chunks_exact(11) {
-          output.push(Self::decode_ordinal_range(chunk.try_into().unwrap()));
-        }
-        Ok(Some(List::Unspent(output)))
-      }
+      Some(ordinal_ranges) => Ok(Some(List::Unspent(
+        ordinal_ranges
+          .chunks_exact(11)
+          .map(|chunk| Self::decode_ordinal_range(chunk.try_into().unwrap()))
+          .collect(),
+      ))),
       None => Ok(
         self
           .database
