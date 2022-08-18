@@ -53,8 +53,8 @@ mod tests {
 <nav>.*</nav>
 <h2>Recent Blocks</h2>
 <ol start=1 reversed>
-  <li><a href=/block/1{64} class=uncommon>1{64}</a></li>
-  <li><a href=/block/0{64} class=mythic>0{64}</a></li>
+  <li><a href=/block/1{64} class=uncommon-foo>1{64}</a></li>
+  <li><a href=/block/0{64} class=mythic-foo>0{64}</a></li>
 </ol>
 ",
       &HomeHtml::new(vec![
