@@ -205,7 +205,7 @@ impl Server {
       Ok(Some(list)) => OutputHtml { outpoint, list }.page().into_response(),
       Ok(None) => (
         StatusCode::NOT_FOUND,
-        Html("Output unknown, invalid, or spent.".to_string()),
+        Html("Output unknown.".to_string()),
       )
         .into_response(),
       Err(err) => {

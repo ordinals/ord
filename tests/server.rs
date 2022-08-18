@@ -1,19 +1,6 @@
 use super::*;
 
 #[test]
-fn list() {
-  let mut state = State::new();
-
-  state.blocks(1);
-
-  state.request(
-    "api/list/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
-    200,
-    "[[0,5000000000]]",
-  );
-}
-
-#[test]
 fn status() {
   State::new().request("status", 200, "OK");
 }
@@ -138,8 +125,6 @@ fn output() {
 fn unknown_output_returns_404() {
   let mut state = State::new();
 
-  state.blocks(1);
-
   state.request(
     "output/0000000000000000000000000000000000000000000000000000000000000000:0",
     404,
@@ -153,13 +138,13 @@ fn spent_output_returns_200() {
 
   state.blocks(101);
 
-  let transaction = state.transaction(TransactionOptions {
-    slots: &[(1, 0, 0)],
-    output_count: 1,
-    fee: 0,
-  });
-
-  let txid = transaction.txid();
+  let txid = state
+    .transaction(TransactionOptions {
+      slots: &[(1, 0, 0)],
+      output_count: 1,
+      fee: 0,
+    })
+    .txid();
 
   state.blocks(1);
 
@@ -186,7 +171,11 @@ fn spent_output_returns_200() {
   state.request_regex(
     &format!("output/{txid}:0"),
     200,
-    &format!("Output spent in transaction {}.", transaction.txid()),
+    &format!(
+      ".*<p>Spent by transaction <a href=/tx/{}>{}</a>.</p>.*",
+      transaction.txid(),
+      transaction.txid()
+    ),
   );
 }
 
@@ -194,7 +183,11 @@ fn spent_output_returns_200() {
 fn invalid_output_returns_400() {
   let mut state = State::new();
 
-  state.request_regex("output/foo:0", 400, "bruh");
+  state.request_regex(
+    "output/foo:0",
+    400,
+    "Invalid URL: error parsing TXID: odd hex string length 3",
+  );
 }
 
 #[test]
