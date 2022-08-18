@@ -27,7 +27,7 @@ source ~/.cargo/env
 rustup update stable
 
 cargo build --release
-mv /usr/local/bin/ord ord.old
+mv /usr/local/bin/ord ord.bak
 cp target/release/ord /usr/local/bin/ord
 
 id --user bitcoin || useradd --system bitcoin
@@ -38,24 +38,23 @@ systemctl daemon-reload
 systemctl enable bitcoind
 systemctl restart bitcoind
 
-while [[ ! -f /var/lib/bitcoind/signet/.cookie ]]; do
+while [[ ! -f /var/lib/bitcoind/.cookie ]]; do
   echo Waiting for bitcoind…
   sleep 1
 done
 
 setfacl -m ord:x /var/lib/bitcoind
 setfacl -dm ord:r /var/lib/bitcoind
-setfacl -m ord:r /var/lib/bitcoind/signet/.cookie
+setfacl -m ord:r /var/lib/bitcoind/.cookie
 
 cp deploy/ord.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl stop ord
-cp target/release/ord /usr/local/bin/ord
+mv /var/lib/ord/index.redb /var/lib/ord/index.redb.bak
 systemctl enable ord
 systemctl restart ord
-rm ord.old
 
-while ! curl --fail https://signet.ordinals.com/status; do
+while ! curl --fail https://ordinals.com/status; do
   echo Waiting for ord…
   sleep 1
 done

@@ -9,7 +9,6 @@ Wants=network-online.target
 [Service]
 ExecStart=/usr/local/bin/bitcoind \
   -txindex \
-  -signet \
 	-datadir=/var/lib/bitcoind
 
 # Make sure the config directory is readable by the service user
