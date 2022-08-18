@@ -8,7 +8,7 @@
   <a href=https://discord.gg/87cjuz4FYg>Discord</a>
 </nav>
 <h2>Recent Blocks</h2>
-<ol reversed start={{self.last}}>
+<ol start={{self.last}} reversed>
 %% for hash in &self.hashes {
   <li><a href=/block/{{hash}}>{{hash}}</a></li>
 %% }

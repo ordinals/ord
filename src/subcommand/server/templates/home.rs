@@ -49,7 +49,7 @@ mod tests {
       "<h1>Ordinals</h1>
 <nav>.*</nav>
 <h2>Recent Blocks</h2>
-<ol reversed start=1>
+<ol start=1 reversed>
   <li><a href=/block/1{64}>1{64}</a></li>
   <li><a href=/block/0{64}>0{64}</a></li>
 </ol>
