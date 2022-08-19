@@ -3,18 +3,24 @@ use super::*;
 pub(crate) fn run(options: Options) -> Result {
   let index = Index::index(&options)?;
 
-  let ranges = Purse::load(&options)?
-    .wallet
-    .list_unspent()?
+  let utxos = Purse::load(&options)?.wallet.list_unspent()?;
+
+  let ranges = utxos
     .iter()
     .map(|utxo| index.list(utxo.outpoint))
     .collect::<Result<Vec<Option<List>>, _>>()?;
 
-  for range in ranges.into_iter().flatten() {
+  for (utxo, range) in utxos.iter().zip(ranges.into_iter().flatten()) {
+    println!("{}", utxo.outpoint);
+
     match range {
       List::Unspent(range) => {
-        for (start, end) in range {
-          println!("[{}, {})", start, end);
+        for (start, _) in range {
+          let ordinal = Ordinal(start);
+
+          if ordinal.rarity() != "common" {
+            println!("{ordinal}");
+          }
         }
       }
       List::Spent(txid) => {
