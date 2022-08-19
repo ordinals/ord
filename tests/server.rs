@@ -333,3 +333,9 @@ fn bounties() {
     r".*<title>Ordinal Bounties</title>.*<h1>Ordinal Bounties</h1>.*",
   );
 }
+
+#[test]
+fn favicon() {
+  let mut state = State::new();
+  state.request_expected("favicon.ico", 200, Expected::Ignore);
+}

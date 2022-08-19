@@ -98,6 +98,7 @@ impl Server {
         .route("/block/:hash", get(Self::block))
         .route("/bounties", get(Self::bounties))
         .route("/faq", get(Self::faq))
+        .route("/favicon.ico", get(Self::favicon))
         .route("/height", get(Self::height))
         .route("/ordinal/:ordinal", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
@@ -327,6 +328,10 @@ impl Server {
         .unwrap_or_default()
         .to_string(),
     )
+  }
+
+  async fn favicon() -> impl IntoResponse {
+    Self::static_asset(extract::Path("/favicon.png".to_string())).await
   }
 
   async fn static_asset(extract::Path(path): extract::Path<String>) -> impl IntoResponse {
