@@ -4,7 +4,7 @@ html {
   margin-right: 1rem;
 }
 
-body {
+main {
   margin-left: auto;
   margin-right: auto;
   max-width: 100%;
@@ -42,9 +42,8 @@ ol {
   white-space: nowrap;
 }
 
-pre, code, kbd, samp, .monospace {
+.monospace {
   font-family: monospace, monospace;
-  font-size: 1em;
 }
 
 span.common, span.uncommon, span.rare, span.epic, span.legendary, span.mythic {

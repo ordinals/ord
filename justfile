@@ -74,3 +74,8 @@ publish:
   cargo publish
   cd ../..
   rm -rf tmp/release
+
+update-modern-normalize:
+  curl \
+    https://raw.githubusercontent.com/sindresorhus/modern-normalize/main/modern-normalize.css \
+    > static/modern-normalize.css
