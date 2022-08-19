@@ -64,9 +64,7 @@ mod tests {
     <link href=/static/modern-normalize.css rel=stylesheet>
   </head>
   <body>
-    <main>
 <h1>Foo</h1>
-    </main>
   </body>
 </html>
 "

@@ -4,9 +4,8 @@ html {
   margin-right: 1rem;
 }
 
-main {
-  margin-left: auto;
-  margin-right: auto;
+body {
+  margin: 0 auto 0 auto !important;
   max-width: 100%;
   width: 50rem;
 }
