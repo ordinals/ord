@@ -51,7 +51,7 @@ mod tests {
       }
     }
 
-    assert_eq!(
+    pretty_assertions::assert_eq!(
       Foo.page().to_string(),
       "<!doctype html>
 <html lang=en>
@@ -61,9 +61,12 @@ mod tests {
     <meta name=viewport content='width=device-width,initial-scale=1.0'>
     <title>Foo</title>
     <link href=/static/index.css rel=stylesheet>
+    <link href=/static/modern-normalize.css rel=stylesheet>
   </head>
   <body>
+    <main>
 <h1>Foo</h1>
+    </main>
   </body>
 </html>
 "
