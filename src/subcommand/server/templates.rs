@@ -1,6 +1,7 @@
 use {super::*, boilerplate::Display};
 
 pub(crate) mod block;
+pub(crate) mod clock;
 pub(crate) mod home;
 pub(crate) mod ordinal;
 pub(crate) mod output;
