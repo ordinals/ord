@@ -115,7 +115,7 @@ fn output() {
     200,
     ".*<title>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</title>.*<h1>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</h1>
 <h2>Ordinal Ranges</h2>
-<ul>
+<ul class=monospace>
   <li><a href=/range/0/5000000000 class=mythic>\\[0,5000000000\\)</a></li>
 </ul>.*",
   );
@@ -154,7 +154,7 @@ fn spent_output_returns_200() {
     &format!(
       ".*<title>Output {txid}:0</title>.*<h1>Output {txid}:0</h1>
 <h2>Ordinal Ranges</h2>
-<ul>
+<ul class=monospace>
   <li><a href=/range/5000000000/10000000000 class=uncommon>\\[5000000000,10000000000\\)</a></li>
 </ul>.*"
     ),
@@ -202,7 +202,7 @@ fn home() {
     ".*<title>Ordinals</title>.*<h1>Ordinals</h1>
 <nav>.*</nav>
 <h2>Recent Blocks</h2>
-<ol start=1 reversed>
+<ol start=1 reversed class=monospace>
   <li><a href=/block/[[:xdigit:]]{64} class=uncommon>[[:xdigit:]]{64}</a></li>
   <li><a href=/block/0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206 class=mythic>0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206</a></li>
 </ol>.*",
@@ -218,7 +218,7 @@ fn home_block_limit() {
   state.request_regex(
     "/",
     200,
-    ".*<ol start=200 reversed>\n(  <li><a href=/block/[[:xdigit:]]{64} class=uncommon>[[:xdigit:]]{64}</a></li>\n){100}</ol>.*"
+    ".*<ol start=200 reversed class=monospace>\n(  <li><a href=/block/[[:xdigit:]]{64} class=uncommon>[[:xdigit:]]{64}</a></li>\n){100}</ol>.*"
   );
 }
 
@@ -241,7 +241,7 @@ fn block() {
     200,
     ".*<h1>Block [[:xdigit:]]{64}</h1>
 <h2>Transactions</h2>
-<ul>
+<ul class=monospace>
   <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
   <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
 </ul>.*",
@@ -276,7 +276,7 @@ fn transaction() {
     200,
     ".*<title>Transaction 30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c</title>.*<h1>Transaction 30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c</h1>
 <h2>Outputs</h2>
-<ul>
+<ul class=monospace>
   <li><a href=/output/30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c:0>30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c:0</a></li>
 </ul>.*"
   );

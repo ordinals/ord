@@ -1,6 +1,6 @@
 <h1>Transaction {{self.txid}}</h1>
 <h2>Outputs</h2>
-<ul>
+<ul class=monospace>
 %% for output in &self.outputs {
   <li><a href=/output/{{output}}>{{output}}</a></li>
 %% }

@@ -8,7 +8,7 @@
   <a href=https://discord.gg/87cjuz4FYg>Discord</a>
 </nav>
 <h2>Recent Blocks</h2>
-<ol start={{self.last}} reversed>
+<ol start={{self.last}} reversed class=monospace>
 %% for (rarity, hash) in &self.blocks {
   <li><a href=/block/{{hash}} class={{rarity}}>{{hash}}</a></li>
 %% }

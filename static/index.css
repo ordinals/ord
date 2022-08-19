@@ -5,8 +5,7 @@ html {
 }
 
 body {
-  margin-left: auto;
-  margin-right: auto;
+  margin: 0 auto 0 auto !important;
   max-width: 100%;
   width: 50rem;
 }
@@ -40,6 +39,10 @@ ol {
   list-style-position: inside;
   padding-inline-start: 0;
   white-space: nowrap;
+}
+
+.monospace {
+  font-family: monospace, monospace;
 }
 
 span.common, span.uncommon, span.rare, span.epic, span.legendary, span.mythic {
