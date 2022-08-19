@@ -1,6 +1,6 @@
 <h1>Block {{ self.hash }}</h1>
 <h2>Transactions</h2>
-<ul>
+<ul class=monospace>
 %% for txid in &self.txids {
   <li><a href=/tx/{{txid}}>{{txid}}</a></li>
 %% }

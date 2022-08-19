@@ -42,6 +42,11 @@ ol {
   white-space: nowrap;
 }
 
+pre, code, kbd, samp, .monospace {
+  font-family: monospace, monospace;
+  font-size: 1em;
+}
+
 span.common, span.uncommon, span.rare, span.epic, span.legendary, span.mythic {
   border-radius: 0.25rem;
   padding: 0.125rem 0.25rem 0.125rem 0.25rem;
