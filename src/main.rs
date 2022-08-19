@@ -1,24 +1,33 @@
 #![allow(clippy::too_many_arguments)]
 
 use {
-  crate::{
-    arguments::Arguments, bytes::Bytes, epoch::Epoch, height::Height, index::Index, nft::Nft,
-    options::Options, ordinal::Ordinal, sat_point::SatPoint, subcommand::Subcommand,
+  self::{
+    arguments::Arguments,
+    blocktime::Blocktime,
+    bytes::Bytes,
+    degree::Degree,
+    epoch::Epoch,
+    height::Height,
+    index::{Index, List},
+    nft::Nft,
+    options::Options,
+    ordinal::Ordinal,
+    purse::Purse,
+    sat_point::SatPoint,
+    subcommand::Subcommand,
   },
   anyhow::{anyhow, bail, Context, Error},
-  axum::{
-    extract, http::StatusCode, response::Html, response::IntoResponse, routing::get, Json, Router,
-  },
+  axum::{extract, http::StatusCode, response::Html, response::IntoResponse, routing::get, Router},
   axum_server::Handle,
   bdk::{
     blockchain::rpc::{Auth, RpcBlockchain, RpcConfig},
-    blockchain::ConfigurableBlockchain,
+    blockchain::{Blockchain, ConfigurableBlockchain},
     database::SqliteDatabase,
     keys::bip39::{Language, Mnemonic},
     template::Bip84,
-    wallet::AddressIndex::LastUnused,
+    wallet::{signer::SignOptions, AddressIndex::LastUnused},
     wallet::{wallet_name_from_descriptor, SyncOptions},
-    KeychainKind,
+    FeeRate, KeychainKind, LocalUtxo,
   },
   bitcoin::{
     blockdata::constants::COIN_VALUE,
@@ -32,13 +41,11 @@ use {
       KeyPair, Secp256k1, XOnlyPublicKey,
     },
     util::key::PrivateKey,
-    Block, Network, OutPoint, Transaction, Txid,
+    Address, Block, Network, OutPoint, Transaction, Txid,
   },
   chrono::{DateTime, NaiveDateTime, Utc},
   clap::Parser,
   derive_more::{Display, FromStr},
-  dirs::data_dir,
-  lazy_static::lazy_static,
   redb::{Database, ReadableTable, Table, TableDefinition, WriteTransaction},
   serde::{Deserialize, Serialize},
   std::{
@@ -68,13 +75,16 @@ const PERIOD_BLOCKS: u64 = 2016;
 const CYCLE_EPOCHS: u64 = 6;
 
 mod arguments;
+mod blocktime;
 mod bytes;
+mod degree;
 mod epoch;
 mod height;
 mod index;
 mod nft;
 mod options;
 mod ordinal;
+mod purse;
 mod sat_point;
 mod subcommand;
 
@@ -82,9 +92,7 @@ type Result<T = (), E = Error> = std::result::Result<T, E>;
 
 static INTERRUPTS: AtomicU64 = AtomicU64::new(0);
 
-lazy_static! {
-  static ref LISTENERS: Mutex<Vec<Handle>> = Mutex::new(Vec::new());
-}
+static LISTENERS: Mutex<Vec<Handle>> = Mutex::new(Vec::new());
 
 fn main() {
   env_logger::init();

@@ -172,7 +172,7 @@ fn old_transactions_are_pruned() {
       fee: 50 * 100_000_000,
     })
     .blocks(1)
-    .expected_stderr("error: Output not found\n")
+    .expected_stderr("error: Output spent in transaction 3dbc87de25bf5a52ddfa8038bda36e09622f4dec7951d81ac43e4b0e8c54bc5b\n")
     .expected_status(1)
     .run()
 }

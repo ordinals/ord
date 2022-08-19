@@ -37,10 +37,6 @@ jobs:
         override: true
         toolchain: stable
 
-    - name: Install Bitcoin from Homebrew
-      if: ${{ matrix.os == 'macos-latest' }}
-      run: brew install bitcoin
-
     - name: Install from bitcoincore.org
       if: ${{ matrix.os == 'ubuntu-latest' }}
       run: |
@@ -53,11 +49,11 @@ jobs:
     - name: Check Lockfile
       run: cargo update --locked --package ord
 
-    - name: Test on MacOS
+    - name: Test on MacOS (unit tests)
       if: ${{ matrix.os == 'macos-latest' }}
-      run: cargo test --all -- --test-threads=1
+      run: cargo test --bin ord
 
-    - name: Test on Linux
+    - name: Test on Linux (all tests)
       if: ${{ matrix.os == 'ubuntu-latest' }}
       run: cargo test --all
 

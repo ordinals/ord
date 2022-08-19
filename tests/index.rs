@@ -11,8 +11,7 @@ fn custom_index_size() {
 
   assert_eq!(
     state
-      .tempdir
-      .path()
+      .ord_data_dir()
       .join("index.redb")
       .metadata()
       .unwrap()

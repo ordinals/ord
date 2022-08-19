@@ -20,10 +20,14 @@ fn init_existing_wallet() {
   assert!(state
     .tempdir
     .path()
-    .join(path("ord/wallet.sqlite"))
+    .join(path("ord/regtest/wallet.sqlite"))
     .exists());
 
-  assert!(state.tempdir.path().join(path("ord/entropy")).exists());
+  assert!(state
+    .tempdir
+    .path()
+    .join(path("ord/regtest/entropy"))
+    .exists());
 
   Test::with_state(state)
     .command("--network regtest wallet init")
@@ -44,14 +48,14 @@ fn init_nonexistent_wallet() {
     .state
     .tempdir
     .path()
-    .join(path("ord/wallet.sqlite"))
+    .join(path("ord/regtest/wallet.sqlite"))
     .exists());
 
   assert!(output
     .state
     .tempdir
     .path()
-    .join(path("ord/entropy"))
+    .join(path("ord/regtest/entropy"))
     .exists());
 }
 
@@ -64,7 +68,7 @@ fn load_corrupted_entropy() {
     .output()
     .state;
 
-  let entropy_path = state.tempdir.path().join(path("ord/entropy"));
+  let entropy_path = state.tempdir.path().join(path("ord/regtest/entropy"));
 
   assert!(entropy_path.exists());
 
@@ -122,7 +126,7 @@ fn utxos() {
     .state
     .client
     .generate_to_address(
-      101,
+      1,
       &Address::from_str(
         output
           .stdout
@@ -219,5 +223,154 @@ fn identify() {
     .command("--network regtest wallet identify")
     .expected_status(0)
     .expected_stdout("[5000000000, 10000000000)\n")
+    .run()
+}
+
+#[test]
+fn send_owned_ordinal() {
+  let state = Test::new()
+    .command("--network regtest wallet init")
+    .expected_status(0)
+    .expected_stderr("Wallet initialized.\n")
+    .output()
+    .state;
+
+  let output = Test::with_state(state)
+    .command("--network regtest wallet fund")
+    .stdout_regex("^bcrt1.*\n")
+    .output();
+
+  let from_address = Address::from_str(
+    output
+      .stdout
+      .strip_suffix('\n')
+      .ok_or("Failed to strip suffix")
+      .unwrap(),
+  )
+  .unwrap();
+
+  output
+    .state
+    .client
+    .generate_to_address(1, &from_address)
+    .unwrap();
+
+  output
+    .state
+    .client
+    .generate_to_address(
+      100,
+      &Address::from_str("bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw").unwrap(),
+    )
+    .unwrap();
+
+  let output = Test::with_state(output.state)
+    .command("--network regtest wallet utxos")
+    .expected_status(0)
+    .stdout_regex("[[:xdigit:]]{64}:[[:digit:]] 5000000000\n")
+    .output();
+
+  let wallet = Wallet::new(
+    Bip84(
+      (
+        Mnemonic::parse("book fit fly ketchup also elevator scout mind edit fatal where rookie")
+          .unwrap(),
+        None,
+      ),
+      KeychainKind::External,
+    ),
+    None,
+    Network::Regtest,
+    MemoryDatabase::new(),
+  )
+  .unwrap();
+
+  let to_address = wallet.get_address(AddressIndex::LastUnused).unwrap();
+
+  let state = Test::with_state(output.state)
+    .command(&format!(
+      "--network regtest wallet send --address {to_address} --ordinal 5000000001",
+    ))
+    .expected_status(0)
+    .stdout_regex(format!(
+      "Sent ordinal 5000000001 to address {to_address}: [[:xdigit:]]{{64}}\n"
+    ))
+    .output()
+    .state;
+
+  wallet
+    .sync(&state.blockchain, SyncOptions::default())
+    .unwrap();
+
+  state.client.generate_to_address(1, &from_address).unwrap();
+
+  Test::with_state(state)
+    .command(&format!(
+      "--network regtest list {}",
+      wallet.list_unspent().unwrap().first().unwrap().outpoint
+    ))
+    .expected_status(0)
+    .expected_stdout("[5000000000,9999999780)\n")
+    .run()
+}
+
+#[test]
+fn send_foreign_ordinal() {
+  let state = Test::new()
+    .command("--network regtest wallet init")
+    .expected_status(0)
+    .expected_stderr("Wallet initialized.\n")
+    .output()
+    .state;
+
+  let output = Test::with_state(state)
+    .command("--network regtest wallet fund")
+    .stdout_regex("^bcrt1.*\n")
+    .output();
+
+  let from_address = Address::from_str(
+    output
+      .stdout
+      .strip_suffix('\n')
+      .ok_or("Failed to strip suffix")
+      .unwrap(),
+  )
+  .unwrap();
+
+  output
+    .state
+    .client
+    .generate_to_address(1, &from_address)
+    .unwrap();
+
+  let output = Test::with_state(output.state)
+    .command("--network regtest wallet utxos")
+    .expected_status(0)
+    .stdout_regex("[[:xdigit:]]{64}:[[:digit:]] 5000000000\n")
+    .output();
+
+  let wallet = Wallet::new(
+    Bip84(
+      (
+        Mnemonic::parse("book fit fly ketchup also elevator scout mind edit fatal where rookie")
+          .unwrap(),
+        None,
+      ),
+      KeychainKind::External,
+    ),
+    None,
+    Network::Regtest,
+    MemoryDatabase::new(),
+  )
+  .unwrap();
+
+  let to_address = wallet.get_address(AddressIndex::LastUnused).unwrap();
+
+  Test::with_state(output.state)
+    .command(&format!(
+      "--network regtest wallet send --address {to_address} --ordinal 4999999999",
+    ))
+    .expected_status(1)
+    .expected_stderr("error: No utxo contains 4999999999˚.\n")
     .run()
 }

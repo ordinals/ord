@@ -1,0 +1,99 @@
+html {
+  font-family: sans-serif;
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+
+body {
+  margin: 0 auto 0 auto !important;
+  max-width: 100%;
+  width: 50rem;
+}
+
+h1 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+a {
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+a:visited {
+  color: blue;
+}
+
+nav {
+  display: flex;
+  gap: 1rem;
+  justify-content: left;
+}
+
+ol {
+  list-style-position: inside;
+  padding-inline-start: 0;
+  white-space: nowrap;
+}
+
+.monospace {
+  font-family: monospace, monospace;
+}
+
+span.common, span.uncommon, span.rare, span.epic, span.legendary, span.mythic {
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.25rem 0.125rem 0.25rem;
+}
+
+span.common {
+  background-color: grey;
+}
+
+span.uncommon {
+  background-color: forestgreen;
+}
+
+span.rare {
+  background-color: cornflowerblue;
+}
+
+span.epic {
+  background-color: darkorchid;
+}
+
+span.legendary {
+  background-color: gold;
+}
+
+span.mythic {
+  background-color: #f2a900;
+}
+
+a.common {
+  color: grey;
+}
+
+a.uncommon {
+  color: forestgreen;
+}
+
+a.rare {
+  color: cornflowerblue;
+}
+
+a.epic {
+  color: darkorchid;
+}
+
+a.legendary {
+  color: gold;
+}
+
+a.mythic {
+  color: #f2a900;
+}

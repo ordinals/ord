@@ -45,14 +45,8 @@ status:
   ssh root@65.108.68.37 systemctl status bitcoind
   ssh root@65.108.68.37 systemctl status ord
 
-serve:
-  python3 -m http.server --directory docs
-
 open:
-  open http://localhost:8000
-
-deck:
-  slidedeck deck/index.md > docs/deck/index.html
+  open http://localhost
 
 generate-private-key:
   cargo run generate-private-key
@@ -80,3 +74,8 @@ publish:
   cargo publish
   cd ../..
   rm -rf tmp/release
+
+update-modern-normalize:
+  curl \
+    https://raw.githubusercontent.com/sindresorhus/modern-normalize/main/modern-normalize.css \
+    > static/modern-normalize.css

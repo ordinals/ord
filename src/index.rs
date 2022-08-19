@@ -1,27 +1,50 @@
 use {
   super::*,
+  bitcoin::consensus::encode::serialize,
   bitcoincore_rpc::{Auth, Client, RpcApi},
   rayon::iter::{IntoParallelRefIterator, ParallelIterator},
+  redb::WriteStrategy,
 };
+
+mod rtx;
 
 const HEIGHT_TO_HASH: TableDefinition<u64, [u8]> = TableDefinition::new("HEIGHT_TO_HASH");
 const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8], [u8]> =
   TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
+const OUTPOINT_TO_TXID: TableDefinition<[u8], [u8]> = TableDefinition::new("OUTPOINT_TO_TXID");
 
 pub(crate) struct Index {
   client: Client,
   database: Database,
+  database_path: PathBuf,
+}
+
+pub(crate) enum List {
+  Spent(Txid),
+  Unspent(Vec<(u64, u64)>),
 }
 
 impl Index {
   pub(crate) fn open(options: &Options) -> Result<Self> {
-    let client = Client::new(&options.rpc_url(), Auth::CookieFile(options.cookie_file()?))
+    let rpc_url = options.rpc_url();
+    let cookie_file = options.cookie_file()?;
+
+    log::info!(
+      "Connection to Bitcoin Core RPC server at {rpc_url} using credentials from `{}`",
+      cookie_file.display()
+    );
+
+    let client = Client::new(&rpc_url, Auth::CookieFile(cookie_file))
       .context("Failed to connect to RPC URL")?;
 
-    let database = match unsafe { redb::Database::open("index.redb") } {
+    let database_path = options.data_dir()?.join("index.redb");
+
+    let database = match unsafe { redb::Database::open(&database_path) } {
       Ok(database) => database,
       Err(redb::Error::Io(error)) if error.kind() == io::ErrorKind::NotFound => unsafe {
-        redb::Database::create("index.redb", options.max_index_size.0)?
+        Database::builder()
+          .set_write_strategy(WriteStrategy::Throughput)
+          .create(&database_path, options.max_index_size.0)?
       },
       Err(error) => return Err(error.into()),
     };
@@ -30,10 +53,15 @@ impl Index {
 
     tx.open_table(HEIGHT_TO_HASH)?;
     tx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
+    tx.open_table(OUTPOINT_TO_TXID)?;
 
     tx.commit()?;
 
-    Ok(Self { client, database })
+    Ok(Self {
+      client,
+      database,
+      database_path,
+    })
   }
 
   #[allow(clippy::self_named_constructors)]
@@ -69,7 +97,7 @@ impl Index {
     println!("fragmented: {}", Bytes(stats.fragmented_bytes()));
     println!(
       "index size: {}",
-      Bytes(std::fs::metadata("index.redb")?.len().try_into()?)
+      Bytes(std::fs::metadata(&self.database_path)?.len().try_into()?)
     );
 
     wtx.abort()?;
@@ -110,6 +138,7 @@ impl Index {
   pub(crate) fn index_block(&self, wtx: &mut WriteTransaction) -> Result<bool> {
     let mut height_to_hash = wtx.open_table(HEIGHT_TO_HASH)?;
     let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
+    let mut outpoint_to_txid = wtx.open_table(OUTPOINT_TO_TXID)?;
 
     let start = Instant::now();
     let mut ordinal_ranges_written = 0;
@@ -168,11 +197,10 @@ impl Index {
       let mut input_ordinal_ranges = VecDeque::new();
 
       for input in &tx.input {
-        let mut key = Vec::new();
-        input.previous_output.consensus_encode(&mut key)?;
+        let key = serialize(&input.previous_output);
 
         let ordinal_ranges = outpoint_to_ordinal_ranges
-          .get(key.as_slice())?
+          .get(&key)?
           .ok_or_else(|| anyhow!("Could not find outpoint in index"))?;
 
         for chunk in ordinal_ranges.chunks_exact(11) {
@@ -186,6 +214,7 @@ impl Index {
         *txid,
         tx,
         &mut outpoint_to_ordinal_ranges,
+        &mut outpoint_to_txid,
         &mut input_ordinal_ranges,
         &mut ordinal_ranges_written,
       )?;
@@ -198,6 +227,7 @@ impl Index {
         *txid,
         tx,
         &mut outpoint_to_ordinal_ranges,
+        &mut outpoint_to_txid,
         &mut coinbase_inputs,
         &mut ordinal_ranges_written,
       )?;
@@ -213,32 +243,29 @@ impl Index {
     Ok(false)
   }
 
-  pub(crate) fn height(&self) -> Result<u64> {
-    let tx = self.database.begin_read()?;
-
-    let height_to_hash = tx.open_table(HEIGHT_TO_HASH)?;
-
-    Ok(
-      height_to_hash
-        .range(0..)?
-        .rev()
-        .next()
-        .map(|(height, _hash)| height + 1)
-        .unwrap_or(0),
-    )
+  fn begin_read(&self) -> Result<rtx::Rtx> {
+    Ok(rtx::Rtx(self.database.begin_read()?))
   }
 
-  pub(crate) fn all(&self) -> Result<Vec<sha256d::Hash>> {
+  pub(crate) fn height(&self) -> Result<u64> {
+    self.begin_read()?.height()
+  }
+
+  pub(crate) fn blocks(&self, take: u64) -> Result<Vec<(u64, BlockHash)>> {
     let mut blocks = Vec::new();
 
-    let tx = self.database.begin_read()?;
+    let rtx = self.begin_read()?;
 
-    let height_to_hash = tx.open_table(HEIGHT_TO_HASH)?;
+    let height = rtx.height()?;
 
-    let mut cursor = height_to_hash.range(0..)?;
+    let height_to_hash = rtx.0.open_table(HEIGHT_TO_HASH)?;
+
+    let mut cursor = height_to_hash
+      .range(height.saturating_sub(take.saturating_sub(1))..=height)?
+      .rev();
 
     while let Some(next) = cursor.next() {
-      blocks.push(sha256d::Hash::from_slice(next.1)?);
+      blocks.push((next.0, BlockHash::from_slice(next.1)?));
     }
 
     Ok(blocks)
@@ -249,6 +276,7 @@ impl Index {
     txid: Txid,
     tx: &Transaction,
     outpoint_to_ordinal_ranges: &mut Table<[u8], [u8]>,
+    outpoint_to_txid: &mut Table<[u8], [u8]>,
     input_ordinal_ranges: &mut VecDeque<(u64, u64)>,
     ordinal_ranges_written: &mut u64,
   ) -> Result {
@@ -287,9 +315,11 @@ impl Index {
         *ordinal_ranges_written += 1;
       }
 
-      let mut outpoint_encoded = Vec::new();
-      outpoint.consensus_encode(&mut outpoint_encoded)?;
-      outpoint_to_ordinal_ranges.insert(&outpoint_encoded, &ordinals)?;
+      outpoint_to_ordinal_ranges.insert(&serialize(&outpoint), &ordinals)?;
+    }
+
+    for input in &tx.input {
+      outpoint_to_txid.insert(&serialize(&input.previous_output), &txid)?;
     }
 
     Ok(())
@@ -340,7 +370,7 @@ impl Index {
   }
 
   pub(crate) fn find(&self, ordinal: Ordinal) -> Result<Option<SatPoint>> {
-    if self.height()? <= ordinal.height().0 {
+    if self.height()? < ordinal.height().0 {
       return Ok(None);
     }
 
@@ -379,19 +409,55 @@ impl Index {
     )
   }
 
-  pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<Vec<(u64, u64)>>> {
-    let mut outpoint_encoded = Vec::new();
-    outpoint.consensus_encode(&mut outpoint_encoded)?;
+  pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<List>> {
+    let outpoint_encoded = serialize(&outpoint);
+
     let ordinal_ranges = self.list_inner(&outpoint_encoded)?;
+
     match ordinal_ranges {
-      Some(ordinal_ranges) => {
-        let mut output = Vec::new();
-        for chunk in ordinal_ranges.chunks_exact(11) {
-          output.push(Self::decode_ordinal_range(chunk.try_into().unwrap()));
-        }
-        Ok(Some(output))
+      Some(ordinal_ranges) => Ok(Some(List::Unspent(
+        ordinal_ranges
+          .chunks_exact(11)
+          .map(|chunk| Self::decode_ordinal_range(chunk.try_into().unwrap()))
+          .collect(),
+      ))),
+      None => Ok(
+        self
+          .database
+          .begin_read()?
+          .open_table(OUTPOINT_TO_TXID)?
+          .get(&outpoint_encoded)?
+          .map(Txid::consensus_decode)
+          .transpose()?
+          .map(List::Spent),
+      ),
+    }
+  }
+
+  pub(crate) fn blocktime(&self, height: Height) -> Result<Blocktime> {
+    let height = height.n();
+
+    match self.block_at_height(height)? {
+      Some(block) => Ok(Blocktime::Confirmed(block.header.time.into())),
+      None => {
+        let tx = self.database.begin_read()?;
+
+        let current = tx
+          .open_table(HEIGHT_TO_HASH)?
+          .range(0..)?
+          .rev()
+          .next()
+          .map(|(height, _hash)| height)
+          .unwrap_or(0);
+
+        let expected_blocks = height.checked_sub(current).with_context(|| {
+          format!("Current {current} height is greater than ordinal height {height}")
+        })?;
+
+        Ok(Blocktime::Expected(
+          Utc::now().timestamp() + 10 * 60 * expected_blocks as i64,
+        ))
       }
-      None => Ok(None),
     }
   }
 }

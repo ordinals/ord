@@ -1,22 +1,54 @@
 use super::*;
 
 use {
-  self::{deserialize_ordinal_from_str::DeserializeOrdinalFromStr, tls_acceptor::TlsAcceptor},
+  self::{
+    deserialize_ordinal_from_str::DeserializeOrdinalFromStr,
+    templates::{
+      block::BlockHtml, home::HomeHtml, ordinal::OrdinalHtml, output::OutputHtml, range::RangeHtml,
+      transaction::TransactionHtml, Content,
+    },
+    tls_acceptor::TlsAcceptor,
+  },
+  axum::{body, http::header, response::Response},
   clap::ArgGroup,
+  rust_embed::RustEmbed,
   rustls_acme::{
     acme::{ACME_TLS_ALPN_NAME, LETS_ENCRYPT_PRODUCTION_DIRECTORY, LETS_ENCRYPT_STAGING_DIRECTORY},
     caches::DirCache,
     AcmeConfig,
   },
   serde::{de, Deserializer},
+  std::cmp::Ordering,
   tokio_stream::StreamExt,
 };
 
 mod deserialize_ordinal_from_str;
+mod templates;
 mod tls_acceptor;
 
+#[derive(RustEmbed)]
+#[folder = "static"]
+struct StaticAssets;
+
+struct StaticHtml {
+  title: &'static str,
+  html: &'static str,
+}
+
+impl Content for StaticHtml {
+  fn title(&self) -> String {
+    self.title.into()
+  }
+}
+
+impl Display for StaticHtml {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    f.write_str(self.html)
+  }
+}
+
 #[derive(Debug, Parser)]
-#[clap(group = ArgGroup::new("port").multiple(false).required(true))]
+#[clap(group = ArgGroup::new("port").multiple(false))]
 pub(crate) struct Server {
   #[clap(
     long,
@@ -32,7 +64,7 @@ pub(crate) struct Server {
   #[clap(
     long,
     group = "port",
-    help = "Listen on <HTTP_PORT> for incoming HTTP requests."
+    help = "Listen on <HTTP_PORT> for incoming HTTP requests. Defaults to 80."
   )]
   http_port: Option<u16>,
   #[clap(
@@ -62,12 +94,16 @@ impl Server {
       });
 
       let app = Router::new()
-        .route("/", get(Self::root))
-        .route("/api/list/:outpoint", get(Self::api_list))
+        .route("/", get(Self::home))
         .route("/block/:hash", get(Self::block))
+        .route("/bounties", get(Self::bounties))
+        .route("/faq", get(Self::faq))
+        .route("/favicon.ico", get(Self::favicon))
+        .route("/height", get(Self::height))
         .route("/ordinal/:ordinal", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
         .route("/range/:start/:end", get(Self::range))
+        .route("/static/*path", get(Self::static_asset))
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
         .layer(extract::Extension(index))
@@ -77,37 +113,9 @@ impl Server {
             .allow_origin(Any),
         );
 
-      let (port, acceptor) = match (self.http_port, self.https_port) {
-        (Some(http_port), None) => (http_port, None),
-        (None, Some(https_port)) => {
-          let config = AcmeConfig::new(self.acme_domain)
-            .contact(self.acme_contact)
-            .cache_option(Some(DirCache::new(self.acme_cache.unwrap())))
-            .directory(if cfg!(test) {
-              LETS_ENCRYPT_STAGING_DIRECTORY
-            } else {
-              LETS_ENCRYPT_PRODUCTION_DIRECTORY
-            });
+      let port = self.port();
 
-          let mut state = config.state();
-
-          let acceptor = state.acceptor();
-
-          tokio::spawn(async move {
-            while let Some(result) = state.next().await {
-              match result {
-                Ok(ok) => log::info!("ACME event: {:?}", ok),
-                Err(err) => log::error!("ACME error: {:?}", err),
-              }
-            }
-          });
-
-          (https_port, Some(acceptor))
-        }
-        (None, None) | (Some(_), Some(_)) => unreachable!(),
-      };
-
-      let addr = (self.address, port)
+      let addr = (self.address.as_str(), port)
         .to_socket_addrs()?
         .next()
         .ok_or_else(|| anyhow!("Failed to get socket addrs"))?;
@@ -118,10 +126,10 @@ impl Server {
 
       let server = axum_server::Server::bind(addr).handle(handle);
 
-      match acceptor {
+      match self.acceptor() {
         Some(acceptor) => {
           server
-            .acceptor(TlsAcceptor(acceptor))
+            .acceptor(acceptor)
             .serve(app.into_make_service())
             .await?
         }
@@ -132,10 +140,62 @@ impl Server {
     })
   }
 
+  fn port(&self) -> u16 {
+    self.http_port.or(self.https_port).unwrap_or(80)
+  }
+
+  fn acceptor(&self) -> Option<TlsAcceptor> {
+    if self.https_port.is_some() {
+      let config = AcmeConfig::new(&self.acme_domain)
+        .contact(&self.acme_contact)
+        .cache_option(Some(DirCache::new(
+          self.acme_cache.as_ref().unwrap().clone(),
+        )))
+        .directory(if cfg!(test) {
+          LETS_ENCRYPT_STAGING_DIRECTORY
+        } else {
+          LETS_ENCRYPT_PRODUCTION_DIRECTORY
+        });
+
+      let mut state = config.state();
+
+      let acceptor = state.acceptor();
+
+      tokio::spawn(async move {
+        while let Some(result) = state.next().await {
+          match result {
+            Ok(ok) => log::info!("ACME event: {:?}", ok),
+            Err(err) => log::error!("ACME error: {:?}", err),
+          }
+        }
+      });
+
+      Some(TlsAcceptor(acceptor))
+    } else {
+      None
+    }
+  }
+
   async fn ordinal(
+    index: extract::Extension<Arc<Index>>,
     extract::Path(DeserializeOrdinalFromStr(ordinal)): extract::Path<DeserializeOrdinalFromStr>,
   ) -> impl IntoResponse {
-    (StatusCode::OK, Html(format!("{ordinal}")))
+    match index.blocktime(ordinal.height()) {
+      Ok(blocktime) => OrdinalHtml { ordinal, blocktime }.page().into_response(),
+      Err(err) => {
+        eprintln!("Failed to retrieve height from index: {err}");
+        (
+          StatusCode::INTERNAL_SERVER_ERROR,
+          Html(
+            StatusCode::INTERNAL_SERVER_ERROR
+              .canonical_reason()
+              .unwrap_or_default()
+              .to_string(),
+          ),
+        )
+          .into_response()
+      }
+    }
   }
 
   async fn output(
@@ -143,22 +203,8 @@ impl Server {
     extract::Path(outpoint): extract::Path<OutPoint>,
   ) -> impl IntoResponse {
     match index.list(outpoint) {
-      Ok(Some(ranges)) => (
-        StatusCode::OK,
-        Html(format!(
-          "<ul>{}</ul>",
-          ranges
-            .iter()
-            .map(|(start, end)| format!(
-              "<li><a href='/range/{start}/{end}'>[{start},{end})</a></li>"
-            ))
-            .collect::<String>()
-        )),
-      ),
-      Ok(None) => (
-        StatusCode::NOT_FOUND,
-        Html("Output unknown, invalid, or spent.".to_string()),
-      ),
+      Ok(Some(list)) => OutputHtml { outpoint, list }.page().into_response(),
+      Ok(None) => (StatusCode::NOT_FOUND, Html("Output unknown.".to_string())).into_response(),
       Err(err) => {
         eprintln!("Error serving request for output: {err}");
         (
@@ -170,6 +216,7 @@ impl Server {
               .to_string(),
           ),
         )
+          .into_response()
       }
     }
   }
@@ -179,40 +226,22 @@ impl Server {
       (DeserializeOrdinalFromStr, DeserializeOrdinalFromStr),
     >,
   ) -> impl IntoResponse {
-    if start == end {
-      return (StatusCode::BAD_REQUEST, Html("Empty Range".to_string()));
-    }
-
-    if start > end {
-      return (
+    match start.cmp(&end) {
+      Ordering::Equal => (StatusCode::BAD_REQUEST, Html("Empty Range".to_string())).into_response(),
+      Ordering::Greater => (
         StatusCode::BAD_REQUEST,
         Html("Range Start Greater Than Range End".to_string()),
-      );
+      )
+        .into_response(),
+      Ordering::Less => RangeHtml { start, end }.page().into_response(),
     }
-
-    (
-      StatusCode::OK,
-      Html(format!("<a href='/ordinal/{start}'>first</a>")),
-    )
   }
 
-  async fn root(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
-    match index.all() {
-      Ok(blocks) => (
-        StatusCode::OK,
-        Html(format!(
-          "<ul>\n{}</ul>",
-          blocks
-            .iter()
-            .enumerate()
-            .map(|(height, hash)| format!(
-              "  <li>{height} - <a href='/block/{hash}'>{hash}</a></li>\n"
-            ))
-            .collect::<String>(),
-        )),
-      ),
-      Err(error) => {
-        eprintln!("Error serving request for root: {error}");
+  async fn home(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
+    match index.blocks(100) {
+      Ok(blocks) => HomeHtml::new(blocks).page().into_response(),
+      Err(err) => {
+        eprintln!("Error getting blocks: {err}");
         (
           StatusCode::INTERNAL_SERVER_ERROR,
           Html(
@@ -222,6 +251,7 @@ impl Server {
               .to_string(),
           ),
         )
+          .into_response()
       }
     }
   }
@@ -231,22 +261,7 @@ impl Server {
     index: extract::Extension<Arc<Index>>,
   ) -> impl IntoResponse {
     match index.block_with_hash(hash) {
-      Ok(Some(block)) => (
-        StatusCode::OK,
-        Html(format!(
-          "<ul>\n{}</ul>",
-          block
-            .txdata
-            .iter()
-            .enumerate()
-            .map(|(i, tx)| format!(
-              "  <li>{i} - <a href='/tx/{}'>{}</a></li>\n",
-              tx.txid(),
-              tx.txid()
-            ))
-            .collect::<String>()
-        )),
-      ),
+      Ok(Some(block)) => BlockHtml::new(block).page().into_response(),
       Ok(None) => (
         StatusCode::NOT_FOUND,
         Html(
@@ -255,7 +270,8 @@ impl Server {
             .unwrap_or_default()
             .to_string(),
         ),
-      ),
+      )
+        .into_response(),
       Err(error) => {
         eprintln!("Error serving request for block with hash {hash}: {error}");
         (
@@ -267,27 +283,17 @@ impl Server {
               .to_string(),
           ),
         )
+          .into_response()
       }
     }
   }
 
   async fn transaction(
-    extract::Path(txid): extract::Path<Txid>,
     index: extract::Extension<Arc<Index>>,
+    extract::Path(txid): extract::Path<Txid>,
   ) -> impl IntoResponse {
     match index.transaction(txid) {
-      Ok(Some(transaction)) => (
-        StatusCode::OK,
-        Html(format!(
-          "<ul>\n{}</ul>",
-          transaction
-            .output
-            .iter()
-            .enumerate()
-            .map(|(i, _)| format!("  <li><a href='/output/{txid}:{i}'>{txid}:{i}</a></li>\n"))
-            .collect::<String>()
-        )),
-      ),
+      Ok(Some(transaction)) => TransactionHtml::new(transaction).page().into_response(),
       Ok(None) => (
         StatusCode::NOT_FOUND,
         Html(
@@ -296,9 +302,70 @@ impl Server {
             .unwrap_or_default()
             .to_string(),
         ),
-      ),
+      )
+        .into_response(),
       Err(error) => {
         eprintln!("Error serving request for transaction with txid {txid}: {error}");
+        (
+          StatusCode::INTERNAL_SERVER_ERROR,
+          Html(
+            StatusCode::INTERNAL_SERVER_ERROR
+              .canonical_reason()
+              .unwrap_or_default()
+              .to_string(),
+          ),
+        )
+          .into_response()
+      }
+    }
+  }
+
+  async fn status() -> impl IntoResponse {
+    (
+      StatusCode::OK,
+      StatusCode::OK
+        .canonical_reason()
+        .unwrap_or_default()
+        .to_string(),
+    )
+  }
+
+  async fn favicon() -> impl IntoResponse {
+    Self::static_asset(extract::Path("/favicon.png".to_string())).await
+  }
+
+  async fn static_asset(extract::Path(path): extract::Path<String>) -> impl IntoResponse {
+    match StaticAssets::get(if let Some(stripped) = path.strip_prefix('/') {
+      stripped
+    } else {
+      &path
+    }) {
+      Some(content) => {
+        let body = body::boxed(body::Full::from(content.data));
+        let mime = mime_guess::from_path(path).first_or_octet_stream();
+        Response::builder()
+          .header(header::CONTENT_TYPE, mime.as_ref())
+          .body(body)
+          .unwrap()
+      }
+      None => (
+        StatusCode::NOT_FOUND,
+        Html(
+          StatusCode::NOT_FOUND
+            .canonical_reason()
+            .unwrap_or_default()
+            .to_string(),
+        ),
+      )
+        .into_response(),
+    }
+  }
+
+  async fn height(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
+    match index.height() {
+      Ok(height) => (StatusCode::OK, Html(format!("{}", height))),
+      Err(err) => {
+        eprintln!("Failed to retrieve height from index: {err}");
         (
           StatusCode::INTERNAL_SERVER_ERROR,
           Html(
@@ -312,21 +379,97 @@ impl Server {
     }
   }
 
-  async fn api_list(
-    extract::Path(outpoint): extract::Path<OutPoint>,
-    index: extract::Extension<Arc<Index>>,
-  ) -> impl IntoResponse {
-    match index.list(outpoint) {
-      Ok(Some(ranges)) => (StatusCode::OK, Json(Some(ranges))),
-      Ok(None) => (StatusCode::NOT_FOUND, Json(None)),
-      Err(error) => {
-        eprintln!("Error serving request for outpoint {outpoint}: {error}");
-        (StatusCode::INTERNAL_SERVER_ERROR, Json(None))
-      }
+  async fn faq() -> impl IntoResponse {
+    StaticHtml {
+      title: "Ordinal FAQ",
+      html: include_str!(concat!(env!("OUT_DIR"), "/faq.html")),
+    }
+    .page()
+    .into_response()
+  }
+
+  async fn bounties() -> impl IntoResponse {
+    StaticHtml {
+      title: "Ordinal Bounties",
+      html: include_str!(concat!(env!("OUT_DIR"), "/bounties.html")),
+    }
+    .page()
+    .into_response()
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn port_defaults_to_80() {
+    match Arguments::try_parse_from(&["ord", "server"])
+      .unwrap()
+      .subcommand
+    {
+      Subcommand::Server(server) => assert_eq!(server.port(), 80),
+      subcommand => panic!("Unexpected subcommand: {subcommand:?}"),
     }
   }
 
-  async fn status() -> StatusCode {
-    StatusCode::OK
+  #[test]
+  fn http_and_https_port_conflict() {
+    let err = Arguments::try_parse_from(&["ord", "server", "--http-port=0", "--https-port=0"])
+      .unwrap_err()
+      .to_string();
+
+    assert!(
+      err.starts_with("error: The argument '--http-port <HTTP_PORT>' cannot be used with '--https-port <HTTPS_PORT>'\n"),
+      "{}",
+      err
+    );
+  }
+
+  #[test]
+  fn http_port_requires_acme_flags() {
+    let err = Arguments::try_parse_from(&["ord", "server", "--https-port=0"])
+      .unwrap_err()
+      .to_string();
+
+    assert!(
+      err.starts_with("error: The following required arguments were not provided:\n    --acme-cache <ACME_CACHE>\n    --acme-domain <ACME_DOMAIN>\n    --acme-contact <ACME_CONTACT>\n"),
+      "{}",
+      err
+    );
+  }
+
+  #[test]
+  fn acme_contact_accepts_multiple_values() {
+    assert!(Arguments::try_parse_from(&[
+      "ord",
+      "server",
+      "--address",
+      "127.0.0.1",
+      "--http-port",
+      "0",
+      "--acme-contact",
+      "foo",
+      "--acme-contact",
+      "bar"
+    ])
+    .is_ok());
+  }
+
+  #[test]
+  fn acme_domain_accepts_multiple_values() {
+    assert!(Arguments::try_parse_from(&[
+      "ord",
+      "server",
+      "--address",
+      "127.0.0.1",
+      "--http-port",
+      "0",
+      "--acme-domain",
+      "foo",
+      "--acme-domain",
+      "bar"
+    ])
+    .is_ok());
   }
 }

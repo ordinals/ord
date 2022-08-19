@@ -1,7 +1,7 @@
 #![allow(clippy::type_complexity)]
 
 use {
-  self::{state::State, test::Test, transaction_options::TransactionOptions},
+  self::{expected::Expected, state::State, test::Test, transaction_options::TransactionOptions},
   bdk::{
     blockchain::{
       rpc::{RpcBlockchain, RpcConfig},
@@ -13,15 +13,15 @@ use {
     wallet::{signer::SignOptions, AddressIndex, SyncOptions, Wallet},
     KeychainKind,
   },
-  bitcoin::{hash_types::Txid, network::constants::Network, Address, Block, OutPoint},
+  bitcoin::{hash_types::Txid, network::constants::Network, Address, Block, OutPoint, Transaction},
   bitcoincore_rpc::{Client, RawTx, RpcApi},
   executable_path::executable_path,
   log::LevelFilter,
   regex::Regex,
   std::{
-    collections::BTreeMap,
     fs,
     net::TcpListener,
+    path::PathBuf,
     process::{Child, Command, Stdio},
     str::{self, FromStr},
     sync::Once,
@@ -33,6 +33,7 @@ use {
 };
 
 mod epochs;
+mod expected;
 mod find;
 mod index;
 mod info;
