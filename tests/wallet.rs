@@ -207,7 +207,7 @@ fn identify() {
     .state
     .client
     .generate_to_address(
-      101,
+      1,
       &Address::from_str(
         output
           .stdout
