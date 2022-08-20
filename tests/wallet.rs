@@ -222,7 +222,7 @@ fn identify() {
   Test::with_state(output.state)
     .command("--network regtest wallet identify")
     .expected_status(0)
-    .expected_stdout("[5000000000, 10000000000)\n")
+    .stdout_regex("[[:xdigit:]]{64}:[[:digit:]]\n5000000000 - uncommon\n")
     .run()
 }
 

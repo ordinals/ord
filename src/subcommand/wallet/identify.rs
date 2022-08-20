@@ -18,8 +18,10 @@ pub(crate) fn run(options: Options) -> Result {
         for (start, _) in range {
           let ordinal = Ordinal(start);
 
-          if ordinal.rarity() != "common" {
-            println!("{ordinal}");
+          let rarity = ordinal.rarity();
+
+          if rarity != "common" {
+            println!("{ordinal} - {rarity}");
           }
         }
       }
