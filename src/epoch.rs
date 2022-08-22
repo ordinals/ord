@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Copy, Clone, Eq, PartialEq, Debug, Display)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Display, PartialOrd)]
 pub(crate) struct Epoch(pub(crate) u64);
 
 impl Epoch {
@@ -40,11 +40,11 @@ impl Epoch {
     Ordinal(2099999997480000),
     Ordinal(Ordinal::SUPPLY),
   ];
-
+  pub(crate) const FIRST_POST_SUBSIDY: Epoch = Self(33);
   pub(crate) const BLOCKS: u64 = 210000;
 
   pub(crate) fn subsidy(self) -> u64 {
-    if self.0 < 64 {
+    if self < Self::FIRST_POST_SUBSIDY {
       (50 * COIN_VALUE) >> self.0
     } else {
       0
@@ -157,5 +157,11 @@ mod tests {
   fn eq() {
     assert_eq!(Epoch(0), 0);
     assert_eq!(Epoch(100), 100);
+  }
+
+  #[test]
+  fn first_post_subsidy() {
+    assert_eq!(Epoch::FIRST_POST_SUBSIDY.subsidy(), 0);
+    assert!((Epoch(Epoch::FIRST_POST_SUBSIDY.0 - 1)).subsidy() > 0);
   }
 }

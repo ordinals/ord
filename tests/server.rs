@@ -339,3 +339,28 @@ fn favicon() {
   let mut state = State::new();
   state.request_expected("favicon.ico", 200, Expected::Ignore);
 }
+
+#[test]
+fn clock_updates() {
+  let mut state = State::new();
+
+  state.request_regex(
+    "clock",
+    200,
+    r#".*<line y2="-9" transform="rotate\(0\)"/>.*"#,
+  );
+
+  state.blocks(1);
+
+  state.request_regex(
+    "clock",
+    200,
+    r#".*<line y2="-9" transform="rotate\(0.00005194805194805195\)"/>.*"#,
+  );
+}
+
+#[test]
+fn clock_is_served_with_svg_extension() {
+  let mut state = State::new();
+  state.request_regex("clock.svg", 200, "<svg.*");
+}

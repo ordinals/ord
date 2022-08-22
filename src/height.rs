@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Copy, Clone, Debug, Display, FromStr)]
+#[derive(Copy, Clone, Debug, Display, FromStr, Ord, Eq, PartialEq, PartialOrd)]
 pub(crate) struct Height(pub(crate) u64);
 
 impl Height {
@@ -17,6 +17,10 @@ impl Height {
     let epoch_starting_ordinal = epoch.starting_ordinal();
     let epoch_starting_height = epoch.starting_height();
     epoch_starting_ordinal + (self - epoch_starting_height.n()).n() * epoch.subsidy()
+  }
+
+  pub(crate) fn period_offset(self) -> u64 {
+    self.0 % PERIOD_BLOCKS
   }
 }
 
@@ -102,5 +106,14 @@ mod tests {
       Height(u64::max_value()).starting_ordinal(),
       *Epoch::STARTING_ORDINALS.last().unwrap()
     );
+  }
+
+  #[test]
+  fn period_offset() {
+    assert_eq!(Height(0).period_offset(), 0);
+    assert_eq!(Height(1).period_offset(), 1);
+    assert_eq!(Height(2015).period_offset(), 2015);
+    assert_eq!(Height(2016).period_offset(), 0);
+    assert_eq!(Height(2017).period_offset(), 1);
   }
 }

@@ -4,8 +4,8 @@ use {
   self::{
     deserialize_ordinal_from_str::DeserializeOrdinalFromStr,
     templates::{
-      block::BlockHtml, home::HomeHtml, ordinal::OrdinalHtml, output::OutputHtml, range::RangeHtml,
-      transaction::TransactionHtml, Content,
+      block::BlockHtml, clock::ClockSvg, home::HomeHtml, ordinal::OrdinalHtml, output::OutputHtml,
+      range::RangeHtml, transaction::TransactionHtml, Content,
     },
   },
   axum::{body, http::header, response::Response},
@@ -96,6 +96,8 @@ impl Server {
         .route("/", get(Self::home))
         .route("/block/:hash", get(Self::block))
         .route("/bounties", get(Self::bounties))
+        .route("/clock", get(Self::clock))
+        .route("/clock.svg", get(Self::clock))
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
         .route("/height", get(Self::height))
@@ -180,6 +182,25 @@ impl Server {
     }
   }
 
+  async fn clock(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
+    match index.height() {
+      Ok(height) => ClockSvg::new(height).into_response(),
+      Err(err) => {
+        eprintln!("Failed to retrieve height from index: {err}");
+        (
+          StatusCode::INTERNAL_SERVER_ERROR,
+          Html(
+            StatusCode::INTERNAL_SERVER_ERROR
+              .canonical_reason()
+              .unwrap_or_default()
+              .to_string(),
+          ),
+        )
+          .into_response()
+      }
+    }
+  }
+
   async fn ordinal(
     index: extract::Extension<Arc<Index>>,
     extract::Path(DeserializeOrdinalFromStr(ordinal)): extract::Path<DeserializeOrdinalFromStr>,
@@ -187,7 +208,7 @@ impl Server {
     match index.blocktime(ordinal.height()) {
       Ok(blocktime) => OrdinalHtml { ordinal, blocktime }.page().into_response(),
       Err(err) => {
-        eprintln!("Failed to retrieve height from index: {err}");
+        eprintln!("Failed to retrieve blocktime from index: {err}");
         (
           StatusCode::INTERNAL_SERVER_ERROR,
           Html(
