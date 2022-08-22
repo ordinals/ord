@@ -1,20 +1,5 @@
 use super::*;
 
-// TODO:
-// - test server
-//
-// later:
-// - add third hand
-// - rarity
-// - name
-// - time (month, date, year)
-// - decimal
-// - degree
-// - number
-// - height
-// - period
-// - epoch
-
 #[derive(Display)]
 pub(crate) struct ClockSvg {
   hour: f64,
