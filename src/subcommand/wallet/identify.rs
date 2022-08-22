@@ -3,33 +3,34 @@ use super::*;
 pub(crate) fn run(options: Options) -> Result {
   let index = Index::index(&options)?;
 
-  let ranges = Purse::load(&options)?
-    .wallet
-    .list_unspent()?
+  let utxos = Purse::load(&options)?.wallet.list_unspent()?;
+
+  let lists = utxos
     .iter()
-    .map(|utxo| (utxo.clone(), index.list(utxo.outpoint).unwrap()))
-    .collect::<Vec<(LocalUtxo, Option<List>)>>();
+    .map(|utxo| index.list(utxo.outpoint))
+    .collect::<Result<Vec<Option<List>>, _>>()?;
 
-  for (utxo, range) in ranges {
-    match range {
-      Some(List::Unspent(range)) => {
-        for (start, _) in range {
-          let ordinal = Ordinal(start);
+  let mut ordinals = utxos
+    .iter()
+    .zip(lists.iter())
+    .map(|(utxo, list)| match list {
+      Some(List::Unspent(ranges)) => Ok((
+        utxo.clone(),
+        ranges.iter().map(|(start, _end)| Ordinal(*start)).collect(),
+      )),
+      Some(List::Spent(txid)) => Err(anyhow!(
+        "UTXO {} unspent in wallet but spent in index by transaction {txid}",
+        utxo.outpoint
+      )),
+      None => Ok((utxo.clone(), Vec::new())),
+    })
+    .collect::<Result<Vec<(LocalUtxo, Vec<Ordinal>)>, _>>()?;
 
-          let rarity = ordinal.rarity();
+  ordinals.sort_by(|a, b| a.1.cmp(&b.1));
 
-          if rarity != "common" {
-            println!("{ordinal} {rarity} {}", utxo.outpoint);
-          }
-        }
-      }
-      Some(List::Spent(txid)) => {
-        return Err(anyhow!(
-          "UTXO {} unspent in wallet but spent in index by transaction {txid}",
-          utxo.outpoint
-        ))
-      }
-      None => {}
+  for (utxo, ordinals) in ordinals {
+    for ordinal in ordinals {
+      println!("{ordinal} {} {}", ordinal.rarity(), utxo.outpoint);
     }
   }
 

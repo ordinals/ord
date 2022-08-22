@@ -262,10 +262,10 @@ fn identify_multiple_ordinals() {
     .stdout_regex(
       "
        5000000000 uncommon [[:xdigit:]]{64}:[[:digit:]]
+       10000000000 uncommon [[:xdigit:]]{64}:[[:digit:]]
        15000000000 uncommon [[:xdigit:]]{64}:[[:digit:]]
        20000000000 uncommon [[:xdigit:]]{64}:[[:digit:]]
        25000000000 uncommon [[:xdigit:]]{64}:[[:digit:]]
-       10000000000 uncommon [[:xdigit:]]{64}:[[:digit:]]
      "
       .unindent()
       .trim_start(),
