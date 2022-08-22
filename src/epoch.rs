@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Copy, Clone, Eq, PartialEq, Debug, Display)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Display, PartialOrd)]
 pub(crate) struct Epoch(pub(crate) u64);
 
 impl Epoch {
@@ -44,7 +44,7 @@ impl Epoch {
   pub(crate) const BLOCKS: u64 = 210000;
 
   pub(crate) fn subsidy(self) -> u64 {
-    if self.0 < 64 {
+    if self < Self::FIRST_POST_SUBSIDY {
       (50 * COIN_VALUE) >> self.0
     } else {
       0
