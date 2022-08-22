@@ -3,14 +3,14 @@ use super::*;
 pub(crate) fn run(options: Options) -> Result {
   let index = Index::index(&options)?;
 
-  let utxos = Purse::load(&options)?.wallet.list_unspent()?;
-
-  let ranges = utxos
+  let ranges = Purse::load(&options)?
+    .wallet
+    .list_unspent()?
     .iter()
-    .map(|utxo| index.list(utxo.outpoint))
-    .collect::<Result<Vec<Option<List>>, _>>()?;
+    .map(|utxo| (utxo.clone(), index.list(utxo.outpoint).unwrap()))
+    .collect::<Vec<(LocalUtxo, Option<List>)>>();
 
-  for (utxo, range) in utxos.iter().zip(ranges.into_iter()) {
+  for (utxo, range) in ranges {
     match range {
       Some(List::Unspent(range)) => {
         for (start, _) in range {
