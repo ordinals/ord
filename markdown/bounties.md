@@ -16,7 +16,7 @@ Reward: 100,000 sats
 
 Address: [`1PE7u4wbDP2RqfKN6geD1bG57v9Gj9FXm3`](https://mempool.space/address/1PE7u4wbDP2RqfKN6geD1bG57v9Gj9FXm3)
 
-Status: Unclaimed (as long as no transactions have been sent to the bounty address)
+Status: Claimed by [@count_null](https://twitter.com/rodarmor/status/1560793241473400833)!
 
 Rules
 -----
