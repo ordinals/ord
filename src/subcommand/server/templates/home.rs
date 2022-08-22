@@ -3,7 +3,7 @@ use super::*;
 #[derive(Display)]
 pub(crate) struct HomeHtml {
   last: u64,
-  blocks: Vec<(&'static str, BlockHash)>,
+  blocks: Vec<(Rarity, BlockHash)>,
 }
 
 impl HomeHtml {

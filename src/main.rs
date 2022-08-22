@@ -13,6 +13,7 @@ use {
     options::Options,
     ordinal::Ordinal,
     purse::Purse,
+    rarity::Rarity,
     sat_point::SatPoint,
     subcommand::Subcommand,
   },
@@ -101,6 +102,7 @@ mod nft;
 mod options;
 mod ordinal;
 mod purse;
+mod rarity;
 mod sat_point;
 mod subcommand;
 
