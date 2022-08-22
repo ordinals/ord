@@ -46,12 +46,6 @@ impl PartialEq<u64> for Height {
   }
 }
 
-impl PartialOrd<u64> for Height {
-  fn partial_cmp(&self, other: &u64) -> Option<Ordering> {
-    self.0.partial_cmp(other)
-  }
-}
-
 #[cfg(test)]
 mod tests {
   use super::*;
