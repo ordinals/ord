@@ -10,26 +10,26 @@ pub(crate) fn run(options: Options) -> Result {
     .map(|utxo| index.list(utxo.outpoint))
     .collect::<Result<Vec<Option<List>>, _>>()?;
 
-  for (utxo, range) in utxos.iter().zip(ranges.into_iter().flatten()) {
-    println!("{}", utxo.outpoint);
-
+  for (utxo, range) in utxos.iter().zip(ranges.into_iter()) {
     match range {
-      List::Unspent(range) => {
+      Some(List::Unspent(range)) => {
         for (start, _) in range {
           let ordinal = Ordinal(start);
 
           let rarity = ordinal.rarity();
 
           if rarity != "common" {
-            println!("{ordinal} - {rarity}");
+            println!("{ordinal} {rarity} {}", utxo.outpoint);
           }
         }
       }
-      List::Spent(txid) => {
+      Some(List::Spent(txid)) => {
         return Err(anyhow!(
-          "UTXO unspent in wallet but spent in index by transaction {txid}"
+          "UTXO {} unspent in wallet but spent in index by transaction {txid}",
+          utxo.outpoint
         ))
       }
+      None => {}
     }
   }
 
