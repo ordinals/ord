@@ -9,13 +9,13 @@ pub(crate) struct ClockSvg {
 
 impl ClockSvg {
   pub(crate) fn new(height: Height) -> Self {
-    let height = height.min(Epoch::FIRST_POST_SUBSIDY.starting_height());
+    let min = height.min(Epoch::FIRST_POST_SUBSIDY.starting_height());
 
     Self {
-      hour: (height.n() % Epoch::FIRST_POST_SUBSIDY.starting_height().n()) as f64
+      hour: (min.n() % Epoch::FIRST_POST_SUBSIDY.starting_height().n()) as f64
         / Epoch::FIRST_POST_SUBSIDY.starting_height().n() as f64
         * 360.0,
-      minute: (height.n() % Epoch::BLOCKS) as f64 / Epoch::BLOCKS as f64 * 360.0,
+      minute: (min.n() % Epoch::BLOCKS) as f64 / Epoch::BLOCKS as f64 * 360.0,
       second: height.period_offset() as f64 / PERIOD_BLOCKS as f64 * 360.0,
     }
   }
@@ -32,6 +32,8 @@ mod tests {
     assert_eq!(ClockSvg::new(Height(1008)).second, 180.0);
     assert_eq!(ClockSvg::new(Height(1512)).second, 270.0);
     assert_eq!(ClockSvg::new(Height(2016)).second, 0.0);
+    assert_eq!(ClockSvg::new(Height(6930000)).second, 180.0);
+    assert_eq!(ClockSvg::new(Height(6930504)).second, 270.0);
   }
 
   #[test]
@@ -41,16 +43,18 @@ mod tests {
     assert_eq!(ClockSvg::new(Height(105000)).minute, 180.0);
     assert_eq!(ClockSvg::new(Height(157500)).minute, 270.0);
     assert_eq!(ClockSvg::new(Height(210000)).minute, 0.0);
+    assert_eq!(ClockSvg::new(Height(6930000)).minute, 0.0);
+    assert_eq!(ClockSvg::new(Height(6930001)).minute, 0.0);
   }
 
   #[test]
   fn hour() {
-    assert_eq!(ClockSvg::new(Height(0)).minute, 0.0);
-    assert_eq!(ClockSvg::new(Height(1732500)).minute, 90.0);
-    assert_eq!(ClockSvg::new(Height(3465000)).minute, 180.0);
-    assert_eq!(ClockSvg::new(Height(5197500)).minute, 270.0);
-    assert_eq!(ClockSvg::new(Height(6930000)).minute, 0.0);
-    assert_eq!(ClockSvg::new(Height(6930001)).minute, 0.0);
+    assert_eq!(ClockSvg::new(Height(0)).hour, 0.0);
+    assert_eq!(ClockSvg::new(Height(1732500)).hour, 90.0);
+    assert_eq!(ClockSvg::new(Height(3465000)).hour, 180.0);
+    assert_eq!(ClockSvg::new(Height(5197500)).hour, 270.0);
+    assert_eq!(ClockSvg::new(Height(6930000)).hour, 0.0);
+    assert_eq!(ClockSvg::new(Height(6930001)).hour, 0.0);
   }
 
   #[test]
