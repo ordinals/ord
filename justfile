@@ -21,15 +21,15 @@ install-dev-deps:
   cargo install cargo-criterion
 
 deploy branch='master':
-  ssh root@ordinals.com mkdir -p deploy
-  rsync -avz deploy/checkout root@ordinals.com:deploy/checkout
-  ssh root@ordinals.com 'cd deploy && ./checkout {{branch}}'
+  ssh root@signet.ordinals.com mkdir -p deploy
+  rsync -avz deploy/checkout root@signet.ordinals.com:deploy/checkout
+  ssh root@signet.ordinals.com 'cd deploy && ./checkout {{branch}}'
 
 log-ord:
-  ssh root@ordinals.com 'journalctl -fu ord'
+  ssh root@signet.ordinals.com 'journalctl -fu ord'
 
 log-bitcoind:
-  ssh root@ordinals.com 'journalctl -fu bitcoind'
+  ssh root@signet.ordinals.com 'journalctl -fu bitcoind'
 
 test-deploy:
   ssh-keygen -f ~/.ssh/known_hosts -R 192.168.56.4
