@@ -40,9 +40,7 @@ impl Epoch {
     Ordinal(2099999997480000),
     Ordinal(Ordinal::SUPPLY),
   ];
-
   pub(crate) const FIRST_POST_SUBSIDY: Epoch = Self(33);
-
   pub(crate) const BLOCKS: u64 = 210000;
 
   pub(crate) fn subsidy(self) -> u64 {
