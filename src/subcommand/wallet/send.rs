@@ -14,10 +14,13 @@ impl Send {
 
     let utxo = wallet.find(&options, self.ordinal)?;
 
-    let ordinals = wallet.ordinals(&options, utxo.outpoint)?;
-
-    if !ordinals.is_empty() {
-      bail!("foo");
+    if !wallet
+      .ordinals(&options, utxo.outpoint)?
+      .contains(&self.ordinal)
+    {
+      bail!(
+        "Attempted to send a common ordinal in a utxo that contains uncommon or better ordinals."
+      );
     }
 
     let (mut psbt, _details) = {
