@@ -25,7 +25,9 @@ source ~/.cargo/env
 rustup update stable
 
 cargo build --release
-mv /usr/local/bin/ord ord.bak
+if [[ -f /usr/local/bin/ord ]]; then
+  mv /usr/local/bin/ord /usr/local/bin/ord.bak
+fi
 cp target/release/ord /usr/local/bin/ord
 
 id --user bitcoin || useradd --system bitcoin
@@ -48,7 +50,9 @@ setfacl -m ord:r /var/lib/bitcoind/.cookie
 cp deploy/ord.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl stop ord
-mv /var/lib/ord/index.redb /var/lib/ord/index.redb.bak
+if [[ -f /var/lib/ord/index.redb ]]; then
+  mv /var/lib/ord/index.redb /var/lib/ord/index.redb.bak
+fi
 systemctl enable ord
 systemctl restart ord
 
