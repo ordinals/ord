@@ -2,8 +2,6 @@
 
 set -euxo pipefail
 
-apt-get update --yes
-apt-get upgrade --yes
 apt-get install --yes \
   acl \
   clang \
@@ -27,7 +25,9 @@ source ~/.cargo/env
 rustup update stable
 
 cargo build --release
-mv /usr/local/bin/ord ord.old
+if [[ -f /usr/local/bin/ord ]]; then
+  mv /usr/local/bin/ord /usr/local/bin/ord.bak
+fi
 cp target/release/ord /usr/local/bin/ord
 
 id --user bitcoin || useradd --system bitcoin
@@ -50,10 +50,11 @@ setfacl -m ord:r /var/lib/bitcoind/signet/.cookie
 cp deploy/ord.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl stop ord
-cp target/release/ord /usr/local/bin/ord
+if [[ -f /var/lib/ord/signet/index.redb ]]; then
+  mv /var/lib/ord/signet/index.redb /var/lib/ord/signet/index.redb.bak
+fi
 systemctl enable ord
 systemctl restart ord
-rm ord.old
 
 while ! curl --fail https://signet.ordinals.com/status; do
   echo Waiting for ord…

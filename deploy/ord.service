@@ -11,9 +11,9 @@ Environment=RUST_BACKTRACE=1
 Environment=RUST_LOG=info
 ExecStart=/usr/local/bin/ord \
   --cookie-file /var/lib/bitcoind/signet/.cookie \
-  --max-index-size 1TiB \
-  --rpc-url 127.0.0.1:38332 \
   --data-dir /var/lib/ord \
+  --max-index-size 1TiB \
+  --network signet \
   server \
   --acme-cache /var/lib/ord/acme-cache \
   --acme-contact mailto:casey@rodarmor.com \
