@@ -71,6 +71,25 @@ use {
   tower_http::cors::{Any, CorsLayer},
 };
 
+#[cfg(test)]
+use regex::Regex;
+
+#[cfg(test)]
+macro_rules! assert_regex_match {
+  ($string:expr, $pattern:expr $(,)?) => {
+    let pattern: &'static str = $pattern;
+    let regex = Regex::new(&format!("^(?s){}$", pattern)).unwrap();
+    let string = $string;
+
+    if !regex.is_match(string.as_ref()) {
+      panic!(
+        "Regex:\n\n{}\n\n…did not match string:\n\n{}",
+        regex, string
+      );
+    }
+  };
+}
+
 const PERIOD_BLOCKS: u64 = 2016;
 const CYCLE_EPOCHS: u64 = 6;
 
