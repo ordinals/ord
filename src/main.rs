@@ -108,6 +108,7 @@ type Result<T = (), E = Error> = std::result::Result<T, E>;
 
 const PERIOD_BLOCKS: u64 = 2016;
 const CYCLE_EPOCHS: u64 = 6;
+
 static INTERRUPTS: AtomicU64 = AtomicU64::new(0);
 static LISTENERS: Mutex<Vec<Handle>> = Mutex::new(Vec::new());
 
