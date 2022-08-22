@@ -8,16 +8,12 @@ pub(crate) fn run(options: Options) -> Result {
     .list_unspent()?
     .into_iter()
     .map(|utxo| {
-      purse
-        .ordinals(&options, utxo.outpoint)
-        .and_then(|ordinals| {
-          Ok(
-            ordinals
-              .into_iter()
-              .map(|ordinal| (ordinal, utxo.outpoint))
-              .collect::<Vec<(Ordinal, OutPoint)>>(),
-          )
-        })
+      purse.ordinals(&options, utxo.outpoint).map(|ordinals| {
+        ordinals
+          .into_iter()
+          .map(|ordinal| (ordinal, utxo.outpoint))
+          .collect::<Vec<(Ordinal, OutPoint)>>()
+      })
     })
     .collect::<Result<Vec<Vec<(Ordinal, OutPoint)>>, _>>()?
     .into_iter()
