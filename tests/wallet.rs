@@ -317,6 +317,12 @@ fn identify_sent_ordinal() {
     .stdout_regex("[[:xdigit:]]{64}:[[:digit:]] 5000000000\n")
     .output();
 
+  let output = Test::with_state(output.state)
+    .command("--network regtest wallet identify")
+    .expected_status(0)
+    .stdout_regex("5000000000 uncommon [[:xdigit:]]{64}:[[:digit:]]\n")
+    .output();
+
   let wallet = Wallet::new(
     Bip84(
       (
