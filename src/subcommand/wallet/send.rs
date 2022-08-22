@@ -14,6 +14,12 @@ impl Send {
 
     let utxo = wallet.find(&options, self.ordinal)?;
 
+    let ordinals = wallet.ordinals(&options, utxo.outpoint)?;
+
+    if !ordinals.is_empty() {
+      bail!("foo");
+    }
+
     let (mut psbt, _details) = {
       let mut builder = wallet.wallet.build_tx();
 
