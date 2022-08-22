@@ -50,8 +50,8 @@ setfacl -m ord:r /var/lib/bitcoind/.cookie
 cp deploy/ord.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl stop ord
-if [[ -f /var/lib/ord/index.redb ]]; then
-  mv /var/lib/ord/index.redb /var/lib/ord/index.redb.bak
+if [[ -f /var/lib/ord/signet/index.redb ]]; then
+  mv /var/lib/ord/signet/index.redb /var/lib/ord/signet/index.redb.bak
 fi
 systemctl enable ord
 systemctl restart ord
