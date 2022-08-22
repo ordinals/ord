@@ -49,6 +49,8 @@ mod tests {
     assert_eq!(ClockSvg::new(Height(1732500)).minute, 90.0);
     assert_eq!(ClockSvg::new(Height(3465000)).minute, 180.0);
     assert_eq!(ClockSvg::new(Height(5197500)).minute, 270.0);
+    assert_eq!(ClockSvg::new(Height(6930000)).minute, 0.0);
+    assert_eq!(ClockSvg::new(Height(6930001)).minute, 0.0);
   }
 
   #[test]
