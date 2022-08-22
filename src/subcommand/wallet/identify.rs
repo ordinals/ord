@@ -1,28 +1,23 @@
 use super::*;
 
 pub(crate) fn run(options: Options) -> Result {
-  let index = Index::index(&options)?;
+  let purse = Purse::load(&options)?;
 
-  let mut ordinals = Purse::load(&options)?
+  let mut ordinals = purse
     .wallet
     .list_unspent()?
     .into_iter()
     .map(|utxo| {
-      index.list(utxo.outpoint).and_then(|list| match list {
-        Some(List::Unspent(ranges)) => Ok(
-          ranges
-            .into_iter()
-            .map(|(start, _end)| Ordinal(start))
-            .filter(|ordinal| ordinal.rarity() > Rarity::Common)
-            .map(|ordinal| (ordinal, utxo.outpoint))
-            .collect(),
-        ),
-        Some(List::Spent(txid)) => Err(anyhow!(
-          "UTXO {} unspent in wallet but spent in index by transaction {txid}",
-          utxo.outpoint
-        )),
-        None => Ok(Vec::new()),
-      })
+      purse
+        .ordinals(&options, utxo.outpoint)
+        .and_then(|ordinals| {
+          Ok(
+            ordinals
+              .into_iter()
+              .map(|ordinal| (ordinal, utxo.outpoint))
+              .collect::<Vec<(Ordinal, OutPoint)>>(),
+          )
+        })
     })
     .collect::<Result<Vec<Vec<(Ordinal, OutPoint)>>, _>>()?
     .into_iter()
