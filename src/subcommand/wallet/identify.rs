@@ -29,7 +29,7 @@ pub(crate) fn run(options: Options) -> Result {
     .flatten()
     .collect::<Vec<(Ordinal, OutPoint)>>();
 
-  ordinals.sort_by(|(ordinal_a, _), (ordinal_b, _)| ordinal_a.cmp(&ordinal_b));
+  ordinals.sort_by(|(ordinal_a, _), (ordinal_b, _)| ordinal_a.cmp(ordinal_b));
 
   for (ordinal, outpoint) in ordinals {
     println!("{ordinal} {} {outpoint}", ordinal.rarity());
