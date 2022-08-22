@@ -4,6 +4,10 @@ set -euxo pipefail
 
 branch=$1
 
+apt-get update --yes
+apt-get upgrade --yes
+apt-get install --yes git
+
 if [[ ! -d ord ]]; then
   git clone https://github.com/casey/ord.git
 fi
