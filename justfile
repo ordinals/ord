@@ -22,8 +22,8 @@ install-dev-deps:
 
 deploy branch='master':
   ssh root@signet.ordinals.com "mkdir -p deploy \
-    && apt-get update --yes
-    && apt-get upgrade --yes
+    && apt-get update --yes \
+    && apt-get upgrade --yes \
     && apt-get install --yes git rsync"
   rsync -avz deploy/checkout root@signet.ordinals.com:deploy/checkout
   ssh root@signet.ordinals.com 'cd deploy && ./checkout {{branch}}'
