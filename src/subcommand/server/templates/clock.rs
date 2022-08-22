@@ -8,11 +8,15 @@ pub(crate) struct ClockSvg {
 }
 
 impl ClockSvg {
-  pub(crate) fn new(height: u64) -> Self {
+  pub(crate) fn new(height: Height) -> Self {
+    let height = height.min(Epoch::FIRST_POST_SUBSIDY.starting_height());
+
     Self {
-      hour: height as f64 / Ordinal::LAST.height().n() as f64 * 360.0,
-      minute: (height % Epoch::BLOCKS) as f64 / Epoch::BLOCKS as f64 * 360.0,
-      second: (height % PERIOD_BLOCKS) as f64 / PERIOD_BLOCKS as f64 * 360.0,
+      hour: (height.n() % Epoch::FIRST_POST_SUBSIDY.starting_height().n()) as f64
+        / Epoch::FIRST_POST_SUBSIDY.starting_height().n() as f64
+        * 360.0,
+      minute: (height.n() % Epoch::BLOCKS) as f64 / Epoch::BLOCKS as f64 * 360.0,
+      second: height.period_offset() as f64 / PERIOD_BLOCKS as f64 * 360.0,
     }
   }
 }
@@ -23,38 +27,60 @@ mod tests {
 
   #[test]
   fn second() {
-    assert_eq!(ClockSvg::new(0).second, 0.0);
-    assert_eq!(ClockSvg::new(504).second, 90.0);
-    assert_eq!(ClockSvg::new(1008).second, 180.0);
-    assert_eq!(ClockSvg::new(1512).second, 270.0);
-    assert_eq!(ClockSvg::new(2016).second, 0.0);
+    assert_eq!(ClockSvg::new(Height(0)).second, 0.0);
+    assert_eq!(ClockSvg::new(Height(504)).second, 90.0);
+    assert_eq!(ClockSvg::new(Height(1008)).second, 180.0);
+    assert_eq!(ClockSvg::new(Height(1512)).second, 270.0);
+    assert_eq!(ClockSvg::new(Height(2016)).second, 0.0);
   }
 
   #[test]
   fn minute() {
-    assert_eq!(ClockSvg::new(0).minute, 0.0);
-    assert_eq!(ClockSvg::new(52500).minute, 90.0);
-    assert_eq!(ClockSvg::new(105000).minute, 180.0);
-    assert_eq!(ClockSvg::new(157500).minute, 270.0);
-    assert_eq!(ClockSvg::new(210000).minute, 0.0);
+    assert_eq!(ClockSvg::new(Height(0)).minute, 0.0);
+    assert_eq!(ClockSvg::new(Height(52500)).minute, 90.0);
+    assert_eq!(ClockSvg::new(Height(105000)).minute, 180.0);
+    assert_eq!(ClockSvg::new(Height(157500)).minute, 270.0);
+    assert_eq!(ClockSvg::new(Height(210000)).minute, 0.0);
   }
 
   #[test]
   fn hour() {
-    assert_eq!(ClockSvg::new(0).minute, 0.0);
-    assert_eq!(ClockSvg::new(1732500).minute, 90.0);
-    assert_eq!(ClockSvg::new(3465000).minute, 180.0);
-    assert_eq!(ClockSvg::new(5197500).minute, 270.0);
+    assert_eq!(ClockSvg::new(Height(0)).minute, 0.0);
+    assert_eq!(ClockSvg::new(Height(1732500)).minute, 90.0);
+    assert_eq!(ClockSvg::new(Height(3465000)).minute, 180.0);
+    assert_eq!(ClockSvg::new(Height(5197500)).minute, 270.0);
+  }
+
+  #[test]
+  fn final_subsidy_height() {
+    assert_eq!(
+      ClockSvg::new(Height(6929999)).second,
+      1007.0 / 2016.0 * 360.0
+    );
+    assert_eq!(
+      ClockSvg::new(Height(6929999)).minute,
+      209_999.0 / 210_000.0 * 360.0
+    );
+    assert_eq!(
+      ClockSvg::new(Height(6929999)).hour,
+      6929999.0 / 6930000.0 * 360.0
+    );
+  }
+
+  #[test]
+  fn first_post_subsidy_height() {
+    assert_eq!(ClockSvg::new(Height(6930000)).second, 180.0);
+    assert_eq!(ClockSvg::new(Height(6930000)).minute, 0.0);
+    assert_eq!(ClockSvg::new(Height(6930000)).hour, 0.0);
   }
 
   #[test]
   fn foo_svg() {
     assert_regex_match!(
-      ClockSvg::new(210_001).to_string(),
-      r##"<svg.*<line y2="-9" transform="rotate\(10.909144431333972\)"/>
-  <line y2="-13" stroke-width="0.6" transform="rotate\(0.0017142857142857142\)"/>
-  <line y2="-16" stroke="#d00505" stroke-width="0.2" transform="rotate\(60.17857142857142\)"/>
-  <circle r="0.7" stroke="#d00505" stroke-width="0.3"/>.*</svg>
+      ClockSvg::new(Height(6929999)).to_string(),
+      r##"<svg.*<line y2="-9" transform="rotate\(359.9999480519481\)"/>
+  <line y2="-13" stroke-width="0.6" transform="rotate\(359.9982857142857\)"/>
+  <line y2="-16" stroke="#d00505" stroke-width="0.2" transform="rotate\(179.82142857142858\)"/>.*</svg>
 "##,
     );
   }

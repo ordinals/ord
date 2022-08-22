@@ -41,6 +41,8 @@ impl Epoch {
     Ordinal(Ordinal::SUPPLY),
   ];
 
+  pub(crate) const FIRST_POST_SUBSIDY: Epoch = Self(33);
+
   pub(crate) const BLOCKS: u64 = 210000;
 
   pub(crate) fn subsidy(self) -> u64 {
@@ -157,5 +159,11 @@ mod tests {
   fn eq() {
     assert_eq!(Epoch(0), 0);
     assert_eq!(Epoch(100), 100);
+  }
+
+  #[test]
+  fn first_post_subsidy() {
+    assert_eq!(Epoch::FIRST_POST_SUBSIDY.subsidy(), 0);
+    assert!((Epoch(Epoch::FIRST_POST_SUBSIDY.0 - 1)).subsidy() > 0);
   }
 }

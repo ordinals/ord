@@ -247,8 +247,8 @@ impl Index {
     Ok(rtx::Rtx(self.database.begin_read()?))
   }
 
-  pub(crate) fn height(&self) -> Result<u64> {
-    self.begin_read()?.height()
+  pub(crate) fn height(&self) -> Result<Height> {
+    Ok(Height(self.begin_read()?.height()?))
   }
 
   pub(crate) fn blocks(&self, take: u64) -> Result<Vec<(u64, BlockHash)>> {
