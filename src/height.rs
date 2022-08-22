@@ -113,4 +113,13 @@ mod tests {
       *Epoch::STARTING_ORDINALS.last().unwrap()
     );
   }
+
+  #[test]
+  fn period_offset() {
+    assert_eq!(Height(0).period_offset(), 0);
+    assert_eq!(Height(1).period_offset(), 1);
+    assert_eq!(Height(2015).period_offset(), 2015);
+    assert_eq!(Height(2016).period_offset(), 0);
+    assert_eq!(Height(2017).period_offset(), 1);
+  }
 }
