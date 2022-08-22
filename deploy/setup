@@ -56,7 +56,7 @@ fi
 systemctl enable ord
 systemctl restart ord
 
-while ! curl --fail https://ordinals.com/status; do
+while ! curl --fail https://signet.ordinals.com/status; do
   echo Waiting for ord…
   sleep 1
 done
