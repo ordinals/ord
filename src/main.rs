@@ -13,6 +13,7 @@ use {
     options::Options,
     ordinal::Ordinal,
     purse::Purse,
+    rarity::Rarity,
     sat_point::SatPoint,
     subcommand::Subcommand,
   },
@@ -87,6 +88,7 @@ mod ordinal;
 mod purse;
 mod sat_point;
 mod subcommand;
+mod rarity;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 
