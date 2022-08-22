@@ -44,27 +44,8 @@ impl Ordinal {
     format!("{}.{}", self.height(), self.third())
   }
 
-  pub(crate) fn rarity(self) -> &'static str {
-    let Degree {
-      hour,
-      minute,
-      second,
-      third,
-    } = self.degree();
-
-    if hour == 0 && minute == 0 && second == 0 && third == 0 {
-      "mythic"
-    } else if minute == 0 && second == 0 && third == 0 {
-      "legendary"
-    } else if minute == 0 && third == 0 {
-      "epic"
-    } else if second == 0 && third == 0 {
-      "rare"
-    } else if third == 0 {
-      "uncommon"
-    } else {
-      "common"
-    }
+  pub(crate) fn rarity(self) -> Rarity {
+    self.into()
   }
 
   pub(crate) fn name(self) -> String {
@@ -496,28 +477,6 @@ mod tests {
     assert_eq!(Ordinal(2067187500000000 - 1).cycle(), 0);
     assert_eq!(Ordinal(2067187500000000).cycle(), 1);
     assert_eq!(Ordinal(2067187500000000 + 1).cycle(), 1);
-  }
-
-  #[test]
-  fn rarity() {
-    assert_eq!(Ordinal(0).rarity(), "mythic");
-    assert_eq!(Ordinal(1).rarity(), "common");
-
-    assert_eq!(Ordinal(50 * 100_000_000 - 1).rarity(), "common");
-    assert_eq!(Ordinal(50 * 100_000_000).rarity(), "uncommon");
-    assert_eq!(Ordinal(50 * 100_000_000 + 1).rarity(), "common");
-
-    assert_eq!(Ordinal(50 * 100_000_000 * 2016 - 1).rarity(), "common");
-    assert_eq!(Ordinal(50 * 100_000_000 * 2016).rarity(), "rare");
-    assert_eq!(Ordinal(50 * 100_000_000 * 2016 + 1).rarity(), "common");
-
-    assert_eq!(Ordinal(50 * 100_000_000 * 210000 - 1).rarity(), "common");
-    assert_eq!(Ordinal(50 * 100_000_000 * 210000).rarity(), "epic");
-    assert_eq!(Ordinal(50 * 100_000_000 * 210000 + 1).rarity(), "common");
-
-    assert_eq!(Ordinal(2067187500000000 - 1).rarity(), "common");
-    assert_eq!(Ordinal(2067187500000000).rarity(), "legendary");
-    assert_eq!(Ordinal(2067187500000000 + 1).rarity(), "common");
   }
 
   #[test]
