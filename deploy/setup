@@ -38,14 +38,14 @@ systemctl daemon-reload
 systemctl enable bitcoind
 systemctl restart bitcoind
 
-while [[ ! -f /var/lib/bitcoind/.cookie ]]; do
+while [[ ! -f /var/lib/bitcoind/signet/.cookie ]]; do
   echo Waiting for bitcoind…
   sleep 1
 done
 
 setfacl -m ord:x /var/lib/bitcoind
 setfacl -dm ord:r /var/lib/bitcoind
-setfacl -m ord:r /var/lib/bitcoind/.cookie
+setfacl -m ord:r /var/lib/bitcoind/signet/.cookie
 
 cp deploy/ord.service /etc/systemd/system/
 systemctl daemon-reload
