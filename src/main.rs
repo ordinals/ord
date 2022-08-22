@@ -86,9 +86,9 @@ mod nft;
 mod options;
 mod ordinal;
 mod purse;
+mod rarity;
 mod sat_point;
 mod subcommand;
-mod rarity;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 
