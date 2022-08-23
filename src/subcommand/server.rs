@@ -70,7 +70,7 @@ pub(crate) struct Server {
     long,
     group = "port",
     help = "Listen on <HTTPS_PORT> for incoming HTTPS requests.",
-    requires_all = &["acme-cache", "acme-domain", "acme-contact"]
+    requires_all = &["acme-domain", "acme-contact"]
   )]
   https_port: Option<u16>,
   #[structopt(long, help = "Store ACME TLS certificates in <ACME_CACHE>.")]
@@ -127,7 +127,7 @@ impl Server {
 
       let server = axum_server::Server::bind(addr).handle(handle);
 
-      match self.acceptor() {
+      match self.acceptor(&options)? {
         Some(acceptor) => {
           server
             .acceptor(acceptor)
@@ -145,13 +145,22 @@ impl Server {
     self.http_port.or(self.https_port).unwrap_or(80)
   }
 
-  fn acceptor(&self) -> Option<AxumAcceptor> {
+  fn acme_cache(acme_cache: Option<&PathBuf>, options: &Options) -> Result<PathBuf> {
+    if let Some(acme_cache) = acme_cache {
+      Ok(acme_cache.clone())
+    } else {
+      Ok(options.data_dir()?.join("acme-cache"))
+    }
+  }
+
+  fn acceptor(&self, options: &Options) -> Result<Option<AxumAcceptor>> {
     if self.https_port.is_some() {
       let config = AcmeConfig::new(&self.acme_domain)
         .contact(&self.acme_contact)
-        .cache_option(Some(DirCache::new(
-          self.acme_cache.as_ref().unwrap().clone(),
-        )))
+        .cache_option(Some(DirCache::new(Self::acme_cache(
+          self.acme_cache.as_ref(),
+          options,
+        )?)))
         .directory(if cfg!(test) {
           LETS_ENCRYPT_STAGING_DIRECTORY
         } else {
@@ -176,9 +185,9 @@ impl Server {
         }
       });
 
-      Some(acceptor)
+      Ok(Some(acceptor))
     } else {
-      None
+      Ok(None)
     }
   }
 
@@ -458,7 +467,7 @@ mod tests {
       .to_string();
 
     assert!(
-      err.starts_with("error: The following required arguments were not provided:\n    --acme-cache <ACME_CACHE>\n    --acme-domain <ACME_DOMAIN>\n    --acme-contact <ACME_CONTACT>\n"),
+      err.starts_with("error: The following required arguments were not provided:\n    --acme-domain <ACME_DOMAIN>\n    --acme-contact <ACME_CONTACT>\n"),
       "{}",
       err
     );
@@ -496,5 +505,27 @@ mod tests {
       "bar"
     ])
     .is_ok());
+  }
+
+  #[test]
+  fn acme_cache_defaults_to_data_dir() {
+    let arguments = Arguments::try_parse_from(&["ord", "--data-dir", "foo", "server"]).unwrap();
+    let acme_cache = Server::acme_cache(None, &arguments.options)
+      .unwrap()
+      .display()
+      .to_string();
+    assert!(acme_cache.contains("foo/acme-cache"), "{acme_cache}")
+  }
+
+  #[test]
+  fn acme_cache_flag_is_respected() {
+    let arguments =
+      Arguments::try_parse_from(&["ord", "--data-dir", "foo", "server", "--acme-cache", "bar"])
+        .unwrap();
+    let acme_cache = Server::acme_cache(Some(&"bar".into()), &arguments.options)
+      .unwrap()
+      .display()
+      .to_string();
+    assert_eq!(acme_cache, "bar")
   }
 }
