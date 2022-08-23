@@ -14,8 +14,8 @@ mkdir -p \
   /etc/systemd/system/ord.service.d
 
 printf "[Service]\nEnvironment=CHAIN=%s\n" $CHAIN \
-  | tee /etc/systemd/system/ord.service.d/override.conf \
-  > /etc/systemd/system/bitcoin.service.d/override.conf
+  | tee /etc/systemd/system/bitcoin.service.d/override.conf \
+  > /etc/systemd/system/ord.service.d/override.conf
 
 hostnamectl set-hostname $DOMAIN
 
