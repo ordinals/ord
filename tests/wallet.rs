@@ -595,7 +595,6 @@ fn send_common_ordinal() {
 // TODO: get a utxo with more than one uncommon ordinal in it
 
 #[test]
-#[ignore]
 fn send_non_unique_uncommon_ordinal() {
   let state = Test::new()
     .command("--network regtest wallet init")
@@ -618,11 +617,26 @@ fn send_non_unique_uncommon_ordinal() {
   )
   .unwrap();
 
-  output
-    .state
-    .client
-    .generate_to_address(5, &from_address)
-    .unwrap();
+  output.state.blocks(101);
+
+  output.state.transaction(TransactionOptions {
+    slots: &[(1, 0, 0)],
+    output_count: 2,
+    fee: 0,
+  });
+
+  output.state.blocks(1);
+
+  output.state.foo(
+    TransactionOptions {
+      slots: &[(102, 1, 0), (102, 1, 1)],
+      output_count: 1,
+      fee: 0,
+    },
+    from_address,
+  );
+
+  output.state.blocks(1);
 
   output
     .state

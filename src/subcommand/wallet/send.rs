@@ -19,6 +19,12 @@ impl Send {
     // Can send
     // - Common but not in the precense of uncommon or better ordinals
     // - Uncommon or better but has to be the single uncommon or better ordinal in the utxo
+    //
+    // TODO:
+    // - is this right?
+    // - come up with better error message
+
+    eprintln!("{:?}", ordinals);
 
     if !ordinals.is_empty() && (ordinals.len() > 1 || ordinals[0] != self.ordinal) {
       bail!("Failed to send ordinal.");

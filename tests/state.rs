@@ -201,6 +201,63 @@ impl State {
     tx
   }
 
+  pub(crate) fn foo(&self, options: TransactionOptions, address: Address) -> Transaction {
+    self.sync();
+
+    let input_value = options
+      .slots
+      .iter()
+      .map(|slot| self.get_block(slot.0 as u64).txdata[slot.1].output[slot.2].value)
+      .sum::<u64>();
+
+    let output_value = input_value - options.fee;
+
+    let (mut psbt, _) = {
+      let mut builder = self.wallet.build_tx();
+
+      builder
+        .manually_selected_only()
+        .fee_absolute(options.fee)
+        .allow_dust(true)
+        .add_utxos(
+          &options
+            .slots
+            .iter()
+            .map(|slot| OutPoint {
+              txid: self.get_block(slot.0 as u64).txdata[slot.1].txid(),
+              vout: slot.2 as u32,
+            })
+            .collect::<Vec<OutPoint>>(),
+        )
+        .unwrap()
+        .set_recipients(vec![
+          (
+            address.script_pubkey(),
+            output_value / options.output_count as u64
+          );
+          options.output_count
+        ]);
+
+      builder.finish().unwrap()
+    };
+
+    if !self.wallet.sign(&mut psbt, SignOptions::default()).unwrap() {
+      panic!("Failed to sign transaction");
+    }
+
+    let tx = psbt.extract_tx();
+
+    self
+      .client
+      .call::<Txid>(
+        "sendrawtransaction",
+        &[tx.raw_hex().into(), 21000000.into()],
+      )
+      .unwrap();
+
+    tx
+  }
+
   pub(crate) fn request(&mut self, path: &str, status: u16, expected_response: &str) {
     self.request_expected(path, status, Expected::String(expected_response.into()));
   }
