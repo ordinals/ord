@@ -374,7 +374,7 @@ fn identify_sent_ordinal() {
 }
 
 #[test]
-fn send_owned_ordinal() {
+fn send_uncommon_ordinal() {
   let state = Test::new()
     .command("--chain regtest wallet init")
     .expected_status(0)
@@ -436,11 +436,11 @@ fn send_owned_ordinal() {
 
   let state = Test::with_state(output.state)
     .command(&format!(
-      "--chain regtest wallet send --address {to_address} --ordinal 5000000001",
+      "--chain regtest wallet send --address {to_address} --ordinal 5000000000",
     ))
     .expected_status(0)
     .stdout_regex(format!(
-      "Sent ordinal 5000000001 to address {to_address}: [[:xdigit:]]{{64}}\n"
+      "Sent ordinal 5000000000 to address {to_address}: [[:xdigit:]]{{64}}\n"
     ))
     .output()
     .state;
@@ -520,4 +520,149 @@ fn send_foreign_ordinal() {
     .expected_status(1)
     .expected_stderr("error: No utxo contains 4999999999˚.\n")
     .run()
+}
+
+#[test]
+fn send_common_ordinal() {
+  let state = Test::new()
+    .command("--chain regtest wallet init")
+    .expected_status(0)
+    .expected_stderr("Wallet initialized.\n")
+    .output()
+    .state;
+
+  let output = Test::with_state(state)
+    .command("--chain regtest wallet fund")
+    .stdout_regex("^bcrt1.*\n")
+    .output();
+
+  let from_address = Address::from_str(
+    output
+      .stdout
+      .strip_suffix('\n')
+      .ok_or("Failed to strip suffix")
+      .unwrap(),
+  )
+  .unwrap();
+
+  output
+    .state
+    .client
+    .generate_to_address(1, &from_address)
+    .unwrap();
+
+  output
+    .state
+    .client
+    .generate_to_address(
+      100,
+      &Address::from_str("bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw").unwrap(),
+    )
+    .unwrap();
+
+  let output = Test::with_state(output.state)
+    .command("--chain regtest wallet utxos")
+    .expected_status(0)
+    .stdout_regex("[[:xdigit:]]{64}:[[:digit:]] 5000000000\n")
+    .output();
+
+  let wallet = Wallet::new(
+    Bip84(
+      (
+        Mnemonic::parse("book fit fly ketchup also elevator scout mind edit fatal where rookie")
+          .unwrap(),
+        None,
+      ),
+      KeychainKind::External,
+    ),
+    None,
+    Network::Regtest,
+    MemoryDatabase::new(),
+  )
+  .unwrap();
+
+  let to_address = wallet.get_address(AddressIndex::LastUnused).unwrap();
+
+  Test::with_state(output.state)
+    .command(&format!(
+      "--chain regtest wallet send --address {to_address} --ordinal 5000000001",
+    ))
+    .expected_status(1)
+    .expected_stderr("error: Trying to send ordinal 5000000001 but UTXO also contains ordinal(s) 5000000000 (uncommon)\n")
+    .run();
+}
+
+#[test]
+fn send_non_unique_uncommon_ordinal() {
+  let state = Test::new()
+    .command("--chain regtest wallet init")
+    .expected_status(0)
+    .expected_stderr("Wallet initialized.\n")
+    .output()
+    .state;
+
+  let output = Test::with_state(state)
+    .command("--chain regtest wallet fund")
+    .stdout_regex("^bcrt1.*\n")
+    .output();
+
+  let from_address = Address::from_str(
+    output
+      .stdout
+      .strip_suffix('\n')
+      .ok_or("Failed to strip suffix")
+      .unwrap(),
+  )
+  .unwrap();
+
+  output.state.blocks(101);
+
+  let transaction = output.state.transaction(TransactionOptions {
+    slots: &[(1, 0, 0), (2, 0, 0)],
+    output_count: 1,
+    fee: 0,
+    recipient: Some(from_address.script_pubkey()),
+  });
+
+  output.state.blocks(1);
+
+  let output = Test::with_state(output.state)
+    .command(&format!("--chain regtest list {}:0", transaction.txid()))
+    .expected_status(0)
+    .expected_stdout("[5000000000,10000000000)\n[10000000000,15000000000)\n")
+    .output();
+
+  output
+    .state
+    .client
+    .generate_to_address(
+      100,
+      &Address::from_str("bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw").unwrap(),
+    )
+    .unwrap();
+
+  let wallet = Wallet::new(
+    Bip84(
+      (
+        Mnemonic::parse("book fit fly ketchup also elevator scout mind edit fatal where rookie")
+          .unwrap(),
+        None,
+      ),
+      KeychainKind::External,
+    ),
+    None,
+    Network::Regtest,
+    MemoryDatabase::new(),
+  )
+  .unwrap();
+
+  let to_address = wallet.get_address(AddressIndex::LastUnused).unwrap();
+
+  Test::with_state(output.state)
+    .command(&format!(
+      "--chain regtest wallet send --address {to_address} --ordinal 5000000000",
+    ))
+    .expected_status(1)
+    .expected_stderr("error: Trying to send ordinal 5000000000 but UTXO also contains ordinal(s) 5000000000 (uncommon), 10000000000 (uncommon)\n")
+    .run();
 }
