@@ -18,7 +18,7 @@ impl Send {
 
     if !ordinals.is_empty() && (ordinals.len() > 1 || ordinals[0] != self.ordinal) {
       bail!(
-        "Trying to send ordinal {} but UTXO als contains ordinal(s) {}",
+        "Trying to send ordinal {} but UTXO also contains ordinal(s) {}",
         self.ordinal,
         ordinals
           .iter()
