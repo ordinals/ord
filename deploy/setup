@@ -58,10 +58,10 @@ systemctl restart bitcoind
 
 case $CHAIN in
   main)
-    COOKIE_FILE=/var/lib/bitcoin/.cookie
+    COOKIE_FILE=/var/lib/bitcoind/.cookie
     ;;
   signet)
-    COOKIE_FILE=/var/lib/bitcoin/signet/.cookie
+    COOKIE_FILE=/var/lib/bitcoind/signet/.cookie
     ;;
   *)
     echo "Unknown chain: $CHAIN"
