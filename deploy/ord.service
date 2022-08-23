@@ -16,7 +16,6 @@ ExecStart=/usr/local/bin/ord \
   --chain ${CHAIN} \
   server \
   --acme-contact mailto:casey@rodarmor.com \
-  --acme-domain signet.ordinals.com \
   --https-port 443
 
 # Process management
