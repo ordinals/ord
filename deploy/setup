@@ -71,6 +71,6 @@ systemctl enable ord
 systemctl restart ord
 
 while ! curl --fail https://$DOMAIN/status; do
-  echo "Waiting for ord at https://DOMAIN/status…"
+  echo "Waiting for ord at https://$DOMAIN/status…"
   sleep 1
 done
