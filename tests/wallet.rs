@@ -618,14 +618,14 @@ fn send_non_unique_uncommon_ordinal() {
   output.state.blocks(101);
 
   output.state.transaction(TransactionOptions {
-    slots: &[(1, 0, 0)],
+    slots: &[(1, 0, 0), (2, 0, 0)],
     output_count: 2,
     fee: 0,
   });
 
   output.state.blocks(1);
 
-  output.state.foo(
+  let tx = output.state.foo(
     TransactionOptions {
       slots: &[(102, 1, 0), (102, 1, 1)],
       output_count: 1,
@@ -635,6 +635,12 @@ fn send_non_unique_uncommon_ordinal() {
   );
 
   output.state.blocks(1);
+
+  let output = Test::with_state(output.state)
+    .command(&format!("--chain regtest list {}:0", tx.txid()))
+    .expected_status(0)
+    .expected_stdout("[5000000000,10000000000)\n[10000000000,15000000000)\n")
+    .output();
 
   output
     .state
@@ -664,7 +670,7 @@ fn send_non_unique_uncommon_ordinal() {
 
   Test::with_state(output.state)
     .command(&format!(
-      "--chain regtest wallet send --address {to_address} --ordinal 7500000000",
+      "--chain regtest wallet send --address {to_address} --ordinal 5000000000",
     ))
     .expected_status(1)
     .expected_stderr("error: UTXO contains more than one uncommon or better ordinal.\n")
