@@ -621,23 +621,22 @@ fn send_non_unique_uncommon_ordinal() {
     slots: &[(1, 0, 0), (2, 0, 0)],
     output_count: 2,
     fee: 0,
+    script_pubkey: None,
   });
 
   output.state.blocks(1);
 
-  let tx = output.state.foo(
-    TransactionOptions {
-      slots: &[(102, 1, 0), (102, 1, 1)],
-      output_count: 1,
-      fee: 0,
-    },
-    &from_address,
-  );
+  let transaction = output.state.transaction(TransactionOptions {
+    slots: &[(102, 1, 0), (102, 1, 1)],
+    output_count: 1,
+    fee: 0,
+    script_pubkey: Some(from_address.script_pubkey()),
+  });
 
   output.state.blocks(1);
 
   let output = Test::with_state(output.state)
-    .command(&format!("--chain regtest list {}:0", tx.txid()))
+    .command(&format!("--chain regtest list {}:0", transaction.txid()))
     .expected_status(0)
     .expected_stdout("[5000000000,10000000000)\n[10000000000,15000000000)\n")
     .output();
