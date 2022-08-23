@@ -32,6 +32,7 @@ rustls-acme = { version = "0.4.0-beta2", features = ["axum"] }
 serde = { version = "1.0.137", features = ["derive"] }
 serde_cbor = "0.11.2"
 serde_json = "1.0.81"
+sys-info = "0.9.1"
 tokio = { version = "1.17.0", features = ["rt-multi-thread"] }
 tokio-stream = "0.1.9"
 tokio-util = {version = "0.7.3", features = ["compat"] }
