@@ -13,7 +13,9 @@ use {
     wallet::{signer::SignOptions, AddressIndex, SyncOptions, Wallet},
     KeychainKind,
   },
-  bitcoin::{hash_types::Txid, network::constants::Network, Address, Block, OutPoint, Transaction},
+  bitcoin::{
+    hash_types::Txid, network::constants::Network, Address, Block, OutPoint, Script, Transaction,
+  },
   bitcoincore_rpc::{Client, RawTx, RpcApi},
   executable_path::executable_path,
   log::LevelFilter,

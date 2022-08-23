@@ -170,12 +170,12 @@ impl State {
         .unwrap()
         .set_recipients(vec![
           (
-            self
+            options.recipient.unwrap_or_else(|| self
               .wallet
               .get_address(AddressIndex::Peek(0))
               .unwrap()
               .address
-              .script_pubkey(),
+              .script_pubkey()),
             output_value / options.output_count as u64
           );
           options.output_count

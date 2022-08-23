@@ -143,6 +143,7 @@ fn spent_output_returns_200() {
       slots: &[(1, 0, 0)],
       output_count: 1,
       fee: 0,
+      recipient: None,
     })
     .txid();
 
@@ -164,6 +165,7 @@ fn spent_output_returns_200() {
     slots: &[(102, 1, 0)],
     output_count: 1,
     fee: 0,
+    recipient: None,
   });
 
   state.blocks(1);
@@ -232,6 +234,7 @@ fn block() {
     slots: &[(1, 0, 0)],
     output_count: 1,
     fee: 0,
+    recipient: None,
   });
 
   let blocks = state.blocks(1);
@@ -267,6 +270,7 @@ fn transaction() {
     slots: &[(1, 0, 0)],
     output_count: 1,
     fee: 0,
+    recipient: None,
   });
 
   state.blocks(1);
