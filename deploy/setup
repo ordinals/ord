@@ -43,7 +43,7 @@ cp target/release/ord /usr/local/bin/ord
 id --user bitcoin || useradd --system bitcoin
 id --user ord || useradd --system ord
 
-cp deploy/bitcoind.service /etc/systemd/system/
+cp deploy/bitcoind@.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable bitcoind@$CHAIN
 systemctl restart bitcoind@$CHAIN
@@ -57,7 +57,7 @@ setfacl -m ord:x /var/lib/bitcoind
 setfacl -dm ord:r /var/lib/bitcoind
 setfacl -m ord:r /var/lib/bitcoind/signet/.cookie
 
-cp deploy/ord.service /etc/systemd/system/
+cp deploy/ord@.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable ord@$CHAIN
 systemctl restart ord@$CHAIN
