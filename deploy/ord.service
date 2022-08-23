@@ -15,9 +15,7 @@ ExecStart=/usr/local/bin/ord \
   --max-index-size 1TiB \
   --chain ${CHAIN} \
   server \
-  --acme-cache /var/lib/ord/acme-cache \
   --acme-contact mailto:casey@rodarmor.com \
-  --acme-domain signet.ordinals.com \
   --https-port 443
 
 # Process management
