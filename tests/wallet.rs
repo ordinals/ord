@@ -11,7 +11,7 @@ fn path(path: &str) -> String {
 #[test]
 fn init_existing_wallet() {
   let state = Test::new()
-    .command("--network regtest wallet init")
+    .command("--chain regtest wallet init")
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
     .output()
@@ -30,7 +30,7 @@ fn init_existing_wallet() {
     .exists());
 
   Test::with_state(state)
-    .command("--network regtest wallet init")
+    .command("--chain regtest wallet init")
     .expected_status(1)
     .expected_stderr("error: Wallet already exists.\n")
     .run()
@@ -39,7 +39,7 @@ fn init_existing_wallet() {
 #[test]
 fn init_nonexistent_wallet() {
   let output = Test::new()
-    .command("--network regtest wallet init")
+    .command("--chain regtest wallet init")
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
     .output();
@@ -62,7 +62,7 @@ fn init_nonexistent_wallet() {
 #[test]
 fn load_corrupted_entropy() {
   let state = Test::new()
-    .command("--network regtest wallet init")
+    .command("--chain regtest wallet init")
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
     .output()
@@ -78,7 +78,7 @@ fn load_corrupted_entropy() {
   fs::write(&entropy_path, entropy).unwrap();
 
   Test::with_state(state)
-    .command("--network regtest wallet fund")
+    .command("--chain regtest wallet fund")
     .expected_status(1)
     .expected_stderr("error: ChecksumMismatch\n")
     .run();
@@ -87,14 +87,14 @@ fn load_corrupted_entropy() {
 #[test]
 fn fund_existing_wallet() {
   let state = Test::new()
-    .command("--network regtest wallet init")
+    .command("--chain regtest wallet init")
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
     .output()
     .state;
 
   Test::with_state(state)
-    .command("--network regtest wallet fund")
+    .command("--chain regtest wallet fund")
     .stdout_regex("^bcrt1.*\n")
     .run();
 }
@@ -102,7 +102,7 @@ fn fund_existing_wallet() {
 #[test]
 fn fund_nonexistent_wallet() {
   Test::new()
-    .command("--network regtest wallet fund")
+    .command("--chain regtest wallet fund")
     .expected_status(1)
     .expected_stderr("error: Wallet doesn't exist.\n")
     .run();
@@ -111,14 +111,14 @@ fn fund_nonexistent_wallet() {
 #[test]
 fn utxos() {
   let state = Test::new()
-    .command("--network regtest wallet init")
+    .command("--chain regtest wallet init")
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
     .output()
     .state;
 
   let output = Test::with_state(state)
-    .command("--network regtest wallet fund")
+    .command("--chain regtest wallet fund")
     .stdout_regex("^bcrt1.*\n")
     .output();
 
@@ -139,7 +139,7 @@ fn utxos() {
     .unwrap();
 
   Test::with_state(output.state)
-    .command("--network regtest wallet utxos")
+    .command("--chain regtest wallet utxos")
     .expected_status(0)
     .stdout_regex("^[[:xdigit:]]{64}:0 5000000000\n")
     .run()
@@ -148,21 +148,21 @@ fn utxos() {
 #[test]
 fn balance() {
   let state = Test::new()
-    .command("--network regtest wallet init")
+    .command("--chain regtest wallet init")
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
     .output()
     .state;
 
   let state = Test::with_state(state)
-    .command("--network regtest wallet balance")
+    .command("--chain regtest wallet balance")
     .expected_status(0)
     .expected_stdout("0\n")
     .output()
     .state;
 
   let output = Test::with_state(state)
-    .command("--network regtest wallet fund")
+    .command("--chain regtest wallet fund")
     .stdout_regex("^bcrt1.*\n")
     .output();
 
@@ -183,7 +183,7 @@ fn balance() {
     .unwrap();
 
   Test::with_state(output.state)
-    .command("--network regtest wallet balance")
+    .command("--chain regtest wallet balance")
     .expected_status(0)
     .expected_stdout("5000000000\n")
     .run()
@@ -192,14 +192,14 @@ fn balance() {
 #[test]
 fn identify_single_ordinal() {
   let state = Test::new()
-    .command("--network regtest wallet init")
+    .command("--chain regtest wallet init")
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
     .output()
     .state;
 
   let output = Test::with_state(state)
-    .command("--network regtest wallet fund")
+    .command("--chain regtest wallet fund")
     .stdout_regex("^bcrt1.*\n")
     .output();
 
@@ -220,7 +220,7 @@ fn identify_single_ordinal() {
     .unwrap();
 
   Test::with_state(output.state)
-    .command("--network regtest wallet identify")
+    .command("--chain regtest wallet identify")
     .expected_status(0)
     .stdout_regex("5000000000 uncommon [[:xdigit:]]{64}:[[:digit:]]\n")
     .run()
@@ -229,14 +229,14 @@ fn identify_single_ordinal() {
 #[test]
 fn identify_multiple_ordinals() {
   let state = Test::new()
-    .command("--network regtest wallet init")
+    .command("--chain regtest wallet init")
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
     .output()
     .state;
 
   let output = Test::with_state(state)
-    .command("--network regtest wallet fund")
+    .command("--chain regtest wallet fund")
     .stdout_regex("^bcrt1.*\n")
     .output();
 
@@ -257,7 +257,7 @@ fn identify_multiple_ordinals() {
     .unwrap();
 
   Test::with_state(output.state)
-    .command("--network regtest wallet identify")
+    .command("--chain regtest wallet identify")
     .expected_status(0)
     .stdout_regex(
       "
@@ -276,14 +276,14 @@ fn identify_multiple_ordinals() {
 #[test]
 fn identify_sent_ordinal() {
   let state = Test::new()
-    .command("--network regtest wallet init")
+    .command("--chain regtest wallet init")
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
     .output()
     .state;
 
   let output = Test::with_state(state)
-    .command("--network regtest wallet fund")
+    .command("--chain regtest wallet fund")
     .stdout_regex("^bcrt1.*\n")
     .output();
 
@@ -312,13 +312,13 @@ fn identify_sent_ordinal() {
     .unwrap();
 
   let output = Test::with_state(output.state)
-    .command("--network regtest wallet utxos")
+    .command("--chain regtest wallet utxos")
     .expected_status(0)
     .stdout_regex("[[:xdigit:]]{64}:[[:digit:]] 5000000000\n")
     .output();
 
   let output = Test::with_state(output.state)
-    .command("--network regtest wallet identify")
+    .command("--chain regtest wallet identify")
     .expected_status(0)
     .stdout_regex("5000000000 uncommon [[:xdigit:]]{64}:[[:digit:]]\n")
     .output();
@@ -342,7 +342,7 @@ fn identify_sent_ordinal() {
 
   let state = Test::with_state(output.state)
     .command(&format!(
-      "--network regtest wallet send --address {to_address} --ordinal 5000000000",
+      "--chain regtest wallet send --address {to_address} --ordinal 5000000000",
     ))
     .expected_status(0)
     .stdout_regex(format!(
@@ -359,7 +359,7 @@ fn identify_sent_ordinal() {
 
   let output = Test::with_state(state)
     .command(&format!(
-      "--network regtest list {}",
+      "--chain regtest list {}",
       wallet.list_unspent().unwrap().first().unwrap().outpoint
     ))
     .expected_status(0)
@@ -367,7 +367,7 @@ fn identify_sent_ordinal() {
     .output();
 
   Test::with_state(output.state)
-    .command("--network regtest wallet identify")
+    .command("--chain regtest wallet identify")
     .expected_status(0)
     .expected_stdout("")
     .run()
@@ -376,14 +376,14 @@ fn identify_sent_ordinal() {
 #[test]
 fn send_owned_ordinal() {
   let state = Test::new()
-    .command("--network regtest wallet init")
+    .command("--chain regtest wallet init")
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
     .output()
     .state;
 
   let output = Test::with_state(state)
-    .command("--network regtest wallet fund")
+    .command("--chain regtest wallet fund")
     .stdout_regex("^bcrt1.*\n")
     .output();
 
@@ -412,7 +412,7 @@ fn send_owned_ordinal() {
     .unwrap();
 
   let output = Test::with_state(output.state)
-    .command("--network regtest wallet utxos")
+    .command("--chain regtest wallet utxos")
     .expected_status(0)
     .stdout_regex("[[:xdigit:]]{64}:[[:digit:]] 5000000000\n")
     .output();
@@ -436,7 +436,7 @@ fn send_owned_ordinal() {
 
   let state = Test::with_state(output.state)
     .command(&format!(
-      "--network regtest wallet send --address {to_address} --ordinal 5000000001",
+      "--chain regtest wallet send --address {to_address} --ordinal 5000000001",
     ))
     .expected_status(0)
     .stdout_regex(format!(
@@ -453,7 +453,7 @@ fn send_owned_ordinal() {
 
   Test::with_state(state)
     .command(&format!(
-      "--network regtest list {}",
+      "--chain regtest list {}",
       wallet.list_unspent().unwrap().first().unwrap().outpoint
     ))
     .expected_status(0)
@@ -464,14 +464,14 @@ fn send_owned_ordinal() {
 #[test]
 fn send_foreign_ordinal() {
   let state = Test::new()
-    .command("--network regtest wallet init")
+    .command("--chain regtest wallet init")
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
     .output()
     .state;
 
   let output = Test::with_state(state)
-    .command("--network regtest wallet fund")
+    .command("--chain regtest wallet fund")
     .stdout_regex("^bcrt1.*\n")
     .output();
 
@@ -491,7 +491,7 @@ fn send_foreign_ordinal() {
     .unwrap();
 
   let output = Test::with_state(output.state)
-    .command("--network regtest wallet utxos")
+    .command("--chain regtest wallet utxos")
     .expected_status(0)
     .stdout_regex("[[:xdigit:]]{64}:[[:digit:]] 5000000000\n")
     .output();
@@ -515,7 +515,7 @@ fn send_foreign_ordinal() {
 
   Test::with_state(output.state)
     .command(&format!(
-      "--network regtest wallet send --address {to_address} --ordinal 4999999999",
+      "--chain regtest wallet send --address {to_address} --ordinal 4999999999",
     ))
     .expected_status(1)
     .expected_stderr("error: No utxo contains 4999999999˚.\n")
