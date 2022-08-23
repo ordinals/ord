@@ -588,6 +588,73 @@ fn send_common_ordinal() {
       "--network regtest wallet send --address {to_address} --ordinal 5000000001",
     ))
     .expected_status(1)
-    .expected_stderr("error: Attempted to send a common ordinal in a utxo that contains uncommon or better ordinals.\n")
+    .expected_stderr("error: Failed to send ordinal.\n")
+    .run();
+}
+
+// TODO: get a utxo with more than one uncommon ordinal in it
+
+#[test]
+#[ignore]
+fn send_non_unique_uncommon_ordinal() {
+  let state = Test::new()
+    .command("--network regtest wallet init")
+    .expected_status(0)
+    .expected_stderr("Wallet initialized.\n")
+    .output()
+    .state;
+
+  let output = Test::with_state(state)
+    .command("--network regtest wallet fund")
+    .stdout_regex("^bcrt1.*\n")
+    .output();
+
+  let from_address = Address::from_str(
+    output
+      .stdout
+      .strip_suffix('\n')
+      .ok_or("Failed to strip suffix")
+      .unwrap(),
+  )
+  .unwrap();
+
+  output
+    .state
+    .client
+    .generate_to_address(5, &from_address)
+    .unwrap();
+
+  output
+    .state
+    .client
+    .generate_to_address(
+      100,
+      &Address::from_str("bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw").unwrap(),
+    )
+    .unwrap();
+
+  let wallet = Wallet::new(
+    Bip84(
+      (
+        Mnemonic::parse("book fit fly ketchup also elevator scout mind edit fatal where rookie")
+          .unwrap(),
+        None,
+      ),
+      KeychainKind::External,
+    ),
+    None,
+    Network::Regtest,
+    MemoryDatabase::new(),
+  )
+  .unwrap();
+
+  let to_address = wallet.get_address(AddressIndex::LastUnused).unwrap();
+
+  Test::with_state(output.state)
+    .command(&format!(
+      "--network regtest wallet send --address {to_address} --ordinal 5000000000",
+    ))
+    .expected_status(1)
+    .expected_stderr("error: Failed to send ordinal.\n")
     .run();
 }

@@ -95,7 +95,11 @@ impl Purse {
     bail!("No utxo contains {}˚.", ordinal);
   }
 
-  pub(crate) fn ordinals(&self, options: &Options, outpoint: OutPoint) -> Result<Vec<Ordinal>> {
+  pub(crate) fn special_ordinals(
+    &self,
+    options: &Options,
+    outpoint: OutPoint,
+  ) -> Result<Vec<Ordinal>> {
     let index = Index::index(options)?;
 
     match index.list(outpoint)? {
