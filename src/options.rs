@@ -12,6 +12,8 @@ pub(crate) struct Options {
   pub(crate) network: Network,
   #[clap(long)]
   data_dir: Option<PathBuf>,
+  #[clap(long)]
+  bitcoin_data_dir: Option<PathBuf>,
 }
 
 impl Options {
@@ -36,7 +38,9 @@ impl Options {
       return Ok(cookie_file.clone());
     }
 
-    let mut path = if cfg!(target_os = "linux") {
+    let mut path = if let Some(bitcoin_data_dir) = &self.bitcoin_data_dir {
+      bitcoin_data_dir.clone()
+    } else if cfg!(target_os = "linux") {
       dirs::home_dir()
         .ok_or_else(|| anyhow!("Failed to retrieve home dir"))?
         .join(".bitcoin")
@@ -168,6 +172,22 @@ mod tests {
     } else {
       assert!(cookie_file.ends_with("/Bitcoin/signet/.cookie"));
     }
+  }
+
+  #[test]
+  fn cookie_file_defaults_to_bitcoin_data_dir() {
+    let arguments =
+      Arguments::try_parse_from(&["ord", "--bitcoin-data-dir=foo", "--network=signet", "index"])
+        .unwrap();
+
+    let cookie_file = arguments
+      .options
+      .cookie_file()
+      .unwrap()
+      .display()
+      .to_string();
+
+    assert!(cookie_file.ends_with("foo/signet/.cookie"));
   }
 
   #[test]
