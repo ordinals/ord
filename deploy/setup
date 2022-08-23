@@ -10,8 +10,8 @@ touch .hushlogin
 sed -i -E 's/#?PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
 
 mkdir -p \
-  /etc/systemd/system/bitcoin.service.d/ \
-  /etc/systemd/system/ord.service.d/
+  /etc/systemd/system/bitcoin.service.d \
+  /etc/systemd/system/ord.service.d
 
 printf "[Service]\nEnvironment=CHAIN=%s\n" $CHAIN \
   | tee /etc/systemd/system/ord.service.d/override.conf \
