@@ -667,6 +667,6 @@ fn send_non_unique_uncommon_ordinal() {
       "--network regtest wallet send --address {to_address} --ordinal 7500000000",
     ))
     .expected_status(1)
-    .expected_stderr("error: UTXO contains a single uncommon or better ordinal that does not match the ordinal you are trying to send.\n")
+    .expected_stderr("error: UTXO contains more than one uncommon or better ordinal.\n")
     .run();
 }

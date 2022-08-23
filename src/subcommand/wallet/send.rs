@@ -10,11 +10,13 @@ pub(crate) struct Send {
 
 impl Send {
   pub(crate) fn run(self, options: Options) -> Result {
-    let wallet = Purse::load(&options)?;
+    let purse = Purse::load(&options)?;
 
-    let utxo = wallet.find(&options, self.ordinal)?;
+    eprintln!("{:?}", purse.wallet.list_unspent()?);
 
-    let ordinals = wallet.special_ordinals(&options, utxo.outpoint)?;
+    let utxo = purse.find(&options, self.ordinal)?;
+
+    let ordinals = purse.special_ordinals(&options, utxo.outpoint)?;
 
     if !ordinals.is_empty() {
       match ordinals.len() {
@@ -30,7 +32,7 @@ impl Send {
     }
 
     let (mut psbt, _details) = {
-      let mut builder = wallet.wallet.build_tx();
+      let mut builder = purse.wallet.build_tx();
 
       builder
         .manually_selected_only()
@@ -41,13 +43,13 @@ impl Send {
       builder.finish()?
     };
 
-    if !wallet.wallet.sign(&mut psbt, SignOptions::default())? {
+    if !purse.wallet.sign(&mut psbt, SignOptions::default())? {
       bail!("Failed to sign transaction.");
     }
 
     let tx = psbt.extract_tx();
 
-    wallet.blockchain.broadcast(&tx)?;
+    purse.blockchain.broadcast(&tx)?;
 
     println!(
       "Sent ordinal {} to address {}: {}",
