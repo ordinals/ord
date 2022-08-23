@@ -2,7 +2,7 @@
 
 set -euxo pipefail
 
-touch .hushlogin
+touch ~/.hushlogin
 
 sed -i -E 's/#?PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
 
