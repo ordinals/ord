@@ -6,6 +6,10 @@ touch .hushlogin
 
 sed -i -E 's/#?PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
 
+DOMAIN=$1
+
+hostnamectl set-hostname $DOMAIN
+
 apt-get install --yes \
   acl \
   clang \
@@ -55,13 +59,10 @@ setfacl -m ord:r /var/lib/bitcoind/signet/.cookie
 cp deploy/ord.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl stop ord
-if [[ -f /var/lib/ord/signet/index.redb ]]; then
-  mv /var/lib/ord/signet/index.redb /var/lib/ord/signet/index.redb.bak
-fi
 systemctl enable ord
 systemctl restart ord
 
-while ! curl --fail https://signet.ordinals.com/status; do
+while ! curl --fail https://$DOMAIN/status; do
   echo Waiting for ord…
   sleep 1
 done
