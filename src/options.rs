@@ -34,7 +34,7 @@ impl Chain {
     }
   }
 
-  pub(crate) fn join_network(self, data_dir: &Path) -> PathBuf {
+  pub(crate) fn join_network_with_data_dir(self, data_dir: &Path) -> PathBuf {
     match self.network() {
       Network::Bitcoin => data_dir.to_owned(),
       other => data_dir.join(other.to_string()),
@@ -74,7 +74,7 @@ impl Options {
         .join("Bitcoin")
     };
 
-    let path = self.chain.join_network(&path);
+    let path = self.chain.join_network_with_data_dir(&path);
 
     Ok(path.join(".cookie"))
   }
@@ -88,7 +88,7 @@ impl Options {
       .ok_or_else(|| anyhow!("Failed to retrieve data dir"))?
       .join("ord");
 
-    let path = self.chain.join_network(&path);
+    let path = self.chain.join_network_with_data_dir(&path);
 
     if let Err(err) = fs::create_dir_all(&path) {
       bail!("Failed to create data dir `{}`: {err}", path.display());
