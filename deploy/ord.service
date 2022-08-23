@@ -10,7 +10,7 @@ WorkingDirectory=/var/lib/ord
 Environment=RUST_BACKTRACE=1
 Environment=RUST_LOG=info
 ExecStart=/usr/local/bin/ord \
-  --cookie-file /var/lib/bitcoind/signet/.cookie \
+  --bitcoin-data-dir /var/lib/bitcoind \
   --data-dir /var/lib/ord \
   --max-index-size 1TiB \
   --chain ${CHAIN} \
