@@ -592,8 +592,6 @@ fn send_common_ordinal() {
     .run();
 }
 
-// TODO: get a utxo with more than one uncommon ordinal in it
-
 #[test]
 fn send_non_unique_uncommon_ordinal() {
   let state = Test::new()
