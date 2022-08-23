@@ -20,15 +20,17 @@ watch +args='test':
 install-dev-deps:
   cargo install cargo-criterion
 
-deploy branch domain:
+deploy branch chain domain:
   ssh root@{{domain}} "mkdir -p deploy \
     && apt-get update --yes \
     && apt-get upgrade --yes \
     && apt-get install --yes git rsync"
   rsync -avz deploy/checkout root@{{domain}}:deploy/checkout
-  ssh root@{{domain}} 'cd deploy && ./checkout {{branch}} {{domain}}'
+  ssh root@{{domain}} 'cd deploy && ./checkout {{branch}} {{chain}} {{domain}}'
 
-deploy-signet branch="master": (deploy branch "signet.ordinals.com")
+deploy-mainnet branch="master": (deploy branch "signet" "signet.ordinals.com")
+
+deploy-signet branch="master": (deploy branch "main" "ordinals.com")
 
 log unit domain="signet.ordinals.com":
   ssh root@{{domain}} 'journalctl -fu {{unit}}'
