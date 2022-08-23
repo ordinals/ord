@@ -18,13 +18,13 @@ impl Send {
 
     if !ordinals.is_empty() && (ordinals.len() > 1 || ordinals[0] != self.ordinal) {
       bail!(
-        "You are trying to send ordinal {} but UTXO contains ordinals {}",
+        "Trying to send ordinal {} but UTXO als contains ordinal(s) {}",
         self.ordinal,
         ordinals
           .iter()
           .map(|ordinal| format!("{ordinal} ({})", ordinal.rarity()))
           .collect::<Vec<String>>()
-          .join(" ")
+          .join(", ")
       );
     }
 

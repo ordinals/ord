@@ -588,7 +588,7 @@ fn send_common_ordinal() {
       "--chain regtest wallet send --address {to_address} --ordinal 5000000001",
     ))
     .expected_status(1)
-    .expected_stderr("error: You are trying to send ordinal 5000000001 but UTXO contains ordinals 5000000000 (uncommon)\n")
+    .expected_stderr("error: Trying to send ordinal 5000000001 but UTXO also contains ordinal(s) 5000000000 (uncommon)\n")
     .run();
 }
 
@@ -663,6 +663,6 @@ fn send_non_unique_uncommon_ordinal() {
       "--chain regtest wallet send --address {to_address} --ordinal 5000000000",
     ))
     .expected_status(1)
-    .expected_stderr("error: You are trying to send ordinal 5000000000 but UTXO contains ordinals 5000000000 (uncommon) 10000000000 (uncommon)\n")
+    .expected_stderr("error: Trying to send ordinal 5000000000 but UTXO also contains ordinal(s) 5000000000 (uncommon), 10000000000 (uncommon)\n")
     .run();
 }
