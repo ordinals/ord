@@ -30,8 +30,8 @@ deploy branch chain domain:
 
 deploy-signet branch="master": (deploy branch "signet" "signet.ordinals.com")
 
-log unit chain="signet" domain="signet.ordinals.com":
-  ssh root@{{domain}} 'journalctl -fu {{unit}}@{{chain}}'
+log unit domain="signet.ordinals.com":
+  ssh root@{{domain}} 'journalctl -fu {{unit}}'
 
 test-deploy:
   ssh-keygen -f ~/.ssh/known_hosts -R 192.168.56.4
