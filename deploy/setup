@@ -2,12 +2,18 @@
 
 set -euxo pipefail
 
+CHAIN=$1
+DOMAIN=$2
+
 touch .hushlogin
 
 sed -i -E 's/#?PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
 
-CHAIN=$1
-DOMAIN=$2
+mkdir -p /etc/systemd/system/ord.service.d/
+mkdir -p /etc/systemd/system/bitcoin.service.d/
+
+printf "[Service]\nEnvironment=CHAIN=%s\n" $CHAIN > /etc/systemd/system/bitcoin.service.d/override.conf
+printf "[Service]\nEnvironment=CHAIN=%s\n" $CHAIN > /etc/systemd/system/ord.service.d/override.conf
 
 hostnamectl set-hostname $DOMAIN
 
