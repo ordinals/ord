@@ -5,7 +5,7 @@ set -euxo pipefail
 CHAIN=$1
 DOMAIN=$2
 
-touch .hushlogin
+touch ~/.hushlogin
 
 sed -i -E 's/#?PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
 
