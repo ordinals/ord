@@ -2,6 +2,8 @@
 
 set -euxo pipefail
 
+touch .hushlogin
+
 sed -i -E 's/#?PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
 
 apt-get install --yes \
