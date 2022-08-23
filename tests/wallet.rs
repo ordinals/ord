@@ -619,13 +619,11 @@ fn send_non_unique_uncommon_ordinal() {
 
   output.state.blocks(101);
 
-  output.state.transaction(
-    TransactionOptions {
-      slots: &[(1, 0, 0)],
-      output_count: 2,
-      fee: 0,
-    },
-  );
+  output.state.transaction(TransactionOptions {
+    slots: &[(1, 0, 0)],
+    output_count: 2,
+    fee: 0,
+  });
 
   output.state.blocks(1);
 
