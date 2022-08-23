@@ -2,11 +2,20 @@
 
 set -euxo pipefail
 
+CHAIN=$1
+DOMAIN=$2
+
 touch ~/.hushlogin
 
 sed -i -E 's/#?PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
 
-DOMAIN=$1
+mkdir -p \
+  /etc/systemd/system/bitcoind.service.d \
+  /etc/systemd/system/ord.service.d
+
+printf "[Service]\nEnvironment=CHAIN=%s\n" $CHAIN \
+  | tee /etc/systemd/system/bitcoind.service.d/override.conf \
+  > /etc/systemd/system/ord.service.d/override.conf
 
 hostnamectl set-hostname $DOMAIN
 
@@ -58,11 +67,10 @@ setfacl -m ord:r /var/lib/bitcoind/signet/.cookie
 
 cp deploy/ord.service /etc/systemd/system/
 systemctl daemon-reload
-systemctl stop ord
 systemctl enable ord
 systemctl restart ord
 
 while ! curl --fail https://$DOMAIN/status; do
-  echo Waiting for ord…
+  echo "Waiting for ord at https://$DOMAIN/status…"
   sleep 1
 done

@@ -3,7 +3,8 @@
 set -euxo pipefail
 
 BRANCH=$1
-DOMAIN=$2
+CHAIN=$2
+DOMAIN=$3
 
 if [[ ! -d ord ]]; then
   git clone https://github.com/casey/ord.git
@@ -14,4 +15,4 @@ cd ord
 git fetch origin
 git checkout -B $BRANCH
 git reset --hard origin/$BRANCH
-./deploy/setup $DOMAIN
+./deploy/setup $CHAIN $DOMAIN

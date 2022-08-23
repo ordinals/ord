@@ -23,7 +23,7 @@ impl Purse {
     let wallet = bdk::wallet::Wallet::new(
       Bip84((seed.clone(), None), KeychainKind::External),
       None,
-      options.network,
+      options.chain.network(),
       SqliteDatabase::new(
         data_dir
           .join("wallet.sqlite")
@@ -53,7 +53,7 @@ impl Purse {
     let wallet = bdk::wallet::Wallet::new(
       Bip84((seed.clone(), None), KeychainKind::External),
       None,
-      options.network,
+      options.chain.network(),
       SqliteDatabase::new(
         data_dir
           .join("wallet.sqlite")
@@ -101,11 +101,11 @@ impl Purse {
       auth: Auth::Cookie {
         file: options.cookie_file()?,
       },
-      network: options.network,
+      network: options.chain.network(),
       wallet_name: wallet_name_from_descriptor(
         Bip84(key, KeychainKind::External),
         None,
-        options.network,
+        options.chain.network(),
         &Secp256k1::new(),
       )?,
       sync_params: None,

@@ -13,7 +13,7 @@ ExecStart=/usr/local/bin/ord \
   --cookie-file /var/lib/bitcoind/signet/.cookie \
   --data-dir /var/lib/ord \
   --max-index-size 1TiB \
-  --network signet \
+  --chain ${CHAIN} \
   server \
   --acme-cache /var/lib/ord/acme-cache \
   --acme-contact mailto:casey@rodarmor.com \
