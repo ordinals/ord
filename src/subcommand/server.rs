@@ -70,7 +70,7 @@ pub(crate) struct Server {
     long,
     group = "port",
     help = "Listen on <HTTPS_PORT> for incoming HTTPS requests.",
-    requires_all = &["acme-domain", "acme-contact"]
+    requires = "acme-contact"
   )]
   https_port: Option<u16>,
   #[structopt(long, help = "Store ACME TLS certificates in <ACME_CACHE>.")]
@@ -475,7 +475,7 @@ mod tests {
       .to_string();
 
     assert!(
-      err.starts_with("error: The following required arguments were not provided:\n    --acme-domain <ACME_DOMAIN>\n    --acme-contact <ACME_CONTACT>\n"),
+      err.starts_with("error: The following required arguments were not provided:\n    --acme-contact <ACME_CONTACT>\n"),
       "{}",
       err
     );
