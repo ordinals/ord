@@ -28,7 +28,9 @@ deploy branch chain domain:
   rsync -avz deploy/checkout root@{{domain}}:deploy/checkout
   ssh root@{{domain}} 'cd deploy && ./checkout {{branch}} {{chain}} {{domain}}'
 
-deploy-signet branch="master": (deploy branch "signet" "signet.ordinals.com")
+deploy-mainnet branch="master": (deploy branch "signet" "signet.ordinals.com")
+
+deploy-signet branch="master": (deploy branch "main" "ordinals.com")
 
 log unit domain="signet.ordinals.com":
   ssh root@{{domain}} 'journalctl -fu {{unit}}'
