@@ -153,9 +153,17 @@ impl Server {
     }
   }
 
+  fn acme_domains(acme_domain: &Vec<String>) -> Result<Vec<String>> {
+    if !acme_domain.is_empty() {
+      Ok(acme_domain.clone())
+    } else {
+      Ok(vec![sys_info::hostname()?])
+    }
+  }
+
   fn acceptor(&self, options: &Options) -> Result<Option<AxumAcceptor>> {
     if self.https_port.is_some() {
-      let config = AcmeConfig::new(&self.acme_domain)
+      let config = AcmeConfig::new(Self::acme_domains(&self.acme_domain)?)
         .contact(&self.acme_contact)
         .cache_option(Some(DirCache::new(Self::acme_cache(
           self.acme_cache.as_ref(),
@@ -527,5 +535,21 @@ mod tests {
       .display()
       .to_string();
     assert_eq!(acme_cache, "bar")
+  }
+
+  #[test]
+  fn acme_domain_defaults_to_hostname() {
+    assert_eq!(
+      Server::acme_domains(&Vec::new()).unwrap(),
+      &[sys_info::hostname().unwrap()]
+    );
+  }
+
+  #[test]
+  fn acme_domain_flag_is_respected() {
+    assert_eq!(
+      Server::acme_domains(&vec!["example.com".into()]).unwrap(),
+      &["example.com"]
+    );
   }
 }
