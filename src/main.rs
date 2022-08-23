@@ -58,7 +58,7 @@ use {
     io::{self, Write},
     net::ToSocketAddrs,
     ops::{Add, AddAssign, Deref, Sub},
-    path::PathBuf,
+    path::{Path, PathBuf},
     process,
     str::FromStr,
     sync::{

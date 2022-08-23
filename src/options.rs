@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, clap::ValueEnum};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Options {
@@ -8,10 +8,38 @@ pub(crate) struct Options {
   cookie_file: Option<PathBuf>,
   #[clap(long)]
   rpc_url: Option<String>,
-  #[clap(long, default_value = "bitcoin")]
-  pub(crate) network: Network,
+  #[clap(long, arg_enum, default_value = "mainnet")]
+  pub(crate) chain: Chain,
   #[clap(long)]
   data_dir: Option<PathBuf>,
+}
+
+#[derive(ValueEnum, Copy, Clone, Debug)]
+pub(crate) enum Chain {
+  Main,
+  Mainnet,
+  Regtest,
+  Signet,
+  Test,
+  Testnet,
+}
+
+impl Chain {
+  pub(crate) fn network(self) -> Network {
+    match self {
+      Self::Main | Self::Mainnet => Network::Bitcoin,
+      Self::Regtest => Network::Regtest,
+      Self::Signet => Network::Signet,
+      Self::Test | Self::Testnet => Network::Testnet,
+    }
+  }
+
+  pub(crate) fn join_network_with_data_dir(self, data_dir: &Path) -> PathBuf {
+    match self.network() {
+      Network::Bitcoin => data_dir.to_owned(),
+      other => data_dir.join(other.to_string()),
+    }
+  }
 }
 
 impl Options {
@@ -21,7 +49,7 @@ impl Options {
       .as_ref()
       .unwrap_or(&format!(
         "127.0.0.1:{}",
-        match self.network {
+        match self.chain.network() {
           Network::Bitcoin => "8332",
           Network::Regtest => "18443",
           Network::Signet => "38332",
@@ -36,7 +64,7 @@ impl Options {
       return Ok(cookie_file.clone());
     }
 
-    let mut path = if cfg!(target_os = "linux") {
+    let path = if cfg!(target_os = "linux") {
       dirs::home_dir()
         .ok_or_else(|| anyhow!("Failed to retrieve home dir"))?
         .join(".bitcoin")
@@ -46,9 +74,7 @@ impl Options {
         .join("Bitcoin")
     };
 
-    if !matches!(self.network, Network::Bitcoin) {
-      path.push(self.network.to_string())
-    }
+    let path = self.chain.join_network_with_data_dir(&path);
 
     Ok(path.join(".cookie"))
   }
@@ -58,13 +84,11 @@ impl Options {
       return Ok(data_dir.clone());
     }
 
-    let mut path = dirs::data_dir()
+    let path = dirs::data_dir()
       .ok_or_else(|| anyhow!("Failed to retrieve data dir"))?
       .join("ord");
 
-    if !matches!(self.network, Network::Bitcoin) {
-      path.push(self.network.to_string())
-    }
+    let path = self.chain.join_network_with_data_dir(&path);
 
     if let Err(err) = fs::create_dir_all(&path) {
       bail!("Failed to create data dir `{}`: {err}", path.display());
@@ -81,15 +105,10 @@ mod tests {
   #[test]
   fn rpc_url_overrides_network() {
     assert_eq!(
-      Arguments::try_parse_from(&[
-        "ord",
-        "--rpc-url=127.0.0.1:1234",
-        "--network=signet",
-        "index"
-      ])
-      .unwrap()
-      .options
-      .rpc_url(),
+      Arguments::try_parse_from(&["ord", "--rpc-url=127.0.0.1:1234", "--chain=signet", "index"])
+        .unwrap()
+        .options
+        .rpc_url(),
       "127.0.0.1:1234"
     );
   }
@@ -97,7 +116,7 @@ mod tests {
   #[test]
   fn cookie_file_overrides_network() {
     assert_eq!(
-      Arguments::try_parse_from(&["ord", "--cookie-file=/foo/bar", "--network=signet", "index"])
+      Arguments::try_parse_from(&["ord", "--cookie-file=/foo/bar", "--chain=signet", "index"])
         .unwrap()
         .options
         .cookie_file()
@@ -121,7 +140,7 @@ mod tests {
 
   #[test]
   fn uses_network_defaults() {
-    let arguments = Arguments::try_parse_from(&["ord", "--network=signet", "index"]).unwrap();
+    let arguments = Arguments::try_parse_from(&["ord", "--chain=signet", "index"]).unwrap();
 
     assert_eq!(arguments.options.rpc_url(), "127.0.0.1:38332");
 
@@ -154,7 +173,7 @@ mod tests {
 
   #[test]
   fn othernet_cookie_file_path() {
-    let arguments = Arguments::try_parse_from(&["ord", "--network=signet", "index"]).unwrap();
+    let arguments = Arguments::try_parse_from(&["ord", "--chain=signet", "index"]).unwrap();
 
     let cookie_file = arguments
       .options
@@ -181,10 +200,32 @@ mod tests {
 
   #[test]
   fn othernet_data_dir() {
-    let arguments = Arguments::try_parse_from(&["ord", "--network=signet", "index"]).unwrap();
+    let arguments = Arguments::try_parse_from(&["ord", "--chain=signet", "index"]).unwrap();
 
     let data_dir = arguments.options.data_dir().unwrap().display().to_string();
 
     assert!(data_dir.ends_with("/ord/signet"));
+  }
+
+  #[test]
+  fn network_accepts_aliases() {
+    fn check_network_alias(alias: &str, suffix: &str) {
+      let data_dir = Arguments::try_parse_from(&["ord", "--chain", alias, "index"])
+        .unwrap()
+        .options
+        .data_dir()
+        .unwrap()
+        .display()
+        .to_string();
+
+      assert!(data_dir.ends_with(suffix), "{data_dir}");
+    }
+
+    check_network_alias("main", "ord");
+    check_network_alias("mainnet", "ord");
+    check_network_alias("regtest", "ord/regtest");
+    check_network_alias("signet", "ord/signet");
+    check_network_alias("test", "ord/testnet");
+    check_network_alias("testnet", "ord/testnet");
   }
 }
