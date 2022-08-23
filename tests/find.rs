@@ -65,7 +65,7 @@ fn first_satoshi_spent_in_second_block() {
       slots: &[(1, 0, 0)],
       output_count: 1,
       fee: 0,
-      script_pubkey: None,
+      recipient: None,
     })
     .blocks(1)
     .expected_stdout("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0\n")
@@ -84,7 +84,7 @@ fn first_satoshi_spent_in_second_block_slot() {
       slots: &[(0, 0, 0)],
       output_count: 1,
       fee: 0,
-      script_pubkey: None,
+      recipient: None,
     })
     .run();
 }
@@ -100,13 +100,13 @@ fn mining_and_spending_transaction_in_same_block() {
       slots: &[(0, 0, 0)],
       output_count: 1,
       fee: 0,
-      script_pubkey: None,
+      recipient: None,
     })
     .transaction(TransactionOptions {
       slots: &[(1, 1, 0)],
       output_count: 1,
       fee: 0,
-      script_pubkey: None,
+      recipient: None,
     })
     .expected_stdout("1x2x0x0\n")
     .run();

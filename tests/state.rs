@@ -170,7 +170,7 @@ impl State {
         .unwrap()
         .set_recipients(vec![
           (
-            options.script_pubkey.unwrap_or_else(|| self
+            options.recipient.unwrap_or_else(|| self
               .wallet
               .get_address(AddressIndex::Peek(0))
               .unwrap()

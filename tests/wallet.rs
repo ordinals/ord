@@ -436,7 +436,7 @@ fn send_uncommon_ordinal() {
 
   let state = Test::with_state(output.state)
     .command(&format!(
-      "--chain regtest wallet send --address {to_address} --ordinal 5000000001",
+      "--chain regtest wallet send --address {to_address} --ordinal 5000000000",
     ))
     .expected_status(0)
     .stdout_regex(format!(
@@ -588,7 +588,7 @@ fn send_common_ordinal() {
       "--chain regtest wallet send --address {to_address} --ordinal 5000000001",
     ))
     .expected_status(1)
-    .expected_stderr("error: UTXO contains a single uncommon or better ordinal that does not match the ordinal you are trying to send.\n")
+    .expected_stderr("error: You are trying to send ordinal 5000000001 but UTXO contains ordinals 5000000000 (uncommon)\n")
     .run();
 }
 
@@ -617,20 +617,11 @@ fn send_non_unique_uncommon_ordinal() {
 
   output.state.blocks(101);
 
-  output.state.transaction(TransactionOptions {
-    slots: &[(1, 0, 0), (2, 0, 0)],
-    output_count: 2,
-    fee: 0,
-    script_pubkey: None,
-  });
-
-  output.state.blocks(1);
-
   let transaction = output.state.transaction(TransactionOptions {
-    slots: &[(102, 1, 0), (102, 1, 1)],
+    slots: &[(1, 0, 0), (2, 0, 0)],
     output_count: 1,
     fee: 0,
-    script_pubkey: Some(from_address.script_pubkey()),
+    recipient: Some(from_address.script_pubkey()),
   });
 
   output.state.blocks(1);
@@ -672,6 +663,6 @@ fn send_non_unique_uncommon_ordinal() {
       "--chain regtest wallet send --address {to_address} --ordinal 5000000000",
     ))
     .expected_status(1)
-    .expected_stderr("error: UTXO contains more than one uncommon or better ordinal.\n")
+    .expected_stderr("error: You are trying to send ordinal 5000000000 but UTXO contains ordinals 5000000000 (uncommon) 10000000000 (uncommon)\n")
     .run();
 }

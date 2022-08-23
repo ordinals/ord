@@ -12,23 +12,20 @@ impl Send {
   pub(crate) fn run(self, options: Options) -> Result {
     let purse = Purse::load(&options)?;
 
-    eprintln!("{:?}", purse.wallet.list_unspent()?);
-
     let utxo = purse.find(&options, self.ordinal)?;
 
     let ordinals = purse.special_ordinals(&options, utxo.outpoint)?;
 
-    if !ordinals.is_empty() {
-      match ordinals.len() {
-        1 => {
-          if ordinals[0] != self.ordinal {
-            bail!(
-              "UTXO contains a single uncommon or better ordinal that does not match the ordinal you are trying to send."
-            )
-          }
-        }
-        _ => bail!("UTXO contains more than one uncommon or better ordinal."),
-      }
+    if !ordinals.is_empty() && (ordinals.len() > 1 || ordinals[0] != self.ordinal) {
+      bail!(
+        "You are trying to send ordinal {} but UTXO contains ordinals {}",
+        self.ordinal,
+        ordinals
+          .iter()
+          .map(|ordinal| format!("{ordinal} ({})", ordinal.rarity()))
+          .collect::<Vec<String>>()
+          .join(" ")
+      );
     }
 
     let (mut psbt, _details) = {
