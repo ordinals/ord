@@ -16,8 +16,17 @@ impl Send {
 
     let ordinals = wallet.special_ordinals(&options, utxo.outpoint)?;
 
-    if !ordinals.is_empty() && (ordinals.len() > 1 || ordinals[0] != self.ordinal) {
-      bail!("Failed to send ordinal.");
+    if !ordinals.is_empty() {
+      match ordinals.len() {
+        1 => {
+          if ordinals[0] != self.ordinal {
+            bail!(
+              "UTXO contains a single uncommon or better ordinal that does not match the ordinal you are trying to send."
+            )
+          }
+        }
+        _ => bail!("UTXO contains more than one uncommon or better ordinal."),
+      }
     }
 
     let (mut psbt, _details) = {
