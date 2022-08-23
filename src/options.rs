@@ -8,7 +8,7 @@ pub(crate) struct Options {
   cookie_file: Option<PathBuf>,
   #[clap(long)]
   rpc_url: Option<String>,
-  #[clap(arg_enum, long = "network", default_value = "mainnet")]
+  #[clap(arg_enum, default_value = "mainnet")]
   pub(crate) chain: Chain,
   #[clap(long)]
   data_dir: Option<PathBuf>,
@@ -105,15 +105,10 @@ mod tests {
   #[test]
   fn rpc_url_overrides_network() {
     assert_eq!(
-      Arguments::try_parse_from(&[
-        "ord",
-        "--rpc-url=127.0.0.1:1234",
-        "--network=signet",
-        "index"
-      ])
-      .unwrap()
-      .options
-      .rpc_url(),
+      Arguments::try_parse_from(&["ord", "--rpc-url=127.0.0.1:1234", "--chain=signet", "index"])
+        .unwrap()
+        .options
+        .rpc_url(),
       "127.0.0.1:1234"
     );
   }
@@ -121,7 +116,7 @@ mod tests {
   #[test]
   fn cookie_file_overrides_network() {
     assert_eq!(
-      Arguments::try_parse_from(&["ord", "--cookie-file=/foo/bar", "--network=signet", "index"])
+      Arguments::try_parse_from(&["ord", "--cookie-file=/foo/bar", "--chain=signet", "index"])
         .unwrap()
         .options
         .cookie_file()
@@ -145,7 +140,7 @@ mod tests {
 
   #[test]
   fn uses_network_defaults() {
-    let arguments = Arguments::try_parse_from(&["ord", "--network=signet", "index"]).unwrap();
+    let arguments = Arguments::try_parse_from(&["ord", "--chain=signet", "index"]).unwrap();
 
     assert_eq!(arguments.options.rpc_url(), "127.0.0.1:38332");
 
@@ -178,7 +173,7 @@ mod tests {
 
   #[test]
   fn othernet_cookie_file_path() {
-    let arguments = Arguments::try_parse_from(&["ord", "--network=signet", "index"]).unwrap();
+    let arguments = Arguments::try_parse_from(&["ord", "--chain=signet", "index"]).unwrap();
 
     let cookie_file = arguments
       .options
@@ -205,7 +200,7 @@ mod tests {
 
   #[test]
   fn othernet_data_dir() {
-    let arguments = Arguments::try_parse_from(&["ord", "--network=signet", "index"]).unwrap();
+    let arguments = Arguments::try_parse_from(&["ord", "--chain=signet", "index"]).unwrap();
 
     let data_dir = arguments.options.data_dir().unwrap().display().to_string();
 
@@ -215,7 +210,7 @@ mod tests {
   #[test]
   fn network_accepts_aliases() {
     fn check_network_alias(alias: &str, suffix: &str) {
-      let data_dir = Arguments::try_parse_from(&["ord", "--network", alias, "index"])
+      let data_dir = Arguments::try_parse_from(&["ord", "--chain", alias, "index"])
         .unwrap()
         .options
         .data_dir()
