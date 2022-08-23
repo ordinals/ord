@@ -26,6 +26,7 @@ fn split_ranges_are_tracked_correctly() {
       slots: &[(1, 0, 0)],
       output_count: 2,
       fee: 0,
+      recipient: None,
     })
     .blocks(1)
     .expected_stdout("[5000000000,7500000000)\n")
@@ -38,6 +39,7 @@ fn split_ranges_are_tracked_correctly() {
       slots: &[(1, 0, 0)],
       output_count: 2,
       fee: 0,
+      recipient: None,
     })
     .blocks(1)
     .expected_stdout("[7500000000,10000000000)\n")
@@ -53,12 +55,14 @@ fn merge_ranges_are_tracked_correctly() {
       slots: &[(1, 0, 0)],
       output_count: 2,
       fee: 0,
+      recipient: None,
     })
     .blocks(1)
     .transaction(TransactionOptions {
       slots: &[(102, 1, 0), (102, 1, 1)],
       output_count: 1,
       fee: 0,
+      recipient: None,
     })
     .blocks(1)
     .expected_stdout("[5000000000,7500000000)\n[7500000000,10000000000)\n")
@@ -74,6 +78,7 @@ fn fee_paying_transaction_range() {
       slots: &[(1, 0, 0)],
       output_count: 2,
       fee: 10,
+      recipient: None,
     })
     .blocks(1)
     .expected_stdout("[5000000000,7499999995)\n")
@@ -86,6 +91,7 @@ fn fee_paying_transaction_range() {
       slots: &[(1, 0, 0)],
       output_count: 2,
       fee: 10,
+      recipient: None,
     })
     .blocks(1)
     .expected_stdout("[7499999995,9999999990)\n")
@@ -98,6 +104,7 @@ fn fee_paying_transaction_range() {
       slots: &[(1, 0, 0)],
       output_count: 2,
       fee: 10,
+      recipient: None,
     })
     .blocks(1)
     .expected_stdout("[510000000000,515000000000)\n[9999999990,10000000000)\n")
@@ -113,11 +120,13 @@ fn two_fee_paying_transaction_range() {
       slots: &[(1, 0, 0)],
       output_count: 1,
       fee: 10,
+      recipient: None,
     })
     .transaction(TransactionOptions {
       slots: &[(2, 0, 0)],
       output_count: 1,
       fee: 10,
+      recipient: None,
     })
     .blocks(1)
     .expected_stdout(
@@ -135,6 +144,7 @@ fn null_output() {
       slots: &[(1, 0, 0)],
       output_count: 1,
       fee: 50 * 100_000_000,
+      recipient: None,
     })
     .blocks(1)
     .expected_stdout("")
@@ -150,12 +160,14 @@ fn null_input() {
       slots: &[(1, 0, 0)],
       output_count: 1,
       fee: 50 * 100_000_000,
+      recipient: None,
     })
     .blocks(1)
     .transaction(TransactionOptions {
       slots: &[(102, 1, 0)],
       output_count: 1,
       fee: 0,
+      recipient: None,
     })
     .expected_stdout("")
     .run()
@@ -170,6 +182,7 @@ fn old_transactions_are_pruned() {
       slots: &[(1, 0, 0)],
       output_count: 1,
       fee: 50 * 100_000_000,
+      recipient: None
     })
     .blocks(1)
     .expected_stderr("error: Output spent in transaction 3dbc87de25bf5a52ddfa8038bda36e09622f4dec7951d81ac43e4b0e8c54bc5b\n")
