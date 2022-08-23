@@ -6,7 +6,6 @@ StartLimitIntervalSec=10m
 
 [Service]
 AmbientCapabilities=CAP_NET_BIND_SERVICE
-WorkingDirectory=/var/lib/ord
 Environment=RUST_BACKTRACE=1
 Environment=RUST_LOG=info
 ExecStart=/usr/local/bin/ord \
@@ -17,47 +16,21 @@ ExecStart=/usr/local/bin/ord \
   server \
   --acme-contact mailto:casey@rodarmor.com \
   --https-port 443
-
-# Process management
-####################
-
-Type=simple
-Restart=on-failure
-TimeoutStopSec=10m
-RestartSec=5s
-
-# Directory creation and permissions
-####################################
-
-User=ord
 Group=ord
-
-# /var/lib/ord
+MemoryDenyWriteExecute=true
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+Restart=on-failure
+RestartSec=5s
 StateDirectory=ord
 StateDirectoryMode=0700
-
-# Hardening measures
-####################
-
-# Provide a private /tmp and /var/tmp.
-PrivateTmp=true
-
-# Mount /usr, /boot/ and /etc read-only for the process.
-ProtectSystem=full
-
-# Deny access to /home, /root and /run/user
-ProtectHome=true
-
-# Disallow the process and all of its children to gain
-# new privileges through execve().
-NoNewPrivileges=true
-
-# Use a new /dev namespace only populated with API pseudo devices
-# such as /dev/null, /dev/zero and /dev/random.
-PrivateDevices=true
-
-# Deny the creation of writable and executable memory mappings.
-MemoryDenyWriteExecute=true
+TimeoutStopSec=10m
+Type=simple
+User=ord
+WorkingDirectory=/var/lib/ord
 
 [Install]
 WantedBy=multi-user.target
