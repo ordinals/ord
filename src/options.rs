@@ -8,7 +8,7 @@ pub(crate) struct Options {
   cookie_file: Option<PathBuf>,
   #[clap(long)]
   rpc_url: Option<String>,
-  #[clap(arg_enum, default_value = "mainnet")]
+  #[clap(long, arg_enum, default_value = "mainnet")]
   pub(crate) chain: Chain,
   #[clap(long)]
   data_dir: Option<PathBuf>,
