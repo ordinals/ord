@@ -6,7 +6,8 @@ touch .hushlogin
 
 sed -i -E 's/#?PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
 
-DOMAIN=$1
+CHAIN=$1
+DOMAIN=$2
 
 hostnamectl set-hostname $DOMAIN
 
@@ -44,8 +45,8 @@ id --user ord || useradd --system ord
 
 cp deploy/bitcoind.service /etc/systemd/system/
 systemctl daemon-reload
-systemctl enable bitcoind
-systemctl restart bitcoind
+systemctl enable bitcoind@$CHAIN
+systemctl restart bitcoind@$CHAIN
 
 while [[ ! -f /var/lib/bitcoind/signet/.cookie ]]; do
   echo Waiting for bitcoind…
@@ -58,9 +59,8 @@ setfacl -m ord:r /var/lib/bitcoind/signet/.cookie
 
 cp deploy/ord.service /etc/systemd/system/
 systemctl daemon-reload
-systemctl stop ord
-systemctl enable ord
-systemctl restart ord
+systemctl enable ord@$CHAIN
+systemctl restart ord@$CHAIN
 
 while ! curl --fail https://$DOMAIN/status; do
   echo Waiting for ord…
