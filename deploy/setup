@@ -45,8 +45,8 @@ id --user ord || useradd --system ord
 
 cp deploy/bitcoind@.service /etc/systemd/system/
 systemctl daemon-reload
-systemctl enable bitcoind@$CHAIN
-systemctl restart bitcoind@$CHAIN
+systemctl enable bitcoind
+systemctl restart bitcoind
 
 while [[ ! -f /var/lib/bitcoind/signet/.cookie ]]; do
   echo Waiting for bitcoind…
@@ -59,8 +59,8 @@ setfacl -m ord:r /var/lib/bitcoind/signet/.cookie
 
 cp deploy/ord@.service /etc/systemd/system/
 systemctl daemon-reload
-systemctl enable ord@$CHAIN
-systemctl restart ord@$CHAIN
+systemctl enable ord
+systemctl restart ord
 
 while ! curl --fail https://$DOMAIN/status; do
   echo Waiting for ord…
