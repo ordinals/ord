@@ -20,19 +20,18 @@ watch +args='test':
 install-dev-deps:
   cargo install cargo-criterion
 
-deploy branch='master':
-  ssh root@signet.ordinals.com "mkdir -p deploy \
+deploy branch domain:
+  ssh root@{{domain}} "mkdir -p deploy \
     && apt-get update --yes \
     && apt-get upgrade --yes \
     && apt-get install --yes git rsync"
-  rsync -avz deploy/checkout root@signet.ordinals.com:deploy/checkout
-  ssh root@signet.ordinals.com 'cd deploy && ./checkout {{branch}}'
+  rsync -avz deploy/checkout root@{{domain}}:deploy/checkout
+  ssh root@{{domain}} 'cd deploy && ./checkout {{branch}} {{domain}}'
 
-log-ord:
-  ssh root@signet.ordinals.com 'journalctl -fu ord'
+deploy-signet branch="master": (deploy branch "signet.ordinals.com")
 
-log-bitcoind:
-  ssh root@signet.ordinals.com 'journalctl -fu bitcoind'
+log unit domain="signet.ordinals.com":
+  ssh root@{{domain}} 'journalctl -fu {{unit}}'
 
 test-deploy:
   ssh-keygen -f ~/.ssh/known_hosts -R 192.168.56.4
