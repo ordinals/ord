@@ -201,7 +201,7 @@ impl State {
     tx
   }
 
-  pub(crate) fn foo(&self, options: TransactionOptions, address: Address) -> Transaction {
+  pub(crate) fn foo(&self, options: TransactionOptions, address: &Address) -> Transaction {
     self.sync();
 
     let input_value = options
