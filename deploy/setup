@@ -74,10 +74,10 @@ while [[ ! -f $COOKIE_FILE_DIR/.cookie ]]; do
   sleep 1
 done
 
-setfacl --modify ord:r $COOKIE_FILE_DIR/.cookie
-setfacl --modify ord:x $COOKIE_FILE_DIR
-setfacl --modify ord:x /var/lib/bitcoind
-setfacl --default --modify ord:d $COOKIE_FILE_DIR
+setfacl -m ord:x /var/lib/bitcoind
+setfacl -m ord:x $COOKIE_FILE_DIR
+setfacl -dm ord:r $COOKIE_FILE_DIR
+setfacl -m ord:r $COOKIE_FILED_DIR/.cookie
 
 cp deploy/ord.service /etc/systemd/system/
 systemctl daemon-reload
