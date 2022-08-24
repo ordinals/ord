@@ -4,7 +4,7 @@ Ordinal Bounties
 Open Bounties
 -------------
 
-### Bounty #1
+### Bounty 1
 
 #### Judging Criteria
 
@@ -65,7 +65,7 @@ Good luck and godspeed!
 Claimed Bounties
 ----------------
 
-### Bounty #0
+### Bounty 0
 
 Send an ordinal whose number ends with a zero:
 
