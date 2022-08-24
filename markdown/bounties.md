@@ -29,8 +29,8 @@ Send a Twitter DM to [@rodarmor](https://twitter.com/rodarmor), a Discord
 message to [rodarmor#0001](https://discordapp.com/users/336268268539215872/),
 or an email to [casey@rodarmor.com](mailto:casey@rodarmor.com).
 
-The bounty prize will be sent back to the winner's choice of input addresses of
-the winning transaction.
+The bounty prize will be sent back to the winner's choice of the winning
+transaction's input addresses.
 
 ### Disclaimer
 
