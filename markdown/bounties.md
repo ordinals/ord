@@ -34,7 +34,9 @@ transaction's input addresses.
 
 ### Disclaimer
 
-Be careful! Losing and accidental submissions will not be returned.
+Be careful! Losing and accidental submissions will not be returned. You are
+encouraged to send the minimum number of sats possible, i.e., exactly at the
+dust limit.
 
 ### Questions?
 
