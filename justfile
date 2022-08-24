@@ -32,7 +32,7 @@ deploy-mainnet: (deploy "master" "main" "ordinals.com")
 
 deploy-signet branch="master": (deploy branch "signet" "signet.ordinals.com")
 
-log unit domain="signet.ordinals.com":
+log unit domain="ordinals.com":
   ssh root@{{domain}} 'journalctl -fu {{unit}}'
 
 test-deploy:
