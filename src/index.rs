@@ -276,7 +276,7 @@ impl Index {
     txid: Txid,
     tx: &Transaction,
     outpoint_to_ordinal_ranges: &mut Table<[u8], [u8]>,
-    outpoint_to_txid: &mut Table<[u8], [u8]>,
+    #[allow(unused)] outpoint_to_txid: &mut Table<[u8], [u8]>,
     input_ordinal_ranges: &mut VecDeque<(u64, u64)>,
     ordinal_ranges_written: &mut u64,
   ) -> Result {
@@ -318,6 +318,7 @@ impl Index {
       outpoint_to_ordinal_ranges.insert(&serialize(&outpoint), &ordinals)?;
     }
 
+    #[cfg(any())]
     for input in &tx.input {
       outpoint_to_txid.insert(&serialize(&input.previous_output), &txid)?;
     }
