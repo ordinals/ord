@@ -1,31 +1,29 @@
 Ordinal Bounties
 ================
 
-Open Bounties
--------------
+Bounty 1
+--------
 
-### Bounty 1
-
-#### Judging Criteria
+### Judging Criteria
 
 The transaction that submits a UTXO containing the oldest ordinal, i.e., that
 with the lowest number, amongst all submitted UTXOs will be judged the winner.
 
-#### Prize
+### Prize
 
 200,000 satoshis
 
-#### Submission Address
+### Submission Address
 
 [`145Z7PFHyVrwiMWwEcUmDgFbmUbQSU9aap`](https://mempool.space/address/145Z7PFHyVrwiMWwEcUmDgFbmUbQSU9aap)
 
-#### Submission Period
+### Submission Period
 
 The bounty is open for submissions until block 753984—the first block of
 difficulty adjustment period 374. Submissions included in block 753984 or later
 will not be considered.
 
-#### Payout Instructions
+### Payout Instructions
 
 Send a Twitter DM to [@rodarmor](https://twitter.com/rodarmor), a Discord
 message to [rodarmor#0001](https://discordapp.com/users/336268268539215872/),
@@ -34,11 +32,11 @@ or an email to [casey@rodarmor.com](mailto:casey@rodarmor.com).
 The bounty prize will be sent back to the winner's choice of input addresses of
 the winning transaction.
 
-#### Disclaimer
+### Disclaimer
 
 Be careful! Losing and accidental submissions will not be returned.
 
-#### Questions?
+### Questions?
 
 Tweet them at [@rodarmor](https://twitter.com/rodarmor) or message him using
 the contact information above.
