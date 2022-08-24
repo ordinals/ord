@@ -174,6 +174,7 @@ fn null_input() {
 }
 
 #[test]
+#[ignore]
 fn old_transactions_are_pruned() {
   Test::new()
     .command("list 150ba822b458a19615e70a604d8dd9d3482fc165fa4e9cc150d74e11916ce8ae:0")

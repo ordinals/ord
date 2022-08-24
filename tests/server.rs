@@ -133,6 +133,7 @@ fn unknown_output_returns_404() {
 }
 
 #[test]
+#[ignore]
 fn spent_output_returns_200() {
   let mut state = State::new();
 
