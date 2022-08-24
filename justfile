@@ -86,3 +86,6 @@ update-modern-normalize:
   curl \
     https://raw.githubusercontent.com/sindresorhus/modern-normalize/main/modern-normalize.css \
     > static/modern-normalize.css
+
+graph:
+  ./bin/graph
