@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+
+import re
+from matplotlib.pyplot import *
+from dataclasses import dataclass
+
+@dataclass
+class Block:
+  height: int
+  ranges: int
+  time: int
+  transactions: int
+
+pat = re.compile(
+  '''Block (?P<height>[0-9]+).*with (?P<transactions>[0-9]+) transactions.*
+.*Wrote (?P<ranges>[0-9]+) ordinal ranges in (?P<time>[0-9]+)ms'''
+)
+
+blocks = [
+  Block(**{k : int(v) for k, v in group.items()})
+  for group in [
+    match.groupdict() for match in pat.finditer(open('ord.log').read())
+  ]
+]
+
+_, (a, b, c) = subplots(3)
+
+a.set_xlabel('Height')
+a.set_ylabel('Time')
+a.plot(
+  [block.height for block in blocks],
+  [block.time for block in blocks],
+)
+
+b.set_xlabel('Ranges')
+b.set_ylabel('Time')
+b.scatter(
+  [block.ranges for block in blocks],
+  [block.time for block in blocks],
+)
+
+c.set_xlabel('Tx\'s in block')
+c.set_ylabel('Time')
+c.scatter(
+  [block.transactions for block in blocks],
+  [block.time for block in blocks],
+)
+
+show()

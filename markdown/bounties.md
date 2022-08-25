@@ -1,42 +1,47 @@
 Ordinal Bounties
 ================
 
-Bounty #0
----------
+Bounty 1
+--------
 
-Send an ordinal whose number ends with a zero:
+### Judging Criteria
 
-✅: [1857578125803250](/ordinal/1857578125803250)
+The transaction that submits a UTXO containing the oldest ordinal, i.e., that
+with the lowest number, amongst all submitted UTXOs will be judged the winner.
 
-❌: [1857578125803251](/ordinal/1857578125803251)
+### Prize
 
-The ordinal must be the first ordinal of the output you send.
+200,000 satoshis
 
-Reward: 100,000 sats
+### Submission Address
 
-Address: [`1PE7u4wbDP2RqfKN6geD1bG57v9Gj9FXm3`](https://mempool.space/address/1PE7u4wbDP2RqfKN6geD1bG57v9Gj9FXm3)
+[`145Z7PFHyVrwiMWwEcUmDgFbmUbQSU9aap`](https://mempool.space/address/145Z7PFHyVrwiMWwEcUmDgFbmUbQSU9aap)
 
-Status: Claimed by [@count_null](https://twitter.com/rodarmor/status/1560793241473400833)!
+### Submission Period
 
-Rules
------
+The bounty is open for submissions until block 753984—the first block of
+difficulty adjustment period 374. Submissions included in block 753984 or later
+will not be considered.
 
-- Each bounty can only be claimed once.
+### Payout Instructions
 
-- Find an ordinal that qualifies for the current bounty.
+Send a Twitter DM to [@rodarmor](https://twitter.com/rodarmor), a Discord
+message to [rodarmor#0001](https://discordapp.com/users/336268268539215872/),
+or an email to [casey@rodarmor.com](mailto:casey@rodarmor.com).
 
-- Make sure that the bounty has not already been claimed by verifying that no
-  transactions have been sent to the bounty address.
+The bounty prize will be sent back to the winner's choice of the winning
+transaction's input addresses.
 
-- Send the ordinal to the bounty address. To fulfill a bounty, the ordinal must
-  be the first ordinal in the output you send.
+### Disclaimer
 
-- Send a DM to [@rodarmor](https://twitter.com/rodarmor) on Twitter or
-  [rodarmor#0001](https://discordapp.com/users/336268268539215872/) on Discord.
+Be careful! Losing and accidental submissions will not be returned. You are
+encouraged to send the minimum number of sats possible, i.e., exactly the dust
+limit.
 
-- The bounty will be sent back to the address that the ordinal was sent from.
+### Questions?
 
-Questions? Tweet them at [@rodarmor](https://twitter.com/rodarmor).
+Tweet them at [@rodarmor](https://twitter.com/rodarmor) or message him using
+the contact information above.
 
 Hints
 -----
@@ -56,3 +61,23 @@ Hints
   rediscovered. You can help by researching rare ordinals.
 
 Good luck and godspeed!
+
+Claimed Bounties
+----------------
+
+### Bounty 0
+
+Send an ordinal whose number ends with a zero:
+
+✅: [1857578125803250](/ordinal/1857578125803250)
+
+❌: [1857578125803251](/ordinal/1857578125803251)
+
+The ordinal must be the first ordinal of the output you send.
+
+Reward: 100,000 sats
+
+Address:
+[`1PE7u4wbDP2RqfKN6geD1bG57v9Gj9FXm3`](https://mempool.space/address/1PE7u4wbDP2RqfKN6geD1bG57v9Gj9FXm3)
+
+Status: Claimed by [@count_null](https://twitter.com/rodarmor/status/1560793241473400833)!

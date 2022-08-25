@@ -28,11 +28,11 @@ deploy branch chain domain:
   rsync -avz deploy/checkout root@{{domain}}:deploy/checkout
   ssh root@{{domain}} 'cd deploy && ./checkout {{branch}} {{chain}} {{domain}}'
 
-deploy-mainnet branch="master": (deploy branch "main" "ordinals.com")
+deploy-mainnet: (deploy "master" "main" "ordinals.com")
 
 deploy-signet branch="master": (deploy branch "signet" "signet.ordinals.com")
 
-log unit domain="signet.ordinals.com":
+log unit="ord" domain="ordinals.com":
   ssh root@{{domain}} 'journalctl -fu {{unit}}'
 
 test-deploy:
@@ -86,3 +86,6 @@ update-modern-normalize:
   curl \
     https://raw.githubusercontent.com/sindresorhus/modern-normalize/main/modern-normalize.css \
     > static/modern-normalize.css
+
+graph:
+  ./bin/graph

@@ -56,14 +56,28 @@ systemctl daemon-reload
 systemctl enable bitcoind
 systemctl restart bitcoind
 
-while [[ ! -f /var/lib/bitcoind/signet/.cookie ]]; do
-  echo Waiting for bitcoind…
+case $CHAIN in
+  main)
+    COOKIE_FILE_DIR=/var/lib/bitcoind
+    ;;
+  signet)
+    COOKIE_FILE_DIR=/var/lib/bitcoind/signet
+    ;;
+  *)
+    echo "Unknown chain: $CHAIN"
+    exit 1
+    ;;
+esac
+
+while [[ ! -f $COOKIE_FILE_DIR/.cookie ]]; do
+  echo "Waiting for bitcoind…"
   sleep 1
 done
 
 setfacl -m ord:x /var/lib/bitcoind
-setfacl -dm ord:r /var/lib/bitcoind
-setfacl -m ord:r /var/lib/bitcoind/signet/.cookie
+setfacl -m ord:x $COOKIE_FILE_DIR
+setfacl -dm ord:r $COOKIE_FILE_DIR
+setfacl -m ord:r $COOKIE_FILE_DIR/.cookie
 
 cp deploy/ord.service /etc/systemd/system/
 systemctl daemon-reload
