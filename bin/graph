@@ -52,7 +52,7 @@ b.scatter(
 c.set_xlabel('Tx\'s in block')
 c.set_ylabel('Time')
 c.scatter(
-  [block.transactions for block in blocks],
+  [block.transactions for block in sync],
   [block.time for block in sync],
 )
 
