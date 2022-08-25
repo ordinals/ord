@@ -87,5 +87,9 @@ update-modern-normalize:
     https://raw.githubusercontent.com/sindresorhus/modern-normalize/main/modern-normalize.css \
     > static/modern-normalize.css
 
-graph:
-  ./bin/graph
+download-log host="ordinals.com":
+  ssh root@{{host}} 'journalctl -u ord > ord.log'
+  rsync --progress root@{{host}}:ord.log ord.log
+
+graph host="ordinals.com":
+  ./bin/graph ord.log
