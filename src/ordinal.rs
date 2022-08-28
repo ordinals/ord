@@ -24,6 +24,10 @@ impl Ordinal {
     Epoch::from(self).0 / CYCLE_EPOCHS
   }
 
+  pub(crate) fn percentile(self) -> String {
+    format!("{}%", (self.0 as f64 / Self::LAST.0 as f64) * 100.0)
+  }
+
   pub(crate) fn epoch(self) -> Epoch {
     self.into()
   }
@@ -79,8 +83,8 @@ impl Ordinal {
     Ok(Ordinal(Self::SUPPLY - x))
   }
 
-  fn from_degree(s: &str) -> Result<Self> {
-    let (cycle_number, rest) = s
+  fn from_degree(degree: &str) -> Result<Self> {
+    let (cycle_number, rest) = degree
       .split_once('°')
       .ok_or_else(|| anyhow!("Missing degree symbol"))?;
     let cycle_number = cycle_number.parse::<u64>()?;
@@ -133,8 +137,10 @@ impl Ordinal {
     Ok(height.starting_ordinal() + block_offset)
   }
 
-  fn from_decimal(s: &str) -> Result<Self> {
-    let (height, offset) = s.split_once('.').ok_or_else(|| anyhow!("Missing period"))?;
+  fn from_decimal(decimal: &str) -> Result<Self> {
+    let (height, offset) = decimal
+      .split_once('.')
+      .ok_or_else(|| anyhow!("Missing period"))?;
     let height = Height(height.parse()?);
     let offset = offset.parse::<u64>()?;
 
@@ -143,6 +149,20 @@ impl Ordinal {
     }
 
     Ok(height.starting_ordinal() + offset)
+  }
+
+  fn from_percentile(percentile: &str) -> Result<Self> {
+    if !percentile.ends_with('%') {
+      bail!("Invalid percentile: {}", percentile);
+    }
+
+    let percentile = percentile[..percentile.len() - 1].parse::<f64>()?;
+
+    let position = percentile / 100.0;
+
+    let n = position * Ordinal::LAST.n() as f64;
+
+    Ok(Ordinal(n.round() as u64))
   }
 }
 
@@ -174,6 +194,8 @@ impl FromStr for Ordinal {
       Self::from_name(s)
     } else if s.contains('°') {
       Self::from_degree(s)
+    } else if s.contains('%') {
+      Self::from_percentile(s)
     } else if s.contains('.') {
       Self::from_decimal(s)
     } else {
@@ -486,5 +508,31 @@ mod tests {
     assert_eq!(Ordinal(50 * 100_000_000 - 1).third(), 4999999999);
     assert_eq!(Ordinal(50 * 100_000_000).third(), 0);
     assert_eq!(Ordinal(50 * 100_000_000 + 1).third(), 1);
+  }
+
+  #[test]
+  fn percentile() {
+    assert_eq!(Ordinal(0).percentile(), "0%");
+    assert_eq!(
+      Ordinal(Ordinal::LAST.n() / 2).percentile(),
+      "49.99999999999998%"
+    );
+    assert_eq!(Ordinal::LAST.percentile(), "100%");
+  }
+
+  #[test]
+  fn percentile_round_trip() {
+    fn case(n: u64) {
+      let expected = Ordinal(n);
+      let actual = expected.percentile().parse::<Ordinal>().unwrap();
+      assert_eq!(expected, actual);
+    }
+
+    for n in 0..1024 {
+      case(n);
+      case(Ordinal::LAST.n() / 2 + n);
+      case(Ordinal::LAST.n() - n);
+      case(Ordinal::LAST.n() / (n + 1));
+    }
   }
 }
