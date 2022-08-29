@@ -446,6 +446,7 @@ mod tests {
     assert!(parse("0°2015′2015″0‴").is_ok());
     assert!(parse("0°2016′0″0‴").is_ok());
     assert!(parse("0°2016′1″0‴").is_err());
+    assert!(parse("0°0′336″0‴").is_ok());
   }
 
   #[test]
