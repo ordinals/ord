@@ -69,8 +69,7 @@ pub(crate) struct Server {
   #[clap(
     long,
     group = "port",
-    help = "Listen on <HTTPS_PORT> for incoming HTTPS requests.",
-    requires = "acme-contact"
+    help = "Listen on <HTTPS_PORT> for incoming HTTPS requests."
   )]
   https_port: Option<u16>,
   #[structopt(long, help = "Store ACME TLS certificates in <ACME_CACHE>.")]
@@ -463,19 +462,6 @@ mod tests {
 
     assert!(
       err.starts_with("error: The argument '--http-port <HTTP_PORT>' cannot be used with '--https-port <HTTPS_PORT>'\n"),
-      "{}",
-      err
-    );
-  }
-
-  #[test]
-  fn http_port_requires_acme_flags() {
-    let err = Arguments::try_parse_from(&["ord", "server", "--https-port=0"])
-      .unwrap_err()
-      .to_string();
-
-    assert!(
-      err.starts_with("error: The following required arguments were not provided:\n    --acme-contact <ACME_CONTACT>\n"),
       "{}",
       err
     );
