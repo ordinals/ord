@@ -37,6 +37,7 @@ mod tests {
           <dt>offset</dt><dd>0</dd>
           <dt>rarity</dt><dd><span class=mythic>mythic</span></dd>
           <dt>time</dt><dd>1970-01-01 00:00:00</dd>
+          <dt>percentile</dt><dd>0%</dd>
         </dl>
         <a>prev</a>
         <a href=/ordinal/1>next</a>
@@ -66,6 +67,7 @@ mod tests {
           <dt>offset</dt><dd>0</dd>
           <dt>rarity</dt><dd><span class=uncommon>uncommon</span></dd>
           <dt>time</dt><dd>1970-01-01 00:00:00</dd>
+          <dt>percentile</dt><dd>100%</dd>
         </dl>
         <a href=/ordinal/2099999997689998>prev</a>
         <a>next</a>
@@ -95,6 +97,7 @@ mod tests {
           <dt>offset</dt><dd>1</dd>
           <dt>rarity</dt><dd><span class=common>common</span></dd>
           <dt>time</dt><dd>1970-01-01 00:00:00</dd>
+          <dt>percentile</dt><dd>0.000000000000047619047671428595%</dd>
         </dl>
         <a href=/ordinal/0>prev</a>
         <a href=/ordinal/2>next</a>
