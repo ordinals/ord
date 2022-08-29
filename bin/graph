@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import re
+import re, sys
 from matplotlib.pyplot import *
 from dataclasses import dataclass
 
@@ -19,31 +19,41 @@ pat = re.compile(
 blocks = [
   Block(**{k : int(v) for k, v in group.items()})
   for group in [
-    match.groupdict() for match in pat.finditer(open('ord.log').read())
+    match.groupdict() for match in pat.finditer(open(sys.argv[1]).read())
   ]
 ]
+
+start = 0
+
+for i in range(len(blocks)):
+  if blocks[i].height == 1:
+    start = i
+
+print(f"Skipping {start + 1} blocks from previous sync")
+
+sync = blocks[start:]
 
 _, (a, b, c) = subplots(3)
 
 a.set_xlabel('Height')
 a.set_ylabel('Time')
 a.plot(
-  [block.height for block in blocks],
-  [block.time for block in blocks],
+  [block.height for block in sync],
+  [block.time for block in sync],
 )
 
 b.set_xlabel('Ranges')
 b.set_ylabel('Time')
 b.scatter(
-  [block.ranges for block in blocks],
-  [block.time for block in blocks],
+  [block.ranges for block in sync],
+  [block.time for block in sync],
 )
 
 c.set_xlabel('Tx\'s in block')
 c.set_ylabel('Time')
 c.scatter(
-  [block.transactions for block in blocks],
-  [block.time for block in blocks],
+  [block.transactions for block in sync],
+  [block.time for block in sync],
 )
 
 show()
