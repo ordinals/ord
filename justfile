@@ -91,5 +91,5 @@ download-log host="ordinals.com":
   ssh root@{{host}} 'journalctl -u ord > ord.log'
   rsync --progress root@{{host}}:ord.log ord.log
 
-graph host="ordinals.com":
+graph:
   ./bin/graph ord.log
