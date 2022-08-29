@@ -293,7 +293,7 @@ fn unmined_ordinal() {
   state.request_regex(
     "ordinal/0",
     200,
-    ".*<dt>block time</dt><dd>2011-02-02 23:16:42</dd>.*",
+    ".*<dt>time</dt><dd>2011-02-02 23:16:42</dd>.*",
   );
 }
 
@@ -303,7 +303,7 @@ fn mined_ordinal() {
   state.request_regex(
     "ordinal/5000000000",
     200,
-    ".*<dt>block time</dt><dd>.* \\(expected\\)</dd>.*",
+    ".*<dt>time</dt><dd>.* \\(expected\\)</dd>.*",
   );
 }
 
