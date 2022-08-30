@@ -1,7 +1,5 @@
 use super::*;
 
-use bitcoin::{blockdata::transaction::TxOut, util::psbt::PartiallySignedTransaction};
-
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
   #[clap(long)]
