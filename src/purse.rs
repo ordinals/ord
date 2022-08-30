@@ -114,7 +114,7 @@ impl Purse {
         "UTXO {} unspent in wallet but spent in index by transaction {txid}",
         outpoint
       )),
-      None => Ok(Vec::new()),
+      None => Err(anyhow!("Output {outpoint} not found in index")),
     }
   }
 
