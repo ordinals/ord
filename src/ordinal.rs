@@ -164,9 +164,7 @@ impl Ordinal {
 
     let last = Ordinal::LAST.n() as f64;
 
-    let position = percentile / 100.0;
-
-    let n = (position * last).round() as u64;
+    let n = (percentile / 100.0 * last).round() as u64;
 
     if n > Ordinal::LAST.n() {
       bail!("Invalid percentile: {}", percentile);
