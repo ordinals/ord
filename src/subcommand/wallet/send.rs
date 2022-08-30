@@ -1,5 +1,7 @@
 use super::*;
 
+use bitcoin::{blockdata::transaction::TxOut, util::psbt::PartiallySignedTransaction};
+
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
   #[clap(long)]
@@ -42,6 +44,35 @@ impl Send {
       builder.finish()?
     };
 
+    fn iter_funding_utxos(
+      psbt: &PartiallySignedTransaction,
+    ) -> impl Iterator<Item = Result<&TxOut>> {
+      assert_eq!(psbt.inputs.len(), psbt.unsigned_tx.input.len());
+
+      psbt
+        .unsigned_tx
+        .input
+        .iter()
+        .zip(&psbt.inputs)
+        .map(|(tx_input, psbt_input)| {
+          match (&psbt_input.witness_utxo, &psbt_input.non_witness_utxo) {
+            (Some(witness_utxo), _) => Ok(witness_utxo),
+            (None, Some(non_witness_utxo)) => {
+              let vout = tx_input.previous_output.vout as usize;
+              non_witness_utxo
+                .output
+                .get(vout)
+                .context("PSBT UTXO out of bounds")
+            }
+            (None, None) => Err(anyhow!("Missing UTXO")),
+          }
+        })
+    }
+
+    let input_value = iter_funding_utxos(&psbt)
+      .map(|result| result.map(|utxo| utxo.value))
+      .sum::<Result<u64>>()?;
+
     let output_value = psbt
       .unsigned_tx
       .output
@@ -49,29 +80,24 @@ impl Send {
       .map(|output| output.value)
       .sum::<u64>();
 
-    let list = index.list(utxo.outpoint)?;
-
     let mut offset = 0;
 
-    match list {
-      Some(List::Unspent(ranges)) => {
-        for (start, end) in ranges {
-          if start <= self.ordinal.n() && self.ordinal.n() < end {
-            offset += self.ordinal.n() - start;
-            break;
-          } else {
-            offset += end - start;
-          }
-        }
+    for (start, end) in Purse::list_unspent(&index, utxo.outpoint)? {
+      if start <= self.ordinal.n() && self.ordinal.n() < end {
+        offset += self.ordinal.n() - start;
+        break;
+      } else {
+        offset += end - start;
       }
-      Some(List::Spent(txid)) => {
-        todo!()
-      }
-      None => todo!(),
     }
 
     if offset >= output_value {
-      bail!("Trying to send ordinal that would have been used in fees");
+      bail!(
+        "Ordinal {} is {} sat away from the end of the output which is within the {} sat fee range",
+        self.ordinal,
+        input_value - offset,
+        input_value - output_value
+      );
     }
 
     if !purse.wallet.sign(&mut psbt, SignOptions::default())? {

@@ -690,11 +690,16 @@ fn protect_ordinal_from_fees() {
   )
   .unwrap();
 
-  output
-    .state
-    .client
-    .generate_to_address(1, &from_address)
-    .unwrap();
+  output.state.blocks(101);
+
+  output.state.transaction(TransactionOptions {
+    slots: &[(1, 0, 0)],
+    output_count: 2,
+    fee: 0,
+    recipient: Some(from_address.script_pubkey()),
+  });
+
+  output.state.blocks(1);
 
   output
     .state
@@ -708,7 +713,7 @@ fn protect_ordinal_from_fees() {
   let output = Test::with_state(output.state)
     .command("--chain regtest wallet utxos")
     .expected_status(0)
-    .stdout_regex("[[:xdigit:]]{64}:[[:digit:]] 5000000000\n")
+    .stdout_regex("[[:xdigit:]]{64}:0 2500000000\n[[:xdigit:]]{64}:1 2500000000\n")
     .output();
 
   let wallet = Wallet::new(
@@ -733,6 +738,6 @@ fn protect_ordinal_from_fees() {
       "--chain regtest wallet send --address {to_address} --ordinal 9999999999",
     ))
     .expected_status(1)
-    .expected_stderr("error: Trying to send ordinal that would have been used in a fee.\n")
+    .expected_stderr("error: Ordinal 9999999999 is 1 sat away from the end of the output which is within the 220 sat fee range\n")
     .run();
 }
