@@ -166,7 +166,7 @@ impl Ordinal {
       bail!("Invalid percentile: {}", percentile);
     }
 
-    Ok(Ordinal(n.round() as u64))
+    Ok(Ordinal(n as u64))
   }
 }
 
