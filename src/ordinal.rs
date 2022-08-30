@@ -158,11 +158,19 @@ impl Ordinal {
 
     let percentile = percentile[..percentile.len() - 1].parse::<f64>()?;
 
-    let position = percentile / 100.0;
+    if percentile < 0.0 {
+      bail!("Invalid percentile: {}", percentile);
+    }
 
-    let n = position * Ordinal::LAST.n() as f64;
+    let last = Ordinal::LAST.n() as f64;
 
-    Ok(Ordinal(n.round() as u64))
+    let n = (percentile / 100.0 * last).round() as u64;
+
+    if n > Ordinal::LAST.n() {
+      bail!("Invalid percentile: {}", percentile);
+    }
+
+    Ok(Ordinal(n as u64))
   }
 }
 
@@ -518,6 +526,12 @@ mod tests {
       "49.99999999999998%"
     );
     assert_eq!(Ordinal::LAST.percentile(), "100%");
+  }
+
+  #[test]
+  fn from_percentile() {
+    "-1%".parse::<Ordinal>().unwrap_err();
+    "101%".parse::<Ordinal>().unwrap_err();
   }
 
   #[test]
