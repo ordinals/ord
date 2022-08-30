@@ -69,9 +69,7 @@ impl Purse {
     Ok(Self { blockchain, wallet })
   }
 
-  pub(crate) fn find(&self, options: &Options, ordinal: Ordinal) -> Result<LocalUtxo> {
-    let index = Index::index(options)?;
-
+  pub(crate) fn find(&self, index: &Index, ordinal: Ordinal) -> Result<LocalUtxo> {
     for utxo in self.wallet.list_unspent()? {
       match index.list(utxo.outpoint)? {
         Some(List::Unspent(ranges)) => {
@@ -95,13 +93,7 @@ impl Purse {
     bail!("No utxo contains {}˚.", ordinal);
   }
 
-  pub(crate) fn special_ordinals(
-    &self,
-    options: &Options,
-    outpoint: OutPoint,
-  ) -> Result<Vec<Ordinal>> {
-    let index = Index::index(options)?;
-
+  pub(crate) fn special_ordinals(&self, index: &Index, outpoint: OutPoint) -> Result<Vec<Ordinal>> {
     match index.list(outpoint)? {
       Some(List::Unspent(ranges)) => Ok(
         ranges

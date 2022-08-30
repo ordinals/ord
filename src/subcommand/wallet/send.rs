@@ -12,9 +12,11 @@ impl Send {
   pub(crate) fn run(self, options: Options) -> Result {
     let purse = Purse::load(&options)?;
 
-    let utxo = purse.find(&options, self.ordinal)?;
+    let index = Index::index(&options)?;
 
-    let ordinals = purse.special_ordinals(&options, utxo.outpoint)?;
+    let utxo = purse.find(&index, self.ordinal)?;
+
+    let ordinals = purse.special_ordinals(&index, utxo.outpoint)?;
 
     if !ordinals.is_empty() && (ordinals.len() > 1 || ordinals[0] != self.ordinal) {
       bail!(
@@ -39,6 +41,38 @@ impl Send {
 
       builder.finish()?
     };
+
+    let output_value = psbt
+      .unsigned_tx
+      .output
+      .iter()
+      .map(|output| output.value)
+      .sum::<u64>();
+
+    let list = index.list(utxo.outpoint)?;
+
+    let mut offset = 0;
+
+    match list {
+      Some(List::Unspent(ranges)) => {
+        for (start, end) in ranges {
+          if start <= self.ordinal.n() && self.ordinal.n() < end {
+            offset += self.ordinal.n() - start;
+            break;
+          } else {
+            offset += end - start;
+          }
+        }
+      }
+      Some(List::Spent(txid)) => {
+        todo!()
+      }
+      None => todo!(),
+    }
+
+    if offset >= output_value {
+      bail!("Trying to send ordinal that would have been used in fees");
+    }
 
     if !purse.wallet.sign(&mut psbt, SignOptions::default())? {
       bail!("Failed to sign transaction.");
