@@ -69,25 +69,11 @@ impl Purse {
     Ok(Self { blockchain, wallet })
   }
 
-  pub(crate) fn find(&self, options: &Options, ordinal: Ordinal) -> Result<LocalUtxo> {
-    let index = Index::index(options)?;
-
+  pub(crate) fn find(&self, index: &Index, ordinal: Ordinal) -> Result<LocalUtxo> {
     for utxo in self.wallet.list_unspent()? {
-      match index.list(utxo.outpoint)? {
-        Some(List::Unspent(ranges)) => {
-          for (start, end) in ranges {
-            if ordinal.0 >= start && ordinal.0 < end {
-              return Ok(utxo);
-            }
-          }
-        }
-        Some(List::Spent(txid)) => {
-          return Err(anyhow!(
-            "UTXO unspent in wallet but spent in index by transaction {txid}"
-          ));
-        }
-        None => {
-          return Err(anyhow!("UTXO unspent in wallet but not found in index"));
+      for (start, end) in Self::list_unspent(index, utxo.outpoint)? {
+        if ordinal.0 >= start && ordinal.0 < end {
+          return Ok(utxo);
         }
       }
     }
@@ -95,21 +81,19 @@ impl Purse {
     bail!("No utxo contains {}˚.", ordinal);
   }
 
-  pub(crate) fn special_ordinals(
-    &self,
-    options: &Options,
-    outpoint: OutPoint,
-  ) -> Result<Vec<Ordinal>> {
-    let index = Index::index(options)?;
+  pub(crate) fn special_ordinals(&self, index: &Index, outpoint: OutPoint) -> Result<Vec<Ordinal>> {
+    Ok(
+      Self::list_unspent(index, outpoint)?
+        .into_iter()
+        .map(|(start, _end)| Ordinal(start))
+        .filter(|ordinal| ordinal.rarity() > Rarity::Common)
+        .collect(),
+    )
+  }
 
+  pub(crate) fn list_unspent(index: &Index, outpoint: OutPoint) -> Result<Vec<(u64, u64)>> {
     match index.list(outpoint)? {
-      Some(List::Unspent(ranges)) => Ok(
-        ranges
-          .into_iter()
-          .map(|(start, _end)| Ordinal(start))
-          .filter(|ordinal| ordinal.rarity() > Rarity::Common)
-          .collect(),
-      ),
+      Some(List::Unspent(ranges)) => Ok(ranges),
       Some(List::Spent(txid)) => Err(anyhow!(
         "UTXO {} unspent in wallet but spent in index by transaction {txid}",
         outpoint

@@ -3,13 +3,15 @@ use super::*;
 pub(crate) fn run(options: Options) -> Result {
   let purse = Purse::load(&options)?;
 
+  let index = Index::index(&options)?;
+
   let mut ordinals = purse
     .wallet
     .list_unspent()?
     .into_iter()
     .map(|utxo| {
       purse
-        .special_ordinals(&options, utxo.outpoint)
+        .special_ordinals(&index, utxo.outpoint)
         .map(|ordinals| {
           ordinals
             .into_iter()

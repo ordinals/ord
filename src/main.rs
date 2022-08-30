@@ -31,7 +31,7 @@ use {
     FeeRate, KeychainKind, LocalUtxo,
   },
   bitcoin::{
-    blockdata::constants::COIN_VALUE,
+    blockdata::{constants::COIN_VALUE, transaction::TxOut},
     consensus::{Decodable, Encodable},
     hash_types::BlockHash,
     hashes::{sha256, sha256d, Hash, HashEngine},
@@ -41,7 +41,7 @@ use {
       schnorr::Signature,
       KeyPair, Secp256k1, XOnlyPublicKey,
     },
-    util::key::PrivateKey,
+    util::{key::PrivateKey, psbt::PartiallySignedTransaction},
     Address, Block, Network, OutPoint, Transaction, Txid,
   },
   chrono::{DateTime, NaiveDateTime, Utc},
