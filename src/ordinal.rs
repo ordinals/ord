@@ -158,11 +158,13 @@ impl Ordinal {
 
     let percentile = percentile[..percentile.len() - 1].parse::<f64>()?;
 
+    let last = Ordinal::LAST.n() as f64;
+
     let position = percentile / 100.0;
 
-    let n = (position * Ordinal::LAST.n() as f64).round();
+    let n = (position * last).round();
 
-    if n < 0.0 || n > Ordinal::LAST.n() as f64 {
+    if n < 0.0 || n > last {
       bail!("Invalid percentile: {}", percentile);
     }
 
