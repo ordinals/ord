@@ -74,11 +74,7 @@ pub(crate) struct Server {
   acme_cache: Option<PathBuf>,
   #[clap(long, help = "Provide ACME contact <ACME_CONTACT>.")]
   acme_contact: Vec<String>,
-  #[clap(
-    long,
-    help = "Serve HTTP traffic on <HTTP_PORT>.",
-    conflicts_with = "http-to-https-redirect"
-  )]
+  #[clap(long, help = "Serve HTTP traffic on <HTTP_PORT>.")]
   http: bool,
   #[clap(
     long,
@@ -86,13 +82,6 @@ pub(crate) struct Server {
     requires = "acme-domain"
   )]
   https: bool,
-  #[clap(
-    long,
-    help = "Redirect HTTP requests from <HTTP_PORT> to <HTTPS_PORT>",
-    requires = "acme-domain",
-    conflicts_with = "http"
-  )]
-  http_to_https_redirect: bool,
 }
 
 impl Server {
@@ -200,11 +189,7 @@ impl Server {
   }
 
   fn http_port(&self) -> Option<u16> {
-    if self.http
-      || self.http_port.is_some()
-      || self.http_to_https_redirect
-      || (self.https_port.is_none() && !self.https)
-    {
+    if self.http || self.http_port.is_some() || (self.https_port.is_none() && !self.https) {
       Some(self.http_port.unwrap_or(80))
     } else {
       None
@@ -212,7 +197,7 @@ impl Server {
   }
 
   fn https_port(&self) -> Option<u16> {
-    if self.https || self.https_port.is_some() || self.http_to_https_redirect {
+    if self.https || self.https_port.is_some() {
       Some(self.https_port.unwrap_or(443))
     } else {
       None
@@ -551,19 +536,6 @@ mod tests {
   }
 
   #[test]
-  fn http_to_https_redirect_requires_acme_flags() {
-    let err = Arguments::try_parse_from(&["ord", "server", "--http-to-https-redirect"])
-      .unwrap_err()
-      .to_string();
-
-    assert!(
-      err.starts_with("error: The following required arguments were not provided:\n    --acme-domain <ACME_DOMAIN>\n"),
-      "{}",
-      err
-    );
-  }
-
-  #[test]
   fn http_port_defaults_to_80() {
     assert_eq!(parse_server_args("").http_port(), Some(80));
   }
@@ -625,39 +597,6 @@ mod tests {
         .https_port(),
       Some(443)
     );
-  }
-
-  #[test]
-  fn https_with_http_to_https_redirect_leaves_http_enabled() {
-    assert_eq!(
-      parse_server_args(
-        "--https --http-to-https-redirect --acme-cache foo --acme-contact bar --acme-domain baz"
-      )
-      .http_port(),
-      Some(80)
-    );
-  }
-
-  #[test]
-  fn http_and_http_to_https_redirect_flags_conflict() {
-    let err = Arguments::try_parse_from(&["ord", "server", "--http", "--http-to-https-redirect"])
-      .unwrap_err()
-      .to_string();
-
-    assert!(
-      err.starts_with("error: The argument '--http' cannot be used with '--http-to-https-redirect"),
-      "{}",
-      err
-    );
-  }
-
-  #[test]
-  fn http_to_https_redirect_turns_on_both_http_and_https() {
-    let arguments = parse_server_args(
-      "--http-to-https-redirect --acme-cache foo --acme-contact bar --acme-domain baz",
-    );
-    assert_eq!(arguments.http_port(), Some(80));
-    assert_eq!(arguments.https_port(), Some(443));
   }
 
   #[test]
