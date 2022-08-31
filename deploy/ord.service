@@ -15,7 +15,8 @@ ExecStart=/usr/local/bin/ord \
   --chain ${CHAIN} \
   server \
   --acme-contact mailto:casey@rodarmor.com \
-  --https-port 443
+  --http \
+  --https
 Group=ord
 MemoryDenyWriteExecute=true
 NoNewPrivileges=true
