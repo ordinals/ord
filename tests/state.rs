@@ -17,17 +17,12 @@ pub(crate) struct State {
   pub(crate) bitcoind_rpc_port: u16,
   ord_http_port: Option<u16>,
   ord: Option<Child>,
-  https: bool,
 }
 
 static ONCE: Once = Once::new();
 
 impl State {
   pub(crate) fn new() -> Self {
-    Self::https(false)
-  }
-
-  pub(crate) fn https(https: bool) -> Self {
     ONCE.call_once(env_logger::init);
 
     let tempdir = TempDir::new().unwrap();
@@ -113,7 +108,6 @@ impl State {
       wallet,
       ord: None,
       blockchain,
-      https,
     }
   }
 
@@ -216,37 +210,28 @@ impl State {
   }
 
   pub(crate) fn request_expected(&mut self, path: &str, status: u16, expected: Expected) {
-    let client = self.http_client();
-
     if self.ord_http_port.is_none() {
       let ord_http_port = free_port();
 
+      fs::create_dir(self.tempdir.path().join("server")).unwrap();
+
       let ord = Command::new(executable_path("ord"))
-        .current_dir(self.tempdir.path())
+        .current_dir(self.tempdir.path().join("server"))
         .env("HOME", self.tempdir.path())
         .arg(format!("--rpc-url=localhost:{}", self.bitcoind_rpc_port))
-        .arg("--cookie-file=bitcoin/regtest/.cookie")
+        .arg("--cookie-file=../bitcoin/regtest/.cookie")
         .args([
           "server",
           "--address",
           "127.0.0.1",
-          if self.https {
-            "--https-port"
-          } else {
-            "--http-port"
-          },
+          "--http-port",
           &ord_http_port.to_string(),
-          "--acme-domain",
-          "localhost",
         ])
         .spawn()
         .unwrap();
 
       for attempt in 0..=300 {
-        match client
-          .get(&format!("https://127.0.0.1:{ord_http_port}/status"))
-          .send()
-        {
+        match reqwest::blocking::get(&format!("http://127.0.0.1:{ord_http_port}/status")) {
           Ok(response) if response.status().is_success() => break,
           result => {
             if attempt == 300 {
@@ -269,17 +254,15 @@ impl State {
         .unwrap()
         .height as u64;
 
-      let ord_height = client
-        .get(&format!(
-          "https://127.0.0.1:{}/height",
-          self.ord_http_port.unwrap()
-        ))
-        .send()
-        .unwrap()
-        .text()
-        .unwrap()
-        .parse::<u64>()
-        .unwrap();
+      let ord_height = reqwest::blocking::get(&format!(
+        "http://127.0.0.1:{}/height",
+        self.ord_http_port.unwrap()
+      ))
+      .unwrap()
+      .text()
+      .unwrap()
+      .parse::<u64>()
+      .unwrap();
 
       if ord_height == bitcoind_height {
         break;
@@ -292,14 +275,12 @@ impl State {
       }
     }
 
-    let response = client
-      .get(&format!(
-        "https://127.0.0.1:{}/{}",
-        self.ord_http_port.unwrap(),
-        path
-      ))
-      .send()
-      .unwrap();
+    let response = reqwest::blocking::get(&format!(
+      "http://127.0.0.1:{}/{}",
+      self.ord_http_port.unwrap(),
+      path
+    ))
+    .unwrap();
 
     log::info!("{:?}", response);
 
@@ -318,64 +299,6 @@ impl State {
         ".local/share"
       })
       .join("ord")
-  }
-
-  pub(crate) fn http_client(&self) -> reqwest::blocking::Client {
-    if self.https {
-      let root_certificate = self.create_acme_cache();
-      reqwest::blocking::ClientBuilder::new()
-        .add_root_certificate(root_certificate)
-        .build()
-        .unwrap()
-    } else {
-      reqwest::blocking::ClientBuilder::new().build().unwrap()
-    }
-  }
-
-  pub(crate) fn create_acme_cache(&self) -> reqwest::Certificate {
-    use rcgen::{
-      BasicConstraints, Certificate, CertificateParams, IsCa, KeyPair, SanType,
-      PKCS_ECDSA_P256_SHA256,
-    };
-    let root_certificate = {
-      let mut params: CertificateParams = Default::default();
-      params.key_pair = Some(KeyPair::generate(&PKCS_ECDSA_P256_SHA256).unwrap());
-      params.is_ca = IsCa::Ca(BasicConstraints::Unconstrained);
-      Certificate::from_params(params).unwrap()
-    };
-
-    let certificate_keys = KeyPair::generate(&PKCS_ECDSA_P256_SHA256).unwrap();
-    let certificate_keys_pem = certificate_keys.serialize_pem();
-    let certificate = {
-      let mut params = CertificateParams::from_ca_cert_pem(
-        &root_certificate.serialize_pem().unwrap(),
-        certificate_keys,
-      )
-      .unwrap();
-      params
-        .subject_alt_names
-        .push(SanType::DnsName("localhost".to_string()));
-      Certificate::from_params(params).unwrap()
-    };
-    let certificate_file = vec![
-      certificate_keys_pem,
-      certificate
-        .serialize_pem_with_signer(&root_certificate)
-        .unwrap(),
-      root_certificate.serialize_pem().unwrap(),
-    ]
-    .join("\r\n");
-
-    let acme_cache = self.ord_data_dir().join("acme-cache");
-
-    fs::create_dir_all(&acme_cache).unwrap();
-
-    fs::write(
-      acme_cache.join("cached_cert_83kei_h4oopqh8sXFFlhGeQJIS_pkJJv-y5XDpnLtyw"),
-      certificate_file,
-    )
-    .unwrap();
-    reqwest::Certificate::from_pem(root_certificate.serialize_pem().unwrap().as_bytes()).unwrap()
   }
 }
 
