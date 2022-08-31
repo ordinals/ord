@@ -1933,6 +1933,7 @@ dependencies = [
  "pretty_assertions",
  "pulldown-cmark",
  "rayon",
+ "rcgen",
  "redb",
  "regex",
  "reqwest",
@@ -2373,6 +2374,7 @@ dependencies = [
  "pem",
  "ring",
  "time 0.3.13",
+ "x509-parser",
  "yasna",
 ]
 
@@ -2601,9 +2603,9 @@ dependencies = [
 
 [[package]]
 name = "rustls-acme"
-version = "0.4.0-beta4"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6ca5c1e3f26e9be750856a2d986219fac80b28ecf65f69b3d396c50b46b7c9b2"
+checksum = "b5b29a57dc718b12d5eba48a08548c615854a6ce661d9463254779f358922950"
 dependencies = [
  "async-h1",
  "async-io",
@@ -3711,6 +3713,7 @@ dependencies = [
  "lazy_static",
  "nom",
  "oid-registry",
+ "ring",
  "rusticata-macros",
  "thiserror",
  "time 0.3.13",

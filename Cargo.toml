@@ -28,7 +28,7 @@ rayon = "1.5.1"
 redb = { version = "0.5.0", git = "https://github.com/cberner/redb", branch = "master" }
 rust-embed = "6.4.0"
 rustls = "0.20.6"
-rustls-acme = { version = "0.4.0-beta2", features = ["axum"] }
+rustls-acme = { version = "0.5.0", features = ["axum"] }
 serde = { version = "1.0.137", features = ["derive"] }
 serde_cbor = "0.11.2"
 serde_json = "1.0.81"
@@ -51,6 +51,7 @@ hex = "0.4.3"
 log = "0.4.14"
 nix = "0.24.1"
 pretty_assertions = "1.2.1"
+rcgen = { version = "0.9.3", features = ["x509-parser"] }
 regex = "1.6.0"
 reqwest = { version = "0.11.10", features = ["blocking"] }
 tempfile = "3.2.0"

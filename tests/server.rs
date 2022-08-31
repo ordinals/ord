@@ -369,3 +369,9 @@ fn clock_is_served_with_svg_extension() {
   let mut state = State::new();
   state.request_regex("clock.svg", 200, "<svg.*");
 }
+
+#[test]
+fn https() {
+  let mut state = State::https(true);
+  state.request_regex("", 200, ".*");
+}
