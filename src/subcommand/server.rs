@@ -123,9 +123,10 @@ impl Server {
 
       LISTENERS.lock().unwrap().push(handle.clone());
 
-      let http_server = self.spawn(&router, &handle, None)?;
-      let https_server = self.spawn(&router, &handle, self.acceptor(&options)?)?;
-      let (http_result, https_result) = tokio::join!(http_server, https_server);
+      let (http_result, https_result) = tokio::join!(
+        self.spawn(&router, &handle, None)?,
+        self.spawn(&router, &handle, self.acceptor(&options)?)?
+      );
       http_result.and(https_result)?.transpose()?;
 
       Ok(())
