@@ -9,7 +9,6 @@ use {
     },
   },
   axum::{body, http::header, response::Response},
-  clap::ArgGroup,
   rust_embed::RustEmbed,
   rustls_acme::{
     acme::{LETS_ENCRYPT_PRODUCTION_DIRECTORY, LETS_ENCRYPT_STAGING_DIRECTORY},
@@ -47,7 +46,6 @@ impl Display for StaticHtml {
 }
 
 #[derive(Debug, Parser)]
-#[clap(group = ArgGroup::new("port").multiple(false))]
 pub(crate) struct Server {
   #[clap(
     long,
@@ -62,20 +60,23 @@ pub(crate) struct Server {
   acme_domain: Vec<String>,
   #[clap(
     long,
-    group = "port",
-    help = "Listen on <HTTP_PORT> for incoming HTTP requests. Defaults to 80."
+    help = "Listen on <HTTP_PORT> for incoming HTTP requests. [default: 80]."
   )]
   http_port: Option<u16>,
   #[clap(
     long,
     group = "port",
-    help = "Listen on <HTTPS_PORT> for incoming HTTPS requests."
+    help = "Listen on <HTTPS_PORT> for incoming HTTPS requests. [default: 443]."
   )]
   https_port: Option<u16>,
-  #[structopt(long, help = "Store ACME TLS certificates in <ACME_CACHE>.")]
+  #[clap(long, help = "Store ACME TLS certificates in <ACME_CACHE>.")]
   acme_cache: Option<PathBuf>,
-  #[structopt(long, help = "Provide ACME contact <ACME_CONTACT>.")]
+  #[clap(long, help = "Provide ACME contact <ACME_CONTACT>.")]
   acme_contact: Vec<String>,
+  #[clap(long, help = "Serve HTTP traffic on <HTTP_PORT>.")]
+  http: bool,
+  #[clap(long, help = "Serve HTTPS traffic on <HTTPS_PORT>.")]
+  https: bool,
 }
 
 impl Server {
@@ -91,7 +92,7 @@ impl Server {
         thread::sleep(Duration::from_millis(100));
       });
 
-      let app = Router::new()
+      let router = Router::new()
         .route("/", get(Self::home))
         .route("/block/:hash", get(Self::block))
         .route("/bounties", get(Self::bounties))
@@ -113,35 +114,58 @@ impl Server {
             .allow_origin(Any),
         );
 
-      let port = self.port();
-
-      let addr = (self.address.as_str(), port)
-        .to_socket_addrs()?
-        .next()
-        .ok_or_else(|| anyhow!("Failed to get socket addrs"))?;
-
       let handle = Handle::new();
 
       LISTENERS.lock().unwrap().push(handle.clone());
 
-      let server = axum_server::Server::bind(addr).handle(handle);
-
-      match self.acceptor(&options)? {
-        Some(acceptor) => {
-          server
-            .acceptor(acceptor)
-            .serve(app.into_make_service())
-            .await?
-        }
-        None => server.serve(app.into_make_service()).await?,
-      }
+      let (http_result, https_result) = tokio::join!(
+        self.spawn(&router, &handle, None)?,
+        self.spawn(&router, &handle, self.acceptor(&options)?)?
+      );
+      http_result.and(https_result)?.transpose()?;
 
       Ok(())
     })
   }
 
-  fn port(&self) -> u16 {
-    self.http_port.or(self.https_port).unwrap_or(80)
+  fn spawn(
+    &self,
+    router: &Router,
+    handle: &Handle,
+    https_acceptor: Option<AxumAcceptor>,
+  ) -> Result<task::JoinHandle<Option<io::Result<()>>>> {
+    let addr = if https_acceptor.is_some() {
+      self.https_port()
+    } else {
+      self.http_port()
+    }
+    .map(|port| {
+      (self.address.as_str(), port)
+        .to_socket_addrs()?
+        .next()
+        .ok_or_else(|| anyhow!("Failed to get socket addrs"))
+        .map(|addr| (addr, router.clone(), handle.clone()))
+    })
+    .transpose()?;
+
+    Ok(tokio::spawn(async move {
+      if let Some((addr, router, handle)) = addr {
+        Some(if let Some(acceptor) = https_acceptor {
+          axum_server::Server::bind(addr)
+            .handle(handle)
+            .acceptor(acceptor)
+            .serve(router.into_make_service())
+            .await
+        } else {
+          axum_server::Server::bind(addr)
+            .handle(handle)
+            .serve(router.into_make_service())
+            .await
+        })
+      } else {
+        None
+      }
+    }))
   }
 
   fn acme_cache(acme_cache: Option<&PathBuf>, options: &Options) -> Result<PathBuf> {
@@ -160,8 +184,24 @@ impl Server {
     }
   }
 
+  fn http_port(&self) -> Option<u16> {
+    if self.http || self.http_port.is_some() || (self.https_port.is_none() && !self.https) {
+      Some(self.http_port.unwrap_or(80))
+    } else {
+      None
+    }
+  }
+
+  fn https_port(&self) -> Option<u16> {
+    if self.https || self.https_port.is_some() {
+      Some(self.https_port.unwrap_or(443))
+    } else {
+      None
+    }
+  }
+
   fn acceptor(&self, options: &Options) -> Result<Option<AxumAcceptor>> {
-    if self.https_port.is_some() {
+    if self.https_port().is_some() {
       let config = AcmeConfig::new(Self::acme_domains(&self.acme_domain)?)
         .contact(&self.acme_contact)
         .cache_option(Some(DirCache::new(Self::acme_cache(
@@ -443,27 +483,89 @@ impl Server {
 mod tests {
   use super::*;
 
-  #[test]
-  fn port_defaults_to_80() {
-    match Arguments::try_parse_from(&["ord", "server"])
-      .unwrap()
-      .subcommand
-    {
-      Subcommand::Server(server) => assert_eq!(server.port(), 80),
-      subcommand => panic!("Unexpected subcommand: {subcommand:?}"),
+  fn parse_server_args(args: &str) -> Server {
+    match Arguments::try_parse_from(
+      ["ord", "server"]
+        .iter()
+        .cloned()
+        .chain(args.split_whitespace()),
+    ) {
+      Ok(arguments) => match arguments.subcommand {
+        Subcommand::Server(server) => server,
+        subcommand => panic!("Unexpected subcommand: {subcommand:?}"),
+      },
+      Err(err) => panic!("Error parsing arguments: {err}"),
     }
   }
 
   #[test]
-  fn http_and_https_port_conflict() {
-    let err = Arguments::try_parse_from(&["ord", "server", "--http-port=0", "--https-port=0"])
-      .unwrap_err()
-      .to_string();
+  fn http_and_https_port_dont_conflict() {
+    parse_server_args(
+      "--http-port 0 --https-port 0 --acme-cache foo --acme-contact bar --acme-domain baz",
+    );
+  }
 
-    assert!(
-      err.starts_with("error: The argument '--http-port <HTTP_PORT>' cannot be used with '--https-port <HTTPS_PORT>'\n"),
-      "{}",
-      err
+  #[test]
+  fn http_port_defaults_to_80() {
+    assert_eq!(parse_server_args("").http_port(), Some(80));
+  }
+
+  #[test]
+  fn https_port_defaults_to_none() {
+    assert_eq!(parse_server_args("").https_port(), None);
+  }
+
+  #[test]
+  fn https_sets_https_port_to_443() {
+    assert_eq!(
+      parse_server_args("--https --acme-cache foo --acme-contact bar --acme-domain baz")
+        .https_port(),
+      Some(443)
+    );
+  }
+
+  #[test]
+  fn https_disables_http() {
+    assert_eq!(
+      parse_server_args("--https --acme-cache foo --acme-contact bar --acme-domain baz")
+        .http_port(),
+      None
+    );
+  }
+
+  #[test]
+  fn https_port_disables_http() {
+    assert_eq!(
+      parse_server_args("--https-port 433 --acme-cache foo --acme-contact bar --acme-domain baz")
+        .http_port(),
+      None
+    );
+  }
+
+  #[test]
+  fn https_port_sets_https_port() {
+    assert_eq!(
+      parse_server_args("--https-port 1000 --acme-cache foo --acme-contact bar --acme-domain baz")
+        .https_port(),
+      Some(1000)
+    );
+  }
+
+  #[test]
+  fn http_with_https_leaves_http_enabled() {
+    assert_eq!(
+      parse_server_args("--https --http --acme-cache foo --acme-contact bar --acme-domain baz")
+        .http_port(),
+      Some(80)
+    );
+  }
+
+  #[test]
+  fn http_with_https_leaves_https_enabled() {
+    assert_eq!(
+      parse_server_args("--https --http --acme-cache foo --acme-contact bar --acme-domain baz")
+        .https_port(),
+      Some(443)
     );
   }
 

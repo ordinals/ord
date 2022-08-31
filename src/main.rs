@@ -68,7 +68,7 @@ use {
     thread,
     time::{Duration, Instant},
   },
-  tokio::runtime::Runtime,
+  tokio::{runtime::Runtime, task},
   tower_http::cors::{Any, CorsLayer},
 };
 
