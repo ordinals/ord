@@ -66,8 +66,7 @@ pub(crate) struct Server {
   #[clap(
     long,
     group = "port",
-    help = "Listen on <HTTPS_PORT> for incoming HTTPS requests. [default: 443].",
-    requires = "acme-domain"
+    help = "Listen on <HTTPS_PORT> for incoming HTTPS requests. [default: 443]."
   )]
   https_port: Option<u16>,
   #[clap(long, help = "Store ACME TLS certificates in <ACME_CACHE>.")]
@@ -76,11 +75,7 @@ pub(crate) struct Server {
   acme_contact: Vec<String>,
   #[clap(long, help = "Serve HTTP traffic on <HTTP_PORT>.")]
   http: bool,
-  #[clap(
-    long,
-    help = "Serve HTTPS traffic on <HTTPS_PORT>.",
-    requires = "acme-domain"
-  )]
+  #[clap(long, help = "Serve HTTPS traffic on <HTTPS_PORT>.")]
   https: bool,
 }
 
@@ -511,32 +506,6 @@ mod tests {
   }
 
   #[test]
-  fn https_port_requires_acme_flags() {
-    let err = Arguments::try_parse_from(&["ord", "server", "--https-port=0"])
-      .unwrap_err()
-      .to_string();
-
-    assert!(
-      err.starts_with("error: The following required arguments were not provided:\n    --acme-domain <ACME_DOMAIN>\n"),
-      "{}",
-      err
-    );
-  }
-
-  #[test]
-  fn https_requires_acme_flags() {
-    let err = Arguments::try_parse_from(&["ord", "server", "--https"])
-      .unwrap_err()
-      .to_string();
-
-    assert!(
-      err.starts_with("error: The following required arguments were not provided:\n    --acme-domain <ACME_DOMAIN>\n"),
-      "{}",
-      err
-    );
-  }
-
-  #[test]
   fn http_port_defaults_to_80() {
     assert_eq!(parse_server_args("").http_port(), Some(80));
   }
@@ -597,19 +566,6 @@ mod tests {
       parse_server_args("--https --http --acme-cache foo --acme-contact bar --acme-domain baz")
         .https_port(),
       Some(443)
-    );
-  }
-
-  #[test]
-  fn http_port_requires_acme_flags() {
-    let err = Arguments::try_parse_from(&["ord", "server", "--https-port=0"])
-      .unwrap_err()
-      .to_string();
-
-    assert!(
-      err.starts_with("error: The following required arguments were not provided:\n    --acme-domain <ACME_DOMAIN>\n"),
-      "{}",
-      err
     );
   }
 
