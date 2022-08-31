@@ -201,7 +201,7 @@ impl Server {
   }
 
   fn acceptor(&self, options: &Options) -> Result<Option<AxumAcceptor>> {
-    if self.https_port.is_some() {
+    if self.https_port().is_some() {
       let config = AcmeConfig::new(Self::acme_domains(&self.acme_domain)?)
         .contact(&self.acme_contact)
         .cache_option(Some(DirCache::new(Self::acme_cache(
