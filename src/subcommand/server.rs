@@ -582,7 +582,7 @@ mod tests {
   }
 
   #[test]
-  fn https_with_http_leaves_http_enabled() {
+  fn http_with_https_leaves_http_enabled() {
     assert_eq!(
       parse_server_args("--https --http --acme-cache foo --acme-contact bar --acme-domain baz")
         .http_port(),
@@ -591,7 +591,7 @@ mod tests {
   }
 
   #[test]
-  fn http_with_https_leaves_http_enabled() {
+  fn http_with_https_leaves_https_enabled() {
     assert_eq!(
       parse_server_args("--https --http --acme-cache foo --acme-contact bar --acme-domain baz")
         .https_port(),
