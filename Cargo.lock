@@ -1933,7 +1933,6 @@ dependencies = [
  "pretty_assertions",
  "pulldown-cmark",
  "rayon",
- "rcgen",
  "redb",
  "regex",
  "reqwest",
@@ -2374,7 +2373,6 @@ dependencies = [
  "pem",
  "ring",
  "time 0.3.13",
- "x509-parser",
  "yasna",
 ]
 
@@ -3713,7 +3711,6 @@ dependencies = [
  "lazy_static",
  "nom",
  "oid-registry",
- "ring",
  "rusticata-macros",
  "thiserror",
  "time 0.3.13",
