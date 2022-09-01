@@ -1,17 +1,10 @@
-# Ordinals
+`ord`
+=====
 
-A scheme for assigning ordinal numbers to satoshis and tracking them across
-transactions, and a command-line utility, `ord` for querying information about
-ordinals.
+`ord` is an ordinal index, block explorer, and command-line ordinal wallet.
 
-Ordinal numbers can be used as an addressing scheme for NFTs. In such a scheme,
-the NFT creator would create a message that assigned a new NFT Y to the satoshi
-with ordinal X. The owner of the UTXO containing the satoshi with ordinal X
-owns NFT Y, and can transfer that ownership to another person with a
-transaction that sends ordinal Y to a UTXO that the new owner controls. The
-current owner can sign a message proving that they own a given UTXO, which also
-serves as proof of ownership of all the NFTs assigned to satoshis within that
-UTXO.
+Ordinals are serial numbers for satoshis, assigned in the order in which they
+are mined, and preserved across transactions.
 
 See [the BIP](bip.mediawiki) for a comprehensive description of the assignment
 and transfer algorithm.
@@ -22,101 +15,51 @@ prioritized issues.
 Join [the Discord server](https://discord.gg/87cjuz4FYg) to chat with fellow
 ordinal degenerates.
 
-## Index and Caveats
+Contributing
+------------
 
-The `ord` command queries `bitcoind` for block data. Most commands require
-`--rpc-url` and `--cookie-file`, which take the URL of a `bitcoind`'s JSON RPC
-API and authentication cookie file respectively.
+Find an issue you like with the [good first
+issue](https://github.com/casey/ord/labels/good%20first%20issue) label. Before
+you start working, comment on the issue saying you're interested in working on
+it. The issue may already be implemented, out of date, or not fully fleshed
+out.
 
-The index is stored in `index.redb`, and should not be concurrently modified
-while an instance of `ord` is running, or used by two `ord` instances
-simultaneously.
+`ord` is extensively tested, and all PRs with new functionality or bug fixes
+require tests. Before starting to write code, open a draft PR with failing
+tests that demonstrate the functionality to be written, or the bug to be fixed.
+This allows the maintainers to make sure that everyone is on the same page, and
+that there's a good strategy to test the PR. Once that's done, you can start
+writing the actual code.
 
-Currently, reorganizations are detected but not handled, the index is slow to
-build and space-inefficient, and the full main chain has not yet been indexed.
+`ord` is licensed under the CC0, a no-strings-attached public domain dedication
+and fallback license. Your changes must be licensed under the CC0, without any
+additional terms or conditions
 
-## Numbering
+Running `ord`
+-------------
 
-Satoshis are assigned ordinal numbers in the order in which they are mined.
-Ordinals start at 0, for the first satoshi of the genesis block, and end with
-2099999997689999, the only satoshi mined in block 6929999, the last
-subsidy-paying block.
+`ord` requires a synced `bitcoind` node with `-txindex` to build the index of
+ordinal locations. `ord` communicates with `bitcoind` via RPC.
 
-Ordinals depend only on how many satoshis *could* have been mined in previous
-blocks, not how many were *actually* mined.
+If `bitcoind` is run locally by the same user, without additional
+configuration, `ord` should find it automatically by reading the `.cookie` file
+from `bitcoind`'s datadir, and connecting using the default RPC port.
 
-In particular, this means that block 124724, which underpaid the subsidy by one
-satoshi, does not reduce the ordinal ranges of subsequent blocks.
+If `bitcoind` is not on mainnet, is not run by the same user, has a non-default
+datadir, or a non-default port, you'll need to pass additional flags to `ord`.
+See `ord --help` for details.
 
-The `range` command gives the half-open range of ordinals that could be mined
-in the block at a given height:
+Index
+-----
 
-```
-$ ord range 0
-[0,5000000000)
-```
+The mainnet ordinal index is currently 50 GiB, and will increase in size in the
+future, both as the Bitcoin blockchain grows, and as additional tables are
+added to the index.
 
-## Transfer
+The signet ordinal index is much smaller, clocking in at 1.3 GiB.
 
-The ordinal numbers on satoshis input to a transaction are transferred to the
-transaction outputs in first-in-first-out order.
+Reorgs
+------
 
-Satoshis paid as fees are considered to be inputs to the coinbase transaction,
-after an implicit input containing the block subsidy, in the same order that
-their parent transactions appear in the block.
-
-If the coinbase transaction underpays the block subsidy or fees, those
-satoshis, along with their ordinal numbers, are permanently destroyed.
-
-The `find` command gives the satpoint containing the satoshi with a given
-ordinal:
-
-```
-$ ord find 0
-4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0
-```
-
-A satpoint is an outpoint, that is to say a transaction ID and output index,
-followed by the offset into the output itself, and gives the position of the
-satoshi within a particular output.
-
-## Traits
-
-Satoshis have traits, based on their ordinal.
-
-NB: Traits should be considered *UNSTABLE* and subject to change.
-
-The `traits` command prints out the traits of the satoshi with the given
-ordinal:
-
-```
-$ ord traits 0
-even
-square
-cube
-luck: 0/1
-population: 0
-name: nvtdijuwxlo
-character: '\u{0}'
-shiny
-block: 0
-```
-
-## Names
-
-Each satoshi is assigned a name, consisting of lowercase ASCII characters,
-based on its ordinal. Satoshi 0 has name `nvtdijuwxlo`, and names get shorter
-as the ordinal number gets larger. This is to ensure that short names aren't
-locked in the genesis block output which is unspendable, and other outputs,
-which are unlikely to ever be spent.
-
-The `name` command prints the ordinal of the satoshi with the given name:
-
-```
-$ ord name nvtdijuwxlo
-0
-$ ord name hello
-2099999993937872
-$ ord name ''
-2099999997689999
-```
+Currently, reorganizations are detected but not handled. After reorgs happen,
+you'll need to delete `index.redb` and start over.
