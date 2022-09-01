@@ -31,6 +31,10 @@ This allows the maintainers to make sure that everyone is on the same page, and
 that there's a good strategy to test the PR. Once that's done, you can start
 writing the actual code.
 
+`ord` is licensed under the CC0, a no-strings-attached public domain dedication
+and fallback license. Your changes must be licensed under the CC0, without any
+additional terms or conditions
+
 Running `ord`
 -------------
 
