@@ -41,7 +41,6 @@ mod index;
 mod info;
 mod list;
 mod name;
-mod nft;
 mod range;
 mod server;
 mod state;
