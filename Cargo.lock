@@ -301,17 +301,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "async-rustls"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c86f33abd5a4f3e2d6d9251a9e0c6a7e52eb1113caf893dae8429bf4a53f378"
-dependencies = [
- "futures-lite",
- "rustls 0.19.1",
- "webpki 0.21.4",
-]
-
-[[package]]
 name = "async-std"
 version = "1.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -444,7 +433,7 @@ dependencies = [
  "http-body",
  "hyper",
  "pin-project-lite",
- "rustls 0.20.6",
+ "rustls",
  "rustls-pemfile",
  "tokio",
  "tokio-rustls",
@@ -1000,7 +989,7 @@ checksum = "25ae36f27655f7705dd8e9105600a79e4f23d390649abbbc57aa87adbc57245d"
 dependencies = [
  "bitcoin",
  "log",
- "rustls 0.20.6",
+ "rustls",
  "serde",
  "serde_json",
  "socks",
@@ -1191,7 +1180,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d2411eed028cdf8c8034eaf21f9915f956b6c3abec4d4c7949ee67f0721127bd"
 dependencies = [
  "futures-io",
- "rustls 0.20.6",
+ "rustls",
  "webpki 0.22.0",
 ]
 
@@ -1323,12 +1312,6 @@ dependencies = [
  "tokio-util",
  "tracing",
 ]
-
-[[package]]
-name = "half"
-version = "1.8.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eabb4a44450da02c90444cf74558da904edde8fb4e9035a9a6a4e15445af0bd7"
 
 [[package]]
 name = "hashbrown"
@@ -1910,7 +1893,6 @@ name = "ord"
 version = "0.0.3"
 dependencies = [
  "anyhow",
- "async-rustls",
  "axum",
  "axum-server",
  "bdk",
@@ -1937,10 +1919,9 @@ dependencies = [
  "regex",
  "reqwest",
  "rust-embed",
- "rustls 0.20.6",
+ "rustls",
  "rustls-acme",
  "serde",
- "serde_cbor",
  "serde_json",
  "sys-info",
  "tempfile",
@@ -2576,26 +2557,13 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.19.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "35edb675feee39aec9c99fa5ff985081995a06d594114ae14cbe797ad7b7a6d7"
-dependencies = [
- "base64",
- "log",
- "ring",
- "sct 0.6.1",
- "webpki 0.21.4",
-]
-
-[[package]]
-name = "rustls"
 version = "0.20.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5aab8ee6c7097ed6057f43c187a62418d0c05a4bd5f18b3571db50ee0f9ce033"
 dependencies = [
  "log",
  "ring",
- "sct 0.7.0",
+ "sct",
  "webpki 0.22.0",
 ]
 
@@ -2619,7 +2587,7 @@ dependencies = [
  "pin-project",
  "rcgen",
  "ring",
- "rustls 0.20.6",
+ "rustls",
  "serde",
  "serde_json",
  "smol",
@@ -2670,16 +2638,6 @@ name = "scopeguard"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d29ab0c6d3fc0ee92fe66e2d99f700eab17a8d57d1c1d3b748380fb20baa78cd"
-
-[[package]]
-name = "sct"
-version = "0.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b362b83898e0e69f38515b82ee15aa80636befe47c3b6d3d89a911e78fc228ce"
-dependencies = [
- "ring",
- "untrusted",
-]
 
 [[package]]
 name = "sct"
@@ -2762,16 +2720,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "53e8e5d5b70924f74ff5c6d64d9a5acd91422117c60f48c4e07855238a254553"
 dependencies = [
  "serde_derive",
-]
-
-[[package]]
-name = "serde_cbor"
-version = "0.11.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2bef2ebfde456fb76bbcf9f59315333decc4fda0b2b44b420243c11e0f5ec1f5"
-dependencies = [
- "half",
- "serde",
 ]
 
 [[package]]
@@ -3237,7 +3185,7 @@ version = "0.23.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c43ee83903113e03984cb9e5cebe6c04a5116269e900e3ddba8f068a62adda59"
 dependencies = [
- "rustls 0.20.6",
+ "rustls",
  "tokio",
  "webpki 0.22.0",
 ]

@@ -145,9 +145,4 @@ impl Test {
     self.state.transaction(options);
     self
   }
-
-  pub(crate) fn write(self, path: &str, contents: &str) -> Self {
-    fs::write(self.state.tempdir.path().join(path), contents).unwrap();
-    self
-  }
 }

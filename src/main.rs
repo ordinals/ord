@@ -9,7 +9,6 @@ use {
     epoch::Epoch,
     height::Height,
     index::{Index, List},
-    nft::Nft,
     options::Options,
     ordinal::Ordinal,
     purse::Purse,
@@ -34,14 +33,12 @@ use {
     blockdata::{constants::COIN_VALUE, transaction::TxOut},
     consensus::{Decodable, Encodable},
     hash_types::BlockHash,
-    hashes::{sha256, sha256d, Hash, HashEngine},
+    hashes::{sha256d, Hash},
     secp256k1::{
-      self,
-      rand::{self, thread_rng},
-      schnorr::Signature,
-      KeyPair, Secp256k1, XOnlyPublicKey,
+      rand::{self},
+      Secp256k1,
     },
-    util::{key::PrivateKey, psbt::PartiallySignedTransaction},
+    util::psbt::PartiallySignedTransaction,
     Address, Block, Network, OutPoint, Transaction, Txid,
   },
   chrono::{DateTime, NaiveDateTime, Utc},
@@ -54,8 +51,7 @@ use {
     collections::VecDeque,
     env,
     fmt::{self, Display, Formatter},
-    fs,
-    io::{self, Write},
+    fs, io,
     net::ToSocketAddrs,
     ops::{Add, AddAssign, Deref, Sub},
     path::{Path, PathBuf},
@@ -98,7 +94,6 @@ mod degree;
 mod epoch;
 mod height;
 mod index;
-mod nft;
 mod options;
 mod ordinal;
 mod purse;
