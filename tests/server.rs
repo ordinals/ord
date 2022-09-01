@@ -352,7 +352,7 @@ fn clock_updates() {
   state.request_regex(
     "clock",
     200,
-    r#".*<line y2="-9" transform="rotate\(0\)"/>.*"#,
+    r#".*<line y2="-18" transform="rotate\(0\)"/>.*"#,
   );
 
   state.blocks(1);
@@ -360,7 +360,7 @@ fn clock_updates() {
   state.request_regex(
     "clock",
     200,
-    r#".*<line y2="-9" transform="rotate\(0.00005194805194805195\)"/>.*"#,
+    r#".*<line y2="-18" transform="rotate\(0.00005194805194805195\)"/>.*"#,
   );
 }
 
