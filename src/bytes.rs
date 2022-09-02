@@ -7,8 +7,21 @@ const TI: usize = GI << 10;
 const PI: usize = TI << 10;
 const EI: usize = PI << 10;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub(crate) struct Bytes(pub(crate) usize);
+
+impl Bytes {
+  pub(crate) const MIB: Bytes = Bytes(MI);
+  pub(crate) const TIB: Bytes = Bytes(TI);
+}
+
+impl Mul<usize> for Bytes {
+  type Output = Bytes;
+
+  fn mul(self, rhs: usize) -> Self::Output {
+    Bytes(self.0 * rhs)
+  }
+}
 
 impl FromStr for Bytes {
   type Err = Error;
@@ -35,7 +48,7 @@ impl FromStr for Bytes {
       _ => return Err(anyhow!("invalid suffix")),
     };
 
-    Ok(Bytes((value * multiple as f64) as usize))
+    Ok(Bytes((value * multiple as f64).ceil() as usize))
   }
 }
 

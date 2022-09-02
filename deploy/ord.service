@@ -11,7 +11,6 @@ Environment=RUST_LOG=info
 ExecStart=/usr/local/bin/ord \
   --bitcoin-data-dir /var/lib/bitcoind \
   --data-dir /var/lib/ord \
-  --max-index-size 1TiB \
   --chain ${CHAIN} \
   server \
   --acme-contact mailto:casey@rodarmor.com \

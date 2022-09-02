@@ -53,7 +53,7 @@ use {
     fmt::{self, Display, Formatter},
     fs, io,
     net::ToSocketAddrs,
-    ops::{Add, AddAssign, Deref, Sub},
+    ops::{Add, AddAssign, Deref, Mul, Sub},
     path::{Path, PathBuf},
     process,
     str::FromStr,
