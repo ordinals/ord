@@ -116,6 +116,14 @@ If `bitcoind` is not on mainnet, is not run by the same user, has a non-default
 datadir, or a non-default port, you'll need to pass additional flags to `ord`.
 See `ord --help` for details.
 
+### Logging
+
+`ord` uses [env_logger](https://docs.rs/env_logger/latest/env_logger/). Set the `RUST_LOG` environment variable in order to turn on logging. For example, run the server and show `info`-level log messages and above:
+
+```
+$ RUST_LOG=info cargo run server
+```
+
 Index
 -----
 
