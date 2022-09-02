@@ -2,8 +2,11 @@ use {super::*, clap::ValueEnum};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Options {
-  #[clap(long, default_value = "10MiB")]
-  pub(crate) max_index_size: Bytes,
+  #[clap(
+    long,
+    help = "Limit the ordinal index to <MAX_INDEX_SIZE> bytes. [mainnet, testnet, and signet default: 1 TiB, regtest default: 10 MiB]"
+  )]
+  pub(crate) max_index_size: Option<Bytes>,
   #[clap(long)]
   cookie_file: Option<PathBuf>,
   #[clap(long)]
@@ -45,6 +48,13 @@ impl Chain {
 }
 
 impl Options {
+  pub(crate) fn max_index_size(&self) -> Bytes {
+    self.max_index_size.unwrap_or(match self.chain.network() {
+      Network::Regtest => Bytes::MIB * 10,
+      Network::Bitcoin | Network::Signet | Network::Testnet => Bytes::TIB,
+    })
+  }
+
   pub(crate) fn rpc_url(&self) -> String {
     self
       .rpc_url
@@ -105,6 +115,60 @@ impl Options {
 #[cfg(test)]
 mod tests {
   use {super::*, std::path::Path};
+
+  #[test]
+  fn max_index_size_defaults() {
+    assert_eq!(
+      Arguments::try_parse_from(&["ord", "index"])
+        .unwrap()
+        .options
+        .max_index_size(),
+      Bytes::TIB
+    );
+
+    assert_eq!(
+      Arguments::try_parse_from(&["ord", "--chain=mainnet", "index"])
+        .unwrap()
+        .options
+        .max_index_size(),
+      Bytes::TIB
+    );
+
+    assert_eq!(
+      Arguments::try_parse_from(&["ord", "--chain=signet", "index"])
+        .unwrap()
+        .options
+        .max_index_size(),
+      Bytes::TIB
+    );
+
+    assert_eq!(
+      Arguments::try_parse_from(&["ord", "--chain=testnet", "index"])
+        .unwrap()
+        .options
+        .max_index_size(),
+      Bytes::TIB
+    );
+
+    assert_eq!(
+      Arguments::try_parse_from(&["ord", "--chain=regtest", "index"])
+        .unwrap()
+        .options
+        .max_index_size(),
+      Bytes::MIB * 10
+    );
+  }
+
+  #[test]
+  fn max_index_size_override() {
+    assert_eq!(
+      Arguments::try_parse_from(&["ord", "--max-index-size=1", "index"])
+        .unwrap()
+        .options
+        .max_index_size(),
+      Bytes(1),
+    );
+  }
 
   #[test]
   fn rpc_url_overrides_network() {
