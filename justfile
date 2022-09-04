@@ -40,12 +40,12 @@ test-deploy:
   vagrant up
   ssh-keyscan 192.168.56.4 >> ~/.ssh/known_hosts
   rsync -avz \
-  --delete \
-  --exclude .git \
-  --exclude target \
-  --exclude .vagrant \
-  --exclude index.redb \
-  . root@192.168.56.4:ord
+    --delete \
+    --exclude .git \
+    --exclude target \
+    --exclude .vagrant \
+    --exclude index.redb \
+    . root@192.168.56.4:ord
   ssh root@192.168.56.4 'cd ord && ./deploy/setup'
 
 status:
