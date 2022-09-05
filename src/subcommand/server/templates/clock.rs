@@ -2,6 +2,7 @@ use super::*;
 
 #[derive(Display)]
 pub(crate) struct ClockSvg {
+  height: u64,
   hour: f64,
   minute: f64,
   second: f64,
@@ -12,6 +13,7 @@ impl ClockSvg {
     let min = height.min(Epoch::FIRST_POST_SUBSIDY.starting_height());
 
     Self {
+      height: height.n(),
       hour: (min.n() % Epoch::FIRST_POST_SUBSIDY.starting_height().n()) as f64
         / Epoch::FIRST_POST_SUBSIDY.starting_height().n() as f64
         * 360.0,
