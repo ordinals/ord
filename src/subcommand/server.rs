@@ -8,7 +8,11 @@ use {
       range::RangeHtml, transaction::TransactionHtml, Content,
     },
   },
-  axum::{body, http::header, response::Response},
+  axum::{
+    body,
+    http::header,
+    response::{Redirect, Response},
+  },
   rust_embed::RustEmbed,
   rustls_acme::{
     acme::{LETS_ENCRYPT_PRODUCTION_DIRECTORY, LETS_ENCRYPT_STAGING_DIRECTORY},
@@ -21,10 +25,20 @@ use {
   tokio_stream::StreamExt,
 };
 
+// TODO:
+// - complain that intoresponse is implemented for ()
+// - write a test
+// - accept searches at /search/query
+
 mod deserialize_ordinal_from_str;
 mod templates;
 
-#[derive(RustEmbed)]
+#[derive(Deserialize)]
+struct Search {
+  query: String,
+}
+
+#[derive(Deserialize, RustEmbed)]
 #[folder = "static"]
 struct StaticAssets;
 
@@ -79,6 +93,10 @@ pub(crate) struct Server {
   https: bool,
 }
 
+// TODO:
+// - which path?
+//   - http://localhost/search?query=adsf
+
 impl Server {
   pub(crate) fn run(self, options: Options) -> Result {
     Runtime::new()?.block_on(async {
@@ -104,6 +122,7 @@ impl Server {
         .route("/ordinal/:ordinal", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
         .route("/range/:start/:end", get(Self::range))
+        .route("/search", get(Self::search))
         .route("/static/*path", get(Self::static_asset))
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
@@ -318,6 +337,8 @@ impl Server {
     }
   }
 
+  // axum::extract::Query
+
   async fn home(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
     match index.blocks(100) {
       Ok(blocks) => HomeHtml::new(blocks).page().into_response(),
@@ -409,6 +430,10 @@ impl Server {
         .unwrap_or_default()
         .to_string(),
     )
+  }
+
+  async fn search(search: extract::Query<Search>) -> Redirect {
+    Redirect::to(&format!("/ordinal/{}", search.query))
   }
 
   async fn favicon() -> impl IntoResponse {
