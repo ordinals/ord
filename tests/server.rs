@@ -204,6 +204,7 @@ fn home() {
     200,
     ".*<title>Ordinals</title>.*<h1>Ordinals</h1>
 <nav>.*</nav>
+.*
 <h2>Recent Blocks</h2>
 <ol start=1 reversed class=monospace>
   <li><a href=/block/[[:xdigit:]]{64} class=uncommon>[[:xdigit:]]{64}</a></li>
