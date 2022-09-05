@@ -88,10 +88,6 @@ pub(crate) struct Server {
   https: bool,
 }
 
-// TODO:
-// - which path?
-//   - http://localhost/search?query=adsf
-
 impl Server {
   pub(crate) fn run(self, options: Options) -> Result {
     Runtime::new()?.block_on(async {
