@@ -204,6 +204,7 @@ fn home() {
     200,
     ".*<title>Ordinals</title>.*<h1>Ordinals</h1>
 <nav>.*</nav>
+.*
 <h2>Recent Blocks</h2>
 <ol start=1 reversed class=monospace>
   <li><a href=/block/[[:xdigit:]]{64} class=uncommon>[[:xdigit:]]{64}</a></li>
@@ -368,4 +369,9 @@ fn clock_updates() {
 fn clock_is_served_with_svg_extension() {
   let mut state = State::new();
   state.request_regex("clock.svg", 200, "<svg.*");
+}
+
+#[test]
+fn search_returns_ordinal() {
+  State::new().request_regex("search?query=0", 200, ".*<h1>Ordinal 0</h1>.*");
 }

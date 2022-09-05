@@ -52,6 +52,11 @@ mod tests {
       .to_string(),
       "<h1>Ordinals</h1>
 <nav>.*</nav>
+<h2>Search</h2>
+<form action=/search method=get>
+  <input type=text name=query>
+  <input type=submit>
+</form>
 <h2>Recent Blocks</h2>
 <ol start=1 reversed class=monospace>
   <li><a href=/block/1{64} class=uncommon>1{64}</a></li>
