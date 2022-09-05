@@ -33,7 +33,7 @@ struct Search {
   query: String,
 }
 
-#[derive(Deserialize, RustEmbed)]
+#[derive(RustEmbed)]
 #[folder = "static"]
 struct StaticAssets;
 
