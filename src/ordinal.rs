@@ -107,9 +107,17 @@ impl Ordinal {
 
     let cycle_start_epoch = cycle_number * CYCLE_EPOCHS;
 
-    let cycle_progression = period_offset
-      .checked_sub(epoch_offset % PERIOD_BLOCKS)
-      .ok_or_else(|| anyhow!("Invalid relationship between epoch offset and period offset"))?;
+    // This checked sub is returning None so `ok_or_else` returns
+    // an error:
+    //
+    // For some reason I thought this would never be negative, why?
+    //
+    // epoch_offset % PERIOD_BLOCKS can be 2015
+    //
+    // - What is the earliest ordinal that has this problem?
+    // - Why did I assume that this checked_sub would always succeed?
+    let cycle_progression =
+      (((period_offset as i64) - ((epoch_offset % PERIOD_BLOCKS) as i64)).abs()) as u64;
 
     if cycle_progression % (Epoch::BLOCKS % PERIOD_BLOCKS) != 0 {
       bail!("Invalid relationship between epoch offset and period offset");
@@ -307,6 +315,25 @@ mod tests {
       Ordinal(2067187500000000 + 1).degree().to_string(),
       "1°0′0″1‴"
     );
+  }
+
+  #[test]
+  fn invalid_degree_bugfix() {
+    for height in 0..(CYCLE_EPOCHS * Epoch::BLOCKS) {
+      let expected = Height(height).starting_ordinal();
+      let degree = expected.degree();
+      let actual = degree.to_string().parse::<Ordinal>().unwrap();
+      assert_eq!(
+        actual, expected,
+        "Ordinal at height {height} did not round-trip from degree {degree} successfully"
+      );
+    }
+
+    assert_eq!(
+      Ordinal(1914226250000000).degree().to_string(),
+      "0°122762′794″0‴"
+    );
+    assert_eq!(parse("0°122762′794″0‴").unwrap(), 1914226250000000);
   }
 
   #[test]
