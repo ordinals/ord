@@ -25,11 +25,6 @@ use {
   tokio_stream::StreamExt,
 };
 
-// TODO:
-// - complain that intoresponse is implemented for ()
-// - write a test
-// - accept searches at /search/query
-
 mod deserialize_ordinal_from_str;
 mod templates;
 
