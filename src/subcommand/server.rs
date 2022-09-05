@@ -328,8 +328,6 @@ impl Server {
     }
   }
 
-  // axum::extract::Query
-
   async fn home(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
     match index.blocks(100) {
       Ok(blocks) => HomeHtml::new(blocks).page().into_response(),
