@@ -320,8 +320,11 @@ mod tests {
   #[test]
   fn invalid_degree_bugfix() {
     for height in 0..(CYCLE_EPOCHS * Epoch::BLOCKS) {
+      // 1054200000000000
       let expected = Height(height).starting_ordinal();
+      // 0°1680′0″0‴
       let degree = expected.degree();
+      // 2034637500000000
       let actual = degree.to_string().parse::<Ordinal>().unwrap();
       assert_eq!(
         actual, expected,
