@@ -7,6 +7,11 @@
   <a href=https://github.com/casey/ord>GitHub</a>
   <a href=https://discord.gg/87cjuz4FYg>Discord</a>
 </nav>
+<h2>Search</h2>
+<form action=/search method=get>
+  <input type=text name=query>
+  <input type=submit>
+</form>
 <h2>Recent Blocks</h2>
 <ol start={{self.last}} reversed class=monospace>
 %% for (rarity, hash) in &self.blocks {

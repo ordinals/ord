@@ -8,7 +8,11 @@ use {
       range::RangeHtml, transaction::TransactionHtml, Content,
     },
   },
-  axum::{body, http::header, response::Response},
+  axum::{
+    body,
+    http::header,
+    response::{Redirect, Response},
+  },
   rust_embed::RustEmbed,
   rustls_acme::{
     acme::{LETS_ENCRYPT_PRODUCTION_DIRECTORY, LETS_ENCRYPT_STAGING_DIRECTORY},
@@ -23,6 +27,11 @@ use {
 
 mod deserialize_ordinal_from_str;
 mod templates;
+
+#[derive(Deserialize)]
+struct Search {
+  query: String,
+}
 
 #[derive(RustEmbed)]
 #[folder = "static"]
@@ -104,6 +113,7 @@ impl Server {
         .route("/ordinal/:ordinal", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
         .route("/range/:start/:end", get(Self::range))
+        .route("/search", get(Self::search))
         .route("/static/*path", get(Self::static_asset))
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
@@ -409,6 +419,10 @@ impl Server {
         .unwrap_or_default()
         .to_string(),
     )
+  }
+
+  async fn search(search: extract::Query<Search>) -> Redirect {
+    Redirect::to(&format!("/ordinal/{}", search.query))
   }
 
   async fn favicon() -> impl IntoResponse {
