@@ -107,17 +107,17 @@ impl Ordinal {
 
     let cycle_start_epoch = cycle_number * CYCLE_EPOCHS;
 
-    let halving_increment = Epoch::BLOCKS % PERIOD_BLOCKS;
+    const HALVING_INCREMENT: u64 = Epoch::BLOCKS % PERIOD_BLOCKS;
     
     // For valid degrees the relationship between epoch_offset and period_offset
     // will increment by 336 every halving.
     let relationship = period_offset + Epoch::BLOCKS * CYCLE_EPOCHS - epoch_offset;
 
-    if relationship % halving_increment != 0 {
+    if relationship % HALVING_INCREMENT != 0 {
         bail!("Relationship between epoch offset and period offset must be multiple of 336");
     }
 
-    let epochs_since_cycle_start = relationship % PERIOD_BLOCKS / halving_increment;
+    let epochs_since_cycle_start = relationship % PERIOD_BLOCKS / HALVING_INCREMENT;
 
     let epoch = cycle_start_epoch + epochs_since_cycle_start;
 
