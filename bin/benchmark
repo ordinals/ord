@@ -5,11 +5,11 @@ set -euxo pipefail
 rm -rf benchmark
 mkdir benchmark
 
-export CARGO_PROFILE_RELEASE_DEBUG=true
-export RUST_LOG=info
 
 for height in 100 250 500 1000 2000; do
-  sudo --preserve-env=CARGO_PROFILE_RELEASE_DEBUG,RUST_LOG \
+  sudo \
+    CARGO_PROFILE_RELEASE_DEBUG=true \
+    RUST_LOG=info \
     cargo flamegraph \
     --deterministic \
     --bin ord \
