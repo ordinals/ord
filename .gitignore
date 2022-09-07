@@ -1,6 +1,6 @@
 /.idea/
 /.vagrant
-/flamegraph.svg
+/benchmark
 /index.lmdb
 /index.redb
 /ord.log
