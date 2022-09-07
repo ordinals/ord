@@ -1,5 +1,6 @@
 /.idea/
 /.vagrant
+/flamegraph.svg
 /index.lmdb
 /index.redb
 /ord.log

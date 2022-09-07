@@ -186,7 +186,6 @@ impl Index {
 
     let txdata = block
       .txdata
-      .as_slice()
       .par_iter()
       .map(|tx| (tx.txid(), tx))
       .collect::<Vec<(Txid, &Transaction)>>();
