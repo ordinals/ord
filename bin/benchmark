@@ -5,7 +5,6 @@ set -euxo pipefail
 rm -rf benchmark
 mkdir benchmark
 
-
 for height in 100 250 500 1000 2000; do
   sudo \
     CARGO_PROFILE_RELEASE_DEBUG=true \
