@@ -1,5 +1,6 @@
 /.idea/
 /.vagrant
+/benchmark
 /index.lmdb
 /index.redb
 /ord.log

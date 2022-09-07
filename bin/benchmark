@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+set -euxo pipefail
+
+rm -rf benchmark
+mkdir benchmark
+
+for HEIGHT_LIMIT in 100 250 500 1000 2000; do
+  sudo \
+    CARGO_PROFILE_RELEASE_DEBUG=true \
+    RUST_LOG=info \
+    cargo flamegraph \
+    --deterministic \
+    --bin ord \
+    --output benchmark/$HEIGHT_LIMIT.svg \
+    -- \
+    --chain signet \
+    --data-dir benchmark \
+    --height-limit $HEIGHT_LIMIT \
+    index
+done

@@ -17,6 +17,8 @@ pub(crate) struct Options {
   data_dir: Option<PathBuf>,
   #[clap(long)]
   bitcoin_data_dir: Option<PathBuf>,
+  #[clap(long)]
+  pub(crate) height_limit: Option<Height>,
 }
 
 #[derive(ValueEnum, Copy, Clone, Debug)]

@@ -107,15 +107,17 @@ impl Ordinal {
 
     let cycle_start_epoch = cycle_number * CYCLE_EPOCHS;
 
-    let cycle_progression = period_offset
-      .checked_sub(epoch_offset % PERIOD_BLOCKS)
-      .ok_or_else(|| anyhow!("Invalid relationship between epoch offset and period offset"))?;
+    const HALVING_INCREMENT: u64 = Epoch::BLOCKS % PERIOD_BLOCKS;
 
-    if cycle_progression % (Epoch::BLOCKS % PERIOD_BLOCKS) != 0 {
-      bail!("Invalid relationship between epoch offset and period offset");
+    // For valid degrees the relationship between epoch_offset and period_offset
+    // will increment by 336 every halving.
+    let relationship = period_offset + Epoch::BLOCKS * CYCLE_EPOCHS - epoch_offset;
+
+    if relationship % HALVING_INCREMENT != 0 {
+      bail!("Relationship between epoch offset and period offset must be multiple of 336");
     }
 
-    let epochs_since_cycle_start = cycle_progression / (Epoch::BLOCKS % PERIOD_BLOCKS);
+    let epochs_since_cycle_start = relationship % PERIOD_BLOCKS / HALVING_INCREMENT;
 
     let epoch = cycle_start_epoch + epochs_since_cycle_start;
 
@@ -307,6 +309,33 @@ mod tests {
       Ordinal(2067187500000000 + 1).degree().to_string(),
       "1°0′0″1‴"
     );
+  }
+
+  #[test]
+  fn invalid_degree_bugfix() {
+    // Break glass in case of emergency:
+    // for height in 0..(2 * CYCLE_EPOCHS * Epoch::BLOCKS) {
+    //   // 1054200000000000
+    //   let expected = Height(height).starting_ordinal();
+    //   // 0°1680′0″0‴
+    //   let degree = expected.degree();
+    //   // 2034637500000000
+    //   let actual = degree.to_string().parse::<Ordinal>().unwrap();
+    //   assert_eq!(
+    //     actual, expected,
+    //     "Ordinal at height {height} did not round-trip from degree {degree} successfully"
+    //   );
+    // }
+    assert_eq!(
+      Ordinal(1054200000000000).degree().to_string(),
+      "0°1680′0″0‴"
+    );
+    assert_eq!(parse("0°1680′0″0‴").unwrap(), 1054200000000000);
+    assert_eq!(
+      Ordinal(1914226250000000).degree().to_string(),
+      "0°122762′794″0‴"
+    );
+    assert_eq!(parse("0°122762′794″0‴").unwrap(), 1914226250000000);
   }
 
   #[test]

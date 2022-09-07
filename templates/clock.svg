@@ -12,6 +12,7 @@
   </style>
   <circle r="4000" fill="#dedede" stroke="none"/>
   <circle r="19" stroke-width="0.2"/>
+  <text y="4" dominant-baseline="middle" text-anchor="middle" stroke="none" font-size="4" fill="lightgrey">{{self.height}}</text>
   <line class="mythic" y1="-16" y2="-15" stroke-width="0.3" stroke="#d00505"><title>Genesis</title></line>
   <line class="epic" y1="-16" y2="-15" stroke-width="0.3" transform="rotate(10.90909090909091)"><title>1st Halving</title></line>
   <line class="epic" y1="-16" y2="-15" stroke-width="0.3" transform="rotate(21.81818181818182)"><title>2nd Halving</title></line>
