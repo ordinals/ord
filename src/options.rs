@@ -1,6 +1,6 @@
 use {super::*, clap::ValueEnum};
 
-#[derive(Debug, clap::Parser)]
+#[derive(Debug, Parser)]
 pub(crate) struct Options {
   #[clap(
     long,
