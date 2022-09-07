@@ -1,6 +1,7 @@
 <svg viewBox="-20 -20 40 40" stroke-linecap="round" stroke="black" fill="white" xmlns="http://www.w3.org/2000/svg">
   <circle r="4000" fill="#dedede" stroke="none"/>
   <circle r="19" stroke-width="0.2"/>
+  <text y="4" dominant-baseline="middle" text-anchor="middle" stroke="none" font-size="4" fill="lightgrey">{{self.height}}</text>
   <line y1="-16" y2="-15" stroke-width="0.3" stroke="#d00505"/>
   <line y1="-16" y2="-15" stroke-width="0.3" transform="rotate(10.90909090909091)"/>
   <line y1="-16" y2="-15" stroke-width="0.3" transform="rotate(21.81818181818182)"/>
