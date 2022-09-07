@@ -17,6 +17,7 @@ pub(crate) struct Index {
   client: Client,
   database: Database,
   database_path: PathBuf,
+  height_limit: Option<Height>,
 }
 
 pub(crate) enum List {
@@ -61,6 +62,7 @@ impl Index {
       client,
       database,
       database_path,
+      height_limit: options.height_limit,
     })
   }
 
@@ -121,6 +123,12 @@ impl Index {
 
   pub(crate) fn index_ranges(&self) -> Result {
     loop {
+      if let Some(height_limit) = self.height_limit {
+        if self.height()? >= height_limit {
+          break;
+        }
+      }
+
       let mut wtx = self.database.begin_write()?;
 
       let done = self.index_block(&mut wtx)?;
