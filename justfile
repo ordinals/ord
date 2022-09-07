@@ -93,3 +93,6 @@ download-log host="ordinals.com":
 
 graph:
   ./bin/graph ord.log
+
+flamegraph:
+  CARGO_PROFILE_RELEASE_DEBUG=true sudo cargo flamegraph -- index
