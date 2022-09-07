@@ -3,7 +3,7 @@
 set -euxo pipefail
 
 rm -rf benchmark
-mkdir tmp
+mkdir benchmark
 
 export CARGO_PROFILE_RELEASE_DEBUG=true
 export RUST_LOG=info
