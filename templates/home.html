@@ -11,7 +11,7 @@
     </nav>
   </div>
   <div>
-    <a href=/clock><img src=/clock height=auto width=80 /></a>
+    <a href=/clock><img src=/clock height=auto width=100 /></a>
   </div>
 </header>
 <h2>Search</h2>
@@ -20,8 +20,8 @@
   <input type=submit>
 </form>
 <h2>Recent Blocks</h2>
-<ol start={{self.last}} reversed class=monospace>
+<ol start={{self.last}} reversed class=monospace style="font-size: 1vw;">
 %% for (rarity, hash) in &self.blocks {
-  <li><a href=/block/{{hash}} class={{rarity}} style="font-size: 1vw;">{{hash}}</a></li>
+  <li><a href=/block/{{hash}} class={{rarity}}>{{hash}}</a></li>
 %% }
 </ol>
