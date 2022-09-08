@@ -97,5 +97,5 @@ graph:
 flamegraph:
   CARGO_PROFILE_RELEASE_DEBUG=true sudo cargo flamegraph -- index
 
-benchmark:
-  ./bin/benchmark
+benchmark dir="":
+  ./bin/benchmark {{dir}}

@@ -2,25 +2,35 @@
 
 set -euxo pipefail
 
-rm -rf benchmark
-mkdir benchmark
+dir=${1:-`git branch --show-current`}
+mkdir $dir
+cd $dir
 
-cd benchmark
+sudo \
+  CARGO_PROFILE_RELEASE_DEBUG=true \
+  RUST_LOG=info \
+  cargo flamegraph \
+  --deterministic \
+  --bin ord \
+  -- \
+  --chain signet \
+  --data-dir . \
+  --height-limit 0 \
+  index
 
-for HEIGHT_LIMIT in 100 250 500 1000 2000; do
-  /usr/bin/time -o $HEIGHT_LIMIT.time sudo \
-    CARGO_PROFILE_RELEASE_DEBUG=true \
-    RUST_LOG=info \
-    cargo flamegraph \
-    --deterministic \
-    --bin ord \
-    --output $HEIGHT_LIMIT.svg \
-    -- \
-    --chain signet \
-    --data-dir . \
-    --height-limit $HEIGHT_LIMIT \
-    index
-  sudo chown -n $UID $HEIGHT_LIMIT.svg
-  sudo chown -n $UID index.redb
-  mv index.redb $HEIGHT_LIMIT.redb
-done
+rm -f flamegraph.svg
+
+/usr/bin/time -o time sudo \
+  CARGO_PROFILE_RELEASE_DEBUG=true \
+  RUST_LOG=info \
+  cargo flamegraph \
+  --deterministic \
+  --bin ord \
+  -- \
+  --chain signet \
+  --data-dir . \
+  --height-limit 5000 \
+  index
+
+sudo chown -n $UID flamegraph.svg
+sudo chown -n $UID index.redb
