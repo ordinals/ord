@@ -20,7 +20,7 @@ for HEIGHT_LIMIT in 100 250 500 1000 2000; do
     --data-dir . \
     --height-limit $HEIGHT_LIMIT \
     index
-  sudo chown -n $UID $HEIGHT_LIMIT.time
+  sudo chown -n $UID $HEIGHT_LIMIT.svg
   sudo chown -n $UID index.redb
   mv index.redb $HEIGHT_LIMIT.redb
 done
