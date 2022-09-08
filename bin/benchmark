@@ -28,7 +28,7 @@ rm -f flamegraph.svg
   -- \
   --chain signet \
   --data-dir . \
-  --height-limit 10000 \
+  --height-limit 5000 \
   index
 
 sudo chown -n $UID flamegraph.svg
