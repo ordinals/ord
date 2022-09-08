@@ -122,6 +122,9 @@ impl Index {
   }
 
   pub(crate) fn index_ranges(&self) -> Result {
+    let mut block = 0;
+    let mut wtx = self.database.begin_write()?;
+
     loop {
       if let Some(height_limit) = self.height_limit {
         if self.height()? >= height_limit {
@@ -129,16 +132,21 @@ impl Index {
         }
       }
 
-      let mut wtx = self.database.begin_write()?;
-
       let done = self.index_block(&mut wtx)?;
 
-      wtx.commit()?;
+      if block % 1000 == 0 {
+        wtx.commit()?;
+        wtx = self.database.begin_write()?;
+      }
 
       if done || INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
         break;
       }
+
+      block += 1;
     }
+
+    wtx.commit()?;
 
     Ok(())
   }
