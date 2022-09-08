@@ -6,7 +6,7 @@ rm -rf benchmark
 mkdir benchmark
 
 for HEIGHT_LIMIT in 100 250 500 1000 2000; do
-  sudo \
+  /usr/bin/time -o benchmark/$HEIGHT_LIMIT.time sudo \
     CARGO_PROFILE_RELEASE_DEBUG=true \
     RUST_LOG=info \
     cargo flamegraph \
@@ -18,4 +18,5 @@ for HEIGHT_LIMIT in 100 250 500 1000 2000; do
     --data-dir benchmark \
     --height-limit $HEIGHT_LIMIT \
     index
+  rm benchmark/index.redb
 done
