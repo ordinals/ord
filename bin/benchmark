@@ -2,8 +2,9 @@
 
 set -euxo pipefail
 
-mkdir $1
-cd $1
+dir=${1:-`git branch --show-current`}
+mkdir $dir
+cd $dir
 
 sudo \
   CARGO_PROFILE_RELEASE_DEBUG=true \
