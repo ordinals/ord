@@ -1,12 +1,19 @@
-<h1>Ordinals</h1>
-<nav>
-  <a href=https://rodarmor.com/blog/ordinal-theory/>Theory</a>
-  <a href=/faq>FAQ</a>
-  <a href=/bounties>Bounties</a>
-  <a href=https://github.com/casey/ord/blob/master/bip.mediawiki>BIP</a>
-  <a href=https://github.com/casey/ord>GitHub</a>
-  <a href=https://discord.gg/87cjuz4FYg>Discord</a>
-</nav>
+<header style="display: flex; justify-content: space-between ; align-items: center;">
+  <div>
+    <h1>Ordinals</h1>
+    <nav>
+      <a href=https://rodarmor.com/blog/ordinal-theory/>Theory</a>
+      <a href=/faq>FAQ</a>
+      <a href=/bounties>Bounties</a>
+      <a href=https://github.com/casey/ord/blob/master/bip.mediawiki>BIP</a>
+      <a href=https://github.com/casey/ord>GitHub</a>
+      <a href=https://discord.gg/87cjuz4FYg>Discord</a>
+    </nav>
+  </div>
+  <div>
+    <a href=/clock><img src=/clock height=auto width=80 /></a>
+  </div>
+</header>
 <h2>Search</h2>
 <form action=/search method=get>
   <input type=text name=query>
@@ -15,6 +22,6 @@
 <h2>Recent Blocks</h2>
 <ol start={{self.last}} reversed class=monospace>
 %% for (rarity, hash) in &self.blocks {
-  <li><a href=/block/{{hash}} class={{rarity}}>{{hash}}</a></li>
+  <li><a href=/block/{{hash}} class={{rarity}} style="font-size: 1vw;">{{hash}}</a></li>
 %% }
 </ol>
