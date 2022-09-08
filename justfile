@@ -97,5 +97,5 @@ graph:
 flamegraph:
   CARGO_PROFILE_RELEASE_DEBUG=true sudo cargo flamegraph -- index
 
-benchmark dir="":
-  ./bin/benchmark {{dir}}
+benchmark dir=`git branch --show-current`:
+  ./bin/benchmark '{{dir}}'
