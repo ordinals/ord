@@ -170,11 +170,9 @@ impl Index {
     let block = loop {
       match self.block_at_height(height) {
         Err(err) => {
-          log::error!("Failed to fetch block {height}: {err}");
-
-          let seconds = 1 << errors;
-
           errors += 1;
+          let seconds = 1 << errors;
+          log::error!("Failed to fetch block {height}, retrying in {seconds}s: {err}");
 
           if seconds > 120 {
             log::error!("Would sleep for more than 120s, giving up");
