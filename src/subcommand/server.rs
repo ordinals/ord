@@ -425,10 +425,6 @@ impl Server {
     Redirect::to(&format!("/ordinal/{}", search.query))
   }
 
-  async fn favicon() -> impl IntoResponse {
-    Self::static_asset(extract::Path("/favicon.png".to_string())).await
-  }
-
   async fn static_asset(extract::Path(path): extract::Path<String>) -> impl IntoResponse {
     match StaticAssets::get(if let Some(stripped) = path.strip_prefix('/') {
       stripped
