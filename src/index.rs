@@ -166,10 +166,27 @@ impl Index {
       .map(|(height, _hash)| height + 1)
       .unwrap_or(0);
 
-    let block = match self.block_at_height(height)? {
-      Some(block) => block,
-      None => {
-        return Ok(true);
+    let mut errors = 0;
+    let block = loop {
+      match self.block_at_height(height) {
+        Err(err) => {
+          log::error!("Failed to fetch block {height}: {err}");
+
+          let seconds = 1 << errors;
+
+          errors += 1;
+
+          if seconds > 120 {
+            log::error!("Would sleep for more than 120s, giving up");
+            return Err(err);
+          }
+
+          thread::sleep(Duration::from_secs(seconds));
+        }
+        Ok(Some(block)) => break block,
+        Ok(None) => {
+          return Ok(true);
+        }
       }
     };
 
@@ -341,7 +358,7 @@ impl Index {
     Ok(())
   }
 
-  pub(crate) fn block_at_height(&self, height: u64) -> Result<Option<Block>> {
+  fn block_at_height(&self, height: u64) -> Result<Option<Block>> {
     match self.client.get_block_hash(height) {
       Ok(hash) => Ok(Some(self.client.get_block(&hash)?)),
       Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(
