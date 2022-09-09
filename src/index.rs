@@ -216,7 +216,7 @@ impl Index {
 
         let ordinal_ranges = outpoint_to_ordinal_ranges
           .get(&key)?
-          .ok_or_else(|| anyhow!("Could not find outpoint in index"))?;
+          .ok_or_else(|| anyhow!("Could not find outpoint {} in index", input.previous_output))?;
 
         for chunk in ordinal_ranges.chunks_exact(11) {
           input_ordinal_ranges.push_back(Self::decode_ordinal_range(chunk.try_into().unwrap()));
