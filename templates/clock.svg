@@ -10,7 +10,7 @@
         stroke: #f2a900;
     }
   </style>
-  <circle r="4000" fill="#dedede" stroke="none"/>
+  <circle r="4000" fill="#f2a900" stroke="none"/>
   <circle r="19" stroke-width="0.2"/>
   <text y="4" dominant-baseline="middle" text-anchor="middle" stroke="none" font-size="4" fill="lightgrey">{{self.height}}</text>
   <line class="mythic" y1="-16" y2="-15" stroke-width="0.3" stroke="#d00505"><title>Genesis</title></line>

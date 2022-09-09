@@ -108,7 +108,7 @@ impl Server {
         .route("/clock", get(Self::clock))
         .route("/clock.svg", get(Self::clock))
         .route("/faq", get(Self::faq))
-        .route("/favicon.ico", get(Self::favicon))
+        .route("/favicon.ico", get(Self::clock))
         .route("/height", get(Self::height))
         .route("/ordinal/:ordinal", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
