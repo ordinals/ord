@@ -108,7 +108,7 @@ impl Server {
         .route("/clock", get(Self::clock))
         .route("/clock.svg", get(Self::clock))
         .route("/faq", get(Self::faq))
-        .route("/favicon.ico", get(Self::favicon))
+        .route("/favicon.ico", get(Self::clock))
         .route("/height", get(Self::height))
         .route("/ordinal/:ordinal", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
@@ -423,10 +423,6 @@ impl Server {
 
   async fn search(search: extract::Query<Search>) -> Redirect {
     Redirect::to(&format!("/ordinal/{}", search.query))
-  }
-
-  async fn favicon() -> impl IntoResponse {
-    Self::static_asset(extract::Path("/favicon.png".to_string())).await
   }
 
   async fn static_asset(extract::Path(path): extract::Path<String>) -> impl IntoResponse {
