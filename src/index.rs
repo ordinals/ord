@@ -86,6 +86,8 @@ impl Index {
       .map(|(height, _hash)| height + 1)
       .unwrap_or(0);
 
+    dbg!(blocks_indexed);
+
     let outputs_indexed = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?.len()?;
 
     let stats = wtx.stats()?;
@@ -165,6 +167,8 @@ impl Index {
       .next()
       .map(|(height, _hash)| height + 1)
       .unwrap_or(0);
+
+    dbg!(height);
 
     let block = match self.block_at_height(height)? {
       Some(block) => block,
