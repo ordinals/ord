@@ -2,6 +2,8 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct List {
+  #[clap(long,short,help = "Use extended output format")]
+  longform: bool,
   outpoints: Vec<OutPoint>,
 }
 
@@ -12,11 +14,13 @@ impl List {
     for outpoint in self.outpoints {
       match index.list(outpoint)? {
         Some(crate::index::List::Unspent(ranges)) => {
-          let oldest = ranges.iter().min_by_key(|sat| sat.0).unwrap();
-          println!("{} {}", outpoint, oldest.0);
+          if self.longform {
+            let oldest = ranges.iter().min_by_key(|sat| sat.0).unwrap();
+            println!("{} {}", outpoint, oldest.0);
+          }
           for (start, end) in ranges {
-            let sats = end - start;
-            println!("  [{start},{end}) <{sats}>");
+            if self.longform { println!("  [{start},{end})<{}>", end-start) }
+            else { println!("[{start},{end})") }
           }
         }
         Some(crate::index::List::Spent(txid)) => return Err(anyhow!("Output {} spent in transaction {txid}", outpoint)),
