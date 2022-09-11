@@ -140,8 +140,9 @@ impl Index {
         wtx.commit()?;
         let now = Instant::now();
         log::info!(
-          "{}ms elapsed since previous commit, committed up to block {block} in {}ms",
+          "{}ms elapsed since previous commit, committed up to block {} in {}ms",
           (now - last_commit_time).as_millis(),
+          self.height()?.n(),
           (now - commit_start_time).as_millis()
         );
         last_commit_time = Instant::now();
@@ -159,8 +160,9 @@ impl Index {
     wtx.commit()?;
     let now = Instant::now();
     log::info!(
-      "{}ms elapsed since previous commit, final commit up to block {block} in {}ms",
+      "{}ms elapsed since previous commit, final commit up to block {} in {}ms",
       (now - last_commit_time).as_millis(),
+      self.height()?.n(),
       (now - commit_start_time).as_millis()
     );
 
