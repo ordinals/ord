@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+
+# set -euxo pipefail
+set -uo pipefail
+
+# Setup: Start bitcoind and create wallet
+setup() {
+  bitcoind -chain=regtest -printtoconsole=0 & \
+  BITCOIND_PID=$! 
+  sleep 2
+  # Add createwallet if not existing yet
+  bitcoin-cli -regtest createwallet "test-reorg" &>  /dev/null
+  bitcoin-cli -regtest loadwallet "test-reorg" &>  /dev/null
+}
+
+# Get current tip and print 
+get_chain_tip() {
+  TIP=`bitcoin-cli -regtest getbestblockhash`
+  HEIGHT=`bitcoin-cli -regtest getblockchaininfo | jq '.blocks'`
+  echo "  Block: "$HEIGHT 
+  echo "  Hash:  "$TIP
+  echo 
+}
+
+cleanup() {
+  kill -9 $BITCOIND_PID
+  kill -9 $ORD_PID
+  rm index.redb
+}
+trap cleanup INT
+
+setup
+echo "Current tip"
+get_chain_tip
+
+# Index first (so bash script know when to continue), then run server in background
+cargo run -- --chain regtest --data-dir . index
+cargo run -- --chain regtest --data-dir . server --address localhost --http-port 8080 2> /dev/null &
+ORD_PID=$! 
+
+echo "Orphaning block at height " $HEIGHT
+bitcoin-cli -regtest invalidateblock $TIP
+get_chain_tip
+ 
+
+echo "Mining 2 new blocks on top of " $HEIGHT
+bitcoin-cli -regtest -generate 2 &> /dev/null
+get_chain_tip
+
+
+sleep 2
+# Check if server detects reorg
+STATUS=`curl -s localhost:8080/status`
+if [[ $STATUS = "Reorg detected, please rebuild the database." ]]; then
+  echo "Successfully detected a reorg."
+  cleanup
+  exit 0
+else 
+  echo "Failed to detect a reorg."
+  cleanup
+  exit 1
+fi
