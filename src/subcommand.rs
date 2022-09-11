@@ -14,6 +14,7 @@ mod wallet;
 
 #[derive(Debug, Parser)]
 pub(crate) enum Subcommand {
+  Encode,
   Epochs,
   Find(find::Find),
   Index,
@@ -31,6 +32,7 @@ pub(crate) enum Subcommand {
 impl Subcommand {
   pub(crate) fn run(self, options: Options) -> Result<()> {
     match self {
+      Self::Encode => Index::open(&options)?.encode(),
       Self::Epochs => epochs::run(),
       Self::Find(find) => find.run(options),
       Self::Index => index::run(options),

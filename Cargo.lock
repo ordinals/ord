@@ -450,7 +450,7 @@ dependencies = [
  "cc",
  "cfg-if",
  "libc",
- "miniz_oxide",
+ "miniz_oxide 0.5.3",
  "object",
  "rustc-demangle",
 ]
@@ -1691,6 +1691,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "miniz_oxide"
+version = "0.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b275950c28b37e794e8c55d88aeb5e139d0ce23fdbbeda68f8d7174abdf9e8fa"
+dependencies = [
+ "adler",
+]
+
+[[package]]
 name = "mio"
 version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1911,6 +1920,7 @@ dependencies = [
  "http",
  "log",
  "mime_guess",
+ "miniz_oxide 0.6.2",
  "nix 0.24.2",
  "pretty_assertions",
  "pulldown-cmark",
@@ -1931,6 +1941,7 @@ dependencies = [
  "tower",
  "tower-http",
  "unindent",
+ "vint64",
 ]
 
 [[package]]
@@ -3394,6 +3405,12 @@ name = "version_check"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
+
+[[package]]
+name = "vint64"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e0b3dd7987b5df43ec8f5a1050d608b4d9c78a5785c70549635870b9cad9442c"
 
 [[package]]
 name = "waker-fn"

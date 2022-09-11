@@ -36,6 +36,8 @@ tokio-stream = "0.1.9"
 tokio-util = {version = "0.7.3", features = ["compat"] }
 tower = "0.4.13"
 tower-http = { version = "0.3.3", features = ["cors"] }
+miniz_oxide = "0.6.2"
+vint64 = "1.0.1"
 
 [dependencies.bdk]
 git = "https://github.com/terror/bdk.git"

@@ -66,6 +66,76 @@ impl Index {
     })
   }
 
+  pub(crate) fn encode(&self) -> Result {
+    let rtx = self.database.begin_read()?;
+
+    let outpoint_to_ordinal_ranges = rtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
+
+    let mut cursor = outpoint_to_ordinal_ranges.range([]..)?;
+
+    let mut raw = 0;
+    let mut packed = 0;
+    let mut compression1 = 0;
+    let mut compression6 = 0;
+    let mut compression9 = 0;
+    let mut compression10 = 0;
+    let mut packed_compression1 = 0;
+    let mut packed_compression6 = 0;
+    let mut packed_compression9 = 0;
+    let mut packed_compression10 = 0;
+    let mut bitcoin_varint = 0;
+    let mut vint64 = 0;
+    let mut packed_start_vint64_end = 0;
+
+    while let Some((_outpoint, ranges)) = cursor.next() {
+      packed += ranges.len();
+
+      let mut buffer = Vec::new();
+      for chunk in ranges.chunks_exact(11) {
+        let (start, end) = Index::decode_ordinal_range(chunk.try_into().unwrap());
+        buffer.extend_from_slice(&start.to_le_bytes());
+        buffer.extend_from_slice(&end.to_le_bytes());
+        bitcoin_varint += bitcoin::VarInt(start).len();
+        bitcoin_varint += bitcoin::VarInt(end).len();
+        vint64 += vint64::encoded_len(start);
+        vint64 += vint64::encoded_len(end);
+        packed_start_vint64_end += 7 + vint64::encoded_len(end);
+      }
+
+      raw += buffer.len();
+
+      compression1 += miniz_oxide::deflate::compress_to_vec(&buffer, 1).len();
+      compression6 += miniz_oxide::deflate::compress_to_vec(&buffer, 6).len();
+      compression9 += miniz_oxide::deflate::compress_to_vec(&buffer, 9).len();
+      compression10 += miniz_oxide::deflate::compress_to_vec(&buffer, 10).len();
+
+      packed_compression1 += miniz_oxide::deflate::compress_to_vec(&ranges, 1).len();
+      packed_compression6 += miniz_oxide::deflate::compress_to_vec(&ranges, 6).len();
+      packed_compression9 += miniz_oxide::deflate::compress_to_vec(&ranges, 9).len();
+      packed_compression10 += miniz_oxide::deflate::compress_to_vec(&ranges, 10).len();
+
+      if INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
+        return Ok(());
+      }
+    }
+
+    println!("raw:                     {raw}");
+    println!("packed:                  {packed}");
+    println!("compression1:            {compression1}");
+    println!("compression6:            {compression6}");
+    println!("compression9:            {compression9}");
+    println!("compression10:           {compression10}");
+    println!("packed_compression1:     {packed_compression1}");
+    println!("packed_compression6:     {packed_compression6}");
+    println!("packed_compression9:     {packed_compression9}");
+    println!("packed_compression10:    {packed_compression10}");
+    println!("vint64:                  {vint64}");
+    println!("bitcoin_varint:          {bitcoin_varint}");
+    println!("packed_start_vint64_end: {packed_start_vint64_end}");
+
+    Ok(())
+  }
+
   #[allow(clippy::self_named_constructors)]
   pub(crate) fn index(options: &Options) -> Result<Self> {
     let index = Self::open(options)?;
