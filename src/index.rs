@@ -9,9 +9,10 @@ use {
 mod rtx;
 
 const HEIGHT_TO_HASH: TableDefinition<u64, [u8]> = TableDefinition::new("HEIGHT_TO_HASH");
-const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8], [u8]> =
+const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8; 36], [u8]> =
   TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
-const OUTPOINT_TO_TXID: TableDefinition<[u8], [u8]> = TableDefinition::new("OUTPOINT_TO_TXID");
+const OUTPOINT_TO_TXID: TableDefinition<[u8; 36], [u8; 32]> =
+  TableDefinition::new("OUTPOINT_TO_TXID");
 
 pub(crate) struct Index {
   client: Client,
@@ -44,7 +45,7 @@ impl Index {
       Ok(database) => database,
       Err(redb::Error::Io(error)) if error.kind() == io::ErrorKind::NotFound => unsafe {
         Database::builder()
-          .set_write_strategy(WriteStrategy::Throughput)
+          .set_write_strategy(WriteStrategy::TwoPhase)
           .create(&database_path, options.max_index_size().0)?
       },
       Err(error) => return Err(error.into()),
@@ -170,11 +171,9 @@ impl Index {
     let block = loop {
       match self.block_at_height(height) {
         Err(err) => {
-          log::error!("Failed to fetch block {height}: {err}");
-
-          let seconds = 1 << errors;
-
           errors += 1;
+          let seconds = 1 << errors;
+          log::error!("Failed to fetch block {height}, retrying in {seconds}s: {err}");
 
           if seconds > 120 {
             log::error!("Would sleep for more than 120s, giving up");
@@ -229,7 +228,7 @@ impl Index {
       let mut input_ordinal_ranges = VecDeque::new();
 
       for input in &tx.input {
-        let key = serialize(&input.previous_output);
+        let key = serialize(&input.previous_output).try_into().unwrap();
 
         let ordinal_ranges = outpoint_to_ordinal_ranges
           .get(&key)?
@@ -307,8 +306,8 @@ impl Index {
     &self,
     txid: Txid,
     tx: &Transaction,
-    outpoint_to_ordinal_ranges: &mut Table<[u8], [u8]>,
-    #[allow(unused)] outpoint_to_txid: &mut Table<[u8], [u8]>,
+    outpoint_to_ordinal_ranges: &mut Table<[u8; 36], [u8]>,
+    #[allow(unused)] outpoint_to_txid: &mut Table<[u8; 36], [u8; 32]>,
     input_ordinal_ranges: &mut VecDeque<(u64, u64)>,
     ordinal_ranges_written: &mut u64,
   ) -> Result {
@@ -347,7 +346,7 @@ impl Index {
         *ordinal_ranges_written += 1;
       }
 
-      outpoint_to_ordinal_ranges.insert(&serialize(&outpoint), &ordinals)?;
+      outpoint_to_ordinal_ranges.insert(&serialize(&outpoint).try_into().unwrap(), &ordinals)?;
     }
 
     #[cfg(any())]
@@ -411,14 +410,14 @@ impl Index {
 
     let outpoint_to_ordinal_ranges = rtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
 
-    let mut cursor = outpoint_to_ordinal_ranges.range([]..)?;
+    let mut cursor = outpoint_to_ordinal_ranges.range([0; 36]..)?;
 
     while let Some((key, value)) = cursor.next() {
       let mut offset = 0;
       for chunk in value.chunks_exact(11) {
         let (start, end) = Index::decode_ordinal_range(chunk.try_into().unwrap());
         if start <= ordinal.0 && ordinal.0 < end {
-          let outpoint: OutPoint = Decodable::consensus_decode(key)?;
+          let outpoint: OutPoint = Decodable::consensus_decode(key.as_slice())?;
           return Ok(Some(SatPoint {
             outpoint,
             offset: offset + ordinal.0 - start,
@@ -437,7 +436,7 @@ impl Index {
         .database
         .begin_read()?
         .open_table(OUTPOINT_TO_ORDINAL_RANGES)?
-        .get(outpoint)?
+        .get(outpoint.try_into().unwrap())?
         .map(|outpoint| outpoint.to_vec()),
     )
   }
@@ -459,8 +458,8 @@ impl Index {
           .database
           .begin_read()?
           .open_table(OUTPOINT_TO_TXID)?
-          .get(&outpoint_encoded)?
-          .map(Txid::consensus_decode)
+          .get(&outpoint_encoded.try_into().unwrap())?
+          .map(|txid| Txid::consensus_decode(txid.as_slice()))
           .transpose()?
           .map(List::Spent),
       ),
