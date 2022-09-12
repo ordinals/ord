@@ -410,12 +410,7 @@ impl Index {
 
     let outpoint_to_ordinal_ranges = rtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
 
-    let mut cursor = outpoint_to_ordinal_ranges.range(
-      [
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0,
-      ]..,
-    )?;
+    let mut cursor = outpoint_to_ordinal_ranges.range([0; 36]..)?;
 
     while let Some((key, value)) = cursor.next() {
       let mut offset = 0;
