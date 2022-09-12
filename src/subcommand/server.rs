@@ -114,6 +114,7 @@ impl Server {
         .route("/output/:output", get(Self::output))
         .route("/range/:start/:end", get(Self::range))
         .route("/search", get(Self::search))
+        .route("/search/:query", get(Self::search_path))
         .route("/static/*path", get(Self::static_asset))
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
@@ -423,6 +424,10 @@ impl Server {
   }
 
   async fn search(search: extract::Query<Search>) -> Redirect {
+    Redirect::to(&format!("/ordinal/{}", search.query))
+  }
+
+  async fn search_path(search: extract::Path<Search>) -> Redirect {
     Redirect::to(&format!("/ordinal/{}", search.query))
   }
 
