@@ -13,6 +13,8 @@ const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8; 36], [u8]> =
   TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
 const OUTPOINT_TO_TXID: TableDefinition<[u8; 36], [u8; 32]> =
   TableDefinition::new("OUTPOINT_TO_TXID");
+// Don't know if we need a whole table, cause I just want to store one value persistently.
+const OUTPUTS_TRAVERSED: TableDefinition<u8, u64> = TableDefinition::new("TOTAL_OUTPUTS_TRAVERSED");
 
 pub(crate) struct Index {
   client: Client,
@@ -56,6 +58,7 @@ impl Index {
     tx.open_table(HEIGHT_TO_HASH)?;
     tx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
     tx.open_table(OUTPOINT_TO_TXID)?;
+    tx.open_table(OUTPUTS_TRAVERSED)?; // set default value if empty? This looks really wrong
 
     tx.commit()?;
 
@@ -88,11 +91,13 @@ impl Index {
       .unwrap_or(0);
 
     let outputs_indexed = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?.len()?;
-
+    // Double unwrap, let's go !!
+    let outputs_traversed = wtx.open_table(OUTPUTS_TRAVERSED)?.get(&0).unwrap().unwrap();
     let stats = wtx.stats()?;
 
     println!("blocks indexed: {}", blocks_indexed);
     println!("outputs indexed: {}", outputs_indexed);
+    println!("outputs traversed: {}", outputs_traversed);
     println!("tree height: {}", stats.tree_height());
     println!("free pages: {}", stats.free_pages());
     println!("stored: {}", Bytes(stats.stored_bytes()));
@@ -156,9 +161,11 @@ impl Index {
     let mut height_to_hash = wtx.open_table(HEIGHT_TO_HASH)?;
     let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
     let mut outpoint_to_txid = wtx.open_table(OUTPOINT_TO_TXID)?;
+    let mut outputs_traversed = wtx.open_table(OUTPUTS_TRAVERSED)?;
 
     let start = Instant::now();
     let mut ordinal_ranges_written = 0;
+    let mut outputs_in_block = 0;
 
     let height = height_to_hash
       .range(0..)?
@@ -248,6 +255,7 @@ impl Index {
         &mut outpoint_to_txid,
         &mut input_ordinal_ranges,
         &mut ordinal_ranges_written,
+        &mut outputs_in_block,
       )?;
 
       coinbase_inputs.extend(input_ordinal_ranges);
@@ -261,10 +269,19 @@ impl Index {
         &mut outpoint_to_txid,
         &mut coinbase_inputs,
         &mut ordinal_ranges_written,
+        &mut outputs_in_block,
       )?;
     }
 
     height_to_hash.insert(&height, &block.block_hash())?;
+
+    // TODO: error handling
+    if outputs_traversed.is_empty().unwrap() {
+      outputs_traversed.insert(&0, &0)?;
+    }
+    // TODO: double unwrap
+    let sum = outputs_in_block + outputs_traversed.get(&0).unwrap().unwrap();
+    outputs_traversed.insert(&0, &sum)?;
 
     log::info!(
       "Wrote {ordinal_ranges_written} ordinal ranges in {}ms",
@@ -310,6 +327,7 @@ impl Index {
     #[allow(unused)] outpoint_to_txid: &mut Table<[u8; 36], [u8; 32]>,
     input_ordinal_ranges: &mut VecDeque<(u64, u64)>,
     ordinal_ranges_written: &mut u64,
+    outputs_traversed: &mut u64,
   ) -> Result {
     for (vout, output) in tx.output.iter().enumerate() {
       let outpoint = OutPoint {
@@ -345,6 +363,8 @@ impl Index {
 
         *ordinal_ranges_written += 1;
       }
+
+      *outputs_traversed += 1;
 
       outpoint_to_ordinal_ranges.insert(&serialize(&outpoint).try_into().unwrap(), &ordinals)?;
     }
