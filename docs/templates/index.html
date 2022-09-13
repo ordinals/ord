@@ -1,3 +1,6 @@
+{% extends "base.html" %}
+
+{% block content %}
 <ul>
   {% for page in section.pages %}
   <li>
@@ -5,3 +8,4 @@
   </li>
   {% endfor %}
 </ul>
+{% endblock content %}
