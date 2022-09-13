@@ -140,7 +140,7 @@ impl Index {
         }
       }
 
-      let done = self.index_block(&mut wtx)?;
+      let done = self.index_block(&mut wtx, height)?;
 
       if i > 0 && i % 1000 == 0 {
         wtx.commit()?;
@@ -157,20 +157,13 @@ impl Index {
     Ok(())
   }
 
-  pub(crate) fn index_block(&self, wtx: &mut WriteTransaction) -> Result<bool> {
+  pub(crate) fn index_block(&self, wtx: &mut WriteTransaction, height: u64) -> Result<bool> {
     let mut height_to_hash = wtx.open_table(HEIGHT_TO_HASH)?;
     let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
     let mut outpoint_to_txid = wtx.open_table(OUTPOINT_TO_TXID)?;
 
     let start = Instant::now();
     let mut ordinal_ranges_written = 0;
-
-    let height = height_to_hash
-      .range(0..)?
-      .rev()
-      .next()
-      .map(|(height, _hash)| height + 1)
-      .unwrap_or(0);
 
     let mut errors = 0;
     let block = loop {
