@@ -90,13 +90,13 @@ impl Index {
       .map(|(height, _hash)| height + 1)
       .unwrap_or(0);
 
-    let outputs_indexed = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?.len()?;
+    let utxos_indexed = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?.len()?;
     // Double unwrap, let's go !!
     let outputs_traversed = wtx.open_table(OUTPUTS_TRAVERSED)?.get(&0).unwrap().unwrap();
     let stats = wtx.stats()?;
 
     println!("blocks indexed: {}", blocks_indexed);
-    println!("outputs indexed: {}", outputs_indexed);
+    println!("utxos indexed: {}", utxos_indexed);
     println!("outputs traversed: {}", outputs_traversed);
     println!("tree height: {}", stats.tree_height());
     println!("free pages: {}", stats.free_pages());
