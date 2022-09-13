@@ -132,6 +132,7 @@ impl Server {
         self.spawn(&router, &handle, None)?,
         self.spawn(&router, &handle, self.acceptor(&options)?)?
       );
+
       http_result.and(https_result)?.transpose()?;
 
       Ok(())
@@ -643,5 +644,83 @@ mod tests {
       Server::acme_domains(&vec!["example.com".into()]).unwrap(),
       &["example.com"]
     );
+  }
+
+  fn foo(args: &str) -> (Options, Server) {
+    let arguments = Arguments::try_parse_from(args.split_whitespace()).unwrap();
+
+    match arguments.subcommand {
+      Subcommand::Server(server) => (arguments.options, server),
+      other => panic!("Unexpected subcommand: {other:?}"),
+    }
+  }
+
+  use {
+    jsonrpc_core::IoHandler,
+    jsonrpc_derive::rpc,
+    jsonrpc_http_server::{CloseHandle, ServerBuilder},
+    tempfile::TempDir,
+  };
+
+  #[rpc]
+  pub trait RpcApi {
+    #[rpc(name = "getblockhash")]
+    fn getblockhash(&self, height: usize) -> Result<BlockHash, jsonrpc_core::Error>;
+  }
+
+  struct RpcServer;
+
+  impl RpcServer {
+    fn spawn() -> (u16, CloseHandle) {
+      let server = Self;
+
+      let mut io = IoHandler::default();
+      io.extend_with(server.to_delegate());
+
+      let server = ServerBuilder::new(io)
+        .threads(1)
+        .start_http(&"127.0.0.1:0".parse().unwrap())
+        .unwrap();
+
+      let port = server.address().port();
+      let close_handle = server.close_handle();
+
+      thread::spawn(|| server.wait());
+
+      (port, close_handle)
+    }
+  }
+
+  impl RpcApi for RpcServer {
+    fn getblockhash(&self, _height: usize) -> Result<BlockHash, jsonrpc_core::Error> {
+      Err(jsonrpc_core::Error::new(
+        jsonrpc_core::types::error::ErrorCode::ServerError(-8),
+      ))
+    }
+  }
+
+  fn free_port() -> u16 {
+    TcpListener::bind("127.0.0.1:0")?.local_addr()?.port()
+  }
+
+  #[test]
+  fn bounty_redirects_to_docs_site() {
+    let (rpc_port, close_handle) = RpcServer::spawn();
+
+    let tempdir = TempDir::new().unwrap();
+
+    let cookiefile = tempdir.path().join("cookie");
+
+    fs::write(&cookiefile, "username:password").unwrap();
+
+    let (options, server) = foo(&format!(
+      "ord --rpc-url 127.0.0.1:{} --cookie-file {} --data-dir {} server --http-port {}",
+      rpc_port,
+      cookiefile.to_str().unwrap(),
+      tempdir.path().to_str().unwrap(),
+      free_port(),
+    ));
+
+    let join_handle = thread::spawn(|| server.run(options).unwrap());
   }
 }
