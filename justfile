@@ -99,3 +99,6 @@ flamegraph:
 
 benchmark dir=`git branch --show-current`:
   ./bin/benchmark '{{dir}}'
+
+serve-docs:
+  cd docs && zola serve --open
