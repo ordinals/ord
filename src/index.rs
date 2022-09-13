@@ -13,8 +13,7 @@ const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8; 36], [u8]> =
   TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
 const OUTPOINT_TO_TXID: TableDefinition<[u8; 36], [u8; 32]> =
   TableDefinition::new("OUTPOINT_TO_TXID");
-// Don't know if we need a whole table, cause I just want to store one value persistently.
-const OUTPUTS_TRAVERSED: TableDefinition<u8, u64> = TableDefinition::new("TOTAL_OUTPUTS_TRAVERSED");
+const OUTPUTS_TRAVERSED: TableDefinition<str, u64> = TableDefinition::new("OUTPUTS_TRAVERSED");
 
 pub(crate) struct Index {
   client: Client,
@@ -58,7 +57,7 @@ impl Index {
     tx.open_table(HEIGHT_TO_HASH)?;
     tx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
     tx.open_table(OUTPOINT_TO_TXID)?;
-    tx.open_table(OUTPUTS_TRAVERSED)?; // set default value if empty? This looks really wrong
+    tx.open_table(OUTPUTS_TRAVERSED)?;
 
     tx.commit()?;
 
@@ -91,8 +90,12 @@ impl Index {
       .unwrap_or(0);
 
     let utxos_indexed = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?.len()?;
-    // Double unwrap, let's go !!
-    let outputs_traversed = wtx.open_table(OUTPUTS_TRAVERSED)?.get(&0).unwrap().unwrap();
+
+    let outputs_traversed = wtx
+      .open_table(OUTPUTS_TRAVERSED)?
+      .get("outputs_traversed")?
+      .unwrap_or(0);
+
     let stats = wtx.stats()?;
 
     println!("blocks indexed: {}", blocks_indexed);
@@ -275,13 +278,13 @@ impl Index {
 
     height_to_hash.insert(&height, &block.block_hash())?;
 
-    // TODO: error handling
-    if outputs_traversed.is_empty().unwrap() {
-      outputs_traversed.insert(&0, &0)?;
+    // TODO: how to set default differently?
+    if outputs_traversed.is_empty()? {
+      outputs_traversed.insert("outputs_traversed", &0)?;
     }
-    // TODO: double unwrap
-    let sum = outputs_in_block + outputs_traversed.get(&0).unwrap().unwrap();
-    outputs_traversed.insert(&0, &sum)?;
+    // TODO: error handling
+    let sum = outputs_in_block + outputs_traversed.get("outputs_traversed")?.unwrap();
+    outputs_traversed.insert("outputs_traversed", &sum)?;
 
     log::info!(
       "Wrote {ordinal_ranges_written} ordinal ranges in {}ms",
