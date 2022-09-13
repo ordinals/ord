@@ -104,10 +104,8 @@ impl Server {
       let router = Router::new()
         .route("/", get(Self::home))
         .route("/block/:hash", get(Self::block))
-        .route("/bounties", get(Self::bounties))
         .route("/clock", get(Self::clock))
         .route("/clock.svg", get(Self::clock))
-        .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
         .route("/height", get(Self::height))
         .route("/ordinal/:ordinal", get(Self::ordinal))
@@ -472,24 +470,6 @@ impl Server {
         )
       }
     }
-  }
-
-  async fn faq() -> impl IntoResponse {
-    StaticHtml {
-      title: "Ordinal FAQ",
-      html: include_str!(concat!(env!("OUT_DIR"), "/faq.html")),
-    }
-    .page()
-    .into_response()
-  }
-
-  async fn bounties() -> impl IntoResponse {
-    StaticHtml {
-      title: "Ordinal Bounties",
-      html: include_str!(concat!(env!("OUT_DIR"), "/bounties.html")),
-    }
-    .page()
-    .into_response()
   }
 }
 
