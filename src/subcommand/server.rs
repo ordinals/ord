@@ -104,8 +104,10 @@ impl Server {
       let router = Router::new()
         .route("/", get(Self::home))
         .route("/block/:hash", get(Self::block))
+        .route("/bounties", get(Self::bounties))
         .route("/clock", get(Self::clock))
         .route("/clock.svg", get(Self::clock))
+        .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
         .route("/height", get(Self::height))
         .route("/ordinal/:ordinal", get(Self::ordinal))
@@ -470,6 +472,14 @@ impl Server {
         )
       }
     }
+  }
+
+  async fn faq() -> impl IntoResponse {
+    Redirect::to("https://docs.ordinals.com/faq/")
+  }
+
+  async fn bounties() -> impl IntoResponse {
+    Redirect::to("https://docs.ordinals.com/bounties/")
   }
 }
 
