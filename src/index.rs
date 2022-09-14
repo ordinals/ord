@@ -13,7 +13,7 @@ const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8; 36], [u8]> =
   TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
 const OUTPOINT_TO_TXID: TableDefinition<[u8; 36], [u8; 32]> =
   TableDefinition::new("OUTPOINT_TO_TXID");
-const OUTPUTS_TRAVERSED: TableDefinition<str, u64> = TableDefinition::new("OUTPUTS_TRAVERSED");
+const STATISTICS: TableDefinition<u64, u64> = TableDefinition::new("STATISTICS");
 
 pub(crate) struct Index {
   client: Client,
@@ -57,7 +57,7 @@ impl Index {
     tx.open_table(HEIGHT_TO_HASH)?;
     tx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
     tx.open_table(OUTPOINT_TO_TXID)?;
-    tx.open_table(OUTPUTS_TRAVERSED)?;
+    tx.open_table(STATISTICS)?;
 
     tx.commit()?;
 
@@ -92,8 +92,8 @@ impl Index {
     let utxos_indexed = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?.len()?;
 
     let outputs_traversed = wtx
-      .open_table(OUTPUTS_TRAVERSED)?
-      .get("outputs_traversed")?
+      .open_table(STATISTICS)?
+      .get(Statistics::OutputsTraversed.into())?
       .unwrap_or(0);
 
     let stats = wtx.stats()?;
@@ -164,7 +164,7 @@ impl Index {
     let mut height_to_hash = wtx.open_table(HEIGHT_TO_HASH)?;
     let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
     let mut outpoint_to_txid = wtx.open_table(OUTPOINT_TO_TXID)?;
-    let mut outputs_traversed = wtx.open_table(OUTPUTS_TRAVERSED)?;
+    let mut statistics = wtx.open_table(STATISTICS)?;
 
     let start = Instant::now();
     let mut ordinal_ranges_written = 0;
@@ -278,10 +278,6 @@ impl Index {
 
     height_to_hash.insert(&height, &block.block_hash())?;
 
-    // TODO: how to set default differently?
-    if outputs_traversed.is_empty()? {
-      outputs_traversed.insert("outputs_traversed", &0)?;
-    }
     // TODO: error handling
     let sum = outputs_in_block + outputs_traversed.get("outputs_traversed")?.unwrap();
     outputs_traversed.insert("outputs_traversed", &sum)?;
