@@ -28,8 +28,14 @@ pub(crate) enum List {
 }
 
 #[repr(u64)]
-enum Statistics {
+enum Statistic {
   OutputsTraversed = 0,
+}
+
+impl From<Statistic> for u64 {
+  fn from(statistic: Statistic) -> Self {
+    statistic as u64
+  }
 }
 
 impl Index {
@@ -96,8 +102,10 @@ impl Index {
 
     let utxos_indexed = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?.len()?;
 
-    let key = Statistics::OutputsTraversed as u64;
-    let outputs_traversed = wtx.open_table(STATISTICS)?.get(&key)?.unwrap_or(0);
+    let outputs_traversed = wtx
+      .open_table(STATISTICS)?
+      .get(&Statistic::OutputsTraversed.into())?
+      .unwrap_or(0);
 
     let stats = wtx.stats()?;
 
@@ -282,9 +290,9 @@ impl Index {
     height_to_hash.insert(&height, &block.block_hash())?;
 
     statistics.insert(
-      &(Statistics::OutputsTraversed as u64),
+      &Statistic::OutputsTraversed.into(),
       &(statistics
-        .get(&(Statistics::OutputsTraversed as u64))?
+        .get(&(Statistic::OutputsTraversed.into()))?
         .unwrap_or(0)
         + outputs_in_block),
     )?;
