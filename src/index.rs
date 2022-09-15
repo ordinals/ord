@@ -27,6 +27,11 @@ pub(crate) enum List {
   Unspent(Vec<(u64, u64)>),
 }
 
+#[repr(u64)]
+enum Statistics {
+  OutputsTraversed = 0,
+}
+
 impl Index {
   pub(crate) fn open(options: &Options) -> Result<Self> {
     let rpc_url = options.rpc_url();
@@ -91,10 +96,8 @@ impl Index {
 
     let utxos_indexed = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?.len()?;
 
-    let outputs_traversed = wtx
-      .open_table(STATISTICS)?
-      .get(Statistics::OutputsTraversed.into())?
-      .unwrap_or(0);
+    let key = Statistics::OutputsTraversed as u64;
+    let outputs_traversed = wtx.open_table(STATISTICS)?.get(&key)?.unwrap_or(0);
 
     let stats = wtx.stats()?;
 
@@ -278,9 +281,13 @@ impl Index {
 
     height_to_hash.insert(&height, &block.block_hash())?;
 
-    // TODO: error handling
-    let sum = outputs_in_block + outputs_traversed.get("outputs_traversed")?.unwrap();
-    outputs_traversed.insert("outputs_traversed", &sum)?;
+    statistics.insert(
+      &(Statistics::OutputsTraversed as u64),
+      &(statistics
+        .get(&(Statistics::OutputsTraversed as u64))?
+        .unwrap_or(0)
+        + outputs_in_block),
+    )?;
 
     log::info!(
       "Wrote {ordinal_ranges_written} ordinal ranges in {}ms",
