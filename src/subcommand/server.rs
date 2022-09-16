@@ -558,7 +558,7 @@ mod tests {
         match reqwest::blocking::get(&format!("http://127.0.0.1:{port}/status")) {
           Ok(_) => break,
           Err(err) => {
-            if i == 300 {
+            if i == 400 {
               panic!("Server failed to start: {err}");
             }
           }
