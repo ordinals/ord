@@ -321,26 +321,6 @@ fn static_asset() {
 }
 
 #[test]
-fn faq() {
-  let mut state = State::new();
-  state.request_regex(
-    "faq",
-    200,
-    r".*<title>Ordinal FAQ</title>.*<h1>Ordinal FAQ</h1>.*",
-  );
-}
-
-#[test]
-fn bounties() {
-  let mut state = State::new();
-  state.request_regex(
-    "bounties",
-    200,
-    r".*<title>Ordinal Bounties</title>.*<h1>Ordinal Bounties</h1>.*",
-  );
-}
-
-#[test]
 fn favicon() {
   let mut state = State::new();
   state.request_expected("favicon.ico", 200, Expected::Ignore);
