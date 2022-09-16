@@ -132,6 +132,7 @@ impl Server {
         self.spawn(&router, &handle, None)?,
         self.spawn(&router, &handle, self.acceptor(&options)?)?
       );
+
       http_result.and(https_result)?.transpose()?;
 
       Ok(())
@@ -475,37 +476,119 @@ impl Server {
   }
 
   async fn faq() -> impl IntoResponse {
-    StaticHtml {
-      title: "Ordinal FAQ",
-      html: include_str!(concat!(env!("OUT_DIR"), "/faq.html")),
-    }
-    .page()
-    .into_response()
+    Redirect::to("https://docs.ordinals.com/faq/")
   }
 
   async fn bounties() -> impl IntoResponse {
-    StaticHtml {
-      title: "Ordinal Bounties",
-      html: include_str!(concat!(env!("OUT_DIR"), "/bounties.html")),
-    }
-    .page()
-    .into_response()
+    Redirect::to("https://docs.ordinals.com/bounties/")
   }
 }
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+  use {
+    super::*,
+    jsonrpc_core::IoHandler,
+    jsonrpc_derive::rpc,
+    jsonrpc_http_server::{CloseHandle, ServerBuilder},
+    std::net::TcpListener,
+    tempfile::TempDir,
+  };
 
-  fn parse_server_args(args: &str) -> Server {
-    match Arguments::try_parse_from(
-      ["ord", "server"]
-        .iter()
-        .cloned()
-        .chain(args.split_whitespace()),
-    ) {
+  #[rpc]
+  pub trait BitcoinRpc {
+    fn getblockhash(&self, height: usize) -> Result<BlockHash, jsonrpc_core::Error>;
+  }
+
+  struct BitcoinRpcServer;
+
+  impl BitcoinRpc for BitcoinRpcServer {
+    fn getblockhash(&self, _height: usize) -> Result<BlockHash, jsonrpc_core::Error> {
+      Err(jsonrpc_core::Error::new(
+        jsonrpc_core::types::error::ErrorCode::ServerError(-8),
+      ))
+    }
+  }
+
+  struct TestServer {
+    close_handle: Option<CloseHandle>,
+    #[allow(unused)]
+    tempdir: TempDir,
+    port: u16,
+  }
+
+  impl TestServer {
+    fn new() -> Self {
+      let mut io = IoHandler::default();
+      io.extend_with(BitcoinRpcServer.to_delegate());
+
+      let rpc_server = ServerBuilder::new(io)
+        .threads(1)
+        .start_http(&"127.0.0.1:0".parse().unwrap())
+        .unwrap();
+
+      let rpc_port = rpc_server.address().port();
+      let close_handle = rpc_server.close_handle();
+
+      thread::spawn(|| rpc_server.wait());
+
+      let tempdir = TempDir::new().unwrap();
+
+      let cookiefile = tempdir.path().join("cookie");
+
+      fs::write(&cookiefile, "username:password").unwrap();
+
+      let port = TcpListener::bind("127.0.0.1:0")
+        .unwrap()
+        .local_addr()
+        .unwrap()
+        .port();
+
+      let (options, server) = parse_server_args(&format!(
+        "ord --rpc-url http://127.0.0.1:{} --cookie-file {} --data-dir {} server --http-port {}",
+        rpc_port,
+        cookiefile.to_str().unwrap(),
+        tempdir.path().to_str().unwrap(),
+        port,
+      ));
+
+      thread::spawn(|| server.run(options).unwrap());
+
+      for i in 0.. {
+        match reqwest::blocking::get(&format!("http://127.0.0.1:{port}/status")) {
+          Ok(_) => break,
+          Err(err) => {
+            if i == 400 {
+              panic!("Server failed to start: {err}");
+            }
+          }
+        }
+
+        thread::sleep(Duration::from_millis(25));
+      }
+
+      Self {
+        port,
+        close_handle: Some(close_handle),
+        tempdir,
+      }
+    }
+
+    fn url_with_path(&self, path: &str) -> String {
+      format!("http://127.0.0.1:{}/{path}", self.port)
+    }
+  }
+
+  impl Drop for TestServer {
+    fn drop(&mut self) {
+      self.close_handle.take().unwrap().close();
+    }
+  }
+
+  fn parse_server_args(args: &str) -> (Options, Server) {
+    match Arguments::try_parse_from(args.split_whitespace()) {
       Ok(arguments) => match arguments.subcommand {
-        Subcommand::Server(server) => server,
+        Subcommand::Server(server) => (arguments.options, server),
         subcommand => panic!("Unexpected subcommand: {subcommand:?}"),
       },
       Err(err) => panic!("Error parsing arguments: {err}"),
@@ -515,24 +598,25 @@ mod tests {
   #[test]
   fn http_and_https_port_dont_conflict() {
     parse_server_args(
-      "--http-port 0 --https-port 0 --acme-cache foo --acme-contact bar --acme-domain baz",
+      "ord server --http-port 0 --https-port 0 --acme-cache foo --acme-contact bar --acme-domain baz",
     );
   }
 
   #[test]
   fn http_port_defaults_to_80() {
-    assert_eq!(parse_server_args("").http_port(), Some(80));
+    assert_eq!(parse_server_args("ord server").1.http_port(), Some(80));
   }
 
   #[test]
   fn https_port_defaults_to_none() {
-    assert_eq!(parse_server_args("").https_port(), None);
+    assert_eq!(parse_server_args("ord server").1.https_port(), None);
   }
 
   #[test]
   fn https_sets_https_port_to_443() {
     assert_eq!(
-      parse_server_args("--https --acme-cache foo --acme-contact bar --acme-domain baz")
+      parse_server_args("ord server --https --acme-cache foo --acme-contact bar --acme-domain baz")
+        .1
         .https_port(),
       Some(443)
     );
@@ -541,7 +625,8 @@ mod tests {
   #[test]
   fn https_disables_http() {
     assert_eq!(
-      parse_server_args("--https --acme-cache foo --acme-contact bar --acme-domain baz")
+      parse_server_args("ord server --https --acme-cache foo --acme-contact bar --acme-domain baz")
+        .1
         .http_port(),
       None
     );
@@ -550,8 +635,11 @@ mod tests {
   #[test]
   fn https_port_disables_http() {
     assert_eq!(
-      parse_server_args("--https-port 433 --acme-cache foo --acme-contact bar --acme-domain baz")
-        .http_port(),
+      parse_server_args(
+        "ord server --https-port 433 --acme-cache foo --acme-contact bar --acme-domain baz"
+      )
+      .1
+      .http_port(),
       None
     );
   }
@@ -559,8 +647,11 @@ mod tests {
   #[test]
   fn https_port_sets_https_port() {
     assert_eq!(
-      parse_server_args("--https-port 1000 --acme-cache foo --acme-contact bar --acme-domain baz")
-        .https_port(),
+      parse_server_args(
+        "ord server --https-port 1000 --acme-cache foo --acme-contact bar --acme-domain baz"
+      )
+      .1
+      .https_port(),
       Some(1000)
     );
   }
@@ -568,8 +659,11 @@ mod tests {
   #[test]
   fn http_with_https_leaves_http_enabled() {
     assert_eq!(
-      parse_server_args("--https --http --acme-cache foo --acme-contact bar --acme-domain baz")
-        .http_port(),
+      parse_server_args(
+        "ord server --https --http --acme-cache foo --acme-contact bar --acme-domain baz"
+      )
+      .1
+      .http_port(),
       Some(80)
     );
   }
@@ -577,8 +671,11 @@ mod tests {
   #[test]
   fn http_with_https_leaves_https_enabled() {
     assert_eq!(
-      parse_server_args("--https --http --acme-cache foo --acme-contact bar --acme-domain baz")
-        .https_port(),
+      parse_server_args(
+        "ord server --https --http --acme-cache foo --acme-contact bar --acme-domain baz"
+      )
+      .1
+      .https_port(),
       Some(443)
     );
   }
@@ -652,6 +749,44 @@ mod tests {
     assert_eq!(
       Server::acme_domains(&vec!["example.com".into()]).unwrap(),
       &["example.com"]
+    );
+  }
+
+  #[test]
+  fn bounties_redirects_to_docs_site() {
+    let test_server = TestServer::new();
+
+    let response = reqwest::blocking::Client::builder()
+      .redirect(reqwest::redirect::Policy::none())
+      .build()
+      .unwrap()
+      .get(test_server.url_with_path("bounties"))
+      .send()
+      .unwrap();
+
+    assert_eq!(response.status(), StatusCode::SEE_OTHER);
+    assert_eq!(
+      response.headers().get(header::LOCATION).unwrap(),
+      "https://docs.ordinals.com/bounties/"
+    );
+  }
+
+  #[test]
+  fn faq_redirects_to_docs_site() {
+    let test_server = TestServer::new();
+
+    let response = reqwest::blocking::Client::builder()
+      .redirect(reqwest::redirect::Policy::none())
+      .build()
+      .unwrap()
+      .get(test_server.url_with_path("faq"))
+      .send()
+      .unwrap();
+
+    assert_eq!(response.status(), StatusCode::SEE_OTHER);
+    assert_eq!(
+      response.headers().get(header::LOCATION).unwrap(),
+      "https://docs.ordinals.com/faq/"
     );
   }
 }

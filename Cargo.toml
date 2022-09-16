@@ -41,6 +41,10 @@ tower-http = { version = "0.3.3", features = ["cors"] }
 [dev-dependencies]
 executable-path = "1.0.0"
 hex = "0.4.3"
+jsonrpc-core = "18.0.0"
+jsonrpc-core-client = "18.0.0"
+jsonrpc-derive = "18.0.0"
+jsonrpc-http-server = "18.0.0"
 log = "0.4.14"
 nix = "0.24.1"
 pretty_assertions = "1.2.1"

@@ -1,5 +1,6 @@
-Ordinal Bounties
-================
++++
+title = "Bounties"
++++
 
 Bounty 2
 --------

@@ -1,6 +1,6 @@
-Ordinal FAQ
-===========
-
++++
+title = "FAQ"
++++
 How many ordinals will there be?
 --------------------------------
 
