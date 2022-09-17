@@ -8,7 +8,7 @@ use {
 
 mod rtx;
 
-const HEIGHT_TO_HASH: TableDefinition<u64, [u8]> = TableDefinition::new("HEIGHT_TO_HASH");
+const HEIGHT_TO_HASH: TableDefinition<u64, [u8; 32]> = TableDefinition::new("HEIGHT_TO_HASH");
 const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8; 36], [u8]> =
   TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
 const OUTPOINT_TO_TXID: TableDefinition<[u8; 36], [u8; 32]> =
@@ -79,13 +79,7 @@ impl Index {
   pub(crate) fn print_info(&self) -> Result {
     let wtx = self.database.begin_write()?;
 
-    let blocks_indexed = wtx
-      .open_table(HEIGHT_TO_HASH)?
-      .range(0..)?
-      .rev()
-      .next()
-      .map(|(height, _hash)| height + 1)
-      .unwrap_or(0);
+    let blocks_indexed = Self::read_height_from_table(wtx.open_table(HEIGHT_TO_HASH)?)?;
 
     let outputs_indexed = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?.len()?;
 
@@ -108,6 +102,19 @@ impl Index {
     Ok(())
   }
 
+  fn read_height_from_table(
+    height_to_hash: impl redb::ReadableTable<u64, [u8; 32]>,
+  ) -> Result<u64> {
+    Ok(
+      height_to_hash
+        .range(0..)?
+        .rev()
+        .next()
+        .map(|(height, _hash)| height + 1)
+        .unwrap_or(0),
+    )
+  }
+
   pub(crate) fn decode_ordinal_range(bytes: [u8; 11]) -> (u64, u64) {
     let n = u128::from_le_bytes([
       bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7], bytes[8],
@@ -125,17 +132,11 @@ impl Index {
   pub(crate) fn index_ranges(&self) -> Result {
     let mut wtx = self.database.begin_write()?;
 
-    let height = wtx
-      .open_table(HEIGHT_TO_HASH)?
-      .range(0..)?
-      .rev()
-      .next()
-      .map(|(height, _hash)| height + 1)
-      .unwrap_or(0);
+    let height = Self::read_height_from_table(wtx.open_table(HEIGHT_TO_HASH)?)?;
 
     for (i, height) in (0..).zip(height..) {
-      if let Some(height_limit) = self.height_limit {
-        if height >= height_limit.0 {
+      if let Some(Height(height_limit)) = self.height_limit {
+        if height >= height_limit {
           break;
         }
       }
@@ -266,7 +267,7 @@ impl Index {
       )?;
     }
 
-    height_to_hash.insert(&height, &block.block_hash())?;
+    height_to_hash.insert(&height, &block.block_hash().as_ref().try_into().unwrap())?;
 
     log::info!(
       "Wrote {ordinal_ranges_written} ordinal ranges in {}ms",
@@ -476,15 +477,9 @@ impl Index {
       None => {
         let tx = self.database.begin_read()?;
 
-        let current = tx
-          .open_table(HEIGHT_TO_HASH)?
-          .range(0..)?
-          .rev()
-          .next()
-          .map(|(height, _hash)| height)
-          .unwrap_or(0);
+        let current = Self::read_height_from_table(tx.open_table(HEIGHT_TO_HASH)?)?;
 
-        let expected_blocks = height.checked_sub(current).with_context(|| {
+        let expected_blocks = (height + 1).checked_sub(current).with_context(|| {
           format!("Current {current} height is greater than ordinal height {height}")
         })?;
 
