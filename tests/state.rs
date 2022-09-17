@@ -264,7 +264,7 @@ impl State {
       .parse::<u64>()
       .unwrap();
 
-      if ord_height == bitcoind_height {
+      if ord_height == (bitcoind_height + 1) {
         break;
       } else {
         if attempt == 300 {
