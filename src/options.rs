@@ -1,6 +1,6 @@
 use {super::*, clap::ValueEnum};
 
-#[derive(Debug, Parser)]
+#[derive(Debug, Default, Parser)]
 pub(crate) struct Options {
   #[clap(
     long,
@@ -8,22 +8,23 @@ pub(crate) struct Options {
   )]
   pub(crate) max_index_size: Option<Bytes>,
   #[clap(long)]
-  cookie_file: Option<PathBuf>,
+  pub(crate) cookie_file: Option<PathBuf>,
   #[clap(long)]
-  rpc_url: Option<String>,
+  pub(crate) rpc_url: Option<String>,
   #[clap(long, arg_enum, default_value = "mainnet")]
   pub(crate) chain: Chain,
   #[clap(long)]
-  data_dir: Option<PathBuf>,
+  pub(crate) data_dir: Option<PathBuf>,
   #[clap(long)]
-  bitcoin_data_dir: Option<PathBuf>,
+  pub(crate) bitcoin_data_dir: Option<PathBuf>,
   #[clap(long)]
   pub(crate) height_limit: Option<Height>,
 }
 
-#[derive(ValueEnum, Copy, Clone, Debug)]
+#[derive(ValueEnum, Default, Copy, Clone, Debug)]
 pub(crate) enum Chain {
   Main,
+  #[default]
   Mainnet,
   Regtest,
   Signet,

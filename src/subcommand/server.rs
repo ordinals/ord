@@ -486,32 +486,11 @@ impl Server {
 
 #[cfg(test)]
 mod tests {
-  use {
-    super::*,
-    jsonrpc_core::IoHandler,
-    jsonrpc_derive::rpc,
-    jsonrpc_http_server::{CloseHandle, ServerBuilder},
-    std::net::TcpListener,
-    tempfile::TempDir,
-  };
-
-  #[rpc]
-  pub trait BitcoinRpc {
-    fn getblockhash(&self, height: usize) -> Result<BlockHash, jsonrpc_core::Error>;
-  }
-
-  struct BitcoinRpcServer;
-
-  impl BitcoinRpc for BitcoinRpcServer {
-    fn getblockhash(&self, _height: usize) -> Result<BlockHash, jsonrpc_core::Error> {
-      Err(jsonrpc_core::Error::new(
-        jsonrpc_core::types::error::ErrorCode::ServerError(-8),
-      ))
-    }
-  }
+  use {super::*, std::net::TcpListener, tempfile::TempDir};
 
   struct TestServer {
-    close_handle: Option<CloseHandle>,
+    #[allow(unused)]
+    bitcoin_rpc_server_handle: BitcoinRpcServerHandle,
     #[allow(unused)]
     tempdir: TempDir,
     port: u16,
@@ -519,18 +498,7 @@ mod tests {
 
   impl TestServer {
     fn new() -> Self {
-      let mut io = IoHandler::default();
-      io.extend_with(BitcoinRpcServer.to_delegate());
-
-      let rpc_server = ServerBuilder::new(io)
-        .threads(1)
-        .start_http(&"127.0.0.1:0".parse().unwrap())
-        .unwrap();
-
-      let rpc_port = rpc_server.address().port();
-      let close_handle = rpc_server.close_handle();
-
-      thread::spawn(|| rpc_server.wait());
+      let bitcoin_rpc_server_handle = BitcoinRpcServer::spawn();
 
       let tempdir = TempDir::new().unwrap();
 
@@ -546,7 +514,7 @@ mod tests {
 
       let (options, server) = parse_server_args(&format!(
         "ord --rpc-url http://127.0.0.1:{} --cookie-file {} --data-dir {} server --http-port {}",
-        rpc_port,
+        bitcoin_rpc_server_handle.port,
         cookiefile.to_str().unwrap(),
         tempdir.path().to_str().unwrap(),
         port,
@@ -568,20 +536,14 @@ mod tests {
       }
 
       Self {
+        bitcoin_rpc_server_handle,
         port,
-        close_handle: Some(close_handle),
         tempdir,
       }
     }
 
     fn url_with_path(&self, path: &str) -> String {
       format!("http://127.0.0.1:{}/{path}", self.port)
-    }
-  }
-
-  impl Drop for TestServer {
-    fn drop(&mut self) {
-      self.close_handle.take().unwrap().close();
     }
   }
 
