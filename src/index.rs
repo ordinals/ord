@@ -128,14 +128,14 @@ impl Index {
 
     loop {
       if let Some(height_limit) = self.height_limit {
-        if self.height()? >= height_limit {
+        if dbg!(self.height()?) >= height_limit {
           break;
         }
       }
 
       let done = self.index_block(&mut wtx)?;
 
-      if block % 1000 == 0 {
+      if block > 0 && block % 1000 == 0 {
         wtx.commit()?;
         wtx = self.database.begin_write()?;
       }
@@ -174,6 +174,10 @@ impl Index {
           errors += 1;
           let seconds = 1 << errors;
           log::error!("Failed to fetch block {height}, retrying in {seconds}s: {err}");
+
+          if cfg!(test) {
+            return Err(err);
+          }
 
           if seconds > 120 {
             log::error!("Would sleep for more than 120s, giving up");
@@ -491,5 +495,35 @@ impl Index {
         ))
       }
     }
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn off_by_some_height_limit_bugfix() {
+    let bitcoin_rpc_server = BitcoinRpcServer::spawn();
+
+    let tempdir = TempDir::new().unwrap();
+
+    let cookie_file = tempdir.path().join("cookie");
+
+    fs::write(&cookie_file, "username:password").unwrap();
+
+    let options = Options {
+      rpc_url: Some(format!("http://127.0.1:{}", bitcoin_rpc_server.port)),
+      data_dir: Some(tempdir.path().into()),
+      cookie_file: Some(cookie_file),
+      height_limit: Some(Height(1)),
+      ..Default::default()
+    };
+
+    let index = Index::open(&options).unwrap();
+
+    index.index_ranges().unwrap();
+
+    assert_eq!(index.height().unwrap(), 1);
   }
 }
