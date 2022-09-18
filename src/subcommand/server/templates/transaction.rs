@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Display)]
+#[derive(Boilerplate)]
 pub(crate) struct TransactionHtml {
   txid: Txid,
   outputs: Vec<OutPoint>,

@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Display)]
+#[derive(Boilerplate)]
 pub(crate) struct OutputHtml {
   pub(crate) outpoint: OutPoint,
   pub(crate) list: List,

@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Display)]
+#[derive(Boilerplate)]
 pub(crate) struct BlockHtml {
   hash: BlockHash,
   txids: Vec<Txid>,

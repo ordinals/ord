@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Display)]
+#[derive(Boilerplate)]
 pub(crate) struct OrdinalHtml {
   pub(crate) ordinal: Ordinal,
   pub(crate) blocktime: Blocktime,
