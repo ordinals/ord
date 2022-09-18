@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Display)]
+#[derive(Boilerplate)]
 pub(crate) struct RangeHtml {
   pub(crate) start: Ordinal,
   pub(crate) end: Ordinal,

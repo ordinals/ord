@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Display)]
+#[derive(Boilerplate)]
 pub(crate) struct HomeHtml {
   last: u64,
   blocks: Vec<(Rarity, BlockHash)>,
