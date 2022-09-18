@@ -1477,6 +1477,8 @@ dependencies = [
 [[package]]
 name = "html-escaper"
 version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "459a0ca33ee92551e0a3bb1774f2d3bdd1c09fb6341845736662dd25e1fcb52a"
 
 [[package]]
 name = "http"
