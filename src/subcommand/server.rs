@@ -513,7 +513,7 @@ mod tests {
         .port();
 
       let (options, server) = parse_server_args(&format!(
-        "ord --rpc-url http://127.0.0.1:{} --cookie-file {} --data-dir {} server --http-port {}",
+        "ord --chain regtest --rpc-url http://127.0.0.1:{} --cookie-file {} --data-dir {} server --http-port {}",
         bitcoin_rpc_server_handle.port,
         cookiefile.to_str().unwrap(),
         tempdir.path().to_str().unwrap(),
