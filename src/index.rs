@@ -289,7 +289,7 @@ impl Index {
       )?;
     }
 
-    height_to_hash.insert(&height, &block.block_hash().as_ref().try_into().unwrap())?;
+    height_to_hash.insert(&height, &block.block_hash().as_hash().into_inner())?;
 
     statistics.insert(
       &Statistic::OutputsTraversed.into(),
