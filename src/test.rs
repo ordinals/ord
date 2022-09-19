@@ -1,5 +1,6 @@
 use {
   super::*,
+  bitcoin::BlockHeader,
   jsonrpc_core::IoHandler,
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
   std::collections::BTreeMap,
@@ -39,7 +40,7 @@ impl BitcoinRpcServer {
     blocks.insert(genesis_block_hash, genesis_block);
 
     let next = Block {
-      header: bitcoin::BlockHeader {
+      header: BlockHeader {
         version: 0,
         prev_blockhash: genesis_block_hash,
         merkle_root: Default::default(),
@@ -47,23 +48,9 @@ impl BitcoinRpcServer {
         bits: 0,
         nonce: 0,
       },
-      txdata: vec![Transaction {
-        version: 0,
-        lock_time: 0,
-        input: vec![bitcoin::TxIn {
-          previous_output: OutPoint::null(),
-          script_sig: bitcoin::blockdata::script::Builder::new()
-            .push_scriptint(1)
-            .into_script(),
-          sequence: 0,
-          witness: bitcoin::Witness::new(),
-        }],
-        output: vec![TxOut {
-          value: 50 * 100_000_000,
-          script_pubkey: bitcoin::blockdata::script::Builder::new().into_script(),
-        }],
-      }],
+      txdata: Vec::new(),
     };
+
     let next_block_hash = next.block_hash();
 
     block_hashes.push(next_block_hash);
