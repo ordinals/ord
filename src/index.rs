@@ -553,6 +553,7 @@ mod tests {
           --data-dir {}
           --cookie-file {}
           --height-limit 0
+          --chain regtest
         ",
           bitcoin_rpc_server.port,
           tempdir.path().display(),
@@ -578,6 +579,7 @@ mod tests {
           --data-dir {}
           --cookie-file {}
           --height-limit 1
+          --chain regtest
         ",
           bitcoin_rpc_server.port,
           tempdir.path().display(),
