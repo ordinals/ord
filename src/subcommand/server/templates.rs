@@ -1,4 +1,8 @@
-use {super::*, boilerplate::Display};
+use {
+  super::*,
+  boilerplate::Boilerplate,
+  html_escaper::{Escape, Trusted},
+};
 
 pub(crate) mod block;
 pub(crate) mod clock;
@@ -8,7 +12,7 @@ pub(crate) mod output;
 pub(crate) mod range;
 pub(crate) mod transaction;
 
-#[derive(Display)]
+#[derive(Boilerplate)]
 pub(crate) struct PageHtml {
   content: Box<dyn Content>,
 }

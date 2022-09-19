@@ -13,6 +13,7 @@ const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8; 36], [u8]> =
   TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
 const OUTPOINT_TO_TXID: TableDefinition<[u8; 36], [u8; 32]> =
   TableDefinition::new("OUTPOINT_TO_TXID");
+const STATISTICS: TableDefinition<u64, u64> = TableDefinition::new("STATISTICS");
 
 pub(crate) struct Index {
   client: Client,
@@ -24,6 +25,17 @@ pub(crate) struct Index {
 pub(crate) enum List {
   Spent(Txid),
   Unspent(Vec<(u64, u64)>),
+}
+
+#[repr(u64)]
+enum Statistic {
+  OutputsTraversed = 0,
+}
+
+impl From<Statistic> for u64 {
+  fn from(statistic: Statistic) -> Self {
+    statistic as u64
+  }
 }
 
 impl Index {
@@ -56,6 +68,7 @@ impl Index {
     tx.open_table(HEIGHT_TO_HASH)?;
     tx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
     tx.open_table(OUTPOINT_TO_TXID)?;
+    tx.open_table(STATISTICS)?;
 
     tx.commit()?;
 
@@ -81,12 +94,18 @@ impl Index {
 
     let blocks_indexed = Self::read_height_from_table(wtx.open_table(HEIGHT_TO_HASH)?)?;
 
-    let outputs_indexed = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?.len()?;
+    let utxos_indexed = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?.len()?;
+
+    let outputs_traversed = wtx
+      .open_table(STATISTICS)?
+      .get(&Statistic::OutputsTraversed.into())?
+      .unwrap_or(0);
 
     let stats = wtx.stats()?;
 
     println!("blocks indexed: {}", blocks_indexed);
-    println!("outputs indexed: {}", outputs_indexed);
+    println!("utxos indexed: {}", utxos_indexed);
+    println!("outputs traversed: {}", outputs_traversed);
     println!("tree height: {}", stats.tree_height());
     println!("free pages: {}", stats.free_pages());
     println!("stored: {}", Bytes(stats.stored_bytes()));
@@ -162,9 +181,11 @@ impl Index {
     let mut height_to_hash = wtx.open_table(HEIGHT_TO_HASH)?;
     let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
     let mut outpoint_to_txid = wtx.open_table(OUTPOINT_TO_TXID)?;
+    let mut statistics = wtx.open_table(STATISTICS)?;
 
     let start = Instant::now();
     let mut ordinal_ranges_written = 0;
+    let mut outputs_in_block = 0;
 
     let mut errors = 0;
     let block = loop {
@@ -251,6 +272,7 @@ impl Index {
         &mut outpoint_to_txid,
         &mut input_ordinal_ranges,
         &mut ordinal_ranges_written,
+        &mut outputs_in_block,
       )?;
 
       coinbase_inputs.extend(input_ordinal_ranges);
@@ -264,10 +286,19 @@ impl Index {
         &mut outpoint_to_txid,
         &mut coinbase_inputs,
         &mut ordinal_ranges_written,
+        &mut outputs_in_block,
       )?;
     }
 
     height_to_hash.insert(&height, &block.block_hash().as_ref().try_into().unwrap())?;
+
+    statistics.insert(
+      &Statistic::OutputsTraversed.into(),
+      &(statistics
+        .get(&(Statistic::OutputsTraversed.into()))?
+        .unwrap_or(0)
+        + outputs_in_block),
+    )?;
 
     log::info!(
       "Wrote {ordinal_ranges_written} ordinal ranges in {}ms",
@@ -313,6 +344,7 @@ impl Index {
     #[allow(unused)] outpoint_to_txid: &mut Table<[u8; 36], [u8; 32]>,
     input_ordinal_ranges: &mut VecDeque<(u64, u64)>,
     ordinal_ranges_written: &mut u64,
+    outputs_traversed: &mut u64,
   ) -> Result {
     for (vout, output) in tx.output.iter().enumerate() {
       let outpoint = OutPoint {
@@ -348,6 +380,8 @@ impl Index {
 
         *ordinal_ranges_written += 1;
       }
+
+      *outputs_traversed += 1;
 
       outpoint_to_ordinal_ranges.insert(&serialize(&outpoint).try_into().unwrap(), &ordinals)?;
     }
