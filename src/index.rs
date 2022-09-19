@@ -535,7 +535,7 @@ mod tests {
   use super::*;
 
   #[test]
-  fn off_by_some_height_limit_bugfix() {
+  fn height_limit() {
     let bitcoin_rpc_server = BitcoinRpcServer::spawn();
 
     let tempdir = TempDir::new().unwrap();
@@ -544,27 +544,54 @@ mod tests {
 
     fs::write(&cookie_file, "username:password").unwrap();
 
-    let options = Options::try_parse_from(
-      format!(
-        "
+    {
+      let options = Options::try_parse_from(
+        format!(
+          "
+          ord
+          --rpc-url http://127.0.0.1:{}
+          --data-dir {}
+          --cookie-file {}
+          --height-limit 0
+        ",
+          bitcoin_rpc_server.port,
+          tempdir.path().display(),
+          cookie_file.display(),
+        )
+        .split_whitespace(),
+      )
+      .unwrap();
+
+      let index = Index::open(&options).unwrap();
+
+      index.index_ranges().unwrap();
+
+      assert_eq!(index.height().unwrap(), 0);
+    }
+
+    {
+      let options = Options::try_parse_from(
+        format!(
+          "
           ord
           --rpc-url http://127.0.0.1:{}
           --data-dir {}
           --cookie-file {}
           --height-limit 1
         ",
-        bitcoin_rpc_server.port,
-        tempdir.path().display(),
-        cookie_file.display(),
+          bitcoin_rpc_server.port,
+          tempdir.path().display(),
+          cookie_file.display(),
+        )
+        .split_whitespace(),
       )
-      .split_whitespace(),
-    )
-    .unwrap();
+      .unwrap();
 
-    let index = Index::open(&options).unwrap();
+      let index = Index::open(&options).unwrap();
 
-    index.index_ranges().unwrap();
+      index.index_ranges().unwrap();
 
-    assert_eq!(index.height().unwrap(), 1);
+      assert_eq!(index.height().unwrap(), 1);
+    }
   }
 }
