@@ -23,15 +23,6 @@ macro_rules! assert_regex_match {
   };
 }
 
-#[rpc]
-pub trait BitcoinRpc {
-  #[rpc(name = "getblockhash")]
-  fn getblockhash(&self, height: usize) -> Result<BlockHash, jsonrpc_core::Error>;
-
-  #[rpc(name = "getblock")]
-  fn getblock(&self, blockhash: BlockHash, verbosity: u64) -> Result<String, jsonrpc_core::Error>;
-}
-
 pub struct BitcoinRpcServer {
   block_hashes: Vec<BlockHash>,
   blocks: BTreeMap<BlockHash, Block>,
@@ -104,6 +95,15 @@ impl BitcoinRpcServer {
       port,
     }
   }
+}
+
+#[rpc]
+pub trait BitcoinRpc {
+  #[rpc(name = "getblockhash")]
+  fn getblockhash(&self, height: usize) -> Result<BlockHash, jsonrpc_core::Error>;
+
+  #[rpc(name = "getblock")]
+  fn getblock(&self, blockhash: BlockHash, verbosity: u64) -> Result<String, jsonrpc_core::Error>;
 }
 
 impl BitcoinRpc for BitcoinRpcServer {
