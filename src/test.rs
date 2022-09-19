@@ -1,7 +1,6 @@
 use {
   super::*,
   jsonrpc_core::IoHandler,
-  jsonrpc_derive::rpc,
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
   std::collections::BTreeMap,
 };
@@ -97,7 +96,7 @@ impl BitcoinRpcServer {
   }
 }
 
-#[rpc]
+#[jsonrpc_derive::rpc]
 pub trait BitcoinRpc {
   #[rpc(name = "getblockhash")]
   fn getblockhash(&self, height: usize) -> Result<BlockHash, jsonrpc_core::Error>;
