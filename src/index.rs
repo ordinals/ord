@@ -143,6 +143,7 @@ impl Index {
 
   pub(crate) fn index_ranges(&self) -> Result {
     let mut block = 0;
+    let mut last_commit_time = Instant::now();
     let mut wtx = self.database.begin_write()?;
 
     loop {
@@ -155,7 +156,7 @@ impl Index {
       let done = self.index_block(&mut wtx)?;
 
       if block % 1000 == 0 {
-        wtx.commit()?;
+        last_commit_time = Self::commit_and_log(wtx, last_commit_time, self.height()?.n()).unwrap();
         wtx = self.database.begin_write()?;
       }
 
@@ -166,9 +167,26 @@ impl Index {
       block += 1;
     }
 
-    wtx.commit()?;
+    Self::commit_and_log(wtx, last_commit_time, self.height()?.n()).unwrap();
 
     Ok(())
+  }
+
+  fn commit_and_log(
+    wtx: WriteTransaction,
+    last_commit_time: Instant,
+    height: u64,
+  ) -> Result<Instant> {
+    let commit_start_time = Instant::now();
+    wtx.commit()?;
+    let now = Instant::now();
+    log::info!(
+      "{}ms elapsed since previous commit, committed up to block {} in {}ms",
+      (commit_start_time - last_commit_time).as_millis(),
+      height,
+      (now - commit_start_time).as_millis()
+    );
+    Ok(Instant::now())
   }
 
   pub(crate) fn index_block(&self, wtx: &mut WriteTransaction) -> Result<bool> {
