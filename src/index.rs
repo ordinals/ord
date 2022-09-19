@@ -47,7 +47,7 @@ impl Index {
       // The default max database size is 10 MiB for Regtest and 1 TiB
       // for all other networks. A larger database takes longer to
       // initialize, so unit tests should use the regtest network.
-      assert_eq!(options.network(), network::Regest);
+      assert_eq!(options.chain.network(), Network::Regtest);
     }
 
     log::info!(
