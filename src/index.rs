@@ -19,7 +19,7 @@ pub(crate) struct Index {
   client: Client,
   database: Database,
   database_path: PathBuf,
-  height_limit: Option<Height>,
+  height_limit: Option<u64>,
 }
 
 pub(crate) enum List {
@@ -153,7 +153,7 @@ impl Index {
       .unwrap_or(0);
 
     for (i, height) in (0..).zip(height..) {
-      if let Some(Height(height_limit)) = self.height_limit {
+      if let Some(height_limit) = self.height_limit {
         if height > height_limit {
           break;
         }
