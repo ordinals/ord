@@ -43,6 +43,13 @@ impl Index {
     let rpc_url = options.rpc_url();
     let cookie_file = options.cookie_file()?;
 
+    if cfg!(test) {
+      // The default max database size is 10 MiB for Regtest and 1 TiB
+      // for all other networks. A larger database takes longer to
+      // initialize, so unit tests should use the regtest network.
+      assert_eq!(options.chain.network(), Network::Regtest);
+    }
+
     log::info!(
       "Connection to Bitcoin Core RPC server at {rpc_url} using credentials from `{}`",
       cookie_file.display()
