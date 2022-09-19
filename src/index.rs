@@ -8,7 +8,7 @@ use {
 
 mod rtx;
 
-const HEIGHT_TO_HASH: TableDefinition<u64, [u8]> = TableDefinition::new("HEIGHT_TO_HASH");
+const HEIGHT_TO_HASH: TableDefinition<u64, [u8; 32]> = TableDefinition::new("HEIGHT_TO_HASH");
 const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8; 36], [u8]> =
   TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
 const OUTPOINT_TO_TXID: TableDefinition<[u8; 36], [u8; 32]> =
@@ -19,7 +19,7 @@ pub(crate) struct Index {
   client: Client,
   database: Database,
   database_path: PathBuf,
-  height_limit: Option<Height>,
+  height_limit: Option<u64>,
 }
 
 pub(crate) enum List {
@@ -142,19 +142,26 @@ impl Index {
   }
 
   pub(crate) fn index_ranges(&self) -> Result {
-    let mut block = 0;
     let mut wtx = self.database.begin_write()?;
 
-    loop {
+    let height = wtx
+      .open_table(HEIGHT_TO_HASH)?
+      .range(0..)?
+      .rev()
+      .next()
+      .map(|(height, _hash)| height + 1)
+      .unwrap_or(0);
+
+    for (i, height) in (0..).zip(height..) {
       if let Some(height_limit) = self.height_limit {
-        if self.height()? >= height_limit {
+        if height > height_limit {
           break;
         }
       }
 
-      let done = self.index_block(&mut wtx)?;
+      let done = self.index_block(&mut wtx, height)?;
 
-      if block % 1000 == 0 {
+      if i > 0 && i % 1000 == 0 {
         wtx.commit()?;
         wtx = self.database.begin_write()?;
       }
@@ -162,8 +169,6 @@ impl Index {
       if done || INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
         break;
       }
-
-      block += 1;
     }
 
     wtx.commit()?;
@@ -171,7 +176,7 @@ impl Index {
     Ok(())
   }
 
-  pub(crate) fn index_block(&self, wtx: &mut WriteTransaction) -> Result<bool> {
+  pub(crate) fn index_block(&self, wtx: &mut WriteTransaction, height: u64) -> Result<bool> {
     let mut height_to_hash = wtx.open_table(HEIGHT_TO_HASH)?;
     let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
     let mut outpoint_to_txid = wtx.open_table(OUTPOINT_TO_TXID)?;
@@ -181,17 +186,14 @@ impl Index {
     let mut ordinal_ranges_written = 0;
     let mut outputs_in_block = 0;
 
-    let height = height_to_hash
-      .range(0..)?
-      .rev()
-      .next()
-      .map(|(height, _hash)| height + 1)
-      .unwrap_or(0);
-
     let mut errors = 0;
     let block = loop {
       match self.block_at_height(height) {
         Err(err) => {
+          if cfg!(test) {
+            return Err(err);
+          }
+
           errors += 1;
           let seconds = 1 << errors;
           log::error!("Failed to fetch block {height}, retrying in {seconds}s: {err}");
@@ -287,7 +289,7 @@ impl Index {
       )?;
     }
 
-    height_to_hash.insert(&height, &block.block_hash())?;
+    height_to_hash.insert(&height, &block.block_hash().as_hash().into_inner())?;
 
     statistics.insert(
       &Statistic::OutputsTraversed.into(),
@@ -524,6 +526,72 @@ impl Index {
           Utc::now().timestamp() + 10 * 60 * expected_blocks as i64,
         ))
       }
+    }
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn height_limit() {
+    let bitcoin_rpc_server = BitcoinRpcServer::spawn();
+
+    let tempdir = TempDir::new().unwrap();
+
+    let cookie_file = tempdir.path().join("cookie");
+
+    fs::write(&cookie_file, "username:password").unwrap();
+
+    {
+      let options = Options::try_parse_from(
+        format!(
+          "
+          ord
+          --rpc-url http://127.0.0.1:{}
+          --data-dir {}
+          --cookie-file {}
+          --height-limit 0
+        ",
+          bitcoin_rpc_server.port,
+          tempdir.path().display(),
+          cookie_file.display(),
+        )
+        .split_whitespace(),
+      )
+      .unwrap();
+
+      let index = Index::open(&options).unwrap();
+
+      index.index_ranges().unwrap();
+
+      assert_eq!(index.height().unwrap(), 0);
+    }
+
+    {
+      let options = Options::try_parse_from(
+        format!(
+          "
+          ord
+          --rpc-url http://127.0.0.1:{}
+          --data-dir {}
+          --cookie-file {}
+          --height-limit 1
+        ",
+          bitcoin_rpc_server.port,
+          tempdir.path().display(),
+          cookie_file.display(),
+        )
+        .split_whitespace(),
+      )
+      .unwrap();
+
+      let index = Index::open(&options).unwrap();
+
+      index.index_ranges().unwrap();
+
+      assert_eq!(index.height().unwrap(), 1);
     }
   }
 }

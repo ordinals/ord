@@ -6,7 +6,7 @@ pub(crate) struct Options {
     long,
     help = "Limit the ordinal index to <MAX_INDEX_SIZE> bytes. [mainnet, testnet, and signet default: 1 TiB, regtest default: 10 MiB]"
   )]
-  pub(crate) max_index_size: Option<Bytes>,
+  max_index_size: Option<Bytes>,
   #[clap(long)]
   cookie_file: Option<PathBuf>,
   #[clap(long)]
@@ -18,7 +18,7 @@ pub(crate) struct Options {
   #[clap(long)]
   bitcoin_data_dir: Option<PathBuf>,
   #[clap(long)]
-  pub(crate) height_limit: Option<Height>,
+  pub(crate) height_limit: Option<u64>,
 }
 
 #[derive(ValueEnum, Copy, Clone, Debug)]
