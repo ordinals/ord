@@ -1,30 +1,29 @@
 use {super::*, clap::ValueEnum};
 
-#[derive(Debug, Default, Parser)]
+#[derive(Debug, Parser)]
 pub(crate) struct Options {
   #[clap(
     long,
     help = "Limit the ordinal index to <MAX_INDEX_SIZE> bytes. [mainnet, testnet, and signet default: 1 TiB, regtest default: 10 MiB]"
   )]
-  pub(crate) max_index_size: Option<Bytes>,
+  max_index_size: Option<Bytes>,
   #[clap(long)]
-  pub(crate) cookie_file: Option<PathBuf>,
+  cookie_file: Option<PathBuf>,
   #[clap(long)]
-  pub(crate) rpc_url: Option<String>,
+  rpc_url: Option<String>,
   #[clap(long, arg_enum, default_value = "mainnet")]
   pub(crate) chain: Chain,
   #[clap(long)]
-  pub(crate) data_dir: Option<PathBuf>,
+  data_dir: Option<PathBuf>,
   #[clap(long)]
-  pub(crate) bitcoin_data_dir: Option<PathBuf>,
+  bitcoin_data_dir: Option<PathBuf>,
   #[clap(long)]
   pub(crate) height_limit: Option<Height>,
 }
 
-#[derive(ValueEnum, Default, Copy, Clone, Debug)]
+#[derive(ValueEnum, Copy, Clone, Debug)]
 pub(crate) enum Chain {
   Main,
-  #[default]
   Mainnet,
   Regtest,
   Signet,

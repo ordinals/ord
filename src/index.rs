@@ -544,13 +544,22 @@ mod tests {
 
     fs::write(&cookie_file, "username:password").unwrap();
 
-    let options = Options {
-      rpc_url: Some(format!("http://127.0.1:{}", bitcoin_rpc_server.port)),
-      data_dir: Some(tempdir.path().into()),
-      cookie_file: Some(cookie_file),
-      height_limit: Some(Height(1)),
-      ..Default::default()
-    };
+    let options = Options::try_parse_from(
+      format!(
+        "
+          ord
+          --rpc-url http://127.0.0.1:{}
+          --data-dir {}
+          --cookie-file {}
+          --height-limit 1
+        ",
+        bitcoin_rpc_server.port,
+        tempdir.path().display(),
+        cookie_file.display(),
+      )
+      .split_whitespace(),
+    )
+    .unwrap();
 
     let index = Index::open(&options).unwrap();
 
