@@ -4,7 +4,11 @@ use super::*;
 fn ok() {
   TestCommand::new()
     .command("parse a")
-    .expected_stdout("2099999997689999\n")
+    .expected_stdout(
+      "
+        2099999997689999
+      ",
+    )
     .run();
 }
 
@@ -12,7 +16,7 @@ fn ok() {
 fn err() {
   TestCommand::new()
     .command("parse A")
-    .expected_stderr("error: invalid digit found in string\n")
-    .expected_status(1)
+    .stderr_regex("error: .*: invalid digit found in string.*")
+    .expected_status(2)
     .run();
 }

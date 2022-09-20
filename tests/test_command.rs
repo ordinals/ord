@@ -40,9 +40,9 @@ impl TestCommand {
     }
   }
 
-  pub(crate) fn expected_stderr(self, expected_stderr: impl AsRef<str>) -> Self {
+  pub(crate) fn stderr_regex(self, expected_stderr: impl AsRef<str>) -> Self {
     Self {
-      expected_stderr: Expected::String(expected_stderr.as_ref().unindent()),
+      expected_stderr: Expected::regex(&expected_stderr.as_ref().unindent()),
       ..self
     }
   }
