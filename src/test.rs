@@ -151,8 +151,12 @@ pub(crate) struct BitcoinRpcServerHandle {
 }
 
 impl BitcoinRpcServerHandle {
+  pub(crate) fn url(&self) -> String {
+    format!("http://127.0.0.1:{}", self.port)
+  }
+
   pub(crate) fn client(&self) -> Client {
-    Client::new(&format!("http://127.0.0.1:{}", self.port), Auth::None).unwrap()
+    Client::new(&self.url(), Auth::None).unwrap()
   }
 }
 
