@@ -5,7 +5,7 @@ mod find;
 mod index;
 mod info;
 mod list;
-mod name;
+mod parse;
 mod range;
 mod server;
 mod supply;
@@ -19,7 +19,7 @@ pub(crate) enum Subcommand {
   Index,
   Info,
   List(list::List),
-  Name(name::Name),
+  Parse(parse::Parse),
   Range(range::Range),
   Server(server::Server),
   Supply,
@@ -36,7 +36,7 @@ impl Subcommand {
       Self::Index => index::run(options),
       Self::Info => info::run(options),
       Self::List(list) => list.run(options),
-      Self::Name(name) => name.run(),
+      Self::Parse(parse) => parse.run(),
       Self::Range(range) => range.run(),
       Self::Server(server) => server.run(options),
       Self::Supply => supply::run(),

@@ -7,12 +7,7 @@ pub(crate) struct Traits {
 
 impl Traits {
   pub(crate) fn run(self) -> Result {
-    if self.ordinal > Ordinal::LAST {
-      bail!("Invalid ordinal");
-    }
-
     print!("{}", self);
-
     Ok(())
   }
 }
