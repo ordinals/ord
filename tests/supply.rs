@@ -10,7 +10,8 @@ fn genesis() {
         first: 0
         last: 2099999997689999
         last mined in block: 6929999
-      ",
+      "
+      .unindent(),
     )
     .run();
 }
