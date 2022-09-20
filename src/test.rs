@@ -24,8 +24,8 @@ macro_rules! assert_regex_match {
 }
 
 pub struct BitcoinRpcServer {
-  block_hashes: Vec<BlockHash>,
-  blocks: BTreeMap<BlockHash, Block>,
+  block_hashes: Mutex<Vec<BlockHash>>,
+  blocks: Mutex<BTreeMap<BlockHash, Block>>,
 }
 
 impl BitcoinRpcServer {
@@ -57,8 +57,8 @@ impl BitcoinRpcServer {
     blocks.insert(next_block_hash, next);
 
     Self {
-      block_hashes,
-      blocks,
+      block_hashes: Mutex::new(block_hashes),
+      blocks: Mutex::new(blocks),
     }
   }
 
@@ -93,15 +93,15 @@ pub trait BitcoinRpc {
 
   #[rpc(name = "generatetoaddress")]
   fn generate_to_address(
-    &mut self,
-    block_num: u64,
+    &self,
+    count: usize,
     address: Address,
   ) -> Result<Vec<bitcoin::BlockHash>, jsonrpc_core::Error>;
 }
 
 impl BitcoinRpc for BitcoinRpcServer {
   fn getblockhash(&self, height: usize) -> Result<BlockHash, jsonrpc_core::Error> {
-    match self.block_hashes.get(height) {
+    match self.block_hashes.lock().unwrap().get(height) {
       Some(block_hash) => Ok(*block_hash),
       None => Err(jsonrpc_core::Error::new(
         jsonrpc_core::types::error::ErrorCode::ServerError(-8),
@@ -111,7 +111,7 @@ impl BitcoinRpc for BitcoinRpcServer {
 
   fn getblock(&self, block_hash: BlockHash, verbosity: u64) -> Result<String, jsonrpc_core::Error> {
     assert_eq!(verbosity, 0, "Verbosity level {verbosity} is unsupported");
-    match self.blocks.get(&block_hash) {
+    match self.blocks.lock().unwrap().get(&block_hash) {
       Some(block) => Ok(hex::encode(bitcoin::consensus::encode::serialize(block))),
       None => Err(jsonrpc_core::Error::new(
         jsonrpc_core::types::error::ErrorCode::ServerError(-8),
@@ -120,17 +120,18 @@ impl BitcoinRpc for BitcoinRpcServer {
   }
 
   fn generate_to_address(
-    &mut self,
-    block_num: u64,
+    &self,
+    count: usize,
     _address: Address,
   ) -> Result<Vec<bitcoin::BlockHash>, jsonrpc_core::Error> {
-    let mut block_hashes = Vec::new();
+    let mut blocks = self.blocks.lock().unwrap();
+    let mut block_hashes = self.block_hashes.lock().unwrap();
 
-    for i in 0..block_num {
+    for _ in 0..count {
       let new_block = Block {
         header: BlockHeader {
           version: 0,
-          prev_blockhash: *self.block_hashes.last().unwrap(),
+          prev_blockhash: *block_hashes.last().unwrap(),
           merkle_root: Default::default(),
           time: 0,
           bits: 0,
@@ -141,13 +142,11 @@ impl BitcoinRpc for BitcoinRpcServer {
 
       let block_hash = new_block.block_hash();
 
-      self.block_hashes.push(block_hash);
-      self.blocks.insert(block_hash, new_block);
-
-      block_hashes.push(block_hash)
+      block_hashes.push(block_hash);
+      blocks.insert(block_hash, new_block);
     }
 
-    Ok(block_hashes)
+    Ok(block_hashes[block_hashes.len() - count..].into())
   }
 }
 

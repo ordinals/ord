@@ -13,7 +13,6 @@ use {
     http::header,
     response::{Redirect, Response},
   },
-  bitcoin::Address,
   bitcoincore_rpc::{Auth, Client, RpcApi},
   rust_embed::RustEmbed,
   rustls_acme::{
@@ -553,6 +552,14 @@ mod tests {
     fn join_url(&self, url: &str) -> String {
       format!("http://127.0.0.1:{}/{url}", self.port)
     }
+
+    fn bitcoin_rpc_client(&self) -> Client {
+      Client::new(
+        &format!("http://127.0.0.1:{}", self.bitcoin_rpc_server_handle.port),
+        Auth::None,
+      )
+      .unwrap()
+    }
   }
 
   fn parse_server_args(args: &str) -> (Options, Server) {
@@ -821,16 +828,20 @@ mod tests {
   fn height_updates() {
     let test_server = TestServer::new();
 
+    thread::sleep(Duration::from_secs(1));
+
     let response = reqwest::blocking::get(test_server.join_url("height")).unwrap();
 
     assert_eq!(response.status(), StatusCode::OK);
     assert_eq!(response.text().unwrap(), "1");
 
-    let rpc = Client::new(&format!("127.0.0.1:{}", test_server.port), Auth::None).unwrap();
+    let rpc = test_server.bitcoin_rpc_client();
 
     rpc
       .generate_to_address(1, &"1BitcoinEaterAddressDontSendf59kuE".parse().unwrap())
       .unwrap();
+
+    thread::sleep(Duration::from_secs(1));
 
     let response = reqwest::blocking::get(test_server.join_url("height")).unwrap();
 
