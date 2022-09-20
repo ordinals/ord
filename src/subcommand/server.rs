@@ -13,6 +13,8 @@ use {
     http::header,
     response::{Redirect, Response},
   },
+  bitcoin::Address,
+  bitcoincore_rpc::{Auth, Client, RpcApi},
   rust_embed::RustEmbed,
   rustls_acme::{
     acme::{LETS_ENCRYPT_PRODUCTION_DIRECTORY, LETS_ENCRYPT_STAGING_DIRECTORY},
@@ -22,6 +24,7 @@ use {
   },
   serde::{de, Deserializer},
   std::cmp::Ordering,
+  std::str,
   tokio_stream::StreamExt,
 };
 
@@ -793,5 +796,45 @@ mod tests {
       response.headers().get(header::LOCATION).unwrap(),
       "/ordinal/0"
     );
+  }
+
+  #[test]
+  fn status() {
+    let test_server = TestServer::new();
+
+    let response = reqwest::blocking::get(test_server.join_url("status")).unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(response.text().unwrap(), "OK");
+  }
+
+  #[test]
+  fn height_endpoint() {
+    let test_server = TestServer::new();
+
+    let response = reqwest::blocking::get(test_server.join_url("height")).unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+  }
+
+  #[test]
+  fn height_updates() {
+    let test_server = TestServer::new();
+
+    let response = reqwest::blocking::get(test_server.join_url("height")).unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(response.text().unwrap(), "1");
+
+    let rpc = Client::new(&format!("127.0.0.1:{}", test_server.port), Auth::None).unwrap();
+
+    rpc
+      .generate_to_address(1, &"1BitcoinEaterAddressDontSendf59kuE".parse().unwrap())
+      .unwrap();
+
+    let response = reqwest::blocking::get(test_server.join_url("height")).unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(response.text().unwrap(), "2");
   }
 }

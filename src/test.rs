@@ -90,6 +90,13 @@ pub trait BitcoinRpc {
 
   #[rpc(name = "getblock")]
   fn getblock(&self, blockhash: BlockHash, verbosity: u64) -> Result<String, jsonrpc_core::Error>;
+
+  #[rpc(name = "generatetoaddress")]
+  fn generate_to_address(
+    &mut self,
+    block_num: u64,
+    address: Address,
+  ) -> Result<Vec<bitcoin::BlockHash>, jsonrpc_core::Error>;
 }
 
 impl BitcoinRpc for BitcoinRpcServer {
@@ -110,6 +117,37 @@ impl BitcoinRpc for BitcoinRpcServer {
         jsonrpc_core::types::error::ErrorCode::ServerError(-8),
       )),
     }
+  }
+
+  fn generate_to_address(
+    &mut self,
+    block_num: u64,
+    _address: Address,
+  ) -> Result<Vec<bitcoin::BlockHash>, jsonrpc_core::Error> {
+    let mut block_hashes = Vec::new();
+
+    for i in 0..block_num {
+      let new_block = Block {
+        header: BlockHeader {
+          version: 0,
+          prev_blockhash: *self.block_hashes.last().unwrap(),
+          merkle_root: Default::default(),
+          time: 0,
+          bits: 0,
+          nonce: 0,
+        },
+        txdata: Vec::new(),
+      };
+
+      let block_hash = new_block.block_hash();
+
+      self.block_hashes.push(block_hash);
+      self.blocks.insert(block_hash, new_block);
+
+      block_hashes.push(block_hash)
+    }
+
+    Ok(block_hashes)
   }
 }
 

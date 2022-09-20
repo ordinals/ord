@@ -1,11 +1,6 @@
 use super::*;
 
 #[test]
-fn status() {
-  State::new().request("status", 200, "OK");
-}
-
-#[test]
 fn height() {
   let mut state = State::new();
 
