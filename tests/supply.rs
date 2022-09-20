@@ -2,8 +2,8 @@ use super::*;
 
 #[test]
 fn genesis() {
-  Test::new()
-    .args(&["supply"])
+  TestCommand::new()
+    .command("supply")
     .expected_stdout(
       &"
       supply: 2099999997690000

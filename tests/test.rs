@@ -71,13 +71,6 @@ impl Test {
     }
   }
 
-  pub(crate) fn stderr_regex(self, expected_stderr: impl AsRef<str>) -> Self {
-    Self {
-      expected_stderr: Expected::regex(expected_stderr.as_ref()),
-      ..self
-    }
-  }
-
   pub(crate) fn expected_status(self, expected_status: i32) -> Self {
     Self {
       expected_status,

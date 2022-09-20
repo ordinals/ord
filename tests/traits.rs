@@ -1,18 +1,9 @@
 use super::*;
 
 #[test]
-fn invalid_ordinal() {
-  Test::new()
-    .args(&["traits", "2099999997690000"])
-    .stderr_regex("error: Invalid value \"2099999997690000\" for '<ORDINAL>': Invalid ordinal\n.*")
-    .expected_status(2)
-    .run();
-}
-
-#[test]
-fn valid_ordinal() {
-  Test::new()
-    .args(&["traits", "0"])
+fn traits_command_prints_ordinal_traits() {
+  TestCommand::new()
+    .command("traits 0")
     .expected_stdout(
       "\
 number: 0
