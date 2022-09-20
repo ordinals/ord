@@ -828,6 +828,7 @@ mod tests {
   fn height_updates() {
     let test_server = TestServer::new();
 
+    // TODO: Come up with a better way to sync ord server and bitcoin rpc server
     thread::sleep(Duration::from_secs(1));
 
     let response = reqwest::blocking::get(test_server.join_url("height")).unwrap();
