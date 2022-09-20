@@ -817,6 +817,7 @@ mod tests {
     let response = reqwest::blocking::get(test_server.join_url("height")).unwrap();
 
     assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(response.text().unwrap(), "0");
   }
 
   #[test]
