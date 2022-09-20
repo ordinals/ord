@@ -28,21 +28,21 @@ impl TestCommand {
 
   pub(crate) fn expected_stdout(self, expected_stdout: impl AsRef<str>) -> Self {
     Self {
-      expected_stdout: Expected::String(expected_stdout.as_ref().unindent()),
+      expected_stdout: Expected::String(expected_stdout.as_ref().to_owned()),
       ..self
     }
   }
 
   pub(crate) fn stdout_regex(self, expected_stdout: impl AsRef<str>) -> Self {
     Self {
-      expected_stdout: Expected::regex(&expected_stdout.as_ref().unindent()),
+      expected_stdout: Expected::regex(expected_stdout.as_ref()),
       ..self
     }
   }
 
   pub(crate) fn stderr_regex(self, expected_stderr: impl AsRef<str>) -> Self {
     Self {
-      expected_stderr: Expected::regex(&expected_stderr.as_ref().unindent()),
+      expected_stderr: Expected::regex(expected_stderr.as_ref()),
       ..self
     }
   }

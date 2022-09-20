@@ -4,11 +4,7 @@ use super::*;
 fn ok() {
   TestCommand::new()
     .command("parse a")
-    .expected_stdout(
-      "
-        2099999997689999
-      ",
-    )
+    .expected_stdout("2099999997689999\n")
     .run();
 }
 
