@@ -1,10 +1,9 @@
 use super::*;
 
 #[test]
-fn flag() {
-  Test::new()
+fn version_flag_prints_version() {
+  TestCommand::new()
     .command("--version")
     .stdout_regex("ord .*\n")
-    .blocks(1)
     .run();
 }

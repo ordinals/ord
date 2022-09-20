@@ -1,7 +1,10 @@
 #![allow(clippy::type_complexity)]
 
 use {
-  self::{expected::Expected, state::State, test::Test, transaction_options::TransactionOptions},
+  self::{
+    expected::Expected, state::State, test::Test, test_command::TestCommand,
+    transaction_options::TransactionOptions,
+  },
   bdk::{
     blockchain::{
       rpc::{RpcBlockchain, RpcConfig},
@@ -46,6 +49,7 @@ mod server;
 mod state;
 mod supply;
 mod test;
+mod test_command;
 mod traits;
 mod transaction_options;
 mod version;

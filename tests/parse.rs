@@ -2,17 +2,17 @@ use super::*;
 
 #[test]
 fn ok() {
-  Test::new()
-    .args(&["parse", "a"])
+  TestCommand::new()
+    .command("parse a")
     .expected_stdout("2099999997689999\n")
-    .run()
+    .run();
 }
 
 #[test]
 fn err() {
-  Test::new()
-    .args(&["parse", ""])
-    .expected_stderr("error: cannot parse integer from empty string\n")
+  TestCommand::new()
+    .command("parse A")
+    .expected_stderr("error: invalid digit found in string\n")
     .expected_status(1)
-    .run()
+    .run();
 }
