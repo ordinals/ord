@@ -41,7 +41,6 @@ use {
     util::psbt::PartiallySignedTransaction,
     Address, Block, Network, OutPoint, Transaction, Txid,
   },
-  bitcoincore_rpc::{Client, RpcApi},
   chrono::{DateTime, NaiveDateTime, Utc},
   clap::Parser,
   derive_more::{Display, FromStr},

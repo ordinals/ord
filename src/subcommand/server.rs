@@ -552,7 +552,7 @@ mod tests {
       format!("http://127.0.0.1:{}/{url}", self.port)
     }
 
-    fn bitcoin_rpc_client(&self) -> Client {
+    fn bitcoin_rpc_client(&self) -> bitcoincore_rpc::Client {
       self.bitcoin_rpc_server_handle.client()
     }
   }

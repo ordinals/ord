@@ -7,7 +7,7 @@ use {
   std::collections::BTreeMap,
 };
 
-pub(crate) use {regex::Regex, tempfile::TempDir};
+pub(crate) use {bitcoincore_rpc::RpcApi, regex::Regex, tempfile::TempDir};
 
 macro_rules! assert_regex_match {
   ($string:expr, $pattern:expr $(,)?) => {
@@ -155,8 +155,8 @@ impl BitcoinRpcServerHandle {
     format!("http://127.0.0.1:{}", self.port)
   }
 
-  pub(crate) fn client(&self) -> Client {
-    Client::new(&self.url(), Auth::None).unwrap()
+  pub(crate) fn client(&self) -> bitcoincore_rpc::Client {
+    bitcoincore_rpc::Client::new(&self.url(), Auth::None).unwrap()
   }
 }
 
