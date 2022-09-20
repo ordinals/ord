@@ -547,8 +547,8 @@ mod tests {
       }
     }
 
-    fn join_url(&self, path: &str) -> String {
-      format!("http://127.0.0.1:{}/{path}", self.port)
+    fn join_url(&self, url: &str) -> String {
+      format!("http://127.0.0.1:{}/{url}", self.port)
     }
   }
 
