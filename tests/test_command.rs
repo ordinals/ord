@@ -78,7 +78,7 @@ impl TestCommand {
       );
     }
 
-    self.expected_stderr.assert_match(&stderr);
+    self.expected_stderr.assert_match(stderr);
     self.expected_stdout.assert_match(stdout);
   }
 }
