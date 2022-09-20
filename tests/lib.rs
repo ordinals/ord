@@ -40,7 +40,7 @@ mod find;
 mod index;
 mod info;
 mod list;
-mod name;
+mod parse;
 mod range;
 mod server;
 mod state;
