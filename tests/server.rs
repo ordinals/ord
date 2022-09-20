@@ -350,8 +350,3 @@ fn clock_is_served_with_svg_extension() {
   let mut state = State::new();
   state.request_regex("clock.svg", 200, "<svg.*");
 }
-
-#[test]
-fn search_returns_ordinal() {
-  State::new().request_regex("search?query=0", 200, ".*<h1>Ordinal 0</h1>.*");
-}

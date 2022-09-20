@@ -518,7 +518,7 @@ mod tests {
         .port();
 
       let (options, server) = parse_server_args(&format!(
-        "ord --chain regtest --rpc-url http://127.0.0.1:{} --cookie-file {} --data-dir {} server --http-port {}",
+        "ord --chain regtest --rpc-url http://127.0.0.1:{} --cookie-file {} --data-dir {} server --http-port {} --address 127.0.0.1",
         bitcoin_rpc_server_handle.port,
         cookiefile.to_str().unwrap(),
         tempdir.path().to_str().unwrap(),
@@ -547,7 +547,7 @@ mod tests {
       }
     }
 
-    fn url_with_path(&self, path: &str) -> String {
+    fn join_url(&self, path: &str) -> String {
       format!("http://127.0.0.1:{}/{path}", self.port)
     }
   }
@@ -727,7 +727,7 @@ mod tests {
       .redirect(reqwest::redirect::Policy::none())
       .build()
       .unwrap()
-      .get(test_server.url_with_path("bounties"))
+      .get(test_server.join_url("bounties"))
       .send()
       .unwrap();
 
@@ -746,7 +746,7 @@ mod tests {
       .redirect(reqwest::redirect::Policy::none())
       .build()
       .unwrap()
-      .get(test_server.url_with_path("faq"))
+      .get(test_server.join_url("faq"))
       .send()
       .unwrap();
 
@@ -754,6 +754,44 @@ mod tests {
     assert_eq!(
       response.headers().get(header::LOCATION).unwrap(),
       "https://docs.ordinals.com/faq/"
+    );
+  }
+
+  #[test]
+  fn search_by_query_returns_ordinal() {
+    let test_server = TestServer::new();
+
+    let response = reqwest::blocking::Client::builder()
+      .redirect(reqwest::redirect::Policy::none())
+      .build()
+      .unwrap()
+      .get(test_server.join_url("search?query=0"))
+      .send()
+      .unwrap();
+
+    assert_eq!(response.status(), StatusCode::SEE_OTHER);
+    assert_eq!(
+      response.headers().get(header::LOCATION).unwrap(),
+      "/ordinal/0"
+    );
+  }
+
+  #[test]
+  fn search_by_path_returns_ordinal() {
+    let test_server = TestServer::new();
+
+    let response = reqwest::blocking::Client::builder()
+      .redirect(reqwest::redirect::Policy::none())
+      .build()
+      .unwrap()
+      .get(test_server.join_url("search/0"))
+      .send()
+      .unwrap();
+
+    assert_eq!(response.status(), StatusCode::SEE_OTHER);
+    assert_eq!(
+      response.headers().get(header::LOCATION).unwrap(),
+      "/ordinal/0"
     );
   }
 }
