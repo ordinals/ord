@@ -10,7 +10,7 @@ fn path(path: &str) -> String {
 
 #[test]
 fn init_existing_wallet() {
-  let state = Test::new()
+  let state = SlowTest::new()
     .command("--chain regtest wallet init")
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
@@ -29,7 +29,7 @@ fn init_existing_wallet() {
     .join(path("ord/regtest/entropy"))
     .exists());
 
-  Test::with_state(state)
+  SlowTest::with_state(state)
     .command("--chain regtest wallet init")
     .expected_status(1)
     .expected_stderr("error: Wallet already exists.\n")
@@ -38,7 +38,7 @@ fn init_existing_wallet() {
 
 #[test]
 fn init_nonexistent_wallet() {
-  let output = Test::new()
+  let output = SlowTest::new()
     .command("--chain regtest wallet init")
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
@@ -61,7 +61,7 @@ fn init_nonexistent_wallet() {
 
 #[test]
 fn load_corrupted_entropy() {
-  let state = Test::new()
+  let state = SlowTest::new()
     .command("--chain regtest wallet init")
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
@@ -77,7 +77,7 @@ fn load_corrupted_entropy() {
 
   fs::write(&entropy_path, entropy).unwrap();
 
-  Test::with_state(state)
+  SlowTest::with_state(state)
     .command("--chain regtest wallet fund")
     .expected_status(1)
     .expected_stderr("error: ChecksumMismatch\n")
@@ -86,14 +86,14 @@ fn load_corrupted_entropy() {
 
 #[test]
 fn fund_existing_wallet() {
-  let state = Test::new()
+  let state = SlowTest::new()
     .command("--chain regtest wallet init")
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
     .output()
     .state;
 
-  Test::with_state(state)
+  SlowTest::with_state(state)
     .command("--chain regtest wallet fund")
     .stdout_regex("^bcrt1.*\n")
     .run();
@@ -101,7 +101,7 @@ fn fund_existing_wallet() {
 
 #[test]
 fn fund_nonexistent_wallet() {
-  Test::new()
+  SlowTest::new()
     .command("--chain regtest wallet fund")
     .expected_status(1)
     .expected_stderr("error: Wallet doesn't exist.\n")
@@ -110,14 +110,14 @@ fn fund_nonexistent_wallet() {
 
 #[test]
 fn utxos() {
-  let state = Test::new()
+  let state = SlowTest::new()
     .command("--chain regtest wallet init")
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
     .output()
     .state;
 
-  let output = Test::with_state(state)
+  let output = SlowTest::with_state(state)
     .command("--chain regtest wallet fund")
     .stdout_regex("^bcrt1.*\n")
     .output();
@@ -138,7 +138,7 @@ fn utxos() {
     )
     .unwrap();
 
-  Test::with_state(output.state)
+  SlowTest::with_state(output.state)
     .command("--chain regtest wallet utxos")
     .expected_status(0)
     .stdout_regex("^[[:xdigit:]]{64}:0 5000000000\n")
@@ -147,21 +147,21 @@ fn utxos() {
 
 #[test]
 fn balance() {
-  let state = Test::new()
+  let state = SlowTest::new()
     .command("--chain regtest wallet init")
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
     .output()
     .state;
 
-  let state = Test::with_state(state)
+  let state = SlowTest::with_state(state)
     .command("--chain regtest wallet balance")
     .expected_status(0)
     .expected_stdout("0\n")
     .output()
     .state;
 
-  let output = Test::with_state(state)
+  let output = SlowTest::with_state(state)
     .command("--chain regtest wallet fund")
     .stdout_regex("^bcrt1.*\n")
     .output();
@@ -182,7 +182,7 @@ fn balance() {
     )
     .unwrap();
 
-  Test::with_state(output.state)
+  SlowTest::with_state(output.state)
     .command("--chain regtest wallet balance")
     .expected_status(0)
     .expected_stdout("5000000000\n")
@@ -191,14 +191,14 @@ fn balance() {
 
 #[test]
 fn identify_single_ordinal() {
-  let state = Test::new()
+  let state = SlowTest::new()
     .command("--chain regtest wallet init")
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
     .output()
     .state;
 
-  let output = Test::with_state(state)
+  let output = SlowTest::with_state(state)
     .command("--chain regtest wallet fund")
     .stdout_regex("^bcrt1.*\n")
     .output();
@@ -219,7 +219,7 @@ fn identify_single_ordinal() {
     )
     .unwrap();
 
-  Test::with_state(output.state)
+  SlowTest::with_state(output.state)
     .command("--chain regtest wallet identify")
     .expected_status(0)
     .stdout_regex("5000000000 uncommon [[:xdigit:]]{64}:[[:digit:]]\n")
@@ -228,14 +228,14 @@ fn identify_single_ordinal() {
 
 #[test]
 fn identify_multiple_ordinals() {
-  let state = Test::new()
+  let state = SlowTest::new()
     .command("--chain regtest wallet init")
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
     .output()
     .state;
 
-  let output = Test::with_state(state)
+  let output = SlowTest::with_state(state)
     .command("--chain regtest wallet fund")
     .stdout_regex("^bcrt1.*\n")
     .output();
@@ -256,7 +256,7 @@ fn identify_multiple_ordinals() {
     )
     .unwrap();
 
-  Test::with_state(output.state)
+  SlowTest::with_state(output.state)
     .command("--chain regtest wallet identify")
     .expected_status(0)
     .stdout_regex(
@@ -275,14 +275,14 @@ fn identify_multiple_ordinals() {
 
 #[test]
 fn identify_sent_ordinal() {
-  let state = Test::new()
+  let state = SlowTest::new()
     .command("--chain regtest wallet init")
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
     .output()
     .state;
 
-  let output = Test::with_state(state)
+  let output = SlowTest::with_state(state)
     .command("--chain regtest wallet fund")
     .stdout_regex("^bcrt1.*\n")
     .output();
@@ -311,13 +311,13 @@ fn identify_sent_ordinal() {
     )
     .unwrap();
 
-  let output = Test::with_state(output.state)
+  let output = SlowTest::with_state(output.state)
     .command("--chain regtest wallet utxos")
     .expected_status(0)
     .stdout_regex("[[:xdigit:]]{64}:[[:digit:]] 5000000000\n")
     .output();
 
-  let output = Test::with_state(output.state)
+  let output = SlowTest::with_state(output.state)
     .command("--chain regtest wallet identify")
     .expected_status(0)
     .stdout_regex("5000000000 uncommon [[:xdigit:]]{64}:[[:digit:]]\n")
@@ -340,7 +340,7 @@ fn identify_sent_ordinal() {
 
   let to_address = wallet.get_address(AddressIndex::LastUnused).unwrap();
 
-  let state = Test::with_state(output.state)
+  let state = SlowTest::with_state(output.state)
     .command(&format!(
       "--chain regtest wallet send --address {to_address} --ordinal 5000000000",
     ))
@@ -357,7 +357,7 @@ fn identify_sent_ordinal() {
 
   state.client.generate_to_address(1, &to_address).unwrap();
 
-  let output = Test::with_state(state)
+  let output = SlowTest::with_state(state)
     .command(&format!(
       "--chain regtest list {}",
       wallet.list_unspent().unwrap().first().unwrap().outpoint
@@ -366,7 +366,7 @@ fn identify_sent_ordinal() {
     .expected_stdout("[5000000000,9999999780)\n")
     .output();
 
-  Test::with_state(output.state)
+  SlowTest::with_state(output.state)
     .command("--chain regtest wallet identify")
     .expected_status(0)
     .expected_stdout("")
@@ -375,14 +375,14 @@ fn identify_sent_ordinal() {
 
 #[test]
 fn send_uncommon_ordinal() {
-  let state = Test::new()
+  let state = SlowTest::new()
     .command("--chain regtest wallet init")
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
     .output()
     .state;
 
-  let output = Test::with_state(state)
+  let output = SlowTest::with_state(state)
     .command("--chain regtest wallet fund")
     .stdout_regex("^bcrt1.*\n")
     .output();
@@ -411,7 +411,7 @@ fn send_uncommon_ordinal() {
     )
     .unwrap();
 
-  let output = Test::with_state(output.state)
+  let output = SlowTest::with_state(output.state)
     .command("--chain regtest wallet utxos")
     .expected_status(0)
     .stdout_regex("[[:xdigit:]]{64}:[[:digit:]] 5000000000\n")
@@ -434,7 +434,7 @@ fn send_uncommon_ordinal() {
 
   let to_address = wallet.get_address(AddressIndex::LastUnused).unwrap();
 
-  let state = Test::with_state(output.state)
+  let state = SlowTest::with_state(output.state)
     .command(&format!(
       "--chain regtest wallet send --address {to_address} --ordinal 5000000000",
     ))
@@ -451,7 +451,7 @@ fn send_uncommon_ordinal() {
 
   state.client.generate_to_address(1, &from_address).unwrap();
 
-  Test::with_state(state)
+  SlowTest::with_state(state)
     .command(&format!(
       "--chain regtest list {}",
       wallet.list_unspent().unwrap().first().unwrap().outpoint
@@ -463,14 +463,14 @@ fn send_uncommon_ordinal() {
 
 #[test]
 fn send_foreign_ordinal() {
-  let state = Test::new()
+  let state = SlowTest::new()
     .command("--chain regtest wallet init")
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
     .output()
     .state;
 
-  let output = Test::with_state(state)
+  let output = SlowTest::with_state(state)
     .command("--chain regtest wallet fund")
     .stdout_regex("^bcrt1.*\n")
     .output();
@@ -490,7 +490,7 @@ fn send_foreign_ordinal() {
     .generate_to_address(1, &from_address)
     .unwrap();
 
-  let output = Test::with_state(output.state)
+  let output = SlowTest::with_state(output.state)
     .command("--chain regtest wallet utxos")
     .expected_status(0)
     .stdout_regex("[[:xdigit:]]{64}:[[:digit:]] 5000000000\n")
@@ -513,7 +513,7 @@ fn send_foreign_ordinal() {
 
   let to_address = wallet.get_address(AddressIndex::LastUnused).unwrap();
 
-  Test::with_state(output.state)
+  SlowTest::with_state(output.state)
     .command(&format!(
       "--chain regtest wallet send --address {to_address} --ordinal 4999999999",
     ))
@@ -524,14 +524,14 @@ fn send_foreign_ordinal() {
 
 #[test]
 fn send_common_ordinal() {
-  let state = Test::new()
+  let state = SlowTest::new()
     .command("--chain regtest wallet init")
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
     .output()
     .state;
 
-  let output = Test::with_state(state)
+  let output = SlowTest::with_state(state)
     .command("--chain regtest wallet fund")
     .stdout_regex("^bcrt1.*\n")
     .output();
@@ -560,7 +560,7 @@ fn send_common_ordinal() {
     )
     .unwrap();
 
-  let output = Test::with_state(output.state)
+  let output = SlowTest::with_state(output.state)
     .command("--chain regtest wallet utxos")
     .expected_status(0)
     .stdout_regex("[[:xdigit:]]{64}:[[:digit:]] 5000000000\n")
@@ -583,7 +583,7 @@ fn send_common_ordinal() {
 
   let to_address = wallet.get_address(AddressIndex::LastUnused).unwrap();
 
-  Test::with_state(output.state)
+  SlowTest::with_state(output.state)
     .command(&format!(
       "--chain regtest wallet send --address {to_address} --ordinal 5000000001",
     ))
@@ -594,14 +594,14 @@ fn send_common_ordinal() {
 
 #[test]
 fn send_non_unique_uncommon_ordinal() {
-  let state = Test::new()
+  let state = SlowTest::new()
     .command("--chain regtest wallet init")
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
     .output()
     .state;
 
-  let output = Test::with_state(state)
+  let output = SlowTest::with_state(state)
     .command("--chain regtest wallet fund")
     .stdout_regex("^bcrt1.*\n")
     .output();
@@ -626,7 +626,7 @@ fn send_non_unique_uncommon_ordinal() {
 
   output.state.blocks(1);
 
-  let output = Test::with_state(output.state)
+  let output = SlowTest::with_state(output.state)
     .command(&format!("--chain regtest list {}:0", transaction.txid()))
     .expected_status(0)
     .expected_stdout("[5000000000,10000000000)\n[10000000000,15000000000)\n")
@@ -658,7 +658,7 @@ fn send_non_unique_uncommon_ordinal() {
 
   let to_address = wallet.get_address(AddressIndex::LastUnused).unwrap();
 
-  Test::with_state(output.state)
+  SlowTest::with_state(output.state)
     .command(&format!(
       "--chain regtest wallet send --address {to_address} --ordinal 5000000000",
     ))
@@ -669,14 +669,14 @@ fn send_non_unique_uncommon_ordinal() {
 
 #[test]
 fn protect_ordinal_from_fees() {
-  let state = Test::new()
+  let state = SlowTest::new()
     .command("--chain regtest wallet init")
     .expected_status(0)
     .expected_stderr("Wallet initialized.\n")
     .output()
     .state;
 
-  let output = Test::with_state(state)
+  let output = SlowTest::with_state(state)
     .command("--chain regtest wallet fund")
     .stdout_regex("^bcrt1.*\n")
     .output();
@@ -710,7 +710,7 @@ fn protect_ordinal_from_fees() {
     )
     .unwrap();
 
-  let output = Test::with_state(output.state)
+  let output = SlowTest::with_state(output.state)
     .command("--chain regtest wallet utxos")
     .expected_status(0)
     .stdout_regex("[[:xdigit:]]{64}:0 2500000000\n[[:xdigit:]]{64}:1 2500000000\n")
@@ -733,7 +733,7 @@ fn protect_ordinal_from_fees() {
 
   let to_address = wallet.get_address(AddressIndex::LastUnused).unwrap();
 
-  Test::with_state(output.state)
+  SlowTest::with_state(output.state)
     .command(&format!(
       "--chain regtest wallet send --address {to_address} --ordinal 9999999999",
     ))

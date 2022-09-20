@@ -2,7 +2,7 @@
 
 use {
   self::{
-    expected::Expected, state::State, test::Test, test_command::TestCommand,
+    expected::Expected, slow_test::SlowTest, state::State, test_command::TestCommand,
     transaction_options::TransactionOptions,
   },
   bdk::{
@@ -46,9 +46,9 @@ mod list;
 mod parse;
 mod range;
 mod server;
+mod slow_test;
 mod state;
 mod supply;
-mod test;
 mod test_command;
 mod traits;
 mod transaction_options;

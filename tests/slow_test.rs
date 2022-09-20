@@ -5,7 +5,7 @@ pub(crate) struct Output {
   pub(crate) state: State,
 }
 
-pub(crate) struct Test {
+pub(crate) struct SlowTest {
   args: Vec<String>,
   expected_status: i32,
   expected_stderr: Expected,
@@ -13,7 +13,7 @@ pub(crate) struct Test {
   state: State,
 }
 
-impl Test {
+impl SlowTest {
   pub(crate) fn new() -> Self {
     Self::with_state(State::new())
   }
