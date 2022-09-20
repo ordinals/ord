@@ -20,7 +20,7 @@ use {
   axum::{extract, http::StatusCode, response::Html, response::IntoResponse, routing::get, Router},
   axum_server::Handle,
   bdk::{
-    blockchain::rpc::{Auth, RpcBlockchain, RpcConfig},
+    blockchain::rpc::{RpcBlockchain, RpcConfig},
     blockchain::{Blockchain, ConfigurableBlockchain},
     database::SqliteDatabase,
     keys::bip39::{Language, Mnemonic},
@@ -41,6 +41,7 @@ use {
     util::psbt::PartiallySignedTransaction,
     Address, Block, Network, OutPoint, Transaction, Txid,
   },
+  bitcoincore_rpc::{Client, RpcApi},
   chrono::{DateTime, NaiveDateTime, Utc},
   clap::Parser,
   derive_more::{Display, FromStr},

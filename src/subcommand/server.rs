@@ -13,7 +13,6 @@ use {
     http::header,
     response::{Redirect, Response},
   },
-  bitcoincore_rpc::{Auth, Client, RpcApi},
   rust_embed::RustEmbed,
   rustls_acme::{
     acme::{LETS_ENCRYPT_PRODUCTION_DIRECTORY, LETS_ENCRYPT_STAGING_DIRECTORY},
@@ -554,11 +553,7 @@ mod tests {
     }
 
     fn bitcoin_rpc_client(&self) -> Client {
-      Client::new(
-        &format!("http://127.0.0.1:{}", self.bitcoin_rpc_server_handle.port),
-        Auth::None,
-      )
-      .unwrap()
+      self.bitcoin_rpc_server_handle.client()
     }
   }
 
@@ -834,7 +829,7 @@ mod tests {
     let response = reqwest::blocking::get(test_server.join_url("height")).unwrap();
 
     assert_eq!(response.status(), StatusCode::OK);
-    assert_eq!(response.text().unwrap(), "1");
+    assert_eq!(response.text().unwrap(), "0");
 
     let rpc = test_server.bitcoin_rpc_client();
 
@@ -847,6 +842,6 @@ mod tests {
     let response = reqwest::blocking::get(test_server.join_url("height")).unwrap();
 
     assert_eq!(response.status(), StatusCode::OK);
-    assert_eq!(response.text().unwrap(), "2");
+    assert_eq!(response.text().unwrap(), "1");
   }
 }

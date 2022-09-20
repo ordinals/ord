@@ -540,6 +540,12 @@ mod tests {
   fn height_limit() {
     let bitcoin_rpc_server = BitcoinRpcServer::spawn();
 
+    let rpc = bitcoin_rpc_server.client();
+
+    rpc
+      .generate_to_address(1, &"1BitcoinEaterAddressDontSendf59kuE".parse().unwrap())
+      .unwrap();
+
     let tempdir = TempDir::new().unwrap();
 
     let cookie_file = tempdir.path().join("cookie");
