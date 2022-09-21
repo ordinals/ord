@@ -38,7 +38,10 @@ impl Subcommand {
       Self::List(list) => list.run(options),
       Self::Parse(parse) => parse.run(),
       Self::Range(range) => range.run(),
-      Self::Server(server) => server.run(options),
+      Self::Server(server) => { 
+        let index = Arc::new(Index::open(&options)?);
+        server.run(options, index)
+      },
       Self::Supply => supply::run(),
       Self::Traits(traits) => traits.run(),
       Self::Wallet(wallet) => wallet.run(options),
