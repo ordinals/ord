@@ -79,19 +79,14 @@ impl Index {
 
     tx.commit()?;
 
-    Ok(Self {
+    let index = Self {
       client,
       database,
       database_path,
       height_limit: options.height_limit,
-    })
-  }
+    };
 
-  #[allow(clippy::self_named_constructors)]
-  pub(crate) fn index(options: &Options) -> Result<Self> {
-    let index = Self::open(options)?;
-
-    index.index_ranges()?;
+    index.index()?;
 
     Ok(index)
   }
@@ -148,7 +143,7 @@ impl Index {
     (base, base + delta)
   }
 
-  pub(crate) fn index_ranges(&self) -> Result {
+  pub(crate) fn index(&self) -> Result {
     let mut wtx = self.database.begin_write()?;
 
     let height = wtx
@@ -572,8 +567,6 @@ mod tests {
 
       let index = Index::open(&options).unwrap();
 
-      index.index_ranges().unwrap();
-
       assert_eq!(index.height().unwrap(), 0);
     }
 
@@ -597,8 +590,6 @@ mod tests {
       .unwrap();
 
       let index = Index::open(&options).unwrap();
-
-      index.index_ranges().unwrap();
 
       assert_eq!(index.height().unwrap(), 1);
     }

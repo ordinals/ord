@@ -3,7 +3,7 @@ use super::*;
 pub(crate) fn run(options: Options) -> Result {
   let purse = Purse::load(&options)?;
 
-  let index = Index::index(&options)?;
+  let index = Index::open(&options)?;
 
   let mut ordinals = purse
     .wallet
