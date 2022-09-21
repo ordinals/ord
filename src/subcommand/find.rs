@@ -7,7 +7,7 @@ pub(crate) struct Find {
 
 impl Find {
   pub(crate) fn run(self, options: Options) -> Result<()> {
-    let index = Index::index(&options)?;
+    let index = Index::open(&options)?;
 
     match index.find(self.ordinal)? {
       Some(satpoint) => {

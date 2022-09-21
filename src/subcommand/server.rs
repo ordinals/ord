@@ -95,7 +95,7 @@ impl Server {
 
       let clone = index.clone();
       thread::spawn(move || loop {
-        if let Err(error) = clone.index_ranges() {
+        if let Err(error) = clone.index() {
           log::error!("{error}");
         }
         thread::sleep(Duration::from_millis(100));

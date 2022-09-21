@@ -7,7 +7,7 @@ pub(crate) struct List {
 
 impl List {
   pub(crate) fn run(self, options: Options) -> Result<()> {
-    let index = Index::index(&options)?;
+    let index = Index::open(&options)?;
 
     match index.list(self.outpoint)? {
       Some(crate::index::List::Unspent(ranges)) => {

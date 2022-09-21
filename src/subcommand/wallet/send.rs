@@ -12,7 +12,7 @@ impl Send {
   pub(crate) fn run(self, options: Options) -> Result {
     let purse = Purse::load(&options)?;
 
-    let index = Index::index(&options)?;
+    let index = Index::open(&options)?;
 
     let utxo = purse.find(&index, self.ordinal)?;
 
