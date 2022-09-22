@@ -38,7 +38,12 @@ impl Subcommand {
       Self::List(list) => list.run(options),
       Self::Parse(parse) => parse.run(),
       Self::Range(range) => range.run(),
-      Self::Server(server) => server.run(options),
+      Self::Server(server) => {
+        let index = Arc::new(Index::open(&options)?);
+        let handle = Handle::new();
+        LISTENERS.lock().unwrap().push(handle.clone());
+        server.run(options, index, handle)
+      }
       Self::Supply => supply::run(),
       Self::Traits(traits) => traits.run(),
       Self::Wallet(wallet) => wallet.run(options),

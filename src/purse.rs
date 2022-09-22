@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, bdk::blockchain::rpc::Auth};
 
 #[derive(Debug)]
 pub(crate) struct Purse {
