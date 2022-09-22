@@ -23,5 +23,3 @@ Onboard Developers
 - onboard new contributors
 - keep streaming on Twitter Spaces & Discord
 - make development easy and fast
-  - fast unit tests 
-  - 
