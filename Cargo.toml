@@ -26,7 +26,7 @@ http = "0.2.6"
 log = "0.4.14"
 mime_guess = "2.0.4"
 rayon = "1.5.1"
-redb = "0.6.0"
+redb = { version = "0.6.0", git = "https://github.com/casey/redb.git", branch = "add-write-lock" }
 rust-embed = "6.4.0"
 rustls = "0.20.6"
 rustls-acme = { version = "0.5.0", features = ["axum"] }

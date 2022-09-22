@@ -1,12 +1,13 @@
 use {
   super::*,
   bitcoin::BlockHeader,
+  bitcoincore_rpc::Auth,
   jsonrpc_core::IoHandler,
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
   std::collections::BTreeMap,
 };
 
-pub(crate) use {regex::Regex, tempfile::TempDir};
+pub(crate) use {bitcoincore_rpc::RpcApi, regex::Regex, tempfile::TempDir};
 
 macro_rules! assert_regex_match {
   ($string:expr, $pattern:expr $(,)?) => {
@@ -23,42 +24,41 @@ macro_rules! assert_regex_match {
   };
 }
 
-pub struct BitcoinRpcServer {
-  block_hashes: Vec<BlockHash>,
+struct Blocks {
+  hashes: Vec<BlockHash>,
   blocks: BTreeMap<BlockHash, Block>,
+}
+
+impl Blocks {
+  fn new() -> Self {
+    let mut hashes = Vec::new();
+    let mut blocks = BTreeMap::new();
+
+    let genesis_block = bitcoin::blockdata::constants::genesis_block(Network::Bitcoin);
+    let genesis_block_hash = genesis_block.block_hash();
+    hashes.push(genesis_block_hash);
+    blocks.insert(genesis_block_hash, genesis_block);
+
+    Self { hashes, blocks }
+  }
+
+  fn push_block(&mut self, mut block: Block) -> BlockHash {
+    block.header.prev_blockhash = *self.hashes.last().unwrap();
+    let block_hash = block.block_hash();
+    self.hashes.push(block_hash);
+    self.blocks.insert(block_hash, block);
+    block_hash
+  }
+}
+
+pub struct BitcoinRpcServer {
+  blocks: Mutex<Blocks>,
 }
 
 impl BitcoinRpcServer {
   fn new() -> Self {
-    let mut blocks = BTreeMap::new();
-    let mut block_hashes = Vec::new();
-
-    let genesis_block = bitcoin::blockdata::constants::genesis_block(Network::Bitcoin);
-    let genesis_block_hash = genesis_block.block_hash();
-
-    block_hashes.push(genesis_block_hash);
-    blocks.insert(genesis_block_hash, genesis_block);
-
-    let next = Block {
-      header: BlockHeader {
-        version: 0,
-        prev_blockhash: genesis_block_hash,
-        merkle_root: Default::default(),
-        time: 0,
-        bits: 0,
-        nonce: 0,
-      },
-      txdata: Vec::new(),
-    };
-
-    let next_block_hash = next.block_hash();
-
-    block_hashes.push(next_block_hash);
-    blocks.insert(next_block_hash, next);
-
     Self {
-      block_hashes,
-      blocks,
+      blocks: Mutex::new(Blocks::new()),
     }
   }
 
@@ -90,11 +90,18 @@ pub trait BitcoinRpc {
 
   #[rpc(name = "getblock")]
   fn getblock(&self, blockhash: BlockHash, verbosity: u64) -> Result<String, jsonrpc_core::Error>;
+
+  #[rpc(name = "generatetoaddress")]
+  fn generate_to_address(
+    &self,
+    count: usize,
+    address: Address,
+  ) -> Result<Vec<bitcoin::BlockHash>, jsonrpc_core::Error>;
 }
 
 impl BitcoinRpc for BitcoinRpcServer {
   fn getblockhash(&self, height: usize) -> Result<BlockHash, jsonrpc_core::Error> {
-    match self.block_hashes.get(height) {
+    match self.blocks.lock().unwrap().hashes.get(height) {
       Some(block_hash) => Ok(*block_hash),
       None => Err(jsonrpc_core::Error::new(
         jsonrpc_core::types::error::ErrorCode::ServerError(-8),
@@ -104,18 +111,60 @@ impl BitcoinRpc for BitcoinRpcServer {
 
   fn getblock(&self, block_hash: BlockHash, verbosity: u64) -> Result<String, jsonrpc_core::Error> {
     assert_eq!(verbosity, 0, "Verbosity level {verbosity} is unsupported");
-    match self.blocks.get(&block_hash) {
+    match self.blocks.lock().unwrap().blocks.get(&block_hash) {
       Some(block) => Ok(hex::encode(bitcoin::consensus::encode::serialize(block))),
       None => Err(jsonrpc_core::Error::new(
         jsonrpc_core::types::error::ErrorCode::ServerError(-8),
       )),
     }
   }
+
+  fn generate_to_address(
+    &self,
+    count: usize,
+    _address: Address,
+  ) -> Result<Vec<BlockHash>, jsonrpc_core::Error> {
+    let mut block_hashes = Vec::new();
+    let mut blocks = self.blocks.lock().unwrap();
+
+    for _ in 0..count {
+      block_hashes.push(blocks.push_block(Block {
+        header: BlockHeader {
+          version: 0,
+          prev_blockhash: BlockHash::default(),
+          merkle_root: Default::default(),
+          time: 0,
+          bits: 0,
+          nonce: 0,
+        },
+        txdata: Vec::new(),
+      }));
+    }
+
+    Ok(block_hashes)
+  }
 }
 
 pub(crate) struct BitcoinRpcServerHandle {
   pub(crate) port: u16,
   close_handle: Option<CloseHandle>,
+}
+
+impl BitcoinRpcServerHandle {
+  pub(crate) fn url(&self) -> String {
+    format!("http://127.0.0.1:{}", self.port)
+  }
+
+  pub(crate) fn client(&self) -> bitcoincore_rpc::Client {
+    bitcoincore_rpc::Client::new(&self.url(), Auth::None).unwrap()
+  }
+
+  pub(crate) fn mine_block(&self) {
+    self
+      .client()
+      .generate_to_address(1, &"1BitcoinEaterAddressDontSendf59kuE".parse().unwrap())
+      .unwrap();
+  }
 }
 
 impl Drop for BitcoinRpcServerHandle {

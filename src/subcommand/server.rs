@@ -22,6 +22,7 @@ use {
   },
   serde::{de, Deserializer},
   std::cmp::Ordering,
+  std::str,
   tokio_stream::StreamExt,
 };
 
@@ -89,10 +90,8 @@ pub(crate) struct Server {
 }
 
 impl Server {
-  pub(crate) fn run(self, options: Options) -> Result {
+  pub(crate) fn run(self, options: Options, index: Arc<Index>, handle: Handle) -> Result {
     Runtime::new()?.block_on(async {
-      let index = Arc::new(Index::open(&options)?);
-
       let clone = index.clone();
       thread::spawn(move || loop {
         if let Err(error) = clone.index() {
@@ -124,10 +123,6 @@ impl Server {
             .allow_methods([http::Method::GET])
             .allow_origin(Any),
         );
-
-      let handle = Handle::new();
-
-      LISTENERS.lock().unwrap().push(handle.clone());
 
       let (http_result, https_result) = tokio::join!(
         self.spawn(&router, &handle, None)?,
@@ -494,16 +489,17 @@ mod tests {
   use {super::*, std::net::TcpListener, tempfile::TempDir};
 
   struct TestServer {
-    #[allow(unused)]
-    bitcoin_rpc_server_handle: BitcoinRpcServerHandle,
+    bitcoin_rpc_server: BitcoinRpcServerHandle,
+    index: Arc<Index>,
+    ord_server_handle: Handle,
+    port: u16,
     #[allow(unused)]
     tempdir: TempDir,
-    port: u16,
   }
 
   impl TestServer {
     fn new() -> Self {
-      let bitcoin_rpc_server_handle = BitcoinRpcServer::spawn();
+      let bitcoin_rpc_server = BitcoinRpcServer::spawn();
 
       let tempdir = TempDir::new().unwrap();
 
@@ -518,14 +514,21 @@ mod tests {
         .port();
 
       let (options, server) = parse_server_args(&format!(
-        "ord --chain regtest --rpc-url http://127.0.0.1:{} --cookie-file {} --data-dir {} server --http-port {} --address 127.0.0.1",
-        bitcoin_rpc_server_handle.port,
+        "ord --chain regtest --rpc-url {} --cookie-file {} --data-dir {} server --http-port {} --address 127.0.0.1",
+        bitcoin_rpc_server.url(),
         cookiefile.to_str().unwrap(),
         tempdir.path().to_str().unwrap(),
         port,
       ));
 
-      thread::spawn(|| server.run(options).unwrap());
+      let index = Arc::new(Index::open(&options).unwrap());
+      let ord_server_handle = Handle::new();
+
+      {
+        let index = index.clone();
+        let ord_server_handle = ord_server_handle.clone();
+        thread::spawn(|| server.run(options, index, ord_server_handle).unwrap());
+      }
 
       for i in 0.. {
         match reqwest::blocking::get(&format!("http://127.0.0.1:{port}/status")) {
@@ -541,14 +544,39 @@ mod tests {
       }
 
       Self {
-        bitcoin_rpc_server_handle,
+        bitcoin_rpc_server,
+        index,
+        ord_server_handle,
         port,
         tempdir,
       }
     }
 
+    fn get(&self, url: &str) -> reqwest::blocking::Response {
+      self.index.index().unwrap();
+      reqwest::blocking::get(self.join_url(url)).unwrap()
+    }
+
     fn join_url(&self, url: &str) -> String {
       format!("http://127.0.0.1:{}/{url}", self.port)
+    }
+
+    fn assert_response(&self, path: &str, status: StatusCode, expected_response: &str) {
+      let response = self.get(path);
+      assert_eq!(response.status(), status);
+      assert_eq!(response.text().unwrap(), expected_response);
+    }
+
+    fn assert_response_regex(&self, path: &str, status: StatusCode, regex: &'static str) {
+      let response = self.get(path);
+      assert_eq!(response.status(), status);
+      assert_regex_match!(response.text().unwrap(), regex);
+    }
+  }
+
+  impl Drop for TestServer {
+    fn drop(&mut self) {
+      self.ord_server_handle.shutdown();
     }
   }
 
@@ -792,6 +820,136 @@ mod tests {
     assert_eq!(
       response.headers().get(header::LOCATION).unwrap(),
       "/ordinal/0"
+    );
+  }
+
+  #[test]
+  fn status() {
+    TestServer::new().assert_response("status", StatusCode::OK, "OK");
+  }
+
+  #[test]
+  fn height_endpoint() {
+    TestServer::new().assert_response("height", StatusCode::OK, "0");
+  }
+
+  #[test]
+  fn height_updates() {
+    let test_server = TestServer::new();
+
+    let response = test_server.get("height");
+
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(response.text().unwrap(), "0");
+
+    test_server.bitcoin_rpc_server.mine_block();
+
+    let response = test_server.get("height");
+
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(response.text().unwrap(), "1");
+  }
+
+  #[test]
+  fn range_end_before_range_start_returns_400() {
+    TestServer::new().assert_response(
+      "range/1/0/",
+      StatusCode::BAD_REQUEST,
+      "Range Start Greater Than Range End",
+    );
+  }
+
+  #[test]
+  fn invalid_range_start_returns_400() {
+    TestServer::new().assert_response(
+      "range/=/0",
+      StatusCode::BAD_REQUEST,
+      "Invalid URL: invalid digit found in string",
+    );
+  }
+
+  #[test]
+  fn invalid_range_end_returns_400() {
+    TestServer::new().assert_response(
+      "range/0/=",
+      StatusCode::BAD_REQUEST,
+      "Invalid URL: invalid digit found in string",
+    );
+  }
+
+  #[test]
+  fn empty_range_returns_400() {
+    TestServer::new().assert_response("range/0/0", StatusCode::BAD_REQUEST, "Empty Range");
+  }
+
+  #[test]
+  fn range() {
+    TestServer::new().assert_response_regex(
+      "range/0/1",
+      StatusCode::OK,
+      r".*<title>Ordinal range \[0,1\)</title>.*<h1>Ordinal range \[0,1\)</h1>
+<dl>
+  <dt>size</dt><dd>1</dd>
+  <dt>first</dt><dd><a href=/ordinal/0 class=mythic>0</a></dd>
+</dl>.*",
+    );
+  }
+  #[test]
+  fn ordinal_number() {
+    TestServer::new().assert_response_regex("ordinal/0", StatusCode::OK, ".*<h1>Ordinal 0</h1>.*");
+  }
+
+  #[test]
+  fn ordinal_decimal() {
+    TestServer::new().assert_response_regex(
+      "ordinal/0.0",
+      StatusCode::OK,
+      ".*<h1>Ordinal 0</h1>.*",
+    );
+  }
+
+  #[test]
+  fn ordinal_degree() {
+    TestServer::new().assert_response_regex(
+      "ordinal/0°0′0″0‴",
+      StatusCode::OK,
+      ".*<h1>Ordinal 0</h1>.*",
+    );
+  }
+
+  #[test]
+  fn ordinal_name() {
+    TestServer::new().assert_response_regex(
+      "ordinal/nvtdijuwxlp",
+      StatusCode::OK,
+      ".*<h1>Ordinal 0</h1>.*",
+    );
+  }
+
+  #[test]
+  fn ordinal() {
+    TestServer::new().assert_response_regex(
+      "ordinal/0",
+      StatusCode::OK,
+      ".*<title>0°0′0″0‴</title>.*<h1>Ordinal 0</h1>.*",
+    );
+  }
+
+  #[test]
+  fn ordinal_out_of_range() {
+    TestServer::new().assert_response(
+      "ordinal/2099999997690000",
+      StatusCode::BAD_REQUEST,
+      "Invalid URL: Invalid ordinal",
+    );
+  }
+
+  #[test]
+  fn invalid_outpoint_hash_returns_400() {
+    TestServer::new().assert_response(
+      "output/foo:0",
+      StatusCode::BAD_REQUEST,
+      "Invalid URL: error parsing TXID: odd hex string length 3",
     );
   }
 }
