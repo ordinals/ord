@@ -6,8 +6,7 @@ Wallet MVP
 
 - make it easy and private for people to check whether their UTXOs contain cool/
 rare ordinals
-- send and receive ordinals
-  - finish wallet
+- send and receive ordinals with bitcoin core-based wallet
 
 Shill
 -----
