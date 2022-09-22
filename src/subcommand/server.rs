@@ -491,10 +491,10 @@ mod tests {
   struct TestServer {
     bitcoin_rpc_server: BitcoinRpcServerHandle,
     index: Arc<Index>,
+    ord_server_handle: Handle,
+    port: u16,
     #[allow(unused)]
     tempdir: TempDir,
-    port: u16,
-    ord_server_handle: Handle,
   }
 
   impl TestServer {
@@ -545,10 +545,10 @@ mod tests {
 
       Self {
         bitcoin_rpc_server,
-        port,
-        tempdir,
         index,
         ord_server_handle,
+        port,
+        tempdir,
       }
     }
 
