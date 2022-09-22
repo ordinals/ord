@@ -40,7 +40,9 @@ impl Subcommand {
       Self::Range(range) => range.run(),
       Self::Server(server) => {
         let index = Arc::new(Index::open(&options)?);
-        server.run(options, index)
+        let handle = Handle::new();
+        LISTENERS.lock().unwrap().push(handle.clone());
+        server.run(options, index, handle)
       }
       Self::Supply => supply::run(),
       Self::Traits(traits) => traits.run(),

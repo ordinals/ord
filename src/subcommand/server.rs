@@ -21,7 +21,6 @@ use {
     AcmeConfig,
   },
   serde::{de, Deserializer},
-  serial_test::serial,
   std::cmp::Ordering,
   std::str,
   tokio_stream::StreamExt,
@@ -91,7 +90,7 @@ pub(crate) struct Server {
 }
 
 impl Server {
-  pub(crate) fn run(self, options: Options, index: Arc<Index>) -> Result {
+  pub(crate) fn run(self, options: Options, index: Arc<Index>, handle: Handle) -> Result {
     Runtime::new()?.block_on(async {
       let clone = index.clone();
       thread::spawn(move || loop {
@@ -124,10 +123,6 @@ impl Server {
             .allow_methods([http::Method::GET])
             .allow_origin(Any),
         );
-
-      let handle = Handle::new();
-
-      LISTENERS.lock().unwrap().push(handle.clone());
 
       let (http_result, https_result) = tokio::join!(
         self.spawn(&router, &handle, None)?,
@@ -507,6 +502,7 @@ mod tests {
       }
     };
   }
+
   struct TestServer {
     #[allow(unused)]
     bitcoin_rpc_server_handle: BitcoinRpcServerHandle,
@@ -514,6 +510,7 @@ mod tests {
     #[allow(unused)]
     tempdir: TempDir,
     port: u16,
+    ord_server_handle: Handle,
   }
 
   impl TestServer {
@@ -541,9 +538,13 @@ mod tests {
       ));
 
       let index = Arc::new(Index::open(&options).unwrap());
-      let clone = index.clone();
-      // put a move here?
-      thread::spawn(|| server.run(options, clone).unwrap());
+      let ord_server_handle = Handle::new();
+
+      {
+        let index = index.clone();
+        let ord_server_handle = ord_server_handle.clone();
+        thread::spawn(|| server.run(options, index, ord_server_handle).unwrap());
+      }
 
       for i in 0.. {
         match reqwest::blocking::get(&format!("http://127.0.0.1:{port}/status")) {
@@ -563,6 +564,7 @@ mod tests {
         port,
         tempdir,
         index,
+        ord_server_handle,
       }
     }
 
@@ -594,6 +596,12 @@ mod tests {
 
       assert_eq!(response.status(), status);
       assert_regex_match!(response.text().unwrap(), regex);
+    }
+  }
+
+  impl Drop for TestServer {
+    fn drop(&mut self) {
+      self.ord_server_handle.shutdown();
     }
   }
 
