@@ -504,8 +504,7 @@ mod tests {
   }
 
   struct TestServer {
-    #[allow(unused)]
-    bitcoin_rpc_server_handle: BitcoinRpcServerHandle,
+    bitcoin_rpc_server: BitcoinRpcServerHandle,
     index: Arc<Index>,
     #[allow(unused)]
     tempdir: TempDir,
@@ -515,7 +514,7 @@ mod tests {
 
   impl TestServer {
     fn new() -> Self {
-      let bitcoin_rpc_server_handle = BitcoinRpcServer::spawn();
+      let bitcoin_rpc_server = BitcoinRpcServer::spawn();
 
       let tempdir = TempDir::new().unwrap();
 
@@ -531,7 +530,7 @@ mod tests {
 
       let (options, server) = parse_server_args(&format!(
         "ord --chain regtest --rpc-url {} --cookie-file {} --data-dir {} server --http-port {} --address 127.0.0.1",
-        bitcoin_rpc_server_handle.url(),
+        bitcoin_rpc_server.url(),
         cookiefile.to_str().unwrap(),
         tempdir.path().to_str().unwrap(),
         port,
@@ -560,16 +559,12 @@ mod tests {
       }
 
       Self {
-        bitcoin_rpc_server_handle,
+        bitcoin_rpc_server,
         port,
         tempdir,
         index,
         ord_server_handle,
       }
-    }
-
-    fn bitcoin_rpc_client(&self) -> bitcoincore_rpc::Client {
-      self.bitcoin_rpc_server_handle.client()
     }
 
     fn get(&self, url: &str) -> reqwest::blocking::Response {
@@ -868,10 +863,7 @@ mod tests {
       assert_eq!(response.status(), StatusCode::OK);
       assert_eq!(response.text().unwrap(), "0");
 
-      test_server
-        .bitcoin_rpc_client()
-        .generate_to_address(1, &"1BitcoinEaterAddressDontSendf59kuE".parse().unwrap())
-        .unwrap();
+      test_server.bitcoin_rpc_server.mine_block();
 
       let response = test_server.get("height");
 

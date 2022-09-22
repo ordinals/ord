@@ -540,10 +540,7 @@ mod tests {
   fn height_limit() {
     let bitcoin_rpc_server = BitcoinRpcServer::spawn();
 
-    bitcoin_rpc_server
-      .client()
-      .generate_to_address(1, &"1BitcoinEaterAddressDontSendf59kuE".parse().unwrap())
-      .unwrap();
+    bitcoin_rpc_server.mine_block();
 
     let tempdir = TempDir::new().unwrap();
 
