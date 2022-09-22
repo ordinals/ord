@@ -8,8 +8,6 @@ Wallet MVP
 rare ordinals
 - send and receive ordinals
   - finish wallet
-  - write how to do with createrawtransaction?
-
 
 Shill
 -----
