@@ -1,7 +1,8 @@
 Ordinals Roadmap
 ================
 
-## 1. MVP
+MVP
+---
 
 - make it easy and private for people to check whether their UTXOs contain cool/
 rare ordinals
