@@ -17,7 +17,6 @@ Shill
 - keep doing bounties
 - create a market for ordinals
 
-
 Onboard Developers
 ------------------
 
