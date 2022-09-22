@@ -488,21 +488,6 @@ impl Server {
 mod tests {
   use {super::*, std::net::TcpListener, tempfile::TempDir};
 
-  macro_rules! assert_regex_match {
-    ($string:expr, $pattern:expr $(,)?) => {
-      let pattern: &str = $pattern;
-      let regex = Regex::new(&format!("^(?s){}$", pattern)).unwrap();
-      let string = $string;
-
-      if !regex.is_match(string.as_ref()) {
-        panic!(
-          "Regex:\n\n{}\n\n…did not match string:\n\n{}",
-          regex, string
-        );
-      }
-    };
-  }
-
   struct TestServer {
     bitcoin_rpc_server: BitcoinRpcServerHandle,
     index: Arc<Index>,
@@ -586,7 +571,7 @@ mod tests {
       assert_eq!(response.text().unwrap(), expected_response);
     }
 
-    fn request_and_match_regex(&self, path: &str, status: StatusCode, regex: &str) {
+    fn request_and_match_regex(&self, path: &str, status: StatusCode, regex: &'static str) {
       let response = reqwest::blocking::get(self.join_url(path)).unwrap();
 
       assert_eq!(response.status(), status);
