@@ -22,6 +22,7 @@ pub(crate) struct Index {
   height_limit: Option<u64>,
 }
 
+#[derive(Debug, PartialEq)]
 pub(crate) enum List {
   Spent(Txid),
   Unspent(Vec<(u64, u64)>),
@@ -595,5 +596,50 @@ mod tests {
 
       assert_eq!(index.height().unwrap(), 1);
     }
+  }
+
+  #[test]
+  fn first_coinbase_transaction() {
+    let bitcoin_rpc_server = BitcoinRpcServer::spawn();
+
+    bitcoin_rpc_server.mine_block();
+
+    let tempdir = TempDir::new().unwrap();
+
+    let cookie_file = tempdir.path().join("cookie");
+
+    fs::write(&cookie_file, "username:password").unwrap();
+
+    let options = Options::try_parse_from(
+      format!(
+        "
+          ord
+          --rpc-url http://127.0.0.1:{}
+          --data-dir {}
+          --cookie-file {}
+          --height-limit 0
+          --chain regtest
+        ",
+        bitcoin_rpc_server.port,
+        tempdir.path().display(),
+        cookie_file.display(),
+      )
+      .split_whitespace(),
+    )
+    .unwrap();
+
+    let index = Index::open(&options).unwrap();
+
+    assert_eq!(
+      index
+        .list(
+          "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0"
+            .parse()
+            .unwrap()
+        )
+        .unwrap()
+        .unwrap(),
+      List::Unspent(vec![(0, 5000000000)])
+    )
   }
 }

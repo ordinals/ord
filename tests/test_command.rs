@@ -1,7 +1,7 @@
 use super::*;
 
 pub(crate) struct TestCommand {
-  args: Vec<String>,
+  args: &'static str,
   expected_status: i32,
   expected_stderr: Expected,
   expected_stdout: Expected,
@@ -9,20 +9,13 @@ pub(crate) struct TestCommand {
 }
 
 impl TestCommand {
-  pub(crate) fn new() -> Self {
+  pub(crate) fn new(args: &'static str) -> Self {
     Self {
       tempdir: TempDir::new().unwrap(),
-      args: Vec::new(),
       expected_status: 0,
       expected_stderr: Expected::Ignore,
       expected_stdout: Expected::String(String::new()),
-    }
-  }
-
-  pub(crate) fn command(self, args: &str) -> Self {
-    Self {
-      args: args.split_whitespace().map(str::to_owned).collect(),
-      ..self
+      args,
     }
   }
 
@@ -64,7 +57,7 @@ impl TestCommand {
         Stdio::inherit()
       })
       .current_dir(&self.tempdir)
-      .args(self.args.clone())
+      .args(self.args.split_whitespace())
       .output()
       .unwrap();
 
