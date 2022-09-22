@@ -64,7 +64,7 @@ impl Index {
       Ok(database) => database,
       Err(redb::Error::Io(error)) if error.kind() == io::ErrorKind::NotFound => unsafe {
         Database::builder()
-          .set_write_strategy(WriteStrategy::TwoPhase)
+          .set_write_strategy(WriteStrategy::Checksum)
           .create(&database_path, options.max_index_size().0)?
       },
       Err(error) => return Err(error.into()),
