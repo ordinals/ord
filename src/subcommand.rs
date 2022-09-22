@@ -41,7 +41,21 @@ impl Subcommand {
       Self::Server(server) => {
         let index = Arc::new(Index::open(&options)?);
         let handle = Handle::new();
-        LISTENERS.lock().unwrap().push(handle.clone());
+
+        {
+          let handle = handle.clone();
+          ctrlc::set_handler(move || {
+            handle.graceful_shutdown(Some(Duration::from_millis(100)));
+
+            let interrupts = INTERRUPTS.fetch_add(1, atomic::Ordering::Relaxed);
+
+            if interrupts > 5 {
+              process::exit(1);
+            }
+          })
+          .expect("Error setting ctrl-c handler");
+        }
+
         server.run(options, index, handle)
       }
       Self::Supply => supply::run(),
