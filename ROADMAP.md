@@ -20,7 +20,8 @@ Shill
 - create a market for ordinals -> bounties
 
 
-## 3. Increase Dev Participation
+Onboard Developers
+------------------
 
 - onboard new contributors
 - "Ordinals Coding Club"/"Deciphering Ordinals"/(Find a cool name):
