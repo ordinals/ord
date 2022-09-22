@@ -1,17 +1,6 @@
 use super::*;
 
 #[test]
-fn height() {
-  let mut state = State::new();
-
-  state.request("height", 200, "0");
-
-  state.blocks(1);
-
-  state.request("height", 200, "1");
-}
-
-#[test]
 fn output() {
   let mut state = State::new();
 
