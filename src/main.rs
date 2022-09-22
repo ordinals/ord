@@ -94,9 +94,25 @@ const PERIOD_BLOCKS: u64 = 2016;
 const CYCLE_EPOCHS: u64 = 6;
 
 static INTERRUPTS: AtomicU64 = AtomicU64::new(0);
+static LISTENERS: Mutex<Vec<Handle>> = Mutex::new(Vec::new());
 
 fn main() {
   env_logger::init();
+
+  ctrlc::set_handler(move || {
+    LISTENERS
+      .lock()
+      .unwrap()
+      .iter()
+      .for_each(|handle| handle.graceful_shutdown(Some(Duration::from_millis(100))));
+
+    let interrupts = INTERRUPTS.fetch_add(1, atomic::Ordering::Relaxed);
+
+    if interrupts > 5 {
+      process::exit(1);
+    }
+  })
+  .expect("Error setting ctrl-c handler");
 
   if let Err(err) = Arguments::parse().run() {
     eprintln!("error: {}", err);
