@@ -562,15 +562,13 @@ mod tests {
     }
 
     fn request_and_match(&self, path: &str, status: StatusCode, expected_response: &str) {
-      let response = reqwest::blocking::get(self.join_url(path)).unwrap();
-
+      let response = self.get(path);
       assert_eq!(response.status(), status);
       assert_eq!(response.text().unwrap(), expected_response);
     }
 
     fn request_and_match_regex(&self, path: &str, status: StatusCode, regex: &'static str) {
-      let response = reqwest::blocking::get(self.join_url(path)).unwrap();
-
+      let response = self.get(path);
       assert_eq!(response.status(), status);
       assert_regex_match!(response.text().unwrap(), regex);
     }
