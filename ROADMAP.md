@@ -1,8 +1,8 @@
 Ordinals Roadmap
 ================
 
-MVP
----
+Wallet MVP
+----------
 
 - make it easy and private for people to check whether their UTXOs contain cool/
 rare ordinals
