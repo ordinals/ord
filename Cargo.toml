@@ -26,12 +26,14 @@ http = "0.2.6"
 log = "0.4.14"
 mime_guess = "2.0.4"
 rayon = "1.5.1"
-redb = "0.6.0"
+redb = { version = "0.6.0", git = "https://github.com/casey/redb.git", branch = "add-write-lock" }
+# redb = "0.6.0"
 rust-embed = "6.4.0"
 rustls = "0.20.6"
 rustls-acme = { version = "0.5.0", features = ["axum"] }
 serde = { version = "1.0.137", features = ["derive"] }
 serde_json = "1.0.81"
+serial_test = "0.4.0"
 sys-info = "0.9.1"
 tokio = { version = "1.17.0", features = ["rt-multi-thread"] }
 tokio-stream = "0.1.9"

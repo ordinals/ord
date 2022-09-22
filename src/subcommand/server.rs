@@ -21,6 +21,7 @@ use {
     AcmeConfig,
   },
   serde::{de, Deserializer},
+  serial_test::serial,
   std::cmp::Ordering,
   std::str,
   tokio_stream::StreamExt,
@@ -572,7 +573,6 @@ mod tests {
     fn get(&self, url: &str) -> reqwest::blocking::Response {
       // This passes the unit test(most of the time) but fails clippy
       // _ = self.index.index().unwrap();
-
       // This fails the unit test(most of the time) but passes clippy
       self.index.index().unwrap();
       reqwest::blocking::get(self.join_url(url)).unwrap()
@@ -852,22 +852,24 @@ mod tests {
 
   #[test]
   fn height_updates() {
-    let test_server = TestServer::new();
+    for _ in 0..100 {
+      let test_server = TestServer::new();
 
-    let response = test_server.get("height");
+      let response = test_server.get("height");
 
-    assert_eq!(response.status(), StatusCode::OK);
-    assert_eq!(response.text().unwrap(), "0");
+      assert_eq!(response.status(), StatusCode::OK);
+      assert_eq!(response.text().unwrap(), "0");
 
-    test_server
-      .bitcoin_rpc_client()
-      .generate_to_address(1, &"1BitcoinEaterAddressDontSendf59kuE".parse().unwrap())
-      .unwrap();
+      test_server
+        .bitcoin_rpc_client()
+        .generate_to_address(1, &"1BitcoinEaterAddressDontSendf59kuE".parse().unwrap())
+        .unwrap();
 
-    let response = test_server.get("height");
+      let response = test_server.get("height");
 
-    assert_eq!(response.status(), StatusCode::OK);
-    assert_eq!(response.text().unwrap(), "1");
+      assert_eq!(response.status(), StatusCode::OK);
+      assert_eq!(response.text().unwrap(), "1");
+    }
   }
 
   #[test]
