@@ -2,8 +2,7 @@ use super::*;
 
 #[test]
 fn traits_command_prints_ordinal_traits() {
-  TestCommand::new()
-    .command("traits 0")
+  TestCommand::new("traits 0")
     .expected_stdout(
       "\
 number: 0

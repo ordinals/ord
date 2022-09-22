@@ -9,20 +9,13 @@ pub(crate) struct TestCommand {
 }
 
 impl TestCommand {
-  pub(crate) fn new() -> Self {
+  pub(crate) fn new(args: &str) -> Self {
     Self {
       tempdir: TempDir::new().unwrap(),
-      args: Vec::new(),
+      args: args.split_whitespace().map(str::to_owned).collect(),
       expected_status: 0,
       expected_stderr: Expected::Ignore,
       expected_stdout: Expected::String(String::new()),
-    }
-  }
-
-  pub(crate) fn command(self, args: &str) -> Self {
-    Self {
-      args: args.split_whitespace().map(str::to_owned).collect(),
-      ..self
     }
   }
 
