@@ -1,4 +1,5 @@
-# Ordinals Medium-Term Roadmap 
+Ordinals Roadmap
+================
 
 ## 1. MVP
 
