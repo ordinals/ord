@@ -21,8 +21,7 @@ Onboard Developers
 ------------------
 
 - onboard new contributors
-- "Ordinals Coding Club"/"Deciphering Ordinals"/(Find a cool name):
-  - streaming on Twitter Spaces & Discord
+- keep streaming on Twitter Spaces & Discord
 - make development easy and fast
   - fast unit tests 
   - 
