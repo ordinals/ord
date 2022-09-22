@@ -11,7 +11,8 @@ rare ordinals
   - write how to do with createrawtransaction?
 
 
-## 2. Gain user mindshare
+Shill
+-----
 
 - memes
 - twitter bot
