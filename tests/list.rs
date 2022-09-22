@@ -1,14 +1,6 @@
 use super::*;
 
 #[test]
-fn first_coinbase_transaction() {
-  SlowTest::new()
-    .command("list 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0")
-    .expected_stdout("[0,5000000000)\n")
-    .run();
-}
-
-#[test]
 fn second_coinbase_transaction() {
   SlowTest::new()
     .command("list 150ba822b458a19615e70a604d8dd9d3482fc165fa4e9cc150d74e11916ce8ae:0")
