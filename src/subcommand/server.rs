@@ -570,7 +570,7 @@ mod tests {
     }
 
     fn get(&self, url: &str) -> reqwest::blocking::Response {
-      let _result = self.index.index().unwrap();
+      _ = self.index.index().unwrap();
       reqwest::blocking::get(self.join_url(url)).unwrap()
     }
 
