@@ -561,13 +561,13 @@ mod tests {
       format!("http://127.0.0.1:{}/{url}", self.port)
     }
 
-    fn request_and_match(&self, path: &str, status: StatusCode, expected_response: &str) {
+    fn assert_response(&self, path: &str, status: StatusCode, expected_response: &str) {
       let response = self.get(path);
       assert_eq!(response.status(), status);
       assert_eq!(response.text().unwrap(), expected_response);
     }
 
-    fn request_and_match_regex(&self, path: &str, status: StatusCode, regex: &'static str) {
+    fn assert_response_regex(&self, path: &str, status: StatusCode, regex: &'static str) {
       let response = self.get(path);
       assert_eq!(response.status(), status);
       assert_regex_match!(response.text().unwrap(), regex);
@@ -825,12 +825,12 @@ mod tests {
 
   #[test]
   fn status() {
-    TestServer::new().request_and_match("status", StatusCode::OK, "OK");
+    TestServer::new().assert_response("status", StatusCode::OK, "OK");
   }
 
   #[test]
   fn height_endpoint() {
-    TestServer::new().request_and_match("height", StatusCode::OK, "0");
+    TestServer::new().assert_response("height", StatusCode::OK, "0");
   }
 
   #[test]
@@ -852,7 +852,7 @@ mod tests {
 
   #[test]
   fn range_end_before_range_start_returns_400() {
-    TestServer::new().request_and_match(
+    TestServer::new().assert_response(
       "range/1/0/",
       StatusCode::BAD_REQUEST,
       "Range Start Greater Than Range End",
@@ -861,7 +861,7 @@ mod tests {
 
   #[test]
   fn invalid_range_start_returns_400() {
-    TestServer::new().request_and_match(
+    TestServer::new().assert_response(
       "range/=/0",
       StatusCode::BAD_REQUEST,
       "Invalid URL: invalid digit found in string",
@@ -870,7 +870,7 @@ mod tests {
 
   #[test]
   fn invalid_range_end_returns_400() {
-    TestServer::new().request_and_match(
+    TestServer::new().assert_response(
       "range/0/=",
       StatusCode::BAD_REQUEST,
       "Invalid URL: invalid digit found in string",
@@ -879,12 +879,12 @@ mod tests {
 
   #[test]
   fn empty_range_returns_400() {
-    TestServer::new().request_and_match("range/0/0", StatusCode::BAD_REQUEST, "Empty Range");
+    TestServer::new().assert_response("range/0/0", StatusCode::BAD_REQUEST, "Empty Range");
   }
 
   #[test]
   fn range() {
-    TestServer::new().request_and_match_regex(
+    TestServer::new().assert_response_regex(
       "range/0/1",
       StatusCode::OK,
       r".*<title>Ordinal range \[0,1\)</title>.*<h1>Ordinal range \[0,1\)</h1>
@@ -896,16 +896,12 @@ mod tests {
   }
   #[test]
   fn ordinal_number() {
-    TestServer::new().request_and_match_regex(
-      "ordinal/0",
-      StatusCode::OK,
-      ".*<h1>Ordinal 0</h1>.*",
-    );
+    TestServer::new().assert_response_regex("ordinal/0", StatusCode::OK, ".*<h1>Ordinal 0</h1>.*");
   }
 
   #[test]
   fn ordinal_decimal() {
-    TestServer::new().request_and_match_regex(
+    TestServer::new().assert_response_regex(
       "ordinal/0.0",
       StatusCode::OK,
       ".*<h1>Ordinal 0</h1>.*",
@@ -914,7 +910,7 @@ mod tests {
 
   #[test]
   fn ordinal_degree() {
-    TestServer::new().request_and_match_regex(
+    TestServer::new().assert_response_regex(
       "ordinal/0°0′0″0‴",
       StatusCode::OK,
       ".*<h1>Ordinal 0</h1>.*",
@@ -923,7 +919,7 @@ mod tests {
 
   #[test]
   fn ordinal_name() {
-    TestServer::new().request_and_match_regex(
+    TestServer::new().assert_response_regex(
       "ordinal/nvtdijuwxlp",
       StatusCode::OK,
       ".*<h1>Ordinal 0</h1>.*",
@@ -932,7 +928,7 @@ mod tests {
 
   #[test]
   fn ordinal() {
-    TestServer::new().request_and_match_regex(
+    TestServer::new().assert_response_regex(
       "ordinal/0",
       StatusCode::OK,
       ".*<title>0°0′0″0‴</title>.*<h1>Ordinal 0</h1>.*",
@@ -941,7 +937,7 @@ mod tests {
 
   #[test]
   fn ordinal_out_of_range() {
-    TestServer::new().request_and_match(
+    TestServer::new().assert_response(
       "ordinal/2099999997690000",
       StatusCode::BAD_REQUEST,
       "Invalid URL: Invalid ordinal",
@@ -950,7 +946,7 @@ mod tests {
 
   #[test]
   fn invalid_outpoint_hash_returns_400() {
-    TestServer::new().request_and_match(
+    TestServer::new().assert_response(
       "output/foo:0",
       StatusCode::BAD_REQUEST,
       "Invalid URL: error parsing TXID: odd hex string length 3",
