@@ -855,21 +855,19 @@ mod tests {
 
   #[test]
   fn height_updates() {
-    for _ in 0..100 {
-      let test_server = TestServer::new();
+    let test_server = TestServer::new();
 
-      let response = test_server.get("height");
+    let response = test_server.get("height");
 
-      assert_eq!(response.status(), StatusCode::OK);
-      assert_eq!(response.text().unwrap(), "0");
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(response.text().unwrap(), "0");
 
-      test_server.bitcoin_rpc_server.mine_block();
+    test_server.bitcoin_rpc_server.mine_block();
 
-      let response = test_server.get("height");
+    let response = test_server.get("height");
 
-      assert_eq!(response.status(), StatusCode::OK);
-      assert_eq!(response.text().unwrap(), "1");
-    }
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(response.text().unwrap(), "1");
   }
 
   #[test]
