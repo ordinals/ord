@@ -553,9 +553,6 @@ mod tests {
     }
 
     fn get(&self, url: &str) -> reqwest::blocking::Response {
-      // This passes the unit test(most of the time) but fails clippy
-      // _ = self.index.index().unwrap();
-      // This fails the unit test(most of the time) but passes clippy
       self.index.index().unwrap();
       reqwest::blocking::get(self.join_url(url)).unwrap()
     }
