@@ -39,17 +39,6 @@ impl SlowTest {
     }
   }
 
-  pub(crate) fn args(self, args: &[&str]) -> Self {
-    Self {
-      args: self
-        .args
-        .into_iter()
-        .chain(args.iter().cloned().map(str::to_owned))
-        .collect(),
-      ..self
-    }
-  }
-
   pub(crate) fn expected_stdout(self, expected_stdout: impl AsRef<str>) -> Self {
     Self {
       expected_stdout: Expected::String(expected_stdout.as_ref().to_owned()),
