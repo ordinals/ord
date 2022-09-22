@@ -14,7 +14,8 @@ Shill
 - memes
 - twitter bot
 - blog about ordinals
-- create a market for ordinals -> bounties
+- keep doing bounties
+- create a market for ordinals
 
 
 Onboard Developers
