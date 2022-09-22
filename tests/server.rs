@@ -11,8 +11,6 @@ fn height() {
   state.request("height", 200, "1");
 }
 
-
-
 #[test]
 fn output() {
   let mut state = State::new();
