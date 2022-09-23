@@ -842,7 +842,7 @@ mod tests {
     assert_eq!(response.status(), StatusCode::OK);
     assert_eq!(response.text().unwrap(), "0");
 
-    test_server.bitcoin_rpc_server.mine_block();
+    test_server.bitcoin_rpc_server.mine_blocks(1);
 
     let response = test_server.get("height");
 
@@ -951,5 +951,247 @@ mod tests {
       StatusCode::BAD_REQUEST,
       "Invalid URL: error parsing TXID: odd hex string length 3",
     );
+  }
+  #[test]
+  fn output() {
+    let test_server = TestServer::new();
+
+    test_server.bitcoin_rpc_server.mine_blocks(1);
+
+    test_server.assert_response_regex(
+    "output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
+    StatusCode::OK,
+    ".*<title>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</title>.*<h1>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</h1>
+<h2>Ordinal Ranges</h2>
+<ul class=monospace>
+  <li><a href=/range/0/5000000000 class=mythic>\\[0,5000000000\\)</a></li>
+</ul>.*",
+  );
+  }
+
+  #[test]
+  fn unknown_output_returns_404() {
+    TestServer::new().assert_response(
+      "output/0000000000000000000000000000000000000000000000000000000000000000:0",
+      StatusCode::NOT_FOUND,
+      "Output unknown.",
+    );
+  }
+
+  // TODO:  - we don't do this on ordinals.com (just says output unkown)
+  //        - maybe change the error message
+  // #[test]
+  // #[ignore]
+  // fn spent_output_returns_200() {
+  //   let mut state = State::new();
+
+  //   state.blocks(101);
+
+  //   let txid = state
+  //     .transaction(TransactionOptions {
+  //       slots: &[(1, 0, 0)],
+  //       output_count: 1,
+  //       fee: 0,
+  //       recipient: None,
+  //     })
+  //     .txid();
+
+  //   state.blocks(1);
+
+  //   state.request_regex(
+  //     &format!("output/{txid}:0"),
+  //     200,
+  //     &format!(
+  //       ".*<title>Output {txid}:0</title>.*<h1>Output {txid}:0</h1>
+  //  <h2>Ordinal Ranges</h2>
+  //  <ul class=monospace>
+  //    <li><a href=/range/5000000000/10000000000 class=uncommon>\\[5000000000,10000000000\\)</a></li>
+  //  </ul>.*"
+  //     ),
+  //   );
+
+  //   let transaction = state.transaction(TransactionOptions {
+  //     slots: &[(102, 1, 0)],
+  //     output_count: 1,
+  //     fee: 0,
+  //     recipient: None,
+  //   });
+
+  //   state.blocks(1);
+
+  //   state.request_regex(
+  //     &format!("output/{txid}:0"),
+  //     200,
+  //     &format!(
+  //       ".*<p>Spent by transaction <a href=/tx/{}>{}</a>.</p>.*",
+  //       transaction.txid(),
+  //       transaction.txid()
+  //     ),
+  //   );
+  // }
+
+  #[test]
+  fn invalid_output_returns_400() {
+    TestServer::new().assert_response(
+      "output/foo:0",
+      StatusCode::BAD_REQUEST,
+      "Invalid URL: error parsing TXID: odd hex string length 3",
+    );
+  }
+
+  #[test]
+  fn home() {
+    let test_server = TestServer::new();
+
+    test_server.bitcoin_rpc_server.mine_blocks(1);
+
+    test_server.assert_response_regex(
+    "/",
+    StatusCode::OK,
+    ".*<title>Ordinals</title>.*<h1>Ordinals</h1>
+<nav>.*</nav>
+.*
+<h2>Recent Blocks</h2>
+<ol start=1 reversed class=monospace>
+  <li><a href=/block/[[:xdigit:]]{64} class=uncommon>[[:xdigit:]]{64}</a></li>
+  <li><a href=/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f class=mythic>000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</a></li>
+</ol>.*",
+  );
+  }
+
+  #[test]
+  fn home_block_limit() {
+    let test_server = TestServer::new();
+
+    test_server.bitcoin_rpc_server.mine_blocks(200);
+
+    test_server.assert_response_regex(
+    "/",
+    StatusCode::OK,
+    ".*<ol start=200 reversed class=monospace>\n(  <li><a href=/block/[[:xdigit:]]{64} class=uncommon>[[:xdigit:]]{64}</a></li>\n){100}</ol>.*"
+  );
+  }
+
+  #[test]
+  fn block() {
+    let test_server = TestServer::new();
+
+    // TODO:  - do we need to generate a transaction here?
+    //        - just testing a block
+    // test_server.mine_blocks(101);
+
+    // state.transaction(TransactionOptions {
+    // slots: &[(1, 0, 0)],
+    // output_count: 1,
+    // fee: 0,
+    // recipient: None,
+    // });
+
+    // <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
+    // <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
+
+    let blocks = test_server.bitcoin_rpc_server.mine_blocks(1);
+
+    test_server.assert_response_regex(
+      &format!("block/{}", blocks[0]),
+      StatusCode::OK,
+      ".*<h1>Block [[:xdigit:]]{64}</h1>
+<h2>Transactions</h2>
+<ul class=monospace>
+</ul>.*",
+    );
+  }
+
+  #[test]
+  fn block_not_found() {
+    TestServer::new().assert_response(
+      "block/467a86f0642b1d284376d13a98ef58310caa49502b0f9a560ee222e0a122fe16",
+      StatusCode::NOT_FOUND,
+      "Not Found",
+    );
+  }
+
+  //  #[test]
+  //  fn transaction() {
+  //    let mut state = State::new();
+  //
+  //    state.blocks(101);
+  //
+  //    state.transaction(TransactionOptions {
+  //      slots: &[(1, 0, 0)],
+  //      output_count: 1,
+  //      fee: 0,
+  //      recipient: None,
+  //    });
+  //
+  //    state.blocks(1);
+  //TODO: hard-coded transaction
+  //    state.assert_response_regex(
+  //    "tx/30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c",
+  //    StatusCode::OK,
+  //    ".*<title>Transaction 30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c</title>.*<h1>Transaction 30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c</h1>
+  //<h2>Outputs</h2>
+  //<ul class=monospace>
+  //  <li><a href=/output/30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c:0>30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c:0</a></li>
+  //</ul>.*"
+  //  );
+  //  }
+
+  #[test]
+  fn unmined_ordinal() {
+    TestServer::new().assert_response_regex(
+      "ordinal/0",
+      StatusCode::OK,
+      ".*<dt>time</dt><dd>2009-01-03 18:15:05</dd>.*",
+    );
+  }
+
+  #[test]
+  fn mined_ordinal() {
+    TestServer::new().assert_response_regex(
+      "ordinal/5000000000",
+      StatusCode::OK,
+      ".*<dt>time</dt><dd>.* \\(expected\\)</dd>.*",
+    );
+  }
+
+  #[test]
+  fn static_asset() {
+    TestServer::new().assert_response_regex(
+      "static/index.css",
+      StatusCode::OK,
+      r".*\.rare \{
+  background-color: cornflowerblue;
+}.*",
+    );
+  }
+
+  #[test]
+  fn favicon() {
+    TestServer::new().assert_response_regex("favicon.ico", StatusCode::OK, r".*");
+  }
+
+  #[test]
+  fn clock_updates() {
+    let test_server = TestServer::new();
+
+    test_server.assert_response_regex(
+      "clock",
+      StatusCode::OK,
+      r#".*<line y2="-9" transform="rotate\(0\)"/>.*"#,
+    );
+
+    test_server.bitcoin_rpc_server.mine_blocks(1);
+
+    test_server.assert_response_regex(
+      "clock",
+      StatusCode::OK,
+      r#".*<line y2="-9" transform="rotate\(0.00005194805194805195\)"/>.*"#,
+    );
+  }
+
+  #[test]
+  fn clock_is_served_with_svg_extension() {
+    TestServer::new().assert_response_regex("clock.svg", StatusCode::OK, "<svg.*");
   }
 }

@@ -159,11 +159,11 @@ impl BitcoinRpcServerHandle {
     bitcoincore_rpc::Client::new(&self.url(), Auth::None).unwrap()
   }
 
-  pub(crate) fn mine_block(&self) {
+  pub(crate) fn mine_blocks(&self, num: u64) -> Vec<BlockHash> {
     self
       .client()
-      .generate_to_address(1, &"1BitcoinEaterAddressDontSendf59kuE".parse().unwrap())
-      .unwrap();
+      .generate_to_address(num, &"1BitcoinEaterAddressDontSendf59kuE".parse().unwrap())
+      .unwrap()
   }
 }
 
