@@ -104,16 +104,12 @@ impl Index {
 
     tx.commit()?;
 
-    let index = Self {
+    Ok(Self {
       client,
       database,
       database_path,
       height_limit: options.height_limit,
-    };
-
-    index.index()?;
-
-    Ok(index)
+    })
   }
 
   pub(crate) fn print_info(&self) -> Result {
@@ -573,6 +569,8 @@ mod tests {
 
       let index = Index::open(&options).unwrap();
 
+      index.index().unwrap();
+
       assert_eq!(index.height().unwrap(), 0);
     }
 
@@ -596,6 +594,8 @@ mod tests {
       .unwrap();
 
       let index = Index::open(&options).unwrap();
+
+      index.index().unwrap();
 
       assert_eq!(index.height().unwrap(), 1);
     }
@@ -632,6 +632,8 @@ mod tests {
     .unwrap();
 
     let index = Index::open(&options).unwrap();
+
+    index.index().unwrap();
 
     assert_eq!(
       index
