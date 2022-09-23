@@ -541,7 +541,7 @@ mod tests {
   fn height_limit() {
     let bitcoin_rpc_server = BitcoinRpcServer::spawn();
 
-    bitcoin_rpc_server.mine_block();
+    bitcoin_rpc_server.mine_blocks(1);
 
     let tempdir = TempDir::new().unwrap();
 
@@ -602,7 +602,7 @@ mod tests {
   fn first_coinbase_transaction() {
     let bitcoin_rpc_server = BitcoinRpcServer::spawn();
 
-    bitcoin_rpc_server.mine_block();
+    bitcoin_rpc_server.mine_blocks(1);
 
     let tempdir = TempDir::new().unwrap();
 

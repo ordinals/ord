@@ -842,7 +842,7 @@ mod tests {
     assert_eq!(response.status(), StatusCode::OK);
     assert_eq!(response.text().unwrap(), "0");
 
-    test_server.bitcoin_rpc_server.mine_block();
+    test_server.bitcoin_rpc_server.mine_blocks(1);
 
     let response = test_server.get("height");
 
@@ -951,5 +951,137 @@ mod tests {
       StatusCode::BAD_REQUEST,
       "Invalid URL: error parsing TXID: odd hex string length 3",
     );
+  }
+  #[test]
+  fn output() {
+    let test_server = TestServer::new();
+
+    test_server.assert_response_regex(
+    "output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
+    StatusCode::OK,
+    ".*<title>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</title>.*<h1>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</h1>
+<h2>Ordinal Ranges</h2>
+<ul class=monospace>
+  <li><a href=/range/0/5000000000 class=mythic>\\[0,5000000000\\)</a></li>
+</ul>.*",
+  );
+  }
+
+  #[test]
+  fn unknown_output_returns_404() {
+    TestServer::new().assert_response(
+      "output/0000000000000000000000000000000000000000000000000000000000000000:0",
+      StatusCode::NOT_FOUND,
+      "Output unknown.",
+    );
+  }
+
+  #[test]
+  fn invalid_output_returns_400() {
+    TestServer::new().assert_response(
+      "output/foo:0",
+      StatusCode::BAD_REQUEST,
+      "Invalid URL: error parsing TXID: odd hex string length 3",
+    );
+  }
+
+  #[test]
+  fn home() {
+    let test_server = TestServer::new();
+
+    test_server.bitcoin_rpc_server.mine_blocks(1);
+
+    test_server.assert_response_regex(
+    "/",
+    StatusCode::OK,
+    ".*<title>Ordinals</title>.*<h1>Ordinals</h1>
+<nav>.*</nav>
+.*
+<h2>Recent Blocks</h2>
+<ol start=1 reversed class=monospace>
+  <li><a href=/block/[[:xdigit:]]{64} class=uncommon>[[:xdigit:]]{64}</a></li>
+  <li><a href=/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f class=mythic>000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</a></li>
+</ol>.*",
+  );
+  }
+
+  #[test]
+  fn home_block_limit() {
+    let test_server = TestServer::new();
+
+    test_server.bitcoin_rpc_server.mine_blocks(200);
+
+    test_server.assert_response_regex(
+    "/",
+    StatusCode::OK,
+    ".*<ol start=200 reversed class=monospace>\n(  <li><a href=/block/[[:xdigit:]]{64} class=uncommon>[[:xdigit:]]{64}</a></li>\n){100}</ol>.*"
+  );
+  }
+
+  #[test]
+  fn block_not_found() {
+    TestServer::new().assert_response(
+      "block/467a86f0642b1d284376d13a98ef58310caa49502b0f9a560ee222e0a122fe16",
+      StatusCode::NOT_FOUND,
+      "Not Found",
+    );
+  }
+
+  #[test]
+  fn unmined_ordinal() {
+    TestServer::new().assert_response_regex(
+      "ordinal/0",
+      StatusCode::OK,
+      ".*<dt>time</dt><dd>2009-01-03 18:15:05</dd>.*",
+    );
+  }
+
+  #[test]
+  fn mined_ordinal() {
+    TestServer::new().assert_response_regex(
+      "ordinal/5000000000",
+      StatusCode::OK,
+      ".*<dt>time</dt><dd>.* \\(expected\\)</dd>.*",
+    );
+  }
+
+  #[test]
+  fn static_asset() {
+    TestServer::new().assert_response_regex(
+      "static/index.css",
+      StatusCode::OK,
+      r".*\.rare \{
+  background-color: cornflowerblue;
+}.*",
+    );
+  }
+
+  #[test]
+  fn favicon() {
+    TestServer::new().assert_response_regex("favicon.ico", StatusCode::OK, r".*");
+  }
+
+  #[test]
+  fn clock_updates() {
+    let test_server = TestServer::new();
+
+    test_server.assert_response_regex(
+      "clock",
+      StatusCode::OK,
+      r#".*<line y2="-9" transform="rotate\(0\)"/>.*"#,
+    );
+
+    test_server.bitcoin_rpc_server.mine_blocks(1);
+
+    test_server.assert_response_regex(
+      "clock",
+      StatusCode::OK,
+      r#".*<line y2="-9" transform="rotate\(0.00005194805194805195\)"/>.*"#,
+    );
+  }
+
+  #[test]
+  fn clock_is_served_with_svg_extension() {
+    TestServer::new().assert_response_regex("clock.svg", StatusCode::OK, "<svg.*");
   }
 }

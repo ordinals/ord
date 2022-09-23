@@ -201,10 +201,6 @@ impl State {
     tx
   }
 
-  pub(crate) fn request(&mut self, path: &str, status: u16, expected_response: &str) {
-    self.request_expected(path, status, Expected::String(expected_response.into()));
-  }
-
   pub(crate) fn request_regex(&mut self, path: &str, status: u16, expected_response: &str) {
     self.request_expected(path, status, Expected::regex(expected_response));
   }
