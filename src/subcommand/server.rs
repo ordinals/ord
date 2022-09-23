@@ -124,12 +124,22 @@ impl Server {
             .allow_origin(Any),
         );
 
-      let (http_result, https_result) = tokio::join!(
-        self.spawn(&router, &handle, None)?,
-        self.spawn(&router, &handle, self.acceptor(&options)?)?
-      );
-
-      http_result.and(https_result)?.transpose()?;
+      match (self.http_port(), self.https_port()) {
+        (Some(http_port), None) => self.spawn(router, handle, http_port, None)?.await??,
+        (None, Some(https_port)) => {
+          self
+            .spawn(router, handle, https_port, Some(self.acceptor(&options)?))?
+            .await??
+        }
+        (Some(http_port), Some(https_port)) => {
+          let (http_result, https_result) = tokio::join!(
+            self.spawn(router.clone(), handle.clone(), http_port, None)?,
+            self.spawn(router, handle, https_port, Some(self.acceptor(&options)?))?
+          );
+          http_result.and(https_result)??;
+        }
+        (None, None) => unreachable!(),
+      }
 
       Ok(())
     })
@@ -137,40 +147,28 @@ impl Server {
 
   fn spawn(
     &self,
-    router: &Router,
-    handle: &Handle,
+    router: Router,
+    handle: Handle,
+    port: u16,
     https_acceptor: Option<AxumAcceptor>,
-  ) -> Result<task::JoinHandle<Option<io::Result<()>>>> {
-    let addr = if https_acceptor.is_some() {
-      self.https_port()
-    } else {
-      self.http_port()
-    }
-    .map(|port| {
-      (self.address.as_str(), port)
-        .to_socket_addrs()?
-        .next()
-        .ok_or_else(|| anyhow!("Failed to get socket addrs"))
-        .map(|addr| (addr, router.clone(), handle.clone()))
-    })
-    .transpose()?;
+  ) -> Result<task::JoinHandle<io::Result<()>>> {
+    let addr = (self.address.as_str(), port)
+      .to_socket_addrs()?
+      .next()
+      .ok_or_else(|| anyhow!("Failed to get socket addrs"))?;
 
     Ok(tokio::spawn(async move {
-      if let Some((addr, router, handle)) = addr {
-        Some(if let Some(acceptor) = https_acceptor {
-          axum_server::Server::bind(addr)
-            .handle(handle)
-            .acceptor(acceptor)
-            .serve(router.into_make_service())
-            .await
-        } else {
-          axum_server::Server::bind(addr)
-            .handle(handle)
-            .serve(router.into_make_service())
-            .await
-        })
+      if let Some(acceptor) = https_acceptor {
+        axum_server::Server::bind(addr)
+          .handle(handle)
+          .acceptor(acceptor)
+          .serve(router.into_make_service())
+          .await
       } else {
-        None
+        axum_server::Server::bind(addr)
+          .handle(handle)
+          .serve(router.into_make_service())
+          .await
       }
     }))
   }
@@ -207,42 +205,38 @@ impl Server {
     }
   }
 
-  fn acceptor(&self, options: &Options) -> Result<Option<AxumAcceptor>> {
-    if self.https_port().is_some() {
-      let config = AcmeConfig::new(Self::acme_domains(&self.acme_domain)?)
-        .contact(&self.acme_contact)
-        .cache_option(Some(DirCache::new(Self::acme_cache(
-          self.acme_cache.as_ref(),
-          options,
-        )?)))
-        .directory(if cfg!(test) {
-          LETS_ENCRYPT_STAGING_DIRECTORY
-        } else {
-          LETS_ENCRYPT_PRODUCTION_DIRECTORY
-        });
-
-      let mut state = config.state();
-
-      let acceptor = state.axum_acceptor(Arc::new(
-        rustls::ServerConfig::builder()
-          .with_safe_defaults()
-          .with_no_client_auth()
-          .with_cert_resolver(state.resolver()),
-      ));
-
-      tokio::spawn(async move {
-        while let Some(result) = state.next().await {
-          match result {
-            Ok(ok) => log::info!("ACME event: {:?}", ok),
-            Err(err) => log::error!("ACME error: {:?}", err),
-          }
-        }
+  fn acceptor(&self, options: &Options) -> Result<AxumAcceptor> {
+    let config = AcmeConfig::new(Self::acme_domains(&self.acme_domain)?)
+      .contact(&self.acme_contact)
+      .cache_option(Some(DirCache::new(Self::acme_cache(
+        self.acme_cache.as_ref(),
+        options,
+      )?)))
+      .directory(if cfg!(test) {
+        LETS_ENCRYPT_STAGING_DIRECTORY
+      } else {
+        LETS_ENCRYPT_PRODUCTION_DIRECTORY
       });
 
-      Ok(Some(acceptor))
-    } else {
-      Ok(None)
-    }
+    let mut state = config.state();
+
+    let acceptor = state.axum_acceptor(Arc::new(
+      rustls::ServerConfig::builder()
+        .with_safe_defaults()
+        .with_no_client_auth()
+        .with_cert_resolver(state.resolver()),
+    ));
+
+    tokio::spawn(async move {
+      while let Some(result) = state.next().await {
+        match result {
+          Ok(ok) => log::info!("ACME event: {:?}", ok),
+          Err(err) => log::error!("ACME error: {:?}", err),
+        }
+      }
+    });
+
+    Ok(acceptor)
   }
 
   async fn clock(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
