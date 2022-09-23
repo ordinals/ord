@@ -406,7 +406,6 @@ impl Server {
   async fn status(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
     if index.is_reorged() {
       return (
-        // StatusCode::INTERNAL_SERVER_ERROR,
         StatusCode::SERVICE_UNAVAILABLE,
         "Reorg detected, please rebuild the database.".to_string(),
       );

@@ -203,8 +203,9 @@ impl Index {
   }
 
   pub(crate) fn is_reorged(&self) -> bool {
-    self.reorged.load(Ordering::SeqCst)
+    self.reorged.load(Ordering::Relaxed)
   }
+
   pub(crate) fn index_block(&self, wtx: &mut WriteTransaction, height: u64) -> Result<bool> {
     let mut height_to_hash = wtx.open_table(HEIGHT_TO_HASH)?;
     let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
@@ -256,8 +257,8 @@ impl Index {
       let prev_hash = height_to_hash.get(&prev_height)?.unwrap();
 
       if prev_hash != block.header.prev_blockhash.as_ref() {
-        self.reorged.store(true, Ordering::SeqCst);
-        return Err(anyhow!("Reorg detected at or before {prev_height}"));
+        self.reorged.store(true, Ordering::Relaxed);
+        //return Err(anyhow!("Reorg detected at or before {prev_height}"));
       }
     }
 
