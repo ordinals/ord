@@ -46,8 +46,8 @@
   <line class="legendary" y1="-16" y2="-15" stroke-width="0.5" transform="rotate(327.27272727272725)"><title>5th Conjunction</title></line>
   <line class="epic" y1="-16" y2="-15" stroke-width="0.3" transform="rotate(338.1818181818182)"><title>31st Halving</title></line>
   <line class="epic" y1="-16" y2="-15" stroke-width="0.3" transform="rotate(349.0909090909091)"><title>32nd Halving</title></line>
-  <line y2="-9" transform="rotate({{self.hour}})"/>
-  <line y2="-13" stroke-width="0.6" transform="rotate({{self.minute}})"/>
-  <line y2="-16" stroke="#d00505" stroke-width="0.2" transform="rotate({{self.second}})"/>
+  <line y2="-9" transform="rotate({{self.hour}})"><title>Subsidy</title></line>
+  <line y2="-13" stroke-width="0.6" transform="rotate({{self.minute}})"><title>Epoch</title></line>
+  <line y2="-16" stroke="#d00505" stroke-width="0.2" transform="rotate({{self.second}})"><title>Period</title></line>
   <circle r="0.7" stroke="#d00505" stroke-width="0.3"/>
 </svg>
