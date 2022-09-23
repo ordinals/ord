@@ -412,12 +412,46 @@ impl Server {
     )
   }
 
-  async fn search_by_query(search: extract::Query<Search>) -> Redirect {
-    Redirect::to(&format!("/ordinal/{}", search.query))
+  async fn search_by_query(
+    index: extract::Extension<Arc<Index>>,
+    search: extract::Query<Search>,
+  ) -> impl IntoResponse {
+    Self::search(&index.0, &search.0.query).await
   }
 
-  async fn search_by_path(search: extract::Path<Search>) -> Redirect {
-    Redirect::to(&format!("/ordinal/{}", search.query))
+  async fn search_by_path(
+    index: extract::Extension<Arc<Index>>,
+    search: extract::Path<Search>,
+  ) -> impl IntoResponse {
+    Self::search(&index.0, &search.0.query).await
+  }
+
+  async fn search(index: &Index, query: &str) -> impl IntoResponse {
+    match Self::search_inner(index, query) {
+      Ok(redirect) => redirect.into_response(),
+      Err(err) => (StatusCode::BAD_REQUEST, Html(err.to_string())).into_response(),
+    }
+  }
+
+  fn search_inner(index: &Index, query: &str) -> Result<Redirect> {
+    lazy_static! {
+      static ref HASH: Regex = Regex::new(r"^[[:xdigit:]]{64}$").unwrap();
+      static ref OUTPOINT: Regex = Regex::new(r"^[[:xdigit:]]{64}:\d+$").unwrap();
+    }
+
+    let query = query.trim();
+
+    if HASH.is_match(query) {
+      if index.block_header(query.parse()?)?.is_some() {
+        Ok(Redirect::to(&format!("/block/{query}")))
+      } else {
+        Ok(Redirect::to(&format!("/tx/{query}")))
+      }
+    } else if OUTPOINT.is_match(query) {
+      Ok(Redirect::to(&format!("/output/{query}")))
+    } else {
+      Ok(Redirect::to(&format!("/ordinal/{query}")))
+    }
   }
 
   async fn favicon() -> impl IntoResponse {
@@ -567,6 +601,19 @@ mod tests {
       let response = self.get(path);
       assert_eq!(response.status(), status);
       assert_regex_match!(response.text().unwrap(), regex);
+    }
+
+    fn assert_redirect(&self, path: &str, location: &str) {
+      let response = reqwest::blocking::Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .build()
+        .unwrap()
+        .get(self.join_url(path))
+        .send()
+        .unwrap();
+
+      assert_eq!(response.status(), StatusCode::SEE_OTHER);
+      assert_eq!(response.headers().get(header::LOCATION).unwrap(), location);
     }
   }
 
@@ -745,77 +792,50 @@ mod tests {
 
   #[test]
   fn bounties_redirects_to_docs_site() {
-    let test_server = TestServer::new();
-
-    let response = reqwest::blocking::Client::builder()
-      .redirect(reqwest::redirect::Policy::none())
-      .build()
-      .unwrap()
-      .get(test_server.join_url("bounties"))
-      .send()
-      .unwrap();
-
-    assert_eq!(response.status(), StatusCode::SEE_OTHER);
-    assert_eq!(
-      response.headers().get(header::LOCATION).unwrap(),
-      "https://docs.ordinals.com/bounties/"
-    );
+    TestServer::new().assert_redirect("/bounties", "https://docs.ordinals.com/bounties/");
   }
 
   #[test]
   fn faq_redirects_to_docs_site() {
-    let test_server = TestServer::new();
-
-    let response = reqwest::blocking::Client::builder()
-      .redirect(reqwest::redirect::Policy::none())
-      .build()
-      .unwrap()
-      .get(test_server.join_url("faq"))
-      .send()
-      .unwrap();
-
-    assert_eq!(response.status(), StatusCode::SEE_OTHER);
-    assert_eq!(
-      response.headers().get(header::LOCATION).unwrap(),
-      "https://docs.ordinals.com/faq/"
-    );
+    TestServer::new().assert_redirect("/faq", "https://docs.ordinals.com/faq/");
   }
 
   #[test]
   fn search_by_query_returns_ordinal() {
-    let test_server = TestServer::new();
+    TestServer::new().assert_redirect("/search?query=0", "/ordinal/0");
+  }
 
-    let response = reqwest::blocking::Client::builder()
-      .redirect(reqwest::redirect::Policy::none())
-      .build()
-      .unwrap()
-      .get(test_server.join_url("search?query=0"))
-      .send()
-      .unwrap();
-
-    assert_eq!(response.status(), StatusCode::SEE_OTHER);
-    assert_eq!(
-      response.headers().get(header::LOCATION).unwrap(),
-      "/ordinal/0"
-    );
+  #[test]
+  fn search_is_whitespace_insensitive() {
+    TestServer::new().assert_redirect("/search/ 0 ", "/ordinal/0");
   }
 
   #[test]
   fn search_by_path_returns_ordinal() {
-    let test_server = TestServer::new();
+    TestServer::new().assert_redirect("/search/0", "/ordinal/0");
+  }
 
-    let response = reqwest::blocking::Client::builder()
-      .redirect(reqwest::redirect::Policy::none())
-      .build()
-      .unwrap()
-      .get(test_server.join_url("search/0"))
-      .send()
-      .unwrap();
+  #[test]
+  fn search_for_blockhash_returns_block() {
+    TestServer::new().assert_redirect(
+      "/search/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
+      "/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
+    );
+  }
 
-    assert_eq!(response.status(), StatusCode::SEE_OTHER);
-    assert_eq!(
-      response.headers().get(header::LOCATION).unwrap(),
-      "/ordinal/0"
+  #[test]
+  fn search_for_txid_returns_transaction() {
+    TestServer::new().assert_redirect(
+      "/search/0000000000000000000000000000000000000000000000000000000000000000",
+      "/tx/0000000000000000000000000000000000000000000000000000000000000000",
+    );
+  }
+
+  #[test]
+  fn search_for_outpoint_returns_output() {
+    TestServer::new().assert_redirect(
+      "/search/0000000000000000000000000000000000000000000000000000000000000000:0",
+      "/output/0000000000000000000000000000000000000000000000000000000000000000:0",
     );
   }
 
