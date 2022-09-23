@@ -427,7 +427,7 @@ impl Server {
     Self::search(&index.0, &search.0.query).await
   }
 
-  async fn search(index: &Index, query: &str) -> impl IntoResponse {
+  async fn search(index: &Index, query: &str) -> Response {
     match Self::search_inner(index, query) {
       Ok(redirect) => redirect.into_response(),
       Err(err) => (StatusCode::BAD_REQUEST, Html(err.to_string())).into_response(),
