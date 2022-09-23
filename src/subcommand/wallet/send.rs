@@ -14,6 +14,8 @@ impl Send {
 
     let index = Index::open(&options)?;
 
+    index.index()?;
+
     let utxo = purse.find(&index, self.ordinal)?;
 
     let ordinals = purse.special_ordinals(&index, utxo.outpoint)?;

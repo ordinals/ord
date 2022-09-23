@@ -9,6 +9,8 @@ impl Find {
   pub(crate) fn run(self, options: Options) -> Result<()> {
     let index = Index::open(&options)?;
 
+    index.index()?;
+
     match index.find(self.ordinal)? {
       Some(satpoint) => {
         println!("{satpoint}");
