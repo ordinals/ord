@@ -23,10 +23,10 @@ fn spent_output_returns_200() {
     200,
     &format!(
       ".*<title>Output {txid}:0</title>.*<h1>Output {txid}:0</h1>
-  <h2>Ordinal Ranges</h2>
-  <ul class=monospace>
-    <li><a href=/range/5000000000/10000000000 class=uncommon>\\[5000000000,10000000000\\)</a></li>
-  </ul>.*"
+<h2>Ordinal Ranges</h2>
+<ul class=monospace>
+  <li><a href=/range/5000000000/10000000000 class=uncommon>\\[5000000000,10000000000\\)</a></li>
+</ul>.*"
     ),
   );
 
@@ -52,9 +52,9 @@ fn spent_output_returns_200() {
 
 #[test]
 fn block() {
-  let test_server = TestServer::new();
+  let mut state = State::new();
 
-  test_server.mine_blocks(101);
+  state.blocks(101);
 
   state.transaction(TransactionOptions {
     slots: &[(1, 0, 0)],
@@ -63,11 +63,11 @@ fn block() {
     recipient: None,
   });
 
-  let blocks = test_server.bitcoin_rpc_server.mine_blocks(1);
+  let blocks = state.blocks(1);
 
-  test_server.assert_response_regex(
+  state.request_regex(
     &format!("block/{}", blocks[0]),
-    StatusCode::OK,
+    200,
     ".*<h1>Block [[:xdigit:]]{64}</h1>
 <h2>Transactions</h2>
 <ul class=monospace>
@@ -91,9 +91,9 @@ fn transaction() {
   });
 
   state.blocks(1);
-  state.assert_response_regex(
+  state.request_regex(
     "tx/30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c",
-    StatusCode::OK,
+    200,
     ".*<title>Transaction 30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c</title>.*<h1>Transaction 30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c</h1>
 <h2>Outputs</h2>
 <ul class=monospace>
