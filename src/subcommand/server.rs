@@ -13,6 +13,7 @@ use {
     http::header,
     response::{Redirect, Response},
   },
+  lazy_static::lazy_static,
   rust_embed::RustEmbed,
   rustls_acme::{
     acme::{LETS_ENCRYPT_PRODUCTION_DIRECTORY, LETS_ENCRYPT_STAGING_DIRECTORY},
@@ -339,7 +340,7 @@ impl Server {
   }
 
   async fn block(
-    extract::Path(hash): extract::Path<sha256d::Hash>,
+    extract::Path(hash): extract::Path<BlockHash>,
     index: extract::Extension<Arc<Index>>,
   ) -> impl IntoResponse {
     match index.block_with_hash(hash) {
