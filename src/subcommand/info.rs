@@ -1,6 +1,8 @@
 use super::*;
 
 pub(crate) fn run(options: Options) -> Result {
-  Index::open(&options)?.print_info()?;
+  let index = Index::open(&options)?;
+  index.index()?;
+  index.print_info()?;
   Ok(())
 }

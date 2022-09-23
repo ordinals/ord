@@ -5,6 +5,8 @@ pub(crate) fn run(options: Options) -> Result {
 
   let index = Index::open(&options)?;
 
+  index.index()?;
+
   let mut ordinals = purse
     .wallet
     .list_unspent()?
