@@ -71,8 +71,8 @@ fn block() {
     ".*<h1>Block [[:xdigit:]]{64}</h1>
 <h2>Transactions</h2>
 <ul class=monospace>
-    <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
-    <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
+  <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
+  <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
 </ul>.*",
   );
 }
@@ -91,6 +91,7 @@ fn transaction() {
   });
 
   state.blocks(1);
+
   state.request_regex(
     "tx/30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c",
     200,
