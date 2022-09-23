@@ -33,7 +33,7 @@ use {
     blockdata::{constants::COIN_VALUE, transaction::TxOut},
     consensus::{Decodable, Encodable},
     hash_types::BlockHash,
-    hashes::{sha256d, Hash},
+    hashes::Hash,
     secp256k1::{
       rand::{self},
       Secp256k1,
@@ -45,6 +45,7 @@ use {
   clap::Parser,
   derive_more::{Display, FromStr},
   redb::{Database, ReadableTable, Table, TableDefinition, WriteTransaction},
+  regex::Regex,
   serde::{Deserialize, Serialize},
   std::{
     collections::VecDeque,

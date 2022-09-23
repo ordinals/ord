@@ -13,6 +13,7 @@ use {
     http::header,
     response::{Redirect, Response},
   },
+  lazy_static::lazy_static,
   rust_embed::RustEmbed,
   rustls_acme::{
     acme::{LETS_ENCRYPT_PRODUCTION_DIRECTORY, LETS_ENCRYPT_STAGING_DIRECTORY},
@@ -124,12 +125,22 @@ impl Server {
             .allow_origin(Any),
         );
 
-      let (http_result, https_result) = tokio::join!(
-        self.spawn(&router, &handle, None)?,
-        self.spawn(&router, &handle, self.acceptor(&options)?)?
-      );
-
-      http_result.and(https_result)?.transpose()?;
+      match (self.http_port(), self.https_port()) {
+        (Some(http_port), None) => self.spawn(router, handle, http_port, None)?.await??,
+        (None, Some(https_port)) => {
+          self
+            .spawn(router, handle, https_port, Some(self.acceptor(&options)?))?
+            .await??
+        }
+        (Some(http_port), Some(https_port)) => {
+          let (http_result, https_result) = tokio::join!(
+            self.spawn(router.clone(), handle.clone(), http_port, None)?,
+            self.spawn(router, handle, https_port, Some(self.acceptor(&options)?))?
+          );
+          http_result.and(https_result)??;
+        }
+        (None, None) => unreachable!(),
+      }
 
       Ok(())
     })
@@ -137,40 +148,28 @@ impl Server {
 
   fn spawn(
     &self,
-    router: &Router,
-    handle: &Handle,
+    router: Router,
+    handle: Handle,
+    port: u16,
     https_acceptor: Option<AxumAcceptor>,
-  ) -> Result<task::JoinHandle<Option<io::Result<()>>>> {
-    let addr = if https_acceptor.is_some() {
-      self.https_port()
-    } else {
-      self.http_port()
-    }
-    .map(|port| {
-      (self.address.as_str(), port)
-        .to_socket_addrs()?
-        .next()
-        .ok_or_else(|| anyhow!("Failed to get socket addrs"))
-        .map(|addr| (addr, router.clone(), handle.clone()))
-    })
-    .transpose()?;
+  ) -> Result<task::JoinHandle<io::Result<()>>> {
+    let addr = (self.address.as_str(), port)
+      .to_socket_addrs()?
+      .next()
+      .ok_or_else(|| anyhow!("Failed to get socket addrs"))?;
 
     Ok(tokio::spawn(async move {
-      if let Some((addr, router, handle)) = addr {
-        Some(if let Some(acceptor) = https_acceptor {
-          axum_server::Server::bind(addr)
-            .handle(handle)
-            .acceptor(acceptor)
-            .serve(router.into_make_service())
-            .await
-        } else {
-          axum_server::Server::bind(addr)
-            .handle(handle)
-            .serve(router.into_make_service())
-            .await
-        })
+      if let Some(acceptor) = https_acceptor {
+        axum_server::Server::bind(addr)
+          .handle(handle)
+          .acceptor(acceptor)
+          .serve(router.into_make_service())
+          .await
       } else {
-        None
+        axum_server::Server::bind(addr)
+          .handle(handle)
+          .serve(router.into_make_service())
+          .await
       }
     }))
   }
@@ -207,42 +206,38 @@ impl Server {
     }
   }
 
-  fn acceptor(&self, options: &Options) -> Result<Option<AxumAcceptor>> {
-    if self.https_port().is_some() {
-      let config = AcmeConfig::new(Self::acme_domains(&self.acme_domain)?)
-        .contact(&self.acme_contact)
-        .cache_option(Some(DirCache::new(Self::acme_cache(
-          self.acme_cache.as_ref(),
-          options,
-        )?)))
-        .directory(if cfg!(test) {
-          LETS_ENCRYPT_STAGING_DIRECTORY
-        } else {
-          LETS_ENCRYPT_PRODUCTION_DIRECTORY
-        });
-
-      let mut state = config.state();
-
-      let acceptor = state.axum_acceptor(Arc::new(
-        rustls::ServerConfig::builder()
-          .with_safe_defaults()
-          .with_no_client_auth()
-          .with_cert_resolver(state.resolver()),
-      ));
-
-      tokio::spawn(async move {
-        while let Some(result) = state.next().await {
-          match result {
-            Ok(ok) => log::info!("ACME event: {:?}", ok),
-            Err(err) => log::error!("ACME error: {:?}", err),
-          }
-        }
+  fn acceptor(&self, options: &Options) -> Result<AxumAcceptor> {
+    let config = AcmeConfig::new(Self::acme_domains(&self.acme_domain)?)
+      .contact(&self.acme_contact)
+      .cache_option(Some(DirCache::new(Self::acme_cache(
+        self.acme_cache.as_ref(),
+        options,
+      )?)))
+      .directory(if cfg!(test) {
+        LETS_ENCRYPT_STAGING_DIRECTORY
+      } else {
+        LETS_ENCRYPT_PRODUCTION_DIRECTORY
       });
 
-      Ok(Some(acceptor))
-    } else {
-      Ok(None)
-    }
+    let mut state = config.state();
+
+    let acceptor = state.axum_acceptor(Arc::new(
+      rustls::ServerConfig::builder()
+        .with_safe_defaults()
+        .with_no_client_auth()
+        .with_cert_resolver(state.resolver()),
+    ));
+
+    tokio::spawn(async move {
+      while let Some(result) = state.next().await {
+        match result {
+          Ok(ok) => log::info!("ACME event: {:?}", ok),
+          Err(err) => log::error!("ACME error: {:?}", err),
+        }
+      }
+    });
+
+    Ok(acceptor)
   }
 
   async fn clock(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
@@ -345,7 +340,7 @@ impl Server {
   }
 
   async fn block(
-    extract::Path(hash): extract::Path<sha256d::Hash>,
+    extract::Path(hash): extract::Path<BlockHash>,
     index: extract::Extension<Arc<Index>>,
   ) -> impl IntoResponse {
     match index.block_with_hash(hash) {
@@ -418,12 +413,46 @@ impl Server {
     )
   }
 
-  async fn search_by_query(search: extract::Query<Search>) -> Redirect {
-    Redirect::to(&format!("/ordinal/{}", search.query))
+  async fn search_by_query(
+    index: extract::Extension<Arc<Index>>,
+    search: extract::Query<Search>,
+  ) -> impl IntoResponse {
+    Self::search(&index.0, &search.0.query).await
   }
 
-  async fn search_by_path(search: extract::Path<Search>) -> Redirect {
-    Redirect::to(&format!("/ordinal/{}", search.query))
+  async fn search_by_path(
+    index: extract::Extension<Arc<Index>>,
+    search: extract::Path<Search>,
+  ) -> impl IntoResponse {
+    Self::search(&index.0, &search.0.query).await
+  }
+
+  async fn search(index: &Index, query: &str) -> Response {
+    match Self::search_inner(index, query) {
+      Ok(redirect) => redirect.into_response(),
+      Err(err) => (StatusCode::BAD_REQUEST, Html(err.to_string())).into_response(),
+    }
+  }
+
+  fn search_inner(index: &Index, query: &str) -> Result<Redirect> {
+    lazy_static! {
+      static ref HASH: Regex = Regex::new(r"^[[:xdigit:]]{64}$").unwrap();
+      static ref OUTPOINT: Regex = Regex::new(r"^[[:xdigit:]]{64}:\d+$").unwrap();
+    }
+
+    let query = query.trim();
+
+    if HASH.is_match(query) {
+      if index.block_header(query.parse()?)?.is_some() {
+        Ok(Redirect::to(&format!("/block/{query}")))
+      } else {
+        Ok(Redirect::to(&format!("/tx/{query}")))
+      }
+    } else if OUTPOINT.is_match(query) {
+      Ok(Redirect::to(&format!("/output/{query}")))
+    } else {
+      Ok(Redirect::to(&format!("/ordinal/{query}")))
+    }
   }
 
   async fn favicon() -> impl IntoResponse {
@@ -486,13 +515,13 @@ impl Server {
 
 #[cfg(test)]
 mod tests {
-  use {super::*, std::net::TcpListener, tempfile::TempDir};
+  use {super::*, reqwest::Url, std::net::TcpListener, tempfile::TempDir};
 
   struct TestServer {
     bitcoin_rpc_server: BitcoinRpcServerHandle,
     index: Arc<Index>,
     ord_server_handle: Handle,
-    port: u16,
+    url: Url,
     #[allow(unused)]
     tempdir: TempDir,
   }
@@ -512,6 +541,8 @@ mod tests {
         .local_addr()
         .unwrap()
         .port();
+
+      let url = Url::parse(&format!("http://127.0.0.1:{port}")).unwrap();
 
       let (options, server) = parse_server_args(&format!(
         "ord --chain regtest --rpc-url {} --cookie-file {} --data-dir {} server --http-port {} --address 127.0.0.1",
@@ -547,8 +578,8 @@ mod tests {
         bitcoin_rpc_server,
         index,
         ord_server_handle,
-        port,
         tempdir,
+        url,
       }
     }
 
@@ -557,8 +588,8 @@ mod tests {
       reqwest::blocking::get(self.join_url(url)).unwrap()
     }
 
-    fn join_url(&self, url: &str) -> String {
-      format!("http://127.0.0.1:{}/{url}", self.port)
+    fn join_url(&self, url: &str) -> Url {
+      self.url.join(url).unwrap()
     }
 
     fn assert_response(&self, path: &str, status: StatusCode, expected_response: &str) {
@@ -571,6 +602,19 @@ mod tests {
       let response = self.get(path);
       assert_eq!(response.status(), status);
       assert_regex_match!(response.text().unwrap(), regex);
+    }
+
+    fn assert_redirect(&self, path: &str, location: &str) {
+      let response = reqwest::blocking::Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .build()
+        .unwrap()
+        .get(self.join_url(path))
+        .send()
+        .unwrap();
+
+      assert_eq!(response.status(), StatusCode::SEE_OTHER);
+      assert_eq!(response.headers().get(header::LOCATION).unwrap(), location);
     }
   }
 
@@ -749,102 +793,75 @@ mod tests {
 
   #[test]
   fn bounties_redirects_to_docs_site() {
-    let test_server = TestServer::new();
-
-    let response = reqwest::blocking::Client::builder()
-      .redirect(reqwest::redirect::Policy::none())
-      .build()
-      .unwrap()
-      .get(test_server.join_url("bounties"))
-      .send()
-      .unwrap();
-
-    assert_eq!(response.status(), StatusCode::SEE_OTHER);
-    assert_eq!(
-      response.headers().get(header::LOCATION).unwrap(),
-      "https://docs.ordinals.com/bounties/"
-    );
+    TestServer::new().assert_redirect("/bounties", "https://docs.ordinals.com/bounties/");
   }
 
   #[test]
   fn faq_redirects_to_docs_site() {
-    let test_server = TestServer::new();
-
-    let response = reqwest::blocking::Client::builder()
-      .redirect(reqwest::redirect::Policy::none())
-      .build()
-      .unwrap()
-      .get(test_server.join_url("faq"))
-      .send()
-      .unwrap();
-
-    assert_eq!(response.status(), StatusCode::SEE_OTHER);
-    assert_eq!(
-      response.headers().get(header::LOCATION).unwrap(),
-      "https://docs.ordinals.com/faq/"
-    );
+    TestServer::new().assert_redirect("/faq", "https://docs.ordinals.com/faq/");
   }
 
   #[test]
   fn search_by_query_returns_ordinal() {
-    let test_server = TestServer::new();
+    TestServer::new().assert_redirect("/search?query=0", "/ordinal/0");
+  }
 
-    let response = reqwest::blocking::Client::builder()
-      .redirect(reqwest::redirect::Policy::none())
-      .build()
-      .unwrap()
-      .get(test_server.join_url("search?query=0"))
-      .send()
-      .unwrap();
-
-    assert_eq!(response.status(), StatusCode::SEE_OTHER);
-    assert_eq!(
-      response.headers().get(header::LOCATION).unwrap(),
-      "/ordinal/0"
-    );
+  #[test]
+  fn search_is_whitespace_insensitive() {
+    TestServer::new().assert_redirect("/search/ 0 ", "/ordinal/0");
   }
 
   #[test]
   fn search_by_path_returns_ordinal() {
-    let test_server = TestServer::new();
+    TestServer::new().assert_redirect("/search/0", "/ordinal/0");
+  }
 
-    let response = reqwest::blocking::Client::builder()
-      .redirect(reqwest::redirect::Policy::none())
-      .build()
-      .unwrap()
-      .get(test_server.join_url("search/0"))
-      .send()
-      .unwrap();
+  #[test]
+  fn search_for_blockhash_returns_block() {
+    TestServer::new().assert_redirect(
+      "/search/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
+      "/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
+    );
+  }
 
-    assert_eq!(response.status(), StatusCode::SEE_OTHER);
-    assert_eq!(
-      response.headers().get(header::LOCATION).unwrap(),
-      "/ordinal/0"
+  #[test]
+  fn search_for_txid_returns_transaction() {
+    TestServer::new().assert_redirect(
+      "/search/0000000000000000000000000000000000000000000000000000000000000000",
+      "/tx/0000000000000000000000000000000000000000000000000000000000000000",
+    );
+  }
+
+  #[test]
+  fn search_for_outpoint_returns_output() {
+    TestServer::new().assert_redirect(
+      "/search/0000000000000000000000000000000000000000000000000000000000000000:0",
+      "/output/0000000000000000000000000000000000000000000000000000000000000000:0",
     );
   }
 
   #[test]
   fn status() {
-    TestServer::new().assert_response("status", StatusCode::OK, "OK");
+    TestServer::new().assert_response("/status", StatusCode::OK, "OK");
   }
 
   #[test]
   fn height_endpoint() {
-    TestServer::new().assert_response("height", StatusCode::OK, "0");
+    TestServer::new().assert_response("/height", StatusCode::OK, "0");
   }
 
   #[test]
   fn height_updates() {
     let test_server = TestServer::new();
 
-    let response = test_server.get("height");
+    let response = test_server.get("/height");
 
     assert_eq!(response.status(), StatusCode::OK);
     assert_eq!(response.text().unwrap(), "0");
 
     test_server.bitcoin_rpc_server.mine_blocks(1);
 
-    let response = test_server.get("height");
+    let response = test_server.get("/height");
 
     assert_eq!(response.status(), StatusCode::OK);
     assert_eq!(response.text().unwrap(), "1");
@@ -853,7 +870,7 @@ mod tests {
   #[test]
   fn range_end_before_range_start_returns_400() {
     TestServer::new().assert_response(
-      "range/1/0/",
+      "/range/1/0/",
       StatusCode::BAD_REQUEST,
       "Range Start Greater Than Range End",
     );
@@ -862,7 +879,7 @@ mod tests {
   #[test]
   fn invalid_range_start_returns_400() {
     TestServer::new().assert_response(
-      "range/=/0",
+      "/range/=/0",
       StatusCode::BAD_REQUEST,
       "Invalid URL: invalid digit found in string",
     );
@@ -871,7 +888,7 @@ mod tests {
   #[test]
   fn invalid_range_end_returns_400() {
     TestServer::new().assert_response(
-      "range/0/=",
+      "/range/0/=",
       StatusCode::BAD_REQUEST,
       "Invalid URL: invalid digit found in string",
     );
@@ -879,13 +896,13 @@ mod tests {
 
   #[test]
   fn empty_range_returns_400() {
-    TestServer::new().assert_response("range/0/0", StatusCode::BAD_REQUEST, "Empty Range");
+    TestServer::new().assert_response("/range/0/0", StatusCode::BAD_REQUEST, "Empty Range");
   }
 
   #[test]
   fn range() {
     TestServer::new().assert_response_regex(
-      "range/0/1",
+      "/range/0/1",
       StatusCode::OK,
       r".*<title>Ordinal range \[0,1\)</title>.*<h1>Ordinal range \[0,1\)</h1>
 <dl>
@@ -896,13 +913,13 @@ mod tests {
   }
   #[test]
   fn ordinal_number() {
-    TestServer::new().assert_response_regex("ordinal/0", StatusCode::OK, ".*<h1>Ordinal 0</h1>.*");
+    TestServer::new().assert_response_regex("/ordinal/0", StatusCode::OK, ".*<h1>Ordinal 0</h1>.*");
   }
 
   #[test]
   fn ordinal_decimal() {
     TestServer::new().assert_response_regex(
-      "ordinal/0.0",
+      "/ordinal/0.0",
       StatusCode::OK,
       ".*<h1>Ordinal 0</h1>.*",
     );
@@ -911,7 +928,7 @@ mod tests {
   #[test]
   fn ordinal_degree() {
     TestServer::new().assert_response_regex(
-      "ordinal/0°0′0″0‴",
+      "/ordinal/0°0′0″0‴",
       StatusCode::OK,
       ".*<h1>Ordinal 0</h1>.*",
     );
@@ -920,7 +937,7 @@ mod tests {
   #[test]
   fn ordinal_name() {
     TestServer::new().assert_response_regex(
-      "ordinal/nvtdijuwxlp",
+      "/ordinal/nvtdijuwxlp",
       StatusCode::OK,
       ".*<h1>Ordinal 0</h1>.*",
     );
@@ -929,7 +946,7 @@ mod tests {
   #[test]
   fn ordinal() {
     TestServer::new().assert_response_regex(
-      "ordinal/0",
+      "/ordinal/0",
       StatusCode::OK,
       ".*<title>0°0′0″0‴</title>.*<h1>Ordinal 0</h1>.*",
     );
@@ -938,7 +955,7 @@ mod tests {
   #[test]
   fn ordinal_out_of_range() {
     TestServer::new().assert_response(
-      "ordinal/2099999997690000",
+      "/ordinal/2099999997690000",
       StatusCode::BAD_REQUEST,
       "Invalid URL: Invalid ordinal",
     );
@@ -947,7 +964,7 @@ mod tests {
   #[test]
   fn invalid_outpoint_hash_returns_400() {
     TestServer::new().assert_response(
-      "output/foo:0",
+      "/output/foo:0",
       StatusCode::BAD_REQUEST,
       "Invalid URL: error parsing TXID: odd hex string length 3",
     );

@@ -1,6 +1,7 @@
 use {
   super::*,
   bitcoin::consensus::encode::serialize,
+  bitcoin::BlockHeader,
   bitcoincore_rpc::{Auth, Client, RpcApi},
   rayon::iter::{IntoParallelRefIterator, ParallelIterator},
   redb::WriteStrategy,
@@ -36,6 +37,29 @@ enum Statistic {
 impl From<Statistic> for u64 {
   fn from(statistic: Statistic) -> Self {
     statistic as u64
+  }
+}
+
+trait BitcoinCoreRpcResultExt<T> {
+  fn into_option(self) -> Result<Option<T>>;
+}
+
+impl<T> BitcoinCoreRpcResultExt<T> for Result<T, bitcoincore_rpc::Error> {
+  fn into_option(self) -> Result<Option<T>> {
+    match self {
+      Ok(ok) => Ok(Some(ok)),
+      Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(
+        bitcoincore_rpc::jsonrpc::error::RpcError { code: -8, .. },
+      ))) => Ok(None),
+      Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(
+        bitcoincore_rpc::jsonrpc::error::RpcError { message, .. },
+      )))
+        if message.ends_with("not found") =>
+      {
+        Ok(None)
+      }
+      Err(err) => Err(err.into()),
+    }
   }
 }
 
@@ -397,47 +421,26 @@ impl Index {
   }
 
   fn block_at_height(&self, height: u64) -> Result<Option<Block>> {
-    match self.client.get_block_hash(height) {
-      Ok(hash) => Ok(Some(self.client.get_block(&hash)?)),
-      Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(
-        bitcoincore_rpc::jsonrpc::error::RpcError { code: -8, .. },
-      ))) => Ok(None),
-      Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(
-        bitcoincore_rpc::jsonrpc::error::RpcError { message, .. },
-      )))
-        if message == "Block not found" =>
-      {
-        Ok(None)
-      }
-      Err(err) => Err(err.into()),
-    }
+    Ok(
+      self
+        .client
+        .get_block_hash(height)
+        .into_option()?
+        .map(|hash| self.client.get_block(&hash))
+        .transpose()?,
+    )
   }
 
-  pub(crate) fn block_with_hash(&self, hash: sha256d::Hash) -> Result<Option<Block>> {
-    match self.client.get_block(&BlockHash::from_hash(hash)) {
-      Ok(block) => Ok(Some(block)),
-      Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(
-        bitcoincore_rpc::jsonrpc::error::RpcError { code: -8, .. },
-      ))) => Ok(None),
-      Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(
-        bitcoincore_rpc::jsonrpc::error::RpcError { message, .. },
-      )))
-        if message == "Block not found" =>
-      {
-        Ok(None)
-      }
-      Err(err) => Err(err.into()),
-    }
+  pub(crate) fn block_header(&self, hash: BlockHash) -> Result<Option<BlockHeader>> {
+    self.client.get_block_header(&hash).into_option()
+  }
+
+  pub(crate) fn block_with_hash(&self, hash: BlockHash) -> Result<Option<Block>> {
+    self.client.get_block(&hash).into_option()
   }
 
   pub(crate) fn transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
-    match self.client.get_raw_transaction(&txid, None) {
-      Ok(transaction) => Ok(Some(transaction)),
-      Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(
-        bitcoincore_rpc::jsonrpc::error::RpcError { code: -8, .. },
-      ))) => Ok(None),
-      Err(err) => Err(err.into()),
-    }
+    self.client.get_raw_transaction(&txid, None).into_option()
   }
 
   pub(crate) fn find(&self, ordinal: Ordinal) -> Result<Option<SatPoint>> {

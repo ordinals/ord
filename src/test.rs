@@ -7,7 +7,7 @@ use {
   std::collections::BTreeMap,
 };
 
-pub(crate) use {bitcoincore_rpc::RpcApi, regex::Regex, tempfile::TempDir};
+pub(crate) use {bitcoincore_rpc::RpcApi, tempfile::TempDir};
 
 macro_rules! assert_regex_match {
   ($string:expr, $pattern:expr $(,)?) => {
@@ -88,6 +88,13 @@ pub trait BitcoinRpc {
   #[rpc(name = "getblockhash")]
   fn getblockhash(&self, height: usize) -> Result<BlockHash, jsonrpc_core::Error>;
 
+  #[rpc(name = "getblockheader")]
+  fn getblockheader(
+    &self,
+    blockhash: BlockHash,
+    verbose: bool,
+  ) -> Result<String, jsonrpc_core::Error>;
+
   #[rpc(name = "getblock")]
   fn getblock(&self, blockhash: BlockHash, verbosity: u64) -> Result<String, jsonrpc_core::Error>;
 
@@ -103,6 +110,22 @@ impl BitcoinRpc for BitcoinRpcServer {
   fn getblockhash(&self, height: usize) -> Result<BlockHash, jsonrpc_core::Error> {
     match self.blocks.lock().unwrap().hashes.get(height) {
       Some(block_hash) => Ok(*block_hash),
+      None => Err(jsonrpc_core::Error::new(
+        jsonrpc_core::types::error::ErrorCode::ServerError(-8),
+      )),
+    }
+  }
+
+  fn getblockheader(
+    &self,
+    block_hash: BlockHash,
+    verbose: bool,
+  ) -> Result<String, jsonrpc_core::Error> {
+    assert!(!verbose);
+    match self.blocks.lock().unwrap().blocks.get(&block_hash) {
+      Some(block) => Ok(hex::encode(bitcoin::consensus::encode::serialize(
+        &block.header,
+      ))),
       None => Err(jsonrpc_core::Error::new(
         jsonrpc_core::types::error::ErrorCode::ServerError(-8),
       )),
