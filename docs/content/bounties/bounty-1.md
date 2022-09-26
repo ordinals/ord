@@ -1,0 +1,16 @@
++++
+title = "Ordinal Bounty 1"
++++
+The transaction that submits a UTXO containing the oldest ordinal, i.e., that
+with the lowest number, amongst all submitted UTXOs will be judged the winner.
+
+The bounty is open for submissions until block 753984—the first block of
+difficulty adjustment period 374. Submissions included in block 753984 or later
+will not be considered.
+
+Reward: 200,000 sats
+
+Address:
+[`145Z7PFHyVrwiMWwEcUmDgFbmUbQSU9aap`](https://mempool.space/address/145Z7PFHyVrwiMWwEcUmDgFbmUbQSU9aap)
+
+Status: Claimed by [@ordinalsindex](https://twitter.com/rodarmor/status/1569883266508853251)!
