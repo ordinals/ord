@@ -598,7 +598,7 @@ mod tests {
       assert_eq!(response.text().unwrap(), expected_response);
     }
 
-    fn assert_response_regex(&self, path: &str, status: StatusCode, regex: &'static str) {
+    fn assert_response_regex(&self, path: &str, status: StatusCode, regex: &str) {
       let response = self.get(path);
       assert_eq!(response.status(), status);
       assert_regex_match!(response.text().unwrap(), regex);
@@ -1089,5 +1089,44 @@ mod tests {
   #[test]
   fn clock_is_served_with_svg_extension() {
     TestServer::new().assert_response_regex("clock.svg", StatusCode::OK, "<svg.*");
+  }
+
+  #[test]
+  fn block() {
+    let test_server = TestServer::new();
+
+    let _txid = test_server.bitcoin_rpc_server.broadcast_dummy_tx();
+    let block_hash = test_server.bitcoin_rpc_server.mine_blocks(1)[0];
+
+    test_server.assert_response_regex(
+      &format!("block/{block_hash}"),
+      StatusCode::OK,
+      ".*<h1>Block [[:xdigit:]]{64}</h1>
+<h2>Transactions</h2>
+<ul class=monospace>
+  <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
+  <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
+</ul>.*",
+    );
+  }
+
+  #[test]
+  fn transaction() {
+    let test_server = TestServer::new();
+
+    let txid = test_server.bitcoin_rpc_server.broadcast_dummy_tx();
+    let _block_hash = test_server.bitcoin_rpc_server.mine_blocks(1)[0];
+
+    test_server.assert_response_regex(
+      &format!("tx/{txid}"),
+      StatusCode::OK,
+      &format!(
+        ".*<title>Transaction {txid}</title>.*<h1>Transaction {txid}</h1>
+<h2>Outputs</h2>
+<ul class=monospace>
+</ul>.*"
+      ),
+  // <li><a href=/output/30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c:0>30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c:0</a></li>
+    );
   }
 }

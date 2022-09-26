@@ -51,33 +51,6 @@ fn spent_output_returns_200() {
 }
 
 #[test]
-fn block() {
-  let mut state = State::new();
-
-  state.blocks(101);
-
-  state.transaction(TransactionOptions {
-    slots: &[(1, 0, 0)],
-    output_count: 1,
-    fee: 0,
-    recipient: None,
-  });
-
-  let blocks = state.blocks(1);
-
-  state.request_regex(
-    &format!("block/{}", blocks[0]),
-    200,
-    ".*<h1>Block [[:xdigit:]]{64}</h1>
-<h2>Transactions</h2>
-<ul class=monospace>
-  <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
-  <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
-</ul>.*",
-  );
-}
-
-#[test]
 fn transaction() {
   let mut state = State::new();
 
