@@ -1088,7 +1088,7 @@ mod tests {
 
   #[test]
   fn clock_is_served_with_svg_extension() {
-    TestServer::new().assert_response_regex("clock.svg", StatusCode::OK, "<svg.*");
+    TestServer::new().assert_response_regex("/clock.svg", StatusCode::OK, "<svg.*");
   }
 
   #[test]
