@@ -1096,7 +1096,7 @@ mod tests {
     let test_server = TestServer::new();
 
     let _txid = test_server.bitcoin_rpc_server.broadcast_dummy_tx();
-    let block_hash = test_server.bitcoin_rpc_server.mine_blocks(1)[0];
+    let block_hash = test_server.bitcoin_rpc_server.mine_blocks(1)[0].block_hash();
 
     test_server.assert_response_regex(
       &format!("/block/{block_hash}"),
@@ -1114,8 +1114,9 @@ mod tests {
   fn transaction() {
     let test_server = TestServer::new();
 
-    let txid = test_server.bitcoin_rpc_server.broadcast_dummy_tx();
-    let _block_hash = test_server.bitcoin_rpc_server.mine_blocks(1)[0];
+    _ = test_server.bitcoin_rpc_server.broadcast_dummy_tx();
+    let coinbase_tx = test_server.bitcoin_rpc_server.mine_blocks(1)[0].txdata[0].clone();
+    let txid = coinbase_tx.txid();
 
     test_server.assert_response_regex(
       &format!("/tx/{txid}"),
@@ -1124,9 +1125,9 @@ mod tests {
         ".*<title>Transaction {txid}</title>.*<h1>Transaction {txid}</h1>
 <h2>Outputs</h2>
 <ul class=monospace>
+  <li><a href=/output/{txid}:0>{txid}:0</a></li>
 </ul>.*"
       ),
-  // <li><a href=/output/30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c:0>30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c:0</a></li>
     );
   }
 }
