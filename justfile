@@ -71,6 +71,9 @@ print-paper-wallet path:
 doc:
   cargo doc --all --open
 
+update-dev-server:
+  ./bin/update-dev-server
+
 # publish current GitHub master branch
 publish:
   #!/usr/bin/env bash
