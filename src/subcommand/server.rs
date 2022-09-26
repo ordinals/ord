@@ -1095,7 +1095,7 @@ mod tests {
   fn block() {
     let test_server = TestServer::new();
 
-    let _txid = test_server.bitcoin_rpc_server.broadcast_dummy_tx();
+    test_server.bitcoin_rpc_server.broadcast_dummy_tx();
     let block_hash = test_server.bitcoin_rpc_server.mine_blocks(1)[0].block_hash();
 
     test_server.assert_response_regex(
@@ -1114,7 +1114,6 @@ mod tests {
   fn transaction() {
     let test_server = TestServer::new();
 
-    _ = test_server.bitcoin_rpc_server.broadcast_dummy_tx();
     let coinbase_tx = test_server.bitcoin_rpc_server.mine_blocks(1)[0].txdata[0].clone();
     let txid = coinbase_tx.txid();
 

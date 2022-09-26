@@ -33,8 +33,6 @@ impl BitcoinRpcData {
   fn new() -> Self {
     let mut hashes = Vec::new();
     let mut blocks = BTreeMap::new();
-    let transactions = BTreeMap::new();
-    let mempool = Vec::new();
 
     let genesis_block = bitcoin::blockdata::constants::genesis_block(Network::Bitcoin);
     let genesis_block_hash = genesis_block.block_hash();
@@ -44,8 +42,8 @@ impl BitcoinRpcData {
     Self {
       hashes,
       blocks,
-      transactions,
-      mempool,
+      transactions: BTreeMap::new(),
+      mempool: Vec::new(),
     }
   }
 
