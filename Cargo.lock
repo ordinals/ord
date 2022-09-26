@@ -2625,8 +2625,9 @@ dependencies = [
 
 [[package]]
 name = "redb"
-version = "0.6.1"
-source = "git+https://github.com/casey/redb.git?branch=add-write-lock#36a470cc077f2ce88a678bfaa525823591d97206"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "13f72b3033d337029766b2386c17a89038a7b12d9b243f90004ff76f197acd4e"
 dependencies = [
  "libc",
  "pyo3-build-config",
