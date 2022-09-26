@@ -190,7 +190,7 @@ impl BitcoinRpcApi for BitcoinRpcServer {
     verbose: bool,
     blockhash: Option<BlockHash>,
   ) -> Result<String, jsonrpc_core::Error> {
-    assert!(verbose, "Verbose param is unsupported");
+    assert!(!verbose, "Verbose param is unsupported");
     assert_eq!(blockhash, None, "Blockhash param is unsupported");
     match self.data.lock().unwrap().transactions.get(&txid) {
       Some(tx) => Ok(hex::encode(bitcoin::consensus::encode::serialize(tx))),
