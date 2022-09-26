@@ -49,29 +49,3 @@ fn spent_output_returns_200() {
     ),
   );
 }
-
-#[test]
-fn transaction() {
-  let mut state = State::new();
-
-  state.blocks(101);
-
-  state.transaction(TransactionOptions {
-    slots: &[(1, 0, 0)],
-    output_count: 1,
-    fee: 0,
-    recipient: None,
-  });
-
-  state.blocks(1);
-
-  state.request_regex(
-    "tx/30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c",
-    200,
-    ".*<title>Transaction 30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c</title>.*<h1>Transaction 30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c</h1>
-<h2>Outputs</h2>
-<ul class=monospace>
-  <li><a href=/output/30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c:0>30b037a346d31902f146a53d9ac8fa90541f43ca4a5e321914e86acdbf28394c:0</a></li>
-</ul>.*"
-  );
-}
