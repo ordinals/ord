@@ -1,6 +1,6 @@
 use {
   super::*,
-  bitcoin::{blockdata::script, BlockHeader, TxIn, Witness},
+  bitcoin::{blockdata::script, BlockHeader, TxIn, Witness, blockdata::constants::COIN_VALUE},
   jsonrpc_core::IoHandler,
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
   std::collections::BTreeMap,
@@ -60,7 +60,7 @@ impl BitcoinRpcData {
         witness: Witness::new(),
       }],
       output: vec![TxOut {
-        value: 50 * 100_000_000,
+        value: 50 * COIN_VALUE,
         script_pubkey: script::Builder::new().into_script(),
       }],
     };
