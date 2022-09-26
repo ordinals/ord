@@ -1,6 +1,6 @@
 use {
   super::*,
-  bitcoin::{blockdata::script, BlockHeader, TxIn, Witness, blockdata::constants::COIN_VALUE},
+  bitcoin::{blockdata::constants::COIN_VALUE, blockdata::script, BlockHeader, TxIn, Witness},
   jsonrpc_core::IoHandler,
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
   std::collections::BTreeMap,
@@ -48,37 +48,36 @@ impl BitcoinRpcData {
   }
 
   fn push_block(&mut self, header: BlockHeader) -> Block {
-    let coinbase = Transaction {
-      version: 0,
-      lock_time: 0,
-      input: vec![TxIn {
-        previous_output: OutPoint::null(),
-        script_sig: script::Builder::new()
-          .push_scriptint(self.blocks.len().try_into().unwrap())
-          .into_script(),
-        sequence: 0,
-        witness: Witness::new(),
-      }],
-      output: vec![TxOut {
-        value: 50 * COIN_VALUE,
-        script_pubkey: script::Builder::new().into_script(),
+    let mut block = Block {
+      header,
+      txdata: vec![Transaction {
+        version: 0,
+        lock_time: 0,
+        input: vec![TxIn {
+          previous_output: OutPoint::null(),
+          script_sig: script::Builder::new()
+            .push_scriptint(self.blocks.len().try_into().unwrap())
+            .into_script(),
+          sequence: 0,
+          witness: Witness::new(),
+        }],
+        output: vec![TxOut {
+          value: 50 * COIN_VALUE,
+          script_pubkey: script::Builder::new().into_script(),
+        }],
       }],
     };
 
-    let mut txs = self.mempool.clone();
-    txs.push(coinbase.clone());
-    for tx in txs.into_iter() {
-      self.transactions.insert(tx.txid(), tx);
-    }
-
-    let mut txdata = vec![coinbase];
-    txdata.append(&mut self.mempool);
-
-    let mut block = Block { header, txdata };
     block.header.prev_blockhash = *self.hashes.last().unwrap();
+    block.txdata.append(&mut self.mempool);
+
     let block_hash = block.block_hash();
     self.hashes.push(block_hash);
     self.blocks.insert(block_hash, block.clone());
+    for tx in &block.txdata {
+      self.transactions.insert(tx.txid(), tx.clone());
+    }
+
     block
   }
 
