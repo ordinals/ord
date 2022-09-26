@@ -3,7 +3,6 @@ use {
   bitcoin::BlockHeader,
   bitcoincore_rpc::Auth,
   jsonrpc_core::IoHandler,
-  // jsonrpc_core::{IoHandler, Params},
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
   std::collections::BTreeMap,
 };
@@ -116,7 +115,6 @@ impl BitcoinRpcServer {
   }
 }
 
-// Why not declared at in use statements?
 #[jsonrpc_derive::rpc]
 pub trait BitcoinRpc {
   #[rpc(name = "getblockhash")]
@@ -145,11 +143,7 @@ pub trait BitcoinRpc {
     txid: Txid,
     verbose: bool,
     blockhash: Option<BlockHash>,
-  ) -> Result<Transaction, jsonrpc_core::Error>;
-
-  // Was for debugging
-  // #[rpc(name = "getrawtransaction", params = "raw")]
-  // fn get_raw_transaction(&self, params: Params) -> Result<Transaction, jsonrpc_core::Error>;
+  ) -> Result<String, jsonrpc_core::Error>;
 }
 
 impl BitcoinRpc for BitcoinRpcServer {
@@ -215,45 +209,16 @@ impl BitcoinRpc for BitcoinRpcServer {
     txid: Txid,
     verbose: bool,
     blockhash: Option<BlockHash>,
-  ) -> Result<Transaction, jsonrpc_core::Error> {
-    // TODO: correct way of doing this?
+  ) -> Result<String, jsonrpc_core::Error> {
     assert_eq!(verbose, false, "Verbose param is unsupported");
     assert_eq!(blockhash, None, "Blockhash param is unsupported");
-
-    dbg!(&txid);
     match self.blocks.lock().unwrap().transactions.get(&txid) {
-      Some(tx) => Ok(tx.clone()),
+      Some(tx) => Ok(hex::encode(bitcoin::consensus::encode::serialize(tx))),
       None => Err(jsonrpc_core::Error::new(
         jsonrpc_core::types::error::ErrorCode::ServerError(-8),
       )),
     }
   }
-
-  //  fn get_raw_transaction(&self, params: Params) -> Result<Transaction, jsonrpc_core::Error> {
-  //    dbg!(&params);
-  //    // TODO: how to do nested struct matching
-  //    match params.clone() {
-  //      Params::Array(vec) => {
-  //        match &vec.clone()[0] {
-  //        serde_json::Value::String(txid) => {
-  //          dbg!(&txid);
-  //          let txid_hash = bitcoin::hashes::sha256d::Hash::from_str(&txid).unwrap();
-  //          let txid = Txid::from_hash(txid_hash);
-  //          match self.blocks.lock().unwrap().transactions.get(&txid) {
-  //            Some(tx) => Ok(tx.clone()),
-  //            None => Err(jsonrpc_core::Error::new(
-  //              jsonrpc_core::types::error::ErrorCode::ServerError(-8),
-  //            )),
-  //          }
-  //        _ => Err(jsonrpc_core::Error::new(
-  //          jsonrpc_core::types::error::ErrorCode::ServerError(-8),
-  //      },
-  //      _ => Err(jsonrpc_core::Error::new(
-  //        jsonrpc_core::types::error::ErrorCode::ServerError(-8),
-  //      )),
-  //    }
-  //    }
-  //  }
 }
 
 pub(crate) struct BitcoinRpcServerHandle {
