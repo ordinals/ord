@@ -3,13 +3,12 @@ use {
   bitcoin::BlockHeader,
   bitcoincore_rpc::Auth,
   jsonrpc_core::IoHandler,
-  jsonrpc_derive::rpc,
+  // jsonrpc_core::{IoHandler, Params},
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
   std::collections::BTreeMap,
 };
 
 pub(crate) use {bitcoincore_rpc::RpcApi, tempfile::TempDir};
-
 
 macro_rules! assert_regex_match {
   ($string:expr, $pattern:expr $(,)?) => {
@@ -59,10 +58,12 @@ impl Blocks {
       input: Vec::new(),
       output: Vec::new(),
     };
-    // This feels like a bad way to do this
-    let mut transactions = self.mempool.clone();
-    transactions.push(coinbase.clone());
-    self.build_tx_index(transactions);
+
+    let mut txs = self.mempool.clone();
+    txs.push(coinbase.clone());
+    for tx in txs.into_iter() {
+      self.transactions.insert(tx.txid(), tx);
+    }
 
     let mut txdata = vec![coinbase];
     txdata.append(&mut self.mempool);
@@ -73,12 +74,6 @@ impl Blocks {
     self.hashes.push(block_hash);
     self.blocks.insert(block_hash, block);
     block_hash
-  }
-
-  fn build_tx_index(&mut self, txs: Vec<Transaction>) {
-    for tx in txs {
-      self.transactions.insert(tx.txid(), tx);
-    }
   }
 
   fn broadcast_tx(&mut self, tx: Transaction) {
@@ -121,7 +116,8 @@ impl BitcoinRpcServer {
   }
 }
 
-#[rpc(server)]
+// Why not declared at in use statements?
+#[jsonrpc_derive::rpc]
 pub trait BitcoinRpc {
   #[rpc(name = "getblockhash")]
   fn getblockhash(&self, height: usize) -> Result<BlockHash, jsonrpc_core::Error>;
@@ -146,10 +142,14 @@ pub trait BitcoinRpc {
   #[rpc(name = "getrawtransaction")]
   fn get_raw_transaction(
     &self,
-    txid: String, // why doesn't Txid work? Do I need to implement a from<String> trait for Txid?
+    txid: Txid,
     verbose: bool,
     blockhash: Option<BlockHash>,
   ) -> Result<Transaction, jsonrpc_core::Error>;
+
+  // Was for debugging
+  // #[rpc(name = "getrawtransaction", params = "raw")]
+  // fn get_raw_transaction(&self, params: Params) -> Result<Transaction, jsonrpc_core::Error>;
 }
 
 impl BitcoinRpc for BitcoinRpcServer {
@@ -212,7 +212,7 @@ impl BitcoinRpc for BitcoinRpcServer {
 
   fn get_raw_transaction(
     &self,
-    txid: String,
+    txid: Txid,
     verbose: bool,
     blockhash: Option<BlockHash>,
   ) -> Result<Transaction, jsonrpc_core::Error> {
@@ -220,8 +220,7 @@ impl BitcoinRpc for BitcoinRpcServer {
     assert_eq!(verbose, false, "Verbose param is unsupported");
     assert_eq!(blockhash, None, "Blockhash param is unsupported");
 
-    let txid_hash = bitcoin::hashes::sha256d::Hash::from_str(&txid).unwrap();
-    let txid = Txid::from_hash(txid_hash);
+    dbg!(&txid);
     match self.blocks.lock().unwrap().transactions.get(&txid) {
       Some(tx) => Ok(tx.clone()),
       None => Err(jsonrpc_core::Error::new(
@@ -229,6 +228,32 @@ impl BitcoinRpc for BitcoinRpcServer {
       )),
     }
   }
+
+  //  fn get_raw_transaction(&self, params: Params) -> Result<Transaction, jsonrpc_core::Error> {
+  //    dbg!(&params);
+  //    // TODO: how to do nested struct matching
+  //    match params.clone() {
+  //      Params::Array(vec) => {
+  //        match &vec.clone()[0] {
+  //        serde_json::Value::String(txid) => {
+  //          dbg!(&txid);
+  //          let txid_hash = bitcoin::hashes::sha256d::Hash::from_str(&txid).unwrap();
+  //          let txid = Txid::from_hash(txid_hash);
+  //          match self.blocks.lock().unwrap().transactions.get(&txid) {
+  //            Some(tx) => Ok(tx.clone()),
+  //            None => Err(jsonrpc_core::Error::new(
+  //              jsonrpc_core::types::error::ErrorCode::ServerError(-8),
+  //            )),
+  //          }
+  //        _ => Err(jsonrpc_core::Error::new(
+  //          jsonrpc_core::types::error::ErrorCode::ServerError(-8),
+  //      },
+  //      _ => Err(jsonrpc_core::Error::new(
+  //        jsonrpc_core::types::error::ErrorCode::ServerError(-8),
+  //      )),
+  //    }
+  //    }
+  //  }
 }
 
 pub(crate) struct BitcoinRpcServerHandle {

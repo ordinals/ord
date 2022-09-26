@@ -974,7 +974,7 @@ mod tests {
     let test_server = TestServer::new();
 
     test_server.assert_response_regex(
-    "output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
+    "/output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
     StatusCode::OK,
     ".*<title>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</title>.*<h1>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</h1>
 <h2>Ordinal Ranges</h2>
@@ -987,7 +987,7 @@ mod tests {
   #[test]
   fn unknown_output_returns_404() {
     TestServer::new().assert_response(
-      "output/0000000000000000000000000000000000000000000000000000000000000000:0",
+      "/output/0000000000000000000000000000000000000000000000000000000000000000:0",
       StatusCode::NOT_FOUND,
       "Output unknown.",
     );
@@ -996,7 +996,7 @@ mod tests {
   #[test]
   fn invalid_output_returns_400() {
     TestServer::new().assert_response(
-      "output/foo:0",
+      "/output/foo:0",
       StatusCode::BAD_REQUEST,
       "Invalid URL: error parsing TXID: odd hex string length 3",
     );
@@ -1038,7 +1038,7 @@ mod tests {
   #[test]
   fn block_not_found() {
     TestServer::new().assert_response(
-      "block/467a86f0642b1d284376d13a98ef58310caa49502b0f9a560ee222e0a122fe16",
+      "/block/467a86f0642b1d284376d13a98ef58310caa49502b0f9a560ee222e0a122fe16",
       StatusCode::NOT_FOUND,
       "Not Found",
     );
@@ -1047,7 +1047,7 @@ mod tests {
   #[test]
   fn unmined_ordinal() {
     TestServer::new().assert_response_regex(
-      "ordinal/0",
+      "/ordinal/0",
       StatusCode::OK,
       ".*<dt>time</dt><dd>2009-01-03 18:15:05</dd>.*",
     );
@@ -1056,7 +1056,7 @@ mod tests {
   #[test]
   fn mined_ordinal() {
     TestServer::new().assert_response_regex(
-      "ordinal/5000000000",
+      "/ordinal/5000000000",
       StatusCode::OK,
       ".*<dt>time</dt><dd>.* \\(expected\\)</dd>.*",
     );
@@ -1065,7 +1065,7 @@ mod tests {
   #[test]
   fn static_asset() {
     TestServer::new().assert_response_regex(
-      "static/index.css",
+      "/static/index.css",
       StatusCode::OK,
       r".*\.rare \{
   background-color: cornflowerblue;
@@ -1075,7 +1075,7 @@ mod tests {
 
   #[test]
   fn favicon() {
-    TestServer::new().assert_response_regex("favicon.ico", StatusCode::OK, r".*");
+    TestServer::new().assert_response_regex("/favicon.ico", StatusCode::OK, r".*");
   }
 
   #[test]
@@ -1099,7 +1099,7 @@ mod tests {
     let block_hash = test_server.bitcoin_rpc_server.mine_blocks(1)[0];
 
     test_server.assert_response_regex(
-      &format!("block/{block_hash}"),
+      &format!("/block/{block_hash}"),
       StatusCode::OK,
       ".*<h1>Block [[:xdigit:]]{64}</h1>
 <h2>Transactions</h2>
@@ -1118,7 +1118,7 @@ mod tests {
     let _block_hash = test_server.bitcoin_rpc_server.mine_blocks(1)[0];
 
     test_server.assert_response_regex(
-      &format!("tx/{txid}"),
+      &format!("/tx/{txid}"),
       StatusCode::OK,
       &format!(
         ".*<title>Transaction {txid}</title>.*<h1>Transaction {txid}</h1>
