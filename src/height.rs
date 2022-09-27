@@ -75,6 +75,12 @@ mod tests {
   }
 
   #[test]
+  fn from_str() {
+    assert_eq!("0".parse::<Height>().unwrap(), 0);
+    assert!("foo".parse::<Height>().is_err());
+  }
+
+  #[test]
   fn subsidy() {
     assert_eq!(Height(0).subsidy(), 5000000000);
     assert_eq!(Height(1).subsidy(), 5000000000);
