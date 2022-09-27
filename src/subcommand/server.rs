@@ -1136,4 +1136,22 @@ mod tests {
       ),
     );
   }
+
+  #[test]
+  fn detect_reorg() {
+    let test_server = TestServer::new();
+
+    test_server.bitcoin_rpc_server.mine_blocks(5);
+
+    test_server.assert_response("/status", StatusCode::OK, "OK");
+
+    test_server.bitcoin_rpc_server.invalidate_tip();
+    test_server.bitcoin_rpc_server.mine_blocks(2);
+
+    test_server.assert_response_regex(
+      "/status",
+      StatusCode::SERVICE_UNAVAILABLE,
+      "Reorg detected.*",
+    );
+  }
 }

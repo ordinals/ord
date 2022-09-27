@@ -4,6 +4,7 @@ use {
   jsonrpc_core::IoHandler,
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
   std::collections::BTreeMap,
+  rand::Rng,
 };
 
 pub(crate) use tempfile::TempDir;
@@ -79,6 +80,13 @@ impl BitcoinRpcData {
     }
 
     block
+  }
+
+  fn pop_block(&mut self) -> BlockHash {
+    let blockhash = self.hashes.pop().unwrap(); 
+    self.blocks.remove(&blockhash);
+
+    blockhash
   }
 
   fn broadcast_tx(&mut self, tx: Transaction) {
@@ -210,6 +218,8 @@ impl BitcoinRpcServerHandle {
   }
 
   pub(crate) fn mine_blocks(&self, num: u64) -> Vec<Block> {
+    // TODO: add randomness to each mined block
+    let mut rng = rand::thread_rng();
     let mut mined_blocks = Vec::new();
     let mut bitcoin_rpc_data = self.data.lock().unwrap();
     for _ in 0..num {
@@ -219,7 +229,7 @@ impl BitcoinRpcServerHandle {
         merkle_root: Default::default(),
         time: 0,
         bits: 0,
-        nonce: 0,
+        nonce: rng.gen(),
       });
       mined_blocks.push(block);
     }
@@ -237,6 +247,10 @@ impl BitcoinRpcServerHandle {
     self.data.lock().unwrap().broadcast_tx(tx);
 
     txid
+  }
+
+  pub(crate) fn invalidate_tip(&self) -> BlockHash {
+    self.data.lock().unwrap().pop_block()
   }
 }
 
