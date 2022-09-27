@@ -1,6 +1,6 @@
 ci: clippy forbid
   cargo fmt -- --check
-  cargo test
+  cargo test -- --test-threads=1
 
 forbid:
   ./bin/forbid
