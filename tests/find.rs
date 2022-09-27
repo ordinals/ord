@@ -2,7 +2,7 @@ use super::*;
 
 #[test]
 fn first_satoshi_new() {
-  let rpc_server = test_bitcoincore_rpc::Server::spawn();
+  let rpc_server = test_bitcoincore_rpc::spawn();
 
   TestCommand::new("find 0")
     .rpc_server(&rpc_server)

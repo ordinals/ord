@@ -532,7 +532,7 @@ mod tests {
 
   impl TestServer {
     fn new() -> Self {
-      let bitcoin_rpc_server = test_bitcoincore_rpc::Server::spawn();
+      let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
       let tempdir = TempDir::new().unwrap();
 

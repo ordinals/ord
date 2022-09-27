@@ -12,6 +12,29 @@ use {
   },
 };
 
+pub fn spawn() -> Handle {
+  let server = Server::new();
+  let state = server.state.clone();
+  let mut io = IoHandler::default();
+  io.extend_with(server.to_delegate());
+
+  let rpc_server = ServerBuilder::new(io)
+    .threads(1)
+    .start_http(&"127.0.0.1:0".parse().unwrap())
+    .unwrap();
+
+  let close_handle = rpc_server.close_handle();
+  let port = rpc_server.address().port();
+
+  thread::spawn(|| rpc_server.wait());
+
+  Handle {
+    close_handle: Some(close_handle),
+    port,
+    state,
+  }
+}
+
 struct State {
   hashes: Vec<BlockHash>,
   blocks: BTreeMap<BlockHash, Block>,
@@ -101,29 +124,6 @@ impl Server {
   fn new() -> Self {
     Self {
       state: Arc::new(Mutex::new(State::new())),
-    }
-  }
-
-  pub fn spawn() -> Handle {
-    let server = Server::new();
-    let state = server.state.clone();
-    let mut io = IoHandler::default();
-    io.extend_with(server.to_delegate());
-
-    let rpc_server = ServerBuilder::new(io)
-      .threads(1)
-      .start_http(&"127.0.0.1:0".parse().unwrap())
-      .unwrap();
-
-    let close_handle = rpc_server.close_handle();
-    let port = rpc_server.address().port();
-
-    thread::spawn(|| rpc_server.wait());
-
-    Handle {
-      close_handle: Some(close_handle),
-      port,
-      state,
     }
   }
 }

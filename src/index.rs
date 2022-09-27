@@ -546,7 +546,7 @@ mod tests {
 
   #[test]
   fn height_limit() {
-    let bitcoin_rpc_server = test_bitcoincore_rpc::Server::spawn();
+    let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
     bitcoin_rpc_server.mine_blocks(1);
 
@@ -611,7 +611,7 @@ mod tests {
 
   #[test]
   fn first_coinbase_transaction() {
-    let bitcoin_rpc_server = test_bitcoincore_rpc::Server::spawn();
+    let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
     bitcoin_rpc_server.mine_blocks(1);
 
