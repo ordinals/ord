@@ -5,6 +5,8 @@ version = "0.0.4"
 license = "CC0-1.0"
 edition = "2021"
 autotests = false
+homepage = "https://github.com/casey/ord"
+repository = "https://github.com/casey/ord"
 
 [workspace]
 members = [".", "test-bitcoincore-rpc"]

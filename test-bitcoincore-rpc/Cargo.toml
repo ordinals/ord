@@ -1,7 +1,11 @@
 [package]
 name = "test-bitcoincore-rpc"
+description = "Test Bitcoin Core RPC server"
 version = "0.0.0"
 edition = "2021"
+license = "CC0-1.0"
+homepage = "https://github.com/casey/ord"
+repository = "https://github.com/casey/ord"
 
 [dependencies]
 bitcoin = { version = "0.28.1", features = ["use-serde"] }
