@@ -546,7 +546,7 @@ mod tests {
 
   #[test]
   fn height_limit() {
-    let bitcoin_rpc_server = BitcoinRpcServer::spawn();
+    let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
     bitcoin_rpc_server.mine_blocks(1);
 
@@ -561,13 +561,13 @@ mod tests {
         format!(
           "
           ord
-          --rpc-url http://127.0.0.1:{}
+          --rpc-url {}
           --data-dir {}
           --cookie-file {}
           --height-limit 0
           --chain regtest
         ",
-          bitcoin_rpc_server.port,
+          bitcoin_rpc_server.url(),
           tempdir.path().display(),
           cookie_file.display(),
         )
@@ -587,13 +587,13 @@ mod tests {
         format!(
           "
           ord
-          --rpc-url http://127.0.0.1:{}
+          --rpc-url {}
           --data-dir {}
           --cookie-file {}
           --height-limit 1
           --chain regtest
         ",
-          bitcoin_rpc_server.port,
+          bitcoin_rpc_server.url(),
           tempdir.path().display(),
           cookie_file.display(),
         )
@@ -611,7 +611,7 @@ mod tests {
 
   #[test]
   fn first_coinbase_transaction() {
-    let bitcoin_rpc_server = BitcoinRpcServer::spawn();
+    let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
     bitcoin_rpc_server.mine_blocks(1);
 
@@ -625,13 +625,13 @@ mod tests {
       format!(
         "
           ord
-          --rpc-url http://127.0.0.1:{}
+          --rpc-url {}
           --data-dir {}
           --cookie-file {}
           --height-limit 0
           --chain regtest
         ",
-        bitcoin_rpc_server.port,
+        bitcoin_rpc_server.url(),
         tempdir.path().display(),
         cookie_file.display(),
       )

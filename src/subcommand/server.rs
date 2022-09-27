@@ -522,7 +522,7 @@ mod tests {
   use {super::*, reqwest::Url, std::net::TcpListener, tempfile::TempDir};
 
   struct TestServer {
-    bitcoin_rpc_server: BitcoinRpcServerHandle,
+    bitcoin_rpc_server: test_bitcoincore_rpc::Handle,
     index: Arc<Index>,
     ord_server_handle: Handle,
     url: Url,
@@ -532,7 +532,7 @@ mod tests {
 
   impl TestServer {
     fn new() -> Self {
-      let bitcoin_rpc_server = BitcoinRpcServer::spawn();
+      let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
       let tempdir = TempDir::new().unwrap();
 

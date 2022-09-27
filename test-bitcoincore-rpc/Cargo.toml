@@ -1,0 +1,12 @@
+[package]
+name = "test-bitcoincore-rpc"
+version = "0.0.0"
+edition = "2021"
+
+[dependencies]
+bitcoin = "0.28.1"
+hex = "0.4.3"
+jsonrpc-core = "18.0.0"
+jsonrpc-core-client = "18.0.0"
+jsonrpc-derive = "18.0.0"
+jsonrpc-http-server = "18.0.0"

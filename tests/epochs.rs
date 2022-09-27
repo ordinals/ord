@@ -2,7 +2,7 @@ use super::*;
 
 #[test]
 fn empty() {
-  TestCommand::new("epochs")
+  CommandBuilder::new("epochs")
     .expected_stdout(
       "
         0
