@@ -591,7 +591,9 @@ mod tests {
     }
 
     fn get(&self, url: &str) -> reqwest::blocking::Response {
-      self.index.index().unwrap();
+      if let Err(error) = self.index.index() {
+        log::error!("{error}");
+      }
       reqwest::blocking::get(self.join_url(url)).unwrap()
     }
 

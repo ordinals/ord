@@ -258,7 +258,7 @@ impl Index {
 
       if prev_hash != block.header.prev_blockhash.as_ref() {
         self.reorged.store(true, Ordering::Relaxed);
-        //return Err(anyhow!("Reorg detected at or before {prev_height}"));
+        return Err(anyhow!("Reorg detected at or before {prev_height}"));
       }
     }
 
