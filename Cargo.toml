@@ -5,6 +5,8 @@ version = "0.0.4"
 license = "CC0-1.0"
 edition = "2021"
 autotests = false
+homepage = "https://github.com/casey/ord"
+repository = "https://github.com/casey/ord"
 
 [workspace]
 members = [".", "test-bitcoincore-rpc"]
@@ -46,7 +48,6 @@ tower-http = { version = "0.3.3", features = ["cors"] }
 [dev-dependencies]
 bdk = { version = "0.22.0", features = ["rpc", "keys-bip39", "sqlite"] }
 executable-path = "1.0.0"
-log = "0.4.14"
 nix = "0.24.1"
 pretty_assertions = "1.2.1"
 reqwest = { version = "0.11.10", features = ["blocking"] }
