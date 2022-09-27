@@ -405,19 +405,16 @@ impl Server {
 
   async fn status(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
     if index.is_reorged() {
-      return (
+      (
         StatusCode::OK,
-        "Reorg detected, please rebuild the database.".to_string(),
-      );
+        "Reorg detected, please rebuild the database.",
+      )
+    } else {
+      (
+        StatusCode::OK,
+        StatusCode::OK.canonical_reason().unwrap_or_default(),
+      )
     }
-
-    (
-      StatusCode::OK,
-      StatusCode::OK
-        .canonical_reason()
-        .unwrap_or_default()
-        .to_string(),
-    )
   }
 
   async fn search_by_query(
@@ -1150,10 +1147,6 @@ mod tests {
     test_server.bitcoin_rpc_server.invalidate_tip();
     test_server.bitcoin_rpc_server.mine_blocks(2);
 
-    test_server.assert_response_regex(
-      "/status",
-      StatusCode::OK,
-      "Reorg detected.*",
-    );
+    test_server.assert_response_regex("/status", StatusCode::OK, "Reorg detected.*");
   }
 }
