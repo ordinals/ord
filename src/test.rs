@@ -228,7 +228,7 @@ impl BitcoinRpcServerHandle {
 
   pub(crate) fn mine_blocks(&self, num: u64) -> Vec<Block> {
     let mut bitcoin_rpc_data = self.data.lock().unwrap();
-    (0..num).map(|_|bitcoin_rpc_data.push_block()).collect()
+    (0..num).map(|_| bitcoin_rpc_data.push_block()).collect()
   }
 
   pub(crate) fn broadcast_dummy_tx(&self) -> Txid {
