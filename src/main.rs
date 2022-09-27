@@ -19,7 +19,7 @@ use {
   axum::{extract, http::StatusCode, response::Html, response::IntoResponse, routing::get, Router},
   axum_server::Handle,
   bitcoin::{
-    blockdata::{constants::COIN_VALUE, transaction::TxOut},
+    blockdata::constants::COIN_VALUE,
     consensus::{Decodable, Encodable},
     hash_types::BlockHash,
     hashes::Hash,

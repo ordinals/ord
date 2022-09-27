@@ -49,12 +49,7 @@ jobs:
     - name: Check Lockfile
       run: cargo update --locked --package ord
 
-    - name: Test on MacOS (unit tests)
-      if: ${{ matrix.os == 'macos-latest' }}
-      run: cargo test --bin ord
-
-    - name: Test on Linux (all tests)
-      if: ${{ matrix.os == 'ubuntu-latest' }}
+    - name: Test
       run: cargo test --all
 
     - name: Clippy

@@ -1,7 +1,6 @@
 use super::*;
 
 pub(crate) struct Output {
-  pub(crate) stdout: String,
   pub(crate) state: State,
 }
 
@@ -112,10 +111,7 @@ impl SlowTest {
     self.expected_stderr.assert_match(&stripped_stderr);
     self.expected_stdout.assert_match(stdout);
 
-    Output {
-      stdout: stdout.to_string(),
-      state: self.state,
-    }
+    Output { state: self.state }
   }
 
   pub(crate) fn blocks(self, n: u64) -> Self {
