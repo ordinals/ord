@@ -1143,7 +1143,7 @@ mod tests {
   fn detect_reorg() {
     let test_server = TestServer::new();
 
-    test_server.bitcoin_rpc_server.mine_blocks(5);
+    test_server.bitcoin_rpc_server.mine_blocks(1);
 
     test_server.assert_response("/status", StatusCode::OK, "OK");
 
