@@ -36,11 +36,11 @@ pub fn spawn() -> Handle {
 }
 
 struct State {
-  hashes: Vec<BlockHash>,
   blocks: BTreeMap<BlockHash, Block>,
-  transactions: BTreeMap<Txid, Transaction>,
+  hashes: Vec<BlockHash>,
   mempool: Vec<Transaction>,
   nonce: u32,
+  transactions: BTreeMap<Txid, Transaction>,
 }
 
 impl State {
@@ -53,11 +53,11 @@ impl State {
     blocks.insert(genesis_block_hash, genesis_block);
 
     Self {
-      hashes,
       blocks,
-      transactions: BTreeMap::new(),
+      hashes,
       mempool: Vec::new(),
       nonce: 0,
+      transactions: BTreeMap::new(),
     }
   }
 
@@ -206,8 +206,8 @@ impl Api for Server {
 }
 
 pub struct Handle {
-  port: u16,
   close_handle: Option<CloseHandle>,
+  port: u16,
   state: Arc<Mutex<State>>,
 }
 

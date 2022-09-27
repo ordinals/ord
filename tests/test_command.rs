@@ -12,12 +12,12 @@ pub(crate) struct TestCommand {
 impl TestCommand {
   pub(crate) fn new(args: &'static str) -> Self {
     Self {
-      tempdir: TempDir::new().unwrap(),
+      args,
       expected_status: 0,
       expected_stderr: Expected::Ignore,
       expected_stdout: Expected::String(String::new()),
       rpc_server_url: None,
-      args,
+      tempdir: TempDir::new().unwrap(),
     }
   }
 
