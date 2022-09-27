@@ -1,6 +1,8 @@
 use {
   super::*,
-  bitcoin::{blockdata::constants::COIN_VALUE, blockdata::script, BlockHeader, TxIn, Witness},
+  bitcoin::{
+    blockdata::constants::COIN_VALUE, blockdata::script, BlockHeader, TxIn, TxOut, Witness,
+  },
   jsonrpc_core::IoHandler,
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
   std::collections::BTreeMap,

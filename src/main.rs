@@ -11,7 +11,6 @@ use {
     index::{Index, List},
     options::Options,
     ordinal::Ordinal,
-    purse::Purse,
     rarity::Rarity,
     sat_point::SatPoint,
     subcommand::Subcommand,
@@ -19,27 +18,12 @@ use {
   anyhow::{anyhow, bail, Context, Error},
   axum::{extract, http::StatusCode, response::Html, response::IntoResponse, routing::get, Router},
   axum_server::Handle,
-  bdk::{
-    blockchain::rpc::{RpcBlockchain, RpcConfig},
-    blockchain::{Blockchain, ConfigurableBlockchain},
-    database::SqliteDatabase,
-    keys::bip39::{Language, Mnemonic},
-    template::Bip84,
-    wallet::{signer::SignOptions, AddressIndex::LastUnused},
-    wallet::{wallet_name_from_descriptor, SyncOptions},
-    FeeRate, KeychainKind, LocalUtxo,
-  },
   bitcoin::{
-    blockdata::{constants::COIN_VALUE, transaction::TxOut},
+    blockdata::constants::COIN_VALUE,
     consensus::{Decodable, Encodable},
     hash_types::BlockHash,
     hashes::Hash,
-    secp256k1::{
-      rand::{self},
-      Secp256k1,
-    },
-    util::psbt::PartiallySignedTransaction,
-    Address, Block, Network, OutPoint, Transaction, Txid,
+    Block, Network, OutPoint, Transaction, Txid,
   },
   chrono::{DateTime, NaiveDateTime, Utc},
   clap::Parser,
@@ -84,7 +68,6 @@ mod height;
 mod index;
 mod options;
 mod ordinal;
-mod purse;
 mod rarity;
 mod sat_point;
 mod subcommand;
