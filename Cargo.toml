@@ -6,6 +6,9 @@ license = "CC0-1.0"
 edition = "2021"
 autotests = false
 
+[workspace]
+members = ["."]
+
 [dependencies]
 anyhow = { version = "1.0.56", features = ["backtrace"] }
 axum = "0.5.6"
