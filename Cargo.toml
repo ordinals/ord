@@ -44,15 +44,15 @@ tower = "0.4.13"
 tower-http = { version = "0.3.3", features = ["cors"] }
 
 [dev-dependencies]
+bdk = { version = "0.22.0", features = ["rpc", "keys-bip39", "sqlite"] }
 executable-path = "1.0.0"
 log = "0.4.14"
 nix = "0.24.1"
 pretty_assertions = "1.2.1"
 reqwest = { version = "0.11.10", features = ["blocking"] }
 tempfile = "3.2.0"
-unindent = "0.1.7"
-bdk = { version = "0.22.0", features = ["rpc", "keys-bip39", "sqlite"] }
 test-bitcoincore-rpc = { path = "test-bitcoincore-rpc" }
+unindent = "0.1.7"
 
 [[test]]
 name = "integration"
