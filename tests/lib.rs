@@ -2,7 +2,7 @@
 
 use {
   self::{
-    expected::Expected, slow_test::SlowTest, state::State, test_command::TestCommand,
+    command_builder::CommandBuilder, expected::Expected, slow_test::SlowTest, state::State,
     transaction_options::TransactionOptions,
   },
   bdk::{
@@ -35,6 +35,7 @@ use {
   unindent::Unindent,
 };
 
+mod command_builder;
 mod epochs;
 mod expected;
 mod find;
@@ -46,7 +47,6 @@ mod range;
 mod slow_test;
 mod state;
 mod supply;
-mod test_command;
 mod traits;
 mod transaction_options;
 mod version;

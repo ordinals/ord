@@ -1,6 +1,6 @@
 use super::*;
 
-pub(crate) struct TestCommand {
+pub(crate) struct CommandBuilder {
   args: &'static str,
   expected_status: i32,
   expected_stderr: Expected,
@@ -9,7 +9,7 @@ pub(crate) struct TestCommand {
   tempdir: TempDir,
 }
 
-impl TestCommand {
+impl CommandBuilder {
   pub(crate) fn new(args: &'static str) -> Self {
     Self {
       args,
