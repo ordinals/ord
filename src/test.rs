@@ -4,7 +4,6 @@ use {
   jsonrpc_core::IoHandler,
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
   std::collections::BTreeMap,
-  rand::Rng,
 };
 
 pub(crate) use tempfile::TempDir;
@@ -28,13 +27,13 @@ struct BitcoinRpcData {
   blocks: BTreeMap<BlockHash, Block>,
   transactions: BTreeMap<Txid, Transaction>,
   mempool: Vec<Transaction>,
+  nonce: u32,
 }
 
 impl BitcoinRpcData {
   fn new() -> Self {
     let mut hashes = Vec::new();
     let mut blocks = BTreeMap::new();
-
     let genesis_block = bitcoin::blockdata::constants::genesis_block(Network::Bitcoin);
     let genesis_block_hash = genesis_block.block_hash();
     hashes.push(genesis_block_hash);
@@ -45,12 +44,22 @@ impl BitcoinRpcData {
       blocks,
       transactions: BTreeMap::new(),
       mempool: Vec::new(),
+      nonce: 0,
     }
   }
 
-  fn push_block(&mut self, header: BlockHeader) -> Block {
+  fn push_block(&mut self) -> Block {
+    let nonce = self.nonce;
+    self.nonce += 1;
     let mut block = Block {
-      header,
+      header: BlockHeader {
+        version: 0,
+        prev_blockhash: BlockHash::default(),
+        merkle_root: Default::default(),
+        time: 0,
+        bits: 0,
+        nonce,
+      },
       txdata: vec![Transaction {
         version: 0,
         lock_time: 0,
@@ -83,7 +92,7 @@ impl BitcoinRpcData {
   }
 
   fn pop_block(&mut self) -> BlockHash {
-    let blockhash = self.hashes.pop().unwrap(); 
+    let blockhash = self.hashes.pop().unwrap();
     self.blocks.remove(&blockhash);
 
     blockhash
@@ -218,19 +227,10 @@ impl BitcoinRpcServerHandle {
   }
 
   pub(crate) fn mine_blocks(&self, num: u64) -> Vec<Block> {
-    // TODO: add randomness to each mined block
-    let mut rng = rand::thread_rng();
     let mut mined_blocks = Vec::new();
     let mut bitcoin_rpc_data = self.data.lock().unwrap();
     for _ in 0..num {
-      let block = bitcoin_rpc_data.push_block(BlockHeader {
-        version: 0,
-        prev_blockhash: BlockHash::default(),
-        merkle_root: Default::default(),
-        time: 0,
-        bits: 0,
-        nonce: rng.gen(),
-      });
+      let block = bitcoin_rpc_data.push_block();
       mined_blocks.push(block);
     }
     mined_blocks
