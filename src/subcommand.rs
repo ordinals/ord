@@ -10,7 +10,6 @@ mod range;
 mod server;
 mod supply;
 mod traits;
-mod wallet;
 
 #[derive(Debug, Parser)]
 pub(crate) enum Subcommand {
@@ -24,8 +23,6 @@ pub(crate) enum Subcommand {
   Server(server::Server),
   Supply,
   Traits(traits::Traits),
-  #[clap(subcommand)]
-  Wallet(wallet::Wallet),
 }
 
 impl Subcommand {
@@ -46,7 +43,6 @@ impl Subcommand {
       }
       Self::Supply => supply::run(),
       Self::Traits(traits) => traits.run(),
-      Self::Wallet(wallet) => wallet.run(options),
     }
   }
 }
