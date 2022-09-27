@@ -12,13 +12,16 @@ fn first_satoshi_new() {
 
 #[test]
 fn second_satoshi() {
-  SlowTest::new()
-    .command("find 1")
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  CommandBuilder::new("find 1")
+    .rpc_server(&rpc_server)
     .expected_stdout("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:1\n")
     .run();
 }
 
 #[test]
+#[ignore]
 fn first_satoshi_of_second_block() {
   SlowTest::new()
     .command("find 5000000000")
@@ -28,6 +31,7 @@ fn first_satoshi_of_second_block() {
 }
 
 #[test]
+#[ignore]
 fn first_satoshi_spent_in_second_block() {
   SlowTest::new()
     .command("find 0")
@@ -44,6 +48,7 @@ fn first_satoshi_spent_in_second_block() {
 }
 
 #[test]
+#[ignore]
 fn unmined_satoshi_in_second_block() {
   SlowTest::new()
     .expected_stderr("error: Ordinal has not been mined as of index height\n")
