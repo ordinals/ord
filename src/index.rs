@@ -655,4 +655,43 @@ mod tests {
       List::Unspent(vec![(0, 5000000000)])
     )
   }
+
+  #[test]
+  fn second_coinbase_transaction() {
+    let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+
+    let txid = bitcoin_rpc_server.mine_blocks(1)[0].txdata[0].txid();
+
+    let tempdir = TempDir::new().unwrap();
+
+    let cookie_file = tempdir.path().join("cookie");
+
+    fs::write(&cookie_file, "username:password").unwrap();
+
+    let options = Options::try_parse_from(
+      format!(
+        "
+          ord
+          --rpc-url {}
+          --data-dir {}
+          --cookie-file {}
+          --chain regtest
+        ",
+        bitcoin_rpc_server.url(),
+        tempdir.path().display(),
+        cookie_file.display(),
+      )
+      .split_whitespace(),
+    )
+    .unwrap();
+
+    let index = Index::open(&options).unwrap();
+
+    index.index().unwrap();
+
+    assert_eq!(
+      index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
+      List::Unspent(vec![(5000000000, 10000000000)])
+    )
+  }
 }
