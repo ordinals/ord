@@ -15,7 +15,6 @@ pub(crate) struct State {
   pub(crate) wallet: Wallet<MemoryDatabase>,
   pub(crate) blockchain: RpcBlockchain,
   pub(crate) bitcoind_rpc_port: u16,
-  ord_http_port: Option<u16>,
   ord: Option<Child>,
 }
 
@@ -102,7 +101,6 @@ impl State {
     State {
       tempdir,
       bitcoind_rpc_port,
-      ord_http_port: None,
       bitcoind,
       client,
       wallet,
@@ -199,90 +197,6 @@ impl State {
       .unwrap();
 
     tx
-  }
-
-  pub(crate) fn request_regex(&mut self, path: &str, status: u16, expected_response: &str) {
-    self.request_expected(path, status, Expected::regex(expected_response));
-  }
-
-  pub(crate) fn request_expected(&mut self, path: &str, status: u16, expected: Expected) {
-    if self.ord_http_port.is_none() {
-      let ord_http_port = free_port();
-
-      fs::create_dir(self.tempdir.path().join("server")).unwrap();
-
-      let ord = Command::new(executable_path("ord"))
-        .current_dir(self.tempdir.path().join("server"))
-        .env("HOME", self.tempdir.path())
-        .arg(format!("--rpc-url=localhost:{}", self.bitcoind_rpc_port))
-        .arg("--cookie-file=../bitcoin/regtest/.cookie")
-        .args([
-          "server",
-          "--address",
-          "127.0.0.1",
-          "--http-port",
-          &ord_http_port.to_string(),
-        ])
-        .spawn()
-        .unwrap();
-
-      for attempt in 0..=300 {
-        match reqwest::blocking::get(&format!("http://127.0.0.1:{ord_http_port}/status")) {
-          Ok(response) if response.status().is_success() => break,
-          result => {
-            if attempt == 300 {
-              panic!("Failed to connect to ord server: {result:?}");
-            }
-          }
-        }
-        sleep(Duration::from_millis(100));
-      }
-
-      self.ord = Some(ord);
-      self.ord_http_port = Some(ord_http_port);
-    }
-
-    for attempt in 0..=300 {
-      let best_hash = self.client.get_best_block_hash().unwrap();
-      let bitcoind_height = self
-        .client
-        .get_block_header_info(&best_hash)
-        .unwrap()
-        .height as u64;
-
-      let ord_height = reqwest::blocking::get(&format!(
-        "http://127.0.0.1:{}/height",
-        self.ord_http_port.unwrap()
-      ))
-      .unwrap()
-      .text()
-      .unwrap()
-      .parse::<u64>()
-      .unwrap();
-
-      if ord_height == bitcoind_height {
-        break;
-      } else {
-        if attempt == 300 {
-          panic!("Ord height {ord_height} did not catch up to bitcoind height {bitcoind_height}");
-        }
-
-        sleep(Duration::from_millis(100));
-      }
-    }
-
-    let response = reqwest::blocking::get(&format!(
-      "http://127.0.0.1:{}/{}",
-      self.ord_http_port.unwrap(),
-      path
-    ))
-    .unwrap();
-
-    log::info!("{:?}", response);
-
-    assert_eq!(response.status().as_u16(), status);
-
-    expected.assert_match(&response.text().unwrap());
   }
 
   pub(crate) fn ord_data_dir(&self) -> PathBuf {
