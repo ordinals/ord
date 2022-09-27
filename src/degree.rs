@@ -22,9 +22,9 @@ impl From<Ordinal> for Degree {
   fn from(ordinal: Ordinal) -> Self {
     let height = ordinal.height().n();
     Degree {
-      hour: height / (CYCLE_EPOCHS * Epoch::BLOCKS),
-      minute: height % Epoch::BLOCKS,
-      second: height % PERIOD_BLOCKS,
+      hour: height / (CYCLE_EPOCHS * SUBSIDY_HALVING_INTERVAL),
+      minute: height % SUBSIDY_HALVING_INTERVAL,
+      second: height % DIFFCHANGE_INTERVAL,
       third: ordinal.third(),
     }
   }

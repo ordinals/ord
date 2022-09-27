@@ -20,7 +20,7 @@ impl Height {
   }
 
   pub(crate) fn period_offset(self) -> u64 {
-    self.0 % PERIOD_BLOCKS
+    self.0 % DIFFCHANGE_INTERVAL
   }
 }
 

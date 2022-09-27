@@ -135,7 +135,7 @@ fn null_output() {
     .transaction(TransactionOptions {
       slots: &[(1, 0, 0)],
       output_count: 1,
-      fee: 50 * 100_000_000,
+      fee: 50 * COIN_VALUE,
       recipient: None,
     })
     .blocks(1)
@@ -151,7 +151,7 @@ fn null_input() {
     .transaction(TransactionOptions {
       slots: &[(1, 0, 0)],
       output_count: 1,
-      fee: 50 * 100_000_000,
+      fee: 50 * COIN_VALUE,
       recipient: None,
     })
     .blocks(1)
@@ -174,7 +174,7 @@ fn old_transactions_are_pruned() {
     .transaction(TransactionOptions {
       slots: &[(1, 0, 0)],
       output_count: 1,
-      fee: 50 * 100_000_000,
+      fee: 50 * COIN_VALUE,
       recipient: None
     })
     .blocks(1)

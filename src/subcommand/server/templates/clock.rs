@@ -17,8 +17,8 @@ impl ClockSvg {
       hour: (min.n() % Epoch::FIRST_POST_SUBSIDY.starting_height().n()) as f64
         / Epoch::FIRST_POST_SUBSIDY.starting_height().n() as f64
         * 360.0,
-      minute: (min.n() % Epoch::BLOCKS) as f64 / Epoch::BLOCKS as f64 * 360.0,
-      second: height.period_offset() as f64 / PERIOD_BLOCKS as f64 * 360.0,
+      minute: (min.n() % SUBSIDY_HALVING_INTERVAL) as f64 / SUBSIDY_HALVING_INTERVAL as f64 * 360.0,
+      second: height.period_offset() as f64 / DIFFCHANGE_INTERVAL as f64 * 360.0,
     }
   }
 }
