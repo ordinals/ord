@@ -43,7 +43,6 @@ mod info;
 mod list;
 mod parse;
 mod range;
-mod server;
 mod slow_test;
 mod state;
 mod supply;
