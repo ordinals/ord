@@ -5,6 +5,7 @@ use {
   bitcoincore_rpc::{Auth, Client, RpcApi},
   rayon::iter::{IntoParallelRefIterator, ParallelIterator},
   redb::WriteStrategy,
+  std::sync::atomic::{AtomicBool, Ordering},
 };
 
 mod rtx;
@@ -21,6 +22,7 @@ pub(crate) struct Index {
   database: Database,
   database_path: PathBuf,
   height_limit: Option<u64>,
+  reorged: AtomicBool,
 }
 
 #[derive(Debug, PartialEq)]
@@ -109,6 +111,7 @@ impl Index {
       database,
       database_path,
       height_limit: options.height_limit,
+      reorged: AtomicBool::new(false),
     })
   }
 
@@ -199,6 +202,10 @@ impl Index {
     Ok(())
   }
 
+  pub(crate) fn is_reorged(&self) -> bool {
+    self.reorged.load(Ordering::Relaxed)
+  }
+
   pub(crate) fn index_block(&self, wtx: &mut WriteTransaction, height: u64) -> Result<bool> {
     let mut height_to_hash = wtx.open_table(HEIGHT_TO_HASH)?;
     let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
@@ -250,6 +257,7 @@ impl Index {
       let prev_hash = height_to_hash.get(&prev_height)?.unwrap();
 
       if prev_hash != block.header.prev_blockhash.as_ref() {
+        self.reorged.store(true, Ordering::Relaxed);
         return Err(anyhow!("Reorg detected at or before {prev_height}"));
       }
     }
