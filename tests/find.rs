@@ -21,11 +21,11 @@ fn second_satoshi() {
 }
 
 #[test]
-#[ignore]
 fn first_satoshi_of_second_block() {
-  SlowTest::new()
-    .command("find 5000000000")
-    .blocks(1)
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  CommandBuilder::new("find 5000000000")
+    .rpc_server(&rpc_server)
     .expected_stdout("150ba822b458a19615e70a604d8dd9d3482fc165fa4e9cc150d74e11916ce8ae:0:0\n")
     .run();
 }

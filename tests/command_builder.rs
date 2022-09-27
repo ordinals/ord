@@ -73,11 +73,7 @@ impl CommandBuilder {
     let output = command
       .stdin(Stdio::null())
       .stdout(Stdio::piped())
-      .stderr(if !matches!(self.expected_stderr, Expected::Ignore) {
-        Stdio::piped()
-      } else {
-        Stdio::inherit()
-      })
+      .stderr(Stdio::piped())
       .env("HOME", self.tempdir.path())
       .current_dir(&self.tempdir)
       .args(self.args.split_whitespace())
