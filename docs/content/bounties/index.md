@@ -2,10 +2,13 @@
 title = "Bounties"
 +++
 
-Bounty 2
---------
+Next bounty coming soon! 🤠
 
-Coming soon! 🤠
+Claimed Bounties
+----------------
+
+- [Bounty 0](bounty-0/)
+- [Bounty 1](bounty-1/)
 
 Hints
 -----
@@ -25,9 +28,3 @@ Hints
   rediscovered. You can help by researching rare ordinals.
 
 Good luck and godspeed!
-
-Claimed Bounties
-----------------
-
-- [](bounty-0/)
-- [](bounty-1/)
