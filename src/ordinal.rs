@@ -280,15 +280,21 @@ mod tests {
       "0°1′1″1‴"
     );
     assert_eq!(
-      Ordinal(50 * COIN_VALUE * 2016 - 1).degree().to_string(),
+      Ordinal(50 * COIN_VALUE * DIFFCHANGE_INTERVAL - 1)
+        .degree()
+        .to_string(),
       "0°2015′2015″4999999999‴"
     );
     assert_eq!(
-      Ordinal(50 * COIN_VALUE * 2016).degree().to_string(),
+      Ordinal(50 * COIN_VALUE * DIFFCHANGE_INTERVAL)
+        .degree()
+        .to_string(),
       "0°2016′0″0‴"
     );
     assert_eq!(
-      Ordinal(50 * COIN_VALUE * 2016 + 1).degree().to_string(),
+      Ordinal(50 * COIN_VALUE * DIFFCHANGE_INTERVAL + 1)
+        .degree()
+        .to_string(),
       "0°2016′0″1‴"
     );
     assert_eq!(

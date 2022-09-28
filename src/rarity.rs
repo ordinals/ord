@@ -65,9 +65,18 @@ mod tests {
     assert_eq!(Ordinal(50 * COIN_VALUE).rarity(), Rarity::Uncommon);
     assert_eq!(Ordinal(50 * COIN_VALUE + 1).rarity(), Rarity::Common);
 
-    assert_eq!(Ordinal(50 * COIN_VALUE * 2016 - 1).rarity(), Rarity::Common);
-    assert_eq!(Ordinal(50 * COIN_VALUE * 2016).rarity(), Rarity::Rare);
-    assert_eq!(Ordinal(50 * COIN_VALUE * 2016 + 1).rarity(), Rarity::Common);
+    assert_eq!(
+      Ordinal(50 * COIN_VALUE * DIFFCHANGE_INTERVAL - 1).rarity(),
+      Rarity::Common
+    );
+    assert_eq!(
+      Ordinal(50 * COIN_VALUE * DIFFCHANGE_INTERVAL).rarity(),
+      Rarity::Rare
+    );
+    assert_eq!(
+      Ordinal(50 * COIN_VALUE * DIFFCHANGE_INTERVAL + 1).rarity(),
+      Rarity::Common
+    );
 
     assert_eq!(
       Ordinal(50 * COIN_VALUE * 210000 - 1).rarity(),
