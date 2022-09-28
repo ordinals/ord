@@ -512,7 +512,7 @@ impl Server {
   }
 
   async fn bounties() -> impl IntoResponse {
-    Redirect::to("https://docs.ordinals.com/bounties/")
+    Redirect::to("https://docs.ordinals.com/bounty/")
   }
 }
 
