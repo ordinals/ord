@@ -11,7 +11,7 @@ impl Find {
 
     index.index()?;
 
-    match index.find(self.ordinal)? {
+    match index.find(self.ordinal.0)? {
       Some(satpoint) => {
         println!("{satpoint}");
         Ok(())

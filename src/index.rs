@@ -447,8 +447,8 @@ impl Index {
     self.client.get_raw_transaction(&txid, None).into_option()
   }
 
-  pub(crate) fn find(&self, ordinal: Ordinal) -> Result<Option<SatPoint>> {
-    if self.height()? < ordinal.height() {
+  pub(crate) fn find(&self, ordinal: u64) -> Result<Option<SatPoint>> {
+    if self.height()? < Ordinal(ordinal).height() {
       return Ok(None);
     }
 
@@ -462,11 +462,11 @@ impl Index {
       let mut offset = 0;
       for chunk in value.chunks_exact(11) {
         let (start, end) = Index::decode_ordinal_range(chunk.try_into().unwrap());
-        if start <= ordinal.0 && ordinal.0 < end {
+        if start <= ordinal && ordinal < end {
           let outpoint: OutPoint = Decodable::consensus_decode(key.as_slice())?;
           return Ok(Some(SatPoint {
             outpoint,
-            offset: offset + ordinal.0 - start,
+            offset: offset + ordinal - start,
           }));
         }
         offset += end - start;
@@ -544,45 +544,24 @@ impl Index {
 mod tests {
   use super::*;
 
-  #[test]
-  fn height_limit() {
-    let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  struct Context {
+    rpc_server: test_bitcoincore_rpc::Handle,
+    #[allow(unused)]
+    tempdir: TempDir,
+    index: Index,
+  }
 
-    bitcoin_rpc_server.mine_blocks(1);
-
-    let tempdir = TempDir::new().unwrap();
-
-    let cookie_file = tempdir.path().join("cookie");
-
-    fs::write(&cookie_file, "username:password").unwrap();
-
-    {
-      let options = Options::try_parse_from(
-        format!(
-          "
-          ord
-          --rpc-url {}
-          --data-dir {}
-          --cookie-file {}
-          --height-limit 0
-          --chain regtest
-        ",
-          bitcoin_rpc_server.url(),
-          tempdir.path().display(),
-          cookie_file.display(),
-        )
-        .split_whitespace(),
-      )
-      .unwrap();
-
-      let index = Index::open(&options).unwrap();
-
-      index.index().unwrap();
-
-      assert_eq!(index.height().unwrap(), 0);
+  impl Context {
+    fn new() -> Self {
+      Self::with_args("")
     }
 
-    {
+    fn with_args(args: &str) -> Self {
+      let rpc_server = test_bitcoincore_rpc::spawn();
+
+      let tempdir = TempDir::new().unwrap();
+      let cookie_file = tempdir.path().join("cookie");
+      fs::write(&cookie_file, "username:password").unwrap();
       let options = Options::try_parse_from(
         format!(
           "
@@ -590,61 +569,50 @@ mod tests {
           --rpc-url {}
           --data-dir {}
           --cookie-file {}
-          --height-limit 1
           --chain regtest
+          {args}
         ",
-          bitcoin_rpc_server.url(),
+          rpc_server.url(),
           tempdir.path().display(),
           cookie_file.display(),
         )
         .split_whitespace(),
       )
       .unwrap();
-
       let index = Index::open(&options).unwrap();
-
       index.index().unwrap();
 
-      assert_eq!(index.height().unwrap(), 1);
+      Self {
+        rpc_server,
+        tempdir,
+        index,
+      }
     }
   }
 
   #[test]
-  fn first_coinbase_transaction() {
-    let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  fn height_limit() {
+    {
+      let context = Context::with_args("--height-limit 0");
+      context.rpc_server.mine_blocks(1);
+      context.index.index().unwrap();
+      assert_eq!(context.index.height().unwrap(), 0);
+    }
 
-    bitcoin_rpc_server.mine_blocks(1);
+    {
+      let context = Context::with_args("--height-limit 1");
+      context.rpc_server.mine_blocks(1);
+      context.index.index().unwrap();
+      assert_eq!(context.index.height().unwrap(), 1);
+    }
+  }
 
-    let tempdir = TempDir::new().unwrap();
-
-    let cookie_file = tempdir.path().join("cookie");
-
-    fs::write(&cookie_file, "username:password").unwrap();
-
-    let options = Options::try_parse_from(
-      format!(
-        "
-          ord
-          --rpc-url {}
-          --data-dir {}
-          --cookie-file {}
-          --height-limit 0
-          --chain regtest
-        ",
-        bitcoin_rpc_server.url(),
-        tempdir.path().display(),
-        cookie_file.display(),
-      )
-      .split_whitespace(),
-    )
-    .unwrap();
-
-    let index = Index::open(&options).unwrap();
-
-    index.index().unwrap();
-
+  #[test]
+  fn list_first_coinbase_transaction() {
+    let context = Context::new();
     assert_eq!(
-      index
+      context
+        .index
         .list(
           "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0"
             .parse()
@@ -654,5 +622,55 @@ mod tests {
         .unwrap(),
       List::Unspent(vec![(0, 5000000000)])
     )
+  }
+
+  #[test]
+  fn find_first_ordinal() {
+    let context = Context::new();
+    assert_eq!(
+      context.index.find(0).unwrap().unwrap(),
+      SatPoint {
+        outpoint: "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0"
+          .parse()
+          .unwrap(),
+        offset: 0,
+      }
+    )
+  }
+
+  #[test]
+  fn find_second_ordinal() {
+    let context = Context::new();
+    assert_eq!(
+      context.index.find(1).unwrap().unwrap(),
+      SatPoint {
+        outpoint: "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0"
+          .parse()
+          .unwrap(),
+        offset: 1,
+      }
+    )
+  }
+
+  #[test]
+  fn find_first_ordinal_of_second_block() {
+    let context = Context::new();
+    context.rpc_server.mine_blocks(1);
+    context.index.index().unwrap();
+    assert_eq!(
+      context.index.find(50 * COIN_VALUE).unwrap().unwrap(),
+      SatPoint {
+        outpoint: "9068a11b8769174363376b606af9a4b8b29dd7b13d013f4b0cbbd457db3c3ce5:0"
+          .parse()
+          .unwrap(),
+        offset: 0,
+      }
+    )
+  }
+
+  #[test]
+  fn find_unmined_ordinal() {
+    let context = Context::new();
+    assert_eq!(context.index.find(50 * COIN_VALUE).unwrap(), None);
   }
 }
