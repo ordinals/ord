@@ -7,8 +7,8 @@ Next bounty coming soon! 🤠
 Claimed Bounties
 ----------------
 
-- [Bounty 0](bounty-0/)
-- [Bounty 1](bounty-1/)
+- [Bounty 0](0/)
+- [Bounty 1](1/)
 
 Hints
 -----
