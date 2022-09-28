@@ -1,21 +1,30 @@
 use super::*;
 
-pub(crate) struct TestCommand {
+pub(crate) struct CommandBuilder {
   args: &'static str,
   expected_status: i32,
   expected_stderr: Expected,
   expected_stdout: Expected,
+  rpc_server_url: Option<String>,
   tempdir: TempDir,
 }
 
-impl TestCommand {
+impl CommandBuilder {
   pub(crate) fn new(args: &'static str) -> Self {
     Self {
-      tempdir: TempDir::new().unwrap(),
+      args,
       expected_status: 0,
       expected_stderr: Expected::Ignore,
       expected_stdout: Expected::String(String::new()),
-      args,
+      rpc_server_url: None,
+      tempdir: TempDir::new().unwrap(),
+    }
+  }
+
+  pub(crate) fn rpc_server(self, rpc_server: &test_bitcoincore_rpc::Handle) -> Self {
+    Self {
+      rpc_server_url: Some(rpc_server.url()),
+      ..self
     }
   }
 
@@ -29,6 +38,13 @@ impl TestCommand {
   pub(crate) fn stdout_regex(self, expected_stdout: impl AsRef<str>) -> Self {
     Self {
       expected_stdout: Expected::regex(expected_stdout.as_ref()),
+      ..self
+    }
+  }
+
+  pub(crate) fn expected_stderr(self, expected_stderr: impl AsRef<str>) -> Self {
+    Self {
+      expected_stderr: Expected::String(expected_stderr.as_ref().to_owned()),
       ..self
     }
   }
@@ -48,14 +64,24 @@ impl TestCommand {
   }
 
   pub(crate) fn run(self) {
-    let output = Command::new(executable_path("ord"))
+    let mut command = Command::new(executable_path("ord"));
+
+    if let Some(rpc_server_url) = self.rpc_server_url {
+      let cookiefile = self.tempdir.path().join("cookie");
+      fs::write(&cookiefile, "username:password").unwrap();
+      command.args(&[
+        "--rpc-url",
+        &rpc_server_url,
+        "--cookie-file",
+        cookiefile.to_str().unwrap(),
+      ]);
+    }
+
+    let output = command
       .stdin(Stdio::null())
       .stdout(Stdio::piped())
-      .stderr(if !matches!(self.expected_stderr, Expected::Ignore) {
-        Stdio::piped()
-      } else {
-        Stdio::inherit()
-      })
+      .stderr(Stdio::piped())
+      .env("HOME", self.tempdir.path())
       .current_dir(&self.tempdir)
       .args(self.args.split_whitespace())
       .output()

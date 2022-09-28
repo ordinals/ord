@@ -1071,7 +1071,7 @@ dependencies = [
  "serde",
  "serde_json",
  "webpki 0.22.0",
- "webpki-roots 0.22.4",
+ "webpki-roots 0.22.5",
  "winapi",
 ]
 
@@ -2142,13 +2142,8 @@ dependencies = [
  "env_logger",
  "executable-path",
  "futures 0.3.24",
- "hex",
  "html-escaper",
  "http",
- "jsonrpc-core",
- "jsonrpc-core-client",
- "jsonrpc-derive",
- "jsonrpc-http-server",
  "lazy_static",
  "log",
  "mime_guess",
@@ -2167,6 +2162,7 @@ dependencies = [
  "serde_json",
  "sys-info",
  "tempfile",
+ "test-bitcoincore-rpc",
  "tokio",
  "tokio-stream",
  "tokio-util 0.7.4",
@@ -3312,6 +3308,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "test-bitcoincore-rpc"
+version = "0.0.0"
+dependencies = [
+ "bitcoin",
+ "hex",
+ "jsonrpc-core",
+ "jsonrpc-core-client",
+ "jsonrpc-derive",
+ "jsonrpc-http-server",
+]
+
+[[package]]
 name = "textwrap"
 version = "0.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3845,9 +3853,9 @@ dependencies = [
 
 [[package]]
 name = "webpki-roots"
-version = "0.22.4"
+version = "0.22.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f1c760f0d366a6c24a02ed7816e23e691f5d92291f94d15e836006fd11b04daf"
+checksum = "368bfe657969fb01238bb756d351dcade285e0f6fcbd36dcb23359a5169975be"
 dependencies = [
  "webpki 0.22.0",
 ]

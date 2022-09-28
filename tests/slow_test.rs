@@ -1,10 +1,5 @@
 use super::*;
 
-pub(crate) struct Output {
-  pub(crate) stdout: String,
-  pub(crate) state: State,
-}
-
 pub(crate) struct SlowTest {
   args: Vec<String>,
   expected_status: i32,
@@ -71,7 +66,7 @@ impl SlowTest {
     self.output();
   }
 
-  pub(crate) fn output(self) -> Output {
+  pub(crate) fn output(self) -> State {
     let output = Command::new(executable_path("ord"))
       .env("HOME", self.state.tempdir.path())
       .stdin(Stdio::null())
@@ -112,10 +107,7 @@ impl SlowTest {
     self.expected_stderr.assert_match(&stripped_stderr);
     self.expected_stdout.assert_match(stdout);
 
-    Output {
-      stdout: stdout.to_string(),
-      state: self.state,
-    }
+    self.state
   }
 
   pub(crate) fn blocks(self, n: u64) -> Self {

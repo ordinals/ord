@@ -2,9 +2,9 @@ use super::*;
 
 #[test]
 fn basic() {
-  let output = SlowTest::new().command("index").output();
+  let state = SlowTest::new().command("index").output();
 
-  SlowTest::with_state(output.state)
+  SlowTest::with_state(state)
     .command("info")
     .stdout_regex(
       r"

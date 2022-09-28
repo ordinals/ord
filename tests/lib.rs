@@ -2,7 +2,7 @@
 
 use {
   self::{
-    expected::Expected, slow_test::SlowTest, state::State, test_command::TestCommand,
+    command_builder::CommandBuilder, expected::Expected, slow_test::SlowTest, state::State,
     transaction_options::TransactionOptions,
   },
   bdk::{
@@ -16,9 +16,7 @@ use {
     wallet::{signer::SignOptions, AddressIndex, SyncOptions, Wallet},
     KeychainKind,
   },
-  bitcoin::{
-    hash_types::Txid, network::constants::Network, Address, Block, OutPoint, Script, Transaction,
-  },
+  bitcoin::{hash_types::Txid, network::constants::Network, Block, OutPoint, Script, Transaction},
   bitcoincore_rpc::{Client, RawTx, RpcApi},
   executable_path::executable_path,
   log::LevelFilter,
@@ -28,7 +26,7 @@ use {
     net::TcpListener,
     path::PathBuf,
     process::{Child, Command, Stdio},
-    str::{self, FromStr},
+    str,
     sync::Once,
     thread::sleep,
     time::Duration,
@@ -37,6 +35,7 @@ use {
   unindent::Unindent,
 };
 
+mod command_builder;
 mod epochs;
 mod expected;
 mod find;
@@ -45,12 +44,9 @@ mod info;
 mod list;
 mod parse;
 mod range;
-mod server;
 mod slow_test;
 mod state;
 mod supply;
-mod test_command;
 mod traits;
 mod transaction_options;
 mod version;
-mod wallet;
