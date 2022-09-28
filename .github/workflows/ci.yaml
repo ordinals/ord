@@ -13,9 +13,7 @@ defaults:
     shell: bash
 
 jobs:
-  all:
-    name: All
-
+  ci:
     strategy:
       matrix:
         os:
