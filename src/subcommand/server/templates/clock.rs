@@ -33,7 +33,7 @@ mod tests {
     assert_eq!(ClockSvg::new(Height(504)).second, 90.0);
     assert_eq!(ClockSvg::new(Height(1008)).second, 180.0);
     assert_eq!(ClockSvg::new(Height(1512)).second, 270.0);
-    assert_eq!(ClockSvg::new(Height(DIFFCHANGE_INTERVAL)).second, 0.0);
+    assert_eq!(ClockSvg::new(Height(2016)).second, 0.0);
     assert_eq!(ClockSvg::new(Height(6930000)).second, 180.0);
     assert_eq!(ClockSvg::new(Height(6930504)).second, 270.0);
   }
