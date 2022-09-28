@@ -20,60 +20,6 @@ fn output_not_found() {
 
 #[test]
 #[ignore]
-fn split_ranges_are_tracked_correctly() {
-  SlowTest::new()
-    .command("list 36b5e3d6454fdadf762e8adc28140bbf38ee673c68bf05aaac82add84c0ff862:0")
-    .blocks(101)
-    .transaction(TransactionOptions {
-      slots: &[(1, 0, 0)],
-      output_count: 2,
-      fee: 0,
-      recipient: None,
-    })
-    .blocks(1)
-    .expected_stdout("[5000000000,7500000000)\n")
-    .run();
-
-  SlowTest::new()
-    .command("list 36b5e3d6454fdadf762e8adc28140bbf38ee673c68bf05aaac82add84c0ff862:1")
-    .blocks(101)
-    .transaction(TransactionOptions {
-      slots: &[(1, 0, 0)],
-      output_count: 2,
-      fee: 0,
-      recipient: None,
-    })
-    .blocks(1)
-    .expected_stdout("[7500000000,10000000000)\n")
-    .run();
-}
-
-#[test]
-#[ignore]
-fn merge_ranges_are_tracked_correctly() {
-  SlowTest::new()
-    .command("list 430f77dcea637d90d82ac561f9f1955119c0d25b690da250ba98872e15e9069f:0")
-    .blocks(101)
-    .transaction(TransactionOptions {
-      slots: &[(1, 0, 0)],
-      output_count: 2,
-      fee: 0,
-      recipient: None,
-    })
-    .blocks(1)
-    .transaction(TransactionOptions {
-      slots: &[(102, 1, 0), (102, 1, 1)],
-      output_count: 1,
-      fee: 0,
-      recipient: None,
-    })
-    .blocks(1)
-    .expected_stdout("[5000000000,7500000000)\n[7500000000,10000000000)\n")
-    .run();
-}
-
-#[test]
-#[ignore]
 fn fee_paying_transaction_range() {
   SlowTest::new()
     .command("list a57ccabdca48ada30a5e58459584e43691a56f4fcc51121d8aa9bf1d1c682603:0")

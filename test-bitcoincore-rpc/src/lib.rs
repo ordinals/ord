@@ -237,6 +237,84 @@ impl Handle {
   pub fn invalidate_tip(&self) -> BlockHash {
     self.state.lock().unwrap().pop_block()
   }
+
+  pub fn split_coinbase_utxo(&self) -> (OutPoint, OutPoint) {
+    let mut state = self.state.lock().unwrap();
+    let coinbase_txid = state
+      .blocks
+      .get(state.hashes.last().unwrap())
+      .unwrap()
+      .txdata[0]
+      .txid();
+    let split_tx = Transaction {
+      version: 0,
+      lock_time: 0,
+      input: vec![TxIn {
+        previous_output: OutPoint::new(coinbase_txid, 0),
+        script_sig: script::Builder::new().push_scriptint(0).into_script(),
+        sequence: 0,
+        witness: Witness::new(),
+      }],
+      output: vec![
+        TxOut {
+          value: 25 * COIN_VALUE,
+          script_pubkey: script::Builder::new().into_script(),
+        },
+        TxOut {
+          value: 25 * COIN_VALUE,
+          script_pubkey: script::Builder::new().into_script(),
+        },
+      ],
+    };
+    state.broadcast_tx(split_tx.clone());
+    (OutPoint::new(split_tx.txid(), 0), OutPoint::new(split_tx.txid(), 1))
+  }
+
+  pub fn merge_coinbase_utxos(&self) -> OutPoint {
+    let mut state = self.state.lock().unwrap();
+
+    let first_coinbase_txid = state
+      .blocks
+      .get(state.hashes.last().unwrap())
+      .unwrap()
+      .txdata[0]
+      .txid();
+    state.push_block();
+
+    let second_coinbase_txid = state
+      .blocks
+      .get(state.hashes.last().unwrap())
+      .unwrap()
+      .txdata[0]
+      .txid();
+    state.push_block();
+
+    let merge_tx = Transaction {
+      version: 0,
+      lock_time: 0,
+      input: vec![
+        TxIn {
+          previous_output: OutPoint::new(first_coinbase_txid, 0),
+          script_sig: script::Builder::new().push_scriptint(0).into_script(),
+          sequence: 0,
+          witness: Witness::new(),
+        },
+        TxIn {
+          previous_output: OutPoint::new(second_coinbase_txid, 0),
+          script_sig: script::Builder::new().push_scriptint(0).into_script(),
+          sequence: 0,
+          witness: Witness::new(),
+        },
+      ],
+      output: vec![TxOut {
+        value: 100 * COIN_VALUE,
+        script_pubkey: script::Builder::new().into_script(),
+      }],
+    };
+    state.broadcast_tx(merge_tx.clone());
+
+    OutPoint::new(merge_tx.txid(), 0)
+  }
 }
 
 impl Drop for Handle {
