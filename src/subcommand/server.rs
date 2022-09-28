@@ -106,7 +106,6 @@ impl Server {
         .route("/block/:hash", get(Self::block))
         .route("/bounties", get(Self::bounties))
         .route("/clock", get(Self::clock))
-        .route("/clock.svg", get(Self::clock))
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
         .route("/height", get(Self::height))
@@ -1090,11 +1089,6 @@ mod tests {
     test_server.assert_response_regex("/clock", StatusCode::OK, ".*<text.*>0</text>.*");
     test_server.bitcoin_rpc_server.mine_blocks(1);
     test_server.assert_response_regex("/clock", StatusCode::OK, ".*<text.*>1</text>.*");
-  }
-
-  #[test]
-  fn clock_is_served_with_svg_extension() {
-    TestServer::new().assert_response_regex("/clock.svg", StatusCode::OK, "<svg.*");
   }
 
   #[test]
