@@ -42,6 +42,13 @@ impl CommandBuilder {
     }
   }
 
+  pub(crate) fn expected_stderr(self, expected_stderr: impl AsRef<str>) -> Self {
+    Self {
+      expected_stderr: Expected::String(expected_stderr.as_ref().to_owned()),
+      ..self
+    }
+  }
+
   pub(crate) fn stderr_regex(self, expected_stderr: impl AsRef<str>) -> Self {
     Self {
       expected_stderr: Expected::regex(expected_stderr.as_ref()),
@@ -73,11 +80,7 @@ impl CommandBuilder {
     let output = command
       .stdin(Stdio::null())
       .stdout(Stdio::piped())
-      .stderr(if !matches!(self.expected_stderr, Expected::Ignore) {
-        Stdio::piped()
-      } else {
-        Stdio::inherit()
-      })
+      .stderr(Stdio::piped())
       .env("HOME", self.tempdir.path())
       .current_dir(&self.tempdir)
       .args(self.args.split_whitespace())
