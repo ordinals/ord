@@ -56,7 +56,7 @@ impl State {
     let mut blocks = BTreeMap::new();
     let mut utxos = BTreeMap::new();
 
-    // TODO: should genesis be spendable? we have tests that spend it
+    // Genesis block is be spendable because we have tests that spend it
     let genesis_block = bitcoin::blockdata::constants::genesis_block(Network::Bitcoin);
     let genesis_block_hash = genesis_block.block_hash();
     let genesis_block_coinbase = genesis_block.txdata[0].clone();

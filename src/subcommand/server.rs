@@ -1121,7 +1121,7 @@ mod tests {
 
     let coinbase_tx = test_server.bitcoin_rpc_server.mine_blocks(1)[0].txdata[0].clone();
     let txid = coinbase_tx.txid();
-    dbg!(&txid);
+
     test_server.assert_response_regex(
       &format!("/tx/{txid}"),
       StatusCode::OK,
