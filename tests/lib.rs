@@ -24,7 +24,6 @@ use {
   std::{
     fs,
     net::TcpListener,
-    path::PathBuf,
     process::{Child, Command, Stdio},
     str,
     sync::Once,
