@@ -4,7 +4,6 @@ use super::*;
 pub(crate) enum Expected {
   String(String),
   Regex(Regex),
-  Ignore,
 }
 
 impl Expected {
@@ -21,7 +20,6 @@ impl Expected {
         regex,
         output
       ),
-      Self::Ignore => {}
     }
   }
 }
