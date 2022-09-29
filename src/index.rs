@@ -463,7 +463,7 @@ impl Index {
       for chunk in value.chunks_exact(11) {
         let (start, end) = Index::decode_ordinal_range(chunk.try_into().unwrap());
         if start <= ordinal && ordinal < end {
-          let outpoint: OutPoint = Decodable::consensus_decode(key.as_slice())?;
+          let outpoint: OutPoint = bitcoin::consensus::encode::deserialize(key.as_slice())?;
           return Ok(Some(SatPoint {
             outpoint,
             offset: offset + ordinal - start,
@@ -505,7 +505,7 @@ impl Index {
           .begin_read()?
           .open_table(OUTPOINT_TO_TXID)?
           .get(&outpoint_encoded.try_into().unwrap())?
-          .map(|txid| Txid::consensus_decode(txid.as_slice()))
+          .map(|txid| bitcoin::consensus::encode::deserialize(txid.as_slice()))
           .transpose()?
           .map(List::Spent),
       ),
