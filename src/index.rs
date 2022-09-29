@@ -658,6 +658,7 @@ mod tests {
       List::Unspent(vec![(25 * COIN_VALUE, 50 * COIN_VALUE)])
     );
   }
+
   #[test]
   fn merge_ranges_are_tracked_correctly() {
     let context = Context::new();

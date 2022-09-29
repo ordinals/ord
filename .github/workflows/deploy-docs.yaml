@@ -10,7 +10,7 @@ defaults:
     shell: bash
 
 jobs:
-  deploy:
+  deploy-docs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3.0.0
