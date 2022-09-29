@@ -1,7 +1,7 @@
 use {
   bitcoin::{
     blockdata::constants::COIN_VALUE, blockdata::script, hash_types::BlockHash, Block, BlockHeader,
-    Network, OutPoint, Transaction, TxIn, TxOut, Txid, Witness,
+    Network, OutPoint, Script, Transaction, TxIn, TxOut, Txid, Witness,
   },
   jsonrpc_core::IoHandler,
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
@@ -35,22 +35,37 @@ pub fn spawn() -> Handle {
   }
 }
 
+pub struct TransactionOptions<'a> {
+  pub input_slots: &'a [(usize, usize, usize)],
+  pub output_count: usize,
+  pub fee: u64,
+}
+
 struct State {
   blocks: BTreeMap<BlockHash, Block>,
   hashes: Vec<BlockHash>,
   mempool: Vec<Transaction>,
   nonce: u32,
   transactions: BTreeMap<Txid, Transaction>,
+  utxos: BTreeMap<OutPoint, u64>,
 }
 
 impl State {
   fn new() -> Self {
     let mut hashes = Vec::new();
     let mut blocks = BTreeMap::new();
+    let mut utxos = BTreeMap::new();
+
+    // TODO: should genesis be spendable? we have tests that spend it
     let genesis_block = bitcoin::blockdata::constants::genesis_block(Network::Bitcoin);
     let genesis_block_hash = genesis_block.block_hash();
+    let genesis_block_coinbase = genesis_block.txdata[0].clone();
     hashes.push(genesis_block_hash);
     blocks.insert(genesis_block_hash, genesis_block);
+    utxos.insert(
+      OutPoint::new(genesis_block_coinbase.txid(), 0),
+      50 * COIN_VALUE,
+    );
 
     Self {
       blocks,
@@ -58,48 +73,92 @@ impl State {
       mempool: Vec::new(),
       nonce: 0,
       transactions: BTreeMap::new(),
+      utxos,
     }
   }
 
+  fn create_utxos(&mut self, transaction: &Transaction) -> u64 {
+    let mut total_value = 0;
+    for (idx, output) in transaction.output.iter().enumerate() {
+      self
+        .utxos
+        .insert(OutPoint::new(transaction.txid(), idx as u32), output.value);
+      total_value += output.value;
+    }
+    total_value
+  }
+
+  fn destroy_utxos(&mut self, transaction: &Transaction) -> u64 {
+    let mut total_value = 0;
+    for input in transaction.input.iter() {
+      match self.utxos.remove(&input.previous_output) {
+        Some(value) => total_value += value,
+        None => continue,
+      };
+    }
+    total_value
+  }
+
+  fn process_mempool(&mut self) -> (u64, Vec<Transaction>) {
+    let mut total_fees = 0;
+    let transactions = self.mempool.clone();
+    self.mempool = Vec::new();
+    for tx in transactions.iter() {
+      self.transactions.insert(tx.txid(), tx.clone());
+      let total_output_value = self.create_utxos(&tx);
+      let total_input_value = self.destroy_utxos(&tx);
+      total_fees += total_input_value - total_output_value;
+    }
+
+    (total_fees, transactions)
+  }
+
+  fn create_coinbase(&mut self, fees: u64) -> Transaction {
+    let coinbase = Transaction {
+      version: 0,
+      lock_time: 0,
+      input: vec![TxIn {
+        previous_output: OutPoint::null(),
+        script_sig: script::Builder::new()
+          .push_scriptint(self.blocks.len().try_into().unwrap())
+          .into_script(),
+        sequence: 0,
+        witness: Witness::new(),
+      }],
+      output: vec![TxOut {
+        value: 50 * COIN_VALUE + fees,
+        script_pubkey: Script::new(),
+      }],
+    };
+    self.create_utxos(&coinbase);
+    self.destroy_utxos(&coinbase);
+
+    coinbase
+  }
+
   fn push_block(&mut self) -> Block {
-    let nonce = self.nonce;
-    self.nonce += 1;
-    let mut block = Block {
+    let (total_fees, mut transactions) = self.process_mempool();
+    let coinbase = self.create_coinbase(total_fees);
+    // TODO: put this in a function or something
+    self.transactions.insert(coinbase.txid(), coinbase.clone());
+    transactions.insert(0, coinbase);
+    dbg!(&transactions);
+
+    let block = Block {
       header: BlockHeader {
         version: 0,
-        prev_blockhash: BlockHash::default(),
+        prev_blockhash: *self.hashes.last().unwrap(),
         merkle_root: Default::default(),
         time: 0,
         bits: 0,
-        nonce,
+        nonce: self.nonce,
       },
-      txdata: vec![Transaction {
-        version: 0,
-        lock_time: 0,
-        input: vec![TxIn {
-          previous_output: OutPoint::null(),
-          script_sig: script::Builder::new()
-            .push_scriptint(self.blocks.len().try_into().unwrap())
-            .into_script(),
-          sequence: 0,
-          witness: Witness::new(),
-        }],
-        output: vec![TxOut {
-          value: 50 * COIN_VALUE,
-          script_pubkey: script::Builder::new().into_script(),
-        }],
-      }],
+      txdata: transactions,
     };
 
-    block.header.prev_blockhash = *self.hashes.last().unwrap();
-    block.txdata.append(&mut self.mempool);
-
-    let block_hash = block.block_hash();
-    self.hashes.push(block_hash);
-    self.blocks.insert(block_hash, block.clone());
-    for tx in &block.txdata {
-      self.transactions.insert(tx.txid(), tx.clone());
-    }
+    self.blocks.insert(block.block_hash(), block.clone());
+    self.hashes.push(block.block_hash());
+    self.nonce += 1;
 
     block
   }
@@ -111,8 +170,43 @@ impl State {
     blockhash
   }
 
-  fn broadcast_tx(&mut self, tx: Transaction) {
-    self.mempool.push(tx);
+  fn broadcast_tx(&mut self, options: TransactionOptions) -> Txid {
+    let mut total_value = 0;
+    let inputs: Vec<TxIn> = options
+      .input_slots
+      .iter()
+      .map(|slot| {
+        let (block_height, tx_idx, vout) = slot;
+        let input_block = self.blocks.get(&self.hashes[*block_height]).unwrap();
+        let tx = &input_block.txdata[*tx_idx];
+        total_value += tx.output[*vout].value;
+        TxIn {
+          previous_output: OutPoint::new(tx.txid(), *vout as u32),
+          script_sig: Script::new(),
+          sequence: 0,
+          witness: Witness::new(),
+        }
+      })
+      .collect();
+
+    let value_per_output = (total_value - options.fee) / options.output_count as u64;
+
+    let outputs: Vec<TxOut> = (0..options.output_count)
+      .map(|_| TxOut {
+        value: value_per_output,
+        script_pubkey: script::Builder::new().into_script(),
+      })
+      .collect();
+
+    let tx = Transaction {
+      version: 0,
+      lock_time: 0,
+      input: inputs,
+      output: outputs,
+    };
+    self.mempool.push(tx.clone());
+
+    tx.txid()
   }
 }
 
@@ -221,99 +315,12 @@ impl Handle {
     (0..num).map(|_| bitcoin_rpc_data.push_block()).collect()
   }
 
-  pub fn broadcast_dummy_tx(&self) -> Txid {
-    let tx = Transaction {
-      version: 1,
-      lock_time: 0,
-      input: Vec::new(),
-      output: Vec::new(),
-    };
-    let txid = tx.txid();
-    self.state.lock().unwrap().broadcast_tx(tx);
-
-    txid
+  pub fn broadcast_tx(&self, options: TransactionOptions) -> Txid {
+    self.state.lock().unwrap().broadcast_tx(options)
   }
 
   pub fn invalidate_tip(&self) -> BlockHash {
     self.state.lock().unwrap().pop_block()
-  }
-
-  pub fn split_coinbase_utxo(&self) -> (OutPoint, OutPoint) {
-    let mut state = self.state.lock().unwrap();
-    let coinbase_txid = state
-      .blocks
-      .get(state.hashes.last().unwrap())
-      .unwrap()
-      .txdata[0]
-      .txid();
-    let split_tx = Transaction {
-      version: 0,
-      lock_time: 0,
-      input: vec![TxIn {
-        previous_output: OutPoint::new(coinbase_txid, 0),
-        script_sig: script::Builder::new().push_scriptint(0).into_script(),
-        sequence: 0,
-        witness: Witness::new(),
-      }],
-      output: vec![
-        TxOut {
-          value: 25 * COIN_VALUE,
-          script_pubkey: script::Builder::new().into_script(),
-        },
-        TxOut {
-          value: 25 * COIN_VALUE,
-          script_pubkey: script::Builder::new().into_script(),
-        },
-      ],
-    };
-    state.broadcast_tx(split_tx.clone());
-    (OutPoint::new(split_tx.txid(), 0), OutPoint::new(split_tx.txid(), 1))
-  }
-
-  pub fn merge_coinbase_utxos(&self) -> OutPoint {
-    let mut state = self.state.lock().unwrap();
-
-    let first_coinbase_txid = state
-      .blocks
-      .get(state.hashes.last().unwrap())
-      .unwrap()
-      .txdata[0]
-      .txid();
-    state.push_block();
-
-    let second_coinbase_txid = state
-      .blocks
-      .get(state.hashes.last().unwrap())
-      .unwrap()
-      .txdata[0]
-      .txid();
-    state.push_block();
-
-    let merge_tx = Transaction {
-      version: 0,
-      lock_time: 0,
-      input: vec![
-        TxIn {
-          previous_output: OutPoint::new(first_coinbase_txid, 0),
-          script_sig: script::Builder::new().push_scriptint(0).into_script(),
-          sequence: 0,
-          witness: Witness::new(),
-        },
-        TxIn {
-          previous_output: OutPoint::new(second_coinbase_txid, 0),
-          script_sig: script::Builder::new().push_scriptint(0).into_script(),
-          sequence: 0,
-          witness: Witness::new(),
-        },
-      ],
-      output: vec![TxOut {
-        value: 100 * COIN_VALUE,
-        script_pubkey: script::Builder::new().into_script(),
-      }],
-    };
-    state.broadcast_tx(merge_tx.clone());
-
-    OutPoint::new(merge_tx.txid(), 0)
   }
 }
 

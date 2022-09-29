@@ -638,31 +638,84 @@ mod tests {
   #[test]
   fn split_ranges_are_tracked_correctly() {
     let context = Context::new();
-    let (first_outpoint, second_outpoint) = context.rpc_server.split_coinbase_utxo();
+    let split_coinbase_output = test_bitcoincore_rpc::TransactionOptions {
+      input_slots: &[(0, 0, 0)],
+      output_count: 2,
+      fee: 0,
+    };
+    let txid = context.rpc_server.broadcast_tx(split_coinbase_output);
+
     context.rpc_server.mine_blocks(1);
     context.index.index().unwrap();
 
     assert_eq!(
-      context.index.list(first_outpoint).unwrap().unwrap(),
+      context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
       List::Unspent(vec![(0, 25 * COIN_VALUE)])
     );
 
     assert_eq!(
-      context.index.list(second_outpoint).unwrap().unwrap(),
+      context.index.list(OutPoint::new(txid, 1)).unwrap().unwrap(),
       List::Unspent(vec![(25 * COIN_VALUE, 50 * COIN_VALUE)])
     );
   }
   #[test]
   fn merge_ranges_are_tracked_correctly() {
     let context = Context::new();
-    let outpoint = context.rpc_server.merge_coinbase_utxos();
+
+    context.rpc_server.mine_blocks(1);
+    let merge_coinbase_outputs = test_bitcoincore_rpc::TransactionOptions {
+      input_slots: &[(0, 0, 0), (1, 0, 0)],
+      output_count: 1,
+      fee: 0,
+    };
+
+    let txid = context.rpc_server.broadcast_tx(merge_coinbase_outputs);
     context.rpc_server.mine_blocks(1);
     context.index.index().unwrap();
 
     assert_eq!(
-      context.index.list(outpoint).unwrap().unwrap(),
-      List::Unspent(vec![(0, 50 * COIN_VALUE), (50 * COIN_VALUE, 100 * COIN_VALUE)]),
-    ); 
+      context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
+      List::Unspent(vec![
+        (0, 50 * COIN_VALUE),
+        (50 * COIN_VALUE, 100 * COIN_VALUE)
+      ]),
+    );
+  }
+
+  #[test]
+  fn fee_paying_transaction_range() {
+    let context = Context::new();
+
+    context.rpc_server.mine_blocks(1);
+    let fee_paying_tx = test_bitcoincore_rpc::TransactionOptions {
+      input_slots: &[(1, 0, 0)],
+      output_count: 2,
+      fee: 10,
+    };
+    let txid = context.rpc_server.broadcast_tx(fee_paying_tx);
+    let coinbase_txid = context.rpc_server.mine_blocks(1)[0].txdata[0].txid();
+    context.index.index().unwrap();
+
+    assert_eq!(
+      context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
+      List::Unspent(vec![(50 * COIN_VALUE, 7499999995)]),
+    );
+
+    assert_eq!(
+      context.index.list(OutPoint::new(txid, 1)).unwrap().unwrap(),
+      List::Unspent(vec![(7499999995, 9999999990)]),
+    );
+
+    // .expected_stdout("[510000000000,515000000000)\n[9999999990,10000000000)\n")
+    // this should be the normal coinbase at height height 1 + the fee
+    assert_eq!(
+      context
+        .index
+        .list(OutPoint::new(coinbase_txid, 0))
+        .unwrap()
+        .unwrap(),
+      List::Unspent(vec![(10000000000, 15000000000), (9999999990, 10000000000)])
+    );
   }
 
   #[test]

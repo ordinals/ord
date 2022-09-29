@@ -20,49 +20,6 @@ fn output_not_found() {
 
 #[test]
 #[ignore]
-fn fee_paying_transaction_range() {
-  SlowTest::new()
-    .command("list a57ccabdca48ada30a5e58459584e43691a56f4fcc51121d8aa9bf1d1c682603:0")
-    .blocks(101)
-    .transaction(TransactionOptions {
-      slots: &[(1, 0, 0)],
-      output_count: 2,
-      fee: 10,
-      recipient: None,
-    })
-    .blocks(1)
-    .expected_stdout("[5000000000,7499999995)\n")
-    .run();
-
-  SlowTest::new()
-    .command("list a57ccabdca48ada30a5e58459584e43691a56f4fcc51121d8aa9bf1d1c682603:1")
-    .blocks(101)
-    .transaction(TransactionOptions {
-      slots: &[(1, 0, 0)],
-      output_count: 2,
-      fee: 10,
-      recipient: None,
-    })
-    .blocks(1)
-    .expected_stdout("[7499999995,9999999990)\n")
-    .run();
-
-  SlowTest::new()
-    .command("list 721792011e3200abd01693490de5215b570da0048e55b66514201cb62396e376:0")
-    .blocks(101)
-    .transaction(TransactionOptions {
-      slots: &[(1, 0, 0)],
-      output_count: 2,
-      fee: 10,
-      recipient: None,
-    })
-    .blocks(1)
-    .expected_stdout("[510000000000,515000000000)\n[9999999990,10000000000)\n")
-    .run();
-}
-
-#[test]
-#[ignore]
 fn two_fee_paying_transaction_range() {
   SlowTest::new()
     .command("list 7f3b38a0bc60f581fd7f4b178ca2a697575000e212c8752b455ec134d160ea9a:0")
@@ -88,6 +45,7 @@ fn two_fee_paying_transaction_range() {
 
 #[test]
 #[ignore]
+// no value in the output utxo
 fn null_output() {
   SlowTest::new()
     .command("list 3dbc87de25bf5a52ddfa8038bda36e09622f4dec7951d81ac43e4b0e8c54bc5b:0")
@@ -103,6 +61,7 @@ fn null_output() {
     .run()
 }
 
+// use a no value utxo as an input
 #[test]
 #[ignore]
 fn null_input() {

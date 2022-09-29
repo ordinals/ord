@@ -1101,7 +1101,12 @@ mod tests {
   fn block() {
     let test_server = TestServer::new();
 
-    test_server.bitcoin_rpc_server.broadcast_dummy_tx();
+    let transaction = test_bitcoincore_rpc::TransactionOptions {
+      input_slots: &[(0, 0, 0)],
+      output_count: 1,
+      fee: 0,
+    };
+    test_server.bitcoin_rpc_server.broadcast_tx(transaction);
     let block_hash = test_server.bitcoin_rpc_server.mine_blocks(1)[0].block_hash();
 
     test_server.assert_response_regex(
@@ -1122,7 +1127,7 @@ mod tests {
 
     let coinbase_tx = test_server.bitcoin_rpc_server.mine_blocks(1)[0].txdata[0].clone();
     let txid = coinbase_tx.txid();
-
+    dbg!(&txid);
     test_server.assert_response_regex(
       &format!("/tx/{txid}"),
       StatusCode::OK,
