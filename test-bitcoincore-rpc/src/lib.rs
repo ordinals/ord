@@ -147,7 +147,10 @@ impl State {
     }
 
     let value_per_output = (total_value - options.fee) / options.output_count as u64;
-    assert_eq!(value_per_output * options.output_count as u64 + options.fee, total_value);
+    assert_eq!(
+      value_per_output * options.output_count as u64 + options.fee,
+      total_value
+    );
 
     let tx = Transaction {
       version: 0,

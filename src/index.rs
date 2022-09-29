@@ -620,7 +620,7 @@ mod tests {
         )
         .unwrap()
         .unwrap(),
-      List::Unspent(vec![(0, 5000000000)])
+      List::Unspent(vec![(0, 50 * COIN_VALUE)])
     )
   }
 
@@ -631,12 +631,12 @@ mod tests {
     context.index.index().unwrap();
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
-      List::Unspent(vec![(5000000000, 10000000000)])
+      List::Unspent(vec![(50 * COIN_VALUE, 100 * COIN_VALUE)])
     )
   }
 
   #[test]
-  fn split_ranges_are_tracked_correctly() {
+  fn list_split_ranges_are_tracked_correctly() {
     let context = Context::new();
 
     context.rpc_server.mine_blocks(1);
@@ -662,7 +662,7 @@ mod tests {
   }
 
   #[test]
-  fn merge_ranges_are_tracked_correctly() {
+  fn list_merge_ranges_are_tracked_correctly() {
     let context = Context::new();
 
     context.rpc_server.mine_blocks(2);
@@ -686,7 +686,7 @@ mod tests {
   }
 
   #[test]
-  fn fee_paying_transaction_range() {
+  fn list_fee_paying_transaction_range() {
     let context = Context::new();
 
     context.rpc_server.mine_blocks(1);
@@ -720,7 +720,7 @@ mod tests {
   }
 
   #[test]
-  fn two_fee_paying_transaction_range() {
+  fn list_two_fee_paying_transaction_range() {
     let context = Context::new();
 
     context.rpc_server.mine_blocks(2);
@@ -755,7 +755,7 @@ mod tests {
   }
 
   #[test]
-  fn null_output() {
+  fn list_null_output() {
     let context = Context::new();
 
     context.rpc_server.mine_blocks(1);
@@ -775,7 +775,7 @@ mod tests {
   }
 
   #[test]
-  fn null_input() {
+  fn list_null_input() {
     let context = Context::new();
 
     context.rpc_server.mine_blocks(1);
@@ -799,6 +799,23 @@ mod tests {
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
       List::Unspent(vec![])
+    );
+  }
+
+  #[test]
+  fn list_unknown_output() {
+    let context = Context::new();
+
+    assert_eq!(
+      context
+        .index
+        .list(
+          "0000000000000000000000000000000000000000000000000000000000000000:0"
+            .parse()
+            .unwrap()
+        )
+        .unwrap(),
+      None
     );
   }
 

@@ -12,8 +12,9 @@ fn output_found() {
 #[test]
 fn output_not_found() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  CommandBuilder::new("list 150ba822b458a19615e70a604d8dd9d3482fc165fa4e9cc150d74e11916ce8ae:0")
+  CommandBuilder::new("list 0000000000000000000000000000000000000000000000000000000000000000:0")
     .rpc_server(&rpc_server)
     .expected_status(1)
+    .expected_stderr("error: Output not found\n")
     .run();
 }

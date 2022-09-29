@@ -14,7 +14,7 @@ impl CommandBuilder {
     Self {
       args,
       expected_status: 0,
-      expected_stderr: Expected::Ignore,
+      expected_stderr: Expected::String(String::new()),
       expected_stdout: Expected::String(String::new()),
       rpc_server_url: None,
       tempdir: TempDir::new().unwrap(),
