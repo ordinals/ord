@@ -1094,9 +1094,9 @@ mod tests {
   #[test]
   fn block() {
     let test_server = TestServer::new();
-    
+
     test_server.bitcoin_rpc_server.mine_blocks(1);
-    let transaction = test_bitcoincore_rpc::TransactionOptions {
+    let transaction = test_bitcoincore_rpc::TransactionTemplate {
       input_slots: &[(1, 0, 0)],
       output_count: 1,
       fee: 0,

@@ -35,7 +35,7 @@ pub fn spawn() -> Handle {
   }
 }
 
-pub struct TransactionOptions<'a> {
+pub struct TransactionTemplate<'a> {
   pub input_slots: &'a [(usize, usize, usize)],
   pub output_count: usize,
   pub fee: u64,
@@ -79,7 +79,8 @@ impl State {
         .input
         .iter()
         .map(|txin| {
-          self.transactions[&txin.previous_output.txid].output[txin.previous_output.vout as usize].value
+          self.transactions[&txin.previous_output.txid].output[txin.previous_output.vout as usize]
+            .value
         })
         .sum();
       total_fees += total_input_value - total_output_value;
@@ -140,7 +141,7 @@ impl State {
     blockhash
   }
 
-  fn broadcast_tx(&mut self, options: TransactionOptions) -> Txid {
+  fn broadcast_tx(&mut self, options: TransactionTemplate) -> Txid {
     let mut total_value = 0;
     let inputs: Vec<TxIn> = options
       .input_slots
@@ -285,7 +286,7 @@ impl Handle {
     (0..num).map(|_| bitcoin_rpc_data.push_block()).collect()
   }
 
-  pub fn broadcast_tx(&self, options: TransactionOptions) -> Txid {
+  pub fn broadcast_tx(&self, options: TransactionTemplate) -> Txid {
     self.state.lock().unwrap().broadcast_tx(options)
   }
 

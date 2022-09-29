@@ -640,7 +640,7 @@ mod tests {
     let context = Context::new();
 
     context.rpc_server.mine_blocks(1);
-    let split_coinbase_output = test_bitcoincore_rpc::TransactionOptions {
+    let split_coinbase_output = test_bitcoincore_rpc::TransactionTemplate {
       input_slots: &[(1, 0, 0)],
       output_count: 2,
       fee: 0,
@@ -666,7 +666,7 @@ mod tests {
     let context = Context::new();
 
     context.rpc_server.mine_blocks(2);
-    let merge_coinbase_outputs = test_bitcoincore_rpc::TransactionOptions {
+    let merge_coinbase_outputs = test_bitcoincore_rpc::TransactionTemplate {
       input_slots: &[(1, 0, 0), (2, 0, 0)],
       output_count: 1,
       fee: 0,
@@ -690,7 +690,7 @@ mod tests {
     let context = Context::new();
 
     context.rpc_server.mine_blocks(1);
-    let fee_paying_tx = test_bitcoincore_rpc::TransactionOptions {
+    let fee_paying_tx = test_bitcoincore_rpc::TransactionTemplate {
       input_slots: &[(1, 0, 0)],
       output_count: 2,
       fee: 10,
@@ -724,12 +724,12 @@ mod tests {
     let context = Context::new();
 
     context.rpc_server.mine_blocks(2);
-    let first_fee_paying_tx = test_bitcoincore_rpc::TransactionOptions {
+    let first_fee_paying_tx = test_bitcoincore_rpc::TransactionTemplate {
       input_slots: &[(1, 0, 0)],
       output_count: 1,
       fee: 10,
     };
-    let second_fee_paying_tx = test_bitcoincore_rpc::TransactionOptions {
+    let second_fee_paying_tx = test_bitcoincore_rpc::TransactionTemplate {
       input_slots: &[(2, 0, 0)],
       output_count: 1,
       fee: 10,
@@ -759,7 +759,7 @@ mod tests {
     let context = Context::new();
 
     context.rpc_server.mine_blocks(1);
-    let no_value_output = test_bitcoincore_rpc::TransactionOptions {
+    let no_value_output = test_bitcoincore_rpc::TransactionTemplate {
       input_slots: &[(1, 0, 0)],
       output_count: 1,
       fee: 50 * COIN_VALUE,
@@ -779,7 +779,7 @@ mod tests {
     let context = Context::new();
 
     context.rpc_server.mine_blocks(1);
-    let no_value_output = test_bitcoincore_rpc::TransactionOptions {
+    let no_value_output = test_bitcoincore_rpc::TransactionTemplate {
       input_slots: &[(1, 0, 0)],
       output_count: 1,
       fee: 50 * COIN_VALUE,
@@ -787,7 +787,7 @@ mod tests {
     context.rpc_server.broadcast_tx(no_value_output);
     context.rpc_server.mine_blocks(1);
 
-    let no_value_input = test_bitcoincore_rpc::TransactionOptions {
+    let no_value_input = test_bitcoincore_rpc::TransactionTemplate {
       input_slots: &[(2, 1, 0)],
       output_count: 1,
       fee: 0,
