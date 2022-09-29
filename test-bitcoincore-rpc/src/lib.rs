@@ -85,6 +85,7 @@ impl State {
         .insert(OutPoint::new(transaction.txid(), idx as u32), output.value);
       total_value += output.value;
     }
+
     total_value
   }
 
@@ -96,6 +97,7 @@ impl State {
         None => continue,
       };
     }
+
     total_value
   }
 
@@ -132,17 +134,14 @@ impl State {
     };
     self.create_utxos(&coinbase);
     self.destroy_utxos(&coinbase);
+    self.transactions.insert(coinbase.txid(), coinbase.clone());
 
     coinbase
   }
 
   fn push_block(&mut self) -> Block {
     let (total_fees, mut transactions) = self.process_mempool();
-    let coinbase = self.create_coinbase(total_fees);
-    // TODO: put this in a function or something
-    self.transactions.insert(coinbase.txid(), coinbase.clone());
-    transactions.insert(0, coinbase);
-    dbg!(&transactions);
+    transactions.insert(0, self.create_coinbase(total_fees));
 
     let block = Block {
       header: BlockHeader {

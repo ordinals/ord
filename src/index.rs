@@ -706,8 +706,6 @@ mod tests {
       List::Unspent(vec![(7499999995, 9999999990)]),
     );
 
-    // .expected_stdout("[510000000000,515000000000)\n[9999999990,10000000000)\n")
-    // this should be the normal coinbase at height height 1 + the fee
     assert_eq!(
       context
         .index
@@ -715,6 +713,89 @@ mod tests {
         .unwrap()
         .unwrap(),
       List::Unspent(vec![(10000000000, 15000000000), (9999999990, 10000000000)])
+    );
+  }
+
+  #[test]
+  fn two_fee_paying_transaction_range() {
+    let context = Context::new();
+
+    context.rpc_server.mine_blocks(2);
+    let first_fee_paying_tx = test_bitcoincore_rpc::TransactionOptions {
+      input_slots: &[(1, 0, 0)],
+      output_count: 1,
+      fee: 10,
+    };
+    let second_fee_paying_tx = test_bitcoincore_rpc::TransactionOptions {
+      input_slots: &[(2, 0, 0)],
+      output_count: 1,
+      fee: 10,
+    };
+    context.rpc_server.broadcast_tx(first_fee_paying_tx);
+    context.rpc_server.broadcast_tx(second_fee_paying_tx);
+
+    let coinbase_txid = context.rpc_server.mine_blocks(1)[0].txdata[0].txid();
+    context.index.index().unwrap();
+
+    assert_eq!(
+      context
+        .index
+        .list(OutPoint::new(coinbase_txid, 0))
+        .unwrap()
+        .unwrap(),
+      List::Unspent(vec![
+        (15000000000, 20000000000),
+        (9999999990, 10000000000),
+        (14999999990, 15000000000)
+      ])
+    );
+  }
+
+  #[test]
+  fn null_output() {
+    let context = Context::new();
+
+    context.rpc_server.mine_blocks(1);
+    let no_value_output = test_bitcoincore_rpc::TransactionOptions {
+      input_slots: &[(1, 0, 0)],
+      output_count: 1,
+      fee: 50 * COIN_VALUE,
+    };
+    let txid = context.rpc_server.broadcast_tx(no_value_output);
+    context.rpc_server.mine_blocks(1);
+    context.index.index().unwrap();
+
+    assert_eq!(
+      context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
+      List::Unspent(vec![])
+    );
+  }
+
+  #[test]
+  fn null_input() {
+    let context = Context::new();
+
+    context.rpc_server.mine_blocks(1);
+    let no_value_output = test_bitcoincore_rpc::TransactionOptions {
+      input_slots: &[(1, 0, 0)],
+      output_count: 1,
+      fee: 50 * COIN_VALUE,
+    };
+    context.rpc_server.broadcast_tx(no_value_output);
+    context.rpc_server.mine_blocks(1);
+
+    let no_value_input = test_bitcoincore_rpc::TransactionOptions {
+      input_slots: &[(2, 1, 0)],
+      output_count: 1,
+      fee: 0,
+    };
+    let txid = context.rpc_server.broadcast_tx(no_value_input);
+    context.rpc_server.mine_blocks(1);
+    context.index.index().unwrap();
+
+    assert_eq!(
+      context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
+      List::Unspent(vec![])
     );
   }
 
