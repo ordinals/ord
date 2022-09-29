@@ -47,25 +47,17 @@ struct State {
   mempool: Vec<Transaction>,
   nonce: u32,
   transactions: BTreeMap<Txid, Transaction>,
-  utxos: BTreeMap<OutPoint, u64>,
 }
 
 impl State {
   fn new() -> Self {
     let mut hashes = Vec::new();
     let mut blocks = BTreeMap::new();
-    let mut utxos = BTreeMap::new();
 
-    // Genesis block is be spendable because we have tests that spend it
     let genesis_block = bitcoin::blockdata::constants::genesis_block(Network::Bitcoin);
     let genesis_block_hash = genesis_block.block_hash();
-    let genesis_block_coinbase = genesis_block.txdata[0].clone();
     hashes.push(genesis_block_hash);
     blocks.insert(genesis_block_hash, genesis_block);
-    utxos.insert(
-      OutPoint::new(genesis_block_coinbase.txid(), 0),
-      50 * COIN_VALUE,
-    );
 
     Self {
       blocks,
@@ -73,32 +65,7 @@ impl State {
       mempool: Vec::new(),
       nonce: 0,
       transactions: BTreeMap::new(),
-      utxos,
     }
-  }
-
-  fn create_utxos(&mut self, transaction: &Transaction) -> u64 {
-    let mut total_value = 0;
-    for (idx, output) in transaction.output.iter().enumerate() {
-      self
-        .utxos
-        .insert(OutPoint::new(transaction.txid(), idx as u32), output.value);
-      total_value += output.value;
-    }
-
-    total_value
-  }
-
-  fn destroy_utxos(&mut self, transaction: &Transaction) -> u64 {
-    let mut total_value = 0;
-    for input in transaction.input.iter() {
-      match self.utxos.remove(&input.previous_output) {
-        Some(value) => total_value += value,
-        None => continue,
-      };
-    }
-
-    total_value
   }
 
   fn process_mempool(&mut self) -> (u64, Vec<Transaction>) {
@@ -107,8 +74,14 @@ impl State {
     self.mempool = Vec::new();
     for tx in transactions.iter() {
       self.transactions.insert(tx.txid(), tx.clone());
-      let total_output_value = self.create_utxos(tx);
-      let total_input_value = self.destroy_utxos(tx);
+      let total_output_value: u64 = tx.output.iter().map(|txout| txout.value).sum();
+      let total_input_value: u64 = tx
+        .input
+        .iter()
+        .map(|txin| {
+          self.transactions[&txin.previous_output.txid].output[txin.previous_output.vout as usize].value
+        })
+        .sum();
       total_fees += total_input_value - total_output_value;
     }
 
@@ -132,8 +105,6 @@ impl State {
         script_pubkey: Script::new(),
       }],
     };
-    self.create_utxos(&coinbase);
-    self.destroy_utxos(&coinbase);
     self.transactions.insert(coinbase.txid(), coinbase.clone());
 
     coinbase

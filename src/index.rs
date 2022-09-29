@@ -638,8 +638,10 @@ mod tests {
   #[test]
   fn split_ranges_are_tracked_correctly() {
     let context = Context::new();
+
+    context.rpc_server.mine_blocks(1);
     let split_coinbase_output = test_bitcoincore_rpc::TransactionOptions {
-      input_slots: &[(0, 0, 0)],
+      input_slots: &[(1, 0, 0)],
       output_count: 2,
       fee: 0,
     };
@@ -650,12 +652,12 @@ mod tests {
 
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
-      List::Unspent(vec![(0, 25 * COIN_VALUE)])
+      List::Unspent(vec![(50 * COIN_VALUE, 75 * COIN_VALUE)])
     );
 
     assert_eq!(
       context.index.list(OutPoint::new(txid, 1)).unwrap().unwrap(),
-      List::Unspent(vec![(25 * COIN_VALUE, 50 * COIN_VALUE)])
+      List::Unspent(vec![(75 * COIN_VALUE, 100 * COIN_VALUE)])
     );
   }
 
@@ -663,9 +665,9 @@ mod tests {
   fn merge_ranges_are_tracked_correctly() {
     let context = Context::new();
 
-    context.rpc_server.mine_blocks(1);
+    context.rpc_server.mine_blocks(2);
     let merge_coinbase_outputs = test_bitcoincore_rpc::TransactionOptions {
-      input_slots: &[(0, 0, 0), (1, 0, 0)],
+      input_slots: &[(1, 0, 0), (2, 0, 0)],
       output_count: 1,
       fee: 0,
     };
@@ -677,8 +679,8 @@ mod tests {
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
       List::Unspent(vec![
-        (0, 50 * COIN_VALUE),
-        (50 * COIN_VALUE, 100 * COIN_VALUE)
+        (50 * COIN_VALUE, 100 * COIN_VALUE),
+        (100 * COIN_VALUE, 150 * COIN_VALUE)
       ]),
     );
   }
