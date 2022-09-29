@@ -134,37 +134,31 @@ impl State {
 
   fn broadcast_tx(&mut self, options: TransactionTemplate) -> Txid {
     let mut total_value = 0;
-    let inputs: Vec<TxIn> = options
-      .input_slots
-      .iter()
-      .map(|slot| {
-        let (block_height, tx_idx, vout) = slot;
-        let input_block = self.blocks.get(&self.hashes[*block_height]).unwrap();
-        let tx = &input_block.txdata[*tx_idx];
-        total_value += tx.output[*vout].value;
-        TxIn {
-          previous_output: OutPoint::new(tx.txid(), *vout as u32),
-          script_sig: Script::new(),
-          sequence: 0,
-          witness: Witness::new(),
-        }
-      })
-      .collect();
+    let mut input = Vec::new();
+    for (height, tx, vout) in options.input_slots {
+      let tx = &self.blocks.get(&self.hashes[*height]).unwrap().txdata[*tx];
+      total_value += tx.output[*vout].value;
+      input.push(TxIn {
+        previous_output: OutPoint::new(tx.txid(), *vout as u32),
+        script_sig: Script::new(),
+        sequence: 0,
+        witness: Witness::new(),
+      });
+    }
 
     let value_per_output = (total_value - options.fee) / options.output_count as u64;
-
-    let outputs: Vec<TxOut> = (0..options.output_count)
-      .map(|_| TxOut {
-        value: value_per_output,
-        script_pubkey: script::Builder::new().into_script(),
-      })
-      .collect();
+    assert_eq!(value_per_output * options.output_count as u64 + options.fee, total_value);
 
     let tx = Transaction {
       version: 0,
       lock_time: 0,
-      input: inputs,
-      output: outputs,
+      input,
+      output: (0..options.output_count)
+        .map(|_| TxOut {
+          value: value_per_output,
+          script_pubkey: script::Builder::new().into_script(),
+        })
+        .collect(),
     };
     self.mempool.push(tx.clone());
 
