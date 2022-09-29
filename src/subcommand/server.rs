@@ -1095,7 +1095,13 @@ mod tests {
   fn block() {
     let test_server = TestServer::new();
 
-    test_server.bitcoin_rpc_server.broadcast_dummy_tx();
+    test_server.bitcoin_rpc_server.mine_blocks(1);
+    let transaction = test_bitcoincore_rpc::TransactionTemplate {
+      input_slots: &[(1, 0, 0)],
+      output_count: 1,
+      fee: 0,
+    };
+    test_server.bitcoin_rpc_server.broadcast_tx(transaction);
     let block_hash = test_server.bitcoin_rpc_server.mine_blocks(1)[0].block_hash();
 
     test_server.assert_response_regex(
