@@ -2,10 +2,9 @@ use super::*;
 
 #[test]
 fn basic() {
-  let state = SlowTest::new().command("index").output();
-
-  SlowTest::with_state(state)
-    .command("info")
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  CommandBuilder::new("info")
+    .rpc_server(&rpc_server)
     .stdout_regex(
       r"
         blocks indexed: 1
