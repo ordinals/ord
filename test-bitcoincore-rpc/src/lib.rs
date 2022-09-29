@@ -107,8 +107,8 @@ impl State {
     self.mempool = Vec::new();
     for tx in transactions.iter() {
       self.transactions.insert(tx.txid(), tx.clone());
-      let total_output_value = self.create_utxos(&tx);
-      let total_input_value = self.destroy_utxos(&tx);
+      let total_output_value = self.create_utxos(tx);
+      let total_input_value = self.destroy_utxos(tx);
       total_fees += total_input_value - total_output_value;
     }
 

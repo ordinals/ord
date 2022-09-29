@@ -48,20 +48,6 @@ impl SlowTest {
     }
   }
 
-  pub(crate) fn expected_stderr(self, expected_stderr: &str) -> Self {
-    Self {
-      expected_stderr: Expected::String(expected_stderr.to_owned()),
-      ..self
-    }
-  }
-
-  pub(crate) fn expected_status(self, expected_status: i32) -> Self {
-    Self {
-      expected_status,
-      ..self
-    }
-  }
-
   pub(crate) fn run(self) {
     self.output();
   }
