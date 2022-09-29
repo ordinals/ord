@@ -14,7 +14,7 @@ impl CommandBuilder {
     Self {
       args,
       expected_status: 0,
-      expected_stderr: Expected::Ignore,
+      expected_stderr: Expected::String(String::new()),
       expected_stdout: Expected::String(String::new()),
       rpc_server_url: None,
       tempdir: TempDir::new().unwrap(),
@@ -63,7 +63,7 @@ impl CommandBuilder {
     }
   }
 
-  pub(crate) fn run(self) {
+  pub(crate) fn run(self) -> TempDir {
     let mut command = Command::new(executable_path("ord"));
 
     if let Some(rpc_server_url) = self.rpc_server_url {
@@ -99,5 +99,7 @@ impl CommandBuilder {
 
     self.expected_stderr.assert_match(stderr);
     self.expected_stdout.assert_match(stdout);
+
+    self.tempdir
   }
 }

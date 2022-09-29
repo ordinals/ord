@@ -41,27 +41,6 @@ impl SlowTest {
     }
   }
 
-  pub(crate) fn stdout_regex(self, expected_stdout: impl AsRef<str>) -> Self {
-    Self {
-      expected_stdout: Expected::regex(expected_stdout.as_ref()),
-      ..self
-    }
-  }
-
-  pub(crate) fn expected_stderr(self, expected_stderr: &str) -> Self {
-    Self {
-      expected_stderr: Expected::String(expected_stderr.to_owned()),
-      ..self
-    }
-  }
-
-  pub(crate) fn expected_status(self, expected_status: i32) -> Self {
-    Self {
-      expected_status,
-      ..self
-    }
-  }
-
   pub(crate) fn run(self) {
     self.output();
   }
