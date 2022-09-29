@@ -868,4 +868,26 @@ mod tests {
     let context = Context::new();
     assert_eq!(context.index.find(50 * COIN_VALUE).unwrap(), None);
   }
+
+  #[test]
+  fn find_first_satoshi_spent_in_second_block() {
+    let context = Context::new();
+    context.rpc_server.mine_blocks(1);
+    let spend_txid = context
+      .rpc_server
+      .broadcast_tx(test_bitcoincore_rpc::TransactionTemplate {
+        input_slots: &[(1, 0, 0)],
+        output_count: 1,
+        fee: 0,
+      });
+    context.rpc_server.mine_blocks(1);
+    context.index.index().unwrap();
+    assert_eq!(
+      context.index.find(50 * COIN_VALUE).unwrap().unwrap(),
+      SatPoint {
+        outpoint: OutPoint::new(spend_txid, 0),
+        offset: 0,
+      }
+    )
+  }
 }

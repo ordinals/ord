@@ -35,24 +35,12 @@ jobs:
         override: true
         toolchain: stable
 
-    - name: Install from bitcoincore.org
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: |
-        curl -O https://bitcoincore.org/bin/bitcoin-core-23.0/bitcoin-23.0-x86_64-linux-gnu.tar.gz
-        tar xvf bitcoin-23.0-x86_64-linux-gnu.tar.gz
-        cp bitcoin-23.0/bin/bitcoind /usr/local/bin/
-
     - uses: Swatinem/rust-cache@v1
 
     - name: Check Lockfile
       run: cargo update --locked --package ord
 
-    - name: Test on MacOS (unit tests)
-      if: ${{ matrix.os == 'macos-latest' }}
-      run: cargo test --bin ord
-
-    - name: Test on Linux (all tests)
-      if: ${{ matrix.os == 'ubuntu-latest' }}
+    - name: Test 
       run: cargo test --all
 
     - name: Clippy
