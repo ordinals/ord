@@ -68,28 +68,7 @@ impl State {
     }
   }
 
-  fn process_mempool(&mut self) -> (u64, Vec<Transaction>) {
-    let mut total_fees = 0;
-    let transactions = self.mempool.clone();
-    self.mempool = Vec::new();
-    for tx in transactions.iter() {
-      self.transactions.insert(tx.txid(), tx.clone());
-      let total_output_value: u64 = tx.output.iter().map(|txout| txout.value).sum();
-      let total_input_value: u64 = tx
-        .input
-        .iter()
-        .map(|txin| {
-          self.transactions[&txin.previous_output.txid].output[txin.previous_output.vout as usize]
-            .value
-        })
-        .sum();
-      total_fees += total_input_value - total_output_value;
-    }
-
-    (total_fees, transactions)
-  }
-
-  fn create_coinbase(&mut self, fees: u64) -> Transaction {
+  fn push_block(&mut self) -> Block {
     let coinbase = Transaction {
       version: 0,
       lock_time: 0,
@@ -102,18 +81,25 @@ impl State {
         witness: Witness::new(),
       }],
       output: vec![TxOut {
-        value: 50 * COIN_VALUE + fees,
+        value: 50 * COIN_VALUE
+          + self
+            .mempool
+            .iter()
+            .map(|tx| {
+              tx.input
+                .iter()
+                .map(|txin| {
+                  self.transactions[&txin.previous_output.txid].output
+                    [txin.previous_output.vout as usize]
+                    .value
+                })
+                .sum::<u64>()
+                - tx.output.iter().map(|txout| txout.value).sum::<u64>()
+            })
+            .sum::<u64>(),
         script_pubkey: Script::new(),
       }],
     };
-    self.transactions.insert(coinbase.txid(), coinbase.clone());
-
-    coinbase
-  }
-
-  fn push_block(&mut self) -> Block {
-    let (total_fees, mut transactions) = self.process_mempool();
-    transactions.insert(0, self.create_coinbase(total_fees));
 
     let block = Block {
       header: BlockHeader {
@@ -124,9 +110,14 @@ impl State {
         bits: 0,
         nonce: self.nonce,
       },
-      txdata: transactions,
+      txdata: std::iter::once(coinbase)
+        .chain(self.mempool.drain(0..))
+        .collect(),
     };
 
+    for tx in &block.txdata {
+      self.transactions.insert(tx.txid(), tx.clone());
+    }
     self.blocks.insert(block.block_hash(), block.clone());
     self.hashes.push(block.block_hash());
     self.nonce += 1;
