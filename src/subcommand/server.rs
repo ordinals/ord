@@ -798,7 +798,7 @@ mod tests {
 
   #[test]
   fn bounties_redirects_to_docs_site() {
-    TestServer::new().assert_redirect("/bounties", "https://docs.ordinals.com/bounties/");
+    TestServer::new().assert_redirect("/bounties", "https://docs.ordinals.com/bounty/");
   }
 
   #[test]
