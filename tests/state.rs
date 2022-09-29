@@ -198,18 +198,6 @@ impl State {
 
     tx
   }
-
-  pub(crate) fn ord_data_dir(&self) -> PathBuf {
-    self
-      .tempdir
-      .path()
-      .join(if cfg!(target_os = "macos") {
-        "Library/Application Support/"
-      } else {
-        ".local/share"
-      })
-      .join("ord")
-  }
 }
 
 impl Drop for State {
