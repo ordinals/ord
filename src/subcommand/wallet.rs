@@ -1,7 +1,4 @@
-use {
-  super::*,
-  bitcoincore_rpc::{Auth, Client, RpcApi},
-};
+use super::*;
 
 mod identify;
 

@@ -4,7 +4,7 @@ use {
 };
 
 #[test]
-fn show_second_uncommon_ordinal() {
+fn identify() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   let second_coinbase = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 

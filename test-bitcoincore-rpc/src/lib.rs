@@ -213,7 +213,7 @@ pub trait Api {
     minconf: Option<usize>,
     maxconf: Option<usize>,
     address: Option<bitcoin::Address>,
-    include_unsage: Option<bool>,
+    include_unsafe: Option<bool>,
     query_options: Option<String>,
   ) -> Result<Vec<ListUnspentResultEntry>, jsonrpc_core::Error>;
 }
@@ -276,11 +276,11 @@ impl Api for Server {
     include_unsafe: Option<bool>,
     query_options: Option<String>,
   ) -> Result<Vec<ListUnspentResultEntry>, jsonrpc_core::Error> {
-    assert_eq!(minconf, None, "");
-    assert_eq!(maxconf, None, "");
-    assert_eq!(address, None, "");
-    assert_eq!(include_unsafe, None, "");
-    assert_eq!(query_options, None, "");
+    assert_eq!(minconf, None, "minconf param not supported");
+    assert_eq!(maxconf, None, "maxconf param not supported");
+    assert_eq!(address, None, "address param not supported");
+    assert_eq!(include_unsafe, None, "include_unsafe param not supported");
+    assert_eq!(query_options, None, "query_options param not supported");
     let all_outpoints = self
       .state
       .lock()
