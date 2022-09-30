@@ -58,14 +58,14 @@ mod tests {
       0,
       0,
     );
-    case(5_000_000_000 * 210_000, 0, 0, 336, 0);
+    case(5_000_000_000 * SUBSIDY_HALVING_INTERVAL, 0, 0, 336, 0);
     case(
-      5_000_000_000 * 210_000
-        + 2_500_000_000 * 210_000
-        + 1_250_000_000 * 210_000
-        + 625_000_000 * 210_000
-        + 312_500_000 * 210_000
-        + 156_250_000 * 210_000,
+      5_000_000_000 * SUBSIDY_HALVING_INTERVAL
+        + 2_500_000_000 * SUBSIDY_HALVING_INTERVAL
+        + 1_250_000_000 * SUBSIDY_HALVING_INTERVAL
+        + 625_000_000 * SUBSIDY_HALVING_INTERVAL
+        + 312_500_000 * SUBSIDY_HALVING_INTERVAL
+        + 156_250_000 * SUBSIDY_HALVING_INTERVAL,
       1,
       0,
       0,
