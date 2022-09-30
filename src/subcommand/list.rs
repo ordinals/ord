@@ -18,7 +18,7 @@ impl List {
         }
         Ok(())
       }
-      Some(crate::index::List::Spent(txid)) => Err(anyhow!("Output spent in transaction {txid}")),
+      Some(crate::index::List::Spent) => Err(anyhow!("Output spent.")),
       None => Err(anyhow!("Output not found")),
     }
   }
