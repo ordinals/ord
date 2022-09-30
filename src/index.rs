@@ -447,6 +447,16 @@ impl Index {
     self.client.get_raw_transaction(&txid, None).into_option()
   }
 
+  pub(crate) fn is_transaction_in_active_chain(&self, txid: Txid) -> Result<bool> {
+    Ok(
+      self
+        .client
+        .get_raw_transaction_info(&txid, None)
+        .into_option()?
+        .is_some(),
+    )
+  }
+
   pub(crate) fn find(&self, ordinal: u64) -> Result<Option<SatPoint>> {
     if self.height()? < Ordinal(ordinal).height() {
       return Ok(None);
@@ -499,16 +509,13 @@ impl Index {
           .map(|chunk| Self::decode_ordinal_range(chunk.try_into().unwrap()))
           .collect(),
       ))),
-      None => Ok(
-        self
-          .database
-          .begin_read()?
-          .open_table(OUTPOINT_TO_TXID)?
-          .get(&outpoint_encoded.try_into().unwrap())?
-          .map(|txid| deserialize(txid.as_slice()))
-          .transpose()?
-          .map(List::Spent),
-      ),
+      None => {
+        if self.is_transaction_in_active_chain(outpoint.txid)? {
+          Ok(Some(List::Spent(todo!())))
+        } else {
+          Ok(None)
+        }
+      }
     }
   }
 
@@ -799,6 +806,26 @@ mod tests {
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
       List::Unspent(vec![])
+    );
+  }
+
+  #[test]
+  fn list_spent_output() {
+    let context = Context::new();
+    context.rpc_server.mine_blocks(1);
+    context
+      .rpc_server
+      .broadcast_tx(test_bitcoincore_rpc::TransactionTemplate {
+        input_slots: &[(1, 0, 0)],
+        output_count: 1,
+        fee: 0,
+      });
+    context.rpc_server.mine_blocks(1);
+    context.index.index().unwrap();
+    let txid = context.rpc_server.tx(1, 0).txid();
+    assert_eq!(
+      context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
+      List::Spent(todo!())
     );
   }
 
