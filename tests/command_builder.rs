@@ -104,23 +104,14 @@ impl CommandBuilder {
     let stdout = str::from_utf8(&output.stdout).unwrap();
     let stderr = str::from_utf8(&output.stderr).unwrap();
 
-    match self.expected_exit_status {
-      ExpectedExitStatus::Code(code) => {
-        if output.status.code() != Some(code) {
-          panic!(
-            "Test failed: {}\nstdout:\n{}\nstderr:\n{}",
-            output.status, stdout, stderr
-          );
-        }
-      }
-      ExpectedExitStatus::Signal(signal) => {
-        if output.status.signal() != Some(signal as i32) {
-          panic!(
-            "Test failed: {}\nstdout:\n{}\nstderr:\n{}",
-            output.status, stdout, stderr
-          );
-        }
-      }
+    if match self.expected_exit_status {
+      ExpectedExitStatus::Code(code) => output.status.code() != Some(code),
+      ExpectedExitStatus::Signal(signal) => output.status.signal() != Some(signal as i32),
+    } {
+      panic!(
+        "Test failed: {}\nstdout:\n{}\nstderr:\n{}",
+        output.status, stdout, stderr
+      );
     }
 
     self.expected_stderr.assert_match(stderr);
