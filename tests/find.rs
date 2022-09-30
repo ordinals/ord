@@ -15,6 +15,6 @@ fn unmined_ordinal() {
   CommandBuilder::new("find 5000000000")
     .rpc_server(&rpc_server)
     .expected_stderr("error: Ordinal has not been mined as of index height\n")
-    .expected_status(1)
+    .expected_exit_code(1)
     .run();
 }
