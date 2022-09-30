@@ -1,7 +1,8 @@
 use {
   bitcoin::{
-    blockdata::constants::COIN_VALUE, blockdata::script, hash_types::BlockHash, Block, BlockHeader,
-    Network, OutPoint, Script, Transaction, TxIn, TxOut, Txid, Witness,
+    blockdata::constants::COIN_VALUE, blockdata::script, consensus::encode::serialize,
+    hash_types::BlockHash, hashes::Hash, Block, BlockHeader, Network, OutPoint, PackedLockTime,
+    Script, Sequence, Transaction, TxIn, TxMerkleNode, TxOut, Txid, Witness,
   },
   jsonrpc_core::IoHandler,
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
@@ -71,13 +72,13 @@ impl State {
   fn push_block(&mut self) -> Block {
     let coinbase = Transaction {
       version: 0,
-      lock_time: 0,
+      lock_time: PackedLockTime(0),
       input: vec![TxIn {
         previous_output: OutPoint::null(),
         script_sig: script::Builder::new()
           .push_scriptint(self.blocks.len().try_into().unwrap())
           .into_script(),
-        sequence: 0,
+        sequence: Sequence(0),
         witness: Witness::new(),
       }],
       output: vec![TxOut {
@@ -105,7 +106,7 @@ impl State {
       header: BlockHeader {
         version: 0,
         prev_blockhash: *self.hashes.last().unwrap(),
-        merkle_root: Default::default(),
+        merkle_root: TxMerkleNode::all_zeros(),
         time: 0,
         bits: 0,
         nonce: self.nonce,
@@ -141,7 +142,7 @@ impl State {
       input.push(TxIn {
         previous_output: OutPoint::new(tx.txid(), *vout as u32),
         script_sig: Script::new(),
-        sequence: 0,
+        sequence: Sequence(0),
         witness: Witness::new(),
       });
     }
@@ -154,7 +155,7 @@ impl State {
 
     let tx = Transaction {
       version: 0,
-      lock_time: 0,
+      lock_time: PackedLockTime(0),
       input,
       output: (0..options.output_count)
         .map(|_| TxOut {
@@ -222,9 +223,7 @@ impl Api for Server {
   ) -> Result<String, jsonrpc_core::Error> {
     assert!(!verbose);
     match self.state.lock().unwrap().blocks.get(&block_hash) {
-      Some(block) => Ok(hex::encode(bitcoin::consensus::encode::serialize(
-        &block.header,
-      ))),
+      Some(block) => Ok(hex::encode(serialize(&block.header))),
       None => Err(jsonrpc_core::Error::new(
         jsonrpc_core::types::error::ErrorCode::ServerError(-8),
       )),
@@ -234,7 +233,7 @@ impl Api for Server {
   fn getblock(&self, block_hash: BlockHash, verbosity: u64) -> Result<String, jsonrpc_core::Error> {
     assert_eq!(verbosity, 0, "Verbosity level {verbosity} is unsupported");
     match self.state.lock().unwrap().blocks.get(&block_hash) {
-      Some(block) => Ok(hex::encode(bitcoin::consensus::encode::serialize(block))),
+      Some(block) => Ok(hex::encode(serialize(block))),
       None => Err(jsonrpc_core::Error::new(
         jsonrpc_core::types::error::ErrorCode::ServerError(-8),
       )),
@@ -250,7 +249,7 @@ impl Api for Server {
     assert!(!verbose, "Verbose param is unsupported");
     assert_eq!(blockhash, None, "Blockhash param is unsupported");
     match self.state.lock().unwrap().transactions.get(&txid) {
-      Some(tx) => Ok(hex::encode(bitcoin::consensus::encode::serialize(tx))),
+      Some(tx) => Ok(hex::encode(serialize(tx))),
       None => Err(jsonrpc_core::Error::new(
         jsonrpc_core::types::error::ErrorCode::ServerError(-8),
       )),
