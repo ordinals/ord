@@ -11,6 +11,6 @@ fn ok() {
 fn err() {
   CommandBuilder::new("parse A")
     .stderr_regex("error: .*: invalid digit found in string.*")
-    .expected_status(2)
+    .expected_exit_code(2)
     .run();
 }

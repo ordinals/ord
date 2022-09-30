@@ -1788,6 +1788,8 @@ dependencies = [
  "bitflags",
  "cfg-if 1.0.0",
  "libc",
+ "memoffset",
+ "pin-utils",
 ]
 
 [[package]]
@@ -1947,6 +1949,7 @@ dependencies = [
  "lazy_static",
  "log",
  "mime_guess",
+ "nix",
  "pretty_assertions",
  "primes",
  "pulldown-cmark",

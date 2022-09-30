@@ -3,10 +3,12 @@
 use {
   self::{command_builder::CommandBuilder, expected::Expected},
   executable_path::executable_path,
+  nix::{sys::signal::Signal, unistd::Pid},
   regex::Regex,
   std::{
     fs,
-    process::{Command, Stdio},
+    os::unix::process::ExitStatusExt,
+    process::{Command, Output, Stdio},
     str,
   },
   tempfile::TempDir,
@@ -22,6 +24,7 @@ mod info;
 mod list;
 mod parse;
 mod range;
+mod server;
 mod supply;
 mod traits;
 mod version;
