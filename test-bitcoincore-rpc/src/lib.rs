@@ -250,8 +250,8 @@ impl Api for Server {
     assert_eq!(blockhash, None, "Blockhash param is unsupported");
     if verbose {
       match self.state.lock().unwrap().transactions.get(&txid) {
-        Some(tx) => Ok(
-          serde_json::to_value(bitcoincore_rpc_json::GetRawTransactionResult {
+        Some(_) => Ok(
+          serde_json::to_value(GetRawTransactionResult {
             in_active_chain: None,
             hex: Vec::new(),
             txid: Txid::all_zeros(),
@@ -263,7 +263,7 @@ impl Api for Server {
             vin: Vec::new(),
             vout: Vec::new(),
             blockhash: None,
-            confirmations: None,
+            confirmations: Some(1),
             time: None,
             blocktime: None,
           })

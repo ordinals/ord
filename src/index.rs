@@ -27,7 +27,7 @@ pub(crate) struct Index {
 
 #[derive(Debug, PartialEq)]
 pub(crate) enum List {
-  Spent(Txid),
+  Spent,
   Unspent(Vec<(u64, u64)>),
 }
 
@@ -453,7 +453,13 @@ impl Index {
         .client
         .get_raw_transaction_info(&txid, None)
         .into_option()?
-        .is_some(),
+        .map(|transaction_info| {
+          transaction_info
+            .confirmations
+            .map(|confirmations| confirmations > 0)
+        })
+        .flatten()
+        .unwrap_or(false),
     )
   }
 
@@ -511,7 +517,7 @@ impl Index {
       ))),
       None => {
         if self.is_transaction_in_active_chain(outpoint.txid)? {
-          Ok(Some(List::Spent(todo!())))
+          Ok(Some(List::Spent))
         } else {
           Ok(None)
         }
@@ -825,7 +831,7 @@ mod tests {
     let txid = context.rpc_server.tx(1, 0).txid();
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
-      List::Spent(todo!())
+      List::Spent,
     );
   }
 
