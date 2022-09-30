@@ -14,7 +14,7 @@ impl CommandBuilder {
     Self {
       args,
       expected_status: 0,
-      expected_stderr: Expected::Ignore,
+      expected_stderr: Expected::String(String::new()),
       expected_stdout: Expected::String(String::new()),
       rpc_server_url: None,
       tempdir: TempDir::new().unwrap(),
@@ -42,6 +42,13 @@ impl CommandBuilder {
     }
   }
 
+  pub(crate) fn expected_stderr(self, expected_stderr: impl AsRef<str>) -> Self {
+    Self {
+      expected_stderr: Expected::String(expected_stderr.as_ref().to_owned()),
+      ..self
+    }
+  }
+
   pub(crate) fn stderr_regex(self, expected_stderr: impl AsRef<str>) -> Self {
     Self {
       expected_stderr: Expected::regex(expected_stderr.as_ref()),
@@ -56,7 +63,7 @@ impl CommandBuilder {
     }
   }
 
-  pub(crate) fn run(self) {
+  pub(crate) fn run(self) -> TempDir {
     let mut command = Command::new(executable_path("ord"));
 
     if let Some(rpc_server_url) = self.rpc_server_url {
@@ -73,11 +80,7 @@ impl CommandBuilder {
     let output = command
       .stdin(Stdio::null())
       .stdout(Stdio::piped())
-      .stderr(if !matches!(self.expected_stderr, Expected::Ignore) {
-        Stdio::piped()
-      } else {
-        Stdio::inherit()
-      })
+      .stderr(Stdio::piped())
       .env("HOME", self.tempdir.path())
       .current_dir(&self.tempdir)
       .args(self.args.split_whitespace())
@@ -96,5 +99,7 @@ impl CommandBuilder {
 
     self.expected_stderr.assert_match(stderr);
     self.expected_stdout.assert_match(stdout);
+
+    self.tempdir
   }
 }

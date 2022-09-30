@@ -1,7 +1,7 @@
 use {
   bitcoin::{
     blockdata::constants::COIN_VALUE, blockdata::script, hash_types::BlockHash, Block, BlockHeader,
-    Network, OutPoint, Transaction, TxIn, TxOut, Txid, Witness,
+    Network, OutPoint, Script, Transaction, TxIn, TxOut, Txid, Witness,
   },
   jsonrpc_core::IoHandler,
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
@@ -35,6 +35,12 @@ pub fn spawn() -> Handle {
   }
 }
 
+pub struct TransactionTemplate<'a> {
+  pub input_slots: &'a [(usize, usize, usize)],
+  pub output_count: usize,
+  pub fee: u64,
+}
+
 struct State {
   blocks: BTreeMap<BlockHash, Block>,
   hashes: Vec<BlockHash>,
@@ -47,6 +53,7 @@ impl State {
   fn new() -> Self {
     let mut hashes = Vec::new();
     let mut blocks = BTreeMap::new();
+
     let genesis_block = bitcoin::blockdata::constants::genesis_block(Network::Bitcoin);
     let genesis_block_hash = genesis_block.block_hash();
     hashes.push(genesis_block_hash);
@@ -62,44 +69,58 @@ impl State {
   }
 
   fn push_block(&mut self) -> Block {
-    let nonce = self.nonce;
-    self.nonce += 1;
-    let mut block = Block {
-      header: BlockHeader {
-        version: 0,
-        prev_blockhash: BlockHash::default(),
-        merkle_root: Default::default(),
-        time: 0,
-        bits: 0,
-        nonce,
-      },
-      txdata: vec![Transaction {
-        version: 0,
-        lock_time: 0,
-        input: vec![TxIn {
-          previous_output: OutPoint::null(),
-          script_sig: script::Builder::new()
-            .push_scriptint(self.blocks.len().try_into().unwrap())
-            .into_script(),
-          sequence: 0,
-          witness: Witness::new(),
-        }],
-        output: vec![TxOut {
-          value: 50 * COIN_VALUE,
-          script_pubkey: script::Builder::new().into_script(),
-        }],
+    let coinbase = Transaction {
+      version: 0,
+      lock_time: 0,
+      input: vec![TxIn {
+        previous_output: OutPoint::null(),
+        script_sig: script::Builder::new()
+          .push_scriptint(self.blocks.len().try_into().unwrap())
+          .into_script(),
+        sequence: 0,
+        witness: Witness::new(),
+      }],
+      output: vec![TxOut {
+        value: 50 * COIN_VALUE
+          + self
+            .mempool
+            .iter()
+            .map(|tx| {
+              tx.input
+                .iter()
+                .map(|txin| {
+                  self.transactions[&txin.previous_output.txid].output
+                    [txin.previous_output.vout as usize]
+                    .value
+                })
+                .sum::<u64>()
+                - tx.output.iter().map(|txout| txout.value).sum::<u64>()
+            })
+            .sum::<u64>(),
+        script_pubkey: Script::new(),
       }],
     };
 
-    block.header.prev_blockhash = *self.hashes.last().unwrap();
-    block.txdata.append(&mut self.mempool);
+    let block = Block {
+      header: BlockHeader {
+        version: 0,
+        prev_blockhash: *self.hashes.last().unwrap(),
+        merkle_root: Default::default(),
+        time: 0,
+        bits: 0,
+        nonce: self.nonce,
+      },
+      txdata: std::iter::once(coinbase)
+        .chain(self.mempool.drain(0..))
+        .collect(),
+    };
 
-    let block_hash = block.block_hash();
-    self.hashes.push(block_hash);
-    self.blocks.insert(block_hash, block.clone());
     for tx in &block.txdata {
       self.transactions.insert(tx.txid(), tx.clone());
     }
+    self.blocks.insert(block.block_hash(), block.clone());
+    self.hashes.push(block.block_hash());
+    self.nonce += 1;
 
     block
   }
@@ -111,8 +132,40 @@ impl State {
     blockhash
   }
 
-  fn broadcast_tx(&mut self, tx: Transaction) {
-    self.mempool.push(tx);
+  fn broadcast_tx(&mut self, options: TransactionTemplate) -> Txid {
+    let mut total_value = 0;
+    let mut input = Vec::new();
+    for (height, tx, vout) in options.input_slots {
+      let tx = &self.blocks.get(&self.hashes[*height]).unwrap().txdata[*tx];
+      total_value += tx.output[*vout].value;
+      input.push(TxIn {
+        previous_output: OutPoint::new(tx.txid(), *vout as u32),
+        script_sig: Script::new(),
+        sequence: 0,
+        witness: Witness::new(),
+      });
+    }
+
+    let value_per_output = (total_value - options.fee) / options.output_count as u64;
+    assert_eq!(
+      value_per_output * options.output_count as u64 + options.fee,
+      total_value
+    );
+
+    let tx = Transaction {
+      version: 0,
+      lock_time: 0,
+      input,
+      output: (0..options.output_count)
+        .map(|_| TxOut {
+          value: value_per_output,
+          script_pubkey: script::Builder::new().into_script(),
+        })
+        .collect(),
+    };
+    self.mempool.push(tx.clone());
+
+    tx.txid()
   }
 }
 
@@ -221,17 +274,8 @@ impl Handle {
     (0..num).map(|_| bitcoin_rpc_data.push_block()).collect()
   }
 
-  pub fn broadcast_dummy_tx(&self) -> Txid {
-    let tx = Transaction {
-      version: 1,
-      lock_time: 0,
-      input: Vec::new(),
-      output: Vec::new(),
-    };
-    let txid = tx.txid();
-    self.state.lock().unwrap().broadcast_tx(tx);
-
-    txid
+  pub fn broadcast_tx(&self, options: TransactionTemplate) -> Txid {
+    self.state.lock().unwrap().broadcast_tx(options)
   }
 
   pub fn invalidate_tip(&self) -> BlockHash {

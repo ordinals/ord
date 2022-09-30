@@ -106,7 +106,6 @@ impl Server {
         .route("/block/:hash", get(Self::block))
         .route("/bounties", get(Self::bounties))
         .route("/clock", get(Self::clock))
-        .route("/clock.svg", get(Self::clock))
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
         .route("/height", get(Self::height))
@@ -513,7 +512,7 @@ impl Server {
   }
 
   async fn bounties() -> impl IntoResponse {
-    Redirect::to("https://docs.ordinals.com/bounties/")
+    Redirect::to("https://docs.ordinals.com/bounty/")
   }
 }
 
@@ -799,7 +798,7 @@ mod tests {
 
   #[test]
   fn bounties_redirects_to_docs_site() {
-    TestServer::new().assert_redirect("/bounties", "https://docs.ordinals.com/bounties/");
+    TestServer::new().assert_redirect("/bounties", "https://docs.ordinals.com/bounty/");
   }
 
   #[test]
@@ -1093,15 +1092,16 @@ mod tests {
   }
 
   #[test]
-  fn clock_is_served_with_svg_extension() {
-    TestServer::new().assert_response_regex("/clock.svg", StatusCode::OK, "<svg.*");
-  }
-
-  #[test]
   fn block() {
     let test_server = TestServer::new();
 
-    test_server.bitcoin_rpc_server.broadcast_dummy_tx();
+    test_server.bitcoin_rpc_server.mine_blocks(1);
+    let transaction = test_bitcoincore_rpc::TransactionTemplate {
+      input_slots: &[(1, 0, 0)],
+      output_count: 1,
+      fee: 0,
+    };
+    test_server.bitcoin_rpc_server.broadcast_tx(transaction);
     let block_hash = test_server.bitcoin_rpc_server.mine_blocks(1)[0].block_hash();
 
     test_server.assert_response_regex(

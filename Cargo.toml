@@ -30,6 +30,7 @@ http = "0.2.6"
 lazy_static = "1.4.0"
 log = "0.4.14"
 mime_guess = "2.0.4"
+primes = "0.3.0"
 rayon = "1.5.1"
 redb = "0.7.0"
 regex = "1.6.0"
@@ -46,9 +47,7 @@ tower = "0.4.13"
 tower-http = { version = "0.3.3", features = ["cors"] }
 
 [dev-dependencies]
-bdk = { version = "0.22.0", features = ["rpc", "keys-bip39", "sqlite"] }
 executable-path = "1.0.0"
-nix = "0.24.1"
 pretty_assertions = "1.2.1"
 reqwest = { version = "0.11.10", features = ["blocking"] }
 tempfile = "3.2.0"
