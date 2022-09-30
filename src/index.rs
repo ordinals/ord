@@ -441,12 +441,11 @@ impl Index {
         .client
         .get_raw_transaction_info(&txid, None)
         .into_option()?
-        .map(|transaction_info| {
+        .and_then(|transaction_info| {
           transaction_info
             .confirmations
             .map(|confirmations| confirmations > 0)
         })
-        .flatten()
         .unwrap_or(false),
     )
   }
