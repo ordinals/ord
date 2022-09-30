@@ -83,7 +83,7 @@ impl CommandBuilder {
       fs::write(&cookiefile, "username:password").unwrap();
       command.args(&[
         "--rpc-url",
-        &rpc_server_url,
+        rpc_server_url,
         "--cookie-file",
         cookiefile.to_str().unwrap(),
       ]);
