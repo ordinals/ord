@@ -1,0 +1,15 @@
+use {
+  super::*,
+  bitcoin::{OutPoint, blockdata::constants::COIN_VALUE},
+};
+
+#[test]
+fn show_second_uncommon_ordinal() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  let second_coinbase = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+
+  CommandBuilder::new("wallet identify")
+    .rpc_server(&rpc_server)
+    .expected_stdout(format!("{}\t{}\t0\tuncommon\n", 50 * COIN_VALUE, OutPoint::new(second_coinbase, 0)))
+    .run();
+}

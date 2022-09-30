@@ -3,7 +3,9 @@ use {
     blockdata::constants::COIN_VALUE, blockdata::script, consensus::encode::serialize,
     hash_types::BlockHash, hashes::Hash, Block, BlockHeader, Network, OutPoint, PackedLockTime,
     Script, Sequence, Transaction, TxIn, TxMerkleNode, TxOut, Txid, Witness,
+    util::amount::Amount,
   },
+  bitcoincore_rpc::json::ListUnspentResultEntry,
   jsonrpc_core::IoHandler,
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
   std::collections::BTreeMap,
@@ -204,6 +206,16 @@ pub trait Api {
     verbose: bool,
     blockhash: Option<BlockHash>,
   ) -> Result<String, jsonrpc_core::Error>;
+
+  #[rpc(name = "listunspent")]
+  fn list_unspent(
+    &self,
+    minconf: Option<usize>,
+    maxconf: Option<usize>,
+    address: Option<bitcoin::Address>,
+    include_unsage: Option<bool>,
+    query_options: Option<String>,
+  ) -> Result<Vec<ListUnspentResultEntry>, jsonrpc_core::Error>;
 }
 
 impl Api for Server {
@@ -254,6 +266,51 @@ impl Api for Server {
         jsonrpc_core::types::error::ErrorCode::ServerError(-8),
       )),
     }
+  }
+
+  fn list_unspent(
+    &self,
+    minconf: Option<usize>,
+    maxconf: Option<usize>,
+    address: Option<bitcoin::Address>,
+    include_unsafe: Option<bool>,
+    query_options: Option<String>,
+  ) -> Result<Vec<ListUnspentResultEntry>, jsonrpc_core::Error> {
+    assert_eq!(minconf, None, "");
+    assert_eq!(maxconf, None, "");
+    assert_eq!(address, None, "");
+    assert_eq!(include_unsafe, None, "");
+    assert_eq!(query_options, None, "");
+    let all_outpoints = self
+      .state
+      .lock()
+      .unwrap()
+      .transactions
+      .iter()
+      .map(|(txid, tx)| (0..tx.output.len()).map(|vout| bitcoin::OutPoint::new(*txid, vout as u32)))
+      .flatten()
+      .collect::<Vec<OutPoint>>();
+
+    Ok(
+      all_outpoints
+        .iter()
+        .map(|outpoint| ListUnspentResultEntry {
+          txid: outpoint.txid,
+          vout: outpoint.vout,
+          address: None,
+          label: None,
+          redeem_script: None,
+          witness_script: None,
+          script_pub_key: Script::new(),
+          amount: Amount::default(),
+          confirmations: 0,
+          spendable: true,
+          solvable: true,
+          descriptor: None,
+          safe: true,
+        })
+        .collect(),
+    )
   }
 }
 

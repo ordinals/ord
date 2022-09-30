@@ -28,3 +28,4 @@ mod server;
 mod supply;
 mod traits;
 mod version;
+mod wallet;
