@@ -61,27 +61,33 @@ mod tests {
     assert_eq!(Ordinal(0).rarity(), Rarity::Mythic);
     assert_eq!(Ordinal(1).rarity(), Rarity::Common);
 
-    assert_eq!(Ordinal(50 * 100_000_000 - 1).rarity(), Rarity::Common);
-    assert_eq!(Ordinal(50 * 100_000_000).rarity(), Rarity::Uncommon);
-    assert_eq!(Ordinal(50 * 100_000_000 + 1).rarity(), Rarity::Common);
+    assert_eq!(Ordinal(50 * COIN_VALUE - 1).rarity(), Rarity::Common);
+    assert_eq!(Ordinal(50 * COIN_VALUE).rarity(), Rarity::Uncommon);
+    assert_eq!(Ordinal(50 * COIN_VALUE + 1).rarity(), Rarity::Common);
 
     assert_eq!(
-      Ordinal(50 * 100_000_000 * 2016 - 1).rarity(),
+      Ordinal(50 * COIN_VALUE * DIFFCHANGE_INTERVAL - 1).rarity(),
       Rarity::Common
     );
-    assert_eq!(Ordinal(50 * 100_000_000 * 2016).rarity(), Rarity::Rare);
     assert_eq!(
-      Ordinal(50 * 100_000_000 * 2016 + 1).rarity(),
+      Ordinal(50 * COIN_VALUE * DIFFCHANGE_INTERVAL).rarity(),
+      Rarity::Rare
+    );
+    assert_eq!(
+      Ordinal(50 * COIN_VALUE * DIFFCHANGE_INTERVAL + 1).rarity(),
       Rarity::Common
     );
 
     assert_eq!(
-      Ordinal(50 * 100_000_000 * 210000 - 1).rarity(),
+      Ordinal(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL - 1).rarity(),
       Rarity::Common
     );
-    assert_eq!(Ordinal(50 * 100_000_000 * 210000).rarity(), Rarity::Epic);
     assert_eq!(
-      Ordinal(50 * 100_000_000 * 210000 + 1).rarity(),
+      Ordinal(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL).rarity(),
+      Rarity::Epic
+    );
+    assert_eq!(
+      Ordinal(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL + 1).rarity(),
       Rarity::Common
     );
 
