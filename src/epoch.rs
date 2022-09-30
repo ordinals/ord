@@ -41,7 +41,6 @@ impl Epoch {
     Ordinal(Ordinal::SUPPLY),
   ];
   pub(crate) const FIRST_POST_SUBSIDY: Epoch = Self(33);
-  pub(crate) const BLOCKS: u64 = 210000;
 
   pub(crate) fn subsidy(self) -> u64 {
     if self < Self::FIRST_POST_SUBSIDY {
@@ -58,7 +57,7 @@ impl Epoch {
   }
 
   pub(crate) fn starting_height(self) -> Height {
-    Height(self.0 * Self::BLOCKS)
+    Height(self.0 * SUBSIDY_HALVING_INTERVAL)
   }
 }
 
@@ -79,7 +78,7 @@ impl From<Ordinal> for Epoch {
 
 impl From<Height> for Epoch {
   fn from(height: Height) -> Self {
-    Self(height.0 / Self::BLOCKS)
+    Self(height.0 / SUBSIDY_HALVING_INTERVAL)
   }
 }
 
@@ -92,11 +91,11 @@ mod tests {
     assert_eq!(Epoch(0).starting_ordinal(), 0);
     assert_eq!(
       Epoch(1).starting_ordinal(),
-      Epoch(0).subsidy() * Epoch::BLOCKS
+      Epoch(0).subsidy() * SUBSIDY_HALVING_INTERVAL
     );
     assert_eq!(
       Epoch(2).starting_ordinal(),
-      (Epoch(0).subsidy() + Epoch(1).subsidy()) * Epoch::BLOCKS
+      (Epoch(0).subsidy() + Epoch(1).subsidy()) * SUBSIDY_HALVING_INTERVAL
     );
     assert_eq!(Epoch(33).starting_ordinal(), Ordinal(Ordinal::SUPPLY));
     assert_eq!(Epoch(34).starting_ordinal(), Ordinal(Ordinal::SUPPLY));
@@ -110,7 +109,7 @@ mod tests {
 
     for epoch in 0..34 {
       epoch_ordinals.push(ordinal);
-      ordinal += Epoch::BLOCKS * Epoch(epoch).subsidy();
+      ordinal += SUBSIDY_HALVING_INTERVAL * Epoch(epoch).subsidy();
     }
 
     assert_eq!(Epoch::STARTING_ORDINALS, epoch_ordinals);
@@ -126,23 +125,17 @@ mod tests {
   }
 
   #[test]
-  fn blocks() {
-    // c.f. https://github.com/bitcoin/bitcoin/blob/master/src/chainparams.cpp
-    assert_eq!(Epoch::BLOCKS, 210000);
-  }
-
-  #[test]
   fn starting_height() {
     assert_eq!(Epoch(0).starting_height(), 0);
-    assert_eq!(Epoch(1).starting_height(), Epoch::BLOCKS);
-    assert_eq!(Epoch(2).starting_height(), Epoch::BLOCKS * 2);
+    assert_eq!(Epoch(1).starting_height(), SUBSIDY_HALVING_INTERVAL);
+    assert_eq!(Epoch(2).starting_height(), SUBSIDY_HALVING_INTERVAL * 2);
   }
 
   #[test]
   fn from_height() {
     assert_eq!(Epoch::from(Height(0)), 0);
-    assert_eq!(Epoch::from(Height(Epoch::BLOCKS)), 1);
-    assert_eq!(Epoch::from(Height(Epoch::BLOCKS) + 1), 1);
+    assert_eq!(Epoch::from(Height(SUBSIDY_HALVING_INTERVAL)), 1);
+    assert_eq!(Epoch::from(Height(SUBSIDY_HALVING_INTERVAL) + 1), 1);
   }
 
   #[test]

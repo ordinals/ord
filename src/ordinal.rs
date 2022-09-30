@@ -33,7 +33,7 @@ impl Ordinal {
   }
 
   pub(crate) fn period(self) -> u64 {
-    self.height().n() / PERIOD_BLOCKS
+    self.height().n() / DIFFCHANGE_INTERVAL
   }
 
   pub(crate) fn third(self) -> u64 {
@@ -97,7 +97,7 @@ impl Ordinal {
       .split_once('′')
       .ok_or_else(|| anyhow!("Missing minute symbol"))?;
     let epoch_offset = epoch_offset.parse::<u64>()?;
-    if epoch_offset >= Epoch::BLOCKS {
+    if epoch_offset >= SUBSIDY_HALVING_INTERVAL {
       bail!("Invalid epoch offset");
     }
 
@@ -105,27 +105,27 @@ impl Ordinal {
       .split_once('″')
       .ok_or_else(|| anyhow!("Missing second symbol"))?;
     let period_offset = period_offset.parse::<u64>()?;
-    if period_offset >= PERIOD_BLOCKS {
+    if period_offset >= DIFFCHANGE_INTERVAL {
       bail!("Invalid period offset");
     }
 
     let cycle_start_epoch = cycle_number * CYCLE_EPOCHS;
 
-    const HALVING_INCREMENT: u64 = Epoch::BLOCKS % PERIOD_BLOCKS;
+    const HALVING_INCREMENT: u64 = SUBSIDY_HALVING_INTERVAL % DIFFCHANGE_INTERVAL;
 
     // For valid degrees the relationship between epoch_offset and period_offset
     // will increment by 336 every halving.
-    let relationship = period_offset + Epoch::BLOCKS * CYCLE_EPOCHS - epoch_offset;
+    let relationship = period_offset + SUBSIDY_HALVING_INTERVAL * CYCLE_EPOCHS - epoch_offset;
 
     if relationship % HALVING_INCREMENT != 0 {
       bail!("Relationship between epoch offset and period offset must be multiple of 336");
     }
 
-    let epochs_since_cycle_start = relationship % PERIOD_BLOCKS / HALVING_INCREMENT;
+    let epochs_since_cycle_start = relationship % DIFFCHANGE_INTERVAL / HALVING_INCREMENT;
 
     let epoch = cycle_start_epoch + epochs_since_cycle_start;
 
-    let height = Height(epoch * Epoch::BLOCKS + epoch_offset);
+    let height = Height(epoch * SUBSIDY_HALVING_INTERVAL + epoch_offset);
 
     let (block_offset, rest) = match rest.split_once('‴') {
       Some((block_offset, rest)) => (block_offset.parse::<u64>()?, rest),
@@ -239,8 +239,11 @@ mod tests {
     assert_eq!(Ordinal(1).height(), 0);
     assert_eq!(Ordinal(Epoch(0).subsidy()).height(), 1);
     assert_eq!(Ordinal(Epoch(0).subsidy() * 2).height(), 2);
-    assert_eq!(Epoch(2).starting_ordinal().height(), Epoch::BLOCKS * 2);
-    assert_eq!(Ordinal(50 * 100_000_000).height(), 1);
+    assert_eq!(
+      Epoch(2).starting_ordinal().height(),
+      SUBSIDY_HALVING_INTERVAL * 2
+    );
+    assert_eq!(Ordinal(50 * COIN_VALUE).height(), 1);
     assert_eq!(Ordinal(2099999997689999).height(), 6929999);
     assert_eq!(Ordinal(2099999997689998).height(), 6929998);
   }
@@ -272,36 +275,48 @@ mod tests {
     assert_eq!(Ordinal(0).degree().to_string(), "0°0′0″0‴");
     assert_eq!(Ordinal(1).degree().to_string(), "0°0′0″1‴");
     assert_eq!(
-      Ordinal(50 * 100_000_000 - 1).degree().to_string(),
+      Ordinal(50 * COIN_VALUE - 1).degree().to_string(),
       "0°0′0″4999999999‴"
     );
-    assert_eq!(Ordinal(50 * 100_000_000).degree().to_string(), "0°1′1″0‴");
+    assert_eq!(Ordinal(50 * COIN_VALUE).degree().to_string(), "0°1′1″0‴");
     assert_eq!(
-      Ordinal(50 * 100_000_000 + 1).degree().to_string(),
+      Ordinal(50 * COIN_VALUE + 1).degree().to_string(),
       "0°1′1″1‴"
     );
     assert_eq!(
-      Ordinal(50 * 100_000_000 * 2016 - 1).degree().to_string(),
+      Ordinal(50 * COIN_VALUE * DIFFCHANGE_INTERVAL - 1)
+        .degree()
+        .to_string(),
       "0°2015′2015″4999999999‴"
     );
     assert_eq!(
-      Ordinal(50 * 100_000_000 * 2016).degree().to_string(),
+      Ordinal(50 * COIN_VALUE * DIFFCHANGE_INTERVAL)
+        .degree()
+        .to_string(),
       "0°2016′0″0‴"
     );
     assert_eq!(
-      Ordinal(50 * 100_000_000 * 2016 + 1).degree().to_string(),
+      Ordinal(50 * COIN_VALUE * DIFFCHANGE_INTERVAL + 1)
+        .degree()
+        .to_string(),
       "0°2016′0″1‴"
     );
     assert_eq!(
-      Ordinal(50 * 100_000_000 * 210000 - 1).degree().to_string(),
+      Ordinal(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL - 1)
+        .degree()
+        .to_string(),
       "0°209999′335″4999999999‴"
     );
     assert_eq!(
-      Ordinal(50 * 100_000_000 * 210000).degree().to_string(),
+      Ordinal(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL)
+        .degree()
+        .to_string(),
       "0°0′336″0‴"
     );
     assert_eq!(
-      Ordinal(50 * 100_000_000 * 210000 + 1).degree().to_string(),
+      Ordinal(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL + 1)
+        .degree()
+        .to_string(),
       "0°0′336″1‴"
     );
     assert_eq!(
@@ -359,7 +374,10 @@ mod tests {
   fn epoch() {
     assert_eq!(Ordinal(0).epoch(), 0);
     assert_eq!(Ordinal(1).epoch(), 0);
-    assert_eq!(Ordinal(50 * 100_000_000 * 210000).epoch(), 1);
+    assert_eq!(
+      Ordinal(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL).epoch(),
+      1
+    );
     assert_eq!(Ordinal(2099999997689999).epoch(), 32);
   }
 
@@ -439,7 +457,7 @@ mod tests {
   fn from_str_decimal() {
     assert_eq!(parse("0.0").unwrap(), 0);
     assert_eq!(parse("0.1").unwrap(), 1);
-    assert_eq!(parse("1.0").unwrap(), 50 * 100_000_000);
+    assert_eq!(parse("1.0").unwrap(), 50 * COIN_VALUE);
     assert_eq!(parse("6929999.0").unwrap(), 2099999997689999);
     assert!(parse("0.5000000000").is_err());
     assert!(parse("6930000.0").is_err());
@@ -529,13 +547,19 @@ mod tests {
 
   #[test]
   fn cycle() {
-    assert_eq!(Epoch::BLOCKS * CYCLE_EPOCHS % PERIOD_BLOCKS, 0);
+    assert_eq!(
+      SUBSIDY_HALVING_INTERVAL * CYCLE_EPOCHS % DIFFCHANGE_INTERVAL,
+      0
+    );
 
     for i in 1..CYCLE_EPOCHS {
-      assert_ne!(i * Epoch::BLOCKS % PERIOD_BLOCKS, 0);
+      assert_ne!(i * SUBSIDY_HALVING_INTERVAL % DIFFCHANGE_INTERVAL, 0);
     }
 
-    assert_eq!(CYCLE_EPOCHS * Epoch::BLOCKS % PERIOD_BLOCKS, 0);
+    assert_eq!(
+      CYCLE_EPOCHS * SUBSIDY_HALVING_INTERVAL % DIFFCHANGE_INTERVAL,
+      0
+    );
 
     assert_eq!(Ordinal(0).cycle(), 0);
     assert_eq!(Ordinal(2067187500000000 - 1).cycle(), 0);
@@ -546,9 +570,9 @@ mod tests {
   #[test]
   fn third() {
     assert_eq!(Ordinal(0).third(), 0);
-    assert_eq!(Ordinal(50 * 100_000_000 - 1).third(), 4999999999);
-    assert_eq!(Ordinal(50 * 100_000_000).third(), 0);
-    assert_eq!(Ordinal(50 * 100_000_000 + 1).third(), 1);
+    assert_eq!(Ordinal(50 * COIN_VALUE - 1).third(), 4999999999);
+    assert_eq!(Ordinal(50 * COIN_VALUE).third(), 0);
+    assert_eq!(Ordinal(50 * COIN_VALUE + 1).third(), 1);
   }
 
   #[test]

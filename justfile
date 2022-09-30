@@ -88,6 +88,10 @@ publish:
   cd ../..
   rm -rf tmp/release
 
+list-outdated-dependencies:
+  cargo outdated -R
+  cd test-bitcoincore-rpc && cargo outdated -R
+
 update-modern-normalize:
   curl \
     https://raw.githubusercontent.com/sindresorhus/modern-normalize/main/modern-normalize.css \

@@ -8,7 +8,7 @@ homepage = "https://github.com/casey/ord"
 repository = "https://github.com/casey/ord"
 
 [dependencies]
-bitcoin = { version = "0.28.1", features = ["use-serde"] }
+bitcoin = { version = "0.29.1", features = ["serde"] }
 hex = "0.4.3"
 jsonrpc-core = "18.0.0"
 jsonrpc-core-client = "18.0.0"

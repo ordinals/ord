@@ -1,6 +1,6 @@
 use {
   super::*,
-  bitcoin::consensus::encode::serialize,
+  bitcoin::consensus::encode::{deserialize, serialize},
   bitcoin::BlockHeader,
   bitcoincore_rpc::{Auth, Client, RpcApi},
   rayon::iter::{IntoParallelRefIterator, ParallelIterator},
@@ -463,7 +463,7 @@ impl Index {
       for chunk in value.chunks_exact(11) {
         let (start, end) = Index::decode_ordinal_range(chunk.try_into().unwrap());
         if start <= ordinal && ordinal < end {
-          let outpoint: OutPoint = Decodable::consensus_decode(key.as_slice())?;
+          let outpoint: OutPoint = deserialize(key.as_slice())?;
           return Ok(Some(SatPoint {
             outpoint,
             offset: offset + ordinal - start,
@@ -505,7 +505,7 @@ impl Index {
           .begin_read()?
           .open_table(OUTPOINT_TO_TXID)?
           .get(&outpoint_encoded.try_into().unwrap())?
-          .map(|txid| Txid::consensus_decode(txid.as_slice()))
+          .map(|txid| deserialize(txid.as_slice()))
           .transpose()?
           .map(List::Spent),
       ),

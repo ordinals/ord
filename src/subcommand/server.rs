@@ -971,7 +971,7 @@ mod tests {
     TestServer::new().assert_response(
       "/output/foo:0",
       StatusCode::BAD_REQUEST,
-      "Invalid URL: error parsing TXID: odd hex string length 3",
+      "Invalid URL: error parsing TXID",
     );
   }
   #[test]
@@ -1003,7 +1003,7 @@ mod tests {
     TestServer::new().assert_response(
       "/output/foo:0",
       StatusCode::BAD_REQUEST,
-      "Invalid URL: error parsing TXID: odd hex string length 3",
+      "Invalid URL: error parsing TXID",
     );
   }
 

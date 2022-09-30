@@ -22,9 +22,9 @@ impl From<Ordinal> for Degree {
   fn from(ordinal: Ordinal) -> Self {
     let height = ordinal.height().n();
     Degree {
-      hour: height / (CYCLE_EPOCHS * Epoch::BLOCKS),
-      minute: height % Epoch::BLOCKS,
-      second: height % PERIOD_BLOCKS,
+      hour: height / (CYCLE_EPOCHS * SUBSIDY_HALVING_INTERVAL),
+      minute: height % SUBSIDY_HALVING_INTERVAL,
+      second: height % DIFFCHANGE_INTERVAL,
       third: ordinal.third(),
     }
   }
@@ -51,15 +51,21 @@ mod tests {
     case(0, 0, 0, 0, 0);
     case(1, 0, 0, 0, 1);
     case(5_000_000_000, 0, 1, 1, 0);
-    case(5_000_000_000 * 2016, 0, 2016, 0, 0);
-    case(5_000_000_000 * 210_000, 0, 0, 336, 0);
     case(
-      5_000_000_000 * 210_000
-        + 2_500_000_000 * 210_000
-        + 1_250_000_000 * 210_000
-        + 625_000_000 * 210_000
-        + 312_500_000 * 210_000
-        + 156_250_000 * 210_000,
+      5_000_000_000 * DIFFCHANGE_INTERVAL,
+      0,
+      DIFFCHANGE_INTERVAL,
+      0,
+      0,
+    );
+    case(5_000_000_000 * SUBSIDY_HALVING_INTERVAL, 0, 0, 336, 0);
+    case(
+      5_000_000_000 * SUBSIDY_HALVING_INTERVAL
+        + 2_500_000_000 * SUBSIDY_HALVING_INTERVAL
+        + 1_250_000_000 * SUBSIDY_HALVING_INTERVAL
+        + 625_000_000 * SUBSIDY_HALVING_INTERVAL
+        + 312_500_000 * SUBSIDY_HALVING_INTERVAL
+        + 156_250_000 * SUBSIDY_HALVING_INTERVAL,
       1,
       0,
       0,

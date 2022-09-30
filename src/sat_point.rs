@@ -13,16 +13,18 @@ impl Display for SatPoint {
 }
 
 impl Encodable for SatPoint {
-  fn consensus_encode<S: io::Write>(&self, mut s: S) -> Result<usize, io::Error> {
-    let len = self.outpoint.consensus_encode(&mut s)?;
+  fn consensus_encode<S: io::Write + ?Sized>(&self, s: &mut S) -> Result<usize, io::Error> {
+    let len = self.outpoint.consensus_encode(s)?;
     Ok(len + self.offset.consensus_encode(s)?)
   }
 }
 
 impl Decodable for SatPoint {
-  fn consensus_decode<D: io::Read>(mut d: D) -> Result<Self, bitcoin::consensus::encode::Error> {
+  fn consensus_decode<D: io::Read + ?Sized>(
+    d: &mut D,
+  ) -> Result<Self, bitcoin::consensus::encode::Error> {
     Ok(SatPoint {
-      outpoint: Decodable::consensus_decode(&mut d)?,
+      outpoint: Decodable::consensus_decode(d)?,
       offset: Decodable::consensus_decode(d)?,
     })
   }
