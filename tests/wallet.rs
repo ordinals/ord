@@ -1,6 +1,6 @@
 use {
   super::*,
-  bitcoin::{OutPoint, blockdata::constants::COIN_VALUE},
+  bitcoin::{blockdata::constants::COIN_VALUE, OutPoint},
 };
 
 #[test]
@@ -10,6 +10,10 @@ fn show_second_uncommon_ordinal() {
 
   CommandBuilder::new("wallet identify")
     .rpc_server(&rpc_server)
-    .expected_stdout(format!("{}\t{}\t0\tuncommon\n", 50 * COIN_VALUE, OutPoint::new(second_coinbase, 0)))
+    .expected_stdout(format!(
+      "{}\t{}\t0\tuncommon\n",
+      50 * COIN_VALUE,
+      OutPoint::new(second_coinbase, 0)
+    ))
     .run();
 }

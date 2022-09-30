@@ -1,9 +1,9 @@
 use {
   bitcoin::{
     blockdata::constants::COIN_VALUE, blockdata::script, consensus::encode::serialize,
-    hash_types::BlockHash, hashes::Hash, Block, BlockHeader, Network, OutPoint, PackedLockTime,
-    Script, Sequence, Transaction, TxIn, TxMerkleNode, TxOut, Txid, Witness,
-    util::amount::Amount,
+    hash_types::BlockHash, hashes::Hash, util::amount::Amount, Block, BlockHeader, Network,
+    OutPoint, PackedLockTime, Script, Sequence, Transaction, TxIn, TxMerkleNode, TxOut, Txid,
+    Witness,
   },
   bitcoincore_rpc::json::ListUnspentResultEntry,
   jsonrpc_core::IoHandler,
@@ -287,8 +287,9 @@ impl Api for Server {
       .unwrap()
       .transactions
       .iter()
-      .map(|(txid, tx)| (0..tx.output.len()).map(|vout| bitcoin::OutPoint::new(*txid, vout as u32)))
-      .flatten()
+      .flat_map(|(txid, tx)| {
+        (0..tx.output.len()).map(|vout| bitcoin::OutPoint::new(*txid, vout as u32))
+      })
       .collect::<Vec<OutPoint>>();
 
     Ok(
