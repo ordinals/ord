@@ -1,15 +1,8 @@
 +++
 title = "Bounties"
+page_template = "bounty.html"
+sort_by = "date"
 +++
-
-Next bounty coming soon! 🤠
-
-Claimed Bounties
-----------------
-
-- [Bounty 0](0/)
-- [Bounty 1](1/)
-
 Hints
 -----
 

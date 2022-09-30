@@ -1,11 +1,25 @@
 {% extends "base.html" %}
 
 {% block content %}
+<h1>Ordinal Docs</h1>
+
+<nav>
+{% for page in section.pages %}
+  <a href="{{ page.permalink | safe }}">{{ page.title }}</a>
+{% endfor %}
+</nav>
+
+{% for path in section.subsections %}
+{% set section = get_section(path=path) %}
+<h2><a href="{{ section.permalink | safe }}">{{ section.title }}</a></h2>
 <ul>
-  {% for page in section.pages %}
+{% for page in section.pages %}
   <li>
+    <time>{{ page.date | date(format="%d %b %Y") }}</time>
+    »
     <a href="{{ page.permalink | safe }}">{{ page.title }}</a>
   </li>
-  {% endfor %}
+{% endfor %}
 </ul>
+{% endfor %}
 {% endblock content %}
