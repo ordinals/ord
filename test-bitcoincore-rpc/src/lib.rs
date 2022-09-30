@@ -1,8 +1,8 @@
 use {
   bitcoin::{
-    blockdata::constants::COIN_VALUE, blockdata::script, hash_types::BlockHash, hashes::Hash,
-    Block, BlockHeader, Network, OutPoint, PackedLockTime, Script, Sequence, Transaction, TxIn,
-    TxMerkleNode, TxOut, Txid, Witness,
+    blockdata::constants::COIN_VALUE, blockdata::script, consensus::encode::serialize,
+    hash_types::BlockHash, hashes::Hash, Block, BlockHeader, Network, OutPoint, PackedLockTime,
+    Script, Sequence, Transaction, TxIn, TxMerkleNode, TxOut, Txid, Witness,
   },
   jsonrpc_core::IoHandler,
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
@@ -223,9 +223,7 @@ impl Api for Server {
   ) -> Result<String, jsonrpc_core::Error> {
     assert!(!verbose);
     match self.state.lock().unwrap().blocks.get(&block_hash) {
-      Some(block) => Ok(hex::encode(bitcoin::consensus::encode::serialize(
-        &block.header,
-      ))),
+      Some(block) => Ok(hex::encode(serialize(&block.header))),
       None => Err(jsonrpc_core::Error::new(
         jsonrpc_core::types::error::ErrorCode::ServerError(-8),
       )),
@@ -235,7 +233,7 @@ impl Api for Server {
   fn getblock(&self, block_hash: BlockHash, verbosity: u64) -> Result<String, jsonrpc_core::Error> {
     assert_eq!(verbosity, 0, "Verbosity level {verbosity} is unsupported");
     match self.state.lock().unwrap().blocks.get(&block_hash) {
-      Some(block) => Ok(hex::encode(bitcoin::consensus::encode::serialize(block))),
+      Some(block) => Ok(hex::encode(serialize(block))),
       None => Err(jsonrpc_core::Error::new(
         jsonrpc_core::types::error::ErrorCode::ServerError(-8),
       )),
@@ -251,7 +249,7 @@ impl Api for Server {
     assert!(!verbose, "Verbose param is unsupported");
     assert_eq!(blockhash, None, "Blockhash param is unsupported");
     match self.state.lock().unwrap().transactions.get(&txid) {
-      Some(tx) => Ok(hex::encode(bitcoin::consensus::encode::serialize(tx))),
+      Some(tx) => Ok(hex::encode(serialize(tx))),
       None => Err(jsonrpc_core::Error::new(
         jsonrpc_core::types::error::ErrorCode::ServerError(-8),
       )),
