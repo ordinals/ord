@@ -125,12 +125,6 @@ mod tests {
   }
 
   #[test]
-  fn blocks() {
-    // c.f. https://github.com/bitcoin/bitcoin/blob/master/src/chainparams.cpp
-    assert_eq!(SUBSIDY_HALVING_INTERVAL, 210000);
-  }
-
-  #[test]
   fn starting_height() {
     assert_eq!(Epoch(0).starting_height(), 0);
     assert_eq!(Epoch(1).starting_height(), SUBSIDY_HALVING_INTERVAL);

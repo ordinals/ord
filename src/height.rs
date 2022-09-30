@@ -84,9 +84,9 @@ mod tests {
   fn subsidy() {
     assert_eq!(Height(0).subsidy(), 5000000000);
     assert_eq!(Height(1).subsidy(), 5000000000);
-    assert_eq!(Height(210000 - 1).subsidy(), 5000000000);
-    assert_eq!(Height(210000).subsidy(), 2500000000);
-    assert_eq!(Height(210000 + 1).subsidy(), 2500000000);
+    assert_eq!(Height(SUBSIDY_HALVING_INTERVAL - 1).subsidy(), 5000000000);
+    assert_eq!(Height(SUBSIDY_HALVING_INTERVAL).subsidy(), 2500000000);
+    assert_eq!(Height(SUBSIDY_HALVING_INTERVAL + 1).subsidy(), 2500000000);
   }
 
   #[test]
@@ -94,13 +94,16 @@ mod tests {
     assert_eq!(Height(0).starting_ordinal(), 0);
     assert_eq!(Height(1).starting_ordinal(), 5000000000);
     assert_eq!(
-      Height(210000 - 1).starting_ordinal(),
-      (210000 - 1) * 5000000000
+      Height(SUBSIDY_HALVING_INTERVAL - 1).starting_ordinal(),
+      (SUBSIDY_HALVING_INTERVAL - 1) * 5000000000
     );
-    assert_eq!(Height(210000).starting_ordinal(), 210000 * 5000000000);
     assert_eq!(
-      Height(210000 + 1).starting_ordinal(),
-      210000 * 5000000000 + 2500000000
+      Height(SUBSIDY_HALVING_INTERVAL).starting_ordinal(),
+      SUBSIDY_HALVING_INTERVAL * 5000000000
+    );
+    assert_eq!(
+      Height(SUBSIDY_HALVING_INTERVAL + 1).starting_ordinal(),
+      SUBSIDY_HALVING_INTERVAL * 5000000000 + 2500000000
     );
     assert_eq!(
       Height(u64::max_value()).starting_ordinal(),

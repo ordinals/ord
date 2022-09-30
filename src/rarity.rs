@@ -79,12 +79,15 @@ mod tests {
     );
 
     assert_eq!(
-      Ordinal(50 * COIN_VALUE * 210000 - 1).rarity(),
+      Ordinal(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL - 1).rarity(),
       Rarity::Common
     );
-    assert_eq!(Ordinal(50 * COIN_VALUE * 210000).rarity(), Rarity::Epic);
     assert_eq!(
-      Ordinal(50 * COIN_VALUE * 210000 + 1).rarity(),
+      Ordinal(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL).rarity(),
+      Rarity::Epic
+    );
+    assert_eq!(
+      Ordinal(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL + 1).rarity(),
       Rarity::Common
     );
 

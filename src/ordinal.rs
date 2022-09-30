@@ -302,15 +302,21 @@ mod tests {
       "0°2016′0″1‴"
     );
     assert_eq!(
-      Ordinal(50 * COIN_VALUE * 210000 - 1).degree().to_string(),
+      Ordinal(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL - 1)
+        .degree()
+        .to_string(),
       "0°209999′335″4999999999‴"
     );
     assert_eq!(
-      Ordinal(50 * COIN_VALUE * 210000).degree().to_string(),
+      Ordinal(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL)
+        .degree()
+        .to_string(),
       "0°0′336″0‴"
     );
     assert_eq!(
-      Ordinal(50 * COIN_VALUE * 210000 + 1).degree().to_string(),
+      Ordinal(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL + 1)
+        .degree()
+        .to_string(),
       "0°0′336″1‴"
     );
     assert_eq!(
@@ -368,7 +374,10 @@ mod tests {
   fn epoch() {
     assert_eq!(Ordinal(0).epoch(), 0);
     assert_eq!(Ordinal(1).epoch(), 0);
-    assert_eq!(Ordinal(50 * COIN_VALUE * 210000).epoch(), 1);
+    assert_eq!(
+      Ordinal(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL).epoch(),
+      1
+    );
     assert_eq!(Ordinal(2099999997689999).epoch(), 32);
   }
 
