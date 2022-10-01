@@ -2950,11 +2950,13 @@ version = "0.0.0"
 dependencies = [
  "bitcoin",
  "bitcoincore-rpc",
+ "bitcoincore-rpc-json",
  "hex",
  "jsonrpc-core",
  "jsonrpc-core-client",
  "jsonrpc-derive",
  "jsonrpc-http-server",
+ "serde_json",
 ]
 
 [[package]]

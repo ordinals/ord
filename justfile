@@ -1,6 +1,6 @@
 ci: clippy forbid
   cargo fmt -- --check
-  cargo test -- --test-threads=1
+  cargo test --all
 
 forbid:
   ./bin/forbid
@@ -49,7 +49,7 @@ test-deploy:
   ssh root@192.168.56.4 'cd ord && ./deploy/setup'
 
 report-test-time:
-  cargo +nightly test --bin ord -- -Z unstable-options --report-time
+  cargo +nightly test -- -Z unstable-options --report-time
 
 status:
   ssh root@65.108.68.37 systemctl status bitcoind

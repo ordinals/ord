@@ -13,8 +13,6 @@ mod rtx;
 const HEIGHT_TO_HASH: TableDefinition<u64, [u8; 32]> = TableDefinition::new("HEIGHT_TO_HASH");
 const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8; 36], [u8]> =
   TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
-const OUTPOINT_TO_TXID: TableDefinition<[u8; 36], [u8; 32]> =
-  TableDefinition::new("OUTPOINT_TO_TXID");
 const STATISTICS: TableDefinition<u64, u64> = TableDefinition::new("STATISTICS");
 
 pub(crate) struct Index {
@@ -27,7 +25,7 @@ pub(crate) struct Index {
 
 #[derive(Debug, PartialEq)]
 pub(crate) enum List {
-  Spent(Txid),
+  Spent,
   Unspent(Vec<(u64, u64)>),
 }
 
@@ -101,7 +99,6 @@ impl Index {
 
     tx.open_table(HEIGHT_TO_HASH)?;
     tx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
-    tx.open_table(OUTPOINT_TO_TXID)?;
     tx.open_table(STATISTICS)?;
 
     tx.commit()?;
@@ -209,7 +206,6 @@ impl Index {
   pub(crate) fn index_block(&self, wtx: &mut WriteTransaction, height: u64) -> Result<bool> {
     let mut height_to_hash = wtx.open_table(HEIGHT_TO_HASH)?;
     let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
-    let mut outpoint_to_txid = wtx.open_table(OUTPOINT_TO_TXID)?;
     let mut statistics = wtx.open_table(STATISTICS)?;
 
     let start = Instant::now();
@@ -299,7 +295,6 @@ impl Index {
         *txid,
         tx,
         &mut outpoint_to_ordinal_ranges,
-        &mut outpoint_to_txid,
         &mut input_ordinal_ranges,
         &mut ordinal_ranges_written,
         &mut outputs_in_block,
@@ -313,7 +308,6 @@ impl Index {
         *txid,
         tx,
         &mut outpoint_to_ordinal_ranges,
-        &mut outpoint_to_txid,
         &mut coinbase_inputs,
         &mut ordinal_ranges_written,
         &mut outputs_in_block,
@@ -371,7 +365,6 @@ impl Index {
     txid: Txid,
     tx: &Transaction,
     outpoint_to_ordinal_ranges: &mut Table<[u8; 36], [u8]>,
-    #[allow(unused)] outpoint_to_txid: &mut Table<[u8; 36], [u8; 32]>,
     input_ordinal_ranges: &mut VecDeque<(u64, u64)>,
     ordinal_ranges_written: &mut u64,
     outputs_traversed: &mut u64,
@@ -416,11 +409,6 @@ impl Index {
       outpoint_to_ordinal_ranges.insert(&serialize(&outpoint).try_into().unwrap(), &ordinals)?;
     }
 
-    #[cfg(any())]
-    for input in &tx.input {
-      outpoint_to_txid.insert(&serialize(&input.previous_output), &txid)?;
-    }
-
     Ok(())
   }
 
@@ -445,6 +433,21 @@ impl Index {
 
   pub(crate) fn transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
     self.client.get_raw_transaction(&txid, None).into_option()
+  }
+
+  pub(crate) fn is_transaction_in_active_chain(&self, txid: Txid) -> Result<bool> {
+    Ok(
+      self
+        .client
+        .get_raw_transaction_info(&txid, None)
+        .into_option()?
+        .and_then(|transaction_info| {
+          transaction_info
+            .confirmations
+            .map(|confirmations| confirmations > 0)
+        })
+        .unwrap_or(false),
+    )
   }
 
   pub(crate) fn find(&self, ordinal: u64) -> Result<Option<SatPoint>> {
@@ -499,16 +502,13 @@ impl Index {
           .map(|chunk| Self::decode_ordinal_range(chunk.try_into().unwrap()))
           .collect(),
       ))),
-      None => Ok(
-        self
-          .database
-          .begin_read()?
-          .open_table(OUTPOINT_TO_TXID)?
-          .get(&outpoint_encoded.try_into().unwrap())?
-          .map(|txid| deserialize(txid.as_slice()))
-          .transpose()?
-          .map(List::Spent),
-      ),
+      None => {
+        if self.is_transaction_in_active_chain(outpoint.txid)? {
+          Ok(Some(List::Spent))
+        } else {
+          Ok(None)
+        }
+      }
     }
   }
 
@@ -640,7 +640,7 @@ mod tests {
     let context = Context::new();
 
     context.rpc_server.mine_blocks(1);
-    let split_coinbase_output = test_bitcoincore_rpc::TransactionTemplate {
+    let split_coinbase_output = TransactionTemplate {
       input_slots: &[(1, 0, 0)],
       output_count: 2,
       fee: 0,
@@ -666,7 +666,7 @@ mod tests {
     let context = Context::new();
 
     context.rpc_server.mine_blocks(2);
-    let merge_coinbase_outputs = test_bitcoincore_rpc::TransactionTemplate {
+    let merge_coinbase_outputs = TransactionTemplate {
       input_slots: &[(1, 0, 0), (2, 0, 0)],
       output_count: 1,
       fee: 0,
@@ -690,7 +690,7 @@ mod tests {
     let context = Context::new();
 
     context.rpc_server.mine_blocks(1);
-    let fee_paying_tx = test_bitcoincore_rpc::TransactionTemplate {
+    let fee_paying_tx = TransactionTemplate {
       input_slots: &[(1, 0, 0)],
       output_count: 2,
       fee: 10,
@@ -724,12 +724,12 @@ mod tests {
     let context = Context::new();
 
     context.rpc_server.mine_blocks(2);
-    let first_fee_paying_tx = test_bitcoincore_rpc::TransactionTemplate {
+    let first_fee_paying_tx = TransactionTemplate {
       input_slots: &[(1, 0, 0)],
       output_count: 1,
       fee: 10,
     };
-    let second_fee_paying_tx = test_bitcoincore_rpc::TransactionTemplate {
+    let second_fee_paying_tx = TransactionTemplate {
       input_slots: &[(2, 0, 0)],
       output_count: 1,
       fee: 10,
@@ -759,7 +759,7 @@ mod tests {
     let context = Context::new();
 
     context.rpc_server.mine_blocks(1);
-    let no_value_output = test_bitcoincore_rpc::TransactionTemplate {
+    let no_value_output = TransactionTemplate {
       input_slots: &[(1, 0, 0)],
       output_count: 1,
       fee: 50 * COIN_VALUE,
@@ -779,7 +779,7 @@ mod tests {
     let context = Context::new();
 
     context.rpc_server.mine_blocks(1);
-    let no_value_output = test_bitcoincore_rpc::TransactionTemplate {
+    let no_value_output = TransactionTemplate {
       input_slots: &[(1, 0, 0)],
       output_count: 1,
       fee: 50 * COIN_VALUE,
@@ -787,7 +787,7 @@ mod tests {
     context.rpc_server.broadcast_tx(no_value_output);
     context.rpc_server.mine_blocks(1);
 
-    let no_value_input = test_bitcoincore_rpc::TransactionTemplate {
+    let no_value_input = TransactionTemplate {
       input_slots: &[(2, 1, 0)],
       output_count: 1,
       fee: 0,
@@ -799,6 +799,24 @@ mod tests {
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
       List::Unspent(vec![])
+    );
+  }
+
+  #[test]
+  fn list_spent_output() {
+    let context = Context::new();
+    context.rpc_server.mine_blocks(1);
+    context.rpc_server.broadcast_tx(TransactionTemplate {
+      input_slots: &[(1, 0, 0)],
+      output_count: 1,
+      fee: 0,
+    });
+    context.rpc_server.mine_blocks(1);
+    context.index.index().unwrap();
+    let txid = context.rpc_server.tx(1, 0).txid();
+    assert_eq!(
+      context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
+      List::Spent,
     );
   }
 
@@ -873,13 +891,11 @@ mod tests {
   fn find_first_satoshi_spent_in_second_block() {
     let context = Context::new();
     context.rpc_server.mine_blocks(1);
-    let spend_txid = context
-      .rpc_server
-      .broadcast_tx(test_bitcoincore_rpc::TransactionTemplate {
-        input_slots: &[(1, 0, 0)],
-        output_count: 1,
-        fee: 0,
-      });
+    let spend_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      input_slots: &[(1, 0, 0)],
+      output_count: 1,
+      fee: 0,
+    });
     context.rpc_server.mine_blocks(1);
     context.index.index().unwrap();
     assert_eq!(

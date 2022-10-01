@@ -1,4 +1,4 @@
-pub(crate) use tempfile::TempDir;
+pub(crate) use {tempfile::TempDir, test_bitcoincore_rpc::TransactionTemplate};
 
 macro_rules! assert_regex_match {
   ($string:expr, $pattern:expr $(,)?) => {

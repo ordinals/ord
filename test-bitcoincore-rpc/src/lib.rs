@@ -1,12 +1,11 @@
 use {
   bitcoin::{
     blockdata::constants::COIN_VALUE, blockdata::script, consensus::encode::serialize,
-    hash_types::BlockHash, hashes::Hash, util::amount::Amount, Block, BlockHeader, Network,
-    OutPoint, PackedLockTime, Script, Sequence, Transaction, TxIn, TxMerkleNode, TxOut, Txid,
-    Witness,
+    hash_types::BlockHash, hashes::Hash, Block, BlockHeader, Network, OutPoint, PackedLockTime,
+    Script, Sequence, Transaction, TxIn, TxMerkleNode, TxOut, Txid, Witness, Wtxid, Amount,
   },
-  bitcoincore_rpc::json::ListUnspentResultEntry,
-  jsonrpc_core::IoHandler,
+  bitcoincore_rpc_json::{ListUnspentResultEntry, GetRawTransactionResult},
+  jsonrpc_core::{IoHandler, Value},
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
   std::collections::BTreeMap,
   std::{
@@ -205,7 +204,7 @@ pub trait Api {
     txid: Txid,
     verbose: bool,
     blockhash: Option<BlockHash>,
-  ) -> Result<String, jsonrpc_core::Error>;
+  ) -> Result<Value, jsonrpc_core::Error>;
 
   #[rpc(name = "listunspent")]
   fn list_unspent(
@@ -257,14 +256,40 @@ impl Api for Server {
     txid: Txid,
     verbose: bool,
     blockhash: Option<BlockHash>,
-  ) -> Result<String, jsonrpc_core::Error> {
-    assert!(!verbose, "Verbose param is unsupported");
+  ) -> Result<Value, jsonrpc_core::Error> {
     assert_eq!(blockhash, None, "Blockhash param is unsupported");
-    match self.state.lock().unwrap().transactions.get(&txid) {
-      Some(tx) => Ok(hex::encode(serialize(tx))),
-      None => Err(jsonrpc_core::Error::new(
-        jsonrpc_core::types::error::ErrorCode::ServerError(-8),
-      )),
+    if verbose {
+      match self.state.lock().unwrap().transactions.get(&txid) {
+        Some(_) => Ok(
+          serde_json::to_value(GetRawTransactionResult {
+            in_active_chain: None,
+            hex: Vec::new(),
+            txid: Txid::all_zeros(),
+            hash: Wtxid::all_zeros(),
+            size: 0,
+            vsize: 0,
+            version: 0,
+            locktime: 0,
+            vin: Vec::new(),
+            vout: Vec::new(),
+            blockhash: None,
+            confirmations: Some(1),
+            time: None,
+            blocktime: None,
+          })
+          .unwrap(),
+        ),
+        None => Err(jsonrpc_core::Error::new(
+          jsonrpc_core::types::error::ErrorCode::ServerError(-8),
+        )),
+      }
+    } else {
+      match self.state.lock().unwrap().transactions.get(&txid) {
+        Some(tx) => Ok(Value::String(hex::encode(serialize(tx)))),
+        None => Err(jsonrpc_core::Error::new(
+          jsonrpc_core::types::error::ErrorCode::ServerError(-8),
+        )),
+      }
     }
   }
 
@@ -337,6 +362,11 @@ impl Handle {
 
   pub fn invalidate_tip(&self) -> BlockHash {
     self.state.lock().unwrap().pop_block()
+  }
+
+  pub fn tx(&self, bi: usize, ti: usize) -> Transaction {
+    let state = self.state.lock().unwrap();
+    state.blocks[&state.hashes[bi]].txdata[ti].clone()
   }
 }
 
