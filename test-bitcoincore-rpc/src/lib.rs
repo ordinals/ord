@@ -306,34 +306,29 @@ impl Api for Server {
     assert_eq!(address, None, "address param not supported");
     assert_eq!(include_unsafe, None, "include_unsafe param not supported");
     assert_eq!(query_options, None, "query_options param not supported");
-    let all_outpoints = self
-      .state
-      .lock()
-      .unwrap()
-      .transactions
-      .iter()
-      .flat_map(|(txid, tx)| {
-        (0..tx.output.len()).map(|vout| bitcoin::OutPoint::new(*txid, vout as u32))
-      })
-      .collect::<Vec<OutPoint>>();
-
     Ok(
-      all_outpoints
+      self
+        .state
+        .lock()
+        .unwrap()
+        .transactions
         .iter()
-        .map(|outpoint| ListUnspentResultEntry {
-          txid: outpoint.txid,
-          vout: outpoint.vout,
-          address: None,
-          label: None,
-          redeem_script: None,
-          witness_script: None,
-          script_pub_key: Script::new(),
-          amount: Amount::default(),
-          confirmations: 0,
-          spendable: true,
-          solvable: true,
-          descriptor: None,
-          safe: true,
+        .flat_map(|(txid, tx)| {
+          (0..tx.output.len()).map(|vout| ListUnspentResultEntry {
+            txid: *txid,
+            vout: vout as u32,
+            address: None,
+            label: None,
+            redeem_script: None,
+            witness_script: None,
+            script_pub_key: Script::new(),
+            amount: Amount::default(),
+            confirmations: 0,
+            spendable: true,
+            solvable: true,
+            descriptor: None,
+            safe: true,
+          })
         })
         .collect(),
     )

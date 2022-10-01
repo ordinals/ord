@@ -108,4 +108,34 @@ mod tests {
       ]
     )
   }
+
+  #[test]
+  fn identify_rare_ordinals_in_different_outpoints() {
+    let utxos = vec![
+      (OutPoint::null(), vec![(50 * COIN_VALUE, 55 * COIN_VALUE)]),
+      (
+        OutPoint::from_str("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:5")
+          .unwrap(),
+        vec![(100 * COIN_VALUE, 111 * COIN_VALUE)],
+      ),
+    ];
+    assert_eq!(
+      identify(utxos),
+      vec![
+        (
+          Ordinal(50 * COIN_VALUE),
+          OutPoint::null(),
+          0,
+          Rarity::Uncommon
+        ),
+        (
+          Ordinal(100 * COIN_VALUE),
+          OutPoint::from_str("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:5")
+            .unwrap(),
+          0,
+          Rarity::Uncommon
+        )
+      ]
+    )
+  }
 }
