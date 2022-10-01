@@ -1,10 +1,10 @@
 use {
   bitcoin::{
     blockdata::constants::COIN_VALUE, blockdata::script, consensus::encode::serialize,
-    hash_types::BlockHash, hashes::Hash, Block, BlockHeader, Network, OutPoint, PackedLockTime,
-    Script, Sequence, Transaction, TxIn, TxMerkleNode, TxOut, Txid, Witness, Wtxid, Amount,
+    hash_types::BlockHash, hashes::Hash, Amount, Block, BlockHeader, Network, OutPoint,
+    PackedLockTime, Script, Sequence, Transaction, TxIn, TxMerkleNode, TxOut, Txid, Witness, Wtxid,
   },
-  bitcoincore_rpc_json::{ListUnspentResultEntry, GetRawTransactionResult},
+  bitcoincore_rpc_json::{GetRawTransactionResult, ListUnspentResultEntry},
   jsonrpc_core::{IoHandler, Value},
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
   std::collections::BTreeMap,

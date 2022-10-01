@@ -25,7 +25,7 @@ pub(crate) fn run(options: Options) -> Result {
       Some(List::Unspent(ordinal_ranges)) => {
         utxos.push((output, ordinal_ranges));
       }
-      Some(List::Spent(_)) => {
+      Some(List::Spent) => {
         bail!("Output {output} in wallet but is spent according to index")
       }
       None => bail!("Ordinals index has not seen {output}"),
@@ -97,18 +97,15 @@ mod tests {
     )];
     assert_eq!(
       identify(utxos),
-      vec![(
-        Ordinal(0),
-        OutPoint::null(),
-        0,
-        Rarity::Mythic
-      ), (
-        Ordinal(1050000000000000),
-        OutPoint::null(),
-        100,
-        Rarity::Epic
-      )]
+      vec![
+        (Ordinal(0), OutPoint::null(), 0, Rarity::Mythic),
+        (
+          Ordinal(1050000000000000),
+          OutPoint::null(),
+          100,
+          Rarity::Epic
+        )
+      ]
     )
   }
-
 }
