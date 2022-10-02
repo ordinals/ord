@@ -8,9 +8,8 @@ Wants=network-online.target
 ConfigurationDirectory=bitcoin
 ConfigurationDirectoryMode=0710
 ExecStart=/usr/local/bin/bitcoind \
-  -datadir=/var/lib/bitcoind \
-  -chain=${CHAIN} \
-  -txindex
+  -conf=/etc/bitcoin/bitcoin.conf \
+  -chain=${CHAIN}
 ExecStartPre=/bin/chgrp bitcoin /etc/bitcoin
 Group=bitcoin
 MemoryDenyWriteExecute=true
