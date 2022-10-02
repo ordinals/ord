@@ -982,6 +982,9 @@ mod tests {
     "/output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
     StatusCode::OK,
     ".*<title>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</title>.*<h1>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</h1>
+<dl>
+  <dt>size</dt><dd>5000000000</dd>
+</dl>
 <h2>Ordinal Ranges</h2>
 <ul class=monospace>
   <li><a href=/range/0/5000000000 class=mythic>\\[0,5000000000\\)</a></li>
