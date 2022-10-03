@@ -31,7 +31,7 @@ There are a few things you'll need before you start.
    Launch it and wait for it to catch up to the chain tip, at which point the
    following command should print out the current block height:
 
-   ```
+   ```sh
    bitcoin-cli getblockcount
    ```
 
@@ -236,4 +236,5 @@ Navigate to the `Settings` tab, then to `Script Policy`, and press the edit butt
 
 `ord` does not yet support transferring specific ordinals. Currently, your best
 bet is to use `bitcoin-cli createrawtransaction`, `bitcoin-cli
-signrawtransactionwithwallet`, and `bitcoin-cli sendrawtransaction`.
+signrawtransactionwithwallet`, and `bitcoin-cli sendrawtransaction`, however,
+how to do so is complex and outside the scope of this guide.
