@@ -7,26 +7,30 @@ Tools for the hunt
 - `bitcoind -txindex=1` fully synced to mainnet
 - `bitcoin-cli` 
 - `ord` compiled and indexed
-- wallet (containing your UTXOs) that supports exporting a [descriptor](https://github.com/bitcoin/bitcoin/blob/master/doc/descriptors.md)
+- A wallet containing your UTXOs that supports exporting [descriptors](https://github.com/bitcoin/bitcoin/blob/master/doc/descriptors.md)
 
 
 Steps
 -----
 
-1. Create a blank wallet without any private keys and load it into bitcoind
+1. Create a blank wallet named `ord-watch-only` without private keys.
 ```bash
 bitcoin-cli createwallet ord-watch-only true true
+```
+
+2. Load the newly created wallet.
+```
 bitcoin-cli loadwallet ord-watch-only 
 ```
 
-2. Get the descriptor from your wallet of choice. In Sparrow wallet you can find
-that in the `Settings` tab, then at `Script Policy` and the press the edit button.
+3. Get the descriptor from the wallet you want to search. In Sparrow wallet navigate
+to the `Settings` tab, then to `Script Policy` and press the edit button.
 The descriptor should look something like this:
 ```bash
 wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/<0;1>/*)#fw76ulgt
 ```
 
-3. Some wallets use a descriptor encoding that unfortunately hasn't been 
+4. Some wallets use a descriptor type that hasn't been 
 [merged](https://github.com/bitcoin/bitcoin/pull/22838) into Bitcoin Core yet, 
 so some extra steps are necessary. First we need the descriptor checksum for the
 receive addresses (`/0/*`):
