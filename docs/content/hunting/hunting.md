@@ -1,5 +1,6 @@
-Ordinal Hunting 101
-===================
++++
+title = "Ordinal Hunting 101"
++++
 
 Tools for the hunt
 -------------------
