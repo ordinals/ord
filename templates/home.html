@@ -14,7 +14,7 @@
   <input type=submit>
 </form>
 <h2>Recent Blocks</h2>
-<ol start={{self.last}} reversed class=monospace>
+<ol start={{self.last}} reversed class='blocks monospace'>
 %% for (rarity, hash) in &self.blocks {
   <li><a href=/block/{{hash}} class={{rarity}}>{{hash}}</a></li>
 %% }

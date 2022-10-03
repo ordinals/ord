@@ -16,6 +16,17 @@ h1 {
   width: 100%;
 }
 
+pre {
+  overflow: scroll;
+  padding: 1rem;
+  border-radius: 0.375rem;
+}
+
+p > code {
+  background-color: #fefbec;
+  border-radius: 0.375rem;
+}
+
 a {
   text-decoration: none;
 }
@@ -34,7 +45,7 @@ nav {
   justify-content: left;
 }
 
-ol {
+.blocks {
   list-style-position: inside;
   padding-inline-start: 0;
   white-space: nowrap;

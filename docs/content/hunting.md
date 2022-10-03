@@ -1,76 +1,245 @@
 +++
-title = "Ordinal Hunting 101"
+title = "Ordinal Hunting"
 +++
 
-Tools for the hunt
--------------------
+Ordinal hunting is difficult but rewarding. The feeling of owning a wallet full
+of UTXOs, redolent with the scent of rare and exotic ordinals, is beyond
+compare.
 
-- `bitcoind -txindex=1` fully synced to mainnet
-- `bitcoin-cli` 
-- `ord` compiled and indexed
-- A wallet containing your UTXOs that supports exporting [descriptors](https://github.com/bitcoin/bitcoin/blob/master/doc/descriptors.md)
+Ordinals are numbers for satoshis. Every satoshi has an ordinal number and
+every ordinal number has a satoshi.
 
+Preparation
+-----------
 
-Steps
------
+There are a few things you'll need before you start.
 
-1. Create a blank wallet named `ord-watch-only` without private keys.
-```bash
-$ bitcoin-cli createwallet ord-watch-only true true
-```
+1. First, you'll need a synced Bitcoin Core node with a transaction index. To
+   turn on transaction indexing, pass `-txindex` on the command-line:
 
-2. Load the newly created wallet.
-```
-$ bitcoin-cli loadwallet ord-watch-only 
-```
+   ```sh
+   bitcoind -txindex
+   ```
 
-3. Get the descriptor from the wallet you want to search. In Sparrow wallet navigate
-to the `Settings` tab, then to `Script Policy` and press the edit button.
-The descriptor should look something like this:
-```bash
-wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/<0;1>/*)#fw76ulgt
-```
+   Or put the following in your [Bitcoin configuration
+   file](https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md#configuration-file-path):
 
-4. Some wallets use a descriptor type that hasn't been 
-[merged](https://github.com/bitcoin/bitcoin/pull/22838) into Bitcoin Core yet, 
-so some extra steps are necessary. First we need the descriptor checksum for the
-receive addresses (`/0/*`):
-```bash
-$ bitcoin-cli getdescriptorinfo \
-  'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)'
-{
-  "descriptor": "wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29",
-  "checksum": "tpnxnxax",
-  "isrange": true,
-  "issolvable": true,
-  "hasprivatekeys": false
-}
-```
-And then for the change addresses (`/1/*`):
-```bash 
-$ bitcoin-cli getdescriptorinfo \ 
-  'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)'
-{
-  "descriptor": "wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#fyfc5f6a",
-  "checksum": "64k8wnd7",
-  "isrange": true,
-  "issolvable": true,
-  "hasprivatekeys": false
-}
-```
+   ```
+   txindex=1
+   ```
 
-4. With these checksums we can then import the descriptors (append #checksum to the end) Bitcoind needs to know how far back to look for transactions so find out when the first transaction took place and convert that to unix time and put it in the timestamp field. This command can take quite a while to complete.
-```bash
-$ bitcoin-cli importdescriptors \ 
-  '[{ "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax", "timestamp":1455191478 } {"desc":"wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#64k8wnd7" , "timestamp":1455191478 }]'
-```
+   Launch it and wait for it to catch up to the chain tip, at which point the
+   following command should print out the current block height:
 
-5. Test that everthing worked with:
-```bash
-$ bitcoin-cli getwalletinfo
-```
+   ```sh
+   bitcoin-cli getblockcount
+   ```
 
-6. Now that we have a wallet loaded we can use the `identify` command, which will list and rare ordinals contained in your UTXOs.
-```bash
-$ ord wallet identify 
-```
+2. Second, you'll need a synced `ord` index.
+
+   - Get a copy of `ord` from [the repo](https://github.com/casey/ord/).
+
+   - Run `RUST_LOG=info ord index`. It should connect to your bitcoin core
+     node and start indexing.
+
+   - Wait for it to finish indexing.
+
+3. Third, you'll need a wallet with UTXOs that you want to search.
+
+Searching for Rare Ordinals
+---------------------------
+
+### Searching for Rare Ordinals in a Bitcoin Core Wallet
+
+The `ord wallet` command is just a wrapper around Bitcoin Core's RPC API, so
+searching for rare ordinals in a Bitcoin Core wallet is Easy. Assuming your
+wallet is named `foo`:
+
+1. Load your wallet:
+
+   ```sh
+   bitcoin-cli loadwallet foo
+   ```
+
+2. Display any rare ordinals wallet `foo`'s UTXOs:
+
+   ```sh
+   ord wallet identify
+   ```
+
+### Searching for Rare Ordinals in a Non-Bitcoin Core Wallet
+
+The `ord wallet` command is just a wrapper around Bitcoin Core's RPC API, so to
+search for rare ordinals in a non-Bitcoin Core wallet, you'll need to import
+your wallet's descriptors into Bitcoin Core.
+
+[Descriptors](https://github.com/bitcoin/bitcoin/blob/master/doc/descriptors.md)
+describe the ways that wallets generate private keys and public keys.
+
+You should only import descriptors into Bitcoin Core for your wallet's public
+keys, not its private keys.
+
+If your wallet's public key descriptor is compromised, an attacker will be able
+to see your wallet's addresses, but your funds will be safe.
+
+If your wallet's private key descriptor is compromised, an attacker can drain
+your wallet of funds.
+
+1. Get the wallet descriptor from the wallet whose UTXOs you want to search for
+   rare ordinals. It will look something like this:
+
+   ```
+   wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29
+   ```
+
+2. Create a watch-only wallet named `foo-watch-only`:
+
+   ```sh
+   bitcoin-cli createwallet foo-watch-only true true
+   ```
+
+   Feel free to give it a better name than `foo-watch-only`!
+
+3. Load the `foo-watch-only` wallet:
+
+   ```sh
+   bitcoin-cli loadwallet foo-watch-only
+   ```
+
+4. Import your wallet descriptors into `foo-watch-only`:
+
+   ```sh
+   bitcoin-cli importdescriptors \
+     '[{ "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax", "timestamp":0 }]'
+   ```
+
+   If you know the Unix timestamp when your wallet first started receive
+   transactions, you may use it for the value of `"timestamp"` instead of `0`.
+   This will reduce the time it takes for Bitcoin Core to search for your
+   wallet's UTXOs.
+
+5. Check that everything worked:
+
+   ```sh
+   bitcoin-cli getwalletinfo
+   ```
+
+7. Display your wallet's rare ordinals:
+
+   ```sh
+   ord wallet identify
+   ```
+
+### Searching for Rare Ordinals in a Wallet that Exports Multi-path Descriptors
+
+Some descriptors describe multiple paths in one descriptor using angle brackets,
+e.g., `<0;1>`. Multi-path descriptors are not yet supported by Bitcoin Core, so
+you'll first need to convert them into multiple descriptors, and then import
+those multiple descriptors into Bitcoin Core.
+
+1. First get the multi-path descriptor from your wallet. It will look something
+   like this:
+
+   ```
+   wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/<0;1>/*)#fw76ulgt
+   ```
+
+2. Create a descriptor for the receive address path:
+
+   ```
+   wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)
+   ```
+
+   And the change address path:
+
+   ```
+   wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)
+   ```
+
+3. Get and note the checksum for the receive address descriptor, in this case
+   `tpnxnxax`:
+
+   ```sh
+   bitcoin-cli getdescriptorinfo \
+     'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)'
+   ```
+
+   ```json
+   {
+     "descriptor": "wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29",
+     "checksum": "tpnxnxax",
+     "isrange": true,
+     "issolvable": true,
+     "hasprivatekeys": false
+   }
+   ```
+
+   And for the change address descriptor, in this case `64k8wnd7`:
+
+   ```sh
+   bitcoin-cli getdescriptorinfo \
+     'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)'
+   ```
+
+   ```json
+   {
+     "descriptor": "wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#fyfc5f6a",
+     "checksum": "64k8wnd7",
+     "isrange": true,
+     "issolvable": true,
+     "hasprivatekeys": false
+   }
+   ```
+
+4. Load the wallet you want to import the descriptors into:
+
+   ```sh
+   bitcoin-cli loadwallet foo-watch-only
+   ```
+
+4. Now import the descriptors, with the correct checksums, into Bitcoin Core.
+
+   ```sh
+   bitcoin-cli \
+    importdescriptors \
+    '[
+      {
+        "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax"
+        "timestamp":0
+      },
+      {
+        "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#64k8wnd7",
+        "timestamp":0
+      }
+    ]'
+   ```
+
+   If you know the Unix timestamp when your wallet first started receive
+   transactions, you may use it for the value of the `"timestamp"` fields
+   instead of `0`. This will reduce the time it takes for Bitcoin Core to
+   search for your wallet's UTXOs.
+
+5. Check that everything worked:
+
+   ```sh
+   bitcoin-cli getwalletinfo
+   ```
+
+7. Display your wallet's rare ordinals:
+
+   ```sh
+   ord wallet identify
+   ```
+
+### Exporting Descriptors
+
+#### Sparrow Wallet
+
+Navigate to the `Settings` tab, then to `Script Policy`, and press the edit button to display the descriptor.
+
+### Transferring Ordinals
+
+`ord` does not yet support transferring specific ordinals. Currently, your best
+bet is to use the `bitcoin-cli` commands `createrawtransaction`,
+`signrawtransactionwithwallet`, and `sendrawtransaction`, however, how to do so
+is complex and outside the scope of this guide.
