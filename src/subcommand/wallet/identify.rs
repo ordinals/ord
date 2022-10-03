@@ -1,45 +1,16 @@
-use {
-  super::*,
-  bitcoincore_rpc::{Auth, Client, RpcApi},
-};
+use super::*;
 
 pub(crate) fn run(options: Options) -> Result {
-  let index = Index::open(&options)?;
-  index.index()?;
+  let utxos = list_unspent(options)?;
 
-  let cookie_file = options.cookie_file()?;
-  let rpc_url = options.rpc_url();
-  log::info!(
-    "Connecting to Bitcoin Core RPC server at {rpc_url} using credentials from `{}`",
-    cookie_file.display()
-  );
-  let client = Client::new(&rpc_url, Auth::CookieFile(cookie_file))
-    .context("Failed to connect to Bitcoin Core RPC at {rpc_url}")?;
-
-  let unspent = client.list_unspent(None, None, None, None, None)?;
-
-  let mut utxos = Vec::new();
-  for utxo in unspent {
-    let output = OutPoint::new(utxo.txid, utxo.vout);
-    match index.list(output)? {
-      Some(List::Unspent(ordinal_ranges)) => {
-        utxos.push((output, ordinal_ranges));
-      }
-      Some(List::Spent) => {
-        bail!("Output {output} in wallet but is spent according to index")
-      }
-      None => bail!("Ordinals index has not seen {output}"),
-    }
-  }
-
-  for (ordinal, output, offset, rarity) in identify(utxos) {
-    println!("{ordinal}\t{output}\t{offset}\t{rarity}");
+  for (output, ordinal, offset, rarity) in identify(utxos) {
+    println!("{output}\t{ordinal}\t{offset}\t{rarity}");
   }
 
   Ok(())
 }
 
-fn identify(utxos: Vec<(OutPoint, Vec<(u64, u64)>)>) -> Vec<(Ordinal, OutPoint, u64, Rarity)> {
+fn identify(utxos: Vec<(OutPoint, Vec<(u64, u64)>)>) -> Vec<(OutPoint, Ordinal, u64, Rarity)> {
   utxos
     .into_iter()
     .flat_map(|(outpoint, ordinal_ranges)| {
@@ -50,7 +21,7 @@ fn identify(utxos: Vec<(OutPoint, Vec<(u64, u64)>)>) -> Vec<(Ordinal, OutPoint, 
         let start_offset = offset;
         offset += end - start;
         if rarity > Rarity::Common {
-          Some((ordinal, outpoint, start_offset, rarity))
+          Some((outpoint, ordinal, start_offset, rarity))
         } else {
           None
         }
@@ -81,8 +52,8 @@ mod tests {
     assert_eq!(
       identify(utxos),
       vec![(
-        Ordinal(50 * COIN_VALUE),
         OutPoint::null(),
+        Ordinal(50 * COIN_VALUE),
         70,
         Rarity::Uncommon
       )]
@@ -98,10 +69,10 @@ mod tests {
     assert_eq!(
       identify(utxos),
       vec![
-        (Ordinal(0), OutPoint::null(), 0, Rarity::Mythic),
+        (OutPoint::null(), Ordinal(0), 0, Rarity::Mythic),
         (
-          Ordinal(1050000000000000),
           OutPoint::null(),
+          Ordinal(1050000000000000),
           100,
           Rarity::Epic
         )
@@ -123,15 +94,15 @@ mod tests {
       identify(utxos),
       vec![
         (
-          Ordinal(50 * COIN_VALUE),
           OutPoint::null(),
+          Ordinal(50 * COIN_VALUE),
           0,
           Rarity::Uncommon
         ),
         (
-          Ordinal(100 * COIN_VALUE),
           OutPoint::from_str("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:5")
             .unwrap(),
+          Ordinal(100 * COIN_VALUE),
           0,
           Rarity::Uncommon
         )

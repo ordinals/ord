@@ -1,4 +1,8 @@
-use {super::*, clap::ValueEnum};
+use {
+  super::*,
+  bitcoincore_rpc::{Auth, Client},
+  clap::ValueEnum,
+};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Options {
@@ -111,6 +115,18 @@ impl Options {
     }
 
     Ok(path)
+  }
+
+  pub(crate) fn bitcoin_rpc_client(&self) -> Result<Client> {
+    let cookie_file = self.cookie_file()?;
+    let rpc_url = self.rpc_url();
+    log::info!(
+      "Connecting to Bitcoin Core RPC server at {rpc_url} using credentials from `{}`",
+      cookie_file.display()
+    );
+
+    Client::new(&rpc_url, Auth::CookieFile(cookie_file))
+      .context("Failed to connect to Bitcoin Core RPC at {rpc_url}")
   }
 }
 
