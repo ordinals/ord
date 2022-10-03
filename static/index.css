@@ -40,6 +40,10 @@ ol {
   white-space: nowrap;
 }
 
+.strikethrough {
+  text-decoration: line-through;
+}
+
 .monospace {
   font-family: monospace, monospace;
 }

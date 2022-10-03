@@ -1,14 +1,10 @@
 +++
-title = "Bounties"
+title = "Ordinal Bounties"
+page_template = "bounty.html"
+template = "bounties.html"
+sort_by = "date"
+aliases = ["bounties"]
 +++
-
-Next bounty coming soon! 🤠
-
-Claimed Bounties
-----------------
-
-- [Bounty 0](0/)
-- [Bounty 1](1/)
 
 Hints
 -----
@@ -18,9 +14,9 @@ Hints
   code to manipulate ordinals in no time.
 
 - For more information about ordinals, check out the [FAQ](/faq) for an
-  overview, or the
-  [BIP](https://github.com/casey/ord/blob/master/bip.mediawiki) for the
-  technical details.
+  overview, the [BIP](https://github.com/casey/ord/blob/master/bip.mediawiki)
+  for the technical details, and the [ord repo](https://github.com/casey/ord]
+  for the `ord` wallet and block explorer.
 
 - Satoshi was the original developer of ordinal theory. However, he knew that
   others would consider it heretical and dangerous, so he hid his knowledge,

@@ -1,11 +1,10 @@
 {% extends "base.html" %}
 
 {% block content %}
-<ul>
-  {% for page in section.pages %}
-  <li>
-    <a href="{{ page.permalink | safe }}">{{ page.title }}</a>
-  </li>
-  {% endfor %}
-</ul>
+<h1>Ordinal Docs</h1>
+
+<nav>
+  <a href=/faq/>FAQ</a>
+  <a href=/bounty/>Bounties</a>
+</nav>
 {% endblock content %}
