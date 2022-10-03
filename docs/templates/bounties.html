@@ -6,10 +6,13 @@
   <li>
     <time>{{ page.date | date(format="%d %b %Y") }}</time>
     »
-    <a href="{{ page.permalink | safe }}" class={{page.extra.status}}>{{ page.title }}:
+    {% if page.extra.claimed %}
+    <a href="{{ page.permalink | safe }}" class=strikethrough>{{ page.title }}:
     {{ page.extra.reward }}</a>
-    {% if page.extra.status == "claimed" %}
     Claimed!
+    {% else %}
+    <a href="{{ page.permalink | safe }}">{{ page.title }}:
+    {{ page.extra.reward }}</a>
     {% endif%}
   </li>
 {% endfor %}

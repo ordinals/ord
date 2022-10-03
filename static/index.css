@@ -40,7 +40,7 @@ ol {
   white-space: nowrap;
 }
 
-.claimed {
+.strikethrough {
   text-decoration: line-through;
 }
 
