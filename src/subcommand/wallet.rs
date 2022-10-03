@@ -24,14 +24,17 @@ fn list_unspent(options: Options) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
 
   let client = options.bitcoin_rpc_client()?;
 
-  client
-    .list_unspent(None, None, None, None, None)?
-    .iter()
-    .map(|utxo| {
-      let output = OutPoint::new(utxo.txid, utxo.vout);
-      Ok((output, index.list_unspent(output)?))
-    })
-    .collect()
+  let mut utxos = Vec::new();
+  for utxo in client.list_unspent(None, None, None, None, None)? {
+    let outpoint = OutPoint::new(utxo.txid, utxo.vout);
+    match index.list(outpoint)? {
+      Some(List::Unspent(ordinal_ranges)) => utxos.push((outpoint, ordinal_ranges)),
+      Some(List::Spent) => bail!("Output {outpoint} in wallet but is spent according to index"),
+      None => bail!("Ordinals index has not seen {outpoint}"),
+    }
+  }
+
+  Ok(utxos)
 }
 
 #[cfg(test)]

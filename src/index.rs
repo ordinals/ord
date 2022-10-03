@@ -512,16 +512,6 @@ impl Index {
     }
   }
 
-  pub(crate) fn list_unspent(&self, outpoint: OutPoint) -> Result<Vec<(u64, u64)>> {
-    match self.list(outpoint)? {
-      Some(List::Unspent(ordinal_ranges)) => Ok(ordinal_ranges),
-      Some(List::Spent) => {
-        bail!("Output {outpoint} in wallet but is spent according to index")
-      }
-      None => bail!("Ordinals index has not seen {outpoint}"),
-    }
-  }
-
   pub(crate) fn blocktime(&self, height: Height) -> Result<Blocktime> {
     let height = height.n();
 
