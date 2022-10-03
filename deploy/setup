@@ -52,6 +52,8 @@ id --user bitcoin || useradd --system bitcoin
 id --user ord || useradd --system ord
 
 cp deploy/bitcoind.service /etc/systemd/system/
+mkdir -p /etc/bitcoin
+cp deploy/bitcoin.conf /etc/bitcoin/bitcoin.conf
 systemctl daemon-reload
 systemctl enable bitcoind
 systemctl restart bitcoind
