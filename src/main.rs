@@ -23,7 +23,7 @@ use {
     consensus::{Decodable, Encodable},
     hash_types::BlockHash,
     hashes::Hash,
-    Block, Network, OutPoint, Transaction, Txid,
+    Address, Block, Network, OutPoint, Transaction, Txid,
   },
   chrono::{DateTime, NaiveDateTime, Utc},
   clap::Parser,
