@@ -3,6 +3,7 @@ title = "Bounties"
 page_template = "bounty.html"
 template = "bounties.html"
 sort_by = "date"
+aliases = ["bounties/"]
 +++
 
 Hints
