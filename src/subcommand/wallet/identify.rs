@@ -1,20 +1,10 @@
-use {
-  super::*,
-  bitcoincore_rpc::{Auth, Client, RpcApi},
-};
+use {super::*, bitcoincore_rpc::RpcApi};
 
 pub(crate) fn run(options: Options) -> Result {
   let index = Index::open(&options)?;
   index.index()?;
 
-  let cookie_file = options.cookie_file()?;
-  let rpc_url = options.rpc_url();
-  log::info!(
-    "Connecting to Bitcoin Core RPC server at {rpc_url} using credentials from `{}`",
-    cookie_file.display()
-  );
-  let client = Client::new(&rpc_url, Auth::CookieFile(cookie_file))
-    .context("Failed to connect to Bitcoin Core RPC at {rpc_url}")?;
+  let client = options.rpc_client()?;
 
   let unspent = client.list_unspent(None, None, None, None, None)?;
 
