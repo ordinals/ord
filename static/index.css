@@ -16,6 +16,12 @@ h1 {
   width: 100%;
 }
 
+pre {
+  overflow: scroll;
+  padding: 1rem;
+  border-radius: 0.375rem;
+}
+
 a {
   text-decoration: none;
 }
