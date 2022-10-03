@@ -117,17 +117,16 @@ impl Options {
     Ok(path)
   }
 
-  pub(crate) fn rpc_client(&self) -> Result<Client> {
+  pub(crate) fn bitcoin_rpc_client(&self) -> Result<Client> {
     let cookie_file = self.cookie_file()?;
     let rpc_url = self.rpc_url();
     log::info!(
       "Connecting to Bitcoin Core RPC server at {rpc_url} using credentials from `{}`",
       cookie_file.display()
     );
-    let client = Client::new(&rpc_url, Auth::CookieFile(cookie_file))
-      .context("Failed to connect to Bitcoin Core RPC at {rpc_url}")?;
 
-    Ok(client)
+    Client::new(&rpc_url, Auth::CookieFile(cookie_file))
+      .context("Failed to connect to Bitcoin Core RPC at {rpc_url}")
   }
 }
 

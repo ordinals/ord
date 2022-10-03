@@ -12,8 +12,8 @@ fn identify() {
     .rpc_server(&rpc_server)
     .expected_stdout(format!(
       "{}\t{}\t0\tuncommon\n",
+      OutPoint::new(second_coinbase, 0),
       50 * COIN_VALUE,
-      OutPoint::new(second_coinbase, 0)
     ))
     .run();
 }
@@ -27,9 +27,9 @@ fn list() {
     .rpc_server(&rpc_server)
     .expected_stdout(format!(
       "{}\t{}\t{}\tuncommon\tnvtcsezkbth\n",
-      50 * COIN_VALUE,
-      50 * COIN_VALUE,
       OutPoint::new(second_coinbase, 0),
+      50 * COIN_VALUE,
+      50 * COIN_VALUE,
     ))
     .run();
 }
