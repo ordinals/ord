@@ -9,8 +9,8 @@ compare.
 Ordinals are numbers for satoshis. Every satoshi has an ordinal number and
 every ordinal number has a satoshi.
 
-Reparation
-----------
+Preparation
+-----------
 
 There are a few things you'll need before you start.
 
@@ -191,28 +191,33 @@ those multiple descriptors into Bitcoin Core.
    }
    ```
 
-4. Now import the descriptors, with the correct checksums, into Bitcoin Core.
-
-   First the receive address descriptor:
+4. Load the wallet you want to import the descriptors into:
 
    ```sh
-   bitcoin-cli \
-    importdescriptors \
-    '[{ "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax", "timestamp":0}]'
+   bitcoin-cli loadwallet foo-watch-only
    ```
 
-   And then the change address descriptor:
+4. Now import the descriptors, with the correct checksums, into Bitcoin Core.
 
    ```sh
    bitcoin-cli \
     importdescriptors \
-    '[{ "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#64k8wnd7", "timestamp":0}]'
+    '[
+      {
+        "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax"
+        "timestamp":0
+      },
+      {
+        "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#64k8wnd7",
+        "timestamp":0
+      }
+    ]'
    ```
 
    If you know the Unix timestamp when your wallet first started receive
-   transactions, you may use it for the value of `"timestamp"` instead of `0`.
-   This will reduce the time it takes for Bitcoin Core to search for your
-   wallet's UTXOs.
+   transactions, you may use it for the value of the `"timestamp"` fields
+   instead of `0`. This will reduce the time it takes for Bitcoin Core to
+   search for your wallet's UTXOs.
 
 5. Check that everything worked:
 
