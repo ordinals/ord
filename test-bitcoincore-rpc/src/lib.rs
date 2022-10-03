@@ -1,10 +1,10 @@
 use {
   bitcoin::{
     blockdata::constants::COIN_VALUE, blockdata::script, consensus::encode::serialize,
-    hash_types::BlockHash, hashes::Hash, Block, BlockHeader, Network, OutPoint, PackedLockTime,
-    Script, Sequence, Transaction, TxIn, TxMerkleNode, TxOut, Txid, Witness, Wtxid,
+    hash_types::BlockHash, hashes::Hash, Amount, Block, BlockHeader, Network, OutPoint,
+    PackedLockTime, Script, Sequence, Transaction, TxIn, TxMerkleNode, TxOut, Txid, Witness, Wtxid,
   },
-  bitcoincore_rpc_json::GetRawTransactionResult,
+  bitcoincore_rpc_json::{GetRawTransactionResult, ListUnspentResultEntry},
   jsonrpc_core::{IoHandler, Value},
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
   std::collections::BTreeMap,
@@ -205,6 +205,16 @@ pub trait Api {
     verbose: bool,
     blockhash: Option<BlockHash>,
   ) -> Result<Value, jsonrpc_core::Error>;
+
+  #[rpc(name = "listunspent")]
+  fn list_unspent(
+    &self,
+    minconf: Option<usize>,
+    maxconf: Option<usize>,
+    address: Option<bitcoin::Address>,
+    include_unsafe: Option<bool>,
+    query_options: Option<String>,
+  ) -> Result<Vec<ListUnspentResultEntry>, jsonrpc_core::Error>;
 }
 
 impl Api for Server {
@@ -281,6 +291,47 @@ impl Api for Server {
         )),
       }
     }
+  }
+
+  fn list_unspent(
+    &self,
+    minconf: Option<usize>,
+    maxconf: Option<usize>,
+    address: Option<bitcoin::Address>,
+    include_unsafe: Option<bool>,
+    query_options: Option<String>,
+  ) -> Result<Vec<ListUnspentResultEntry>, jsonrpc_core::Error> {
+    assert_eq!(minconf, None, "minconf param not supported");
+    assert_eq!(maxconf, None, "maxconf param not supported");
+    assert_eq!(address, None, "address param not supported");
+    assert_eq!(include_unsafe, None, "include_unsafe param not supported");
+    assert_eq!(query_options, None, "query_options param not supported");
+    Ok(
+      self
+        .state
+        .lock()
+        .unwrap()
+        .transactions
+        .iter()
+        .flat_map(|(txid, tx)| {
+          (0..tx.output.len()).map(|vout| ListUnspentResultEntry {
+            txid: *txid,
+            vout: vout as u32,
+            address: None,
+            label: None,
+            redeem_script: None,
+            witness_script: None,
+            script_pub_key: Script::new(),
+            amount: Amount::default(),
+            confirmations: 0,
+            spendable: true,
+            solvable: true,
+            descriptor: None,
+            safe: true,
+          })
+        })
+        .collect(),
+    )
   }
 }
 

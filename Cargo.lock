@@ -2949,6 +2949,7 @@ name = "test-bitcoincore-rpc"
 version = "0.0.0"
 dependencies = [
  "bitcoin",
+ "bitcoincore-rpc",
  "bitcoincore-rpc-json",
  "hex",
  "jsonrpc-core",

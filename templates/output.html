@@ -1,6 +1,9 @@
 <h1>Output {{self.outpoint}}</h1>
 %% match &self.list {
 %% List::Unspent(ranges) => {
+<dl>
+  <dt>size</dt><dd>{{ranges.iter().map(|(start, end)| end - start).sum::<u64>()}}</dd>
+</dl>
 <h2>Ordinal Ranges</h2>
 <ul class=monospace>
 %% for (start, end) in ranges {
