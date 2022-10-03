@@ -40,6 +40,10 @@ ol {
   white-space: nowrap;
 }
 
+.claimed {
+  text-decoration: line-through;
+}
+
 .monospace {
   font-family: monospace, monospace;
 }
