@@ -4,12 +4,7 @@
 <h1>Ordinal Docs</h1>
 
 <nav>
-{% for page in section.pages %}
-  <a href="{{ page.permalink | safe }}">{{ page.title }}</a>
-{% endfor %}
-{% for path in section.subsections %}
-{% set section = get_section(path=path) %}
-  <a href="{{ section.permalink | safe }}">{{ section.title }}</a>
-{% endfor %}
-{% endblock content %}
+  <a href=/faq/>FAQ</a>
+  <a href=/bounty/>Bounties</a>
 </nav>
+{% endblock content %}
