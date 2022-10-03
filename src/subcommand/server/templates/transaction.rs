@@ -3,20 +3,17 @@ use super::*;
 #[derive(Boilerplate)]
 pub(crate) struct TransactionHtml {
   txid: Txid,
-  outputs: Vec<OutPoint>,
+  transaction: Transaction,
+  network: Network,
 }
 
 impl TransactionHtml {
-  pub(crate) fn new(transaction: Transaction) -> Self {
-    let txid = transaction.txid();
-    let mut outputs = Vec::new();
-    for vout in 0..transaction.output.len() {
-      outputs.push(OutPoint {
-        txid,
-        vout: vout.try_into().unwrap(),
-      });
+  pub(crate) fn new(transaction: Transaction, network: Network) -> Self {
+    Self {
+      txid: transaction.txid(),
+      transaction,
+      network,
     }
-    Self { txid, outputs }
   }
 }
 
@@ -28,24 +25,55 @@ impl Content for TransactionHtml {
 
 #[cfg(test)]
 mod tests {
-  use {super::*, pretty_assertions::assert_eq, unindent::Unindent};
+  use {
+    super::*,
+    bitcoin::{blockdata::script, PackedLockTime, TxOut},
+    pretty_assertions::assert_eq,
+    unindent::Unindent,
+  };
 
   #[test]
   fn transaction_html() {
+    let transaction = Transaction {
+      version: 0,
+      lock_time: PackedLockTime(0),
+      input: Vec::new(),
+      output: vec![
+        TxOut {
+          value: 50 * COIN_VALUE,
+          script_pubkey: script::Builder::new().push_scriptint(0).into_script(),
+        },
+        TxOut {
+          value: 50 * COIN_VALUE,
+          script_pubkey: script::Builder::new().push_scriptint(1).into_script(),
+        },
+      ],
+    };
+
     assert_eq!(
-      TransactionHtml{
-        txid: "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b".parse().unwrap(),
-        outputs: vec![
-          "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0".parse().unwrap(),
-          "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:1".parse().unwrap(),
-        ]
-      }.to_string(),
+      TransactionHtml::new(transaction, Network::Bitcoin).to_string(),
       "
-        <h1>Transaction 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b</h1>
+        <h1>Transaction 9108ec7cbe9f1231dbf6374251b7267fb31cb23f36ed5a1d7344f5635b17dfe9</h1>
         <h2>Outputs</h2>
         <ul class=monospace>
-          <li><a href=/output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0>4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</a></li>
-          <li><a href=/output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:1>4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:1</a></li>
+          <li>
+            <a href=/output/9108ec7cbe9f1231dbf6374251b7267fb31cb23f36ed5a1d7344f5635b17dfe9:0>
+              9108ec7cbe9f1231dbf6374251b7267fb31cb23f36ed5a1d7344f5635b17dfe9:0
+            </a>
+            <dl>
+              <dt>value</dt><dd>5000000000</dd>
+              <dt>script pubkey</dt><dd>OP_0</dd>
+            </dl>
+          </li>
+          <li>
+            <a href=/output/9108ec7cbe9f1231dbf6374251b7267fb31cb23f36ed5a1d7344f5635b17dfe9:1>
+              9108ec7cbe9f1231dbf6374251b7267fb31cb23f36ed5a1d7344f5635b17dfe9:1
+            </a>
+            <dl>
+              <dt>value</dt><dd>5000000000</dd>
+              <dt>script pubkey</dt><dd>OP_PUSHBYTES_1 01</dd>
+            </dl>
+          </li>
         </ul>
       "
       .unindent()

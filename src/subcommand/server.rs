@@ -118,6 +118,7 @@ impl Server {
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
         .layer(extract::Extension(index))
+        .layer(extract::Extension(options.chain.network()))
         .layer(
           CorsLayer::new()
             .allow_methods([http::Method::GET])
@@ -372,10 +373,13 @@ impl Server {
 
   async fn transaction(
     index: extract::Extension<Arc<Index>>,
+    network: extract::Extension<Network>,
     extract::Path(txid): extract::Path<Txid>,
   ) -> impl IntoResponse {
     match index.transaction(txid) {
-      Ok(Some(transaction)) => TransactionHtml::new(transaction).page().into_response(),
+      Ok(Some(transaction)) => TransactionHtml::new(transaction, network.0)
+        .page()
+        .into_response(),
       Ok(None) => (
         StatusCode::NOT_FOUND,
         Html(
@@ -1133,7 +1137,15 @@ mod tests {
         ".*<title>Transaction {txid}</title>.*<h1>Transaction {txid}</h1>
 <h2>Outputs</h2>
 <ul class=monospace>
-  <li><a href=/output/{txid}:0>{txid}:0</a></li>
+  <li>
+    <a href=/output/9068a11b8769174363376b606af9a4b8b29dd7b13d013f4b0cbbd457db3c3ce5:0>
+      9068a11b8769174363376b606af9a4b8b29dd7b13d013f4b0cbbd457db3c3ce5:0
+    </a>
+    <dl>
+      <dt>value</dt><dd>5000000000</dd>
+      <dt>script pubkey</dt><dd></dd>
+    </dl>
+  </li>
 </ul>.*"
       ),
     );
