@@ -37,12 +37,12 @@ There are a few things you'll need before you start.
 
 2. Second, you'll need a synced `ord` index.
 
-   1. Get a copy of `ord` from [the repo](https://github.com/casey/ord/).
+   - Get a copy of `ord` from [the repo](https://github.com/casey/ord/).
 
-   2. Run `RUST_LOG=info ord index`. It should connect to your bitcoin core
-      node and start indexing.
+   - Run `RUST_LOG=info ord index`. It should connect to your bitcoin core
+     node and start indexing.
 
-   3. Wait for it to finish indexing.
+   - Wait for it to finish indexing.
 
 3. Third, you'll need a wallet with UTXOs that you want to search.
 
@@ -235,6 +235,6 @@ Navigate to the `Settings` tab, then to `Script Policy`, and press the edit butt
 ### Transferring Ordinals
 
 `ord` does not yet support transferring specific ordinals. Currently, your best
-bet is to use `bitcoin-cli createrawtransaction`, `bitcoin-cli
-signrawtransactionwithwallet`, and `bitcoin-cli sendrawtransaction`, however,
-how to do so is complex and outside the scope of this guide.
+bet is to use the `bitcoin-cli` commands `createrawtransaction`,
+`signrawtransactionwithwallet`, and `sendrawtransaction`, however, how to do so
+is complex and outside the scope of this guide.

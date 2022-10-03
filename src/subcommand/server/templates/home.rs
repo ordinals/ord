@@ -55,7 +55,7 @@ mod tests {
 <h2>Search</h2>
 <form action=/search method=get>.*</form>
 <h2>Recent Blocks</h2>
-<ol start=1 reversed class=monospace>
+<ol start=1 reversed class='blocks monospace'>
   <li><a href=/block/1{64} class=uncommon>1{64}</a></li>
   <li><a href=/block/0{64} class=mythic>0{64}</a></li>
 </ol>
