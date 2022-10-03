@@ -1,5 +1,17 @@
-Create a watch-only Bitcoin Core wallet from a descriptor
-=========================================================
+Ordinal Hunting 101
+===================
+
+Tools for the hunt
+-------------------
+
+- `bitcoind -txindex=1` fully synced to mainnet
+- `bitcoin-cli` 
+- `ord` compiled and indexed
+- wallet (containing your UTXOs) that supports exporting a [descriptor](https://github.com/bitcoin/bitcoin/blob/master/doc/descriptors.md)
+
+
+Steps
+-----
 
 1. Create a blank wallet without any private keys and load it into bitcoind
 ```bash
@@ -50,3 +62,7 @@ bitcoin-cli importdescriptors '[{ "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcv
 bitcoin-cli getwalletinfo
 ```
 
+6. Now that we have a wallet loaded we can use the `identify` command, which will list and rare ordinals contained in your UTXOs.
+```bash
+ord wallet identify 
+```
