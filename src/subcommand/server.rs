@@ -913,7 +913,7 @@ mod tests {
     TestServer::new().assert_response_regex(
       "/range/0/1",
       StatusCode::OK,
-      r".*<title>Ordinal range \[0,1\)</title>.*<h1>Ordinal range \[0,1\)</h1>
+      r".*<title>Ordinal range 0–1</title>.*<h1>Ordinal range 0–1</h1>
 <dl>
   <dt>size</dt><dd>1</dd>
   <dt>first</dt><dd><a href=/ordinal/0 class=mythic>0</a></dd>
@@ -991,7 +991,7 @@ mod tests {
 </dl>
 <h2>Ordinal Ranges</h2>
 <ul class=monospace>
-  <li><a href=/range/0/5000000000 class=mythic>\\[0,5000000000\\)</a></li>
+  <li><a href=/range/0/5000000000 class=mythic>0–5000000000</a></li>
 </ul>.*",
   );
   }

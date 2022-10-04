@@ -23,18 +23,18 @@ mod tests {
         outpoint: "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0"
           .parse()
           .unwrap(),
-        list: List::Unspent(vec![(0, 1), (1, 2)])
+        list: List::Unspent(vec![(0, 1), (1, 3)])
       }
       .to_string(),
       "
         <h1>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</h1>
         <dl>
-          <dt>size</dt><dd>2</dd>
+          <dt>size</dt><dd>3</dd>
         </dl>
         <h2>Ordinal Ranges</h2>
         <ul class=monospace>
-          <li><a href=/range/0/1 class=mythic>[0,1)</a></li>
-          <li><a href=/range/1/2 class=common>[1,2)</a></li>
+          <li><a href=/ordinal/0 class=mythic>0</a></li>
+          <li><a href=/range/1/3 class=common>1–3</a></li>
         </ul>
       "
       .unindent()
