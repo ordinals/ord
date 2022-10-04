@@ -2,7 +2,7 @@ use {
   super::*,
   bitcoin::consensus::encode::{deserialize, serialize},
   bitcoin::BlockHeader,
-  bitcoincore_rpc::{Auth, Client, RpcApi},
+  bitcoincore_rpc::{json::GetBlockHeaderResult, Auth, Client, RpcApi},
   rayon::iter::{IntoParallelRefIterator, ParallelIterator},
   redb::WriteStrategy,
   std::sync::atomic::{AtomicBool, Ordering},
@@ -425,6 +425,10 @@ impl Index {
 
   pub(crate) fn block_header(&self, hash: BlockHash) -> Result<Option<BlockHeader>> {
     self.client.get_block_header(&hash).into_option()
+  }
+
+  pub(crate) fn block_header_info(&self, hash: BlockHash) -> Result<Option<GetBlockHeaderResult>> {
+    self.client.get_block_header_info(&hash).into_option()
   }
 
   pub(crate) fn block_with_hash(&self, hash: BlockHash) -> Result<Option<Block>> {

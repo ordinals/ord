@@ -343,8 +343,39 @@ impl Server {
     extract::Path(hash): extract::Path<BlockHash>,
     index: extract::Extension<Arc<Index>>,
   ) -> impl IntoResponse {
+    let info = match index.block_header_info(hash) {
+      Ok(Some(info)) => info,
+      Ok(None) => {
+        return (
+          StatusCode::NOT_FOUND,
+          Html(
+            StatusCode::NOT_FOUND
+              .canonical_reason()
+              .unwrap_or_default()
+              .to_string(),
+          ),
+        )
+          .into_response()
+      }
+      Err(error) => {
+        eprintln!("Error serving request for block with hash {hash}: {error}");
+        return (
+          StatusCode::INTERNAL_SERVER_ERROR,
+          Html(
+            StatusCode::INTERNAL_SERVER_ERROR
+              .canonical_reason()
+              .unwrap_or_default()
+              .to_string(),
+          ),
+        )
+          .into_response();
+      }
+    };
+
     match index.block_with_hash(hash) {
-      Ok(Some(block)) => BlockHtml::new(block).page().into_response(),
+      Ok(Some(block)) => BlockHtml::new(block, Height(info.height as u64))
+        .page()
+        .into_response(),
       Ok(None) => (
         StatusCode::NOT_FOUND,
         Html(
@@ -1115,6 +1146,13 @@ mod tests {
       &format!("/block/{block_hash}"),
       StatusCode::OK,
       ".*<h1>Block [[:xdigit:]]{64}</h1>
+<dl>
+  <dt>height</dt><dd>2</dd>
+  <dt>timestamp</dt><dd>0</dd>
+  <dt>prev blockhash</dt><dd><a href=/block/659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf>659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf</a></dd>
+  <dt>size</dt><dd>203</dd>
+  <dt>weight</dt><dd>812</dd>
+</dl>
 <h2>Transactions</h2>
 <ul class=monospace>
   <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
