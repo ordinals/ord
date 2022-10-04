@@ -1153,7 +1153,7 @@ mod tests {
   <dt>weight</dt><dd>812</dd>
   <dt>prev blockhash</dt><dd><a href=/block/659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf>659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf</a></dd>
 </dl>
-<h2>Transactions</h2>
+<h2>2 Transactions</h2>
 <ul class=monospace>
   <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
   <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>

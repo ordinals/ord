@@ -43,7 +43,7 @@ mod tests {
           <dt>weight</dt><dd>1140</dd>
           <dt>prev blockhash</dt><dd><a href=/block/0000000000000000000000000000000000000000000000000000000000000000>0000000000000000000000000000000000000000000000000000000000000000</a></dd>
         </dl>
-        <h2>Transactions</h2>
+        <h2>1 Transaction</h2>
         <ul class=monospace>
           <li><a href=/tx/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b>4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b</a></li>
         </ul>

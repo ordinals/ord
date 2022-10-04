@@ -6,7 +6,7 @@
   <dt>weight</dt><dd>{{self.block.weight()}}</dd>
   <dt>prev blockhash</dt><dd><a href=/block/{{self.block.header.prev_blockhash}}>{{self.block.header.prev_blockhash}}</a></dd>
 </dl>
-<h2>Transactions</h2>
+<h2>{{"Transaction".tally(self.block.txdata.len())}}</h2>
 <ul class=monospace>
 %% for tx in &self.block.txdata {
 %% let txid = tx.txid();
