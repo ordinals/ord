@@ -1210,8 +1210,8 @@ mod tests {
     TestServer::new().assert_response(
       "/rare.txt",
       StatusCode::OK,
-      "ordinal\tdecimal\tdegree\trarity\tsatpoint
-0\t0.0\t0°0′0″0‴\tmythic\t4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0
+      "ordinal\tsatpoint
+0\t4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0
 ",
     );
   }
