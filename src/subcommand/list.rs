@@ -2,6 +2,7 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct List {
+  #[clap(help = "List ordinal ranges in <OUTPOINT>.")]
   outpoint: OutPoint,
 }
 

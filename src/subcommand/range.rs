@@ -2,8 +2,9 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Range {
-  #[clap(long)]
+  #[clap(long, help = "Display range as names.")]
   name: bool,
+  #[clap(help = "List ordinal range in subsidy at <HEIGHT>.")]
   height: Height,
 }
 
