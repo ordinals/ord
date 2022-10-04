@@ -33,8 +33,8 @@ mod tests {
         </dl>
         <h2>Ordinal Ranges</h2>
         <ul class=monospace>
-          <li><a href=/range/0/1 class=mythic>[0,1)</a></li>
-          <li><a href=/range/1/2 class=common>[1,2)</a></li>
+          <li><a href=/range/0/1 class=mythic>0–1</a></li>
+          <li><a href=/range/1/2 class=common>1–2</a></li>
         </ul>
       "
       .unindent()
