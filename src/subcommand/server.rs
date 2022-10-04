@@ -1020,7 +1020,7 @@ mod tests {
 <dl>
   <dt>size</dt><dd>5000000000</dd>
 </dl>
-<h2>Ordinal Ranges</h2>
+<h2>1 Ordinal Range</h2>
 <ul class=monospace>
   <li><a href=/range/0/5000000000 class=mythic>\\[0,5000000000\\)</a></li>
 </ul>.*",
@@ -1173,7 +1173,7 @@ mod tests {
       StatusCode::OK,
       &format!(
         ".*<title>Transaction {txid}</title>.*<h1>Transaction {txid}</h1>
-<h2>Outputs</h2>
+<h2>1 Output</h2>
 <ul class=monospace>
   <li>
     <a href=/output/9068a11b8769174363376b606af9a4b8b29dd7b13d013f4b0cbbd457db3c3ce5:0>

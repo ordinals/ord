@@ -4,7 +4,7 @@
 <dl>
   <dt>size</dt><dd>{{ranges.iter().map(|(start, end)| end - start).sum::<u64>()}}</dd>
 </dl>
-<h2>Ordinal Ranges</h2>
+<h2>{{"Ordinal Range".tally(ranges.len())}}</h2>
 <ul class=monospace>
 %% for (start, end) in ranges {
   <li><a href=/range/{{start}}/{{end}} class={{Ordinal(*start).rarity()}}>[{{start}},{{end}})</a></li>
