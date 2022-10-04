@@ -8,7 +8,7 @@ pub(crate) struct RangeHtml {
 
 impl Content for RangeHtml {
   fn title(&self) -> String {
-    format!("Ordinal range [{},{})", self.start, self.end)
+    format!("Ordinal range {}–{}", self.start, self.end)
   }
 }
 
@@ -25,7 +25,7 @@ mod tests {
       }
       .to_string(),
       "
-        <h1>Ordinal range [0,1)</h1>
+        <h1>Ordinal range 0–1</h1>
         <dl>
           <dt>size</dt><dd>1</dd>
           <dt>first</dt><dd><a href=/ordinal/0 class=mythic>0</a></dd>
@@ -44,7 +44,7 @@ mod tests {
       }
       .to_string(),
       "
-        <h1>Ordinal range [1,10)</h1>
+        <h1>Ordinal range 1–10</h1>
         <dl>
           <dt>size</dt><dd>9</dd>
           <dt>first</dt><dd><a href=/ordinal/1 class=common>1</a></dd>

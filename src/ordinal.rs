@@ -52,10 +52,6 @@ impl Ordinal {
     self.into()
   }
 
-  pub(crate) fn prime(self) -> bool {
-    primes::is_prime(self.0)
-  }
-
   pub(crate) fn name(self) -> String {
     let mut x = Self::SUPPLY - self.0;
     let mut name = String::new();

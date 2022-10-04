@@ -857,7 +857,7 @@ mod tests {
     TestServer::new().assert_response_regex(
       "/range/0/1",
       StatusCode::OK,
-      r".*<title>Ordinal range \[0,1\)</title>.*<h1>Ordinal range \[0,1\)</h1>
+      r".*<title>Ordinal range 0–1</title>.*<h1>Ordinal range 0–1</h1>
 <dl>
   <dt>size</dt><dd>1</dd>
   <dt>first</dt><dd><a href=/ordinal/0 class=mythic>0</a></dd>
@@ -935,7 +935,7 @@ mod tests {
 </dl>
 <h2>Ordinal Ranges</h2>
 <ul class=monospace>
-  <li><a href=/range/0/5000000000 class=mythic>\\[0,5000000000\\)</a></li>
+  <li><a href=/range/0/5000000000 class=mythic>0–5000000000</a></li>
 </ul>.*",
   );
   }
@@ -970,7 +970,12 @@ mod tests {
     ".*<title>Ordinals</title>.*<h1>Ordinals</h1>
 <nav>.*</nav>
 .*
-<h2>Recent Blocks</h2>
+<h2>Latest Blocks</h2>
+<dl>
+  <dt>cycle</dt><dd>0</dd>
+  <dt>epoch</dt><dd>0</dd>
+  <dt>period</dt><dd>0</dd>
+</dl>
 <ol start=1 reversed class='blocks monospace'>
   <li><a href=/block/[[:xdigit:]]{64} class=uncommon>[[:xdigit:]]{64}</a></li>
   <li><a href=/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f class=mythic>000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</a></li>
@@ -982,12 +987,12 @@ mod tests {
   fn home_block_limit() {
     let test_server = TestServer::new();
 
-    test_server.bitcoin_rpc_server.mine_blocks(200);
+    test_server.bitcoin_rpc_server.mine_blocks(101);
 
     test_server.assert_response_regex(
     "/",
     StatusCode::OK,
-    ".*<ol start=200 reversed class='blocks monospace'>\n(  <li><a href=/block/[[:xdigit:]]{64} class=uncommon>[[:xdigit:]]{64}</a></li>\n){100}</ol>.*"
+    ".*<ol start=101 reversed class='blocks monospace'>\n(  <li><a href=/block/[[:xdigit:]]{64} class=uncommon>[[:xdigit:]]{64}</a></li>\n){100}</ol>.*"
   );
   }
 
