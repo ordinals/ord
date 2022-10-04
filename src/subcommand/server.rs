@@ -30,6 +30,13 @@ use {
 mod deserialize_ordinal_from_str;
 mod templates;
 
+fn html_status(status_code: StatusCode) -> (StatusCode, Html<&'static str>) {
+  (
+    status_code,
+    Html(status_code.canonical_reason().unwrap_or_default()),
+  )
+}
+
 #[derive(Deserialize)]
 struct Search {
   query: String,
@@ -245,16 +252,7 @@ impl Server {
       Ok(height) => ClockSvg::new(height).into_response(),
       Err(err) => {
         eprintln!("Failed to retrieve height from index: {err}");
-        (
-          StatusCode::INTERNAL_SERVER_ERROR,
-          Html(
-            StatusCode::INTERNAL_SERVER_ERROR
-              .canonical_reason()
-              .unwrap_or_default()
-              .to_string(),
-          ),
-        )
-          .into_response()
+        html_status(StatusCode::INTERNAL_SERVER_ERROR).into_response()
       }
     }
   }
@@ -267,16 +265,7 @@ impl Server {
       Ok(blocktime) => OrdinalHtml { ordinal, blocktime }.page().into_response(),
       Err(err) => {
         eprintln!("Failed to retrieve blocktime from index: {err}");
-        (
-          StatusCode::INTERNAL_SERVER_ERROR,
-          Html(
-            StatusCode::INTERNAL_SERVER_ERROR
-              .canonical_reason()
-              .unwrap_or_default()
-              .to_string(),
-          ),
-        )
-          .into_response()
+        html_status(StatusCode::INTERNAL_SERVER_ERROR).into_response()
       }
     }
   }
@@ -290,16 +279,7 @@ impl Server {
       Ok(None) => (StatusCode::NOT_FOUND, Html("Output unknown.".to_string())).into_response(),
       Err(err) => {
         eprintln!("Error serving request for output: {err}");
-        (
-          StatusCode::INTERNAL_SERVER_ERROR,
-          Html(
-            StatusCode::INTERNAL_SERVER_ERROR
-              .canonical_reason()
-              .unwrap_or_default()
-              .to_string(),
-          ),
-        )
-          .into_response()
+        html_status(StatusCode::INTERNAL_SERVER_ERROR).into_response()
       }
     }
   }
@@ -325,16 +305,7 @@ impl Server {
       Ok(blocks) => HomeHtml::new(blocks).page().into_response(),
       Err(err) => {
         eprintln!("Error getting blocks: {err}");
-        (
-          StatusCode::INTERNAL_SERVER_ERROR,
-          Html(
-            StatusCode::INTERNAL_SERVER_ERROR
-              .canonical_reason()
-              .unwrap_or_default()
-              .to_string(),
-          ),
-        )
-          .into_response()
+        html_status(StatusCode::INTERNAL_SERVER_ERROR).into_response()
       }
     }
   }
@@ -357,16 +328,7 @@ impl Server {
         .into_response(),
       Err(error) => {
         eprintln!("Error serving request for block with hash {hash}: {error}");
-        (
-          StatusCode::INTERNAL_SERVER_ERROR,
-          Html(
-            StatusCode::INTERNAL_SERVER_ERROR
-              .canonical_reason()
-              .unwrap_or_default()
-              .to_string(),
-          ),
-        )
-          .into_response()
+        html_status(StatusCode::INTERNAL_SERVER_ERROR).into_response()
       }
     }
   }
@@ -380,28 +342,10 @@ impl Server {
       Ok(Some(transaction)) => TransactionHtml::new(transaction, network.0)
         .page()
         .into_response(),
-      Ok(None) => (
-        StatusCode::NOT_FOUND,
-        Html(
-          StatusCode::NOT_FOUND
-            .canonical_reason()
-            .unwrap_or_default()
-            .to_string(),
-        ),
-      )
-        .into_response(),
+      Ok(None) => html_status(StatusCode::NOT_FOUND).into_response(),
       Err(error) => {
         eprintln!("Error serving request for transaction with txid {txid}: {error}");
-        (
-          StatusCode::INTERNAL_SERVER_ERROR,
-          Html(
-            StatusCode::INTERNAL_SERVER_ERROR
-              .canonical_reason()
-              .unwrap_or_default()
-              .to_string(),
-          ),
-        )
-          .into_response()
+        html_status(StatusCode::INTERNAL_SERVER_ERROR).into_response()
       }
     }
   }
