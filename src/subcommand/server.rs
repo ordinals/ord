@@ -5,7 +5,7 @@ use {
     deserialize_ordinal_from_str::DeserializeOrdinalFromStr,
     templates::{
       block::BlockHtml, clock::ClockSvg, home::HomeHtml, ordinal::OrdinalHtml, output::OutputHtml,
-      range::RangeHtml, transaction::TransactionHtml, Content,
+      range::RangeHtml, transaction::TransactionHtml, Content, PageHtml,
     },
   },
   axum::{
@@ -29,6 +29,31 @@ use {
 
 mod deserialize_ordinal_from_str;
 mod templates;
+
+enum ServerError {
+  InternalError(Error),
+  NotFound(String),
+}
+
+impl IntoResponse for ServerError {
+  fn into_response(self) -> Response {
+    match self {
+      Self::InternalError(error) => {
+        eprintln!("error serving request: {error}");
+        (
+          StatusCode::INTERNAL_SERVER_ERROR,
+          Html(
+            StatusCode::INTERNAL_SERVER_ERROR
+              .canonical_reason()
+              .unwrap_or_default(),
+          ),
+        )
+          .into_response()
+      }
+      Self::NotFound(message) => (StatusCode::NOT_FOUND, Html(message)).into_response(),
+    }
+  }
+}
 
 #[derive(Deserialize)]
 struct Search {
@@ -284,24 +309,31 @@ impl Server {
   async fn output(
     index: extract::Extension<Arc<Index>>,
     extract::Path(outpoint): extract::Path<OutPoint>,
-  ) -> impl IntoResponse {
-    match index.list(outpoint) {
-      Ok(Some(list)) => OutputHtml { outpoint, list }.page().into_response(),
-      Ok(None) => (StatusCode::NOT_FOUND, Html("Output unknown.".to_string())).into_response(),
-      Err(err) => {
-        eprintln!("Error serving request for output: {err}");
-        (
-          StatusCode::INTERNAL_SERVER_ERROR,
-          Html(
-            StatusCode::INTERNAL_SERVER_ERROR
-              .canonical_reason()
-              .unwrap_or_default()
-              .to_string(),
-          ),
-        )
-          .into_response()
+    network: extract::Extension<Network>,
+  ) -> Result<PageHtml, ServerError> {
+    let list = index
+      .list(outpoint)
+      .map_err(ServerError::InternalError)?
+      .ok_or_else(|| ServerError::NotFound(format!("Output {outpoint} unknown")))?;
+
+    let output = index
+      .transaction(outpoint.txid)
+      .map_err(ServerError::InternalError)?
+      .ok_or_else(|| ServerError::NotFound(format!("Output {outpoint} unknown")))?
+      .output
+      .into_iter()
+      .nth(outpoint.vout as usize)
+      .ok_or_else(|| ServerError::NotFound(format!("Output {outpoint} unknown")))?;
+
+    Ok(
+      OutputHtml {
+        outpoint,
+        list,
+        network: network.0,
+        output,
       }
-    }
+      .page(),
+    )
   }
 
   async fn range(
@@ -1019,6 +1051,7 @@ mod tests {
     ".*<title>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</title>.*<h1>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</h1>
 <dl>
   <dt>value</dt><dd>5000000000</dd>
+  <dt>script pubkey</dt><dd>OP_PUSHBYTES_65 04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f OP_CHECKSIG</dd>
 </dl>
 <h2>1 Ordinal Range</h2>
 <ul class=monospace>
@@ -1032,7 +1065,7 @@ mod tests {
     TestServer::new().assert_response(
       "/output/0000000000000000000000000000000000000000000000000000000000000000:0",
       StatusCode::NOT_FOUND,
-      "Output unknown.",
+      "Output 0000000000000000000000000000000000000000000000000000000000000000:0 unknown",
     );
   }
 
