@@ -48,8 +48,13 @@ test-deploy:
     . root@192.168.56.4:ord
   ssh root@192.168.56.4 'cd ord && ./deploy/setup'
 
-report-test-time:
+time-tests:
   cargo +nightly test -- -Z unstable-options --report-time
+
+profile-tests:
+  cargo +nightly test -- -Z unstable-options --report-time \
+    | sed -n 's/^test \(.*\) ... ok <\(.*\)s>/\2 \1/p' | sort -n \
+    | tee test-times.txt
 
 status:
   ssh root@65.108.68.37 systemctl status bitcoind

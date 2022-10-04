@@ -1043,12 +1043,12 @@ mod tests {
   fn home_block_limit() {
     let test_server = TestServer::new();
 
-    test_server.bitcoin_rpc_server.mine_blocks(200);
+    test_server.bitcoin_rpc_server.mine_blocks(101);
 
     test_server.assert_response_regex(
     "/",
     StatusCode::OK,
-    ".*<ol start=200 reversed class='blocks monospace'>\n(  <li><a href=/block/[[:xdigit:]]{64} class=uncommon>[[:xdigit:]]{64}</a></li>\n){100}</ol>.*"
+    ".*<ol start=101 reversed class='blocks monospace'>\n(  <li><a href=/block/[[:xdigit:]]{64} class=uncommon>[[:xdigit:]]{64}</a></li>\n){100}</ol>.*"
   );
   }
 
