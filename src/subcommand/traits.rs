@@ -2,6 +2,7 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Traits {
+  #[clap(help = "Show traits for <ORDINAL>.")]
   ordinal: Ordinal,
 }
 
