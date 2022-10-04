@@ -1149,9 +1149,9 @@ mod tests {
 <dl>
   <dt>height</dt><dd>2</dd>
   <dt>timestamp</dt><dd>0</dd>
-  <dt>prev blockhash</dt><dd><a href=/block/659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf>659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf</a></dd>
   <dt>size</dt><dd>203</dd>
   <dt>weight</dt><dd>812</dd>
+  <dt>prev blockhash</dt><dd><a href=/block/659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf>659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf</a></dd>
 </dl>
 <h2>Transactions</h2>
 <ul class=monospace>
