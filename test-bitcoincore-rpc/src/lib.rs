@@ -4,11 +4,15 @@ use {
     hash_types::BlockHash, hashes::Hash, Amount, Block, BlockHeader, Network, OutPoint,
     PackedLockTime, Script, Sequence, Transaction, TxIn, TxMerkleNode, TxOut, Txid, Witness, Wtxid,
   },
-  bitcoincore_rpc_json::{GetRawTransactionResult, ListUnspentResultEntry},
+  bitcoincore_rpc_json::{
+    CreateRawTransactionInput, GetRawTransactionResult, ListUnspentResultEntry, SigHashType,
+    SignRawTransactionInput,
+  },
   jsonrpc_core::{IoHandler, Value},
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
   std::collections::BTreeMap,
   std::{
+    collections::HashMap,
     sync::{Arc, Mutex},
     thread,
   },
@@ -198,6 +202,32 @@ pub trait Api {
   #[rpc(name = "getblock")]
   fn getblock(&self, blockhash: BlockHash, verbosity: u64) -> Result<String, jsonrpc_core::Error>;
 
+  #[rpc(name = "createrawtransaction")]
+  fn create_raw_transaction(
+    utxos: &[CreateRawTransactionInput],
+    outs: &HashMap<String, Amount>,
+    locktime: Option<i64>,
+    replaceable: Option<bool>,
+  ) -> Result<String, jsonrpc_core::Error>;
+
+  #[rpc(name = "signrawtransactionwithwallet")]
+  fn sign_raw_transaction_with_wallet(
+    &self,
+    tx: String,
+    utxos: Option<&[SignRawTransactionInput]>,
+    sighash_type: Option<SigHashType>,
+  ) -> Result<String, jsonrpc_core::Error>;
+
+  #[rpc(name = "sendrawtransaction")]
+  fn send_raw_transaction(&self, tx: String) -> Result<String, jsonrpc_core::Error>;
+
+  #[rpc(name = "gettransaction")]
+  fn get_transaction(
+    &self,
+    txid: Txid,
+    include_watchonly: Option<bool>,
+  ) -> Result<Value, jsonrpc_core::Error>;
+
   #[rpc(name = "getrawtransaction")]
   fn get_raw_transaction(
     &self,
@@ -249,6 +279,24 @@ impl Api for Server {
         jsonrpc_core::types::error::ErrorCode::ServerError(-8),
       )),
     }
+  }
+
+  fn get_transaction(
+    &self,
+    txid: Txid,
+    include_watchonly: Option<bool>,
+  ) -> Result<Value, jsonrpc_core::Error> {
+    assert_eq!(include_watchonly, None, "include_watchonly param not supported");
+    self.state.lock().unwrap().transactions.get(&txid) {
+       
+    }
+    GetTransactionResult {
+    info: WalletTxInfo {},
+    amount: SignedAmount::from_sat(0),
+    fee: None,
+    details: Vec::new(),
+    hex: Vec<u8>,
+}
   }
 
   fn get_raw_transaction(

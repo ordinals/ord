@@ -2,6 +2,7 @@ use {super::*, bitcoincore_rpc::RpcApi};
 
 mod identify;
 mod list;
+mod send;
 
 fn list_unspent(options: Options) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
   let index = Index::open(&options)?;
@@ -27,6 +28,7 @@ fn list_unspent(options: Options) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
 pub(crate) enum Wallet {
   Identify,
   List,
+  Send(send::Send),
 }
 
 impl Wallet {
@@ -34,6 +36,7 @@ impl Wallet {
     match self {
       Self::Identify => identify::run(options),
       Self::List => list::run(options),
+      Self::Send(send) => send.run(options),
     }
   }
 }

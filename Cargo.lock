@@ -1925,6 +1925,7 @@ dependencies = [
  "axum-server",
  "bitcoin",
  "bitcoincore-rpc",
+ "bitcoincore-rpc-json",
  "boilerplate",
  "chrono",
  "clap",
