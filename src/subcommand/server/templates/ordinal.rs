@@ -36,7 +36,6 @@ mod tests {
           <dt>period</dt><dd>0</dd>
           <dt>offset</dt><dd>0</dd>
           <dt>rarity</dt><dd><span class=mythic>mythic</span></dd>
-          <dt>prime</dt><dd>false</dd>
           <dt>time</dt><dd>1970-01-01 00:00:00</dd>
           <dt>percentile</dt><dd>0%</dd>
         </dl>
@@ -44,18 +43,6 @@ mod tests {
         <a href=/ordinal/1>next</a>
       "
       .unindent()
-    );
-  }
-
-  #[test]
-  fn two_is_prime() {
-    assert_regex_match!(
-      OrdinalHtml {
-        ordinal: Ordinal(2),
-        blocktime: Blocktime::Confirmed(0),
-      }
-      .to_string(),
-      ".*<dt>prime</dt><dd>true</dd>.*",
     );
   }
 
@@ -79,7 +66,6 @@ mod tests {
           <dt>period</dt><dd>0</dd>
           <dt>offset</dt><dd>1</dd>
           <dt>rarity</dt><dd><span class=common>common</span></dd>
-          <dt>prime</dt><dd>false</dd>
           <dt>time</dt><dd>1970-01-01 00:00:00</dd>
           <dt>percentile</dt><dd>0.000000000000047619047671428595%</dd>
         </dl>
