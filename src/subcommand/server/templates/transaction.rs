@@ -54,7 +54,7 @@ mod tests {
       TransactionHtml::new(transaction, Network::Bitcoin).to_string(),
       "
         <h1>Transaction 9108ec7cbe9f1231dbf6374251b7267fb31cb23f36ed5a1d7344f5635b17dfe9</h1>
-        <h2>Outputs</h2>
+        <h2>2 Outputs</h2>
         <ul class=monospace>
           <li>
             <a href=/output/9108ec7cbe9f1231dbf6374251b7267fb31cb23f36ed5a1d7344f5635b17dfe9:0>

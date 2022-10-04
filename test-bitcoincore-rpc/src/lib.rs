@@ -4,12 +4,12 @@ use {
     hash_types::BlockHash, hashes::Hash, Amount, Block, BlockHeader, Network, OutPoint,
     PackedLockTime, Script, Sequence, Transaction, TxIn, TxMerkleNode, TxOut, Txid, Witness, Wtxid,
   },
-  bitcoincore_rpc_json::{GetRawTransactionResult, ListUnspentResultEntry},
+  bitcoincore_rpc_json::{GetBlockHeaderResult, GetRawTransactionResult, ListUnspentResultEntry},
   jsonrpc_core::{IoHandler, Value},
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
   std::collections::BTreeMap,
   std::{
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex, MutexGuard},
     thread,
   },
 };
@@ -181,6 +181,14 @@ impl Server {
       state: Arc::new(Mutex::new(State::new())),
     }
   }
+
+  fn state(&self) -> MutexGuard<State> {
+    self.state.lock().unwrap()
+  }
+
+  fn not_found() -> jsonrpc_core::Error {
+    jsonrpc_core::Error::new(jsonrpc_core::types::error::ErrorCode::ServerError(-8))
+  }
 }
 
 #[jsonrpc_derive::rpc]
@@ -191,9 +199,9 @@ pub trait Api {
   #[rpc(name = "getblockheader")]
   fn getblockheader(
     &self,
-    blockhash: BlockHash,
+    block_hash: BlockHash,
     verbose: bool,
-  ) -> Result<String, jsonrpc_core::Error>;
+  ) -> Result<Value, jsonrpc_core::Error>;
 
   #[rpc(name = "getblock")]
   fn getblock(&self, blockhash: BlockHash, verbosity: u64) -> Result<String, jsonrpc_core::Error>;
@@ -219,11 +227,9 @@ pub trait Api {
 
 impl Api for Server {
   fn getblockhash(&self, height: usize) -> Result<BlockHash, jsonrpc_core::Error> {
-    match self.state.lock().unwrap().hashes.get(height) {
+    match self.state().hashes.get(height) {
       Some(block_hash) => Ok(*block_hash),
-      None => Err(jsonrpc_core::Error::new(
-        jsonrpc_core::types::error::ErrorCode::ServerError(-8),
-      )),
+      None => Err(Self::not_found()),
     }
   }
 
@@ -231,23 +237,51 @@ impl Api for Server {
     &self,
     block_hash: BlockHash,
     verbose: bool,
-  ) -> Result<String, jsonrpc_core::Error> {
-    assert!(!verbose);
-    match self.state.lock().unwrap().blocks.get(&block_hash) {
-      Some(block) => Ok(hex::encode(serialize(&block.header))),
-      None => Err(jsonrpc_core::Error::new(
-        jsonrpc_core::types::error::ErrorCode::ServerError(-8),
-      )),
+  ) -> Result<Value, jsonrpc_core::Error> {
+    if verbose {
+      let height = match self
+        .state()
+        .hashes
+        .iter()
+        .position(|hash| *hash == block_hash)
+      {
+        Some(height) => height,
+        None => return Err(Self::not_found()),
+      };
+
+      Ok(
+        serde_json::to_value(GetBlockHeaderResult {
+          bits: String::new(),
+          chainwork: Vec::new(),
+          confirmations: 0,
+          difficulty: 0.0,
+          hash: block_hash,
+          height,
+          median_time: None,
+          merkle_root: TxMerkleNode::all_zeros(),
+          n_tx: 0,
+          next_block_hash: None,
+          nonce: 0,
+          previous_block_hash: None,
+          time: 0,
+          version: 0,
+          version_hex: Some(vec![0, 0, 0, 0]),
+        })
+        .unwrap(),
+      )
+    } else {
+      match self.state().blocks.get(&block_hash) {
+        Some(block) => Ok(serde_json::to_value(hex::encode(serialize(&block.header))).unwrap()),
+        None => Err(Self::not_found()),
+      }
     }
   }
 
   fn getblock(&self, block_hash: BlockHash, verbosity: u64) -> Result<String, jsonrpc_core::Error> {
     assert_eq!(verbosity, 0, "Verbosity level {verbosity} is unsupported");
-    match self.state.lock().unwrap().blocks.get(&block_hash) {
+    match self.state().blocks.get(&block_hash) {
       Some(block) => Ok(hex::encode(serialize(block))),
-      None => Err(jsonrpc_core::Error::new(
-        jsonrpc_core::types::error::ErrorCode::ServerError(-8),
-      )),
+      None => Err(Self::not_found()),
     }
   }
 
@@ -259,7 +293,7 @@ impl Api for Server {
   ) -> Result<Value, jsonrpc_core::Error> {
     assert_eq!(blockhash, None, "Blockhash param is unsupported");
     if verbose {
-      match self.state.lock().unwrap().transactions.get(&txid) {
+      match self.state().transactions.get(&txid) {
         Some(_) => Ok(
           serde_json::to_value(GetRawTransactionResult {
             in_active_chain: None,
@@ -279,16 +313,12 @@ impl Api for Server {
           })
           .unwrap(),
         ),
-        None => Err(jsonrpc_core::Error::new(
-          jsonrpc_core::types::error::ErrorCode::ServerError(-8),
-        )),
+        None => Err(Self::not_found()),
       }
     } else {
-      match self.state.lock().unwrap().transactions.get(&txid) {
+      match self.state().transactions.get(&txid) {
         Some(tx) => Ok(Value::String(hex::encode(serialize(tx)))),
-        None => Err(jsonrpc_core::Error::new(
-          jsonrpc_core::types::error::ErrorCode::ServerError(-8),
-        )),
+        None => Err(Self::not_found()),
       }
     }
   }
@@ -308,9 +338,7 @@ impl Api for Server {
     assert_eq!(query_options, None, "query_options param not supported");
     Ok(
       self
-        .state
-        .lock()
-        .unwrap()
+        .state()
         .transactions
         .iter()
         .flat_map(|(txid, tx)| {
@@ -346,21 +374,25 @@ impl Handle {
     format!("http://127.0.0.1:{}", self.port)
   }
 
+  fn state(&self) -> MutexGuard<State> {
+    self.state.lock().unwrap()
+  }
+
   pub fn mine_blocks(&self, num: u64) -> Vec<Block> {
     let mut bitcoin_rpc_data = self.state.lock().unwrap();
     (0..num).map(|_| bitcoin_rpc_data.push_block()).collect()
   }
 
   pub fn broadcast_tx(&self, options: TransactionTemplate) -> Txid {
-    self.state.lock().unwrap().broadcast_tx(options)
+    self.state().broadcast_tx(options)
   }
 
   pub fn invalidate_tip(&self) -> BlockHash {
-    self.state.lock().unwrap().pop_block()
+    self.state().pop_block()
   }
 
   pub fn tx(&self, bi: usize, ti: usize) -> Transaction {
-    let state = self.state.lock().unwrap();
+    let state = self.state();
     state.blocks[&state.hashes[bi]].txdata[ti].clone()
   }
 }

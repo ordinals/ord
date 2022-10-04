@@ -2,7 +2,7 @@ use {
   super::*,
   bitcoin::consensus::encode::{deserialize, serialize},
   bitcoin::BlockHeader,
-  bitcoincore_rpc::{Auth, Client, RpcApi},
+  bitcoincore_rpc::{json::GetBlockHeaderResult, Auth, Client, RpcApi},
   rayon::iter::{IntoParallelRefIterator, ParallelIterator},
   redb::WriteStrategy,
   std::sync::atomic::{AtomicBool, Ordering},
@@ -21,6 +21,8 @@ pub(crate) struct Index {
   database_path: PathBuf,
   height_limit: Option<u64>,
   reorged: AtomicBool,
+  genesis_block_coinbase_txid: Txid,
+  genesis_block_coinbase_transaction: Transaction,
 }
 
 #[derive(Debug, PartialEq)]
@@ -103,12 +105,20 @@ impl Index {
 
     tx.commit()?;
 
+    let genesis_block_coinbase_transaction =
+      bitcoin::blockdata::constants::genesis_block(options.chain.network())
+        .coinbase()
+        .unwrap()
+        .clone();
+
     Ok(Self {
       client,
       database,
       database_path,
       height_limit: options.height_limit,
       reorged: AtomicBool::new(false),
+      genesis_block_coinbase_txid: genesis_block_coinbase_transaction.txid(),
+      genesis_block_coinbase_transaction,
     })
   }
 
@@ -427,12 +437,20 @@ impl Index {
     self.client.get_block_header(&hash).into_option()
   }
 
+  pub(crate) fn block_header_info(&self, hash: BlockHash) -> Result<Option<GetBlockHeaderResult>> {
+    self.client.get_block_header_info(&hash).into_option()
+  }
+
   pub(crate) fn block_with_hash(&self, hash: BlockHash) -> Result<Option<Block>> {
     self.client.get_block(&hash).into_option()
   }
 
   pub(crate) fn transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
-    self.client.get_raw_transaction(&txid, None).into_option()
+    if txid == self.genesis_block_coinbase_txid {
+      Ok(Some(self.genesis_block_coinbase_transaction.clone()))
+    } else {
+      self.client.get_raw_transaction(&txid, None).into_option()
+    }
   }
 
   pub(crate) fn is_transaction_in_active_chain(&self, txid: Txid) -> Result<bool> {

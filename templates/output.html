@@ -1,10 +1,14 @@
 <h1>Output {{self.outpoint}}</h1>
+<dl>
+  <dt>value</dt><dd>{{ self.output.value }}</dd>
+  <dt>script pubkey</dt><dd>{{ self.output.script_pubkey.asm() }}</dd>
+%% if let Ok(address) = Address::from_script(&self.output.script_pubkey, self.network) {
+  <dt>address</dt><dd>{{ address }}</dd>
+%% }
+</dl>
 %% match &self.list {
 %% List::Unspent(ranges) => {
-<dl>
-  <dt>size</dt><dd>{{ranges.iter().map(|(start, end)| end - start).sum::<u64>()}}</dd>
-</dl>
-<h2>Ordinal Ranges</h2>
+<h2>{{"Ordinal Range".tally(ranges.len())}}</h2>
 <ul class=monospace>
 %% for (start, end) in ranges {
 %% if end - start == 1 {

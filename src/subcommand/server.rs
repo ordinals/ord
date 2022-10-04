@@ -5,7 +5,7 @@ use {
     deserialize_ordinal_from_str::DeserializeOrdinalFromStr,
     templates::{
       block::BlockHtml, clock::ClockSvg, home::HomeHtml, ordinal::OrdinalHtml, output::OutputHtml,
-      range::RangeHtml, transaction::TransactionHtml, Content,
+      range::RangeHtml, transaction::TransactionHtml, Content, PageHtml,
     },
   },
   axum::{
@@ -29,6 +29,31 @@ use {
 
 mod deserialize_ordinal_from_str;
 mod templates;
+
+enum ServerError {
+  InternalError(Error),
+  NotFound(String),
+}
+
+impl IntoResponse for ServerError {
+  fn into_response(self) -> Response {
+    match self {
+      Self::InternalError(error) => {
+        eprintln!("error serving request: {error}");
+        (
+          StatusCode::INTERNAL_SERVER_ERROR,
+          Html(
+            StatusCode::INTERNAL_SERVER_ERROR
+              .canonical_reason()
+              .unwrap_or_default(),
+          ),
+        )
+          .into_response()
+      }
+      Self::NotFound(message) => (StatusCode::NOT_FOUND, Html(message)).into_response(),
+    }
+  }
+}
 
 fn html_status(status_code: StatusCode) -> (StatusCode, Html<&'static str>) {
   (
@@ -273,15 +298,31 @@ impl Server {
   async fn output(
     index: extract::Extension<Arc<Index>>,
     extract::Path(outpoint): extract::Path<OutPoint>,
-  ) -> impl IntoResponse {
-    match index.list(outpoint) {
-      Ok(Some(list)) => OutputHtml { outpoint, list }.page().into_response(),
-      Ok(None) => (StatusCode::NOT_FOUND, Html("Output unknown.".to_string())).into_response(),
-      Err(err) => {
-        eprintln!("Error serving request for output: {err}");
-        html_status(StatusCode::INTERNAL_SERVER_ERROR).into_response()
+    network: extract::Extension<Network>,
+  ) -> Result<PageHtml, ServerError> {
+    let list = index
+      .list(outpoint)
+      .map_err(ServerError::InternalError)?
+      .ok_or_else(|| ServerError::NotFound(format!("Output {outpoint} unknown")))?;
+
+    let output = index
+      .transaction(outpoint.txid)
+      .map_err(ServerError::InternalError)?
+      .ok_or_else(|| ServerError::NotFound(format!("Output {outpoint} unknown")))?
+      .output
+      .into_iter()
+      .nth(outpoint.vout as usize)
+      .ok_or_else(|| ServerError::NotFound(format!("Output {outpoint} unknown")))?;
+
+    Ok(
+      OutputHtml {
+        outpoint,
+        list,
+        network: network.0,
+        output,
       }
-    }
+      .page(),
+    )
   }
 
   async fn range(
@@ -314,8 +355,39 @@ impl Server {
     extract::Path(hash): extract::Path<BlockHash>,
     index: extract::Extension<Arc<Index>>,
   ) -> impl IntoResponse {
+    let info = match index.block_header_info(hash) {
+      Ok(Some(info)) => info,
+      Ok(None) => {
+        return (
+          StatusCode::NOT_FOUND,
+          Html(
+            StatusCode::NOT_FOUND
+              .canonical_reason()
+              .unwrap_or_default()
+              .to_string(),
+          ),
+        )
+          .into_response()
+      }
+      Err(error) => {
+        eprintln!("Error serving request for block with hash {hash}: {error}");
+        return (
+          StatusCode::INTERNAL_SERVER_ERROR,
+          Html(
+            StatusCode::INTERNAL_SERVER_ERROR
+              .canonical_reason()
+              .unwrap_or_default()
+              .to_string(),
+          ),
+        )
+          .into_response();
+      }
+    };
+
     match index.block_with_hash(hash) {
-      Ok(Some(block)) => BlockHtml::new(block).page().into_response(),
+      Ok(Some(block)) => BlockHtml::new(block, Height(info.height as u64))
+        .page()
+        .into_response(),
       Ok(None) => (
         StatusCode::NOT_FOUND,
         Html(
@@ -859,7 +931,7 @@ mod tests {
       StatusCode::OK,
       r".*<title>Ordinal range 0–1</title>.*<h1>Ordinal range 0–1</h1>
 <dl>
-  <dt>size</dt><dd>1</dd>
+  <dt>value</dt><dd>1</dd>
   <dt>first</dt><dd><a href=/ordinal/0 class=mythic>0</a></dd>
 </dl>.*",
     );
@@ -931,9 +1003,10 @@ mod tests {
     StatusCode::OK,
     ".*<title>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</title>.*<h1>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</h1>
 <dl>
-  <dt>size</dt><dd>5000000000</dd>
+  <dt>value</dt><dd>5000000000</dd>
+  <dt>script pubkey</dt><dd>OP_PUSHBYTES_65 04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f OP_CHECKSIG</dd>
 </dl>
-<h2>Ordinal Ranges</h2>
+<h2>1 Ordinal Range</h2>
 <ul class=monospace>
   <li><a href=/range/0/5000000000 class=mythic>0–5000000000</a></li>
 </ul>.*",
@@ -945,7 +1018,7 @@ mod tests {
     TestServer::new().assert_response(
       "/output/0000000000000000000000000000000000000000000000000000000000000000:0",
       StatusCode::NOT_FOUND,
-      "Output unknown.",
+      "Output 0000000000000000000000000000000000000000000000000000000000000000:0 unknown",
     );
   }
 
@@ -1064,7 +1137,14 @@ mod tests {
       &format!("/block/{block_hash}"),
       StatusCode::OK,
       ".*<h1>Block [[:xdigit:]]{64}</h1>
-<h2>Transactions</h2>
+<dl>
+  <dt>height</dt><dd>2</dd>
+  <dt>timestamp</dt><dd>0</dd>
+  <dt>size</dt><dd>203</dd>
+  <dt>weight</dt><dd>812</dd>
+  <dt>prev blockhash</dt><dd><a href=/block/659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf>659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf</a></dd>
+</dl>
+<h2>2 Transactions</h2>
 <ul class=monospace>
   <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
   <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
@@ -1084,7 +1164,7 @@ mod tests {
       StatusCode::OK,
       &format!(
         ".*<title>Transaction {txid}</title>.*<h1>Transaction {txid}</h1>
-<h2>Outputs</h2>
+<h2>1 Output</h2>
 <ul class=monospace>
   <li>
     <a href=/output/9068a11b8769174363376b606af9a4b8b29dd7b13d013f4b0cbbd457db3c3ce5:0>
