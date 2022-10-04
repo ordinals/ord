@@ -4,6 +4,7 @@ use super::*;
 pub(crate) struct Range {
   #[clap(long)]
   name: bool,
+  #[clap(help = "List ordinal range in subsidy at <HEIGHT>.")]
   height: Height,
 }
 
