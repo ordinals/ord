@@ -2,7 +2,7 @@
 %% match &self.list {
 %% List::Unspent(ranges) => {
 <dl>
-  <dt>size</dt><dd>{{ranges.iter().map(|(start, end)| end - start).sum::<u64>()}}</dd>
+  <dt>value</dt><dd>{{ranges.iter().map(|(start, end)| end - start).sum::<u64>()}}</dd>
 </dl>
 <h2>{{"Ordinal Range".tally(ranges.len())}}</h2>
 <ul class=monospace>

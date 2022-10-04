@@ -946,7 +946,7 @@ mod tests {
       StatusCode::OK,
       r".*<title>Ordinal range \[0,1\)</title>.*<h1>Ordinal range \[0,1\)</h1>
 <dl>
-  <dt>size</dt><dd>1</dd>
+  <dt>value</dt><dd>1</dd>
   <dt>first</dt><dd><a href=/ordinal/0 class=mythic>0</a></dd>
 </dl>.*",
     );
@@ -1018,7 +1018,7 @@ mod tests {
     StatusCode::OK,
     ".*<title>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</title>.*<h1>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</h1>
 <dl>
-  <dt>size</dt><dd>5000000000</dd>
+  <dt>value</dt><dd>5000000000</dd>
 </dl>
 <h2>1 Ordinal Range</h2>
 <ul class=monospace>
