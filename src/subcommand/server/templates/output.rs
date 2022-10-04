@@ -30,10 +30,10 @@ mod tests {
         outpoint: "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0"
           .parse()
           .unwrap(),
-        list: List::Unspent(vec![(0, 1), (1, 2)]),
+        list: List::Unspent(vec![(0, 1), (1, 3)]),
         network: Network::Bitcoin,
         output: TxOut {
-          value: 2,
+          value: 3,
           script_pubkey: Script::new_p2pkh(&PubkeyHash::all_zeros()),
         },
       }
@@ -41,14 +41,14 @@ mod tests {
       "
         <h1>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</h1>
         <dl>
-          <dt>value</dt><dd>2</dd>
+          <dt>value</dt><dd>3</dd>
           <dt>script pubkey</dt><dd>OP_DUP OP_HASH160 OP_PUSHBYTES_20 0000000000000000000000000000000000000000 OP_EQUALVERIFY OP_CHECKSIG</dd>
           <dt>address</dt><dd>1111111111111111111114oLvT2</dd>
         </dl>
         <h2>2 Ordinal Ranges</h2>
         <ul class=monospace>
-          <li><a href=/range/0/1 class=mythic>[0,1)</a></li>
-          <li><a href=/range/1/2 class=common>[1,2)</a></li>
+          <li><a href=/ordinal/0 class=mythic>0</a></li>
+          <li><a href=/range/1/3 class=common>1–3</a></li>
         </ul>
       "
       .unindent()

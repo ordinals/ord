@@ -11,7 +11,11 @@
 <h2>{{"Ordinal Range".tally(ranges.len())}}</h2>
 <ul class=monospace>
 %% for (start, end) in ranges {
-  <li><a href=/range/{{start}}/{{end}} class={{Ordinal(*start).rarity()}}>[{{start}},{{end}})</a></li>
+%% if end - start == 1 {
+  <li><a href=/ordinal/{{start}} class={{Ordinal(*start).rarity()}}>{{start}}</a></li>
+%% } else {
+  <li><a href=/range/{{start}}/{{end}} class={{Ordinal(*start).rarity()}}>{{start}}–{{end}}</a></li>
+%% }
 %% }
 </ul>
 %% }

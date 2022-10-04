@@ -55,6 +55,13 @@ impl IntoResponse for ServerError {
   }
 }
 
+fn html_status(status_code: StatusCode) -> (StatusCode, Html<&'static str>) {
+  (
+    status_code,
+    Html(status_code.canonical_reason().unwrap_or_default()),
+  )
+}
+
 #[derive(Deserialize)]
 struct Search {
   query: String,
@@ -270,16 +277,7 @@ impl Server {
       Ok(height) => ClockSvg::new(height).into_response(),
       Err(err) => {
         eprintln!("Failed to retrieve height from index: {err}");
-        (
-          StatusCode::INTERNAL_SERVER_ERROR,
-          Html(
-            StatusCode::INTERNAL_SERVER_ERROR
-              .canonical_reason()
-              .unwrap_or_default()
-              .to_string(),
-          ),
-        )
-          .into_response()
+        html_status(StatusCode::INTERNAL_SERVER_ERROR).into_response()
       }
     }
   }
@@ -292,16 +290,7 @@ impl Server {
       Ok(blocktime) => OrdinalHtml { ordinal, blocktime }.page().into_response(),
       Err(err) => {
         eprintln!("Failed to retrieve blocktime from index: {err}");
-        (
-          StatusCode::INTERNAL_SERVER_ERROR,
-          Html(
-            StatusCode::INTERNAL_SERVER_ERROR
-              .canonical_reason()
-              .unwrap_or_default()
-              .to_string(),
-          ),
-        )
-          .into_response()
+        html_status(StatusCode::INTERNAL_SERVER_ERROR).into_response()
       }
     }
   }
@@ -357,16 +346,7 @@ impl Server {
       Ok(blocks) => HomeHtml::new(blocks).page().into_response(),
       Err(err) => {
         eprintln!("Error getting blocks: {err}");
-        (
-          StatusCode::INTERNAL_SERVER_ERROR,
-          Html(
-            StatusCode::INTERNAL_SERVER_ERROR
-              .canonical_reason()
-              .unwrap_or_default()
-              .to_string(),
-          ),
-        )
-          .into_response()
+        html_status(StatusCode::INTERNAL_SERVER_ERROR).into_response()
       }
     }
   }
@@ -420,16 +400,7 @@ impl Server {
         .into_response(),
       Err(error) => {
         eprintln!("Error serving request for block with hash {hash}: {error}");
-        (
-          StatusCode::INTERNAL_SERVER_ERROR,
-          Html(
-            StatusCode::INTERNAL_SERVER_ERROR
-              .canonical_reason()
-              .unwrap_or_default()
-              .to_string(),
-          ),
-        )
-          .into_response()
+        html_status(StatusCode::INTERNAL_SERVER_ERROR).into_response()
       }
     }
   }
@@ -443,28 +414,10 @@ impl Server {
       Ok(Some(transaction)) => TransactionHtml::new(transaction, network.0)
         .page()
         .into_response(),
-      Ok(None) => (
-        StatusCode::NOT_FOUND,
-        Html(
-          StatusCode::NOT_FOUND
-            .canonical_reason()
-            .unwrap_or_default()
-            .to_string(),
-        ),
-      )
-        .into_response(),
+      Ok(None) => html_status(StatusCode::NOT_FOUND).into_response(),
       Err(error) => {
         eprintln!("Error serving request for transaction with txid {txid}: {error}");
-        (
-          StatusCode::INTERNAL_SERVER_ERROR,
-          Html(
-            StatusCode::INTERNAL_SERVER_ERROR
-              .canonical_reason()
-              .unwrap_or_default()
-              .to_string(),
-          ),
-        )
-          .into_response()
+        html_status(StatusCode::INTERNAL_SERVER_ERROR).into_response()
       }
     }
   }
@@ -976,7 +929,7 @@ mod tests {
     TestServer::new().assert_response_regex(
       "/range/0/1",
       StatusCode::OK,
-      r".*<title>Ordinal range \[0,1\)</title>.*<h1>Ordinal range \[0,1\)</h1>
+      r".*<title>Ordinal range 0–1</title>.*<h1>Ordinal range 0–1</h1>
 <dl>
   <dt>value</dt><dd>1</dd>
   <dt>first</dt><dd><a href=/ordinal/0 class=mythic>0</a></dd>
@@ -1055,7 +1008,7 @@ mod tests {
 </dl>
 <h2>1 Ordinal Range</h2>
 <ul class=monospace>
-  <li><a href=/range/0/5000000000 class=mythic>\\[0,5000000000\\)</a></li>
+  <li><a href=/range/0/5000000000 class=mythic>0–5000000000</a></li>
 </ul>.*",
   );
   }
@@ -1090,7 +1043,12 @@ mod tests {
     ".*<title>Ordinals</title>.*<h1>Ordinals</h1>
 <nav>.*</nav>
 .*
-<h2>Recent Blocks</h2>
+<h2>Latest Blocks</h2>
+<dl>
+  <dt>cycle</dt><dd>0</dd>
+  <dt>epoch</dt><dd>0</dd>
+  <dt>period</dt><dd>0</dd>
+</dl>
 <ol start=1 reversed class='blocks monospace'>
   <li><a href=/block/[[:xdigit:]]{64} class=uncommon>[[:xdigit:]]{64}</a></li>
   <li><a href=/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f class=mythic>000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</a></li>
@@ -1102,12 +1060,12 @@ mod tests {
   fn home_block_limit() {
     let test_server = TestServer::new();
 
-    test_server.bitcoin_rpc_server.mine_blocks(200);
+    test_server.bitcoin_rpc_server.mine_blocks(101);
 
     test_server.assert_response_regex(
     "/",
     StatusCode::OK,
-    ".*<ol start=200 reversed class='blocks monospace'>\n(  <li><a href=/block/[[:xdigit:]]{64} class=uncommon>[[:xdigit:]]{64}</a></li>\n){100}</ol>.*"
+    ".*<ol start=101 reversed class='blocks monospace'>\n(  <li><a href=/block/[[:xdigit:]]{64} class=uncommon>[[:xdigit:]]{64}</a></li>\n){100}</ol>.*"
   );
   }
 
