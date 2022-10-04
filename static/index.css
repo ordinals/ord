@@ -12,7 +12,7 @@ input[type="text"], textarea {
   border-radius: 0.0625rem;
 }
 
-body {
+main {
   margin: 0 auto 0 auto !important;
   max-width: 100%;
   width: 50rem;
