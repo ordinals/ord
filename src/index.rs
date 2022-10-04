@@ -25,7 +25,7 @@ fn encode_outpoint(outpoint: OutPoint) -> [u8; 36] {
   array
 }
 
-pub(crate) fn encode_satpoint(satpoint: SatPoint) -> [u8; 44] {
+fn encode_satpoint(satpoint: SatPoint) -> [u8; 44] {
   let mut array = [0; 44];
   satpoint
     .consensus_encode(&mut array.as_mut_slice())
