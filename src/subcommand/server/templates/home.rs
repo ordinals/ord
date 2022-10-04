@@ -4,11 +4,15 @@ use super::*;
 pub(crate) struct HomeHtml {
   last: u64,
   blocks: Vec<(Rarity, BlockHash)>,
+  starting_ordinal: Option<Ordinal>,
 }
 
 impl HomeHtml {
   pub(crate) fn new(blocks: Vec<(u64, BlockHash)>) -> Self {
     Self {
+      starting_ordinal: blocks
+        .get(0)
+        .map(|(height, _)| Height(*height).starting_ordinal()),
       last: blocks
         .get(0)
         .map(|(height, _)| height)
@@ -37,13 +41,13 @@ mod tests {
     assert_regex_match!(
       &HomeHtml::new(vec![
         (
-          1,
+          1260001,
           "1111111111111111111111111111111111111111111111111111111111111111"
             .parse()
             .unwrap()
         ),
         (
-          0,
+          1260000,
           "0000000000000000000000000000000000000000000000000000000000000000"
             .parse()
             .unwrap()
@@ -54,10 +58,15 @@ mod tests {
 <nav>.*</nav>
 <h2>Search</h2>
 <form action=/search method=get>.*</form>
-<h2>Recent Blocks</h2>
-<ol start=1 reversed class='blocks monospace'>
+<h2>Latest Blocks</h2>
+<dl>
+  <dt>cycle</dt><dd>1</dd>
+  <dt>epoch</dt><dd>6</dd>
+  <dt>period</dt><dd>625</dd>
+</dl>
+<ol start=1260001 reversed class='blocks monospace'>
   <li><a href=/block/1{64} class=uncommon>1{64}</a></li>
-  <li><a href=/block/0{64} class=mythic>0{64}</a></li>
+  <li><a href=/block/0{64} class=legendary>0{64}</a></li>
 </ol>
 ",
     );
