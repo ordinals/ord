@@ -343,10 +343,10 @@ impl Server {
   }
 
   async fn rare_txt(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
-    match index.rare_ordinals() {
-      Ok(rare_ordinal_locations) => RareTxt(rare_ordinal_locations).into_response(),
+    match index.rare_ordinal_satpoints() {
+      Ok(rare_ordinal_satpoints) => RareTxt(rare_ordinal_satpoints).into_response(),
       Err(err) => {
-        eprintln!("Error getting rare ordinals: {err}");
+        eprintln!("Error getting rare ordinal satpoints: {err}");
         html_status(StatusCode::INTERNAL_SERVER_ERROR).into_response()
       }
     }

@@ -392,7 +392,7 @@ impl Index {
     Ok(blocks)
   }
 
-  pub(crate) fn rare_ordinals(&self) -> Result<Vec<(Ordinal, SatPoint)>> {
+  pub(crate) fn rare_ordinal_satpoints(&self) -> Result<Vec<(Ordinal, SatPoint)>> {
     let mut result = Vec::new();
 
     let rtx = self.database.begin_read()?;
