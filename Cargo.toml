@@ -17,7 +17,7 @@ axum = "0.5.6"
 axum-server = "0.4.0"
 bitcoin = "0.29.1"
 bitcoincore-rpc = "0.16.0"
-boilerplate = { version = "0.2.0", features = ["axum"] }
+boilerplate = { version = "0.2.1", features = ["axum"] }
 chrono = "0.4.19"
 clap = { version = "3.1.0", features = ["derive"] }
 ctrlc = "3.2.1"

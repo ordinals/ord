@@ -1,0 +1,4 @@
+ordinal	decimal	degree	rarity	satpoint
+%% for (ordinal, satpoint) in &self.0 {
+{{ordinal}}	{{ordinal.decimal()}}	{{ordinal.degree()}}	{{ordinal.rarity()}}	{{satpoint}}
+%% }
