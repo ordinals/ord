@@ -1,6 +1,15 @@
 html {
   margin-left: 1rem;
   margin-right: 1rem;
+  background-color: #121212;
+  color: white;
+}
+
+input[type="text"], textarea {
+  background-color: #242424;
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 0.0625rem;
 }
 
 body {
@@ -23,11 +32,13 @@ pre {
 }
 
 p > code {
-  background-color: #fefbec;
+  background-color: #2b303b;
+  padding: 0rem 0.2rem 0rem 0.2rem;
   border-radius: 0.375rem;
 }
 
 a {
+  color: #4169E1;
   text-decoration: none;
 }
 
@@ -36,7 +47,7 @@ a:hover {
 }
 
 a:visited {
-  color: blue;
+  color: #4169E1;
 }
 
 nav {

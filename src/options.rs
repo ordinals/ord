@@ -8,20 +8,20 @@ use {
 pub(crate) struct Options {
   #[clap(
     long,
-    help = "Limit the ordinal index to <MAX_INDEX_SIZE> bytes. [mainnet, testnet, and signet default: 1 TiB, regtest default: 10 MiB]"
+    help = "Limit the ordinal index to <MAX_INDEX_SIZE> bytes. This cannot be changed later. [mainnet, testnet, and signet default: 1 TiB, regtest default: 10 MiB]"
   )]
   max_index_size: Option<Bytes>,
-  #[clap(long)]
+  #[clap(long, help = "Load Bitcoin Core RPC cookie file from <COOKIE_FILE>.")]
   cookie_file: Option<PathBuf>,
-  #[clap(long)]
+  #[clap(long, help = "Connect to Bitcoin Core RPC at <RPC_URL>.")]
   rpc_url: Option<String>,
-  #[clap(long, arg_enum, default_value = "mainnet")]
+  #[clap(long, arg_enum, default_value = "mainnet", help = "Index <CHAIN>.")]
   pub(crate) chain: Chain,
-  #[clap(long)]
+  #[clap(long, help = "Store index in <DATA_DIR>.")]
   data_dir: Option<PathBuf>,
-  #[clap(long)]
+  #[clap(long, help = "Load Bitcoin Core data dir from <BITCOIN_DATA_DIR>.")]
   bitcoin_data_dir: Option<PathBuf>,
-  #[clap(long)]
+  #[clap(long, help = "Limit index to <HEIGHT_LIMIT> blocks.")]
   pub(crate) height_limit: Option<u64>,
 }
 
