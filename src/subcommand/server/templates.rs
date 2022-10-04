@@ -10,6 +10,7 @@ pub(crate) mod home;
 pub(crate) mod ordinal;
 pub(crate) mod output;
 pub(crate) mod range;
+pub(crate) mod rare;
 pub(crate) mod transaction;
 
 #[derive(Boilerplate)]

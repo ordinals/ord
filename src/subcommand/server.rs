@@ -5,7 +5,7 @@ use {
     deserialize_ordinal_from_str::DeserializeOrdinalFromStr,
     templates::{
       block::BlockHtml, clock::ClockSvg, home::HomeHtml, ordinal::OrdinalHtml, output::OutputHtml,
-      range::RangeHtml, transaction::TransactionHtml, Content, PageHtml,
+      range::RangeHtml, rare::RareTxt, transaction::TransactionHtml, Content, PageHtml,
     },
   },
   axum::{
@@ -144,6 +144,7 @@ impl Server {
         .route("/ordinal/:ordinal", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
         .route("/range/:start/:end", get(Self::range))
+        .route("/rare.txt", get(Self::rare_txt))
         .route("/search", get(Self::search_by_query))
         .route("/search/:query", get(Self::search_by_path))
         .route("/static/*path", get(Self::static_asset))
@@ -338,6 +339,16 @@ impl Server {
       )
         .into_response(),
       Ordering::Less => RangeHtml { start, end }.page().into_response(),
+    }
+  }
+
+  async fn rare_txt(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
+    match index.rare_ordinal_satpoints() {
+      Ok(rare_ordinal_satpoints) => RareTxt(rare_ordinal_satpoints).into_response(),
+      Err(err) => {
+        eprintln!("Error getting rare ordinal satpoints: {err}");
+        html_status(StatusCode::INTERNAL_SERVER_ERROR).into_response()
+      }
     }
   }
 
@@ -1192,5 +1203,16 @@ mod tests {
     test_server.bitcoin_rpc_server.mine_blocks(2);
 
     test_server.assert_response_regex("/status", StatusCode::OK, "Reorg detected.*");
+  }
+
+  #[test]
+  fn rare() {
+    TestServer::new().assert_response(
+      "/rare.txt",
+      StatusCode::OK,
+      "ordinal\tsatpoint
+0\t4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0
+",
+    );
   }
 }

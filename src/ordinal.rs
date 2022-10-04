@@ -44,8 +44,8 @@ impl Ordinal {
     self.0 - self.epoch().starting_ordinal().0
   }
 
-  pub(crate) fn decimal(self) -> String {
-    format!("{}.{}", self.height(), self.third())
+  pub(crate) fn decimal(self) -> Decimal {
+    self.into()
   }
 
   pub(crate) fn rarity(self) -> Rarity {
@@ -259,11 +259,6 @@ mod tests {
   #[test]
   fn number() {
     assert_eq!(Ordinal(2099999997689999).n(), 2099999997689999);
-  }
-
-  #[test]
-  fn decimal() {
-    assert_eq!(Ordinal(2099999997689999).decimal(), "6929999.0");
   }
 
   #[test]

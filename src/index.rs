@@ -1,6 +1,6 @@
 use {
   super::*,
-  bitcoin::consensus::encode::{deserialize, serialize},
+  bitcoin::consensus::encode::deserialize,
   bitcoin::BlockHeader,
   bitcoincore_rpc::{json::GetBlockHeaderResult, Auth, Client, RpcApi},
   rayon::iter::{IntoParallelRefIterator, ParallelIterator},
@@ -14,6 +14,24 @@ const HEIGHT_TO_HASH: TableDefinition<u64, [u8; 32]> = TableDefinition::new("HEI
 const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8; 36], [u8]> =
   TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
 const STATISTICS: TableDefinition<u64, u64> = TableDefinition::new("STATISTICS");
+const ORDINAL_TO_SATPOINT: TableDefinition<u64, [u8; 44]> =
+  TableDefinition::new("ORDINAL_TO_SATPOINT");
+
+fn encode_outpoint(outpoint: OutPoint) -> [u8; 36] {
+  let mut array = [0; 36];
+  outpoint
+    .consensus_encode(&mut array.as_mut_slice())
+    .unwrap();
+  array
+}
+
+fn encode_satpoint(satpoint: SatPoint) -> [u8; 44] {
+  let mut array = [0; 44];
+  satpoint
+    .consensus_encode(&mut array.as_mut_slice())
+    .unwrap();
+  array
+}
 
 pub(crate) struct Index {
   client: Client,
@@ -100,6 +118,7 @@ impl Index {
     let tx = database.begin_write()?;
 
     tx.open_table(HEIGHT_TO_HASH)?;
+    tx.open_table(ORDINAL_TO_SATPOINT)?;
     tx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
     tx.open_table(STATISTICS)?;
 
@@ -215,6 +234,7 @@ impl Index {
 
   pub(crate) fn index_block(&self, wtx: &mut WriteTransaction, height: u64) -> Result<bool> {
     let mut height_to_hash = wtx.open_table(HEIGHT_TO_HASH)?;
+    let mut ordinal_to_satpoint = wtx.open_table(ORDINAL_TO_SATPOINT)?;
     let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
     let mut statistics = wtx.open_table(STATISTICS)?;
 
@@ -288,7 +308,7 @@ impl Index {
       let mut input_ordinal_ranges = VecDeque::new();
 
       for input in &tx.input {
-        let key = serialize(&input.previous_output).try_into().unwrap();
+        let key = encode_outpoint(input.previous_output);
 
         let ordinal_ranges = outpoint_to_ordinal_ranges
           .get(&key)?
@@ -304,6 +324,7 @@ impl Index {
       self.index_transaction(
         *txid,
         tx,
+        &mut ordinal_to_satpoint,
         &mut outpoint_to_ordinal_ranges,
         &mut input_ordinal_ranges,
         &mut ordinal_ranges_written,
@@ -317,6 +338,7 @@ impl Index {
       self.index_transaction(
         *txid,
         tx,
+        &mut ordinal_to_satpoint,
         &mut outpoint_to_ordinal_ranges,
         &mut coinbase_inputs,
         &mut ordinal_ranges_written,
@@ -370,10 +392,27 @@ impl Index {
     Ok(blocks)
   }
 
+  pub(crate) fn rare_ordinal_satpoints(&self) -> Result<Vec<(Ordinal, SatPoint)>> {
+    let mut result = Vec::new();
+
+    let rtx = self.database.begin_read()?;
+
+    let ordinal_to_satpoint = rtx.open_table(ORDINAL_TO_SATPOINT)?;
+
+    let mut cursor = ordinal_to_satpoint.range(0..)?;
+
+    while let Some((ordinal, satpoint)) = cursor.next() {
+      result.push((Ordinal(ordinal), deserialize(satpoint)?));
+    }
+
+    Ok(result)
+  }
+
   fn index_transaction(
     &self,
     txid: Txid,
     tx: &Transaction,
+    ordinal_to_satpoint: &mut Table<u64, [u8; 44]>,
     outpoint_to_ordinal_ranges: &mut Table<[u8; 36], [u8]>,
     input_ordinal_ranges: &mut VecDeque<(u64, u64)>,
     ordinal_ranges_written: &mut u64,
@@ -391,6 +430,16 @@ impl Index {
         let range = input_ordinal_ranges
           .pop_front()
           .ok_or_else(|| anyhow!("Insufficient inputs for transaction outputs"))?;
+
+        if Ordinal(range.0).rarity() > Rarity::Common {
+          ordinal_to_satpoint.insert(
+            &range.0,
+            &encode_satpoint(SatPoint {
+              outpoint,
+              offset: output.value - remaining,
+            }),
+          )?;
+        }
 
         let count = range.1 - range.0;
 
@@ -416,7 +465,7 @@ impl Index {
 
       *outputs_traversed += 1;
 
-      outpoint_to_ordinal_ranges.insert(&serialize(&outpoint).try_into().unwrap(), &ordinals)?;
+      outpoint_to_ordinal_ranges.insert(&encode_outpoint(outpoint), &ordinals)?;
     }
 
     Ok(())
@@ -509,7 +558,7 @@ impl Index {
   }
 
   pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<List>> {
-    let outpoint_encoded = serialize(&outpoint);
+    let outpoint_encoded = encode_outpoint(outpoint);
 
     let ordinal_ranges = self.list_inner(&outpoint_encoded)?;
 

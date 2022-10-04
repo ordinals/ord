@@ -5,6 +5,7 @@ use {
     arguments::Arguments,
     blocktime::Blocktime,
     bytes::Bytes,
+    decimal::Decimal,
     degree::Degree,
     epoch::Epoch,
     height::Height,
@@ -63,6 +64,7 @@ use self::test::*;
 mod arguments;
 mod blocktime;
 mod bytes;
+mod decimal;
 mod degree;
 mod epoch;
 mod height;
