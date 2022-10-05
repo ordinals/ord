@@ -1,12 +1,15 @@
+use bitcoin::psbt::serialize::Deserialize;
+
 use {
   bitcoin::{
     blockdata::constants::COIN_VALUE, blockdata::script, consensus::encode::serialize,
-    hash_types::BlockHash, hashes::Hash, Amount, Block, BlockHeader, Network, OutPoint,
-    PackedLockTime, Script, Sequence, Transaction, TxIn, TxMerkleNode, TxOut, Txid, Witness, Wtxid,
+    hash_types::BlockHash, hashes::Hash, util::amount::SignedAmount, Amount, Block, BlockHeader,
+    Network, OutPoint, PackedLockTime, Script, Sequence, Transaction, TxIn, TxMerkleNode, TxOut,
+    Txid, Witness, Wtxid,
   },
-  bitcoincore_rpc_json::{
-    CreateRawTransactionInput, GetRawTransactionResult, ListUnspentResultEntry, SigHashType,
-    SignRawTransactionInput,
+  bitcoincore_rpc::json::{
+    Bip125Replaceable, CreateRawTransactionInput, GetRawTransactionResult, GetTransactionResult,
+    ListUnspentResultEntry, WalletTxInfo, SignRawTransactionResult,
   },
   jsonrpc_core::{IoHandler, Value},
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
@@ -204,8 +207,9 @@ pub trait Api {
 
   #[rpc(name = "createrawtransaction")]
   fn create_raw_transaction(
-    utxos: &[CreateRawTransactionInput],
-    outs: &HashMap<String, Amount>,
+    &self,
+    utxos: Vec<CreateRawTransactionInput>,
+    outs: HashMap<String, f64>,
     locktime: Option<i64>,
     replaceable: Option<bool>,
   ) -> Result<String, jsonrpc_core::Error>;
@@ -214,9 +218,9 @@ pub trait Api {
   fn sign_raw_transaction_with_wallet(
     &self,
     tx: String,
-    utxos: Option<&[SignRawTransactionInput]>,
-    sighash_type: Option<SigHashType>,
-  ) -> Result<String, jsonrpc_core::Error>;
+    utxos: Option<()>,
+    sighash_type: Option<()>,
+  ) -> Result<Value, jsonrpc_core::Error>;
 
   #[rpc(name = "sendrawtransaction")]
   fn send_raw_transaction(&self, tx: String) -> Result<String, jsonrpc_core::Error>;
@@ -281,22 +285,97 @@ impl Api for Server {
     }
   }
 
+  fn create_raw_transaction(
+    &self,
+    utxos: Vec<CreateRawTransactionInput>,
+    outs: HashMap<String, f64>,
+    locktime: Option<i64>,
+    replaceable: Option<bool>,
+  ) -> Result<String, jsonrpc_core::Error> {
+    assert_eq!(locktime, None, "locktime param not supported");
+    assert_eq!(replaceable, None, "replaceable param not supported");
+
+    let _state = self.state.lock().unwrap();
+
+    let tx = Transaction {
+      version: 0,
+      lock_time: PackedLockTime(0),
+      input: utxos
+        .iter()
+        .map(|_input| TxIn {
+          previous_output: OutPoint::null(),
+          script_sig: Script::new(),
+          sequence: Sequence(0),
+          witness: Witness::new(),
+        })
+        .collect(),
+      output: outs
+        .iter()
+        .map(|(_address, amount)| TxOut {
+          value: *amount as u64,
+          script_pubkey: Script::new(),
+        })
+        .collect(),
+    };
+
+    Ok(hex::encode(serialize(&tx)))
+  }
+
+  fn sign_raw_transaction_with_wallet(
+    &self,
+    tx: String,
+    utxos: Option<()>,
+    sighash_type: Option<()>,
+  ) -> Result<Value, jsonrpc_core::Error> {
+    assert_eq!(utxos, None, "utxos param not supported");
+    assert_eq!(sighash_type, None, "sighash_type param not supported");
+    
+    Ok(serde_json::to_value(SignRawTransactionResult {
+      hex: tx.as_bytes().to_vec(),
+      complete: true,
+      errors: None,
+    }).unwrap())
+  }
+
+  fn send_raw_transaction(&self, tx: String) -> Result<String, jsonrpc_core::Error> {
+    let tx = Transaction::deserialize(tx.as_bytes()).unwrap();
+    dbg!("here+++++++++++++++++++++++++++++");
+    self.state.lock().unwrap().mempool.push(tx.clone());
+
+    Ok(tx.txid().to_string())
+  }
+
   fn get_transaction(
     &self,
     txid: Txid,
-    include_watchonly: Option<bool>,
+    _include_watchonly: Option<bool>,
   ) -> Result<Value, jsonrpc_core::Error> {
-    assert_eq!(include_watchonly, None, "include_watchonly param not supported");
-    self.state.lock().unwrap().transactions.get(&txid) {
-       
+    match self.state.lock().unwrap().transactions.get(&txid) {
+      Some(tx) => Ok(
+        serde_json::to_value(GetTransactionResult {
+          info: WalletTxInfo {
+            txid,
+            confirmations: 0,
+            time: 0,
+            timereceived: 0,
+            blockhash: None,
+            blockindex: None,
+            blockheight: None,
+            blocktime: None,
+            wallet_conflicts: Vec::new(),
+            bip125_replaceable: Bip125Replaceable::Unknown,
+          },
+          amount: SignedAmount::from_sat(0),
+          fee: None,
+          details: Vec::new(),
+          hex: serialize(tx),
+        })
+        .unwrap(),
+      ),
+      None => Err(jsonrpc_core::Error::new(
+        jsonrpc_core::types::error::ErrorCode::ServerError(-8),
+      )),
     }
-    GetTransactionResult {
-    info: WalletTxInfo {},
-    amount: SignedAmount::from_sat(0),
-    fee: None,
-    details: Vec::new(),
-    hex: Vec<u8>,
-}
   }
 
   fn get_raw_transaction(

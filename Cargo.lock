@@ -117,7 +117,7 @@ dependencies = [
  "num-traits",
  "rusticata-macros",
  "thiserror",
- "time 0.3.14",
+ "time 0.3.15",
 ]
 
 [[package]]
@@ -441,15 +441,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "904dfeac50f3cdaba28fc6f57fdcddb75f49ed61346676a78c4ffe55877802fd"
 
 [[package]]
-name = "base64-compat"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5a8d4d2746f89841e49230dd26917df1876050f95abafafbe34f47cb534b88d7"
-dependencies = [
- "byteorder",
-]
-
-[[package]]
 name = "bech32"
 version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -479,8 +470,7 @@ dependencies = [
 [[package]]
 name = "bitcoincore-rpc"
 version = "0.16.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0261b2bb7617e0c91b452a837bbd1291fd34ad6990cb8e3ffc28239cc045b5ca"
+source = "git+https://github.com/casey/rust-bitcoincore-rpc?branch=ord#1cac1200d775a0fa64cdf4453b34819a760ce5da"
 dependencies = [
  "bitcoincore-rpc-json",
  "jsonrpc",
@@ -492,8 +482,7 @@ dependencies = [
 [[package]]
 name = "bitcoincore-rpc-json"
 version = "0.16.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c231bea28e314879c5aef240f6052e8a72a369e3c9f9b20d9bfbb33ad18029b2"
+source = "git+https://github.com/casey/rust-bitcoincore-rpc?branch=ord#1cac1200d775a0fa64cdf4453b34819a760ce5da"
 dependencies = [
  "bitcoin",
  "serde",
@@ -540,9 +529,9 @@ dependencies = [
 
 [[package]]
 name = "boilerplate"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5eea9ab3a1bd92007c73dfba0ab14e56d2ec6ac2e4e2e5b14b4e4a477a97d311"
+checksum = "9bc7ce02a22a0b890e594915b4e906e3b1963ca97eef683c1f6ad6de052e4a8b"
 dependencies = [
  "darling",
  "mime",
@@ -566,12 +555,6 @@ name = "bumpalo"
 version = "3.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c1ad822118d20d2c234f427000d5acc36eabe1e29a348c89b63dd60b13f28e5d"
-
-[[package]]
-name = "byteorder"
-version = "1.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "14c189c53d098945499cdfa7ecc63567cf3886b3332b312a5b4585d8d3a6a610"
 
 [[package]]
 name = "bytes"
@@ -1506,13 +1489,12 @@ dependencies = [
 
 [[package]]
 name = "jsonrpc"
-version = "0.12.1"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7f8423b78fc94d12ef1a4a9d13c348c9a78766dda0cc18817adf0faf77e670c8"
+checksum = "fd8d6b3f301ba426b30feca834a2a18d48d5b54e5065496b5c1b05537bee3639"
 dependencies = [
- "base64-compat",
+ "base64",
  "serde",
- "serde_derive",
  "serde_json",
 ]
 
@@ -1925,7 +1907,6 @@ dependencies = [
  "axum-server",
  "bitcoin",
  "bitcoincore-rpc",
- "bitcoincore-rpc-json",
  "boilerplate",
  "chrono",
  "clap",
@@ -2293,7 +2274,7 @@ checksum = "6413f3de1edee53342e6138e75b56d32e7bc6e332b3bd62d497b1929d4cfbcdd"
 dependencies = [
  "pem",
  "ring",
- "time 0.3.14",
+ "time 0.3.15",
  "yasna",
 ]
 
@@ -2944,7 +2925,6 @@ version = "0.0.1"
 dependencies = [
  "bitcoin",
  "bitcoincore-rpc",
- "bitcoincore-rpc-json",
  "hex",
  "jsonrpc-core",
  "jsonrpc-core-client",
@@ -3007,9 +2987,9 @@ dependencies = [
 
 [[package]]
 name = "time"
-version = "0.3.14"
+version = "0.3.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3c3f9a28b618c3a6b9251b6908e9c99e04b9e5c02e6581ccbb67d59c34ef7f9b"
+checksum = "d634a985c4d4238ec39cacaed2e7ae552fbd3c476b552c1deac3021b7d7eaf0c"
 dependencies = [
  "itoa",
  "libc",
@@ -3606,7 +3586,7 @@ dependencies = [
  "oid-registry",
  "rusticata-macros",
  "thiserror",
- "time 0.3.14",
+ "time 0.3.15",
 ]
 
 [[package]]
@@ -3621,5 +3601,5 @@ version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "346d34a236c9d3e5f3b9b74563f238f955bbd05fa0b8b4efa53c130c43982f4c"
 dependencies = [
- "time 0.3.14",
+ "time 0.3.15",
 ]
