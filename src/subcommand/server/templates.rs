@@ -57,7 +57,7 @@ mod tests {
       }
     }
 
-    pretty_assertions::assert_eq!(
+    assert_regex_match!(
       Foo.page().to_string(),
       "<!doctype html>
 <html lang=en>
@@ -70,7 +70,19 @@ mod tests {
     <link href=/static/modern-normalize.css rel=stylesheet>
   </head>
   <body>
+  <header>
+    <nav>
+      <a href=/>Ordinals</a>
+      .*
+      <form action=/search method=get>
+        <input type=text .*>
+        <input type=submit value=Search>
+      </form>
+    </nav>
+  </header>
+  <main>
 <h1>Foo</h1>
+  </main>
   </body>
 </html>
 "

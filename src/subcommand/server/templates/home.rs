@@ -54,11 +54,7 @@ mod tests {
         )
       ],)
       .to_string(),
-      "<h1>Ordinals</h1>
-<nav>.*</nav>
-<h2>Search</h2>
-<form action=/search method=get>.*</form>
-<h2>Status</h2>
+      "<h2>Status</h2>
 <dl>
   <dt>cycle</dt><dd>1</dd>
   <dt>epoch</dt><dd>6</dd>

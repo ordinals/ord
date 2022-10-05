@@ -1,19 +1,11 @@
 html {
-  margin-left: 1rem;
-  margin-right: 1rem;
   background-color: #121212;
   color: white;
 }
 
-input[type="text"], textarea {
-  background-color: #242424;
-  border-style: solid;
-  border-width: 1px;
-  border-radius: 0.0625rem;
-}
-
-body {
-  margin: 0 auto 0 auto !important;
+main {
+  margin: 0 auto 0 auto;
+  padding: 0 1rem 0 1rem;
   max-width: 100%;
   width: 50rem;
 }
@@ -53,7 +45,22 @@ a:visited {
 nav {
   display: flex;
   gap: 1rem;
-  justify-content: left;
+  padding: 1rem;
+  background-color: #242424;
+}
+
+nav > form {
+  margin-left: auto;
+}
+
+@media (max-width: 38rem) {
+  nav {
+    flex-direction: column;
+  }
+
+  nav > form {
+    margin-left: 0;
+  }
 }
 
 .blocks {

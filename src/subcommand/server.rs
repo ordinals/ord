@@ -1051,9 +1051,7 @@ mod tests {
     test_server.assert_response_regex(
     "/",
     StatusCode::OK,
-    ".*<title>Ordinals</title>.*<h1>Ordinals</h1>
-<nav>.*</nav>
-.*
+    ".*<title>Ordinals</title>.*
 <h2>Status</h2>
 <dl>
   <dt>cycle</dt><dd>0</dd>
