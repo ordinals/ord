@@ -14,14 +14,16 @@
   <input autocapitalize=off autocomplete=off autocorrect=off autofocus name=query spellcheck=false type=text>
   <input type=submit>
 </form>
-<h2>Latest Blocks</h2>
 %% if let Some(starting_ordinal) = self.starting_ordinal {
+<h2>Status</h2>
 <dl>
   <dt>cycle</dt><dd>{{starting_ordinal.cycle()}}</dd>
   <dt>epoch</dt><dd>{{starting_ordinal.epoch()}}</dd>
   <dt>period</dt><dd>{{starting_ordinal.period()}}</dd>
+  <dt>block</dt><dd>{{starting_ordinal.height()}}</dd>
 </dl>
 %% }
+<h2>Latest Blocks</h2>
 <ol start={{self.last}} reversed class='blocks monospace'>
 %% for (rarity, hash) in &self.blocks {
   <li><a href=/block/{{hash}} class={{rarity}}>{{hash}}</a></li>

@@ -1054,12 +1054,14 @@ mod tests {
     ".*<title>Ordinals</title>.*<h1>Ordinals</h1>
 <nav>.*</nav>
 .*
-<h2>Latest Blocks</h2>
+<h2>Status</h2>
 <dl>
   <dt>cycle</dt><dd>0</dd>
   <dt>epoch</dt><dd>0</dd>
   <dt>period</dt><dd>0</dd>
+  <dt>block</dt><dd>1</dd>
 </dl>
+<h2>Latest Blocks</h2>
 <ol start=1 reversed class='blocks monospace'>
   <li><a href=/block/[[:xdigit:]]{64} class=uncommon>[[:xdigit:]]{64}</a></li>
   <li><a href=/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f class=mythic>000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</a></li>
