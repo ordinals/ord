@@ -57,7 +57,7 @@ mod tests {
       }
     }
 
-    pretty_assertions::assert_eq!(
+    assert_regex_match!(
       Foo.page().to_string(),
       "<!doctype html>
 <html lang=en>
@@ -72,13 +72,10 @@ mod tests {
   <body>
   <header>
     <nav>
-      <a  href=/>Ordinals</a>
-      <a href=https://docs.ordinals.com/>Docs</a>
-      <a href=https://github.com/casey/ord>GitHub</a>
-      <a href=/clock>Clock</a>
-      <a href=/rare.txt>rare.txt</a>
+      <a href=/>Ordinals</a>
+      .*
       <form action=/search method=get>
-        <input autocapitalize=off autocomplete=off autocorrect=off autofocus name=query spellcheck=false type=text>
+        <input type=text .*>
         <input type=submit value=Search>
       </form>
     </nav>
