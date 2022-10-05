@@ -58,12 +58,14 @@ mod tests {
 <nav>.*</nav>
 <h2>Search</h2>
 <form action=/search method=get>.*</form>
-<h2>Latest Blocks</h2>
+<h2>Status</h2>
 <dl>
   <dt>cycle</dt><dd>1</dd>
   <dt>epoch</dt><dd>6</dd>
   <dt>period</dt><dd>625</dd>
+  <dt>block</dt><dd>1260001</dd>
 </dl>
+<h2>Latest Blocks</h2>
 <ol start=1260001 reversed class='blocks monospace'>
   <li><a href=/block/1{64} class=uncommon>1{64}</a></li>
   <li><a href=/block/0{64} class=legendary>0{64}</a></li>
