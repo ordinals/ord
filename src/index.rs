@@ -117,6 +117,13 @@ impl Index {
 
     let tx = database.begin_write()?;
 
+    #[cfg(test)]
+    let tx = {
+      let mut tx = tx;
+      tx.set_durability(redb::Durability::None);
+      tx
+    };
+
     tx.open_table(HEIGHT_TO_HASH)?;
     tx.open_table(ORDINAL_TO_SATPOINT)?;
     tx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
@@ -142,7 +149,7 @@ impl Index {
   }
 
   pub(crate) fn print_info(&self) -> Result {
-    let wtx = self.database.begin_write()?;
+    let wtx = self.begin_write()?;
 
     let blocks_indexed = wtx
       .open_table(HEIGHT_TO_HASH)?
@@ -194,7 +201,7 @@ impl Index {
   }
 
   pub(crate) fn index(&self) -> Result {
-    let mut wtx = self.database.begin_write()?;
+    let mut wtx = self.begin_write()?;
 
     let height = wtx
       .open_table(HEIGHT_TO_HASH)?
@@ -215,7 +222,7 @@ impl Index {
 
       if i > 0 && i % 1000 == 0 {
         wtx.commit()?;
-        wtx = self.database.begin_write()?;
+        wtx = self.begin_write()?;
       }
 
       if done || INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
@@ -366,6 +373,16 @@ impl Index {
 
   fn begin_read(&self) -> Result<rtx::Rtx> {
     Ok(rtx::Rtx(self.database.begin_read()?))
+  }
+
+  fn begin_write(&self) -> Result<redb::WriteTransaction> {
+    if cfg!(test) {
+      let mut tx = self.database.begin_write()?;
+      tx.set_durability(redb::Durability::None);
+      Ok(tx)
+    } else {
+      Ok(self.database.begin_write()?)
+    }
   }
 
   pub(crate) fn height(&self) -> Result<Height> {
