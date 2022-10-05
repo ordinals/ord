@@ -1,34 +1,72 @@
 Ordinal Theory
 ==============
 
-I've been working on a numbering scheme for satoshis that allows tracking and transferring individual sats. These numbers are called [ordinals](https://ordinals.com). Satoshis are numbered in the order in which they're mined, and transferred from transaction inputs to transaction outputs in first-in-first-out order. More details are available in [the BIP](https://github.com/casey/ord/blob/master/bip.mediawiki).
+Ordinals are numbering scheme for satoshis that allows tracking and
+transferring individual sats. These numbers are called
+[ordinals](https://ordinals.com). Satoshis are numbered in the order in which
+they're mined, and transferred from transaction inputs to transaction outputs
+in first-in-first-out order. More details are available in [the
+BIP](https://github.com/casey/ord/blob/master/bip.mediawiki).
 
-Ordinals don't require a separate token, another blockchain, or any changes to Bitcoin. They work right now.
+Ordinals don't require a separate token, another blockchain, or any changes to
+Bitcoin. They work right now.
 
-Ordinals can be represented in a few ways:
+Ordinals have a few different representations:
 
-With raw notation, like so 1905530482684727°. The number is the ordinal number, and the "°" is the Romance language ordinal symbol.
+- *Integer notation*:
+  [`2099994106992659`](https://ordinals.com/ordinal/2099994106992659). The
+  number is the ordinal number, and the "°" is the Romance language ordinal
+  symbol.
 
-With decimal notation, like so 738848.482684727°. The first number is the block height, and the second is the index of the ordinal within the block.
+- *Decimal notation*:
+  [`3891094.16797`](https://ordinals.com/ordinal/3891094.16797)The first number
+  is the block height in which the ordinal was created, the second the offset
+  of the ordinal within the block.
 
-With degree notation, like so 0°108848′992″482684727‴. We'll get to that in a moment.
+- *Degree notation*:
+  [`3°111094′214″16797‴`](https://ordinals.com/ordinal/3%C2%B0111094%E2%80%B2214%E2%80%B316797%E2%80%B4).
+  We'll get to that in a moment.
 
-A block explorer is available at [ordinals.com](https://ordinals.com). You can explore recent blocks, and look up ordinals by [number](https://ordinals.com/ordinal/2099994106992659), [decimal](https://ordinals.com/ordinal/3891094.16797), [degree](https://ordinals.com/ordinal/3%C2%B0111094%E2%80%B2214%E2%80%B316797%E2%80%B4), or [name](https://ordinals.com/ordinal/satoshi).
+- *Percentile notation*:
+  [`99.99971949060254%`](https://ordinals.com/ordinal/99.99971949060254%25) .
+  The ordinals position in Bitcoin's supply, expressed as a percentage.
 
-Arbitrary assets, such as NFTs, security tokens, accounts, or stablecoins can be attached to Ordinals.
+- *Name*: [`satoshi`](https://ordinals.com/ordinal/satoshi).
 
-Ordinals is an open-source project, developed [on GitHub](https://github.com/casey/ord). The project consists of a BIP describing the ordinal scheme, an index that communicates with a Bitcoin Core node to track the location of all ordinals, a wallet that allows making ordinal-aware transactions, a block explorer for interactive exploration of the blockchain, and functionality for minting ordinal NFTs.
+Arbitrary assets, such as NFTs, security tokens, accounts, or stablecoins can
+be attached to Ordinals.
 
-## Rarity
+Ordinals is an open-source project, developed [on
+GitHub](https://github.com/casey/ord). The project consists of a BIP describing
+the ordinal scheme, an index that communicates with a Bitcoin Core node to
+track the location of all ordinals, a wallet that allows making ordinal-aware
+transactions, a block explorer for interactive exploration of the blockchain,
+functionality for minting ordinal NFTs, and this manual.
 
-Since ordinals can be tracked and transferred, people will naturally want to collect them. Ordinal theorists can decide for themselves which sats are rare and desirable, but I wanted to provide some hints.
+Rarity
+------
 
-Bitcoin has periodic events, some frequent, some more uncommon, and these naturally lend themselves to a system of rarity. These periodic events are:
+Humans are collectors, and since ordinals can be tracked and transferred,
+people will naturally want to collect them. Ordinal theorists can decide for
+themselves which sats are rare and desirable, but there are some hints.
 
-- *Blocks*: A new block is mined approximately every 10 minutes, from now until the end of time.
-- *Difficulty adjustments*: Every 2016 blocks, or approximately every two weeks, the Bitcoin network responds to changes in hashrate by adjusting the difficulty target which blocks must meet in order to be accepted.
-- *Halvings*: Every 210,000 blocks, or roughly every four years, the amount of new sats created in every block is cut in half.
-- *Cycles*: Every six halvings, something magical happens: the halving and the difficulty adjustment coincide. This is called a conjunction, and the time period between conjunctions a cycle. A conjunction occurs roughly every 24 years. The first conjunction should happen some time in 2032.
+Bitcoin has periodic events, some frequent, some more uncommon, and these
+naturally lend themselves to a system of rarity. These periodic events are:
+
+- *Blocks*: A new block is mined approximately every 10 minutes, from now until
+  the end of time.
+
+- *Difficulty adjustments*: Every 2016 blocks, or approximately every two
+  weeks, the Bitcoin network responds to changes in hashrate by adjusting the
+  difficulty target which blocks must meet in order to be accepted.
+
+- *Halvings*: Every 210,000 blocks, or roughly every four years, the amount of
+  new sats created in every block is cut in half.
+
+- *Cycles*: Every six halvings, something magical happens: the halving and the
+  difficulty adjustment coincide. This is called a conjunction, and the time
+  period between conjunctions a cycle. A conjunction occurs roughly every 24
+  years. The first conjunction should happen some time in 2032.
 
 This gives us the following rarity levels:
 
@@ -39,7 +77,8 @@ This gives us the following rarity levels:
 - `legendary`: The first sat of each cycle
 - `mythic`: The first sat of the genesis block
 
-Which brings us to degree notation, which unambiguously represents an ordinal in a way that makes rarity easy to see at a glance:
+Which brings us to degree notation, which unambiguously represents an ordinal
+in a way that makes rarity easy to see at a glance:
 
 ```
 A°B′C″D‴
@@ -49,7 +88,8 @@ A°B′C″D‴
 ╰─────── Cycle, numbered starting from 0
 ```
 
-Ordinal theorists often use the terms "hour", "minute", "second", and "third" for *A*, *B*, *C*, and *D*, respectively.
+Ordinal theorists often use the terms "hour", "minute", "second", and "third"
+for *A*, *B*, *C*, and *D*, respectively.
 
 Now for some examples. This ordinal is common:
 
@@ -112,7 +152,8 @@ And this ordinal is mythic:
 ╰─────── First cycle
 ```
 
-If the block offset is zero, it may be omitted. This is the uncommon ordinal from above:
+If the block offset is zero, it may be omitted. This is the uncommon ordinal
+from above:
 
 ```
 1°1′1″
@@ -121,9 +162,10 @@ If the block offset is zero, it may be omitted. This is the uncommon ordinal fro
 ╰───── Second cycle
 ```
 
-### Supply
+Ordinal Supply
+--------------
 
-#### Total Supply
+### Total Supply
 
 - `common`: 2.1 quadrillion
 - `uncommon`: 6,929,999
@@ -132,7 +174,7 @@ If the block offset is zero, it may be omitted. This is the uncommon ordinal fro
 - `legendary`: 5
 - `mythic`: 1
 
-#### Current Supply
+### Current Supply
 
 - `common`: 1.9 quadrillion
 - `uncommon`: 745,855
@@ -141,34 +183,73 @@ If the block offset is zero, it may be omitted. This is the uncommon ordinal fro
 - `legendary`: 0
 - `mythic`: 1
 
-At the moment, even uncommon ordinals are quite rare. As of this writing, 745,855 uncommon ordinals have been mined - one per 25.6 bitcoin in circulation.
+At the moment, even uncommon ordinals are quite rare. As of this writing,
+745,855 uncommon ordinals have been mined - one per 25.6 bitcoin in
+circulation.
 
-## Names
+Names
+-----
 
-Each ordinal has a name, consisting of the letters *A* through *Z*, that get shorter the larger the ordinal is. They could start short and get longer, but then all the good, short names would be trapped in the unspendable genesis block.
+Each ordinal has a name, consisting of the letters *A* through *Z*, that get
+shorter the larger the ordinal is. They could start short and get longer, but
+then all the good, short names would be trapped in the unspendable genesis
+block.
 
-As an example, 1905530482684727°'s name is "iaiufjszmoba". The name of the last ordinal to be mined is "a". Every combination of 10 characters or less is out there, or will be out there, some day.
+As an example, 1905530482684727°'s name is "iaiufjszmoba". The name of the last
+ordinal to be mined is "a". Every combination of 10 characters or less is out
+there, or will be out there, some day.
 
-## Exotics
+Exotics
+-------
 
-Ordinals may be prized for reasons other than their name or rarity. This might be due to a quality of the number itself, like having an integer square or cube root. Or it might be due to a connection to a historical event, such as ordinals from block 477,120, the block in which SegWit activated, or ordinal 2099999997689999°, the last ordinal that will ever be mined.
+Ordinals may be prized for reasons other than their name or rarity. This might
+be due to a quality of the number itself, like having an integer square or cube
+root. Or it might be due to a connection to a historical event, such as
+ordinals from block 477,120, the block in which SegWit activated, or ordinal
+2099999997689999°, the last ordinal that will ever be mined.
 
-Such ordinals are termed "exotic". Which ordinals are exotic and what makes them so is subjective. Ordinal theorists are are encouraged to seek out exotics based on criteria of their own devising.
+Such ordinals are termed "exotic". Which ordinals are exotic and what makes
+them so is subjective. Ordinal theorists are are encouraged to seek out exotics
+based on criteria of their own devising.
 
-## Archaeology
+Archaeology
+-----------
 
-A lively community of archaeologists devoted to cataloging and collecting early NFTs has sprung up. [Here's a great summary of historical NFTs by Chainleft.](https://mirror.xyz/chainleft.eth/MzPWRsesC9mQflxlLo-N29oF4iwCgX3lacrvaG9Kjko)
+A lively community of archaeologists devoted to cataloging and collecting early
+NFTs has sprung up. [Here's a great summary of historical NFTs by
+Chainleft.](https://mirror.xyz/chainleft.eth/MzPWRsesC9mQflxlLo-N29oF4iwCgX3lacrvaG9Kjko)
 
-A commonly accepted cut-off for early NFTs is March 19th, 2018, the date the first ERC-721 contract, [SU SQUARES](https://tenthousandsu.com/), was deployed on Ethereum.
+A commonly accepted cut-off for early NFTs is March 19th, 2018, the date the
+first ERC-721 contract, [SU SQUARES](https://tenthousandsu.com/), was deployed
+on Ethereum.
 
-Whether or not ordinals are of interest to NFT archaeologists is an open question! In one sense, ordinals were created in early 2022, when I finalized the Ordinals specification. In this sense, they are not of historical interest.
+Whether or not ordinals are of interest to NFT archaeologists is an open
+question! In one sense, ordinals were created in early 2022, when the Ordinals
+specification was finalized. In this sense, they are not of historical
+interest.
 
-In another sense though, ordinals were in fact created by Satoshi Nakamoto in 2009 when he mined the Bitcoin genesis block. In this sense, ordinals, and especially early ordinals, are certainly of historical interest.
+In another sense though, ordinals were in fact created by Satoshi Nakamoto in
+2009 when he mined the Bitcoin genesis block. In this sense, ordinals, and
+especially early ordinals, are certainly of historical interest.
 
-I personally favor the latter view. This is not least because the ordinals were independently discovered on at least two separate occasions, long before the era of modern NFTs began.
+Many ordinal theorists favor the latter view. This is not least because the
+ordinals were independently discovered on at least two separate occasions, long
+before the era of modern NFTs began.
 
-On August 21st, 2012, Charlie Lee [posted a proposal to add proof-of-stake to Bitcoin to the Bitocin Talk forum](https://bitcointalk.org/index.php?topic=102355.0). This wasn't an asset scheme, but did use the ordinal algorithm, and was implemented but never deployed.
+On August 21st, 2012, Charlie Lee [posted a proposal to add proof-of-stake to
+Bitcoin to the Bitocin Talk
+forum](https://bitcointalk.org/index.php?topic=102355.0). This wasn't an asset
+scheme, but did use the ordinal algorithm, and was implemented but never
+deployed.
 
-On October 8th, 2012, jl2012 [posted a scheme to the the same forum](https://bitcointalk.org/index.php?topic=117224.0) which uses decimal notation and has all the important properties of ordinals. The scheme was discussed but never implemented.
+On October 8th, 2012, jl2012 [posted a scheme to the the same
+forum](https://bitcointalk.org/index.php?topic=117224.0) which uses decimal
+notation and has all the important properties of ordinals. The scheme was
+discussed but never implemented.
 
-These independent inventions of ordinals indicate in some way that ordinals were discovered, or rediscovered, and not invented. The ordinals are an inevitability of the mathematics of Bitcoin, stemming not from their modern documentation, but from their ancient genesis. They are the culmination of a sequence of events set in motion with the mining of the first block, so many years ago.
+These independent inventions of ordinals indicate in some way that ordinals
+were discovered, or rediscovered, and not invented. The ordinals are an
+inevitability of the mathematics of Bitcoin, stemming not from their modern
+documentation, but from their ancient genesis. They are the culmination of a
+sequence of events set in motion with the mining of the first block, so many
+years ago.
