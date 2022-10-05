@@ -53,7 +53,7 @@ nav > form {
   margin-left: auto;
 }
 
-@media (max-width: 52rem) {
+@media (max-width: 38rem) {
   nav {
     flex-direction: column;
   }
