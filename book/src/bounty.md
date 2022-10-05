@@ -1,21 +1,13 @@
-+++
-title = "Ordinal Bounties"
-page_template = "bounty.html"
-template = "bounties.html"
-sort_by = "date"
-aliases = ["bounties"]
-+++
-
-Hints
------
+Ordinal Bounty Hunting Hints
+============================
 
 - There are no ordinal wallets or transaction construction libraries. However,
   ordinal theory is extremely simple. A clever hacker should be able to write
   code to manipulate ordinals in no time.
 
-- For more information about ordinals, check out the [FAQ](/faq) for an
+- For more information about ordinals, check out the [FAQ](./faq.md) for an
   overview, the [BIP](https://github.com/casey/ord/blob/master/bip.mediawiki)
-  for the technical details, and the [ord repo](https://github.com/casey/ord]
+  for the technical details, and the [ord repo](https://github.com/casey/ord)
   for the `ord` wallet and block explorer.
 
 - Satoshi was the original developer of ordinal theory. However, he knew that
