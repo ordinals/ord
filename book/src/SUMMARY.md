@@ -1,8 +1,8 @@
 # Summary
 
 - [Theory](./theory.md)
+- [Hunting](./hunting.md)
 - [FAQ](./faq.md)
-- [Ordinal Hunting](./hunting.md)
 
 - [Bounties](./bounty.md)
   - [Bounty 0: 100,000 sats Claimed!](./bounty/0.md)
