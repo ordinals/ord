@@ -47,6 +47,12 @@ nav {
   gap: 1rem;
   padding: 1rem;
   background-color: #242424;
+  align-items: center;
+}
+
+nav > :first-child {
+  font-weight: bold;
+  color: white;
 }
 
 nav > form {
