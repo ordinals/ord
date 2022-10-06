@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html lang="en" class="sidebar-visible no-js light">
+<html lang="en" class="sidebar-visible no-js coal">
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
@@ -31,7 +31,7 @@
         <!-- Provide site root to javascript -->
         <script type="text/javascript">
             var path_to_root = "";
-            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "coal";
         </script>
 
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
@@ -57,7 +57,7 @@
             if (theme === null || theme === undefined) { theme = default_theme; }
             var html = document.querySelector('html');
             html.classList.remove('no-js')
-            html.classList.remove('light')
+            html.classList.remove('coal')
             html.classList.add(theme);
             html.classList.add('js');
         </script>
@@ -76,7 +76,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="theory.html"><strong aria-hidden="true">1.</strong> Theory</a></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">2.</strong> FAQ</a></li><li class="chapter-item expanded "><a href="hunting.html"><strong aria-hidden="true">3.</strong> Ordinal Hunting</a></li><li class="chapter-item expanded "><a href="bounty.html"><strong aria-hidden="true">4.</strong> Bounties</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="bounty/0.html"><strong aria-hidden="true">4.1.</strong> Bounty 0: 100,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="bounty/1.html"><strong aria-hidden="true">4.2.</strong> Bounty 1: 200,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="bounty/2.html"><strong aria-hidden="true">4.3.</strong> Bounty 2: 300,000 sats</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="theory.html"><strong aria-hidden="true">1.</strong> Theory</a></li><li class="chapter-item expanded "><a href="hunting.html"><strong aria-hidden="true">2.</strong> Hunting</a></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">3.</strong> FAQ</a></li><li class="chapter-item expanded "><a href="bounty.html"><strong aria-hidden="true">4.</strong> Bounties</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="bounty/0.html"><strong aria-hidden="true">4.1.</strong> Bounty 0: 100,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="bounty/1.html"><strong aria-hidden="true">4.2.</strong> Bounty 1: 200,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="bounty/2.html"><strong aria-hidden="true">4.3.</strong> Bounty 2: 300,000 sats</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -94,9 +94,9 @@
                             <i class="fa fa-paint-brush"></i>
                         </button>
                         <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal (default)</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
                         </ul>
@@ -172,7 +172,8 @@ We'll get to that in a moment.</p>
 The ordinals position in Bitcoin's supply, expressed as a percentage.</p>
 </li>
 <li>
-<p><em>Name</em>: <a href="https://ordinals.com/ordinal/satoshi"><code>satoshi</code></a>.</p>
+<p><em>Name</em>: <a href="https://ordinals.com/ordinal/satoshi"><code>satoshi</code></a>. An encoding of the
+ordinal number using the characters <code>a</code> through <code>z</code>.</p>
 </li>
 </ul>
 <p>Arbitrary assets, such as NFTs, security tokens, accounts, or stablecoins can
@@ -349,69 +350,6 @@ inevitability of the mathematics of Bitcoin, stemming not from their modern
 documentation, but from their ancient genesis. They are the culmination of a
 sequence of events set in motion with the mining of the first block, so many
 years ago.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-faq"><a class="header" href="#ordinal-faq">Ordinal FAQ</a></h1>
-<h2 id="how-many-ordinals-will-there-be"><a class="header" href="#how-many-ordinals-will-there-be">How many ordinals will there be?</a></h2>
-<p>THERE WILL ONLY EVER BE 2,099,999,997,690,000 ORDINALS</p>
-<h2 id="what-are-ordinals"><a class="header" href="#what-are-ordinals">What are ordinals?</a></h2>
-<p>Ordinals are serial numbers for satoshis, like this: 804766073970493. Every
-satoshi, which is ¹⁄₁₀₀₀₀₀₀₀₀ of a bitcoin, has an ordinal, and every ordinal
-has a satoshi. When a satoshi changes hands, so does its ordinal. There are a
-lot of satoshis, and so there are a lot of ordinals. Two quadrillion
-ninety-nine trillion nine hundred ninety-nine billion nine hundred ninety-seven
-million six hundred ninety thousand, to be precise.</p>
-<h2 id="what-are-ordinals-not"><a class="header" href="#what-are-ordinals-not">What are ordinals not?</a></h2>
-<p>Ordinals are not a side chain, a separate token, something that requires any
-changes to Bitcoin, or complicated.</p>
-<h2 id="what-are-ordinals-for"><a class="header" href="#what-are-ordinals-for">What are ordinals for?</a></h2>
-<p>Collecting, trading, and scheming. Ordinals could be used as the basis of
-Bitcoin-native NFTs, using a scheme to assign NFTs to ordinals, and then use
-those ordinals to track ownership of the NFT. But only could, nobody's written
-the code for that yet.</p>
-<h2 id="how-do-ordinals-work"><a class="header" href="#how-do-ordinals-work">How do ordinals work?</a></h2>
-<p>Ordinals are assigned to satoshis in the ordinal in which they are mined. The
-first satoshi in the first block is ordinal 0, the second is ordinal 1, and the
-last satoshi of the firt block is ordinal 4,999,999,999.</p>
-<p>Ordinals live in UTXOs, but transactions destroy spent inputs and create new
-outputs, so we need an algorithm to determine how ordinals hop from the inputs
-to the outputs of a transaction. Fortunately, that algorithm is very simple.</p>
-<p>Ordinals transfer in first-in-first-out order. Think of the inputs to a
-transaction as being a list of ordinals, and the outputs as a list of slots,
-waiting to receive an ordinal. To assign ordinals to slots, go through each
-ordinal in the inputs in order, and assign each to the first available slot in
-the outputs.</p>
-<p>Let's imagine a transaction with three inputs and two outputs. The inputs are
-on the left of the arrow and the outputs are on the right, all labeled with
-their values:</p>
-<pre><code>[2] [1] [3] → [4] [2]
-</code></pre>
-<p>Now let's label the same transaction with the ordinals that each input
-contains, and question marks for each output ordinal. Ordinals are long
-numbers, so let's use letters to represent them:</p>
-<pre><code>[a b] [c] [d e f] → [? ? ? ?] [? ?]
-</code></pre>
-<p>To figure out which ordinal goes to which output, go through the input ordinals
-in order and assign each to a question mark:</p>
-<pre><code>[a b] [c] [d e f] → [a b c d] [e f]
-</code></pre>
-<p>What about fees, you might ask? Good question! Let's imagine the same
-transaction, this time with a two satoshi fee. Transactions with fees send more
-satoshis in the inputs than are received by the outputs, so to make our
-transaction into one that pays fees, we'll remove the second output:</p>
-<pre><code>[2] [1] [3] → [4]
-</code></pre>
-<p>The ordinals, <var>e</var> and <var>f</var> now have nowhere to go in the outputs:</p>
-<pre><code>[a b] [c] [d e f] → [a b c d]
-</code></pre>
-<p>So they go to the miner who mined the block as fees. <a href="https://github.com/casey/ord/blob/master/bip.mediawiki">The
-BIP</a> has the details,
-but in short, fees paid by transactions are treated as extra inputs to the
-coinbase transaction, and are ordered how their corresponding transactions are
-ordered in the block. The coinbase transaction of the block might look like
-this:</p>
-<pre><code>[SUBSIDY] [e f] → [SUBSIDY e f]
-</code></pre>
-<h2 id="where-can-i-find-the-nitty-gritty-details"><a class="header" href="#where-can-i-find-the-nitty-gritty-details">Where can I find the nitty-gritty details?</a></h2>
-<p><a href="https://github.com/casey/ord/blob/master/bip.mediawiki">The BIP!</a></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-hunting"><a class="header" href="#ordinal-hunting">Ordinal Hunting</a></h1>
 <p>Ordinal hunting is difficult but rewarding. The feeling of owning a wallet full
 of UTXOs, redolent with the scent of rare and exotic ordinals, is beyond
@@ -613,6 +551,69 @@ search for your wallet's UTXOs.</p>
 bet is to use the <code>bitcoin-cli</code> commands <code>createrawtransaction</code>,
 <code>signrawtransactionwithwallet</code>, and <code>sendrawtransaction</code>, however, how to do so
 is complex and outside the scope of this guide.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-faq"><a class="header" href="#ordinal-faq">Ordinal FAQ</a></h1>
+<h2 id="how-many-ordinals-will-there-be"><a class="header" href="#how-many-ordinals-will-there-be">How many ordinals will there be?</a></h2>
+<p>THERE WILL ONLY EVER BE 2,099,999,997,690,000 ORDINALS</p>
+<h2 id="what-are-ordinals"><a class="header" href="#what-are-ordinals">What are ordinals?</a></h2>
+<p>Ordinals are serial numbers for satoshis, like this: 804766073970493. Every
+satoshi, which is ¹⁄₁₀₀₀₀₀₀₀₀ of a bitcoin, has an ordinal, and every ordinal
+has a satoshi. When a satoshi changes hands, so does its ordinal. There are a
+lot of satoshis, and so there are a lot of ordinals. Two quadrillion
+ninety-nine trillion nine hundred ninety-nine billion nine hundred ninety-seven
+million six hundred ninety thousand, to be precise.</p>
+<h2 id="what-are-ordinals-not"><a class="header" href="#what-are-ordinals-not">What are ordinals not?</a></h2>
+<p>Ordinals are not a side chain, a separate token, something that requires any
+changes to Bitcoin, or complicated.</p>
+<h2 id="what-are-ordinals-for"><a class="header" href="#what-are-ordinals-for">What are ordinals for?</a></h2>
+<p>Collecting, trading, and scheming. Ordinals could be used as the basis of
+Bitcoin-native NFTs, using a scheme to assign NFTs to ordinals, and then use
+those ordinals to track ownership of the NFT. But only could, nobody's written
+the code for that yet.</p>
+<h2 id="how-do-ordinals-work"><a class="header" href="#how-do-ordinals-work">How do ordinals work?</a></h2>
+<p>Ordinals are assigned to satoshis in the ordinal in which they are mined. The
+first satoshi in the first block is ordinal 0, the second is ordinal 1, and the
+last satoshi of the firt block is ordinal 4,999,999,999.</p>
+<p>Ordinals live in UTXOs, but transactions destroy spent inputs and create new
+outputs, so we need an algorithm to determine how ordinals hop from the inputs
+to the outputs of a transaction. Fortunately, that algorithm is very simple.</p>
+<p>Ordinals transfer in first-in-first-out order. Think of the inputs to a
+transaction as being a list of ordinals, and the outputs as a list of slots,
+waiting to receive an ordinal. To assign ordinals to slots, go through each
+ordinal in the inputs in order, and assign each to the first available slot in
+the outputs.</p>
+<p>Let's imagine a transaction with three inputs and two outputs. The inputs are
+on the left of the arrow and the outputs are on the right, all labeled with
+their values:</p>
+<pre><code>[2] [1] [3] → [4] [2]
+</code></pre>
+<p>Now let's label the same transaction with the ordinals that each input
+contains, and question marks for each output ordinal. Ordinals are long
+numbers, so let's use letters to represent them:</p>
+<pre><code>[a b] [c] [d e f] → [? ? ? ?] [? ?]
+</code></pre>
+<p>To figure out which ordinal goes to which output, go through the input ordinals
+in order and assign each to a question mark:</p>
+<pre><code>[a b] [c] [d e f] → [a b c d] [e f]
+</code></pre>
+<p>What about fees, you might ask? Good question! Let's imagine the same
+transaction, this time with a two satoshi fee. Transactions with fees send more
+satoshis in the inputs than are received by the outputs, so to make our
+transaction into one that pays fees, we'll remove the second output:</p>
+<pre><code>[2] [1] [3] → [4]
+</code></pre>
+<p>The ordinals, <var>e</var> and <var>f</var> now have nowhere to go in the outputs:</p>
+<pre><code>[a b] [c] [d e f] → [a b c d]
+</code></pre>
+<p>So they go to the miner who mined the block as fees. <a href="https://github.com/casey/ord/blob/master/bip.mediawiki">The
+BIP</a> has the details,
+but in short, fees paid by transactions are treated as extra inputs to the
+coinbase transaction, and are ordered how their corresponding transactions are
+ordered in the block. The coinbase transaction of the block might look like
+this:</p>
+<pre><code>[SUBSIDY] [e f] → [SUBSIDY e f]
+</code></pre>
+<h2 id="where-can-i-find-the-nitty-gritty-details"><a class="header" href="#where-can-i-find-the-nitty-gritty-details">Where can I find the nitty-gritty details?</a></h2>
+<p><a href="https://github.com/casey/ord/blob/master/bip.mediawiki">The BIP!</a></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-bounty-hunting-hints"><a class="header" href="#ordinal-bounty-hunting-hints">Ordinal Bounty Hunting Hints</a></h1>
 <ul>
 <li>
