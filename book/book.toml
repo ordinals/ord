@@ -1,0 +1,15 @@
+[book]
+title = "Ordinal Hunter's Manual"
+language = "en"
+multilingual = false
+src = "src"
+
+[build]
+build-dir = "build"
+create-missing = false
+
+[output.html]
+cname = "docs.ordinals.com"
+git-repository-url = "https://github.com/casey/ord"
+
+[output.linkcheck]

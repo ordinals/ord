@@ -1,6 +1,5 @@
-+++
-title = "Ordinal Hunting"
-+++
+Ordinal Hunting
+===============
 
 Ordinal hunting is difficult but rewarding. The feeling of owning a wallet full
 of UTXOs, redolent with the scent of rare and exotic ordinals, is beyond

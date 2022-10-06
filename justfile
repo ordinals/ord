@@ -117,3 +117,6 @@ benchmark dir=`git branch --show-current`:
 
 serve-docs:
   cd docs && zola serve --open
+
+build-book:
+  mdbook build book
