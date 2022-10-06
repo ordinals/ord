@@ -115,8 +115,8 @@ flamegraph:
 benchmark dir=`git branch --show-current`:
   ./bin/benchmark '{{dir}}'
 
-serve-docs:
-  cd docs && zola serve --open
+serve-book:
+  mdbook serve book --open
 
 build-book:
   mdbook build book
