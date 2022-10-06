@@ -69,7 +69,6 @@ input[type=text] {
   background-color: var(--search-bg);
   border-radius: 3px;
   border: 1px solid var(--search-border);
-  transition: box-shadow 300ms ease-in-out;
 }
 
 @media (max-width: 38rem) {
