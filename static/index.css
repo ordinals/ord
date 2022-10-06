@@ -1,20 +1,23 @@
 :root {
-  --bg-dark: hsl(200, 7%, 8%);
-  --fg-dark: #98a3ad;
-  --bg-light: #292c2f;
-  --fg-light: #a1adb8;
+  --dark-bg: hsl(200, 7%, 8%);
+  --dark-fg: #98a3ad;
+  --light-bg: #292c2f;
+  --light-fg: #a1adb8;
+  --search-bg: #b7b7b7;
+  --search-fg: #000000;
+  --search-border: #aaaaaa;
   --common: grey;
   --uncommon: forestgreen;
   --rare: cornflowerblue;
   --epic: darkorchid;
   --legendary: gold;
   --mythic: #f2a900;
-  --link: #4169E1;
+  --link: #4169e1;
 }
 
 html {
-  background-color: var(--bg-dark);
-  color: var(--fg-dark);
+  background-color: var(--dark-bg);
+  color: var(--dark-fg);
 }
 
 main {
@@ -48,17 +51,25 @@ nav {
   display: flex;
   gap: 1rem;
   padding: 1rem;
-  background-color: var(--bg-light);
+  background-color: var(--light-bg);
   align-items: center;
 }
 
 nav > :first-child {
   font-weight: bold;
-  color: var(--fg-light);
+  color: var(--light-fg);
 }
 
 nav > form {
   margin-left: auto;
+}
+
+input[type=text] {
+  color: var(--search-fg);
+  background-color: var(--search-bg);
+  border-radius: 3px;
+  border: 1px solid var(--search-border);
+  transition: box-shadow 300ms ease-in-out;
 }
 
 @media (max-width: 38rem) {
