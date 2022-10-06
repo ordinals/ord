@@ -120,8 +120,10 @@ impl CommandBuilder {
     self.tempdir
   }
 
-  pub(crate) fn run(self) -> TempDir {
+  pub(crate) fn run(self) -> (TempDir, String) {
     let output = self.command().output().unwrap();
-    self.check(output)
+    let str_output = String::from(str::from_utf8(&output.stdout).unwrap());
+
+    (self.check(output), str_output)
   }
 }

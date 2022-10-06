@@ -39,7 +39,6 @@ impl Send {
 
     let tx = client.create_raw_transaction_hex(&inputs, &outputs, None, None)?;
     let signed_tx = client.sign_raw_transaction_with_wallet(tx, None, None)?.hex;
-    dbg!("here we are");
     let txid = client.send_raw_transaction(&signed_tx)?;
 
     println!("{txid}");

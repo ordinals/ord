@@ -1,15 +1,17 @@
-use bitcoin::psbt::serialize::Deserialize;
-
 use {
   bitcoin::{
-    blockdata::constants::COIN_VALUE, blockdata::script, consensus::encode::serialize,
-    hash_types::BlockHash, hashes::Hash, util::amount::SignedAmount, Amount, Block, BlockHeader,
-    Network, OutPoint, PackedLockTime, Script, Sequence, Transaction, TxIn, TxMerkleNode, TxOut,
-    Txid, Witness, Wtxid,
+    blockdata::constants::COIN_VALUE,
+    blockdata::script,
+    consensus::encode::{deserialize, serialize},
+    hash_types::BlockHash,
+    hashes::Hash,
+    util::amount::SignedAmount,
+    Amount, Block, BlockHeader, Network, OutPoint, PackedLockTime, Script, Sequence, Transaction,
+    TxIn, TxMerkleNode, TxOut, Txid, Witness, Wtxid,
   },
   bitcoincore_rpc::json::{
     Bip125Replaceable, CreateRawTransactionInput, GetRawTransactionResult, GetTransactionResult,
-    ListUnspentResultEntry, WalletTxInfo, SignRawTransactionResult,
+    ListUnspentResultEntry, SignRawTransactionResult, WalletTxInfo,
   },
   jsonrpc_core::{IoHandler, Value},
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
@@ -295,15 +297,13 @@ impl Api for Server {
     assert_eq!(locktime, None, "locktime param not supported");
     assert_eq!(replaceable, None, "replaceable param not supported");
 
-    let _state = self.state.lock().unwrap();
-
     let tx = Transaction {
       version: 0,
       lock_time: PackedLockTime(0),
       input: utxos
         .iter()
-        .map(|_input| TxIn {
-          previous_output: OutPoint::null(),
+        .map(|input| TxIn {
+          previous_output: OutPoint::new(input.txid, input.vout),
           script_sig: Script::new(),
           sequence: Sequence(0),
           witness: Witness::new(),
@@ -329,17 +329,19 @@ impl Api for Server {
   ) -> Result<Value, jsonrpc_core::Error> {
     assert_eq!(utxos, None, "utxos param not supported");
     assert_eq!(sighash_type, None, "sighash_type param not supported");
-    
-    Ok(serde_json::to_value(SignRawTransactionResult {
-      hex: tx.as_bytes().to_vec(),
-      complete: true,
-      errors: None,
-    }).unwrap())
+
+    Ok(
+      serde_json::to_value(SignRawTransactionResult {
+        hex: hex::decode(tx).unwrap(),
+        complete: true,
+        errors: None,
+      })
+      .unwrap(),
+    )
   }
 
   fn send_raw_transaction(&self, tx: String) -> Result<String, jsonrpc_core::Error> {
-    let tx = Transaction::deserialize(tx.as_bytes()).unwrap();
-    dbg!("here+++++++++++++++++++++++++++++");
+    let tx: Transaction = deserialize(&hex::decode(tx).unwrap()).unwrap();
     self.state.lock().unwrap().mempool.push(tx.clone());
 
     Ok(tx.txid().to_string())
