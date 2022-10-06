@@ -1,6 +1,20 @@
+:root {
+  --bg-dark: hsl(200, 7%, 8%);
+  --fg-dark: #98a3ad;
+  --bg-light: #292c2f;
+  --fg-light: #a1adb8;
+  --common: grey;
+  --uncommon: forestgreen;
+  --rare: cornflowerblue;
+  --epic: darkorchid;
+  --legendary: gold;
+  --mythic: #f2a900;
+  --link: #4169E1;
+}
+
 html {
-  background-color: #121212;
-  color: white;
+  background-color: var(--bg-dark);
+  color: var(--fg-dark);
 }
 
 main {
@@ -17,20 +31,8 @@ h1 {
   width: 100%;
 }
 
-pre {
-  overflow: scroll;
-  padding: 1rem;
-  border-radius: 0.375rem;
-}
-
-p > code {
-  background-color: #2b303b;
-  padding: 0rem 0.2rem 0rem 0.2rem;
-  border-radius: 0.375rem;
-}
-
 a {
-  color: #4169E1;
+  color: var(--link);
   text-decoration: none;
 }
 
@@ -39,20 +41,20 @@ a:hover {
 }
 
 a:visited {
-  color: #4169E1;
+  color: var(--link);
 }
 
 nav {
   display: flex;
   gap: 1rem;
   padding: 1rem;
-  background-color: #242424;
+  background-color: var(--bg-light);
   align-items: center;
 }
 
 nav > :first-child {
   font-weight: bold;
-  color: white;
+  color: var(--fg-light);
 }
 
 nav > form {
@@ -75,10 +77,6 @@ nav > form {
   white-space: nowrap;
 }
 
-.strikethrough {
-  text-decoration: line-through;
-}
-
 .monospace {
   font-family: monospace, monospace;
 }
@@ -89,49 +87,49 @@ span.common, span.uncommon, span.rare, span.epic, span.legendary, span.mythic {
 }
 
 span.common {
-  background-color: grey;
+  background-color: var(--common);
 }
 
 span.uncommon {
-  background-color: forestgreen;
+  background-color: var(--uncommon);
 }
 
 span.rare {
-  background-color: cornflowerblue;
+  background-color: var(--rare);
 }
 
 span.epic {
-  background-color: darkorchid;
+  background-color: var(--epic);
 }
 
 span.legendary {
-  background-color: gold;
+  background-color: var(--legendary);
 }
 
 span.mythic {
-  background-color: #f2a900;
+  background-color: var(--mythic);
 }
 
 a.common {
-  color: grey;
+  color: var(--common);
 }
 
 a.uncommon {
-  color: forestgreen;
+  color: var(--uncommon);
 }
 
 a.rare {
-  color: cornflowerblue;
+  color: var(--rare);
 }
 
 a.epic {
-  color: darkorchid;
+  color: var(--epic);
 }
 
 a.legendary {
-  color: gold;
+  color: var(--legendary);
 }
 
 a.mythic {
-  color: #f2a900;
+  color: var(--mythic);
 }
