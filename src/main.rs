@@ -5,6 +5,7 @@ use {
     arguments::Arguments,
     blocktime::Blocktime,
     bytes::Bytes,
+    decimal::Decimal,
     degree::Degree,
     epoch::Epoch,
     height::Height,
@@ -14,6 +15,7 @@ use {
     rarity::Rarity,
     sat_point::SatPoint,
     subcommand::Subcommand,
+    tally::Tally,
   },
   anyhow::{anyhow, bail, Context, Error},
   axum::{extract, http::StatusCode, response::Html, response::IntoResponse, routing::get, Router},
@@ -23,7 +25,7 @@ use {
     consensus::{Decodable, Encodable},
     hash_types::BlockHash,
     hashes::Hash,
-    Address, Block, Network, OutPoint, Transaction, Txid,
+    Address, Block, Network, OutPoint, Transaction, TxOut, Txid,
   },
   chrono::{DateTime, NaiveDateTime, Utc},
   clap::Parser,
@@ -62,6 +64,7 @@ use self::test::*;
 mod arguments;
 mod blocktime;
 mod bytes;
+mod decimal;
 mod degree;
 mod epoch;
 mod height;
@@ -71,6 +74,7 @@ mod ordinal;
 mod rarity;
 mod sat_point;
 mod subcommand;
+mod tally;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 

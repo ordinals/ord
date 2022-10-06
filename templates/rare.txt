@@ -1,0 +1,4 @@
+ordinal	satpoint
+%% for (ordinal, satpoint) in &self.0 {
+{{ordinal}}	{{satpoint}}
+%% }
