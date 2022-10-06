@@ -23,11 +23,6 @@ pub(crate) struct Options {
   bitcoin_data_dir: Option<PathBuf>,
   #[clap(long, help = "Limit index to <HEIGHT_LIMIT> blocks.")]
   pub(crate) height_limit: Option<u64>,
-  #[clap(
-    long,
-    help = "Add this flag to use the send functionality of the wallet."
-  )]
-  pub(crate) reckless: bool,
 }
 
 #[derive(ValueEnum, Copy, Clone, Debug)]
