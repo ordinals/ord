@@ -60,8 +60,8 @@ mod tests {
 </dl>
 <h2>Latest Blocks</h2>
 <ol start=1260001 reversed class='blocks monospace'>
-  <li><a href=/block/1{64} class=uncommon>1{64}</a></li>
-  <li><a href=/block/0{64} class=legendary>0{64}</a></li>
+  <li><a href=/block/1{64}>1{64}</a></li>
+  <li><a href=/block/0{64}>0{64}</a></li>
 </ol>
 ",
     );
