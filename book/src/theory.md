@@ -31,7 +31,8 @@ Ordinals have a few different representations:
   [`99.99971949060254%`](https://ordinals.com/ordinal/99.99971949060254%25) .
   The ordinals position in Bitcoin's supply, expressed as a percentage.
 
-- *Name*: [`satoshi`](https://ordinals.com/ordinal/satoshi).
+- *Name*: [`satoshi`](https://ordinals.com/ordinal/satoshi). An encoding of the
+  ordinal number using the characters `a` through `z`.
 
 Arbitrary assets, such as NFTs, security tokens, accounts, or stablecoins can
 be attached to Ordinals.
