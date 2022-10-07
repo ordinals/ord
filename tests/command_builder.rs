@@ -8,7 +8,6 @@ enum ExpectedExitStatus {
 pub(crate) struct Outputs {
   pub tempdir: TempDir,
   pub stdout: String,
-  pub stderr: String,
 }
 
 pub(crate) struct CommandBuilder {
@@ -129,12 +128,10 @@ impl CommandBuilder {
   pub(crate) fn run(self) -> Outputs {
     let output = self.command().output().unwrap();
     let stdout = String::from(str::from_utf8(&output.stdout).unwrap());
-    let stderr = String::from(str::from_utf8(&output.stderr).unwrap());
 
     Outputs {
       tempdir: self.check(output),
       stdout,
-      stderr,
     }
   }
 }

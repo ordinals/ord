@@ -11,7 +11,8 @@ fn custom_index_size() {
     .run();
 
   assert_eq!(
-    outputs.tempdir
+    outputs
+      .tempdir
       .path()
       .join(if cfg!(target_os = "macos") {
         "Library/Application Support/"

@@ -1,6 +1,4 @@
-use {
-  super::*, bitcoin::util::amount::Amount, bitcoincore_rpc::json::CreateRawTransactionInput,
-};
+use {super::*, bitcoin::util::amount::Amount, bitcoincore_rpc::json::CreateRawTransactionInput};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
@@ -22,11 +20,10 @@ impl Send {
     let index = Index::open(&options)?;
     index.index()?;
 
-    let output: OutPoint;
-    match index.find(self.ordinal.0)? {
-      Some(satpoint) => output = satpoint.outpoint,
+    let output = match index.find(self.ordinal.0)? {
+      Some(satpoint) => satpoint.outpoint,
       None => bail!(format!("Could not find {}", self.ordinal.0)),
-    }
+    };
 
     let amount = client
       .get_transaction(&output.txid, Some(true))?
@@ -36,9 +33,9 @@ impl Send {
       .unwrap();
 
     let tx = client.create_raw_transaction_hex(
-      &vec![CreateRawTransactionInput {
+      &[CreateRawTransactionInput {
         txid: output.txid,
-        vout: output.vout.clone(),
+        vout: output.vout,
         sequence: None,
       }],
       &[(self.address, Amount::from_sat(amount))]
