@@ -1,4 +1,4 @@
-use {super::*, bitcoincore_rpc::RpcApi};
+use super::*;
 
 mod identify;
 mod list;
@@ -40,6 +40,3 @@ impl Wallet {
     }
   }
 }
-
-#[cfg(test)]
-mod tests {}

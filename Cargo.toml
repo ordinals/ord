@@ -29,15 +29,17 @@ html-escaper = "0.2.0"
 http = "0.2.6"
 lazy_static = "1.4.0"
 log = "0.4.14"
+mime = "0.3.16"
 mime_guess = "2.0.4"
 rayon = "1.5.1"
 redb = "0.7.0"
 regex = "1.6.0"
+reqwest = { version = "0.11.10", features = ["blocking"] }
 rust-embed = "6.4.0"
 rustls = "0.20.6"
 rustls-acme = { version = "0.5.0", features = ["axum"] }
 serde = { version = "1.0.137", features = ["derive"] }
-serde_json = "1.0.81"
+serde_json = { version = "1.0.81", features = ["arbitrary_precision"] }
 sys-info = "0.9.1"
 tokio = { version = "1.17.0", features = ["rt-multi-thread"] }
 tokio-stream = "0.1.9"
@@ -49,7 +51,6 @@ tower-http = { version = "0.3.3", features = ["cors"] }
 executable-path = "1.0.0"
 nix = "0.25.0"
 pretty_assertions = "1.2.1"
-reqwest = { version = "0.11.10", features = ["blocking"] }
 tempfile = "3.2.0"
 test-bitcoincore-rpc = { path = "test-bitcoincore-rpc" }
 unindent = "0.1.7"

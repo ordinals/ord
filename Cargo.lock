@@ -1971,6 +1971,7 @@ dependencies = [
  "http",
  "lazy_static",
  "log",
+ "mime",
  "mime_guess",
  "nix",
  "pretty_assertions",

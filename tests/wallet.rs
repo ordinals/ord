@@ -57,9 +57,7 @@ fn send_not_allowed_on_mainnet() {
 
   CommandBuilder::new("wallet send 5000000000 tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw")
     .rpc_server(&rpc_server)
-    .expected_stderr(
-      "error: Send command is not allowed on mainnet yet. Try on regtest/signet/testnet.\n",
-    )
+    .expected_stderr("error: `ord wallet send` is unstable and not yet supported on mainnet.\n")
     .expected_exit_code(1)
     .run();
 }

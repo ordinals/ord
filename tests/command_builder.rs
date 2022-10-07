@@ -10,8 +10,30 @@ pub(crate) struct Output {
   pub(crate) stdout: String,
 }
 
+pub(crate) trait ToArgs {
+  fn to_args(&self) -> Vec<String>;
+}
+
+impl ToArgs for String {
+  fn to_args(&self) -> Vec<String> {
+    self.as_str().to_args()
+  }
+}
+
+impl ToArgs for &str {
+  fn to_args(&self) -> Vec<String> {
+    self.split_whitespace().map(str::to_string).collect()
+  }
+}
+
+impl<const N: usize> ToArgs for [&str; N] {
+  fn to_args(&self) -> Vec<String> {
+    self.iter().cloned().map(str::to_string).collect()
+  }
+}
+
 pub(crate) struct CommandBuilder {
-  args: &'static str,
+  args: Vec<String>,
   expected_exit_status: ExpectedExitStatus,
   expected_stderr: Expected,
   expected_stdout: Expected,
@@ -20,9 +42,9 @@ pub(crate) struct CommandBuilder {
 }
 
 impl CommandBuilder {
-  pub(crate) fn new(args: &'static str) -> Self {
+  pub(crate) fn new(args: impl ToArgs) -> Self {
     Self {
-      args,
+      args: args.to_args(),
       expected_exit_status: ExpectedExitStatus::Code(0),
       expected_stderr: Expected::String(String::new()),
       expected_stdout: Expected::String(String::new()),
@@ -100,7 +122,7 @@ impl CommandBuilder {
       .stderr(Stdio::piped())
       .env("HOME", self.tempdir.path())
       .current_dir(&self.tempdir)
-      .args(self.args.split_whitespace());
+      .args(&self.args);
 
     command
   }

@@ -13,20 +13,20 @@ use {
     options::Options,
     ordinal::Ordinal,
     rarity::Rarity,
+    rune::Rune,
     sat_point::SatPoint,
     subcommand::Subcommand,
     tally::Tally,
   },
   anyhow::{anyhow, bail, Context, Error},
-  axum::{extract, http::StatusCode, response::Html, response::IntoResponse, routing::get, Router},
-  axum_server::Handle,
   bitcoin::{
     blockdata::constants::COIN_VALUE,
     consensus::{Decodable, Encodable},
     hash_types::BlockHash,
-    hashes::Hash,
+    hashes::{sha256, Hash},
     Address, Block, Network, OutPoint, Transaction, TxOut, Txid,
   },
+  bitcoincore_rpc::RpcApi,
   chrono::{DateTime, NaiveDateTime, Utc},
   clap::Parser,
   derive_more::{Display, FromStr},
@@ -72,6 +72,7 @@ mod index;
 mod options;
 mod ordinal;
 mod rarity;
+mod rune;
 mod sat_point;
 mod subcommand;
 mod tally;
@@ -84,7 +85,7 @@ const SUBSIDY_HALVING_INTERVAL: u64 =
 const CYCLE_EPOCHS: u64 = 6;
 
 static INTERRUPTS: AtomicU64 = AtomicU64::new(0);
-static LISTENERS: Mutex<Vec<Handle>> = Mutex::new(Vec::new());
+static LISTENERS: Mutex<Vec<axum_server::Handle>> = Mutex::new(Vec::new());
 
 fn main() {
   env_logger::init();
