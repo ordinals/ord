@@ -5,6 +5,12 @@ enum ExpectedExitStatus {
   Signal(Signal),
 }
 
+pub(crate) struct Outputs {
+  pub tempdir: TempDir,
+  pub stdout: String,
+  pub stderr: String,
+}
+
 pub(crate) struct CommandBuilder {
   args: &'static str,
   expected_exit_status: ExpectedExitStatus,
@@ -120,10 +126,15 @@ impl CommandBuilder {
     self.tempdir
   }
 
-  pub(crate) fn run(self) -> (TempDir, String) {
+  pub(crate) fn run(self) -> Outputs {
     let output = self.command().output().unwrap();
-    let str_output = String::from(str::from_utf8(&output.stdout).unwrap());
+    let stdout = String::from(str::from_utf8(&output.stdout).unwrap());
+    let stderr = String::from(str::from_utf8(&output.stderr).unwrap());
 
-    (self.check(output), str_output)
+    Outputs {
+      tempdir: self.check(output),
+      stdout,
+      stderr,
+    }
   }
 }

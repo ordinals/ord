@@ -10,8 +10,9 @@ use {
     TxIn, TxMerkleNode, TxOut, Txid, Witness, Wtxid,
   },
   bitcoincore_rpc::json::{
-    Bip125Replaceable, CreateRawTransactionInput, GetBlockHeaderResult, GetRawTransactionResult,
-    GetTransactionResult, ListUnspentResultEntry, SignRawTransactionResult, WalletTxInfo,
+    Bip125Replaceable, CreateRawTransactionInput, GetBlockHeaderResult, GetBlockchainInfoResult,
+    GetRawTransactionResult, GetTransactionResult, ListUnspentResultEntry,
+    SignRawTransactionResult, WalletTxInfo, GetNetworkInfoResult,
   },
   jsonrpc_core::{IoHandler, Value},
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
@@ -178,6 +179,10 @@ impl State {
 
     tx.txid()
   }
+
+  fn get_mempool(&self) -> Vec<Transaction> {
+    self.mempool.clone()
+  }
 }
 
 pub struct Server {
@@ -202,6 +207,12 @@ impl Server {
 
 #[jsonrpc_derive::rpc]
 pub trait Api {
+  #[rpc(name = "getblockchaininfo")]
+  fn get_blockchain_info(&self) -> Result<GetBlockchainInfoResult, jsonrpc_core::Error>;
+
+  #[rpc(name = "getnetworkinfo")]
+  fn get_network_info(&self) -> Result<GetNetworkInfoResult, jsonrpc_core::Error>;
+
   #[rpc(name = "getblockhash")]
   fn getblockhash(&self, height: usize) -> Result<BlockHash, jsonrpc_core::Error>;
 
@@ -262,6 +273,47 @@ pub trait Api {
 }
 
 impl Api for Server {
+  fn get_blockchain_info(&self) -> Result<GetBlockchainInfoResult, jsonrpc_core::Error> {
+    Ok(GetBlockchainInfoResult {
+      chain: String::from("test-bitcoincore-rpc"),
+      blocks: 0,
+      headers: 0,
+      best_block_hash: self.state.lock().unwrap().hashes[0],
+      difficulty: 0.0,
+      median_time: 0,
+      verification_progress: 0.0,
+      initial_block_download: false,
+      chain_work: Vec::new(),
+      size_on_disk: 0,
+      pruned: false,
+      prune_height: None,
+      automatic_pruning: None,
+      prune_target_size: None,
+      softforks: HashMap::new(),
+      warnings: String::from(""),
+    })
+  }
+
+  fn get_network_info(&self) -> Result<GetNetworkInfoResult, jsonrpc_core::Error> {
+    Ok(GetNetworkInfoResult {
+      version: 230000,
+     subversion: String::from(""),
+     protocol_version: 0,
+     local_services: String::from(""),
+     local_relay: false,
+     time_offset: 0,
+     connections: 0,
+     connections_in: None,
+     connections_out: None,
+     network_active: true,
+     networks: Vec::new(),
+     relay_fee: Amount::from_sat(0),
+     incremental_fee: Amount::from_sat(0),
+     local_addresses: Vec::new(),
+     warnings: String::from(""),
+    })
+  }
+
   fn getblockhash(&self, height: usize) -> Result<BlockHash, jsonrpc_core::Error> {
     match self.state().hashes.get(height) {
       Some(block_hash) => Ok(*block_hash),
@@ -523,6 +575,10 @@ impl Handle {
   pub fn tx(&self, bi: usize, ti: usize) -> Transaction {
     let state = self.state();
     state.blocks[&state.hashes[bi]].txdata[ti].clone()
+  }
+
+  pub fn mempool(&self) -> Vec<Transaction> {
+    self.state.lock().unwrap().get_mempool()
   }
 }
 

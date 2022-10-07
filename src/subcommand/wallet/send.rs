@@ -1,6 +1,5 @@
 use {
   super::*, bitcoin::util::amount::Amount, bitcoincore_rpc::json::CreateRawTransactionInput,
-  std::collections::HashMap,
 };
 
 #[derive(Debug, Parser)]
@@ -15,29 +14,40 @@ impl Send {
       bail!("Send command is not allowed on mainnet yet. Try on regtest/signet/testnet.")
     }
 
+    let client = options.bitcoin_rpc_client()?;
+    if client.get_blockchain_info().unwrap().chain == "main" {
+      bail!("Send command is not allowed on mainnet yet. Try on regtest/signet/testnet.")
+    }
+
     let index = Index::open(&options)?;
     index.index()?;
 
-    let satpoint = index.find(self.ordinal.0)?.unwrap();
-    let output = satpoint.outpoint;
-
-    let client = options.bitcoin_rpc_client()?;
+    let output: OutPoint;
+    match index.find(self.ordinal.0)? {
+      Some(satpoint) => output = satpoint.outpoint,
+      None => bail!(format!("Could not find {}", self.ordinal.0)),
+    }
 
     let amount = client
       .get_transaction(&output.txid, Some(true))?
       .amount
-      .to_sat() as u64;
+      .to_sat()
+      .try_into()
+      .unwrap();
 
-    let inputs = vec![CreateRawTransactionInput {
-      txid: output.txid,
-      vout: output.vout,
-      sequence: None,
-    }];
+    let tx = client.create_raw_transaction_hex(
+      &vec![CreateRawTransactionInput {
+        txid: output.txid,
+        vout: output.vout.clone(),
+        sequence: None,
+      }],
+      &[(self.address, Amount::from_sat(amount))]
+        .into_iter()
+        .collect(),
+      None,
+      None,
+    )?;
 
-    let mut outputs = HashMap::new();
-    outputs.insert(self.address, Amount::from_sat(amount));
-
-    let tx = client.create_raw_transaction_hex(&inputs, &outputs, None, None)?;
     let signed_tx = client.sign_raw_transaction_with_wallet(tx, None, None)?.hex;
     let txid = client.send_raw_transaction(&signed_tx)?;
 
