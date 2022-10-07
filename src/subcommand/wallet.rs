@@ -40,6 +40,3 @@ impl Wallet {
     }
   }
 }
-
-#[cfg(test)]
-mod tests {}

@@ -24,6 +24,7 @@ mod info;
 mod list;
 mod parse;
 mod range;
+mod rune;
 mod server;
 mod supply;
 mod traits;
