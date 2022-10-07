@@ -13,6 +13,7 @@ use {
     options::Options,
     ordinal::Ordinal,
     rarity::Rarity,
+    rune::Rune,
     sat_point::SatPoint,
     subcommand::Subcommand,
     tally::Tally,
@@ -72,6 +73,7 @@ mod index;
 mod options;
 mod ordinal;
 mod rarity;
+mod rune;
 mod sat_point;
 mod subcommand;
 mod tally;
