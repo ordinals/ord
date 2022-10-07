@@ -1061,8 +1061,8 @@ mod tests {
 </dl>
 <h2>Latest Blocks</h2>
 <ol start=1 reversed class='blocks monospace'>
-  <li><a href=/block/[[:xdigit:]]{64} class=uncommon>[[:xdigit:]]{64}</a></li>
-  <li><a href=/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f class=mythic>000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</a></li>
+  <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
+  <li><a href=/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f>000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</a></li>
 </ol>.*",
   );
   }
@@ -1076,7 +1076,7 @@ mod tests {
     test_server.assert_response_regex(
     "/",
     StatusCode::OK,
-    ".*<ol start=101 reversed class='blocks monospace'>\n(  <li><a href=/block/[[:xdigit:]]{64} class=uncommon>[[:xdigit:]]{64}</a></li>\n){100}</ol>.*"
+    ".*<ol start=101 reversed class='blocks monospace'>\n(  <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){100}</ol>.*"
   );
   }
 
@@ -1113,7 +1113,7 @@ mod tests {
       "/static/index.css",
       StatusCode::OK,
       r".*\.rare \{
-  background-color: cornflowerblue;
+  background-color: var\(--rare\);
 }.*",
     );
   }

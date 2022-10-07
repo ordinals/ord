@@ -10,6 +10,8 @@ create-missing = false
 
 [output.html]
 cname = "docs.ordinals.com"
+default-theme = "coal"
 git-repository-url = "https://github.com/casey/ord"
+preferred-dark-theme = "coal"
 
 [output.linkcheck]

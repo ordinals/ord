@@ -3,7 +3,7 @@ use super::*;
 #[derive(Boilerplate)]
 pub(crate) struct HomeHtml {
   last: u64,
-  blocks: Vec<(Rarity, BlockHash)>,
+  blocks: Vec<BlockHash>,
   starting_ordinal: Option<Ordinal>,
 }
 
@@ -18,10 +18,7 @@ impl HomeHtml {
         .map(|(height, _)| height)
         .cloned()
         .unwrap_or(0),
-      blocks: blocks
-        .into_iter()
-        .map(|(height, hash)| (Height(height).starting_ordinal().rarity(), hash))
-        .collect(),
+      blocks: blocks.into_iter().map(|(_, hash)| hash).collect(),
     }
   }
 }
@@ -63,8 +60,8 @@ mod tests {
 </dl>
 <h2>Latest Blocks</h2>
 <ol start=1260001 reversed class='blocks monospace'>
-  <li><a href=/block/1{64} class=uncommon>1{64}</a></li>
-  <li><a href=/block/0{64} class=legendary>0{64}</a></li>
+  <li><a href=/block/1{64}>1{64}</a></li>
+  <li><a href=/block/0{64}>0{64}</a></li>
 </ol>
 ",
     );

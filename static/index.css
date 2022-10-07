@@ -1,6 +1,23 @@
+:root {
+  --dark-bg: hsl(200, 7%, 8%);
+  --dark-fg: #98a3ad;
+  --light-bg: #292c2f;
+  --light-fg: #a1adb8;
+  --search-bg: #b7b7b7;
+  --search-fg: #000000;
+  --search-border: #aaaaaa;
+  --common: grey;
+  --uncommon: forestgreen;
+  --rare: cornflowerblue;
+  --epic: darkorchid;
+  --legendary: gold;
+  --mythic: #f2a900;
+  --link: #4169e1;
+}
+
 html {
-  background-color: #121212;
-  color: white;
+  background-color: var(--dark-bg);
+  color: var(--dark-fg);
 }
 
 main {
@@ -17,20 +34,8 @@ h1 {
   width: 100%;
 }
 
-pre {
-  overflow: scroll;
-  padding: 1rem;
-  border-radius: 0.375rem;
-}
-
-p > code {
-  background-color: #2b303b;
-  padding: 0rem 0.2rem 0rem 0.2rem;
-  border-radius: 0.375rem;
-}
-
 a {
-  color: #4169E1;
+  color: var(--link);
   text-decoration: none;
 }
 
@@ -39,18 +44,31 @@ a:hover {
 }
 
 a:visited {
-  color: #4169E1;
+  color: var(--link);
 }
 
 nav {
   display: flex;
   gap: 1rem;
   padding: 1rem;
-  background-color: #242424;
+  background-color: var(--light-bg);
+  align-items: center;
+}
+
+nav > :first-child {
+  font-weight: bold;
+  color: var(--light-fg);
 }
 
 nav > form {
   margin-left: auto;
+}
+
+input[type=text] {
+  color: var(--search-fg);
+  background-color: var(--search-bg);
+  border-radius: 3px;
+  border: 1px solid var(--search-border);
 }
 
 @media (max-width: 38rem) {
@@ -69,10 +87,6 @@ nav > form {
   white-space: nowrap;
 }
 
-.strikethrough {
-  text-decoration: line-through;
-}
-
 .monospace {
   font-family: monospace, monospace;
 }
@@ -83,49 +97,49 @@ span.common, span.uncommon, span.rare, span.epic, span.legendary, span.mythic {
 }
 
 span.common {
-  background-color: grey;
+  background-color: var(--common);
 }
 
 span.uncommon {
-  background-color: forestgreen;
+  background-color: var(--uncommon);
 }
 
 span.rare {
-  background-color: cornflowerblue;
+  background-color: var(--rare);
 }
 
 span.epic {
-  background-color: darkorchid;
+  background-color: var(--epic);
 }
 
 span.legendary {
-  background-color: gold;
+  background-color: var(--legendary);
 }
 
 span.mythic {
-  background-color: #f2a900;
+  background-color: var(--mythic);
 }
 
 a.common {
-  color: grey;
+  color: var(--common);
 }
 
 a.uncommon {
-  color: forestgreen;
+  color: var(--uncommon);
 }
 
 a.rare {
-  color: cornflowerblue;
+  color: var(--rare);
 }
 
 a.epic {
-  color: darkorchid;
+  color: var(--epic);
 }
 
 a.legendary {
-  color: gold;
+  color: var(--legendary);
 }
 
 a.mythic {
-  color: #f2a900;
+  color: var(--mythic);
 }
