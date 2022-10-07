@@ -1,8 +1,13 @@
-use super::*;
+use {super::*, std::process};
 
 enum ExpectedExitStatus {
   Code(i32),
   Signal(Signal),
+}
+
+pub(crate) struct Output {
+  pub(crate) tempdir: TempDir,
+  pub(crate) stdout: String,
 }
 
 pub(crate) struct CommandBuilder {
@@ -100,7 +105,7 @@ impl CommandBuilder {
     command
   }
 
-  pub(crate) fn check(self, output: Output) -> TempDir {
+  pub(crate) fn check(self, output: process::Output) -> TempDir {
     let stdout = str::from_utf8(&output.stdout).unwrap();
     let stderr = str::from_utf8(&output.stderr).unwrap();
 
@@ -120,8 +125,13 @@ impl CommandBuilder {
     self.tempdir
   }
 
-  pub(crate) fn run(self) -> TempDir {
+  pub(crate) fn run(self) -> Output {
     let output = self.command().output().unwrap();
-    self.check(output)
+    let stdout = String::from(str::from_utf8(&output.stdout).unwrap());
+
+    Output {
+      tempdir: self.check(output),
+      stdout,
+    }
   }
 }
