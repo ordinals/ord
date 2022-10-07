@@ -6,8 +6,8 @@ enum ExpectedExitStatus {
 }
 
 pub(crate) struct Output {
-  pub tempdir: TempDir,
-  pub stdout: String,
+  pub(crate) tempdir: TempDir,
+  pub(crate) stdout: String,
 }
 
 pub(crate) struct CommandBuilder {

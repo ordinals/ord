@@ -1,6 +1,7 @@
 use super::*;
 
-#[jsonrpc_derive::rpc]
+#[doc(hidden)]
+#[jsonrpc_derive::rpc(server)]
 pub trait Api {
   #[rpc(name = "getblockchaininfo")]
   fn get_blockchain_info(&self) -> Result<GetBlockchainInfoResult, jsonrpc_core::Error>;
