@@ -8,7 +8,7 @@ use {
   std::{
     fs,
     os::unix::process::ExitStatusExt,
-    process::{Command, Output, Stdio},
+    process::{Command, Stdio},
     str,
   },
   tempfile::TempDir,

@@ -39,7 +39,7 @@ fn send() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  let outputs = CommandBuilder::new(
+  let output = CommandBuilder::new(
     "--chain signet wallet send 5000000000 tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw",
   )
   .rpc_server(&rpc_server)
@@ -47,7 +47,7 @@ fn send() {
   .run();
 
   let txid = rpc_server.mempool()[0].txid();
-  assert_eq!(format!("{}\n", txid), outputs.stdout)
+  assert_eq!(format!("{}\n", txid), output.stdout)
 }
 
 #[test]

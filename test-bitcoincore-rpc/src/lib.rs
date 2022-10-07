@@ -180,8 +180,8 @@ impl State {
     tx.txid()
   }
 
-  fn get_mempool(&self) -> Vec<Transaction> {
-    self.mempool.clone()
+  fn mempool(&self) -> &[Transaction] {
+    &self.mempool
   }
 }
 
@@ -214,17 +214,17 @@ pub trait Api {
   fn get_network_info(&self) -> Result<GetNetworkInfoResult, jsonrpc_core::Error>;
 
   #[rpc(name = "getblockhash")]
-  fn getblockhash(&self, height: usize) -> Result<BlockHash, jsonrpc_core::Error>;
+  fn get_block_hash(&self, height: usize) -> Result<BlockHash, jsonrpc_core::Error>;
 
   #[rpc(name = "getblockheader")]
-  fn getblockheader(
+  fn get_block_header(
     &self,
     block_hash: BlockHash,
     verbose: bool,
   ) -> Result<Value, jsonrpc_core::Error>;
 
   #[rpc(name = "getblock")]
-  fn getblock(&self, blockhash: BlockHash, verbosity: u64) -> Result<String, jsonrpc_core::Error>;
+  fn get_block(&self, blockhash: BlockHash, verbosity: u64) -> Result<String, jsonrpc_core::Error>;
 
   #[rpc(name = "createrawtransaction")]
   fn create_raw_transaction(
@@ -290,16 +290,16 @@ impl Api for Server {
       automatic_pruning: None,
       prune_target_size: None,
       softforks: HashMap::new(),
-      warnings: String::from(""),
+      warnings: String::new(),
     })
   }
 
   fn get_network_info(&self) -> Result<GetNetworkInfoResult, jsonrpc_core::Error> {
     Ok(GetNetworkInfoResult {
       version: 230000,
-      subversion: String::from(""),
+      subversion: String::new(),
       protocol_version: 0,
-      local_services: String::from(""),
+      local_services: String::new(),
       local_relay: false,
       time_offset: 0,
       connections: 0,
@@ -310,18 +310,18 @@ impl Api for Server {
       relay_fee: Amount::from_sat(0),
       incremental_fee: Amount::from_sat(0),
       local_addresses: Vec::new(),
-      warnings: String::from(""),
+      warnings: String::new(),
     })
   }
 
-  fn getblockhash(&self, height: usize) -> Result<BlockHash, jsonrpc_core::Error> {
+  fn get_block_hash(&self, height: usize) -> Result<BlockHash, jsonrpc_core::Error> {
     match self.state().hashes.get(height) {
       Some(block_hash) => Ok(*block_hash),
       None => Err(Self::not_found()),
     }
   }
 
-  fn getblockheader(
+  fn get_block_header(
     &self,
     block_hash: BlockHash,
     verbose: bool,
@@ -365,7 +365,7 @@ impl Api for Server {
     }
   }
 
-  fn getblock(&self, block_hash: BlockHash, verbosity: u64) -> Result<String, jsonrpc_core::Error> {
+  fn get_block(&self, block_hash: BlockHash, verbosity: u64) -> Result<String, jsonrpc_core::Error> {
     assert_eq!(verbosity, 0, "Verbosity level {verbosity} is unsupported");
     match self.state().blocks.get(&block_hash) {
       Some(block) => Ok(hex::encode(serialize(block))),
@@ -398,7 +398,7 @@ impl Api for Server {
       output: outs
         .iter()
         .map(|(_address, amount)| TxOut {
-          value: *amount as u64,
+          value: (*amount * COIN_VALUE as f64) as u64,
           script_pubkey: Script::new(),
         })
         .collect(),
@@ -578,7 +578,7 @@ impl Handle {
   }
 
   pub fn mempool(&self) -> Vec<Transaction> {
-    self.state.lock().unwrap().get_mempool()
+    self.state.lock().unwrap().mempool().to_vec()
   }
 }
 
