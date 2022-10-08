@@ -2,6 +2,9 @@ use super::*;
 
 // TODO:
 // - make sure magic number is correct endianness
+// - include which ordinals to inscribe the rune on
+// - post to endpoint on ordinals.com
+// - display on ordinals.com
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct Rune {
