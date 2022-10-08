@@ -10,6 +10,7 @@ use {
     epoch::Epoch,
     height::Height,
     index::{Index, List},
+    merkle_script::{MerkleScript, Value},
     options::Options,
     ordinal::Ordinal,
     rarity::Rarity,
@@ -22,11 +23,11 @@ use {
   axum::{extract, http::StatusCode, response::Html, response::IntoResponse, routing::get, Router},
   axum_server::Handle,
   bitcoin::{
-    blockdata::constants::COIN_VALUE,
+    blockdata::{constants::COIN_VALUE, script},
     consensus::{Decodable, Encodable},
     hash_types::BlockHash,
     hashes::Hash,
-    Address, Block, Network, OutPoint, Transaction, TxOut, Txid,
+    Address, Block, Network, OutPoint, Script, Transaction, TxOut, Txid,
   },
   chrono::{DateTime, NaiveDateTime, Utc},
   clap::Parser,
@@ -35,7 +36,7 @@ use {
   regex::Regex,
   serde::{Deserialize, Serialize},
   std::{
-    collections::VecDeque,
+    collections::{BTreeMap, VecDeque},
     env,
     fmt::{self, Display, Formatter},
     fs, io,
@@ -70,6 +71,7 @@ mod degree;
 mod epoch;
 mod height;
 mod index;
+mod merkle_script;
 mod options;
 mod ordinal;
 mod rarity;

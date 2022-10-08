@@ -2,11 +2,17 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Publish {
-  rune: crate::Rune,
+  #[clap(long)]
+  name: String,
 }
 
 impl Publish {
-  pub(crate) fn run(self, _options: Options) -> Result {
+  pub(crate) fn run(self, options: Options) -> Result {
+    crate::Rune {
+      magic: options.chain.network(),
+      name: self.name,
+    }
+    .merkle_script();
     Ok(())
   }
 }
