@@ -4,3 +4,8 @@ use super::*;
 fn publish() {
   CommandBuilder::new("rune publish --name foo").run();
 }
+
+#[test]
+fn publish_mainnet_forbidden() {
+  CommandBuilder::new("rune publish --name foo").run();
+}

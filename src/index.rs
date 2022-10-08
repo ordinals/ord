@@ -2,7 +2,7 @@ use {
   super::*,
   bitcoin::consensus::encode::deserialize,
   bitcoin::BlockHeader,
-  bitcoincore_rpc::{json::GetBlockHeaderResult, Auth, Client, RpcApi},
+  bitcoincore_rpc::{json::GetBlockHeaderResult, Auth, Client},
   rayon::iter::{IntoParallelRefIterator, ParallelIterator},
   redb::WriteStrategy,
   std::sync::atomic::{AtomicBool, Ordering},

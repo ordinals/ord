@@ -29,6 +29,7 @@ use {
     hashes::Hash,
     Address, Block, Network, OutPoint, Script, Transaction, TxOut, Txid,
   },
+  bitcoincore_rpc::RpcApi,
   chrono::{DateTime, NaiveDateTime, Utc},
   clap::Parser,
   derive_more::{Display, FromStr},
