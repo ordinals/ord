@@ -1,7 +1,7 @@
 use super::*;
 
 // TODO:
-// - make sure magic number is current endianness
+// - make sure magic number is correct endianness
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct Rune {
