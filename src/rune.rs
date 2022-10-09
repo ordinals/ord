@@ -3,8 +3,25 @@ use super::*;
 // TODO:
 // - make sure magic number is correct endianness
 // - include which ordinals to inscribe the rune on
+//  - single ordinal
+//  - list of ordinals
+//  - range of ordinals
+//  - range of ordinals with step
 // - post to endpoint on ordinals.com
-// - display on ordinals.com
+// - display all runes ordinals.com
+// - fetch a particular rune by hash at ordinals.com
+// - display runes on ordinals page
+//
+// later:
+// - issuing ordinal
+// - image for rune
+// - image for ordinals
+// - content/media (include mime type)
+// - flat format
+//
+// vint w
+//
+// ordinal privacy page
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct Rune {
