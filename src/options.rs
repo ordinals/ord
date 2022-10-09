@@ -129,10 +129,10 @@ impl Options {
       .context("Failed to connect to Bitcoin Core RPC at {rpc_url}")
   }
 
-  pub(crate) fn bitcoin_rpc_client_mainnet_forbidden(&self) -> Result<Client> {
+  pub(crate) fn bitcoin_rpc_client_mainnet_forbidden(&self, command: &str) -> Result<Client> {
     let client = self.bitcoin_rpc_client()?;
     if self.chain.network() == Network::Bitcoin || client.get_blockchain_info()?.chain == "main" {
-      bail!("Send command is not allowed on mainnet yet. Try on regtest/signet/testnet.");
+      bail!("`{command}` is unstable and not yet supported on mainnet.");
     }
     Ok(client)
   }

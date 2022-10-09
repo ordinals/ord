@@ -8,7 +8,7 @@ pub(crate) struct Publish {
 
 impl Publish {
   pub(crate) fn run(self, options: Options) -> Result {
-    options.bitcoin_rpc_client_mainnet_forbidden()?;
+    options.bitcoin_rpc_client_mainnet_forbidden("ord rune publish")?;
 
     crate::Rune {
       magic: options.chain.network(),

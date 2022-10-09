@@ -2,10 +2,20 @@ use super::*;
 
 #[test]
 fn publish() {
-  CommandBuilder::new("--network regtest rune publish --name foo").run();
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  CommandBuilder::new("--chain regtest rune publish --name foo")
+    .rpc_server(&rpc_server)
+    .run();
 }
 
 #[test]
 fn publish_mainnet_forbidden() {
-  CommandBuilder::new("rune publish --name foo").run();
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  CommandBuilder::new("rune publish --name foo")
+    .rpc_server(&rpc_server)
+    .expected_stderr("error: `ord rune publish` is unstable and not yet supported on mainnet.\n")
+    .expected_exit_code(1)
+    .run();
 }
