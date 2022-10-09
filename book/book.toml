@@ -1,7 +1,6 @@
 [book]
 title = "Ordinal Hunter's Manual"
 language = "en"
-multilingual = false
 src = "src"
 
 [build]
