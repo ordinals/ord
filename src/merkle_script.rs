@@ -33,9 +33,9 @@ impl MerkleScript for str {
   }
 }
 
-impl MerkleScript for String {
+impl MerkleScript for &str {
   fn push_merkle_script(&self, builder: script::Builder) -> script::Builder {
-    self.as_str().push_merkle_script(builder)
+    (*self).push_merkle_script(builder)
   }
 }
 
@@ -65,5 +65,61 @@ impl<T: MerkleScript> MerkleScript for BTreeMap<&str, T> {
     }
 
     builder
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn string() {
+    assert_eq!(
+      "foo".merkle_script().asm(),
+      "OP_PUSHNUM_3 OP_PUSHBYTES_3 666f6f",
+    );
+    assert_eq!("".merkle_script().asm(), "OP_PUSHNUM_3 OP_0",);
+  }
+
+  #[test]
+  fn value_string() {
+    assert_eq!(
+      Value::String("foo".into()).merkle_script().asm(),
+      "OP_PUSHNUM_3 OP_PUSHBYTES_3 666f6f",
+    );
+  }
+
+  #[test]
+  fn bytes() {
+    assert_eq!(
+      [1, 2, 3].merkle_script().asm(),
+      "OP_PUSHNUM_2 OP_PUSHBYTES_3 010203",
+    );
+    assert_eq!([].merkle_script().asm(), "OP_PUSHNUM_2 OP_0",);
+  }
+
+  #[test]
+  fn value_bytes() {
+    assert_eq!(
+      Value::Bytes(vec![1, 2, 3]).merkle_script().asm(),
+      "OP_PUSHNUM_2 OP_PUSHBYTES_3 010203",
+    );
+  }
+
+  #[test]
+  fn object() {
+    assert_eq!(
+      [("a", "A"), ("b", "B"), ("c", "C")]
+        .into_iter()
+        .collect::<BTreeMap<&str, &str>>()
+        .merkle_script()
+        .asm(),
+      concat!(
+        "OP_PUSHNUM_5 OP_PUSHNUM_3",
+        " OP_PUSHBYTES_1 61 OP_PUSHNUM_3 OP_PUSHBYTES_1 41",
+        " OP_PUSHBYTES_1 62 OP_PUSHNUM_3 OP_PUSHBYTES_1 42",
+        " OP_PUSHBYTES_1 63 OP_PUSHNUM_3 OP_PUSHBYTES_1 43",
+      ),
+    );
   }
 }

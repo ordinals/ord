@@ -27,6 +27,7 @@ use super::*;
 pub(crate) struct Rune {
   pub(crate) magic: Network,
   pub(crate) name: String,
+  pub(crate) ordinal: Ordinal,
 }
 
 impl MerkleScript for Rune {
