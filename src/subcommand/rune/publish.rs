@@ -4,6 +4,8 @@ use super::*;
 pub(crate) struct Publish {
   #[clap(long)]
   name: String,
+  #[clap(long)]
+  ordinal: Ordinal,
 }
 
 impl Publish {
@@ -13,6 +15,7 @@ impl Publish {
     crate::Rune {
       magic: options.chain.network(),
       name: self.name,
+      ordinal: self.ordinal,
     }
     .merkle_script();
     Ok(())

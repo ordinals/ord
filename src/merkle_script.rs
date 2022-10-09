@@ -1,9 +1,9 @@
-use super::*;
+use {super::*, num_bigint::BigUint};
 
 #[repr(i64)]
 enum Tag {
   // Hash = 0,
-  // Number = 1,
+  Number = 1,
   Bytes = 2,
   String = 3,
   // Array = 4,
@@ -13,6 +13,7 @@ enum Tag {
 pub(crate) enum Value {
   String(String),
   Bytes(Vec<u8>),
+  Number(BigUint),
 }
 
 pub(crate) trait MerkleScript {
@@ -45,11 +46,28 @@ impl MerkleScript for [u8] {
   }
 }
 
+impl MerkleScript for BigUint {
+  fn push_merkle_script(&self, builder: script::Builder) -> script::Builder {
+    let mut bytes = self.to_bytes_le();
+
+    while bytes.last().cloned() == Some(0) {
+      bytes.pop();
+    }
+
+    if bytes.last().map(|last| last >> 7 == 1).unwrap_or(false) {
+      bytes.push(0);
+    }
+
+    builder.push_int(Tag::Number as i64).push_slice(&bytes)
+  }
+}
+
 impl MerkleScript for Value {
   fn push_merkle_script(&self, builder: script::Builder) -> script::Builder {
     match self {
       Self::String(string) => string.push_merkle_script(builder),
       Self::Bytes(bytes) => bytes.push_merkle_script(builder),
+      Self::Number(number) => number.push_merkle_script(builder),
     }
   }
 }
@@ -120,6 +138,26 @@ mod tests {
         " OP_PUSHBYTES_1 62 OP_PUSHNUM_3 OP_PUSHBYTES_1 42",
         " OP_PUSHBYTES_1 63 OP_PUSHNUM_3 OP_PUSHBYTES_1 43",
       ),
+    );
+  }
+
+  #[test]
+  fn number() {
+    assert_eq!(
+      BigUint::from(0u32).merkle_script().asm(),
+      "OP_PUSHNUM_1 OP_0",
+    );
+    assert_eq!(
+      BigUint::from(1u32).merkle_script().asm(),
+      "OP_PUSHNUM_1 OP_PUSHBYTES_1 01",
+    );
+    assert_eq!(
+      BigUint::from(0x80u32).merkle_script().asm(),
+      "OP_PUSHNUM_1 OP_PUSHBYTES_2 8000",
+    );
+    assert_eq!(
+      BigUint::from(0x7fffu32).merkle_script().asm(),
+      "OP_PUSHNUM_1 OP_PUSHBYTES_2 ff7f",
     );
   }
 }

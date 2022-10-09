@@ -1973,6 +1973,7 @@ dependencies = [
  "log",
  "mime_guess",
  "nix",
+ "num-bigint",
  "pretty_assertions",
  "pulldown-cmark",
  "rayon",

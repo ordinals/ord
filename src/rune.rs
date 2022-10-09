@@ -35,6 +35,7 @@ impl MerkleScript for Rune {
     let mut object = BTreeMap::new();
     object.insert("m", Value::Bytes(self.magic.magic().to_le_bytes().to_vec()));
     object.insert("n", Value::String(self.name.clone()));
+    object.insert("o", Value::Number(self.ordinal.n().into()));
     object.push_merkle_script(builder)
   }
 }
@@ -49,13 +50,15 @@ mod tests {
       Rune {
         magic: Network::Bitcoin,
         name: "coyn".into(),
+        ordinal: Ordinal(0),
       }
       .merkle_script()
       .asm(),
       concat! {
-        "OP_PUSHNUM_5 OP_PUSHNUM_2",
+        "OP_PUSHNUM_5 OP_PUSHNUM_3",
         " OP_PUSHBYTES_1 6d OP_PUSHNUM_2 OP_PUSHBYTES_4 f9beb4d9",
         " OP_PUSHBYTES_1 6e OP_PUSHNUM_3 OP_PUSHBYTES_4 636f796e",
+        " OP_PUSHBYTES_1 6f OP_PUSHNUM_1 OP_0",
       }
     );
   }
