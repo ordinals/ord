@@ -12,6 +12,7 @@ use {
     body,
     http::header,
     response::{Redirect, Response},
+    routing::{get, put},
   },
   lazy_static::lazy_static,
   rust_embed::RustEmbed,
@@ -145,6 +146,7 @@ impl Server {
         .route("/output/:output", get(Self::output))
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
+        .route("/rune", put(Self::rune))
         .route("/search", get(Self::search_by_query))
         .route("/search/:query", get(Self::search_by_path))
         .route("/static/*path", get(Self::static_asset))
@@ -350,6 +352,30 @@ impl Server {
         html_status(StatusCode::INTERNAL_SERVER_ERROR).into_response()
       }
     }
+  }
+
+  async fn rune(
+    extract::Extension(index): extract::Extension<Arc<Index>>,
+    mut stream: extract::BodyStream,
+  ) -> impl IntoResponse {
+    let mut bytes: Vec<u8> = Vec::new();
+
+    while let Some(result) = stream.next().await {
+      let chunk = result.unwrap();
+      if bytes.len() + chunk.len() > 1024 {
+        panic!();
+      }
+      bytes.extend_from_slice(&chunk);
+    }
+
+    let script = Script::from(bytes);
+
+    // let rune = Rune::from_merkle_script(&script).unwrap();
+
+    // index.insert_rune(rune);
+
+    // hash to contents
+    StatusCode::NO_CONTENT
   }
 
   async fn home(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {

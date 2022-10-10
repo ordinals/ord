@@ -34,6 +34,7 @@ num-bigint = "0.4.3"
 rayon = "1.5.1"
 redb = "0.7.0"
 regex = "1.6.0"
+reqwest = { version = "0.11.10", features = ["blocking"] }
 rust-embed = "6.4.0"
 rustls = "0.20.6"
 rustls-acme = { version = "0.5.0", features = ["axum"] }
@@ -50,7 +51,6 @@ tower-http = { version = "0.3.3", features = ["cors"] }
 executable-path = "1.0.0"
 nix = "0.25.0"
 pretty_assertions = "1.2.1"
-reqwest = { version = "0.11.10", features = ["blocking"] }
 tempfile = "3.2.0"
 test-bitcoincore-rpc = { path = "test-bitcoincore-rpc" }
 unindent = "0.1.7"

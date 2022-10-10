@@ -14,6 +14,12 @@ pub(crate) trait ToArgs {
   fn to_args(&self) -> Vec<String>;
 }
 
+impl ToArgs for String {
+  fn to_args(&self) -> Vec<String> {
+    self.as_str().to_args()
+  }
+}
+
 impl ToArgs for &str {
   fn to_args(&self) -> Vec<String> {
     self.split_whitespace().map(str::to_string).collect()

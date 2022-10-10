@@ -24,6 +24,13 @@ pub(crate) trait MerkleScript {
   }
 
   fn push_merkle_script(&self, builder: script::Builder) -> script::Builder;
+
+  fn from_merkle_script(script: &Script) -> Result<Self>
+  where
+    Self: Sized,
+  {
+    todo!()
+  }
 }
 
 impl MerkleScript for str {

@@ -22,6 +22,10 @@ use super::*;
 // vint w
 //
 // ordinal privacy page
+//
+// - script
+// - script bytes
+// - result bytes
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct Rune {
