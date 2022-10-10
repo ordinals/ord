@@ -1,4 +1,4 @@
-use {super::*, num_bigint::BigUint};
+use {super::*, bitcoin::blockdata::script::Instructions, num_bigint::BigUint};
 
 #[repr(i64)]
 enum Tag {
@@ -25,10 +25,24 @@ pub(crate) trait MerkleScript {
 
   fn push_merkle_script(&self, builder: script::Builder) -> script::Builder;
 
-  fn from_merkle_script(script: &Script) -> Result<Self>
+  fn from_merkle_script(script: &Script) -> Self
   where
     Self: Sized,
   {
+    let mut instructions = script.instructions();
+
+    let value = Self::pop_merkle_script(&mut instructions);
+
+    assert_eq!(instructions.next(), None);
+
+    value
+  }
+
+  fn pop_merkle_script(instructions: &mut Instructions) -> Self
+  where
+    Self: Sized,
+  {
+    let tag = instructions.next().unwrap();
     todo!()
   }
 }

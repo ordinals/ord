@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, bitcoin::blockdata::script::Instructions};
 
 // TODO:
 // - make sure magic number is correct endianness
@@ -41,6 +41,14 @@ impl MerkleScript for Rune {
     object.insert("n", Value::String(self.name.clone()));
     object.insert("o", Value::Number(self.ordinal.n().into()));
     object.push_merkle_script(builder)
+  }
+
+  fn pop_merkle_script(instructions: &mut Instructions) -> Self
+  where
+    Self: Sized,
+  {
+    let tag = instructions.next().unwrap();
+    todo!()
   }
 }
 

@@ -370,7 +370,7 @@ impl Server {
 
     let script = Script::from(bytes);
 
-    // let rune = Rune::from_merkle_script(&script).unwrap();
+    let rune = Rune::from_merkle_script(&script);
 
     // index.insert_rune(rune);
 
