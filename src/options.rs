@@ -88,7 +88,7 @@ impl Options {
     );
 
     let client = Client::new(&rpc_url, Auth::CookieFile(cookie_file))
-      .context("Failed to connect to Bitcoin Core RPC at {rpc_url}")?;
+      .with_context(|| format!("Failed to connect to Bitcoin Core RPC at {rpc_url}"))?;
 
     let rpc_chain = match client.get_blockchain_info()?.chain.as_str() {
       "main" => Chain::Mainnet,
