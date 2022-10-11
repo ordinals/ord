@@ -2,6 +2,6 @@
 <dl>
   <dt>hash</dt><dd>{{self.hash}}</dd>
   <dt>name</dt><dd>{{self.rune.name}}</dd>
-  <dt>network</dt><dd>{% if let Network::Bitcoin = self.rune.network { %}mainnet{% } else { %}{{self.rune.network}}{% } %}</dd>
+  <dt>chain</dt><dd>{{self.rune.chain}}</dd>
   <dt>ordinal</dt><dd>{{self.rune.ordinal}}</dd>
 </dl>

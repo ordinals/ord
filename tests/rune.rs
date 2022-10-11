@@ -2,7 +2,7 @@ use super::*;
 
 #[test]
 fn publish_success() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let rpc_server = test_bitcoincore_rpc::spawn_with_network(Network::Regtest);
 
   let ord_server = TestServer::spawn(&rpc_server);
 
@@ -13,19 +13,19 @@ fn publish_success() {
     url,
   ))
   .expected_stderr("Rune published: 201 Created\n")
-  .expected_stdout("8198d907f096767ffe030e08e4d6c86758573a19f895f97b98b49befaadb2e54\n")
+  .expected_stdout("8ca6ee12cb891766de56e5698a73cd6546f27a88bd27c8b8d914bc4162f9e4b5\n")
   .rpc_server(&rpc_server)
   .run();
 
   ord_server.assert_response_regex(
-    "/rune/8198d907f096767ffe030e08e4d6c86758573a19f895f97b98b49befaadb2e54",
+    "/rune/8ca6ee12cb891766de56e5698a73cd6546f27a88bd27c8b8d914bc4162f9e4b5",
     StatusCode::OK,
-    ".*<title>Rune 8198d907f096767ffe030e08e4d6c86758573a19f895f97b98b49befaadb2e54</title>.*
-<h1>Rune 8198d907f096767ffe030e08e4d6c86758573a19f895f97b98b49befaadb2e54</h1>
+    ".*<title>Rune 8ca6ee12cb891766de56e5698a73cd6546f27a88bd27c8b8d914bc4162f9e4b5</title>.*
+<h1>Rune 8ca6ee12cb891766de56e5698a73cd6546f27a88bd27c8b8d914bc4162f9e4b5</h1>
 <dl>
-  <dt>hash</dt><dd>8198d907f096767ffe030e08e4d6c86758573a19f895f97b98b49befaadb2e54</dd>
+  <dt>hash</dt><dd>8ca6ee12cb891766de56e5698a73cd6546f27a88bd27c8b8d914bc4162f9e4b5</dd>
   <dt>name</dt><dd>foo</dd>
-  <dt>network</dt><dd>regtest</dd>
+  <dt>chain</dt><dd>regtest</dd>
   <dt>ordinal</dt><dd>0</dd>
 </dl>
 .*",

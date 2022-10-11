@@ -156,7 +156,7 @@ impl Server {
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
         .layer(Extension(index))
-        .layer(Extension(options.chain.network()))
+        .layer(Extension(options.chain))
         .layer(
           CorsLayer::new()
             .allow_methods([http::Method::GET])
@@ -302,7 +302,7 @@ impl Server {
   async fn output(
     Extension(index): Extension<Arc<Index>>,
     Path(outpoint): Path<OutPoint>,
-    Extension(network): Extension<Network>,
+    Extension(chain): Extension<Chain>,
   ) -> ServerResult<PageHtml> {
     let list = index
       .list(outpoint)
@@ -322,7 +322,7 @@ impl Server {
       OutputHtml {
         outpoint,
         list,
-        network,
+        chain,
         output,
       }
       .page(),
@@ -352,12 +352,12 @@ impl Server {
 
   async fn rune_put(
     Extension(index): Extension<Arc<Index>>,
-    Extension(network): Extension<Network>,
+    Extension(chain): Extension<Chain>,
     Json(rune): Json<Rune>,
   ) -> ServerResult<(StatusCode, String)> {
-    if rune.network != network {
+    if rune.chain != chain {
       return Err(ServerError::UnprocessableEntity(format!(
-        "This ord instance only accepts {network} runes for publication"
+        "This ord instance only accepts {chain} runes for publication"
       )));
     }
     let (created, hash) = index.insert_rune(&rune).map_err(ServerError::Internal)?;
@@ -425,7 +425,7 @@ impl Server {
 
   async fn transaction(
     Extension(index): Extension<Arc<Index>>,
-    Extension(network): Extension<Network>,
+    Extension(chain): Extension<Chain>,
     Path(txid): Path<Txid>,
   ) -> ServerResult<PageHtml> {
     Ok(
@@ -438,7 +438,7 @@ impl Server {
             ))
           })?
           .ok_or_else(|| ServerError::NotFound(format!("Transaction {txid} unknown")))?,
-        network,
+        chain,
       )
       .page(),
     )
@@ -678,7 +678,7 @@ mod tests {
 
     fn assert_response(&self, path: &str, status: StatusCode, expected_response: &str) {
       let response = self.get(path);
-      assert_eq!(response.status(), status);
+      assert_eq!(response.status(), status, "{}", response.text().unwrap());
       assert_eq!(response.text().unwrap(), expected_response);
     }
 
@@ -1309,17 +1309,17 @@ mod tests {
     test_server.assert_put(
       "/rune",
       "application/json",
-      r#"{"name": "foo", "network": "regtest", "ordinal": 0}"#,
+      r#"{"name": "foo", "chain": "regtest", "ordinal": 0}"#,
       StatusCode::CREATED,
-      "8198d907f096767ffe030e08e4d6c86758573a19f895f97b98b49befaadb2e54",
+      "8ca6ee12cb891766de56e5698a73cd6546f27a88bd27c8b8d914bc4162f9e4b5",
     );
 
     test_server.assert_put(
       "/rune",
       "application/json",
-      r#"{"name": "foo", "network": "regtest", "ordinal": 0}"#,
+      r#"{"name": "foo", "chain": "regtest", "ordinal": 0}"#,
       StatusCode::OK,
-      "8198d907f096767ffe030e08e4d6c86758573a19f895f97b98b49befaadb2e54",
+      "8ca6ee12cb891766de56e5698a73cd6546f27a88bd27c8b8d914bc4162f9e4b5",
     );
   }
 
@@ -1330,17 +1330,17 @@ mod tests {
     test_server.assert_put(
       "/rune",
       "application/json",
-      r#"{"name": "foo", "network": "regtest", "ordinal": 0}"#,
+      r#"{"name": "foo", "chain": "regtest", "ordinal": 0}"#,
       StatusCode::CREATED,
-      "8198d907f096767ffe030e08e4d6c86758573a19f895f97b98b49befaadb2e54",
+      "8ca6ee12cb891766de56e5698a73cd6546f27a88bd27c8b8d914bc4162f9e4b5",
     );
 
     test_server.assert_put(
       "/rune",
       "application/json",
-      r#"{"network": "regtest",    "name": "foo",   "ordinal": 0}"#,
+      r#"{"chain": "regtest",    "name": "foo",   "ordinal": 0}"#,
       StatusCode::OK,
-      "8198d907f096767ffe030e08e4d6c86758573a19f895f97b98b49befaadb2e54",
+      "8ca6ee12cb891766de56e5698a73cd6546f27a88bd27c8b8d914bc4162f9e4b5",
     );
   }
 
@@ -1349,7 +1349,7 @@ mod tests {
     TestServer::new().assert_put(
       "/rune",
       "application/json",
-      r#"{"name": "foo", "network": "testnet", "ordinal": 0}"#,
+      r#"{"name": "foo", "chain": "mainnet", "ordinal": 0}"#,
       StatusCode::UNPROCESSABLE_ENTITY,
       r#"This ord instance only accepts regtest runes for publication"#,
     );

@@ -4,7 +4,7 @@ use super::*;
 pub(crate) struct OutputHtml {
   pub(crate) outpoint: OutPoint,
   pub(crate) list: List,
-  pub(crate) network: Network,
+  pub(crate) chain: Chain,
   pub(crate) output: TxOut,
 }
 
@@ -29,7 +29,7 @@ mod tests {
           .parse()
           .unwrap(),
         list: List::Unspent(vec![(0, 1), (1, 3)]),
-        network: Network::Bitcoin,
+        chain: Chain::Mainnet,
         output: TxOut {
           value: 3,
           script_pubkey: Script::new_p2pkh(&PubkeyHash::all_zeros()),
@@ -61,7 +61,7 @@ mod tests {
           .parse()
           .unwrap(),
         list: List::Spent,
-        network: Network::Bitcoin,
+        chain: Chain::Mainnet,
         output: TxOut {
           value: 1,
           script_pubkey: script::Builder::new().push_scriptint(0).into_script(),
