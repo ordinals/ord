@@ -322,7 +322,19 @@ mod tests {
   fn rpc_server_chain_must_match() {
     let rpc_server = test_bitcoincore_rpc::spawn_with_network(bitcoin::Network::Testnet);
 
-    let options = Options::try_parse_from(&["ord", "--rpc-url", &rpc_server.url()]).unwrap();
+    let tempdir = TempDir::new().unwrap();
+
+    let cookie_file = tempdir.path().join(".cookie");
+    fs::write(&cookie_file, "username:password").unwrap();
+
+    let options = Options::try_parse_from(&[
+      "ord",
+      "--cookie-file",
+      cookie_file.to_str().unwrap(),
+      "--rpc-url",
+      &rpc_server.url(),
+    ])
+    .unwrap();
 
     assert_eq!(
       options.bitcoin_rpc_client().unwrap_err().to_string(),
