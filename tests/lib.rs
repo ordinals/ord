@@ -4,6 +4,7 @@ use {
   self::{command_builder::CommandBuilder, expected::Expected},
   executable_path::executable_path,
   nix::{sys::signal::Signal, unistd::Pid},
+  pretty_assertions::assert_eq as pretty_assert_eq,
   regex::Regex,
   reqwest::{StatusCode, Url},
   std::{

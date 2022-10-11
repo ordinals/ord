@@ -1,4 +1,7 @@
-pub(crate) use {tempfile::TempDir, test_bitcoincore_rpc::TransactionTemplate};
+pub(crate) use {
+  pretty_assertions::assert_eq as pretty_assert_eq, tempfile::TempDir,
+  test_bitcoincore_rpc::TransactionTemplate, unindent::Unindent,
+};
 
 macro_rules! assert_regex_match {
   ($string:expr, $pattern:expr $(,)?) => {

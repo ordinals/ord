@@ -2,11 +2,10 @@ use super::*;
 
 use {
   self::{
-    deserialize_ordinal_from_str::DeserializeOrdinalFromStr,
+    deserialize_from_str::DeserializeFromStr,
     templates::{
-      block::BlockHtml, clock::ClockSvg, home::HomeHtml, ordinal::OrdinalHtml, output::OutputHtml,
-      range::RangeHtml, rare::RareTxt, rune::RuneHtml, transaction::TransactionHtml, Content,
-      PageHtml,
+      BlockHtml, ClockSvg, Content, HomeHtml, InputHtml, OrdinalHtml, OutputHtml, PageHtml,
+      RangeHtml, RareTxt, RuneHtml, TransactionHtml,
     },
   },
   axum::{
@@ -27,12 +26,11 @@ use {
     AcmeConfig,
   },
   serde::{de, Deserializer},
-  std::cmp::Ordering,
-  std::str,
+  std::{cmp::Ordering, str},
   tokio_stream::StreamExt,
 };
 
-mod deserialize_ordinal_from_str;
+mod deserialize_from_str;
 mod templates;
 
 enum ServerError {
@@ -145,6 +143,7 @@ impl Server {
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
         .route("/height", get(Self::height))
+        .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/ordinal/:ordinal", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
         .route("/range/:start/:end", get(Self::range))
@@ -287,7 +286,7 @@ impl Server {
 
   async fn ordinal(
     Extension(index): Extension<Arc<Index>>,
-    Path(DeserializeOrdinalFromStr(ordinal)): Path<DeserializeOrdinalFromStr>,
+    Path(DeserializeFromStr(ordinal)): Path<DeserializeFromStr<Ordinal>>,
   ) -> ServerResult<PageHtml> {
     Ok(
       OrdinalHtml {
@@ -331,9 +330,9 @@ impl Server {
   }
 
   async fn range(
-    Path((DeserializeOrdinalFromStr(start), DeserializeOrdinalFromStr(end))): Path<(
-      DeserializeOrdinalFromStr,
-      DeserializeOrdinalFromStr,
+    Path((DeserializeFromStr(start), DeserializeFromStr(end))): Path<(
+      DeserializeFromStr<Ordinal>,
+      DeserializeFromStr<Ordinal>,
     )>,
   ) -> ServerResult<PageHtml> {
     match start.cmp(&end) {
@@ -536,6 +535,29 @@ impl Server {
         })?
         .to_string(),
     )
+  }
+
+  async fn input(
+    Extension(index): Extension<Arc<Index>>,
+    Path(path): Path<(u64, usize, usize)>,
+  ) -> Result<PageHtml, ServerError> {
+    let not_found =
+      || ServerError::NotFound(format!("Input /{}/{}/{} unknown", path.0, path.1, path.2));
+
+    let block = index
+      .block(path.0)
+      .map_err(ServerError::Internal)?
+      .ok_or_else(not_found)?;
+
+    let transaction = block.txdata.into_iter().nth(path.1).ok_or_else(not_found)?;
+
+    let input = transaction
+      .input
+      .into_iter()
+      .nth(path.2)
+      .ok_or_else(not_found)?;
+
+    Ok(InputHtml { path, input }.page())
   }
 
   async fn faq() -> Redirect {
@@ -1038,10 +1060,10 @@ mod tests {
     test_server.assert_response_regex(
     "/output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
     StatusCode::OK,
-    ".*<title>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</title>.*<h1>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</h1>
+    ".*<title>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</title>.*<h1>Output <span class=monospace>4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</span></h1>
 <dl>
   <dt>value</dt><dd>5000000000</dd>
-  <dt>script pubkey</dt><dd>OP_PUSHBYTES_65 04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f OP_CHECKSIG</dd>
+  <dt>script pubkey</dt><dd class=data>OP_PUSHBYTES_65 04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f OP_CHECKSIG</dd>
 </dl>
 <h2>1 Ordinal Range</h2>
 <ul class=monospace>
@@ -1086,7 +1108,7 @@ mod tests {
   <dt>block</dt><dd>1</dd>
 </dl>
 <h2>Latest Blocks</h2>
-<ol start=1 reversed class='blocks monospace'>
+<ol start=1 reversed class=blocks>
   <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
   <li><a href=/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f>000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</a></li>
 </ol>.*",
@@ -1102,7 +1124,7 @@ mod tests {
     test_server.assert_response_regex(
     "/",
     StatusCode::OK,
-    ".*<ol start=101 reversed class='blocks monospace'>\n(  <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){100}</ol>.*"
+    ".*<ol start=101 reversed class=blocks>\n(  <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){100}</ol>.*"
   );
   }
 
@@ -1173,13 +1195,13 @@ mod tests {
     test_server.assert_response_regex(
       &format!("/block/{block_hash}"),
       StatusCode::OK,
-      ".*<h1>Block [[:xdigit:]]{64}</h1>
+      ".*<h1>Block <span class=monospace>[[:xdigit:]]{64}</span></h1>
 <dl>
   <dt>height</dt><dd>2</dd>
   <dt>timestamp</dt><dd>0</dd>
   <dt>size</dt><dd>203</dd>
   <dt>weight</dt><dd>812</dd>
-  <dt>prev blockhash</dt><dd><a href=/block/659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf>659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf</a></dd>
+  <dt>prev blockhash</dt><dd><a href=/block/659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf class=monospace>659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf</a></dd>
 </dl>
 <h2>2 Transactions</h2>
 <ul class=monospace>
@@ -1200,16 +1222,16 @@ mod tests {
       &format!("/tx/{txid}"),
       StatusCode::OK,
       &format!(
-        ".*<title>Transaction {txid}</title>.*<h1>Transaction {txid}</h1>
+        ".*<title>Transaction {txid}</title>.*<h1>Transaction <span class=monospace>{txid}</span></h1>
 <h2>1 Output</h2>
 <ul class=monospace>
   <li>
-    <a href=/output/9068a11b8769174363376b606af9a4b8b29dd7b13d013f4b0cbbd457db3c3ce5:0>
+    <a href=/output/9068a11b8769174363376b606af9a4b8b29dd7b13d013f4b0cbbd457db3c3ce5:0 class=monospace>
       9068a11b8769174363376b606af9a4b8b29dd7b13d013f4b0cbbd457db3c3ce5:0
     </a>
     <dl>
       <dt>value</dt><dd>5000000000</dd>
-      <dt>script pubkey</dt><dd></dd>
+      <dt>script pubkey</dt><dd class=data></dd>
     </dl>
   </li>
 </ul>.*"
@@ -1239,6 +1261,24 @@ mod tests {
       "ordinal\tsatpoint
 0\t4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0
 ",
+    );
+  }
+
+  #[test]
+  fn input() {
+    TestServer::new().assert_response_regex(
+      "/input/0/0/0",
+      StatusCode::OK,
+      ".*<title>Input /0/0/0</title>.*<h1>Input /0/0/0</h1>.*<dt>text</dt><dd>.*The Times 03/Jan/2009 Chancellor on brink of second bailout for banks</dd>.*",
+    );
+  }
+
+  #[test]
+  fn input_missing() {
+    TestServer::new().assert_response(
+      "/input/1/1/1",
+      StatusCode::NOT_FOUND,
+      "Input /1/1/1 unknown",
     );
   }
 

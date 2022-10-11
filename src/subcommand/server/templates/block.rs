@@ -25,23 +25,23 @@ impl Content for BlockHtml {
 
 #[cfg(test)]
 mod tests {
-  use {super::*, pretty_assertions::assert_eq, unindent::Unindent};
+  use super::*;
 
   #[test]
   fn block_html() {
-    assert_eq!(
+    pretty_assert_eq!(
       BlockHtml::new(bitcoin::blockdata::constants::genesis_block(
         Network::Bitcoin
       ), Height(0))
       .to_string(),
       "
-        <h1>Block 000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</h1>
+        <h1>Block <span class=monospace>000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</span></h1>
         <dl>
           <dt>height</dt><dd>0</dd>
           <dt>timestamp</dt><dd>1231006505</dd>
           <dt>size</dt><dd>285</dd>
           <dt>weight</dt><dd>1140</dd>
-          <dt>prev blockhash</dt><dd><a href=/block/0000000000000000000000000000000000000000000000000000000000000000>0000000000000000000000000000000000000000000000000000000000000000</a></dd>
+          <dt>prev blockhash</dt><dd><a href=/block/0000000000000000000000000000000000000000000000000000000000000000 class=monospace>0000000000000000000000000000000000000000000000000000000000000000</a></dd>
         </dl>
         <h2>1 Transaction</h2>
         <ul class=monospace>

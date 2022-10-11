@@ -253,7 +253,7 @@ impl Index {
 
     let mut errors = 0;
     let block = loop {
-      match self.block_at_height(height) {
+      match self.block(height) {
         Err(err) => {
           if cfg!(test) {
             return Err(err);
@@ -490,7 +490,7 @@ impl Index {
     Ok(())
   }
 
-  fn block_at_height(&self, height: u64) -> Result<Option<Block>> {
+  pub(crate) fn block(&self, height: u64) -> Result<Option<Block>> {
     Ok(
       self
         .client
@@ -625,7 +625,7 @@ impl Index {
   pub(crate) fn blocktime(&self, height: Height) -> Result<Blocktime> {
     let height = height.n();
 
-    match self.block_at_height(height)? {
+    match self.block(height)? {
       Some(block) => Ok(Blocktime::Confirmed(block.header.time.into())),
       None => {
         let tx = self.database.begin_read()?;

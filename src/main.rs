@@ -21,10 +21,10 @@ use {
   anyhow::{anyhow, bail, Context, Error},
   bitcoin::{
     blockdata::constants::COIN_VALUE,
-    consensus::{Decodable, Encodable},
+    consensus::{self, Decodable, Encodable},
     hash_types::BlockHash,
     hashes::{sha256, Hash},
-    Address, Block, Network, OutPoint, Transaction, TxOut, Txid,
+    Address, Block, Network, OutPoint, Sequence, Transaction, TxIn, TxOut, Txid,
   },
   bitcoincore_rpc::RpcApi,
   chrono::{DateTime, NaiveDateTime, Utc},

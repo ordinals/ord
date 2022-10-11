@@ -1,17 +1,17 @@
-<h1>Transaction {{self.txid}}</h1>
+<h1>Transaction <span class=monospace>{{self.txid}}</span></h1>
 <h2>{{"Output".tally(self.transaction.output.len())}}</h2>
 <ul class=monospace>
 %% for (vout, output) in self.transaction.output.iter().enumerate() {
 %% let outpoint = OutPoint::new(self.txid, vout as u32);
   <li>
-    <a href=/output/{{outpoint}}>
+    <a href=/output/{{outpoint}} class=monospace>
       {{ outpoint }}
     </a>
     <dl>
       <dt>value</dt><dd>{{ output.value }}</dd>
-      <dt>script pubkey</dt><dd>{{ output.script_pubkey.asm() }}</dd>
+      <dt>script pubkey</dt><dd class=data>{{ output.script_pubkey.asm() }}</dd>
 %% if let Ok(address) = Address::from_script(&output.script_pubkey, self.network) {
-      <dt>address</dt><dd>{{ address }}</dd>
+      <dt>address</dt><dd class=monospace>{{ address }}</dd>
 %% }
     </dl>
   </li>

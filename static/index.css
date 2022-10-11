@@ -47,6 +47,11 @@ a:visited {
   color: var(--link);
 }
 
+dt {
+  font-weight: bold;
+  margin-top: 0.5rem;
+}
+
 nav {
   align-items: center;
   background-color: var(--light-bg);
@@ -84,6 +89,7 @@ input[type=text] {
 }
 
 .blocks {
+  font-family: monospace, monospace;
   list-style-position: inside;
   padding-inline-start: 0;
   white-space: nowrap;
@@ -91,6 +97,11 @@ input[type=text] {
 
 .monospace {
   font-family: monospace, monospace;
+}
+
+.data {
+  font-family: monospace, monospace;
+  overflow-wrap: break-word;
 }
 
 span.common, span.uncommon, span.rare, span.epic, span.legendary, span.mythic {

@@ -4,15 +4,22 @@ use {
   html_escaper::{Escape, Trusted},
 };
 
-pub(crate) mod block;
-pub(crate) mod clock;
-pub(crate) mod home;
-pub(crate) mod ordinal;
-pub(crate) mod output;
-pub(crate) mod range;
-pub(crate) mod rare;
-pub(crate) mod rune;
-pub(crate) mod transaction;
+pub(crate) use {
+  block::BlockHtml, clock::ClockSvg, home::HomeHtml, input::InputHtml, ordinal::OrdinalHtml,
+  output::OutputHtml, range::RangeHtml, rare::RareTxt, rune::RuneHtml,
+  transaction::TransactionHtml,
+};
+
+mod block;
+mod clock;
+mod home;
+mod input;
+mod ordinal;
+mod output;
+mod range;
+mod rare;
+mod rune;
+mod transaction;
 
 #[derive(Boilerplate)]
 pub(crate) struct PageHtml {

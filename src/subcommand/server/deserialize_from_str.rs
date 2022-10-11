@@ -1,8 +1,11 @@
 use super::*;
 
-pub(crate) struct DeserializeOrdinalFromStr(pub(crate) Ordinal);
+pub(crate) struct DeserializeFromStr<T: FromStr>(pub(crate) T);
 
-impl<'de> Deserialize<'de> for DeserializeOrdinalFromStr {
+impl<'de, T: FromStr> Deserialize<'de> for DeserializeFromStr<T>
+where
+  T::Err: Display,
+{
   fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
   where
     D: Deserializer<'de>,
