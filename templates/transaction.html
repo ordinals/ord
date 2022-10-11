@@ -10,7 +10,7 @@
     <dl>
       <dt>value</dt><dd>{{ output.value }}</dd>
       <dt>script pubkey</dt><dd class=data>{{ output.script_pubkey.asm() }}</dd>
-%% if let Ok(address) = Address::from_script(&output.script_pubkey, self.network) {
+%% if let Ok(address) = self.chain.address_from_script(&output.script_pubkey) {
       <dt>address</dt><dd class=monospace>{{ address }}</dd>
 %% }
     </dl>

@@ -24,9 +24,10 @@ use {
     consensus::{self, Decodable, Encodable},
     hash_types::BlockHash,
     hashes::{sha256, Hash},
-    Address, Block, Network, OutPoint, Sequence, Transaction, TxIn, TxOut, Txid,
+    Address, Block, OutPoint, Script, Sequence, Transaction, TxIn, TxOut, Txid,
   },
   bitcoincore_rpc::RpcApi,
+  chain::Chain,
   chrono::{DateTime, NaiveDateTime, Utc},
   clap::Parser,
   derive_more::{Display, FromStr},
@@ -64,6 +65,7 @@ use self::test::*;
 mod arguments;
 mod blocktime;
 mod bytes;
+mod chain;
 mod decimal;
 mod degree;
 mod epoch;

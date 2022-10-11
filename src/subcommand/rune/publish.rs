@@ -19,7 +19,7 @@ impl Publish {
     options.bitcoin_rpc_client_mainnet_forbidden("ord rune publish")?;
 
     let rune = crate::Rune {
-      network: options.chain.network(),
+      chain: options.chain,
       name: self.name,
       ordinal: self.ordinal,
     };

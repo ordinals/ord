@@ -1,7 +1,6 @@
 use {
   super::*,
   bitcoincore_rpc::{Auth, Client},
-  clap::ValueEnum,
 };
 
 #[derive(Debug, Parser)]
@@ -25,55 +24,18 @@ pub(crate) struct Options {
   pub(crate) height_limit: Option<u64>,
 }
 
-#[derive(ValueEnum, Copy, Clone, Debug)]
-pub(crate) enum Chain {
-  Main,
-  Mainnet,
-  Regtest,
-  Signet,
-  Test,
-  Testnet,
-}
-
-impl Chain {
-  pub(crate) fn network(self) -> Network {
-    match self {
-      Self::Main | Self::Mainnet => Network::Bitcoin,
-      Self::Regtest => Network::Regtest,
-      Self::Signet => Network::Signet,
-      Self::Test | Self::Testnet => Network::Testnet,
-    }
-  }
-
-  pub(crate) fn join_network_with_data_dir(self, data_dir: &Path) -> PathBuf {
-    match self.network() {
-      Network::Bitcoin => data_dir.to_owned(),
-      other => data_dir.join(other.to_string()),
-    }
-  }
-}
-
 impl Options {
   pub(crate) fn max_index_size(&self) -> Bytes {
-    self.max_index_size.unwrap_or(match self.chain.network() {
-      Network::Regtest => Bytes::MIB * 10,
-      Network::Bitcoin | Network::Signet | Network::Testnet => Bytes::TIB,
-    })
+    self
+      .max_index_size
+      .unwrap_or_else(|| self.chain.default_max_index_size())
   }
 
   pub(crate) fn rpc_url(&self) -> String {
     self
       .rpc_url
       .as_ref()
-      .unwrap_or(&format!(
-        "127.0.0.1:{}",
-        match self.chain.network() {
-          Network::Bitcoin => "8332",
-          Network::Regtest => "18443",
-          Network::Signet => "38332",
-          Network::Testnet => "18332",
-        }
-      ))
+      .unwrap_or(&format!("127.0.0.1:{}", self.chain.default_rpc_port(),))
       .into()
   }
 
@@ -94,7 +56,7 @@ impl Options {
         .join("Bitcoin")
     };
 
-    let path = self.chain.join_network_with_data_dir(&path);
+    let path = self.chain.join_with_data_dir(&path);
 
     Ok(path.join(".cookie"))
   }
@@ -108,7 +70,7 @@ impl Options {
       .ok_or_else(|| anyhow!("Failed to retrieve data dir"))?
       .join("ord");
 
-    let path = self.chain.join_network_with_data_dir(&path);
+    let path = self.chain.join_with_data_dir(&path);
 
     if let Err(err) = fs::create_dir_all(&path) {
       bail!("Failed to create data dir `{}`: {err}", path.display());
@@ -128,18 +90,18 @@ impl Options {
     let client = Client::new(&rpc_url, Auth::CookieFile(cookie_file))
       .context("Failed to connect to Bitcoin Core RPC at {rpc_url}")?;
 
-    let rpc_network = match client.get_blockchain_info()?.chain.as_str() {
-      "main" => Network::Bitcoin,
-      "test" => Network::Testnet,
-      "regtest" => Network::Regtest,
-      "signet" => Network::Signet,
-      other => bail!("Bitcoin RPC server on unknown network: {other}"),
+    let rpc_chain = match client.get_blockchain_info()?.chain.as_str() {
+      "main" => Chain::Mainnet,
+      "test" => Chain::Testnet,
+      "regtest" => Chain::Regtest,
+      "signet" => Chain::Signet,
+      other => bail!("Bitcoin RPC server on unknown chain: {other}"),
     };
 
-    let ord_network = self.chain.network();
+    let ord_chain = self.chain;
 
-    if rpc_network != ord_network {
-      bail!("Bitcoin RPC server is on {rpc_network} but ord is on {ord_network}");
+    if rpc_chain != ord_chain {
+      bail!("Bitcoin RPC server is on {rpc_chain} but ord is on {ord_chain}");
     }
 
     Ok(client)
@@ -148,7 +110,7 @@ impl Options {
   pub(crate) fn bitcoin_rpc_client_mainnet_forbidden(&self, command: &str) -> Result<Client> {
     let client = self.bitcoin_rpc_client()?;
 
-    if self.chain.network() == Network::Bitcoin {
+    if self.chain == Chain::Mainnet {
       bail!("`{command}` is unstable and not yet supported on mainnet.");
     }
     Ok(client)
@@ -352,7 +314,7 @@ mod tests {
     check_network_alias("mainnet", "ord");
     check_network_alias("regtest", "ord/regtest");
     check_network_alias("signet", "ord/signet");
-    check_network_alias("test", "ord/testnet");
-    check_network_alias("testnet", "ord/testnet");
+    check_network_alias("test", "ord/testnet3");
+    check_network_alias("testnet", "ord/testnet3");
   }
 }

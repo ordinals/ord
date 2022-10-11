@@ -30,9 +30,7 @@ mod tests {
   #[test]
   fn block_html() {
     pretty_assert_eq!(
-      BlockHtml::new(bitcoin::blockdata::constants::genesis_block(
-        Network::Bitcoin
-      ), Height(0))
+      BlockHtml::new( Chain::Mainnet.genesis_block() , Height(0))
       .to_string(),
       "
         <h1>Block <span class=monospace>000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</span></h1>
