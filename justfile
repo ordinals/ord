@@ -115,8 +115,8 @@ flamegraph:
 benchmark dir=`git branch --show-current`:
   ./bin/benchmark '{{dir}}'
 
-serve-book:
-  mdbook serve book --open
+serve-docs:
+  mdbook serve docs --open
 
-build-book:
-  mdbook build book
+build-docs:
+  mdbook build docs
