@@ -1,4 +1,4 @@
-name: Book
+name: Docs
 
 on:
   pull_request:
@@ -13,7 +13,7 @@ defaults:
     shell: bash
 
 jobs:
-  book:
+  docs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3.0.0
@@ -31,7 +31,7 @@ jobs:
         chmod +x mdbook-linkcheck
         pwd >> $GITHUB_PATH
 
-    - run: mdbook build book
+    - run: mdbook build docs
 
     - name: Deploy Pages
       uses: peaceiris/actions-gh-pages@v3
@@ -39,4 +39,4 @@ jobs:
       with:
         github_token: ${{secrets.GITHUB_TOKEN}}
         publish_branch: gh-pages
-        publish_dir: book/build/html
+        publish_dir: docs/build/html
