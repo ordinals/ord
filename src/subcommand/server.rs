@@ -294,6 +294,11 @@ impl Server {
         blocktime: index.blocktime(ordinal.height()).map_err(|err| {
           ServerError::Internal(anyhow!("Failed to retrieve blocktime from index: {err}"))
         })?,
+        inscriptions: index.inscriptions(ordinal).map_err(|err| {
+          ServerError::Internal(anyhow!(
+            "Failed to retrieve runes for ordinal {ordinal}: {err}"
+          ))
+        })?,
       }
       .page(),
     )
@@ -679,7 +684,7 @@ mod tests {
     fn assert_response(&self, path: &str, status: StatusCode, expected_response: &str) {
       let response = self.get(path);
       assert_eq!(response.status(), status, "{}", response.text().unwrap());
-      assert_eq!(response.text().unwrap(), expected_response);
+      pretty_assert_eq!(response.text().unwrap(), expected_response);
     }
 
     fn assert_response_regex(&self, path: &str, status: StatusCode, regex: &str) {
@@ -1352,6 +1357,26 @@ mod tests {
       r#"{"name": "foo", "chain": "mainnet", "ordinal": 0}"#,
       StatusCode::UNPROCESSABLE_ENTITY,
       r#"This ord instance only accepts regtest runes for publication"#,
+    );
+  }
+
+  #[test]
+  fn rune_appears_on_inscribed_ordinal() {
+    let test_server = TestServer::new();
+
+    test_server.assert_put(
+      "/rune",
+      "application/json",
+      r#"{"name": "foo", "chain": "regtest", "ordinal": 0}"#,
+      StatusCode::CREATED,
+      "8ca6ee12cb891766de56e5698a73cd6546f27a88bd27c8b8d914bc4162f9e4b5",
+    );
+
+    test_server.assert_response_regex(
+      "/ordinal/0",
+      StatusCode::OK,
+      ".*<dt>inscriptions</dt>
+    <dd><a href=/rune/8ca6ee12cb891766de56e5698a73cd6546f27a88bd27c8b8d914bc4162f9e4b5 class=monospace>8ca6ee12cb891766de56e5698a73cd6546f27a88bd27c8b8d914bc4162f9e4b5</a></dd>.*",
     );
   }
 }
