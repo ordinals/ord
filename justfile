@@ -1,3 +1,6 @@
+watch +args='test':
+  cargo watch --clear --exec '{{args}}'
+
 ci: clippy forbid
   cargo fmt -- --check
   cargo test --all
@@ -13,9 +16,6 @@ clippy:
 
 bench:
   cargo criterion
-
-watch +args='test':
-  cargo watch --clear --exec '{{args}}'
 
 install-dev-deps:
   cargo install cargo-criterion
