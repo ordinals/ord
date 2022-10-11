@@ -14,11 +14,11 @@ impl Content for OrdinalHtml {
 
 #[cfg(test)]
 mod tests {
-  use {super::*, pretty_assertions::assert_eq, unindent::Unindent};
+  use super::*;
 
   #[test]
   fn ordinal_html() {
-    assert_eq!(
+    pretty_assert_eq!(
       OrdinalHtml {
         ordinal: Ordinal(0),
         blocktime: Blocktime::Confirmed(0),
@@ -48,7 +48,7 @@ mod tests {
 
   #[test]
   fn ordinal_next_and_previous() {
-    assert_eq!(
+    pretty_assert_eq!(
       OrdinalHtml {
         ordinal: Ordinal(1),
         blocktime: Blocktime::Confirmed(0),

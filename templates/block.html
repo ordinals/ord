@@ -1,10 +1,10 @@
-<h1>Block {{ self.hash }}</h1>
+<h1>Block <span class=monospace>{{ self.hash }}</span></h1>
 <dl>
   <dt>height</dt><dd>{{self.height}}</dd>
   <dt>timestamp</dt><dd>{{self.block.header.time}}</dd>
   <dt>size</dt><dd>{{self.block.size()}}</dd>
   <dt>weight</dt><dd>{{self.block.weight()}}</dd>
-  <dt>prev blockhash</dt><dd><a href=/block/{{self.block.header.prev_blockhash}}>{{self.block.header.prev_blockhash}}</a></dd>
+  <dt>prev blockhash</dt><dd><a href=/block/{{self.block.header.prev_blockhash}} class=monospace>{{self.block.header.prev_blockhash}}</a></dd>
 </dl>
 <h2>{{"Transaction".tally(self.block.txdata.len())}}</h2>
 <ul class=monospace>

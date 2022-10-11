@@ -28,8 +28,6 @@ mod tests {
   use {
     super::*,
     bitcoin::{blockdata::script, PackedLockTime, TxOut},
-    pretty_assertions::assert_eq,
-    unindent::Unindent,
   };
 
   #[test]
@@ -50,28 +48,28 @@ mod tests {
       ],
     };
 
-    assert_eq!(
+    pretty_assert_eq!(
       TransactionHtml::new(transaction, Network::Bitcoin).to_string(),
       "
-        <h1>Transaction 9108ec7cbe9f1231dbf6374251b7267fb31cb23f36ed5a1d7344f5635b17dfe9</h1>
+        <h1>Transaction <span class=monospace>9108ec7cbe9f1231dbf6374251b7267fb31cb23f36ed5a1d7344f5635b17dfe9</span></h1>
         <h2>2 Outputs</h2>
         <ul class=monospace>
           <li>
-            <a href=/output/9108ec7cbe9f1231dbf6374251b7267fb31cb23f36ed5a1d7344f5635b17dfe9:0>
+            <a href=/output/9108ec7cbe9f1231dbf6374251b7267fb31cb23f36ed5a1d7344f5635b17dfe9:0 class=monospace>
               9108ec7cbe9f1231dbf6374251b7267fb31cb23f36ed5a1d7344f5635b17dfe9:0
             </a>
             <dl>
               <dt>value</dt><dd>5000000000</dd>
-              <dt>script pubkey</dt><dd>OP_0</dd>
+              <dt>script pubkey</dt><dd class=data>OP_0</dd>
             </dl>
           </li>
           <li>
-            <a href=/output/9108ec7cbe9f1231dbf6374251b7267fb31cb23f36ed5a1d7344f5635b17dfe9:1>
+            <a href=/output/9108ec7cbe9f1231dbf6374251b7267fb31cb23f36ed5a1d7344f5635b17dfe9:1 class=monospace>
               9108ec7cbe9f1231dbf6374251b7267fb31cb23f36ed5a1d7344f5635b17dfe9:1
             </a>
             <dl>
               <dt>value</dt><dd>5000000000</dd>
-              <dt>script pubkey</dt><dd>OP_PUSHBYTES_1 01</dd>
+              <dt>script pubkey</dt><dd class=data>OP_PUSHBYTES_1 01</dd>
             </dl>
           </li>
         </ul>

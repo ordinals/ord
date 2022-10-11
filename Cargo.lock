@@ -1967,6 +1967,7 @@ dependencies = [
  "env_logger",
  "executable-path",
  "futures 0.3.24",
+ "hex",
  "html-escaper",
  "http",
  "lazy_static",

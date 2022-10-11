@@ -1,9 +1,9 @@
-<h1>Output {{self.outpoint}}</h1>
+<h1>Output <span class=monospace>{{self.outpoint}}</span></h1>
 <dl>
   <dt>value</dt><dd>{{ self.output.value }}</dd>
-  <dt>script pubkey</dt><dd>{{ self.output.script_pubkey.asm() }}</dd>
+  <dt>script pubkey</dt><dd class=data>{{ self.output.script_pubkey.asm() }}</dd>
 %% if let Ok(address) = Address::from_script(&self.output.script_pubkey, self.network) {
-  <dt>address</dt><dd>{{ address }}</dd>
+  <dt>address</dt><dd class=monospace>{{ address }}</dd>
 %% }
 </dl>
 %% match &self.list {

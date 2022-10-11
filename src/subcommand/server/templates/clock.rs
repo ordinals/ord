@@ -25,51 +25,51 @@ impl ClockSvg {
 
 #[cfg(test)]
 mod tests {
-  use {super::*, pretty_assertions::assert_eq};
+  use super::*;
 
   #[test]
   fn second() {
-    assert_eq!(ClockSvg::new(Height(0)).second, 0.0);
-    assert_eq!(ClockSvg::new(Height(504)).second, 90.0);
-    assert_eq!(ClockSvg::new(Height(1008)).second, 180.0);
-    assert_eq!(ClockSvg::new(Height(1512)).second, 270.0);
-    assert_eq!(ClockSvg::new(Height(2016)).second, 0.0);
-    assert_eq!(ClockSvg::new(Height(6930000)).second, 180.0);
-    assert_eq!(ClockSvg::new(Height(6930504)).second, 270.0);
+    pretty_assert_eq!(ClockSvg::new(Height(0)).second, 0.0);
+    pretty_assert_eq!(ClockSvg::new(Height(504)).second, 90.0);
+    pretty_assert_eq!(ClockSvg::new(Height(1008)).second, 180.0);
+    pretty_assert_eq!(ClockSvg::new(Height(1512)).second, 270.0);
+    pretty_assert_eq!(ClockSvg::new(Height(2016)).second, 0.0);
+    pretty_assert_eq!(ClockSvg::new(Height(6930000)).second, 180.0);
+    pretty_assert_eq!(ClockSvg::new(Height(6930504)).second, 270.0);
   }
 
   #[test]
   fn minute() {
-    assert_eq!(ClockSvg::new(Height(0)).minute, 0.0);
-    assert_eq!(ClockSvg::new(Height(52500)).minute, 90.0);
-    assert_eq!(ClockSvg::new(Height(105000)).minute, 180.0);
-    assert_eq!(ClockSvg::new(Height(157500)).minute, 270.0);
-    assert_eq!(ClockSvg::new(Height(210000)).minute, 0.0);
-    assert_eq!(ClockSvg::new(Height(6930000)).minute, 0.0);
-    assert_eq!(ClockSvg::new(Height(6930001)).minute, 0.0);
+    pretty_assert_eq!(ClockSvg::new(Height(0)).minute, 0.0);
+    pretty_assert_eq!(ClockSvg::new(Height(52500)).minute, 90.0);
+    pretty_assert_eq!(ClockSvg::new(Height(105000)).minute, 180.0);
+    pretty_assert_eq!(ClockSvg::new(Height(157500)).minute, 270.0);
+    pretty_assert_eq!(ClockSvg::new(Height(210000)).minute, 0.0);
+    pretty_assert_eq!(ClockSvg::new(Height(6930000)).minute, 0.0);
+    pretty_assert_eq!(ClockSvg::new(Height(6930001)).minute, 0.0);
   }
 
   #[test]
   fn hour() {
-    assert_eq!(ClockSvg::new(Height(0)).hour, 0.0);
-    assert_eq!(ClockSvg::new(Height(1732500)).hour, 90.0);
-    assert_eq!(ClockSvg::new(Height(3465000)).hour, 180.0);
-    assert_eq!(ClockSvg::new(Height(5197500)).hour, 270.0);
-    assert_eq!(ClockSvg::new(Height(6930000)).hour, 0.0);
-    assert_eq!(ClockSvg::new(Height(6930001)).hour, 0.0);
+    pretty_assert_eq!(ClockSvg::new(Height(0)).hour, 0.0);
+    pretty_assert_eq!(ClockSvg::new(Height(1732500)).hour, 90.0);
+    pretty_assert_eq!(ClockSvg::new(Height(3465000)).hour, 180.0);
+    pretty_assert_eq!(ClockSvg::new(Height(5197500)).hour, 270.0);
+    pretty_assert_eq!(ClockSvg::new(Height(6930000)).hour, 0.0);
+    pretty_assert_eq!(ClockSvg::new(Height(6930001)).hour, 0.0);
   }
 
   #[test]
   fn final_subsidy_height() {
-    assert_eq!(
+    pretty_assert_eq!(
       ClockSvg::new(Height(6929999)).second,
       1007.0 / 2016.0 * 360.0
     );
-    assert_eq!(
+    pretty_assert_eq!(
       ClockSvg::new(Height(6929999)).minute,
       209_999.0 / 210_000.0 * 360.0
     );
-    assert_eq!(
+    pretty_assert_eq!(
       ClockSvg::new(Height(6929999)).hour,
       6929999.0 / 6930000.0 * 360.0
     );
@@ -77,9 +77,9 @@ mod tests {
 
   #[test]
   fn first_post_subsidy_height() {
-    assert_eq!(ClockSvg::new(Height(6930000)).second, 180.0);
-    assert_eq!(ClockSvg::new(Height(6930000)).minute, 0.0);
-    assert_eq!(ClockSvg::new(Height(6930000)).hour, 0.0);
+    pretty_assert_eq!(ClockSvg::new(Height(6930000)).second, 180.0);
+    pretty_assert_eq!(ClockSvg::new(Height(6930000)).minute, 0.0);
+    pretty_assert_eq!(ClockSvg::new(Height(6930000)).hour, 0.0);
   }
 
   #[test]

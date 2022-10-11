@@ -59,7 +59,7 @@ mod tests {
   <dt>block</dt><dd>1260001</dd>
 </dl>
 <h2>Latest Blocks</h2>
-<ol start=1260001 reversed class='blocks monospace'>
+<ol start=1260001 reversed class=blocks>
   <li><a href=/block/1{64}>1{64}</a></li>
   <li><a href=/block/0{64}>0{64}</a></li>
 </ol>
