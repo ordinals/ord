@@ -24,6 +24,7 @@ use {
     collections::HashMap,
     sync::{Arc, Mutex, MutexGuard},
     thread,
+    time::Duration,
   },
 };
 
@@ -46,6 +47,19 @@ pub fn spawn_with_network(network: Network) -> Handle {
   let port = rpc_server.address().port();
 
   thread::spawn(|| rpc_server.wait());
+
+  for i in 0.. {
+    match reqwest::blocking::get(&format!("http://127.0.0.1:{port}/")) {
+      Ok(_) => break,
+      Err(err) => {
+        if i == 400 {
+          panic!("Server failed to start: {err}");
+        }
+      }
+    }
+
+    thread::sleep(Duration::from_millis(25));
+  }
 
   Handle {
     close_handle: Some(close_handle),

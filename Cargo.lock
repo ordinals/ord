@@ -2983,6 +2983,7 @@ dependencies = [
  "jsonrpc-core-client",
  "jsonrpc-derive",
  "jsonrpc-http-server",
+ "reqwest",
  "serde_json",
 ]
 
