@@ -11,6 +11,7 @@ pub(crate) mod ordinal;
 pub(crate) mod output;
 pub(crate) mod range;
 pub(crate) mod rare;
+pub(crate) mod rune;
 pub(crate) mod transaction;
 
 #[derive(Boilerplate)]

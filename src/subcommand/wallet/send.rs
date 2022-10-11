@@ -8,12 +8,7 @@ pub(crate) struct Send {
 
 impl Send {
   pub(crate) fn run(self, options: Options) -> Result {
-    let client = options.bitcoin_rpc_client()?;
-    if options.chain.network() == Network::Bitcoin
-      || client.get_blockchain_info().unwrap().chain == "main"
-    {
-      bail!("Send command is not allowed on mainnet yet. Try on regtest/signet/testnet.")
-    }
+    let client = options.bitcoin_rpc_client_mainnet_forbidden("ord wallet send")?;
 
     let index = Index::open(&options)?;
     index.index()?;
