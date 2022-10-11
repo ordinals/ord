@@ -317,4 +317,16 @@ mod tests {
     check_network_alias("test", "ord/testnet3");
     check_network_alias("testnet", "ord/testnet3");
   }
+
+  #[test]
+  fn rpc_server_chain_must_match() {
+    let rpc_server = test_bitcoincore_rpc::spawn_with_network(bitcoin::Network::Testnet);
+
+    let options = Options::try_parse_from(&["ord", "--rpc-url", &rpc_server.url()]).unwrap();
+
+    assert_eq!(
+      options.bitcoin_rpc_client().unwrap_err().to_string(),
+      "Bitcoin RPC server is on testnet but ord is on mainnet"
+    );
+  }
 }
