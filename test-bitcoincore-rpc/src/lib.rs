@@ -31,9 +31,9 @@ mod api;
 mod server;
 mod state;
 
-pub fn spawn() -> Handle {
-  let server = Server::new();
-  let state = server.state.clone();
+pub fn spawn_with_network(network: Network) -> Handle {
+  let state = Arc::new(Mutex::new(State::new(network)));
+  let server = Server::new(state.clone());
   let mut io = IoHandler::default();
   io.extend_with(server.to_delegate());
 
@@ -52,6 +52,10 @@ pub fn spawn() -> Handle {
     port,
     state,
   }
+}
+
+pub fn spawn() -> Handle {
+  spawn_with_network(Network::Bitcoin)
 }
 
 pub struct TransactionTemplate<'a> {

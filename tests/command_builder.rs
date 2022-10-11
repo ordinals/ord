@@ -1,4 +1,4 @@
-use {super::*, std::process};
+use super::*;
 
 enum ExpectedExitStatus {
   Code(i32),

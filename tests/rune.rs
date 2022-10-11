@@ -2,7 +2,7 @@ use super::*;
 
 #[test]
 fn publish_success() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let rpc_server = test_bitcoincore_rpc::spawn_with_network(Network::Regtest);
 
   let ord_server = TestServer::spawn(&rpc_server);
 

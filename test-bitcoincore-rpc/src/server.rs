@@ -2,13 +2,13 @@ use super::*;
 
 pub(crate) struct Server {
   pub(crate) state: Arc<Mutex<State>>,
+  pub(crate) network: Network,
 }
 
 impl Server {
-  pub(crate) fn new() -> Self {
-    Self {
-      state: Arc::new(Mutex::new(State::new())),
-    }
+  pub(crate) fn new(state: Arc<Mutex<State>>) -> Self {
+    let network = state.lock().unwrap().network;
+    Self { network, state }
   }
 
   fn state(&self) -> MutexGuard<State> {
@@ -23,10 +23,15 @@ impl Server {
 impl Api for Server {
   fn get_blockchain_info(&self) -> Result<GetBlockchainInfoResult, jsonrpc_core::Error> {
     Ok(GetBlockchainInfoResult {
-      chain: String::from("test-bitcoincore-rpc"),
+      chain: String::from(match self.network {
+        Network::Bitcoin => "main",
+        Network::Testnet => "test",
+        Network::Signet => "signet",
+        Network::Regtest => "regtest",
+      }),
       blocks: 0,
       headers: 0,
-      best_block_hash: self.state.lock().unwrap().hashes[0],
+      best_block_hash: self.state().hashes[0],
       difficulty: 0.0,
       median_time: 0,
       verification_progress: 0.0,

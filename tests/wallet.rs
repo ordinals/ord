@@ -1,7 +1,4 @@
-use {
-  super::*,
-  bitcoin::{blockdata::constants::COIN_VALUE, OutPoint},
-};
+use super::*;
 
 #[test]
 fn identify() {
@@ -36,7 +33,8 @@ fn list() {
 
 #[test]
 fn send() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+  let rpc_server = test_bitcoincore_rpc::spawn_with_network(Network::Signet);
+
   rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let output = CommandBuilder::new(

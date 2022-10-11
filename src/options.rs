@@ -125,13 +125,30 @@ impl Options {
       cookie_file.display()
     );
 
-    Client::new(&rpc_url, Auth::CookieFile(cookie_file))
-      .context("Failed to connect to Bitcoin Core RPC at {rpc_url}")
+    let client = Client::new(&rpc_url, Auth::CookieFile(cookie_file))
+      .context("Failed to connect to Bitcoin Core RPC at {rpc_url}")?;
+
+    let rpc_network = match client.get_blockchain_info()?.chain.as_str() {
+      "main" => Network::Bitcoin,
+      "test" => Network::Testnet,
+      "regtest" => Network::Regtest,
+      "signet" => Network::Signet,
+      other => bail!("Bitcoin RPC server on unknown network: {other}"),
+    };
+
+    let ord_network = self.chain.network();
+
+    if rpc_network != ord_network {
+      bail!("Bitcoin RPC server is on {rpc_network} but ord is on {ord_network}");
+    }
+
+    Ok(client)
   }
 
   pub(crate) fn bitcoin_rpc_client_mainnet_forbidden(&self, command: &str) -> Result<Client> {
     let client = self.bitcoin_rpc_client()?;
-    if self.chain.network() == Network::Bitcoin || client.get_blockchain_info()?.chain == "main" {
+
+    if self.chain.network() == Network::Bitcoin {
       bail!("`{command}` is unstable and not yet supported on mainnet.");
     }
     Ok(client)

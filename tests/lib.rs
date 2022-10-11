@@ -2,6 +2,7 @@
 
 use {
   self::{command_builder::CommandBuilder, expected::Expected},
+  bitcoin::{blockdata::constants::COIN_VALUE, Network, OutPoint},
   executable_path::executable_path,
   nix::{sys::signal::Signal, unistd::Pid},
   pretty_assertions::assert_eq as pretty_assert_eq,
@@ -11,8 +12,7 @@ use {
     fs,
     net::TcpListener,
     os::unix::process::ExitStatusExt,
-    process::Child,
-    process::{Command, Stdio},
+    process::{self, Child, Command, Stdio},
     str, thread,
     time::Duration,
   },
