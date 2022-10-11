@@ -106,6 +106,7 @@ input[type=text] {
 
 span.common, span.uncommon, span.rare, span.epic, span.legendary, span.mythic {
   border-radius: 0.25rem;
+  color: white;
   padding: 0.125rem 0.25rem 0.125rem 0.25rem;
 }
 
