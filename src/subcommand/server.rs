@@ -2,17 +2,21 @@ use super::*;
 
 use {
   self::{
-    deserialize_ordinal_from_str::DeserializeOrdinalFromStr,
+    deserialize_from_str::DeserializeFromStr,
     templates::{
-      block::BlockHtml, clock::ClockSvg, home::HomeHtml, ordinal::OrdinalHtml, output::OutputHtml,
-      range::RangeHtml, rare::RareTxt, transaction::TransactionHtml, Content, PageHtml,
+      BlockHtml, ClockSvg, Content, HomeHtml, InputHtml, OrdinalHtml, OutputHtml, PageHtml,
+      RangeHtml, RareTxt, RuneHtml, TransactionHtml,
     },
   },
   axum::{
     body,
-    http::header,
-    response::{Redirect, Response},
+    extract::{Extension, Json, Path, Query},
+    http::{header, StatusCode},
+    response::{IntoResponse, Redirect, Response},
+    routing::{get, put},
+    Router,
   },
+  axum_server::Handle,
   lazy_static::lazy_static,
   rust_embed::RustEmbed,
   rustls_acme::{
@@ -22,44 +26,42 @@ use {
     AcmeConfig,
   },
   serde::{de, Deserializer},
-  std::cmp::Ordering,
-  std::str,
+  std::{cmp::Ordering, str},
   tokio_stream::StreamExt,
 };
 
-mod deserialize_ordinal_from_str;
+mod deserialize_from_str;
 mod templates;
 
 enum ServerError {
-  InternalError(Error),
+  Internal(Error),
   NotFound(String),
+  UnprocessableEntity(String),
+  BadRequest(String),
 }
+
+type ServerResult<T> = Result<T, ServerError>;
 
 impl IntoResponse for ServerError {
   fn into_response(self) -> Response {
     match self {
-      Self::InternalError(error) => {
+      Self::Internal(error) => {
         eprintln!("error serving request: {error}");
         (
           StatusCode::INTERNAL_SERVER_ERROR,
-          Html(
-            StatusCode::INTERNAL_SERVER_ERROR
-              .canonical_reason()
-              .unwrap_or_default(),
-          ),
+          StatusCode::INTERNAL_SERVER_ERROR
+            .canonical_reason()
+            .unwrap_or_default(),
         )
           .into_response()
       }
-      Self::NotFound(message) => (StatusCode::NOT_FOUND, Html(message)).into_response(),
+      Self::NotFound(message) => (StatusCode::NOT_FOUND, message).into_response(),
+      Self::UnprocessableEntity(message) => {
+        (StatusCode::UNPROCESSABLE_ENTITY, message).into_response()
+      }
+      Self::BadRequest(message) => (StatusCode::BAD_REQUEST, message).into_response(),
     }
   }
-}
-
-fn html_status(status_code: StatusCode) -> (StatusCode, Html<&'static str>) {
-  (
-    status_code,
-    Html(status_code.canonical_reason().unwrap_or_default()),
-  )
 }
 
 #[derive(Deserialize)]
@@ -141,17 +143,20 @@ impl Server {
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
         .route("/height", get(Self::height))
+        .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/ordinal/:ordinal", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
+        .route("/rune/:hash", get(Self::rune_get))
+        .route("/rune", put(Self::rune_put))
         .route("/search", get(Self::search_by_query))
         .route("/search/:query", get(Self::search_by_path))
         .route("/static/*path", get(Self::static_asset))
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
-        .layer(extract::Extension(index))
-        .layer(extract::Extension(options.chain.network()))
+        .layer(Extension(index))
+        .layer(Extension(options.chain))
         .layer(
           CorsLayer::new()
             .allow_methods([http::Method::GET])
@@ -273,42 +278,40 @@ impl Server {
     Ok(acceptor)
   }
 
-  async fn clock(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
-    match index.height() {
-      Ok(height) => ClockSvg::new(height).into_response(),
-      Err(err) => {
-        eprintln!("Failed to retrieve height from index: {err}");
-        html_status(StatusCode::INTERNAL_SERVER_ERROR).into_response()
-      }
-    }
+  async fn clock(Extension(index): Extension<Arc<Index>>) -> ServerResult<ClockSvg> {
+    Ok(ClockSvg::new(index.height().map_err(|err| {
+      ServerError::Internal(anyhow!("Failed to retrieve height from index: {err}"))
+    })?))
   }
 
   async fn ordinal(
-    index: extract::Extension<Arc<Index>>,
-    extract::Path(DeserializeOrdinalFromStr(ordinal)): extract::Path<DeserializeOrdinalFromStr>,
-  ) -> impl IntoResponse {
-    match index.blocktime(ordinal.height()) {
-      Ok(blocktime) => OrdinalHtml { ordinal, blocktime }.page().into_response(),
-      Err(err) => {
-        eprintln!("Failed to retrieve blocktime from index: {err}");
-        html_status(StatusCode::INTERNAL_SERVER_ERROR).into_response()
+    Extension(index): Extension<Arc<Index>>,
+    Path(DeserializeFromStr(ordinal)): Path<DeserializeFromStr<Ordinal>>,
+  ) -> ServerResult<PageHtml> {
+    Ok(
+      OrdinalHtml {
+        ordinal,
+        blocktime: index.blocktime(ordinal.height()).map_err(|err| {
+          ServerError::Internal(anyhow!("Failed to retrieve blocktime from index: {err}"))
+        })?,
       }
-    }
+      .page(),
+    )
   }
 
   async fn output(
-    index: extract::Extension<Arc<Index>>,
-    extract::Path(outpoint): extract::Path<OutPoint>,
-    network: extract::Extension<Network>,
-  ) -> Result<PageHtml, ServerError> {
+    Extension(index): Extension<Arc<Index>>,
+    Path(outpoint): Path<OutPoint>,
+    Extension(chain): Extension<Chain>,
+  ) -> ServerResult<PageHtml> {
     let list = index
       .list(outpoint)
-      .map_err(ServerError::InternalError)?
+      .map_err(ServerError::Internal)?
       .ok_or_else(|| ServerError::NotFound(format!("Output {outpoint} unknown")))?;
 
     let output = index
       .transaction(outpoint.txid)
-      .map_err(ServerError::InternalError)?
+      .map_err(ServerError::Internal)?
       .ok_or_else(|| ServerError::NotFound(format!("Output {outpoint} unknown")))?
       .output
       .into_iter()
@@ -319,7 +322,7 @@ impl Server {
       OutputHtml {
         outpoint,
         list,
-        network: network.0,
+        chain,
         output,
       }
       .page(),
@@ -327,113 +330,121 @@ impl Server {
   }
 
   async fn range(
-    extract::Path((DeserializeOrdinalFromStr(start), DeserializeOrdinalFromStr(end))): extract::Path<
-      (DeserializeOrdinalFromStr, DeserializeOrdinalFromStr),
-    >,
-  ) -> impl IntoResponse {
+    Path((DeserializeFromStr(start), DeserializeFromStr(end))): Path<(
+      DeserializeFromStr<Ordinal>,
+      DeserializeFromStr<Ordinal>,
+    )>,
+  ) -> ServerResult<PageHtml> {
     match start.cmp(&end) {
-      Ordering::Equal => (StatusCode::BAD_REQUEST, Html("Empty Range".to_string())).into_response(),
-      Ordering::Greater => (
-        StatusCode::BAD_REQUEST,
-        Html("Range Start Greater Than Range End".to_string()),
+      Ordering::Equal => Err(ServerError::BadRequest("Empty Range".to_string())),
+      Ordering::Greater => Err(ServerError::BadRequest(
+        "Range Start Greater Than Range End".to_string(),
+      )),
+      Ordering::Less => Ok(RangeHtml { start, end }.page()),
+    }
+  }
+
+  async fn rare_txt(Extension(index): Extension<Arc<Index>>) -> ServerResult<RareTxt> {
+    Ok(RareTxt(index.rare_ordinal_satpoints().map_err(|err| {
+      ServerError::Internal(anyhow!("Error getting rare ordinal satpoints: {err}"))
+    })?))
+  }
+
+  async fn rune_put(
+    Extension(index): Extension<Arc<Index>>,
+    Extension(chain): Extension<Chain>,
+    Json(rune): Json<Rune>,
+  ) -> ServerResult<(StatusCode, String)> {
+    if rune.chain != chain {
+      return Err(ServerError::UnprocessableEntity(format!(
+        "This ord instance only accepts {chain} runes for publication"
+      )));
+    }
+    let (created, hash) = index.insert_rune(&rune).map_err(ServerError::Internal)?;
+    Ok((
+      if created {
+        StatusCode::CREATED
+      } else {
+        StatusCode::OK
+      },
+      hash.to_string(),
+    ))
+  }
+
+  async fn rune_get(
+    Extension(index): Extension<Arc<Index>>,
+    Path(hash): Path<sha256::Hash>,
+  ) -> ServerResult<PageHtml> {
+    Ok(
+      RuneHtml {
+        hash,
+        rune: index
+          .rune(hash)
+          .map_err(ServerError::Internal)?
+          .ok_or_else(|| ServerError::NotFound(format!("Rune {hash} unknown")))?,
+      }
+      .page(),
+    )
+  }
+
+  async fn home(Extension(index): Extension<Arc<Index>>) -> ServerResult<PageHtml> {
+    Ok(
+      HomeHtml::new(
+        index
+          .blocks(100)
+          .map_err(|err| ServerError::Internal(anyhow!("Error getting blocks: {err}")))?,
       )
-        .into_response(),
-      Ordering::Less => RangeHtml { start, end }.page().into_response(),
-    }
-  }
-
-  async fn rare_txt(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
-    match index.rare_ordinal_satpoints() {
-      Ok(rare_ordinal_satpoints) => RareTxt(rare_ordinal_satpoints).into_response(),
-      Err(err) => {
-        eprintln!("Error getting rare ordinal satpoints: {err}");
-        html_status(StatusCode::INTERNAL_SERVER_ERROR).into_response()
-      }
-    }
-  }
-
-  async fn home(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
-    match index.blocks(100) {
-      Ok(blocks) => HomeHtml::new(blocks).page().into_response(),
-      Err(err) => {
-        eprintln!("Error getting blocks: {err}");
-        html_status(StatusCode::INTERNAL_SERVER_ERROR).into_response()
-      }
-    }
+      .page(),
+    )
   }
 
   async fn block(
-    extract::Path(hash): extract::Path<BlockHash>,
-    index: extract::Extension<Arc<Index>>,
-  ) -> impl IntoResponse {
-    let info = match index.block_header_info(hash) {
-      Ok(Some(info)) => info,
-      Ok(None) => {
-        return (
-          StatusCode::NOT_FOUND,
-          Html(
-            StatusCode::NOT_FOUND
-              .canonical_reason()
-              .unwrap_or_default()
-              .to_string(),
-          ),
-        )
-          .into_response()
-      }
-      Err(error) => {
-        eprintln!("Error serving request for block with hash {hash}: {error}");
-        return (
-          StatusCode::INTERNAL_SERVER_ERROR,
-          Html(
-            StatusCode::INTERNAL_SERVER_ERROR
-              .canonical_reason()
-              .unwrap_or_default()
-              .to_string(),
-          ),
-        )
-          .into_response();
-      }
-    };
+    Path(hash): Path<BlockHash>,
+    index: Extension<Arc<Index>>,
+  ) -> ServerResult<PageHtml> {
+    let info = index
+      .block_header_info(hash)
+      .map_err(|err| {
+        ServerError::Internal(anyhow!(
+          "Error serving request for block with hash {hash}: {err}"
+        ))
+      })?
+      .ok_or_else(|| ServerError::NotFound(format!("Block {hash} unknown")))?;
 
-    match index.block_with_hash(hash) {
-      Ok(Some(block)) => BlockHtml::new(block, Height(info.height as u64))
-        .page()
-        .into_response(),
-      Ok(None) => (
-        StatusCode::NOT_FOUND,
-        Html(
-          StatusCode::NOT_FOUND
-            .canonical_reason()
-            .unwrap_or_default()
-            .to_string(),
-        ),
-      )
-        .into_response(),
-      Err(error) => {
-        eprintln!("Error serving request for block with hash {hash}: {error}");
-        html_status(StatusCode::INTERNAL_SERVER_ERROR).into_response()
-      }
-    }
+    let block = index
+      .block_with_hash(hash)
+      .map_err(|err| {
+        ServerError::Internal(anyhow!(
+          "Error serving request for block with hash {hash}: {err}"
+        ))
+      })?
+      .ok_or_else(|| ServerError::NotFound(format!("Block {hash} unknown")))?;
+
+    Ok(BlockHtml::new(block, Height(info.height as u64)).page())
   }
 
   async fn transaction(
-    index: extract::Extension<Arc<Index>>,
-    network: extract::Extension<Network>,
-    extract::Path(txid): extract::Path<Txid>,
-  ) -> impl IntoResponse {
-    match index.transaction(txid) {
-      Ok(Some(transaction)) => TransactionHtml::new(transaction, network.0)
-        .page()
-        .into_response(),
-      Ok(None) => html_status(StatusCode::NOT_FOUND).into_response(),
-      Err(error) => {
-        eprintln!("Error serving request for transaction with txid {txid}: {error}");
-        html_status(StatusCode::INTERNAL_SERVER_ERROR).into_response()
-      }
-    }
+    Extension(index): Extension<Arc<Index>>,
+    Extension(chain): Extension<Chain>,
+    Path(txid): Path<Txid>,
+  ) -> ServerResult<PageHtml> {
+    Ok(
+      TransactionHtml::new(
+        index
+          .transaction(txid)
+          .map_err(|err| {
+            ServerError::Internal(anyhow!(
+              "Error serving request for transaction {txid}: {err}"
+            ))
+          })?
+          .ok_or_else(|| ServerError::NotFound(format!("Transaction {txid} unknown")))?,
+        chain,
+      )
+      .page(),
+    )
   }
 
-  async fn status(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
+  async fn status(Extension(index): Extension<Arc<Index>>) -> (StatusCode, &'static str) {
     if index.is_reorged() {
       (
         StatusCode::OK,
@@ -448,27 +459,24 @@ impl Server {
   }
 
   async fn search_by_query(
-    index: extract::Extension<Arc<Index>>,
-    search: extract::Query<Search>,
-  ) -> impl IntoResponse {
-    Self::search(&index.0, &search.0.query).await
+    Extension(index): Extension<Arc<Index>>,
+    Query(search): Query<Search>,
+  ) -> ServerResult<Redirect> {
+    Self::search(&index, &search.query).await
   }
 
   async fn search_by_path(
-    index: extract::Extension<Arc<Index>>,
-    search: extract::Path<Search>,
-  ) -> impl IntoResponse {
-    Self::search(&index.0, &search.0.query).await
+    Extension(index): Extension<Arc<Index>>,
+    Path(search): Path<Search>,
+  ) -> ServerResult<Redirect> {
+    Self::search(&index, &search.query).await
   }
 
-  async fn search(index: &Index, query: &str) -> Response {
-    match Self::search_inner(index, query) {
-      Ok(redirect) => redirect.into_response(),
-      Err(err) => (StatusCode::BAD_REQUEST, Html(err.to_string())).into_response(),
-    }
+  async fn search(index: &Index, query: &str) -> ServerResult<Redirect> {
+    Self::search_inner(index, query)
   }
 
-  fn search_inner(index: &Index, query: &str) -> Result<Redirect> {
+  fn search_inner(index: &Index, query: &str) -> ServerResult<Redirect> {
     lazy_static! {
       static ref HASH: Regex = Regex::new(r"^[[:xdigit:]]{64}$").unwrap();
       static ref OUTPOINT: Regex = Regex::new(r"^[[:xdigit:]]{64}:\d+$").unwrap();
@@ -477,7 +485,15 @@ impl Server {
     let query = query.trim();
 
     if HASH.is_match(query) {
-      if index.block_header(query.parse()?)?.is_some() {
+      if index
+        .block_header(query.parse().unwrap())
+        .map_err(|err| {
+          ServerError::Internal(anyhow!(
+            "Failed to retrieve block {query} from index: {err}"
+          ))
+        })?
+        .is_some()
+      {
         Ok(Redirect::to(&format!("/block/{query}")))
       } else {
         Ok(Redirect::to(&format!("/tx/{query}")))
@@ -489,60 +505,66 @@ impl Server {
     }
   }
 
-  async fn favicon() -> impl IntoResponse {
-    Self::static_asset(extract::Path("/favicon.png".to_string())).await
+  async fn favicon() -> ServerResult<Response> {
+    Self::static_asset(Path("/favicon.png".to_string())).await
   }
 
-  async fn static_asset(extract::Path(path): extract::Path<String>) -> impl IntoResponse {
-    match StaticAssets::get(if let Some(stripped) = path.strip_prefix('/') {
+  async fn static_asset(Path(path): Path<String>) -> ServerResult<Response> {
+    let content = StaticAssets::get(if let Some(stripped) = path.strip_prefix('/') {
       stripped
     } else {
       &path
-    }) {
-      Some(content) => {
-        let body = body::boxed(body::Full::from(content.data));
-        let mime = mime_guess::from_path(path).first_or_octet_stream();
-        Response::builder()
-          .header(header::CONTENT_TYPE, mime.as_ref())
-          .body(body)
-          .unwrap()
-      }
-      None => (
-        StatusCode::NOT_FOUND,
-        Html(
-          StatusCode::NOT_FOUND
-            .canonical_reason()
-            .unwrap_or_default()
-            .to_string(),
-        ),
-      )
-        .into_response(),
-    }
+    })
+    .ok_or_else(|| ServerError::NotFound(format!("Asset {path} unknown")))?;
+    let body = body::boxed(body::Full::from(content.data));
+    let mime = mime_guess::from_path(path).first_or_octet_stream();
+    Ok(
+      Response::builder()
+        .header(header::CONTENT_TYPE, mime.as_ref())
+        .body(body)
+        .unwrap(),
+    )
   }
 
-  async fn height(index: extract::Extension<Arc<Index>>) -> impl IntoResponse {
-    match index.height() {
-      Ok(height) => (StatusCode::OK, Html(format!("{}", height))),
-      Err(err) => {
-        eprintln!("Failed to retrieve height from index: {err}");
-        (
-          StatusCode::INTERNAL_SERVER_ERROR,
-          Html(
-            StatusCode::INTERNAL_SERVER_ERROR
-              .canonical_reason()
-              .unwrap_or_default()
-              .to_string(),
-          ),
-        )
-      }
-    }
+  async fn height(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
+    Ok(
+      index
+        .height()
+        .map_err(|err| {
+          ServerError::Internal(anyhow!("Failed to retrieve height from index: {err}"))
+        })?
+        .to_string(),
+    )
   }
 
-  async fn faq() -> impl IntoResponse {
+  async fn input(
+    Extension(index): Extension<Arc<Index>>,
+    Path(path): Path<(u64, usize, usize)>,
+  ) -> Result<PageHtml, ServerError> {
+    let not_found =
+      || ServerError::NotFound(format!("Input /{}/{}/{} unknown", path.0, path.1, path.2));
+
+    let block = index
+      .block(path.0)
+      .map_err(ServerError::Internal)?
+      .ok_or_else(not_found)?;
+
+    let transaction = block.txdata.into_iter().nth(path.1).ok_or_else(not_found)?;
+
+    let input = transaction
+      .input
+      .into_iter()
+      .nth(path.2)
+      .ok_or_else(not_found)?;
+
+    Ok(InputHtml { path, input }.page())
+  }
+
+  async fn faq() -> Redirect {
     Redirect::to("https://docs.ordinals.com/faq/")
   }
 
-  async fn bounties() -> impl IntoResponse {
+  async fn bounties() -> Redirect {
     Redirect::to("https://docs.ordinals.com/bounty/")
   }
 }
@@ -617,11 +639,37 @@ mod tests {
       }
     }
 
-    fn get(&self, url: &str) -> reqwest::blocking::Response {
+    fn get(&self, path: &str) -> reqwest::blocking::Response {
       if let Err(error) = self.index.index() {
         log::error!("{error}");
       }
-      reqwest::blocking::get(self.join_url(url)).unwrap()
+      reqwest::blocking::get(self.join_url(path)).unwrap()
+    }
+
+    fn put(&self, path: &str, content_type: &str, body: &str) -> reqwest::blocking::Response {
+      if let Err(error) = self.index.index() {
+        log::error!("{error}");
+      }
+
+      reqwest::blocking::Client::new()
+        .put(self.join_url(path))
+        .header(reqwest::header::CONTENT_TYPE, content_type)
+        .body(body.to_owned())
+        .send()
+        .unwrap()
+    }
+
+    fn assert_put(
+      &self,
+      path: &str,
+      content_type: &str,
+      body: &str,
+      expected_status: StatusCode,
+      expected_response: &str,
+    ) {
+      let response = self.put(path, content_type, body);
+      assert_eq!(response.status(), expected_status);
+      assert_eq!(response.text().unwrap(), expected_response);
     }
 
     fn join_url(&self, url: &str) -> Url {
@@ -630,7 +678,7 @@ mod tests {
 
     fn assert_response(&self, path: &str, status: StatusCode, expected_response: &str) {
       let response = self.get(path);
-      assert_eq!(response.status(), status);
+      assert_eq!(response.status(), status, "{}", response.text().unwrap());
       assert_eq!(response.text().unwrap(), expected_response);
     }
 
@@ -1012,10 +1060,10 @@ mod tests {
     test_server.assert_response_regex(
     "/output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
     StatusCode::OK,
-    ".*<title>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</title>.*<h1>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</h1>
+    ".*<title>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</title>.*<h1>Output <span class=monospace>4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</span></h1>
 <dl>
   <dt>value</dt><dd>5000000000</dd>
-  <dt>script pubkey</dt><dd>OP_PUSHBYTES_65 04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f OP_CHECKSIG</dd>
+  <dt>script pubkey</dt><dd class=data>OP_PUSHBYTES_65 04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f OP_CHECKSIG</dd>
 </dl>
 <h2>1 Ordinal Range</h2>
 <ul class=monospace>
@@ -1060,7 +1108,7 @@ mod tests {
   <dt>block</dt><dd>1</dd>
 </dl>
 <h2>Latest Blocks</h2>
-<ol start=1 reversed class='blocks monospace'>
+<ol start=1 reversed class=blocks>
   <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
   <li><a href=/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f>000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</a></li>
 </ol>.*",
@@ -1076,7 +1124,7 @@ mod tests {
     test_server.assert_response_regex(
     "/",
     StatusCode::OK,
-    ".*<ol start=101 reversed class='blocks monospace'>\n(  <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){100}</ol>.*"
+    ".*<ol start=101 reversed class=blocks>\n(  <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){100}</ol>.*"
   );
   }
 
@@ -1085,7 +1133,7 @@ mod tests {
     TestServer::new().assert_response(
       "/block/467a86f0642b1d284376d13a98ef58310caa49502b0f9a560ee222e0a122fe16",
       StatusCode::NOT_FOUND,
-      "Not Found",
+      "Block 467a86f0642b1d284376d13a98ef58310caa49502b0f9a560ee222e0a122fe16 unknown",
     );
   }
 
@@ -1147,13 +1195,13 @@ mod tests {
     test_server.assert_response_regex(
       &format!("/block/{block_hash}"),
       StatusCode::OK,
-      ".*<h1>Block [[:xdigit:]]{64}</h1>
+      ".*<h1>Block <span class=monospace>[[:xdigit:]]{64}</span></h1>
 <dl>
   <dt>height</dt><dd>2</dd>
   <dt>timestamp</dt><dd>0</dd>
   <dt>size</dt><dd>203</dd>
   <dt>weight</dt><dd>812</dd>
-  <dt>prev blockhash</dt><dd><a href=/block/659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf>659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf</a></dd>
+  <dt>prev blockhash</dt><dd><a href=/block/659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf class=monospace>659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf</a></dd>
 </dl>
 <h2>2 Transactions</h2>
 <ul class=monospace>
@@ -1174,16 +1222,16 @@ mod tests {
       &format!("/tx/{txid}"),
       StatusCode::OK,
       &format!(
-        ".*<title>Transaction {txid}</title>.*<h1>Transaction {txid}</h1>
+        ".*<title>Transaction {txid}</title>.*<h1>Transaction <span class=monospace>{txid}</span></h1>
 <h2>1 Output</h2>
 <ul class=monospace>
   <li>
-    <a href=/output/9068a11b8769174363376b606af9a4b8b29dd7b13d013f4b0cbbd457db3c3ce5:0>
+    <a href=/output/9068a11b8769174363376b606af9a4b8b29dd7b13d013f4b0cbbd457db3c3ce5:0 class=monospace>
       9068a11b8769174363376b606af9a4b8b29dd7b13d013f4b0cbbd457db3c3ce5:0
     </a>
     <dl>
       <dt>value</dt><dd>5000000000</dd>
-      <dt>script pubkey</dt><dd></dd>
+      <dt>script pubkey</dt><dd class=data></dd>
     </dl>
   </li>
 </ul>.*"
@@ -1213,6 +1261,97 @@ mod tests {
       "ordinal\tsatpoint
 0\t4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0
 ",
+    );
+  }
+
+  #[test]
+  fn input() {
+    TestServer::new().assert_response_regex(
+      "/input/0/0/0",
+      StatusCode::OK,
+      ".*<title>Input /0/0/0</title>.*<h1>Input /0/0/0</h1>.*<dt>text</dt><dd>.*The Times 03/Jan/2009 Chancellor on brink of second bailout for banks</dd>.*",
+    );
+  }
+
+  #[test]
+  fn input_missing() {
+    TestServer::new().assert_response(
+      "/input/1/1/1",
+      StatusCode::NOT_FOUND,
+      "Input /1/1/1 unknown",
+    );
+  }
+
+  #[test]
+  fn rune_not_found() {
+    TestServer::new().assert_response(
+      "/rune/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b",
+      StatusCode::NOT_FOUND,
+      "Rune 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b unknown",
+    );
+  }
+
+  #[test]
+  fn malformed_runes_are_rejected() {
+    TestServer::new().assert_put(
+      "/rune",
+      "application/json",
+      "{}",
+      StatusCode::UNPROCESSABLE_ENTITY,
+      "Failed to deserialize the JSON body into the target type: missing field `name` at line 1 column 2",
+    );
+  }
+
+  #[test]
+  fn rune_already_published() {
+    let test_server = TestServer::new();
+
+    test_server.assert_put(
+      "/rune",
+      "application/json",
+      r#"{"name": "foo", "chain": "regtest", "ordinal": 0}"#,
+      StatusCode::CREATED,
+      "8ca6ee12cb891766de56e5698a73cd6546f27a88bd27c8b8d914bc4162f9e4b5",
+    );
+
+    test_server.assert_put(
+      "/rune",
+      "application/json",
+      r#"{"name": "foo", "chain": "regtest", "ordinal": 0}"#,
+      StatusCode::OK,
+      "8ca6ee12cb891766de56e5698a73cd6546f27a88bd27c8b8d914bc4162f9e4b5",
+    );
+  }
+
+  #[test]
+  fn rune_hash_is_calculated_from_server_serialization() {
+    let test_server = TestServer::new();
+
+    test_server.assert_put(
+      "/rune",
+      "application/json",
+      r#"{"name": "foo", "chain": "regtest", "ordinal": 0}"#,
+      StatusCode::CREATED,
+      "8ca6ee12cb891766de56e5698a73cd6546f27a88bd27c8b8d914bc4162f9e4b5",
+    );
+
+    test_server.assert_put(
+      "/rune",
+      "application/json",
+      r#"{"chain": "regtest",    "name": "foo",   "ordinal": 0}"#,
+      StatusCode::OK,
+      "8ca6ee12cb891766de56e5698a73cd6546f27a88bd27c8b8d914bc4162f9e4b5",
+    );
+  }
+
+  #[test]
+  fn runes_with_incorrect_network_are_forbidden() {
+    TestServer::new().assert_put(
+      "/rune",
+      "application/json",
+      r#"{"name": "foo", "chain": "mainnet", "ordinal": 0}"#,
+      StatusCode::UNPROCESSABLE_ENTITY,
+      r#"This ord instance only accepts regtest runes for publication"#,
     );
   }
 }

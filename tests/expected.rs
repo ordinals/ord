@@ -13,7 +13,7 @@ impl Expected {
 
   pub(crate) fn assert_match(&self, output: &str) {
     match self {
-      Self::String(string) => pretty_assertions::assert_eq!(output, string),
+      Self::String(string) => pretty_assert_eq!(output, string),
       Self::Regex(regex) => assert!(
         regex.is_match(output),
         "regex:\n{}\ndid not match output:\n{}",

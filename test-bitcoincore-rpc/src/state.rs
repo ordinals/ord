@@ -4,16 +4,17 @@ pub(crate) struct State {
   pub(crate) blocks: BTreeMap<BlockHash, Block>,
   pub(crate) hashes: Vec<BlockHash>,
   pub(crate) mempool: Vec<Transaction>,
+  pub(crate) network: Network,
   pub(crate) nonce: u32,
   pub(crate) transactions: BTreeMap<Txid, Transaction>,
 }
 
 impl State {
-  pub(crate) fn new() -> Self {
+  pub(crate) fn new(network: Network) -> Self {
     let mut hashes = Vec::new();
     let mut blocks = BTreeMap::new();
 
-    let genesis_block = bitcoin::blockdata::constants::genesis_block(Network::Bitcoin);
+    let genesis_block = bitcoin::blockdata::constants::genesis_block(network);
     let genesis_block_hash = genesis_block.block_hash();
     hashes.push(genesis_block_hash);
     blocks.insert(genesis_block_hash, genesis_block);
@@ -22,6 +23,7 @@ impl State {
       blocks,
       hashes,
       mempool: Vec::new(),
+      network,
       nonce: 0,
       transactions: BTreeMap::new(),
     }

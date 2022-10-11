@@ -1,3 +1,6 @@
+watch +args='test':
+  cargo watch --clear --exec '{{args}}'
+
 ci: clippy forbid
   cargo fmt -- --check
   cargo test --all
@@ -13,9 +16,6 @@ clippy:
 
 bench:
   cargo criterion
-
-watch +args='test':
-  cargo watch --clear --exec '{{args}}'
 
 install-dev-deps:
   cargo install cargo-criterion
@@ -115,8 +115,8 @@ flamegraph:
 benchmark dir=`git branch --show-current`:
   ./bin/benchmark '{{dir}}'
 
-serve-book:
-  mdbook serve book --open
+serve-docs:
+  mdbook serve docs --open
 
-build-book:
-  mdbook build book
+build-docs:
+  mdbook build docs

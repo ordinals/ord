@@ -14,11 +14,11 @@ impl Content for RangeHtml {
 
 #[cfg(test)]
 mod tests {
-  use {super::*, pretty_assertions::assert_eq, unindent::Unindent};
+  use super::*;
 
   #[test]
   fn range_html() {
-    assert_eq!(
+    pretty_assert_eq!(
       RangeHtml {
         start: Ordinal(0),
         end: Ordinal(1),
@@ -37,7 +37,7 @@ mod tests {
 
   #[test]
   fn bugfix_broken_link() {
-    assert_eq!(
+    pretty_assert_eq!(
       RangeHtml {
         start: Ordinal(1),
         end: Ordinal(10),

@@ -2,7 +2,7 @@ use {
   super::*,
   bitcoin::consensus::encode::deserialize,
   bitcoin::BlockHeader,
-  bitcoincore_rpc::{json::GetBlockHeaderResult, Auth, Client, RpcApi},
+  bitcoincore_rpc::{json::GetBlockHeaderResult, Auth, Client},
   rayon::iter::{IntoParallelRefIterator, ParallelIterator},
   redb::WriteStrategy,
   std::sync::atomic::{AtomicBool, Ordering},
@@ -10,12 +10,13 @@ use {
 
 mod rtx;
 
+const HASH_TO_RUNE: TableDefinition<[u8; 32], str> = TableDefinition::new("HASH_TO_RUNE");
 const HEIGHT_TO_HASH: TableDefinition<u64, [u8; 32]> = TableDefinition::new("HEIGHT_TO_HASH");
+const ORDINAL_TO_SATPOINT: TableDefinition<u64, [u8; 44]> =
+  TableDefinition::new("ORDINAL_TO_SATPOINT");
 const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8; 36], [u8]> =
   TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
 const STATISTICS: TableDefinition<u64, u64> = TableDefinition::new("STATISTICS");
-const ORDINAL_TO_SATPOINT: TableDefinition<u64, [u8; 44]> =
-  TableDefinition::new("ORDINAL_TO_SATPOINT");
 
 fn encode_outpoint(outpoint: OutPoint) -> [u8; 36] {
   let mut array = [0; 36];
@@ -92,7 +93,7 @@ impl Index {
       // The default max database size is 10 MiB for Regtest and 1 TiB
       // for all other networks. A larger database takes longer to
       // initialize, so unit tests should use the regtest network.
-      assert_eq!(options.chain.network(), Network::Regtest);
+      assert_eq!(options.chain, Chain::Regtest);
     }
 
     log::info!(
@@ -124,6 +125,7 @@ impl Index {
       tx
     };
 
+    tx.open_table(HASH_TO_RUNE)?;
     tx.open_table(HEIGHT_TO_HASH)?;
     tx.open_table(ORDINAL_TO_SATPOINT)?;
     tx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
@@ -132,10 +134,7 @@ impl Index {
     tx.commit()?;
 
     let genesis_block_coinbase_transaction =
-      bitcoin::blockdata::constants::genesis_block(options.chain.network())
-        .coinbase()
-        .unwrap()
-        .clone();
+      options.chain.genesis_block().coinbase().unwrap().clone();
 
     Ok(Self {
       client,
@@ -251,7 +250,7 @@ impl Index {
 
     let mut errors = 0;
     let block = loop {
-      match self.block_at_height(height) {
+      match self.block(height) {
         Err(err) => {
           if cfg!(test) {
             return Err(err);
@@ -488,7 +487,7 @@ impl Index {
     Ok(())
   }
 
-  fn block_at_height(&self, height: u64) -> Result<Option<Block>> {
+  pub(crate) fn block(&self, height: u64) -> Result<Option<Block>> {
     Ok(
       self
         .client
@@ -532,6 +531,30 @@ impl Index {
         })
         .unwrap_or(false),
     )
+  }
+
+  pub(crate) fn rune(&self, hash: sha256::Hash) -> Result<Option<Rune>> {
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(HASH_TO_RUNE)?
+        .get(hash.as_inner())?
+        .map(serde_json::from_str)
+        .transpose()?,
+    )
+  }
+
+  pub(crate) fn insert_rune(&self, rune: &Rune) -> Result<(bool, sha256::Hash)> {
+    let json = serde_json::to_string(rune)?;
+    let hash = sha256::Hash::hash(json.as_ref());
+    let wtx = self.database.begin_write()?;
+    let created = wtx
+      .open_table(HASH_TO_RUNE)?
+      .insert(hash.as_inner(), &json)?
+      .is_none();
+    wtx.commit()?;
+    Ok((created, hash))
   }
 
   pub(crate) fn find(&self, ordinal: u64) -> Result<Option<SatPoint>> {
@@ -599,7 +622,7 @@ impl Index {
   pub(crate) fn blocktime(&self, height: Height) -> Result<Blocktime> {
     let height = height.n();
 
-    match self.block_at_height(height)? {
+    match self.block(height)? {
       Some(block) => Ok(Blocktime::Confirmed(block.header.time.into())),
       None => {
         let tx = self.database.begin_read()?;

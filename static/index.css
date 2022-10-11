@@ -47,41 +47,49 @@ a:visited {
   color: var(--link);
 }
 
+dt {
+  font-weight: bold;
+  margin-top: 0.5rem;
+}
+
 nav {
+  align-items: center;
+  background-color: var(--light-bg);
   display: flex;
   gap: 1rem;
   padding: 1rem;
-  background-color: var(--light-bg);
-  align-items: center;
 }
 
 nav > :first-child {
-  font-weight: bold;
   color: var(--light-fg);
+  font-weight: bold;
 }
 
-nav > form {
+form {
+  display: flex;
+  flex-grow: 1;
+  gap: 1rem;
   margin-left: auto;
+  width: 100%;
 }
 
 input[type=text] {
-  color: var(--search-fg);
   background-color: var(--search-bg);
   border-radius: 3px;
   border: 1px solid var(--search-border);
+  color: var(--search-fg);
+  flex-grow: 1;
+  min-width: 0;
 }
 
 @media (max-width: 38rem) {
   nav {
     flex-direction: column;
   }
-
-  nav > form {
-    margin-left: 0;
-  }
 }
 
 .blocks {
+  font-family: monospace, monospace;
   list-style-position: inside;
   padding-inline-start: 0;
   white-space: nowrap;
@@ -89,6 +97,11 @@ input[type=text] {
 
 .monospace {
   font-family: monospace, monospace;
+}
+
+.data {
+  font-family: monospace, monospace;
+  overflow-wrap: break-word;
 }
 
 span.common, span.uncommon, span.rare, span.epic, span.legendary, span.mythic {
