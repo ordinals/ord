@@ -3,6 +3,7 @@
 [Introduction](introduction.md)
 
 - [Theory](theory.md)
+- [Block Explorer](block-explorer.md)
 - [Hunting](hunting.md)
 - [FAQ](faq.md)
 
