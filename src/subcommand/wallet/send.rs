@@ -5,23 +5,25 @@ use {
 
 #[derive(Debug, PartialEq)]
 enum SendError {
-  OrdinalNotInWallet(Ordinal),
-  NotEnoughUtxos,
+  NotInWallet(Ordinal),
+  PaddingNotAvailable,
 }
+
 impl fmt::Display for SendError {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self {
-      SendError::OrdinalNotInWallet(ordinal) => write!(f, "ordinal {ordinal} not in wallet"),
-      SendError::NotEnoughUtxos => write!(f, "not enough utxos to pay for transaction fees"),
+      SendError::NotInWallet(ordinal) => write!(f, "Ordinal {ordinal} not in wallet"),
+      SendError::PaddingNotAvailable => write!(f, "Not enough utxos to pad transaction"),
     }
   }
 }
+
 impl Error for SendError {}
 
 #[derive(Debug, PartialEq)]
-struct TransactionIO {
+struct Template {
   inputs: Vec<OutPoint>,
-  outputs: Vec<(Address, u64)>,
+  outputs: Vec<(Address, Amount)>,
 }
 
 #[derive(Debug, Parser)]
@@ -50,12 +52,12 @@ impl Send {
       self.get_change_address(&client)?,
     ];
 
-    let tx_io = build_tx(utxos, self.ordinal, self.address, change_addresses)?;
+    let template = build_tx(utxos, self.ordinal, self.address, change_addresses)?;
 
     let signed_tx = client
       .sign_raw_transaction_with_wallet(
         client.create_raw_transaction_hex(
-          &tx_io
+          &template
             .inputs
             .iter()
             .map(|outpoint| CreateRawTransactionInput {
@@ -64,10 +66,10 @@ impl Send {
               sequence: None,
             })
             .collect::<Vec<CreateRawTransactionInput>>(),
-          &tx_io
+          &template
             .outputs
             .iter()
-            .map(|(address, amount)| (address.to_string(), Amount::from_sat(*amount)))
+            .map(|(address, amount)| (address.to_string(), *amount))
             .collect(),
           None,
           None,
@@ -98,13 +100,13 @@ fn build_tx(
   ordinal: Ordinal,
   recipient_address: Address,
   change_addresses: [Address; 2],
-) -> Result<TransactionIO, SendError> {
-  let dust_limit = 500;
-  let fee = 1000;
+) -> Result<Template, SendError> {
+  let dust_limit = Amount::from_sat(500);
+  let fee = Amount::from_sat(1000);
   let mut inputs: Vec<OutPoint> = Vec::new();
-  let mut inputs_amount = 0;
-  let mut outputs: Vec<(Address, u64)> = Vec::new();
-  let mut unused_inputs: Vec<(OutPoint, u64)> = Vec::new();
+  let mut inputs_amount = Amount::from_sat(0);
+  let mut outputs: Vec<(Address, Amount)> = Vec::new();
+  let mut unused_inputs: Vec<(OutPoint, Amount)> = Vec::new();
   let mut satpoint = SatPoint {
     outpoint: OutPoint::null(),
     offset: 0,
@@ -123,27 +125,27 @@ fn build_tx(
     }
     if outpoint_contains_ordinal {
       inputs.push(*outpoint);
-      inputs_amount += offset;
+      inputs_amount += Amount::from_sat(offset);
     } else {
-      unused_inputs.push((*outpoint, offset));
+      unused_inputs.push((*outpoint, Amount::from_sat(offset)));
     }
   }
 
   if inputs.is_empty() {
-    return Err(SendError::OrdinalNotInWallet(ordinal));
+    return Err(SendError::NotInWallet(ordinal));
   }
 
   let mut unused_inputs = unused_inputs.iter();
   loop {
     // utxo enough space to pay fee and transfer ordinal (dust_limit)
-    if (satpoint.offset + dust_limit) + fee <= inputs_amount {
+    if (Amount::from_sat(satpoint.offset) + dust_limit) + fee <= inputs_amount {
       let mut outs = match satpoint.offset {
         // ordinal at beginning of utxo
         0 => vec![
           (recipient_address, dust_limit),
           (
             change_addresses[0].clone(),
-            inputs_amount - (satpoint.offset + dust_limit) - fee,
+            inputs_amount - (Amount::from_sat(satpoint.offset) + dust_limit) - fee,
           ),
         ],
 
@@ -151,11 +153,11 @@ fn build_tx(
 
         // ordinal enough space above and below
         _ => vec![
-          (change_addresses[0].clone(), satpoint.offset),
+          (change_addresses[0].clone(), Amount::from_sat(satpoint.offset)),
           (recipient_address, dust_limit),
           (
             change_addresses[1].clone(),
-            inputs_amount - (satpoint.offset + dust_limit) - fee,
+            inputs_amount - (Amount::from_sat(satpoint.offset) + dust_limit) - fee,
           ),
         ],
       };
@@ -163,26 +165,26 @@ fn build_tx(
       break;
 
     // ordinal at end of utxo without space to pay fee
-    } else if (satpoint.offset + dust_limit) + fee > inputs_amount {
+    } else if (Amount::from_sat(satpoint.offset) + dust_limit) + fee > inputs_amount {
       // splice in another input
       let (input, amount) = match unused_inputs.next() {
         Some((input, amount)) => (input, amount),
-        None => return Err(SendError::NotEnoughUtxos),
+        None => return Err(SendError::PaddingNotAvailable),
       };
       inputs.push(*input);
-      inputs_amount += amount;
+      inputs_amount += *amount;
     }
   }
 
-  Ok(TransactionIO { inputs, outputs })
+  Ok(Template { inputs, outputs })
 }
 
 #[cfg(test)]
 mod tests {
   use super::*;
 
-  const FEE: u64 = 1000;
-  const DUST_LIMIT: u64 = 500;
+  const FEE: Amount = Amount::from_sat(1000);
+  const DUST_LIMIT: Amount = Amount::from_sat(500);
 
   #[test]
   fn build_tx_ordinal_at_beginning_of_utxo() {
@@ -206,13 +208,13 @@ mod tests {
         receive_addr.clone(),
         change_addr.clone()
       ),
-      Ok(TransactionIO {
+      Ok(Template {
         inputs: vec![OutPoint::null()],
         outputs: vec![
           (receive_addr, DUST_LIMIT),
           (
             change_addr[0].clone(),
-            (100 * COIN_VALUE - 51 * COIN_VALUE) - (DUST_LIMIT) - FEE
+            Amount::from_sat(100 * COIN_VALUE - 51 * COIN_VALUE) - DUST_LIMIT - FEE
           )
         ],
       })
@@ -249,12 +251,12 @@ mod tests {
         receive_addr.clone(),
         change_addr.clone()
       ),
-      Ok(TransactionIO {
+      Ok(Template {
         inputs: vec![OutPoint::null(),],
         outputs: vec![
-          (change_addr[0].clone(), 2500),
+          (change_addr[0].clone(), Amount::from_sat(2500)),
           (receive_addr, DUST_LIMIT),
-          (change_addr[1].clone(), (5000) - (2500 + DUST_LIMIT) - FEE),
+          (change_addr[1].clone(), Amount::from_sat(5000) - (Amount::from_sat(2500) + DUST_LIMIT) - FEE),
         ],
       })
     )
@@ -290,7 +292,7 @@ mod tests {
         receive_addr.clone(),
         change_addr.clone()
       ),
-      Ok(TransactionIO {
+      Ok(Template {
         inputs: vec![
           OutPoint::null(),
           "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:5"
@@ -298,11 +300,11 @@ mod tests {
             .unwrap()
         ],
         outputs: vec![
-          (change_addr[0].clone(), 4950),
+          (change_addr[0].clone(), Amount::from_sat(4950)),
           (receive_addr, DUST_LIMIT),
           (
             change_addr[1].clone(),
-            (15000 - 10000) - (4950 + DUST_LIMIT - 5000) - FEE
+            Amount::from_sat(15000 - 10000) - (Amount::from_sat(4950) + DUST_LIMIT - Amount::from_sat(5000)) - FEE
           ),
         ],
       })
@@ -326,7 +328,7 @@ mod tests {
     let utxos = vec![(OutPoint::null(), vec![(0, 5000)])];
     assert_eq!(
       build_tx(utxos, Ordinal(5000), receive_addr, change_addr),
-      Err(SendError::OrdinalNotInWallet(Ordinal(5000)))
+      Err(SendError::NotInWallet(Ordinal(5000)))
     )
   }
 
@@ -347,7 +349,7 @@ mod tests {
     let utxos = vec![(OutPoint::null(), vec![(0, 5000)])];
     assert_eq!(
       build_tx(utxos, Ordinal(4500), receive_addr, change_addr),
-      Err(SendError::NotEnoughUtxos)
+      Err(SendError::PaddingNotAvailable)
     )
   }
 }
