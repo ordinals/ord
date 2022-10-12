@@ -115,9 +115,9 @@ fn build_tx(
     let mut outpoint_contains_ordinal = false;
     for (start, end) in range {
       if ordinal.0 < *end && ordinal.0 >= *start {
+        outpoint_contains_ordinal = true;
         satpoint.outpoint = *outpoint;
         satpoint.offset = offset + (ordinal.0 - start);
-        outpoint_contains_ordinal = true;
       }
       offset += end - start;
     }
@@ -135,31 +135,31 @@ fn build_tx(
 
   let mut unused_inputs = unused_inputs.iter();
   loop {
-    // ordinal right at beginning of utxo
-    if satpoint.offset == 0 {
-      outputs.append(&mut vec![
-        (recipient_address, dust_limit),
-        (
-          change_addresses[0].clone(),
-          inputs_amount - dust_limit - fee,
-        ),
-      ]);
-      break;
-
-    // ordinal in the middle of utxo with enough space below to send fee
-    } else if inputs_amount > (satpoint.offset + dust_limit) + fee {
-      outputs.append(&mut vec![
-        (change_addresses[0].clone(), satpoint.offset),
-        (recipient_address, dust_limit),
-        (
-          change_addresses[1].clone(),
-          inputs_amount - satpoint.offset - dust_limit - fee,
-        ),
-      ]);
+    // utxo enough space to pay fee and transfer ordinal (dust_limit)
+    if (satpoint.offset + dust_limit) + fee <= inputs_amount {
+      let mut outs = match satpoint.offset {
+        // ordinal at beginning of utxo
+        0 => vec![
+          (recipient_address, dust_limit),
+          (
+            change_addresses[0].clone(),
+            inputs_amount - (satpoint.offset + dust_limit) - fee,
+          ),
+        ],
+        _ => vec![
+          (change_addresses[0].clone(), satpoint.offset),
+          (recipient_address, dust_limit),
+          (
+            change_addresses[1].clone(),
+            inputs_amount - (satpoint.offset + dust_limit) - fee,
+          ),
+        ],
+      };
+      outputs.append(&mut outs);
       break;
 
     // ordinal at end of utxo without space to pay fee; splice in another input
-    } else if inputs_amount < (satpoint.offset + dust_limit) + fee {
+    } else if (satpoint.offset + dust_limit) + fee > inputs_amount {
       let (input, amount) = match unused_inputs.next() {
         Some((input, amount)) => (input, amount),
         None => return Err(SendError::NotEnoughUtxos),
