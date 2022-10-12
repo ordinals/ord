@@ -129,30 +129,6 @@ fn build_tx(
     }
   }
 
-  //  let unused_utxos: Vec<(OutPoint, u64)> = utxos
-  //    .into_iter()
-  //    .map(|(outpoint, range)| {
-  //      let mut offset = 0;
-  //      (
-  //        outpoint,
-  //        range
-  //          .into_iter()
-  //          .map(|(start, end)| {
-  //            if ordinal.0 < end && ordinal.0 >= start {
-  //              satpoint = SatPoint {
-  //                outpoint,
-  //                offset: offset + (ordinal.0 - start),
-  //              };
-  //              inputs.push(outpoint);
-  //            }
-  //            offset += end - start;
-  //            offset
-  //          })
-  //          .sum::<u64>(),
-  //      )
-  //    })
-  //    .collect();
-
   if inputs.is_empty() {
     return Err(SendError::OrdinalNotInWallet(ordinal));
   }
