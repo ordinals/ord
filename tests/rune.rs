@@ -26,7 +26,7 @@ fn publish_success() {
   <dt>hash</dt><dd>8ca6ee12cb891766de56e5698a73cd6546f27a88bd27c8b8d914bc4162f9e4b5</dd>
   <dt>name</dt><dd>foo</dd>
   <dt>chain</dt><dd>regtest</dd>
-  <dt>ordinal</dt><dd>0</dd>
+  <dt>ordinal</dt><dd><a href=/ordinal/0>0</a></dd>
 </dl>
 .*",
   );
