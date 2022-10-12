@@ -4,7 +4,7 @@ use {
   bitcoin::BlockHeader,
   bitcoincore_rpc::{json::GetBlockHeaderResult, Auth, Client},
   rayon::iter::{IntoParallelRefIterator, ParallelIterator},
-  redb::WriteStrategy,
+  redb::{MultimapTableDefinition, ReadableMultimapTable, WriteStrategy},
   std::sync::atomic::{AtomicBool, Ordering},
 };
 
@@ -14,6 +14,8 @@ const HASH_TO_RUNE: TableDefinition<[u8; 32], str> = TableDefinition::new("HASH_
 const HEIGHT_TO_HASH: TableDefinition<u64, [u8; 32]> = TableDefinition::new("HEIGHT_TO_HASH");
 const ORDINAL_TO_SATPOINT: TableDefinition<u64, [u8; 44]> =
   TableDefinition::new("ORDINAL_TO_SATPOINT");
+const ORDINAL_TO_RUNE_HASHES: MultimapTableDefinition<u64, [u8; 32]> =
+  MultimapTableDefinition::new("ORDINAL_TO_RUNE_HASHES");
 const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8; 36], [u8]> =
   TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
 const STATISTICS: TableDefinition<u64, u64> = TableDefinition::new("STATISTICS");
@@ -125,6 +127,7 @@ impl Index {
       tx
     };
 
+    tx.open_multimap_table(ORDINAL_TO_RUNE_HASHES)?;
     tx.open_table(HASH_TO_RUNE)?;
     tx.open_table(HEIGHT_TO_HASH)?;
     tx.open_table(ORDINAL_TO_SATPOINT)?;
@@ -408,6 +411,21 @@ impl Index {
     Ok(blocks)
   }
 
+  pub(crate) fn inscriptions(&self, ordinal: Ordinal) -> Result<Vec<sha256::Hash>> {
+    let rtx = self.database.begin_read()?;
+
+    let table = rtx.open_multimap_table(ORDINAL_TO_RUNE_HASHES)?;
+
+    let mut values = table.get(&ordinal.0)?;
+
+    let mut inscriptions = Vec::new();
+    while let Some(value) = values.next() {
+      inscriptions.push(sha256::Hash::from_inner(*value));
+    }
+
+    Ok(inscriptions)
+  }
+
   pub(crate) fn rare_ordinal_satpoints(&self) -> Result<Vec<(Ordinal, SatPoint)>> {
     let mut result = Vec::new();
 
@@ -548,12 +566,20 @@ impl Index {
   pub(crate) fn insert_rune(&self, rune: &Rune) -> Result<(bool, sha256::Hash)> {
     let json = serde_json::to_string(rune)?;
     let hash = sha256::Hash::hash(json.as_ref());
+
     let wtx = self.database.begin_write()?;
+
     let created = wtx
       .open_table(HASH_TO_RUNE)?
       .insert(hash.as_inner(), &json)?
       .is_none();
+
+    wtx
+      .open_multimap_table(ORDINAL_TO_RUNE_HASHES)?
+      .insert(&rune.ordinal.n(), &hash.into_inner())?;
+
     wtx.commit()?;
+
     Ok((created, hash))
   }
 
