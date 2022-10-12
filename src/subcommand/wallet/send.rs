@@ -146,6 +146,10 @@ fn build_tx(
             inputs_amount - (satpoint.offset + dust_limit) - fee,
           ),
         ],
+
+        // ignoring case where the amount above the ordinal is less than dust_limit
+
+        // ordinal enough space above and below
         _ => vec![
           (change_addresses[0].clone(), satpoint.offset),
           (recipient_address, dust_limit),
@@ -158,8 +162,9 @@ fn build_tx(
       outputs.append(&mut outs);
       break;
 
-    // ordinal at end of utxo without space to pay fee; splice in another input
+    // ordinal at end of utxo without space to pay fee
     } else if (satpoint.offset + dust_limit) + fee > inputs_amount {
+      // splice in another input
       let (input, amount) = match unused_inputs.next() {
         Some((input, amount)) => (input, amount),
         None => return Err(SendError::NotEnoughUtxos),
