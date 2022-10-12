@@ -163,7 +163,10 @@ fn build_tx(
     if satpoint.offset == 0 {
       outputs.append(&mut vec![
         (recipient_address, dust_limit),
-        (change_addresses[0].clone(), inputs_amount - dust_limit - fee),
+        (
+          change_addresses[0].clone(),
+          inputs_amount - dust_limit - fee,
+        ),
       ]);
       break;
 
@@ -172,7 +175,10 @@ fn build_tx(
       outputs.append(&mut vec![
         (change_addresses[0].clone(), satpoint.offset),
         (recipient_address, dust_limit),
-        (change_addresses[1].clone(), inputs_amount - satpoint.offset - dust_limit - fee),
+        (
+          change_addresses[1].clone(),
+          inputs_amount - satpoint.offset - dust_limit - fee,
+        ),
       ]);
       break;
 
@@ -263,16 +269,11 @@ mod tests {
         change_addr.clone()
       ),
       Ok(TransactionIO {
-        inputs: vec![
-          OutPoint::null(),
-        ],
+        inputs: vec![OutPoint::null(),],
         outputs: vec![
           (change_addr[0].clone(), 2500),
           (receive_addr, DUST_LIMIT),
-          (
-            change_addr[1].clone(),
-            (5000) - (2500 + DUST_LIMIT) - FEE
-          ),
+          (change_addr[1].clone(), (5000) - (2500 + DUST_LIMIT) - FEE),
         ],
       })
     )
