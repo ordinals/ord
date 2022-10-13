@@ -4,7 +4,10 @@ use {
   bitcoin::BlockHeader,
   bitcoincore_rpc::{json::GetBlockHeaderResult, Auth, Client},
   rayon::iter::{IntoParallelRefIterator, ParallelIterator},
-  redb::{MultimapTableDefinition, ReadableMultimapTable, WriteStrategy},
+  redb::{
+    Database, MultimapTableDefinition, ReadableMultimapTable, ReadableTable, Table,
+    TableDefinition, WriteStrategy, WriteTransaction,
+  },
   std::sync::atomic::{AtomicBool, Ordering},
 };
 
@@ -52,9 +55,11 @@ pub(crate) enum List {
   Unspent(Vec<(u64, u64)>),
 }
 
+#[derive(Copy, Clone)]
 #[repr(u64)]
-enum Statistic {
+pub(crate) enum Statistic {
   OutputsTraversed = 0,
+  Commits = 1,
 }
 
 impl From<Statistic> for u64 {
@@ -213,6 +218,7 @@ impl Index {
       .map(|(height, _hash)| height + 1)
       .unwrap_or(0);
 
+    let mut uncomitted = 0;
     for (i, height) in (0..).zip(height..) {
       if let Some(height_limit) = self.height_limit {
         if height > height_limit {
@@ -222,9 +228,15 @@ impl Index {
 
       let done = self.index_block(&mut wtx, height)?;
 
-      if i > 0 && i % 1000 == 0 {
+      if !done {
+        uncomitted += 1;
+      }
+
+      if uncomitted > 0 && i % 1000 == 0 {
+        Self::increment_statistic(&wtx, Statistic::Commits, 1)?;
         wtx.commit()?;
         wtx = self.begin_write()?;
+        uncomitted = 0;
       }
 
       if done || INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
@@ -232,7 +244,10 @@ impl Index {
       }
     }
 
-    wtx.commit()?;
+    if uncomitted > 0 {
+      Self::increment_statistic(&wtx, Statistic::Commits, 1)?;
+      wtx.commit()?;
+    }
 
     Ok(())
   }
@@ -245,7 +260,6 @@ impl Index {
     let mut height_to_hash = wtx.open_table(HEIGHT_TO_HASH)?;
     let mut ordinal_to_satpoint = wtx.open_table(ORDINAL_TO_SATPOINT)?;
     let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
-    let mut statistics = wtx.open_table(STATISTICS)?;
 
     let start = Instant::now();
     let mut ordinal_ranges_written = 0;
@@ -357,13 +371,7 @@ impl Index {
 
     height_to_hash.insert(&height, &block.block_hash().as_hash().into_inner())?;
 
-    statistics.insert(
-      &Statistic::OutputsTraversed.into(),
-      &(statistics
-        .get(&(Statistic::OutputsTraversed.into()))?
-        .unwrap_or(0)
-        + outputs_in_block),
-    )?;
+    Self::increment_statistic(wtx, Statistic::OutputsTraversed, outputs_in_block)?;
 
     log::info!(
       "Wrote {ordinal_ranges_written} ordinal ranges in {}ms",
@@ -377,7 +385,7 @@ impl Index {
     Ok(rtx::Rtx(self.database.begin_read()?))
   }
 
-  fn begin_write(&self) -> Result<redb::WriteTransaction> {
+  fn begin_write(&self) -> Result<WriteTransaction> {
     if cfg!(test) {
       let mut tx = self.database.begin_write()?;
       tx.set_durability(redb::Durability::None);
@@ -385,6 +393,27 @@ impl Index {
     } else {
       Ok(self.database.begin_write()?)
     }
+  }
+
+  fn increment_statistic(wtx: &WriteTransaction, statistic: Statistic, n: u64) -> Result {
+    let mut statistics = wtx.open_table(STATISTICS)?;
+    statistics.insert(
+      &statistic.into(),
+      &(statistics.get(&(statistic.into()))?.unwrap_or(0) + n),
+    )?;
+    Ok(())
+  }
+
+  #[cfg(test)]
+  pub(crate) fn statistic(&self, statistic: Statistic) -> Result<u64> {
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(STATISTICS)?
+        .get(&(statistic.into()))?
+        .unwrap_or(0),
+    )
   }
 
   pub(crate) fn height(&self) -> Result<Height> {
@@ -566,8 +595,7 @@ impl Index {
   pub(crate) fn insert_rune(&self, rune: &Rune) -> Result<(bool, sha256::Hash)> {
     let json = serde_json::to_string(rune)?;
     let hash = sha256::Hash::hash(json.as_ref());
-
-    let wtx = self.database.begin_write()?;
+    let wtx = self.begin_write()?;
 
     let created = wtx
       .open_table(HASH_TO_RUNE)?
