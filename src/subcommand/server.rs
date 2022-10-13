@@ -148,8 +148,8 @@ impl Server {
         .route("/output/:output", get(Self::output))
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
-        .route("/rune/:hash", get(Self::rune_get))
         .route("/rune", put(Self::rune_put))
+        .route("/rune/:hash", get(Self::rune_get))
         .route("/search", get(Self::search_by_query))
         .route("/search/:query", get(Self::search_by_path))
         .route("/static/*path", get(Self::static_asset))
@@ -1386,6 +1386,41 @@ mod tests {
       ".*<dt>inscriptions</dt>
     <dd><a href=/rune/72ed622edc0e3753891809c931075f0da2c39ba491d2d715140208f930411339 class=monospace>72ed622edc0e3753891809c931075f0da2c39ba491d2d715140208f930411339</a></dd>
     <dd><a href=/rune/8ca6ee12cb891766de56e5698a73cd6546f27a88bd27c8b8d914bc4162f9e4b5 class=monospace>8ca6ee12cb891766de56e5698a73cd6546f27a88bd27c8b8d914bc4162f9e4b5</a></dd>.*",
+    );
+  }
+
+  #[test]
+  fn commit_are_tracked() {
+    let server = TestServer::new();
+
+    assert_eq!(
+      server
+        .index
+        .statistic(crate::index::Statistic::Commits)
+        .unwrap(),
+      1
+    );
+
+    server.index.index().unwrap();
+
+    assert_eq!(
+      server
+        .index
+        .statistic(crate::index::Statistic::Commits)
+        .unwrap(),
+      1
+    );
+
+    server.bitcoin_rpc_server.mine_blocks(1);
+
+    server.index.index().unwrap();
+
+    assert_eq!(
+      server
+        .index
+        .statistic(crate::index::Statistic::Commits)
+        .unwrap(),
+      2
     );
   }
 }
