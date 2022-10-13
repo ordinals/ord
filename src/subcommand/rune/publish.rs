@@ -1,4 +1,4 @@
-use {super::*, reqwest::Url};
+use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Publish {
@@ -27,11 +27,7 @@ impl Publish {
 
     let url = self
       .publish_url
-      .or_else(|| match options.chain {
-        Chain::Mainnet => Some("https://ordinals.com".parse().unwrap()),
-        Chain::Signet => Some("https://signet.ordinals.com".parse().unwrap()),
-        Chain::Regtest | Chain::Testnet => None,
-      })
+      .or_else(|| options.chain.default_publish_url())
       .ok_or_else(|| anyhow!("No default <PUBLISH_URL> for {}", options.chain))?
       .join("rune")?;
 

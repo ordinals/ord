@@ -32,6 +32,7 @@ use {
   clap::Parser,
   derive_more::{Display, FromStr},
   regex::Regex,
+  reqwest::Url,
   serde::{Deserialize, Serialize},
   std::{
     collections::VecDeque,
