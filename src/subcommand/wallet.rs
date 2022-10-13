@@ -3,6 +3,7 @@ use super::*;
 mod identify;
 mod list;
 mod send;
+mod transaction_builder;
 
 fn list_unspent(options: &Options, index: &Index) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
   let client = options.bitcoin_rpc_client()?;
