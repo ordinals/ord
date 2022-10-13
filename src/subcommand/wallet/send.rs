@@ -54,12 +54,12 @@ impl Error for SendError {}
 
 #[derive(Debug, PartialEq)]
 struct Template {
-  utxos: BTreeSet<OutPoint>,
-  ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
-  ordinal: Ordinal,
-  recipient: Address,
   inputs: Vec<OutPoint>,
+  ordinal: Ordinal,
   outputs: Vec<(Address, Amount)>,
+  ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
+  recipient: Address,
+  utxos: BTreeSet<OutPoint>,
 }
 
 impl Template {
@@ -70,11 +70,11 @@ impl Template {
   ) -> Self {
     Self {
       utxos: ranges.keys().cloned().collect(),
-      ranges,
-      ordinal,
-      recipient,
       inputs: Vec::new(),
+      ordinal,
       outputs: Vec::new(),
+      ranges,
+      recipient,
     }
   }
 
