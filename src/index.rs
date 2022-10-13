@@ -15,7 +15,6 @@ mod rtx;
 
 const HASH_TO_RUNE: TableDefinition<[u8; 32], str> = TableDefinition::new("HASH_TO_RUNE");
 const HEIGHT_TO_HASH: TableDefinition<u64, [u8; 32]> = TableDefinition::new("HEIGHT_TO_HASH");
-const INDEX_TO_ENTRY: TableDefinition<u64, str> = TableDefinition::new("INDEX_TO_ENTRY");
 const ORDINAL_TO_SATPOINT: TableDefinition<u64, [u8; 44]> =
   TableDefinition::new("ORDINAL_TO_SATPOINT");
 const ORDINAL_TO_RUNE_HASHES: MultimapTableDefinition<u64, [u8; 32]> =
@@ -136,7 +135,6 @@ impl Index {
     tx.open_multimap_table(ORDINAL_TO_RUNE_HASHES)?;
     tx.open_table(HASH_TO_RUNE)?;
     tx.open_table(HEIGHT_TO_HASH)?;
-    tx.open_table(INDEX_TO_ENTRY)?;
     tx.open_table(ORDINAL_TO_SATPOINT)?;
     tx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
     tx.open_table(STATISTICS)?;
