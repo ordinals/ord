@@ -117,7 +117,7 @@ impl Template {
     for input in &self.inputs {
       for (start, end) in &self.ranges[input] {
         if self.ordinal.0 >= *start && self.ordinal.0 < *end {
-          offset += end - self.ordinal.0;
+          offset += self.ordinal.0 - start;
           break;
         } else {
           offset += end - start;
