@@ -4,23 +4,22 @@ use {
   bitcoin::blockdata::witness::Witness,
   bitcoin::util::amount::Amount,
   std::collections::{BTreeMap, BTreeSet},
-  std::error::Error,
 };
 
 #[derive(Debug, PartialEq)]
-pub(crate) enum SendError {
+pub(crate) enum Error {
   NotInWallet(Ordinal),
 }
 
-impl fmt::Display for SendError {
+impl fmt::Display for Error {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self {
-      SendError::NotInWallet(ordinal) => write!(f, "Ordinal {ordinal} not in wallet"),
+      Error::NotInWallet(ordinal) => write!(f, "Ordinal {ordinal} not in wallet"),
     }
   }
 }
 
-impl Error for SendError {}
+impl std::error::Error for Error {}
 
 #[derive(Debug, PartialEq)]
 pub(crate) struct TransactionBuilder {
@@ -32,12 +31,14 @@ pub(crate) struct TransactionBuilder {
   utxos: BTreeSet<OutPoint>,
 }
 
+type Result<T> = std::result::Result<T, Error>;
+
 impl TransactionBuilder {
   pub(crate) fn build_transaction(
     ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
     ordinal: Ordinal,
     recipient: Address,
-  ) -> Result<Transaction, SendError> {
+  ) -> Result<Transaction> {
     Self::new(ranges, ordinal, recipient)
       .select_ordinal()?
       .build()
@@ -58,7 +59,7 @@ impl TransactionBuilder {
     }
   }
 
-  fn select_ordinal(mut self) -> Result<Self, SendError> {
+  fn select_ordinal(mut self) -> Result<Self> {
     let (ordinal_outpoint, ranges) = self
       .ranges
       .iter()
@@ -68,7 +69,7 @@ impl TransactionBuilder {
           .any(|(start, end)| self.ordinal.0 < *end && self.ordinal.0 >= *start)
       })
       .map(|(outpoint, ranges)| (*outpoint, ranges.clone()))
-      .ok_or(SendError::NotInWallet(self.ordinal))?;
+      .ok_or(Error::NotInWallet(self.ordinal))?;
 
     self.utxos.remove(&ordinal_outpoint);
     self.inputs.push(ordinal_outpoint);
@@ -80,7 +81,7 @@ impl TransactionBuilder {
     Ok(self)
   }
 
-  fn build(self) -> Result<Transaction, SendError> {
+  fn build(self) -> Result<Transaction> {
     let outpoint = self
       .ranges
       .iter()
