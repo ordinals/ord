@@ -62,21 +62,14 @@ impl Options {
   }
 
   pub(crate) fn data_dir(&self) -> Result<PathBuf> {
-    if let Some(data_dir) = &self.data_dir {
-      return Ok(data_dir.clone());
-    }
+    let base = match &self.data_dir {
+      Some(base) => base.clone(),
+      None => dirs::data_dir()
+        .ok_or_else(|| anyhow!("Failed to retrieve data dir"))?
+        .join("ord"),
+    };
 
-    let path = dirs::data_dir()
-      .ok_or_else(|| anyhow!("Failed to retrieve data dir"))?
-      .join("ord");
-
-    let path = self.chain.join_with_data_dir(&path);
-
-    if let Err(err) = fs::create_dir_all(&path) {
-      bail!("Failed to create data dir `{}`: {err}", path.display());
-    }
-
-    Ok(path)
+    Ok(self.chain.join_with_data_dir(&base))
   }
 
   pub(crate) fn bitcoin_rpc_client(&self) -> Result<Client> {

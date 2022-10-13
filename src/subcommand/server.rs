@@ -213,11 +213,20 @@ impl Server {
   }
 
   fn acme_cache(acme_cache: Option<&PathBuf>, options: &Options) -> Result<PathBuf> {
-    if let Some(acme_cache) = acme_cache {
-      Ok(acme_cache.clone())
+    let acme_cache = if let Some(acme_cache) = acme_cache {
+      acme_cache.clone()
     } else {
-      Ok(options.data_dir()?.join("acme-cache"))
+      options.data_dir()?.join("acme-cache")
+    };
+
+    if let Err(err) = fs::create_dir_all(&acme_cache) {
+      bail!(
+        "Failed to create acme cache dir `{}`: {err}",
+        acme_cache.display()
+      );
     }
+
+    Ok(acme_cache)
   }
 
   fn acme_domains(acme_domain: &Vec<String>) -> Result<Vec<String>> {
