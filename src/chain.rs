@@ -21,6 +21,14 @@ impl Chain {
     }
   }
 
+  pub(crate) fn default_publish_url(self) -> Option<Url> {
+    match self {
+      Self::Mainnet => Some("https://ordinals.com".parse().unwrap()),
+      Self::Signet => Some("https://signet.ordinals.com".parse().unwrap()),
+      Self::Regtest | Self::Testnet => None,
+    }
+  }
+
   pub(crate) fn default_rpc_port(self) -> u16 {
     match self {
       Self::Mainnet => 8332,
@@ -70,5 +78,24 @@ impl Display for Chain {
         Self::Testnet => "testnet",
       }
     )
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn default_publish_url() {
+    assert_eq!(
+      Chain::Mainnet.default_publish_url(),
+      Some("https://ordinals.com".parse().unwrap())
+    );
+    assert_eq!(
+      Chain::Signet.default_publish_url(),
+      Some("https://signet.ordinals.com".parse().unwrap())
+    );
+    assert_eq!(Chain::Testnet.default_publish_url(), None,);
+    assert_eq!(Chain::Regtest.default_publish_url(), None,);
   }
 }

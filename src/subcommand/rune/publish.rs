@@ -1,4 +1,4 @@
-use {super::*, reqwest::Url};
+use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Publish {
@@ -8,10 +8,9 @@ pub(crate) struct Publish {
   ordinal: Ordinal,
   #[clap(
     long,
-    default_value = "https://ordinals.com/",
-    help = "Publish rune to <PUBLISH_URL>."
+    help = "Publish rune to <PUBLISH_URL>. [mainnet default: https://ordinals.com, signet default: https://signet.ordinals.com]"
   )]
-  publish_url: Url,
+  publish_url: Option<Url>,
 }
 
 impl Publish {
@@ -26,7 +25,11 @@ impl Publish {
 
     let json = serde_json::to_string(&rune)?;
 
-    let url = self.publish_url.join("rune")?;
+    let url = self
+      .publish_url
+      .or_else(|| options.chain.default_publish_url())
+      .ok_or_else(|| anyhow!("No default <PUBLISH_URL> for {}", options.chain))?
+      .join("rune")?;
 
     let response = reqwest::blocking::Client::new()
       .put(url.clone())
