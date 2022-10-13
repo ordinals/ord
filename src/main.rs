@@ -31,7 +31,6 @@ use {
   chrono::{DateTime, NaiveDateTime, Utc},
   clap::Parser,
   derive_more::{Display, FromStr},
-  redb::{Database, ReadableTable, Table, TableDefinition, WriteTransaction},
   regex::Regex,
   serde::{Deserialize, Serialize},
   std::{
