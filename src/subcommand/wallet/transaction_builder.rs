@@ -157,7 +157,7 @@ mod tests {
       ),
     ];
 
-    let template = TransactionBuilder::new(
+    let tx_builder = TransactionBuilder::new(
       utxos.clone().into_iter().collect(),
       Ordinal(51 * COIN_VALUE),
       "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
@@ -169,11 +169,11 @@ mod tests {
 
     utxos.remove(1);
     assert_eq!(
-      template.utxos,
+      tx_builder.utxos,
       utxos.iter().map(|(outpoint, _ranges)| *outpoint).collect()
     );
     assert_eq!(
-      template.inputs,
+      tx_builder.inputs,
       [
         "2222222222222222222222222222222222222222222222222222222222222222:2"
           .parse()
@@ -181,7 +181,7 @@ mod tests {
       ]
     );
     assert_eq!(
-      template.outputs,
+      tx_builder.outputs,
       [(
         "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
           .parse()
@@ -192,7 +192,7 @@ mod tests {
   }
 
   #[test]
-  fn template_to_transaction() {
+  fn tx_builder_to_transaction() {
     let mut ranges = BTreeMap::new();
     ranges.insert(
       "1111111111111111111111111111111111111111111111111111111111111111:1"
@@ -213,7 +213,7 @@ mod tests {
       vec![(6000, 8000)],
     );
 
-    let template = TransactionBuilder {
+    let tx_builder = TransactionBuilder {
       ranges,
       utxos: BTreeSet::new(),
       ordinal: Ordinal(0),
@@ -254,7 +254,7 @@ mod tests {
     };
 
     assert_eq!(
-      template.build_transaction(),
+      tx_builder.build_transaction(),
       Transaction {
         version: 1,
         lock_time: PackedLockTime::ZERO,
