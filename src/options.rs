@@ -286,7 +286,17 @@ mod tests {
 
     let data_dir = arguments.options.data_dir().unwrap().display().to_string();
 
-    assert!(data_dir.ends_with("/ord/signet"));
+  #[test]
+  fn network_is_joined_with_data_dir() {
+    let data_dir =
+      Arguments::try_parse_from(&["ord", "--chain=signet", "--data-dir", "foo", "index"])
+        .unwrap()
+        .options
+        .data_dir()
+        .unwrap()
+        .display()
+        .to_string();
+    assert!(data_dir.ends_with("foo/signet"), "{data_dir}");
   }
 
   #[test]
