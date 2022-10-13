@@ -113,25 +113,27 @@ impl Template {
 
     assert!(self.inputs.contains(outpoint.0));
 
-    let mut offset = 0;
-    for input in &self.inputs {
-      for (start, end) in &self.ranges[input] {
-        if self.ordinal.0 >= *start && self.ordinal.0 < *end {
-          offset += self.ordinal.0 - start;
-          break;
-        } else {
-          offset += end - start;
-        }
+    let mut ordinal_offset = 0;
+    for (start, end) in self.inputs.iter().flat_map(|input| &self.ranges[input]) {
+      if self.ordinal.0 >= *start && self.ordinal.0 < *end {
+        ordinal_offset += self.ordinal.0 - start;
+        break;
+      } else {
+        ordinal_offset += end - start;
       }
     }
 
-    let mut output_offset = 0;
+    let mut output_end = 0;
+    let mut found = false;
     for output in &self.outputs {
-      output_offset += output.1.to_sat();
-      if output_offset > offset {
+      output_end += output.1.to_sat();
+      if output_end > ordinal_offset {
         assert_eq!(output.0, self.recipient);
+        found = true;
+        break;
       }
     }
+    assert!(found);
 
     Transaction {
       version: 1,
