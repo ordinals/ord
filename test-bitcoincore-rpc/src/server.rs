@@ -299,12 +299,4 @@ impl Api for Server {
         .collect(),
     )
   }
-
-  fn get_raw_change_address(&self) -> Result<bitcoin::Address, jsonrpc_core::Error> {
-    Ok(
-      "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-        .parse()
-        .unwrap(),
-    )
-  }
 }
