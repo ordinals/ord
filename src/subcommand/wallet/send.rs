@@ -1,30 +1,11 @@
 use {
-  super::*, bitcoin::util::amount::Amount, bitcoincore_rpc::json::CreateRawTransactionInput,
-  bitcoincore_rpc::Client, std::error::Error,
+  super::*,
+  bitcoin::blockdata::locktime::PackedLockTime,
+  bitcoin::blockdata::witness::Witness,
+  bitcoin::util::amount::Amount,
+  std::collections::{BTreeMap, BTreeSet},
+  std::error::Error,
 };
-
-#[derive(Debug, PartialEq)]
-enum SendError {
-  NotInWallet(Ordinal),
-  PaddingNotAvailable,
-}
-
-impl fmt::Display for SendError {
-  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    match self {
-      SendError::NotInWallet(ordinal) => write!(f, "Ordinal {ordinal} not in wallet"),
-      SendError::PaddingNotAvailable => write!(f, "Not enough utxos to pad transaction"),
-    }
-  }
-}
-
-impl Error for SendError {}
-
-#[derive(Debug, PartialEq)]
-struct Template {
-  inputs: Vec<OutPoint>,
-  outputs: Vec<(Address, Amount)>,
-}
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
@@ -39,317 +20,322 @@ impl Send {
     let index = Index::open(&options)?;
     index.index()?;
 
-    let utxos = match list_unspent(&options, &index) {
-      Ok(utxos) => utxos,
-      Err(err) => bail!(format!(
-        "Wallet contains no UTXOS, please import a non-empty wallet: {}",
-        err
-      )),
-    };
+    let utxos = list_unspent(&options, &index)?.into_iter().collect();
 
-    let change_addresses = [
-      self.get_change_address(&client)?,
-      self.get_change_address(&client)?,
-    ];
-
-    let template = build_tx(utxos, self.ordinal, self.address, change_addresses)?;
+    let unsigned_transaction = Template::new(utxos, self.ordinal, self.address)
+      .select_ordinal()?
+      .build_transaction();
 
     let signed_tx = client
-      .sign_raw_transaction_with_wallet(
-        client.create_raw_transaction_hex(
-          &template
-            .inputs
-            .iter()
-            .map(|outpoint| CreateRawTransactionInput {
-              txid: outpoint.txid,
-              vout: outpoint.vout,
-              sequence: None,
-            })
-            .collect::<Vec<CreateRawTransactionInput>>(),
-          &template
-            .outputs
-            .iter()
-            .map(|(address, amount)| (address.to_string(), *amount))
-            .collect(),
-          None,
-          None,
-        )?,
-        None,
-        None,
-      )?
+      .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
       .hex;
+
     let txid = client.send_raw_transaction(&signed_tx)?;
 
     println!("{txid}");
     Ok(())
   }
+}
 
-  fn get_change_address(&self, client: &Client) -> Result<Address> {
-    match client.call("getrawchangeaddress", &[]) {
-      Ok(address) => Ok(address),
-      Err(err) => bail!(format!(
-        "Could not get change addresses from wallet: {}",
-        err
-      )),
+#[derive(Debug, PartialEq)]
+enum SendError {
+  NotInWallet(Ordinal),
+}
+
+impl fmt::Display for SendError {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    match self {
+      SendError::NotInWallet(ordinal) => write!(f, "Ordinal {ordinal} not in wallet"),
     }
   }
 }
 
-fn build_tx(
-  utxos: Vec<(OutPoint, Vec<(u64, u64)>)>,
+impl Error for SendError {}
+
+#[derive(Debug, PartialEq)]
+struct Template {
+  utxos: BTreeSet<OutPoint>,
+  ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
   ordinal: Ordinal,
-  recipient_address: Address,
-  change_addresses: [Address; 2],
-) -> Result<Template, SendError> {
-  let dust_limit = Amount::from_sat(500);
-  let fee = Amount::from_sat(1000);
-  let mut inputs: Vec<OutPoint> = Vec::new();
-  let mut inputs_amount = Amount::from_sat(0);
-  let mut outputs: Vec<(Address, Amount)> = Vec::new();
-  let mut unused_inputs: Vec<(OutPoint, Amount)> = Vec::new();
-  let mut satpoint = SatPoint {
-    outpoint: OutPoint::null(),
-    offset: 0,
-  };
+  recipient: Address,
+  inputs: Vec<OutPoint>,
+  outputs: Vec<(Address, Amount)>,
+}
 
-  for (outpoint, range) in utxos.iter() {
+impl Template {
+  fn new(
+    ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
+    ordinal: Ordinal,
+    recipient: Address,
+  ) -> Self {
+    Self {
+      utxos: ranges.keys().cloned().collect(),
+      ranges,
+      ordinal,
+      recipient,
+      inputs: Vec::new(),
+      outputs: Vec::new(),
+    }
+  }
+
+  fn select_ordinal(mut self) -> Result<Self, SendError> {
+    let (ordinal_outpoint, ranges) = self
+      .ranges
+      .iter()
+      .find(|(_outpoint, ranges)| {
+        ranges
+          .iter()
+          .any(|(start, end)| self.ordinal.0 < *end && self.ordinal.0 >= *start)
+      })
+      .map(|(outpoint, ranges)| (*outpoint, ranges.clone()))
+      .ok_or(SendError::NotInWallet(self.ordinal))?;
+
+    self.utxos.remove(&ordinal_outpoint);
+    self.inputs.push(ordinal_outpoint);
+    self.outputs.push((
+      self.recipient.clone(),
+      Amount::from_sat(ranges.iter().map(|(start, end)| end - start).sum()),
+    ));
+
+    Ok(self)
+  }
+
+  fn build_transaction(self) -> Transaction {
+    let outpoint = self
+      .ranges
+      .iter()
+      .find(|(_outpoint, ranges)| {
+        ranges
+          .iter()
+          .any(|(start, end)| self.ordinal.0 >= *start && self.ordinal.0 < *end)
+      })
+      .expect("Could not find ordinal in utxo ranges");
+
+    assert!(self.inputs.contains(outpoint.0));
+
     let mut offset = 0;
-    let mut outpoint_contains_ordinal = false;
-    for (start, end) in range {
-      if ordinal.0 < *end && ordinal.0 >= *start {
-        outpoint_contains_ordinal = true;
-        satpoint.outpoint = *outpoint;
-        satpoint.offset = offset + (ordinal.0 - start);
+    for input in &self.inputs {
+      for (start, end) in &self.ranges[input] {
+        if self.ordinal.0 >= *start && self.ordinal.0 < *end {
+          offset += end - self.ordinal.0;
+          break;
+        } else {
+          offset += end - start;
+        }
       }
-      offset += end - start;
     }
-    if outpoint_contains_ordinal {
-      inputs.push(*outpoint);
-      inputs_amount += Amount::from_sat(offset);
-    } else {
-      unused_inputs.push((*outpoint, Amount::from_sat(offset)));
+
+    let mut output_offset = 0;
+    for output in &self.outputs {
+      output_offset += output.1.to_sat();
+      if output_offset > offset {
+        assert_eq!(output.0, self.recipient);
+      }
     }
-  }
 
-  if inputs.is_empty() {
-    return Err(SendError::NotInWallet(ordinal));
-  }
-
-  let mut unused_inputs = unused_inputs.iter();
-  loop {
-    // utxo enough space to pay fee and transfer ordinal (dust_limit)
-    if (Amount::from_sat(satpoint.offset) + dust_limit) + fee <= inputs_amount {
-      let mut outs = match satpoint.offset {
-        // ordinal at beginning of utxo
-        0 => vec![
-          (recipient_address, dust_limit),
-          (
-            change_addresses[0].clone(),
-            inputs_amount - (Amount::from_sat(satpoint.offset) + dust_limit) - fee,
-          ),
-        ],
-
-        // ignoring case where the amount above the ordinal is less than dust_limit
-
-        // ordinal enough space above and below
-        _ => vec![
-          (change_addresses[0].clone(), Amount::from_sat(satpoint.offset)),
-          (recipient_address, dust_limit),
-          (
-            change_addresses[1].clone(),
-            inputs_amount - (Amount::from_sat(satpoint.offset) + dust_limit) - fee,
-          ),
-        ],
-      };
-      outputs.append(&mut outs);
-      break;
-
-    // ordinal at end of utxo without space to pay fee
-    } else if (Amount::from_sat(satpoint.offset) + dust_limit) + fee > inputs_amount {
-      // splice in another input
-      let (input, amount) = match unused_inputs.next() {
-        Some((input, amount)) => (input, amount),
-        None => return Err(SendError::PaddingNotAvailable),
-      };
-      inputs.push(*input);
-      inputs_amount += *amount;
+    Transaction {
+      version: 1,
+      lock_time: PackedLockTime::ZERO,
+      input: self
+        .inputs
+        .into_iter()
+        .map(|outpoint| TxIn {
+          previous_output: outpoint,
+          script_sig: Script::new(),
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          witness: Witness::new(),
+        })
+        .collect(),
+      output: self
+        .outputs
+        .iter()
+        .map(|(address, amount)| TxOut {
+          value: amount.to_sat(),
+          script_pubkey: address.script_pubkey(),
+        })
+        .collect(),
     }
   }
-
-  Ok(Template { inputs, outputs })
 }
 
 #[cfg(test)]
 mod tests {
   use super::*;
 
-  const FEE: Amount = Amount::from_sat(1000);
-  const DUST_LIMIT: Amount = Amount::from_sat(500);
-
   #[test]
-  fn build_tx_ordinal_at_beginning_of_utxo() {
-    let receive_addr = "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
-      .parse::<Address>()
-      .unwrap();
-    let change_addr = [
-      "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-        .parse()
-        .unwrap(),
-      "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
-        .parse()
-        .unwrap(),
+  fn select_ordinal() {
+    let mut utxos = vec![
+      (
+        "1111111111111111111111111111111111111111111111111111111111111111:1"
+          .parse()
+          .unwrap(),
+        vec![(10000, 15000)],
+      ),
+      (
+        "2222222222222222222222222222222222222222222222222222222222222222:2"
+          .parse()
+          .unwrap(),
+        vec![(51 * COIN_VALUE, 100 * COIN_VALUE)],
+      ),
+      (
+        "3333333333333333333333333333333333333333333333333333333333333333:3"
+          .parse()
+          .unwrap(),
+        vec![(6000, 8000)],
+      ),
     ];
 
-    let utxos = vec![(OutPoint::null(), vec![(51 * COIN_VALUE, 100 * COIN_VALUE)])];
+    let template = Template::new(
+      utxos.clone().into_iter().collect(),
+      Ordinal(51 * COIN_VALUE),
+      "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+        .parse()
+        .unwrap(),
+    )
+    .select_ordinal()
+    .unwrap();
+
+    utxos.remove(1);
     assert_eq!(
-      build_tx(
-        utxos,
-        Ordinal(51 * COIN_VALUE),
-        receive_addr.clone(),
-        change_addr.clone()
-      ),
-      Ok(Template {
-        inputs: vec![OutPoint::null()],
-        outputs: vec![
-          (receive_addr, DUST_LIMIT),
-          (
-            change_addr[0].clone(),
-            Amount::from_sat(100 * COIN_VALUE - 51 * COIN_VALUE) - DUST_LIMIT - FEE
-          )
-        ],
-      })
+      template.utxos,
+      utxos.iter().map(|(outpoint, _ranges)| *outpoint).collect()
+    );
+    assert_eq!(
+      template.inputs,
+      [
+        "2222222222222222222222222222222222222222222222222222222222222222:2"
+          .parse()
+          .unwrap()
+      ]
+    );
+    assert_eq!(
+      template.outputs,
+      [(
+        "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+          .parse()
+          .unwrap(),
+        Amount::from_sat((100 - 51) * COIN_VALUE)
+      )]
     )
   }
 
   #[test]
-  fn build_tx_ordinal_in_middle_of_utxo() {
-    let receive_addr = "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
-      .parse::<Address>()
-      .unwrap();
-    let change_addr = [
-      "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+  fn template_to_transaction() {
+    let mut ranges = BTreeMap::new();
+    ranges.insert(
+      "1111111111111111111111111111111111111111111111111111111111111111:1"
         .parse()
         .unwrap(),
-      "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+      vec![(0, 5000)],
+    );
+    ranges.insert(
+      "2222222222222222222222222222222222222222222222222222222222222222:2"
         .parse()
         .unwrap(),
-    ];
+      vec![(10000, 15000)],
+    );
+    ranges.insert(
+      "3333333333333333333333333333333333333333333333333333333333333333:3"
+        .parse()
+        .unwrap(),
+      vec![(6000, 8000)],
+    );
 
-    let utxos = vec![
-      (OutPoint::null(), vec![(0, 5000)]),
-      (
-        "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:5"
-          .parse::<OutPoint>()
+    let template = Template {
+      ranges,
+      utxos: BTreeSet::new(),
+      ordinal: Ordinal(0),
+      recipient: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+        .parse()
+        .unwrap(),
+      inputs: vec![
+        "1111111111111111111111111111111111111111111111111111111111111111:1"
+          .parse()
           .unwrap(),
-        vec![(10000, 15000)],
-      ),
-    ];
-    assert_eq!(
-      build_tx(
-        utxos,
-        Ordinal(2500),
-        receive_addr.clone(),
-        change_addr.clone()
-      ),
-      Ok(Template {
-        inputs: vec![OutPoint::null(),],
-        outputs: vec![
-          (change_addr[0].clone(), Amount::from_sat(2500)),
-          (receive_addr, DUST_LIMIT),
-          (change_addr[1].clone(), Amount::from_sat(5000) - (Amount::from_sat(2500) + DUST_LIMIT) - FEE),
-        ],
-      })
-    )
-  }
-
-  #[test]
-  fn build_tx_ordinal_at_end_of_utxo() {
-    let receive_addr = "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
-      .parse::<Address>()
-      .unwrap();
-    let change_addr = [
-      "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-        .parse()
-        .unwrap(),
-      "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
-        .parse()
-        .unwrap(),
-    ];
-
-    let utxos = vec![
-      (OutPoint::null(), vec![(0, 5000)]),
-      (
-        "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:5"
-          .parse::<OutPoint>()
+        "2222222222222222222222222222222222222222222222222222222222222222:2"
+          .parse()
           .unwrap(),
-        vec![(10000, 15000)],
-      ),
-    ];
-    assert_eq!(
-      build_tx(
-        utxos,
-        Ordinal(4950),
-        receive_addr.clone(),
-        change_addr.clone()
-      ),
-      Ok(Template {
-        inputs: vec![
-          OutPoint::null(),
-          "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:5"
+        "3333333333333333333333333333333333333333333333333333333333333333:3"
+          .parse()
+          .unwrap(),
+      ],
+      outputs: vec![
+        (
+          "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
             .parse()
-            .unwrap()
-        ],
-        outputs: vec![
-          (change_addr[0].clone(), Amount::from_sat(4950)),
-          (receive_addr, DUST_LIMIT),
-          (
-            change_addr[1].clone(),
-            Amount::from_sat(15000 - 10000) - (Amount::from_sat(4950) + DUST_LIMIT - Amount::from_sat(5000)) - FEE
-          ),
-        ],
-      })
-    )
-  }
+            .unwrap(),
+          Amount::from_sat(5000),
+        ),
+        (
+          "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+            .parse()
+            .unwrap(),
+          Amount::from_sat(5000),
+        ),
+        (
+          "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+            .parse()
+            .unwrap(),
+          Amount::from_sat(2000),
+        ),
+      ],
+    };
 
-  #[test]
-  fn build_tx_ordinal_not_in_wallet() {
-    let receive_addr = "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
-      .parse::<Address>()
-      .unwrap();
-    let change_addr = [
-      "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-        .parse()
-        .unwrap(),
-      "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
-        .parse()
-        .unwrap(),
-    ];
-
-    let utxos = vec![(OutPoint::null(), vec![(0, 5000)])];
     assert_eq!(
-      build_tx(utxos, Ordinal(5000), receive_addr, change_addr),
-      Err(SendError::NotInWallet(Ordinal(5000)))
-    )
-  }
-
-  #[test]
-  fn build_tx_not_enough_utxos() {
-    let receive_addr = "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
-      .parse::<Address>()
-      .unwrap();
-    let change_addr = [
-      "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-        .parse()
-        .unwrap(),
-      "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
-        .parse()
-        .unwrap(),
-    ];
-
-    let utxos = vec![(OutPoint::null(), vec![(0, 5000)])];
-    assert_eq!(
-      build_tx(utxos, Ordinal(4500), receive_addr, change_addr),
-      Err(SendError::PaddingNotAvailable)
+      template.build_transaction(),
+      Transaction {
+        version: 1,
+        lock_time: PackedLockTime::ZERO,
+        input: vec![
+          TxIn {
+            previous_output: "1111111111111111111111111111111111111111111111111111111111111111:1"
+              .parse()
+              .unwrap(),
+            script_sig: Script::new(),
+            sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+            witness: Witness::new(),
+          },
+          TxIn {
+            previous_output: "2222222222222222222222222222222222222222222222222222222222222222:2"
+              .parse()
+              .unwrap(),
+            script_sig: Script::new(),
+            sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+            witness: Witness::new(),
+          },
+          TxIn {
+            previous_output: "3333333333333333333333333333333333333333333333333333333333333333:3"
+              .parse()
+              .unwrap(),
+            script_sig: Script::new(),
+            sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+            witness: Witness::new(),
+          }
+        ],
+        output: vec![
+          TxOut {
+            value: 5000,
+            script_pubkey: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+              .parse::<Address>()
+              .unwrap()
+              .script_pubkey(),
+          },
+          TxOut {
+            value: 5000,
+            script_pubkey: "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+              .parse::<Address>()
+              .unwrap()
+              .script_pubkey(),
+          },
+          TxOut {
+            value: 2000,
+            script_pubkey: "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+              .parse::<Address>()
+              .unwrap()
+              .script_pubkey(),
+          }
+        ],
+      }
     )
   }
 }
