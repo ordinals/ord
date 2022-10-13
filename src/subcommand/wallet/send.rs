@@ -216,7 +216,7 @@ mod tests {
         "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
           .parse()
           .unwrap(),
-        Amount::from_sat((100 - 51) * COIN_VALUE)
+        Amount::from_sat(100 * COIN_VALUE - 51 * COIN_VALUE)
       )]
     )
   }
