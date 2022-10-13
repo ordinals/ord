@@ -1,7 +1,10 @@
 use super::*;
 
 pub(crate) fn run(options: Options) -> Result {
-  let utxos = list_unspent(options)?;
+  let index = Index::open(&options)?;
+  index.index()?;
+
+  let utxos = list_unspent(&options, &index)?;
 
   for (output, ordinal, offset, rarity) in identify(utxos) {
     println!("{output}\t{ordinal}\t{offset}\t{rarity}");
