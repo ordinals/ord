@@ -111,7 +111,13 @@ impl Index {
     let client = Client::new(&rpc_url, Auth::CookieFile(cookie_file))
       .context("Failed to connect to RPC URL")?;
 
-    let database_path = options.data_dir()?.join("index.redb");
+    let data_dir = options.data_dir()?;
+
+    if let Err(err) = fs::create_dir_all(&data_dir) {
+      bail!("Failed to create data dir `{}`: {err}", data_dir.display());
+    }
+
+    let database_path = data_dir.join("index.redb");
 
     let database = match unsafe { redb::Database::open(&database_path) } {
       Ok(database) => database,
