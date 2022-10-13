@@ -221,9 +221,8 @@ mod tests {
 
   #[test]
   fn mainnet_cookie_file_path() {
-    let arguments = Arguments::try_parse_from(&["ord", "index"]).unwrap();
-
-    let cookie_file = arguments
+    let cookie_file = Arguments::try_parse_from(&["ord", "index"])
+      .unwrap()
       .options
       .cookie_file()
       .unwrap()
@@ -273,18 +272,27 @@ mod tests {
 
   #[test]
   fn mainnet_data_dir() {
-    let arguments = Arguments::try_parse_from(&["ord", "index"]).unwrap();
-
-    let data_dir = arguments.options.data_dir().unwrap().display().to_string();
-
-    assert!(data_dir.ends_with("/ord"));
+    let data_dir = Arguments::try_parse_from(&["ord", "index"])
+      .unwrap()
+      .options
+      .data_dir()
+      .unwrap()
+      .display()
+      .to_string();
+    assert!(data_dir.ends_with("/ord"), "{data_dir}");
   }
 
   #[test]
   fn othernet_data_dir() {
-    let arguments = Arguments::try_parse_from(&["ord", "--chain=signet", "index"]).unwrap();
-
-    let data_dir = arguments.options.data_dir().unwrap().display().to_string();
+    let data_dir = Arguments::try_parse_from(&["ord", "--chain=signet", "index"])
+      .unwrap()
+      .options
+      .data_dir()
+      .unwrap()
+      .display()
+      .to_string();
+    assert!(data_dir.ends_with("/ord/signet"), "{data_dir}");
+  }
 
   #[test]
   fn network_is_joined_with_data_dir() {
