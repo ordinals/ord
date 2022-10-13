@@ -33,7 +33,17 @@ pub(crate) struct TransactionBuilder {
 }
 
 impl TransactionBuilder {
-  pub(crate) fn new(
+  pub(crate) fn build_transaction(
+    ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
+    ordinal: Ordinal,
+    recipient: Address,
+  ) -> Result<Transaction, SendError> {
+    Self::new(ranges, ordinal, recipient)
+      .select_ordinal()?
+      .build()
+  }
+
+  fn new(
     ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
     ordinal: Ordinal,
     recipient: Address,
@@ -48,7 +58,7 @@ impl TransactionBuilder {
     }
   }
 
-  pub(crate) fn select_ordinal(mut self) -> Result<Self, SendError> {
+  fn select_ordinal(mut self) -> Result<Self, SendError> {
     let (ordinal_outpoint, ranges) = self
       .ranges
       .iter()
@@ -70,7 +80,7 @@ impl TransactionBuilder {
     Ok(self)
   }
 
-  pub(crate) fn build_transaction(self) -> Transaction {
+  fn build(self) -> Result<Transaction, SendError> {
     let outpoint = self
       .ranges
       .iter()
@@ -105,7 +115,7 @@ impl TransactionBuilder {
     }
     assert!(found);
 
-    Transaction {
+    Ok(Transaction {
       version: 1,
       lock_time: PackedLockTime::ZERO,
       input: self
@@ -126,7 +136,7 @@ impl TransactionBuilder {
           script_pubkey: address.script_pubkey(),
         })
         .collect(),
-    }
+    })
   }
 }
 
@@ -254,7 +264,7 @@ mod tests {
     };
 
     assert_eq!(
-      tx_builder.build_transaction(),
+      tx_builder.build().unwrap(),
       Transaction {
         version: 1,
         lock_time: PackedLockTime::ZERO,

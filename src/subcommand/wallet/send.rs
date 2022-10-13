@@ -15,9 +15,8 @@ impl Send {
 
     let utxos = list_unspent(&options, &index)?.into_iter().collect();
 
-    let unsigned_transaction = TransactionBuilder::new(utxos, self.ordinal, self.address)
-      .select_ordinal()?
-      .build_transaction();
+    let unsigned_transaction =
+      TransactionBuilder::build_transaction(utxos, self.ordinal, self.address)?;
 
     let signed_tx = client
       .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
