@@ -11,6 +11,10 @@
   <dt>offset</dt><dd>{{ self.ordinal.third() }}</dd>
   <dt>rarity</dt><dd><span class={{self.ordinal.rarity()}}>{{ self.ordinal.rarity() }}</span></dd>
   <dt>time</dt><dd>{{ self.blocktime }}</dd>
+  <dt>inscriptions</dt>
+%% for hash in &self.inscriptions {
+    <dd><a href=/rune/{{hash}} class=monospace>{{hash}}</a></dd>
+%% }
 </dl>
 %% if self.ordinal.n() > 0 {
 <a href=/ordinal/{{self.ordinal.n() - 1}}>prev</a>

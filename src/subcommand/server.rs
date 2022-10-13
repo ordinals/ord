@@ -148,8 +148,8 @@ impl Server {
         .route("/output/:output", get(Self::output))
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
-        .route("/rune/:hash", get(Self::rune_get))
         .route("/rune", put(Self::rune_put))
+        .route("/rune/:hash", get(Self::rune_get))
         .route("/search", get(Self::search_by_query))
         .route("/search/:query", get(Self::search_by_path))
         .route("/static/*path", get(Self::static_asset))
@@ -213,11 +213,20 @@ impl Server {
   }
 
   fn acme_cache(acme_cache: Option<&PathBuf>, options: &Options) -> Result<PathBuf> {
-    if let Some(acme_cache) = acme_cache {
-      Ok(acme_cache.clone())
+    let acme_cache = if let Some(acme_cache) = acme_cache {
+      acme_cache.clone()
     } else {
-      Ok(options.data_dir()?.join("acme-cache"))
+      options.data_dir()?.join("acme-cache")
+    };
+
+    if let Err(err) = fs::create_dir_all(&acme_cache) {
+      bail!(
+        "Failed to create acme cache dir `{}`: {err}",
+        acme_cache.display()
+      );
     }
+
+    Ok(acme_cache)
   }
 
   fn acme_domains(acme_domain: &Vec<String>) -> Result<Vec<String>> {
@@ -293,6 +302,11 @@ impl Server {
         ordinal,
         blocktime: index.blocktime(ordinal.height()).map_err(|err| {
           ServerError::Internal(anyhow!("Failed to retrieve blocktime from index: {err}"))
+        })?,
+        inscriptions: index.inscriptions(ordinal).map_err(|err| {
+          ServerError::Internal(anyhow!(
+            "Failed to retrieve runes for ordinal {ordinal}: {err}"
+          ))
         })?,
       }
       .page(),
@@ -679,7 +693,7 @@ mod tests {
     fn assert_response(&self, path: &str, status: StatusCode, expected_response: &str) {
       let response = self.get(path);
       assert_eq!(response.status(), status, "{}", response.text().unwrap());
-      assert_eq!(response.text().unwrap(), expected_response);
+      pretty_assert_eq!(response.text().unwrap(), expected_response);
     }
 
     fn assert_response_regex(&self, path: &str, status: StatusCode, regex: &str) {
@@ -1352,6 +1366,70 @@ mod tests {
       r#"{"name": "foo", "chain": "mainnet", "ordinal": 0}"#,
       StatusCode::UNPROCESSABLE_ENTITY,
       r#"This ord instance only accepts regtest runes for publication"#,
+    );
+  }
+
+  #[test]
+  fn runes_appear_on_inscribed_ordinal() {
+    let test_server = TestServer::new();
+
+    test_server.assert_put(
+      "/rune",
+      "application/json",
+      r#"{"name": "foo", "chain": "regtest", "ordinal": 0}"#,
+      StatusCode::CREATED,
+      "8ca6ee12cb891766de56e5698a73cd6546f27a88bd27c8b8d914bc4162f9e4b5",
+    );
+
+    test_server.assert_put(
+      "/rune",
+      "application/json",
+      r#"{"name": "bar", "chain": "regtest", "ordinal": 0}"#,
+      StatusCode::CREATED,
+      "72ed622edc0e3753891809c931075f0da2c39ba491d2d715140208f930411339",
+    );
+
+    test_server.assert_response_regex(
+      "/ordinal/0",
+      StatusCode::OK,
+      ".*<dt>inscriptions</dt>
+    <dd><a href=/rune/72ed622edc0e3753891809c931075f0da2c39ba491d2d715140208f930411339 class=monospace>72ed622edc0e3753891809c931075f0da2c39ba491d2d715140208f930411339</a></dd>
+    <dd><a href=/rune/8ca6ee12cb891766de56e5698a73cd6546f27a88bd27c8b8d914bc4162f9e4b5 class=monospace>8ca6ee12cb891766de56e5698a73cd6546f27a88bd27c8b8d914bc4162f9e4b5</a></dd>.*",
+    );
+  }
+
+  #[test]
+  fn commit_are_tracked() {
+    let server = TestServer::new();
+
+    assert_eq!(
+      server
+        .index
+        .statistic(crate::index::Statistic::Commits)
+        .unwrap(),
+      1
+    );
+
+    server.index.index().unwrap();
+
+    assert_eq!(
+      server
+        .index
+        .statistic(crate::index::Statistic::Commits)
+        .unwrap(),
+      1
+    );
+
+    server.bitcoin_rpc_server.mine_blocks(1);
+
+    server.index.index().unwrap();
+
+    assert_eq!(
+      server
+        .index
+        .statistic(crate::index::Statistic::Commits)
+        .unwrap(),
+      2
     );
   }
 }

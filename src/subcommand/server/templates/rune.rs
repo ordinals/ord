@@ -36,7 +36,7 @@ mod tests {
           <dt>hash</dt><dd>0000000000000000000000000000000000000000000000000000000000000000</dd>
           <dt>name</dt><dd>foo</dd>
           <dt>chain</dt><dd>mainnet</dd>
-          <dt>ordinal</dt><dd>0</dd>
+          <dt>ordinal</dt><dd><a href=/ordinal/0>0</a></dd>
         </dl>
       "
       .unindent()

@@ -31,8 +31,8 @@ use {
   chrono::{DateTime, NaiveDateTime, Utc},
   clap::Parser,
   derive_more::{Display, FromStr},
-  redb::{Database, ReadableTable, Table, TableDefinition, WriteTransaction},
   regex::Regex,
+  reqwest::Url,
   serde::{Deserialize, Serialize},
   std::{
     collections::VecDeque,

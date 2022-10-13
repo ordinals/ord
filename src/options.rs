@@ -62,21 +62,14 @@ impl Options {
   }
 
   pub(crate) fn data_dir(&self) -> Result<PathBuf> {
-    if let Some(data_dir) = &self.data_dir {
-      return Ok(data_dir.clone());
-    }
+    let base = match &self.data_dir {
+      Some(base) => base.clone(),
+      None => dirs::data_dir()
+        .ok_or_else(|| anyhow!("Failed to retrieve data dir"))?
+        .join("ord"),
+    };
 
-    let path = dirs::data_dir()
-      .ok_or_else(|| anyhow!("Failed to retrieve data dir"))?
-      .join("ord");
-
-    let path = self.chain.join_with_data_dir(&path);
-
-    if let Err(err) = fs::create_dir_all(&path) {
-      bail!("Failed to create data dir `{}`: {err}", path.display());
-    }
-
-    Ok(path)
+    Ok(self.chain.join_with_data_dir(&base))
   }
 
   pub(crate) fn bitcoin_rpc_client(&self) -> Result<Client> {
@@ -228,9 +221,8 @@ mod tests {
 
   #[test]
   fn mainnet_cookie_file_path() {
-    let arguments = Arguments::try_parse_from(&["ord", "index"]).unwrap();
-
-    let cookie_file = arguments
+    let cookie_file = Arguments::try_parse_from(&["ord", "index"])
+      .unwrap()
       .options
       .cookie_file()
       .unwrap()
@@ -280,20 +272,39 @@ mod tests {
 
   #[test]
   fn mainnet_data_dir() {
-    let arguments = Arguments::try_parse_from(&["ord", "index"]).unwrap();
-
-    let data_dir = arguments.options.data_dir().unwrap().display().to_string();
-
-    assert!(data_dir.ends_with("/ord"));
+    let data_dir = Arguments::try_parse_from(&["ord", "index"])
+      .unwrap()
+      .options
+      .data_dir()
+      .unwrap()
+      .display()
+      .to_string();
+    assert!(data_dir.ends_with("/ord"), "{data_dir}");
   }
 
   #[test]
   fn othernet_data_dir() {
-    let arguments = Arguments::try_parse_from(&["ord", "--chain=signet", "index"]).unwrap();
+    let data_dir = Arguments::try_parse_from(&["ord", "--chain=signet", "index"])
+      .unwrap()
+      .options
+      .data_dir()
+      .unwrap()
+      .display()
+      .to_string();
+    assert!(data_dir.ends_with("/ord/signet"), "{data_dir}");
+  }
 
-    let data_dir = arguments.options.data_dir().unwrap().display().to_string();
-
-    assert!(data_dir.ends_with("/ord/signet"));
+  #[test]
+  fn network_is_joined_with_data_dir() {
+    let data_dir =
+      Arguments::try_parse_from(&["ord", "--chain=signet", "--data-dir", "foo", "index"])
+        .unwrap()
+        .options
+        .data_dir()
+        .unwrap()
+        .display()
+        .to_string();
+    assert!(data_dir.ends_with("foo/signet"), "{data_dir}");
   }
 
   #[test]
