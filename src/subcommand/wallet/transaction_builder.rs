@@ -165,12 +165,12 @@ impl TransactionBuilder {
     for (start, end) in self.inputs.iter().flat_map(|input| &self.ranges[input]) {
       if self.ordinal.0 >= *start && self.ordinal.0 < *end {
         ordinal_offset += self.ordinal.0 - start;
-        break;
+        return ordinal_offset;
       } else {
         ordinal_offset += end - start;
       }
     }
-    ordinal_offset
+    panic!("Could not find ordinal in inputs");
   }
 }
 
