@@ -43,7 +43,7 @@ impl TransactionBuilder {
   ) -> Result<Transaction> {
     Self::new(ranges, ordinal, recipient)
       .select_ordinal()?
-      .pay_fee()?
+      .deduct_fee()?
       .build()
   }
 
@@ -84,7 +84,7 @@ impl TransactionBuilder {
     Ok(self)
   }
 
-  fn pay_fee(mut self) -> Result<Self> {
+  fn deduct_fee(mut self) -> Result<Self> {
     let ordinal_offset = self.calculate_ordinal_offset();
 
     let tx = self.build()?;
@@ -96,9 +96,12 @@ impl TransactionBuilder {
       .map(|(_address, amount)| *amount)
       .sum::<Amount>();
 
-    if Amount::from_sat(ordinal_offset) < output_amount - fee {
-      let (_address, amount) = self.outputs.last_mut().unwrap();
-      *amount = output_amount - fee;
+    if output_amount - fee > Amount::from_sat(ordinal_offset) {
+      let (_address, amount) = self
+        .outputs
+        .last_mut()
+        .expect("No output to deduct fee from");
+      *amount -= fee;
     } else {
       return Err(Error::ConsumedByFee(self.ordinal));
     }
