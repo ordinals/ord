@@ -370,7 +370,6 @@ impl Index {
         tx,
         &mut ordinal_to_satpoint,
         &mut outpoint_to_ordinal_ranges,
-        &mut txid_to_prime_ordinals,
         &mut coinbase_inputs,
         &mut ordinal_ranges_written,
         &mut outputs_in_block,
