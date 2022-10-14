@@ -87,8 +87,8 @@ impl TransactionBuilder {
   fn pay_fee(mut self) -> Result<Self> {
     let ordinal_offset = self.calculate_ordinal_offset();
 
-    let tx = self.build()?; 
-    let fee = Amount::from_sat((2 * tx.vsize()).try_into().unwrap()); 
+    let tx = self.build()?;
+    let fee = Amount::from_sat((2 * tx.vsize()).try_into().unwrap());
 
     let output_amount = self
       .outputs
