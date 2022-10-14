@@ -356,7 +356,7 @@ mod tests {
   }
 
   #[test]
-  fn pay_fee() {
+  fn deduct_fee() {
     let utxos = vec![(
       "1111111111111111111111111111111111111111111111111111111111111111:1"
         .parse()
@@ -395,7 +395,7 @@ mod tests {
   }
 
   #[test]
-  fn pay_fee_consumes_ordinal() {
+  fn deduct_fee_consumes_ordinal() {
     let utxos = vec![(
       "1111111111111111111111111111111111111111111111111111111111111111:1"
         .parse()
