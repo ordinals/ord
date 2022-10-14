@@ -86,16 +86,7 @@ impl TransactionBuilder {
   }
 
   fn pay_fee(mut self, fee: Amount) -> Result<Self> {
-    // make this a helper function?
-    let mut ordinal_offset = 0;
-    for (start, end) in self.inputs.iter().flat_map(|input| &self.ranges[input]) {
-      if self.ordinal.0 >= *start && self.ordinal.0 < *end {
-        ordinal_offset += self.ordinal.0 - start;
-        break;
-      } else {
-        ordinal_offset += end - start;
-      }
-    }
+    let ordinal_offset = self.calculate_ordinal_offset();
 
     let output_amount = self
       .outputs
@@ -126,15 +117,7 @@ impl TransactionBuilder {
 
     assert!(self.inputs.contains(outpoint.0));
 
-    let mut ordinal_offset = 0;
-    for (start, end) in self.inputs.iter().flat_map(|input| &self.ranges[input]) {
-      if self.ordinal.0 >= *start && self.ordinal.0 < *end {
-        ordinal_offset += self.ordinal.0 - start;
-        break;
-      } else {
-        ordinal_offset += end - start;
-      }
-    }
+    let ordinal_offset = self.calculate_ordinal_offset();
 
     let mut output_end = 0;
     let mut found = false;
@@ -170,6 +153,19 @@ impl TransactionBuilder {
         })
         .collect(),
     })
+  }
+
+  fn calculate_ordinal_offset(&self) -> u64 {
+    let mut ordinal_offset = 0;
+    for (start, end) in self.inputs.iter().flat_map(|input| &self.ranges[input]) {
+      if self.ordinal.0 >= *start && self.ordinal.0 < *end {
+        ordinal_offset += self.ordinal.0 - start;
+        break;
+      } else {
+        ordinal_offset += end - start;
+      }
+    }
+    ordinal_offset
   }
 }
 
