@@ -9,12 +9,14 @@ use {
 #[derive(Debug, PartialEq)]
 pub(crate) enum Error {
   NotInWallet(Ordinal),
+  ConsumedByFee(Ordinal),
 }
 
 impl fmt::Display for Error {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self {
       Error::NotInWallet(ordinal) => write!(f, "Ordinal {ordinal} not in wallet"),
+      Error::ConsumedByFee(ordinal) => write!(f, "Ordinal {ordinal} would be consumed by fee"),
     }
   }
 }
@@ -41,6 +43,7 @@ impl TransactionBuilder {
   ) -> Result<Transaction> {
     Self::new(ranges, ordinal, recipient)
       .select_ordinal()?
+      .deduct_fee()?
       .build()
   }
 
@@ -81,7 +84,32 @@ impl TransactionBuilder {
     Ok(self)
   }
 
-  fn build(self) -> Result<Transaction> {
+  fn deduct_fee(mut self) -> Result<Self> {
+    let ordinal_offset = self.calculate_ordinal_offset();
+
+    let tx = self.build()?;
+    let fee = Amount::from_sat((2 * tx.vsize()).try_into().unwrap());
+
+    let output_amount = self
+      .outputs
+      .iter()
+      .map(|(_address, amount)| *amount)
+      .sum::<Amount>();
+
+    if output_amount - fee > Amount::from_sat(ordinal_offset) {
+      let (_address, amount) = self
+        .outputs
+        .last_mut()
+        .expect("No output to deduct fee from");
+      *amount -= fee;
+    } else {
+      return Err(Error::ConsumedByFee(self.ordinal));
+    }
+
+    Ok(self)
+  }
+
+  fn build(&self) -> Result<Transaction> {
     let outpoint = self
       .ranges
       .iter()
@@ -94,15 +122,7 @@ impl TransactionBuilder {
 
     assert!(self.inputs.contains(outpoint.0));
 
-    let mut ordinal_offset = 0;
-    for (start, end) in self.inputs.iter().flat_map(|input| &self.ranges[input]) {
-      if self.ordinal.0 >= *start && self.ordinal.0 < *end {
-        ordinal_offset += self.ordinal.0 - start;
-        break;
-      } else {
-        ordinal_offset += end - start;
-      }
-    }
+    let ordinal_offset = self.calculate_ordinal_offset();
 
     let mut output_end = 0;
     let mut found = false;
@@ -121,9 +141,9 @@ impl TransactionBuilder {
       lock_time: PackedLockTime::ZERO,
       input: self
         .inputs
-        .into_iter()
+        .iter()
         .map(|outpoint| TxIn {
-          previous_output: outpoint,
+          previous_output: *outpoint,
           script_sig: Script::new(),
           sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
           witness: Witness::new(),
@@ -139,11 +159,24 @@ impl TransactionBuilder {
         .collect(),
     })
   }
+
+  fn calculate_ordinal_offset(&self) -> u64 {
+    let mut ordinal_offset = 0;
+    for (start, end) in self.inputs.iter().flat_map(|input| &self.ranges[input]) {
+      if self.ordinal.0 >= *start && self.ordinal.0 < *end {
+        ordinal_offset += self.ordinal.0 - start;
+        return ordinal_offset;
+      } else {
+        ordinal_offset += end - start;
+      }
+    }
+    panic!("Could not find ordinal in inputs");
+  }
 }
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+  use {super::Error, super::*};
 
   #[test]
   fn select_ordinal() {
@@ -319,6 +352,66 @@ mod tests {
           }
         ],
       }
+    )
+  }
+
+  #[test]
+  fn deduct_fee() {
+    let utxos = vec![(
+      "1111111111111111111111111111111111111111111111111111111111111111:1"
+        .parse()
+        .unwrap(),
+      vec![(10000, 15000)],
+    )];
+
+    pretty_assert_eq!(
+      TransactionBuilder::build_transaction(
+        utxos.into_iter().collect(),
+        Ordinal(10000),
+        "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+          .parse()
+          .unwrap(),
+      ),
+      Ok(Transaction {
+        version: 1,
+        lock_time: PackedLockTime::ZERO,
+        input: vec![TxIn {
+          previous_output: "1111111111111111111111111111111111111111111111111111111111111111:1"
+            .parse()
+            .unwrap(),
+          script_sig: Script::new(),
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          witness: Witness::new(),
+        },],
+        output: vec![TxOut {
+          value: 4836,
+          script_pubkey: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+            .parse::<Address>()
+            .unwrap()
+            .script_pubkey(),
+        },],
+      })
+    )
+  }
+
+  #[test]
+  fn deduct_fee_consumes_ordinal() {
+    let utxos = vec![(
+      "1111111111111111111111111111111111111111111111111111111111111111:1"
+        .parse()
+        .unwrap(),
+      vec![(10000, 15000)],
+    )];
+
+    pretty_assert_eq!(
+      TransactionBuilder::build_transaction(
+        utxos.into_iter().collect(),
+        Ordinal(14900),
+        "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+          .parse()
+          .unwrap(),
+      ),
+      Err(Error::ConsumedByFee(Ordinal(14900)))
     )
   }
 }
