@@ -7,7 +7,7 @@ impl Rtx<'_> {
     Ok(
       self
         .0
-        .open_table(HEIGHT_TO_HASH)?
+        .open_table(HEIGHT_TO_BLOCK_HASH)?
         .range(0..)?
         .rev()
         .next()
