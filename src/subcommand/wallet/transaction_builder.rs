@@ -9,12 +9,14 @@ use {
 #[derive(Debug, PartialEq)]
 pub(crate) enum Error {
   NotInWallet(Ordinal),
+  ConsumedByFee(Ordinal),
 }
 
 impl fmt::Display for Error {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self {
       Error::NotInWallet(ordinal) => write!(f, "Ordinal {ordinal} not in wallet"),
+      Error::ConsumedByFee(ordinal) => write!(f, "Ordinal {ordinal} would be consumed by fee"),
     }
   }
 }
@@ -38,9 +40,11 @@ impl TransactionBuilder {
     ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
     ordinal: Ordinal,
     recipient: Address,
+    fee: u64,
   ) -> Result<Transaction> {
     Self::new(ranges, ordinal, recipient)
       .select_ordinal()?
+      .pay_fee(Amount::from_sat(fee))?
       .build()
   }
 
@@ -77,6 +81,37 @@ impl TransactionBuilder {
       self.recipient.clone(),
       Amount::from_sat(ranges.iter().map(|(start, end)| end - start).sum()),
     ));
+
+    Ok(self)
+  }
+
+  fn pay_fee(mut self, fee: Amount) -> Result<Self> {
+    // assume that this has already been done?
+    // self.select_ordinal();
+
+    // make this a helper function?
+    let mut ordinal_offset = 0;
+    for (start, end) in self.inputs.iter().flat_map(|input| &self.ranges[input]) {
+      if self.ordinal.0 >= *start && self.ordinal.0 < *end {
+        ordinal_offset += self.ordinal.0 - start;
+        break;
+      } else {
+        ordinal_offset += end - start;
+      }
+    }
+
+    let output_amount = self
+      .outputs
+      .iter()
+      .map(|(_address, amount)| *amount)
+      .sum::<Amount>();
+
+    if Amount::from_sat(ordinal_offset) < output_amount - fee {
+      let (_address, amount) = self.outputs.last_mut().unwrap();
+      *amount = output_amount - fee;
+    } else {
+      return Err(Error::ConsumedByFee(self.ordinal));
+    }
 
     Ok(self)
   }
@@ -143,7 +178,7 @@ impl TransactionBuilder {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+  use {super::Error, super::*};
 
   #[test]
   fn select_ordinal() {
@@ -319,6 +354,68 @@ mod tests {
           }
         ],
       }
+    )
+  }
+
+  #[test]
+  fn pay_fee() {
+    let utxos = vec![(
+      "1111111111111111111111111111111111111111111111111111111111111111:1"
+        .parse()
+        .unwrap(),
+      vec![(10000, 15000)],
+    )];
+
+    assert_eq!(
+      TransactionBuilder::build_transaction(
+        utxos.into_iter().collect(),
+        Ordinal(10000),
+        "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+          .parse()
+          .unwrap(),
+        4000,
+      ),
+      Ok(Transaction {
+        version: 1,
+        lock_time: PackedLockTime::ZERO,
+        input: vec![TxIn {
+          previous_output: "1111111111111111111111111111111111111111111111111111111111111111:1"
+            .parse()
+            .unwrap(),
+          script_sig: Script::new(),
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          witness: Witness::new(),
+        },],
+        output: vec![TxOut {
+          value: 1000,
+          script_pubkey: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+            .parse::<Address>()
+            .unwrap()
+            .script_pubkey(),
+        },],
+      })
+    )
+  }
+
+  #[test]
+  fn pay_fee_consumes_ordinal() {
+    let utxos = vec![(
+      "1111111111111111111111111111111111111111111111111111111111111111:1"
+        .parse()
+        .unwrap(),
+      vec![(10000, 15000)],
+    )];
+
+    assert_eq!(
+      TransactionBuilder::build_transaction(
+        utxos.into_iter().collect(),
+        Ordinal(12000),
+        "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+          .parse()
+          .unwrap(),
+        4000,
+      ),
+      Err(Error::ConsumedByFee(Ordinal(12000)))
     )
   }
 }
