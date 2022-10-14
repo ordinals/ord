@@ -7,7 +7,7 @@ pub(crate) struct List {
 }
 
 impl List {
-  pub(crate) fn run(self, options: Options) -> Result<()> {
+  pub(crate) fn run(self, options: Options) -> Result {
     let index = Index::open(&options)?;
 
     index.index()?;

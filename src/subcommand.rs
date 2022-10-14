@@ -32,7 +32,7 @@ pub(crate) enum Subcommand {
 }
 
 impl Subcommand {
-  pub(crate) fn run(self, options: Options) -> Result<()> {
+  pub(crate) fn run(self, options: Options) -> Result {
     match self {
       Self::Epochs => epochs::run(),
       Self::Find(find) => find.run(options),
