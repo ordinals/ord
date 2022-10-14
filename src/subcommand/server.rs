@@ -442,20 +442,25 @@ impl Server {
     Extension(chain): Extension<Chain>,
     Path(txid): Path<Txid>,
   ) -> ServerResult<PageHtml> {
-    Ok(
-      TransactionHtml::new(
-        index
-          .transaction(txid)
-          .map_err(|err| {
-            ServerError::Internal(anyhow!(
-              "Error serving request for transaction {txid}: {err}"
-            ))
-          })?
-          .ok_or_else(|| ServerError::NotFound(format!("Transaction {txid} unknown")))?,
-        chain,
-      )
-      .page(),
-    )
+    let prime_ordinals = index
+      .prime_ordinals(txid)
+      .map_err(|err| {
+        ServerError::Internal(anyhow!(
+          "Error serving request for transaction {txid}: {err}"
+        ))
+      })?
+      .ok_or_else(|| ServerError::NotFound(format!("Transaction {txid} unknown")))?;
+
+    let transaction = index
+      .transaction(txid)
+      .map_err(|err| {
+        ServerError::Internal(anyhow!(
+          "Error serving request for transaction {txid}: {err}"
+        ))
+      })?
+      .ok_or_else(|| ServerError::NotFound(format!("Transaction {txid} unknown")))?;
+
+    Ok(TransactionHtml::new(transaction, prime_ordinals, chain).page())
   }
 
   async fn status(Extension(index): Extension<Arc<Index>>) -> (StatusCode, &'static str) {
@@ -1248,6 +1253,7 @@ mod tests {
       9068a11b8769174363376b606af9a4b8b29dd7b13d013f4b0cbbd457db3c3ce5:0
     </a>
     <dl>
+      <dt>prime ordinal</dt><dd><a href=/ordinal/5000000000>5000000000</a></dd>
       <dt>value</dt><dd>5000000000</dd>
       <dt>script pubkey</dt><dd class=data></dd>
     </dl>

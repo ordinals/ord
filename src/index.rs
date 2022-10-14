@@ -23,6 +23,8 @@ const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8; 36], [u8]> =
   TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
 const RUNE_HASH_TO_RUNE: TableDefinition<[u8; 32], str> = TableDefinition::new("RUNE_HASH_TO_RUNE");
 const STATISTIC_TO_COUNT: TableDefinition<u64, u64> = TableDefinition::new("STATISTIC_TO_COUNT");
+const TXID_TO_PRIME_ORDINALS: TableDefinition<[u8; 32], [u8]> =
+  TableDefinition::new("TXID_TO_PRIME_ORDINALS");
 
 fn encode_outpoint(outpoint: OutPoint) -> [u8; 36] {
   let mut array = [0; 36];
@@ -145,6 +147,7 @@ impl Index {
     tx.open_table(ORDINAL_TO_SATPOINT)?;
     tx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
     tx.open_table(STATISTIC_TO_COUNT)?;
+    tx.open_table(TXID_TO_PRIME_ORDINALS)?;
 
     tx.commit()?;
 
@@ -267,6 +270,7 @@ impl Index {
     let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
     let mut ordinal_to_satpoint = wtx.open_table(ORDINAL_TO_SATPOINT)?;
     let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
+    let mut txid_to_prime_ordinals = wtx.open_table(TXID_TO_PRIME_ORDINALS)?;
 
     let start = Instant::now();
     let mut ordinal_ranges_written = 0;
@@ -356,6 +360,7 @@ impl Index {
         tx,
         &mut ordinal_to_satpoint,
         &mut outpoint_to_ordinal_ranges,
+        &mut txid_to_prime_ordinals,
         &mut input_ordinal_ranges,
         &mut ordinal_ranges_written,
         &mut outputs_in_block,
@@ -485,10 +490,13 @@ impl Index {
     tx: &Transaction,
     ordinal_to_satpoint: &mut Table<u64, [u8; 44]>,
     outpoint_to_ordinal_ranges: &mut Table<[u8; 36], [u8]>,
+    txid_to_prime_ordinals: &mut Table<[u8; 32], [u8]>,
     input_ordinal_ranges: &mut VecDeque<(u64, u64)>,
     ordinal_ranges_written: &mut u64,
     outputs_traversed: &mut u64,
   ) -> Result {
+    let mut prime_ordinals = Vec::new();
+
     for (vout, output) in tx.output.iter().enumerate() {
       let outpoint = OutPoint {
         vout: vout as u32,
@@ -497,6 +505,7 @@ impl Index {
       let mut ordinals = Vec::new();
 
       let mut remaining = output.value;
+      let mut prime = None;
       while remaining > 0 {
         let range = input_ordinal_ranges
           .pop_front()
@@ -532,12 +541,27 @@ impl Index {
         remaining -= assigned.1 - assigned.0;
 
         *ordinal_ranges_written += 1;
+
+        if prime.is_none() {
+          prime = Some(base);
+        }
       }
+
+      prime_ordinals.extend_from_slice(
+        &if let Some(prime) = prime {
+          prime
+        } else {
+          Ordinal::SUPPLY
+        }
+        .to_le_bytes()[0..7],
+      );
 
       *outputs_traversed += 1;
 
       outpoint_to_ordinal_ranges.insert(&encode_outpoint(outpoint), &ordinals)?;
     }
+
+    txid_to_prime_ordinals.insert(&txid.as_inner(), &prime_ordinals)?;
 
     Ok(())
   }
@@ -563,6 +587,29 @@ impl Index {
 
   pub(crate) fn block_with_hash(&self, hash: BlockHash) -> Result<Option<Block>> {
     self.client.get_block(&hash).into_option()
+  }
+
+  pub(crate) fn prime_ordinals(&self, txid: Txid) -> Result<Option<Vec<Option<Ordinal>>>> {
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(TXID_TO_PRIME_ORDINALS)?
+        .get(&txid.as_inner())?
+        .map(|prime_ordinals| {
+          prime_ordinals
+            .chunks(7)
+            .map(|b| {
+              let n = u64::from_le_bytes([b[0], b[1], b[2], b[3], b[4], b[5], b[6], 0]);
+              if n == Ordinal::SUPPLY {
+                None
+              } else {
+                Some(Ordinal(n))
+              }
+            })
+            .collect()
+        }),
+    )
   }
 
   pub(crate) fn transaction(&self, txid: Txid) -> Result<Option<Transaction>> {

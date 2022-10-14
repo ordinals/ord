@@ -1,17 +1,20 @@
 <h1>Transaction <span class=monospace>{{self.txid}}</span></h1>
 <h2>{{"Output".tally(self.transaction.output.len())}}</h2>
 <ul class=monospace>
-%% for (vout, output) in self.transaction.output.iter().enumerate() {
+%% for (vout, (output, prime_ordinal)) in self.transaction.output.iter().zip(&self.prime_ordinals).enumerate() {
 %% let outpoint = OutPoint::new(self.txid, vout as u32);
   <li>
     <a href=/output/{{outpoint}} class=monospace>
-      {{ outpoint }}
+      {{outpoint}}
     </a>
     <dl>
-      <dt>value</dt><dd>{{ output.value }}</dd>
-      <dt>script pubkey</dt><dd class=data>{{ output.script_pubkey.asm() }}</dd>
+%% if let Some(prime_ordinal) = prime_ordinal {
+      <dt>prime ordinal</dt><dd><a href=/ordinal/{{prime_ordinal}}>{{prime_ordinal}}</a></dd>
+%% }
+      <dt>value</dt><dd>{{output.value}}</dd>
+      <dt>script pubkey</dt><dd class=data>{{output.script_pubkey.asm()}}</dd>
 %% if let Ok(address) = self.chain.address_from_script(&output.script_pubkey) {
-      <dt>address</dt><dd class=monospace>{{ address }}</dd>
+      <dt>address</dt><dd class=monospace>{{address}}</dd>
 %% }
     </dl>
   </li>
