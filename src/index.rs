@@ -561,7 +561,7 @@ impl Index {
       outpoint_to_ordinal_ranges.insert(&encode_outpoint(outpoint), &ordinals)?;
     }
 
-    txid_to_prime_ordinals.insert(&txid.as_inner(), &prime_ordinals)?;
+    txid_to_prime_ordinals.insert(txid.as_inner(), &prime_ordinals)?;
 
     Ok(())
   }
@@ -595,7 +595,7 @@ impl Index {
         .database
         .begin_read()?
         .open_table(TXID_TO_PRIME_ORDINALS)?
-        .get(&txid.as_inner())?
+        .get(txid.as_inner())?
         .map(|prime_ordinals| {
           prime_ordinals
             .chunks(7)
