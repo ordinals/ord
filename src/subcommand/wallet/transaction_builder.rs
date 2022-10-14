@@ -40,11 +40,10 @@ impl TransactionBuilder {
     ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
     ordinal: Ordinal,
     recipient: Address,
-    fee: u64,
   ) -> Result<Transaction> {
     Self::new(ranges, ordinal, recipient)
       .select_ordinal()?
-      .pay_fee(Amount::from_sat(fee))?
+      .pay_fee()?
       .build()
   }
 
@@ -85,7 +84,8 @@ impl TransactionBuilder {
     Ok(self)
   }
 
-  fn pay_fee(mut self, fee: Amount) -> Result<Self> {
+  fn pay_fee(mut self) -> Result<Self> {
+    let fee = Amount::from_sat(4000);
     let ordinal_offset = self.calculate_ordinal_offset();
 
     let output_amount = self
@@ -366,7 +366,6 @@ mod tests {
         "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
           .parse()
           .unwrap(),
-        4000,
       ),
       Ok(Transaction {
         version: 1,
@@ -406,7 +405,6 @@ mod tests {
         "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
           .parse()
           .unwrap(),
-        4000,
       ),
       Err(Error::ConsumedByFee(Ordinal(12000)))
     )
