@@ -85,8 +85,10 @@ impl TransactionBuilder {
   }
 
   fn pay_fee(mut self) -> Result<Self> {
-    let fee = Amount::from_sat(4000);
     let ordinal_offset = self.calculate_ordinal_offset();
+
+    let tx = self.build()?; 
+    let fee = Amount::from_sat((2 * tx.vsize()).try_into().unwrap()); 
 
     let output_amount = self
       .outputs
@@ -104,7 +106,7 @@ impl TransactionBuilder {
     Ok(self)
   }
 
-  fn build(self) -> Result<Transaction> {
+  fn build(&self) -> Result<Transaction> {
     let outpoint = self
       .ranges
       .iter()
@@ -136,9 +138,9 @@ impl TransactionBuilder {
       lock_time: PackedLockTime::ZERO,
       input: self
         .inputs
-        .into_iter()
+        .iter()
         .map(|outpoint| TxIn {
-          previous_output: outpoint,
+          previous_output: *outpoint,
           script_sig: Script::new(),
           sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
           witness: Witness::new(),
@@ -359,7 +361,7 @@ mod tests {
       vec![(10000, 15000)],
     )];
 
-    assert_eq!(
+    pretty_assert_eq!(
       TransactionBuilder::build_transaction(
         utxos.into_iter().collect(),
         Ordinal(10000),
@@ -379,7 +381,7 @@ mod tests {
           witness: Witness::new(),
         },],
         output: vec![TxOut {
-          value: 1000,
+          value: 4836,
           script_pubkey: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
             .parse::<Address>()
             .unwrap()
@@ -398,15 +400,15 @@ mod tests {
       vec![(10000, 15000)],
     )];
 
-    assert_eq!(
+    pretty_assert_eq!(
       TransactionBuilder::build_transaction(
         utxos.into_iter().collect(),
-        Ordinal(12000),
+        Ordinal(14900),
         "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
           .parse()
           .unwrap(),
       ),
-      Err(Error::ConsumedByFee(Ordinal(12000)))
+      Err(Error::ConsumedByFee(Ordinal(14900)))
     )
   }
 }
