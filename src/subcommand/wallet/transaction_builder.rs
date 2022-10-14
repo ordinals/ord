@@ -10,7 +10,6 @@ use {
 pub(crate) enum Error {
   NotInWallet(Ordinal),
   ConsumedByFee(Ordinal),
-  NoInputOrOutput,
 }
 
 impl fmt::Display for Error {
@@ -18,7 +17,6 @@ impl fmt::Display for Error {
     match self {
       Error::NotInWallet(ordinal) => write!(f, "Ordinal {ordinal} not in wallet"),
       Error::ConsumedByFee(ordinal) => write!(f, "Ordinal {ordinal} would be consumed by fee"),
-      Error::NoInputOrOutput => write!(f, "No input or output selected"),
     }
   }
 }
@@ -88,10 +86,6 @@ impl TransactionBuilder {
   }
 
   fn pay_fee(mut self, fee: Amount) -> Result<Self> {
-    if self.inputs.is_empty() || self.outputs.is_empty() {
-      return Err(Error::NoInputOrOutput);
-    }
-
     // make this a helper function?
     let mut ordinal_offset = 0;
     for (start, end) in self.inputs.iter().flat_map(|input| &self.ranges[input]) {
@@ -419,23 +413,6 @@ mod tests {
         4000,
       ),
       Err(Error::ConsumedByFee(Ordinal(12000)))
-    )
-  }
-
-  #[test]
-  fn no_input_or_output() {
-    let utxos = vec![];
-
-    assert_eq!(
-      TransactionBuilder::new(
-        utxos.into_iter().collect(),
-        Ordinal(0),
-        "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
-          .parse()
-          .unwrap(),
-      )
-      .pay_fee(Amount::from_sat(100)),
-      Err(Error::NoInputOrOutput)
     )
   }
 }
