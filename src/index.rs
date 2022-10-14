@@ -13,15 +13,16 @@ use {
 
 mod rtx;
 
-const HASH_TO_RUNE: TableDefinition<[u8; 32], str> = TableDefinition::new("HASH_TO_RUNE");
-const HEIGHT_TO_HASH: TableDefinition<u64, [u8; 32]> = TableDefinition::new("HEIGHT_TO_HASH");
-const ORDINAL_TO_SATPOINT: TableDefinition<u64, [u8; 44]> =
-  TableDefinition::new("ORDINAL_TO_SATPOINT");
+const HEIGHT_TO_BLOCK_HASH: TableDefinition<u64, [u8; 32]> =
+  TableDefinition::new("HEIGHT_TO_BLOCK_HASH");
 const ORDINAL_TO_RUNE_HASHES: MultimapTableDefinition<u64, [u8; 32]> =
   MultimapTableDefinition::new("ORDINAL_TO_RUNE_HASHES");
+const ORDINAL_TO_SATPOINT: TableDefinition<u64, [u8; 44]> =
+  TableDefinition::new("ORDINAL_TO_SATPOINT");
 const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8; 36], [u8]> =
   TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
-const STATISTICS: TableDefinition<u64, u64> = TableDefinition::new("STATISTICS");
+const RUNE_HASH_TO_RUNE: TableDefinition<[u8; 32], str> = TableDefinition::new("RUNE_HASH_TO_RUNE");
+const STATISTIC_TO_COUNT: TableDefinition<u64, u64> = TableDefinition::new("STATISTIC_TO_COUNT");
 
 fn encode_outpoint(outpoint: OutPoint) -> [u8; 36] {
   let mut array = [0; 36];
@@ -139,11 +140,11 @@ impl Index {
     };
 
     tx.open_multimap_table(ORDINAL_TO_RUNE_HASHES)?;
-    tx.open_table(HASH_TO_RUNE)?;
-    tx.open_table(HEIGHT_TO_HASH)?;
+    tx.open_table(RUNE_HASH_TO_RUNE)?;
+    tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
     tx.open_table(ORDINAL_TO_SATPOINT)?;
     tx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
-    tx.open_table(STATISTICS)?;
+    tx.open_table(STATISTIC_TO_COUNT)?;
 
     tx.commit()?;
 
@@ -165,7 +166,7 @@ impl Index {
     let wtx = self.begin_write()?;
 
     let blocks_indexed = wtx
-      .open_table(HEIGHT_TO_HASH)?
+      .open_table(HEIGHT_TO_BLOCK_HASH)?
       .range(0..)?
       .rev()
       .next()
@@ -175,7 +176,7 @@ impl Index {
     let utxos_indexed = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?.len()?;
 
     let outputs_traversed = wtx
-      .open_table(STATISTICS)?
+      .open_table(STATISTIC_TO_COUNT)?
       .get(&Statistic::OutputsTraversed.into())?
       .unwrap_or(0);
 
@@ -217,7 +218,7 @@ impl Index {
     let mut wtx = self.begin_write()?;
 
     let height = wtx
-      .open_table(HEIGHT_TO_HASH)?
+      .open_table(HEIGHT_TO_BLOCK_HASH)?
       .range(0..)?
       .rev()
       .next()
@@ -263,7 +264,7 @@ impl Index {
   }
 
   pub(crate) fn index_block(&self, wtx: &mut WriteTransaction, height: u64) -> Result<bool> {
-    let mut height_to_hash = wtx.open_table(HEIGHT_TO_HASH)?;
+    let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
     let mut ordinal_to_satpoint = wtx.open_table(ORDINAL_TO_SATPOINT)?;
     let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
 
@@ -309,7 +310,7 @@ impl Index {
     );
 
     if let Some(prev_height) = height.checked_sub(1) {
-      let prev_hash = height_to_hash.get(&prev_height)?.unwrap();
+      let prev_hash = height_to_block_hash.get(&prev_height)?.unwrap();
 
       if prev_hash != block.header.prev_blockhash.as_ref() {
         self.reorged.store(true, Ordering::Relaxed);
@@ -375,7 +376,7 @@ impl Index {
       )?;
     }
 
-    height_to_hash.insert(&height, &block.block_hash().as_hash().into_inner())?;
+    height_to_block_hash.insert(&height, &block.block_hash().as_hash().into_inner())?;
 
     Self::increment_statistic(wtx, Statistic::OutputsTraversed, outputs_in_block)?;
 
@@ -402,10 +403,10 @@ impl Index {
   }
 
   fn increment_statistic(wtx: &WriteTransaction, statistic: Statistic, n: u64) -> Result {
-    let mut statistics = wtx.open_table(STATISTICS)?;
-    statistics.insert(
+    let mut statistic_to_count = wtx.open_table(STATISTIC_TO_COUNT)?;
+    statistic_to_count.insert(
       &statistic.into(),
-      &(statistics.get(&(statistic.into()))?.unwrap_or(0) + n),
+      &(statistic_to_count.get(&(statistic.into()))?.unwrap_or(0) + n),
     )?;
     Ok(())
   }
@@ -416,7 +417,7 @@ impl Index {
       self
         .database
         .begin_read()?
-        .open_table(STATISTICS)?
+        .open_table(STATISTIC_TO_COUNT)?
         .get(&(statistic.into()))?
         .unwrap_or(0),
     )
@@ -433,9 +434,9 @@ impl Index {
 
     let height = rtx.height()?;
 
-    let height_to_hash = rtx.0.open_table(HEIGHT_TO_HASH)?;
+    let height_to_block_hash = rtx.0.open_table(HEIGHT_TO_BLOCK_HASH)?;
 
-    let mut cursor = height_to_hash
+    let mut cursor = height_to_block_hash
       .range(height.saturating_sub(take.saturating_sub(1))..=height)?
       .rev();
 
@@ -591,7 +592,7 @@ impl Index {
       self
         .database
         .begin_read()?
-        .open_table(HASH_TO_RUNE)?
+        .open_table(RUNE_HASH_TO_RUNE)?
         .get(hash.as_inner())?
         .map(serde_json::from_str)
         .transpose()?,
@@ -604,7 +605,7 @@ impl Index {
     let wtx = self.begin_write()?;
 
     let created = wtx
-      .open_table(HASH_TO_RUNE)?
+      .open_table(RUNE_HASH_TO_RUNE)?
       .insert(hash.as_inner(), &json)?
       .is_none();
 
@@ -688,7 +689,7 @@ impl Index {
         let tx = self.database.begin_read()?;
 
         let current = tx
-          .open_table(HEIGHT_TO_HASH)?
+          .open_table(HEIGHT_TO_BLOCK_HASH)?
           .range(0..)?
           .rev()
           .next()
