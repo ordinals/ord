@@ -1,3 +1,28 @@
+//! Ordinal transaction construction is fraught.
+//!
+//! Ordinal-aware transaction construction has additional invariants,
+//! constraints, and concerns in addition to those of normal, non-ordinal-aware
+//! Bitcoin transactions.
+//!
+//! This module contains a `TransactionBuilder` struct that facilitates
+//! constructing ordinal-aware transactions that take these additional
+//! conditions into account.
+//!
+//! The external interface is `TransactionBuilder::build_transaction`, which
+//! returns a constructed transaction given the arguments, which include the
+//! ordinal to send, the wallets current UTXOs and their ordinal ranges, and
+//! the recipient's address.
+//!
+//! Internally, `TransactionBuilder` calls multiple methods that implement
+//! transformations responsible for individual concerns, such as ensuring that
+//! the transaction fee is paid, and that outgoing outputs aren't too large.
+//!
+//! This module is tested heavily. For all features of transaction
+//! construction, there should be a positive test that checks that the feature
+//! is implemented correctly, an assertion in the final `Transaction::build`
+//! method that the built transaction is correct with respect to the feature,
+//! and a test that the assertion fires as expected.
+
 use {
   super::*,
   bitcoin::blockdata::locktime::PackedLockTime,
