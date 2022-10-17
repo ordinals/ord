@@ -25,6 +25,7 @@ impl std::error::Error for Error {}
 
 #[derive(Debug, PartialEq)]
 pub(crate) struct TransactionBuilder {
+  change: Address,
   inputs: Vec<OutPoint>,
   ordinal: Ordinal,
   outputs: Vec<(Address, Amount)>,
@@ -36,13 +37,18 @@ pub(crate) struct TransactionBuilder {
 type Result<T> = std::result::Result<T, Error>;
 
 impl TransactionBuilder {
+  const TARGET_POSTAGE: u64 = 10_000;
+  const MAX_POSTAGE: u64 = 2 * Self::TARGET_POSTAGE;
+
   pub(crate) fn build_transaction(
     ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
     ordinal: Ordinal,
     recipient: Address,
+    change: Address,
   ) -> Result<Transaction> {
-    Self::new(ranges, ordinal, recipient)
+    Self::new(ranges, ordinal, recipient, change)
       .select_ordinal()?
+      .strip_excess_postage()?
       .deduct_fee()?
       .build()
   }
@@ -51,6 +57,7 @@ impl TransactionBuilder {
     ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
     ordinal: Ordinal,
     recipient: Address,
+    change: Address,
   ) -> Self {
     Self {
       utxos: ranges.keys().cloned().collect(),
@@ -59,6 +66,7 @@ impl TransactionBuilder {
       outputs: Vec::new(),
       ranges,
       recipient,
+      change,
     }
   }
 
@@ -80,6 +88,32 @@ impl TransactionBuilder {
       self.recipient.clone(),
       Amount::from_sat(ranges.iter().map(|(start, end)| end - start).sum()),
     ));
+
+    Ok(self)
+  }
+
+  fn strip_excess_postage(mut self) -> Result<Self> {
+    let ordinal_offset = self.calculate_ordinal_offset();
+    let output_total = self
+      .outputs
+      .iter()
+      .map(|(_address, amount)| *amount)
+      .sum::<Amount>();
+
+    assert_eq!(self.outputs.len(), 1, "invariant: only one output");
+
+    assert_eq!(
+      self.outputs[0].0, self.recipient,
+      "invariant: first output is recipient"
+    );
+
+    if output_total > Amount::from_sat(ordinal_offset + Self::MAX_POSTAGE) {
+      self.outputs[0].1 = Amount::from_sat(Self::TARGET_POSTAGE);
+      self.outputs.push((
+        self.change.clone(),
+        output_total - Amount::from_sat(ordinal_offset + Self::TARGET_POSTAGE),
+      ));
+    }
 
     Ok(self)
   }
@@ -188,6 +222,15 @@ impl TransactionBuilder {
     }
     assert!(found, "invariant: ordinal is found in outputs");
 
+    for output in &transaction.output {
+      if output.script_pubkey != self.change.script_pubkey() {
+        assert!(
+          output.value < Self::MAX_POSTAGE,
+          "invariant: excess postage is stripped"
+        );
+      }
+    }
+
     Ok(transaction)
   }
 
@@ -236,6 +279,9 @@ mod tests {
       utxos.clone().into_iter().collect(),
       Ordinal(51 * COIN_VALUE),
       "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+        .parse()
+        .unwrap(),
+      "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
         .parse()
         .unwrap(),
     )
@@ -293,6 +339,9 @@ mod tests {
       utxos: BTreeSet::new(),
       ordinal: Ordinal(0),
       recipient: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+        .parse()
+        .unwrap(),
+      change: "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
         .parse()
         .unwrap(),
       inputs: vec![
@@ -402,6 +451,9 @@ mod tests {
         "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
           .parse()
           .unwrap(),
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
       ),
       Ok(Transaction {
         version: 1,
@@ -415,7 +467,7 @@ mod tests {
           witness: Witness::new(),
         },],
         output: vec![TxOut {
-          value: 4836,
+          value: 5000 - 164,
           script_pubkey: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
             .parse::<Address>()
             .unwrap()
@@ -441,6 +493,9 @@ mod tests {
         "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
           .parse()
           .unwrap(),
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
       ),
       Err(Error::ConsumedByFee(Ordinal(14900)))
     )
@@ -460,6 +515,9 @@ mod tests {
       .collect(),
       Ordinal(2),
       "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+        .parse()
+        .unwrap(),
+      "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
         .parse()
         .unwrap(),
     )
@@ -483,6 +541,9 @@ mod tests {
       "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
+      "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+        .parse()
+        .unwrap(),
     )
     .build()
     .ok();
@@ -502,6 +563,9 @@ mod tests {
       .collect(),
       Ordinal(2),
       "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+        .parse()
+        .unwrap(),
+      "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
         .parse()
         .unwrap(),
     )
@@ -531,6 +595,9 @@ mod tests {
       "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
+      "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+        .parse()
+        .unwrap(),
     )
     .select_ordinal()
     .unwrap();
@@ -538,5 +605,82 @@ mod tests {
     builder.outputs[0].1 = Amount::from_sat(0);
 
     builder.build().ok();
+  }
+
+  #[test]
+  fn excess_postage_is_stripped() {
+    let utxos = vec![(
+      "1111111111111111111111111111111111111111111111111111111111111111:1"
+        .parse()
+        .unwrap(),
+      vec![(0, 1_000_000)],
+    )];
+
+    pretty_assert_eq!(
+      TransactionBuilder::build_transaction(
+        utxos.into_iter().collect(),
+        Ordinal(0),
+        "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+          .parse()
+          .unwrap(),
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
+      ),
+      Ok(Transaction {
+        version: 1,
+        lock_time: PackedLockTime::ZERO,
+        input: vec![TxIn {
+          previous_output: "1111111111111111111111111111111111111111111111111111111111111111:1"
+            .parse()
+            .unwrap(),
+          script_sig: Script::new(),
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          witness: Witness::new(),
+        },],
+        output: vec![
+          TxOut {
+            value: TransactionBuilder::TARGET_POSTAGE,
+            script_pubkey: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+              .parse::<Address>()
+              .unwrap()
+              .script_pubkey(),
+          },
+          TxOut {
+            value: 1_000_000 - TransactionBuilder::TARGET_POSTAGE - 226,
+            script_pubkey: "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+              .parse::<Address>()
+              .unwrap()
+              .script_pubkey(),
+          }
+        ],
+      })
+    )
+  }
+
+  #[test]
+  #[should_panic(expected = "invariant: excess postage is stripped")]
+  fn invariant_excess_postage_is_stripped() {
+    let utxos = vec![(
+      "1111111111111111111111111111111111111111111111111111111111111111:1"
+        .parse()
+        .unwrap(),
+      vec![(0, 1_000_000)],
+    )];
+
+    TransactionBuilder::new(
+      utxos.into_iter().collect(),
+      Ordinal(0),
+      "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+        .parse()
+        .unwrap(),
+      "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+        .parse()
+        .unwrap(),
+    )
+    .select_ordinal()
+    .unwrap()
+    .build()
+    .unwrap();
   }
 }

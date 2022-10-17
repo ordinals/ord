@@ -15,8 +15,12 @@ impl Send {
 
     let utxos = list_unspent(&options, &index)?.into_iter().collect();
 
+    let change = client
+      .call("getrawchangeaddress", &[])
+      .context("Could not get change addresses from wallet")?;
+
     let unsigned_transaction =
-      TransactionBuilder::build_transaction(utxos, self.ordinal, self.address)?;
+      TransactionBuilder::build_transaction(utxos, self.ordinal, self.address, change)?;
 
     let signed_tx = client
       .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
