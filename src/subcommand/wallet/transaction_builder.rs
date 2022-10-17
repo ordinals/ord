@@ -110,33 +110,10 @@ impl TransactionBuilder {
   }
 
   fn build(&self) -> Result<Transaction> {
-    let outpoint = self
-      .ranges
-      .iter()
-      .find(|(_outpoint, ranges)| {
-        ranges
-          .iter()
-          .any(|(start, end)| self.ordinal.0 >= *start && self.ordinal.0 < *end)
-      })
-      .expect("Could not find ordinal in utxo ranges");
+    let ordinal = self.ordinal.n();
+    let recipient = self.recipient.script_pubkey();
 
-    assert!(self.inputs.contains(outpoint.0));
-
-    let ordinal_offset = self.calculate_ordinal_offset();
-
-    let mut output_end = 0;
-    let mut found = false;
-    for output in &self.outputs {
-      output_end += output.1.to_sat();
-      if output_end > ordinal_offset {
-        assert_eq!(output.0, self.recipient);
-        found = true;
-        break;
-      }
-    }
-    assert!(found);
-
-    Ok(Transaction {
+    let transaction = Transaction {
       version: 1,
       lock_time: PackedLockTime::ZERO,
       input: self
@@ -157,7 +134,61 @@ impl TransactionBuilder {
           script_pubkey: address.script_pubkey(),
         })
         .collect(),
-    })
+    };
+
+    let outpoint = self
+      .ranges
+      .iter()
+      .find(|(_outpoint, ranges)| {
+        ranges
+          .iter()
+          .any(|(start, end)| ordinal >= *start && ordinal < *end)
+      })
+      .expect("invariant: ordinal is contained in utxo ranges");
+
+    assert_eq!(
+      transaction
+        .input
+        .iter()
+        .filter(|tx_in| tx_in.previous_output == *outpoint.0)
+        .count(),
+      1,
+      "invariant: inputs spend ordinal"
+    );
+
+    let mut ordinal_offset = 0;
+    let mut found = false;
+    for (start, end) in transaction
+      .input
+      .iter()
+      .flat_map(|tx_in| &self.ranges[&tx_in.previous_output])
+    {
+      if ordinal >= *start && ordinal < *end {
+        ordinal_offset += ordinal - start;
+        found = true;
+        break;
+      } else {
+        ordinal_offset += end - start;
+      }
+    }
+    assert!(found, "invariant: ordinal is found in inputs");
+
+    let mut output_end = 0;
+    let mut found = false;
+    for tx_out in &transaction.output {
+      output_end += tx_out.value;
+      if output_end > ordinal_offset {
+        assert_eq!(
+          tx_out.script_pubkey, recipient,
+          "invariant: ordinal is sent to recipient"
+        );
+        found = true;
+        break;
+      }
+    }
+    assert!(found, "invariant: ordinal is found in outputs");
+
+    Ok(transaction)
   }
 
   fn calculate_ordinal_offset(&self) -> u64 {
@@ -413,5 +444,99 @@ mod tests {
       ),
       Err(Error::ConsumedByFee(Ordinal(14900)))
     )
+  }
+
+  #[test]
+  #[should_panic(expected = "invariant: ordinal is contained in utxo ranges")]
+  fn invariant_ordinal_is_contained_in_utxo_ranges() {
+    TransactionBuilder::new(
+      [(
+        "1111111111111111111111111111111111111111111111111111111111111111:1"
+          .parse()
+          .unwrap(),
+        vec![(0, 2), (3, 5)],
+      )]
+      .into_iter()
+      .collect(),
+      Ordinal(2),
+      "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+        .parse()
+        .unwrap(),
+    )
+    .build()
+    .ok();
+  }
+
+  #[test]
+  #[should_panic(expected = "invariant: inputs spend ordinal")]
+  fn invariant_inputs_spend_ordinal() {
+    TransactionBuilder::new(
+      [(
+        "1111111111111111111111111111111111111111111111111111111111111111:1"
+          .parse()
+          .unwrap(),
+        vec![(0, 5)],
+      )]
+      .into_iter()
+      .collect(),
+      Ordinal(2),
+      "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+        .parse()
+        .unwrap(),
+    )
+    .build()
+    .ok();
+  }
+
+  #[test]
+  #[should_panic(expected = "invariant: ordinal is sent to recipient")]
+  fn invariant_ordinal_is_sent_to_recipient() {
+    let mut builder = TransactionBuilder::new(
+      [(
+        "1111111111111111111111111111111111111111111111111111111111111111:1"
+          .parse()
+          .unwrap(),
+        vec![(0, 5)],
+      )]
+      .into_iter()
+      .collect(),
+      Ordinal(2),
+      "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+        .parse()
+        .unwrap(),
+    )
+    .select_ordinal()
+    .unwrap();
+
+    builder.outputs[0].0 = "tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw"
+      .parse()
+      .unwrap();
+
+    builder.build().ok();
+  }
+
+  #[test]
+  #[should_panic(expected = "invariant: ordinal is found in outputs")]
+  fn invariant_ordinal_is_found_in_outputs() {
+    let mut builder = TransactionBuilder::new(
+      [(
+        "1111111111111111111111111111111111111111111111111111111111111111:1"
+          .parse()
+          .unwrap(),
+        vec![(0, 5)],
+      )]
+      .into_iter()
+      .collect(),
+      Ordinal(2),
+      "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+        .parse()
+        .unwrap(),
+    )
+    .select_ordinal()
+    .unwrap();
+
+    builder.outputs[0].1 = Amount::from_sat(0);
+
+    builder.build().ok();
   }
 }
