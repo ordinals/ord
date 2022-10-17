@@ -8,7 +8,7 @@ pub(crate) enum Rune {
 }
 
 impl Rune {
-  pub(crate) fn run(self, options: Options) -> Result<()> {
+  pub(crate) fn run(self, options: Options) -> Result {
     match self {
       Self::Publish(publish) => publish.run(options),
     }
