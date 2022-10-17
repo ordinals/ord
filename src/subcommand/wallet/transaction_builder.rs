@@ -420,4 +420,98 @@ mod tests {
       Err(Error::ConsumedByFee(Ordinal(14900)))
     )
   }
+
+  #[test]
+  #[should_panic(expected = "invariant: ordinal is contained in utxo ranges")]
+  fn invariant_ordinal_is_contained_in_utxo_ranges() {
+    TransactionBuilder::new(
+      [(
+        "1111111111111111111111111111111111111111111111111111111111111111:1"
+          .parse()
+          .unwrap(),
+        vec![(0, 2), (3, 5)],
+      )]
+      .into_iter()
+      .collect(),
+      Ordinal(2),
+      "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+        .parse()
+        .unwrap(),
+    )
+    .build()
+    .ok();
+  }
+
+  #[test]
+  #[should_panic(expected = "invariant: inputs spend ordinal")]
+  fn invariant_inputs_spend_ordinal() {
+    TransactionBuilder::new(
+      [(
+        "1111111111111111111111111111111111111111111111111111111111111111:1"
+          .parse()
+          .unwrap(),
+        vec![(0, 5)],
+      )]
+      .into_iter()
+      .collect(),
+      Ordinal(2),
+      "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+        .parse()
+        .unwrap(),
+    )
+    .build()
+    .ok();
+  }
+
+  #[test]
+  #[should_panic(expected = "invariant: ordinal is sent to recipient")]
+  fn invariant_ordinal_is_sent_to_recipient() {
+    let mut builder = TransactionBuilder::new(
+      [(
+        "1111111111111111111111111111111111111111111111111111111111111111:1"
+          .parse()
+          .unwrap(),
+        vec![(0, 5)],
+      )]
+      .into_iter()
+      .collect(),
+      Ordinal(2),
+      "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+        .parse()
+        .unwrap(),
+    )
+    .select_ordinal()
+    .unwrap();
+
+    builder.outputs[0].0 = "tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw"
+      .parse()
+      .unwrap();
+
+    builder.build().ok();
+  }
+
+  #[test]
+  #[should_panic(expected = "invariant: ordinal is found in outputs")]
+  fn invariant_ordinal_is_found_in_outputs() {
+    let mut builder = TransactionBuilder::new(
+      [(
+        "1111111111111111111111111111111111111111111111111111111111111111:1"
+          .parse()
+          .unwrap(),
+        vec![(0, 5)],
+      )]
+      .into_iter()
+      .collect(),
+      Ordinal(2),
+      "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+        .parse()
+        .unwrap(),
+    )
+    .select_ordinal()
+    .unwrap();
+
+    builder.outputs[0].1 = Amount::from_sat(0);
+
+    builder.build().ok();
+  }
 }
