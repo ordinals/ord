@@ -100,11 +100,14 @@ impl TransactionBuilder {
       .map(|(_address, amount)| *amount)
       .sum::<Amount>();
 
+    assert_eq!(self.outputs.len(), 1, "invariant: only one output");
+
+    assert_eq!(
+      self.outputs[0].0, self.recipient,
+      "invariant: first output is recipient"
+    );
+
     if output_total > Amount::from_sat(ordinal_offset + Self::MAX_POSTAGE) {
-      assert_eq!(
-        self.outputs[0].0, self.recipient,
-        "invariant: first output is recipient"
-      );
       self.outputs[0].1 = Amount::from_sat(Self::TARGET_POSTAGE);
       self.outputs.push((
         self.change.clone(),
