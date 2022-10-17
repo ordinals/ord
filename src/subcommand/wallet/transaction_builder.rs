@@ -110,6 +110,9 @@ impl TransactionBuilder {
   }
 
   fn build(&self) -> Result<Transaction> {
+    let ordinal = self.ordinal.n();
+    let recipient = self.recipient.script_pubkey();
+
     let transaction = Transaction {
       version: 1,
       lock_time: PackedLockTime::ZERO,
@@ -139,7 +142,7 @@ impl TransactionBuilder {
       .find(|(_outpoint, ranges)| {
         ranges
           .iter()
-          .any(|(start, end)| self.ordinal.0 >= *start && self.ordinal.0 < *end)
+          .any(|(start, end)| ordinal >= *start && ordinal < *end)
       })
       .expect("invariant: ordinal is contained in utxo ranges");
 
@@ -153,7 +156,22 @@ impl TransactionBuilder {
       "invariant: inputs spend ordinal"
     );
 
-    let ordinal_offset = self.calculate_ordinal_offset();
+    let mut ordinal_offset = 0;
+    let mut found = false;
+    for (start, end) in transaction
+      .input
+      .iter()
+      .flat_map(|tx_in| &self.ranges[&tx_in.previous_output])
+    {
+      if ordinal >= *start && ordinal < *end {
+        ordinal_offset += ordinal - start;
+        found = true;
+        break;
+      } else {
+        ordinal_offset += end - start;
+      }
+    }
+    assert!(found, "invariant: ordinal is found in inputs");
 
     let mut output_end = 0;
     let mut found = false;
@@ -161,8 +179,7 @@ impl TransactionBuilder {
       output_end += tx_out.value;
       if output_end > ordinal_offset {
         assert_eq!(
-          tx_out.script_pubkey,
-          self.recipient.script_pubkey(),
+          tx_out.script_pubkey, recipient,
           "invariant: ordinal is sent to recipient"
         );
         found = true;
@@ -171,28 +188,7 @@ impl TransactionBuilder {
     }
     assert!(found, "invariant: ordinal is found in outputs");
 
-    Ok(Transaction {
-      version: 1,
-      lock_time: PackedLockTime::ZERO,
-      input: self
-        .inputs
-        .iter()
-        .map(|outpoint| TxIn {
-          previous_output: *outpoint,
-          script_sig: Script::new(),
-          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-          witness: Witness::new(),
-        })
-        .collect(),
-      output: self
-        .outputs
-        .iter()
-        .map(|(address, amount)| TxOut {
-          value: amount.to_sat(),
-          script_pubkey: address.script_pubkey(),
-        })
-        .collect(),
-    })
+    Ok(transaction)
   }
 
   fn calculate_ordinal_offset(&self) -> u64 {
