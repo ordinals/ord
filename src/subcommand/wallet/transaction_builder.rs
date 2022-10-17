@@ -118,9 +118,12 @@ impl TransactionBuilder {
           .iter()
           .any(|(start, end)| self.ordinal.0 >= *start && self.ordinal.0 < *end)
       })
-      .expect("Could not find ordinal in utxo ranges");
+      .expect("invariant: ordinal is contained in utxo ranges");
 
-    assert!(self.inputs.contains(outpoint.0));
+    assert!(
+      self.inputs.contains(outpoint.0),
+      "invariant: inputs spend ordinal"
+    );
 
     let ordinal_offset = self.calculate_ordinal_offset();
 
@@ -129,12 +132,15 @@ impl TransactionBuilder {
     for output in &self.outputs {
       output_end += output.1.to_sat();
       if output_end > ordinal_offset {
-        assert_eq!(output.0, self.recipient);
+        assert_eq!(
+          output.0, self.recipient,
+          "invariant: ordinal is sent to recipient"
+        );
         found = true;
         break;
       }
     }
-    assert!(found);
+    assert!(found, "invariant: ordinal is found in outputs");
 
     Ok(Transaction {
       version: 1,
