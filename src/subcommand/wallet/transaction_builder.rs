@@ -15,7 +15,7 @@
 //!
 //! Internally, `TransactionBuilder` calls multiple methods that implement
 //! transformations responsible for individual concerns, such as ensuring that
-//! the transactoin fee is paid, and that outgoing outputs aren't too large.
+//! the transaction fee is paid, and that outgoing outputs aren't too large.
 //!
 //! This module is tested heavily. For all features of transaction
 //! construction, there should be a positive test that checks that the feature
