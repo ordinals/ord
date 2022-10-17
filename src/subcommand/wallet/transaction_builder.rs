@@ -680,6 +680,7 @@ mod tests {
     )
     .select_ordinal()
     .unwrap()
-    .build().unwrap();
+    .build()
+    .unwrap();
   }
 }
