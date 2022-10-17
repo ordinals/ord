@@ -38,6 +38,7 @@ type Result<T> = std::result::Result<T, Error>;
 
 impl TransactionBuilder {
   const TARGET_POSTAGE: u64 = 10_000;
+  const MAX_POSTAGE: u64 = 2 * Self::TARGET_POSTAGE;
 
   pub(crate) fn build_transaction(
     ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
@@ -99,7 +100,7 @@ impl TransactionBuilder {
       .map(|(_address, amount)| *amount)
       .sum::<Amount>();
 
-    if output_total > Amount::from_sat(ordinal_offset + 2 * Self::TARGET_POSTAGE) {
+    if output_total > Amount::from_sat(ordinal_offset + Self::MAX_POSTAGE) {
       assert_eq!(
         self.outputs[0].0, self.recipient,
         "invariant: first output is recipient"
@@ -221,7 +222,7 @@ impl TransactionBuilder {
     for output in &transaction.output {
       if output.script_pubkey != self.change.script_pubkey() {
         assert!(
-          output.value < 2 * Self::TARGET_POSTAGE,
+          output.value < Self::MAX_POSTAGE,
           "invariant: excess postage is stripped"
         );
       }
@@ -674,7 +675,10 @@ mod tests {
         "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
           .parse()
           .unwrap(),
-      ).select_ordinal().unwrap().build(),
+      )
+      .select_ordinal()
+      .unwrap()
+      .build(),
       Ok(Transaction {
         version: 1,
         lock_time: PackedLockTime::ZERO,

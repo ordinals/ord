@@ -1,4 +1,4 @@
-use {super::*, bitcoincore_rpc::Client, transaction_builder::TransactionBuilder};
+use {super::*, transaction_builder::TransactionBuilder};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
@@ -15,7 +15,9 @@ impl Send {
 
     let utxos = list_unspent(&options, &index)?.into_iter().collect();
 
-    let change = self.get_change_address(&client)?;
+    let change = client
+      .call("getrawchangeaddress", &[])
+      .context("Could not get change addresses from wallet")?;
 
     let unsigned_transaction =
       TransactionBuilder::build_transaction(utxos, self.ordinal, self.address, change)?;
@@ -28,11 +30,5 @@ impl Send {
 
     println!("{txid}");
     Ok(())
-  }
-
-  fn get_change_address(&self, client: &Client) -> Result<Address> {
-    client
-      .call("getrawchangeaddress", &[])
-      .context("Could not get change addresses from wallet")
   }
 }
