@@ -25,7 +25,7 @@ impl std::error::Error for Error {}
 
 #[derive(Debug, PartialEq)]
 pub(crate) struct TransactionBuilder {
-  change: [Address; 1],
+  change: Address,
   inputs: Vec<OutPoint>,
   ordinal: Ordinal,
   outputs: Vec<(Address, Amount)>,
@@ -43,7 +43,7 @@ impl TransactionBuilder {
     ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
     ordinal: Ordinal,
     recipient: Address,
-    change: [Address; 1],
+    change: Address,
   ) -> Result<Transaction> {
     Self::new(ranges, ordinal, recipient, change)
       .select_ordinal()?
@@ -56,7 +56,7 @@ impl TransactionBuilder {
     ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
     ordinal: Ordinal,
     recipient: Address,
-    change: [Address; 1],
+    change: Address,
   ) -> Self {
     Self {
       utxos: ranges.keys().cloned().collect(),
@@ -100,9 +100,13 @@ impl TransactionBuilder {
       .sum::<Amount>();
 
     if output_total > Amount::from_sat(ordinal_offset + 2 * Self::TARGET_POSTAGE) {
+      assert_eq!(
+        self.outputs[0].0, self.recipient,
+        "invariant: first output is recipient"
+      );
       self.outputs[0].1 = Amount::from_sat(Self::TARGET_POSTAGE);
       self.outputs.push((
-        self.change[0].clone(),
+        self.change.clone(),
         output_total - Amount::from_sat(ordinal_offset + Self::TARGET_POSTAGE),
       ));
     }
@@ -214,6 +218,15 @@ impl TransactionBuilder {
     }
     assert!(found, "invariant: ordinal is found in outputs");
 
+    for output in &transaction.output {
+      if output.script_pubkey != self.change.script_pubkey() {
+        assert!(
+          output.value < 2 * Self::TARGET_POSTAGE,
+          "invariant: excess postage is stripped"
+        );
+      }
+    }
+
     Ok(transaction)
   }
 
@@ -264,11 +277,9 @@ mod tests {
       "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
-      [
-        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-          .parse()
-          .unwrap(),
-      ],
+      "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+        .parse()
+        .unwrap(),
     )
     .select_ordinal()
     .unwrap();
@@ -326,11 +337,9 @@ mod tests {
       recipient: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
-      change: [
-        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-          .parse()
-          .unwrap(),
-      ],
+      change: "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+        .parse()
+        .unwrap(),
       inputs: vec![
         "1111111111111111111111111111111111111111111111111111111111111111:1"
           .parse()
@@ -438,11 +447,9 @@ mod tests {
         "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
           .parse()
           .unwrap(),
-        [
-          "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-            .parse()
-            .unwrap(),
-        ]
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
       ),
       Ok(Transaction {
         version: 1,
@@ -482,11 +489,9 @@ mod tests {
         "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
           .parse()
           .unwrap(),
-        [
-          "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-            .parse()
-            .unwrap(),
-        ]
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
       ),
       Err(Error::ConsumedByFee(Ordinal(14900)))
     )
@@ -508,11 +513,9 @@ mod tests {
       "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
-      [
-        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-          .parse()
-          .unwrap(),
-      ],
+      "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+        .parse()
+        .unwrap(),
     )
     .build()
     .ok();
@@ -534,11 +537,9 @@ mod tests {
       "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
-      [
-        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-          .parse()
-          .unwrap(),
-      ],
+      "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+        .parse()
+        .unwrap(),
     )
     .build()
     .ok();
@@ -560,11 +561,9 @@ mod tests {
       "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
-      [
-        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-          .parse()
-          .unwrap(),
-      ],
+      "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+        .parse()
+        .unwrap(),
     )
     .select_ordinal()
     .unwrap();
@@ -592,11 +591,9 @@ mod tests {
       "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
-      [
-        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-          .parse()
-          .unwrap(),
-      ],
+      "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+        .parse()
+        .unwrap(),
     )
     .select_ordinal()
     .unwrap();
@@ -622,11 +619,9 @@ mod tests {
         "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
           .parse()
           .unwrap(),
-        [
-          "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-            .parse()
-            .unwrap(),
-        ]
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
       ),
       Ok(Transaction {
         version: 1,
