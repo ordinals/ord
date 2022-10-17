@@ -653,4 +653,56 @@ mod tests {
       })
     )
   }
+
+  #[test]
+  #[should_panic(expected = "invariant: excess postage is stripped")]
+  fn invariant_excess_postage_is_stripped() {
+    let utxos = vec![(
+      "1111111111111111111111111111111111111111111111111111111111111111:1"
+        .parse()
+        .unwrap(),
+      vec![(0, 1_000_000)],
+    )];
+
+    pretty_assert_eq!(
+      TransactionBuilder::new(
+        utxos.into_iter().collect(),
+        Ordinal(0),
+        "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+          .parse()
+          .unwrap(),
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
+      ).select_ordinal().unwrap().build(),
+      Ok(Transaction {
+        version: 1,
+        lock_time: PackedLockTime::ZERO,
+        input: vec![TxIn {
+          previous_output: "1111111111111111111111111111111111111111111111111111111111111111:1"
+            .parse()
+            .unwrap(),
+          script_sig: Script::new(),
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          witness: Witness::new(),
+        },],
+        output: vec![
+          TxOut {
+            value: TransactionBuilder::TARGET_POSTAGE,
+            script_pubkey: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+              .parse::<Address>()
+              .unwrap()
+              .script_pubkey(),
+          },
+          TxOut {
+            value: 1_000_000 - TransactionBuilder::TARGET_POSTAGE - 226,
+            script_pubkey: "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+              .parse::<Address>()
+              .unwrap()
+              .script_pubkey(),
+          }
+        ],
+      })
+    )
+  }
 }
