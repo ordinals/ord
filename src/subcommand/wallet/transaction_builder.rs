@@ -25,6 +25,7 @@ impl std::error::Error for Error {}
 
 #[derive(Debug, PartialEq)]
 pub(crate) struct TransactionBuilder {
+  change: [Address; 2],
   inputs: Vec<OutPoint>,
   ordinal: Ordinal,
   outputs: Vec<(Address, Amount)>,
@@ -40,9 +41,11 @@ impl TransactionBuilder {
     ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
     ordinal: Ordinal,
     recipient: Address,
+    change: [Address; 2],
   ) -> Result<Transaction> {
-    Self::new(ranges, ordinal, recipient)
+    Self::new(ranges, ordinal, recipient, change)
       .select_ordinal()?
+      .strip_excess_postage()?
       .deduct_fee()?
       .build()
   }
@@ -51,6 +54,7 @@ impl TransactionBuilder {
     ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
     ordinal: Ordinal,
     recipient: Address,
+    change: [Address; 2],
   ) -> Self {
     Self {
       utxos: ranges.keys().cloned().collect(),
@@ -59,6 +63,7 @@ impl TransactionBuilder {
       outputs: Vec::new(),
       ranges,
       recipient,
+      change,
     }
   }
 
@@ -80,6 +85,26 @@ impl TransactionBuilder {
       self.recipient.clone(),
       Amount::from_sat(ranges.iter().map(|(start, end)| end - start).sum()),
     ));
+
+    Ok(self)
+  }
+
+  fn strip_excess_postage(mut self) -> Result<Self> {
+    const MIN_POSTAGE: u64 = 10_000;
+    let ordinal_offset = self.calculate_ordinal_offset();
+    let output_amount = self
+      .outputs
+      .iter()
+      .map(|(_address, amount)| *amount)
+      .sum::<Amount>();
+
+    if Amount::from_sat(ordinal_offset + 2 * MIN_POSTAGE) < output_amount {
+      self.outputs[0].1 = Amount::from_sat(MIN_POSTAGE);
+      self.outputs.push((
+        self.change[0].clone(),
+        output_amount - Amount::from_sat(ordinal_offset + MIN_POSTAGE),
+      ));
+    }
 
     Ok(self)
   }
@@ -208,6 +233,7 @@ impl TransactionBuilder {
 #[cfg(test)]
 mod tests {
   use {super::Error, super::*};
+  const MIN_POSTAGE: u64 = 10_000;
 
   #[test]
   fn select_ordinal() {
@@ -238,6 +264,14 @@ mod tests {
       "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
+      [
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
+        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+          .parse()
+          .unwrap(),
+      ],
     )
     .select_ordinal()
     .unwrap();
@@ -295,6 +329,14 @@ mod tests {
       recipient: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
+      change: [
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
+        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+          .parse()
+          .unwrap(),
+      ],
       inputs: vec![
         "1111111111111111111111111111111111111111111111111111111111111111:1"
           .parse()
@@ -402,6 +444,14 @@ mod tests {
         "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
           .parse()
           .unwrap(),
+        [
+          "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+            .parse()
+            .unwrap(),
+          "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+            .parse()
+            .unwrap(),
+        ]
       ),
       Ok(Transaction {
         version: 1,
@@ -415,7 +465,7 @@ mod tests {
           witness: Witness::new(),
         },],
         output: vec![TxOut {
-          value: 4836,
+          value: 5000 - 164,
           script_pubkey: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
             .parse::<Address>()
             .unwrap()
@@ -441,6 +491,14 @@ mod tests {
         "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
           .parse()
           .unwrap(),
+        [
+          "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+            .parse()
+            .unwrap(),
+          "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+            .parse()
+            .unwrap(),
+        ]
       ),
       Err(Error::ConsumedByFee(Ordinal(14900)))
     )
@@ -462,6 +520,14 @@ mod tests {
       "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
+      [
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
+        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+          .parse()
+          .unwrap(),
+      ],
     )
     .build()
     .ok();
@@ -483,6 +549,14 @@ mod tests {
       "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
+      [
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
+        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+          .parse()
+          .unwrap(),
+      ],
     )
     .build()
     .ok();
@@ -504,6 +578,14 @@ mod tests {
       "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
+      [
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
+        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+          .parse()
+          .unwrap(),
+      ],
     )
     .select_ordinal()
     .unwrap();
@@ -531,6 +613,14 @@ mod tests {
       "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
+      [
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
+        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+          .parse()
+          .unwrap(),
+      ],
     )
     .select_ordinal()
     .unwrap();
@@ -538,5 +628,61 @@ mod tests {
     builder.outputs[0].1 = Amount::from_sat(0);
 
     builder.build().ok();
+  }
+
+  #[test]
+  fn excess_postage_is_stripped() {
+    let utxos = vec![(
+      "1111111111111111111111111111111111111111111111111111111111111111:1"
+        .parse()
+        .unwrap(),
+      vec![(0, 1_000_000)],
+    )];
+
+    pretty_assert_eq!(
+      TransactionBuilder::build_transaction(
+        utxos.into_iter().collect(),
+        Ordinal(0),
+        "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+          .parse()
+          .unwrap(),
+        [
+          "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+            .parse()
+            .unwrap(),
+          "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+            .parse()
+            .unwrap(),
+        ]
+      ),
+      Ok(Transaction {
+        version: 1,
+        lock_time: PackedLockTime::ZERO,
+        input: vec![TxIn {
+          previous_output: "1111111111111111111111111111111111111111111111111111111111111111:1"
+            .parse()
+            .unwrap(),
+          script_sig: Script::new(),
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          witness: Witness::new(),
+        },],
+        output: vec![
+          TxOut {
+            value: MIN_POSTAGE,
+            script_pubkey: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+              .parse::<Address>()
+              .unwrap()
+              .script_pubkey(),
+          },
+          TxOut {
+            value: 1_000_000 - MIN_POSTAGE - 226,
+            script_pubkey: "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+              .parse::<Address>()
+              .unwrap()
+              .script_pubkey(),
+          }
+        ],
+      })
+    )
   }
 }
