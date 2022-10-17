@@ -39,6 +39,7 @@ type Result<T> = std::result::Result<T, Error>;
 impl TransactionBuilder {
   const TARGET_POSTAGE: u64 = 10_000;
   const MAX_POSTAGE: u64 = 2 * Self::TARGET_POSTAGE;
+  const FEE_RATE: usize = 1;
 
   pub(crate) fn build_transaction(
     ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
@@ -122,7 +123,7 @@ impl TransactionBuilder {
     let ordinal_offset = self.calculate_ordinal_offset();
 
     let tx = self.build()?;
-    let fee = Amount::from_sat((2 * tx.vsize()).try_into().unwrap());
+    let fee = Amount::from_sat((Self::FEE_RATE * tx.vsize()).try_into().unwrap());
 
     let output_amount = self
       .outputs
@@ -467,7 +468,7 @@ mod tests {
           witness: Witness::new(),
         },],
         output: vec![TxOut {
-          value: 5000 - 164,
+          value: 5000 - 82,
           script_pubkey: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
             .parse::<Address>()
             .unwrap()
@@ -489,7 +490,7 @@ mod tests {
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
         utxos.into_iter().collect(),
-        Ordinal(14900),
+        Ordinal(14950),
         "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
           .parse()
           .unwrap(),
@@ -497,7 +498,7 @@ mod tests {
           .parse()
           .unwrap(),
       ),
-      Err(Error::ConsumedByFee(Ordinal(14900)))
+      Err(Error::ConsumedByFee(Ordinal(14950)))
     )
   }
 
@@ -647,7 +648,7 @@ mod tests {
               .script_pubkey(),
           },
           TxOut {
-            value: 1_000_000 - TransactionBuilder::TARGET_POSTAGE - 226,
+            value: 1_000_000 - TransactionBuilder::TARGET_POSTAGE - 113,
             script_pubkey: "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
               .parse::<Address>()
               .unwrap()
