@@ -102,9 +102,9 @@ update-modern-normalize:
     https://raw.githubusercontent.com/sindresorhus/modern-normalize/main/modern-normalize.css \
     > static/modern-normalize.css
 
-download-log host="ordinals.com":
-  ssh root@{{host}} 'journalctl -u ord > ord.log'
-  rsync --progress root@{{host}}:ord.log ord.log
+download-log unit='ord' host='ordinals.com':
+  ssh root@{{host}} 'mkdir -p tmp && journalctl -u {{unit}} > tmp/{{unit}}.log'
+  rsync --progress root@{{host}}:tmp/{{unit}}.log tmp/{{unit}}.log
 
 graph:
   ./bin/graph ord.log
