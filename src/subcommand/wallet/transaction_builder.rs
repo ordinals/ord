@@ -37,6 +37,8 @@ pub(crate) struct TransactionBuilder {
 type Result<T> = std::result::Result<T, Error>;
 
 impl TransactionBuilder {
+  const TARGET_POSTAGE: u64 = 10_000;
+
   pub(crate) fn build_transaction(
     ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
     ordinal: Ordinal,
@@ -90,19 +92,18 @@ impl TransactionBuilder {
   }
 
   fn strip_excess_postage(mut self) -> Result<Self> {
-    const MIN_POSTAGE: u64 = 10_000;
     let ordinal_offset = self.calculate_ordinal_offset();
-    let output_amount = self
+    let output_total = self
       .outputs
       .iter()
       .map(|(_address, amount)| *amount)
       .sum::<Amount>();
 
-    if Amount::from_sat(ordinal_offset + 2 * MIN_POSTAGE) < output_amount {
-      self.outputs[0].1 = Amount::from_sat(MIN_POSTAGE);
+    if output_total > Amount::from_sat(ordinal_offset + 2 * Self::TARGET_POSTAGE) {
+      self.outputs[0].1 = Amount::from_sat(Self::TARGET_POSTAGE);
       self.outputs.push((
         self.change[0].clone(),
-        output_amount - Amount::from_sat(ordinal_offset + MIN_POSTAGE),
+        output_total - Amount::from_sat(ordinal_offset + Self::TARGET_POSTAGE),
       ));
     }
 
@@ -233,7 +234,6 @@ impl TransactionBuilder {
 #[cfg(test)]
 mod tests {
   use {super::Error, super::*};
-  const MIN_POSTAGE: u64 = 10_000;
 
   #[test]
   fn select_ordinal() {
@@ -668,14 +668,14 @@ mod tests {
         },],
         output: vec![
           TxOut {
-            value: MIN_POSTAGE,
+            value: TransactionBuilder::TARGET_POSTAGE,
             script_pubkey: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
               .parse::<Address>()
               .unwrap()
               .script_pubkey(),
           },
           TxOut {
-            value: 1_000_000 - MIN_POSTAGE - 226,
+            value: 1_000_000 - TransactionBuilder::TARGET_POSTAGE - 226,
             script_pubkey: "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
               .parse::<Address>()
               .unwrap()
