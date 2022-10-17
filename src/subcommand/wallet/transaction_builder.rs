@@ -143,8 +143,13 @@ impl TransactionBuilder {
       })
       .expect("invariant: ordinal is contained in utxo ranges");
 
-    assert!(
-      self.inputs.contains(outpoint.0),
+    assert_eq!(
+      transaction
+        .input
+        .iter()
+        .filter(|tx_in| tx_in.previous_output == *outpoint.0)
+        .count(),
+      1,
       "invariant: inputs spend ordinal"
     );
 
