@@ -110,6 +110,29 @@ impl TransactionBuilder {
   }
 
   fn build(&self) -> Result<Transaction> {
+    let transaction = Transaction {
+      version: 1,
+      lock_time: PackedLockTime::ZERO,
+      input: self
+        .inputs
+        .iter()
+        .map(|outpoint| TxIn {
+          previous_output: *outpoint,
+          script_sig: Script::new(),
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          witness: Witness::new(),
+        })
+        .collect(),
+      output: self
+        .outputs
+        .iter()
+        .map(|(address, amount)| TxOut {
+          value: amount.to_sat(),
+          script_pubkey: address.script_pubkey(),
+        })
+        .collect(),
+    };
+
     let outpoint = self
       .ranges
       .iter()
@@ -129,11 +152,12 @@ impl TransactionBuilder {
 
     let mut output_end = 0;
     let mut found = false;
-    for output in &self.outputs {
-      output_end += output.1.to_sat();
+    for tx_out in &transaction.output {
+      output_end += tx_out.value;
       if output_end > ordinal_offset {
         assert_eq!(
-          output.0, self.recipient,
+          tx_out.script_pubkey,
+          self.recipient.script_pubkey(),
           "invariant: ordinal is sent to recipient"
         );
         found = true;
