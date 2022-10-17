@@ -16,7 +16,6 @@ impl Send {
     let utxos = list_unspent(&options, &index)?.into_iter().collect();
     let change = [
       self.get_change_address(&client)?,
-      self.get_change_address(&client)?,
     ];
 
     let unsigned_transaction =

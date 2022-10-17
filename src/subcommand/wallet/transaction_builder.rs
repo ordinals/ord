@@ -25,7 +25,7 @@ impl std::error::Error for Error {}
 
 #[derive(Debug, PartialEq)]
 pub(crate) struct TransactionBuilder {
-  change: [Address; 2],
+  change: [Address; 1],
   inputs: Vec<OutPoint>,
   ordinal: Ordinal,
   outputs: Vec<(Address, Amount)>,
@@ -43,7 +43,7 @@ impl TransactionBuilder {
     ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
     ordinal: Ordinal,
     recipient: Address,
-    change: [Address; 2],
+    change: [Address; 1],
   ) -> Result<Transaction> {
     Self::new(ranges, ordinal, recipient, change)
       .select_ordinal()?
@@ -56,7 +56,7 @@ impl TransactionBuilder {
     ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
     ordinal: Ordinal,
     recipient: Address,
-    change: [Address; 2],
+    change: [Address; 1],
   ) -> Self {
     Self {
       utxos: ranges.keys().cloned().collect(),
@@ -268,9 +268,6 @@ mod tests {
         "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
           .parse()
           .unwrap(),
-        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
-          .parse()
-          .unwrap(),
       ],
     )
     .select_ordinal()
@@ -331,9 +328,6 @@ mod tests {
         .unwrap(),
       change: [
         "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-          .parse()
-          .unwrap(),
-        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
           .parse()
           .unwrap(),
       ],
@@ -448,9 +442,6 @@ mod tests {
           "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
             .parse()
             .unwrap(),
-          "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
-            .parse()
-            .unwrap(),
         ]
       ),
       Ok(Transaction {
@@ -495,9 +486,6 @@ mod tests {
           "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
             .parse()
             .unwrap(),
-          "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
-            .parse()
-            .unwrap(),
         ]
       ),
       Err(Error::ConsumedByFee(Ordinal(14900)))
@@ -522,9 +510,6 @@ mod tests {
         .unwrap(),
       [
         "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-          .parse()
-          .unwrap(),
-        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
           .parse()
           .unwrap(),
       ],
@@ -553,9 +538,6 @@ mod tests {
         "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
           .parse()
           .unwrap(),
-        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
-          .parse()
-          .unwrap(),
       ],
     )
     .build()
@@ -580,9 +562,6 @@ mod tests {
         .unwrap(),
       [
         "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-          .parse()
-          .unwrap(),
-        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
           .parse()
           .unwrap(),
       ],
@@ -617,9 +596,6 @@ mod tests {
         "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
           .parse()
           .unwrap(),
-        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
-          .parse()
-          .unwrap(),
       ],
     )
     .select_ordinal()
@@ -648,9 +624,6 @@ mod tests {
           .unwrap(),
         [
           "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-            .parse()
-            .unwrap(),
-          "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
             .parse()
             .unwrap(),
         ]
