@@ -50,7 +50,7 @@ impl std::error::Error for Error {}
 
 #[derive(Debug, PartialEq)]
 pub(crate) struct TransactionBuilder {
-  change: Address,
+  change: [Address; 2],
   inputs: Vec<OutPoint>,
   ordinal: Ordinal,
   outputs: Vec<(Address, Amount)>,
@@ -70,10 +70,11 @@ impl TransactionBuilder {
     ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
     ordinal: Ordinal,
     recipient: Address,
-    change: Address,
+    change: [Address; 2],
   ) -> Result<Transaction> {
     Self::new(ranges, ordinal, recipient, change)
       .select_ordinal()?
+      .align_ordinal()?
       .strip_excess_postage()?
       .deduct_fee()?
       .build()
@@ -83,7 +84,7 @@ impl TransactionBuilder {
     ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
     ordinal: Ordinal,
     recipient: Address,
-    change: Address,
+    change: [Address; 2],
   ) -> Self {
     Self {
       utxos: ranges.keys().cloned().collect(),
@@ -118,6 +119,28 @@ impl TransactionBuilder {
     Ok(self)
   }
 
+  fn align_ordinal(mut self) -> Result<Self> {
+    assert_eq!(self.outputs.len(), 1, "invariant: only one output");
+
+    assert_eq!(
+      self.outputs[0].0, self.recipient,
+      "invariant: first output is recipient"
+    );
+
+    let ordinal_offset = self.calculate_ordinal_offset();
+    let (ordinal_address, ordinal_amount) = self.outputs[0].clone();
+
+    if ordinal_offset != 0 {
+      self.outputs[0] = (self.change[0].clone(), Amount::from_sat(ordinal_offset));
+      self.outputs.push((
+        ordinal_address,
+        ordinal_amount - Amount::from_sat(ordinal_offset),
+      ));
+    }
+
+    Ok(self)
+  }
+
   fn strip_excess_postage(mut self) -> Result<Self> {
     let ordinal_offset = self.calculate_ordinal_offset();
     let output_total = self
@@ -126,17 +149,16 @@ impl TransactionBuilder {
       .map(|(_address, amount)| *amount)
       .sum::<Amount>();
 
-    assert_eq!(self.outputs.len(), 1, "invariant: only one output");
-
-    assert_eq!(
-      self.outputs[0].0, self.recipient,
-      "invariant: first output is recipient"
-    );
+    let ordinal_output_idx = self
+      .outputs
+      .iter()
+      .position(|(address, _amount)| address == &self.recipient)
+      .unwrap();
 
     if output_total > Amount::from_sat(ordinal_offset + Self::MAX_POSTAGE) {
-      self.outputs[0].1 = Amount::from_sat(Self::TARGET_POSTAGE);
+      self.outputs[ordinal_output_idx].1 = Amount::from_sat(Self::TARGET_POSTAGE);
       self.outputs.push((
-        self.change.clone(),
+        self.change[1].clone(),
         output_total - Amount::from_sat(ordinal_offset + Self::TARGET_POSTAGE),
       ));
     }
@@ -249,7 +271,11 @@ impl TransactionBuilder {
     assert!(found, "invariant: ordinal is found in outputs");
 
     for output in &transaction.output {
-      if output.script_pubkey != self.change.script_pubkey() {
+      if !self
+        .change
+        .iter()
+        .any(|address| output.script_pubkey == address.script_pubkey())
+      {
         assert!(
           output.value < Self::MAX_POSTAGE,
           "invariant: excess postage is stripped"
@@ -307,9 +333,14 @@ mod tests {
       "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
-      "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-        .parse()
-        .unwrap(),
+      [
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
+        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+          .parse()
+          .unwrap(),
+      ],
     )
     .select_ordinal()
     .unwrap();
@@ -367,9 +398,14 @@ mod tests {
       recipient: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
-      change: "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-        .parse()
-        .unwrap(),
+      change: [
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
+        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+          .parse()
+          .unwrap(),
+      ],
       inputs: vec![
         "1111111111111111111111111111111111111111111111111111111111111111:1"
           .parse()
@@ -477,9 +513,14 @@ mod tests {
         "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
           .parse()
           .unwrap(),
-        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-          .parse()
-          .unwrap(),
+        [
+          "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+            .parse()
+            .unwrap(),
+          "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+            .parse()
+            .unwrap(),
+        ],
       ),
       Ok(Transaction {
         version: 1,
@@ -519,9 +560,14 @@ mod tests {
         "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
           .parse()
           .unwrap(),
-        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-          .parse()
-          .unwrap(),
+        [
+          "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+            .parse()
+            .unwrap(),
+          "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+            .parse()
+            .unwrap(),
+        ],
       ),
       Err(Error::ConsumedByFee(Ordinal(14950)))
     )
@@ -543,9 +589,14 @@ mod tests {
       "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
-      "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-        .parse()
-        .unwrap(),
+      [
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
+        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+          .parse()
+          .unwrap(),
+      ],
     )
     .build()
     .ok();
@@ -567,9 +618,14 @@ mod tests {
       "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
-      "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-        .parse()
-        .unwrap(),
+      [
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
+        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+          .parse()
+          .unwrap(),
+      ],
     )
     .build()
     .ok();
@@ -591,9 +647,14 @@ mod tests {
       "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
-      "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-        .parse()
-        .unwrap(),
+      [
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
+        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+          .parse()
+          .unwrap(),
+      ],
     )
     .select_ordinal()
     .unwrap();
@@ -621,9 +682,14 @@ mod tests {
       "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
-      "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-        .parse()
-        .unwrap(),
+      [
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
+        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+          .parse()
+          .unwrap(),
+      ],
     )
     .select_ordinal()
     .unwrap();
@@ -649,9 +715,14 @@ mod tests {
         "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
           .parse()
           .unwrap(),
-        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-          .parse()
-          .unwrap(),
+        [
+          "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+            .parse()
+            .unwrap(),
+          "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+            .parse()
+            .unwrap(),
+        ]
       ),
       Ok(Transaction {
         version: 1,
@@ -674,7 +745,7 @@ mod tests {
           },
           TxOut {
             value: 1_000_000 - TransactionBuilder::TARGET_POSTAGE - 113,
-            script_pubkey: "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+            script_pubkey: "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
               .parse::<Address>()
               .unwrap()
               .script_pubkey(),
@@ -700,9 +771,14 @@ mod tests {
       "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
-      "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-        .parse()
-        .unwrap(),
+      [
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
+        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+          .parse()
+          .unwrap(),
+      ],
     )
     .select_ordinal()
     .unwrap()
