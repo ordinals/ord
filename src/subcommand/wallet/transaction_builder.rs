@@ -324,14 +324,9 @@ impl TransactionBuilder {
       fee -= Amount::from_sat(output.value);
     }
 
-    let fee_rate = fee.to_sat() as f64 / transaction.vsize() as f64;
     assert!(
-      fee_rate >= Self::TARGET_FEE_RATE.to_sat() as f64,
-      "invariant: fee rate must be greater than or equal to target fee rate",
-    );
-    assert!(
-      fee_rate < (Self::TARGET_FEE_RATE.to_sat() + 1) as f64,
-      "invariant: fee rate must be less than maximum fee rate",
+      fee.to_sat() / transaction.vsize() as u64 == Self::TARGET_FEE_RATE.to_sat(),
+      "invariant: fee rate is equal to target fee rate",
     );
 
     Ok(transaction)
@@ -929,7 +924,7 @@ mod tests {
   }
 
   #[test]
-  #[should_panic(expected = "invariant: fee rate must be greater than or equal to target fee rate")]
+  #[should_panic(expected = "invariant: fee rate is equal to target fee rate")]
   fn fee_is_at_least_target_fee_rate() {
     let utxos = vec![(
       "1111111111111111111111111111111111111111111111111111111111111111:1"
@@ -957,46 +952,6 @@ mod tests {
     .unwrap()
     .strip_excess_postage()
     .unwrap()
-    .build()
-    .unwrap();
-  }
-
-  #[test]
-  #[should_panic(expected = "invariant: fee rate must be less than maximum fee rate")]
-  fn fee_is_no_more_than_target_fee_rate() {
-    TransactionBuilder {
-      utxos: vec![
-        "1111111111111111111111111111111111111111111111111111111111111111:1"
-          .parse()
-          .unwrap(),
-      ]
-      .into_iter()
-      .collect(),
-      ranges: vec![(
-        "1111111111111111111111111111111111111111111111111111111111111111:1"
-          .parse()
-          .unwrap(),
-        vec![(0, 1000)],
-      )]
-      .into_iter()
-      .collect(),
-      ordinal: Ordinal(0),
-      recipient: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
-        .parse()
-        .unwrap(),
-      change: Vec::new(),
-      inputs: vec![
-        "1111111111111111111111111111111111111111111111111111111111111111:1"
-          .parse()
-          .unwrap(),
-      ],
-      outputs: vec![(
-        "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
-          .parse()
-          .unwrap(),
-        Amount::from_sat(754),
-      )],
-    }
     .build()
     .unwrap();
   }
