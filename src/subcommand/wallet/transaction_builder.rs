@@ -62,8 +62,8 @@ pub(crate) struct TransactionBuilder {
 type Result<T> = std::result::Result<T, Error>;
 
 impl TransactionBuilder {
-  const TARGET_POSTAGE: u64 = 10_000;
-  const MAX_POSTAGE: u64 = 2 * Self::TARGET_POSTAGE;
+  const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
+  const MAX_POSTAGE: Amount = Amount::from_sat(2 * 10_000);
   const FEE_RATE: usize = 1;
 
   pub(crate) fn build_transaction(
@@ -150,17 +150,18 @@ impl TransactionBuilder {
       .map(|(_address, amount)| *amount)
       .sum::<Amount>();
 
-    let _ordinal_output_idx = self
+    self
       .outputs
       .iter()
       .position(|(address, _amount)| address == &self.recipient)
       .expect("couldn't find output that contains the index");
 
-    if total_output_amount > Amount::from_sat(ordinal_offset + Self::MAX_POSTAGE) {
-      self.outputs.last_mut().expect("no outputs found").1 = Amount::from_sat(Self::TARGET_POSTAGE);
+    let postage = total_output_amount - Amount::from_sat(ordinal_offset);
+    if postage > Self::MAX_POSTAGE {
+      self.outputs.last_mut().expect("no outputs found").1 = Self::TARGET_POSTAGE;
       self.outputs.push((
         self.change.pop().expect("not enough change addresses"),
-        total_output_amount - Amount::from_sat(ordinal_offset + Self::TARGET_POSTAGE),
+        postage - Self::TARGET_POSTAGE,
       ));
     }
 
@@ -275,7 +276,7 @@ impl TransactionBuilder {
     for output in &transaction.output {
       if output.script_pubkey == self.recipient.script_pubkey() {
         assert!(
-          output.value < Self::MAX_POSTAGE,
+          Amount::from_sat(output.value) < Self::MAX_POSTAGE,
           "invariant: excess postage is stripped"
         );
         assert_eq!(
@@ -740,14 +741,14 @@ mod tests {
         },],
         output: vec![
           TxOut {
-            value: TransactionBuilder::TARGET_POSTAGE,
+            value: TransactionBuilder::TARGET_POSTAGE.to_sat(),
             script_pubkey: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
               .parse::<Address>()
               .unwrap()
               .script_pubkey(),
           },
           TxOut {
-            value: 1_000_000 - TransactionBuilder::TARGET_POSTAGE - 113,
+            value: 1_000_000 - TransactionBuilder::TARGET_POSTAGE.to_sat() - 113,
             script_pubkey: "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
               .parse::<Address>()
               .unwrap()
