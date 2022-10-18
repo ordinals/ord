@@ -64,7 +64,7 @@ type Result<T> = std::result::Result<T, Error>;
 impl TransactionBuilder {
   const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
   const MAX_POSTAGE: Amount = Amount::from_sat(2 * 10_000);
-  const FEE_RATE: usize = 1;
+  const FEE_RATE: Amount = Amount::from_sat(1);
 
   pub(crate) fn build_transaction(
     ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
@@ -171,8 +171,32 @@ impl TransactionBuilder {
   fn deduct_fee(mut self) -> Result<Self> {
     let ordinal_offset = self.calculate_ordinal_offset();
 
-    let tx = self.build()?;
-    let fee = Amount::from_sat((Self::FEE_RATE * tx.vsize()).try_into().unwrap());
+    let fee = Self::FEE_RATE
+      * Transaction {
+        version: 1,
+        lock_time: PackedLockTime::ZERO,
+        input: self
+          .inputs
+          .iter()
+          .map(|_| TxIn {
+            previous_output: OutPoint::null(),
+            script_sig: Script::new(),
+            sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+            witness: Witness::new(),
+          })
+          .collect(),
+        output: self
+          .outputs
+          .iter()
+          .map(|(address, amount)| TxOut {
+            value: amount.to_sat(),
+            script_pubkey: address.script_pubkey(),
+          })
+          .collect(),
+      }
+      .vsize()
+      .try_into()
+      .unwrap();
 
     let total_output_amount = self
       .outputs
@@ -194,7 +218,7 @@ impl TransactionBuilder {
     Ok(self)
   }
 
-  fn build(&self) -> Result<Transaction> {
+  fn build(self) -> Result<Transaction> {
     let ordinal = self.ordinal.n();
     let recipient = self.recipient.script_pubkey();
     let transaction = Transaction {
@@ -286,6 +310,31 @@ impl TransactionBuilder {
       }
       offset += output.value;
     }
+
+    let mut fee = Amount::ZERO;
+    for input in &transaction.input {
+      fee += Amount::from_sat(
+        self.ranges[&input.previous_output]
+          .iter()
+          .map(|(start, end)| end - start)
+          .sum::<u64>(),
+      );
+    }
+    for output in &transaction.output {
+      fee -= Amount::from_sat(output.value);
+    }
+
+    let fee_rate = fee.to_sat() as f64 / transaction.vsize() as f64;
+    assert!(
+      fee_rate >= Self::FEE_RATE.to_sat() as f64,
+      "Transaction rate {fee_rate} less than target fee rate of {}",
+      Self::FEE_RATE.to_sat()
+    );
+    assert!(
+      fee_rate < (Self::FEE_RATE.to_sat() + 1) as f64,
+      "Transaction rate {fee_rate} more than maximum fee rate of {}",
+      Self::FEE_RATE.to_sat() + 1
+    );
 
     Ok(transaction)
   }
