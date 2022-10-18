@@ -50,7 +50,7 @@ impl std::error::Error for Error {}
 
 #[derive(Debug, PartialEq)]
 pub(crate) struct TransactionBuilder {
-  change: Address,
+  change: Vec<Address>,
   inputs: Vec<OutPoint>,
   ordinal: Ordinal,
   outputs: Vec<(Address, Amount)>,
@@ -62,18 +62,19 @@ pub(crate) struct TransactionBuilder {
 type Result<T> = std::result::Result<T, Error>;
 
 impl TransactionBuilder {
-  const TARGET_POSTAGE: u64 = 10_000;
-  const MAX_POSTAGE: u64 = 2 * Self::TARGET_POSTAGE;
+  const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
+  const MAX_POSTAGE: Amount = Amount::from_sat(2 * 10_000);
   const FEE_RATE: usize = 1;
 
   pub(crate) fn build_transaction(
     ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
     ordinal: Ordinal,
     recipient: Address,
-    change: Address,
+    change: Vec<Address>,
   ) -> Result<Transaction> {
     Self::new(ranges, ordinal, recipient, change)
       .select_ordinal()?
+      .align_ordinal()?
       .strip_excess_postage()?
       .deduct_fee()?
       .build()
@@ -83,7 +84,7 @@ impl TransactionBuilder {
     ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
     ordinal: Ordinal,
     recipient: Address,
-    change: Address,
+    change: Vec<Address>,
   ) -> Self {
     Self {
       utxos: ranges.keys().cloned().collect(),
@@ -118,14 +119,7 @@ impl TransactionBuilder {
     Ok(self)
   }
 
-  fn strip_excess_postage(mut self) -> Result<Self> {
-    let ordinal_offset = self.calculate_ordinal_offset();
-    let output_total = self
-      .outputs
-      .iter()
-      .map(|(_address, amount)| *amount)
-      .sum::<Amount>();
-
+  fn align_ordinal(mut self) -> Result<Self> {
     assert_eq!(self.outputs.len(), 1, "invariant: only one output");
 
     assert_eq!(
@@ -133,11 +127,41 @@ impl TransactionBuilder {
       "invariant: first output is recipient"
     );
 
-    if output_total > Amount::from_sat(ordinal_offset + Self::MAX_POSTAGE) {
-      self.outputs[0].1 = Amount::from_sat(Self::TARGET_POSTAGE);
+    let ordinal_offset = self.calculate_ordinal_offset();
+    if ordinal_offset != 0 {
+      self.outputs.insert(
+        0,
+        (
+          self.change.pop().expect("not enough change addresses"),
+          Amount::from_sat(ordinal_offset),
+        ),
+      );
+      self.outputs.last_mut().expect("no output").1 -= Amount::from_sat(ordinal_offset);
+    }
+
+    Ok(self)
+  }
+
+  fn strip_excess_postage(mut self) -> Result<Self> {
+    let ordinal_offset = self.calculate_ordinal_offset();
+    let total_output_amount = self
+      .outputs
+      .iter()
+      .map(|(_address, amount)| *amount)
+      .sum::<Amount>();
+
+    self
+      .outputs
+      .iter()
+      .position(|(address, _amount)| address == &self.recipient)
+      .expect("couldn't find output that contains the index");
+
+    let postage = total_output_amount - Amount::from_sat(ordinal_offset);
+    if postage > Self::MAX_POSTAGE {
+      self.outputs.last_mut().expect("no outputs found").1 = Self::TARGET_POSTAGE;
       self.outputs.push((
-        self.change.clone(),
-        output_total - Amount::from_sat(ordinal_offset + Self::TARGET_POSTAGE),
+        self.change.pop().expect("not enough change addresses"),
+        postage - Self::TARGET_POSTAGE,
       ));
     }
 
@@ -150,18 +174,19 @@ impl TransactionBuilder {
     let tx = self.build()?;
     let fee = Amount::from_sat((Self::FEE_RATE * tx.vsize()).try_into().unwrap());
 
-    let output_amount = self
+    let total_output_amount = self
       .outputs
       .iter()
       .map(|(_address, amount)| *amount)
       .sum::<Amount>();
 
-    if output_amount - fee > Amount::from_sat(ordinal_offset) {
-      let (_address, amount) = self
-        .outputs
-        .last_mut()
-        .expect("No output to deduct fee from");
-      *amount -= fee;
+    let (_address, last_output_amount) = self
+      .outputs
+      .last_mut()
+      .expect("No output to deduct fee from");
+
+    if total_output_amount - fee > Amount::from_sat(ordinal_offset) && *last_output_amount >= fee {
+      *last_output_amount -= fee;
     } else {
       return Err(Error::ConsumedByFee(self.ordinal));
     }
@@ -172,7 +197,6 @@ impl TransactionBuilder {
   fn build(&self) -> Result<Transaction> {
     let ordinal = self.ordinal.n();
     let recipient = self.recipient.script_pubkey();
-
     let transaction = Transaction {
       version: 1,
       lock_time: PackedLockTime::ZERO,
@@ -248,13 +272,19 @@ impl TransactionBuilder {
     }
     assert!(found, "invariant: ordinal is found in outputs");
 
+    let mut offset = 0;
     for output in &transaction.output {
-      if output.script_pubkey != self.change.script_pubkey() {
+      if output.script_pubkey == self.recipient.script_pubkey() {
         assert!(
-          output.value < Self::MAX_POSTAGE,
+          Amount::from_sat(output.value) < Self::MAX_POSTAGE,
           "invariant: excess postage is stripped"
         );
+        assert_eq!(
+          offset, ordinal_offset,
+          "invariant: ordinal is at first position in recipient output"
+        );
       }
+      offset += output.value;
     }
 
     Ok(transaction)
@@ -307,9 +337,14 @@ mod tests {
       "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
-      "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-        .parse()
-        .unwrap(),
+      vec![
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
+        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+          .parse()
+          .unwrap(),
+      ],
     )
     .select_ordinal()
     .unwrap();
@@ -367,9 +402,14 @@ mod tests {
       recipient: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
-      change: "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-        .parse()
-        .unwrap(),
+      change: vec![
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
+        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+          .parse()
+          .unwrap(),
+      ],
       inputs: vec![
         "1111111111111111111111111111111111111111111111111111111111111111:1"
           .parse()
@@ -477,9 +517,14 @@ mod tests {
         "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
           .parse()
           .unwrap(),
-        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-          .parse()
-          .unwrap(),
+        vec![
+          "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+            .parse()
+            .unwrap(),
+          "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+            .parse()
+            .unwrap(),
+        ],
       ),
       Ok(Transaction {
         version: 1,
@@ -519,9 +564,14 @@ mod tests {
         "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
           .parse()
           .unwrap(),
-        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-          .parse()
-          .unwrap(),
+        vec![
+          "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+            .parse()
+            .unwrap(),
+          "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+            .parse()
+            .unwrap(),
+        ],
       ),
       Err(Error::ConsumedByFee(Ordinal(14950)))
     )
@@ -543,9 +593,14 @@ mod tests {
       "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
-      "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-        .parse()
-        .unwrap(),
+      vec![
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
+        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+          .parse()
+          .unwrap(),
+      ],
     )
     .build()
     .ok();
@@ -567,9 +622,14 @@ mod tests {
       "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
-      "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-        .parse()
-        .unwrap(),
+      vec![
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
+        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+          .parse()
+          .unwrap(),
+      ],
     )
     .build()
     .ok();
@@ -591,9 +651,14 @@ mod tests {
       "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
-      "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-        .parse()
-        .unwrap(),
+      vec![
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
+        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+          .parse()
+          .unwrap(),
+      ],
     )
     .select_ordinal()
     .unwrap();
@@ -621,9 +686,14 @@ mod tests {
       "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
-      "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-        .parse()
-        .unwrap(),
+      vec![
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
+        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+          .parse()
+          .unwrap(),
+      ],
     )
     .select_ordinal()
     .unwrap();
@@ -649,9 +719,14 @@ mod tests {
         "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
           .parse()
           .unwrap(),
-        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-          .parse()
-          .unwrap(),
+        vec![
+          "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+            .parse()
+            .unwrap(),
+          "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+            .parse()
+            .unwrap(),
+        ]
       ),
       Ok(Transaction {
         version: 1,
@@ -666,15 +741,15 @@ mod tests {
         },],
         output: vec![
           TxOut {
-            value: TransactionBuilder::TARGET_POSTAGE,
+            value: TransactionBuilder::TARGET_POSTAGE.to_sat(),
             script_pubkey: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
               .parse::<Address>()
               .unwrap()
               .script_pubkey(),
           },
           TxOut {
-            value: 1_000_000 - TransactionBuilder::TARGET_POSTAGE - 113,
-            script_pubkey: "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+            value: 1_000_000 - TransactionBuilder::TARGET_POSTAGE.to_sat() - 113,
+            script_pubkey: "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
               .parse::<Address>()
               .unwrap()
               .script_pubkey(),
@@ -700,11 +775,107 @@ mod tests {
       "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
-      "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-        .parse()
-        .unwrap(),
+      vec![
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
+        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+          .parse()
+          .unwrap(),
+      ],
     )
     .select_ordinal()
+    .unwrap()
+    .build()
+    .unwrap();
+  }
+
+  #[test]
+  fn ordinal_is_aligned() {
+    let utxos = vec![(
+      "1111111111111111111111111111111111111111111111111111111111111111:1"
+        .parse()
+        .unwrap(),
+      vec![(0, 10_000)],
+    )];
+
+    pretty_assert_eq!(
+      TransactionBuilder::build_transaction(
+        utxos.into_iter().collect(),
+        Ordinal(3333),
+        "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+          .parse()
+          .unwrap(),
+        vec![
+          "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+            .parse()
+            .unwrap(),
+          "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+            .parse()
+            .unwrap(),
+        ]
+      ),
+      Ok(Transaction {
+        version: 1,
+        lock_time: PackedLockTime::ZERO,
+        input: vec![TxIn {
+          previous_output: "1111111111111111111111111111111111111111111111111111111111111111:1"
+            .parse()
+            .unwrap(),
+          script_sig: Script::new(),
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          witness: Witness::new(),
+        },],
+        output: vec![
+          TxOut {
+            value: 3333,
+            script_pubkey: "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+              .parse::<Address>()
+              .unwrap()
+              .script_pubkey(),
+          },
+          TxOut {
+            value: 10_000 - 3333 - 113,
+            script_pubkey: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+              .parse::<Address>()
+              .unwrap()
+              .script_pubkey(),
+          }
+        ],
+      })
+    )
+  }
+
+  #[test]
+  #[should_panic(expected = "invariant: ordinal is at first position in recipient output")]
+  fn invariant_ordinal_is_aligned() {
+    let utxos = vec![(
+      "1111111111111111111111111111111111111111111111111111111111111111:1"
+        .parse()
+        .unwrap(),
+      vec![(0, 10_000)],
+    )];
+
+    TransactionBuilder::new(
+      utxos.into_iter().collect(),
+      Ordinal(3333),
+      "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+        .parse()
+        .unwrap(),
+      vec![
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
+        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+          .parse()
+          .unwrap(),
+      ],
+    )
+    .select_ordinal()
+    .unwrap()
+    .strip_excess_postage()
+    .unwrap()
+    .deduct_fee()
     .unwrap()
     .build()
     .unwrap();
