@@ -15,7 +15,7 @@ impl Send {
 
     let utxos = list_unspent(&options, &index)?.into_iter().collect();
 
-    let change = [
+    let change = vec![
       client
         .call("getrawchangeaddress", &[])
         .context("Could not get change addresses from wallet")?,
