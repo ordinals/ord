@@ -62,9 +62,9 @@ pub(crate) struct TransactionBuilder {
 type Result<T> = std::result::Result<T, Error>;
 
 impl TransactionBuilder {
-  const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
   const MAX_POSTAGE: Amount = Amount::from_sat(2 * 10_000);
-  const FEE_RATE: Amount = Amount::from_sat(1);
+  const TARGET_FEE_RATE: Amount = Amount::from_sat(1);
+  const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
 
   pub(crate) fn build_transaction(
     ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
@@ -171,7 +171,7 @@ impl TransactionBuilder {
   fn deduct_fee(mut self) -> Result<Self> {
     let ordinal_offset = self.calculate_ordinal_offset();
 
-    let fee = Self::FEE_RATE
+    let fee = Self::TARGET_FEE_RATE
       * Transaction {
         version: 1,
         lock_time: PackedLockTime::ZERO,
@@ -326,14 +326,14 @@ impl TransactionBuilder {
 
     let fee_rate = fee.to_sat() as f64 / transaction.vsize() as f64;
     assert!(
-      fee_rate >= Self::FEE_RATE.to_sat() as f64,
-      "Transaction rate {fee_rate} less than target fee rate of {}",
-      Self::FEE_RATE.to_sat()
+      fee_rate >= Self::TARGET_FEE_RATE.to_sat() as f64,
+      "invariant: fee rate {fee_rate} less than target fee rate of {}",
+      Self::TARGET_FEE_RATE.to_sat()
     );
     assert!(
-      fee_rate < (Self::FEE_RATE.to_sat() + 1) as f64,
-      "Transaction rate {fee_rate} more than maximum fee rate of {}",
-      Self::FEE_RATE.to_sat() + 1
+      fee_rate < (Self::TARGET_FEE_RATE.to_sat() + 1) as f64,
+      "invariant: fee rate {fee_rate} more than maximum fee rate of {}",
+      Self::TARGET_FEE_RATE.to_sat() + 1
     );
 
     Ok(transaction)
@@ -487,7 +487,7 @@ mod tests {
           "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
             .parse()
             .unwrap(),
-          Amount::from_sat(2000),
+          Amount::from_sat(1750),
         ),
       ],
     };
@@ -539,7 +539,7 @@ mod tests {
               .script_pubkey(),
           },
           TxOut {
-            value: 2000,
+            value: 1750,
             script_pubkey: "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
               .parse::<Address>()
               .unwrap()
@@ -926,6 +926,79 @@ mod tests {
     .unwrap()
     .deduct_fee()
     .unwrap()
+    .build()
+    .unwrap();
+  }
+
+  #[test]
+  #[should_panic(expected = "invariant: fee rate 0 less than target fee rate of 1")]
+  fn fee_is_at_least_target_fee_rate() {
+    let utxos = vec![(
+      "1111111111111111111111111111111111111111111111111111111111111111:1"
+        .parse()
+        .unwrap(),
+      vec![(0, 10_000)],
+    )];
+
+    TransactionBuilder::new(
+      utxos.into_iter().collect(),
+      Ordinal(0),
+      "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+        .parse()
+        .unwrap(),
+      vec![
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
+        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+          .parse()
+          .unwrap(),
+      ],
+    )
+    .select_ordinal()
+    .unwrap()
+    .strip_excess_postage()
+    .unwrap()
+    .build()
+    .unwrap();
+  }
+
+  #[test]
+  #[should_panic(expected = "invariant: fee rate 3 more than maximum fee rate of 2")]
+  fn fee_is_no_more_than_target_fee_rate() {
+    TransactionBuilder {
+      utxos: vec![
+        "1111111111111111111111111111111111111111111111111111111111111111:1"
+          .parse()
+          .unwrap(),
+      ]
+      .into_iter()
+      .collect(),
+      ranges: vec![(
+        "1111111111111111111111111111111111111111111111111111111111111111:1"
+          .parse()
+          .unwrap(),
+        vec![(0, 1000)],
+      )]
+      .into_iter()
+      .collect(),
+      ordinal: Ordinal(0),
+      recipient: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+        .parse()
+        .unwrap(),
+      change: Vec::new(),
+      inputs: vec![
+        "1111111111111111111111111111111111111111111111111111111111111111:1"
+          .parse()
+          .unwrap(),
+      ],
+      outputs: vec![(
+        "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+          .parse()
+          .unwrap(),
+        Amount::from_sat(754),
+      )],
+    }
     .build()
     .unwrap();
   }
