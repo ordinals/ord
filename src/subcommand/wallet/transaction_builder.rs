@@ -327,13 +327,11 @@ impl TransactionBuilder {
     let fee_rate = fee.to_sat() as f64 / transaction.vsize() as f64;
     assert!(
       fee_rate >= Self::TARGET_FEE_RATE.to_sat() as f64,
-      "invariant: fee rate {fee_rate} less than target fee rate of {}",
-      Self::TARGET_FEE_RATE.to_sat()
+      "invariant: fee rate must be greater than or equal to target fee rate",
     );
     assert!(
       fee_rate < (Self::TARGET_FEE_RATE.to_sat() + 1) as f64,
-      "invariant: fee rate {fee_rate} more than maximum fee rate of {}",
-      Self::TARGET_FEE_RATE.to_sat() + 1
+      "invariant: fee rate must be less than maximum fee rate",
     );
 
     Ok(transaction)
@@ -931,7 +929,7 @@ mod tests {
   }
 
   #[test]
-  #[should_panic(expected = "invariant: fee rate 0 less than target fee rate of 1")]
+  #[should_panic(expected = "invariant: fee rate must be greater than or equal to target fee rate")]
   fn fee_is_at_least_target_fee_rate() {
     let utxos = vec![(
       "1111111111111111111111111111111111111111111111111111111111111111:1"
@@ -964,7 +962,7 @@ mod tests {
   }
 
   #[test]
-  #[should_panic(expected = "invariant: fee rate 3 more than maximum fee rate of 2")]
+  #[should_panic(expected = "invariant: fee rate must be less than maximum fee rate")]
   fn fee_is_no_more_than_target_fee_rate() {
     TransactionBuilder {
       utxos: vec![
