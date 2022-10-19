@@ -77,6 +77,7 @@ impl TransactionBuilder {
       Self::new(ranges, ordinal, recipient, change)
         .select_ordinal()?
         .align_ordinal()
+        .pad_alignment_output()
         .add_postage()?
         .strip_excess_postage()
         .deduct_fee()
@@ -145,6 +146,16 @@ impl TransactionBuilder {
         ),
       );
       self.outputs.last_mut().expect("no output").1 -= Amount::from_sat(ordinal_offset);
+    }
+
+    self
+  }
+
+  fn pad_alignment_output(mut self) -> Self {
+    if self.outputs[0].0 != self.recipient
+      && self.outputs[0].1 < self.recipient.script_pubkey().dust_value()
+    {
+      todo!()
     }
 
     self
@@ -1162,6 +1173,80 @@ mod tests {
           },
           TxOut {
             value: 10_000 - 3_333 - 113,
+            script_pubkey: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+              .parse::<Address>()
+              .unwrap()
+              .script_pubkey(),
+          }
+        ],
+      })
+    )
+  }
+
+  #[test]
+  fn alignment_output_under_dust_limit_is_padded() {
+    let utxos = vec![
+      (
+        "1111111111111111111111111111111111111111111111111111111111111111:1"
+          .parse()
+          .unwrap(),
+        vec![(0, 10_000)],
+      ),
+      (
+        "2222222222222222222222222222222222222222222222222222222222222222:2"
+          .parse()
+          .unwrap(),
+        vec![(10_000, 20_000)],
+      ),
+    ];
+
+    pretty_assert_eq!(
+      TransactionBuilder::build_transaction(
+        utxos.into_iter().collect(),
+        Ordinal(1),
+        "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+          .parse()
+          .unwrap(),
+        vec![
+          "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+            .parse()
+            .unwrap(),
+          "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+            .parse()
+            .unwrap(),
+        ]
+      ),
+      Ok(Transaction {
+        version: 1,
+        lock_time: PackedLockTime::ZERO,
+        input: vec![
+          TxIn {
+            previous_output: "2222222222222222222222222222222222222222222222222222222222222222:2"
+              .parse()
+              .unwrap(),
+            script_sig: Script::new(),
+            sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+            witness: Witness::new(),
+          },
+          TxIn {
+            previous_output: "1111111111111111111111111111111111111111111111111111111111111111:1"
+              .parse()
+              .unwrap(),
+            script_sig: Script::new(),
+            sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+            witness: Witness::new(),
+          },
+        ],
+        output: vec![
+          TxOut {
+            value: 10_001,
+            script_pubkey: "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+              .parse::<Address>()
+              .unwrap()
+              .script_pubkey(),
+          },
+          TxOut {
+            value: 10_000 - 1 - 113,
             script_pubkey: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
               .parse::<Address>()
               .unwrap()
