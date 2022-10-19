@@ -717,13 +717,6 @@ mod tests {
   }
 
   #[test]
-  #[ignore]
-  #[should_panic(expect = "")]
-  fn invariant_no_dust_outputs_are_created() {
-    todo!()
-  }
-
-  #[test]
   fn additional_postage_added_when_required() {
     let utxos = vec![
       (
