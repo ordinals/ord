@@ -235,6 +235,7 @@ impl Index {
       None
     } else {
       let progress_bar = ProgressBar::new(self.client.get_block_count()?);
+      progress_bar.inc(height);
       progress_bar.set_style(
         ProgressStyle::with_template("[indexing blocks] {wide_bar} {pos}/{len}").unwrap(),
       );
