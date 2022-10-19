@@ -206,30 +206,7 @@ impl TransactionBuilder {
   fn deduct_fee(mut self) -> Result<Self> {
     let ordinal_offset = self.calculate_ordinal_offset();
 
-    let dummy_transaction = Transaction {
-      version: 1,
-      lock_time: PackedLockTime::ZERO,
-      input: self
-        .inputs
-        .iter()
-        .map(|_| TxIn {
-          previous_output: OutPoint::null(),
-          script_sig: Script::new(),
-          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-          witness: Witness::new(),
-        })
-        .collect(),
-      output: self
-        .outputs
-        .iter()
-        .map(|(address, amount)| TxOut {
-          value: amount.to_sat(),
-          script_pubkey: address.script_pubkey(),
-        })
-        .collect(),
-    };
-
-    let fee = Self::TARGET_FEE_RATE * dummy_transaction.vsize().try_into().unwrap();
+    let fee = self.estimate_fee();
 
     let total_output_amount = self
       .outputs
