@@ -351,7 +351,7 @@ impl TransactionBuilder {
             .change_addresses
             .iter()
             .any(|change_address| change_address.script_pubkey() == output.script_pubkey),
-          "Unrecognized output: {}",
+          "invariant: all output are either change or recipient: unrecognized output {}",
           output.script_pubkey
         );
       }
@@ -1174,6 +1174,47 @@ mod tests {
         ],
       })
     )
+  }
+
+  #[test]
+  #[should_panic(expected = "invariant: all output are either change or recipient")]
+  fn invariant_all_output_are_recognized() {
+    let utxos = vec![(
+      "1111111111111111111111111111111111111111111111111111111111111111:1"
+        .parse()
+        .unwrap(),
+      vec![(0, 10_000)],
+    )];
+
+    let mut builder = TransactionBuilder::new(
+      utxos.into_iter().collect(),
+      Ordinal(3_333),
+      "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+        .parse()
+        .unwrap(),
+      vec![
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
+        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+          .parse()
+          .unwrap(),
+      ],
+    )
+    .select_ordinal()
+    .unwrap()
+    .align_ordinal()
+    .unwrap()
+    .add_postage()
+    .unwrap()
+    .strip_excess_postage()
+    .unwrap()
+    .deduct_fee()
+    .unwrap();
+
+    builder.change_addresses = BTreeSet::new();
+
+    builder.build().ok();
   }
 
   #[test]
