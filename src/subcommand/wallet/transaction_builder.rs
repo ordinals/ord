@@ -158,7 +158,7 @@ impl TransactionBuilder {
       let shortfall = dust_limit + estimated_fee - self.outputs.last().unwrap().1;
       let mut found = None;
       for utxo in &self.utxos {
-        let size = self.ranges[&utxo]
+        let size = self.ranges[utxo]
           .iter()
           .map(|(start, end)| Amount::from_sat(end - start))
           .sum::<Amount>();
@@ -373,13 +373,11 @@ impl TransactionBuilder {
           "invariant: ordinal is at first position in recipient output"
         );
       } else {
-        let change_script_pubkeys = self
-          .change_addresses
-          .iter()
-          .map(Address::script_pubkey)
-          .collect::<Vec<Script>>();
         assert!(
-          change_script_pubkeys.contains(&output.script_pubkey),
+          self
+            .change_addresses
+            .iter()
+            .any(|change_address| change_address.script_pubkey() == output.script_pubkey),
           "Unrecognized output: {}",
           output.script_pubkey
         );
