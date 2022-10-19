@@ -3,7 +3,7 @@ use {
   bitcoin::consensus::encode::deserialize,
   bitcoin::BlockHeader,
   bitcoincore_rpc::{json::GetBlockHeaderResult, Auth, Client},
-  indicatif::ProgressBar,
+  indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
   rayon::iter::{IntoParallelRefIterator, ParallelIterator},
   redb::{
@@ -231,14 +231,14 @@ impl Index {
       .map(|(height, _hash)| height + 1)
       .unwrap_or(0);
 
-    let mut progress_bar = if log_enabled!(log::Level::Info) {
+    let mut progress_bar = if cfg!(test) || log_enabled!(log::Level::Info) {
       None
     } else {
-      let block_count = self.client.get_block_count()?;
-
-      eprintln!("Indexing {} blocks…", block_count.saturating_sub(height));
-
-      Some(ProgressBar::new(block_count))
+      let progress_bar = ProgressBar::new(self.client.get_block_count()?);
+      progress_bar.set_style(
+        ProgressStyle::with_template("[indexing blocks] {wide_bar} {pos}/{len}").unwrap(),
+      );
+      Some(progress_bar)
     };
 
     let mut uncomitted = 0;
