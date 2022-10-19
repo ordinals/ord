@@ -786,13 +786,50 @@ mod tests {
   }
 
   #[test]
-  fn insufficient_padding_to_add_postage() {
+  fn insufficient_padding_to_add_postage_no_utxos() {
     let utxos = vec![(
       "1111111111111111111111111111111111111111111111111111111111111111:1"
         .parse()
         .unwrap(),
       vec![(10_000, 15_000)],
     )];
+
+    pretty_assert_eq!(
+      TransactionBuilder::build_transaction(
+        utxos.into_iter().collect(),
+        Ordinal(14_950),
+        "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+          .parse()
+          .unwrap(),
+        vec![
+          "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+            .parse()
+            .unwrap(),
+          "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+            .parse()
+            .unwrap(),
+        ],
+      ),
+      Err(Error::InsufficientPadding),
+    )
+  }
+
+  #[test]
+  fn insufficient_padding_to_add_postage_small_utxos() {
+    let utxos = vec![
+      (
+        "1111111111111111111111111111111111111111111111111111111111111111:1"
+          .parse()
+          .unwrap(),
+        vec![(10_000, 15_000)],
+      ),
+      (
+        "2222222222222222222222222222222222222222222222222222222222222222:2"
+          .parse()
+          .unwrap(),
+        vec![(0, 1)],
+      ),
+    ];
 
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
