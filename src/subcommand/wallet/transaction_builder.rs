@@ -75,6 +75,7 @@ impl TransactionBuilder {
     Self::new(ranges, ordinal, recipient, change)
       .select_ordinal()?
       .align_ordinal()?
+      .add_postage()?
       .strip_excess_postage()?
       .deduct_fee()?
       .build()
@@ -139,6 +140,35 @@ impl TransactionBuilder {
       self.outputs.last_mut().expect("no output").1 -= Amount::from_sat(ordinal_offset);
     }
 
+    Ok(self)
+  }
+
+  fn add_postage(mut self) -> Result<Self> {
+    let estimated_fee = self.estimate_fee();
+    let dust_limit = self.outputs.last().unwrap().0.script_pubkey().dust_value();
+
+    if self.outputs.last().unwrap().1 < dust_limit + estimated_fee {
+      let shortfall = dust_limit + estimated_fee - self.outputs.last().unwrap().1;
+      let mut found = None;
+      for utxo in &self.utxos {
+        let size = self.ranges[&utxo]
+          .iter()
+          .map(|(start, end)| Amount::from_sat(end - start))
+          .sum::<Amount>();
+        if size > shortfall {
+          found = Some((*utxo, size));
+          break;
+        }
+      }
+      match found {
+        None => todo!("Could not find utxo to add as input"),
+        Some((utxo, size)) => {
+          self.inputs.push(utxo);
+          self.outputs.last_mut().unwrap().1 += size;
+          self.utxos.remove(&utxo);
+        }
+      }
+    }
     Ok(self)
   }
 
@@ -214,6 +244,33 @@ impl TransactionBuilder {
     }
 
     Ok(self)
+  }
+
+  fn estimate_fee(&self) -> Amount {
+    let dummy_transaction = Transaction {
+      version: 1,
+      lock_time: PackedLockTime::ZERO,
+      input: self
+        .inputs
+        .iter()
+        .map(|_| TxIn {
+          previous_output: OutPoint::null(),
+          script_sig: Script::new(),
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          witness: Witness::new(),
+        })
+        .collect(),
+      output: self
+        .outputs
+        .iter()
+        .map(|(address, amount)| TxOut {
+          value: amount.to_sat(),
+          script_pubkey: address.script_pubkey(),
+        })
+        .collect(),
+    };
+
+    Self::TARGET_FEE_RATE * dummy_transaction.vsize().try_into().unwrap()
   }
 
   fn build(self) -> Result<Transaction> {
@@ -305,6 +362,8 @@ impl TransactionBuilder {
           offset, ordinal_offset,
           "invariant: ordinal is at first position in recipient output"
         );
+      } else {
+        // todo: assert that output script pubkey is a change address
       }
       offset += output.value;
     }
@@ -602,6 +661,57 @@ mod tests {
     )];
 
     pretty_assert_eq!(
+      TransactionBuilder::new(
+        utxos.into_iter().collect(),
+        Ordinal(14950),
+        "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+          .parse()
+          .unwrap(),
+        vec![
+          "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+            .parse()
+            .unwrap(),
+          "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+            .parse()
+            .unwrap(),
+        ],
+      )
+      .select_ordinal()
+      .unwrap()
+      .align_ordinal()
+      .unwrap()
+      .strip_excess_postage()
+      .unwrap()
+      .deduct_fee(),
+      Err(Error::ConsumedByFee(Ordinal(14950)))
+    )
+  }
+
+  #[test]
+  #[ignore]
+  #[should_panic(expect = "")]
+  fn invariant_no_dust_outputs_are_created() {
+    todo!()
+  }
+
+  #[test]
+  fn additional_postage_added_when_required() {
+    let utxos = vec![
+      (
+        "1111111111111111111111111111111111111111111111111111111111111111:1"
+          .parse()
+          .unwrap(),
+        vec![(10000, 15000)],
+      ),
+      (
+        "2222222222222222222222222222222222222222222222222222222222222222:2"
+          .parse()
+          .unwrap(),
+        vec![(0, 5000)],
+      ),
+    ];
+
+    pretty_assert_eq!(
       TransactionBuilder::build_transaction(
         utxos.into_iter().collect(),
         Ordinal(14950),
@@ -617,7 +727,125 @@ mod tests {
             .unwrap(),
         ],
       ),
-      Err(Error::ConsumedByFee(Ordinal(14950)))
+      Ok(Transaction {
+        version: 1,
+        lock_time: PackedLockTime::ZERO,
+        input: vec![
+          TxIn {
+            previous_output: "1111111111111111111111111111111111111111111111111111111111111111:1"
+              .parse()
+              .unwrap(),
+            script_sig: Script::new(),
+            sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+            witness: Witness::new(),
+          },
+          TxIn {
+            previous_output: "2222222222222222222222222222222222222222222222222222222222222222:2"
+              .parse()
+              .unwrap(),
+            script_sig: Script::new(),
+            sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+            witness: Witness::new(),
+          },
+        ],
+        output: vec![
+          TxOut {
+            value: 4950,
+            script_pubkey: "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+              .parse::<Address>()
+              .unwrap()
+              .script_pubkey(),
+          },
+          TxOut {
+            value: 4896,
+            script_pubkey: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+              .parse::<Address>()
+              .unwrap()
+              .script_pubkey(),
+          },
+        ],
+      })
+    )
+  }
+
+  #[test]
+  fn excess_additional_postage_is_stripped() {
+    let utxos = vec![
+      (
+        "1111111111111111111111111111111111111111111111111111111111111111:1"
+          .parse()
+          .unwrap(),
+        vec![(10000, 15000)],
+      ),
+      (
+        "2222222222222222222222222222222222222222222222222222222222222222:2"
+          .parse()
+          .unwrap(),
+        vec![(15000, 35000)],
+      ),
+    ];
+
+    pretty_assert_eq!(
+      TransactionBuilder::build_transaction(
+        utxos.into_iter().collect(),
+        Ordinal(14950),
+        "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+          .parse()
+          .unwrap(),
+        vec![
+          "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+            .parse()
+            .unwrap(),
+          "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+            .parse()
+            .unwrap(),
+        ],
+      ),
+      Ok(Transaction {
+        version: 1,
+        lock_time: PackedLockTime::ZERO,
+        input: vec![
+          TxIn {
+            previous_output: "1111111111111111111111111111111111111111111111111111111111111111:1"
+              .parse()
+              .unwrap(),
+            script_sig: Script::new(),
+            sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+            witness: Witness::new(),
+          },
+          TxIn {
+            previous_output: "2222222222222222222222222222222222222222222222222222222222222222:2"
+              .parse()
+              .unwrap(),
+            script_sig: Script::new(),
+            sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+            witness: Witness::new(),
+          },
+        ],
+        output: vec![
+          TxOut {
+            value: 4_950,
+            script_pubkey: "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+              .parse::<Address>()
+              .unwrap()
+              .script_pubkey(),
+          },
+          TxOut {
+            value: TransactionBuilder::TARGET_POSTAGE.to_sat(),
+            script_pubkey: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+              .parse::<Address>()
+              .unwrap()
+              .script_pubkey(),
+          },
+          TxOut {
+            value: 9865,
+            script_pubkey: "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+              .parse::<Address>()
+              .unwrap()
+              .script_pubkey(),
+          },
+        ],
+      })
     )
   }
 
