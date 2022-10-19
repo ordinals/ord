@@ -167,14 +167,11 @@ impl TransactionBuilder {
           break;
         }
       }
-      match found {
-        None => return Err(Error::InsufficientPadding),
-        Some((utxo, size)) => {
-          self.inputs.push(utxo);
-          self.outputs.last_mut().unwrap().1 += size;
-          self.utxos.remove(&utxo);
-        }
-      }
+
+      let (utxo, size) = found.ok_or(Error::InsufficientPadding)?;
+      self.inputs.push(utxo);
+      self.outputs.last_mut().unwrap().1 += size;
+      self.utxos.remove(&utxo);
     }
     Ok(self)
   }
