@@ -73,13 +73,15 @@ impl TransactionBuilder {
     recipient: Address,
     change: Vec<Address>,
   ) -> Result<Transaction> {
-    Self::new(ranges, ordinal, recipient, change)
-      .select_ordinal()?
-      .align_ordinal()?
-      .add_postage()?
-      .strip_excess_postage()?
-      .deduct_fee()?
-      .build()
+    Ok(
+      Self::new(ranges, ordinal, recipient, change)
+        .select_ordinal()?
+        .align_ordinal()
+        .add_postage()?
+        .strip_excess_postage()
+        .deduct_fee()
+        .build(),
+    )
   }
 
   fn new(
@@ -122,7 +124,7 @@ impl TransactionBuilder {
     Ok(self)
   }
 
-  fn align_ordinal(mut self) -> Result<Self> {
+  fn align_ordinal(mut self) -> Self {
     assert_eq!(self.outputs.len(), 1, "invariant: only one output");
 
     assert_eq!(
@@ -145,7 +147,7 @@ impl TransactionBuilder {
       self.outputs.last_mut().expect("no output").1 -= Amount::from_sat(ordinal_offset);
     }
 
-    Ok(self)
+    self
   }
 
   fn add_postage(mut self) -> Result<Self> {
@@ -174,7 +176,7 @@ impl TransactionBuilder {
     Ok(self)
   }
 
-  fn strip_excess_postage(mut self) -> Result<Self> {
+  fn strip_excess_postage(mut self) -> Self {
     let ordinal_offset = self.calculate_ordinal_offset();
     let total_output_amount = self
       .outputs
@@ -200,10 +202,10 @@ impl TransactionBuilder {
       ));
     }
 
-    Ok(self)
+    self
   }
 
-  fn deduct_fee(mut self) -> Result<Self> {
+  fn deduct_fee(mut self) -> Self {
     let ordinal_offset = self.calculate_ordinal_offset();
 
     let fee = self.estimate_fee();
@@ -226,7 +228,7 @@ impl TransactionBuilder {
 
     *last_output_amount -= fee;
 
-    Ok(self)
+    self
   }
 
   fn estimate_fee(&self) -> Amount {
@@ -256,7 +258,7 @@ impl TransactionBuilder {
     Self::TARGET_FEE_RATE * dummy_transaction.vsize().try_into().unwrap()
   }
 
-  fn build(self) -> Result<Transaction> {
+  fn build(self) -> Transaction {
     let ordinal = self.ordinal.n();
     let recipient = self.recipient.script_pubkey();
     let transaction = Transaction {
@@ -380,7 +382,7 @@ impl TransactionBuilder {
       target_fee_rate,
     );
 
-    Ok(transaction)
+    transaction
   }
 
   fn calculate_ordinal_offset(&self) -> u64 {
@@ -547,7 +549,7 @@ mod tests {
     };
 
     assert_eq!(
-      tx_builder.build().unwrap(),
+      tx_builder.build(),
       Transaction {
         version: 1,
         lock_time: PackedLockTime::ZERO,
@@ -679,11 +681,8 @@ mod tests {
     .select_ordinal()
     .unwrap()
     .align_ordinal()
-    .unwrap()
     .strip_excess_postage()
-    .unwrap()
-    .deduct_fee()
-    .unwrap();
+    .deduct_fee();
   }
 
   #[test]
@@ -932,8 +931,7 @@ mod tests {
           .unwrap(),
       ],
     )
-    .build()
-    .ok();
+    .build();
   }
 
   #[test]
@@ -961,8 +959,7 @@ mod tests {
           .unwrap(),
       ],
     )
-    .build()
-    .ok();
+    .build();
   }
 
   #[test]
@@ -997,7 +994,7 @@ mod tests {
       .parse()
       .unwrap();
 
-    builder.build().ok();
+    builder.build();
   }
 
   #[test]
@@ -1030,7 +1027,7 @@ mod tests {
 
     builder.outputs[0].1 = Amount::from_sat(0);
 
-    builder.build().ok();
+    builder.build();
   }
 
   #[test]
@@ -1116,8 +1113,7 @@ mod tests {
     )
     .select_ordinal()
     .unwrap()
-    .build()
-    .unwrap();
+    .build();
   }
 
   #[test]
@@ -1204,17 +1200,14 @@ mod tests {
     .select_ordinal()
     .unwrap()
     .align_ordinal()
-    .unwrap()
     .add_postage()
     .unwrap()
     .strip_excess_postage()
-    .unwrap()
-    .deduct_fee()
-    .unwrap();
+    .deduct_fee();
 
     builder.change_addresses = BTreeSet::new();
 
-    builder.build().ok();
+    builder.build();
   }
 
   #[test]
@@ -1245,11 +1238,8 @@ mod tests {
     .select_ordinal()
     .unwrap()
     .strip_excess_postage()
-    .unwrap()
     .deduct_fee()
-    .unwrap()
-    .build()
-    .unwrap();
+    .build();
   }
 
   #[test]
@@ -1280,8 +1270,6 @@ mod tests {
     .select_ordinal()
     .unwrap()
     .strip_excess_postage()
-    .unwrap()
-    .build()
-    .unwrap();
+    .build();
   }
 }
