@@ -34,14 +34,14 @@ use {
 #[derive(Debug, PartialEq)]
 pub(crate) enum Error {
   NotInWallet(Ordinal),
-  ConsumedByFee(Ordinal),
+  InsufficientPadding,
 }
 
 impl fmt::Display for Error {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self {
       Error::NotInWallet(ordinal) => write!(f, "Ordinal {ordinal} not in wallet"),
-      Error::ConsumedByFee(ordinal) => write!(f, "Ordinal {ordinal} would be consumed by fee"),
+      Error::InsufficientPadding => write!(f, "Wallet does not contain enough padding UTXOs"),
     }
   }
 }
@@ -50,7 +50,8 @@ impl std::error::Error for Error {}
 
 #[derive(Debug, PartialEq)]
 pub(crate) struct TransactionBuilder {
-  change: Vec<Address>,
+  change_addresses: BTreeSet<Address>,
+  unused_change_addresses: Vec<Address>,
   inputs: Vec<OutPoint>,
   ordinal: Ordinal,
   outputs: Vec<(Address, Amount)>,
@@ -75,6 +76,7 @@ impl TransactionBuilder {
     Self::new(ranges, ordinal, recipient, change)
       .select_ordinal()?
       .align_ordinal()?
+      .add_postage()?
       .strip_excess_postage()?
       .deduct_fee()?
       .build()
@@ -87,13 +89,14 @@ impl TransactionBuilder {
     change: Vec<Address>,
   ) -> Self {
     Self {
+      change_addresses: change.iter().cloned().collect(),
       utxos: ranges.keys().cloned().collect(),
       inputs: Vec::new(),
       ordinal,
       outputs: Vec::new(),
       ranges,
       recipient,
-      change,
+      unused_change_addresses: change,
     }
   }
 
@@ -132,13 +135,42 @@ impl TransactionBuilder {
       self.outputs.insert(
         0,
         (
-          self.change.pop().expect("not enough change addresses"),
+          self
+            .unused_change_addresses
+            .pop()
+            .expect("not enough change addresses"),
           Amount::from_sat(ordinal_offset),
         ),
       );
       self.outputs.last_mut().expect("no output").1 -= Amount::from_sat(ordinal_offset);
     }
 
+    Ok(self)
+  }
+
+  fn add_postage(mut self) -> Result<Self> {
+    let estimated_fee = self.estimate_fee();
+    let dust_limit = self.outputs.last().unwrap().0.script_pubkey().dust_value();
+
+    if self.outputs.last().unwrap().1 < dust_limit + estimated_fee {
+      let shortfall = dust_limit + estimated_fee - self.outputs.last().unwrap().1;
+      let mut found = None;
+      for utxo in &self.utxos {
+        let size = self.ranges[utxo]
+          .iter()
+          .map(|(start, end)| Amount::from_sat(end - start))
+          .sum::<Amount>();
+        if size > shortfall {
+          found = Some((*utxo, size));
+          break;
+        }
+      }
+
+      let (utxo, size) = found.ok_or(Error::InsufficientPadding)?;
+      self.inputs.push(utxo);
+      self.outputs.last_mut().unwrap().1 += size;
+      self.utxos.remove(&utxo);
+    }
     Ok(self)
   }
 
@@ -160,7 +192,10 @@ impl TransactionBuilder {
     if postage > Self::MAX_POSTAGE {
       self.outputs.last_mut().expect("no outputs found").1 = Self::TARGET_POSTAGE;
       self.outputs.push((
-        self.change.pop().expect("not enough change addresses"),
+        self
+          .unused_change_addresses
+          .pop()
+          .expect("not enough change addresses"),
         postage - Self::TARGET_POSTAGE,
       ));
     }
@@ -171,6 +206,30 @@ impl TransactionBuilder {
   fn deduct_fee(mut self) -> Result<Self> {
     let ordinal_offset = self.calculate_ordinal_offset();
 
+    let fee = self.estimate_fee();
+
+    let total_output_amount = self
+      .outputs
+      .iter()
+      .map(|(_address, amount)| *amount)
+      .sum::<Amount>();
+
+    let (_address, last_output_amount) = self
+      .outputs
+      .last_mut()
+      .expect("No output to deduct fee from");
+
+    assert!(
+      total_output_amount - fee > Amount::from_sat(ordinal_offset) && *last_output_amount >= fee,
+      "invariant: deducting fee does not consume ordinal",
+    );
+
+    *last_output_amount -= fee;
+
+    Ok(self)
+  }
+
+  fn estimate_fee(&self) -> Amount {
     let dummy_transaction = Transaction {
       version: 1,
       lock_time: PackedLockTime::ZERO,
@@ -194,26 +253,7 @@ impl TransactionBuilder {
         .collect(),
     };
 
-    let fee = Self::TARGET_FEE_RATE * dummy_transaction.vsize().try_into().unwrap();
-
-    let total_output_amount = self
-      .outputs
-      .iter()
-      .map(|(_address, amount)| *amount)
-      .sum::<Amount>();
-
-    let (_address, last_output_amount) = self
-      .outputs
-      .last_mut()
-      .expect("No output to deduct fee from");
-
-    if total_output_amount - fee > Amount::from_sat(ordinal_offset) && *last_output_amount >= fee {
-      *last_output_amount -= fee;
-    } else {
-      return Err(Error::ConsumedByFee(self.ordinal));
-    }
-
-    Ok(self)
+    Self::TARGET_FEE_RATE * dummy_transaction.vsize().try_into().unwrap()
   }
 
   fn build(self) -> Result<Transaction> {
@@ -305,6 +345,15 @@ impl TransactionBuilder {
           offset, ordinal_offset,
           "invariant: ordinal is at first position in recipient output"
         );
+      } else {
+        assert!(
+          self
+            .change_addresses
+            .iter()
+            .any(|change_address| change_address.script_pubkey() == output.script_pubkey),
+          "invariant: all outputs are either change or recipient: unrecognized output {}",
+          output.script_pubkey
+        );
       }
       offset += output.value;
     }
@@ -359,7 +408,7 @@ mod tests {
         "1111111111111111111111111111111111111111111111111111111111111111:1"
           .parse()
           .unwrap(),
-        vec![(10000, 15000)],
+        vec![(10_000, 15_000)],
       ),
       (
         "2222222222222222222222222222222222222222222222222222222222222222:2"
@@ -371,7 +420,7 @@ mod tests {
         "3333333333333333333333333333333333333333333333333333333333333333:3"
           .parse()
           .unwrap(),
-        vec![(6000, 8000)],
+        vec![(6_000, 8_000)],
       ),
     ];
 
@@ -424,19 +473,19 @@ mod tests {
       "1111111111111111111111111111111111111111111111111111111111111111:1"
         .parse()
         .unwrap(),
-      vec![(0, 5000)],
+      vec![(0, 5_000)],
     );
     ranges.insert(
       "2222222222222222222222222222222222222222222222222222222222222222:2"
         .parse()
         .unwrap(),
-      vec![(10000, 15000)],
+      vec![(10_000, 15_000)],
     );
     ranges.insert(
       "3333333333333333333333333333333333333333333333333333333333333333:3"
         .parse()
         .unwrap(),
-      vec![(6000, 8000)],
+      vec![(6_000, 8_000)],
     );
 
     let tx_builder = TransactionBuilder {
@@ -446,7 +495,7 @@ mod tests {
       recipient: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
-      change: vec![
+      unused_change_addresses: vec![
         "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
           .parse()
           .unwrap(),
@@ -454,6 +503,16 @@ mod tests {
           .parse()
           .unwrap(),
       ],
+      change_addresses: vec![
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
+        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+          .parse()
+          .unwrap(),
+      ]
+      .into_iter()
+      .collect(),
       inputs: vec![
         "1111111111111111111111111111111111111111111111111111111111111111:1"
           .parse()
@@ -470,19 +529,19 @@ mod tests {
           "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
             .parse()
             .unwrap(),
-          Amount::from_sat(5000),
+          Amount::from_sat(5_000),
         ),
         (
           "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
             .parse()
             .unwrap(),
-          Amount::from_sat(5000),
+          Amount::from_sat(5_000),
         ),
         (
           "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
             .parse()
             .unwrap(),
-          Amount::from_sat(1774),
+          Amount::from_sat(1_774),
         ),
       ],
     };
@@ -520,21 +579,21 @@ mod tests {
         ],
         output: vec![
           TxOut {
-            value: 5000,
+            value: 5_000,
             script_pubkey: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
               .parse::<Address>()
               .unwrap()
               .script_pubkey(),
           },
           TxOut {
-            value: 5000,
+            value: 5_000,
             script_pubkey: "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
               .parse::<Address>()
               .unwrap()
               .script_pubkey(),
           },
           TxOut {
-            value: 1774,
+            value: 1_774,
             script_pubkey: "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
               .parse::<Address>()
               .unwrap()
@@ -551,13 +610,13 @@ mod tests {
       "1111111111111111111111111111111111111111111111111111111111111111:1"
         .parse()
         .unwrap(),
-      vec![(10000, 15000)],
+      vec![(10_000, 15_000)],
     )];
 
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
         utxos.into_iter().collect(),
-        Ordinal(10000),
+        Ordinal(10_000),
         "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
           .parse()
           .unwrap(),
@@ -582,7 +641,7 @@ mod tests {
           witness: Witness::new(),
         },],
         output: vec![TxOut {
-          value: 5000 - 82,
+          value: 5_000 - 82,
           script_pubkey: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
             .parse::<Address>()
             .unwrap()
@@ -593,18 +652,61 @@ mod tests {
   }
 
   #[test]
-  fn deduct_fee_consumes_ordinal() {
+  #[should_panic(expected = "invariant: deducting fee does not consume ordinal")]
+  fn invariant_deduct_fee_does_not_consume_ordinal() {
     let utxos = vec![(
       "1111111111111111111111111111111111111111111111111111111111111111:1"
         .parse()
         .unwrap(),
-      vec![(10000, 15000)],
+      vec![(10_000, 15_000)],
     )];
+
+    TransactionBuilder::new(
+      utxos.into_iter().collect(),
+      Ordinal(14_950),
+      "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+        .parse()
+        .unwrap(),
+      vec![
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
+        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+          .parse()
+          .unwrap(),
+      ],
+    )
+    .select_ordinal()
+    .unwrap()
+    .align_ordinal()
+    .unwrap()
+    .strip_excess_postage()
+    .unwrap()
+    .deduct_fee()
+    .unwrap();
+  }
+
+  #[test]
+  fn additional_postage_added_when_required() {
+    let utxos = vec![
+      (
+        "1111111111111111111111111111111111111111111111111111111111111111:1"
+          .parse()
+          .unwrap(),
+        vec![(10_000, 15_000)],
+      ),
+      (
+        "2222222222222222222222222222222222222222222222222222222222222222:2"
+          .parse()
+          .unwrap(),
+        vec![(0, 5_000)],
+      ),
+    ];
 
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
         utxos.into_iter().collect(),
-        Ordinal(14950),
+        Ordinal(14_950),
         "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
           .parse()
           .unwrap(),
@@ -617,7 +719,191 @@ mod tests {
             .unwrap(),
         ],
       ),
-      Err(Error::ConsumedByFee(Ordinal(14950)))
+      Ok(Transaction {
+        version: 1,
+        lock_time: PackedLockTime::ZERO,
+        input: vec![
+          TxIn {
+            previous_output: "1111111111111111111111111111111111111111111111111111111111111111:1"
+              .parse()
+              .unwrap(),
+            script_sig: Script::new(),
+            sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+            witness: Witness::new(),
+          },
+          TxIn {
+            previous_output: "2222222222222222222222222222222222222222222222222222222222222222:2"
+              .parse()
+              .unwrap(),
+            script_sig: Script::new(),
+            sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+            witness: Witness::new(),
+          },
+        ],
+        output: vec![
+          TxOut {
+            value: 4_950,
+            script_pubkey: "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+              .parse::<Address>()
+              .unwrap()
+              .script_pubkey(),
+          },
+          TxOut {
+            value: 4_896,
+            script_pubkey: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+              .parse::<Address>()
+              .unwrap()
+              .script_pubkey(),
+          },
+        ],
+      })
+    )
+  }
+
+  #[test]
+  fn insufficient_padding_to_add_postage_no_utxos() {
+    let utxos = vec![(
+      "1111111111111111111111111111111111111111111111111111111111111111:1"
+        .parse()
+        .unwrap(),
+      vec![(10_000, 15_000)],
+    )];
+
+    pretty_assert_eq!(
+      TransactionBuilder::build_transaction(
+        utxos.into_iter().collect(),
+        Ordinal(14_950),
+        "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+          .parse()
+          .unwrap(),
+        vec![
+          "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+            .parse()
+            .unwrap(),
+          "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+            .parse()
+            .unwrap(),
+        ],
+      ),
+      Err(Error::InsufficientPadding),
+    )
+  }
+
+  #[test]
+  fn insufficient_padding_to_add_postage_small_utxos() {
+    let utxos = vec![
+      (
+        "1111111111111111111111111111111111111111111111111111111111111111:1"
+          .parse()
+          .unwrap(),
+        vec![(10_000, 15_000)],
+      ),
+      (
+        "2222222222222222222222222222222222222222222222222222222222222222:2"
+          .parse()
+          .unwrap(),
+        vec![(0, 1)],
+      ),
+    ];
+
+    pretty_assert_eq!(
+      TransactionBuilder::build_transaction(
+        utxos.into_iter().collect(),
+        Ordinal(14_950),
+        "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+          .parse()
+          .unwrap(),
+        vec![
+          "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+            .parse()
+            .unwrap(),
+          "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+            .parse()
+            .unwrap(),
+        ],
+      ),
+      Err(Error::InsufficientPadding),
+    )
+  }
+
+  #[test]
+  fn excess_additional_postage_is_stripped() {
+    let utxos = vec![
+      (
+        "1111111111111111111111111111111111111111111111111111111111111111:1"
+          .parse()
+          .unwrap(),
+        vec![(10_000, 15_000)],
+      ),
+      (
+        "2222222222222222222222222222222222222222222222222222222222222222:2"
+          .parse()
+          .unwrap(),
+        vec![(15_000, 35_000)],
+      ),
+    ];
+
+    pretty_assert_eq!(
+      TransactionBuilder::build_transaction(
+        utxos.into_iter().collect(),
+        Ordinal(14_950),
+        "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+          .parse()
+          .unwrap(),
+        vec![
+          "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+            .parse()
+            .unwrap(),
+          "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+            .parse()
+            .unwrap(),
+        ],
+      ),
+      Ok(Transaction {
+        version: 1,
+        lock_time: PackedLockTime::ZERO,
+        input: vec![
+          TxIn {
+            previous_output: "1111111111111111111111111111111111111111111111111111111111111111:1"
+              .parse()
+              .unwrap(),
+            script_sig: Script::new(),
+            sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+            witness: Witness::new(),
+          },
+          TxIn {
+            previous_output: "2222222222222222222222222222222222222222222222222222222222222222:2"
+              .parse()
+              .unwrap(),
+            script_sig: Script::new(),
+            sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+            witness: Witness::new(),
+          },
+        ],
+        output: vec![
+          TxOut {
+            value: 4_950,
+            script_pubkey: "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+              .parse::<Address>()
+              .unwrap()
+              .script_pubkey(),
+          },
+          TxOut {
+            value: TransactionBuilder::TARGET_POSTAGE.to_sat(),
+            script_pubkey: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+              .parse::<Address>()
+              .unwrap()
+              .script_pubkey(),
+          },
+          TxOut {
+            value: 9_865,
+            script_pubkey: "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+              .parse::<Address>()
+              .unwrap()
+              .script_pubkey(),
+          },
+        ],
+      })
     )
   }
 
@@ -846,7 +1132,7 @@ mod tests {
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
         utxos.into_iter().collect(),
-        Ordinal(3333),
+        Ordinal(3_333),
         "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
           .parse()
           .unwrap(),
@@ -872,14 +1158,14 @@ mod tests {
         },],
         output: vec![
           TxOut {
-            value: 3333,
+            value: 3_333,
             script_pubkey: "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
               .parse::<Address>()
               .unwrap()
               .script_pubkey(),
           },
           TxOut {
-            value: 10_000 - 3333 - 113,
+            value: 10_000 - 3_333 - 113,
             script_pubkey: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
               .parse::<Address>()
               .unwrap()
@@ -888,6 +1174,47 @@ mod tests {
         ],
       })
     )
+  }
+
+  #[test]
+  #[should_panic(expected = "invariant: all outputs are either change or recipient")]
+  fn invariant_all_output_are_recognized() {
+    let utxos = vec![(
+      "1111111111111111111111111111111111111111111111111111111111111111:1"
+        .parse()
+        .unwrap(),
+      vec![(0, 10_000)],
+    )];
+
+    let mut builder = TransactionBuilder::new(
+      utxos.into_iter().collect(),
+      Ordinal(3_333),
+      "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+        .parse()
+        .unwrap(),
+      vec![
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
+        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+          .parse()
+          .unwrap(),
+      ],
+    )
+    .select_ordinal()
+    .unwrap()
+    .align_ordinal()
+    .unwrap()
+    .add_postage()
+    .unwrap()
+    .strip_excess_postage()
+    .unwrap()
+    .deduct_fee()
+    .unwrap();
+
+    builder.change_addresses = BTreeSet::new();
+
+    builder.build().ok();
   }
 
   #[test]
@@ -902,7 +1229,7 @@ mod tests {
 
     TransactionBuilder::new(
       utxos.into_iter().collect(),
-      Ordinal(3333),
+      Ordinal(3_333),
       "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
