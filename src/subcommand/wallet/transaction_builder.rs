@@ -35,6 +35,7 @@ use {
 pub(crate) enum Error {
   NotInWallet(Ordinal),
   ConsumedByFee(Ordinal),
+  InsufficientPadding,
 }
 
 impl fmt::Display for Error {
@@ -42,6 +43,7 @@ impl fmt::Display for Error {
     match self {
       Error::NotInWallet(ordinal) => write!(f, "Ordinal {ordinal} not in wallet"),
       Error::ConsumedByFee(ordinal) => write!(f, "Ordinal {ordinal} would be consumed by fee"),
+      Error::InsufficientPadding => write!(f, "Wallet does not contain enough padding UTXOs"),
     }
   }
 }
@@ -161,7 +163,7 @@ impl TransactionBuilder {
         }
       }
       match found {
-        None => todo!("Could not find utxo to add as input"),
+        None => return Err(Error::InsufficientPadding),
         Some((utxo, size)) => {
           self.inputs.push(utxo);
           self.outputs.last_mut().unwrap().1 += size;
@@ -765,6 +767,35 @@ mod tests {
           },
         ],
       })
+    )
+  }
+
+  #[test]
+  fn insufficient_padding_to_add_postage() {
+    let utxos = vec![(
+      "1111111111111111111111111111111111111111111111111111111111111111:1"
+        .parse()
+        .unwrap(),
+      vec![(10000, 15000)],
+    )];
+
+    pretty_assert_eq!(
+      TransactionBuilder::build_transaction(
+        utxos.into_iter().collect(),
+        Ordinal(14950),
+        "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+          .parse()
+          .unwrap(),
+        vec![
+          "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+            .parse()
+            .unwrap(),
+          "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+            .parse()
+            .unwrap(),
+        ],
+      ),
+      Err(Error::InsufficientPadding),
     )
   }
 
