@@ -130,6 +130,10 @@ impl Api for Server {
     }
   }
 
+  fn get_block_count(&self) -> Result<u64, jsonrpc_core::Error> {
+    Ok(self.state().hashes.len().try_into().unwrap())
+  }
+
   fn create_raw_transaction(
     &self,
     utxos: Vec<CreateRawTransactionInput>,
