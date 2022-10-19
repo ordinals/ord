@@ -171,32 +171,30 @@ impl TransactionBuilder {
   fn deduct_fee(mut self) -> Result<Self> {
     let ordinal_offset = self.calculate_ordinal_offset();
 
-    let fee = Self::TARGET_FEE_RATE
-      * Transaction {
-        version: 1,
-        lock_time: PackedLockTime::ZERO,
-        input: self
-          .inputs
-          .iter()
-          .map(|_| TxIn {
-            previous_output: OutPoint::null(),
-            script_sig: Script::new(),
-            sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-            witness: Witness::new(),
-          })
-          .collect(),
-        output: self
-          .outputs
-          .iter()
-          .map(|(address, amount)| TxOut {
-            value: amount.to_sat(),
-            script_pubkey: address.script_pubkey(),
-          })
-          .collect(),
-      }
-      .vsize()
-      .try_into()
-      .unwrap();
+    let dummy_transaction = Transaction {
+      version: 1,
+      lock_time: PackedLockTime::ZERO,
+      input: self
+        .inputs
+        .iter()
+        .map(|_| TxIn {
+          previous_output: OutPoint::null(),
+          script_sig: Script::new(),
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          witness: Witness::new(),
+        })
+        .collect(),
+      output: self
+        .outputs
+        .iter()
+        .map(|(address, amount)| TxOut {
+          value: amount.to_sat(),
+          script_pubkey: address.script_pubkey(),
+        })
+        .collect(),
+    };
+
+    let fee = Self::TARGET_FEE_RATE * dummy_transaction.vsize().try_into().unwrap();
 
     let total_output_amount = self
       .outputs
@@ -324,9 +322,13 @@ impl TransactionBuilder {
       fee -= Amount::from_sat(output.value);
     }
 
+    let fee_rate = fee.to_sat() as f64 / transaction.vsize() as f64;
+    let target_fee_rate = Self::TARGET_FEE_RATE.to_sat() as f64;
     assert!(
-      fee.to_sat() / transaction.vsize() as u64 == Self::TARGET_FEE_RATE.to_sat(),
-      "invariant: fee rate is equal to target fee rate",
+      fee_rate == target_fee_rate,
+      "invariant: fee rate is equal to target fee rate: actual fee rate: {} target_fee rate: {}",
+      fee_rate,
+      target_fee_rate,
     );
 
     Ok(transaction)
@@ -480,7 +482,7 @@ mod tests {
           "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
             .parse()
             .unwrap(),
-          Amount::from_sat(1750),
+          Amount::from_sat(1774),
         ),
       ],
     };
@@ -532,7 +534,7 @@ mod tests {
               .script_pubkey(),
           },
           TxOut {
-            value: 1750,
+            value: 1774,
             script_pubkey: "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
               .parse::<Address>()
               .unwrap()
