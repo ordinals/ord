@@ -351,7 +351,7 @@ impl TransactionBuilder {
             .change_addresses
             .iter()
             .any(|change_address| change_address.script_pubkey() == output.script_pubkey),
-          "invariant: all output are either change or recipient: unrecognized output {}",
+          "invariant: all outputs are either change or recipient: unrecognized output {}",
           output.script_pubkey
         );
       }
@@ -1177,7 +1177,7 @@ mod tests {
   }
 
   #[test]
-  #[should_panic(expected = "invariant: all output are either change or recipient")]
+  #[should_panic(expected = "invariant: all outputs are either change or recipient")]
   fn invariant_all_output_are_recognized() {
     let utxos = vec![(
       "1111111111111111111111111111111111111111111111111111111111111111:1"
