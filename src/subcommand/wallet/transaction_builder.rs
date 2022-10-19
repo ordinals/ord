@@ -52,7 +52,8 @@ impl std::error::Error for Error {}
 
 #[derive(Debug, PartialEq)]
 pub(crate) struct TransactionBuilder {
-  change: Vec<Address>,
+  change_addresses: BTreeSet<Address>,
+  unused_change_addresses: Vec<Address>,
   inputs: Vec<OutPoint>,
   ordinal: Ordinal,
   outputs: Vec<(Address, Amount)>,
@@ -90,13 +91,14 @@ impl TransactionBuilder {
     change: Vec<Address>,
   ) -> Self {
     Self {
+      change_addresses: change.iter().cloned().collect(),
       utxos: ranges.keys().cloned().collect(),
       inputs: Vec::new(),
       ordinal,
       outputs: Vec::new(),
       ranges,
       recipient,
-      change,
+      unused_change_addresses: change,
     }
   }
 
@@ -135,7 +137,10 @@ impl TransactionBuilder {
       self.outputs.insert(
         0,
         (
-          self.change.pop().expect("not enough change addresses"),
+          self
+            .unused_change_addresses
+            .pop()
+            .expect("not enough change addresses"),
           Amount::from_sat(ordinal_offset),
         ),
       );
@@ -192,7 +197,10 @@ impl TransactionBuilder {
     if postage > Self::MAX_POSTAGE {
       self.outputs.last_mut().expect("no outputs found").1 = Self::TARGET_POSTAGE;
       self.outputs.push((
-        self.change.pop().expect("not enough change addresses"),
+        self
+          .unused_change_addresses
+          .pop()
+          .expect("not enough change addresses"),
         postage - Self::TARGET_POSTAGE,
       ));
     }
@@ -365,7 +373,16 @@ impl TransactionBuilder {
           "invariant: ordinal is at first position in recipient output"
         );
       } else {
-        // todo: assert that output script pubkey is a change address
+        let change_script_pubkeys = self
+          .change_addresses
+          .iter()
+          .map(Address::script_pubkey)
+          .collect::<Vec<Script>>();
+        assert!(
+          change_script_pubkeys.contains(&output.script_pubkey),
+          "Unrecognized output: {}",
+          output.script_pubkey
+        );
       }
       offset += output.value;
     }
@@ -507,7 +524,7 @@ mod tests {
       recipient: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
-      change: vec![
+      unused_change_addresses: vec![
         "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
           .parse()
           .unwrap(),
@@ -515,6 +532,16 @@ mod tests {
           .parse()
           .unwrap(),
       ],
+      change_addresses: vec![
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
+        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+          .parse()
+          .unwrap(),
+      ]
+      .into_iter()
+      .collect(),
       inputs: vec![
         "1111111111111111111111111111111111111111111111111111111111111111:1"
           .parse()
