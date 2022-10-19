@@ -155,25 +155,9 @@ impl TransactionBuilder {
     if self.outputs[0].0 != self.recipient {
       let dust_limit = self.recipient.script_pubkey().dust_value();
       if self.outputs[0].1 < dust_limit {
-        let shortfall = dust_limit - self.outputs[0].1;
-
-        let mut found = None;
-
-        for utxo in &self.utxos {
-          let size = self.ranges[utxo]
-            .iter()
-            .map(|(start, end)| Amount::from_sat(end - start))
-            .sum::<Amount>();
-          if size >= shortfall {
-            found = Some((*utxo, size));
-            break;
-          }
-        }
-
-        let (utxo, size) = found.ok_or(Error::InsufficientPadding)?;
+        let (utxo, size) = self.select_padding_utxo(dust_limit - self.outputs[0].1)?;
         self.inputs.insert(0, utxo);
         self.outputs[0].1 += size;
-        self.utxos.remove(&utxo);
       }
     }
 
@@ -185,23 +169,10 @@ impl TransactionBuilder {
     let dust_limit = self.outputs.last().unwrap().0.script_pubkey().dust_value();
 
     if self.outputs.last().unwrap().1 < dust_limit + estimated_fee {
-      let shortfall = dust_limit + estimated_fee - self.outputs.last().unwrap().1;
-      let mut found = None;
-      for utxo in &self.utxos {
-        let size = self.ranges[utxo]
-          .iter()
-          .map(|(start, end)| Amount::from_sat(end - start))
-          .sum::<Amount>();
-        if size >= shortfall {
-          found = Some((*utxo, size));
-          break;
-        }
-      }
-
-      let (utxo, size) = found.ok_or(Error::InsufficientPadding)?;
+      let (utxo, size) =
+        self.select_padding_utxo(dust_limit + estimated_fee - self.outputs.last().unwrap().1)?;
       self.inputs.push(utxo);
       self.outputs.last_mut().unwrap().1 += size;
-      self.utxos.remove(&utxo);
     }
     Ok(self)
   }
@@ -426,6 +397,27 @@ impl TransactionBuilder {
       }
     }
     panic!("Could not find ordinal in inputs");
+  }
+
+  fn select_padding_utxo(&mut self, minimum_amount: Amount) -> Result<(OutPoint, Amount)> {
+    let mut found = None;
+
+    for utxo in &self.utxos {
+      let amount = self.ranges[utxo]
+        .iter()
+        .map(|(start, end)| Amount::from_sat(end - start))
+        .sum::<Amount>();
+      if amount >= minimum_amount {
+        found = Some((*utxo, amount));
+        break;
+      }
+    }
+
+    let (utxo, amount) = found.ok_or(Error::InsufficientPadding)?;
+
+    self.utxos.remove(&utxo);
+
+    Ok((utxo, amount))
   }
 }
 
