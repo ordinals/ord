@@ -34,14 +34,17 @@ use {
 #[derive(Debug, PartialEq)]
 pub(crate) enum Error {
   NotInWallet(Ordinal),
-  InsufficientPadding,
+  NotEnoughCardinalUtxos,
 }
 
 impl fmt::Display for Error {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self {
       Error::NotInWallet(ordinal) => write!(f, "Ordinal {ordinal} not in wallet"),
-      Error::InsufficientPadding => write!(f, "Wallet does not contain enough padding UTXOs"),
+      Error::NotEnoughCardinalUtxos => write!(
+        f,
+        "Wallet does not contain enough cardinal UTXOs. Please add additional funds to wallet."
+      ),
     }
   }
 }
@@ -155,7 +158,7 @@ impl TransactionBuilder {
     if self.outputs[0].0 != self.recipient {
       let dust_limit = self.recipient.script_pubkey().dust_value();
       if self.outputs[0].1 < dust_limit {
-        let (utxo, size) = self.select_padding_utxo(dust_limit - self.outputs[0].1)?;
+        let (utxo, size) = self.select_cardinal_utxo(dust_limit - self.outputs[0].1)?;
         self.inputs.insert(0, utxo);
         self.outputs[0].1 += size;
       }
@@ -170,7 +173,7 @@ impl TransactionBuilder {
 
     if self.outputs.last().unwrap().1 < dust_limit + estimated_fee {
       let (utxo, size) =
-        self.select_padding_utxo(dust_limit + estimated_fee - self.outputs.last().unwrap().1)?;
+        self.select_cardinal_utxo(dust_limit + estimated_fee - self.outputs.last().unwrap().1)?;
       self.inputs.push(utxo);
       self.outputs.last_mut().unwrap().1 += size;
     }
@@ -406,7 +409,7 @@ impl TransactionBuilder {
     panic!("Could not find ordinal in inputs");
   }
 
-  fn select_padding_utxo(&mut self, minimum_amount: Amount) -> Result<(OutPoint, Amount)> {
+  fn select_cardinal_utxo(&mut self, minimum_amount: Amount) -> Result<(OutPoint, Amount)> {
     let mut found = None;
 
     for utxo in &self.utxos {
@@ -420,7 +423,7 @@ impl TransactionBuilder {
       }
     }
 
-    let (utxo, amount) = found.ok_or(Error::InsufficientPadding)?;
+    let (utxo, amount) = found.ok_or(Error::NotEnoughCardinalUtxos)?;
 
     self.utxos.remove(&utxo);
 
@@ -813,7 +816,7 @@ mod tests {
             .unwrap(),
         ],
       ),
-      Err(Error::InsufficientPadding),
+      Err(Error::NotEnoughCardinalUtxos),
     )
   }
 
@@ -850,7 +853,7 @@ mod tests {
             .unwrap(),
         ],
       ),
-      Err(Error::InsufficientPadding),
+      Err(Error::NotEnoughCardinalUtxos),
     )
   }
 
