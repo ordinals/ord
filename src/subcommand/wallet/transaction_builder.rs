@@ -383,6 +383,13 @@ impl TransactionBuilder {
       target_fee_rate,
     );
 
+    for tx_out in &transaction.output {
+      assert!(
+        Amount::from_sat(tx_out.value) >= tx_out.script_pubkey.dust_value(),
+        "invariant: all outputs are above dust limit",
+      );
+    }
+
     transaction
   }
 
@@ -1304,6 +1311,41 @@ mod tests {
     builder.change_addresses = BTreeSet::new();
 
     builder.build();
+  }
+
+  #[test]
+  #[should_panic(expected = "invariant: all outputs are above dust limit")]
+  fn invariant_all_output_are_above_dust_limit() {
+    let utxos = vec![(
+      "1111111111111111111111111111111111111111111111111111111111111111:1"
+        .parse()
+        .unwrap(),
+      vec![(0, 10_000)],
+    )];
+
+    TransactionBuilder::new(
+      utxos.into_iter().collect(),
+      Ordinal(1),
+      "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+        .parse()
+        .unwrap(),
+      vec![
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+          .parse()
+          .unwrap(),
+        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+          .parse()
+          .unwrap(),
+      ],
+    )
+    .select_ordinal()
+    .unwrap()
+    .align_ordinal()
+    .add_postage()
+    .unwrap()
+    .strip_excess_postage()
+    .deduct_fee()
+    .build();
   }
 
   #[test]
