@@ -77,7 +77,7 @@ impl TransactionBuilder {
       Self::new(ranges, ordinal, recipient, change)
         .select_ordinal()?
         .align_ordinal()
-        .pad_alignment_output()
+        .pad_alignment_output()?
         .add_postage()?
         .strip_excess_postage()
         .deduct_fee()
@@ -151,14 +151,33 @@ impl TransactionBuilder {
     self
   }
 
-  fn pad_alignment_output(mut self) -> Self {
-    if self.outputs[0].0 != self.recipient
-      && self.outputs[0].1 < self.recipient.script_pubkey().dust_value()
-    {
-      todo!()
+  fn pad_alignment_output(mut self) -> Result<Self> {
+    if self.outputs[0].0 != self.recipient {
+      let dust_limit = self.recipient.script_pubkey().dust_value();
+      if self.outputs[0].1 < dust_limit {
+        let shortfall = dust_limit - self.outputs[0].1;
+
+        let mut found = None;
+
+        for utxo in &self.utxos {
+          let size = self.ranges[utxo]
+            .iter()
+            .map(|(start, end)| Amount::from_sat(end - start))
+            .sum::<Amount>();
+          if size >= shortfall {
+            found = Some((*utxo, size));
+            break;
+          }
+        }
+
+        let (utxo, size) = found.ok_or(Error::InsufficientPadding)?;
+        self.inputs.insert(0, utxo);
+        self.outputs[0].1 += size;
+        self.utxos.remove(&utxo);
+      }
     }
 
-    self
+    Ok(self)
   }
 
   fn add_postage(mut self) -> Result<Self> {
@@ -173,7 +192,7 @@ impl TransactionBuilder {
           .iter()
           .map(|(start, end)| Amount::from_sat(end - start))
           .sum::<Amount>();
-        if size > shortfall {
+        if size >= shortfall {
           found = Some((*utxo, size));
           break;
         }
@@ -1246,7 +1265,7 @@ mod tests {
               .script_pubkey(),
           },
           TxOut {
-            value: 10_000 - 1 - 113,
+            value: 9_845,
             script_pubkey: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
               .parse::<Address>()
               .unwrap()
