@@ -3,6 +3,8 @@ use {
   bitcoin::consensus::encode::deserialize,
   bitcoin::BlockHeader,
   bitcoincore_rpc::{json::GetBlockHeaderResult, Auth, Client},
+  indicatif::{ProgressBar, ProgressStyle},
+  log::log_enabled,
   rayon::iter::{IntoParallelRefIterator, ParallelIterator},
   redb::{
     Database, MultimapTableDefinition, ReadableMultimapTable, ReadableTable, Table,
@@ -229,6 +231,16 @@ impl Index {
       .map(|(height, _hash)| height + 1)
       .unwrap_or(0);
 
+    let mut progress_bar = if cfg!(test) || log_enabled!(log::Level::Info) {
+      None
+    } else {
+      let progress_bar = ProgressBar::new(self.client.get_block_count()?);
+      progress_bar.set_style(
+        ProgressStyle::with_template("[indexing blocks] {wide_bar} {pos}/{len}").unwrap(),
+      );
+      Some(progress_bar)
+    };
+
     let mut uncomitted = 0;
     for (i, height) in (0..).zip(height..) {
       if let Some(height_limit) = self.height_limit {
@@ -238,6 +250,10 @@ impl Index {
       }
 
       let done = self.index_block(&mut wtx, height)?;
+
+      if let Some(progress_bar) = &mut progress_bar {
+        progress_bar.inc(1);
+      }
 
       if !done {
         uncomitted += 1;
@@ -258,6 +274,10 @@ impl Index {
     if uncomitted > 0 {
       Self::increment_statistic(&wtx, Statistic::Commits, 1)?;
       wtx.commit()?;
+    }
+
+    if let Some(progress_bar) = &mut progress_bar {
+      progress_bar.abandon();
     }
 
     Ok(())
