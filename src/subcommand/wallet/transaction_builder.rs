@@ -437,7 +437,7 @@ mod tests {
         "1111111111111111111111111111111111111111111111111111111111111111:1"
           .parse()
           .unwrap(),
-        vec![(10000, 15000)],
+        vec![(10_000, 15_000)],
       ),
       (
         "2222222222222222222222222222222222222222222222222222222222222222:2"
@@ -449,7 +449,7 @@ mod tests {
         "3333333333333333333333333333333333333333333333333333333333333333:3"
           .parse()
           .unwrap(),
-        vec![(6000, 8000)],
+        vec![(6_000, 8_000)],
       ),
     ];
 
@@ -502,19 +502,19 @@ mod tests {
       "1111111111111111111111111111111111111111111111111111111111111111:1"
         .parse()
         .unwrap(),
-      vec![(0, 5000)],
+      vec![(0, 5_000)],
     );
     ranges.insert(
       "2222222222222222222222222222222222222222222222222222222222222222:2"
         .parse()
         .unwrap(),
-      vec![(10000, 15000)],
+      vec![(10_000, 15_000)],
     );
     ranges.insert(
       "3333333333333333333333333333333333333333333333333333333333333333:3"
         .parse()
         .unwrap(),
-      vec![(6000, 8000)],
+      vec![(6_000, 8_000)],
     );
 
     let tx_builder = TransactionBuilder {
@@ -558,19 +558,19 @@ mod tests {
           "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
             .parse()
             .unwrap(),
-          Amount::from_sat(5000),
+          Amount::from_sat(5_000),
         ),
         (
           "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
             .parse()
             .unwrap(),
-          Amount::from_sat(5000),
+          Amount::from_sat(5_000),
         ),
         (
           "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
             .parse()
             .unwrap(),
-          Amount::from_sat(1774),
+          Amount::from_sat(1_774),
         ),
       ],
     };
@@ -608,21 +608,21 @@ mod tests {
         ],
         output: vec![
           TxOut {
-            value: 5000,
+            value: 5_000,
             script_pubkey: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
               .parse::<Address>()
               .unwrap()
               .script_pubkey(),
           },
           TxOut {
-            value: 5000,
+            value: 5_000,
             script_pubkey: "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
               .parse::<Address>()
               .unwrap()
               .script_pubkey(),
           },
           TxOut {
-            value: 1774,
+            value: 1_774,
             script_pubkey: "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
               .parse::<Address>()
               .unwrap()
@@ -639,13 +639,13 @@ mod tests {
       "1111111111111111111111111111111111111111111111111111111111111111:1"
         .parse()
         .unwrap(),
-      vec![(10000, 15000)],
+      vec![(10_000, 15_000)],
     )];
 
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
         utxos.into_iter().collect(),
-        Ordinal(10000),
+        Ordinal(10_000),
         "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
           .parse()
           .unwrap(),
@@ -670,7 +670,7 @@ mod tests {
           witness: Witness::new(),
         },],
         output: vec![TxOut {
-          value: 5000 - 82,
+          value: 5_000 - 82,
           script_pubkey: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
             .parse::<Address>()
             .unwrap()
@@ -686,13 +686,13 @@ mod tests {
       "1111111111111111111111111111111111111111111111111111111111111111:1"
         .parse()
         .unwrap(),
-      vec![(10000, 15000)],
+      vec![(10_000, 15_000)],
     )];
 
     pretty_assert_eq!(
       TransactionBuilder::new(
         utxos.into_iter().collect(),
-        Ordinal(14950),
+        Ordinal(14_950),
         "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
           .parse()
           .unwrap(),
@@ -712,7 +712,7 @@ mod tests {
       .strip_excess_postage()
       .unwrap()
       .deduct_fee(),
-      Err(Error::ConsumedByFee(Ordinal(14950)))
+      Err(Error::ConsumedByFee(Ordinal(14_950)))
     )
   }
 
@@ -723,20 +723,20 @@ mod tests {
         "1111111111111111111111111111111111111111111111111111111111111111:1"
           .parse()
           .unwrap(),
-        vec![(10000, 15000)],
+        vec![(10_000, 15_000)],
       ),
       (
         "2222222222222222222222222222222222222222222222222222222222222222:2"
           .parse()
           .unwrap(),
-        vec![(0, 5000)],
+        vec![(0, 5_000)],
       ),
     ];
 
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
         utxos.into_iter().collect(),
-        Ordinal(14950),
+        Ordinal(14_950),
         "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
           .parse()
           .unwrap(),
@@ -772,14 +772,14 @@ mod tests {
         ],
         output: vec![
           TxOut {
-            value: 4950,
+            value: 4_950,
             script_pubkey: "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
               .parse::<Address>()
               .unwrap()
               .script_pubkey(),
           },
           TxOut {
-            value: 4896,
+            value: 4_896,
             script_pubkey: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
               .parse::<Address>()
               .unwrap()
@@ -796,13 +796,13 @@ mod tests {
       "1111111111111111111111111111111111111111111111111111111111111111:1"
         .parse()
         .unwrap(),
-      vec![(10000, 15000)],
+      vec![(10_000, 15_000)],
     )];
 
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
         utxos.into_iter().collect(),
-        Ordinal(14950),
+        Ordinal(14_950),
         "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
           .parse()
           .unwrap(),
@@ -826,20 +826,20 @@ mod tests {
         "1111111111111111111111111111111111111111111111111111111111111111:1"
           .parse()
           .unwrap(),
-        vec![(10000, 15000)],
+        vec![(10_000, 15_000)],
       ),
       (
         "2222222222222222222222222222222222222222222222222222222222222222:2"
           .parse()
           .unwrap(),
-        vec![(15000, 35000)],
+        vec![(15_000, 35_000)],
       ),
     ];
 
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
         utxos.into_iter().collect(),
-        Ordinal(14950),
+        Ordinal(14_950),
         "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
           .parse()
           .unwrap(),
@@ -889,7 +889,7 @@ mod tests {
               .script_pubkey(),
           },
           TxOut {
-            value: 9865,
+            value: 9_865,
             script_pubkey: "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
               .parse::<Address>()
               .unwrap()
@@ -1125,7 +1125,7 @@ mod tests {
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
         utxos.into_iter().collect(),
-        Ordinal(3333),
+        Ordinal(3_333),
         "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
           .parse()
           .unwrap(),
@@ -1151,14 +1151,14 @@ mod tests {
         },],
         output: vec![
           TxOut {
-            value: 3333,
+            value: 3_333,
             script_pubkey: "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
               .parse::<Address>()
               .unwrap()
               .script_pubkey(),
           },
           TxOut {
-            value: 10_000 - 3333 - 113,
+            value: 10_000 - 3_333 - 113,
             script_pubkey: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
               .parse::<Address>()
               .unwrap()
@@ -1181,7 +1181,7 @@ mod tests {
 
     TransactionBuilder::new(
       utxos.into_iter().collect(),
-      Ordinal(3333),
+      Ordinal(3_333),
       "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
         .parse()
         .unwrap(),
