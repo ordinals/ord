@@ -34,7 +34,6 @@ use {
 #[derive(Debug, PartialEq)]
 pub(crate) enum Error {
   NotInWallet(Ordinal),
-  ConsumedByFee(Ordinal),
   InsufficientPadding,
 }
 
@@ -42,7 +41,6 @@ impl fmt::Display for Error {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self {
       Error::NotInWallet(ordinal) => write!(f, "Ordinal {ordinal} not in wallet"),
-      Error::ConsumedByFee(ordinal) => write!(f, "Ordinal {ordinal} would be consumed by fee"),
       Error::InsufficientPadding => write!(f, "Wallet does not contain enough padding UTXOs"),
     }
   }
@@ -244,11 +242,12 @@ impl TransactionBuilder {
       .last_mut()
       .expect("No output to deduct fee from");
 
-    if total_output_amount - fee > Amount::from_sat(ordinal_offset) && *last_output_amount >= fee {
-      *last_output_amount -= fee;
-    } else {
-      return Err(Error::ConsumedByFee(self.ordinal));
-    }
+    assert!(
+      total_output_amount - fee > Amount::from_sat(ordinal_offset) && *last_output_amount >= fee,
+      "invariant: deducting fee does not consume ordinal",
+    );
+
+    *last_output_amount -= fee;
 
     Ok(self)
   }
@@ -676,7 +675,8 @@ mod tests {
   }
 
   #[test]
-  fn deduct_fee_consumes_ordinal() {
+  #[should_panic(expected = "invariant: deducting fee does not consume ordinal")]
+  fn invariant_deduct_fee_does_not_consume_ordinal() {
     let utxos = vec![(
       "1111111111111111111111111111111111111111111111111111111111111111:1"
         .parse()
@@ -684,31 +684,29 @@ mod tests {
       vec![(10_000, 15_000)],
     )];
 
-    pretty_assert_eq!(
-      TransactionBuilder::new(
-        utxos.into_iter().collect(),
-        Ordinal(14_950),
-        "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+    TransactionBuilder::new(
+      utxos.into_iter().collect(),
+      Ordinal(14_950),
+      "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+        .parse()
+        .unwrap(),
+      vec![
+        "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
           .parse()
           .unwrap(),
-        vec![
-          "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-            .parse()
-            .unwrap(),
-          "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
-            .parse()
-            .unwrap(),
-        ],
-      )
-      .select_ordinal()
-      .unwrap()
-      .align_ordinal()
-      .unwrap()
-      .strip_excess_postage()
-      .unwrap()
-      .deduct_fee(),
-      Err(Error::ConsumedByFee(Ordinal(14_950)))
+        "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+          .parse()
+          .unwrap(),
+      ],
     )
+    .select_ordinal()
+    .unwrap()
+    .align_ordinal()
+    .unwrap()
+    .strip_excess_postage()
+    .unwrap()
+    .deduct_fee()
+    .unwrap();
   }
 
   #[test]
