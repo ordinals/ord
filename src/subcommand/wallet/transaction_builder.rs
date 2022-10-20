@@ -49,11 +49,11 @@ impl fmt::Display for Error {
       ),
       Error::RareOrdinalLostToRecipient(ordinal) => write!(
         f,
-        "This transaction would also send Rare Ordinal {ordinal} to recipient"
+        "Transaction would lose rare ordinal {ordinal} to recipient"
       ),
       Error::RareOrdinalLostToFee(ordinal) => write!(
         f,
-        "This transaction would lose Rare Ordinal {ordinal} to the fee"
+        "Transaction would lose rare ordinal {ordinal} to fee"
       ),
     }
   }
