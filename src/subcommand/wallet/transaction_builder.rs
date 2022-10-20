@@ -413,10 +413,18 @@ impl TransactionBuilder {
     let mut found = None;
 
     for utxo in &self.utxos {
+      if self.ranges[utxo]
+        .iter()
+        .any(|(start, _end)| Ordinal(*start).rarity() > Rarity::Common)
+      {
+        continue;
+      }
+
       let amount = self.ranges[utxo]
         .iter()
         .map(|(start, end)| Amount::from_sat(end - start))
         .sum::<Amount>();
+
       if amount >= minimum_amount {
         found = Some((*utxo, amount));
         break;
@@ -730,7 +738,7 @@ mod tests {
         "2222222222222222222222222222222222222222222222222222222222222222:2"
           .parse()
           .unwrap(),
-        vec![(0, 5_000)],
+        vec![(5_000, 10_000)],
       ),
     ];
 
@@ -1385,7 +1393,7 @@ mod tests {
 
   #[test]
   #[should_panic(expected = "invariant: fee rate is equal to target fee rate")]
-  fn fee_is_at_least_target_fee_rate() {
+  fn invariant_fee_is_at_least_target_fee_rate() {
     let utxos = vec![(
       "1111111111111111111111111111111111111111111111111111111111111111:1"
         .parse()
@@ -1412,5 +1420,85 @@ mod tests {
     .unwrap()
     .strip_excess_postage()
     .build();
+  }
+
+  #[test]
+  fn rare_ordinals_are_not_used_as_cardinal_inputs() {
+    let utxos = vec![
+      (
+        "1111111111111111111111111111111111111111111111111111111111111111:1"
+          .parse()
+          .unwrap(),
+        vec![(10_000, 15_000)],
+      ),
+      (
+        "2222222222222222222222222222222222222222222222222222222222222222:2"
+          .parse()
+          .unwrap(),
+        vec![(0, 5_000)],
+      ),
+      (
+        "3333333333333333333333333333333333333333333333333333333333333333:3"
+          .parse()
+          .unwrap(),
+        vec![(5_000, 10_000)],
+      ),
+    ];
+
+    pretty_assert_eq!(
+      TransactionBuilder::build_transaction(
+        utxos.into_iter().collect(),
+        Ordinal(14_950),
+        "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+          .parse()
+          .unwrap(),
+        vec![
+          "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
+            .parse()
+            .unwrap(),
+          "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+            .parse()
+            .unwrap(),
+        ],
+      ),
+      Ok(Transaction {
+        version: 1,
+        lock_time: PackedLockTime::ZERO,
+        input: vec![
+          TxIn {
+            previous_output: "1111111111111111111111111111111111111111111111111111111111111111:1"
+              .parse()
+              .unwrap(),
+            script_sig: Script::new(),
+            sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+            witness: Witness::new(),
+          },
+          TxIn {
+            previous_output: "3333333333333333333333333333333333333333333333333333333333333333:3"
+              .parse()
+              .unwrap(),
+            script_sig: Script::new(),
+            sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+            witness: Witness::new(),
+          },
+        ],
+        output: vec![
+          TxOut {
+            value: 4_950,
+            script_pubkey: "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
+              .parse::<Address>()
+              .unwrap()
+              .script_pubkey(),
+          },
+          TxOut {
+            value: 4_896,
+            script_pubkey: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+              .parse::<Address>()
+              .unwrap()
+              .script_pubkey(),
+          },
+        ],
+      })
+    )
   }
 }
