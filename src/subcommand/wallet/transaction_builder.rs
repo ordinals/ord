@@ -907,79 +907,23 @@ mod tests {
   #[test]
   fn rare_ordinals_are_not_used_as_cardinal_inputs() {
     let utxos = vec![
-      (
-        "1111111111111111111111111111111111111111111111111111111111111111:1"
-          .parse()
-          .unwrap(),
-        vec![(10_000, 15_000)],
-      ),
-      (
-        "2222222222222222222222222222222222222222222222222222222222222222:2"
-          .parse()
-          .unwrap(),
-        vec![(0, 5_000)],
-      ),
-      (
-        "3333333333333333333333333333333333333333333333333333333333333333:3"
-          .parse()
-          .unwrap(),
-        vec![(5_000, 10_000)],
-      ),
+      (outpoint(1), vec![(10_000, 15_000)]),
+      (outpoint(2), vec![(0, 5_000)]),
+      (outpoint(3), vec![(5_000, 10_000)]),
     ];
 
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
         utxos.into_iter().collect(),
         Ordinal(14_950),
-        "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
-          .parse()
-          .unwrap(),
-        vec![
-          "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-            .parse()
-            .unwrap(),
-          "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
-            .parse()
-            .unwrap(),
-        ],
+        recipient(),
+        vec![change(0), change(1),],
       ),
       Ok(Transaction {
         version: 1,
         lock_time: PackedLockTime::ZERO,
-        input: vec![
-          TxIn {
-            previous_output: "1111111111111111111111111111111111111111111111111111111111111111:1"
-              .parse()
-              .unwrap(),
-            script_sig: Script::new(),
-            sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-            witness: Witness::new(),
-          },
-          TxIn {
-            previous_output: "3333333333333333333333333333333333333333333333333333333333333333:3"
-              .parse()
-              .unwrap(),
-            script_sig: Script::new(),
-            sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-            witness: Witness::new(),
-          },
-        ],
-        output: vec![
-          TxOut {
-            value: 4_950,
-            script_pubkey: "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l"
-              .parse::<Address>()
-              .unwrap()
-              .script_pubkey(),
-          },
-          TxOut {
-            value: 4_896,
-            script_pubkey: "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
-              .parse::<Address>()
-              .unwrap()
-              .script_pubkey(),
-          },
-        ],
+        input: vec![tx_in(outpoint(1)), tx_in(outpoint(3))],
+        output: vec![tx_out(4_950, change(1)), tx_out(4_896, recipient())],
       })
     )
   }
