@@ -11,9 +11,10 @@ use {
     TxIn, TxMerkleNode, TxOut, Txid, Witness, Wtxid,
   },
   bitcoincore_rpc::json::{
-    Bip125Replaceable, CreateRawTransactionInput, GetBlockHeaderResult, GetBlockchainInfoResult,
-    GetNetworkInfoResult, GetRawTransactionResult, GetTransactionResult, ListUnspentResultEntry,
-    SignRawTransactionResult, WalletTxInfo,
+    Bip125Replaceable, CreateRawTransactionInput, GetBalancesResult, GetBalancesResultEntry,
+    GetBlockHeaderResult, GetBlockchainInfoResult, GetNetworkInfoResult, GetRawTransactionResult,
+    GetTransactionResult, GetWalletInfoResult, ListUnspentResultEntry, SignRawTransactionResult,
+    WalletTxInfo,
   },
   jsonrpc_core::{IoHandler, Value},
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
@@ -32,8 +33,8 @@ mod api;
 mod server;
 mod state;
 
-pub fn spawn_with_network(network: Network) -> Handle {
-  let state = Arc::new(Mutex::new(State::new(network)));
+pub fn spawn_with(network: Network, wallet_name: &str) -> Handle {
+  let state = Arc::new(Mutex::new(State::new(network, wallet_name)));
   let server = Server::new(state.clone());
   let mut io = IoHandler::default();
   io.extend_with(server.to_delegate());
@@ -69,7 +70,7 @@ pub fn spawn_with_network(network: Network) -> Handle {
 }
 
 pub fn spawn() -> Handle {
-  spawn_with_network(Network::Bitcoin)
+  spawn_with(Network::Bitcoin, "ord")
 }
 
 pub struct TransactionTemplate<'a> {
@@ -95,7 +96,16 @@ impl Handle {
 
   pub fn mine_blocks(&self, num: u64) -> Vec<Block> {
     let mut bitcoin_rpc_data = self.state.lock().unwrap();
-    (0..num).map(|_| bitcoin_rpc_data.push_block()).collect()
+    (0..num)
+      .map(|_| bitcoin_rpc_data.push_block(50 * COIN_VALUE))
+      .collect()
+  }
+
+  pub fn mine_blocks_with_subsidy(&self, num: u64, subsidy: u64) -> Vec<Block> {
+    let mut bitcoin_rpc_data = self.state.lock().unwrap();
+    (0..num)
+      .map(|_| bitcoin_rpc_data.push_block(subsidy))
+      .collect()
   }
 
   pub fn broadcast_tx(&self, options: TransactionTemplate) -> Txid {
