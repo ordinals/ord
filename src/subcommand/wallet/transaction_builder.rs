@@ -35,6 +35,7 @@ use {
 pub(crate) enum Error {
   NotInWallet(Ordinal),
   NotEnoughCardinalUtxos,
+  AccidentalRareOrdinalSend(Ordinal),
 }
 
 impl fmt::Display for Error {
@@ -44,6 +45,10 @@ impl fmt::Display for Error {
       Error::NotEnoughCardinalUtxos => write!(
         f,
         "Wallet does not contain enough cardinal UTXOs. Please add additional funds to wallet."
+      ),
+      Error::AccidentalRareOrdinalSend(ordinal) => write!(
+        f,
+        "This transaction would also send along Ordinal {ordinal}"
       ),
     }
   }
@@ -76,16 +81,14 @@ impl TransactionBuilder {
     recipient: Address,
     change: Vec<Address>,
   ) -> Result<Transaction> {
-    Ok(
-      Self::new(ranges, ordinal, recipient, change)
-        .select_ordinal()?
-        .align_ordinal()
-        .pad_alignment_output()?
-        .add_postage()?
-        .strip_excess_postage()
-        .deduct_fee()
-        .build(),
-    )
+    Self::new(ranges, ordinal, recipient, change)
+      .select_ordinal()?
+      .align_ordinal()
+      .pad_alignment_output()?
+      .add_postage()?
+      .strip_excess_postage()
+      .deduct_fee()
+      .build()
   }
 
   fn new(
@@ -262,7 +265,7 @@ impl TransactionBuilder {
     Self::TARGET_FEE_RATE * dummy_transaction.vsize().try_into().unwrap()
   }
 
-  fn build(self) -> Transaction {
+  fn build(self) -> Result<Transaction> {
     let ordinal = self.ordinal.n();
     let recipient = self.recipient.script_pubkey();
     let transaction = Transaction {
@@ -393,7 +396,38 @@ impl TransactionBuilder {
       );
     }
 
-    transaction
+    let mut offset = 0;
+    let mut rare_ordinals = Vec::<(Ordinal, u64)>::new();
+    for input in &transaction.input {
+      for (start, end) in &self.ranges[&input.previous_output] {
+        if Ordinal(*start).rarity() > Rarity::Common {
+          rare_ordinals.push((Ordinal(*start), offset));
+        }
+        offset += end - start;
+      }
+    }
+    let total_input_amount = offset;
+
+    let mut offset = 0;
+    let mut recipient_range = (0, 0);
+    for output in &transaction.output {
+      if output.script_pubkey == self.recipient.script_pubkey() {
+        recipient_range = (offset, offset + output.value);
+        break;
+      }
+      offset += output.value;
+    }
+
+    for (rare_ordinal, offset) in &rare_ordinals {
+      if rare_ordinal != &self.ordinal
+        && (offset >= &recipient_range.0 && offset < &recipient_range.1
+          || offset >= &(total_input_amount - fee.to_sat()))
+      {
+        return Err(Error::AccidentalRareOrdinalSend(*rare_ordinal));
+      }
+    }
+
+    Ok(transaction)
   }
 
   fn calculate_ordinal_offset(&self) -> u64 {
@@ -542,7 +576,7 @@ mod tests {
 
     pretty_assert_eq!(
       tx_builder.build(),
-      Transaction {
+      Ok(Transaction {
         version: 1,
         lock_time: PackedLockTime::ZERO,
         input: vec![tx_in(outpoint(1)), tx_in(outpoint(2)), tx_in(outpoint(3))],
@@ -551,7 +585,7 @@ mod tests {
           tx_out(5_000, change(0)),
           tx_out(1_774, change(1))
         ],
-      }
+      })
     )
   }
 
@@ -685,7 +719,8 @@ mod tests {
       recipient(),
       vec![change(0), change(1)],
     )
-    .build();
+    .build()
+    .unwrap();
   }
 
   #[test]
@@ -697,7 +732,8 @@ mod tests {
       recipient(),
       vec![change(0), change(1)],
     )
-    .build();
+    .build()
+    .unwrap();
   }
 
   #[test]
@@ -716,7 +752,7 @@ mod tests {
       .parse()
       .unwrap();
 
-    builder.build();
+    builder.build().unwrap();
   }
 
   #[test]
@@ -733,7 +769,7 @@ mod tests {
 
     builder.outputs[0].1 = Amount::from_sat(0);
 
-    builder.build();
+    builder.build().unwrap();
   }
 
   #[test]
@@ -775,7 +811,8 @@ mod tests {
     )
     .select_ordinal()
     .unwrap()
-    .build();
+    .build()
+    .unwrap();
   }
 
   #[test]
@@ -845,7 +882,7 @@ mod tests {
 
     builder.change_addresses = BTreeSet::new();
 
-    builder.build();
+    builder.build().unwrap();
   }
 
   #[test]
@@ -866,7 +903,8 @@ mod tests {
     .unwrap()
     .strip_excess_postage()
     .deduct_fee()
-    .build();
+    .build()
+    .unwrap();
   }
 
   #[test]
@@ -884,7 +922,8 @@ mod tests {
     .unwrap()
     .strip_excess_postage()
     .deduct_fee()
-    .build();
+    .build()
+    .unwrap();
   }
 
   #[test]
@@ -901,7 +940,8 @@ mod tests {
     .select_ordinal()
     .unwrap()
     .strip_excess_postage()
-    .build();
+    .build()
+    .unwrap();
   }
 
   #[test]
@@ -925,6 +965,36 @@ mod tests {
         input: vec![tx_in(outpoint(1)), tx_in(outpoint(3))],
         output: vec![tx_out(4_950, change(1)), tx_out(4_896, recipient())],
       })
+    )
+  }
+
+  #[test]
+  fn rare_ordinals_are_not_sent_to_recipient() {
+    let utxos = vec![(outpoint(1), vec![(15_000, 25_000), (0, 10_000)])];
+
+    pretty_assert_eq!(
+      TransactionBuilder::build_transaction(
+        utxos.into_iter().collect(),
+        Ordinal(24_000),
+        recipient(),
+        vec![change(0), change(1),],
+      ),
+      Err(Error::AccidentalRareOrdinalSend(Ordinal(0)))
+    )
+  }
+
+  #[test]
+  fn rare_ordinals_are_not_sent_as_fee() {
+    let utxos = vec![(outpoint(1), vec![(15_000, 25_000), (0, 100)])];
+
+    pretty_assert_eq!(
+      TransactionBuilder::build_transaction(
+        utxos.into_iter().collect(),
+        Ordinal(24_000),
+        recipient(),
+        vec![change(0), change(1),],
+      ),
+      Err(Error::AccidentalRareOrdinalSend(Ordinal(0)))
     )
   }
 }
