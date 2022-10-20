@@ -1423,7 +1423,7 @@ mod tests {
   }
 
   #[test]
-  fn riant_rare_ordinals_are_not_used_as_cardinal_inputs() {
+  fn rare_ordinals_are_not_used_as_cardinal_inputs() {
     let utxos = vec![
       (
         "1111111111111111111111111111111111111111111111111111111111111111:1"
