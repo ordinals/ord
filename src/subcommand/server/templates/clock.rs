@@ -86,7 +86,8 @@ mod tests {
   fn clock_svg() {
     assert_regex_match!(
       ClockSvg::new(Height(6929999)).to_string(),
-      r##"<svg.*>.*
+      r##"<\?xml version="1.0" encoding="UTF-8"\?>
+<svg.*>.*
   <text.*>6929999</text>.*
   <line y2="-9" transform="rotate\(359.9999480519481\)"><title>Subsidy</title></line>.*
   <line y2="-13" stroke-width="0.6" transform="rotate\(359.9982857142857\)"><title>Epoch</title></line>.*
