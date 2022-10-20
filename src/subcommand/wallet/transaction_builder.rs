@@ -353,6 +353,29 @@ impl TransactionBuilder {
     }
     assert!(found, "invariant: ordinal is found in outputs");
 
+    assert_eq!(
+      transaction
+        .output
+        .iter()
+        .filter(|tx_out| tx_out.script_pubkey == self.recipient.script_pubkey())
+        .count(),
+      1,
+      "invariant: recipient address appears exactly once in outputs",
+    );
+
+    assert!(
+      self
+        .change_addresses
+        .iter()
+        .map(|change_address| transaction
+          .output
+          .iter()
+          .filter(|tx_out| tx_out.script_pubkey == change_address.script_pubkey())
+          .count())
+        .all(|count| count <= 1),
+      "invariant: change addresses appear at most once in outputs",
+    );
+
     let mut offset = 0;
     for output in &transaction.output {
       if output.script_pubkey == self.recipient.script_pubkey() {
@@ -933,5 +956,55 @@ mod tests {
         output: vec![tx_out(4_950, change(1)), tx_out(4_620, recipient())],
       })
     )
+  }
+
+  #[test]
+  #[should_panic(expected = "invariant: recipient address appears exactly once in outputs")]
+  fn invariant_recipient_appears_exactly_once() {
+    let mut ranges = BTreeMap::new();
+    ranges.insert(outpoint(1), vec![(0, 5_000)]);
+    ranges.insert(outpoint(2), vec![(10_000, 15_000)]);
+    ranges.insert(outpoint(3), vec![(6_000, 8_000)]);
+
+    TransactionBuilder {
+      ranges,
+      utxos: BTreeSet::new(),
+      ordinal: Ordinal(0),
+      recipient: recipient(),
+      unused_change_addresses: vec![change(0), change(1)],
+      change_addresses: vec![change(0), change(1)].into_iter().collect(),
+      inputs: vec![outpoint(1), outpoint(2), outpoint(3)],
+      outputs: vec![
+        (recipient(), Amount::from_sat(5_000)),
+        (recipient(), Amount::from_sat(5_000)),
+        (change(1), Amount::from_sat(1_774)),
+      ],
+    }
+    .build();
+  }
+
+  #[test]
+  #[should_panic(expected = "invariant: change addresses appear at most once in outputs")]
+  fn invariant_change_appears_at_most_once() {
+    let mut ranges = BTreeMap::new();
+    ranges.insert(outpoint(1), vec![(0, 5_000)]);
+    ranges.insert(outpoint(2), vec![(10_000, 15_000)]);
+    ranges.insert(outpoint(3), vec![(6_000, 8_000)]);
+
+    TransactionBuilder {
+      ranges,
+      utxos: BTreeSet::new(),
+      ordinal: Ordinal(0),
+      recipient: recipient(),
+      unused_change_addresses: vec![change(0), change(1)],
+      change_addresses: vec![change(0), change(1)].into_iter().collect(),
+      inputs: vec![outpoint(1), outpoint(2), outpoint(3)],
+      outputs: vec![
+        (recipient(), Amount::from_sat(5_000)),
+        (change(0), Amount::from_sat(5_000)),
+        (change(0), Amount::from_sat(1_774)),
+      ],
+    }
+    .build();
   }
 }
