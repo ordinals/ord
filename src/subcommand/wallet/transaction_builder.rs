@@ -25,9 +25,10 @@
 
 use {
   super::*,
-  bitcoin::blockdata::locktime::PackedLockTime,
-  bitcoin::blockdata::witness::Witness,
-  bitcoin::util::amount::Amount,
+  bitcoin::{
+    blockdata::{locktime::PackedLockTime, script, witness::Witness},
+    util::amount::Amount,
+  },
   std::collections::{BTreeMap, BTreeSet},
 };
 
@@ -235,8 +236,14 @@ impl TransactionBuilder {
     self
   }
 
-  fn estimate_fee(&self) -> Amount {
-    let dummy_transaction = Transaction {
+  /// Estimate the size in virtual bytes of the transaction being built. Since
+  /// we don't know the size of the input script sigs and witnesses, assume
+  /// they are P2PKH, so that we get a worst case estimate, since it's probably
+  /// better to pay too overestimate and pay too much in fees than to
+  /// underestimate and never get the transaction confirmed, or, even worse, be
+  /// under the minimum relay fee and never even get relayed.
+  fn estimate_vsize(&self) -> usize {
+    Transaction {
       version: 1,
       lock_time: PackedLockTime::ZERO,
       input: self
@@ -244,7 +251,10 @@ impl TransactionBuilder {
         .iter()
         .map(|_| TxIn {
           previous_output: OutPoint::null(),
-          script_sig: Script::new(),
+          script_sig: script::Builder::new()
+            .push_slice(&[0; 71])
+            .push_slice(&[0; 65])
+            .into_script(),
           sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
           witness: Witness::new(),
         })
@@ -257,9 +267,12 @@ impl TransactionBuilder {
           script_pubkey: address.script_pubkey(),
         })
         .collect(),
-    };
+    }
+    .vsize()
+  }
 
-    Self::TARGET_FEE_RATE * dummy_transaction.vsize().try_into().unwrap()
+  fn estimate_fee(&self) -> Amount {
+    Self::TARGET_FEE_RATE * self.estimate_vsize().try_into().unwrap()
   }
 
   fn build(self) -> Transaction {
@@ -377,7 +390,7 @@ impl TransactionBuilder {
       fee -= Amount::from_sat(output.value);
     }
 
-    let fee_rate = fee.to_sat() as f64 / transaction.vsize() as f64;
+    let fee_rate = fee.to_sat() as f64 / self.estimate_vsize() as f64;
     let target_fee_rate = Self::TARGET_FEE_RATE.to_sat() as f64;
     assert!(
       fee_rate == target_fee_rate,
@@ -536,7 +549,7 @@ mod tests {
       outputs: vec![
         (recipient(), Amount::from_sat(5_000)),
         (change(0), Amount::from_sat(5_000)),
-        (change(1), Amount::from_sat(1_774)),
+        (change(1), Amount::from_sat(1_360)),
       ],
     };
 
@@ -549,7 +562,7 @@ mod tests {
         output: vec![
           tx_out(5_000, recipient()),
           tx_out(5_000, change(0)),
-          tx_out(1_774, change(1))
+          tx_out(1_360, change(1))
         ],
       }
     )
@@ -570,7 +583,7 @@ mod tests {
         version: 1,
         lock_time: PackedLockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
-        output: vec![tx_out(5_000 - 82, recipient())],
+        output: vec![tx_out(4780, recipient())],
       })
     )
   }
@@ -611,7 +624,7 @@ mod tests {
         version: 1,
         lock_time: PackedLockTime::ZERO,
         input: vec![tx_in(outpoint(1)), tx_in(outpoint(2))],
-        output: vec![tx_out(4_950, change(1)), tx_out(4_896, recipient())],
+        output: vec![tx_out(4_950, change(1)), tx_out(4_620, recipient())],
       })
     )
   }
@@ -670,7 +683,7 @@ mod tests {
         output: vec![
           tx_out(4_950, change(1)),
           tx_out(TransactionBuilder::TARGET_POSTAGE.to_sat(), recipient()),
-          tx_out(9_865, change(0)),
+          tx_out(9_589, change(0)),
         ],
       })
     )
@@ -753,10 +766,7 @@ mod tests {
         input: vec![tx_in(outpoint(1))],
         output: vec![
           tx_out(TransactionBuilder::TARGET_POSTAGE.to_sat(), recipient()),
-          tx_out(
-            1_000_000 - TransactionBuilder::TARGET_POSTAGE.to_sat() - 113,
-            change(1)
-          )
+          tx_out(989_749, change(1))
         ],
       })
     )
@@ -793,10 +803,7 @@ mod tests {
         version: 1,
         lock_time: PackedLockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
-        output: vec![
-          tx_out(3_333, change(1)),
-          tx_out(10_000 - 3_333 - 113, recipient())
-        ],
+        output: vec![tx_out(3_333, change(1)), tx_out(6_416, recipient())],
       })
     )
   }
@@ -819,7 +826,7 @@ mod tests {
         version: 1,
         lock_time: PackedLockTime::ZERO,
         input: vec![tx_in(outpoint(2)), tx_in(outpoint(1))],
-        output: vec![tx_out(10_001, change(1)), tx_out(9_845, recipient())],
+        output: vec![tx_out(10_001, change(1)), tx_out(9_569, recipient())],
       })
     )
   }
@@ -923,7 +930,7 @@ mod tests {
         version: 1,
         lock_time: PackedLockTime::ZERO,
         input: vec![tx_in(outpoint(1)), tx_in(outpoint(3))],
-        output: vec![tx_out(4_950, change(1)), tx_out(4_896, recipient())],
+        output: vec![tx_out(4_950, change(1)), tx_out(4_620, recipient())],
       })
     )
   }
