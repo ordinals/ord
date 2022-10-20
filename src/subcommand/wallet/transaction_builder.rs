@@ -35,7 +35,8 @@ use {
 pub(crate) enum Error {
   NotInWallet(Ordinal),
   NotEnoughCardinalUtxos,
-  AccidentalRareOrdinalSend(Ordinal),
+  RareOrdinalLostToRecipient(Ordinal),
+  RareOrdinalLostToFee(Ordinal),
 }
 
 impl fmt::Display for Error {
@@ -46,9 +47,13 @@ impl fmt::Display for Error {
         f,
         "Wallet does not contain enough cardinal UTXOs. Please add additional funds to wallet."
       ),
-      Error::AccidentalRareOrdinalSend(ordinal) => write!(
+      Error::RareOrdinalLostToRecipient(ordinal) => write!(
         f,
-        "This transaction would also send along Ordinal {ordinal}"
+        "This transaction would also send Rare Ordinal {ordinal} to recipient"
+      ),
+      Error::RareOrdinalLostToFee(ordinal) => write!(
+        f,
+        "This transaction would lose Rare Ordinal {ordinal} to the fee"
       ),
     }
   }
@@ -419,11 +424,12 @@ impl TransactionBuilder {
     }
 
     for (rare_ordinal, offset) in &rare_ordinals {
-      if rare_ordinal != &self.ordinal
-        && (offset >= &recipient_range.0 && offset < &recipient_range.1
-          || offset >= &(total_input_amount - fee.to_sat()))
-      {
-        return Err(Error::AccidentalRareOrdinalSend(*rare_ordinal));
+      if rare_ordinal != &self.ordinal {
+        if offset >= &recipient_range.0 && offset < &recipient_range.1 {
+          return Err(Error::RareOrdinalLostToRecipient(*rare_ordinal));
+        } else if offset >= &(total_input_amount - fee.to_sat()) {
+          return Err(Error::RareOrdinalLostToFee(*rare_ordinal));
+        }
       }
     }
 
@@ -979,7 +985,7 @@ mod tests {
         recipient(),
         vec![change(0), change(1),],
       ),
-      Err(Error::AccidentalRareOrdinalSend(Ordinal(0)))
+      Err(Error::RareOrdinalLostToRecipient(Ordinal(0)))
     )
   }
 
@@ -994,7 +1000,7 @@ mod tests {
         recipient(),
         vec![change(0), change(1),],
       ),
-      Err(Error::AccidentalRareOrdinalSend(Ordinal(0)))
+      Err(Error::RareOrdinalLostToFee(Ordinal(0)))
     )
   }
 }
