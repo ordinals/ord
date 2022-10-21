@@ -1244,8 +1244,8 @@ mod tests {
 <h2>1 Output</h2>
 <ul class=monospace>
   <li>
-    <a href=/output/9068a11b8769174363376b606af9a4b8b29dd7b13d013f4b0cbbd457db3c3ce5:0 class=monospace>
-      9068a11b8769174363376b606af9a4b8b29dd7b13d013f4b0cbbd457db3c3ce5:0
+    <a href=/output/0c4eb1fa83a7d6ce0e21e5e616a96e83a7b1658170fb544acf6f5c6a2d4b3f90:0 class=monospace>
+      0c4eb1fa83a7d6ce0e21e5e616a96e83a7b1658170fb544acf6f5c6a2d4b3f90:0
     </a>
     <dl>
       <dt>value</dt><dd>5000000000</dd>
