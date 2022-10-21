@@ -107,17 +107,17 @@ impl Index {
     }
 
     log::info!(
-      "Connection to Bitcoin Core RPC server at {rpc_url} using credentials from `{}`",
+      "Connecting to Bitcoin Core RPC server at {rpc_url} using credentials from `{}`",
       cookie_file.display()
     );
 
     let client = Client::new(&rpc_url, Auth::CookieFile(cookie_file))
-      .context("Failed to connect to RPC URL")?;
+      .context("failed to connect to RPC URL")?;
 
     let data_dir = options.data_dir()?;
 
     if let Err(err) = fs::create_dir_all(&data_dir) {
-      bail!("Failed to create data dir `{}`: {err}", data_dir.display());
+      bail!("failed to create data dir `{}`: {err}", data_dir.display());
     }
 
     let database_path = data_dir.join("index.redb");
@@ -307,10 +307,10 @@ impl Index {
 
           errors += 1;
           let seconds = 1 << errors;
-          log::error!("Failed to fetch block {height}, retrying in {seconds}s: {err}");
+          log::error!("failed to fetch block {height}, retrying in {seconds}s: {err}");
 
           if seconds > 120 {
-            log::error!("Would sleep for more than 120s, giving up");
+            log::error!("would sleep for more than 120s, giving up");
             return Err(err);
           }
 
@@ -339,7 +339,7 @@ impl Index {
 
       if prev_hash != block.header.prev_blockhash.as_ref() {
         self.reorged.store(true, Ordering::Relaxed);
-        return Err(anyhow!("Reorg detected at or before {prev_height}"));
+        return Err(anyhow!("reorg detected at or before {prev_height}"));
       }
     }
 

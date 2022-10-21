@@ -14,7 +14,7 @@ fn unmined_ordinal() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   CommandBuilder::new("find 5000000000")
     .rpc_server(&rpc_server)
-    .expected_stderr("error: Ordinal has not been mined as of index height\n")
+    .expected_stderr("error: ordinal has not been mined as of index height\n")
     .expected_exit_code(1)
     .run();
 }

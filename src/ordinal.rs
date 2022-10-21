@@ -211,7 +211,7 @@ impl FromStr for Ordinal {
     } else {
       let ordinal = Self(s.parse()?);
       if ordinal > Self::LAST {
-        Err(anyhow!("Invalid ordinal"))
+        Err(anyhow!("invalid ordinal"))
       } else {
         Ok(ordinal)
       }

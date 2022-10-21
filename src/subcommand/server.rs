@@ -221,7 +221,7 @@ impl Server {
 
     if let Err(err) = fs::create_dir_all(&acme_cache) {
       bail!(
-        "Failed to create acme cache dir `{}`: {err}",
+        "failed to create acme cache dir `{}`: {err}",
         acme_cache.display()
       );
     }
@@ -974,7 +974,7 @@ mod tests {
     TestServer::new().assert_response(
       "/range/1/0/",
       StatusCode::BAD_REQUEST,
-      "Range Start Greater Than Range End",
+      "range start greater than range end",
     );
   }
 
@@ -998,7 +998,7 @@ mod tests {
 
   #[test]
   fn empty_range_returns_400() {
-    TestServer::new().assert_response("/range/0/0", StatusCode::BAD_REQUEST, "Empty Range");
+    TestServer::new().assert_response("/range/0/0", StatusCode::BAD_REQUEST, "empty range");
   }
 
   #[test]
@@ -1059,7 +1059,7 @@ mod tests {
     TestServer::new().assert_response(
       "/ordinal/2099999997690000",
       StatusCode::BAD_REQUEST,
-      "Invalid URL: Invalid ordinal",
+      "Invalid URL: invalid ordinal",
     );
   }
 
@@ -1095,7 +1095,7 @@ mod tests {
     TestServer::new().assert_response(
       "/output/0000000000000000000000000000000000000000000000000000000000000000:0",
       StatusCode::NOT_FOUND,
-      "Output 0000000000000000000000000000000000000000000000000000000000000000:0 unknown",
+      "output 0000000000000000000000000000000000000000000000000000000000000000:0 unknown",
     );
   }
 
@@ -1151,7 +1151,7 @@ mod tests {
     TestServer::new().assert_response(
       "/block/467a86f0642b1d284376d13a98ef58310caa49502b0f9a560ee222e0a122fe16",
       StatusCode::NOT_FOUND,
-      "Block 467a86f0642b1d284376d13a98ef58310caa49502b0f9a560ee222e0a122fe16 unknown",
+      "block 467a86f0642b1d284376d13a98ef58310caa49502b0f9a560ee222e0a122fe16 unknown",
     );
   }
 
@@ -1268,7 +1268,7 @@ mod tests {
     test_server.bitcoin_rpc_server.invalidate_tip();
     test_server.bitcoin_rpc_server.mine_blocks(2);
 
-    test_server.assert_response_regex("/status", StatusCode::OK, "Reorg detected.*");
+    test_server.assert_response_regex("/status", StatusCode::OK, "reorg detected.*");
   }
 
   #[test]
@@ -1296,7 +1296,7 @@ mod tests {
     TestServer::new().assert_response(
       "/input/1/1/1",
       StatusCode::NOT_FOUND,
-      "Input /1/1/1 unknown",
+      "input /1/1/1 unknown",
     );
   }
 
@@ -1305,7 +1305,7 @@ mod tests {
     TestServer::new().assert_response(
       "/rune/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b",
       StatusCode::NOT_FOUND,
-      "Rune 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b unknown",
+      "rune 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b unknown",
     );
   }
 
@@ -1369,7 +1369,7 @@ mod tests {
       "application/json",
       r#"{"name": "foo", "chain": "mainnet", "ordinal": 0}"#,
       StatusCode::UNPROCESSABLE_ENTITY,
-      r#"This ord instance only accepts regtest runes for publication"#,
+      r#"this ord instance only accepts regtest runes for publication"#,
     );
   }
 
