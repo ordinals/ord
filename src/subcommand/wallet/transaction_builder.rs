@@ -43,17 +43,17 @@ pub(crate) enum Error {
 impl fmt::Display for Error {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self {
-      Error::NotInWallet(ordinal) => write!(f, "Ordinal {ordinal} not in wallet"),
+      Error::NotInWallet(ordinal) => write!(f, "ordinal {ordinal} not in wallet"),
       Error::NotEnoughCardinalUtxos => write!(
         f,
-        "Wallet does not contain enough cardinal UTXOs. Please add additional funds to wallet."
+        "wallet does not contain enough cardinal UTXOs, please add additional funds to wallet."
       ),
       Error::RareOrdinalLostToRecipient(ordinal) => write!(
         f,
-        "Transaction would lose rare ordinal {ordinal} to recipient"
+        "transaction would lose rare ordinal {ordinal} to recipient"
       ),
       Error::RareOrdinalLostToFee(ordinal) => {
-        write!(f, "Transaction would lose rare ordinal {ordinal} to fee")
+        write!(f, "transaction would lose rare ordinal {ordinal} to fee")
       }
     }
   }
