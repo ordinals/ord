@@ -31,7 +31,7 @@ mod tests {
             .parse()
             .unwrap(),
           script_sig: script::Builder::new().push_scriptint(4).into_script(),
-          sequence: Sequence(0),
+          sequence: Sequence::MAX,
           witness,
         }
       }
@@ -40,7 +40,6 @@ mod tests {
       <h1>Input /1/2/3</h1>
       <dl>
         <dt>previous output</dt><dd class=monospace>0000000000000000000000000000000000000000000000000000000000000000:0</dd>
-        <dt>sequence</dt><dd>0</dd>
         <dt>witness</dt><dd class=data>010101</dd>
         <dt>script sig</dt><dd class=data>OP_PUSHBYTES_1 04</dd>
         <dt>text</dt><dd>\x01\x04</dd>

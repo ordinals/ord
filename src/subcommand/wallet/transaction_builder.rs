@@ -262,7 +262,7 @@ impl TransactionBuilder {
             .push_slice(&[0; 71])
             .push_slice(&[0; 65])
             .into_script(),
-          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          sequence: Sequence::MAX,
           witness: Witness::new(),
         })
         .collect(),
@@ -294,7 +294,7 @@ impl TransactionBuilder {
         .map(|outpoint| TxIn {
           previous_output: *outpoint,
           script_sig: Script::new(),
-          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          sequence: Sequence::MAX,
           witness: Witness::new(),
         })
         .collect(),
@@ -549,7 +549,7 @@ mod tests {
     TxIn {
       previous_output,
       script_sig: Script::new(),
-      sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+      sequence: Sequence::MAX,
       witness: Witness::new(),
     }
   }

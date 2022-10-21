@@ -152,7 +152,7 @@ impl Api for Server {
         .map(|input| TxIn {
           previous_output: OutPoint::new(input.txid, input.vout),
           script_sig: Script::new(),
-          sequence: Sequence(0),
+          sequence: Sequence::MAX,
           witness: Witness::new(),
         })
         .collect(),
