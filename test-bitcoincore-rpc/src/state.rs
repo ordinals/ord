@@ -38,7 +38,7 @@ impl State {
         script_sig: script::Builder::new()
           .push_scriptint(self.blocks.len().try_into().unwrap())
           .into_script(),
-        sequence: Sequence(0),
+        sequence: Sequence::MAX,
         witness: Witness::new(),
       }],
       output: vec![TxOut {
@@ -102,7 +102,7 @@ impl State {
       input.push(TxIn {
         previous_output: OutPoint::new(tx.txid(), *vout as u32),
         script_sig: Script::new(),
-        sequence: Sequence(0),
+        sequence: Sequence::MAX,
         witness: Witness::new(),
       });
     }
