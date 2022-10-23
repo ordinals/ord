@@ -194,7 +194,7 @@ impl OutpointToOrdinalRangesMapper {
 
     self.time_keeper.start_recording_db_insertion();
     for (k, v) in &self.outpoint_to_ordinal_ranges_map {
-      outpoint_to_ordinal_ranges.insert(&k, &v)?;
+      outpoint_to_ordinal_ranges.insert(k, v)?;
     }
     self
       .time_keeper
