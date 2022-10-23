@@ -52,6 +52,12 @@ impl Ordinal {
     self.into()
   }
 
+  pub(crate) fn is_uncommon_or_more_rare(self) -> bool {
+    let e = self.epoch();
+    let third_inlined = (self.0 - e.starting_ordinal().0) % e.subsidy();
+    third_inlined == 0
+  }
+
   pub(crate) fn name(self) -> String {
     let mut x = Self::SUPPLY - self.0;
     let mut name = String::new();
