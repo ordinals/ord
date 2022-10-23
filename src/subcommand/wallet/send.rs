@@ -8,6 +8,14 @@ pub(crate) struct Send {
 
 impl Send {
   pub(crate) fn run(self, options: Options) -> Result {
+    if !self.address.is_valid_for_network(options.chain.network()) {
+      bail!(
+        "Address `{}` is not valid for {}",
+        self.address,
+        options.chain
+      );
+    }
+
     let client = options.bitcoin_rpc_client_mainnet_forbidden("ord wallet send")?;
 
     let index = Index::open(&options)?;
