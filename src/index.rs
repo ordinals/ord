@@ -10,6 +10,7 @@ use {
     Database, MultimapTableDefinition, ReadableMultimapTable, ReadableTable, Table,
     TableDefinition, WriteStrategy, WriteTransaction,
   },
+  std::collections::HashMap,
   std::sync::atomic::{AtomicBool, Ordering},
 };
 
@@ -68,6 +69,196 @@ pub(crate) enum Statistic {
 impl From<Statistic> for u64 {
   fn from(statistic: Statistic) -> Self {
     statistic as u64
+  }
+}
+
+pub struct TimeKeeper {
+  overall_indexing: Duration,
+  block_retrieval: Duration,
+  db_lookup_remove: Duration,
+  db_insertion: Duration,
+  db_commit: Duration,
+  start_overall_indexing: Instant,
+  start_block_retrieval: Instant,
+  start_db_lookup_remove: Instant,
+  start_db_insertion: Instant,
+  start_db_commit: Instant,
+  db_lookup_removes: u64,
+  db_insertions: u64,
+  db_commits: u64,
+}
+
+impl TimeKeeper {
+  pub fn new() -> TimeKeeper {
+    TimeKeeper {
+      overall_indexing: Duration::ZERO,
+      block_retrieval: Duration::ZERO,
+      db_lookup_remove: Duration::ZERO,
+      db_insertion: Duration::ZERO,
+      db_commit: Duration::ZERO,
+      start_overall_indexing: Instant::now(),
+      start_block_retrieval: Instant::now(),
+      start_db_lookup_remove: Instant::now(),
+      start_db_insertion: Instant::now(),
+      start_db_commit: Instant::now(),
+      db_lookup_removes: 0,
+      db_insertions: 0,
+      db_commits: 0,
+    }
+  }
+
+  pub fn start_recording_overall_indexing(&mut self) {
+    self.start_overall_indexing = Instant::now();
+  }
+  pub fn stop_recording_overall_indexing(&mut self) {
+    self.overall_indexing += Instant::now() - self.start_overall_indexing;
+  }
+
+  pub fn start_recording_block_retrieval(&mut self) {
+    self.start_block_retrieval = Instant::now();
+  }
+  pub fn stop_recording_block_retrieval(&mut self) {
+    self.block_retrieval += Instant::now() - self.start_block_retrieval;
+  }
+
+  pub fn start_recording_db_lookup_remove(&mut self) {
+    self.start_db_lookup_remove = Instant::now();
+  }
+  pub fn stop_recording_db_lookup_remove(&mut self) {
+    self.db_lookup_removes += 1;
+    self.db_lookup_remove += Instant::now() - self.start_db_lookup_remove;
+  }
+
+  pub fn start_recording_db_insertion(&mut self) {
+    self.start_db_insertion = Instant::now();
+  }
+  pub fn stop_recording_db_insertion(&mut self, n: u64) {
+    self.db_insertions += n;
+    self.db_insertion += Instant::now() - self.start_db_insertion;
+  }
+  pub fn current_lap_db_insertion(&mut self) -> Duration {
+    Instant::now() - self.start_db_insertion
+  }
+
+  pub fn start_recording_db_commit(&mut self) {
+    self.db_commits += 1;
+    self.start_db_commit = Instant::now();
+  }
+  pub fn stop_recording_db_commit(&mut self) {
+    self.db_commit += Instant::now() - self.start_db_commit;
+  }
+
+  pub fn log(&mut self) {
+    log::info!(
+      "Overall index time: {} ms\n  Block retrieval: {} ms\n  {} DB lookup/removes: {} ms\n  {} DB insertions: {} ms\n  {} DB commits: {} ms",
+      self.overall_indexing.as_millis(),
+      self.block_retrieval.as_millis(),
+      self.db_lookup_removes,
+      self.db_lookup_remove.as_millis(),
+      self.db_insertions,
+      self.db_insertion.as_millis(),
+      self.db_commits,
+      self.db_commit.as_millis()
+    );
+  }
+}
+
+pub struct OutpointToOrdinalRangesMapper {
+  outpoint_to_ordinal_ranges_map: HashMap<[u8; 36], Vec<u8>>,
+  time_keeper: TimeKeeper,
+  outputs_traversed: u64,
+  outputs_cached: u64,
+  outputs_inserted_since_flush: u64,
+}
+
+impl OutpointToOrdinalRangesMapper {
+  pub fn new() -> OutpointToOrdinalRangesMapper {
+    OutpointToOrdinalRangesMapper {
+      outpoint_to_ordinal_ranges_map: HashMap::new(),
+      time_keeper: TimeKeeper::new(),
+      outputs_traversed: 0,
+      outputs_cached: 0,
+      outputs_inserted_since_flush: 0,
+    }
+  }
+
+  fn flush_map_to_redb(&mut self, wtx: &mut WriteTransaction) -> Result {
+    log::info!(
+      "Flushing {} entries ({:.1}% resulting from {} insertions) from memory to database",
+      self.outpoint_to_ordinal_ranges_map.len(),
+      self.outpoint_to_ordinal_ranges_map.len() as f64 / self.outputs_inserted_since_flush as f64
+        * 100.,
+      self.outputs_inserted_since_flush,
+    );
+    let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
+
+    self.time_keeper.start_recording_db_insertion();
+    for (k, v) in &self.outpoint_to_ordinal_ranges_map {
+      outpoint_to_ordinal_ranges.insert(&k, &v)?;
+    }
+    self
+      .time_keeper
+      .stop_recording_db_insertion(self.outpoint_to_ordinal_ranges_map.len() as u64);
+
+    self.outpoint_to_ordinal_ranges_map.clear();
+    self.outputs_inserted_since_flush = 0;
+    Ok(())
+  }
+
+  fn get_and_remove(
+    &mut self,
+    outpoint: OutPoint,
+    outpoint_to_ordinal_ranges: &mut Table<[u8; 36], [u8]>,
+  ) -> Result<Vec<u8>> {
+    let key = encode_outpoint(outpoint);
+    match self.outpoint_to_ordinal_ranges_map.remove(&key) {
+      Some(ord_range_vec) => {
+        self.outputs_cached += 1;
+        Ok(ord_range_vec)
+      }
+      None => {
+        self.time_keeper.start_recording_db_lookup_remove();
+        let ord_range = outpoint_to_ordinal_ranges
+          .remove(&key)?
+          .ok_or_else(|| anyhow!("Could not find outpoint {} in index", outpoint))?;
+        self.time_keeper.stop_recording_db_lookup_remove();
+        Ok(ord_range.to_value().to_vec())
+      }
+    }
+  }
+
+  pub(crate) fn increment_outputs_traversed(&mut self, n: u64) {
+    self.outputs_traversed += n;
+  }
+
+  fn insert(&mut self, outpoint: &mut OutPoint, ordinals: Vec<u8>) {
+    let key = encode_outpoint(*outpoint);
+    self.outpoint_to_ordinal_ranges_map.insert(key, ordinals);
+    self.outputs_inserted_since_flush += 1;
+  }
+
+  fn commit(&mut self, mut wtx: WriteTransaction, height: u64) -> Result {
+    log::info!(
+      "Committing at block height {}, {} outputs traversed, {} in map, {} cached",
+      height,
+      self.outputs_traversed,
+      self.outpoint_to_ordinal_ranges_map.len(),
+      self.outputs_cached
+    );
+
+    self.flush_map_to_redb(&mut wtx)?;
+
+    log::info!(
+      "Finished committing at block height {} in {} ms)",
+      height,
+      self.time_keeper.current_lap_db_insertion().as_millis()
+    );
+
+    Index::increment_statistic(&wtx, Statistic::Commits, 1)?;
+    self.time_keeper.start_recording_db_commit();
+    wtx.commit()?;
+    self.time_keeper.stop_recording_db_commit();
+    Ok(())
   }
 }
 
@@ -223,7 +414,7 @@ impl Index {
   pub(crate) fn index(&self) -> Result {
     let mut wtx = self.begin_write()?;
 
-    let height = wtx
+    let mut current_height = wtx
       .open_table(HEIGHT_TO_BLOCK_HASH)?
       .range(0..)?
       .rev()
@@ -242,15 +433,26 @@ impl Index {
       Some(progress_bar)
     };
 
+    let mut outpoint_to_ordinal_ranges_mapper = OutpointToOrdinalRangesMapper::new();
+
+    outpoint_to_ordinal_ranges_mapper
+      .time_keeper
+      .start_recording_overall_indexing();
+
     let mut uncomitted = 0;
-    for (i, height) in (0..).zip(height..) {
+    for i in 0.. {
       if let Some(height_limit) = self.height_limit {
-        if height > height_limit {
+        if current_height > height_limit {
           break;
         }
       }
 
-      let done = self.index_block(&mut wtx, height)?;
+      let done = self.index_block(
+        &mut wtx,
+        current_height,
+        &mut outpoint_to_ordinal_ranges_mapper,
+      )?;
+      current_height += 1;
 
       if !done {
         if let Some(progress_bar) = &mut progress_bar {
@@ -264,9 +466,8 @@ impl Index {
         uncomitted += 1;
       }
 
-      if uncomitted > 0 && i % 1000 == 0 {
-        Self::increment_statistic(&wtx, Statistic::Commits, 1)?;
-        wtx.commit()?;
+      if uncomitted > 0 && i % 5000 == 0 {
+        outpoint_to_ordinal_ranges_mapper.commit(wtx, current_height)?;
         wtx = self.begin_write()?;
         uncomitted = 0;
       }
@@ -277,9 +478,13 @@ impl Index {
     }
 
     if uncomitted > 0 {
-      Self::increment_statistic(&wtx, Statistic::Commits, 1)?;
-      wtx.commit()?;
+      outpoint_to_ordinal_ranges_mapper.commit(wtx, current_height)?;
     }
+
+    outpoint_to_ordinal_ranges_mapper
+      .time_keeper
+      .stop_recording_overall_indexing();
+    outpoint_to_ordinal_ranges_mapper.time_keeper.log();
 
     if let Some(progress_bar) = &mut progress_bar {
       progress_bar.finish_and_clear();
@@ -292,7 +497,12 @@ impl Index {
     self.reorged.load(Ordering::Relaxed)
   }
 
-  pub(crate) fn index_block(&self, wtx: &mut WriteTransaction, height: u64) -> Result<bool> {
+  pub(crate) fn index_block(
+    &self,
+    wtx: &mut WriteTransaction,
+    height: u64,
+    outpoint_to_ordinal_ranges_mapper: &mut OutpointToOrdinalRangesMapper,
+  ) -> Result<bool> {
     let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
     let mut ordinal_to_satpoint = wtx.open_table(ORDINAL_TO_SATPOINT)?;
     let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
@@ -302,6 +512,9 @@ impl Index {
     let mut outputs_in_block = 0;
 
     let mut errors = 0;
+    outpoint_to_ordinal_ranges_mapper
+      .time_keeper
+      .start_recording_block_retrieval();
     let block = loop {
       match self.block(height) {
         Err(err) => {
@@ -326,6 +539,9 @@ impl Index {
         }
       }
     };
+    outpoint_to_ordinal_ranges_mapper
+      .time_keeper
+      .stop_recording_block_retrieval();
 
     let time: DateTime<Utc> = DateTime::from_utc(
       NaiveDateTime::from_timestamp(block.header.time as i64, 0),
@@ -367,24 +583,19 @@ impl Index {
       let mut input_ordinal_ranges = VecDeque::new();
 
       for input in &tx.input {
-        let key = encode_outpoint(input.previous_output);
+        let ordinal_ranges = outpoint_to_ordinal_ranges_mapper
+          .get_and_remove(input.previous_output, &mut outpoint_to_ordinal_ranges);
 
-        let ordinal_ranges = outpoint_to_ordinal_ranges
-          .get(&key)?
-          .ok_or_else(|| anyhow!("could not find outpoint {} in index", input.previous_output))?;
-
-        for chunk in ordinal_ranges.chunks_exact(11) {
+        for chunk in ordinal_ranges?.chunks_exact(11) {
           input_ordinal_ranges.push_back(Self::decode_ordinal_range(chunk.try_into().unwrap()));
         }
-
-        outpoint_to_ordinal_ranges.remove(&key)?;
       }
 
       self.index_transaction(
         *txid,
         tx,
         &mut ordinal_to_satpoint,
-        &mut outpoint_to_ordinal_ranges,
+        outpoint_to_ordinal_ranges_mapper,
         &mut input_ordinal_ranges,
         &mut ordinal_ranges_written,
         &mut outputs_in_block,
@@ -398,7 +609,7 @@ impl Index {
         *txid,
         tx,
         &mut ordinal_to_satpoint,
-        &mut outpoint_to_ordinal_ranges,
+        outpoint_to_ordinal_ranges_mapper,
         &mut coinbase_inputs,
         &mut ordinal_ranges_written,
         &mut outputs_in_block,
@@ -408,9 +619,10 @@ impl Index {
     height_to_block_hash.insert(&height, &block.block_hash().as_hash().into_inner())?;
 
     Self::increment_statistic(wtx, Statistic::OutputsTraversed, outputs_in_block)?;
+    outpoint_to_ordinal_ranges_mapper.increment_outputs_traversed(outputs_in_block);
 
     log::info!(
-      "Wrote {ordinal_ranges_written} ordinal ranges in {}ms",
+      "Wrote {ordinal_ranges_written} ordinal ranges from {outputs_in_block} outputs in {} ms",
       (Instant::now() - start).as_millis(),
     );
 
@@ -507,13 +719,13 @@ impl Index {
     txid: Txid,
     tx: &Transaction,
     ordinal_to_satpoint: &mut Table<u64, [u8; 44]>,
-    outpoint_to_ordinal_ranges: &mut Table<[u8; 36], [u8]>,
+    outpoint_to_ordinal_ranges_mapper: &mut OutpointToOrdinalRangesMapper,
     input_ordinal_ranges: &mut VecDeque<(u64, u64)>,
     ordinal_ranges_written: &mut u64,
     outputs_traversed: &mut u64,
   ) -> Result {
     for (vout, output) in tx.output.iter().enumerate() {
-      let outpoint = OutPoint {
+      let mut outpoint = OutPoint {
         vout: vout as u32,
         txid,
       };
@@ -559,7 +771,7 @@ impl Index {
 
       *outputs_traversed += 1;
 
-      outpoint_to_ordinal_ranges.insert(&encode_outpoint(outpoint), &ordinals)?;
+      outpoint_to_ordinal_ranges_mapper.insert(&mut outpoint, ordinals);
     }
 
     Ok(())
