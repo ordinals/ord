@@ -94,7 +94,7 @@ impl Ordinal {
       .ok_or_else(|| anyhow!("missing minute symbol"))?;
     let epoch_offset = epoch_offset.parse::<u64>()?;
     if epoch_offset >= SUBSIDY_HALVING_INTERVAL {
-      wail!("invalid epoch offset");
+      bail!("invalid epoch offset");
     }
 
     let (period_offset, rest) = rest
