@@ -20,7 +20,7 @@ impl List {
         Ok(())
       }
       Some(crate::index::List::Spent) => Err(anyhow!("Output spent.")),
-      None => Err(anyhow!("Output not found")),
+      None => Err(anyhow!("output not found")),
     }
   }
 }

@@ -194,7 +194,7 @@ impl Server {
     let addr = (self.address.as_str(), port)
       .to_socket_addrs()?
       .next()
-      .ok_or_else(|| anyhow!("Failed to get socket addrs"))?;
+      .ok_or_else(|| anyhow!("failed to get socket addrs"))?;
 
     Ok(tokio::spawn(async move {
       if let Some(acceptor) = https_acceptor {

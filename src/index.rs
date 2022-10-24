@@ -367,7 +367,7 @@ impl Index {
 
         let ordinal_ranges = outpoint_to_ordinal_ranges
           .get(&key)?
-          .ok_or_else(|| anyhow!("Could not find outpoint {} in index", input.previous_output))?;
+          .ok_or_else(|| anyhow!("could not find outpoint {} in index", input.previous_output))?;
 
         for chunk in ordinal_ranges.chunks_exact(11) {
           input_ordinal_ranges.push_back(Self::decode_ordinal_range(chunk.try_into().unwrap()));
@@ -524,7 +524,7 @@ impl Index {
       while remaining > 0 {
         let range = input_ordinal_ranges
           .pop_front()
-          .ok_or_else(|| anyhow!("Insufficient inputs for transaction outputs"))?;
+          .ok_or_else(|| anyhow!("insufficient inputs for transaction outputs"))?;
 
         if Ordinal(range.0).rarity() > Rarity::Common {
           ordinal_to_satpoint.insert(
@@ -722,7 +722,7 @@ impl Index {
           .unwrap_or(0);
 
         let expected_blocks = height.checked_sub(current).with_context(|| {
-          format!("Current {current} height is greater than ordinal height {height}")
+          format!("current {current} height is greater than ordinal height {height}")
         })?;
 
         Ok(Blocktime::Expected(

@@ -15,8 +15,8 @@ fn list_unspent(options: &Options, index: &Index) -> Result<Vec<(OutPoint, Vec<(
       let outpoint = OutPoint::new(utxo.txid, utxo.vout);
       match index.list(outpoint)? {
         Some(List::Unspent(ordinal_ranges)) => Ok((outpoint, ordinal_ranges)),
-        Some(List::Spent) => bail!("Output {outpoint} in wallet but is spent according to index"),
-        None => bail!("Ordinals index has not seen {outpoint}"),
+        Some(List::Spent) => bail!("output {outpoint} in wallet but is spent according to index"),
+        None => bail!("ordinals index has not seen {outpoint}"),
       }
     })
     .collect()
