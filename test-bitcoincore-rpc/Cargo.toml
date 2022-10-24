@@ -9,7 +9,7 @@ repository = "https://github.com/casey/ord"
 
 [dependencies]
 bitcoin = { version = "0.29.1", features = ["serde"] }
-bitcoincore-rpc = { version = "0.16.0", git = "https://github.com/casey/rust-bitcoincore-rpc", branch = "serialize-get-transaction-result-detail-et-al" }
+ord-bitcoincore-rpc = "0.16.3"
 hex = "0.4.3"
 jsonrpc-core = "18.0.0"
 jsonrpc-core-client = "18.0.0"
