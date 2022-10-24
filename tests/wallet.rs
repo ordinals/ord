@@ -32,8 +32,8 @@ fn list() {
 }
 
 #[test]
-fn send() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with_network(Network::Signet);
+fn send_works_on_signet() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Signet, "ord");
 
   rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
@@ -49,13 +49,57 @@ fn send() {
 }
 
 #[test]
-fn send_not_allowed_on_mainnet() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
-  rpc_server.mine_blocks(1)[0].txdata[0].txid();
+fn send_on_mainnnet_refuses_to_work_with_wallet_name_foo() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "foo");
+  rpc_server.mine_blocks(1);
 
   CommandBuilder::new("wallet send 5000000000 tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw")
     .rpc_server(&rpc_server)
-    .expected_stderr("error: `ord wallet send` is unstable and not yet supported on mainnet.\n")
+    .expected_stderr("error: `ord wallet send` may only be used on mainnet with a wallet named `ord` or whose name starts with `ord-`\n")
+    .expected_exit_code(1)
+    .run();
+}
+
+#[test]
+fn send_on_mainnnet_works_with_wallet_named_ord() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "ord");
+  rpc_server.mine_blocks_with_subsidy(1, 1_000_000);
+
+  let output =
+    CommandBuilder::new("wallet send 5000000000 tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw")
+      .rpc_server(&rpc_server)
+      .stdout_regex(r".*")
+      .run();
+
+  let txid = rpc_server.mempool()[0].txid();
+  assert_eq!(format!("{}\n", txid), output.stdout)
+}
+
+#[test]
+fn send_on_mainnnet_works_with_wallet_whose_name_starts_with_ord() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "ord-foo");
+  rpc_server.mine_blocks_with_subsidy(1, 1_000_000);
+
+  let output =
+    CommandBuilder::new("wallet send 5000000000 tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw")
+      .rpc_server(&rpc_server)
+      .stdout_regex(r".*")
+      .run();
+
+  let txid = rpc_server.mempool()[0].txid();
+  assert_eq!(format!("{}\n", txid), output.stdout)
+}
+
+#[test]
+fn send_on_mainnnet_refuses_to_work_with_wallet_with_high_balance() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "ord");
+  rpc_server.mine_blocks_with_subsidy(1, 1_000_001);
+
+  CommandBuilder::new("wallet send 5000000000 tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw")
+    .rpc_server(&rpc_server)
+    .expected_stderr(
+      "error: `ord wallet send` may not be used on mainnet with wallets containing more than 1,000,000 sats\n",
+    )
     .expected_exit_code(1)
     .run();
 }

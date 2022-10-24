@@ -24,7 +24,7 @@ use {
     consensus::{self, Decodable, Encodable},
     hash_types::BlockHash,
     hashes::{sha256, Hash},
-    Address, Block, OutPoint, Script, Sequence, Transaction, TxIn, TxOut, Txid,
+    Address, Amount, Block, OutPoint, Script, Sequence, Transaction, TxIn, TxOut, Txid,
   },
   bitcoincore_rpc::RpcApi,
   chain::Chain,
