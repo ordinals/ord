@@ -74,11 +74,11 @@ impl Ordinal {
         'a'..='z' => {
           x = x * 26 + c as u64 - 'a' as u64 + 1;
         }
-        _ => bail!("Invalid character in ordinal name: {c}"),
+        _ => bail!("invalid character in ordinal name: {c}"),
       }
     }
     if x > Self::SUPPLY {
-      bail!("Ordinal name out of range");
+      bail!("ordinal name out of range");
     }
     Ok(Ordinal(Self::SUPPLY - x))
   }
@@ -86,23 +86,23 @@ impl Ordinal {
   fn from_degree(degree: &str) -> Result<Self> {
     let (cycle_number, rest) = degree
       .split_once('°')
-      .ok_or_else(|| anyhow!("Missing degree symbol"))?;
+      .ok_or_else(|| anyhow!("missing degree symbol"))?;
     let cycle_number = cycle_number.parse::<u64>()?;
 
     let (epoch_offset, rest) = rest
       .split_once('′')
-      .ok_or_else(|| anyhow!("Missing minute symbol"))?;
+      .ok_or_else(|| anyhow!("missing minute symbol"))?;
     let epoch_offset = epoch_offset.parse::<u64>()?;
     if epoch_offset >= SUBSIDY_HALVING_INTERVAL {
-      bail!("Invalid epoch offset");
+      bail!("invalid epoch offset");
     }
 
     let (period_offset, rest) = rest
       .split_once('″')
-      .ok_or_else(|| anyhow!("Missing second symbol"))?;
+      .ok_or_else(|| anyhow!("missing second symbol"))?;
     let period_offset = period_offset.parse::<u64>()?;
     if period_offset >= DIFFCHANGE_INTERVAL {
-      bail!("Invalid period offset");
+      bail!("invalid period offset");
     }
 
     let cycle_start_epoch = cycle_number * CYCLE_EPOCHS;
@@ -114,7 +114,7 @@ impl Ordinal {
     let relationship = period_offset + SUBSIDY_HALVING_INTERVAL * CYCLE_EPOCHS - epoch_offset;
 
     if relationship % HALVING_INCREMENT != 0 {
-      bail!("Relationship between epoch offset and period offset must be multiple of 336");
+      bail!("relationship between epoch offset and period offset must be multiple of 336");
     }
 
     let epochs_since_cycle_start = relationship % DIFFCHANGE_INTERVAL / HALVING_INCREMENT;
@@ -129,11 +129,11 @@ impl Ordinal {
     };
 
     if !rest.is_empty() {
-      bail!("Trailing characters");
+      bail!("trailing characters");
     }
 
     if block_offset >= height.subsidy() {
-      bail!("Invalid block offset");
+      bail!("invalid block offset");
     }
 
     Ok(height.starting_ordinal() + block_offset)
@@ -142,12 +142,12 @@ impl Ordinal {
   fn from_decimal(decimal: &str) -> Result<Self> {
     let (height, offset) = decimal
       .split_once('.')
-      .ok_or_else(|| anyhow!("Missing period"))?;
+      .ok_or_else(|| anyhow!("missing period"))?;
     let height = Height(height.parse()?);
     let offset = offset.parse::<u64>()?;
 
     if offset >= height.subsidy() {
-      bail!("Invalid block offset");
+      bail!("invalid block offset");
     }
 
     Ok(height.starting_ordinal() + offset)
@@ -155,13 +155,13 @@ impl Ordinal {
 
   fn from_percentile(percentile: &str) -> Result<Self> {
     if !percentile.ends_with('%') {
-      bail!("Invalid percentile: {}", percentile);
+      bail!("invalid percentile: {}", percentile);
     }
 
     let percentile = percentile[..percentile.len() - 1].parse::<f64>()?;
 
     if percentile < 0.0 {
-      bail!("Invalid percentile: {}", percentile);
+      bail!("invalid percentile: {}", percentile);
     }
 
     let last = Ordinal::LAST.n() as f64;
@@ -169,7 +169,7 @@ impl Ordinal {
     let n = (percentile / 100.0 * last).round() as u64;
 
     if n > Ordinal::LAST.n() {
-      bail!("Invalid percentile: {}", percentile);
+      bail!("invalid percentile: {}", percentile);
     }
 
     Ok(Ordinal(n as u64))
@@ -211,7 +211,7 @@ impl FromStr for Ordinal {
     } else {
       let ordinal = Self(s.parse()?);
       if ordinal > Self::LAST {
-        Err(anyhow!("Invalid ordinal"))
+        Err(anyhow!("invalid ordinal"))
       } else {
         Ok(ordinal)
       }

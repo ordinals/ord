@@ -15,6 +15,6 @@ fn output_not_found() {
   CommandBuilder::new("list 0000000000000000000000000000000000000000000000000000000000000000:0")
     .rpc_server(&rpc_server)
     .expected_exit_code(1)
-    .expected_stderr("error: Output not found\n")
+    .expected_stderr("error: output not found\n")
     .run();
 }

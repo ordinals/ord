@@ -36,10 +36,10 @@ impl Send {
     let change = vec![
       client
         .call("getrawchangeaddress", &[])
-        .context("Could not get change addresses from wallet")?,
+        .context("could not get change addresses from wallet")?,
       client
         .call("getrawchangeaddress", &[])
-        .context("Could not get change addresses from wallet")?,
+        .context("could not get change addresses from wallet")?,
     ];
 
     let unsigned_transaction =

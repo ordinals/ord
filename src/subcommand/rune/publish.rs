@@ -28,7 +28,7 @@ impl Publish {
     let url = self
       .publish_url
       .or_else(|| options.chain.default_publish_url())
-      .ok_or_else(|| anyhow!("No default <PUBLISH_URL> for {}", options.chain))?
+      .ok_or_else(|| anyhow!("no default <PUBLISH_URL> for {}", options.chain))?
       .join("rune")?;
 
     let response = reqwest::blocking::Client::new()
@@ -43,7 +43,7 @@ impl Publish {
     let status = response.status();
 
     if !status.is_success() {
-      bail!("Failed to post rune to `{}`:\n{}", url, response.text()?)
+      bail!("failed to post rune to `{}`:\n{}", url, response.text()?)
     }
 
     eprintln!("Rune published: {}", response.status());

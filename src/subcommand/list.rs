@@ -19,8 +19,8 @@ impl List {
         }
         Ok(())
       }
-      Some(crate::index::List::Spent) => Err(anyhow!("Output spent.")),
-      None => Err(anyhow!("Output not found")),
+      Some(crate::index::List::Spent) => Err(anyhow!("output spent.")),
+      None => Err(anyhow!("output not found")),
     }
   }
 }

@@ -48,11 +48,11 @@ impl Options {
       bitcoin_data_dir.clone()
     } else if cfg!(target_os = "linux") {
       dirs::home_dir()
-        .ok_or_else(|| anyhow!("Failed to retrieve home dir"))?
+        .ok_or_else(|| anyhow!("failed to retrieve home dir"))?
         .join(".bitcoin")
     } else {
       dirs::data_dir()
-        .ok_or_else(|| anyhow!("Failed to retrieve data dir"))?
+        .ok_or_else(|| anyhow!("failed to retrieve data dir"))?
         .join("Bitcoin")
     };
 
@@ -65,7 +65,7 @@ impl Options {
     let base = match &self.data_dir {
       Some(base) => base.clone(),
       None => dirs::data_dir()
-        .ok_or_else(|| anyhow!("Failed to retrieve data dir"))?
+        .ok_or_else(|| anyhow!("failed to retrieve data dir"))?
         .join("ord"),
     };
 
@@ -81,7 +81,7 @@ impl Options {
     );
 
     let client = Client::new(&rpc_url, Auth::CookieFile(cookie_file))
-      .with_context(|| format!("Failed to connect to Bitcoin Core RPC at {rpc_url}"))?;
+      .with_context(|| format!("failed to connect to Bitcoin Core RPC at {rpc_url}"))?;
 
     let rpc_chain = match client.get_blockchain_info()?.chain.as_str() {
       "main" => Chain::Mainnet,

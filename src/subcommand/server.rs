@@ -194,7 +194,7 @@ impl Server {
     let addr = (self.address.as_str(), port)
       .to_socket_addrs()?
       .next()
-      .ok_or_else(|| anyhow!("Failed to get socket addrs"))?;
+      .ok_or_else(|| anyhow!("failed to get socket addrs"))?;
 
     Ok(tokio::spawn(async move {
       if let Some(acceptor) = https_acceptor {
@@ -221,7 +221,7 @@ impl Server {
 
     if let Err(err) = fs::create_dir_all(&acme_cache) {
       bail!(
-        "Failed to create acme cache dir `{}`: {err}",
+        "failed to create acme cache dir `{}`: {err}",
         acme_cache.display()
       );
     }
@@ -289,7 +289,7 @@ impl Server {
 
   async fn clock(Extension(index): Extension<Arc<Index>>) -> ServerResult<ClockSvg> {
     Ok(ClockSvg::new(index.height().map_err(|err| {
-      ServerError::Internal(anyhow!("Failed to retrieve height from index: {err}"))
+      ServerError::Internal(anyhow!("failed to retrieve height from index: {err}"))
     })?))
   }
 
@@ -301,11 +301,11 @@ impl Server {
       OrdinalHtml {
         ordinal,
         blocktime: index.blocktime(ordinal.height()).map_err(|err| {
-          ServerError::Internal(anyhow!("Failed to retrieve blocktime from index: {err}"))
+          ServerError::Internal(anyhow!("failed to retrieve blocktime from index: {err}"))
         })?,
         inscriptions: index.inscriptions(ordinal).map_err(|err| {
           ServerError::Internal(anyhow!(
-            "Failed to retrieve runes for ordinal {ordinal}: {err}"
+            "failed to retrieve runes for ordinal {ordinal}: {err}"
           ))
         })?,
       }
@@ -321,16 +321,16 @@ impl Server {
     let list = index
       .list(outpoint)
       .map_err(ServerError::Internal)?
-      .ok_or_else(|| ServerError::NotFound(format!("Output {outpoint} unknown")))?;
+      .ok_or_else(|| ServerError::NotFound(format!("output {outpoint} unknown")))?;
 
     let output = index
       .transaction(outpoint.txid)
       .map_err(ServerError::Internal)?
-      .ok_or_else(|| ServerError::NotFound(format!("Output {outpoint} unknown")))?
+      .ok_or_else(|| ServerError::NotFound(format!("output {outpoint} unknown")))?
       .output
       .into_iter()
       .nth(outpoint.vout as usize)
-      .ok_or_else(|| ServerError::NotFound(format!("Output {outpoint} unknown")))?;
+      .ok_or_else(|| ServerError::NotFound(format!("output {outpoint} unknown")))?;
 
     Ok(
       OutputHtml {
@@ -350,9 +350,9 @@ impl Server {
     )>,
   ) -> ServerResult<PageHtml> {
     match start.cmp(&end) {
-      Ordering::Equal => Err(ServerError::BadRequest("Empty Range".to_string())),
+      Ordering::Equal => Err(ServerError::BadRequest("empty range".to_string())),
       Ordering::Greater => Err(ServerError::BadRequest(
-        "Range Start Greater Than Range End".to_string(),
+        "range start greater than range end".to_string(),
       )),
       Ordering::Less => Ok(RangeHtml { start, end }.page()),
     }
@@ -360,7 +360,7 @@ impl Server {
 
   async fn rare_txt(Extension(index): Extension<Arc<Index>>) -> ServerResult<RareTxt> {
     Ok(RareTxt(index.rare_ordinal_satpoints().map_err(|err| {
-      ServerError::Internal(anyhow!("Error getting rare ordinal satpoints: {err}"))
+      ServerError::Internal(anyhow!("error getting rare ordinal satpoints: {err}"))
     })?))
   }
 
@@ -371,7 +371,7 @@ impl Server {
   ) -> ServerResult<(StatusCode, String)> {
     if rune.chain != chain {
       return Err(ServerError::UnprocessableEntity(format!(
-        "This ord instance only accepts {chain} runes for publication"
+        "this ord instance only accepts {chain} runes for publication"
       )));
     }
     let (created, hash) = index.insert_rune(&rune).map_err(ServerError::Internal)?;
@@ -395,7 +395,7 @@ impl Server {
         rune: index
           .rune(hash)
           .map_err(ServerError::Internal)?
-          .ok_or_else(|| ServerError::NotFound(format!("Rune {hash} unknown")))?,
+          .ok_or_else(|| ServerError::NotFound(format!("rune {hash} unknown")))?,
       }
       .page(),
     )
@@ -406,7 +406,7 @@ impl Server {
       HomeHtml::new(
         index
           .blocks(100)
-          .map_err(|err| ServerError::Internal(anyhow!("Error getting blocks: {err}")))?,
+          .map_err(|err| ServerError::Internal(anyhow!("error getting blocks: {err}")))?,
       )
       .page(),
     )
@@ -420,19 +420,19 @@ impl Server {
       .block_header_info(hash)
       .map_err(|err| {
         ServerError::Internal(anyhow!(
-          "Error serving request for block with hash {hash}: {err}"
+          "error serving request for block with hash {hash}: {err}"
         ))
       })?
-      .ok_or_else(|| ServerError::NotFound(format!("Block {hash} unknown")))?;
+      .ok_or_else(|| ServerError::NotFound(format!("block {hash} unknown")))?;
 
     let block = index
       .block_with_hash(hash)
       .map_err(|err| {
         ServerError::Internal(anyhow!(
-          "Error serving request for block with hash {hash}: {err}"
+          "error serving request for block with hash {hash}: {err}"
         ))
       })?
-      .ok_or_else(|| ServerError::NotFound(format!("Block {hash} unknown")))?;
+      .ok_or_else(|| ServerError::NotFound(format!("block {hash} unknown")))?;
 
     Ok(BlockHtml::new(block, Height(info.height as u64)).page())
   }
@@ -448,10 +448,10 @@ impl Server {
           .transaction(txid)
           .map_err(|err| {
             ServerError::Internal(anyhow!(
-              "Error serving request for transaction {txid}: {err}"
+              "error serving request for transaction {txid}: {err}"
             ))
           })?
-          .ok_or_else(|| ServerError::NotFound(format!("Transaction {txid} unknown")))?,
+          .ok_or_else(|| ServerError::NotFound(format!("transaction {txid} unknown")))?,
         chain,
       )
       .page(),
@@ -462,7 +462,7 @@ impl Server {
     if index.is_reorged() {
       (
         StatusCode::OK,
-        "Reorg detected, please rebuild the database.",
+        "reorg detected, please rebuild the database.",
       )
     } else {
       (
@@ -503,7 +503,7 @@ impl Server {
         .block_header(query.parse().unwrap())
         .map_err(|err| {
           ServerError::Internal(anyhow!(
-            "Failed to retrieve block {query} from index: {err}"
+            "failed to retrieve block {query} from index: {err}"
           ))
         })?
         .is_some()
@@ -529,7 +529,7 @@ impl Server {
     } else {
       &path
     })
-    .ok_or_else(|| ServerError::NotFound(format!("Asset {path} unknown")))?;
+    .ok_or_else(|| ServerError::NotFound(format!("asset {path} unknown")))?;
     let body = body::boxed(body::Full::from(content.data));
     let mime = mime_guess::from_path(path).first_or_octet_stream();
     Ok(
@@ -545,7 +545,7 @@ impl Server {
       index
         .height()
         .map_err(|err| {
-          ServerError::Internal(anyhow!("Failed to retrieve height from index: {err}"))
+          ServerError::Internal(anyhow!("failed to retrieve height from index: {err}"))
         })?
         .to_string(),
     )
@@ -556,7 +556,7 @@ impl Server {
     Path(path): Path<(u64, usize, usize)>,
   ) -> Result<PageHtml, ServerError> {
     let not_found =
-      || ServerError::NotFound(format!("Input /{}/{}/{} unknown", path.0, path.1, path.2));
+      || ServerError::NotFound(format!("input /{}/{}/{} unknown", path.0, path.1, path.2));
 
     let block = index
       .block(path.0)
@@ -640,7 +640,7 @@ mod tests {
           Ok(_) => break,
           Err(err) => {
             if i == 400 {
-              panic!("Server failed to start: {err}");
+              panic!("server failed to start: {err}");
             }
           }
         }
@@ -730,9 +730,9 @@ mod tests {
     match Arguments::try_parse_from(args.split_whitespace()) {
       Ok(arguments) => match arguments.subcommand {
         Subcommand::Server(server) => (arguments.options, server),
-        subcommand => panic!("Unexpected subcommand: {subcommand:?}"),
+        subcommand => panic!("unexpected subcommand: {subcommand:?}"),
       },
-      Err(err) => panic!("Error parsing arguments: {err}"),
+      Err(err) => panic!("error parsing arguments: {err}"),
     }
   }
 
@@ -974,7 +974,7 @@ mod tests {
     TestServer::new().assert_response(
       "/range/1/0/",
       StatusCode::BAD_REQUEST,
-      "Range Start Greater Than Range End",
+      "range start greater than range end",
     );
   }
 
@@ -998,7 +998,7 @@ mod tests {
 
   #[test]
   fn empty_range_returns_400() {
-    TestServer::new().assert_response("/range/0/0", StatusCode::BAD_REQUEST, "Empty Range");
+    TestServer::new().assert_response("/range/0/0", StatusCode::BAD_REQUEST, "empty range");
   }
 
   #[test]
@@ -1059,7 +1059,7 @@ mod tests {
     TestServer::new().assert_response(
       "/ordinal/2099999997690000",
       StatusCode::BAD_REQUEST,
-      "Invalid URL: Invalid ordinal",
+      "Invalid URL: invalid ordinal",
     );
   }
 
@@ -1095,7 +1095,7 @@ mod tests {
     TestServer::new().assert_response(
       "/output/0000000000000000000000000000000000000000000000000000000000000000:0",
       StatusCode::NOT_FOUND,
-      "Output 0000000000000000000000000000000000000000000000000000000000000000:0 unknown",
+      "output 0000000000000000000000000000000000000000000000000000000000000000:0 unknown",
     );
   }
 
@@ -1151,7 +1151,7 @@ mod tests {
     TestServer::new().assert_response(
       "/block/467a86f0642b1d284376d13a98ef58310caa49502b0f9a560ee222e0a122fe16",
       StatusCode::NOT_FOUND,
-      "Block 467a86f0642b1d284376d13a98ef58310caa49502b0f9a560ee222e0a122fe16 unknown",
+      "block 467a86f0642b1d284376d13a98ef58310caa49502b0f9a560ee222e0a122fe16 unknown",
     );
   }
 
@@ -1268,7 +1268,7 @@ mod tests {
     test_server.bitcoin_rpc_server.invalidate_tip();
     test_server.bitcoin_rpc_server.mine_blocks(2);
 
-    test_server.assert_response_regex("/status", StatusCode::OK, "Reorg detected.*");
+    test_server.assert_response_regex("/status", StatusCode::OK, "reorg detected.*");
   }
 
   #[test]
@@ -1296,7 +1296,7 @@ mod tests {
     TestServer::new().assert_response(
       "/input/1/1/1",
       StatusCode::NOT_FOUND,
-      "Input /1/1/1 unknown",
+      "input /1/1/1 unknown",
     );
   }
 
@@ -1305,7 +1305,7 @@ mod tests {
     TestServer::new().assert_response(
       "/rune/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b",
       StatusCode::NOT_FOUND,
-      "Rune 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b unknown",
+      "rune 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b unknown",
     );
   }
 
@@ -1369,7 +1369,7 @@ mod tests {
       "application/json",
       r#"{"name": "foo", "chain": "mainnet", "ordinal": 0}"#,
       StatusCode::UNPROCESSABLE_ENTITY,
-      r#"This ord instance only accepts regtest runes for publication"#,
+      r#"this ord instance only accepts regtest runes for publication"#,
     );
   }
 
