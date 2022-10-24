@@ -9,6 +9,9 @@ pub trait Api {
   #[rpc(name = "getnetworkinfo")]
   fn get_network_info(&self) -> Result<GetNetworkInfoResult, jsonrpc_core::Error>;
 
+  #[rpc(name = "getbalances")]
+  fn get_balances(&self) -> Result<GetBalancesResult, jsonrpc_core::Error>;
+
   #[rpc(name = "getblockhash")]
   fn get_block_hash(&self, height: usize) -> Result<BlockHash, jsonrpc_core::Error>;
 
@@ -24,6 +27,9 @@ pub trait Api {
 
   #[rpc(name = "getblockcount")]
   fn get_block_count(&self) -> Result<u64, jsonrpc_core::Error>;
+
+  #[rpc(name = "getwalletinfo")]
+  fn get_wallet_info(&self) -> Result<GetWalletInfoResult, jsonrpc_core::Error>;
 
   #[rpc(name = "createrawtransaction")]
   fn create_raw_transaction(

@@ -21,6 +21,21 @@ impl Server {
 }
 
 impl Api for Server {
+  fn get_balances(&self) -> Result<GetBalancesResult, jsonrpc_core::Error> {
+    Ok(GetBalancesResult {
+      mine: GetBalancesResultEntry {
+        immature: Amount::from_sat(0),
+        trusted: self
+          .list_unspent(None, None, None, None, None)?
+          .iter()
+          .map(|entry| entry.amount)
+          .sum(),
+        untrusted_pending: Amount::from_sat(0),
+      },
+      watchonly: None,
+    })
+  }
+
   fn get_blockchain_info(&self) -> Result<GetBlockchainInfoResult, jsonrpc_core::Error> {
     Ok(GetBlockchainInfoResult {
       chain: String::from(match self.network {
@@ -132,6 +147,26 @@ impl Api for Server {
 
   fn get_block_count(&self) -> Result<u64, jsonrpc_core::Error> {
     Ok(self.state().hashes.len().try_into().unwrap())
+  }
+
+  fn get_wallet_info(&self) -> Result<GetWalletInfoResult, jsonrpc_core::Error> {
+    Ok(GetWalletInfoResult {
+      avoid_reuse: None,
+      balance: Amount::from_sat(0),
+      hd_seed_id: None,
+      immature_balance: Amount::from_sat(0),
+      keypool_oldest: None,
+      keypool_size: 0,
+      keypool_size_hd_internal: 0,
+      pay_tx_fee: Amount::from_sat(0),
+      private_keys_enabled: false,
+      scanning: None,
+      tx_count: 0,
+      unconfirmed_balance: Amount::from_sat(0),
+      unlocked_until: None,
+      wallet_name: self.state().wallet_name.clone(),
+      wallet_version: 0,
+    })
   }
 
   fn create_raw_transaction(
@@ -284,21 +319,24 @@ impl Api for Server {
         .transactions
         .iter()
         .flat_map(|(txid, tx)| {
-          (0..tx.output.len()).map(|vout| ListUnspentResultEntry {
-            txid: *txid,
-            vout: vout as u32,
-            address: None,
-            label: None,
-            redeem_script: None,
-            witness_script: None,
-            script_pub_key: Script::new(),
-            amount: Amount::default(),
-            confirmations: 0,
-            spendable: true,
-            solvable: true,
-            descriptor: None,
-            safe: true,
-          })
+          tx.output
+            .iter()
+            .enumerate()
+            .map(|(vout, tx_out)| ListUnspentResultEntry {
+              txid: *txid,
+              vout: vout as u32,
+              address: None,
+              label: None,
+              redeem_script: None,
+              witness_script: None,
+              script_pub_key: Script::new(),
+              amount: Amount::from_sat(tx_out.value),
+              confirmations: 0,
+              spendable: true,
+              solvable: true,
+              descriptor: None,
+              safe: true,
+            })
         })
         .collect(),
     )
