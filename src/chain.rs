@@ -12,7 +12,7 @@ pub(crate) enum Chain {
 }
 
 impl Chain {
-  fn network(self) -> bitcoin::Network {
+  pub(crate) fn network(self) -> bitcoin::Network {
     match self {
       Self::Mainnet => bitcoin::Network::Bitcoin,
       Self::Testnet => bitcoin::Network::Testnet,

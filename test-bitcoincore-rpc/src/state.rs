@@ -7,10 +7,11 @@ pub(crate) struct State {
   pub(crate) network: Network,
   pub(crate) nonce: u32,
   pub(crate) transactions: BTreeMap<Txid, Transaction>,
+  pub(crate) wallet_name: String,
 }
 
 impl State {
-  pub(crate) fn new(network: Network) -> Self {
+  pub(crate) fn new(network: Network, wallet_name: &str) -> Self {
     let mut hashes = Vec::new();
     let mut blocks = BTreeMap::new();
 
@@ -26,10 +27,11 @@ impl State {
       network,
       nonce: 0,
       transactions: BTreeMap::new(),
+      wallet_name: wallet_name.to_string(),
     }
   }
 
-  pub(crate) fn push_block(&mut self) -> Block {
+  pub(crate) fn push_block(&mut self, subsidy: u64) -> Block {
     let coinbase = Transaction {
       version: 0,
       lock_time: PackedLockTime(0),
@@ -42,7 +44,7 @@ impl State {
         witness: Witness::new(),
       }],
       output: vec![TxOut {
-        value: 50 * COIN_VALUE
+        value: subsidy
           + self
             .mempool
             .iter()

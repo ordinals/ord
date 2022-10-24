@@ -235,7 +235,7 @@ impl Index {
       None
     } else {
       let progress_bar = ProgressBar::new(self.client.get_block_count()?);
-      progress_bar.inc(height);
+      progress_bar.set_position(height);
       progress_bar.set_style(
         ProgressStyle::with_template("[indexing blocks] {wide_bar} {pos}/{len}").unwrap(),
       );
@@ -252,11 +252,15 @@ impl Index {
 
       let done = self.index_block(&mut wtx, height)?;
 
-      if let Some(progress_bar) = &mut progress_bar {
-        progress_bar.inc(1);
-      }
-
       if !done {
+        if let Some(progress_bar) = &mut progress_bar {
+          progress_bar.inc(1);
+
+          if progress_bar.position() > progress_bar.length().unwrap() {
+            progress_bar.set_length(self.client.get_block_count()?);
+          }
+        }
+
         uncomitted += 1;
       }
 
@@ -278,7 +282,7 @@ impl Index {
     }
 
     if let Some(progress_bar) = &mut progress_bar {
-      progress_bar.abandon();
+      progress_bar.finish_and_clear();
     }
 
     Ok(())
