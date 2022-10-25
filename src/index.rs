@@ -226,15 +226,15 @@ impl Index {
   pub(crate) fn index(&self) -> Result {
     let mut wtx = self.begin_write()?;
 
-    let starting_height = wtx
-      .open_table(HEIGHT_TO_BLOCK_HASH)?
-      .range(0..)?
-      .rev()
-      .next()
-      .map(|(height, _hash)| height + 1)
-      .unwrap_or(0);
-
-    let mut cache = Cache::new(starting_height);
+    let mut cache = Cache::new(
+      wtx
+        .open_table(HEIGHT_TO_BLOCK_HASH)?
+        .range(0..)?
+        .rev()
+        .next()
+        .map(|(height, _hash)| height + 1)
+        .unwrap_or(0),
+    );
 
     let mut progress_bar = if cfg!(test) || log_enabled!(log::Level::Info) {
       None
