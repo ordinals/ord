@@ -1436,4 +1436,39 @@ mod tests {
       2
     );
   }
+
+  #[test]
+  fn outputs_traversed_are_tracked() {
+    let server = TestServer::new();
+
+    assert_eq!(
+      server
+        .index
+        .statistic(crate::index::Statistic::OutputsTraversed)
+        .unwrap(),
+      1
+    );
+
+    server.index.index().unwrap();
+
+    assert_eq!(
+      server
+        .index
+        .statistic(crate::index::Statistic::OutputsTraversed)
+        .unwrap(),
+      1
+    );
+
+    server.bitcoin_rpc_server.mine_blocks(1);
+
+    server.index.index().unwrap();
+
+    assert_eq!(
+      server
+        .index
+        .statistic(crate::index::Statistic::OutputsTraversed)
+        .unwrap(),
+      2
+    );
+  }
 }
