@@ -1,4 +1,4 @@
-use {super::*, chrono::TimeZone};
+use super::*;
 
 pub struct Updater {
   cache: HashMap<[u8; 36], Vec<u8>>,
@@ -143,10 +143,21 @@ impl Updater {
       let mut input_ordinal_ranges = VecDeque::new();
 
       for input in &tx.input {
-        let ordinal_ranges =
-          self.get_and_remove(input.previous_output, &mut outpoint_to_ordinal_ranges);
+        let key = encode_outpoint(input.previous_output);
 
-        for chunk in ordinal_ranges?.chunks_exact(11) {
+        let ordinal_ranges = match self.cache.remove(&key) {
+          Some(ordinal_ranges) => {
+            self.outputs_cached += 1;
+            ordinal_ranges
+          }
+          None => outpoint_to_ordinal_ranges
+            .remove(&key)?
+            .ok_or_else(|| anyhow!("Could not find outpoint {} in index", input.previous_output))?
+            .to_value()
+            .to_vec(),
+        };
+
+        for chunk in ordinal_ranges.chunks_exact(11) {
           input_ordinal_ranges.push_back(Index::decode_ordinal_range(chunk.try_into().unwrap()));
         }
       }
@@ -266,26 +277,6 @@ impl Updater {
     self.cache.clear();
     self.outputs_inserted_since_flush = 0;
     Ok(())
-  }
-
-  pub(crate) fn get_and_remove(
-    &mut self,
-    outpoint: OutPoint,
-    outpoint_to_ordinal_ranges: &mut Table<[u8; 36], [u8]>,
-  ) -> Result<Vec<u8>> {
-    let key = encode_outpoint(outpoint);
-    match self.cache.remove(&key) {
-      Some(ord_range_vec) => {
-        self.outputs_cached += 1;
-        Ok(ord_range_vec)
-      }
-      None => {
-        let ord_range = outpoint_to_ordinal_ranges
-          .remove(&key)?
-          .ok_or_else(|| anyhow!("Could not find outpoint {} in index", outpoint))?;
-        Ok(ord_range.to_value().to_vec())
-      }
-    }
   }
 
   pub(crate) fn insert(&mut self, outpoint: &mut OutPoint, ordinals: Vec<u8>) {
