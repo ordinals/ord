@@ -1,7 +1,7 @@
 use super::*;
 
 pub struct Updater {
-  outpoint_to_ordinal_ranges_map: HashMap<[u8; 36], Vec<u8>>,
+  cache: HashMap<[u8; 36], Vec<u8>>,
   outputs_traversed: u64,
   outputs_cached: u64,
   outputs_inserted_since_flush: u64,
@@ -21,7 +21,7 @@ impl Updater {
       .unwrap_or(0);
 
     let mut updater = Self {
-      outpoint_to_ordinal_ranges_map: HashMap::new(),
+      cache: HashMap::new(),
       outputs_traversed: 0,
       outputs_cached: 0,
       outputs_inserted_since_flush: 0,
@@ -38,18 +38,17 @@ impl Updater {
   fn flush(&mut self, wtx: &mut WriteTransaction) -> Result {
     log::info!(
       "Flushing {} entries ({:.1}% resulting from {} insertions) from memory to database",
-      self.outpoint_to_ordinal_ranges_map.len(),
-      self.outpoint_to_ordinal_ranges_map.len() as f64 / self.outputs_inserted_since_flush as f64
-        * 100.,
+      self.cache.len(),
+      self.cache.len() as f64 / self.outputs_inserted_since_flush as f64 * 100.,
       self.outputs_inserted_since_flush,
     );
     let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
 
-    for (k, v) in &self.outpoint_to_ordinal_ranges_map {
+    for (k, v) in &self.cache {
       outpoint_to_ordinal_ranges.insert(k, v)?;
     }
 
-    self.outpoint_to_ordinal_ranges_map.clear();
+    self.cache.clear();
     self.outputs_inserted_since_flush = 0;
     Ok(())
   }
@@ -60,7 +59,7 @@ impl Updater {
     outpoint_to_ordinal_ranges: &mut Table<[u8; 36], [u8]>,
   ) -> Result<Vec<u8>> {
     let key = encode_outpoint(outpoint);
-    match self.outpoint_to_ordinal_ranges_map.remove(&key) {
+    match self.cache.remove(&key) {
       Some(ord_range_vec) => {
         self.outputs_cached += 1;
         Ok(ord_range_vec)
@@ -76,7 +75,7 @@ impl Updater {
 
   pub(crate) fn insert(&mut self, outpoint: &mut OutPoint, ordinals: Vec<u8>) {
     let key = encode_outpoint(*outpoint);
-    self.outpoint_to_ordinal_ranges_map.insert(key, ordinals);
+    self.cache.insert(key, ordinals);
     self.outputs_inserted_since_flush += 1;
   }
 
@@ -85,7 +84,7 @@ impl Updater {
       "Committing at block height {}, {} outputs traversed, {} in map, {} cached",
       self.height,
       self.outputs_traversed,
-      self.outpoint_to_ordinal_ranges_map.len(),
+      self.cache.len(),
       self.outputs_cached
     );
 
