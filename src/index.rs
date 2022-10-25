@@ -120,10 +120,6 @@ impl Cache {
     }
   }
 
-  pub(crate) fn increment_outputs_traversed(&mut self, n: u64) {
-    self.outputs_traversed += n;
-  }
-
   fn insert(&mut self, outpoint: &mut OutPoint, ordinals: Vec<u8>) {
     let key = encode_outpoint(*outpoint);
     self.outpoint_to_ordinal_ranges_map.insert(key, ordinals);
@@ -485,7 +481,7 @@ impl Index {
     height_to_block_hash.insert(&height, &block.block_hash().as_hash().into_inner())?;
 
     Self::increment_statistic(wtx, Statistic::OutputsTraversed, outputs_in_block)?;
-    cache.increment_outputs_traversed(outputs_in_block);
+    cache.outputs_traversed += outputs_in_block;
 
     log::info!(
       "Wrote {ordinal_ranges_written} ordinal ranges from {outputs_in_block} outputs in {} ms",
