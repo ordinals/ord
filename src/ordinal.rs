@@ -52,10 +52,12 @@ impl Ordinal {
     self.into()
   }
 
+  /// `Ordinal::rarity` is expensive and is called frequently when indexing.
+  /// Ordinal::is_common only checks if self is `Rarity::Common` but is
+  /// much faster.
   pub(crate) fn is_common(self) -> bool {
-    let e = self.epoch();
-    let third_inlined = (self.0 - e.starting_ordinal().0) % e.subsidy();
-    third_inlined != 0
+    let epoch = self.epoch();
+    (self.0 - epoch.starting_ordinal().0) % epoch.subsidy() != 0
   }
 
   pub(crate) fn name(self) -> String {
