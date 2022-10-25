@@ -72,6 +72,7 @@ impl From<Statistic> for u64 {
   }
 }
 
+#[derive(Default)]
 pub struct Cache {
   outpoint_to_ordinal_ranges_map: HashMap<[u8; 36], Vec<u8>>,
   outputs_traversed: u64,
@@ -80,15 +81,6 @@ pub struct Cache {
 }
 
 impl Cache {
-  pub fn new() -> Cache {
-    Cache {
-      outpoint_to_ordinal_ranges_map: HashMap::new(),
-      outputs_traversed: 0,
-      outputs_cached: 0,
-      outputs_inserted_since_flush: 0,
-    }
-  }
-
   fn flush_map_to_redb(&mut self, wtx: &mut WriteTransaction) -> Result {
     log::info!(
       "Flushing {} entries ({:.1}% resulting from {} insertions) from memory to database",
@@ -326,7 +318,7 @@ impl Index {
       Some(progress_bar)
     };
 
-    let mut cache = Cache::new();
+    let mut cache = Cache::default();
 
     let mut uncomitted = 0;
     for i in 0.. {
