@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, chrono::TimeZone};
 
 pub struct Updater {
   cache: HashMap<[u8; 36], Vec<u8>>,
@@ -105,10 +105,7 @@ impl Updater {
       None => return Ok(true),
     };
 
-    let time: DateTime<Utc> = DateTime::from_utc(
-      NaiveDateTime::from_timestamp(block.header.time as i64, 0),
-      Utc,
-    );
+    let time = Utc.timestamp(block.header.time as i64, 0);
 
     log::info!(
       "Block {} at {} with {} transactions…",
