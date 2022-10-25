@@ -465,11 +465,10 @@ impl Index {
 
     let height_to_block_hash = rtx.0.open_table(HEIGHT_TO_BLOCK_HASH)?;
 
-    let mut cursor = height_to_block_hash
+    for next in height_to_block_hash
       .range(height.saturating_sub(take.saturating_sub(1))..=height)?
-      .rev();
-
-    while let Some(next) = cursor.next() {
+      .rev()
+    {
       blocks.push((next.0, BlockHash::from_slice(next.1)?));
     }
 
@@ -481,10 +480,8 @@ impl Index {
 
     let table = rtx.open_multimap_table(ORDINAL_TO_RUNE_HASHES)?;
 
-    let mut values = table.get(&ordinal.0)?;
-
     let mut inscriptions = Vec::new();
-    while let Some(value) = values.next() {
+    for value in table.get(&ordinal.0)? {
       inscriptions.push(sha256::Hash::from_inner(*value));
     }
 
@@ -498,9 +495,7 @@ impl Index {
 
     let ordinal_to_satpoint = rtx.open_table(ORDINAL_TO_SATPOINT)?;
 
-    let mut cursor = ordinal_to_satpoint.range(0..)?;
-
-    while let Some((ordinal, satpoint)) = cursor.next() {
+    for (ordinal, satpoint) in ordinal_to_satpoint.range(0..)? {
       result.push((Ordinal(ordinal), deserialize(satpoint)?));
     }
 
@@ -656,9 +651,7 @@ impl Index {
 
     let outpoint_to_ordinal_ranges = rtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
 
-    let mut cursor = outpoint_to_ordinal_ranges.range([0; 36]..)?;
-
-    while let Some((key, value)) = cursor.next() {
+    for (key, value) in outpoint_to_ordinal_ranges.range([0; 36]..)? {
       let mut offset = 0;
       for chunk in value.chunks_exact(11) {
         let (start, end) = Index::decode_ordinal_range(chunk.try_into().unwrap());
