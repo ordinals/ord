@@ -326,7 +326,6 @@ impl Index {
       }
 
       let done = self.index_block(&mut wtx, current_height, &mut cache)?;
-      current_height += 1;
 
       if !done {
         if let Some(progress_bar) = &mut progress_bar {
@@ -337,6 +336,7 @@ impl Index {
           }
         }
 
+        current_height += 1;
         uncomitted += 1;
       }
 
@@ -454,7 +454,7 @@ impl Index {
         }
       }
 
-      self.index_transaction(
+      Self::index_transaction(
         *txid,
         tx,
         &mut ordinal_to_satpoint,
@@ -468,7 +468,7 @@ impl Index {
     }
 
     if let Some((txid, tx)) = txdata.first() {
-      self.index_transaction(
+      Self::index_transaction(
         *txid,
         tx,
         &mut ordinal_to_satpoint,
@@ -577,7 +577,6 @@ impl Index {
   }
 
   fn index_transaction(
-    &self,
     txid: Txid,
     tx: &Transaction,
     ordinal_to_satpoint: &mut Table<u64, [u8; 44]>,
