@@ -526,7 +526,7 @@ impl Index {
           .pop_front()
           .ok_or_else(|| anyhow!("Insufficient inputs for transaction outputs"))?;
 
-        if Ordinal(range.0).is_uncommon_or_more_rare() {
+        if !Ordinal(range.0).is_common() {
           ordinal_to_satpoint.insert(
             &range.0,
             &encode_satpoint(SatPoint {

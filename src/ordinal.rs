@@ -52,10 +52,10 @@ impl Ordinal {
     self.into()
   }
 
-  pub(crate) fn is_uncommon_or_more_rare(self) -> bool {
+  pub(crate) fn is_common(self) -> bool {
     let e = self.epoch();
     let third_inlined = (self.0 - e.starting_ordinal().0) % e.subsidy();
-    third_inlined == 0
+    third_inlined != 0
   }
 
   pub(crate) fn name(self) -> String {
@@ -602,5 +602,24 @@ mod tests {
       case(Ordinal::LAST.n() - n);
       case(Ordinal::LAST.n() / (n + 1));
     }
+  }
+
+  #[test]
+  fn is_common() {
+    fn case(n: u64) {
+      assert_eq!(
+        Ordinal(n).is_common(),
+        Ordinal(n).rarity() == Rarity::Common
+      );
+    }
+
+    case(0);
+    case(1);
+    case(50 * COIN_VALUE - 1);
+    case(50 * COIN_VALUE);
+    case(50 * COIN_VALUE + 1);
+    case(2067187500000000 - 1);
+    case(2067187500000000);
+    case(2067187500000000 + 1);
   }
 }
