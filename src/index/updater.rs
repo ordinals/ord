@@ -208,7 +208,7 @@ impl Updater {
     outputs_traversed: &mut u64,
   ) -> Result {
     for (vout, output) in tx.output.iter().enumerate() {
-      let mut outpoint = OutPoint {
+      let outpoint = OutPoint {
         vout: vout as u32,
         txid,
       };
@@ -254,38 +254,14 @@ impl Updater {
 
       *outputs_traversed += 1;
 
-      self.insert(&mut outpoint, ordinals);
+      self.cache.insert(encode_outpoint(outpoint), ordinals);
+      self.outputs_inserted_since_flush += 1;
     }
 
     Ok(())
   }
 
-  fn flush(&mut self, wtx: &mut WriteTransaction) -> Result {
-    log::info!(
-      "Flushing {} entries ({:.1}% resulting from {} insertions) from memory to database",
-      self.cache.len(),
-      self.cache.len() as f64 / self.outputs_inserted_since_flush as f64 * 100.,
-      self.outputs_inserted_since_flush,
-    );
-
-    let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
-
-    for (k, v) in &self.cache {
-      outpoint_to_ordinal_ranges.insert(k, v)?;
-    }
-
-    self.cache.clear();
-    self.outputs_inserted_since_flush = 0;
-    Ok(())
-  }
-
-  pub(crate) fn insert(&mut self, outpoint: &mut OutPoint, ordinals: Vec<u8>) {
-    let key = encode_outpoint(*outpoint);
-    self.cache.insert(key, ordinals);
-    self.outputs_inserted_since_flush += 1;
-  }
-
-  pub(crate) fn commit(&mut self, mut wtx: WriteTransaction) -> Result {
+  pub(crate) fn commit(&mut self, wtx: WriteTransaction) -> Result {
     log::info!(
       "Committing at block height {}, {} outputs traversed, {} in map, {} cached",
       self.height,
@@ -294,7 +270,23 @@ impl Updater {
       self.outputs_cached
     );
 
-    self.flush(&mut wtx)?;
+    {
+      log::info!(
+        "Flushing {} entries ({:.1}% resulting from {} insertions) from memory to database",
+        self.cache.len(),
+        self.cache.len() as f64 / self.outputs_inserted_since_flush as f64 * 100.,
+        self.outputs_inserted_since_flush,
+      );
+
+      let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
+
+      for (k, v) in &self.cache {
+        outpoint_to_ordinal_ranges.insert(k, v)?;
+      }
+
+      self.cache.clear();
+      self.outputs_inserted_since_flush = 0;
+    }
 
     Index::increment_statistic(&wtx, Statistic::OutputsTraversed, self.outputs_traversed)?;
     Index::increment_statistic(&wtx, Statistic::Commits, 1)?;
