@@ -72,16 +72,16 @@ impl From<Statistic> for u64 {
   }
 }
 
-pub struct OutpointToOrdinalRangesMapper {
+pub struct Cache {
   outpoint_to_ordinal_ranges_map: HashMap<[u8; 36], Vec<u8>>,
   outputs_traversed: u64,
   outputs_cached: u64,
   outputs_inserted_since_flush: u64,
 }
 
-impl OutpointToOrdinalRangesMapper {
-  pub fn new() -> OutpointToOrdinalRangesMapper {
-    OutpointToOrdinalRangesMapper {
+impl Cache {
+  pub fn new() -> Cache {
+    Cache {
       outpoint_to_ordinal_ranges_map: HashMap::new(),
       outputs_traversed: 0,
       outputs_cached: 0,
@@ -326,7 +326,7 @@ impl Index {
       Some(progress_bar)
     };
 
-    let mut outpoint_to_ordinal_ranges_mapper = OutpointToOrdinalRangesMapper::new();
+    let mut cache = Cache::new();
 
     let mut uncomitted = 0;
     for i in 0.. {
@@ -336,11 +336,7 @@ impl Index {
         }
       }
 
-      let done = self.index_block(
-        &mut wtx,
-        current_height,
-        &mut outpoint_to_ordinal_ranges_mapper,
-      )?;
+      let done = self.index_block(&mut wtx, current_height, &mut cache)?;
       current_height += 1;
 
       if !done {
@@ -356,7 +352,7 @@ impl Index {
       }
 
       if uncomitted > 0 && i % 5000 == 0 {
-        outpoint_to_ordinal_ranges_mapper.commit(wtx, current_height)?;
+        cache.commit(wtx, current_height)?;
         wtx = self.begin_write()?;
         uncomitted = 0;
       }
@@ -367,7 +363,7 @@ impl Index {
     }
 
     if uncomitted > 0 {
-      outpoint_to_ordinal_ranges_mapper.commit(wtx, current_height)?;
+      cache.commit(wtx, current_height)?;
     }
 
     if let Some(progress_bar) = &mut progress_bar {
@@ -385,7 +381,7 @@ impl Index {
     &self,
     wtx: &mut WriteTransaction,
     height: u64,
-    outpoint_to_ordinal_ranges_mapper: &mut OutpointToOrdinalRangesMapper,
+    cache: &mut Cache,
   ) -> Result<bool> {
     let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
     let mut ordinal_to_satpoint = wtx.open_table(ORDINAL_TO_SATPOINT)?;
@@ -461,8 +457,8 @@ impl Index {
       let mut input_ordinal_ranges = VecDeque::new();
 
       for input in &tx.input {
-        let ordinal_ranges = outpoint_to_ordinal_ranges_mapper
-          .get_and_remove(input.previous_output, &mut outpoint_to_ordinal_ranges);
+        let ordinal_ranges =
+          cache.get_and_remove(input.previous_output, &mut outpoint_to_ordinal_ranges);
 
         for chunk in ordinal_ranges?.chunks_exact(11) {
           input_ordinal_ranges.push_back(Self::decode_ordinal_range(chunk.try_into().unwrap()));
@@ -473,7 +469,7 @@ impl Index {
         *txid,
         tx,
         &mut ordinal_to_satpoint,
-        outpoint_to_ordinal_ranges_mapper,
+        cache,
         &mut input_ordinal_ranges,
         &mut ordinal_ranges_written,
         &mut outputs_in_block,
@@ -487,7 +483,7 @@ impl Index {
         *txid,
         tx,
         &mut ordinal_to_satpoint,
-        outpoint_to_ordinal_ranges_mapper,
+        cache,
         &mut coinbase_inputs,
         &mut ordinal_ranges_written,
         &mut outputs_in_block,
@@ -497,7 +493,7 @@ impl Index {
     height_to_block_hash.insert(&height, &block.block_hash().as_hash().into_inner())?;
 
     Self::increment_statistic(wtx, Statistic::OutputsTraversed, outputs_in_block)?;
-    outpoint_to_ordinal_ranges_mapper.increment_outputs_traversed(outputs_in_block);
+    cache.increment_outputs_traversed(outputs_in_block);
 
     log::info!(
       "Wrote {ordinal_ranges_written} ordinal ranges from {outputs_in_block} outputs in {} ms",
@@ -597,7 +593,7 @@ impl Index {
     txid: Txid,
     tx: &Transaction,
     ordinal_to_satpoint: &mut Table<u64, [u8; 44]>,
-    outpoint_to_ordinal_ranges_mapper: &mut OutpointToOrdinalRangesMapper,
+    cache: &mut Cache,
     input_ordinal_ranges: &mut VecDeque<(u64, u64)>,
     ordinal_ranges_written: &mut u64,
     outputs_traversed: &mut u64,
@@ -649,7 +645,7 @@ impl Index {
 
       *outputs_traversed += 1;
 
-      outpoint_to_ordinal_ranges_mapper.insert(&mut outpoint, ordinals);
+      cache.insert(&mut outpoint, ordinals);
     }
 
     Ok(())
