@@ -17,7 +17,7 @@ impl Find {
         println!("{satpoint}");
         Ok(())
       }
-      None => Err(anyhow!("Ordinal has not been mined as of index height")),
+      None => Err(anyhow!("ordinal has not been mined as of index height")),
     }
   }
 }

@@ -107,17 +107,17 @@ impl Index {
     }
 
     log::info!(
-      "Connection to Bitcoin Core RPC server at {rpc_url} using credentials from `{}`",
+      "Connecting to Bitcoin Core RPC server at {rpc_url} using credentials from `{}`",
       cookie_file.display()
     );
 
     let client = Client::new(&rpc_url, Auth::CookieFile(cookie_file))
-      .context("Failed to connect to RPC URL")?;
+      .context("failed to connect to RPC URL")?;
 
     let data_dir = options.data_dir()?;
 
     if let Err(err) = fs::create_dir_all(&data_dir) {
-      bail!("Failed to create data dir `{}`: {err}", data_dir.display());
+      bail!("failed to create data dir `{}`: {err}", data_dir.display());
     }
 
     let database_path = data_dir.join("index.redb");
@@ -235,7 +235,7 @@ impl Index {
       None
     } else {
       let progress_bar = ProgressBar::new(self.client.get_block_count()?);
-      progress_bar.inc(height);
+      progress_bar.set_position(height);
       progress_bar.set_style(
         ProgressStyle::with_template("[indexing blocks] {wide_bar} {pos}/{len}").unwrap(),
       );
@@ -252,11 +252,15 @@ impl Index {
 
       let done = self.index_block(&mut wtx, height)?;
 
-      if let Some(progress_bar) = &mut progress_bar {
-        progress_bar.inc(1);
-      }
-
       if !done {
+        if let Some(progress_bar) = &mut progress_bar {
+          progress_bar.inc(1);
+
+          if progress_bar.position() > progress_bar.length().unwrap() {
+            progress_bar.set_length(self.client.get_block_count()?);
+          }
+        }
+
         uncomitted += 1;
       }
 
@@ -278,7 +282,7 @@ impl Index {
     }
 
     if let Some(progress_bar) = &mut progress_bar {
-      progress_bar.abandon();
+      progress_bar.finish_and_clear();
     }
 
     Ok(())
@@ -307,10 +311,10 @@ impl Index {
 
           errors += 1;
           let seconds = 1 << errors;
-          log::error!("Failed to fetch block {height}, retrying in {seconds}s: {err}");
+          log::error!("failed to fetch block {height}, retrying in {seconds}s: {err}");
 
           if seconds > 120 {
-            log::error!("Would sleep for more than 120s, giving up");
+            log::error!("would sleep for more than 120s, giving up");
             return Err(err);
           }
 
@@ -339,7 +343,7 @@ impl Index {
 
       if prev_hash != block.header.prev_blockhash.as_ref() {
         self.reorged.store(true, Ordering::Relaxed);
-        return Err(anyhow!("Reorg detected at or before {prev_height}"));
+        return Err(anyhow!("reorg detected at or before {prev_height}"));
       }
     }
 
@@ -367,7 +371,7 @@ impl Index {
 
         let ordinal_ranges = outpoint_to_ordinal_ranges
           .get(&key)?
-          .ok_or_else(|| anyhow!("Could not find outpoint {} in index", input.previous_output))?;
+          .ok_or_else(|| anyhow!("could not find outpoint {} in index", input.previous_output))?;
 
         for chunk in ordinal_ranges.chunks_exact(11) {
           input_ordinal_ranges.push_back(Self::decode_ordinal_range(chunk.try_into().unwrap()));
@@ -461,11 +465,10 @@ impl Index {
 
     let height_to_block_hash = rtx.0.open_table(HEIGHT_TO_BLOCK_HASH)?;
 
-    let mut cursor = height_to_block_hash
+    for next in height_to_block_hash
       .range(height.saturating_sub(take.saturating_sub(1))..=height)?
-      .rev();
-
-    while let Some(next) = cursor.next() {
+      .rev()
+    {
       blocks.push((next.0, BlockHash::from_slice(next.1)?));
     }
 
@@ -477,10 +480,8 @@ impl Index {
 
     let table = rtx.open_multimap_table(ORDINAL_TO_RUNE_HASHES)?;
 
-    let mut values = table.get(&ordinal.0)?;
-
     let mut inscriptions = Vec::new();
-    while let Some(value) = values.next() {
+    for value in table.get(&ordinal.0)? {
       inscriptions.push(sha256::Hash::from_inner(*value));
     }
 
@@ -494,9 +495,7 @@ impl Index {
 
     let ordinal_to_satpoint = rtx.open_table(ORDINAL_TO_SATPOINT)?;
 
-    let mut cursor = ordinal_to_satpoint.range(0..)?;
-
-    while let Some((ordinal, satpoint)) = cursor.next() {
+    for (ordinal, satpoint) in ordinal_to_satpoint.range(0..)? {
       result.push((Ordinal(ordinal), deserialize(satpoint)?));
     }
 
@@ -524,7 +523,7 @@ impl Index {
       while remaining > 0 {
         let range = input_ordinal_ranges
           .pop_front()
-          .ok_or_else(|| anyhow!("Insufficient inputs for transaction outputs"))?;
+          .ok_or_else(|| anyhow!("insufficient inputs for transaction outputs"))?;
 
         if !Ordinal(range.0).is_common() {
           ordinal_to_satpoint.insert(
@@ -652,9 +651,7 @@ impl Index {
 
     let outpoint_to_ordinal_ranges = rtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
 
-    let mut cursor = outpoint_to_ordinal_ranges.range([0; 36]..)?;
-
-    while let Some((key, value)) = cursor.next() {
+    for (key, value) in outpoint_to_ordinal_ranges.range([0; 36]..)? {
       let mut offset = 0;
       for chunk in value.chunks_exact(11) {
         let (start, end) = Index::decode_ordinal_range(chunk.try_into().unwrap());
@@ -722,7 +719,7 @@ impl Index {
           .unwrap_or(0);
 
         let expected_blocks = height.checked_sub(current).with_context(|| {
-          format!("Current {current} height is greater than ordinal height {height}")
+          format!("current {current} height is greater than ordinal height {height}")
         })?;
 
         Ok(Blocktime::Expected(
