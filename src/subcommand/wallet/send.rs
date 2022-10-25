@@ -19,7 +19,7 @@ impl Send {
     }
 
     let index = Index::open(&options)?;
-    index.index()?;
+    index.update()?;
 
     let utxos = list_unspent(&options, &index)?.into_iter().collect();
 

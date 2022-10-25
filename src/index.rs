@@ -1,4 +1,5 @@
 use {
+  self::updater::Updater,
   super::*,
   bitcoin::consensus::encode::deserialize,
   bitcoin::BlockHeader,
@@ -10,10 +11,12 @@ use {
     Database, MultimapTableDefinition, ReadableMultimapTable, ReadableTable, Table,
     TableDefinition, WriteStrategy, WriteTransaction,
   },
+  std::collections::HashMap,
   std::sync::atomic::{AtomicBool, Ordering},
 };
 
 mod rtx;
+mod updater;
 
 const HEIGHT_TO_BLOCK_HASH: TableDefinition<u64, [u8; 32]> =
   TableDefinition::new("HEIGHT_TO_BLOCK_HASH");
@@ -220,201 +223,12 @@ impl Index {
     (base, base + delta)
   }
 
-  pub(crate) fn index(&self) -> Result {
-    let mut wtx = self.begin_write()?;
-
-    let height = wtx
-      .open_table(HEIGHT_TO_BLOCK_HASH)?
-      .range(0..)?
-      .rev()
-      .next()
-      .map(|(height, _hash)| height + 1)
-      .unwrap_or(0);
-
-    let mut progress_bar = if cfg!(test) || log_enabled!(log::Level::Info) {
-      None
-    } else {
-      let progress_bar = ProgressBar::new(self.client.get_block_count()?);
-      progress_bar.set_position(height);
-      progress_bar.set_style(
-        ProgressStyle::with_template("[indexing blocks] {wide_bar} {pos}/{len}").unwrap(),
-      );
-      Some(progress_bar)
-    };
-
-    let mut uncomitted = 0;
-    for (i, height) in (0..).zip(height..) {
-      if let Some(height_limit) = self.height_limit {
-        if height > height_limit {
-          break;
-        }
-      }
-
-      let done = self.index_block(&mut wtx, height)?;
-
-      if !done {
-        if let Some(progress_bar) = &mut progress_bar {
-          progress_bar.inc(1);
-
-          if progress_bar.position() > progress_bar.length().unwrap() {
-            progress_bar.set_length(self.client.get_block_count()?);
-          }
-        }
-
-        uncomitted += 1;
-      }
-
-      if uncomitted > 0 && i % 1000 == 0 {
-        Self::increment_statistic(&wtx, Statistic::Commits, 1)?;
-        wtx.commit()?;
-        wtx = self.begin_write()?;
-        uncomitted = 0;
-      }
-
-      if done || INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
-        break;
-      }
-    }
-
-    if uncomitted > 0 {
-      Self::increment_statistic(&wtx, Statistic::Commits, 1)?;
-      wtx.commit()?;
-    }
-
-    if let Some(progress_bar) = &mut progress_bar {
-      progress_bar.finish_and_clear();
-    }
-
-    Ok(())
+  pub(crate) fn update(&self) -> Result {
+    Updater::update(self)
   }
 
   pub(crate) fn is_reorged(&self) -> bool {
     self.reorged.load(Ordering::Relaxed)
-  }
-
-  pub(crate) fn index_block(&self, wtx: &mut WriteTransaction, height: u64) -> Result<bool> {
-    let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
-    let mut ordinal_to_satpoint = wtx.open_table(ORDINAL_TO_SATPOINT)?;
-    let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
-
-    let start = Instant::now();
-    let mut ordinal_ranges_written = 0;
-    let mut outputs_in_block = 0;
-
-    let mut errors = 0;
-    let block = loop {
-      match self.block(height) {
-        Err(err) => {
-          if cfg!(test) {
-            return Err(err);
-          }
-
-          errors += 1;
-          let seconds = 1 << errors;
-          log::error!("failed to fetch block {height}, retrying in {seconds}s: {err}");
-
-          if seconds > 120 {
-            log::error!("would sleep for more than 120s, giving up");
-            return Err(err);
-          }
-
-          thread::sleep(Duration::from_secs(seconds));
-        }
-        Ok(Some(block)) => break block,
-        Ok(None) => {
-          return Ok(true);
-        }
-      }
-    };
-
-    let time: DateTime<Utc> = DateTime::from_utc(
-      NaiveDateTime::from_timestamp(block.header.time as i64, 0),
-      Utc,
-    );
-
-    log::info!(
-      "Block {height} at {} with {} transactions…",
-      time,
-      block.txdata.len()
-    );
-
-    if let Some(prev_height) = height.checked_sub(1) {
-      let prev_hash = height_to_block_hash.get(&prev_height)?.unwrap();
-
-      if prev_hash != block.header.prev_blockhash.as_ref() {
-        self.reorged.store(true, Ordering::Relaxed);
-        return Err(anyhow!("reorg detected at or before {prev_height}"));
-      }
-    }
-
-    let mut coinbase_inputs = VecDeque::new();
-
-    let h = Height(height);
-    if h.subsidy() > 0 {
-      let start = h.starting_ordinal();
-      coinbase_inputs.push_front((start.n(), (start + h.subsidy()).n()));
-    }
-
-    let txdata = block
-      .txdata
-      .par_iter()
-      .map(|tx| (tx.txid(), tx))
-      .collect::<Vec<(Txid, &Transaction)>>();
-
-    for (tx_offset, (txid, tx)) in txdata.iter().enumerate().skip(1) {
-      log::trace!("Indexing transaction {tx_offset}…");
-
-      let mut input_ordinal_ranges = VecDeque::new();
-
-      for input in &tx.input {
-        let key = encode_outpoint(input.previous_output);
-
-        let ordinal_ranges = outpoint_to_ordinal_ranges
-          .get(&key)?
-          .ok_or_else(|| anyhow!("could not find outpoint {} in index", input.previous_output))?;
-
-        for chunk in ordinal_ranges.chunks_exact(11) {
-          input_ordinal_ranges.push_back(Self::decode_ordinal_range(chunk.try_into().unwrap()));
-        }
-
-        outpoint_to_ordinal_ranges.remove(&key)?;
-      }
-
-      self.index_transaction(
-        *txid,
-        tx,
-        &mut ordinal_to_satpoint,
-        &mut outpoint_to_ordinal_ranges,
-        &mut input_ordinal_ranges,
-        &mut ordinal_ranges_written,
-        &mut outputs_in_block,
-      )?;
-
-      coinbase_inputs.extend(input_ordinal_ranges);
-    }
-
-    if let Some((txid, tx)) = txdata.first() {
-      self.index_transaction(
-        *txid,
-        tx,
-        &mut ordinal_to_satpoint,
-        &mut outpoint_to_ordinal_ranges,
-        &mut coinbase_inputs,
-        &mut ordinal_ranges_written,
-        &mut outputs_in_block,
-      )?;
-    }
-
-    height_to_block_hash.insert(&height, &block.block_hash().as_hash().into_inner())?;
-
-    Self::increment_statistic(wtx, Statistic::OutputsTraversed, outputs_in_block)?;
-
-    log::info!(
-      "Wrote {ordinal_ranges_written} ordinal ranges in {}ms",
-      (Instant::now() - start).as_millis(),
-    );
-
-    Ok(false)
   }
 
   fn begin_read(&self) -> Result<rtx::Rtx> {
@@ -502,69 +316,6 @@ impl Index {
     Ok(result)
   }
 
-  fn index_transaction(
-    &self,
-    txid: Txid,
-    tx: &Transaction,
-    ordinal_to_satpoint: &mut Table<u64, [u8; 44]>,
-    outpoint_to_ordinal_ranges: &mut Table<[u8; 36], [u8]>,
-    input_ordinal_ranges: &mut VecDeque<(u64, u64)>,
-    ordinal_ranges_written: &mut u64,
-    outputs_traversed: &mut u64,
-  ) -> Result {
-    for (vout, output) in tx.output.iter().enumerate() {
-      let outpoint = OutPoint {
-        vout: vout as u32,
-        txid,
-      };
-      let mut ordinals = Vec::new();
-
-      let mut remaining = output.value;
-      while remaining > 0 {
-        let range = input_ordinal_ranges
-          .pop_front()
-          .ok_or_else(|| anyhow!("insufficient inputs for transaction outputs"))?;
-
-        if !Ordinal(range.0).is_common() {
-          ordinal_to_satpoint.insert(
-            &range.0,
-            &encode_satpoint(SatPoint {
-              outpoint,
-              offset: output.value - remaining,
-            }),
-          )?;
-        }
-
-        let count = range.1 - range.0;
-
-        let assigned = if count > remaining {
-          let middle = range.0 + remaining;
-          input_ordinal_ranges.push_front((middle, range.1));
-          (range.0, middle)
-        } else {
-          range
-        };
-
-        let base = assigned.0;
-        let delta = assigned.1 - assigned.0;
-
-        let n = base as u128 | (delta as u128) << 51;
-
-        ordinals.extend_from_slice(&n.to_le_bytes()[0..11]);
-
-        remaining -= assigned.1 - assigned.0;
-
-        *ordinal_ranges_written += 1;
-      }
-
-      *outputs_traversed += 1;
-
-      outpoint_to_ordinal_ranges.insert(&encode_outpoint(outpoint), &ordinals)?;
-    }
-
-    Ok(())
-  }
-
   pub(crate) fn block(&self, height: u64) -> Result<Option<Block>> {
     Ok(
       self
@@ -574,6 +325,31 @@ impl Index {
         .map(|hash| self.client.get_block(&hash))
         .transpose()?,
     )
+  }
+
+  pub(crate) fn block_with_retries(&self, height: u64) -> Result<Option<Block>> {
+    let mut errors = 0;
+    loop {
+      match self.block(height) {
+        Err(err) => {
+          if cfg!(test) {
+            return Err(err);
+          }
+
+          errors += 1;
+          let seconds = 1 << errors;
+          log::error!("failed to fetch block {height}, retrying in {seconds}s: {err}");
+
+          if seconds > 120 {
+            log::error!("would sleep for more than 120s, giving up");
+            return Err(err);
+          }
+
+          thread::sleep(Duration::from_secs(seconds));
+        }
+        Ok(result) => return Ok(result),
+      }
+    }
   }
 
   pub(crate) fn block_header(&self, hash: BlockHash) -> Result<Option<BlockHeader>> {
@@ -770,7 +546,7 @@ mod tests {
       )
       .unwrap();
       let index = Index::open(&options).unwrap();
-      index.index().unwrap();
+      index.update().unwrap();
 
       Self {
         rpc_server,
@@ -785,14 +561,14 @@ mod tests {
     {
       let context = Context::with_args("--height-limit 0");
       context.rpc_server.mine_blocks(1);
-      context.index.index().unwrap();
+      context.index.update().unwrap();
       assert_eq!(context.index.height().unwrap(), 0);
     }
 
     {
       let context = Context::with_args("--height-limit 1");
       context.rpc_server.mine_blocks(1);
-      context.index.index().unwrap();
+      context.index.update().unwrap();
       assert_eq!(context.index.height().unwrap(), 1);
     }
   }
@@ -818,7 +594,7 @@ mod tests {
   fn list_second_coinbase_transaction() {
     let context = Context::new();
     let txid = context.rpc_server.mine_blocks(1)[0].txdata[0].txid();
-    context.index.index().unwrap();
+    context.index.update().unwrap();
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
       List::Unspent(vec![(50 * COIN_VALUE, 100 * COIN_VALUE)])
@@ -838,7 +614,7 @@ mod tests {
     let txid = context.rpc_server.broadcast_tx(split_coinbase_output);
 
     context.rpc_server.mine_blocks(1);
-    context.index.index().unwrap();
+    context.index.update().unwrap();
 
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
@@ -864,7 +640,7 @@ mod tests {
 
     let txid = context.rpc_server.broadcast_tx(merge_coinbase_outputs);
     context.rpc_server.mine_blocks(1);
-    context.index.index().unwrap();
+    context.index.update().unwrap();
 
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
@@ -887,7 +663,7 @@ mod tests {
     };
     let txid = context.rpc_server.broadcast_tx(fee_paying_tx);
     let coinbase_txid = context.rpc_server.mine_blocks(1)[0].txdata[0].txid();
-    context.index.index().unwrap();
+    context.index.update().unwrap();
 
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
@@ -928,7 +704,7 @@ mod tests {
     context.rpc_server.broadcast_tx(second_fee_paying_tx);
 
     let coinbase_txid = context.rpc_server.mine_blocks(1)[0].txdata[0].txid();
-    context.index.index().unwrap();
+    context.index.update().unwrap();
 
     assert_eq!(
       context
@@ -956,7 +732,7 @@ mod tests {
     };
     let txid = context.rpc_server.broadcast_tx(no_value_output);
     context.rpc_server.mine_blocks(1);
-    context.index.index().unwrap();
+    context.index.update().unwrap();
 
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
@@ -984,7 +760,7 @@ mod tests {
     };
     let txid = context.rpc_server.broadcast_tx(no_value_input);
     context.rpc_server.mine_blocks(1);
-    context.index.index().unwrap();
+    context.index.update().unwrap();
 
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
@@ -1002,7 +778,7 @@ mod tests {
       fee: 0,
     });
     context.rpc_server.mine_blocks(1);
-    context.index.index().unwrap();
+    context.index.update().unwrap();
     let txid = context.rpc_server.tx(1, 0).txid();
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
@@ -1059,7 +835,7 @@ mod tests {
   fn find_first_ordinal_of_second_block() {
     let context = Context::new();
     context.rpc_server.mine_blocks(1);
-    context.index.index().unwrap();
+    context.index.update().unwrap();
     assert_eq!(
       context.index.find(50 * COIN_VALUE).unwrap().unwrap(),
       SatPoint {
@@ -1087,7 +863,7 @@ mod tests {
       fee: 0,
     });
     context.rpc_server.mine_blocks(1);
-    context.index.index().unwrap();
+    context.index.update().unwrap();
     assert_eq!(
       context.index.find(50 * COIN_VALUE).unwrap().unwrap(),
       SatPoint {

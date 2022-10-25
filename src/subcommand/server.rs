@@ -129,7 +129,7 @@ impl Server {
     Runtime::new()?.block_on(async {
       let clone = index.clone();
       thread::spawn(move || loop {
-        if let Err(error) = clone.index() {
+        if let Err(error) = clone.update() {
           log::error!("{error}");
         }
         thread::sleep(Duration::from_millis(100));
@@ -658,14 +658,14 @@ mod tests {
     }
 
     fn get(&self, path: &str) -> reqwest::blocking::Response {
-      if let Err(error) = self.index.index() {
+      if let Err(error) = self.index.update() {
         log::error!("{error}");
       }
       reqwest::blocking::get(self.join_url(path)).unwrap()
     }
 
     fn put(&self, path: &str, content_type: &str, body: &str) -> reqwest::blocking::Response {
-      if let Err(error) = self.index.index() {
+      if let Err(error) = self.index.update() {
         log::error!("{error}");
       }
 
@@ -1414,7 +1414,7 @@ mod tests {
       1
     );
 
-    server.index.index().unwrap();
+    server.index.update().unwrap();
 
     assert_eq!(
       server
@@ -1426,12 +1426,47 @@ mod tests {
 
     server.bitcoin_rpc_server.mine_blocks(1);
 
-    server.index.index().unwrap();
+    server.index.update().unwrap();
 
     assert_eq!(
       server
         .index
         .statistic(crate::index::Statistic::Commits)
+        .unwrap(),
+      2
+    );
+  }
+
+  #[test]
+  fn outputs_traversed_are_tracked() {
+    let server = TestServer::new();
+
+    assert_eq!(
+      server
+        .index
+        .statistic(crate::index::Statistic::OutputsTraversed)
+        .unwrap(),
+      1
+    );
+
+    server.index.update().unwrap();
+
+    assert_eq!(
+      server
+        .index
+        .statistic(crate::index::Statistic::OutputsTraversed)
+        .unwrap(),
+      1
+    );
+
+    server.bitcoin_rpc_server.mine_blocks(1);
+
+    server.index.update().unwrap();
+
+    assert_eq!(
+      server
+        .index
+        .statistic(crate::index::Statistic::OutputsTraversed)
         .unwrap(),
       2
     );

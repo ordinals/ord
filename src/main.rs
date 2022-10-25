@@ -28,7 +28,7 @@ use {
   },
   bitcoincore_rpc::RpcApi,
   chain::Chain,
-  chrono::{DateTime, NaiveDateTime, Utc},
+  chrono::{NaiveDateTime, TimeZone, Utc},
   clap::Parser,
   derive_more::{Display, FromStr},
   regex::Regex,
