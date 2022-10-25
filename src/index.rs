@@ -72,100 +72,8 @@ impl From<Statistic> for u64 {
   }
 }
 
-pub struct TimeKeeper {
-  overall_indexing: Duration,
-  block_retrieval: Duration,
-  db_lookup_remove: Duration,
-  db_insertion: Duration,
-  db_commit: Duration,
-  start_overall_indexing: Instant,
-  start_block_retrieval: Instant,
-  start_db_lookup_remove: Instant,
-  start_db_insertion: Instant,
-  start_db_commit: Instant,
-  db_lookup_removes: u64,
-  db_insertions: u64,
-  db_commits: u64,
-}
-
-impl TimeKeeper {
-  pub fn new() -> TimeKeeper {
-    TimeKeeper {
-      overall_indexing: Duration::ZERO,
-      block_retrieval: Duration::ZERO,
-      db_lookup_remove: Duration::ZERO,
-      db_insertion: Duration::ZERO,
-      db_commit: Duration::ZERO,
-      start_overall_indexing: Instant::now(),
-      start_block_retrieval: Instant::now(),
-      start_db_lookup_remove: Instant::now(),
-      start_db_insertion: Instant::now(),
-      start_db_commit: Instant::now(),
-      db_lookup_removes: 0,
-      db_insertions: 0,
-      db_commits: 0,
-    }
-  }
-
-  pub fn start_recording_overall_indexing(&mut self) {
-    self.start_overall_indexing = Instant::now();
-  }
-  pub fn stop_recording_overall_indexing(&mut self) {
-    self.overall_indexing += Instant::now() - self.start_overall_indexing;
-  }
-
-  pub fn start_recording_block_retrieval(&mut self) {
-    self.start_block_retrieval = Instant::now();
-  }
-  pub fn stop_recording_block_retrieval(&mut self) {
-    self.block_retrieval += Instant::now() - self.start_block_retrieval;
-  }
-
-  pub fn start_recording_db_lookup_remove(&mut self) {
-    self.start_db_lookup_remove = Instant::now();
-  }
-  pub fn stop_recording_db_lookup_remove(&mut self) {
-    self.db_lookup_removes += 1;
-    self.db_lookup_remove += Instant::now() - self.start_db_lookup_remove;
-  }
-
-  pub fn start_recording_db_insertion(&mut self) {
-    self.start_db_insertion = Instant::now();
-  }
-  pub fn stop_recording_db_insertion(&mut self, n: u64) {
-    self.db_insertions += n;
-    self.db_insertion += Instant::now() - self.start_db_insertion;
-  }
-  pub fn current_lap_db_insertion(&mut self) -> Duration {
-    Instant::now() - self.start_db_insertion
-  }
-
-  pub fn start_recording_db_commit(&mut self) {
-    self.db_commits += 1;
-    self.start_db_commit = Instant::now();
-  }
-  pub fn stop_recording_db_commit(&mut self) {
-    self.db_commit += Instant::now() - self.start_db_commit;
-  }
-
-  pub fn log(&mut self) {
-    log::info!(
-      "Overall index time: {} ms\n  Block retrieval: {} ms\n  {} DB lookup/removes: {} ms\n  {} DB insertions: {} ms\n  {} DB commits: {} ms",
-      self.overall_indexing.as_millis(),
-      self.block_retrieval.as_millis(),
-      self.db_lookup_removes,
-      self.db_lookup_remove.as_millis(),
-      self.db_insertions,
-      self.db_insertion.as_millis(),
-      self.db_commits,
-      self.db_commit.as_millis()
-    );
-  }
-}
-
 pub struct OutpointToOrdinalRangesMapper {
   outpoint_to_ordinal_ranges_map: HashMap<[u8; 36], Vec<u8>>,
-  time_keeper: TimeKeeper,
   outputs_traversed: u64,
   outputs_cached: u64,
   outputs_inserted_since_flush: u64,
@@ -175,7 +83,6 @@ impl OutpointToOrdinalRangesMapper {
   pub fn new() -> OutpointToOrdinalRangesMapper {
     OutpointToOrdinalRangesMapper {
       outpoint_to_ordinal_ranges_map: HashMap::new(),
-      time_keeper: TimeKeeper::new(),
       outputs_traversed: 0,
       outputs_cached: 0,
       outputs_inserted_since_flush: 0,
@@ -192,13 +99,9 @@ impl OutpointToOrdinalRangesMapper {
     );
     let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
 
-    self.time_keeper.start_recording_db_insertion();
     for (k, v) in &self.outpoint_to_ordinal_ranges_map {
       outpoint_to_ordinal_ranges.insert(k, v)?;
     }
-    self
-      .time_keeper
-      .stop_recording_db_insertion(self.outpoint_to_ordinal_ranges_map.len() as u64);
 
     self.outpoint_to_ordinal_ranges_map.clear();
     self.outputs_inserted_since_flush = 0;
@@ -217,11 +120,9 @@ impl OutpointToOrdinalRangesMapper {
         Ok(ord_range_vec)
       }
       None => {
-        self.time_keeper.start_recording_db_lookup_remove();
         let ord_range = outpoint_to_ordinal_ranges
           .remove(&key)?
           .ok_or_else(|| anyhow!("Could not find outpoint {} in index", outpoint))?;
-        self.time_keeper.stop_recording_db_lookup_remove();
         Ok(ord_range.to_value().to_vec())
       }
     }
@@ -248,16 +149,8 @@ impl OutpointToOrdinalRangesMapper {
 
     self.flush_map_to_redb(&mut wtx)?;
 
-    log::info!(
-      "Finished committing at block height {} in {} ms)",
-      height,
-      self.time_keeper.current_lap_db_insertion().as_millis()
-    );
-
     Index::increment_statistic(&wtx, Statistic::Commits, 1)?;
-    self.time_keeper.start_recording_db_commit();
     wtx.commit()?;
-    self.time_keeper.stop_recording_db_commit();
     Ok(())
   }
 }
@@ -435,10 +328,6 @@ impl Index {
 
     let mut outpoint_to_ordinal_ranges_mapper = OutpointToOrdinalRangesMapper::new();
 
-    outpoint_to_ordinal_ranges_mapper
-      .time_keeper
-      .start_recording_overall_indexing();
-
     let mut uncomitted = 0;
     for i in 0.. {
       if let Some(height_limit) = self.height_limit {
@@ -481,11 +370,6 @@ impl Index {
       outpoint_to_ordinal_ranges_mapper.commit(wtx, current_height)?;
     }
 
-    outpoint_to_ordinal_ranges_mapper
-      .time_keeper
-      .stop_recording_overall_indexing();
-    outpoint_to_ordinal_ranges_mapper.time_keeper.log();
-
     if let Some(progress_bar) = &mut progress_bar {
       progress_bar.finish_and_clear();
     }
@@ -512,9 +396,6 @@ impl Index {
     let mut outputs_in_block = 0;
 
     let mut errors = 0;
-    outpoint_to_ordinal_ranges_mapper
-      .time_keeper
-      .start_recording_block_retrieval();
     let block = loop {
       match self.block(height) {
         Err(err) => {
@@ -539,9 +420,6 @@ impl Index {
         }
       }
     };
-    outpoint_to_ordinal_ranges_mapper
-      .time_keeper
-      .stop_recording_block_retrieval();
 
     let time: DateTime<Utc> = DateTime::from_utc(
       NaiveDateTime::from_timestamp(block.header.time as i64, 0),
