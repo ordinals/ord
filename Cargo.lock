@@ -243,11 +243,12 @@ dependencies = [
 
 [[package]]
 name = "async-lock"
-version = "2.5.0"
+version = "2.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e97a171d191782fba31bb902b14ad94e24a68145032b7eedf871ab0bc0d077b6"
+checksum = "c8101efe8695a6c17e02911402145357e718ac92d3ff88ae8419e84b1707b685"
 dependencies = [
  "event-listener",
+ "futures-lite",
 ]
 
 [[package]]
@@ -1989,7 +1990,7 @@ dependencies = [
 
 [[package]]
 name = "ord"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "anyhow",
  "axum",
@@ -2270,9 +2271,9 @@ dependencies = [
 
 [[package]]
 name = "pyo3-build-config"
-version = "0.16.6"
+version = "0.17.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c819d397859445928609d0ec5afc2da5204e0d0f73d6bf9e153b04e83c9cdc2"
+checksum = "bf0708c9ed01692635cbf056e286008e5a2927ab1a5e48cdd3aeb1ba5a6fef47"
 dependencies = [
  "once_cell",
  "target-lexicon",
@@ -2396,9 +2397,9 @@ dependencies = [
 
 [[package]]
 name = "redb"
-version = "0.7.0"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "13f72b3033d337029766b2386c17a89038a7b12d9b243f90004ff76f197acd4e"
+checksum = "5200f6a8af2c98fc1f7d7dff4558449d881cb761e60a8395d78930cbcdac7c09"
 dependencies = [
  "libc",
  "pyo3-build-config",
