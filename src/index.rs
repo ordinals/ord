@@ -137,6 +137,7 @@ impl Cache {
 
     self.flush(&mut wtx)?;
 
+    Index::increment_statistic(&wtx, Statistic::OutputsTraversed, self.outputs_traversed)?;
     Index::increment_statistic(&wtx, Statistic::Commits, 1)?;
     wtx.commit()?;
     Ok(())
@@ -480,7 +481,6 @@ impl Index {
 
     height_to_block_hash.insert(&height, &block.block_hash().as_hash().into_inner())?;
 
-    Self::increment_statistic(wtx, Statistic::OutputsTraversed, outputs_in_block)?;
     cache.outputs_traversed += outputs_in_block;
 
     log::info!(
