@@ -1,5 +1,5 @@
 use {
-  self::cache::Updater,
+  self::updater::Updater,
   super::*,
   bitcoin::consensus::encode::deserialize,
   bitcoin::BlockHeader,
@@ -15,8 +15,8 @@ use {
   std::sync::atomic::{AtomicBool, Ordering},
 };
 
-mod cache;
 mod rtx;
+mod updater;
 
 const HEIGHT_TO_BLOCK_HASH: TableDefinition<u64, [u8; 32]> =
   TableDefinition::new("HEIGHT_TO_BLOCK_HASH");
