@@ -120,3 +120,6 @@ serve-docs:
 
 build-docs:
   mdbook build docs
+
+update-changelog:
+  git log --pretty='format:- %s' >> CHANGELOG.md
