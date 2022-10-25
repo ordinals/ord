@@ -31,10 +31,6 @@ impl Updater {
     updater.update_index(index, wtx)
   }
 
-  pub(crate) fn height(&self) -> u64 {
-    self.height
-  }
-
   fn flush(&mut self, wtx: &mut WriteTransaction) -> Result {
     log::info!(
       "Flushing {} entries ({:.1}% resulting from {} insertions) from memory to database",
@@ -105,7 +101,7 @@ impl Updater {
       None
     } else {
       let progress_bar = ProgressBar::new(index.client.get_block_count()?);
-      progress_bar.set_position(self.height());
+      progress_bar.set_position(self.height);
       progress_bar.set_style(
         ProgressStyle::with_template("[indexing blocks] {wide_bar} {pos}/{len}").unwrap(),
       );
@@ -115,7 +111,7 @@ impl Updater {
     let mut uncomitted = 0;
     for i in 0.. {
       if let Some(height_limit) = index.height_limit {
-        if self.height() > height_limit {
+        if self.height > height_limit {
           break;
         }
       }
