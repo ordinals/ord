@@ -245,17 +245,17 @@ impl Index {
       Some(progress_bar)
     };
 
-    let mut cache = Cache::default();
+    let mut cache = Cache::new(current_height);
 
     let mut uncomitted = 0;
     for i in 0.. {
       if let Some(height_limit) = self.height_limit {
-        if current_height > height_limit {
+        if cache.height > height_limit {
           break;
         }
       }
 
-      let done = cache.index_block(self, &mut wtx, current_height)?;
+      let done = cache.index_block(self, &mut wtx)?;
 
       if !done {
         if let Some(progress_bar) = &mut progress_bar {

@@ -1,14 +1,24 @@
 use super::*;
 
-#[derive(Default)]
 pub struct Cache {
   outpoint_to_ordinal_ranges_map: HashMap<[u8; 36], Vec<u8>>,
-  pub(crate) outputs_traversed: u64,
+  outputs_traversed: u64,
   outputs_cached: u64,
   outputs_inserted_since_flush: u64,
+  pub(crate) height: u64,
 }
 
 impl Cache {
+  pub(crate) fn new(height: u64) -> Self {
+    Self {
+      outpoint_to_ordinal_ranges_map: HashMap::new(),
+      outputs_traversed: 0,
+      outputs_cached: 0,
+      outputs_inserted_since_flush: 0,
+      height,
+    }
+  }
+
   fn flush(&mut self, wtx: &mut WriteTransaction) -> Result {
     log::info!(
       "Flushing {} entries ({:.1}% resulting from {} insertions) from memory to database",
@@ -71,12 +81,7 @@ impl Cache {
     Ok(())
   }
 
-  pub(crate) fn index_block(
-    &mut self,
-    index: &Index,
-    wtx: &mut WriteTransaction,
-    height: u64,
-  ) -> Result<bool> {
+  pub(crate) fn index_block(&mut self, index: &Index, wtx: &mut WriteTransaction) -> Result<bool> {
     let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
     let mut ordinal_to_satpoint = wtx.open_table(ORDINAL_TO_SATPOINT)?;
     let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
@@ -85,7 +90,7 @@ impl Cache {
     let mut ordinal_ranges_written = 0;
     let mut outputs_in_block = 0;
 
-    let block = match index.block_with_retries(height)? {
+    let block = match index.block_with_retries(self.height)? {
       Some(block) => block,
       None => return Ok(true),
     };
@@ -96,12 +101,13 @@ impl Cache {
     );
 
     log::info!(
-      "Block {height} at {} with {} transactions…",
+      "Block {} at {} with {} transactions…",
+      self.height,
       time,
       block.txdata.len()
     );
 
-    if let Some(prev_height) = height.checked_sub(1) {
+    if let Some(prev_height) = self.height.checked_sub(1) {
       let prev_hash = height_to_block_hash.get(&prev_height)?.unwrap();
 
       if prev_hash != block.header.prev_blockhash.as_ref() {
@@ -112,7 +118,7 @@ impl Cache {
 
     let mut coinbase_inputs = VecDeque::new();
 
-    let h = Height(height);
+    let h = Height(self.height);
     if h.subsidy() > 0 {
       let start = h.starting_ordinal();
       coinbase_inputs.push_front((start.n(), (start + h.subsidy()).n()));
@@ -161,8 +167,9 @@ impl Cache {
       )?;
     }
 
-    height_to_block_hash.insert(&height, &block.block_hash().as_hash().into_inner())?;
+    height_to_block_hash.insert(&self.height, &block.block_hash().as_hash().into_inner())?;
 
+    self.height += 1;
     self.outputs_traversed += outputs_in_block;
 
     log::info!(
