@@ -1,5 +1,5 @@
 use {
-  self::cache::Cache,
+  self::cache::Updater,
   super::*,
   bitcoin::consensus::encode::deserialize,
   bitcoin::BlockHeader,
@@ -234,7 +234,7 @@ impl Index {
       .map(|(height, _hash)| height + 1)
       .unwrap_or(0);
 
-    Cache::new(starting_height).update_index(self, wtx)?;
+    Updater::new(starting_height).update_index(self, wtx)?;
 
     Ok(())
   }

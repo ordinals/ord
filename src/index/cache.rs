@@ -1,6 +1,6 @@
 use super::*;
 
-pub struct Cache {
+pub struct Updater {
   outpoint_to_ordinal_ranges_map: HashMap<[u8; 36], Vec<u8>>,
   outputs_traversed: u64,
   outputs_cached: u64,
@@ -8,7 +8,7 @@ pub struct Cache {
   height: u64,
 }
 
-impl Cache {
+impl Updater {
   pub(crate) fn new(height: u64) -> Self {
     Self {
       outpoint_to_ordinal_ranges_map: HashMap::new(),
