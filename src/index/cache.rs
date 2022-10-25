@@ -70,4 +70,66 @@ impl Cache {
     wtx.commit()?;
     Ok(())
   }
+
+  pub(crate) fn index_transaction(
+    &mut self,
+    txid: Txid,
+    tx: &Transaction,
+    ordinal_to_satpoint: &mut Table<u64, [u8; 44]>,
+    input_ordinal_ranges: &mut VecDeque<(u64, u64)>,
+    ordinal_ranges_written: &mut u64,
+    outputs_traversed: &mut u64,
+  ) -> Result {
+    for (vout, output) in tx.output.iter().enumerate() {
+      let mut outpoint = OutPoint {
+        vout: vout as u32,
+        txid,
+      };
+      let mut ordinals = Vec::new();
+
+      let mut remaining = output.value;
+      while remaining > 0 {
+        let range = input_ordinal_ranges
+          .pop_front()
+          .ok_or_else(|| anyhow!("insufficient inputs for transaction outputs"))?;
+
+        if !Ordinal(range.0).is_common() {
+          ordinal_to_satpoint.insert(
+            &range.0,
+            &encode_satpoint(SatPoint {
+              outpoint,
+              offset: output.value - remaining,
+            }),
+          )?;
+        }
+
+        let count = range.1 - range.0;
+
+        let assigned = if count > remaining {
+          let middle = range.0 + remaining;
+          input_ordinal_ranges.push_front((middle, range.1));
+          (range.0, middle)
+        } else {
+          range
+        };
+
+        let base = assigned.0;
+        let delta = assigned.1 - assigned.0;
+
+        let n = base as u128 | (delta as u128) << 51;
+
+        ordinals.extend_from_slice(&n.to_le_bytes()[0..11]);
+
+        remaining -= assigned.1 - assigned.0;
+
+        *ordinal_ranges_written += 1;
+      }
+
+      *outputs_traversed += 1;
+
+      self.insert(&mut outpoint, ordinals);
+    }
+
+    Ok(())
+  }
 }
