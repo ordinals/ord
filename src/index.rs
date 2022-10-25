@@ -81,7 +81,7 @@ pub struct Cache {
 }
 
 impl Cache {
-  fn flush_map_to_redb(&mut self, wtx: &mut WriteTransaction) -> Result {
+  fn flush(&mut self, wtx: &mut WriteTransaction) -> Result {
     log::info!(
       "Flushing {} entries ({:.1}% resulting from {} insertions) from memory to database",
       self.outpoint_to_ordinal_ranges_map.len(),
@@ -139,7 +139,7 @@ impl Cache {
       self.outputs_cached
     );
 
-    self.flush_map_to_redb(&mut wtx)?;
+    self.flush(&mut wtx)?;
 
     Index::increment_statistic(&wtx, Statistic::Commits, 1)?;
     wtx.commit()?;
