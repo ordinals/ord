@@ -224,69 +224,17 @@ impl Index {
   }
 
   pub(crate) fn index(&self) -> Result {
-    let mut wtx = self.begin_write()?;
+    let wtx = self.begin_write()?;
 
-    let mut cache = Cache::new(
-      wtx
-        .open_table(HEIGHT_TO_BLOCK_HASH)?
-        .range(0..)?
-        .rev()
-        .next()
-        .map(|(height, _hash)| height + 1)
-        .unwrap_or(0),
-    );
+    let starting_height = wtx
+      .open_table(HEIGHT_TO_BLOCK_HASH)?
+      .range(0..)?
+      .rev()
+      .next()
+      .map(|(height, _hash)| height + 1)
+      .unwrap_or(0);
 
-    let mut progress_bar = if cfg!(test) || log_enabled!(log::Level::Info) {
-      None
-    } else {
-      let progress_bar = ProgressBar::new(self.client.get_block_count()?);
-      progress_bar.set_position(cache.height());
-      progress_bar.set_style(
-        ProgressStyle::with_template("[indexing blocks] {wide_bar} {pos}/{len}").unwrap(),
-      );
-      Some(progress_bar)
-    };
-
-    let mut uncomitted = 0;
-    for i in 0.. {
-      if let Some(height_limit) = self.height_limit {
-        if cache.height() > height_limit {
-          break;
-        }
-      }
-
-      let done = cache.index_block(self, &mut wtx)?;
-
-      if !done {
-        if let Some(progress_bar) = &mut progress_bar {
-          progress_bar.inc(1);
-
-          if progress_bar.position() > progress_bar.length().unwrap() {
-            progress_bar.set_length(self.client.get_block_count()?);
-          }
-        }
-
-        uncomitted += 1;
-      }
-
-      if uncomitted > 0 && i % 5000 == 0 {
-        cache.commit(wtx)?;
-        wtx = self.begin_write()?;
-        uncomitted = 0;
-      }
-
-      if done || INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
-        break;
-      }
-    }
-
-    if uncomitted > 0 {
-      cache.commit(wtx)?;
-    }
-
-    if let Some(progress_bar) = &mut progress_bar {
-      progress_bar.finish_and_clear();
-    }
+    Cache::new(starting_height).update_index(self, wtx)?;
 
     Ok(())
   }

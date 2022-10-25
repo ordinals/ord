@@ -85,6 +85,66 @@ impl Cache {
     Ok(())
   }
 
+  pub(crate) fn update_index<'index>(
+    &mut self,
+    index: &'index Index,
+    mut wtx: WriteTransaction<'index>,
+  ) -> Result {
+    let mut progress_bar = if cfg!(test) || log_enabled!(log::Level::Info) {
+      None
+    } else {
+      let progress_bar = ProgressBar::new(index.client.get_block_count()?);
+      progress_bar.set_position(self.height());
+      progress_bar.set_style(
+        ProgressStyle::with_template("[indexing blocks] {wide_bar} {pos}/{len}").unwrap(),
+      );
+      Some(progress_bar)
+    };
+
+    let mut uncomitted = 0;
+    for i in 0.. {
+      if let Some(height_limit) = index.height_limit {
+        if self.height() > height_limit {
+          break;
+        }
+      }
+
+      let done = self.index_block(index, &mut wtx)?;
+
+      if !done {
+        if let Some(progress_bar) = &mut progress_bar {
+          progress_bar.inc(1);
+
+          if progress_bar.position() > progress_bar.length().unwrap() {
+            progress_bar.set_length(index.client.get_block_count()?);
+          }
+        }
+
+        uncomitted += 1;
+      }
+
+      if uncomitted > 0 && i % 5000 == 0 {
+        self.commit(wtx)?;
+        wtx = index.begin_write()?;
+        uncomitted = 0;
+      }
+
+      if done || INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
+        break;
+      }
+    }
+
+    if uncomitted > 0 {
+      self.commit(wtx)?;
+    }
+
+    if let Some(progress_bar) = &mut progress_bar {
+      progress_bar.finish_and_clear();
+    }
+
+    Ok(())
+  }
+
   pub(crate) fn index_block(&mut self, index: &Index, wtx: &mut WriteTransaction) -> Result<bool> {
     let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
     let mut ordinal_to_satpoint = wtx.open_table(ORDINAL_TO_SATPOINT)?;
