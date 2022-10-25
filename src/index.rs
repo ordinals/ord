@@ -310,30 +310,9 @@ impl Index {
     let mut ordinal_ranges_written = 0;
     let mut outputs_in_block = 0;
 
-    let mut errors = 0;
-    let block = loop {
-      match self.block(height) {
-        Err(err) => {
-          if cfg!(test) {
-            return Err(err);
-          }
-
-          errors += 1;
-          let seconds = 1 << errors;
-          log::error!("failed to fetch block {height}, retrying in {seconds}s: {err}");
-
-          if seconds > 120 {
-            log::error!("would sleep for more than 120s, giving up");
-            return Err(err);
-          }
-
-          thread::sleep(Duration::from_secs(seconds));
-        }
-        Ok(Some(block)) => break block,
-        Ok(None) => {
-          return Ok(true);
-        }
-      }
+    let block = match self.block_with_retries(height)? {
+      Some(block) => block,
+      None => return Ok(true),
     };
 
     let time: DateTime<Utc> = DateTime::from_utc(
@@ -513,6 +492,31 @@ impl Index {
         .map(|hash| self.client.get_block(&hash))
         .transpose()?,
     )
+  }
+
+  pub(crate) fn block_with_retries(&self, height: u64) -> Result<Option<Block>> {
+    let mut errors = 0;
+    loop {
+      match self.block(height) {
+        Err(err) => {
+          if cfg!(test) {
+            return Err(err);
+          }
+
+          errors += 1;
+          let seconds = 1 << errors;
+          log::error!("failed to fetch block {height}, retrying in {seconds}s: {err}");
+
+          if seconds > 120 {
+            log::error!("would sleep for more than 120s, giving up");
+            return Err(err);
+          }
+
+          thread::sleep(Duration::from_secs(seconds));
+        }
+        Ok(result) => return Ok(result),
+      }
+    }
   }
 
   pub(crate) fn block_header(&self, hash: BlockHash) -> Result<Option<BlockHeader>> {
