@@ -255,7 +255,7 @@ impl Index {
         }
       }
 
-      let done = self.index_block(&mut wtx, current_height, &mut cache)?;
+      let done = cache.index_block(self, &mut wtx, current_height)?;
 
       if !done {
         if let Some(progress_bar) = &mut progress_bar {
@@ -294,108 +294,6 @@ impl Index {
 
   pub(crate) fn is_reorged(&self) -> bool {
     self.reorged.load(Ordering::Relaxed)
-  }
-
-  pub(crate) fn index_block(
-    &self,
-    wtx: &mut WriteTransaction,
-    height: u64,
-    cache: &mut Cache,
-  ) -> Result<bool> {
-    let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
-    let mut ordinal_to_satpoint = wtx.open_table(ORDINAL_TO_SATPOINT)?;
-    let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
-
-    let start = Instant::now();
-    let mut ordinal_ranges_written = 0;
-    let mut outputs_in_block = 0;
-
-    let block = match self.block_with_retries(height)? {
-      Some(block) => block,
-      None => return Ok(true),
-    };
-
-    let time: DateTime<Utc> = DateTime::from_utc(
-      NaiveDateTime::from_timestamp(block.header.time as i64, 0),
-      Utc,
-    );
-
-    log::info!(
-      "Block {height} at {} with {} transactions…",
-      time,
-      block.txdata.len()
-    );
-
-    if let Some(prev_height) = height.checked_sub(1) {
-      let prev_hash = height_to_block_hash.get(&prev_height)?.unwrap();
-
-      if prev_hash != block.header.prev_blockhash.as_ref() {
-        self.reorged.store(true, Ordering::Relaxed);
-        return Err(anyhow!("reorg detected at or before {prev_height}"));
-      }
-    }
-
-    let mut coinbase_inputs = VecDeque::new();
-
-    let h = Height(height);
-    if h.subsidy() > 0 {
-      let start = h.starting_ordinal();
-      coinbase_inputs.push_front((start.n(), (start + h.subsidy()).n()));
-    }
-
-    let txdata = block
-      .txdata
-      .par_iter()
-      .map(|tx| (tx.txid(), tx))
-      .collect::<Vec<(Txid, &Transaction)>>();
-
-    for (tx_offset, (txid, tx)) in txdata.iter().enumerate().skip(1) {
-      log::trace!("Indexing transaction {tx_offset}…");
-
-      let mut input_ordinal_ranges = VecDeque::new();
-
-      for input in &tx.input {
-        let ordinal_ranges =
-          cache.get_and_remove(input.previous_output, &mut outpoint_to_ordinal_ranges);
-
-        for chunk in ordinal_ranges?.chunks_exact(11) {
-          input_ordinal_ranges.push_back(Self::decode_ordinal_range(chunk.try_into().unwrap()));
-        }
-      }
-
-      cache.index_transaction(
-        *txid,
-        tx,
-        &mut ordinal_to_satpoint,
-        &mut input_ordinal_ranges,
-        &mut ordinal_ranges_written,
-        &mut outputs_in_block,
-      )?;
-
-      coinbase_inputs.extend(input_ordinal_ranges);
-    }
-
-    if let Some((txid, tx)) = txdata.first() {
-      cache.index_transaction(
-        *txid,
-        tx,
-        &mut ordinal_to_satpoint,
-        &mut coinbase_inputs,
-        &mut ordinal_ranges_written,
-        &mut outputs_in_block,
-      )?;
-    }
-
-    height_to_block_hash.insert(&height, &block.block_hash().as_hash().into_inner())?;
-
-    cache.outputs_traversed += outputs_in_block;
-
-    log::info!(
-      "Wrote {ordinal_ranges_written} ordinal ranges from {outputs_in_block} outputs in {} ms",
-      (Instant::now() - start).as_millis(),
-    );
-
-    Ok(false)
   }
 
   fn begin_read(&self) -> Result<rtx::Rtx> {
