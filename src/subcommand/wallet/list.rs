@@ -2,7 +2,7 @@ use super::*;
 
 pub(crate) fn run(options: Options) -> Result {
   let index = Index::open(&options)?;
-  index.index()?;
+  index.update()?;
 
   let utxos = list_unspent(&options, &index)?;
 

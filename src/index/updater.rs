@@ -9,14 +9,26 @@ pub struct Updater {
 }
 
 impl Updater {
-  pub(crate) fn new(height: u64) -> Self {
-    Self {
+  pub(crate) fn update(index: &Index) -> Result {
+    let wtx = index.begin_write()?;
+
+    let height = wtx
+      .open_table(HEIGHT_TO_BLOCK_HASH)?
+      .range(0..)?
+      .rev()
+      .next()
+      .map(|(height, _hash)| height + 1)
+      .unwrap_or(0);
+
+    let mut updater = Self {
       outpoint_to_ordinal_ranges_map: HashMap::new(),
       outputs_traversed: 0,
       outputs_cached: 0,
       outputs_inserted_since_flush: 0,
       height,
-    }
+    };
+
+    updater.update_index(index, wtx)
   }
 
   pub(crate) fn height(&self) -> u64 {

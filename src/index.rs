@@ -223,20 +223,8 @@ impl Index {
     (base, base + delta)
   }
 
-  pub(crate) fn index(&self) -> Result {
-    let wtx = self.begin_write()?;
-
-    let starting_height = wtx
-      .open_table(HEIGHT_TO_BLOCK_HASH)?
-      .range(0..)?
-      .rev()
-      .next()
-      .map(|(height, _hash)| height + 1)
-      .unwrap_or(0);
-
-    Updater::new(starting_height).update_index(self, wtx)?;
-
-    Ok(())
+  pub(crate) fn update(&self) -> Result {
+    Updater::update(self)
   }
 
   pub(crate) fn is_reorged(&self) -> bool {
@@ -558,7 +546,7 @@ mod tests {
       )
       .unwrap();
       let index = Index::open(&options).unwrap();
-      index.index().unwrap();
+      index.update().unwrap();
 
       Self {
         rpc_server,
@@ -573,14 +561,14 @@ mod tests {
     {
       let context = Context::with_args("--height-limit 0");
       context.rpc_server.mine_blocks(1);
-      context.index.index().unwrap();
+      context.index.update().unwrap();
       assert_eq!(context.index.height().unwrap(), 0);
     }
 
     {
       let context = Context::with_args("--height-limit 1");
       context.rpc_server.mine_blocks(1);
-      context.index.index().unwrap();
+      context.index.update().unwrap();
       assert_eq!(context.index.height().unwrap(), 1);
     }
   }
@@ -606,7 +594,7 @@ mod tests {
   fn list_second_coinbase_transaction() {
     let context = Context::new();
     let txid = context.rpc_server.mine_blocks(1)[0].txdata[0].txid();
-    context.index.index().unwrap();
+    context.index.update().unwrap();
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
       List::Unspent(vec![(50 * COIN_VALUE, 100 * COIN_VALUE)])
@@ -626,7 +614,7 @@ mod tests {
     let txid = context.rpc_server.broadcast_tx(split_coinbase_output);
 
     context.rpc_server.mine_blocks(1);
-    context.index.index().unwrap();
+    context.index.update().unwrap();
 
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
@@ -652,7 +640,7 @@ mod tests {
 
     let txid = context.rpc_server.broadcast_tx(merge_coinbase_outputs);
     context.rpc_server.mine_blocks(1);
-    context.index.index().unwrap();
+    context.index.update().unwrap();
 
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
@@ -675,7 +663,7 @@ mod tests {
     };
     let txid = context.rpc_server.broadcast_tx(fee_paying_tx);
     let coinbase_txid = context.rpc_server.mine_blocks(1)[0].txdata[0].txid();
-    context.index.index().unwrap();
+    context.index.update().unwrap();
 
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
@@ -716,7 +704,7 @@ mod tests {
     context.rpc_server.broadcast_tx(second_fee_paying_tx);
 
     let coinbase_txid = context.rpc_server.mine_blocks(1)[0].txdata[0].txid();
-    context.index.index().unwrap();
+    context.index.update().unwrap();
 
     assert_eq!(
       context
@@ -744,7 +732,7 @@ mod tests {
     };
     let txid = context.rpc_server.broadcast_tx(no_value_output);
     context.rpc_server.mine_blocks(1);
-    context.index.index().unwrap();
+    context.index.update().unwrap();
 
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
@@ -772,7 +760,7 @@ mod tests {
     };
     let txid = context.rpc_server.broadcast_tx(no_value_input);
     context.rpc_server.mine_blocks(1);
-    context.index.index().unwrap();
+    context.index.update().unwrap();
 
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
@@ -790,7 +778,7 @@ mod tests {
       fee: 0,
     });
     context.rpc_server.mine_blocks(1);
-    context.index.index().unwrap();
+    context.index.update().unwrap();
     let txid = context.rpc_server.tx(1, 0).txid();
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
@@ -847,7 +835,7 @@ mod tests {
   fn find_first_ordinal_of_second_block() {
     let context = Context::new();
     context.rpc_server.mine_blocks(1);
-    context.index.index().unwrap();
+    context.index.update().unwrap();
     assert_eq!(
       context.index.find(50 * COIN_VALUE).unwrap().unwrap(),
       SatPoint {
@@ -875,7 +863,7 @@ mod tests {
       fee: 0,
     });
     context.rpc_server.mine_blocks(1);
-    context.index.index().unwrap();
+    context.index.update().unwrap();
     assert_eq!(
       context.index.find(50 * COIN_VALUE).unwrap().unwrap(),
       SatPoint {

@@ -10,7 +10,7 @@ impl Find {
   pub(crate) fn run(self, options: Options) -> Result {
     let index = Index::open(&options)?;
 
-    index.index()?;
+    index.update()?;
 
     match index.find(self.ordinal.0)? {
       Some(satpoint) => {
