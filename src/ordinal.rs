@@ -52,6 +52,14 @@ impl Ordinal {
     self.into()
   }
 
+  /// `Ordinal::rarity` is expensive and is called frequently when indexing.
+  /// Ordinal::is_common only checks if self is `Rarity::Common` but is
+  /// much faster.
+  pub(crate) fn is_common(self) -> bool {
+    let epoch = self.epoch();
+    (self.0 - epoch.starting_ordinal().0) % epoch.subsidy() != 0
+  }
+
   pub(crate) fn name(self) -> String {
     let mut x = Self::SUPPLY - self.0;
     let mut name = String::new();
@@ -596,5 +604,24 @@ mod tests {
       case(Ordinal::LAST.n() - n);
       case(Ordinal::LAST.n() / (n + 1));
     }
+  }
+
+  #[test]
+  fn is_common() {
+    fn case(n: u64) {
+      assert_eq!(
+        Ordinal(n).is_common(),
+        Ordinal(n).rarity() == Rarity::Common
+      );
+    }
+
+    case(0);
+    case(1);
+    case(50 * COIN_VALUE - 1);
+    case(50 * COIN_VALUE);
+    case(50 * COIN_VALUE + 1);
+    case(2067187500000000 - 1);
+    case(2067187500000000);
+    case(2067187500000000 + 1);
   }
 }
