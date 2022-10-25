@@ -5,7 +5,7 @@ pub struct Cache {
   outputs_traversed: u64,
   outputs_cached: u64,
   outputs_inserted_since_flush: u64,
-  pub(crate) height: u64,
+  height: u64,
 }
 
 impl Cache {
@@ -17,6 +17,10 @@ impl Cache {
       outputs_inserted_since_flush: 0,
       height,
     }
+  }
+
+  pub(crate) fn height(&self) -> u64 {
+    self.height
   }
 
   fn flush(&mut self, wtx: &mut WriteTransaction) -> Result {
@@ -64,10 +68,10 @@ impl Cache {
     self.outputs_inserted_since_flush += 1;
   }
 
-  pub(crate) fn commit(&mut self, mut wtx: WriteTransaction, height: u64) -> Result {
+  pub(crate) fn commit(&mut self, mut wtx: WriteTransaction) -> Result {
     log::info!(
       "Committing at block height {}, {} outputs traversed, {} in map, {} cached",
-      height,
+      self.height,
       self.outputs_traversed,
       self.outpoint_to_ordinal_ranges_map.len(),
       self.outputs_cached
