@@ -4,7 +4,7 @@ use super::*;
 pub(crate) struct Epoch(pub(crate) u64);
 
 impl Epoch {
-  pub(crate) const STARTING_ORDINALS: [Ordinal;34] = [
+  pub(crate) const STARTING_ORDINALS: [Ordinal; 34] = [
     Ordinal(0),
     Ordinal(1050000000000000),
     Ordinal(1575000000000000),
@@ -69,12 +69,14 @@ impl PartialEq<u64> for Epoch {
 
 impl From<Ordinal> for Epoch {
   fn from(ordinal: Ordinal) -> Self {
-    for (i, starting_ordinal) in Self::STARTING_ORDINALS.into_iter().enumerate() {
+    let mut i = 0;
+    for starting_ordinal in Self::STARTING_ORDINALS {
       if starting_ordinal > ordinal {
-        return Epoch(i as u64 - 1);
+        break;
       }
+      i += 1;
     }
-    Epoch(Self::STARTING_ORDINALS.len() as u64 - 1)
+    Epoch(i - 1)
   }
 }
 
