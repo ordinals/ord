@@ -100,7 +100,7 @@ impl Updater {
   }
 
   fn fetch_blocks_from(index: &Index, mut height: u64) -> Result<mpsc::Receiver<Block>> {
-    let (tx, rx) = mpsc::sync_channel(8);
+    let (tx, rx) = mpsc::sync_channel(32);
 
     let height_limit = index.height_limit;
 
