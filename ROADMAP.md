@@ -6,7 +6,7 @@ Features
 
 - Collecting and Trading
   - [x] Users can list rare ordinals in their UTXOs
-  - [ ] Users can send and receive specific ordinals
+  - [x] Users can send and receive specific ordinals
   - [ ] Users can buy and sell ordinals P2P in a Discord channel
   - [ ] Users can buy and sell ordinals via a trusted OTC desk
   - [ ] Users can buy and sell ordinals using trustless offers
