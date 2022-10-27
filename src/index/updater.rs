@@ -107,37 +107,25 @@ impl Updater {
     let client =
       Client::new(&index.rpc_url, index.auth.clone()).context("failed to connect to RPC URL")?;
 
-    thread::spawn(move || {
-      let mut errors = 0;
-      loop {
-        if let Some(height_limit) = height_limit {
-          if height > height_limit {
+    thread::spawn(move || loop {
+      if let Some(height_limit) = height_limit {
+        if height > height_limit {
+          break;
+        }
+      }
+
+      match Self::block_with_retries(&client, height) {
+        Ok(Some(block)) => {
+          if let Err(err) = tx.send(block) {
+            log::info!("Block receiver disconnected: {err}");
             break;
           }
+          height += 1;
         }
-
-        match Self::block_with_retries(&client, height) {
-          Ok(Some(block)) => {
-            if let Err(err) = tx.send(block) {
-              log::info!("Block receiver disconnected: {err}");
-              break;
-            }
-            height += 1;
-          }
-          Ok(None) => break,
-          Err(err) => {
-            log::error!("Failed to fetch block {height}: {err}");
-            errors += 1;
-
-            let seconds = 1 << errors;
-
-            if seconds > 120 {
-              log::error!("Would sleep for more than 60s, giving up");
-              break;
-            }
-
-            thread::sleep(Duration::from_secs(seconds));
-          }
+        Ok(None) => break,
+        Err(err) => {
+          log::error!("Failed to fetch block {height}: {err}");
+          break;
         }
       }
     });
