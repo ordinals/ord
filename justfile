@@ -14,12 +14,6 @@ fmt:
 clippy:
   cargo clippy --all --all-targets
 
-bench:
-  cargo criterion
-
-install-dev-deps:
-  cargo install cargo-criterion
-
 deploy branch chain domain:
   ssh root@{{domain}} "mkdir -p deploy \
     && apt-get update --yes \
@@ -56,22 +50,8 @@ profile-tests:
     | sed -n 's/^test \(.*\) ... ok <\(.*\)s>/\2 \1/p' | sort -n \
     | tee test-times.txt
 
-status:
-  ssh root@65.108.68.37 systemctl status bitcoind
-  ssh root@65.108.68.37 systemctl status ord
-
 open:
   open http://localhost
-
-generate-private-key:
-  cargo run generate-private-key
-
-generate-paper-wallets:
-  cat private-keys.txt | cargo run generate-paper-wallets
-
-print-paper-wallet path:
-  wkhtmltopdf -L 25mm -R 25mm -T 50mm -B 25mm {{path}} wallet.pdf
-  lp -o sides=two-sided-long-edge wallet.pdf
 
 doc:
   cargo doc --all --open
