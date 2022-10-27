@@ -114,7 +114,7 @@ impl Updater {
         }
       }
 
-      match Self::block_with_retries(&client, height) {
+      match Self::get_block_with_retries(&client, height) {
         Ok(Some(block)) => {
           if let Err(err) = tx.send(block) {
             log::info!("Block receiver disconnected: {err}");
@@ -133,19 +133,18 @@ impl Updater {
     Ok(rx)
   }
 
-  pub(crate) fn block_with_retries(client: &Client, height: u64) -> Result<Option<Block>> {
+  pub(crate) fn get_block_with_retries(client: &Client, height: u64) -> Result<Option<Block>> {
     let mut errors = 0;
     loop {
-      match Ok(
-        client
-          .get_block_hash(height)
-          .into_option()?
-          .map(|hash| client.get_block(&hash))
-          .transpose()?,
-      ) {
+      match client
+        .get_block_hash(height)
+        .into_option()?
+        .map(|hash| client.get_block(&hash))
+        .transpose()
+      {
         Err(err) => {
           if cfg!(test) {
-            return Err(err);
+            return Err(err.into());
           }
 
           errors += 1;
@@ -154,7 +153,7 @@ impl Updater {
 
           if seconds > 120 {
             log::error!("would sleep for more than 120s, giving up");
-            return Err(err);
+            return Err(err.into());
           }
 
           thread::sleep(Duration::from_secs(seconds));
