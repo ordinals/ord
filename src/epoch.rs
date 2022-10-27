@@ -4,7 +4,7 @@ use super::*;
 pub(crate) struct Epoch(pub(crate) u64);
 
 impl Epoch {
-  pub(crate) const STARTING_ORDINALS: &'static [Ordinal] = &[
+  pub(crate) const STARTING_ORDINALS: [Ordinal;34] = [
     Ordinal(0),
     Ordinal(1050000000000000),
     Ordinal(1575000000000000),
@@ -69,10 +69,12 @@ impl PartialEq<u64> for Epoch {
 
 impl From<Ordinal> for Epoch {
   fn from(ordinal: Ordinal) -> Self {
-    match Self::STARTING_ORDINALS.binary_search(&ordinal) {
-      Ok(i) => Epoch(i as u64),
-      Err(i) => Epoch(i as u64 - 1),
+    for (i, starting_ordinal) in Self::STARTING_ORDINALS.into_iter().enumerate() {
+      if starting_ordinal > ordinal {
+        return Epoch(i as u64 - 1);
+      }
     }
+    Epoch(Self::STARTING_ORDINALS.len() as u64 - 1)
   }
 }
 
@@ -112,7 +114,7 @@ mod tests {
       ordinal += SUBSIDY_HALVING_INTERVAL * Epoch(epoch).subsidy();
     }
 
-    assert_eq!(Epoch::STARTING_ORDINALS, epoch_ordinals);
+    assert_eq!(Epoch::STARTING_ORDINALS.as_slice(), epoch_ordinals);
     assert_eq!(Epoch::STARTING_ORDINALS.len(), 34);
   }
 
@@ -144,6 +146,7 @@ mod tests {
     assert_eq!(Epoch::from(Ordinal(1)), 0);
     assert_eq!(Epoch::from(Epoch(1).starting_ordinal()), 1);
     assert_eq!(Epoch::from(Epoch(1).starting_ordinal() + 1), 1);
+    assert_eq!(Epoch::from(Ordinal(u64::max_value())), 33);
   }
 
   #[test]
