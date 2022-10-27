@@ -40,7 +40,7 @@ jobs:
     - name: Check Lockfile
       run: cargo update --locked --package ord
 
-    - name: Test 
+    - name: Test
       run: cargo test --all
 
     - name: Clippy
@@ -52,6 +52,5 @@ jobs:
     - name: Check for Forbidden Words
       if: ${{ matrix.os == 'ubuntu-latest' }}
       run: |
-        sudo apt-get update
         sudo apt-get install ripgrep
         ./bin/forbid
