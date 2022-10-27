@@ -47,6 +47,8 @@ fn encode_satpoint(satpoint: SatPoint) -> [u8; 44] {
 
 pub(crate) struct Index {
   client: Client,
+  rpc_url: String,
+  auth: Auth,
   database: Database,
   database_path: PathBuf,
   height_limit: Option<u64>,
@@ -114,8 +116,9 @@ impl Index {
       cookie_file.display()
     );
 
-    let client = Client::new(&rpc_url, Auth::CookieFile(cookie_file))
-      .context("failed to connect to RPC URL")?;
+    let auth = Auth::CookieFile(cookie_file);
+
+    let client = Client::new(&rpc_url, auth.clone()).context("failed to connect to RPC URL")?;
 
     let data_dir = options.data_dir()?;
 
@@ -161,6 +164,8 @@ impl Index {
       options.chain.genesis_block().coinbase().unwrap().clone();
 
     Ok(Self {
+      rpc_url,
+      auth,
       client,
       database,
       database_path,
@@ -325,31 +330,6 @@ impl Index {
         .map(|hash| self.client.get_block(&hash))
         .transpose()?,
     )
-  }
-
-  pub(crate) fn block_with_retries(&self, height: u64) -> Result<Option<Block>> {
-    let mut errors = 0;
-    loop {
-      match self.block(height) {
-        Err(err) => {
-          if cfg!(test) {
-            return Err(err);
-          }
-
-          errors += 1;
-          let seconds = 1 << errors;
-          log::error!("failed to fetch block {height}, retrying in {seconds}s: {err}");
-
-          if seconds > 120 {
-            log::error!("would sleep for more than 120s, giving up");
-            return Err(err);
-          }
-
-          thread::sleep(Duration::from_secs(seconds));
-        }
-        Ok(result) => return Ok(result),
-      }
-    }
   }
 
   pub(crate) fn block_header(&self, hash: BlockHash) -> Result<Option<BlockHeader>> {
