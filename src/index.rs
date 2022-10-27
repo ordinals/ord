@@ -45,15 +45,15 @@ fn encode_satpoint(satpoint: SatPoint) -> [u8; 44] {
 }
 
 pub(crate) struct Index {
-  client: Client,
-  rpc_url: String,
   auth: Auth,
+  client: Client,
   database: Database,
   database_path: PathBuf,
+  genesis_block_coinbase_transaction: Transaction,
+  genesis_block_coinbase_txid: Txid,
   height_limit: Option<u64>,
   reorged: AtomicBool,
-  genesis_block_coinbase_txid: Txid,
-  genesis_block_coinbase_transaction: Transaction,
+  rpc_url: String,
 }
 
 #[derive(Debug, PartialEq)]
@@ -163,15 +163,15 @@ impl Index {
       options.chain.genesis_block().coinbase().unwrap().clone();
 
     Ok(Self {
-      rpc_url,
+      genesis_block_coinbase_txid: genesis_block_coinbase_transaction.txid(),
       auth,
       client,
       database,
       database_path,
+      genesis_block_coinbase_transaction,
       height_limit: options.height_limit,
       reorged: AtomicBool::new(false),
-      genesis_block_coinbase_txid: genesis_block_coinbase_transaction.txid(),
-      genesis_block_coinbase_transaction,
+      rpc_url,
     })
   }
 
