@@ -6,7 +6,6 @@ use {
   bitcoincore_rpc::{json::GetBlockHeaderResult, Auth, Client},
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
-  rayon::iter::{IntoParallelRefIterator, ParallelIterator},
   redb::{
     Database, MultimapTableDefinition, ReadableMultimapTable, ReadableTable, Table,
     TableDefinition, WriteStrategy, WriteTransaction,

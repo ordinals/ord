@@ -216,13 +216,9 @@ impl Updater {
       coinbase_inputs.push_front((start.n(), (start + h.subsidy()).n()));
     }
 
-    let txdata = block
-      .txdata
-      .par_iter()
-      .map(|tx| (tx.txid(), tx))
-      .collect::<Vec<(Txid, &Transaction)>>();
+    for (tx_offset, tx) in block.txdata.iter().enumerate().skip(1) {
+      let txid = tx.txid();
 
-    for (tx_offset, (txid, tx)) in txdata.iter().enumerate().skip(1) {
       log::trace!("Indexing transaction {tx_offset}…");
 
       let mut input_ordinal_ranges = VecDeque::new();
@@ -248,7 +244,7 @@ impl Updater {
       }
 
       self.index_transaction(
-        *txid,
+        txid,
         tx,
         &mut ordinal_to_satpoint,
         &mut input_ordinal_ranges,
@@ -259,9 +255,9 @@ impl Updater {
       coinbase_inputs.extend(input_ordinal_ranges);
     }
 
-    if let Some((txid, tx)) = txdata.first() {
+    if let Some(tx) = block.coinbase() {
       self.index_transaction(
-        *txid,
+        tx.txid(),
         tx,
         &mut ordinal_to_satpoint,
         &mut coinbase_inputs,
