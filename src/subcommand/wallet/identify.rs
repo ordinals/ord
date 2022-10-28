@@ -64,7 +64,7 @@ fn identify_from_tsv(
     if let Some(value) = line.split("\t").next() {
       let ordinal = Ordinal::from_str(value).map_err(|err| {
         anyhow!(
-          "Failed to parse ordinal from string \"{value}\" on line {}: {err}",
+          "failed to parse ordinal from string \"{value}\" on line {}: {err}",
           i + 1,
         )
       })?;
@@ -256,7 +256,7 @@ mod tests {
       identify_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n===\n")
         .unwrap_err()
         .to_string(),
-      "Failed to parse ordinal from string \"===\" on line 2: invalid digit found in string",
+      "failed to parse ordinal from string \"===\" on line 2: invalid digit found in string",
     )
   }
 
