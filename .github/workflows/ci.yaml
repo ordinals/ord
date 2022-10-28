@@ -42,6 +42,7 @@ jobs:
       run: cargo update --locked --package ord
 
     - name: Test
+      if: ${{ matrix.os != 'windows-latest' }}
       run: cargo test --all
 
     - name: Clippy
