@@ -8,6 +8,7 @@ use {
   regex::Regex,
   reqwest::{StatusCode, Url},
   std::{
+    path::Path,
     fs,
     net::TcpListener,
     process::{self, Child, Command, Stdio},

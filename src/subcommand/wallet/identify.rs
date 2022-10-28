@@ -1,16 +1,32 @@
 use super::*;
+use std::collections::BTreeSet;
 
-pub(crate) fn run(options: Options) -> Result {
-  let index = Index::open(&options)?;
-  index.update()?;
+#[derive(Debug, Parser)]
+pub(crate) struct Identify {
+  #[clap(long)]
+  names: Option<PathBuf>,
+}
 
-  let utxos = list_unspent(&options, &index)?;
+impl Identify {
+  pub(crate) fn run(&self, options: Options) -> Result {
+    let index = Index::open(&options)?;
+    index.update()?;
 
-  for (output, ordinal, offset, rarity) in identify(utxos) {
-    println!("{output}\t{ordinal}\t{offset}\t{rarity}");
+    let utxos = list_unspent(&options, &index)?;
+
+    if let Some(path) = &self.names {
+      let names = fs::read_to_string(path)?;
+      for (output, ordinal, offset, name) in identify_names(utxos, &names) {
+        println!("{output}\t{ordinal}\t{offset}\t{name}");
+      }
+    } else {
+      for (output, ordinal, offset, rarity) in identify(utxos) {
+        println!("{output}\t{ordinal}\t{offset}\t{rarity}");
+      }
+    }
+
+    Ok(())
   }
-
-  Ok(())
 }
 
 fn identify(utxos: Vec<(OutPoint, Vec<(u64, u64)>)>) -> Vec<(OutPoint, Ordinal, u64, Rarity)> {
@@ -31,6 +47,36 @@ fn identify(utxos: Vec<(OutPoint, Vec<(u64, u64)>)>) -> Vec<(OutPoint, Ordinal, 
       })
     })
     .collect()
+}
+
+fn identify_names(
+  utxos: Vec<(OutPoint, Vec<(u64, u64)>)>,
+  names: &str,
+) -> Vec<(OutPoint, Ordinal, u64, String)> {
+  let names = names
+    .lines()
+    .flat_map(|line| line.split("\t").next())
+    .collect::<BTreeSet<&str>>();
+  
+  // convert names to ordinals; sort 
+  // sort utxos into ordered ranges (by start of range)
+  // call .parse()
+
+  let mut results = Vec::new();
+  for (outpoint, ordinal_ranges) in utxos {
+    let mut offset = 0;
+    for (start, end) in ordinal_ranges {
+      for ordinal in start..end {
+        let ordinal = Ordinal(ordinal);
+        if names.contains(ordinal.name().as_str()) {
+          results.push((outpoint, ordinal, offset, ordinal.name()));
+        }
+        offset += 1;
+      }
+    }
+  }
+
+  results
 }
 
 #[cfg(test)]

@@ -48,6 +48,11 @@ impl CommandBuilder {
     }
   }
 
+  pub(crate) fn write(self, path: impl AsRef<Path>, contents: impl AsRef<[u8]>) -> Self {
+    fs::write(self.tempdir.path().join(path), contents).unwrap();
+    self
+  }
+
   pub(crate) fn rpc_server(self, rpc_server: &test_bitcoincore_rpc::Handle) -> Self {
     Self {
       rpc_server_url: Some(rpc_server.url()),
