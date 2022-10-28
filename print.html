@@ -76,7 +76,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="theory.html"><strong aria-hidden="true">1.</strong> Theory</a></li><li class="chapter-item expanded "><a href="block-explorer.html"><strong aria-hidden="true">2.</strong> Block Explorer</a></li><li class="chapter-item expanded "><a href="hunting.html"><strong aria-hidden="true">3.</strong> Hunting</a></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">4.</strong> FAQ</a></li><li class="chapter-item expanded "><a href="bounty.html"><strong aria-hidden="true">5.</strong> Bounties</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="bounty/0.html"><strong aria-hidden="true">5.1.</strong> Bounty 0: 100,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="bounty/1.html"><strong aria-hidden="true">5.2.</strong> Bounty 1: 200,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="bounty/2.html"><strong aria-hidden="true">5.3.</strong> Bounty 2: 300,000 sats Claimed!</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="theory.html"><strong aria-hidden="true">1.</strong> Theory</a></li><li class="chapter-item expanded "><a href="block-explorer.html"><strong aria-hidden="true">2.</strong> Block Explorer</a></li><li class="chapter-item expanded "><a href="hunting.html"><strong aria-hidden="true">3.</strong> Hunting</a></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">4.</strong> FAQ</a></li><li class="chapter-item expanded "><a href="bounty.html"><strong aria-hidden="true">5.</strong> Bounties</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="bounty/0.html"><strong aria-hidden="true">5.1.</strong> Bounty 0: 100,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="bounty/1.html"><strong aria-hidden="true">5.2.</strong> Bounty 1: 200,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="bounty/2.html"><strong aria-hidden="true">5.3.</strong> Bounty 2: 300,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="bounty/3.html"><strong aria-hidden="true">5.4.</strong> Bounty 3: 400,000 sats</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -718,6 +718,55 @@ will not be considered.</p>
 <p><a href="https://mempool.space/address/1Hyr94uypwWq5CQffaXHvwUMEyBPp3TUZH"><code>1Hyr94uypwWq5CQffaXHvwUMEyBPp3TUZH</code></a></p>
 <h2 id="status-2"><a class="header" href="#status-2">Status</a></h2>
 <p>Claimed by <a href="https://twitter.com/rodarmor/status/1582424455615172608">@utxoset</a>!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-bounty-3"><a class="header" href="#ordinal-bounty-3">Ordinal Bounty 3</a></h1>
+<h2 id="criteria-3"><a class="header" href="#criteria-3">Criteria</a></h2>
+<p>Ordinal bounty 3 has two parts, both of which are based on <em>ordinal names</em>.
+Ordinal names are a modified base-26 encoding of ordinal numbers. To avoid
+locking short names inside the unspendable genesis block coinbase reward,
+ordinal names get <em>shorter</em> as the ordinal number gets <em>longer</em>. The name of
+ordinal 0, the first ordinal to be mined is <code>nvtdijuwxlp</code> and the name of
+ordinal 2,099,999,997,689,999, the last ordinal to be mined, is <code>a</code>.</p>
+<p>The bounty is open for submissions until block 764064—the first block of
+difficulty adjustment period 379. Submissions included in block 764064 or later
+will not be considered.</p>
+<p>Both parts use <a href="bounty/frequency.tsv">frequency.tsv</a>, a list of words and the number
+of times they occur in the <a href="http://storage.googleapis.com/books/ngrams/books/datasetsv2.html">Google Books Ngram
+dataset</a>.
+filtered to only include the names of ordinals which will have been mined by
+the end of the submission period, that appear at least 5000 times in the
+corpus.</p>
+<p><code>frequency.tsv</code> is a file of tab-separated values. The first column is the
+word, and the second is the number of times it appears in the corpus. The
+entries are sorted from least-frequently occurring to most-frequently occuring.</p>
+<p><code>frequency.tsv</code> was compiled using <a href="https://github.com/casey/onegrams">this
+program</a>.</p>
+<p>To search an ordinal wallet for ordinals with a name in <code>frequency.tsv</code>, use
+the following <a href="https://github.com/casey/ord"><code>ord</code></a> command:</p>
+<pre><code>ord wallet identify --names frequency.tsv
+</code></pre>
+<h3 id="part-0"><a class="header" href="#part-0">Part 0</a></h3>
+<p><em>Rare sats pair best with rare words.</em></p>
+<p>The transaction that submits the UTXO containing the ordinal whose name appears
+with the lowest number of occurrences in <code>frequency.tsv</code> shall be the winner of
+part 0.</p>
+<h3 id="part-1"><a class="header" href="#part-1">Part 1</a></h3>
+<p><em>Popularity is the font of value.</em></p>
+<p>The transaction that submits the UTXO containing the ordinal whose name appears
+with the highest number of occurrences in <code>frequency.tsv</code> shall be the winner
+of part 1.</p>
+<h3 id="tie-breaking"><a class="header" href="#tie-breaking">Tie Breaking</a></h3>
+<p>In the case of a tie, where two submissions occur with the same frequency, the
+earlier submission shall be the winner.</p>
+<h2 id="reward-3"><a class="header" href="#reward-3">Reward</a></h2>
+<ul>
+<li>Part 0: 200,000 sats</li>
+<li>Part 1: 200,000 sats</li>
+<li>Total: 400,000 sats</li>
+</ul>
+<h2 id="submission-address-3"><a class="header" href="#submission-address-3">Submission Address</a></h2>
+<p><a href="https://mempool.space/address/17m5rvMpi78zG8RUpCRd6NWWMJtWmu65kg"><code>17m5rvMpi78zG8RUpCRd6NWWMJtWmu65kg</code></a></p>
+<h2 id="status-3"><a class="header" href="#status-3">Status</a></h2>
+<p>Unclaimed!</p>
 
                     </main>
 
