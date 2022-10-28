@@ -24,7 +24,7 @@ fn identify_names() {
     .write("foo.tsv", "nvtcsezkbtg")
     .rpc_server(&rpc_server)
     .expected_stdout(format!(
-      "{}\t{}\t0\tnvtcsezkbtg",
+      "{}\t{}\t0\tnvtcsezkbtg\n",
       OutPoint::new(second_coinbase, 0),
       50 * COIN_VALUE + 1,
     ))

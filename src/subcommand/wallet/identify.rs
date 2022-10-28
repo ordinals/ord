@@ -1,5 +1,4 @@
 use super::*;
-use std::collections::BTreeSet;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Identify {
@@ -16,7 +15,7 @@ impl Identify {
 
     if let Some(path) = &self.names {
       let names = fs::read_to_string(path)?;
-      for (output, ordinal, offset, name) in identify_names(utxos, &names) {
+      for (output, ordinal, offset, name) in identify_names(utxos, &names)? {
         println!("{output}\t{ordinal}\t{offset}\t{name}");
       }
     } else {
@@ -52,31 +51,53 @@ fn identify(utxos: Vec<(OutPoint, Vec<(u64, u64)>)>) -> Vec<(OutPoint, Ordinal, 
 fn identify_names(
   utxos: Vec<(OutPoint, Vec<(u64, u64)>)>,
   names: &str,
-) -> Vec<(OutPoint, Ordinal, u64, String)> {
-  let names = names
-    .lines()
-    .flat_map(|line| line.split("\t").next())
-    .collect::<BTreeSet<&str>>();
-  
-  // convert names to ordinals; sort 
-  // sort utxos into ordered ranges (by start of range)
-  // call .parse()
+) -> Result<Vec<(OutPoint, Ordinal, u64, &str)>> {
+  // To Do:
+  // - report line number
+  // - test Ordinal::partial_cmp
+  // - test edge cases
 
+  let mut ordinals = names
+    .lines()
+    .flat_map(|line| {
+      line
+        .split("\t")
+        .next()
+        .map(|s| Ordinal::from_str(s).map(|ordinal| (ordinal, s)))
+    })
+    .collect::<Result<Vec<(Ordinal, &str)>>>()?;
+
+  ordinals.sort();
+
+  let mut ranges = utxos
+    .into_iter()
+    .flat_map(|(outpoint, ranges)| {
+      ranges
+        .into_iter()
+        .map(move |(start, end)| (start, end, outpoint))
+    })
+    .collect::<Vec<(u64, u64, OutPoint)>>();
+
+  ranges.sort();
+
+  let mut i = 0;
   let mut results = Vec::new();
-  for (outpoint, ordinal_ranges) in utxos {
-    let mut offset = 0;
-    for (start, end) in ordinal_ranges {
-      for ordinal in start..end {
-        let ordinal = Ordinal(ordinal);
-        if names.contains(ordinal.name().as_str()) {
-          results.push((outpoint, ordinal, offset, ordinal.name()));
-        }
-        offset += 1;
-      }
+  for (start, end, outpoint) in ranges {
+    let (needle, s) = match ordinals.get(i) {
+      Some(needle) => *needle,
+      None => break,
+    };
+
+    if needle >= start && needle < end {
+      results.push((outpoint, needle, 0, s));
+    }
+
+    if needle >= end {
+      i += 1;
     }
   }
 
-  results
+  Ok(results)
 }
 
 #[cfg(test)]
