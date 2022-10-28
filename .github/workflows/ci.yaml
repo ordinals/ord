@@ -17,8 +17,9 @@ jobs:
     strategy:
       matrix:
         os:
-        - ubuntu-latest
         - macos-latest
+        - ubuntu-latest
+        - windows-latest
 
     runs-on: ${{matrix.os}}
 
@@ -41,7 +42,12 @@ jobs:
       run: cargo update --locked --package ord
 
     - name: Test
+      if: ${{ matrix.os != 'windows-latest' }}
       run: cargo test --all
+
+    - name: Build Tests
+      if: ${{ matrix.os == 'windows-latest' }}
+      run: cargo build --tests
 
     - name: Clippy
       run: cargo clippy --all --all-targets
