@@ -159,6 +159,15 @@ mod tests {
   // - two from different ranges
   // - tsv out of order
   // - ranges out of order
+  // - many large ranges with very large tsv
+
+  #[test]
+  fn identify_from_tsv_none() {
+    assert_eq!(
+      identify_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "1\n").unwrap(),
+      vec![]
+    )
+  }
 
   #[test]
   fn identify_from_tsv_single() {
@@ -169,10 +178,13 @@ mod tests {
   }
 
   #[test]
-  fn identify_from_tsv_none() {
+  fn identify_from_tsv_two_in_one_range() {
     assert_eq!(
-      identify_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "1\n").unwrap(),
-      vec![]
+      identify_from_tsv(vec![(outpoint(1), vec![(0, 2)])], "0\n1\n").unwrap(),
+      vec![
+        (outpoint(1), Ordinal(0), 0, "0"),
+        (outpoint(1), Ordinal(1), 0, "0"),
+      ]
     )
   }
 
