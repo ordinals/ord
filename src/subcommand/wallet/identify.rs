@@ -2,8 +2,11 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Identify {
-  #[clap(long)]
-  from: Option<PathBuf>,
+  #[clap(
+    long,
+    help = "Find ordinals from first column of file of tab-separated values <ORDINALS>."
+  )]
+  ordinals: Option<PathBuf>,
 }
 
 impl Identify {
@@ -13,9 +16,8 @@ impl Identify {
 
     let utxos = list_unspent(&options, &index)?;
 
-    if let Some(path) = &self.from {
-      let needles = fs::read_to_string(path)?;
-      for (output, ordinal, offset, name) in identify_from(utxos, &needles)? {
+    if let Some(path) = &self.ordinals {
+      for (output, ordinal, offset, name) in identify_from(utxos, &fs::read_to_string(path)?)? {
         println!("{output}\t{ordinal}\t{offset}\t{name}");
       }
     } else {
@@ -50,7 +52,7 @@ fn identify_rare(utxos: Vec<(OutPoint, Vec<(u64, u64)>)>) -> Vec<(OutPoint, Ordi
 
 fn identify_from(
   utxos: Vec<(OutPoint, Vec<(u64, u64)>)>,
-  from: &str,
+  tsv: &str,
 ) -> Result<Vec<(OutPoint, Ordinal, u64, &str)>> {
   // To Do:
   // - test parsing from multiple representations
@@ -58,8 +60,10 @@ fn identify_from(
   // - test reported string is correct
   // - test no ordinals found
   // - test first ordinal
+  // - skip empty lines
+  // - skip comments
 
-  let mut needles = from
+  let mut needles = tsv
     .lines()
     .enumerate()
     .flat_map(|(i, line)| {
