@@ -15,7 +15,7 @@ use {
     rarity::Rarity,
     rune::Rune,
     sat_point::SatPoint,
-    subcommand::Subcommand,
+    subcommand::{Subcommand, SubcommandError},
     tally::Tally,
   },
   anyhow::{anyhow, bail, Context, Error},
@@ -109,16 +109,18 @@ fn main() {
   .expect("Error setting ctrl-c handler");
 
   if let Err(err) = Arguments::parse().run() {
-    eprintln!("error: {}", err);
-    err
-      .chain()
-      .skip(1)
-      .for_each(|cause| eprintln!("because: {}", cause));
-    if env::var_os("RUST_BACKTRACE")
-      .map(|val| val == "1")
-      .unwrap_or_default()
-    {
-      eprintln!("{}", err.backtrace());
+    if let SubcommandError(Some(err)) = err {
+      eprintln!("error: {}", err);
+      err
+        .chain()
+        .skip(1)
+        .for_each(|cause| eprintln!("because: {}", cause));
+      if env::var_os("RUST_BACKTRACE")
+        .map(|val| val == "1")
+        .unwrap_or_default()
+      {
+        eprintln!("{}", err.backtrace());
+      }
     }
     process::exit(1);
   }

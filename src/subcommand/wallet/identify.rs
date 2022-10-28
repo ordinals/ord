@@ -10,18 +10,27 @@ pub(crate) struct Identify {
 }
 
 impl Identify {
-  pub(crate) fn run(&self, options: Options) -> Result {
+  pub(crate) fn run(&self, options: Options) -> SubcommandResult {
     let index = Index::open(&options)?;
     index.update()?;
 
     let utxos = list_unspent(&options, &index)?;
 
     if let Some(path) = &self.ordinals {
-      for (output, ordinal) in identify_from_tsv(utxos, &fs::read_to_string(path)?)? {
+      let tsv = fs::read_to_string(path).with_context(|| "I/O error reading `{path}`")?;
+      let results = identify_from_tsv(utxos, &tsv)?;
+      if results.is_empty() {
+        return Err(SubcommandError(None));
+      }
+      for (output, ordinal) in &results {
         println!("{output}\t{ordinal}");
       }
     } else {
-      for (output, ordinal, offset, rarity) in identify_rare(utxos) {
+      let results = identify_rare(utxos);
+      if results.is_empty() {
+        return Err(SubcommandError(None));
+      }
+      for (output, ordinal, offset, rarity) in results {
         println!("{output}\t{ordinal}\t{offset}\t{rarity}");
       }
     }

@@ -30,11 +30,12 @@ pub(crate) enum Wallet {
 }
 
 impl Wallet {
-  pub(crate) fn run(self, options: Options) -> Result {
+  pub(crate) fn run(self, options: Options) -> SubcommandResult {
     match self {
-      Self::Identify(identify) => identify.run(options),
-      Self::List => list::run(options),
-      Self::Send(send) => send.run(options),
+      Self::Identify(identify) => identify.run(options)?,
+      Self::List => list::run(options)?,
+      Self::Send(send) => send.run(options)?,
     }
+    Ok(())
   }
 }
