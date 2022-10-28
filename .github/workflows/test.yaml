@@ -1,4 +1,4 @@
-name: CI
+name: Test
 
 on:
   push:
@@ -13,7 +13,7 @@ defaults:
     shell: bash
 
 jobs:
-  ci:
+  test:
     strategy:
       matrix:
         os:
@@ -38,21 +38,6 @@ jobs:
 
     - uses: Swatinem/rust-cache@v1
 
-    - name: Check Lockfile
-      run: cargo update --locked --package ord
-
     - name: Test
       if: ${{ matrix.os != 'windows-latest' }}
       run: cargo test --all
-
-    - name: Clippy
-      run: cargo clippy --all --all-targets
-
-    - name: Format
-      run: cargo fmt --all -- --check
-
-    - name: Check for Forbidden Words
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: |
-        sudo apt-get install ripgrep
-        ./bin/forbid
