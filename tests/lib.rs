@@ -8,9 +8,9 @@ use {
   regex::Regex,
   reqwest::{StatusCode, Url},
   std::{
-    path::Path,
     fs,
     net::TcpListener,
+    path::Path,
     process::{self, Child, Command, Stdio},
     str, thread,
     time::Duration,

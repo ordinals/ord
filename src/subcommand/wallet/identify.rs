@@ -70,7 +70,7 @@ fn identify_from_tsv(
       continue;
     }
 
-    if let Some(value) = line.split("\t").next() {
+    if let Some(value) = line.split('\t').next() {
       let ordinal = Ordinal::from_str(value).map_err(|err| {
         anyhow!(
           "failed to parse ordinal from string \"{value}\" on line {}: {err}",
@@ -96,16 +96,9 @@ fn identify_from_tsv(
   let mut i = 0;
   let mut j = 0;
   let mut results = Vec::new();
-  loop {
-    let (needle, value) = match needles.get(i) {
-      Some(&needle) => needle,
-      None => break,
-    };
-
-    let (start, end, outpoint) = match haystacks.get(j) {
-      Some(&haystack) => haystack,
-      None => break,
-    };
+  while i < needles.len() && j < haystacks.len() {
+    let (needle, value) = needles[i];
+    let (start, end, outpoint) = haystacks[j];
 
     if needle >= start && needle < end {
       results.push((outpoint, value));
