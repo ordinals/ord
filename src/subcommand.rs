@@ -31,37 +31,26 @@ pub(crate) enum Subcommand {
   Wallet(wallet::Wallet),
 }
 
-pub(crate) type SubcommandResult = std::result::Result<(), SubcommandError>;
-
-pub(crate) struct SubcommandError(pub(crate) Option<Error>);
-
-impl From<Error> for SubcommandError {
-  fn from(error: Error) -> Self {
-    Self(Some(error))
-  }
-}
-
 impl Subcommand {
-  pub(crate) fn run(self, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, options: Options) -> Result {
     match self {
-      Self::Epochs => epochs::run()?,
-      Self::Find(find) => find.run(options)?,
-      Self::Index => index::run(options)?,
-      Self::Info => info::run(options)?,
-      Self::List(list) => list.run(options)?,
-      Self::Parse(parse) => parse.run()?,
-      Self::Range(range) => range.run()?,
-      Self::Rune(rune) => rune.run(options)?,
+      Self::Epochs => epochs::run(),
+      Self::Find(find) => find.run(options),
+      Self::Index => index::run(options),
+      Self::Info => info::run(options),
+      Self::List(list) => list.run(options),
+      Self::Parse(parse) => parse.run(),
+      Self::Range(range) => range.run(),
+      Self::Rune(rune) => rune.run(options),
       Self::Server(server) => {
         let index = Arc::new(Index::open(&options)?);
         let handle = axum_server::Handle::new();
         LISTENERS.lock().unwrap().push(handle.clone());
-        server.run(options, index, handle)?;
+        server.run(options, index, handle)
       }
-      Self::Supply => supply::run()?,
-      Self::Traits(traits) => traits.run()?,
-      Self::Wallet(wallet) => wallet.run(options)?,
+      Self::Supply => supply::run(),
+      Self::Traits(traits) => traits.run(),
+      Self::Wallet(wallet) => wallet.run(options),
     }
-    Ok(())
   }
 }

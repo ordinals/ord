@@ -44,16 +44,6 @@ fn identify_from_tsv_parse_error() {
 }
 
 #[test]
-fn identify_from_tsv_not_found() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
-  CommandBuilder::new("wallet identify --ordinals foo.tsv")
-    .write("foo.tsv", "a")
-    .rpc_server(&rpc_server)
-    .expected_exit_code(1)
-    .run();
-}
-
-#[test]
 fn list() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   let second_coinbase = rpc_server.mine_blocks(1)[0].txdata[0].txid();

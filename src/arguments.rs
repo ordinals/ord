@@ -1,4 +1,4 @@
-use {super::*, crate::subcommand::SubcommandResult};
+use super::*;
 
 #[derive(Debug, Parser)]
 #[clap(version)]
@@ -10,7 +10,7 @@ pub(crate) struct Arguments {
 }
 
 impl Arguments {
-  pub(crate) fn run(self) -> SubcommandResult {
+  pub(crate) fn run(self) -> Result {
     self.subcommand.run(self.options)
   }
 }
