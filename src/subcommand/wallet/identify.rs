@@ -3,7 +3,7 @@ use super::*;
 #[derive(Debug, Parser)]
 pub(crate) struct Identify {
   #[clap(long)]
-  names: Option<PathBuf>,
+  from: Option<PathBuf>,
 }
 
 impl Identify {
@@ -13,13 +13,13 @@ impl Identify {
 
     let utxos = list_unspent(&options, &index)?;
 
-    if let Some(path) = &self.names {
-      let names = fs::read_to_string(path)?;
-      for (output, ordinal, offset, name) in identify_names(utxos, &names)? {
+    if let Some(path) = &self.from {
+      let needles = fs::read_to_string(path)?;
+      for (output, ordinal, offset, name) in identify_from(utxos, &needles)? {
         println!("{output}\t{ordinal}\t{offset}\t{name}");
       }
     } else {
-      for (output, ordinal, offset, rarity) in identify(utxos) {
+      for (output, ordinal, offset, rarity) in identify_rare(utxos) {
         println!("{output}\t{ordinal}\t{offset}\t{rarity}");
       }
     }
@@ -28,7 +28,7 @@ impl Identify {
   }
 }
 
-fn identify(utxos: Vec<(OutPoint, Vec<(u64, u64)>)>) -> Vec<(OutPoint, Ordinal, u64, Rarity)> {
+fn identify_rare(utxos: Vec<(OutPoint, Vec<(u64, u64)>)>) -> Vec<(OutPoint, Ordinal, u64, Rarity)> {
   utxos
     .into_iter()
     .flat_map(|(outpoint, ordinal_ranges)| {
@@ -48,28 +48,36 @@ fn identify(utxos: Vec<(OutPoint, Vec<(u64, u64)>)>) -> Vec<(OutPoint, Ordinal, 
     .collect()
 }
 
-fn identify_names(
+fn identify_from(
   utxos: Vec<(OutPoint, Vec<(u64, u64)>)>,
-  names: &str,
+  from: &str,
 ) -> Result<Vec<(OutPoint, Ordinal, u64, &str)>> {
   // To Do:
-  // - report line number
-  // - test Ordinal::partial_cmp
-  // - test edge cases
+  // - test parsing from multiple representations
+  // - test line reported line number is correct
+  // - test reported string is correct
+  // - test no ordinals found
+  // - test first ordinal
 
-  let mut ordinals = names
+  let mut needles = from
     .lines()
-    .flat_map(|line| {
-      line
-        .split("\t")
-        .next()
-        .map(|s| Ordinal::from_str(s).map(|ordinal| (ordinal, s)))
+    .enumerate()
+    .flat_map(|(i, line)| {
+      line.split("\t").next().map(|column| {
+        Ordinal::from_str(column)
+          .map(|ordinal| (ordinal, column))
+          .map_err(|err| {
+            anyhow!(
+              "Failed to parse ordinal `{column}` on line {}: {err}",
+              i + 1,
+            )
+          })
+      })
     })
     .collect::<Result<Vec<(Ordinal, &str)>>>()?;
+  needles.sort();
 
-  ordinals.sort();
-
-  let mut ranges = utxos
+  let mut haystacks = utxos
     .into_iter()
     .flat_map(|(outpoint, ranges)| {
       ranges
@@ -77,19 +85,18 @@ fn identify_names(
         .map(move |(start, end)| (start, end, outpoint))
     })
     .collect::<Vec<(u64, u64, OutPoint)>>();
-
-  ranges.sort();
+  haystacks.sort();
 
   let mut i = 0;
   let mut results = Vec::new();
-  for (start, end, outpoint) in ranges {
-    let (needle, s) = match ordinals.get(i) {
+  for (start, end, outpoint) in haystacks {
+    let (needle, column) = match needles.get(i) {
       Some(needle) => *needle,
       None => break,
     };
 
     if needle >= start && needle < end {
-      results.push((outpoint, needle, 0, s));
+      results.push((outpoint, needle, 0, column));
     }
 
     if needle >= end {
@@ -110,7 +117,7 @@ mod tests {
       OutPoint::null(),
       vec![(51 * COIN_VALUE, 100 * COIN_VALUE), (1234, 5678)],
     )];
-    assert_eq!(identify(utxos), vec![])
+    assert_eq!(identify_rare(utxos), vec![])
   }
 
   #[test]
@@ -120,7 +127,7 @@ mod tests {
       vec![(10, 80), (50 * COIN_VALUE, 100 * COIN_VALUE)],
     )];
     assert_eq!(
-      identify(utxos),
+      identify_rare(utxos),
       vec![(
         OutPoint::null(),
         Ordinal(50 * COIN_VALUE),
@@ -137,7 +144,7 @@ mod tests {
       vec![(0, 100), (1050000000000000, 1150000000000000)],
     )];
     assert_eq!(
-      identify(utxos),
+      identify_rare(utxos),
       vec![
         (OutPoint::null(), Ordinal(0), 0, Rarity::Mythic),
         (
@@ -161,7 +168,7 @@ mod tests {
       ),
     ];
     assert_eq!(
-      identify(utxos),
+      identify_rare(utxos),
       vec![
         (
           OutPoint::null(),
