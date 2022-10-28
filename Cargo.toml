@@ -50,7 +50,6 @@ tower-http = { version = "0.3.3", features = ["cors"] }
 
 [dev-dependencies]
 executable-path = "1.0.0"
-nix = "0.25.0"
 pretty_assertions = "1.2.1"
 tempfile = "3.2.0"
 test-bitcoincore-rpc = { path = "test-bitcoincore-rpc" }

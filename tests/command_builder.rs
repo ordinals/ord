@@ -1,10 +1,5 @@
 use super::*;
 
-enum ExpectedExitStatus {
-  Code(i32),
-  Signal(Signal),
-}
-
 pub(crate) struct Output {
   pub(crate) tempdir: TempDir,
   pub(crate) stdout: String,
@@ -34,7 +29,7 @@ impl<const N: usize> ToArgs for [&str; N] {
 
 pub(crate) struct CommandBuilder {
   args: Vec<String>,
-  expected_exit_status: ExpectedExitStatus,
+  expected_exit_code: i32,
   expected_stderr: Expected,
   expected_stdout: Expected,
   rpc_server_url: Option<String>,
@@ -45,7 +40,7 @@ impl CommandBuilder {
   pub(crate) fn new(args: impl ToArgs) -> Self {
     Self {
       args: args.to_args(),
-      expected_exit_status: ExpectedExitStatus::Code(0),
+      expected_exit_code: 0,
       expected_stderr: Expected::String(String::new()),
       expected_stdout: Expected::String(String::new()),
       rpc_server_url: None,
@@ -88,16 +83,9 @@ impl CommandBuilder {
     }
   }
 
-  pub(crate) fn expected_exit_code(self, expected_status: i32) -> Self {
+  pub(crate) fn expected_exit_code(self, expected_exit_code: i32) -> Self {
     Self {
-      expected_exit_status: ExpectedExitStatus::Code(expected_status),
-      ..self
-    }
-  }
-
-  pub(crate) fn expected_exit_signal(self, expected_signal: Signal) -> Self {
-    Self {
-      expected_exit_status: ExpectedExitStatus::Signal(expected_signal),
+      expected_exit_code,
       ..self
     }
   }
@@ -131,10 +119,7 @@ impl CommandBuilder {
     let stdout = str::from_utf8(&output.stdout).unwrap();
     let stderr = str::from_utf8(&output.stderr).unwrap();
 
-    if match self.expected_exit_status {
-      ExpectedExitStatus::Code(code) => output.status.code() != Some(code),
-      ExpectedExitStatus::Signal(signal) => output.status.signal() != Some(signal as i32),
-    } {
+    if output.status.code() != Some(self.expected_exit_code) {
       panic!(
         "Test failed: {}\nstdout:\n{}\nstderr:\n{}",
         output.status, stdout, stderr
