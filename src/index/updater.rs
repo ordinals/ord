@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, std::sync::mpsc};
 
 pub struct Updater {
   cache: HashMap<[u8; 36], Vec<u8>>,
@@ -47,35 +47,43 @@ impl Updater {
       Some(progress_bar)
     };
 
+    let rx = Self::fetch_blocks_from(
+      index,
+      wtx
+        .open_table(super::HEIGHT_TO_BLOCK_HASH)?
+        .range(0..)?
+        .rev()
+        .next()
+        .map(|(height, _hash)| height + 1)
+        .unwrap_or(0),
+    )?;
+
     let mut uncomitted = 0;
     for i in 0.. {
-      if let Some(height_limit) = index.height_limit {
-        if self.height > height_limit {
-          break;
+      let block = match rx.recv() {
+        Ok(block) => block,
+        Err(mpsc::RecvError) => break,
+      };
+
+      self.index_block(index, &mut wtx, block)?;
+
+      if let Some(progress_bar) = &mut progress_bar {
+        progress_bar.inc(1);
+
+        if progress_bar.position() > progress_bar.length().unwrap() {
+          progress_bar.set_length(index.client.get_block_count()?);
         }
       }
 
-      let done = self.index_block(index, &mut wtx)?;
+      uncomitted += 1;
 
-      if !done {
-        if let Some(progress_bar) = &mut progress_bar {
-          progress_bar.inc(1);
-
-          if progress_bar.position() > progress_bar.length().unwrap() {
-            progress_bar.set_length(index.client.get_block_count()?);
-          }
-        }
-
-        uncomitted += 1;
-      }
-
-      if uncomitted > 0 && i % 5000 == 0 {
+      if i % 5000 == 0 {
         self.commit(wtx)?;
         wtx = index.begin_write()?;
         uncomitted = 0;
       }
 
-      if done || INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
+      if INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
         break;
       }
     }
@@ -91,7 +99,76 @@ impl Updater {
     Ok(())
   }
 
-  pub(crate) fn index_block(&mut self, index: &Index, wtx: &mut WriteTransaction) -> Result<bool> {
+  fn fetch_blocks_from(index: &Index, mut height: u64) -> Result<mpsc::Receiver<Block>> {
+    let (tx, rx) = mpsc::sync_channel(32);
+
+    let height_limit = index.height_limit;
+
+    let client =
+      Client::new(&index.rpc_url, index.auth.clone()).context("failed to connect to RPC URL")?;
+
+    thread::spawn(move || loop {
+      if let Some(height_limit) = height_limit {
+        if height > height_limit {
+          break;
+        }
+      }
+
+      match Self::get_block_with_retries(&client, height) {
+        Ok(Some(block)) => {
+          if let Err(err) = tx.send(block) {
+            log::info!("Block receiver disconnected: {err}");
+            break;
+          }
+          height += 1;
+        }
+        Ok(None) => break,
+        Err(err) => {
+          log::error!("Failed to fetch block {height}: {err}");
+          break;
+        }
+      }
+    });
+
+    Ok(rx)
+  }
+
+  pub(crate) fn get_block_with_retries(client: &Client, height: u64) -> Result<Option<Block>> {
+    let mut errors = 0;
+    loop {
+      match client
+        .get_block_hash(height)
+        .into_option()?
+        .map(|hash| client.get_block(&hash))
+        .transpose()
+      {
+        Err(err) => {
+          if cfg!(test) {
+            return Err(err.into());
+          }
+
+          errors += 1;
+          let seconds = 1 << errors;
+          log::error!("failed to fetch block {height}, retrying in {seconds}s: {err}");
+
+          if seconds > 120 {
+            log::error!("would sleep for more than 120s, giving up");
+            return Err(err.into());
+          }
+
+          thread::sleep(Duration::from_secs(seconds));
+        }
+        Ok(result) => return Ok(result),
+      }
+    }
+  }
+
+  pub(crate) fn index_block(
+    &mut self,
+    index: &Index,
+    wtx: &mut WriteTransaction,
+    block: Block,
+  ) -> Result<()> {
     let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
     let mut ordinal_to_satpoint = wtx.open_table(ORDINAL_TO_SATPOINT)?;
     let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
@@ -99,11 +176,6 @@ impl Updater {
     let start = Instant::now();
     let mut ordinal_ranges_written = 0;
     let mut outputs_in_block = 0;
-
-    let block = match index.block_with_retries(self.height)? {
-      Some(block) => block,
-      None => return Ok(true),
-    };
 
     let time = Utc.timestamp(block.header.time as i64, 0);
 
@@ -131,13 +203,9 @@ impl Updater {
       coinbase_inputs.push_front((start.n(), (start + h.subsidy()).n()));
     }
 
-    let txdata = block
-      .txdata
-      .par_iter()
-      .map(|tx| (tx.txid(), tx))
-      .collect::<Vec<(Txid, &Transaction)>>();
+    for (tx_offset, tx) in block.txdata.iter().enumerate().skip(1) {
+      let txid = tx.txid();
 
-    for (tx_offset, (txid, tx)) in txdata.iter().enumerate().skip(1) {
       log::trace!("Indexing transaction {tx_offset}…");
 
       let mut input_ordinal_ranges = VecDeque::new();
@@ -163,7 +231,7 @@ impl Updater {
       }
 
       self.index_transaction(
-        *txid,
+        txid,
         tx,
         &mut ordinal_to_satpoint,
         &mut input_ordinal_ranges,
@@ -174,9 +242,9 @@ impl Updater {
       coinbase_inputs.extend(input_ordinal_ranges);
     }
 
-    if let Some((txid, tx)) = txdata.first() {
+    if let Some(tx) = block.coinbase() {
       self.index_transaction(
-        *txid,
+        tx.txid(),
         tx,
         &mut ordinal_to_satpoint,
         &mut coinbase_inputs,
@@ -195,7 +263,7 @@ impl Updater {
       (Instant::now() - start).as_millis(),
     );
 
-    Ok(false)
+    Ok(())
   }
 
   pub(crate) fn index_transaction(
