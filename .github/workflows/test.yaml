@@ -1,4 +1,4 @@
-name: CI
+name: Test
 
 on:
   push:
@@ -13,7 +13,7 @@ defaults:
     shell: bash
 
 jobs:
-  ci:
+  test:
     strategy:
       matrix:
         os:
@@ -32,14 +32,10 @@ jobs:
     - name: Install Rust Toolchain Components
       uses: actions-rs/toolchain@v1
       with:
-        components: clippy, rustfmt
-        override: true
+        profile: minimal
         toolchain: stable
 
     - uses: Swatinem/rust-cache@v1
-
-    - name: Check Lockfile
-      run: cargo update --locked --package ord
 
     - name: Test
       if: ${{ matrix.os != 'windows-latest' }}
@@ -48,15 +44,3 @@ jobs:
     - name: Build Tests
       if: ${{ matrix.os == 'windows-latest' }}
       run: cargo build --tests
-
-    - name: Clippy
-      run: cargo clippy --all --all-targets
-
-    - name: Format
-      run: cargo fmt --all -- --check
-
-    - name: Check for Forbidden Words
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: |
-        sudo apt-get install ripgrep
-        ./bin/forbid
