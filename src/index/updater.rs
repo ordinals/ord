@@ -270,6 +270,8 @@ impl Updater {
       self.outputs_cached
     );
 
+    log::info!("Ordinals epoch distribution {:#?}", epoch::EPOCH_DISTRIBUTION.lock().unwrap());
+
     {
       log::info!(
         "Flushing {} entries ({:.1}% resulting from {} insertions) from memory to database",

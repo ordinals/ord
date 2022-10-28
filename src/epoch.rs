@@ -42,6 +42,8 @@ impl Epoch {
   ];
   pub(crate) const FIRST_POST_SUBSIDY: Epoch = Self(33);
 
+
+
   pub(crate) fn subsidy(self) -> u64 {
     if self < Self::FIRST_POST_SUBSIDY {
       (50 * COIN_VALUE) >> self.0
@@ -59,6 +61,25 @@ impl Epoch {
   pub(crate) fn starting_height(self) -> Height {
     Height(self.0 * SUBSIDY_HALVING_INTERVAL)
   }
+
+  #[inline(never)]
+  fn epoch_from_ordinal_binary_search(ordinal:Ordinal) -> Epoch {
+    match Self::STARTING_ORDINALS.binary_search(&ordinal) {
+      Ok(i) => Epoch(i as u64),
+      Err(i) => Epoch(i as u64 - 1),
+    }
+  }
+  
+  #[inline(never)]
+  fn epoch_from_ordinal_linear_search(ordinal:Ordinal) -> Epoch {
+    for i in 0 .. Self::STARTING_ORDINALS.len() {
+      if Self::STARTING_ORDINALS[i] > ordinal {
+        return Epoch(i as u64 - 1);
+      }
+    }
+    Epoch(Self::STARTING_ORDINALS.len() as u64 - 1)
+  }
+  
 }
 
 impl PartialEq<u64> for Epoch {
@@ -67,17 +88,23 @@ impl PartialEq<u64> for Epoch {
   }
 }
 
-impl From<Ordinal> for Epoch {
-  fn from(ordinal: Ordinal) -> Self {
+use once_cell::sync::Lazy; // 1.3.1
+use std::sync::Mutex;
+pub static EPOCH_DISTRIBUTION: Lazy<Mutex<[u64; 34]>> = Lazy::new(|| Mutex::new([0; 34]));
 
-    for i in 0 .. Self::STARTING_ORDINALS.len() {
-      if Self::STARTING_ORDINALS[i] > ordinal {
-        return     Epoch(i as u64 - 1)
-      }
-    }
-    Epoch(Self::STARTING_ORDINALS.len() as u64 - 1)
+impl From<Ordinal> for Epoch {
+  #[inline(never)]
+  fn from(ordinal: Ordinal) -> Self {
+//    let epoch_binary = Epoch::epoch_from_ordinal_binary_search(ordinal);
+    let epoch_linear = Epoch::epoch_from_ordinal_linear_search(ordinal);
+
+    EPOCH_DISTRIBUTION.lock().unwrap()[epoch_linear.0 as usize] += 1;
+
+  //  assert_eq!(epoch_binary, epoch_linear);
+    epoch_linear
   }
 }
+
 
 impl From<Height> for Epoch {
   fn from(height: Height) -> Self {
