@@ -44,6 +44,18 @@ fn identify_from_tsv_parse_error() {
 }
 
 #[test]
+fn identify_from_tsv_file_not_found() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  CommandBuilder::new("wallet identify --ordinals foo.tsv")
+    .rpc_server(&rpc_server)
+    .expected_exit_code(1)
+    .expected_stderr(
+      "error: I/O error reading `{path}`\nbecause: No such file or directory (os error 2)\n",
+    )
+    .run();
+}
+
+#[test]
 fn list() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   let second_coinbase = rpc_server.mine_blocks(1)[0].txdata[0].txid();
