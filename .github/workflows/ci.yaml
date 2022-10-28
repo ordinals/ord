@@ -45,6 +45,10 @@ jobs:
       if: ${{ matrix.os != 'windows-latest' }}
       run: cargo test --all
 
+    - name: Build Tests
+      if: ${{ matrix.os == 'windows-latest' }}
+      run: cargo build --tests
+
     - name: Clippy
       run: cargo clippy --all --all-targets
 
