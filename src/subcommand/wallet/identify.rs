@@ -85,12 +85,12 @@ fn identify_from_tsv(
   let mut results = Vec::new();
   loop {
     let (needle, value) = match needles.get(i) {
-      Some(needle) => *needle,
+      Some(&needle) => needle,
       None => break,
     };
 
     let (start, end, outpoint) = match haystacks.get(j) {
-      Some(haystack) => *haystack,
+      Some(&haystack) => haystack,
       None => break,
     };
 
