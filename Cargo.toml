@@ -48,7 +48,6 @@ tokio-stream = "0.1.9"
 tokio-util = {version = "0.7.3", features = ["compat"] }
 tower = "0.4.13"
 tower-http = { version = "0.3.3", features = ["cors"] }
-once_cell = "1.3.1"
 
 [dev-dependencies]
 executable-path = "1.0.0"
