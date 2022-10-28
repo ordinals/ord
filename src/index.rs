@@ -6,7 +6,6 @@ use {
   bitcoincore_rpc::{json::GetBlockHeaderResult, Auth, Client},
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
-  rayon::iter::{IntoParallelRefIterator, ParallelIterator},
   redb::{
     Database, MultimapTableDefinition, ReadableMultimapTable, ReadableTable, Table,
     TableDefinition, WriteStrategy, WriteTransaction,
@@ -46,13 +45,15 @@ fn encode_satpoint(satpoint: SatPoint) -> [u8; 44] {
 }
 
 pub(crate) struct Index {
+  auth: Auth,
   client: Client,
   database: Database,
   database_path: PathBuf,
+  genesis_block_coinbase_transaction: Transaction,
+  genesis_block_coinbase_txid: Txid,
   height_limit: Option<u64>,
   reorged: AtomicBool,
-  genesis_block_coinbase_txid: Txid,
-  genesis_block_coinbase_transaction: Transaction,
+  rpc_url: String,
 }
 
 #[derive(Debug, PartialEq)]
@@ -114,8 +115,9 @@ impl Index {
       cookie_file.display()
     );
 
-    let client = Client::new(&rpc_url, Auth::CookieFile(cookie_file))
-      .context("failed to connect to RPC URL")?;
+    let auth = Auth::CookieFile(cookie_file);
+
+    let client = Client::new(&rpc_url, auth.clone()).context("failed to connect to RPC URL")?;
 
     let data_dir = options.data_dir()?;
 
@@ -161,13 +163,15 @@ impl Index {
       options.chain.genesis_block().coinbase().unwrap().clone();
 
     Ok(Self {
+      genesis_block_coinbase_txid: genesis_block_coinbase_transaction.txid(),
+      auth,
       client,
       database,
       database_path,
+      genesis_block_coinbase_transaction,
       height_limit: options.height_limit,
       reorged: AtomicBool::new(false),
-      genesis_block_coinbase_txid: genesis_block_coinbase_transaction.txid(),
-      genesis_block_coinbase_transaction,
+      rpc_url,
     })
   }
 
@@ -325,31 +329,6 @@ impl Index {
         .map(|hash| self.client.get_block(&hash))
         .transpose()?,
     )
-  }
-
-  pub(crate) fn block_with_retries(&self, height: u64) -> Result<Option<Block>> {
-    let mut errors = 0;
-    loop {
-      match self.block(height) {
-        Err(err) => {
-          if cfg!(test) {
-            return Err(err);
-          }
-
-          errors += 1;
-          let seconds = 1 << errors;
-          log::error!("failed to fetch block {height}, retrying in {seconds}s: {err}");
-
-          if seconds > 120 {
-            log::error!("would sleep for more than 120s, giving up");
-            return Err(err);
-          }
-
-          thread::sleep(Duration::from_secs(seconds));
-        }
-        Ok(result) => return Ok(result),
-      }
-    }
   }
 
   pub(crate) fn block_header(&self, hash: BlockHash) -> Result<Option<BlockHeader>> {
