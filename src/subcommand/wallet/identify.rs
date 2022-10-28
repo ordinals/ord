@@ -17,8 +17,8 @@ impl Identify {
     let utxos = list_unspent(&options, &index)?;
 
     if let Some(path) = &self.ordinals {
-      for (output, ordinal, offset, name) in identify_from_tsv(utxos, &fs::read_to_string(path)?)? {
-        println!("{output}\t{ordinal}\t{offset}\t{name}");
+      for (output, ordinal) in identify_from_tsv(utxos, &fs::read_to_string(path)?)? {
+        println!("{output}\t{ordinal}");
       }
     } else {
       for (output, ordinal, offset, rarity) in identify_rare(utxos) {
@@ -53,7 +53,7 @@ fn identify_rare(utxos: Vec<(OutPoint, Vec<(u64, u64)>)>) -> Vec<(OutPoint, Ordi
 fn identify_from_tsv(
   utxos: Vec<(OutPoint, Vec<(u64, u64)>)>,
   tsv: &str,
-) -> Result<Vec<(OutPoint, Ordinal, u64, &str)>> {
+) -> Result<Vec<(OutPoint, &str)>> {
   let mut needles = Vec::new();
 
   for (i, line) in tsv.lines().enumerate() {
@@ -81,18 +81,26 @@ fn identify_from_tsv(
   haystacks.sort();
 
   let mut i = 0;
+  let mut j = 0;
   let mut results = Vec::new();
-  for (start, end, outpoint) in haystacks {
+  loop {
     let (needle, value) = match needles.get(i) {
       Some(needle) => *needle,
       None => break,
     };
 
+    let (start, end, outpoint) = match haystacks.get(j) {
+      Some(haystack) => *haystack,
+      None => break,
+    };
+
     if needle >= start && needle < end {
-      results.push((outpoint, needle, 0, value));
+      results.push((outpoint, value));
     }
 
     if needle >= end {
+      j += 1;
+    } else {
       i += 1;
     }
   }
@@ -154,13 +162,6 @@ mod tests {
     )
   }
 
-  // To Do:
-  // - two in one range
-  // - two from different ranges
-  // - tsv out of order
-  // - ranges out of order
-  // - many large ranges with very large tsv
-
   #[test]
   fn identify_from_tsv_none() {
     assert_eq!(
@@ -173,7 +174,7 @@ mod tests {
   fn identify_from_tsv_single() {
     assert_eq!(
       identify_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n").unwrap(),
-      vec![(outpoint(1), Ordinal(0), 0, "0"),]
+      vec![(outpoint(1), "0"),]
     )
   }
 
@@ -181,10 +182,43 @@ mod tests {
   fn identify_from_tsv_two_in_one_range() {
     assert_eq!(
       identify_from_tsv(vec![(outpoint(1), vec![(0, 2)])], "0\n1\n").unwrap(),
-      vec![
-        (outpoint(1), Ordinal(0), 0, "0"),
-        (outpoint(1), Ordinal(1), 0, "0"),
-      ]
+      vec![(outpoint(1), "0"), (outpoint(1), "1"),]
+    )
+  }
+
+  #[test]
+  fn identify_from_tsv_out_of_order_tsv() {
+    assert_eq!(
+      identify_from_tsv(vec![(outpoint(1), vec![(0, 2)])], "1\n0\n").unwrap(),
+      vec![(outpoint(1), "0"), (outpoint(1), "1"),]
+    )
+  }
+
+  #[test]
+  fn identify_from_tsv_out_of_order_ranges() {
+    assert_eq!(
+      identify_from_tsv(vec![(outpoint(1), vec![(1, 2), (0, 1)])], "1\n0\n").unwrap(),
+      vec![(outpoint(1), "0"), (outpoint(1), "1"),]
+    )
+  }
+
+  #[test]
+  fn identify_from_tsv_two_in_two_ranges() {
+    assert_eq!(
+      identify_from_tsv(vec![(outpoint(1), vec![(0, 1), (1, 2)])], "0\n1\n").unwrap(),
+      vec![(outpoint(1), "0"), (outpoint(1), "1"),]
+    )
+  }
+
+  #[test]
+  fn identify_from_tsv_two_in_two_outputs() {
+    assert_eq!(
+      identify_from_tsv(
+        vec![(outpoint(1), vec![(0, 1)]), (outpoint(2), vec![(1, 2)])],
+        "0\n1\n"
+      )
+      .unwrap(),
+      vec![(outpoint(1), "0"), (outpoint(2), "1"),]
     )
   }
 
@@ -192,7 +226,7 @@ mod tests {
   fn identify_from_tsv_ignores_extra_columns() {
     assert_eq!(
       identify_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\t===\n").unwrap(),
-      vec![(outpoint(1), Ordinal(0), 0, "0"),]
+      vec![(outpoint(1), "0"),]
     )
   }
 
@@ -200,7 +234,7 @@ mod tests {
   fn identify_from_tsv_ignores_empty_lines() {
     assert_eq!(
       identify_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n\n\n").unwrap(),
-      vec![(outpoint(1), Ordinal(0), 0, "0"),]
+      vec![(outpoint(1), "0"),]
     )
   }
 
@@ -208,7 +242,7 @@ mod tests {
   fn identify_from_tsv_ignores_comments() {
     assert_eq!(
       identify_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n#===\n").unwrap(),
-      vec![(outpoint(1), Ordinal(0), 0, "0"),]
+      vec![(outpoint(1), "0"),]
     )
   }
 
@@ -220,5 +254,39 @@ mod tests {
         .to_string(),
       "Failed to parse ordinal `===` on line 2: invalid digit found in string",
     )
+  }
+
+  #[test]
+  fn identify_from_tsv_is_fast() {
+    let mut start = 0;
+    let mut utxos = Vec::new();
+    let mut results = Vec::new();
+    for i in 0..16 {
+      let mut ranges = Vec::new();
+      let outpoint = outpoint(i);
+      for _ in 0..100 {
+        let end = start + 50 * COIN_VALUE;
+        ranges.push((start, end));
+        for j in 0..50 {
+          results.push((outpoint, start + j * COIN_VALUE));
+        }
+        start = end;
+      }
+      utxos.push((outpoint, ranges));
+    }
+
+    let mut tsv = String::new();
+    for i in 0..start / COIN_VALUE {
+      tsv.push_str(&format!("{}\n", i * COIN_VALUE));
+    }
+
+    assert_eq!(
+      identify_from_tsv(utxos, &tsv)
+        .unwrap()
+        .into_iter()
+        .map(|(outpoint, s)| (outpoint, s.parse().unwrap()))
+        .collect::<Vec<(OutPoint, u64)>>(),
+      results
+    );
   }
 }
