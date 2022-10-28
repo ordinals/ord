@@ -69,12 +69,20 @@ impl PartialEq<u64> for Epoch {
 
 impl From<Ordinal> for Epoch {
   fn from(ordinal: Ordinal) -> Self {
-    for i in 0..Self::STARTING_ORDINALS.len() {
-      if Self::STARTING_ORDINALS[i] > ordinal {
-        return Epoch(i as u64 - 1);
+    if ordinal.0 < Self::STARTING_ORDINALS[1].0 {
+      Epoch(0)
+    } else if ordinal.0 < Self::STARTING_ORDINALS[2].0 {
+      Epoch(1)
+    } else if ordinal.0 < Self::STARTING_ORDINALS[3].0 {
+      Epoch(2)
+    } else if ordinal.0 < Self::STARTING_ORDINALS[4].0 {
+      Epoch(3)
+    } else {
+      match Self::STARTING_ORDINALS.binary_search(&ordinal) {
+        Ok(i) => Epoch(i as u64),
+        Err(i) => Epoch(i as u64 - 1),
       }
     }
-    Epoch(Self::STARTING_ORDINALS.len() as u64 - 1)
   }
 }
 
