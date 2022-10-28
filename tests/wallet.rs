@@ -16,7 +16,7 @@ fn identify() {
 }
 
 #[test]
-fn identify_names() {
+fn identify_from_tsv() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   let second_coinbase = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
@@ -24,9 +24,8 @@ fn identify_names() {
     .write("foo.tsv", "nvtcsezkbtg")
     .rpc_server(&rpc_server)
     .expected_stdout(format!(
-      "{}\t{}\t0\tnvtcsezkbtg\n",
+      "{}\tnvtcsezkbtg\n",
       OutPoint::new(second_coinbase, 0),
-      50 * COIN_VALUE + 1,
     ))
     .run();
 }

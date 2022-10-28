@@ -280,6 +280,7 @@ mod tests {
       tsv.push_str(&format!("{}\n", i * COIN_VALUE));
     }
 
+    let start = Instant::now();
     assert_eq!(
       identify_from_tsv(utxos, &tsv)
         .unwrap()
@@ -288,5 +289,7 @@ mod tests {
         .collect::<Vec<(OutPoint, u64)>>(),
       results
     );
+
+    assert!(Instant::now() - start < Duration::from_secs(10));
   }
 }
