@@ -58,7 +58,6 @@ fn identify_from_tsv(
   tsv: &str,
 ) -> Result<Vec<(OutPoint, &str)>> {
   let mut needles = Vec::new();
-
   for (i, line) in tsv.lines().enumerate() {
     if line.is_empty() || line.starts_with('#') {
       continue;
