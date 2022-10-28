@@ -219,13 +219,6 @@ impl Server {
       options.data_dir()?.join("acme-cache")
     };
 
-    if let Err(err) = fs::create_dir_all(&acme_cache) {
-      bail!(
-        "failed to create acme cache dir `{}`: {err}",
-        acme_cache.display()
-      );
-    }
-
     Ok(acme_cache)
   }
 
