@@ -4,7 +4,7 @@ use super::*;
 pub(crate) struct Identify {
   #[clap(
     long,
-    help = "Find ordinals from first column of file of tab-separated values <ORDINALS>."
+    help = "Find ordinals listed in first column of tab-separated value file <ORDINALS>."
   )]
   ordinals: Option<PathBuf>,
 }
@@ -17,7 +17,7 @@ impl Identify {
     let utxos = list_unspent(&options, &index)?;
 
     if let Some(path) = &self.ordinals {
-      for (output, ordinal, offset, name) in identify_from(utxos, &fs::read_to_string(path)?)? {
+      for (output, ordinal, offset, name) in identify_from_tsv(utxos, &fs::read_to_string(path)?)? {
         println!("{output}\t{ordinal}\t{offset}\t{name}");
       }
     } else {
@@ -50,35 +50,24 @@ fn identify_rare(utxos: Vec<(OutPoint, Vec<(u64, u64)>)>) -> Vec<(OutPoint, Ordi
     .collect()
 }
 
-fn identify_from(
+fn identify_from_tsv(
   utxos: Vec<(OutPoint, Vec<(u64, u64)>)>,
   tsv: &str,
 ) -> Result<Vec<(OutPoint, Ordinal, u64, &str)>> {
-  // To Do:
-  // - test parsing from multiple representations
-  // - test line reported line number is correct
-  // - test reported string is correct
-  // - test no ordinals found
-  // - test first ordinal
-  // - skip empty lines
-  // - skip comments
+  let mut needles = Vec::new();
 
-  let mut needles = tsv
-    .lines()
-    .enumerate()
-    .flat_map(|(i, line)| {
-      line.split("\t").next().map(|column| {
-        Ordinal::from_str(column)
-          .map(|ordinal| (ordinal, column))
-          .map_err(|err| {
-            anyhow!(
-              "Failed to parse ordinal `{column}` on line {}: {err}",
-              i + 1,
-            )
-          })
-      })
-    })
-    .collect::<Result<Vec<(Ordinal, &str)>>>()?;
+  for (i, line) in tsv.lines().enumerate() {
+    if line.is_empty() || line.starts_with('#') {
+      continue;
+    }
+
+    if let Some(value) = line.split("\t").next() {
+      let ordinal = Ordinal::from_str(value)
+        .map_err(|err| anyhow!("Failed to parse ordinal `{value}` on line {}: {err}", i + 1,))?;
+
+      needles.push((ordinal, value));
+    }
+  }
   needles.sort();
 
   let mut haystacks = utxos
@@ -94,13 +83,13 @@ fn identify_from(
   let mut i = 0;
   let mut results = Vec::new();
   for (start, end, outpoint) in haystacks {
-    let (needle, column) = match needles.get(i) {
+    let (needle, value) = match needles.get(i) {
       Some(needle) => *needle,
       None => break,
     };
 
     if needle >= start && needle < end {
-      results.push((outpoint, needle, 0, column));
+      results.push((outpoint, needle, 0, value));
     }
 
     if needle >= end {
@@ -117,77 +106,107 @@ mod tests {
 
   #[test]
   fn identify_no_rare_ordinals() {
-    let utxos = vec![(
-      OutPoint::null(),
-      vec![(51 * COIN_VALUE, 100 * COIN_VALUE), (1234, 5678)],
-    )];
-    assert_eq!(identify_rare(utxos), vec![])
+    assert_eq!(
+      identify_rare(vec![(
+        outpoint(1),
+        vec![(51 * COIN_VALUE, 100 * COIN_VALUE), (1234, 5678)],
+      )]),
+      vec![]
+    )
   }
 
   #[test]
   fn identify_one_rare_ordinal() {
-    let utxos = vec![(
-      OutPoint::null(),
-      vec![(10, 80), (50 * COIN_VALUE, 100 * COIN_VALUE)],
-    )];
     assert_eq!(
-      identify_rare(utxos),
-      vec![(
-        OutPoint::null(),
-        Ordinal(50 * COIN_VALUE),
-        70,
-        Rarity::Uncommon
-      )]
+      identify_rare(vec![(
+        outpoint(1),
+        vec![(10, 80), (50 * COIN_VALUE, 100 * COIN_VALUE)],
+      )]),
+      vec![(outpoint(1), Ordinal(50 * COIN_VALUE), 70, Rarity::Uncommon)]
     )
   }
 
   #[test]
   fn identify_two_rare_ordinals() {
-    let utxos = vec![(
-      OutPoint::null(),
-      vec![(0, 100), (1050000000000000, 1150000000000000)],
-    )];
     assert_eq!(
-      identify_rare(utxos),
+      identify_rare(vec![(
+        outpoint(1),
+        vec![(0, 100), (1050000000000000, 1150000000000000)],
+      )]),
       vec![
-        (OutPoint::null(), Ordinal(0), 0, Rarity::Mythic),
-        (
-          OutPoint::null(),
-          Ordinal(1050000000000000),
-          100,
-          Rarity::Epic
-        )
+        (outpoint(1), Ordinal(0), 0, Rarity::Mythic),
+        (outpoint(1), Ordinal(1050000000000000), 100, Rarity::Epic)
       ]
     )
   }
 
   #[test]
   fn identify_rare_ordinals_in_different_outpoints() {
-    let utxos = vec![
-      (OutPoint::null(), vec![(50 * COIN_VALUE, 55 * COIN_VALUE)]),
-      (
-        OutPoint::from_str("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:5")
-          .unwrap(),
-        vec![(100 * COIN_VALUE, 111 * COIN_VALUE)],
-      ),
-    ];
     assert_eq!(
-      identify_rare(utxos),
+      identify_rare(vec![
+        (outpoint(1), vec![(50 * COIN_VALUE, 55 * COIN_VALUE)]),
+        (outpoint(2), vec![(100 * COIN_VALUE, 111 * COIN_VALUE)],),
+      ]),
       vec![
-        (
-          OutPoint::null(),
-          Ordinal(50 * COIN_VALUE),
-          0,
-          Rarity::Uncommon
-        ),
-        (
-          OutPoint::from_str("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:5")
-            .unwrap(),
-          Ordinal(100 * COIN_VALUE),
-          0,
-          Rarity::Uncommon
-        )
+        (outpoint(1), Ordinal(50 * COIN_VALUE), 0, Rarity::Uncommon),
+        (outpoint(2), Ordinal(100 * COIN_VALUE), 0, Rarity::Uncommon)
       ]
+    )
+  }
+
+  // To Do:
+  // - two in one range
+  // - two from different ranges
+  // - tsv out of order
+  // - ranges out of order
+
+  #[test]
+  fn identify_from_tsv_single() {
+    assert_eq!(
+      identify_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n").unwrap(),
+      vec![(outpoint(1), Ordinal(0), 0, "0"),]
+    )
+  }
+
+  #[test]
+  fn identify_from_tsv_none() {
+    assert_eq!(
+      identify_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "1\n").unwrap(),
+      vec![]
+    )
+  }
+
+  #[test]
+  fn identify_from_tsv_ignores_extra_columns() {
+    assert_eq!(
+      identify_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\t===\n").unwrap(),
+      vec![(outpoint(1), Ordinal(0), 0, "0"),]
+    )
+  }
+
+  #[test]
+  fn identify_from_tsv_ignores_empty_lines() {
+    assert_eq!(
+      identify_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n\n\n").unwrap(),
+      vec![(outpoint(1), Ordinal(0), 0, "0"),]
+    )
+  }
+
+  #[test]
+  fn identify_from_tsv_ignores_comments() {
+    assert_eq!(
+      identify_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n#===\n").unwrap(),
+      vec![(outpoint(1), Ordinal(0), 0, "0"),]
+    )
+  }
+
+  #[test]
+  fn parse_error_reports_line_and_value() {
+    assert_eq!(
+      identify_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n===\n")
+        .unwrap_err()
+        .to_string(),
+      "Failed to parse ordinal `===` on line 2: invalid digit found in string",
     )
   }
 }
