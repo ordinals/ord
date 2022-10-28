@@ -32,8 +32,7 @@ jobs:
     - name: Install Rust Toolchain Components
       uses: actions-rs/toolchain@v1
       with:
-        components: clippy, rustfmt
-        override: true
+        profile: minimal
         toolchain: stable
 
     - uses: Swatinem/rust-cache@v1
