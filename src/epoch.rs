@@ -59,22 +59,6 @@ impl Epoch {
   pub(crate) fn starting_height(self) -> Height {
     Height(self.0 * SUBSIDY_HALVING_INTERVAL)
   }
-
-  fn epoch_from_ordinal_binary_search(ordinal: Ordinal) -> Epoch {
-    match Self::STARTING_ORDINALS.binary_search(&ordinal) {
-      Ok(i) => Epoch(i as u64),
-      Err(i) => Epoch(i as u64 - 1),
-    }
-  }
-
-  fn epoch_from_ordinal_linear_search(ordinal: Ordinal) -> Epoch {
-    for i in 0..Self::STARTING_ORDINALS.len() {
-      if Self::STARTING_ORDINALS[i] > ordinal {
-        return Epoch(i as u64 - 1);
-      }
-    }
-    Epoch(Self::STARTING_ORDINALS.len() as u64 - 1)
-  }
 }
 
 impl PartialEq<u64> for Epoch {
@@ -85,8 +69,12 @@ impl PartialEq<u64> for Epoch {
 
 impl From<Ordinal> for Epoch {
   fn from(ordinal: Ordinal) -> Self {
-    //    Epoch::epoch_from_ordinal_binary_search(ordinal)
-    Epoch::epoch_from_ordinal_linear_search(ordinal)
+    for i in 0..Self::STARTING_ORDINALS.len() {
+      if Self::STARTING_ORDINALS[i] > ordinal {
+        return Epoch(i as u64 - 1);
+      }
+    }
+    Epoch(Self::STARTING_ORDINALS.len() as u64 - 1)
   }
 }
 
