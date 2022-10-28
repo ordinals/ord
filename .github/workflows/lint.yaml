@@ -14,12 +14,7 @@ defaults:
 
 jobs:
   lint:
-    strategy:
-      matrix:
-        os:
-        - ubuntu-latest
-
-    runs-on: ${{matrix.os}}
+    runs-on: ubuntu-latest
 
     env:
       RUSTFLAGS: --deny warnings
