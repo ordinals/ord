@@ -518,17 +518,6 @@ impl TransactionBuilder {
 mod tests {
   use {super::Error, super::*};
 
-  fn outpoint(n: u64) -> OutPoint {
-    match n {
-      1 => "1111111111111111111111111111111111111111111111111111111111111111:1",
-      2 => "2222222222222222222222222222222222222222222222222222222222222222:2",
-      3 => "3333333333333333333333333333333333333333333333333333333333333333:3",
-      _ => panic!(),
-    }
-    .parse()
-    .unwrap()
-  }
-
   fn recipient() -> Address {
     "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
       .parse()

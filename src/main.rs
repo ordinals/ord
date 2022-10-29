@@ -35,6 +35,7 @@ use {
   reqwest::Url,
   serde::{Deserialize, Serialize},
   std::{
+    cmp::Ordering,
     collections::VecDeque,
     env,
     fmt::{self, Display, Formatter},

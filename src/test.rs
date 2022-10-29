@@ -1,5 +1,5 @@
 pub(crate) use {
-  pretty_assertions::assert_eq as pretty_assert_eq, tempfile::TempDir,
+  super::*, pretty_assertions::assert_eq as pretty_assert_eq, tempfile::TempDir,
   test_bitcoincore_rpc::TransactionTemplate, unindent::Unindent,
 };
 
@@ -15,4 +15,14 @@ macro_rules! assert_regex_match {
       );
     }
   };
+}
+
+pub(crate) fn outpoint(n: u64) -> OutPoint {
+  let hex = format!("{n:x}");
+
+  if hex.is_empty() || hex.len() > 1 {
+    panic!();
+  }
+
+  format!("{}:{}", hex.repeat(64), n).parse().unwrap()
 }
