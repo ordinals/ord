@@ -16,6 +16,46 @@ fn identify() {
 }
 
 #[test]
+fn identify_from_tsv_success() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  let second_coinbase = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+
+  CommandBuilder::new("wallet identify --ordinals foo.tsv")
+    .write("foo.tsv", "nvtcsezkbtg")
+    .rpc_server(&rpc_server)
+    .expected_stdout(format!(
+      "{}\tnvtcsezkbtg\n",
+      OutPoint::new(second_coinbase, 0),
+    ))
+    .run();
+}
+
+#[test]
+fn identify_from_tsv_parse_error() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  CommandBuilder::new("wallet identify --ordinals foo.tsv")
+    .write("foo.tsv", "===")
+    .rpc_server(&rpc_server)
+    .expected_exit_code(1)
+    .expected_stderr(
+      "error: failed to parse ordinal from string \"===\" on line 1: invalid digit found in string\n",
+    )
+    .run();
+}
+
+#[test]
+fn identify_from_tsv_file_not_found() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  CommandBuilder::new("wallet identify --ordinals foo.tsv")
+    .rpc_server(&rpc_server)
+    .expected_exit_code(1)
+    .expected_stderr(
+      "error: I/O error reading `{path}`\nbecause: No such file or directory (os error 2)\n",
+    )
+    .run();
+}
+
+#[test]
 fn list() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   let second_coinbase = rpc_server.mine_blocks(1)[0].txdata[0].txid();

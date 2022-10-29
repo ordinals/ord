@@ -190,6 +190,12 @@ impl PartialEq<u64> for Ordinal {
   }
 }
 
+impl PartialOrd<u64> for Ordinal {
+  fn partial_cmp(&self, other: &u64) -> Option<Ordering> {
+    self.0.partial_cmp(other)
+  }
+}
+
 impl Add<u64> for Ordinal {
   type Output = Self;
 
@@ -431,6 +437,12 @@ mod tests {
   fn eq() {
     assert_eq!(Ordinal(0), 0);
     assert_eq!(Ordinal(1), 1);
+  }
+
+  #[test]
+  fn partial_ord() {
+    assert!(Ordinal(1) > 0);
+    assert!(Ordinal(0) < 1);
   }
 
   #[test]

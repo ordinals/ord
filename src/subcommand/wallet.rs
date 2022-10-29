@@ -24,7 +24,7 @@ fn list_unspent(options: &Options, index: &Index) -> Result<Vec<(OutPoint, Vec<(
 
 #[derive(Debug, Parser)]
 pub(crate) enum Wallet {
-  Identify,
+  Identify(identify::Identify),
   List,
   Send(send::Send),
 }
@@ -32,7 +32,7 @@ pub(crate) enum Wallet {
 impl Wallet {
   pub(crate) fn run(self, options: Options) -> Result {
     match self {
-      Self::Identify => identify::run(options),
+      Self::Identify(identify) => identify.run(options),
       Self::List => list::run(options),
       Self::Send(send) => send.run(options),
     }
