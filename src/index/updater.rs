@@ -114,7 +114,7 @@ impl Updater {
         }
       }
 
-      match Self::get_block_with_retries(&client, height) {
+      match Self::get_block_with_retries(&client, height, 0) {
         Ok(Some(block)) => {
           if let Err(err) = tx.send(block) {
             log::info!("Block receiver disconnected: {err}");
@@ -133,33 +133,45 @@ impl Updater {
     Ok(rx)
   }
 
-  pub(crate) fn get_block_with_retries(client: &Client, height: u64) -> Result<Option<Block>> {
-    let mut errors = 0;
-    loop {
-      match client
-        .get_block_hash(height)
-        .into_option()?
-        .map(|hash| client.get_block(&hash))
-        .transpose()
-      {
-        Err(err) => {
-          if cfg!(test) {
-            return Err(err.into());
-          }
+  pub(crate) fn get_block_with_retries(
+    client: &Client,
+    height: u64,
+    retries: u32,
+  ) -> Result<Option<Block>> {
+    if retries > 0 {
+      let seconds = 1 << retries;
+      log::error!(
+        "retrying to fetch block {height}, attempt {retries}, backing off for {seconds}s"
+      );
+      thread::sleep(Duration::from_secs(seconds));
+    }
 
-          errors += 1;
-          let seconds = 1 << errors;
-          log::error!("failed to fetch block {height}, retrying in {seconds}s: {err}");
+    match client.get_block_hash(height).into_option() {
+      Err(err) => {
+        log::error!("failed to fetch block hash {height}: {err}");
 
-          if seconds > 120 {
-            log::error!("would sleep for more than 120s, giving up");
-            return Err(err.into());
-          }
-
-          thread::sleep(Duration::from_secs(seconds));
+        if cfg!(test) || retries > 6 {
+          log::error!("exhausted retries, giving up");
+          return Err(err);
         }
-        Ok(result) => return Ok(result),
+
+        Self::get_block_with_retries(client, height, retries + 1)
       }
+
+      Ok(Some(hash)) => match client.get_block(&hash) {
+        Err(err) => {
+          log::error!("failed to fetch block {height}: {err}");
+
+          if cfg!(test) || retries > 6 {
+            log::error!("exhausted retries, giving up");
+            return Err(err.into());
+          }
+
+          Self::get_block_with_retries(client, height, retries + 1)
+        }
+        Ok(result) => Ok(Some(result)),
+      },
+      Ok(None) => Ok(None),
     }
   }
 
