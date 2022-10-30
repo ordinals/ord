@@ -69,75 +69,12 @@ impl PartialEq<u64> for Epoch {
 
 impl From<Ordinal> for Epoch {
   fn from(ordinal: Ordinal) -> Self {
-    if ordinal < Self::STARTING_ORDINALS[1] {
-      Epoch(0)
-    } else if ordinal < Self::STARTING_ORDINALS[2] {
-      Epoch(1)
-    } else if ordinal < Self::STARTING_ORDINALS[3] {
-      Epoch(2)
-    } else if ordinal < Self::STARTING_ORDINALS[4] {
-      Epoch(3)
-    } else if ordinal < Self::STARTING_ORDINALS[5] {
-      Epoch(4)
-    } else if ordinal < Self::STARTING_ORDINALS[6] {
-      Epoch(5)
-    } else if ordinal < Self::STARTING_ORDINALS[7] {
-      Epoch(6)
-    } else if ordinal < Self::STARTING_ORDINALS[8] {
-      Epoch(7)
-    } else if ordinal < Self::STARTING_ORDINALS[9] {
-      Epoch(8)
-    } else if ordinal < Self::STARTING_ORDINALS[10] {
-      Epoch(9)
-    } else if ordinal < Self::STARTING_ORDINALS[11] {
-      Epoch(10)
-    } else if ordinal < Self::STARTING_ORDINALS[12] {
-      Epoch(11)
-    } else if ordinal < Self::STARTING_ORDINALS[13] {
-      Epoch(12)
-    } else if ordinal < Self::STARTING_ORDINALS[14] {
-      Epoch(13)
-    } else if ordinal < Self::STARTING_ORDINALS[15] {
-      Epoch(14)
-    } else if ordinal < Self::STARTING_ORDINALS[16] {
-      Epoch(15)
-    } else if ordinal < Self::STARTING_ORDINALS[17] {
-      Epoch(16)
-    } else if ordinal < Self::STARTING_ORDINALS[18] {
-      Epoch(17)
-    } else if ordinal < Self::STARTING_ORDINALS[19] {
-      Epoch(18)
-    } else if ordinal < Self::STARTING_ORDINALS[20] {
-      Epoch(19)
-    } else if ordinal < Self::STARTING_ORDINALS[21] {
-      Epoch(20)
-    } else if ordinal < Self::STARTING_ORDINALS[22] {
-      Epoch(21)
-    } else if ordinal < Self::STARTING_ORDINALS[23] {
-      Epoch(22)
-    } else if ordinal < Self::STARTING_ORDINALS[24] {
-      Epoch(23)
-    } else if ordinal < Self::STARTING_ORDINALS[25] {
-      Epoch(24)
-    } else if ordinal < Self::STARTING_ORDINALS[26] {
-      Epoch(25)
-    } else if ordinal < Self::STARTING_ORDINALS[27] {
-      Epoch(26)
-    } else if ordinal < Self::STARTING_ORDINALS[28] {
-      Epoch(27)
-    } else if ordinal < Self::STARTING_ORDINALS[29] {
-      Epoch(28)
-    } else if ordinal < Self::STARTING_ORDINALS[30] {
-      Epoch(29)
-    } else if ordinal < Self::STARTING_ORDINALS[31] {
-      Epoch(30)
-    } else if ordinal < Self::STARTING_ORDINALS[32] {
-      Epoch(31)
-    } else if ordinal < Self::STARTING_ORDINALS[33] {
-      Epoch(32)
-    } else {
-      Epoch(33)
+    for (epoch, starting_ordinal) in Self::STARTING_ORDINALS.into_iter().enumerate().skip(1) {
+      if starting_ordinal > ordinal {
+        return Epoch(epoch as u64 - 1);
+      }
     }
+    Epoch(Self::STARTING_ORDINALS.len() as u64 - 1)
   }
 }
 
