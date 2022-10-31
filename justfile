@@ -59,11 +59,11 @@ doc:
 update-dev-server:
   ./bin/update-dev-server
 
-start-dev-server-benchmark:
+start-dev-server-benchmark: && update-dev-server
   systemctl stop ord-dev
   rm /var/lib/ord-dev/index.redb
   journalctl --rotate
-  journalctl --vacuum-time=1s
+  journalctl --vacuum-time 1s
   ./bin/update-dev-server
 
 # publish current GitHub master branch
