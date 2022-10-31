@@ -33,6 +33,23 @@ use {
 mod deserialize_from_str;
 mod templates;
 
+enum BlockQuery {
+  Height(u64),
+  Hash(BlockHash),
+}
+
+impl FromStr for BlockQuery {
+  type Err = Error;
+
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    Ok(if s.len() == 64 {
+      BlockQuery::Hash(s.parse().unwrap())
+    } else {
+      BlockQuery::Height(s.parse().unwrap())
+    })
+  }
+}
+
 enum ServerError {
   Internal(Error),
   NotFound(String),
@@ -133,7 +150,7 @@ impl Server {
 
       let router = Router::new()
         .route("/", get(Self::home))
-        .route("/block/:hash", get(Self::block))
+        .route("/block/:query", get(Self::block))
         .route("/bounties", get(Self::bounties))
         .route("/clock", get(Self::clock))
         .route("/faq", get(Self::faq))
@@ -363,28 +380,46 @@ impl Server {
   }
 
   async fn block(
-    Path(hash): Path<BlockHash>,
+    Path(DeserializeFromStr(query)): Path<DeserializeFromStr<BlockQuery>>,
     index: Extension<Arc<Index>>,
   ) -> ServerResult<PageHtml> {
-    let info = index
-      .block_header_info(hash)
-      .map_err(|err| {
-        ServerError::Internal(anyhow!(
-          "error serving request for block with hash {hash}: {err}"
-        ))
-      })?
-      .ok_or_else(|| ServerError::NotFound(format!("block {hash} unknown")))?;
+    let (block, height) = match query {
+      BlockQuery::Height(height) => {
+        let block = index
+          .get_block_by_height(height)
+          .map_err(|err| {
+            ServerError::Internal(anyhow!(
+              "error serving request for block with height {height}: {err}"
+            ))
+          })?
+          .ok_or_else(|| ServerError::NotFound(format!("block at height {height} unknown")))?;
 
-    let block = index
-      .block_with_hash(hash)
-      .map_err(|err| {
-        ServerError::Internal(anyhow!(
-          "error serving request for block with hash {hash}: {err}"
-        ))
-      })?
-      .ok_or_else(|| ServerError::NotFound(format!("block {hash} unknown")))?;
+        (block, height)
+      }
+      BlockQuery::Hash(hash) => {
+        let info = index
+          .block_header_info(hash)
+          .map_err(|err| {
+            ServerError::Internal(anyhow!(
+              "error serving request for block with hash {hash}: {err}"
+            ))
+          })?
+          .ok_or_else(|| ServerError::NotFound(format!("block {hash} unknown")))?;
 
-    Ok(BlockHtml::new(block, Height(info.height as u64)).page())
+        let block = index
+          .get_block_by_hash(hash)
+          .map_err(|err| {
+            ServerError::Internal(anyhow!(
+              "error serving request for block with hash {hash}: {err}"
+            ))
+          })?
+          .ok_or_else(|| ServerError::NotFound(format!("block {hash} unknown")))?;
+
+        (block, info.height as u64)
+      }
+    };
+
+    Ok(BlockHtml::new(block, Height(height), index.height().unwrap()).page())
   }
 
   async fn transaction(
@@ -509,7 +544,7 @@ impl Server {
       || ServerError::NotFound(format!("input /{}/{}/{} unknown", path.0, path.1, path.2));
 
     let block = index
-      .block(path.0)
+      .get_block_by_height(path.0)
       .map_err(ServerError::Internal)?
       .ok_or_else(not_found)?;
 

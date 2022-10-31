@@ -3,16 +3,30 @@ use super::*;
 #[derive(Boilerplate)]
 pub(crate) struct BlockHtml {
   hash: BlockHash,
+  target: BlockHash,
+  best_height: Height,
   block: Block,
   height: Height,
 }
 
 impl BlockHtml {
-  pub(crate) fn new(block: Block, height: Height) -> Self {
+  pub(crate) fn new(block: Block, height: Height, best_height: Height) -> Self {
     Self {
       hash: block.header.block_hash(),
+      target: BlockHash::from_inner(
+        block
+          .header
+          .target()
+          .to_be_bytes()
+          .into_iter()
+          .rev()
+          .collect::<Vec<u8>>()
+          .try_into()
+          .unwrap(),
+      ),
       block,
       height,
+      best_height,
     }
   }
 }

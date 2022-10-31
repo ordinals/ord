@@ -309,7 +309,15 @@ impl Index {
     Ok(result)
   }
 
-  pub(crate) fn block(&self, height: u64) -> Result<Option<Block>> {
+  pub(crate) fn block_header(&self, hash: BlockHash) -> Result<Option<BlockHeader>> {
+    self.client.get_block_header(&hash).into_option()
+  }
+
+  pub(crate) fn block_header_info(&self, hash: BlockHash) -> Result<Option<GetBlockHeaderResult>> {
+    self.client.get_block_header_info(&hash).into_option()
+  }
+
+  pub(crate) fn get_block_by_height(&self, height: u64) -> Result<Option<Block>> {
     Ok(
       self
         .client
@@ -320,15 +328,7 @@ impl Index {
     )
   }
 
-  pub(crate) fn block_header(&self, hash: BlockHash) -> Result<Option<BlockHeader>> {
-    self.client.get_block_header(&hash).into_option()
-  }
-
-  pub(crate) fn block_header_info(&self, hash: BlockHash) -> Result<Option<GetBlockHeaderResult>> {
-    self.client.get_block_header_info(&hash).into_option()
-  }
-
-  pub(crate) fn block_with_hash(&self, hash: BlockHash) -> Result<Option<Block>> {
+  pub(crate) fn get_block_by_hash(&self, hash: BlockHash) -> Result<Option<Block>> {
     self.client.get_block(&hash).into_option()
   }
 
@@ -429,7 +429,7 @@ impl Index {
   pub(crate) fn blocktime(&self, height: Height) -> Result<Blocktime> {
     let height = height.n();
 
-    match self.block(height)? {
+    match self.get_block_by_height(height)? {
       Some(block) => Ok(Blocktime::Confirmed(block.header.time.into())),
       None => {
         let tx = self.database.begin_read()?;
