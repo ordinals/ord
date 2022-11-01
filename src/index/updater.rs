@@ -360,15 +360,15 @@ impl Updater {
       self.outputs_inserted_since_flush = 0;
     }
 
-    Index::increment_statistic(&wtx, Statistic::Commits, 1)?;
+    Index::increment_statistic(&wtx, Statistic::OutputsTraversed, self.outputs_traversed)?;
+    self.outputs_traversed = 0;
     Index::increment_statistic(
       &wtx,
       Statistic::OrdinalRanges,
       self.ordinal_ranges_since_flush,
     )?;
     self.ordinal_ranges_since_flush = 0;
-    Index::increment_statistic(&wtx, Statistic::OutputsTraversed, self.outputs_traversed)?;
-    self.outputs_traversed = 0;
+    Index::increment_statistic(&wtx, Statistic::Commits, 1)?;
     wtx.commit()?;
     Ok(())
   }
