@@ -1525,8 +1525,7 @@ dependencies = [
 [[package]]
 name = "jsonrpc"
 version = "0.13.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fd8d6b3f301ba426b30feca834a2a18d48d5b54e5065496b5c1b05537bee3639"
+source = "git+https://github.com/casey/rust-jsonrpc?rev=1826d5e7ec02d9dd3fbca94bfa3b4215870d193f#1826d5e7ec02d9dd3fbca94bfa3b4215870d193f"
 dependencies = [
  "base64",
  "serde",
