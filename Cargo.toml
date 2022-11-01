@@ -61,3 +61,7 @@ path = "tests/lib.rs"
 
 [build-dependencies]
 pulldown-cmark = "0.9.2"
+
+[patch.crates-io.jsonrpc]
+git = "https://github.com/casey/rust-jsonrpc"
+rev = "1826d5e7ec02d9dd3fbca94bfa3b4215870d193f"
