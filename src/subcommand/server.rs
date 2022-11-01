@@ -1453,6 +1453,7 @@ mod tests {
     );
 
     server.bitcoin_rpc_server.mine_blocks(1);
+    server.bitcoin_rpc_server.mine_blocks(1);
 
     server.index.update().unwrap();
 
@@ -1461,7 +1462,102 @@ mod tests {
         .index
         .statistic(crate::index::Statistic::OutputsTraversed)
         .unwrap(),
+      3
+    );
+  }
+
+  #[test]
+  fn coinbase_ordinal_ranges_are_tracked() {
+    let server = TestServer::new();
+
+    assert_eq!(
+      server
+        .index
+        .statistic(crate::index::Statistic::OrdinalRanges)
+        .unwrap(),
+      1
+    );
+
+    server.bitcoin_rpc_server.mine_blocks(1);
+    server.index.update().unwrap();
+
+    assert_eq!(
+      server
+        .index
+        .statistic(crate::index::Statistic::OrdinalRanges)
+        .unwrap(),
       2
+    );
+
+    server.bitcoin_rpc_server.mine_blocks(1);
+    server.index.update().unwrap();
+
+    assert_eq!(
+      server
+        .index
+        .statistic(crate::index::Statistic::OrdinalRanges)
+        .unwrap(),
+      3
+    );
+  }
+
+  #[test]
+  fn split_ordinal_ranges_are_tracked() {
+    let server = TestServer::new();
+
+    assert_eq!(
+      server
+        .index
+        .statistic(crate::index::Statistic::OrdinalRanges)
+        .unwrap(),
+      1
+    );
+
+    server.bitcoin_rpc_server.mine_blocks(1);
+    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      input_slots: &[(1, 0, 0)],
+      output_count: 2,
+      fee: 0,
+    });
+    server.bitcoin_rpc_server.mine_blocks(1);
+    server.index.update().unwrap();
+
+    assert_eq!(
+      server
+        .index
+        .statistic(crate::index::Statistic::OrdinalRanges)
+        .unwrap(),
+      4,
+    );
+  }
+
+  #[test]
+  fn fee_ordinal_ranges_are_tracked() {
+    let server = TestServer::new();
+
+    assert_eq!(
+      server
+        .index
+        .statistic(crate::index::Statistic::OrdinalRanges)
+        .unwrap(),
+      1
+    );
+
+    server.bitcoin_rpc_server.mine_blocks(1);
+    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      input_slots: &[(1, 0, 0)],
+      output_count: 2,
+      fee: 2,
+    });
+    server.bitcoin_rpc_server.mine_blocks(1);
+    server.index.update().unwrap();
+
+    assert_eq!(
+      server
+        .index
+        .statistic(crate::index::Statistic::OrdinalRanges)
+        .unwrap(),
+      5,
     );
   }
 }

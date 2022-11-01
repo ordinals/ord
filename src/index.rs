@@ -67,6 +67,7 @@ pub(crate) enum List {
 pub(crate) enum Statistic {
   OutputsTraversed = 0,
   Commits = 1,
+  OrdinalRanges = 2,
 }
 
 impl From<Statistic> for u64 {
@@ -188,6 +189,11 @@ impl Index {
 
     let utxos_indexed = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?.len()?;
 
+    let ordinal_ranges = wtx
+      .open_table(STATISTIC_TO_COUNT)?
+      .get(&Statistic::OrdinalRanges.into())?
+      .unwrap_or(0);
+
     let outputs_traversed = wtx
       .open_table(STATISTIC_TO_COUNT)?
       .get(&Statistic::OutputsTraversed.into())?
@@ -195,16 +201,17 @@ impl Index {
 
     let stats = wtx.stats()?;
 
-    println!("blocks indexed: {}", blocks_indexed);
-    println!("utxos indexed: {}", utxos_indexed);
-    println!("outputs traversed: {}", outputs_traversed);
-    println!("tree height: {}", stats.tree_height());
-    println!("free pages: {}", stats.free_pages());
-    println!("stored: {}", Bytes(stats.stored_bytes()));
-    println!("overhead: {}", Bytes(stats.metadata_bytes()));
-    println!("fragmented: {}", Bytes(stats.fragmented_bytes()));
+    println!("blocks indexed\t{}", blocks_indexed);
+    println!("utxos indexed\t{}", utxos_indexed);
+    println!("outputs traversed\t{}", outputs_traversed);
+    println!("ordinal ranges\t{}", ordinal_ranges);
+    println!("tree height\t{}", stats.tree_height());
+    println!("free pages\t{}", stats.free_pages());
+    println!("stored\t{}", Bytes(stats.stored_bytes()));
+    println!("overhead\t{}", Bytes(stats.metadata_bytes()));
+    println!("fragmented\t{}", Bytes(stats.fragmented_bytes()));
     println!(
-      "index size: {}",
+      "index size\t{}",
       Bytes(std::fs::metadata(&self.database_path)?.len().try_into()?)
     );
 
