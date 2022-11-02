@@ -38,22 +38,19 @@ impl Updater {
     index: &'index Index,
     mut wtx: WriteTransaction<'index>,
   ) -> Result {
-    let mut progress_bar = if cfg!(test) || log_enabled!(log::Level::Info) {
-      None
-    } else {
-      let chain_height = index.client.get_block_count()? + 1;
+    let starting_height = index.client.get_block_count()? + 1;
 
-      if chain_height > self.height {
-        let progress_bar = ProgressBar::new(chain_height);
+    let mut progress_bar =
+      if cfg!(test) || log_enabled!(log::Level::Info) || starting_height <= self.height {
+        None
+      } else {
+        let progress_bar = ProgressBar::new(starting_height);
         progress_bar.set_position(self.height);
         progress_bar.set_style(
           ProgressStyle::with_template("[indexing blocks] {wide_bar} {pos}/{len}").unwrap(),
         );
         Some(progress_bar)
-      } else {
-        None
-      }
-    };
+      };
 
     let rx = Self::fetch_blocks_from(
       index,
