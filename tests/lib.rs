@@ -6,33 +6,17 @@ use {
   executable_path::executable_path,
   pretty_assertions::assert_eq as pretty_assert_eq,
   regex::Regex,
-  reqwest::{StatusCode, Url},
   std::{
     fs,
     net::TcpListener,
     path::Path,
-    process::{self, Child, Command, Stdio},
+    process::{self, Command, Stdio},
     str, thread,
     time::Duration,
   },
   tempfile::TempDir,
-  test_server::TestServer,
   unindent::Unindent,
 };
-
-macro_rules! assert_regex_match {
-  ($string:expr, $pattern:expr $(,)?) => {
-    let regex = Regex::new(&format!("^(?s){}$", $pattern)).unwrap();
-    let string = $string;
-
-    if !regex.is_match(string.as_ref()) {
-      panic!(
-        "Regex:\n\n{}\n\n…did not match string:\n\n{}",
-        regex, string
-      );
-    }
-  };
-}
 
 mod command_builder;
 mod epochs;
@@ -43,10 +27,8 @@ mod info;
 mod list;
 mod parse;
 mod range;
-mod rune;
 mod server;
 mod supply;
-mod test_server;
 mod traits;
 mod version;
 mod wallet;

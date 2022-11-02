@@ -5,15 +5,15 @@ use {
     deserialize_from_str::DeserializeFromStr,
     templates::{
       BlockHtml, ClockSvg, Content, HomeHtml, InputHtml, OrdinalHtml, OutputHtml, PageHtml,
-      RangeHtml, RareTxt, RuneHtml, TransactionHtml,
+      RangeHtml, RareTxt, TransactionHtml,
     },
   },
   axum::{
     body,
-    extract::{Extension, Json, Path, Query},
+    extract::{Extension, Path, Query},
     http::{header, StatusCode},
     response::{IntoResponse, Redirect, Response},
-    routing::{get, put},
+    routing::get,
     Router,
   },
   axum_server::Handle,
@@ -36,7 +36,6 @@ mod templates;
 enum ServerError {
   Internal(Error),
   NotFound(String),
-  UnprocessableEntity(String),
   BadRequest(String),
 }
 
@@ -56,9 +55,6 @@ impl IntoResponse for ServerError {
           .into_response()
       }
       Self::NotFound(message) => (StatusCode::NOT_FOUND, message).into_response(),
-      Self::UnprocessableEntity(message) => {
-        (StatusCode::UNPROCESSABLE_ENTITY, message).into_response()
-      }
       Self::BadRequest(message) => (StatusCode::BAD_REQUEST, message).into_response(),
     }
   }
@@ -148,8 +144,6 @@ impl Server {
         .route("/output/:output", get(Self::output))
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
-        .route("/rune", put(Self::rune_put))
-        .route("/rune/:hash", get(Self::rune_get))
         .route("/search", get(Self::search_by_query))
         .route("/search/:query", get(Self::search_by_path))
         .route("/static/*path", get(Self::static_asset))
@@ -296,11 +290,6 @@ impl Server {
         blocktime: index.blocktime(ordinal.height()).map_err(|err| {
           ServerError::Internal(anyhow!("failed to retrieve blocktime from index: {err}"))
         })?,
-        inscriptions: index.inscriptions(ordinal).map_err(|err| {
-          ServerError::Internal(anyhow!(
-            "failed to retrieve runes for ordinal {ordinal}: {err}"
-          ))
-        })?,
       }
       .page(),
     )
@@ -355,43 +344,6 @@ impl Server {
     Ok(RareTxt(index.rare_ordinal_satpoints().map_err(|err| {
       ServerError::Internal(anyhow!("error getting rare ordinal satpoints: {err}"))
     })?))
-  }
-
-  async fn rune_put(
-    Extension(index): Extension<Arc<Index>>,
-    Extension(chain): Extension<Chain>,
-    Json(rune): Json<Rune>,
-  ) -> ServerResult<(StatusCode, String)> {
-    if rune.chain != chain {
-      return Err(ServerError::UnprocessableEntity(format!(
-        "this ord instance only accepts {chain} runes for publication"
-      )));
-    }
-    let (created, hash) = index.insert_rune(&rune).map_err(ServerError::Internal)?;
-    Ok((
-      if created {
-        StatusCode::CREATED
-      } else {
-        StatusCode::OK
-      },
-      hash.to_string(),
-    ))
-  }
-
-  async fn rune_get(
-    Extension(index): Extension<Arc<Index>>,
-    Path(hash): Path<sha256::Hash>,
-  ) -> ServerResult<PageHtml> {
-    Ok(
-      RuneHtml {
-        hash,
-        rune: index
-          .rune(hash)
-          .map_err(ServerError::Internal)?
-          .ok_or_else(|| ServerError::NotFound(format!("rune {hash} unknown")))?,
-      }
-      .page(),
-    )
   }
 
   async fn home(Extension(index): Extension<Arc<Index>>) -> ServerResult<PageHtml> {
@@ -655,32 +607,6 @@ mod tests {
         log::error!("{error}");
       }
       reqwest::blocking::get(self.join_url(path)).unwrap()
-    }
-
-    fn put(&self, path: &str, content_type: &str, body: &str) -> reqwest::blocking::Response {
-      if let Err(error) = self.index.update() {
-        log::error!("{error}");
-      }
-
-      reqwest::blocking::Client::new()
-        .put(self.join_url(path))
-        .header(reqwest::header::CONTENT_TYPE, content_type)
-        .body(body.to_owned())
-        .send()
-        .unwrap()
-    }
-
-    fn assert_put(
-      &self,
-      path: &str,
-      content_type: &str,
-      body: &str,
-      expected_status: StatusCode,
-      expected_response: &str,
-    ) {
-      let response = self.put(path, content_type, body);
-      assert_eq!(response.status(), expected_status);
-      assert_eq!(response.text().unwrap(), expected_response);
     }
 
     fn join_url(&self, url: &str) -> Url {
@@ -1290,108 +1216,6 @@ mod tests {
       "/input/1/1/1",
       StatusCode::NOT_FOUND,
       "input /1/1/1 unknown",
-    );
-  }
-
-  #[test]
-  fn rune_not_found() {
-    TestServer::new().assert_response(
-      "/rune/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b",
-      StatusCode::NOT_FOUND,
-      "rune 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b unknown",
-    );
-  }
-
-  #[test]
-  fn malformed_runes_are_rejected() {
-    TestServer::new().assert_put(
-      "/rune",
-      "application/json",
-      "{}",
-      StatusCode::UNPROCESSABLE_ENTITY,
-      "Failed to deserialize the JSON body into the target type: missing field `name` at line 1 column 2",
-    );
-  }
-
-  #[test]
-  fn rune_already_published() {
-    let test_server = TestServer::new();
-
-    test_server.assert_put(
-      "/rune",
-      "application/json",
-      r#"{"name": "foo", "chain": "regtest", "ordinal": 0}"#,
-      StatusCode::CREATED,
-      "8ca6ee12cb891766de56e5698a73cd6546f27a88bd27c8b8d914bc4162f9e4b5",
-    );
-
-    test_server.assert_put(
-      "/rune",
-      "application/json",
-      r#"{"name": "foo", "chain": "regtest", "ordinal": 0}"#,
-      StatusCode::OK,
-      "8ca6ee12cb891766de56e5698a73cd6546f27a88bd27c8b8d914bc4162f9e4b5",
-    );
-  }
-
-  #[test]
-  fn rune_hash_is_calculated_from_server_serialization() {
-    let test_server = TestServer::new();
-
-    test_server.assert_put(
-      "/rune",
-      "application/json",
-      r#"{"name": "foo", "chain": "regtest", "ordinal": 0}"#,
-      StatusCode::CREATED,
-      "8ca6ee12cb891766de56e5698a73cd6546f27a88bd27c8b8d914bc4162f9e4b5",
-    );
-
-    test_server.assert_put(
-      "/rune",
-      "application/json",
-      r#"{"chain": "regtest",    "name": "foo",   "ordinal": 0}"#,
-      StatusCode::OK,
-      "8ca6ee12cb891766de56e5698a73cd6546f27a88bd27c8b8d914bc4162f9e4b5",
-    );
-  }
-
-  #[test]
-  fn runes_with_incorrect_network_are_forbidden() {
-    TestServer::new().assert_put(
-      "/rune",
-      "application/json",
-      r#"{"name": "foo", "chain": "mainnet", "ordinal": 0}"#,
-      StatusCode::UNPROCESSABLE_ENTITY,
-      r#"this ord instance only accepts regtest runes for publication"#,
-    );
-  }
-
-  #[test]
-  fn runes_appear_on_inscribed_ordinal() {
-    let test_server = TestServer::new();
-
-    test_server.assert_put(
-      "/rune",
-      "application/json",
-      r#"{"name": "foo", "chain": "regtest", "ordinal": 0}"#,
-      StatusCode::CREATED,
-      "8ca6ee12cb891766de56e5698a73cd6546f27a88bd27c8b8d914bc4162f9e4b5",
-    );
-
-    test_server.assert_put(
-      "/rune",
-      "application/json",
-      r#"{"name": "bar", "chain": "regtest", "ordinal": 0}"#,
-      StatusCode::CREATED,
-      "72ed622edc0e3753891809c931075f0da2c39ba491d2d715140208f930411339",
-    );
-
-    test_server.assert_response_regex(
-      "/ordinal/0",
-      StatusCode::OK,
-      ".*<dt>inscriptions</dt>
-    <dd><a href=/rune/72ed622edc0e3753891809c931075f0da2c39ba491d2d715140208f930411339 class=monospace>72ed622edc0e3753891809c931075f0da2c39ba491d2d715140208f930411339</a></dd>
-    <dd><a href=/rune/8ca6ee12cb891766de56e5698a73cd6546f27a88bd27c8b8d914bc4162f9e4b5 class=monospace>8ca6ee12cb891766de56e5698a73cd6546f27a88bd27c8b8d914bc4162f9e4b5</a></dd>.*",
     );
   }
 
