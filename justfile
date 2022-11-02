@@ -93,8 +93,8 @@ download-log unit='ord' host='ordinals.com':
   ssh root@{{host}} 'mkdir -p tmp && journalctl -u {{unit}} > tmp/{{unit}}.log'
   rsync --progress root@{{host}}:tmp/{{unit}}.log tmp/{{unit}}.log
 
-graph:
-  ./bin/graph ord.log
+graph log:
+  ./bin/graph {{log}}
 
 flamegraph:
   CARGO_PROFILE_RELEASE_DEBUG=true sudo cargo flamegraph -- index
