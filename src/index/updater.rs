@@ -38,16 +38,19 @@ impl Updater {
     index: &'index Index,
     mut wtx: WriteTransaction<'index>,
   ) -> Result {
-    let mut progress_bar = if cfg!(test) || log_enabled!(log::Level::Info) {
-      None
-    } else {
-      let progress_bar = ProgressBar::new(index.client.get_block_count()?);
-      progress_bar.set_position(self.height);
-      progress_bar.set_style(
-        ProgressStyle::with_template("[indexing blocks] {wide_bar} {pos}/{len}").unwrap(),
-      );
-      Some(progress_bar)
-    };
+    let starting_height = index.client.get_block_count()? + 1;
+
+    let mut progress_bar =
+      if cfg!(test) || log_enabled!(log::Level::Info) || starting_height <= self.height {
+        None
+      } else {
+        let progress_bar = ProgressBar::new(starting_height);
+        progress_bar.set_position(self.height);
+        progress_bar.set_style(
+          ProgressStyle::with_template("[indexing blocks] {wide_bar} {pos}/{len}").unwrap(),
+        );
+        Some(progress_bar)
+      };
 
     let rx = Self::fetch_blocks_from(
       index,
@@ -73,7 +76,7 @@ impl Updater {
         progress_bar.inc(1);
 
         if progress_bar.position() > progress_bar.length().unwrap() {
-          progress_bar.set_length(index.client.get_block_count()?);
+          progress_bar.set_length(index.client.get_block_count()? + 1);
         }
       }
 
