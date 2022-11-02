@@ -41,12 +41,18 @@ impl Updater {
     let mut progress_bar = if cfg!(test) || log_enabled!(log::Level::Info) {
       None
     } else {
-      let progress_bar = ProgressBar::new(index.client.get_block_count()?);
-      progress_bar.set_position(self.height);
-      progress_bar.set_style(
-        ProgressStyle::with_template("[indexing blocks] {wide_bar} {pos}/{len}").unwrap(),
-      );
-      Some(progress_bar)
+      let chain_height = index.client.get_block_count()? + 1;
+
+      if chain_height > self.height {
+        let progress_bar = ProgressBar::new(chain_height);
+        progress_bar.set_position(self.height);
+        progress_bar.set_style(
+          ProgressStyle::with_template("[indexing blocks] {wide_bar} {pos}/{len}").unwrap(),
+        );
+        Some(progress_bar)
+      } else {
+        None
+      }
     };
 
     let rx = Self::fetch_blocks_from(
@@ -73,7 +79,7 @@ impl Updater {
         progress_bar.inc(1);
 
         if progress_bar.position() > progress_bar.length().unwrap() {
-          progress_bar.set_length(index.client.get_block_count()?);
+          progress_bar.set_length(index.client.get_block_count()? + 1);
         }
       }
 
