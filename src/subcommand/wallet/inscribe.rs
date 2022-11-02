@@ -1,16 +1,14 @@
 use super::*;
 
-// - add code to look for runes
-// - make sure index can find transaction from signet
-// - prime ordinal
-// - avoid sending rare ordinals
-// - enforce `ord-` wallet prefix
-//
-// - top level: inscription
-// - inscribes runes onto ordinals
-// - consider using tree hash so data can easily be retrieved piecemeal
-// - can only inscribe ordinals you own
-// - save commit descriptor to wallet
+// TODO:
+// - what to initially commit to?
+//   - name
+//   - description
+//   - blob of text
+// - display inscriptions on ordinal page
+// - add a version number
+// - what to do about change?
+// - how to avoid losing reveal transaction and thus rendering commit transaction unspendable?
 
 use bitcoin::{
   blockdata::{opcodes, script},
@@ -57,22 +55,9 @@ impl Inscribe {
 
     let utxos = list_unspent(&options, &index)?;
 
-    let ordinal = utxos
-      .iter()
-      .find_map(|(_outpoint, ranges)| {
-        ranges.iter().find_map(|(start, end)| {
-          if end - start > 0 {
-            Some(Ordinal(*start))
-          } else {
-            None
-          }
-        })
-      })
-      .ok_or_else(|| anyhow!("No utxos in wallet for inscription"))?;
-
     let commit_tx = TransactionBuilder::build_transaction(
       utxos.into_iter().collect(),
-      ordinal,
+      self.ordinal,
       address.clone(),
       Vec::new(), // TODO: What to do about change?
     )?;
