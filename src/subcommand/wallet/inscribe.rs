@@ -1,10 +1,7 @@
 use super::*;
 
 // TODO:
-// - what to initially commit to?
-//   - name
-//   - description
-//   - blob of text
+// - add symbol
 // - display inscriptions on ordinal page
 // - add a version number
 // - what to do about change?
@@ -22,6 +19,7 @@ use bitcoin::{
 #[derive(Debug, Parser)]
 pub(crate) struct Inscribe {
   ordinal: Ordinal,
+  symbol: Symbol,
 }
 
 impl Inscribe {
