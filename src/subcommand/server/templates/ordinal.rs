@@ -4,7 +4,6 @@ use super::*;
 pub(crate) struct OrdinalHtml {
   pub(crate) ordinal: Ordinal,
   pub(crate) blocktime: Blocktime,
-  pub(crate) inscriptions: Vec<sha256::Hash>,
 }
 
 impl Content for OrdinalHtml {
@@ -23,7 +22,6 @@ mod tests {
       OrdinalHtml {
         ordinal: Ordinal(0),
         blocktime: Blocktime::Confirmed(0),
-        inscriptions: Vec::new(),
       }
       .to_string(),
       "
@@ -40,7 +38,6 @@ mod tests {
           <dt>offset</dt><dd>0</dd>
           <dt>rarity</dt><dd><span class=mythic>mythic</span></dd>
           <dt>time</dt><dd>1970-01-01 00:00:00</dd>
-          <dt>inscriptions</dt>
         </dl>
         <a>prev</a>
         <a href=/ordinal/1>next</a>
@@ -55,7 +52,6 @@ mod tests {
       OrdinalHtml {
         ordinal: Ordinal(1),
         blocktime: Blocktime::Confirmed(0),
-        inscriptions: Vec::new(),
       }
       .to_string(),
       "
@@ -72,7 +68,6 @@ mod tests {
           <dt>offset</dt><dd>1</dd>
           <dt>rarity</dt><dd><span class=common>common</span></dd>
           <dt>time</dt><dd>1970-01-01 00:00:00</dd>
-          <dt>inscriptions</dt>
         </dl>
         <a href=/ordinal/0>prev</a>
         <a href=/ordinal/2>next</a>

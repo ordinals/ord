@@ -6,8 +6,7 @@ use {
 
 pub(crate) use {
   block::BlockHtml, clock::ClockSvg, home::HomeHtml, input::InputHtml, ordinal::OrdinalHtml,
-  output::OutputHtml, range::RangeHtml, rare::RareTxt, rune::RuneHtml,
-  transaction::TransactionHtml,
+  output::OutputHtml, range::RangeHtml, rare::RareTxt, transaction::TransactionHtml,
 };
 
 mod block;
@@ -18,7 +17,6 @@ mod ordinal;
 mod output;
 mod range;
 mod rare;
-mod rune;
 mod transaction;
 
 #[derive(Boilerplate)]

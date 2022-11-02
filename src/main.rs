@@ -13,7 +13,6 @@ use {
     options::Options,
     ordinal::Ordinal,
     rarity::Rarity,
-    rune::Rune,
     sat_point::SatPoint,
     subcommand::Subcommand,
     tally::Tally,
@@ -23,7 +22,7 @@ use {
     blockdata::constants::COIN_VALUE,
     consensus::{self, Decodable, Encodable},
     hash_types::BlockHash,
-    hashes::{sha256, Hash},
+    hashes::Hash,
     Address, Amount, Block, OutPoint, Script, Sequence, Transaction, TxIn, TxOut, Txid,
   },
   bitcoincore_rpc::RpcApi,
@@ -32,7 +31,6 @@ use {
   clap::Parser,
   derive_more::{Display, FromStr},
   regex::Regex,
-  reqwest::Url,
   serde::{Deserialize, Serialize},
   std::{
     cmp::Ordering,
@@ -75,7 +73,6 @@ mod index;
 mod options;
 mod ordinal;
 mod rarity;
-mod rune;
 mod sat_point;
 mod subcommand;
 mod tally;

@@ -7,7 +7,6 @@ mod info;
 mod list;
 mod parse;
 mod range;
-mod rune;
 mod server;
 mod supply;
 mod traits;
@@ -22,8 +21,6 @@ pub(crate) enum Subcommand {
   List(list::List),
   Parse(parse::Parse),
   Range(range::Range),
-  #[clap(subcommand)]
-  Rune(rune::Rune),
   Server(server::Server),
   Supply,
   Traits(traits::Traits),
@@ -41,7 +38,6 @@ impl Subcommand {
       Self::List(list) => list.run(options),
       Self::Parse(parse) => parse.run(),
       Self::Range(range) => range.run(),
-      Self::Rune(rune) => rune.run(options),
       Self::Server(server) => {
         let index = Arc::new(Index::open(&options)?);
         let handle = axum_server::Handle::new();
