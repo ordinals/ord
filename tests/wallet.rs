@@ -168,7 +168,7 @@ fn marked_ordinals_are_not_sent() {
   CommandBuilder::new("--data-dir . wallet send 5000000000 bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh")
     .write("marked_ordinals.tsv", "nvtcsezkbth")
     .rpc_server(&rpc_server)
-    .expected_stderr("error: transaction would also send marked ordinal 5000000000\n")
+    .expected_stderr("error: transaction would lose marked ordinal nvtcsezkbth to recipient\n")
     .expected_exit_code(1)
     .run();
 }

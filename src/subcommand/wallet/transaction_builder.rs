@@ -38,7 +38,7 @@ pub(crate) enum Error {
   NotEnoughCardinalUtxos,
   RareOrdinalLostToRecipient(Ordinal),
   RareOrdinalLostToFee(Ordinal),
-  MarkedOrdinalSent(Ordinal),
+  MarkedOrdinalLostToRecipient(String),
 }
 
 impl fmt::Display for Error {
@@ -56,8 +56,8 @@ impl fmt::Display for Error {
       Error::RareOrdinalLostToFee(ordinal) => {
         write!(f, "transaction would lose rare ordinal {ordinal} to fee")
       }
-      Error::MarkedOrdinalSent(ordinal) => {
-        write!(f, "transaction would also send marked ordinal {ordinal}")
+      Error::MarkedOrdinalLostToRecipient(ordinal) => {
+        write!(f, "transaction would lose marked ordinal {ordinal} to recipient")
       }
     }
   }
@@ -75,7 +75,7 @@ pub(crate) struct TransactionBuilder {
   ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
   recipient: Address,
   utxos: BTreeSet<OutPoint>,
-  marked_ordinals: Vec<Ordinal>,
+  marked_ordinals: Vec<(Ordinal, String)>,
 }
 
 type Result<T> = std::result::Result<T, Error>;
@@ -90,7 +90,7 @@ impl TransactionBuilder {
     ordinal: Ordinal,
     recipient: Address,
     change: Vec<Address>,
-    marked_ordinals: Vec<Ordinal>,
+    marked_ordinals: Vec<(Ordinal, String)>,
   ) -> Result<Transaction> {
     Self::new(ranges, ordinal, recipient, change, marked_ordinals)
       .select_ordinal()?
@@ -107,7 +107,7 @@ impl TransactionBuilder {
     ordinal: Ordinal,
     recipient: Address,
     change: Vec<Address>,
-    marked_ordinals: Vec<Ordinal>,
+    marked_ordinals: Vec<(Ordinal, String)>,
   ) -> Self {
     Self {
       change_addresses: change.iter().cloned().collect(),
@@ -481,10 +481,10 @@ impl TransactionBuilder {
         let matches = self
           .marked_ordinals
           .iter()
-          .find(|ordinal| ordinal.n() >= *start && ordinal.n() < *end);
+          .find(|(ordinal, _name)| ordinal.n() >= *start && ordinal.n() < *end);
 
-        if let Some(ordinal) = matches {
-          return Err(Error::MarkedOrdinalSent(*ordinal));
+        if let Some((_ordinal, user_representation)) = matches {
+          return Err(Error::MarkedOrdinalLostToRecipient(user_representation.clone()));
         }
       }
     }

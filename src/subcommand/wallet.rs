@@ -21,6 +21,28 @@ fn list_unspent(options: &Options, index: &Index) -> Result<Vec<(OutPoint, Vec<(
     })
     .collect()
 }
+fn parse_tsv(tsv: &str) -> Result<Vec<(Ordinal, String)>> {
+  let mut ordinals = Vec::new();
+  for (i, line) in tsv.lines().enumerate() {
+    if line.is_empty() || line.starts_with('#') {
+      continue;
+    }
+
+    if let Some(value) = line.split('\t').next() {
+      let ordinal = Ordinal::from_str(value).map_err(|err| {
+        anyhow!(
+          "failed to parse ordinal from string \"{value}\" on line {}: {err}",
+          i + 1,
+        )
+      })?;
+
+      ordinals.push((ordinal, value.to_string()));
+    }
+  }
+  ordinals.sort();
+
+  Ok(ordinals)
+}
 
 #[derive(Debug, Parser)]
 pub(crate) enum Wallet {
