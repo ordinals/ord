@@ -4,6 +4,7 @@ pub struct Updater {
   cache: HashMap<[u8; 36], Vec<u8>>,
   outputs_traversed: u64,
   outputs_cached: u64,
+  ordinal_ranges_since_flush: u64,
   outputs_inserted_since_flush: u64,
   height: u64,
 }
@@ -25,6 +26,7 @@ impl Updater {
       outputs_traversed: 0,
       outputs_cached: 0,
       outputs_inserted_since_flush: 0,
+      ordinal_ranges_since_flush: 0,
       height,
     };
 
@@ -201,6 +203,7 @@ impl Updater {
     if h.subsidy() > 0 {
       let start = h.starting_ordinal();
       coinbase_inputs.push_front((start.n(), (start + h.subsidy()).n()));
+      self.ordinal_ranges_since_flush += 1;
     }
 
     for (tx_offset, tx) in block.txdata.iter().enumerate().skip(1) {
@@ -301,6 +304,7 @@ impl Updater {
         let count = range.1 - range.0;
 
         let assigned = if count > remaining {
+          self.ordinal_ranges_since_flush += 1;
           let middle = range.0 + remaining;
           input_ordinal_ranges.push_front((middle, range.1));
           (range.0, middle)
@@ -357,6 +361,13 @@ impl Updater {
     }
 
     Index::increment_statistic(&wtx, Statistic::OutputsTraversed, self.outputs_traversed)?;
+    self.outputs_traversed = 0;
+    Index::increment_statistic(
+      &wtx,
+      Statistic::OrdinalRanges,
+      self.ordinal_ranges_since_flush,
+    )?;
+    self.ordinal_ranges_since_flush = 0;
     Index::increment_statistic(&wtx, Statistic::Commits, 1)?;
     wtx.commit()?;
     Ok(())
