@@ -159,3 +159,16 @@ fn send_on_mainnnet_refuses_to_work_with_wallet_with_high_balance() {
     .expected_exit_code(1)
     .run();
 }
+
+#[test]
+fn marked_ordinals_are_not_sent() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "ord");
+  rpc_server.mine_blocks_with_subsidy(1, 1_000_000);
+
+  CommandBuilder::new("--data-dir . wallet send 5000000000 bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh")
+    .write("marked_ordinals.tsv", "nvtcsezkbth")
+    .rpc_server(&rpc_server)
+    .expected_stderr("error: transaction would also send marked ordinal 5000000000\n")
+    .expected_exit_code(1)
+    .run();
+}

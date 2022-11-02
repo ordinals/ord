@@ -38,6 +38,7 @@ pub(crate) enum Error {
   NotEnoughCardinalUtxos,
   RareOrdinalLostToRecipient(Ordinal),
   RareOrdinalLostToFee(Ordinal),
+  MarkedOrdinalSent(Ordinal),
 }
 
 impl fmt::Display for Error {
@@ -55,6 +56,9 @@ impl fmt::Display for Error {
       Error::RareOrdinalLostToFee(ordinal) => {
         write!(f, "transaction would lose rare ordinal {ordinal} to fee")
       }
+      Error::MarkedOrdinalSent(ordinal) => {
+        write!(f, "transaction would also send marked ordinal {ordinal}")
+      }
     }
   }
 }
@@ -71,6 +75,7 @@ pub(crate) struct TransactionBuilder {
   ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
   recipient: Address,
   utxos: BTreeSet<OutPoint>,
+  marked_ordinals: Vec<Ordinal>,
 }
 
 type Result<T> = std::result::Result<T, Error>;
@@ -85,8 +90,9 @@ impl TransactionBuilder {
     ordinal: Ordinal,
     recipient: Address,
     change: Vec<Address>,
+    marked_ordinals: Vec<Ordinal>,
   ) -> Result<Transaction> {
-    Self::new(ranges, ordinal, recipient, change)
+    Self::new(ranges, ordinal, recipient, change, marked_ordinals)
       .select_ordinal()?
       .align_ordinal()
       .pad_alignment_output()?
@@ -101,6 +107,7 @@ impl TransactionBuilder {
     ordinal: Ordinal,
     recipient: Address,
     change: Vec<Address>,
+    marked_ordinals: Vec<Ordinal>,
   ) -> Self {
     Self {
       change_addresses: change.iter().cloned().collect(),
@@ -111,6 +118,7 @@ impl TransactionBuilder {
       ranges,
       recipient,
       unused_change_addresses: change,
+      marked_ordinals,
     }
   }
 
@@ -468,6 +476,19 @@ impl TransactionBuilder {
       }
     }
 
+    for input in &transaction.input {
+      for (start, end) in &self.ranges[&input.previous_output] {
+        let matches = self
+          .marked_ordinals
+          .iter()
+          .find(|ordinal| ordinal.n() >= *start && ordinal.n() < *end);
+
+        if let Some(ordinal) = matches {
+          return Err(Error::MarkedOrdinalSent(*ordinal));
+        }
+      }
+    }
+
     Ok(transaction)
   }
 
@@ -563,6 +584,7 @@ mod tests {
       Ordinal(51 * COIN_VALUE),
       recipient(),
       vec![change(0), change(1)],
+      vec![],
     )
     .select_ordinal()
     .unwrap();
@@ -602,6 +624,7 @@ mod tests {
         (change(0), Amount::from_sat(5_000)),
         (change(1), Amount::from_sat(1_360)),
       ],
+      marked_ordinals: vec![],
     };
 
     pretty_assert_eq!(
@@ -629,6 +652,7 @@ mod tests {
         Ordinal(10_000),
         recipient(),
         vec![change(0), change(1)],
+        vec![],
       ),
       Ok(Transaction {
         version: 1,
@@ -649,6 +673,7 @@ mod tests {
       Ordinal(14_950),
       recipient(),
       vec![change(0), change(1)],
+      vec![],
     )
     .select_ordinal()
     .unwrap()
@@ -670,6 +695,7 @@ mod tests {
         Ordinal(14_950),
         recipient(),
         vec![change(0), change(1)],
+        vec![],
       ),
       Ok(Transaction {
         version: 1,
@@ -690,6 +716,7 @@ mod tests {
         Ordinal(14_950),
         recipient(),
         vec![change(0), change(1)],
+        vec![],
       ),
       Err(Error::NotEnoughCardinalUtxos),
     )
@@ -708,6 +735,7 @@ mod tests {
         Ordinal(14_950),
         recipient(),
         vec![change(0), change(1)],
+        vec![],
       ),
       Err(Error::NotEnoughCardinalUtxos),
     )
@@ -726,6 +754,7 @@ mod tests {
         Ordinal(14_950),
         recipient(),
         vec![change(0), change(1)],
+        vec![],
       ),
       Ok(Transaction {
         version: 1,
@@ -748,6 +777,7 @@ mod tests {
       Ordinal(2),
       recipient(),
       vec![change(0), change(1)],
+      vec![],
     )
     .build()
     .unwrap();
@@ -761,6 +791,7 @@ mod tests {
       Ordinal(2),
       recipient(),
       vec![change(0), change(1)],
+      vec![],
     )
     .build()
     .unwrap();
@@ -774,6 +805,7 @@ mod tests {
       Ordinal(2),
       recipient(),
       vec![change(0), change(1)],
+      vec![],
     )
     .select_ordinal()
     .unwrap();
@@ -793,6 +825,7 @@ mod tests {
       Ordinal(2),
       recipient(),
       vec![change(0), change(1)],
+      vec![],
     )
     .select_ordinal()
     .unwrap();
@@ -811,7 +844,8 @@ mod tests {
         utxos.into_iter().collect(),
         Ordinal(0),
         recipient(),
-        vec![change(0), change(1)]
+        vec![change(0), change(1)],
+        vec![],
       ),
       Ok(Transaction {
         version: 1,
@@ -835,6 +869,7 @@ mod tests {
       Ordinal(0),
       recipient(),
       vec![change(0), change(1)],
+      vec![],
     )
     .select_ordinal()
     .unwrap()
@@ -851,7 +886,8 @@ mod tests {
         utxos.into_iter().collect(),
         Ordinal(3_333),
         recipient(),
-        vec![change(0), change(1)]
+        vec![change(0), change(1)],
+        vec![],
       ),
       Ok(Transaction {
         version: 1,
@@ -874,7 +910,8 @@ mod tests {
         utxos.into_iter().collect(),
         Ordinal(1),
         recipient(),
-        vec![change(0), change(1)]
+        vec![change(0), change(1)],
+        vec![],
       ),
       Ok(Transaction {
         version: 1,
@@ -895,6 +932,7 @@ mod tests {
       Ordinal(3_333),
       recipient(),
       vec![change(0), change(1)],
+      vec![],
     )
     .select_ordinal()
     .unwrap()
@@ -919,6 +957,7 @@ mod tests {
       Ordinal(1),
       recipient(),
       vec![change(0), change(1)],
+      vec![],
     )
     .select_ordinal()
     .unwrap()
@@ -941,6 +980,7 @@ mod tests {
       Ordinal(3_333),
       recipient(),
       vec![change(0), change(1)],
+      vec![],
     )
     .select_ordinal()
     .unwrap()
@@ -960,6 +1000,7 @@ mod tests {
       Ordinal(0),
       recipient(),
       vec![change(0), change(1)],
+      vec![],
     )
     .select_ordinal()
     .unwrap()
@@ -982,6 +1023,7 @@ mod tests {
         Ordinal(14_950),
         recipient(),
         vec![change(0), change(1),],
+        vec![],
       ),
       Ok(Transaction {
         version: 1,
@@ -1013,6 +1055,7 @@ mod tests {
         (recipient(), Amount::from_sat(5_000)),
         (change(1), Amount::from_sat(1_774)),
       ],
+      marked_ordinals: vec![],
     }
     .build()
     .unwrap();
@@ -1039,6 +1082,7 @@ mod tests {
         (change(0), Amount::from_sat(5_000)),
         (change(0), Amount::from_sat(1_774)),
       ],
+      marked_ordinals: vec![],
     }
     .build()
     .unwrap();
@@ -1054,6 +1098,7 @@ mod tests {
         Ordinal(24_000),
         recipient(),
         vec![change(0), change(1),],
+        vec![],
       ),
       Err(Error::RareOrdinalLostToRecipient(Ordinal(0)))
     )
@@ -1069,6 +1114,7 @@ mod tests {
         Ordinal(24_000),
         recipient(),
         vec![change(0), change(1),],
+        vec![],
       ),
       Err(Error::RareOrdinalLostToFee(Ordinal(0)))
     )

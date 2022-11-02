@@ -42,8 +42,36 @@ impl Send {
         .context("could not get change addresses from wallet")?,
     ];
 
-    let unsigned_transaction =
-      TransactionBuilder::build_transaction(utxos, self.ordinal, self.address, change)?;
+    let mut marked_ordinals = Vec::new();
+    if let Ok(marked_ordinals_file) = fs::read_to_string(format!(
+      "{}/marked_ordinals.tsv",
+      options.data_dir().unwrap().display()
+    )) {
+      for (i, line) in marked_ordinals_file.lines().enumerate() {
+        if line.is_empty() || line.starts_with('#') {
+          continue;
+        }
+
+        if let Some(value) = line.split('\t').next() {
+          let ordinal = Ordinal::from_str(value).map_err(|err| {
+            anyhow!(
+              "failed to parse ordinal from string \"{value}\" on line {}: {err}",
+              i + 1,
+            )
+          })?;
+          marked_ordinals.push(ordinal);
+        }
+      }
+      marked_ordinals.sort();
+    }
+
+    let unsigned_transaction = TransactionBuilder::build_transaction(
+      utxos,
+      self.ordinal,
+      self.address,
+      change,
+      marked_ordinals,
+    )?;
 
     let signed_tx = client
       .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?

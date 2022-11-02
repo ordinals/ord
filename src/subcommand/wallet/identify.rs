@@ -110,6 +110,7 @@ fn identify_from_tsv(
 #[cfg(test)]
 mod tests {
   use super::*;
+  use std::fmt::Write;
 
   #[test]
   fn identify_no_rare_ordinals() {
@@ -276,7 +277,7 @@ mod tests {
 
     let mut tsv = String::new();
     for i in 0..start / COIN_VALUE {
-      tsv.push_str(&format!("{}\n", i * COIN_VALUE));
+      writeln!(tsv, "{}", i * COIN_VALUE).ok();
     }
 
     let start = Instant::now();
