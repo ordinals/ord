@@ -12,6 +12,7 @@ use super::*;
 // - can we use key from wallet?
 // - change address vs new address?
 // - ignore multiple inscriptions
+// - refuse to re-inscribe ordinals
 
 use bitcoin::{
   blockdata::{opcodes, script},
