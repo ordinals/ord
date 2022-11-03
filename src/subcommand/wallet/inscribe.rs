@@ -11,7 +11,7 @@ use super::*;
 // - save transactions to disk somewhere
 // - can we use key from wallet?
 // - change address vs new address?
-// - escape inscription content
+// - ignore multiple inscriptions
 
 use bitcoin::{
   blockdata::{opcodes, script},
