@@ -13,6 +13,7 @@ use super::*;
 // - change address vs new address?
 // - ignore multiple inscriptions
 // - refuse to re-inscribe ordinals
+// - license
 
 use bitcoin::{
   blockdata::{opcodes, script},
