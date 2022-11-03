@@ -171,4 +171,8 @@ fn inscribe() {
   .rpc_server(&rpc_server)
   .stdout_regex("[[:xdigit:]]{64}\n[[:xdigit:]]{64}\n")
   .run();
+
+  // - start a server
+  // - do a request for the ordinal that's inscribed
+  // - make sure it shows up on the inscription page
 }
