@@ -83,6 +83,12 @@ mod tests {
     );
   }
 
+  50:    14
+  25:    13
+  12.5:  12
+   6.25: 11
+
+
   #[test]
   fn display() {
     assert_eq!(Symbol(0).to_string(), "A");
