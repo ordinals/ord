@@ -290,6 +290,7 @@ impl Server {
         blocktime: index.blocktime(ordinal.height()).map_err(|err| {
           ServerError::Internal(anyhow!("failed to retrieve blocktime from index: {err}"))
         })?,
+        inscription: None,
       }
       .page(),
     )

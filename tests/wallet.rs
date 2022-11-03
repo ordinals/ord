@@ -165,12 +165,17 @@ fn inscribe() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
   rpc_server.mine_blocks(1);
 
-  CommandBuilder::new(
-    "--chain regtest wallet inscribe 5000000000 tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw",
+  CommandBuilder::new("--chain regtest wallet inscribe 5000000000 HELLOWORLD")
+    .rpc_server(&rpc_server)
+    .stdout_regex("[[:xdigit:]]{64}\n[[:xdigit:]]{64}\n")
+    .run();
+
+  let ord_server = TestServer::spawn(&rpc_server);
+
+  ord_server.assert_response_regex(
+    "/ordinal/5000000000",
+    ".*<dt>inscriptions</dt><dd>HELLOWORLD</dd>.*",
   )
-  .rpc_server(&rpc_server)
-  .stdout_regex("[[:xdigit:]]{64}\n[[:xdigit:]]{64}\n")
-  .run();
 
   // - start a server
   // - do a request for the ordinal that's inscribed
