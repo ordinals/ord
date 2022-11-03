@@ -159,3 +159,16 @@ fn send_on_mainnnet_refuses_to_work_with_wallet_with_high_balance() {
     .expected_exit_code(1)
     .run();
 }
+
+#[test]
+fn inscribe() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  rpc_server.mine_blocks(1);
+
+  CommandBuilder::new(
+    "--chain regtest wallet inscribe 5000000000 tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw",
+  )
+  .rpc_server(&rpc_server)
+  .stdout_regex("[[:xdigit:]]{64}\n[[:xdigit:]]{64}\n")
+  .run();
+}

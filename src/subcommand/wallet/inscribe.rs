@@ -10,6 +10,7 @@ use super::*;
 // - do everything that might error before transmitting anything
 // - save transactions to disk somewhere
 // - can we use key from wallet?
+// - change address vs new address?
 
 use bitcoin::{
   blockdata::{opcodes, script},
@@ -57,11 +58,20 @@ impl Inscribe {
 
     let utxos = list_unspent(&options, &index)?;
 
+    let change = vec![
+      client
+        .call("getrawchangeaddress", &[])
+        .context("could not get change addresses from wallet")?,
+      client
+        .call("getrawchangeaddress", &[])
+        .context("could not get change addresses from wallet")?,
+    ];
+
     let unsigned_commit_tx = TransactionBuilder::build_transaction(
       utxos.into_iter().collect(),
       self.ordinal,
       address.clone(),
-      Vec::new(),
+      change,
     )?;
 
     let (vout, output) = unsigned_commit_tx
@@ -84,8 +94,8 @@ impl Inscribe {
       .unwrap();
 
     let destination = client
-      .get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32))
-      .context("Failed to get new address")?;
+      .call::<Address>("getrawchangeaddress", &[])
+      .context("could not get change addresses from wallet")?;
 
     let mut reveal_tx = Transaction {
       input: vec![TxIn {
@@ -130,8 +140,6 @@ impl Inscribe {
     witness.push(&control_block.serialize());
 
     let reveal_txid = reveal_tx.txid();
-
-    eprintln!("Broadcasting reveal transaction: {reveal_txid}");
 
     client
       .send_raw_transaction(&reveal_tx)
