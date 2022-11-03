@@ -1,11 +1,15 @@
 use super::*;
 
 // TODO:
-// - add symbol
+// - sign transaction
+// - what to do about change?
 // - display inscriptions on ordinal page
 // - add a version number
-// - what to do about change?
 // - how to avoid losing reveal transaction and thus rendering commit transaction unspendable?
+// - should we sanity check the image? (make sure it's a PNG, etc)
+// - do everything that might error before transmitting anything
+// - save transactions to disk somewhere
+// - can we use key from wallet?
 
 use bitcoin::{
   blockdata::{opcodes, script},
@@ -19,7 +23,7 @@ use bitcoin::{
 #[derive(Debug, Parser)]
 pub(crate) struct Inscribe {
   ordinal: Ordinal,
-  symbol: Symbol,
+  content: String,
 }
 
 impl Inscribe {
@@ -39,7 +43,7 @@ impl Inscribe {
       .push_opcode(opcodes::all::OP_CHECKSIG)
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
-      .push_slice(b"ord")
+      .push_slice(self.content.as_bytes())
       .push_opcode(opcodes::all::OP_ENDIF)
       .into_script();
 
@@ -53,30 +57,30 @@ impl Inscribe {
 
     let utxos = list_unspent(&options, &index)?;
 
-    let commit_tx = TransactionBuilder::build_transaction(
+    let unsigned_commit_tx = TransactionBuilder::build_transaction(
       utxos.into_iter().collect(),
       self.ordinal,
       address.clone(),
-      Vec::new(), // TODO: What to do about change?
+      Vec::new(),
     )?;
 
-    let commit_txid = commit_tx.txid();
-
-    eprintln!("Broadcasting commit transaction: {commit_txid}");
-
-    client
-      .send_raw_transaction(&commit_tx)
-      .context("Failed to send commit transaction")?;
-
-    let control_block = taproot_spend_info
-      .control_block(&(script.clone(), LeafVersion::TapScript))
-      .unwrap();
-
-    let (vout, output) = commit_tx
+    let (vout, output) = unsigned_commit_tx
       .output
       .iter()
       .enumerate()
       .find(|(_vout, output)| output.script_pubkey == address.script_pubkey())
+      .unwrap();
+
+    let signed_raw_commit_tx = client
+      .sign_raw_transaction_with_wallet(&unsigned_commit_tx, None, None)?
+      .hex;
+
+    let commit_txid = client
+      .send_raw_transaction(&signed_raw_commit_tx)
+      .context("Failed to send commit transaction")?;
+
+    let control_block = taproot_spend_info
+      .control_block(&(script.clone(), LeafVersion::TapScript))
       .unwrap();
 
     let destination = client
@@ -106,7 +110,7 @@ impl Inscribe {
     let signature_hash = sighash_cache
       .taproot_script_spend_signature_hash(
         0,
-        &Prevouts::All(&[&commit_tx.output[vout]]),
+        &Prevouts::All(&[output]),
         TapLeafHash::from_script(&script, LeafVersion::TapScript),
         SchnorrSighashType::Default,
       )

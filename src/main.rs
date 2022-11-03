@@ -15,7 +15,6 @@ use {
     rarity::Rarity,
     sat_point::SatPoint,
     subcommand::Subcommand,
-    symbol::Symbol,
     tally::Tally,
   },
   anyhow::{anyhow, bail, Context, Error},
@@ -76,7 +75,6 @@ mod ordinal;
 mod rarity;
 mod sat_point;
 mod subcommand;
-mod symbol;
 mod tally;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
