@@ -4,7 +4,7 @@ use super::*;
 pub(crate) struct OrdinalHtml {
   pub(crate) ordinal: Ordinal,
   pub(crate) blocktime: Blocktime,
-  pub(crate) inscription: Option<String>,
+  pub(crate) inscription: Option<Inscription>,
 }
 
 impl Content for OrdinalHtml {
@@ -85,7 +85,7 @@ mod tests {
       OrdinalHtml {
         ordinal: Ordinal(0),
         blocktime: Blocktime::Confirmed(0),
-        inscription: Some("HELLOWORLD".to_string()),
+        inscription: Some(Inscription("HELLOWORLD".to_string())),
       }
       .to_string(),
       "
@@ -117,7 +117,9 @@ mod tests {
       OrdinalHtml {
         ordinal: Ordinal(0),
         blocktime: Blocktime::Confirmed(0),
-        inscription: Some("<script>alert('HELLOWORLD');</script>".to_string()),
+        inscription: Some(Inscription(
+          "<script>alert('HELLOWORLD');</script>".to_string()
+        )),
       }
       .to_string(),
       "

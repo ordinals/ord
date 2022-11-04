@@ -176,6 +176,7 @@ impl Updater {
   ) -> Result<()> {
     let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
     let mut ordinal_to_satpoint = wtx.open_table(ORDINAL_TO_SATPOINT)?;
+    let mut ordinal_to_inscription = wtx.open_table(ORDINAL_TO_INSCRIPTION)?;
     let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
 
     let start = Instant::now();
@@ -240,6 +241,7 @@ impl Updater {
         txid,
         tx,
         &mut ordinal_to_satpoint,
+        &mut ordinal_to_inscription,
         &mut input_ordinal_ranges,
         &mut ordinal_ranges_written,
         &mut outputs_in_block,
@@ -253,6 +255,7 @@ impl Updater {
         tx.txid(),
         tx,
         &mut ordinal_to_satpoint,
+        &mut ordinal_to_inscription,
         &mut coinbase_inputs,
         &mut ordinal_ranges_written,
         &mut outputs_in_block,
@@ -277,13 +280,15 @@ impl Updater {
     txid: Txid,
     tx: &Transaction,
     ordinal_to_satpoint: &mut Table<u64, [u8; 44]>,
+    ordinal_to_inscription: &mut Table<u64, str>,
     input_ordinal_ranges: &mut VecDeque<(u64, u64)>,
     ordinal_ranges_written: &mut u64,
     outputs_traversed: &mut u64,
   ) -> Result {
     for tx_in in &tx.input {
-      if let Some(_) = Inscription::from_witness(&tx_in.witness) {
-        todo!();
+      if let Some(inscription) = Inscription::from_witness(&tx_in.witness) {
+        // TODO: actually handle this correctly
+        ordinal_to_inscription.insert(&input_ordinal_ranges[0].0, &inscription.0)?;
       }
     }
 

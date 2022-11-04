@@ -170,6 +170,8 @@ fn inscribe() {
     .stdout_regex("[[:xdigit:]]{64}\n[[:xdigit:]]{64}\n")
     .run();
 
+  rpc_server.mine_blocks(1);
+
   let ord_server = TestServer::spawn(&rpc_server);
 
   ord_server.assert_response_regex(

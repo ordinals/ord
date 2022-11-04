@@ -332,6 +332,17 @@ impl Index {
     self.client.get_block(&hash).into_option()
   }
 
+  pub(crate) fn inscription(&self, ordinal: Ordinal) -> Result<Option<Inscription>> {
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(ORDINAL_TO_INSCRIPTION)?
+        .get(&ordinal.n())?
+        .map(|inscription| Inscription(inscription.to_owned())),
+    )
+  }
+
   pub(crate) fn transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
     if txid == self.genesis_block_coinbase_txid {
       Ok(Some(self.genesis_block_coinbase_transaction.clone()))
