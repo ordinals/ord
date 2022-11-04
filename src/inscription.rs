@@ -240,17 +240,11 @@ mod tests {
     );
   }
 
-  // #[test]
-  // #[ignore]
-  // fn only_extract_inscriptions_from_taproot_outputs() {
-  //   // version 1
-  //   // 32 byte witenss program
-  //   todo!()
-  // }
-
-  // #[test]
-  // #[ignore]
-  // fn invalid_scripts_are_ignored() {
-  //   todo!()
-  // }
+  #[test]
+  #[ignore]
+  fn only_extract_inscriptions_from_taproot_outputs() {
+    // version 1
+    // 32 byte witenss program
+    todo!()
+  }
 }
