@@ -281,6 +281,12 @@ impl Updater {
     ordinal_ranges_written: &mut u64,
     outputs_traversed: &mut u64,
   ) -> Result {
+    for tx_in in &tx.input {
+      if let Some(_) = Inscription::from_witness(&tx_in.witness) {
+        todo!();
+      }
+    }
+
     for (vout, output) in tx.output.iter().enumerate() {
       let outpoint = OutPoint {
         vout: vout as u32,

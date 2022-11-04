@@ -174,7 +174,7 @@ fn inscribe() {
 
   ord_server.assert_response_regex(
     "/ordinal/5000000000",
-    ".*<dt>inscriptions</dt><dd>HELLOWORLD</dd>.*",
+    ".*<dt>inscription</dt><dd>HELLOWORLD</dd>.*",
   )
 
   // - start a server
