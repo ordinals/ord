@@ -1,8 +1,7 @@
 use super::*;
 use bitcoin::{
   secp256k1::{rand, KeyPair, Secp256k1, XOnlyPublicKey},
-  Witness,
-  Address,
+  Address, Witness,
 };
 
 pub(crate) struct Server {

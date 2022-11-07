@@ -285,7 +285,7 @@ impl Updater {
     ordinal_ranges_written: &mut u64,
     outputs_traversed: &mut u64,
   ) -> Result {
-    for (ordinal, inscription) in Inscription::from_transaction(tx, input_ordinal_ranges) {
+    if let Some((ordinal, inscription)) = Inscription::from_transaction(tx, input_ordinal_ranges) {
       ordinal_to_inscription.insert(&ordinal.n(), &inscription.0)?;
     }
 

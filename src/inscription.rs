@@ -1,5 +1,5 @@
 use {
-  crate::{Ordinal, OutPoint, Sequence, Transaction, TxIn, VecDeque},
+  crate::{Ordinal, Transaction, VecDeque},
   bitcoin::{
     blockdata::{
       opcodes,
@@ -22,15 +22,16 @@ impl Inscription {
   pub(crate) fn from_transaction(
     tx: &Transaction,
     input_ordinal_ranges: &VecDeque<(u64, u64)>,
-  ) -> Vec<(Ordinal, Inscription)> {
-    let mut inscriptions = Vec::new();
+  ) -> Option<(Ordinal, Inscription)> {
     if let Some(tx_in) = tx.input.get(0) {
       if let Some(inscription) = Inscription::from_witness(&tx_in.witness) {
-        inscriptions.push((Ordinal(0), inscription));
+        if let Some((start, _end)) = input_ordinal_ranges.get(0) {
+          return Some((Ordinal(*start), inscription));
+        }
       }
     }
 
-    inscriptions
+    None
   }
 }
 
@@ -62,7 +63,7 @@ impl<'a> InscriptionParser<'a> {
     if witness.len() > 1
       && witness
         .last()
-        .and_then(|element| element.get(0).map(|byte| *byte == TAPROOT_ANNEX_PREFIX))
+        .and_then(|element| element.first().map(|byte| *byte == TAPROOT_ANNEX_PREFIX))
         .unwrap_or(false)
     {
       witness.pop();
@@ -135,6 +136,7 @@ impl<'a> InscriptionParser<'a> {
 #[cfg(test)]
 mod tests {
   use super::*;
+  use crate::{Ordinal, OutPoint, Sequence, Transaction, TxIn, VecDeque};
 
   #[test]
   fn empty() {
@@ -285,11 +287,75 @@ mod tests {
       output: Vec::new(),
     };
 
-    let ranges = VecDeque::new();
+    let mut ranges = VecDeque::new();
+    ranges.push_back((1, 10));
 
     assert_eq!(
       Inscription::from_transaction(&tx, &ranges),
-      &[(Ordinal(0), Inscription("ord".into()))]
+      Some((Ordinal(1), Inscription("ord".into())))
     );
+  }
+
+  #[test]
+  fn extract_from_zero_value_transaction() {
+    let script = script::Builder::new()
+      .push_opcode(opcodes::all::OP_CHECKSIG)
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
+      .push_slice("ord".as_bytes())
+      .push_opcode(opcodes::all::OP_ENDIF)
+      .into_script();
+
+    let tx = Transaction {
+      version: 0,
+      lock_time: bitcoin::PackedLockTime(0),
+      input: vec![TxIn {
+        previous_output: OutPoint::null(),
+        script_sig: Script::new(),
+        sequence: Sequence(0),
+        witness: Witness::from_vec(vec![script.into_bytes(), vec![]]),
+      }],
+      output: Vec::new(),
+    };
+
+    let ranges = VecDeque::new();
+
+    assert_eq!(Inscription::from_transaction(&tx, &ranges), None);
+  }
+
+  #[test]
+  fn do_not_extract_from_second_input() {
+    let script = script::Builder::new()
+      .push_opcode(opcodes::all::OP_CHECKSIG)
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
+      .push_slice("ord".as_bytes())
+      .push_opcode(opcodes::all::OP_ENDIF)
+      .into_script();
+
+    let tx = Transaction {
+      version: 0,
+      lock_time: bitcoin::PackedLockTime(0),
+      input: vec![
+        TxIn {
+          previous_output: OutPoint::null(),
+          script_sig: Script::new(),
+          sequence: Sequence(0),
+          witness: Witness::new(),
+        },
+        TxIn {
+          previous_output: OutPoint::null(),
+          script_sig: Script::new(),
+          sequence: Sequence(0),
+          witness: Witness::from_vec(vec![script.into_bytes(), vec![]]),
+        },
+      ],
+      output: Vec::new(),
+    };
+
+    let mut ranges = VecDeque::new();
+    ranges.push_back((1, 10));
+
+    assert_eq!(Inscription::from_transaction(&tx, &ranges), None,);
   }
 }
