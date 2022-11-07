@@ -1,20 +1,5 @@
 use super::*;
 
-// TODO:
-// - sign transaction
-// - what to do about change?
-// - display inscriptions on ordinal page
-// - add a version number
-// - how to avoid losing reveal transaction and thus rendering commit transaction unspendable?
-// - should we sanity check the image? (make sure it's a PNG, etc)
-// - do everything that might error before transmitting anything
-// - save transactions to disk somewhere
-// - can we use key from wallet?
-// - change address vs new address?
-// - ignore multiple inscriptions
-// - refuse to re-inscribe ordinals
-// - license
-
 use bitcoin::{
   blockdata::{opcodes, script},
   secp256k1::{self, rand, KeyPair, Secp256k1, XOnlyPublicKey},

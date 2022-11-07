@@ -181,6 +181,37 @@ mod tests {
   #[test]
   fn valid() {
     let script = script::Builder::new()
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
+      .push_slice("ord".as_bytes())
+      .push_opcode(opcodes::all::OP_ENDIF)
+      .into_script();
+
+    assert_eq!(
+      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
+      Ok(Inscription("ord".into()))
+    );
+  }
+
+  #[test]
+  fn valid_ignore_trailing() {
+    let script = script::Builder::new()
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
+      .push_slice("ord".as_bytes())
+      .push_opcode(opcodes::all::OP_ENDIF)
+      .push_opcode(opcodes::all::OP_CHECKSIG)
+      .into_script();
+
+    assert_eq!(
+      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
+      Ok(Inscription("ord".into()))
+    );
+  }
+
+  #[test]
+  fn valid_ignore_preceding() {
+    let script = script::Builder::new()
       .push_opcode(opcodes::all::OP_CHECKSIG)
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
@@ -197,7 +228,6 @@ mod tests {
   #[test]
   fn invalid_utf8() {
     let script = script::Builder::new()
-      .push_opcode(opcodes::all::OP_CHECKSIG)
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
       .push_slice(&[0b10000000])
@@ -213,7 +243,6 @@ mod tests {
   #[test]
   fn no_endif() {
     let script = script::Builder::new()
-      .push_opcode(opcodes::all::OP_CHECKSIG)
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
       .push_slice("ord".as_bytes())
@@ -228,7 +257,6 @@ mod tests {
   #[test]
   fn no_content() {
     let script = script::Builder::new()
-      .push_opcode(opcodes::all::OP_CHECKSIG)
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
       .push_opcode(opcodes::all::OP_ENDIF)
@@ -243,7 +271,6 @@ mod tests {
   #[test]
   fn unrecognized_content() {
     let script = script::Builder::new()
-      .push_opcode(opcodes::all::OP_CHECKSIG)
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
       .push_slice("ord".as_bytes())
@@ -258,17 +285,8 @@ mod tests {
   }
 
   #[test]
-  #[ignore]
-  fn only_extract_inscriptions_from_taproot_outputs() {
-    // version 1
-    // 32 byte witenss program
-    todo!()
-  }
-
-  #[test]
   fn extract_from_transaction() {
     let script = script::Builder::new()
-      .push_opcode(opcodes::all::OP_CHECKSIG)
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
       .push_slice("ord".as_bytes())
@@ -299,7 +317,6 @@ mod tests {
   #[test]
   fn extract_from_zero_value_transaction() {
     let script = script::Builder::new()
-      .push_opcode(opcodes::all::OP_CHECKSIG)
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
       .push_slice("ord".as_bytes())
@@ -326,7 +343,6 @@ mod tests {
   #[test]
   fn do_not_extract_from_second_input() {
     let script = script::Builder::new()
-      .push_opcode(opcodes::all::OP_CHECKSIG)
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
       .push_slice("ord".as_bytes())
