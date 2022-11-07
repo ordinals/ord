@@ -146,7 +146,7 @@ impl Api for Server {
   }
 
   fn get_block_count(&self) -> Result<u64, jsonrpc_core::Error> {
-    Ok(self.state().hashes.len().try_into().unwrap())
+    Ok(self.state().hashes.len().saturating_sub(1).try_into().unwrap())
   }
 
   fn get_wallet_info(&self) -> Result<GetWalletInfoResult, jsonrpc_core::Error> {

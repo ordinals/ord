@@ -1,11 +1,13 @@
 use super::*;
 use crate::command_builder::ToArgs;
+use bitcoincore_rpc::{Auth, Client, RpcApi};
 
 pub(crate) struct TestServer {
   child: Child,
   port: u16,
   #[allow(unused)]
   tempdir: TempDir,
+  rpc_url: String,
 }
 
 impl TestServer {
@@ -45,6 +47,7 @@ impl TestServer {
       child,
       tempdir,
       port,
+      rpc_url: rpc_server.url(),
     }
   }
 
@@ -53,6 +56,20 @@ impl TestServer {
   }
 
   pub(crate) fn assert_response_regex(&self, path: &str, regex: &str) {
+    let client = Client::new(&self.rpc_url, Auth::None).unwrap();
+    let chain_height = client.get_block_count().unwrap();
+
+    for i in 0.. {
+      let response = reqwest::blocking::get(self.url().join("/height").unwrap()).unwrap();
+      assert_eq!(response.status(), StatusCode::OK);
+      if response.text().unwrap().parse::<u64>().unwrap() == chain_height {
+        break;
+      } else if i == 20 {
+        panic!("index failed to synchronize with chain");
+      }
+      thread::sleep(Duration::from_millis(25));
+    }
+
     let response = reqwest::blocking::get(self.url().join(path).unwrap()).unwrap();
     assert_eq!(response.status(), StatusCode::OK);
     assert_regex_match!(response.text().unwrap(), regex);
