@@ -288,7 +288,7 @@ impl Updater {
     for tx_in in &tx.input {
       if let Some(inscription) = Inscription::from_witness(&tx_in.witness) {
         // TODO: actually handle this correctly
-        ordinal_to_inscription.insert(&input_ordinal_ranges[0].0, &inscription.0)?;
+        ordinal_to_inscription.insert(dbg!(&input_ordinal_ranges[0].0), dbg!(&inscription.0))?;
       }
     }
 

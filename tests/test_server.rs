@@ -1,4 +1,5 @@
 use super::*;
+use crate::command_builder::ToArgs;
 
 pub(crate) struct TestServer {
   child: Child,
@@ -17,15 +18,15 @@ impl TestServer {
       .local_addr()
       .unwrap()
       .port();
-    let child = CommandBuilder::new(format!(
+
+    let child = Command::new(executable_path("ord")).args(format!(
       "--chain regtest --rpc-url {} --bitcoin-data-dir {} --data-dir {} server --http-port {port} --address 127.0.0.1",
       rpc_server.url(),
       tempdir.path().display(),
       tempdir.path().display()
-    ))
-    .command()
-    .spawn()
-    .unwrap();
+    ).to_args()).env("HOME", tempdir.path())
+      .current_dir(&tempdir)
+      .spawn().unwrap();
 
     for i in 0.. {
       match reqwest::blocking::get(&format!("http://127.0.0.1:{port}/status")) {
