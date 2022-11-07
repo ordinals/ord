@@ -285,11 +285,8 @@ impl Updater {
     ordinal_ranges_written: &mut u64,
     outputs_traversed: &mut u64,
   ) -> Result {
-    for tx_in in &tx.input {
-      if let Some(inscription) = Inscription::from_witness(&tx_in.witness) {
-        // TODO: actually handle this correctly
-        ordinal_to_inscription.insert(&input_ordinal_ranges[0].0, &inscription.0)?;
-      }
+    for (ordinal, inscription) in Inscription::from_transaction(tx, input_ordinal_ranges) {
+      ordinal_to_inscription.insert(&ordinal.n(), &inscription.0)?;
     }
 
     for (vout, output) in tx.output.iter().enumerate() {

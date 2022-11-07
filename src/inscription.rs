@@ -1,4 +1,5 @@
 use {
+  crate::{Ordinal, OutPoint, Sequence, Transaction, TxIn, VecDeque},
   bitcoin::{
     blockdata::{
       opcodes,
@@ -16,6 +17,20 @@ pub(crate) struct Inscription(pub(crate) String);
 impl Inscription {
   pub(crate) fn from_witness(witness: &Witness) -> Option<Self> {
     InscriptionParser::parse(witness).ok()
+  }
+
+  pub(crate) fn from_transaction(
+    tx: &Transaction,
+    input_ordinal_ranges: &VecDeque<(u64, u64)>,
+  ) -> Vec<(Ordinal, Inscription)> {
+    let mut inscriptions = Vec::new();
+    if let Some(tx_in) = tx.input.get(0) {
+      if let Some(inscription) = Inscription::from_witness(&tx_in.witness) {
+        inscriptions.push((Ordinal(0), inscription));
+      }
+    }
+
+    inscriptions
   }
 }
 
@@ -246,5 +261,35 @@ mod tests {
     // version 1
     // 32 byte witenss program
     todo!()
+  }
+
+  #[test]
+  fn extract_from_transaction() {
+    let script = script::Builder::new()
+      .push_opcode(opcodes::all::OP_CHECKSIG)
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
+      .push_slice("ord".as_bytes())
+      .push_opcode(opcodes::all::OP_ENDIF)
+      .into_script();
+
+    let tx = Transaction {
+      version: 0,
+      lock_time: bitcoin::PackedLockTime(0),
+      input: vec![TxIn {
+        previous_output: OutPoint::null(),
+        script_sig: Script::new(),
+        sequence: Sequence(0),
+        witness: Witness::from_vec(vec![script.into_bytes(), vec![]]),
+      }],
+      output: Vec::new(),
+    };
+
+    let ranges = VecDeque::new();
+
+    assert_eq!(
+      Inscription::from_transaction(&tx, &ranges),
+      &[(Ordinal(0), Inscription("ord".into()))]
+    );
   }
 }

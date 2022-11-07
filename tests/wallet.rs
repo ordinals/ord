@@ -178,8 +178,24 @@ fn inscribe() {
     "/ordinal/5000000000",
     ".*<dt>inscription</dt><dd>HELLOWORLD</dd>.*",
   )
+}
 
-  // - start a server
-  // - do a request for the ordinal that's inscribed
-  // - make sure it shows up on the inscription page
+#[test]
+fn inscribe_at_offset() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  rpc_server.mine_blocks(1);
+
+  CommandBuilder::new("--chain regtest wallet inscribe 7500000000 HELLOWORLD")
+    .rpc_server(&rpc_server)
+    .stdout_regex("[[:xdigit:]]{64}\n[[:xdigit:]]{64}\n")
+    .run();
+
+  rpc_server.mine_blocks(1);
+
+  let ord_server = TestServer::spawn(&rpc_server);
+
+  ord_server.assert_response_regex(
+    "/ordinal/7500000000",
+    ".*<dt>inscription</dt><dd>HELLOWORLD</dd>.*",
+  )
 }
