@@ -213,6 +213,25 @@ mod tests {
   }
 
   #[test]
+  fn valid_ignore_inscriptions_after_first() {
+    let script = script::Builder::new()
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
+      .push_slice("foo".as_bytes())
+      .push_opcode(opcodes::all::OP_ENDIF)
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
+      .push_slice("bar".as_bytes())
+      .push_opcode(opcodes::all::OP_ENDIF)
+      .into_script();
+
+    assert_eq!(
+      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
+      Ok(Inscription("foo".into()))
+    );
+  }
+
+  #[test]
   fn invalid_utf8() {
     let script = script::Builder::new()
       .push_opcode(opcodes::OP_FALSE)
