@@ -76,8 +76,8 @@ pub(crate) struct TransactionBuilder {
 type Result<T> = std::result::Result<T, Error>;
 
 impl TransactionBuilder {
+  pub(crate) const TARGET_FEE_RATE: Amount = Amount::from_sat(1);
   const MAX_POSTAGE: Amount = Amount::from_sat(2 * 10_000);
-  const TARGET_FEE_RATE: Amount = Amount::from_sat(1);
   const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
 
   pub(crate) fn build_transaction(
@@ -517,38 +517,6 @@ impl TransactionBuilder {
 #[cfg(test)]
 mod tests {
   use {super::Error, super::*};
-
-  fn recipient() -> Address {
-    "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
-      .parse()
-      .unwrap()
-  }
-
-  fn change(n: u64) -> Address {
-    match n {
-      0 => "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww",
-      1 => "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l",
-      _ => panic!(),
-    }
-    .parse()
-    .unwrap()
-  }
-
-  fn tx_in(previous_output: OutPoint) -> TxIn {
-    TxIn {
-      previous_output,
-      script_sig: Script::new(),
-      sequence: Sequence::MAX,
-      witness: Witness::new(),
-    }
-  }
-
-  fn tx_out(value: u64, address: Address) -> TxOut {
-    TxOut {
-      value,
-      script_pubkey: address.script_pubkey(),
-    }
-  }
 
   #[test]
   fn select_ordinal() {
