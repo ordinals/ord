@@ -1,5 +1,5 @@
 use {
-  crate::{Ordinal, Transaction, VecDeque},
+  super::*,
   bitcoin::{
     blockdata::{
       opcodes,
@@ -15,28 +15,20 @@ use {
 pub(crate) struct Inscription(pub(crate) String);
 
 impl Inscription {
-  pub(crate) fn from_witness(witness: &Witness) -> Option<Self> {
-    InscriptionParser::parse(witness).ok()
-  }
-
   pub(crate) fn from_transaction(
     tx: &Transaction,
     input_ordinal_ranges: &VecDeque<(u64, u64)>,
   ) -> Option<(Ordinal, Inscription)> {
-    if let Some(tx_in) = tx.input.get(0) {
-      if let Some(inscription) = Inscription::from_witness(&tx_in.witness) {
-        if let Some((start, _end)) = input_ordinal_ranges.get(0) {
-          return Some((Ordinal(*start), inscription));
-        }
-      }
-    }
+    let tx_in = tx.input.get(0)?;
+    let inscription = InscriptionParser::parse(&tx_in.witness).ok()?;
+    let (start, _end) = input_ordinal_ranges.get(0)?;
 
-    None
+    Some((Ordinal(*start), inscription))
   }
 }
 
 #[derive(Debug, PartialEq)]
-enum Error {
+enum InscriptionError {
   EmptyWitness,
   KeyPathSpend,
   Script(script::Error),
@@ -45,7 +37,7 @@ enum Error {
   InvalidInscription,
 }
 
-type Result<T, E = Error> = std::result::Result<T, E>;
+type Result<T, E = InscriptionError> = std::result::Result<T, E>;
 
 struct InscriptionParser<'a> {
   next: usize,
@@ -57,7 +49,7 @@ impl<'a> InscriptionParser<'a> {
     let mut witness = witness.to_vec();
 
     if witness.is_empty() {
-      return Err(Error::EmptyWitness);
+      return Err(InscriptionError::EmptyWitness);
     }
 
     if witness.len() > 1
@@ -70,7 +62,7 @@ impl<'a> InscriptionParser<'a> {
     }
 
     if witness.len() == 1 {
-      return Err(Error::KeyPathSpend);
+      return Err(InscriptionError::KeyPathSpend);
     }
 
     // remove control block
@@ -82,7 +74,7 @@ impl<'a> InscriptionParser<'a> {
     let instructions = script
       .instructions()
       .collect::<Result<Vec<Instruction>, script::Error>>()
-      .map_err(Error::Script)?;
+      .map_err(InscriptionError::Script)?;
 
     InscriptionParser {
       next: 0,
@@ -107,7 +99,7 @@ impl<'a> InscriptionParser<'a> {
     let next = self
       .instructions
       .get(self.next)
-      .ok_or(Error::NoInscription)?;
+      .ok_or(InscriptionError::NoInscription)?;
     self.next += 1;
     Ok(next.clone())
   }
@@ -117,13 +109,13 @@ impl<'a> InscriptionParser<'a> {
       let content = self.advance()?;
 
       let content = if let Instruction::PushBytes(bytes) = content {
-        str::from_utf8(bytes).map_err(Error::Utf8Decode)?
+        str::from_utf8(bytes).map_err(InscriptionError::Utf8Decode)?
       } else {
-        return Err(Error::InvalidInscription);
+        return Err(InscriptionError::InvalidInscription);
       };
 
       if self.advance()? != Instruction::Op(opcodes::all::OP_ENDIF) {
-        return Err(Error::InvalidInscription);
+        return Err(InscriptionError::InvalidInscription);
       }
 
       return Ok(Some(Inscription(content.to_string())));
@@ -136,13 +128,12 @@ impl<'a> InscriptionParser<'a> {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::{Ordinal, OutPoint, Sequence, Transaction, TxIn, VecDeque};
 
   #[test]
   fn empty() {
     assert_eq!(
       InscriptionParser::parse(&Witness::new()),
-      Err(Error::EmptyWitness)
+      Err(InscriptionError::EmptyWitness)
     );
   }
 
@@ -150,7 +141,7 @@ mod tests {
   fn ignore_key_path_spends() {
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![vec![]])),
-      Err(Error::KeyPathSpend),
+      Err(InscriptionError::KeyPathSpend),
     );
   }
 
@@ -158,7 +149,7 @@ mod tests {
   fn ignore_key_path_spends_with_annex() {
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![vec![], vec![0x50]])),
-      Err(Error::KeyPathSpend),
+      Err(InscriptionError::KeyPathSpend),
     );
   }
 
@@ -166,7 +157,7 @@ mod tests {
   fn ignore_unparsable_scripts() {
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![vec![0x01], vec![]])),
-      Err(Error::Script(script::Error::EarlyEndOfScript)),
+      Err(InscriptionError::Script(script::Error::EarlyEndOfScript)),
     );
   }
 
@@ -174,7 +165,7 @@ mod tests {
   fn no_inscription() {
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![Script::new().into_bytes(), vec![]])),
-      Err(Error::NoInscription),
+      Err(InscriptionError::NoInscription),
     );
   }
 
@@ -236,7 +227,7 @@ mod tests {
 
     assert!(matches!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
-      Err(Error::Utf8Decode(_)),
+      Err(InscriptionError::Utf8Decode(_)),
     ));
   }
 
@@ -250,7 +241,7 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
-      Err(Error::NoInscription)
+      Err(InscriptionError::NoInscription)
     );
   }
 
@@ -264,7 +255,7 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
-      Err(Error::InvalidInscription)
+      Err(InscriptionError::InvalidInscription)
     );
   }
 
@@ -280,7 +271,7 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
-      Err(Error::InvalidInscription)
+      Err(InscriptionError::InvalidInscription)
     );
   }
 
