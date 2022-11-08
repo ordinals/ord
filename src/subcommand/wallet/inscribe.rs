@@ -40,9 +40,9 @@ impl Inscribe {
 
     let taproot_spend_info = TaprootBuilder::new()
       .add_leaf(0, script.clone())
-      .unwrap()
+      .expect("adding leaf should work")
       .finalize(&secp256k1, public_key)
-      .unwrap();
+      .expect("finalizing taproot builder should work");
 
     let address = Address::p2tr_tweaked(taproot_spend_info.output_key(), options.chain.network());
 
@@ -69,7 +69,7 @@ impl Inscribe {
       .iter()
       .enumerate()
       .find(|(_vout, output)| output.script_pubkey == address.script_pubkey())
-      .unwrap();
+      .expect("should find ordinal commit/inscription output");
 
     let mut signed_raw_commit_tx = client
       .sign_raw_transaction_with_wallet(&unsigned_commit_tx, None, None)?
@@ -77,7 +77,7 @@ impl Inscribe {
 
     let control_block = taproot_spend_info
       .control_block(&(script.clone(), LeafVersion::TapScript))
-      .unwrap();
+      .expect("should compute control block");
 
     let destination = client
       .call::<Address>("getrawchangeaddress", &[])
@@ -112,14 +112,17 @@ impl Inscribe {
         TapLeafHash::from_script(&script, LeafVersion::TapScript),
         SchnorrSighashType::Default,
       )
-      .unwrap();
+      .expect("signature hash should compute");
 
     let signature = secp256k1.sign_schnorr(
-      &secp256k1::Message::from_slice(signature_hash.as_inner()).unwrap(),
+      &secp256k1::Message::from_slice(signature_hash.as_inner())
+        .expect("should be cryptographically secure hash"),
       &key_pair,
     );
 
-    let witness = sighash_cache.witness_mut(0).unwrap();
+    let witness = sighash_cache
+      .witness_mut(0)
+      .expect("getting mutable witness reference should work");
     witness.push(signature.as_ref());
     witness.push(script);
     witness.push(&control_block.serialize());
@@ -132,9 +135,8 @@ impl Inscribe {
       .send_raw_transaction(&reveal_tx)
       .context("Failed to send reveal transaction")?;
 
-    println!("{commit_txid}");
-    println!("{reveal_txid}");
-
+    println!("commit\t{commit_txid}");
+    println!("reveal\t{reveal_txid}");
     Ok(())
   }
 }

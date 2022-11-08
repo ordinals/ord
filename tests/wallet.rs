@@ -167,7 +167,7 @@ fn inscribe() {
 
   CommandBuilder::new("--chain regtest wallet inscribe 5000000000 HELLOWORLD")
     .rpc_server(&rpc_server)
-    .stdout_regex("[[:xdigit:]]{64}\n[[:xdigit:]]{64}\n")
+    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
     .run();
 
   rpc_server.mine_blocks(1);
@@ -187,7 +187,7 @@ fn inscribe_at_offset() {
 
   CommandBuilder::new("--chain regtest wallet inscribe 7500000000 HELLOWORLD")
     .rpc_server(&rpc_server)
-    .stdout_regex("[[:xdigit:]]{64}\n[[:xdigit:]]{64}\n")
+    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
     .run();
 
   rpc_server.mine_blocks(1);
