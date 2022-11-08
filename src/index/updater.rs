@@ -40,17 +40,22 @@ impl Updater {
   ) -> Result {
     let starting_height = index.client.get_block_count()? + 1;
 
-    let mut progress_bar =
-      if cfg!(test) || log_enabled!(log::Level::Info) || starting_height <= self.height {
-        None
-      } else {
-        let progress_bar = ProgressBar::new(starting_height);
-        progress_bar.set_position(self.height);
-        progress_bar.set_style(
-          ProgressStyle::with_template("[indexing blocks] {wide_bar} {pos}/{len}").unwrap(),
-        );
-        Some(progress_bar)
-      };
+    let mut progress_bar = if cfg!(test)
+      || log_enabled!(log::Level::Info)
+      || starting_height <= self.height
+      || env::var_os("ORD_DISABLE_PROGRESS_BAR")
+        .map(|value| value.len() > 0)
+        .unwrap_or(false)
+    {
+      None
+    } else {
+      let progress_bar = ProgressBar::new(starting_height);
+      progress_bar.set_position(self.height);
+      progress_bar.set_style(
+        ProgressStyle::with_template("[indexing blocks] {wide_bar} {pos}/{len}").unwrap(),
+      );
+      Some(progress_bar)
+    };
 
     let rx = Self::fetch_blocks_from(
       index,

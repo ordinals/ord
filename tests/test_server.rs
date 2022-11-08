@@ -26,7 +26,9 @@ impl TestServer {
       rpc_server.url(),
       tempdir.path().display(),
       tempdir.path().display()
-    ).to_args()).env("HOME", tempdir.path())
+    ).to_args())
+      .env("HOME", tempdir.path())
+      .env("ORD_DISABLE_PROGRESS_BAR", "1")
       .current_dir(&tempdir)
       .spawn().unwrap();
 
