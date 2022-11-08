@@ -48,14 +48,7 @@ impl Inscribe {
 
     let utxos = list_unspent(&options, &index)?;
 
-    let change = vec![
-      client
-        .call("getrawchangeaddress", &[])
-        .context("could not get change addresses from wallet")?,
-      client
-        .call("getrawchangeaddress", &[])
-        .context("could not get change addresses from wallet")?,
-    ];
+    let change = get_change_addresses(&options, 2)?;
 
     let unsigned_commit_tx = TransactionBuilder::build_transaction(
       utxos.into_iter().collect(),
@@ -79,9 +72,7 @@ impl Inscribe {
       .control_block(&(script.clone(), LeafVersion::TapScript))
       .expect("should compute control block");
 
-    let destination = client
-      .call::<Address>("getrawchangeaddress", &[])
-      .context("could not get change addresses from wallet")?;
+    let destination = get_change_addresses(&options, 1)?[0].clone();
 
     let mut reveal_tx = Transaction {
       input: vec![TxIn {

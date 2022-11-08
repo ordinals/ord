@@ -23,6 +23,21 @@ fn list_unspent(options: &Options, index: &Index) -> Result<Vec<(OutPoint, Vec<(
     .collect()
 }
 
+fn get_change_addresses(options: &Options, n: usize) -> Result<Vec<Address>> {
+  let client = options.bitcoin_rpc_client()?;
+
+  let mut addresses = Vec::new();
+  for _ in 0..n {
+    addresses.push(
+      client
+        .call("getrawchangeaddress", &[])
+        .context("could not get change addresses from wallet")?
+    );
+  }
+
+  Ok(addresses)
+}
+
 #[derive(Debug, Parser)]
 pub(crate) enum Wallet {
   Identify(identify::Identify),
