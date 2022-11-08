@@ -1,7 +1,6 @@
 pub(crate) use {
-  super::*, pretty_assertions::assert_eq as pretty_assert_eq, tempfile::TempDir,
+  super::*, bitcoin::Witness, pretty_assertions::assert_eq as pretty_assert_eq, tempfile::TempDir,
   test_bitcoincore_rpc::TransactionTemplate, unindent::Unindent,
-  bitcoin::Witness,
 };
 
 macro_rules! assert_regex_match {

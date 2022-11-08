@@ -64,12 +64,11 @@ impl<'a> InscriptionParser<'a> {
 
     let script = witness
       .iter()
-      .skip(if annex {
+      .nth(if annex {
         witness.len() - 1
       } else {
         witness.len() - 2
       })
-      .next()
       .unwrap();
 
     InscriptionParser {
@@ -91,13 +90,11 @@ impl<'a> InscriptionParser<'a> {
   }
 
   fn advance(&mut self) -> Result<Instruction<'a>> {
-    Ok(
-      self
-        .instructions
-        .next()
-        .ok_or(InscriptionError::NoInscription)?
-        .map_err(InscriptionError::Script)?,
-    )
+    self
+      .instructions
+      .next()
+      .ok_or(InscriptionError::NoInscription)?
+      .map_err(InscriptionError::Script)
   }
 
   fn parse_inscription(&mut self) -> Result<Option<Inscription>> {
