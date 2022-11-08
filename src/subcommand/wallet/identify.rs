@@ -109,8 +109,7 @@ fn identify_from_tsv(
 
 #[cfg(test)]
 mod tests {
-  use super::*;
-  use std::fmt::Write;
+  use {super::*, std::fmt::Write};
 
   #[test]
   fn identify_no_rare_ordinals() {

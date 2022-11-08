@@ -1,12 +1,14 @@
-use super::*;
-
-use bitcoin::{
-  blockdata::{opcodes, script},
-  secp256k1::{self, rand, KeyPair, Secp256k1, XOnlyPublicKey},
-  util::sighash::{Prevouts, SighashCache},
-  util::taproot::TaprootBuilder,
-  util::taproot::{LeafVersion, TapLeafHash},
-  PackedLockTime, SchnorrSighashType, Witness,
+use {
+  super::*,
+  bitcoin::{
+    blockdata::{opcodes, script},
+    secp256k1::{self, rand, KeyPair, Secp256k1, XOnlyPublicKey},
+    util::psbt::serialize::Deserialize,
+    util::sighash::{Prevouts, SighashCache},
+    util::taproot::TaprootBuilder,
+    util::taproot::{LeafVersion, TapLeafHash},
+    PackedLockTime, SchnorrSighashType, Witness,
+  },
 };
 
 #[derive(Debug, Parser)]
@@ -69,13 +71,9 @@ impl Inscribe {
       .find(|(_vout, output)| output.script_pubkey == address.script_pubkey())
       .unwrap();
 
-    let signed_raw_commit_tx = client
+    let mut signed_raw_commit_tx = client
       .sign_raw_transaction_with_wallet(&unsigned_commit_tx, None, None)?
       .hex;
-
-    let commit_txid = client
-      .send_raw_transaction(&signed_raw_commit_tx)
-      .context("Failed to send commit transaction")?;
 
     let control_block = taproot_spend_info
       .control_block(&(script.clone(), LeafVersion::TapScript))
@@ -88,7 +86,9 @@ impl Inscribe {
     let mut reveal_tx = Transaction {
       input: vec![TxIn {
         previous_output: OutPoint {
-          txid: commit_txid,
+          txid: Transaction::deserialize(&mut signed_raw_commit_tx)
+            .unwrap()
+            .txid(),
           vout: vout as u32,
         },
         script_sig: script::Builder::new().into_script(),
@@ -120,16 +120,15 @@ impl Inscribe {
     );
 
     let witness = sighash_cache.witness_mut(0).unwrap();
-
     witness.push(signature.as_ref());
-
     witness.push(script);
-
     witness.push(&control_block.serialize());
 
-    let reveal_txid = reveal_tx.txid();
+    let commit_txid = client
+      .send_raw_transaction(&signed_raw_commit_tx)
+      .context("Failed to send commit transaction")?;
 
-    client
+    let reveal_txid = client
       .send_raw_transaction(&reveal_tx)
       .context("Failed to send reveal transaction")?;
 
