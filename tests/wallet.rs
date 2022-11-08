@@ -181,21 +181,13 @@ fn inscribe() {
 }
 
 #[test]
-fn inscribe_at_offset() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+fn inscribe_forbidden_on_mainnet() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "ord");
   rpc_server.mine_blocks(1);
 
-  CommandBuilder::new("--chain regtest wallet inscribe 7500000000 HELLOWORLD")
+  CommandBuilder::new("wallet inscribe 5000000000 HELLOWORLD")
     .rpc_server(&rpc_server)
-    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+    .expected_exit_code(1)
+    .expected_stderr("error: `ord wallet inscribe` is unstable and not yet supported on mainnet.\n")
     .run();
-
-  rpc_server.mine_blocks(1);
-
-  let ord_server = TestServer::spawn(&rpc_server);
-
-  ord_server.assert_response_regex(
-    "/ordinal/7500000000",
-    ".*<dt>inscription</dt><dd>HELLOWORLD</dd>.*",
-  )
 }
