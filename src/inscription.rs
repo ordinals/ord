@@ -3,7 +3,7 @@ use {
   bitcoin::{
     blockdata::{
       opcodes,
-      script::{self, Instruction},
+      script::{self, Instruction, Instructions},
     },
     util::taproot::TAPROOT_ANNEX_PREFIX,
     Script, Witness,
@@ -40,8 +40,7 @@ enum InscriptionError {
 type Result<T, E = InscriptionError> = std::result::Result<T, E>;
 
 struct InscriptionParser<'a> {
-  next: usize,
-  instructions: Vec<Instruction<'a>>,
+  instructions: Instructions<'a>,
 }
 
 impl<'a> InscriptionParser<'a> {
@@ -71,14 +70,8 @@ impl<'a> InscriptionParser<'a> {
     // extract script
     let script = Script::from(witness.pop().unwrap());
 
-    let instructions = script
-      .instructions()
-      .collect::<Result<Vec<Instruction>, script::Error>>()
-      .map_err(InscriptionError::Script)?;
-
     InscriptionParser {
-      next: 0,
-      instructions,
+      instructions: script.instructions(),
     }
     .parse_script()
   }
@@ -96,12 +89,13 @@ impl<'a> InscriptionParser<'a> {
   }
 
   fn advance(&mut self) -> Result<Instruction<'a>> {
-    let next = self
-      .instructions
-      .get(self.next)
-      .ok_or(InscriptionError::NoInscription)?;
-    self.next += 1;
-    Ok(next.clone())
+    Ok(
+      self
+        .instructions
+        .next()
+        .ok_or(InscriptionError::NoInscription)?
+        .map_err(InscriptionError::Script)?,
+    )
   }
 
   fn parse_inscription(&mut self) -> Result<Option<Inscription>> {
