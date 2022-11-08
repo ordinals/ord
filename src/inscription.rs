@@ -45,33 +45,35 @@ struct InscriptionParser<'a> {
 
 impl<'a> InscriptionParser<'a> {
   fn parse(witness: &Witness) -> Result<Inscription> {
-    let mut witness = witness.to_vec();
-
     if witness.is_empty() {
       return Err(InscriptionError::EmptyWitness);
-    }
-
-    if witness.len() > 1
-      && witness
-        .last()
-        .and_then(|element| element.first().map(|byte| *byte == TAPROOT_ANNEX_PREFIX))
-        .unwrap_or(false)
-    {
-      witness.pop();
     }
 
     if witness.len() == 1 {
       return Err(InscriptionError::KeyPathSpend);
     }
 
-    // remove control block
-    witness.pop().unwrap();
+    let annex = witness
+      .last()
+      .and_then(|element| element.first().map(|byte| *byte == TAPROOT_ANNEX_PREFIX))
+      .unwrap_or(false);
 
-    // extract script
-    let script = Script::from(witness.pop().unwrap());
+    if witness.len() == 2 && annex {
+      return Err(InscriptionError::KeyPathSpend);
+    }
+
+    let script = witness
+      .iter()
+      .skip(if annex {
+        witness.len() - 1
+      } else {
+        witness.len() - 2
+      })
+      .next()
+      .unwrap();
 
     InscriptionParser {
-      instructions: script.instructions(),
+      instructions: Script::from(Vec::from(script)).instructions(),
     }
     .parse_script()
   }
