@@ -138,7 +138,7 @@ mod tests {
   #[test]
   fn max_index_size_defaults() {
     assert_eq!(
-      Arguments::try_parse_from(&["ord", "index"])
+      Arguments::try_parse_from(["ord", "index"])
         .unwrap()
         .options
         .max_index_size(),
@@ -146,7 +146,7 @@ mod tests {
     );
 
     assert_eq!(
-      Arguments::try_parse_from(&["ord", "--chain=mainnet", "index"])
+      Arguments::try_parse_from(["ord", "--chain=mainnet", "index"])
         .unwrap()
         .options
         .max_index_size(),
@@ -154,7 +154,7 @@ mod tests {
     );
 
     assert_eq!(
-      Arguments::try_parse_from(&["ord", "--chain=signet", "index"])
+      Arguments::try_parse_from(["ord", "--chain=signet", "index"])
         .unwrap()
         .options
         .max_index_size(),
@@ -162,7 +162,7 @@ mod tests {
     );
 
     assert_eq!(
-      Arguments::try_parse_from(&["ord", "--chain=testnet", "index"])
+      Arguments::try_parse_from(["ord", "--chain=testnet", "index"])
         .unwrap()
         .options
         .max_index_size(),
@@ -170,7 +170,7 @@ mod tests {
     );
 
     assert_eq!(
-      Arguments::try_parse_from(&["ord", "--chain=regtest", "index"])
+      Arguments::try_parse_from(["ord", "--chain=regtest", "index"])
         .unwrap()
         .options
         .max_index_size(),
@@ -181,7 +181,7 @@ mod tests {
   #[test]
   fn max_index_size_override() {
     assert_eq!(
-      Arguments::try_parse_from(&["ord", "--max-index-size=1", "index"])
+      Arguments::try_parse_from(["ord", "--max-index-size=1", "index"])
         .unwrap()
         .options
         .max_index_size(),
@@ -192,7 +192,7 @@ mod tests {
   #[test]
   fn rpc_url_overrides_network() {
     assert_eq!(
-      Arguments::try_parse_from(&["ord", "--rpc-url=127.0.0.1:1234", "--chain=signet", "index"])
+      Arguments::try_parse_from(["ord", "--rpc-url=127.0.0.1:1234", "--chain=signet", "index"])
         .unwrap()
         .options
         .rpc_url(),
@@ -203,7 +203,7 @@ mod tests {
   #[test]
   fn cookie_file_overrides_network() {
     assert_eq!(
-      Arguments::try_parse_from(&["ord", "--cookie-file=/foo/bar", "--chain=signet", "index"])
+      Arguments::try_parse_from(["ord", "--cookie-file=/foo/bar", "--chain=signet", "index"])
         .unwrap()
         .options
         .cookie_file()
@@ -214,7 +214,7 @@ mod tests {
 
   #[test]
   fn use_default_network() {
-    let arguments = Arguments::try_parse_from(&["ord", "index"]).unwrap();
+    let arguments = Arguments::try_parse_from(["ord", "index"]).unwrap();
 
     assert_eq!(arguments.options.rpc_url(), "127.0.0.1:8332");
 
@@ -227,7 +227,7 @@ mod tests {
 
   #[test]
   fn uses_network_defaults() {
-    let arguments = Arguments::try_parse_from(&["ord", "--chain=signet", "index"]).unwrap();
+    let arguments = Arguments::try_parse_from(["ord", "--chain=signet", "index"]).unwrap();
 
     assert_eq!(arguments.options.rpc_url(), "127.0.0.1:38332");
 
@@ -242,7 +242,7 @@ mod tests {
 
   #[test]
   fn mainnet_cookie_file_path() {
-    let cookie_file = Arguments::try_parse_from(&["ord", "index"])
+    let cookie_file = Arguments::try_parse_from(["ord", "index"])
       .unwrap()
       .options
       .cookie_file()
@@ -259,7 +259,7 @@ mod tests {
 
   #[test]
   fn othernet_cookie_file_path() {
-    let arguments = Arguments::try_parse_from(&["ord", "--chain=signet", "index"]).unwrap();
+    let arguments = Arguments::try_parse_from(["ord", "--chain=signet", "index"]).unwrap();
 
     let cookie_file = arguments
       .options
@@ -278,7 +278,7 @@ mod tests {
   #[test]
   fn cookie_file_defaults_to_bitcoin_data_dir() {
     let arguments =
-      Arguments::try_parse_from(&["ord", "--bitcoin-data-dir=foo", "--chain=signet", "index"])
+      Arguments::try_parse_from(["ord", "--bitcoin-data-dir=foo", "--chain=signet", "index"])
         .unwrap();
 
     let cookie_file = arguments
@@ -293,7 +293,7 @@ mod tests {
 
   #[test]
   fn mainnet_data_dir() {
-    let data_dir = Arguments::try_parse_from(&["ord", "index"])
+    let data_dir = Arguments::try_parse_from(["ord", "index"])
       .unwrap()
       .options
       .data_dir()
@@ -305,7 +305,7 @@ mod tests {
 
   #[test]
   fn othernet_data_dir() {
-    let data_dir = Arguments::try_parse_from(&["ord", "--chain=signet", "index"])
+    let data_dir = Arguments::try_parse_from(["ord", "--chain=signet", "index"])
       .unwrap()
       .options
       .data_dir()
@@ -318,7 +318,7 @@ mod tests {
   #[test]
   fn network_is_joined_with_data_dir() {
     let data_dir =
-      Arguments::try_parse_from(&["ord", "--chain=signet", "--data-dir", "foo", "index"])
+      Arguments::try_parse_from(["ord", "--chain=signet", "--data-dir", "foo", "index"])
         .unwrap()
         .options
         .data_dir()
@@ -331,7 +331,7 @@ mod tests {
   #[test]
   fn network_accepts_aliases() {
     fn check_network_alias(alias: &str, suffix: &str) {
-      let data_dir = Arguments::try_parse_from(&["ord", "--chain", alias, "index"])
+      let data_dir = Arguments::try_parse_from(["ord", "--chain", alias, "index"])
         .unwrap()
         .options
         .data_dir()
@@ -359,7 +359,7 @@ mod tests {
     let cookie_file = tempdir.path().join(".cookie");
     fs::write(&cookie_file, "username:password").unwrap();
 
-    let options = Options::try_parse_from(&[
+    let options = Options::try_parse_from([
       "ord",
       "--cookie-file",
       cookie_file.to_str().unwrap(),

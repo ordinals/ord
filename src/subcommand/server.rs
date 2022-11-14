@@ -747,7 +747,7 @@ mod tests {
 
   #[test]
   fn acme_contact_accepts_multiple_values() {
-    assert!(Arguments::try_parse_from(&[
+    assert!(Arguments::try_parse_from([
       "ord",
       "server",
       "--address",
@@ -764,7 +764,7 @@ mod tests {
 
   #[test]
   fn acme_domain_accepts_multiple_values() {
-    assert!(Arguments::try_parse_from(&[
+    assert!(Arguments::try_parse_from([
       "ord",
       "server",
       "--address",
@@ -781,7 +781,7 @@ mod tests {
 
   #[test]
   fn acme_cache_defaults_to_data_dir() {
-    let arguments = Arguments::try_parse_from(&["ord", "--data-dir", "foo", "server"]).unwrap();
+    let arguments = Arguments::try_parse_from(["ord", "--data-dir", "foo", "server"]).unwrap();
     let acme_cache = Server::acme_cache(None, &arguments.options)
       .unwrap()
       .display()
@@ -792,7 +792,7 @@ mod tests {
   #[test]
   fn acme_cache_flag_is_respected() {
     let arguments =
-      Arguments::try_parse_from(&["ord", "--data-dir", "foo", "server", "--acme-cache", "bar"])
+      Arguments::try_parse_from(["ord", "--data-dir", "foo", "server", "--acme-cache", "bar"])
         .unwrap();
     let acme_cache = Server::acme_cache(Some(&"bar".into()), &arguments.options)
       .unwrap()

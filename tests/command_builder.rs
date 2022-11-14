@@ -101,7 +101,7 @@ impl CommandBuilder {
     if let Some(rpc_server_url) = &self.rpc_server_url {
       let cookiefile = self.tempdir.path().join("cookie");
       fs::write(&cookiefile, "username:password").unwrap();
-      command.args(&[
+      command.args([
         "--rpc-url",
         rpc_server_url,
         "--cookie-file",
