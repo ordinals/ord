@@ -2,7 +2,10 @@ use {
   super::*,
   bitcoin::{
     blockdata::{opcodes, script},
-    secp256k1::{self, rand, KeyPair, Secp256k1, XOnlyPublicKey},
+    secp256k1::{
+      self, constants::SCHNORR_SIGNATURE_SIZE, rand, schnorr::Signature, KeyPair, Secp256k1,
+      XOnlyPublicKey,
+    },
     util::sighash::{Prevouts, SighashCache},
     util::taproot::{LeafVersion, TapLeafHash, TaprootBuilder},
     PackedLockTime, SchnorrSighashType, Witness,
@@ -119,6 +122,29 @@ impl Inscribe {
       version: 1,
     };
 
+    let fee = {
+      let mut reveal_tx = reveal_tx.clone();
+
+      reveal_tx.input[0].witness.push(
+        Signature::from_slice(&[0; SCHNORR_SIGNATURE_SIZE])
+          .unwrap()
+          .as_ref(),
+      );
+      reveal_tx.input[0].witness.push(&script);
+      reveal_tx.input[0].witness.push(&control_block.serialize());
+
+      TransactionBuilder::TARGET_FEE_RATE * reveal_tx.vsize().try_into().unwrap()
+    };
+
+    reveal_tx.output[0].value = reveal_tx.output[0]
+      .value
+      .checked_sub(fee.to_sat())
+      .context("commit transaction output value insufficient to pay transaction fee")?;
+
+    if reveal_tx.output[0].value < reveal_tx.output[0].script_pubkey.dust_value().to_sat() {
+      bail!("commit transaction output would be dust");
+    }
+
     let mut sighash_cache = SighashCache::new(&mut reveal_tx);
 
     let signature_hash = sighash_cache
@@ -142,17 +168,6 @@ impl Inscribe {
     witness.push(signature.as_ref());
     witness.push(script);
     witness.push(&control_block.serialize());
-
-    let fee = TransactionBuilder::TARGET_FEE_RATE * reveal_tx.vsize().try_into().unwrap();
-
-    reveal_tx.output[0].value = reveal_tx.output[0]
-      .value
-      .checked_sub(fee.to_sat())
-      .context("commit transaction output value insufficient to pay transaction fee")?;
-
-    if reveal_tx.output[0].value < reveal_tx.output[0].script_pubkey.dust_value().to_sat() {
-      bail!("commit transaction output would be dust");
-    }
 
     Ok((unsigned_commit_tx, reveal_tx))
   }
