@@ -23,16 +23,6 @@ impl Send {
 
     let utxos = list_unspent(&options, &index)?.into_iter().collect();
 
-    if options.chain == Chain::Mainnet {
-      let balances = client.get_balances()?;
-
-      if balances.mine.trusted + balances.mine.untrusted_pending + balances.mine.immature
-        > Amount::from_sat(1_000_000)
-      {
-        bail!("`ord wallet send` may not be used on mainnet with wallets containing more than 1,000,000 sats");
-      }
-    }
-
     let change = get_change_addresses(&options, 2)?;
 
     let unsigned_transaction =

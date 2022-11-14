@@ -124,7 +124,9 @@ impl Options {
       let total = balances.mine.trusted + balances.mine.untrusted_pending + balances.mine.immature;
 
       if total > Amount::from_sat(1_000_000) {
-        bail!("`ord wallet send` may not be used on mainnet with wallets containing more than 1,000,000 sats");
+        bail!(
+          "`{command}` may not be used on mainnet with wallets containing more than 1,000,000 sats"
+        );
       }
     }
     Ok(client)
