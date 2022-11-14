@@ -144,7 +144,15 @@ impl Inscribe {
     witness.push(&control_block.serialize());
 
     let fee = TransactionBuilder::TARGET_FEE_RATE * reveal_tx.vsize().try_into().unwrap();
-    reveal_tx.output[0].value -= fee.to_sat();
+
+    reveal_tx.output[0].value = reveal_tx.output[0]
+      .value
+      .checked_sub(fee.to_sat())
+      .context("commit transaction output value insufficient to pay transaction fee")?;
+
+    if reveal_tx.output[0].value < reveal_tx.output[0].script_pubkey.dust_value().to_sat() {
+      bail!("commit transaction output would be dust");
+    }
 
     Ok((unsigned_commit_tx, reveal_tx))
   }
@@ -177,6 +185,53 @@ mod tests {
     assert_eq!(
       reveal_tx.output[0].value,
       5000 - fee.to_sat() - (5000 - commit_tx.output[0].value),
+    );
+  }
+
+  #[test]
+  fn reveal_transaction_value_insufficient_to_pay_fee() {
+    let utxos = vec![(outpoint(1), vec![(10_000, 11_000)])];
+    let content = ['a' as u8; 5000];
+    let ordinal = Ordinal(10_000);
+    let commit_address = change(0);
+    let reveal_address = recipient();
+
+    assert!(Inscribe::create_inscription_transactions(
+      ordinal,
+      &content,
+      bitcoin::Network::Signet,
+      utxos,
+      vec![commit_address, change(1)],
+      reveal_address,
+    )
+    .unwrap_err()
+    .to_string()
+    .contains("commit transaction output value insufficient to pay transaction fee"));
+  }
+
+  #[test]
+  fn reveal_transaction_would_create_dust() {
+    let utxos = vec![(outpoint(1), vec![(10_000, 10_600)])];
+    let content = ['a' as u8; 1];
+    let ordinal = Ordinal(10_000);
+    let commit_address = change(0);
+    let reveal_address = recipient();
+
+    let error = Inscribe::create_inscription_transactions(
+      ordinal,
+      &content,
+      bitcoin::Network::Signet,
+      utxos,
+      vec![commit_address, change(1)],
+      reveal_address,
+    )
+    .unwrap_err()
+    .to_string();
+
+    assert!(
+      error.contains("commit transaction output would be dust"),
+      "{}",
+      error
     );
   }
 }
