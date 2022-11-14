@@ -191,7 +191,7 @@ mod tests {
   #[test]
   fn reveal_transaction_value_insufficient_to_pay_fee() {
     let utxos = vec![(outpoint(1), vec![(10_000, 11_000)])];
-    let content = ['a' as u8; 5000];
+    let content = [b'a'; 5000];
     let ordinal = Ordinal(10_000);
     let commit_address = change(0);
     let reveal_address = recipient();
@@ -212,7 +212,7 @@ mod tests {
   #[test]
   fn reveal_transaction_would_create_dust() {
     let utxos = vec![(outpoint(1), vec![(10_000, 10_600)])];
-    let content = ['a' as u8; 1];
+    let content = [b'a'; 1];
     let ordinal = Ordinal(10_000);
     let commit_address = change(0);
     let reveal_address = recipient();
