@@ -1,5 +1,5 @@
 pub(crate) use {
-  super::*, pretty_assertions::assert_eq as pretty_assert_eq, tempfile::TempDir,
+  super::*, bitcoin::Witness, pretty_assertions::assert_eq as pretty_assert_eq, tempfile::TempDir,
   test_bitcoincore_rpc::TransactionTemplate, unindent::Unindent,
 };
 
@@ -25,4 +25,37 @@ pub(crate) fn outpoint(n: u64) -> OutPoint {
   }
 
   format!("{}:{}", hex.repeat(64), n).parse().unwrap()
+}
+
+pub(crate) fn recipient() -> Address {
+  "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
+    .parse()
+    .unwrap()
+}
+
+pub(crate) fn change(n: u64) -> Address {
+  match n {
+    0 => "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww",
+    1 => "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l",
+    2 => "tb1qxz9yk0td0yye009gt6ayn7jthz5p07a75luryg",
+    _ => panic!(),
+  }
+  .parse()
+  .unwrap()
+}
+
+pub(crate) fn tx_in(previous_output: OutPoint) -> TxIn {
+  TxIn {
+    previous_output,
+    script_sig: Script::new(),
+    sequence: Sequence::MAX,
+    witness: Witness::new(),
+  }
+}
+
+pub(crate) fn tx_out(value: u64, address: Address) -> TxOut {
+  TxOut {
+    value,
+    script_pubkey: address.script_pubkey(),
+  }
 }

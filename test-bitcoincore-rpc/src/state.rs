@@ -49,7 +49,8 @@ impl State {
             .mempool
             .iter()
             .map(|tx| {
-              tx.input
+              let fee = tx
+                .input
                 .iter()
                 .map(|txin| {
                   self.transactions[&txin.previous_output.txid].output
@@ -57,12 +58,17 @@ impl State {
                     .value
                 })
                 .sum::<u64>()
-                - tx.output.iter().map(|txout| txout.value).sum::<u64>()
+                - tx.output.iter().map(|txout| txout.value).sum::<u64>();
+              self.transactions.insert(tx.txid(), tx.clone());
+
+              fee
             })
             .sum::<u64>(),
         script_pubkey: Script::new(),
       }],
     };
+
+    self.transactions.insert(coinbase.txid(), coinbase.clone());
 
     let block = Block {
       header: BlockHeader {
@@ -78,9 +84,6 @@ impl State {
         .collect(),
     };
 
-    for tx in &block.txdata {
-      self.transactions.insert(tx.txid(), tx.clone());
-    }
     self.blocks.insert(block.block_hash(), block.clone());
     self.hashes.push(block.block_hash());
     self.nonce += 1;

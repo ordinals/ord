@@ -15,8 +15,7 @@ members = [".", "test-bitcoincore-rpc"]
 anyhow = { version = "1.0.56", features = ["backtrace"] }
 axum = "0.5.6"
 axum-server = "0.4.0"
-bitcoin = "0.29.1"
-ord-bitcoincore-rpc = "0.16.3"
+bitcoin = { version = "0.29.1", features = ["rand"] }
 boilerplate = { version = "0.2.1", features = ["axum"] }
 chrono = "0.4.19"
 clap = { version = "3.1.0", features = ["derive"] }
@@ -33,6 +32,7 @@ lazy_static = "1.4.0"
 log = "0.4.14"
 mime = "0.3.16"
 mime_guess = "2.0.4"
+ord-bitcoincore-rpc = "0.16.3"
 redb = "0.8.0"
 regex = "1.6.0"
 reqwest = { version = "0.11.10", features = ["blocking"] }

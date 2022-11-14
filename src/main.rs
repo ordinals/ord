@@ -10,6 +10,7 @@ use {
     epoch::Epoch,
     height::Height,
     index::{Index, List},
+    inscription::Inscription,
     options::Options,
     ordinal::Ordinal,
     rarity::Rarity,
@@ -70,6 +71,7 @@ mod degree;
 mod epoch;
 mod height;
 mod index;
+mod inscription;
 mod options;
 mod ordinal;
 mod rarity;

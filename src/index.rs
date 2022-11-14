@@ -16,11 +16,12 @@ mod updater;
 
 const HEIGHT_TO_BLOCK_HASH: TableDefinition<u64, [u8; 32]> =
   TableDefinition::new("HEIGHT_TO_BLOCK_HASH");
+const ORDINAL_TO_INSCRIPTION: TableDefinition<u64, str> =
+  TableDefinition::new("ORDINAL_TO_INSCRIPTION");
 const ORDINAL_TO_SATPOINT: TableDefinition<u64, [u8; 44]> =
   TableDefinition::new("ORDINAL_TO_SATPOINT");
 const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8; 36], [u8]> =
   TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
-const RUNE_HASH_TO_RUNE: TableDefinition<[u8; 32], str> = TableDefinition::new("RUNE_HASH_TO_RUNE");
 const STATISTIC_TO_COUNT: TableDefinition<u64, u64> = TableDefinition::new("STATISTIC_TO_COUNT");
 
 fn encode_outpoint(outpoint: OutPoint) -> [u8; 36] {
@@ -146,8 +147,8 @@ impl Index {
       tx
     };
 
-    tx.open_table(RUNE_HASH_TO_RUNE)?;
     tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
+    tx.open_table(ORDINAL_TO_INSCRIPTION)?;
     tx.open_table(ORDINAL_TO_SATPOINT)?;
     tx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
     tx.open_table(STATISTIC_TO_COUNT)?;
@@ -329,6 +330,17 @@ impl Index {
 
   pub(crate) fn block_with_hash(&self, hash: BlockHash) -> Result<Option<Block>> {
     self.client.get_block(&hash).into_option()
+  }
+
+  pub(crate) fn inscription(&self, ordinal: Ordinal) -> Result<Option<Inscription>> {
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(ORDINAL_TO_INSCRIPTION)?
+        .get(&ordinal.n())?
+        .map(|inscription| Inscription(inscription.to_owned())),
+    )
   }
 
   pub(crate) fn transaction(&self, txid: Txid) -> Result<Option<Transaction>> {

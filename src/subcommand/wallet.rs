@@ -1,6 +1,7 @@
-use super::*;
+use {super::*, transaction_builder::TransactionBuilder};
 
 mod identify;
+mod inscribe;
 mod list;
 mod send;
 mod transaction_builder;
@@ -22,9 +23,25 @@ fn list_unspent(options: &Options, index: &Index) -> Result<Vec<(OutPoint, Vec<(
     .collect()
 }
 
+fn get_change_addresses(options: &Options, n: usize) -> Result<Vec<Address>> {
+  let client = options.bitcoin_rpc_client()?;
+
+  let mut addresses = Vec::new();
+  for _ in 0..n {
+    addresses.push(
+      client
+        .call("getrawchangeaddress", &[])
+        .context("could not get change addresses from wallet")?,
+    );
+  }
+
+  Ok(addresses)
+}
+
 #[derive(Debug, Parser)]
 pub(crate) enum Wallet {
   Identify(identify::Identify),
+  Inscribe(inscribe::Inscribe),
   List,
   Send(send::Send),
 }
@@ -33,6 +50,7 @@ impl Wallet {
   pub(crate) fn run(self, options: Options) -> Result {
     match self {
       Self::Identify(identify) => identify.run(options),
+      Self::Inscribe(inscribe) => inscribe.run(options),
       Self::List => list::run(options),
       Self::Send(send) => send.run(options),
     }

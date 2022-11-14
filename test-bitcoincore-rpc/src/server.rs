@@ -1,4 +1,8 @@
 use super::*;
+use bitcoin::{
+  secp256k1::{rand, KeyPair, Secp256k1, XOnlyPublicKey},
+  Address, Witness,
+};
 
 pub(crate) struct Server {
   pub(crate) state: Arc<Mutex<State>>,
@@ -146,7 +150,15 @@ impl Api for Server {
   }
 
   fn get_block_count(&self) -> Result<u64, jsonrpc_core::Error> {
-    Ok(self.state().hashes.len().try_into().unwrap())
+    Ok(
+      self
+        .state()
+        .hashes
+        .len()
+        .saturating_sub(1)
+        .try_into()
+        .unwrap(),
+    )
   }
 
   fn get_wallet_info(&self) -> Result<GetWalletInfoResult, jsonrpc_core::Error> {
@@ -343,10 +355,11 @@ impl Api for Server {
   }
 
   fn get_raw_change_address(&self) -> Result<bitcoin::Address, jsonrpc_core::Error> {
-    Ok(
-      "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww"
-        .parse()
-        .unwrap(),
-    )
+    let secp256k1 = Secp256k1::new();
+    let key_pair = KeyPair::new(&secp256k1, &mut rand::thread_rng());
+    let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);
+    let address = Address::p2tr(&secp256k1, public_key, None, self.network);
+
+    Ok(address)
   }
 }

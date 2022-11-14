@@ -1,4 +1,4 @@
-use {super::*, transaction_builder::TransactionBuilder};
+use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
@@ -33,14 +33,7 @@ impl Send {
       }
     }
 
-    let change = vec![
-      client
-        .call("getrawchangeaddress", &[])
-        .context("could not get change addresses from wallet")?,
-      client
-        .call("getrawchangeaddress", &[])
-        .context("could not get change addresses from wallet")?,
-    ];
+    let change = get_change_addresses(&options, 2)?;
 
     let unsigned_transaction =
       TransactionBuilder::build_transaction(utxos, self.ordinal, self.address, change)?;

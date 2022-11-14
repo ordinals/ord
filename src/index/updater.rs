@@ -40,17 +40,22 @@ impl Updater {
   ) -> Result {
     let starting_height = index.client.get_block_count()? + 1;
 
-    let mut progress_bar =
-      if cfg!(test) || log_enabled!(log::Level::Info) || starting_height <= self.height {
-        None
-      } else {
-        let progress_bar = ProgressBar::new(starting_height);
-        progress_bar.set_position(self.height);
-        progress_bar.set_style(
-          ProgressStyle::with_template("[indexing blocks] {wide_bar} {pos}/{len}").unwrap(),
-        );
-        Some(progress_bar)
-      };
+    let mut progress_bar = if cfg!(test)
+      || log_enabled!(log::Level::Info)
+      || starting_height <= self.height
+      || env::var_os("ORD_DISABLE_PROGRESS_BAR")
+        .map(|value| value.len() > 0)
+        .unwrap_or(false)
+    {
+      None
+    } else {
+      let progress_bar = ProgressBar::new(starting_height);
+      progress_bar.set_position(self.height);
+      progress_bar.set_style(
+        ProgressStyle::with_template("[indexing blocks] {wide_bar} {pos}/{len}").unwrap(),
+      );
+      Some(progress_bar)
+    };
 
     let rx = Self::fetch_blocks_from(
       index,
@@ -176,6 +181,7 @@ impl Updater {
   ) -> Result<()> {
     let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
     let mut ordinal_to_satpoint = wtx.open_table(ORDINAL_TO_SATPOINT)?;
+    let mut ordinal_to_inscription = wtx.open_table(ORDINAL_TO_INSCRIPTION)?;
     let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
 
     let start = Instant::now();
@@ -240,6 +246,7 @@ impl Updater {
         txid,
         tx,
         &mut ordinal_to_satpoint,
+        &mut ordinal_to_inscription,
         &mut input_ordinal_ranges,
         &mut ordinal_ranges_written,
         &mut outputs_in_block,
@@ -253,6 +260,7 @@ impl Updater {
         tx.txid(),
         tx,
         &mut ordinal_to_satpoint,
+        &mut ordinal_to_inscription,
         &mut coinbase_inputs,
         &mut ordinal_ranges_written,
         &mut outputs_in_block,
@@ -277,10 +285,15 @@ impl Updater {
     txid: Txid,
     tx: &Transaction,
     ordinal_to_satpoint: &mut Table<u64, [u8; 44]>,
+    ordinal_to_inscription: &mut Table<u64, str>,
     input_ordinal_ranges: &mut VecDeque<(u64, u64)>,
     ordinal_ranges_written: &mut u64,
     outputs_traversed: &mut u64,
   ) -> Result {
+    if let Some((ordinal, inscription)) = Inscription::from_transaction(tx, input_ordinal_ranges) {
+      ordinal_to_inscription.insert(&ordinal.n(), &inscription.0)?;
+    }
+
     for (vout, output) in tx.output.iter().enumerate() {
       let outpoint = OutPoint {
         vout: vout as u32,
