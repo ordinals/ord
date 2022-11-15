@@ -11,8 +11,11 @@ use {
   std::str::{self, Utf8Error},
 };
 
-#[derive(Debug, PartialEq)]
-pub(crate) struct Inscription(pub(crate) String);
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub(crate) enum Inscription {
+  Text(String),
+  Png(Vec<u8>),
+}
 
 impl Inscription {
   pub(crate) fn from_transaction(
@@ -99,19 +102,41 @@ impl<'a> InscriptionParser<'a> {
 
   fn parse_inscription(&mut self) -> Result<Option<Inscription>> {
     if self.advance()? == Instruction::Op(opcodes::all::OP_IF) {
-      let content = self.advance()?;
+      let media_type = self.advance()?;
 
-      let content = if let Instruction::PushBytes(bytes) = content {
+      let media_type = if let Instruction::PushBytes(bytes) = media_type {
         str::from_utf8(bytes).map_err(InscriptionError::Utf8Decode)?
       } else {
         return Err(InscriptionError::InvalidInscription);
+      };
+
+      let inscription = match media_type {
+        "text/plain;charset=utf-8" => {
+          let content = if let Instruction::PushBytes(bytes) = self.advance()? {
+            str::from_utf8(bytes).map_err(InscriptionError::Utf8Decode)?
+          } else {
+            return Err(InscriptionError::InvalidInscription);
+          };
+
+          Some(Inscription::Text(content.to_string()))
+        }
+        "image/png" => {
+          let content = if let Instruction::PushBytes(bytes) = self.advance()? {
+            bytes.to_vec()
+          } else {
+            return Err(InscriptionError::InvalidInscription);
+          };
+
+          Some(Inscription::Png(content))
+        }
+        _ => None,
       };
 
       if self.advance()? != Instruction::Op(opcodes::all::OP_ENDIF) {
         return Err(InscriptionError::InvalidInscription);
       }
 
-      return Ok(Some(Inscription(content.to_string())));
+      return Ok(inscription);
     }
 
     Ok(None)
@@ -167,13 +192,14 @@ mod tests {
     let script = script::Builder::new()
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
+      .push_slice("text/plain;charset=utf-8".as_bytes())
       .push_slice("ord".as_bytes())
       .push_opcode(opcodes::all::OP_ENDIF)
       .into_script();
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
-      Ok(Inscription("ord".into()))
+      Ok(Inscription::Text("ord".to_string()))
     );
   }
 
@@ -182,6 +208,7 @@ mod tests {
     let script = script::Builder::new()
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
+      .push_slice("text/plain;charset=utf-8".as_bytes())
       .push_slice("ord".as_bytes())
       .push_opcode(opcodes::all::OP_ENDIF)
       .push_opcode(opcodes::all::OP_CHECKSIG)
@@ -189,7 +216,7 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
-      Ok(Inscription("ord".into()))
+      Ok(Inscription::Text("ord".to_string()))
     );
   }
 
@@ -199,13 +226,14 @@ mod tests {
       .push_opcode(opcodes::all::OP_CHECKSIG)
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
+      .push_slice("text/plain;charset=utf-8".as_bytes())
       .push_slice("ord".as_bytes())
       .push_opcode(opcodes::all::OP_ENDIF)
       .into_script();
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
-      Ok(Inscription("ord".into()))
+      Ok(Inscription::Text("ord".into()))
     );
   }
 
@@ -214,17 +242,19 @@ mod tests {
     let script = script::Builder::new()
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
+      .push_slice("text/plain;charset=utf-8".as_bytes())
       .push_slice("foo".as_bytes())
       .push_opcode(opcodes::all::OP_ENDIF)
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
+      .push_slice("text/plain;charset=utf-8".as_bytes())
       .push_slice("bar".as_bytes())
       .push_opcode(opcodes::all::OP_ENDIF)
       .into_script();
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
-      Ok(Inscription("foo".into()))
+      Ok(Inscription::Text("ord".into()))
     );
   }
 
@@ -233,6 +263,7 @@ mod tests {
     let script = script::Builder::new()
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
+      .push_slice("text/plain;charset=utf-8".as_bytes())
       .push_slice(&[0b10000000])
       .push_opcode(opcodes::all::OP_ENDIF)
       .into_script();
@@ -292,6 +323,7 @@ mod tests {
     let script = script::Builder::new()
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
+      .push_slice("text/plain;charset=utf-8".as_bytes())
       .push_slice("ord".as_bytes())
       .push_opcode(opcodes::all::OP_ENDIF)
       .into_script();
@@ -313,7 +345,7 @@ mod tests {
 
     assert_eq!(
       Inscription::from_transaction(&tx, &ranges),
-      Some((Ordinal(1), Inscription("ord".into())))
+      Some((Ordinal(1), Inscription::Text("ord".into())))
     );
   }
 

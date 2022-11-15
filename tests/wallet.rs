@@ -165,7 +165,8 @@ fn inscribe() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
   rpc_server.mine_blocks(1);
 
-  CommandBuilder::new("--chain regtest wallet inscribe --ordinal 5000000000 --content HELLOWORLD --mime-type text/")
+  CommandBuilder::new("--chain regtest wallet inscribe --ordinal 5000000000 --content hello.txt --media-type text/plain;charset=utf-8")
+    .write("hello.txt", "HELLOWORLD")
     .rpc_server(&rpc_server)
     .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
     .run();
@@ -185,9 +186,25 @@ fn inscribe_forbidden_on_mainnet() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "ord");
   rpc_server.mine_blocks(1);
 
-  CommandBuilder::new("wallet inscribe 5000000000 HELLOWORLD")
-    .rpc_server(&rpc_server)
-    .expected_exit_code(1)
-    .expected_stderr("error: `ord wallet inscribe` is unstable and not yet supported on mainnet.\n")
-    .run();
+  CommandBuilder::new(
+    "wallet inscribe --ordinal 5000000000 --content hello.txt --media-type text/plain;charset=utf-8",
+  )
+  .rpc_server(&rpc_server)
+  .expected_exit_code(1)
+  .expected_stderr("error: `ord wallet inscribe` is unstable and not yet supported on mainnet.\n")
+  .run();
+}
+
+#[test]
+fn inscribe_invalid_mime_type() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  rpc_server.mine_blocks(1);
+
+  CommandBuilder::new(
+    "--chain regtest wallet inscribe --ordinal 5000000000 --content pepe.jpg --media-type image/jpg",
+  )
+  .rpc_server(&rpc_server)
+  .expected_exit_code(1)
+  .expected_stderr("error: inscribe only accepts text/plain;charset=utf-8 and image/png\n")
+  .run();
 }
