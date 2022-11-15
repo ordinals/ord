@@ -339,10 +339,7 @@ impl Index {
         .begin_read()?
         .open_table(ORDINAL_TO_INSCRIPTION)?
         .get(&ordinal.n())?
-        .map(|inscription| Inscription {
-          media_type: inscription.0.to_owned(),
-          content: inscription.1.to_owned(),
-        }),
+        .map(|inscription| serde_json::from_str(inscription).unwrap())
     )
   }
 

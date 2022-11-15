@@ -208,3 +208,26 @@ fn inscribe_invalid_mime_type() {
   .expected_stderr("error: inscribe only accepts text/plain;charset=utf-8 and image/png\n")
   .run();
 }
+
+#[test]
+fn inscribe_png() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  rpc_server.mine_blocks(1);
+
+  let png = base64::decode("iVBORw0KGgoAAAANSUhEUgAAAEEAAABBCAYAAACO98lFAAACbElEQVR4nM2bW3LCQAwEY+5/5wSRWsos+5A0LUNXJQR7Lc108cNHjt87PwGO47j//m6ClX5u958Q0QVXk8kXlmBkFl1BNldKgpFdWIWSJy3BUBaTqDkkCYYaQIXYL0swiCAZqL2IBIMK5IXch0kwyGAr6D2oBIMO2FMxH5dgVAQ1quaWSDDowPS8M7fK7wJUcGrOCOv/+CTYH1WoBdTnV7TeDwlGu1BBtkj2OQ/nvk8JxvkGTbRQ9HyEvueLBKM/QOIt5j2XYdTvTYIxOkixK7i7rzDrNZRgzB4gmBWdXSdY9ZlKMFYPqvSF+/ckux5LCcZugEIr3l4r8OS3E64ElUGr8Agwtp+EhnfgtxDJ65ZgRAZ/kmjOkAQjuuBqMvnCEozMoivI5kpJMLILq1DypCUYymISNYckwVADqBD7ZQkGESQDtReRYFCBvJD7MAkGGWwFvQeVYNABeyrm4xKqv2NUzEclVAQcQe/BJNDBdpD7EAlkoAjUXlkCFSQLsV+SQAQgUHOkJaiLaZQ8KQnKwkqyucISsouuIpMvJCGz4BNEc7olRAd/mkhel4TIwCgV3wUa3txbCd5BGZqA9lqBJ/9SgmdAlr54/55k12MqYfegwqzw7DrBqs9QwuoBlV3R3X2FWa83CbODBN6C3nMZRv1eJIwOUESLRc9H6Hs+JfQ3SLKFss95OPd9SDhfoFGLqM+vaL3D/wgWgSxQGPP/k1ABKcCg550pkVAVuGouLqEqaKNiPiqhIuAIeg8mgQ62g9yHSCADRaD2yhKoIFmI/ZIEIgCBmiMtQV1Mo+RJSVAWVpLNFZaQXXQVmXx/8lkCgwQhAzMAAAAASUVORK5CYII=").unwrap();
+
+  CommandBuilder::new("--chain regtest wallet inscribe --ordinal 5000000000 --content degenerate.png --media-type image/png")
+    .write("degenerate.png", png)
+    .rpc_server(&rpc_server)
+    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+    .run();
+
+  rpc_server.mine_blocks(1);
+
+  let ord_server = TestServer::spawn(&rpc_server);
+
+  ord_server.assert_response_regex(
+    "/ordinal/5000000000",
+    ".*<dt>inscription</dt><dd><img src=.*",
+  )
+}

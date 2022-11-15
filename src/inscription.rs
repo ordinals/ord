@@ -254,7 +254,7 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
-      Ok(Inscription::Text("ord".into()))
+      Ok(Inscription::Text("foo".into()))
     );
   }
 

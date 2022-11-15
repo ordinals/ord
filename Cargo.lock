@@ -1944,6 +1944,7 @@ dependencies = [
  "anyhow",
  "axum",
  "axum-server",
+ "base64",
  "bitcoin",
  "boilerplate",
  "chrono",
