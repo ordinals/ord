@@ -75,6 +75,7 @@ impl Inscribe {
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
       .push_slice(content)
+      .push_slice(mime_type)
       .push_opcode(opcodes::all::OP_ENDIF)
       .into_script();
 
