@@ -117,7 +117,9 @@ mod tests {
       OrdinalHtml {
         ordinal: Ordinal(0),
         blocktime: Blocktime::Confirmed(0),
-        inscription: Some(Inscription::Text("<script>alert('HELLOWORLD');</script>".to_string())),
+        inscription: Some(Inscription::Text(
+          "<script>alert('HELLOWORLD');</script>".to_string()
+        )),
       }
       .to_string(),
       "
