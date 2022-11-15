@@ -165,7 +165,7 @@ fn inscribe() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
   rpc_server.mine_blocks(1);
 
-  CommandBuilder::new("--chain regtest wallet inscribe --ordinal 5000000000 --mime-type HELLOWORLD")
+  CommandBuilder::new("--chain regtest wallet inscribe --ordinal 5000000000 --content HELLOWORLD --mime-type text/")
     .rpc_server(&rpc_server)
     .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
     .run();
