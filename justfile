@@ -96,10 +96,10 @@ download-log unit='ord' host='ordinals.com':
   rsync --progress root@{{host}}:tmp/{{unit}}.log tmp/{{unit}}.log
 
 graph log:
-  ./bin/graph {{log}}
+  ./bin/graph $1
 
 flamegraph dir=`git branch --show-current`:
-  ./bin/flamegraph '{{dir}}'
+  ./bin/flamegraph $1
 
 benchmark index height-limit:
   ./bin/benchmark $1 $2
