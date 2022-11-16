@@ -1205,7 +1205,7 @@ next
     let test_server = TestServer::new();
 
     test_server.assert_response_regex(
-      &format!("/block/0"),
+      "/block/0",
       StatusCode::OK,
       ".*<h1>Block 0</h1>
 <dl>
