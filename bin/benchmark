@@ -13,5 +13,3 @@ cp $INDEX_SNAPSHOT tmp/benchmark/index.redb
 cargo build --release
 
 time ./target/release/ord --data-dir tmp/benchmark --height-limit $HEIGHT_LIMIT index
-echo "index snapshot\t$INDEX_SNAPSHOT"
-echo "height limit\t$HEIGHT_LIMIT"
