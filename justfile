@@ -96,11 +96,8 @@ download-log unit='ord' host='ordinals.com':
 graph log:
   ./bin/graph {{log}}
 
-flamegraph:
-  CARGO_PROFILE_RELEASE_DEBUG=true sudo cargo flamegraph -- index
-
-benchmark dir=`git branch --show-current`:
-  ./bin/benchmark '{{dir}}'
+flamegraph dir=`git branch --show-current`:
+  ./bin/flamegraph '{{dir}}'
 
 serve-docs:
   mdbook serve docs --open
