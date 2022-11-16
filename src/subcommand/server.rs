@@ -291,10 +291,15 @@ impl Server {
     Ok(acceptor)
   }
 
+  fn foo(index: &Index) -> ServerResult<Height> {
+    index
+      .height()
+      .map_err(|err| ServerError::Internal(anyhow!("failed to retrieve height from index: {err}")))?
+      .ok_or_else(|| ServerError::Internal(anyhow!("index has not indexed genesis block")))
+  }
+
   async fn clock(Extension(index): Extension<Arc<Index>>) -> ServerResult<ClockSvg> {
-    Ok(ClockSvg::new(index.height().map_err(|err| {
-      ServerError::Internal(anyhow!("failed to retrieve height from index: {err}"))
-    })?))
+    Ok(ClockSvg::new(Self::foo(&index)?))
   }
 
   async fn ordinal(
@@ -425,16 +430,7 @@ impl Server {
       }
     };
 
-    Ok(
-      BlockHtml::new(
-        block,
-        Height(height),
-        index
-          .height()
-          .map_err(|err| ServerError::Internal(anyhow!("failed to get index height: {err}")))?,
-      )
-      .page(chain),
-    )
+    Ok(BlockHtml::new(block, Height(height), Self::foo(&index)?).page(chain))
   }
 
   async fn transaction(
@@ -541,14 +537,7 @@ impl Server {
   }
 
   async fn height(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
-    Ok(
-      index
-        .height()
-        .map_err(|err| {
-          ServerError::Internal(anyhow!("failed to retrieve height from index: {err}"))
-        })?
-        .to_string(),
-    )
+    Ok(Self::foo(&index)?.to_string())
   }
 
   async fn input(
