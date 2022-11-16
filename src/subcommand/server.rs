@@ -33,6 +33,23 @@ use {
 mod deserialize_from_str;
 mod templates;
 
+enum BlockQuery {
+  Height(u64),
+  Hash(BlockHash),
+}
+
+impl FromStr for BlockQuery {
+  type Err = Error;
+
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    Ok(if s.len() == 64 {
+      BlockQuery::Hash(s.parse()?)
+    } else {
+      BlockQuery::Height(s.parse()?)
+    })
+  }
+}
+
 enum ServerError {
   Internal(Error),
   NotFound(String),
@@ -133,7 +150,7 @@ impl Server {
 
       let router = Router::new()
         .route("/", get(Self::home))
-        .route("/block/:hash", get(Self::block))
+        .route("/block/:query", get(Self::block))
         .route("/bounties", get(Self::bounties))
         .route("/clock", get(Self::clock))
         .route("/faq", get(Self::faq))
@@ -363,28 +380,55 @@ impl Server {
   }
 
   async fn block(
-    Path(hash): Path<BlockHash>,
+    Path(DeserializeFromStr(query)): Path<DeserializeFromStr<BlockQuery>>,
     index: Extension<Arc<Index>>,
   ) -> ServerResult<PageHtml> {
-    let info = index
-      .block_header_info(hash)
-      .map_err(|err| {
-        ServerError::Internal(anyhow!(
-          "error serving request for block with hash {hash}: {err}"
-        ))
-      })?
-      .ok_or_else(|| ServerError::NotFound(format!("block {hash} unknown")))?;
+    let (block, height) = match query {
+      BlockQuery::Height(height) => {
+        let block = index
+          .get_block_by_height(height)
+          .map_err(|err| {
+            ServerError::Internal(anyhow!(
+              "error serving request for block with height {height}: {err}"
+            ))
+          })?
+          .ok_or_else(|| ServerError::NotFound(format!("block at height {height} unknown")))?;
 
-    let block = index
-      .block_with_hash(hash)
-      .map_err(|err| {
-        ServerError::Internal(anyhow!(
-          "error serving request for block with hash {hash}: {err}"
-        ))
-      })?
-      .ok_or_else(|| ServerError::NotFound(format!("block {hash} unknown")))?;
+        (block, height)
+      }
+      BlockQuery::Hash(hash) => {
+        let info = index
+          .block_header_info(hash)
+          .map_err(|err| {
+            ServerError::Internal(anyhow!(
+              "error serving request for block with hash {hash}: {err}"
+            ))
+          })?
+          .ok_or_else(|| ServerError::NotFound(format!("block {hash} unknown")))?;
 
-    Ok(BlockHtml::new(block, Height(info.height as u64)).page())
+        let block = index
+          .get_block_by_hash(hash)
+          .map_err(|err| {
+            ServerError::Internal(anyhow!(
+              "error serving request for block with hash {hash}: {err}"
+            ))
+          })?
+          .ok_or_else(|| ServerError::NotFound(format!("block {hash} unknown")))?;
+
+        (block, info.height as u64)
+      }
+    };
+
+    Ok(
+      BlockHtml::new(
+        block,
+        Height(height),
+        index
+          .height()
+          .map_err(|err| ServerError::Internal(anyhow!("failed to get index height: {err}")))?,
+      )
+      .page(),
+    )
   }
 
   async fn transaction(
@@ -509,7 +553,7 @@ impl Server {
       || ServerError::NotFound(format!("input /{}/{}/{} unknown", path.0, path.1, path.2));
 
     let block = index
-      .block(path.0)
+      .get_block_by_height(path.0)
       .map_err(ServerError::Internal)?
       .ok_or_else(not_found)?;
 
@@ -1122,7 +1166,7 @@ mod tests {
   }
 
   #[test]
-  fn block() {
+  fn block_by_hash() {
     let test_server = TestServer::new();
 
     test_server.bitcoin_rpc_server.mine_blocks(1);
@@ -1137,19 +1181,42 @@ mod tests {
     test_server.assert_response_regex(
       &format!("/block/{block_hash}"),
       StatusCode::OK,
-      ".*<h1>Block <span class=monospace>[[:xdigit:]]{64}</span></h1>
+      ".*<h1>Block 2</h1>
 <dl>
-  <dt>height</dt><dd>2</dd>
+  <dt>hash</dt><dd class=monospace>[[:xdigit:]]{64}</dd>
+  <dt>target</dt><dd class=monospace>[[:xdigit:]]{64}</dd>
   <dt>timestamp</dt><dd>0</dd>
   <dt>size</dt><dd>203</dd>
   <dt>weight</dt><dd>812</dd>
-  <dt>prev blockhash</dt><dd><a href=/block/659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf class=monospace>659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf</a></dd>
+  <dt>previous blockhash</dt><dd><a href=/block/659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf class=monospace>659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf</a></dd>
 </dl>
+<a href=/block/1>prev</a>
+next
 <h2>2 Transactions</h2>
 <ul class=monospace>
   <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
   <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
 </ul>.*",
+    );
+  }
+
+  #[test]
+  fn block_by_height() {
+    let test_server = TestServer::new();
+
+    test_server.assert_response_regex(
+      "/block/0",
+      StatusCode::OK,
+      ".*<h1>Block 0</h1>
+<dl>
+  <dt>hash</dt><dd class=monospace>[[:xdigit:]]{64}</dd>
+  <dt>target</dt><dd class=monospace>[[:xdigit:]]{64}</dd>
+  <dt>timestamp</dt><dd>1231006505</dd>
+  <dt>size</dt><dd>285</dd>
+  <dt>weight</dt><dd>1140</dd>
+</dl>
+prev
+next.*",
     );
   }
 
