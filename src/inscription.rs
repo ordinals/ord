@@ -28,6 +28,20 @@ impl Inscription {
 
     Some((Ordinal(*start), inscription))
   }
+
+  pub(crate) fn media_type(&self) -> &[u8] {
+    match self {
+      Inscription::Text(_) => "text/plain;charset=utf-8".as_bytes(),
+      Inscription::Png(_) => "image/png".as_bytes(),
+    }
+  }
+
+  pub(crate) fn content(&self) -> &[u8] {
+    match self {
+      Inscription::Text(text) => text.as_bytes(),
+      Inscription::Png(png) => png.as_ref(),
+    }
+  }
 }
 
 #[derive(Debug, PartialEq)]
@@ -102,34 +116,28 @@ impl<'a> InscriptionParser<'a> {
 
   fn parse_inscription(&mut self) -> Result<Option<Inscription>> {
     if self.advance()? == Instruction::Op(opcodes::all::OP_IF) {
-      let media_type = self.advance()?;
-
-      let media_type = if let Instruction::PushBytes(bytes) = media_type {
+      let media_type = if let Instruction::PushBytes(bytes) = self.advance()? {
         str::from_utf8(bytes).map_err(InscriptionError::Utf8Decode)?
       } else {
         return Err(InscriptionError::InvalidInscription);
       };
 
+      let content = if let Instruction::PushBytes(bytes) = self.advance()? {
+        bytes
+      } else {
+        return Err(InscriptionError::InvalidInscription);
+      };
+
       let inscription = match media_type {
-        "text/plain;charset=utf-8" => {
-          let content = if let Instruction::PushBytes(bytes) = self.advance()? {
-            str::from_utf8(bytes).map_err(InscriptionError::Utf8Decode)?
-          } else {
-            return Err(InscriptionError::InvalidInscription);
-          };
-
-          Some(Inscription::Text(content.to_string()))
+        "text/plain;charset=utf-8" => Some(Inscription::Text(
+          str::from_utf8(content)
+            .map_err(InscriptionError::Utf8Decode)?
+            .into(),
+        )),
+        "image/png" => Some(Inscription::Png(content.to_vec())),
+        _ => {
+          return Err(InscriptionError::InvalidInscription);
         }
-        "image/png" => {
-          let content = if let Instruction::PushBytes(bytes) = self.advance()? {
-            bytes.to_vec()
-          } else {
-            return Err(InscriptionError::InvalidInscription);
-          };
-
-          Some(Inscription::Png(content))
-        }
-        _ => None,
       };
 
       if self.advance()? != Instruction::Op(opcodes::all::OP_ENDIF) {
@@ -199,7 +207,7 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
-      Ok(Inscription::Text("ord".to_string()))
+      Ok(Inscription::Text("ord".into()))
     );
   }
 
@@ -216,7 +224,7 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
-      Ok(Inscription::Text("ord".to_string()))
+      Ok(Inscription::Text("ord".into()))
     );
   }
 
@@ -408,5 +416,21 @@ mod tests {
     ranges.push_back((1, 10));
 
     assert_eq!(Inscription::from_transaction(&tx, &ranges), None,);
+  }
+
+  #[test]
+  fn inscribe_png() {
+    let script = script::Builder::new()
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
+      .push_slice("image/png".as_bytes())
+      .push_slice(&[1; 100])
+      .push_opcode(opcodes::all::OP_ENDIF)
+      .into_script();
+
+    assert_eq!(
+      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
+      Ok(Inscription::Png(vec![1; 100]))
+    );
   }
 }

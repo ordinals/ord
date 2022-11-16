@@ -165,7 +165,7 @@ fn inscribe() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
   rpc_server.mine_blocks(1);
 
-  CommandBuilder::new("--chain regtest wallet inscribe --ordinal 5000000000 --content hello.txt --media-type text/plain;charset=utf-8")
+  CommandBuilder::new("--chain regtest wallet inscribe --ordinal 5000000000 --file hello.txt")
     .write("hello.txt", "HELLOWORLD")
     .rpc_server(&rpc_server)
     .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
@@ -186,27 +186,23 @@ fn inscribe_forbidden_on_mainnet() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "ord");
   rpc_server.mine_blocks(1);
 
-  CommandBuilder::new(
-    "wallet inscribe --ordinal 5000000000 --content hello.txt --media-type text/plain;charset=utf-8",
-  )
-  .rpc_server(&rpc_server)
-  .expected_exit_code(1)
-  .expected_stderr("error: `ord wallet inscribe` is unstable and not yet supported on mainnet.\n")
-  .run();
+  CommandBuilder::new("wallet inscribe --ordinal 5000000000 --file hello.txt")
+    .rpc_server(&rpc_server)
+    .expected_exit_code(1)
+    .expected_stderr("error: `ord wallet inscribe` is unstable and not yet supported on mainnet.\n")
+    .run();
 }
 
 #[test]
-fn inscribe_invalid_mime_type() {
+fn inscribe_unknown_file_extension() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
   rpc_server.mine_blocks(1);
 
-  CommandBuilder::new(
-    "--chain regtest wallet inscribe --ordinal 5000000000 --content pepe.jpg --media-type image/jpg",
-  )
-  .rpc_server(&rpc_server)
-  .expected_exit_code(1)
-  .expected_stderr("error: inscribe only accepts text/plain;charset=utf-8 and image/png\n")
-  .run();
+  CommandBuilder::new("--chain regtest wallet inscribe --ordinal 5000000000 --file pepe.jpg")
+    .rpc_server(&rpc_server)
+    .expected_exit_code(1)
+    .expected_stderr("error: inscribe only accepts .txt and .png\n")
+    .run();
 }
 
 #[test]
@@ -214,10 +210,8 @@ fn inscribe_png() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
   rpc_server.mine_blocks(1);
 
-  let png = base64::decode("iVBORw0KGgoAAAANSUhEUgAAAEEAAABBCAYAAACO98lFAAACbElEQVR4nM2bW3LCQAwEY+5/5wSRWsos+5A0LUNXJQR7Lc108cNHjt87PwGO47j//m6ClX5u958Q0QVXk8kXlmBkFl1BNldKgpFdWIWSJy3BUBaTqDkkCYYaQIXYL0swiCAZqL2IBIMK5IXch0kwyGAr6D2oBIMO2FMxH5dgVAQ1quaWSDDowPS8M7fK7wJUcGrOCOv/+CTYH1WoBdTnV7TeDwlGu1BBtkj2OQ/nvk8JxvkGTbRQ9HyEvueLBKM/QOIt5j2XYdTvTYIxOkixK7i7rzDrNZRgzB4gmBWdXSdY9ZlKMFYPqvSF+/ckux5LCcZugEIr3l4r8OS3E64ElUGr8Agwtp+EhnfgtxDJ65ZgRAZ/kmjOkAQjuuBqMvnCEozMoivI5kpJMLILq1DypCUYymISNYckwVADqBD7ZQkGESQDtReRYFCBvJD7MAkGGWwFvQeVYNABeyrm4xKqv2NUzEclVAQcQe/BJNDBdpD7EAlkoAjUXlkCFSQLsV+SQAQgUHOkJaiLaZQ8KQnKwkqyucISsouuIpMvJCGz4BNEc7olRAd/mkhel4TIwCgV3wUa3txbCd5BGZqA9lqBJ/9SgmdAlr54/55k12MqYfegwqzw7DrBqs9QwuoBlV3R3X2FWa83CbODBN6C3nMZRv1eJIwOUESLRc9H6Hs+JfQ3SLKFss95OPd9SDhfoFGLqM+vaL3D/wgWgSxQGPP/k1ABKcCg550pkVAVuGouLqEqaKNiPiqhIuAIeg8mgQ62g9yHSCADRaD2yhKoIFmI/ZIEIgCBmiMtQV1Mo+RJSVAWVpLNFZaQXXQVmXx/8lkCgwQhAzMAAAAASUVORK5CYII=").unwrap();
-
-  CommandBuilder::new("--chain regtest wallet inscribe --ordinal 5000000000 --content degenerate.png --media-type image/png")
-    .write("degenerate.png", png)
+  CommandBuilder::new("--chain regtest wallet inscribe --ordinal 5000000000 --file degenerate.png")
+    .write("degenerate.png", &[1; 520])
     .rpc_server(&rpc_server)
     .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
     .run();
@@ -230,4 +224,17 @@ fn inscribe_png() {
     "/ordinal/5000000000",
     ".*<dt>inscription</dt><dd><img src=.*",
   )
+}
+
+#[test]
+fn inscribe_exceeds_push_byte_limit() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  rpc_server.mine_blocks(1);
+
+  CommandBuilder::new("--chain regtest wallet inscribe --ordinal 5000000000 --file degenerate.png")
+    .write("degenerate.png", &[1; 521])
+    .rpc_server(&rpc_server)
+    .expected_exit_code(1)
+    .expected_stderr("error: file size exceeds 520 bytes\n")
+    .run();
 }

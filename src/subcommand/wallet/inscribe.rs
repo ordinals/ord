@@ -10,32 +10,36 @@ use {
     util::taproot::{LeafVersion, TapLeafHash, TaprootBuilder},
     PackedLockTime, SchnorrSighashType, Witness,
   },
-  mime::Mime,
 };
 
 #[derive(Debug, Parser)]
 pub(crate) struct Inscribe {
   #[clap(long, help = "Inscribe on <ORDINAL>")]
   ordinal: Ordinal,
-  #[clap(long, help = "Inscribe contents of this <FILE>")]
-  content: PathBuf,
-  #[clap(long, help = "Set the media type of the contents")]
-  media_type: Mime,
+  #[clap(long, help = "Inscribe contents of <FILE>")]
+  file: PathBuf,
 }
 
 impl Inscribe {
   pub(crate) fn run(self, options: Options) -> Result {
     let client = options.bitcoin_rpc_client_mainnet_forbidden("ord wallet inscribe")?;
 
-    if !matches!(self.media_type.as_ref(), "text/plain;charset=utf-8")
-      & !matches!(self.media_type.as_ref(), "image/png")
+    let inscription = match &self
+      .file
+      .extension()
+      .expect("file should always have an extension")
+      .to_str()
     {
-      return Err(anyhow!(
-        "inscribe only accepts text/plain;charset=utf-8 and image/png"
-      ));
-    }
+      Some("txt") => Inscription::Text(String::from_utf8_lossy(&fs::read(&self.file).unwrap()).into()),
+      Some("png") => Inscription::Png(fs::read(&self.file).unwrap()),
+      _ => {
+        return Err(anyhow!("inscribe only accepts .txt and .png"));
+      }
+    };
 
-    let content = fs::read(self.content).unwrap();
+    if fs::read(&self.file).unwrap().len() > 520 {
+      return Err(anyhow!("file size exceeds 520 bytes"));
+    }
 
     let index = Index::open(&options)?;
     index.update()?;
@@ -48,8 +52,7 @@ impl Inscribe {
 
     let (unsigned_commit_tx, reveal_tx) = Inscribe::create_inscription_transactions(
       self.ordinal,
-      self.media_type,
-      &content,
+      inscription,
       options.chain.network(),
       utxos,
       commit_tx_change,
@@ -75,8 +78,7 @@ impl Inscribe {
 
   fn create_inscription_transactions(
     ordinal: Ordinal,
-    media_type: Mime,
-    content: &[u8],
+    inscription: Inscription,
     network: bitcoin::Network,
     utxos: Vec<(OutPoint, Vec<(u64, u64)>)>,
     change: Vec<Address>,
@@ -91,8 +93,8 @@ impl Inscribe {
       .push_opcode(opcodes::all::OP_CHECKSIG)
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
-      .push_slice(media_type.as_ref().as_bytes())
-      .push_slice(content)
+      .push_slice(inscription.media_type())
+      .push_slice(inscription.content())
       .push_opcode(opcodes::all::OP_ENDIF)
       .into_script();
 
@@ -198,16 +200,14 @@ mod tests {
   #[test]
   fn reveal_transaction_pays_fee() {
     let utxos = vec![(outpoint(1), vec![(10_000, 15_000)])];
-    let media_type = Mime::from_str("text/plain").unwrap();
-    let content = b"ord";
+    let inscription = Inscription::Text("ord".into());
     let ordinal = Ordinal(10_000);
     let commit_address = change(0);
     let reveal_address = recipient();
 
     let (commit_tx, reveal_tx) = Inscribe::create_inscription_transactions(
       ordinal,
-      media_type,
-      content,
+      inscription,
       bitcoin::Network::Signet,
       utxos,
       vec![commit_address, change(1)],
@@ -226,16 +226,14 @@ mod tests {
   #[test]
   fn reveal_transaction_value_insufficient_to_pay_fee() {
     let utxos = vec![(outpoint(1), vec![(10_000, 11_000)])];
-    let media_type = Mime::from_str("text/plain").unwrap();
-    let content = [b'a'; 5000];
     let ordinal = Ordinal(10_000);
+    let inscription = Inscription::Png([1; 10_000].to_vec());
     let commit_address = change(0);
     let reveal_address = recipient();
 
     assert!(Inscribe::create_inscription_transactions(
       ordinal,
-      media_type,
-      &content,
+      inscription,
       bitcoin::Network::Signet,
       utxos,
       vec![commit_address, change(1)],
@@ -249,16 +247,14 @@ mod tests {
   #[test]
   fn reveal_transaction_would_create_dust() {
     let utxos = vec![(outpoint(1), vec![(10_000, 10_600)])];
-    let media_type = Mime::from_str("text/plain").unwrap();
-    let content = [b'a'; 1];
+    let inscription = Inscription::Text("ord".into());
     let ordinal = Ordinal(10_000);
     let commit_address = change(0);
     let reveal_address = recipient();
 
     let error = Inscribe::create_inscription_transactions(
       ordinal,
-      media_type,
-      &content,
+      inscription,
       bitcoin::Network::Signet,
       utxos,
       vec![commit_address, change(1)],
