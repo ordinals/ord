@@ -2,34 +2,14 @@
 
 set -euxo pipefail
 
-mkdir $1
-cd $1
+rm -rf tmp/benchmark
+mkdir -p tmp/benchmark
 
-sudo \
-  CARGO_PROFILE_RELEASE_DEBUG=true \
-  RUST_LOG=info \
-  cargo flamegraph \
-  --deterministic \
-  --bin ord \
-  -- \
-  --chain signet \
-  --data-dir . \
-  --height-limit 0 \
-  index
+INDEX_SNAPSHOT=$1
+HEIGHT_LIMIT=$2
 
-rm -f flamegraph.svg
+cp $INDEX_SNAPSHOT tmp/benchmark/index.redb
 
-/usr/bin/time -o time sudo \
-  CARGO_PROFILE_RELEASE_DEBUG=true \
-  RUST_LOG=info \
-  cargo flamegraph \
-  --deterministic \
-  --bin ord \
-  -- \
-  --chain signet \
-  --data-dir . \
-  --height-limit 5000 \
-  index
+cargo build --release
 
-sudo chown -n $UID flamegraph.svg
-sudo chown -n $UID index.redb
+time ./target/release/ord --data-dir tmp/benchmark --height-limit $HEIGHT_LIMIT index

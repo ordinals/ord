@@ -272,23 +272,24 @@ impl Index {
     )
   }
 
-  pub(crate) fn height(&self) -> Result<Height> {
-    Ok(Height(self.begin_read()?.height()?))
+  pub(crate) fn height(&self) -> Result<Option<Height>> {
+    self.begin_read()?.height()
   }
 
-  pub(crate) fn blocks(&self, take: u64) -> Result<Vec<(u64, BlockHash)>> {
+  pub(crate) fn block_count(&self) -> Result<u64> {
+    self.begin_read()?.block_count()
+  }
+
+  pub(crate) fn blocks(&self, take: usize) -> Result<Vec<(u64, BlockHash)>> {
     let mut blocks = Vec::new();
 
     let rtx = self.begin_read()?;
 
-    let height = rtx.height()?;
+    let block_count = rtx.block_count()?;
 
     let height_to_block_hash = rtx.0.open_table(HEIGHT_TO_BLOCK_HASH)?;
 
-    for next in height_to_block_hash
-      .range(height.saturating_sub(take.saturating_sub(1))..=height)?
-      .rev()
-    {
+    for next in height_to_block_hash.range(0..block_count)?.rev().take(take) {
       blocks.push((next.0, BlockHash::from_slice(next.1)?));
     }
 
@@ -367,13 +368,13 @@ impl Index {
   }
 
   pub(crate) fn find(&self, ordinal: u64) -> Result<Option<SatPoint>> {
-    if self.height()? < Ordinal(ordinal).height() {
+    let rtx = self.begin_read()?;
+
+    if rtx.block_count()? <= Ordinal(ordinal).height().n() {
       return Ok(None);
     }
 
-    let rtx = self.database.begin_read()?;
-
-    let outpoint_to_ordinal_ranges = rtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
+    let outpoint_to_ordinal_ranges = rtx.0.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
 
     for (key, value) in outpoint_to_ordinal_ranges.range([0; 36]..)? {
       let mut offset = 0;
@@ -510,14 +511,24 @@ mod tests {
       let context = Context::with_args("--height-limit 0");
       context.rpc_server.mine_blocks(1);
       context.index.update().unwrap();
-      assert_eq!(context.index.height().unwrap(), 0);
+      assert_eq!(context.index.height().unwrap(), None);
+      assert_eq!(context.index.block_count().unwrap(), 0);
     }
 
     {
       let context = Context::with_args("--height-limit 1");
       context.rpc_server.mine_blocks(1);
       context.index.update().unwrap();
-      assert_eq!(context.index.height().unwrap(), 1);
+      assert_eq!(context.index.height().unwrap(), Some(Height(0)));
+      assert_eq!(context.index.block_count().unwrap(), 1);
+    }
+
+    {
+      let context = Context::with_args("--height-limit 2");
+      context.rpc_server.mine_blocks(2);
+      context.index.update().unwrap();
+      assert_eq!(context.index.height().unwrap(), Some(Height(1)));
+      assert_eq!(context.index.block_count().unwrap(), 2);
     }
   }
 

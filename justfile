@@ -1,3 +1,5 @@
+set positional-arguments
+
 watch +args='test':
   cargo watch --clear --exec '{{args}}'
 
@@ -94,13 +96,13 @@ download-log unit='ord' host='ordinals.com':
   rsync --progress root@{{host}}:tmp/{{unit}}.log tmp/{{unit}}.log
 
 graph log:
-  ./bin/graph {{log}}
+  ./bin/graph $1
 
-flamegraph:
-  CARGO_PROFILE_RELEASE_DEBUG=true sudo cargo flamegraph -- index
+flamegraph dir=`git branch --show-current`:
+  ./bin/flamegraph $1
 
-benchmark dir=`git branch --show-current`:
-  ./bin/benchmark '{{dir}}'
+benchmark index height-limit:
+  ./bin/benchmark $1 $2
 
 serve-docs:
   mdbook serve docs --open

@@ -155,7 +155,7 @@ impl Server {
         .route("/clock", get(Self::clock))
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
-        .route("/height", get(Self::height))
+        .route("/block-count", get(Self::block_count))
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/ordinal/:ordinal", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
@@ -291,10 +291,15 @@ impl Server {
     Ok(acceptor)
   }
 
+  fn index_height(index: &Index) -> ServerResult<Height> {
+    index
+      .height()
+      .map_err(|err| ServerError::Internal(anyhow!("failed to retrieve height from index: {err}")))?
+      .ok_or_else(|| ServerError::Internal(anyhow!("index has not indexed genesis block")))
+  }
+
   async fn clock(Extension(index): Extension<Arc<Index>>) -> ServerResult<ClockSvg> {
-    Ok(ClockSvg::new(index.height().map_err(|err| {
-      ServerError::Internal(anyhow!("failed to retrieve height from index: {err}"))
-    })?))
+    Ok(ClockSvg::new(Self::index_height(&index)?))
   }
 
   async fn ordinal(
@@ -425,16 +430,7 @@ impl Server {
       }
     };
 
-    Ok(
-      BlockHtml::new(
-        block,
-        Height(height),
-        index
-          .height()
-          .map_err(|err| ServerError::Internal(anyhow!("failed to get index height: {err}")))?,
-      )
-      .page(chain),
-    )
+    Ok(BlockHtml::new(block, Height(height), Self::index_height(&index)?).page(chain))
   }
 
   async fn transaction(
@@ -540,12 +536,12 @@ impl Server {
     )
   }
 
-  async fn height(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
+  async fn block_count(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
     Ok(
       index
-        .height()
+        .block_count()
         .map_err(|err| {
-          ServerError::Internal(anyhow!("failed to retrieve height from index: {err}"))
+          ServerError::Internal(anyhow!("failed to retrieve block count from index: {err}"))
         })?
         .to_string(),
     )
@@ -923,25 +919,20 @@ mod tests {
   }
 
   #[test]
-  fn height_endpoint() {
-    TestServer::new().assert_response("/height", StatusCode::OK, "0");
-  }
-
-  #[test]
-  fn height_updates() {
+  fn block_count_endpoint() {
     let test_server = TestServer::new();
 
-    let response = test_server.get("/height");
-
-    assert_eq!(response.status(), StatusCode::OK);
-    assert_eq!(response.text().unwrap(), "0");
-
-    test_server.bitcoin_rpc_server.mine_blocks(1);
-
-    let response = test_server.get("/height");
+    let response = test_server.get("/block-count");
 
     assert_eq!(response.status(), StatusCode::OK);
     assert_eq!(response.text().unwrap(), "1");
+
+    test_server.bitcoin_rpc_server.mine_blocks(1);
+
+    let response = test_server.get("/block-count");
+
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(response.text().unwrap(), "2");
   }
 
   #[test]
