@@ -291,11 +291,8 @@ impl Updater {
     outputs_traversed: &mut u64,
   ) -> Result {
     if let Some((ordinal, inscription)) = Inscription::from_transaction(tx, input_ordinal_ranges) {
-      // let json = match inscription {
-      // Inscription::Text(content) => serde_json::json!({ "media_type": "text/plain;charset=utf-8", "content": content,}),
-      // Inscription::Png(content) => serde_json::json!({ "media_type": "image/png", "content": content,}),
-      // };
-      let json = serde_json::to_string(&inscription).unwrap();
+      let json = serde_json::to_string(&inscription)
+        .expect("Inscription serialization should always succeed");
       ordinal_to_inscription.insert(&ordinal.n(), &json)?;
     }
 
