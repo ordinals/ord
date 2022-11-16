@@ -298,6 +298,7 @@ impl Server {
   }
 
   async fn ordinal(
+    Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(ordinal)): Path<DeserializeFromStr<Ordinal>>,
   ) -> ServerResult<PageHtml> {
@@ -313,14 +314,14 @@ impl Server {
           ))
         })?,
       }
-      .page(),
+      .page(chain),
     )
   }
 
   async fn output(
+    Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
     Path(outpoint): Path<OutPoint>,
-    Extension(chain): Extension<Chain>,
   ) -> ServerResult<PageHtml> {
     let list = index
       .list(outpoint)
@@ -343,11 +344,12 @@ impl Server {
         chain,
         output,
       }
-      .page(),
+      .page(chain),
     )
   }
 
   async fn range(
+    Extension(chain): Extension<Chain>,
     Path((DeserializeFromStr(start), DeserializeFromStr(end))): Path<(
       DeserializeFromStr<Ordinal>,
       DeserializeFromStr<Ordinal>,
@@ -358,7 +360,7 @@ impl Server {
       Ordering::Greater => Err(ServerError::BadRequest(
         "range start greater than range end".to_string(),
       )),
-      Ordering::Less => Ok(RangeHtml { start, end }.page()),
+      Ordering::Less => Ok(RangeHtml { start, end }.page(chain)),
     }
   }
 
@@ -368,20 +370,24 @@ impl Server {
     })?))
   }
 
-  async fn home(Extension(index): Extension<Arc<Index>>) -> ServerResult<PageHtml> {
+  async fn home(
+    Extension(chain): Extension<Chain>,
+    Extension(index): Extension<Arc<Index>>,
+  ) -> ServerResult<PageHtml> {
     Ok(
       HomeHtml::new(
         index
           .blocks(100)
           .map_err(|err| ServerError::Internal(anyhow!("error getting blocks: {err}")))?,
       )
-      .page(),
+      .page(chain),
     )
   }
 
   async fn block(
+    Extension(chain): Extension<Chain>,
+    Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(query)): Path<DeserializeFromStr<BlockQuery>>,
-    index: Extension<Arc<Index>>,
   ) -> ServerResult<PageHtml> {
     let (block, height) = match query {
       BlockQuery::Height(height) => {
@@ -427,7 +433,7 @@ impl Server {
           .height()
           .map_err(|err| ServerError::Internal(anyhow!("failed to get index height: {err}")))?,
       )
-      .page(),
+      .page(chain),
     )
   }
 
@@ -448,7 +454,7 @@ impl Server {
           .ok_or_else(|| ServerError::NotFound(format!("transaction {txid} unknown")))?,
         chain,
       )
-      .page(),
+      .page(chain),
     )
   }
 
@@ -546,6 +552,7 @@ impl Server {
   }
 
   async fn input(
+    Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
     Path(path): Path<(u64, usize, usize)>,
   ) -> Result<PageHtml, ServerError> {
@@ -565,7 +572,7 @@ impl Server {
       .nth(path.2)
       .ok_or_else(not_found)?;
 
-    Ok(InputHtml { path, input }.page())
+    Ok(InputHtml { path, input }.page(chain))
   }
 
   async fn faq() -> Redirect {
@@ -1099,6 +1106,15 @@ mod tests {
   <li><a href=/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f>000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</a></li>
 </ol>.*",
   );
+  }
+
+  #[test]
+  fn nav_displays_chain() {
+    TestServer::new().assert_response_regex(
+      "/",
+      StatusCode::OK,
+      ".*<a href=/>Ordinals<sup>regtest</sup></a>.*",
+    );
   }
 
   #[test]
