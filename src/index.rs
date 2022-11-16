@@ -273,7 +273,7 @@ impl Index {
   }
 
   pub(crate) fn height(&self) -> Result<Option<Height>> {
-    Ok(self.begin_read()?.height()?)
+    self.begin_read()?.height()
   }
 
   pub(crate) fn blocks(&self, take: usize) -> Result<Vec<(u64, BlockHash)>> {
