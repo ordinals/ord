@@ -291,7 +291,7 @@ impl Server {
     Ok(acceptor)
   }
 
-  fn foo(index: &Index) -> ServerResult<Height> {
+  fn index_height(index: &Index) -> ServerResult<Height> {
     index
       .height()
       .map_err(|err| ServerError::Internal(anyhow!("failed to retrieve height from index: {err}")))?
@@ -299,7 +299,7 @@ impl Server {
   }
 
   async fn clock(Extension(index): Extension<Arc<Index>>) -> ServerResult<ClockSvg> {
-    Ok(ClockSvg::new(Self::foo(&index)?))
+    Ok(ClockSvg::new(Self::index_height(&index)?))
   }
 
   async fn ordinal(
@@ -430,7 +430,7 @@ impl Server {
       }
     };
 
-    Ok(BlockHtml::new(block, Height(height), Self::foo(&index)?).page(chain))
+    Ok(BlockHtml::new(block, Height(height), Self::index_height(&index)?).page(chain))
   }
 
   async fn transaction(
@@ -537,7 +537,7 @@ impl Server {
   }
 
   async fn height(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
-    Ok(Self::foo(&index)?.to_string())
+    Ok(Self::index_height(&index)?.to_string())
   }
 
   async fn input(
