@@ -419,7 +419,16 @@ impl Server {
       }
     };
 
-    Ok(BlockHtml::new(block, Height(height), index.height().unwrap()).page())
+    Ok(
+      BlockHtml::new(
+        block,
+        Height(height),
+        index
+          .height()
+          .map_err(|err| ServerError::Internal(anyhow!("failed to get index height: {err}")))?,
+      )
+      .page(),
+    )
   }
 
   async fn transaction(
