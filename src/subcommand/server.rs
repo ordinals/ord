@@ -43,9 +43,9 @@ impl FromStr for BlockQuery {
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
     Ok(if s.len() == 64 {
-      BlockQuery::Hash(s.parse().unwrap())
+      BlockQuery::Hash(s.parse()?)
     } else {
-      BlockQuery::Height(s.parse().unwrap())
+      BlockQuery::Height(s.parse()?)
     })
   }
 }
