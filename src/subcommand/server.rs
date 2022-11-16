@@ -1157,7 +1157,7 @@ mod tests {
   }
 
   #[test]
-  fn block() {
+  fn block_by_hash() {
     let test_server = TestServer::new();
 
     test_server.bitcoin_rpc_server.mine_blocks(1);
@@ -1188,6 +1188,26 @@ next
   <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
   <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
 </ul>.*",
+    );
+  }
+
+  #[test]
+  fn block_by_height() {
+    let test_server = TestServer::new();
+
+    test_server.assert_response_regex(
+      &format!("/block/0"),
+      StatusCode::OK,
+      ".*<h1>Block 0</h1>
+<dl>
+  <dt>hash</dt><dd class=monospace>[[:xdigit:]]{64}</dd>
+  <dt>target</dt><dd class=monospace>[[:xdigit:]]{64}</dd>
+  <dt>timestamp</dt><dd>1231006505</dd>
+  <dt>size</dt><dd>285</dd>
+  <dt>weight</dt><dd>1140</dd>
+</dl>
+prev
+next.*",
     );
   }
 

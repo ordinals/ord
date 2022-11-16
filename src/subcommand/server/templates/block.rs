@@ -54,7 +54,6 @@ mod tests {
           <dt>timestamp</dt><dd>1231006505</dd>
           <dt>size</dt><dd>285</dd>
           <dt>weight</dt><dd>1140</dd>
-          <dt>previous blockhash</dt><dd><a href=/block/0000000000000000000000000000000000000000000000000000000000000000 class=monospace>0000000000000000000000000000000000000000000000000000000000000000</a></dd>
         </dl>
         prev
         next
@@ -80,7 +79,6 @@ mod tests {
           <dt>timestamp</dt><dd>1231006505</dd>
           <dt>size</dt><dd>285</dd>
           <dt>weight</dt><dd>1140</dd>
-          <dt>previous blockhash</dt><dd><a href=/block/0000000000000000000000000000000000000000000000000000000000000000 class=monospace>0000000000000000000000000000000000000000000000000000000000000000</a></dd>
         </dl>
         prev
         <a href=/block/1>next</a>

@@ -5,7 +5,9 @@
   <dt>timestamp</dt><dd>{{self.block.header.time}}</dd>
   <dt>size</dt><dd>{{self.block.size()}}</dd>
   <dt>weight</dt><dd>{{self.block.weight()}}</dd>
+%% if self.height.0 > 0 {
   <dt>previous blockhash</dt><dd><a href=/block/{{self.block.header.prev_blockhash}} class=monospace>{{self.block.header.prev_blockhash}}</a></dd>
+%% }
 </dl>
 %% if let Some(prev_height) = self.height.n().checked_sub(1) {
 <a href=/block/{{prev_height}}>prev</a>
