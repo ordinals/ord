@@ -1172,14 +1172,17 @@ mod tests {
     test_server.assert_response_regex(
       &format!("/block/{block_hash}"),
       StatusCode::OK,
-      ".*<h1>Block <span class=monospace>[[:xdigit:]]{64}</span></h1>
+      ".*<h1>Block 2</h1>
 <dl>
-  <dt>height</dt><dd>2</dd>
+  <dt>hash</dt><dd class=monospace>[[:xdigit:]]{64}</dd>
+  <dt>target</dt><dd class=monospace>[[:xdigit:]]{64}</dd>
   <dt>timestamp</dt><dd>0</dd>
   <dt>size</dt><dd>203</dd>
   <dt>weight</dt><dd>812</dd>
-  <dt>prev blockhash</dt><dd><a href=/block/659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf class=monospace>659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf</a></dd>
+  <dt>previous blockhash</dt><dd><a href=/block/659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf class=monospace>659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf</a></dd>
 </dl>
+<a href=/block/1>prev</a>
+next
 <h2>2 Transactions</h2>
 <ul class=monospace>
   <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
