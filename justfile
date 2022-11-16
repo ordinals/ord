@@ -1,3 +1,5 @@
+set positional-arguments
+
 watch +args='test':
   cargo watch --clear --exec '{{args}}'
 
@@ -98,6 +100,9 @@ graph log:
 
 flamegraph dir=`git branch --show-current`:
   ./bin/flamegraph '{{dir}}'
+
+benchmark index height-limit:
+  ./bin/benchmark $1 $2
 
 serve-docs:
   mdbook serve docs --open
