@@ -512,6 +512,7 @@ mod tests {
       context.rpc_server.mine_blocks(1);
       context.index.update().unwrap();
       assert_eq!(context.index.height().unwrap(), None);
+      assert_eq!(context.index.block_count().unwrap(), 0);
     }
 
     {
@@ -519,6 +520,7 @@ mod tests {
       context.rpc_server.mine_blocks(1);
       context.index.update().unwrap();
       assert_eq!(context.index.height().unwrap(), Some(Height(0)));
+      assert_eq!(context.index.block_count().unwrap(), 1);
     }
 
     {
@@ -526,6 +528,7 @@ mod tests {
       context.rpc_server.mine_blocks(2);
       context.index.update().unwrap();
       assert_eq!(context.index.height().unwrap(), Some(Height(1)));
+      assert_eq!(context.index.block_count().unwrap(), 2);
     }
   }
 
