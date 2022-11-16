@@ -276,6 +276,10 @@ impl Index {
     self.begin_read()?.height()
   }
 
+  pub(crate) fn block_count(&self) -> Result<u64> {
+    self.begin_read()?.block_count()
+  }
+
   pub(crate) fn blocks(&self, take: usize) -> Result<Vec<(u64, BlockHash)>> {
     let mut blocks = Vec::new();
 

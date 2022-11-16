@@ -155,7 +155,7 @@ impl Server {
         .route("/clock", get(Self::clock))
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
-        .route("/height", get(Self::height))
+        .route("/block-count", get(Self::block_count))
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/ordinal/:ordinal", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
@@ -536,8 +536,15 @@ impl Server {
     )
   }
 
-  async fn height(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
-    Ok(Self::index_height(&index)?.to_string())
+  async fn block_count(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
+    Ok(
+      index
+        .block_count()
+        .map_err(|err| {
+          ServerError::Internal(anyhow!("failed to retrieve block count from index: {err}"))
+        })?
+        .to_string(),
+    )
   }
 
   async fn input(
@@ -912,25 +919,20 @@ mod tests {
   }
 
   #[test]
-  fn height_endpoint() {
-    TestServer::new().assert_response("/height", StatusCode::OK, "0");
-  }
-
-  #[test]
-  fn height_updates() {
+  fn block_count_endpoint() {
     let test_server = TestServer::new();
 
-    let response = test_server.get("/height");
-
-    assert_eq!(response.status(), StatusCode::OK);
-    assert_eq!(response.text().unwrap(), "0");
-
-    test_server.bitcoin_rpc_server.mine_blocks(1);
-
-    let response = test_server.get("/height");
+    let response = test_server.get("/block-count");
 
     assert_eq!(response.status(), StatusCode::OK);
     assert_eq!(response.text().unwrap(), "1");
+
+    test_server.bitcoin_rpc_server.mine_blocks(1);
+
+    let response = test_server.get("/block-count");
+
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(response.text().unwrap(), "2");
   }
 
   #[test]
