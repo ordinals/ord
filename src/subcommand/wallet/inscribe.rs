@@ -14,13 +14,17 @@ use {
 
 #[derive(Debug, Parser)]
 pub(crate) struct Inscribe {
+  #[clap(long, help = "Inscribe <ORDINAL>")]
   ordinal: Ordinal,
-  content: String,
+  #[clap(long, help = "Inscribe ordinal with contents of <FILE>")]
+  file: PathBuf,
 }
 
 impl Inscribe {
   pub(crate) fn run(self, options: Options) -> Result {
     let client = options.bitcoin_rpc_client_mainnet_forbidden("ord wallet inscribe")?;
+
+    let inscription = Inscription::from_file(self.file)?;
 
     let index = Index::open(&options)?;
     index.update()?;
@@ -33,7 +37,7 @@ impl Inscribe {
 
     let (unsigned_commit_tx, reveal_tx) = Inscribe::create_inscription_transactions(
       self.ordinal,
-      self.content.as_bytes(),
+      inscription,
       options.chain.network(),
       utxos,
       commit_tx_change,
@@ -59,7 +63,7 @@ impl Inscribe {
 
   fn create_inscription_transactions(
     ordinal: Ordinal,
-    content: &[u8],
+    inscription: Inscription,
     network: bitcoin::Network,
     utxos: Vec<(OutPoint, Vec<(u64, u64)>)>,
     change: Vec<Address>,
@@ -74,7 +78,8 @@ impl Inscribe {
       .push_opcode(opcodes::all::OP_CHECKSIG)
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
-      .push_slice(content)
+      .push_slice(inscription.media_type().as_bytes())
+      .push_slice(inscription.content())
       .push_opcode(opcodes::all::OP_ENDIF)
       .into_script();
 
@@ -180,14 +185,14 @@ mod tests {
   #[test]
   fn reveal_transaction_pays_fee() {
     let utxos = vec![(outpoint(1), vec![(10_000, 15_000)])];
-    let content = b"ord";
+    let inscription = Inscription::Text("ord".into());
     let ordinal = Ordinal(10_000);
     let commit_address = change(0);
     let reveal_address = recipient();
 
     let (commit_tx, reveal_tx) = Inscribe::create_inscription_transactions(
       ordinal,
-      content,
+      inscription,
       bitcoin::Network::Signet,
       utxos,
       vec![commit_address, change(1)],
@@ -206,14 +211,14 @@ mod tests {
   #[test]
   fn reveal_transaction_value_insufficient_to_pay_fee() {
     let utxos = vec![(outpoint(1), vec![(10_000, 11_000)])];
-    let content = [b'a'; 5000];
     let ordinal = Ordinal(10_000);
+    let inscription = Inscription::Png([1; 10_000].to_vec());
     let commit_address = change(0);
     let reveal_address = recipient();
 
     assert!(Inscribe::create_inscription_transactions(
       ordinal,
-      &content,
+      inscription,
       bitcoin::Network::Signet,
       utxos,
       vec![commit_address, change(1)],
@@ -227,14 +232,14 @@ mod tests {
   #[test]
   fn reveal_transaction_would_create_dust() {
     let utxos = vec![(outpoint(1), vec![(10_000, 10_600)])];
-    let content = [b'a'; 1];
+    let inscription = Inscription::Text("ord".into());
     let ordinal = Ordinal(10_000);
     let commit_address = change(0);
     let reveal_address = recipient();
 
     let error = Inscribe::create_inscription_transactions(
       ordinal,
-      &content,
+      inscription,
       bitcoin::Network::Signet,
       utxos,
       vec![commit_address, change(1)],

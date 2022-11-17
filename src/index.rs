@@ -342,7 +342,10 @@ impl Index {
         .begin_read()?
         .open_table(ORDINAL_TO_INSCRIPTION)?
         .get(&ordinal.n())?
-        .map(|inscription| Inscription(inscription.to_owned())),
+        .map(|inscription| {
+          serde_json::from_str(inscription)
+            .expect("failed to deserialize inscription (JSON) from database")
+        }),
     )
   }
 

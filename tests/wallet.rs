@@ -165,7 +165,8 @@ fn inscribe() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
   rpc_server.mine_blocks(1);
 
-  CommandBuilder::new("--chain regtest wallet inscribe 5000000000 HELLOWORLD")
+  CommandBuilder::new("--chain regtest wallet inscribe --ordinal 5000000000 --file hello.txt")
+    .write("hello.txt", "HELLOWORLD")
     .rpc_server(&rpc_server)
     .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
     .run();
@@ -185,9 +186,56 @@ fn inscribe_forbidden_on_mainnet() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "ord");
   rpc_server.mine_blocks(1);
 
-  CommandBuilder::new("wallet inscribe 5000000000 HELLOWORLD")
+  CommandBuilder::new("wallet inscribe --ordinal 5000000000 --file hello.txt")
     .rpc_server(&rpc_server)
     .expected_exit_code(1)
     .expected_stderr("error: `ord wallet inscribe` is unstable and not yet supported on mainnet.\n")
+    .run();
+}
+
+#[test]
+fn inscribe_unknown_file_extension() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  rpc_server.mine_blocks(1);
+
+  CommandBuilder::new("--chain regtest wallet inscribe --ordinal 5000000000 --file pepe.jpg")
+    .write("pepe.jpg", [1; 520])
+    .rpc_server(&rpc_server)
+    .expected_exit_code(1)
+    .expected_stderr("error: unrecognized file extension `.jpg`, only .txt and .png accepted\n")
+    .run();
+}
+
+#[test]
+fn inscribe_png() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  rpc_server.mine_blocks(1);
+
+  CommandBuilder::new("--chain regtest wallet inscribe --ordinal 5000000000 --file degenerate.png")
+    .write("degenerate.png", [1; 520])
+    .rpc_server(&rpc_server)
+    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+    .run();
+
+  rpc_server.mine_blocks(1);
+
+  let ord_server = TestServer::spawn(&rpc_server);
+
+  ord_server.assert_response_regex(
+    "/ordinal/5000000000",
+    ".*<dt>inscription</dt><dd><img src=.*",
+  )
+}
+
+#[test]
+fn inscribe_exceeds_push_byte_limit() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  rpc_server.mine_blocks(1);
+
+  CommandBuilder::new("--chain regtest wallet inscribe --ordinal 5000000000 --file degenerate.png")
+    .write("degenerate.png", [1; 521])
+    .rpc_server(&rpc_server)
+    .expected_exit_code(1)
+    .expected_stderr("error: file size exceeds 520 bytes\n")
     .run();
 }

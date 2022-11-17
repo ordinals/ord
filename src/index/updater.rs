@@ -295,7 +295,9 @@ impl Updater {
     if self.chain != Chain::Mainnet {
       if let Some((ordinal, inscription)) = Inscription::from_transaction(tx, input_ordinal_ranges)
       {
-        ordinal_to_inscription.insert(&ordinal.n(), &inscription.0)?;
+        let json = serde_json::to_string(&inscription)
+          .expect("Inscription serialization should always succeed");
+        ordinal_to_inscription.insert(&ordinal.n(), &json)?;
       }
     }
 
