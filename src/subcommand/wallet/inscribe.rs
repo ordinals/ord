@@ -14,9 +14,9 @@ use {
 
 #[derive(Debug, Parser)]
 pub(crate) struct Inscribe {
-  #[clap(long, help = "Inscribe on <ORDINAL>")]
+  #[clap(long, help = "Inscribe <ORDINAL>")]
   ordinal: Ordinal,
-  #[clap(long, help = "Inscribe contents of <FILE>")]
+  #[clap(long, help = "Inscribe ordinal with contents of <FILE>")]
   file: PathBuf,
 }
 
@@ -24,22 +24,7 @@ impl Inscribe {
   pub(crate) fn run(self, options: Options) -> Result {
     let client = options.bitcoin_rpc_client_mainnet_forbidden("ord wallet inscribe")?;
 
-    let inscription = match &self
-      .file
-      .extension()
-      .expect("file should always have an extension")
-      .to_str()
-    {
-      Some("txt") => Inscription::Text(String::from_utf8_lossy(&fs::read(&self.file).unwrap()).into()),
-      Some("png") => Inscription::Png(fs::read(&self.file).unwrap()),
-      _ => {
-        return Err(anyhow!("inscribe only accepts .txt and .png"));
-      }
-    };
-
-    if fs::read(&self.file).unwrap().len() > 520 {
-      return Err(anyhow!("file size exceeds 520 bytes"));
-    }
+    let inscription = Inscription::from_file(self.file)?;
 
     let index = Index::open(&options)?;
     index.update()?;
@@ -93,7 +78,7 @@ impl Inscribe {
       .push_opcode(opcodes::all::OP_CHECKSIG)
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
-      .push_slice(inscription.media_type())
+      .push_slice(inscription.media_type().as_bytes())
       .push_slice(inscription.content())
       .push_opcode(opcodes::all::OP_ENDIF)
       .into_script();

@@ -15,6 +15,7 @@ use {
 pub(crate) enum Inscription {
   Text(String),
   Png(Vec<u8>),
+  Unknown { media_type: (), content: () },
 }
 
 impl Inscription {
@@ -29,10 +30,32 @@ impl Inscription {
     Some((Ordinal(*start), inscription))
   }
 
-  pub(crate) fn media_type(&self) -> &[u8] {
+  pub(crate) fn from_file(path: PathBuf) -> Result<Self, Error> {
+    let file = fs::read(&path).with_context(|| format!("io error reading {}", path.display()))?;
+
+    if file.len() > 520 {
+      bail!("file size exceeds 520 bytes");
+    }
+
+    match path
+      .extension()
+      .ok_or_else(|| anyhow!("file must have extension"))?
+      .to_str()
+      .ok_or_else(|| anyhow!("unrecognized extension"))?
+    {
+      "txt" => Ok(Inscription::Text(String::from_utf8(file)?)),
+      "png" => Ok(Inscription::Png(file)),
+      other => Err(anyhow!(
+        "unrecognized file extension `.{other}`, only .txt and .png accepted"
+      )),
+    }
+  }
+
+  pub(crate) fn media_type(&self) -> &'static str {
     match self {
-      Inscription::Text(_) => "text/plain;charset=utf-8".as_bytes(),
-      Inscription::Png(_) => "image/png".as_bytes(),
+      Inscription::Text(_) => "text/plain;charset=utf-8",
+      Inscription::Png(_) => "image/png",
+      _ => "unknown",
     }
   }
 
@@ -40,12 +63,13 @@ impl Inscription {
     match self {
       Inscription::Text(text) => text.as_bytes(),
       Inscription::Png(png) => png.as_ref(),
+      _ => &[],
     }
   }
 }
 
 #[derive(Debug, PartialEq)]
-enum InscriptionError {
+pub(crate) enum InscriptionError {
   EmptyWitness,
   KeyPathSpend,
   Script(script::Error),
@@ -135,9 +159,10 @@ impl<'a> InscriptionParser<'a> {
             .into(),
         )),
         "image/png" => Some(Inscription::Png(content.to_vec())),
-        _ => {
-          return Err(InscriptionError::InvalidInscription);
-        }
+        _ => Some(Inscription::Unknown {
+          media_type: (),
+          content: (),
+        }),
       };
 
       if self.advance()? != Instruction::Op(opcodes::all::OP_ENDIF) {
@@ -322,7 +347,10 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
-      Err(InscriptionError::InvalidInscription)
+      Ok(Inscription::Unknown {
+        media_type: (),
+        content: ()
+      })
     );
   }
 
@@ -431,6 +459,25 @@ mod tests {
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
       Ok(Inscription::Png(vec![1; 100]))
+    );
+  }
+
+  #[test]
+  fn inscribe_unknown_media_type() {
+    let script = script::Builder::new()
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
+      .push_slice("image/jpg".as_bytes())
+      .push_slice(&[1; 100])
+      .push_opcode(opcodes::all::OP_ENDIF)
+      .into_script();
+
+    assert_eq!(
+      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
+      Ok(Inscription::Unknown {
+        media_type: (),
+        content: ()
+      })
     );
   }
 }

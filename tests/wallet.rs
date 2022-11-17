@@ -199,9 +199,10 @@ fn inscribe_unknown_file_extension() {
   rpc_server.mine_blocks(1);
 
   CommandBuilder::new("--chain regtest wallet inscribe --ordinal 5000000000 --file pepe.jpg")
+    .write("pepe.jpg", [1; 520])
     .rpc_server(&rpc_server)
     .expected_exit_code(1)
-    .expected_stderr("error: inscribe only accepts .txt and .png\n")
+    .expected_stderr("error: unrecognized file extension `.jpg`, only .txt and .png accepted\n")
     .run();
 }
 
@@ -211,7 +212,7 @@ fn inscribe_png() {
   rpc_server.mine_blocks(1);
 
   CommandBuilder::new("--chain regtest wallet inscribe --ordinal 5000000000 --file degenerate.png")
-    .write("degenerate.png", &[1; 520])
+    .write("degenerate.png", [1; 520])
     .rpc_server(&rpc_server)
     .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
     .run();
@@ -232,7 +233,7 @@ fn inscribe_exceeds_push_byte_limit() {
   rpc_server.mine_blocks(1);
 
   CommandBuilder::new("--chain regtest wallet inscribe --ordinal 5000000000 --file degenerate.png")
-    .write("degenerate.png", &[1; 521])
+    .write("degenerate.png", [1; 521])
     .rpc_server(&rpc_server)
     .expected_exit_code(1)
     .expected_stderr("error: file size exceeds 520 bytes\n")
