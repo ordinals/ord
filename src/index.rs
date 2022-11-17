@@ -42,6 +42,7 @@ fn encode_satpoint(satpoint: SatPoint) -> [u8; 44] {
 
 pub(crate) struct Index {
   auth: Auth,
+  chain: Chain,
   client: Client,
   database: Database,
   database_path: PathBuf,
@@ -161,6 +162,7 @@ impl Index {
     Ok(Self {
       genesis_block_coinbase_txid: genesis_block_coinbase_transaction.txid(),
       auth,
+      chain: options.chain,
       client,
       database,
       database_path,
