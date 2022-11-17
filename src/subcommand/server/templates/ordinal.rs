@@ -41,7 +41,7 @@ mod tests {
           <dt>rarity</dt><dd><span class=mythic>mythic</span></dd>
           <dt>time</dt><dd>1970-01-01 00:00:00</dd>
         </dl>
-        <a>prev</a>
+        prev
         <a href=/ordinal/1>next</a>
       "
       .unindent()
@@ -104,7 +104,7 @@ mod tests {
           <dt>time</dt><dd>1970-01-01 00:00:00</dd>
           <dt>inscription</dt><dd>HELLOWORLD</dd>
         </dl>
-        <a>prev</a>
+        prev
         <a href=/ordinal/1>next</a>
       "
       .unindent()
@@ -138,8 +138,39 @@ mod tests {
           <dt>time</dt><dd>1970-01-01 00:00:00</dd>
           <dt>inscription</dt><dd>&lt;script&gt;alert(&apos;HELLOWORLD&apos;);&lt;/script&gt;</dd>
         </dl>
-        <a>prev</a>
+        prev
         <a href=/ordinal/1>next</a>
+      "
+      .unindent()
+    );
+  }
+
+  #[test]
+  fn last_ordinal_next_link_is_disabled() {
+    pretty_assert_eq!(
+      OrdinalHtml {
+        ordinal: Ordinal::LAST,
+        blocktime: Blocktime::Confirmed(0),
+        inscription: None,
+      }
+      .to_string(),
+      "
+        <h1>Ordinal 2099999997689999</h1>
+        <dl>
+          <dt>decimal</dt><dd>6929999.0</dd>
+          <dt>degree</dt><dd>5°209999′1007″0‴</dd>
+          <dt>percentile</dt><dd>100%</dd>
+          <dt>name</dt><dd>a</dd>
+          <dt>cycle</dt><dd>5</dd>
+          <dt>epoch</dt><dd>32</dd>
+          <dt>period</dt><dd>3437</dd>
+          <dt>block</dt><dd>6929999</dd>
+          <dt>offset</dt><dd>0</dd>
+          <dt>rarity</dt><dd><span class=uncommon>uncommon</span></dd>
+          <dt>time</dt><dd>1970-01-01 00:00:00</dd>
+        </dl>
+        <a href=/ordinal/2099999997689998>prev</a>
+        next
       "
       .unindent()
     );

@@ -33,6 +33,23 @@ use {
 mod deserialize_from_str;
 mod templates;
 
+enum BlockQuery {
+  Height(u64),
+  Hash(BlockHash),
+}
+
+impl FromStr for BlockQuery {
+  type Err = Error;
+
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    Ok(if s.len() == 64 {
+      BlockQuery::Hash(s.parse()?)
+    } else {
+      BlockQuery::Height(s.parse()?)
+    })
+  }
+}
+
 enum ServerError {
   Internal(Error),
   NotFound(String),
@@ -133,12 +150,12 @@ impl Server {
 
       let router = Router::new()
         .route("/", get(Self::home))
-        .route("/block/:hash", get(Self::block))
+        .route("/block/:query", get(Self::block))
         .route("/bounties", get(Self::bounties))
         .route("/clock", get(Self::clock))
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
-        .route("/height", get(Self::height))
+        .route("/block-count", get(Self::block_count))
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/ordinal/:ordinal", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
@@ -274,13 +291,19 @@ impl Server {
     Ok(acceptor)
   }
 
+  fn index_height(index: &Index) -> ServerResult<Height> {
+    index
+      .height()
+      .map_err(|err| ServerError::Internal(anyhow!("failed to retrieve height from index: {err}")))?
+      .ok_or_else(|| ServerError::Internal(anyhow!("index has not indexed genesis block")))
+  }
+
   async fn clock(Extension(index): Extension<Arc<Index>>) -> ServerResult<ClockSvg> {
-    Ok(ClockSvg::new(index.height().map_err(|err| {
-      ServerError::Internal(anyhow!("failed to retrieve height from index: {err}"))
-    })?))
+    Ok(ClockSvg::new(Self::index_height(&index)?))
   }
 
   async fn ordinal(
+    Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(ordinal)): Path<DeserializeFromStr<Ordinal>>,
   ) -> ServerResult<PageHtml> {
@@ -296,14 +319,14 @@ impl Server {
           ))
         })?,
       }
-      .page(),
+      .page(chain),
     )
   }
 
   async fn output(
+    Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
     Path(outpoint): Path<OutPoint>,
-    Extension(chain): Extension<Chain>,
   ) -> ServerResult<PageHtml> {
     let list = index
       .list(outpoint)
@@ -326,11 +349,12 @@ impl Server {
         chain,
         output,
       }
-      .page(),
+      .page(chain),
     )
   }
 
   async fn range(
+    Extension(chain): Extension<Chain>,
     Path((DeserializeFromStr(start), DeserializeFromStr(end))): Path<(
       DeserializeFromStr<Ordinal>,
       DeserializeFromStr<Ordinal>,
@@ -341,7 +365,7 @@ impl Server {
       Ordering::Greater => Err(ServerError::BadRequest(
         "range start greater than range end".to_string(),
       )),
-      Ordering::Less => Ok(RangeHtml { start, end }.page()),
+      Ordering::Less => Ok(RangeHtml { start, end }.page(chain)),
     }
   }
 
@@ -351,40 +375,62 @@ impl Server {
     })?))
   }
 
-  async fn home(Extension(index): Extension<Arc<Index>>) -> ServerResult<PageHtml> {
+  async fn home(
+    Extension(chain): Extension<Chain>,
+    Extension(index): Extension<Arc<Index>>,
+  ) -> ServerResult<PageHtml> {
     Ok(
       HomeHtml::new(
         index
           .blocks(100)
           .map_err(|err| ServerError::Internal(anyhow!("error getting blocks: {err}")))?,
       )
-      .page(),
+      .page(chain),
     )
   }
 
   async fn block(
-    Path(hash): Path<BlockHash>,
-    index: Extension<Arc<Index>>,
+    Extension(chain): Extension<Chain>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(DeserializeFromStr(query)): Path<DeserializeFromStr<BlockQuery>>,
   ) -> ServerResult<PageHtml> {
-    let info = index
-      .block_header_info(hash)
-      .map_err(|err| {
-        ServerError::Internal(anyhow!(
-          "error serving request for block with hash {hash}: {err}"
-        ))
-      })?
-      .ok_or_else(|| ServerError::NotFound(format!("block {hash} unknown")))?;
+    let (block, height) = match query {
+      BlockQuery::Height(height) => {
+        let block = index
+          .get_block_by_height(height)
+          .map_err(|err| {
+            ServerError::Internal(anyhow!(
+              "error serving request for block with height {height}: {err}"
+            ))
+          })?
+          .ok_or_else(|| ServerError::NotFound(format!("block at height {height} unknown")))?;
 
-    let block = index
-      .block_with_hash(hash)
-      .map_err(|err| {
-        ServerError::Internal(anyhow!(
-          "error serving request for block with hash {hash}: {err}"
-        ))
-      })?
-      .ok_or_else(|| ServerError::NotFound(format!("block {hash} unknown")))?;
+        (block, height)
+      }
+      BlockQuery::Hash(hash) => {
+        let info = index
+          .block_header_info(hash)
+          .map_err(|err| {
+            ServerError::Internal(anyhow!(
+              "error serving request for block with hash {hash}: {err}"
+            ))
+          })?
+          .ok_or_else(|| ServerError::NotFound(format!("block {hash} unknown")))?;
 
-    Ok(BlockHtml::new(block, Height(info.height as u64)).page())
+        let block = index
+          .get_block_by_hash(hash)
+          .map_err(|err| {
+            ServerError::Internal(anyhow!(
+              "error serving request for block with hash {hash}: {err}"
+            ))
+          })?
+          .ok_or_else(|| ServerError::NotFound(format!("block {hash} unknown")))?;
+
+        (block, info.height as u64)
+      }
+    };
+
+    Ok(BlockHtml::new(block, Height(height), Self::index_height(&index)?).page(chain))
   }
 
   async fn transaction(
@@ -404,7 +450,7 @@ impl Server {
           .ok_or_else(|| ServerError::NotFound(format!("transaction {txid} unknown")))?,
         chain,
       )
-      .page(),
+      .page(chain),
     )
   }
 
@@ -490,18 +536,19 @@ impl Server {
     )
   }
 
-  async fn height(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
+  async fn block_count(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
     Ok(
       index
-        .height()
+        .block_count()
         .map_err(|err| {
-          ServerError::Internal(anyhow!("failed to retrieve height from index: {err}"))
+          ServerError::Internal(anyhow!("failed to retrieve block count from index: {err}"))
         })?
         .to_string(),
     )
   }
 
   async fn input(
+    Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
     Path(path): Path<(u64, usize, usize)>,
   ) -> Result<PageHtml, ServerError> {
@@ -509,7 +556,7 @@ impl Server {
       || ServerError::NotFound(format!("input /{}/{}/{} unknown", path.0, path.1, path.2));
 
     let block = index
-      .block(path.0)
+      .get_block_by_height(path.0)
       .map_err(ServerError::Internal)?
       .ok_or_else(not_found)?;
 
@@ -521,7 +568,7 @@ impl Server {
       .nth(path.2)
       .ok_or_else(not_found)?;
 
-    Ok(InputHtml { path, input }.page())
+    Ok(InputHtml { path, input }.page(chain))
   }
 
   async fn faq() -> Redirect {
@@ -872,25 +919,20 @@ mod tests {
   }
 
   #[test]
-  fn height_endpoint() {
-    TestServer::new().assert_response("/height", StatusCode::OK, "0");
-  }
-
-  #[test]
-  fn height_updates() {
+  fn block_count_endpoint() {
     let test_server = TestServer::new();
 
-    let response = test_server.get("/height");
-
-    assert_eq!(response.status(), StatusCode::OK);
-    assert_eq!(response.text().unwrap(), "0");
-
-    test_server.bitcoin_rpc_server.mine_blocks(1);
-
-    let response = test_server.get("/height");
+    let response = test_server.get("/block-count");
 
     assert_eq!(response.status(), StatusCode::OK);
     assert_eq!(response.text().unwrap(), "1");
+
+    test_server.bitcoin_rpc_server.mine_blocks(1);
+
+    let response = test_server.get("/block-count");
+
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(response.text().unwrap(), "2");
   }
 
   #[test]
@@ -1058,6 +1100,15 @@ mod tests {
   }
 
   #[test]
+  fn nav_displays_chain() {
+    TestServer::new().assert_response_regex(
+      "/",
+      StatusCode::OK,
+      ".*<a href=/>Ordinals<sup>regtest</sup></a>.*",
+    );
+  }
+
+  #[test]
   fn home_block_limit() {
     let test_server = TestServer::new();
 
@@ -1122,7 +1173,7 @@ mod tests {
   }
 
   #[test]
-  fn block() {
+  fn block_by_hash() {
     let test_server = TestServer::new();
 
     test_server.bitcoin_rpc_server.mine_blocks(1);
@@ -1137,19 +1188,42 @@ mod tests {
     test_server.assert_response_regex(
       &format!("/block/{block_hash}"),
       StatusCode::OK,
-      ".*<h1>Block <span class=monospace>[[:xdigit:]]{64}</span></h1>
+      ".*<h1>Block 2</h1>
 <dl>
-  <dt>height</dt><dd>2</dd>
+  <dt>hash</dt><dd class=monospace>[[:xdigit:]]{64}</dd>
+  <dt>target</dt><dd class=monospace>[[:xdigit:]]{64}</dd>
   <dt>timestamp</dt><dd>0</dd>
   <dt>size</dt><dd>203</dd>
   <dt>weight</dt><dd>812</dd>
-  <dt>prev blockhash</dt><dd><a href=/block/659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf class=monospace>659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf</a></dd>
+  <dt>previous blockhash</dt><dd><a href=/block/659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf class=monospace>659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf</a></dd>
 </dl>
+<a href=/block/1>prev</a>
+next
 <h2>2 Transactions</h2>
 <ul class=monospace>
   <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
   <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
 </ul>.*",
+    );
+  }
+
+  #[test]
+  fn block_by_height() {
+    let test_server = TestServer::new();
+
+    test_server.assert_response_regex(
+      "/block/0",
+      StatusCode::OK,
+      ".*<h1>Block 0</h1>
+<dl>
+  <dt>hash</dt><dd class=monospace>[[:xdigit:]]{64}</dd>
+  <dt>target</dt><dd class=monospace>[[:xdigit:]]{64}</dd>
+  <dt>timestamp</dt><dd>1231006505</dd>
+  <dt>size</dt><dd>285</dd>
+  <dt>weight</dt><dd>1140</dd>
+</dl>
+prev
+next.*",
     );
   }
 

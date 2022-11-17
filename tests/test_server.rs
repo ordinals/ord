@@ -59,12 +59,12 @@ impl TestServer {
 
   pub(crate) fn assert_response_regex(&self, path: &str, regex: &str) {
     let client = Client::new(&self.rpc_url, Auth::None).unwrap();
-    let chain_height = client.get_block_count().unwrap();
+    let chain_block_count = client.get_block_count().unwrap() + 1;
 
     for i in 0.. {
-      let response = reqwest::blocking::get(self.url().join("/height").unwrap()).unwrap();
+      let response = reqwest::blocking::get(self.url().join("/block-count").unwrap()).unwrap();
       assert_eq!(response.status(), StatusCode::OK);
-      if response.text().unwrap().parse::<u64>().unwrap() == chain_height {
+      if response.text().unwrap().parse::<u64>().unwrap() == chain_block_count {
         break;
       } else if i == 20 {
         panic!("index failed to synchronize with chain");
