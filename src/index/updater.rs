@@ -2,11 +2,12 @@ use {super::*, std::sync::mpsc};
 
 pub struct Updater {
   cache: HashMap<[u8; 36], Vec<u8>>,
-  outputs_traversed: u64,
-  outputs_cached: u64,
-  ordinal_ranges_since_flush: u64,
-  outputs_inserted_since_flush: u64,
+  chain: Chain,
   height: u64,
+  ordinal_ranges_since_flush: u64,
+  outputs_cached: u64,
+  outputs_inserted_since_flush: u64,
+  outputs_traversed: u64,
 }
 
 impl Updater {
@@ -23,11 +24,12 @@ impl Updater {
 
     let mut updater = Self {
       cache: HashMap::new(),
-      outputs_traversed: 0,
+      chain: index.chain,
+      height,
+      ordinal_ranges_since_flush: 0,
       outputs_cached: 0,
       outputs_inserted_since_flush: 0,
-      ordinal_ranges_since_flush: 0,
-      height,
+      outputs_traversed: 0,
     };
 
     updater.update_index(index, wtx)
@@ -290,10 +292,13 @@ impl Updater {
     ordinal_ranges_written: &mut u64,
     outputs_traversed: &mut u64,
   ) -> Result {
-    if let Some((ordinal, inscription)) = Inscription::from_transaction(tx, input_ordinal_ranges) {
-      let json = serde_json::to_string(&inscription)
-        .expect("Inscription serialization should always succeed");
-      ordinal_to_inscription.insert(&ordinal.n(), &json)?;
+    if self.chain != Chain::Mainnet {
+      if let Some((ordinal, inscription)) = Inscription::from_transaction(tx, input_ordinal_ranges)
+      {
+        let json = serde_json::to_string(&inscription)
+          .expect("Inscription serialization should always succeed");
+        ordinal_to_inscription.insert(&ordinal.n(), &json)?;
+      }
     }
 
     for (vout, output) in tx.output.iter().enumerate() {
