@@ -15,7 +15,10 @@ use {
 pub(crate) enum Inscription {
   Text(String),
   Png(Vec<u8>),
-  Unknown { media_type: (), content: () },
+  Unknown {
+    media_type: String,
+    content: Vec<u8>,
+  },
 }
 
 impl Inscription {
@@ -51,11 +54,14 @@ impl Inscription {
     }
   }
 
-  pub(crate) fn media_type(&self) -> &'static str {
+  pub(crate) fn media_type(&self) -> &str {
     match self {
       Inscription::Text(_) => "text/plain;charset=utf-8",
       Inscription::Png(_) => "image/png",
-      _ => "unknown",
+      Inscription::Unknown {
+        media_type,
+        content: _,
+      } => media_type,
     }
   }
 
@@ -63,7 +69,10 @@ impl Inscription {
     match self {
       Inscription::Text(text) => text.as_bytes(),
       Inscription::Png(png) => png.as_ref(),
-      _ => &[],
+      Inscription::Unknown {
+        media_type: _,
+        content,
+      } => content.as_ref(),
     }
   }
 }
@@ -159,9 +168,9 @@ impl<'a> InscriptionParser<'a> {
             .into(),
         )),
         "image/png" => Some(Inscription::Png(content.to_vec())),
-        _ => Some(Inscription::Unknown {
-          media_type: (),
-          content: (),
+        media_type => Some(Inscription::Unknown {
+          media_type: media_type.into(),
+          content: content.into(),
         }),
       };
 
@@ -342,15 +351,13 @@ mod tests {
       .push_opcode(opcodes::all::OP_IF)
       .push_slice("ord".as_bytes())
       .push_slice("ord".as_bytes())
+      .push_slice("ord".as_bytes())
       .push_opcode(opcodes::all::OP_ENDIF)
       .into_script();
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
-      Ok(Inscription::Unknown {
-        media_type: (),
-        content: ()
-      })
+      Err(InscriptionError::InvalidInscription),
     );
   }
 
@@ -475,8 +482,8 @@ mod tests {
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
       Ok(Inscription::Unknown {
-        media_type: (),
-        content: ()
+        media_type: "image/jpg".into(),
+        content: vec![1; 100],
       })
     );
   }
