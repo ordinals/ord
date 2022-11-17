@@ -6,7 +6,7 @@ use {
 
 pub(crate) use {
   block::BlockHtml, clock::ClockSvg, home::HomeHtml, input::InputHtml, ordinal::OrdinalHtml,
-  output::OutputHtml, range::RangeHtml, rare::RareTxt, transaction::TransactionHtml,
+  output::OutputHtml, range::RangeHtml, rare::RareTxt, transaction::TransactionHtml, inscription::InscriptionHtml,
 };
 
 mod block;
@@ -18,6 +18,7 @@ mod output;
 mod range;
 mod rare;
 mod transaction;
+mod inscription;
 
 #[derive(Boilerplate)]
 pub(crate) struct PageHtml {
