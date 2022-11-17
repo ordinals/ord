@@ -15,10 +15,6 @@ use {
 pub(crate) enum Inscription {
   Text(String),
   Png(Vec<u8>),
-  Unknown {
-    media_type: String,
-    content: Vec<u8>,
-  },
 }
 
 impl Inscription {
@@ -58,10 +54,6 @@ impl Inscription {
     match self {
       Inscription::Text(_) => "text/plain;charset=utf-8",
       Inscription::Png(_) => "image/png",
-      Inscription::Unknown {
-        media_type,
-        content: _,
-      } => media_type,
     }
   }
 
@@ -69,10 +61,6 @@ impl Inscription {
     match self {
       Inscription::Text(text) => text.as_bytes(),
       Inscription::Png(png) => png.as_ref(),
-      Inscription::Unknown {
-        media_type: _,
-        content,
-      } => content.as_ref(),
     }
   }
 }
@@ -168,10 +156,7 @@ impl<'a> InscriptionParser<'a> {
             .into(),
         )),
         "image/png" => Some(Inscription::Png(content.to_vec())),
-        media_type => Some(Inscription::Unknown {
-          media_type: media_type.into(),
-          content: content.into(),
-        }),
+        _ => None,
       };
 
       if self.advance()? != Instruction::Op(opcodes::all::OP_ENDIF) {
@@ -466,25 +451,6 @@ mod tests {
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
       Ok(Inscription::Png(vec![1; 100]))
-    );
-  }
-
-  #[test]
-  fn inscribe_unknown_media_type() {
-    let script = script::Builder::new()
-      .push_opcode(opcodes::OP_FALSE)
-      .push_opcode(opcodes::all::OP_IF)
-      .push_slice("image/jpg".as_bytes())
-      .push_slice(&[1; 100])
-      .push_opcode(opcodes::all::OP_ENDIF)
-      .into_script();
-
-    assert_eq!(
-      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
-      Ok(Inscription::Unknown {
-        media_type: "image/jpg".into(),
-        content: vec![1; 100],
-      })
     );
   }
 }
