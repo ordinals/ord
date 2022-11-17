@@ -66,7 +66,7 @@ impl Inscription {
 }
 
 #[derive(Debug, PartialEq)]
-pub(crate) enum InscriptionError {
+enum InscriptionError {
   EmptyWitness,
   KeyPathSpend,
   Script(script::Error),
