@@ -150,9 +150,8 @@ impl Updater {
     loop {
       match client
         .get_block_hash(height)
-        .into_option()?
-        .map(|hash| client.get_block(&hash))
-        .transpose()
+        .into_option()
+        .and_then(|option| option.map(|hash| Ok(client.get_block(&hash)?)).transpose())
       {
         Err(err) => {
           if cfg!(test) {
