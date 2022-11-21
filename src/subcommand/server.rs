@@ -4,8 +4,8 @@ use {
   self::{
     deserialize_from_str::DeserializeFromStr,
     templates::{
-      BlockHtml, ClockSvg, Content, HomeHtml, InputHtml, OrdinalHtml, OutputHtml, PageHtml,
-      RangeHtml, RareTxt, TransactionHtml,
+      BlockHtml, ClockSvg, Content, HomeHtml, InputHtml, InscriptionHtml, OrdinalHtml, OutputHtml,
+      PageHtml, RangeHtml, RareTxt, TransactionHtml,
     },
   },
   axum::{
@@ -157,6 +157,7 @@ impl Server {
         .route("/favicon.ico", get(Self::favicon))
         .route("/block-count", get(Self::block_count))
         .route("/input/:block/:transaction/:input", get(Self::input))
+        .route("/inscription/:txid", get(Self::inscription))
         .route("/ordinal/:ordinal", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
         .route("/range/:start/:end", get(Self::range))
@@ -577,6 +578,27 @@ impl Server {
 
   async fn bounties() -> Redirect {
     Redirect::to("https://docs.ordinals.com/bounty/")
+  }
+
+  async fn inscription(
+    Extension(chain): Extension<Chain>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(txid): Path<Txid>,
+  ) -> ServerResult<PageHtml> {
+    Ok(
+      InscriptionHtml {
+        txid,
+        inscription: index
+          .inscription_from_txid(txid)
+          .map_err(|err| {
+            ServerError::Internal(anyhow!(
+              "failed to retrieve inscription from txid {txid} from index: {err}"
+            ))
+          })?
+          .ok_or_else(|| ServerError::NotFound(format!("transaction {txid} has no inscription")))?,
+      }
+      .page(chain),
+    )
   }
 }
 
