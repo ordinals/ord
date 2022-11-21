@@ -127,34 +127,38 @@ impl Index {
 
     let database = match unsafe { redb::Database::open(&database_path) } {
       Ok(database) => database,
-      Err(redb::Error::Io(error)) if error.kind() == io::ErrorKind::NotFound => unsafe {
-        Database::builder()
-          .set_write_strategy(if cfg!(test) {
-            WriteStrategy::Checksum
-          } else {
-            WriteStrategy::TwoPhase
-          })
-          .create(&database_path, options.max_index_size().0)?
-      },
+      Err(redb::Error::Io(error)) if error.kind() == io::ErrorKind::NotFound => {
+        let database = unsafe {
+          Database::builder()
+            .set_write_strategy(if cfg!(test) {
+              WriteStrategy::Checksum
+            } else {
+              WriteStrategy::TwoPhase
+            })
+            .create(&database_path, options.max_index_size().0)?
+        };
+
+        let tx = database.begin_write()?;
+
+        #[cfg(test)]
+        let tx = {
+          let mut tx = tx;
+          tx.set_durability(redb::Durability::None);
+          tx
+        };
+
+        tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
+        tx.open_table(ORDINAL_TO_INSCRIPTION)?;
+        tx.open_table(ORDINAL_TO_SATPOINT)?;
+        tx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
+        tx.open_table(STATISTIC_TO_COUNT)?;
+
+        tx.commit()?;
+
+        database
+      }
       Err(error) => return Err(error.into()),
     };
-
-    let tx = database.begin_write()?;
-
-    #[cfg(test)]
-    let tx = {
-      let mut tx = tx;
-      tx.set_durability(redb::Durability::None);
-      tx
-    };
-
-    tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
-    tx.open_table(ORDINAL_TO_INSCRIPTION)?;
-    tx.open_table(ORDINAL_TO_SATPOINT)?;
-    tx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
-    tx.open_table(STATISTIC_TO_COUNT)?;
-
-    tx.commit()?;
 
     let genesis_block_coinbase_transaction =
       options.chain.genesis_block().coinbase().unwrap().clone();
