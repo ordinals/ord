@@ -55,6 +55,6 @@ fn inscription_page() {
   ord_server.assert_response_regex(
     &format!("/inscription/{}", reveal_tx),
     ".*<h1>Inscription</h1>
-<h3>HELLOWORLD</h3>.*",
+HELLOWORLD.*",
   )
 }

@@ -184,8 +184,8 @@ impl Updater {
     let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
     let mut ordinal_to_satpoint = wtx.open_table(ORDINAL_TO_SATPOINT)?;
     let mut ordinal_to_inscription_txid = wtx.open_table(ORDINAL_TO_INSCRIPTION_TXID)?;
-    let mut txid_to_inscription = wtx.open_table(TXID_TO_INSCRIPTION)?;
     let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
+    let mut txid_to_inscription = wtx.open_table(TXID_TO_INSCRIPTION)?;
 
     let start = Instant::now();
     let mut ordinal_ranges_written = 0;

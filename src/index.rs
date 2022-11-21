@@ -18,13 +18,13 @@ const HEIGHT_TO_BLOCK_HASH: TableDefinition<u64, [u8; 32]> =
   TableDefinition::new("HEIGHT_TO_BLOCK_HASH");
 const ORDINAL_TO_INSCRIPTION_TXID: TableDefinition<u64, [u8; 32]> =
   TableDefinition::new("ORDINAL_TO_INSCRIPTION_TXID");
-const TXID_TO_INSCRIPTION: TableDefinition<[u8; 32], str> =
-  TableDefinition::new("TXID_TO_INSCRIPTION");
 const ORDINAL_TO_SATPOINT: TableDefinition<u64, [u8; 44]> =
   TableDefinition::new("ORDINAL_TO_SATPOINT");
 const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8; 36], [u8]> =
   TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
 const STATISTIC_TO_COUNT: TableDefinition<u64, u64> = TableDefinition::new("STATISTIC_TO_COUNT");
+const TXID_TO_INSCRIPTION: TableDefinition<[u8; 32], str> =
+  TableDefinition::new("TXID_TO_INSCRIPTION");
 
 fn encode_outpoint(outpoint: OutPoint) -> [u8; 36] {
   let mut array = [0; 36];
@@ -152,10 +152,10 @@ impl Index {
 
     tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
     tx.open_table(ORDINAL_TO_INSCRIPTION_TXID)?;
-    tx.open_table(TXID_TO_INSCRIPTION)?;
     tx.open_table(ORDINAL_TO_SATPOINT)?;
     tx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
     tx.open_table(STATISTIC_TO_COUNT)?;
+    tx.open_table(TXID_TO_INSCRIPTION)?;
 
     tx.commit()?;
 
@@ -342,7 +342,7 @@ impl Index {
     let db = self.database.begin_read()?;
     let table = db.open_table(ORDINAL_TO_INSCRIPTION_TXID)?;
 
-    let Some(reveal_txid) = table.get(&ordinal.n())? else {
+    let Some(txid) = table.get(&ordinal.n())? else {
       return Ok(None);
     };
 
@@ -351,7 +351,7 @@ impl Index {
         .database
         .begin_read()?
         .open_table(TXID_TO_INSCRIPTION)?
-        .get(reveal_txid)?
+        .get(txid)?
         .map(|inscription| {
           serde_json::from_str(inscription)
             .expect("failed to deserialize inscription (JSON) from database")

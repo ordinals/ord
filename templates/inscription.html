@@ -1,9 +1,9 @@
 <h1>Inscription</h1>
 %% match &self.inscription {
 %%  Inscription::Text(content) => {
-<h3>{{ content }}</h3>
+{{ content }}
 %% },
 %%  Inscription::Png(content) => {
-<h3><img src="data:image/png;base64,{{ base64::encode(&content) }}"></h3>
+<img src="data:image/png;base64,{{ base64::encode(&content) }}">
 %% },
 %% }

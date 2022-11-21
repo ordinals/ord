@@ -587,6 +587,7 @@ impl Server {
   ) -> ServerResult<PageHtml> {
     Ok(
       InscriptionHtml {
+        txid,
         inscription: index
           .inscription_from_txid(txid)
           .map_err(|err| {
