@@ -6,6 +6,7 @@ use {
       self, constants::SCHNORR_SIGNATURE_SIZE, rand, schnorr::Signature, KeyPair, Secp256k1,
       XOnlyPublicKey,
     },
+    util::key::PrivateKey,
     util::sighash::{Prevouts, SighashCache},
     util::taproot::{LeafVersion, TapLeafHash, TaprootBuilder},
     PackedLockTime, SchnorrSighashType, Witness,
@@ -65,6 +66,7 @@ impl Inscribe {
 
     println!("commit\t{commit_txid}");
     println!("reveal\t{reveal_txid}");
+    println!("wif\t{private_key}");
     Ok(())
   }
 
@@ -76,7 +78,7 @@ impl Inscribe {
     utxos: BTreeMap<OutPoint, Amount>,
     change: Vec<Address>,
     destination: Address,
-  ) -> Result<(Transaction, Transaction)> {
+  ) -> Result<(Transaction, Transaction, String)> {
     let secp256k1 = Secp256k1::new();
     let key_pair = KeyPair::new(&secp256k1, &mut rand::thread_rng());
     let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);
@@ -183,7 +185,10 @@ impl Inscribe {
     witness.push(script);
     witness.push(&control_block.serialize());
 
-    Ok((unsigned_commit_tx, reveal_tx))
+    let private_key =
+      PrivateKey::from_slice(&key_pair.secret_bytes(), bitcoin::network::constants::Network::Bitcoin).unwrap();
+
+    Ok((unsigned_commit_tx, reveal_tx, private_key.to_wif()))
   }
 }
 
