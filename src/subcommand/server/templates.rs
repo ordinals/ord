@@ -5,20 +5,21 @@ use {
 };
 
 pub(crate) use {
-  block::BlockHtml, clock::ClockSvg, home::HomeHtml, input::InputHtml, ordinal::OrdinalHtml,
-  output::OutputHtml, range::RangeHtml, rare::RareTxt, transaction::TransactionHtml, inscription::InscriptionHtml,
+  block::BlockHtml, clock::ClockSvg, home::HomeHtml, input::InputHtml,
+  inscription::InscriptionHtml, ordinal::OrdinalHtml, output::OutputHtml, range::RangeHtml,
+  rare::RareTxt, transaction::TransactionHtml,
 };
 
 mod block;
 mod clock;
 mod home;
 mod input;
+mod inscription;
 mod ordinal;
 mod output;
 mod range;
 mod rare;
 mod transaction;
-mod inscription;
 
 #[derive(Boilerplate)]
 pub(crate) struct PageHtml {

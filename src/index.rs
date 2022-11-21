@@ -351,7 +351,7 @@ impl Index {
         .database
         .begin_read()?
         .open_table(TXID_TO_INSCRIPTION)?
-        .get(&reveal_txid)?
+        .get(reveal_txid)?
         .map(|inscription| {
           serde_json::from_str(inscription)
             .expect("failed to deserialize inscription (JSON) from database")
@@ -365,7 +365,7 @@ impl Index {
         .database
         .begin_read()?
         .open_table(TXID_TO_INSCRIPTION)?
-        .get(&txid.as_inner())?
+        .get(txid.as_inner())?
         .map(|inscription| {
           serde_json::from_str(inscription)
             .expect("failed to deserialize inscription (JSON) from database")
