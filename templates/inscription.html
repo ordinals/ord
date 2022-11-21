@@ -1,0 +1,9 @@
+<h1>Inscription</h1>
+%% match &self.inscription {
+%%  Inscription::Text(content) => {
+{{ content }}
+%% },
+%%  Inscription::Png(content) => {
+<img src="data:image/png;base64,{{ base64::encode(&content) }}">
+%% },
+%% }

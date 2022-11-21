@@ -182,14 +182,15 @@ impl Updater {
   ) -> Result<()> {
     let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
     let mut ordinal_to_satpoint = wtx.open_table(ORDINAL_TO_SATPOINT)?;
-    let mut ordinal_to_inscription = wtx.open_table(ORDINAL_TO_INSCRIPTION)?;
+    let mut ordinal_to_inscription_txid = wtx.open_table(ORDINAL_TO_INSCRIPTION_TXID)?;
     let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
+    let mut txid_to_inscription = wtx.open_table(TXID_TO_INSCRIPTION)?;
 
     let start = Instant::now();
     let mut ordinal_ranges_written = 0;
     let mut outputs_in_block = 0;
 
-    let time = Utc.timestamp(block.header.time as i64, 0);
+    let time = Utc.timestamp_opt(block.header.time as i64, 0).unwrap();
 
     log::info!(
       "Block {} at {} with {} transactions…",
@@ -247,7 +248,8 @@ impl Updater {
         txid,
         tx,
         &mut ordinal_to_satpoint,
-        &mut ordinal_to_inscription,
+        &mut ordinal_to_inscription_txid,
+        &mut txid_to_inscription,
         &mut input_ordinal_ranges,
         &mut ordinal_ranges_written,
         &mut outputs_in_block,
@@ -261,7 +263,8 @@ impl Updater {
         tx.txid(),
         tx,
         &mut ordinal_to_satpoint,
-        &mut ordinal_to_inscription,
+        &mut ordinal_to_inscription_txid,
+        &mut txid_to_inscription,
         &mut coinbase_inputs,
         &mut ordinal_ranges_written,
         &mut outputs_in_block,
@@ -286,7 +289,8 @@ impl Updater {
     txid: Txid,
     tx: &Transaction,
     ordinal_to_satpoint: &mut Table<u64, [u8; 44]>,
-    ordinal_to_inscription: &mut Table<u64, str>,
+    ordinal_to_inscription_txid: &mut Table<u64, [u8; 32]>,
+    txid_to_inscription: &mut Table<[u8; 32], str>,
     input_ordinal_ranges: &mut VecDeque<(u64, u64)>,
     ordinal_ranges_written: &mut u64,
     outputs_traversed: &mut u64,
@@ -296,7 +300,9 @@ impl Updater {
       {
         let json = serde_json::to_string(&inscription)
           .expect("Inscription serialization should always succeed");
-        ordinal_to_inscription.insert(&ordinal.n(), &json)?;
+
+        ordinal_to_inscription_txid.insert(&ordinal.n(), tx.txid().as_inner())?;
+        txid_to_inscription.insert(tx.txid().as_inner(), &json)?;
       }
     }
 
