@@ -191,7 +191,7 @@ impl Updater {
     let mut ordinal_ranges_written = 0;
     let mut outputs_in_block = 0;
 
-    let time = Utc.timestamp(block.header.time as i64, 0);
+    let time = Utc.timestamp_opt(block.header.time as i64, 0).unwrap();
 
     log::info!(
       "Block {} at {} with {} transactions…",
