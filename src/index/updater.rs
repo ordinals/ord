@@ -155,7 +155,7 @@ impl Updater {
       {
         Err(err) => {
           if cfg!(test) {
-            return Err(err.into());
+            return Err(err);
           }
 
           errors += 1;
@@ -164,7 +164,7 @@ impl Updater {
 
           if seconds > 120 {
             log::error!("would sleep for more than 120s, giving up");
-            return Err(err.into());
+            return Err(err);
           }
 
           thread::sleep(Duration::from_secs(seconds));
