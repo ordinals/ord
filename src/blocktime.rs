@@ -16,7 +16,11 @@ impl Blocktime {
 
 impl Display for Blocktime {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-    write!(f, "{}", NaiveDateTime::from_timestamp(self.timestamp(), 0))?;
+    write!(
+      f,
+      "{}",
+      NaiveDateTime::from_timestamp_opt(self.timestamp(), 0).unwrap()
+    )?;
 
     if let Self::Expected(_) = self {
       write!(f, " (expected)")?;
