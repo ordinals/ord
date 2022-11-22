@@ -6,6 +6,8 @@ mkdir -p /etc/systemd/system/ord-dev.service.d
 
 cp /etc/systemd/system/{ord,ord-dev}.service.d/override.conf
 
+source ~/.cargo/env
+
 cargo build --release
 
 if [[  -f /usr/local/bin/ord-dev ]]; then
