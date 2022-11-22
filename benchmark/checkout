@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -euxo pipefail
+
+REV=$1
+
+if [[ ! -d ord ]]; then
+  git clone https://github.com/casey/ord.git
+fi
+
+cd ord
+
+git fetch --all --prune
+git checkout master
+git reset --hard origin/master
+git checkout `git rev-parse origin/$REV`
+./benchmark/run

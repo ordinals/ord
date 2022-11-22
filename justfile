@@ -104,6 +104,14 @@ flamegraph dir=`git branch --show-current`:
 benchmark index height-limit:
   ./bin/benchmark $1 $2
 
+benchmark-revision rev:
+  ssh root@ordinals.com "mkdir -p benchmark \
+    && apt-get update --yes \
+    && apt-get upgrade --yes \
+    && apt-get install --yes git rsync"
+  rsync -avz benchmark/checkout root@ordinals.com:benchmark/checkout
+  ssh root@ordinals.com 'cd benchmark && ./checkout {{rev}}'
+
 serve-docs:
   mdbook serve docs --open
 

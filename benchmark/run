@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -euxo pipefail
+
+systemctl stop ord-dev
+
+rm -rf /var/lib/ord-dev
+
+journalctl --unit ord-dev --rotate
+
+journalctl --unit ord-dev --vacuum-time 1s
+
+./bin/update-dev-server
