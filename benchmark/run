@@ -1,3 +1,9 @@
 #!/usr/bin/env bash
 
 set -euxo pipefail
+
+systemctl stop ord-dev
+
+rm -rf /var/lib/ord-dev
+
+./bin/update-dev-server
