@@ -124,7 +124,7 @@ build-snapshots:
   mv index.redb 0.redb
   for start in {0..750000..50000}; do
     height_limit=$((start+50000))
-    cp $start.redb index.redb
+    cp -c $start.redb index.redb
     a=`date +%s`
     time ./ord --data-dir . --height-limit $height_limit index
     b=`date +%s`
