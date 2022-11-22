@@ -59,16 +59,7 @@ impl Updater {
       Some(progress_bar)
     };
 
-    let rx = Self::fetch_blocks_from(
-      index,
-      wtx
-        .open_table(super::HEIGHT_TO_BLOCK_HASH)?
-        .range(0..)?
-        .rev()
-        .next()
-        .map(|(height, _hash)| height + 1)
-        .unwrap_or(0),
-    )?;
+    let rx = Self::fetch_blocks_from(index, self.height)?;
 
     let mut uncomitted = 0;
     for i in 0.. {
@@ -91,8 +82,20 @@ impl Updater {
 
       if i % 5000 == 0 {
         self.commit(wtx)?;
-        wtx = index.begin_write()?;
         uncomitted = 0;
+        wtx = index.begin_write()?;
+        let height = wtx
+          .open_table(HEIGHT_TO_BLOCK_HASH)?
+          .range(0..)?
+          .rev()
+          .next()
+          .map(|(height, _hash)| height + 1)
+          .unwrap_or(0);
+        if height != self.height {
+          // another update has run between committing and beginning the new
+          // write transaction
+          break;
+        }
       }
 
       if INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
