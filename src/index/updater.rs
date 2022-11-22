@@ -22,6 +22,16 @@ impl Updater {
       .map(|(height, _hash)| height + 1)
       .unwrap_or(0);
 
+    wtx
+      .open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?
+      .insert(
+        &height,
+        &SystemTime::now()
+          .duration_since(SystemTime::UNIX_EPOCH)
+          .map(|duration| duration.as_secs())
+          .unwrap_or(0),
+      )?;
+
     let mut updater = Self {
       cache: HashMap::new(),
       chain: index.chain,
@@ -92,6 +102,15 @@ impl Updater {
       if i % 5000 == 0 {
         self.commit(wtx)?;
         wtx = index.begin_write()?;
+        wtx
+          .open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?
+          .insert(
+            &self.height,
+            &SystemTime::now()
+              .duration_since(SystemTime::UNIX_EPOCH)
+              .map(|duration| duration.as_secs())
+              .unwrap_or(0),
+          )?;
         uncomitted = 0;
       }
 
@@ -397,6 +416,7 @@ impl Updater {
     )?;
     self.ordinal_ranges_since_flush = 0;
     Index::increment_statistic(&wtx, Statistic::Commits, 1)?;
+
     wtx.commit()?;
     Ok(())
   }
