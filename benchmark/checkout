@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -euxo pipefail
+
+BRANCH=$1
+
+if [[ ! -d ord ]]; then
+  git clone https://github.com/casey/ord.git
+fi
+
+cd ord
+
+git fetch origin
+git checkout -B $BRANCH
+git reset --hard origin/$BRANCH
+./benchmark/run
