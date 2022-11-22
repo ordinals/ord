@@ -112,6 +112,26 @@ benchmark-revision rev:
   rsync -avz benchmark/checkout root@ordinals.com:benchmark/checkout
   ssh root@ordinals.com 'cd benchmark && ./checkout {{rev}}'
 
+build-snapshots:
+  #!/usr/bin/env bash
+  set -euxo pipefail
+  rm -rf tmp/snapshots
+  mkdir -p tmp/snapshots
+  cargo build --release
+  cp ./target/release/ord tmp/snapshots
+  cd tmp/snapshots
+  for start in {0..750000..50000}; do
+    height_limit=$((start+50000))
+    if [[ -f $start.redb ]]; then
+      cp -c $start.redb index.redb
+    fi
+    a=`date +%s`
+    time ./ord --data-dir . --height-limit $height_limit index
+    b=`date +%s`
+    mv index.redb $height_limit.redb
+    printf "$height_limit\t$((b - a))\n" >> time.txt
+  done
+
 serve-docs:
   mdbook serve docs --open
 
