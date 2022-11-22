@@ -13,6 +13,5 @@ cd ord
 git fetch --all --prune
 git checkout master
 git reset --hard origin/master
-git branch | grep -v master | xargs --no-run-if-empty git branch -D
-git checkout $REV
+git checkout `git rev-parse $REV`
 ./benchmark/run
