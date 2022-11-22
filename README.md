@@ -126,7 +126,8 @@ reasonably powerful system with 64 GiB of RAM and a fully-synced,
 locally-hosted Bitcoin Core node can build the index in under 24 hours.
 
 An `ord` instance running on a system with less than 64 GiB of RAM will take
-much longer to build the index, with reports of
+much longer to build the index, with some users reporting sync times of two
+weeks or more.
 
 A this point in development, the format of the `ord` index is changing rapidly,
 so be prepared to delete and re-sync the index.
