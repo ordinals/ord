@@ -16,7 +16,7 @@ mod updater;
 
 const HEIGHT_TO_BLOCK_HASH: TableDefinition<u64, [u8; 32]> =
   TableDefinition::new("HEIGHT_TO_BLOCK_HASH");
-const WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP: TableDefinition<u64, u64> =
+const WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP: TableDefinition<u64, u128> =
   TableDefinition::new("WRITE_TRANSACTION_START_BLOCK_COUNT_TO_TIMESTAMP");
 const ORDINAL_TO_INSCRIPTION_TXID: TableDefinition<u64, [u8; 32]> =
   TableDefinition::new("ORDINAL_TO_INSCRIPTION_TXID");
@@ -98,7 +98,7 @@ pub(crate) struct Info {
 #[derive(Serialize)]
 pub(crate) struct TransactionInfo {
   pub(crate) starting_block_count: u64,
-  pub(crate) starting_timestamp: u64,
+  pub(crate) starting_timestamp: u128,
 }
 
 trait BitcoinCoreRpcResultExt<T> {

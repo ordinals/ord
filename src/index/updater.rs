@@ -28,7 +28,7 @@ impl Updater {
         &height,
         &SystemTime::now()
           .duration_since(SystemTime::UNIX_EPOCH)
-          .map(|duration| duration.as_secs())
+          .map(|duration| duration.as_millis())
           .unwrap_or(0),
       )?;
 
@@ -108,7 +108,7 @@ impl Updater {
             &self.height,
             &SystemTime::now()
               .duration_since(SystemTime::UNIX_EPOCH)
-              .map(|duration| duration.as_secs())
+              .map(|duration| duration.as_millis())
               .unwrap_or(0),
           )?;
         uncomitted = 0;
