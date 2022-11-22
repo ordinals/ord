@@ -120,11 +120,11 @@ build-snapshots:
   cargo build --release
   cp ./target/release/ord tmp/snapshots
   cd tmp/snapshots
-  ./ord --data-dir . --height-limit 0 index
-  mv index.redb 0.redb
   for start in {0..750000..50000}; do
     height_limit=$((start+50000))
-    cp -c $start.redb index.redb
+    if [[ -f $start.redb ]]; then
+      cp -c $start.redb index.redb
+    fi
     a=`date +%s`
     time ./ord --data-dir . --height-limit $height_limit index
     b=`date +%s`
