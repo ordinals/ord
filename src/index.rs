@@ -79,26 +79,26 @@ impl From<Statistic> for u64 {
 
 #[derive(Serialize)]
 pub(crate) struct Info {
-  blocks_indexed: u64,
-  branch_pages: usize,
-  fragmented_bytes: usize,
-  free_pages: usize,
-  index_file_size: u64,
-  leaf_pages: usize,
-  metadata_bytes: usize,
-  ordinal_ranges: u64,
-  outputs_traversed: u64,
-  page_size: usize,
-  stored_bytes: usize,
-  transactions: Vec<TransactionInfo>,
-  tree_height: usize,
-  utxos_indexed: usize,
+  pub(crate) blocks_indexed: u64,
+  pub(crate) branch_pages: usize,
+  pub(crate) fragmented_bytes: usize,
+  pub(crate) free_pages: usize,
+  pub(crate) index_file_size: u64,
+  pub(crate) leaf_pages: usize,
+  pub(crate) metadata_bytes: usize,
+  pub(crate) ordinal_ranges: u64,
+  pub(crate) outputs_traversed: u64,
+  pub(crate) page_size: usize,
+  pub(crate) stored_bytes: usize,
+  pub(crate) transactions: Vec<TransactionInfo>,
+  pub(crate) tree_height: usize,
+  pub(crate) utxos_indexed: usize,
 }
 
 #[derive(Serialize)]
 pub(crate) struct TransactionInfo {
-  starting_block_count: u64,
-  starting_timestamp: u64,
+  pub(crate) starting_block_count: u64,
+  pub(crate) starting_timestamp: u64,
 }
 
 trait BitcoinCoreRpcResultExt<T> {
