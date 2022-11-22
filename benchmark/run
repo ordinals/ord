@@ -6,4 +6,8 @@ systemctl stop ord-dev
 
 rm -rf /var/lib/ord-dev
 
+journalctl --rotate
+
+journalctl --vacuum-time 1s
+
 ./bin/update-dev-server
