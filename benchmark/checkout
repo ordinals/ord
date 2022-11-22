@@ -13,5 +13,5 @@ cd ord
 git fetch --all --prune
 git checkout master
 git reset --hard origin/master
-git checkout `git rev-parse $REV`
+git checkout `git rev-parse origin/$REV`
 ./benchmark/run
