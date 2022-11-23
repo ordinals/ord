@@ -9,8 +9,11 @@ are mined, and preserved across transactions.
 See [the BIP](bip.mediawiki) for a comprehensive description of the assignment
 and transfer algorithm.
 
-See [the project board](https://github.com/casey/ord/projects/1) for currently
-prioritized issues.
+See [the project board](https://github.com/users/casey/projects/3/) for
+currently prioritized issues.
+
+See [milestones](https://github.com/casey/ord/milestones) to get a sense of
+where the project is and where it's going.
 
 Join [the Discord server](https://discord.gg/87cjuz4FYg) to chat with fellow
 ordinal degenerates.
@@ -115,6 +118,19 @@ from `bitcoind`'s datadir, and connecting using the default RPC port.
 If `bitcoind` is not on mainnet, is not run by the same user, has a non-default
 datadir, or a non-default port, you'll need to pass additional flags to `ord`.
 See `ord --help` for details.
+
+### Minimum System Requirements
+
+Building the `ord` index is memory-intensive. An `ord` instance running on a
+reasonably powerful system with 64 GiB of RAM and a fully-synced,
+locally-hosted Bitcoin Core node can build the index in under 24 hours.
+
+An `ord` instance running on a system with less than 64 GiB of RAM will take
+much longer to build the index, with some users reporting sync times of two
+weeks or more.
+
+A this point in development, the format of the `ord` index is changing rapidly,
+so be prepared to delete and re-sync the index.
 
 ### Logging
 
