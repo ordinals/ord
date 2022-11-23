@@ -6,7 +6,7 @@ use {
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
   redb::{Database, ReadableTable, Table, TableDefinition, WriteStrategy, WriteTransaction},
-  std::collections::HashMap,
+  std::collections::{BTreeSet, HashMap},
   std::sync::atomic::{AtomicBool, Ordering},
 };
 
@@ -590,6 +590,52 @@ impl Index {
         ))
       }
     }
+  }
+
+  pub(crate) fn remove_bearer_ordinals(
+    &self,
+    utxos: Vec<(OutPoint, Vec<(u64, u64)>)>,
+  ) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
+    let rtx = self.database.begin_read()?;
+
+    let mut ranges = utxos
+      .clone()
+      .into_iter()
+      .flat_map(|(outpoint, ranges)| {
+        ranges
+          .into_iter()
+          .map(move |(start, end)| (start, end, outpoint))
+      })
+      .collect::<Vec<(u64, u64, OutPoint)>>();
+    ranges.sort();
+
+    let mut range = 0;
+    let mut bearer_ordinal_utxos: BTreeSet<OutPoint> = BTreeSet::new();
+
+    for (ordinal, _txid) in rtx.open_table(ORDINAL_TO_INSCRIPTION_TXID)?.range(0..)? {
+      while range >= ranges.len() {
+        let (start, end, outpoint) = ranges[range];
+
+        if ordinal >= start && ordinal < end {
+          bearer_ordinal_utxos.insert(outpoint);
+          break;
+        }
+
+        if ordinal >= end {
+          range += 1;
+        }
+      }
+
+      if range >= ranges.len() {
+        break;
+      }
+    }
+    Ok(
+      utxos
+        .into_iter()
+        .filter(|(outpoint, _)| !bearer_ordinal_utxos.contains(outpoint))
+        .collect(),
+    )
   }
 }
 

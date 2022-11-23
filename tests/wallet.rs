@@ -239,3 +239,24 @@ fn inscribe_exceeds_push_byte_limit() {
   .expected_stderr("error: file size exceeds 520 bytes\n")
   .run();
 }
+
+#[test]
+fn inscribe_does_not_accidentally_send_bearer_ordinals() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  rpc_server.mine_blocks(1);
+
+  CommandBuilder::new("--chain regtest wallet inscribe --ordinal 5000000000 --file degenerate.png")
+    .write("degenerate.png", [1; 100])
+    .rpc_server(&rpc_server)
+    .stdout_regex(".*")
+    .run_ignore_errors();
+
+  rpc_server.mine_blocks(1);
+
+  CommandBuilder::new("--chain regtest wallet inscribe --ordinal 5000000000 --file degenerate.png")
+  // CommandBuilder::new("--chain regtest wallet list")
+    .write("degenerate.png", [1; 100])
+    .rpc_server(&rpc_server)
+    .stdout_regex("s.*\n")
+    .run();
+}

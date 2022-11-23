@@ -26,7 +26,13 @@ impl Inscribe {
 
     let inscription = Inscription::from_file(self.file)?;
 
+    let index = Index::open(&options)?;
+    index.update()?;
+
     let utxos = list_utxos(&options)?;
+
+    // let utxos = index.remove_bearer_ordinals(list_unspent(&options, &index)?)?;
+    dbg!(&utxos);
 
     let commit_tx_change = get_change_addresses(&options, 2)?;
 
