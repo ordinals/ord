@@ -82,7 +82,6 @@ pub(crate) struct Info {
   pub(crate) blocks_indexed: u64,
   pub(crate) branch_pages: usize,
   pub(crate) fragmented_bytes: usize,
-  pub(crate) free_pages: usize,
   pub(crate) index_file_size: u64,
   pub(crate) leaf_pages: usize,
   pub(crate) metadata_bytes: usize,
@@ -162,7 +161,7 @@ impl Index {
           } else {
             WriteStrategy::TwoPhase
           })
-          .create(&database_path, options.max_index_size().0)?
+          .create(&database_path)?
       },
       Err(error) => return Err(error.into()),
     };
@@ -220,7 +219,6 @@ impl Index {
           .unwrap_or(0),
         branch_pages: stats.branch_pages(),
         fragmented_bytes: stats.fragmented_bytes(),
-        free_pages: stats.free_pages(),
         index_file_size: fs::metadata(&self.database_path)?.len(),
         leaf_pages: stats.leaf_pages(),
         metadata_bytes: stats.metadata_bytes(),

@@ -1,10 +1,5 @@
 use super::*;
 
-pub(crate) struct Output {
-  pub(crate) tempdir: TempDir,
-  pub(crate) stdout: String,
-}
-
 pub(crate) trait ToArgs {
   fn to_args(&self) -> Vec<String>;
 }
@@ -120,7 +115,8 @@ impl CommandBuilder {
     command
   }
 
-  pub(crate) fn check(self, output: process::Output) -> TempDir {
+  pub(crate) fn run(self) -> String {
+    let output = self.command().output().unwrap();
     let stdout = str::from_utf8(&output.stdout).unwrap();
     let stderr = str::from_utf8(&output.stderr).unwrap();
 
@@ -134,16 +130,6 @@ impl CommandBuilder {
     self.expected_stderr.assert_match(stderr);
     self.expected_stdout.assert_match(stdout);
 
-    self.tempdir
-  }
-
-  pub(crate) fn run(self) -> Output {
-    let output = self.command().output().unwrap();
-    let stdout = String::from(str::from_utf8(&output.stdout).unwrap());
-
-    Output {
-      tempdir: self.check(output),
-      stdout,
-    }
+    stdout.into()
   }
 }

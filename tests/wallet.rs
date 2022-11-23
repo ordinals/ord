@@ -77,7 +77,7 @@ fn send_works_on_signet() {
 
   rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  let output = CommandBuilder::new(
+  let stdout = CommandBuilder::new(
     "--chain signet wallet send 5000000000 tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw",
   )
   .rpc_server(&rpc_server)
@@ -85,7 +85,7 @@ fn send_works_on_signet() {
   .run();
 
   let txid = rpc_server.mempool()[0].txid();
-  assert_eq!(format!("{}\n", txid), output.stdout)
+  assert_eq!(format!("{}\n", txid), stdout);
 }
 
 #[test]
@@ -121,14 +121,14 @@ fn send_on_mainnnet_works_with_wallet_named_ord() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "ord");
   rpc_server.mine_blocks_with_subsidy(1, 1_000_000);
 
-  let output =
+  let stdout =
     CommandBuilder::new("wallet send 5000000000 bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh")
       .rpc_server(&rpc_server)
       .stdout_regex(r".*")
       .run();
 
   let txid = rpc_server.mempool()[0].txid();
-  assert_eq!(format!("{}\n", txid), output.stdout)
+  assert_eq!(format!("{}\n", txid), stdout);
 }
 
 #[test]
@@ -136,14 +136,14 @@ fn send_on_mainnnet_works_with_wallet_whose_name_starts_with_ord() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "ord-foo");
   rpc_server.mine_blocks_with_subsidy(1, 1_000_000);
 
-  let output =
+  let stdout =
     CommandBuilder::new("wallet send 5000000000 bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh")
       .rpc_server(&rpc_server)
       .stdout_regex(r".*")
       .run();
 
   let txid = rpc_server.mempool()[0].txid();
-  assert_eq!(format!("{}\n", txid), output.stdout)
+  assert_eq!(format!("{}\n", txid), stdout);
 }
 
 #[test]

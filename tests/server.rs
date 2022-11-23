@@ -39,14 +39,14 @@ fn inscription_page() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
   rpc_server.mine_blocks(1);
 
-  let output =
+  let stdout =
     CommandBuilder::new("--chain regtest wallet inscribe --ordinal 5000000000 --file hello.txt")
       .write("hello.txt", "HELLOWORLD")
       .rpc_server(&rpc_server)
       .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
       .run();
 
-  let reveal_tx = output.stdout.split("reveal\t").collect::<Vec<&str>>()[1];
+  let reveal_tx = stdout.split("reveal\t").collect::<Vec<&str>>()[1];
 
   rpc_server.mine_blocks(1);
 
