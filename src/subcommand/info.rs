@@ -3,6 +3,6 @@ use super::*;
 pub(crate) fn run(options: Options) -> Result {
   let index = Index::open(&options)?;
   index.update()?;
-  index.print_info()?;
+  serde_json::to_writer(io::stdout(), &index.info()?)?;
   Ok(())
 }

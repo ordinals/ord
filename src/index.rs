@@ -16,6 +16,8 @@ mod updater;
 
 const HEIGHT_TO_BLOCK_HASH: TableDefinition<u64, [u8; 32]> =
   TableDefinition::new("HEIGHT_TO_BLOCK_HASH");
+const WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP: TableDefinition<u64, u128> =
+  TableDefinition::new("WRITE_TRANSACTION_START_BLOCK_COUNT_TO_TIMESTAMP");
 const ORDINAL_TO_INSCRIPTION_TXID: TableDefinition<u64, [u8; 32]> =
   TableDefinition::new("ORDINAL_TO_INSCRIPTION_TXID");
 const ORDINAL_TO_SATPOINT: TableDefinition<u64, [u8; 44]> =
@@ -73,6 +75,30 @@ impl From<Statistic> for u64 {
   fn from(statistic: Statistic) -> Self {
     statistic as u64
   }
+}
+
+#[derive(Serialize)]
+pub(crate) struct Info {
+  pub(crate) blocks_indexed: u64,
+  pub(crate) branch_pages: usize,
+  pub(crate) fragmented_bytes: usize,
+  pub(crate) free_pages: usize,
+  pub(crate) index_file_size: u64,
+  pub(crate) leaf_pages: usize,
+  pub(crate) metadata_bytes: usize,
+  pub(crate) ordinal_ranges: u64,
+  pub(crate) outputs_traversed: u64,
+  pub(crate) page_size: usize,
+  pub(crate) stored_bytes: usize,
+  pub(crate) transactions: Vec<TransactionInfo>,
+  pub(crate) tree_height: usize,
+  pub(crate) utxos_indexed: usize,
+}
+
+#[derive(Serialize)]
+pub(crate) struct TransactionInfo {
+  pub(crate) starting_block_count: u64,
+  pub(crate) starting_timestamp: u128,
 }
 
 trait BitcoinCoreRpcResultExt<T> {
@@ -156,6 +182,7 @@ impl Index {
     tx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
     tx.open_table(STATISTIC_TO_COUNT)?;
     tx.open_table(TXID_TO_INSCRIPTION)?;
+    tx.open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?;
 
     tx.commit()?;
 
@@ -176,48 +203,51 @@ impl Index {
     })
   }
 
-  pub(crate) fn print_info(&self) -> Result {
+  pub(crate) fn info(&self) -> Result<Info> {
     let wtx = self.begin_write()?;
-
-    let blocks_indexed = wtx
-      .open_table(HEIGHT_TO_BLOCK_HASH)?
-      .range(0..)?
-      .rev()
-      .next()
-      .map(|(height, _hash)| height + 1)
-      .unwrap_or(0);
-
-    let utxos_indexed = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?.len()?;
-
-    let ordinal_ranges = wtx
-      .open_table(STATISTIC_TO_COUNT)?
-      .get(&Statistic::OrdinalRanges.into())?
-      .unwrap_or(0);
-
-    let outputs_traversed = wtx
-      .open_table(STATISTIC_TO_COUNT)?
-      .get(&Statistic::OutputsTraversed.into())?
-      .unwrap_or(0);
 
     let stats = wtx.stats()?;
 
-    println!("blocks indexed\t{}", blocks_indexed);
-    println!("utxos indexed\t{}", utxos_indexed);
-    println!("outputs traversed\t{}", outputs_traversed);
-    println!("ordinal ranges\t{}", ordinal_ranges);
-    println!("tree height\t{}", stats.tree_height());
-    println!("free pages\t{}", stats.free_pages());
-    println!("stored\t{}", Bytes(stats.stored_bytes()));
-    println!("overhead\t{}", Bytes(stats.metadata_bytes()));
-    println!("fragmented\t{}", Bytes(stats.fragmented_bytes()));
-    println!(
-      "index size\t{}",
-      Bytes(std::fs::metadata(&self.database_path)?.len().try_into()?)
-    );
+    let info = {
+      let statistic_to_count = wtx.open_table(STATISTIC_TO_COUNT)?;
+      Info {
+        blocks_indexed: wtx
+          .open_table(HEIGHT_TO_BLOCK_HASH)?
+          .range(0..)?
+          .rev()
+          .next()
+          .map(|(height, _hash)| height + 1)
+          .unwrap_or(0),
+        branch_pages: stats.branch_pages(),
+        fragmented_bytes: stats.fragmented_bytes(),
+        free_pages: stats.free_pages(),
+        index_file_size: fs::metadata(&self.database_path)?.len(),
+        leaf_pages: stats.leaf_pages(),
+        metadata_bytes: stats.metadata_bytes(),
+        ordinal_ranges: statistic_to_count
+          .get(&Statistic::OrdinalRanges.into())?
+          .unwrap_or(0),
+        outputs_traversed: statistic_to_count
+          .get(&Statistic::OutputsTraversed.into())?
+          .unwrap_or(0),
+        page_size: stats.page_size(),
+        stored_bytes: stats.stored_bytes(),
+        transactions: wtx
+          .open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?
+          .range(0..)?
+          .map(
+            |(starting_block_count, starting_timestamp)| TransactionInfo {
+              starting_block_count,
+              starting_timestamp,
+            },
+          )
+          .collect(),
+        tree_height: stats.tree_height(),
+        utxos_indexed: wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?.len()?,
+      }
+    };
 
-    wtx.abort()?;
-
-    Ok(())
+    Ok(info)
   }
 
   pub(crate) fn decode_ordinal_range(bytes: [u8; 11]) -> (u64, u64) {

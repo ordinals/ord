@@ -1332,6 +1332,10 @@ next.*",
       1
     );
 
+    let info = server.index.info().unwrap();
+    assert_eq!(info.transactions.len(), 1);
+    assert_eq!(info.transactions[0].starting_block_count, 0);
+
     server.index.update().unwrap();
 
     assert_eq!(
@@ -1342,8 +1346,13 @@ next.*",
       1
     );
 
+    let info = server.index.info().unwrap();
+    assert_eq!(info.transactions.len(), 1);
+    assert_eq!(info.transactions[0].starting_block_count, 0);
+
     server.bitcoin_rpc_server.mine_blocks(1);
 
+    thread::sleep(Duration::from_millis(10));
     server.index.update().unwrap();
 
     assert_eq!(
@@ -1352,6 +1361,14 @@ next.*",
         .statistic(crate::index::Statistic::Commits)
         .unwrap(),
       2
+    );
+
+    let info = server.index.info().unwrap();
+    assert_eq!(info.transactions.len(), 2);
+    assert_eq!(info.transactions[0].starting_block_count, 0);
+    assert_eq!(info.transactions[1].starting_block_count, 1);
+    assert!(
+      info.transactions[1].starting_timestamp - info.transactions[0].starting_timestamp >= 10
     );
   }
 

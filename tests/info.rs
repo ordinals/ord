@@ -6,18 +6,7 @@ fn basic() {
   CommandBuilder::new("info")
     .rpc_server(&rpc_server)
     .stdout_regex(
-      "
-        blocks indexed\t1
-        utxos indexed\t1
-        outputs traversed\t1
-        ordinal ranges\t1
-        tree height\t\\d+
-        free pages\t\\d+
-        stored\t.*
-        overhead\t.*
-        fragmented\t.*
-      "
-      .unindent(),
+      r#"\{"blocks_indexed":1,"branch_pages":\d+,"fragmented_bytes":\d+,"free_pages":\d+,"index_file_size":\d+,"leaf_pages":\d+,"metadata_bytes":\d+,"ordinal_ranges":1,"outputs_traversed":1,"page_size":\d+,"stored_bytes":\d+,"transactions":\[\{"starting_block_count":0,"starting_timestamp":\d+\}\],"tree_height":\d+,"utxos_indexed":1\}"#
     )
     .run();
 }
