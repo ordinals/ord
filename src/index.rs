@@ -199,9 +199,9 @@ impl Index {
       database_path,
       genesis_block_coinbase_transaction,
       height_limit: options.height_limit,
+      index_ordinals: options.index_ordinals,
       reorged: AtomicBool::new(false),
       rpc_url,
-      index_ordinals: options.index_ordinals,
     })
   }
 

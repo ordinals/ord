@@ -4,11 +4,11 @@ pub struct Updater {
   cache: HashMap<[u8; 36], Vec<u8>>,
   chain: Chain,
   height: u64,
+  index_ordinals: bool,
   ordinal_ranges_since_flush: u64,
   outputs_cached: u64,
   outputs_inserted_since_flush: u64,
   outputs_traversed: u64,
-  index_ordinals: bool,
 }
 
 impl Updater {
