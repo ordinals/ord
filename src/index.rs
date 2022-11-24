@@ -16,8 +16,6 @@ mod updater;
 
 const HEIGHT_TO_BLOCK_HASH: TableDefinition<u64, [u8; 32]> =
   TableDefinition::new("HEIGHT_TO_BLOCK_HASH");
-const WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP: TableDefinition<u64, u128> =
-  TableDefinition::new("WRITE_TRANSACTION_START_BLOCK_COUNT_TO_TIMESTAMP");
 const ORDINAL_TO_INSCRIPTION_TXID: TableDefinition<u64, [u8; 32]> =
   TableDefinition::new("ORDINAL_TO_INSCRIPTION_TXID");
 const ORDINAL_TO_SATPOINT: TableDefinition<u64, [u8; 44]> =
@@ -27,6 +25,8 @@ const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8; 36], [u8]> =
 const STATISTIC_TO_COUNT: TableDefinition<u64, u64> = TableDefinition::new("STATISTIC_TO_COUNT");
 const TXID_TO_INSCRIPTION: TableDefinition<[u8; 32], str> =
   TableDefinition::new("TXID_TO_INSCRIPTION");
+const WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP: TableDefinition<u64, u128> =
+  TableDefinition::new("WRITE_TRANSACTION_START_BLOCK_COUNT_TO_TIMESTAMP");
 
 fn encode_outpoint(outpoint: OutPoint) -> [u8; 36] {
   let mut array = [0; 36];
@@ -53,6 +53,7 @@ pub(crate) struct Index {
   genesis_block_coinbase_transaction: Transaction,
   genesis_block_coinbase_txid: Txid,
   height_limit: Option<u64>,
+  index_ordinals: bool,
   reorged: AtomicBool,
   rpc_url: String,
 }
@@ -198,9 +199,18 @@ impl Index {
       database_path,
       genesis_block_coinbase_transaction,
       height_limit: options.height_limit,
+      index_ordinals: options.index_ordinals,
       reorged: AtomicBool::new(false),
       rpc_url,
     })
+  }
+
+  fn require_ordinal_index(&self, feature: &str) -> Result {
+    if !self.index_ordinals {
+      bail!("{feature} requires `--index-ordinals` flag")
+    }
+
+    Ok(())
   }
 
   pub(crate) fn info(&self) -> Result<Info> {
@@ -297,6 +307,13 @@ impl Index {
 
   #[cfg(test)]
   pub(crate) fn statistic(&self, statistic: Statistic) -> Result<u64> {
+    if matches!(
+      statistic,
+      Statistic::OutputsTraversed | Statistic::OrdinalRanges
+    ) {
+      self.require_ordinal_index("statistic")?;
+    }
+
     Ok(
       self
         .database
@@ -332,6 +349,8 @@ impl Index {
   }
 
   pub(crate) fn rare_ordinal_satpoints(&self) -> Result<Vec<(Ordinal, SatPoint)>> {
+    self.require_ordinal_index("looking up rare ordinals")?;
+
     let mut result = Vec::new();
 
     let rtx = self.database.begin_read()?;
@@ -427,6 +446,8 @@ impl Index {
   }
 
   pub(crate) fn find(&self, ordinal: u64) -> Result<Option<SatPoint>> {
+    self.require_ordinal_index("find")?;
+
     let rtx = self.begin_read()?;
 
     if rtx.block_count()? <= Ordinal(ordinal).height().n() {
@@ -453,7 +474,7 @@ impl Index {
     Ok(None)
   }
 
-  pub(crate) fn list_inner(&self, outpoint: &[u8]) -> Result<Option<Vec<u8>>> {
+  fn list_inner(&self, outpoint: &[u8]) -> Result<Option<Vec<u8>>> {
     Ok(
       self
         .database
@@ -465,6 +486,8 @@ impl Index {
   }
 
   pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<List>> {
+    self.require_ordinal_index("find")?;
+
     let outpoint_encoded = encode_outpoint(outpoint);
 
     let ordinal_ranges = self.list_inner(&outpoint_encoded)?;
@@ -526,10 +549,6 @@ mod tests {
   }
 
   impl Context {
-    fn new() -> Self {
-      Self::with_args("")
-    }
-
     fn with_args(args: &str) -> Self {
       let rpc_server = test_bitcoincore_rpc::spawn();
 
@@ -593,7 +612,7 @@ mod tests {
 
   #[test]
   fn list_first_coinbase_transaction() {
-    let context = Context::new();
+    let context = Context::with_args("--index-ordinals");
     assert_eq!(
       context
         .index
@@ -610,7 +629,7 @@ mod tests {
 
   #[test]
   fn list_second_coinbase_transaction() {
-    let context = Context::new();
+    let context = Context::with_args("--index-ordinals");
     let txid = context.rpc_server.mine_blocks(1)[0].txdata[0].txid();
     context.index.update().unwrap();
     assert_eq!(
@@ -621,7 +640,7 @@ mod tests {
 
   #[test]
   fn list_split_ranges_are_tracked_correctly() {
-    let context = Context::new();
+    let context = Context::with_args("--index-ordinals");
 
     context.rpc_server.mine_blocks(1);
     let split_coinbase_output = TransactionTemplate {
@@ -647,7 +666,7 @@ mod tests {
 
   #[test]
   fn list_merge_ranges_are_tracked_correctly() {
-    let context = Context::new();
+    let context = Context::with_args("--index-ordinals");
 
     context.rpc_server.mine_blocks(2);
     let merge_coinbase_outputs = TransactionTemplate {
@@ -671,7 +690,7 @@ mod tests {
 
   #[test]
   fn list_fee_paying_transaction_range() {
-    let context = Context::new();
+    let context = Context::with_args("--index-ordinals");
 
     context.rpc_server.mine_blocks(1);
     let fee_paying_tx = TransactionTemplate {
@@ -705,7 +724,7 @@ mod tests {
 
   #[test]
   fn list_two_fee_paying_transaction_range() {
-    let context = Context::new();
+    let context = Context::with_args("--index-ordinals");
 
     context.rpc_server.mine_blocks(2);
     let first_fee_paying_tx = TransactionTemplate {
@@ -740,7 +759,7 @@ mod tests {
 
   #[test]
   fn list_null_output() {
-    let context = Context::new();
+    let context = Context::with_args("--index-ordinals");
 
     context.rpc_server.mine_blocks(1);
     let no_value_output = TransactionTemplate {
@@ -760,7 +779,7 @@ mod tests {
 
   #[test]
   fn list_null_input() {
-    let context = Context::new();
+    let context = Context::with_args("--index-ordinals");
 
     context.rpc_server.mine_blocks(1);
     let no_value_output = TransactionTemplate {
@@ -788,7 +807,7 @@ mod tests {
 
   #[test]
   fn list_spent_output() {
-    let context = Context::new();
+    let context = Context::with_args("--index-ordinals");
     context.rpc_server.mine_blocks(1);
     context.rpc_server.broadcast_tx(TransactionTemplate {
       input_slots: &[(1, 0, 0)],
@@ -806,7 +825,7 @@ mod tests {
 
   #[test]
   fn list_unknown_output() {
-    let context = Context::new();
+    let context = Context::with_args("--index-ordinals");
 
     assert_eq!(
       context
@@ -823,7 +842,7 @@ mod tests {
 
   #[test]
   fn find_first_ordinal() {
-    let context = Context::new();
+    let context = Context::with_args("--index-ordinals");
     assert_eq!(
       context.index.find(0).unwrap().unwrap(),
       SatPoint {
@@ -837,7 +856,7 @@ mod tests {
 
   #[test]
   fn find_second_ordinal() {
-    let context = Context::new();
+    let context = Context::with_args("--index-ordinals");
     assert_eq!(
       context.index.find(1).unwrap().unwrap(),
       SatPoint {
@@ -851,7 +870,7 @@ mod tests {
 
   #[test]
   fn find_first_ordinal_of_second_block() {
-    let context = Context::new();
+    let context = Context::with_args("--index-ordinals");
     context.rpc_server.mine_blocks(1);
     context.index.update().unwrap();
     assert_eq!(
@@ -867,13 +886,13 @@ mod tests {
 
   #[test]
   fn find_unmined_ordinal() {
-    let context = Context::new();
+    let context = Context::with_args("--index-ordinals");
     assert_eq!(context.index.find(50 * COIN_VALUE).unwrap(), None);
   }
 
   #[test]
   fn find_first_satoshi_spent_in_second_block() {
-    let context = Context::new();
+    let context = Context::with_args("--index-ordinals");
     context.rpc_server.mine_blocks(1);
     let spend_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
       input_slots: &[(1, 0, 0)],

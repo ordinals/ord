@@ -10,8 +10,9 @@ Environment=RUST_BACKTRACE=1
 Environment=RUST_LOG=info
 ExecStart=/usr/local/bin/ord-dev \
   --bitcoin-data-dir /var/lib/bitcoind \
-  --data-dir /var/lib/ord-dev \
   --chain ${CHAIN} \
+  --data-dir /var/lib/ord-dev \
+  --index-ordinals \
   server \
   --http-port 8080
 Group=ord

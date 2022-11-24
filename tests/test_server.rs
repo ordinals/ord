@@ -11,7 +11,7 @@ pub(crate) struct TestServer {
 }
 
 impl TestServer {
-  pub(crate) fn spawn(rpc_server: &test_bitcoincore_rpc::Handle) -> Self {
+  pub(crate) fn spawn_with_args(rpc_server: &test_bitcoincore_rpc::Handle, args: &[&str]) -> Self {
     let tempdir = TempDir::new().unwrap();
     fs::create_dir(tempdir.path().join("regtest")).unwrap();
     fs::write(tempdir.path().join("regtest/.cookie"), "foo:bar").unwrap();
@@ -22,10 +22,11 @@ impl TestServer {
       .port();
 
     let child = Command::new(executable_path("ord")).args(format!(
-      "--chain regtest --rpc-url {} --bitcoin-data-dir {} --data-dir {} server --http-port {port} --address 127.0.0.1",
+      "--chain regtest --rpc-url {} --bitcoin-data-dir {} --data-dir {} {} server --http-port {port} --address 127.0.0.1",
       rpc_server.url(),
       tempdir.path().display(),
-      tempdir.path().display()
+      tempdir.path().display(),
+      args.join(" "),
     ).to_args())
       .env("HOME", tempdir.path())
       .env("ORD_DISABLE_PROGRESS_BAR", "1")

@@ -39,18 +39,19 @@ fn inscription_page() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
   rpc_server.mine_blocks(1);
 
-  let output =
-    CommandBuilder::new("--chain regtest wallet inscribe --ordinal 5000000000 --file hello.txt")
-      .write("hello.txt", "HELLOWORLD")
-      .rpc_server(&rpc_server)
-      .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-      .run();
+  let output = CommandBuilder::new(
+    "--chain regtest --index-ordinals wallet inscribe --ordinal 5000000000 --file hello.txt",
+  )
+  .write("hello.txt", "HELLOWORLD")
+  .rpc_server(&rpc_server)
+  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+  .run();
 
   let reveal_tx = output.stdout.split("reveal\t").collect::<Vec<&str>>()[1];
 
   rpc_server.mine_blocks(1);
 
-  let ord_server = TestServer::spawn(&rpc_server);
+  let ord_server = TestServer::spawn_with_args(&rpc_server, &["--index-ordinals"]);
 
   ord_server.assert_response_regex(
     &format!("/inscription/{}", reveal_tx),
