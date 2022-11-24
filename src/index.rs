@@ -14,18 +14,22 @@ use {
 mod rtx;
 mod updater;
 
-const HEIGHT_TO_BLOCK_HASH: TableDefinition<u64, [u8; 32]> =
+// TODO:
+// - not knowing the type when getting and inserting, and thus not being able to do:
+//   table.get(&key.into())
+
+const HEIGHT_TO_BLOCK_HASH: TableDefinition<u64, &[u8; 32]> =
   TableDefinition::new("HEIGHT_TO_BLOCK_HASH");
 const WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP: TableDefinition<u64, u128> =
   TableDefinition::new("WRITE_TRANSACTION_START_BLOCK_COUNT_TO_TIMESTAMP");
-const ORDINAL_TO_INSCRIPTION_TXID: TableDefinition<u64, [u8; 32]> =
+const ORDINAL_TO_INSCRIPTION_TXID: TableDefinition<u64, &[u8; 32]> =
   TableDefinition::new("ORDINAL_TO_INSCRIPTION_TXID");
-const ORDINAL_TO_SATPOINT: TableDefinition<u64, [u8; 44]> =
+const ORDINAL_TO_SATPOINT: TableDefinition<u64, &[u8; 44]> =
   TableDefinition::new("ORDINAL_TO_SATPOINT");
-const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8; 36], [u8]> =
+const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<&[u8; 36], [u8]> =
   TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
 const STATISTIC_TO_COUNT: TableDefinition<u64, u64> = TableDefinition::new("STATISTIC_TO_COUNT");
-const TXID_TO_INSCRIPTION: TableDefinition<[u8; 32], str> =
+const TXID_TO_INSCRIPTION: TableDefinition<&[u8; 32], str> =
   TableDefinition::new("TXID_TO_INSCRIPTION");
 
 fn encode_outpoint(outpoint: OutPoint) -> [u8; 36] {
@@ -69,6 +73,12 @@ pub(crate) enum Statistic {
   OutputsTraversed = 0,
   Commits = 1,
   OrdinalRanges = 2,
+}
+
+impl Statistic {
+  fn key(self) -> u64 {
+    self.into()
+  }
 }
 
 impl From<Statistic> for u64 {
@@ -223,10 +233,10 @@ impl Index {
         leaf_pages: stats.leaf_pages(),
         metadata_bytes: stats.metadata_bytes(),
         ordinal_ranges: statistic_to_count
-          .get(&Statistic::OrdinalRanges.into())?
+          .get(&Statistic::OrdinalRanges.key())?
           .unwrap_or(0),
         outputs_traversed: statistic_to_count
-          .get(&Statistic::OutputsTraversed.into())?
+          .get(&Statistic::OutputsTraversed.key())?
           .unwrap_or(0),
         page_size: stats.page_size(),
         stored_bytes: stats.stored_bytes(),
@@ -287,8 +297,8 @@ impl Index {
   fn increment_statistic(wtx: &WriteTransaction, statistic: Statistic, n: u64) -> Result {
     let mut statistic_to_count = wtx.open_table(STATISTIC_TO_COUNT)?;
     statistic_to_count.insert(
-      &statistic.into(),
-      &(statistic_to_count.get(&(statistic.into()))?.unwrap_or(0) + n),
+      &statistic.key(),
+      &(statistic_to_count.get(&(statistic.key()))?.unwrap_or(0) + n),
     )?;
     Ok(())
   }
@@ -451,13 +461,13 @@ impl Index {
     Ok(None)
   }
 
-  pub(crate) fn list_inner(&self, outpoint: &[u8]) -> Result<Option<Vec<u8>>> {
+  pub(crate) fn list_inner(&self, outpoint: [u8; 36]) -> Result<Option<Vec<u8>>> {
     Ok(
       self
         .database
         .begin_read()?
         .open_table(OUTPOINT_TO_ORDINAL_RANGES)?
-        .get(outpoint.try_into().unwrap())?
+        .get(&outpoint)?
         .map(|outpoint| outpoint.to_vec()),
     )
   }
@@ -465,7 +475,7 @@ impl Index {
   pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<List>> {
     let outpoint_encoded = encode_outpoint(outpoint);
 
-    let ordinal_ranges = self.list_inner(&outpoint_encoded)?;
+    let ordinal_ranges = self.list_inner(outpoint_encoded)?;
 
     match ordinal_ranges {
       Some(ordinal_ranges) => Ok(Some(List::Unspent(
