@@ -5,18 +5,20 @@ use {
 
 #[derive(Debug, Parser)]
 pub(crate) struct Options {
-  #[clap(long, help = "Load Bitcoin Core RPC cookie file from <COOKIE_FILE>.")]
-  cookie_file: Option<PathBuf>,
-  #[clap(long, help = "Connect to Bitcoin Core RPC at <RPC_URL>.")]
-  rpc_url: Option<String>,
-  #[clap(long, arg_enum, default_value = "mainnet", help = "Index <CHAIN>.")]
-  pub(crate) chain: Chain,
-  #[clap(long, help = "Store index in <DATA_DIR>.")]
-  data_dir: Option<PathBuf>,
   #[clap(long, help = "Load Bitcoin Core data dir from <BITCOIN_DATA_DIR>.")]
   bitcoin_data_dir: Option<PathBuf>,
+  #[clap(long, arg_enum, default_value = "mainnet", help = "Index <CHAIN>.")]
+  pub(crate) chain: Chain,
+  #[clap(long, help = "Load Bitcoin Core RPC cookie file from <COOKIE_FILE>.")]
+  cookie_file: Option<PathBuf>,
+  #[clap(long, help = "Store index in <DATA_DIR>.")]
+  data_dir: Option<PathBuf>,
   #[clap(long, help = "Limit index to <HEIGHT_LIMIT> blocks.")]
   pub(crate) height_limit: Option<u64>,
+  #[clap(long, help = "Index ordinal ranges")]
+  pub(crate) index_ordinals: bool,
+  #[clap(long, help = "Connect to Bitcoin Core RPC at <RPC_URL>.")]
+  rpc_url: Option<String>,
 }
 
 impl Options {

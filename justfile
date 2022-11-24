@@ -93,7 +93,7 @@ update-modern-normalize:
 
 download-log unit='ord' host='ordinals.com':
   ssh root@{{host}} 'mkdir -p tmp && journalctl -u {{unit}} > tmp/{{unit}}.log'
-  rsync --progress root@{{host}}:tmp/{{unit}}.log tmp/{{unit}}.log
+  rsync --progress --compress root@{{host}}:tmp/{{unit}}.log tmp/{{unit}}.log
 
 graph log:
   ./bin/graph $1

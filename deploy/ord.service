@@ -12,6 +12,7 @@ ExecStart=/usr/local/bin/ord \
   --bitcoin-data-dir /var/lib/bitcoind \
   --data-dir /var/lib/ord \
   --chain ${CHAIN} \
+  --index-ordinals \
   server \
   --acme-contact mailto:casey@rodarmor.com \
   --http \

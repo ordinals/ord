@@ -4,6 +4,7 @@ pub struct Updater {
   cache: HashMap<[u8; 36], Vec<u8>>,
   chain: Chain,
   height: u64,
+  index_ordinals: bool,
   ordinal_ranges_since_flush: u64,
   outputs_cached: u64,
   outputs_inserted_since_flush: u64,
@@ -36,6 +37,7 @@ impl Updater {
       cache: HashMap::new(),
       chain: index.chain,
       height,
+      index_ordinals: index.index_ordinals,
       ordinal_ranges_since_flush: 0,
       outputs_cached: 0,
       outputs_inserted_since_flush: 0,
@@ -230,67 +232,69 @@ impl Updater {
       }
     }
 
-    let mut coinbase_inputs = VecDeque::new();
+    if self.index_ordinals {
+      let mut coinbase_inputs = VecDeque::new();
 
-    let h = Height(self.height);
-    if h.subsidy() > 0 {
-      let start = h.starting_ordinal();
-      coinbase_inputs.push_front((start.n(), (start + h.subsidy()).n()));
-      self.ordinal_ranges_since_flush += 1;
-    }
-
-    for (tx_offset, tx) in block.txdata.iter().enumerate().skip(1) {
-      let txid = tx.txid();
-
-      log::trace!("Indexing transaction {tx_offset}…");
-
-      let mut input_ordinal_ranges = VecDeque::new();
-
-      for input in &tx.input {
-        let key = encode_outpoint(input.previous_output);
-
-        let ordinal_ranges = match self.cache.remove(&key) {
-          Some(ordinal_ranges) => {
-            self.outputs_cached += 1;
-            ordinal_ranges
-          }
-          None => outpoint_to_ordinal_ranges
-            .remove(&key)?
-            .ok_or_else(|| anyhow!("Could not find outpoint {} in index", input.previous_output))?
-            .to_value()
-            .to_vec(),
-        };
-
-        for chunk in ordinal_ranges.chunks_exact(11) {
-          input_ordinal_ranges.push_back(Index::decode_ordinal_range(chunk.try_into().unwrap()));
-        }
+      let h = Height(self.height);
+      if h.subsidy() > 0 {
+        let start = h.starting_ordinal();
+        coinbase_inputs.push_front((start.n(), (start + h.subsidy()).n()));
+        self.ordinal_ranges_since_flush += 1;
       }
 
-      self.index_transaction(
-        txid,
-        tx,
-        &mut ordinal_to_satpoint,
-        &mut ordinal_to_inscription_txid,
-        &mut txid_to_inscription,
-        &mut input_ordinal_ranges,
-        &mut ordinal_ranges_written,
-        &mut outputs_in_block,
-      )?;
+      for (tx_offset, tx) in block.txdata.iter().enumerate().skip(1) {
+        let txid = tx.txid();
 
-      coinbase_inputs.extend(input_ordinal_ranges);
-    }
+        log::trace!("Indexing transaction {tx_offset}…");
 
-    if let Some(tx) = block.coinbase() {
-      self.index_transaction(
-        tx.txid(),
-        tx,
-        &mut ordinal_to_satpoint,
-        &mut ordinal_to_inscription_txid,
-        &mut txid_to_inscription,
-        &mut coinbase_inputs,
-        &mut ordinal_ranges_written,
-        &mut outputs_in_block,
-      )?;
+        let mut input_ordinal_ranges = VecDeque::new();
+
+        for input in &tx.input {
+          let key = encode_outpoint(input.previous_output);
+
+          let ordinal_ranges = match self.cache.remove(&key) {
+            Some(ordinal_ranges) => {
+              self.outputs_cached += 1;
+              ordinal_ranges
+            }
+            None => outpoint_to_ordinal_ranges
+              .remove(&key)?
+              .ok_or_else(|| anyhow!("Could not find outpoint {} in index", input.previous_output))?
+              .to_value()
+              .to_vec(),
+          };
+
+          for chunk in ordinal_ranges.chunks_exact(11) {
+            input_ordinal_ranges.push_back(Index::decode_ordinal_range(chunk.try_into().unwrap()));
+          }
+        }
+
+        self.index_transaction(
+          txid,
+          tx,
+          &mut ordinal_to_satpoint,
+          &mut ordinal_to_inscription_txid,
+          &mut txid_to_inscription,
+          &mut input_ordinal_ranges,
+          &mut ordinal_ranges_written,
+          &mut outputs_in_block,
+        )?;
+
+        coinbase_inputs.extend(input_ordinal_ranges);
+      }
+
+      if let Some(tx) = block.coinbase() {
+        self.index_transaction(
+          tx.txid(),
+          tx,
+          &mut ordinal_to_satpoint,
+          &mut ordinal_to_inscription_txid,
+          &mut txid_to_inscription,
+          &mut coinbase_inputs,
+          &mut ordinal_ranges_written,
+          &mut outputs_in_block,
+        )?;
+      }
     }
 
     height_to_block_hash.insert(&self.height, &block.block_hash().as_hash().into_inner())?;
