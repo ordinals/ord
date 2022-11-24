@@ -8,6 +8,7 @@ pub struct Updater {
   outputs_cached: u64,
   outputs_inserted_since_flush: u64,
   outputs_traversed: u64,
+  index_ordinal_ranges: bool,
 }
 
 impl Updater {
@@ -40,6 +41,7 @@ impl Updater {
       outputs_cached: 0,
       outputs_inserted_since_flush: 0,
       outputs_traversed: 0,
+      index_ordinal_ranges: false,
     };
 
     updater.update_index(index, wtx)
@@ -232,11 +234,13 @@ impl Updater {
 
     let mut coinbase_inputs = VecDeque::new();
 
-    let h = Height(self.height);
-    if h.subsidy() > 0 {
-      let start = h.starting_ordinal();
-      coinbase_inputs.push_front((start.n(), (start + h.subsidy()).n()));
-      self.ordinal_ranges_since_flush += 1;
+    if self.index_ordinal_ranges {
+      let h = Height(self.height);
+      if h.subsidy() > 0 {
+        let start = h.starting_ordinal();
+        coinbase_inputs.push_front((start.n(), (start + h.subsidy()).n()));
+        self.ordinal_ranges_since_flush += 1;
+      }
     }
 
     for (tx_offset, tx) in block.txdata.iter().enumerate().skip(1) {
@@ -246,23 +250,25 @@ impl Updater {
 
       let mut input_ordinal_ranges = VecDeque::new();
 
-      for input in &tx.input {
-        let key = encode_outpoint(input.previous_output);
+      if self.index_ordinal_ranges {
+        for input in &tx.input {
+          let key = encode_outpoint(input.previous_output);
 
-        let ordinal_ranges = match self.cache.remove(&key) {
-          Some(ordinal_ranges) => {
-            self.outputs_cached += 1;
-            ordinal_ranges
+          let ordinal_ranges = match self.cache.remove(&key) {
+            Some(ordinal_ranges) => {
+              self.outputs_cached += 1;
+              ordinal_ranges
+            }
+            None => outpoint_to_ordinal_ranges
+              .remove(&key)?
+              .ok_or_else(|| anyhow!("Could not find outpoint {} in index", input.previous_output))?
+              .to_value()
+              .to_vec(),
+          };
+
+          for chunk in ordinal_ranges.chunks_exact(11) {
+            input_ordinal_ranges.push_back(Index::decode_ordinal_range(chunk.try_into().unwrap()));
           }
-          None => outpoint_to_ordinal_ranges
-            .remove(&key)?
-            .ok_or_else(|| anyhow!("Could not find outpoint {} in index", input.previous_output))?
-            .to_value()
-            .to_vec(),
-        };
-
-        for chunk in ordinal_ranges.chunks_exact(11) {
-          input_ordinal_ranges.push_back(Index::decode_ordinal_range(chunk.try_into().unwrap()));
         }
       }
 
@@ -328,56 +334,58 @@ impl Updater {
       }
     }
 
-    for (vout, output) in tx.output.iter().enumerate() {
-      let outpoint = OutPoint {
-        vout: vout as u32,
-        txid,
-      };
-      let mut ordinals = Vec::new();
+    if self.index_ordinal_ranges {
+      for (vout, output) in tx.output.iter().enumerate() {
+        let outpoint = OutPoint {
+          vout: vout as u32,
+          txid,
+        };
+        let mut ordinals = Vec::new();
 
-      let mut remaining = output.value;
-      while remaining > 0 {
-        let range = input_ordinal_ranges
-          .pop_front()
-          .ok_or_else(|| anyhow!("insufficient inputs for transaction outputs"))?;
+        let mut remaining = output.value;
+        while remaining > 0 {
+          let range = input_ordinal_ranges
+            .pop_front()
+            .ok_or_else(|| anyhow!("insufficient inputs for transaction outputs"))?;
 
-        if !Ordinal(range.0).is_common() {
-          ordinal_to_satpoint.insert(
-            &range.0,
-            &encode_satpoint(SatPoint {
-              outpoint,
-              offset: output.value - remaining,
-            }),
-          )?;
+          if !Ordinal(range.0).is_common() {
+            ordinal_to_satpoint.insert(
+              &range.0,
+              &encode_satpoint(SatPoint {
+                outpoint,
+                offset: output.value - remaining,
+              }),
+            )?;
+          }
+
+          let count = range.1 - range.0;
+
+          let assigned = if count > remaining {
+            self.ordinal_ranges_since_flush += 1;
+            let middle = range.0 + remaining;
+            input_ordinal_ranges.push_front((middle, range.1));
+            (range.0, middle)
+          } else {
+            range
+          };
+
+          let base = assigned.0;
+          let delta = assigned.1 - assigned.0;
+
+          let n = base as u128 | (delta as u128) << 51;
+
+          ordinals.extend_from_slice(&n.to_le_bytes()[0..11]);
+
+          remaining -= assigned.1 - assigned.0;
+
+          *ordinal_ranges_written += 1;
         }
 
-        let count = range.1 - range.0;
+        *outputs_traversed += 1;
 
-        let assigned = if count > remaining {
-          self.ordinal_ranges_since_flush += 1;
-          let middle = range.0 + remaining;
-          input_ordinal_ranges.push_front((middle, range.1));
-          (range.0, middle)
-        } else {
-          range
-        };
-
-        let base = assigned.0;
-        let delta = assigned.1 - assigned.0;
-
-        let n = base as u128 | (delta as u128) << 51;
-
-        ordinals.extend_from_slice(&n.to_le_bytes()[0..11]);
-
-        remaining -= assigned.1 - assigned.0;
-
-        *ordinal_ranges_written += 1;
+        self.cache.insert(encode_outpoint(outpoint), ordinals);
+        self.outputs_inserted_since_flush += 1;
       }
-
-      *outputs_traversed += 1;
-
-      self.cache.insert(encode_outpoint(outpoint), ordinals);
-      self.outputs_inserted_since_flush += 1;
     }
 
     Ok(())

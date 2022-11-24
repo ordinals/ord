@@ -55,6 +55,7 @@ pub(crate) struct Index {
   height_limit: Option<u64>,
   reorged: AtomicBool,
   rpc_url: String,
+  index_ordinal_ranges: bool,
 }
 
 #[derive(Debug, PartialEq)]
@@ -200,6 +201,7 @@ impl Index {
       height_limit: options.height_limit,
       reorged: AtomicBool::new(false),
       rpc_url,
+      index_ordinal_ranges: false,
     })
   }
 
@@ -297,6 +299,13 @@ impl Index {
 
   #[cfg(test)]
   pub(crate) fn statistic(&self, statistic: Statistic) -> Result<u64> {
+    if matches!(
+      statistic,
+      Statistic::OutputsTraversed | Statistic::OrdinalRanges
+    ) {
+      bail!("statistic requires the `--index-ordinal-ranges` flag");
+    }
+
     Ok(
       self
         .database
@@ -332,6 +341,10 @@ impl Index {
   }
 
   pub(crate) fn rare_ordinal_satpoints(&self) -> Result<Vec<(Ordinal, SatPoint)>> {
+    if !self.index_ordinal_ranges {
+      bail!("looking up rare ordinal statpoints requires the `--index-ordinal-ranges` flag");
+    }
+
     let mut result = Vec::new();
 
     let rtx = self.database.begin_read()?;
@@ -427,6 +440,10 @@ impl Index {
   }
 
   pub(crate) fn find(&self, ordinal: u64) -> Result<Option<SatPoint>> {
+    if !self.index_ordinal_ranges {
+      bail!("find requires the `--index-ordinal-ranges` flag");
+    }
+
     let rtx = self.begin_read()?;
 
     if rtx.block_count()? <= Ordinal(ordinal).height().n() {
@@ -453,7 +470,7 @@ impl Index {
     Ok(None)
   }
 
-  pub(crate) fn list_inner(&self, outpoint: &[u8]) -> Result<Option<Vec<u8>>> {
+  fn list_inner(&self, outpoint: &[u8]) -> Result<Option<Vec<u8>>> {
     Ok(
       self
         .database
@@ -465,6 +482,10 @@ impl Index {
   }
 
   pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<List>> {
+    if !self.index_ordinal_ranges {
+      bail!("list requires the `--index-ordinal-ranges` flag");
+    }
+
     let outpoint_encoded = encode_outpoint(outpoint);
 
     let ordinal_ranges = self.list_inner(&outpoint_encoded)?;
