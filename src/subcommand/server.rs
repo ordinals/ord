@@ -617,6 +617,10 @@ mod tests {
 
   impl TestServer {
     fn new() -> Self {
+      Self::new_with_args(&[])
+    }
+
+    fn new_with_args(args: &[&str]) -> Self {
       let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
       let tempdir = TempDir::new().unwrap();
@@ -634,10 +638,11 @@ mod tests {
       let url = Url::parse(&format!("http://127.0.0.1:{port}")).unwrap();
 
       let (options, server) = parse_server_args(&format!(
-        "ord --chain regtest --rpc-url {} --cookie-file {} --data-dir {} server --http-port {} --address 127.0.0.1",
+        "ord --chain regtest --rpc-url {} --cookie-file {} --data-dir {} {} server --http-port {} --address 127.0.0.1",
         bitcoin_rpc_server.url(),
         cookiefile.to_str().unwrap(),
         tempdir.path().to_str().unwrap(),
+        args.join(" "),
         port,
       ));
 
@@ -1061,9 +1066,7 @@ mod tests {
   }
   #[test]
   fn output() {
-    let test_server = TestServer::new();
-
-    test_server.assert_response_regex(
+    TestServer::new_with_args(&["--index-ordinals"]).assert_response_regex(
     "/output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
     StatusCode::OK,
     ".*<title>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</title>.*<h1>Output <span class=monospace>4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</span></h1>
@@ -1080,7 +1083,7 @@ mod tests {
 
   #[test]
   fn unknown_output_returns_404() {
-    TestServer::new().assert_response(
+    TestServer::new_with_args(&["--index-ordinals"]).assert_response(
       "/output/0000000000000000000000000000000000000000000000000000000000000000:0",
       StatusCode::NOT_FOUND,
       "output 0000000000000000000000000000000000000000000000000000000000000000:0 unknown",
@@ -1293,7 +1296,7 @@ next.*",
 
   #[test]
   fn rare() {
-    TestServer::new().assert_response(
+    TestServer::new_with_args(&["--index-ordinals"]).assert_response(
       "/rare.txt",
       StatusCode::OK,
       "ordinal\tsatpoint
@@ -1374,7 +1377,7 @@ next.*",
 
   #[test]
   fn outputs_traversed_are_tracked() {
-    let server = TestServer::new();
+    let server = TestServer::new_with_args(&["--index-ordinals"]);
 
     assert_eq!(
       server
@@ -1410,7 +1413,7 @@ next.*",
 
   #[test]
   fn coinbase_ordinal_ranges_are_tracked() {
-    let server = TestServer::new();
+    let server = TestServer::new_with_args(&["--index-ordinals"]);
 
     assert_eq!(
       server
@@ -1445,7 +1448,7 @@ next.*",
 
   #[test]
   fn split_ordinal_ranges_are_tracked() {
-    let server = TestServer::new();
+    let server = TestServer::new_with_args(&["--index-ordinals"]);
 
     assert_eq!(
       server
@@ -1475,7 +1478,7 @@ next.*",
 
   #[test]
   fn fee_ordinal_ranges_are_tracked() {
-    let server = TestServer::new();
+    let server = TestServer::new_with_args(&["--index-ordinals"]);
 
     assert_eq!(
       server

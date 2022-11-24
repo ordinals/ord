@@ -299,11 +299,13 @@ impl Index {
 
   #[cfg(test)]
   pub(crate) fn statistic(&self, statistic: Statistic) -> Result<u64> {
-    if matches!(
-      statistic,
-      Statistic::OutputsTraversed | Statistic::OrdinalRanges
-    ) {
-      bail!("statistic requires the `--index-ordinal-ranges` flag");
+    if !self.index_ordinals
+      && matches!(
+        statistic,
+        Statistic::OutputsTraversed | Statistic::OrdinalRanges
+      )
+    {
+      bail!("statistic requires the `--index-ordinals` flag");
     }
 
     Ok(
