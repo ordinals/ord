@@ -547,10 +547,6 @@ mod tests {
   }
 
   impl Context {
-    fn new() -> Self {
-      Self::with_args("")
-    }
-
     fn with_args(args: &str) -> Self {
       let rpc_server = test_bitcoincore_rpc::spawn();
 
@@ -614,7 +610,7 @@ mod tests {
 
   #[test]
   fn list_first_coinbase_transaction() {
-    let context = Context::new();
+    let context = Context::with_args("--index-ordinals");
     assert_eq!(
       context
         .index
@@ -631,7 +627,7 @@ mod tests {
 
   #[test]
   fn list_second_coinbase_transaction() {
-    let context = Context::new();
+    let context = Context::with_args("--index-ordinals");
     let txid = context.rpc_server.mine_blocks(1)[0].txdata[0].txid();
     context.index.update().unwrap();
     assert_eq!(
@@ -642,7 +638,7 @@ mod tests {
 
   #[test]
   fn list_split_ranges_are_tracked_correctly() {
-    let context = Context::new();
+    let context = Context::with_args("--index-ordinals");
 
     context.rpc_server.mine_blocks(1);
     let split_coinbase_output = TransactionTemplate {
@@ -668,7 +664,7 @@ mod tests {
 
   #[test]
   fn list_merge_ranges_are_tracked_correctly() {
-    let context = Context::new();
+    let context = Context::with_args("--index-ordinals");
 
     context.rpc_server.mine_blocks(2);
     let merge_coinbase_outputs = TransactionTemplate {
@@ -692,7 +688,7 @@ mod tests {
 
   #[test]
   fn list_fee_paying_transaction_range() {
-    let context = Context::new();
+    let context = Context::with_args("--index-ordinals");
 
     context.rpc_server.mine_blocks(1);
     let fee_paying_tx = TransactionTemplate {
@@ -726,7 +722,7 @@ mod tests {
 
   #[test]
   fn list_two_fee_paying_transaction_range() {
-    let context = Context::new();
+    let context = Context::with_args("--index-ordinals");
 
     context.rpc_server.mine_blocks(2);
     let first_fee_paying_tx = TransactionTemplate {
@@ -761,7 +757,7 @@ mod tests {
 
   #[test]
   fn list_null_output() {
-    let context = Context::new();
+    let context = Context::with_args("--index-ordinals");
 
     context.rpc_server.mine_blocks(1);
     let no_value_output = TransactionTemplate {
@@ -781,7 +777,7 @@ mod tests {
 
   #[test]
   fn list_null_input() {
-    let context = Context::new();
+    let context = Context::with_args("--index-ordinals");
 
     context.rpc_server.mine_blocks(1);
     let no_value_output = TransactionTemplate {
@@ -809,7 +805,7 @@ mod tests {
 
   #[test]
   fn list_spent_output() {
-    let context = Context::new();
+    let context = Context::with_args("--index-ordinals");
     context.rpc_server.mine_blocks(1);
     context.rpc_server.broadcast_tx(TransactionTemplate {
       input_slots: &[(1, 0, 0)],
@@ -827,7 +823,7 @@ mod tests {
 
   #[test]
   fn list_unknown_output() {
-    let context = Context::new();
+    let context = Context::with_args("--index-ordinals");
 
     assert_eq!(
       context
@@ -844,7 +840,7 @@ mod tests {
 
   #[test]
   fn find_first_ordinal() {
-    let context = Context::new();
+    let context = Context::with_args("--index-ordinals");
     assert_eq!(
       context.index.find(0).unwrap().unwrap(),
       SatPoint {
@@ -858,7 +854,7 @@ mod tests {
 
   #[test]
   fn find_second_ordinal() {
-    let context = Context::new();
+    let context = Context::with_args("--index-ordinals");
     assert_eq!(
       context.index.find(1).unwrap().unwrap(),
       SatPoint {
@@ -872,7 +868,7 @@ mod tests {
 
   #[test]
   fn find_first_ordinal_of_second_block() {
-    let context = Context::new();
+    let context = Context::with_args("--index-ordinals");
     context.rpc_server.mine_blocks(1);
     context.index.update().unwrap();
     assert_eq!(
@@ -888,13 +884,13 @@ mod tests {
 
   #[test]
   fn find_unmined_ordinal() {
-    let context = Context::new();
+    let context = Context::with_args("--index-ordinals");
     assert_eq!(context.index.find(50 * COIN_VALUE).unwrap(), None);
   }
 
   #[test]
   fn find_first_satoshi_spent_in_second_block() {
-    let context = Context::new();
+    let context = Context::with_args("--index-ordinals");
     context.rpc_server.mine_blocks(1);
     let spend_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
       input_slots: &[(1, 0, 0)],
