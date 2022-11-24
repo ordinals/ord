@@ -17,22 +17,11 @@ pub(crate) struct Options {
   pub(crate) height_limit: Option<u64>,
   #[clap(long, help = "Index ordinal ranges")]
   pub(crate) index_ordinals: bool,
-  #[clap(
-    long,
-    help = "Limit the ordinal index to <MAX_INDEX_SIZE> bytes. This cannot be changed later. [mainnet, testnet, and signet default: 1 TiB, regtest default: 10 MiB]"
-  )]
-  max_index_size: Option<Bytes>,
   #[clap(long, help = "Connect to Bitcoin Core RPC at <RPC_URL>.")]
   rpc_url: Option<String>,
 }
 
 impl Options {
-  pub(crate) fn max_index_size(&self) -> Bytes {
-    self
-      .max_index_size
-      .unwrap_or_else(|| self.chain.default_max_index_size())
-  }
-
   pub(crate) fn rpc_url(&self) -> String {
     self
       .rpc_url
@@ -138,60 +127,6 @@ impl Options {
 #[cfg(test)]
 mod tests {
   use {super::*, std::path::Path};
-
-  #[test]
-  fn max_index_size_defaults() {
-    assert_eq!(
-      Arguments::try_parse_from(["ord", "index"])
-        .unwrap()
-        .options
-        .max_index_size(),
-      Bytes::TIB
-    );
-
-    assert_eq!(
-      Arguments::try_parse_from(["ord", "--chain=mainnet", "index"])
-        .unwrap()
-        .options
-        .max_index_size(),
-      Bytes::TIB
-    );
-
-    assert_eq!(
-      Arguments::try_parse_from(["ord", "--chain=signet", "index"])
-        .unwrap()
-        .options
-        .max_index_size(),
-      Bytes::TIB
-    );
-
-    assert_eq!(
-      Arguments::try_parse_from(["ord", "--chain=testnet", "index"])
-        .unwrap()
-        .options
-        .max_index_size(),
-      Bytes::TIB
-    );
-
-    assert_eq!(
-      Arguments::try_parse_from(["ord", "--chain=regtest", "index"])
-        .unwrap()
-        .options
-        .max_index_size(),
-      Bytes::MIB * 10
-    );
-  }
-
-  #[test]
-  fn max_index_size_override() {
-    assert_eq!(
-      Arguments::try_parse_from(["ord", "--max-index-size=1", "index"])
-        .unwrap()
-        .options
-        .max_index_size(),
-      Bytes(1),
-    );
-  }
 
   #[test]
   fn rpc_url_overrides_network() {

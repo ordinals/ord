@@ -11,7 +11,7 @@ use {
     fs,
     net::TcpListener,
     path::Path,
-    process::{self, Child, Command, Stdio},
+    process::{Child, Command, Stdio},
     str, thread,
     time::Duration,
   },
@@ -37,7 +37,6 @@ mod command_builder;
 mod epochs;
 mod expected;
 mod find;
-mod index;
 mod info;
 mod list;
 mod parse;

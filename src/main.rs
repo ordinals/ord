@@ -4,7 +4,6 @@ use {
   self::{
     arguments::Arguments,
     blocktime::Blocktime,
-    bytes::Bytes,
     decimal::Decimal,
     degree::Degree,
     epoch::Epoch,
@@ -40,7 +39,7 @@ use {
     fmt::{self, Display, Formatter},
     fs, io,
     net::ToSocketAddrs,
-    ops::{Add, AddAssign, Mul, Sub},
+    ops::{Add, AddAssign, Sub},
     path::{Path, PathBuf},
     process,
     str::FromStr,
@@ -64,7 +63,6 @@ use self::test::*;
 
 mod arguments;
 mod blocktime;
-mod bytes;
 mod chain;
 mod decimal;
 mod degree;

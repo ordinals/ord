@@ -30,13 +30,6 @@ impl Chain {
     }
   }
 
-  pub(crate) fn default_max_index_size(self) -> Bytes {
-    match self {
-      Self::Mainnet | Self::Signet | Self::Testnet => Bytes::TIB,
-      Self::Regtest => Bytes::MIB * 10,
-    }
-  }
-
   pub(crate) fn genesis_block(self) -> Block {
     bitcoin::blockdata::constants::genesis_block(self.network())
   }

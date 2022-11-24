@@ -14,16 +14,16 @@ use {
 mod rtx;
 mod updater;
 
-const HEIGHT_TO_BLOCK_HASH: TableDefinition<u64, [u8; 32]> =
+const HEIGHT_TO_BLOCK_HASH: TableDefinition<u64, &[u8; 32]> =
   TableDefinition::new("HEIGHT_TO_BLOCK_HASH");
-const ORDINAL_TO_INSCRIPTION_TXID: TableDefinition<u64, [u8; 32]> =
+const ORDINAL_TO_INSCRIPTION_TXID: TableDefinition<u64, &[u8; 32]> =
   TableDefinition::new("ORDINAL_TO_INSCRIPTION_TXID");
-const ORDINAL_TO_SATPOINT: TableDefinition<u64, [u8; 44]> =
+const ORDINAL_TO_SATPOINT: TableDefinition<u64, &[u8; 44]> =
   TableDefinition::new("ORDINAL_TO_SATPOINT");
-const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8; 36], [u8]> =
+const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<&[u8; 36], [u8]> =
   TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
 const STATISTIC_TO_COUNT: TableDefinition<u64, u64> = TableDefinition::new("STATISTIC_TO_COUNT");
-const TXID_TO_INSCRIPTION: TableDefinition<[u8; 32], str> =
+const TXID_TO_INSCRIPTION: TableDefinition<&[u8; 32], str> =
   TableDefinition::new("TXID_TO_INSCRIPTION");
 const WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP: TableDefinition<u64, u128> =
   TableDefinition::new("WRITE_TRANSACTION_START_BLOCK_COUNT_TO_TIMESTAMP");
@@ -72,6 +72,12 @@ pub(crate) enum Statistic {
   OrdinalRanges = 2,
 }
 
+impl Statistic {
+  fn key(self) -> u64 {
+    self.into()
+  }
+}
+
 impl From<Statistic> for u64 {
   fn from(statistic: Statistic) -> Self {
     statistic as u64
@@ -83,7 +89,6 @@ pub(crate) struct Info {
   pub(crate) blocks_indexed: u64,
   pub(crate) branch_pages: usize,
   pub(crate) fragmented_bytes: usize,
-  pub(crate) free_pages: usize,
   pub(crate) index_file_size: u64,
   pub(crate) leaf_pages: usize,
   pub(crate) metadata_bytes: usize,
@@ -163,7 +168,7 @@ impl Index {
           } else {
             WriteStrategy::TwoPhase
           })
-          .create(&database_path, options.max_index_size().0)?
+          .create(&database_path)?
       },
       Err(error) => return Err(error.into()),
     };
@@ -230,15 +235,14 @@ impl Index {
           .unwrap_or(0),
         branch_pages: stats.branch_pages(),
         fragmented_bytes: stats.fragmented_bytes(),
-        free_pages: stats.free_pages(),
         index_file_size: fs::metadata(&self.database_path)?.len(),
         leaf_pages: stats.leaf_pages(),
         metadata_bytes: stats.metadata_bytes(),
         ordinal_ranges: statistic_to_count
-          .get(&Statistic::OrdinalRanges.into())?
+          .get(&Statistic::OrdinalRanges.key())?
           .unwrap_or(0),
         outputs_traversed: statistic_to_count
-          .get(&Statistic::OutputsTraversed.into())?
+          .get(&Statistic::OutputsTraversed.key())?
           .unwrap_or(0),
         page_size: stats.page_size(),
         stored_bytes: stats.stored_bytes(),
@@ -299,8 +303,8 @@ impl Index {
   fn increment_statistic(wtx: &WriteTransaction, statistic: Statistic, n: u64) -> Result {
     let mut statistic_to_count = wtx.open_table(STATISTIC_TO_COUNT)?;
     statistic_to_count.insert(
-      &statistic.into(),
-      &(statistic_to_count.get(&(statistic.into()))?.unwrap_or(0) + n),
+      &statistic.key(),
+      &(statistic_to_count.get(&(statistic.key()))?.unwrap_or(0) + n),
     )?;
     Ok(())
   }
@@ -319,7 +323,7 @@ impl Index {
         .database
         .begin_read()?
         .open_table(STATISTIC_TO_COUNT)?
-        .get(&(statistic.into()))?
+        .get(&statistic.key())?
         .unwrap_or(0),
     )
   }
@@ -474,13 +478,13 @@ impl Index {
     Ok(None)
   }
 
-  fn list_inner(&self, outpoint: &[u8]) -> Result<Option<Vec<u8>>> {
+  fn list_inner(&self, outpoint: [u8; 36]) -> Result<Option<Vec<u8>>> {
     Ok(
       self
         .database
         .begin_read()?
         .open_table(OUTPOINT_TO_ORDINAL_RANGES)?
-        .get(outpoint.try_into().unwrap())?
+        .get(&outpoint)?
         .map(|outpoint| outpoint.to_vec()),
     )
   }
@@ -490,7 +494,7 @@ impl Index {
 
     let outpoint_encoded = encode_outpoint(outpoint);
 
-    let ordinal_ranges = self.list_inner(&outpoint_encoded)?;
+    let ordinal_ranges = self.list_inner(outpoint_encoded)?;
 
     match ordinal_ranges {
       Some(ordinal_ranges) => Ok(Some(List::Unspent(
