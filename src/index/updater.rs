@@ -37,11 +37,11 @@ impl Updater {
       cache: HashMap::new(),
       chain: index.chain,
       height,
+      index_ordinals: index.index_ordinals,
       ordinal_ranges_since_flush: 0,
       outputs_cached: 0,
       outputs_inserted_since_flush: 0,
       outputs_traversed: 0,
-      index_ordinals: index.index_ordinals,
     };
 
     updater.update_index(index, wtx)

@@ -53,9 +53,9 @@ pub(crate) struct Index {
   genesis_block_coinbase_transaction: Transaction,
   genesis_block_coinbase_txid: Txid,
   height_limit: Option<u64>,
+  index_ordinals: bool,
   reorged: AtomicBool,
   rpc_url: String,
-  index_ordinals: bool,
 }
 
 #[derive(Debug, PartialEq)]
