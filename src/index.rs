@@ -443,7 +443,7 @@ impl Index {
 
   pub(crate) fn find(&self, ordinal: u64) -> Result<Option<SatPoint>> {
     if !self.index_ordinals {
-      bail!("find requires the `--index-ordinal-ranges` flag");
+      bail!("find requires the `--index-ordinals` flag");
     }
 
     let rtx = self.begin_read()?;

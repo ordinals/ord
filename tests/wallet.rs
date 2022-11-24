@@ -5,7 +5,7 @@ fn identify() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   let second_coinbase = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  CommandBuilder::new("wallet identify")
+  CommandBuilder::new("--index-ordinals wallet identify")
     .rpc_server(&rpc_server)
     .expected_stdout(format!(
       "{}\t{}\t0\tuncommon\n",
@@ -20,7 +20,7 @@ fn identify_from_tsv_success() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   let second_coinbase = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  CommandBuilder::new("wallet identify --ordinals foo.tsv")
+  CommandBuilder::new("--index-ordinals wallet identify --ordinals foo.tsv")
     .write("foo.tsv", "nvtcsezkbtg")
     .rpc_server(&rpc_server)
     .expected_stdout(format!(
@@ -60,7 +60,7 @@ fn list() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   let second_coinbase = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  CommandBuilder::new("wallet list")
+  CommandBuilder::new("--index-ordinals wallet list")
     .rpc_server(&rpc_server)
     .expected_stdout(format!(
       "{}\t{}\t{}\tuncommon\tnvtcsezkbth\n",
@@ -78,7 +78,7 @@ fn send_works_on_signet() {
   rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let output = CommandBuilder::new(
-    "--chain signet wallet send 5000000000 tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw",
+    "--chain signet --index-ordinals wallet send 5000000000 tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw",
   )
   .rpc_server(&rpc_server)
   .stdout_regex(r".*")
@@ -94,7 +94,7 @@ fn send_on_mainnnet_refuses_to_work_with_wallet_name_foo() {
   rpc_server.mine_blocks(1);
 
   CommandBuilder::new(
-    "wallet send 5000000000 bc1qzjeg3h996kw24zrg69nge97fw8jc4v7v7yznftzk06j3429t52vse9tkp9",
+    "--index-ordinals wallet send 5000000000 bc1qzjeg3h996kw24zrg69nge97fw8jc4v7v7yznftzk06j3429t52vse9tkp9",
   )
   .rpc_server(&rpc_server)
   .expected_stderr("error: `ord wallet send` may only be used on mainnet with a wallet named `ord` or whose name starts with `ord-`\n")
@@ -121,11 +121,12 @@ fn send_on_mainnnet_works_with_wallet_named_ord() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "ord");
   rpc_server.mine_blocks_with_subsidy(1, 1_000_000);
 
-  let output =
-    CommandBuilder::new("wallet send 5000000000 bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh")
-      .rpc_server(&rpc_server)
-      .stdout_regex(r".*")
-      .run();
+  let output = CommandBuilder::new(
+    "--index-ordinals wallet send 5000000000 bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
+  )
+  .rpc_server(&rpc_server)
+  .stdout_regex(r".*")
+  .run();
 
   let txid = rpc_server.mempool()[0].txid();
   assert_eq!(format!("{}\n", txid), output.stdout)
@@ -136,11 +137,12 @@ fn send_on_mainnnet_works_with_wallet_whose_name_starts_with_ord() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "ord-foo");
   rpc_server.mine_blocks_with_subsidy(1, 1_000_000);
 
-  let output =
-    CommandBuilder::new("wallet send 5000000000 bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh")
-      .rpc_server(&rpc_server)
-      .stdout_regex(r".*")
-      .run();
+  let output = CommandBuilder::new(
+    "--index-ordinals wallet send 5000000000 bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
+  )
+  .rpc_server(&rpc_server)
+  .stdout_regex(r".*")
+  .run();
 
   let txid = rpc_server.mempool()[0].txid();
   assert_eq!(format!("{}\n", txid), output.stdout)
@@ -165,15 +167,17 @@ fn inscribe() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
   rpc_server.mine_blocks(1);
 
-  CommandBuilder::new("--chain regtest wallet inscribe --ordinal 5000000000 --file hello.txt")
-    .write("hello.txt", "HELLOWORLD")
-    .rpc_server(&rpc_server)
-    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-    .run();
+  CommandBuilder::new(
+    "--chain regtest --index-ordinals wallet inscribe --ordinal 5000000000 --file hello.txt",
+  )
+  .write("hello.txt", "HELLOWORLD")
+  .rpc_server(&rpc_server)
+  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+  .run();
 
   rpc_server.mine_blocks(1);
 
-  let ord_server = TestServer::spawn(&rpc_server);
+  let ord_server = TestServer::spawn_with_args(&rpc_server, &["--index-ordinals"]);
 
   ord_server.assert_response_regex(
     "/ordinal/5000000000",
@@ -211,15 +215,17 @@ fn inscribe_png() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
   rpc_server.mine_blocks(1);
 
-  CommandBuilder::new("--chain regtest wallet inscribe --ordinal 5000000000 --file degenerate.png")
-    .write("degenerate.png", [1; 520])
-    .rpc_server(&rpc_server)
-    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-    .run();
+  CommandBuilder::new(
+    "--chain regtest --index-ordinals wallet inscribe --ordinal 5000000000 --file degenerate.png",
+  )
+  .write("degenerate.png", [1; 520])
+  .rpc_server(&rpc_server)
+  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+  .run();
 
   rpc_server.mine_blocks(1);
 
-  let ord_server = TestServer::spawn(&rpc_server);
+  let ord_server = TestServer::spawn_with_args(&rpc_server, &["--index-ordinals"]);
 
   ord_server.assert_response_regex(
     "/ordinal/5000000000",
