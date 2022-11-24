@@ -16,8 +16,6 @@ mod updater;
 
 const HEIGHT_TO_BLOCK_HASH: TableDefinition<u64, [u8; 32]> =
   TableDefinition::new("HEIGHT_TO_BLOCK_HASH");
-const WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP: TableDefinition<u64, u128> =
-  TableDefinition::new("WRITE_TRANSACTION_START_BLOCK_COUNT_TO_TIMESTAMP");
 const ORDINAL_TO_INSCRIPTION_TXID: TableDefinition<u64, [u8; 32]> =
   TableDefinition::new("ORDINAL_TO_INSCRIPTION_TXID");
 const ORDINAL_TO_SATPOINT: TableDefinition<u64, [u8; 44]> =
@@ -27,6 +25,8 @@ const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<[u8; 36], [u8]> =
 const STATISTIC_TO_COUNT: TableDefinition<u64, u64> = TableDefinition::new("STATISTIC_TO_COUNT");
 const TXID_TO_INSCRIPTION: TableDefinition<[u8; 32], str> =
   TableDefinition::new("TXID_TO_INSCRIPTION");
+const WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP: TableDefinition<u64, u128> =
+  TableDefinition::new("WRITE_TRANSACTION_START_BLOCK_COUNT_TO_TIMESTAMP");
 
 fn encode_outpoint(outpoint: OutPoint) -> [u8; 36] {
   let mut array = [0; 36];
@@ -205,6 +205,14 @@ impl Index {
     })
   }
 
+  fn require_ordinal_index(&self, feature: &str) -> Result {
+    if !self.index_ordinals {
+      bail!("{feature} requires `--index-ordinals` flag")
+    }
+
+    Ok(())
+  }
+
   pub(crate) fn info(&self) -> Result<Info> {
     let wtx = self.begin_write()?;
 
@@ -299,13 +307,11 @@ impl Index {
 
   #[cfg(test)]
   pub(crate) fn statistic(&self, statistic: Statistic) -> Result<u64> {
-    if !self.index_ordinals
-      && matches!(
-        statistic,
-        Statistic::OutputsTraversed | Statistic::OrdinalRanges
-      )
-    {
-      bail!("statistic requires the `--index-ordinals` flag");
+    if matches!(
+      statistic,
+      Statistic::OutputsTraversed | Statistic::OrdinalRanges
+    ) {
+      self.require_ordinal_index("statistic")?;
     }
 
     Ok(
@@ -343,9 +349,7 @@ impl Index {
   }
 
   pub(crate) fn rare_ordinal_satpoints(&self) -> Result<Vec<(Ordinal, SatPoint)>> {
-    if !self.index_ordinals {
-      bail!("looking up rare ordinal statpoints requires the `--index-ordinal-ranges` flag");
-    }
+    self.require_ordinal_index("looking up rare ordinals")?;
 
     let mut result = Vec::new();
 
@@ -442,9 +446,7 @@ impl Index {
   }
 
   pub(crate) fn find(&self, ordinal: u64) -> Result<Option<SatPoint>> {
-    if !self.index_ordinals {
-      bail!("find requires the `--index-ordinals` flag");
-    }
+    self.require_ordinal_index("find")?;
 
     let rtx = self.begin_read()?;
 
@@ -484,9 +486,7 @@ impl Index {
   }
 
   pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<List>> {
-    if !self.index_ordinals {
-      bail!("list requires the `--index-ordinal-ranges` flag");
-    }
+    self.require_ordinal_index("find")?;
 
     let outpoint_encoded = encode_outpoint(outpoint);
 
