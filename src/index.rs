@@ -14,10 +14,6 @@ use {
 mod rtx;
 mod updater;
 
-// TODO:
-// - not knowing the type when getting and inserting, and thus not being able to do:
-//   table.get(&key.into())
-
 const HEIGHT_TO_BLOCK_HASH: TableDefinition<u64, &[u8; 32]> =
   TableDefinition::new("HEIGHT_TO_BLOCK_HASH");
 const WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP: TableDefinition<u64, u128> =
@@ -310,7 +306,7 @@ impl Index {
         .database
         .begin_read()?
         .open_table(STATISTIC_TO_COUNT)?
-        .get(&(statistic.into()))?
+        .get(&statistic.key())?
         .unwrap_or(0),
     )
   }
