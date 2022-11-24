@@ -595,6 +595,7 @@ impl Index {
   pub(crate) fn remove_bearer_ordinals(
     &self,
     utxos: Vec<(OutPoint, Vec<(u64, u64)>)>,
+    ordinal_to_inscribe: Ordinal,
   ) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
     let rtx = self.database.begin_read()?;
 
@@ -613,11 +614,14 @@ impl Index {
     let mut bearer_ordinal_utxos: BTreeSet<OutPoint> = BTreeSet::new();
 
     for (ordinal, _txid) in rtx.open_table(ORDINAL_TO_INSCRIPTION_TXID)?.range(0..)? {
-      while range >= ranges.len() {
+      while range < ranges.len() {
         let (start, end, outpoint) = ranges[range];
 
         if ordinal >= start && ordinal < end {
           bearer_ordinal_utxos.insert(outpoint);
+          if Ordinal(ordinal) == ordinal_to_inscribe {
+            return Err(anyhow!["trying to inscribe already inscribed ordinal"]);
+          }
           break;
         }
 
@@ -630,6 +634,7 @@ impl Index {
         break;
       }
     }
+
     Ok(
       utxos
         .into_iter()

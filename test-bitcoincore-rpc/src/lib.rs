@@ -21,7 +21,7 @@ use {
   server::Server,
   state::State,
   std::{
-    collections::{HashMap, BTreeMap},
+    collections::{BTreeMap, HashMap},
     sync::{Arc, Mutex, MutexGuard},
     thread,
     time::Duration,

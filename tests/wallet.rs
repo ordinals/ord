@@ -248,15 +248,15 @@ fn inscribe_does_not_accidentally_send_bearer_ordinals() {
   CommandBuilder::new("--chain regtest wallet inscribe --ordinal 5000000000 --file degenerate.png")
     .write("degenerate.png", [1; 100])
     .rpc_server(&rpc_server)
-    .stdout_regex(".*")
-    .run_ignore_errors();
+    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+    .run();
 
   rpc_server.mine_blocks(1);
 
   CommandBuilder::new("--chain regtest wallet inscribe --ordinal 5000000000 --file degenerate.png")
-  // CommandBuilder::new("--chain regtest wallet list")
     .write("degenerate.png", [1; 100])
     .rpc_server(&rpc_server)
-    .stdout_regex("s.*\n")
+    .expected_exit_code(1)
+    .stderr_regex("error: trying to inscribe already inscribed ordinal\n")
     .run();
 }
