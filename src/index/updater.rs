@@ -232,25 +232,23 @@ impl Updater {
       }
     }
 
-    let mut coinbase_inputs = VecDeque::new();
-
     if self.index_ordinals {
+      let mut coinbase_inputs = VecDeque::new();
+
       let h = Height(self.height);
       if h.subsidy() > 0 {
         let start = h.starting_ordinal();
         coinbase_inputs.push_front((start.n(), (start + h.subsidy()).n()));
         self.ordinal_ranges_since_flush += 1;
       }
-    }
 
-    for (tx_offset, tx) in block.txdata.iter().enumerate().skip(1) {
-      let txid = tx.txid();
+      for (tx_offset, tx) in block.txdata.iter().enumerate().skip(1) {
+        let txid = tx.txid();
 
-      log::trace!("Indexing transaction {tx_offset}…");
+        log::trace!("Indexing transaction {tx_offset}…");
 
-      let mut input_ordinal_ranges = VecDeque::new();
+        let mut input_ordinal_ranges = VecDeque::new();
 
-      if self.index_ordinals {
         for input in &tx.input {
           let key = encode_outpoint(input.previous_output);
 
@@ -270,33 +268,33 @@ impl Updater {
             input_ordinal_ranges.push_back(Index::decode_ordinal_range(chunk.try_into().unwrap()));
           }
         }
+
+        self.index_transaction(
+          txid,
+          tx,
+          &mut ordinal_to_satpoint,
+          &mut ordinal_to_inscription_txid,
+          &mut txid_to_inscription,
+          &mut input_ordinal_ranges,
+          &mut ordinal_ranges_written,
+          &mut outputs_in_block,
+        )?;
+
+        coinbase_inputs.extend(input_ordinal_ranges);
       }
 
-      self.index_transaction(
-        txid,
-        tx,
-        &mut ordinal_to_satpoint,
-        &mut ordinal_to_inscription_txid,
-        &mut txid_to_inscription,
-        &mut input_ordinal_ranges,
-        &mut ordinal_ranges_written,
-        &mut outputs_in_block,
-      )?;
-
-      coinbase_inputs.extend(input_ordinal_ranges);
-    }
-
-    if let Some(tx) = block.coinbase() {
-      self.index_transaction(
-        tx.txid(),
-        tx,
-        &mut ordinal_to_satpoint,
-        &mut ordinal_to_inscription_txid,
-        &mut txid_to_inscription,
-        &mut coinbase_inputs,
-        &mut ordinal_ranges_written,
-        &mut outputs_in_block,
-      )?;
+      if let Some(tx) = block.coinbase() {
+        self.index_transaction(
+          tx.txid(),
+          tx,
+          &mut ordinal_to_satpoint,
+          &mut ordinal_to_inscription_txid,
+          &mut txid_to_inscription,
+          &mut coinbase_inputs,
+          &mut ordinal_ranges_written,
+          &mut outputs_in_block,
+        )?;
+      }
     }
 
     height_to_block_hash.insert(&self.height, &block.block_hash().as_hash().into_inner())?;
@@ -334,58 +332,56 @@ impl Updater {
       }
     }
 
-    if self.index_ordinals {
-      for (vout, output) in tx.output.iter().enumerate() {
-        let outpoint = OutPoint {
-          vout: vout as u32,
-          txid,
-        };
-        let mut ordinals = Vec::new();
+    for (vout, output) in tx.output.iter().enumerate() {
+      let outpoint = OutPoint {
+        vout: vout as u32,
+        txid,
+      };
+      let mut ordinals = Vec::new();
 
-        let mut remaining = output.value;
-        while remaining > 0 {
-          let range = input_ordinal_ranges
-            .pop_front()
-            .ok_or_else(|| anyhow!("insufficient inputs for transaction outputs"))?;
+      let mut remaining = output.value;
+      while remaining > 0 {
+        let range = input_ordinal_ranges
+          .pop_front()
+          .ok_or_else(|| anyhow!("insufficient inputs for transaction outputs"))?;
 
-          if !Ordinal(range.0).is_common() {
-            ordinal_to_satpoint.insert(
-              &range.0,
-              &encode_satpoint(SatPoint {
-                outpoint,
-                offset: output.value - remaining,
-              }),
-            )?;
-          }
-
-          let count = range.1 - range.0;
-
-          let assigned = if count > remaining {
-            self.ordinal_ranges_since_flush += 1;
-            let middle = range.0 + remaining;
-            input_ordinal_ranges.push_front((middle, range.1));
-            (range.0, middle)
-          } else {
-            range
-          };
-
-          let base = assigned.0;
-          let delta = assigned.1 - assigned.0;
-
-          let n = base as u128 | (delta as u128) << 51;
-
-          ordinals.extend_from_slice(&n.to_le_bytes()[0..11]);
-
-          remaining -= assigned.1 - assigned.0;
-
-          *ordinal_ranges_written += 1;
+        if !Ordinal(range.0).is_common() {
+          ordinal_to_satpoint.insert(
+            &range.0,
+            &encode_satpoint(SatPoint {
+              outpoint,
+              offset: output.value - remaining,
+            }),
+          )?;
         }
 
-        *outputs_traversed += 1;
+        let count = range.1 - range.0;
 
-        self.cache.insert(encode_outpoint(outpoint), ordinals);
-        self.outputs_inserted_since_flush += 1;
+        let assigned = if count > remaining {
+          self.ordinal_ranges_since_flush += 1;
+          let middle = range.0 + remaining;
+          input_ordinal_ranges.push_front((middle, range.1));
+          (range.0, middle)
+        } else {
+          range
+        };
+
+        let base = assigned.0;
+        let delta = assigned.1 - assigned.0;
+
+        let n = base as u128 | (delta as u128) << 51;
+
+        ordinals.extend_from_slice(&n.to_le_bytes()[0..11]);
+
+        remaining -= assigned.1 - assigned.0;
+
+        *ordinal_ranges_written += 1;
       }
+
+      *outputs_traversed += 1;
+
+      self.cache.insert(encode_outpoint(outpoint), ordinals);
+      self.outputs_inserted_since_flush += 1;
     }
 
     Ok(())
