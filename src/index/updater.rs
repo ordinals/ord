@@ -8,7 +8,7 @@ pub struct Updater {
   outputs_cached: u64,
   outputs_inserted_since_flush: u64,
   outputs_traversed: u64,
-  index_ordinal_ranges: bool,
+  index_ordinals: bool,
 }
 
 impl Updater {
@@ -41,7 +41,7 @@ impl Updater {
       outputs_cached: 0,
       outputs_inserted_since_flush: 0,
       outputs_traversed: 0,
-      index_ordinal_ranges: false,
+      index_ordinals: index.index_ordinals,
     };
 
     updater.update_index(index, wtx)
@@ -234,7 +234,7 @@ impl Updater {
 
     let mut coinbase_inputs = VecDeque::new();
 
-    if self.index_ordinal_ranges {
+    if self.index_ordinals {
       let h = Height(self.height);
       if h.subsidy() > 0 {
         let start = h.starting_ordinal();
@@ -250,7 +250,7 @@ impl Updater {
 
       let mut input_ordinal_ranges = VecDeque::new();
 
-      if self.index_ordinal_ranges {
+      if self.index_ordinals {
         for input in &tx.input {
           let key = encode_outpoint(input.previous_output);
 
@@ -334,7 +334,7 @@ impl Updater {
       }
     }
 
-    if self.index_ordinal_ranges {
+    if self.index_ordinals {
       for (vout, output) in tx.output.iter().enumerate() {
         let outpoint = OutPoint {
           vout: vout as u32,

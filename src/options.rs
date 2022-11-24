@@ -22,8 +22,8 @@ pub(crate) struct Options {
   bitcoin_data_dir: Option<PathBuf>,
   #[clap(long, help = "Limit index to <HEIGHT_LIMIT> blocks.")]
   pub(crate) height_limit: Option<u64>,
-  #[clap(long, help = "")]
-  pub(crate) index_ordinal_ranges: bool,
+  #[clap(long, help = "Index ordinal ranges")]
+  pub(crate) index_ordinals: bool,
 }
 
 impl Options {

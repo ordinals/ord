@@ -55,7 +55,7 @@ pub(crate) struct Index {
   height_limit: Option<u64>,
   reorged: AtomicBool,
   rpc_url: String,
-  index_ordinal_ranges: bool,
+  index_ordinals: bool,
 }
 
 #[derive(Debug, PartialEq)]
@@ -201,7 +201,7 @@ impl Index {
       height_limit: options.height_limit,
       reorged: AtomicBool::new(false),
       rpc_url,
-      index_ordinal_ranges: false,
+      index_ordinals: options.index_ordinals,
     })
   }
 
@@ -341,7 +341,7 @@ impl Index {
   }
 
   pub(crate) fn rare_ordinal_satpoints(&self) -> Result<Vec<(Ordinal, SatPoint)>> {
-    if !self.index_ordinal_ranges {
+    if !self.index_ordinals {
       bail!("looking up rare ordinal statpoints requires the `--index-ordinal-ranges` flag");
     }
 
@@ -440,7 +440,7 @@ impl Index {
   }
 
   pub(crate) fn find(&self, ordinal: u64) -> Result<Option<SatPoint>> {
-    if !self.index_ordinal_ranges {
+    if !self.index_ordinals {
       bail!("find requires the `--index-ordinal-ranges` flag");
     }
 
@@ -482,7 +482,7 @@ impl Index {
   }
 
   pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<List>> {
-    if !self.index_ordinal_ranges {
+    if !self.index_ordinals {
       bail!("list requires the `--index-ordinal-ranges` flag");
     }
 
