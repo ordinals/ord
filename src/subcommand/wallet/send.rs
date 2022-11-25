@@ -1,4 +1,5 @@
 use super::*;
+use std::collections::BTreeMap;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
@@ -21,7 +22,7 @@ impl Send {
     let index = Index::open(&options)?;
     index.update()?;
 
-    let utxos = list_unspent(&options, &index)?.into_iter().collect();
+    let utxos = list_unspent(&options, &index)?.into_iter().collect::<BTreeMap<OutPoint, Vec<(u64, u64)>>>();
 
     let change = get_change_addresses(&options, 2)?;
 

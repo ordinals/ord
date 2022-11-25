@@ -114,23 +114,49 @@ impl TransactionBuilder {
     }
   }
 
-  fn select_ordinal(mut self) -> Result<Self> {
-    let (ordinal_outpoint, ranges) = self
-      .ranges
-      .iter()
-      .find(|(_outpoint, ranges)| {
-        ranges
-          .iter()
-          .any(|(start, end)| self.ordinal.0 < *end && self.ordinal.0 >= *start)
-      })
-      .map(|(outpoint, ranges)| (*outpoint, ranges.clone()))
-      .ok_or(Error::NotInWallet(self.ordinal))?;
+  fn get_satpoint(&self) -> Result<SatPoint> {
+    for (outpoint, ranges) in &self.ranges {
+      let mut offset = 0;
+      for (start, end) in ranges {
+        if self.ordinal.0 >= *start && self.ordinal.0 < *end {
+          return Ok(SatPoint {
+            outpoint: outpoint.clone(),
+            offset: offset + (self.ordinal.0 - start),
+          });
+        }
+        offset += end - start;
+      }
+    }
 
-    self.utxos.remove(&ordinal_outpoint);
-    self.inputs.push(ordinal_outpoint);
+    Err(Error::NotInWallet(self.ordinal))
+  }
+
+  fn select_ordinal(mut self) -> Result<Self> {
+    //    let (ordinal_outpoint, ranges) = self
+    //      .ranges
+    //      .iter()
+    //      .find(|(_outpoint, ranges)| {
+    //        ranges
+    //          .iter()
+    //          .any(|(start, end)| self.ordinal.0 < *end && self.ordinal.0 >= *start)
+    //      })
+    //      .map(|(outpoint, ranges)| (*outpoint, ranges.clone()))
+    //      .ok_or(Error::NotInWallet(self.ordinal))?;
+    let satpoint = self.get_satpoint()?;
+
+    self.utxos.remove(&satpoint.outpoint);
+    self.inputs.push(satpoint.outpoint);
     self.outputs.push((
       self.recipient.clone(),
-      Amount::from_sat(ranges.iter().map(|(start, end)| end - start).sum()),
+      Amount::from_sat(
+        self
+          .ranges
+          .get(&satpoint.outpoint)
+          .unwrap()
+          .iter()
+          .map(|(start, end)| end - start)
+          .sum(),
+      ),
     ));
 
     Ok(self)
