@@ -15,7 +15,7 @@ pub(crate) struct Options {
   data_dir: Option<PathBuf>,
   #[clap(long, help = "Limit index to <HEIGHT_LIMIT> blocks.")]
   pub(crate) height_limit: Option<u64>,
-  #[clap(long, help = "Index ordinal ranges")]
+  #[clap(long, help = "Index ordinal ranges.")]
   pub(crate) index_ordinals: bool,
   #[clap(long, help = "Connect to Bitcoin Core RPC at <RPC_URL>.")]
   rpc_url: Option<String>,

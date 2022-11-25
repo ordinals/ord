@@ -320,7 +320,10 @@ impl Server {
           ))
         })?,
       }
-      .page(chain),
+      .page(
+        chain,
+        index.has_ordinal_index().map_err(ServerError::Internal)?,
+      ),
     )
   }
 
@@ -329,11 +332,6 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(outpoint): Path<OutPoint>,
   ) -> ServerResult<PageHtml> {
-    let list = index
-      .list(outpoint)
-      .map_err(ServerError::Internal)?
-      .ok_or_else(|| ServerError::NotFound(format!("output {outpoint} unknown")))?;
-
     let output = index
       .transaction(outpoint.txid)
       .map_err(ServerError::Internal)?
@@ -346,16 +344,29 @@ impl Server {
     Ok(
       OutputHtml {
         outpoint,
-        list,
+        list: if index.has_ordinal_index().map_err(ServerError::Internal)? {
+          Some(
+            index
+              .list(outpoint)
+              .map_err(ServerError::Internal)?
+              .ok_or_else(|| ServerError::NotFound(format!("output {outpoint} unknown")))?,
+          )
+        } else {
+          None
+        },
         chain,
         output,
       }
-      .page(chain),
+      .page(
+        chain,
+        index.has_ordinal_index().map_err(ServerError::Internal)?,
+      ),
     )
   }
 
   async fn range(
     Extension(chain): Extension<Chain>,
+    Extension(index): Extension<Arc<Index>>,
     Path((DeserializeFromStr(start), DeserializeFromStr(end))): Path<(
       DeserializeFromStr<Ordinal>,
       DeserializeFromStr<Ordinal>,
@@ -366,7 +377,10 @@ impl Server {
       Ordering::Greater => Err(ServerError::BadRequest(
         "range start greater than range end".to_string(),
       )),
-      Ordering::Less => Ok(RangeHtml { start, end }.page(chain)),
+      Ordering::Less => Ok(RangeHtml { start, end }.page(
+        chain,
+        index.has_ordinal_index().map_err(ServerError::Internal)?,
+      )),
     }
   }
 
@@ -386,7 +400,10 @@ impl Server {
           .blocks(100)
           .map_err(|err| ServerError::Internal(anyhow!("error getting blocks: {err}")))?,
       )
-      .page(chain),
+      .page(
+        chain,
+        index.has_ordinal_index().map_err(ServerError::Internal)?,
+      ),
     )
   }
 
@@ -431,7 +448,12 @@ impl Server {
       }
     };
 
-    Ok(BlockHtml::new(block, Height(height), Self::index_height(&index)?).page(chain))
+    Ok(
+      BlockHtml::new(block, Height(height), Self::index_height(&index)?).page(
+        chain,
+        index.has_ordinal_index().map_err(ServerError::Internal)?,
+      ),
+    )
   }
 
   async fn transaction(
@@ -451,7 +473,10 @@ impl Server {
           .ok_or_else(|| ServerError::NotFound(format!("transaction {txid} unknown")))?,
         chain,
       )
-      .page(chain),
+      .page(
+        chain,
+        index.has_ordinal_index().map_err(ServerError::Internal)?,
+      ),
     )
   }
 
@@ -569,7 +594,10 @@ impl Server {
       .nth(path.2)
       .ok_or_else(not_found)?;
 
-    Ok(InputHtml { path, input }.page(chain))
+    Ok(InputHtml { path, input }.page(
+      chain,
+      index.has_ordinal_index().map_err(ServerError::Internal)?,
+    ))
   }
 
   async fn faq() -> Redirect {
@@ -597,7 +625,10 @@ impl Server {
           })?
           .ok_or_else(|| ServerError::NotFound(format!("transaction {txid} has no inscription")))?,
       }
-      .page(chain),
+      .page(
+        chain,
+        index.has_ordinal_index().map_err(ServerError::Internal)?,
+      ),
     )
   }
 }
@@ -1064,8 +1095,9 @@ mod tests {
       "Invalid URL: error parsing TXID",
     );
   }
+
   #[test]
-  fn output() {
+  fn output_with_ordinal_index() {
     TestServer::new_with_args(&["--index-ordinals"]).assert_response_regex(
     "/output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
     StatusCode::OK,
@@ -1078,6 +1110,24 @@ mod tests {
 <ul class=monospace>
   <li><a href=/range/0/5000000000 class=mythic>0–5000000000</a></li>
 </ul>.*",
+  );
+  }
+
+  #[test]
+  fn output_without_ordinal_index() {
+    TestServer::new().assert_response_regex(
+    "/output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
+    StatusCode::OK,
+    ".*<title>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</title>.*<h1>Output <span class=monospace>4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</span></h1>
+<dl>
+  <dt>value</dt><dd>5000000000</dd>
+  <dt>script pubkey</dt><dd class=data>OP_PUSHBYTES_65 04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f OP_CHECKSIG</dd>
+</dl>
+
+  </main>
+  </body>
+</html>
+",
   );
   }
 
@@ -1302,6 +1352,29 @@ next.*",
       "ordinal\tsatpoint
 0\t4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0
 ",
+    );
+  }
+
+  #[test]
+  fn show_rare_txt_in_header_with_ordinal_index() {
+    TestServer::new_with_args(&["--index-ordinals"]).assert_response_regex(
+      "/",
+      StatusCode::OK,
+      ".*
+      <a href=/clock>Clock</a>
+      <a href=/rare.txt>rare.txt</a>
+      <form action=/search method=get>.*",
+    );
+  }
+
+  #[test]
+  fn dont_show_rare_txt_in_header_without_ordinal_index() {
+    TestServer::new().assert_response_regex(
+      "/",
+      StatusCode::OK,
+      ".*
+      <a href=/clock>Clock</a>
+      <form action=/search method=get>.*",
     );
   }
 
