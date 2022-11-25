@@ -37,6 +37,7 @@ mod command_builder;
 mod epochs;
 mod expected;
 mod find;
+mod index;
 mod info;
 mod list;
 mod parse;

@@ -156,7 +156,11 @@ impl Index {
       bail!("failed to create data dir `{}`: {err}", data_dir.display());
     }
 
-    let database_path = data_dir.join("index.redb");
+    let database_path = if let Some(database_path) = &options.index {
+      database_path.clone()
+    } else {
+      data_dir.join("index.redb")
+    };
 
     let database = match unsafe { redb::Database::open(&database_path) } {
       Ok(database) => database,

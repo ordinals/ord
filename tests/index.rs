@@ -1,29 +1,17 @@
 use super::*;
 
 #[test]
-fn custom_index_size() {
+fn custom_index_path() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   rpc_server.mine_blocks(1);
 
-  let output = CommandBuilder::new("--max-index-size 1mib --index-ordinals find 0")
+  let tempdir = TempDir::new().unwrap();
+
+  let index_path = tempdir.path().join("foo.redb");
+
+  CommandBuilder::new(format!("--index {} index", index_path.display()))
     .rpc_server(&rpc_server)
-    .expected_stdout("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0\n")
     .run();
 
-  assert_eq!(
-    output
-      .tempdir
-      .path()
-      .join(if cfg!(target_os = "macos") {
-        "Library/Application Support/"
-      } else {
-        ".local/share"
-      })
-      .join("ord")
-      .join("index.redb")
-      .metadata()
-      .unwrap()
-      .len(),
-    1 << 20
-  );
+  assert!(index_path.is_file())
 }

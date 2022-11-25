@@ -1,7 +1,7 @@
 use super::*;
 
 #[test]
-fn initial() {
+fn json() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   CommandBuilder::new("--index-ordinals info")
     .rpc_server(&rpc_server)
@@ -9,4 +9,43 @@ fn initial() {
       r#"\{"blocks_indexed":1,"branch_pages":\d+,"fragmented_bytes":\d+,"index_file_size":\d+,"leaf_pages":\d+,"metadata_bytes":\d+,"ordinal_ranges":1,"outputs_traversed":1,"page_size":\d+,"stored_bytes":\d+,"transactions":\[\{"starting_block_count":0,"starting_timestamp":\d+\}\],"tree_height":\d+,"utxos_indexed":1\}"#
     )
     .run();
+}
+
+#[test]
+fn transactions() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  let tempdir = TempDir::new().unwrap();
+
+  let index_path = tempdir.path().join("index.redb");
+
+  CommandBuilder::new(format!(
+    "--index-ordinals --index {} info --transactions",
+    index_path.display()
+  ))
+  .rpc_server(&rpc_server)
+  .expected_stdout("start\tend\tcount\telapsed\n")
+  .run();
+
+  rpc_server.mine_blocks(10);
+
+  CommandBuilder::new(format!(
+    "--index-ordinals --index {} info --transactions",
+    index_path.display()
+  ))
+  .rpc_server(&rpc_server)
+  .stdout_regex("start\tend\tcount\telapsed\n0\t1\t1\t\\d+\\.\\d+\n")
+  .run();
+
+  rpc_server.mine_blocks(10);
+
+  CommandBuilder::new(format!(
+    "--index-ordinals --index {} info --transactions",
+    index_path.display()
+  ))
+  .rpc_server(&rpc_server)
+  .expected_stdout("start\tend\tcount\telapsed\n")
+  .stdout_regex("start\tend\tcount\telapsed\n0\t1\t1\t\\d+\\.\\d+\n")
+  .stdout_regex("start\tend\tcount\telapsed\n0\t1\t1\t\\d+\\.\\d+\n1\t11\t10\t\\d+\\.\\d+\n")
+  .run();
 }

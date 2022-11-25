@@ -95,6 +95,9 @@ download-log unit='ord' host='ordinals.com':
   ssh root@{{host}} 'mkdir -p tmp && journalctl -u {{unit}} > tmp/{{unit}}.log'
   rsync --progress --compress root@{{host}}:tmp/{{unit}}.log tmp/{{unit}}.log
 
+download-index unit='ord' host='ordinals.com':
+  rsync --progress --compress root@{{host}}:/var/lib/{{unit}}/index.redb tmp/{{unit}}.index.redb
+
 graph log:
   ./bin/graph $1
 
