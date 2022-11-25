@@ -1356,6 +1356,29 @@ next.*",
   }
 
   #[test]
+  fn show_rare_txt_in_header_with_ordinal_idnex() {
+    TestServer::new_with_args(&["--index-ordinals"]).assert_response_regex(
+      "/",
+      StatusCode::OK,
+      ".*
+      <a href=/clock>Clock</a>
+      <a href=/rare.txt>rare.txt</a>
+      <form action=/search method=get>.*",
+    );
+  }
+
+  #[test]
+  fn dont_show_rare_txt_in_header_without_ordinal_idnex() {
+    TestServer::new().assert_response_regex(
+      "/",
+      StatusCode::OK,
+      ".*
+      <a href=/clock>Clock</a>
+      <form action=/search method=get>.*",
+    );
+  }
+
+  #[test]
   fn input() {
     TestServer::new().assert_response_regex(
       "/input/0/0/0",
