@@ -18,7 +18,7 @@ pub(crate) enum Subcommand {
   Find(find::Find),
   Index,
   Info,
-  List(list::List),
+  ListRanges(list::List),
   Parse(parse::Parse),
   Range(range::Range),
   Server(server::Server),
@@ -35,7 +35,7 @@ impl Subcommand {
       Self::Find(find) => find.run(options),
       Self::Index => index::run(options),
       Self::Info => info::run(options),
-      Self::List(list) => list.run(options),
+      Self::ListRanges(list) => list.run(options),
       Self::Parse(parse) => parse.run(),
       Self::Range(range) => range.run(),
       Self::Server(server) => {

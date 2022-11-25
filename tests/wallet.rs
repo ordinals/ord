@@ -56,22 +56,6 @@ fn identify_from_tsv_file_not_found() {
 }
 
 #[test]
-fn list() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
-  let second_coinbase = rpc_server.mine_blocks(1)[0].txdata[0].txid();
-
-  CommandBuilder::new("--index-ordinals wallet list")
-    .rpc_server(&rpc_server)
-    .expected_stdout(format!(
-      "{}\t{}\t{}\tuncommon\tnvtcsezkbth\n",
-      OutPoint::new(second_coinbase, 0),
-      50 * COIN_VALUE,
-      50 * COIN_VALUE,
-    ))
-    .run();
-}
-
-#[test]
 fn send_works_on_signet() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Signet, "ord");
 
