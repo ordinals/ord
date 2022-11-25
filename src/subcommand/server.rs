@@ -854,6 +854,7 @@ mod tests {
   }
 
   #[test]
+  #[cfg(not(windows)]
   fn acme_cache_defaults_to_data_dir() {
     let arguments = Arguments::try_parse_from(["ord", "--data-dir", "foo", "server"]).unwrap();
     let acme_cache = Server::acme_cache(None, &arguments.options)

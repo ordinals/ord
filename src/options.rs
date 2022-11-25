@@ -165,6 +165,7 @@ mod tests {
   }
 
   #[test]
+  #[cfg(not(windows)]
   fn uses_network_defaults() {
     let arguments = Arguments::try_parse_from(["ord", "--chain=signet", "index"]).unwrap();
 
@@ -180,6 +181,7 @@ mod tests {
   }
 
   #[test]
+  #[cfg(not(windows)]
   fn mainnet_cookie_file_path() {
     let cookie_file = Arguments::try_parse_from(["ord", "index"])
       .unwrap()
@@ -197,6 +199,7 @@ mod tests {
   }
 
   #[test]
+  #[cfg(not(windows)]
   fn othernet_cookie_file_path() {
     let arguments = Arguments::try_parse_from(["ord", "--chain=signet", "index"]).unwrap();
 
@@ -215,6 +218,7 @@ mod tests {
   }
 
   #[test]
+  #[cfg(not(windows)]
   fn cookie_file_defaults_to_bitcoin_data_dir() {
     let arguments =
       Arguments::try_parse_from(["ord", "--bitcoin-data-dir=foo", "--chain=signet", "index"])
@@ -231,6 +235,7 @@ mod tests {
   }
 
   #[test]
+  #[cfg(not(windows)]
   fn mainnet_data_dir() {
     let data_dir = Arguments::try_parse_from(["ord", "index"])
       .unwrap()
@@ -243,6 +248,7 @@ mod tests {
   }
 
   #[test]
+  #[cfg(not(windows)]
   fn othernet_data_dir() {
     let data_dir = Arguments::try_parse_from(["ord", "--chain=signet", "index"])
       .unwrap()
@@ -255,6 +261,7 @@ mod tests {
   }
 
   #[test]
+  #[cfg(not(windows)]
   fn network_is_joined_with_data_dir() {
     let data_dir =
       Arguments::try_parse_from(["ord", "--chain=signet", "--data-dir", "foo", "index"])
@@ -268,6 +275,7 @@ mod tests {
   }
 
   #[test]
+  #[cfg(not(windows)]
   fn network_accepts_aliases() {
     fn check_network_alias(alias: &str, suffix: &str) {
       let data_dir = Arguments::try_parse_from(["ord", "--chain", alias, "index"])
