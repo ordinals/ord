@@ -71,7 +71,7 @@ impl Updater {
       Some(progress_bar)
     };
 
-    let rx = Self::fetch_blocks_from(index, self.height)?;
+    let rx = Self::fetch_blocks_from(index, self.height, self.index_ordinals)?;
 
     let mut uncommitted = 0;
     loop {
@@ -135,7 +135,11 @@ impl Updater {
     Ok(())
   }
 
-  fn fetch_blocks_from(index: &Index, mut height: u64) -> Result<mpsc::Receiver<Block>> {
+  fn fetch_blocks_from(
+    index: &Index,
+    mut height: u64,
+    index_ordinals: bool,
+  ) -> Result<mpsc::Receiver<Block>> {
     let (tx, rx) = mpsc::sync_channel(32);
 
     let height_limit = index.height_limit;
@@ -150,7 +154,7 @@ impl Updater {
         }
       }
 
-      match Self::get_block_with_retries(&client, height) {
+      match Self::get_block_with_retries(&client, height, index_ordinals) {
         Ok(Some(block)) => {
           if let Err(err) = tx.send(block) {
             log::info!("Block receiver disconnected: {err}");
@@ -169,14 +173,30 @@ impl Updater {
     Ok(rx)
   }
 
-  pub(crate) fn get_block_with_retries(client: &Client, height: u64) -> Result<Option<Block>> {
+  pub(crate) fn get_block_with_retries(
+    client: &Client,
+    height: u64,
+    transactions: bool,
+  ) -> Result<Option<Block>> {
     let mut errors = 0;
     loop {
       match client
         .get_block_hash(height)
         .into_option()
-        .and_then(|option| option.map(|hash| Ok(client.get_block(&hash)?)).transpose())
-      {
+        .and_then(|option| {
+          option
+            .map(|hash| {
+              if transactions {
+                Ok(client.get_block(&hash)?)
+              } else {
+                Ok(Block {
+                  header: client.get_block_header(&hash)?,
+                  txdata: Vec::new(),
+                })
+              }
+            })
+            .transpose()
+        }) {
         Err(err) => {
           if cfg!(test) {
             return Err(err);
