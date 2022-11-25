@@ -1356,7 +1356,7 @@ next.*",
   }
 
   #[test]
-  fn show_rare_txt_in_header_with_ordinal_idnex() {
+  fn show_rare_txt_in_header_with_ordinal_index() {
     TestServer::new_with_args(&["--index-ordinals"]).assert_response_regex(
       "/",
       StatusCode::OK,
@@ -1368,7 +1368,7 @@ next.*",
   }
 
   #[test]
-  fn dont_show_rare_txt_in_header_without_ordinal_idnex() {
+  fn dont_show_rare_txt_in_header_without_ordinal_index() {
     TestServer::new().assert_response_regex(
       "/",
       StatusCode::OK,
