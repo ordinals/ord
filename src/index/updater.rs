@@ -207,11 +207,6 @@ impl Updater {
     let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
     let mut ordinal_to_satpoint = wtx.open_table(ORDINAL_TO_SATPOINT)?;
     let mut ordinal_to_inscription_txid = wtx.open_table(ORDINAL_TO_INSCRIPTION_TXID)?;
-    let outpoint_to_ordinal_ranges = if self.index_ordinals {
-      Some(wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?)
-    } else {
-      None
-    };
     let mut txid_to_inscription = wtx.open_table(TXID_TO_INSCRIPTION)?;
 
     let start = Instant::now();
@@ -236,7 +231,9 @@ impl Updater {
       }
     }
 
-    if let Some(mut outpoint_to_ordinal_ranges) = outpoint_to_ordinal_ranges {
+    if self.index_ordinals {
+      let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
+
       let mut coinbase_inputs = VecDeque::new();
 
       let h = Height(self.height);
