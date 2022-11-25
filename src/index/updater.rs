@@ -37,7 +37,7 @@ impl Updater {
       cache: HashMap::new(),
       chain: index.chain,
       height,
-      index_ordinals: index.index_ordinals,
+      index_ordinals: index.has_ordinal_index()?,
       ordinal_ranges_since_flush: 0,
       outputs_cached: 0,
       outputs_inserted_since_flush: 0,
@@ -207,7 +207,6 @@ impl Updater {
     let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
     let mut ordinal_to_satpoint = wtx.open_table(ORDINAL_TO_SATPOINT)?;
     let mut ordinal_to_inscription_txid = wtx.open_table(ORDINAL_TO_INSCRIPTION_TXID)?;
-    let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
     let mut txid_to_inscription = wtx.open_table(TXID_TO_INSCRIPTION)?;
 
     let start = Instant::now();
@@ -233,6 +232,8 @@ impl Updater {
     }
 
     if self.index_ordinals {
+      let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
+
       let mut coinbase_inputs = VecDeque::new();
 
       let h = Height(self.height);
@@ -396,7 +397,7 @@ impl Updater {
       self.outputs_cached
     );
 
-    {
+    if self.index_ordinals {
       log::info!(
         "Flushing {} entries ({:.1}% resulting from {} insertions) from memory to database",
         self.cache.len(),

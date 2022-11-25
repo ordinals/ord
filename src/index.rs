@@ -53,7 +53,6 @@ pub(crate) struct Index {
   genesis_block_coinbase_transaction: Transaction,
   genesis_block_coinbase_txid: Txid,
   height_limit: Option<u64>,
-  index_ordinals: bool,
   reorged: AtomicBool,
   rpc_url: String,
 }
@@ -161,36 +160,42 @@ impl Index {
 
     let database = match unsafe { redb::Database::open(&database_path) } {
       Ok(database) => database,
-      Err(redb::Error::Io(error)) if error.kind() == io::ErrorKind::NotFound => unsafe {
-        Database::builder()
-          .set_write_strategy(if cfg!(test) {
-            WriteStrategy::Checksum
-          } else {
-            WriteStrategy::TwoPhase
-          })
-          .create(&database_path)?
-      },
+      Err(redb::Error::Io(error)) if error.kind() == io::ErrorKind::NotFound => {
+        let database = unsafe {
+          Database::builder()
+            .set_write_strategy(if cfg!(test) {
+              WriteStrategy::Checksum
+            } else {
+              WriteStrategy::TwoPhase
+            })
+            .create(&database_path)?
+        };
+        let tx = database.begin_write()?;
+
+        #[cfg(test)]
+        let tx = {
+          let mut tx = tx;
+          tx.set_durability(redb::Durability::None);
+          tx
+        };
+
+        tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
+        tx.open_table(ORDINAL_TO_INSCRIPTION_TXID)?;
+        tx.open_table(ORDINAL_TO_SATPOINT)?;
+        tx.open_table(STATISTIC_TO_COUNT)?;
+        tx.open_table(TXID_TO_INSCRIPTION)?;
+        tx.open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?;
+
+        if options.index_ordinals {
+          tx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
+        }
+
+        tx.commit()?;
+
+        database
+      }
       Err(error) => return Err(error.into()),
     };
-
-    let tx = database.begin_write()?;
-
-    #[cfg(test)]
-    let tx = {
-      let mut tx = tx;
-      tx.set_durability(redb::Durability::None);
-      tx
-    };
-
-    tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
-    tx.open_table(ORDINAL_TO_INSCRIPTION_TXID)?;
-    tx.open_table(ORDINAL_TO_SATPOINT)?;
-    tx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
-    tx.open_table(STATISTIC_TO_COUNT)?;
-    tx.open_table(TXID_TO_INSCRIPTION)?;
-    tx.open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?;
-
-    tx.commit()?;
 
     let genesis_block_coinbase_transaction =
       options.chain.genesis_block().coinbase().unwrap().clone();
@@ -204,14 +209,21 @@ impl Index {
       database_path,
       genesis_block_coinbase_transaction,
       height_limit: options.height_limit,
-      index_ordinals: options.index_ordinals,
       reorged: AtomicBool::new(false),
       rpc_url,
     })
   }
 
+  pub(crate) fn has_ordinal_index(&self) -> Result<bool> {
+    match self.begin_read()?.0.open_table(OUTPOINT_TO_ORDINAL_RANGES) {
+      Ok(_) => Ok(true),
+      Err(redb::Error::TableDoesNotExist(_)) => Ok(false),
+      Err(err) => Err(err.into()),
+    }
+  }
+
   fn require_ordinal_index(&self, feature: &str) -> Result {
-    if !self.index_ordinals {
+    if !self.has_ordinal_index()? {
       bail!("{feature} requires `--index-ordinals` flag")
     }
 
