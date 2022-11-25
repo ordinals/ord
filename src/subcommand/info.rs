@@ -13,7 +13,7 @@ impl Info {
     let info = index.info()?;
 
     if self.transactions {
-      println!("start\tend\tblocks\telapsed");
+      println!("start\tend\tcount\telapsed");
 
       for window in info.transactions.windows(2) {
         let start = &window[0];

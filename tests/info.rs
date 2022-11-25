@@ -24,7 +24,7 @@ fn transactions() {
     index_path.display()
   ))
   .rpc_server(&rpc_server)
-  .expected_stdout("start\tend\tblocks\telapsed\n")
+  .expected_stdout("start\tend\tcount\telapsed\n")
   .run();
 
   rpc_server.mine_blocks(10);
@@ -34,7 +34,7 @@ fn transactions() {
     index_path.display()
   ))
   .rpc_server(&rpc_server)
-  .stdout_regex("start\tend\tblocks\telapsed\n0\t1\t1\t\\d+\\.\\d+\n")
+  .stdout_regex("start\tend\tcount\telapsed\n0\t1\t1\t\\d+\\.\\d+\n")
   .run();
 
   rpc_server.mine_blocks(10);
@@ -44,8 +44,8 @@ fn transactions() {
     index_path.display()
   ))
   .rpc_server(&rpc_server)
-  .expected_stdout("start\tend\tblocks\telapsed\n")
-  .stdout_regex("start\tend\tblocks\telapsed\n0\t1\t1\t\\d+\\.\\d+\n")
-  .stdout_regex("start\tend\tblocks\telapsed\n0\t1\t1\t\\d+\\.\\d+\n1\t11\t10\t\\d+\\.\\d+\n")
+  .expected_stdout("start\tend\tcount\telapsed\n")
+  .stdout_regex("start\tend\tcount\telapsed\n0\t1\t1\t\\d+\\.\\d+\n")
+  .stdout_regex("start\tend\tcount\telapsed\n0\t1\t1\t\\d+\\.\\d+\n1\t11\t10\t\\d+\\.\\d+\n")
   .run();
 }
