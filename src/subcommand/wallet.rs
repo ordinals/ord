@@ -2,7 +2,6 @@ use {super::*, transaction_builder::TransactionBuilder};
 
 mod identify;
 mod inscribe;
-mod list;
 mod send;
 mod transaction_builder;
 
