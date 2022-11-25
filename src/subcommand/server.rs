@@ -341,7 +341,7 @@ impl Server {
     Ok(
       OutputHtml {
         outpoint,
-        list: if index.has_ordinal_index() {
+        list: if index.has_ordinal_index().map_err(ServerError::Internal)? {
           Some(
             index
               .list(outpoint)
