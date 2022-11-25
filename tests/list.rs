@@ -1,6 +1,7 @@
 use super::*;
 
 #[test]
+#[cfg(not(windows))]
 fn output_found() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   CommandBuilder::new(

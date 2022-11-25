@@ -1,6 +1,7 @@
 use super::*;
 
 #[test]
+#[cfg(not(windows))]
 fn initial() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   CommandBuilder::new("--index-ordinals info")

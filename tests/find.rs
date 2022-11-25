@@ -10,6 +10,7 @@ fn find_command_returns_satpoint_for_ordinal() {
 }
 
 #[test]
+#[cfg(not(windows))]
 fn unmined_ordinal() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   CommandBuilder::new("--index-ordinals find 5000000000")
