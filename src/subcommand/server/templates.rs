@@ -74,6 +74,56 @@ mod tests {
     }
 
     assert_regex_match!(
+      Foo.page(Chain::Mainnet, true).to_string(),
+      "<!doctype html>
+<html lang=en>
+  <head>
+    <meta charset=utf-8>
+    <meta name=format-detection content='telephone=no'>
+    <meta name=viewport content='width=device-width,initial-scale=1.0'>
+    <title>Foo</title>
+    <link href=/static/index.css rel=stylesheet>
+    <link href=/static/modern-normalize.css rel=stylesheet>
+  </head>
+  <body>
+  <header>
+    <nav>
+      <a href=/>Ordinals</a>
+      .*
+      <a href=/clock>Clock</a>
+      <a href=/rare.txt>rare.txt</a>
+      <form action=/search method=get>
+        <input type=text .*>
+        <input type=submit value=Search>
+      </form>
+    </nav>
+  </header>
+  <main>
+<h1>Foo</h1>
+  </main>
+  </body>
+</html>
+"
+    );
+  }
+
+  #[test]
+  fn page_no_ordinal_index() {
+    struct Foo;
+
+    impl Display for Foo {
+      fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "<h1>Foo</h1>")
+      }
+    }
+
+    impl Content for Foo {
+      fn title(&self) -> String {
+        "Foo".to_string()
+      }
+    }
+
+    assert_regex_match!(
       Foo.page(Chain::Mainnet, false).to_string(),
       "<!doctype html>
 <html lang=en>
@@ -90,6 +140,7 @@ mod tests {
     <nav>
       <a href=/>Ordinals</a>
       .*
+      <a href=/clock>Clock</a>
       <form action=/search method=get>
         <input type=text .*>
         <input type=submit value=Search>
@@ -122,7 +173,7 @@ mod tests {
     }
 
     assert_regex_match!(
-      Foo.page(Chain::Signet, false).to_string(),
+      Foo.page(Chain::Signet, true).to_string(),
       "<!doctype html>
 <html lang=en>
   <head>
@@ -138,6 +189,8 @@ mod tests {
     <nav>
       <a href=/>Ordinals<sup>signet</sup></a>
       .*
+      <a href=/clock>Clock</a>
+      <a href=/rare.txt>rare.txt</a>
       <form action=/search method=get>
         <input type=text .*>
         <input type=submit value=Search>
