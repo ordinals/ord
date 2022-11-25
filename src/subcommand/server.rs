@@ -854,14 +854,17 @@ mod tests {
   }
 
   #[test]
-  #[cfg(not(windows))]
   fn acme_cache_defaults_to_data_dir() {
     let arguments = Arguments::try_parse_from(["ord", "--data-dir", "foo", "server"]).unwrap();
     let acme_cache = Server::acme_cache(None, &arguments.options)
       .unwrap()
       .display()
       .to_string();
-    assert!(acme_cache.contains("foo/acme-cache"), "{acme_cache}")
+    if cfg!(windows) {
+      assert!(acme_cache.contains("foo\\acme-cache"), "{acme_cache}")
+    } else {
+      assert!(acme_cache.contains("foo/acme-cache"), "{acme_cache}")
+    }
   }
 
   #[test]
