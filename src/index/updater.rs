@@ -73,8 +73,8 @@ impl Updater {
 
     let rx = Self::fetch_blocks_from(index, self.height)?;
 
-    let mut uncomitted = 0;
-    for i in 0.. {
+    let mut uncommitted = 0;
+    loop {
       let block = match rx.recv() {
         Ok(block) => block,
         Err(mpsc::RecvError) => break,
@@ -90,11 +90,11 @@ impl Updater {
         }
       }
 
-      uncomitted += 1;
+      uncommitted += 1;
 
-      if i % 5000 == 0 {
+      if uncommitted == 5000 {
         self.commit(wtx)?;
-        uncomitted = 0;
+        uncommitted = 0;
         wtx = index.begin_write()?;
         let height = wtx
           .open_table(HEIGHT_TO_BLOCK_HASH)?
@@ -124,7 +124,7 @@ impl Updater {
       }
     }
 
-    if uncomitted > 0 {
+    if uncommitted > 0 {
       self.commit(wtx)?;
     }
 
