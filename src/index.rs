@@ -182,6 +182,9 @@ impl Index {
       tx
     };
 
+    // TODO:
+    // - don't create table
+
     tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
     tx.open_table(ORDINAL_TO_INSCRIPTION_TXID)?;
     tx.open_table(ORDINAL_TO_SATPOINT)?;
@@ -208,6 +211,10 @@ impl Index {
       reorged: AtomicBool::new(false),
       rpc_url,
     })
+  }
+
+  pub(crate) fn has_ordinal_index(&self) -> bool {
+    self.index_ordinals
   }
 
   fn require_ordinal_index(&self, feature: &str) -> Result {

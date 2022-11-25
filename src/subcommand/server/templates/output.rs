@@ -3,7 +3,7 @@ use super::*;
 #[derive(Boilerplate)]
 pub(crate) struct OutputHtml {
   pub(crate) outpoint: OutPoint,
-  pub(crate) list: List,
+  pub(crate) list: Option<List>,
   pub(crate) chain: Chain,
   pub(crate) output: TxOut,
 }
@@ -28,7 +28,7 @@ mod tests {
         outpoint: "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0"
           .parse()
           .unwrap(),
-        list: List::Unspent(vec![(0, 1), (1, 3)]),
+        list: Some(List::Unspent(vec![(0, 1), (1, 3)])),
         chain: Chain::Mainnet,
         output: TxOut {
           value: 3,
@@ -60,7 +60,7 @@ mod tests {
         outpoint: "0000000000000000000000000000000000000000000000000000000000000000:0"
           .parse()
           .unwrap(),
-        list: List::Spent,
+        list: Some(List::Spent),
         chain: Chain::Mainnet,
         output: TxOut {
           value: 1,
@@ -75,6 +75,33 @@ mod tests {
           <dt>script pubkey</dt><dd class=data>OP_0</dd>
         </dl>
         <p>Output has been spent.</p>
+      "
+      .unindent()
+    );
+  }
+
+  #[test]
+  fn no_list() {
+    pretty_assert_eq!(
+      OutputHtml {
+        outpoint: "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0"
+          .parse()
+          .unwrap(),
+        list: None,
+        chain: Chain::Mainnet,
+        output: TxOut {
+          value: 3,
+          script_pubkey: Script::new_p2pkh(&PubkeyHash::all_zeros()),
+        },
+      }
+      .to_string(),
+      "
+        <h1>Output <span class=monospace>4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</span></h1>
+        <dl>
+          <dt>value</dt><dd>3</dd>
+          <dt>script pubkey</dt><dd class=data>OP_DUP OP_HASH160 OP_PUSHBYTES_20 0000000000000000000000000000000000000000 OP_EQUALVERIFY OP_CHECKSIG</dd>
+          <dt>address</dt><dd class=monospace>1111111111111111111114oLvT2</dd>
+        </dl>
       "
       .unindent()
     );
