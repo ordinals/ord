@@ -15,7 +15,12 @@ impl List {
     match index.list(self.outpoint)? {
       Some(crate::index::List::Unspent(ranges)) => {
         for (start, end) in ranges {
-          println!("[{start},{end})");
+          let size = end - start;
+          let output = self.outpoint;
+          let rarity = Ordinal(start).rarity();
+          let name = Ordinal(start).name();
+
+          println!("{output}\t{start}\t{size}\t{rarity}\t{name}");
         }
         Ok(())
       }
