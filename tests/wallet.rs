@@ -16,6 +16,7 @@ fn identify() {
 }
 
 #[test]
+#[cfg(not(windows))]
 fn identify_from_tsv_success() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   let second_coinbase = rpc_server.mine_blocks(1)[0].txdata[0].txid();
@@ -31,6 +32,7 @@ fn identify_from_tsv_success() {
 }
 
 #[test]
+#[cfg(not(windows))]
 fn identify_from_tsv_parse_error() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   CommandBuilder::new("wallet identify --ordinals foo.tsv")
@@ -44,6 +46,7 @@ fn identify_from_tsv_parse_error() {
 }
 
 #[test]
+#[cfg(not(windows))]
 fn identify_from_tsv_file_not_found() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   CommandBuilder::new("wallet identify --ordinals foo.tsv")
@@ -117,6 +120,7 @@ fn send_addresses_must_be_valid_for_network() {
 }
 
 #[test]
+#[cfg(not(windows))]
 fn send_on_mainnnet_works_with_wallet_named_ord() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "ord");
   rpc_server.mine_blocks_with_subsidy(1, 1_000_000);
@@ -133,6 +137,7 @@ fn send_on_mainnnet_works_with_wallet_named_ord() {
 }
 
 #[test]
+#[cfg(not(windows))]
 fn send_on_mainnnet_works_with_wallet_whose_name_starts_with_ord() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "ord-foo");
   rpc_server.mine_blocks_with_subsidy(1, 1_000_000);

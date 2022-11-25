@@ -889,6 +889,7 @@ mod tests {
   }
 
   #[test]
+  #[cfg(not(windows))]
   fn find_unmined_ordinal() {
     let context = Context::with_args("--index-ordinals");
     assert_eq!(context.index.find(50 * COIN_VALUE).unwrap(), None);
