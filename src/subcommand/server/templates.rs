@@ -23,14 +23,20 @@ mod transaction;
 
 #[derive(Boilerplate)]
 pub(crate) struct PageHtml {
-  content: Box<dyn Content>,
   chain: Chain,
+  content: Box<dyn Content>,
+  has_ordinal_index: bool,
 }
 
 impl PageHtml {
-  pub(crate) fn new<T: Content + 'static>(content: T, chain: Chain) -> Self {
+  pub(crate) fn new<T: Content + 'static>(
+    content: T,
+    chain: Chain,
+    has_ordinal_index: bool,
+  ) -> Self {
     Self {
       content: Box::new(content),
+      has_ordinal_index,
       chain,
     }
   }
@@ -39,11 +45,11 @@ impl PageHtml {
 pub(crate) trait Content: Display + 'static {
   fn title(&self) -> String;
 
-  fn page(self, chain: Chain) -> PageHtml
+  fn page(self, chain: Chain, has_ordinal_index: bool) -> PageHtml
   where
     Self: Sized,
   {
-    PageHtml::new(self, chain)
+    PageHtml::new(self, chain, has_ordinal_index)
   }
 }
 
@@ -68,7 +74,7 @@ mod tests {
     }
 
     assert_regex_match!(
-      Foo.page(Chain::Mainnet).to_string(),
+      Foo.page(Chain::Mainnet, false).to_string(),
       "<!doctype html>
 <html lang=en>
   <head>
@@ -116,7 +122,7 @@ mod tests {
     }
 
     assert_regex_match!(
-      Foo.page(Chain::Signet).to_string(),
+      Foo.page(Chain::Signet, false).to_string(),
       "<!doctype html>
 <html lang=en>
   <head>

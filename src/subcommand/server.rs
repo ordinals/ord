@@ -320,7 +320,10 @@ impl Server {
           ))
         })?,
       }
-      .page(chain),
+      .page(
+        chain,
+        index.has_ordinal_index().map_err(ServerError::Internal)?,
+      ),
     )
   }
 
@@ -354,12 +357,16 @@ impl Server {
         chain,
         output,
       }
-      .page(chain),
+      .page(
+        chain,
+        index.has_ordinal_index().map_err(ServerError::Internal)?,
+      ),
     )
   }
 
   async fn range(
     Extension(chain): Extension<Chain>,
+    Extension(index): Extension<Arc<Index>>,
     Path((DeserializeFromStr(start), DeserializeFromStr(end))): Path<(
       DeserializeFromStr<Ordinal>,
       DeserializeFromStr<Ordinal>,
@@ -370,7 +377,10 @@ impl Server {
       Ordering::Greater => Err(ServerError::BadRequest(
         "range start greater than range end".to_string(),
       )),
-      Ordering::Less => Ok(RangeHtml { start, end }.page(chain)),
+      Ordering::Less => Ok(RangeHtml { start, end }.page(
+        chain,
+        index.has_ordinal_index().map_err(ServerError::Internal)?,
+      )),
     }
   }
 
@@ -390,7 +400,10 @@ impl Server {
           .blocks(100)
           .map_err(|err| ServerError::Internal(anyhow!("error getting blocks: {err}")))?,
       )
-      .page(chain),
+      .page(
+        chain,
+        index.has_ordinal_index().map_err(ServerError::Internal)?,
+      ),
     )
   }
 
@@ -435,7 +448,12 @@ impl Server {
       }
     };
 
-    Ok(BlockHtml::new(block, Height(height), Self::index_height(&index)?).page(chain))
+    Ok(
+      BlockHtml::new(block, Height(height), Self::index_height(&index)?).page(
+        chain,
+        index.has_ordinal_index().map_err(ServerError::Internal)?,
+      ),
+    )
   }
 
   async fn transaction(
@@ -455,7 +473,10 @@ impl Server {
           .ok_or_else(|| ServerError::NotFound(format!("transaction {txid} unknown")))?,
         chain,
       )
-      .page(chain),
+      .page(
+        chain,
+        index.has_ordinal_index().map_err(ServerError::Internal)?,
+      ),
     )
   }
 
@@ -573,7 +594,10 @@ impl Server {
       .nth(path.2)
       .ok_or_else(not_found)?;
 
-    Ok(InputHtml { path, input }.page(chain))
+    Ok(InputHtml { path, input }.page(
+      chain,
+      index.has_ordinal_index().map_err(ServerError::Internal)?,
+    ))
   }
 
   async fn faq() -> Redirect {
@@ -601,7 +625,10 @@ impl Server {
           })?
           .ok_or_else(|| ServerError::NotFound(format!("transaction {txid} has no inscription")))?,
       }
-      .page(chain),
+      .page(
+        chain,
+        index.has_ordinal_index().map_err(ServerError::Internal)?,
+      ),
     )
   }
 }
