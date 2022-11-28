@@ -75,10 +75,10 @@ fn send_works_on_signet() {
 #[test]
 fn send_on_mainnnet_refuses_to_work_with_wallet_name_foo() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "foo");
-  rpc_server.mine_blocks(1);
+  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   CommandBuilder::new(
-    "--index-ordinals wallet send 5000000000 bc1qzjeg3h996kw24zrg69nge97fw8jc4v7v7yznftzk06j3429t52vse9tkp9",
+    format!("--index-ordinals wallet send {txid}:0:0 bc1qzjeg3h996kw24zrg69nge97fw8jc4v7v7yznftzk06j3429t52vse9tkp9"),
   )
   .rpc_server(&rpc_server)
   .expected_stderr("error: `ord wallet send` may only be used on mainnet with a wallet named `ord` or whose name starts with `ord-`\n")
@@ -89,15 +89,17 @@ fn send_on_mainnnet_refuses_to_work_with_wallet_name_foo() {
 #[test]
 fn send_addresses_must_be_valid_for_network() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "ord");
-  rpc_server.mine_blocks_with_subsidy(1, 1_000_000);
+  let txid = rpc_server.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0].txid();
 
-  CommandBuilder::new("wallet send 5000000000 tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw")
-    .rpc_server(&rpc_server)
-    .expected_stderr(
-      "error: Address `tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw` is not valid for mainnet\n",
-    )
-    .expected_exit_code(1)
-    .run();
+  CommandBuilder::new(format!(
+    "wallet send {txid}:0:0 tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw"
+  ))
+  .rpc_server(&rpc_server)
+  .expected_stderr(
+    "error: Address `tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw` is not valid for mainnet\n",
+  )
+  .expected_exit_code(1)
+  .run();
 }
 
 #[test]
