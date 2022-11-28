@@ -1,9 +1,8 @@
 use super::*;
-use std::collections::BTreeMap;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
-  ordinal: Ordinal,
+  satpoint: SatPoint,
   address: Address,
 }
 
@@ -19,20 +18,12 @@ impl Send {
       );
     }
 
-    let index = Index::open(&options)?;
-    index.update()?;
-
-    let utxos = list_unspent(&options, &index)?
-      .into_iter()
-      .collect::<BTreeMap<OutPoint, Vec<(u64, u64)>>>();
-    // let utxos = list_utxos(&options)?;
-
-    let satpoint = ordinal_to_satpoint(self.ordinal, utxos.clone()).unwrap();
+    let utxos = list_utxos(&options)?;
 
     let change = get_change_addresses(&options, 2)?;
 
     let unsigned_transaction =
-      TransactionBuilder::build_transaction(utxos, self.ordinal, satpoint, self.address, change)?;
+      TransactionBuilder::build_transaction(self.satpoint, utxos, self.address, change)?;
 
     let signed_tx = client
       .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?

@@ -66,9 +66,7 @@ pub(crate) struct TransactionBuilder {
   change_addresses: BTreeSet<Address>,
   unused_change_addresses: Vec<Address>,
   inputs: Vec<OutPoint>,
-  ordinal: Ordinal,
   outputs: Vec<(Address, Amount)>,
-  ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
   amounts: BTreeMap<OutPoint, Amount>,
   recipient: Address,
   satpoint: SatPoint,
@@ -83,13 +81,12 @@ impl TransactionBuilder {
   const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
 
   pub(crate) fn build_transaction(
-    ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
-    ordinal: Ordinal,
     satpoint: SatPoint,
+    amounts: BTreeMap<OutPoint, Amount>,
     recipient: Address,
     change: Vec<Address>,
   ) -> Result<Transaction> {
-    Self::new(ranges, ordinal, satpoint, recipient, change)
+    Self::new(satpoint, amounts, recipient, change)
       .select_ordinal()?
       .align_ordinal()
       .pad_alignment_output()?
@@ -100,28 +97,17 @@ impl TransactionBuilder {
   }
 
   fn new(
-    ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
-    ordinal: Ordinal,
     satpoint: SatPoint,
+    amounts: BTreeMap<OutPoint, Amount>,
     recipient: Address,
     change: Vec<Address>,
   ) -> Self {
     Self {
       change_addresses: change.iter().cloned().collect(),
-      utxos: ranges.keys().cloned().collect(),
+      utxos: amounts.keys().cloned().collect(),
       inputs: Vec::new(),
-      ordinal,
       outputs: Vec::new(),
-      amounts: ranges
-        .iter()
-        .map(|(outpoint, ranges)| {
-          (
-            *outpoint,
-            Amount::from_sat(ranges.iter().map(|(start, end)| end - start).sum()),
-          )
-        })
-        .collect(),
-      ranges,
+      amounts,
       recipient,
       satpoint,
       unused_change_addresses: change,
@@ -317,8 +303,7 @@ impl TransactionBuilder {
       self
         .amounts
         .iter()
-        .filter(|(outpoint, amount)| *outpoint == &self.satpoint.outpoint
-          && self.satpoint.offset < amount.to_sat())
+        .filter(|(outpoint, amount)| *outpoint == &self.satpoint.outpoint && self.satpoint.offset < amount.to_sat())
         .count(),
       1,
       "invariant: satpoint is contained in utxos"
@@ -411,12 +396,7 @@ impl TransactionBuilder {
 
     let mut fee = Amount::ZERO;
     for input in &transaction.input {
-      fee += Amount::from_sat(
-        self.ranges[&input.previous_output]
-          .iter()
-          .map(|(start, end)| end - start)
-          .sum::<u64>(),
-      );
+      fee += self.amounts[&input.previous_output];
     }
     for output in &transaction.output {
       fee -= Amount::from_sat(output.value);
@@ -439,18 +419,6 @@ impl TransactionBuilder {
     }
 
     let mut offset = 0;
-    let mut rare_ordinals = Vec::<(Ordinal, u64)>::new();
-    for input in &transaction.input {
-      for (start, end) in &self.ranges[&input.previous_output] {
-        if Ordinal(*start).rarity() > Rarity::Common {
-          rare_ordinals.push((Ordinal(*start), offset));
-        }
-        offset += end - start;
-      }
-    }
-    let total_input_amount = offset;
-
-    let mut offset = 0;
     let mut recipient_range = (0, 0);
     for output in &transaction.output {
       if output.script_pubkey == self.recipient.script_pubkey() {
@@ -458,16 +426,6 @@ impl TransactionBuilder {
         break;
       }
       offset += output.value;
-    }
-
-    for (rare_ordinal, offset) in &rare_ordinals {
-      if rare_ordinal != &self.ordinal {
-        if offset >= &recipient_range.0 && offset < &recipient_range.1 {
-          return Err(Error::RareOrdinalLostToRecipient(*rare_ordinal));
-        } else if offset >= &(total_input_amount - fee.to_sat()) {
-          return Err(Error::RareOrdinalLostToFee(*rare_ordinal));
-        }
-      }
     }
 
     Ok(transaction)
@@ -490,17 +448,7 @@ impl TransactionBuilder {
     let mut found = None;
 
     for utxo in &self.utxos {
-      if self.ranges[utxo]
-        .iter()
-        .any(|(start, _end)| Ordinal(*start).rarity() > Rarity::Common)
-      {
-        continue;
-      }
-
-      let amount = self.ranges[utxo]
-        .iter()
-        .map(|(start, end)| Amount::from_sat(end - start))
-        .sum::<Amount>();
+      let amount = self.amounts[utxo];
 
       if amount >= minimum_amount {
         found = Some((*utxo, amount));
@@ -530,15 +478,14 @@ mod tests {
   #[test]
   fn select_ordinal() {
     let mut utxos = vec![
-      (outpoint(1), vec![(10_000, 15_000)]),
-      (outpoint(2), vec![(51 * COIN_VALUE, 100 * COIN_VALUE)]),
-      (outpoint(3), vec![(6_000, 8_000)]),
+      (outpoint(1), Amount::from_sat(5_000)),
+      (outpoint(2), Amount::from_sat(49 * COIN_VALUE)),
+      (outpoint(3), Amount::from_sat(2_000)),
     ];
 
     let tx_builder = TransactionBuilder::new(
-      utxos.clone().into_iter().collect(),
-      Ordinal(51 * COIN_VALUE),
       satpoint(2, 0),
+      utxos.clone().into_iter().collect(),
       recipient(),
       vec![change(0), change(1)],
     )
@@ -562,21 +509,14 @@ mod tests {
 
   #[test]
   fn tx_builder_to_transaction() {
-    let mut ranges = BTreeMap::new();
-    ranges.insert(outpoint(1), vec![(0, 5_000)]);
-    ranges.insert(outpoint(2), vec![(10_000, 15_000)]);
-    ranges.insert(outpoint(3), vec![(6_000, 8_000)]);
-
     let mut amounts = BTreeMap::new();
     amounts.insert(outpoint(1), Amount::from_sat(5_000));
     amounts.insert(outpoint(2), Amount::from_sat(5_000));
     amounts.insert(outpoint(3), Amount::from_sat(2_000));
 
     let tx_builder = TransactionBuilder {
-      ranges,
       amounts,
       utxos: BTreeSet::new(),
-      ordinal: Ordinal(0),
       satpoint: satpoint(1, 0),
       recipient: recipient(),
       unused_change_addresses: vec![change(0), change(1)],
@@ -606,13 +546,12 @@ mod tests {
 
   #[test]
   fn deduct_fee() {
-    let utxos = vec![(outpoint(1), vec![(10_000, 15_000)])];
+    let utxos = vec![(outpoint(1), Amount::from_sat(5_000))];
 
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
-        utxos.into_iter().collect(),
-        Ordinal(10_000),
         satpoint(1, 0),
+        utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1)],
       ),
@@ -628,12 +567,11 @@ mod tests {
   #[test]
   #[should_panic(expected = "invariant: deducting fee does not consume ordinal")]
   fn invariant_deduct_fee_does_not_consume_ordinal() {
-    let utxos = vec![(outpoint(1), vec![(10_000, 15_000)])];
+    let utxos = vec![(outpoint(1), Amount::from_sat(5_000))];
 
     TransactionBuilder::new(
-      utxos.into_iter().collect(),
-      Ordinal(14_950),
       satpoint(1, 4_950),
+      utxos.into_iter().collect(),
       recipient(),
       vec![change(0), change(1)],
     )
@@ -647,15 +585,14 @@ mod tests {
   #[test]
   fn additional_postage_added_when_required() {
     let utxos = vec![
-      (outpoint(1), vec![(10_000, 15_000)]),
-      (outpoint(2), vec![(5_000, 10_000)]),
+      (outpoint(1), Amount::from_sat(5_000)),
+      (outpoint(2), Amount::from_sat(5_000)),
     ];
 
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
-        utxos.into_iter().collect(),
-        Ordinal(14_950),
         satpoint(1, 4_950),
+        utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1)],
       ),
@@ -670,13 +607,12 @@ mod tests {
 
   #[test]
   fn insufficient_padding_to_add_postage_no_utxos() {
-    let utxos = vec![(outpoint(1), vec![(10_000, 15_000)])];
+    let utxos = vec![(outpoint(1), Amount::from_sat(5_000))];
 
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
-        utxos.into_iter().collect(),
-        Ordinal(14_950),
         satpoint(1, 4_950),
+        utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1)],
       ),
@@ -687,15 +623,14 @@ mod tests {
   #[test]
   fn insufficient_padding_to_add_postage_small_utxos() {
     let utxos = vec![
-      (outpoint(1), vec![(10_000, 15_000)]),
-      (outpoint(2), vec![(0, 1)]),
+      (outpoint(1), Amount::from_sat(5_000)),
+      (outpoint(2), Amount::from_sat(1)),
     ];
 
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
-        utxos.into_iter().collect(),
-        Ordinal(14_950),
         satpoint(1, 4_950),
+        utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1)],
       ),
@@ -706,15 +641,14 @@ mod tests {
   #[test]
   fn excess_additional_postage_is_stripped() {
     let utxos = vec![
-      (outpoint(1), vec![(10_000, 15_000)]),
-      (outpoint(2), vec![(15_000, 35_000)]),
+      (outpoint(1), Amount::from_sat(5_000)),
+      (outpoint(2), Amount::from_sat(20_000)),
     ];
 
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
-        utxos.into_iter().collect(),
-        Ordinal(14_950),
         satpoint(1, 4_950),
+        utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1)],
       ),
@@ -735,9 +669,8 @@ mod tests {
   #[should_panic(expected = "invariant: satpoint is contained in utxos")]
   fn invariant_satpoint_outpoint_is_contained_in_utxos() {
     TransactionBuilder::new(
-      [(outpoint(1), vec![(0, 2), (3, 5)])].into_iter().collect(),
-      Ordinal(2),
       satpoint(2, 0),
+      vec![(outpoint(1), Amount::from_sat(4))].into_iter().collect(),
       recipient(),
       vec![change(0), change(1)],
     )
@@ -749,9 +682,8 @@ mod tests {
   #[should_panic(expected = "invariant: satpoint is contained in utxos")]
   fn invariant_satpoint_offset_is_contained_in_utxos() {
     TransactionBuilder::new(
-      [(outpoint(1), vec![(0, 2), (3, 5)])].into_iter().collect(),
-      Ordinal(2),
       satpoint(1, 4),
+      vec![(outpoint(1), Amount::from_sat(4))].into_iter().collect(),
       recipient(),
       vec![change(0), change(1)],
     )
@@ -763,9 +695,8 @@ mod tests {
   #[should_panic(expected = "invariant: inputs spend ordinal")]
   fn invariant_inputs_spend_ordinal() {
     TransactionBuilder::new(
-      [(outpoint(1), vec![(0, 5)])].into_iter().collect(),
-      Ordinal(2),
       satpoint(1, 2),
+      vec![(outpoint(1), Amount::from_sat(5))].into_iter().collect(),
       recipient(),
       vec![change(0), change(1)],
     )
@@ -777,9 +708,8 @@ mod tests {
   #[should_panic(expected = "invariant: ordinal is sent to recipient")]
   fn invariant_ordinal_is_sent_to_recipient() {
     let mut builder = TransactionBuilder::new(
-      [(outpoint(1), vec![(0, 5)])].into_iter().collect(),
-      Ordinal(2),
       satpoint(1, 2),
+      vec![(outpoint(1), Amount::from_sat(5))].into_iter().collect(),
       recipient(),
       vec![change(0), change(1)],
     )
@@ -797,9 +727,8 @@ mod tests {
   #[should_panic(expected = "invariant: ordinal is found in outputs")]
   fn invariant_ordinal_is_found_in_outputs() {
     let mut builder = TransactionBuilder::new(
-      [(outpoint(1), vec![(0, 5)])].into_iter().collect(),
-      Ordinal(2),
       satpoint(1, 2),
+      vec![(outpoint(1), Amount::from_sat(5))].into_iter().collect(),
       recipient(),
       vec![change(0), change(1)],
     )
@@ -813,13 +742,12 @@ mod tests {
 
   #[test]
   fn excess_postage_is_stripped() {
-    let utxos = vec![(outpoint(1), vec![(0, 1_000_000)])];
+    let utxos = vec![(outpoint(1), Amount::from_sat(1_000_000))];
 
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
-        utxos.into_iter().collect(),
-        Ordinal(0),
         satpoint(1, 0),
+        utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1)]
       ),
@@ -838,12 +766,11 @@ mod tests {
   #[test]
   #[should_panic(expected = "invariant: excess postage is stripped")]
   fn invariant_excess_postage_is_stripped() {
-    let utxos = vec![(outpoint(1), vec![(0, 1_000_000)])];
+    let utxos = vec![(outpoint(1), Amount::from_sat(1_000_000))];
 
     TransactionBuilder::new(
-      utxos.into_iter().collect(),
-      Ordinal(0),
       satpoint(1, 0),
+      utxos.into_iter().collect(),
       recipient(),
       vec![change(0), change(1)],
     )
@@ -855,13 +782,12 @@ mod tests {
 
   #[test]
   fn ordinal_is_aligned() {
-    let utxos = vec![(outpoint(1), vec![(0, 10_000)])];
+    let utxos = vec![(outpoint(1), Amount::from_sat(10_000))];
 
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
-        utxos.into_iter().collect(),
-        Ordinal(3_333),
         satpoint(1, 3_333),
+        utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1)]
       ),
@@ -877,15 +803,14 @@ mod tests {
   #[test]
   fn alignment_output_under_dust_limit_is_padded() {
     let utxos = vec![
-      (outpoint(1), vec![(0, 10_000)]),
-      (outpoint(2), vec![(10_000, 20_000)]),
+      (outpoint(1), Amount::from_sat(10_000)),
+      (outpoint(2), Amount::from_sat(10_000)),
     ];
 
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
-        utxos.into_iter().collect(),
-        Ordinal(1),
         satpoint(1, 1),
+        utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1)]
       ),
@@ -901,12 +826,11 @@ mod tests {
   #[test]
   #[should_panic(expected = "invariant: all outputs are either change or recipient")]
   fn invariant_all_output_are_recognized() {
-    let utxos = vec![(outpoint(1), vec![(0, 10_000)])];
+    let utxos = vec![(outpoint(1), Amount::from_sat(10_000))];
 
     let mut builder = TransactionBuilder::new(
-      utxos.into_iter().collect(),
-      Ordinal(3_333),
       satpoint(1, 3_333),
+      utxos.into_iter().collect(),
       recipient(),
       vec![change(0), change(1)],
     )
@@ -926,12 +850,11 @@ mod tests {
   #[test]
   #[should_panic(expected = "invariant: all outputs are above dust limit")]
   fn invariant_all_output_are_above_dust_limit() {
-    let utxos = vec![(outpoint(1), vec![(0, 10_000)])];
+    let utxos = vec![(outpoint(1), Amount::from_sat(10_000))];
 
     TransactionBuilder::new(
-      utxos.into_iter().collect(),
-      Ordinal(1),
       satpoint(1, 1),
+      utxos.into_iter().collect(),
       recipient(),
       vec![change(0), change(1)],
     )
@@ -949,12 +872,11 @@ mod tests {
   #[test]
   #[should_panic(expected = "invariant: ordinal is at first position in recipient output")]
   fn invariant_ordinal_is_aligned() {
-    let utxos = vec![(outpoint(1), vec![(0, 10_000)])];
+    let utxos = vec![(outpoint(1), Amount::from_sat(10_000))];
 
     TransactionBuilder::new(
-      utxos.into_iter().collect(),
-      Ordinal(3_333),
       satpoint(1, 3_333),
+      utxos.into_iter().collect(),
       recipient(),
       vec![change(0), change(1)],
     )
@@ -969,12 +891,11 @@ mod tests {
   #[test]
   #[should_panic(expected = "invariant: fee rate is equal to target fee rate")]
   fn invariant_fee_is_at_least_target_fee_rate() {
-    let utxos = vec![(outpoint(1), vec![(0, 10_000)])];
+    let utxos = vec![(outpoint(1), Amount::from_sat(10_000))];
 
     TransactionBuilder::new(
-      utxos.into_iter().collect(),
-      Ordinal(0),
       satpoint(1, 0),
+      utxos.into_iter().collect(),
       recipient(),
       vec![change(0), change(1)],
     )
@@ -988,16 +909,15 @@ mod tests {
   #[test]
   fn rare_ordinals_are_not_used_as_cardinal_inputs() {
     let utxos = vec![
-      (outpoint(1), vec![(10_000, 15_000)]),
-      (outpoint(2), vec![(0, 5_000)]),
-      (outpoint(3), vec![(5_000, 10_000)]),
+      (outpoint(1), Amount::from_sat(5_000)),
+      (outpoint(2), Amount::from_sat(5_000)),
+      (outpoint(3), Amount::from_sat(5_000)),
     ];
 
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
-        utxos.into_iter().collect(),
-        Ordinal(14_950),
         satpoint(1, 4_950),
+        utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1),],
       ),
@@ -1013,21 +933,14 @@ mod tests {
   #[test]
   #[should_panic(expected = "invariant: recipient address appears exactly once in outputs")]
   fn invariant_recipient_appears_exactly_once() {
-    let mut ranges = BTreeMap::new();
-    ranges.insert(outpoint(1), vec![(0, 5_000)]);
-    ranges.insert(outpoint(2), vec![(10_000, 15_000)]);
-    ranges.insert(outpoint(3), vec![(6_000, 8_000)]);
-
     let mut amounts = BTreeMap::new();
     amounts.insert(outpoint(1), Amount::from_sat(5_000));
     amounts.insert(outpoint(2), Amount::from_sat(5_000));
     amounts.insert(outpoint(3), Amount::from_sat(2_000));
 
     TransactionBuilder {
-      ranges,
       amounts,
       utxos: BTreeSet::new(),
-      ordinal: Ordinal(0),
       satpoint: satpoint(1, 0),
       recipient: recipient(),
       unused_change_addresses: vec![change(0), change(1)],
@@ -1046,21 +959,14 @@ mod tests {
   #[test]
   #[should_panic(expected = "invariant: change addresses appear at most once in outputs")]
   fn invariant_change_appears_at_most_once() {
-    let mut ranges = BTreeMap::new();
-    ranges.insert(outpoint(1), vec![(0, 5_000)]);
-    ranges.insert(outpoint(2), vec![(10_000, 15_000)]);
-    ranges.insert(outpoint(3), vec![(6_000, 8_000)]);
-
     let mut amounts = BTreeMap::new();
     amounts.insert(outpoint(1), Amount::from_sat(5_000));
     amounts.insert(outpoint(2), Amount::from_sat(5_000));
     amounts.insert(outpoint(3), Amount::from_sat(2_000));
 
     TransactionBuilder {
-      ranges,
       amounts,
       utxos: BTreeSet::new(),
-      ordinal: Ordinal(0),
       satpoint: satpoint(1, 0),
       recipient: recipient(),
       unused_change_addresses: vec![change(0), change(1)],
@@ -1078,13 +984,12 @@ mod tests {
 
   #[test]
   fn rare_ordinals_are_not_sent_to_recipient() {
-    let utxos = vec![(outpoint(1), vec![(15_000, 25_000), (0, 10_000)])];
+    let utxos = vec![(outpoint(1), Amount::from_sat(20_000))];
 
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
-        utxos.into_iter().collect(),
-        Ordinal(24_000),
         satpoint(1, 9_000),
+        utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1),],
       ),
@@ -1094,13 +999,12 @@ mod tests {
 
   #[test]
   fn rare_ordinals_are_not_sent_as_fee() {
-    let utxos = vec![(outpoint(1), vec![(15_000, 25_000), (0, 100)])];
+    let utxos = vec![(outpoint(1), Amount::from_sat(10_100))];
 
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
-        utxos.into_iter().collect(),
-        Ordinal(24_000),
         satpoint(1, 9_000),
+        utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1),],
       ),
