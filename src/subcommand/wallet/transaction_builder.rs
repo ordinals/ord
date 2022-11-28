@@ -317,7 +317,8 @@ impl TransactionBuilder {
       self
         .amounts
         .iter()
-        .filter(|(outpoint, amount)| *outpoint == &self.satpoint.outpoint && self.satpoint.offset < amount.to_sat())
+        .filter(|(outpoint, amount)| *outpoint == &self.satpoint.outpoint
+          && self.satpoint.offset < amount.to_sat())
         .count(),
       1,
       "invariant: satpoint is contained in utxos"
