@@ -34,7 +34,7 @@ use {
 
 #[derive(Debug, PartialEq)]
 pub(crate) enum Error {
-  NotInWallet(Ordinal),
+  // NotInWallet(Ordinal),
   NotEnoughCardinalUtxos,
   RareOrdinalLostToRecipient(Ordinal),
   RareOrdinalLostToFee(Ordinal),
@@ -43,7 +43,7 @@ pub(crate) enum Error {
 impl fmt::Display for Error {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self {
-      Error::NotInWallet(ordinal) => write!(f, "ordinal {ordinal} not in wallet"),
+      // Error::NotInWallet(ordinal) => write!(f, "ordinal {ordinal} not in wallet"),
       Error::NotEnoughCardinalUtxos => write!(
         f,
         "wallet does not contain enough cardinal UTXOs, please add additional funds to wallet."
@@ -119,19 +119,19 @@ impl TransactionBuilder {
   }
 
   fn select_ordinal(mut self) -> Result<Self> {
- //   let (ordinal_outpoint, ranges) = self
- //        .ranges
- //        .iter()
- //        .find(|(_outpoint, ranges)| {
- //          ranges
- //            .iter()
- //            .any(|(start, end)| self.ordinal.0 < *end && self.ordinal.0 >= *start)
- //        })
- //        .map(|(outpoint, ranges)| (*outpoint, ranges.clone()))
- //        .ok_or(Error::NotInWallet(self.ordinal))?;
+    //   let (ordinal_outpoint, ranges) = self
+    //        .ranges
+    //        .iter()
+    //        .find(|(_outpoint, ranges)| {
+    //          ranges
+    //            .iter()
+    //            .any(|(start, end)| self.ordinal.0 < *end && self.ordinal.0 >= *start)
+    //        })
+    //        .map(|(outpoint, ranges)| (*outpoint, ranges.clone()))
+    //        .ok_or(Error::NotInWallet(self.ordinal))?;
 
     self.utxos.remove(&self.satpoint.outpoint);
-    self.inputs.push(self.satpoint.outpoint.clone());
+    self.inputs.push(self.satpoint.outpoint);
     self.outputs.push((
       self.recipient.clone(),
       Amount::from_sat(
@@ -531,7 +531,10 @@ mod tests {
   use {super::Error, super::*};
 
   fn satpoint(n: u64, offset: u64) -> SatPoint {
-    SatPoint{ outpoint: outpoint(n), offset }
+    SatPoint {
+      outpoint: outpoint(n),
+      offset,
+    }
   }
 
   #[test]
@@ -669,7 +672,7 @@ mod tests {
     )
   }
 
- #[test]
+  #[test]
   fn insufficient_padding_to_add_postage_no_utxos() {
     let utxos = vec![(outpoint(1), vec![(10_000, 15_000)])];
 

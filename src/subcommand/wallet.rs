@@ -22,6 +22,7 @@ fn list_unspent(options: &Options, index: &Index) -> Result<Vec<(OutPoint, Vec<(
     .collect()
 }
 
+#[allow(dead_code)]
 fn list_utxos(options: &Options) -> Result<BTreeMap<OutPoint, Amount>> {
   let client = options.bitcoin_rpc_client()?;
 
@@ -39,13 +40,16 @@ fn list_utxos(options: &Options) -> Result<BTreeMap<OutPoint, Amount>> {
   )
 }
 
-fn ordinal_to_satpoint(ordinal: Ordinal, utxos: BTreeMap<OutPoint, Vec<(u64, u64)>>) -> Option<SatPoint> {
+fn ordinal_to_satpoint(
+  ordinal: Ordinal,
+  utxos: BTreeMap<OutPoint, Vec<(u64, u64)>>,
+) -> Option<SatPoint> {
   for (outpoint, ranges) in utxos {
     let mut offset = 0;
     for (start, end) in ranges {
       if ordinal.0 >= start && ordinal.0 < end {
         return Some(SatPoint {
-          outpoint: outpoint.clone(),
+          outpoint,
           offset: offset + (ordinal.0 - start),
         });
       }
