@@ -70,6 +70,7 @@ pub(crate) struct TransactionBuilder {
   outputs: Vec<(Address, Amount)>,
   ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
   recipient: Address,
+  satpoint: Option<SatPoint>,
   utxos: BTreeSet<OutPoint>,
 }
 
@@ -110,25 +111,27 @@ impl TransactionBuilder {
       outputs: Vec::new(),
       ranges,
       recipient,
+      satpoint: TransactionBuilder::get_satpoint(ordinal, ranges),
       unused_change_addresses: change,
     }
   }
 
-  fn get_satpoint(&self) -> Result<SatPoint> {
-    for (outpoint, ranges) in &self.ranges {
+  fn get_satpoint(ordinal: Ordinal, utxos: BTreeMap<OutPoint, Vec<(u64, u64)>>) -> Option<SatPoint> {
+    for (outpoint, ranges) in utxos {
       let mut offset = 0;
       for (start, end) in ranges {
-        if self.ordinal.0 >= *start && self.ordinal.0 < *end {
-          return Ok(SatPoint {
+        if ordinal.0 >= *start && ordinal.0 < *end {
+          return Some(SatPoint {
             outpoint: outpoint.clone(),
-            offset: offset + (self.ordinal.0 - start),
+            offset: offset + (ordinal.0 - start),
           });
         }
         offset += end - start;
       }
     }
 
-    Err(Error::NotInWallet(self.ordinal))
+    None
+    // Err(Error::NotInWallet(ordinal))
   }
 
   fn select_ordinal(mut self) -> Result<Self> {
@@ -142,16 +145,17 @@ impl TransactionBuilder {
     //      })
     //      .map(|(outpoint, ranges)| (*outpoint, ranges.clone()))
     //      .ok_or(Error::NotInWallet(self.ordinal))?;
-    let satpoint = self.get_satpoint()?;
+
+    let satpoint = get_satpoint()
 
     self.utxos.remove(&satpoint.outpoint);
-    self.inputs.push(satpoint.outpoint);
+    self.inputs.push(self.satpoint.outpoint);
     self.outputs.push((
       self.recipient.clone(),
       Amount::from_sat(
         self
           .ranges
-          .get(&satpoint.outpoint)
+          .get(&self.satpoint.outpoint)
           .unwrap()
           .iter()
           .map(|(start, end)| end - start)
