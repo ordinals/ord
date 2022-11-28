@@ -98,9 +98,8 @@ impl Inscribe {
     let satpoint = ordinal_to_satpoint(ordinal, utxos.clone().into_iter().collect()).unwrap();
 
     let unsigned_commit_tx = TransactionBuilder::build_transaction(
-      utxos.into_iter().collect(),
-      ordinal,
       satpoint,
+      utxos.into_iter().collect(),
       commit_tx_address.clone(),
       change,
     )?;
