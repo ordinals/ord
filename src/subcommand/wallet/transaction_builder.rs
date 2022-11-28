@@ -34,7 +34,7 @@ use {
 
 #[derive(Debug, PartialEq)]
 pub(crate) enum Error {
-  // NotInWallet(Ordinal),
+  NotInWallet(SatPoint),
   NotEnoughCardinalUtxos,
   RareOrdinalLostToRecipient(Ordinal),
   RareOrdinalLostToFee(Ordinal),
@@ -43,7 +43,7 @@ pub(crate) enum Error {
 impl fmt::Display for Error {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self {
-      // Error::NotInWallet(ordinal) => write!(f, "ordinal {ordinal} not in wallet"),
+      Error::NotInWallet(satpoint) => write!(f, "satpoint {satpoint} not in wallet"),
       Error::NotEnoughCardinalUtxos => write!(
         f,
         "wallet does not contain enough cardinal UTXOs, please add additional funds to wallet."
@@ -69,6 +69,7 @@ pub(crate) struct TransactionBuilder {
   ordinal: Ordinal,
   outputs: Vec<(Address, Amount)>,
   ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
+  amounts: BTreeMap<OutPoint, Amount>,
   recipient: Address,
   satpoint: SatPoint,
   utxos: BTreeSet<OutPoint>,
@@ -111,6 +112,15 @@ impl TransactionBuilder {
       inputs: Vec::new(),
       ordinal,
       outputs: Vec::new(),
+      amounts: ranges
+        .iter()
+        .map(|(outpoint, ranges)| {
+          (
+            *outpoint,
+            Amount::from_sat(ranges.iter().map(|(start, end)| end - start).sum()),
+          )
+        })
+        .collect(),
       ranges,
       recipient,
       satpoint,
@@ -119,30 +129,14 @@ impl TransactionBuilder {
   }
 
   fn select_ordinal(mut self) -> Result<Self> {
-    //   let (ordinal_outpoint, ranges) = self
-    //        .ranges
-    //        .iter()
-    //        .find(|(_outpoint, ranges)| {
-    //          ranges
-    //            .iter()
-    //            .any(|(start, end)| self.ordinal.0 < *end && self.ordinal.0 >= *start)
-    //        })
-    //        .map(|(outpoint, ranges)| (*outpoint, ranges.clone()))
-    //        .ok_or(Error::NotInWallet(self.ordinal))?;
-
     self.utxos.remove(&self.satpoint.outpoint);
     self.inputs.push(self.satpoint.outpoint);
     self.outputs.push((
       self.recipient.clone(),
-      Amount::from_sat(
-        self
-          .ranges
-          .get(&self.satpoint.outpoint)
-          .unwrap()
-          .iter()
-          .map(|(start, end)| end - start)
-          .sum(),
-      ),
+      *self
+        .amounts
+        .get(&self.satpoint.outpoint)
+        .ok_or(Error::NotInWallet(self.satpoint))?,
     ));
 
     Ok(self)
@@ -295,7 +289,6 @@ impl TransactionBuilder {
   }
 
   fn build(self) -> Result<Transaction> {
-    let ordinal = self.ordinal.n();
     let recipient = self.recipient.script_pubkey();
     let transaction = Transaction {
       version: 1,
@@ -320,21 +313,21 @@ impl TransactionBuilder {
         .collect(),
     };
 
-    let outpoint = self
-      .ranges
-      .iter()
-      .find(|(_outpoint, ranges)| {
-        ranges
-          .iter()
-          .any(|(start, end)| ordinal >= *start && ordinal < *end)
-      })
-      .expect("invariant: ordinal is contained in utxo ranges");
+    assert_eq!(
+      self
+        .amounts
+        .iter()
+        .filter(|(outpoint, amount)| *outpoint == &self.satpoint.outpoint && self.satpoint.offset < amount.to_sat())
+        .count(),
+      1,
+      "invariant: satpoint is contained in utxos"
+    );
 
     assert_eq!(
       transaction
         .input
         .iter()
-        .filter(|tx_in| tx_in.previous_output == *outpoint.0)
+        .filter(|tx_in| tx_in.previous_output == self.satpoint.outpoint)
         .count(),
       1,
       "invariant: inputs spend ordinal"
@@ -342,20 +335,16 @@ impl TransactionBuilder {
 
     let mut ordinal_offset = 0;
     let mut found = false;
-    for (start, end) in transaction
-      .input
-      .iter()
-      .flat_map(|tx_in| &self.ranges[&tx_in.previous_output])
-    {
-      if ordinal >= *start && ordinal < *end {
-        ordinal_offset += ordinal - start;
+    for tx_in in &transaction.input {
+      if tx_in.previous_output == self.satpoint.outpoint {
+        ordinal_offset += self.satpoint.offset;
         found = true;
         break;
       } else {
-        ordinal_offset += end - start;
+        ordinal_offset += self.amounts[&tx_in.previous_output].to_sat();
       }
     }
-    assert!(found, "invariant: ordinal is found in inputs");
+    assert!(found, "invariant: satpoint is found in inputs");
 
     let mut output_end = 0;
     let mut found = false;
@@ -485,15 +474,15 @@ impl TransactionBuilder {
 
   fn calculate_ordinal_offset(&self) -> u64 {
     let mut ordinal_offset = 0;
-    for (start, end) in self.inputs.iter().flat_map(|input| &self.ranges[input]) {
-      if self.ordinal.0 >= *start && self.ordinal.0 < *end {
-        ordinal_offset += self.ordinal.0 - start;
-        return ordinal_offset;
+    for outpoint in &self.inputs {
+      if *outpoint == self.satpoint.outpoint {
+        return ordinal_offset + self.satpoint.offset;
       } else {
-        ordinal_offset += end - start;
+        ordinal_offset += self.amounts[outpoint].to_sat();
       }
     }
-    panic!("Could not find ordinal in inputs");
+
+    panic!("Could not find satpoint in inputs");
   }
 
   fn select_cardinal_utxo(&mut self, minimum_amount: Amount) -> Result<(OutPoint, Amount)> {
@@ -577,8 +566,14 @@ mod tests {
     ranges.insert(outpoint(2), vec![(10_000, 15_000)]);
     ranges.insert(outpoint(3), vec![(6_000, 8_000)]);
 
+    let mut amounts = BTreeMap::new();
+    amounts.insert(outpoint(1), Amount::from_sat(5_000));
+    amounts.insert(outpoint(2), Amount::from_sat(5_000));
+    amounts.insert(outpoint(3), Amount::from_sat(2_000));
+
     let tx_builder = TransactionBuilder {
       ranges,
+      amounts,
       utxos: BTreeSet::new(),
       ordinal: Ordinal(0),
       satpoint: satpoint(1, 0),
@@ -736,12 +731,26 @@ mod tests {
   }
 
   #[test]
-  #[should_panic(expected = "invariant: ordinal is contained in utxo ranges")]
-  fn invariant_ordinal_is_contained_in_utxo_ranges() {
+  #[should_panic(expected = "invariant: satpoint is contained in utxos")]
+  fn invariant_satpoint_outpoint_is_contained_in_utxos() {
     TransactionBuilder::new(
       [(outpoint(1), vec![(0, 2), (3, 5)])].into_iter().collect(),
       Ordinal(2),
       satpoint(2, 0),
+      recipient(),
+      vec![change(0), change(1)],
+    )
+    .build()
+    .unwrap();
+  }
+
+  #[test]
+  #[should_panic(expected = "invariant: satpoint is contained in utxos")]
+  fn invariant_satpoint_offset_is_contained_in_utxos() {
+    TransactionBuilder::new(
+      [(outpoint(1), vec![(0, 2), (3, 5)])].into_iter().collect(),
+      Ordinal(2),
+      satpoint(1, 4),
       recipient(),
       vec![change(0), change(1)],
     )
@@ -1008,8 +1017,14 @@ mod tests {
     ranges.insert(outpoint(2), vec![(10_000, 15_000)]);
     ranges.insert(outpoint(3), vec![(6_000, 8_000)]);
 
+    let mut amounts = BTreeMap::new();
+    amounts.insert(outpoint(1), Amount::from_sat(5_000));
+    amounts.insert(outpoint(2), Amount::from_sat(5_000));
+    amounts.insert(outpoint(3), Amount::from_sat(2_000));
+
     TransactionBuilder {
       ranges,
+      amounts,
       utxos: BTreeSet::new(),
       ordinal: Ordinal(0),
       satpoint: satpoint(1, 0),
@@ -1035,8 +1050,14 @@ mod tests {
     ranges.insert(outpoint(2), vec![(10_000, 15_000)]);
     ranges.insert(outpoint(3), vec![(6_000, 8_000)]);
 
+    let mut amounts = BTreeMap::new();
+    amounts.insert(outpoint(1), Amount::from_sat(5_000));
+    amounts.insert(outpoint(2), Amount::from_sat(5_000));
+    amounts.insert(outpoint(3), Amount::from_sat(2_000));
+
     TransactionBuilder {
       ranges,
+      amounts,
       utxos: BTreeSet::new(),
       ordinal: Ordinal(0),
       satpoint: satpoint(1, 0),
