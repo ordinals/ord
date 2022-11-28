@@ -59,10 +59,10 @@ fn identify_from_tsv_file_not_found() {
 fn send_works_on_signet() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Signet, "ord");
 
-  rpc_server.mine_blocks(1)[0].txdata[0].txid();
+  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(
-    "--chain signet --index-ordinals wallet send 5000000000 tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw",
+    format!("--chain signet --index-ordinals wallet send {txid}:0:0 tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw")
   )
   .rpc_server(&rpc_server)
   .stdout_regex(r".*")
