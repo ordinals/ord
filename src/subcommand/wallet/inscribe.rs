@@ -95,9 +95,12 @@ impl Inscribe {
 
     let commit_tx_address = Address::p2tr_tweaked(taproot_spend_info.output_key(), network);
 
+    let satpoint = ordinal_to_satpoint(ordinal, utxos.clone().into_iter().collect()).unwrap();
+
     let unsigned_commit_tx = TransactionBuilder::build_transaction(
       utxos.into_iter().collect(),
       ordinal,
+      satpoint,
       commit_tx_address.clone(),
       change,
     )?;

@@ -70,7 +70,7 @@ pub(crate) struct TransactionBuilder {
   outputs: Vec<(Address, Amount)>,
   ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
   recipient: Address,
-  satpoint: Option<SatPoint>,
+  satpoint: SatPoint,
   utxos: BTreeSet<OutPoint>,
 }
 
@@ -84,10 +84,11 @@ impl TransactionBuilder {
   pub(crate) fn build_transaction(
     ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
     ordinal: Ordinal,
+    satpoint: SatPoint,
     recipient: Address,
     change: Vec<Address>,
   ) -> Result<Transaction> {
-    Self::new(ranges, ordinal, recipient, change)
+    Self::new(ranges, ordinal, satpoint, recipient, change)
       .select_ordinal()?
       .align_ordinal()
       .pad_alignment_output()?
@@ -100,6 +101,7 @@ impl TransactionBuilder {
   fn new(
     ranges: BTreeMap<OutPoint, Vec<(u64, u64)>>,
     ordinal: Ordinal,
+    satpoint: SatPoint,
     recipient: Address,
     change: Vec<Address>,
   ) -> Self {
@@ -111,45 +113,25 @@ impl TransactionBuilder {
       outputs: Vec::new(),
       ranges,
       recipient,
-      satpoint: TransactionBuilder::get_satpoint(ordinal, ranges),
+      satpoint,
       unused_change_addresses: change,
     }
   }
 
-  fn get_satpoint(ordinal: Ordinal, utxos: BTreeMap<OutPoint, Vec<(u64, u64)>>) -> Option<SatPoint> {
-    for (outpoint, ranges) in utxos {
-      let mut offset = 0;
-      for (start, end) in ranges {
-        if ordinal.0 >= *start && ordinal.0 < *end {
-          return Some(SatPoint {
-            outpoint: outpoint.clone(),
-            offset: offset + (ordinal.0 - start),
-          });
-        }
-        offset += end - start;
-      }
-    }
-
-    None
-    // Err(Error::NotInWallet(ordinal))
-  }
-
   fn select_ordinal(mut self) -> Result<Self> {
-    //    let (ordinal_outpoint, ranges) = self
-    //      .ranges
-    //      .iter()
-    //      .find(|(_outpoint, ranges)| {
-    //        ranges
-    //          .iter()
-    //          .any(|(start, end)| self.ordinal.0 < *end && self.ordinal.0 >= *start)
-    //      })
-    //      .map(|(outpoint, ranges)| (*outpoint, ranges.clone()))
-    //      .ok_or(Error::NotInWallet(self.ordinal))?;
+ //   let (ordinal_outpoint, ranges) = self
+ //        .ranges
+ //        .iter()
+ //        .find(|(_outpoint, ranges)| {
+ //          ranges
+ //            .iter()
+ //            .any(|(start, end)| self.ordinal.0 < *end && self.ordinal.0 >= *start)
+ //        })
+ //        .map(|(outpoint, ranges)| (*outpoint, ranges.clone()))
+ //        .ok_or(Error::NotInWallet(self.ordinal))?;
 
-    let satpoint = get_satpoint()
-
-    self.utxos.remove(&satpoint.outpoint);
-    self.inputs.push(self.satpoint.outpoint);
+    self.utxos.remove(&self.satpoint.outpoint);
+    self.inputs.push(self.satpoint.outpoint.clone());
     self.outputs.push((
       self.recipient.clone(),
       Amount::from_sat(
@@ -548,6 +530,10 @@ impl TransactionBuilder {
 mod tests {
   use {super::Error, super::*};
 
+  fn satpoint(n: u64, offset: u64) -> SatPoint {
+    SatPoint{ outpoint: outpoint(n), offset }
+  }
+
   #[test]
   fn select_ordinal() {
     let mut utxos = vec![
@@ -559,6 +545,7 @@ mod tests {
     let tx_builder = TransactionBuilder::new(
       utxos.clone().into_iter().collect(),
       Ordinal(51 * COIN_VALUE),
+      satpoint(2, 0),
       recipient(),
       vec![change(0), change(1)],
     )
@@ -591,6 +578,7 @@ mod tests {
       ranges,
       utxos: BTreeSet::new(),
       ordinal: Ordinal(0),
+      satpoint: satpoint(1, 0),
       recipient: recipient(),
       unused_change_addresses: vec![change(0), change(1)],
       change_addresses: vec![change(0), change(1)].into_iter().collect(),
@@ -625,6 +613,7 @@ mod tests {
       TransactionBuilder::build_transaction(
         utxos.into_iter().collect(),
         Ordinal(10_000),
+        satpoint(1, 0),
         recipient(),
         vec![change(0), change(1)],
       ),
@@ -645,6 +634,7 @@ mod tests {
     TransactionBuilder::new(
       utxos.into_iter().collect(),
       Ordinal(14_950),
+      satpoint(1, 4_950),
       recipient(),
       vec![change(0), change(1)],
     )
@@ -666,6 +656,7 @@ mod tests {
       TransactionBuilder::build_transaction(
         utxos.into_iter().collect(),
         Ordinal(14_950),
+        satpoint(1, 4_950),
         recipient(),
         vec![change(0), change(1)],
       ),
@@ -678,7 +669,7 @@ mod tests {
     )
   }
 
-  #[test]
+ #[test]
   fn insufficient_padding_to_add_postage_no_utxos() {
     let utxos = vec![(outpoint(1), vec![(10_000, 15_000)])];
 
@@ -686,6 +677,7 @@ mod tests {
       TransactionBuilder::build_transaction(
         utxos.into_iter().collect(),
         Ordinal(14_950),
+        satpoint(1, 4_950),
         recipient(),
         vec![change(0), change(1)],
       ),
@@ -704,6 +696,7 @@ mod tests {
       TransactionBuilder::build_transaction(
         utxos.into_iter().collect(),
         Ordinal(14_950),
+        satpoint(1, 4_950),
         recipient(),
         vec![change(0), change(1)],
       ),
@@ -722,6 +715,7 @@ mod tests {
       TransactionBuilder::build_transaction(
         utxos.into_iter().collect(),
         Ordinal(14_950),
+        satpoint(1, 4_950),
         recipient(),
         vec![change(0), change(1)],
       ),
@@ -744,6 +738,7 @@ mod tests {
     TransactionBuilder::new(
       [(outpoint(1), vec![(0, 2), (3, 5)])].into_iter().collect(),
       Ordinal(2),
+      satpoint(2, 0),
       recipient(),
       vec![change(0), change(1)],
     )
@@ -757,6 +752,7 @@ mod tests {
     TransactionBuilder::new(
       [(outpoint(1), vec![(0, 5)])].into_iter().collect(),
       Ordinal(2),
+      satpoint(1, 2),
       recipient(),
       vec![change(0), change(1)],
     )
@@ -770,6 +766,7 @@ mod tests {
     let mut builder = TransactionBuilder::new(
       [(outpoint(1), vec![(0, 5)])].into_iter().collect(),
       Ordinal(2),
+      satpoint(1, 2),
       recipient(),
       vec![change(0), change(1)],
     )
@@ -789,6 +786,7 @@ mod tests {
     let mut builder = TransactionBuilder::new(
       [(outpoint(1), vec![(0, 5)])].into_iter().collect(),
       Ordinal(2),
+      satpoint(1, 2),
       recipient(),
       vec![change(0), change(1)],
     )
@@ -808,6 +806,7 @@ mod tests {
       TransactionBuilder::build_transaction(
         utxos.into_iter().collect(),
         Ordinal(0),
+        satpoint(1, 0),
         recipient(),
         vec![change(0), change(1)]
       ),
@@ -831,6 +830,7 @@ mod tests {
     TransactionBuilder::new(
       utxos.into_iter().collect(),
       Ordinal(0),
+      satpoint(1, 0),
       recipient(),
       vec![change(0), change(1)],
     )
@@ -848,6 +848,7 @@ mod tests {
       TransactionBuilder::build_transaction(
         utxos.into_iter().collect(),
         Ordinal(3_333),
+        satpoint(1, 3_333),
         recipient(),
         vec![change(0), change(1)]
       ),
@@ -871,6 +872,7 @@ mod tests {
       TransactionBuilder::build_transaction(
         utxos.into_iter().collect(),
         Ordinal(1),
+        satpoint(1, 1),
         recipient(),
         vec![change(0), change(1)]
       ),
@@ -891,6 +893,7 @@ mod tests {
     let mut builder = TransactionBuilder::new(
       utxos.into_iter().collect(),
       Ordinal(3_333),
+      satpoint(1, 3_333),
       recipient(),
       vec![change(0), change(1)],
     )
@@ -915,6 +918,7 @@ mod tests {
     TransactionBuilder::new(
       utxos.into_iter().collect(),
       Ordinal(1),
+      satpoint(1, 1),
       recipient(),
       vec![change(0), change(1)],
     )
@@ -937,6 +941,7 @@ mod tests {
     TransactionBuilder::new(
       utxos.into_iter().collect(),
       Ordinal(3_333),
+      satpoint(1, 3_333),
       recipient(),
       vec![change(0), change(1)],
     )
@@ -956,6 +961,7 @@ mod tests {
     TransactionBuilder::new(
       utxos.into_iter().collect(),
       Ordinal(0),
+      satpoint(1, 0),
       recipient(),
       vec![change(0), change(1)],
     )
@@ -978,6 +984,7 @@ mod tests {
       TransactionBuilder::build_transaction(
         utxos.into_iter().collect(),
         Ordinal(14_950),
+        satpoint(1, 4_950),
         recipient(),
         vec![change(0), change(1),],
       ),
@@ -1002,6 +1009,7 @@ mod tests {
       ranges,
       utxos: BTreeSet::new(),
       ordinal: Ordinal(0),
+      satpoint: satpoint(1, 0),
       recipient: recipient(),
       unused_change_addresses: vec![change(0), change(1)],
       change_addresses: vec![change(0), change(1)].into_iter().collect(),
@@ -1028,6 +1036,7 @@ mod tests {
       ranges,
       utxos: BTreeSet::new(),
       ordinal: Ordinal(0),
+      satpoint: satpoint(1, 0),
       recipient: recipient(),
       unused_change_addresses: vec![change(0), change(1)],
       change_addresses: vec![change(0), change(1)].into_iter().collect(),
@@ -1050,6 +1059,7 @@ mod tests {
       TransactionBuilder::build_transaction(
         utxos.into_iter().collect(),
         Ordinal(24_000),
+        satpoint(1, 9_000),
         recipient(),
         vec![change(0), change(1),],
       ),
@@ -1065,6 +1075,7 @@ mod tests {
       TransactionBuilder::build_transaction(
         utxos.into_iter().collect(),
         Ordinal(24_000),
+        satpoint(1, 9_000),
         recipient(),
         vec![change(0), change(1),],
       ),
