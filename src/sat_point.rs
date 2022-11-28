@@ -29,3 +29,53 @@ impl Decodable for SatPoint {
     })
   }
 }
+
+impl FromStr for SatPoint {
+  type Err = Error;
+
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    let (outpoint, offset) = s
+      .rsplit_once(':')
+      .ok_or_else(|| anyhow!("invalid satpoint: {s}"))?;
+
+    Ok(SatPoint {
+      outpoint: outpoint.parse()?,
+      offset: offset.parse()?,
+    })
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn from_str_ok() {
+    assert_eq!(
+      "1111111111111111111111111111111111111111111111111111111111111111:1:1"
+        .parse::<SatPoint>()
+        .unwrap(),
+      SatPoint {
+        outpoint: "1111111111111111111111111111111111111111111111111111111111111111:1"
+          .parse()
+          .unwrap(),
+        offset: 1,
+      }
+    );
+  }
+
+  #[test]
+  fn from_str_err() {
+    "abc".parse::<SatPoint>().unwrap_err();
+
+    "abc:xyz".parse::<SatPoint>().unwrap_err();
+
+    "1111111111111111111111111111111111111111111111111111111111111111:1"
+      .parse::<SatPoint>()
+      .unwrap_err();
+
+    "1111111111111111111111111111111111111111111111111111111111111111:1:foo"
+      .parse::<SatPoint>()
+      .unwrap_err();
+  }
+}
