@@ -36,8 +36,6 @@ use {
 pub(crate) enum Error {
   NotInWallet(SatPoint),
   NotEnoughCardinalUtxos,
-  RareOrdinalLostToRecipient(Ordinal),
-  RareOrdinalLostToFee(Ordinal),
 }
 
 impl fmt::Display for Error {
@@ -48,13 +46,6 @@ impl fmt::Display for Error {
         f,
         "wallet does not contain enough cardinal UTXOs, please add additional funds to wallet."
       ),
-      Error::RareOrdinalLostToRecipient(ordinal) => write!(
-        f,
-        "transaction would lose rare ordinal {ordinal} to recipient"
-      ),
-      Error::RareOrdinalLostToFee(ordinal) => {
-        write!(f, "transaction would lose rare ordinal {ordinal} to fee")
-      }
     }
   }
 }
@@ -303,7 +294,8 @@ impl TransactionBuilder {
       self
         .amounts
         .iter()
-        .filter(|(outpoint, amount)| *outpoint == &self.satpoint.outpoint && self.satpoint.offset < amount.to_sat())
+        .filter(|(outpoint, amount)| *outpoint == &self.satpoint.outpoint
+          && self.satpoint.offset < amount.to_sat())
         .count(),
       1,
       "invariant: satpoint is contained in utxos"
@@ -416,16 +408,6 @@ impl TransactionBuilder {
         Amount::from_sat(tx_out.value) >= tx_out.script_pubkey.dust_value(),
         "invariant: all outputs are above dust limit",
       );
-    }
-
-    let mut offset = 0;
-    let mut recipient_range = (0, 0);
-    for output in &transaction.output {
-      if output.script_pubkey == self.recipient.script_pubkey() {
-        recipient_range = (offset, offset + output.value);
-        break;
-      }
-      offset += output.value;
     }
 
     Ok(transaction)
@@ -670,7 +652,9 @@ mod tests {
   fn invariant_satpoint_outpoint_is_contained_in_utxos() {
     TransactionBuilder::new(
       satpoint(2, 0),
-      vec![(outpoint(1), Amount::from_sat(4))].into_iter().collect(),
+      vec![(outpoint(1), Amount::from_sat(4))]
+        .into_iter()
+        .collect(),
       recipient(),
       vec![change(0), change(1)],
     )
@@ -683,7 +667,9 @@ mod tests {
   fn invariant_satpoint_offset_is_contained_in_utxos() {
     TransactionBuilder::new(
       satpoint(1, 4),
-      vec![(outpoint(1), Amount::from_sat(4))].into_iter().collect(),
+      vec![(outpoint(1), Amount::from_sat(4))]
+        .into_iter()
+        .collect(),
       recipient(),
       vec![change(0), change(1)],
     )
@@ -696,7 +682,9 @@ mod tests {
   fn invariant_inputs_spend_ordinal() {
     TransactionBuilder::new(
       satpoint(1, 2),
-      vec![(outpoint(1), Amount::from_sat(5))].into_iter().collect(),
+      vec![(outpoint(1), Amount::from_sat(5))]
+        .into_iter()
+        .collect(),
       recipient(),
       vec![change(0), change(1)],
     )
@@ -709,7 +697,9 @@ mod tests {
   fn invariant_ordinal_is_sent_to_recipient() {
     let mut builder = TransactionBuilder::new(
       satpoint(1, 2),
-      vec![(outpoint(1), Amount::from_sat(5))].into_iter().collect(),
+      vec![(outpoint(1), Amount::from_sat(5))]
+        .into_iter()
+        .collect(),
       recipient(),
       vec![change(0), change(1)],
     )
@@ -728,7 +718,9 @@ mod tests {
   fn invariant_ordinal_is_found_in_outputs() {
     let mut builder = TransactionBuilder::new(
       satpoint(1, 2),
-      vec![(outpoint(1), Amount::from_sat(5))].into_iter().collect(),
+      vec![(outpoint(1), Amount::from_sat(5))]
+        .into_iter()
+        .collect(),
       recipient(),
       vec![change(0), change(1)],
     )
@@ -907,30 +899,6 @@ mod tests {
   }
 
   #[test]
-  fn rare_ordinals_are_not_used_as_cardinal_inputs() {
-    let utxos = vec![
-      (outpoint(1), Amount::from_sat(5_000)),
-      (outpoint(2), Amount::from_sat(5_000)),
-      (outpoint(3), Amount::from_sat(5_000)),
-    ];
-
-    pretty_assert_eq!(
-      TransactionBuilder::build_transaction(
-        satpoint(1, 4_950),
-        utxos.into_iter().collect(),
-        recipient(),
-        vec![change(0), change(1),],
-      ),
-      Ok(Transaction {
-        version: 1,
-        lock_time: PackedLockTime::ZERO,
-        input: vec![tx_in(outpoint(1)), tx_in(outpoint(3))],
-        output: vec![tx_out(4_950, change(1)), tx_out(4_620, recipient())],
-      })
-    )
-  }
-
-  #[test]
   #[should_panic(expected = "invariant: recipient address appears exactly once in outputs")]
   fn invariant_recipient_appears_exactly_once() {
     let mut amounts = BTreeMap::new();
@@ -980,35 +948,5 @@ mod tests {
     }
     .build()
     .unwrap();
-  }
-
-  #[test]
-  fn rare_ordinals_are_not_sent_to_recipient() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(20_000))];
-
-    pretty_assert_eq!(
-      TransactionBuilder::build_transaction(
-        satpoint(1, 9_000),
-        utxos.into_iter().collect(),
-        recipient(),
-        vec![change(0), change(1),],
-      ),
-      Err(Error::RareOrdinalLostToRecipient(Ordinal(0)))
-    )
-  }
-
-  #[test]
-  fn rare_ordinals_are_not_sent_as_fee() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(10_100))];
-
-    pretty_assert_eq!(
-      TransactionBuilder::build_transaction(
-        satpoint(1, 9_000),
-        utxos.into_iter().collect(),
-        recipient(),
-        vec![change(0), change(1),],
-      ),
-      Err(Error::RareOrdinalLostToFee(Ordinal(0)))
-    )
   }
 }

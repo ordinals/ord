@@ -99,7 +99,15 @@ impl Inscribe {
 
     let unsigned_commit_tx = TransactionBuilder::build_transaction(
       satpoint,
-      utxos.into_iter().collect(),
+      utxos
+        .into_iter()
+        .map(|(outpoint, ranges)| {
+          (
+            outpoint,
+            Amount::from_sat(ranges.iter().map(|(start, end)| end - start).sum()),
+          )
+        })
+        .collect(),
       commit_tx_address.clone(),
       change,
     )?;
