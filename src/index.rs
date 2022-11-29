@@ -506,7 +506,7 @@ impl Index {
   }
 
   pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<List>> {
-    self.require_ordinal_index("find")?;
+    self.require_ordinal_index("list")?;
 
     let outpoint_encoded = encode_outpoint(outpoint);
 
