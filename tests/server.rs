@@ -37,11 +37,11 @@ fn run() {
 #[test]
 fn inscription_page() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
-  rpc_server.mine_blocks(1);
+  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  let stdout = CommandBuilder::new(
-    "--chain regtest --index-ordinals wallet inscribe --ordinal 5000000000 --file hello.txt",
-  )
+  let stdout = CommandBuilder::new(format!(
+    "--chain regtest --index-ordinals wallet inscribe --satpoint {txid}:0:0 --file hello.txt"
+  ))
   .write("hello.txt", "HELLOWORLD")
   .rpc_server(&rpc_server)
   .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")

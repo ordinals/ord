@@ -450,13 +450,6 @@ impl TransactionBuilder {
 mod tests {
   use {super::Error, super::*};
 
-  fn satpoint(n: u64, offset: u64) -> SatPoint {
-    SatPoint {
-      outpoint: outpoint(n),
-      offset,
-    }
-  }
-
   #[test]
   fn select_ordinal() {
     let mut utxos = vec![
