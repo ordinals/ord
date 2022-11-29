@@ -1,4 +1,4 @@
-use {super::*, std::collections::BTreeMap, transaction_builder::TransactionBuilder};
+use {super::*, transaction_builder::TransactionBuilder};
 
 mod identify;
 mod inscribe;
