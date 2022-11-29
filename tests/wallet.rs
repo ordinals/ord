@@ -153,7 +153,7 @@ fn inscribe() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  CommandBuilder::new(format!(
+  let stdout = CommandBuilder::new(format!(
     "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file hello.txt"
   ))
   .write("hello.txt", "HELLOWORLD")
@@ -163,12 +163,14 @@ fn inscribe() {
 
   rpc_server.mine_blocks(1);
 
-  let ord_server = TestServer::spawn_with_args(&rpc_server, &["--index-ordinals"]);
-
-  ord_server.assert_response_regex(
+  TestServer::spawn_with_args(&rpc_server, &["--index-ordinals"]).assert_response_regex(
     "/ordinal/5000000000",
     ".*<dt>inscription</dt><dd>HELLOWORLD</dd>.*",
-  )
+  );
+
+  let reveal_txid = stdout.split("reveal\t").collect::<Vec<&str>>()[1];
+  TestServer::spawn_with_args(&rpc_server, &[])
+    .assert_response_regex(&format!("/inscription/{reveal_txid}"), ".*HELLOWORLD.*");
 }
 
 #[test]

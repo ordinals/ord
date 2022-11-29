@@ -147,6 +147,8 @@ impl Updater {
     let client =
       Client::new(&index.rpc_url, index.auth.clone()).context("failed to connect to RPC URL")?;
 
+    let with_transactions = index_ordinals || index.chain.has_inscriptions();
+
     thread::spawn(move || loop {
       if let Some(height_limit) = height_limit {
         if height >= height_limit {
@@ -154,7 +156,7 @@ impl Updater {
         }
       }
 
-      match Self::get_block_with_retries(&client, height, index_ordinals) {
+      match Self::get_block_with_retries(&client, height, with_transactions) {
         Ok(Some(block)) => {
           if let Err(err) = tx.send(block) {
             log::info!("Block receiver disconnected: {err}");
@@ -176,7 +178,7 @@ impl Updater {
   pub(crate) fn get_block_with_retries(
     client: &Client,
     height: u64,
-    transactions: bool,
+    with_transactions: bool,
   ) -> Result<Option<Block>> {
     let mut errors = 0;
     loop {
@@ -186,7 +188,7 @@ impl Updater {
         .and_then(|option| {
           option
             .map(|hash| {
-              if transactions {
+              if with_transactions {
                 Ok(client.get_block(&hash)?)
               } else {
                 Ok(Block {
