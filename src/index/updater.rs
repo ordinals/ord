@@ -2,7 +2,6 @@ use {super::*, std::sync::mpsc};
 
 pub struct Updater {
   cache: HashMap<[u8; 36], Vec<u8>>,
-  chain: Chain,
   height: u64,
   index_ordinals: bool,
   ordinal_ranges_since_flush: u64,
@@ -35,7 +34,6 @@ impl Updater {
 
     let mut updater = Self {
       cache: HashMap::new(),
-      chain: index.chain,
       height,
       index_ordinals: index.has_ordinal_index()?,
       ordinal_ranges_since_flush: 0,
@@ -344,13 +342,11 @@ impl Updater {
     tx: &Transaction,
     txid_to_inscription: &mut Table<&[u8; 32], str>,
   ) -> Result {
-    if self.chain.has_inscriptions() {
-      if let Some(inscription) = Inscription::from_transaction(tx) {
-        let json = serde_json::to_string(&inscription)
-          .expect("Inscription serialization should always succeed");
+    if let Some(inscription) = Inscription::from_transaction(tx) {
+      let json = serde_json::to_string(&inscription)
+        .expect("Inscription serialization should always succeed");
 
-        txid_to_inscription.insert(tx.txid().as_inner(), &json)?;
-      }
+      txid_to_inscription.insert(tx.txid().as_inner(), &json)?;
     }
 
     Ok(())
@@ -367,16 +363,14 @@ impl Updater {
     ordinal_ranges_written: &mut u64,
     outputs_traversed: &mut u64,
   ) -> Result {
-    if self.chain.has_inscriptions() {
-      if let Some(inscription) = Inscription::from_transaction(tx) {
-        let json = serde_json::to_string(&inscription)
-          .expect("Inscription serialization should always succeed");
+    if let Some(inscription) = Inscription::from_transaction(tx) {
+      let json = serde_json::to_string(&inscription)
+        .expect("Inscription serialization should always succeed");
 
-        txid_to_inscription.insert(tx.txid().as_inner(), &json)?;
+      txid_to_inscription.insert(tx.txid().as_inner(), &json)?;
 
-        if let Some((start, _end)) = input_ordinal_ranges.get(0) {
-          ordinal_to_inscription_txid.insert(&start, tx.txid().as_inner())?;
-        }
+      if let Some((start, _end)) = input_ordinal_ranges.get(0) {
+        ordinal_to_inscription_txid.insert(&start, tx.txid().as_inner())?;
       }
     }
 
