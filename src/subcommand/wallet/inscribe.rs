@@ -26,10 +26,7 @@ impl Inscribe {
 
     let inscription = Inscription::from_file(self.file)?;
 
-    let index = Index::open(&options)?;
-    index.update()?;
-
-    let utxos = list_unspent(&options, &index)?;
+    let utxos = list_utxos(&options)?;
 
     let commit_tx_change = get_change_addresses(&options, 2)?;
 
@@ -65,7 +62,7 @@ impl Inscribe {
     satpoint: SatPoint,
     inscription: Inscription,
     network: bitcoin::Network,
-    utxos: Vec<(OutPoint, Vec<(u64, u64)>)>,
+    utxos: BTreeMap<OutPoint, Amount>,
     change: Vec<Address>,
     destination: Address,
   ) -> Result<(Transaction, Transaction)> {
@@ -95,20 +92,8 @@ impl Inscribe {
 
     let commit_tx_address = Address::p2tr_tweaked(taproot_spend_info.output_key(), network);
 
-    let unsigned_commit_tx = TransactionBuilder::build_transaction(
-      satpoint,
-      utxos
-        .into_iter()
-        .map(|(outpoint, ranges)| {
-          (
-            outpoint,
-            Amount::from_sat(ranges.iter().map(|(start, end)| end - start).sum()),
-          )
-        })
-        .collect(),
-      commit_tx_address.clone(),
-      change,
-    )?;
+    let unsigned_commit_tx =
+      TransactionBuilder::build_transaction(satpoint, utxos, commit_tx_address.clone(), change)?;
 
     let (vout, output) = unsigned_commit_tx
       .output
@@ -192,7 +177,7 @@ mod tests {
 
   #[test]
   fn reveal_transaction_pays_fee() {
-    let utxos = vec![(outpoint(1), vec![(10_000, 15_000)])];
+    let utxos = vec![(outpoint(1), Amount::from_sat(5000))];
     let inscription = Inscription::Text("ord".into());
     let commit_address = change(0);
     let reveal_address = recipient();
@@ -201,7 +186,7 @@ mod tests {
       satpoint(1, 0),
       inscription,
       bitcoin::Network::Signet,
-      utxos,
+      utxos.into_iter().collect(),
       vec![commit_address, change(1)],
       reveal_address,
     )
@@ -217,7 +202,7 @@ mod tests {
 
   #[test]
   fn reveal_transaction_value_insufficient_to_pay_fee() {
-    let utxos = vec![(outpoint(1), vec![(10_000, 11_000)])];
+    let utxos = vec![(outpoint(1), Amount::from_sat(1000))];
     let satpoint = satpoint(1, 0);
     let inscription = Inscription::Png([1; 10_000].to_vec());
     let commit_address = change(0);
@@ -227,7 +212,7 @@ mod tests {
       satpoint,
       inscription,
       bitcoin::Network::Signet,
-      utxos,
+      utxos.into_iter().collect(),
       vec![commit_address, change(1)],
       reveal_address,
     )
@@ -238,7 +223,7 @@ mod tests {
 
   #[test]
   fn reveal_transaction_would_create_dust() {
-    let utxos = vec![(outpoint(1), vec![(10_000, 10_600)])];
+    let utxos = vec![(outpoint(1), Amount::from_sat(600))];
     let inscription = Inscription::Text("ord".into());
     let satpoint = satpoint(1, 0);
     let commit_address = change(0);
@@ -248,7 +233,7 @@ mod tests {
       satpoint,
       inscription,
       bitcoin::Network::Signet,
-      utxos,
+      utxos.into_iter().collect(),
       vec![commit_address, change(1)],
       reveal_address,
     )

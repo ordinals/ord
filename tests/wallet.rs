@@ -61,9 +61,9 @@ fn send_works_on_signet() {
 
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  let stdout = CommandBuilder::new(
-    format!("--chain signet --index-ordinals wallet send {txid}:0:0 tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw")
-  )
+  let stdout = CommandBuilder::new(format!(
+    "--chain signet wallet send {txid}:0:0 tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw"
+  ))
   .rpc_server(&rpc_server)
   .stdout_regex(r".*")
   .run();
@@ -78,7 +78,7 @@ fn send_on_mainnnet_refuses_to_work_with_wallet_name_foo() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   CommandBuilder::new(
-    format!("--index-ordinals wallet send {txid}:0:0 bc1qzjeg3h996kw24zrg69nge97fw8jc4v7v7yznftzk06j3429t52vse9tkp9"),
+    format!("wallet send {txid}:0:0 bc1qzjeg3h996kw24zrg69nge97fw8jc4v7v7yznftzk06j3429t52vse9tkp9"),
   )
   .rpc_server(&rpc_server)
   .expected_stderr("error: `ord wallet send` may only be used on mainnet with a wallet named `ord` or whose name starts with `ord-`\n")
@@ -107,9 +107,9 @@ fn send_on_mainnnet_works_with_wallet_named_ord() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "ord");
   let txid = rpc_server.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0].txid();
 
-  let stdout = CommandBuilder::new(
-    format!("--index-ordinals wallet send {txid}:0:0 bc1qzjeg3h996kw24zrg69nge97fw8jc4v7v7yznftzk06j3429t52vse9tkp9"),
-  )
+  let stdout = CommandBuilder::new(format!(
+    "wallet send {txid}:0:0 bc1qzjeg3h996kw24zrg69nge97fw8jc4v7v7yznftzk06j3429t52vse9tkp9"
+  ))
   .rpc_server(&rpc_server)
   .stdout_regex(r".*")
   .run();
@@ -124,7 +124,7 @@ fn send_on_mainnnet_works_with_wallet_whose_name_starts_with_ord() {
   let txid = rpc_server.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
-    "--index-ordinals wallet send {txid}:0:0 bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
+    "wallet send {txid}:0:0 bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(r".*")
@@ -153,8 +153,8 @@ fn inscribe() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  CommandBuilder::new(format!(
-    "--chain regtest --index-ordinals wallet inscribe --satpoint {txid}:0:0 --file hello.txt"
+  let stdout = CommandBuilder::new(format!(
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file hello.txt"
   ))
   .write("hello.txt", "HELLOWORLD")
   .rpc_server(&rpc_server)
@@ -163,12 +163,14 @@ fn inscribe() {
 
   rpc_server.mine_blocks(1);
 
-  let ord_server = TestServer::spawn_with_args(&rpc_server, &["--index-ordinals"]);
-
-  ord_server.assert_response_regex(
+  TestServer::spawn_with_args(&rpc_server, &["--index-ordinals"]).assert_response_regex(
     "/ordinal/5000000000",
     ".*<dt>inscription</dt><dd>HELLOWORLD</dd>.*",
-  )
+  );
+
+  let reveal_txid = stdout.split("reveal\t").collect::<Vec<&str>>()[1];
+  TestServer::spawn_with_args(&rpc_server, &[])
+    .assert_response_regex(&format!("/inscription/{reveal_txid}"), ".*HELLOWORLD.*");
 }
 
 #[test]

@@ -18,15 +18,8 @@ pub(crate) enum Inscription {
 }
 
 impl Inscription {
-  pub(crate) fn from_transaction(
-    tx: &Transaction,
-    input_ordinal_ranges: &VecDeque<(u64, u64)>,
-  ) -> Option<(Ordinal, Inscription)> {
-    let tx_in = tx.input.get(0)?;
-    let inscription = InscriptionParser::parse(&tx_in.witness).ok()?;
-    let (start, _end) = input_ordinal_ranges.get(0)?;
-
-    Some((Ordinal(*start), inscription))
+  pub(crate) fn from_transaction(tx: &Transaction) -> Option<Inscription> {
+    InscriptionParser::parse(&tx.input.get(0)?.witness).ok()
   }
 
   pub(crate) fn from_file(path: PathBuf) -> Result<Self, Error> {
@@ -368,12 +361,9 @@ mod tests {
       output: Vec::new(),
     };
 
-    let mut ranges = VecDeque::new();
-    ranges.push_back((1, 10));
-
     assert_eq!(
-      Inscription::from_transaction(&tx, &ranges),
-      Some((Ordinal(1), Inscription::Text("ord".into())))
+      Inscription::from_transaction(&tx),
+      Some(Inscription::Text("ord".into())),
     );
   }
 
@@ -398,9 +388,7 @@ mod tests {
       output: Vec::new(),
     };
 
-    let ranges = VecDeque::new();
-
-    assert_eq!(Inscription::from_transaction(&tx, &ranges), None);
+    assert_eq!(Inscription::from_transaction(&tx), None);
   }
 
   #[test]
@@ -432,10 +420,7 @@ mod tests {
       output: Vec::new(),
     };
 
-    let mut ranges = VecDeque::new();
-    ranges.push_back((1, 10));
-
-    assert_eq!(Inscription::from_transaction(&tx, &ranges), None,);
+    assert_eq!(Inscription::from_transaction(&tx), None);
   }
 
   #[test]

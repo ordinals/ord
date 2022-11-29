@@ -2,7 +2,6 @@ use {super::*, std::sync::mpsc};
 
 pub struct Updater {
   cache: HashMap<[u8; 36], Vec<u8>>,
-  chain: Chain,
   height: u64,
   index_ordinals: bool,
   ordinal_ranges_since_flush: u64,
@@ -35,7 +34,6 @@ impl Updater {
 
     let mut updater = Self {
       cache: HashMap::new(),
-      chain: index.chain,
       height,
       index_ordinals: index.has_ordinal_index()?,
       ordinal_ranges_since_flush: 0,
@@ -147,6 +145,8 @@ impl Updater {
     let client =
       Client::new(&index.rpc_url, index.auth.clone()).context("failed to connect to RPC URL")?;
 
+    let with_transactions = index_ordinals || index.chain != Chain::Mainnet;
+
     thread::spawn(move || loop {
       if let Some(height_limit) = height_limit {
         if height >= height_limit {
@@ -154,7 +154,7 @@ impl Updater {
         }
       }
 
-      match Self::get_block_with_retries(&client, height, index_ordinals) {
+      match Self::get_block_with_retries(&client, height, with_transactions) {
         Ok(Some(block)) => {
           if let Err(err) = tx.send(block) {
             log::info!("Block receiver disconnected: {err}");
@@ -176,7 +176,7 @@ impl Updater {
   pub(crate) fn get_block_with_retries(
     client: &Client,
     height: u64,
-    transactions: bool,
+    with_transactions: bool,
   ) -> Result<Option<Block>> {
     let mut errors = 0;
     loop {
@@ -186,7 +186,7 @@ impl Updater {
         .and_then(|option| {
           option
             .map(|hash| {
-              if transactions {
+              if with_transactions {
                 Ok(client.get_block(&hash)?)
               } else {
                 Ok(Block {
@@ -225,9 +225,6 @@ impl Updater {
     block: Block,
   ) -> Result<()> {
     let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
-    let mut ordinal_to_satpoint = wtx.open_table(ORDINAL_TO_SATPOINT)?;
-    let mut ordinal_to_inscription_txid = wtx.open_table(ORDINAL_TO_INSCRIPTION_TXID)?;
-    let mut txid_to_inscription = wtx.open_table(TXID_TO_INSCRIPTION)?;
 
     let start = Instant::now();
     let mut ordinal_ranges_written = 0;
@@ -252,7 +249,10 @@ impl Updater {
     }
 
     if self.index_ordinals {
+      let mut ordinal_to_inscription_txid = wtx.open_table(ORDINAL_TO_INSCRIPTION_TXID)?;
+      let mut ordinal_to_satpoint = wtx.open_table(ORDINAL_TO_SATPOINT)?;
       let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
+      let mut txid_to_inscription = wtx.open_table(TXID_TO_INSCRIPTION)?;
 
       let mut coinbase_inputs = VecDeque::new();
 
@@ -290,7 +290,7 @@ impl Updater {
           }
         }
 
-        self.index_transaction(
+        self.index_transaction_ordinals(
           txid,
           tx,
           &mut ordinal_to_satpoint,
@@ -305,7 +305,7 @@ impl Updater {
       }
 
       if let Some(tx) = block.coinbase() {
-        self.index_transaction(
+        self.index_transaction_ordinals(
           tx.txid(),
           tx,
           &mut ordinal_to_satpoint,
@@ -315,6 +315,12 @@ impl Updater {
           &mut ordinal_ranges_written,
           &mut outputs_in_block,
         )?;
+      }
+    } else {
+      let mut txid_to_inscription = wtx.open_table(TXID_TO_INSCRIPTION)?;
+
+      for tx in &block.txdata {
+        self.index_transaction_inscriptions(tx, &mut txid_to_inscription)?
       }
     }
 
@@ -331,7 +337,22 @@ impl Updater {
     Ok(())
   }
 
-  pub(crate) fn index_transaction(
+  pub(crate) fn index_transaction_inscriptions(
+    &mut self,
+    tx: &Transaction,
+    txid_to_inscription: &mut Table<&[u8; 32], str>,
+  ) -> Result {
+    if let Some(inscription) = Inscription::from_transaction(tx) {
+      let json = serde_json::to_string(&inscription)
+        .expect("Inscription serialization should always succeed");
+
+      txid_to_inscription.insert(tx.txid().as_inner(), &json)?;
+    }
+
+    Ok(())
+  }
+
+  pub(crate) fn index_transaction_ordinals(
     &mut self,
     txid: Txid,
     tx: &Transaction,
@@ -342,14 +363,14 @@ impl Updater {
     ordinal_ranges_written: &mut u64,
     outputs_traversed: &mut u64,
   ) -> Result {
-    if self.chain != Chain::Mainnet {
-      if let Some((ordinal, inscription)) = Inscription::from_transaction(tx, input_ordinal_ranges)
-      {
-        let json = serde_json::to_string(&inscription)
-          .expect("Inscription serialization should always succeed");
+    if let Some(inscription) = Inscription::from_transaction(tx) {
+      let json = serde_json::to_string(&inscription)
+        .expect("Inscription serialization should always succeed");
 
-        ordinal_to_inscription_txid.insert(&ordinal.n(), tx.txid().as_inner())?;
-        txid_to_inscription.insert(tx.txid().as_inner(), &json)?;
+      txid_to_inscription.insert(tx.txid().as_inner(), &json)?;
+
+      if let Some((start, _end)) = input_ordinal_ranges.get(0) {
+        ordinal_to_inscription_txid.insert(&start, tx.txid().as_inner())?;
       }
     }
 
