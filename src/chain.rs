@@ -34,15 +34,6 @@ impl Chain {
     bitcoin::blockdata::constants::genesis_block(self.network())
   }
 
-  pub(crate) fn has_inscriptions(self) -> bool {
-    match self {
-      Self::Mainnet => false,
-      Self::Regtest => true,
-      Self::Signet => true,
-      Self::Testnet => false,
-    }
-  }
-
   pub(crate) fn address_from_script(
     self,
     script: &Script,

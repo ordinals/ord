@@ -145,7 +145,7 @@ impl Updater {
     let client =
       Client::new(&index.rpc_url, index.auth.clone()).context("failed to connect to RPC URL")?;
 
-    let with_transactions = index_ordinals || index.chain.has_inscriptions();
+    let with_transactions = index_ordinals || index.chain != Chain::Mainnet;
 
     thread::spawn(move || loop {
       if let Some(height_limit) = height_limit {
