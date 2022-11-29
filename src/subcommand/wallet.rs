@@ -22,6 +22,23 @@ fn list_unspent(options: &Options, index: &Index) -> Result<Vec<(OutPoint, Vec<(
     .collect()
 }
 
+fn list_utxos(options: &Options) -> Result<BTreeMap<OutPoint, Amount>> {
+  let client = options.bitcoin_rpc_client()?;
+
+  Ok(
+    client
+      .list_unspent(None, None, None, None, None)?
+      .iter()
+      .map(|utxo| {
+        let outpoint = OutPoint::new(utxo.txid, utxo.vout);
+        let amount = utxo.amount;
+
+        (outpoint, amount)
+      })
+      .collect(),
+  )
+}
+
 fn get_change_addresses(options: &Options, n: usize) -> Result<Vec<Address>> {
   let client = options.bitcoin_rpc_client()?;
 

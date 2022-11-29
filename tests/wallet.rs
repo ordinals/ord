@@ -59,10 +59,10 @@ fn identify_from_tsv_file_not_found() {
 fn send_works_on_signet() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Signet, "ord");
 
-  rpc_server.mine_blocks(1)[0].txdata[0].txid();
+  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(
-    "--chain signet --index-ordinals wallet send 5000000000 tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw",
+    format!("--chain signet --index-ordinals wallet send {txid}:0:0 tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw")
   )
   .rpc_server(&rpc_server)
   .stdout_regex(r".*")
@@ -75,10 +75,10 @@ fn send_works_on_signet() {
 #[test]
 fn send_on_mainnnet_refuses_to_work_with_wallet_name_foo() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "foo");
-  rpc_server.mine_blocks(1);
+  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   CommandBuilder::new(
-    "--index-ordinals wallet send 5000000000 bc1qzjeg3h996kw24zrg69nge97fw8jc4v7v7yznftzk06j3429t52vse9tkp9",
+    format!("--index-ordinals wallet send {txid}:0:0 bc1qzjeg3h996kw24zrg69nge97fw8jc4v7v7yznftzk06j3429t52vse9tkp9"),
   )
   .rpc_server(&rpc_server)
   .expected_stderr("error: `ord wallet send` may only be used on mainnet with a wallet named `ord` or whose name starts with `ord-`\n")
@@ -89,24 +89,26 @@ fn send_on_mainnnet_refuses_to_work_with_wallet_name_foo() {
 #[test]
 fn send_addresses_must_be_valid_for_network() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "ord");
-  rpc_server.mine_blocks_with_subsidy(1, 1_000_000);
+  let txid = rpc_server.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0].txid();
 
-  CommandBuilder::new("wallet send 5000000000 tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw")
-    .rpc_server(&rpc_server)
-    .expected_stderr(
-      "error: Address `tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw` is not valid for mainnet\n",
-    )
-    .expected_exit_code(1)
-    .run();
+  CommandBuilder::new(format!(
+    "wallet send {txid}:0:0 tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw"
+  ))
+  .rpc_server(&rpc_server)
+  .expected_stderr(
+    "error: Address `tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw` is not valid for mainnet\n",
+  )
+  .expected_exit_code(1)
+  .run();
 }
 
 #[test]
 fn send_on_mainnnet_works_with_wallet_named_ord() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "ord");
-  rpc_server.mine_blocks_with_subsidy(1, 1_000_000);
+  let txid = rpc_server.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(
-    "--index-ordinals wallet send 5000000000 bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
+    format!("--index-ordinals wallet send {txid}:0:0 bc1qzjeg3h996kw24zrg69nge97fw8jc4v7v7yznftzk06j3429t52vse9tkp9"),
   )
   .rpc_server(&rpc_server)
   .stdout_regex(r".*")
@@ -119,11 +121,11 @@ fn send_on_mainnnet_works_with_wallet_named_ord() {
 #[test]
 fn send_on_mainnnet_works_with_wallet_whose_name_starts_with_ord() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "ord-foo");
-  rpc_server.mine_blocks_with_subsidy(1, 1_000_000);
+  let txid = rpc_server.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0].txid();
 
-  let stdout = CommandBuilder::new(
-    "--index-ordinals wallet send 5000000000 bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
-  )
+  let stdout = CommandBuilder::new(format!(
+    "--index-ordinals wallet send {txid}:0:0 bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
+  ))
   .rpc_server(&rpc_server)
   .stdout_regex(r".*")
   .run();
@@ -135,9 +137,9 @@ fn send_on_mainnnet_works_with_wallet_whose_name_starts_with_ord() {
 #[test]
 fn send_on_mainnnet_refuses_to_work_with_wallet_with_high_balance() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "ord");
-  rpc_server.mine_blocks_with_subsidy(1, 1_000_001);
+  let txid = rpc_server.mine_blocks_with_subsidy(1, 1_000_001)[0].txdata[0].txid();
 
-  CommandBuilder::new("wallet send 5000000000 bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh")
+  CommandBuilder::new(format!("wallet send {txid}:0:0 bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"))
     .rpc_server(&rpc_server)
     .expected_stderr(
       "error: `ord wallet send` may not be used on mainnet with wallets containing more than 1,000,000 sats\n",
@@ -149,11 +151,11 @@ fn send_on_mainnnet_refuses_to_work_with_wallet_with_high_balance() {
 #[test]
 fn inscribe() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
-  rpc_server.mine_blocks(1);
+  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  CommandBuilder::new(
-    "--chain regtest --index-ordinals wallet inscribe --ordinal 5000000000 --file hello.txt",
-  )
+  CommandBuilder::new(format!(
+    "--chain regtest --index-ordinals wallet inscribe --satpoint {txid}:0:0 --file hello.txt"
+  ))
   .write("hello.txt", "HELLOWORLD")
   .rpc_server(&rpc_server)
   .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
@@ -172,36 +174,40 @@ fn inscribe() {
 #[test]
 fn inscribe_forbidden_on_mainnet() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "ord");
-  rpc_server.mine_blocks(1);
+  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  CommandBuilder::new("wallet inscribe --ordinal 5000000000 --file hello.txt")
-    .rpc_server(&rpc_server)
-    .expected_exit_code(1)
-    .expected_stderr("error: `ord wallet inscribe` is unstable and not yet supported on mainnet.\n")
-    .run();
+  CommandBuilder::new(format!(
+    "wallet inscribe --satpoint {txid}:0:0 --file hello.txt"
+  ))
+  .rpc_server(&rpc_server)
+  .expected_exit_code(1)
+  .expected_stderr("error: `ord wallet inscribe` is unstable and not yet supported on mainnet.\n")
+  .run();
 }
 
 #[test]
 fn inscribe_unknown_file_extension() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
-  rpc_server.mine_blocks(1);
+  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  CommandBuilder::new("--chain regtest wallet inscribe --ordinal 5000000000 --file pepe.jpg")
-    .write("pepe.jpg", [1; 520])
-    .rpc_server(&rpc_server)
-    .expected_exit_code(1)
-    .expected_stderr("error: unrecognized file extension `.jpg`, only .txt and .png accepted\n")
-    .run();
+  CommandBuilder::new(format!(
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file pepe.jpg"
+  ))
+  .write("pepe.jpg", [1; 520])
+  .rpc_server(&rpc_server)
+  .expected_exit_code(1)
+  .expected_stderr("error: unrecognized file extension `.jpg`, only .txt and .png accepted\n")
+  .run();
 }
 
 #[test]
 fn inscribe_png() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
-  rpc_server.mine_blocks(1);
+  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  CommandBuilder::new(
-    "--chain regtest --index-ordinals wallet inscribe --ordinal 5000000000 --file degenerate.png",
-  )
+  CommandBuilder::new(format!(
+    "--chain regtest --index-ordinals wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
+  ))
   .write("degenerate.png", [1; 520])
   .rpc_server(&rpc_server)
   .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
@@ -220,12 +226,14 @@ fn inscribe_png() {
 #[test]
 fn inscribe_exceeds_push_byte_limit() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
-  rpc_server.mine_blocks(1);
+  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  CommandBuilder::new("--chain regtest wallet inscribe --ordinal 5000000000 --file degenerate.png")
-    .write("degenerate.png", [1; 521])
-    .rpc_server(&rpc_server)
-    .expected_exit_code(1)
-    .expected_stderr("error: file size exceeds 520 bytes\n")
-    .run();
+  CommandBuilder::new(format!(
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
+  ))
+  .write("degenerate.png", [1; 521])
+  .rpc_server(&rpc_server)
+  .expected_exit_code(1)
+  .expected_stderr("error: file size exceeds 520 bytes\n")
+  .run();
 }

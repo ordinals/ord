@@ -27,6 +27,13 @@ pub(crate) fn outpoint(n: u64) -> OutPoint {
   format!("{}:{}", hex.repeat(64), n).parse().unwrap()
 }
 
+pub(crate) fn satpoint(n: u64, offset: u64) -> SatPoint {
+  SatPoint {
+    outpoint: outpoint(n),
+    offset,
+  }
+}
+
 pub(crate) fn recipient() -> Address {
   "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
     .parse()

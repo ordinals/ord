@@ -34,7 +34,7 @@ use {
   serde::{Deserialize, Serialize},
   std::{
     cmp::Ordering,
-    collections::VecDeque,
+    collections::{BTreeMap, VecDeque},
     env,
     fmt::{self, Display, Formatter},
     fs, io,
