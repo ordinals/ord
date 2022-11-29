@@ -39,7 +39,7 @@ mod expected;
 mod find;
 mod index;
 mod info;
-mod list;
+mod list_ranges;
 mod parse;
 mod range;
 mod server;

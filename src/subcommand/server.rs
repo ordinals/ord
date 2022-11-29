@@ -1133,7 +1133,7 @@ mod tests {
 
   #[test]
   fn unknown_output_returns_404() {
-    TestServer::new_with_args(&["--index-ordinals"]).assert_response(
+    TestServer::new().assert_response(
       "/output/0000000000000000000000000000000000000000000000000000000000000000:0",
       StatusCode::NOT_FOUND,
       "output 0000000000000000000000000000000000000000000000000000000000000000:0 unknown",
