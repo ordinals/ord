@@ -19,7 +19,7 @@ pub(crate) enum Inscription {
 
 impl Inscription {
   pub(crate) fn from_transaction(tx: &Transaction) -> Option<Inscription> {
-    Some(InscriptionParser::parse(&tx.input.get(0)?.witness).ok()?)
+    InscriptionParser::parse(&tx.input.get(0)?.witness).ok()
   }
 
   pub(crate) fn from_file(path: PathBuf) -> Result<Self, Error> {
