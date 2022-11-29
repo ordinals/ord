@@ -26,9 +26,6 @@ impl Inscribe {
 
     let inscription = Inscription::from_file(self.file)?;
 
-    let index = Index::open(&options)?;
-    index.update()?;
-
     let utxos = list_utxos(&options)?;
 
     let commit_tx_change = get_change_addresses(&options, 2)?;
