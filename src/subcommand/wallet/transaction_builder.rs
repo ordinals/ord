@@ -54,13 +54,13 @@ impl std::error::Error for Error {}
 
 #[derive(Debug, PartialEq)]
 pub(crate) struct TransactionBuilder {
+  amounts: BTreeMap<OutPoint, Amount>,
   change_addresses: BTreeSet<Address>,
-  unused_change_addresses: Vec<Address>,
   inputs: Vec<OutPoint>,
   outputs: Vec<(Address, Amount)>,
-  amounts: BTreeMap<OutPoint, Amount>,
   recipient: Address,
   satpoint: SatPoint,
+  unused_change_addresses: Vec<Address>,
   utxos: BTreeSet<OutPoint>,
 }
 
@@ -94,11 +94,11 @@ impl TransactionBuilder {
     change: Vec<Address>,
   ) -> Self {
     Self {
-      change_addresses: change.iter().cloned().collect(),
       utxos: amounts.keys().cloned().collect(),
+      amounts,
+      change_addresses: change.iter().cloned().collect(),
       inputs: Vec::new(),
       outputs: Vec::new(),
-      amounts,
       recipient,
       satpoint,
       unused_change_addresses: change,
