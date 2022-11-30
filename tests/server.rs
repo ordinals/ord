@@ -91,25 +91,25 @@ fn inscription_page_after_send() {
   .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
   .run();
 
-  let reveal_tx = stdout.split("reveal\t").collect::<Vec<&str>>()[1].trim();
+  let reveal_txid = stdout.split("reveal\t").collect::<Vec<&str>>()[1].trim();
 
   rpc_server.mine_blocks(1);
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
-    &format!("/inscription/{}", reveal_tx),
+    &format!("/inscription/{}", reveal_txid),
     &format!(
       ".*<h1>Inscription</h1>
 <dl>
   <dt>satpoint</dt>
-  <dd>{reveal_tx}:0:0</dd>
+  <dd>{reveal_txid}:0:0</dd>
 </dl>
 HELLOWORLD.*",
     ),
   );
 
   let txid = CommandBuilder::new(format!(
-    "--chain regtest wallet send {txid}:0:0 bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x"
+    "--chain regtest wallet send {reveal_txid}:0:0 bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x"
   ))
   .write("hello.txt", "HELLOWORLD")
   .rpc_server(&rpc_server)
@@ -120,14 +120,15 @@ HELLOWORLD.*",
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
-    &format!("/inscription/{}", reveal_tx),
+    &format!("/inscription/{}", reveal_txid),
     &format!(
       ".*<h1>Inscription</h1>
 <dl>
   <dt>satpoint</dt>
-  <dd>{txid}:0:0</dd>
+  <dd>{}:0:0</dd>
 </dl>
 HELLOWORLD.*",
+      txid.trim(),
     ),
   )
 }
