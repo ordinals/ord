@@ -341,6 +341,8 @@ impl Updater {
     &mut self,
     tx: &Transaction,
     inscription_id_to_inscription: &mut Table<&InscriptionIdArray, str>,
+    // inscription_id_to_satpoint: &mut Table<&[u8; 32], &[u8; 44]>,
+    satpoint_to_inscription_id: &mut Table<&[u8; 44], &[u8; 32]>,
   ) -> Result {
     if let Some(inscription) = Inscription::from_transaction(tx) {
       let json = serde_json::to_string(&inscription)
@@ -348,6 +350,23 @@ impl Updater {
 
       inscription_id_to_inscription.insert(tx.txid().as_inner(), &json)?;
     }
+    
+    for tx_in in tx.input {
+      let mut offset = 0;
+      let outpoint = tx_in.previous_output;
+      let start = encode_satpoint(SatPoint { outpoint, offset: 0 });
+      let end = encode_satpoint(SatPoint { outpoint, offset: u64::MAX });
+      if let inscription_ids = satpoint_to_inscription_id.range(start..=end)? {
+        for id in inscription_ids {
+          let new_satpoint = encode_satpoint(SatPoint { outpoint: OutPoint { txid: tx.txid(), vout: 0 }, offset: 0 });
+          satpoint_to_inscription_id.insert(&new_satpoint, &id.1) ;
+        }
+      } else {
+
+      }
+    }
+    // check each input of tx for inscription outpoints -> index from satpoint to inscription_id
+    // record satpoint (txid:vout:offset) in same table 
 
     Ok(())
   }
