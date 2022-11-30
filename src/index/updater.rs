@@ -1,7 +1,7 @@
 use {super::*, std::sync::mpsc};
 
 pub struct Updater {
-  cache: HashMap<[u8; 36], Vec<u8>>,
+  cache: HashMap<OutPointArray, Vec<u8>>,
   height: u64,
   index_ordinals: bool,
   ordinal_ranges_since_flush: u64,
@@ -249,10 +249,10 @@ impl Updater {
     }
 
     if self.index_ordinals {
-      let mut ordinal_to_inscription_txid = wtx.open_table(ORDINAL_TO_INSCRIPTION_TXID)?;
+      let mut ordinal_to_inscription_id = wtx.open_table(ORDINAL_TO_INSCRIPTION_ID)?;
       let mut ordinal_to_satpoint = wtx.open_table(ORDINAL_TO_SATPOINT)?;
       let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
-      let mut txid_to_inscription = wtx.open_table(TXID_TO_INSCRIPTION)?;
+      let mut inscription_id_to_inscription = wtx.open_table(INSCRIPTION_ID_TO_INSCRIPTION)?;
 
       let mut coinbase_inputs = VecDeque::new();
 
@@ -294,8 +294,8 @@ impl Updater {
           txid,
           tx,
           &mut ordinal_to_satpoint,
-          &mut ordinal_to_inscription_txid,
-          &mut txid_to_inscription,
+          &mut ordinal_to_inscription_id,
+          &mut inscription_id_to_inscription,
           &mut input_ordinal_ranges,
           &mut ordinal_ranges_written,
           &mut outputs_in_block,
@@ -309,18 +309,18 @@ impl Updater {
           tx.txid(),
           tx,
           &mut ordinal_to_satpoint,
-          &mut ordinal_to_inscription_txid,
-          &mut txid_to_inscription,
+          &mut ordinal_to_inscription_id,
+          &mut inscription_id_to_inscription,
           &mut coinbase_inputs,
           &mut ordinal_ranges_written,
           &mut outputs_in_block,
         )?;
       }
     } else {
-      let mut txid_to_inscription = wtx.open_table(TXID_TO_INSCRIPTION)?;
+      let mut inscription_id_to_inscription = wtx.open_table(INSCRIPTION_ID_TO_INSCRIPTION)?;
 
       for tx in &block.txdata {
-        self.index_transaction_inscriptions(tx, &mut txid_to_inscription)?
+        self.index_transaction_inscriptions(tx, &mut inscription_id_to_inscription)?
       }
     }
 
@@ -340,13 +340,13 @@ impl Updater {
   pub(crate) fn index_transaction_inscriptions(
     &mut self,
     tx: &Transaction,
-    txid_to_inscription: &mut Table<&[u8; 32], str>,
+    inscription_id_to_inscription: &mut Table<&InscriptionIdArray, str>,
   ) -> Result {
     if let Some(inscription) = Inscription::from_transaction(tx) {
       let json = serde_json::to_string(&inscription)
         .expect("Inscription serialization should always succeed");
 
-      txid_to_inscription.insert(tx.txid().as_inner(), &json)?;
+      inscription_id_to_inscription.insert(tx.txid().as_inner(), &json)?;
     }
 
     Ok(())
@@ -356,9 +356,9 @@ impl Updater {
     &mut self,
     txid: Txid,
     tx: &Transaction,
-    ordinal_to_satpoint: &mut Table<u64, &[u8; 44]>,
-    ordinal_to_inscription_txid: &mut Table<u64, &[u8; 32]>,
-    txid_to_inscription: &mut Table<&[u8; 32], str>,
+    ordinal_to_satpoint: &mut Table<u64, &SatPointArray>,
+    ordinal_to_inscription_id: &mut Table<u64, &InscriptionIdArray>,
+    inscription_id_to_inscription: &mut Table<&InscriptionIdArray, str>,
     input_ordinal_ranges: &mut VecDeque<(u64, u64)>,
     ordinal_ranges_written: &mut u64,
     outputs_traversed: &mut u64,
@@ -367,10 +367,10 @@ impl Updater {
       let json = serde_json::to_string(&inscription)
         .expect("Inscription serialization should always succeed");
 
-      txid_to_inscription.insert(tx.txid().as_inner(), &json)?;
+      inscription_id_to_inscription.insert(tx.txid().as_inner(), &json)?;
 
       if let Some((start, _end)) = input_ordinal_ranges.get(0) {
-        ordinal_to_inscription_txid.insert(&start, tx.txid().as_inner())?;
+        ordinal_to_inscription_id.insert(&start, tx.txid().as_inner())?;
       }
     }
 

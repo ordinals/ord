@@ -14,21 +14,27 @@ use {
 mod rtx;
 mod updater;
 
-const HEIGHT_TO_BLOCK_HASH: TableDefinition<u64, &[u8; 32]> =
+type BlockHashArray = [u8; 32];
+type InscriptionIdArray = [u8; 32];
+type OrdinalRangeArray = [u8; 11];
+type OutPointArray = [u8; 36];
+type SatPointArray = [u8; 44];
+
+const HEIGHT_TO_BLOCK_HASH: TableDefinition<u64, &BlockHashArray> =
   TableDefinition::new("HEIGHT_TO_BLOCK_HASH");
-const ORDINAL_TO_INSCRIPTION_TXID: TableDefinition<u64, &[u8; 32]> =
-  TableDefinition::new("ORDINAL_TO_INSCRIPTION_TXID");
-const ORDINAL_TO_SATPOINT: TableDefinition<u64, &[u8; 44]> =
+const ORDINAL_TO_INSCRIPTION_ID: TableDefinition<u64, &InscriptionIdArray> =
+  TableDefinition::new("ORDINAL_TO_INSCRIPTION_ID");
+const ORDINAL_TO_SATPOINT: TableDefinition<u64, &SatPointArray> =
   TableDefinition::new("ORDINAL_TO_SATPOINT");
-const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<&[u8; 36], [u8]> =
+const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<&OutPointArray, [u8]> =
   TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
 const STATISTIC_TO_COUNT: TableDefinition<u64, u64> = TableDefinition::new("STATISTIC_TO_COUNT");
-const TXID_TO_INSCRIPTION: TableDefinition<&[u8; 32], str> =
-  TableDefinition::new("TXID_TO_INSCRIPTION");
+const INSCRIPTION_ID_TO_INSCRIPTION: TableDefinition<&InscriptionIdArray, str> =
+  TableDefinition::new("INSCRIPTION_ID_TO_INSCRIPTION");
 const WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP: TableDefinition<u64, u128> =
   TableDefinition::new("WRITE_TRANSACTION_START_BLOCK_COUNT_TO_TIMESTAMP");
 
-fn encode_outpoint(outpoint: OutPoint) -> [u8; 36] {
+fn encode_outpoint(outpoint: OutPoint) -> OutPointArray {
   let mut array = [0; 36];
   outpoint
     .consensus_encode(&mut array.as_mut_slice())
@@ -36,7 +42,7 @@ fn encode_outpoint(outpoint: OutPoint) -> [u8; 36] {
   array
 }
 
-fn encode_satpoint(satpoint: SatPoint) -> [u8; 44] {
+fn encode_satpoint(satpoint: SatPoint) -> SatPointArray {
   let mut array = [0; 44];
   satpoint
     .consensus_encode(&mut array.as_mut_slice())
@@ -184,10 +190,10 @@ impl Index {
         };
 
         tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
-        tx.open_table(ORDINAL_TO_INSCRIPTION_TXID)?;
+        tx.open_table(ORDINAL_TO_INSCRIPTION_ID)?;
         tx.open_table(ORDINAL_TO_SATPOINT)?;
         tx.open_table(STATISTIC_TO_COUNT)?;
-        tx.open_table(TXID_TO_INSCRIPTION)?;
+        tx.open_table(INSCRIPTION_ID_TO_INSCRIPTION)?;
         tx.open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?;
 
         if options.index_ordinals {
@@ -280,7 +286,7 @@ impl Index {
     Ok(info)
   }
 
-  pub(crate) fn decode_ordinal_range(bytes: [u8; 11]) -> (u64, u64) {
+  pub(crate) fn decode_ordinal_range(bytes: OrdinalRangeArray) -> (u64, u64) {
     let n = u128::from_le_bytes([
       bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7], bytes[8],
       bytes[9], bytes[10], 0, 0, 0, 0, 0,
@@ -409,7 +415,7 @@ impl Index {
 
   pub(crate) fn inscription(&self, ordinal: Ordinal) -> Result<Option<Inscription>> {
     let db = self.database.begin_read()?;
-    let table = db.open_table(ORDINAL_TO_INSCRIPTION_TXID)?;
+    let table = db.open_table(ORDINAL_TO_INSCRIPTION_ID)?;
 
     let Some(txid) = table.get(&ordinal.n())? else {
       return Ok(None);
@@ -419,7 +425,7 @@ impl Index {
       self
         .database
         .begin_read()?
-        .open_table(TXID_TO_INSCRIPTION)?
+        .open_table(INSCRIPTION_ID_TO_INSCRIPTION)?
         .get(txid)?
         .map(|inscription| {
           serde_json::from_str(inscription)
@@ -433,7 +439,7 @@ impl Index {
       self
         .database
         .begin_read()?
-        .open_table(TXID_TO_INSCRIPTION)?
+        .open_table(INSCRIPTION_ID_TO_INSCRIPTION)?
         .get(txid.as_inner())?
         .map(|inscription| {
           serde_json::from_str(inscription)
@@ -494,7 +500,7 @@ impl Index {
     Ok(None)
   }
 
-  fn list_inner(&self, outpoint: [u8; 36]) -> Result<Option<Vec<u8>>> {
+  fn list_inner(&self, outpoint: OutPointArray) -> Result<Option<Vec<u8>>> {
     Ok(
       self
         .database
