@@ -314,7 +314,7 @@ impl Server {
         blocktime: index.blocktime(ordinal.height()).map_err(|err| {
           ServerError::Internal(anyhow!("failed to retrieve blocktime from index: {err}"))
         })?,
-        inscription: index.inscription(ordinal).map_err(|err| {
+        inscription: index.get_inscription_by_ordinal(ordinal).map_err(|err| {
           ServerError::Internal(anyhow!(
             "failed to retrieve inscription for ordinal {ordinal} from index: {err}"
           ))
@@ -613,17 +613,20 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(txid): Path<Txid>,
   ) -> ServerResult<PageHtml> {
+    let (inscription, satpoint) = index
+      .get_inscription_by_inscription_id(txid)
+      .map_err(|err| {
+        ServerError::Internal(anyhow!(
+          "failed to retrieve inscription from txid {txid} from index: {err}"
+        ))
+      })?
+      .ok_or_else(|| ServerError::NotFound(format!("transaction {txid} has no inscription")))?;
+
     Ok(
       InscriptionHtml {
         txid,
-        inscription: index
-          .inscription_from_txid(txid)
-          .map_err(|err| {
-            ServerError::Internal(anyhow!(
-              "failed to retrieve inscription from txid {txid} from index: {err}"
-            ))
-          })?
-          .ok_or_else(|| ServerError::NotFound(format!("transaction {txid} has no inscription")))?,
+        inscription,
+        satpoint,
       }
       .page(
         chain,

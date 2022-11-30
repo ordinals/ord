@@ -47,15 +47,21 @@ fn inscription_page() {
   .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
   .run();
 
-  let reveal_tx = stdout.split("reveal\t").collect::<Vec<&str>>()[1];
+  let reveal_tx = stdout.split("reveal\t").collect::<Vec<&str>>()[1].trim();
 
   rpc_server.mine_blocks(1);
 
-  let ord_server = TestServer::spawn_with_args(&rpc_server, &["--index-ordinals"]);
+  let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
 
   ord_server.assert_response_regex(
     &format!("/inscription/{}", reveal_tx),
-    ".*<h1>Inscription</h1>
+    &format!(
+      ".*<h1>Inscription</h1>
+<dl>
+  <dt>satpoint</dt>
+  <dd>{reveal_tx}:0:0</dd>
+</dl>
 HELLOWORLD.*",
+    ),
   )
 }
