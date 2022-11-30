@@ -24,7 +24,7 @@ mod tests {
         txid: Txid::from_str("ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc")
           .unwrap(),
         inscription: Inscription::Text("HELLOWORLD".into()),
-        satpoint: satpoint(1, 0), 
+        satpoint: satpoint(1, 0),
       }
       .to_string(),
       "
@@ -45,7 +45,7 @@ mod tests {
       InscriptionHtml {
         txid: Txid::from_str("ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc").unwrap(),
         inscription: Inscription::Png(vec![1; 100]),
-        satpoint: satpoint(1, 0), 
+        satpoint: satpoint(1, 0),
       }
       .to_string(),
       "

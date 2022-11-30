@@ -466,12 +466,14 @@ impl Index {
       None => return Ok(None),
     };
 
-    let satpoint = decode_satpoint(*self
-      .database
-      .begin_read()?
-      .open_table(INSCRIPTION_ID_TO_SATPOINT)?
-      .get(txid.as_inner())?
-      .ok_or_else(|| anyhow!("no satpoint for inscription"))?);
+    let satpoint = decode_satpoint(
+      *self
+        .database
+        .begin_read()?
+        .open_table(INSCRIPTION_ID_TO_SATPOINT)?
+        .get(txid.as_inner())?
+        .ok_or_else(|| anyhow!("no satpoint for inscription"))?,
+    );
 
     Ok(Some((inscription, satpoint)))
   }
