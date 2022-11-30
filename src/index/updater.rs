@@ -1,5 +1,26 @@
 use {super::*, std::sync::mpsc};
 
+pub(crate) struct BlockData {
+  header: BlockHeader,
+  txdata: Vec<(Transaction, Txid)>,
+}
+
+impl From<Block> for BlockData {
+  fn from(block: Block) -> Self {
+    BlockData {
+      header: block.header,
+      txdata: block
+        .txdata
+        .into_iter()
+        .map(|transaction| {
+          let txid = transaction.txid();
+          (transaction, txid)
+        })
+        .collect(),
+    }
+  }
+}
+
 pub struct Updater {
   cache: HashMap<OutPointArray, Vec<u8>>,
   height: u64,
@@ -137,7 +158,7 @@ impl Updater {
     index: &Index,
     mut height: u64,
     index_ordinals: bool,
-  ) -> Result<mpsc::Receiver<Block>> {
+  ) -> Result<mpsc::Receiver<BlockData>> {
     let (tx, rx) = mpsc::sync_channel(32);
 
     let height_limit = index.height_limit;
@@ -156,7 +177,7 @@ impl Updater {
 
       match Self::get_block_with_retries(&client, height, with_transactions) {
         Ok(Some(block)) => {
-          if let Err(err) = tx.send(block) {
+          if let Err(err) = tx.send(block.into()) {
             log::info!("Block receiver disconnected: {err}");
             break;
           }
@@ -222,7 +243,7 @@ impl Updater {
     &mut self,
     index: &Index,
     wtx: &mut WriteTransaction,
-    block: Block,
+    block: BlockData,
   ) -> Result<()> {
     let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
 
@@ -266,9 +287,7 @@ impl Updater {
         self.ordinal_ranges_since_flush += 1;
       }
 
-      for (tx_offset, tx) in block.txdata.iter().enumerate().skip(1) {
-        let txid = tx.txid();
-
+      for (tx_offset, (tx, txid)) in block.txdata.iter().enumerate().skip(1) {
         log::trace!("Indexing transaction {tx_offset}…");
 
         let mut input_ordinal_ranges = VecDeque::new();
@@ -294,8 +313,8 @@ impl Updater {
         }
 
         self.index_transaction_ordinals(
-          txid,
           tx,
+          *txid,
           &mut ordinal_to_satpoint,
           &mut ordinal_to_inscription_id,
           &mut inscription_id_to_inscription,
@@ -309,10 +328,10 @@ impl Updater {
         coinbase_inputs.extend(input_ordinal_ranges);
       }
 
-      if let Some(tx) = block.coinbase() {
+      if let Some((tx, txid)) = block.txdata.get(0) {
         self.index_transaction_ordinals(
-          tx.txid(),
           tx,
+          *txid,
           &mut ordinal_to_satpoint,
           &mut ordinal_to_inscription_id,
           &mut inscription_id_to_inscription,
@@ -324,9 +343,10 @@ impl Updater {
         )?;
       }
     } else {
-      for tx in &block.txdata {
+      for (tx, txid) in &block.txdata {
         self.index_transaction_inscriptions(
           tx,
+          *txid,
           &mut inscription_id_to_inscription,
           &mut inscription_id_to_satpoint,
           &mut satpoint_to_inscription_id,
@@ -334,7 +354,10 @@ impl Updater {
       }
     }
 
-    height_to_block_hash.insert(&self.height, &block.block_hash().as_hash().into_inner())?;
+    height_to_block_hash.insert(
+      &self.height,
+      &block.header.block_hash().as_hash().into_inner(),
+    )?;
 
     self.height += 1;
     self.outputs_traversed += outputs_in_block;
@@ -350,6 +373,7 @@ impl Updater {
   pub(crate) fn index_transaction_inscriptions(
     &mut self,
     tx: &Transaction,
+    txid: Txid,
     inscription_id_to_inscription: &mut Table<&InscriptionIdArray, str>,
     inscription_id_to_satpoint: &mut Table<&InscriptionIdArray, &SatPointArray>,
     satpoint_to_inscription_id: &mut Table<&SatPointArray, &InscriptionIdArray>,
@@ -359,7 +383,6 @@ impl Updater {
       let json = serde_json::to_string(&inscription)
         .expect("Inscription serialization should always succeed");
 
-      let txid = tx.txid();
       let satpoint = encode_satpoint(SatPoint {
         outpoint: OutPoint { txid, vout: 0 },
         offset: 0,
@@ -389,10 +412,7 @@ impl Updater {
 
       for (_old_satpoint, inscription_id) in inscription_ids {
         let new_satpoint = encode_satpoint(SatPoint {
-          outpoint: OutPoint {
-            txid: tx.txid(),
-            vout: 0,
-          },
+          outpoint: OutPoint { txid, vout: 0 },
           offset: 0,
         });
 
@@ -406,8 +426,8 @@ impl Updater {
 
   pub(crate) fn index_transaction_ordinals(
     &mut self,
-    txid: Txid,
     tx: &Transaction,
+    txid: Txid,
     ordinal_to_satpoint: &mut Table<u64, &SatPointArray>,
     ordinal_to_inscription_id: &mut Table<u64, &InscriptionIdArray>,
     inscription_id_to_inscription: &mut Table<&InscriptionIdArray, str>,
@@ -419,12 +439,13 @@ impl Updater {
   ) -> Result {
     if self.index_transaction_inscriptions(
       tx,
+      txid,
       inscription_id_to_inscription,
       inscription_id_to_satpoint,
       satpoint_to_inscription_id,
     )? {
       if let Some((start, _end)) = input_ordinal_ranges.get(0) {
-        ordinal_to_inscription_id.insert(&start, tx.txid().as_inner())?;
+        ordinal_to_inscription_id.insert(&start, txid.as_inner())?;
       }
     }
 
