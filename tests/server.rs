@@ -40,7 +40,7 @@ fn inscription_page() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
-    "--chain regtest --index-ordinals wallet inscribe --satpoint {txid}:0:0 --file hello.txt"
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file hello.txt"
   ))
   .write("hello.txt", "HELLOWORLD")
   .rpc_server(&rpc_server)
@@ -52,7 +52,19 @@ fn inscription_page() {
   rpc_server.mine_blocks(1);
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
+  ord_server.assert_response_regex(
+    &format!("/inscription/{}", reveal_tx),
+    &format!(
+      ".*<h1>Inscription</h1>
+<dl>
+  <dt>satpoint</dt>
+  <dd>{reveal_tx}:0:0</dd>
+</dl>
+HELLOWORLD.*",
+    ),
+  );
 
+  let ord_server = TestServer::spawn_with_args(&rpc_server, &["--index-ordinals"]);
   ord_server.assert_response_regex(
     &format!("/inscription/{}", reveal_tx),
     &format!(
