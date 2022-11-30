@@ -1,7 +1,6 @@
 use {
   self::updater::Updater,
   super::*,
-  bitcoin::consensus::encode::deserialize,
   bitcoin::BlockHeader,
   bitcoincore_rpc::{json::GetBlockHeaderResult, Auth, Client},
   indicatif::{ProgressBar, ProgressStyle},
@@ -33,6 +32,10 @@ const INSCRIPTION_ID_TO_INSCRIPTION: TableDefinition<&InscriptionIdArray, str> =
   TableDefinition::new("INSCRIPTION_ID_TO_INSCRIPTION");
 const WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP: TableDefinition<u64, u128> =
   TableDefinition::new("WRITE_TRANSACTION_START_BLOCK_COUNT_TO_TIMESTAMP");
+const INSCRIPTION_ID_TO_SATPOINT: TableDefinition<&InscriptionIdArray, &SatPointArray> =
+  TableDefinition::new("INSCRIPTION_ID_TO_SATPOINT");
+const SATPOINT_TO_INSCRIPTION_ID: TableDefinition<&SatPointArray, &InscriptionIdArray> =
+  TableDefinition::new("SATPOINT_TO_INSCRIPTION_ID");
 
 fn encode_outpoint(outpoint: OutPoint) -> OutPointArray {
   let mut array = [0; 36];
@@ -48,6 +51,14 @@ fn encode_satpoint(satpoint: SatPoint) -> SatPointArray {
     .consensus_encode(&mut array.as_mut_slice())
     .unwrap();
   array
+}
+
+fn decode_satpoint(array: SatPointArray) -> SatPoint {
+  Decodable::consensus_decode(&mut io::Cursor::new(array)).unwrap()
+}
+
+fn decode_outpoint(array: OutPointArray) -> OutPoint {
+  Decodable::consensus_decode(&mut io::Cursor::new(array)).unwrap()
 }
 
 pub(crate) struct Index {
@@ -190,10 +201,12 @@ impl Index {
         };
 
         tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
+        tx.open_table(INSCRIPTION_ID_TO_INSCRIPTION)?;
+        tx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
         tx.open_table(ORDINAL_TO_INSCRIPTION_ID)?;
         tx.open_table(ORDINAL_TO_SATPOINT)?;
+        tx.open_table(SATPOINT_TO_INSCRIPTION_ID)?;
         tx.open_table(STATISTIC_TO_COUNT)?;
-        tx.open_table(INSCRIPTION_ID_TO_INSCRIPTION)?;
         tx.open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?;
 
         if options.index_ordinals {
@@ -384,7 +397,7 @@ impl Index {
     let ordinal_to_satpoint = rtx.open_table(ORDINAL_TO_SATPOINT)?;
 
     for (ordinal, satpoint) in ordinal_to_satpoint.range(0..)? {
-      result.push((Ordinal(ordinal), deserialize(satpoint)?));
+      result.push((Ordinal(ordinal), decode_satpoint(*satpoint)));
     }
 
     Ok(result)
@@ -413,7 +426,7 @@ impl Index {
     self.client.get_block(&hash).into_option()
   }
 
-  pub(crate) fn inscription(&self, ordinal: Ordinal) -> Result<Option<Inscription>> {
+  pub(crate) fn get_inscription_by_ordinal(&self, ordinal: Ordinal) -> Result<Option<Inscription>> {
     let db = self.database.begin_read()?;
     let table = db.open_table(ORDINAL_TO_INSCRIPTION_ID)?;
 
@@ -434,18 +447,35 @@ impl Index {
     )
   }
 
-  pub(crate) fn inscription_from_txid(&self, txid: Txid) -> Result<Option<Inscription>> {
-    Ok(
-      self
+  pub(crate) fn get_inscription_by_inscription_id(
+    &self,
+    txid: Txid,
+  ) -> Result<Option<(Inscription, SatPoint)>> {
+    let inscription = self
+      .database
+      .begin_read()?
+      .open_table(INSCRIPTION_ID_TO_INSCRIPTION)?
+      .get(txid.as_inner())?
+      .map(|inscription| {
+        serde_json::from_str(inscription)
+          .expect("failed to deserialize inscription (JSON) from database")
+      });
+
+    let inscription = match inscription {
+      Some(inscription) => inscription,
+      None => return Ok(None),
+    };
+
+    let satpoint = decode_satpoint(
+      *self
         .database
         .begin_read()?
-        .open_table(INSCRIPTION_ID_TO_INSCRIPTION)?
+        .open_table(INSCRIPTION_ID_TO_SATPOINT)?
         .get(txid.as_inner())?
-        .map(|inscription| {
-          serde_json::from_str(inscription)
-            .expect("failed to deserialize inscription (JSON) from database")
-        }),
-    )
+        .ok_or_else(|| anyhow!("no satpoint for inscription"))?,
+    );
+
+    Ok(Some((inscription, satpoint)))
   }
 
   pub(crate) fn transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
@@ -487,7 +517,7 @@ impl Index {
       for chunk in value.chunks_exact(11) {
         let (start, end) = Index::decode_ordinal_range(chunk.try_into().unwrap());
         if start <= ordinal && ordinal < end {
-          let outpoint: OutPoint = deserialize(key.as_slice())?;
+          let outpoint = decode_outpoint(*key);
           return Ok(Some(SatPoint {
             outpoint,
             offset: offset + ordinal - start,
