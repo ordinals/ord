@@ -985,7 +985,6 @@ mod tests {
     let utxos = vec![
       (outpoint(1), Amount::from_sat(100)),
       (outpoint(2), Amount::from_sat(49 * COIN_VALUE)),
-      (outpoint(3), Amount::from_sat(20_000)),
     ];
 
     pretty_assert_eq!(
@@ -996,12 +995,7 @@ mod tests {
         recipient(),
         vec![change(0), change(1)],
       ),
-      Ok(Transaction {
-        version: 1,
-        lock_time: PackedLockTime::ZERO,
-        input: vec![tx_in(outpoint(1)), tx_in(outpoint(3))],
-        output: vec![tx_out(10_000, recipient()), tx_out(9670, change(1))],
-      })
+      Err(Error::NotEnoughCardinalUtxos)
     )
   }
 }
