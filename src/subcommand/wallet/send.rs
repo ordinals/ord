@@ -1,8 +1,26 @@
 use super::*;
 
+#[derive(Debug)]
+enum Reference {
+  SatPoint(SatPoint),
+  InscriptionId(Txid),
+}
+
+impl FromStr for Reference {
+  type Err = Error;
+
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    Ok(if s.len() == 64 {
+      Self::InscriptionId(s.parse()?)
+    } else {
+      Self::SatPoint(s.parse()?)
+    })
+  }
+}
+
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
-  satpoint: SatPoint,
+  reference: Reference,
   address: Address,
 }
 
@@ -27,8 +45,16 @@ impl Send {
 
     let change = get_change_addresses(&options, 2)?;
 
+    let satpoint = match self.reference {
+      Reference::SatPoint(satpoint) => satpoint,
+      Reference::InscriptionId(txid) => match index.get_inscription_by_inscription_id(txid)? {
+        Some((_inscription, satpoint)) => satpoint,
+        None => bail!("No inscription found for {txid}"),
+      },
+    };
+
     let unsigned_transaction = TransactionBuilder::build_transaction(
-      self.satpoint,
+      satpoint,
       inscription_satpoints,
       utxos,
       self.address,

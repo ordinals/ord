@@ -1,5 +1,17 @@
 use super::*;
 
+fn reveal_txid_from_inscribe_stdout(stdout: &str) -> Txid {
+  stdout
+    .lines()
+    .nth(1)
+    .unwrap()
+    .split('\t')
+    .nth(1)
+    .unwrap()
+    .parse()
+    .unwrap()
+}
+
 #[test]
 fn identify() {
   let rpc_server = test_bitcoincore_rpc::spawn();
@@ -62,7 +74,19 @@ fn send_works_on_signet() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
-    "--chain signet wallet send {txid}:0:0 tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw"
+    "--chain signet --index-ordinals wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
+  ))
+  .write("degenerate.png", [1; 520])
+  .rpc_server(&rpc_server)
+  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+  .run();
+
+  let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
+
+  rpc_server.mine_blocks(1);
+
+  let stdout = CommandBuilder::new(format!(
+    "--chain signet wallet send {reveal_txid}:0:0 tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw"
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(r".*")
@@ -70,6 +94,80 @@ fn send_works_on_signet() {
 
   let txid = rpc_server.mempool()[0].txid();
   assert_eq!(format!("{}\n", txid), stdout);
+
+  rpc_server.mine_blocks(1);
+
+  let send_txid = stdout.trim();
+
+  let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
+  ord_server.assert_response_regex(
+    &format!("/inscription/{}", reveal_txid),
+    &format!(
+      ".*<h1>Inscription</h1>
+<dl>
+  <dt>satpoint</dt>
+  <dd>{send_txid}:0:0</dd>
+</dl>
+.*",
+    ),
+  );
+}
+
+#[test]
+fn send_unknown_inscription() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Signet, "ord");
+
+  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+
+  CommandBuilder::new(format!(
+    "--chain signet wallet send {txid} tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw"
+  ))
+  .rpc_server(&rpc_server)
+  .expected_stderr(format!("error: No inscription found for {txid}\n"))
+  .expected_exit_code(1)
+  .run();
+}
+
+#[test]
+fn send_inscribed_sat() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Signet, "ord");
+  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+
+  let stdout = CommandBuilder::new(format!(
+    "--chain signet --index-ordinals wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
+  ))
+  .write("degenerate.png", [1; 520])
+  .rpc_server(&rpc_server)
+  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+  .run();
+
+  rpc_server.mine_blocks(1);
+
+  let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
+
+  let stdout = CommandBuilder::new(format!(
+    "--chain signet wallet send {reveal_txid} tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw"
+  ))
+  .rpc_server(&rpc_server)
+  .stdout_regex("[[:xdigit:]]{64}\n")
+  .run();
+
+  rpc_server.mine_blocks(1);
+
+  let send_txid = stdout.trim();
+
+  let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
+  ord_server.assert_response_regex(
+    &format!("/inscription/{}", reveal_txid),
+    &format!(
+      ".*<h1>Inscription</h1>
+<dl>
+  <dt>satpoint</dt>
+  <dd>{send_txid}:0:0</dd>
+</dl>
+.*",
+    ),
+  );
 }
 
 #[test]
@@ -168,9 +266,10 @@ fn inscribe() {
     ".*<dt>inscription</dt><dd>HELLOWORLD</dd>.*",
   );
 
-  let reveal_txid = stdout.split("reveal\t").collect::<Vec<&str>>()[1];
-  TestServer::spawn_with_args(&rpc_server, &[])
-    .assert_response_regex(&format!("/inscription/{reveal_txid}"), ".*HELLOWORLD.*");
+  TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
+    &format!("/inscription/{}", reveal_txid_from_inscribe_stdout(&stdout)),
+    ".*HELLOWORLD.*",
+  );
 }
 
 #[test]
@@ -252,7 +351,6 @@ fn inscribe_does_not_use_inscribed_sats_as_cardinal_utxos() {
   .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
   .run();
 
-  // let reveal_txid = stdout.split("reveal\t").collect::<Vec<&str>>()[1].trim();
   let txid = rpc_server.mine_blocks_with_subsidy(1, 100)[0].txdata[0].txid();
 
   CommandBuilder::new(format!(
