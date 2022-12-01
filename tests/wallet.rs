@@ -385,3 +385,32 @@ fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
   .expected_stderr("error: wallet does not contain enough cardinal UTXOs, please add additional funds to wallet.\n")
   .run();
 }
+
+#[test]
+fn refuse_to_reinscribe_sats() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+
+  let txid = rpc_server.mine_blocks_with_subsidy(1, 800)[0].txdata[0].txid();
+  let stdout = CommandBuilder::new(format!(
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
+  ))
+  .write("degenerate.png", [1; 100])
+  .rpc_server(&rpc_server)
+  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+  .run();
+
+  let first_inscription_id = reveal_txid_from_inscribe_stdout(&stdout);
+
+  rpc_server.mine_blocks_with_subsidy(1, 100)[0].txdata[0].txid();
+
+  CommandBuilder::new(format!(
+    "--chain regtest wallet inscribe --satpoint {first_inscription_id}:0:0 --file hello.txt"
+  ))
+  .write("hello.txt", "HELLOWORLD")
+  .rpc_server(&rpc_server)
+  .expected_exit_code(1)
+  .expected_stderr(format!(
+    "error: sat at {first_inscription_id}:0:0 already inscribed\n"
+  ))
+  .run();
+}
