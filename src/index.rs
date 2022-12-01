@@ -244,7 +244,7 @@ impl Index {
 
   fn require_ordinal_index(&self, feature: &str) -> Result {
     if !self.has_ordinal_index()? {
-      bail!("{feature} requires `--index-ordinals` flag")
+      bail!("{feature} requires index created with `--index-ordinals` flag")
     }
 
     Ok(())
@@ -377,20 +377,22 @@ impl Index {
     Ok(blocks)
   }
 
-  pub(crate) fn rare_ordinal_satpoints(&self) -> Result<Vec<(Ordinal, SatPoint)>> {
-    self.require_ordinal_index("looking up rare ordinals")?;
+  pub(crate) fn rare_ordinal_satpoints(&self) -> Result<Option<Vec<(Ordinal, SatPoint)>>> {
+    if self.has_ordinal_index()? {
+      let mut result = Vec::new();
 
-    let mut result = Vec::new();
+      let rtx = self.database.begin_read()?;
 
-    let rtx = self.database.begin_read()?;
+      let ordinal_to_satpoint = rtx.open_table(ORDINAL_TO_SATPOINT)?;
 
-    let ordinal_to_satpoint = rtx.open_table(ORDINAL_TO_SATPOINT)?;
+      for (ordinal, satpoint) in ordinal_to_satpoint.range(0..)? {
+        result.push((Ordinal(ordinal), decode_satpoint(*satpoint)));
+      }
 
-    for (ordinal, satpoint) in ordinal_to_satpoint.range(0..)? {
-      result.push((Ordinal(ordinal), decode_satpoint(*satpoint)));
+      Ok(Some(result))
+    } else {
+      Ok(None)
     }
-
-    Ok(result)
   }
 
   pub(crate) fn block_header(&self, hash: BlockHash) -> Result<Option<BlockHeader>> {
