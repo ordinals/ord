@@ -11,7 +11,7 @@ use {
   std::str::{self, Utf8Error},
 };
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq)]
 pub(crate) enum Inscription {
   Text(String),
   Png(Vec<u8>),
