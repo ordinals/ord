@@ -244,7 +244,7 @@ impl Index {
 
   fn require_ordinal_index(&self, feature: &str) -> Result {
     if !self.has_ordinal_index()? {
-      bail!("{feature} requires `--index-ordinals` flag")
+      bail!("{feature} requires index created with `--index-ordinals` flag")
     }
 
     Ok(())

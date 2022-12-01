@@ -22,3 +22,13 @@ fn output_not_found() {
   .expected_stderr("error: output not found\n")
   .run();
 }
+
+#[test]
+fn no_ordinal_index() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  CommandBuilder::new("list 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0")
+    .rpc_server(&rpc_server)
+    .expected_stderr("error: list requires index created with `--index-ordinals` flag\n")
+    .expected_exit_code(1)
+    .run();
+}
