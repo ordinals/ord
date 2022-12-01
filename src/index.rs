@@ -6,7 +6,7 @@ use {
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
   redb::{Database, ReadableTable, Table, TableDefinition, WriteStrategy, WriteTransaction},
-  std::collections::{BTreeSet, HashMap},
+  std::collections::HashMap,
   std::sync::atomic::{AtomicBool, Ordering},
 };
 
@@ -592,53 +592,37 @@ impl Index {
     }
   }
 
-  pub(crate) fn remove_bearer_ordinals(
+  pub(crate) fn remove_inscribed_utxos(
     &self,
-    utxos: Vec<(OutPoint, Vec<(u64, u64)>)>,
-    ordinal_to_inscribe: Ordinal,
-  ) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
+    utxos: BTreeMap<OutPoint, Amount>,
+    user_satpoint: SatPoint,
+  ) -> Result<BTreeMap<OutPoint, Amount>> {
     let rtx = self.database.begin_read()?;
-
-    let mut ranges = utxos
-      .clone()
-      .into_iter()
-      .flat_map(|(outpoint, ranges)| {
-        ranges
-          .into_iter()
-          .map(move |(start, end)| (start, end, outpoint))
-      })
-      .collect::<Vec<(u64, u64, OutPoint)>>();
-    ranges.sort();
-
-    let mut range = 0;
-    let mut bearer_ordinal_utxos: BTreeSet<OutPoint> = BTreeSet::new();
-
-    for (ordinal, _txid) in rtx.open_table(ORDINAL_TO_INSCRIPTION_TXID)?.range(0..)? {
-      while range < ranges.len() {
-        let (start, end, outpoint) = ranges[range];
-
-        if ordinal >= start && ordinal < end {
-          bearer_ordinal_utxos.insert(outpoint);
-          if Ordinal(ordinal) == ordinal_to_inscribe {
-            return Err(anyhow!["trying to inscribe already inscribed ordinal"]);
-          }
-          break;
-        }
-
-        if ordinal >= end {
-          range += 1;
-        }
-      }
-
-      if range >= ranges.len() {
-        break;
-      }
-    }
+    let satpoint_to_inscription_id = rtx.open_table(SATPOINT_TO_INSCRIPTION_ID)?;
 
     Ok(
       utxos
         .into_iter()
-        .filter(|(outpoint, _)| !bearer_ordinal_utxos.contains(outpoint))
+        .filter(|(outpoint, _amount)| {
+          let satpoint = SatPoint {
+            outpoint: *outpoint,
+            offset: 0,
+          };
+
+          // how to propagate result/err up?
+          match satpoint_to_inscription_id
+            .get(&encode_satpoint(satpoint))
+            .unwrap()
+          {
+            None => true,
+            Some(_) => {
+              if satpoint == user_satpoint {
+                // anyhow!("trying to inscribe already inscribed satpoint")
+              }
+              false
+            }
+          }
+        })
         .collect(),
     )
   }

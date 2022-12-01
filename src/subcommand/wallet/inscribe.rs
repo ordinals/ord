@@ -29,10 +29,7 @@ impl Inscribe {
     let index = Index::open(&options)?;
     index.update()?;
 
-    let utxos = list_utxos(&options)?;
-
-    // let utxos = index.remove_bearer_ordinals(list_unspent(&options, &index)?)?;
-    dbg!(&utxos);
+    let utxos = index.remove_inscribed_utxos(list_utxos(&options)?, self.satpoint)?;
 
     let commit_tx_change = get_change_addresses(&options, 2)?;
 
