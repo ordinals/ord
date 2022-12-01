@@ -1,12 +1,12 @@
 use super::*;
 
 #[derive(Debug, Parser)]
-pub(crate) struct ListOrdinals {
-  #[clap(help = "List ordinal ranges in <OUTPOINT>.")]
+pub(crate) struct List {
+  #[clap(help = "List ordinals in <OUTPOINT>.")]
   outpoint: OutPoint,
 }
 
-impl ListOrdinals {
+impl List {
   pub(crate) fn run(self, options: Options) -> Result {
     let index = Index::open(&options)?;
 

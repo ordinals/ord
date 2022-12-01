@@ -39,7 +39,7 @@ mod expected;
 mod find;
 mod index;
 mod info;
-mod list_ordinals;
+mod list;
 mod parse;
 mod server;
 mod subsidy;

@@ -4,7 +4,7 @@ mod epochs;
 mod find;
 mod index;
 mod info;
-mod list_ordinals;
+mod list;
 mod parse;
 mod server;
 mod subsidy;
@@ -18,7 +18,7 @@ pub(crate) enum Subcommand {
   Find(find::Find),
   Index,
   Info(info::Info),
-  List(list_ordinals::ListOrdinals),
+  List(list::List),
   Parse(parse::Parse),
   Subsidy(subsidy::Subsidy),
   Server(server::Server),
@@ -28,12 +28,6 @@ pub(crate) enum Subcommand {
   Wallet(wallet::Wallet),
 }
 
-// ord find
-// ord wallet
-// ord wallet identify
-// ord wallet send
-// ord wallet inscribe
-
 impl Subcommand {
   pub(crate) fn run(self, options: Options) -> Result {
     match self {
@@ -41,7 +35,7 @@ impl Subcommand {
       Self::Find(find) => find.run(options),
       Self::Index => index::run(options),
       Self::Info(info) => info.run(options),
-      Self::List(list_ordinals) => list_ordinals.run(options),
+      Self::List(list) => list.run(options),
       Self::Parse(parse) => parse.run(),
       Self::Subsidy(subsidy) => subsidy.run(),
       Self::Server(server) => {
