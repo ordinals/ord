@@ -4,7 +4,7 @@ mod epochs;
 mod find;
 mod index;
 mod info;
-mod list_ranges;
+mod list_ordinals;
 mod parse;
 mod range;
 mod server;
@@ -18,7 +18,7 @@ pub(crate) enum Subcommand {
   Find(find::Find),
   Index,
   Info(info::Info),
-  ListRanges(list_ranges::ListRanges),
+  ListOrdinals(list_ordinals::ListOrdinals),
   Parse(parse::Parse),
   Range(range::Range),
   Server(server::Server),
@@ -35,7 +35,7 @@ impl Subcommand {
       Self::Find(find) => find.run(options),
       Self::Index => index::run(options),
       Self::Info(info) => info.run(options),
-      Self::ListRanges(list_ranges) => list_ranges.run(options),
+      Self::ListOrdinals(list_ordinals) => list_ordinals.run(options),
       Self::Parse(parse) => parse.run(),
       Self::Range(range) => range.run(),
       Self::Server(server) => {
