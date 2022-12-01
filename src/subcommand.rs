@@ -6,8 +6,8 @@ mod index;
 mod info;
 mod list_ordinals;
 mod parse;
-mod range;
 mod server;
+mod subsidy;
 mod supply;
 mod traits;
 mod wallet;
@@ -20,7 +20,7 @@ pub(crate) enum Subcommand {
   Info(info::Info),
   ListOrdinals(list_ordinals::ListOrdinals),
   Parse(parse::Parse),
-  Range(range::Range),
+  Subsidy(subsidy::Subsidy),
   Server(server::Server),
   Supply,
   Traits(traits::Traits),
@@ -37,7 +37,7 @@ impl Subcommand {
       Self::Info(info) => info.run(options),
       Self::ListOrdinals(list_ordinals) => list_ordinals.run(options),
       Self::Parse(parse) => parse.run(),
-      Self::Range(range) => range.run(),
+      Self::Subsidy(subsidy) => subsidy.run(),
       Self::Server(server) => {
         let index = Arc::new(Index::open(&options)?);
         let handle = axum_server::Handle::new();
