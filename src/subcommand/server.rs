@@ -391,7 +391,11 @@ impl Server {
         .map_err(|err| {
           ServerError::Internal(anyhow!("error getting rare ordinal satpoints: {err}"))
         })?
-        .ok_or_else(|| ServerError::NotFound(format!("index not tracking ordinals")))?,
+        .ok_or_else(|| {
+          ServerError::NotFound(
+            "tracking rare ordinals requires index created with `--index-ordinals` flag".into(),
+          )
+        })?,
     ))
   }
 
@@ -1353,13 +1357,22 @@ next.*",
   }
 
   #[test]
-  fn rare() {
+  fn rare_with_index() {
     TestServer::new_with_args(&["--index-ordinals"]).assert_response(
       "/rare.txt",
       StatusCode::OK,
       "ordinal\tsatpoint
 0\t4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0
 ",
+    );
+  }
+
+  #[test]
+  fn rare_without_index() {
+    TestServer::new_with_args(&[]).assert_response(
+      "/rare.txt",
+      StatusCode::NOT_FOUND,
+      "tracking rare ordinals requires index created with `--index-ordinals` flag",
     );
   }
 
