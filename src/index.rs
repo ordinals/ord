@@ -28,8 +28,6 @@ const ORDINAL_TO_SATPOINT: TableDefinition<u64, &SatPointArray> =
 const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<&OutPointArray, [u8]> =
   TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
 const STATISTIC_TO_COUNT: TableDefinition<u64, u64> = TableDefinition::new("STATISTIC_TO_COUNT");
-const INSCRIPTION_ID_TO_INSCRIPTION: TableDefinition<&InscriptionIdArray, str> =
-  TableDefinition::new("INSCRIPTION_ID_TO_INSCRIPTION");
 const WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP: TableDefinition<u64, u128> =
   TableDefinition::new("WRITE_TRANSACTION_START_BLOCK_COUNT_TO_TIMESTAMP");
 const INSCRIPTION_ID_TO_SATPOINT: TableDefinition<&InscriptionIdArray, &SatPointArray> =
@@ -201,7 +199,6 @@ impl Index {
         };
 
         tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
-        tx.open_table(INSCRIPTION_ID_TO_INSCRIPTION)?;
         tx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
         tx.open_table(ORDINAL_TO_INSCRIPTION_ID)?;
         tx.open_table(ORDINAL_TO_SATPOINT)?;
@@ -429,14 +426,8 @@ impl Index {
 
     Ok(
       self
-        .database
-        .begin_read()?
-        .open_table(INSCRIPTION_ID_TO_INSCRIPTION)?
-        .get(txid)?
-        .map(|inscription| {
-          serde_json::from_str(inscription)
-            .expect("failed to deserialize inscription (JSON) from database")
-        }),
+        .get_inscription_by_inscription_id(Txid::from_inner(*txid))?
+        .map(|(inscription, _)| inscription),
     )
   }
 
@@ -444,19 +435,8 @@ impl Index {
     &self,
     txid: Txid,
   ) -> Result<Option<(Inscription, SatPoint)>> {
-    let inscription = self
-      .database
-      .begin_read()?
-      .open_table(INSCRIPTION_ID_TO_INSCRIPTION)?
-      .get(txid.as_inner())?
-      .map(|inscription| {
-        serde_json::from_str(inscription)
-          .expect("failed to deserialize inscription (JSON) from database")
-      });
-
-    let inscription = match inscription {
-      Some(inscription) => inscription,
-      None => return Ok(None),
+    let Some(inscription) = self.get_transaction(txid)?.and_then(|tx| Inscription::from_transaction(&tx)) else {
+      return Ok(None);
     };
 
     let satpoint = decode_satpoint(
@@ -471,7 +451,7 @@ impl Index {
     Ok(Some((inscription, satpoint)))
   }
 
-  pub(crate) fn transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
+  pub(crate) fn get_transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
     if txid == self.genesis_block_coinbase_txid {
       Ok(Some(self.genesis_block_coinbase_transaction.clone()))
     } else {

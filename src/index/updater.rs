@@ -269,7 +269,6 @@ impl Updater {
       }
     }
 
-    let mut inscription_id_to_inscription = wtx.open_table(INSCRIPTION_ID_TO_INSCRIPTION)?;
     let mut inscription_id_to_satpoint = wtx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
     let mut satpoint_to_inscription_id = wtx.open_table(SATPOINT_TO_INSCRIPTION_ID)?;
 
@@ -317,7 +316,6 @@ impl Updater {
           *txid,
           &mut ordinal_to_satpoint,
           &mut ordinal_to_inscription_id,
-          &mut inscription_id_to_inscription,
           &mut inscription_id_to_satpoint,
           &mut satpoint_to_inscription_id,
           &mut input_ordinal_ranges,
@@ -334,7 +332,6 @@ impl Updater {
           *txid,
           &mut ordinal_to_satpoint,
           &mut ordinal_to_inscription_id,
-          &mut inscription_id_to_inscription,
           &mut inscription_id_to_satpoint,
           &mut satpoint_to_inscription_id,
           &mut coinbase_inputs,
@@ -347,7 +344,6 @@ impl Updater {
         self.index_transaction_inscriptions(
           tx,
           *txid,
-          &mut inscription_id_to_inscription,
           &mut inscription_id_to_satpoint,
           &mut satpoint_to_inscription_id,
         )?;
@@ -374,21 +370,17 @@ impl Updater {
     &mut self,
     tx: &Transaction,
     txid: Txid,
-    inscription_id_to_inscription: &mut Table<&InscriptionIdArray, str>,
     inscription_id_to_satpoint: &mut Table<&InscriptionIdArray, &SatPointArray>,
     satpoint_to_inscription_id: &mut Table<&SatPointArray, &InscriptionIdArray>,
   ) -> Result<bool> {
-    let inscription = Inscription::from_transaction(tx);
-    if let Some(inscription) = &inscription {
-      let json = serde_json::to_string(&inscription)
-        .expect("Inscription serialization should always succeed");
+    let inscribed = Inscription::from_transaction(tx).is_some();
 
+    if inscribed {
       let satpoint = encode_satpoint(SatPoint {
         outpoint: OutPoint { txid, vout: 0 },
         offset: 0,
       });
 
-      inscription_id_to_inscription.insert(txid.as_inner(), &json)?;
       inscription_id_to_satpoint.insert(txid.as_inner(), &satpoint)?;
       satpoint_to_inscription_id.insert(&satpoint, txid.as_inner())?;
     };
@@ -421,7 +413,7 @@ impl Updater {
       }
     }
 
-    Ok(inscription.is_some())
+    Ok(inscribed)
   }
 
   pub(crate) fn index_transaction_ordinals(
@@ -430,7 +422,6 @@ impl Updater {
     txid: Txid,
     ordinal_to_satpoint: &mut Table<u64, &SatPointArray>,
     ordinal_to_inscription_id: &mut Table<u64, &InscriptionIdArray>,
-    inscription_id_to_inscription: &mut Table<&InscriptionIdArray, str>,
     inscription_id_to_satpoint: &mut Table<&InscriptionIdArray, &SatPointArray>,
     satpoint_to_inscription_id: &mut Table<&SatPointArray, &InscriptionIdArray>,
     input_ordinal_ranges: &mut VecDeque<(u64, u64)>,
@@ -440,7 +431,6 @@ impl Updater {
     if self.index_transaction_inscriptions(
       tx,
       txid,
-      inscription_id_to_inscription,
       inscription_id_to_satpoint,
       satpoint_to_inscription_id,
     )? {

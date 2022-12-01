@@ -333,7 +333,7 @@ impl Server {
     Path(outpoint): Path<OutPoint>,
   ) -> ServerResult<PageHtml> {
     let output = index
-      .transaction(outpoint.txid)
+      .get_transaction(outpoint.txid)
       .map_err(ServerError::Internal)?
       .ok_or_else(|| ServerError::NotFound(format!("output {outpoint} unknown")))?
       .output
@@ -464,7 +464,7 @@ impl Server {
     Ok(
       TransactionHtml::new(
         index
-          .transaction(txid)
+          .get_transaction(txid)
           .map_err(|err| {
             ServerError::Internal(anyhow!(
               "error serving request for transaction {txid}: {err}"
