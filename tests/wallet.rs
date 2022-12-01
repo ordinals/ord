@@ -73,6 +73,21 @@ fn send_works_on_signet() {
 }
 
 #[test]
+fn send_unknown_inscription() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Signet, "ord");
+
+  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+
+  CommandBuilder::new(format!(
+    "--chain signet wallet send {txid} tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw"
+  ))
+  .rpc_server(&rpc_server)
+  .expected_stderr(format!("error: No inscription found for {txid}\n"))
+  .expected_exit_code(1)
+  .run();
+}
+
+#[test]
 fn send_on_mainnnet_refuses_to_work_with_wallet_name_foo() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "foo");
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
