@@ -385,9 +385,14 @@ impl Server {
   }
 
   async fn rare_txt(Extension(index): Extension<Arc<Index>>) -> ServerResult<RareTxt> {
-    Ok(RareTxt(index.rare_ordinal_satpoints().map_err(|err| {
-      ServerError::Internal(anyhow!("error getting rare ordinal satpoints: {err}"))
-    })?))
+    Ok(RareTxt(
+      index
+        .rare_ordinal_satpoints()
+        .map_err(|err| {
+          ServerError::Internal(anyhow!("error getting rare ordinal satpoints: {err}"))
+        })?
+        .ok_or_else(|| ServerError::NotFound(format!("index not tracking ordinals")))?,
+    ))
   }
 
   async fn home(
