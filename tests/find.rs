@@ -18,3 +18,13 @@ fn unmined_ordinal() {
     .expected_exit_code(1)
     .run();
 }
+
+#[test]
+fn no_ordinal_index() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  CommandBuilder::new("find 0")
+    .rpc_server(&rpc_server)
+    .expected_stderr("error: find requires index created with `--index-ordinals` flag\n")
+    .expected_exit_code(1)
+    .run();
+}
