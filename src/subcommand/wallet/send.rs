@@ -20,7 +20,7 @@ impl FromStr for Reference {
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
-  satpoint: Reference,
+  reference: Reference,
   address: Address,
 }
 
@@ -45,7 +45,7 @@ impl Send {
 
     let change = get_change_addresses(&options, 2)?;
 
-    let satpoint = match self.satpoint {
+    let satpoint = match self.reference {
       Reference::SatPoint(satpoint) => satpoint,
       Reference::InscriptionId(txid) => match index.get_inscription_by_inscription_id(txid)? {
         Some((_inscription, satpoint)) => satpoint,
