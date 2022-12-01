@@ -239,31 +239,3 @@ fn inscribe_exceeds_push_byte_limit() {
   .expected_stderr("error: file size exceeds 520 bytes\n")
   .run();
 }
-
-#[test]
-fn do_not_allow_inscription_of_already_inscribed_satpoint() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
-  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
-
-  let stdout = CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
-  ))
-  .write("degenerate.png", [1; 100])
-  .rpc_server(&rpc_server)
-  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-  .run();
-
-  let reveal_txid = stdout.split("reveal\t").collect::<Vec<&str>>()[1].trim();
-
-  rpc_server.mine_blocks(1);
-
-  CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {reveal_txid}:0:0 --file hello.txt"
-  ))
-  .write("hello.txt", "HELLOWORLD")
-  .rpc_server(&rpc_server)
-  .expected_exit_code(1)
-  .stderr_regex(".*not in wallet\n")
-  // .stderr_regex("error: trying to inscribe already inscribed satpoint\n")
-  .run();
-}

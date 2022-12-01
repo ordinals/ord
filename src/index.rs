@@ -592,37 +592,14 @@ impl Index {
     }
   }
 
-  pub(crate) fn remove_inscribed_utxos(
-    &self,
-    utxos: BTreeMap<OutPoint, Amount>,
-    user_satpoint: SatPoint,
-  ) -> Result<BTreeMap<OutPoint, Amount>> {
-    let rtx = self.database.begin_read()?;
-    let satpoint_to_inscription_id = rtx.open_table(SATPOINT_TO_INSCRIPTION_ID)?;
-
+  pub(crate) fn get_inscription_satpoints(&self) -> Result<Vec<SatPoint>> {
     Ok(
-      utxos
-        .into_iter()
-        .filter(|(outpoint, _amount)| {
-          let satpoint = SatPoint {
-            outpoint: *outpoint,
-            offset: 0,
-          };
-
-          // how to propagate result/err up?
-          match satpoint_to_inscription_id
-            .get(&encode_satpoint(satpoint))
-            .unwrap()
-          {
-            None => true,
-            Some(_) => {
-              if satpoint == user_satpoint {
-                // anyhow!("trying to inscribe already inscribed satpoint")
-              }
-              false
-            }
-          }
-        })
+      self
+        .database
+        .begin_read()?
+        .open_table(SATPOINT_TO_INSCRIPTION_ID)?
+        .range([0; 44]..)?
+        .map(|(satpoint, _id)| decode_satpoint(*satpoint))
         .collect(),
     )
   }

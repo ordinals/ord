@@ -29,7 +29,9 @@ impl Inscribe {
     let index = Index::open(&options)?;
     index.update()?;
 
-    let utxos = index.remove_inscribed_utxos(list_utxos(&options)?, self.satpoint)?;
+    let utxos = list_utxos(&options)?;
+
+    let inscription_satpoints = index.get_inscription_satpoints()?;
 
     let commit_tx_change = get_change_addresses(&options, 2)?;
 
@@ -38,6 +40,7 @@ impl Inscribe {
     let (unsigned_commit_tx, reveal_tx) = Inscribe::create_inscription_transactions(
       self.satpoint,
       inscription,
+      inscription_satpoints,
       options.chain.network(),
       utxos,
       commit_tx_change,
@@ -64,6 +67,7 @@ impl Inscribe {
   fn create_inscription_transactions(
     satpoint: SatPoint,
     inscription: Inscription,
+    inscription_satpoints: Vec<SatPoint>,
     network: bitcoin::Network,
     utxos: BTreeMap<OutPoint, Amount>,
     change: Vec<Address>,
@@ -95,8 +99,13 @@ impl Inscribe {
 
     let commit_tx_address = Address::p2tr_tweaked(taproot_spend_info.output_key(), network);
 
-    let unsigned_commit_tx =
-      TransactionBuilder::build_transaction(satpoint, utxos, commit_tx_address.clone(), change)?;
+    let unsigned_commit_tx = TransactionBuilder::build_transaction(
+      satpoint,
+      inscription_satpoints,
+      utxos,
+      commit_tx_address.clone(),
+      change,
+    )?;
 
     let (vout, output) = unsigned_commit_tx
       .output
@@ -188,6 +197,7 @@ mod tests {
     let (commit_tx, reveal_tx) = Inscribe::create_inscription_transactions(
       satpoint(1, 0),
       inscription,
+      vec![],
       bitcoin::Network::Signet,
       utxos.into_iter().collect(),
       vec![commit_address, change(1)],
@@ -214,6 +224,7 @@ mod tests {
     assert!(Inscribe::create_inscription_transactions(
       satpoint,
       inscription,
+      vec![],
       bitcoin::Network::Signet,
       utxos.into_iter().collect(),
       vec![commit_address, change(1)],
@@ -235,6 +246,7 @@ mod tests {
     let error = Inscribe::create_inscription_transactions(
       satpoint,
       inscription,
+      vec![],
       bitcoin::Network::Signet,
       utxos.into_iter().collect(),
       vec![commit_address, change(1)],

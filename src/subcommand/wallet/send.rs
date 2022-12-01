@@ -18,12 +18,22 @@ impl Send {
       );
     }
 
+    let index = Index::open(&options)?;
+    index.update()?;
+
     let utxos = list_utxos(&options)?;
+
+    let inscription_satpoints = index.get_inscription_satpoints()?;
 
     let change = get_change_addresses(&options, 2)?;
 
-    let unsigned_transaction =
-      TransactionBuilder::build_transaction(self.satpoint, utxos, self.address, change)?;
+    let unsigned_transaction = TransactionBuilder::build_transaction(
+      self.satpoint,
+      inscription_satpoints,
+      utxos,
+      self.address,
+      change,
+    )?;
 
     let signed_tx = client
       .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
