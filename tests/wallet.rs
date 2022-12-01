@@ -244,7 +244,7 @@ fn inscribe_exceeds_push_byte_limit() {
 fn inscribe_does_not_use_inscribed_sats_as_cardinal_utxos() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
   let txid = rpc_server.mine_blocks_with_subsidy(1, 800)[0].txdata[0].txid();
-  let stdout = CommandBuilder::new(format!(
+  CommandBuilder::new(format!(
     "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
   ))
   .write("degenerate.png", [1; 100])
@@ -269,7 +269,7 @@ fn inscribe_does_not_use_inscribed_sats_as_cardinal_utxos() {
 fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
   let txid = rpc_server.mine_blocks_with_subsidy(1, 800)[0].txdata[0].txid();
-  let stdout = CommandBuilder::new(format!(
+  CommandBuilder::new(format!(
     "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
   ))
   .write("degenerate.png", [1; 100])
