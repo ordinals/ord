@@ -57,6 +57,7 @@ pub(crate) struct TransactionBuilder {
   amounts: BTreeMap<OutPoint, Amount>,
   change_addresses: BTreeSet<Address>,
   inputs: Vec<OutPoint>,
+  inscription_satpoints: Vec<SatPoint>,
   outputs: Vec<(Address, Amount)>,
   recipient: Address,
   satpoint: SatPoint,
@@ -73,11 +74,12 @@ impl TransactionBuilder {
 
   pub(crate) fn build_transaction(
     satpoint: SatPoint,
+    inscription_satpoints: Vec<SatPoint>,
     amounts: BTreeMap<OutPoint, Amount>,
     recipient: Address,
     change: Vec<Address>,
   ) -> Result<Transaction> {
-    Self::new(satpoint, amounts, recipient, change)
+    Self::new(satpoint, inscription_satpoints, amounts, recipient, change)
       .select_ordinal()?
       .align_ordinal()
       .pad_alignment_output()?
@@ -89,6 +91,7 @@ impl TransactionBuilder {
 
   fn new(
     satpoint: SatPoint,
+    inscription_satpoints: Vec<SatPoint>,
     amounts: BTreeMap<OutPoint, Amount>,
     recipient: Address,
     change: Vec<Address>,
@@ -98,6 +101,7 @@ impl TransactionBuilder {
       amounts,
       change_addresses: change.iter().cloned().collect(),
       inputs: Vec::new(),
+      inscription_satpoints,
       outputs: Vec::new(),
       recipient,
       satpoint,
@@ -429,7 +433,17 @@ impl TransactionBuilder {
   fn select_cardinal_utxo(&mut self, minimum_amount: Amount) -> Result<(OutPoint, Amount)> {
     let mut found = None;
 
+    let inscribed_utxos = self
+      .inscription_satpoints
+      .iter()
+      .map(|satpoint| satpoint.outpoint)
+      .collect::<BTreeSet<OutPoint>>();
+
     for utxo in &self.utxos {
+      if inscribed_utxos.contains(utxo) {
+        continue;
+      }
+
       let amount = self.amounts[utxo];
 
       if amount >= minimum_amount {
@@ -460,6 +474,7 @@ mod tests {
 
     let tx_builder = TransactionBuilder::new(
       satpoint(2, 0),
+      vec![],
       utxos.clone().into_iter().collect(),
       recipient(),
       vec![change(0), change(1)],
@@ -493,6 +508,7 @@ mod tests {
       amounts,
       utxos: BTreeSet::new(),
       satpoint: satpoint(1, 0),
+      inscription_satpoints: vec![],
       recipient: recipient(),
       unused_change_addresses: vec![change(0), change(1)],
       change_addresses: vec![change(0), change(1)].into_iter().collect(),
@@ -526,6 +542,7 @@ mod tests {
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
         satpoint(1, 0),
+        vec![],
         utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1)],
@@ -546,6 +563,7 @@ mod tests {
 
     TransactionBuilder::new(
       satpoint(1, 4_950),
+      vec![],
       utxos.into_iter().collect(),
       recipient(),
       vec![change(0), change(1)],
@@ -567,6 +585,7 @@ mod tests {
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
         satpoint(1, 4_950),
+        vec![],
         utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1)],
@@ -587,6 +606,7 @@ mod tests {
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
         satpoint(1, 4_950),
+        vec![],
         utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1)],
@@ -605,6 +625,7 @@ mod tests {
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
         satpoint(1, 4_950),
+        vec![],
         utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1)],
@@ -623,6 +644,7 @@ mod tests {
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
         satpoint(1, 4_950),
+        vec![],
         utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1)],
@@ -645,6 +667,7 @@ mod tests {
   fn invariant_satpoint_outpoint_is_contained_in_utxos() {
     TransactionBuilder::new(
       satpoint(2, 0),
+      vec![],
       vec![(outpoint(1), Amount::from_sat(4))]
         .into_iter()
         .collect(),
@@ -660,6 +683,7 @@ mod tests {
   fn invariant_satpoint_offset_is_contained_in_utxos() {
     TransactionBuilder::new(
       satpoint(1, 4),
+      vec![],
       vec![(outpoint(1), Amount::from_sat(4))]
         .into_iter()
         .collect(),
@@ -675,6 +699,7 @@ mod tests {
   fn invariant_inputs_spend_ordinal() {
     TransactionBuilder::new(
       satpoint(1, 2),
+      vec![],
       vec![(outpoint(1), Amount::from_sat(5))]
         .into_iter()
         .collect(),
@@ -690,6 +715,7 @@ mod tests {
   fn invariant_ordinal_is_sent_to_recipient() {
     let mut builder = TransactionBuilder::new(
       satpoint(1, 2),
+      vec![],
       vec![(outpoint(1), Amount::from_sat(5))]
         .into_iter()
         .collect(),
@@ -711,6 +737,7 @@ mod tests {
   fn invariant_ordinal_is_found_in_outputs() {
     let mut builder = TransactionBuilder::new(
       satpoint(1, 2),
+      vec![],
       vec![(outpoint(1), Amount::from_sat(5))]
         .into_iter()
         .collect(),
@@ -732,6 +759,7 @@ mod tests {
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
         satpoint(1, 0),
+        vec![],
         utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1)]
@@ -755,6 +783,7 @@ mod tests {
 
     TransactionBuilder::new(
       satpoint(1, 0),
+      vec![],
       utxos.into_iter().collect(),
       recipient(),
       vec![change(0), change(1)],
@@ -772,6 +801,7 @@ mod tests {
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
         satpoint(1, 3_333),
+        vec![],
         utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1)]
@@ -795,6 +825,7 @@ mod tests {
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
         satpoint(1, 1),
+        vec![],
         utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1)]
@@ -815,6 +846,7 @@ mod tests {
 
     let mut builder = TransactionBuilder::new(
       satpoint(1, 3_333),
+      vec![],
       utxos.into_iter().collect(),
       recipient(),
       vec![change(0), change(1)],
@@ -839,6 +871,7 @@ mod tests {
 
     TransactionBuilder::new(
       satpoint(1, 1),
+      vec![],
       utxos.into_iter().collect(),
       recipient(),
       vec![change(0), change(1)],
@@ -861,6 +894,7 @@ mod tests {
 
     TransactionBuilder::new(
       satpoint(1, 3_333),
+      vec![],
       utxos.into_iter().collect(),
       recipient(),
       vec![change(0), change(1)],
@@ -880,6 +914,7 @@ mod tests {
 
     TransactionBuilder::new(
       satpoint(1, 0),
+      vec![],
       utxos.into_iter().collect(),
       recipient(),
       vec![change(0), change(1)],
@@ -903,6 +938,7 @@ mod tests {
       amounts,
       utxos: BTreeSet::new(),
       satpoint: satpoint(1, 0),
+      inscription_satpoints: vec![],
       recipient: recipient(),
       unused_change_addresses: vec![change(0), change(1)],
       change_addresses: vec![change(0), change(1)].into_iter().collect(),
@@ -929,6 +965,7 @@ mod tests {
       amounts,
       utxos: BTreeSet::new(),
       satpoint: satpoint(1, 0),
+      inscription_satpoints: vec![],
       recipient: recipient(),
       unused_change_addresses: vec![change(0), change(1)],
       change_addresses: vec![change(0), change(1)].into_iter().collect(),
@@ -941,5 +978,24 @@ mod tests {
     }
     .build()
     .unwrap();
+  }
+
+  #[test]
+  fn do_not_select_already_inscribed_sats_for_cardinal_utxos() {
+    let utxos = vec![
+      (outpoint(1), Amount::from_sat(100)),
+      (outpoint(2), Amount::from_sat(49 * COIN_VALUE)),
+    ];
+
+    pretty_assert_eq!(
+      TransactionBuilder::build_transaction(
+        satpoint(1, 0),
+        vec![satpoint(2, 10 * COIN_VALUE)],
+        utxos.into_iter().collect(),
+        recipient(),
+        vec![change(0), change(1)],
+      ),
+      Err(Error::NotEnoughCardinalUtxos)
+    )
   }
 }

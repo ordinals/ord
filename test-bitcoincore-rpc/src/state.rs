@@ -8,6 +8,7 @@ pub(crate) struct State {
   pub(crate) nonce: u32,
   pub(crate) transactions: BTreeMap<Txid, Transaction>,
   pub(crate) wallet_name: String,
+  pub(crate) utxos: BTreeMap<OutPoint, Amount>,
 }
 
 impl State {
@@ -28,6 +29,7 @@ impl State {
       nonce: 0,
       transactions: BTreeMap::new(),
       wallet_name: wallet_name.to_string(),
+      utxos: BTreeMap::new(),
     }
   }
 
@@ -83,6 +85,22 @@ impl State {
         .chain(self.mempool.drain(0..))
         .collect(),
     };
+
+    for tx in block.txdata.iter() {
+      for input in tx.input.iter() {
+        self.utxos.remove(&input.previous_output);
+      }
+
+      for (vout, txout) in tx.output.iter().enumerate() {
+        self.utxos.insert(
+          OutPoint {
+            txid: tx.txid(),
+            vout: vout.try_into().unwrap(),
+          },
+          Amount::from_sat(txout.value),
+        );
+      }
+    }
 
     self.blocks.insert(block.block_hash(), block.clone());
     self.hashes.push(block.block_hash());

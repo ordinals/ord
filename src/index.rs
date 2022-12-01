@@ -584,6 +584,18 @@ impl Index {
       }
     }
   }
+
+  pub(crate) fn get_inscription_satpoints(&self) -> Result<Vec<SatPoint>> {
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(SATPOINT_TO_INSCRIPTION_ID)?
+        .range([0; 44]..)?
+        .map(|(satpoint, _id)| decode_satpoint(*satpoint))
+        .collect(),
+    )
+  }
 }
 
 #[cfg(test)]

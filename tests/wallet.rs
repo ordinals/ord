@@ -239,3 +239,51 @@ fn inscribe_exceeds_push_byte_limit() {
   .expected_stderr("error: file size exceeds 520 bytes\n")
   .run();
 }
+
+#[test]
+fn inscribe_does_not_use_inscribed_sats_as_cardinal_utxos() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let txid = rpc_server.mine_blocks_with_subsidy(1, 800)[0].txdata[0].txid();
+  CommandBuilder::new(format!(
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
+  ))
+  .write("degenerate.png", [1; 100])
+  .rpc_server(&rpc_server)
+  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+  .run();
+
+  // let reveal_txid = stdout.split("reveal\t").collect::<Vec<&str>>()[1].trim();
+  let txid = rpc_server.mine_blocks_with_subsidy(1, 100)[0].txdata[0].txid();
+
+  CommandBuilder::new(format!(
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
+  ))
+  .rpc_server(&rpc_server)
+  .write("degenerate.png", [1; 100])
+  .expected_exit_code(1)
+  .expected_stderr("error: wallet does not contain enough cardinal UTXOs, please add additional funds to wallet.\n")
+  .run();
+}
+
+#[test]
+fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let txid = rpc_server.mine_blocks_with_subsidy(1, 800)[0].txdata[0].txid();
+  CommandBuilder::new(format!(
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
+  ))
+  .write("degenerate.png", [1; 100])
+  .rpc_server(&rpc_server)
+  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+  .run();
+
+  let txid = rpc_server.mine_blocks_with_subsidy(1, 100)[0].txdata[0].txid();
+
+  CommandBuilder::new(format!(
+    "--chain regtest wallet send {txid}:0:0 bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x"
+  ))
+  .rpc_server(&rpc_server)
+  .expected_exit_code(1)
+  .expected_stderr("error: wallet does not contain enough cardinal UTXOs, please add additional funds to wallet.\n")
+  .run();
+}

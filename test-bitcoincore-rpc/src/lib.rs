@@ -20,9 +20,8 @@ use {
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
   server::Server,
   state::State,
-  std::collections::BTreeMap,
   std::{
-    collections::HashMap,
+    collections::{BTreeMap, HashMap},
     sync::{Arc, Mutex, MutexGuard},
     thread,
     time::Duration,

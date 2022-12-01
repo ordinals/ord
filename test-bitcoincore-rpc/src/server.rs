@@ -328,27 +328,22 @@ impl Api for Server {
     Ok(
       self
         .state()
-        .transactions
+        .utxos
         .iter()
-        .flat_map(|(txid, tx)| {
-          tx.output
-            .iter()
-            .enumerate()
-            .map(|(vout, tx_out)| ListUnspentResultEntry {
-              txid: *txid,
-              vout: vout as u32,
-              address: None,
-              label: None,
-              redeem_script: None,
-              witness_script: None,
-              script_pub_key: Script::new(),
-              amount: Amount::from_sat(tx_out.value),
-              confirmations: 0,
-              spendable: true,
-              solvable: true,
-              descriptor: None,
-              safe: true,
-            })
+        .map(|(outpoint, &amount)| ListUnspentResultEntry {
+          txid: outpoint.txid,
+          vout: outpoint.vout,
+          address: None,
+          label: None,
+          redeem_script: None,
+          witness_script: None,
+          script_pub_key: Script::new(),
+          amount,
+          confirmations: 0,
+          spendable: true,
+          solvable: true,
+          descriptor: None,
+          safe: true,
         })
         .collect(),
     )
