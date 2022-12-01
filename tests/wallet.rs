@@ -399,7 +399,7 @@ fn refuse_to_reinscribe_sats() {
   .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
   .run();
 
-  let first_inscription_id = stdout.split("reveal\t").collect::<Vec<&str>>()[1].trim();
+  let first_inscription_id = reveal_txid_from_inscribe_stdout(&stdout);
 
   rpc_server.mine_blocks_with_subsidy(1, 100)[0].txdata[0].txid();
 

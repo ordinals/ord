@@ -34,10 +34,7 @@ impl Inscribe {
     let inscription_satpoints = index.get_inscription_satpoints()?;
 
     if inscription_satpoints.contains(&self.satpoint) {
-      return Err(anyhow!(
-        "sat at {} already inscribed",
-        self.satpoint
-      ));
+      return Err(anyhow!("sat at {} already inscribed", self.satpoint));
     }
 
     let commit_tx_change = get_change_addresses(&options, 2)?;
