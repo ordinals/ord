@@ -343,13 +343,6 @@ impl Index {
 
   #[cfg(test)]
   pub(crate) fn statistic(&self, statistic: Statistic) -> Result<u64> {
-    if matches!(
-      statistic,
-      Statistic::OutputsTraversed | Statistic::OrdinalRanges
-    ) {
-      self.require_ordinal_index("statistic")?;
-    }
-
     Ok(
       self
         .database
