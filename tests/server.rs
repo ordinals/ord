@@ -64,7 +64,7 @@ HELLOWORLD.*",
     ),
   );
 
-  let ord_server = TestServer::spawn_with_args(&rpc_server, &["--index-ordinals"]);
+  let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
     &format!("/inscription/{}", reveal_tx),
     &format!(

@@ -1,12 +1,23 @@
 use super::*;
 
 #[test]
-fn json() {
+fn json_with_ordinal_index() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   CommandBuilder::new("--index-ordinals info")
     .rpc_server(&rpc_server)
     .stdout_regex(
       r#"\{"blocks_indexed":1,"branch_pages":\d+,"fragmented_bytes":\d+,"index_file_size":\d+,"leaf_pages":\d+,"metadata_bytes":\d+,"ordinal_ranges":1,"outputs_traversed":1,"page_size":\d+,"stored_bytes":\d+,"transactions":\[\{"starting_block_count":0,"starting_timestamp":\d+\}\],"tree_height":\d+,"utxos_indexed":1\}"#
+    )
+    .run();
+}
+
+#[test]
+fn json_without_ordinal_index() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  CommandBuilder::new("info")
+    .rpc_server(&rpc_server)
+    .stdout_regex(
+      r#"\{"blocks_indexed":1,"branch_pages":\d+,"fragmented_bytes":\d+,"index_file_size":\d+,"leaf_pages":\d+,"metadata_bytes":\d+,"ordinal_ranges":0,"outputs_traversed":0,"page_size":\d+,"stored_bytes":\d+,"transactions":\[\{"starting_block_count":0,"starting_timestamp":\d+\}\],"tree_height":\d+,"utxos_indexed":0\}"#
     )
     .run();
 }
@@ -20,7 +31,7 @@ fn transactions() {
   let index_path = tempdir.path().join("index.redb");
 
   CommandBuilder::new(format!(
-    "--index-ordinals --index {} info --transactions",
+    "--index {} info --transactions",
     index_path.display()
   ))
   .rpc_server(&rpc_server)
@@ -30,7 +41,7 @@ fn transactions() {
   rpc_server.mine_blocks(10);
 
   CommandBuilder::new(format!(
-    "--index-ordinals --index {} info --transactions",
+    "--index {} info --transactions",
     index_path.display()
   ))
   .rpc_server(&rpc_server)
@@ -40,7 +51,7 @@ fn transactions() {
   rpc_server.mine_blocks(10);
 
   CommandBuilder::new(format!(
-    "--index-ordinals --index {} info --transactions",
+    "--index {} info --transactions",
     index_path.display()
   ))
   .rpc_server(&rpc_server)
