@@ -87,12 +87,10 @@ impl State {
     };
 
     for tx in block.txdata.iter() {
-      // destroy utxo
       for input in tx.input.iter() {
         self.utxos.remove(&input.previous_output);
       }
 
-      // create utxo
       for (vout, txout) in tx.output.iter().enumerate() {
         self.utxos.insert(
           OutPoint {
