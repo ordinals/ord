@@ -33,8 +33,18 @@ impl Inscribe {
 
     let inscription_satpoints = index.get_inscription_satpoints()?;
 
-    if inscription_satpoints.contains(&self.satpoint) {
-      return Err(anyhow!("sat at {} already inscribed", self.satpoint));
+    for inscribed_satpoint in &inscription_satpoints {
+      if inscribed_satpoint == &self.satpoint {
+        return Err(anyhow!("sat at {} already inscribed", self.satpoint));
+      }
+
+      if inscribed_satpoint.outpoint == self.satpoint.outpoint {
+        return Err(anyhow!(
+          "only one insribed sat per utxo allowed; utxo {} already inscribed by sat {}",
+          self.satpoint.outpoint,
+          inscribed_satpoint
+        ));
+      }
     }
 
     let commit_tx_change = get_change_addresses(&options, 2)?;
