@@ -254,7 +254,7 @@ mod tests {
       .display()
       .to_string();
     assert!(
-      data_dir.ends_with(if cfg!(window) { r"\ord" } else { "/ord" }),
+      data_dir.ends_with(if cfg!(windows) { r"\ord" } else { "/ord" }),
       "{data_dir}"
     );
   }
@@ -269,7 +269,7 @@ mod tests {
       .display()
       .to_string();
     assert!(
-      data_dir.ends_with(if cfg!(window) {
+      data_dir.ends_with(if cfg!(windows) {
         r"\ord\signet"
       } else {
         "/ord/signet"
