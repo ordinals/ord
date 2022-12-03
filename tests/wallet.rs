@@ -61,9 +61,7 @@ fn identify_from_tsv_file_not_found() {
   CommandBuilder::new("wallet identify --ordinals foo.tsv")
     .rpc_server(&rpc_server)
     .expected_exit_code(1)
-    .expected_stderr(
-      "error: I/O error reading `{path}`\nbecause: No such file or directory (os error 2)\n",
-    )
+    .stderr_regex("error: I/O error reading `.*`\nbecause: .*\n")
     .run();
 }
 

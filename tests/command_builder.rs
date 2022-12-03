@@ -108,8 +108,9 @@ impl CommandBuilder {
       .stdin(Stdio::null())
       .stdout(Stdio::piped())
       .stderr(Stdio::piped())
-      .env("HOME", self.tempdir.path())
       .current_dir(&self.tempdir)
+      .arg("--data-dir")
+      .arg(self.tempdir.path())
       .args(&self.args);
 
     command

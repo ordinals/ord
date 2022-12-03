@@ -903,7 +903,14 @@ mod tests {
       .unwrap()
       .display()
       .to_string();
-    assert!(acme_cache.contains("foo/acme-cache"), "{acme_cache}")
+    assert!(
+      acme_cache.contains(if cfg!(windows) {
+        r"foo\acme-cache"
+      } else {
+        "foo/acme-cache"
+      }),
+      "{acme_cache}"
+    )
   }
 
   #[test]
