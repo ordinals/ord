@@ -19,7 +19,7 @@ const RESOURCE_TAG: &[u8] = &[];
 
 #[derive(Debug, PartialEq)]
 pub(crate) enum Inscription {
-  Text(String),
+  Text(Vec<u8>),
   Png(Vec<u8>),
 }
 
@@ -41,7 +41,7 @@ impl Inscription {
       .to_str()
       .ok_or_else(|| anyhow!("unrecognized extension"))?
     {
-      "txt" => Ok(Inscription::Text(String::from_utf8(file)?)),
+      "txt" => Ok(Inscription::Text(file)),
       "png" => Ok(Inscription::Png(file)),
       other => Err(anyhow!(
         "unrecognized file extension `.{other}`, only .txt and .png accepted"
@@ -71,7 +71,7 @@ impl Inscription {
 
   fn resource(&self) -> &[u8] {
     match self {
-      Inscription::Text(text) => text.as_bytes(),
+      Inscription::Text(text) => text.as_ref(),
       Inscription::Png(png) => png.as_ref(),
     }
   }
@@ -173,11 +173,7 @@ impl<'a> InscriptionParser<'a> {
       }
 
       let inscription = match media_type {
-        "text/plain;charset=utf-8" => Some(Inscription::Text(
-          str::from_utf8(&content)
-            .map_err(InscriptionError::Utf8Decode)?
-            .into(),
-        )),
+        "text/plain;charset=utf-8" => Some(Inscription::Text(content)),
         "image/png" => Some(Inscription::Png(content)),
         _ => None,
       };
@@ -379,7 +375,7 @@ mod tests {
   }
 
   #[test]
-  fn invalid_utf8() {
+  fn invalid_utf8_is_allowed() {
     assert!(matches!(
       InscriptionParser::parse(&container(&[
         b"ord",
@@ -388,7 +384,7 @@ mod tests {
         &[],
         &[0b10000000]
       ])),
-      Err(InscriptionError::Utf8Decode(_)),
+      Ok(Inscription::Text(bytes)) if bytes == &[0b10000000],
     ));
   }
 
