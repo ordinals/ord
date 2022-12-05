@@ -384,7 +384,7 @@ mod tests {
         &[],
         &[0b10000000]
       ])),
-      Ok(Inscription::Text(bytes)) if bytes == &[0b10000000],
+      Ok(Inscription::Text(bytes)) if bytes == [0b10000000],
     ));
   }
 
