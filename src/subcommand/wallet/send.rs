@@ -53,17 +53,6 @@ impl Send {
       },
     };
 
-    for inscribed_satpoint in &inscription_satpoints {
-      if satpoint.outpoint == inscribed_satpoint.outpoint
-        && satpoint.offset != inscribed_satpoint.offset
-      {
-        return Err(anyhow!(
-          "trying to send utxo containing another inscription at {}",
-          inscribed_satpoint
-        ));
-      }
-    }
-
     let unsigned_transaction = TransactionBuilder::build_transaction(
       satpoint,
       inscription_satpoints,

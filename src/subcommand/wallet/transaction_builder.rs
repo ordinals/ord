@@ -36,6 +36,7 @@ use {
 pub(crate) enum Error {
   NotInWallet(SatPoint),
   NotEnoughCardinalUtxos,
+  UtxoContainsAdditionalInscription((SatPoint, SatPoint)),
 }
 
 impl fmt::Display for Error {
@@ -45,6 +46,10 @@ impl fmt::Display for Error {
       Error::NotEnoughCardinalUtxos => write!(
         f,
         "wallet does not contain enough cardinal UTXOs, please add additional funds to wallet."
+      ),
+      Error::UtxoContainsAdditionalInscription((send_satpoint, inscription_satpoint)) => write!(
+        f,
+        "cannot send {send_satpoint} without also sending inscription {inscription_satpoint}"
       ),
     }
   }
@@ -110,6 +115,17 @@ impl TransactionBuilder {
   }
 
   fn select_ordinal(mut self) -> Result<Self> {
+    for inscribed_satpoint in &self.inscription_satpoints {
+      if self.satpoint.outpoint == inscribed_satpoint.outpoint
+        && self.satpoint.offset != inscribed_satpoint.offset
+      {
+        return Err(Error::UtxoContainsAdditionalInscription((
+          self.satpoint,
+          *inscribed_satpoint,
+        )));
+      }
+    }
+
     self.utxos.remove(&self.satpoint.outpoint);
     self.inputs.push(self.satpoint.outpoint);
     self.outputs.push((
@@ -996,6 +1012,25 @@ mod tests {
         vec![change(0), change(1)],
       ),
       Err(Error::NotEnoughCardinalUtxos)
+    )
+  }
+
+  #[test]
+  fn do_not_send_two_inscriptions_at_once() {
+    let utxos = vec![(outpoint(1), Amount::from_sat(1_000))];
+
+    pretty_assert_eq!(
+      TransactionBuilder::build_transaction(
+        satpoint(1, 0),
+        vec![satpoint(1, 500)],
+        utxos.into_iter().collect(),
+        recipient(),
+        vec![change(0), change(1)],
+      ),
+      Err(Error::UtxoContainsAdditionalInscription((
+        satpoint(1, 0),
+        satpoint(1, 500)
+      )))
     )
   }
 }

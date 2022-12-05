@@ -439,7 +439,7 @@ fn do_not_accidentally_send_an_inscription() {
   .rpc_server(&rpc_server)
   .expected_exit_code(1)
   .expected_stderr(format!(
-    "error: trying to send utxo containing another inscription at {inscription_utxo}:0\n",
+    "error: cannot send {inscription_utxo}:55 without also sending inscription {inscription_utxo}:0\n"
   ))
   .run();
 }
