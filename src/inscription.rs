@@ -418,13 +418,18 @@ mod tests {
     );
   }
 
-  // TODO:
-  // - reenable this once we can make something invalid
   #[test]
-  #[ignore]
   fn unrecognized_content() {
     assert_eq!(
-      InscriptionParser::parse(&container(&[b"ord", b"ord", b"ord", b"ord"])),
+      InscriptionParser::parse(&container(&[
+        b"ord",
+        &[2],
+        &[1],
+        b"foo",
+        &[],
+        b"ord",
+        b"ord"
+      ])),
       Err(InscriptionError::InvalidInscription),
     );
   }
