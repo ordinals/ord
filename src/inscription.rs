@@ -8,7 +8,10 @@ use {
     util::taproot::TAPROOT_ANNEX_PREFIX,
     Script, Witness,
   },
-  std::str::{self, Utf8Error},
+  std::{
+    iter::Peekable,
+    str::{self, Utf8Error},
+  },
 };
 
 #[derive(Debug, PartialEq)]
@@ -71,7 +74,7 @@ enum InscriptionError {
 type Result<T, E = InscriptionError> = std::result::Result<T, E>;
 
 struct InscriptionParser<'a> {
-  instructions: Instructions<'a>,
+  instructions: Peekable<Instructions<'a>>,
 }
 
 impl<'a> InscriptionParser<'a> {
@@ -103,7 +106,7 @@ impl<'a> InscriptionParser<'a> {
       .unwrap();
 
     InscriptionParser {
-      instructions: Script::from(Vec::from(script)).instructions(),
+      instructions: Script::from(Vec::from(script)).instructions().peekable(),
     }
     .parse_script()
   }
@@ -130,8 +133,8 @@ impl<'a> InscriptionParser<'a> {
 
   fn parse_inscription(&mut self) -> Result<Option<Inscription>> {
     if self.advance()? == Instruction::Op(opcodes::all::OP_IF) {
-      if self.expect_push()? != b"ord" {
-        return Err(InscriptionError::InvalidInscription);
+      if !self.accept(Instruction::PushBytes(b"ord"))? {
+        return Err(InscriptionError::NoInscription);
       }
 
       let media_type = if let Instruction::PushBytes(bytes) = self.advance()? {
@@ -140,25 +143,20 @@ impl<'a> InscriptionParser<'a> {
         return Err(InscriptionError::InvalidInscription);
       };
 
-      let content = if let Instruction::PushBytes(bytes) = self.advance()? {
-        bytes
-      } else {
-        return Err(InscriptionError::InvalidInscription);
-      };
+      let mut content = Vec::new();
+      while !self.accept(Instruction::Op(opcodes::all::OP_ENDIF))? {
+        content.extend_from_slice(self.expect_push()?);
+      }
 
       let inscription = match media_type {
         "text/plain;charset=utf-8" => Some(Inscription::Text(
-          str::from_utf8(content)
+          str::from_utf8(&content)
             .map_err(InscriptionError::Utf8Decode)?
             .into(),
         )),
-        "image/png" => Some(Inscription::Png(content.to_vec())),
+        "image/png" => Some(Inscription::Png(content)),
         _ => None,
       };
-
-      if self.advance()? != Instruction::Op(opcodes::all::OP_ENDIF) {
-        return Err(InscriptionError::InvalidInscription);
-      }
 
       return Ok(inscription);
     }
@@ -170,6 +168,21 @@ impl<'a> InscriptionParser<'a> {
     match self.advance()? {
       Instruction::PushBytes(bytes) => Ok(bytes),
       _ => Err(InscriptionError::InvalidInscription),
+    }
+  }
+
+  fn accept(&mut self, instruction: Instruction) -> Result<bool> {
+    match self.instructions.peek() {
+      Some(Ok(next)) => {
+        if *next == instruction {
+          self.advance()?;
+          Ok(true)
+        } else {
+          Ok(false)
+        }
+      }
+      Some(Err(err)) => Err(InscriptionError::Script(*err)),
+      None => Ok(false),
     }
   }
 }
@@ -237,6 +250,27 @@ mod tests {
     assert_eq!(
       InscriptionParser::parse(&container(&[b"ord", b"text/plain;charset=utf-8", b"ord",])),
       Ok(Inscription::Text("ord".into()))
+    );
+  }
+
+  #[test]
+  fn valid_resource_in_multiple_pushes() {
+    assert_eq!(
+      InscriptionParser::parse(&container(&[
+        b"ord",
+        b"text/plain;charset=utf-8",
+        b"foo",
+        b"bar"
+      ])),
+      Ok(Inscription::Text("foobar".into()))
+    );
+  }
+
+  #[test]
+  fn valid_resource_in_zero_pushes() {
+    assert_eq!(
+      InscriptionParser::parse(&container(&[b"ord", b"text/plain;charset=utf-8"])),
+      Ok(Inscription::Text("".into()))
     );
   }
 
@@ -329,11 +363,22 @@ mod tests {
   fn no_content() {
     assert_eq!(
       InscriptionParser::parse(&container(&[])),
-      Err(InscriptionError::InvalidInscription)
+      Err(InscriptionError::NoInscription)
     );
   }
 
   #[test]
+  fn wrong_magic_number() {
+    assert_eq!(
+      InscriptionParser::parse(&container(&[b"foo"])),
+      Err(InscriptionError::NoInscription),
+    );
+  }
+
+  // TODO:
+  // - reenable this once we can make something invalid
+  #[test]
+  #[ignore]
   fn unrecognized_content() {
     assert_eq!(
       InscriptionParser::parse(&container(&[b"ord", b"ord", b"ord", b"ord"])),
