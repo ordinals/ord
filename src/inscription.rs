@@ -14,8 +14,8 @@ use {
   },
 };
 
-const TYPE_TAG: &[u8] = &[1];
 const RESOURCE_TAG: &[u8] = &[];
+const TYPE_TAG: &[u8] = &[1];
 
 #[derive(Debug, PartialEq)]
 pub(crate) enum Inscription {
