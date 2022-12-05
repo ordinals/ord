@@ -14,11 +14,8 @@ use {
   },
 };
 
-// TODO:
-// - tag type field
-//
-
-const TYPE_TAG: u8 = 1;
+const TYPE_TAG: &[u8] = &[1];
+const RESOURCE_TAG: &[u8] = &[];
 
 #[derive(Debug, PartialEq)]
 pub(crate) enum Inscription {
@@ -57,21 +54,22 @@ impl Inscription {
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
       .push_slice(b"ord")
-      .push_slice(&[1])
+      .push_slice(TYPE_TAG)
       .push_slice(self.media_type().as_bytes())
-      .push_slice(self.content())
+      .push_slice(RESOURCE_TAG)
+      .push_slice(self.resource())
       .push_opcode(opcodes::all::OP_ENDIF)
       .into_script()
   }
 
-  pub(crate) fn media_type(&self) -> &str {
+  fn media_type(&self) -> &str {
     match self {
       Inscription::Text(_) => "text/plain;charset=utf-8",
       Inscription::Png(_) => "image/png",
     }
   }
 
-  pub(crate) fn content(&self) -> &[u8] {
+  fn resource(&self) -> &[u8] {
     match self {
       Inscription::Text(text) => text.as_bytes(),
       Inscription::Png(png) => png.as_ref(),
@@ -155,7 +153,7 @@ impl<'a> InscriptionParser<'a> {
         return Err(InscriptionError::NoInscription);
       }
 
-      if !self.accept(Instruction::PushBytes(&[TYPE_TAG]))? {
+      if !self.accept(Instruction::PushBytes(TYPE_TAG))? {
         return Err(InscriptionError::InvalidInscription);
       }
 
@@ -164,6 +162,10 @@ impl<'a> InscriptionParser<'a> {
       } else {
         return Err(InscriptionError::InvalidInscription);
       };
+
+      if !self.accept(Instruction::PushBytes(RESOURCE_TAG))? {
+        return Err(InscriptionError::InvalidInscription);
+      }
 
       let mut content = Vec::new();
       while !self.accept(Instruction::Op(opcodes::all::OP_ENDIF))? {
@@ -274,6 +276,7 @@ mod tests {
         b"ord",
         &[1],
         b"text/plain;charset=utf-8",
+        &[],
         b"ord",
       ])),
       Ok(Inscription::Text("ord".into()))
@@ -287,6 +290,7 @@ mod tests {
         b"ord",
         &[1],
         b"text/plain;charset=utf-8",
+        &[],
         b"foo",
         b"bar"
       ])),
@@ -297,7 +301,12 @@ mod tests {
   #[test]
   fn valid_resource_in_zero_pushes() {
     assert_eq!(
-      InscriptionParser::parse(&container(&[b"ord", &[1], b"text/plain;charset=utf-8"])),
+      InscriptionParser::parse(&container(&[
+        b"ord",
+        &[1],
+        b"text/plain;charset=utf-8",
+        &[]
+      ])),
       Ok(Inscription::Text("".into()))
     );
   }
@@ -310,6 +319,7 @@ mod tests {
       .push_slice(b"ord")
       .push_slice(&[1])
       .push_slice(b"text/plain;charset=utf-8")
+      .push_slice(&[])
       .push_slice(b"ord")
       .push_opcode(opcodes::all::OP_ENDIF)
       .push_opcode(opcodes::all::OP_CHECKSIG)
@@ -330,6 +340,7 @@ mod tests {
       .push_slice(b"ord")
       .push_slice(&[1])
       .push_slice(b"text/plain;charset=utf-8")
+      .push_slice(&[])
       .push_slice(b"ord")
       .push_opcode(opcodes::all::OP_ENDIF)
       .into_script();
@@ -348,6 +359,7 @@ mod tests {
       .push_slice(b"ord")
       .push_slice(&[1])
       .push_slice(b"text/plain;charset=utf-8")
+      .push_slice(&[])
       .push_slice(b"foo")
       .push_opcode(opcodes::all::OP_ENDIF)
       .push_opcode(opcodes::OP_FALSE)
@@ -355,6 +367,7 @@ mod tests {
       .push_slice(b"ord")
       .push_slice(&[1])
       .push_slice(b"text/plain;charset=utf-8")
+      .push_slice(&[])
       .push_slice(b"bar")
       .push_opcode(opcodes::all::OP_ENDIF)
       .into_script();
@@ -372,6 +385,7 @@ mod tests {
         b"ord",
         &[1],
         b"text/plain;charset=utf-8",
+        &[],
         &[0b10000000]
       ])),
       Err(InscriptionError::Utf8Decode(_)),
@@ -428,7 +442,7 @@ mod tests {
         previous_output: OutPoint::null(),
         script_sig: Script::new(),
         sequence: Sequence(0),
-        witness: container(&[b"ord", &[1], b"text/plain;charset=utf-8", b"ord"]),
+        witness: container(&[b"ord", &[1], b"text/plain;charset=utf-8", &[], b"ord"]),
       }],
       output: Vec::new(),
     };
@@ -498,7 +512,7 @@ mod tests {
   #[test]
   fn inscribe_png() {
     assert_eq!(
-      InscriptionParser::parse(&container(&[b"ord", &[1], b"image/png", &[1; 100]])),
+      InscriptionParser::parse(&container(&[b"ord", &[1], b"image/png", &[], &[1; 100]])),
       Ok(Inscription::Png(vec![1; 100]))
     );
   }
