@@ -14,6 +14,12 @@ use {
   },
 };
 
+// TODO:
+// - tag type field
+//
+
+const TYPE_TAG: u8 = 1;
+
 #[derive(Debug, PartialEq)]
 pub(crate) enum Inscription {
   Text(String),
@@ -44,6 +50,18 @@ impl Inscription {
         "unrecognized file extension `.{other}`, only .txt and .png accepted"
       )),
     }
+  }
+
+  pub(crate) fn append_reveal_script(&self, builder: script::Builder) -> Script {
+    builder
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
+      .push_slice(b"ord")
+      .push_slice(&[1])
+      .push_slice(self.media_type().as_bytes())
+      .push_slice(self.content())
+      .push_opcode(opcodes::all::OP_ENDIF)
+      .into_script()
   }
 
   pub(crate) fn media_type(&self) -> &str {
@@ -135,6 +153,10 @@ impl<'a> InscriptionParser<'a> {
     if self.advance()? == Instruction::Op(opcodes::all::OP_IF) {
       if !self.accept(Instruction::PushBytes(b"ord"))? {
         return Err(InscriptionError::NoInscription);
+      }
+
+      if !self.accept(Instruction::PushBytes(&[TYPE_TAG]))? {
+        return Err(InscriptionError::InvalidInscription);
       }
 
       let media_type = if let Instruction::PushBytes(bytes) = self.advance()? {
@@ -248,7 +270,12 @@ mod tests {
   #[test]
   fn valid() {
     assert_eq!(
-      InscriptionParser::parse(&container(&[b"ord", b"text/plain;charset=utf-8", b"ord",])),
+      InscriptionParser::parse(&container(&[
+        b"ord",
+        &[1],
+        b"text/plain;charset=utf-8",
+        b"ord",
+      ])),
       Ok(Inscription::Text("ord".into()))
     );
   }
@@ -258,6 +285,7 @@ mod tests {
     assert_eq!(
       InscriptionParser::parse(&container(&[
         b"ord",
+        &[1],
         b"text/plain;charset=utf-8",
         b"foo",
         b"bar"
@@ -269,7 +297,7 @@ mod tests {
   #[test]
   fn valid_resource_in_zero_pushes() {
     assert_eq!(
-      InscriptionParser::parse(&container(&[b"ord", b"text/plain;charset=utf-8"])),
+      InscriptionParser::parse(&container(&[b"ord", &[1], b"text/plain;charset=utf-8"])),
       Ok(Inscription::Text("".into()))
     );
   }
@@ -280,6 +308,7 @@ mod tests {
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
       .push_slice(b"ord")
+      .push_slice(&[1])
       .push_slice(b"text/plain;charset=utf-8")
       .push_slice(b"ord")
       .push_opcode(opcodes::all::OP_ENDIF)
@@ -299,6 +328,7 @@ mod tests {
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
       .push_slice(b"ord")
+      .push_slice(&[1])
       .push_slice(b"text/plain;charset=utf-8")
       .push_slice(b"ord")
       .push_opcode(opcodes::all::OP_ENDIF)
@@ -316,12 +346,14 @@ mod tests {
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
       .push_slice(b"ord")
+      .push_slice(&[1])
       .push_slice(b"text/plain;charset=utf-8")
       .push_slice(b"foo")
       .push_opcode(opcodes::all::OP_ENDIF)
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
       .push_slice(b"ord")
+      .push_slice(&[1])
       .push_slice(b"text/plain;charset=utf-8")
       .push_slice(b"bar")
       .push_opcode(opcodes::all::OP_ENDIF)
@@ -338,6 +370,7 @@ mod tests {
     assert!(matches!(
       InscriptionParser::parse(&container(&[
         b"ord",
+        &[1],
         b"text/plain;charset=utf-8",
         &[0b10000000]
       ])),
@@ -355,7 +388,7 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
-      Err(InscriptionError::NoInscription)
+      Err(InscriptionError::InvalidInscription)
     );
   }
 
@@ -395,7 +428,7 @@ mod tests {
         previous_output: OutPoint::null(),
         script_sig: Script::new(),
         sequence: Sequence(0),
-        witness: container(&[b"ord", b"text/plain;charset=utf-8", b"ord"]),
+        witness: container(&[b"ord", &[1], b"text/plain;charset=utf-8", b"ord"]),
       }],
       output: Vec::new(),
     };
@@ -465,7 +498,7 @@ mod tests {
   #[test]
   fn inscribe_png() {
     assert_eq!(
-      InscriptionParser::parse(&container(&[b"ord", b"image/png", &[1; 100]])),
+      InscriptionParser::parse(&container(&[b"ord", &[1], b"image/png", &[1; 100]])),
       Ok(Inscription::Png(vec![1; 100]))
     );
   }
