@@ -38,9 +38,4 @@ jobs:
     - uses: Swatinem/rust-cache@v1
 
     - name: Test
-      if: ${{ matrix.os != 'windows-latest' }}
       run: cargo test --all
-
-    - name: Build Tests
-      if: ${{ matrix.os == 'windows-latest' }}
-      run: cargo build --tests
