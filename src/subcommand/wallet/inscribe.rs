@@ -80,7 +80,7 @@ impl Inscribe {
 
       if inscribed_satpoint.outpoint == satpoint.outpoint {
         return Err(anyhow!(
-          "utxo {} already inscribed by inscription {inscription_id} on sat {inscribed_satpoint}",
+          "utxo {} already inscribed with inscription {inscription_id} on sat {inscribed_satpoint}",
           satpoint.outpoint,
         ));
       }
