@@ -426,6 +426,8 @@ fn do_not_accidentally_send_an_inscription() {
   .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
   .run();
 
+  let inscription_id = reveal_txid_from_inscribe_stdout(&stdout);
+
   rpc_server.mine_blocks(1);
 
   let inscription_utxo = OutPoint {
@@ -439,7 +441,7 @@ fn do_not_accidentally_send_an_inscription() {
   .rpc_server(&rpc_server)
   .expected_exit_code(1)
   .expected_stderr(format!(
-    "error: cannot send {inscription_utxo}:55 without also sending inscription {inscription_utxo}:0\n"
+    "error: cannot send {inscription_utxo}:55 without also sending inscription {inscription_id} at {inscription_utxo}:0\n"
   ))
   .run();
 }

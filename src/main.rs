@@ -1,4 +1,8 @@
-#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+  clippy::too_many_arguments,
+  clippy::type_complexity,
+  clippy::result_large_err
+)]
 
 use {
   self::{
@@ -78,6 +82,8 @@ mod subcommand;
 mod tally;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
+
+pub(crate) type InscriptionId = Txid;
 
 const DIFFCHANGE_INTERVAL: u64 = bitcoin::blockdata::constants::DIFFCHANGE_INTERVAL as u64;
 const SUBSIDY_HALVING_INTERVAL: u64 =
