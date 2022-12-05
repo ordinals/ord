@@ -412,3 +412,36 @@ fn refuse_to_reinscribe_sats() {
   ))
   .run();
 }
+
+#[test]
+fn do_not_accidentally_send_an_inscription() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+
+  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+  let stdout = CommandBuilder::new(format!(
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
+  ))
+  .write("degenerate.png", [1; 100])
+  .rpc_server(&rpc_server)
+  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+  .run();
+
+  let inscription_id = reveal_txid_from_inscribe_stdout(&stdout);
+
+  rpc_server.mine_blocks(1);
+
+  let inscription_utxo = OutPoint {
+    txid: reveal_txid_from_inscribe_stdout(&stdout),
+    vout: 0,
+  };
+
+  CommandBuilder::new(format!(
+    "--chain regtest wallet send {inscription_utxo}:55 bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x"
+  ))
+  .rpc_server(&rpc_server)
+  .expected_exit_code(1)
+  .expected_stderr(format!(
+    "error: cannot send {inscription_utxo}:55 without also sending inscription {inscription_id} at {inscription_utxo}:0\n"
+  ))
+  .run();
+}

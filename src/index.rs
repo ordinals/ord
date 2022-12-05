@@ -59,6 +59,10 @@ fn decode_outpoint(array: OutPointArray) -> OutPoint {
   Decodable::consensus_decode(&mut io::Cursor::new(array)).unwrap()
 }
 
+fn decode_inscription_id(array: InscriptionIdArray) -> InscriptionId {
+  Decodable::consensus_decode(&mut io::Cursor::new(array)).unwrap()
+}
+
 pub(crate) struct Index {
   auth: Auth,
   chain: Chain,
@@ -567,14 +571,14 @@ impl Index {
     }
   }
 
-  pub(crate) fn get_inscription_satpoints(&self) -> Result<Vec<SatPoint>> {
+  pub(crate) fn get_inscriptions(&self) -> Result<BTreeMap<SatPoint, InscriptionId>> {
     Ok(
       self
         .database
         .begin_read()?
         .open_table(SATPOINT_TO_INSCRIPTION_ID)?
         .range([0; 44]..)?
-        .map(|(satpoint, _id)| decode_satpoint(*satpoint))
+        .map(|(satpoint, id)| (decode_satpoint(*satpoint), decode_inscription_id(*id)))
         .collect(),
     )
   }
