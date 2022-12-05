@@ -33,10 +33,6 @@ impl Inscribe {
 
     let inscriptions = index.get_inscriptions()?;
 
-    if inscriptions.contains_key(&self.satpoint) {
-      return Err(anyhow!("sat at {} already inscribed", self.satpoint));
-    }
-
     let commit_tx_change = get_change_addresses(&options, 2)?;
 
     let reveal_tx_destination = get_change_addresses(&options, 1)?[0].clone();
@@ -77,6 +73,19 @@ impl Inscribe {
     change: Vec<Address>,
     destination: Address,
   ) -> Result<(Transaction, Transaction)> {
+    for (inscribed_satpoint, inscription_id) in &inscriptions {
+      if inscribed_satpoint == &satpoint {
+        return Err(anyhow!("sat at {} already inscribed", satpoint));
+      }
+
+      if inscribed_satpoint.outpoint == satpoint.outpoint {
+        return Err(anyhow!(
+          "utxo {} already inscribed with inscription {inscription_id} on sat {inscribed_satpoint}",
+          satpoint.outpoint,
+        ));
+      }
+    }
+
     let secp256k1 = Secp256k1::new();
     let key_pair = KeyPair::new(&secp256k1, &mut rand::thread_rng());
     let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);

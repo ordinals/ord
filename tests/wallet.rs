@@ -445,3 +445,37 @@ fn do_not_accidentally_send_an_inscription() {
   ))
   .run();
 }
+
+#[test]
+fn refuse_to_inscribe_already_inscribed_utxo() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+
+  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+  let stdout = CommandBuilder::new(format!(
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
+  ))
+  .write("degenerate.png", [1; 100])
+  .rpc_server(&rpc_server)
+  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+  .run();
+
+  rpc_server.mine_blocks(1);
+
+  let inscription_id = reveal_txid_from_inscribe_stdout(&stdout);
+
+  let inscription_utxo = OutPoint {
+    txid: reveal_txid_from_inscribe_stdout(&stdout),
+    vout: 0,
+  };
+
+  CommandBuilder::new(format!(
+    "--chain regtest wallet inscribe --satpoint {inscription_utxo}:55555 --file hello.txt"
+  ))
+  .write("hello.txt", "HELLOWORLD")
+  .rpc_server(&rpc_server)
+  .expected_exit_code(1)
+  .expected_stderr(format!(
+    "error: utxo {inscription_utxo} already inscribed with inscription {inscription_id} on sat {inscription_utxo}:0\n",
+  ))
+  .run();
+}
