@@ -357,4 +357,30 @@ impl Api for Server {
 
     Ok(address)
   }
+
+  fn get_descriptor_info(
+    &self,
+    desc: String,
+  ) -> Result<GetDescriptorInfoResult, jsonrpc_core::Error> {
+    Ok(GetDescriptorInfoResult {
+      descriptor: desc,
+      checksum: "".into(),
+      is_range: false,
+      is_solvable: false,
+      has_private_keys: true,
+    })
+  }
+
+  fn import_descriptors(
+    &self,
+    desc: String,
+    active: Option<bool>,
+    range: Option<usize>,
+    next_index: Option<usize>,
+    timestamp: String,
+    internal: Option<bool>,
+    label: Option<String>,
+  ) -> Result<String, jsonrpc_core::Error> {
+    Ok("".into())
+  }
 }

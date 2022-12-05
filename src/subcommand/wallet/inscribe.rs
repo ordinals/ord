@@ -11,6 +11,8 @@ use {
     util::taproot::{LeafVersion, TapLeafHash, TaprootBuilder},
     PackedLockTime, SchnorrSighashType, Witness,
   },
+  bitcoincore_rpc::Client,
+  serde_json::json,
 };
 
 #[derive(Debug, Parser)]
@@ -42,7 +44,7 @@ impl Inscribe {
 
     let reveal_tx_destination = get_change_addresses(&options, 1)?[0].clone();
 
-    let (unsigned_commit_tx, reveal_tx) = Inscribe::create_inscription_transactions(
+    let (unsigned_commit_tx, reveal_tx, reveal_tx_wif) = Inscribe::create_inscription_transactions(
       self.satpoint,
       inscription,
       inscription_satpoints,
@@ -51,6 +53,8 @@ impl Inscribe {
       commit_tx_change,
       reveal_tx_destination,
     )?;
+
+    Inscribe::backup_reveal_tx_key(&client, reveal_tx_wif)?;
 
     let signed_raw_commit_tx = client
       .sign_raw_transaction_with_wallet(&unsigned_commit_tx, None, None)?
@@ -66,7 +70,6 @@ impl Inscribe {
 
     println!("commit\t{commit_txid}");
     println!("reveal\t{reveal_txid}");
-    println!("wif\t{private_key}");
     Ok(())
   }
 
@@ -78,7 +81,7 @@ impl Inscribe {
     utxos: BTreeMap<OutPoint, Amount>,
     change: Vec<Address>,
     destination: Address,
-  ) -> Result<(Transaction, Transaction, String)> {
+  ) -> Result<(Transaction, Transaction, PrivateKey)> {
     let secp256k1 = Secp256k1::new();
     let key_pair = KeyPair::new(&secp256k1, &mut rand::thread_rng());
     let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);
@@ -185,10 +188,25 @@ impl Inscribe {
     witness.push(script);
     witness.push(&control_block.serialize());
 
-    let private_key =
-      PrivateKey::from_slice(&key_pair.secret_bytes(), bitcoin::network::constants::Network::Bitcoin).unwrap();
+    let reveal_tx_private_key = PrivateKey::new(key_pair.secret_key(), network);
 
-    Ok((unsigned_commit_tx, reveal_tx, private_key.to_wif()))
+    Ok((unsigned_commit_tx, reveal_tx, reveal_tx_private_key))
+  }
+
+  fn backup_reveal_tx_key(client: &Client, private_key: PrivateKey) -> Result {
+    let info = client.get_descriptor_info(&format!("rawtr({})", private_key.to_wif()))?;
+
+    let _import_result = client
+      .call(
+        "importdescriptors",
+        &[json!([json!({
+          "desc": format!("{}#{}", info.descriptor, info.checksum),
+          "timestamp": "now",
+        })])],
+      )
+      .context("could not import descriptor for reveal tx")?;
+
+    Ok(())
   }
 }
 
@@ -203,7 +221,7 @@ mod tests {
     let commit_address = change(0);
     let reveal_address = recipient();
 
-    let (commit_tx, reveal_tx) = Inscribe::create_inscription_transactions(
+    let (commit_tx, reveal_tx, _private_key) = Inscribe::create_inscription_transactions(
       satpoint(1, 0),
       inscription,
       vec![],

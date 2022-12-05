@@ -14,7 +14,7 @@ use {
     Bip125Replaceable, CreateRawTransactionInput, GetBalancesResult, GetBalancesResultEntry,
     GetBlockHeaderResult, GetBlockchainInfoResult, GetNetworkInfoResult, GetRawTransactionResult,
     GetTransactionResult, GetWalletInfoResult, ListUnspentResultEntry, SignRawTransactionResult,
-    WalletTxInfo,
+    WalletTxInfo, GetDescriptorInfoResult,
   },
   jsonrpc_core::{IoHandler, Value},
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
