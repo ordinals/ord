@@ -8,12 +8,19 @@ use {
     util::taproot::TAPROOT_ANNEX_PREFIX,
     Script, Witness,
   },
-  std::str::{self, Utf8Error},
+  std::{
+    iter::Peekable,
+    str::{self, Utf8Error},
+  },
 };
+
+const PROTOCOL_ID: &[u8] = b"ord";
+const RESOURCE_TAG: &[u8] = &[];
+const TYPE_TAG: &[u8] = &[1];
 
 #[derive(Debug, PartialEq)]
 pub(crate) enum Inscription {
-  Text(String),
+  Text(Vec<u8>),
   Png(Vec<u8>),
 }
 
@@ -35,7 +42,7 @@ impl Inscription {
       .to_str()
       .ok_or_else(|| anyhow!("unrecognized extension"))?
     {
-      "txt" => Ok(Inscription::Text(String::from_utf8(file)?)),
+      "txt" => Ok(Inscription::Text(file)),
       "png" => Ok(Inscription::Png(file)),
       other => Err(anyhow!(
         "unrecognized file extension `.{other}`, only .txt and .png accepted"
@@ -43,16 +50,29 @@ impl Inscription {
     }
   }
 
-  pub(crate) fn media_type(&self) -> &str {
+  pub(crate) fn append_reveal_script(&self, builder: script::Builder) -> Script {
+    builder
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
+      .push_slice(PROTOCOL_ID)
+      .push_slice(TYPE_TAG)
+      .push_slice(self.media_type().as_bytes())
+      .push_slice(RESOURCE_TAG)
+      .push_slice(self.resource())
+      .push_opcode(opcodes::all::OP_ENDIF)
+      .into_script()
+  }
+
+  fn media_type(&self) -> &str {
     match self {
       Inscription::Text(_) => "text/plain;charset=utf-8",
       Inscription::Png(_) => "image/png",
     }
   }
 
-  pub(crate) fn content(&self) -> &[u8] {
+  fn resource(&self) -> &[u8] {
     match self {
-      Inscription::Text(text) => text.as_bytes(),
+      Inscription::Text(text) => text.as_ref(),
       Inscription::Png(png) => png.as_ref(),
     }
   }
@@ -71,7 +91,7 @@ enum InscriptionError {
 type Result<T, E = InscriptionError> = std::result::Result<T, E>;
 
 struct InscriptionParser<'a> {
-  instructions: Instructions<'a>,
+  instructions: Peekable<Instructions<'a>>,
 }
 
 impl<'a> InscriptionParser<'a> {
@@ -103,7 +123,7 @@ impl<'a> InscriptionParser<'a> {
       .unwrap();
 
     InscriptionParser {
-      instructions: Script::from(Vec::from(script)).instructions(),
+      instructions: Script::from(Vec::from(script)).instructions().peekable(),
     }
     .parse_script()
   }
@@ -130,42 +150,81 @@ impl<'a> InscriptionParser<'a> {
 
   fn parse_inscription(&mut self) -> Result<Option<Inscription>> {
     if self.advance()? == Instruction::Op(opcodes::all::OP_IF) {
+      if !self.accept(Instruction::PushBytes(PROTOCOL_ID))? {
+        return Err(InscriptionError::NoInscription);
+      }
+
+      if !self.accept(Instruction::PushBytes(TYPE_TAG))? {
+        return Err(InscriptionError::InvalidInscription);
+      }
+
       let media_type = if let Instruction::PushBytes(bytes) = self.advance()? {
         str::from_utf8(bytes).map_err(InscriptionError::Utf8Decode)?
       } else {
         return Err(InscriptionError::InvalidInscription);
       };
 
-      let content = if let Instruction::PushBytes(bytes) = self.advance()? {
-        bytes
-      } else {
-        return Err(InscriptionError::InvalidInscription);
-      };
-
-      let inscription = match media_type {
-        "text/plain;charset=utf-8" => Some(Inscription::Text(
-          str::from_utf8(content)
-            .map_err(InscriptionError::Utf8Decode)?
-            .into(),
-        )),
-        "image/png" => Some(Inscription::Png(content.to_vec())),
-        _ => None,
-      };
-
-      if self.advance()? != Instruction::Op(opcodes::all::OP_ENDIF) {
+      if !self.accept(Instruction::PushBytes(RESOURCE_TAG))? {
         return Err(InscriptionError::InvalidInscription);
       }
+
+      let mut content = Vec::new();
+      while !self.accept(Instruction::Op(opcodes::all::OP_ENDIF))? {
+        content.extend_from_slice(self.expect_push()?);
+      }
+
+      let inscription = match media_type {
+        "text/plain;charset=utf-8" => Some(Inscription::Text(content)),
+        "image/png" => Some(Inscription::Png(content)),
+        _ => None,
+      };
 
       return Ok(inscription);
     }
 
     Ok(None)
   }
+
+  fn expect_push(&mut self) -> Result<&[u8]> {
+    match self.advance()? {
+      Instruction::PushBytes(bytes) => Ok(bytes),
+      _ => Err(InscriptionError::InvalidInscription),
+    }
+  }
+
+  fn accept(&mut self, instruction: Instruction) -> Result<bool> {
+    match self.instructions.peek() {
+      Some(Ok(next)) => {
+        if *next == instruction {
+          self.advance()?;
+          Ok(true)
+        } else {
+          Ok(false)
+        }
+      }
+      Some(Err(err)) => Err(InscriptionError::Script(*err)),
+      None => Ok(false),
+    }
+  }
 }
 
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  fn container(payload: &[&[u8]]) -> Witness {
+    let mut builder = script::Builder::new()
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF);
+
+    for data in payload {
+      builder = builder.push_slice(data);
+    }
+
+    let script = builder.push_opcode(opcodes::all::OP_ENDIF).into_script();
+
+    Witness::from_vec(vec![script.into_bytes(), vec![]])
+  }
 
   #[test]
   fn empty() {
@@ -209,17 +268,43 @@ mod tests {
 
   #[test]
   fn valid() {
-    let script = script::Builder::new()
-      .push_opcode(opcodes::OP_FALSE)
-      .push_opcode(opcodes::all::OP_IF)
-      .push_slice("text/plain;charset=utf-8".as_bytes())
-      .push_slice("ord".as_bytes())
-      .push_opcode(opcodes::all::OP_ENDIF)
-      .into_script();
-
     assert_eq!(
-      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
+      InscriptionParser::parse(&container(&[
+        b"ord",
+        &[1],
+        b"text/plain;charset=utf-8",
+        &[],
+        b"ord",
+      ])),
       Ok(Inscription::Text("ord".into()))
+    );
+  }
+
+  #[test]
+  fn valid_resource_in_multiple_pushes() {
+    assert_eq!(
+      InscriptionParser::parse(&container(&[
+        b"ord",
+        &[1],
+        b"text/plain;charset=utf-8",
+        &[],
+        b"foo",
+        b"bar"
+      ])),
+      Ok(Inscription::Text("foobar".into()))
+    );
+  }
+
+  #[test]
+  fn valid_resource_in_zero_pushes() {
+    assert_eq!(
+      InscriptionParser::parse(&container(&[
+        b"ord",
+        &[1],
+        b"text/plain;charset=utf-8",
+        &[]
+      ])),
+      Ok(Inscription::Text("".into()))
     );
   }
 
@@ -228,8 +313,11 @@ mod tests {
     let script = script::Builder::new()
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
-      .push_slice("text/plain;charset=utf-8".as_bytes())
-      .push_slice("ord".as_bytes())
+      .push_slice(b"ord")
+      .push_slice(&[1])
+      .push_slice(b"text/plain;charset=utf-8")
+      .push_slice(&[])
+      .push_slice(b"ord")
       .push_opcode(opcodes::all::OP_ENDIF)
       .push_opcode(opcodes::all::OP_CHECKSIG)
       .into_script();
@@ -246,8 +334,11 @@ mod tests {
       .push_opcode(opcodes::all::OP_CHECKSIG)
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
-      .push_slice("text/plain;charset=utf-8".as_bytes())
-      .push_slice("ord".as_bytes())
+      .push_slice(b"ord")
+      .push_slice(&[1])
+      .push_slice(b"text/plain;charset=utf-8")
+      .push_slice(&[])
+      .push_slice(b"ord")
       .push_opcode(opcodes::all::OP_ENDIF)
       .into_script();
 
@@ -262,13 +353,19 @@ mod tests {
     let script = script::Builder::new()
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
-      .push_slice("text/plain;charset=utf-8".as_bytes())
-      .push_slice("foo".as_bytes())
+      .push_slice(b"ord")
+      .push_slice(&[1])
+      .push_slice(b"text/plain;charset=utf-8")
+      .push_slice(&[])
+      .push_slice(b"foo")
       .push_opcode(opcodes::all::OP_ENDIF)
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
-      .push_slice("text/plain;charset=utf-8".as_bytes())
-      .push_slice("bar".as_bytes())
+      .push_slice(b"ord")
+      .push_slice(&[1])
+      .push_slice(b"text/plain;charset=utf-8")
+      .push_slice(&[])
+      .push_slice(b"bar")
       .push_opcode(opcodes::all::OP_ENDIF)
       .into_script();
 
@@ -279,18 +376,16 @@ mod tests {
   }
 
   #[test]
-  fn invalid_utf8() {
-    let script = script::Builder::new()
-      .push_opcode(opcodes::OP_FALSE)
-      .push_opcode(opcodes::all::OP_IF)
-      .push_slice("text/plain;charset=utf-8".as_bytes())
-      .push_slice(&[0b10000000])
-      .push_opcode(opcodes::all::OP_ENDIF)
-      .into_script();
-
+  fn invalid_utf8_is_allowed() {
     assert!(matches!(
-      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
-      Err(InscriptionError::Utf8Decode(_)),
+      InscriptionParser::parse(&container(&[
+        b"ord",
+        &[1],
+        b"text/plain;charset=utf-8",
+        &[],
+        &[0b10000000]
+      ])),
+      Ok(Inscription::Text(bytes)) if bytes == [0b10000000],
     ));
   }
 
@@ -304,51 +399,44 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
-      Err(InscriptionError::NoInscription)
-    );
-  }
-
-  #[test]
-  fn no_content() {
-    let script = script::Builder::new()
-      .push_opcode(opcodes::OP_FALSE)
-      .push_opcode(opcodes::all::OP_IF)
-      .push_opcode(opcodes::all::OP_ENDIF)
-      .into_script();
-
-    assert_eq!(
-      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
       Err(InscriptionError::InvalidInscription)
     );
   }
 
   #[test]
-  fn unrecognized_content() {
-    let script = script::Builder::new()
-      .push_opcode(opcodes::OP_FALSE)
-      .push_opcode(opcodes::all::OP_IF)
-      .push_slice("ord".as_bytes())
-      .push_slice("ord".as_bytes())
-      .push_slice("ord".as_bytes())
-      .push_opcode(opcodes::all::OP_ENDIF)
-      .into_script();
-
+  fn no_content() {
     assert_eq!(
-      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
+      InscriptionParser::parse(&container(&[])),
+      Err(InscriptionError::NoInscription)
+    );
+  }
+
+  #[test]
+  fn wrong_magic_number() {
+    assert_eq!(
+      InscriptionParser::parse(&container(&[b"foo"])),
+      Err(InscriptionError::NoInscription),
+    );
+  }
+
+  #[test]
+  fn unrecognized_content() {
+    assert_eq!(
+      InscriptionParser::parse(&container(&[
+        b"ord",
+        &[2],
+        &[1],
+        b"foo",
+        &[],
+        b"ord",
+        b"ord"
+      ])),
       Err(InscriptionError::InvalidInscription),
     );
   }
 
   #[test]
   fn extract_from_transaction() {
-    let script = script::Builder::new()
-      .push_opcode(opcodes::OP_FALSE)
-      .push_opcode(opcodes::all::OP_IF)
-      .push_slice("text/plain;charset=utf-8".as_bytes())
-      .push_slice("ord".as_bytes())
-      .push_opcode(opcodes::all::OP_ENDIF)
-      .into_script();
-
     let tx = Transaction {
       version: 0,
       lock_time: bitcoin::PackedLockTime(0),
@@ -356,7 +444,7 @@ mod tests {
         previous_output: OutPoint::null(),
         script_sig: Script::new(),
         sequence: Sequence(0),
-        witness: Witness::from_vec(vec![script.into_bytes(), vec![]]),
+        witness: container(&[b"ord", &[1], b"text/plain;charset=utf-8", &[], b"ord"]),
       }],
       output: Vec::new(),
     };
@@ -425,16 +513,8 @@ mod tests {
 
   #[test]
   fn inscribe_png() {
-    let script = script::Builder::new()
-      .push_opcode(opcodes::OP_FALSE)
-      .push_opcode(opcodes::all::OP_IF)
-      .push_slice("image/png".as_bytes())
-      .push_slice(&[1; 100])
-      .push_opcode(opcodes::all::OP_ENDIF)
-      .into_script();
-
     assert_eq!(
-      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
+      InscriptionParser::parse(&container(&[b"ord", &[1], b"image/png", &[], &[1; 100]])),
       Ok(Inscription::Png(vec![1; 100]))
     );
   }

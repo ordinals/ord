@@ -81,24 +81,20 @@ impl Inscribe {
     let key_pair = KeyPair::new(&secp256k1, &mut rand::thread_rng());
     let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);
 
-    let script = script::Builder::new()
-      .push_slice(&public_key.serialize())
-      .push_opcode(opcodes::all::OP_CHECKSIG)
-      .push_opcode(opcodes::OP_FALSE)
-      .push_opcode(opcodes::all::OP_IF)
-      .push_slice(inscription.media_type().as_bytes())
-      .push_slice(inscription.content())
-      .push_opcode(opcodes::all::OP_ENDIF)
-      .into_script();
+    let reveal_script = inscription.append_reveal_script(
+      script::Builder::new()
+        .push_slice(&public_key.serialize())
+        .push_opcode(opcodes::all::OP_CHECKSIG),
+    );
 
     let taproot_spend_info = TaprootBuilder::new()
-      .add_leaf(0, script.clone())
+      .add_leaf(0, reveal_script.clone())
       .expect("adding leaf should work")
       .finalize(&secp256k1, public_key)
       .expect("finalizing taproot builder should work");
 
     let control_block = taproot_spend_info
-      .control_block(&(script.clone(), LeafVersion::TapScript))
+      .control_block(&(reveal_script.clone(), LeafVersion::TapScript))
       .expect("should compute control block");
 
     let commit_tx_address = Address::p2tr_tweaked(taproot_spend_info.output_key(), network);
@@ -144,7 +140,7 @@ impl Inscribe {
           .unwrap()
           .as_ref(),
       );
-      reveal_tx.input[0].witness.push(&script);
+      reveal_tx.input[0].witness.push(&reveal_script);
       reveal_tx.input[0].witness.push(&control_block.serialize());
 
       TransactionBuilder::TARGET_FEE_RATE * reveal_tx.vsize().try_into().unwrap()
@@ -165,7 +161,7 @@ impl Inscribe {
       .taproot_script_spend_signature_hash(
         0,
         &Prevouts::All(&[output]),
-        TapLeafHash::from_script(&script, LeafVersion::TapScript),
+        TapLeafHash::from_script(&reveal_script, LeafVersion::TapScript),
         SchnorrSighashType::Default,
       )
       .expect("signature hash should compute");
@@ -180,7 +176,7 @@ impl Inscribe {
       .witness_mut(0)
       .expect("getting mutable witness reference should work");
     witness.push(signature.as_ref());
-    witness.push(script);
+    witness.push(reveal_script);
     witness.push(&control_block.serialize());
 
     Ok((unsigned_commit_tx, reveal_tx))
