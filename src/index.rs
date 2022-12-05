@@ -59,6 +59,10 @@ fn decode_outpoint(array: OutPointArray) -> OutPoint {
   Decodable::consensus_decode(&mut io::Cursor::new(array)).unwrap()
 }
 
+fn decode_inscription_id(array: InscriptionIdArray) -> InscriptionId {
+  Decodable::consensus_decode(&mut io::Cursor::new(array)).unwrap()
+}
+
 pub(crate) struct Index {
   auth: Auth,
   chain: Chain,
@@ -577,7 +581,7 @@ impl Index {
         .map(|(satpoint, id)| {
           (
             decode_satpoint(*satpoint),
-            InscriptionId::from_slice(id).unwrap(),
+            decode_inscription_id(*id),
           )
         })
         .collect(),
