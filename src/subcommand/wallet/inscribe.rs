@@ -33,20 +33,6 @@ impl Inscribe {
 
     let inscription_satpoints = index.get_inscription_satpoints()?;
 
-    for inscribed_satpoint in &inscription_satpoints {
-      if inscribed_satpoint == &self.satpoint {
-        return Err(anyhow!("sat at {} already inscribed", self.satpoint));
-      }
-
-      if inscribed_satpoint.outpoint == self.satpoint.outpoint {
-        return Err(anyhow!(
-          "only one insribed sat per utxo allowed; utxo {} already inscribed by sat {}",
-          self.satpoint.outpoint,
-          inscribed_satpoint
-        ));
-      }
-    }
-
     let commit_tx_change = get_change_addresses(&options, 2)?;
 
     let reveal_tx_destination = get_change_addresses(&options, 1)?[0].clone();
@@ -87,6 +73,20 @@ impl Inscribe {
     change: Vec<Address>,
     destination: Address,
   ) -> Result<(Transaction, Transaction)> {
+    for inscribed_satpoint in &inscription_satpoints {
+      if inscribed_satpoint == &satpoint {
+        return Err(anyhow!("sat at {} already inscribed", satpoint));
+      }
+
+      if inscribed_satpoint.outpoint == satpoint.outpoint {
+        return Err(anyhow!(
+          "only one insribed sat per utxo allowed; utxo {} already inscribed by sat {}",
+          satpoint.outpoint,
+          inscribed_satpoint
+        ));
+      }
+    }
+
     let secp256k1 = Secp256k1::new();
     let key_pair = KeyPair::new(&secp256k1, &mut rand::thread_rng());
     let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);
