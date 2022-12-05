@@ -578,12 +578,7 @@ impl Index {
         .begin_read()?
         .open_table(SATPOINT_TO_INSCRIPTION_ID)?
         .range([0; 44]..)?
-        .map(|(satpoint, id)| {
-          (
-            decode_satpoint(*satpoint),
-            decode_inscription_id(*id),
-          )
-        })
+        .map(|(satpoint, id)| (decode_satpoint(*satpoint), decode_inscription_id(*id)))
         .collect(),
     )
   }
