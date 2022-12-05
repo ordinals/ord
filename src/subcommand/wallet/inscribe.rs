@@ -86,6 +86,7 @@ impl Inscribe {
       .push_opcode(opcodes::all::OP_CHECKSIG)
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
+      .push_slice(b"ord")
       .push_slice(inscription.media_type().as_bytes())
       .push_slice(inscription.content())
       .push_opcode(opcodes::all::OP_ENDIF)

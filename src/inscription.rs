@@ -130,6 +130,10 @@ impl<'a> InscriptionParser<'a> {
 
   fn parse_inscription(&mut self) -> Result<Option<Inscription>> {
     if self.advance()? == Instruction::Op(opcodes::all::OP_IF) {
+      if self.expect_push()? != b"ord" {
+        return Err(InscriptionError::InvalidInscription);
+      }
+
       let media_type = if let Instruction::PushBytes(bytes) = self.advance()? {
         str::from_utf8(bytes).map_err(InscriptionError::Utf8Decode)?
       } else {
@@ -161,11 +165,32 @@ impl<'a> InscriptionParser<'a> {
 
     Ok(None)
   }
+
+  fn expect_push(&mut self) -> Result<&[u8]> {
+    match self.advance()? {
+      Instruction::PushBytes(bytes) => Ok(bytes),
+      _ => Err(InscriptionError::InvalidInscription),
+    }
+  }
 }
 
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  fn container(payload: &[&[u8]]) -> Witness {
+    let mut builder = script::Builder::new()
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF);
+
+    for data in payload {
+      builder = builder.push_slice(data);
+    }
+
+    let script = builder.push_opcode(opcodes::all::OP_ENDIF).into_script();
+
+    Witness::from_vec(vec![script.into_bytes(), vec![]])
+  }
 
   #[test]
   fn empty() {
@@ -209,16 +234,8 @@ mod tests {
 
   #[test]
   fn valid() {
-    let script = script::Builder::new()
-      .push_opcode(opcodes::OP_FALSE)
-      .push_opcode(opcodes::all::OP_IF)
-      .push_slice("text/plain;charset=utf-8".as_bytes())
-      .push_slice("ord".as_bytes())
-      .push_opcode(opcodes::all::OP_ENDIF)
-      .into_script();
-
     assert_eq!(
-      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
+      InscriptionParser::parse(&container(&[b"ord", b"text/plain;charset=utf-8", b"ord",])),
       Ok(Inscription::Text("ord".into()))
     );
   }
@@ -228,8 +245,9 @@ mod tests {
     let script = script::Builder::new()
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
-      .push_slice("text/plain;charset=utf-8".as_bytes())
-      .push_slice("ord".as_bytes())
+      .push_slice(b"ord")
+      .push_slice(b"text/plain;charset=utf-8")
+      .push_slice(b"ord")
       .push_opcode(opcodes::all::OP_ENDIF)
       .push_opcode(opcodes::all::OP_CHECKSIG)
       .into_script();
@@ -246,8 +264,9 @@ mod tests {
       .push_opcode(opcodes::all::OP_CHECKSIG)
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
-      .push_slice("text/plain;charset=utf-8".as_bytes())
-      .push_slice("ord".as_bytes())
+      .push_slice(b"ord")
+      .push_slice(b"text/plain;charset=utf-8")
+      .push_slice(b"ord")
       .push_opcode(opcodes::all::OP_ENDIF)
       .into_script();
 
@@ -262,13 +281,15 @@ mod tests {
     let script = script::Builder::new()
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
-      .push_slice("text/plain;charset=utf-8".as_bytes())
-      .push_slice("foo".as_bytes())
+      .push_slice(b"ord")
+      .push_slice(b"text/plain;charset=utf-8")
+      .push_slice(b"foo")
       .push_opcode(opcodes::all::OP_ENDIF)
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
-      .push_slice("text/plain;charset=utf-8".as_bytes())
-      .push_slice("bar".as_bytes())
+      .push_slice(b"ord")
+      .push_slice(b"text/plain;charset=utf-8")
+      .push_slice(b"bar")
       .push_opcode(opcodes::all::OP_ENDIF)
       .into_script();
 
@@ -280,16 +301,12 @@ mod tests {
 
   #[test]
   fn invalid_utf8() {
-    let script = script::Builder::new()
-      .push_opcode(opcodes::OP_FALSE)
-      .push_opcode(opcodes::all::OP_IF)
-      .push_slice("text/plain;charset=utf-8".as_bytes())
-      .push_slice(&[0b10000000])
-      .push_opcode(opcodes::all::OP_ENDIF)
-      .into_script();
-
     assert!(matches!(
-      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
+      InscriptionParser::parse(&container(&[
+        b"ord",
+        b"text/plain;charset=utf-8",
+        &[0b10000000]
+      ])),
       Err(InscriptionError::Utf8Decode(_)),
     ));
   }
@@ -310,45 +327,22 @@ mod tests {
 
   #[test]
   fn no_content() {
-    let script = script::Builder::new()
-      .push_opcode(opcodes::OP_FALSE)
-      .push_opcode(opcodes::all::OP_IF)
-      .push_opcode(opcodes::all::OP_ENDIF)
-      .into_script();
-
     assert_eq!(
-      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
+      InscriptionParser::parse(&container(&[])),
       Err(InscriptionError::InvalidInscription)
     );
   }
 
   #[test]
   fn unrecognized_content() {
-    let script = script::Builder::new()
-      .push_opcode(opcodes::OP_FALSE)
-      .push_opcode(opcodes::all::OP_IF)
-      .push_slice("ord".as_bytes())
-      .push_slice("ord".as_bytes())
-      .push_slice("ord".as_bytes())
-      .push_opcode(opcodes::all::OP_ENDIF)
-      .into_script();
-
     assert_eq!(
-      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
+      InscriptionParser::parse(&container(&[b"ord", b"ord", b"ord", b"ord"])),
       Err(InscriptionError::InvalidInscription),
     );
   }
 
   #[test]
   fn extract_from_transaction() {
-    let script = script::Builder::new()
-      .push_opcode(opcodes::OP_FALSE)
-      .push_opcode(opcodes::all::OP_IF)
-      .push_slice("text/plain;charset=utf-8".as_bytes())
-      .push_slice("ord".as_bytes())
-      .push_opcode(opcodes::all::OP_ENDIF)
-      .into_script();
-
     let tx = Transaction {
       version: 0,
       lock_time: bitcoin::PackedLockTime(0),
@@ -356,7 +350,7 @@ mod tests {
         previous_output: OutPoint::null(),
         script_sig: Script::new(),
         sequence: Sequence(0),
-        witness: Witness::from_vec(vec![script.into_bytes(), vec![]]),
+        witness: container(&[b"ord", b"text/plain;charset=utf-8", b"ord"]),
       }],
       output: Vec::new(),
     };
@@ -425,16 +419,8 @@ mod tests {
 
   #[test]
   fn inscribe_png() {
-    let script = script::Builder::new()
-      .push_opcode(opcodes::OP_FALSE)
-      .push_opcode(opcodes::all::OP_IF)
-      .push_slice("image/png".as_bytes())
-      .push_slice(&[1; 100])
-      .push_opcode(opcodes::all::OP_ENDIF)
-      .into_script();
-
     assert_eq!(
-      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
+      InscriptionParser::parse(&container(&[b"ord", b"image/png", &[1; 100]])),
       Ok(Inscription::Png(vec![1; 100]))
     );
   }
