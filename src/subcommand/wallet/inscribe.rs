@@ -31,9 +31,9 @@ impl Inscribe {
 
     let utxos = list_utxos(&options)?;
 
-    let inscription_satpoints = index.get_inscription_satpoints()?;
+    let inscriptions = index.get_inscriptions()?;
 
-    if inscription_satpoints.contains(&self.satpoint) {
+    if inscriptions.contains_key(&self.satpoint) {
       return Err(anyhow!("sat at {} already inscribed", self.satpoint));
     }
 
@@ -44,7 +44,7 @@ impl Inscribe {
     let (unsigned_commit_tx, reveal_tx) = Inscribe::create_inscription_transactions(
       self.satpoint,
       inscription,
-      inscription_satpoints,
+      inscriptions,
       options.chain.network(),
       utxos,
       commit_tx_change,
@@ -71,7 +71,7 @@ impl Inscribe {
   fn create_inscription_transactions(
     satpoint: SatPoint,
     inscription: Inscription,
-    inscription_satpoints: Vec<SatPoint>,
+    inscriptions: BTreeMap<SatPoint, InscriptionId>,
     network: bitcoin::Network,
     utxos: BTreeMap<OutPoint, Amount>,
     change: Vec<Address>,
@@ -105,7 +105,7 @@ impl Inscribe {
 
     let unsigned_commit_tx = TransactionBuilder::build_transaction(
       satpoint,
-      inscription_satpoints,
+      inscriptions,
       utxos,
       commit_tx_address.clone(),
       change,
@@ -201,7 +201,7 @@ mod tests {
     let (commit_tx, reveal_tx) = Inscribe::create_inscription_transactions(
       satpoint(1, 0),
       inscription,
-      vec![],
+      BTreeMap::new(),
       bitcoin::Network::Signet,
       utxos.into_iter().collect(),
       vec![commit_address, change(1)],
@@ -228,7 +228,7 @@ mod tests {
     assert!(Inscribe::create_inscription_transactions(
       satpoint,
       inscription,
-      vec![],
+      BTreeMap::new(),
       bitcoin::Network::Signet,
       utxos.into_iter().collect(),
       vec![commit_address, change(1)],
@@ -250,7 +250,7 @@ mod tests {
     let error = Inscribe::create_inscription_transactions(
       satpoint,
       inscription,
-      vec![],
+      BTreeMap::new(),
       bitcoin::Network::Signet,
       utxos.into_iter().collect(),
       vec![commit_address, change(1)],
