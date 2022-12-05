@@ -14,6 +14,7 @@ use {
   },
 };
 
+const PROTOCOL_ID: &[u8] = b"ord";
 const RESOURCE_TAG: &[u8] = &[];
 const TYPE_TAG: &[u8] = &[1];
 
@@ -53,7 +54,7 @@ impl Inscription {
     builder
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
-      .push_slice(b"ord")
+      .push_slice(PROTOCOL_ID)
       .push_slice(TYPE_TAG)
       .push_slice(self.media_type().as_bytes())
       .push_slice(RESOURCE_TAG)
@@ -149,7 +150,7 @@ impl<'a> InscriptionParser<'a> {
 
   fn parse_inscription(&mut self) -> Result<Option<Inscription>> {
     if self.advance()? == Instruction::Op(opcodes::all::OP_IF) {
-      if !self.accept(Instruction::PushBytes(b"ord"))? {
+      if !self.accept(Instruction::PushBytes(PROTOCOL_ID))? {
         return Err(InscriptionError::NoInscription);
       }
 
