@@ -73,16 +73,15 @@ impl Inscribe {
     change: Vec<Address>,
     destination: Address,
   ) -> Result<(Transaction, Transaction)> {
-    for inscribed_satpoint in &inscription_satpoints {
+    for (inscribed_satpoint, inscription_id) in &inscriptions {
       if inscribed_satpoint == &satpoint {
         return Err(anyhow!("sat at {} already inscribed", satpoint));
       }
 
       if inscribed_satpoint.outpoint == satpoint.outpoint {
         return Err(anyhow!(
-          "only one insribed sat per utxo allowed; utxo {} already inscribed by sat {}",
+          "utxo {} already inscribed by inscription {inscription_id} on sat {inscribed_satpoint}",
           satpoint.outpoint,
-          inscribed_satpoint
         ));
       }
     }

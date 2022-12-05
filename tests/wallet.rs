@@ -475,7 +475,7 @@ fn refuse_to_inscribe_already_inscribed_utxo() {
   .rpc_server(&rpc_server)
   .expected_exit_code(1)
   .expected_stderr(format!(
-    "error: utxo {inscription_utxo} already inscribed at sat {inscription_utxo}:0 by inscription {inscription_id}\n",
+    "error: utxo {inscription_utxo} already inscribed by inscription {inscription_id} on sat {inscription_utxo}:0\n",
   ))
   .run();
 }
