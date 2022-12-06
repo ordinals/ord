@@ -6,7 +6,7 @@ pub(crate) struct RangeHtml {
   pub(crate) end: Ordinal,
 }
 
-impl Content for RangeHtml {
+impl PageContent for RangeHtml {
   fn title(&self) -> String {
     format!("Ordinal range {}–{}", self.start, self.end)
   }

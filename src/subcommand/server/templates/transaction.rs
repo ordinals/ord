@@ -17,7 +17,7 @@ impl TransactionHtml {
   }
 }
 
-impl Content for TransactionHtml {
+impl PageContent for TransactionHtml {
   fn title(&self) -> String {
     format!("Transaction {}", self.txid)
   }

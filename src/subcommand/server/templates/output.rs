@@ -8,7 +8,7 @@ pub(crate) struct OutputHtml {
   pub(crate) output: TxOut,
 }
 
-impl Content for OutputHtml {
+impl PageContent for OutputHtml {
   fn title(&self) -> String {
     format!("Output {}", self.outpoint)
   }

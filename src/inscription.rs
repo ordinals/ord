@@ -8,7 +8,7 @@ use {
     util::taproot::TAPROOT_ANNEX_PREFIX,
     Script, Witness,
   },
-  std::iter::Peekable,
+  std::{iter::Peekable, str},
 };
 
 const PROTOCOL_ID: &[u8] = b"ord";
@@ -69,16 +69,12 @@ impl Inscription {
       .into_script()
   }
 
-  pub(crate) fn content_type(&self) -> Option<ContentType> {
+  pub(crate) fn content(&self) -> Option<Content> {
     match self.content_type.as_slice() {
-      b"text/plain;charset=utf-8" => Some(ContentType::Text),
-      b"image/png" => Some(ContentType::Png),
+      b"text/plain;charset=utf-8" => Some(Content::Text(str::from_utf8(&self.content).ok()?)),
+      b"image/png" => Some(Content::Png(&self.content)),
       _ => None,
     }
-  }
-
-  pub(crate) fn content(&self) -> &[u8] {
-    &self.content
   }
 }
 

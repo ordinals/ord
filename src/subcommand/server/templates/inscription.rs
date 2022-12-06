@@ -7,7 +7,7 @@ pub(crate) struct InscriptionHtml {
   pub(crate) satpoint: SatPoint,
 }
 
-impl Content for InscriptionHtml {
+impl PageContent for InscriptionHtml {
   fn title(&self) -> String {
     format!("Inscription {}", self.txid)
   }

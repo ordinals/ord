@@ -24,12 +24,12 @@ mod transaction;
 #[derive(Boilerplate)]
 pub(crate) struct PageHtml {
   chain: Chain,
-  content: Box<dyn Content>,
+  content: Box<dyn PageContent>,
   has_ordinal_index: bool,
 }
 
 impl PageHtml {
-  pub(crate) fn new<T: Content + 'static>(
+  pub(crate) fn new<T: PageContent + 'static>(
     content: T,
     chain: Chain,
     has_ordinal_index: bool,
@@ -42,7 +42,7 @@ impl PageHtml {
   }
 }
 
-pub(crate) trait Content: Display + 'static {
+pub(crate) trait PageContent: Display + 'static {
   fn title(&self) -> String;
 
   fn page(self, chain: Chain, has_ordinal_index: bool) -> PageHtml
@@ -67,7 +67,7 @@ mod tests {
       }
     }
 
-    impl Content for Foo {
+    impl PageContent for Foo {
       fn title(&self) -> String {
         "Foo".to_string()
       }
@@ -117,7 +117,7 @@ mod tests {
       }
     }
 
-    impl Content for Foo {
+    impl PageContent for Foo {
       fn title(&self) -> String {
         "Foo".to_string()
       }
@@ -166,7 +166,7 @@ mod tests {
       }
     }
 
-    impl Content for Foo {
+    impl PageContent for Foo {
       fn title(&self) -> String {
         "Foo".to_string()
       }

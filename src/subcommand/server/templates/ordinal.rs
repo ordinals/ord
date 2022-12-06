@@ -7,7 +7,7 @@ pub(crate) struct OrdinalHtml {
   pub(crate) inscription: Option<Inscription>,
 }
 
-impl Content for OrdinalHtml {
+impl PageContent for OrdinalHtml {
   fn title(&self) -> String {
     self.ordinal.degree().to_string()
   }
