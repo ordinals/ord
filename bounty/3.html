@@ -144,9 +144,9 @@ locking short names inside the unspendable genesis block coinbase reward,
 ordinal names get <em>shorter</em> as the ordinal number gets <em>longer</em>. The name of
 ordinal 0, the first ordinal to be mined is <code>nvtdijuwxlp</code> and the name of
 ordinal 2,099,999,997,689,999, the last ordinal to be mined, is <code>a</code>.</p>
-<p>The bounty is open for submissions until block 766080—the first block of
-difficulty adjustment period 380. Submissions included in block 766080 or later
-will not be considered.</p>
+<p>The bounty is open for submissions until block 840000—the first block after the
+fourth halvening. Submissions included in block 840000 or later will not be
+considered.</p>
 <p>Both parts use <a href="frequency.tsv">frequency.tsv</a>, a list of words and the number
 of times they occur in the <a href="http://storage.googleapis.com/books/ngrams/books/datasetsv2.html">Google Books Ngram
 dataset</a>.
@@ -155,7 +155,8 @@ the end of the submission period, that appear at least 5000 times in the
 corpus.</p>
 <p><code>frequency.tsv</code> is a file of tab-separated values. The first column is the
 word, and the second is the number of times it appears in the corpus. The
-entries are sorted from least-frequently occurring to most-frequently occuring.</p>
+entries are sorted from least-frequently occurring to most-frequently
+occurring.</p>
 <p><code>frequency.tsv</code> was compiled using <a href="https://github.com/casey/onegrams">this
 program</a>.</p>
 <p>To search an ordinal wallet for ordinals with a name in <code>frequency.tsv</code>, use
