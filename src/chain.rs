@@ -30,6 +30,13 @@ impl Chain {
     }
   }
 
+  pub(crate) fn inscription_content_size_limit(self) -> Option<usize> {
+    match self {
+      Self::Mainnet | Self::Regtest => None,
+      Self::Testnet | Self::Signet => Some(1024),
+    }
+  }
+
   pub(crate) fn genesis_block(self) -> Block {
     bitcoin::blockdata::constants::genesis_block(self.network())
   }

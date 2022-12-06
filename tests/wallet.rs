@@ -324,16 +324,32 @@ fn inscribe_png() {
 
 #[test]
 fn inscribe_exceeds_push_byte_limit() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Signet, "ord");
+  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+
+  CommandBuilder::new(format!(
+    "--chain signet wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
+  ))
+  .write("degenerate.png", [1; 1025])
+  .rpc_server(&rpc_server)
+  .expected_exit_code(1)
+  .expected_stderr(
+    "error: content size of 1025 bytes exceeds 1024 byte limit for signet inscriptions\n",
+  )
+  .run();
+}
+
+#[test]
+fn regtest_has_no_content_size_limit() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   CommandBuilder::new(format!(
     "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
   ))
-  .write("degenerate.png", [1; 521])
+  .write("degenerate.png", [1; 1025])
   .rpc_server(&rpc_server)
-  .expected_exit_code(1)
-  .expected_stderr("error: file size exceeds 520 bytes\n")
+  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
   .run();
 }
 
