@@ -18,8 +18,8 @@ const CONTENT_TYPE_TAG: &[u8] = &[1];
 
 #[derive(Debug, PartialEq)]
 pub(crate) struct Inscription {
-  pub(crate) content_type: Vec<u8>,
   pub(crate) content: Vec<u8>,
+  pub(crate) content_type: Vec<u8>,
 }
 
 impl Inscription {
@@ -51,8 +51,8 @@ impl Inscription {
     };
 
     Ok(Self {
-      content_type: content_type.into(),
       content,
+      content_type: content_type.into(),
     })
   }
 
