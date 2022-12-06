@@ -508,9 +508,9 @@ dependencies = [
 
 [[package]]
 name = "boilerplate"
-version = "0.2.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9bc7ce02a22a0b890e594915b4e906e3b1963ca97eef683c1f6ad6de052e4a8b"
+checksum = "dbaf58d1a680b723bb9d9479db2fa886320a4af24f43570c3713fb26184ccdae"
 dependencies = [
  "darling",
  "mime",
