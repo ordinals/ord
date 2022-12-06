@@ -27,12 +27,15 @@ impl Inscription {
     InscriptionParser::parse(&tx.input.get(0)?.witness).ok()
   }
 
-  pub(crate) fn from_file(path: PathBuf) -> Result<Self, Error> {
+  pub(crate) fn from_file(chain: Chain, path: PathBuf) -> Result<Self, Error> {
     let content =
       fs::read(&path).with_context(|| format!("io error reading {}", path.display()))?;
 
-    if content.len() > 520 {
-      bail!("file size exceeds 520 bytes");
+    if let Some(limit) = chain.inscription_content_size_limit() {
+      let len = content.len();
+      if len > limit {
+        bail!("content size of {len} bytes exceeds {limit} byte limit for {chain} inscriptions");
+      }
     }
 
     let content_type = match path
@@ -56,17 +59,20 @@ impl Inscription {
     })
   }
 
-  pub(crate) fn append_reveal_script(&self, builder: script::Builder) -> Script {
-    builder
+  pub(crate) fn append_reveal_script(&self, mut builder: script::Builder) -> Script {
+    builder = builder
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
       .push_slice(PROTOCOL_ID)
       .push_slice(CONTENT_TYPE_TAG)
       .push_slice(&self.content_type)
-      .push_slice(CONTENT_TAG)
-      .push_slice(&self.content)
-      .push_opcode(opcodes::all::OP_ENDIF)
-      .into_script()
+      .push_slice(CONTENT_TAG);
+
+    for chunk in self.content.chunks(520) {
+      builder = builder.push_slice(chunk);
+    }
+
+    builder.push_opcode(opcodes::all::OP_ENDIF).into_script()
   }
 
   pub(crate) fn content(&self) -> Option<Content> {
@@ -516,6 +522,71 @@ mod tests {
     assert_eq!(
       InscriptionParser::parse(&container(&[b"ord", &[1], b"image/png", &[], &[1; 100]])),
       Ok(inscription("image/png", [1; 100])),
+    );
+  }
+
+  #[test]
+  fn reveal_script_chunks_data() {
+    assert_eq!(
+      inscription("foo", [])
+        .append_reveal_script(script::Builder::new())
+        .instructions()
+        .count(),
+      7
+    );
+
+    assert_eq!(
+      inscription("foo", [0; 1])
+        .append_reveal_script(script::Builder::new())
+        .instructions()
+        .count(),
+      8
+    );
+
+    assert_eq!(
+      inscription("foo", [0; 520])
+        .append_reveal_script(script::Builder::new())
+        .instructions()
+        .count(),
+      8
+    );
+
+    assert_eq!(
+      inscription("foo", [0; 521])
+        .append_reveal_script(script::Builder::new())
+        .instructions()
+        .count(),
+      9
+    );
+
+    assert_eq!(
+      inscription("foo", [0; 1040])
+        .append_reveal_script(script::Builder::new())
+        .instructions()
+        .count(),
+      9
+    );
+
+    assert_eq!(
+      inscription("foo", [0; 1041])
+        .append_reveal_script(script::Builder::new())
+        .instructions()
+        .count(),
+      10
+    );
+  }
+
+  #[test]
+  fn chunked_data_is_parsable() {
+    let mut witness = Witness::new();
+
+    witness.push(&inscription("foo", [1; 1040]).append_reveal_script(script::Builder::new()));
+
+    witness.push([]);
+
+    assert_eq!(
+      InscriptionParser::parse(&witness).unwrap(),
+      inscription("foo", [1; 1040]),
     );
   }
 }
