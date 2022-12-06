@@ -47,7 +47,7 @@ impl Send {
 
     let satpoint = match self.outgoing {
       Reference::SatPoint(satpoint) => {
-        for (inscription_satpoint, _inscription_id) in &inscriptions {
+        for inscription_satpoint in inscriptions.keys() {
           if satpoint == *inscription_satpoint {
             bail!("inscriptions must be sent by inscription ID");
           }
