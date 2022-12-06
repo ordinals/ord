@@ -8,6 +8,7 @@ use {
   self::{
     arguments::Arguments,
     blocktime::Blocktime,
+    content::Content,
     decimal::Decimal,
     degree::Degree,
     epoch::Epoch,
@@ -68,6 +69,7 @@ use self::test::*;
 mod arguments;
 mod blocktime;
 mod chain;
+mod content;
 mod decimal;
 mod degree;
 mod epoch;

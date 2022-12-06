@@ -7,7 +7,7 @@ pub(crate) struct InscriptionHtml {
   pub(crate) satpoint: SatPoint,
 }
 
-impl Content for InscriptionHtml {
+impl PageContent for InscriptionHtml {
   fn title(&self) -> String {
     format!("Inscription {}", self.txid)
   }
@@ -23,7 +23,7 @@ mod tests {
       InscriptionHtml {
         txid: Txid::from_str("ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc")
           .unwrap(),
-        inscription: Inscription::Text("HELLOWORLD".into()),
+        inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         satpoint: satpoint(1, 0),
       }
       .to_string(),
@@ -44,7 +44,7 @@ mod tests {
     pretty_assert_eq!(
       InscriptionHtml {
         txid: Txid::from_str("ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc").unwrap(),
-        inscription: Inscription::Png(vec![1; 100]),
+        inscription: inscription("image/png", [1; 100]),
         satpoint: satpoint(1, 0),
       }
       .to_string(),

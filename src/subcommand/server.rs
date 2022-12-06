@@ -4,8 +4,8 @@ use {
   self::{
     deserialize_from_str::DeserializeFromStr,
     templates::{
-      BlockHtml, ClockSvg, Content, HomeHtml, InputHtml, InscriptionHtml, OrdinalHtml, OutputHtml,
-      PageHtml, RangeHtml, RareTxt, TransactionHtml,
+      BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, OrdinalHtml, OutputHtml,
+      PageContent, PageHtml, RangeHtml, RareTxt, TransactionHtml,
     },
   },
   axum::{
@@ -91,7 +91,7 @@ struct StaticHtml {
   html: &'static str,
 }
 
-impl Content for StaticHtml {
+impl PageContent for StaticHtml {
   fn title(&self) -> String {
     self.title.into()
   }

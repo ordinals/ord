@@ -7,7 +7,7 @@ pub(crate) struct OrdinalHtml {
   pub(crate) inscription: Option<Inscription>,
 }
 
-impl Content for OrdinalHtml {
+impl PageContent for OrdinalHtml {
   fn title(&self) -> String {
     self.ordinal.degree().to_string()
   }
@@ -85,7 +85,7 @@ mod tests {
       OrdinalHtml {
         ordinal: Ordinal(0),
         blocktime: Blocktime::Confirmed(0),
-        inscription: Some(Inscription::Text("HELLOWORLD".into())),
+        inscription: Some(inscription("text/plain;charset=utf-8", "HELLOWORLD")),
       }
       .to_string(),
       "
@@ -102,7 +102,8 @@ mod tests {
           <dt>offset</dt><dd>0</dd>
           <dt>rarity</dt><dd><span class=mythic>mythic</span></dd>
           <dt>time</dt><dd>1970-01-01 00:00:00</dd>
-          <dt>inscription</dt><dd>HELLOWORLD</dd>
+          <dt>inscription</dt>
+          <dd>HELLOWORLD</dd>
         </dl>
         prev
         <a href=/ordinal/1>next</a>
@@ -117,8 +118,9 @@ mod tests {
       OrdinalHtml {
         ordinal: Ordinal(0),
         blocktime: Blocktime::Confirmed(0),
-        inscription: Some(Inscription::Text(
-          "<script>alert('HELLOWORLD');</script>".into()
+        inscription: Some(inscription(
+          "text/plain;charset=utf-8",
+          "<script>alert('HELLOWORLD');</script>",
         )),
       }
       .to_string(),
@@ -136,7 +138,8 @@ mod tests {
           <dt>offset</dt><dd>0</dd>
           <dt>rarity</dt><dd><span class=mythic>mythic</span></dd>
           <dt>time</dt><dd>1970-01-01 00:00:00</dd>
-          <dt>inscription</dt><dd>&lt;script&gt;alert(&apos;HELLOWORLD&apos;);&lt;/script&gt;</dd>
+          <dt>inscription</dt>
+          <dd>&lt;script&gt;alert(&apos;HELLOWORLD&apos;);&lt;/script&gt;</dd>
         </dl>
         prev
         <a href=/ordinal/1>next</a>
