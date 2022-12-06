@@ -1015,7 +1015,7 @@ mod tests {
   #[test]
   fn range_end_before_range_start_returns_400() {
     TestServer::new().assert_response(
-      "/range/1/0/",
+      "/range/1/0",
       StatusCode::BAD_REQUEST,
       "range start greater than range end",
     );
