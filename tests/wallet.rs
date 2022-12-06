@@ -261,7 +261,7 @@ fn inscribe() {
 
   TestServer::spawn_with_args(&rpc_server, &["--index-ordinals"]).assert_response_regex(
     "/ordinal/5000000000",
-    ".*<dt>inscription</dt><dd>HELLOWORLD</dd>.*",
+    ".*<dt>inscription</dt>\n  <dd>HELLOWORLD</dd>.*",
   );
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
@@ -318,7 +318,7 @@ fn inscribe_png() {
 
   ord_server.assert_response_regex(
     "/ordinal/5000000000",
-    ".*<dt>inscription</dt><dd><img src=.*",
+    ".*<dt>inscription</dt>\n  <dd><img src=.*",
   )
 }
 

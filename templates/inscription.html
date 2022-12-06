@@ -3,11 +3,14 @@
   <dt>satpoint</dt>
   <dd>{{ self.satpoint }}</dd>
 </dl>
-%% match &self.inscription {
-%%  Inscription::Text(content) => {
-{{ String::from_utf8_lossy(content) }}
+%% match self.inscription.content_type() {
+%% Some(ContentType::Text) => {
+{{ String::from_utf8_lossy(self.inscription.content()) }}
 %% },
-%%  Inscription::Png(content) => {
-<img src="data:image/png;base64,{{ base64::encode(&content) }}">
+%% Some(ContentType::Png) => {
+<img src="data:image/png;base64,{{ base64::encode(self.inscription.content()) }}">
+%% },
+%% None => {
+UNKNOWN
 %% },
 %% }

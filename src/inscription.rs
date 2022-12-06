@@ -8,20 +8,18 @@ use {
     util::taproot::TAPROOT_ANNEX_PREFIX,
     Script, Witness,
   },
-  std::{
-    iter::Peekable,
-    str::{self, Utf8Error},
-  },
+  std::iter::Peekable,
 };
 
 const PROTOCOL_ID: &[u8] = b"ord";
-const RESOURCE_TAG: &[u8] = &[];
-const TYPE_TAG: &[u8] = &[1];
+
+const CONTENT_TAG: &[u8] = &[];
+const CONTENT_TYPE_TAG: &[u8] = &[1];
 
 #[derive(Debug, PartialEq)]
-pub(crate) enum Inscription {
-  Text(Vec<u8>),
-  Png(Vec<u8>),
+pub(crate) struct Inscription {
+  pub(crate) content_type: Vec<u8>,
+  pub(crate) content: Vec<u8>,
 }
 
 impl Inscription {
@@ -30,24 +28,32 @@ impl Inscription {
   }
 
   pub(crate) fn from_file(path: PathBuf) -> Result<Self, Error> {
-    let file = fs::read(&path).with_context(|| format!("io error reading {}", path.display()))?;
+    let content =
+      fs::read(&path).with_context(|| format!("io error reading {}", path.display()))?;
 
-    if file.len() > 520 {
+    if content.len() > 520 {
       bail!("file size exceeds 520 bytes");
     }
 
-    match path
+    let content_type = match path
       .extension()
       .ok_or_else(|| anyhow!("file must have extension"))?
       .to_str()
       .ok_or_else(|| anyhow!("unrecognized extension"))?
     {
-      "txt" => Ok(Inscription::Text(file)),
-      "png" => Ok(Inscription::Png(file)),
-      other => Err(anyhow!(
-        "unrecognized file extension `.{other}`, only .txt and .png accepted"
-      )),
-    }
+      "txt" => "text/plain;charset=utf-8",
+      "png" => "image/png",
+      other => {
+        return Err(anyhow!(
+          "unrecognized file extension `.{other}`, only .txt and .png accepted"
+        ))
+      }
+    };
+
+    Ok(Self {
+      content_type: content_type.into(),
+      content,
+    })
   }
 
   pub(crate) fn append_reveal_script(&self, builder: script::Builder) -> Script {
@@ -55,26 +61,24 @@ impl Inscription {
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
       .push_slice(PROTOCOL_ID)
-      .push_slice(TYPE_TAG)
-      .push_slice(self.media_type().as_bytes())
-      .push_slice(RESOURCE_TAG)
-      .push_slice(self.resource())
+      .push_slice(CONTENT_TYPE_TAG)
+      .push_slice(&self.content_type)
+      .push_slice(CONTENT_TAG)
+      .push_slice(&self.content)
       .push_opcode(opcodes::all::OP_ENDIF)
       .into_script()
   }
 
-  fn media_type(&self) -> &str {
-    match self {
-      Inscription::Text(_) => "text/plain;charset=utf-8",
-      Inscription::Png(_) => "image/png",
+  pub(crate) fn content_type(&self) -> Option<ContentType> {
+    match self.content_type.as_slice() {
+      b"text/plain;charset=utf-8" => Some(ContentType::Text),
+      b"image/png" => Some(ContentType::Png),
+      _ => None,
     }
   }
 
-  fn resource(&self) -> &[u8] {
-    match self {
-      Inscription::Text(text) => text.as_ref(),
-      Inscription::Png(png) => png.as_ref(),
-    }
+  pub(crate) fn content(&self) -> &[u8] {
+    &self.content
   }
 }
 
@@ -84,7 +88,6 @@ enum InscriptionError {
   KeyPathSpend,
   Script(script::Error),
   NoInscription,
-  Utf8Decode(Utf8Error),
   InvalidInscription,
 }
 
@@ -154,17 +157,13 @@ impl<'a> InscriptionParser<'a> {
         return Err(InscriptionError::NoInscription);
       }
 
-      if !self.accept(Instruction::PushBytes(TYPE_TAG))? {
+      if !self.accept(Instruction::PushBytes(CONTENT_TYPE_TAG))? {
         return Err(InscriptionError::InvalidInscription);
       }
 
-      let media_type = if let Instruction::PushBytes(bytes) = self.advance()? {
-        str::from_utf8(bytes).map_err(InscriptionError::Utf8Decode)?
-      } else {
-        return Err(InscriptionError::InvalidInscription);
-      };
+      let content_type = self.expect_push()?;
 
-      if !self.accept(Instruction::PushBytes(RESOURCE_TAG))? {
+      if !self.accept(Instruction::PushBytes(CONTENT_TAG))? {
         return Err(InscriptionError::InvalidInscription);
       }
 
@@ -173,19 +172,16 @@ impl<'a> InscriptionParser<'a> {
         content.extend_from_slice(self.expect_push()?);
       }
 
-      let inscription = match media_type {
-        "text/plain;charset=utf-8" => Some(Inscription::Text(content)),
-        "image/png" => Some(Inscription::Png(content)),
-        _ => None,
-      };
-
-      return Ok(inscription);
+      return Ok(Some(Inscription {
+        content,
+        content_type: content_type.into(),
+      }));
     }
 
     Ok(None)
   }
 
-  fn expect_push(&mut self) -> Result<&[u8]> {
+  fn expect_push(&mut self) -> Result<&'a [u8]> {
     match self.advance()? {
       Instruction::PushBytes(bytes) => Ok(bytes),
       _ => Err(InscriptionError::InvalidInscription),
@@ -276,12 +272,12 @@ mod tests {
         &[],
         b"ord",
       ])),
-      Ok(Inscription::Text("ord".into()))
+      Ok(inscription("text/plain;charset=utf-8", "ord")),
     );
   }
 
   #[test]
-  fn valid_resource_in_multiple_pushes() {
+  fn valid_content_in_multiple_pushes() {
     assert_eq!(
       InscriptionParser::parse(&container(&[
         b"ord",
@@ -291,12 +287,12 @@ mod tests {
         b"foo",
         b"bar"
       ])),
-      Ok(Inscription::Text("foobar".into()))
+      Ok(inscription("text/plain;charset=utf-8", "foobar")),
     );
   }
 
   #[test]
-  fn valid_resource_in_zero_pushes() {
+  fn valid_content_in_zero_pushes() {
     assert_eq!(
       InscriptionParser::parse(&container(&[
         b"ord",
@@ -304,7 +300,7 @@ mod tests {
         b"text/plain;charset=utf-8",
         &[]
       ])),
-      Ok(Inscription::Text("".into()))
+      Ok(inscription("text/plain;charset=utf-8", "")),
     );
   }
 
@@ -324,7 +320,7 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
-      Ok(Inscription::Text("ord".into()))
+      Ok(inscription("text/plain;charset=utf-8", "ord")),
     );
   }
 
@@ -344,7 +340,7 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
-      Ok(Inscription::Text("ord".into()))
+      Ok(inscription("text/plain;charset=utf-8", "ord")),
     );
   }
 
@@ -371,13 +367,13 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
-      Ok(Inscription::Text("foo".into()))
+      Ok(inscription("text/plain;charset=utf-8", "foo")),
     );
   }
 
   #[test]
   fn invalid_utf8_is_allowed() {
-    assert!(matches!(
+    assert_eq!(
       InscriptionParser::parse(&container(&[
         b"ord",
         &[1],
@@ -385,8 +381,8 @@ mod tests {
         &[],
         &[0b10000000]
       ])),
-      Ok(Inscription::Text(bytes)) if bytes == [0b10000000],
-    ));
+      Ok(inscription("text/plain;charset=utf-8", [0b10000000])),
+    );
   }
 
   #[test]
@@ -451,7 +447,7 @@ mod tests {
 
     assert_eq!(
       Inscription::from_transaction(&tx),
-      Some(Inscription::Text("ord".into())),
+      Some(inscription("text/plain;charset=utf-8", "ord")),
     );
   }
 
@@ -515,7 +511,7 @@ mod tests {
   fn inscribe_png() {
     assert_eq!(
       InscriptionParser::parse(&container(&[b"ord", &[1], b"image/png", &[], &[1; 100]])),
-      Ok(Inscription::Png(vec![1; 100]))
+      Ok(inscription("image/png", [1; 100])),
     );
   }
 }

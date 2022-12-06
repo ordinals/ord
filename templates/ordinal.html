@@ -12,13 +12,17 @@
   <dt>rarity</dt><dd><span class={{self.ordinal.rarity()}}>{{ self.ordinal.rarity() }}</span></dd>
   <dt>time</dt><dd>{{ self.blocktime }}</dd>
 %% if let Some(inscription) = &self.inscription {
-%% match inscription {
-%%  Inscription::Text(content) => {
-  <dt>inscription</dt><dd>{{ String::from_utf8_lossy(content) }}</dd>
+  <dt>inscription</dt>
+%% match inscription.content_type() {
+%% Some(ContentType::Text) => {
+  <dd>{{ String::from_utf8_lossy(inscription.content()) }}</dd>
 %% },
-%%  Inscription::Png(content) => {
-  <dt>inscription</dt><dd><img src="data:image/png;base64,{{ base64::encode(&content) }}"></dd>
+%% Some(ContentType::Png) => {
+  <dd><img src="data:image/png;base64,{{ base64::encode(inscription.content()) }}"></dd>
 %% },
+%% None => {
+  <dd>UNKNOWN</d>
+%% }
 %% }
 %% }
 </dl>
