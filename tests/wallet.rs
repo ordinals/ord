@@ -84,7 +84,7 @@ fn send_works_on_signet() {
   rpc_server.mine_blocks(1);
 
   let stdout = CommandBuilder::new(format!(
-    "--chain signet wallet send {reveal_txid}:0:0 tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw"
+    "--chain signet wallet send {reveal_txid} tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw"
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(r".*")
