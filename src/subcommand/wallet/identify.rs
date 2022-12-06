@@ -19,7 +19,8 @@ impl Identify {
     if let Some(path) = &self.ordinals {
       for (output, ordinal) in identify_from_tsv(
         utxos,
-        &fs::read_to_string(path).with_context(|| "I/O error reading `{path}`")?,
+        &fs::read_to_string(path)
+          .with_context(|| format!("I/O error reading `{}`", path.display()))?,
       )? {
         println!("{output}\t{ordinal}");
       }

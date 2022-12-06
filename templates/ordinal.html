@@ -14,7 +14,7 @@
 %% if let Some(inscription) = &self.inscription {
 %% match inscription {
 %%  Inscription::Text(content) => {
-  <dt>inscription</dt><dd>{{ content }}</dd>
+  <dt>inscription</dt><dd>{{ String::from_utf8_lossy(content) }}</dd>
 %% },
 %%  Inscription::Png(content) => {
   <dt>inscription</dt><dd><img src="data:image/png;base64,{{ base64::encode(&content) }}"></dd>

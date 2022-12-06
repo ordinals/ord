@@ -41,7 +41,7 @@ impl Send {
 
     let utxos = list_utxos(&options)?;
 
-    let inscription_satpoints = index.get_inscription_satpoints()?;
+    let inscriptions = index.get_inscriptions()?;
 
     let change = get_change_addresses(&options, 2)?;
 
@@ -53,13 +53,8 @@ impl Send {
       },
     };
 
-    let unsigned_transaction = TransactionBuilder::build_transaction(
-      satpoint,
-      inscription_satpoints,
-      utxos,
-      self.address,
-      change,
-    )?;
+    let unsigned_transaction =
+      TransactionBuilder::build_transaction(satpoint, inscriptions, utxos, self.address, change)?;
 
     let signed_tx = client
       .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?

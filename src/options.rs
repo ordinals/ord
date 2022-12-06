@@ -178,7 +178,11 @@ mod tests {
       .unwrap()
       .display()
       .to_string()
-      .ends_with("/signet/.cookie"))
+      .ends_with(if cfg!(windows) {
+        r"\signet\.cookie"
+      } else {
+        "/signet/.cookie"
+      }));
   }
 
   #[test]
@@ -191,11 +195,13 @@ mod tests {
       .display()
       .to_string();
 
-    if cfg!(target_os = "linux") {
-      assert!(cookie_file.ends_with("/.bitcoin/.cookie"));
+    assert!(cookie_file.ends_with(if cfg!(target_os = "linux") {
+      "/.bitcoin/.cookie"
+    } else if cfg!(windows) {
+      r"\Bitcoin\.cookie"
     } else {
-      assert!(cookie_file.ends_with("/Bitcoin/.cookie"));
-    }
+      "/Bitcoin/.cookie"
+    }))
   }
 
   #[test]
@@ -209,11 +215,13 @@ mod tests {
       .display()
       .to_string();
 
-    if cfg!(target_os = "linux") {
-      assert!(cookie_file.ends_with("/.bitcoin/signet/.cookie"));
+    assert!(cookie_file.ends_with(if cfg!(target_os = "linux") {
+      "/.bitcoin/signet/.cookie"
+    } else if cfg!(windows) {
+      r"\Bitcoin\signet\.cookie"
     } else {
-      assert!(cookie_file.ends_with("/Bitcoin/signet/.cookie"));
-    }
+      "/Bitcoin/signet/.cookie"
+    }));
   }
 
   #[test]
@@ -229,7 +237,11 @@ mod tests {
       .display()
       .to_string();
 
-    assert!(cookie_file.ends_with("foo/signet/.cookie"));
+    assert!(cookie_file.ends_with(if cfg!(windows) {
+      r"foo\signet\.cookie"
+    } else {
+      "foo/signet/.cookie"
+    }));
   }
 
   #[test]
@@ -241,7 +253,10 @@ mod tests {
       .unwrap()
       .display()
       .to_string();
-    assert!(data_dir.ends_with("/ord"), "{data_dir}");
+    assert!(
+      data_dir.ends_with(if cfg!(windows) { r"\ord" } else { "/ord" }),
+      "{data_dir}"
+    );
   }
 
   #[test]
@@ -253,7 +268,14 @@ mod tests {
       .unwrap()
       .display()
       .to_string();
-    assert!(data_dir.ends_with("/ord/signet"), "{data_dir}");
+    assert!(
+      data_dir.ends_with(if cfg!(windows) {
+        r"\ord\signet"
+      } else {
+        "/ord/signet"
+      }),
+      "{data_dir}"
+    );
   }
 
   #[test]
@@ -266,7 +288,14 @@ mod tests {
         .unwrap()
         .display()
         .to_string();
-    assert!(data_dir.ends_with("foo/signet"), "{data_dir}");
+    assert!(
+      data_dir.ends_with(if cfg!(windows) {
+        r"foo\signet"
+      } else {
+        "foo/signet"
+      }),
+      "{data_dir}"
+    );
   }
 
   #[test]
@@ -285,10 +314,38 @@ mod tests {
 
     check_network_alias("main", "ord");
     check_network_alias("mainnet", "ord");
-    check_network_alias("regtest", "ord/regtest");
-    check_network_alias("signet", "ord/signet");
-    check_network_alias("test", "ord/testnet3");
-    check_network_alias("testnet", "ord/testnet3");
+    check_network_alias(
+      "regtest",
+      if cfg!(windows) {
+        r"ord\regtest"
+      } else {
+        "ord/regtest"
+      },
+    );
+    check_network_alias(
+      "signet",
+      if cfg!(windows) {
+        r"ord\signet"
+      } else {
+        "ord/signet"
+      },
+    );
+    check_network_alias(
+      "test",
+      if cfg!(windows) {
+        r"ord\testnet3"
+      } else {
+        "ord/testnet3"
+      },
+    );
+    check_network_alias(
+      "testnet",
+      if cfg!(windows) {
+        r"ord\testnet3"
+      } else {
+        "ord/testnet3"
+      },
+    );
   }
 
   #[test]

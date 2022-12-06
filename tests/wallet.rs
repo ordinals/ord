@@ -61,9 +61,7 @@ fn identify_from_tsv_file_not_found() {
   CommandBuilder::new("wallet identify --ordinals foo.tsv")
     .rpc_server(&rpc_server)
     .expected_exit_code(1)
-    .expected_stderr(
-      "error: I/O error reading `{path}`\nbecause: No such file or directory (os error 2)\n",
-    )
+    .stderr_regex("error: I/O error reading `.*`\nbecause: .*\n")
     .run();
 }
 
@@ -411,6 +409,73 @@ fn refuse_to_reinscribe_sats() {
   .expected_exit_code(1)
   .expected_stderr(format!(
     "error: sat at {first_inscription_id}:0:0 already inscribed\n"
+  ))
+  .run();
+}
+
+#[test]
+fn do_not_accidentally_send_an_inscription() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+
+  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+  let stdout = CommandBuilder::new(format!(
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
+  ))
+  .write("degenerate.png", [1; 100])
+  .rpc_server(&rpc_server)
+  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+  .run();
+
+  let inscription_id = reveal_txid_from_inscribe_stdout(&stdout);
+
+  rpc_server.mine_blocks(1);
+
+  let inscription_utxo = OutPoint {
+    txid: reveal_txid_from_inscribe_stdout(&stdout),
+    vout: 0,
+  };
+
+  CommandBuilder::new(format!(
+    "--chain regtest wallet send {inscription_utxo}:55 bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x"
+  ))
+  .rpc_server(&rpc_server)
+  .expected_exit_code(1)
+  .expected_stderr(format!(
+    "error: cannot send {inscription_utxo}:55 without also sending inscription {inscription_id} at {inscription_utxo}:0\n"
+  ))
+  .run();
+}
+
+#[test]
+fn refuse_to_inscribe_already_inscribed_utxo() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+
+  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+  let stdout = CommandBuilder::new(format!(
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
+  ))
+  .write("degenerate.png", [1; 100])
+  .rpc_server(&rpc_server)
+  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+  .run();
+
+  rpc_server.mine_blocks(1);
+
+  let inscription_id = reveal_txid_from_inscribe_stdout(&stdout);
+
+  let inscription_utxo = OutPoint {
+    txid: reveal_txid_from_inscribe_stdout(&stdout),
+    vout: 0,
+  };
+
+  CommandBuilder::new(format!(
+    "--chain regtest wallet inscribe --satpoint {inscription_utxo}:55555 --file hello.txt"
+  ))
+  .write("hello.txt", "HELLOWORLD")
+  .rpc_server(&rpc_server)
+  .expected_exit_code(1)
+  .expected_stderr(format!(
+    "error: utxo {inscription_utxo} already inscribed with inscription {inscription_id} on sat {inscription_utxo}:0\n",
   ))
   .run();
 }
