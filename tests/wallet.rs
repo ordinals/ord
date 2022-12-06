@@ -84,7 +84,7 @@ fn send_works_on_signet() {
   rpc_server.mine_blocks(1);
 
   let stdout = CommandBuilder::new(format!(
-    "--chain signet wallet send {reveal_txid}:0:0 tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw"
+    "--chain signet wallet send {reveal_txid} tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw"
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(r".*")
@@ -493,5 +493,32 @@ fn refuse_to_inscribe_already_inscribed_utxo() {
   .expected_stderr(format!(
     "error: utxo {inscription_utxo} already inscribed with inscription {inscription_id} on sat {inscription_utxo}:0\n",
   ))
+  .run();
+}
+
+#[test]
+fn inscriptions_cannot_be_sent_by_satpoint() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+
+  let stdout = CommandBuilder::new(format!(
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file hello.txt"
+  ))
+  .write("hello.txt", "HELLOWORLD")
+  .rpc_server(&rpc_server)
+  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+  .run();
+
+  let reveal_txid = stdout.split("reveal\t").collect::<Vec<&str>>()[1].trim();
+
+  rpc_server.mine_blocks(1);
+
+  CommandBuilder::new(format!(
+    "--chain regtest wallet send {reveal_txid}:0:0 bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x"
+  ))
+  .write("hello.txt", "HELLOWORLD")
+  .rpc_server(&rpc_server)
+  .expected_stderr("error: inscriptions must be sent by inscription ID\n")
+  .expected_exit_code(1)
   .run();
 }
