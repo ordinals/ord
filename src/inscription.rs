@@ -368,7 +368,7 @@ mod tests {
   }
 
   #[test]
-  fn invalid_utf8_is_allowed() {
+  fn invalid_utf8_does_not_render_inscription_invalid() {
     assert_eq!(
       InscriptionParser::parse(&container(&[
         b"ord",
@@ -378,6 +378,14 @@ mod tests {
         &[0b10000000]
       ])),
       Ok(inscription("text/plain;charset=utf-8", [0b10000000])),
+    );
+  }
+
+  #[test]
+  fn invalid_utf8_has_no_content() {
+    assert_eq!(
+      inscription("text/plain;charset=utf-8", [0b10000000]).content(),
+      None,
     );
   }
 

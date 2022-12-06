@@ -14,11 +14,11 @@
 %% if let Some(inscription) = &self.inscription {
   <dt>inscription</dt>
 %% match inscription.content() {
-%% Some(Content::Text(content)) => {
-  <dd>{{ content }}</dd>
+%% Some(Content::Text(text)) => {
+  <dd>{{ text }}</dd>
 %% },
-%% Some(Content::Png(content)) => {
-  <dd><img src="data:image/png;base64,{{ base64::encode(content) }}"></dd>
+%% Some(Content::Png(png)) => {
+  <dd><img src="data:image/png;base64,{{ base64::encode(png) }}"></dd>
 %% },
 %% None => {
   <dd>UNKNOWN</d>
