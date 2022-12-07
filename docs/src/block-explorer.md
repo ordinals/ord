@@ -3,7 +3,7 @@ Ordinal Block Explorer
 
 The `ord` binary includes a block explorer. We host a instance of the block
 explorer on mainnet at [ordinals.com](https://ordinals.com), and on signet at
-[signet.ordinals.com](htps://signet.ordinals.com).
+[signet.ordinals.com](https://signet.ordinals.com).
 
 Search
 ------
