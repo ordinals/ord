@@ -301,15 +301,18 @@ impl Index {
   }
 
   pub(crate) fn decode_ordinal_range(bytes: OrdinalRangeArray) -> (u64, u64) {
-    let n = u128::from_le_bytes([
-      bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7], bytes[8],
-      bytes[9], bytes[10], 0, 0, 0, 0, 0,
+    let raw_base = u64::from_le_bytes([
+      bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], 0,
     ]);
 
     // 51 bit base
-    let base = (n & ((1 << 51) - 1)) as u64;
+    let base = raw_base & ((1 << 51) - 1);
+
+    let raw_delta =
+      u64::from_le_bytes([bytes[6], bytes[7], bytes[8], bytes[9], bytes[10], 0, 0, 0]);
+
     // 33 bit delta
-    let delta = (n >> 51) as u64;
+    let delta = raw_delta >> 3;
 
     (base, base + delta)
   }
@@ -565,7 +568,7 @@ impl Index {
         })?;
 
         Ok(Blocktime::Expected(
-          Utc::now().timestamp() + 10 * 60 * expected_blocks as i64,
+          Utc::now().timestamp() + 10 * 60 * i64::try_from(expected_blocks).unwrap(),
         ))
       }
     }

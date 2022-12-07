@@ -251,7 +251,7 @@ impl Updater {
     let mut ordinal_ranges_written = 0;
     let mut outputs_in_block = 0;
 
-    let time = Utc.timestamp_opt(block.header.time as i64, 0).unwrap();
+    let time = Utc.timestamp_opt(block.header.time.into(), 0).unwrap();
 
     log::info!(
       "Block {} at {} with {} transactions…",
@@ -441,7 +441,7 @@ impl Updater {
 
     for (vout, output) in tx.output.iter().enumerate() {
       let outpoint = OutPoint {
-        vout: vout as u32,
+        vout: vout.try_into().unwrap(),
         txid,
       };
       let mut ordinals = Vec::new();
@@ -476,7 +476,7 @@ impl Updater {
         let base = assigned.0;
         let delta = assigned.1 - assigned.0;
 
-        let n = base as u128 | (delta as u128) << 51;
+        let n = u128::from(base) | u128::from(delta) << 51;
 
         ordinals.extend_from_slice(&n.to_le_bytes()[0..11]);
 
