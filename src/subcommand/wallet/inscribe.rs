@@ -332,7 +332,7 @@ mod tests {
     let commit_address = change(0);
     let reveal_address = recipient();
 
-    let (commit_tx, reveal_tx) = Inscribe::create_inscription_transactions(
+    let (commit_tx, reveal_tx, _) = Inscribe::create_inscription_transactions(
       satpoint(1, 0),
       inscription,
       BTreeMap::new(),
