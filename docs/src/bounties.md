@@ -1,9 +1,9 @@
 Ordinal Bounty Hunting Hints
 ============================
 
-- There are no ordinal wallets or transaction construction libraries. However,
+- The `ord` wallet can send and receive specific satoshis. Additionally,
   ordinal theory is extremely simple. A clever hacker should be able to write
-  code to manipulate ordinals in no time.
+  code from scratch to manipulate satoshis using ordinal theory in no time.
 
 - For more information about ordinals, check out the [FAQ](./faq.md) for an
   overview, the [BIP](https://github.com/casey/ord/blob/master/bip.mediawiki)
