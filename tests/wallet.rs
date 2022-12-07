@@ -534,3 +534,17 @@ fn receive() {
 
   assert!(Address::from_str(stdout.trim()).is_ok());
 }
+
+#[test]
+fn utxos() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  let coinbase_tx = &rpc_server.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0];
+  let outpoint = OutPoint::new(coinbase_tx.txid(), 0);
+  let amount = coinbase_tx.output[0].value;
+
+  CommandBuilder::new("wallet utxos")
+    .rpc_server(&rpc_server)
+    .expected_stdout(format!("{outpoint}\t{amount}\n"))
+    .run();
+}
