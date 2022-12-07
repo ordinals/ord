@@ -2,14 +2,17 @@ use {
   super::*,
   bitcoin::{
     blockdata::{opcodes, script},
+    schnorr::{TapTweak, TweakedKeyPair, TweakedPublicKey, UntweakedKeyPair},
     secp256k1::{
-      self, constants::SCHNORR_SIGNATURE_SIZE, rand, schnorr::Signature, KeyPair, Secp256k1,
-      XOnlyPublicKey,
+      self, constants::SCHNORR_SIGNATURE_SIZE, rand, schnorr::Signature, Secp256k1, XOnlyPublicKey,
     },
+    util::key::PrivateKey,
     util::sighash::{Prevouts, SighashCache},
     util::taproot::{LeafVersion, TapLeafHash, TaprootBuilder},
     PackedLockTime, SchnorrSighashType, Witness,
   },
+  bitcoincore_rpc::Client,
+  serde_json::json,
 };
 
 #[derive(Debug, Parser)]
@@ -37,15 +40,18 @@ impl Inscribe {
 
     let reveal_tx_destination = get_change_addresses(&options, 1)?[0].clone();
 
-    let (unsigned_commit_tx, reveal_tx) = Inscribe::create_inscription_transactions(
-      self.satpoint,
-      inscription,
-      inscriptions,
-      options.chain.network(),
-      utxos,
-      commit_tx_change,
-      reveal_tx_destination,
-    )?;
+    let (unsigned_commit_tx, reveal_tx, recovery_key_pair) =
+      Inscribe::create_inscription_transactions(
+        self.satpoint,
+        inscription,
+        inscriptions,
+        options.chain.network(),
+        utxos,
+        commit_tx_change,
+        reveal_tx_destination,
+      )?;
+
+    Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain.network())?;
 
     let signed_raw_commit_tx = client
       .sign_raw_transaction_with_wallet(&unsigned_commit_tx, None, None)?
@@ -72,7 +78,7 @@ impl Inscribe {
     utxos: BTreeMap<OutPoint, Amount>,
     change: Vec<Address>,
     destination: Address,
-  ) -> Result<(Transaction, Transaction)> {
+  ) -> Result<(Transaction, Transaction, TweakedKeyPair)> {
     for (inscribed_satpoint, inscription_id) in &inscriptions {
       if inscribed_satpoint == &satpoint {
         return Err(anyhow!("sat at {} already inscribed", satpoint));
@@ -87,7 +93,7 @@ impl Inscribe {
     }
 
     let secp256k1 = Secp256k1::new();
-    let key_pair = KeyPair::new(&secp256k1, &mut rand::thread_rng());
+    let key_pair = UntweakedKeyPair::new(&secp256k1, &mut rand::thread_rng());
     let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);
 
     let reveal_script = inscription.append_reveal_script(
@@ -188,7 +194,55 @@ impl Inscribe {
     witness.push(reveal_script);
     witness.push(&control_block.serialize());
 
-    Ok((unsigned_commit_tx, reveal_tx))
+    let recovery_key_pair = key_pair.tap_tweak(&secp256k1, taproot_spend_info.merkle_root());
+
+    let (x_only_pub_key, _parity) = recovery_key_pair.to_inner().x_only_public_key();
+    assert_eq!(
+      Address::p2tr_tweaked(
+        TweakedPublicKey::dangerous_assume_tweaked(x_only_pub_key),
+        network
+      ),
+      commit_tx_address
+    );
+
+    Ok((unsigned_commit_tx, reveal_tx, recovery_key_pair))
+  }
+
+  fn backup_recovery_key(
+    client: &Client,
+    recovery_key_pair: TweakedKeyPair,
+    network: bitcoin::Network,
+  ) -> Result {
+    let recovery_private_key = PrivateKey::new(recovery_key_pair.to_inner().secret_key(), network);
+
+    let info = client.get_descriptor_info(&format!("rawtr({})", recovery_private_key.to_wif()))?;
+
+    let params = json!([
+      {
+        "desc": format!("rawtr({})#{}", recovery_private_key.to_wif(), info.checksum),
+        "active": false,
+        "timestamp": "now",
+        "internal": false,
+        "label": format!("commit tx recovery key")
+      }
+    ]);
+
+    #[derive(Deserialize)]
+    struct ImportDescriptorsResult {
+      success: bool,
+    }
+
+    let response: Vec<ImportDescriptorsResult> = client
+      .call("importdescriptors", &[params])
+      .context("could not import commit tx recovery key")?;
+
+    for result in response {
+      if !result.success {
+        return Err(anyhow!("commit tx recovery key import failed"));
+      }
+    }
+
+    Ok(())
   }
 }
 
@@ -203,7 +257,7 @@ mod tests {
     let commit_address = change(0);
     let reveal_address = recipient();
 
-    let (commit_tx, reveal_tx) = Inscribe::create_inscription_transactions(
+    let (commit_tx, reveal_tx, _private_key) = Inscribe::create_inscription_transactions(
       satpoint(1, 0),
       inscription,
       BTreeMap::new(),
