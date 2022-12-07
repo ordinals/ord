@@ -174,12 +174,13 @@ impl Ordinal {
 
     let last = Ordinal::LAST.n() as f64;
 
-    let n = (percentile / 100.0 * last).round() as u64;
+    let n = (percentile / 100.0 * last).round();
 
-    if n > Ordinal::LAST.n() {
+    if n > last {
       bail!("invalid percentile: {}", percentile);
     }
 
+    #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
     Ok(Ordinal(n as u64))
   }
 }

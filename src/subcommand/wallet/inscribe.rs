@@ -133,7 +133,7 @@ impl Inscribe {
       input: vec![TxIn {
         previous_output: OutPoint {
           txid: unsigned_commit_tx.txid(),
-          vout: vout as u32,
+          vout: vout.try_into().unwrap(),
         },
         script_sig: script::Builder::new().into_script(),
         witness: Witness::new(),
