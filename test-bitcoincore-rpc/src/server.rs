@@ -373,13 +373,7 @@ impl Api for Server {
 
   fn import_descriptors(
     &self,
-    desc: String,
-    active: Option<bool>,
-    range: Option<usize>,
-    next_index: Option<usize>,
-    timestamp: String,
-    internal: Option<bool>,
-    label: Option<String>,
+    _params: Vec<serde_json::Value>,
   ) -> Result<String, jsonrpc_core::Error> {
     Ok("".into())
   }

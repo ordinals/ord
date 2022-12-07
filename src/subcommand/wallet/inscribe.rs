@@ -1,12 +1,14 @@
+use bitcoin::schnorr::{TapTweak, TweakedKeyPair, UntweakedKeyPair};
+
 use {
   super::*,
   bitcoin::{
     blockdata::{opcodes, script},
     secp256k1::{
-      self, constants::SCHNORR_SIGNATURE_SIZE, rand, schnorr::Signature, KeyPair, Secp256k1,
-      XOnlyPublicKey,
+      self, constants::SCHNORR_SIGNATURE_SIZE, rand, schnorr::Signature, Secp256k1, XOnlyPublicKey,
     },
     util::key::PrivateKey,
+    util::schnorr::TweakedPublicKey,
     util::sighash::{Prevouts, SighashCache},
     util::taproot::{LeafVersion, TapLeafHash, TaprootBuilder},
     PackedLockTime, SchnorrSighashType, Witness,
@@ -58,14 +60,14 @@ impl Inscribe {
       .send_raw_transaction(&signed_raw_commit_tx)
       .context("Failed to send commit transaction")?;
 
-    Inscribe::backup_reveal_tx_key(&client, reveal_tx_wif, commit_txid)?;
+    Inscribe::backup_reveal_tx_key(&client, reveal_tx_wif, commit_txid, options.chain.network())?;
 
-    //  let reveal_txid = client
-    //    .send_raw_transaction(&reveal_tx)
-    //    .context("Failed to send reveal transaction")?;
+    let reveal_txid = client
+      .send_raw_transaction(&reveal_tx)
+      .context("Failed to send reveal transaction")?;
 
     println!("commit\t{commit_txid}");
-    // println!("reveal\t{reveal_txid}");
+    println!("reveal\t{reveal_txid}");
     Ok(())
   }
 
@@ -77,7 +79,7 @@ impl Inscribe {
     utxos: BTreeMap<OutPoint, Amount>,
     change: Vec<Address>,
     destination: Address,
-  ) -> Result<(Transaction, Transaction, PrivateKey)> {
+  ) -> Result<(Transaction, Transaction, TweakedKeyPair)> {
     for (inscribed_satpoint, inscription_id) in &inscriptions {
       if inscribed_satpoint == &satpoint {
         return Err(anyhow!("sat at {} already inscribed", satpoint));
@@ -92,7 +94,7 @@ impl Inscribe {
     }
 
     let secp256k1 = Secp256k1::new();
-    let key_pair = KeyPair::new(&secp256k1, &mut rand::thread_rng());
+    let key_pair = UntweakedKeyPair::new(&secp256k1, &mut rand::thread_rng());
     let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);
 
     let reveal_script = inscription.append_reveal_script(
@@ -193,45 +195,43 @@ impl Inscribe {
     witness.push(reveal_script);
     witness.push(&control_block.serialize());
 
-    let reveal_tx_private_key = PrivateKey::new(key_pair.secret_key(), network);
+    let recovery_key_pair = key_pair.tap_tweak(&secp256k1, taproot_spend_info.merkle_root());
 
-    Ok((unsigned_commit_tx, reveal_tx, reveal_tx_private_key))
+    let (x_only_pub_key, _parity) = recovery_key_pair.to_inner().x_only_public_key();
+    assert_eq!(
+      Address::p2tr_tweaked(
+        TweakedPublicKey::dangerous_assume_tweaked(x_only_pub_key),
+        network
+      ),
+      commit_tx_address
+    );
+
+    Ok((unsigned_commit_tx, reveal_tx, recovery_key_pair))
   }
 
-  fn backup_reveal_tx_key(client: &Client, private_key: PrivateKey, commit_txid: Txid) -> Result {
-    let info = client.get_descriptor_info(&format!("rawtr({})", private_key.to_wif()))?;
+  fn backup_reveal_tx_key(
+    client: &Client,
+    recovery_key_pair: TweakedKeyPair,
+    commit_txid: Txid,
+    network: bitcoin::Network,
+  ) -> Result {
+    let recovery_private_key = PrivateKey::new(recovery_key_pair.to_inner().secret_key(), network);
+
+    let info = client.get_descriptor_info(&format!("rawtr({})", recovery_private_key.to_wif()))?;
 
     let params = json!([
       {
-        "desc": format!("rawtr({})#{}", private_key.to_wif(), info.checksum),
-        "active": true,
-        "range": 0,
+        "desc": format!("rawtr({})#{}", recovery_private_key.to_wif(), info.checksum),
+        "active": false,
         "timestamp": "now",
         "internal": false,
-        "label": format!("recovery for commit tx {commit_txid}")
+        "label": format!("recovery for inscription commit tx {commit_txid}")
       }
     ]);
 
-    println!("{params}");
-
-    // #[derive(Deserialize, Debug)]
-    // struct DescriptorResult {
-    // success: bool,
-    // warnings: Option<serde_json::Value>,
-    // error: Option<serde_json::Value>,
-    // }
-
-    let response: serde_json::Value = client
+    let _response: serde_json::Value = client
       .call("importdescriptors", &[params])
       .context("could not import descriptor for reveal tx")?;
-
-    dbg!(&response);
-
-    //    if !response[0].success {
-    //      return Err(anyhow!(
-    //        "could not import descriptor for reveal tx adlkj",
-    //      ));
-    //    }
 
     Ok(())
   }
