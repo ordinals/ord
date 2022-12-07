@@ -52,7 +52,7 @@ impl Epoch {
 
   pub(crate) fn starting_ordinal(self) -> Ordinal {
     *Self::STARTING_ORDINALS
-      .get(self.0 as usize)
+      .get(usize::try_from(self.0).unwrap())
       .unwrap_or_else(|| Self::STARTING_ORDINALS.last().unwrap())
   }
 
