@@ -228,11 +228,11 @@ impl Inscribe {
     ]);
 
     #[derive(Deserialize)]
-    struct Result {
+    struct ImportDescriptorsResult {
       success: bool,
     }
 
-    let response: Vec<Result> = client
+    let response: Vec<ImportDescriptorsResult> = client
       .call("importdescriptors", &[params])
       .context("could not import recovery key for reveal tx")?;
 
