@@ -2,6 +2,7 @@ use {super::*, transaction_builder::TransactionBuilder};
 
 mod identify;
 mod inscribe;
+mod receive;
 mod send;
 mod transaction_builder;
 
@@ -59,6 +60,7 @@ pub(crate) enum Wallet {
   Identify(identify::Identify),
   Inscribe(inscribe::Inscribe),
   Send(send::Send),
+  Receive(receive::Receive),
 }
 
 impl Wallet {
@@ -67,6 +69,7 @@ impl Wallet {
       Self::Identify(identify) => identify.run(options),
       Self::Inscribe(inscribe) => inscribe.run(options),
       Self::Send(send) => send.run(options),
+      Self::Receive(receive) => receive.run(options),
     }
   }
 }

@@ -380,4 +380,17 @@ impl Api for Server {
   ) -> Result<serde_json::Value, jsonrpc_core::Error> {
     Ok(json!([{"success": true}]))
   }
+
+  fn get_new_address(
+    &self,
+    _label: Option<String>,
+    _address_type: Option<()>,
+  ) -> Result<bitcoin::Address, jsonrpc_core::Error> {
+    let secp256k1 = Secp256k1::new();
+    let key_pair = KeyPair::new(&secp256k1, &mut rand::thread_rng());
+    let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);
+    let address = Address::p2tr(&secp256k1, public_key, None, self.network);
+
+    Ok(address)
+  }
 }
