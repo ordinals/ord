@@ -274,7 +274,7 @@ impl TransactionBuilder {
             .push_slice(&[0; 71])
             .push_slice(&[0; 65])
             .into_script(),
-          sequence: Sequence::MAX,
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
           witness: Witness::new(),
         })
         .collect(),
@@ -305,7 +305,7 @@ impl TransactionBuilder {
         .map(|outpoint| TxIn {
           previous_output: *outpoint,
           script_sig: Script::new(),
-          sequence: Sequence::MAX,
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
           witness: Witness::new(),
         })
         .collect(),
@@ -558,6 +558,21 @@ mod tests {
         ],
       })
     )
+  }
+
+  #[test]
+  fn transactions_are_rbf() {
+    let utxos = vec![(outpoint(1), Amount::from_sat(5_000))];
+
+    assert!(TransactionBuilder::build_transaction(
+      satpoint(1, 0),
+      BTreeMap::new(),
+      utxos.into_iter().collect(),
+      recipient(),
+      vec![change(0), change(1)],
+    )
+    .unwrap()
+    .is_explicitly_rbf())
   }
 
   #[test]

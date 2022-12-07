@@ -137,7 +137,7 @@ impl Inscribe {
         },
         script_sig: script::Builder::new().into_script(),
         witness: Witness::new(),
-        sequence: Sequence::MAX,
+        sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
       }],
       output: vec![TxOut {
         script_pubkey: destination.script_pubkey(),
@@ -323,5 +323,27 @@ mod tests {
       "{}",
       error
     );
+  }
+
+  #[test]
+  fn inscript_tansactions_opt_in_to_rbf() {
+    let utxos = vec![(outpoint(1), Amount::from_sat(5000))];
+    let inscription = inscription("text/plain", "ord");
+    let commit_address = change(0);
+    let reveal_address = recipient();
+
+    let (commit_tx, reveal_tx, _) = Inscribe::create_inscription_transactions(
+      satpoint(1, 0),
+      inscription,
+      BTreeMap::new(),
+      bitcoin::Network::Signet,
+      utxos.into_iter().collect(),
+      vec![commit_address, change(1)],
+      reveal_address,
+    )
+    .unwrap();
+
+    assert!(commit_tx.is_explicitly_rbf());
+    assert!(reveal_tx.is_explicitly_rbf());
   }
 }

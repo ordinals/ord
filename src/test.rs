@@ -55,7 +55,7 @@ pub(crate) fn tx_in(previous_output: OutPoint) -> TxIn {
   TxIn {
     previous_output,
     script_sig: Script::new(),
-    sequence: Sequence::MAX,
+    sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
     witness: Witness::new(),
   }
 }
