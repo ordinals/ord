@@ -78,4 +78,16 @@ pub trait Api {
 
   #[rpc(name = "getrawchangeaddress")]
   fn get_raw_change_address(&self) -> Result<bitcoin::Address, jsonrpc_core::Error>;
+
+  #[rpc(name = "getdescriptorinfo")]
+  fn get_descriptor_info(
+    &self,
+    desc: String,
+  ) -> Result<GetDescriptorInfoResult, jsonrpc_core::Error>;
+
+  #[rpc(name = "importdescriptors")]
+  fn import_descriptors(
+    &self,
+    params: Vec<serde_json::Value>,
+  ) -> Result<serde_json::Value, jsonrpc_core::Error>;
 }

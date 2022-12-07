@@ -12,9 +12,9 @@ use {
   },
   bitcoincore_rpc::json::{
     Bip125Replaceable, CreateRawTransactionInput, GetBalancesResult, GetBalancesResultEntry,
-    GetBlockHeaderResult, GetBlockchainInfoResult, GetNetworkInfoResult, GetRawTransactionResult,
-    GetTransactionResult, GetWalletInfoResult, ListUnspentResultEntry, SignRawTransactionResult,
-    WalletTxInfo,
+    GetBlockHeaderResult, GetBlockchainInfoResult, GetDescriptorInfoResult, GetNetworkInfoResult,
+    GetRawTransactionResult, GetTransactionResult, GetWalletInfoResult, ListUnspentResultEntry,
+    SignRawTransactionResult, WalletTxInfo,
   },
   jsonrpc_core::{IoHandler, Value},
   jsonrpc_http_server::{CloseHandle, ServerBuilder},

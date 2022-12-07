@@ -1,7 +1,10 @@
-use super::*;
-use bitcoin::{
-  secp256k1::{rand, KeyPair, Secp256k1, XOnlyPublicKey},
-  Address, Witness,
+use {
+  super::*,
+  bitcoin::{
+    secp256k1::{rand, KeyPair, Secp256k1, XOnlyPublicKey},
+    Address, Witness,
+  },
+  serde_json::json,
 };
 
 pub(crate) struct Server {
@@ -356,5 +359,25 @@ impl Api for Server {
     let address = Address::p2tr(&secp256k1, public_key, None, self.network);
 
     Ok(address)
+  }
+
+  fn get_descriptor_info(
+    &self,
+    desc: String,
+  ) -> Result<GetDescriptorInfoResult, jsonrpc_core::Error> {
+    Ok(GetDescriptorInfoResult {
+      descriptor: desc,
+      checksum: "".into(),
+      is_range: false,
+      is_solvable: false,
+      has_private_keys: true,
+    })
+  }
+
+  fn import_descriptors(
+    &self,
+    _params: Vec<serde_json::Value>,
+  ) -> Result<serde_json::Value, jsonrpc_core::Error> {
+    Ok(json!([{"success": true}]))
   }
 }
