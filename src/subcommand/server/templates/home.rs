@@ -23,7 +23,7 @@ impl HomeHtml {
   }
 }
 
-impl Content for HomeHtml {
+impl PageContent for HomeHtml {
   fn title(&self) -> String {
     "Ordinals".to_string()
   }

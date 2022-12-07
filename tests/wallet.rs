@@ -84,7 +84,7 @@ fn send_works_on_signet() {
   rpc_server.mine_blocks(1);
 
   let stdout = CommandBuilder::new(format!(
-    "--chain signet wallet send {reveal_txid}:0:0 tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw"
+    "--chain signet wallet send {reveal_txid} tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw"
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(r".*")
@@ -261,7 +261,7 @@ fn inscribe() {
 
   TestServer::spawn_with_args(&rpc_server, &["--index-ordinals"]).assert_response_regex(
     "/ordinal/5000000000",
-    ".*<dt>inscription</dt><dd>HELLOWORLD</dd>.*",
+    ".*<dt>inscription</dt>\n  <dd>HELLOWORLD</dd>.*",
   );
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
@@ -318,22 +318,38 @@ fn inscribe_png() {
 
   ord_server.assert_response_regex(
     "/ordinal/5000000000",
-    ".*<dt>inscription</dt><dd><img src=.*",
+    ".*<dt>inscription</dt>\n  <dd><img src=.*",
   )
 }
 
 #[test]
 fn inscribe_exceeds_push_byte_limit() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Signet, "ord");
+  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+
+  CommandBuilder::new(format!(
+    "--chain signet wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
+  ))
+  .write("degenerate.png", [1; 1025])
+  .rpc_server(&rpc_server)
+  .expected_exit_code(1)
+  .expected_stderr(
+    "error: content size of 1025 bytes exceeds 1024 byte limit for signet inscriptions\n",
+  )
+  .run();
+}
+
+#[test]
+fn regtest_has_no_content_size_limit() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   CommandBuilder::new(format!(
     "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
   ))
-  .write("degenerate.png", [1; 521])
+  .write("degenerate.png", [1; 1025])
   .rpc_server(&rpc_server)
-  .expected_exit_code(1)
-  .expected_stderr("error: file size exceeds 520 bytes\n")
+  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
   .run();
 }
 
@@ -477,5 +493,32 @@ fn refuse_to_inscribe_already_inscribed_utxo() {
   .expected_stderr(format!(
     "error: utxo {inscription_utxo} already inscribed with inscription {inscription_id} on sat {inscription_utxo}:0\n",
   ))
+  .run();
+}
+
+#[test]
+fn inscriptions_cannot_be_sent_by_satpoint() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+
+  let stdout = CommandBuilder::new(format!(
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file hello.txt"
+  ))
+  .write("hello.txt", "HELLOWORLD")
+  .rpc_server(&rpc_server)
+  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+  .run();
+
+  let reveal_txid = stdout.split("reveal\t").collect::<Vec<&str>>()[1].trim();
+
+  rpc_server.mine_blocks(1);
+
+  CommandBuilder::new(format!(
+    "--chain regtest wallet send {reveal_txid}:0:0 bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x"
+  ))
+  .write("hello.txt", "HELLOWORLD")
+  .rpc_server(&rpc_server)
+  .expected_stderr("error: inscriptions must be sent by inscription ID\n")
+  .expected_exit_code(1)
   .run();
 }

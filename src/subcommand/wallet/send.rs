@@ -20,7 +20,7 @@ impl FromStr for Reference {
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
-  reference: Reference,
+  outgoing: Reference,
   address: Address,
 }
 
@@ -45,8 +45,15 @@ impl Send {
 
     let change = get_change_addresses(&options, 2)?;
 
-    let satpoint = match self.reference {
-      Reference::SatPoint(satpoint) => satpoint,
+    let satpoint = match self.outgoing {
+      Reference::SatPoint(satpoint) => {
+        for inscription_satpoint in inscriptions.keys() {
+          if satpoint == *inscription_satpoint {
+            bail!("inscriptions must be sent by inscription ID");
+          }
+        }
+        satpoint
+      }
       Reference::InscriptionId(txid) => match index.get_inscription_by_inscription_id(txid)? {
         Some((_inscription, satpoint)) => satpoint,
         None => bail!("No inscription found for {txid}"),

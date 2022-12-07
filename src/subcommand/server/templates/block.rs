@@ -23,7 +23,7 @@ impl BlockHtml {
   }
 }
 
-impl Content for BlockHtml {
+impl PageContent for BlockHtml {
   fn title(&self) -> String {
     format!("Block {}", self.hash)
   }

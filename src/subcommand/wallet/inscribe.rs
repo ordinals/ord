@@ -29,7 +29,7 @@ impl Inscribe {
   pub(crate) fn run(self, options: Options) -> Result {
     let client = options.bitcoin_rpc_client_mainnet_forbidden("ord wallet inscribe")?;
 
-    let inscription = Inscription::from_file(self.file)?;
+    let inscription = Inscription::from_file(options.chain, self.file)?;
 
     let index = Index::open(&options)?;
     index.update()?;
@@ -244,7 +244,7 @@ mod tests {
   #[test]
   fn reveal_transaction_pays_fee() {
     let utxos = vec![(outpoint(1), Amount::from_sat(5000))];
-    let inscription = Inscription::Text("ord".into());
+    let inscription = inscription("text/plain", "ord");
     let commit_address = change(0);
     let reveal_address = recipient();
 
@@ -271,7 +271,7 @@ mod tests {
   fn reveal_transaction_value_insufficient_to_pay_fee() {
     let utxos = vec![(outpoint(1), Amount::from_sat(1000))];
     let satpoint = satpoint(1, 0);
-    let inscription = Inscription::Png([1; 10_000].to_vec());
+    let inscription = inscription("image/png", [1; 10_000]);
     let commit_address = change(0);
     let reveal_address = recipient();
 
@@ -292,7 +292,7 @@ mod tests {
   #[test]
   fn reveal_transaction_would_create_dust() {
     let utxos = vec![(outpoint(1), Amount::from_sat(600))];
-    let inscription = Inscription::Text("ord".into());
+    let inscription = inscription("text/plain", "ord");
     let satpoint = satpoint(1, 0);
     let commit_address = change(0);
     let reveal_address = recipient();

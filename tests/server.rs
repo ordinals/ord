@@ -109,7 +109,7 @@ HELLOWORLD.*",
   );
 
   let txid = CommandBuilder::new(format!(
-    "--chain regtest wallet send {reveal_txid}:0:0 bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x"
+    "--chain regtest wallet send {reveal_txid} bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x"
   ))
   .write("hello.txt", "HELLOWORLD")
   .rpc_server(&rpc_server)

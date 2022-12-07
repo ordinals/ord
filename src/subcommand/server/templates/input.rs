@@ -6,7 +6,7 @@ pub(crate) struct InputHtml {
   pub(crate) input: TxIn,
 }
 
-impl Content for InputHtml {
+impl PageContent for InputHtml {
   fn title(&self) -> String {
     format!("Input /{}/{}/{}", self.path.0, self.path.1, self.path.2)
   }
