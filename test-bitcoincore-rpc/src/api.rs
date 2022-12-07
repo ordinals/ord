@@ -90,4 +90,11 @@ pub trait Api {
     &self,
     params: Vec<serde_json::Value>,
   ) -> Result<serde_json::Value, jsonrpc_core::Error>;
+
+  #[rpc(name = "getnewaddress")]
+  fn get_new_address(
+    &self,
+    label: Option<String>,
+    address_type: Option<()>,
+  ) -> Result<bitcoin::Address, jsonrpc_core::Error>;
 }

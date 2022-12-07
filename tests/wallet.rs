@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, std::str::FromStr};
 
 fn reveal_txid_from_inscribe_stdout(stdout: &str) -> Txid {
   stdout
@@ -521,4 +521,16 @@ fn inscriptions_cannot_be_sent_by_satpoint() {
   .expected_stderr("error: inscriptions must be sent by inscription ID\n")
   .expected_exit_code(1)
   .run();
+}
+
+#[test]
+fn receive() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  let stdout = CommandBuilder::new("wallet receive")
+    .rpc_server(&rpc_server)
+    .stdout_regex(".*")
+    .run();
+
+  assert!(Address::from_str(stdout.trim()).is_ok());
 }
