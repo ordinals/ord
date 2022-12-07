@@ -223,7 +223,7 @@ impl Inscribe {
         "active": false,
         "timestamp": "now",
         "internal": false,
-        "label": format!("recovery key for inscription reveal tx")
+        "label": format!("commit tx recovery key")
       }
     ]);
 
@@ -234,11 +234,11 @@ impl Inscribe {
 
     let response: Vec<ImportDescriptorsResult> = client
       .call("importdescriptors", &[params])
-      .context("could not import recovery key for reveal tx")?;
+      .context("could not import commit tx recovery key")?;
 
     for result in response {
       if !result.success {
-        return Err(anyhow!("could not import recovery key for for reveal tx"));
+        return Err(anyhow!("commit tx recovery key import failed"));
       }
     }
 
