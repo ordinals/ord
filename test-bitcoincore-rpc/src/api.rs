@@ -89,5 +89,5 @@ pub trait Api {
   fn import_descriptors(
     &self,
     params: Vec<serde_json::Value>,
-  ) -> Result<String, jsonrpc_core::Error>;
+  ) -> Result<serde_json::Value, jsonrpc_core::Error>;
 }

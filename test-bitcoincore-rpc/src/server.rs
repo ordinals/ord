@@ -1,7 +1,10 @@
-use super::*;
-use bitcoin::{
-  secp256k1::{rand, KeyPair, Secp256k1, XOnlyPublicKey},
-  Address, Witness,
+use {
+  super::*,
+  bitcoin::{
+    secp256k1::{rand, KeyPair, Secp256k1, XOnlyPublicKey},
+    Address, Witness,
+  },
+  serde_json::json,
 };
 
 pub(crate) struct Server {
@@ -374,7 +377,7 @@ impl Api for Server {
   fn import_descriptors(
     &self,
     _params: Vec<serde_json::Value>,
-  ) -> Result<String, jsonrpc_core::Error> {
-    Ok("".into())
+  ) -> Result<serde_json::Value, jsonrpc_core::Error> {
+    Ok(json!([{"success": true}]))
   }
 }

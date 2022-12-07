@@ -1,14 +1,12 @@
-use bitcoin::schnorr::{TapTweak, TweakedKeyPair, UntweakedKeyPair};
-
 use {
   super::*,
   bitcoin::{
     blockdata::{opcodes, script},
+    schnorr::{TapTweak, TweakedKeyPair, TweakedPublicKey, UntweakedKeyPair},
     secp256k1::{
       self, constants::SCHNORR_SIGNATURE_SIZE, rand, schnorr::Signature, Secp256k1, XOnlyPublicKey,
     },
     util::key::PrivateKey,
-    util::schnorr::TweakedPublicKey,
     util::sighash::{Prevouts, SighashCache},
     util::taproot::{LeafVersion, TapLeafHash, TaprootBuilder},
     PackedLockTime, SchnorrSighashType, Witness,
@@ -42,15 +40,18 @@ impl Inscribe {
 
     let reveal_tx_destination = get_change_addresses(&options, 1)?[0].clone();
 
-    let (unsigned_commit_tx, reveal_tx, reveal_tx_wif) = Inscribe::create_inscription_transactions(
-      self.satpoint,
-      inscription,
-      inscriptions,
-      options.chain.network(),
-      utxos,
-      commit_tx_change,
-      reveal_tx_destination,
-    )?;
+    let (unsigned_commit_tx, reveal_tx, recovery_key_pair) =
+      Inscribe::create_inscription_transactions(
+        self.satpoint,
+        inscription,
+        inscriptions,
+        options.chain.network(),
+        utxos,
+        commit_tx_change,
+        reveal_tx_destination,
+      )?;
+
+    Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain.network())?;
 
     let signed_raw_commit_tx = client
       .sign_raw_transaction_with_wallet(&unsigned_commit_tx, None, None)?
@@ -59,8 +60,6 @@ impl Inscribe {
     let commit_txid = client
       .send_raw_transaction(&signed_raw_commit_tx)
       .context("Failed to send commit transaction")?;
-
-    Inscribe::backup_reveal_tx_key(&client, reveal_tx_wif, commit_txid, options.chain.network())?;
 
     let reveal_txid = client
       .send_raw_transaction(&reveal_tx)
@@ -209,10 +208,9 @@ impl Inscribe {
     Ok((unsigned_commit_tx, reveal_tx, recovery_key_pair))
   }
 
-  fn backup_reveal_tx_key(
+  fn backup_recovery_key(
     client: &Client,
     recovery_key_pair: TweakedKeyPair,
-    commit_txid: Txid,
     network: bitcoin::Network,
   ) -> Result {
     let recovery_private_key = PrivateKey::new(recovery_key_pair.to_inner().secret_key(), network);
@@ -225,13 +223,24 @@ impl Inscribe {
         "active": false,
         "timestamp": "now",
         "internal": false,
-        "label": format!("recovery for inscription commit tx {commit_txid}")
+        "label": format!("recovery key for inscription reveal tx")
       }
     ]);
 
-    let _response: serde_json::Value = client
+    #[derive(Deserialize)]
+    struct Result {
+      success: bool,
+    }
+
+    let response: Vec<Result> = client
       .call("importdescriptors", &[params])
-      .context("could not import descriptor for reveal tx")?;
+      .context("could not import recovery key for reveal tx")?;
+
+    for result in response {
+      if !result.success {
+        return Err(anyhow!("could not import recovery key for for reveal tx"));
+      }
+    }
 
     Ok(())
   }
