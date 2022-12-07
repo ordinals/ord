@@ -302,7 +302,7 @@ impl Index {
 
   pub(crate) fn decode_ordinal_range(bytes: OrdinalRangeArray) -> (u64, u64) {
     let raw_base = u64::from_le_bytes([
-      bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
+      bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], 0,
     ]);
 
     // 51 bit base
