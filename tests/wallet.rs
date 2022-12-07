@@ -1,6 +1,4 @@
-use std::str::FromStr;
-
-use super::*;
+use {super::*, std::str::FromStr};
 
 fn reveal_txid_from_inscribe_stdout(stdout: &str) -> Txid {
   stdout
