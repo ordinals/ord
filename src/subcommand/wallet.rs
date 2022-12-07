@@ -5,6 +5,7 @@ mod inscribe;
 mod receive;
 mod send;
 mod transaction_builder;
+mod utxos;
 
 fn list_unspent(options: &Options, index: &Index) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
   let client = options.bitcoin_rpc_client()?;
@@ -61,6 +62,7 @@ pub(crate) enum Wallet {
   Inscribe(inscribe::Inscribe),
   Receive(receive::Receive),
   Send(send::Send),
+  Utxos(utxos::Utxos),
 }
 
 impl Wallet {
@@ -70,6 +72,7 @@ impl Wallet {
       Self::Inscribe(inscribe) => inscribe.run(options),
       Self::Receive(receive) => receive.run(options),
       Self::Send(send) => send.run(options),
+      Self::Utxos(utxos) => utxos.run(options),
     }
   }
 }
