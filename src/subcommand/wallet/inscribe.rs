@@ -50,8 +50,6 @@ impl Inscribe {
       reveal_tx_destination,
     )?;
 
-    Inscribe::backup_reveal_tx_key(&client, reveal_tx_wif)?;
-
     let signed_raw_commit_tx = client
       .sign_raw_transaction_with_wallet(&unsigned_commit_tx, None, None)?
       .hex;
@@ -60,12 +58,14 @@ impl Inscribe {
       .send_raw_transaction(&signed_raw_commit_tx)
       .context("Failed to send commit transaction")?;
 
-    let reveal_txid = client
-      .send_raw_transaction(&reveal_tx)
-      .context("Failed to send reveal transaction")?;
+    Inscribe::backup_reveal_tx_key(&client, reveal_tx_wif, commit_txid)?;
+
+    //  let reveal_txid = client
+    //    .send_raw_transaction(&reveal_tx)
+    //    .context("Failed to send reveal transaction")?;
 
     println!("commit\t{commit_txid}");
-    println!("reveal\t{reveal_txid}");
+    // println!("reveal\t{reveal_txid}");
     Ok(())
   }
 
@@ -198,18 +198,40 @@ impl Inscribe {
     Ok((unsigned_commit_tx, reveal_tx, reveal_tx_private_key))
   }
 
-  fn backup_reveal_tx_key(client: &Client, private_key: PrivateKey) -> Result {
+  fn backup_reveal_tx_key(client: &Client, private_key: PrivateKey, commit_txid: Txid) -> Result {
     let info = client.get_descriptor_info(&format!("rawtr({})", private_key.to_wif()))?;
 
-    let _import_result = client
-      .call(
-        "importdescriptors",
-        &[json!([json!({
-          "desc": format!("{}#{}", info.descriptor, info.checksum),
-          "timestamp": "now",
-        })])],
-      )
+    let params = json!([
+      {
+        "desc": format!("rawtr({})#{}", private_key.to_wif(), info.checksum),
+        "active": true,
+        "range": 0,
+        "timestamp": "now",
+        "internal": false,
+        "label": format!("recovery for commit tx {commit_txid}")
+      }
+    ]);
+
+    println!("{params}");
+
+    // #[derive(Deserialize, Debug)]
+    // struct DescriptorResult {
+    // success: bool,
+    // warnings: Option<serde_json::Value>,
+    // error: Option<serde_json::Value>,
+    // }
+
+    let response: serde_json::Value = client
+      .call("importdescriptors", &[params])
       .context("could not import descriptor for reveal tx")?;
+
+    dbg!(&response);
+
+    //    if !response[0].success {
+    //      return Err(anyhow!(
+    //        "could not import descriptor for reveal tx adlkj",
+    //      ));
+    //    }
 
     Ok(())
   }
