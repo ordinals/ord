@@ -53,7 +53,7 @@ node must be configured to use another chain. This guide uses signet, but
 testnet or regtest mode may also be used. Additionally, `ord` requires Bitcoin
 Core's transaction index.
 
-To configure your Bitcoin Core node to use signet and maintain the transaction
+To configure your Bitcoin Core node to use signet and maintain a transaction
 index, add the following to your `bitcoin.conf`:
 
 ```
