@@ -119,7 +119,6 @@ Receiving Satoshis
 Inscriptions are made on individual satoshis, using normal Bitcoin transactions
 that pay fees in satoshis, so your wallet will need some sats.
 
-
 Get a new address from your `ord` wallet by running `ord --chain signet wallet
 receive`
 
