@@ -1,27 +1,32 @@
-Ordinal Theory
-==============
+Ordinal Theory Overview
+=======================
 
-Ordinals are numbering scheme for satoshis that allows tracking and
-transferring individual sats. These numbers are called
-[ordinals](https://ordinals.com). Satoshis are numbered in the order in which
+Ordinals are a numbering scheme for satoshis that allows tracking and
+transferring individual sats. These numbers are called [ordinal
+numbers](https://ordinals.com). Satoshis are numbered in the order in which
 they're mined, and transferred from transaction inputs to transaction outputs
-in first-in-first-out order. More details are available in [the
+first-in-first-out. Both the numbering scheme and the transfer scheme rely on
+*order*, the numbering scheme on the *order* in which satoshis are mined, and
+the transfer scheme on the *order* of transaction inputs and outputs. Thus the
+name, *ordinals*.
+
+Technical details are available in [the
 BIP](https://github.com/casey/ord/blob/master/bip.mediawiki).
 
-Ordinals don't require a separate token, another blockchain, or any changes to
+Ordinals do not require a separate token, another blockchain, or any changes to
 Bitcoin. They work right now.
 
-Ordinals have a few different representations:
+Ordinal numbers have a few different representations:
 
 - *Integer notation*:
-  [`2099994106992659`](https://ordinals.com/ordinal/2099994106992659). The
-  number is the ordinal number, and the "°" is the Romance language ordinal
-  symbol.
+  [`2099994106992659`](https://ordinals.com/ordinal/2099994106992659) The
+  ordinal number, assigned according to the order in which the satoshi was
+  mined.
 
 - *Decimal notation*:
-  [`3891094.16797`](https://ordinals.com/ordinal/3891094.16797)The first number
-  is the block height in which the ordinal was created, the second the offset
-  of the ordinal within the block.
+  [`3891094.16797`](https://ordinals.com/ordinal/3891094.16797) The first
+  number is the block height in which the satoshi was mined, the second the
+  offset of the satoshi within the block.
 
 - *Degree notation*:
   [`3°111094′214″16797‴`](https://ordinals.com/ordinal/3%C2%B0111094%E2%80%B2214%E2%80%B316797%E2%80%B4).
@@ -29,27 +34,27 @@ Ordinals have a few different representations:
 
 - *Percentile notation*:
   [`99.99971949060254%`](https://ordinals.com/ordinal/99.99971949060254%25) .
-  The ordinals position in Bitcoin's supply, expressed as a percentage.
+  The satoshi's position in Bitcoin's supply, expressed as a percentage.
 
 - *Name*: [`satoshi`](https://ordinals.com/ordinal/satoshi). An encoding of the
   ordinal number using the characters `a` through `z`.
 
 Arbitrary assets, such as NFTs, security tokens, accounts, or stablecoins can
-be attached to Ordinals.
+be attached to satoshis using ordinal numbers as stable identifiers.
 
 Ordinals is an open-source project, developed [on
 GitHub](https://github.com/casey/ord). The project consists of a BIP describing
 the ordinal scheme, an index that communicates with a Bitcoin Core node to
-track the location of all ordinals, a wallet that allows making ordinal-aware
+track the location of all satoshis, a wallet that allows making ordinal-aware
 transactions, a block explorer for interactive exploration of the blockchain,
-functionality for minting ordinal NFTs, and this manual.
+functionality for inscribing satoshis with digital artifacts, and this manual.
 
 Rarity
 ------
 
-Humans are collectors, and since ordinals can be tracked and transferred,
+Humans are collectors, and since satoshis can now be tracked and transferred,
 people will naturally want to collect them. Ordinal theorists can decide for
-themselves which sats are rare and desirable, but there are some hints.
+themselves which sats are rare and desirable, but there are some hints…
 
 Bitcoin has periodic events, some frequent, some more uncommon, and these
 naturally lend themselves to a system of rarity. These periodic events are:
@@ -79,7 +84,7 @@ This gives us the following rarity levels:
 - `mythic`: The first sat of the genesis block
 
 Which brings us to degree notation, which unambiguously represents an ordinal
-in a way that makes rarity easy to see at a glance:
+number in a way that makes the rarity of a satoshi easy to see at a glance:
 
 ```
 A°B′C″D‴
@@ -92,7 +97,7 @@ A°B′C″D‴
 Ordinal theorists often use the terms "hour", "minute", "second", and "third"
 for *A*, *B*, *C*, and *D*, respectively.
 
-Now for some examples. This ordinal is common:
+Now for some examples. This satoshi is common:
 
 ```
 1°1′1″1‴
@@ -103,7 +108,7 @@ Now for some examples. This ordinal is common:
 ```
 
 
-This ordinal is uncommon:
+This satoshi is uncommon:
 
 ```
 1°1′1″0‴
@@ -113,7 +118,7 @@ This ordinal is uncommon:
 ╰─────── Second cycle
 ```
 
-This ordinal is rare:
+This satoshi is rare:
 
 ```
 1°1′0″0‴
@@ -123,7 +128,7 @@ This ordinal is rare:
 ╰─────── Second cycle
 ```
 
-This ordinal is epic:
+This satoshi is epic:
 
 ```
 1°0′1″0‴
@@ -133,7 +138,7 @@ This ordinal is epic:
 ╰─────── Second cycle
 ```
 
-This ordinal is legendary:
+This satoshi is legendary:
 
 ```
 1°0′0″0‴
@@ -143,7 +148,7 @@ This ordinal is legendary:
 ╰─────── Second cycle
 ```
 
-And this ordinal is mythic:
+And this satoshi is mythic:
 
 ```
 0°0′0″0‴
@@ -153,7 +158,7 @@ And this ordinal is mythic:
 ╰─────── First cycle
 ```
 
-If the block offset is zero, it may be omitted. This is the uncommon ordinal
+If the block offset is zero, it may be omitted. This is the uncommon satoshi
 from above:
 
 ```
@@ -163,8 +168,8 @@ from above:
 ╰───── Second cycle
 ```
 
-Ordinal Supply
---------------
+Rare Satoshi Supply
+-------------------
 
 ### Total Supply
 
@@ -184,34 +189,44 @@ Ordinal Supply
 - `legendary`: 0
 - `mythic`: 1
 
-At the moment, even uncommon ordinals are quite rare. As of this writing,
-745,855 uncommon ordinals have been mined - one per 25.6 bitcoin in
+At the moment, even uncommon satoshis are quite rare. As of this writing,
+745,855 uncommon satoshis have been mined - one per 25.6 bitcoin in
 circulation.
 
 Names
 -----
 
-Each ordinal has a name, consisting of the letters *A* through *Z*, that get
-shorter the larger the ordinal is. They could start short and get longer, but
-then all the good, short names would be trapped in the unspendable genesis
-block.
+Each satoshi has a name, consisting of the letters *A* through *Z*, that get
+shorter the further into the future the satoshi was mined. They could start
+short and get longer, but then all the good, short names would be trapped in
+the unspendable genesis block.
 
 As an example, 1905530482684727°'s name is "iaiufjszmoba". The name of the last
-ordinal to be mined is "a". Every combination of 10 characters or less is out
+satoshi to be mined is "a". Every combination of 10 characters or less is out
 there, or will be out there, some day.
 
 Exotics
 -------
 
-Ordinals may be prized for reasons other than their name or rarity. This might
+Satoshis may be prized for reasons other than their name or rarity. This might
 be due to a quality of the number itself, like having an integer square or cube
 root. Or it might be due to a connection to a historical event, such as
-ordinals from block 477,120, the block in which SegWit activated, or ordinal
-2099999997689999°, the last ordinal that will ever be mined.
+satoshis from block 477,120, the block in which SegWit activated,
+2099999997689999°, the last satoshi that will ever be mined.
 
-Such ordinals are termed "exotic". Which ordinals are exotic and what makes
+Such satoshis are termed "exotic". Which satoshis are exotic and what makes
 them so is subjective. Ordinal theorists are are encouraged to seek out exotics
 based on criteria of their own devising.
+
+Inscriptions
+------------
+
+Satoshis can be inscribed with arbitrary content, creating Bitcoin-native
+digital artifacts. Inscribing is done by sending the satoshi to be inscribed in
+a transaction that reveals the inscription content on-chain. This content is
+then inextricably linked to that satoshi, turning it into an immutable digital
+artifact that can be tracked, transferred, hoarded, bought, sold, lost, and
+rediscovered.
 
 Archaeology
 -----------

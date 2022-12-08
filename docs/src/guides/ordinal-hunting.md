@@ -1,9 +1,13 @@
 Ordinal Hunting
 ===============
 
+*This guide is out of date. Since it was written, the `ord` binary was changed
+to only build the full ordinal index when the `--ordinal-index` flag is
+supplied. Additionally, `ord` now has a built-in wallet that wraps a Bitcoin
+Core wallet. See `ord wallet --help`.*
+
 Ordinal hunting is difficult but rewarding. The feeling of owning a wallet full
-of UTXOs, redolent with the scent of rare and exotic ordinals, is beyond
-compare.
+of UTXOs, redolent with the scent of rare and exotic sats, is beyond compare.
 
 Ordinals are numbers for satoshis. Every satoshi has an ordinal number and
 every ordinal number has a satoshi.
@@ -234,11 +238,12 @@ those multiple descriptors into Bitcoin Core.
 
 #### Sparrow Wallet
 
-Navigate to the `Settings` tab, then to `Script Policy`, and press the edit button to display the descriptor.
+Navigate to the `Settings` tab, then to `Script Policy`, and press the edit
+button to display the descriptor.
 
 ### Transferring Ordinals
 
-`ord` does not yet support transferring specific ordinals. Currently, your best
-bet is to use the `bitcoin-cli` commands `createrawtransaction`,
-`signrawtransactionwithwallet`, and `sendrawtransaction`, however, how to do so
-is complex and outside the scope of this guide.
+The `ord` wallet supports transferring specific satoshis. You can also use
+`bitcoin-cli` commands `createrawtransaction`, `signrawtransactionwithwallet`,
+and `sendrawtransaction`, how to do so is complex and outside the scope of this
+guide.
