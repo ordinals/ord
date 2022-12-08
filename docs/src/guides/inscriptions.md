@@ -17,8 +17,7 @@ transactions requires [`ord`](https://github.com/casey/ord), the ordinal theory
 utility. `ord wallet` subcommands interact with an existing Bitcoin Core
 wallet.
 
-This guide contains everything you need to know about creating, sending, and
-receiving inscriptions:
+This guide covers:
 
 1. Installing Bitcoin Core
 2. Syncing the Bitcoin blockchain
