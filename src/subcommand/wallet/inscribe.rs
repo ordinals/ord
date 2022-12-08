@@ -37,15 +37,13 @@ impl Inscribe {
 
     let inscriptions = index.get_inscriptions()?;
 
-    let satpoint = self.choose_satpoint(&utxos, &inscriptions)?;
-
     let commit_tx_change = get_change_addresses(&options, 2)?;
 
     let reveal_tx_destination = get_change_addresses(&options, 1)?[0].clone();
 
     let (unsigned_commit_tx, reveal_tx, recovery_key_pair) =
       Inscribe::create_inscription_transactions(
-        satpoint,
+        self.satpoint,
         inscription,
         inscriptions,
         options.chain.network(),
@@ -73,34 +71,8 @@ impl Inscribe {
     Ok(())
   }
 
-  fn choose_satpoint(
-    &self,
-    utxos: &BTreeMap<OutPoint, Amount>,
-    inscriptions: &BTreeMap<SatPoint, InscriptionId>,
-  ) -> Result<SatPoint> {
-    if let Some(satpoint) = self.satpoint {
-      return Ok(satpoint);
-    }
-
-    let inscribed_utxos = inscriptions
-      .iter()
-      .map(|(satpoint, _)| satpoint.outpoint)
-      .collect::<BTreeSet<OutPoint>>();
-
-    let blank_utxos = utxos
-      .iter()
-      .map(|(outpoint, _)| *outpoint)
-      .filter(|outpoint| !inscribed_utxos.contains(outpoint))
-      .collect::<Vec<OutPoint>>();
-
-    match blank_utxos.first() {
-      Some(outpoint) => Ok(SatPoint::from_str(&format!("{outpoint}:0"))?),
-      None => Err(anyhow!("wallet contains no cardinal utxos")),
-    }
-  }
-
   fn create_inscription_transactions(
-    satpoint: SatPoint,
+    satpoint: Option<SatPoint>,
     inscription: Inscription,
     inscriptions: BTreeMap<SatPoint, InscriptionId>,
     network: bitcoin::Network,
@@ -108,6 +80,29 @@ impl Inscribe {
     change: Vec<Address>,
     destination: Address,
   ) -> Result<(Transaction, Transaction, TweakedKeyPair)> {
+    let satpoint = if let Some(satpoint) = satpoint {
+      satpoint
+    } else {
+      let inscribed_utxos = inscriptions
+        .iter()
+        .map(|(satpoint, _)| satpoint.outpoint)
+        .collect::<BTreeSet<OutPoint>>();
+
+      let cardinal_utxos = utxos
+        .iter()
+        .map(|(outpoint, _)| *outpoint)
+        .filter(|outpoint| !inscribed_utxos.contains(outpoint))
+        .collect::<Vec<OutPoint>>();
+
+      match cardinal_utxos.first() {
+        Some(outpoint) => SatPoint {
+          outpoint: *outpoint,
+          offset: 0,
+        },
+        None => return Err(anyhow!("wallet contains no cardinal utxos")),
+      }
+    };
+
     for (inscribed_satpoint, inscription_id) in &inscriptions {
       if inscribed_satpoint == &satpoint {
         return Err(anyhow!("sat at {} already inscribed", satpoint));
@@ -287,7 +282,7 @@ mod tests {
     let reveal_address = recipient();
 
     let (commit_tx, reveal_tx, _private_key) = Inscribe::create_inscription_transactions(
-      satpoint(1, 0),
+      Some(satpoint(1, 0)),
       inscription,
       BTreeMap::new(),
       bitcoin::Network::Signet,
@@ -308,7 +303,7 @@ mod tests {
   #[test]
   fn reveal_transaction_value_insufficient_to_pay_fee() {
     let utxos = vec![(outpoint(1), Amount::from_sat(1000))];
-    let satpoint = satpoint(1, 0);
+    let satpoint = Some(satpoint(1, 0));
     let inscription = inscription("image/png", [1; 10_000]);
     let commit_address = change(0);
     let reveal_address = recipient();
@@ -331,7 +326,7 @@ mod tests {
   fn reveal_transaction_would_create_dust() {
     let utxos = vec![(outpoint(1), Amount::from_sat(600))];
     let inscription = inscription("text/plain", "ord");
-    let satpoint = satpoint(1, 0);
+    let satpoint = Some(satpoint(1, 0));
     let commit_address = change(0);
     let reveal_address = recipient();
 
@@ -362,7 +357,7 @@ mod tests {
     let reveal_address = recipient();
 
     let (commit_tx, reveal_tx, _) = Inscribe::create_inscription_transactions(
-      satpoint(1, 0),
+      Some(satpoint(1, 0)),
       inscription,
       BTreeMap::new(),
       bitcoin::Network::Signet,
@@ -374,5 +369,73 @@ mod tests {
 
     assert!(commit_tx.is_explicitly_rbf());
     assert!(reveal_tx.is_explicitly_rbf());
+  }
+
+  #[test]
+  fn inscribe_with_no_satpoint_and_no_cardinal_utxos() {
+    let utxos = vec![(outpoint(1), Amount::from_sat(1000))];
+    let mut inscriptions = BTreeMap::new();
+    inscriptions.insert(
+      SatPoint {
+        outpoint: outpoint(1),
+        offset: 0,
+      },
+      Txid::from_str("06413a3ef4232f0485df2bc7c912c13c05c69f967c19639344753e05edb64bd5").unwrap(),
+    );
+
+    let inscription = inscription("text/plain", "ord");
+    let satpoint = None;
+    let commit_address = change(0);
+    let reveal_address = recipient();
+
+    let error = Inscribe::create_inscription_transactions(
+      satpoint,
+      inscription,
+      inscriptions,
+      bitcoin::Network::Signet,
+      utxos.into_iter().collect(),
+      vec![commit_address, change(1)],
+      reveal_address,
+    )
+    .unwrap_err()
+    .to_string();
+
+    assert!(
+      error.contains("wallet contains no cardinal utxos"),
+      "{}",
+      error
+    );
+  }
+
+  #[test]
+  fn inscribe_with_no_satpoint_and_enough_cardinal_utxos() {
+    let utxos = vec![
+      (outpoint(1), Amount::from_sat(1000)),
+      (outpoint(2), Amount::from_sat(1000)),
+    ];
+    let mut inscriptions = BTreeMap::new();
+    inscriptions.insert(
+      SatPoint {
+        outpoint: outpoint(1),
+        offset: 0,
+      },
+      Txid::from_str("06413a3ef4232f0485df2bc7c912c13c05c69f967c19639344753e05edb64bd5").unwrap(),
+    );
+
+    let inscription = inscription("text/plain", "ord");
+    let satpoint = None;
+    let commit_address = change(0);
+    let reveal_address = recipient();
+
+    assert!(Inscribe::create_inscription_transactions(
+      satpoint,
+      inscription,
+      inscriptions,
+      bitcoin::Network::Signet,
+      utxos.into_iter().collect(),
+      vec![commit_address, change(1)],
+      reveal_address,
+    )
+    .is_ok())
   }
 }
