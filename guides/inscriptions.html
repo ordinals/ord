@@ -1,0 +1,309 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js coal">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Inscriptions - Ordinal Theory Handbook</title>
+        <!-- Custom HTML head -->
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "coal";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('coal')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="../overview.html"><strong aria-hidden="true">1.</strong> Overview</a></li><li class="chapter-item expanded "><a href="../faq.html"><strong aria-hidden="true">2.</strong> FAQ</a></li><li class="chapter-item expanded "><a href="../guides.html"><strong aria-hidden="true">3.</strong> Guides</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../guides/explorer.html"><strong aria-hidden="true">3.1.</strong> Explorer</a></li><li class="chapter-item expanded "><a href="../guides/inscriptions.html" class="active"><strong aria-hidden="true">3.2.</strong> Inscriptions</a></li><li class="chapter-item expanded "><a href="../guides/ordinal-hunting.html"><strong aria-hidden="true">3.3.</strong> Ordinal Hunting</a></li></ol></li><li class="chapter-item expanded "><a href="../bounties.html"><strong aria-hidden="true">4.</strong> Bounties</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../bounty/0.html"><strong aria-hidden="true">4.1.</strong> Bounty 0: 100,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="../bounty/1.html"><strong aria-hidden="true">4.2.</strong> Bounty 1: 200,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="../bounty/2.html"><strong aria-hidden="true">4.3.</strong> Bounty 2: 300,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="../bounty/3.html"><strong aria-hidden="true">4.4.</strong> Bounty 3: 400,000 sats</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Ordinal Theory Handbook</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/casey/ord" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="ordinal-inscription-guide"><a class="header" href="#ordinal-inscription-guide">Ordinal Inscription Guide</a></h1>
+<p>Individual satoshis can be inscribed with arbitrary content, creating
+Bitcoin-native digital artifacts that can be held in a Bitcoin wallet and
+transferred using Bitcoin transactions. Inscriptions are as durable, immutable,
+secure, and decentralized as the Bitcoin blockchain itself.</p>
+<p>Working with inscriptions requires a Bitcoin full node, to give you a view of
+the current state of the Bitcoin blockchain, and a wallet that can make
+ordinal-aware transactions that inscribe satoshis with content and transfer
+individual satoshis using ordinal theory.</p>
+<p>Bitcoin Core provides both a Bitcoin full node and wallet. However, the Bitcoin
+Core wallet cannot make ordinal-aware transactions. Making ordinal-aware
+transactions requires <a href="https://github.com/casey/ord"><code>ord</code></a>, the ordinal theory
+utility. <code>ord wallet</code> subcommands interact with an existing Bitcoin Core
+wallet.</p>
+<p>This guide covers:</p>
+<ol>
+<li>Installing Bitcoin Core</li>
+<li>Syncing the Bitcoin blockchain</li>
+<li>Creating a Bitcoin Core wallet</li>
+<li>Using <code>ord wallet receive</code> to receive satoshis</li>
+<li>Creating inscriptions with <code>ord wallet inscribe</code></li>
+<li>Sending inscriptions with <code>ord wallet send</code></li>
+<li>Receiving inscriptions with <code>ord wallet receive</code></li>
+</ol>
+<h2 id="getting-help"><a class="header" href="#getting-help">Getting Help</a></h2>
+<p>If you get stuck, try asking for help on the <a href="https://discord.com/invite/87cjuz4FYg">Ordinal Theory Discord
+Server</a>, or checking GitHub for relevant
+<a href="https://github.com/casey/ord/issues">issues</a> and
+<a href="https://github.com/casey/ord/discussions">discussions</a>.</p>
+<h2 id="installing-bitcoin-core"><a class="header" href="#installing-bitcoin-core">Installing Bitcoin Core</a></h2>
+<p>Bitcoin Core is available from <a href="https://bitcoincore.org/">bitcoincore.org</a> on
+the <a href="https://bitcoincore.org/en/download/">download page</a>.</p>
+<p>This guide does not cover installing Bitcoin Core in detail. Once Bitcoin Core
+is installed, you should be able to run <code>bitcoind -version</code> successfully from
+the command line.</p>
+<h2 id="configuring-bitcoin-core"><a class="header" href="#configuring-bitcoin-core">Configuring Bitcoin Core</a></h2>
+<p><code>ord wallet</code> subcommands cannot yet be used on mainnet, so your Bitcoin Core
+node must be configured to use another chain. This guide uses signet, but
+testnet or regtest mode may also be used. Additionally, <code>ord</code> requires Bitcoin
+Core's transaction index.</p>
+<p>To configure your Bitcoin Core node to use signet and maintain a transaction
+index, add the following to your <code>bitcoin.conf</code>:</p>
+<pre><code>signet=1
+txindex=1
+</code></pre>
+<p>Or, run <code>bitcoind</code> with <code>-signet</code> and <code>-txindex</code>:</p>
+<pre><code>bitcoind -signet -txindex
+</code></pre>
+<h2 id="syncing-the-bitcoin-blockchain"><a class="header" href="#syncing-the-bitcoin-blockchain">Syncing the Bitcoin Blockchain</a></h2>
+<p>Once Bitcoin Core has been configured to use signet, you'll need to sync the
+blockchain. Signet is a low-volume test network, so this shouldn't take long.</p>
+<p>To sync the chain, run <code>bitcoind -signet -txindex</code> and leave it running until
+<code>bitcoin-cli -signet getblockcount</code> agrees with the block count on a block
+explorer like <a href="https://mempool.space/signet">the mempool.space signet block
+explorer</a>.</p>
+<h2 id="creating-a-bitcoin-core-wallet"><a class="header" href="#creating-a-bitcoin-core-wallet">Creating a Bitcoin Core Wallet</a></h2>
+<p><code>ord</code> uses Bitcoin Core to manage private keys, sign transactions, and
+broadcast transactions to the Bitcoin network.</p>
+<p><code>ord</code> wallets must be named <code>ord</code>, or start with <code>ord-</code>, to avoid
+unintentionally using the <code>ord</code> utility with non-ordinal Bitcoin wallets.</p>
+<p>To create a wallet for use with <code>ord</code>, run:</p>
+<pre><code>bitcoin-cli -signet createwallet ord
+</code></pre>
+<h2 id="loading-the-bitcoin-core-wallet"><a class="header" href="#loading-the-bitcoin-core-wallet">Loading the Bitcoin Core Wallet</a></h2>
+<p>Bitcoin Core wallets must be loaded before the can be used with <code>ord</code>. To load
+your wallet, run:</p>
+<pre><code>bitcoin-cli -signet loadwallet ord
+</code></pre>
+<h2 id="installing-ord"><a class="header" href="#installing-ord">Installing <code>ord</code></a></h2>
+<p>The <code>ord</code> utility is written in Rust and can be built from
+<a href="https://github.com/casey/ord">source</a>. Pre-built binaries are available on the
+<a href="https://github.com/casey/ord/releases">releases page</a>.</p>
+<p>Once <code>ord</code> is installed, you should be able to run <code>ord --version</code> on the
+command line.</p>
+<h2 id="receiving-satoshis"><a class="header" href="#receiving-satoshis">Receiving Satoshis</a></h2>
+<p>Inscriptions are made on individual satoshis, using normal Bitcoin transactions
+that pay fees in satoshis, so your wallet will need some sats.</p>
+<p>Get a new address from your <code>ord</code> wallet by running <code>ord --chain signet wallet receive</code></p>
+<p>Use a signet faucet to send satoshis to the address you generated. Two faucets
+you might try are <a href="https://signet.bc-2.jp/">signet.bc-2.jp</a> and
+<a href="https://alt.signetfaucet.com/">alt.signetfaucet.com</a>.</p>
+<p>Once the faucet transaction confirms, you should be able to see the
+transactions outputs with <code>ord --chain signet wallet utxos</code>.</p>
+<h2 id="creating-inscription-content"><a class="header" href="#creating-inscription-content">Creating Inscription Content</a></h2>
+<p>Create a <code>.png</code> or <code>.txt</code> file smaller than 1024 bytes to inscribe.</p>
+<p>Satoshis can be inscribed with any kind of content, but the <code>ord</code> wallet and
+explorer are currently limited to <code>.png</code> and <code>.txt</code> files.</p>
+<p>Additionally, inscriptions made on signet must be 1024 bytes or less, to avoid
+congesting signet for other users. Inscriptions are stored in Taproot input
+witnesses, so mainnet inscriptions will only be limited by the depths of your
+pockets and the 4,000,000 byte witness size limit.</p>
+<h2 id="creating-inscriptions"><a class="header" href="#creating-inscriptions">Creating Inscriptions</a></h2>
+<p>To create an inscription with the contents of <code>FILE</code>, run:</p>
+<pre><code>ord --chain signet wallet inscribe --file FILE
+</code></pre>
+<p>Ord will output two transactions IDs, one for the commit transaction, and one
+for the reveal transaction.</p>
+<p>The commit transaction commits to a tapscript containing the contents of the
+inscription, and the reveal transaction spends from that tapscript, revealing
+the contents on chain and inscribing them on the first satoshi of the first
+output of the reveal transaction.</p>
+<p>Wait for the reveal transaction to be mined. You can check the status of the
+commit and reveal transactions using  <a href="https://mempool.space/signet">the mempool.space signet block
+explorer</a>.</p>
+<p>Once the reveal transaction has been mined, the inscription ID should be
+printed when you run:</p>
+<pre><code>ord --chain signet wallet inscriptions
+</code></pre>
+<p>And when you visit <a href="https://signet.ordinals.com/">the signet ordinals explorer</a>
+at <code>signet.ordinals.com/inscription/INSCRIPTION_ID</code>.</p>
+<h2 id="sending-inscriptions"><a class="header" href="#sending-inscriptions">Sending Inscriptions</a></h2>
+<p>Ask the recipient to generate a new address by running:</p>
+<pre><code>ord --chain signet wallet receive
+</code></pre>
+<p>Send the inscription by running:</p>
+<pre><code>ord --chain signet wallet send INSCRIPTION_ID ADDRESS
+</code></pre>
+<p>Once the send transaction confirms, the recipient can confirm receipt by
+running:</p>
+<pre><code>ord --chain signet wallet inscriptions
+</code></pre>
+<h2 id="receiving-inscriptions"><a class="header" href="#receiving-inscriptions">Receiving Inscriptions</a></h2>
+<p>Generate a new receive address using:</p>
+<pre><code>ord --chain signet wallet receive
+</code></pre>
+<p>The sender can transfer the inscription to your address using:</p>
+<pre><code>ord --chain signet wallet send INSCRIPTION_ID ADDRESS
+</code></pre>
+<p>Once the send transaction confirms, you can can confirm receipt by running:</p>
+<pre><code>ord --chain signet wallet inscriptions
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../guides/explorer.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                            <a rel="next" href="../guides/ordinal-hunting.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../guides/explorer.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                    <a rel="next" href="../guides/ordinal-hunting.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+    </body>
+</html>

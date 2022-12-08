@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Theory - Ordinal Hunter&#x27;s Manual</title>
+        <title>Overview - Ordinal Theory Handbook</title>
         <!-- Custom HTML head -->
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -74,7 +74,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="theory.html" class="active"><strong aria-hidden="true">1.</strong> Theory</a></li><li class="chapter-item expanded "><a href="block-explorer.html"><strong aria-hidden="true">2.</strong> Block Explorer</a></li><li class="chapter-item expanded "><a href="hunting.html"><strong aria-hidden="true">3.</strong> Hunting</a></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">4.</strong> FAQ</a></li><li class="chapter-item expanded "><a href="bounty.html"><strong aria-hidden="true">5.</strong> Bounties</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="bounty/0.html"><strong aria-hidden="true">5.1.</strong> Bounty 0: 100,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="bounty/1.html"><strong aria-hidden="true">5.2.</strong> Bounty 1: 200,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="bounty/2.html"><strong aria-hidden="true">5.3.</strong> Bounty 2: 300,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="bounty/3.html"><strong aria-hidden="true">5.4.</strong> Bounty 3: 400,000 sats</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="overview.html" class="active"><strong aria-hidden="true">1.</strong> Overview</a></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">2.</strong> FAQ</a></li><li class="chapter-item expanded "><a href="guides.html"><strong aria-hidden="true">3.</strong> Guides</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="guides/explorer.html"><strong aria-hidden="true">3.1.</strong> Explorer</a></li><li class="chapter-item expanded "><a href="guides/inscriptions.html"><strong aria-hidden="true">3.2.</strong> Inscriptions</a></li><li class="chapter-item expanded "><a href="guides/ordinal-hunting.html"><strong aria-hidden="true">3.3.</strong> Ordinal Hunting</a></li></ol></li><li class="chapter-item expanded "><a href="bounties.html"><strong aria-hidden="true">4.</strong> Bounties</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="bounty/0.html"><strong aria-hidden="true">4.1.</strong> Bounty 0: 100,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="bounty/1.html"><strong aria-hidden="true">4.2.</strong> Bounty 1: 200,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="bounty/2.html"><strong aria-hidden="true">4.3.</strong> Bounty 2: 300,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="bounty/3.html"><strong aria-hidden="true">4.4.</strong> Bounty 3: 400,000 sats</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -103,7 +103,7 @@
                         </button>
                     </div>
 
-                    <h1 class="menu-title">Ordinal Hunter&#x27;s Manual</h1>
+                    <h1 class="menu-title">Ordinal Theory Handbook</h1>
 
                     <div class="right-buttons">
                         <a href="print.html" title="Print this book" aria-label="Print this book">
@@ -136,28 +136,32 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="ordinal-theory"><a class="header" href="#ordinal-theory">Ordinal Theory</a></h1>
-<p>Ordinals are numbering scheme for satoshis that allows tracking and
-transferring individual sats. These numbers are called
-<a href="https://ordinals.com">ordinals</a>. Satoshis are numbered in the order in which
+                        <h1 id="ordinal-theory-overview"><a class="header" href="#ordinal-theory-overview">Ordinal Theory Overview</a></h1>
+<p>Ordinals are a numbering scheme for satoshis that allows tracking and
+transferring individual sats. These numbers are called <a href="https://ordinals.com">ordinal
+numbers</a>. Satoshis are numbered in the order in which
 they're mined, and transferred from transaction inputs to transaction outputs
-in first-in-first-out order. More details are available in <a href="https://github.com/casey/ord/blob/master/bip.mediawiki">the
+first-in-first-out. Both the numbering scheme and the transfer scheme rely on
+<em>order</em>, the numbering scheme on the <em>order</em> in which satoshis are mined, and
+the transfer scheme on the <em>order</em> of transaction inputs and outputs. Thus the
+name, <em>ordinals</em>.</p>
+<p>Technical details are available in <a href="https://github.com/casey/ord/blob/master/bip.mediawiki">the
 BIP</a>.</p>
-<p>Ordinals don't require a separate token, another blockchain, or any changes to
+<p>Ordinals do not require a separate token, another blockchain, or any changes to
 Bitcoin. They work right now.</p>
-<p>Ordinals have a few different representations:</p>
+<p>Ordinal numbers have a few different representations:</p>
 <ul>
 <li>
 <p><em>Integer notation</em>:
-<a href="https://ordinals.com/ordinal/2099994106992659"><code>2099994106992659</code></a>. The
-number is the ordinal number, and the &quot;°&quot; is the Romance language ordinal
-symbol.</p>
+<a href="https://ordinals.com/ordinal/2099994106992659"><code>2099994106992659</code></a> The
+ordinal number, assigned according to the order in which the satoshi was
+mined.</p>
 </li>
 <li>
 <p><em>Decimal notation</em>:
-<a href="https://ordinals.com/ordinal/3891094.16797"><code>3891094.16797</code></a>The first number
-is the block height in which the ordinal was created, the second the offset
-of the ordinal within the block.</p>
+<a href="https://ordinals.com/ordinal/3891094.16797"><code>3891094.16797</code></a> The first
+number is the block height in which the satoshi was mined, the second the
+offset of the satoshi within the block.</p>
 </li>
 <li>
 <p><em>Degree notation</em>:
@@ -167,7 +171,7 @@ We'll get to that in a moment.</p>
 <li>
 <p><em>Percentile notation</em>:
 <a href="https://ordinals.com/ordinal/99.99971949060254%25"><code>99.99971949060254%</code></a> .
-The ordinals position in Bitcoin's supply, expressed as a percentage.</p>
+The satoshi's position in Bitcoin's supply, expressed as a percentage.</p>
 </li>
 <li>
 <p><em>Name</em>: <a href="https://ordinals.com/ordinal/satoshi"><code>satoshi</code></a>. An encoding of the
@@ -175,17 +179,17 @@ ordinal number using the characters <code>a</code> through <code>z</code>.</p>
 </li>
 </ul>
 <p>Arbitrary assets, such as NFTs, security tokens, accounts, or stablecoins can
-be attached to Ordinals.</p>
+be attached to satoshis using ordinal numbers as stable identifiers.</p>
 <p>Ordinals is an open-source project, developed <a href="https://github.com/casey/ord">on
 GitHub</a>. The project consists of a BIP describing
 the ordinal scheme, an index that communicates with a Bitcoin Core node to
-track the location of all ordinals, a wallet that allows making ordinal-aware
+track the location of all satoshis, a wallet that allows making ordinal-aware
 transactions, a block explorer for interactive exploration of the blockchain,
-functionality for minting ordinal NFTs, and this manual.</p>
+functionality for inscribing satoshis with digital artifacts, and this manual.</p>
 <h2 id="rarity"><a class="header" href="#rarity">Rarity</a></h2>
-<p>Humans are collectors, and since ordinals can be tracked and transferred,
+<p>Humans are collectors, and since satoshis can now be tracked and transferred,
 people will naturally want to collect them. Ordinal theorists can decide for
-themselves which sats are rare and desirable, but there are some hints.</p>
+themselves which sats are rare and desirable, but there are some hints…</p>
 <p>Bitcoin has periodic events, some frequent, some more uncommon, and these
 naturally lend themselves to a system of rarity. These periodic events are:</p>
 <ul>
@@ -219,7 +223,7 @@ years. The first conjunction should happen some time in 2032.</p>
 <li><code>mythic</code>: The first sat of the genesis block</li>
 </ul>
 <p>Which brings us to degree notation, which unambiguously represents an ordinal
-in a way that makes rarity easy to see at a glance:</p>
+number in a way that makes the rarity of a satoshi easy to see at a glance:</p>
 <pre><code>A°B′C″D‴
 │ │ │ ╰─ Index of sat in the block
 │ │ ╰─── Index of block in difficulty adjustment period
@@ -228,56 +232,56 @@ in a way that makes rarity easy to see at a glance:</p>
 </code></pre>
 <p>Ordinal theorists often use the terms &quot;hour&quot;, &quot;minute&quot;, &quot;second&quot;, and &quot;third&quot;
 for <em>A</em>, <em>B</em>, <em>C</em>, and <em>D</em>, respectively.</p>
-<p>Now for some examples. This ordinal is common:</p>
+<p>Now for some examples. This satoshi is common:</p>
 <pre><code>1°1′1″1‴
 │ │ │ ╰─ Not first sat in block
 │ │ ╰─── Not first block in difficutly adjustment period
 │ ╰───── Not first block in halving epoch
 ╰─────── Second cycle
 </code></pre>
-<p>This ordinal is uncommon:</p>
+<p>This satoshi is uncommon:</p>
 <pre><code>1°1′1″0‴
 │ │ │ ╰─ First sat in block
 │ │ ╰─── Not first block in difficutly adjustment period
 │ ╰───── Not first block in halving epoch
 ╰─────── Second cycle
 </code></pre>
-<p>This ordinal is rare:</p>
+<p>This satoshi is rare:</p>
 <pre><code>1°1′0″0‴
 │ │ │ ╰─ First sat in block
 │ │ ╰─── First block in difficulty adjustment period
 │ ╰───── Not the first block in halving epoch
 ╰─────── Second cycle
 </code></pre>
-<p>This ordinal is epic:</p>
+<p>This satoshi is epic:</p>
 <pre><code>1°0′1″0‴
 │ │ │ ╰─ First sat in block
 │ │ ╰─── Not first block in difficulty adjustment period
 │ ╰───── First block in halving epoch
 ╰─────── Second cycle
 </code></pre>
-<p>This ordinal is legendary:</p>
+<p>This satoshi is legendary:</p>
 <pre><code>1°0′0″0‴
 │ │ │ ╰─ First sat in block
 │ │ ╰─── First block in difficulty adjustment period
 │ ╰───── First block in halving epoch
 ╰─────── Second cycle
 </code></pre>
-<p>And this ordinal is mythic:</p>
+<p>And this satoshi is mythic:</p>
 <pre><code>0°0′0″0‴
 │ │ │ ╰─ First sat in block
 │ │ ╰─── First block in difficulty adjustment period
 │ ╰───── First block in halving epoch
 ╰─────── First cycle
 </code></pre>
-<p>If the block offset is zero, it may be omitted. This is the uncommon ordinal
+<p>If the block offset is zero, it may be omitted. This is the uncommon satoshi
 from above:</p>
 <pre><code>1°1′1″
 │ │ ╰─ Not first block in difficutly adjustment period
 │ ╰─── Not first block in halving epoch
 ╰───── Second cycle
 </code></pre>
-<h2 id="ordinal-supply"><a class="header" href="#ordinal-supply">Ordinal Supply</a></h2>
+<h2 id="rare-satoshi-supply"><a class="header" href="#rare-satoshi-supply">Rare Satoshi Supply</a></h2>
 <h3 id="total-supply"><a class="header" href="#total-supply">Total Supply</a></h3>
 <ul>
 <li><code>common</code>: 2.1 quadrillion</li>
@@ -296,26 +300,33 @@ from above:</p>
 <li><code>legendary</code>: 0</li>
 <li><code>mythic</code>: 1</li>
 </ul>
-<p>At the moment, even uncommon ordinals are quite rare. As of this writing,
-745,855 uncommon ordinals have been mined - one per 25.6 bitcoin in
+<p>At the moment, even uncommon satoshis are quite rare. As of this writing,
+745,855 uncommon satoshis have been mined - one per 25.6 bitcoin in
 circulation.</p>
 <h2 id="names"><a class="header" href="#names">Names</a></h2>
-<p>Each ordinal has a name, consisting of the letters <em>A</em> through <em>Z</em>, that get
-shorter the larger the ordinal is. They could start short and get longer, but
-then all the good, short names would be trapped in the unspendable genesis
-block.</p>
+<p>Each satoshi has a name, consisting of the letters <em>A</em> through <em>Z</em>, that get
+shorter the further into the future the satoshi was mined. They could start
+short and get longer, but then all the good, short names would be trapped in
+the unspendable genesis block.</p>
 <p>As an example, 1905530482684727°'s name is &quot;iaiufjszmoba&quot;. The name of the last
-ordinal to be mined is &quot;a&quot;. Every combination of 10 characters or less is out
+satoshi to be mined is &quot;a&quot;. Every combination of 10 characters or less is out
 there, or will be out there, some day.</p>
 <h2 id="exotics"><a class="header" href="#exotics">Exotics</a></h2>
-<p>Ordinals may be prized for reasons other than their name or rarity. This might
+<p>Satoshis may be prized for reasons other than their name or rarity. This might
 be due to a quality of the number itself, like having an integer square or cube
 root. Or it might be due to a connection to a historical event, such as
-ordinals from block 477,120, the block in which SegWit activated, or ordinal
-2099999997689999°, the last ordinal that will ever be mined.</p>
-<p>Such ordinals are termed &quot;exotic&quot;. Which ordinals are exotic and what makes
+satoshis from block 477,120, the block in which SegWit activated,
+2099999997689999°, the last satoshi that will ever be mined.</p>
+<p>Such satoshis are termed &quot;exotic&quot;. Which satoshis are exotic and what makes
 them so is subjective. Ordinal theorists are are encouraged to seek out exotics
 based on criteria of their own devising.</p>
+<h2 id="inscriptions"><a class="header" href="#inscriptions">Inscriptions</a></h2>
+<p>Satoshis can be inscribed with arbitrary content, creating Bitcoin-native
+digital artifacts. Inscribing is done by sending the satoshi to be inscribed in
+a transaction that reveals the inscription content on-chain. This content is
+then inextricably linked to that satoshi, turning it into an immutable digital
+artifact that can be tracked, transferred, hoarded, bought, sold, lost, and
+rediscovered.</p>
 <h2 id="archaeology"><a class="header" href="#archaeology">Archaeology</a></h2>
 <p>A lively community of archaeologists devoted to cataloging and collecting early
 NFTs has sprung up. <a href="https://mirror.xyz/chainleft.eth/MzPWRsesC9mQflxlLo-N29oF4iwCgX3lacrvaG9Kjko">Here's a great summary of historical NFTs by
@@ -356,7 +367,7 @@ years ago.</p>
                             <a rel="prev" href="introduction.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
-                            <a rel="next" href="block-explorer.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="faq.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         <div style="clear: both"></div>
@@ -368,7 +379,7 @@ years ago.</p>
                     <a rel="prev" href="introduction.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
-                    <a rel="next" href="block-explorer.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="faq.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
