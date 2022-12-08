@@ -11,11 +11,10 @@ the current state of the Bitcoin blockchain, and a wallet that can make
 ordinal-aware transactions that inscribe satoshis with content and transfer
 individual satoshis using ordinal theory.
 
-Bitcoin Core provides both a Bitcoin full node and Bitcoin wallet. However, the
-Bitcoin Core wallet cannot make ordinal-aware transactions. Making
-ordinal-aware transactions requires [`ord`](https://github.com/casey/ord), the
-ordinal theory utility. `ord wallet` subcommands wrap an existing Bitcoin Core
-wallet.
+Bitcoin Core provides both a Bitcoin full node and wallet. However, the Bitcoin
+Core wallet cannot make ordinal-aware transactions. Making ordinal-aware
+transactions requires [`ord`](https://github.com/casey/ord), the ordinal theory
+utility. `ord wallet` subcommands wrap an existing Bitcoin Core wallet.
 
 This guide contains everything you need to know about creating, sending, and
 receiving inscriptions:
