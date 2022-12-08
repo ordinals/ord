@@ -2,8 +2,8 @@ Introduction
 ============
 
 This handbook is a guide to ordinal theory. Ordinal theory concerns itself with
-distinguishing satoshis, giving them an identity and allowing them to be
-tracked and transferred individually.
+satoshis, giving them identifies and allowing them to be tracked, transferred,
+and imbued with meaning.
 
 Satoshis, not bitcoin, are the atomic, native currency of the Bitcoin network.
 One bitcoin can be sub-divided into 100,000,000 satoshis, but no further.
