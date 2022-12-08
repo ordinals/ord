@@ -15,7 +15,7 @@ Ordinal theory imbues satoshis with numismatic value, allowing them to
 collected and traded as curios.
 
 Individual satoshis can be inscribed with arbitrary content, creating
-Bitcoin-native digital artifacts that can be held in a Bitcoin wallet and
+Bitcoin-native digital artifacts that can be held in Bitcoin wallets and
 transferred using Bitcoin transactions. Inscriptions are as durable, immutable,
 secure, and decentralized as the Bitcoin blockchain itself.
 
