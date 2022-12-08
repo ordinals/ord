@@ -566,6 +566,11 @@ fn inscriptions() {
 
   rpc_server.mine_blocks(1);
 
+  CommandBuilder::new("--chain signet wallet inscriptions")
+    .rpc_server(&rpc_server)
+    .expected_stdout(format!("{inscription_id}\t{inscription_id}:0:0\n"))
+    .run();
+
   let stdout = CommandBuilder::new("--chain signet wallet receive")
     .rpc_server(&rpc_server)
     .expected_exit_code(0)
