@@ -13,12 +13,13 @@ use {
   },
   bitcoincore_rpc::Client,
   serde_json::json,
+  std::collections::BTreeSet,
 };
 
 #[derive(Debug, Parser)]
 pub(crate) struct Inscribe {
   #[clap(long, help = "Inscribe <SATPOINT>")]
-  satpoint: SatPoint,
+  satpoint: Option<SatPoint>,
   #[clap(long, help = "Inscribe ordinal with contents of <FILE>")]
   file: PathBuf,
 }
@@ -27,7 +28,7 @@ impl Inscribe {
   pub(crate) fn run(self, options: Options) -> Result {
     let client = options.bitcoin_rpc_client_mainnet_forbidden("ord wallet inscribe")?;
 
-    let inscription = Inscription::from_file(options.chain, self.file)?;
+    let inscription = Inscription::from_file(options.chain, self.file.clone())?;
 
     let index = Index::open(&options)?;
     index.update()?;
@@ -36,13 +37,15 @@ impl Inscribe {
 
     let inscriptions = index.get_inscriptions()?;
 
+    let satpoint = self.choose_satpoint(&utxos, &inscriptions)?;
+
     let commit_tx_change = get_change_addresses(&options, 2)?;
 
     let reveal_tx_destination = get_change_addresses(&options, 1)?[0].clone();
 
     let (unsigned_commit_tx, reveal_tx, recovery_key_pair) =
       Inscribe::create_inscription_transactions(
-        self.satpoint,
+        satpoint,
         inscription,
         inscriptions,
         options.chain.network(),
@@ -68,6 +71,32 @@ impl Inscribe {
     println!("commit\t{commit_txid}");
     println!("reveal\t{reveal_txid}");
     Ok(())
+  }
+
+  fn choose_satpoint(
+    &self,
+    utxos: &BTreeMap<OutPoint, Amount>,
+    inscriptions: &BTreeMap<SatPoint, InscriptionId>,
+  ) -> Result<SatPoint> {
+    if let Some(satpoint) = self.satpoint {
+      return Ok(satpoint);
+    }
+
+    let inscribed_utxos = inscriptions
+      .iter()
+      .map(|(satpoint, _)| satpoint.outpoint)
+      .collect::<BTreeSet<OutPoint>>();
+
+    let blank_utxos = utxos
+      .iter()
+      .map(|(outpoint, _)| *outpoint)
+      .filter(|outpoint| !inscribed_utxos.contains(outpoint))
+      .collect::<Vec<OutPoint>>();
+
+    match blank_utxos.first() {
+      Some(outpoint) => Ok(SatPoint::from_str(&format!("{outpoint}:0"))?),
+      None => Err(anyhow!("wallet contains no cardinal utxos")),
+    }
   }
 
   fn create_inscription_transactions(
