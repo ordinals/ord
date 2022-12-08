@@ -5,7 +5,12 @@ Ordinals are a numbering scheme for satoshis that allows tracking and
 transferring individual sats. These numbers are called [ordinal
 numbers](https://ordinals.com). Satoshis are numbered in the order in which
 they're mined, and transferred from transaction inputs to transaction outputs
-first-in-first-out. Technical details are available in [the
+first-in-first-out. Both the numbering scheme and the transfer scheme rely on
+*order*, the numbering scheme on the *order* in which satoshis are mined, and
+the transfer scheme on the *order* of transaction inputs and outputs. Thus the
+name, *ordinals*.
+
+Technical details are available in [the
 BIP](https://github.com/casey/ord/blob/master/bip.mediawiki).
 
 Ordinals don't require a separate token, another blockchain, or any changes to
