@@ -598,3 +598,27 @@ fn inscriptions() {
     .expected_stdout(format!("{inscription_id}\t{outpoint}:0\n"))
     .run();
 }
+
+#[test]
+fn inscribe_with_optional_satpoint_arg() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  rpc_server.mine_blocks(1);
+
+  let stdout = CommandBuilder::new("--chain regtest wallet inscribe --file hello.txt")
+    .write("hello.txt", "HELLOWORLD")
+    .rpc_server(&rpc_server)
+    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+    .run();
+
+  rpc_server.mine_blocks(1);
+
+  TestServer::spawn_with_args(&rpc_server, &["--index-ordinals"]).assert_response_regex(
+    "/ordinal/5000000000",
+    ".*<dt>inscription</dt>\n  <dd>HELLOWORLD</dd>.*",
+  );
+
+  TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
+    &format!("/inscription/{}", reveal_txid_from_inscribe_stdout(&stdout)),
+    ".*HELLOWORLD.*",
+  );
+}
