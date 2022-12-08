@@ -14,9 +14,7 @@ Bitcoin. They work right now.
 Ordinal numbers have a few different representations:
 
 - *Integer notation*:
-  [`2099994106992659°`](https://ordinals.com/ordinal/2099994106992659). The
-  number is the ordinal number, and the "°" is the Romance language ordinal
-  symbol.
+  [`2099994106992659`](https://ordinals.com/ordinal/2099994106992659)
 
 - *Decimal notation*:
   [`3891094.16797`](https://ordinals.com/ordinal/3891094.16797) The first
