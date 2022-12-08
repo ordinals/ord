@@ -27,9 +27,10 @@ impl Inscription {
     InscriptionParser::parse(&tx.input.get(0)?.witness).ok()
   }
 
-  pub(crate) fn from_file(chain: Chain, path: PathBuf) -> Result<Self, Error> {
-    let content =
-      fs::read(&path).with_context(|| format!("io error reading {}", path.display()))?;
+  pub(crate) fn from_file(chain: Chain, path: impl AsRef<Path>) -> Result<Self, Error> {
+    let path = path.as_ref();
+
+    let content = fs::read(path).with_context(|| format!("io error reading {}", path.display()))?;
 
     if let Some(limit) = chain.inscription_content_size_limit() {
       let len = content.len();
