@@ -145,10 +145,10 @@ pockets and the 4,000,000 byte witness size limit.
 Creating Inscriptions
 ---------------------
 
-To create an inscription with the contents of `CONTENTS`, run:
+To create an inscription with the contents of `FILE`, run:
 
 ```
-ord --chain signet wallet inscribe --file CONTENTS
+ord --chain signet wallet inscribe --file FILE
 ```
 
 Ord will output two transactions IDs, one for the commit transaction, and one
