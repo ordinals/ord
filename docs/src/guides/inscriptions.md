@@ -127,7 +127,7 @@ you might try are [signet.bc-2.jp](https://signet.bc-2.jp/) and
 [alt.signetfaucet.com](https://alt.signetfaucet.com/).
 
 Once the faucet transaction confirms, you should be able to see the
-transactions outputs with `ord --chain signet wallet utxos`.
+transactions outputs in `ord --chain signet wallet utxos`.
 
 Creating Inscription Content
 ----------------------------
