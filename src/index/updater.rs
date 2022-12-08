@@ -402,12 +402,13 @@ impl Updater {
         .map(|(satpoint, id)| (*satpoint, *id))
         .collect();
 
-      for (_old_satpoint, inscription_id) in inscription_ids {
+      for (old_satpoint, inscription_id) in inscription_ids {
         let new_satpoint = encode_satpoint(SatPoint {
           outpoint: OutPoint { txid, vout: 0 },
           offset: 0,
         });
 
+        satpoint_to_inscription_id.remove(&old_satpoint)?;
         satpoint_to_inscription_id.insert(&new_satpoint, &inscription_id)?;
         inscription_id_to_satpoint.insert(&inscription_id, &new_satpoint)?;
       }
