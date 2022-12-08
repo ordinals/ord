@@ -8,9 +8,8 @@ transferred, and imbued with meaning.
 Satoshis, not bitcoin, are the atomic, native currency of the Bitcoin network.
 One bitcoin can be sub-divided into 100,000,000 satoshis, but no further.
 
-Ordinal theory is not a side chain, does not require any token aside from
-Bitcoin, and can be used without any changes to the Bitcoin network. It works
-right now.
+Ordinal theory does not require a sidechain or token aside from Bitcoin, and
+can be used without any changes to the Bitcoin network. It works right now.
 
 Ordinal theory imbues satoshis with numismatic value, allowing them to
 collected and traded as curios.
