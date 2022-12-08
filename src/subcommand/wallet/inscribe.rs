@@ -88,15 +88,13 @@ impl Inscribe {
         .map(|(satpoint, _)| satpoint.outpoint)
         .collect::<BTreeSet<OutPoint>>();
 
-      let cardinal_utxos = utxos
+      match utxos
         .iter()
         .map(|(outpoint, _)| *outpoint)
-        .filter(|outpoint| !inscribed_utxos.contains(outpoint))
-        .collect::<Vec<OutPoint>>();
-
-      match cardinal_utxos.first() {
+        .find(|outpoint| !inscribed_utxos.contains(outpoint))
+      {
         Some(outpoint) => SatPoint {
-          outpoint: *outpoint,
+          outpoint,
           offset: 0,
         },
         None => return Err(anyhow!("wallet contains no cardinal utxos")),
