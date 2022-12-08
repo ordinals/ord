@@ -2,6 +2,7 @@ use {super::*, transaction_builder::TransactionBuilder};
 
 mod identify;
 mod inscribe;
+mod inscriptions;
 mod receive;
 mod send;
 mod transaction_builder;
@@ -60,6 +61,7 @@ fn get_change_addresses(options: &Options, n: usize) -> Result<Vec<Address>> {
 pub(crate) enum Wallet {
   Identify(identify::Identify),
   Inscribe(inscribe::Inscribe),
+  Inscriptions(inscriptions::Inscriptions),
   Receive(receive::Receive),
   Send(send::Send),
   Utxos(utxos::Utxos),
@@ -70,6 +72,7 @@ impl Wallet {
     match self {
       Self::Identify(identify) => identify.run(options),
       Self::Inscribe(inscribe) => inscribe.run(options),
+      Self::Inscriptions(inscriptions) => inscriptions.run(options),
       Self::Receive(receive) => receive.run(options),
       Self::Send(send) => send.run(options),
       Self::Utxos(utxos) => utxos.run(options),
