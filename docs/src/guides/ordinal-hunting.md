@@ -3,8 +3,8 @@ Ordinal Hunting
 
 *This guide is out of date. Since it was written, the `ord` binary was changed
 to only build the full ordinal index when the `--ordinal-index` flag is
-supplied. Additionally, `ord` now has built-in wallet that wraps a Bitcoin Core
-wallet. See `ord wallet --help`.*
+supplied. Additionally, `ord` now has a built-in wallet that wraps a Bitcoin
+Core wallet. See `ord wallet --help`.*
 
 Ordinal hunting is difficult but rewarding. The feeling of owning a wallet full
 of UTXOs, redolent with the scent of rare and exotic sats, is beyond compare.
