@@ -71,7 +71,7 @@ Syncing the Bitcoin Blockchain
 ------------------------------
 
 Once Bitcoin Core has been configured to use signet, you'll need to sync the
-blockchain. Signet is a low-volume test network, so this shoudln't take long.
+blockchain. Signet is a low-volume test network, so this shouldn't take long.
 
 To sync the chain, run `bitcoind -signet -txindex` and leave it running until
 `bitcoin-cli -signet getblockcount` agrees with the block count on a block
@@ -110,7 +110,7 @@ The `ord` utility is written in Rust and can be built from
 [source](https://github.com/casey/ord). Pre-built binaries are available on the
 [releases page](https://github.com/casey/ord/releases).
 
-Once `ord` is installed, you shoud be able to run `ord --version` on the
+Once `ord` is installed, you should be able to run `ord --version` on the
 command line.
 
 Receiving Satoshis
@@ -155,7 +155,7 @@ Ord will output two transactions IDs, one for the commit transaction, and one
 for the reveal transaction.
 
 The commit transaction commits to a tapscript containing the contents of the
-inscription, and the reveal transaction spends from that tapscript, reaveling
+inscription, and the reveal transaction spends from that tapscript, revealing
 the contents on chain and inscribing them on the first satoshi of the first
 output of the reveal transaction.
 
