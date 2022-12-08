@@ -30,9 +30,9 @@ This guide covers:
 Getting Help
 ------------
 
-A guide can only do so much! If you get stuck, try asking for help on the
-[Ordinal Theory Discord Server](https://discord.com/invite/87cjuz4FYg), or
-checking GitHub for relevant [issues](https://github.com/casey/ord/issues) and
+If you get stuck, try asking for help on the [Ordinal Theory Discord
+Server](https://discord.com/invite/87cjuz4FYg), or checking GitHub for relevant
+[issues](https://github.com/casey/ord/issues) and
 [discussions](https://github.com/casey/ord/discussions).
 
 Installing Bitcoin Core
