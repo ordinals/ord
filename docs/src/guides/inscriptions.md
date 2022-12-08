@@ -50,7 +50,7 @@ Configuring Bitcoin Core
 
 `ord wallet` subcommands cannot yet be used on mainnet, so your Bitcoin Core
 node must be configured to use another chain. This guide uses signet, but
-testnet or regtest mode may also be used. Additionally, `ord` uses Bitcoin
+testnet or regtest mode may also be used. Additionally, `ord` requires Bitcoin
 Core's transaction index.
 
 To configure your Bitcoin Core node to use signet and maintain the transaction
