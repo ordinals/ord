@@ -14,12 +14,13 @@ Bitcoin. They work right now.
 Ordinal numbers have a few different representations:
 
 - *Integer notation*:
-  [`2099994106992659`](https://ordinals.com/ordinal/2099994106992659)
+  [`2099994106992659`](https://ordinals.com/ordinal/2099994106992659) The
+  ordinal number, assigned according to the order the satoshi was mined.
 
 - *Decimal notation*:
   [`3891094.16797`](https://ordinals.com/ordinal/3891094.16797) The first
-  number is the block height in which the ordinal was created, the second the
-  offset of the ordinal within the block.
+  number is the block height in which the satoshi was mined, the second the
+  offset of the satoshi within the block.
 
 - *Degree notation*:
   [`3°111094′214″16797‴`](https://ordinals.com/ordinal/3%C2%B0111094%E2%80%B2214%E2%80%B316797%E2%80%B4).
