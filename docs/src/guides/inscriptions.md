@@ -73,7 +73,7 @@ Syncing the Bitcoin Blockchain
 Once Bitcoin Core has been configured to use signet, you'll need to sync the
 blockchain. Signet is a low-volume test network, so this shoudln't take long.
 
-To sync the chain, run `bitcoind -signet` and leave it running until
+To sync the chain, run `bitcoind -signet -txindex` and leave it running until
 `bitcoin-cli -signet getblockcount` agrees with the block count on a block
 explorer like [the mempool.space signet block
 explorer](https://mempool.space/signet).
