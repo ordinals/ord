@@ -45,16 +45,27 @@ This guide does not cover installing Bitcoin Core in detail. Once Bitcoin Core
 is installed, you should be able to run `bitcoind -version` successfully from
 the command line.
 
-Configuring Bitcoin Core to use Signet
---------------------------------------
+Configuring Bitcoin Core
+------------------------
 
 `ord wallet` subcommands cannot yet be used on mainnet, so your Bitcoin Core
 node must be configured to use another chain. This guide uses signet, but
-testnet or regtest mode may also be used.
+testnet or regtest mode may also be used. Additionally, `ord` uses Bitcoin
+Core's transaction index.
 
-To configure your Bitcoin Core node to use signet, add `signet=1` to your
-`bitcoin.conf` configuration file, or pass `-signet` to `bitcoind` and
-`bitcoin-cli`, e.g. `bitcoind -signet` and `bitcoin-cli -signet`.
+To configure your Bitcoin Core node to use signet and maintain the transaction
+index, add the following to your `bitcoin.conf`:
+
+```
+signet=1
+txindex=1
+```
+
+Or, run `bitcoind` with `-signet` and `-txindex`:
+
+```
+bitcoind -signet -txindex
+```
 
 Syncing the Bitcoin Blockchain
 ------------------------------
