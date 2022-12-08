@@ -139,8 +139,8 @@ explorer are currently limited to `.png` and `.txt` files.
 
 Additionally, inscriptions made on signet must be 1024 bytes or less, to avoid
 congesting signet for other users. Inscriptions are stored in Taproot input
-witnesses, so mainnet inscriptions will only be limited by the 4,000,000 byte
-witness size limit.
+witnesses, so mainnet inscriptions will only be limited by the depth of you
+pockets and the 4,000,000 byte witness size limit.
 
 Creating Inscriptions
 ---------------------
