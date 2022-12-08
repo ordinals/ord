@@ -1,7 +1,7 @@
 Ordinal Theory Overview
 =======================
 
-Ordinals are numbering scheme for satoshis that allows tracking and
+Ordinals are a numbering scheme for satoshis that allows tracking and
 transferring individual sats. These numbers are called [ordinal
 numbers](https://ordinals.com). Satoshis are numbered in the order in which
 they're mined, and transferred from transaction inputs to transaction outputs
