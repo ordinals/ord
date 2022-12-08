@@ -28,7 +28,7 @@ impl Inscribe {
   pub(crate) fn run(self, options: Options) -> Result {
     let client = options.bitcoin_rpc_client_mainnet_forbidden("ord wallet inscribe")?;
 
-    let inscription = Inscription::from_file(options.chain, self.file.clone())?;
+    let inscription = Inscription::from_file(options.chain, &self.file)?;
 
     let index = Index::open(&options)?;
     index.update()?;
