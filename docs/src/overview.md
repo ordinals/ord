@@ -13,14 +13,15 @@ name, *ordinals*.
 Technical details are available in [the
 BIP](https://github.com/casey/ord/blob/master/bip.mediawiki).
 
-Ordinals don't require a separate token, another blockchain, or any changes to
+Ordinals do not require a separate token, another blockchain, or any changes to
 Bitcoin. They work right now.
 
 Ordinal numbers have a few different representations:
 
 - *Integer notation*:
   [`2099994106992659`](https://ordinals.com/ordinal/2099994106992659) The
-  ordinal number, assigned according to the order the satoshi was mined.
+  ordinal number, assigned according to the order in which the satoshi was
+  mined.
 
 - *Decimal notation*:
   [`3891094.16797`](https://ordinals.com/ordinal/3891094.16797) The first
@@ -200,9 +201,9 @@ shorter the further into the future the satoshi was mined. They could start
 short and get longer, but then all the good, short names would be trapped in
 the unspendable genesis block.
 
-As isan example, 1905530482684727°'s name is "iaiufjszmoba". The name of the
-last satoshi to be mined is "a". Every combination of 10 characters or less is
-out there, or will be out there, some day.
+As an example, 1905530482684727°'s name is "iaiufjszmoba". The name of the last
+satoshi to be mined is "a". Every combination of 10 characters or less is out
+there, or will be out there, some day.
 
 Exotics
 -------
@@ -221,10 +222,11 @@ Inscriptions
 ------------
 
 Satoshis can be inscribed with arbitrary content, creating Bitcoin-native
-digital artifacts. Inscribing is done by sending the satoshi to be inscrbied in
+digital artifacts. Inscribing is done by sending the satoshi to be inscribed in
 a transaction that reveals the inscription content on-chain. This content is
 then inextricably linked to that satoshi, turning it into an immutable digital
-artifact that can be tracked, transfered, hoarded, bought, and sold.
+artifact that can be tracked, transferred, hoarded, bought, sold, lost, and
+rediscovered.
 
 Archaeology
 -----------
