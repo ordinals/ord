@@ -1,12 +1,41 @@
 use {super::*, transaction_builder::TransactionBuilder};
 
-mod identify;
 mod inscribe;
 mod inscriptions;
 mod receive;
+mod satoshis;
 mod send;
 mod transaction_builder;
 mod utxos;
+
+#[derive(Debug, Parser)]
+pub(crate) enum Wallet {
+  #[clap(about = "List wallet satoshis")]
+  Satoshis(satoshis::Satoshis),
+  #[clap(about = "Create an inscription")]
+  Inscribe(inscribe::Inscribe),
+  #[clap(about = "List wallet inscriptions")]
+  Inscriptions(inscriptions::Inscriptions),
+  #[clap(about = "Generate a receive address")]
+  Receive(receive::Receive),
+  #[clap(about = "Send a satoshi or inscription")]
+  Send(send::Send),
+  #[clap(about = "List wallet UTXOs")]
+  Utxos(utxos::Utxos),
+}
+
+impl Wallet {
+  pub(crate) fn run(self, options: Options) -> Result {
+    match self {
+      Self::Satoshis(satoshis) => satoshis.run(options),
+      Self::Inscribe(inscribe) => inscribe.run(options),
+      Self::Inscriptions(inscriptions) => inscriptions.run(options),
+      Self::Receive(receive) => receive.run(options),
+      Self::Send(send) => send.run(options),
+      Self::Utxos(utxos) => utxos.run(options),
+    }
+  }
+}
 
 fn list_unspent(options: &Options, index: &Index) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
   let client = options.bitcoin_rpc_client()?;
@@ -55,27 +84,4 @@ fn get_change_addresses(options: &Options, n: usize) -> Result<Vec<Address>> {
   }
 
   Ok(addresses)
-}
-
-#[derive(Debug, Parser)]
-pub(crate) enum Wallet {
-  Identify(identify::Identify),
-  Inscribe(inscribe::Inscribe),
-  Inscriptions(inscriptions::Inscriptions),
-  Receive(receive::Receive),
-  Send(send::Send),
-  Utxos(utxos::Utxos),
-}
-
-impl Wallet {
-  pub(crate) fn run(self, options: Options) -> Result {
-    match self {
-      Self::Identify(identify) => identify.run(options),
-      Self::Inscribe(inscribe) => inscribe.run(options),
-      Self::Inscriptions(inscriptions) => inscriptions.run(options),
-      Self::Receive(receive) => receive.run(options),
-      Self::Send(send) => send.run(options),
-      Self::Utxos(utxos) => utxos.run(options),
-    }
-  }
 }
