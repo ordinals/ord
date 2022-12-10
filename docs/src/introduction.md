@@ -17,7 +17,7 @@ collected and traded as curios.
 Individual satoshis can be inscribed with arbitrary content, creating
 Bitcoin-native digital artifacts that can be held in Bitcoin wallets and
 transferred using Bitcoin transactions. Inscriptions are as durable, immutable,
-secure, and decentralized as the Bitcoin blockchain itself.
+secure, and decentralized as Bitcoin itself.
 
 Other, more unusual use-cases are possible: off-chain colored-coins, public key
 infrastructure with key rotation, a decentralized replacement for the DNS. For
