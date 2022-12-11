@@ -309,3 +309,10 @@ influence over the future of Bitcoin development, or DeFi, which might
 centralize mining by introducing opportunities for MEV, digital art and
 collectables on Bitcoin, are unlikely to produce individual entities with
 enough power to corrupt Bitcoin. Art is decentralized.
+
+Ordinal theory and inscriptions do not meaningfully affect Bitcoin's
+fungibility. Bitcoin users can ignore both and be unaffected.
+
+We hope that ordinal theory strengthens and enriches bitcoin, and gives it
+another dimension of appeal and functionality, enabling it more effectively
+serve its primary use case as humanity's decentralized store of value.
