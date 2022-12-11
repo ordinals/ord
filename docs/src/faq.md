@@ -211,17 +211,31 @@ underlying protocol.
 
 ### RGB and Taro assets?
 
-- all content on chain
-- much simpler, easy to audit, easy to reimplement
-- designed from the ground up for digital artifacts
-- designed to be easy to use by artists
-- had to destroy
+RGB and Taro are both second-layer asset protocols built on Bitcoin. Compared
+to inscriptions, they are much more complicated, but much more featureful.
+
+Ordinal theory has been designed from the ground up for digital artifacts,
+whereas the primary use-case of RGB and Taro are fungible tokens, so the user
+experience for inscriptions is likely to be simpler and more polished than the
+user experience for RGB and Taro NFTs.
+
+RGB and Taro both store content off-chain, which requires additional
+infrastructure, and which may be lost. By contrast, inscription content is
+stored on-chain, and cannot be lost.
+
+Ordinal theory, RGB, and Taro are all very early, so this is speculation, but
+ordinal theory's focus may give it the edge in terms of features for digital
+artifacts, including a better content model, and features like globally unique
+symbols.
 
 ### Counterparty assets?
 
-- much simpler, easy to reimplement
-- no token needed other than bitcoin
-- all data on-chain
+Counterparty has its own token, XCP, which is required for some functionality,
+which makes most bitcoiners regard it as an altcoin, and not an extension or
+second layer for bitcoin.
+
+Ordinal theory has been designed from the ground up for digital artifacts,
+whereas Counterparty was primarily designed for financial token issuance.
 
 Ordinals for…
 -------------
