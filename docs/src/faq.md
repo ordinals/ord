@@ -243,25 +243,42 @@ Inscriptions for…
 ### Artists
 
 *Inscriptions are on Bitcoin.* Bitcoin is the digital currency with the highest
-status and greatest chance of long-term survival. If you want to guarantee
+status and greatest chance of long-term survival. If you want to guarantee that
+your art survives into the future, there is no better way to publish it than as
+inscriptions.
 
+*Inscriptions are early!* Inscriptions are still in development, and have not
+yet launched on mainnet. This gives you an opportunity to be an early adopter,
+and explore the medium as it evolves.
 
-Inscriptions are simple and designed from the ground up to support digital artifact,
+*Inscriptions are simple.* Inscriptions do not require writing or understanding
+smart contracts.
 
-- early adoption phase, chance to be early artist
-- simple and clear
-- easy to issue
-- no code or smart contracts required
-- arguable, the absolute highest status chain
-- access to bitcoin liquidity:
-  - largest coin by market cap
-  - new market: bitcoin enthusiasts who like digital artifacts but who don't want to deal with other chains
-- royalties: withhold % of collection, offer perks, etc
+*Inscriptions unlock new liquidity.* Inscriptions are more accessible and
+appealing to bitcoin holders, unlocking an entirely new class of collector.
+
+*Inscriptions are designed for digital artifacts.* Inscriptions are designed
+from the ground up to support NFTs, and feature a better data model, and
+features like globally unique symbols and enhanced provenance.
+
+*Inscriptions do not support on-chain royalties.* This is negative, but only
+depending on how you look at it. On-chain royalties have been a boon for
+creators, but have also created a huge amount of confusion in the Ethereum NFT
+ecosystem. The ecosystem now grapples with this issue, and is is engaged in a
+race to the bottom, towards a royalties-optional future. Inscriptions have no
+support for on-chain royalties, because they are technically infeasible. If you
+choose to create inscriptions, there are many ways you can work around this
+limitation: withhold a portion of your inscriptions for future sale, to benefit
+from future appreciation, or perhaps offer perks for users who respect optional
+royalties.
 
 ### Collectors
 
-- simple and clear
-- no surprises about what you own, how it behaves, or
+*Inscriptions are simple, clear, and have no surprises.* They are always
+immutable and on-chain, with no special due diligence required.
+
+*Inscriptions are on Bitcoin.* You can verify the location and properties of
+inscriptions easily with Bitcoin full node that you control.
 
 ### Bitcoiners
 
