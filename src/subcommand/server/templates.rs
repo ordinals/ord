@@ -25,18 +25,18 @@ mod transaction;
 pub(crate) struct PageHtml {
   chain: Chain,
   content: Box<dyn PageContent>,
-  has_ordinal_index: bool,
+  has_satoshi_index: bool,
 }
 
 impl PageHtml {
   pub(crate) fn new<T: PageContent + 'static>(
     content: T,
     chain: Chain,
-    has_ordinal_index: bool,
+    has_satoshi_index: bool,
   ) -> Self {
     Self {
       content: Box::new(content),
-      has_ordinal_index,
+      has_satoshi_index,
       chain,
     }
   }
@@ -45,11 +45,11 @@ impl PageHtml {
 pub(crate) trait PageContent: Display + 'static {
   fn title(&self) -> String;
 
-  fn page(self, chain: Chain, has_ordinal_index: bool) -> PageHtml
+  fn page(self, chain: Chain, has_satoshi_index: bool) -> PageHtml
   where
     Self: Sized,
   {
-    PageHtml::new(self, chain, has_ordinal_index)
+    PageHtml::new(self, chain, has_satoshi_index)
   }
 }
 
@@ -108,7 +108,7 @@ mod tests {
   }
 
   #[test]
-  fn page_no_ordinal_index() {
+  fn page_no_satoshi_index() {
     struct Foo;
 
     impl Display for Foo {
