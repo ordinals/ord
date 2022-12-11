@@ -247,6 +247,10 @@ status and greatest chance of long-term survival. If you want to guarantee that
 your art survives into the future, there is no better way to publish it than as
 inscriptions.
 
+*Cheaper on-chain storage.* At $20,000 per BTC and the minimum relay fee of 1
+satoshi per vbyte, publishing inscription content costs $50 per 1 million
+bytes.
+
 *Inscriptions are early!* Inscriptions are still in development, and have not
 yet launched on mainnet. This gives you an opportunity to be an early adopter,
 and explore the medium as it evolves.
