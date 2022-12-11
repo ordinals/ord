@@ -237,10 +237,16 @@ second layer for bitcoin.
 Ordinal theory has been designed from the ground up for digital artifacts,
 whereas Counterparty was primarily designed for financial token issuance.
 
-Ordinals for…
--------------
+Inscriptions for…
+-----------------
 
 ### Artists
+
+*Inscriptions are on Bitcoin.* Bitcoin is the digital currency with the highest
+status and greatest chance of long-term survival. If you want to guarantee
+
+
+Inscriptions are simple and designed from the ground up to support digital artifact,
 
 - early adoption phase, chance to be early artist
 - simple and clear
@@ -259,15 +265,47 @@ Ordinals for…
 
 ### Bitcoiners
 
-- Contribute to security budget
-- Help adoption
-- Make people see bitcoin for more
-- Very benign demand for block space
-- Help bitcoin transition to no-fee epoch
+Let me begin this section by saying: the most important thing that the bitcoin
+network does is decentralize money. All other use-cases are secondary,
+including ordinal theory. The developers of ordinal theory understand and
+acknowledge this, and believe that ordinal theory helps, at least in a small
+way, Bitcoin's primary mission.
 
 Unlike many other things in the altcoin space, digital artifacts have merit.
-You might not like them, but many do, and they are ways for artists to get paid
+There are, of course, a great deal of NFTs that are ugly, stupid, and
+fraudulent. However, there are many that are fantastically creative, and
+creating and collecting art has been a part of the human story since its
+inception, and predates even trade and money, which are also ancient
+technologies.
 
-art and collectables predate currency
-major human activity that will always be with us
-decentralized
+Bitcoin provides an amazing platform for creating and collecting digital
+artifacts in a secure, decentralized way, that protects users and artists in
+the same way that it provides an amazing platform for sending and receiving
+value, and for all the same reasons.
+
+Ordinals and inscriptions increase demand for Bitcoin block space, which
+increase Bitcoin's security budget, which is vital for safeguarding Bitcoin's
+transition to a fee-dependent security model, as the block subsidy is halved
+into insignificance.
+
+Inscription content is stored on-chain, and thus the demand for block space for
+use in inscriptions is unlimited. This creates a buyer of last resort for *all*
+Bitcoin block space. This will help support a robust fee market, which ensures
+that Bitcoin remains secure.
+
+Inscriptions also counter the narrative that Bitcoin cannot be extended or used
+for new use-cases. If you follow projects like DLCs, Fedimint, Lightning, Taro,
+and RGB, you know that this narrative is false, but inscriptions provide a
+counter argument which is easy to understand, and which targets a popular and
+proven use case, NFTs, which makes it highly legible.
+
+If inscriptions prove, as the authors hope, to be highly sought after digital
+artifacts with a rich history, they will serve as a powerful hook for Bitcoin
+adoption: come for the fun, rich art, stay for the decentralized digital money.
+
+Inscriptions are an extremely benign source of demand for block space. Unlike,
+for example, stablecoins, which potentially give large stablecoin issuers
+influence over the future of Bitcoin development, or DeFi, which might
+centralize mining by introducing opportunities for MEV, digital art and
+collectables on Bitcoin, are unlikely to produce individual entities with
+enough power to corrupt Bitcoin. Art is decentralized.
