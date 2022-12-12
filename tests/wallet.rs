@@ -622,3 +622,36 @@ fn inscribe_with_optional_satpoint_arg() {
     ".*HELLOWORLD.*",
   );
 }
+
+#[test]
+fn transactions() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Signet, "ord");
+  rpc_server.mine_blocks(1);
+
+  let stdout = CommandBuilder::new("--chain signet wallet inscribe --file degenerate.png")
+    .write("degenerate.png", [1; 520])
+    .rpc_server(&rpc_server)
+    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+    .run();
+
+  let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
+
+  CommandBuilder::new("--chain signet wallet transactions")
+    .rpc_server(&rpc_server)
+    .stdout_regex(format!(".*{}:0\t9735.*", reveal_txid))
+    .run();
+
+  rpc_server.mine_blocks(1);
+
+  let txid = CommandBuilder::new(format!(
+    "--chain signet wallet send {reveal_txid} tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw"
+  ))
+  .rpc_server(&rpc_server)
+  .stdout_regex(r".*")
+  .run();
+
+  CommandBuilder::new("--chain signet wallet transactions")
+    .rpc_server(&rpc_server)
+    .expected_stdout(format!("{}:0\t{}\n", txid.trim(), 9515))
+    .run();
+}

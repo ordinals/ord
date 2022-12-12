@@ -323,11 +323,39 @@ impl Api for Server {
     include_unsafe: Option<bool>,
     query_options: Option<String>,
   ) -> Result<Vec<ListUnspentResultEntry>, jsonrpc_core::Error> {
-    assert_eq!(minconf, None, "minconf param not supported");
-    assert_eq!(maxconf, None, "maxconf param not supported");
     assert_eq!(address, None, "address param not supported");
     assert_eq!(include_unsafe, None, "include_unsafe param not supported");
     assert_eq!(query_options, None, "query_options param not supported");
+    if minconf == Some(0) && maxconf == Some(0) {
+      return Ok(
+        self
+          .state()
+          .mempool()
+          .iter()
+          .flat_map(|tx| {
+            tx.output
+              .iter()
+              .enumerate()
+              .map(|(vout, tx_out)| ListUnspentResultEntry {
+                txid: tx.txid(),
+                vout: vout as u32,
+                address: None,
+                label: None,
+                redeem_script: None,
+                witness_script: None,
+                script_pub_key: Script::new(),
+                amount: Amount::from_sat(tx_out.value),
+                confirmations: 0,
+                spendable: true,
+                solvable: true,
+                descriptor: None,
+                safe: true,
+              })
+          })
+          .collect(),
+      );
+    }
+
     Ok(
       self
         .state()

@@ -6,6 +6,7 @@ mod inscriptions;
 mod receive;
 mod send;
 mod transaction_builder;
+mod transactions;
 mod utxos;
 
 fn list_unspent(options: &Options, index: &Index) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
@@ -64,6 +65,7 @@ pub(crate) enum Wallet {
   Inscriptions(inscriptions::Inscriptions),
   Receive(receive::Receive),
   Send(send::Send),
+  Transactions(transactions::Transactions),
   Utxos(utxos::Utxos),
 }
 
@@ -75,6 +77,7 @@ impl Wallet {
       Self::Inscriptions(inscriptions) => inscriptions.run(options),
       Self::Receive(receive) => receive.run(options),
       Self::Send(send) => send.run(options),
+      Self::Transactions(transactions) => transactions.run(options),
       Self::Utxos(utxos) => utxos.run(options),
     }
   }
