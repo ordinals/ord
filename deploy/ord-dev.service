@@ -12,7 +12,7 @@ ExecStart=/usr/local/bin/ord-dev \
   --bitcoin-data-dir /var/lib/bitcoind \
   --chain ${CHAIN} \
   --data-dir /var/lib/ord-dev \
-  --index-ordinals \
+  --index-satoshis \
   server \
   --http-port 8080
 Group=ord

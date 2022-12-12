@@ -2,7 +2,7 @@ Ordinal Hunting
 ===============
 
 *This guide is out of date. Since it was written, the `ord` binary was changed
-to only build the full ordinal index when the `--ordinal-index` flag is
+to only build the full satoshi index when the `--index-satoshis` flag is
 supplied. Additionally, `ord` now has a built-in wallet that wraps a Bitcoin
 Core wallet. See `ord wallet --help`.*
 
@@ -67,7 +67,7 @@ wallet is named `foo`:
 2. Display any rare ordinals wallet `foo`'s UTXOs:
 
    ```sh
-   ord wallet identify
+   ord wallet satoshis
    ```
 
 ### Searching for Rare Ordinals in a Non-Bitcoin Core Wallet
@@ -130,7 +130,7 @@ your wallet of funds.
 7. Display your wallet's rare ordinals:
 
    ```sh
-   ord wallet identify
+   ord wallet satoshis
    ```
 
 ### Searching for Rare Ordinals in a Wallet that Exports Multi-path Descriptors
@@ -231,7 +231,7 @@ those multiple descriptors into Bitcoin Core.
 7. Display your wallet's rare ordinals:
 
    ```sh
-   ord wallet identify
+   ord wallet satoshis
    ```
 
 ### Exporting Descriptors

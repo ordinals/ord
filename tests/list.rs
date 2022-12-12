@@ -4,7 +4,7 @@ use super::*;
 fn output_found() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   CommandBuilder::new(
-    "--index-ordinals list 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
+    "--index-satoshis list 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
   )
   .rpc_server(&rpc_server)
   .expected_stdout("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0\t0\t5000000000\tmythic\tnvtdijuwxlp\n")
@@ -15,7 +15,7 @@ fn output_found() {
 fn output_not_found() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   CommandBuilder::new(
-    "--index-ordinals list 0000000000000000000000000000000000000000000000000000000000000000:0",
+    "--index-satoshis list 0000000000000000000000000000000000000000000000000000000000000000:0",
   )
   .rpc_server(&rpc_server)
   .expected_exit_code(1)
@@ -24,11 +24,11 @@ fn output_not_found() {
 }
 
 #[test]
-fn no_ordinal_index() {
+fn no_satoshi_index() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   CommandBuilder::new("list 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0")
     .rpc_server(&rpc_server)
-    .expected_stderr("error: list requires index created with `--index-ordinals` flag\n")
+    .expected_stderr("error: list requires index created with `--index-satoshis` flag\n")
     .expected_exit_code(1)
     .run();
 }

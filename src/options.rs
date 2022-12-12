@@ -17,8 +17,8 @@ pub(crate) struct Options {
   pub(crate) height_limit: Option<u64>,
   #[clap(long, help = "Use index at <INDEX>.")]
   pub(crate) index: Option<PathBuf>,
-  #[clap(long, help = "Index ordinal ranges.")]
-  pub(crate) index_ordinals: bool,
+  #[clap(long, help = "Index current location of all satoshis.")]
+  pub(crate) index_satoshis: bool,
   #[clap(long, help = "Connect to Bitcoin Core RPC at <RPC_URL>.")]
   rpc_url: Option<String>,
 }
