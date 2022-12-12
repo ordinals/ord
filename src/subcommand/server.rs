@@ -150,14 +150,15 @@ impl Server {
 
       let router = Router::new()
         .route("/", get(Self::home))
+        .route("/block-count", get(Self::block_count))
         .route("/block/:query", get(Self::block))
         .route("/bounties", get(Self::bounties))
         .route("/clock", get(Self::clock))
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
-        .route("/block-count", get(Self::block_count))
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:txid", get(Self::inscription))
+        .route("/install.sh", get(Self::install_script))
         .route("/ordinal/:ordinal", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
         .route("/range/:start/:end", get(Self::range))
@@ -414,6 +415,10 @@ impl Server {
         index.has_satoshi_index().map_err(ServerError::Internal)?,
       ),
     )
+  }
+
+  async fn install_script() -> Redirect {
+    Redirect::to("https://raw.githubusercontent.com/casey/ord/master/install.sh")
   }
 
   async fn block(
@@ -938,6 +943,14 @@ mod tests {
     assert_eq!(
       Server::acme_domains(&vec!["example.com".into()]).unwrap(),
       &["example.com"]
+    );
+  }
+
+  #[test]
+  fn install_sh_redirects_to_github() {
+    TestServer::new().assert_redirect(
+      "/install.sh",
+      "https://raw.githubusercontent.com/casey/ord/master/install.sh",
     );
   }
 
