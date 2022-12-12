@@ -286,7 +286,7 @@ inscriptions easily with Bitcoin full node that you control.
 
 ### Bitcoiners
 
-Let me begin this section by saying: the most important thing that the bitcoin
+Let me begin this section by saying: the most important thing that the Bitcoin
 network does is decentralize money. All other use-cases are secondary,
 including ordinal theory. The developers of ordinal theory understand and
 acknowledge this, and believe that ordinal theory helps, at least in a small
