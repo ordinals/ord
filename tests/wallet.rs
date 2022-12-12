@@ -13,11 +13,11 @@ fn reveal_txid_from_inscribe_stdout(stdout: &str) -> Txid {
 }
 
 #[test]
-fn identify() {
+fn satoshis() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   let second_coinbase = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  CommandBuilder::new("--index-ordinals wallet identify")
+  CommandBuilder::new("--index-ordinals wallet satoshis")
     .rpc_server(&rpc_server)
     .expected_stdout(format!(
       "{}\t{}\t0\tuncommon\n",
@@ -28,11 +28,11 @@ fn identify() {
 }
 
 #[test]
-fn identify_from_tsv_success() {
+fn satoshis_from_tsv_success() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   let second_coinbase = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  CommandBuilder::new("--index-ordinals wallet identify --ordinals foo.tsv")
+  CommandBuilder::new("--index-ordinals wallet satoshis --tsv foo.tsv")
     .write("foo.tsv", "nvtcsezkbtg")
     .rpc_server(&rpc_server)
     .expected_stdout(format!(
@@ -43,9 +43,9 @@ fn identify_from_tsv_success() {
 }
 
 #[test]
-fn identify_from_tsv_parse_error() {
+fn satoshis_from_tsv_parse_error() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  CommandBuilder::new("wallet identify --ordinals foo.tsv")
+  CommandBuilder::new("wallet satoshis --tsv foo.tsv")
     .write("foo.tsv", "===")
     .rpc_server(&rpc_server)
     .expected_exit_code(1)
@@ -56,9 +56,9 @@ fn identify_from_tsv_parse_error() {
 }
 
 #[test]
-fn identify_from_tsv_file_not_found() {
+fn satoshis_from_tsv_file_not_found() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  CommandBuilder::new("wallet identify --ordinals foo.tsv")
+  CommandBuilder::new("wallet satoshis --tsv foo.tsv")
     .rpc_server(&rpc_server)
     .expected_exit_code(1)
     .stderr_regex("error: I/O error reading `.*`\nbecause: .*\n")
