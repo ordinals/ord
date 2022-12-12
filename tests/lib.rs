@@ -33,6 +33,18 @@ macro_rules! assert_regex_match {
   };
 }
 
+fn reveal_txid_from_inscribe_stdout(stdout: &str) -> Txid {
+  stdout
+    .lines()
+    .nth(1)
+    .unwrap()
+    .split('\t')
+    .nth(1)
+    .unwrap()
+    .parse()
+    .unwrap()
+}
+
 mod command_builder;
 mod epochs;
 mod expected;

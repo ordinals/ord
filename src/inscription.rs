@@ -83,6 +83,10 @@ impl Inscription {
       _ => None,
     }
   }
+
+  pub(crate) fn content_html(&self) -> Trusted<ContentHtml> {
+    Trusted(ContentHtml(self.content()))
+  }
 }
 
 #[derive(Debug, PartialEq)]

@@ -47,12 +47,11 @@ fn inscription_page() {
   .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
   .run();
 
-  let reveal_tx = stdout.split("reveal\t").collect::<Vec<&str>>()[1].trim();
+  let reveal_tx = reveal_txid_from_inscribe_stdout(&stdout);
 
   rpc_server.mine_blocks(1);
 
-  let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
-  ord_server.assert_response_regex(
+  TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     &format!("/inscription/{}", reveal_tx),
     &format!(
       ".*<h1>Inscription</h1>
@@ -63,19 +62,31 @@ fn inscription_page() {
 HELLOWORLD.*",
     ),
   );
+}
 
-  let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
-  ord_server.assert_response_regex(
-    &format!("/inscription/{}", reveal_tx),
-    &format!(
-      ".*<h1>Inscription</h1>
-<dl>
-  <dt>satpoint</dt>
-  <dd>{reveal_tx}:0:0</dd>
-</dl>
+#[test]
+fn inscription_appears_on_reveal_transaction_page() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+
+  let stdout = CommandBuilder::new(format!(
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file hello.txt"
+  ))
+  .write("hello.txt", "HELLOWORLD")
+  .rpc_server(&rpc_server)
+  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+  .run();
+
+  let reveal_tx = reveal_txid_from_inscribe_stdout(&stdout);
+
+  rpc_server.mine_blocks(1);
+
+  TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
+    &format!("/tx/{}", reveal_tx),
+    ".*<h1>Transaction .*</h1>.*
+<h2>Inscription</h2>
 HELLOWORLD.*",
-    ),
-  )
+  );
 }
 
 #[test]
@@ -91,7 +102,7 @@ fn inscription_page_after_send() {
   .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
   .run();
 
-  let reveal_txid = stdout.split("reveal\t").collect::<Vec<&str>>()[1].trim();
+  let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
 
   rpc_server.mine_blocks(1);
 

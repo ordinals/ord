@@ -31,7 +31,7 @@ use {
 };
 
 mod deserialize_from_str;
-mod templates;
+pub(crate) mod templates;
 
 enum BlockQuery {
   Height(u64),
@@ -475,6 +475,15 @@ impl Server {
     Extension(chain): Extension<Chain>,
     Path(txid): Path<Txid>,
   ) -> ServerResult<PageHtml> {
+    let inscription = index
+      .get_inscription_by_inscription_id(txid)
+      .map_err(|err| {
+        ServerError::Internal(anyhow!(
+          "failed to retrieve inscription from txid {txid} from index: {err}"
+        ))
+      })?
+      .map(|(inscription, _satpoint)| inscription);
+
     Ok(
       TransactionHtml::new(
         index
@@ -485,6 +494,7 @@ impl Server {
             ))
           })?
           .ok_or_else(|| ServerError::NotFound(format!("transaction {txid} unknown")))?,
+        inscription,
         chain,
       )
       .page(
