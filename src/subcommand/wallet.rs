@@ -21,6 +21,8 @@ pub(crate) enum Wallet {
   Receive(receive::Receive),
   #[clap(about = "Send a satoshi or inscription")]
   Send(send::Send),
+  #[clap(about = "See pending transactions made to wallet")]
+  Transactions(transactions::Transactions),
   #[clap(about = "List wallet UTXOs")]
   Utxos(utxos::Utxos),
 }
@@ -33,6 +35,7 @@ impl Wallet {
       Self::Inscriptions(inscriptions) => inscriptions.run(options),
       Self::Receive(receive) => receive.run(options),
       Self::Send(send) => send.run(options),
+      Self::Transactions(transactions) => transactions.run(options),
       Self::Utxos(utxos) => utxos.run(options),
     }
   }
