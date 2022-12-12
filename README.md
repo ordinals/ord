@@ -1,7 +1,7 @@
 `ord`
 =====
 
-`ord` is an ordinal index, block explorer, and command-line ordinal wallet.
+`ord` is an index, block explorer, and command-line wallet.
 
 Ordinals are serial numbers for satoshis, assigned in the order in which they
 are mined, and preserved across transactions.
@@ -139,15 +139,6 @@ so be prepared to delete and re-sync the index.
 ```
 $ RUST_LOG=info cargo run server
 ```
-
-Index
------
-
-The mainnet ordinal index is currently 50 GiB, and will increase in size in the
-future, both as the Bitcoin blockchain grows, and as additional tables are
-added to the index.
-
-The signet ordinal index is much smaller, clocking in at 1.3 GiB.
 
 Reorgs
 ------

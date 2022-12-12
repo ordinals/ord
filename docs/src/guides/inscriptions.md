@@ -4,7 +4,7 @@ Ordinal Inscription Guide
 Individual satoshis can be inscribed with arbitrary content, creating
 Bitcoin-native digital artifacts that can be held in a Bitcoin wallet and
 transferred using Bitcoin transactions. Inscriptions are as durable, immutable,
-secure, and decentralized as the Bitcoin blockchain itself.
+secure, and decentralized as Bitcoin itself.
 
 Working with inscriptions requires a Bitcoin full node, to give you a view of
 the current state of the Bitcoin blockchain, and a wallet that can make

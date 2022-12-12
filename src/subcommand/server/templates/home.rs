@@ -51,7 +51,7 @@ mod tests {
         )
       ],)
       .to_string(),
-      "<h1>Explore digital artifacts on Bitcoin</h1>.*<h2>Status</h2>
+      "<h1>Bitcoin-native NFTs</h1>.*<h2>Status</h2>
 <dl>
   <dt>cycle</dt><dd>1</dd>
   <dt>epoch</dt><dd>6</dd>
