@@ -110,6 +110,12 @@ The `ord` utility is written in Rust and can be built from
 [source](https://github.com/casey/ord). Pre-built binaries are available on the
 [releases page](https://github.com/casey/ord/releases).
 
+You can install the latest pre-built binary from the command line with:
+
+```sh
+curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash -s
+```
+
 Once `ord` is installed, you should be able to run `ord --version` on the
 command line.
 
