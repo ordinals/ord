@@ -25,7 +25,7 @@ use {
     ordinal::Ordinal,
     rarity::Rarity,
     sat_point::SatPoint,
-    subcommand::Subcommand,
+    subcommand::{server::templates::ContentHtml, Subcommand},
     tally::Tally,
   },
   anyhow::{anyhow, bail, Context, Error},

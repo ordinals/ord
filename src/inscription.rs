@@ -84,10 +84,8 @@ impl Inscription {
     }
   }
 
-  pub(crate) fn content_html(&self) -> Trusted<crate::subcommand::server::templates::ContentHtml> {
-    Trusted(crate::subcommand::server::templates::ContentHtml(
-      self.content(),
-    ))
+  pub(crate) fn content_html(&self) -> Trusted<ContentHtml> {
+    Trusted(ContentHtml(self.content()))
   }
 }
 
