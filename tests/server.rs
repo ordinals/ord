@@ -47,7 +47,7 @@ fn inscription_page() {
   .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
   .run();
 
-  let reveal_tx = stdout.split("reveal\t").collect::<Vec<&str>>()[1].trim();
+  let reveal_tx = reveal_txid_from_inscribe_stdout(&stdout);
 
   rpc_server.mine_blocks(1);
 
@@ -77,7 +77,7 @@ fn inscription_appears_on_reveal_transaction_page() {
   .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
   .run();
 
-  let reveal_tx = stdout.split("reveal\t").collect::<Vec<&str>>()[1].trim();
+  let reveal_tx = reveal_txid_from_inscribe_stdout(&stdout);
 
   rpc_server.mine_blocks(1);
 
@@ -102,7 +102,7 @@ fn inscription_page_after_send() {
   .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
   .run();
 
-  let reveal_txid = stdout.split("reveal\t").collect::<Vec<&str>>()[1].trim();
+  let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
 
   rpc_server.mine_blocks(1);
 
