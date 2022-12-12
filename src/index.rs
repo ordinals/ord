@@ -210,7 +210,7 @@ impl Index {
         tx.open_table(STATISTIC_TO_COUNT)?;
         tx.open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?;
 
-        if options.index_ordinals {
+        if options.index_satoshis {
           tx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
         }
 
@@ -238,7 +238,7 @@ impl Index {
     })
   }
 
-  pub(crate) fn has_ordinal_index(&self) -> Result<bool> {
+  pub(crate) fn has_satoshi_index(&self) -> Result<bool> {
     match self.begin_read()?.0.open_table(OUTPOINT_TO_ORDINAL_RANGES) {
       Ok(_) => Ok(true),
       Err(redb::Error::TableDoesNotExist(_)) => Ok(false),
@@ -246,9 +246,9 @@ impl Index {
     }
   }
 
-  fn require_ordinal_index(&self, feature: &str) -> Result {
-    if !self.has_ordinal_index()? {
-      bail!("{feature} requires index created with `--index-ordinals` flag")
+  fn require_satoshi_index(&self, feature: &str) -> Result {
+    if !self.has_satoshi_index()? {
+      bail!("{feature} requires index created with `--index-satoshis` flag")
     }
 
     Ok(())
@@ -385,7 +385,7 @@ impl Index {
   }
 
   pub(crate) fn rare_ordinal_satpoints(&self) -> Result<Option<Vec<(Ordinal, SatPoint)>>> {
-    if self.has_ordinal_index()? {
+    if self.has_satoshi_index()? {
       let mut result = Vec::new();
 
       let rtx = self.database.begin_read()?;
@@ -484,7 +484,7 @@ impl Index {
   }
 
   pub(crate) fn find(&self, ordinal: u64) -> Result<Option<SatPoint>> {
-    self.require_ordinal_index("find")?;
+    self.require_satoshi_index("find")?;
 
     let rtx = self.begin_read()?;
 
@@ -524,7 +524,7 @@ impl Index {
   }
 
   pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<List>> {
-    self.require_ordinal_index("list")?;
+    self.require_satoshi_index("list")?;
 
     let outpoint_encoded = encode_outpoint(outpoint);
 
@@ -662,7 +662,7 @@ mod tests {
 
   #[test]
   fn list_first_coinbase_transaction() {
-    let context = Context::with_args("--index-ordinals");
+    let context = Context::with_args("--index-satoshis");
     assert_eq!(
       context
         .index
@@ -679,7 +679,7 @@ mod tests {
 
   #[test]
   fn list_second_coinbase_transaction() {
-    let context = Context::with_args("--index-ordinals");
+    let context = Context::with_args("--index-satoshis");
     let txid = context.rpc_server.mine_blocks(1)[0].txdata[0].txid();
     context.index.update().unwrap();
     assert_eq!(
@@ -690,7 +690,7 @@ mod tests {
 
   #[test]
   fn list_split_ranges_are_tracked_correctly() {
-    let context = Context::with_args("--index-ordinals");
+    let context = Context::with_args("--index-satoshis");
 
     context.rpc_server.mine_blocks(1);
     let split_coinbase_output = TransactionTemplate {
@@ -716,7 +716,7 @@ mod tests {
 
   #[test]
   fn list_merge_ranges_are_tracked_correctly() {
-    let context = Context::with_args("--index-ordinals");
+    let context = Context::with_args("--index-satoshis");
 
     context.rpc_server.mine_blocks(2);
     let merge_coinbase_outputs = TransactionTemplate {
@@ -740,7 +740,7 @@ mod tests {
 
   #[test]
   fn list_fee_paying_transaction_range() {
-    let context = Context::with_args("--index-ordinals");
+    let context = Context::with_args("--index-satoshis");
 
     context.rpc_server.mine_blocks(1);
     let fee_paying_tx = TransactionTemplate {
@@ -774,7 +774,7 @@ mod tests {
 
   #[test]
   fn list_two_fee_paying_transaction_range() {
-    let context = Context::with_args("--index-ordinals");
+    let context = Context::with_args("--index-satoshis");
 
     context.rpc_server.mine_blocks(2);
     let first_fee_paying_tx = TransactionTemplate {
@@ -809,7 +809,7 @@ mod tests {
 
   #[test]
   fn list_null_output() {
-    let context = Context::with_args("--index-ordinals");
+    let context = Context::with_args("--index-satoshis");
 
     context.rpc_server.mine_blocks(1);
     let no_value_output = TransactionTemplate {
@@ -829,7 +829,7 @@ mod tests {
 
   #[test]
   fn list_null_input() {
-    let context = Context::with_args("--index-ordinals");
+    let context = Context::with_args("--index-satoshis");
 
     context.rpc_server.mine_blocks(1);
     let no_value_output = TransactionTemplate {
@@ -857,7 +857,7 @@ mod tests {
 
   #[test]
   fn list_spent_output() {
-    let context = Context::with_args("--index-ordinals");
+    let context = Context::with_args("--index-satoshis");
     context.rpc_server.mine_blocks(1);
     context.rpc_server.broadcast_tx(TransactionTemplate {
       input_slots: &[(1, 0, 0)],
@@ -875,7 +875,7 @@ mod tests {
 
   #[test]
   fn list_unknown_output() {
-    let context = Context::with_args("--index-ordinals");
+    let context = Context::with_args("--index-satoshis");
 
     assert_eq!(
       context
@@ -892,7 +892,7 @@ mod tests {
 
   #[test]
   fn find_first_ordinal() {
-    let context = Context::with_args("--index-ordinals");
+    let context = Context::with_args("--index-satoshis");
     assert_eq!(
       context.index.find(0).unwrap().unwrap(),
       SatPoint {
@@ -906,7 +906,7 @@ mod tests {
 
   #[test]
   fn find_second_ordinal() {
-    let context = Context::with_args("--index-ordinals");
+    let context = Context::with_args("--index-satoshis");
     assert_eq!(
       context.index.find(1).unwrap().unwrap(),
       SatPoint {
@@ -920,7 +920,7 @@ mod tests {
 
   #[test]
   fn find_first_ordinal_of_second_block() {
-    let context = Context::with_args("--index-ordinals");
+    let context = Context::with_args("--index-satoshis");
     context.rpc_server.mine_blocks(1);
     context.index.update().unwrap();
     assert_eq!(
@@ -936,13 +936,13 @@ mod tests {
 
   #[test]
   fn find_unmined_ordinal() {
-    let context = Context::with_args("--index-ordinals");
+    let context = Context::with_args("--index-satoshis");
     assert_eq!(context.index.find(50 * COIN_VALUE).unwrap(), None);
   }
 
   #[test]
   fn find_first_satoshi_spent_in_second_block() {
-    let context = Context::with_args("--index-ordinals");
+    let context = Context::with_args("--index-satoshis");
     context.rpc_server.mine_blocks(1);
     let spend_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
       input_slots: &[(1, 0, 0)],
