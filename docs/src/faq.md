@@ -185,7 +185,7 @@ payment cannot be enforced on-chain without complex and invasive restrictions.
 The Ethereum NFT ecosystem is currently grappling with confusion around
 royalties, and is collectively coming to grips with the reality that on-chain
 royalties, which were messaged to artists as an advantage of NFTs, are not
-possible, while platforms race to the bottom and remove. royalty support.
+possible, while platforms race to the bottom and remove royalty support.
 
 Inscriptions avoid this situation entirely by making no false promises of
 supporting royalties on-chain, thus avoiding the confusion, chaos, and
