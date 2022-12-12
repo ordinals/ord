@@ -96,8 +96,9 @@ bitcoin-cli -signet createwallet ord
 Loading the Bitcoin Core Wallet
 -------------------------------
 
-Bitcoin Core wallets must be loaded before the can be used with `ord`. To load
-your wallet, run:
+Bitcoin Core wallets must be loaded before they can be used with `ord`. Wallets
+are loaded automatically after being created, so you do not need to load your
+wallet if you just created it. Otherwise, run:
 
 ```
 bitcoin-cli -signet loadwallet ord
@@ -109,6 +110,12 @@ Installing `ord`
 The `ord` utility is written in Rust and can be built from
 [source](https://github.com/casey/ord). Pre-built binaries are available on the
 [releases page](https://github.com/casey/ord/releases).
+
+You can install the latest pre-built binary from the command line with:
+
+```sh
+curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash -s
+```
 
 Once `ord` is installed, you should be able to run `ord --version` on the
 command line.
