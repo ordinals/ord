@@ -331,6 +331,10 @@ centralize mining by introducing opportunities for MEV, digital art and
 collectables on Bitcoin, are unlikely to produce individual entities with
 enough power to corrupt Bitcoin. Art is decentralized.
 
+Inscription users and service providers are incentivized to run Bitcoin full
+nodes, to publish and track inscriptions, and thus throw their economic weight
+behind the honest chain.
+
 Ordinal theory and inscriptions do not meaningfully affect Bitcoin's
 fungibility. Bitcoin users can ignore both and be unaffected.
 
