@@ -14,17 +14,27 @@ mod wallet;
 
 #[derive(Debug, Parser)]
 pub(crate) enum Subcommand {
+  #[clap(about = "List the first satoshis of each reward epoch")]
   Epochs,
+  #[clap(about = "Find a satoshi's current location")]
   Find(find::Find),
+  #[clap(about = "Update the index")]
   Index,
+  #[clap(about = "Display index statistics")]
   Info(info::Info),
+  #[clap(about = "List the satoshis in an output")]
   List(list::List),
+  #[clap(about = "Parse a satoshi from ordinal notation")]
   Parse(parse::Parse),
+  #[clap(about = "Display information about a block's subsidy")]
   Subsidy(subsidy::Subsidy),
+  #[clap(about = "Run the explorer server")]
   Server(server::Server),
+  #[clap(about = "Display Bitcoin supply information")]
   Supply,
+  #[clap(about = "Display satoshi traits")]
   Traits(traits::Traits),
-  #[clap(subcommand)]
+  #[clap(subcommand, about = "Wallet commands")]
   Wallet(wallet::Wallet),
 }
 
