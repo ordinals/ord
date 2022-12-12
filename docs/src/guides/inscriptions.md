@@ -96,8 +96,9 @@ bitcoin-cli -signet createwallet ord
 Loading the Bitcoin Core Wallet
 -------------------------------
 
-Bitcoin Core wallets must be loaded before the can be used with `ord`. To load
-your wallet, run:
+Bitcoin Core wallets must be loaded before they can be used with `ord`. Wallets
+are loaded automatically after being created, so you do not need to load your
+wallet if you just created it. Otherwise, run:
 
 ```
 bitcoin-cli -signet loadwallet ord
