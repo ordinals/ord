@@ -34,7 +34,7 @@ pub(crate) enum Subcommand {
   Supply,
   #[clap(about = "Display satoshi traits")]
   Traits(traits::Traits),
-  #[clap(subcommand, about = "Ordinal wallet commands")]
+  #[clap(subcommand, about = "Wallet subcommands")]
   Wallet(wallet::Wallet),
 }
 
