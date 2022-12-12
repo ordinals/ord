@@ -25,7 +25,7 @@ use {
     ordinal::Ordinal,
     rarity::Rarity,
     sat_point::SatPoint,
-    subcommand::Subcommand,
+    subcommand::{server::templates::ContentHtml, Subcommand},
     tally::Tally,
   },
   anyhow::{anyhow, bail, Context, Error},
@@ -41,6 +41,7 @@ use {
   chrono::{NaiveDateTime, TimeZone, Utc},
   clap::Parser,
   derive_more::{Display, FromStr},
+  html_escaper::{Escape, Trusted},
   regex::Regex,
   serde::{Deserialize, Serialize},
   std::{

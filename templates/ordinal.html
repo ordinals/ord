@@ -13,17 +13,7 @@
   <dt>time</dt><dd>{{ self.blocktime }}</dd>
 %% if let Some(inscription) = &self.inscription {
   <dt>inscription</dt>
-%% match inscription.content() {
-%% Some(Content::Text(text)) => {
-  <dd>{{ text }}</dd>
-%% },
-%% Some(Content::Png(png)) => {
-  <dd><img src="data:image/png;base64,{{ base64::encode(png) }}"></dd>
-%% },
-%% None => {
-  <dd>UNKNOWN</d>
-%% }
-%% }
+  <dd>{{ inscription.content_html() }}</dd>
 %% }
 </dl>
 %% if self.ordinal.n() > 0 {
