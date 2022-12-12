@@ -322,7 +322,7 @@ impl Server {
       }
       .page(
         chain,
-        index.has_ordinal_index().map_err(ServerError::Internal)?,
+        index.has_satoshi_index().map_err(ServerError::Internal)?,
       ),
     )
   }
@@ -344,7 +344,7 @@ impl Server {
     Ok(
       OutputHtml {
         outpoint,
-        list: if index.has_ordinal_index().map_err(ServerError::Internal)? {
+        list: if index.has_satoshi_index().map_err(ServerError::Internal)? {
           Some(
             index
               .list(outpoint)
@@ -359,7 +359,7 @@ impl Server {
       }
       .page(
         chain,
-        index.has_ordinal_index().map_err(ServerError::Internal)?,
+        index.has_satoshi_index().map_err(ServerError::Internal)?,
       ),
     )
   }
@@ -379,7 +379,7 @@ impl Server {
       )),
       Ordering::Less => Ok(RangeHtml { start, end }.page(
         chain,
-        index.has_ordinal_index().map_err(ServerError::Internal)?,
+        index.has_satoshi_index().map_err(ServerError::Internal)?,
       )),
     }
   }
@@ -393,7 +393,7 @@ impl Server {
         })?
         .ok_or_else(|| {
           ServerError::NotFound(
-            "tracking rare ordinals requires index created with `--index-ordinals` flag".into(),
+            "tracking rare ordinals requires index created with `--index-satoshis` flag".into(),
           )
         })?,
     ))
@@ -411,7 +411,7 @@ impl Server {
       )
       .page(
         chain,
-        index.has_ordinal_index().map_err(ServerError::Internal)?,
+        index.has_satoshi_index().map_err(ServerError::Internal)?,
       ),
     )
   }
@@ -460,7 +460,7 @@ impl Server {
     Ok(
       BlockHtml::new(block, Height(height), Self::index_height(&index)?).page(
         chain,
-        index.has_ordinal_index().map_err(ServerError::Internal)?,
+        index.has_satoshi_index().map_err(ServerError::Internal)?,
       ),
     )
   }
@@ -484,7 +484,7 @@ impl Server {
       )
       .page(
         chain,
-        index.has_ordinal_index().map_err(ServerError::Internal)?,
+        index.has_satoshi_index().map_err(ServerError::Internal)?,
       ),
     )
   }
@@ -605,7 +605,7 @@ impl Server {
 
     Ok(InputHtml { path, input }.page(
       chain,
-      index.has_ordinal_index().map_err(ServerError::Internal)?,
+      index.has_satoshi_index().map_err(ServerError::Internal)?,
     ))
   }
 
@@ -639,7 +639,7 @@ impl Server {
       }
       .page(
         chain,
-        index.has_ordinal_index().map_err(ServerError::Internal)?,
+        index.has_satoshi_index().map_err(ServerError::Internal)?,
       ),
     )
   }
@@ -1116,8 +1116,8 @@ mod tests {
   }
 
   #[test]
-  fn output_with_ordinal_index() {
-    TestServer::new_with_args(&["--index-ordinals"]).assert_response_regex(
+  fn output_with_satoshi_index() {
+    TestServer::new_with_args(&["--index-satoshis"]).assert_response_regex(
     "/output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
     StatusCode::OK,
     ".*<title>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</title>.*<h1>Output <span class=monospace>4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</span></h1>
@@ -1133,7 +1133,7 @@ mod tests {
   }
 
   #[test]
-  fn output_without_ordinal_index() {
+  fn output_without_satoshi_index() {
     TestServer::new().assert_response_regex(
     "/output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
     StatusCode::OK,
@@ -1365,7 +1365,7 @@ next.*",
 
   #[test]
   fn rare_with_index() {
-    TestServer::new_with_args(&["--index-ordinals"]).assert_response(
+    TestServer::new_with_args(&["--index-satoshis"]).assert_response(
       "/rare.txt",
       StatusCode::OK,
       "ordinal\tsatpoint
@@ -1375,17 +1375,17 @@ next.*",
   }
 
   #[test]
-  fn rare_without_index() {
+  fn rare_without_satoshi_index() {
     TestServer::new_with_args(&[]).assert_response(
       "/rare.txt",
       StatusCode::NOT_FOUND,
-      "tracking rare ordinals requires index created with `--index-ordinals` flag",
+      "tracking rare ordinals requires index created with `--index-satoshis` flag",
     );
   }
 
   #[test]
-  fn show_rare_txt_in_header_with_ordinal_index() {
-    TestServer::new_with_args(&["--index-ordinals"]).assert_response_regex(
+  fn show_rare_txt_in_header_with_satoshi_index() {
+    TestServer::new_with_args(&["--index-satoshis"]).assert_response_regex(
       "/",
       StatusCode::OK,
       ".*
@@ -1396,7 +1396,7 @@ next.*",
   }
 
   #[test]
-  fn dont_show_rare_txt_in_header_without_ordinal_index() {
+  fn dont_show_rare_txt_in_header_without_satoshi_index() {
     TestServer::new().assert_response_regex(
       "/",
       StatusCode::OK,
@@ -1478,7 +1478,7 @@ next.*",
 
   #[test]
   fn outputs_traversed_are_tracked() {
-    let server = TestServer::new_with_args(&["--index-ordinals"]);
+    let server = TestServer::new_with_args(&["--index-satoshis"]);
 
     assert_eq!(
       server
@@ -1514,7 +1514,7 @@ next.*",
 
   #[test]
   fn coinbase_ordinal_ranges_are_tracked() {
-    let server = TestServer::new_with_args(&["--index-ordinals"]);
+    let server = TestServer::new_with_args(&["--index-satoshis"]);
 
     assert_eq!(
       server
@@ -1549,7 +1549,7 @@ next.*",
 
   #[test]
   fn split_ordinal_ranges_are_tracked() {
-    let server = TestServer::new_with_args(&["--index-ordinals"]);
+    let server = TestServer::new_with_args(&["--index-satoshis"]);
 
     assert_eq!(
       server
@@ -1579,7 +1579,7 @@ next.*",
 
   #[test]
   fn fee_ordinal_ranges_are_tracked() {
-    let server = TestServer::new_with_args(&["--index-ordinals"]);
+    let server = TestServer::new_with_args(&["--index-satoshis"]);
 
     assert_eq!(
       server

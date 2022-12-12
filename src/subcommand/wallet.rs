@@ -48,7 +48,7 @@ fn list_unspent(options: &Options, index: &Index) -> Result<Vec<(OutPoint, Vec<(
       match index.list(outpoint)? {
         Some(List::Unspent(ordinal_ranges)) => Ok((outpoint, ordinal_ranges)),
         Some(List::Spent) => bail!("output {outpoint} in wallet but is spent according to index"),
-        None => bail!("ordinals index has not seen {outpoint}"),
+        None => bail!("index has not seen {outpoint}"),
       }
     })
     .collect()

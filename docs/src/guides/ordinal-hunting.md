@@ -2,7 +2,7 @@ Ordinal Hunting
 ===============
 
 *This guide is out of date. Since it was written, the `ord` binary was changed
-to only build the full ordinal index when the `--ordinal-index` flag is
+to only build the full satoshi index when the `--index-satoshis` flag is
 supplied. Additionally, `ord` now has a built-in wallet that wraps a Bitcoin
 Core wallet. See `ord wallet --help`.*
 

@@ -24,7 +24,7 @@ impl From<Block> for BlockData {
 pub struct Updater {
   cache: HashMap<OutPointArray, Vec<u8>>,
   height: u64,
-  index_ordinals: bool,
+  index_satoshis: bool,
   ordinal_ranges_since_flush: u64,
   outputs_cached: u64,
   outputs_inserted_since_flush: u64,
@@ -56,7 +56,7 @@ impl Updater {
     let mut updater = Self {
       cache: HashMap::new(),
       height,
-      index_ordinals: index.has_ordinal_index()?,
+      index_satoshis: index.has_satoshi_index()?,
       ordinal_ranges_since_flush: 0,
       outputs_cached: 0,
       outputs_inserted_since_flush: 0,
@@ -90,7 +90,7 @@ impl Updater {
       Some(progress_bar)
     };
 
-    let rx = Self::fetch_blocks_from(index, self.height, self.index_ordinals)?;
+    let rx = Self::fetch_blocks_from(index, self.height, self.index_satoshis)?;
 
     let mut uncommitted = 0;
     loop {
@@ -157,7 +157,7 @@ impl Updater {
   fn fetch_blocks_from(
     index: &Index,
     mut height: u64,
-    index_ordinals: bool,
+    index_satoshis: bool,
   ) -> Result<mpsc::Receiver<BlockData>> {
     let (tx, rx) = mpsc::sync_channel(32);
 
@@ -166,7 +166,7 @@ impl Updater {
     let client =
       Client::new(&index.rpc_url, index.auth.clone()).context("failed to connect to RPC URL")?;
 
-    let with_transactions = index_ordinals || index.chain != Chain::Mainnet;
+    let with_transactions = index_satoshis || index.chain != Chain::Mainnet;
 
     thread::spawn(move || loop {
       if let Some(height_limit) = height_limit {
@@ -272,7 +272,7 @@ impl Updater {
     let mut inscription_id_to_satpoint = wtx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
     let mut satpoint_to_inscription_id = wtx.open_table(SATPOINT_TO_INSCRIPTION_ID)?;
 
-    if self.index_ordinals {
+    if self.index_satoshis {
       let mut ordinal_to_inscription_id = wtx.open_table(ORDINAL_TO_INSCRIPTION_ID)?;
       let mut ordinal_to_satpoint = wtx.open_table(ORDINAL_TO_SATPOINT)?;
       let mut outpoint_to_ordinal_ranges = wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
@@ -504,7 +504,7 @@ impl Updater {
       self.outputs_cached
     );
 
-    if self.index_ordinals {
+    if self.index_satoshis {
       log::info!(
         "Flushing {} entries ({:.1}% resulting from {} insertions) from memory to database",
         self.cache.len(),
