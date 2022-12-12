@@ -81,7 +81,6 @@ while test $# -gt 0; do
 done
 
 # Dependencies
-need basename
 need curl
 need install
 need mkdir
