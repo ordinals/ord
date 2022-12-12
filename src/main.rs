@@ -41,6 +41,7 @@ use {
   chrono::{NaiveDateTime, TimeZone, Utc},
   clap::Parser,
   derive_more::{Display, FromStr},
+  html_escaper::{Escape, Trusted},
   regex::Regex,
   serde::{Deserialize, Serialize},
   std::{

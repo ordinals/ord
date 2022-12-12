@@ -31,7 +31,7 @@ use {
 };
 
 mod deserialize_from_str;
-mod templates;
+pub(crate) mod templates;
 
 enum BlockQuery {
   Height(u64),
