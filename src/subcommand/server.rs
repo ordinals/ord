@@ -169,7 +169,7 @@ impl Server {
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
         .layer(Extension(index))
-        .layer(Extension(options.chain))
+        .layer(Extension(options.chain()))
         .layer(
           CorsLayer::new()
             .allow_methods([http::Method::GET])

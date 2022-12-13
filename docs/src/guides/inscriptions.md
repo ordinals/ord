@@ -126,7 +126,7 @@ Receiving Satoshis
 Inscriptions are made on individual satoshis, using normal Bitcoin transactions
 that pay fees in satoshis, so your wallet will need some sats.
 
-Get a new address from your `ord` wallet by running `ord --chain signet wallet
+Get a new address from your `ord` wallet by running `ord --signet wallet
 receive`
 
 Use a signet faucet to send satoshis to the address you generated. Two faucets
@@ -135,7 +135,7 @@ you might try are [signet.bc-2.jp](https://signet.bc-2.jp/) and
 
 You can see pending transactions with `ord --chain signet walet transactions`.
 Once the faucet transaction confirms, you should be able to see the
-transactions outputs with `ord --chain signet wallet utxos`.
+transactions outputs with `ord --signet wallet utxos`.
 
 Creating Inscription Content
 ----------------------------
@@ -156,7 +156,7 @@ Creating Inscriptions
 To create an inscription with the contents of `FILE`, run:
 
 ```
-ord --chain signet wallet inscribe --file FILE
+ord --signet wallet inscribe --file FILE
 ```
 
 Ord will output two transactions IDs, one for the commit transaction, and one
@@ -175,7 +175,7 @@ Once the reveal transaction has been mined, the inscription ID should be
 printed when you run:
 
 ```
-ord --chain signet wallet inscriptions
+ord --signet wallet inscriptions
 ```
 
 And when you visit [the signet ordinals explorer](https://signet.ordinals.com/)
@@ -188,13 +188,13 @@ Sending Inscriptions
 Ask the recipient to generate a new address by running:
 
 ```
-ord --chain signet wallet receive
+ord --signet wallet receive
 ```
 
 Send the inscription by running:
 
 ```
-ord --chain signet wallet send INSCRIPTION_ID ADDRESS
+ord --signet wallet send INSCRIPTION_ID ADDRESS
 ```
 
 See the pending transaction with:
@@ -206,7 +206,7 @@ Once the send transaction confirms, the recipient can confirm receipt by
 running:
 
 ```
-ord --chain signet wallet inscriptions
+ord --signet wallet inscriptions
 ```
 
 Receiving Inscriptions
@@ -215,13 +215,13 @@ Receiving Inscriptions
 Generate a new receive address using:
 
 ```
-ord --chain signet wallet receive
+ord --signet wallet receive
 ```
 
 The sender can transfer the inscription to your address using:
 
 ```
-ord --chain signet wallet send INSCRIPTION_ID ADDRESS
+ord --signet wallet send INSCRIPTION_ID ADDRESS
 ```
 
 See the pending transaction with:
@@ -232,5 +232,5 @@ ord --chain signet wallet transactions
 Once the send transaction confirms, you can can confirm receipt by running:
 
 ```
-ord --chain signet wallet inscriptions
+ord --signet wallet inscriptions
 ```
