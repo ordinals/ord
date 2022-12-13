@@ -328,6 +328,7 @@ impl Api for Server {
     assert_eq!(address, None, "address param not supported");
     assert_eq!(include_unsafe, None, "include_unsafe param not supported");
     assert_eq!(query_options, None, "query_options param not supported");
+
     Ok(
       self
         .state()
@@ -392,5 +393,48 @@ impl Api for Server {
     let address = Address::p2tr(&secp256k1, public_key, None, self.network);
 
     Ok(address)
+  }
+
+  fn list_transactions(
+    &self,
+    _label: Option<String>,
+    _count: Option<usize>,
+    _skip: Option<usize>,
+    _include_watchonly: Option<bool>,
+  ) -> Result<Vec<ListTransactionResult>, jsonrpc_core::Error> {
+    let state = self.state();
+    Ok(
+      state
+        .transactions
+        .iter()
+        .map(|(txid, tx)| (*txid, tx))
+        .chain(state.mempool.iter().map(|tx| (tx.txid(), tx)))
+        .map(|(txid, tx)| ListTransactionResult {
+          info: WalletTxInfo {
+            confirmations: state.get_confirmations(tx),
+            blockhash: None,
+            blockindex: None,
+            blocktime: None,
+            blockheight: None,
+            txid,
+            time: 0,
+            timereceived: 0,
+            bip125_replaceable: Bip125Replaceable::Unknown,
+            wallet_conflicts: Vec::new(),
+          },
+          detail: GetTransactionResultDetail {
+            address: None,
+            category: GetTransactionResultDetailCategory::Immature,
+            amount: SignedAmount::from_sat(0),
+            label: None,
+            vout: 0,
+            fee: Some(SignedAmount::from_sat(0)),
+            abandoned: None,
+          },
+          trusted: None,
+          comment: None,
+        })
+        .collect(),
+    )
   }
 }

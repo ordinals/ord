@@ -41,7 +41,7 @@ rust-embed = "6.4.0"
 rustls = "0.20.6"
 rustls-acme = { version = "0.5.0", features = ["axum"] }
 serde = { version = "1.0.137", features = ["derive"] }
-serde_json = { version = "1.0.81", features = ["arbitrary_precision"] }
+serde_json = { version = "1.0.81" }
 sys-info = "0.9.1"
 tokio = { version = "1.17.0", features = ["rt-multi-thread"] }
 tokio-stream = "0.1.9"
@@ -66,3 +66,7 @@ pulldown-cmark = "0.9.2"
 [patch.crates-io.jsonrpc]
 git = "https://github.com/casey/rust-jsonrpc"
 rev = "1826d5e7ec02d9dd3fbca94bfa3b4215870d193f"
+
+[patch.crates-io.ord-bitcoincore-rpc-json]
+git = "https://github.com/casey/rust-bitcoincore-rpc"
+rev = "768725a2adf3b0a8b982d200d59080d5e69df7c9"

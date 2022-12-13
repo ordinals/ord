@@ -133,6 +133,7 @@ Use a signet faucet to send satoshis to the address you generated. Two faucets
 you might try are [signet.bc-2.jp](https://signet.bc-2.jp/) and
 [alt.signetfaucet.com](https://alt.signetfaucet.com/).
 
+You can see pending transactions with `ord --chain signet walet transactions`.
 Once the faucet transaction confirms, you should be able to see the
 transactions outputs with `ord --chain signet wallet utxos`.
 
@@ -196,6 +197,11 @@ Send the inscription by running:
 ord --chain signet wallet send INSCRIPTION_ID ADDRESS
 ```
 
+See the pending transaction with:
+```
+ord --chain signet wallet transactions
+```
+
 Once the send transaction confirms, the recipient can confirm receipt by
 running:
 
@@ -216,6 +222,11 @@ The sender can transfer the inscription to your address using:
 
 ```
 ord --chain signet wallet send INSCRIPTION_ID ADDRESS
+```
+
+See the pending transaction with:
+```
+ord --chain signet wallet transactions
 ```
 
 Once the send transaction confirms, you can can confirm receipt by running:
