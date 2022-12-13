@@ -97,4 +97,13 @@ pub trait Api {
     label: Option<String>,
     address_type: Option<()>,
   ) -> Result<bitcoin::Address, jsonrpc_core::Error>;
+
+  #[rpc(name = "listtransactions")]
+  fn list_transactions(
+    &self,
+    label: Option<String>,
+    count: Option<usize>,
+    skip: Option<usize>,
+    include_watchonly: Option<bool>,
+  ) -> Result<Vec<ListTransactionResult>, jsonrpc_core::Error>;
 }
