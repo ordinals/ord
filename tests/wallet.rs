@@ -614,7 +614,6 @@ fn inscribe_with_optional_satpoint_arg() {
 #[test]
 fn create() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
-  rpc_server.mine_blocks(1);
 
   assert!(!rpc_server.wallets().contains("ord"));
 
