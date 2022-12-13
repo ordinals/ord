@@ -93,9 +93,9 @@ impl Inscription {
   pub(crate) fn content(&self) -> Option<Content> {
     let content = self.content.as_ref()?;
 
-    match str::from_utf8(self.content_type.as_ref()?).ok()? {
-      "text/plain;charset=utf-8" => Some(Content::Text(str::from_utf8(content).ok()?)),
-      "image/png" => Some(Content::Png(content)),
+    match self.content_type.as_ref()?.as_slice() {
+      b"text/plain;charset=utf-8" => Some(Content::Text(str::from_utf8(content).ok()?)),
+      b"image/png" => Some(Content::Png(content)),
       _ => None,
     }
   }
