@@ -18,11 +18,19 @@ const CONTENT_TYPE_TAG: &[u8] = &[1];
 
 #[derive(Debug, PartialEq)]
 pub(crate) struct Inscription {
-  pub(crate) content: Vec<u8>,
-  pub(crate) content_type: Vec<u8>,
+  content: Option<Vec<u8>>,
+  content_type: Option<Vec<u8>>,
 }
 
 impl Inscription {
+  #[cfg(test)]
+  pub(crate) fn new(content_type: Option<Vec<u8>>, content: Option<Vec<u8>>) -> Self {
+    Self {
+      content_type,
+      content,
+    }
+  }
+
   pub(crate) fn from_transaction(tx: &Transaction) -> Option<Inscription> {
     InscriptionParser::parse(&tx.input.get(0)?.witness).ok()
   }
@@ -55,8 +63,8 @@ impl Inscription {
     };
 
     Ok(Self {
-      content,
-      content_type: content_type.into(),
+      content: Some(content),
+      content_type: Some(content_type.into()),
     })
   }
 
@@ -64,22 +72,30 @@ impl Inscription {
     builder = builder
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
-      .push_slice(PROTOCOL_ID)
-      .push_slice(CONTENT_TYPE_TAG)
-      .push_slice(&self.content_type)
-      .push_slice(CONTENT_TAG);
+      .push_slice(PROTOCOL_ID);
 
-    for chunk in self.content.chunks(520) {
-      builder = builder.push_slice(chunk);
+    if let Some(content_type) = &self.content_type {
+      builder = builder
+        .push_slice(CONTENT_TYPE_TAG)
+        .push_slice(content_type);
+    }
+
+    if let Some(content) = &self.content {
+      builder = builder.push_slice(CONTENT_TAG);
+      for chunk in content.chunks(520) {
+        builder = builder.push_slice(chunk);
+      }
     }
 
     builder.push_opcode(opcodes::all::OP_ENDIF).into_script()
   }
 
   pub(crate) fn content(&self) -> Option<Content> {
-    match self.content_type.as_slice() {
-      b"text/plain;charset=utf-8" => Some(Content::Text(str::from_utf8(&self.content).ok()?)),
-      b"image/png" => Some(Content::Png(&self.content)),
+    let content = self.content.as_ref()?;
+
+    match self.content_type.as_ref()?.as_slice() {
+      b"text/plain;charset=utf-8" => Some(Content::Text(str::from_utf8(content).ok()?)),
+      b"image/png" => Some(Content::Png(content)),
       _ => None,
     }
   }
@@ -164,24 +180,32 @@ impl<'a> InscriptionParser<'a> {
         return Err(InscriptionError::NoInscription);
       }
 
-      if !self.accept(Instruction::PushBytes(CONTENT_TYPE_TAG))? {
-        return Err(InscriptionError::InvalidInscription);
-      }
+      let mut fields = BTreeMap::new();
 
-      let content_type = self.expect_push()?;
-
-      if !self.accept(Instruction::PushBytes(CONTENT_TAG))? {
-        return Err(InscriptionError::InvalidInscription);
-      }
-
-      let mut content = Vec::new();
-      while !self.accept(Instruction::Op(opcodes::all::OP_ENDIF))? {
-        content.extend_from_slice(self.expect_push()?);
+      loop {
+        match self.advance()? {
+          Instruction::PushBytes(CONTENT_TAG) => {
+            let mut content = Vec::new();
+            while !self.accept(Instruction::Op(opcodes::all::OP_ENDIF))? {
+              content.extend_from_slice(self.expect_push()?);
+            }
+            fields.insert(CONTENT_TAG, content);
+            break;
+          }
+          Instruction::PushBytes(tag) => {
+            if fields.contains_key(tag) {
+              return Err(InscriptionError::InvalidInscription);
+            }
+            fields.insert(tag, self.expect_push()?.to_vec());
+          }
+          Instruction::Op(opcodes::all::OP_ENDIF) => break,
+          _ => return Err(InscriptionError::InvalidInscription),
+        }
       }
 
       return Ok(Some(Inscription {
-        content,
-        content_type: content_type.into(),
+        content: fields.remove(CONTENT_TAG),
+        content_type: fields.remove(CONTENT_TYPE_TAG),
       }));
     }
 
@@ -270,6 +294,22 @@ mod tests {
   }
 
   #[test]
+  fn duplicate_field() {
+    assert_eq!(
+      InscriptionParser::parse(&container(&[
+        b"ord",
+        &[1],
+        b"text/plain;charset=utf-8",
+        &[1],
+        b"text/plain;charset=utf-8",
+        &[],
+        b"ord",
+      ])),
+      Err(InscriptionError::InvalidInscription),
+    );
+  }
+
+  #[test]
   fn valid() {
     assert_eq!(
       InscriptionParser::parse(&container(&[
@@ -280,6 +320,44 @@ mod tests {
         b"ord",
       ])),
       Ok(inscription("text/plain;charset=utf-8", "ord")),
+    );
+  }
+
+  #[test]
+  fn valid_with_unknown_tag() {
+    assert_eq!(
+      InscriptionParser::parse(&container(&[
+        b"ord",
+        &[1],
+        b"text/plain;charset=utf-8",
+        &[2],
+        b"bar",
+        &[],
+        b"ord",
+      ])),
+      Ok(inscription("text/plain;charset=utf-8", "ord")),
+    );
+  }
+
+  #[test]
+  fn no_content_tag() {
+    assert_eq!(
+      InscriptionParser::parse(&container(&[b"ord", &[1], b"text/plain;charset=utf-8"])),
+      Ok(Inscription {
+        content_type: Some(b"text/plain;charset=utf-8".to_vec()),
+        content: None,
+      }),
+    );
+  }
+
+  #[test]
+  fn no_content_type() {
+    assert_eq!(
+      InscriptionParser::parse(&container(&[b"ord", &[], b"foo"])),
+      Ok(Inscription {
+        content_type: None,
+        content: Some(b"foo".to_vec()),
+      }),
     );
   }
 
@@ -306,6 +384,24 @@ mod tests {
         &[1],
         b"text/plain;charset=utf-8",
         &[]
+      ])),
+      Ok(inscription("text/plain;charset=utf-8", "")),
+    );
+  }
+
+  #[test]
+  fn valid_content_in_multiple_empty_pushes() {
+    assert_eq!(
+      InscriptionParser::parse(&container(&[
+        b"ord",
+        &[1],
+        b"text/plain;charset=utf-8",
+        &[],
+        &[],
+        &[],
+        &[],
+        &[],
+        &[],
       ])),
       Ok(inscription("text/plain;charset=utf-8", "")),
     );
@@ -410,7 +506,7 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
-      Err(InscriptionError::InvalidInscription)
+      Err(InscriptionError::NoInscription)
     );
   }
 
@@ -431,7 +527,7 @@ mod tests {
   }
 
   #[test]
-  fn unrecognized_content() {
+  fn junk() {
     assert_eq!(
       InscriptionParser::parse(&container(&[
         b"ord",
@@ -442,7 +538,10 @@ mod tests {
         b"ord",
         b"ord"
       ])),
-      Err(InscriptionError::InvalidInscription),
+      Ok(Inscription {
+        content_type: None,
+        content: None,
+      }),
     );
   }
 
@@ -464,30 +563,6 @@ mod tests {
       Inscription::from_transaction(&tx),
       Some(inscription("text/plain;charset=utf-8", "ord")),
     );
-  }
-
-  #[test]
-  fn extract_from_zero_value_transaction() {
-    let script = script::Builder::new()
-      .push_opcode(opcodes::OP_FALSE)
-      .push_opcode(opcodes::all::OP_IF)
-      .push_slice("ord".as_bytes())
-      .push_opcode(opcodes::all::OP_ENDIF)
-      .into_script();
-
-    let tx = Transaction {
-      version: 0,
-      lock_time: bitcoin::PackedLockTime(0),
-      input: vec![TxIn {
-        previous_output: OutPoint::null(),
-        script_sig: Script::new(),
-        sequence: Sequence(0),
-        witness: Witness::from_vec(vec![script.into_bytes(), vec![]]),
-      }],
-      output: Vec::new(),
-    };
-
-    assert_eq!(Inscription::from_transaction(&tx), None);
   }
 
   #[test]
@@ -592,6 +667,29 @@ mod tests {
     assert_eq!(
       InscriptionParser::parse(&witness).unwrap(),
       inscription("foo", [1; 1040]),
+    );
+  }
+
+  #[test]
+  fn round_trip_with_no_fields() {
+    let mut witness = Witness::new();
+
+    witness.push(
+      &Inscription {
+        content_type: None,
+        content: None,
+      }
+      .append_reveal_script(script::Builder::new()),
+    );
+
+    witness.push([]);
+
+    assert_eq!(
+      InscriptionParser::parse(&witness).unwrap(),
+      Inscription {
+        content_type: None,
+        content: None,
+      }
     );
   }
 }
