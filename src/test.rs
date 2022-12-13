@@ -69,7 +69,7 @@ pub(crate) fn tx_out(value: u64, address: Address) -> TxOut {
 
 pub(crate) fn inscription(content_type: &str, content: impl AsRef<[u8]>) -> Inscription {
   Inscription {
-    content_type: content_type.into(),
-    content: content.as_ref().into(),
+    content_type: Some(content_type.into()),
+    content: Some(content.as_ref().into()),
   }
 }
