@@ -86,8 +86,8 @@ impl Inscription {
     let content = self.content.as_ref()?;
 
     match self.content_type.as_ref()?.as_slice() {
-      b"text/plain;charset=utf-8" => Some(Content::Text(str::from_utf8(&content).ok()?)),
-      b"image/png" => Some(Content::Png(&content)),
+      b"text/plain;charset=utf-8" => Some(Content::Text(str::from_utf8(content).ok()?)),
+      b"image/png" => Some(Content::Png(content)),
       _ => None,
     }
   }
