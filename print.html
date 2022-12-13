@@ -829,7 +829,8 @@ that pay fees in satoshis, so your wallet will need some sats.</p>
 <p>Use a signet faucet to send satoshis to the address you generated. Two faucets
 you might try are <a href="https://signet.bc-2.jp/">signet.bc-2.jp</a> and
 <a href="https://alt.signetfaucet.com/">alt.signetfaucet.com</a>.</p>
-<p>Once the faucet transaction confirms, you should be able to see the
+<p>You can see pending transactions with <code>ord --chain signet walet transactions</code>.
+Once the faucet transaction confirms, you should be able to see the
 transactions outputs with <code>ord --chain signet wallet utxos</code>.</p>
 <h2 id="creating-inscription-content"><a class="header" href="#creating-inscription-content">Creating Inscription Content</a></h2>
 <p>Create a <code>.png</code> or <code>.txt</code> file smaller than 1024 bytes to inscribe.</p>
@@ -865,6 +866,9 @@ at <code>signet.ordinals.com/inscription/INSCRIPTION_ID</code>.</p>
 <p>Send the inscription by running:</p>
 <pre><code>ord --chain signet wallet send INSCRIPTION_ID ADDRESS
 </code></pre>
+<p>See the pending transaction with:</p>
+<pre><code>ord --chain signet wallet transactions
+</code></pre>
 <p>Once the send transaction confirms, the recipient can confirm receipt by
 running:</p>
 <pre><code>ord --chain signet wallet inscriptions
@@ -875,6 +879,9 @@ running:</p>
 </code></pre>
 <p>The sender can transfer the inscription to your address using:</p>
 <pre><code>ord --chain signet wallet send INSCRIPTION_ID ADDRESS
+</code></pre>
+<p>See the pending transaction with:</p>
+<pre><code>ord --chain signet wallet transactions
 </code></pre>
 <p>Once the send transaction confirms, you can can confirm receipt by running:</p>
 <pre><code>ord --chain signet wallet inscriptions
