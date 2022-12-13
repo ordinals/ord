@@ -218,6 +218,21 @@ impl Api for Server {
     Ok(hex::encode(serialize(&tx)))
   }
 
+  fn create_wallet(
+    &self,
+    name: String,
+    _disable_private_keys: Option<bool>,
+    _blank: Option<bool>,
+    _passphrase: Option<String>,
+    _avoid_reuse: Option<bool>,
+  ) -> Result<LoadWalletResult, jsonrpc_core::Error> {
+    self.state().wallets.insert(name.clone());
+    Ok(LoadWalletResult {
+      name,
+      warning: None,
+    })
+  }
+
   fn sign_raw_transaction_with_wallet(
     &self,
     tx: String,

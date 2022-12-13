@@ -1,5 +1,6 @@
 use {super::*, transaction_builder::TransactionBuilder};
 
+mod create;
 mod inscribe;
 mod inscriptions;
 mod receive;
@@ -11,14 +12,16 @@ mod utxos;
 
 #[derive(Debug, Parser)]
 pub(crate) enum Wallet {
-  #[clap(about = "List wallet satoshis")]
-  Satoshis(satoshis::Satoshis),
+  #[clap(about = "Create a new wallet")]
+  Create(create::Create),
   #[clap(about = "Create an inscription")]
   Inscribe(inscribe::Inscribe),
   #[clap(about = "List wallet inscriptions")]
   Inscriptions(inscriptions::Inscriptions),
   #[clap(about = "Generate a receive address")]
   Receive(receive::Receive),
+  #[clap(about = "List wallet satoshis")]
+  Satoshis(satoshis::Satoshis),
   #[clap(about = "Send a satoshi or inscription")]
   Send(send::Send),
   #[clap(about = "See wallet transactions")]
@@ -30,10 +33,11 @@ pub(crate) enum Wallet {
 impl Wallet {
   pub(crate) fn run(self, options: Options) -> Result {
     match self {
-      Self::Satoshis(satoshis) => satoshis.run(options),
+      Self::Create(create) => create.run(options),
       Self::Inscribe(inscribe) => inscribe.run(options),
       Self::Inscriptions(inscriptions) => inscriptions.run(options),
       Self::Receive(receive) => receive.run(options),
+      Self::Satoshis(satoshis) => satoshis.run(options),
       Self::Send(send) => send.run(options),
       Self::Transactions(transactions) => transactions.run(options),
       Self::Utxos(utxos) => utxos.run(options),

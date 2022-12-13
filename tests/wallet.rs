@@ -612,6 +612,19 @@ fn inscribe_with_optional_satpoint_arg() {
 }
 
 #[test]
+fn create() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+
+  assert!(!rpc_server.wallets().contains("ord"));
+
+  CommandBuilder::new("--chain regtest wallet create")
+    .rpc_server(&rpc_server)
+    .run();
+
+  assert!(rpc_server.wallets().contains("ord"));
+}
+
+#[test]
 fn transactions() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Signet, "ord");
   rpc_server.mine_blocks(1);

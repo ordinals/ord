@@ -15,14 +15,14 @@ use {
     GetBlockHeaderResult, GetBlockchainInfoResult, GetDescriptorInfoResult, GetNetworkInfoResult,
     GetRawTransactionResult, GetTransactionResult, GetTransactionResultDetail,
     GetTransactionResultDetailCategory, GetWalletInfoResult, ListTransactionResult,
-    ListUnspentResultEntry, SignRawTransactionResult, WalletTxInfo,
+    ListUnspentResultEntry, LoadWalletResult, SignRawTransactionResult, WalletTxInfo,
   },
   jsonrpc_core::{IoHandler, Value},
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
   server::Server,
   state::State,
   std::{
-    collections::{BTreeMap, HashMap},
+    collections::{BTreeMap, BTreeSet, HashMap},
     sync::{Arc, Mutex, MutexGuard},
     thread,
     time::Duration,
@@ -92,6 +92,10 @@ impl Handle {
 
   fn state(&self) -> MutexGuard<State> {
     self.state.lock().unwrap()
+  }
+
+  pub fn wallets(&self) -> BTreeSet<String> {
+    self.state().wallets.clone()
   }
 
   pub fn mine_blocks(&self, num: u64) -> Vec<Block> {
