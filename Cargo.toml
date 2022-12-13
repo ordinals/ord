@@ -69,3 +69,4 @@ rev = "1826d5e7ec02d9dd3fbca94bfa3b4215870d193f"
 
 [patch.crates-io.ord-bitcoincore-rpc-json]
 git = "https://github.com/casey/rust-bitcoincore-rpc"
+rev = "768725a2adf3b0a8b982d200d59080d5e69df7c9"
