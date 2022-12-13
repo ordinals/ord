@@ -18,11 +18,19 @@ const CONTENT_TYPE_TAG: &[u8] = &[1];
 
 #[derive(Debug, PartialEq)]
 pub(crate) struct Inscription {
-  pub(crate) content: Option<Vec<u8>>,
-  pub(crate) content_type: Option<Vec<u8>>,
+  content: Option<Vec<u8>>,
+  content_type: Option<Vec<u8>>,
 }
 
 impl Inscription {
+  #[cfg(test)]
+  pub(crate) fn new(content_type: Option<Vec<u8>>, content: Option<Vec<u8>>) -> Self {
+    Self {
+      content_type,
+      content,
+    }
+  }
+
   pub(crate) fn from_transaction(tx: &Transaction) -> Option<Inscription> {
     InscriptionParser::parse(&tx.input.get(0)?.witness).ok()
   }
@@ -85,9 +93,9 @@ impl Inscription {
   pub(crate) fn content(&self) -> Option<Content> {
     let content = self.content.as_ref()?;
 
-    match self.content_type.as_ref()?.as_slice() {
-      b"text/plain;charset=utf-8" => Some(Content::Text(str::from_utf8(content).ok()?)),
-      b"image/png" => Some(Content::Png(content)),
+    match str::from_utf8(self.content_type.as_ref()?).ok()? {
+      "text/plain;charset=utf-8" => Some(Content::Text(str::from_utf8(content).ok()?)),
+      "image/png" => Some(Content::Png(content)),
       _ => None,
     }
   }
@@ -659,6 +667,29 @@ mod tests {
     assert_eq!(
       InscriptionParser::parse(&witness).unwrap(),
       inscription("foo", [1; 1040]),
+    );
+  }
+
+  #[test]
+  fn round_trip_with_no_fields() {
+    let mut witness = Witness::new();
+
+    witness.push(
+      &Inscription {
+        content_type: None,
+        content: None,
+      }
+      .append_reveal_script(script::Builder::new()),
+    );
+
+    witness.push([]);
+
+    assert_eq!(
+      InscriptionParser::parse(&witness).unwrap(),
+      Inscription {
+        content_type: None,
+        content: None,
+      }
     );
   }
 }
