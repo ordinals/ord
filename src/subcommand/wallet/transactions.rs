@@ -5,9 +5,6 @@ pub(crate) struct Transactions {}
 
 impl Transactions {
   pub(crate) fn run(self, options: Options) -> Result {
-    let index = Index::open(&options)?;
-    index.update()?;
-
     let txs = options
       .bitcoin_rpc_client()?
       .list_transactions(None, None, None, None)?

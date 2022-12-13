@@ -2053,7 +2053,7 @@ dependencies = [
 [[package]]
 name = "ord-bitcoincore-rpc-json"
 version = "0.16.3"
-source = "git+https://github.com/casey/rust-bitcoincore-rpc#768725a2adf3b0a8b982d200d59080d5e69df7c9"
+source = "git+https://github.com/casey/rust-bitcoincore-rpc?rev=768725a2adf3b0a8b982d200d59080d5e69df7c9#768725a2adf3b0a8b982d200d59080d5e69df7c9"
 dependencies = [
  "bitcoin",
  "serde",
