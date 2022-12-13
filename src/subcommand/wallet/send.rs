@@ -28,11 +28,11 @@ impl Send {
   pub(crate) fn run(self, options: Options) -> Result {
     let client = options.bitcoin_rpc_client_for_wallet_command("ord wallet send")?;
 
-    if !self.address.is_valid_for_network(options.chain.network()) {
+    if !self.address.is_valid_for_network(options.chain().network()) {
       bail!(
         "Address `{}` is not valid for {}",
         self.address,
-        options.chain
+        options.chain()
       );
     }
 

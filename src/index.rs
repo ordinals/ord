@@ -157,7 +157,7 @@ impl Index {
       // The default max database size is 10 MiB for Regtest and 1 TiB
       // for all other networks. A larger database takes longer to
       // initialize, so unit tests should use the regtest network.
-      assert_eq!(options.chain, Chain::Regtest);
+      assert_eq!(options.chain(), Chain::Regtest);
     }
 
     log::info!(
@@ -222,12 +222,12 @@ impl Index {
     };
 
     let genesis_block_coinbase_transaction =
-      options.chain.genesis_block().coinbase().unwrap().clone();
+      options.chain().genesis_block().coinbase().unwrap().clone();
 
     Ok(Self {
       genesis_block_coinbase_txid: genesis_block_coinbase_transaction.txid(),
       auth,
-      chain: options.chain,
+      chain: options.chain(),
       client,
       database,
       database_path,

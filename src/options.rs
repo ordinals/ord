@@ -4,11 +4,16 @@ use {
 };
 
 #[derive(Debug, Parser)]
+#[clap(group(
+  ArgGroup::new("chains")
+    .required(false)
+    .args(&["chain", "signet", "regtest", "testnet"]),
+))]
 pub(crate) struct Options {
   #[clap(long, help = "Load Bitcoin Core data dir from <BITCOIN_DATA_DIR>.")]
   bitcoin_data_dir: Option<PathBuf>,
-  #[clap(long, arg_enum, default_value = "mainnet", help = "Index <CHAIN>.")]
-  pub(crate) chain: Chain,
+  #[clap(long, arg_enum, default_value = "mainnet", help = "Use <CHAIN>.")]
+  chain: Chain,
   #[clap(long, help = "Load Bitcoin Core RPC cookie file from <COOKIE_FILE>.")]
   cookie_file: Option<PathBuf>,
   #[clap(long, help = "Store index in <DATA_DIR>.")]
@@ -19,16 +24,34 @@ pub(crate) struct Options {
   pub(crate) index: Option<PathBuf>,
   #[clap(long, help = "Index current location of all satoshis.")]
   pub(crate) index_satoshis: bool,
+  #[clap(long, help = "Use regtest.")]
+  regtest: bool,
   #[clap(long, help = "Connect to Bitcoin Core RPC at <RPC_URL>.")]
   rpc_url: Option<String>,
+  #[clap(long, help = "Use signet.")]
+  signet: bool,
+  #[clap(long, help = "Use testnet.")]
+  testnet: bool,
 }
 
 impl Options {
+  pub(crate) fn chain(&self) -> Chain {
+    if self.signet {
+      Chain::Signet
+    } else if self.regtest {
+      Chain::Regtest
+    } else if self.testnet {
+      Chain::Testnet
+    } else {
+      self.chain
+    }
+  }
+
   pub(crate) fn rpc_url(&self) -> String {
     self
       .rpc_url
       .as_ref()
-      .unwrap_or(&format!("127.0.0.1:{}", self.chain.default_rpc_port(),))
+      .unwrap_or(&format!("127.0.0.1:{}", self.chain().default_rpc_port(),))
       .into()
   }
 
@@ -49,7 +72,7 @@ impl Options {
         .join("Bitcoin")
     };
 
-    let path = self.chain.join_with_data_dir(&path);
+    let path = self.chain().join_with_data_dir(&path);
 
     Ok(path.join(".cookie"))
   }
@@ -62,7 +85,7 @@ impl Options {
         .join("ord"),
     };
 
-    Ok(self.chain.join_with_data_dir(&base))
+    Ok(self.chain().join_with_data_dir(&base))
   }
 
   pub(crate) fn bitcoin_rpc_client(&self) -> Result<Client> {
@@ -84,7 +107,7 @@ impl Options {
       other => bail!("Bitcoin RPC server on unknown chain: {other}"),
     };
 
-    let ord_chain = self.chain;
+    let ord_chain = self.chain();
 
     if rpc_chain != ord_chain {
       bail!("Bitcoin RPC server is on {rpc_chain} but ord is on {ord_chain}");
@@ -96,7 +119,7 @@ impl Options {
   pub(crate) fn bitcoin_rpc_client_mainnet_forbidden(&self, command: &str) -> Result<Client> {
     let client = self.bitcoin_rpc_client()?;
 
-    if self.chain == Chain::Mainnet {
+    if self.chain() == Chain::Mainnet {
       bail!("`{command}` is unstable and not yet supported on mainnet.");
     }
     Ok(client)
@@ -105,7 +128,7 @@ impl Options {
   pub(crate) fn bitcoin_rpc_client_for_wallet_command(&self, command: &str) -> Result<Client> {
     let client = self.bitcoin_rpc_client()?;
 
-    if self.chain == Chain::Mainnet {
+    if self.chain() == Chain::Mainnet {
       let wallet_info = client.get_wallet_info()?;
 
       if !(wallet_info.wallet_name == "ord" || wallet_info.wallet_name.starts_with("ord-")) {
@@ -369,6 +392,36 @@ mod tests {
     assert_eq!(
       options.bitcoin_rpc_client().unwrap_err().to_string(),
       "Bitcoin RPC server is on testnet but ord is on mainnet"
+    );
+  }
+
+  #[test]
+  fn chain_flags() {
+    Arguments::try_parse_from(["ord", "--signet", "--chain", "signet", "index"]).unwrap_err();
+    assert_eq!(
+      Arguments::try_parse_from(["ord", "--signet", "index"])
+        .unwrap()
+        .options
+        .chain(),
+      Chain::Signet
+    );
+
+    Arguments::try_parse_from(["ord", "--regtest", "--chain", "signet", "index"]).unwrap_err();
+    assert_eq!(
+      Arguments::try_parse_from(["ord", "--regtest", "index"])
+        .unwrap()
+        .options
+        .chain(),
+      Chain::Regtest
+    );
+
+    Arguments::try_parse_from(["ord", "--testnet", "--chain", "signet", "index"]).unwrap_err();
+    assert_eq!(
+      Arguments::try_parse_from(["ord", "--testnet", "index"])
+        .unwrap()
+        .options
+        .chain(),
+      Chain::Testnet
     );
   }
 }

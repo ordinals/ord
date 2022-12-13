@@ -39,7 +39,7 @@ use {
   bitcoincore_rpc::RpcApi,
   chain::Chain,
   chrono::{NaiveDateTime, TimeZone, Utc},
-  clap::Parser,
+  clap::{ArgGroup, Parser},
   derive_more::{Display, FromStr},
   html_escaper::{Escape, Trusted},
   regex::Regex,
