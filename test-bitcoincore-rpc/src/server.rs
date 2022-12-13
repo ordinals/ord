@@ -4,6 +4,8 @@ use {
     secp256k1::{rand, KeyPair, Secp256k1, XOnlyPublicKey},
     Address, Witness,
   },
+  serde,
+  serde::{Deserialize, Serialize},
   serde_json::json,
 };
 
@@ -323,38 +325,11 @@ impl Api for Server {
     include_unsafe: Option<bool>,
     query_options: Option<String>,
   ) -> Result<Vec<ListUnspentResultEntry>, jsonrpc_core::Error> {
+    assert_eq!(minconf, None, "minconf param not supported");
+    assert_eq!(maxconf, None, "maxconf param not supported");
     assert_eq!(address, None, "address param not supported");
     assert_eq!(include_unsafe, None, "include_unsafe param not supported");
     assert_eq!(query_options, None, "query_options param not supported");
-    if minconf == Some(0) && maxconf == Some(0) {
-      return Ok(
-        self
-          .state()
-          .mempool()
-          .iter()
-          .flat_map(|tx| {
-            tx.output
-              .iter()
-              .enumerate()
-              .map(|(vout, tx_out)| ListUnspentResultEntry {
-                txid: tx.txid(),
-                vout: vout as u32,
-                address: None,
-                label: None,
-                redeem_script: None,
-                witness_script: None,
-                script_pub_key: Script::new(),
-                amount: Amount::from_sat(tx_out.value),
-                confirmations: 0,
-                spendable: true,
-                solvable: true,
-                descriptor: None,
-                safe: true,
-              })
-          })
-          .collect(),
-      );
-    }
 
     Ok(
       self
@@ -420,5 +395,61 @@ impl Api for Server {
     let address = Address::p2tr(&secp256k1, public_key, None, self.network);
 
     Ok(address)
+  }
+
+  fn list_transactions(
+    &self,
+    _label: Option<String>,
+    _count: Option<usize>,
+    _skip: Option<usize>,
+    _include_watchonly: Option<bool>,
+  ) -> Result<Vec<ListTransactionResult>, jsonrpc_core::Error> {
+    let result = self
+      .state()
+      .utxos
+      .iter()
+      .map(|(outpoint, _amount)| ListTransactionResult {
+        info: WalletTxInfo {
+          confirmations: 0,
+          blockhash: None,
+          blockindex: None,
+          blocktime: None,
+          blockheight: None,
+          txid: outpoint.txid,
+          time: 0,
+          timereceived: 0,
+          bip125_replaceable: Bip125Replaceable::Unknown,
+          wallet_conflicts: Vec::new(),
+        },
+        detail: GetTransactionResultDetail {
+          address: None,
+          category: GetTransactionResultDetailCategory::Immature,
+          amount: SignedAmount::from_sat(0),
+          label: None,
+          vout: 0,
+          fee: None,
+          abandoned: None,
+        },
+        trusted: None,
+        comment: None,
+      })
+      .collect::<Vec<ListTransactionResult>>();
+
+    #[derive(Deserialize, Serialize, Debug)]
+    struct Foo {
+      #[serde(default, with = "bitcoin::util::amount::serde::as_btc::opt")]
+      amount: Option<SignedAmount>,
+    }
+
+    let amount = serde_json::to_string(&Foo {
+      amount: Some(SignedAmount::from_sat(0)),
+    });
+    dbg!(&amount);
+    let from_amount: Foo = serde_json::from_str(&amount.unwrap()).unwrap();
+    dbg!(&from_amount);
+
+    dbg!(&serde_json::to_string(&result));
+
+    Ok(Vec::new())
   }
 }

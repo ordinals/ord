@@ -10,15 +10,17 @@ impl Transactions {
 
     let client = options.bitcoin_rpc_client()?;
 
-    let pending_txs = client
-      .list_unspent(Some(0), Some(0), None, None, None)?
-      .iter()
-      .filter(|utxo| utxo.confirmations == 0)
-      .map(|utxo| (OutPoint::new(utxo.txid, utxo.vout), utxo.amount))
-      .collect::<Vec<(OutPoint, Amount)>>();
+    // let json: serde_json::Value = client.call("listtransactions", &[])?;
+    // dbg!(&json);
 
-    for (outpoint, amount) in pending_txs {
-      println!("{outpoint}\t{}", amount.to_sat());
+    let txs = client
+      .list_transactions(None, None, None, None)?
+      .iter()
+      .map(|tx| (tx.info.txid, tx.info.confirmations))
+      .collect::<Vec<(Txid, i32)>>();
+
+    for (txid, confirmations) in txs {
+      println!("{txid}\t{confirmations}");
     }
 
     Ok(())
