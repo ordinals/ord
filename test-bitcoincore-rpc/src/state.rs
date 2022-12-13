@@ -7,8 +7,9 @@ pub(crate) struct State {
   pub(crate) network: Network,
   pub(crate) nonce: u32,
   pub(crate) transactions: BTreeMap<Txid, Transaction>,
-  pub(crate) wallet_name: String,
   pub(crate) utxos: BTreeMap<OutPoint, Amount>,
+  pub(crate) wallet_name: String,
+  pub(crate) wallets: BTreeSet<String>,
 }
 
 impl State {
@@ -28,8 +29,9 @@ impl State {
       network,
       nonce: 0,
       transactions: BTreeMap::new(),
-      wallet_name: wallet_name.to_string(),
       utxos: BTreeMap::new(),
+      wallet_name: wallet_name.to_string(),
+      wallets: BTreeSet::new(),
     }
   }
 

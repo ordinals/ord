@@ -40,6 +40,16 @@ pub trait Api {
     replaceable: Option<bool>,
   ) -> Result<String, jsonrpc_core::Error>;
 
+  #[rpc(name = "createwallet")]
+  fn create_wallet(
+    &self,
+    name: String,
+    disable_private_keys: Option<bool>,
+    blank: Option<bool>,
+    passphrase: Option<String>,
+    avoid_reuse: Option<bool>,
+  ) -> Result<LoadWalletResult, jsonrpc_core::Error>;
+
   #[rpc(name = "signrawtransactionwithwallet")]
   fn sign_raw_transaction_with_wallet(
     &self,
