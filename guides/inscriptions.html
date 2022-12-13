@@ -196,7 +196,10 @@ explorer</a>.</p>
 broadcast transactions to the Bitcoin network.</p>
 <p><code>ord</code> wallets must be named <code>ord</code>, or start with <code>ord-</code>, to avoid
 unintentionally using the <code>ord</code> utility with non-ordinal Bitcoin wallets.</p>
-<p>To create a wallet for use with <code>ord</code>, run:</p>
+<p>To create a Bitcoin Core wallet named <code>ord</code> for use with <code>ord</code>, run:</p>
+<pre><code>ord --chain signet wallet create
+</code></pre>
+<p>This is equivalent to running:</p>
 <pre><code>bitcoin-cli -signet createwallet ord
 </code></pre>
 <h2 id="loading-the-bitcoin-core-wallet"><a class="header" href="#loading-the-bitcoin-core-wallet">Loading the Bitcoin Core Wallet</a></h2>
