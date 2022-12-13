@@ -286,12 +286,44 @@ mod tests {
   }
 
   #[test]
+  fn duplicate_field() {
+    assert_eq!(
+      InscriptionParser::parse(&container(&[
+        b"ord",
+        &[1],
+        b"text/plain;charset=utf-8",
+        &[1],
+        b"text/plain;charset=utf-8",
+        &[],
+        b"ord",
+      ])),
+      Err(InscriptionError::InvalidInscription),
+    );
+  }
+
+  #[test]
   fn valid() {
     assert_eq!(
       InscriptionParser::parse(&container(&[
         b"ord",
         &[1],
         b"text/plain;charset=utf-8",
+        &[],
+        b"ord",
+      ])),
+      Ok(inscription("text/plain;charset=utf-8", "ord")),
+    );
+  }
+
+  #[test]
+  fn valid_with_unknown_tag() {
+    assert_eq!(
+      InscriptionParser::parse(&container(&[
+        b"ord",
+        &[1],
+        b"text/plain;charset=utf-8",
+        &[2],
+        b"bar",
         &[],
         b"ord",
       ])),
