@@ -28,7 +28,7 @@ impl Inscribe {
   pub(crate) fn run(self, options: Options) -> Result {
     let client = options.bitcoin_rpc_client_mainnet_forbidden("ord wallet inscribe")?;
 
-    let inscription = Inscription::from_file(options.chain, &self.file)?;
+    let inscription = Inscription::from_file(options.chain(), &self.file)?;
 
     let index = Index::open(&options)?;
     index.update()?;
@@ -46,13 +46,13 @@ impl Inscribe {
         self.satpoint,
         inscription,
         inscriptions,
-        options.chain.network(),
+        options.chain().network(),
         utxos,
         commit_tx_change,
         reveal_tx_destination,
       )?;
 
-    Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain.network())?;
+    Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
 
     let signed_raw_commit_tx = client
       .sign_raw_transaction_with_wallet(&unsigned_commit_tx, None, None)?
