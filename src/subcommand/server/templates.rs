@@ -1,17 +1,14 @@
-use {
-  super::*,
-  boilerplate::Boilerplate,
-  html_escaper::{Escape, Trusted},
-};
+use {super::*, boilerplate::Boilerplate};
 
 pub(crate) use {
-  block::BlockHtml, clock::ClockSvg, home::HomeHtml, input::InputHtml,
+  block::BlockHtml, clock::ClockSvg, content::ContentHtml, home::HomeHtml, input::InputHtml,
   inscription::InscriptionHtml, ordinal::OrdinalHtml, output::OutputHtml, range::RangeHtml,
   rare::RareTxt, transaction::TransactionHtml,
 };
 
 mod block;
 mod clock;
+mod content;
 mod home;
 mod input;
 mod inscription;

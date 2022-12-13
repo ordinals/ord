@@ -1,17 +1,5 @@
 use {super::*, std::str::FromStr};
 
-fn reveal_txid_from_inscribe_stdout(stdout: &str) -> Txid {
-  stdout
-    .lines()
-    .nth(1)
-    .unwrap()
-    .split('\t')
-    .nth(1)
-    .unwrap()
-    .parse()
-    .unwrap()
-}
-
 #[test]
 fn satoshis() {
   let rpc_server = test_bitcoincore_rpc::spawn();
@@ -509,7 +497,7 @@ fn inscriptions_cannot_be_sent_by_satpoint() {
   .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
   .run();
 
-  let reveal_txid = stdout.split("reveal\t").collect::<Vec<&str>>()[1].trim();
+  let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
 
   rpc_server.mine_blocks(1);
 

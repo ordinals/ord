@@ -31,7 +31,7 @@ use {
 };
 
 mod deserialize_from_str;
-mod templates;
+pub(crate) mod templates;
 
 enum BlockQuery {
   Height(u64),
@@ -150,14 +150,15 @@ impl Server {
 
       let router = Router::new()
         .route("/", get(Self::home))
+        .route("/block-count", get(Self::block_count))
         .route("/block/:query", get(Self::block))
         .route("/bounties", get(Self::bounties))
         .route("/clock", get(Self::clock))
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
-        .route("/block-count", get(Self::block_count))
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:txid", get(Self::inscription))
+        .route("/install.sh", get(Self::install_script))
         .route("/ordinal/:ordinal", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
         .route("/range/:start/:end", get(Self::range))
@@ -416,6 +417,10 @@ impl Server {
     )
   }
 
+  async fn install_script() -> Redirect {
+    Redirect::to("https://raw.githubusercontent.com/casey/ord/master/install.sh")
+  }
+
   async fn block(
     Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
@@ -470,6 +475,15 @@ impl Server {
     Extension(chain): Extension<Chain>,
     Path(txid): Path<Txid>,
   ) -> ServerResult<PageHtml> {
+    let inscription = index
+      .get_inscription_by_inscription_id(txid)
+      .map_err(|err| {
+        ServerError::Internal(anyhow!(
+          "failed to retrieve inscription from txid {txid} from index: {err}"
+        ))
+      })?
+      .map(|(inscription, _satpoint)| inscription);
+
     Ok(
       TransactionHtml::new(
         index
@@ -480,6 +494,7 @@ impl Server {
             ))
           })?
           .ok_or_else(|| ServerError::NotFound(format!("transaction {txid} unknown")))?,
+        inscription,
         chain,
       )
       .page(
@@ -938,6 +953,14 @@ mod tests {
     assert_eq!(
       Server::acme_domains(&vec!["example.com".into()]).unwrap(),
       &["example.com"]
+    );
+  }
+
+  #[test]
+  fn install_sh_redirects_to_github() {
+    TestServer::new().assert_redirect(
+      "/install.sh",
+      "https://raw.githubusercontent.com/casey/ord/master/install.sh",
     );
   }
 
