@@ -172,7 +172,7 @@ impl<'a> InscriptionParser<'a> {
         return Err(InscriptionError::NoInscription);
       }
 
-      let mut fields: BTreeMap<&[u8], Vec<u8>> = BTreeMap::new();
+      let mut fields = BTreeMap::new();
 
       loop {
         match self.advance()? {
