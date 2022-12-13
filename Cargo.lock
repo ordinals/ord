@@ -1575,6 +1575,7 @@ dependencies = [
 [[package]]
 name = "jsonrpc"
 version = "0.13.0"
+source = "git+https://github.com/casey/rust-jsonrpc?rev=1826d5e7ec02d9dd3fbca94bfa3b4215870d193f#1826d5e7ec02d9dd3fbca94bfa3b4215870d193f"
 dependencies = [
  "base64",
  "serde",
@@ -2046,6 +2047,7 @@ dependencies = [
 [[package]]
 name = "ord-bitcoincore-rpc-json"
 version = "0.16.3"
+source = "git+https://github.com/casey/rust-bitcoincore-rpc#768725a2adf3b0a8b982d200d59080d5e69df7c9"
 dependencies = [
  "bitcoin",
  "serde",

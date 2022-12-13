@@ -155,4 +155,14 @@ impl State {
   pub(crate) fn mempool(&self) -> &[Transaction] {
     &self.mempool
   }
+
+  pub(crate) fn get_confirmations(&self, tx: &Transaction) -> i32 {
+    for (confirmations, hash) in self.hashes.iter().rev().enumerate() {
+      if self.blocks.get(hash).unwrap().txdata.contains(tx) {
+        return (confirmations + 1).try_into().unwrap();
+      }
+    }
+
+    0
+  }
 }

@@ -8,12 +8,8 @@ impl Transactions {
     let index = Index::open(&options)?;
     index.update()?;
 
-    let client = options.bitcoin_rpc_client()?;
-
-    // let json: serde_json::Value = client.call("listtransactions", &[])?;
-    // dbg!(&json);
-
-    let txs = client
+    let txs = options
+      .bitcoin_rpc_client()?
       .list_transactions(None, None, None, None)?
       .iter()
       .map(|tx| (tx.info.txid, tx.info.confirmations))

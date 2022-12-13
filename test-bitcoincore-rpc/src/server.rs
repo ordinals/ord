@@ -4,8 +4,6 @@ use {
     secp256k1::{rand, KeyPair, Secp256k1, XOnlyPublicKey},
     Address, Witness,
   },
-  serde,
-  serde::{Deserialize, Serialize},
   serde_json::json,
 };
 
@@ -404,52 +402,39 @@ impl Api for Server {
     _skip: Option<usize>,
     _include_watchonly: Option<bool>,
   ) -> Result<Vec<ListTransactionResult>, jsonrpc_core::Error> {
-    let result = self
-      .state()
-      .utxos
-      .iter()
-      .map(|(outpoint, _amount)| ListTransactionResult {
-        info: WalletTxInfo {
-          confirmations: 0,
-          blockhash: None,
-          blockindex: None,
-          blocktime: None,
-          blockheight: None,
-          txid: outpoint.txid,
-          time: 0,
-          timereceived: 0,
-          bip125_replaceable: Bip125Replaceable::Unknown,
-          wallet_conflicts: Vec::new(),
-        },
-        detail: GetTransactionResultDetail {
-          address: None,
-          category: GetTransactionResultDetailCategory::Immature,
-          amount: SignedAmount::from_sat(0),
-          label: None,
-          vout: 0,
-          fee: None,
-          abandoned: None,
-        },
-        trusted: None,
-        comment: None,
-      })
-      .collect::<Vec<ListTransactionResult>>();
-
-    #[derive(Deserialize, Serialize, Debug)]
-    struct Foo {
-      #[serde(default, with = "bitcoin::util::amount::serde::as_btc::opt")]
-      amount: Option<SignedAmount>,
-    }
-
-    let amount = serde_json::to_string(&Foo {
-      amount: Some(SignedAmount::from_sat(0)),
-    });
-    dbg!(&amount);
-    let from_amount: Foo = serde_json::from_str(&amount.unwrap()).unwrap();
-    dbg!(&from_amount);
-
-    dbg!(&serde_json::to_string(&result));
-
-    Ok(Vec::new())
+    let state = self.state();
+    Ok(
+      state
+        .transactions
+        .iter()
+        .map(|(txid, tx)| (*txid, tx))
+        .chain(state.mempool.iter().map(|tx| (tx.txid(), tx)))
+        .map(|(txid, tx)| ListTransactionResult {
+          info: WalletTxInfo {
+            confirmations: state.get_confirmations(tx),
+            blockhash: None,
+            blockindex: None,
+            blocktime: None,
+            blockheight: None,
+            txid,
+            time: 0,
+            timereceived: 0,
+            bip125_replaceable: Bip125Replaceable::Unknown,
+            wallet_conflicts: Vec::new(),
+          },
+          detail: GetTransactionResultDetail {
+            address: None,
+            category: GetTransactionResultDetailCategory::Immature,
+            amount: SignedAmount::from_sat(0),
+            label: None,
+            vout: 0,
+            fee: Some(SignedAmount::from_sat(0)),
+            abandoned: None,
+          },
+          trusted: None,
+          comment: None,
+        })
+        .collect(),
+    )
   }
 }
