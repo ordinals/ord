@@ -87,7 +87,7 @@ broadcast transactions to the Bitcoin network.
 `ord` wallets must be named `ord`, or start with `ord-`, to avoid
 unintentionally using the `ord` utility with non-ordinal Bitcoin wallets.
 
-To create Bitcoin Core a wallet for use with `ord`, run:
+To create a Bitcoin Core wallet name `ord` for use with `ord`, run:
 
 ```
 ord --chain signet wallet create
