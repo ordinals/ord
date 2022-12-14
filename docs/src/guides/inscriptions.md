@@ -14,8 +14,8 @@ individual satoshis using ordinal theory.
 Bitcoin Core provides both a Bitcoin full node and wallet. However, the Bitcoin
 Core wallet cannot make ordinal-aware transactions. Making ordinal-aware
 transactions requires [`ord`](https://github.com/casey/ord), the ordinal theory
-utility. `ord wallet` subcommands interact with an existing Bitcoin Core
-wallet.
+utility. `ord` doesn't implement its own wallet, so `ord wallet` subcommands
+interact with an existing Bitcoin Core wallet.
 
 This guide covers:
 
