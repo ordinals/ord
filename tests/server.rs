@@ -52,11 +52,11 @@ fn inscription_page() {
   rpc_server.mine_blocks(1);
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
-    &format!("/inscription/{}", reveal_tx),
+    &format!("/inscription/{reveal_tx}"),
     &format!(
-      ".*<h1>Inscription</h1>
+      ".*<h1>Inscription {reveal_tx}</h1>
 <dl>
-  <dt>satpoint</dt>
+  <dt>location</dt>
   <dd>{reveal_tx}:0:0</dd>
 </dl>
 HELLOWORLD.*",
@@ -83,9 +83,13 @@ fn inscription_appears_on_reveal_transaction_page() {
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     &format!("/tx/{}", reveal_tx),
-    ".*<h1>Transaction .*</h1>.*
+    &format!(
+      ".*<h1>Transaction .*</h1>.*
 <h2>Inscription</h2>
-HELLOWORLD.*",
+<a href=/inscription/{reveal_tx}>
+HELLOWORLD
+</a>.*",
+    ),
   );
 }
 
@@ -108,11 +112,11 @@ fn inscription_page_after_send() {
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
-    &format!("/inscription/{}", reveal_txid),
+    &format!("/inscription/{reveal_txid}"),
     &format!(
-      ".*<h1>Inscription</h1>
+      ".*<h1>Inscription {reveal_txid}</h1>
 <dl>
-  <dt>satpoint</dt>
+  <dt>location</dt>
   <dd>{reveal_txid}:0:0</dd>
 </dl>
 HELLOWORLD.*",
@@ -131,11 +135,11 @@ HELLOWORLD.*",
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
-    &format!("/inscription/{}", reveal_txid),
+    &format!("/inscription/{reveal_txid}"),
     &format!(
-      ".*<h1>Inscription</h1>
+      ".*<h1>Inscription {reveal_txid}</h1>
 <dl>
-  <dt>satpoint</dt>
+  <dt>location</dt>
   <dd>{}:0:0</dd>
 </dl>
 HELLOWORLD.*",
