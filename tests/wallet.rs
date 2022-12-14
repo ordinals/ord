@@ -87,11 +87,11 @@ fn send_works_on_signet() {
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
-    &format!("/inscription/{}", reveal_txid),
+    &format!("/inscription/{reveal_txid}"),
     &format!(
-      ".*<h1>Inscription</h1>
+      ".*<h1>Inscription {reveal_txid}</h1>
 <dl>
-  <dt>satpoint</dt>
+  <dt>location</dt>
   <dd>{send_txid}:0:0</dd>
 </dl>
 .*",
@@ -144,11 +144,11 @@ fn send_inscribed_sat() {
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
-    &format!("/inscription/{}", reveal_txid),
+    &format!("/inscription/{reveal_txid}"),
     &format!(
-      ".*<h1>Inscription</h1>
+      ".*<h1>Inscription {reveal_txid}</h1>
 <dl>
-  <dt>satpoint</dt>
+  <dt>location</dt>
   <dd>{send_txid}:0:0</dd>
 </dl>
 .*",
