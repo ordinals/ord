@@ -128,7 +128,7 @@ Once your wallet is loaded, you should be able to run:
 ord --signet wallet receive
 ```
 
-…and get a fresh recieve address.
+…and get a fresh receive address.
 
 If you get an error message like:
 
@@ -188,7 +188,7 @@ you might try are [signet.bc-2.jp](https://signet.bc-2.jp/) and
 You can see pending transactions with:
 
 ```
-ord --signet walet transactions
+ord --signet wallet transactions
 ```
 
 Once the faucet transaction confirms, you should be able to see the
