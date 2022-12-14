@@ -756,8 +756,8 @@ individual satoshis using ordinal theory.</p>
 <p>Bitcoin Core provides both a Bitcoin full node and wallet. However, the Bitcoin
 Core wallet cannot make ordinal-aware transactions. Making ordinal-aware
 transactions requires <a href="https://github.com/casey/ord"><code>ord</code></a>, the ordinal theory
-utility. <code>ord wallet</code> subcommands interact with an existing Bitcoin Core
-wallet.</p>
+utility. <code>ord</code> doesn't implement its own wallet, so <code>ord wallet</code> subcommands
+interact with an existing Bitcoin Core wallet.</p>
 <p>This guide covers:</p>
 <ol>
 <li>Installing Bitcoin Core</li>
@@ -795,17 +795,23 @@ txindex=1
 <h2 id="syncing-the-bitcoin-blockchain"><a class="header" href="#syncing-the-bitcoin-blockchain">Syncing the Bitcoin Blockchain</a></h2>
 <p>Once Bitcoin Core has been configured to use signet, you'll need to sync the
 blockchain. Signet is a low-volume test network, so this shouldn't take long.</p>
-<p>To sync the chain, run <code>bitcoind -signet -txindex</code> and leave it running until
-<code>bitcoin-cli -signet getblockcount</code> agrees with the block count on a block
-explorer like <a href="https://mempool.space/signet">the mempool.space signet block
-explorer</a>.</p>
+<p>To sync the chain, run:</p>
+<pre><code>bitcoind -signet -txindex
+</code></pre>
+<p>…and leave it running until <code>getblockchount</code>:</p>
+<pre><code>bitcoin-cli -signet getblockcount
+</code></pre>
+<p>agrees with the block count on a block explorer like <a href="https://mempool.space/signet">the mempool.space signet
+block explorer</a>. <code>ord</code> interacts with <code>bitcoind</code>,
+so you should leave <code>bitcoind</code> running in the background when you're using
+<code>ord</code>.</p>
 <h2 id="creating-a-bitcoin-core-wallet"><a class="header" href="#creating-a-bitcoin-core-wallet">Creating a Bitcoin Core Wallet</a></h2>
 <p><code>ord</code> uses Bitcoin Core to manage private keys, sign transactions, and
 broadcast transactions to the Bitcoin network.</p>
 <p><code>ord</code> wallets must be named <code>ord</code>, or start with <code>ord-</code>, to avoid
 unintentionally using the <code>ord</code> utility with non-ordinal Bitcoin wallets.</p>
 <p>To create a Bitcoin Core wallet named <code>ord</code> for use with <code>ord</code>, run:</p>
-<pre><code>ord --chain signet wallet create
+<pre><code>ord --signet wallet create
 </code></pre>
 <p>This is equivalent to running:</p>
 <pre><code>bitcoin-cli -signet createwallet ord
@@ -816,6 +822,19 @@ are loaded automatically after being created, so you do not need to load your
 wallet if you just created it. Otherwise, run:</p>
 <pre><code>bitcoin-cli -signet loadwallet ord
 </code></pre>
+<p>Once your wallet is loaded, you should be able to run:</p>
+<pre><code>ord --signet wallet receive
+</code></pre>
+<p>…and get a fresh receive address.</p>
+<p>If you get an error message like:</p>
+<pre><code>error: JSON-RPC error: RPC error response: RpcError { code: -19, message: &quot;Wallet file not specified (must request wallet RPC through /wallet/&lt;filename&gt; uri-path).&quot;, data: None }
+</code></pre>
+<p>This means that <code>bitcoind</code> has more than one wallet loaded. List loaded wallets with:</p>
+<pre><code>bitcoin-cli -signet listwallets
+</code></pre>
+<p>And unload all wallets other than <code>ord</code>:</p>
+<pre><code>bitcoin-cli -signet unloadwallet foo
+</code></pre>
 <h2 id="installing-ord"><a class="header" href="#installing-ord">Installing <code>ord</code></a></h2>
 <p>The <code>ord</code> utility is written in Rust and can be built from
 <a href="https://github.com/casey/ord">source</a>. Pre-built binaries are available on the
@@ -823,17 +842,23 @@ wallet if you just created it. Otherwise, run:</p>
 <p>You can install the latest pre-built binary from the command line with:</p>
 <pre><code class="language-sh">curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash -s
 </code></pre>
-<p>Once <code>ord</code> is installed, you should be able to run <code>ord --version</code> on the
-command line.</p>
+<p>Once <code>ord</code> is installed, you should be able to run:</p>
+<pre><code>ord --version
+</code></pre>
+<p>Which prints out <code>ord</code>'s version number.</p>
 <h2 id="receiving-satoshis"><a class="header" href="#receiving-satoshis">Receiving Satoshis</a></h2>
 <p>Inscriptions are made on individual satoshis, using normal Bitcoin transactions
 that pay fees in satoshis, so your wallet will need some sats.</p>
-<p>Get a new address from your <code>ord</code> wallet by running <code>ord --signet wallet receive</code></p>
+<p>Get a new address from your <code>ord</code> wallet by running:</p>
+<pre><code>ord --signet wallet receive
+</code></pre>
 <p>Use a signet faucet to send satoshis to the address you generated. Two faucets
 you might try are <a href="https://signet.bc-2.jp/">signet.bc-2.jp</a> and
 <a href="https://alt.signetfaucet.com/">alt.signetfaucet.com</a>.</p>
-<p>You can see pending transactions with <code>ord --chain signet walet transactions</code>.
-Once the faucet transaction confirms, you should be able to see the
+<p>You can see pending transactions with:</p>
+<pre><code>ord --signet wallet transactions
+</code></pre>
+<p>Once the faucet transaction confirms, you should be able to see the
 transactions outputs with <code>ord --signet wallet utxos</code>.</p>
 <h2 id="creating-inscription-content"><a class="header" href="#creating-inscription-content">Creating Inscription Content</a></h2>
 <p>Create a <code>.png</code> or <code>.txt</code> file smaller than 1024 bytes to inscribe.</p>
@@ -841,7 +866,7 @@ transactions outputs with <code>ord --signet wallet utxos</code>.</p>
 explorer are currently limited to <code>.png</code> and <code>.txt</code> files.</p>
 <p>Additionally, inscriptions made on signet must be 1024 bytes or less, to avoid
 congesting signet for other users. Inscriptions are stored in Taproot input
-witnesses, so mainnet inscriptions will only be limited by the depths of your
+witnesses, so mainnet inscriptions will be limited only by the depths of your
 pockets and the 4,000,000 byte witness size limit.</p>
 <h2 id="creating-inscriptions"><a class="header" href="#creating-inscriptions">Creating Inscriptions</a></h2>
 <p>To create an inscription with the contents of <code>FILE</code>, run:</p>
@@ -870,7 +895,7 @@ at <code>signet.ordinals.com/inscription/INSCRIPTION_ID</code>.</p>
 <pre><code>ord --signet wallet send INSCRIPTION_ID ADDRESS
 </code></pre>
 <p>See the pending transaction with:</p>
-<pre><code>ord --chain signet wallet transactions
+<pre><code>ord --signet wallet transactions
 </code></pre>
 <p>Once the send transaction confirms, the recipient can confirm receipt by
 running:</p>
@@ -884,7 +909,7 @@ running:</p>
 <pre><code>ord --signet wallet send INSCRIPTION_ID ADDRESS
 </code></pre>
 <p>See the pending transaction with:</p>
-<pre><code>ord --chain signet wallet transactions
+<pre><code>ord --signet wallet transactions
 </code></pre>
 <p>Once the send transaction confirms, you can can confirm receipt by running:</p>
 <pre><code>ord --signet wallet inscriptions
