@@ -1,6 +1,6 @@
-<h1>Inscription</h1>
+<h1>Inscription {{ self.inscription_id }}</h1>
 <dl>
-  <dt>satpoint</dt>
+  <dt>location</dt>
   <dd>{{ self.satpoint }}</dd>
 </dl>
 {{ self.inscription.content_html() }}

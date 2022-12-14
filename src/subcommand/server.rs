@@ -635,20 +635,22 @@ impl Server {
   async fn inscription(
     Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
-    Path(txid): Path<Txid>,
+    Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<PageHtml> {
     let (inscription, satpoint) = index
-      .get_inscription_by_inscription_id(txid)
+      .get_inscription_by_inscription_id(inscription_id)
       .map_err(|err| {
         ServerError::Internal(anyhow!(
-          "failed to retrieve inscription from txid {txid} from index: {err}"
+          "failed to retrieve inscription with inscription id {inscription_id} from index: {err}"
         ))
       })?
-      .ok_or_else(|| ServerError::NotFound(format!("transaction {txid} has no inscription")))?;
+      .ok_or_else(|| {
+        ServerError::NotFound(format!("transaction {inscription_id} has no inscription"))
+      })?;
 
     Ok(
       InscriptionHtml {
-        txid,
+        inscription_id,
         inscription,
         satpoint,
       }
