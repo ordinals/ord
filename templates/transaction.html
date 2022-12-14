@@ -1,7 +1,9 @@
 <h1>Transaction <span class=monospace>{{self.txid}}</span></h1>
 %% if let Some(inscription) = &self.inscription {
 <h2>Inscription</h2>
+<a href=/inscription/{{self.txid}}>
 {{ inscription.content_html() }}
+</a>
 %% }
 <h2>{{"Output".tally(self.transaction.output.len())}}</h2>
 <ul class=monospace>
