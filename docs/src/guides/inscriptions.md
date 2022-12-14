@@ -102,7 +102,7 @@ unintentionally using the `ord` utility with non-ordinal Bitcoin wallets.
 To create a Bitcoin Core wallet named `ord` for use with `ord`, run:
 
 ```
-ord --chain signet wallet create
+ord --signet wallet create
 ```
 
 This is equivalent to running:
@@ -122,6 +122,32 @@ wallet if you just created it. Otherwise, run:
 bitcoin-cli -signet loadwallet ord
 ```
 
+Once your wallet is loaded, you should be able to run:
+
+```
+ord --signet wallet receive
+```
+
+…and get a fresh recieve address.
+
+If you get an error message like:
+
+```
+error: JSON-RPC error: RPC error response: RpcError { code: -19, message: "Wallet file not specified (must request wallet RPC through /wallet/<filename> uri-path).", data: None }
+```
+
+This means that `bitcoind` has more than one wallet loaded. List loaded wallets with:
+
+```
+bitcoin-cli -signet listwallets
+```
+
+And unload all wallets other than `ord`:
+
+```
+bitcoin-cli -signet unloadwallet foo
+```
+
 Installing `ord`
 ----------------
 
@@ -135,8 +161,13 @@ You can install the latest pre-built binary from the command line with:
 curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash -s
 ```
 
-Once `ord` is installed, you should be able to run `ord --version` on the
-command line.
+Once `ord` is installed, you should be able to run:
+
+```
+ord --version
+```
+
+Which prints out `ord`'s version number.
 
 Receiving Satoshis
 ------------------
@@ -144,14 +175,22 @@ Receiving Satoshis
 Inscriptions are made on individual satoshis, using normal Bitcoin transactions
 that pay fees in satoshis, so your wallet will need some sats.
 
-Get a new address from your `ord` wallet by running `ord --signet wallet
-receive`
+Get a new address from your `ord` wallet by running:
+
+```
+ord --signet wallet receive
+```
 
 Use a signet faucet to send satoshis to the address you generated. Two faucets
 you might try are [signet.bc-2.jp](https://signet.bc-2.jp/) and
 [alt.signetfaucet.com](https://alt.signetfaucet.com/).
 
-You can see pending transactions with `ord --chain signet walet transactions`.
+You can see pending transactions with:
+
+```
+ord --signet walet transactions
+```
+
 Once the faucet transaction confirms, you should be able to see the
 transactions outputs with `ord --signet wallet utxos`.
 
@@ -165,7 +204,7 @@ explorer are currently limited to `.png` and `.txt` files.
 
 Additionally, inscriptions made on signet must be 1024 bytes or less, to avoid
 congesting signet for other users. Inscriptions are stored in Taproot input
-witnesses, so mainnet inscriptions will only be limited by the depths of your
+witnesses, so mainnet inscriptions will be limited only by the depths of your
 pockets and the 4,000,000 byte witness size limit.
 
 Creating Inscriptions
@@ -217,7 +256,7 @@ ord --signet wallet send INSCRIPTION_ID ADDRESS
 
 See the pending transaction with:
 ```
-ord --chain signet wallet transactions
+ord --signet wallet transactions
 ```
 
 Once the send transaction confirms, the recipient can confirm receipt by
@@ -244,7 +283,7 @@ ord --signet wallet send INSCRIPTION_ID ADDRESS
 
 See the pending transaction with:
 ```
-ord --chain signet wallet transactions
+ord --signet wallet transactions
 ```
 
 Once the send transaction confirms, you can can confirm receipt by running:
