@@ -33,7 +33,7 @@ impl TestServer {
       .spawn().unwrap();
 
     for i in 0.. {
-      match reqwest::blocking::get(&format!("http://127.0.0.1:{port}/status")) {
+      match reqwest::blocking::get(format!("http://127.0.0.1:{port}/status")) {
         Ok(_) => break,
         Err(err) => {
           if i == 400 {

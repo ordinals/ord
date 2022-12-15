@@ -84,16 +84,15 @@ impl Inscribe {
       satpoint
     } else {
       let inscribed_utxos = inscriptions
-        .iter()
-        .map(|(satpoint, _)| satpoint.outpoint)
+        .keys()
+        .map(|satpoint| satpoint.outpoint)
         .collect::<BTreeSet<OutPoint>>();
 
       utxos
-        .iter()
-        .map(|(outpoint, _)| *outpoint)
+        .keys()
         .find(|outpoint| !inscribed_utxos.contains(outpoint))
         .map(|outpoint| SatPoint {
-          outpoint,
+          outpoint: *outpoint,
           offset: 0,
         })
         .ok_or_else(|| anyhow!("wallet contains no cardinal utxos"))?

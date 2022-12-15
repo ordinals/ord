@@ -460,8 +460,8 @@ impl TransactionBuilder {
 
     let inscribed_utxos = self
       .inscriptions
-      .iter()
-      .map(|(satpoint, _inscription_id)| satpoint.outpoint)
+      .keys()
+      .map(|satpoint| satpoint.outpoint)
       .collect::<BTreeSet<OutPoint>>();
 
     for utxo in &self.utxos {
