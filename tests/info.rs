@@ -6,7 +6,7 @@ fn json_with_satoshi_index() {
   CommandBuilder::new("--index-satoshis info")
     .rpc_server(&rpc_server)
     .stdout_regex(
-      r#"\{"blocks_indexed":1,"branch_pages":\d+,"fragmented_bytes":\d+,"index_file_size":\d+,"leaf_pages":\d+,"metadata_bytes":\d+,"ordinal_ranges":1,"outputs_traversed":1,"page_size":\d+,"stored_bytes":\d+,"transactions":\[\{"starting_block_count":0,"starting_timestamp":\d+\}\],"tree_height":\d+,"utxos_indexed":1\}"#
+      r#"\{"blocks_indexed":1,"branch_pages":\d+,"fragmented_bytes":\d+,"index_file_size":\d+,"leaf_pages":\d+,"metadata_bytes":\d+,"sat_ranges":1,"outputs_traversed":1,"page_size":\d+,"stored_bytes":\d+,"transactions":\[\{"starting_block_count":0,"starting_timestamp":\d+\}\],"tree_height":\d+,"utxos_indexed":1\}"#
     )
     .run();
 }
@@ -17,7 +17,7 @@ fn json_without_satoshi_index() {
   CommandBuilder::new("info")
     .rpc_server(&rpc_server)
     .stdout_regex(
-      r#"\{"blocks_indexed":1,"branch_pages":\d+,"fragmented_bytes":\d+,"index_file_size":\d+,"leaf_pages":\d+,"metadata_bytes":\d+,"ordinal_ranges":0,"outputs_traversed":0,"page_size":\d+,"stored_bytes":\d+,"transactions":\[\{"starting_block_count":0,"starting_timestamp":\d+\}\],"tree_height":\d+,"utxos_indexed":0\}"#
+      r#"\{"blocks_indexed":1,"branch_pages":\d+,"fragmented_bytes":\d+,"index_file_size":\d+,"leaf_pages":\d+,"metadata_bytes":\d+,"sat_ranges":0,"outputs_traversed":0,"page_size":\d+,"stored_bytes":\d+,"transactions":\[\{"starting_block_count":0,"starting_timestamp":\d+\}\],"tree_height":\d+,"utxos_indexed":0\}"#
     )
     .run();
 }

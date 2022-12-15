@@ -1,7 +1,7 @@
 use super::*;
 
 #[test]
-fn traits_command_prints_ordinal_traits() {
+fn traits_command_prints_sat_traits() {
   CommandBuilder::new("traits 0")
     .expected_stdout(
       "\
