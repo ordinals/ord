@@ -1,6 +1,6 @@
 [package]
 name = "ord"
-description = "Bitcoin satoshi ordinal number utility"
+description = "Bitcoin ordinal theory utility"
 version = "0.2.1"
 license = "CC0-1.0"
 edition = "2021"
