@@ -524,11 +524,7 @@ impl Updater {
 
     Index::increment_statistic(&wtx, Statistic::OutputsTraversed, self.outputs_traversed)?;
     self.outputs_traversed = 0;
-    Index::increment_statistic(
-      &wtx,
-      Statistic::SatRanges,
-      self.sat_ranges_since_flush,
-    )?;
+    Index::increment_statistic(&wtx, Statistic::SatRanges, self.sat_ranges_since_flush)?;
     self.sat_ranges_since_flush = 0;
     Index::increment_statistic(&wtx, Statistic::Commits, 1)?;
 
