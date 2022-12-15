@@ -1,5 +1,5 @@
-Sat Bounty Hunting Hints
-========================
+Ordinal Bounty Hunting Hints
+============================
 
 - The `ord` wallet can send and receive specific satoshis. Additionally,
   ordinal theory is extremely simple. A clever hacker should be able to write
