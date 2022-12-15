@@ -17,16 +17,16 @@ impl Satoshis {
     let utxos = list_unspent(&options, &index)?;
 
     if let Some(path) = &self.tsv {
-      for (output, ordinal) in satoshis_from_tsv(
+      for (output, sat) in satoshis_from_tsv(
         utxos,
         &fs::read_to_string(path)
           .with_context(|| format!("I/O error reading `{}`", path.display()))?,
       )? {
-        println!("{output}\t{ordinal}");
+        println!("{output}\t{sat}");
       }
     } else {
-      for (output, ordinal, offset, rarity) in rare_satoshis(utxos) {
-        println!("{output}\t{ordinal}\t{offset}\t{rarity}");
+      for (output, sat, offset, rarity) in rare_satoshis(utxos) {
+        println!("{output}\t{sat}\t{offset}\t{rarity}");
       }
     }
 
@@ -37,15 +37,15 @@ impl Satoshis {
 fn rare_satoshis(utxos: Vec<(OutPoint, Vec<(u64, u64)>)>) -> Vec<(OutPoint, Sat, u64, Rarity)> {
   utxos
     .into_iter()
-    .flat_map(|(outpoint, ordinal_ranges)| {
+    .flat_map(|(outpoint, sat_ranges)| {
       let mut offset = 0;
-      ordinal_ranges.into_iter().filter_map(move |(start, end)| {
-        let ordinal = Sat(start);
-        let rarity = ordinal.rarity();
+      sat_ranges.into_iter().filter_map(move |(start, end)| {
+        let sat = Sat(start);
+        let rarity = sat.rarity();
         let start_offset = offset;
         offset += end - start;
         if rarity > Rarity::Common {
-          Some((outpoint, ordinal, start_offset, rarity))
+          Some((outpoint, sat, start_offset, rarity))
         } else {
           None
         }
@@ -65,14 +65,14 @@ fn satoshis_from_tsv(
     }
 
     if let Some(value) = line.split('\t').next() {
-      let ordinal = Sat::from_str(value).map_err(|err| {
+      let sat = Sat::from_str(value).map_err(|err| {
         anyhow!(
-          "failed to parse ordinal from string \"{value}\" on line {}: {err}",
+          "failed to parse sat from string \"{value}\" on line {}: {err}",
           i + 1,
         )
       })?;
 
-      needles.push((ordinal, value));
+      needles.push((sat, value));
     }
   }
   needles.sort();
@@ -113,7 +113,7 @@ mod tests {
   use {super::*, std::fmt::Write};
 
   #[test]
-  fn identify_no_rare_ordinals() {
+  fn identify_no_rare_sats() {
     assert_eq!(
       rare_satoshis(vec![(
         outpoint(1),
@@ -124,7 +124,7 @@ mod tests {
   }
 
   #[test]
-  fn identify_one_rare_ordinal() {
+  fn identify_one_rare_sat() {
     assert_eq!(
       rare_satoshis(vec![(
         outpoint(1),
@@ -135,7 +135,7 @@ mod tests {
   }
 
   #[test]
-  fn identify_two_rare_ordinals() {
+  fn identify_two_rare_sats() {
     assert_eq!(
       rare_satoshis(vec![(
         outpoint(1),
@@ -149,7 +149,7 @@ mod tests {
   }
 
   #[test]
-  fn identify_rare_ordinals_in_different_outpoints() {
+  fn identify_rare_sats_in_different_outpoints() {
     assert_eq!(
       rare_satoshis(vec![
         (outpoint(1), vec![(50 * COIN_VALUE, 55 * COIN_VALUE)]),
@@ -252,7 +252,7 @@ mod tests {
       satoshis_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n===\n")
         .unwrap_err()
         .to_string(),
-      "failed to parse ordinal from string \"===\" on line 2: invalid digit found in string",
+      "failed to parse sat from string \"===\" on line 2: invalid digit found in string",
     )
   }
 

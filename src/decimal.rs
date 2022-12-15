@@ -7,10 +7,10 @@ pub(crate) struct Decimal {
 }
 
 impl From<Sat> for Decimal {
-  fn from(ordinal: Sat) -> Self {
+  fn from(sat: Sat) -> Self {
     Self {
-      height: ordinal.height(),
-      offset: ordinal.third(),
+      height: sat.height(),
+      offset: sat.third(),
     }
   }
 }

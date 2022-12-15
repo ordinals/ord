@@ -20,7 +20,7 @@ use {
 pub(crate) struct Inscribe {
   #[clap(long, help = "Inscribe <SATPOINT>")]
   satpoint: Option<SatPoint>,
-  #[clap(long, help = "Inscribe ordinal with contents of <FILE>")]
+  #[clap(long, help = "Inscribe sat with contents of <FILE>")]
   file: PathBuf,
 }
 
@@ -147,7 +147,7 @@ impl Inscribe {
       .iter()
       .enumerate()
       .find(|(_vout, output)| output.script_pubkey == commit_tx_address.script_pubkey())
-      .expect("should find ordinal commit/inscription output");
+      .expect("should find sat commit/inscription output");
 
     let mut reveal_tx = Transaction {
       input: vec![TxIn {

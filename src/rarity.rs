@@ -28,13 +28,13 @@ impl Display for Rarity {
 }
 
 impl From<Sat> for Rarity {
-  fn from(ordinal: Sat) -> Self {
+  fn from(sat: Sat) -> Self {
     let Degree {
       hour,
       minute,
       second,
       third,
-    } = ordinal.degree();
+    } = sat.degree();
 
     if hour == 0 && minute == 0 && second == 0 && third == 0 {
       Self::Mythic

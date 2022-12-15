@@ -43,9 +43,9 @@ mod tests {
           <dt>script pubkey</dt><dd class=data>OP_DUP OP_HASH160 OP_PUSHBYTES_20 0000000000000000000000000000000000000000 OP_EQUALVERIFY OP_CHECKSIG</dd>
           <dt>address</dt><dd class=monospace>1111111111111111111114oLvT2</dd>
         </dl>
-        <h2>2 Ordinal Ranges</h2>
+        <h2>2 Sat Ranges</h2>
         <ul class=monospace>
-          <li><a href=/ordinal/0 class=mythic>0</a></li>
+          <li><a href=/sat/0 class=mythic>0</a></li>
           <li><a href=/range/1/3 class=common>1–3</a></li>
         </ul>
       "

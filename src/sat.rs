@@ -41,7 +41,7 @@ impl Sat {
   }
 
   pub(crate) fn epoch_position(self) -> u64 {
-    self.0 - self.epoch().starting_ordinal().0
+    self.0 - self.epoch().starting_sat().0
   }
 
   pub(crate) fn decimal(self) -> Decimal {
@@ -52,12 +52,12 @@ impl Sat {
     self.into()
   }
 
-  /// `Ordinal::rarity` is expensive and is called frequently when indexing.
-  /// Ordinal::is_common only checks if self is `Rarity::Common` but is
+  /// `Sat::rarity` is expensive and is called frequently when indexing.
+  /// Sat::is_common only checks if self is `Rarity::Common` but is
   /// much faster.
   pub(crate) fn is_common(self) -> bool {
     let epoch = self.epoch();
-    (self.0 - epoch.starting_ordinal().0) % epoch.subsidy() != 0
+    (self.0 - epoch.starting_sat().0) % epoch.subsidy() != 0
   }
 
   pub(crate) fn name(self) -> String {
@@ -82,11 +82,11 @@ impl Sat {
         'a'..='z' => {
           x = x * 26 + c as u64 - 'a' as u64 + 1;
         }
-        _ => bail!("invalid character in ordinal name: {c}"),
+        _ => bail!("invalid character in sat name: {c}"),
       }
     }
     if x > Self::SUPPLY {
-      bail!("ordinal name out of range");
+      bail!("sat name out of range");
     }
     Ok(Sat(Self::SUPPLY - x))
   }
@@ -144,7 +144,7 @@ impl Sat {
       bail!("invalid block offset");
     }
 
-    Ok(height.starting_ordinal() + block_offset)
+    Ok(height.starting_sat() + block_offset)
   }
 
   fn from_decimal(decimal: &str) -> Result<Self> {
@@ -158,7 +158,7 @@ impl Sat {
       bail!("invalid block offset");
     }
 
-    Ok(height.starting_ordinal() + offset)
+    Ok(height.starting_sat() + offset)
   }
 
   fn from_percentile(percentile: &str) -> Result<Self> {
@@ -224,11 +224,11 @@ impl FromStr for Sat {
     } else if s.contains('.') {
       Self::from_decimal(s)
     } else {
-      let ordinal = Self(s.parse()?);
-      if ordinal > Self::LAST {
-        Err(anyhow!("invalid ordinal"))
+      let sat = Self(s.parse()?);
+      if sat > Self::LAST {
+        Err(anyhow!("invalid sat"))
       } else {
-        Ok(ordinal)
+        Ok(sat)
       }
     }
   }
@@ -251,7 +251,7 @@ mod tests {
     assert_eq!(Sat(Epoch(0).subsidy()).height(), 1);
     assert_eq!(Sat(Epoch(0).subsidy() * 2).height(), 2);
     assert_eq!(
-      Epoch(2).starting_ordinal().height(),
+      Epoch(2).starting_sat().height(),
       SUBSIDY_HALVING_INTERVAL * 2
     );
     assert_eq!(Sat(50 * COIN_VALUE).height(), 1);
@@ -335,14 +335,14 @@ mod tests {
     // Break glass in case of emergency:
     // for height in 0..(2 * CYCLE_EPOCHS * Epoch::BLOCKS) {
     //   // 1054200000000000
-    //   let expected = Height(height).starting_ordinal();
+    //   let expected = Height(height).starting_sat();
     //   // 0°1680′0″0‴
     //   let degree = expected.degree();
     //   // 2034637500000000
-    //   let actual = degree.to_string().parse::<Ordinal>().unwrap();
+    //   let actual = degree.to_string().parse::<Sat>().unwrap();
     //   assert_eq!(
     //     actual, expected,
-    //     "Ordinal at height {height} did not round-trip from degree {degree} successfully"
+    //     "Sat at height {height} did not round-trip from degree {degree} successfully"
     //   );
     // }
     assert_eq!(Sat(1054200000000000).degree().to_string(), "0°1680′0″0‴");
@@ -377,10 +377,10 @@ mod tests {
 
   #[test]
   fn epoch_position() {
-    assert_eq!(Epoch(0).starting_ordinal().epoch_position(), 0);
-    assert_eq!((Epoch(0).starting_ordinal() + 100).epoch_position(), 100);
-    assert_eq!(Epoch(1).starting_ordinal().epoch_position(), 0);
-    assert_eq!(Epoch(2).starting_ordinal().epoch_position(), 0);
+    assert_eq!(Epoch(0).starting_sat().epoch_position(), 0);
+    assert_eq!((Epoch(0).starting_sat() + 100).epoch_position(), 100);
+    assert_eq!(Epoch(1).starting_sat().epoch_position(), 0);
+    assert_eq!(Epoch(2).starting_sat().epoch_position(), 0);
   }
 
   #[test]
@@ -394,7 +394,7 @@ mod tests {
     assert_eq!(Sat(Height(0).subsidy()).third(), 0);
     assert_eq!(Sat(Height(0).subsidy() + 1).third(), 1);
     assert_eq!(
-      Sat(Epoch(1).starting_ordinal().n() + Epoch(1).subsidy()).third(),
+      Sat(Epoch(1).starting_sat().n() + Epoch(1).subsidy()).third(),
       0
     );
     assert_eq!(Sat::LAST.third(), 0);
@@ -442,11 +442,11 @@ mod tests {
 
   #[test]
   fn add_assign() {
-    let mut ordinal = Sat(0);
-    ordinal += 1;
-    assert_eq!(ordinal, 1);
-    ordinal += 100;
-    assert_eq!(ordinal, 101);
+    let mut sat = Sat(0);
+    sat += 1;
+    assert_eq!(sat, 1);
+    sat += 100;
+    assert_eq!(sat, 101);
   }
 
   fn parse(s: &str) -> Result<Sat, String> {

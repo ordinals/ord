@@ -4,7 +4,7 @@ use super::*;
 pub(crate) struct Epoch(pub(crate) u64);
 
 impl Epoch {
-  pub(crate) const STARTING_ORDINALS: [Sat; 34] = [
+  pub(crate) const STARTING_SATS: [Sat; 34] = [
     Sat(0),
     Sat(1050000000000000),
     Sat(1575000000000000),
@@ -50,10 +50,10 @@ impl Epoch {
     }
   }
 
-  pub(crate) fn starting_ordinal(self) -> Sat {
-    *Self::STARTING_ORDINALS
+  pub(crate) fn starting_sat(self) -> Sat {
+    *Self::STARTING_SATS
       .get(usize::try_from(self.0).unwrap())
-      .unwrap_or_else(|| Self::STARTING_ORDINALS.last().unwrap())
+      .unwrap_or_else(|| Self::STARTING_SATS.last().unwrap())
   }
 
   pub(crate) fn starting_height(self) -> Height {
@@ -68,72 +68,72 @@ impl PartialEq<u64> for Epoch {
 }
 
 impl From<Sat> for Epoch {
-  fn from(ordinal: Sat) -> Self {
-    if ordinal < Self::STARTING_ORDINALS[1] {
+  fn from(sat: Sat) -> Self {
+    if sat < Self::STARTING_SATS[1] {
       Epoch(0)
-    } else if ordinal < Self::STARTING_ORDINALS[2] {
+    } else if sat < Self::STARTING_SATS[2] {
       Epoch(1)
-    } else if ordinal < Self::STARTING_ORDINALS[3] {
+    } else if sat < Self::STARTING_SATS[3] {
       Epoch(2)
-    } else if ordinal < Self::STARTING_ORDINALS[4] {
+    } else if sat < Self::STARTING_SATS[4] {
       Epoch(3)
-    } else if ordinal < Self::STARTING_ORDINALS[5] {
+    } else if sat < Self::STARTING_SATS[5] {
       Epoch(4)
-    } else if ordinal < Self::STARTING_ORDINALS[6] {
+    } else if sat < Self::STARTING_SATS[6] {
       Epoch(5)
-    } else if ordinal < Self::STARTING_ORDINALS[7] {
+    } else if sat < Self::STARTING_SATS[7] {
       Epoch(6)
-    } else if ordinal < Self::STARTING_ORDINALS[8] {
+    } else if sat < Self::STARTING_SATS[8] {
       Epoch(7)
-    } else if ordinal < Self::STARTING_ORDINALS[9] {
+    } else if sat < Self::STARTING_SATS[9] {
       Epoch(8)
-    } else if ordinal < Self::STARTING_ORDINALS[10] {
+    } else if sat < Self::STARTING_SATS[10] {
       Epoch(9)
-    } else if ordinal < Self::STARTING_ORDINALS[11] {
+    } else if sat < Self::STARTING_SATS[11] {
       Epoch(10)
-    } else if ordinal < Self::STARTING_ORDINALS[12] {
+    } else if sat < Self::STARTING_SATS[12] {
       Epoch(11)
-    } else if ordinal < Self::STARTING_ORDINALS[13] {
+    } else if sat < Self::STARTING_SATS[13] {
       Epoch(12)
-    } else if ordinal < Self::STARTING_ORDINALS[14] {
+    } else if sat < Self::STARTING_SATS[14] {
       Epoch(13)
-    } else if ordinal < Self::STARTING_ORDINALS[15] {
+    } else if sat < Self::STARTING_SATS[15] {
       Epoch(14)
-    } else if ordinal < Self::STARTING_ORDINALS[16] {
+    } else if sat < Self::STARTING_SATS[16] {
       Epoch(15)
-    } else if ordinal < Self::STARTING_ORDINALS[17] {
+    } else if sat < Self::STARTING_SATS[17] {
       Epoch(16)
-    } else if ordinal < Self::STARTING_ORDINALS[18] {
+    } else if sat < Self::STARTING_SATS[18] {
       Epoch(17)
-    } else if ordinal < Self::STARTING_ORDINALS[19] {
+    } else if sat < Self::STARTING_SATS[19] {
       Epoch(18)
-    } else if ordinal < Self::STARTING_ORDINALS[20] {
+    } else if sat < Self::STARTING_SATS[20] {
       Epoch(19)
-    } else if ordinal < Self::STARTING_ORDINALS[21] {
+    } else if sat < Self::STARTING_SATS[21] {
       Epoch(20)
-    } else if ordinal < Self::STARTING_ORDINALS[22] {
+    } else if sat < Self::STARTING_SATS[22] {
       Epoch(21)
-    } else if ordinal < Self::STARTING_ORDINALS[23] {
+    } else if sat < Self::STARTING_SATS[23] {
       Epoch(22)
-    } else if ordinal < Self::STARTING_ORDINALS[24] {
+    } else if sat < Self::STARTING_SATS[24] {
       Epoch(23)
-    } else if ordinal < Self::STARTING_ORDINALS[25] {
+    } else if sat < Self::STARTING_SATS[25] {
       Epoch(24)
-    } else if ordinal < Self::STARTING_ORDINALS[26] {
+    } else if sat < Self::STARTING_SATS[26] {
       Epoch(25)
-    } else if ordinal < Self::STARTING_ORDINALS[27] {
+    } else if sat < Self::STARTING_SATS[27] {
       Epoch(26)
-    } else if ordinal < Self::STARTING_ORDINALS[28] {
+    } else if sat < Self::STARTING_SATS[28] {
       Epoch(27)
-    } else if ordinal < Self::STARTING_ORDINALS[29] {
+    } else if sat < Self::STARTING_SATS[29] {
       Epoch(28)
-    } else if ordinal < Self::STARTING_ORDINALS[30] {
+    } else if sat < Self::STARTING_SATS[30] {
       Epoch(29)
-    } else if ordinal < Self::STARTING_ORDINALS[31] {
+    } else if sat < Self::STARTING_SATS[31] {
       Epoch(30)
-    } else if ordinal < Self::STARTING_ORDINALS[32] {
+    } else if sat < Self::STARTING_SATS[32] {
       Epoch(31)
-    } else if ordinal < Self::STARTING_ORDINALS[33] {
+    } else if sat < Self::STARTING_SATS[33] {
       Epoch(32)
     } else {
       Epoch(33)
@@ -152,33 +152,33 @@ mod tests {
   use super::super::*;
 
   #[test]
-  fn starting_ordinal() {
-    assert_eq!(Epoch(0).starting_ordinal(), 0);
+  fn starting_sat() {
+    assert_eq!(Epoch(0).starting_sat(), 0);
     assert_eq!(
-      Epoch(1).starting_ordinal(),
+      Epoch(1).starting_sat(),
       Epoch(0).subsidy() * SUBSIDY_HALVING_INTERVAL
     );
     assert_eq!(
-      Epoch(2).starting_ordinal(),
+      Epoch(2).starting_sat(),
       (Epoch(0).subsidy() + Epoch(1).subsidy()) * SUBSIDY_HALVING_INTERVAL
     );
-    assert_eq!(Epoch(33).starting_ordinal(), Sat(Sat::SUPPLY));
-    assert_eq!(Epoch(34).starting_ordinal(), Sat(Sat::SUPPLY));
+    assert_eq!(Epoch(33).starting_sat(), Sat(Sat::SUPPLY));
+    assert_eq!(Epoch(34).starting_sat(), Sat(Sat::SUPPLY));
   }
 
   #[test]
-  fn starting_ordinals() {
-    let mut ordinal = 0;
+  fn starting_sats() {
+    let mut sat = 0;
 
-    let mut epoch_ordinals = Vec::new();
+    let mut epoch_sats = Vec::new();
 
     for epoch in 0..34 {
-      epoch_ordinals.push(ordinal);
-      ordinal += SUBSIDY_HALVING_INTERVAL * Epoch(epoch).subsidy();
+      epoch_sats.push(sat);
+      sat += SUBSIDY_HALVING_INTERVAL * Epoch(epoch).subsidy();
     }
 
-    assert_eq!(Epoch::STARTING_ORDINALS.as_slice(), epoch_ordinals);
-    assert_eq!(Epoch::STARTING_ORDINALS.len(), 34);
+    assert_eq!(Epoch::STARTING_SATS.as_slice(), epoch_sats);
+    assert_eq!(Epoch::STARTING_SATS.len(), 34);
   }
 
   #[test]
@@ -204,21 +204,21 @@ mod tests {
   }
 
   #[test]
-  fn from_ordinal() {
-    for (epoch, starting_ordinal) in Epoch::STARTING_ORDINALS.into_iter().enumerate() {
+  fn from_sat() {
+    for (epoch, starting_sat) in Epoch::STARTING_SATS.into_iter().enumerate() {
       if epoch > 0 {
         assert_eq!(
-          Epoch::from(Sat(starting_ordinal.n() - 1)),
+          Epoch::from(Sat(starting_sat.n() - 1)),
           Epoch(epoch as u64 - 1)
         );
       }
-      assert_eq!(Epoch::from(starting_ordinal), Epoch(epoch as u64));
-      assert_eq!(Epoch::from(starting_ordinal + 1), Epoch(epoch as u64));
+      assert_eq!(Epoch::from(starting_sat), Epoch(epoch as u64));
+      assert_eq!(Epoch::from(starting_sat + 1), Epoch(epoch as u64));
     }
     assert_eq!(Epoch::from(Sat(0)), 0);
     assert_eq!(Epoch::from(Sat(1)), 0);
-    assert_eq!(Epoch::from(Epoch(1).starting_ordinal()), 1);
-    assert_eq!(Epoch::from(Epoch(1).starting_ordinal() + 1), 1);
+    assert_eq!(Epoch::from(Epoch(1).starting_sat()), 1);
+    assert_eq!(Epoch::from(Epoch(1).starting_sat() + 1), 1);
     assert_eq!(Epoch::from(Sat(u64::max_value())), 33);
   }
 
