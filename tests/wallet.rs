@@ -91,6 +91,8 @@ fn send_works_on_signet() {
     &format!(
       ".*<h1>Inscription {reveal_txid}</h1>
 <dl>
+  <dt>content type</dt>
+  <dd>image/png</dd>
   <dt>location</dt>
   <dd>{send_txid}:0:0</dd>
 </dl>
@@ -148,6 +150,8 @@ fn send_inscribed_sat() {
     &format!(
       ".*<h1>Inscription {reveal_txid}</h1>
 <dl>
+  <dt>content type</dt>
+  <dd>image/png</dd>
   <dt>location</dt>
   <dd>{send_txid}:0:0</dd>
 </dl>

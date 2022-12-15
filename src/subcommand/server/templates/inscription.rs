@@ -32,6 +32,8 @@ mod tests {
       "
         <h1>Inscription ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc</h1>
         <dl>
+          <dt>content type</dt>
+          <dd>text/plain;charset=utf-8</dd>
           <dt>location</dt>
           <dd>1111111111111111111111111111111111111111111111111111111111111111:1:0</dd>
         </dl>
@@ -53,6 +55,8 @@ mod tests {
       "
         <h1>Inscription ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc</h1>
         <dl>
+          <dt>content type</dt>
+          <dd>image/png</dd>
           <dt>location</dt>
           <dd>1111111111111111111111111111111111111111111111111111111111111111:1:0</dd>
         </dl>
