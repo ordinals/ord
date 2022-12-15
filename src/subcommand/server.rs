@@ -159,6 +159,7 @@ impl Server {
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:txid", get(Self::inscription))
         .route("/install.sh", get(Self::install_script))
+        .route("/ordinal/:sat", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
@@ -326,6 +327,10 @@ impl Server {
         index.has_satoshi_index().map_err(ServerError::Internal)?,
       ),
     )
+  }
+
+  async fn ordinal(Path(sat): Path<String>) -> Redirect {
+    Redirect::to(&format!("/sat/{sat}"))
   }
 
   async fn output(
@@ -962,6 +967,11 @@ mod tests {
       "/install.sh",
       "https://raw.githubusercontent.com/casey/ord/master/install.sh",
     );
+  }
+
+  #[test]
+  fn ordinal_redirects_to_sat() {
+    TestServer::new().assert_redirect("/ordinal/0", "/sat/0");
   }
 
   #[test]
