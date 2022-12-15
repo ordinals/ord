@@ -104,6 +104,10 @@ impl Inscription {
     str::from_utf8(self.content_type.as_ref()?).ok()
   }
 
+  pub(crate) fn content_size(&self) -> Option<usize> {
+    Some(self.content.as_ref()?.len())
+  }
+
   pub(crate) fn content_html(&self) -> Trusted<ContentHtml> {
     Trusted(ContentHtml(self.content()))
   }
