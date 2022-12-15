@@ -2,8 +2,8 @@ use super::*;
 
 #[derive(Boilerplate)]
 pub(crate) struct RangeHtml {
-  pub(crate) start: Ordinal,
-  pub(crate) end: Ordinal,
+  pub(crate) start: Sat,
+  pub(crate) end: Sat,
 }
 
 impl PageContent for RangeHtml {
@@ -20,8 +20,8 @@ mod tests {
   fn range_html() {
     pretty_assert_eq!(
       RangeHtml {
-        start: Ordinal(0),
-        end: Ordinal(1),
+        start: Sat(0),
+        end: Sat(1),
       }
       .to_string(),
       "
@@ -39,8 +39,8 @@ mod tests {
   fn bugfix_broken_link() {
     pretty_assert_eq!(
       RangeHtml {
-        start: Ordinal(1),
-        end: Ordinal(10),
+        start: Sat(1),
+        end: Sat(10),
       }
       .to_string(),
       "

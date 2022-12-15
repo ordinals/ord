@@ -12,7 +12,7 @@ impl Height {
     Epoch::from(self).subsidy()
   }
 
-  pub(crate) fn starting_ordinal(self) -> Ordinal {
+  pub(crate) fn starting_ordinal(self) -> Sat {
     let epoch = Epoch::from(self);
     let epoch_starting_ordinal = epoch.starting_ordinal();
     let epoch_starting_height = epoch.starting_height();

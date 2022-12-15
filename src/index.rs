@@ -384,7 +384,7 @@ impl Index {
     Ok(blocks)
   }
 
-  pub(crate) fn rare_ordinal_satpoints(&self) -> Result<Option<Vec<(Ordinal, SatPoint)>>> {
+  pub(crate) fn rare_ordinal_satpoints(&self) -> Result<Option<Vec<(Sat, SatPoint)>>> {
     if self.has_satoshi_index()? {
       let mut result = Vec::new();
 
@@ -393,7 +393,7 @@ impl Index {
       let ordinal_to_satpoint = rtx.open_table(ORDINAL_TO_SATPOINT)?;
 
       for (ordinal, satpoint) in ordinal_to_satpoint.range(0..)? {
-        result.push((Ordinal(ordinal), decode_satpoint(*satpoint)));
+        result.push((Sat(ordinal), decode_satpoint(*satpoint)));
       }
 
       Ok(Some(result))
@@ -425,7 +425,7 @@ impl Index {
     self.client.get_block(&hash).into_option()
   }
 
-  pub(crate) fn get_inscription_by_ordinal(&self, ordinal: Ordinal) -> Result<Option<Inscription>> {
+  pub(crate) fn get_inscription_by_ordinal(&self, ordinal: Sat) -> Result<Option<Inscription>> {
     let db = self.database.begin_read()?;
     let table = db.open_table(ORDINAL_TO_INSCRIPTION_ID)?;
 
@@ -488,7 +488,7 @@ impl Index {
 
     let rtx = self.begin_read()?;
 
-    if rtx.block_count()? <= Ordinal(ordinal).height().n() {
+    if rtx.block_count()? <= Sat(ordinal).height().n() {
       return Ok(None);
     }
 

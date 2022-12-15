@@ -453,7 +453,7 @@ impl Updater {
           .pop_front()
           .ok_or_else(|| anyhow!("insufficient inputs for transaction outputs"))?;
 
-        if !Ordinal(range.0).is_common() {
+        if !Sat(range.0).is_common() {
           ordinal_to_satpoint.insert(
             &range.0,
             &encode_satpoint(SatPoint {

@@ -2,7 +2,7 @@ use super::*;
 
 #[derive(Boilerplate)]
 pub(crate) struct OrdinalHtml {
-  pub(crate) ordinal: Ordinal,
+  pub(crate) ordinal: Sat,
   pub(crate) blocktime: Blocktime,
   pub(crate) inscription: Option<Inscription>,
 }
@@ -21,7 +21,7 @@ mod tests {
   fn ordinal_html() {
     pretty_assert_eq!(
       OrdinalHtml {
-        ordinal: Ordinal(0),
+        ordinal: Sat(0),
         blocktime: Blocktime::Confirmed(0),
         inscription: None,
       }
@@ -52,7 +52,7 @@ mod tests {
   fn ordinal_next_and_previous() {
     pretty_assert_eq!(
       OrdinalHtml {
-        ordinal: Ordinal(1),
+        ordinal: Sat(1),
         blocktime: Blocktime::Confirmed(0),
         inscription: None,
       }
@@ -83,7 +83,7 @@ mod tests {
   fn ordinal_with_inscription() {
     pretty_assert_eq!(
       OrdinalHtml {
-        ordinal: Ordinal(0),
+        ordinal: Sat(0),
         blocktime: Blocktime::Confirmed(0),
         inscription: Some(inscription("text/plain;charset=utf-8", "HELLOWORLD")),
       }
@@ -116,7 +116,7 @@ mod tests {
   fn ordinal_inscriptions_are_escaped() {
     pretty_assert_eq!(
       OrdinalHtml {
-        ordinal: Ordinal(0),
+        ordinal: Sat(0),
         blocktime: Blocktime::Confirmed(0),
         inscription: Some(inscription(
           "text/plain;charset=utf-8",
@@ -152,7 +152,7 @@ mod tests {
   fn last_ordinal_next_link_is_disabled() {
     pretty_assert_eq!(
       OrdinalHtml {
-        ordinal: Ordinal::LAST,
+        ordinal: Sat::LAST,
         blocktime: Blocktime::Confirmed(0),
         inscription: None,
       }

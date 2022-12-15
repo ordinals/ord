@@ -22,8 +22,8 @@ use {
     index::{Index, List},
     inscription::Inscription,
     options::Options,
-    ordinal::Ordinal,
     rarity::Rarity,
+    sat::Sat,
     sat_point::SatPoint,
     subcommand::{server::templates::ContentHtml, Subcommand},
     tally::Tally,
@@ -84,8 +84,8 @@ mod height;
 mod index;
 mod inscription;
 mod options;
-mod ordinal;
 mod rarity;
+mod sat;
 mod sat_point;
 mod subcommand;
 mod tally;

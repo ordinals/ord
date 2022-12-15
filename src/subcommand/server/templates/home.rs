@@ -4,7 +4,7 @@ use super::*;
 pub(crate) struct HomeHtml {
   last: u64,
   blocks: Vec<BlockHash>,
-  starting_ordinal: Option<Ordinal>,
+  starting_ordinal: Option<Sat>,
 }
 
 impl HomeHtml {

@@ -307,7 +307,7 @@ impl Server {
   async fn ordinal(
     Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
-    Path(DeserializeFromStr(ordinal)): Path<DeserializeFromStr<Ordinal>>,
+    Path(DeserializeFromStr(ordinal)): Path<DeserializeFromStr<Sat>>,
   ) -> ServerResult<PageHtml> {
     Ok(
       OrdinalHtml {
@@ -369,8 +369,8 @@ impl Server {
     Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
     Path((DeserializeFromStr(start), DeserializeFromStr(end))): Path<(
-      DeserializeFromStr<Ordinal>,
-      DeserializeFromStr<Ordinal>,
+      DeserializeFromStr<Sat>,
+      DeserializeFromStr<Sat>,
     )>,
   ) -> ServerResult<PageHtml> {
     match start.cmp(&end) {

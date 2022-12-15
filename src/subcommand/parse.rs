@@ -3,7 +3,7 @@ use super::*;
 #[derive(Debug, Parser)]
 pub(crate) struct Parse {
   #[clap(help = "Parse <ORDINAL>.")]
-  ordinal: Ordinal,
+  ordinal: Sat,
 }
 
 impl Parse {

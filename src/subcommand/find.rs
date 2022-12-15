@@ -3,7 +3,7 @@ use super::*;
 #[derive(Debug, Parser)]
 pub(crate) struct Find {
   #[clap(help = "Find output and offset of <ORDINAL>.")]
-  ordinal: Ordinal,
+  ordinal: Sat,
 }
 
 impl Find {

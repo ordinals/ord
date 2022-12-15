@@ -3,7 +3,7 @@ use super::*;
 #[derive(Debug, Parser)]
 pub(crate) struct Traits {
   #[clap(help = "Show traits for <ORDINAL>.")]
-  ordinal: Ordinal,
+  ordinal: Sat,
 }
 
 impl Traits {
@@ -36,10 +36,7 @@ mod tests {
   #[test]
   fn first() {
     assert_eq!(
-      Traits {
-        ordinal: Ordinal(0)
-      }
-      .to_string(),
+      Traits { ordinal: Sat(0) }.to_string(),
       "\
 number: 0
 decimal: 0.0
@@ -59,7 +56,7 @@ rarity: mythic
   fn last() {
     assert_eq!(
       Traits {
-        ordinal: Ordinal(2099999997689999)
+        ordinal: Sat(2099999997689999)
       }
       .to_string(),
       "\

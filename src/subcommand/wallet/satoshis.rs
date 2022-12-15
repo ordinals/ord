@@ -34,13 +34,13 @@ impl Satoshis {
   }
 }
 
-fn rare_satoshis(utxos: Vec<(OutPoint, Vec<(u64, u64)>)>) -> Vec<(OutPoint, Ordinal, u64, Rarity)> {
+fn rare_satoshis(utxos: Vec<(OutPoint, Vec<(u64, u64)>)>) -> Vec<(OutPoint, Sat, u64, Rarity)> {
   utxos
     .into_iter()
     .flat_map(|(outpoint, ordinal_ranges)| {
       let mut offset = 0;
       ordinal_ranges.into_iter().filter_map(move |(start, end)| {
-        let ordinal = Ordinal(start);
+        let ordinal = Sat(start);
         let rarity = ordinal.rarity();
         let start_offset = offset;
         offset += end - start;
@@ -65,7 +65,7 @@ fn satoshis_from_tsv(
     }
 
     if let Some(value) = line.split('\t').next() {
-      let ordinal = Ordinal::from_str(value).map_err(|err| {
+      let ordinal = Sat::from_str(value).map_err(|err| {
         anyhow!(
           "failed to parse ordinal from string \"{value}\" on line {}: {err}",
           i + 1,
@@ -130,7 +130,7 @@ mod tests {
         outpoint(1),
         vec![(10, 80), (50 * COIN_VALUE, 100 * COIN_VALUE)],
       )]),
-      vec![(outpoint(1), Ordinal(50 * COIN_VALUE), 70, Rarity::Uncommon)]
+      vec![(outpoint(1), Sat(50 * COIN_VALUE), 70, Rarity::Uncommon)]
     )
   }
 
@@ -142,8 +142,8 @@ mod tests {
         vec![(0, 100), (1050000000000000, 1150000000000000)],
       )]),
       vec![
-        (outpoint(1), Ordinal(0), 0, Rarity::Mythic),
-        (outpoint(1), Ordinal(1050000000000000), 100, Rarity::Epic)
+        (outpoint(1), Sat(0), 0, Rarity::Mythic),
+        (outpoint(1), Sat(1050000000000000), 100, Rarity::Epic)
       ]
     )
   }
@@ -156,8 +156,8 @@ mod tests {
         (outpoint(2), vec![(100 * COIN_VALUE, 111 * COIN_VALUE)],),
       ]),
       vec![
-        (outpoint(1), Ordinal(50 * COIN_VALUE), 0, Rarity::Uncommon),
-        (outpoint(2), Ordinal(100 * COIN_VALUE), 0, Rarity::Uncommon)
+        (outpoint(1), Sat(50 * COIN_VALUE), 0, Rarity::Uncommon),
+        (outpoint(2), Sat(100 * COIN_VALUE), 0, Rarity::Uncommon)
       ]
     )
   }
