@@ -578,27 +578,16 @@ impl Index {
     &self,
     n: Option<usize>,
   ) -> Result<BTreeMap<SatPoint, InscriptionId>> {
-    match n {
-      Some(n) => Ok(
-        self
-          .database
-          .begin_read()?
-          .open_table(SATPOINT_TO_INSCRIPTION_ID)?
-          .range([0; 44]..)?
-          .map(|(satpoint, id)| (decode_satpoint(*satpoint), decode_inscription_id(*id)))
-          .take(n)
-          .collect(),
-      ),
-      None => Ok(
-        self
-          .database
-          .begin_read()?
-          .open_table(SATPOINT_TO_INSCRIPTION_ID)?
-          .range([0; 44]..)?
-          .map(|(satpoint, id)| (decode_satpoint(*satpoint), decode_inscription_id(*id)))
-          .collect(),
-      ),
-    }
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(SATPOINT_TO_INSCRIPTION_ID)?
+        .range([0; 44]..)?
+        .map(|(satpoint, id)| (decode_satpoint(*satpoint), decode_inscription_id(*id)))
+        .take(n.unwrap_or(usize::MAX))
+        .collect(),
+    )
   }
 }
 
