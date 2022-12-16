@@ -419,13 +419,14 @@ impl Server {
           .iter()
           .take(8)
           .map(|(_satpoint, inscription_id)| {
-            Ok(
-              (index
+            Ok((
+              index
                 .get_inscription_by_inscription_id(*inscription_id)
                 .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?
                 .unwrap()
-                .0, *inscription_id)
-            )
+                .0,
+              *inscription_id,
+            ))
           })
           .collect::<ServerResult<Vec<(Inscription, InscriptionId)>>>()?,
       )
