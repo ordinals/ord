@@ -9,8 +9,10 @@ collected and traded as curios.
 Ordinal numbers are serial numbers for satoshis, assigned in the order in which
 they are mined, and preserved across transactions.
 
-See [the BIP](bip.mediawiki) for a comprehensive description of the assignment
-and transfer algorithm.
+See [the docs](https://docs.ordinals.com) for documentation and guides.
+
+See [the BIP](bip.mediawiki) for a technical description of the assignment and
+transfer algorithm.
 
 See [the project board](https://github.com/users/casey/projects/3/) for
 currently prioritized issues.
