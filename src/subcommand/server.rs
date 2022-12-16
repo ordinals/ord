@@ -414,10 +414,9 @@ impl Server {
           .blocks(100)
           .map_err(|err| ServerError::Internal(anyhow!("error getting blocks: {err}")))?,
         index
-          .get_inscriptions()
+          .get_inscriptions(Some(8))
           .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?
           .iter()
-          .take(8)
           .map(|(_satpoint, inscription_id)| {
             Ok((
               index

@@ -574,16 +574,31 @@ impl Index {
     }
   }
 
-  pub(crate) fn get_inscriptions(&self) -> Result<BTreeMap<SatPoint, InscriptionId>> {
-    Ok(
-      self
-        .database
-        .begin_read()?
-        .open_table(SATPOINT_TO_INSCRIPTION_ID)?
-        .range([0; 44]..)?
-        .map(|(satpoint, id)| (decode_satpoint(*satpoint), decode_inscription_id(*id)))
-        .collect(),
-    )
+  pub(crate) fn get_inscriptions(
+    &self,
+    n: Option<usize>,
+  ) -> Result<BTreeMap<SatPoint, InscriptionId>> {
+    match n {
+      Some(n) => Ok(
+        self
+          .database
+          .begin_read()?
+          .open_table(SATPOINT_TO_INSCRIPTION_ID)?
+          .range([0; 44]..)?
+          .map(|(satpoint, id)| (decode_satpoint(*satpoint), decode_inscription_id(*id)))
+          .take(n)
+          .collect(),
+      ),
+      None => Ok(
+        self
+          .database
+          .begin_read()?
+          .open_table(SATPOINT_TO_INSCRIPTION_ID)?
+          .range([0; 44]..)?
+          .map(|(satpoint, id)| (decode_satpoint(*satpoint), decode_inscription_id(*id)))
+          .collect(),
+      ),
+    }
   }
 }
 

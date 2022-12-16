@@ -8,7 +8,7 @@ impl Inscriptions {
     let index = Index::open(&options)?;
     index.update()?;
 
-    let inscriptions = index.get_inscriptions()?;
+    let inscriptions = index.get_inscriptions(None)?;
     let utxos = list_utxos(&options)?;
 
     for (satpoint, inscription_id) in inscriptions {
