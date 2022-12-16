@@ -416,8 +416,8 @@ impl Server {
         index
           .get_inscriptions(Some(8))
           .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?
-          .iter()
-          .map(|(_satpoint, inscription_id)| {
+          .values()
+          .map(|inscription_id| {
             Ok((
               index
                 .get_inscription_by_inscription_id(*inscription_id)

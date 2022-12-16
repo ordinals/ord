@@ -41,7 +41,7 @@ impl Send {
 
     let utxos = list_utxos(&options)?;
 
-    let inscriptions = index.get_inscriptions()?;
+    let inscriptions = index.get_inscriptions(None)?;
 
     let change = get_change_addresses(&options, 2)?;
 
