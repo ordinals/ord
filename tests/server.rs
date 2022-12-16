@@ -56,6 +56,10 @@ fn inscription_page() {
     &format!(
       ".*<h1>Inscription {reveal_tx}</h1>
 <dl>
+  <dt>content size</dt>
+  <dd>10 bytes</dd>
+  <dt>content type</dt>
+  <dd>text/plain;charset=utf-8</dd>
   <dt>location</dt>
   <dd>{reveal_tx}:0:0</dd>
 </dl>
@@ -116,6 +120,10 @@ fn inscription_page_after_send() {
     &format!(
       ".*<h1>Inscription {reveal_txid}</h1>
 <dl>
+  <dt>content size</dt>
+  <dd>10 bytes</dd>
+  <dt>content type</dt>
+  <dd>text/plain;charset=utf-8</dd>
   <dt>location</dt>
   <dd>{reveal_txid}:0:0</dd>
 </dl>
@@ -139,6 +147,10 @@ HELLOWORLD.*",
     &format!(
       ".*<h1>Inscription {reveal_txid}</h1>
 <dl>
+  <dt>content size</dt>
+  <dd>10 bytes</dd>
+  <dt>content type</dt>
+  <dd>text/plain;charset=utf-8</dd>
   <dt>location</dt>
   <dd>{}:0:0</dd>
 </dl>

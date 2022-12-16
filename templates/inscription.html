@@ -1,5 +1,13 @@
 <h1>Inscription {{ self.inscription_id }}</h1>
 <dl>
+%% if let Some(content_size) = self.inscription.content_size() {
+  <dt>content size</dt>
+  <dd>{{ content_size }} bytes</dd>
+%% }
+%% if let Some(content_type) = self.inscription.content_type() {
+  <dt>content type</dt>
+  <dd>{{ content_type }}</dd>
+%% }
   <dt>location</dt>
   <dd>{{ self.satpoint }}</dd>
 </dl>

@@ -93,11 +93,19 @@ impl Inscription {
   pub(crate) fn content(&self) -> Option<Content> {
     let content = self.content.as_ref()?;
 
-    match self.content_type.as_ref()?.as_slice() {
-      b"text/plain;charset=utf-8" => Some(Content::Text(str::from_utf8(content).ok()?)),
-      b"image/png" => Some(Content::Png(content)),
+    match self.content_type()? {
+      "text/plain;charset=utf-8" => Some(Content::Text(str::from_utf8(content).ok()?)),
+      "image/png" => Some(Content::Png(content)),
       _ => None,
     }
+  }
+
+  pub(crate) fn content_type(&self) -> Option<&str> {
+    str::from_utf8(self.content_type.as_ref()?).ok()
+  }
+
+  pub(crate) fn content_size(&self) -> Option<usize> {
+    Some(self.content.as_ref()?.len())
   }
 
   pub(crate) fn content_html(&self) -> Trusted<ContentHtml> {
