@@ -5,7 +5,7 @@ fn satoshis() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   let second_coinbase = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  CommandBuilder::new("--index-satoshis wallet satoshis")
+  CommandBuilder::new("--index-sats wallet satoshis")
     .rpc_server(&rpc_server)
     .expected_stdout(format!(
       "{}\t{}\t0\tuncommon\n",
@@ -20,7 +20,7 @@ fn satoshis_from_tsv_success() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   let second_coinbase = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  CommandBuilder::new("--index-satoshis wallet satoshis --tsv foo.tsv")
+  CommandBuilder::new("--index-sats wallet satoshis --tsv foo.tsv")
     .write("foo.tsv", "nvtcsezkbtg")
     .rpc_server(&rpc_server)
     .expected_stdout(format!(
@@ -60,7 +60,7 @@ fn send_works_on_signet() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
-    "--chain signet --index-satoshis wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
+    "--chain signet --index-sats wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
   ))
   .write("degenerate.png", [1; 520])
   .rpc_server(&rpc_server)
@@ -124,7 +124,7 @@ fn send_inscribed_sat() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
-    "--chain signet --index-satoshis wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
+    "--chain signet --index-sats wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
   ))
   .write("degenerate.png", [1; 520])
   .rpc_server(&rpc_server)
@@ -255,7 +255,7 @@ fn inscribe() {
 
   rpc_server.mine_blocks(1);
 
-  TestServer::spawn_with_args(&rpc_server, &["--index-satoshis"]).assert_response_regex(
+  TestServer::spawn_with_args(&rpc_server, &["--index-sats"]).assert_response_regex(
     "/sat/5000000000",
     ".*<dt>inscription</dt>\n  <dd>HELLOWORLD</dd>.*",
   );
@@ -301,7 +301,7 @@ fn inscribe_png() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   CommandBuilder::new(format!(
-    "--chain regtest --index-satoshis wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
+    "--chain regtest --index-sats wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
   ))
   .write("degenerate.png", [1; 520])
   .rpc_server(&rpc_server)
@@ -310,7 +310,7 @@ fn inscribe_png() {
 
   rpc_server.mine_blocks(1);
 
-  let ord_server = TestServer::spawn_with_args(&rpc_server, &["--index-satoshis"]);
+  let ord_server = TestServer::spawn_with_args(&rpc_server, &["--index-sats"]);
 
   ord_server.assert_response_regex(
     "/sat/5000000000",
@@ -608,7 +608,7 @@ fn inscribe_with_optional_satpoint_arg() {
 
   rpc_server.mine_blocks(1);
 
-  TestServer::spawn_with_args(&rpc_server, &["--index-satoshis"]).assert_response_regex(
+  TestServer::spawn_with_args(&rpc_server, &["--index-sats"]).assert_response_regex(
     "/sat/5000000000",
     ".*<dt>inscription</dt>\n  <dd>HELLOWORLD</dd>.*",
   );
