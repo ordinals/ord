@@ -1,6 +1,7 @@
 # Summary
 [Introduction](introduction.md)
 - [Overview](overview.md)
+- [Inscriptions](inscriptions.md)
 - [FAQ](faq.md)
 - [Contributing](contributing.md)
 - [Guides](guides.md)
