@@ -5,11 +5,14 @@ pub(crate) struct HomeHtml {
   last: u64,
   blocks: Vec<BlockHash>,
   starting_sat: Option<Sat>,
-  inscriptions: Vec<Inscription>,
+  inscriptions: Vec<(Inscription, InscriptionId)>,
 }
 
 impl HomeHtml {
-  pub(crate) fn new(blocks: Vec<(u64, BlockHash)>, inscriptions: Vec<Inscription>) -> Self {
+  pub(crate) fn new(
+    blocks: Vec<(u64, BlockHash)>,
+    inscriptions: Vec<(Inscription, InscriptionId)>,
+  ) -> Self {
     Self {
       starting_sat: blocks
         .get(0)
@@ -53,15 +56,15 @@ mod tests {
               .unwrap()
           )
         ],
-        vec![Inscription::new(
-          Some("text/plain;charset=utf-8".into()),
-          Some("HELLOWORLD".into())
+        vec![(
+          inscription("text/plain;charset=utf-8", "HELLOWORLD"),
+          txid(1)
         )],
       )
       .to_string(),
       "<h1>Bitcoin-native NFTs</h1>.*<h2>Latest Inscriptions</h2>
 <div class=inscriptions>
-  <p>HELLOWORLD</p>
+  <a href=/inscription/1111111111111111111111111111111111111111111111111111111111111111><p>HELLOWORLD</p></a>
 </div>
 <h2>Status</h2>
 <dl>

@@ -159,5 +159,10 @@ a.mythic {
 }
 
 .inscriptions {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.inscriptions > * {
+  width: 25%;
 }

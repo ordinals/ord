@@ -15,7 +15,7 @@ impl<'a> Display for ContentHtml<'a> {
         "<img src='data:image/png;base64,{}'>",
         base64::encode(png)
       ),
-      None => write!(f, "UNKNOWN"),
+      None => write!(f, "<p>UNKNOWN</p>"),
     }
   }
 }

@@ -88,7 +88,7 @@ mod tests {
           <dt>location</dt>
           <dd>1111111111111111111111111111111111111111111111111111111111111111:1:0</dd>
         </dl>
-        UNKNOWN
+        <p>UNKNOWN</p>
       "
       .unindent()
     );

@@ -9,8 +9,8 @@ sidechain or token required.</p>
 %% if !&self.inscriptions.is_empty() {
 <h2>Latest Inscriptions</h2>
 <div class=inscriptions>
-%% for inscription in &self.inscriptions {
-  {{inscription.content_html()}}
+%% for (inscription, id) in &self.inscriptions {
+  <a href=/inscription/{{id}}>{{inscription.content_html()}}</a>
 %% }
 </div>
 %% }

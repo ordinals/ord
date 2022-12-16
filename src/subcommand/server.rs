@@ -420,14 +420,14 @@ impl Server {
           .take(8)
           .map(|(_satpoint, inscription_id)| {
             Ok(
-              index
+              (index
                 .get_inscription_by_inscription_id(*inscription_id)
                 .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?
                 .unwrap()
-                .0,
+                .0, *inscription_id)
             )
           })
-          .collect::<ServerResult<Vec<Inscription>>>()?,
+          .collect::<ServerResult<Vec<(Inscription, InscriptionId)>>>()?,
       )
       .page(
         chain,
