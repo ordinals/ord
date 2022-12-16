@@ -13,30 +13,30 @@ name, *ordinals*.
 Technical details are available in [the
 BIP](https://github.com/casey/ord/blob/master/bip.mediawiki).
 
-Ordinals do not require a separate token, another blockchain, or any changes to
-Bitcoin. They work right now.
+Ordinal theory does not require a separate token, another blockchain, or any
+changes to Bitcoin. It works right now.
 
 Ordinal numbers have a few different representations:
 
 - *Integer notation*:
-  [`2099994106992659`](https://ordinals.com/ordinal/2099994106992659) The
+  [`2099994106992659`](https://ordinals.com/sat/2099994106992659) The
   ordinal number, assigned according to the order in which the satoshi was
   mined.
 
 - *Decimal notation*:
-  [`3891094.16797`](https://ordinals.com/ordinal/3891094.16797) The first
+  [`3891094.16797`](https://ordinals.com/sat/3891094.16797) The first
   number is the block height in which the satoshi was mined, the second the
   offset of the satoshi within the block.
 
 - *Degree notation*:
-  [`3°111094′214″16797‴`](https://ordinals.com/ordinal/3%C2%B0111094%E2%80%B2214%E2%80%B316797%E2%80%B4).
+  [`3°111094′214″16797‴`](https://ordinals.com/sat/3%C2%B0111094%E2%80%B2214%E2%80%B316797%E2%80%B4).
   We'll get to that in a moment.
 
 - *Percentile notation*:
-  [`99.99971949060254%`](https://ordinals.com/ordinal/99.99971949060254%25) .
+  [`99.99971949060254%`](https://ordinals.com/sat/99.99971949060254%25) .
   The satoshi's position in Bitcoin's supply, expressed as a percentage.
 
-- *Name*: [`satoshi`](https://ordinals.com/ordinal/satoshi). An encoding of the
+- *Name*: [`satoshi`](https://ordinals.com/sat/satoshi). An encoding of the
   ordinal number using the characters `a` through `z`.
 
 Arbitrary assets, such as NFTs, security tokens, accounts, or stablecoins can

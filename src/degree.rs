@@ -18,14 +18,14 @@ impl Display for Degree {
   }
 }
 
-impl From<Ordinal> for Degree {
-  fn from(ordinal: Ordinal) -> Self {
-    let height = ordinal.height().n();
+impl From<Sat> for Degree {
+  fn from(sat: Sat) -> Self {
+    let height = sat.height().n();
     Degree {
       hour: height / (CYCLE_EPOCHS * SUBSIDY_HALVING_INTERVAL),
       minute: height % SUBSIDY_HALVING_INTERVAL,
       second: height % DIFFCHANGE_INTERVAL,
-      third: ordinal.third(),
+      third: sat.third(),
     }
   }
 }
@@ -34,9 +34,9 @@ impl From<Ordinal> for Degree {
 mod tests {
   use super::*;
 
-  fn case(ordinal: u64, hour: u64, minute: u64, second: u64, third: u64) {
+  fn case(sat: u64, hour: u64, minute: u64, second: u64, third: u64) {
     assert_eq!(
-      Degree::from(Ordinal(ordinal)),
+      Degree::from(Sat(sat)),
       Degree {
         hour,
         minute,

@@ -2,9 +2,9 @@ use super::*;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Display, Ord, PartialOrd, Deserialize, Serialize)]
 #[serde(transparent)]
-pub(crate) struct Ordinal(pub(crate) u64);
+pub(crate) struct Sat(pub(crate) u64);
 
-impl Ordinal {
+impl Sat {
   pub(crate) const LAST: Self = Self(Self::SUPPLY - 1);
   pub(crate) const SUPPLY: u64 = 2099999997690000;
 
@@ -41,7 +41,7 @@ impl Ordinal {
   }
 
   pub(crate) fn epoch_position(self) -> u64 {
-    self.0 - self.epoch().starting_ordinal().0
+    self.0 - self.epoch().starting_sat().0
   }
 
   pub(crate) fn decimal(self) -> Decimal {
@@ -52,12 +52,12 @@ impl Ordinal {
     self.into()
   }
 
-  /// `Ordinal::rarity` is expensive and is called frequently when indexing.
-  /// Ordinal::is_common only checks if self is `Rarity::Common` but is
+  /// `Sat::rarity` is expensive and is called frequently when indexing.
+  /// Sat::is_common only checks if self is `Rarity::Common` but is
   /// much faster.
   pub(crate) fn is_common(self) -> bool {
     let epoch = self.epoch();
-    (self.0 - epoch.starting_ordinal().0) % epoch.subsidy() != 0
+    (self.0 - epoch.starting_sat().0) % epoch.subsidy() != 0
   }
 
   pub(crate) fn name(self) -> String {
@@ -82,13 +82,13 @@ impl Ordinal {
         'a'..='z' => {
           x = x * 26 + c as u64 - 'a' as u64 + 1;
         }
-        _ => bail!("invalid character in ordinal name: {c}"),
+        _ => bail!("invalid character in sat name: {c}"),
       }
     }
     if x > Self::SUPPLY {
-      bail!("ordinal name out of range");
+      bail!("sat name out of range");
     }
-    Ok(Ordinal(Self::SUPPLY - x))
+    Ok(Sat(Self::SUPPLY - x))
   }
 
   fn from_degree(degree: &str) -> Result<Self> {
@@ -144,7 +144,7 @@ impl Ordinal {
       bail!("invalid block offset");
     }
 
-    Ok(height.starting_ordinal() + block_offset)
+    Ok(height.starting_sat() + block_offset)
   }
 
   fn from_decimal(decimal: &str) -> Result<Self> {
@@ -158,7 +158,7 @@ impl Ordinal {
       bail!("invalid block offset");
     }
 
-    Ok(height.starting_ordinal() + offset)
+    Ok(height.starting_sat() + offset)
   }
 
   fn from_percentile(percentile: &str) -> Result<Self> {
@@ -172,7 +172,7 @@ impl Ordinal {
       bail!("invalid percentile: {}", percentile);
     }
 
-    let last = Ordinal::LAST.n() as f64;
+    let last = Sat::LAST.n() as f64;
 
     let n = (percentile / 100.0 * last).round();
 
@@ -181,37 +181,37 @@ impl Ordinal {
     }
 
     #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
-    Ok(Ordinal(n as u64))
+    Ok(Sat(n as u64))
   }
 }
 
-impl PartialEq<u64> for Ordinal {
+impl PartialEq<u64> for Sat {
   fn eq(&self, other: &u64) -> bool {
     self.0 == *other
   }
 }
 
-impl PartialOrd<u64> for Ordinal {
+impl PartialOrd<u64> for Sat {
   fn partial_cmp(&self, other: &u64) -> Option<Ordering> {
     self.0.partial_cmp(other)
   }
 }
 
-impl Add<u64> for Ordinal {
+impl Add<u64> for Sat {
   type Output = Self;
 
-  fn add(self, other: u64) -> Ordinal {
-    Ordinal(self.0 + other)
+  fn add(self, other: u64) -> Sat {
+    Sat(self.0 + other)
   }
 }
 
-impl AddAssign<u64> for Ordinal {
+impl AddAssign<u64> for Sat {
   fn add_assign(&mut self, other: u64) {
-    *self = Ordinal(self.0 + other);
+    *self = Sat(self.0 + other);
   }
 }
 
-impl FromStr for Ordinal {
+impl FromStr for Sat {
   type Err = Error;
 
   fn from_str(s: &str) -> Result<Self> {
@@ -224,11 +224,11 @@ impl FromStr for Ordinal {
     } else if s.contains('.') {
       Self::from_decimal(s)
     } else {
-      let ordinal = Self(s.parse()?);
-      if ordinal > Self::LAST {
-        Err(anyhow!("invalid ordinal"))
+      let sat = Self(s.parse()?);
+      if sat > Self::LAST {
+        Err(anyhow!("invalid sat"))
       } else {
-        Ok(ordinal)
+        Ok(sat)
       }
     }
   }
@@ -240,100 +240,94 @@ mod tests {
 
   #[test]
   fn n() {
-    assert_eq!(Ordinal(1).n(), 1);
-    assert_eq!(Ordinal(100).n(), 100);
+    assert_eq!(Sat(1).n(), 1);
+    assert_eq!(Sat(100).n(), 100);
   }
 
   #[test]
   fn height() {
-    assert_eq!(Ordinal(0).height(), 0);
-    assert_eq!(Ordinal(1).height(), 0);
-    assert_eq!(Ordinal(Epoch(0).subsidy()).height(), 1);
-    assert_eq!(Ordinal(Epoch(0).subsidy() * 2).height(), 2);
+    assert_eq!(Sat(0).height(), 0);
+    assert_eq!(Sat(1).height(), 0);
+    assert_eq!(Sat(Epoch(0).subsidy()).height(), 1);
+    assert_eq!(Sat(Epoch(0).subsidy() * 2).height(), 2);
     assert_eq!(
-      Epoch(2).starting_ordinal().height(),
+      Epoch(2).starting_sat().height(),
       SUBSIDY_HALVING_INTERVAL * 2
     );
-    assert_eq!(Ordinal(50 * COIN_VALUE).height(), 1);
-    assert_eq!(Ordinal(2099999997689999).height(), 6929999);
-    assert_eq!(Ordinal(2099999997689998).height(), 6929998);
+    assert_eq!(Sat(50 * COIN_VALUE).height(), 1);
+    assert_eq!(Sat(2099999997689999).height(), 6929999);
+    assert_eq!(Sat(2099999997689998).height(), 6929998);
   }
 
   #[test]
   fn name() {
-    assert_eq!(Ordinal(0).name(), "nvtdijuwxlp");
-    assert_eq!(Ordinal(1).name(), "nvtdijuwxlo");
-    assert_eq!(Ordinal(26).name(), "nvtdijuwxkp");
-    assert_eq!(Ordinal(27).name(), "nvtdijuwxko");
-    assert_eq!(Ordinal(2099999997689999).name(), "a");
-    assert_eq!(Ordinal(2099999997689999 - 1).name(), "b");
-    assert_eq!(Ordinal(2099999997689999 - 25).name(), "z");
-    assert_eq!(Ordinal(2099999997689999 - 26).name(), "aa");
+    assert_eq!(Sat(0).name(), "nvtdijuwxlp");
+    assert_eq!(Sat(1).name(), "nvtdijuwxlo");
+    assert_eq!(Sat(26).name(), "nvtdijuwxkp");
+    assert_eq!(Sat(27).name(), "nvtdijuwxko");
+    assert_eq!(Sat(2099999997689999).name(), "a");
+    assert_eq!(Sat(2099999997689999 - 1).name(), "b");
+    assert_eq!(Sat(2099999997689999 - 25).name(), "z");
+    assert_eq!(Sat(2099999997689999 - 26).name(), "aa");
   }
 
   #[test]
   fn number() {
-    assert_eq!(Ordinal(2099999997689999).n(), 2099999997689999);
+    assert_eq!(Sat(2099999997689999).n(), 2099999997689999);
   }
 
   #[test]
   fn degree() {
-    assert_eq!(Ordinal(0).degree().to_string(), "0°0′0″0‴");
-    assert_eq!(Ordinal(1).degree().to_string(), "0°0′0″1‴");
+    assert_eq!(Sat(0).degree().to_string(), "0°0′0″0‴");
+    assert_eq!(Sat(1).degree().to_string(), "0°0′0″1‴");
     assert_eq!(
-      Ordinal(50 * COIN_VALUE - 1).degree().to_string(),
+      Sat(50 * COIN_VALUE - 1).degree().to_string(),
       "0°0′0″4999999999‴"
     );
-    assert_eq!(Ordinal(50 * COIN_VALUE).degree().to_string(), "0°1′1″0‴");
+    assert_eq!(Sat(50 * COIN_VALUE).degree().to_string(), "0°1′1″0‴");
+    assert_eq!(Sat(50 * COIN_VALUE + 1).degree().to_string(), "0°1′1″1‴");
     assert_eq!(
-      Ordinal(50 * COIN_VALUE + 1).degree().to_string(),
-      "0°1′1″1‴"
-    );
-    assert_eq!(
-      Ordinal(50 * COIN_VALUE * DIFFCHANGE_INTERVAL - 1)
+      Sat(50 * COIN_VALUE * DIFFCHANGE_INTERVAL - 1)
         .degree()
         .to_string(),
       "0°2015′2015″4999999999‴"
     );
     assert_eq!(
-      Ordinal(50 * COIN_VALUE * DIFFCHANGE_INTERVAL)
+      Sat(50 * COIN_VALUE * DIFFCHANGE_INTERVAL)
         .degree()
         .to_string(),
       "0°2016′0″0‴"
     );
     assert_eq!(
-      Ordinal(50 * COIN_VALUE * DIFFCHANGE_INTERVAL + 1)
+      Sat(50 * COIN_VALUE * DIFFCHANGE_INTERVAL + 1)
         .degree()
         .to_string(),
       "0°2016′0″1‴"
     );
     assert_eq!(
-      Ordinal(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL - 1)
+      Sat(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL - 1)
         .degree()
         .to_string(),
       "0°209999′335″4999999999‴"
     );
     assert_eq!(
-      Ordinal(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL)
+      Sat(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL)
         .degree()
         .to_string(),
       "0°0′336″0‴"
     );
     assert_eq!(
-      Ordinal(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL + 1)
+      Sat(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL + 1)
         .degree()
         .to_string(),
       "0°0′336″1‴"
     );
     assert_eq!(
-      Ordinal(2067187500000000 - 1).degree().to_string(),
+      Sat(2067187500000000 - 1).degree().to_string(),
       "0°209999′2015″156249999‴"
     );
-    assert_eq!(Ordinal(2067187500000000).degree().to_string(), "1°0′0″0‴");
-    assert_eq!(
-      Ordinal(2067187500000000 + 1).degree().to_string(),
-      "1°0′0″1‴"
-    );
+    assert_eq!(Sat(2067187500000000).degree().to_string(), "1°0′0″0‴");
+    assert_eq!(Sat(2067187500000000 + 1).degree().to_string(), "1°0′0″1‴");
   }
 
   #[test]
@@ -341,23 +335,20 @@ mod tests {
     // Break glass in case of emergency:
     // for height in 0..(2 * CYCLE_EPOCHS * Epoch::BLOCKS) {
     //   // 1054200000000000
-    //   let expected = Height(height).starting_ordinal();
+    //   let expected = Height(height).starting_sat();
     //   // 0°1680′0″0‴
     //   let degree = expected.degree();
     //   // 2034637500000000
-    //   let actual = degree.to_string().parse::<Ordinal>().unwrap();
+    //   let actual = degree.to_string().parse::<Sat>().unwrap();
     //   assert_eq!(
     //     actual, expected,
-    //     "Ordinal at height {height} did not round-trip from degree {degree} successfully"
+    //     "Sat at height {height} did not round-trip from degree {degree} successfully"
     //   );
     // }
-    assert_eq!(
-      Ordinal(1054200000000000).degree().to_string(),
-      "0°1680′0″0‴"
-    );
+    assert_eq!(Sat(1054200000000000).degree().to_string(), "0°1680′0″0‴");
     assert_eq!(parse("0°1680′0″0‴").unwrap(), 1054200000000000);
     assert_eq!(
-      Ordinal(1914226250000000).degree().to_string(),
+      Sat(1914226250000000).degree().to_string(),
       "0°122762′794″0‴"
     );
     assert_eq!(parse("0°122762′794″0‴").unwrap(), 1914226250000000);
@@ -365,51 +356,48 @@ mod tests {
 
   #[test]
   fn period() {
-    assert_eq!(Ordinal(0).period(), 0);
-    assert_eq!(Ordinal(10080000000000).period(), 1);
-    assert_eq!(Ordinal(2099999997689999).period(), 3437);
-    assert_eq!(Ordinal(10075000000000).period(), 0);
-    assert_eq!(Ordinal(10080000000000 - 1).period(), 0);
-    assert_eq!(Ordinal(10080000000000).period(), 1);
-    assert_eq!(Ordinal(10080000000000 + 1).period(), 1);
-    assert_eq!(Ordinal(10085000000000).period(), 1);
-    assert_eq!(Ordinal(2099999997689999).period(), 3437);
+    assert_eq!(Sat(0).period(), 0);
+    assert_eq!(Sat(10080000000000).period(), 1);
+    assert_eq!(Sat(2099999997689999).period(), 3437);
+    assert_eq!(Sat(10075000000000).period(), 0);
+    assert_eq!(Sat(10080000000000 - 1).period(), 0);
+    assert_eq!(Sat(10080000000000).period(), 1);
+    assert_eq!(Sat(10080000000000 + 1).period(), 1);
+    assert_eq!(Sat(10085000000000).period(), 1);
+    assert_eq!(Sat(2099999997689999).period(), 3437);
   }
 
   #[test]
   fn epoch() {
-    assert_eq!(Ordinal(0).epoch(), 0);
-    assert_eq!(Ordinal(1).epoch(), 0);
-    assert_eq!(
-      Ordinal(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL).epoch(),
-      1
-    );
-    assert_eq!(Ordinal(2099999997689999).epoch(), 32);
+    assert_eq!(Sat(0).epoch(), 0);
+    assert_eq!(Sat(1).epoch(), 0);
+    assert_eq!(Sat(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL).epoch(), 1);
+    assert_eq!(Sat(2099999997689999).epoch(), 32);
   }
 
   #[test]
   fn epoch_position() {
-    assert_eq!(Epoch(0).starting_ordinal().epoch_position(), 0);
-    assert_eq!((Epoch(0).starting_ordinal() + 100).epoch_position(), 100);
-    assert_eq!(Epoch(1).starting_ordinal().epoch_position(), 0);
-    assert_eq!(Epoch(2).starting_ordinal().epoch_position(), 0);
+    assert_eq!(Epoch(0).starting_sat().epoch_position(), 0);
+    assert_eq!((Epoch(0).starting_sat() + 100).epoch_position(), 100);
+    assert_eq!(Epoch(1).starting_sat().epoch_position(), 0);
+    assert_eq!(Epoch(2).starting_sat().epoch_position(), 0);
   }
 
   #[test]
   fn subsidy_position() {
-    assert_eq!(Ordinal(0).third(), 0);
-    assert_eq!(Ordinal(1).third(), 1);
+    assert_eq!(Sat(0).third(), 0);
+    assert_eq!(Sat(1).third(), 1);
     assert_eq!(
-      Ordinal(Height(0).subsidy() - 1).third(),
+      Sat(Height(0).subsidy() - 1).third(),
       Height(0).subsidy() - 1
     );
-    assert_eq!(Ordinal(Height(0).subsidy()).third(), 0);
-    assert_eq!(Ordinal(Height(0).subsidy() + 1).third(), 1);
+    assert_eq!(Sat(Height(0).subsidy()).third(), 0);
+    assert_eq!(Sat(Height(0).subsidy() + 1).third(), 1);
     assert_eq!(
-      Ordinal(Epoch(1).starting_ordinal().n() + Epoch(1).subsidy()).third(),
+      Sat(Epoch(1).starting_sat().n() + Epoch(1).subsidy()).third(),
       0
     );
-    assert_eq!(Ordinal::LAST.third(), 0);
+    assert_eq!(Sat::LAST.third(), 0);
   }
 
   #[test]
@@ -426,43 +414,43 @@ mod tests {
       mined += subsidy;
     }
 
-    assert_eq!(Ordinal::SUPPLY, mined);
+    assert_eq!(Sat::SUPPLY, mined);
   }
 
   #[test]
   fn last() {
-    assert_eq!(Ordinal::LAST, Ordinal::SUPPLY - 1);
+    assert_eq!(Sat::LAST, Sat::SUPPLY - 1);
   }
 
   #[test]
   fn eq() {
-    assert_eq!(Ordinal(0), 0);
-    assert_eq!(Ordinal(1), 1);
+    assert_eq!(Sat(0), 0);
+    assert_eq!(Sat(1), 1);
   }
 
   #[test]
   fn partial_ord() {
-    assert!(Ordinal(1) > 0);
-    assert!(Ordinal(0) < 1);
+    assert!(Sat(1) > 0);
+    assert!(Sat(0) < 1);
   }
 
   #[test]
   fn add() {
-    assert_eq!(Ordinal(0) + 1, 1);
-    assert_eq!(Ordinal(1) + 100, 101);
+    assert_eq!(Sat(0) + 1, 1);
+    assert_eq!(Sat(1) + 100, 101);
   }
 
   #[test]
   fn add_assign() {
-    let mut ordinal = Ordinal(0);
-    ordinal += 1;
-    assert_eq!(ordinal, 1);
-    ordinal += 100;
-    assert_eq!(ordinal, 101);
+    let mut sat = Sat(0);
+    sat += 1;
+    assert_eq!(sat, 1);
+    sat += 100;
+    assert_eq!(sat, 101);
   }
 
-  fn parse(s: &str) -> Result<Ordinal, String> {
-    s.parse::<Ordinal>().map_err(|e| e.to_string())
+  fn parse(s: &str) -> Result<Sat, String> {
+    s.parse::<Sat>().map_err(|e| e.to_string())
   }
 
   #[test]
@@ -573,59 +561,53 @@ mod tests {
       0
     );
 
-    assert_eq!(Ordinal(0).cycle(), 0);
-    assert_eq!(Ordinal(2067187500000000 - 1).cycle(), 0);
-    assert_eq!(Ordinal(2067187500000000).cycle(), 1);
-    assert_eq!(Ordinal(2067187500000000 + 1).cycle(), 1);
+    assert_eq!(Sat(0).cycle(), 0);
+    assert_eq!(Sat(2067187500000000 - 1).cycle(), 0);
+    assert_eq!(Sat(2067187500000000).cycle(), 1);
+    assert_eq!(Sat(2067187500000000 + 1).cycle(), 1);
   }
 
   #[test]
   fn third() {
-    assert_eq!(Ordinal(0).third(), 0);
-    assert_eq!(Ordinal(50 * COIN_VALUE - 1).third(), 4999999999);
-    assert_eq!(Ordinal(50 * COIN_VALUE).third(), 0);
-    assert_eq!(Ordinal(50 * COIN_VALUE + 1).third(), 1);
+    assert_eq!(Sat(0).third(), 0);
+    assert_eq!(Sat(50 * COIN_VALUE - 1).third(), 4999999999);
+    assert_eq!(Sat(50 * COIN_VALUE).third(), 0);
+    assert_eq!(Sat(50 * COIN_VALUE + 1).third(), 1);
   }
 
   #[test]
   fn percentile() {
-    assert_eq!(Ordinal(0).percentile(), "0%");
-    assert_eq!(
-      Ordinal(Ordinal::LAST.n() / 2).percentile(),
-      "49.99999999999998%"
-    );
-    assert_eq!(Ordinal::LAST.percentile(), "100%");
+    assert_eq!(Sat(0).percentile(), "0%");
+    assert_eq!(Sat(Sat::LAST.n() / 2).percentile(), "49.99999999999998%");
+    assert_eq!(Sat::LAST.percentile(), "100%");
   }
 
   #[test]
   fn from_percentile() {
-    "-1%".parse::<Ordinal>().unwrap_err();
-    "101%".parse::<Ordinal>().unwrap_err();
+    "-1%".parse::<Sat>().unwrap_err();
+    "101%".parse::<Sat>().unwrap_err();
   }
 
   #[test]
   fn percentile_round_trip() {
     fn case(n: u64) {
-      let expected = Ordinal(n);
-      let actual = expected.percentile().parse::<Ordinal>().unwrap();
+      let expected = Sat(n);
+      let actual = expected.percentile().parse::<Sat>().unwrap();
       assert_eq!(expected, actual);
     }
 
     for n in 0..1024 {
       case(n);
-      case(Ordinal::LAST.n() / 2 + n);
-      case(Ordinal::LAST.n() - n);
-      case(Ordinal::LAST.n() / (n + 1));
+      case(Sat::LAST.n() / 2 + n);
+      case(Sat::LAST.n() - n);
+      case(Sat::LAST.n() / (n + 1));
     }
   }
 
   #[test]
   fn is_common() {
     fn case(n: u64) {
-      assert_eq!(
-        Ordinal(n).is_common(),
-        Ordinal(n).rarity() == Rarity::Common
-      );
+      assert_eq!(Sat(n).is_common(), Sat(n).rarity() == Rarity::Common);
     }
 
     case(0);

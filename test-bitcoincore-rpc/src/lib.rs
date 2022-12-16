@@ -50,7 +50,7 @@ pub fn spawn_with(network: Network, wallet_name: &str) -> Handle {
   thread::spawn(|| rpc_server.wait());
 
   for i in 0.. {
-    match reqwest::blocking::get(&format!("http://127.0.0.1:{port}/")) {
+    match reqwest::blocking::get(format!("http://127.0.0.1:{port}/")) {
       Ok(_) => break,
       Err(err) => {
         if i == 400 {

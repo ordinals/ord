@@ -2,8 +2,8 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Traits {
-  #[clap(help = "Show traits for <ORDINAL>.")]
-  ordinal: Ordinal,
+  #[clap(help = "Show traits for <SAT>.")]
+  sat: Sat,
 }
 
 impl Traits {
@@ -15,16 +15,16 @@ impl Traits {
 
 impl Display for Traits {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-    writeln!(f, "number: {}", self.ordinal.n())?;
-    writeln!(f, "decimal: {}", self.ordinal.decimal())?;
-    writeln!(f, "degree: {}", self.ordinal.degree())?;
-    writeln!(f, "name: {}", self.ordinal.name())?;
-    writeln!(f, "height: {}", self.ordinal.height())?;
-    writeln!(f, "cycle: {}", self.ordinal.cycle())?;
-    writeln!(f, "epoch: {}", self.ordinal.epoch())?;
-    writeln!(f, "period: {}", self.ordinal.period())?;
-    writeln!(f, "offset: {}", self.ordinal.third())?;
-    writeln!(f, "rarity: {}", self.ordinal.rarity())?;
+    writeln!(f, "number: {}", self.sat.n())?;
+    writeln!(f, "decimal: {}", self.sat.decimal())?;
+    writeln!(f, "degree: {}", self.sat.degree())?;
+    writeln!(f, "name: {}", self.sat.name())?;
+    writeln!(f, "height: {}", self.sat.height())?;
+    writeln!(f, "cycle: {}", self.sat.cycle())?;
+    writeln!(f, "epoch: {}", self.sat.epoch())?;
+    writeln!(f, "period: {}", self.sat.period())?;
+    writeln!(f, "offset: {}", self.sat.third())?;
+    writeln!(f, "rarity: {}", self.sat.rarity())?;
     Ok(())
   }
 }
@@ -36,10 +36,7 @@ mod tests {
   #[test]
   fn first() {
     assert_eq!(
-      Traits {
-        ordinal: Ordinal(0)
-      }
-      .to_string(),
+      Traits { sat: Sat(0) }.to_string(),
       "\
 number: 0
 decimal: 0.0
@@ -59,7 +56,7 @@ rarity: mythic
   fn last() {
     assert_eq!(
       Traits {
-        ordinal: Ordinal(2099999997689999)
+        sat: Sat(2099999997689999)
       }
       .to_string(),
       "\

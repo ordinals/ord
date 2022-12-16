@@ -38,7 +38,7 @@ fn satoshis_from_tsv_parse_error() {
     .rpc_server(&rpc_server)
     .expected_exit_code(1)
     .expected_stderr(
-      "error: failed to parse ordinal from string \"===\" on line 1: invalid digit found in string\n",
+      "error: failed to parse sat from string \"===\" on line 1: invalid digit found in string\n",
     )
     .run();
 }
@@ -248,7 +248,7 @@ fn inscribe() {
   rpc_server.mine_blocks(1);
 
   TestServer::spawn_with_args(&rpc_server, &["--index-satoshis"]).assert_response_regex(
-    "/ordinal/5000000000",
+    "/sat/5000000000",
     ".*<dt>inscription</dt>\n  <dd>HELLOWORLD</dd>.*",
   );
 
@@ -305,7 +305,7 @@ fn inscribe_png() {
   let ord_server = TestServer::spawn_with_args(&rpc_server, &["--index-satoshis"]);
 
   ord_server.assert_response_regex(
-    "/ordinal/5000000000",
+    "/sat/5000000000",
     ".*<dt>inscription</dt>\n  <dd><img src=.*",
   )
 }
@@ -601,7 +601,7 @@ fn inscribe_with_optional_satpoint_arg() {
   rpc_server.mine_blocks(1);
 
   TestServer::spawn_with_args(&rpc_server, &["--index-satoshis"]).assert_response_regex(
-    "/ordinal/5000000000",
+    "/sat/5000000000",
     ".*<dt>inscription</dt>\n  <dd>HELLOWORLD</dd>.*",
   );
 

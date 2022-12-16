@@ -3,8 +3,11 @@
 
 `ord` is an index, block explorer, and command-line wallet.
 
-Ordinals are serial numbers for satoshis, assigned in the order in which they
-are mined, and preserved across transactions.
+Ordinal theory imbues satoshis with numismatic value, allowing them to
+collected and traded as curios.
+
+Ordinal numbers are serial numbers for satoshis, assigned in the order in which
+they are mined, and preserved across transactions.
 
 See [the BIP](bip.mediawiki) for a comprehensive description of the assignment
 and transfer algorithm.
@@ -38,7 +41,7 @@ Syncing
 -------
 
 `ord` requires a synced `bitcoind` node with `-txindex` to build the index of
-ordinal locations. `ord` communicates with `bitcoind` via RPC.
+satoshi locations. `ord` communicates with `bitcoind` via RPC.
 
 If `bitcoind` is run locally by the same user, without additional
 configuration, `ord` should find it automatically by reading the `.cookie` file

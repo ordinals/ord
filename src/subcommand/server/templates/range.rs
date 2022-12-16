@@ -2,13 +2,13 @@ use super::*;
 
 #[derive(Boilerplate)]
 pub(crate) struct RangeHtml {
-  pub(crate) start: Ordinal,
-  pub(crate) end: Ordinal,
+  pub(crate) start: Sat,
+  pub(crate) end: Sat,
 }
 
 impl PageContent for RangeHtml {
   fn title(&self) -> String {
-    format!("Ordinal range {}–{}", self.start, self.end)
+    format!("Sat range {}–{}", self.start, self.end)
   }
 }
 
@@ -20,15 +20,15 @@ mod tests {
   fn range_html() {
     pretty_assert_eq!(
       RangeHtml {
-        start: Ordinal(0),
-        end: Ordinal(1),
+        start: Sat(0),
+        end: Sat(1),
       }
       .to_string(),
       "
-        <h1>Ordinal range 0–1</h1>
+        <h1>Sat range 0–1</h1>
         <dl>
           <dt>value</dt><dd>1</dd>
-          <dt>first</dt><dd><a href=/ordinal/0 class=mythic>0</a></dd>
+          <dt>first</dt><dd><a href=/sat/0 class=mythic>0</a></dd>
         </dl>
       "
       .unindent()
@@ -39,15 +39,15 @@ mod tests {
   fn bugfix_broken_link() {
     pretty_assert_eq!(
       RangeHtml {
-        start: Ordinal(1),
-        end: Ordinal(10),
+        start: Sat(1),
+        end: Sat(10),
       }
       .to_string(),
       "
-        <h1>Ordinal range 1–10</h1>
+        <h1>Sat range 1–10</h1>
         <dl>
           <dt>value</dt><dd>9</dd>
-          <dt>first</dt><dd><a href=/ordinal/1 class=common>1</a></dd>
+          <dt>first</dt><dd><a href=/sat/1 class=common>1</a></dd>
         </dl>
       "
       .unindent()

@@ -27,14 +27,14 @@ impl Display for Rarity {
   }
 }
 
-impl From<Ordinal> for Rarity {
-  fn from(ordinal: Ordinal) -> Self {
+impl From<Sat> for Rarity {
+  fn from(sat: Sat) -> Self {
     let Degree {
       hour,
       minute,
       second,
       third,
-    } = ordinal.degree();
+    } = sat.degree();
 
     if hour == 0 && minute == 0 && second == 0 && third == 0 {
       Self::Mythic
@@ -58,41 +58,41 @@ mod tests {
 
   #[test]
   fn rarity() {
-    assert_eq!(Ordinal(0).rarity(), Rarity::Mythic);
-    assert_eq!(Ordinal(1).rarity(), Rarity::Common);
+    assert_eq!(Sat(0).rarity(), Rarity::Mythic);
+    assert_eq!(Sat(1).rarity(), Rarity::Common);
 
-    assert_eq!(Ordinal(50 * COIN_VALUE - 1).rarity(), Rarity::Common);
-    assert_eq!(Ordinal(50 * COIN_VALUE).rarity(), Rarity::Uncommon);
-    assert_eq!(Ordinal(50 * COIN_VALUE + 1).rarity(), Rarity::Common);
+    assert_eq!(Sat(50 * COIN_VALUE - 1).rarity(), Rarity::Common);
+    assert_eq!(Sat(50 * COIN_VALUE).rarity(), Rarity::Uncommon);
+    assert_eq!(Sat(50 * COIN_VALUE + 1).rarity(), Rarity::Common);
 
     assert_eq!(
-      Ordinal(50 * COIN_VALUE * DIFFCHANGE_INTERVAL - 1).rarity(),
+      Sat(50 * COIN_VALUE * DIFFCHANGE_INTERVAL - 1).rarity(),
       Rarity::Common
     );
     assert_eq!(
-      Ordinal(50 * COIN_VALUE * DIFFCHANGE_INTERVAL).rarity(),
+      Sat(50 * COIN_VALUE * DIFFCHANGE_INTERVAL).rarity(),
       Rarity::Rare
     );
     assert_eq!(
-      Ordinal(50 * COIN_VALUE * DIFFCHANGE_INTERVAL + 1).rarity(),
+      Sat(50 * COIN_VALUE * DIFFCHANGE_INTERVAL + 1).rarity(),
       Rarity::Common
     );
 
     assert_eq!(
-      Ordinal(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL - 1).rarity(),
+      Sat(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL - 1).rarity(),
       Rarity::Common
     );
     assert_eq!(
-      Ordinal(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL).rarity(),
+      Sat(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL).rarity(),
       Rarity::Epic
     );
     assert_eq!(
-      Ordinal(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL + 1).rarity(),
+      Sat(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL + 1).rarity(),
       Rarity::Common
     );
 
-    assert_eq!(Ordinal(2067187500000000 - 1).rarity(), Rarity::Common);
-    assert_eq!(Ordinal(2067187500000000).rarity(), Rarity::Legendary);
-    assert_eq!(Ordinal(2067187500000000 + 1).rarity(), Rarity::Common);
+    assert_eq!(Sat(2067187500000000 - 1).rarity(), Rarity::Common);
+    assert_eq!(Sat(2067187500000000).rarity(), Rarity::Legendary);
+    assert_eq!(Sat(2067187500000000 + 1).rarity(), Rarity::Common);
   }
 }

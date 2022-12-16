@@ -2,8 +2,8 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Find {
-  #[clap(help = "Find output and offset of <ORDINAL>.")]
-  ordinal: Ordinal,
+  #[clap(help = "Find output and offset of <SAT>.")]
+  sat: Sat,
 }
 
 impl Find {
@@ -12,12 +12,12 @@ impl Find {
 
     index.update()?;
 
-    match index.find(self.ordinal.0)? {
+    match index.find(self.sat.0)? {
       Some(satpoint) => {
         println!("{satpoint}");
         Ok(())
       }
-      None => Err(anyhow!("ordinal has not been mined as of index height")),
+      None => Err(anyhow!("sat has not been mined as of index height")),
     }
   }
 }

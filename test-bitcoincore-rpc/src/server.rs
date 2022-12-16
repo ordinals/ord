@@ -207,8 +207,8 @@ impl Api for Server {
         })
         .collect(),
       output: outs
-        .iter()
-        .map(|(_address, amount)| TxOut {
+        .values()
+        .map(|amount| TxOut {
           value: (*amount * COIN_VALUE as f64) as u64,
           script_pubkey: Script::new(),
         })

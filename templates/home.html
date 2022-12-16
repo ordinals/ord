@@ -6,13 +6,13 @@ sidechain or token required.</p>
 
 <p><a href=https://docs.ordinals.com>Get Started</a></p>
 
-%% if let Some(starting_ordinal) = self.starting_ordinal {
+%% if let Some(starting_sat) = self.starting_sat {
 <h2>Status</h2>
 <dl>
-  <dt>cycle</dt><dd>{{starting_ordinal.cycle()}}</dd>
-  <dt>epoch</dt><dd>{{starting_ordinal.epoch()}}</dd>
-  <dt>period</dt><dd>{{starting_ordinal.period()}}</dd>
-  <dt>block</dt><dd>{{starting_ordinal.height()}}</dd>
+  <dt>cycle</dt><dd>{{starting_sat.cycle()}}</dd>
+  <dt>epoch</dt><dd>{{starting_sat.epoch()}}</dd>
+  <dt>period</dt><dd>{{starting_sat.period()}}</dd>
+  <dt>block</dt><dd>{{starting_sat.height()}}</dd>
 </dl>
 %% }
 <h2>Latest Blocks</h2>

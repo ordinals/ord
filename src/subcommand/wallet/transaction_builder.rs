@@ -10,7 +10,7 @@
 //!
 //! The external interface is `TransactionBuilder::build_transaction`, which
 //! returns a constructed transaction given the arguments, which include the
-//! ordinal to send, the wallets current UTXOs and their ordinal ranges, and
+//! outgoing sat to send, the wallets current UTXOs and their sat ranges, and
 //! the recipient's address.
 //!
 //! Internally, `TransactionBuilder` calls multiple methods that implement
@@ -46,7 +46,7 @@ pub(crate) enum Error {
 impl fmt::Display for Error {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self {
-      Error::NotInWallet(satpoint) => write!(f, "satpoint {satpoint} not in wallet"),
+      Error::NotInWallet(outgoing_satpoint) => write!(f, "outgoing satpoint {outgoing_satpoint} not in wallet"),
       Error::NotEnoughCardinalUtxos => write!(
         f,
         "wallet does not contain enough cardinal UTXOs, please add additional funds to wallet."
@@ -73,7 +73,7 @@ pub(crate) struct TransactionBuilder {
   inscriptions: BTreeMap<SatPoint, InscriptionId>,
   outputs: Vec<(Address, Amount)>,
   recipient: Address,
-  satpoint: SatPoint,
+  outgoing: SatPoint,
   unused_change_addresses: Vec<Address>,
   utxos: BTreeSet<OutPoint>,
 }
@@ -86,15 +86,15 @@ impl TransactionBuilder {
   const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
 
   pub(crate) fn build_transaction(
-    satpoint: SatPoint,
+    outgoing: SatPoint,
     inscriptions: BTreeMap<SatPoint, InscriptionId>,
     amounts: BTreeMap<OutPoint, Amount>,
     recipient: Address,
     change: Vec<Address>,
   ) -> Result<Transaction> {
-    Self::new(satpoint, inscriptions, amounts, recipient, change)
-      .select_ordinal()?
-      .align_ordinal()
+    Self::new(outgoing, inscriptions, amounts, recipient, change)
+      .select_outgoing()?
+      .align_outgoing()
       .pad_alignment_output()?
       .add_postage()?
       .strip_excess_postage()
@@ -103,7 +103,7 @@ impl TransactionBuilder {
   }
 
   fn new(
-    satpoint: SatPoint,
+    outgoing: SatPoint,
     inscriptions: BTreeMap<SatPoint, InscriptionId>,
     amounts: BTreeMap<OutPoint, Amount>,
     recipient: Address,
@@ -117,38 +117,38 @@ impl TransactionBuilder {
       inscriptions,
       outputs: Vec::new(),
       recipient,
-      satpoint,
+      outgoing,
       unused_change_addresses: change,
     }
   }
 
-  fn select_ordinal(mut self) -> Result<Self> {
+  fn select_outgoing(mut self) -> Result<Self> {
     for (inscribed_satpoint, inscription_id) in &self.inscriptions {
-      if self.satpoint.outpoint == inscribed_satpoint.outpoint
-        && self.satpoint.offset != inscribed_satpoint.offset
+      if self.outgoing.outpoint == inscribed_satpoint.outpoint
+        && self.outgoing.offset != inscribed_satpoint.offset
       {
         return Err(Error::UtxoContainsAdditionalInscription {
-          outgoing_satpoint: self.satpoint,
+          outgoing_satpoint: self.outgoing,
           inscribed_satpoint: *inscribed_satpoint,
           inscription_id: *inscription_id,
         });
       }
     }
 
-    self.utxos.remove(&self.satpoint.outpoint);
-    self.inputs.push(self.satpoint.outpoint);
+    self.utxos.remove(&self.outgoing.outpoint);
+    self.inputs.push(self.outgoing.outpoint);
     self.outputs.push((
       self.recipient.clone(),
       *self
         .amounts
-        .get(&self.satpoint.outpoint)
-        .ok_or(Error::NotInWallet(self.satpoint))?,
+        .get(&self.outgoing.outpoint)
+        .ok_or(Error::NotInWallet(self.outgoing))?,
     ));
 
     Ok(self)
   }
 
-  fn align_ordinal(mut self) -> Self {
+  fn align_outgoing(mut self) -> Self {
     assert_eq!(self.outputs.len(), 1, "invariant: only one output");
 
     assert_eq!(
@@ -156,8 +156,8 @@ impl TransactionBuilder {
       "invariant: first output is recipient"
     );
 
-    let ordinal_offset = self.calculate_ordinal_offset();
-    if ordinal_offset != 0 {
+    let sat_offset = self.calculate_sat_offset();
+    if sat_offset != 0 {
       self.outputs.insert(
         0,
         (
@@ -165,10 +165,10 @@ impl TransactionBuilder {
             .unused_change_addresses
             .pop()
             .expect("not enough change addresses"),
-          Amount::from_sat(ordinal_offset),
+          Amount::from_sat(sat_offset),
         ),
       );
-      self.outputs.last_mut().expect("no output").1 -= Amount::from_sat(ordinal_offset);
+      self.outputs.last_mut().expect("no output").1 -= Amount::from_sat(sat_offset);
     }
 
     self
@@ -201,7 +201,7 @@ impl TransactionBuilder {
   }
 
   fn strip_excess_postage(mut self) -> Self {
-    let ordinal_offset = self.calculate_ordinal_offset();
+    let sat_offset = self.calculate_sat_offset();
     let total_output_amount = self
       .outputs
       .iter()
@@ -214,7 +214,7 @@ impl TransactionBuilder {
       .position(|(address, _amount)| address == &self.recipient)
       .expect("couldn't find output that contains the index");
 
-    let postage = total_output_amount - Amount::from_sat(ordinal_offset);
+    let postage = total_output_amount - Amount::from_sat(sat_offset);
     if postage > Self::MAX_POSTAGE {
       self.outputs.last_mut().expect("no outputs found").1 = Self::TARGET_POSTAGE;
       self.outputs.push((
@@ -230,7 +230,7 @@ impl TransactionBuilder {
   }
 
   fn deduct_fee(mut self) -> Self {
-    let ordinal_offset = self.calculate_ordinal_offset();
+    let sat_offset = self.calculate_sat_offset();
 
     let fee = self.estimate_fee();
 
@@ -246,8 +246,8 @@ impl TransactionBuilder {
       .expect("No output to deduct fee from");
 
     assert!(
-      total_output_amount - fee > Amount::from_sat(ordinal_offset) && *last_output_amount >= fee,
-      "invariant: deducting fee does not consume ordinal",
+      total_output_amount - fee > Amount::from_sat(sat_offset) && *last_output_amount >= fee,
+      "invariant: deducting fee does not consume sat",
     );
 
     *last_output_amount -= fee;
@@ -323,50 +323,50 @@ impl TransactionBuilder {
       self
         .amounts
         .iter()
-        .filter(|(outpoint, amount)| *outpoint == &self.satpoint.outpoint
-          && self.satpoint.offset < amount.to_sat())
+        .filter(|(outpoint, amount)| *outpoint == &self.outgoing.outpoint
+          && self.outgoing.offset < amount.to_sat())
         .count(),
       1,
-      "invariant: satpoint is contained in utxos"
+      "invariant: outgoing sat is contained in utxos"
     );
 
     assert_eq!(
       transaction
         .input
         .iter()
-        .filter(|tx_in| tx_in.previous_output == self.satpoint.outpoint)
+        .filter(|tx_in| tx_in.previous_output == self.outgoing.outpoint)
         .count(),
       1,
-      "invariant: inputs spend ordinal"
+      "invariant: inputs spend outgoing sat"
     );
 
-    let mut ordinal_offset = 0;
+    let mut sat_offset = 0;
     let mut found = false;
     for tx_in in &transaction.input {
-      if tx_in.previous_output == self.satpoint.outpoint {
-        ordinal_offset += self.satpoint.offset;
+      if tx_in.previous_output == self.outgoing.outpoint {
+        sat_offset += self.outgoing.offset;
         found = true;
         break;
       } else {
-        ordinal_offset += self.amounts[&tx_in.previous_output].to_sat();
+        sat_offset += self.amounts[&tx_in.previous_output].to_sat();
       }
     }
-    assert!(found, "invariant: satpoint is found in inputs");
+    assert!(found, "invariant: outgoing sat is found in inputs");
 
     let mut output_end = 0;
     let mut found = false;
     for tx_out in &transaction.output {
       output_end += tx_out.value;
-      if output_end > ordinal_offset {
+      if output_end > sat_offset {
         assert_eq!(
           tx_out.script_pubkey, recipient,
-          "invariant: ordinal is sent to recipient"
+          "invariant: outgoing sat is sent to recipient"
         );
         found = true;
         break;
       }
     }
-    assert!(found, "invariant: ordinal is found in outputs");
+    assert!(found, "invariant: outgoing sat is found in outputs");
 
     assert_eq!(
       transaction
@@ -399,8 +399,8 @@ impl TransactionBuilder {
           "invariant: excess postage is stripped"
         );
         assert_eq!(
-          offset, ordinal_offset,
-          "invariant: ordinal is at first position in recipient output"
+          offset, sat_offset,
+          "invariant: sat is at first position in recipient output"
         );
       } else {
         assert!(
@@ -442,17 +442,17 @@ impl TransactionBuilder {
     Ok(transaction)
   }
 
-  fn calculate_ordinal_offset(&self) -> u64 {
-    let mut ordinal_offset = 0;
+  fn calculate_sat_offset(&self) -> u64 {
+    let mut sat_offset = 0;
     for outpoint in &self.inputs {
-      if *outpoint == self.satpoint.outpoint {
-        return ordinal_offset + self.satpoint.offset;
+      if *outpoint == self.outgoing.outpoint {
+        return sat_offset + self.outgoing.offset;
       } else {
-        ordinal_offset += self.amounts[outpoint].to_sat();
+        sat_offset += self.amounts[outpoint].to_sat();
       }
     }
 
-    panic!("Could not find satpoint in inputs");
+    panic!("Could not find outgoing sat in inputs");
   }
 
   fn select_cardinal_utxo(&mut self, minimum_amount: Amount) -> Result<(OutPoint, Amount)> {
@@ -460,8 +460,8 @@ impl TransactionBuilder {
 
     let inscribed_utxos = self
       .inscriptions
-      .iter()
-      .map(|(satpoint, _inscription_id)| satpoint.outpoint)
+      .keys()
+      .map(|satpoint| satpoint.outpoint)
       .collect::<BTreeSet<OutPoint>>();
 
     for utxo in &self.utxos {
@@ -490,7 +490,7 @@ mod tests {
   use {super::Error, super::*};
 
   #[test]
-  fn select_ordinal() {
+  fn select_sat() {
     let mut utxos = vec![
       (outpoint(1), Amount::from_sat(5_000)),
       (outpoint(2), Amount::from_sat(49 * COIN_VALUE)),
@@ -504,7 +504,7 @@ mod tests {
       recipient(),
       vec![change(0), change(1)],
     )
-    .select_ordinal()
+    .select_outgoing()
     .unwrap();
 
     utxos.remove(1);
@@ -532,7 +532,7 @@ mod tests {
     let tx_builder = TransactionBuilder {
       amounts,
       utxos: BTreeSet::new(),
-      satpoint: satpoint(1, 0),
+      outgoing: satpoint(1, 0),
       inscriptions: BTreeMap::new(),
       recipient: recipient(),
       unused_change_addresses: vec![change(0), change(1)],
@@ -597,8 +597,8 @@ mod tests {
   }
 
   #[test]
-  #[should_panic(expected = "invariant: deducting fee does not consume ordinal")]
-  fn invariant_deduct_fee_does_not_consume_ordinal() {
+  #[should_panic(expected = "invariant: deducting fee does not consume sat")]
+  fn invariant_deduct_fee_does_not_consume_sat() {
     let utxos = vec![(outpoint(1), Amount::from_sat(5_000))];
 
     TransactionBuilder::new(
@@ -608,9 +608,9 @@ mod tests {
       recipient(),
       vec![change(0), change(1)],
     )
-    .select_ordinal()
+    .select_outgoing()
     .unwrap()
-    .align_ordinal()
+    .align_outgoing()
     .strip_excess_postage()
     .deduct_fee();
   }
@@ -703,7 +703,7 @@ mod tests {
   }
 
   #[test]
-  #[should_panic(expected = "invariant: satpoint is contained in utxos")]
+  #[should_panic(expected = "invariant: outgoing sat is contained in utxos")]
   fn invariant_satpoint_outpoint_is_contained_in_utxos() {
     TransactionBuilder::new(
       satpoint(2, 0),
@@ -719,7 +719,7 @@ mod tests {
   }
 
   #[test]
-  #[should_panic(expected = "invariant: satpoint is contained in utxos")]
+  #[should_panic(expected = "invariant: outgoing sat is contained in utxos")]
   fn invariant_satpoint_offset_is_contained_in_utxos() {
     TransactionBuilder::new(
       satpoint(1, 4),
@@ -735,8 +735,8 @@ mod tests {
   }
 
   #[test]
-  #[should_panic(expected = "invariant: inputs spend ordinal")]
-  fn invariant_inputs_spend_ordinal() {
+  #[should_panic(expected = "invariant: inputs spend outgoing sat")]
+  fn invariant_inputs_spend_sat() {
     TransactionBuilder::new(
       satpoint(1, 2),
       BTreeMap::new(),
@@ -751,8 +751,8 @@ mod tests {
   }
 
   #[test]
-  #[should_panic(expected = "invariant: ordinal is sent to recipient")]
-  fn invariant_ordinal_is_sent_to_recipient() {
+  #[should_panic(expected = "invariant: outgoing sat is sent to recipient")]
+  fn invariant_sat_is_sent_to_recipient() {
     let mut builder = TransactionBuilder::new(
       satpoint(1, 2),
       BTreeMap::new(),
@@ -762,7 +762,7 @@ mod tests {
       recipient(),
       vec![change(0), change(1)],
     )
-    .select_ordinal()
+    .select_outgoing()
     .unwrap();
 
     builder.outputs[0].0 = "tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw"
@@ -773,8 +773,8 @@ mod tests {
   }
 
   #[test]
-  #[should_panic(expected = "invariant: ordinal is found in outputs")]
-  fn invariant_ordinal_is_found_in_outputs() {
+  #[should_panic(expected = "invariant: outgoing sat is found in outputs")]
+  fn invariant_sat_is_found_in_outputs() {
     let mut builder = TransactionBuilder::new(
       satpoint(1, 2),
       BTreeMap::new(),
@@ -784,7 +784,7 @@ mod tests {
       recipient(),
       vec![change(0), change(1)],
     )
-    .select_ordinal()
+    .select_outgoing()
     .unwrap();
 
     builder.outputs[0].1 = Amount::from_sat(0);
@@ -828,14 +828,14 @@ mod tests {
       recipient(),
       vec![change(0), change(1)],
     )
-    .select_ordinal()
+    .select_outgoing()
     .unwrap()
     .build()
     .unwrap();
   }
 
   #[test]
-  fn ordinal_is_aligned() {
+  fn sat_is_aligned() {
     let utxos = vec![(outpoint(1), Amount::from_sat(10_000))];
 
     pretty_assert_eq!(
@@ -891,9 +891,9 @@ mod tests {
       recipient(),
       vec![change(0), change(1)],
     )
-    .select_ordinal()
+    .select_outgoing()
     .unwrap()
-    .align_ordinal()
+    .align_outgoing()
     .add_postage()
     .unwrap()
     .strip_excess_postage()
@@ -916,9 +916,9 @@ mod tests {
       recipient(),
       vec![change(0), change(1)],
     )
-    .select_ordinal()
+    .select_outgoing()
     .unwrap()
-    .align_ordinal()
+    .align_outgoing()
     .add_postage()
     .unwrap()
     .strip_excess_postage()
@@ -928,8 +928,8 @@ mod tests {
   }
 
   #[test]
-  #[should_panic(expected = "invariant: ordinal is at first position in recipient output")]
-  fn invariant_ordinal_is_aligned() {
+  #[should_panic(expected = "invariant: sat is at first position in recipient output")]
+  fn invariant_sat_is_aligned() {
     let utxos = vec![(outpoint(1), Amount::from_sat(10_000))];
 
     TransactionBuilder::new(
@@ -939,7 +939,7 @@ mod tests {
       recipient(),
       vec![change(0), change(1)],
     )
-    .select_ordinal()
+    .select_outgoing()
     .unwrap()
     .strip_excess_postage()
     .deduct_fee()
@@ -959,7 +959,7 @@ mod tests {
       recipient(),
       vec![change(0), change(1)],
     )
-    .select_ordinal()
+    .select_outgoing()
     .unwrap()
     .strip_excess_postage()
     .build()
@@ -977,7 +977,7 @@ mod tests {
     TransactionBuilder {
       amounts,
       utxos: BTreeSet::new(),
-      satpoint: satpoint(1, 0),
+      outgoing: satpoint(1, 0),
       inscriptions: BTreeMap::new(),
       recipient: recipient(),
       unused_change_addresses: vec![change(0), change(1)],
@@ -1004,7 +1004,7 @@ mod tests {
     TransactionBuilder {
       amounts,
       utxos: BTreeSet::new(),
-      satpoint: satpoint(1, 0),
+      outgoing: satpoint(1, 0),
       inscriptions: BTreeMap::new(),
       recipient: recipient(),
       unused_change_addresses: vec![change(0), change(1)],

@@ -6,11 +6,11 @@ pub(crate) struct Decimal {
   offset: u64,
 }
 
-impl From<Ordinal> for Decimal {
-  fn from(ordinal: Ordinal) -> Self {
+impl From<Sat> for Decimal {
+  fn from(sat: Sat) -> Self {
     Self {
-      height: ordinal.height(),
-      offset: ordinal.third(),
+      height: sat.height(),
+      offset: sat.third(),
     }
   }
 }
@@ -28,21 +28,21 @@ mod tests {
   #[test]
   fn decimal() {
     assert_eq!(
-      Ordinal(0).decimal(),
+      Sat(0).decimal(),
       Decimal {
         height: Height(0),
         offset: 0
       }
     );
     assert_eq!(
-      Ordinal(1).decimal(),
+      Sat(1).decimal(),
       Decimal {
         height: Height(0),
         offset: 1
       }
     );
     assert_eq!(
-      Ordinal(2099999997689999).decimal(),
+      Sat(2099999997689999).decimal(),
       Decimal {
         height: Height(6929999),
         offset: 0
