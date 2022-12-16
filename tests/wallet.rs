@@ -92,7 +92,7 @@ fn send_works_on_signet() {
       ".*<h1>Inscription {reveal_txid}</h1>
 <dl>
   <dt>content size</dt>
-  <dd>520</dd>
+  <dd>520 bytes</dd>
   <dt>content type</dt>
   <dd>image/png</dd>
   <dt>location</dt>
@@ -153,7 +153,7 @@ fn send_inscribed_sat() {
       ".*<h1>Inscription {reveal_txid}</h1>
 <dl>
   <dt>content size</dt>
-  <dd>520</dd>
+  <dd>520 bytes</dd>
   <dt>content type</dt>
   <dd>image/png</dd>
   <dt>location</dt>

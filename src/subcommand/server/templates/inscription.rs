@@ -33,7 +33,7 @@ mod tests {
         <h1>Inscription ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc</h1>
         <dl>
           <dt>content size</dt>
-          <dd>10</dd>
+          <dd>10 bytes</dd>
           <dt>content type</dt>
           <dd>text/plain;charset=utf-8</dd>
           <dt>location</dt>
@@ -58,7 +58,7 @@ mod tests {
         <h1>Inscription ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc</h1>
         <dl>
           <dt>content size</dt>
-          <dd>100</dd>
+          <dd>100 bytes</dd>
           <dt>content type</dt>
           <dd>image/png</dd>
           <dt>location</dt>
