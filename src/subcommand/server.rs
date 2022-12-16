@@ -154,10 +154,11 @@ impl Server {
         .route("/block/:query", get(Self::block))
         .route("/bounties", get(Self::bounties))
         .route("/clock", get(Self::clock))
+        .route("/content/:inscription_id", get(Self::content))
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
         .route("/input/:block/:transaction/:input", get(Self::input))
-        .route("/inscription/:txid", get(Self::inscription))
+        .route("/inscription/:inscription_id", get(Self::inscription))
         .route("/install.sh", get(Self::install_script))
         .route("/ordinal/:sat", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
@@ -633,6 +634,37 @@ impl Server {
 
   async fn bounties() -> Redirect {
     Redirect::to("https://docs.ordinals.com/bounty/")
+  }
+
+  async fn content(
+    Extension(index): Extension<Arc<Index>>,
+    Path(inscription_id): Path<InscriptionId>,
+  ) -> ServerResult<Response> {
+    let (inscription, _) = index
+      .get_inscription_by_inscription_id(inscription_id)
+      .map_err(|err| {
+        ServerError::Internal(anyhow!(
+          "failed to retrieve inscription with inscription id {inscription_id} from index: {err}"
+        ))
+      })?
+      .ok_or_else(|| {
+        ServerError::NotFound(format!("transaction {inscription_id} has no inscription"))
+      })?;
+
+    let (content_type, content) = Self::content_response(inscription).ok_or_else(|| {
+      ServerError::NotFound(format!("inscription {inscription_id} has no content"))
+    })?;
+
+    Ok(([(header::CONTENT_TYPE, content_type)], content).into_response())
+  }
+
+  fn content_response(inscription: Inscription) -> Option<(String, Vec<u8>)> {
+    let content = inscription.content_bytes()?;
+
+    match inscription.content_type() {
+      Some(content_type) => Some((content_type.into(), content.to_vec())),
+      None => Some(("application/octet-stream".into(), content.to_vec())),
+    }
   }
 
   async fn inscription(
@@ -1629,6 +1661,36 @@ next.*",
         .statistic(crate::index::Statistic::SatRanges)
         .unwrap(),
       5,
+    );
+  }
+
+  #[test]
+  fn content_response_no_content() {
+    assert_eq!(
+      Server::content_response(Inscription::new(
+        Some("text/plain".as_bytes().to_vec()),
+        None
+      )),
+      None
+    );
+  }
+
+  #[test]
+  fn content_response_with_content() {
+    assert_eq!(
+      Server::content_response(Inscription::new(
+        Some("text/plain".as_bytes().to_vec()),
+        Some(vec![1, 2, 3]),
+      )),
+      Some(("text/plain".into(), vec![1, 2, 3]))
+    );
+  }
+
+  #[test]
+  fn content_response_no_content_type() {
+    assert_eq!(
+      Server::content_response(Inscription::new(None, Some(vec![]))),
+      Some(("application/octet-stream".into(), vec![]))
     );
   }
 }
