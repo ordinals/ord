@@ -30,9 +30,9 @@ the genesis block coinbase transaction:
 
 [4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0](https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0)
 
-### Ordinal
+### Sats
 
-Ordinals can be searched by integer, their position within the entire bitcoin
+Sats can be searched by integer, their position within the entire bitcoin
 supply:
 
 [2099994106992659](https://ordinals.com/search/2099994106992659)

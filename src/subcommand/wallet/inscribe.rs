@@ -20,7 +20,7 @@ use {
 pub(crate) struct Inscribe {
   #[clap(long, help = "Inscribe <SATPOINT>")]
   satpoint: Option<SatPoint>,
-  #[clap(long, help = "Inscribe ordinal with contents of <FILE>")]
+  #[clap(long, help = "Inscribe sat with contents of <FILE>")]
   file: PathBuf,
 }
 
@@ -84,16 +84,15 @@ impl Inscribe {
       satpoint
     } else {
       let inscribed_utxos = inscriptions
-        .iter()
-        .map(|(satpoint, _)| satpoint.outpoint)
+        .keys()
+        .map(|satpoint| satpoint.outpoint)
         .collect::<BTreeSet<OutPoint>>();
 
       utxos
-        .iter()
-        .map(|(outpoint, _)| *outpoint)
+        .keys()
         .find(|outpoint| !inscribed_utxos.contains(outpoint))
         .map(|outpoint| SatPoint {
-          outpoint,
+          outpoint: *outpoint,
           offset: 0,
         })
         .ok_or_else(|| anyhow!("wallet contains no cardinal utxos"))?
@@ -147,7 +146,7 @@ impl Inscribe {
       .iter()
       .enumerate()
       .find(|(_vout, output)| output.script_pubkey == commit_tx_address.script_pubkey())
-      .expect("should find ordinal commit/inscription output");
+      .expect("should find sat commit/inscription output");
 
     let mut reveal_tx = Transaction {
       input: vec![TxIn {

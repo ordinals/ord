@@ -4,8 +4,8 @@ use {
   self::{
     deserialize_from_str::DeserializeFromStr,
     templates::{
-      BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, OrdinalHtml, OutputHtml,
-      PageContent, PageHtml, RangeHtml, RareTxt, TransactionHtml,
+      BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, OutputHtml, PageContent, PageHtml,
+      RangeHtml, RareTxt, SatHtml, TransactionHtml,
     },
   },
   axum::{
@@ -159,10 +159,11 @@ impl Server {
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:txid", get(Self::inscription))
         .route("/install.sh", get(Self::install_script))
-        .route("/ordinal/:ordinal", get(Self::ordinal))
+        .route("/ordinal/:sat", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
+        .route("/sat/:sat", get(Self::sat))
         .route("/search", get(Self::search_by_query))
         .route("/search/:query", get(Self::search_by_path))
         .route("/static/*path", get(Self::static_asset))
@@ -304,20 +305,20 @@ impl Server {
     Ok(ClockSvg::new(Self::index_height(&index)?))
   }
 
-  async fn ordinal(
+  async fn sat(
     Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
-    Path(DeserializeFromStr(ordinal)): Path<DeserializeFromStr<Ordinal>>,
+    Path(DeserializeFromStr(sat)): Path<DeserializeFromStr<Sat>>,
   ) -> ServerResult<PageHtml> {
     Ok(
-      OrdinalHtml {
-        ordinal,
-        blocktime: index.blocktime(ordinal.height()).map_err(|err| {
+      SatHtml {
+        sat,
+        blocktime: index.blocktime(sat.height()).map_err(|err| {
           ServerError::Internal(anyhow!("failed to retrieve blocktime from index: {err}"))
         })?,
-        inscription: index.get_inscription_by_ordinal(ordinal).map_err(|err| {
+        inscription: index.get_inscription_by_sat(sat).map_err(|err| {
           ServerError::Internal(anyhow!(
-            "failed to retrieve inscription for ordinal {ordinal} from index: {err}"
+            "failed to retrieve inscription for sat {sat} from index: {err}"
           ))
         })?,
       }
@@ -326,6 +327,10 @@ impl Server {
         index.has_satoshi_index().map_err(ServerError::Internal)?,
       ),
     )
+  }
+
+  async fn ordinal(Path(sat): Path<String>) -> Redirect {
+    Redirect::to(&format!("/sat/{sat}"))
   }
 
   async fn output(
@@ -369,8 +374,8 @@ impl Server {
     Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
     Path((DeserializeFromStr(start), DeserializeFromStr(end))): Path<(
-      DeserializeFromStr<Ordinal>,
-      DeserializeFromStr<Ordinal>,
+      DeserializeFromStr<Sat>,
+      DeserializeFromStr<Sat>,
     )>,
   ) -> ServerResult<PageHtml> {
     match start.cmp(&end) {
@@ -388,13 +393,11 @@ impl Server {
   async fn rare_txt(Extension(index): Extension<Arc<Index>>) -> ServerResult<RareTxt> {
     Ok(RareTxt(
       index
-        .rare_ordinal_satpoints()
-        .map_err(|err| {
-          ServerError::Internal(anyhow!("error getting rare ordinal satpoints: {err}"))
-        })?
+        .rare_sat_satpoints()
+        .map_err(|err| ServerError::Internal(anyhow!("error getting rare sat satpoints: {err}")))?
         .ok_or_else(|| {
           ServerError::NotFound(
-            "tracking rare ordinals requires index created with `--index-satoshis` flag".into(),
+            "tracking rare sats requires index created with `--index-satoshis` flag".into(),
           )
         })?,
     ))
@@ -561,7 +564,7 @@ impl Server {
     } else if OUTPOINT.is_match(query) {
       Ok(Redirect::to(&format!("/output/{query}")))
     } else {
-      Ok(Redirect::to(&format!("/ordinal/{query}")))
+      Ok(Redirect::to(&format!("/sat/{query}")))
     }
   }
 
@@ -720,7 +723,7 @@ mod tests {
       }
 
       for i in 0.. {
-        match reqwest::blocking::get(&format!("http://127.0.0.1:{port}/status")) {
+        match reqwest::blocking::get(format!("http://127.0.0.1:{port}/status")) {
           Ok(_) => break,
           Err(err) => {
             if i == 400 {
@@ -967,6 +970,11 @@ mod tests {
   }
 
   #[test]
+  fn ordinal_redirects_to_sat() {
+    TestServer::new().assert_redirect("/ordinal/0", "/sat/0");
+  }
+
+  #[test]
   fn bounties_redirects_to_docs_site() {
     TestServer::new().assert_redirect("/bounties", "https://docs.ordinals.com/bounty/");
   }
@@ -977,18 +985,18 @@ mod tests {
   }
 
   #[test]
-  fn search_by_query_returns_ordinal() {
-    TestServer::new().assert_redirect("/search?query=0", "/ordinal/0");
+  fn search_by_query_returns_sat() {
+    TestServer::new().assert_redirect("/search?query=0", "/sat/0");
   }
 
   #[test]
   fn search_is_whitespace_insensitive() {
-    TestServer::new().assert_redirect("/search/ 0 ", "/ordinal/0");
+    TestServer::new().assert_redirect("/search/ 0 ", "/sat/0");
   }
 
   #[test]
-  fn search_by_path_returns_ordinal() {
-    TestServer::new().assert_redirect("/search/0", "/ordinal/0");
+  fn search_by_path_returns_sat() {
+    TestServer::new().assert_redirect("/search/0", "/sat/0");
   }
 
   #[test]
@@ -1074,60 +1082,52 @@ mod tests {
     TestServer::new().assert_response_regex(
       "/range/0/1",
       StatusCode::OK,
-      r".*<title>Ordinal range 0–1</title>.*<h1>Ordinal range 0–1</h1>
+      r".*<title>Sat range 0–1</title>.*<h1>Sat range 0–1</h1>
 <dl>
   <dt>value</dt><dd>1</dd>
-  <dt>first</dt><dd><a href=/ordinal/0 class=mythic>0</a></dd>
+  <dt>first</dt><dd><a href=/sat/0 class=mythic>0</a></dd>
 </dl>.*",
     );
   }
   #[test]
-  fn ordinal_number() {
-    TestServer::new().assert_response_regex("/ordinal/0", StatusCode::OK, ".*<h1>Ordinal 0</h1>.*");
+  fn sat_number() {
+    TestServer::new().assert_response_regex("/sat/0", StatusCode::OK, ".*<h1>Sat 0</h1>.*");
   }
 
   #[test]
-  fn ordinal_decimal() {
+  fn sat_decimal() {
+    TestServer::new().assert_response_regex("/sat/0.0", StatusCode::OK, ".*<h1>Sat 0</h1>.*");
+  }
+
+  #[test]
+  fn sat_degree() {
+    TestServer::new().assert_response_regex("/sat/0°0′0″0‴", StatusCode::OK, ".*<h1>Sat 0</h1>.*");
+  }
+
+  #[test]
+  fn sat_name() {
     TestServer::new().assert_response_regex(
-      "/ordinal/0.0",
+      "/sat/nvtdijuwxlp",
       StatusCode::OK,
-      ".*<h1>Ordinal 0</h1>.*",
+      ".*<h1>Sat 0</h1>.*",
     );
   }
 
   #[test]
-  fn ordinal_degree() {
+  fn sat() {
     TestServer::new().assert_response_regex(
-      "/ordinal/0°0′0″0‴",
+      "/sat/0",
       StatusCode::OK,
-      ".*<h1>Ordinal 0</h1>.*",
+      ".*<title>0°0′0″0‴</title>.*<h1>Sat 0</h1>.*",
     );
   }
 
   #[test]
-  fn ordinal_name() {
-    TestServer::new().assert_response_regex(
-      "/ordinal/nvtdijuwxlp",
-      StatusCode::OK,
-      ".*<h1>Ordinal 0</h1>.*",
-    );
-  }
-
-  #[test]
-  fn ordinal() {
-    TestServer::new().assert_response_regex(
-      "/ordinal/0",
-      StatusCode::OK,
-      ".*<title>0°0′0″0‴</title>.*<h1>Ordinal 0</h1>.*",
-    );
-  }
-
-  #[test]
-  fn ordinal_out_of_range() {
+  fn sat_out_of_range() {
     TestServer::new().assert_response(
-      "/ordinal/2099999997690000",
+      "/sat/2099999997690000",
       StatusCode::BAD_REQUEST,
-      "Invalid URL: invalid ordinal",
+      "Invalid URL: invalid sat",
     );
   }
 
@@ -1150,7 +1150,7 @@ mod tests {
   <dt>value</dt><dd>5000000000</dd>
   <dt>script pubkey</dt><dd class=data>OP_PUSHBYTES_65 04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f OP_CHECKSIG</dd>
 </dl>
-<h2>1 Ordinal Range</h2>
+<h2>1 Sat Range</h2>
 <ul class=monospace>
   <li><a href=/range/0/5000000000 class=mythic>0–5000000000</a></li>
 </ul>.*",
@@ -1250,18 +1250,18 @@ mod tests {
   }
 
   #[test]
-  fn unmined_ordinal() {
+  fn unmined_sat() {
     TestServer::new().assert_response_regex(
-      "/ordinal/0",
+      "/sat/0",
       StatusCode::OK,
       ".*<dt>time</dt><dd>2009-01-03 18:15:05</dd>.*",
     );
   }
 
   #[test]
-  fn mined_ordinal() {
+  fn mined_sat() {
     TestServer::new().assert_response_regex(
-      "/ordinal/5000000000",
+      "/sat/5000000000",
       StatusCode::OK,
       ".*<dt>time</dt><dd>.* \\(expected\\)</dd>.*",
     );
@@ -1393,7 +1393,7 @@ next.*",
     TestServer::new_with_args(&["--index-satoshis"]).assert_response(
       "/rare.txt",
       StatusCode::OK,
-      "ordinal\tsatpoint
+      "sat\tsatpoint
 0\t4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0
 ",
     );
@@ -1404,7 +1404,7 @@ next.*",
     TestServer::new_with_args(&[]).assert_response(
       "/rare.txt",
       StatusCode::NOT_FOUND,
-      "tracking rare ordinals requires index created with `--index-satoshis` flag",
+      "tracking rare sats requires index created with `--index-satoshis` flag",
     );
   }
 
@@ -1538,13 +1538,13 @@ next.*",
   }
 
   #[test]
-  fn coinbase_ordinal_ranges_are_tracked() {
+  fn coinbase_sat_ranges_are_tracked() {
     let server = TestServer::new_with_args(&["--index-satoshis"]);
 
     assert_eq!(
       server
         .index
-        .statistic(crate::index::Statistic::OrdinalRanges)
+        .statistic(crate::index::Statistic::SatRanges)
         .unwrap(),
       1
     );
@@ -1555,7 +1555,7 @@ next.*",
     assert_eq!(
       server
         .index
-        .statistic(crate::index::Statistic::OrdinalRanges)
+        .statistic(crate::index::Statistic::SatRanges)
         .unwrap(),
       2
     );
@@ -1566,20 +1566,20 @@ next.*",
     assert_eq!(
       server
         .index
-        .statistic(crate::index::Statistic::OrdinalRanges)
+        .statistic(crate::index::Statistic::SatRanges)
         .unwrap(),
       3
     );
   }
 
   #[test]
-  fn split_ordinal_ranges_are_tracked() {
+  fn split_sat_ranges_are_tracked() {
     let server = TestServer::new_with_args(&["--index-satoshis"]);
 
     assert_eq!(
       server
         .index
-        .statistic(crate::index::Statistic::OrdinalRanges)
+        .statistic(crate::index::Statistic::SatRanges)
         .unwrap(),
       1
     );
@@ -1596,20 +1596,20 @@ next.*",
     assert_eq!(
       server
         .index
-        .statistic(crate::index::Statistic::OrdinalRanges)
+        .statistic(crate::index::Statistic::SatRanges)
         .unwrap(),
       4,
     );
   }
 
   #[test]
-  fn fee_ordinal_ranges_are_tracked() {
+  fn fee_sat_ranges_are_tracked() {
     let server = TestServer::new_with_args(&["--index-satoshis"]);
 
     assert_eq!(
       server
         .index
-        .statistic(crate::index::Statistic::OrdinalRanges)
+        .statistic(crate::index::Statistic::SatRanges)
         .unwrap(),
       1
     );
@@ -1626,7 +1626,7 @@ next.*",
     assert_eq!(
       server
         .index
-        .statistic(crate::index::Statistic::OrdinalRanges)
+        .statistic(crate::index::Statistic::SatRanges)
         .unwrap(),
       5,
     );

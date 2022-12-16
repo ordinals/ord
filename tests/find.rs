@@ -1,7 +1,7 @@
 use super::*;
 
 #[test]
-fn find_command_returns_satpoint_for_ordinal() {
+fn find_command_returns_satpoint_for_sat() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   CommandBuilder::new("--index-satoshis find 0")
     .rpc_server(&rpc_server)
@@ -10,11 +10,11 @@ fn find_command_returns_satpoint_for_ordinal() {
 }
 
 #[test]
-fn unmined_ordinal() {
+fn unmined_sat() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   CommandBuilder::new("--index-satoshis find 5000000000")
     .rpc_server(&rpc_server)
-    .expected_stderr("error: ordinal has not been mined as of index height\n")
+    .expected_stderr("error: sat has not been mined as of index height\n")
     .expected_exit_code(1)
     .run();
 }

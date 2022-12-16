@@ -12,11 +12,11 @@ impl Height {
     Epoch::from(self).subsidy()
   }
 
-  pub(crate) fn starting_ordinal(self) -> Ordinal {
+  pub(crate) fn starting_sat(self) -> Sat {
     let epoch = Epoch::from(self);
-    let epoch_starting_ordinal = epoch.starting_ordinal();
+    let epoch_starting_sat = epoch.starting_sat();
     let epoch_starting_height = epoch.starting_height();
-    epoch_starting_ordinal + (self - epoch_starting_height.n()).n() * epoch.subsidy()
+    epoch_starting_sat + (self - epoch_starting_height.n()).n() * epoch.subsidy()
   }
 
   pub(crate) fn period_offset(self) -> u64 {
@@ -90,24 +90,24 @@ mod tests {
   }
 
   #[test]
-  fn starting_ordinal() {
-    assert_eq!(Height(0).starting_ordinal(), 0);
-    assert_eq!(Height(1).starting_ordinal(), 5000000000);
+  fn starting_sat() {
+    assert_eq!(Height(0).starting_sat(), 0);
+    assert_eq!(Height(1).starting_sat(), 5000000000);
     assert_eq!(
-      Height(SUBSIDY_HALVING_INTERVAL - 1).starting_ordinal(),
+      Height(SUBSIDY_HALVING_INTERVAL - 1).starting_sat(),
       (SUBSIDY_HALVING_INTERVAL - 1) * 5000000000
     );
     assert_eq!(
-      Height(SUBSIDY_HALVING_INTERVAL).starting_ordinal(),
+      Height(SUBSIDY_HALVING_INTERVAL).starting_sat(),
       SUBSIDY_HALVING_INTERVAL * 5000000000
     );
     assert_eq!(
-      Height(SUBSIDY_HALVING_INTERVAL + 1).starting_ordinal(),
+      Height(SUBSIDY_HALVING_INTERVAL + 1).starting_sat(),
       SUBSIDY_HALVING_INTERVAL * 5000000000 + 2500000000
     );
     assert_eq!(
-      Height(u64::max_value()).starting_ordinal(),
-      *Epoch::STARTING_ORDINALS.last().unwrap()
+      Height(u64::max_value()).starting_sat(),
+      *Epoch::STARTING_SATS.last().unwrap()
     );
   }
 

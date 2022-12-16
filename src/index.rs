@@ -15,18 +15,18 @@ mod updater;
 
 type BlockHashArray = [u8; 32];
 type InscriptionIdArray = [u8; 32];
-type OrdinalRangeArray = [u8; 11];
+type SatRangeArray = [u8; 11];
 type OutPointArray = [u8; 36];
 type SatPointArray = [u8; 44];
 
 const HEIGHT_TO_BLOCK_HASH: TableDefinition<u64, &BlockHashArray> =
   TableDefinition::new("HEIGHT_TO_BLOCK_HASH");
-const ORDINAL_TO_INSCRIPTION_ID: TableDefinition<u64, &InscriptionIdArray> =
-  TableDefinition::new("ORDINAL_TO_INSCRIPTION_ID");
-const ORDINAL_TO_SATPOINT: TableDefinition<u64, &SatPointArray> =
-  TableDefinition::new("ORDINAL_TO_SATPOINT");
-const OUTPOINT_TO_ORDINAL_RANGES: TableDefinition<&OutPointArray, [u8]> =
-  TableDefinition::new("OUTPOINT_TO_ORDINAL_RANGES");
+const SAT_TO_INSCRIPTION_ID: TableDefinition<u64, &InscriptionIdArray> =
+  TableDefinition::new("SAT_TO_INSCRIPTION_ID");
+const SAT_TO_SATPOINT: TableDefinition<u64, &SatPointArray> =
+  TableDefinition::new("SAT_TO_SATPOINT");
+const OUTPOINT_TO_SAT_RANGES: TableDefinition<&OutPointArray, [u8]> =
+  TableDefinition::new("OUTPOINT_TO_SAT_RANGES");
 const STATISTIC_TO_COUNT: TableDefinition<u64, u64> = TableDefinition::new("STATISTIC_TO_COUNT");
 const WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP: TableDefinition<u64, u128> =
   TableDefinition::new("WRITE_TRANSACTION_START_BLOCK_COUNT_TO_TIMESTAMP");
@@ -87,7 +87,7 @@ pub(crate) enum List {
 pub(crate) enum Statistic {
   OutputsTraversed = 0,
   Commits = 1,
-  OrdinalRanges = 2,
+  SatRanges = 2,
 }
 
 impl Statistic {
@@ -110,7 +110,7 @@ pub(crate) struct Info {
   pub(crate) index_file_size: u64,
   pub(crate) leaf_pages: usize,
   pub(crate) metadata_bytes: usize,
-  pub(crate) ordinal_ranges: u64,
+  pub(crate) sat_ranges: u64,
   pub(crate) outputs_traversed: u64,
   pub(crate) page_size: usize,
   pub(crate) stored_bytes: usize,
@@ -204,14 +204,14 @@ impl Index {
 
         tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
         tx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
-        tx.open_table(ORDINAL_TO_INSCRIPTION_ID)?;
-        tx.open_table(ORDINAL_TO_SATPOINT)?;
+        tx.open_table(SAT_TO_INSCRIPTION_ID)?;
+        tx.open_table(SAT_TO_SATPOINT)?;
         tx.open_table(SATPOINT_TO_INSCRIPTION_ID)?;
         tx.open_table(STATISTIC_TO_COUNT)?;
         tx.open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?;
 
         if options.index_satoshis {
-          tx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
+          tx.open_table(OUTPOINT_TO_SAT_RANGES)?;
         }
 
         tx.commit()?;
@@ -239,7 +239,7 @@ impl Index {
   }
 
   pub(crate) fn has_satoshi_index(&self) -> Result<bool> {
-    match self.begin_read()?.0.open_table(OUTPOINT_TO_ORDINAL_RANGES) {
+    match self.begin_read()?.0.open_table(OUTPOINT_TO_SAT_RANGES) {
       Ok(_) => Ok(true),
       Err(redb::Error::TableDoesNotExist(_)) => Ok(false),
       Err(err) => Err(err.into()),
@@ -274,8 +274,8 @@ impl Index {
         index_file_size: fs::metadata(&self.database_path)?.len(),
         leaf_pages: stats.leaf_pages(),
         metadata_bytes: stats.metadata_bytes(),
-        ordinal_ranges: statistic_to_count
-          .get(&Statistic::OrdinalRanges.key())?
+        sat_ranges: statistic_to_count
+          .get(&Statistic::SatRanges.key())?
           .unwrap_or(0),
         outputs_traversed: statistic_to_count
           .get(&Statistic::OutputsTraversed.key())?
@@ -293,14 +293,14 @@ impl Index {
           )
           .collect(),
         tree_height: stats.tree_height(),
-        utxos_indexed: wtx.open_table(OUTPOINT_TO_ORDINAL_RANGES)?.len()?,
+        utxos_indexed: wtx.open_table(OUTPOINT_TO_SAT_RANGES)?.len()?,
       }
     };
 
     Ok(info)
   }
 
-  pub(crate) fn decode_ordinal_range(bytes: OrdinalRangeArray) -> (u64, u64) {
+  pub(crate) fn decode_sat_range(bytes: SatRangeArray) -> (u64, u64) {
     let raw_base = u64::from_le_bytes([
       bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], 0,
     ]);
@@ -384,16 +384,16 @@ impl Index {
     Ok(blocks)
   }
 
-  pub(crate) fn rare_ordinal_satpoints(&self) -> Result<Option<Vec<(Ordinal, SatPoint)>>> {
+  pub(crate) fn rare_sat_satpoints(&self) -> Result<Option<Vec<(Sat, SatPoint)>>> {
     if self.has_satoshi_index()? {
       let mut result = Vec::new();
 
       let rtx = self.database.begin_read()?;
 
-      let ordinal_to_satpoint = rtx.open_table(ORDINAL_TO_SATPOINT)?;
+      let sat_to_satpoint = rtx.open_table(SAT_TO_SATPOINT)?;
 
-      for (ordinal, satpoint) in ordinal_to_satpoint.range(0..)? {
-        result.push((Ordinal(ordinal), decode_satpoint(*satpoint)));
+      for (sat, satpoint) in sat_to_satpoint.range(0..)? {
+        result.push((Sat(sat), decode_satpoint(*satpoint)));
       }
 
       Ok(Some(result))
@@ -425,11 +425,11 @@ impl Index {
     self.client.get_block(&hash).into_option()
   }
 
-  pub(crate) fn get_inscription_by_ordinal(&self, ordinal: Ordinal) -> Result<Option<Inscription>> {
+  pub(crate) fn get_inscription_by_sat(&self, sat: Sat) -> Result<Option<Inscription>> {
     let db = self.database.begin_read()?;
-    let table = db.open_table(ORDINAL_TO_INSCRIPTION_ID)?;
+    let table = db.open_table(SAT_TO_INSCRIPTION_ID)?;
 
-    let Some(txid) = table.get(&ordinal.n())? else {
+    let Some(txid) = table.get(&sat.n())? else {
       return Ok(None);
     };
 
@@ -483,26 +483,26 @@ impl Index {
     )
   }
 
-  pub(crate) fn find(&self, ordinal: u64) -> Result<Option<SatPoint>> {
+  pub(crate) fn find(&self, sat: u64) -> Result<Option<SatPoint>> {
     self.require_satoshi_index("find")?;
 
     let rtx = self.begin_read()?;
 
-    if rtx.block_count()? <= Ordinal(ordinal).height().n() {
+    if rtx.block_count()? <= Sat(sat).height().n() {
       return Ok(None);
     }
 
-    let outpoint_to_ordinal_ranges = rtx.0.open_table(OUTPOINT_TO_ORDINAL_RANGES)?;
+    let outpoint_to_sat_ranges = rtx.0.open_table(OUTPOINT_TO_SAT_RANGES)?;
 
-    for (key, value) in outpoint_to_ordinal_ranges.range([0; 36]..)? {
+    for (key, value) in outpoint_to_sat_ranges.range([0; 36]..)? {
       let mut offset = 0;
       for chunk in value.chunks_exact(11) {
-        let (start, end) = Index::decode_ordinal_range(chunk.try_into().unwrap());
-        if start <= ordinal && ordinal < end {
+        let (start, end) = Index::decode_sat_range(chunk.try_into().unwrap());
+        if start <= sat && sat < end {
           let outpoint = decode_outpoint(*key);
           return Ok(Some(SatPoint {
             outpoint,
-            offset: offset + ordinal - start,
+            offset: offset + sat - start,
           }));
         }
         offset += end - start;
@@ -517,7 +517,7 @@ impl Index {
       self
         .database
         .begin_read()?
-        .open_table(OUTPOINT_TO_ORDINAL_RANGES)?
+        .open_table(OUTPOINT_TO_SAT_RANGES)?
         .get(&outpoint)?
         .map(|outpoint| outpoint.to_vec()),
     )
@@ -528,13 +528,13 @@ impl Index {
 
     let outpoint_encoded = encode_outpoint(outpoint);
 
-    let ordinal_ranges = self.list_inner(outpoint_encoded)?;
+    let sat_ranges = self.list_inner(outpoint_encoded)?;
 
-    match ordinal_ranges {
-      Some(ordinal_ranges) => Ok(Some(List::Unspent(
-        ordinal_ranges
+    match sat_ranges {
+      Some(sat_ranges) => Ok(Some(List::Unspent(
+        sat_ranges
           .chunks_exact(11)
-          .map(|chunk| Self::decode_ordinal_range(chunk.try_into().unwrap()))
+          .map(|chunk| Self::decode_sat_range(chunk.try_into().unwrap()))
           .collect(),
       ))),
       None => {
@@ -564,7 +564,7 @@ impl Index {
           .unwrap_or(0);
 
         let expected_blocks = height.checked_sub(current).with_context(|| {
-          format!("current {current} height is greater than ordinal height {height}")
+          format!("current {current} height is greater than sat height {height}")
         })?;
 
         Ok(Blocktime::Expected(
@@ -891,7 +891,7 @@ mod tests {
   }
 
   #[test]
-  fn find_first_ordinal() {
+  fn find_first_sat() {
     let context = Context::with_args("--index-satoshis");
     assert_eq!(
       context.index.find(0).unwrap().unwrap(),
@@ -905,7 +905,7 @@ mod tests {
   }
 
   #[test]
-  fn find_second_ordinal() {
+  fn find_second_sat() {
     let context = Context::with_args("--index-satoshis");
     assert_eq!(
       context.index.find(1).unwrap().unwrap(),
@@ -919,7 +919,7 @@ mod tests {
   }
 
   #[test]
-  fn find_first_ordinal_of_second_block() {
+  fn find_first_sat_of_second_block() {
     let context = Context::with_args("--index-satoshis");
     context.rpc_server.mine_blocks(1);
     context.index.update().unwrap();
@@ -935,7 +935,7 @@ mod tests {
   }
 
   #[test]
-  fn find_unmined_ordinal() {
+  fn find_unmined_sat() {
     let context = Context::with_args("--index-satoshis");
     assert_eq!(context.index.find(50 * COIN_VALUE).unwrap(), None);
   }

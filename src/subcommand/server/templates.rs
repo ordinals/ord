@@ -2,8 +2,8 @@ use {super::*, boilerplate::Boilerplate};
 
 pub(crate) use {
   block::BlockHtml, clock::ClockSvg, content::ContentHtml, home::HomeHtml, input::InputHtml,
-  inscription::InscriptionHtml, ordinal::OrdinalHtml, output::OutputHtml, range::RangeHtml,
-  rare::RareTxt, transaction::TransactionHtml,
+  inscription::InscriptionHtml, output::OutputHtml, range::RangeHtml, rare::RareTxt, sat::SatHtml,
+  transaction::TransactionHtml,
 };
 
 mod block;
@@ -12,10 +12,10 @@ mod content;
 mod home;
 mod input;
 mod inscription;
-mod ordinal;
 mod output;
 mod range;
 mod rare;
+mod sat;
 mod transaction;
 
 #[derive(Boilerplate)]

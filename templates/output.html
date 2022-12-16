@@ -9,13 +9,13 @@
 %% if let Some(list) = &self.list {
 %% match list {
 %% List::Unspent(ranges) => {
-<h2>{{"Ordinal Range".tally(ranges.len())}}</h2>
+<h2>{{"Sat Range".tally(ranges.len())}}</h2>
 <ul class=monospace>
 %% for (start, end) in ranges {
 %% if end - start == 1 {
-  <li><a href=/ordinal/{{start}} class={{Ordinal(*start).rarity()}}>{{start}}</a></li>
+  <li><a href=/sat/{{start}} class={{Sat(*start).rarity()}}>{{start}}</a></li>
 %% } else {
-  <li><a href=/range/{{start}}/{{end}} class={{Ordinal(*start).rarity()}}>{{start}}–{{end}}</a></li>
+  <li><a href=/range/{{start}}/{{end}} class={{Sat(*start).rarity()}}>{{start}}–{{end}}</a></li>
 %% }
 %% }
 </ul>

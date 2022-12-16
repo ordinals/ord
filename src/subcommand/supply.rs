@@ -10,9 +10,9 @@ pub(crate) fn run() -> Result {
     last += 1;
   }
 
-  println!("supply: {}", Ordinal::SUPPLY);
+  println!("supply: {}", Sat::SUPPLY);
   println!("first: {}", 0);
-  println!("last: {}", Ordinal::SUPPLY - 1);
+  println!("last: {}", Sat::SUPPLY - 1);
   println!("last mined in block: {}", last);
 
   Ok(())

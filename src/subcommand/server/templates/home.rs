@@ -4,15 +4,15 @@ use super::*;
 pub(crate) struct HomeHtml {
   last: u64,
   blocks: Vec<BlockHash>,
-  starting_ordinal: Option<Ordinal>,
+  starting_sat: Option<Sat>,
 }
 
 impl HomeHtml {
   pub(crate) fn new(blocks: Vec<(u64, BlockHash)>) -> Self {
     Self {
-      starting_ordinal: blocks
+      starting_sat: blocks
         .get(0)
-        .map(|(height, _)| Height(*height).starting_ordinal()),
+        .map(|(height, _)| Height(*height).starting_sat()),
       last: blocks
         .get(0)
         .map(|(height, _)| height)

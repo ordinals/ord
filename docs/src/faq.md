@@ -31,7 +31,7 @@ artifacts.
 How does ordinal theory work?
 -----------------------------
 
-Ordinal number are assigned to satoshis in the ordinal in which they are mined.
+Ordinal numbers are assigned to satoshis in the order in which they are mined.
 The first satoshi in the first block has ordinal number 0, the second has
 ordinal number 1, and the last satoshi of the first block has ordinal number
 4,999,999,999.
@@ -91,8 +91,8 @@ Where can I find the nitty-gritty details?
 
 [The BIP!](https://github.com/casey/ord/blob/master/bip.mediawiki)
 
-Why are ordinal inscriptions called "digital artifacts" instead of "NFTs"?
---------------------------------------------------------------------------
+Why are sat inscriptions called "digital artifacts" instead of "NFTs"?
+----------------------------------------------------------------------
 
 An inscription is an NFT, but the term "digital artifact" is used instead,
 because it's simple, suggestive, and familiar.
@@ -105,8 +105,8 @@ Additionally, "NFT" feels like financial terminology, and the both word
 "fungible" and sense of the word "token" as used in "NFT" is uncommon outside
 of financial contexts.
 
-How do ordinal inscriptions compare to…
----------------------------------------
+How do sat inscriptions compare to…
+-----------------------------------
 
 ### Ethereum NFTs?
 

@@ -1,0 +1,28 @@
+<h1>Sat {{ self.sat.n() }}</h1>
+<dl>
+  <dt>decimal</dt><dd>{{ self.sat.decimal() }}</dd>
+  <dt>degree</dt><dd>{{ self.sat.degree() }}</dd>
+  <dt>percentile</dt><dd>{{ self.sat.percentile() }}</dd>
+  <dt>name</dt><dd>{{ self.sat.name() }}</dd>
+  <dt>cycle</dt><dd>{{ self.sat.cycle() }}</dd>
+  <dt>epoch</dt><dd>{{ self.sat.epoch() }}</dd>
+  <dt>period</dt><dd>{{ self.sat.period() }}</dd>
+  <dt>block</dt><dd>{{ self.sat.height() }}</dd>
+  <dt>offset</dt><dd>{{ self.sat.third() }}</dd>
+  <dt>rarity</dt><dd><span class={{self.sat.rarity()}}>{{ self.sat.rarity() }}</span></dd>
+  <dt>time</dt><dd>{{ self.blocktime }}</dd>
+%% if let Some(inscription) = &self.inscription {
+  <dt>inscription</dt>
+  <dd>{{ inscription.content_html() }}</dd>
+%% }
+</dl>
+%% if self.sat.n() > 0 {
+<a href=/sat/{{self.sat.n() - 1}}>prev</a>
+%% } else {
+prev
+%% }
+%% if self.sat < Sat::LAST {
+<a href=/sat/{{self.sat.n() + 1}}>next</a>
+%% } else {
+next
+%% }

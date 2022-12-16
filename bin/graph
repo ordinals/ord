@@ -13,7 +13,7 @@ class Block:
 
 pat = re.compile(
   '''Block (?P<height>[0-9]+) at.*with (?P<transactions>[0-9]+) transactions.*
-.*Wrote (?P<ranges>[0-9]+) ordinal ranges from .* outputs in (?P<time>[0-9]+) ms'''
+.*Wrote (?P<ranges>[0-9]+) sat ranges from .* outputs in (?P<time>[0-9]+) ms'''
 )
 
 blocks = [

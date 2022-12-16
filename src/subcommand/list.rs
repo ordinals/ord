@@ -2,7 +2,7 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct List {
-  #[clap(help = "List ordinals in <OUTPOINT>.")]
+  #[clap(help = "List sats in <OUTPOINT>.")]
   outpoint: OutPoint,
 }
 
@@ -31,8 +31,8 @@ fn list(outpoint: OutPoint, ranges: Vec<(u64, u64)>) -> Vec<(OutPoint, u64, u64,
     .into_iter()
     .map(|(start, end)| {
       let size = end - start;
-      let rarity = Ordinal(start).rarity();
-      let name = Ordinal(start).name();
+      let rarity = Sat(start).rarity();
+      let name = Sat(start).name();
 
       (outpoint, start, size, rarity, name)
     })
