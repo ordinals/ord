@@ -398,7 +398,7 @@ impl Server {
         .map_err(|err| ServerError::Internal(anyhow!("error getting rare sat satpoints: {err}")))?
         .ok_or_else(|| {
           ServerError::NotFound(
-            "tracking rare sats requires index created with `--index-satoshis` flag".into(),
+            "tracking rare sats requires index created with `--index-sats` flag".into(),
           )
         })?,
     ))
@@ -1189,7 +1189,7 @@ mod tests {
 
   #[test]
   fn output_with_satoshi_index() {
-    TestServer::new_with_args(&["--index-satoshis"]).assert_response_regex(
+    TestServer::new_with_args(&["--index-sats"]).assert_response_regex(
     "/output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
     StatusCode::OK,
     ".*<title>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</title>.*<h1>Output <span class=monospace>4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</span></h1>
@@ -1437,7 +1437,7 @@ next.*",
 
   #[test]
   fn rare_with_index() {
-    TestServer::new_with_args(&["--index-satoshis"]).assert_response(
+    TestServer::new_with_args(&["--index-sats"]).assert_response(
       "/rare.txt",
       StatusCode::OK,
       "sat\tsatpoint
@@ -1451,13 +1451,13 @@ next.*",
     TestServer::new_with_args(&[]).assert_response(
       "/rare.txt",
       StatusCode::NOT_FOUND,
-      "tracking rare sats requires index created with `--index-satoshis` flag",
+      "tracking rare sats requires index created with `--index-sats` flag",
     );
   }
 
   #[test]
   fn show_rare_txt_in_header_with_satoshi_index() {
-    TestServer::new_with_args(&["--index-satoshis"]).assert_response_regex(
+    TestServer::new_with_args(&["--index-sats"]).assert_response_regex(
       "/",
       StatusCode::OK,
       ".*
@@ -1550,7 +1550,7 @@ next.*",
 
   #[test]
   fn outputs_traversed_are_tracked() {
-    let server = TestServer::new_with_args(&["--index-satoshis"]);
+    let server = TestServer::new_with_args(&["--index-sats"]);
 
     assert_eq!(
       server
@@ -1586,7 +1586,7 @@ next.*",
 
   #[test]
   fn coinbase_sat_ranges_are_tracked() {
-    let server = TestServer::new_with_args(&["--index-satoshis"]);
+    let server = TestServer::new_with_args(&["--index-sats"]);
 
     assert_eq!(
       server
@@ -1621,7 +1621,7 @@ next.*",
 
   #[test]
   fn split_sat_ranges_are_tracked() {
-    let server = TestServer::new_with_args(&["--index-satoshis"]);
+    let server = TestServer::new_with_args(&["--index-sats"]);
 
     assert_eq!(
       server
@@ -1651,7 +1651,7 @@ next.*",
 
   #[test]
   fn fee_sat_ranges_are_tracked() {
-    let server = TestServer::new_with_args(&["--index-satoshis"]);
+    let server = TestServer::new_with_args(&["--index-sats"]);
 
     assert_eq!(
       server
