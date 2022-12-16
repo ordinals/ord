@@ -574,7 +574,10 @@ impl Index {
     }
   }
 
-  pub(crate) fn get_inscriptions(&self) -> Result<BTreeMap<SatPoint, InscriptionId>> {
+  pub(crate) fn get_inscriptions(
+    &self,
+    n: Option<usize>,
+  ) -> Result<BTreeMap<SatPoint, InscriptionId>> {
     Ok(
       self
         .database
@@ -582,6 +585,7 @@ impl Index {
         .open_table(SATPOINT_TO_INSCRIPTION_ID)?
         .range([0; 44]..)?
         .map(|(satpoint, id)| (decode_satpoint(*satpoint), decode_inscription_id(*id)))
+        .take(n.unwrap_or(usize::MAX))
         .collect(),
     )
   }

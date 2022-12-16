@@ -157,3 +157,12 @@ a.legendary {
 a.mythic {
   color: var(--mythic);
 }
+
+.inscriptions {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.inscriptions > * {
+  width: 25%;
+}

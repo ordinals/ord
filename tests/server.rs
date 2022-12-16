@@ -63,7 +63,7 @@ fn inscription_page() {
   <dt>location</dt>
   <dd>{reveal_tx}:0:0</dd>
 </dl>
-HELLOWORLD.*",
+<p>HELLOWORLD</p>.*",
     ),
   );
 }
@@ -91,7 +91,7 @@ fn inscription_appears_on_reveal_transaction_page() {
       ".*<h1>Transaction .*</h1>.*
 <h2>Inscription</h2>
 <a href=/inscription/{reveal_tx}>
-HELLOWORLD
+<p>HELLOWORLD</p>
 </a>.*",
     ),
   );
@@ -127,7 +127,7 @@ fn inscription_page_after_send() {
   <dt>location</dt>
   <dd>{reveal_txid}:0:0</dd>
 </dl>
-HELLOWORLD.*",
+<p>HELLOWORLD</p>.*",
     ),
   );
 
@@ -154,7 +154,7 @@ HELLOWORLD.*",
   <dt>location</dt>
   <dd>{}:0:0</dd>
 </dl>
-HELLOWORLD.*",
+<p>HELLOWORLD</p>.*",
       txid.trim(),
     ),
   )

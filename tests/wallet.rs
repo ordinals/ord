@@ -257,7 +257,7 @@ fn inscribe() {
 
   TestServer::spawn_with_args(&rpc_server, &["--index-sats"]).assert_response_regex(
     "/sat/5000000000",
-    ".*<dt>inscription</dt>\n  <dd>HELLOWORLD</dd>.*",
+    ".*<dt>inscription</dt>\n  <dd><p>HELLOWORLD</p></dd>.*",
   );
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
@@ -610,7 +610,7 @@ fn inscribe_with_optional_satpoint_arg() {
 
   TestServer::spawn_with_args(&rpc_server, &["--index-sats"]).assert_response_regex(
     "/sat/5000000000",
-    ".*<dt>inscription</dt>\n  <dd>HELLOWORLD</dd>.*",
+    ".*<dt>inscription</dt>\n  <dd><p>HELLOWORLD</p></dd>.*",
   );
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
