@@ -6,6 +6,14 @@ sidechain or token required.</p>
 
 <p><a href=https://docs.ordinals.com>Get Started</a></p>
 
+%% if !&self.inscriptions.is_empty() {
+<h2>Latest Inscriptions</h2>
+<div class=inscriptions>
+%% for inscription in &self.inscriptions {
+  {{inscription.content_html()}}
+%% }
+</div>
+%% }
 %% if let Some(starting_sat) = self.starting_sat {
 <h2>Status</h2>
 <dl>

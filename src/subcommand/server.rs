@@ -413,6 +413,21 @@ impl Server {
         index
           .blocks(100)
           .map_err(|err| ServerError::Internal(anyhow!("error getting blocks: {err}")))?,
+        index
+          .get_inscriptions()
+          .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?
+          .iter()
+          .take(8)
+          .map(|(_satpoint, inscription_id)| {
+            Ok(
+              index
+                .get_inscription_by_inscription_id(*inscription_id)
+                .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?
+                .unwrap()
+                .0,
+            )
+          })
+          .collect::<ServerResult<Vec<Inscription>>>()?,
       )
       .page(
         chain,

@@ -157,3 +157,7 @@ a.legendary {
 a.mythic {
   color: var(--mythic);
 }
+
+.inscriptions {
+  display: grid;
+}
