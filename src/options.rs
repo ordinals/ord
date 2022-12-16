@@ -23,7 +23,7 @@ pub(crate) struct Options {
   #[clap(long, help = "Use index at <INDEX>.")]
   pub(crate) index: Option<PathBuf>,
   #[clap(long, help = "Index current location of all satoshis.")]
-  pub(crate) index_satoshis: bool,
+  pub(crate) index_sats: bool,
   #[clap(long, help = "Use regtest.")]
   regtest: bool,
   #[clap(long, help = "Connect to Bitcoin Core RPC at <RPC_URL>.")]
