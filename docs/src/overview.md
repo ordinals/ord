@@ -13,7 +13,7 @@ name, *ordinals*.
 Technical details are available in [the
 BIP](https://github.com/casey/ord/blob/master/bip.mediawiki).
 
-Ordinal theory do not require a separate token, another blockchain, or any
+Ordinal theory does not require a separate token, another blockchain, or any
 changes to Bitcoin. It works right now.
 
 Ordinal numbers have a few different representations:
