@@ -7,6 +7,11 @@ pub(crate) struct Satoshis {
     help = "Find satoshis listed in first column of tab-separated value file <TSV>."
   )]
   tsv: Option<PathBuf>,
+  #[clap(
+  long,
+  help = "List all satoshis, regardless of rarity (by default only list rarer than common)."
+  )]
+  all: bool,
 }
 
 impl Satoshis {
@@ -25,7 +30,7 @@ impl Satoshis {
         println!("{output}\t{sat}");
       }
     } else {
-      for (output, sat, offset, rarity) in rare_satoshis(utxos) {
+      for (output, sat, offset, rarity) in rare_satoshis(utxos, self.all) {
         println!("{output}\t{sat}\t{offset}\t{rarity}");
       }
     }
@@ -34,7 +39,7 @@ impl Satoshis {
   }
 }
 
-fn rare_satoshis(utxos: Vec<(OutPoint, Vec<(u64, u64)>)>) -> Vec<(OutPoint, Sat, u64, Rarity)> {
+fn rare_satoshis(utxos: Vec<(OutPoint, Vec<(u64, u64)>)>, get_all: bool) -> Vec<(OutPoint, Sat, u64, Rarity)> {
   utxos
     .into_iter()
     .flat_map(|(outpoint, sat_ranges)| {
@@ -44,7 +49,7 @@ fn rare_satoshis(utxos: Vec<(OutPoint, Vec<(u64, u64)>)>) -> Vec<(OutPoint, Sat,
         let rarity = sat.rarity();
         let start_offset = offset;
         offset += end - start;
-        if rarity > Rarity::Common {
+        if rarity > Rarity::Common || get_all {
           Some((outpoint, sat, start_offset, rarity))
         } else {
           None
