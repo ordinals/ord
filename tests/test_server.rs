@@ -1,6 +1,9 @@
-use super::*;
-use crate::command_builder::ToArgs;
-use bitcoincore_rpc::{Auth, Client, RpcApi};
+use {
+  super::*,
+  crate::command_builder::ToArgs,
+  bitcoincore_rpc::{Auth, Client, RpcApi},
+  reqwest::blocking::Response,
+};
 
 pub(crate) struct TestServer {
   child: Child,
@@ -75,6 +78,24 @@ impl TestServer {
     let response = reqwest::blocking::get(self.url().join(path).unwrap()).unwrap();
     assert_eq!(response.status(), StatusCode::OK);
     assert_regex_match!(response.text().unwrap(), regex);
+  }
+
+  pub(crate) fn request(&self, path: &str) -> Response {
+    let client = Client::new(&self.rpc_url, Auth::None).unwrap();
+    let chain_block_count = client.get_block_count().unwrap() + 1;
+
+    for i in 0.. {
+      let response = reqwest::blocking::get(self.url().join("/block-count").unwrap()).unwrap();
+      assert_eq!(response.status(), StatusCode::OK);
+      if response.text().unwrap().parse::<u64>().unwrap() == chain_block_count {
+        break;
+      } else if i == 20 {
+        panic!("index failed to synchronize with chain");
+      }
+      thread::sleep(Duration::from_millis(25));
+    }
+
+    reqwest::blocking::get(self.url().join(path).unwrap()).unwrap()
   }
 }
 

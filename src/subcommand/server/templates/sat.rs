@@ -103,7 +103,7 @@ mod tests {
           <dt>rarity</dt><dd><span class=mythic>mythic</span></dd>
           <dt>time</dt><dd>1970-01-01 00:00:00</dd>
           <dt>inscription</dt>
-          <dd>HELLOWORLD</dd>
+          <dd><p>HELLOWORLD</p></dd>
         </dl>
         prev
         <a href=/sat/1>next</a>
@@ -139,7 +139,7 @@ mod tests {
           <dt>rarity</dt><dd><span class=mythic>mythic</span></dd>
           <dt>time</dt><dd>1970-01-01 00:00:00</dd>
           <dt>inscription</dt>
-          <dd>&lt;script&gt;alert(&apos;HELLOWORLD&apos;);&lt;/script&gt;</dd>
+          <dd><p>&lt;script&gt;alert(&apos;HELLOWORLD&apos;);&lt;/script&gt;</p></dd>
         </dl>
         prev
         <a href=/sat/1>next</a>

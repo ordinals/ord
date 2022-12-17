@@ -154,10 +154,11 @@ impl Server {
         .route("/block/:query", get(Self::block))
         .route("/bounties", get(Self::bounties))
         .route("/clock", get(Self::clock))
+        .route("/content/:inscription_id", get(Self::content))
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
         .route("/input/:block/:transaction/:input", get(Self::input))
-        .route("/inscription/:txid", get(Self::inscription))
+        .route("/inscription/:inscription_id", get(Self::inscription))
         .route("/install.sh", get(Self::install_script))
         .route("/ordinal/:sat", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
@@ -397,7 +398,7 @@ impl Server {
         .map_err(|err| ServerError::Internal(anyhow!("error getting rare sat satpoints: {err}")))?
         .ok_or_else(|| {
           ServerError::NotFound(
-            "tracking rare sats requires index created with `--index-satoshis` flag".into(),
+            "tracking rare sats requires index created with `--index-sats` flag".into(),
           )
         })?,
     ))
@@ -412,6 +413,21 @@ impl Server {
         index
           .blocks(100)
           .map_err(|err| ServerError::Internal(anyhow!("error getting blocks: {err}")))?,
+        index
+          .get_inscriptions(Some(8))
+          .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?
+          .values()
+          .map(|inscription_id| {
+            Ok((
+              index
+                .get_inscription_by_inscription_id(*inscription_id)
+                .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?
+                .unwrap()
+                .0,
+              *inscription_id,
+            ))
+          })
+          .collect::<ServerResult<Vec<(Inscription, InscriptionId)>>>()?,
       )
       .page(
         chain,
@@ -633,6 +649,37 @@ impl Server {
 
   async fn bounties() -> Redirect {
     Redirect::to("https://docs.ordinals.com/bounty/")
+  }
+
+  async fn content(
+    Extension(index): Extension<Arc<Index>>,
+    Path(inscription_id): Path<InscriptionId>,
+  ) -> ServerResult<Response> {
+    let (inscription, _) = index
+      .get_inscription_by_inscription_id(inscription_id)
+      .map_err(|err| {
+        ServerError::Internal(anyhow!(
+          "failed to retrieve inscription with inscription id {inscription_id} from index: {err}"
+        ))
+      })?
+      .ok_or_else(|| {
+        ServerError::NotFound(format!("transaction {inscription_id} has no inscription"))
+      })?;
+
+    let (content_type, content) = Self::content_response(inscription).ok_or_else(|| {
+      ServerError::NotFound(format!("inscription {inscription_id} has no content"))
+    })?;
+
+    Ok(([(header::CONTENT_TYPE, content_type)], content).into_response())
+  }
+
+  fn content_response(inscription: Inscription) -> Option<(String, Vec<u8>)> {
+    let content = inscription.content_bytes()?;
+
+    match inscription.content_type() {
+      Some(content_type) => Some((content_type.into(), content.to_vec())),
+      None => Some(("application/octet-stream".into(), content.to_vec())),
+    }
   }
 
   async fn inscription(
@@ -1142,7 +1189,7 @@ mod tests {
 
   #[test]
   fn output_with_satoshi_index() {
-    TestServer::new_with_args(&["--index-satoshis"]).assert_response_regex(
+    TestServer::new_with_args(&["--index-sats"]).assert_response_regex(
     "/output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
     StatusCode::OK,
     ".*<title>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</title>.*<h1>Output <span class=monospace>4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</span></h1>
@@ -1390,7 +1437,7 @@ next.*",
 
   #[test]
   fn rare_with_index() {
-    TestServer::new_with_args(&["--index-satoshis"]).assert_response(
+    TestServer::new_with_args(&["--index-sats"]).assert_response(
       "/rare.txt",
       StatusCode::OK,
       "sat\tsatpoint
@@ -1404,13 +1451,13 @@ next.*",
     TestServer::new_with_args(&[]).assert_response(
       "/rare.txt",
       StatusCode::NOT_FOUND,
-      "tracking rare sats requires index created with `--index-satoshis` flag",
+      "tracking rare sats requires index created with `--index-sats` flag",
     );
   }
 
   #[test]
   fn show_rare_txt_in_header_with_satoshi_index() {
-    TestServer::new_with_args(&["--index-satoshis"]).assert_response_regex(
+    TestServer::new_with_args(&["--index-sats"]).assert_response_regex(
       "/",
       StatusCode::OK,
       ".*
@@ -1503,7 +1550,7 @@ next.*",
 
   #[test]
   fn outputs_traversed_are_tracked() {
-    let server = TestServer::new_with_args(&["--index-satoshis"]);
+    let server = TestServer::new_with_args(&["--index-sats"]);
 
     assert_eq!(
       server
@@ -1539,7 +1586,7 @@ next.*",
 
   #[test]
   fn coinbase_sat_ranges_are_tracked() {
-    let server = TestServer::new_with_args(&["--index-satoshis"]);
+    let server = TestServer::new_with_args(&["--index-sats"]);
 
     assert_eq!(
       server
@@ -1574,7 +1621,7 @@ next.*",
 
   #[test]
   fn split_sat_ranges_are_tracked() {
-    let server = TestServer::new_with_args(&["--index-satoshis"]);
+    let server = TestServer::new_with_args(&["--index-sats"]);
 
     assert_eq!(
       server
@@ -1604,7 +1651,7 @@ next.*",
 
   #[test]
   fn fee_sat_ranges_are_tracked() {
-    let server = TestServer::new_with_args(&["--index-satoshis"]);
+    let server = TestServer::new_with_args(&["--index-sats"]);
 
     assert_eq!(
       server
@@ -1629,6 +1676,36 @@ next.*",
         .statistic(crate::index::Statistic::SatRanges)
         .unwrap(),
       5,
+    );
+  }
+
+  #[test]
+  fn content_response_no_content() {
+    assert_eq!(
+      Server::content_response(Inscription::new(
+        Some("text/plain".as_bytes().to_vec()),
+        None
+      )),
+      None
+    );
+  }
+
+  #[test]
+  fn content_response_with_content() {
+    assert_eq!(
+      Server::content_response(Inscription::new(
+        Some("text/plain".as_bytes().to_vec()),
+        Some(vec![1, 2, 3]),
+      )),
+      Some(("text/plain".into(), vec![1, 2, 3]))
+    );
+  }
+
+  #[test]
+  fn content_response_no_content_type() {
+    assert_eq!(
+      Server::content_response(Inscription::new(None, Some(vec![]))),
+      Some(("application/octet-stream".into(), vec![]))
     );
   }
 }

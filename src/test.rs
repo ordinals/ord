@@ -17,14 +17,18 @@ macro_rules! assert_regex_match {
   };
 }
 
-pub(crate) fn outpoint(n: u64) -> OutPoint {
+pub(crate) fn txid(n: u64) -> Txid {
   let hex = format!("{n:x}");
 
   if hex.is_empty() || hex.len() > 1 {
     panic!();
   }
 
-  format!("{}:{}", hex.repeat(64), n).parse().unwrap()
+  hex.repeat(64).parse().unwrap()
+}
+
+pub(crate) fn outpoint(n: u64) -> OutPoint {
+  format!("{}:{}", txid(n), n).parse().unwrap()
 }
 
 pub(crate) fn satpoint(n: u64, offset: u64) -> SatPoint {

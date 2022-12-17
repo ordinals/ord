@@ -35,7 +35,7 @@ impl Inscribe {
 
     let utxos = list_utxos(&options)?;
 
-    let inscriptions = index.get_inscriptions()?;
+    let inscriptions = index.get_inscriptions(None)?;
 
     let commit_tx_change = get_change_addresses(&options, 2)?;
 

@@ -210,7 +210,7 @@ impl Index {
         tx.open_table(STATISTIC_TO_COUNT)?;
         tx.open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?;
 
-        if options.index_satoshis {
+        if options.index_sats {
           tx.open_table(OUTPOINT_TO_SAT_RANGES)?;
         }
 
@@ -248,7 +248,7 @@ impl Index {
 
   fn require_satoshi_index(&self, feature: &str) -> Result {
     if !self.has_satoshi_index()? {
-      bail!("{feature} requires index created with `--index-satoshis` flag")
+      bail!("{feature} requires index created with `--index-sats` flag")
     }
 
     Ok(())
@@ -574,7 +574,10 @@ impl Index {
     }
   }
 
-  pub(crate) fn get_inscriptions(&self) -> Result<BTreeMap<SatPoint, InscriptionId>> {
+  pub(crate) fn get_inscriptions(
+    &self,
+    n: Option<usize>,
+  ) -> Result<BTreeMap<SatPoint, InscriptionId>> {
     Ok(
       self
         .database
@@ -582,6 +585,7 @@ impl Index {
         .open_table(SATPOINT_TO_INSCRIPTION_ID)?
         .range([0; 44]..)?
         .map(|(satpoint, id)| (decode_satpoint(*satpoint), decode_inscription_id(*id)))
+        .take(n.unwrap_or(usize::MAX))
         .collect(),
     )
   }
@@ -662,7 +666,7 @@ mod tests {
 
   #[test]
   fn list_first_coinbase_transaction() {
-    let context = Context::with_args("--index-satoshis");
+    let context = Context::with_args("--index-sats");
     assert_eq!(
       context
         .index
@@ -679,7 +683,7 @@ mod tests {
 
   #[test]
   fn list_second_coinbase_transaction() {
-    let context = Context::with_args("--index-satoshis");
+    let context = Context::with_args("--index-sats");
     let txid = context.rpc_server.mine_blocks(1)[0].txdata[0].txid();
     context.index.update().unwrap();
     assert_eq!(
@@ -690,7 +694,7 @@ mod tests {
 
   #[test]
   fn list_split_ranges_are_tracked_correctly() {
-    let context = Context::with_args("--index-satoshis");
+    let context = Context::with_args("--index-sats");
 
     context.rpc_server.mine_blocks(1);
     let split_coinbase_output = TransactionTemplate {
@@ -716,7 +720,7 @@ mod tests {
 
   #[test]
   fn list_merge_ranges_are_tracked_correctly() {
-    let context = Context::with_args("--index-satoshis");
+    let context = Context::with_args("--index-sats");
 
     context.rpc_server.mine_blocks(2);
     let merge_coinbase_outputs = TransactionTemplate {
@@ -740,7 +744,7 @@ mod tests {
 
   #[test]
   fn list_fee_paying_transaction_range() {
-    let context = Context::with_args("--index-satoshis");
+    let context = Context::with_args("--index-sats");
 
     context.rpc_server.mine_blocks(1);
     let fee_paying_tx = TransactionTemplate {
@@ -774,7 +778,7 @@ mod tests {
 
   #[test]
   fn list_two_fee_paying_transaction_range() {
-    let context = Context::with_args("--index-satoshis");
+    let context = Context::with_args("--index-sats");
 
     context.rpc_server.mine_blocks(2);
     let first_fee_paying_tx = TransactionTemplate {
@@ -809,7 +813,7 @@ mod tests {
 
   #[test]
   fn list_null_output() {
-    let context = Context::with_args("--index-satoshis");
+    let context = Context::with_args("--index-sats");
 
     context.rpc_server.mine_blocks(1);
     let no_value_output = TransactionTemplate {
@@ -829,7 +833,7 @@ mod tests {
 
   #[test]
   fn list_null_input() {
-    let context = Context::with_args("--index-satoshis");
+    let context = Context::with_args("--index-sats");
 
     context.rpc_server.mine_blocks(1);
     let no_value_output = TransactionTemplate {
@@ -857,7 +861,7 @@ mod tests {
 
   #[test]
   fn list_spent_output() {
-    let context = Context::with_args("--index-satoshis");
+    let context = Context::with_args("--index-sats");
     context.rpc_server.mine_blocks(1);
     context.rpc_server.broadcast_tx(TransactionTemplate {
       input_slots: &[(1, 0, 0)],
@@ -875,7 +879,7 @@ mod tests {
 
   #[test]
   fn list_unknown_output() {
-    let context = Context::with_args("--index-satoshis");
+    let context = Context::with_args("--index-sats");
 
     assert_eq!(
       context
@@ -892,7 +896,7 @@ mod tests {
 
   #[test]
   fn find_first_sat() {
-    let context = Context::with_args("--index-satoshis");
+    let context = Context::with_args("--index-sats");
     assert_eq!(
       context.index.find(0).unwrap().unwrap(),
       SatPoint {
@@ -906,7 +910,7 @@ mod tests {
 
   #[test]
   fn find_second_sat() {
-    let context = Context::with_args("--index-satoshis");
+    let context = Context::with_args("--index-sats");
     assert_eq!(
       context.index.find(1).unwrap().unwrap(),
       SatPoint {
@@ -920,7 +924,7 @@ mod tests {
 
   #[test]
   fn find_first_sat_of_second_block() {
-    let context = Context::with_args("--index-satoshis");
+    let context = Context::with_args("--index-sats");
     context.rpc_server.mine_blocks(1);
     context.index.update().unwrap();
     assert_eq!(
@@ -936,13 +940,13 @@ mod tests {
 
   #[test]
   fn find_unmined_sat() {
-    let context = Context::with_args("--index-satoshis");
+    let context = Context::with_args("--index-sats");
     assert_eq!(context.index.find(50 * COIN_VALUE).unwrap(), None);
   }
 
   #[test]
   fn find_first_satoshi_spent_in_second_block() {
-    let context = Context::with_args("--index-satoshis");
+    let context = Context::with_args("--index-sats");
     context.rpc_server.mine_blocks(1);
     let spend_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
       input_slots: &[(1, 0, 0)],
