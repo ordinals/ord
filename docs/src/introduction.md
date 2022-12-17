@@ -11,10 +11,10 @@ One bitcoin can be sub-divided into 100,000,000 satoshis, but no further.
 Ordinal theory does not require a sidechain or token aside from Bitcoin, and
 can be used without any changes to the Bitcoin network. It works right now.
 
-Ordinal theory imbues satoshis with numismatic value, allowing them to
+Ordinal theory imbues satoshis with numismatic value, allowing them to be
 collected and traded as curios.
 
-Individual satoshis can be inscribed with arbitrary content, creating
+Individual satoshis can be inscribed with arbitrary content, creating unique
 Bitcoin-native digital artifacts that can be held in Bitcoin wallets and
 transferred using Bitcoin transactions. Inscriptions are as durable, immutable,
 secure, and decentralized as Bitcoin itself.
