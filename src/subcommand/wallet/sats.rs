@@ -1,7 +1,7 @@
 use super::*;
 
 #[derive(Debug, Parser)]
-pub(crate) struct Satoshis {
+pub(crate) struct Sats {
   #[clap(
     long,
     help = "Find satoshis listed in first column of tab-separated value file <TSV>."
@@ -9,7 +9,7 @@ pub(crate) struct Satoshis {
   tsv: Option<PathBuf>,
 }
 
-impl Satoshis {
+impl Sats {
   pub(crate) fn run(&self, options: Options) -> Result {
     let index = Index::open(&options)?;
     index.update()?;
