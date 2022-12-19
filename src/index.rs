@@ -590,7 +590,10 @@ impl Index {
     )
   }
 
-  pub(crate) fn foo(&self, n: Option<usize>) -> Result<Vec<(Inscription, InscriptionId)>> {
+  pub(crate) fn get_graphical_inscriptions(
+    &self,
+    n: Option<usize>,
+  ) -> Result<Vec<(Inscription, InscriptionId)>> {
     let mut inscriptions = Vec::new();
 
     for (_satpoint, id) in self
@@ -600,6 +603,7 @@ impl Index {
       .iter()?
     {
       let id = decode_inscription_id(*id);
+
       let Some((inscription, _satpoint)) = self.get_inscription_by_inscription_id(id)? else {
         continue;
       };

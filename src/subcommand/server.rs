@@ -414,7 +414,7 @@ impl Server {
           .blocks(100)
           .map_err(|err| ServerError::Internal(anyhow!("error getting blocks: {err}")))?,
         index
-          .foo(Some(8))
+          .get_graphical_inscriptions(Some(8))
           .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?,
       )
       .page(
