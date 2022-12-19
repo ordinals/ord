@@ -669,3 +669,26 @@ fn transactions() {
     .stdout_regex(format!(".*{}\t0\n.*", txid.trim()))
     .run();
 }
+
+#[test]
+fn inscribe_gif() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  rpc_server.mine_blocks(1)[0].txdata[0].txid();
+
+  CommandBuilder::new(format!(
+    "--chain regtest --index-sats wallet inscribe --file dolphin.gif"
+  ))
+  .write("dolphin.gif", [1; 520])
+  .rpc_server(&rpc_server)
+  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+  .run();
+
+  rpc_server.mine_blocks(1);
+
+  let ord_server = TestServer::spawn_with_args(&rpc_server, &["--index-sats"]);
+
+  ord_server.assert_response_regex(
+    "/sat/5000000000",
+    ".*<dt>inscription</dt>\n  <dd><img src=.*",
+  )
+}
