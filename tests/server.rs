@@ -188,24 +188,6 @@ fn inscription_content() {
   assert_eq!(response.bytes().unwrap(), "HELLOWORLD");
 }
 
-fn create_inscription(rpc_server: &test_bitcoincore_rpc::Handle, filename: &str) -> Txid {
-  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
-
-  let stdout = CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file {filename}"
-  ))
-  .write(filename, "HELLOWORLD")
-  .rpc_server(rpc_server)
-  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-  .run();
-
-  let reveal_tx = reveal_txid_from_inscribe_stdout(&stdout);
-
-  rpc_server.mine_blocks(1);
-
-  reveal_tx
-}
-
 #[test]
 fn home_page_includes_latest_inscriptions() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
