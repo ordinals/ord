@@ -601,7 +601,7 @@ impl Index {
         .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
         .iter()?
         .rev()
-        .map(|(_satpoint, id)| decode_inscription_id(*id))
+        .map(|(_n, id)| decode_inscription_id(*id))
         .take(n)
         .collect(),
     )
