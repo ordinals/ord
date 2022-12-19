@@ -719,7 +719,7 @@ impl Server {
     Ok(
       InscriptionsHtml {
         inscriptions: index
-          .get_inscriptions(Some(50))
+          .get_inscriptions(Some(100))
           .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?
           .values()
           .map(|inscription_id| Ok(*inscription_id))
