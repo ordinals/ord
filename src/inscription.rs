@@ -96,8 +96,8 @@ impl Inscription {
 
     match self.content_type()? {
       "text/plain;charset=utf-8" => Some(Content::Text(str::from_utf8(content).ok()?)),
-      "image/png" => Some(Content::Png(content)),
-      "image/gif" => Some(Content::Gif(content)),
+      "image/png" => Some(Content::Image),
+      "image/gif" => Some(Content::Image),
       _ => None,
     }
   }
@@ -106,8 +106,8 @@ impl Inscription {
     Some(self.content.as_ref()?)
   }
 
-  pub(crate) fn content_html(&self) -> Trusted<ContentHtml> {
-    Trusted(ContentHtml(self.content()))
+  pub(crate) fn content_html(&self, inscription_id: InscriptionId) -> Trusted<ContentHtml> {
+    Trusted(ContentHtml { content: self.content(), inscription_id })
   }
 
   pub(crate) fn content_size(&self) -> Option<usize> {

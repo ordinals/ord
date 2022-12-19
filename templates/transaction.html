@@ -2,7 +2,7 @@
 %% if let Some(inscription) = &self.inscription {
 <h2>Inscription</h2>
 <a href=/inscription/{{self.txid}}>
-{{ inscription.content_html() }}
+{{ inscription.content_html(self.txid) }}
 </a>
 %% }
 <h2>{{"Output".tally(self.transaction.output.len())}}</h2>

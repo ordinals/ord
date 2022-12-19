@@ -675,11 +675,12 @@ fn inscribe_gif() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
   rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  CommandBuilder::new("--chain regtest --index-sats wallet inscribe --file dolphin.gif")
+  let stdout = CommandBuilder::new("--chain regtest --index-sats wallet inscribe --file dolphin.gif")
     .write("dolphin.gif", [1; 520])
     .rpc_server(&rpc_server)
     .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
     .run();
+  let inscription_id = reveal_txid_from_inscribe_stdout(&stdout);
 
   rpc_server.mine_blocks(1);
 
@@ -687,6 +688,6 @@ fn inscribe_gif() {
 
   ord_server.assert_response_regex(
     "/sat/5000000000",
-    ".*<dt>inscription</dt>\n  <dd><img src=.*",
+    &format!(".*<dt>inscription</dt>\n  <dd><img src=/content/{inscription_id}.*"),
   )
 }
