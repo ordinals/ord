@@ -613,7 +613,7 @@ impl Index {
   ) -> Result<Vec<(Inscription, InscriptionId)>> {
     let mut inscriptions = Vec::new();
 
-    for (_number, id) in self
+    for (_n, id) in self
       .database
       .begin_read()?
       .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
