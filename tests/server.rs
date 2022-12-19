@@ -56,6 +56,7 @@ fn inscription_page() {
     &format!(
       ".*<meta property=og:image content='/content/{reveal_tx}'>.*
 <h1>Inscription {reveal_tx}</h1>
+<p>HELLOWORLD</p>
 <dl>
   <dt>content size</dt>
   <dd>10 bytes</dd>
@@ -63,8 +64,7 @@ fn inscription_page() {
   <dd>text/plain;charset=utf-8</dd>
   <dt>location</dt>
   <dd>{reveal_tx}:0:0</dd>
-</dl>
-<p>HELLOWORLD</p>.*",
+</dl>.*",
     ),
   );
 }
@@ -120,6 +120,7 @@ fn inscription_page_after_send() {
     &format!("/inscription/{reveal_txid}"),
     &format!(
       ".*<h1>Inscription {reveal_txid}</h1>
+<p>HELLOWORLD</p>
 <dl>
   <dt>content size</dt>
   <dd>10 bytes</dd>
@@ -127,8 +128,7 @@ fn inscription_page_after_send() {
   <dd>text/plain;charset=utf-8</dd>
   <dt>location</dt>
   <dd>{reveal_txid}:0:0</dd>
-</dl>
-<p>HELLOWORLD</p>.*",
+</dl>.*",
     ),
   );
 
@@ -147,6 +147,7 @@ fn inscription_page_after_send() {
     &format!("/inscription/{reveal_txid}"),
     &format!(
       ".*<h1>Inscription {reveal_txid}</h1>
+<p>HELLOWORLD</p>
 <dl>
   <dt>content size</dt>
   <dd>10 bytes</dd>
@@ -154,8 +155,7 @@ fn inscription_page_after_send() {
   <dd>text/plain;charset=utf-8</dd>
   <dt>location</dt>
   <dd>{}:0:0</dd>
-</dl>
-<p>HELLOWORLD</p>.*",
+</dl>.*",
       txid.trim(),
     ),
   )
