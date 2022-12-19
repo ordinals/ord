@@ -5,7 +5,7 @@
     <meta name=format-detection content='telephone=no'>
     <meta name=viewport content='width=device-width,initial-scale=1.0'>
 %% if let Some(url) = self.content.preview_image_url() {
-    <meta property='og:image' content='{{ url }}'>
+    <meta property=og:image content='{{ url }}'>
 %% }
     <title>{{ self.content.title() }}</title>
     <link href=/static/index.css rel=stylesheet>
