@@ -192,14 +192,14 @@ fn inscription_content() {
 fn home_page_includes_latest_inscriptions() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
 
-  let reveal_tx = create_inscription(&rpc_server, "foo.png");
+  let inscription_id = create_inscription(&rpc_server, "foo.png");
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     "/",
     &format!(
       ".*<h2>Latest Inscriptions</h2>
 <div class=inscriptions>
-  <a href=/inscription/{reveal_tx}><img .*></a>
+  <a href=/inscription/{inscription_id}><img .*></a>
 </div>.*"
     ),
   );
@@ -210,14 +210,14 @@ fn home_page_only_includes_graphical_inscriptions() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
 
   create_inscription(&rpc_server, "hello.txt");
-  let reveal_tx = create_inscription(&rpc_server, "foo.png");
+  let inscription_id = create_inscription(&rpc_server, "foo.png");
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     "/",
     &format!(
       ".*<h2>Latest Inscriptions</h2>
 <div class=inscriptions>
-  <a href=/inscription/{reveal_tx}><img .*></a>
+  <a href=/inscription/{inscription_id}><img .*></a>
 </div>.*"
     ),
   );
