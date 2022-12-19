@@ -54,7 +54,8 @@ fn inscription_page() {
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     &format!("/inscription/{reveal_tx}"),
     &format!(
-      ".*<h1>Inscription {reveal_tx}</h1>
+      ".*<meta property=og:image content='/content/{reveal_tx}'>.*
+<h1>Inscription {reveal_tx}</h1>
 <dl>
   <dt>content size</dt>
   <dd>10 bytes</dd>
