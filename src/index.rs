@@ -593,17 +593,18 @@ impl Index {
     )
   }
 
-  pub(crate) fn get_graphical_inscriptions(
+  pub(crate) fn get_latest_inscriptions(
     &self,
-    n: Option<usize>,
+    n: usize,
   ) -> Result<Vec<(Inscription, InscriptionId)>> {
     let mut inscriptions = Vec::new();
 
     for (_number, id) in self
       .database
       .begin_read()?
-      .open_table(SATPOINT_TO_INSCRIPTION_ID)?
+      .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
       .iter()?
+      .rev()
     {
       let id = decode_inscription_id(*id);
 
@@ -617,10 +618,8 @@ impl Index {
 
       inscriptions.push((inscription, id));
 
-      if let Some(n) = n {
-        if inscriptions.len() == n {
-          break;
-        }
+      if inscriptions.len() == n {
+        break;
       }
     }
 
