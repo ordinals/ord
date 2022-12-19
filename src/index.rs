@@ -607,7 +607,7 @@ impl Index {
     )
   }
 
-  pub(crate) fn get_latest_inscriptions(
+  pub(crate) fn get_latest_graphical_inscriptions(
     &self,
     n: usize,
   ) -> Result<Vec<(Inscription, InscriptionId)>> {
