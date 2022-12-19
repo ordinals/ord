@@ -115,6 +115,10 @@ impl Inscription {
   pub(crate) fn content_type(&self) -> Option<&str> {
     str::from_utf8(self.content_type.as_ref()?).ok()
   }
+
+  pub(crate) fn is_graphical(&self) -> bool {
+    matches!(self.content_type(), Some("image/png"))
+  }
 }
 
 #[derive(Debug, PartialEq)]
