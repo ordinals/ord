@@ -244,7 +244,7 @@ fn inscriptions_page() {
     "/inscriptions",
     &format!(
       ".*<h1>Inscriptions</h1>.*
-<ul class=monospace>
+<ul>
   <li>
     <a href=/inscription/{reveal_tx} class=monospace>
       {reveal_tx}

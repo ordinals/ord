@@ -599,7 +599,7 @@ impl Index {
   ) -> Result<Vec<(Inscription, InscriptionId)>> {
     let mut inscriptions = Vec::new();
 
-    for (_satpoint, id) in self
+    for (_number, id) in self
       .database
       .begin_read()?
       .open_table(SATPOINT_TO_INSCRIPTION_ID)?
