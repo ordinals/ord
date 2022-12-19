@@ -34,6 +34,8 @@ const INSCRIPTION_ID_TO_SATPOINT: TableDefinition<&InscriptionIdArray, &SatPoint
   TableDefinition::new("INSCRIPTION_ID_TO_SATPOINT");
 const SATPOINT_TO_INSCRIPTION_ID: TableDefinition<&SatPointArray, &InscriptionIdArray> =
   TableDefinition::new("SATPOINT_TO_INSCRIPTION_ID");
+const INSCRIPTION_NUMBER_TO_INSCRIPTION_ID: TableDefinition<u64, &InscriptionIdArray> =
+  TableDefinition::new("INSCRIPTION_NUMBER_TO_INSCRIPTION_ID");
 
 fn encode_outpoint(outpoint: OutPoint) -> OutPointArray {
   let mut array = [0; 36];
@@ -204,9 +206,10 @@ impl Index {
 
         tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
         tx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
+        tx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
+        tx.open_table(SATPOINT_TO_INSCRIPTION_ID)?;
         tx.open_table(SAT_TO_INSCRIPTION_ID)?;
         tx.open_table(SAT_TO_SATPOINT)?;
-        tx.open_table(SATPOINT_TO_INSCRIPTION_ID)?;
         tx.open_table(STATISTIC_TO_COUNT)?;
         tx.open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?;
 

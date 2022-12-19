@@ -1,6 +1,6 @@
 use {super::*, std::sync::mpsc};
 
-pub(crate) struct BlockData {
+struct BlockData {
   header: BlockHeader,
   txdata: Vec<(Transaction, Txid)>,
 }
@@ -19,6 +19,10 @@ impl From<Block> for BlockData {
         .collect(),
     }
   }
+}
+
+struct Foo<'a> {
+  next_inscription_number: &'a mut u64,
 }
 
 pub struct Updater {
@@ -66,7 +70,7 @@ impl Updater {
     updater.update_index(index, wtx)
   }
 
-  pub(crate) fn update_index<'index>(
+  fn update_index<'index>(
     &mut self,
     index: &'index Index,
     mut wtx: WriteTransaction<'index>,
@@ -194,7 +198,7 @@ impl Updater {
     Ok(rx)
   }
 
-  pub(crate) fn get_block_with_retries(
+  fn get_block_with_retries(
     client: &Client,
     height: u64,
     index_sats: bool,
@@ -240,7 +244,7 @@ impl Updater {
     }
   }
 
-  pub(crate) fn index_block(
+  fn index_block(
     &mut self,
     index: &Index,
     wtx: &mut WriteTransaction,
@@ -272,6 +276,13 @@ impl Updater {
 
     let mut inscription_id_to_satpoint = wtx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
     let mut satpoint_to_inscription_id = wtx.open_table(SATPOINT_TO_INSCRIPTION_ID)?;
+    let mut inscription_number_to_inscription_id =
+      wtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
+    let mut next_inscription_number = 0;
+
+    let mut foo = Foo {
+      next_inscription_number: &mut next_inscription_number,
+    };
 
     if self.index_sats {
       let mut sat_to_inscription_id = wtx.open_table(SAT_TO_INSCRIPTION_ID)?;
@@ -322,6 +333,8 @@ impl Updater {
           &mut input_sat_ranges,
           &mut sat_ranges_written,
           &mut outputs_in_block,
+          &mut inscription_number_to_inscription_id,
+          &mut foo,
         )?;
 
         coinbase_inputs.extend(input_sat_ranges);
@@ -338,6 +351,8 @@ impl Updater {
           &mut coinbase_inputs,
           &mut sat_ranges_written,
           &mut outputs_in_block,
+          &mut inscription_number_to_inscription_id,
+          &mut foo,
         )?;
       }
     } else {
@@ -347,6 +362,8 @@ impl Updater {
           *txid,
           &mut inscription_id_to_satpoint,
           &mut satpoint_to_inscription_id,
+          &mut inscription_number_to_inscription_id,
+          &mut foo,
         )?;
       }
     }
@@ -367,12 +384,14 @@ impl Updater {
     Ok(())
   }
 
-  pub(crate) fn index_transaction_inscriptions(
+  fn index_transaction_inscriptions(
     &mut self,
     tx: &Transaction,
     txid: Txid,
     inscription_id_to_satpoint: &mut Table<&InscriptionIdArray, &SatPointArray>,
     satpoint_to_inscription_id: &mut Table<&SatPointArray, &InscriptionIdArray>,
+    inscription_number_to_inscription_id: &mut Table<u64, &InscriptionIdArray>,
+    foo: &mut Foo,
   ) -> Result<bool> {
     let inscribed = Inscription::from_transaction(tx).is_some();
 
@@ -382,8 +401,12 @@ impl Updater {
         offset: 0,
       });
 
-      inscription_id_to_satpoint.insert(txid.as_inner(), &satpoint)?;
-      satpoint_to_inscription_id.insert(&satpoint, txid.as_inner())?;
+      let inscription_id = txid.as_inner();
+
+      inscription_id_to_satpoint.insert(inscription_id, &satpoint)?;
+      satpoint_to_inscription_id.insert(&satpoint, inscription_id)?;
+      inscription_number_to_inscription_id.insert(foo.next_inscription_number, inscription_id)?;
+      *foo.next_inscription_number += 1;
     };
 
     for tx_in in &tx.input {
@@ -418,7 +441,7 @@ impl Updater {
     Ok(inscribed)
   }
 
-  pub(crate) fn index_transaction_sats(
+  fn index_transaction_sats(
     &mut self,
     tx: &Transaction,
     txid: Txid,
@@ -429,12 +452,16 @@ impl Updater {
     input_sat_ranges: &mut VecDeque<(u64, u64)>,
     sat_ranges_written: &mut u64,
     outputs_traversed: &mut u64,
+    inscription_number_to_inscription_id: &mut Table<u64, &InscriptionIdArray>,
+    foo: &mut Foo,
   ) -> Result {
     if self.index_transaction_inscriptions(
       tx,
       txid,
       inscription_id_to_satpoint,
       satpoint_to_inscription_id,
+      inscription_number_to_inscription_id,
+      foo,
     )? {
       if let Some((start, _end)) = input_sat_ranges.get(0) {
         sat_to_inscription_id.insert(&start, txid.as_inner())?;
@@ -496,7 +523,7 @@ impl Updater {
     Ok(())
   }
 
-  pub(crate) fn commit(&mut self, wtx: WriteTransaction) -> Result {
+  fn commit(&mut self, wtx: WriteTransaction) -> Result {
     log::info!(
       "Committing at block height {}, {} outputs traversed, {} in map, {} cached",
       self.height,
