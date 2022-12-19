@@ -10,10 +10,6 @@ impl PageContent for RangeHtml {
   fn title(&self) -> String {
     format!("Sat range {}–{}", self.start, self.end)
   }
-
-  fn preview_image(&self) -> Option<String> {
-    None
-  }
 }
 
 #[cfg(test)]

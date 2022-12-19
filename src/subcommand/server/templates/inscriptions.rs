@@ -9,10 +9,6 @@ impl PageContent for InscriptionsHtml {
   fn title(&self) -> String {
     "Inscriptions".into()
   }
-
-  fn preview_image(&self) -> Option<String> {
-    None
-  }
 }
 
 #[cfg(test)]

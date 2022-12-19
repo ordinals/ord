@@ -32,10 +32,6 @@ impl PageContent for HomeHtml {
   fn title(&self) -> String {
     "Ordinals".to_string()
   }
-
-  fn preview_image(&self) -> Option<String> {
-    None
-  }
 }
 
 #[cfg(test)]

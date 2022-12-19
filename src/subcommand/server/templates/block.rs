@@ -27,10 +27,6 @@ impl PageContent for BlockHtml {
   fn title(&self) -> String {
     format!("Block {}", self.hash)
   }
-
-  fn preview_image(&self) -> Option<String> {
-    None
-  }
 }
 
 #[cfg(test)]

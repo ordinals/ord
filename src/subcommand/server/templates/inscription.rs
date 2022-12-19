@@ -12,8 +12,8 @@ impl PageContent for InscriptionHtml {
     format!("Inscription {}", self.inscription_id)
   }
 
-  fn preview_image(&self) -> Option<String> {
-    Some(self.inscription_id.to_string())
+  fn preview_image_url(&self) -> Option<Trusted<String>> {
+    Some(Trusted(format!("/content/{}", self.inscription_id)))
   }
 }
 
