@@ -195,7 +195,7 @@ fn create_inscription(rpc_server: &test_bitcoincore_rpc::Handle, filename: &str)
     "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file {filename}"
   ))
   .write(filename, "HELLOWORLD")
-  .rpc_server(&rpc_server)
+  .rpc_server(rpc_server)
   .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
   .run();
 
