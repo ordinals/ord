@@ -224,7 +224,7 @@ fn home_page_includes_latest_inscriptions() {
 }
 
 #[test]
-fn home_page_only_includes_image_inscriptions() {
+fn home_page_only_includes_graphical_inscriptions() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
 
   create_inscription(&rpc_server, "hello.txt");
