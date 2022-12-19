@@ -2,8 +2,8 @@ use {super::*, boilerplate::Boilerplate};
 
 pub(crate) use {
   block::BlockHtml, clock::ClockSvg, content::ContentHtml, home::HomeHtml, input::InputHtml,
-  inscription::InscriptionHtml, output::OutputHtml, range::RangeHtml, rare::RareTxt, sat::SatHtml,
-  transaction::TransactionHtml,
+  inscription::InscriptionHtml, inscriptions::InscriptionsHtml, output::OutputHtml,
+  range::RangeHtml, rare::RareTxt, sat::SatHtml, transaction::TransactionHtml,
 };
 
 mod block;
@@ -12,6 +12,7 @@ mod content;
 mod home;
 mod input;
 mod inscription;
+mod inscriptions;
 mod output;
 mod range;
 mod rare;

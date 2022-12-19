@@ -1,0 +1,11 @@
+<h1>Inscriptions</h1>
+
+<ul class=monospace>
+%% for inscription_id in &self.inscriptions {
+  <li>
+    <a href=/inscription/{{inscription_id}} class=monospace>
+      {{ inscription_id }}
+    </a>
+  </li>
+%% }
+</ul>
