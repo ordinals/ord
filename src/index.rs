@@ -593,6 +593,20 @@ impl Index {
     )
   }
 
+  pub(crate) fn get_latest_inscription_ids(&self, n: usize) -> Result<Vec<InscriptionId>> {
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
+        .iter()?
+        .rev()
+        .map(|(_satpoint, id)| decode_inscription_id(*id))
+        .take(n)
+        .collect(),
+    )
+  }
+
   pub(crate) fn get_latest_inscriptions(
     &self,
     n: usize,
