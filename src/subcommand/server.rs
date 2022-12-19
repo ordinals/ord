@@ -415,7 +415,7 @@ impl Server {
           .blocks(100)
           .map_err(|err| ServerError::Internal(anyhow!("error getting blocks: {err}")))?,
         index
-          .get_graphical_inscriptions(Some(8))
+          .get_latest_graphical_inscriptions(8)
           .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?,
       )
       .page(
@@ -707,11 +707,8 @@ impl Server {
     Ok(
       InscriptionsHtml {
         inscriptions: index
-          .get_inscriptions(Some(100))
-          .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?
-          .values()
-          .map(|inscription_id| Ok(*inscription_id))
-          .collect::<ServerResult<Vec<InscriptionId>>>()?,
+          .get_latest_inscription_ids(100)
+          .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?,
       }
       .page(
         chain,

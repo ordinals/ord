@@ -224,6 +224,27 @@ fn home_page_only_includes_graphical_inscriptions() {
 }
 
 #[test]
+fn home_page_inscriptions_are_sorted() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+
+  let mut inscriptions = String::new();
+
+  for i in 0..8 {
+    let id = create_inscription(&rpc_server, &format!("{i}.png"));
+    inscriptions.insert_str(0, &format!("\n  <a href=/inscription/{id}><img .*></a>"));
+  }
+
+  TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
+    "/",
+    &format!(
+      ".*<h2>Latest Inscriptions</h2>
+<div class=inscriptions>{inscriptions}
+</div>.*"
+    ),
+  );
+}
+
+#[test]
 fn inscriptions_page() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
@@ -244,12 +265,31 @@ fn inscriptions_page() {
     "/inscriptions",
     &format!(
       ".*<h1>Inscriptions</h1>.*
-<ul class=monospace>
+<ul>
   <li>
     <a href=/inscription/{reveal_tx} class=monospace>
       {reveal_tx}
     </a>
-  </li>.*",
+  </li>
+</ul>.*",
     ),
   );
+}
+
+#[test]
+fn inscriptions_page_is_sorted() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+
+  let mut inscriptions = String::new();
+
+  for i in 0..8 {
+    let id = create_inscription(&rpc_server, &format!("{i}.png"));
+    inscriptions.insert_str(
+      0,
+      &format!(".*<a href=/inscription/{id} class=monospace>.*"),
+    );
+  }
+
+  TestServer::spawn_with_args(&rpc_server, &[])
+    .assert_response_regex("/inscriptions", &inscriptions);
 }
