@@ -15,6 +15,11 @@ impl<'a> Display for ContentHtml<'a> {
         "<img src='data:image/png;base64,{}'>",
         base64::encode(png)
       ),
+      Some(Content::Gif(gif)) => write!(
+        f,
+        "<img src='data:image/gif;base64,{}'>",
+        base64::encode(gif)
+      ),
       None => write!(f, "<p>UNKNOWN</p>"),
     }
   }

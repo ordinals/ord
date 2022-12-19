@@ -55,9 +55,10 @@ impl Inscription {
     {
       "txt" => "text/plain;charset=utf-8",
       "png" => "image/png",
+      "gif" => "image/gif",
       other => {
         return Err(anyhow!(
-          "unrecognized file extension `.{other}`, only .txt and .png accepted"
+          "unrecognized file extension `.{other}`, only .txt, .png and .gif accepted"
         ))
       }
     };
@@ -96,6 +97,7 @@ impl Inscription {
     match self.content_type()? {
       "text/plain;charset=utf-8" => Some(Content::Text(str::from_utf8(content).ok()?)),
       "image/png" => Some(Content::Png(content)),
+      "image/gif" => Some(Content::Gif(content)),
       _ => None,
     }
   }
@@ -117,7 +119,7 @@ impl Inscription {
   }
 
   pub(crate) fn is_graphical(&self) -> bool {
-    matches!(self.content_type(), Some("image/png"))
+    matches!(self.content_type(), Some("image/png") | Some("image/gif"))
   }
 }
 
@@ -713,6 +715,15 @@ mod tests {
   fn is_graphical() {
     assert!(inscription("image/png", []).is_graphical());
     assert!(!inscription("foo", []).is_graphical());
+    assert!(inscription("image/gif", []).is_graphical());
     assert!(!Inscription::new(None, Some(Vec::new())).is_graphical());
+  }
+
+  #[test]
+  fn inscribe_gif() {
+    assert_eq!(
+      InscriptionParser::parse(&container(&[b"ord", &[1], b"image/gif", &[], &[1; 100]])),
+      Ok(inscription("image/gif", [1; 100])),
+    );
   }
 }

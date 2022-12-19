@@ -291,7 +291,7 @@ fn inscribe_unknown_file_extension() {
   .write("pepe.jpg", [1; 520])
   .rpc_server(&rpc_server)
   .expected_exit_code(1)
-  .expected_stderr("error: unrecognized file extension `.jpg`, only .txt and .png accepted\n")
+  .expected_stderr("error: unrecognized file extension `.jpg`, only .txt, .png and .gif accepted\n")
   .run();
 }
 
