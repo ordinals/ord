@@ -67,7 +67,7 @@ wallet is named `foo`:
 2. Display any rare ordinals wallet `foo`'s UTXOs:
 
    ```sh
-   ord wallet satoshis
+   ord wallet sats
    ```
 
 ### Searching for Rare Ordinals in a Non-Bitcoin Core Wallet
@@ -130,7 +130,7 @@ your wallet of funds.
 7. Display your wallet's rare ordinals:
 
    ```sh
-   ord wallet satoshis
+   ord wallet sats
    ```
 
 ### Searching for Rare Ordinals in a Wallet that Exports Multi-path Descriptors
@@ -231,7 +231,7 @@ those multiple descriptors into Bitcoin Core.
 7. Display your wallet's rare ordinals:
 
    ```sh
-   ord wallet satoshis
+   ord wallet sats
    ```
 
 ### Exporting Descriptors
