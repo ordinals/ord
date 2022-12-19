@@ -1,4 +1,6 @@
-use {super::*, std::sync::mpsc};
+use {self::inscription_updater::InscriptionUpdater, super::*, std::sync::mpsc};
+
+mod inscription_updater;
 
 struct BlockData {
   header: BlockHeader,
@@ -19,10 +21,6 @@ impl From<Block> for BlockData {
         .collect(),
     }
   }
-}
-
-struct Foo<'a> {
-  next_inscription_number: &'a mut u64,
 }
 
 pub struct Updater {
@@ -278,10 +276,18 @@ impl Updater {
     let mut satpoint_to_inscription_id = wtx.open_table(SATPOINT_TO_INSCRIPTION_ID)?;
     let mut inscription_number_to_inscription_id =
       wtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
-    let mut next_inscription_number = 0;
+    let mut next_inscription_number = inscription_number_to_inscription_id
+      .iter()?
+      .rev()
+      .map(|(number, _id)| number + 1)
+      .next()
+      .unwrap_or(0);
 
-    let mut foo = Foo {
-      next_inscription_number: &mut next_inscription_number,
+    let mut inscription_updater = InscriptionUpdater {
+      next_number: &mut next_inscription_number,
+      number_to_id: &mut inscription_number_to_inscription_id,
+      id_to_satpoint: &mut inscription_id_to_satpoint,
+      satpoint_to_id: &mut satpoint_to_inscription_id,
     };
 
     if self.index_sats {
@@ -328,13 +334,10 @@ impl Updater {
           *txid,
           &mut sat_to_satpoint,
           &mut sat_to_inscription_id,
-          &mut inscription_id_to_satpoint,
-          &mut satpoint_to_inscription_id,
           &mut input_sat_ranges,
           &mut sat_ranges_written,
           &mut outputs_in_block,
-          &mut inscription_number_to_inscription_id,
-          &mut foo,
+          &mut inscription_updater,
         )?;
 
         coinbase_inputs.extend(input_sat_ranges);
@@ -346,25 +349,15 @@ impl Updater {
           *txid,
           &mut sat_to_satpoint,
           &mut sat_to_inscription_id,
-          &mut inscription_id_to_satpoint,
-          &mut satpoint_to_inscription_id,
           &mut coinbase_inputs,
           &mut sat_ranges_written,
           &mut outputs_in_block,
-          &mut inscription_number_to_inscription_id,
-          &mut foo,
+          &mut inscription_updater,
         )?;
       }
     } else {
       for (tx, txid) in &block.txdata {
-        self.index_transaction_inscriptions(
-          tx,
-          *txid,
-          &mut inscription_id_to_satpoint,
-          &mut satpoint_to_inscription_id,
-          &mut inscription_number_to_inscription_id,
-          &mut foo,
-        )?;
+        inscription_updater.index_transaction_inscriptions(tx, *txid)?;
       }
     }
 
@@ -384,85 +377,18 @@ impl Updater {
     Ok(())
   }
 
-  fn index_transaction_inscriptions(
-    &mut self,
-    tx: &Transaction,
-    txid: Txid,
-    inscription_id_to_satpoint: &mut Table<&InscriptionIdArray, &SatPointArray>,
-    satpoint_to_inscription_id: &mut Table<&SatPointArray, &InscriptionIdArray>,
-    inscription_number_to_inscription_id: &mut Table<u64, &InscriptionIdArray>,
-    foo: &mut Foo,
-  ) -> Result<bool> {
-    let inscribed = Inscription::from_transaction(tx).is_some();
-
-    if inscribed {
-      let satpoint = encode_satpoint(SatPoint {
-        outpoint: OutPoint { txid, vout: 0 },
-        offset: 0,
-      });
-
-      let inscription_id = txid.as_inner();
-
-      inscription_id_to_satpoint.insert(inscription_id, &satpoint)?;
-      satpoint_to_inscription_id.insert(&satpoint, inscription_id)?;
-      inscription_number_to_inscription_id.insert(foo.next_inscription_number, inscription_id)?;
-      *foo.next_inscription_number += 1;
-    };
-
-    for tx_in in &tx.input {
-      let outpoint = tx_in.previous_output;
-      let start = encode_satpoint(SatPoint {
-        outpoint,
-        offset: 0,
-      });
-
-      let end = encode_satpoint(SatPoint {
-        outpoint,
-        offset: u64::MAX,
-      });
-
-      let inscription_ids: Vec<(SatPointArray, InscriptionIdArray)> = satpoint_to_inscription_id
-        .range(start..=end)?
-        .map(|(satpoint, id)| (*satpoint, *id))
-        .collect();
-
-      for (old_satpoint, inscription_id) in inscription_ids {
-        let new_satpoint = encode_satpoint(SatPoint {
-          outpoint: OutPoint { txid, vout: 0 },
-          offset: 0,
-        });
-
-        satpoint_to_inscription_id.remove(&old_satpoint)?;
-        satpoint_to_inscription_id.insert(&new_satpoint, &inscription_id)?;
-        inscription_id_to_satpoint.insert(&inscription_id, &new_satpoint)?;
-      }
-    }
-
-    Ok(inscribed)
-  }
-
   fn index_transaction_sats(
     &mut self,
     tx: &Transaction,
     txid: Txid,
     sat_to_satpoint: &mut Table<u64, &SatPointArray>,
     sat_to_inscription_id: &mut Table<u64, &InscriptionIdArray>,
-    inscription_id_to_satpoint: &mut Table<&InscriptionIdArray, &SatPointArray>,
-    satpoint_to_inscription_id: &mut Table<&SatPointArray, &InscriptionIdArray>,
     input_sat_ranges: &mut VecDeque<(u64, u64)>,
     sat_ranges_written: &mut u64,
     outputs_traversed: &mut u64,
-    inscription_number_to_inscription_id: &mut Table<u64, &InscriptionIdArray>,
-    foo: &mut Foo,
+    inscription_updater: &mut InscriptionUpdater,
   ) -> Result {
-    if self.index_transaction_inscriptions(
-      tx,
-      txid,
-      inscription_id_to_satpoint,
-      satpoint_to_inscription_id,
-      inscription_number_to_inscription_id,
-      foo,
-    )? {
+    if inscription_updater.index_transaction_inscriptions(tx, txid)? {
       if let Some((start, _end)) = input_sat_ranges.get(0) {
         sat_to_inscription_id.insert(&start, txid.as_inner())?;
       }
