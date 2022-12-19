@@ -102,6 +102,12 @@ const CYCLE_EPOCHS: u64 = 6;
 static INTERRUPTS: AtomicU64 = AtomicU64::new(0);
 static LISTENERS: Mutex<Vec<axum_server::Handle>> = Mutex::new(Vec::new());
 
+fn integration_test() -> bool {
+  env::var_os("ORD_INTEGRATION_TEST")
+    .map(|value| value.len() > 0)
+    .unwrap_or(false)
+}
+
 fn main() {
   env_logger::init();
 
