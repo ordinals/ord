@@ -722,9 +722,7 @@ impl Server {
           .get_inscriptions(Some(50))
           .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?
           .values()
-          .map(|inscription_id| {
-            Ok(*inscription_id)
-          })
+          .map(|inscription_id| Ok(*inscription_id))
           .collect::<ServerResult<Vec<InscriptionId>>>()?,
       }
       .page(

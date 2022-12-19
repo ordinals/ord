@@ -7,7 +7,7 @@ pub(crate) struct InscriptionsHtml {
 
 impl PageContent for InscriptionsHtml {
   fn title(&self) -> String {
-    format!("Inscriptions")
+    "Inscriptions".into()
   }
 }
 

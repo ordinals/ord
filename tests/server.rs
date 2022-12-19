@@ -206,7 +206,7 @@ fn inscriptions_page() {
   rpc_server.mine_blocks(1);
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
-    &format!("/inscriptions"),
+    "/inscriptions",
     &format!(
       ".*<h1>Inscriptions</h1>.*
 <ul class=monospace>
