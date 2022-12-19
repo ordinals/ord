@@ -56,11 +56,11 @@ fn create_inscription(rpc_server: &test_bitcoincore_rpc::Handle, filename: &str)
   .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
   .run();
 
-  let txid = reveal_txid_from_inscribe_stdout(&stdout);
+  let inscription_id = reveal_txid_from_inscribe_stdout(&stdout);
 
   rpc_server.mine_blocks(1);
 
-  txid
+  inscription_id
 }
 
 mod command_builder;
