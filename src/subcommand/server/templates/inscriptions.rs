@@ -2,7 +2,7 @@ use super::*;
 
 #[derive(Boilerplate)]
 pub(crate) struct InscriptionsHtml {
-  pub(crate) inscriptions: Vec<InscriptionHtml>,
+  pub(crate) inscriptions: Vec<InscriptionId>,
 }
 
 impl PageContent for InscriptionsHtml {
@@ -19,28 +19,12 @@ mod tests {
   fn inscriptions() {
     pretty_assert_eq!(
       InscriptionsHtml {
-      inscriptions: vec![InscriptionHtml {
-        inscription_id: InscriptionId::from_str(
-          "ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc"
-        )
-        .unwrap(),
-        inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
-        satpoint: satpoint(1, 0),
-      },
-      InscriptionHtml {
-        inscription_id: InscriptionId::from_str("ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc").unwrap(),
-        inscription: inscription("image/png", [1; 100]),
-        satpoint: satpoint(1, 0),
-      },
-      InscriptionHtml {
-        inscription_id: InscriptionId::from_str(
-          "ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc"
-        )
-        .unwrap(),
-        inscription: Inscription::new(None, None),
-        satpoint: satpoint(1, 0),
-      }
-      ]}.to_string(),
+      inscriptions: vec![
+      InscriptionId::from_str("ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc").unwrap(),
+      InscriptionId::from_str("ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc").unwrap(),
+      InscriptionId::from_str("ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc").unwrap(),
+      ]
+      }.to_string(),
       "
         <h1>Inscriptions</h1>
         

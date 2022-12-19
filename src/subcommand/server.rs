@@ -721,19 +721,11 @@ impl Server {
         inscriptions: index
           .get_inscriptions(Some(50))
           .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?
-          .iter()
-          .map(|(satpoint, inscription_id)| {
-            Ok(InscriptionHtml {
-              inscription_id: *inscription_id,
-              inscription: index
-                .get_inscription_by_inscription_id(*inscription_id)
-                .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?
-                .unwrap()
-                .0,
-              satpoint: *satpoint,
-            })
+          .values()
+          .map(|inscription_id| {
+            Ok(*inscription_id)
           })
-          .collect::<ServerResult<Vec<InscriptionHtml>>>()?,
+          .collect::<ServerResult<Vec<InscriptionId>>>()?,
       }
       .page(
         chain,
