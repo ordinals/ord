@@ -1,11 +1,11 @@
 use {super::*, std::str::FromStr};
 
 #[test]
-fn satoshis() {
+fn sats() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   let second_coinbase = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  CommandBuilder::new("--index-sats wallet satoshis")
+  CommandBuilder::new("--index-sats wallet sats")
     .rpc_server(&rpc_server)
     .expected_stdout(format!(
       "{}\t{}\t0\tuncommon\n",
@@ -16,11 +16,11 @@ fn satoshis() {
 }
 
 #[test]
-fn satoshis_from_tsv_success() {
+fn sats_from_tsv_success() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   let second_coinbase = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  CommandBuilder::new("--index-sats wallet satoshis --tsv foo.tsv")
+  CommandBuilder::new("--index-sats wallet sats --tsv foo.tsv")
     .write("foo.tsv", "nvtcsezkbtg")
     .rpc_server(&rpc_server)
     .expected_stdout(format!(
@@ -31,9 +31,9 @@ fn satoshis_from_tsv_success() {
 }
 
 #[test]
-fn satoshis_from_tsv_parse_error() {
+fn sats_from_tsv_parse_error() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  CommandBuilder::new("wallet satoshis --tsv foo.tsv")
+  CommandBuilder::new("wallet sats --tsv foo.tsv")
     .write("foo.tsv", "===")
     .rpc_server(&rpc_server)
     .expected_exit_code(1)
@@ -44,9 +44,9 @@ fn satoshis_from_tsv_parse_error() {
 }
 
 #[test]
-fn satoshis_from_tsv_file_not_found() {
+fn sats_from_tsv_file_not_found() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  CommandBuilder::new("wallet satoshis --tsv foo.tsv")
+  CommandBuilder::new("wallet sats --tsv foo.tsv")
     .rpc_server(&rpc_server)
     .expected_exit_code(1)
     .stderr_regex("error: I/O error reading `.*`\nbecause: .*\n")
