@@ -284,9 +284,9 @@ impl Updater {
       .unwrap_or(0);
 
     let mut inscription_updater = InscriptionUpdater {
+      id_to_satpoint: &mut inscription_id_to_satpoint,
       next_number: &mut next_inscription_number,
       number_to_id: &mut inscription_number_to_inscription_id,
-      id_to_satpoint: &mut inscription_id_to_satpoint,
       satpoint_to_id: &mut satpoint_to_inscription_id,
     };
 

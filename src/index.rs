@@ -21,21 +21,21 @@ type SatPointArray = [u8; 44];
 
 const HEIGHT_TO_BLOCK_HASH: TableDefinition<u64, &BlockHashArray> =
   TableDefinition::new("HEIGHT_TO_BLOCK_HASH");
+const INSCRIPTION_ID_TO_SATPOINT: TableDefinition<&InscriptionIdArray, &SatPointArray> =
+  TableDefinition::new("INSCRIPTION_ID_TO_SATPOINT");
+const INSCRIPTION_NUMBER_TO_INSCRIPTION_ID: TableDefinition<u64, &InscriptionIdArray> =
+  TableDefinition::new("INSCRIPTION_NUMBER_TO_INSCRIPTION_ID");
+const OUTPOINT_TO_SAT_RANGES: TableDefinition<&OutPointArray, [u8]> =
+  TableDefinition::new("OUTPOINT_TO_SAT_RANGES");
+const SATPOINT_TO_INSCRIPTION_ID: TableDefinition<&SatPointArray, &InscriptionIdArray> =
+  TableDefinition::new("SATPOINT_TO_INSCRIPTION_ID");
 const SAT_TO_INSCRIPTION_ID: TableDefinition<u64, &InscriptionIdArray> =
   TableDefinition::new("SAT_TO_INSCRIPTION_ID");
 const SAT_TO_SATPOINT: TableDefinition<u64, &SatPointArray> =
   TableDefinition::new("SAT_TO_SATPOINT");
-const OUTPOINT_TO_SAT_RANGES: TableDefinition<&OutPointArray, [u8]> =
-  TableDefinition::new("OUTPOINT_TO_SAT_RANGES");
 const STATISTIC_TO_COUNT: TableDefinition<u64, u64> = TableDefinition::new("STATISTIC_TO_COUNT");
 const WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP: TableDefinition<u64, u128> =
   TableDefinition::new("WRITE_TRANSACTION_START_BLOCK_COUNT_TO_TIMESTAMP");
-const INSCRIPTION_ID_TO_SATPOINT: TableDefinition<&InscriptionIdArray, &SatPointArray> =
-  TableDefinition::new("INSCRIPTION_ID_TO_SATPOINT");
-const SATPOINT_TO_INSCRIPTION_ID: TableDefinition<&SatPointArray, &InscriptionIdArray> =
-  TableDefinition::new("SATPOINT_TO_INSCRIPTION_ID");
-const INSCRIPTION_NUMBER_TO_INSCRIPTION_ID: TableDefinition<u64, &InscriptionIdArray> =
-  TableDefinition::new("INSCRIPTION_NUMBER_TO_INSCRIPTION_ID");
 
 fn encode_outpoint(outpoint: OutPoint) -> OutPointArray {
   let mut array = [0; 36];
