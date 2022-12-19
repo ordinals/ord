@@ -589,6 +589,40 @@ impl Index {
         .collect(),
     )
   }
+
+  pub(crate) fn get_graphical_inscriptions(
+    &self,
+    n: Option<usize>,
+  ) -> Result<Vec<(Inscription, InscriptionId)>> {
+    let mut inscriptions = Vec::new();
+
+    for (_satpoint, id) in self
+      .database
+      .begin_read()?
+      .open_table(SATPOINT_TO_INSCRIPTION_ID)?
+      .iter()?
+    {
+      let id = decode_inscription_id(*id);
+
+      let Some((inscription, _satpoint)) = self.get_inscription_by_inscription_id(id)? else {
+        continue;
+      };
+
+      if !inscription.is_graphical() {
+        continue;
+      }
+
+      inscriptions.push((inscription, id));
+
+      if let Some(n) = n {
+        if inscriptions.len() == n {
+          break;
+        }
+      }
+    }
+
+    Ok(inscriptions)
+  }
 }
 
 #[cfg(test)]
