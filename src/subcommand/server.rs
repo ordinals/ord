@@ -4,8 +4,8 @@ use {
   self::{
     deserialize_from_str::DeserializeFromStr,
     templates::{
-      BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, OutputHtml, PageContent, PageHtml,
-      RangeHtml, RareTxt, SatHtml, TransactionHtml,
+      BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionsHtml, OutputHtml,
+      PageContent, PageHtml, RangeHtml, RareTxt, SatHtml, TransactionHtml,
     },
   },
   axum::{
@@ -159,6 +159,7 @@ impl Server {
         .route("/favicon.ico", get(Self::favicon))
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_id", get(Self::inscription))
+        .route("/inscriptions", get(Self::inscriptions))
         .route("/install.sh", get(Self::install_script))
         .route("/ordinal/:sat", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
@@ -703,6 +704,36 @@ impl Server {
         inscription_id,
         inscription,
         satpoint,
+      }
+      .page(
+        chain,
+        index.has_satoshi_index().map_err(ServerError::Internal)?,
+      ),
+    )
+  }
+
+  async fn inscriptions(
+    Extension(chain): Extension<Chain>,
+    Extension(index): Extension<Arc<Index>>,
+  ) -> ServerResult<PageHtml> {
+    Ok(
+      InscriptionsHtml {
+        inscriptions: index
+          .get_inscriptions(Some(50))
+          .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?
+          .iter()
+          .map(|(satpoint, inscription_id)| {
+            Ok(InscriptionHtml {
+              inscription_id: *inscription_id,
+              inscription: index
+                .get_inscription_by_inscription_id(*inscription_id)
+                .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?
+                .unwrap()
+                .0,
+              satpoint: *satpoint,
+            })
+          })
+          .collect::<ServerResult<Vec<InscriptionHtml>>>()?,
       }
       .page(
         chain,
