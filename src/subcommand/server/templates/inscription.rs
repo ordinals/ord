@@ -11,6 +11,10 @@ impl PageContent for InscriptionHtml {
   fn title(&self) -> String {
     format!("Inscription {}", self.inscription_id)
   }
+
+  fn preview_image(&self) -> Option<String> {
+    Some(self.inscription_id.to_string())
+  }
 }
 
 #[cfg(test)]

@@ -12,6 +12,10 @@ impl PageContent for OutputHtml {
   fn title(&self) -> String {
     format!("Output {}", self.outpoint)
   }
+
+  fn preview_image(&self) -> Option<String> {
+    None
+  }
 }
 
 #[cfg(test)]

@@ -95,6 +95,10 @@ impl PageContent for StaticHtml {
   fn title(&self) -> String {
     self.title.into()
   }
+
+  fn preview_image(&self) -> Option<String> {
+    None
+  }
 }
 
 impl Display for StaticHtml {

@@ -27,6 +27,10 @@ impl PageContent for TransactionHtml {
   fn title(&self) -> String {
     format!("Transaction {}", self.txid)
   }
+
+  fn preview_image(&self) -> Option<String> {
+    None
+  }
 }
 
 #[cfg(test)]

@@ -49,6 +49,8 @@ pub(crate) trait PageContent: Display + 'static {
   {
     PageHtml::new(self, chain, has_satoshi_index)
   }
+
+  fn preview_image(&self) -> Option<String>;
 }
 
 #[cfg(test)]
@@ -68,6 +70,10 @@ mod tests {
     impl PageContent for Foo {
       fn title(&self) -> String {
         "Foo".to_string()
+      }
+
+      fn preview_image(&self) -> Option<String> {
+        None
       }
     }
 
@@ -119,6 +125,10 @@ mod tests {
       fn title(&self) -> String {
         "Foo".to_string()
       }
+
+      fn preview_image(&self) -> Option<String> {
+        None
+      }
     }
 
     assert_regex_match!(
@@ -167,6 +177,10 @@ mod tests {
     impl PageContent for Foo {
       fn title(&self) -> String {
         "Foo".to_string()
+      }
+
+      fn preview_image(&self) -> Option<String> {
+        None
       }
     }
 

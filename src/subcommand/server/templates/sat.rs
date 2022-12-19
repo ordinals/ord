@@ -11,6 +11,10 @@ impl PageContent for SatHtml {
   fn title(&self) -> String {
     self.sat.degree().to_string()
   }
+
+  fn preview_image(&self) -> Option<String> {
+    None
+  }
 }
 
 #[cfg(test)]
