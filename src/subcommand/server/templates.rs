@@ -49,6 +49,10 @@ pub(crate) trait PageContent: Display + 'static {
   {
     PageHtml::new(self, chain, has_satoshi_index)
   }
+
+  fn preview_image_url(&self) -> Option<Trusted<String>> {
+    None
+  }
 }
 
 #[cfg(test)]
