@@ -711,8 +711,8 @@ mod tests {
 
   #[test]
   fn is_graphical() {
-    assert!(inscription("image/png", &[]).is_graphical());
-    assert!(!inscription("foo", &[]).is_graphical());
+    assert!(inscription("image/png", []).is_graphical());
+    assert!(!inscription("foo", []).is_graphical());
     assert!(!Inscription::new(None, Some(Vec::new())).is_graphical());
   }
 }
