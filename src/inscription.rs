@@ -96,8 +96,7 @@ impl Inscription {
 
     match self.content_type()? {
       "text/plain;charset=utf-8" => Some(Content::Text(str::from_utf8(content).ok()?)),
-      "image/png" => Some(Content::Image),
-      "image/gif" => Some(Content::Image),
+      "image/png" | "image/gif" => Some(Content::Image),
       _ => None,
     }
   }
@@ -122,7 +121,7 @@ impl Inscription {
   }
 
   pub(crate) fn is_graphical(&self) -> bool {
-    matches!(self.content_type(), Some("image/png") | Some("image/gif"))
+    matches!(self.content(), Some(Content::Image))
   }
 }
 
@@ -720,13 +719,5 @@ mod tests {
     assert!(!inscription("foo", []).is_graphical());
     assert!(inscription("image/gif", []).is_graphical());
     assert!(!Inscription::new(None, Some(Vec::new())).is_graphical());
-  }
-
-  #[test]
-  fn inscribe_gif() {
-    assert_eq!(
-      InscriptionParser::parse(&container(&[b"ord", &[1], b"image/gif", &[], &[1; 100]])),
-      Ok(inscription("image/gif", [1; 100])),
-    );
   }
 }
