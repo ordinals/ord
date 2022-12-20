@@ -122,12 +122,9 @@ fn inscription_page_after_send() {
       ".*<h1>Inscription {reveal_txid}</h1>
 <p>HELLOWORLD</p>
 <dl>
-  <dt>content size</dt>
-  <dd>10 bytes</dd>
-  <dt>content type</dt>
-  <dd>text/plain;charset=utf-8</dd>
+  .*
   <dt>location</dt>
-  <dd>{reveal_txid}:0:0</dd>
+  <dd class=monospace>{reveal_txid}:0:0</dd>
 </dl>.*",
     ),
   );
@@ -147,14 +144,13 @@ fn inscription_page_after_send() {
     &format!("/inscription/{reveal_txid}"),
     &format!(
       ".*<h1>Inscription {reveal_txid}</h1>
-<p>HELLOWORLD</p>
+<a class=content href=/content/5778445c832370c03df040f5370e354308878ed8eebe6e0831f2539e0883662d>
+<pre>HELLOWORLD</pre>
+</a>
 <dl>
-  <dt>content size</dt>
-  <dd>10 bytes</dd>
-  <dt>content type</dt>
-  <dd>text/plain;charset=utf-8</dd>
+  .*
   <dt>location</dt>
-  <dd>{}:0:0</dd>
+  <dd class=monospace>{}:0:0</dd>
 </dl>.*",
       txid.trim(),
     ),
