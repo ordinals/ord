@@ -1,7 +1,7 @@
 <h1>Transaction <span class=monospace>{{self.txid}}</span></h1>
 %% if let Some(inscription) = &self.inscription {
 <h2>Inscription</h2>
-<a href=/inscription/{{self.txid}}>
+<a class=content href=/inscription/{{self.txid}}>
 {{ inscription.content_html(self.txid) }}
 </a>
 %% }
