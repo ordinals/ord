@@ -35,14 +35,18 @@ mod tests {
       .to_string(),
       "
         <h1>Inscription ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc</h1>
-        <p>HELLOWORLD</p>
+        <a class=content href=/content/ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc>
+        <pre>HELLOWORLD</pre>
+        </a>
         <dl>
           <dt>content size</dt>
           <dd>10 bytes</dd>
           <dt>content type</dt>
           <dd>text/plain;charset=utf-8</dd>
+          <dt>genesis transaction</dt>
+          <dd><a class=monospace href=/tx/ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc>ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc</a></dd>
           <dt>location</dt>
-          <dd>1111111111111111111111111111111111111111111111111111111111111111:1:0</dd>
+          <dd class=monospace>1111111111111111111111111111111111111111111111111111111111111111:1:0</dd>
         </dl>
       "
       .unindent()
@@ -63,14 +67,18 @@ mod tests {
       .to_string(),
       "
         <h1>Inscription ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc</h1>
+        <a class=content href=/content/ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc>
         <img src=/content/ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc>
+        </a>
         <dl>
           <dt>content size</dt>
           <dd>100 bytes</dd>
           <dt>content type</dt>
           <dd>image/png</dd>
+          <dt>genesis transaction</dt>
+          <dd><a class=monospace href=/tx/ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc>ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc</a></dd>
           <dt>location</dt>
-          <dd>1111111111111111111111111111111111111111111111111111111111111111:1:0</dd>
+          <dd class=monospace>1111111111111111111111111111111111111111111111111111111111111111:1:0</dd>
         </dl>
       "
       .unindent()
@@ -91,10 +99,14 @@ mod tests {
       .to_string(),
       "
         <h1>Inscription ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc</h1>
+        <a class=content href=/content/ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc>
         <p>UNKNOWN</p>
+        </a>
         <dl>
+          <dt>genesis transaction</dt>
+          <dd><a class=monospace href=/tx/ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc>ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc</a></dd>
           <dt>location</dt>
-          <dd>1111111111111111111111111111111111111111111111111111111111111111:1:0</dd>
+          <dd class=monospace>1111111111111111111111111111111111111111111111111111111111111111:1:0</dd>
         </dl>
       "
       .unindent()
