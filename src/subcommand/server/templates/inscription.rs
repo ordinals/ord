@@ -35,6 +35,7 @@ mod tests {
       .to_string(),
       "
         <h1>Inscription ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc</h1>
+        <p>HELLOWORLD</p>
         <dl>
           <dt>content size</dt>
           <dd>10 bytes</dd>
@@ -43,7 +44,6 @@ mod tests {
           <dt>location</dt>
           <dd>1111111111111111111111111111111111111111111111111111111111111111:1:0</dd>
         </dl>
-        <p>HELLOWORLD</p>
       "
       .unindent()
     );
@@ -63,6 +63,7 @@ mod tests {
       .to_string(),
       "
         <h1>Inscription ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc</h1>
+        <img src=/content/ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc>
         <dl>
           <dt>content size</dt>
           <dd>100 bytes</dd>
@@ -71,7 +72,6 @@ mod tests {
           <dt>location</dt>
           <dd>1111111111111111111111111111111111111111111111111111111111111111:1:0</dd>
         </dl>
-        <img src=/content/ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc>
       "
       .unindent()
     );
@@ -91,11 +91,11 @@ mod tests {
       .to_string(),
       "
         <h1>Inscription ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc</h1>
+        <p>UNKNOWN</p>
         <dl>
           <dt>location</dt>
           <dd>1111111111111111111111111111111111111111111111111111111111111111:1:0</dd>
         </dl>
-        <p>UNKNOWN</p>
       "
       .unindent()
     );
