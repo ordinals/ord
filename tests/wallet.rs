@@ -90,6 +90,7 @@ fn send_works_on_signet() {
     &format!("/inscription/{reveal_txid}"),
     &format!(
       ".*<h1>Inscription {reveal_txid}</h1>
+.*
 <dl>
   <dt>content size</dt>
   <dd>520 bytes</dd>
@@ -151,6 +152,7 @@ fn send_inscribed_sat() {
     &format!("/inscription/{reveal_txid}"),
     &format!(
       ".*<h1>Inscription {reveal_txid}</h1>
+.*
 <dl>
   <dt>content size</dt>
   <dd>520 bytes</dd>
