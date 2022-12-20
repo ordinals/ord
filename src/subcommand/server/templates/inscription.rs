@@ -53,14 +53,17 @@ mod tests {
   fn png_inscription() {
     pretty_assert_eq!(
       InscriptionHtml {
-        inscription_id: InscriptionId::from_str("ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc").unwrap(),
+        inscription_id: InscriptionId::from_str(
+          "ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc"
+        )
+        .unwrap(),
         inscription: inscription("image/png", [1; 100]),
         satpoint: satpoint(1, 0),
       }
       .to_string(),
       "
         <h1>Inscription ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc</h1>
-        <img src='data:image/png;base64,AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQ=='>
+        <img src=/content/ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc>
         <dl>
           <dt>content size</dt>
           <dd>100 bytes</dd>

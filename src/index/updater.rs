@@ -78,9 +78,7 @@ impl Updater {
     let mut progress_bar = if cfg!(test)
       || log_enabled!(log::Level::Info)
       || starting_height <= self.height
-      || env::var_os("ORD_DISABLE_PROGRESS_BAR")
-        .map(|value| value.len() > 0)
-        .unwrap_or(false)
+      || integration_test()
     {
       None
     } else {
