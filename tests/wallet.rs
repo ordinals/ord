@@ -291,7 +291,7 @@ fn inscribe_unknown_file_extension() {
   .write("pepe.jpg", [1; 520])
   .rpc_server(&rpc_server)
   .expected_exit_code(1)
-  .expected_stderr("error: unrecognized file extension `.jpg`, only .txt and .png accepted\n")
+  .expected_stderr("error: unrecognized file extension `.jpg`, only .txt, .png and .gif accepted\n")
   .run();
 }
 
@@ -668,4 +668,27 @@ fn transactions() {
     .rpc_server(&rpc_server)
     .stdout_regex(format!(".*{}\t0\n.*", txid.trim()))
     .run();
+}
+
+#[test]
+fn inscribe_gif() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  rpc_server.mine_blocks(1)[0].txdata[0].txid();
+
+  let stdout =
+    CommandBuilder::new("--chain regtest --index-sats wallet inscribe --file dolphin.gif")
+      .write("dolphin.gif", [1; 520])
+      .rpc_server(&rpc_server)
+      .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+      .run();
+  let inscription_id = reveal_txid_from_inscribe_stdout(&stdout);
+
+  rpc_server.mine_blocks(1);
+
+  let ord_server = TestServer::spawn_with_args(&rpc_server, &["--index-sats"]);
+
+  ord_server.assert_response_regex(
+    "/sat/5000000000",
+    &format!(".*<dt>inscription</dt>\n  <dd><img src=/content/{inscription_id}.*"),
+  )
 }

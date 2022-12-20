@@ -11,9 +11,9 @@
   <dt>offset</dt><dd>{{ self.sat.third() }}</dd>
   <dt>rarity</dt><dd><span class={{self.sat.rarity()}}>{{ self.sat.rarity() }}</span></dd>
   <dt>time</dt><dd>{{ self.blocktime }}</dd>
-%% if let Some(inscription) = &self.inscription {
+%% if let Some((inscription_id, inscription)) = &self.inscription {
   <dt>inscription</dt>
-  <dd>{{ inscription.content_html() }}</dd>
+  <dd>{{ inscription.content_html(*inscription_id) }}</dd>
 %% }
 </dl>
 %% if self.sat.n() > 0 {
