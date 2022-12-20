@@ -56,14 +56,18 @@ fn inscription_page() {
     &format!(
       ".*<meta property=og:image content='/content/{reveal_tx}'>.*
 <h1>Inscription {reveal_tx}</h1>
-<p>HELLOWORLD</p>
+<a class=content href=/content/{reveal_tx}>
+<pre>HELLOWORLD</pre>
+</a>
 <dl>
   <dt>content size</dt>
   <dd>10 bytes</dd>
   <dt>content type</dt>
   <dd>text/plain;charset=utf-8</dd>
+  <dt>genesis transaction</dt>
+  <dd><a class=monospace href=/tx/{reveal_tx}>{reveal_tx}</a></dd>
   <dt>location</dt>
-  <dd>{reveal_tx}:0:0</dd>
+  <dd class=monospace>{reveal_tx}:0:0</dd>
 </dl>.*",
     ),
   );
