@@ -270,6 +270,7 @@ impl Updater {
       }
     }
 
+    let mut inscription_id_to_height = wtx.open_table(INSCRIPTION_ID_TO_HEIGHT)?;
     let mut inscription_id_to_satpoint = wtx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
     let mut satpoint_to_inscription_id = wtx.open_table(SATPOINT_TO_INSCRIPTION_ID)?;
     let mut inscription_number_to_inscription_id =
@@ -282,6 +283,8 @@ impl Updater {
       .unwrap_or(0);
 
     let mut inscription_updater = InscriptionUpdater {
+      height: self.height,
+      id_to_height: &mut inscription_id_to_height,
       id_to_satpoint: &mut inscription_id_to_satpoint,
       next_number: &mut next_inscription_number,
       number_to_id: &mut inscription_number_to_inscription_id,
