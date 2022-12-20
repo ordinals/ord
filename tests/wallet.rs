@@ -92,12 +92,9 @@ fn send_works_on_signet() {
       ".*<h1>Inscription {reveal_txid}</h1>
 .*
 <dl>
-  <dt>content size</dt>
-  <dd>520 bytes</dd>
-  <dt>content type</dt>
-  <dd>image/png</dd>
+  .*
   <dt>location</dt>
-  <dd>{send_txid}:0:0</dd>
+  <dd class=monospace>{send_txid}:0:0</dd>
 </dl>
 .*",
     ),
