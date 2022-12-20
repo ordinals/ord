@@ -107,7 +107,10 @@ impl Inscription {
   }
 
   pub(crate) fn content_html(&self, inscription_id: InscriptionId) -> Trusted<ContentHtml> {
-    Trusted(ContentHtml { content: self.content(), inscription_id })
+    Trusted(ContentHtml {
+      content: self.content(),
+      inscription_id,
+    })
   }
 
   pub(crate) fn content_size(&self) -> Option<usize> {

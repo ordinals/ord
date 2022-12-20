@@ -124,13 +124,16 @@ mod tests {
       SatHtml {
         sat: Sat(0),
         blocktime: Blocktime::Confirmed(0),
-        inscription: Some((InscriptionId::from_str(
+        inscription: Some((
+          InscriptionId::from_str(
             "ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc"
           )
-          .unwrap(), inscription(
-          "text/plain;charset=utf-8",
-          "<script>alert('HELLOWORLD');</script>",
-        ))),
+          .unwrap(),
+          inscription(
+            "text/plain;charset=utf-8",
+            "<script>alert('HELLOWORLD');</script>",
+          )
+        )),
       }
       .to_string(),
       "

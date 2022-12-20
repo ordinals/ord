@@ -428,7 +428,10 @@ impl Index {
     self.client.get_block(&hash).into_option()
   }
 
-  pub(crate) fn get_inscription_by_sat(&self, sat: Sat) -> Result<Option<(InscriptionId, Inscription)>> {
+  pub(crate) fn get_inscription_by_sat(
+    &self,
+    sat: Sat,
+  ) -> Result<Option<(InscriptionId, Inscription)>> {
     let db = self.database.begin_read()?;
     let table = db.open_table(SAT_TO_INSCRIPTION_ID)?;
 
