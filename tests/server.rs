@@ -64,6 +64,8 @@ fn inscription_page() {
   <dd>10 bytes</dd>
   <dt>content type</dt>
   <dd>text/plain;charset=utf-8</dd>
+  <dt>genesis height</dt>
+  <dd>2</dd>
   <dt>genesis transaction</dt>
   <dd><a class=monospace href=/tx/{reveal_tx}>{reveal_tx}</a></dd>
   <dt>location</dt>
@@ -117,9 +119,7 @@ fn inscription_page_after_send() {
   ord_server.assert_response_regex(
     &format!("/inscription/{reveal_txid}"),
     &format!(
-      ".*<h1>Inscription {reveal_txid}</h1>.*HELLOWORLD.*<dl>
-  .*
-  <dt>location</dt>
+      ".*<h1>Inscription {reveal_txid}</h1>.*HELLOWORLD.*<dl>.*<dt>location</dt>
   <dd class=monospace>{reveal_txid}:0:0</dd>
 </dl>.*",
     ),

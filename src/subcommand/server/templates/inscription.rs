@@ -2,6 +2,7 @@ use super::*;
 
 #[derive(Boilerplate)]
 pub(crate) struct InscriptionHtml {
+  pub(crate) genesis_height: u64,
   pub(crate) inscription_id: InscriptionId,
   pub(crate) inscription: Inscription,
   pub(crate) satpoint: SatPoint,
@@ -25,6 +26,7 @@ mod tests {
   fn txt_inscription() {
     pretty_assert_eq!(
       InscriptionHtml {
+        genesis_height: 0,
         inscription_id: InscriptionId::from_str(
           "ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc"
         )
@@ -43,6 +45,8 @@ mod tests {
           <dd>10 bytes</dd>
           <dt>content type</dt>
           <dd>text/plain;charset=utf-8</dd>
+          <dt>genesis height</dt>
+          <dd>0</dd>
           <dt>genesis transaction</dt>
           <dd><a class=monospace href=/tx/ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc>ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc</a></dd>
           <dt>location</dt>
@@ -57,6 +61,7 @@ mod tests {
   fn png_inscription() {
     pretty_assert_eq!(
       InscriptionHtml {
+        genesis_height: 0,
         inscription_id: InscriptionId::from_str(
           "ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc"
         )
@@ -75,6 +80,8 @@ mod tests {
           <dd>100 bytes</dd>
           <dt>content type</dt>
           <dd>image/png</dd>
+          <dt>genesis height</dt>
+          <dd>0</dd>
           <dt>genesis transaction</dt>
           <dd><a class=monospace href=/tx/ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc>ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc</a></dd>
           <dt>location</dt>
@@ -89,6 +96,7 @@ mod tests {
   fn empty_inscription() {
     pretty_assert_eq!(
       InscriptionHtml {
+        genesis_height: 0,
         inscription_id: InscriptionId::from_str(
           "ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc"
         )
@@ -103,6 +111,8 @@ mod tests {
         <p>UNKNOWN</p>
         </a>
         <dl>
+          <dt>genesis height</dt>
+          <dd>0</dd>
           <dt>genesis transaction</dt>
           <dd><a class=monospace href=/tx/ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc>ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc</a></dd>
           <dt>location</dt>

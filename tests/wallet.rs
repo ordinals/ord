@@ -89,9 +89,11 @@ fn send_works_on_signet() {
   ord_server.assert_response_regex(
     &format!("/inscription/{reveal_txid}"),
     &format!(
-      ".*<h1>Inscription {reveal_txid}</h1>
-.*
-<dl>
+      ".*<h1>Inscription {reveal_txid}</h1>.*<dl>.*
+  <dt>content size</dt>
+  <dd>520 bytes</dd>
+  <dt>content type</dt>
+  <dd>image/png</dd>
   .*
   <dt>location</dt>
   <dd class=monospace>{send_txid}:0:0</dd>
@@ -148,14 +150,7 @@ fn send_inscribed_sat() {
   ord_server.assert_response_regex(
     &format!("/inscription/{reveal_txid}"),
     &format!(
-      ".*<h1>Inscription {reveal_txid}</h1>
-.*
-<dl>
-  .*
-  <dt>location</dt>
-  <dd class=monospace>{send_txid}:0:0</dd>
-</dl>
-.*",
+      ".*<h1>Inscription {reveal_txid}</h1>.*<dt>location</dt>.*<dd class=monospace>{send_txid}:0:0</dd>.*",
     ),
   );
 }
