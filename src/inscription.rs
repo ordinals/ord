@@ -11,6 +11,8 @@ use {
   std::{iter::Peekable, str},
 };
 
+mod content_type;
+
 const PROTOCOL_ID: &[u8] = b"ord";
 
 const CONTENT_TAG: &[u8] = &[];
@@ -47,21 +49,13 @@ impl Inscription {
       }
     }
 
-    let content_type = match path
-      .extension()
-      .ok_or_else(|| anyhow!("file must have extension"))?
-      .to_str()
-      .ok_or_else(|| anyhow!("unrecognized extension"))?
-    {
-      "txt" => "text/plain;charset=utf-8",
-      "png" => "image/png",
-      "gif" => "image/gif",
-      other => {
-        return Err(anyhow!(
-          "unrecognized file extension `.{other}`, only .txt, .png and .gif accepted"
-        ))
-      }
-    };
+    let content_type = content_type::for_extension(
+      path
+        .extension()
+        .ok_or_else(|| anyhow!("file must have extension"))?
+        .to_str()
+        .ok_or_else(|| anyhow!("unrecognized extension"))?,
+    )?;
 
     Ok(Self {
       content: Some(content),
@@ -96,7 +90,7 @@ impl Inscription {
 
     match self.content_type()? {
       "text/plain;charset=utf-8" => Some(Content::Text(str::from_utf8(content).ok()?)),
-      "image/png" | "image/gif" => Some(Content::Image),
+      content_type if content_type::is_image(content_type) => Some(Content::Image),
       _ => None,
     }
   }
