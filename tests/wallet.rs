@@ -291,7 +291,7 @@ fn inscribe_unknown_file_extension() {
   .write("pepe.xyz", [1; 520])
   .rpc_server(&rpc_server)
   .expected_exit_code(1)
-  .stderr_regex(r"error: file extension `\.xyz`, supported extensions: apng .*\n")
+  .stderr_regex(r"error: unsupported file extension `\.xyz`, supported extensions: apng .*\n")
   .run();
 }
 

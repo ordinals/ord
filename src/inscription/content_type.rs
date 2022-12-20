@@ -29,7 +29,7 @@ pub(crate) fn for_extension(extension: &str) -> Result<&'static str, Error> {
   }
 
   Err(anyhow!(
-    "file extension `.{extension}`, supported extensions: {}",
+    "unsupported file extension `.{extension}`, supported extensions: {}",
     TABLE
       .iter()
       .map(|(_, _, extensions)| extensions[0])
@@ -52,7 +52,7 @@ mod tests {
     assert_eq!(super::for_extension("jpeg").unwrap(), "image/jpeg");
     assert_eq!(
       super::for_extension("foo").unwrap_err().to_string(),
-      "file extension `.foo`, supported extensions: apng gif jpg png webp txt"
+      "unsupported file extension `.foo`, supported extensions: apng gif jpg png webp txt"
     );
   }
 }
