@@ -11,6 +11,8 @@ use {
   std::{iter::Peekable, str},
 };
 
+mod content_type;
+
 const PROTOCOL_ID: &[u8] = b"ord";
 
 const CONTENT_TAG: &[u8] = &[];
@@ -47,20 +49,13 @@ impl Inscription {
       }
     }
 
-    let content_type = match path
-      .extension()
-      .ok_or_else(|| anyhow!("file must have extension"))?
-      .to_str()
-      .ok_or_else(|| anyhow!("unrecognized extension"))?
-    {
-      "txt" => "text/plain;charset=utf-8",
-      "png" => "image/png",
-      other => {
-        return Err(anyhow!(
-          "unrecognized file extension `.{other}`, only .txt and .png accepted"
-        ))
-      }
-    };
+    let content_type = content_type::for_extension(
+      path
+        .extension()
+        .ok_or_else(|| anyhow!("file must have extension"))?
+        .to_str()
+        .ok_or_else(|| anyhow!("unrecognized extension"))?,
+    )?;
 
     Ok(Self {
       content: Some(content),
@@ -95,7 +90,7 @@ impl Inscription {
 
     match self.content_type()? {
       "text/plain;charset=utf-8" => Some(Content::Text(str::from_utf8(content).ok()?)),
-      "image/png" => Some(Content::Png(content)),
+      content_type if content_type::is_image(content_type) => Some(Content::Image),
       _ => None,
     }
   }
@@ -104,8 +99,11 @@ impl Inscription {
     Some(self.content.as_ref()?)
   }
 
-  pub(crate) fn content_html(&self) -> Trusted<ContentHtml> {
-    Trusted(ContentHtml(self.content()))
+  pub(crate) fn content_html(&self, inscription_id: InscriptionId) -> Trusted<ContentHtml> {
+    Trusted(ContentHtml {
+      content: self.content(),
+      inscription_id,
+    })
   }
 
   pub(crate) fn content_size(&self) -> Option<usize> {
@@ -117,7 +115,7 @@ impl Inscription {
   }
 
   pub(crate) fn is_graphical(&self) -> bool {
-    matches!(self.content_type(), Some("image/png"))
+    matches!(self.content(), Some(Content::Image))
   }
 }
 
@@ -713,6 +711,7 @@ mod tests {
   fn is_graphical() {
     assert!(inscription("image/png", []).is_graphical());
     assert!(!inscription("foo", []).is_graphical());
+    assert!(inscription("image/gif", []).is_graphical());
     assert!(!Inscription::new(None, Some(Vec::new())).is_graphical());
   }
 }

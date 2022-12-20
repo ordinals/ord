@@ -56,15 +56,21 @@ fn inscription_page() {
     &format!(
       ".*<meta property=og:image content='/content/{reveal_tx}'>.*
 <h1>Inscription {reveal_tx}</h1>
+<a class=content href=/content/{reveal_tx}>
+<pre>HELLOWORLD</pre>
+</a>
 <dl>
   <dt>content size</dt>
   <dd>10 bytes</dd>
   <dt>content type</dt>
   <dd>text/plain;charset=utf-8</dd>
+  <dt>genesis height</dt>
+  <dd>2</dd>
+  <dt>genesis transaction</dt>
+  <dd><a class=monospace href=/tx/{reveal_tx}>{reveal_tx}</a></dd>
   <dt>location</dt>
-  <dd>{reveal_tx}:0:0</dd>
-</dl>
-<p>HELLOWORLD</p>.*",
+  <dd class=monospace>{reveal_tx}:0:0</dd>
+</dl>.*",
     ),
   );
 }
@@ -88,13 +94,7 @@ fn inscription_appears_on_reveal_transaction_page() {
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     &format!("/tx/{}", reveal_tx),
-    &format!(
-      ".*<h1>Transaction .*</h1>.*
-<h2>Inscription</h2>
-<a href=/inscription/{reveal_tx}>
-<p>HELLOWORLD</p>
-</a>.*",
-    ),
+    ".*<h1>Transaction .*</h1>.*HELLOWORLD.*",
   );
 }
 
@@ -119,16 +119,9 @@ fn inscription_page_after_send() {
   ord_server.assert_response_regex(
     &format!("/inscription/{reveal_txid}"),
     &format!(
-      ".*<h1>Inscription {reveal_txid}</h1>
-<dl>
-  <dt>content size</dt>
-  <dd>10 bytes</dd>
-  <dt>content type</dt>
-  <dd>text/plain;charset=utf-8</dd>
-  <dt>location</dt>
-  <dd>{reveal_txid}:0:0</dd>
-</dl>
-<p>HELLOWORLD</p>.*",
+      ".*<h1>Inscription {reveal_txid}</h1>.*HELLOWORLD.*<dl>.*<dt>location</dt>
+  <dd class=monospace>{reveal_txid}:0:0</dd>
+</dl>.*",
     ),
   );
 
@@ -146,16 +139,12 @@ fn inscription_page_after_send() {
   ord_server.assert_response_regex(
     &format!("/inscription/{reveal_txid}"),
     &format!(
-      ".*<h1>Inscription {reveal_txid}</h1>
+      ".*<h1>Inscription {reveal_txid}</h1>.*HELLOWORLD.*
 <dl>
-  <dt>content size</dt>
-  <dd>10 bytes</dd>
-  <dt>content type</dt>
-  <dd>text/plain;charset=utf-8</dd>
+  .*
   <dt>location</dt>
-  <dd>{}:0:0</dd>
-</dl>
-<p>HELLOWORLD</p>.*",
+  <dd class=monospace>{}:0:0</dd>
+</dl>.*",
       txid.trim(),
     ),
   )

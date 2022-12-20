@@ -17,7 +17,6 @@ use {
     Router,
   },
   axum_server::Handle,
-  lazy_static::lazy_static,
   rust_embed::RustEmbed,
   rustls_acme::{
     acme::{LETS_ENCRYPT_PRODUCTION_DIRECTORY, LETS_ENCRYPT_STAGING_DIRECTORY},
@@ -211,6 +210,17 @@ impl Server {
       .to_socket_addrs()?
       .next()
       .ok_or_else(|| anyhow!("failed to get socket addrs"))?;
+
+    if !integration_test() {
+      eprintln!(
+        "Listening on {}://{addr}",
+        if https_acceptor.is_some() {
+          "https"
+        } else {
+          "http"
+        }
+      );
+    }
 
     Ok(tokio::spawn(async move {
       if let Some(acceptor) = https_acceptor {
@@ -687,8 +697,15 @@ impl Server {
         ServerError::NotFound(format!("transaction {inscription_id} has no inscription"))
       })?;
 
+    let genesis_height = index.get_genesis_height(inscription_id).map_err(|err| {
+        ServerError::Internal(anyhow!(
+          "failed to retrieve height for inscriptiom with inscription id {inscription_id} from index: {err}"
+        ))
+      })?;
+
     Ok(
       InscriptionHtml {
+        genesis_height,
         inscription_id,
         inscription,
         satpoint,
