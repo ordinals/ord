@@ -64,8 +64,8 @@ update-ord-dev:
 rebuild-ord-dev-database: && update-ord-dev
   systemctl stop ord-dev
   rm -f /var/lib/ord-dev/**/index.redb
-  journalctl --rotate ord-dev
-  journalctl --vacuum-time 1s ord-dev
+  journalctl --unit ord-dev --rotate
+  journalctl --unit ord-dev --vacuum-time 1s
 
 # publish current GitHub master branch
 publish:
