@@ -428,7 +428,10 @@ impl Index {
     self.client.get_block(&hash).into_option()
   }
 
-  pub(crate) fn get_inscription_by_sat(&self, sat: Sat) -> Result<Option<Inscription>> {
+  pub(crate) fn get_inscription_by_sat(
+    &self,
+    sat: Sat,
+  ) -> Result<Option<(InscriptionId, Inscription)>> {
     let db = self.database.begin_read()?;
     let table = db.open_table(SAT_TO_INSCRIPTION_ID)?;
 
@@ -439,7 +442,7 @@ impl Index {
     Ok(
       self
         .get_inscription_by_inscription_id(Txid::from_inner(*txid))?
-        .map(|(inscription, _)| inscription),
+        .map(|(inscription, _)| (InscriptionId::from_inner(*txid), inscription)),
     )
   }
 

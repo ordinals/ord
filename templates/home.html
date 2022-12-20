@@ -10,7 +10,7 @@ sidechain or token required.</p>
 <h2>Latest Inscriptions</h2>
 <div class=inscriptions>
 %% for (inscription, id) in &self.inscriptions {
-  <a href=/inscription/{{id}}>{{inscription.content_html()}}</a>
+  <a href=/inscription/{{id}}>{{inscription.content_html(*id)}}</a>
 %% }
 </div>
 %% }

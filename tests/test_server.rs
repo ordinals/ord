@@ -31,7 +31,7 @@ impl TestServer {
       tempdir.path().display(),
       args.join(" "),
     ).to_args())
-      .env("ORD_DISABLE_PROGRESS_BAR", "1")
+      .env("ORD_INTEGRATION_TEST", "1")
       .current_dir(&tempdir)
       .spawn().unwrap();
 

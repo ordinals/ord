@@ -4,7 +4,7 @@ use super::*;
 pub(crate) struct SatHtml {
   pub(crate) sat: Sat,
   pub(crate) blocktime: Blocktime,
-  pub(crate) inscription: Option<Inscription>,
+  pub(crate) inscription: Option<(InscriptionId, Inscription)>,
 }
 
 impl PageContent for SatHtml {
@@ -85,7 +85,13 @@ mod tests {
       SatHtml {
         sat: Sat(0),
         blocktime: Blocktime::Confirmed(0),
-        inscription: Some(inscription("text/plain;charset=utf-8", "HELLOWORLD")),
+        inscription: Some((
+          InscriptionId::from_str(
+            "ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc"
+          )
+          .unwrap(),
+          inscription("text/plain;charset=utf-8", "HELLOWORLD")
+        )),
       }
       .to_string(),
       "
@@ -118,9 +124,15 @@ mod tests {
       SatHtml {
         sat: Sat(0),
         blocktime: Blocktime::Confirmed(0),
-        inscription: Some(inscription(
-          "text/plain;charset=utf-8",
-          "<script>alert('HELLOWORLD');</script>",
+        inscription: Some((
+          InscriptionId::from_str(
+            "ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc"
+          )
+          .unwrap(),
+          inscription(
+            "text/plain;charset=utf-8",
+            "<script>alert('HELLOWORLD');</script>",
+          )
         )),
       }
       .to_string(),
