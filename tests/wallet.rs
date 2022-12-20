@@ -151,12 +151,9 @@ fn send_inscribed_sat() {
       ".*<h1>Inscription {reveal_txid}</h1>
 .*
 <dl>
-  <dt>content size</dt>
-  <dd>520 bytes</dd>
-  <dt>content type</dt>
-  <dd>image/png</dd>
+  .*
   <dt>location</dt>
-  <dd>{send_txid}:0:0</dd>
+  <dd class=monospace>{send_txid}:0:0</dd>
 </dl>
 .*",
     ),
@@ -256,7 +253,7 @@ fn inscribe() {
 
   TestServer::spawn_with_args(&rpc_server, &["--index-sats"]).assert_response_regex(
     "/sat/5000000000",
-    ".*<dt>inscription</dt>\n  <dd><p>HELLOWORLD</p></dd>.*",
+    ".*<dt>inscription</dt>\n  <dd>.*<pre>HELLOWORLD</pre>.*</dd>.*",
   );
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
