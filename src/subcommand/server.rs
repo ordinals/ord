@@ -17,7 +17,6 @@ use {
     Router,
   },
   axum_server::Handle,
-  lazy_static::lazy_static,
   rust_embed::RustEmbed,
   rustls_acme::{
     acme::{LETS_ENCRYPT_PRODUCTION_DIRECTORY, LETS_ENCRYPT_STAGING_DIRECTORY},

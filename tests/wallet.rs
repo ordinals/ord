@@ -286,12 +286,12 @@ fn inscribe_unknown_file_extension() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file pepe.jpg"
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file pepe.xyz"
   ))
-  .write("pepe.jpg", [1; 520])
+  .write("pepe.xyz", [1; 520])
   .rpc_server(&rpc_server)
   .expected_exit_code(1)
-  .expected_stderr("error: unrecognized file extension `.jpg`, only .txt, .png and .gif accepted\n")
+  .stderr_regex(r"error: unsupported file extension `\.xyz`, supported extensions: apng .*\n")
   .run();
 }
 

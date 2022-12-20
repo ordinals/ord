@@ -42,11 +42,12 @@ use {
   clap::{ArgGroup, Parser},
   derive_more::{Display, FromStr},
   html_escaper::{Escape, Trusted},
+  lazy_static::lazy_static,
   regex::Regex,
   serde::{Deserialize, Serialize},
   std::{
     cmp::Ordering,
-    collections::{BTreeMap, VecDeque},
+    collections::{BTreeMap, HashSet, VecDeque},
     env,
     fmt::{self, Display, Formatter},
     fs, io,
