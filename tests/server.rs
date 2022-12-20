@@ -62,6 +62,8 @@ fn inscription_page() {
   <dd>10 bytes</dd>
   <dt>content type</dt>
   <dd>text/plain;charset=utf-8</dd>
+  <dt>genesis height</dt>
+  <dd>2</dd>
   <dt>location</dt>
   <dd>{reveal_tx}:0:0</dd>
 </dl>.*",
@@ -126,6 +128,8 @@ fn inscription_page_after_send() {
   <dd>10 bytes</dd>
   <dt>content type</dt>
   <dd>text/plain;charset=utf-8</dd>
+  <dt>genesis height</dt>
+  <dd>2</dd>
   <dt>location</dt>
   <dd>{reveal_txid}:0:0</dd>
 </dl>.*",
@@ -153,6 +157,8 @@ fn inscription_page_after_send() {
   <dd>10 bytes</dd>
   <dt>content type</dt>
   <dd>text/plain;charset=utf-8</dd>
+  <dt>genesis height</dt>
+  <dd>2</dd>
   <dt>location</dt>
   <dd>{}:0:0</dd>
 </dl>.*",

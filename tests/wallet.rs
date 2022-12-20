@@ -96,6 +96,8 @@ fn send_works_on_signet() {
   <dd>520 bytes</dd>
   <dt>content type</dt>
   <dd>image/png</dd>
+  <dt>genesis height</dt>
+  <dd>2</dd>
   <dt>location</dt>
   <dd>{send_txid}:0:0</dd>
 </dl>
@@ -158,6 +160,8 @@ fn send_inscribed_sat() {
   <dd>520 bytes</dd>
   <dt>content type</dt>
   <dd>image/png</dd>
+  <dt>genesis height</dt>
+  <dd>2</dd>
   <dt>location</dt>
   <dd>{send_txid}:0:0</dd>
 </dl>

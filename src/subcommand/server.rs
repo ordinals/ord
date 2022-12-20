@@ -697,8 +697,15 @@ impl Server {
         ServerError::NotFound(format!("transaction {inscription_id} has no inscription"))
       })?;
 
+    let genesis_height = index.get_genesis_height(inscription_id).map_err(|err| {
+        ServerError::Internal(anyhow!(
+          "failed to retrieve height for inscriptiom with inscription id {inscription_id} from index: {err}"
+        ))
+      })?;
+
     Ok(
       InscriptionHtml {
+        genesis_height,
         inscription_id,
         inscription,
         satpoint,

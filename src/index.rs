@@ -21,6 +21,8 @@ type SatPointArray = [u8; 44];
 
 const HEIGHT_TO_BLOCK_HASH: TableDefinition<u64, &BlockHashArray> =
   TableDefinition::new("HEIGHT_TO_BLOCK_HASH");
+const INSCRIPTION_ID_TO_HEIGHT: TableDefinition<&InscriptionIdArray, u64> =
+  TableDefinition::new("INSCRIPTION_ID_TO_HEIGHT");
 const INSCRIPTION_ID_TO_SATPOINT: TableDefinition<&InscriptionIdArray, &SatPointArray> =
   TableDefinition::new("INSCRIPTION_ID_TO_SATPOINT");
 const INSCRIPTION_NUMBER_TO_INSCRIPTION_ID: TableDefinition<u64, &InscriptionIdArray> =
@@ -205,6 +207,7 @@ impl Index {
         };
 
         tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
+        tx.open_table(INSCRIPTION_ID_TO_HEIGHT)?;
         tx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
         tx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
         tx.open_table(SATPOINT_TO_INSCRIPTION_ID)?;
@@ -641,6 +644,15 @@ impl Index {
     }
 
     Ok(inscriptions)
+  }
+
+  pub(crate) fn get_genesis_height(&self, inscription_id: InscriptionId) -> Result<u64> {
+    self
+      .database
+      .begin_read()?
+      .open_table(INSCRIPTION_ID_TO_HEIGHT)?
+      .get(inscription_id.as_inner())?
+      .ok_or_else(|| anyhow!("no height for inscription"))
   }
 }
 
