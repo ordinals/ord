@@ -58,15 +58,14 @@ open:
 doc:
   cargo doc --all --open
 
-update-dev-server:
-  ./bin/update-dev-server
+update-ord-dev:
+  ./bin/update-ord-dev
 
-start-dev-server-benchmark: && update-dev-server
+rebuild-ord-dev-database: && update-ord-dev
   systemctl stop ord-dev
   rm /var/lib/ord-dev/index.redb
-  journalctl --rotate
-  journalctl --vacuum-time 1s
-  ./bin/update-dev-server
+  journalctl --rotate ord-dev
+  journalctl --vacuum-time 1s ord-dev
 
 # publish current GitHub master branch
 publish:
