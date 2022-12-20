@@ -92,13 +92,7 @@ fn inscription_appears_on_reveal_transaction_page() {
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     &format!("/tx/{}", reveal_tx),
-    &format!(
-      ".*<h1>Transaction .*</h1>.*
-<h2>Inscription</h2>
-<a href=/inscription/{reveal_tx}>
-<p>HELLOWORLD</p>
-</a>.*",
-    ),
+    &format!(".*<h1>Transaction .*</h1>.*HELLOWORLD.*",),
   );
 }
 
@@ -123,9 +117,7 @@ fn inscription_page_after_send() {
   ord_server.assert_response_regex(
     &format!("/inscription/{reveal_txid}"),
     &format!(
-      ".*<h1>Inscription {reveal_txid}</h1>
-<p>HELLOWORLD</p>
-<dl>
+      ".*<h1>Inscription {reveal_txid}</h1>.*HELLOWORLD.*<dl>
   .*
   <dt>location</dt>
   <dd class=monospace>{reveal_txid}:0:0</dd>
@@ -147,10 +139,7 @@ fn inscription_page_after_send() {
   ord_server.assert_response_regex(
     &format!("/inscription/{reveal_txid}"),
     &format!(
-      ".*<h1>Inscription {reveal_txid}</h1>
-<a class=content href=/content/5778445c832370c03df040f5370e354308878ed8eebe6e0831f2539e0883662d>
-<pre>HELLOWORLD</pre>
-</a>
+      ".*<h1>Inscription {reveal_txid}</h1>.*HELLOWORLD.*
 <dl>
   .*
   <dt>location</dt>
