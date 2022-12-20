@@ -168,7 +168,7 @@ a.mythic {
   width: 23%;
   margin: 1%;
   overflow: hidden;
-  border-radius: 10%;
+  border-radius: 2%;
 }
 
 .inscriptions a img {
@@ -176,4 +176,19 @@ a.mythic {
   max-width: 100%;
   min-width: 100%;
   image-rendering: pixelated;
+}
+
+.content {
+  display: flex;
+  justify-content: center;
+}
+
+.content img {
+  min-width: 50%;
+  image-rendering: pixelated;
+}
+
+a.content {
+  color: inherit;
+  text-decoration: none;
 }

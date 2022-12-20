@@ -89,17 +89,14 @@ fn send_works_on_signet() {
   ord_server.assert_response_regex(
     &format!("/inscription/{reveal_txid}"),
     &format!(
-      ".*<h1>Inscription {reveal_txid}</h1>
-.*
-<dl>
+      ".*<h1>Inscription {reveal_txid}</h1>.*<dl>.*
   <dt>content size</dt>
   <dd>520 bytes</dd>
   <dt>content type</dt>
   <dd>image/png</dd>
-  <dt>genesis height</dt>
-  <dd>2</dd>
+  .*
   <dt>location</dt>
-  <dd>{send_txid}:0:0</dd>
+  <dd class=monospace>{send_txid}:0:0</dd>
 </dl>
 .*",
     ),
@@ -153,19 +150,7 @@ fn send_inscribed_sat() {
   ord_server.assert_response_regex(
     &format!("/inscription/{reveal_txid}"),
     &format!(
-      ".*<h1>Inscription {reveal_txid}</h1>
-.*
-<dl>
-  <dt>content size</dt>
-  <dd>520 bytes</dd>
-  <dt>content type</dt>
-  <dd>image/png</dd>
-  <dt>genesis height</dt>
-  <dd>2</dd>
-  <dt>location</dt>
-  <dd>{send_txid}:0:0</dd>
-</dl>
-.*",
+      ".*<h1>Inscription {reveal_txid}</h1>.*<dt>location</dt>.*<dd class=monospace>{send_txid}:0:0</dd>.*",
     ),
   );
 }
@@ -263,7 +248,7 @@ fn inscribe() {
 
   TestServer::spawn_with_args(&rpc_server, &["--index-sats"]).assert_response_regex(
     "/sat/5000000000",
-    ".*<dt>inscription</dt>\n  <dd><p>HELLOWORLD</p></dd>.*",
+    ".*<dt>inscription</dt>\n  <dd>.*<pre>HELLOWORLD</pre>.*</dd>.*",
   );
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
@@ -306,7 +291,7 @@ fn inscribe_png() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  CommandBuilder::new(format!(
+  let stdout = CommandBuilder::new(format!(
     "--chain regtest --index-sats wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
   ))
   .write("degenerate.png", [1; 520])
@@ -314,13 +299,17 @@ fn inscribe_png() {
   .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
   .run();
 
+  let txid = reveal_txid_from_inscribe_stdout(&stdout);
+
   rpc_server.mine_blocks(1);
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &["--index-sats"]);
 
   ord_server.assert_response_regex(
     "/sat/5000000000",
-    ".*<dt>inscription</dt>\n  <dd><img src=.*",
+    &format!(
+      ".*<dt>inscription</dt>\n  <dd><a href=/inscription/{txid}><img src=/content/{txid}.*"
+    ),
   )
 }
 
@@ -614,10 +603,8 @@ fn inscribe_with_optional_satpoint_arg() {
 
   rpc_server.mine_blocks(1);
 
-  TestServer::spawn_with_args(&rpc_server, &["--index-sats"]).assert_response_regex(
-    "/sat/5000000000",
-    ".*<dt>inscription</dt>\n  <dd><p>HELLOWORLD</p></dd>.*",
-  );
+  TestServer::spawn_with_args(&rpc_server, &["--index-sats"])
+    .assert_response_regex("/sat/5000000000", ".*HELLOWORLD.*");
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     &format!("/inscription/{}", reveal_txid_from_inscribe_stdout(&stdout)),
@@ -687,7 +674,8 @@ fn inscribe_gif() {
       .rpc_server(&rpc_server)
       .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
       .run();
-  let inscription_id = reveal_txid_from_inscribe_stdout(&stdout);
+
+  let txid = reveal_txid_from_inscribe_stdout(&stdout);
 
   rpc_server.mine_blocks(1);
 
@@ -695,6 +683,8 @@ fn inscribe_gif() {
 
   ord_server.assert_response_regex(
     "/sat/5000000000",
-    &format!(".*<dt>inscription</dt>\n  <dd><img src=/content/{inscription_id}.*"),
+    &format!(
+      ".*<dt>inscription</dt>\n  <dd><a href=/inscription/{txid}><img src=/content/{txid}.*"
+    ),
   )
 }

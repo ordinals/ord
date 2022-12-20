@@ -1,5 +1,7 @@
 <h1>Inscription {{ self.inscription_id }}</h1>
+<a class=content href=/content/{{self.inscription_id}}>
 {{ self.inscription.content_html(self.inscription_id) }}
+</a>
 <dl>
 %% if let Some(content_size) = self.inscription.content_size() {
   <dt>content size</dt>
@@ -11,6 +13,8 @@
 %% }
   <dt>genesis height</dt>
   <dd>{{ self.genesis_height }}</dd>
+  <dt>genesis transaction</dt>
+  <dd><a class=monospace href=/tx/{{ self.inscription_id }}>{{ self.inscription_id }}</a></dd>
   <dt>location</dt>
-  <dd>{{ self.satpoint }}</dd>
+  <dd class=monospace>{{ self.satpoint }}</dd>
 </dl>
