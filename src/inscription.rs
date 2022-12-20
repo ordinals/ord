@@ -11,44 +11,12 @@ use {
   std::{iter::Peekable, str},
 };
 
+mod content_type;
+
 const PROTOCOL_ID: &[u8] = b"ord";
 
 const CONTENT_TAG: &[u8] = &[];
 const CONTENT_TYPE_TAG: &[u8] = &[1];
-
-const CONTENT_TYPES: &[(&str, bool, &[&str])] = &[
-  ("image/apng", true, &["apng"]),
-  ("image/gif", true, &["gif"]),
-  ("image/jpeg", true, &["jpg", "jpeg"]),
-  ("image/png", true, &["png"]),
-  ("image/webp", true, &["webp"]),
-  ("text/plain;charset=utf-8", false, &["txt"]),
-];
-
-lazy_static! {
-  static ref IMAGE_CONTENT_TYPES: HashSet<&'static str> = CONTENT_TYPES
-    .iter()
-    .filter(|(_, image, _)| *image)
-    .map(|(content_type, _, _)| *content_type)
-    .collect();
-}
-
-fn content_type_for_extension(extension: &str) -> Result<&'static str, Error> {
-  for (content_type, _, extensions) in CONTENT_TYPES {
-    if extensions.contains(&extension) {
-      return Ok(content_type);
-    }
-  }
-
-  Err(anyhow!(
-    "file extension `.{extension}`, supported extensions: {}",
-    CONTENT_TYPES
-      .iter()
-      .map(|(_, _, extensions)| extensions[0])
-      .collect::<Vec<&str>>()
-      .join(" "),
-  ))
-}
 
 #[derive(Debug, PartialEq)]
 pub(crate) struct Inscription {
@@ -81,7 +49,7 @@ impl Inscription {
       }
     }
 
-    let content_type = content_type_for_extension(
+    let content_type = content_type::for_extension(
       path
         .extension()
         .ok_or_else(|| anyhow!("file must have extension"))?
@@ -122,7 +90,7 @@ impl Inscription {
 
     match self.content_type()? {
       "text/plain;charset=utf-8" => Some(Content::Text(str::from_utf8(content).ok()?)),
-      content_type if IMAGE_CONTENT_TYPES.contains(content_type) => Some(Content::Image),
+      content_type if content_type::is_image(content_type) => Some(Content::Image),
       _ => None,
     }
   }
