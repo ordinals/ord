@@ -105,6 +105,7 @@ impl CommandBuilder {
     }
 
     command
+      .env("ORD_INTEGRATION_TEST", "1")
       .stdin(Stdio::null())
       .stdout(Stdio::piped())
       .stderr(Stdio::piped())
