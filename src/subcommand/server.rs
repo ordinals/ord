@@ -212,6 +212,17 @@ impl Server {
       .next()
       .ok_or_else(|| anyhow!("failed to get socket addrs"))?;
 
+    if !integration_test() {
+      eprintln!(
+        "Listening on {}://{addr}",
+        if https_acceptor.is_some() {
+          "https"
+        } else {
+          "http"
+        }
+      );
+    }
+
     Ok(tokio::spawn(async move {
       if let Some(acceptor) = https_acceptor {
         axum_server::Server::bind(addr)
