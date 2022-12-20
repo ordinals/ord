@@ -18,7 +18,6 @@ const CONTENT_TYPE_TAG: &[u8] = &[1];
 
 const CONTENT_TYPES: &[(&str, bool, &[&str])] = &[
   ("image/apng", true, &["apng"]),
-  ("image/avif", true, &["avif"]),
   ("image/gif", true, &["gif"]),
   ("image/jpeg", true, &["jpg", "jpeg"]),
   ("image/png", true, &["png"]),
