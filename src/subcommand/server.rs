@@ -1498,6 +1498,15 @@ next.*",
   }
 
   #[test]
+  fn rare_sat_location() {
+    TestServer::new_with_args(&["--index-sats"]).assert_response_regex(
+      "/sat/0",
+      StatusCode::OK,
+      ".*>4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0<.*",
+    );
+  }
+
+  #[test]
   fn dont_show_rare_txt_in_header_without_satoshi_index() {
     TestServer::new().assert_response_regex(
       "/",
