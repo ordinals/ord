@@ -89,6 +89,7 @@ impl Inscription {
     let content = self.content.as_ref()?;
 
     match self.content_type()? {
+      content_type::HTML => Some(Content::Html),
       content_type::SVG => Some(Content::Svg),
       content_type::TEXT => Some(Content::Text(str::from_utf8(content).ok()?)),
       content_type if content_type::is_image(content_type) => Some(Content::Image),
