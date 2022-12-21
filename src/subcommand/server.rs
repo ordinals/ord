@@ -322,9 +322,16 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(sat)): Path<DeserializeFromStr<Sat>>,
   ) -> ServerResult<PageHtml> {
+    let satpoint = index.rare_sat_satpoint(sat).map_err(|err| {
+      ServerError::Internal(anyhow!(
+        "failed to satpoint for sat {sat} from index: {err}"
+      ))
+    })?;
+
     Ok(
       SatHtml {
         sat,
+        satpoint,
         blocktime: index.blocktime(sat.height()).map_err(|err| {
           ServerError::Internal(anyhow!("failed to retrieve blocktime from index: {err}"))
         })?,
