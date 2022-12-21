@@ -179,9 +179,8 @@ a.mythic {
 }
 
 .inscriptions a iframe {
-  overflow: auto;
-  max-width: 100%;
-  min-width: 100%;
+  width: 100%;
+  height: 100%;
 }
 
 .content {
@@ -196,11 +195,13 @@ a.mythic {
 
 iframe {
   border: none;
+  pointer-events: none;
 }
 
 .content iframe {
-  min-width: 50%;
+  aspect-ratio: 1 / 1;
   border: none;
+  min-width: 50%;
 }
 
 a.content {
