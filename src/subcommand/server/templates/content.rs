@@ -21,3 +21,56 @@ impl<'a> Display for ContentHtml<'a> {
     }
   }
 }
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn text() {
+    assert_eq!(
+      ContentHtml {
+        content: Some(Content::Text("foo")),
+        inscription_id: txid(1),
+      }
+      .to_string(),
+      "<pre>foo</pre>"
+    );
+  }
+
+  #[test]
+  fn image() {
+    assert_eq!(
+      ContentHtml {
+        content: Some(Content::Image),
+        inscription_id: txid(1),
+      }
+      .to_string(),
+      "<img src=/content/1111111111111111111111111111111111111111111111111111111111111111>"
+    );
+  }
+
+  #[test]
+  fn svg() {
+    assert_eq!(
+      ContentHtml {
+        content: Some(Content::Svg),
+        inscription_id: txid(1),
+      }
+      .to_string(),
+      "<iframe src=/content/1111111111111111111111111111111111111111111111111111111111111111></iframe>"
+    );
+  }
+
+  #[test]
+  fn html() {
+    assert_eq!(
+      ContentHtml {
+        content: Some(Content::Svg),
+        inscription_id: txid(1),
+      }
+      .to_string(),
+      "<iframe src=/content/1111111111111111111111111111111111111111111111111111111111111111></iframe>"
+    );
+  }
+}
