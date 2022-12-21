@@ -188,6 +188,11 @@ a.mythic {
   image-rendering: pixelated;
 }
 
+.content iframe {
+  min-width: 50%;
+  border: none;
+}
+
 a.content {
   color: inherit;
   text-decoration: none;

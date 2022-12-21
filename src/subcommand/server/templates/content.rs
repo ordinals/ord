@@ -14,7 +14,7 @@ impl<'a> Display for ContentHtml<'a> {
         write!(f, "</pre>")
       }
       Some(Content::Image) => write!(f, "<img src=/content/{}>", self.inscription_id),
-      Some(Content::Svg) => write!(f, "<iframe src=/content/{}>", self.inscription_id),
+      Some(Content::Svg) => write!(f, "<iframe src=/content/{}></iframe>", self.inscription_id),
       None => write!(f, "<p>UNKNOWN</p>"),
     }
   }

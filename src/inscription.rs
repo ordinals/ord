@@ -116,7 +116,7 @@ impl Inscription {
   }
 
   pub(crate) fn is_graphical(&self) -> bool {
-    matches!(self.content(), Some(Content::Image))
+    matches!(self.content(), Some(Content::Image) | Some(Content::Svg))
   }
 }
 
@@ -713,6 +713,7 @@ mod tests {
     assert!(inscription("image/png", []).is_graphical());
     assert!(!inscription("foo", []).is_graphical());
     assert!(inscription("image/gif", []).is_graphical());
+    assert!(inscription("image/svg+xml", []).is_graphical());
     assert!(!Inscription::new(None, Some(Vec::new())).is_graphical());
   }
 }
