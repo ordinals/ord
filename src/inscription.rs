@@ -89,8 +89,7 @@ impl Inscription {
     let content = self.content.as_ref()?;
 
     match self.content_type()? {
-      content_type::HTML => Some(Content::Html),
-      content_type::SVG => Some(Content::Svg),
+      content_type::HTML | content_type::SVG => Some(Content::IFrame),
       content_type::TEXT => Some(Content::Text(str::from_utf8(content).ok()?)),
       content_type if content_type::is_image(content_type) => Some(Content::Image),
       _ => None,
@@ -117,7 +116,7 @@ impl Inscription {
   }
 
   pub(crate) fn is_graphical(&self) -> bool {
-    matches!(self.content(), Some(Content::Image) | Some(Content::Svg))
+    matches!(self.content(), Some(Content::Image) | Some(Content::IFrame))
   }
 }
 

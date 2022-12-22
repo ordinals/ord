@@ -14,7 +14,7 @@ impl<'a> Display for ContentHtml<'a> {
         write!(f, "</pre>")
       }
       Some(Content::Image) => write!(f, "<img src=/content/{}>", self.inscription_id),
-      Some(Content::Svg | Content::Html) => {
+      Some(Content::IFrame) => {
         write!(f, "<iframe src=/content/{}></iframe>", self.inscription_id)
       }
       None => write!(f, "<p>UNKNOWN</p>"),
@@ -54,19 +54,7 @@ mod tests {
   fn svg() {
     assert_eq!(
       ContentHtml {
-        content: Some(Content::Svg),
-        inscription_id: txid(1),
-      }
-      .to_string(),
-      "<iframe src=/content/1111111111111111111111111111111111111111111111111111111111111111></iframe>"
-    );
-  }
-
-  #[test]
-  fn html() {
-    assert_eq!(
-      ContentHtml {
-        content: Some(Content::Svg),
+        content: Some(Content::IFrame),
         inscription_id: txid(1),
       }
       .to_string(),
