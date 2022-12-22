@@ -51,7 +51,7 @@ mod tests {
   }
 
   #[test]
-  fn svg() {
+  fn iframe() {
     assert_eq!(
       ContentHtml {
         content: Some(Content::IFrame),
