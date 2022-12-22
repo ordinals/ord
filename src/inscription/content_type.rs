@@ -1,12 +1,18 @@
 use super::*;
 
+pub const HTML: &str = "text/html;charset=utf-8";
+pub const SVG: &str = "image/svg+xml";
+pub const TEXT: &str = "text/plain;charset=utf-8";
+
 const TABLE: &[(&str, bool, &[&str])] = &[
   ("image/apng", true, &["apng"]),
   ("image/gif", true, &["gif"]),
   ("image/jpeg", true, &["jpg", "jpeg"]),
   ("image/png", true, &["png"]),
   ("image/webp", true, &["webp"]),
-  ("text/plain;charset=utf-8", false, &["txt"]),
+  (HTML, false, &["html"]),
+  (SVG, true, &["svg"]),
+  (TEXT, false, &["txt"]),
 ];
 
 lazy_static! {
@@ -52,7 +58,7 @@ mod tests {
     assert_eq!(super::for_extension("jpeg").unwrap(), "image/jpeg");
     assert_eq!(
       super::for_extension("foo").unwrap_err().to_string(),
-      "unsupported file extension `.foo`, supported extensions: apng gif jpg png webp txt"
+      "unsupported file extension `.foo`, supported extensions: apng gif jpg png webp html svg txt"
     );
   }
 }
