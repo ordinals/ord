@@ -408,6 +408,21 @@ impl Index {
     }
   }
 
+  pub(crate) fn rare_sat_satpoint(&self, sat: Sat) -> Result<Option<SatPoint>> {
+    if self.has_satoshi_index()? {
+      Ok(
+        self
+          .database
+          .begin_read()?
+          .open_table(SAT_TO_SATPOINT)?
+          .get(&sat.n())?
+          .map(|satpoint| decode_satpoint(*satpoint)),
+      )
+    } else {
+      Ok(None)
+    }
+  }
+
   pub(crate) fn block_header(&self, hash: BlockHash) -> Result<Option<BlockHeader>> {
     self.client.get_block_header(&hash).into_option()
   }
