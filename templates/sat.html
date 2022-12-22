@@ -15,6 +15,10 @@
   <dt>inscription</dt>
   <dd><a href=/inscription/{{ inscription_id }}>{{ inscription.content_html(*inscription_id) }}</a></dd>
 %% }
+%% if let Some(satpoint) = self.satpoint {
+  <dt>location</dt>
+  <dd class=monospace>{{ satpoint }}</dd>
+%% }
 </dl>
 %% if self.sat.n() > 0 {
 <a href=/sat/{{self.sat.n() - 1}}>prev</a>
