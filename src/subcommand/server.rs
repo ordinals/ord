@@ -4,8 +4,8 @@ use {
   self::{
     deserialize_from_str::DeserializeFromStr,
     templates::{
-      BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, OutputHtml, PageContent, PageHtml,
-      RangeHtml, RareTxt, SatHtml, TransactionHtml,
+      BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionsHtml, OutputHtml,
+      PageContent, PageHtml, RangeHtml, RareTxt, SatHtml, TransactionHtml,
     },
   },
   axum::{
@@ -17,7 +17,6 @@ use {
     Router,
   },
   axum_server::Handle,
-  lazy_static::lazy_static,
   rust_embed::RustEmbed,
   rustls_acme::{
     acme::{LETS_ENCRYPT_PRODUCTION_DIRECTORY, LETS_ENCRYPT_STAGING_DIRECTORY},
@@ -159,6 +158,7 @@ impl Server {
         .route("/favicon.ico", get(Self::favicon))
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_id", get(Self::inscription))
+        .route("/inscriptions", get(Self::inscriptions))
         .route("/install.sh", get(Self::install_script))
         .route("/ordinal/:sat", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
@@ -210,6 +210,17 @@ impl Server {
       .to_socket_addrs()?
       .next()
       .ok_or_else(|| anyhow!("failed to get socket addrs"))?;
+
+    if !integration_test() {
+      eprintln!(
+        "Listening on {}://{addr}",
+        if https_acceptor.is_some() {
+          "https"
+        } else {
+          "http"
+        }
+      );
+    }
 
     Ok(tokio::spawn(async move {
       if let Some(acceptor) = https_acceptor {
@@ -311,9 +322,16 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(sat)): Path<DeserializeFromStr<Sat>>,
   ) -> ServerResult<PageHtml> {
+    let satpoint = index.rare_sat_satpoint(sat).map_err(|err| {
+      ServerError::Internal(anyhow!(
+        "failed to satpoint for sat {sat} from index: {err}"
+      ))
+    })?;
+
     Ok(
       SatHtml {
         sat,
+        satpoint,
         blocktime: index.blocktime(sat.height()).map_err(|err| {
           ServerError::Internal(anyhow!("failed to retrieve blocktime from index: {err}"))
         })?,
@@ -414,20 +432,8 @@ impl Server {
           .blocks(100)
           .map_err(|err| ServerError::Internal(anyhow!("error getting blocks: {err}")))?,
         index
-          .get_inscriptions(Some(8))
-          .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?
-          .values()
-          .map(|inscription_id| {
-            Ok((
-              index
-                .get_inscription_by_inscription_id(*inscription_id)
-                .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?
-                .unwrap()
-                .0,
-              *inscription_id,
-            ))
-          })
-          .collect::<ServerResult<Vec<(Inscription, InscriptionId)>>>()?,
+          .get_latest_graphical_inscriptions(8)
+          .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?,
       )
       .page(
         chain,
@@ -698,11 +704,35 @@ impl Server {
         ServerError::NotFound(format!("transaction {inscription_id} has no inscription"))
       })?;
 
+    let genesis_height = index.get_genesis_height(inscription_id).map_err(|err| {
+        ServerError::Internal(anyhow!(
+          "failed to retrieve height for inscriptiom with inscription id {inscription_id} from index: {err}"
+        ))
+      })?;
+
     Ok(
       InscriptionHtml {
+        genesis_height,
         inscription_id,
         inscription,
         satpoint,
+      }
+      .page(
+        chain,
+        index.has_satoshi_index().map_err(ServerError::Internal)?,
+      ),
+    )
+  }
+
+  async fn inscriptions(
+    Extension(chain): Extension<Chain>,
+    Extension(index): Extension<Arc<Index>>,
+  ) -> ServerResult<PageHtml> {
+    Ok(
+      InscriptionsHtml {
+        inscriptions: index
+          .get_latest_inscription_ids(100)
+          .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?,
       }
       .page(
         chain,
@@ -1464,6 +1494,15 @@ next.*",
       <a href=/clock>Clock</a>
       <a href=/rare.txt>rare.txt</a>
       <form action=/search method=get>.*",
+    );
+  }
+
+  #[test]
+  fn rare_sat_location() {
+    TestServer::new_with_args(&["--index-sats"]).assert_response_regex(
+      "/sat/0",
+      StatusCode::OK,
+      ".*>4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0<.*",
     );
   }
 

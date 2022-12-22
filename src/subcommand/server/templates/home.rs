@@ -64,7 +64,7 @@ mod tests {
       .to_string(),
       "<h1>Bitcoin-native NFTs</h1>.*<h2>Latest Inscriptions</h2>
 <div class=inscriptions>
-  <a href=/inscription/1111111111111111111111111111111111111111111111111111111111111111><p>HELLOWORLD</p></a>
+  <a href=/inscription/1111111111111111111111111111111111111111111111111111111111111111><pre>HELLOWORLD</pre></a>
 </div>
 <h2>Status</h2>
 <dl>

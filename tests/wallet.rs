@@ -1,11 +1,11 @@
 use {super::*, std::str::FromStr};
 
 #[test]
-fn satoshis() {
+fn sats() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   let second_coinbase = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  CommandBuilder::new("--index-sats wallet satoshis")
+  CommandBuilder::new("--index-sats wallet sats")
     .rpc_server(&rpc_server)
     .expected_stdout(format!(
       "{}\t{}\t0\tuncommon\n",
@@ -16,11 +16,11 @@ fn satoshis() {
 }
 
 #[test]
-fn satoshis_from_tsv_success() {
+fn sats_from_tsv_success() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   let second_coinbase = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  CommandBuilder::new("--index-sats wallet satoshis --tsv foo.tsv")
+  CommandBuilder::new("--index-sats wallet sats --tsv foo.tsv")
     .write("foo.tsv", "nvtcsezkbtg")
     .rpc_server(&rpc_server)
     .expected_stdout(format!(
@@ -31,9 +31,9 @@ fn satoshis_from_tsv_success() {
 }
 
 #[test]
-fn satoshis_from_tsv_parse_error() {
+fn sats_from_tsv_parse_error() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  CommandBuilder::new("wallet satoshis --tsv foo.tsv")
+  CommandBuilder::new("wallet sats --tsv foo.tsv")
     .write("foo.tsv", "===")
     .rpc_server(&rpc_server)
     .expected_exit_code(1)
@@ -44,9 +44,9 @@ fn satoshis_from_tsv_parse_error() {
 }
 
 #[test]
-fn satoshis_from_tsv_file_not_found() {
+fn sats_from_tsv_file_not_found() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  CommandBuilder::new("wallet satoshis --tsv foo.tsv")
+  CommandBuilder::new("wallet sats --tsv foo.tsv")
     .rpc_server(&rpc_server)
     .expected_exit_code(1)
     .stderr_regex("error: I/O error reading `.*`\nbecause: .*\n")
@@ -89,14 +89,14 @@ fn send_works_on_signet() {
   ord_server.assert_response_regex(
     &format!("/inscription/{reveal_txid}"),
     &format!(
-      ".*<h1>Inscription {reveal_txid}</h1>
-<dl>
+      ".*<h1>Inscription {reveal_txid}</h1>.*<dl>.*
   <dt>content size</dt>
   <dd>520 bytes</dd>
   <dt>content type</dt>
   <dd>image/png</dd>
+  .*
   <dt>location</dt>
-  <dd>{send_txid}:0:0</dd>
+  <dd class=monospace>{send_txid}:0:0</dd>
 </dl>
 .*",
     ),
@@ -150,16 +150,7 @@ fn send_inscribed_sat() {
   ord_server.assert_response_regex(
     &format!("/inscription/{reveal_txid}"),
     &format!(
-      ".*<h1>Inscription {reveal_txid}</h1>
-<dl>
-  <dt>content size</dt>
-  <dd>520 bytes</dd>
-  <dt>content type</dt>
-  <dd>image/png</dd>
-  <dt>location</dt>
-  <dd>{send_txid}:0:0</dd>
-</dl>
-.*",
+      ".*<h1>Inscription {reveal_txid}</h1>.*<dt>location</dt>.*<dd class=monospace>{send_txid}:0:0</dd>.*",
     ),
   );
 }
@@ -257,7 +248,7 @@ fn inscribe() {
 
   TestServer::spawn_with_args(&rpc_server, &["--index-sats"]).assert_response_regex(
     "/sat/5000000000",
-    ".*<dt>inscription</dt>\n  <dd><p>HELLOWORLD</p></dd>.*",
+    ".*<dt>inscription</dt>\n  <dd>.*<pre>HELLOWORLD</pre>.*</dd>.*",
   );
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
@@ -286,12 +277,12 @@ fn inscribe_unknown_file_extension() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file pepe.jpg"
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file pepe.xyz"
   ))
-  .write("pepe.jpg", [1; 520])
+  .write("pepe.xyz", [1; 520])
   .rpc_server(&rpc_server)
   .expected_exit_code(1)
-  .expected_stderr("error: unrecognized file extension `.jpg`, only .txt and .png accepted\n")
+  .stderr_regex(r"error: unsupported file extension `\.xyz`, supported extensions: apng .*\n")
   .run();
 }
 
@@ -300,7 +291,7 @@ fn inscribe_png() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  CommandBuilder::new(format!(
+  let stdout = CommandBuilder::new(format!(
     "--chain regtest --index-sats wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
   ))
   .write("degenerate.png", [1; 520])
@@ -308,13 +299,17 @@ fn inscribe_png() {
   .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
   .run();
 
+  let txid = reveal_txid_from_inscribe_stdout(&stdout);
+
   rpc_server.mine_blocks(1);
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &["--index-sats"]);
 
   ord_server.assert_response_regex(
     "/sat/5000000000",
-    ".*<dt>inscription</dt>\n  <dd><img src=.*",
+    &format!(
+      ".*<dt>inscription</dt>\n  <dd><a href=/inscription/{txid}><img src=/content/{txid}.*"
+    ),
   )
 }
 
@@ -608,10 +603,8 @@ fn inscribe_with_optional_satpoint_arg() {
 
   rpc_server.mine_blocks(1);
 
-  TestServer::spawn_with_args(&rpc_server, &["--index-sats"]).assert_response_regex(
-    "/sat/5000000000",
-    ".*<dt>inscription</dt>\n  <dd><p>HELLOWORLD</p></dd>.*",
-  );
+  TestServer::spawn_with_args(&rpc_server, &["--index-sats"])
+    .assert_response_regex("/sat/5000000000", ".*HELLOWORLD.*");
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     &format!("/inscription/{}", reveal_txid_from_inscribe_stdout(&stdout)),
@@ -668,4 +661,30 @@ fn transactions() {
     .rpc_server(&rpc_server)
     .stdout_regex(format!(".*{}\t0\n.*", txid.trim()))
     .run();
+}
+
+#[test]
+fn inscribe_gif() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  rpc_server.mine_blocks(1)[0].txdata[0].txid();
+
+  let stdout =
+    CommandBuilder::new("--chain regtest --index-sats wallet inscribe --file dolphin.gif")
+      .write("dolphin.gif", [1; 520])
+      .rpc_server(&rpc_server)
+      .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+      .run();
+
+  let txid = reveal_txid_from_inscribe_stdout(&stdout);
+
+  rpc_server.mine_blocks(1);
+
+  let ord_server = TestServer::spawn_with_args(&rpc_server, &["--index-sats"]);
+
+  ord_server.assert_response_regex(
+    "/sat/5000000000",
+    &format!(
+      ".*<dt>inscription</dt>\n  <dd><a href=/inscription/{txid}><img src=/content/{txid}.*"
+    ),
+  )
 }
