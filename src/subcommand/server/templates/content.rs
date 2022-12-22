@@ -9,7 +9,7 @@ impl<'a> Display for ContentHtml<'a> {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     match self.content {
       Some(Content::Text(text)) => {
-        write!(f, "<pre>")?;
+        write!(f, "<pre class=inscription>")?;
         text.escape(f, false)?;
         write!(f, "</pre>")
       }

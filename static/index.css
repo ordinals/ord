@@ -218,3 +218,7 @@ iframe.inscription {
   pointer-events: none;
   background-color: white;
 }
+
+pre.inscription {
+  white-space: pre-wrap;
+}
