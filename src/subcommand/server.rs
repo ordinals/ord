@@ -675,7 +675,7 @@ impl Server {
           (header::CONTENT_TYPE, content_type),
           (
             header::CONTENT_SECURITY_POLICY,
-            "default-src 'none'".to_string(),
+            "default-src 'none' 'unsafe-eval' 'unsafe-inline'".to_string(),
           ),
         ],
         content,
