@@ -39,7 +39,7 @@ mod tests {
   use super::*;
 
   #[test]
-  fn home_html() {
+  fn html() {
     assert_regex_match!(
       &HomeHtml::new(
         vec![
@@ -64,7 +64,7 @@ mod tests {
       .to_string(),
       "<h1>Bitcoin-native NFTs</h1>.*<h2>Latest Inscriptions</h2>
 <div class=inscriptions>
-  <a href=/inscription/1111111111111111111111111111111111111111111111111111111111111111><pre>HELLOWORLD</pre></a>
+  <a href=/inscription/1111111111111111111111111111111111111111111111111111111111111111><pre class=inscription>HELLOWORLD</pre></a>
 </div>
 <h2>Status</h2>
 <dl>

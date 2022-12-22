@@ -54,7 +54,7 @@ mod tests {
         inscription_id: txid(1),
       }
       .to_string(),
-      "<pre>foo</pre>"
+      "<pre class=inscription>foo</pre>"
     );
   }
 
@@ -66,7 +66,7 @@ mod tests {
         inscription_id: txid(1),
       }
       .to_string(),
-      "<pre>&lt;script&gt;alert(&apos;hello!&apos;)&lt;/script&gt;</pre>",
+      "<pre class=inscription>&lt;script&gt;alert(&apos;hello!&apos;)&lt;/script&gt;</pre>",
     );
   }
 
