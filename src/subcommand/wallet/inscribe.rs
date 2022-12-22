@@ -32,7 +32,7 @@ impl Inscribe {
 
     let bitcoin_version = client.version()?;
     if bitcoin_version < MIN_BITCOIN_VERSION {
-      bail!("Bitcoin Core version 24 or greater required. Current Bitcoin Core reports version {}", bitcoin_version);
+      bail!("Bitcoin Core version {} or greater required. Current Bitcoin Core reports version {}", MIN_BITCOIN_VERSION, bitcoin_version);
     }
 
     let inscription = Inscription::from_file(options.chain(), &self.file)?;
