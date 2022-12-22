@@ -308,7 +308,7 @@ fn inscribe_png() {
   ord_server.assert_response_regex(
     "/sat/5000000000",
     &format!(
-      ".*<dt>inscription</dt>\n  <dd><a href=/inscription/{txid}><img src=/content/{txid}.*"
+      ".*<dt>inscription</dt>\n  <dd><a href=/inscription/{txid}><img class=inscription src=/content/{txid}.*"
     ),
   )
 }
@@ -684,7 +684,7 @@ fn inscribe_gif() {
   ord_server.assert_response_regex(
     "/sat/5000000000",
     &format!(
-      ".*<dt>inscription</dt>\n  <dd><a href=/inscription/{txid}><img src=/content/{txid}.*"
+      ".*<dt>inscription</dt>\n  <dd><a href=/inscription/{txid}><img class=inscription src=/content/{txid}.*"
     ),
   )
 }
