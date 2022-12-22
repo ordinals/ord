@@ -4,7 +4,7 @@ mod create;
 mod inscribe;
 mod inscriptions;
 mod receive;
-mod satoshis;
+mod sats;
 mod send;
 mod transaction_builder;
 mod transactions;
@@ -21,7 +21,7 @@ pub(crate) enum Wallet {
   #[clap(about = "Generate a receive address")]
   Receive(receive::Receive),
   #[clap(about = "List wallet satoshis")]
-  Satoshis(satoshis::Satoshis),
+  Sats(sats::Sats),
   #[clap(about = "Send a satoshi or inscription")]
   Send(send::Send),
   #[clap(about = "See wallet transactions")]
@@ -37,7 +37,7 @@ impl Wallet {
       Self::Inscribe(inscribe) => inscribe.run(options),
       Self::Inscriptions(inscriptions) => inscriptions.run(options),
       Self::Receive(receive) => receive.run(options),
-      Self::Satoshis(satoshis) => satoshis.run(options),
+      Self::Sats(sats) => sats.run(options),
       Self::Send(send) => send.run(options),
       Self::Transactions(transactions) => transactions.run(options),
       Self::Utxos(utxos) => utxos.run(options),

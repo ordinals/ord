@@ -21,19 +21,23 @@ type SatPointArray = [u8; 44];
 
 const HEIGHT_TO_BLOCK_HASH: TableDefinition<u64, &BlockHashArray> =
   TableDefinition::new("HEIGHT_TO_BLOCK_HASH");
+const INSCRIPTION_ID_TO_HEIGHT: TableDefinition<&InscriptionIdArray, u64> =
+  TableDefinition::new("INSCRIPTION_ID_TO_HEIGHT");
+const INSCRIPTION_ID_TO_SATPOINT: TableDefinition<&InscriptionIdArray, &SatPointArray> =
+  TableDefinition::new("INSCRIPTION_ID_TO_SATPOINT");
+const INSCRIPTION_NUMBER_TO_INSCRIPTION_ID: TableDefinition<u64, &InscriptionIdArray> =
+  TableDefinition::new("INSCRIPTION_NUMBER_TO_INSCRIPTION_ID");
+const OUTPOINT_TO_SAT_RANGES: TableDefinition<&OutPointArray, [u8]> =
+  TableDefinition::new("OUTPOINT_TO_SAT_RANGES");
+const SATPOINT_TO_INSCRIPTION_ID: TableDefinition<&SatPointArray, &InscriptionIdArray> =
+  TableDefinition::new("SATPOINT_TO_INSCRIPTION_ID");
 const SAT_TO_INSCRIPTION_ID: TableDefinition<u64, &InscriptionIdArray> =
   TableDefinition::new("SAT_TO_INSCRIPTION_ID");
 const SAT_TO_SATPOINT: TableDefinition<u64, &SatPointArray> =
   TableDefinition::new("SAT_TO_SATPOINT");
-const OUTPOINT_TO_SAT_RANGES: TableDefinition<&OutPointArray, [u8]> =
-  TableDefinition::new("OUTPOINT_TO_SAT_RANGES");
 const STATISTIC_TO_COUNT: TableDefinition<u64, u64> = TableDefinition::new("STATISTIC_TO_COUNT");
 const WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP: TableDefinition<u64, u128> =
   TableDefinition::new("WRITE_TRANSACTION_START_BLOCK_COUNT_TO_TIMESTAMP");
-const INSCRIPTION_ID_TO_SATPOINT: TableDefinition<&InscriptionIdArray, &SatPointArray> =
-  TableDefinition::new("INSCRIPTION_ID_TO_SATPOINT");
-const SATPOINT_TO_INSCRIPTION_ID: TableDefinition<&SatPointArray, &InscriptionIdArray> =
-  TableDefinition::new("SATPOINT_TO_INSCRIPTION_ID");
 
 fn encode_outpoint(outpoint: OutPoint) -> OutPointArray {
   let mut array = [0; 36];
@@ -203,10 +207,12 @@ impl Index {
         };
 
         tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
+        tx.open_table(INSCRIPTION_ID_TO_HEIGHT)?;
         tx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
+        tx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
+        tx.open_table(SATPOINT_TO_INSCRIPTION_ID)?;
         tx.open_table(SAT_TO_INSCRIPTION_ID)?;
         tx.open_table(SAT_TO_SATPOINT)?;
-        tx.open_table(SATPOINT_TO_INSCRIPTION_ID)?;
         tx.open_table(STATISTIC_TO_COUNT)?;
         tx.open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?;
 
@@ -425,7 +431,10 @@ impl Index {
     self.client.get_block(&hash).into_option()
   }
 
-  pub(crate) fn get_inscription_by_sat(&self, sat: Sat) -> Result<Option<Inscription>> {
+  pub(crate) fn get_inscription_by_sat(
+    &self,
+    sat: Sat,
+  ) -> Result<Option<(InscriptionId, Inscription)>> {
     let db = self.database.begin_read()?;
     let table = db.open_table(SAT_TO_INSCRIPTION_ID)?;
 
@@ -436,7 +445,7 @@ impl Index {
     Ok(
       self
         .get_inscription_by_inscription_id(Txid::from_inner(*txid))?
-        .map(|(inscription, _)| inscription),
+        .map(|(inscription, _)| (InscriptionId::from_inner(*txid), inscription)),
     )
   }
 
@@ -588,6 +597,62 @@ impl Index {
         .take(n.unwrap_or(usize::MAX))
         .collect(),
     )
+  }
+
+  pub(crate) fn get_latest_inscription_ids(&self, n: usize) -> Result<Vec<InscriptionId>> {
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
+        .iter()?
+        .rev()
+        .map(|(_n, id)| decode_inscription_id(*id))
+        .take(n)
+        .collect(),
+    )
+  }
+
+  pub(crate) fn get_latest_graphical_inscriptions(
+    &self,
+    n: usize,
+  ) -> Result<Vec<(Inscription, InscriptionId)>> {
+    let mut inscriptions = Vec::new();
+
+    for (_n, id) in self
+      .database
+      .begin_read()?
+      .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
+      .iter()?
+      .rev()
+    {
+      let id = decode_inscription_id(*id);
+
+      let Some((inscription, _satpoint)) = self.get_inscription_by_inscription_id(id)? else {
+        continue;
+      };
+
+      if !inscription.is_graphical() {
+        continue;
+      }
+
+      inscriptions.push((inscription, id));
+
+      if inscriptions.len() == n {
+        break;
+      }
+    }
+
+    Ok(inscriptions)
+  }
+
+  pub(crate) fn get_genesis_height(&self, inscription_id: InscriptionId) -> Result<u64> {
+    self
+      .database
+      .begin_read()?
+      .open_table(INSCRIPTION_ID_TO_HEIGHT)?
+      .get(inscription_id.as_inner())?
+      .ok_or_else(|| anyhow!("no height for inscription"))
   }
 }
 
