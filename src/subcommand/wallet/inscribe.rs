@@ -16,6 +16,8 @@ use {
   std::collections::BTreeSet,
 };
 
+const MIN_BITCOIN_VERSION: usize = 240000;
+
 #[derive(Debug, Parser)]
 pub(crate) struct Inscribe {
   #[clap(long, help = "Inscribe <SATPOINT>")]
@@ -27,6 +29,11 @@ pub(crate) struct Inscribe {
 impl Inscribe {
   pub(crate) fn run(self, options: Options) -> Result {
     let client = options.bitcoin_rpc_client_mainnet_forbidden("ord wallet inscribe")?;
+
+    let bitcoin_version = client.version()?;
+    if bitcoin_version < MIN_BITCOIN_VERSION {
+      bail!("Bitcoin Core version 24 or greater required. Current Bitcoin Core reports version {}", bitcoin_version);
+    }
 
     let inscription = Inscription::from_file(options.chain(), &self.file)?;
 
