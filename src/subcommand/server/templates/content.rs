@@ -13,9 +13,17 @@ impl<'a> Display for ContentHtml<'a> {
         text.escape(f, false)?;
         write!(f, "</pre>")
       }
-      Some(Content::Image) => write!(f, "<img src=/content/{}>", self.inscription_id),
+      Some(Content::Image) => write!(
+        f,
+        "<img class=inscription src=/content/{}>",
+        self.inscription_id
+      ),
       Some(Content::IFrame) => {
-        write!(f, "<iframe src=/content/{}></iframe>", self.inscription_id)
+        write!(
+          f,
+          "<iframe class=inscription src=/content/{}></iframe>",
+          self.inscription_id
+        )
       }
       None => write!(f, "<p>UNKNOWN</p>"),
     }
