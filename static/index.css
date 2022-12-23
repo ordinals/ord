@@ -184,10 +184,6 @@ a.mythic {
   overflow: hidden;
 }
 
-.inscriptions pre.inscription {
-  color: white;
-}
-
 .content {
   display: flex;
   justify-content: center;
@@ -225,4 +221,5 @@ iframe.inscription {
 
 pre.inscription {
   white-space: pre-wrap;
+  color: white;
 }
