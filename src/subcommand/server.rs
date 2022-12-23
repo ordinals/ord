@@ -676,7 +676,19 @@ impl Server {
       ServerError::NotFound(format!("inscription {inscription_id} has no content"))
     })?;
 
-    Ok(([(header::CONTENT_TYPE, content_type)], content).into_response())
+    Ok(
+      (
+        [
+          (header::CONTENT_TYPE, content_type),
+          (
+            header::CONTENT_SECURITY_POLICY,
+            "default-src 'none' 'unsafe-eval' 'unsafe-inline'".to_string(),
+          ),
+        ],
+        content,
+      )
+        .into_response(),
+    )
   }
 
   fn content_response(inscription: Inscription) -> Option<(String, Vec<u8>)> {

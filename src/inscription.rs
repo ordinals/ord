@@ -89,7 +89,8 @@ impl Inscription {
     let content = self.content.as_ref()?;
 
     match self.content_type()? {
-      "text/plain;charset=utf-8" => Some(Content::Text(str::from_utf8(content).ok()?)),
+      content_type::HTML | content_type::SVG => Some(Content::IFrame),
+      content_type::TEXT => Some(Content::Text(str::from_utf8(content).ok()?)),
       content_type if content_type::is_image(content_type) => Some(Content::Image),
       _ => None,
     }
@@ -115,7 +116,7 @@ impl Inscription {
   }
 
   pub(crate) fn is_graphical(&self) -> bool {
-    matches!(self.content(), Some(Content::Image))
+    matches!(self.content(), Some(Content::Image) | Some(Content::IFrame))
   }
 }
 
@@ -712,6 +713,7 @@ mod tests {
     assert!(inscription("image/png", []).is_graphical());
     assert!(!inscription("foo", []).is_graphical());
     assert!(inscription("image/gif", []).is_graphical());
+    assert!(inscription("image/svg+xml", []).is_graphical());
     assert!(!Inscription::new(None, Some(Vec::new())).is_graphical());
   }
 }

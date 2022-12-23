@@ -175,6 +175,10 @@ fn inscription_content() {
     response.headers().get("content-type").unwrap(),
     "text/plain;charset=utf-8"
   );
+  assert_eq!(
+    response.headers().get("content-security-policy").unwrap(),
+    "default-src 'none' 'unsafe-eval' 'unsafe-inline'"
+  );
   assert_eq!(response.bytes().unwrap(), "HELLOWORLD");
 }
 
