@@ -38,7 +38,7 @@ mod tests {
       "
         <h1>Inscription ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc</h1>
         <a class=content href=/content/ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc>
-        <pre>HELLOWORLD</pre>
+        <pre class=inscription>HELLOWORLD</pre>
         </a>
         <dl>
           <dt>content size</dt>

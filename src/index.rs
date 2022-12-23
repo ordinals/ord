@@ -647,10 +647,6 @@ impl Index {
         continue;
       };
 
-      if !inscription.is_graphical() {
-        continue;
-      }
-
       inscriptions.push((inscription, id));
 
       if inscriptions.len() == n {

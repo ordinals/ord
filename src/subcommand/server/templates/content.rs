@@ -9,7 +9,7 @@ impl<'a> Display for ContentHtml<'a> {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     match self.content {
       Some(Content::Text(text)) => {
-        write!(f, "<pre>")?;
+        write!(f, "<pre class=inscription>")?;
         text.escape(f, false)?;
         write!(f, "</pre>")
       }
@@ -54,7 +54,7 @@ mod tests {
         inscription_id: txid(1),
       }
       .to_string(),
-      "<pre>foo</pre>"
+      "<pre class=inscription>foo</pre>"
     );
   }
 
@@ -66,7 +66,7 @@ mod tests {
         inscription_id: txid(1),
       }
       .to_string(),
-      "<pre>&lt;script&gt;alert(&apos;hello!&apos;)&lt;/script&gt;</pre>",
+      "<pre class=inscription>&lt;script&gt;alert(&apos;hello!&apos;)&lt;/script&gt;</pre>",
     );
   }
 

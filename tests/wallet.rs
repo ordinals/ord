@@ -248,7 +248,7 @@ fn inscribe() {
 
   TestServer::spawn_with_args(&rpc_server, &["--index-sats"]).assert_response_regex(
     "/sat/5000000000",
-    ".*<dt>inscription</dt>\n  <dd>.*<pre>HELLOWORLD</pre>.*</dd>.*",
+    ".*<dt>inscription</dt>\n  <dd>.*<pre class=inscription>HELLOWORLD</pre>.*</dd>.*",
   );
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
