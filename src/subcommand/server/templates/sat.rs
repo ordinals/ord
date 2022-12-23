@@ -113,7 +113,7 @@ mod tests {
           <dt>rarity</dt><dd><span class=mythic>mythic</span></dd>
           <dt>time</dt><dd>1970-01-01 00:00:00</dd>
           <dt>inscription</dt>
-          <dd><a href=/inscription/ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc><pre>HELLOWORLD</pre></a></dd>
+          <dd><a href=/inscription/ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc><pre class=inscription>HELLOWORLD</pre></a></dd>
         </dl>
         prev
         <a href=/sat/1>next</a>
@@ -156,7 +156,7 @@ mod tests {
           <dt>rarity</dt><dd><span class=mythic>mythic</span></dd>
           <dt>time</dt><dd>1970-01-01 00:00:00</dd>
           <dt>inscription</dt>
-          <dd><a href=/inscription/ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc><pre>&lt;script&gt;alert(&apos;HELLOWORLD&apos;);&lt;/script&gt;</pre></a></dd>
+          <dd><a href=/inscription/ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc><pre class=inscription>&lt;script&gt;alert(&apos;HELLOWORLD&apos;);&lt;/script&gt;</pre></a></dd>
         </dl>
         prev
         <a href=/sat/1>next</a>

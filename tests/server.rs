@@ -57,7 +57,7 @@ fn inscription_page() {
       ".*<meta property=og:image content='/content/{reveal_tx}'>.*
 <h1>Inscription {reveal_tx}</h1>
 <a class=content href=/content/{reveal_tx}>
-<pre>HELLOWORLD</pre>
+<pre class=inscription>HELLOWORLD</pre>
 </a>
 <dl>
   <dt>content size</dt>

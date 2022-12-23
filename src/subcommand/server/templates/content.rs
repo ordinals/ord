@@ -9,13 +9,21 @@ impl<'a> Display for ContentHtml<'a> {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     match self.content {
       Some(Content::Text(text)) => {
-        write!(f, "<pre>")?;
+        write!(f, "<pre class=inscription>")?;
         text.escape(f, false)?;
         write!(f, "</pre>")
       }
-      Some(Content::Image) => write!(f, "<img src=/content/{}>", self.inscription_id),
+      Some(Content::Image) => write!(
+        f,
+        "<img class=inscription src=/content/{}>",
+        self.inscription_id
+      ),
       Some(Content::IFrame) => {
-        write!(f, "<iframe src=/content/{}></iframe>", self.inscription_id)
+        write!(
+          f,
+          "<iframe class=inscription src=/content/{}></iframe>",
+          self.inscription_id
+        )
       }
       None => write!(f, "<p>UNKNOWN</p>"),
     }
@@ -27,6 +35,18 @@ mod tests {
   use super::*;
 
   #[test]
+  fn unknown() {
+    assert_eq!(
+      ContentHtml {
+        content: None,
+        inscription_id: txid(1),
+      }
+      .to_string(),
+      "<p>UNKNOWN</p>"
+    );
+  }
+
+  #[test]
   fn text() {
     assert_eq!(
       ContentHtml {
@@ -34,7 +54,19 @@ mod tests {
         inscription_id: txid(1),
       }
       .to_string(),
-      "<pre>foo</pre>"
+      "<pre class=inscription>foo</pre>"
+    );
+  }
+
+  #[test]
+  fn text_is_escaped() {
+    assert_eq!(
+      ContentHtml {
+        content: Some(Content::Text("<script>alert('hello!')</script>")),
+        inscription_id: txid(1),
+      }
+      .to_string(),
+      "<pre class=inscription>&lt;script&gt;alert(&apos;hello!&apos;)&lt;/script&gt;</pre>",
     );
   }
 
@@ -46,7 +78,7 @@ mod tests {
         inscription_id: txid(1),
       }
       .to_string(),
-      "<img src=/content/1111111111111111111111111111111111111111111111111111111111111111>"
+      "<img class=inscription src=/content/1111111111111111111111111111111111111111111111111111111111111111>"
     );
   }
 
@@ -58,7 +90,7 @@ mod tests {
         inscription_id: txid(1),
       }
       .to_string(),
-      "<iframe src=/content/1111111111111111111111111111111111111111111111111111111111111111></iframe>"
+      "<iframe class=inscription src=/content/1111111111111111111111111111111111111111111111111111111111111111></iframe>"
     );
   }
 }
