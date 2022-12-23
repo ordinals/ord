@@ -13,9 +13,17 @@ impl<'a> Display for ContentHtml<'a> {
         text.escape(f, false)?;
         write!(f, "</pre>")
       }
-      Some(Content::Image) => write!(f, "<img src=/content/{}>", self.inscription_id),
+      Some(Content::Image) => write!(
+        f,
+        "<img class=inscription src=/content/{}>",
+        self.inscription_id
+      ),
       Some(Content::IFrame) => {
-        write!(f, "<iframe src=/content/{}></iframe>", self.inscription_id)
+        write!(
+          f,
+          "<iframe class=inscription src=/content/{}></iframe>",
+          self.inscription_id
+        )
       }
       None => write!(f, "<p>UNKNOWN</p>"),
     }
@@ -25,6 +33,18 @@ impl<'a> Display for ContentHtml<'a> {
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  #[test]
+  fn unknown() {
+    assert_eq!(
+      ContentHtml {
+        content: None,
+        inscription_id: txid(1),
+      }
+      .to_string(),
+      "<p>UNKNOWN</p>"
+    );
+  }
 
   #[test]
   fn text() {
@@ -39,6 +59,18 @@ mod tests {
   }
 
   #[test]
+  fn text_is_escaped() {
+    assert_eq!(
+      ContentHtml {
+        content: Some(Content::Text("<script>alert('hello!')</script>")),
+        inscription_id: txid(1),
+      }
+      .to_string(),
+      "<pre>&lt;script&gt;alert(&apos;hello!&apos;)&lt;/script&gt;</pre>",
+    );
+  }
+
+  #[test]
   fn image() {
     assert_eq!(
       ContentHtml {
@@ -46,7 +78,7 @@ mod tests {
         inscription_id: txid(1),
       }
       .to_string(),
-      "<img src=/content/1111111111111111111111111111111111111111111111111111111111111111>"
+      "<img class=inscription src=/content/1111111111111111111111111111111111111111111111111111111111111111>"
     );
   }
 
@@ -58,7 +90,7 @@ mod tests {
         inscription_id: txid(1),
       }
       .to_string(),
-      "<iframe src=/content/1111111111111111111111111111111111111111111111111111111111111111></iframe>"
+      "<iframe class=inscription src=/content/1111111111111111111111111111111111111111111111111111111111111111></iframe>"
     );
   }
 }

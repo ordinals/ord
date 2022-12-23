@@ -171,16 +171,16 @@ a.mythic {
   border-radius: 2%;
 }
 
-.inscriptions a img {
+.inscriptions img.inscription {
   overflow: auto;
   max-width: 100%;
   min-width: 100%;
-  image-rendering: pixelated;
 }
 
-.inscriptions a iframe {
-  width: 100%;
-  height: 100%;
+.inscriptions iframe.inscription {
+  width: 101%;
+  height: 101%;
+  overflow: hidden;
 }
 
 .content {
@@ -190,7 +190,6 @@ a.mythic {
 
 .content img {
   min-width: 50%;
-  image-rendering: pixelated;
 }
 
 iframe {
@@ -207,4 +206,15 @@ iframe {
 a.content {
   color: inherit;
   text-decoration: none;
+}
+
+img.inscription {
+  image-rendering: pixelated;
+  background-color: white;
+}
+
+iframe.inscription {
+  border: none;
+  pointer-events: none;
+  background-color: white;
 }
