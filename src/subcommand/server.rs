@@ -210,19 +210,16 @@ impl Server {
       #[cfg(not(test))]
       {
         (self.address.as_str(), port)
-          .to_socket_addrs()?
-          .next()
-          .ok_or_else(|| anyhow!("failed to get socket addrs"))?
       }
 
       #[cfg(test)]
       {
         (String::from("127.0.0.1"), port)
-          .to_socket_addrs()?
-          .next()
-          .ok_or_else(|| anyhow!("failed to get socket addrs"))?
       }
-    };
+    }
+    .to_socket_addrs()?
+    .next()
+    .ok_or_else(|| anyhow!("failed to get socket addrs"))?;
 
     if !integration_test() {
       eprintln!(
