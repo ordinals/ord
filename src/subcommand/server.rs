@@ -206,10 +206,23 @@ impl Server {
     port: u16,
     https_acceptor: Option<AxumAcceptor>,
   ) -> Result<task::JoinHandle<io::Result<()>>> {
-    let addr = (self.address.as_str(), port)
-      .to_socket_addrs()?
-      .next()
-      .ok_or_else(|| anyhow!("failed to get socket addrs"))?;
+    let addr = {
+      #[cfg(not(test))]
+      {
+        (self.address.as_str(), port)
+          .to_socket_addrs()?
+          .next()
+          .ok_or_else(|| anyhow!("failed to get socket addrs"))?
+      }
+
+      #[cfg(test)]
+      {
+        (String::from("127.0.0.1"), port)
+          .to_socket_addrs()?
+          .next()
+          .ok_or_else(|| anyhow!("failed to get socket addrs"))?
+      }
+    };
 
     if !integration_test() {
       eprintln!(
