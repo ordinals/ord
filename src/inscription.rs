@@ -70,7 +70,7 @@ impl Inscription {
 
     let compressed = compress(&content);
 
-    if compressed.len() < content.len() + 1 + "br".len() {
+    if compressed.len() < content.len() + 1 + 1 + "br".len() {
       Ok(Self {
         content: Some(compressed),
         content_type: Some(content_type.into()),
