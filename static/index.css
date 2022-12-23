@@ -178,6 +178,11 @@ a.mythic {
   image-rendering: pixelated;
 }
 
+.inscriptions a iframe {
+  width: 100%;
+  height: 100%;
+}
+
 .content {
   display: flex;
   justify-content: center;
@@ -186,6 +191,17 @@ a.mythic {
 .content img {
   min-width: 50%;
   image-rendering: pixelated;
+}
+
+iframe {
+  border: none;
+  pointer-events: none;
+}
+
+.content iframe {
+  aspect-ratio: 1 / 1;
+  border: none;
+  min-width: 50%;
 }
 
 a.content {
