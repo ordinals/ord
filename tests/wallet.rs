@@ -55,7 +55,9 @@ fn sats_from_tsv_file_not_found() {
 
 #[test]
 fn send_works_on_signet() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Signet, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Signet)
+    .build();
 
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
@@ -105,7 +107,9 @@ fn send_works_on_signet() {
 
 #[test]
 fn send_unknown_inscription() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Signet, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Signet)
+    .build();
 
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
@@ -120,7 +124,9 @@ fn send_unknown_inscription() {
 
 #[test]
 fn send_inscribed_sat() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Signet, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Signet)
+    .build();
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
@@ -157,7 +163,7 @@ fn send_inscribed_sat() {
 
 #[test]
 fn send_on_mainnnet_refuses_to_work_with_wallet_name_foo() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "foo");
+  let rpc_server = test_bitcoincore_rpc::builder().wallet_name("foo").build();
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   CommandBuilder::new(
@@ -171,7 +177,7 @@ fn send_on_mainnnet_refuses_to_work_with_wallet_name_foo() {
 
 #[test]
 fn send_addresses_must_be_valid_for_network() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder().build();
   let txid = rpc_server.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0].txid();
 
   CommandBuilder::new(format!(
@@ -187,7 +193,7 @@ fn send_addresses_must_be_valid_for_network() {
 
 #[test]
 fn send_on_mainnnet_works_with_wallet_named_ord() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder().build();
   let txid = rpc_server.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
@@ -203,7 +209,9 @@ fn send_on_mainnnet_works_with_wallet_named_ord() {
 
 #[test]
 fn send_on_mainnnet_works_with_wallet_whose_name_starts_with_ord() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "ord-foo");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .wallet_name("ord-foo")
+    .build();
   let txid = rpc_server.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
@@ -219,7 +227,7 @@ fn send_on_mainnnet_works_with_wallet_whose_name_starts_with_ord() {
 
 #[test]
 fn send_on_mainnnet_refuses_to_work_with_wallet_with_high_balance() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder().build();
   let txid = rpc_server.mine_blocks_with_subsidy(1, 1_000_001)[0].txdata[0].txid();
 
   CommandBuilder::new(format!("wallet send {txid}:0:0 bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"))
@@ -233,7 +241,9 @@ fn send_on_mainnnet_refuses_to_work_with_wallet_with_high_balance() {
 
 #[test]
 fn inscribe() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
@@ -259,7 +269,7 @@ fn inscribe() {
 
 #[test]
 fn inscribe_forbidden_on_mainnet() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder().build();
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   CommandBuilder::new(format!(
@@ -273,7 +283,9 @@ fn inscribe_forbidden_on_mainnet() {
 
 #[test]
 fn inscribe_unknown_file_extension() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   CommandBuilder::new(format!(
@@ -288,7 +300,9 @@ fn inscribe_unknown_file_extension() {
 
 #[test]
 fn inscribe_png() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
@@ -315,7 +329,9 @@ fn inscribe_png() {
 
 #[test]
 fn inscribe_exceeds_push_byte_limit() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Signet, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Signet)
+    .build();
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   CommandBuilder::new(format!(
@@ -332,7 +348,9 @@ fn inscribe_exceeds_push_byte_limit() {
 
 #[test]
 fn regtest_has_no_content_size_limit() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   CommandBuilder::new(format!(
@@ -346,7 +364,9 @@ fn regtest_has_no_content_size_limit() {
 
 #[test]
 fn inscribe_does_not_use_inscribed_sats_as_cardinal_utxos() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
   let txid = rpc_server.mine_blocks_with_subsidy(1, 800)[0].txdata[0].txid();
   CommandBuilder::new(format!(
     "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
@@ -370,7 +390,9 @@ fn inscribe_does_not_use_inscribed_sats_as_cardinal_utxos() {
 
 #[test]
 fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
   let txid = rpc_server.mine_blocks_with_subsidy(1, 800)[0].txdata[0].txid();
   CommandBuilder::new(format!(
     "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
@@ -393,7 +415,9 @@ fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
 
 #[test]
 fn refuse_to_reinscribe_sats() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
 
   let txid = rpc_server.mine_blocks_with_subsidy(1, 800)[0].txdata[0].txid();
   let stdout = CommandBuilder::new(format!(
@@ -422,7 +446,9 @@ fn refuse_to_reinscribe_sats() {
 
 #[test]
 fn do_not_accidentally_send_an_inscription() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
 
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
   let stdout = CommandBuilder::new(format!(
@@ -455,7 +481,9 @@ fn do_not_accidentally_send_an_inscription() {
 
 #[test]
 fn refuse_to_inscribe_already_inscribed_utxo() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
 
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
   let stdout = CommandBuilder::new(format!(
@@ -489,7 +517,9 @@ fn refuse_to_inscribe_already_inscribed_utxo() {
 
 #[test]
 fn inscriptions_cannot_be_sent_by_satpoint() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
@@ -542,7 +572,10 @@ fn utxos() {
 
 #[test]
 fn inscriptions() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Signet, "ord-wallet");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Signet)
+    .wallet_name("ord-wallet")
+    .build();
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let inscription_id = reveal_txid_from_inscribe_stdout(
@@ -592,7 +625,9 @@ fn inscriptions() {
 
 #[test]
 fn inscribe_with_optional_satpoint_arg() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
   rpc_server.mine_blocks(1);
 
   let stdout = CommandBuilder::new("--chain regtest wallet inscribe --file hello.txt")
@@ -614,7 +649,9 @@ fn inscribe_with_optional_satpoint_arg() {
 
 #[test]
 fn create() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
 
   assert!(!rpc_server.wallets().contains("ord"));
 
@@ -627,7 +664,9 @@ fn create() {
 
 #[test]
 fn transactions() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Signet, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Signet)
+    .build();
   rpc_server.mine_blocks(1);
 
   let stdout = CommandBuilder::new("--chain signet wallet inscribe --file degenerate.png")
@@ -665,7 +704,9 @@ fn transactions() {
 
 #[test]
 fn inscribe_gif() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
   rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout =
