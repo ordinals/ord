@@ -698,10 +698,10 @@ fn wallet_balance() {
     .expected_stdout("0\n")
     .run();
 
-  let _ = &rpc_server.mine_blocks(1);
+  rpc_server.mine_blocks(1);
 
   CommandBuilder::new("--regtest wallet balance")
     .rpc_server(&rpc_server)
-    .expected_stdout(format!("5000000000\n"))
+    .expected_stdout("5000000000\n")
     .run();
 }
