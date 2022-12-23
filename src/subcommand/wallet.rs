@@ -14,7 +14,7 @@ mod utxos;
 #[derive(Debug, Parser)]
 pub(crate) enum Wallet {
   #[clap(about = "Get wallet balance")]
-  Balance(balance::Balance),
+  Balance,
   #[clap(about = "Create a new wallet")]
   Create(create::Create),
   #[clap(about = "Create an inscription")]
@@ -36,7 +36,7 @@ pub(crate) enum Wallet {
 impl Wallet {
   pub(crate) fn run(self, options: Options) -> Result {
     match self {
-      Self::Balance(balance) => balance.run(options),
+      Self::Balance => balance::run(options),
       Self::Create(create) => create.run(options),
       Self::Inscribe(inscribe) => inscribe.run(options),
       Self::Inscriptions(inscriptions) => inscriptions.run(options),
