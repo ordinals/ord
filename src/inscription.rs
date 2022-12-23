@@ -17,11 +17,21 @@ const PROTOCOL_ID: &[u8] = b"ord";
 
 const CONTENT_TAG: &[u8] = &[];
 const CONTENT_TYPE_TAG: &[u8] = &[1];
+const CONTENT_ENCODING: &[u8] = &[3];
+
+use std::io::Write;
+
+pub fn compress(input: &[u8]) -> Vec<u8> {
+  let mut writer = brotli::CompressorWriter::new(Vec::new(), 4096, 11, 22);
+  writer.write_all(input).unwrap();
+  writer.into_inner()
+}
 
 #[derive(Debug, PartialEq)]
 pub(crate) struct Inscription {
   content: Option<Vec<u8>>,
   content_type: Option<Vec<u8>>,
+  content_encoding: Option<Vec<u8>>,
 }
 
 impl Inscription {
@@ -30,6 +40,7 @@ impl Inscription {
     Self {
       content_type,
       content,
+      content_encoding: None,
     }
   }
 
@@ -57,10 +68,21 @@ impl Inscription {
         .ok_or_else(|| anyhow!("unrecognized extension"))?,
     )?;
 
-    Ok(Self {
-      content: Some(content),
-      content_type: Some(content_type.into()),
-    })
+    let compressed = compress(&content);
+
+    if compressed.len() < content.len() + 1 + "br".len() {
+      Ok(Self {
+        content: Some(compressed),
+        content_type: Some(content_type.into()),
+        content_encoding: Some("br".as_bytes().into()),
+      })
+    } else {
+      Ok(Self {
+        content: Some(content),
+        content_type: Some(content_type.into()),
+        content_encoding: None,
+      })
+    }
   }
 
   pub(crate) fn append_reveal_script(&self, mut builder: script::Builder) -> Script {
@@ -195,7 +217,7 @@ impl<'a> InscriptionParser<'a> {
         return Err(InscriptionError::NoInscription);
       }
 
-      let mut fields = BTreeMap::new();
+      let mut fields = HashMap::new();
 
       loop {
         match self.advance()? {
@@ -220,6 +242,7 @@ impl<'a> InscriptionParser<'a> {
 
       return Ok(Some(Inscription {
         content: fields.remove(CONTENT_TAG),
+        content_encoding: fields.remove(CONTENT_ENCODING),
         content_type: fields.remove(CONTENT_TYPE_TAG),
       }));
     }
@@ -360,6 +383,7 @@ mod tests {
       InscriptionParser::parse(&container(&[b"ord", &[1], b"text/plain;charset=utf-8"])),
       Ok(Inscription {
         content_type: Some(b"text/plain;charset=utf-8".to_vec()),
+        content_encoding: None,
         content: None,
       }),
     );
@@ -371,6 +395,7 @@ mod tests {
       InscriptionParser::parse(&container(&[b"ord", &[], b"foo"])),
       Ok(Inscription {
         content_type: None,
+        content_encoding: None,
         content: Some(b"foo".to_vec()),
       }),
     );
@@ -555,6 +580,7 @@ mod tests {
       ])),
       Ok(Inscription {
         content_type: None,
+        content_encoding: None,
         content: None,
       }),
     );
@@ -692,6 +718,7 @@ mod tests {
     witness.push(
       &Inscription {
         content_type: None,
+        content_encoding: None,
         content: None,
       }
       .append_reveal_script(script::Builder::new()),
@@ -703,6 +730,7 @@ mod tests {
       InscriptionParser::parse(&witness).unwrap(),
       Inscription {
         content_type: None,
+        content_encoding: None,
         content: None,
       }
     );

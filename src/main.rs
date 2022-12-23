@@ -47,7 +47,7 @@ use {
   serde::{Deserialize, Serialize},
   std::{
     cmp::Ordering,
-    collections::{BTreeMap, HashSet, VecDeque},
+    collections::{BTreeMap, HashMap, HashSet, VecDeque},
     env,
     fmt::{self, Display, Formatter},
     fs, io,

@@ -11,12 +11,14 @@ use {
   axum::{
     body,
     extract::{Extension, Path, Query},
-    http::{header, StatusCode},
+    headers::{ContentType, HeaderMap, HeaderMapExt, HeaderValue},
+    http::{self, header, StatusCode},
     response::{IntoResponse, Redirect, Response},
     routing::get,
     Router,
   },
   axum_server::Handle,
+  mime::Mime,
   rust_embed::RustEmbed,
   rustls_acme::{
     acme::{LETS_ENCRYPT_PRODUCTION_DIRECTORY, LETS_ENCRYPT_STAGING_DIRECTORY},
@@ -660,7 +662,7 @@ impl Server {
   async fn content(
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
-  ) -> ServerResult<Response> {
+  ) -> ServerResult<(HeaderMap, Vec<u8>)> {
     let (inscription, _) = index
       .get_inscription_by_inscription_id(inscription_id)
       .map_err(|err| {
@@ -672,32 +674,28 @@ impl Server {
         ServerError::NotFound(format!("transaction {inscription_id} has no inscription"))
       })?;
 
-    let (content_type, content) = Self::content_response(inscription).ok_or_else(|| {
-      ServerError::NotFound(format!("inscription {inscription_id} has no content"))
-    })?;
-
-    Ok(
-      (
-        [
-          (header::CONTENT_TYPE, content_type),
-          (
-            header::CONTENT_SECURITY_POLICY,
-            "default-src 'none' 'unsafe-eval' 'unsafe-inline'".to_string(),
-          ),
-        ],
-        content,
-      )
-        .into_response(),
-    )
+    Self::content_response(inscription)
+      .ok_or_else(|| ServerError::NotFound(format!("inscription {inscription_id} has no content")))
   }
 
-  fn content_response(inscription: Inscription) -> Option<(String, Vec<u8>)> {
+  fn content_response(inscription: Inscription) -> Option<(HeaderMap, Vec<u8>)> {
     let content = inscription.content_bytes()?;
 
-    match inscription.content_type() {
-      Some(content_type) => Some((content_type.into(), content.to_vec())),
-      None => Some(("application/octet-stream".into(), content.to_vec())),
-    }
+    let mut headers = HeaderMap::new();
+
+    let content_type = inscription
+      .content_type()
+      .and_then(|content_type| content_type.parse::<Mime>().ok())
+      .map(|mime| mime.into())
+      .unwrap_or(ContentType::octet_stream());
+
+    headers.typed_insert(content_type);
+    headers.insert(
+      header::CONTENT_SECURITY_POLICY,
+      HeaderValue::from_static("default-src 'none' 'unsafe-eval' 'unsafe-inline'"),
+    );
+
+    Some((headers, content.to_vec()))
   }
 
   async fn inscription(
@@ -1743,20 +1741,23 @@ next.*",
 
   #[test]
   fn content_response_with_content() {
-    assert_eq!(
-      Server::content_response(Inscription::new(
-        Some("text/plain".as_bytes().to_vec()),
-        Some(vec![1, 2, 3]),
-      )),
-      Some(("text/plain".into(), vec![1, 2, 3]))
-    );
+    let (headers, body) = Server::content_response(Inscription::new(
+      Some("text/plain".as_bytes().to_vec()),
+      Some(vec![1, 2, 3]),
+    ))
+    .unwrap();
+
+    assert_eq!(body, [1, 2, 3]);
+    assert_eq!(headers.get(header::CONTENT_TYPE).unwrap(), "text/plain");
   }
 
   #[test]
   fn content_response_no_content_type() {
+    let (headers, body) = Server::content_response(Inscription::new(None, Some(vec![]))).unwrap();
+    assert!(body.is_empty());
     assert_eq!(
-      Server::content_response(Inscription::new(None, Some(vec![]))),
-      Some(("application/octet-stream".into(), vec![]))
+      headers.get(header::CONTENT_TYPE).unwrap(),
+      "application/octet-stream"
     );
   }
 }
