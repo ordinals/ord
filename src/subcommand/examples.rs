@@ -24,6 +24,7 @@ pub(crate) fn run(server: super::server::Server) -> Result {
   let options = Options {
     chain_argument: Chain::Regtest,
     bitcoin_data_dir: Some(tmpdir.path().into()),
+    data_dir: Some(tmpdir.path().into()),
     rpc_url: Some(format!("127.0.0.1:{rpc_port}")),
     index_sats: true,
     ..Options::default()
