@@ -15,7 +15,6 @@ use {
     str, thread,
     time::Duration,
   },
-  tempfile::TempDir,
   unindent::Unindent,
 };
 

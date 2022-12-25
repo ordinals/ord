@@ -19,9 +19,9 @@ use {
 #[derive(Debug, Parser)]
 pub(crate) struct Inscribe {
   #[clap(long, help = "Inscribe <SATPOINT>")]
-  satpoint: Option<SatPoint>,
+  pub(crate) satpoint: Option<SatPoint>,
   #[clap(long, help = "Inscribe sat with contents of <FILE>")]
-  file: PathBuf,
+  pub(crate) file: PathBuf,
 }
 
 impl Inscribe {
