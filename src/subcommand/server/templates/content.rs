@@ -39,7 +39,7 @@ mod tests {
     assert_eq!(
       ContentHtml {
         content: None,
-        inscription_id: txid(1),
+        inscription_id: inscription_id(1),
       }
       .to_string(),
       "<p>UNKNOWN</p>"
@@ -51,7 +51,7 @@ mod tests {
     assert_eq!(
       ContentHtml {
         content: Some(Content::Text("foo")),
-        inscription_id: txid(1),
+        inscription_id: inscription_id(1),
       }
       .to_string(),
       "<pre class=inscription>foo</pre>"
@@ -63,7 +63,7 @@ mod tests {
     assert_eq!(
       ContentHtml {
         content: Some(Content::Text("<script>alert('hello!')</script>")),
-        inscription_id: txid(1),
+        inscription_id: inscription_id(1),
       }
       .to_string(),
       "<pre class=inscription>&lt;script&gt;alert(&apos;hello!&apos;)&lt;/script&gt;</pre>",
@@ -75,7 +75,7 @@ mod tests {
     assert_eq!(
       ContentHtml {
         content: Some(Content::Image),
-        inscription_id: txid(1),
+        inscription_id: inscription_id(1),
       }
       .to_string(),
       "<img class=inscription src=/content/1111111111111111111111111111111111111111111111111111111111111111>"
@@ -87,7 +87,7 @@ mod tests {
     assert_eq!(
       ContentHtml {
         content: Some(Content::IFrame),
-        inscription_id: txid(1),
+        inscription_id: inscription_id(1),
       }
       .to_string(),
       "<iframe class=inscription src=/content/1111111111111111111111111111111111111111111111111111111111111111></iframe>"

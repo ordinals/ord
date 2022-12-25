@@ -27,6 +27,16 @@ pub(crate) fn txid(n: u64) -> Txid {
   hex.repeat(64).parse().unwrap()
 }
 
+pub(crate) fn inscription_id(n: u64) -> InscriptionId {
+  let hex = format!("{n:x}");
+
+  if hex.is_empty() || hex.len() > 1 {
+    panic!();
+  }
+
+  hex.repeat(64).parse().unwrap()
+}
+
 pub(crate) fn outpoint(n: u64) -> OutPoint {
   format!("{}:{}", txid(n), n).parse().unwrap()
 }

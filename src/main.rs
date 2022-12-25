@@ -93,7 +93,12 @@ mod tally;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 
-pub(crate) type InscriptionId = Txid;
+bitcoin::hashes::hash_newtype!(
+  InscriptionId,
+  bitcoin::hashes::sha256d::Hash,
+  32,
+  doc = "An ordinal inscription ID."
+);
 
 const DIFFCHANGE_INTERVAL: u64 = bitcoin::blockdata::constants::DIFFCHANGE_INTERVAL as u64;
 const SUBSIDY_HALVING_INTERVAL: u64 =

@@ -501,7 +501,7 @@ impl Server {
     Path(txid): Path<Txid>,
   ) -> ServerResult<PageHtml> {
     let inscription = index
-      .get_inscription_by_inscription_id(txid)
+      .get_inscription_by_inscription_id(todo!())
       .map_err(|err| {
         ServerError::Internal(anyhow!(
           "failed to retrieve inscription from txid {txid} from index: {err}"

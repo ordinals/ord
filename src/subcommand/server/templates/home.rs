@@ -58,7 +58,7 @@ mod tests {
         ],
         vec![(
           inscription("text/plain;charset=utf-8", "HELLOWORLD"),
-          txid(1)
+          inscription_id(1)
         )],
       )
       .to_string(),

@@ -64,7 +64,7 @@ fn decode_outpoint(array: OutPointArray) -> OutPoint {
 }
 
 fn decode_inscription_id(array: InscriptionIdArray) -> InscriptionId {
-  Decodable::consensus_decode(&mut io::Cursor::new(array)).unwrap()
+  InscriptionId::from_inner(array)
 }
 
 pub(crate) struct Index {
@@ -466,9 +466,9 @@ impl Index {
 
   pub(crate) fn get_inscription_by_inscription_id(
     &self,
-    txid: Txid,
+    inscription_id: InscriptionId,
   ) -> Result<Option<(Inscription, SatPoint)>> {
-    let Some(inscription) = self.get_transaction(txid)?.and_then(|tx| Inscription::from_transaction(&tx)) else {
+    let Some(inscription) = self.get_transaction(inscription_id)?.and_then(|tx| Inscription::from_transaction(&tx)) else {
       return Ok(None);
     };
 
@@ -477,7 +477,7 @@ impl Index {
         .database
         .begin_read()?
         .open_table(INSCRIPTION_ID_TO_SATPOINT)?
-        .get(txid.as_inner())?
+        .get(inscription_id.as_inner())?
         .ok_or_else(|| anyhow!("no satpoint for inscription"))?,
     );
 
