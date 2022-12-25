@@ -425,20 +425,27 @@ impl Server {
   async fn home(
     Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
-  ) -> ServerResult<PageHtml> {
+  ) -> ServerResult<Response> {
     Ok(
-      HomeHtml::new(
-        index
-          .blocks(100)
-          .map_err(|err| ServerError::Internal(anyhow!("error getting blocks: {err}")))?,
-        index
-          .get_latest_graphical_inscriptions(8)
-          .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?,
+      (
+        [(
+          header::CONTENT_SECURITY_POLICY,
+          "frame-src 'self'".to_string(),
+        )],
+        HomeHtml::new(
+          index
+            .blocks(100)
+            .map_err(|err| ServerError::Internal(anyhow!("error getting blocks: {err}")))?,
+          index
+            .get_latest_graphical_inscriptions(8)
+            .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?,
+        )
+        .page(
+          chain,
+          index.has_satoshi_index().map_err(ServerError::Internal)?,
+        ),
       )
-      .page(
-        chain,
-        index.has_satoshi_index().map_err(ServerError::Internal)?,
-      ),
+        .into_response(),
     )
   }
 

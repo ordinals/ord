@@ -1,12 +1,12 @@
 use super::*;
 
 mod epochs;
-mod examples;
 mod find;
 mod index;
 mod info;
 mod list;
 mod parse;
+mod preview;
 pub(crate) mod server;
 mod subsidy;
 mod supply;
@@ -17,8 +17,8 @@ mod wallet;
 pub(crate) enum Subcommand {
   #[clap(about = "List the first satoshis of each reward epoch")]
   Epochs,
-  #[clap(about = "Run the explorer server populated with example inscriptions")]
-  Examples(server::Server),
+  #[clap(about = "Run an explorer server populated with inscriptions")]
+  Preview(preview::Preview),
   #[clap(about = "Find a satoshi's current location")]
   Find(find::Find),
   #[clap(about = "Update the index")]
@@ -45,7 +45,7 @@ impl Subcommand {
   pub(crate) fn run(self, options: Options) -> Result {
     match self {
       Self::Epochs => epochs::run(),
-      Self::Examples(server) => examples::run(server),
+      Self::Preview(preview) => preview.run(),
       Self::Find(find) => find.run(options),
       Self::Index => index::run(options),
       Self::Info(info) => info.run(options),
