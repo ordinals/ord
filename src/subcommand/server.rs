@@ -11,7 +11,7 @@ use {
   axum::{
     body,
     extract::{Extension, Path, Query},
-    http::{header, StatusCode},
+    http::{header, HeaderValue, StatusCode},
     response::{IntoResponse, Redirect, Response},
     routing::get,
     Router,
@@ -27,6 +27,7 @@ use {
   serde::{de, Deserializer},
   std::{cmp::Ordering, str},
   tokio_stream::StreamExt,
+  tower_http::set_header::SetResponseHeaderLayer,
 };
 
 mod deserialize_from_str;
@@ -172,6 +173,10 @@ impl Server {
         .route("/tx/:txid", get(Self::transaction))
         .layer(Extension(index))
         .layer(Extension(options.chain()))
+        .layer(SetResponseHeaderLayer::if_not_present(
+          header::CONTENT_SECURITY_POLICY,
+          HeaderValue::from_static("default-src 'self'"),
+        ))
         .layer(
           CorsLayer::new()
             .allow_methods([http::Method::GET])
@@ -425,27 +430,20 @@ impl Server {
   async fn home(
     Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
-  ) -> ServerResult<Response> {
+  ) -> ServerResult<PageHtml> {
     Ok(
-      (
-        [(
-          header::CONTENT_SECURITY_POLICY,
-          "frame-src 'self'".to_string(),
-        )],
-        HomeHtml::new(
-          index
-            .blocks(100)
-            .map_err(|err| ServerError::Internal(anyhow!("error getting blocks: {err}")))?,
-          index
-            .get_latest_graphical_inscriptions(8)
-            .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?,
-        )
-        .page(
-          chain,
-          index.has_satoshi_index().map_err(ServerError::Internal)?,
-        ),
+      HomeHtml::new(
+        index
+          .blocks(100)
+          .map_err(|err| ServerError::Internal(anyhow!("error getting blocks: {err}")))?,
+        index
+          .get_latest_graphical_inscriptions(8)
+          .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?,
       )
-        .into_response(),
+      .page(
+        chain,
+        index.has_satoshi_index().map_err(ServerError::Internal)?,
+      ),
     )
   }
 
