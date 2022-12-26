@@ -258,14 +258,11 @@ fn inscriptions_page() {
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     "/inscriptions",
     &format!(
-      ".*<h1>Inscriptions</h1>.*
-<ul>
-  <li>
-    <a href=/inscription/{reveal_tx} class=monospace>
-      {reveal_tx}
-    </a>
-  </li>
-</ul>.*",
+      ".*<h1>Inscriptions</h1>
+<div class=inscriptions>
+  <a href=/inscription/{reveal_tx}><pre class=inscription>HELLOWORLD</pre></a>
+</div>
+.*",
     ),
   );
 }
@@ -278,10 +275,7 @@ fn inscriptions_page_is_sorted() {
 
   for i in 0..8 {
     let id = create_inscription(&rpc_server, &format!("{i}.png"));
-    inscriptions.insert_str(
-      0,
-      &format!(".*<a href=/inscription/{id} class=monospace>.*"),
-    );
+    inscriptions.insert_str(0, &format!(".*<a href=/inscription/{id}>.*"));
   }
 
   TestServer::spawn_with_args(&rpc_server, &[])
