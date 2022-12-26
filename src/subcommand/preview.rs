@@ -25,7 +25,6 @@ impl Preview {
       .arg(format!("-datadir={}", bitcoin_data_dir.to_str().unwrap()))
       .arg("-regtest")
       .arg("-txindex=1")
-      .arg("-reindex=1")
       .arg("-listen=0")
       .arg(format!("-rpcport={rpc_port}"))
       .spawn()?;

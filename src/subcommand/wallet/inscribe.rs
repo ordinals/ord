@@ -52,7 +52,7 @@ impl Inscribe {
         reveal_tx_destination,
       )?;
 
-    Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
+    // Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
 
     let signed_raw_commit_tx = client
       .sign_raw_transaction_with_wallet(&unsigned_commit_tx, None, None)?
