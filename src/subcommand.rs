@@ -6,7 +6,7 @@ mod index;
 mod info;
 mod list;
 mod parse;
-pub(crate) mod server;
+mod server;
 mod subsidy;
 mod supply;
 mod traits;

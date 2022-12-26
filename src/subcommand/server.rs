@@ -1,12 +1,10 @@
 use super::*;
 
 use {
-  self::{
-    deserialize_from_str::DeserializeFromStr,
-    templates::{
-      BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionsHtml, OutputHtml,
-      PageContent, PageHtml, RangeHtml, RareTxt, SatHtml, TransactionHtml,
-    },
+  self::deserialize_from_str::DeserializeFromStr,
+  crate::templates::{
+    BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionsHtml, OutputHtml,
+    PageContent, PageHtml, RangeHtml, RareTxt, SatHtml, TransactionHtml,
   },
   axum::{
     body,
@@ -30,7 +28,6 @@ use {
 };
 
 mod deserialize_from_str;
-pub(crate) mod templates;
 
 enum BlockQuery {
   Height(u64),
