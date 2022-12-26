@@ -206,6 +206,7 @@ iframe {
 
 a.content {
   color: inherit;
+  text-decoration: none;
 }
 
 img.inscription {
