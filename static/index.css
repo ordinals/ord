@@ -1,18 +1,18 @@
 :root {
+  --common: grey;
   --dark-bg: hsl(200, 7%, 8%);
   --dark-fg: #98a3ad;
-  --light-bg: #292c2f;
-  --light-fg: #a1adb8;
-  --search-bg: #b7b7b7;
-  --search-fg: #000000;
-  --search-border: #aaaaaa;
-  --common: grey;
-  --uncommon: forestgreen;
-  --rare: cornflowerblue;
   --epic: darkorchid;
   --legendary: gold;
-  --mythic: #f2a900;
+  --light-bg: #292c2f;
+  --light-fg: #a1adb8;
   --link: #4169e1;
+  --mythic: #f2a900;
+  --rare: cornflowerblue;
+  --search-bg: #b7b7b7;
+  --search-border: #aaaaaa;
+  --search-fg: #000000;
+  --uncommon: forestgreen;
 }
 
 html {
@@ -165,27 +165,23 @@ a.mythic {
 
 .inscriptions > a {
   aspect-ratio: 1 / 1;
-  width: 23%;
+  border-radius: 2%;
   margin: 1%;
   overflow: hidden;
-  border-radius: 2%;
   text-decoration: none;
+  width: 23%;
 }
 
 .inscriptions img.inscription {
-  overflow: auto;
   max-width: 100%;
   min-width: 100%;
+  overflow: auto;
 }
 
 .inscriptions iframe.inscription {
-  width: 101%;
   height: 101%;
   overflow: hidden;
-}
-
-.inscriptions pre.inscription {
-  color: white;
+  width: 101%;
 }
 
 .content {
@@ -213,16 +209,17 @@ a.content {
 }
 
 img.inscription {
-  image-rendering: pixelated;
   background-color: white;
+  image-rendering: pixelated;
 }
 
 iframe.inscription {
+  background-color: white;
   border: none;
   pointer-events: none;
-  background-color: white;
 }
 
 pre.inscription {
+  color: white;
   white-space: pre-wrap;
 }
