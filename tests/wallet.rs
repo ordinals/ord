@@ -262,13 +262,11 @@ fn inscribe_forbidden_on_mainnet() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "ord");
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  CommandBuilder::new(format!(
-    "wallet inscribe --satpoint {txid}:0:0 hello.txt"
-  ))
-  .rpc_server(&rpc_server)
-  .expected_exit_code(1)
-  .expected_stderr("error: `ord wallet inscribe` is unstable and not yet supported on mainnet.\n")
-  .run();
+  CommandBuilder::new(format!("wallet inscribe --satpoint {txid}:0:0 hello.txt"))
+    .rpc_server(&rpc_server)
+    .expected_exit_code(1)
+    .expected_stderr("error: `ord wallet inscribe` is unstable and not yet supported on mainnet.\n")
+    .run();
 }
 
 #[test]
@@ -668,12 +666,11 @@ fn inscribe_gif() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
   rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  let stdout =
-    CommandBuilder::new("--chain regtest --index-sats wallet inscribe dolphin.gif")
-      .write("dolphin.gif", [1; 520])
-      .rpc_server(&rpc_server)
-      .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-      .run();
+  let stdout = CommandBuilder::new("--chain regtest --index-sats wallet inscribe dolphin.gif")
+    .write("dolphin.gif", [1; 520])
+    .rpc_server(&rpc_server)
+    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+    .run();
 
   let txid = reveal_txid_from_inscribe_stdout(&stdout);
 
