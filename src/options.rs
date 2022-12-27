@@ -24,13 +24,13 @@ pub(crate) struct Options {
   pub(crate) index: Option<PathBuf>,
   #[clap(long, help = "Index current location of all satoshis.")]
   pub(crate) index_sats: bool,
-  #[clap(long, help = "Use regtest.")]
+  #[clap(long, short, help = "Use regtest.")]
   regtest: bool,
   #[clap(long, help = "Connect to Bitcoin Core RPC at <RPC_URL>.")]
   rpc_url: Option<String>,
-  #[clap(long, help = "Use signet.")]
+  #[clap(long, short, help = "Use signet.")]
   signet: bool,
-  #[clap(long, help = "Use testnet.")]
+  #[clap(long, short, help = "Use testnet.")]
   testnet: bool,
 }
 
@@ -405,6 +405,13 @@ mod tests {
         .chain(),
       Chain::Signet
     );
+    assert_eq!(
+      Arguments::try_parse_from(["ord", "-s", "index"])
+        .unwrap()
+        .options
+        .chain(),
+      Chain::Signet
+    );
 
     Arguments::try_parse_from(["ord", "--regtest", "--chain", "signet", "index"]).unwrap_err();
     assert_eq!(
@@ -414,10 +421,24 @@ mod tests {
         .chain(),
       Chain::Regtest
     );
+    assert_eq!(
+      Arguments::try_parse_from(["ord", "-r", "index"])
+        .unwrap()
+        .options
+        .chain(),
+      Chain::Regtest
+    );
 
     Arguments::try_parse_from(["ord", "--testnet", "--chain", "signet", "index"]).unwrap_err();
     assert_eq!(
       Arguments::try_parse_from(["ord", "--testnet", "index"])
+        .unwrap()
+        .options
+        .chain(),
+      Chain::Testnet
+    );
+    assert_eq!(
+      Arguments::try_parse_from(["ord", "-t", "index"])
         .unwrap()
         .options
         .chain(),

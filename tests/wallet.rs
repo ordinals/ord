@@ -60,7 +60,7 @@ fn send_works_on_signet() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
-    "--chain signet --index-sats wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
+    "--chain signet --index-sats wallet inscribe --satpoint {txid}:0:0 degenerate.png"
   ))
   .write("degenerate.png", [1; 520])
   .rpc_server(&rpc_server)
@@ -124,7 +124,7 @@ fn send_inscribed_sat() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
-    "--chain signet --index-sats wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
+    "--chain signet --index-sats wallet inscribe --satpoint {txid}:0:0 degenerate.png"
   ))
   .write("degenerate.png", [1; 520])
   .rpc_server(&rpc_server)
@@ -237,7 +237,7 @@ fn inscribe() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file hello.txt"
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 hello.txt"
   ))
   .write("hello.txt", "HELLOWORLD")
   .rpc_server(&rpc_server)
@@ -263,7 +263,7 @@ fn inscribe_forbidden_on_mainnet() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   CommandBuilder::new(format!(
-    "wallet inscribe --satpoint {txid}:0:0 --file hello.txt"
+    "wallet inscribe --satpoint {txid}:0:0 hello.txt"
   ))
   .rpc_server(&rpc_server)
   .expected_exit_code(1)
@@ -277,7 +277,7 @@ fn inscribe_unknown_file_extension() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file pepe.xyz"
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 pepe.xyz"
   ))
   .write("pepe.xyz", [1; 520])
   .rpc_server(&rpc_server)
@@ -292,7 +292,7 @@ fn inscribe_png() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
-    "--chain regtest --index-sats wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
+    "--chain regtest --index-sats wallet inscribe --satpoint {txid}:0:0 degenerate.png"
   ))
   .write("degenerate.png", [1; 520])
   .rpc_server(&rpc_server)
@@ -319,7 +319,7 @@ fn inscribe_exceeds_push_byte_limit() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   CommandBuilder::new(format!(
-    "--chain signet wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
+    "--chain signet wallet inscribe --satpoint {txid}:0:0 degenerate.png"
   ))
   .write("degenerate.png", [1; 1025])
   .rpc_server(&rpc_server)
@@ -336,7 +336,7 @@ fn regtest_has_no_content_size_limit() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 degenerate.png"
   ))
   .write("degenerate.png", [1; 1025])
   .rpc_server(&rpc_server)
@@ -349,7 +349,7 @@ fn inscribe_does_not_use_inscribed_sats_as_cardinal_utxos() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
   let txid = rpc_server.mine_blocks_with_subsidy(1, 800)[0].txdata[0].txid();
   CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 degenerate.png"
   ))
   .write("degenerate.png", [1; 100])
   .rpc_server(&rpc_server)
@@ -359,7 +359,7 @@ fn inscribe_does_not_use_inscribed_sats_as_cardinal_utxos() {
   let txid = rpc_server.mine_blocks_with_subsidy(1, 100)[0].txdata[0].txid();
 
   CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 degenerate.png"
   ))
   .rpc_server(&rpc_server)
   .write("degenerate.png", [1; 100])
@@ -373,7 +373,7 @@ fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
   let txid = rpc_server.mine_blocks_with_subsidy(1, 800)[0].txdata[0].txid();
   CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 degenerate.png"
   ))
   .write("degenerate.png", [1; 100])
   .rpc_server(&rpc_server)
@@ -397,7 +397,7 @@ fn refuse_to_reinscribe_sats() {
 
   let txid = rpc_server.mine_blocks_with_subsidy(1, 800)[0].txdata[0].txid();
   let stdout = CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 degenerate.png"
   ))
   .write("degenerate.png", [1; 100])
   .rpc_server(&rpc_server)
@@ -409,7 +409,7 @@ fn refuse_to_reinscribe_sats() {
   rpc_server.mine_blocks_with_subsidy(1, 100)[0].txdata[0].txid();
 
   CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {first_inscription_id}:0:0 --file hello.txt"
+    "--chain regtest wallet inscribe --satpoint {first_inscription_id}:0:0 hello.txt"
   ))
   .write("hello.txt", "HELLOWORLD")
   .rpc_server(&rpc_server)
@@ -426,7 +426,7 @@ fn do_not_accidentally_send_an_inscription() {
 
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
   let stdout = CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 degenerate.png"
   ))
   .write("degenerate.png", [1; 100])
   .rpc_server(&rpc_server)
@@ -459,7 +459,7 @@ fn refuse_to_inscribe_already_inscribed_utxo() {
 
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
   let stdout = CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file degenerate.png"
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 degenerate.png"
   ))
   .write("degenerate.png", [1; 100])
   .rpc_server(&rpc_server)
@@ -476,7 +476,7 @@ fn refuse_to_inscribe_already_inscribed_utxo() {
   };
 
   CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {inscription_utxo}:55555 --file hello.txt"
+    "--chain regtest wallet inscribe --satpoint {inscription_utxo}:55555 hello.txt"
   ))
   .write("hello.txt", "HELLOWORLD")
   .rpc_server(&rpc_server)
@@ -493,7 +493,7 @@ fn inscriptions_cannot_be_sent_by_satpoint() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file hello.txt"
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 hello.txt"
   ))
   .write("hello.txt", "HELLOWORLD")
   .rpc_server(&rpc_server)
@@ -547,7 +547,7 @@ fn inscriptions() {
 
   let inscription_id = reveal_txid_from_inscribe_stdout(
     &CommandBuilder::new(format!(
-      "--chain signet wallet inscribe --satpoint {txid}:0:0 --file hello.txt"
+      "--chain signet wallet inscribe --satpoint {txid}:0:0 hello.txt"
     ))
     .write("hello.txt", "HELLOWORLD")
     .rpc_server(&rpc_server)
@@ -595,7 +595,7 @@ fn inscribe_with_optional_satpoint_arg() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
   rpc_server.mine_blocks(1);
 
-  let stdout = CommandBuilder::new("--chain regtest wallet inscribe --file hello.txt")
+  let stdout = CommandBuilder::new("--chain regtest wallet inscribe hello.txt")
     .write("hello.txt", "HELLOWORLD")
     .rpc_server(&rpc_server)
     .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
@@ -630,7 +630,7 @@ fn transactions() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Signet, "ord");
   rpc_server.mine_blocks(1);
 
-  let stdout = CommandBuilder::new("--chain signet wallet inscribe --file degenerate.png")
+  let stdout = CommandBuilder::new("--chain signet wallet inscribe degenerate.png")
     .write("degenerate.png", [1; 520])
     .rpc_server(&rpc_server)
     .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
@@ -669,7 +669,7 @@ fn inscribe_gif() {
   rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout =
-    CommandBuilder::new("--chain regtest --index-sats wallet inscribe --file dolphin.gif")
+    CommandBuilder::new("--chain regtest --index-sats wallet inscribe dolphin.gif")
       .write("dolphin.gif", [1; 520])
       .rpc_server(&rpc_server)
       .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
