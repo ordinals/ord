@@ -11,7 +11,7 @@ impl Rtx<'_> {
         .range(0..)?
         .rev()
         .next()
-        .map(|(height, _hash)| Height(height)),
+        .map(|(height, _hash)| Height(height.value())),
     )
   }
 
@@ -23,7 +23,7 @@ impl Rtx<'_> {
         .range(0..)?
         .rev()
         .next()
-        .map(|(height, _hash)| height + 1)
+        .map(|(height, _hash)| height.value() + 1)
         .unwrap_or(0),
     )
   }

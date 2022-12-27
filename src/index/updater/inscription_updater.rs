@@ -47,7 +47,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       let inscription_ids: Vec<(SatPointArray, InscriptionIdArray)> = self
         .satpoint_to_id
         .range(start..=end)?
-        .map(|(satpoint, id)| (*satpoint, *id))
+        .map(|(satpoint, id)| (*satpoint.value(), *id.value()))
         .collect();
 
       for (old_satpoint, inscription_id) in inscription_ids {
