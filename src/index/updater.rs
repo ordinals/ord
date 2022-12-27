@@ -42,7 +42,7 @@ impl Updater {
       .range(0..)?
       .rev()
       .next()
-      .map(|(height, _hash)| height + 1)
+      .map(|(height, _hash)| height.value() + 1)
       .unwrap_or(0);
 
     wtx
@@ -120,7 +120,7 @@ impl Updater {
           .range(0..)?
           .rev()
           .next()
-          .map(|(height, _hash)| height + 1)
+          .map(|(height, _hash)| height.value() + 1)
           .unwrap_or(0);
         if height != self.height {
           // another update has run between committing and beginning the new
@@ -268,7 +268,7 @@ impl Updater {
     if let Some(prev_height) = self.height.checked_sub(1) {
       let prev_hash = height_to_block_hash.get(&prev_height)?.unwrap();
 
-      if prev_hash != block.header.prev_blockhash.as_ref() {
+      if prev_hash.value() != block.header.prev_blockhash.as_ref() {
         index.reorged.store(true, Ordering::Relaxed);
         return Err(anyhow!("reorg detected at or before {prev_height}"));
       }
@@ -282,7 +282,7 @@ impl Updater {
     let mut next_inscription_number = inscription_number_to_inscription_id
       .iter()?
       .rev()
-      .map(|(number, _id)| number + 1)
+      .map(|(number, _id)| number.value() + 1)
       .next()
       .unwrap_or(0);
 
@@ -325,7 +325,7 @@ impl Updater {
             None => outpoint_to_sat_ranges
               .remove(&key)?
               .ok_or_else(|| anyhow!("Could not find outpoint {} in index", input.previous_output))?
-              .to_value()
+              .value()
               .to_vec(),
           };
 

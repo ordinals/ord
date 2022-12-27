@@ -27,7 +27,7 @@ const INSCRIPTION_ID_TO_SATPOINT: TableDefinition<&InscriptionIdArray, &SatPoint
   TableDefinition::new("INSCRIPTION_ID_TO_SATPOINT");
 const INSCRIPTION_NUMBER_TO_INSCRIPTION_ID: TableDefinition<u64, &InscriptionIdArray> =
   TableDefinition::new("INSCRIPTION_NUMBER_TO_INSCRIPTION_ID");
-const OUTPOINT_TO_SAT_RANGES: TableDefinition<&OutPointArray, [u8]> =
+const OUTPOINT_TO_SAT_RANGES: TableDefinition<&OutPointArray, &[u8]> =
   TableDefinition::new("OUTPOINT_TO_SAT_RANGES");
 const SATPOINT_TO_INSCRIPTION_ID: TableDefinition<&SatPointArray, &InscriptionIdArray> =
   TableDefinition::new("SATPOINT_TO_INSCRIPTION_ID");
@@ -185,7 +185,7 @@ impl Index {
       data_dir.join("index.redb")
     };
 
-    let database = match unsafe { redb::Database::open(&database_path) } {
+    let database = match unsafe { redb::Database::builder().open_mmapped(&database_path) } {
       Ok(database) => database,
       Err(redb::Error::Io(error)) if error.kind() == io::ErrorKind::NotFound => {
         let database = unsafe {
@@ -195,7 +195,7 @@ impl Index {
             } else {
               WriteStrategy::TwoPhase
             })
-            .create(&database_path)?
+            .create_mmapped(&database_path)?
         };
         let tx = database.begin_write()?;
 
@@ -267,25 +267,29 @@ impl Index {
 
     let info = {
       let statistic_to_count = wtx.open_table(STATISTIC_TO_COUNT)?;
+      let sat_ranges = statistic_to_count
+        .get(&Statistic::SatRanges.key())?
+        .map(|x| x.value())
+        .unwrap_or(0);
+      let outputs_traversed = statistic_to_count
+        .get(&Statistic::OutputsTraversed.key())?
+        .map(|x| x.value())
+        .unwrap_or(0);
       Info {
         blocks_indexed: wtx
           .open_table(HEIGHT_TO_BLOCK_HASH)?
           .range(0..)?
           .rev()
           .next()
-          .map(|(height, _hash)| height + 1)
+          .map(|(height, _hash)| height.value() + 1)
           .unwrap_or(0),
         branch_pages: stats.branch_pages(),
         fragmented_bytes: stats.fragmented_bytes(),
         index_file_size: fs::metadata(&self.database_path)?.len(),
         leaf_pages: stats.leaf_pages(),
         metadata_bytes: stats.metadata_bytes(),
-        sat_ranges: statistic_to_count
-          .get(&Statistic::SatRanges.key())?
-          .unwrap_or(0),
-        outputs_traversed: statistic_to_count
-          .get(&Statistic::OutputsTraversed.key())?
-          .unwrap_or(0),
+        sat_ranges,
+        outputs_traversed,
         page_size: stats.page_size(),
         stored_bytes: stats.stored_bytes(),
         transactions: wtx
@@ -293,8 +297,8 @@ impl Index {
           .range(0..)?
           .map(
             |(starting_block_count, starting_timestamp)| TransactionInfo {
-              starting_block_count,
-              starting_timestamp,
+              starting_block_count: starting_block_count.value(),
+              starting_timestamp: starting_timestamp.value(),
             },
           )
           .collect(),
@@ -347,10 +351,12 @@ impl Index {
 
   fn increment_statistic(wtx: &WriteTransaction, statistic: Statistic, n: u64) -> Result {
     let mut statistic_to_count = wtx.open_table(STATISTIC_TO_COUNT)?;
-    statistic_to_count.insert(
-      &statistic.key(),
-      &(statistic_to_count.get(&(statistic.key()))?.unwrap_or(0) + n),
-    )?;
+    let value = statistic_to_count
+      .get(&(statistic.key()))?
+      .map(|x| x.value())
+      .unwrap_or(0)
+      + n;
+    statistic_to_count.insert(&statistic.key(), &value)?;
     Ok(())
   }
 
@@ -362,6 +368,7 @@ impl Index {
         .begin_read()?
         .open_table(STATISTIC_TO_COUNT)?
         .get(&statistic.key())?
+        .map(|x| x.value())
         .unwrap_or(0),
     )
   }
@@ -384,7 +391,7 @@ impl Index {
     let height_to_block_hash = rtx.0.open_table(HEIGHT_TO_BLOCK_HASH)?;
 
     for next in height_to_block_hash.range(0..block_count)?.rev().take(take) {
-      blocks.push((next.0, BlockHash::from_slice(next.1)?));
+      blocks.push((next.0.value(), BlockHash::from_slice(next.1.value())?));
     }
 
     Ok(blocks)
@@ -399,7 +406,7 @@ impl Index {
       let sat_to_satpoint = rtx.open_table(SAT_TO_SATPOINT)?;
 
       for (sat, satpoint) in sat_to_satpoint.range(0..)? {
-        result.push((Sat(sat), decode_satpoint(*satpoint)));
+        result.push((Sat(sat.value()), decode_satpoint(*satpoint.value())));
       }
 
       Ok(Some(result))
@@ -416,7 +423,7 @@ impl Index {
           .begin_read()?
           .open_table(SAT_TO_SATPOINT)?
           .get(&sat.n())?
-          .map(|satpoint| decode_satpoint(*satpoint)),
+          .map(|satpoint| decode_satpoint(*satpoint.value())),
       )
     } else {
       Ok(None)
@@ -459,8 +466,8 @@ impl Index {
 
     Ok(
       self
-        .get_inscription_by_inscription_id(Txid::from_inner(*txid))?
-        .map(|(inscription, _)| (InscriptionId::from_inner(*txid), inscription)),
+        .get_inscription_by_inscription_id(Txid::from_inner(*txid.value()))?
+        .map(|(inscription, _)| (InscriptionId::from_inner(*txid.value()), inscription)),
     )
   }
 
@@ -478,7 +485,8 @@ impl Index {
         .begin_read()?
         .open_table(INSCRIPTION_ID_TO_SATPOINT)?
         .get(txid.as_inner())?
-        .ok_or_else(|| anyhow!("no satpoint for inscription"))?,
+        .ok_or_else(|| anyhow!("no satpoint for inscription"))?
+        .value(),
     );
 
     Ok(Some((inscription, satpoint)))
@@ -520,10 +528,10 @@ impl Index {
 
     for (key, value) in outpoint_to_sat_ranges.range([0; 36]..)? {
       let mut offset = 0;
-      for chunk in value.chunks_exact(11) {
+      for chunk in value.value().chunks_exact(11) {
         let (start, end) = Index::decode_sat_range(chunk.try_into().unwrap());
         if start <= sat && sat < end {
-          let outpoint = decode_outpoint(*key);
+          let outpoint = decode_outpoint(*key.value());
           return Ok(Some(SatPoint {
             outpoint,
             offset: offset + sat - start,
@@ -543,7 +551,7 @@ impl Index {
         .begin_read()?
         .open_table(OUTPOINT_TO_SAT_RANGES)?
         .get(&outpoint)?
-        .map(|outpoint| outpoint.to_vec()),
+        .map(|outpoint| outpoint.value().to_vec()),
     )
   }
 
@@ -585,6 +593,7 @@ impl Index {
           .rev()
           .next()
           .map(|(height, _hash)| height)
+          .map(|x| x.value())
           .unwrap_or(0);
 
         let expected_blocks = height.checked_sub(current).with_context(|| {
@@ -608,7 +617,12 @@ impl Index {
         .begin_read()?
         .open_table(SATPOINT_TO_INSCRIPTION_ID)?
         .range([0; 44]..)?
-        .map(|(satpoint, id)| (decode_satpoint(*satpoint), decode_inscription_id(*id)))
+        .map(|(satpoint, id)| {
+          (
+            decode_satpoint(*satpoint.value()),
+            decode_inscription_id(*id.value()),
+          )
+        })
         .take(n.unwrap_or(usize::MAX))
         .collect(),
     )
@@ -627,7 +641,7 @@ impl Index {
       .iter()?
       .rev()
     {
-      let id = decode_inscription_id(*id);
+      let id = decode_inscription_id(*id.value());
 
       let Some((inscription, _satpoint)) = self.get_inscription_by_inscription_id(id)? else {
         continue;
@@ -649,6 +663,7 @@ impl Index {
       .begin_read()?
       .open_table(INSCRIPTION_ID_TO_HEIGHT)?
       .get(inscription_id.as_inner())?
+      .map(|x| x.value())
       .ok_or_else(|| anyhow!("no height for inscription"))
   }
 }
