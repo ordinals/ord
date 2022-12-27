@@ -22,6 +22,8 @@ pub(crate) struct Inscribe {
   pub(crate) satpoint: Option<SatPoint>,
   #[clap(long, help = "Inscribe sat with contents of <FILE>")]
   pub(crate) file: PathBuf,
+  #[clap(long, help = "Do not back up commit recovery key.")]
+  pub(crate) no_backup: bool,
 }
 
 impl Inscribe {
@@ -52,7 +54,9 @@ impl Inscribe {
         reveal_tx_destination,
       )?;
 
-    // Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
+    if !self.no_backup {
+      Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
+    }
 
     let signed_raw_commit_tx = client
       .sign_raw_transaction_with_wallet(&unsigned_commit_tx, None, None)?

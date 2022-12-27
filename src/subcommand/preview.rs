@@ -55,6 +55,7 @@ impl Preview {
         subcommand: Subcommand::Wallet(super::wallet::Wallet::Inscribe(
           super::wallet::inscribe::Inscribe {
             file,
+            no_backup: false,
             satpoint: None,
           },
         )),

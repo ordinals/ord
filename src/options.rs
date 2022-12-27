@@ -12,7 +12,12 @@ use {
 pub(crate) struct Options {
   #[clap(long, help = "Load Bitcoin Core data dir from <BITCOIN_DATA_DIR>.")]
   pub(crate) bitcoin_data_dir: Option<PathBuf>,
-  #[clap(long, arg_enum, default_value = "mainnet", help = "Use <CHAIN>.")]
+  #[clap(
+    long = "chain",
+    arg_enum,
+    default_value = "mainnet",
+    help = "Use <CHAIN>."
+  )]
   pub(crate) chain_argument: Chain,
   #[clap(long, help = "Load Bitcoin Core RPC cookie file from <COOKIE_FILE>.")]
   pub(crate) cookie_file: Option<PathBuf>,
