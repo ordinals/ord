@@ -683,6 +683,10 @@ mod tests {
   }
 
   impl Context {
+    fn new() -> Self {
+      Self::with_args("")
+    }
+
     fn with_args(args: &str) -> Self {
       let rpc_server = test_bitcoincore_rpc::spawn();
 
@@ -1042,5 +1046,18 @@ mod tests {
         offset: 0,
       }
     )
+  }
+
+  #[test]
+  fn unaligned_inscriptions_are_tracked_correctly() {
+    // create an inscription
+    // create transaction that has a non-zero first input
+    // assert that database still tracks the updated satpoint
+
+    let context = Context::new();
+    context.rpc_server.mine_blocks(1);
+    
+    
+
   }
 }
