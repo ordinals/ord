@@ -93,6 +93,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           offset: offset - start,
         });
 
+        // TODO: test that we're removing the old satpoint
         self.satpoint_to_id.remove(&old_satpoint)?;
         self.satpoint_to_id.insert(&new_satpoint, &inscription_id)?;
         self.id_to_satpoint.insert(&inscription_id, &new_satpoint)?;
