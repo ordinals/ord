@@ -128,10 +128,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       )?;
     }
 
-    if inscriptions.next().is_some() {
-      todo!("handle inscription being lost to fee");
-    }
-
     Ok(inscribed)
   }
 }
