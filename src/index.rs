@@ -1144,4 +1144,16 @@ mod tests {
       Some(inscription_id),
     );
   }
+
+  #[test]
+  #[ignore]
+  fn inscriptions_lost_to_fee_are_tracked_correctly() {
+    todo!()
+  }
+
+  #[test]
+  #[ignore]
+  fn inscriptions_that_are_sent_to_second_output_are_are_tracked_correctly() {
+    todo!()
+  }
 }
