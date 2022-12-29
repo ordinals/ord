@@ -219,7 +219,7 @@ impl<'a> InscriptionParser<'a> {
       let content_type = fields.remove(CONTENT_TYPE_TAG);
 
       for tag in fields.keys() {
-        if let Some(lsb) = tag.get(0) {
+        if let Some(lsb) = tag.first() {
           if lsb % 2 == 0 {
             return Err(InscriptionError::UnrecognizedEvenField);
           }
