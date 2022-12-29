@@ -18,7 +18,7 @@ const PROTOCOL_ID: &[u8] = b"ord";
 const CONTENT_TAG: &[u8] = &[];
 const CONTENT_TYPE_TAG: &[u8] = &[1];
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub(crate) struct Inscription {
   content: Option<Vec<u8>>,
   content_type: Option<Vec<u8>>,
@@ -113,6 +113,20 @@ impl Inscription {
 
   pub(crate) fn content_type(&self) -> Option<&str> {
     str::from_utf8(self.content_type.as_ref()?).ok()
+  }
+
+  #[cfg(test)]
+  pub(crate) fn to_witness(&self) -> Witness {
+    let builder = script::Builder::new();
+
+    let script = self.append_reveal_script(builder);
+
+    let mut witness = Witness::new();
+
+    witness.push(script);
+    witness.push([]);
+
+    witness
   }
 }
 

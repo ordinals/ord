@@ -1381,6 +1381,7 @@ mod tests {
       input_slots: &[(1, 0, 0)],
       output_count: 1,
       fee: 0,
+      ..Default::default()
     };
     test_server.bitcoin_rpc_server.broadcast_tx(transaction);
     let block_hash = test_server.bitcoin_rpc_server.mine_blocks(1)[0].block_hash();
@@ -1679,6 +1680,7 @@ next.*",
       input_slots: &[(1, 0, 0)],
       output_count: 2,
       fee: 0,
+      ..Default::default()
     });
     server.bitcoin_rpc_server.mine_blocks(1);
     server.index.update().unwrap();
@@ -1709,6 +1711,7 @@ next.*",
       input_slots: &[(1, 0, 0)],
       output_count: 2,
       fee: 2,
+      ..Default::default()
     });
     server.bitcoin_rpc_server.mine_blocks(1);
     server.index.update().unwrap();

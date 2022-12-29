@@ -18,6 +18,11 @@ pub(crate) struct Options {
   cookie_file: Option<PathBuf>,
   #[clap(long, help = "Store index in <DATA_DIR>.")]
   data_dir: Option<PathBuf>,
+  #[clap(
+    long,
+    help = "Don't look for inscriptions below <FIRST_INSCRIPTION_HEIGHT>."
+  )]
+  first_inscription_height: Option<u64>,
   #[clap(long, help = "Limit index to <HEIGHT_LIMIT> blocks.")]
   pub(crate) height_limit: Option<u64>,
   #[clap(long, help = "Use index at <INDEX>.")]
@@ -44,6 +49,18 @@ impl Options {
       Chain::Testnet
     } else {
       self.chain
+    }
+  }
+
+  pub(crate) fn first_inscription_height(&self) -> u64 {
+    if self.chain() == Chain::Regtest {
+      self.first_inscription_height.unwrap_or(0)
+    } else if integration_test() {
+      0
+    } else {
+      self
+        .first_inscription_height
+        .unwrap_or_else(|| self.chain().first_inscription_height())
     }
   }
 
