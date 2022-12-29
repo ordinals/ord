@@ -495,21 +495,6 @@ impl Index {
     Ok(Some((inscription, satpoint)))
   }
 
-  #[cfg(test)]
-  pub(crate) fn get_inscription_id_by_satpoint(
-    &self,
-    satpoint: SatPoint,
-  ) -> Result<Option<InscriptionId>> {
-    Ok(
-      self
-        .database
-        .begin_read()?
-        .open_table(SATPOINT_TO_INSCRIPTION_ID)?
-        .get(&encode_satpoint(satpoint))?
-        .map(|inscription_id| decode_inscription_id(*inscription_id.value())),
-    )
-  }
-
   pub(crate) fn get_transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
     if txid == self.genesis_block_coinbase_txid {
       Ok(Some(self.genesis_block_coinbase_transaction.clone()))
@@ -689,6 +674,25 @@ impl Index {
   fn assert_inscription_location(&self, inscription_id: InscriptionId, satpoint: SatPoint) {
     assert_eq!(
       self
+        .database
+        .begin_read()
+        .unwrap()
+        .open_table(SATPOINT_TO_INSCRIPTION_ID)
+        .unwrap()
+        .len()
+        .unwrap(),
+      self
+        .database
+        .begin_read()
+        .unwrap()
+        .open_table(INSCRIPTION_ID_TO_SATPOINT)
+        .unwrap()
+        .len()
+        .unwrap(),
+    );
+
+    assert_eq!(
+      self
         .get_inscription_by_inscription_id(inscription_id)
         .unwrap()
         .unwrap()
@@ -697,10 +701,18 @@ impl Index {
     );
 
     assert_eq!(
-      self
-        .get_inscription_id_by_satpoint(satpoint)
-        .unwrap()
-        .unwrap(),
+      decode_inscription_id(
+        *self
+          .database
+          .begin_read()
+          .unwrap()
+          .open_table(SATPOINT_TO_INSCRIPTION_ID)
+          .unwrap()
+          .get(&encode_satpoint(satpoint))
+          .unwrap()
+          .unwrap()
+          .value()
+      ),
       inscription_id,
     );
   }
