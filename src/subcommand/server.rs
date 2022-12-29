@@ -168,12 +168,7 @@ impl Server {
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
         .layer(Extension(index))
-        .layer(Extension(options.chain()))
-        .layer(
-          CorsLayer::new()
-            .allow_methods([http::Method::GET])
-            .allow_origin(Any),
-        );
+        .layer(Extension(options.chain()));
 
       match (self.http_port(), self.https_port()) {
         (Some(http_port), None) => self.spawn(router, handle, http_port, None)?.await??,
