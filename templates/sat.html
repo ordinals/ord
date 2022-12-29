@@ -13,7 +13,7 @@
   <dt>time</dt><dd>{{ self.blocktime }}</dd>
 %% if let Some((inscription_id, inscription)) = &self.inscription {
   <dt>inscription</dt>
-  <dd><a href=/inscription/{{ inscription_id }}>{{ inscription.content_html(*inscription_id) }}</a></dd>
+  <dd><a class=content href=/inscription/{{ inscription_id }}>{{ inscription.content_html(*inscription_id) }}</a></dd>
 %% }
 %% if let Some(satpoint) = self.satpoint {
   <dt>location</dt>
