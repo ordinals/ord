@@ -74,28 +74,30 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     }
 
     inscriptions.sort();
+    let mut inscriptions = inscriptions.into_iter().peekable();
 
     let mut start = 0;
     for (vout, tx_out) in tx.output.iter().enumerate() {
       let end = start + tx_out.value;
 
-      // TODO: this will fail if two inscriptions go to same output
-      if let Some((offset, inscription_id, old_satpoint)) = inscriptions.get(0) {
-        if *offset < end {
-          let new_satpoint = encode_satpoint(SatPoint {
-            outpoint: OutPoint {
-              txid,
-              vout: vout.try_into().unwrap(),
-            },
-            offset: offset - start,
-          });
-
-          self.satpoint_to_id.remove(&old_satpoint)?;
-          self.satpoint_to_id.insert(&new_satpoint, &inscription_id)?;
-          self.id_to_satpoint.insert(&inscription_id, &new_satpoint)?;
-
-          inscriptions.remove(0);
+      while let Some((offset, inscription_id, old_satpoint)) = inscriptions.peek() {
+        if *offset >= end {
+          break;
         }
+
+        let new_satpoint = encode_satpoint(SatPoint {
+          outpoint: OutPoint {
+            txid,
+            vout: vout.try_into().unwrap(),
+          },
+          offset: offset - start,
+        });
+
+        self.satpoint_to_id.remove(&old_satpoint)?;
+        self.satpoint_to_id.insert(&new_satpoint, &inscription_id)?;
+        self.id_to_satpoint.insert(&inscription_id, &new_satpoint)?;
+
+        inscriptions.next();
       }
 
       start = end;
@@ -111,7 +113,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       )?;
     }
 
-    if !inscriptions.is_empty() {
+    if inscriptions.next().is_some() {
       todo!("handle inscription being lost to fee");
     }
 
