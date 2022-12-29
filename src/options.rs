@@ -18,7 +18,10 @@ pub(crate) struct Options {
   cookie_file: Option<PathBuf>,
   #[clap(long, help = "Store index in <DATA_DIR>.")]
   data_dir: Option<PathBuf>,
-  #[clap(long, help = "Look for inscriptions above <FIRST_INSCRIPTION_HEIGHT>.")]
+  #[clap(
+    long,
+    help = "Don't look for inscriptions below <FIRST_INSCRIPTION_HEIGHT>."
+  )]
   first_inscription_height: Option<u64>,
   #[clap(long, help = "Limit index to <HEIGHT_LIMIT> blocks.")]
   pub(crate) height_limit: Option<u64>,
