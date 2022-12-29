@@ -29,6 +29,8 @@ const INSCRIPTION_NUMBER_TO_INSCRIPTION_ID: TableDefinition<u64, &InscriptionIdA
   TableDefinition::new("INSCRIPTION_NUMBER_TO_INSCRIPTION_ID");
 const OUTPOINT_TO_SAT_RANGES: TableDefinition<&OutPointArray, &[u8]> =
   TableDefinition::new("OUTPOINT_TO_SAT_RANGES");
+const OUTPOINT_TO_VALUE: TableDefinition<&OutPointArray, u64> =
+  TableDefinition::new("OUTPOINT_TO_VALUE");
 const SATPOINT_TO_INSCRIPTION_ID: TableDefinition<&SatPointArray, &InscriptionIdArray> =
   TableDefinition::new("SATPOINT_TO_INSCRIPTION_ID");
 const SAT_TO_INSCRIPTION_ID: TableDefinition<u64, &InscriptionIdArray> =
@@ -210,6 +212,7 @@ impl Index {
         tx.open_table(INSCRIPTION_ID_TO_HEIGHT)?;
         tx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
         tx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
+        tx.open_table(OUTPOINT_TO_VALUE)?;
         tx.open_table(SATPOINT_TO_INSCRIPTION_ID)?;
         tx.open_table(SAT_TO_INSCRIPTION_ID)?;
         tx.open_table(SAT_TO_SATPOINT)?;

@@ -276,9 +276,11 @@ impl Updater {
 
     let mut inscription_id_to_height = wtx.open_table(INSCRIPTION_ID_TO_HEIGHT)?;
     let mut inscription_id_to_satpoint = wtx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
-    let mut satpoint_to_inscription_id = wtx.open_table(SATPOINT_TO_INSCRIPTION_ID)?;
     let mut inscription_number_to_inscription_id =
       wtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
+    let mut outpoint_to_value = wtx.open_table(OUTPOINT_TO_VALUE)?;
+    let mut satpoint_to_inscription_id = wtx.open_table(SATPOINT_TO_INSCRIPTION_ID)?;
+
     let mut next_inscription_number = inscription_number_to_inscription_id
       .iter()?
       .rev()
@@ -366,6 +368,10 @@ impl Updater {
       }
     }
 
+    for (tx, txid) in &block.txdata {
+      self.index_transaction_outputs(&mut outpoint_to_value, tx, *txid)?;
+    }
+
     height_to_block_hash.insert(
       &self.height,
       &block.header.block_hash().as_hash().into_inner(),
@@ -449,6 +455,29 @@ impl Updater {
 
       self.cache.insert(encode_outpoint(outpoint), sats);
       self.outputs_inserted_since_flush += 1;
+    }
+
+    Ok(())
+  }
+
+  fn index_transaction_outputs(
+    &mut self,
+    outpoint_to_value: &mut Table<&OutPointArray, u64>,
+    tx: &Transaction,
+    txid: Txid,
+  ) -> Result {
+    for tx_in in &tx.input {
+      outpoint_to_value.remove(&encode_outpoint(tx_in.previous_output))?;
+    }
+
+    for (vout, tx_out) in tx.output.iter().enumerate() {
+      outpoint_to_value.insert(
+        &encode_outpoint(OutPoint {
+          vout: vout.try_into().unwrap(),
+          txid,
+        }),
+        &tx_out.value,
+      )?;
     }
 
     Ok(())
