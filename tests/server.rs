@@ -40,7 +40,7 @@ fn inscription_page() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file hello.txt"
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 hello.txt"
   ))
   .write("hello.txt", "HELLOWORLD")
   .rpc_server(&rpc_server)
@@ -81,7 +81,7 @@ fn inscription_appears_on_reveal_transaction_page() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file hello.txt"
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 hello.txt"
   ))
   .write("hello.txt", "HELLOWORLD")
   .rpc_server(&rpc_server)
@@ -104,7 +104,7 @@ fn inscription_page_after_send() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file hello.txt"
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 hello.txt"
   ))
   .write("hello.txt", "HELLOWORLD")
   .rpc_server(&rpc_server)
@@ -156,7 +156,7 @@ fn inscription_content() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file hello.txt"
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 hello.txt"
   ))
   .write("hello.txt", "HELLOWORLD")
   .rpc_server(&rpc_server)
@@ -244,7 +244,7 @@ fn inscriptions_page() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file hello.txt"
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 hello.txt"
   ))
   .write("hello.txt", "HELLOWORLD")
   .rpc_server(&rpc_server)
