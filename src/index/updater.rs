@@ -295,6 +295,7 @@ impl Updater {
       next_number: &mut next_inscription_number,
       number_to_id: &mut inscription_number_to_inscription_id,
       satpoint_to_id: &mut satpoint_to_inscription_id,
+      outpoint_to_value: &mut outpoint_to_value,
     };
 
     if self.index_sats {
@@ -366,10 +367,6 @@ impl Updater {
       for (tx, txid) in &block.txdata {
         inscription_updater.index_transaction_inscriptions(tx, *txid)?;
       }
-    }
-
-    for (tx, txid) in &block.txdata {
-      self.index_transaction_outputs(&mut outpoint_to_value, tx, *txid)?;
     }
 
     height_to_block_hash.insert(
@@ -455,29 +452,6 @@ impl Updater {
 
       self.cache.insert(encode_outpoint(outpoint), sats);
       self.outputs_inserted_since_flush += 1;
-    }
-
-    Ok(())
-  }
-
-  fn index_transaction_outputs(
-    &mut self,
-    outpoint_to_value: &mut Table<&OutPointArray, u64>,
-    tx: &Transaction,
-    txid: Txid,
-  ) -> Result {
-    for tx_in in &tx.input {
-      outpoint_to_value.remove(&encode_outpoint(tx_in.previous_output))?;
-    }
-
-    for (vout, tx_out) in tx.output.iter().enumerate() {
-      outpoint_to_value.insert(
-        &encode_outpoint(OutPoint {
-          vout: vout.try_into().unwrap(),
-          txid,
-        }),
-        &tx_out.value,
-      )?;
     }
 
     Ok(())

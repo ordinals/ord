@@ -7,6 +7,7 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   pub(super) next_number: &'a mut u64,
   pub(super) number_to_id: &'a mut Table<'db, 'tx, u64, &'tx InscriptionIdArray>,
   pub(super) satpoint_to_id: &'a mut Table<'db, 'tx, &'tx SatPointArray, &'tx InscriptionIdArray>,
+  pub(super) outpoint_to_value: &'a mut Table<'db, 'tx, &'tx OutPointArray, u64>,
 }
 
 impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
@@ -32,6 +33,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       *self.next_number += 1;
     };
 
+    let mut inscriptions: Vec<(u64, InscriptionIdArray, SatPointArray)> = Vec::new();
+
+    let mut offset = 0;
     for tx_in in &tx.input {
       let outpoint = tx_in.previous_output;
       let start = encode_satpoint(SatPoint {
@@ -44,22 +48,71 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         offset: u64::MAX,
       });
 
-      let inscription_ids: Vec<(SatPointArray, InscriptionIdArray)> = self
+      for (old_satpoint, inscription_id) in self
         .satpoint_to_id
         .range(start..=end)?
         .map(|(satpoint, id)| (*satpoint.value(), *id.value()))
-        .collect();
-
-      for (old_satpoint, inscription_id) in inscription_ids {
-        let new_satpoint = encode_satpoint(SatPoint {
-          outpoint: OutPoint { txid, vout: 0 },
-          offset: 0,
-        });
-
-        self.satpoint_to_id.remove(&old_satpoint)?;
-        self.satpoint_to_id.insert(&new_satpoint, &inscription_id)?;
-        self.id_to_satpoint.insert(&inscription_id, &new_satpoint)?;
+      {
+        inscriptions.push((
+          offset + decode_satpoint(old_satpoint).offset,
+          inscription_id,
+          old_satpoint,
+        ));
       }
+
+      if !tx_in.previous_output.is_null() {
+        offset += self
+          .outpoint_to_value
+          .get(&encode_outpoint(tx_in.previous_output))?
+          .unwrap()
+          .value();
+      }
+
+      self
+        .outpoint_to_value
+        .remove(&encode_outpoint(tx_in.previous_output))?;
+    }
+
+    inscriptions.sort();
+
+    let mut start = 0;
+    for (vout, tx_out) in tx.output.iter().enumerate() {
+      let end = start + tx_out.value;
+
+      // TODO: this will fail if two inscriptions go to same output
+      if let Some((offset, inscription_id, old_satpoint)) = inscriptions.get(0) {
+        if *offset < end {
+          let new_satpoint = encode_satpoint(SatPoint {
+            outpoint: OutPoint {
+              txid,
+              vout: vout.try_into().unwrap(),
+            },
+            offset: offset - start,
+          });
+
+          self.satpoint_to_id.remove(&old_satpoint)?;
+          self.satpoint_to_id.insert(&new_satpoint, &inscription_id)?;
+          self.id_to_satpoint.insert(&inscription_id, &new_satpoint)?;
+
+          inscriptions.remove(0);
+        }
+      }
+
+      start = end;
+    }
+
+    for (vout, tx_out) in tx.output.iter().enumerate() {
+      self.outpoint_to_value.insert(
+        &encode_outpoint(OutPoint {
+          vout: vout.try_into().unwrap(),
+          txid,
+        }),
+        &tx_out.value,
+      )?;
+    }
+
+    if !inscriptions.is_empty() {
+      todo!("handle inscription being lost to fee");
     }
 
     Ok(inscribed)
