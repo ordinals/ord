@@ -60,6 +60,10 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         ));
       }
 
+      // Options:
+      // - remove transaction skipping optimization
+      // - get transactions ad hoc from core if we have missing values
+
       if !tx_in.previous_output.is_null() {
         offset += self
           .outpoint_to_value
