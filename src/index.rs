@@ -478,19 +478,19 @@ impl Index {
     &self,
     txid: Txid,
   ) -> Result<Option<(Inscription, SatPoint)>> {
-    let Some(inscription) = self.get_transaction(txid)?.and_then(|tx| Inscription::from_transaction(&tx)) else {
-      return Ok(None);
-    };
-
-    let satpoint = decode_satpoint(
-      *self
+    let Some(satpoint) = self
         .database
         .begin_read()?
         .open_table(INSCRIPTION_ID_TO_SATPOINT)?
         .get(txid.as_inner())?
-        .ok_or_else(|| anyhow!("no satpoint for inscription"))?
-        .value(),
-    );
+        .map(|satpoint| decode_satpoint(*satpoint.value()))
+        else {
+      return Ok(None);
+    };
+
+    let Some(inscription) = self.get_transaction(txid)?.and_then(|tx| Inscription::from_transaction(&tx)) else {
+      return Ok(None);
+    };
 
     Ok(Some((inscription, satpoint)))
   }

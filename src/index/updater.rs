@@ -166,11 +166,7 @@ impl Updater {
     let client =
       Client::new(&index.rpc_url, index.auth.clone()).context("failed to connect to RPC URL")?;
 
-    let first_inscription_height = if integration_test() {
-      0
-    } else {
-      index.first_inscription_height
-    };
+    let first_inscription_height = index.first_inscription_height;
 
     thread::spawn(move || loop {
       if let Some(height_limit) = height_limit {

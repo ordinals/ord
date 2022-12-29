@@ -258,6 +258,37 @@ fn inscribe() {
 }
 
 #[test]
+fn inscriptions_below_first_inscription_height_are_skipped() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+
+  let stdout = CommandBuilder::new(format!(
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 hello.txt"
+  ))
+  .write("hello.txt", "HELLOWORLD")
+  .rpc_server(&rpc_server)
+  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+  .run();
+
+  rpc_server.mine_blocks(1);
+
+  TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
+    &format!("/inscription/{}", reveal_txid_from_inscribe_stdout(&stdout)),
+    ".*HELLOWORLD.*",
+  );
+
+  assert_eq!(
+    TestServer::spawn_with_args(&rpc_server, &["--first-inscription-height", "3"])
+      .request(&format!(
+        "/inscription/{}",
+        reveal_txid_from_inscribe_stdout(&stdout)
+      ),)
+      .status(),
+    StatusCode::NOT_FOUND,
+  );
+}
+
+#[test]
 fn inscribe_forbidden_on_mainnet() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Bitcoin, "ord");
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();

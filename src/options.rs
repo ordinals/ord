@@ -50,9 +50,15 @@ impl Options {
   }
 
   pub(crate) fn first_inscription_height(&self) -> u64 {
-    self
-      .first_inscription_height
-      .unwrap_or_else(|| self.chain().first_inscription_height())
+    if self.chain() == Chain::Regtest {
+      self.first_inscription_height.unwrap_or(0)
+    } else if integration_test() {
+      0
+    } else {
+      self
+        .first_inscription_height
+        .unwrap_or_else(|| self.chain().first_inscription_height())
+    }
   }
 
   pub(crate) fn rpc_url(&self) -> String {
