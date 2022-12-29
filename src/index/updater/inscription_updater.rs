@@ -4,11 +4,11 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   pub(super) height: u64,
   pub(super) id_to_height: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, u64>,
   pub(super) id_to_satpoint: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, &'tx SatPointArray>,
+  pub(super) index: &'a Index,
   pub(super) next_number: &'a mut u64,
   pub(super) number_to_id: &'a mut Table<'db, 'tx, u64, &'tx InscriptionIdArray>,
-  pub(super) satpoint_to_id: &'a mut Table<'db, 'tx, &'tx SatPointArray, &'tx InscriptionIdArray>,
   pub(super) outpoint_to_value: &'a mut Table<'db, 'tx, &'tx OutPointArray, u64>,
-  pub(super) index: &'a Index,
+  pub(super) satpoint_to_id: &'a mut Table<'db, 'tx, &'tx SatPointArray, &'tx InscriptionIdArray>,
 }
 
 impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {

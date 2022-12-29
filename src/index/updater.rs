@@ -288,11 +288,11 @@ impl Updater {
       height: self.height,
       id_to_height: &mut inscription_id_to_height,
       id_to_satpoint: &mut inscription_id_to_satpoint,
+      index,
       next_number: &mut next_inscription_number,
       number_to_id: &mut inscription_number_to_inscription_id,
-      satpoint_to_id: &mut satpoint_to_inscription_id,
       outpoint_to_value: &mut outpoint_to_value,
-      index,
+      satpoint_to_id: &mut satpoint_to_inscription_id,
     };
 
     if self.index_sats {
