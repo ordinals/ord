@@ -73,10 +73,12 @@ pub fn spawn() -> Handle {
   spawn_with(Network::Bitcoin, "ord")
 }
 
+#[derive(Default)]
 pub struct TransactionTemplate<'a> {
   pub input_slots: &'a [(usize, usize, usize)],
   pub output_count: usize,
   pub fee: u64,
+  pub witness: Witness,
 }
 
 pub struct Handle {

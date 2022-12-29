@@ -495,6 +495,21 @@ impl Index {
     Ok(Some((inscription, satpoint)))
   }
 
+  #[cfg(test)]
+  pub(crate) fn get_inscription_id_by_satpoint(
+    &self,
+    satpoint: SatPoint,
+  ) -> Result<Option<InscriptionId>> {
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(SATPOINT_TO_INSCRIPTION_ID)?
+        .get(&encode_satpoint(satpoint))?
+        .map(|inscription_id| decode_inscription_id(*inscription_id.value())),
+    )
+  }
+
   pub(crate) fn get_transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
     if txid == self.genesis_block_coinbase_txid {
       Ok(Some(self.genesis_block_coinbase_transaction.clone()))
@@ -785,6 +800,7 @@ mod tests {
       input_slots: &[(1, 0, 0)],
       output_count: 2,
       fee: 0,
+      ..Default::default()
     };
     let txid = context.rpc_server.broadcast_tx(split_coinbase_output);
 
@@ -811,6 +827,7 @@ mod tests {
       input_slots: &[(1, 0, 0), (2, 0, 0)],
       output_count: 1,
       fee: 0,
+      ..Default::default()
     };
 
     let txid = context.rpc_server.broadcast_tx(merge_coinbase_outputs);
@@ -835,6 +852,7 @@ mod tests {
       input_slots: &[(1, 0, 0)],
       output_count: 2,
       fee: 10,
+      ..Default::default()
     };
     let txid = context.rpc_server.broadcast_tx(fee_paying_tx);
     let coinbase_txid = context.rpc_server.mine_blocks(1)[0].txdata[0].txid();
@@ -869,11 +887,13 @@ mod tests {
       input_slots: &[(1, 0, 0)],
       output_count: 1,
       fee: 10,
+      ..Default::default()
     };
     let second_fee_paying_tx = TransactionTemplate {
       input_slots: &[(2, 0, 0)],
       output_count: 1,
       fee: 10,
+      ..Default::default()
     };
     context.rpc_server.broadcast_tx(first_fee_paying_tx);
     context.rpc_server.broadcast_tx(second_fee_paying_tx);
@@ -904,6 +924,7 @@ mod tests {
       input_slots: &[(1, 0, 0)],
       output_count: 1,
       fee: 50 * COIN_VALUE,
+      ..Default::default()
     };
     let txid = context.rpc_server.broadcast_tx(no_value_output);
     context.rpc_server.mine_blocks(1);
@@ -924,6 +945,7 @@ mod tests {
       input_slots: &[(1, 0, 0)],
       output_count: 1,
       fee: 50 * COIN_VALUE,
+      ..Default::default()
     };
     context.rpc_server.broadcast_tx(no_value_output);
     context.rpc_server.mine_blocks(1);
@@ -932,6 +954,7 @@ mod tests {
       input_slots: &[(2, 1, 0)],
       output_count: 1,
       fee: 0,
+      ..Default::default()
     };
     let txid = context.rpc_server.broadcast_tx(no_value_input);
     context.rpc_server.mine_blocks(1);
@@ -951,6 +974,7 @@ mod tests {
       input_slots: &[(1, 0, 0)],
       output_count: 1,
       fee: 0,
+      ..Default::default()
     });
     context.rpc_server.mine_blocks(1);
     context.index.update().unwrap();
@@ -1036,6 +1060,7 @@ mod tests {
       input_slots: &[(1, 0, 0)],
       output_count: 1,
       fee: 0,
+      ..Default::default()
     });
     context.rpc_server.mine_blocks(1);
     context.index.update().unwrap();
@@ -1050,14 +1075,73 @@ mod tests {
 
   #[test]
   fn unaligned_inscriptions_are_tracked_correctly() {
-    // create an inscription
-    // create transaction that has a non-zero first input
-    // assert that database still tracks the updated satpoint
-
     let context = Context::new();
     context.rpc_server.mine_blocks(1);
-    
-    
 
+    let inscription = inscription("text/plain", "hello");
+    let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+      input_slots: &[(1, 0, 0)],
+      output_count: 1,
+      fee: 0,
+      witness: inscription.to_witness(),
+    });
+    context.rpc_server.mine_blocks(1);
+    context.index.update().unwrap();
+
+    let satpoint = SatPoint {
+      outpoint: OutPoint {
+        txid: inscription_id,
+        vout: 0,
+      },
+      offset: 0,
+    };
+
+    assert_eq!(
+      context
+        .index
+        .get_inscription_by_inscription_id(inscription_id)
+        .unwrap(),
+      Some((inscription.clone(), satpoint)),
+    );
+
+    assert_eq!(
+      context
+        .index
+        .get_inscription_id_by_satpoint(satpoint)
+        .unwrap(),
+      Some(inscription_id),
+    );
+
+    let send_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      input_slots: &[(2, 0, 0), (2, 1, 0)],
+      output_count: 1,
+      ..Default::default()
+    });
+    context.rpc_server.mine_blocks(1);
+    context.index.update().unwrap();
+
+    let satpoint = SatPoint {
+      outpoint: OutPoint {
+        txid: send_txid,
+        vout: 0,
+      },
+      offset: 50 * COIN_VALUE,
+    };
+
+    assert_eq!(
+      context
+        .index
+        .get_inscription_by_inscription_id(inscription_id)
+        .unwrap(),
+      Some((inscription, satpoint)),
+    );
+
+    assert_eq!(
+      context
+        .index
+        .get_inscription_id_by_satpoint(satpoint)
+        .unwrap(),
+      Some(inscription_id),
+    );
   }
 }
