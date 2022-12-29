@@ -20,7 +20,7 @@ use {
 pub(crate) struct Inscribe {
   #[clap(long, help = "Inscribe <SATPOINT>")]
   satpoint: Option<SatPoint>,
-  #[clap(long, help = "Inscribe sat with contents of <FILE>")]
+  #[clap(help = "Inscribe sat with contents of <FILE>")]
   file: PathBuf,
 }
 
