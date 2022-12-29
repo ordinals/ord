@@ -71,10 +71,10 @@ fn decode_inscription_id(array: InscriptionIdArray) -> InscriptionId {
 
 pub(crate) struct Index {
   auth: Auth,
-  chain: Chain,
   client: Client,
   database: Database,
   database_path: PathBuf,
+  first_inscription_height: u64,
   genesis_block_coinbase_transaction: Transaction,
   genesis_block_coinbase_txid: Txid,
   height_limit: Option<u64>,
@@ -236,10 +236,10 @@ impl Index {
     Ok(Self {
       genesis_block_coinbase_txid: genesis_block_coinbase_transaction.txid(),
       auth,
-      chain: options.chain(),
       client,
       database,
       database_path,
+      first_inscription_height: options.first_inscription_height(),
       genesis_block_coinbase_transaction,
       height_limit: options.height_limit,
       reorged: AtomicBool::new(false),
@@ -758,7 +758,6 @@ mod tests {
     fn mine_blocks(&self, num: u64) -> Vec<Block> {
       let blocks = self.rpc_server.mine_blocks(num);
       self.index.update().unwrap();
-
       blocks
     }
   }
@@ -1146,7 +1145,7 @@ mod tests {
       witness: first_inscription.to_witness(),
     });
 
-    let second_inscription = inscription("text/png", &[1; 100]);
+    let second_inscription = inscription("text/png", [1; 100]);
     let second_inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
       input_slots: &[(2, 0, 0)],
       output_count: 1,
@@ -1229,6 +1228,52 @@ mod tests {
           vout: 1,
         },
         offset: 0,
+      },
+    );
+  }
+
+  #[test]
+  fn missing_inputs_are_fetched_from_bitcoin_core() {
+    let context = Context::with_args("--first-inscription-height 2");
+    context.mine_blocks(1);
+
+    let inscription = inscription("text/plain", "hello");
+    let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+      input_slots: &[(1, 0, 0)],
+      output_count: 1,
+      fee: 0,
+      witness: inscription.to_witness(),
+    });
+
+    context.mine_blocks(1);
+
+    context.index.assert_inscription_location(
+      inscription_id,
+      SatPoint {
+        outpoint: OutPoint {
+          txid: inscription_id,
+          vout: 0,
+        },
+        offset: 0,
+      },
+    );
+
+    let send_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      input_slots: &[(2, 0, 0), (2, 1, 0)],
+      output_count: 1,
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    context.index.assert_inscription_location(
+      inscription_id,
+      SatPoint {
+        outpoint: OutPoint {
+          txid: send_txid,
+          vout: 0,
+        },
+        offset: 50 * COIN_VALUE,
       },
     );
   }

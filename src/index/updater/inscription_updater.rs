@@ -8,6 +8,7 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   pub(super) number_to_id: &'a mut Table<'db, 'tx, u64, &'tx InscriptionIdArray>,
   pub(super) satpoint_to_id: &'a mut Table<'db, 'tx, &'tx SatPointArray, &'tx InscriptionIdArray>,
   pub(super) outpoint_to_value: &'a mut Table<'db, 'tx, &'tx OutPointArray, u64>,
+  pub(super) index: &'a Index,
 }
 
 impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
@@ -60,16 +61,25 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         ));
       }
 
-      // Options:
-      // - remove transaction skipping optimization
-      // - get transactions ad hoc from core if we have missing values
-
       if !tx_in.previous_output.is_null() {
-        offset += self
+        offset += if let Some(value) = self
           .outpoint_to_value
           .get(&encode_outpoint(tx_in.previous_output))?
-          .unwrap()
-          .value();
+        {
+          value.value()
+        } else {
+          self
+            .index
+            .get_transaction(tx_in.previous_output.txid)?
+            .ok_or_else(|| {
+              anyhow!(
+                "failed to get transaction for {}",
+                tx_in.previous_output.txid
+              )
+            })?
+            .output[usize::try_from(tx_in.previous_output.vout).unwrap()]
+          .value
+        }
       }
 
       self

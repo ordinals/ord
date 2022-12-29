@@ -124,7 +124,7 @@ impl Inscription {
     let mut witness = Witness::new();
 
     witness.push(script);
-    witness.push(&[]);
+    witness.push([]);
 
     witness
   }

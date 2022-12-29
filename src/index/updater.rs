@@ -169,7 +169,7 @@ impl Updater {
     let first_inscription_height = if integration_test() {
       0
     } else {
-      index.chain.first_inscription_height()
+      index.first_inscription_height
     };
 
     thread::spawn(move || loop {
@@ -296,6 +296,7 @@ impl Updater {
       number_to_id: &mut inscription_number_to_inscription_id,
       satpoint_to_id: &mut satpoint_to_inscription_id,
       outpoint_to_value: &mut outpoint_to_value,
+      index,
     };
 
     if self.index_sats {
