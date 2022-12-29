@@ -15,9 +15,9 @@ mod updater;
 
 type BlockHashArray = [u8; 32];
 type InscriptionIdArray = [u8; 32];
-type SatRangeArray = [u8; 11];
 type OutPointArray = [u8; 36];
 type SatPointArray = [u8; 44];
+type SatRangeArray = [u8; 11];
 
 const HEIGHT_TO_BLOCK_HASH: TableDefinition<u64, &BlockHashArray> =
   TableDefinition::new("HEIGHT_TO_BLOCK_HASH");
