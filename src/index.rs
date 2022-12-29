@@ -672,42 +672,31 @@ impl Index {
 
   #[cfg(test)]
   fn assert_inscription_location(&self, inscription_id: InscriptionId, satpoint: SatPoint) {
+    let rtx = self.database.begin_read().unwrap();
+
+    let satpoint_to_inscription_id = rtx.open_table(SATPOINT_TO_INSCRIPTION_ID).unwrap();
+
+    let inscription_id_to_satpoint = rtx.open_table(INSCRIPTION_ID_TO_SATPOINT).unwrap();
+
     assert_eq!(
-      self
-        .database
-        .begin_read()
-        .unwrap()
-        .open_table(SATPOINT_TO_INSCRIPTION_ID)
-        .unwrap()
-        .len()
-        .unwrap(),
-      self
-        .database
-        .begin_read()
-        .unwrap()
-        .open_table(INSCRIPTION_ID_TO_SATPOINT)
-        .unwrap()
-        .len()
-        .unwrap(),
+      satpoint_to_inscription_id.len().unwrap(),
+      inscription_id_to_satpoint.len().unwrap(),
     );
 
     assert_eq!(
-      self
-        .get_inscription_by_inscription_id(inscription_id)
-        .unwrap()
-        .unwrap()
-        .1,
+      decode_satpoint(
+        *inscription_id_to_satpoint
+          .get(&inscription_id.as_inner())
+          .unwrap()
+          .unwrap()
+          .value()
+      ),
       satpoint,
     );
 
     assert_eq!(
-      decode_inscription_id(
-        *self
-          .database
-          .begin_read()
-          .unwrap()
-          .open_table(SATPOINT_TO_INSCRIPTION_ID)
-          .unwrap()
+      InscriptionId::from_inner(
+        *satpoint_to_inscription_id
           .get(&encode_satpoint(satpoint))
           .unwrap()
           .unwrap()
