@@ -1188,14 +1188,48 @@ mod tests {
   }
 
   #[test]
-  #[ignore]
-  fn inscriptions_lost_to_fee_are_tracked_correctly() {
-    todo!()
-  }
-
-  #[test]
-  #[ignore]
   fn inscriptions_that_are_sent_to_second_output_are_are_tracked_correctly() {
-    todo!()
+    let context = Context::new();
+    context.mine_blocks(1);
+
+    let inscription = inscription("text/plain", "hello");
+    let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+      input_slots: &[(1, 0, 0)],
+      output_count: 1,
+      fee: 0,
+      witness: inscription.to_witness(),
+    });
+
+    context.mine_blocks(1);
+
+    context.index.assert_inscription_location(
+      inscription_id,
+      SatPoint {
+        outpoint: OutPoint {
+          txid: inscription_id,
+          vout: 0,
+        },
+        offset: 0,
+      },
+    );
+
+    let send_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      input_slots: &[(2, 0, 0), (2, 1, 0)],
+      output_count: 2,
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    context.index.assert_inscription_location(
+      inscription_id,
+      SatPoint {
+        outpoint: OutPoint {
+          txid: send_txid,
+          vout: 1,
+        },
+        offset: 0,
+      },
+    );
   }
 }
