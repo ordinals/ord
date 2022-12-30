@@ -11,7 +11,7 @@ fn run() {
     .unwrap()
     .port();
 
-  let builder = CommandBuilder::new(format!("preview --http-port {} foo.txt", port))
+  let builder = CommandBuilder::new(format!("preview --http-port {port} foo.txt"))
     .rpc_server(&rpc_server)
     .write("foo.txt", "TEST_INSCRIPTION");
 
@@ -19,25 +19,28 @@ fn run() {
 
   let mut child = command.spawn().unwrap();
 
-  // for attempt in 0.. {
-  //   if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/status")) {
-  //     if response.status() == 200 {
-  //       assert_eq!(response.text().unwrap(), "OK");
-  //       break;
-  //     }
-  //   }
+  for attempt in 0.. {
+    if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/status")) {
+      if response.status() == 200 {
+        assert_eq!(response.text().unwrap(), "OK");
+        break;
+      }
+    }
 
-  //   if attempt == 100 {
-  //     panic!("Server did not respond to status check",);
-  //   }
+    if attempt == 100 {
+      panic!("Server did not respond to status check",);
+    }
 
-  //   thread::sleep(Duration::from_millis(500));
-  // }
+    thread::sleep(Duration::from_millis(500));
+  }
 
-  thread::sleep(Duration::from_millis(30_000));
-
-  TestServer::spawn_with_args(&rpc_server, &[])
-    .assert_response_regex("/inscriptions", "TEST_INSCRIPTION");
+  assert!(
+    reqwest::blocking::get(format!("http://localhost:{port}/inscriptions"))
+      .unwrap()
+      .text()
+      .unwrap()
+      .contains("TEST_INSCRIPTION")
+  );
 
   child.kill().unwrap();
 }
