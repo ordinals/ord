@@ -41,15 +41,16 @@ rustls-acme = { version = "0.5.0", features = ["axum"] }
 serde = { version = "1.0.137", features = ["derive"] }
 serde_json = { version = "1.0.81" }
 sys-info = "0.9.1"
+tempfile = "3.2.0"
 tokio = { version = "1.17.0", features = ["rt-multi-thread"] }
 tokio-stream = "0.1.9"
 tokio-util = {version = "0.7.3", features = ["compat"] }
+tower-http = { version = "0.3.3", features = ["set-header"] }
 
 [dev-dependencies]
 executable-path = "1.0.0"
 pretty_assertions = "1.2.1"
 reqwest = { version = "0.11.10", features = ["blocking"] }
-tempfile = "3.2.0"
 test-bitcoincore-rpc = { path = "test-bitcoincore-rpc" }
 unindent = "0.1.7"
 
