@@ -91,6 +91,7 @@ impl TransactionBuilder {
     amounts: BTreeMap<OutPoint, Amount>,
     recipient: Address,
     change: Vec<Address>,
+    fee_rate: Option<f64>,
   ) -> Result<Transaction> {
     Self::new(outgoing, inscriptions, amounts, recipient, change)
       .select_outgoing()?

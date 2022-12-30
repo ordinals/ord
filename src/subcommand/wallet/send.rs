@@ -22,6 +22,12 @@ impl FromStr for Reference {
 pub(crate) struct Send {
   outgoing: Reference,
   address: Address,
+  #[clap(
+    long,
+    // default_value = 1.0,
+    help = "Fee rate in sats per vByte"
+  )]
+  fee_rate: Option<f64>,
 }
 
 impl Send {
@@ -61,7 +67,7 @@ impl Send {
     };
 
     let unsigned_transaction =
-      TransactionBuilder::build_transaction(satpoint, inscriptions, utxos, self.address, change)?;
+      TransactionBuilder::build_transaction(satpoint, inscriptions, utxos, self.address, change, self.fee_rate)?;
 
     let signed_tx = client
       .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
