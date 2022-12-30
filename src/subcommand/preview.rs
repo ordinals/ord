@@ -17,18 +17,17 @@ impl Preview {
 
     fs::create_dir(&bitcoin_data_dir)?;
 
-    let mut datadir = OsString::from("-datadir=");
-    datadir.push(&bitcoin_data_dir);
-
     let mut bitcoind = Command::new("bitcoind")
-      .arg(datadir)
+      .arg({
+        let mut arg = OsString::from("-datadir=");
+        arg.push(&bitcoin_data_dir);
+        arg
+      })
       .arg("-regtest")
       .arg("-txindex=1")
       .arg("-listen=0")
       .arg(format!("-rpcport={rpc_port}"))
       .spawn()?;
-
-    thread::sleep(Duration::from_secs(1));
 
     let options = Options {
       chain_argument: Chain::Regtest,
@@ -39,9 +38,21 @@ impl Preview {
       ..Options::default()
     };
 
-    super::wallet::create::run(options.clone())?;
+    for attempt in 0.. {
+      if options.bitcoin_rpc_client().is_ok() {
+        break;
+      }
+
+      if attempt == 100 {
+        panic!("Bitcoin Core RPC did not respond");
+      }
+
+      thread::sleep(Duration::from_millis(50));
+    }
 
     let rpc_client = options.bitcoin_rpc_client()?;
+
+    super::wallet::create::run(options.clone())?;
 
     let address = rpc_client.get_new_address(None, None)?;
 
