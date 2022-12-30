@@ -29,7 +29,6 @@ impl Preview {
       .arg(format!("-rpcport={rpc_port}"))
       .spawn()?;
 
-    // todo: wait for rpc port to be open
     thread::sleep(Duration::from_secs(1));
 
     let options = Options {
@@ -55,7 +54,7 @@ impl Preview {
         subcommand: Subcommand::Wallet(super::wallet::Wallet::Inscribe(
           super::wallet::inscribe::Inscribe {
             file,
-            no_backup: false,
+            no_backup: true,
             satpoint: None,
           },
         )),
@@ -68,7 +67,7 @@ impl Preview {
     rpc_client.generate_to_address(1, &address)?;
 
     Arguments {
-      options: options.clone(),
+      options,
       subcommand: Subcommand::Server(self.server),
     }
     .run()?;

@@ -22,7 +22,7 @@ pub(crate) struct Inscribe {
   pub(crate) satpoint: Option<SatPoint>,
   #[clap(help = "Inscribe sat with contents of <FILE>")]
   pub(crate) file: PathBuf,
-  #[clap(long, help = "Do not back up commit recovery key.")]
+  #[clap(long, help = "Do not back up recovery key.")]
   pub(crate) no_backup: bool,
 }
 
