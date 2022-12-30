@@ -19,6 +19,8 @@ type OutPointArray = [u8; 36];
 type SatPointArray = [u8; 44];
 type SatRangeArray = [u8; 11];
 
+const SCHEMA_VERSION: u64 = 1;
+
 const HEIGHT_TO_BLOCK_HASH: TableDefinition<u64, &BlockHashArray> =
   TableDefinition::new("HEIGHT_TO_BLOCK_HASH");
 const INSCRIPTION_ID_TO_HEIGHT: TableDefinition<&InscriptionIdArray, u64> =
@@ -91,9 +93,10 @@ pub(crate) enum List {
 #[derive(Copy, Clone)]
 #[repr(u64)]
 pub(crate) enum Statistic {
-  OutputsTraversed = 0,
+  Schema = 0,
   Commits = 1,
-  SatRanges = 2,
+  OutputsTraversed = 2,
+  SatRanges = 3,
 }
 
 impl Statistic {
@@ -188,7 +191,23 @@ impl Index {
     };
 
     let database = match unsafe { redb::Database::builder().open_mmapped(&database_path) } {
-      Ok(database) => database,
+      Ok(database) => {
+        let schema_version = database
+          .begin_read()?
+          .open_table(STATISTIC_TO_COUNT)?
+          .get(&Statistic::Schema.key())?
+          .map(|x| x.value())
+          .unwrap_or(0);
+
+        if schema_version != SCHEMA_VERSION {
+          bail!(
+            "index at `{}` has schema version {schema_version} but current schema version is {SCHEMA_VERSION})",
+            database_path.display()
+          );
+        }
+
+        database
+      }
       Err(redb::Error::Io(error)) if error.kind() == io::ErrorKind::NotFound => {
         let database = unsafe {
           Database::builder()
@@ -216,8 +235,10 @@ impl Index {
         tx.open_table(SATPOINT_TO_INSCRIPTION_ID)?;
         tx.open_table(SAT_TO_INSCRIPTION_ID)?;
         tx.open_table(SAT_TO_SATPOINT)?;
-        tx.open_table(STATISTIC_TO_COUNT)?;
         tx.open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?;
+
+        tx.open_table(STATISTIC_TO_COUNT)?
+          .insert(&Statistic::Schema.key(), &SCHEMA_VERSION)?;
 
         if options.index_sats {
           tx.open_table(OUTPOINT_TO_SAT_RANGES)?;
