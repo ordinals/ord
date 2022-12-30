@@ -213,7 +213,7 @@ Creating Inscriptions
 To create an inscription with the contents of `FILE`, run:
 
 ```
-ord --signet wallet inscribe --file FILE
+ord --signet wallet inscribe FILE
 ```
 
 Ord will output two transactions IDs, one for the commit transaction, and one
