@@ -1,5 +1,5 @@
 pub(crate) use {
-  super::*, bitcoin::Witness, pretty_assertions::assert_eq as pretty_assert_eq, tempfile::TempDir,
+  super::*, bitcoin::Witness, pretty_assertions::assert_eq as pretty_assert_eq,
   test_bitcoincore_rpc::TransactionTemplate, unindent::Unindent,
 };
 

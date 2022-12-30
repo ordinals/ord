@@ -3,40 +3,45 @@ use {
   bitcoincore_rpc::{Auth, Client},
 };
 
-#[derive(Debug, Parser)]
+#[derive(Clone, Default, Debug, Parser)]
 #[clap(group(
   ArgGroup::new("chains")
     .required(false)
-    .args(&["chain", "signet", "regtest", "testnet"]),
+    .args(&["chain-argument", "signet", "regtest", "testnet"]),
 ))]
 pub(crate) struct Options {
   #[clap(long, help = "Load Bitcoin Core data dir from <BITCOIN_DATA_DIR>.")]
-  bitcoin_data_dir: Option<PathBuf>,
-  #[clap(long, arg_enum, default_value = "mainnet", help = "Use <CHAIN>.")]
-  chain: Chain,
+  pub(crate) bitcoin_data_dir: Option<PathBuf>,
+  #[clap(
+    long = "chain",
+    arg_enum,
+    default_value = "mainnet",
+    help = "Use <CHAIN>."
+  )]
+  pub(crate) chain_argument: Chain,
   #[clap(long, help = "Load Bitcoin Core RPC cookie file from <COOKIE_FILE>.")]
-  cookie_file: Option<PathBuf>,
+  pub(crate) cookie_file: Option<PathBuf>,
   #[clap(long, help = "Store index in <DATA_DIR>.")]
-  data_dir: Option<PathBuf>,
+  pub(crate) data_dir: Option<PathBuf>,
   #[clap(
     long,
     help = "Don't look for inscriptions below <FIRST_INSCRIPTION_HEIGHT>."
   )]
-  first_inscription_height: Option<u64>,
+  pub(crate) first_inscription_height: Option<u64>,
   #[clap(long, help = "Limit index to <HEIGHT_LIMIT> blocks.")]
   pub(crate) height_limit: Option<u64>,
   #[clap(long, help = "Use index at <INDEX>.")]
   pub(crate) index: Option<PathBuf>,
-  #[clap(long, help = "Index current location of all satoshis.")]
+  #[clap(long, help = "Track location of all satoshis.")]
   pub(crate) index_sats: bool,
-  #[clap(long, short, help = "Use regtest.")]
-  regtest: bool,
+  #[clap(long, short, help = "Use regtest. Equivalent to `--chain regtest`.")]
+  pub(crate) regtest: bool,
   #[clap(long, help = "Connect to Bitcoin Core RPC at <RPC_URL>.")]
-  rpc_url: Option<String>,
-  #[clap(long, short, help = "Use signet.")]
-  signet: bool,
-  #[clap(long, short, help = "Use testnet.")]
-  testnet: bool,
+  pub(crate) rpc_url: Option<String>,
+  #[clap(long, short, help = "Use signet. Equivalent to `--chain signet`.")]
+  pub(crate) signet: bool,
+  #[clap(long, short, help = "Use testnet. Equivalent to `--chain testnet`.")]
+  pub(crate) testnet: bool,
 }
 
 impl Options {
@@ -48,7 +53,7 @@ impl Options {
     } else if self.testnet {
       Chain::Testnet
     } else {
-      self.chain
+      self.chain_argument
     }
   }
 

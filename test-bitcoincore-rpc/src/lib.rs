@@ -130,6 +130,10 @@ impl Handle {
   pub fn mempool(&self) -> Vec<Transaction> {
     self.state.lock().unwrap().mempool().to_vec()
   }
+
+  pub fn descriptors(&self) -> u64 {
+    self.state.lock().unwrap().descriptors
+  }
 }
 
 impl Drop for Handle {

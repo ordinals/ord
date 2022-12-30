@@ -9,7 +9,7 @@ use {
   axum::{
     body,
     extract::{Extension, Path, Query},
-    http::{header, StatusCode},
+    http::{header, HeaderValue, StatusCode},
     response::{IntoResponse, Redirect, Response},
     routing::get,
     Router,
@@ -25,6 +25,7 @@ use {
   serde::{de, Deserializer},
   std::{cmp::Ordering, str},
   tokio_stream::StreamExt,
+  tower_http::set_header::SetResponseHeaderLayer,
 };
 
 mod deserialize_from_str;
@@ -168,7 +169,11 @@ impl Server {
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
         .layer(Extension(index))
-        .layer(Extension(options.chain()));
+        .layer(Extension(options.chain()))
+        .layer(SetResponseHeaderLayer::if_not_present(
+          header::CONTENT_SECURITY_POLICY,
+          HeaderValue::from_static("default-src 'self'"),
+        ));
 
       match (self.http_port(), self.https_port()) {
         (Some(http_port), None) => self.spawn(router, handle, http_port, None)?.await??,
@@ -674,7 +679,7 @@ impl Server {
           (header::CONTENT_TYPE, content_type),
           (
             header::CONTENT_SECURITY_POLICY,
-            "default-src 'none' 'unsafe-eval' 'unsafe-inline'".to_string(),
+            "default-src 'unsafe-eval' 'unsafe-inline'".to_string(),
           ),
         ],
         content,
@@ -748,7 +753,7 @@ impl Server {
 
 #[cfg(test)]
 mod tests {
-  use {super::*, reqwest::Url, std::net::TcpListener, tempfile::TempDir};
+  use {super::*, reqwest::Url, std::net::TcpListener};
 
   struct TestServer {
     bitcoin_rpc_server: test_bitcoincore_rpc::Handle,

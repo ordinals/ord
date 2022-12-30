@@ -236,6 +236,8 @@ fn inscribe() {
   let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
+  assert_eq!(rpc_server.descriptors(), 0);
+
   let stdout = CommandBuilder::new(format!(
     "--chain regtest wallet inscribe --satpoint {txid}:0:0 hello.txt"
   ))
@@ -243,6 +245,8 @@ fn inscribe() {
   .rpc_server(&rpc_server)
   .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
   .run();
+
+  assert_eq!(rpc_server.descriptors(), 1);
 
   rpc_server.mine_blocks(1);
 
@@ -255,6 +259,24 @@ fn inscribe() {
     &format!("/inscription/{}", reveal_txid_from_inscribe_stdout(&stdout)),
     ".*HELLOWORLD.*",
   );
+}
+
+#[test]
+fn inscribe_no_backup() {
+  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+
+  assert_eq!(rpc_server.descriptors(), 0);
+
+  CommandBuilder::new(format!(
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 hello.txt --no-backup"
+  ))
+  .write("hello.txt", "HELLOWORLD")
+  .rpc_server(&rpc_server)
+  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+  .run();
+
+  assert_eq!(rpc_server.descriptors(), 0);
 }
 
 #[test]
