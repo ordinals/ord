@@ -2,6 +2,7 @@ use super::*;
 
 pub(crate) struct State {
   pub(crate) blocks: BTreeMap<BlockHash, Block>,
+  pub(crate) descriptors: u64,
   pub(crate) hashes: Vec<BlockHash>,
   pub(crate) mempool: Vec<Transaction>,
   pub(crate) network: Network,
@@ -24,6 +25,7 @@ impl State {
 
     Self {
       blocks,
+      descriptors: 0,
       hashes,
       mempool: Vec::new(),
       network,
