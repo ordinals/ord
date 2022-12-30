@@ -1,8 +1,8 @@
 use {super::*, transaction_builder::TransactionBuilder};
 
 mod balance;
-mod create;
-mod inscribe;
+pub(crate) mod create;
+pub(crate) mod inscribe;
 mod inscriptions;
 mod receive;
 mod sats;
@@ -16,13 +16,13 @@ pub(crate) enum Wallet {
   #[clap(about = "Get wallet balance")]
   Balance,
   #[clap(about = "Create a new wallet")]
-  Create(create::Create),
+  Create,
   #[clap(about = "Create an inscription")]
   Inscribe(inscribe::Inscribe),
   #[clap(about = "List wallet inscriptions")]
   Inscriptions(inscriptions::Inscriptions),
   #[clap(about = "Generate a receive address")]
-  Receive(receive::Receive),
+  Receive,
   #[clap(about = "List wallet satoshis")]
   Sats(sats::Sats),
   #[clap(about = "Send a satoshi or inscription")]
@@ -37,10 +37,10 @@ impl Wallet {
   pub(crate) fn run(self, options: Options) -> Result {
     match self {
       Self::Balance => balance::run(options),
-      Self::Create(create) => create.run(options),
+      Self::Create => create::run(options),
       Self::Inscribe(inscribe) => inscribe.run(options),
       Self::Inscriptions(inscriptions) => inscriptions.run(options),
-      Self::Receive(receive) => receive.run(options),
+      Self::Receive => receive::run(options),
       Self::Sats(sats) => sats.run(options),
       Self::Send(send) => send.run(options),
       Self::Transactions(transactions) => transactions.run(options),

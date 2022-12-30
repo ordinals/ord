@@ -177,7 +177,7 @@ fn inscription_content() {
   );
   assert_eq!(
     response.headers().get("content-security-policy").unwrap(),
-    "default-src 'none' 'unsafe-eval' 'unsafe-inline'"
+    "default-src 'unsafe-eval' 'unsafe-inline'"
   );
   assert_eq!(response.bytes().unwrap(), "HELLOWORLD");
 }

@@ -394,6 +394,7 @@ impl Api for Server {
     &self,
     _params: Vec<serde_json::Value>,
   ) -> Result<serde_json::Value, jsonrpc_core::Error> {
+    self.state().descriptors += 1;
     Ok(json!([{"success": true}]))
   }
 
