@@ -11,18 +11,17 @@ impl Preview {
   pub(crate) fn run(self) -> Result {
     let tmpdir = TempDir::new()?;
 
-    let rpc_port = TcpListener::bind("127.0.0.1:0")
-      .unwrap()
-      .local_addr()
-      .unwrap()
-      .port();
+    let rpc_port = TcpListener::bind("127.0.0.1:0")?.local_addr()?.port();
 
     let bitcoin_data_dir = tmpdir.path().join("bitcoin");
 
     fs::create_dir(&bitcoin_data_dir)?;
 
+    let mut datadir = OsString::from("-datadir=");
+    datadir.push(&bitcoin_data_dir);
+
     let mut bitcoind = Command::new("bitcoind")
-      .arg(format!("-datadir={}", bitcoin_data_dir.to_str().unwrap()))
+      .arg(datadir)
       .arg("-regtest")
       .arg("-txindex=1")
       .arg("-listen=0")

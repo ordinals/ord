@@ -50,6 +50,7 @@ use {
     cmp::Ordering,
     collections::{BTreeMap, HashSet, VecDeque},
     env,
+    ffi::OsString,
     fmt::{self, Display, Formatter},
     fs, io,
     net::{TcpListener, ToSocketAddrs},
