@@ -20,20 +20,19 @@ mod sat;
 mod transaction;
 
 #[derive(Boilerplate)]
-pub(crate) struct PageHtml {
+pub(crate) struct PageHtml<T: PageContent> {
   chain: Chain,
-  content: Box<dyn PageContent>,
+  content: T,
   has_satoshi_index: bool,
 }
 
-impl PageHtml {
-  pub(crate) fn new<T: PageContent + 'static>(
-    content: T,
-    chain: Chain,
-    has_satoshi_index: bool,
-  ) -> Self {
+impl<T> PageHtml<T>
+where
+  T: PageContent,
+{
+  pub(crate) fn new(content: T, chain: Chain, has_satoshi_index: bool) -> Self {
     Self {
-      content: Box::new(content),
+      content,
       has_satoshi_index,
       chain,
     }
@@ -43,7 +42,7 @@ impl PageHtml {
 pub(crate) trait PageContent: Display + 'static {
   fn title(&self) -> String;
 
-  fn page(self, chain: Chain, has_satoshi_index: bool) -> PageHtml
+  fn page(self, chain: Chain, has_satoshi_index: bool) -> PageHtml<Self>
   where
     Self: Sized,
   {
