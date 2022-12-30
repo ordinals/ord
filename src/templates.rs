@@ -89,7 +89,7 @@ mod tests {
   <body>
   <header>
     <nav>
-      <a href=/>Ordinals</a>
+      <a href=/>Ordinals<sup>alpha</sup></a>
       .*
       <a href=/clock>Clock</a>
       <a href=/rare.txt>rare.txt</a>
@@ -139,7 +139,7 @@ mod tests {
   <body>
   <header>
     <nav>
-      <a href=/>Ordinals</a>
+      <a href=/>Ordinals<sup>alpha</sup></a>
       .*
       <a href=/clock>Clock</a>
       <form action=/search method=get>
