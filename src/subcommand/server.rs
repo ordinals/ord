@@ -313,7 +313,7 @@ impl Server {
     Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(sat)): Path<DeserializeFromStr<Sat>>,
-  ) -> ServerResult<PageHtml> {
+  ) -> ServerResult<PageHtml<SatHtml>> {
     let satpoint = index.rare_sat_satpoint(sat).map_err(|err| {
       ServerError::Internal(anyhow!(
         "failed to satpoint for sat {sat} from index: {err}"
@@ -348,7 +348,7 @@ impl Server {
     Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
     Path(outpoint): Path<OutPoint>,
-  ) -> ServerResult<PageHtml> {
+  ) -> ServerResult<PageHtml<OutputHtml>> {
     let output = index
       .get_transaction(outpoint.txid)
       .map_err(ServerError::Internal)?
@@ -388,7 +388,7 @@ impl Server {
       DeserializeFromStr<Sat>,
       DeserializeFromStr<Sat>,
     )>,
-  ) -> ServerResult<PageHtml> {
+  ) -> ServerResult<PageHtml<RangeHtml>> {
     match start.cmp(&end) {
       Ordering::Equal => Err(ServerError::BadRequest("empty range".to_string())),
       Ordering::Greater => Err(ServerError::BadRequest(
@@ -417,7 +417,7 @@ impl Server {
   async fn home(
     Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
-  ) -> ServerResult<PageHtml> {
+  ) -> ServerResult<PageHtml<HomeHtml>> {
     Ok(
       HomeHtml::new(
         index
@@ -442,7 +442,7 @@ impl Server {
     Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(query)): Path<DeserializeFromStr<BlockQuery>>,
-  ) -> ServerResult<PageHtml> {
+  ) -> ServerResult<PageHtml<BlockHtml>> {
     let (block, height) = match query {
       BlockQuery::Height(height) => {
         let block = index
@@ -491,7 +491,7 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Extension(chain): Extension<Chain>,
     Path(txid): Path<Txid>,
-  ) -> ServerResult<PageHtml> {
+  ) -> ServerResult<PageHtml<TransactionHtml>> {
     let inscription = index
       .get_inscription_by_inscription_id(txid)
       .map_err(|err| {
@@ -618,7 +618,7 @@ impl Server {
     Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
     Path(path): Path<(u64, usize, usize)>,
-  ) -> Result<PageHtml, ServerError> {
+  ) -> Result<PageHtml<InputHtml>, ServerError> {
     let not_found =
       || ServerError::NotFound(format!("input /{}/{}/{} unknown", path.0, path.1, path.2));
 
@@ -696,7 +696,7 @@ impl Server {
     Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
-  ) -> ServerResult<PageHtml> {
+  ) -> ServerResult<PageHtml<InscriptionHtml>> {
     let (inscription, satpoint) = index
       .get_inscription_by_inscription_id(inscription_id)
       .map_err(|err| {
@@ -731,7 +731,7 @@ impl Server {
   async fn inscriptions(
     Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
-  ) -> ServerResult<PageHtml> {
+  ) -> ServerResult<PageHtml<InscriptionsHtml>> {
     Ok(
       InscriptionsHtml {
         inscriptions: index
