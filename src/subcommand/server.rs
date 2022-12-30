@@ -170,11 +170,10 @@ impl Server {
         .route("/tx/:txid", get(Self::transaction))
         .layer(Extension(index))
         .layer(Extension(options.chain()))
-        // .layer(SetResponseHeaderLayer::if_not_present(
-        //   header::CONTENT_SECURITY_POLICY,
-        //   HeaderValue::from_static("default-src 'self'"),
-        // ))
-        ;
+        .layer(SetResponseHeaderLayer::if_not_present(
+          header::CONTENT_SECURITY_POLICY,
+          HeaderValue::from_static("default-src 'self'"),
+        ));
 
       match (self.http_port(), self.https_port()) {
         (Some(http_port), None) => self.spawn(router, handle, http_port, None)?.await??,
