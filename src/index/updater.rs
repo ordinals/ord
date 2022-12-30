@@ -42,7 +42,7 @@ impl Updater {
       .range(0..)?
       .rev()
       .next()
-      .map(|(height, _hash)| height + 1)
+      .map(|(height, _hash)| height.value() + 1)
       .unwrap_or(0);
 
     wtx
@@ -120,7 +120,7 @@ impl Updater {
           .range(0..)?
           .rev()
           .next()
-          .map(|(height, _hash)| height + 1)
+          .map(|(height, _hash)| height.value() + 1)
           .unwrap_or(0);
         if height != self.height {
           // another update has run between committing and beginning the new
@@ -166,11 +166,7 @@ impl Updater {
     let client =
       Client::new(&index.rpc_url, index.auth.clone()).context("failed to connect to RPC URL")?;
 
-    let first_inscription_height = if integration_test() {
-      0
-    } else {
-      index.chain.first_inscription_height()
-    };
+    let first_inscription_height = index.first_inscription_height;
 
     thread::spawn(move || loop {
       if let Some(height_limit) = height_limit {
@@ -268,7 +264,7 @@ impl Updater {
     if let Some(prev_height) = self.height.checked_sub(1) {
       let prev_hash = height_to_block_hash.get(&prev_height)?.unwrap();
 
-      if prev_hash != block.header.prev_blockhash.as_ref() {
+      if prev_hash.value() != block.header.prev_blockhash.as_ref() {
         index.reorged.store(true, Ordering::Relaxed);
         return Err(anyhow!("reorg detected at or before {prev_height}"));
       }
@@ -276,13 +272,15 @@ impl Updater {
 
     let mut inscription_id_to_height = wtx.open_table(INSCRIPTION_ID_TO_HEIGHT)?;
     let mut inscription_id_to_satpoint = wtx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
-    let mut satpoint_to_inscription_id = wtx.open_table(SATPOINT_TO_INSCRIPTION_ID)?;
     let mut inscription_number_to_inscription_id =
       wtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
+    let mut outpoint_to_value = wtx.open_table(OUTPOINT_TO_VALUE)?;
+    let mut satpoint_to_inscription_id = wtx.open_table(SATPOINT_TO_INSCRIPTION_ID)?;
+
     let mut next_inscription_number = inscription_number_to_inscription_id
       .iter()?
       .rev()
-      .map(|(number, _id)| number + 1)
+      .map(|(number, _id)| number.value() + 1)
       .next()
       .unwrap_or(0);
 
@@ -290,8 +288,10 @@ impl Updater {
       height: self.height,
       id_to_height: &mut inscription_id_to_height,
       id_to_satpoint: &mut inscription_id_to_satpoint,
+      index,
       next_number: &mut next_inscription_number,
       number_to_id: &mut inscription_number_to_inscription_id,
+      outpoint_to_value: &mut outpoint_to_value,
       satpoint_to_id: &mut satpoint_to_inscription_id,
     };
 
@@ -325,7 +325,7 @@ impl Updater {
             None => outpoint_to_sat_ranges
               .remove(&key)?
               .ok_or_else(|| anyhow!("Could not find outpoint {} in index", input.previous_output))?
-              .to_value()
+              .value()
               .to_vec(),
           };
 

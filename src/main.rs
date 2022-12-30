@@ -25,8 +25,9 @@ use {
     rarity::Rarity,
     sat::Sat,
     sat_point::SatPoint,
-    subcommand::{server::templates::ContentHtml, Subcommand},
+    subcommand::Subcommand,
     tally::Tally,
+    templates::ContentHtml,
   },
   anyhow::{anyhow, bail, Context, Error},
   bitcoin::{
@@ -65,7 +66,6 @@ use {
   },
   tempfile::TempDir,
   tokio::{runtime::Runtime, task},
-  tower_http::cors::{Any, CorsLayer},
 };
 
 #[cfg(test)]
@@ -91,6 +91,7 @@ mod sat;
 mod sat_point;
 mod subcommand;
 mod tally;
+mod templates;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 

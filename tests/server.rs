@@ -40,7 +40,7 @@ fn inscription_page() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file hello.txt"
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 hello.txt"
   ))
   .write("hello.txt", "HELLOWORLD")
   .rpc_server(&rpc_server)
@@ -81,7 +81,7 @@ fn inscription_appears_on_reveal_transaction_page() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file hello.txt"
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 hello.txt"
   ))
   .write("hello.txt", "HELLOWORLD")
   .rpc_server(&rpc_server)
@@ -104,7 +104,7 @@ fn inscription_page_after_send() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file hello.txt"
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 hello.txt"
   ))
   .write("hello.txt", "HELLOWORLD")
   .rpc_server(&rpc_server)
@@ -156,7 +156,7 @@ fn inscription_content() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file hello.txt"
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 hello.txt"
   ))
   .write("hello.txt", "HELLOWORLD")
   .rpc_server(&rpc_server)
@@ -177,7 +177,7 @@ fn inscription_content() {
   );
   assert_eq!(
     response.headers().get("content-security-policy").unwrap(),
-    "default-src 'none' 'unsafe-eval' 'unsafe-inline'"
+    "default-src 'unsafe-eval' 'unsafe-inline'"
   );
   assert_eq!(response.bytes().unwrap(), "HELLOWORLD");
 }
@@ -244,7 +244,7 @@ fn inscriptions_page() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file hello.txt"
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 hello.txt"
   ))
   .write("hello.txt", "HELLOWORLD")
   .rpc_server(&rpc_server)
@@ -258,14 +258,11 @@ fn inscriptions_page() {
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     "/inscriptions",
     &format!(
-      ".*<h1>Inscriptions</h1>.*
-<ul>
-  <li>
-    <a href=/inscription/{reveal_tx} class=monospace>
-      {reveal_tx}
-    </a>
-  </li>
-</ul>.*",
+      ".*<h1>Inscriptions</h1>
+<div class=inscriptions>
+  <a href=/inscription/{reveal_tx}><pre class=inscription>HELLOWORLD</pre></a>
+</div>
+.*",
     ),
   );
 }
@@ -278,10 +275,7 @@ fn inscriptions_page_is_sorted() {
 
   for i in 0..8 {
     let id = create_inscription(&rpc_server, &format!("{i}.png"));
-    inscriptions.insert_str(
-      0,
-      &format!(".*<a href=/inscription/{id} class=monospace>.*"),
-    );
+    inscriptions.insert_str(0, &format!(".*<a href=/inscription/{id}>.*"));
   }
 
   TestServer::spawn_with_args(&rpc_server, &[])

@@ -15,7 +15,6 @@ members = [".", "test-bitcoincore-rpc"]
 anyhow = { version = "1.0.56", features = ["backtrace"] }
 axum = "0.6.1"
 axum-server = "0.4.0"
-base64 = "0.20.0"
 bitcoin = { version = "0.29.1", features = ["rand"] }
 boilerplate = { version = "0.2.3", features = ["axum"] }
 chrono = "0.4.19"
@@ -34,9 +33,8 @@ log = "0.4.14"
 mime = "0.3.16"
 mime_guess = "2.0.4"
 ord-bitcoincore-rpc = "0.16.0"
-redb = "0.10.0"
+redb = "0.11.0"
 regex = "1.6.0"
-reqwest = { version = "0.11.10", features = ["blocking"] }
 rust-embed = "6.4.0"
 rustls = "0.20.6"
 rustls-acme = { version = "0.5.0", features = ["axum"] }
@@ -47,12 +45,12 @@ tempfile = "3.2.0"
 tokio = { version = "1.17.0", features = ["rt-multi-thread"] }
 tokio-stream = "0.1.9"
 tokio-util = {version = "0.7.3", features = ["compat"] }
-tower = "0.4.13"
-tower-http = { version = "0.3.3", features = ["cors", "set-header"] }
+tower-http = { version = "0.3.3", features = ["set-header"] }
 
 [dev-dependencies]
 executable-path = "1.0.0"
 pretty_assertions = "1.2.1"
+reqwest = { version = "0.11.10", features = ["blocking"] }
 test-bitcoincore-rpc = { path = "test-bitcoincore-rpc" }
 unindent = "0.1.7"
 

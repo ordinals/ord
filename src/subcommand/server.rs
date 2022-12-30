@@ -1,12 +1,10 @@
 use super::*;
 
 use {
-  self::{
-    deserialize_from_str::DeserializeFromStr,
-    templates::{
-      BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionsHtml, OutputHtml,
-      PageContent, PageHtml, RangeHtml, RareTxt, SatHtml, TransactionHtml,
-    },
+  self::deserialize_from_str::DeserializeFromStr,
+  crate::templates::{
+    BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionsHtml, OutputHtml,
+    PageContent, PageHtml, RangeHtml, RareTxt, SatHtml, TransactionHtml,
   },
   axum::{
     body,
@@ -31,7 +29,6 @@ use {
 };
 
 mod deserialize_from_str;
-pub(crate) mod templates;
 
 enum BlockQuery {
   Height(u64),
@@ -173,15 +170,11 @@ impl Server {
         .route("/tx/:txid", get(Self::transaction))
         .layer(Extension(index))
         .layer(Extension(options.chain()))
-        .layer(SetResponseHeaderLayer::if_not_present(
-          header::CONTENT_SECURITY_POLICY,
-          HeaderValue::from_static("default-src 'self'"),
-        ))
-        .layer(
-          CorsLayer::new()
-            .allow_methods([http::Method::GET])
-            .allow_origin(Any),
-        );
+        // .layer(SetResponseHeaderLayer::if_not_present(
+        //   header::CONTENT_SECURITY_POLICY,
+        //   HeaderValue::from_static("default-src 'self'"),
+        // ))
+        ;
 
       match (self.http_port(), self.https_port()) {
         (Some(http_port), None) => self.spawn(router, handle, http_port, None)?.await??,
@@ -437,7 +430,7 @@ impl Server {
           .blocks(100)
           .map_err(|err| ServerError::Internal(anyhow!("error getting blocks: {err}")))?,
         index
-          .get_latest_graphical_inscriptions(8)
+          .get_latest_inscriptions(8)
           .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?,
       )
       .page(
@@ -748,7 +741,7 @@ impl Server {
     Ok(
       InscriptionsHtml {
         inscriptions: index
-          .get_latest_inscription_ids(100)
+          .get_latest_inscriptions(100)
           .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?,
       }
       .page(
@@ -1394,6 +1387,7 @@ mod tests {
       input_slots: &[(1, 0, 0)],
       output_count: 1,
       fee: 0,
+      ..Default::default()
     };
     test_server.bitcoin_rpc_server.broadcast_tx(transaction);
     let block_hash = test_server.bitcoin_rpc_server.mine_blocks(1)[0].block_hash();
@@ -1692,6 +1686,7 @@ next.*",
       input_slots: &[(1, 0, 0)],
       output_count: 2,
       fee: 0,
+      ..Default::default()
     });
     server.bitcoin_rpc_server.mine_blocks(1);
     server.index.update().unwrap();
@@ -1722,6 +1717,7 @@ next.*",
       input_slots: &[(1, 0, 0)],
       output_count: 2,
       fee: 2,
+      ..Default::default()
     });
     server.bitcoin_rpc_server.mine_blocks(1);
     server.index.update().unwrap();

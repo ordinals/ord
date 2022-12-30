@@ -1,11 +1,6 @@
 <h1>Inscriptions</h1>
-
-<ul>
-%% for inscription_id in &self.inscriptions {
-  <li>
-    <a href=/inscription/{{inscription_id}} class=monospace>
-      {{ inscription_id }}
-    </a>
-  </li>
+<div class=inscriptions>
+%% for (inscription, id) in &self.inscriptions {
+  <a href=/inscription/{{id}}>{{inscription.content_html(*id)}}</a>
 %% }
-</ul>
+</div>
