@@ -22,6 +22,7 @@ use {
     index::{Index, List},
     inscription::Inscription,
     options::Options,
+    outgoing::Outgoing,
     rarity::Rarity,
     sat::Sat,
     sat_point::SatPoint,
@@ -87,6 +88,7 @@ mod height;
 mod index;
 mod inscription;
 mod options;
+mod outgoing;
 mod rarity;
 mod sat;
 mod sat_point;

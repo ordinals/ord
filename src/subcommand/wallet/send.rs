@@ -1,26 +1,8 @@
 use super::*;
 
-#[derive(Debug)]
-enum Reference {
-  SatPoint(SatPoint),
-  InscriptionId(InscriptionId),
-}
-
-impl FromStr for Reference {
-  type Err = Error;
-
-  fn from_str(s: &str) -> Result<Self, Self::Err> {
-    Ok(if s.len() == 64 {
-      Self::InscriptionId(s.parse()?)
-    } else {
-      Self::SatPoint(s.parse()?)
-    })
-  }
-}
-
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
-  outgoing: Reference,
+  outgoing: Outgoing,
   address: Address,
 }
 
@@ -46,7 +28,7 @@ impl Send {
     let change = get_change_addresses(&options, 2)?;
 
     let satpoint = match self.outgoing {
-      Reference::SatPoint(satpoint) => {
+      Outgoing::SatPoint(satpoint) => {
         for inscription_satpoint in inscriptions.keys() {
           if satpoint == *inscription_satpoint {
             bail!("inscriptions must be sent by inscription ID");
@@ -54,10 +36,39 @@ impl Send {
         }
         satpoint
       }
-      Reference::InscriptionId(txid) => match index.get_inscription_by_inscription_id(txid)? {
+      Outgoing::InscriptionId(txid) => match index.get_inscription_by_inscription_id(txid)? {
         Some((_inscription, satpoint)) => satpoint,
         None => bail!("No inscription found for {txid}"),
       },
+      Outgoing::Amount(amount) => {
+        let inscription_utxos = inscriptions
+          .keys()
+          .map(|satpoint| satpoint.outpoint)
+          .collect::<HashSet<OutPoint>>();
+
+        let ordinal_utxos = utxos
+          .keys()
+          .filter(|utxo| inscription_utxos.contains(utxo))
+          .cloned()
+          .collect::<Vec<OutPoint>>();
+
+        let cardinal_utxos = utxos
+          .keys()
+          .filter(|utxo| !inscription_utxos.contains(utxo))
+          .cloned()
+          .collect::<Vec<OutPoint>>();
+
+        client.unlock_unspent(&cardinal_utxos)?;
+
+        client.lock_unspent(&ordinal_utxos)?;
+
+        let txid =
+          client.send_to_address(&self.address, amount, None, None, None, None, None, None)?;
+
+        println!("{txid}");
+
+        return Ok(());
+      }
     };
 
     let unsigned_transaction =
