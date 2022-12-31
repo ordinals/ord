@@ -71,7 +71,7 @@ impl Api for Server {
 
   fn get_network_info(&self) -> Result<GetNetworkInfoResult, jsonrpc_core::Error> {
     Ok(GetNetworkInfoResult {
-      version: 230000,
+      version: self.state().version,
       subversion: String::new(),
       protocol_version: 0,
       local_services: String::new(),

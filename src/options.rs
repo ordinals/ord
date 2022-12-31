@@ -173,7 +173,7 @@ impl Options {
 
 #[cfg(test)]
 mod tests {
-  use {super::*, std::path::Path};
+  use {super::*, bitcoin::Network, std::path::Path};
 
   #[test]
   fn rpc_url_overrides_network() {
@@ -395,7 +395,9 @@ mod tests {
 
   #[test]
   fn rpc_server_chain_must_match() {
-    let rpc_server = test_bitcoincore_rpc::spawn_with(bitcoin::Network::Testnet, "ord");
+    let rpc_server = test_bitcoincore_rpc::builder()
+      .network(Network::Testnet)
+      .build();
 
     let tempdir = TempDir::new().unwrap();
 

@@ -9,12 +9,13 @@ pub(crate) struct State {
   pub(crate) nonce: u32,
   pub(crate) transactions: BTreeMap<Txid, Transaction>,
   pub(crate) utxos: BTreeMap<OutPoint, Amount>,
+  pub(crate) version: usize,
   pub(crate) wallet_name: String,
   pub(crate) wallets: BTreeSet<String>,
 }
 
 impl State {
-  pub(crate) fn new(network: Network, wallet_name: &str) -> Self {
+  pub(crate) fn new(network: Network, version: usize, wallet_name: &str) -> Self {
     let mut hashes = Vec::new();
     let mut blocks = BTreeMap::new();
 
@@ -32,6 +33,7 @@ impl State {
       nonce: 0,
       transactions: BTreeMap::new(),
       utxos: BTreeMap::new(),
+      version,
       wallet_name: wallet_name.to_string(),
       wallets: BTreeSet::new(),
     }

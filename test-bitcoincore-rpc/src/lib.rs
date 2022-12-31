@@ -33,44 +33,79 @@ mod api;
 mod server;
 mod state;
 
-pub fn spawn_with(network: Network, wallet_name: &str) -> Handle {
-  let state = Arc::new(Mutex::new(State::new(network, wallet_name)));
-  let server = Server::new(state.clone());
-  let mut io = IoHandler::default();
-  io.extend_with(server.to_delegate());
+pub fn builder() -> Builder {
+  Builder {
+    network: Network::Bitcoin,
+    version: 240000,
+    wallet_name: "ord",
+  }
+}
 
-  let rpc_server = ServerBuilder::new(io)
-    .threads(1)
-    .start_http(&"127.0.0.1:0".parse().unwrap())
-    .unwrap();
+pub struct Builder {
+  network: Network,
+  version: usize,
+  wallet_name: &'static str,
+}
 
-  let close_handle = rpc_server.close_handle();
-  let port = rpc_server.address().port();
-
-  thread::spawn(|| rpc_server.wait());
-
-  for i in 0.. {
-    match reqwest::blocking::get(format!("http://127.0.0.1:{port}/")) {
-      Ok(_) => break,
-      Err(err) => {
-        if i == 400 {
-          panic!("Server failed to start: {err}");
-        }
-      }
-    }
-
-    thread::sleep(Duration::from_millis(25));
+impl Builder {
+  pub fn network(self, network: Network) -> Self {
+    Self { network, ..self }
   }
 
-  Handle {
-    close_handle: Some(close_handle),
-    port,
-    state,
+  pub fn version(self, version: usize) -> Self {
+    Self { version, ..self }
+  }
+
+  pub fn wallet_name(self, wallet_name: &'static str) -> Self {
+    Self {
+      wallet_name,
+      ..self
+    }
+  }
+
+  pub fn build(self) -> Handle {
+    let state = Arc::new(Mutex::new(State::new(
+      self.network,
+      self.version,
+      self.wallet_name,
+    )));
+    let server = Server::new(state.clone());
+    let mut io = IoHandler::default();
+    io.extend_with(server.to_delegate());
+
+    let rpc_server = ServerBuilder::new(io)
+      .threads(1)
+      .start_http(&"127.0.0.1:0".parse().unwrap())
+      .unwrap();
+
+    let close_handle = rpc_server.close_handle();
+    let port = rpc_server.address().port();
+
+    thread::spawn(|| rpc_server.wait());
+
+    for i in 0.. {
+      match reqwest::blocking::get(format!("http://127.0.0.1:{port}/")) {
+        Ok(_) => break,
+        Err(err) => {
+          if i == 400 {
+            panic!("Server failed to start: {err}");
+          }
+        }
+      }
+
+      thread::sleep(Duration::from_millis(25));
+    }
+
+    Handle {
+      close_handle: Some(close_handle),
+      port,
+      state,
+    }
   }
 }
 
 pub fn spawn() -> Handle {
-  spawn_with(Network::Bitcoin, "ord")
+  builder().build()
 }
 
 #[derive(Default)]
