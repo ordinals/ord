@@ -285,7 +285,7 @@ fn inscribe_fails_if_bitcoin_core_is_too_old() {
   ))
   .write("hello.txt", "HELLOWORLD")
   .expected_exit_code(1)
-  .expected_stderr("error: Bitcoin Core is version 23.0.0. Version 24.0.0 or newer required.")
+  .expected_stderr("error: Bitcoin Core 24.0.0 or newer required, current version is 23.0.0\n")
   .rpc_server(&rpc_server)
   .run();
 }
