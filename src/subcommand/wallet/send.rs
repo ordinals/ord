@@ -36,10 +36,10 @@ impl Send {
         }
         satpoint
       }
-      Outgoing::InscriptionId(txid) => match index.get_inscription_by_inscription_id(txid)? {
-        Some((_inscription, satpoint)) => satpoint,
-        None => bail!("No inscription found for {txid}"),
-      },
+      Outgoing::InscriptionId(txid) => index
+        .get_inscription_by_inscription_id(txid)?
+        .map(|(_inscription, satpoint)| satpoint)
+        .ok_or_else(|| anyhow!("No inscription found for {txid}"))?,
       Outgoing::Amount(amount) => {
         let inscription_utxos = inscriptions
           .keys()
