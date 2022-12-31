@@ -338,10 +338,7 @@ impl Server {
           ))
         })?,
       }
-      .page(
-        chain,
-        index.has_satoshi_index().map_err(ServerError::Internal)?,
-      ),
+      .page(chain, index.has_sat_index().map_err(ServerError::Internal)?),
     )
   }
 
@@ -366,7 +363,7 @@ impl Server {
     Ok(
       OutputHtml {
         outpoint,
-        list: if index.has_satoshi_index().map_err(ServerError::Internal)? {
+        list: if index.has_sat_index().map_err(ServerError::Internal)? {
           Some(
             index
               .list(outpoint)
@@ -379,10 +376,7 @@ impl Server {
         chain,
         output,
       }
-      .page(
-        chain,
-        index.has_satoshi_index().map_err(ServerError::Internal)?,
-      ),
+      .page(chain, index.has_sat_index().map_err(ServerError::Internal)?),
     )
   }
 
@@ -399,10 +393,9 @@ impl Server {
       Ordering::Greater => Err(ServerError::BadRequest(
         "range start greater than range end".to_string(),
       )),
-      Ordering::Less => Ok(RangeHtml { start, end }.page(
-        chain,
-        index.has_satoshi_index().map_err(ServerError::Internal)?,
-      )),
+      Ordering::Less => Ok(
+        RangeHtml { start, end }.page(chain, index.has_sat_index().map_err(ServerError::Internal)?),
+      ),
     }
   }
 
@@ -432,10 +425,7 @@ impl Server {
           .get_latest_inscriptions(8)
           .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?,
       )
-      .page(
-        chain,
-        index.has_satoshi_index().map_err(ServerError::Internal)?,
-      ),
+      .page(chain, index.has_sat_index().map_err(ServerError::Internal)?),
     )
   }
 
@@ -485,10 +475,8 @@ impl Server {
     };
 
     Ok(
-      BlockHtml::new(block, Height(height), Self::index_height(&index)?).page(
-        chain,
-        index.has_satoshi_index().map_err(ServerError::Internal)?,
-      ),
+      BlockHtml::new(block, Height(height), Self::index_height(&index)?)
+        .page(chain, index.has_sat_index().map_err(ServerError::Internal)?),
     )
   }
 
@@ -519,10 +507,7 @@ impl Server {
         inscription,
         chain,
       )
-      .page(
-        chain,
-        index.has_satoshi_index().map_err(ServerError::Internal)?,
-      ),
+      .page(chain, index.has_sat_index().map_err(ServerError::Internal)?),
     )
   }
 
@@ -640,10 +625,7 @@ impl Server {
       .nth(path.2)
       .ok_or_else(not_found)?;
 
-    Ok(InputHtml { path, input }.page(
-      chain,
-      index.has_satoshi_index().map_err(ServerError::Internal)?,
-    ))
+    Ok(InputHtml { path, input }.page(chain, index.has_sat_index().map_err(ServerError::Internal)?))
   }
 
   async fn faq() -> Redirect {
@@ -726,10 +708,7 @@ impl Server {
         inscription,
         satpoint,
       }
-      .page(
-        chain,
-        index.has_satoshi_index().map_err(ServerError::Internal)?,
-      ),
+      .page(chain, index.has_sat_index().map_err(ServerError::Internal)?),
     )
   }
 
@@ -743,10 +722,7 @@ impl Server {
           .get_latest_inscriptions(100)
           .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?,
       }
-      .page(
-        chain,
-        index.has_satoshi_index().map_err(ServerError::Internal)?,
-      ),
+      .page(chain, index.has_sat_index().map_err(ServerError::Internal)?),
     )
   }
 }
@@ -804,7 +780,7 @@ mod tests {
         thread::spawn(|| server.run(options, index, ord_server_handle).unwrap());
       }
 
-      while index.statistic(crate::index::Statistic::Commits).unwrap() == 0 {
+      while index.statistic(crate::index::Statistic::Commits) == 0 {
         thread::sleep(Duration::from_millis(25));
       }
 
@@ -1383,8 +1359,7 @@ mod tests {
 
     test_server.bitcoin_rpc_server.mine_blocks(1);
     let transaction = TransactionTemplate {
-      input_slots: &[(1, 0, 0)],
-      output_count: 1,
+      inputs: &[(1, 0, 0)],
       fee: 0,
       ..Default::default()
     };
@@ -1549,13 +1524,7 @@ next.*",
   fn commits_are_tracked() {
     let server = TestServer::new();
 
-    assert_eq!(
-      server
-        .index
-        .statistic(crate::index::Statistic::Commits)
-        .unwrap(),
-      1
-    );
+    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 1);
 
     let info = server.index.info().unwrap();
     assert_eq!(info.transactions.len(), 1);
@@ -1563,13 +1532,7 @@ next.*",
 
     server.index.update().unwrap();
 
-    assert_eq!(
-      server
-        .index
-        .statistic(crate::index::Statistic::Commits)
-        .unwrap(),
-      1
-    );
+    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 1);
 
     let info = server.index.info().unwrap();
     assert_eq!(info.transactions.len(), 1);
@@ -1580,13 +1543,7 @@ next.*",
     thread::sleep(Duration::from_millis(10));
     server.index.update().unwrap();
 
-    assert_eq!(
-      server
-        .index
-        .statistic(crate::index::Statistic::Commits)
-        .unwrap(),
-      2
-    );
+    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 2);
 
     let info = server.index.info().unwrap();
     assert_eq!(info.transactions.len(), 2);
@@ -1604,8 +1561,7 @@ next.*",
     assert_eq!(
       server
         .index
-        .statistic(crate::index::Statistic::OutputsTraversed)
-        .unwrap(),
+        .statistic(crate::index::Statistic::OutputsTraversed),
       1
     );
 
@@ -1614,8 +1570,7 @@ next.*",
     assert_eq!(
       server
         .index
-        .statistic(crate::index::Statistic::OutputsTraversed)
-        .unwrap(),
+        .statistic(crate::index::Statistic::OutputsTraversed),
       1
     );
 
@@ -1627,8 +1582,7 @@ next.*",
     assert_eq!(
       server
         .index
-        .statistic(crate::index::Statistic::OutputsTraversed)
-        .unwrap(),
+        .statistic(crate::index::Statistic::OutputsTraversed),
       3
     );
   }
@@ -1638,10 +1592,7 @@ next.*",
     let server = TestServer::new_with_args(&["--index-sats"]);
 
     assert_eq!(
-      server
-        .index
-        .statistic(crate::index::Statistic::SatRanges)
-        .unwrap(),
+      server.index.statistic(crate::index::Statistic::SatRanges),
       1
     );
 
@@ -1649,10 +1600,7 @@ next.*",
     server.index.update().unwrap();
 
     assert_eq!(
-      server
-        .index
-        .statistic(crate::index::Statistic::SatRanges)
-        .unwrap(),
+      server.index.statistic(crate::index::Statistic::SatRanges),
       2
     );
 
@@ -1660,10 +1608,7 @@ next.*",
     server.index.update().unwrap();
 
     assert_eq!(
-      server
-        .index
-        .statistic(crate::index::Statistic::SatRanges)
-        .unwrap(),
+      server.index.statistic(crate::index::Statistic::SatRanges),
       3
     );
   }
@@ -1673,17 +1618,14 @@ next.*",
     let server = TestServer::new_with_args(&["--index-sats"]);
 
     assert_eq!(
-      server
-        .index
-        .statistic(crate::index::Statistic::SatRanges)
-        .unwrap(),
+      server.index.statistic(crate::index::Statistic::SatRanges),
       1
     );
 
     server.bitcoin_rpc_server.mine_blocks(1);
     server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
-      input_slots: &[(1, 0, 0)],
-      output_count: 2,
+      inputs: &[(1, 0, 0)],
+      outputs: 2,
       fee: 0,
       ..Default::default()
     });
@@ -1691,10 +1633,7 @@ next.*",
     server.index.update().unwrap();
 
     assert_eq!(
-      server
-        .index
-        .statistic(crate::index::Statistic::SatRanges)
-        .unwrap(),
+      server.index.statistic(crate::index::Statistic::SatRanges),
       4,
     );
   }
@@ -1704,17 +1643,14 @@ next.*",
     let server = TestServer::new_with_args(&["--index-sats"]);
 
     assert_eq!(
-      server
-        .index
-        .statistic(crate::index::Statistic::SatRanges)
-        .unwrap(),
+      server.index.statistic(crate::index::Statistic::SatRanges),
       1
     );
 
     server.bitcoin_rpc_server.mine_blocks(1);
     server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
-      input_slots: &[(1, 0, 0)],
-      output_count: 2,
+      inputs: &[(1, 0, 0)],
+      outputs: 2,
       fee: 2,
       ..Default::default()
     });
@@ -1722,10 +1658,7 @@ next.*",
     server.index.update().unwrap();
 
     assert_eq!(
-      server
-        .index
-        .statistic(crate::index::Statistic::SatRanges)
-        .unwrap(),
+      server.index.statistic(crate::index::Statistic::SatRanges),
       5,
     );
   }
