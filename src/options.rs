@@ -1,7 +1,4 @@
-use {
-  super::*,
-  bitcoincore_rpc::{Auth, Client},
-};
+use {super::*, bitcoincore_rpc::Auth};
 
 #[derive(Clone, Default, Debug, Parser)]
 #[clap(group(

@@ -38,7 +38,7 @@ use {
     hashes::Hash,
     Address, Amount, Block, OutPoint, Script, Sequence, Transaction, TxIn, TxOut, Txid,
   },
-  bitcoincore_rpc::RpcApi,
+  bitcoincore_rpc::{Client, RpcApi},
   chain::Chain,
   chrono::{NaiveDateTime, TimeZone, Utc},
   clap::{ArgGroup, Parser},

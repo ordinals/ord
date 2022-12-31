@@ -81,6 +81,7 @@ impl Send {
     let txid = client.send_raw_transaction(&signed_tx)?;
 
     println!("{txid}");
+
     Ok(())
   }
 }
