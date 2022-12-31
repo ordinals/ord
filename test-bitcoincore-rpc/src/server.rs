@@ -71,7 +71,7 @@ impl Api for Server {
 
   fn get_network_info(&self) -> Result<GetNetworkInfoResult, jsonrpc_core::Error> {
     Ok(GetNetworkInfoResult {
-      version: 240000, // bitcoin-core v24.0.0
+      version: self.state().version,
       subversion: String::new(),
       protocol_version: 0,
       local_services: String::new(),
