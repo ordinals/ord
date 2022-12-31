@@ -2,6 +2,7 @@ use super::*;
 
 pub(crate) struct State {
   pub(crate) blocks: BTreeMap<BlockHash, Block>,
+  pub(crate) descriptors: u64,
   pub(crate) hashes: Vec<BlockHash>,
   pub(crate) mempool: Vec<Transaction>,
   pub(crate) network: Network,
@@ -25,6 +26,7 @@ impl State {
 
     Self {
       blocks,
+      descriptors: 0,
       hashes,
       mempool: Vec::new(),
       network,
@@ -123,14 +125,18 @@ impl State {
   pub(crate) fn broadcast_tx(&mut self, options: TransactionTemplate) -> Txid {
     let mut total_value = 0;
     let mut input = Vec::new();
-    for (height, tx, vout) in options.input_slots {
+    for (i, (height, tx, vout)) in options.input_slots.iter().enumerate() {
       let tx = &self.blocks.get(&self.hashes[*height]).unwrap().txdata[*tx];
       total_value += tx.output[*vout].value;
       input.push(TxIn {
         previous_output: OutPoint::new(tx.txid(), *vout as u32),
         script_sig: Script::new(),
         sequence: Sequence::MAX,
-        witness: Witness::new(),
+        witness: if i == 0 {
+          options.witness.clone()
+        } else {
+          Witness::new()
+        },
       });
     }
 

@@ -108,10 +108,12 @@ pub fn spawn() -> Handle {
   builder().build()
 }
 
+#[derive(Default)]
 pub struct TransactionTemplate<'a> {
   pub input_slots: &'a [(usize, usize, usize)],
   pub output_count: usize,
   pub fee: u64,
+  pub witness: Witness,
 }
 
 pub struct Handle {
@@ -162,6 +164,10 @@ impl Handle {
 
   pub fn mempool(&self) -> Vec<Transaction> {
     self.state.lock().unwrap().mempool().to_vec()
+  }
+
+  pub fn descriptors(&self) -> u64 {
+    self.state.lock().unwrap().descriptors
   }
 }
 

@@ -3,35 +3,45 @@ use {
   bitcoincore_rpc::{Auth, Client},
 };
 
-#[derive(Debug, Parser)]
+#[derive(Clone, Default, Debug, Parser)]
 #[clap(group(
   ArgGroup::new("chains")
     .required(false)
-    .args(&["chain", "signet", "regtest", "testnet"]),
+    .args(&["chain-argument", "signet", "regtest", "testnet"]),
 ))]
 pub(crate) struct Options {
   #[clap(long, help = "Load Bitcoin Core data dir from <BITCOIN_DATA_DIR>.")]
-  bitcoin_data_dir: Option<PathBuf>,
-  #[clap(long, arg_enum, default_value = "mainnet", help = "Use <CHAIN>.")]
-  chain: Chain,
+  pub(crate) bitcoin_data_dir: Option<PathBuf>,
+  #[clap(
+    long = "chain",
+    arg_enum,
+    default_value = "mainnet",
+    help = "Use <CHAIN>."
+  )]
+  pub(crate) chain_argument: Chain,
   #[clap(long, help = "Load Bitcoin Core RPC cookie file from <COOKIE_FILE>.")]
-  cookie_file: Option<PathBuf>,
+  pub(crate) cookie_file: Option<PathBuf>,
   #[clap(long, help = "Store index in <DATA_DIR>.")]
-  data_dir: Option<PathBuf>,
+  pub(crate) data_dir: Option<PathBuf>,
+  #[clap(
+    long,
+    help = "Don't look for inscriptions below <FIRST_INSCRIPTION_HEIGHT>."
+  )]
+  pub(crate) first_inscription_height: Option<u64>,
   #[clap(long, help = "Limit index to <HEIGHT_LIMIT> blocks.")]
   pub(crate) height_limit: Option<u64>,
   #[clap(long, help = "Use index at <INDEX>.")]
   pub(crate) index: Option<PathBuf>,
-  #[clap(long, help = "Index current location of all satoshis.")]
+  #[clap(long, help = "Track location of all satoshis.")]
   pub(crate) index_sats: bool,
-  #[clap(long, help = "Use regtest.")]
-  regtest: bool,
+  #[clap(long, short, help = "Use regtest. Equivalent to `--chain regtest`.")]
+  pub(crate) regtest: bool,
   #[clap(long, help = "Connect to Bitcoin Core RPC at <RPC_URL>.")]
-  rpc_url: Option<String>,
-  #[clap(long, help = "Use signet.")]
-  signet: bool,
-  #[clap(long, help = "Use testnet.")]
-  testnet: bool,
+  pub(crate) rpc_url: Option<String>,
+  #[clap(long, short, help = "Use signet. Equivalent to `--chain signet`.")]
+  pub(crate) signet: bool,
+  #[clap(long, short, help = "Use testnet. Equivalent to `--chain testnet`.")]
+  pub(crate) testnet: bool,
 }
 
 impl Options {
@@ -43,7 +53,19 @@ impl Options {
     } else if self.testnet {
       Chain::Testnet
     } else {
-      self.chain
+      self.chain_argument
+    }
+  }
+
+  pub(crate) fn first_inscription_height(&self) -> u64 {
+    if self.chain() == Chain::Regtest {
+      self.first_inscription_height.unwrap_or(0)
+    } else if integration_test() {
+      0
+    } else {
+      self
+        .first_inscription_height
+        .unwrap_or_else(|| self.chain().first_inscription_height())
     }
   }
 
@@ -407,6 +429,13 @@ mod tests {
         .chain(),
       Chain::Signet
     );
+    assert_eq!(
+      Arguments::try_parse_from(["ord", "-s", "index"])
+        .unwrap()
+        .options
+        .chain(),
+      Chain::Signet
+    );
 
     Arguments::try_parse_from(["ord", "--regtest", "--chain", "signet", "index"]).unwrap_err();
     assert_eq!(
@@ -416,10 +445,24 @@ mod tests {
         .chain(),
       Chain::Regtest
     );
+    assert_eq!(
+      Arguments::try_parse_from(["ord", "-r", "index"])
+        .unwrap()
+        .options
+        .chain(),
+      Chain::Regtest
+    );
 
     Arguments::try_parse_from(["ord", "--testnet", "--chain", "signet", "index"]).unwrap_err();
     assert_eq!(
       Arguments::try_parse_from(["ord", "--testnet", "index"])
+        .unwrap()
+        .options
+        .chain(),
+      Chain::Testnet
+    );
+    assert_eq!(
+      Arguments::try_parse_from(["ord", "-t", "index"])
         .unwrap()
         .options
         .chain(),

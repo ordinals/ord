@@ -14,7 +14,7 @@
   <body>
   <header>
     <nav>
-      <a href=/>Ordinals{% if self.chain != Chain::Mainnet { %}<sup>{{self.chain}}</sup>{% } %}</a>
+      <a href=/>Ordinals<sup>{% if self.chain == Chain::Mainnet { %}alpha{% } else { %}{{self.chain}}{% } %}</sup></a>
       <a href=https://docs.ordinals.com/>Docs</a>
       <a href=https://github.com/casey/ord>GitHub</a>
       <a href=/clock>Clock</a>

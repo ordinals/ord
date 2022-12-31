@@ -18,7 +18,7 @@ const PROTOCOL_ID: &[u8] = b"ord";
 const CONTENT_TAG: &[u8] = &[];
 const CONTENT_TYPE_TAG: &[u8] = &[1];
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub(crate) struct Inscription {
   content: Option<Vec<u8>>,
   content_type: Option<Vec<u8>>,
@@ -114,15 +114,30 @@ impl Inscription {
   pub(crate) fn content_type(&self) -> Option<&str> {
     str::from_utf8(self.content_type.as_ref()?).ok()
   }
+
+  #[cfg(test)]
+  pub(crate) fn to_witness(&self) -> Witness {
+    let builder = script::Builder::new();
+
+    let script = self.append_reveal_script(builder);
+
+    let mut witness = Witness::new();
+
+    witness.push(script);
+    witness.push([]);
+
+    witness
+  }
 }
 
 #[derive(Debug, PartialEq)]
 enum InscriptionError {
   EmptyWitness,
-  KeyPathSpend,
-  Script(script::Error),
-  NoInscription,
   InvalidInscription,
+  KeyPathSpend,
+  NoInscription,
+  Script(script::Error),
+  UnrecognizedEvenField,
 }
 
 type Result<T, E = InscriptionError> = std::result::Result<T, E>;
@@ -214,9 +229,20 @@ impl<'a> InscriptionParser<'a> {
         }
       }
 
+      let content = fields.remove(CONTENT_TAG);
+      let content_type = fields.remove(CONTENT_TYPE_TAG);
+
+      for tag in fields.keys() {
+        if let Some(lsb) = tag.first() {
+          if lsb % 2 == 0 {
+            return Err(InscriptionError::UnrecognizedEvenField);
+          }
+        }
+      }
+
       return Ok(Some(Inscription {
-        content: fields.remove(CONTENT_TAG),
-        content_type: fields.remove(CONTENT_TYPE_TAG),
+        content,
+        content_type,
       }));
     }
 
@@ -341,7 +367,7 @@ mod tests {
         b"ord",
         &[1],
         b"text/plain;charset=utf-8",
-        &[2],
+        &[3],
         b"bar",
         &[],
         b"ord",
@@ -538,25 +564,6 @@ mod tests {
   }
 
   #[test]
-  fn junk() {
-    assert_eq!(
-      InscriptionParser::parse(&container(&[
-        b"ord",
-        &[2],
-        &[1],
-        b"foo",
-        &[],
-        b"ord",
-        b"ord"
-      ])),
-      Ok(Inscription {
-        content_type: None,
-        content: None,
-      }),
-    );
-  }
-
-  #[test]
   fn extract_from_transaction() {
     let tx = Transaction {
       version: 0,
@@ -701,6 +708,25 @@ mod tests {
         content_type: None,
         content: None,
       }
+    );
+  }
+
+  #[test]
+  fn unknown_odd_fields_are_ignored() {
+    assert_eq!(
+      InscriptionParser::parse(&container(&[b"ord", &[3], &[0]])),
+      Ok(Inscription {
+        content_type: None,
+        content: None,
+      }),
+    );
+  }
+
+  #[test]
+  fn unknown_even_fields_are_invalid() {
+    assert_eq!(
+      InscriptionParser::parse(&container(&[b"ord", &[2], &[0]])),
+      Err(InscriptionError::UnrecognizedEvenField),
     );
   }
 }

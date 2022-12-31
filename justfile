@@ -142,3 +142,6 @@ build-docs:
 
 update-changelog:
   git log --pretty='format:- %s' >> CHANGELOG.md
+
+preview-examples:
+  cargo run preview examples/*
