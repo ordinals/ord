@@ -46,7 +46,7 @@ impl State {
       input: vec![TxIn {
         previous_output: OutPoint::null(),
         script_sig: script::Builder::new()
-          .push_scriptint(self.blocks.len().try_into().unwrap())
+          .push_int(self.blocks.len().try_into().unwrap())
           .into_script(),
         sequence: Sequence::MAX,
         witness: Witness::new(),
