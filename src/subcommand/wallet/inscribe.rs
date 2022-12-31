@@ -44,9 +44,9 @@ impl Inscribe {
     let bitcoin_version = client.version()?;
     if bitcoin_version < MIN_BITCOIN_VERSION {
       bail!(
-        "Bitcoin Core version {} or greater required. Current Bitcoin Core reports version {}",
+        "Bitcoin Core is version {}. Version {} or newer required.",
+        format_bitcoin_core_version(bitcoin_version),
         format_bitcoin_core_version(MIN_BITCOIN_VERSION),
-        format_bitcoin_core_version(bitcoin_version)
       );
     }
 

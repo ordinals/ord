@@ -275,34 +275,19 @@ fn inscribe() {
 fn inscribe_fails_if_bitcoin_core_is_too_old() {
   let rpc_server = test_bitcoincore_rpc::builder()
     .network(Network::Regtest)
-    .version(0)
+    .version(230000)
     .build();
 
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  assert_eq!(rpc_server.descriptors(), 0);
-
-  let stdout = CommandBuilder::new(format!(
+  CommandBuilder::new(format!(
     "--chain regtest wallet inscribe --satpoint {txid}:0:0 hello.txt"
   ))
   .write("hello.txt", "HELLOWORLD")
+  .expected_exit_code(1)
+  .expected_stderr("error: Bitcoin Core is version 23.0.0. Version 24.0.0 or newer required.")
   .rpc_server(&rpc_server)
-  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
   .run();
-
-  assert_eq!(rpc_server.descriptors(), 1);
-
-  rpc_server.mine_blocks(1);
-
-  TestServer::spawn_with_args(&rpc_server, &["--index-sats"]).assert_response_regex(
-    "/sat/5000000000",
-    ".*<dt>inscription</dt>\n  <dd>.*<pre class=inscription>HELLOWORLD</pre>.*</dd>.*",
-  );
-
-  TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
-    &format!("/inscription/{}", reveal_txid_from_inscribe_stdout(&stdout)),
-    ".*HELLOWORLD.*",
-  );
 }
 
 #[test]
