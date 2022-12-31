@@ -25,8 +25,6 @@ impl Send {
 
     let inscriptions = index.get_inscriptions(None)?;
 
-    let change = get_change_addresses(&options, 2)?;
-
     let satpoint = match self.outgoing {
       Outgoing::SatPoint(satpoint) => {
         for inscription_satpoint in inscriptions.keys() {
@@ -70,6 +68,8 @@ impl Send {
         return Ok(());
       }
     };
+
+    let change = get_change_addresses(&options, 2)?;
 
     let unsigned_transaction =
       TransactionBuilder::build_transaction(satpoint, inscriptions, utxos, self.address, change)?;
