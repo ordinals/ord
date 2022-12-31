@@ -16,6 +16,17 @@ use {
   std::collections::BTreeSet,
 };
 
+const MIN_BITCOIN_VERSION: usize = 240000;
+
+fn format_bitcoin_core_version(version: usize) -> String {
+  format!(
+    "{}.{}.{}",
+    version / 10000,
+    version % 10000 / 100,
+    version % 100
+  )
+}
+
 #[derive(Debug, Parser)]
 pub(crate) struct Inscribe {
   #[clap(long, help = "Inscribe <SATPOINT>")]
@@ -29,6 +40,15 @@ pub(crate) struct Inscribe {
 impl Inscribe {
   pub(crate) fn run(self, options: Options) -> Result {
     let client = options.bitcoin_rpc_client_mainnet_forbidden("ord wallet inscribe")?;
+
+    let bitcoin_version = client.version()?;
+    if bitcoin_version < MIN_BITCOIN_VERSION {
+      bail!(
+        "Bitcoin Core {} or newer required, current version is {}",
+        format_bitcoin_core_version(MIN_BITCOIN_VERSION),
+        format_bitcoin_core_version(bitcoin_version),
+      );
+    }
 
     let inscription = Inscription::from_file(options.chain(), &self.file)?;
 
@@ -223,7 +243,7 @@ impl Inscribe {
     assert_eq!(
       Address::p2tr_tweaked(
         TweakedPublicKey::dangerous_assume_tweaked(x_only_pub_key),
-        network
+        network,
       ),
       commit_tx_address
     );

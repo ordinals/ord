@@ -36,7 +36,9 @@ fn run() {
 
 #[test]
 fn inscription_page() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
@@ -77,7 +79,9 @@ fn inscription_page() {
 
 #[test]
 fn inscription_appears_on_reveal_transaction_page() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
@@ -100,7 +104,9 @@ fn inscription_appears_on_reveal_transaction_page() {
 
 #[test]
 fn inscription_page_after_send() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
@@ -152,7 +158,9 @@ fn inscription_page_after_send() {
 
 #[test]
 fn inscription_content() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
@@ -184,7 +192,9 @@ fn inscription_content() {
 
 #[test]
 fn home_page_includes_latest_inscriptions() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
 
   let inscription_id = create_inscription(&rpc_server, "foo.png");
 
@@ -201,7 +211,9 @@ fn home_page_includes_latest_inscriptions() {
 
 #[test]
 fn home_page_only_includes_graphical_inscriptions() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
 
   create_inscription(&rpc_server, "hello.txt");
   let inscription_id = create_inscription(&rpc_server, "foo.png");
@@ -219,7 +231,9 @@ fn home_page_only_includes_graphical_inscriptions() {
 
 #[test]
 fn home_page_inscriptions_are_sorted() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
 
   let mut inscriptions = String::new();
 
@@ -240,7 +254,10 @@ fn home_page_inscriptions_are_sorted() {
 
 #[test]
 fn inscriptions_page() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
@@ -269,7 +286,9 @@ fn inscriptions_page() {
 
 #[test]
 fn inscriptions_page_is_sorted() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
 
   let mut inscriptions = String::new();
 
