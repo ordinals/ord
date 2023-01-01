@@ -493,9 +493,9 @@ impl Api for Server {
     unlock: bool,
     outputs: Vec<JsonOutPoint>,
   ) -> Result<bool, jsonrpc_core::Error> {
-    let mut state = self.state();
-
     assert!(!unlock);
+
+    let mut state = self.state();
 
     if state.fail_lock_unspent {
       return Ok(false);
