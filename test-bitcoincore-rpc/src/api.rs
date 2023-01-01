@@ -61,6 +61,19 @@ pub trait Api {
   #[rpc(name = "sendrawtransaction")]
   fn send_raw_transaction(&self, tx: String) -> Result<String, jsonrpc_core::Error>;
 
+  #[rpc(name = "sendtoaddress")]
+  fn send_to_address(
+    &self,
+    address: Address,
+    amount: f64,
+    comment: Option<String>,
+    comment_to: Option<String>,
+    subtract_fee: Option<bool>,
+    replaceable: Option<bool>,
+    confirmation_target: Option<u32>,
+    estimate_mode: Option<EstimateMode>,
+  ) -> Result<Txid, jsonrpc_core::Error>;
+
   #[rpc(name = "gettransaction")]
   fn get_transaction(
     &self,
@@ -116,4 +129,8 @@ pub trait Api {
     skip: Option<usize>,
     include_watchonly: Option<bool>,
   ) -> Result<Vec<ListTransactionResult>, jsonrpc_core::Error>;
+
+  #[rpc(name = "lockunspent")]
+  fn lock_unspent(&self, unlock: bool, outputs: Vec<OutPoint>)
+    -> Result<bool, jsonrpc_core::Error>;
 }

@@ -821,3 +821,34 @@ fn wallet_balance() {
     .expected_stdout("5000000000\n")
     .run();
 }
+
+#[test]
+fn send_btc() {
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  CommandBuilder::new("--regtest wallet balance")
+    .rpc_server(&rpc_server)
+    .expected_stdout("0\n")
+    .run();
+
+  rpc_server.mine_blocks(1);
+
+  CommandBuilder::new("--regtest wallet balance")
+    .rpc_server(&rpc_server)
+    .expected_stdout("5000000000\n")
+    .run();
+
+  CommandBuilder::new(format!(
+    "--chain regtest wallet send 1btc bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x"
+  ))
+  .rpc_server(&rpc_server)
+  .expected_stdout("0000000000000000000000000000000000000000000000000000000000000000\n")
+  .run();
+
+  CommandBuilder::new("--regtest wallet balance")
+    .rpc_server(&rpc_server)
+    .expected_stdout("4900000000\n")
+    .run();
+}

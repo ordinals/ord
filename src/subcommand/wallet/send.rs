@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, bitcoincore_rpc::json::EstimateMode};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
@@ -49,14 +49,6 @@ impl Send {
           .filter(|utxo| inscription_utxos.contains(utxo))
           .cloned()
           .collect::<Vec<OutPoint>>();
-
-        let cardinal_utxos = utxos
-          .keys()
-          .filter(|utxo| !inscription_utxos.contains(utxo))
-          .cloned()
-          .collect::<Vec<OutPoint>>();
-
-        client.unlock_unspent(&cardinal_utxos)?;
 
         client.lock_unspent(&ordinal_utxos)?;
 

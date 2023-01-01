@@ -259,6 +259,24 @@ impl Api for Server {
     Ok(tx.txid().to_string())
   }
 
+  fn send_to_address(
+    &self,
+    _address: Address,
+    _amount: f64,
+    _comment: Option<String>,
+    _comment_to: Option<String>,
+    _subtract_fee: Option<bool>,
+    _replaceable: Option<bool>,
+    _confirmation_target: Option<u32>,
+    _estimate_mode: Option<EstimateMode>,
+  ) -> Result<Txid, jsonrpc_core::Error> {
+    Ok(
+      "0000000000000000000000000000000000000000000000000000000000000000"
+        .parse()
+        .unwrap(),
+    )
+  }
+
   fn get_transaction(
     &self,
     txid: Txid,
@@ -452,5 +470,14 @@ impl Api for Server {
         })
         .collect(),
     )
+  }
+
+  fn lock_unspent(
+    &self,
+    unlock: bool,
+    outputs: Vec<OutPoint>,
+  ) -> Result<bool, jsonrpc_core::Error> {
+    assert!(!unlock);
+    Ok(true)
   }
 }
