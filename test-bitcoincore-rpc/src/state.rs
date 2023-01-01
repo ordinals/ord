@@ -3,6 +3,7 @@ use super::*;
 pub(crate) struct State {
   pub(crate) blocks: BTreeMap<BlockHash, Block>,
   pub(crate) descriptors: u64,
+  pub(crate) fail_lock_unspent: bool,
   pub(crate) hashes: Vec<BlockHash>,
   pub(crate) locked: BTreeSet<OutPoint>,
   pub(crate) mempool: Vec<Transaction>,
@@ -17,7 +18,12 @@ pub(crate) struct State {
 }
 
 impl State {
-  pub(crate) fn new(network: Network, version: usize, wallet_name: &str) -> Self {
+  pub(crate) fn new(
+    network: Network,
+    version: usize,
+    wallet_name: &str,
+    fail_lock_unspent: bool,
+  ) -> Self {
     let mut hashes = Vec::new();
     let mut blocks = BTreeMap::new();
 
@@ -29,6 +35,7 @@ impl State {
     Self {
       blocks,
       descriptors: 0,
+      fail_lock_unspent,
       hashes,
       locked: BTreeSet::new(),
       mempool: Vec::new(),

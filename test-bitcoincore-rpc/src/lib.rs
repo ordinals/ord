@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_arguments)]
+
 use {
   api::Api,
   bitcoin::{
@@ -37,6 +39,7 @@ mod state;
 
 pub fn builder() -> Builder {
   Builder {
+    fail_lock_unspent: false,
     network: Network::Bitcoin,
     version: 240000,
     wallet_name: "ord",
@@ -44,12 +47,20 @@ pub fn builder() -> Builder {
 }
 
 pub struct Builder {
+  fail_lock_unspent: bool,
   network: Network,
   version: usize,
   wallet_name: &'static str,
 }
 
 impl Builder {
+  pub fn fail_lock_unspent(self, fail_lock_unspent: bool) -> Self {
+    Self {
+      fail_lock_unspent,
+      ..self
+    }
+  }
+
   pub fn network(self, network: Network) -> Self {
     Self { network, ..self }
   }
@@ -70,6 +81,7 @@ impl Builder {
       self.network,
       self.version,
       self.wallet_name,
+      self.fail_lock_unspent,
     )));
     let server = Server::new(state.clone());
     let mut io = IoHandler::default();

@@ -51,8 +51,7 @@ impl Send {
           .collect::<Vec<OutPoint>>();
 
         if !client.lock_unspent(&ordinal_utxos)? {
-          // TODO: Test this
-          bail!("Failed to lock ordinal UTXOs");
+          bail!("failed to lock ordinal UTXOs");
         }
 
         let txid =

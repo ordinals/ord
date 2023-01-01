@@ -828,9 +828,11 @@ fn send_btc() {
     .network(Network::Regtest)
     .build();
 
-  CommandBuilder::new(format!(
-    "--chain regtest wallet send 1btc bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x"
-  ))
+  rpc_server.mine_blocks(1);
+
+  CommandBuilder::new(
+    "--chain regtest wallet send 1btc bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x",
+  )
   .rpc_server(&rpc_server)
   .expected_stdout("0000000000000000000000000000000000000000000000000000000000000000\n")
   .run();
@@ -848,28 +850,26 @@ fn send_btc() {
 }
 
 #[test]
-fn send_btc_locks_inscirptions() {
+fn send_btc_locks_inscriptions() {
   let rpc_server = test_bitcoincore_rpc::builder()
     .network(Network::Regtest)
     .build();
 
-  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+  rpc_server.mine_blocks(1);
 
-  let stdout = CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {txid}:0:0 hello.txt"
-  ))
-  .write("hello.txt", "HELLOWORLD")
-  .rpc_server(&rpc_server)
-  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-  .run();
+  let stdout = CommandBuilder::new("--chain regtest wallet inscribe hello.txt")
+    .write("hello.txt", "HELLOWORLD")
+    .rpc_server(&rpc_server)
+    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+    .run();
 
   let inscription_id = reveal_txid_from_inscribe_stdout(&stdout);
 
   rpc_server.mine_blocks(1);
 
-  CommandBuilder::new(format!(
-    "--chain regtest wallet send 1btc bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x"
-  ))
+  CommandBuilder::new(
+    "--chain regtest wallet send 1btc bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x",
+  )
   .rpc_server(&rpc_server)
   .expected_stdout("0000000000000000000000000000000000000000000000000000000000000000\n")
   .run();
@@ -887,4 +887,22 @@ fn send_btc_locks_inscirptions() {
       }]
     }]
   )
+}
+
+#[test]
+fn send_btc_fails_if_lock_unspent_fails() {
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .fail_lock_unspent(true)
+    .network(Network::Regtest)
+    .build();
+
+  rpc_server.mine_blocks(1);
+
+  CommandBuilder::new(
+    "--chain regtest wallet send 1btc bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x",
+  )
+  .rpc_server(&rpc_server)
+  .expected_stderr("error: failed to lock ordinal UTXOs\n")
+  .expected_exit_code(1)
+  .run();
 }
