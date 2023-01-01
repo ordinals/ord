@@ -50,7 +50,10 @@ impl Send {
           .cloned()
           .collect::<Vec<OutPoint>>();
 
-        client.lock_unspent(&ordinal_utxos)?;
+        if !client.lock_unspent(&ordinal_utxos)? {
+          // TODO: Test this
+          bail!("Failed to lock ordinal UTXOs");
+        }
 
         let txid =
           client.send_to_address(&self.address, amount, None, None, None, None, None, None)?;

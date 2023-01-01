@@ -478,6 +478,14 @@ impl Api for Server {
     outputs: Vec<OutPoint>,
   ) -> Result<bool, jsonrpc_core::Error> {
     assert!(!unlock);
+
+    let mut state = self.state();
+
+    for output in outputs {
+      assert!(state.utxos.contains_key(&output));
+      state.locked.insert(output);
+    }
+
     Ok(true)
   }
 }
