@@ -1,4 +1,4 @@
-use {super::*, bitcoincore_rpc::json::EstimateMode};
+use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {

@@ -20,6 +20,7 @@ use {
   },
   jsonrpc_core::{IoHandler, Value},
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
+  serde::Deserialize,
   server::Server,
   state::State,
   std::{
@@ -117,6 +118,19 @@ pub struct TransactionTemplate<'a> {
   pub witness: Witness,
 }
 
+#[derive(Clone, Debug, PartialEq)]
+pub struct Sent {
+  pub amount: f64,
+  pub address: Address,
+  pub locked: Vec<OutPoint>,
+}
+
+#[derive(Deserialize)]
+pub struct JsonOutPoint {
+  txid: bitcoin::Txid,
+  vout: u32,
+}
+
 pub struct Handle {
   close_handle: Option<CloseHandle>,
   port: u16,
@@ -137,14 +151,14 @@ impl Handle {
   }
 
   pub fn mine_blocks(&self, num: u64) -> Vec<Block> {
-    let mut bitcoin_rpc_data = self.state.lock().unwrap();
+    let mut bitcoin_rpc_data = self.state();
     (0..num)
       .map(|_| bitcoin_rpc_data.push_block(50 * COIN_VALUE))
       .collect()
   }
 
   pub fn mine_blocks_with_subsidy(&self, num: u64, subsidy: u64) -> Vec<Block> {
-    let mut bitcoin_rpc_data = self.state.lock().unwrap();
+    let mut bitcoin_rpc_data = self.state();
     (0..num)
       .map(|_| bitcoin_rpc_data.push_block(subsidy))
       .collect()
@@ -164,11 +178,15 @@ impl Handle {
   }
 
   pub fn mempool(&self) -> Vec<Transaction> {
-    self.state.lock().unwrap().mempool().to_vec()
+    self.state().mempool().to_vec()
   }
 
   pub fn descriptors(&self) -> u64 {
-    self.state.lock().unwrap().descriptors
+    self.state().descriptors
+  }
+
+  pub fn sent(&self) -> Vec<Sent> {
+    self.state().sent.clone()
   }
 }
 

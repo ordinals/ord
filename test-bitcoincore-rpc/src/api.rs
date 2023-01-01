@@ -131,6 +131,9 @@ pub trait Api {
   ) -> Result<Vec<ListTransactionResult>, jsonrpc_core::Error>;
 
   #[rpc(name = "lockunspent")]
-  fn lock_unspent(&self, unlock: bool, outputs: Vec<OutPoint>)
-    -> Result<bool, jsonrpc_core::Error>;
+  fn lock_unspent(
+    &self,
+    unlock: bool,
+    outputs: Vec<JsonOutPoint>,
+  ) -> Result<bool, jsonrpc_core::Error>;
 }

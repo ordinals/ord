@@ -828,17 +828,44 @@ fn send_btc() {
     .network(Network::Regtest)
     .build();
 
-  CommandBuilder::new("--regtest wallet balance")
-    .rpc_server(&rpc_server)
-    .expected_stdout("0\n")
-    .run();
+  CommandBuilder::new(format!(
+    "--chain regtest wallet send 1btc bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x"
+  ))
+  .rpc_server(&rpc_server)
+  .expected_stdout("0000000000000000000000000000000000000000000000000000000000000000\n")
+  .run();
+
+  assert_eq!(
+    rpc_server.sent(),
+    &[Sent {
+      amount: 1.0,
+      address: "bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x"
+        .parse()
+        .unwrap(),
+      locked: Vec::new(),
+    }]
+  )
+}
+
+#[test]
+fn send_btc_locks_inscirptions() {
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+
+  let stdout = CommandBuilder::new(format!(
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 hello.txt"
+  ))
+  .write("hello.txt", "HELLOWORLD")
+  .rpc_server(&rpc_server)
+  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+  .run();
+
+  let inscription_id = reveal_txid_from_inscribe_stdout(&stdout);
 
   rpc_server.mine_blocks(1);
-
-  CommandBuilder::new("--regtest wallet balance")
-    .rpc_server(&rpc_server)
-    .expected_stdout("5000000000\n")
-    .run();
 
   CommandBuilder::new(format!(
     "--chain regtest wallet send 1btc bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x"
@@ -847,8 +874,17 @@ fn send_btc() {
   .expected_stdout("0000000000000000000000000000000000000000000000000000000000000000\n")
   .run();
 
-  CommandBuilder::new("--regtest wallet balance")
-    .rpc_server(&rpc_server)
-    .expected_stdout("4900000000\n")
-    .run();
+  assert_eq!(
+    rpc_server.sent(),
+    &[Sent {
+      amount: 1.0,
+      address: "bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x"
+        .parse()
+        .unwrap(),
+      locked: vec![OutPoint {
+        txid: inscription_id,
+        vout: 0,
+      }]
+    }]
+  )
 }
