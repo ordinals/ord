@@ -16,17 +16,39 @@ use {
   std::collections::BTreeSet,
 };
 
+const MIN_BITCOIN_VERSION: usize = 240000;
+
+fn format_bitcoin_core_version(version: usize) -> String {
+  format!(
+    "{}.{}.{}",
+    version / 10000,
+    version % 10000 / 100,
+    version % 100
+  )
+}
+
 #[derive(Debug, Parser)]
 pub(crate) struct Inscribe {
   #[clap(long, help = "Inscribe <SATPOINT>")]
-  satpoint: Option<SatPoint>,
-  #[clap(long, help = "Inscribe sat with contents of <FILE>")]
-  file: PathBuf,
+  pub(crate) satpoint: Option<SatPoint>,
+  #[clap(help = "Inscribe sat with contents of <FILE>")]
+  pub(crate) file: PathBuf,
+  #[clap(long, help = "Do not back up recovery key.")]
+  pub(crate) no_backup: bool,
 }
 
 impl Inscribe {
   pub(crate) fn run(self, options: Options) -> Result {
     let client = options.bitcoin_rpc_client_mainnet_forbidden("ord wallet inscribe")?;
+
+    let bitcoin_version = client.version()?;
+    if bitcoin_version < MIN_BITCOIN_VERSION {
+      bail!(
+        "Bitcoin Core {} or newer required, current version is {}",
+        format_bitcoin_core_version(MIN_BITCOIN_VERSION),
+        format_bitcoin_core_version(bitcoin_version),
+      );
+    }
 
     let inscription = Inscription::from_file(options.chain(), &self.file)?;
 
@@ -52,7 +74,9 @@ impl Inscribe {
         reveal_tx_destination,
       )?;
 
-    Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
+    if !self.no_backup {
+      Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
+    }
 
     let signed_raw_commit_tx = client
       .sign_raw_transaction_with_wallet(&unsigned_commit_tx, None, None)?
@@ -219,7 +243,7 @@ impl Inscribe {
     assert_eq!(
       Address::p2tr_tweaked(
         TweakedPublicKey::dangerous_assume_tweaked(x_only_pub_key),
-        network
+        network,
       ),
       commit_tx_address
     );

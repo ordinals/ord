@@ -1,8 +1,9 @@
 use {super::*, clap::ValueEnum};
 
-#[derive(ValueEnum, Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Default, ValueEnum, Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub(crate) enum Chain {
+  #[default]
   #[clap(alias("main"))]
   Mainnet,
   #[clap(alias("test"))]
@@ -42,7 +43,7 @@ impl Chain {
       Self::Mainnet => 767430,
       Self::Regtest => 0,
       Self::Signet => 112402,
-      Self::Testnet => 0,
+      Self::Testnet => 2413343,
     }
   }
 

@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+set -euxo pipefail
+
+# install homebrew
+if ! command -v brew; then
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
+
+# check homebrew
+brew --version
+
+# install bitcoin
+if ! command -v bitcoind; then
+  brew install bitcoin
+fi
+
+# check bitcoind
+bitcoind --version
+
+# write config
+if [[ ! -f ~/Library/Application\ Support/Bitcoin/bitcoin.conf ]]; then
+  printf 'txindex=1\nsignet=1\n' > ~/Library/Application\ Support/Bitcoin/bitcoin.conf
+fi
+
+# start bitcoind
+if ! bitcoin-cli getblockchaininfo; then
+  brew services start bitcoin
+fi
+
+# check bitcoind
+bitcoin-cli getblockchaininfo | grep signet
+
+# install ord
+if ! command -v ord; then
+  curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash -s
+fi
+
+# check ord
+ord --version

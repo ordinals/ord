@@ -71,7 +71,7 @@ impl Api for Server {
 
   fn get_network_info(&self) -> Result<GetNetworkInfoResult, jsonrpc_core::Error> {
     Ok(GetNetworkInfoResult {
-      version: 230000,
+      version: self.state().version,
       subversion: String::new(),
       protocol_version: 0,
       local_services: String::new(),
@@ -394,6 +394,7 @@ impl Api for Server {
     &self,
     _params: Vec<serde_json::Value>,
   ) -> Result<serde_json::Value, jsonrpc_core::Error> {
+    self.state().descriptors += 1;
     Ok(json!([{"success": true}]))
   }
 

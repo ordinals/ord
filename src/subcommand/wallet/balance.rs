@@ -4,8 +4,11 @@ pub(crate) fn run(options: Options) -> Result {
   println!(
     "{}",
     options
-      .bitcoin_rpc_client_for_wallet_command("ord wallet receive")?
-      .get_new_address(None, None)?
+      .bitcoin_rpc_client()?
+      .get_balances()?
+      .mine
+      .trusted
+      .to_sat()
   );
 
   Ok(())

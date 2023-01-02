@@ -1,17 +1,15 @@
 use super::*;
 
 use {
-  self::{
-    deserialize_from_str::DeserializeFromStr,
-    templates::{
-      BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionsHtml, OutputHtml,
-      PageContent, PageHtml, RangeHtml, RareTxt, SatHtml, TransactionHtml,
-    },
+  self::deserialize_from_str::DeserializeFromStr,
+  crate::templates::{
+    BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionsHtml, OutputHtml,
+    PageContent, PageHtml, RangeHtml, RareTxt, SatHtml, TransactionHtml,
   },
   axum::{
     body,
     extract::{Extension, Path, Query},
-    http::{header, StatusCode},
+    http::{header, HeaderValue, StatusCode},
     response::{IntoResponse, Redirect, Response},
     routing::get,
     Router,
@@ -27,10 +25,10 @@ use {
   serde::{de, Deserializer},
   std::{cmp::Ordering, str},
   tokio_stream::StreamExt,
+  tower_http::set_header::SetResponseHeaderLayer,
 };
 
 mod deserialize_from_str;
-pub(crate) mod templates;
 
 enum BlockQuery {
   Height(u64),
@@ -172,11 +170,10 @@ impl Server {
         .route("/tx/:txid", get(Self::transaction))
         .layer(Extension(index))
         .layer(Extension(options.chain()))
-        .layer(
-          CorsLayer::new()
-            .allow_methods([http::Method::GET])
-            .allow_origin(Any),
-        );
+        .layer(SetResponseHeaderLayer::if_not_present(
+          header::CONTENT_SECURITY_POLICY,
+          HeaderValue::from_static("default-src 'self'"),
+        ));
 
       match (self.http_port(), self.https_port()) {
         (Some(http_port), None) => self.spawn(router, handle, http_port, None)?.await??,
@@ -321,7 +318,7 @@ impl Server {
     Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(sat)): Path<DeserializeFromStr<Sat>>,
-  ) -> ServerResult<PageHtml> {
+  ) -> ServerResult<PageHtml<SatHtml>> {
     let satpoint = index.rare_sat_satpoint(sat).map_err(|err| {
       ServerError::Internal(anyhow!(
         "failed to satpoint for sat {sat} from index: {err}"
@@ -356,7 +353,7 @@ impl Server {
     Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
     Path(outpoint): Path<OutPoint>,
-  ) -> ServerResult<PageHtml> {
+  ) -> ServerResult<PageHtml<OutputHtml>> {
     let output = index
       .get_transaction(outpoint.txid)
       .map_err(ServerError::Internal)?
@@ -396,7 +393,7 @@ impl Server {
       DeserializeFromStr<Sat>,
       DeserializeFromStr<Sat>,
     )>,
-  ) -> ServerResult<PageHtml> {
+  ) -> ServerResult<PageHtml<RangeHtml>> {
     match start.cmp(&end) {
       Ordering::Equal => Err(ServerError::BadRequest("empty range".to_string())),
       Ordering::Greater => Err(ServerError::BadRequest(
@@ -425,14 +422,14 @@ impl Server {
   async fn home(
     Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
-  ) -> ServerResult<PageHtml> {
+  ) -> ServerResult<PageHtml<HomeHtml>> {
     Ok(
       HomeHtml::new(
         index
           .blocks(100)
           .map_err(|err| ServerError::Internal(anyhow!("error getting blocks: {err}")))?,
         index
-          .get_latest_graphical_inscriptions(8)
+          .get_latest_inscriptions(8)
           .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?,
       )
       .page(
@@ -450,7 +447,7 @@ impl Server {
     Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(query)): Path<DeserializeFromStr<BlockQuery>>,
-  ) -> ServerResult<PageHtml> {
+  ) -> ServerResult<PageHtml<BlockHtml>> {
     let (block, height) = match query {
       BlockQuery::Height(height) => {
         let block = index
@@ -499,7 +496,7 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Extension(chain): Extension<Chain>,
     Path(txid): Path<Txid>,
-  ) -> ServerResult<PageHtml> {
+  ) -> ServerResult<PageHtml<TransactionHtml>> {
     let inscription = index
       .get_inscription_by_inscription_id(txid)
       .map_err(|err| {
@@ -626,7 +623,7 @@ impl Server {
     Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
     Path(path): Path<(u64, usize, usize)>,
-  ) -> Result<PageHtml, ServerError> {
+  ) -> Result<PageHtml<InputHtml>, ServerError> {
     let not_found =
       || ServerError::NotFound(format!("input /{}/{}/{} unknown", path.0, path.1, path.2));
 
@@ -682,7 +679,7 @@ impl Server {
           (header::CONTENT_TYPE, content_type),
           (
             header::CONTENT_SECURITY_POLICY,
-            "default-src 'none' 'unsafe-eval' 'unsafe-inline'".to_string(),
+            "default-src 'unsafe-eval' 'unsafe-inline'".to_string(),
           ),
         ],
         content,
@@ -704,7 +701,7 @@ impl Server {
     Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
-  ) -> ServerResult<PageHtml> {
+  ) -> ServerResult<PageHtml<InscriptionHtml>> {
     let (inscription, satpoint) = index
       .get_inscription_by_inscription_id(inscription_id)
       .map_err(|err| {
@@ -739,11 +736,11 @@ impl Server {
   async fn inscriptions(
     Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
-  ) -> ServerResult<PageHtml> {
+  ) -> ServerResult<PageHtml<InscriptionsHtml>> {
     Ok(
       InscriptionsHtml {
         inscriptions: index
-          .get_latest_inscription_ids(100)
+          .get_latest_inscriptions(100)
           .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?,
       }
       .page(
@@ -756,7 +753,7 @@ impl Server {
 
 #[cfg(test)]
 mod tests {
-  use {super::*, reqwest::Url, std::net::TcpListener, tempfile::TempDir};
+  use {super::*, reqwest::Url, std::net::TcpListener};
 
   struct TestServer {
     bitcoin_rpc_server: test_bitcoincore_rpc::Handle,
@@ -1389,6 +1386,7 @@ mod tests {
       input_slots: &[(1, 0, 0)],
       output_count: 1,
       fee: 0,
+      ..Default::default()
     };
     test_server.bitcoin_rpc_server.broadcast_tx(transaction);
     let block_hash = test_server.bitcoin_rpc_server.mine_blocks(1)[0].block_hash();
@@ -1687,6 +1685,7 @@ next.*",
       input_slots: &[(1, 0, 0)],
       output_count: 2,
       fee: 0,
+      ..Default::default()
     });
     server.bitcoin_rpc_server.mine_blocks(1);
     server.index.update().unwrap();
@@ -1717,6 +1716,7 @@ next.*",
       input_slots: &[(1, 0, 0)],
       output_count: 2,
       fee: 2,
+      ..Default::default()
     });
     server.bitcoin_rpc_server.mine_blocks(1);
     server.index.update().unwrap();

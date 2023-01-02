@@ -2,18 +2,20 @@ use super::*;
 
 pub(crate) struct State {
   pub(crate) blocks: BTreeMap<BlockHash, Block>,
+  pub(crate) descriptors: u64,
   pub(crate) hashes: Vec<BlockHash>,
   pub(crate) mempool: Vec<Transaction>,
   pub(crate) network: Network,
   pub(crate) nonce: u32,
   pub(crate) transactions: BTreeMap<Txid, Transaction>,
   pub(crate) utxos: BTreeMap<OutPoint, Amount>,
+  pub(crate) version: usize,
   pub(crate) wallet_name: String,
   pub(crate) wallets: BTreeSet<String>,
 }
 
 impl State {
-  pub(crate) fn new(network: Network, wallet_name: &str) -> Self {
+  pub(crate) fn new(network: Network, version: usize, wallet_name: &str) -> Self {
     let mut hashes = Vec::new();
     let mut blocks = BTreeMap::new();
 
@@ -24,12 +26,14 @@ impl State {
 
     Self {
       blocks,
+      descriptors: 0,
       hashes,
       mempool: Vec::new(),
       network,
       nonce: 0,
       transactions: BTreeMap::new(),
       utxos: BTreeMap::new(),
+      version,
       wallet_name: wallet_name.to_string(),
       wallets: BTreeSet::new(),
     }
@@ -121,14 +125,18 @@ impl State {
   pub(crate) fn broadcast_tx(&mut self, options: TransactionTemplate) -> Txid {
     let mut total_value = 0;
     let mut input = Vec::new();
-    for (height, tx, vout) in options.input_slots {
+    for (i, (height, tx, vout)) in options.input_slots.iter().enumerate() {
       let tx = &self.blocks.get(&self.hashes[*height]).unwrap().txdata[*tx];
       total_value += tx.output[*vout].value;
       input.push(TxIn {
         previous_output: OutPoint::new(tx.txid(), *vout as u32),
         script_sig: Script::new(),
         sequence: Sequence::MAX,
-        witness: Witness::new(),
+        witness: if i == 0 {
+          options.witness.clone()
+        } else {
+          Witness::new()
+        },
       });
     }
 

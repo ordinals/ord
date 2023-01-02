@@ -36,11 +36,13 @@ fn run() {
 
 #[test]
 fn inscription_page() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file hello.txt"
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 hello.txt"
   ))
   .write("hello.txt", "HELLOWORLD")
   .rpc_server(&rpc_server)
@@ -57,7 +59,7 @@ fn inscription_page() {
       ".*<meta property=og:image content='/content/{reveal_tx}'>.*
 <h1>Inscription {reveal_tx}</h1>
 <a class=content href=/content/{reveal_tx}>
-<pre>HELLOWORLD</pre>
+<pre class=inscription>HELLOWORLD</pre>
 </a>
 <dl>
   <dt>content size</dt>
@@ -77,11 +79,13 @@ fn inscription_page() {
 
 #[test]
 fn inscription_appears_on_reveal_transaction_page() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file hello.txt"
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 hello.txt"
   ))
   .write("hello.txt", "HELLOWORLD")
   .rpc_server(&rpc_server)
@@ -100,11 +104,13 @@ fn inscription_appears_on_reveal_transaction_page() {
 
 #[test]
 fn inscription_page_after_send() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file hello.txt"
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 hello.txt"
   ))
   .write("hello.txt", "HELLOWORLD")
   .rpc_server(&rpc_server)
@@ -152,11 +158,13 @@ fn inscription_page_after_send() {
 
 #[test]
 fn inscription_content() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file hello.txt"
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 hello.txt"
   ))
   .write("hello.txt", "HELLOWORLD")
   .rpc_server(&rpc_server)
@@ -177,14 +185,16 @@ fn inscription_content() {
   );
   assert_eq!(
     response.headers().get("content-security-policy").unwrap(),
-    "default-src 'none' 'unsafe-eval' 'unsafe-inline'"
+    "default-src 'unsafe-eval' 'unsafe-inline'"
   );
   assert_eq!(response.bytes().unwrap(), "HELLOWORLD");
 }
 
 #[test]
 fn home_page_includes_latest_inscriptions() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
 
   let inscription_id = create_inscription(&rpc_server, "foo.png");
 
@@ -201,7 +211,9 @@ fn home_page_includes_latest_inscriptions() {
 
 #[test]
 fn home_page_only_includes_graphical_inscriptions() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
 
   create_inscription(&rpc_server, "hello.txt");
   let inscription_id = create_inscription(&rpc_server, "foo.png");
@@ -219,7 +231,9 @@ fn home_page_only_includes_graphical_inscriptions() {
 
 #[test]
 fn home_page_inscriptions_are_sorted() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
 
   let mut inscriptions = String::new();
 
@@ -240,11 +254,14 @@ fn home_page_inscriptions_are_sorted() {
 
 #[test]
 fn inscriptions_page() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
-    "--chain regtest wallet inscribe --satpoint {txid}:0:0 --file hello.txt"
+    "--chain regtest wallet inscribe --satpoint {txid}:0:0 hello.txt"
   ))
   .write("hello.txt", "HELLOWORLD")
   .rpc_server(&rpc_server)
@@ -258,30 +275,26 @@ fn inscriptions_page() {
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     "/inscriptions",
     &format!(
-      ".*<h1>Inscriptions</h1>.*
-<ul>
-  <li>
-    <a href=/inscription/{reveal_tx} class=monospace>
-      {reveal_tx}
-    </a>
-  </li>
-</ul>.*",
+      ".*<h1>Inscriptions</h1>
+<div class=inscriptions>
+  <a href=/inscription/{reveal_tx}><pre class=inscription>HELLOWORLD</pre></a>
+</div>
+.*",
     ),
   );
 }
 
 #[test]
 fn inscriptions_page_is_sorted() {
-  let rpc_server = test_bitcoincore_rpc::spawn_with(Network::Regtest, "ord");
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
 
   let mut inscriptions = String::new();
 
   for i in 0..8 {
     let id = create_inscription(&rpc_server, &format!("{i}.png"));
-    inscriptions.insert_str(
-      0,
-      &format!(".*<a href=/inscription/{id} class=monospace>.*"),
-    );
+    inscriptions.insert_str(0, &format!(".*<a href=/inscription/{id}>.*"));
   }
 
   TestServer::spawn_with_args(&rpc_server, &[])
