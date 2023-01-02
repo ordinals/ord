@@ -21,7 +21,7 @@ impl Send {
     let index = Index::open(&options)?;
     index.update()?;
 
-    let utxos = get_unspent_outputs(&options)?;
+    let unspent_outputs = get_unspent_outputs(&options)?;
 
     let inscriptions = index.get_inscriptions(None)?;
 
@@ -39,18 +39,18 @@ impl Send {
         .map(|(_inscription, satpoint)| satpoint)
         .ok_or_else(|| anyhow!("No inscription found for {txid}"))?,
       Outgoing::Amount(amount) => {
-        let inscription_utxos = inscriptions
+        let all_inscription_outputs = inscriptions
           .keys()
           .map(|satpoint| satpoint.outpoint)
           .collect::<HashSet<OutPoint>>();
 
-        let ordinal_utxos = utxos
+        let wallet_inscription_outputs = unspent_outputs
           .keys()
-          .filter(|utxo| inscription_utxos.contains(utxo))
+          .filter(|utxo| all_inscription_outputs.contains(utxo))
           .cloned()
           .collect::<Vec<OutPoint>>();
 
-        if !client.lock_unspent(&ordinal_utxos)? {
+        if !client.lock_unspent(&wallet_inscription_outputs)? {
           bail!("failed to lock ordinal UTXOs");
         }
 
@@ -65,8 +65,13 @@ impl Send {
 
     let change = get_change_addresses(&options, 2)?;
 
-    let unsigned_transaction =
-      TransactionBuilder::build_transaction(satpoint, inscriptions, utxos, self.address, change)?;
+    let unsigned_transaction = TransactionBuilder::build_transaction(
+      satpoint,
+      inscriptions,
+      unspent_outputs,
+      self.address,
+      change,
+    )?;
 
     let signed_tx = client
       .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
