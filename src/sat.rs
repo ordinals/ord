@@ -192,7 +192,7 @@ impl PartialEq<u64> for Sat {
 }
 
 impl PartialOrd<u64> for Sat {
-  fn partial_cmp(&self, other: &u64) -> Option<Ordering> {
+  fn partial_cmp(&self, other: &u64) -> Option<cmp::Ordering> {
     self.0.partial_cmp(other)
   }
 }

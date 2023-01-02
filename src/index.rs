@@ -7,7 +7,7 @@ use {
   log::log_enabled,
   redb::{Database, ReadableTable, Table, TableDefinition, WriteStrategy, WriteTransaction},
   std::collections::HashMap,
-  std::sync::atomic::{AtomicBool, Ordering},
+  std::sync::atomic::{self, AtomicBool},
 };
 
 mod rtx;
@@ -200,11 +200,19 @@ impl Index {
           .map(|x| x.value())
           .unwrap_or(0);
 
-        if schema_version != SCHEMA_VERSION {
-          bail!(
-            "index at `{}` has schema version {schema_version} but current schema version is {SCHEMA_VERSION})",
-            database_path.display()
-          );
+        match schema_version.cmp(&SCHEMA_VERSION) {
+          cmp::Ordering::Less =>
+            bail!(
+              "index at `{}` has older schema version {schema_version} which is older than ord binary schema version {SCHEMA_VERSION}, consider deleting and rebuilding the index",
+              database_path.display()
+            ),
+          cmp::Ordering::Greater =>
+            bail!(
+              "index at `{}` has schema version {schema_version} which is newer than ord binary schema version {SCHEMA_VERSION}, consider updating ord ",
+              database_path.display()
+            ),
+          cmp::Ordering::Equal => {
+          }
         }
 
         database
@@ -357,7 +365,7 @@ impl Index {
   }
 
   pub(crate) fn is_reorged(&self) -> bool {
-    self.reorged.load(Ordering::Relaxed)
+    self.reorged.load(atomic::Ordering::Relaxed)
   }
 
   fn begin_read(&self) -> Result<rtx::Rtx> {

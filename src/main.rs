@@ -48,7 +48,7 @@ use {
   regex::Regex,
   serde::{Deserialize, Serialize},
   std::{
-    cmp::Ordering,
+    cmp,
     collections::{BTreeMap, HashSet, VecDeque},
     env,
     ffi::OsString,
