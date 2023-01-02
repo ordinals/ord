@@ -87,11 +87,9 @@ fn get_unspent_outputs(options: &Options) -> Result<BTreeMap<OutPoint, Amount>> 
   }
 
   for JsonOutPoint { txid, vout } in client.call::<Vec<JsonOutPoint>>("listlockunspent", &[])? {
-    let transaction = client.get_raw_transaction(&txid, None)?;
-
     utxos.insert(
       OutPoint { txid, vout },
-      Amount::from_sat(transaction.output[vout as usize].value),
+      Amount::from_sat(client.get_raw_transaction(&txid, None)?.output[vout as usize].value),
     );
   }
 

@@ -218,6 +218,10 @@ impl Handle {
   pub fn sent(&self) -> Vec<Sent> {
     self.state().sent.clone()
   }
+
+  pub fn lock(&self, output: OutPoint) {
+    self.state().locked.insert(output);
+  }
 }
 
 impl Drop for Handle {

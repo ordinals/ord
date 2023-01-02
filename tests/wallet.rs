@@ -645,6 +645,22 @@ fn utxos() {
 }
 
 #[test]
+fn utxos_includes_locked_outputs() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  let coinbase_tx = &rpc_server.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0];
+  let outpoint = OutPoint::new(coinbase_tx.txid(), 0);
+  let amount = coinbase_tx.output[0].value;
+
+  rpc_server.lock(outpoint);
+
+  CommandBuilder::new("wallet utxos")
+    .rpc_server(&rpc_server)
+    .expected_stdout(format!("{outpoint}\t{amount}\n"))
+    .run();
+}
+
+#[test]
 fn inscriptions() {
   let rpc_server = test_bitcoincore_rpc::builder()
     .network(Network::Signet)
@@ -694,6 +710,35 @@ fn inscriptions() {
   CommandBuilder::new("--chain signet wallet inscriptions")
     .rpc_server(&rpc_server)
     .expected_stdout(format!("{inscription_id}\t{outpoint}:0\n"))
+    .run();
+}
+
+#[test]
+fn inscriptions_includes_locked_utxos() {
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Signet)
+    .build();
+
+  rpc_server.mine_blocks(1);
+
+  let inscription_id = reveal_txid_from_inscribe_stdout(
+    &CommandBuilder::new("--chain signet wallet inscribe hello.txt")
+      .write("hello.txt", "HELLOWORLD")
+      .rpc_server(&rpc_server)
+      .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+      .run(),
+  );
+
+  rpc_server.mine_blocks(1);
+
+  rpc_server.lock(OutPoint {
+    txid: inscription_id,
+    vout: 0,
+  });
+
+  CommandBuilder::new("--chain signet wallet inscriptions")
+    .rpc_server(&rpc_server)
+    .expected_stdout(format!("{inscription_id}\t{inscription_id}:0:0\n"))
     .run();
 }
 
