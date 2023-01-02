@@ -113,6 +113,7 @@ impl TransactionBuilder {
     fee_rate: f64,
   ) -> Self {
     Self {
+      utxos: amounts.keys().cloned().collect(),
       amounts,
       change_addresses: change.iter().cloned().collect(),
       fee_rate,
@@ -122,7 +123,6 @@ impl TransactionBuilder {
       outputs: Vec::new(),
       recipient,
       unused_change_addresses: change,
-      utxos: amounts.keys().cloned().collect(),
     }
   }
 
@@ -295,6 +295,8 @@ impl TransactionBuilder {
   }
 
   fn estimate_fee(&self) -> Amount {
+    #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_sign_loss)]
     Amount::from_sat((self.fee_rate * (self.estimate_vsize() as f64)) as u64)
   }
 
@@ -427,13 +429,13 @@ impl TransactionBuilder {
       fee -= Amount::from_sat(output.value);
     }
 
-    // this will not hold since we are rounding down
-    let fee_rate = fee.to_sat() as f64 / self.estimate_vsize() as f64;
+    #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_sign_loss)]
+    let total_rounded_fee = (self.fee_rate * (self.estimate_vsize() as f64)) as u64;
+
     assert!(
-      fee_rate == self.fee_rate,
-      "invariant: fee rate is equal to target fee rate: actual fee rate: {} target_fee rate: {}",
-      fee_rate,
-      self.fee_rate,
+      fee.to_sat() == total_rounded_fee,
+      "invariant: total fee is equal to rounded total fee",
     );
 
     for tx_out in &transaction.output {
@@ -973,7 +975,7 @@ mod tests {
   }
 
   #[test]
-  #[should_panic(expected = "invariant: fee rate is equal to target fee rate")]
+  #[should_panic(expected = "invariant: total fee is equal to rounded total fee")]
   fn invariant_fee_is_at_least_target_fee_rate() {
     let utxos = vec![(outpoint(1), Amount::from_sat(10_000))];
 
@@ -1097,6 +1099,33 @@ mod tests {
         inscription_id: "bed200b55adcf20e359bbb762392d5106cafbafc48e55f77c94d3041de3521da"
           .parse()
           .unwrap(),
+      })
+    )
+  }
+
+  #[test]
+  fn send_inscriptions_with_custom_fee_rate() {
+    let utxos = vec![(outpoint(1), Amount::from_sat(10_000))];
+
+    pretty_assert_eq!(
+      TransactionBuilder::build_transaction(
+        satpoint(1, 0),
+        BTreeMap::from([(
+          satpoint(1, 0),
+          "bed200b55adcf20e359bbb762392d5106cafbafc48e55f77c94d3041de3521da"
+            .parse()
+            .unwrap()
+        )]),
+        utxos.into_iter().collect(),
+        recipient(),
+        vec![change(0), change(1)],
+        25.8,
+      ),
+      Ok(Transaction {
+        version: 1,
+        lock_time: PackedLockTime::ZERO,
+        input: vec![tx_in(outpoint(1))],
+        output: vec![tx_out(4_324, recipient())],
       })
     )
   }

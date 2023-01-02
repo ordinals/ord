@@ -63,6 +63,7 @@ impl Preview {
         options: options.clone(),
         subcommand: Subcommand::Wallet(super::wallet::Wallet::Inscribe(
           super::wallet::inscribe::Inscribe {
+            fee_rate: 1.0,
             file,
             no_backup: true,
             satpoint: None,

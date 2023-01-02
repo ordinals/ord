@@ -825,3 +825,42 @@ fn wallet_balance() {
     .expected_stdout("5000000000\n")
     .run();
 }
+
+#[test]
+fn wallet_send_with_fee_rate() {
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Signet)
+    .build();
+  rpc_server.mine_blocks(1);
+
+  let stdout = CommandBuilder::new("--chain signet --index-sats wallet inscribe degenerate.png")
+    .write("degenerate.png", [1; 520])
+    .rpc_server(&rpc_server)
+    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+    .run();
+
+  rpc_server.mine_blocks(1);
+
+  let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
+
+  CommandBuilder::new(format!(
+    "--chain signet wallet send tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw {reveal_txid} --fee-rate 2.0"
+  ))
+  .rpc_server(&rpc_server)
+  .stdout_regex("[[:xdigit:]]{64}\n")
+  .run();
+}
+
+#[test]
+fn wallet_inscribe_with_fee_rate() {
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Signet)
+    .build();
+  rpc_server.mine_blocks(1);
+
+  CommandBuilder::new("--chain signet --index-sats wallet inscribe degenerate.png --fee-rate 2.0")
+    .write("degenerate.png", [1; 520])
+    .rpc_server(&rpc_server)
+    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+    .run();
+}

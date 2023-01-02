@@ -32,7 +32,7 @@ pub(crate) struct Inscribe {
   #[clap(long, help = "Inscribe <SATPOINT>")]
   pub(crate) satpoint: Option<SatPoint>,
   #[clap(long, default_value = "1.0", help = "Fee rate in sats/vByte")]
-  fee_rate: f64,
+  pub(crate) fee_rate: f64,
   #[clap(help = "Inscribe sat with contents of <FILE>")]
   pub(crate) file: PathBuf,
   #[clap(long, help = "Do not back up recovery key.")]
@@ -206,6 +206,8 @@ impl Inscribe {
       reveal_tx.input[0].witness.push(&reveal_script);
       reveal_tx.input[0].witness.push(&control_block.serialize());
 
+      #[allow(clippy::cast_possible_truncation)]
+      #[allow(clippy::cast_sign_loss)]
       Amount::from_sat((fee_rate * (reveal_tx.vsize() as f64)) as u64)
     };
 
@@ -317,6 +319,8 @@ mod tests {
     )
     .unwrap();
 
+    #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_sign_loss)]
     let fee = Amount::from_sat((1.0 * (reveal_tx.vsize() as f64)) as u64);
 
     assert_eq!(
@@ -467,5 +471,38 @@ mod tests {
       1.0,
     )
     .is_ok())
+  }
+
+  #[test]
+  fn inscribe_with_custom_fee_rate() {
+    let utxos = vec![
+      (outpoint(1), Amount::from_sat(10_000)),
+      (outpoint(2), Amount::from_sat(10_000)),
+    ];
+    let mut inscriptions = BTreeMap::new();
+    inscriptions.insert(
+      SatPoint {
+        outpoint: outpoint(1),
+        offset: 0,
+      },
+      Txid::from_str("06413a3ef4232f0485df2bc7c912c13c05c69f967c19639344753e05edb64bd5").unwrap(),
+    );
+
+    let inscription = inscription("text/plain", "ord");
+    let satpoint = None;
+    let commit_address = change(0);
+    let reveal_address = recipient();
+
+    assert!(Inscribe::create_inscription_transactions(
+      satpoint,
+      inscription,
+      inscriptions,
+      bitcoin::Network::Signet,
+      utxos.into_iter().collect(),
+      vec![commit_address, change(1)],
+      reveal_address,
+      3.3,
+    )
+    .is_ok());
   }
 }
