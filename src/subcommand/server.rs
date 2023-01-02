@@ -1265,13 +1265,6 @@ mod tests {
     "/",
     StatusCode::OK,
     ".*<title>Ordinals</title>.*
-<h2>Status</h2>
-<dl>
-  <dt>cycle</dt><dd>0</dd>
-  <dt>epoch</dt><dd>0</dd>
-  <dt>period</dt><dd>0</dd>
-  <dt>block</dt><dd>1</dd>
-</dl>
 <h2>Latest Blocks</h2>
 <ol start=1 reversed class=blocks>
   <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
