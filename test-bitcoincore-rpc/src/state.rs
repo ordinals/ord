@@ -122,10 +122,10 @@ impl State {
     blockhash
   }
 
-  pub(crate) fn broadcast_tx(&mut self, options: TransactionTemplate) -> Txid {
+  pub(crate) fn broadcast_tx(&mut self, template: TransactionTemplate) -> Txid {
     let mut total_value = 0;
     let mut input = Vec::new();
-    for (i, (height, tx, vout)) in options.input_slots.iter().enumerate() {
+    for (i, (height, tx, vout)) in template.inputs.iter().enumerate() {
       let tx = &self.blocks.get(&self.hashes[*height]).unwrap().txdata[*tx];
       total_value += tx.output[*vout].value;
       input.push(TxIn {
@@ -133,16 +133,16 @@ impl State {
         script_sig: Script::new(),
         sequence: Sequence::MAX,
         witness: if i == 0 {
-          options.witness.clone()
+          template.witness.clone()
         } else {
           Witness::new()
         },
       });
     }
 
-    let value_per_output = (total_value - options.fee) / options.output_count as u64;
+    let value_per_output = (total_value - template.fee) / template.outputs as u64;
     assert_eq!(
-      value_per_output * options.output_count as u64 + options.fee,
+      value_per_output * template.outputs as u64 + template.fee,
       total_value
     );
 
@@ -150,9 +150,13 @@ impl State {
       version: 0,
       lock_time: PackedLockTime(0),
       input,
-      output: (0..options.output_count)
-        .map(|_| TxOut {
-          value: value_per_output,
+      output: (0..template.outputs)
+        .map(|i| TxOut {
+          value: template
+            .output_values
+            .get(i)
+            .cloned()
+            .unwrap_or(value_per_output),
           script_pubkey: script::Builder::new().into_script(),
         })
         .collect(),

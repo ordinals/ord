@@ -58,7 +58,7 @@ impl Updater {
     let mut updater = Self {
       cache: HashMap::new(),
       height,
-      index_sats: index.has_satoshi_index()?,
+      index_sats: index.has_sat_index()?,
       sat_ranges_since_flush: 0,
       outputs_cached: 0,
       outputs_inserted_since_flush: 0,
@@ -275,28 +275,28 @@ impl Updater {
     let mut inscription_number_to_inscription_id =
       wtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
     let mut outpoint_to_value = wtx.open_table(OUTPOINT_TO_VALUE)?;
+    let mut sat_to_inscription_id = wtx.open_table(SAT_TO_INSCRIPTION_ID)?;
     let mut satpoint_to_inscription_id = wtx.open_table(SATPOINT_TO_INSCRIPTION_ID)?;
+    let mut statistic_to_count = wtx.open_table(STATISTIC_TO_COUNT)?;
 
-    let mut next_inscription_number = inscription_number_to_inscription_id
-      .iter()?
-      .rev()
-      .map(|(number, _id)| number.value() + 1)
-      .next()
+    let mut lost_sats = statistic_to_count
+      .get(&Statistic::LostSats.key())?
+      .map(|lost_sats| lost_sats.value())
       .unwrap_or(0);
 
-    let mut inscription_updater = InscriptionUpdater {
-      height: self.height,
-      id_to_height: &mut inscription_id_to_height,
-      id_to_satpoint: &mut inscription_id_to_satpoint,
+    let mut inscription_updater = InscriptionUpdater::new(
+      self.height,
+      &mut inscription_id_to_height,
+      &mut inscription_id_to_satpoint,
       index,
-      next_number: &mut next_inscription_number,
-      number_to_id: &mut inscription_number_to_inscription_id,
-      outpoint_to_value: &mut outpoint_to_value,
-      satpoint_to_id: &mut satpoint_to_inscription_id,
-    };
+      lost_sats,
+      &mut inscription_number_to_inscription_id,
+      &mut outpoint_to_value,
+      &mut sat_to_inscription_id,
+      &mut satpoint_to_inscription_id,
+    )?;
 
     if self.index_sats {
-      let mut sat_to_inscription_id = wtx.open_table(SAT_TO_INSCRIPTION_ID)?;
       let mut sat_to_satpoint = wtx.open_table(SAT_TO_SATPOINT)?;
       let mut outpoint_to_sat_ranges = wtx.open_table(OUTPOINT_TO_SAT_RANGES)?;
 
@@ -338,7 +338,6 @@ impl Updater {
           tx,
           *txid,
           &mut sat_to_satpoint,
-          &mut sat_to_inscription_id,
           &mut input_sat_ranges,
           &mut sat_ranges_written,
           &mut outputs_in_block,
@@ -353,18 +352,35 @@ impl Updater {
           tx,
           *txid,
           &mut sat_to_satpoint,
-          &mut sat_to_inscription_id,
           &mut coinbase_inputs,
           &mut sat_ranges_written,
           &mut outputs_in_block,
           &mut inscription_updater,
         )?;
       }
+
+      if !coinbase_inputs.is_empty() {
+        for (start, end) in coinbase_inputs {
+          if !Sat(start).is_common() {
+            sat_to_satpoint.insert(
+              &start,
+              &encode_satpoint(SatPoint {
+                outpoint: OutPoint::null(),
+                offset: lost_sats,
+              }),
+            )?;
+          }
+
+          lost_sats += end - start;
+        }
+      }
     } else {
-      for (tx, txid) in &block.txdata {
-        inscription_updater.index_transaction_inscriptions(tx, *txid)?;
+      for (tx, txid) in block.txdata.iter().skip(1).chain(block.txdata.first()) {
+        lost_sats += inscription_updater.index_transaction_inscriptions(tx, *txid, None)?;
       }
     }
+
+    statistic_to_count.insert(&Statistic::LostSats.key(), &lost_sats)?;
 
     height_to_block_hash.insert(
       &self.height,
@@ -387,17 +403,12 @@ impl Updater {
     tx: &Transaction,
     txid: Txid,
     sat_to_satpoint: &mut Table<u64, &SatPointArray>,
-    sat_to_inscription_id: &mut Table<u64, &InscriptionIdArray>,
     input_sat_ranges: &mut VecDeque<(u64, u64)>,
     sat_ranges_written: &mut u64,
     outputs_traversed: &mut u64,
     inscription_updater: &mut InscriptionUpdater,
   ) -> Result {
-    if inscription_updater.index_transaction_inscriptions(tx, txid)? {
-      if let Some((start, _end)) = input_sat_ranges.get(0) {
-        sat_to_inscription_id.insert(&start, txid.as_inner())?;
-      }
-    }
+    inscription_updater.index_transaction_inscriptions(tx, txid, Some(input_sat_ranges))?;
 
     for (vout, output) in tx.output.iter().enumerate() {
       let outpoint = OutPoint {
