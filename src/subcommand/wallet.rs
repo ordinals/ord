@@ -4,12 +4,12 @@ mod balance;
 pub(crate) mod create;
 pub(crate) mod inscribe;
 mod inscriptions;
+mod outputs;
 mod receive;
 mod sats;
 mod send;
 mod transaction_builder;
 mod transactions;
-mod utxos;
 
 #[derive(Debug, Parser)]
 pub(crate) enum Wallet {
@@ -29,8 +29,8 @@ pub(crate) enum Wallet {
   Send(send::Send),
   #[clap(about = "See wallet transactions")]
   Transactions(transactions::Transactions),
-  #[clap(about = "List wallet UTXOs")]
-  Utxos(utxos::Utxos),
+  #[clap(about = "List wallet outputs")]
+  Outputs,
 }
 
 impl Wallet {
@@ -44,7 +44,7 @@ impl Wallet {
       Self::Sats(sats) => sats.run(options),
       Self::Send(send) => send.run(options),
       Self::Transactions(transactions) => transactions.run(options),
-      Self::Utxos(utxos) => utxos.run(options),
+      Self::Outputs => outputs::run(options),
     }
   }
 }
