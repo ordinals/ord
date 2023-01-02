@@ -1,7 +1,7 @@
 use super::*;
 
 pub(crate) fn run(options: Options) -> Result {
-  let utxos = options
+  let outputs = options
     .bitcoin_rpc_client_for_wallet_command("ord wallet outputs")?
     .list_unspent(None, None, None, None, None)?
     .iter()
