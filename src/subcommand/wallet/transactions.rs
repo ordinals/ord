@@ -3,14 +3,14 @@ use super::*;
 #[derive(Debug, Parser)]
 pub(crate) struct Transactions {
   #[clap(long, help = "Fetch at most <LIMIT> transactions.")]
-  limit: Option<usize>,
+  limit: Option<u16>,
 }
 
 impl Transactions {
   pub(crate) fn run(self, options: Options) -> Result {
     for tx in options.bitcoin_rpc_client()?.list_transactions(
       None,
-      Some(self.limit.unwrap_or(usize::MAX)),
+      Some(self.limit.unwrap_or(u16::MAX).into()),
       None,
       None,
     )? {
