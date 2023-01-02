@@ -402,6 +402,17 @@ impl Api for Server {
     )
   }
 
+  fn list_lock_unspent(&self) -> Result<Vec<JsonOutPoint>, jsonrpc_core::Error> {
+    Ok(
+      self
+        .state()
+        .locked
+        .iter()
+        .map(|outpoint| (*outpoint).into())
+        .collect(),
+    )
+  }
+
   fn get_raw_change_address(&self) -> Result<bitcoin::Address, jsonrpc_core::Error> {
     let secp256k1 = Secp256k1::new();
     let key_pair = KeyPair::new(&secp256k1, &mut rand::thread_rng());

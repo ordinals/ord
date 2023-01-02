@@ -22,7 +22,7 @@ use {
   },
   jsonrpc_core::{IoHandler, Value},
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
-  serde::Deserialize,
+  serde::{Deserialize, Serialize},
   server::Server,
   state::State,
   std::{
@@ -137,10 +137,19 @@ pub struct Sent {
   pub locked: Vec<OutPoint>,
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct JsonOutPoint {
   txid: bitcoin::Txid,
   vout: u32,
+}
+
+impl From<OutPoint> for JsonOutPoint {
+  fn from(outpoint: OutPoint) -> Self {
+    Self {
+      txid: outpoint.txid,
+      vout: outpoint.vout,
+    }
+  }
 }
 
 impl<'a> Default for TransactionTemplate<'a> {

@@ -9,7 +9,7 @@ impl Inscriptions {
     index.update()?;
 
     let inscriptions = index.get_inscriptions(None)?;
-    let utxos = list_utxos(&options)?;
+    let utxos = get_unspent_outputs(&options)?;
 
     for (satpoint, inscription_id) in inscriptions {
       if utxos.contains_key(&satpoint.outpoint) {

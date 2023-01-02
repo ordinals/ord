@@ -49,24 +49,21 @@ impl Wallet {
   }
 }
 
-fn list_unspent(options: &Options, index: &Index) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
-  let client = options.bitcoin_rpc_client()?;
-
-  client
-    .list_unspent(None, None, None, None, None)?
-    .iter()
-    .map(|utxo| {
-      let outpoint = OutPoint::new(utxo.txid, utxo.vout);
-      match index.list(outpoint)? {
-        Some(List::Unspent(sat_ranges)) => Ok((outpoint, sat_ranges)),
-        Some(List::Spent) => bail!("output {outpoint} in wallet but is spent according to index"),
-        None => bail!("index has not seen {outpoint}"),
-      }
+fn get_unspent_output_ranges(
+  options: &Options,
+  index: &Index,
+) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
+  get_unspent_outputs(options)?
+    .into_keys()
+    .map(|outpoint| match index.list(outpoint)? {
+      Some(List::Unspent(sat_ranges)) => Ok((outpoint, sat_ranges)),
+      Some(List::Spent) => bail!("output {outpoint} in wallet but is spent according to index"),
+      None => bail!("index has not seen {outpoint}"),
     })
     .collect()
 }
 
-fn list_utxos(options: &Options) -> Result<BTreeMap<OutPoint, Amount>> {
+fn get_unspent_outputs(options: &Options) -> Result<BTreeMap<OutPoint, Amount>> {
   let client = options.bitcoin_rpc_client()?;
 
   let mut utxos = BTreeMap::new();
@@ -74,7 +71,7 @@ fn list_utxos(options: &Options) -> Result<BTreeMap<OutPoint, Amount>> {
   utxos.extend(
     client
       .list_unspent(None, None, None, None, None)?
-      .iter()
+      .into_iter()
       .map(|utxo| {
         let outpoint = OutPoint::new(utxo.txid, utxo.vout);
         let amount = utxo.amount;
@@ -83,28 +80,20 @@ fn list_utxos(options: &Options) -> Result<BTreeMap<OutPoint, Amount>> {
       }),
   );
 
-  // TODO: use JsonOutpoint
   #[derive(Deserialize)]
-  struct Locked {
-    txid: Txid,
+  pub struct JsonOutPoint {
+    txid: bitcoin::Txid,
     vout: u32,
   }
 
-  utxos.extend(
-    client
-      .call::<Vec<Locked>>("listlockunspent", &[])?
-      .into_iter()
-      .map(|locked| {
-        (
-          OutPoint {
-            txid: locked.txid,
-            vout: locked.vout,
-          },
-          // todo: fix
-          Amount::from_sat(0),
-        )
-      }),
-  );
+  for JsonOutPoint { txid, vout } in client.call::<Vec<JsonOutPoint>>("listlockunspent", &[])? {
+    let transaction = client.get_raw_transaction(&txid, None)?;
+
+    utxos.insert(
+      OutPoint { txid, vout },
+      Amount::from_sat(transaction.output[vout as usize].value),
+    );
+  }
 
   Ok(utxos)
 }

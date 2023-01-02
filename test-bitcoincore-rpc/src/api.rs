@@ -99,6 +99,9 @@ pub trait Api {
     query_options: Option<String>,
   ) -> Result<Vec<ListUnspentResultEntry>, jsonrpc_core::Error>;
 
+  #[rpc(name = "listlockunspent")]
+  fn list_lock_unspent(&self) -> Result<Vec<JsonOutPoint>, jsonrpc_core::Error>;
+
   #[rpc(name = "getrawchangeaddress")]
   fn get_raw_change_address(&self) -> Result<bitcoin::Address, jsonrpc_core::Error>;
 
