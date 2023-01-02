@@ -775,6 +775,26 @@ impl Index {
 mod tests {
   use super::*;
 
+  struct ContextBuilder {
+    args: Vec<OsString>,
+  }
+
+  impl ContextBuilder {
+    fn build(self) -> Context {
+      Context::with_args(self.args)
+    }
+
+    fn arg(mut self, arg: impl Into<OsString>) -> Self {
+      self.args.push(arg.into());
+      self
+    }
+
+    fn args<T: Into<OsString>, I: IntoIterator<Item = T>>(mut self, args: I) -> Self {
+      self.args.extend(args.into_iter().map(|arg| arg.into()));
+      self
+    }
+  }
+
   struct Context {
     rpc_server: test_bitcoincore_rpc::Handle,
     #[allow(unused)]
@@ -783,29 +803,29 @@ mod tests {
   }
 
   impl Context {
-    fn with_args(args: &str) -> Self {
+    fn builder() -> ContextBuilder {
+      ContextBuilder { args: Vec::new() }
+    }
+
+    fn with_args(args: Vec<OsString>) -> Self {
       let rpc_server = test_bitcoincore_rpc::spawn();
 
       let tempdir = TempDir::new().unwrap();
       let cookie_file = tempdir.path().join("cookie");
       fs::write(&cookie_file, "username:password").unwrap();
-      let options = Options::try_parse_from(
-        format!(
-          "
-          ord
-          --rpc-url {}
-          --data-dir {}
-          --cookie-file {}
-          --chain regtest
-          {args}
-        ",
-          rpc_server.url(),
-          tempdir.path().display(),
-          cookie_file.display(),
-        )
-        .split_whitespace(),
-      )
-      .unwrap();
+
+      let command: Vec<OsString> = vec![
+        "ord".into(),
+        "--rpc-url".into(),
+        rpc_server.url().into(),
+        "--data-dir".into(),
+        tempdir.path().into(),
+        "--cookie-file".into(),
+        cookie_file.into(),
+        "--regtest".into(),
+      ];
+
+      let options = Options::try_parse_from(command.into_iter().chain(args)).unwrap();
       let index = Index::open(&options).unwrap();
       index.update().unwrap();
 
@@ -829,28 +849,31 @@ mod tests {
     }
 
     fn configurations() -> Vec<Context> {
-      vec![Context::with_args(""), Context::with_args("--index-sats")]
+      vec![
+        Context::builder().build(),
+        Context::builder().arg("--index-sats").build(),
+      ]
     }
   }
 
   #[test]
   fn height_limit() {
     {
-      let context = Context::with_args("--height-limit 0");
+      let context = Context::builder().args(["--height-limit", "0"]).build();
       context.mine_blocks(1);
       assert_eq!(context.index.height().unwrap(), None);
       assert_eq!(context.index.block_count().unwrap(), 0);
     }
 
     {
-      let context = Context::with_args("--height-limit 1");
+      let context = Context::builder().args(["--height-limit", "1"]).build();
       context.mine_blocks(1);
       assert_eq!(context.index.height().unwrap(), Some(Height(0)));
       assert_eq!(context.index.block_count().unwrap(), 1);
     }
 
     {
-      let context = Context::with_args("--height-limit 2");
+      let context = Context::builder().args(["--height-limit", "2"]).build();
       context.mine_blocks(2);
       assert_eq!(context.index.height().unwrap(), Some(Height(1)));
       assert_eq!(context.index.block_count().unwrap(), 2);
@@ -859,7 +882,7 @@ mod tests {
 
   #[test]
   fn list_first_coinbase_transaction() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
     assert_eq!(
       context
         .index
@@ -876,7 +899,7 @@ mod tests {
 
   #[test]
   fn list_second_coinbase_transaction() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
     let txid = context.mine_blocks(1)[0].txdata[0].txid();
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
@@ -886,7 +909,7 @@ mod tests {
 
   #[test]
   fn list_split_ranges_are_tracked_correctly() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
 
     context.mine_blocks(1);
     let split_coinbase_output = TransactionTemplate {
@@ -912,7 +935,7 @@ mod tests {
 
   #[test]
   fn list_merge_ranges_are_tracked_correctly() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
 
     context.mine_blocks(2);
     let merge_coinbase_outputs = TransactionTemplate {
@@ -935,7 +958,7 @@ mod tests {
 
   #[test]
   fn list_fee_paying_transaction_range() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
 
     context.mine_blocks(1);
     let fee_paying_tx = TransactionTemplate {
@@ -969,7 +992,7 @@ mod tests {
 
   #[test]
   fn list_two_fee_paying_transaction_range() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
 
     context.mine_blocks(2);
     let first_fee_paying_tx = TransactionTemplate {
@@ -1003,7 +1026,7 @@ mod tests {
 
   #[test]
   fn list_null_output() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
 
     context.mine_blocks(1);
     let no_value_output = TransactionTemplate {
@@ -1022,7 +1045,7 @@ mod tests {
 
   #[test]
   fn list_null_input() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
 
     context.mine_blocks(1);
     let no_value_output = TransactionTemplate {
@@ -1049,7 +1072,7 @@ mod tests {
 
   #[test]
   fn list_spent_output() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
     context.mine_blocks(1);
     context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0)],
@@ -1066,7 +1089,7 @@ mod tests {
 
   #[test]
   fn list_unknown_output() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
 
     assert_eq!(
       context
@@ -1083,7 +1106,7 @@ mod tests {
 
   #[test]
   fn find_first_sat() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
     assert_eq!(
       context.index.find(0).unwrap().unwrap(),
       SatPoint {
@@ -1097,7 +1120,7 @@ mod tests {
 
   #[test]
   fn find_second_sat() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
     assert_eq!(
       context.index.find(1).unwrap().unwrap(),
       SatPoint {
@@ -1111,7 +1134,7 @@ mod tests {
 
   #[test]
   fn find_first_sat_of_second_block() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
     context.mine_blocks(1);
     assert_eq!(
       context.index.find(50 * COIN_VALUE).unwrap().unwrap(),
@@ -1126,13 +1149,13 @@ mod tests {
 
   #[test]
   fn find_unmined_sat() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
     assert_eq!(context.index.find(50 * COIN_VALUE).unwrap(), None);
   }
 
   #[test]
   fn find_first_satoshi_spent_in_second_block() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
     context.mine_blocks(1);
     let spend_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0)],
@@ -1324,10 +1347,10 @@ mod tests {
   #[test]
   fn missing_inputs_are_fetched_from_bitcoin_core() {
     for args in [
-      "--first-inscription-height 2",
-      "--first-inscription-height 2 --index-sats",
+      ["--first-inscription-height", "2"].as_slice(),
+      ["--first-inscription-height", "2", "--index-sats"].as_slice(),
     ] {
-      let context = Context::with_args(args);
+      let context = Context::builder().args(args).build();
       context.mine_blocks(1);
 
       let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -1505,7 +1528,7 @@ mod tests {
 
   #[test]
   fn lost_sats_are_tracked_correctly() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
     assert_eq!(context.index.statistic(Statistic::LostSats), 0);
 
     context.mine_blocks(1);
@@ -1616,7 +1639,7 @@ mod tests {
 
   #[test]
   fn lost_rare_sats_are_tracked() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
     context.mine_blocks_with_subsidy(1, 0);
     context.mine_blocks_with_subsidy(1, 0);
 
@@ -1643,5 +1666,20 @@ mod tests {
         offset: 50 * COIN_VALUE,
       },
     );
+  }
+
+  #[test]
+  fn old_schema_gives_correct_error() {
+    let context = Context::builder().build();
+
+    context
+      .index
+      .database
+      .begin_write()
+      .unwrap()
+      .open_table(STATISTIC_TO_COUNT)
+      .unwrap()
+      .insert(&Statistic::Schema.key(), &0)
+      .unwrap();
   }
 }
