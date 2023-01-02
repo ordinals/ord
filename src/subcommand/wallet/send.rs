@@ -24,10 +24,10 @@ pub(crate) struct Send {
   address: Address,
   #[clap(
     long,
-    // default_value = 1.0,
-    help = "Fee rate in sats per vByte"
+    default_value = "1.0",
+    help = "Fee rate in sats/vByte"
   )]
-  fee_rate: Option<f64>,
+  fee_rate: f64,
 }
 
 impl Send {
