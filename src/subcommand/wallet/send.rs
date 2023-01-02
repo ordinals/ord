@@ -3,7 +3,7 @@ use super::*;
 #[derive(Debug)]
 enum Reference {
   SatPoint(SatPoint),
-  InscriptionId(Txid),
+  InscriptionId(InscriptionId),
 }
 
 impl FromStr for Reference {
