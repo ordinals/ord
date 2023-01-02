@@ -798,6 +798,10 @@ mod tests {
       self.index.update().unwrap();
       blocks
     }
+
+    fn configurations() -> Vec<Context> {
+      vec![Context::with_args(""), Context::with_args("--index-sats")]
+    }
   }
 
   #[test]
@@ -1118,8 +1122,7 @@ mod tests {
 
   #[test]
   fn inscriptions_are_tracked_correctly() {
-    for args in ["", "--index-sats"] {
-      let context = Context::with_args(args);
+    for context in Context::configurations() {
       context.mine_blocks(1);
 
       let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -1146,8 +1149,7 @@ mod tests {
 
   #[test]
   fn unaligned_inscriptions_are_tracked_correctly() {
-    for args in ["", "--index-sats"] {
-      let context = Context::with_args(args);
+    for context in Context::configurations() {
       context.mine_blocks(1);
 
       let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -1193,8 +1195,7 @@ mod tests {
 
   #[test]
   fn merged_inscriptions_are_tracked_correctly() {
-    for args in ["", "--index-sats"] {
-      let context = Context::with_args(args);
+    for context in Context::configurations() {
       context.mine_blocks(2);
 
       let first_inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -1246,8 +1247,7 @@ mod tests {
 
   #[test]
   fn inscriptions_that_are_sent_to_second_output_are_are_tracked_correctly() {
-    for args in ["", "--index-sats"] {
-      let context = Context::with_args(args);
+    for context in Context::configurations() {
       context.mine_blocks(1);
 
       let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -1344,8 +1344,7 @@ mod tests {
 
   #[test]
   fn fee_spent_inscriptions_are_tracked_correctly() {
-    for args in ["", "--index-sats"] {
-      let context = Context::with_args(args);
+    for context in Context::configurations() {
       context.mine_blocks(1);
 
       let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -1380,8 +1379,7 @@ mod tests {
 
   #[test]
   fn inscription_can_be_fee_spent_in_first_transaction() {
-    for args in ["", "--index-sats"] {
-      let context = Context::with_args(args);
+    for context in Context::configurations() {
       context.mine_blocks(1);
 
       let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -1409,8 +1407,7 @@ mod tests {
 
   #[test]
   fn lost_inscriptions() {
-    for args in ["", "--index-sats"] {
-      let context = Context::with_args(args);
+    for context in Context::configurations() {
       context.mine_blocks(1);
 
       let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -1435,8 +1432,7 @@ mod tests {
 
   #[test]
   fn multiple_inscriptions_can_be_lost() {
-    for args in ["", "--index-sats"] {
-      let context = Context::with_args(args);
+    for context in Context::configurations() {
       context.mine_blocks(1);
 
       let first_inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -1507,8 +1503,7 @@ mod tests {
 
   #[test]
   fn lost_inscriptions_get_lost_satpoints() {
-    for args in ["", "--index-sats"] {
-      let context = Context::with_args(args);
+    for context in Context::configurations() {
       context.mine_blocks_with_subsidy(1, 0);
       context.mine_blocks(1);
 
@@ -1540,8 +1535,7 @@ mod tests {
 
   #[test]
   fn inscription_skips_zero_value_first_output_of_inscribe_transaction() {
-    for args in ["", "--index-sats"] {
-      let context = Context::with_args(args);
+    for context in Context::configurations() {
       context.mine_blocks(1);
 
       let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -1569,8 +1563,7 @@ mod tests {
 
   #[test]
   fn inscription_can_be_lost_in_first_transaction() {
-    for args in ["", "--index-sats"] {
-      let context = Context::with_args(args);
+    for context in Context::configurations() {
       context.mine_blocks(1);
 
       let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
