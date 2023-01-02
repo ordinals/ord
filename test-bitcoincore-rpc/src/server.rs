@@ -414,7 +414,7 @@ impl Api for Server {
   fn list_transactions(
     &self,
     _label: Option<String>,
-    _count: Option<usize>,
+    count: Option<usize>,
     _skip: Option<usize>,
     _include_watchonly: Option<bool>,
   ) -> Result<Vec<ListTransactionResult>, jsonrpc_core::Error> {
@@ -423,6 +423,7 @@ impl Api for Server {
       state
         .transactions
         .iter()
+        .take(count.unwrap_or(usize::MAX))
         .map(|(txid, tx)| (*txid, tx))
         .chain(state.mempool.iter().map(|tx| (tx.txid(), tx)))
         .map(|(txid, tx)| ListTransactionResult {

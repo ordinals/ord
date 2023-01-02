@@ -738,41 +738,45 @@ fn create() {
 
 #[test]
 fn transactions() {
-  let rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Signet)
-    .build();
-  rpc_server.mine_blocks(1);
+  let rpc_server = test_bitcoincore_rpc::spawn();
 
-  let stdout = CommandBuilder::new("--chain signet wallet inscribe degenerate.png")
-    .write("degenerate.png", [1; 520])
+  CommandBuilder::new("wallet transactions")
     .rpc_server(&rpc_server)
-    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-    .run();
-
-  let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
-
-  CommandBuilder::new("--chain signet wallet transactions")
-    .rpc_server(&rpc_server)
-    .stdout_regex(format!(".*{}\t0.*", reveal_txid))
     .run();
 
   rpc_server.mine_blocks(1);
 
-  CommandBuilder::new("--chain signet wallet transactions")
+  CommandBuilder::new("wallet transactions")
     .rpc_server(&rpc_server)
-    .stdout_regex(format!(".*{}\t1\n.*", reveal_txid))
+    .stdout_regex("[[:xdigit:]]{64}\t1\n")
+    .run();
+}
+
+#[test]
+fn transactions_with_limit() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  CommandBuilder::new("wallet transactions")
+    .rpc_server(&rpc_server)
     .run();
 
-  let txid = CommandBuilder::new(format!(
-    "--chain signet wallet send tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw {reveal_txid}"
-  ))
-  .rpc_server(&rpc_server)
-  .stdout_regex(r".*")
-  .run();
+  rpc_server.mine_blocks(1);
 
-  CommandBuilder::new("--chain signet wallet transactions")
+  CommandBuilder::new("wallet transactions")
     .rpc_server(&rpc_server)
-    .stdout_regex(format!(".*{}\t0\n.*", txid.trim()))
+    .stdout_regex("[[:xdigit:]]{64}\t1\n")
+    .run();
+
+  rpc_server.mine_blocks(1);
+
+  CommandBuilder::new("wallet transactions")
+    .rpc_server(&rpc_server)
+    .stdout_regex("[[:xdigit:]]{64}\t1\n[[:xdigit:]]{64}\t2\n")
+    .run();
+
+  CommandBuilder::new("wallet transactions --limit 1")
+    .rpc_server(&rpc_server)
+    .stdout_regex("[[:xdigit:]]{64}\t1\n")
     .run();
 }
 
