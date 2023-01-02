@@ -31,7 +31,7 @@ fn format_bitcoin_core_version(version: usize) -> String {
 pub(crate) struct Inscribe {
   #[clap(long, help = "Inscribe <SATPOINT>")]
   pub(crate) satpoint: Option<SatPoint>,
-  #[clap(long, default_value = "1.0", help = "Fee rate in sats/vByte")]
+  #[clap(long, default_value = "1.0", help = "Fee rate in sats/vB")]
   pub(crate) fee_rate: f64,
   #[clap(help = "Inscribe sat with contents of <FILE>")]
   pub(crate) file: PathBuf,

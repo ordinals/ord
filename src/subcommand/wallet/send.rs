@@ -22,7 +22,7 @@ impl FromStr for Reference {
 pub(crate) struct Send {
   address: Address,
   outgoing: Reference,
-  #[clap(long, default_value = "1.0", help = "Fee rate in sats/vByte")]
+  #[clap(long, default_value = "1.0", help = "Fee rate in sats/vB")]
   fee_rate: f64,
 }
 
