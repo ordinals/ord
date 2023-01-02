@@ -69,7 +69,9 @@ fn list_unspent(options: &Options, index: &Index) -> Result<Vec<(OutPoint, Vec<(
 fn list_utxos(options: &Options) -> Result<BTreeMap<OutPoint, Amount>> {
   let client = options.bitcoin_rpc_client()?;
 
-  Ok(
+  let mut utxos = BTreeMap::new();
+
+  utxos.extend(
     client
       .list_unspent(None, None, None, None, None)?
       .iter()
@@ -78,9 +80,33 @@ fn list_utxos(options: &Options) -> Result<BTreeMap<OutPoint, Amount>> {
         let amount = utxo.amount;
 
         (outpoint, amount)
-      })
-      .collect(),
-  )
+      }),
+  );
+
+  // TODO: use JsonOutpoint
+  #[derive(Deserialize)]
+  struct Locked {
+    txid: Txid,
+    vout: u32,
+  }
+
+  utxos.extend(
+    client
+      .call::<Vec<Locked>>("listlockunspent", &[])?
+      .into_iter()
+      .map(|locked| {
+        (
+          OutPoint {
+            txid: locked.txid,
+            vout: locked.vout,
+          },
+          // todo: fix
+          Amount::from_sat(0),
+        )
+      }),
+  );
+
+  Ok(utxos)
 }
 
 fn get_change_addresses(options: &Options, n: usize) -> Result<Vec<Address>> {
