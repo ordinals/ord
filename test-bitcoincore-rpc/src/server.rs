@@ -378,11 +378,13 @@ impl Api for Server {
     assert_eq!(include_unsafe, None, "include_unsafe param not supported");
     assert_eq!(query_options, None, "query_options param not supported");
 
+    let state = self.state();
+
     Ok(
-      self
-        .state()
+      state
         .utxos
         .iter()
+        .filter(|(outpoint, _amount)| !state.locked.contains(outpoint))
         .map(|(outpoint, &amount)| ListUnspentResultEntry {
           txid: outpoint.txid,
           vout: outpoint.vout,
