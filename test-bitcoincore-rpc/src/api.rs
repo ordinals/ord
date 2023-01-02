@@ -112,7 +112,7 @@ pub trait Api {
   fn list_transactions(
     &self,
     label: Option<String>,
-    count: Option<usize>,
+    count: Option<u16>,
     skip: Option<usize>,
     include_watchonly: Option<bool>,
   ) -> Result<Vec<ListTransactionResult>, jsonrpc_core::Error>;
