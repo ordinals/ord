@@ -72,10 +72,10 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       });
     };
 
-    let mut input = 0;
+    let mut input_value = 0;
     for tx_in in &tx.input {
       if tx_in.previous_output.is_null() {
-        input += Height(self.height).subsidy();
+        input_value += Height(self.height).subsidy();
       } else {
         let outpoint = tx_in.previous_output;
         let start = encode_satpoint(SatPoint {
@@ -95,7 +95,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         {
           let old_satpoint = decode_satpoint(old_satpoint);
           inscriptions.push(Flotsam {
-            offset: input + old_satpoint.offset,
+            offset: input_value + old_satpoint.offset,
             inscription_id: InscriptionId::from_inner(inscription_id),
             old_satpoint: Some(old_satpoint),
           });
@@ -104,7 +104,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           .outpoint_to_value
           .remove(&encode_outpoint(tx_in.previous_output))?;
 
-        input += if let Some(value) = self
+        input_value += if let Some(value) = self
           .outpoint_to_value
           .get(&encode_outpoint(tx_in.previous_output))?
         {
@@ -138,9 +138,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     inscriptions.sort_by_key(|flotsam| flotsam.offset);
     let mut inscriptions = inscriptions.into_iter().peekable();
 
-    let mut output = 0;
+    let mut output_value = 0;
     for (vout, tx_out) in tx.output.iter().enumerate() {
-      let end = output + tx_out.value;
+      let end = output_value + tx_out.value;
 
       while let Some(flotsam) = inscriptions.peek() {
         if flotsam.offset >= end {
@@ -152,7 +152,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             txid,
             vout: vout.try_into().unwrap(),
           },
-          offset: flotsam.offset - output,
+          offset: flotsam.offset - output_value,
         };
 
         self.update_inscription_location(input_sat_ranges, flotsam, new_satpoint)?;
@@ -160,7 +160,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         inscriptions.next();
       }
 
-      output = end;
+      output_value = end;
     }
 
     for (vout, tx_out) in tx.output.iter().enumerate() {
@@ -177,18 +177,18 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       for flotsam in inscriptions {
         let new_satpoint = SatPoint {
           outpoint: OutPoint::null(),
-          offset: self.lost_sats + flotsam.offset - output,
+          offset: self.lost_sats + flotsam.offset - output_value,
         };
         self.update_inscription_location(input_sat_ranges, &flotsam, new_satpoint)?;
       }
 
-      Ok(self.reward - output)
+      Ok(self.reward - output_value)
     } else {
       self.flotsam.extend(inscriptions.map(|flotsam| Flotsam {
         offset: self.reward + flotsam.offset,
         ..flotsam
       }));
-      self.reward += input - output;
+      self.reward += input_value - output_value;
       Ok(0)
     }
   }
