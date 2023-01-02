@@ -1053,7 +1053,7 @@ mod tests {
     assert_eq!(
       context.index.find(50 * COIN_VALUE).unwrap().unwrap(),
       SatPoint {
-        outpoint: "0c4eb1fa83a7d6ce0e21e5e616a96e83a7b1658170fb544acf6f5c6a2d4b3f90:0"
+        outpoint: "30f2f037629c6a21c1f40ed39b9bd6278df39762d68d07f49582b23bcb23386a:0"
           .parse()
           .unwrap(),
         offset: 0,

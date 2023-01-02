@@ -1399,8 +1399,8 @@ mod tests {
   <dt>hash</dt><dd class=monospace>[[:xdigit:]]{64}</dd>
   <dt>target</dt><dd class=monospace>[[:xdigit:]]{64}</dd>
   <dt>timestamp</dt><dd>0</dd>
-  <dt>size</dt><dd>203</dd>
-  <dt>weight</dt><dd>812</dd>
+  <dt>size</dt><dd>202</dd>
+  <dt>weight</dt><dd>808</dd>
   <dt>previous blockhash</dt><dd><a href=/block/659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf class=monospace>659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf</a></dd>
 </dl>
 <a href=/block/1>prev</a>
@@ -1448,8 +1448,8 @@ next.*",
 <h2>1 Output</h2>
 <ul class=monospace>
   <li>
-    <a href=/output/0c4eb1fa83a7d6ce0e21e5e616a96e83a7b1658170fb544acf6f5c6a2d4b3f90:0 class=monospace>
-      0c4eb1fa83a7d6ce0e21e5e616a96e83a7b1658170fb544acf6f5c6a2d4b3f90:0
+    <a href=/output/30f2f037629c6a21c1f40ed39b9bd6278df39762d68d07f49582b23bcb23386a:0 class=monospace>
+      30f2f037629c6a21c1f40ed39b9bd6278df39762d68d07f49582b23bcb23386a:0
     </a>
     <dl>
       <dt>value</dt><dd>5000000000</dd>
