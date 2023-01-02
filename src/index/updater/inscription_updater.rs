@@ -1,68 +1,110 @@
 use super::*;
 
+pub(super) struct Flotsam {
+  inscription_id: InscriptionId,
+  offset: u64,
+  old_satpoint: Option<SatPoint>,
+}
+
 pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
-  pub(super) height: u64,
-  pub(super) id_to_height: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, u64>,
-  pub(super) id_to_satpoint: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, &'tx SatPointArray>,
-  pub(super) index: &'a Index,
-  pub(super) next_number: &'a mut u64,
-  pub(super) number_to_id: &'a mut Table<'db, 'tx, u64, &'tx InscriptionIdArray>,
-  pub(super) outpoint_to_value: &'a mut Table<'db, 'tx, &'tx OutPointArray, u64>,
-  pub(super) satpoint_to_id: &'a mut Table<'db, 'tx, &'tx SatPointArray, &'tx InscriptionIdArray>,
+  flotsam: Vec<Flotsam>,
+  height: u64,
+  id_to_height: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, u64>,
+  id_to_satpoint: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, &'tx SatPointArray>,
+  index: &'a Index,
+  lost_sats: u64,
+  next_number: u64,
+  number_to_id: &'a mut Table<'db, 'tx, u64, &'tx InscriptionIdArray>,
+  outpoint_to_value: &'a mut Table<'db, 'tx, &'tx OutPointArray, u64>,
+  reward: u64,
+  sat_to_inscription_id: &'a mut Table<'db, 'tx, u64, &'tx InscriptionIdArray>,
+  satpoint_to_id: &'a mut Table<'db, 'tx, &'tx SatPointArray, &'tx InscriptionIdArray>,
 }
 
 impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
+  pub(super) fn new(
+    height: u64,
+    id_to_height: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, u64>,
+    id_to_satpoint: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, &'tx SatPointArray>,
+    index: &'a Index,
+    lost_sats: u64,
+    number_to_id: &'a mut Table<'db, 'tx, u64, &'tx InscriptionIdArray>,
+    outpoint_to_value: &'a mut Table<'db, 'tx, &'tx OutPointArray, u64>,
+    sat_to_inscription_id: &'a mut Table<'db, 'tx, u64, &'tx InscriptionIdArray>,
+    satpoint_to_id: &'a mut Table<'db, 'tx, &'tx SatPointArray, &'tx InscriptionIdArray>,
+  ) -> Result<Self> {
+    let next_number = number_to_id
+      .iter()?
+      .rev()
+      .map(|(number, _id)| number.value() + 1)
+      .next()
+      .unwrap_or(0);
+
+    Ok(Self {
+      flotsam: Vec::new(),
+      height,
+      id_to_height,
+      id_to_satpoint,
+      index,
+      lost_sats,
+      next_number,
+      number_to_id,
+      outpoint_to_value,
+      reward: Height(height).subsidy(),
+      sat_to_inscription_id,
+      satpoint_to_id,
+    })
+  }
+
   pub(super) fn index_transaction_inscriptions(
     &mut self,
     tx: &Transaction,
     txid: Txid,
-  ) -> Result<bool> {
-    let inscribed = Inscription::from_transaction(tx).is_some();
+    input_sat_ranges: Option<&VecDeque<(u64, u64)>>,
+  ) -> Result<u64> {
+    let mut inscriptions = Vec::new();
 
-    if inscribed {
-      let satpoint = encode_satpoint(SatPoint {
-        outpoint: OutPoint { txid, vout: 0 },
+    if Inscription::from_transaction(tx).is_some() {
+      inscriptions.push(Flotsam {
+        inscription_id: txid,
         offset: 0,
+        old_satpoint: None,
       });
-
-      let inscription_id = txid.as_inner();
-
-      self.id_to_height.insert(inscription_id, &self.height)?;
-      self.id_to_satpoint.insert(inscription_id, &satpoint)?;
-      self.satpoint_to_id.insert(&satpoint, inscription_id)?;
-      self.number_to_id.insert(self.next_number, inscription_id)?;
-      *self.next_number += 1;
     };
 
-    let mut inscriptions: Vec<(u64, InscriptionIdArray, SatPointArray)> = Vec::new();
-
-    let mut offset = 0;
+    let mut input_value = 0;
     for tx_in in &tx.input {
-      let outpoint = tx_in.previous_output;
-      let start = encode_satpoint(SatPoint {
-        outpoint,
-        offset: 0,
-      });
+      if tx_in.previous_output.is_null() {
+        input_value += Height(self.height).subsidy();
+      } else {
+        let outpoint = tx_in.previous_output;
+        let start = encode_satpoint(SatPoint {
+          outpoint,
+          offset: 0,
+        });
 
-      let end = encode_satpoint(SatPoint {
-        outpoint,
-        offset: u64::MAX,
-      });
+        let end = encode_satpoint(SatPoint {
+          outpoint,
+          offset: u64::MAX,
+        });
 
-      for (old_satpoint, inscription_id) in self
-        .satpoint_to_id
-        .range(start..=end)?
-        .map(|(satpoint, id)| (*satpoint.value(), *id.value()))
-      {
-        inscriptions.push((
-          offset + decode_satpoint(old_satpoint).offset,
-          inscription_id,
-          old_satpoint,
-        ));
-      }
+        for (old_satpoint, inscription_id) in self
+          .satpoint_to_id
+          .range(start..=end)?
+          .map(|(satpoint, id)| (*satpoint.value(), *id.value()))
+        {
+          let old_satpoint = decode_satpoint(old_satpoint);
+          inscriptions.push(Flotsam {
+            offset: input_value + old_satpoint.offset,
+            inscription_id: InscriptionId::from_inner(inscription_id),
+            old_satpoint: Some(old_satpoint),
+          });
+        }
+        self
+          .outpoint_to_value
+          .remove(&encode_outpoint(tx_in.previous_output))?;
 
-      if !tx_in.previous_output.is_null() {
-        offset += if let Some(value) = self
+        input_value += if let Some(value) = self
           .outpoint_to_value
           .get(&encode_outpoint(tx_in.previous_output))?
         {
@@ -81,40 +123,44 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           .value
         }
       }
-
-      self
-        .outpoint_to_value
-        .remove(&encode_outpoint(tx_in.previous_output))?;
     }
 
-    inscriptions.sort();
+    let is_coinbase = tx
+      .input
+      .first()
+      .map(|tx_in| tx_in.previous_output.is_null())
+      .unwrap_or_default();
+
+    if is_coinbase {
+      inscriptions.append(&mut self.flotsam);
+    }
+
+    inscriptions.sort_by_key(|flotsam| flotsam.offset);
     let mut inscriptions = inscriptions.into_iter().peekable();
 
-    let mut start = 0;
+    let mut output_value = 0;
     for (vout, tx_out) in tx.output.iter().enumerate() {
-      let end = start + tx_out.value;
+      let end = output_value + tx_out.value;
 
-      while let Some((offset, inscription_id, old_satpoint)) = inscriptions.peek() {
-        if *offset >= end {
+      while let Some(flotsam) = inscriptions.peek() {
+        if flotsam.offset >= end {
           break;
         }
 
-        let new_satpoint = encode_satpoint(SatPoint {
+        let new_satpoint = SatPoint {
           outpoint: OutPoint {
             txid,
             vout: vout.try_into().unwrap(),
           },
-          offset: offset - start,
-        });
+          offset: flotsam.offset - output_value,
+        };
 
-        self.satpoint_to_id.remove(&old_satpoint)?;
-        self.satpoint_to_id.insert(&new_satpoint, &inscription_id)?;
-        self.id_to_satpoint.insert(&inscription_id, &new_satpoint)?;
+        self.update_inscription_location(input_sat_ranges, flotsam, new_satpoint)?;
 
         inscriptions.next();
       }
 
-      start = end;
+      output_value = end;
     }
 
     for (vout, tx_out) in tx.output.iter().enumerate() {
@@ -127,6 +173,67 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       )?;
     }
 
-    Ok(inscribed)
+    if is_coinbase {
+      for flotsam in inscriptions {
+        let new_satpoint = SatPoint {
+          outpoint: OutPoint::null(),
+          offset: self.lost_sats + flotsam.offset - output_value,
+        };
+        self.update_inscription_location(input_sat_ranges, &flotsam, new_satpoint)?;
+      }
+
+      Ok(self.reward - output_value)
+    } else {
+      self.flotsam.extend(inscriptions.map(|flotsam| Flotsam {
+        offset: self.reward + flotsam.offset,
+        ..flotsam
+      }));
+      self.reward += input_value - output_value;
+      Ok(0)
+    }
+  }
+
+  fn update_inscription_location(
+    &mut self,
+    input_sat_ranges: Option<&VecDeque<(u64, u64)>>,
+    flotsam: &Flotsam,
+    new_satpoint: SatPoint,
+  ) -> Result {
+    let inscription_id = flotsam.inscription_id.into_inner();
+
+    match flotsam.old_satpoint {
+      Some(old_satpoint) => {
+        self.satpoint_to_id.remove(&encode_satpoint(old_satpoint))?;
+      }
+      None => {
+        self.id_to_height.insert(&inscription_id, &self.height)?;
+        self
+          .number_to_id
+          .insert(&self.next_number, &inscription_id)?;
+
+        if let Some(input_sat_ranges) = input_sat_ranges {
+          let mut offset = 0;
+          for (start, end) in input_sat_ranges {
+            let size = end - start;
+            if offset + size > flotsam.offset {
+              self
+                .sat_to_inscription_id
+                .insert(&(start + flotsam.offset - offset), &inscription_id)?;
+              break;
+            }
+            offset += size;
+          }
+        }
+
+        self.next_number += 1;
+      }
+    }
+
+    let new_satpoint = encode_satpoint(new_satpoint);
+
+    self.satpoint_to_id.insert(&new_satpoint, &inscription_id)?;
+    self.id_to_satpoint.insert(&inscription_id, &new_satpoint)?;
+
+    Ok(())
   }
 }

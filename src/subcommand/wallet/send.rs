@@ -2,8 +2,8 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
-  outgoing: Outgoing,
   address: Address,
+  outgoing: Outgoing,
 }
 
 impl Send {
