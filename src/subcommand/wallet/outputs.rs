@@ -8,7 +8,7 @@ pub(crate) fn run(options: Options) -> Result {
     .map(|output| (OutPoint::new(output.txid, output.vout), output.amount))
     .collect::<Vec<(OutPoint, Amount)>>();
 
-  for (outpoint, amount) in output {
+  for (outpoint, amount) in outputs {
     println!("{outpoint}\t{}", amount.to_sat());
   }
 
