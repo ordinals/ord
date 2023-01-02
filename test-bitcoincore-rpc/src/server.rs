@@ -259,6 +259,40 @@ impl Api for Server {
     Ok(tx.txid().to_string())
   }
 
+  fn send_to_address(
+    &self,
+    address: Address,
+    amount: f64,
+    comment: Option<String>,
+    comment_to: Option<String>,
+    subtract_fee: Option<bool>,
+    replaceable: Option<bool>,
+    confirmation_target: Option<u32>,
+    estimate_mode: Option<EstimateMode>,
+  ) -> Result<Txid, jsonrpc_core::Error> {
+    assert_eq!(comment, None);
+    assert_eq!(comment_to, None);
+    assert_eq!(subtract_fee, None);
+    assert_eq!(replaceable, None);
+    assert_eq!(confirmation_target, None);
+    assert_eq!(estimate_mode, None);
+
+    let mut state = self.state.lock().unwrap();
+    let locked = state.locked.iter().cloned().collect();
+
+    state.sent.push(Sent {
+      address,
+      amount,
+      locked,
+    });
+
+    Ok(
+      "0000000000000000000000000000000000000000000000000000000000000000"
+        .parse()
+        .unwrap(),
+    )
+  }
+
   fn get_transaction(
     &self,
     txid: Txid,
@@ -344,11 +378,13 @@ impl Api for Server {
     assert_eq!(include_unsafe, None, "include_unsafe param not supported");
     assert_eq!(query_options, None, "query_options param not supported");
 
+    let state = self.state();
+
     Ok(
-      self
-        .state()
+      state
         .utxos
         .iter()
+        .filter(|(outpoint, _amount)| !state.locked.contains(outpoint))
         .map(|(outpoint, &amount)| ListUnspentResultEntry {
           txid: outpoint.txid,
           vout: outpoint.vout,
@@ -364,6 +400,17 @@ impl Api for Server {
           descriptor: None,
           safe: true,
         })
+        .collect(),
+    )
+  }
+
+  fn list_lock_unspent(&self) -> Result<Vec<JsonOutPoint>, jsonrpc_core::Error> {
+    Ok(
+      self
+        .state()
+        .locked
+        .iter()
+        .map(|outpoint| (*outpoint).into())
         .collect(),
     )
   }
@@ -453,5 +500,30 @@ impl Api for Server {
         })
         .collect(),
     )
+  }
+
+  fn lock_unspent(
+    &self,
+    unlock: bool,
+    outputs: Vec<JsonOutPoint>,
+  ) -> Result<bool, jsonrpc_core::Error> {
+    assert!(!unlock);
+
+    let mut state = self.state();
+
+    if state.fail_lock_unspent {
+      return Ok(false);
+    }
+
+    for output in outputs {
+      let output = OutPoint {
+        vout: output.vout,
+        txid: output.txid,
+      };
+      assert!(state.utxos.contains_key(&output));
+      state.locked.insert(output);
+    }
+
+    Ok(true)
   }
 }

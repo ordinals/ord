@@ -16,6 +16,7 @@ use {
     time::Duration,
   },
   tempfile::TempDir,
+  test_bitcoincore_rpc::Sent,
   unindent::Unindent,
 };
 

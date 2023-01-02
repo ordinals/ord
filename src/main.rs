@@ -22,6 +22,7 @@ use {
     index::{Index, List},
     inscription::Inscription,
     options::Options,
+    outgoing::Outgoing,
     rarity::Rarity,
     sat::Sat,
     sat_point::SatPoint,
@@ -37,7 +38,7 @@ use {
     hashes::Hash,
     Address, Amount, Block, OutPoint, Script, Sequence, Transaction, TxIn, TxOut, Txid,
   },
-  bitcoincore_rpc::RpcApi,
+  bitcoincore_rpc::{Client, RpcApi},
   chain::Chain,
   chrono::{NaiveDateTime, TimeZone, Utc},
   clap::{ArgGroup, Parser},
@@ -87,6 +88,7 @@ mod height;
 mod index;
 mod inscription;
 mod options;
+mod outgoing;
 mod rarity;
 mod sat;
 mod sat_point;

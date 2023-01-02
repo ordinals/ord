@@ -5,10 +5,10 @@ pub(crate) fn run(options: Options) -> Result {
   index.update()?;
 
   let inscriptions = index.get_inscriptions(None)?;
-  let utxos = list_utxos(&options)?;
+  let unspent_outputs = get_unspent_outputs(&options)?;
 
   for (satpoint, inscription_id) in inscriptions {
-    if utxos.contains_key(&satpoint.outpoint) {
+    if unspent_outputs.contains_key(&satpoint.outpoint) {
       println!("{}\t{}", inscription_id, satpoint);
     }
   }

@@ -3001,6 +3001,7 @@ dependencies = [
  "jsonrpc-http-server",
  "ord-bitcoincore-rpc",
  "reqwest",
+ "serde",
  "serde_json",
 ]
 

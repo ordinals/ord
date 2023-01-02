@@ -14,7 +14,7 @@ impl Sats {
     let index = Index::open(&options)?;
     index.update()?;
 
-    let utxos = list_unspent(&options, &index)?;
+    let utxos = get_unspent_output_ranges(&options, &index)?;
 
     if let Some(path) = &self.tsv {
       for (output, sat) in satoshis_from_tsv(

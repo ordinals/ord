@@ -645,6 +645,22 @@ fn outputs() {
 }
 
 #[test]
+fn outputs_includes_locked_outputs() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  let coinbase_tx = &rpc_server.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0];
+  let outpoint = OutPoint::new(coinbase_tx.txid(), 0);
+  let amount = coinbase_tx.output[0].value;
+
+  rpc_server.lock(outpoint);
+
+  CommandBuilder::new("wallet outputs")
+    .rpc_server(&rpc_server)
+    .expected_stdout(format!("{outpoint}\t{amount}\n"))
+    .run();
+}
+
+#[test]
 fn inscriptions() {
   let rpc_server = test_bitcoincore_rpc::builder()
     .network(Network::Signet)
@@ -694,6 +710,35 @@ fn inscriptions() {
   CommandBuilder::new("--chain signet wallet inscriptions")
     .rpc_server(&rpc_server)
     .expected_stdout(format!("{inscription_id}\t{outpoint}:0\n"))
+    .run();
+}
+
+#[test]
+fn inscriptions_includes_locked_utxos() {
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Signet)
+    .build();
+
+  rpc_server.mine_blocks(1);
+
+  let inscription_id = reveal_txid_from_inscribe_stdout(
+    &CommandBuilder::new("--chain signet wallet inscribe hello.txt")
+      .write("hello.txt", "HELLOWORLD")
+      .rpc_server(&rpc_server)
+      .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+      .run(),
+  );
+
+  rpc_server.mine_blocks(1);
+
+  rpc_server.lock(OutPoint {
+    txid: inscription_id,
+    vout: 0,
+  });
+
+  CommandBuilder::new("--chain signet wallet inscriptions")
+    .rpc_server(&rpc_server)
+    .expected_stdout(format!("{inscription_id}\t{inscription_id}:0:0\n"))
     .run();
 }
 
@@ -824,4 +869,89 @@ fn wallet_balance() {
     .rpc_server(&rpc_server)
     .expected_stdout("5000000000\n")
     .run();
+}
+
+#[test]
+fn send_btc() {
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  rpc_server.mine_blocks(1);
+
+  CommandBuilder::new(
+    "--chain regtest wallet send bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x 1btc",
+  )
+  .rpc_server(&rpc_server)
+  .expected_stdout("0000000000000000000000000000000000000000000000000000000000000000\n")
+  .run();
+
+  assert_eq!(
+    rpc_server.sent(),
+    &[Sent {
+      amount: 1.0,
+      address: "bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x"
+        .parse()
+        .unwrap(),
+      locked: Vec::new(),
+    }]
+  )
+}
+
+#[test]
+fn send_btc_locks_inscriptions() {
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+
+  rpc_server.mine_blocks(1);
+
+  let stdout = CommandBuilder::new("--chain regtest wallet inscribe hello.txt")
+    .write("hello.txt", "HELLOWORLD")
+    .rpc_server(&rpc_server)
+    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+    .run();
+
+  let inscription_id = reveal_txid_from_inscribe_stdout(&stdout);
+
+  rpc_server.mine_blocks(1);
+
+  CommandBuilder::new(
+    "--chain regtest wallet send bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x 1btc",
+  )
+  .rpc_server(&rpc_server)
+  .expected_stdout("0000000000000000000000000000000000000000000000000000000000000000\n")
+  .run();
+
+  assert_eq!(
+    rpc_server.sent(),
+    &[Sent {
+      amount: 1.0,
+      address: "bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x"
+        .parse()
+        .unwrap(),
+      locked: vec![OutPoint {
+        txid: inscription_id,
+        vout: 0,
+      }]
+    }]
+  )
+}
+
+#[test]
+fn send_btc_fails_if_lock_unspent_fails() {
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .fail_lock_unspent(true)
+    .network(Network::Regtest)
+    .build();
+
+  rpc_server.mine_blocks(1);
+
+  CommandBuilder::new(
+    "--chain regtest wallet send bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x 1btc",
+  )
+  .rpc_server(&rpc_server)
+  .expected_stderr("error: failed to lock ordinal UTXOs\n")
+  .expected_exit_code(1)
+  .run();
 }

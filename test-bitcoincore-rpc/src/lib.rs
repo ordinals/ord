@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_arguments)]
+
 use {
   api::Api,
   bitcoin::{
@@ -7,18 +9,20 @@ use {
     hash_types::BlockHash,
     hashes::Hash,
     util::amount::SignedAmount,
-    Amount, Block, BlockHeader, Network, OutPoint, PackedLockTime, Script, Sequence, Transaction,
-    TxIn, TxMerkleNode, TxOut, Txid, Witness, Wtxid,
+    Address, Amount, Block, BlockHeader, Network, OutPoint, PackedLockTime, Script, Sequence,
+    Transaction, TxIn, TxMerkleNode, TxOut, Txid, Witness, Wtxid,
   },
   bitcoincore_rpc::json::{
-    Bip125Replaceable, CreateRawTransactionInput, GetBalancesResult, GetBalancesResultEntry,
-    GetBlockHeaderResult, GetBlockchainInfoResult, GetDescriptorInfoResult, GetNetworkInfoResult,
-    GetRawTransactionResult, GetTransactionResult, GetTransactionResultDetail,
-    GetTransactionResultDetailCategory, GetWalletInfoResult, ListTransactionResult,
-    ListUnspentResultEntry, LoadWalletResult, SignRawTransactionResult, WalletTxInfo,
+    Bip125Replaceable, CreateRawTransactionInput, EstimateMode, GetBalancesResult,
+    GetBalancesResultEntry, GetBlockHeaderResult, GetBlockchainInfoResult, GetDescriptorInfoResult,
+    GetNetworkInfoResult, GetRawTransactionResult, GetTransactionResult,
+    GetTransactionResultDetail, GetTransactionResultDetailCategory, GetWalletInfoResult,
+    ListTransactionResult, ListUnspentResultEntry, LoadWalletResult, SignRawTransactionResult,
+    WalletTxInfo,
   },
   jsonrpc_core::{IoHandler, Value},
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
+  serde::{Deserialize, Serialize},
   server::Server,
   state::State,
   std::{
@@ -35,6 +39,7 @@ mod state;
 
 pub fn builder() -> Builder {
   Builder {
+    fail_lock_unspent: false,
     network: Network::Bitcoin,
     version: 240000,
     wallet_name: "ord",
@@ -42,12 +47,20 @@ pub fn builder() -> Builder {
 }
 
 pub struct Builder {
+  fail_lock_unspent: bool,
   network: Network,
   version: usize,
   wallet_name: &'static str,
 }
 
 impl Builder {
+  pub fn fail_lock_unspent(self, fail_lock_unspent: bool) -> Self {
+    Self {
+      fail_lock_unspent,
+      ..self
+    }
+  }
+
   pub fn network(self, network: Network) -> Self {
     Self { network, ..self }
   }
@@ -68,6 +81,7 @@ impl Builder {
       self.network,
       self.version,
       self.wallet_name,
+      self.fail_lock_unspent,
     )));
     let server = Server::new(state.clone());
     let mut io = IoHandler::default();
@@ -116,6 +130,28 @@ pub struct TransactionTemplate<'a> {
   pub witness: Witness,
 }
 
+#[derive(Clone, Debug, PartialEq)]
+pub struct Sent {
+  pub amount: f64,
+  pub address: Address,
+  pub locked: Vec<OutPoint>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct JsonOutPoint {
+  txid: bitcoin::Txid,
+  vout: u32,
+}
+
+impl From<OutPoint> for JsonOutPoint {
+  fn from(outpoint: OutPoint) -> Self {
+    Self {
+      txid: outpoint.txid,
+      vout: outpoint.vout,
+    }
+  }
+}
+
 impl<'a> Default for TransactionTemplate<'a> {
   fn default() -> Self {
     Self {
@@ -152,7 +188,7 @@ impl Handle {
   }
 
   pub fn mine_blocks_with_subsidy(&self, n: u64, subsidy: u64) -> Vec<Block> {
-    let mut bitcoin_rpc_data = self.state.lock().unwrap();
+    let mut bitcoin_rpc_data = self.state();
     (0..n)
       .map(|_| bitcoin_rpc_data.push_block(subsidy))
       .collect()
@@ -172,11 +208,19 @@ impl Handle {
   }
 
   pub fn mempool(&self) -> Vec<Transaction> {
-    self.state.lock().unwrap().mempool().to_vec()
+    self.state().mempool().to_vec()
   }
 
   pub fn descriptors(&self) -> u64 {
-    self.state.lock().unwrap().descriptors
+    self.state().descriptors
+  }
+
+  pub fn sent(&self) -> Vec<Sent> {
+    self.state().sent.clone()
+  }
+
+  pub fn lock(&self, output: OutPoint) {
+    self.state().locked.insert(output);
   }
 }
 

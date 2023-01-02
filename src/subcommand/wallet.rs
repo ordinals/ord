@@ -49,38 +49,51 @@ impl Wallet {
   }
 }
 
-fn list_unspent(options: &Options, index: &Index) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
-  let client = options.bitcoin_rpc_client()?;
-
-  client
-    .list_unspent(None, None, None, None, None)?
-    .iter()
-    .map(|utxo| {
-      let outpoint = OutPoint::new(utxo.txid, utxo.vout);
-      match index.list(outpoint)? {
-        Some(List::Unspent(sat_ranges)) => Ok((outpoint, sat_ranges)),
-        Some(List::Spent) => bail!("output {outpoint} in wallet but is spent according to index"),
-        None => bail!("index has not seen {outpoint}"),
-      }
+fn get_unspent_output_ranges(
+  options: &Options,
+  index: &Index,
+) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
+  get_unspent_outputs(options)?
+    .into_keys()
+    .map(|outpoint| match index.list(outpoint)? {
+      Some(List::Unspent(sat_ranges)) => Ok((outpoint, sat_ranges)),
+      Some(List::Spent) => bail!("output {outpoint} in wallet but is spent according to index"),
+      None => bail!("index has not seen {outpoint}"),
     })
     .collect()
 }
 
-fn list_utxos(options: &Options) -> Result<BTreeMap<OutPoint, Amount>> {
+fn get_unspent_outputs(options: &Options) -> Result<BTreeMap<OutPoint, Amount>> {
   let client = options.bitcoin_rpc_client()?;
 
-  Ok(
+  let mut utxos = BTreeMap::new();
+
+  utxos.extend(
     client
       .list_unspent(None, None, None, None, None)?
-      .iter()
+      .into_iter()
       .map(|utxo| {
         let outpoint = OutPoint::new(utxo.txid, utxo.vout);
         let amount = utxo.amount;
 
         (outpoint, amount)
-      })
-      .collect(),
-  )
+      }),
+  );
+
+  #[derive(Deserialize)]
+  pub struct JsonOutPoint {
+    txid: bitcoin::Txid,
+    vout: u32,
+  }
+
+  for JsonOutPoint { txid, vout } in client.call::<Vec<JsonOutPoint>>("listlockunspent", &[])? {
+    utxos.insert(
+      OutPoint { txid, vout },
+      Amount::from_sat(client.get_raw_transaction(&txid, None)?.output[vout as usize].value),
+    );
+  }
+
+  Ok(utxos)
 }
 
 fn get_change_addresses(options: &Options, n: usize) -> Result<Vec<Address>> {
