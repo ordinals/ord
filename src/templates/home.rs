@@ -58,10 +58,11 @@ mod tests {
         )],
       )
       .to_string(),
-      "<h1><a href=https://docs.ordinals.com>Ordinal Theory</a></h1>.*<h2><a href=/inscriptions>Latest Inscriptions</a></h2>
+      "<h2>Latest Inscriptions</h2>
 <div class=inscriptions>
   <a href=/inscription/1111111111111111111111111111111111111111111111111111111111111111><pre class=inscription>HELLOWORLD</pre></a>
 </div>
+<div class=center><a href=/inscriptions>more…</a></div>
 <h2>Latest Blocks</h2>
 <ol start=1260001 reversed class=blocks>
   <li><a href=/block/1{64}>1{64}</a></li>
