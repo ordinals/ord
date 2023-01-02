@@ -2,13 +2,13 @@ use super::*;
 
 pub(crate) fn run(options: Options) -> Result {
   let utxos = options
-    .bitcoin_rpc_client_for_wallet_command("ord wallet utxos")?
+    .bitcoin_rpc_client_for_wallet_command("ord wallet outputs")?
     .list_unspent(None, None, None, None, None)?
     .iter()
-    .map(|utxo| (OutPoint::new(utxo.txid, utxo.vout), utxo.amount))
+    .map(|output| (OutPoint::new(output.txid, output.vout), output.amount))
     .collect::<Vec<(OutPoint, Amount)>>();
 
-  for (outpoint, amount) in utxos {
+  for (outpoint, amount) in output {
     println!("{outpoint}\t{}", amount.to_sat());
   }
 
