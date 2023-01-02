@@ -95,6 +95,10 @@ input[type=text] {
   white-space: nowrap;
 }
 
+.center {
+  text-align: center;
+}
+
 .monospace {
   font-family: monospace, monospace;
 }
