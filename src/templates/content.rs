@@ -21,7 +21,7 @@ impl<'a> Display for ContentHtml<'a> {
       Some(Content::IFrame) => {
         write!(
           f,
-          "<iframe class=inscription src=/content/{}></iframe>",
+          "<iframe class=inscription sandbox=allow-scripts src=/content/{}></iframe>",
           self.inscription_id
         )
       }
@@ -90,7 +90,7 @@ mod tests {
         inscription_id: txid(1),
       }
       .to_string(),
-      "<iframe class=inscription src=/content/1111111111111111111111111111111111111111111111111111111111111111></iframe>"
+      "<iframe class=inscription sandbox=allow-scripts src=/content/1111111111111111111111111111111111111111111111111111111111111111></iframe>"
     );
   }
 }

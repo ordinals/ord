@@ -71,6 +71,7 @@ mod index;
 mod info;
 mod list;
 mod parse;
+mod preview;
 mod server;
 mod subsidy;
 mod supply;

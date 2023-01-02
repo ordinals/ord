@@ -64,7 +64,7 @@ mod tests {
         chain: Chain::Mainnet,
         output: TxOut {
           value: 1,
-          script_pubkey: script::Builder::new().push_scriptint(0).into_script(),
+          script_pubkey: script::Builder::new().push_int(0).into_script(),
         },
       }
       .to_string(),
