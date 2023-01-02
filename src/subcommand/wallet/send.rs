@@ -20,8 +20,8 @@ impl FromStr for Reference {
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
-  outgoing: Reference,
   address: Address,
+  outgoing: Reference,
 }
 
 impl Send {

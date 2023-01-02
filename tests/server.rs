@@ -132,7 +132,7 @@ fn inscription_page_after_send() {
   );
 
   let txid = CommandBuilder::new(format!(
-    "--chain regtest wallet send {reveal_txid} bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x"
+    "--chain regtest wallet send bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x {reveal_txid}"
   ))
   .write("hello.txt", "HELLOWORLD")
   .rpc_server(&rpc_server)
