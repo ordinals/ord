@@ -30,7 +30,7 @@ mod tests {
           previous_output: "0000000000000000000000000000000000000000000000000000000000000000:0"
             .parse()
             .unwrap(),
-          script_sig: script::Builder::new().push_scriptint(4).into_script(),
+          script_sig: script::Builder::new().push_slice("foo".as_bytes()).into_script(),
           sequence: Sequence::MAX,
           witness,
         }
@@ -41,8 +41,8 @@ mod tests {
       <dl>
         <dt>previous output</dt><dd class=monospace>0000000000000000000000000000000000000000000000000000000000000000:0</dd>
         <dt>witness</dt><dd class=data>010101</dd>
-        <dt>script sig</dt><dd class=data>OP_PUSHBYTES_1 04</dd>
-        <dt>text</dt><dd>\x01\x04</dd>
+        <dt>script sig</dt><dd class=data>OP_PUSHBYTES_3 666f6f</dd>
+        <dt>text</dt><dd>\x03foo</dd>
       </dl>
       "
       .unindent()

@@ -33,52 +33,99 @@ mod api;
 mod server;
 mod state;
 
-pub fn spawn_with(network: Network, wallet_name: &str) -> Handle {
-  let state = Arc::new(Mutex::new(State::new(network, wallet_name)));
-  let server = Server::new(state.clone());
-  let mut io = IoHandler::default();
-  io.extend_with(server.to_delegate());
+pub fn builder() -> Builder {
+  Builder {
+    network: Network::Bitcoin,
+    version: 240000,
+    wallet_name: "ord",
+  }
+}
 
-  let rpc_server = ServerBuilder::new(io)
-    .threads(1)
-    .start_http(&"127.0.0.1:0".parse().unwrap())
-    .unwrap();
+pub struct Builder {
+  network: Network,
+  version: usize,
+  wallet_name: &'static str,
+}
 
-  let close_handle = rpc_server.close_handle();
-  let port = rpc_server.address().port();
-
-  thread::spawn(|| rpc_server.wait());
-
-  for i in 0.. {
-    match reqwest::blocking::get(format!("http://127.0.0.1:{port}/")) {
-      Ok(_) => break,
-      Err(err) => {
-        if i == 400 {
-          panic!("Server failed to start: {err}");
-        }
-      }
-    }
-
-    thread::sleep(Duration::from_millis(25));
+impl Builder {
+  pub fn network(self, network: Network) -> Self {
+    Self { network, ..self }
   }
 
-  Handle {
-    close_handle: Some(close_handle),
-    port,
-    state,
+  pub fn version(self, version: usize) -> Self {
+    Self { version, ..self }
+  }
+
+  pub fn wallet_name(self, wallet_name: &'static str) -> Self {
+    Self {
+      wallet_name,
+      ..self
+    }
+  }
+
+  pub fn build(self) -> Handle {
+    let state = Arc::new(Mutex::new(State::new(
+      self.network,
+      self.version,
+      self.wallet_name,
+    )));
+    let server = Server::new(state.clone());
+    let mut io = IoHandler::default();
+    io.extend_with(server.to_delegate());
+
+    let rpc_server = ServerBuilder::new(io)
+      .threads(1)
+      .start_http(&"127.0.0.1:0".parse().unwrap())
+      .unwrap();
+
+    let close_handle = rpc_server.close_handle();
+    let port = rpc_server.address().port();
+
+    thread::spawn(|| rpc_server.wait());
+
+    for i in 0.. {
+      match reqwest::blocking::get(format!("http://127.0.0.1:{port}/")) {
+        Ok(_) => break,
+        Err(err) => {
+          if i == 400 {
+            panic!("Server failed to start: {err}");
+          }
+        }
+      }
+
+      thread::sleep(Duration::from_millis(25));
+    }
+
+    Handle {
+      close_handle: Some(close_handle),
+      port,
+      state,
+    }
   }
 }
 
 pub fn spawn() -> Handle {
-  spawn_with(Network::Bitcoin, "ord")
+  builder().build()
 }
 
-#[derive(Default)]
 pub struct TransactionTemplate<'a> {
-  pub input_slots: &'a [(usize, usize, usize)],
-  pub output_count: usize,
   pub fee: u64,
+  pub inputs: &'a [(usize, usize, usize)],
+  pub output_values: &'a [u64],
+  pub outputs: usize,
   pub witness: Witness,
+}
+
+impl<'a> Default for TransactionTemplate<'a> {
+  fn default() -> Self {
+    Self {
+      fee: 0,
+      inputs: &[],
+      output_values: &[],
+      outputs: 1,
+      witness: Witness::default(),
+    }
+  }
 }
 
 pub struct Handle {
@@ -100,22 +147,19 @@ impl Handle {
     self.state().wallets.clone()
   }
 
-  pub fn mine_blocks(&self, num: u64) -> Vec<Block> {
-    let mut bitcoin_rpc_data = self.state.lock().unwrap();
-    (0..num)
-      .map(|_| bitcoin_rpc_data.push_block(50 * COIN_VALUE))
-      .collect()
+  pub fn mine_blocks(&self, n: u64) -> Vec<Block> {
+    self.mine_blocks_with_subsidy(n, 50 * COIN_VALUE)
   }
 
-  pub fn mine_blocks_with_subsidy(&self, num: u64, subsidy: u64) -> Vec<Block> {
+  pub fn mine_blocks_with_subsidy(&self, n: u64, subsidy: u64) -> Vec<Block> {
     let mut bitcoin_rpc_data = self.state.lock().unwrap();
-    (0..num)
+    (0..n)
       .map(|_| bitcoin_rpc_data.push_block(subsidy))
       .collect()
   }
 
-  pub fn broadcast_tx(&self, options: TransactionTemplate) -> Txid {
-    self.state().broadcast_tx(options)
+  pub fn broadcast_tx(&self, template: TransactionTemplate) -> Txid {
+    self.state().broadcast_tx(template)
   }
 
   pub fn invalidate_tip(&self) -> BlockHash {
