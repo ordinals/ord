@@ -1697,9 +1697,11 @@ mod tests {
 
     let path = tempdir.path().to_owned();
 
+    let delimiter = if cfg!(windows) { '\\' } else { '/' };
+
     assert_eq!(
       Context::builder().tempdir(tempdir).try_build().err().unwrap().to_string(),
-      format!("index at `{}/regtest/index.redb` appears to have been built with an older, incompatible version of ord, consider deleting and rebuilding the index: index schema 0, ord schema 1", path.display()));
+      format!("index at `{}{delimiter}regtest{delimiter}index.redb` appears to have been built with an older, incompatible version of ord, consider deleting and rebuilding the index: index schema 0, ord schema 1", path.display()));
   }
 
   #[test]
@@ -1722,8 +1724,10 @@ mod tests {
 
     let path = tempdir.path().to_owned();
 
+    let delimiter = if cfg!(windows) { '\\' } else { '/' };
+
     assert_eq!(
       Context::builder().tempdir(tempdir).try_build().err().unwrap().to_string(),
-      format!("index at `{}/regtest/index.redb` appears to have been built with a newer, incompatible version of ord, consider updating ord: index schema {}, ord schema {SCHEMA_VERSION}", path.display(), u64::MAX));
+      format!("index at `{}{delimiter}regtest{delimiter}index.redb` appears to have been built with a newer, incompatible version of ord, consider updating ord: index schema {}, ord schema {SCHEMA_VERSION}", path.display(), u64::MAX));
   }
 }
