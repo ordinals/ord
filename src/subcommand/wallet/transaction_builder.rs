@@ -294,12 +294,13 @@ impl TransactionBuilder {
   }
 
   fn estimate_fee(&self) -> Amount {
+    dbg!(&self.estimate_vsize());
     self.fee_rate.fee(self.estimate_vsize())
   }
 
   fn build(self) -> Result<Transaction> {
     let recipient = self.recipient.script_pubkey();
-    let transaction = Transaction {
+    let mut transaction = Transaction {
       version: 1,
       lock_time: PackedLockTime::ZERO,
       input: self
@@ -418,19 +419,22 @@ impl TransactionBuilder {
       offset += output.value;
     }
 
-    let mut fee = Amount::ZERO;
+    let mut estimated_fee = Amount::ZERO;
     for input in &transaction.input {
-      fee += self.amounts[&input.previous_output];
+      estimated_fee += self.amounts[&input.previous_output];
     }
     for output in &transaction.output {
-      fee -= Amount::from_sat(output.value);
+      estimated_fee -= Amount::from_sat(output.value);
     }
 
-    let total_rounded_fee = self.fee_rate.fee(self.estimate_vsize());
+    let correct_fee = self.fee_rate.fee(transaction.vsize());
+
     assert!(
-      fee == total_rounded_fee,
-      "invariant: total fee is equal to rounded total fee",
+      estimated_fee >= correct_fee,
+      "invariant: estimated fee is greater than or equal to correct fee",
     );
+
+    transaction.output.last_mut().unwrap().value += (estimated_fee - correct_fee).to_sat();
 
     for tx_out in &transaction.output {
       assert!(
@@ -1146,6 +1150,7 @@ mod tests {
     .unwrap();
 
     let calculated_fee = fee_rate.fee(transaction.vsize()).to_sat();
+    dbg!(&transaction.vsize());
 
     pretty_assert_eq!(
       transaction,
