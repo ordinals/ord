@@ -31,8 +31,12 @@ fn format_bitcoin_core_version(version: usize) -> String {
 pub(crate) struct Inscribe {
   #[clap(long, help = "Inscribe <SATPOINT>")]
   pub(crate) satpoint: Option<SatPoint>,
-  #[clap(long, default_value = "1.0", help = "Fee rate in sats/vB")]
-  pub(crate) fee_rate: f64,
+  #[clap(
+    long,
+    default_value = "1.0",
+    help = "Use fee rate of <FEE_RATE> sats/vB"
+  )]
+  pub(crate) fee_rate: FeeRate,
   #[clap(help = "Inscribe sat with contents of <FILE>")]
   pub(crate) file: PathBuf,
   #[clap(long, help = "Do not back up recovery key.")]
@@ -106,7 +110,7 @@ impl Inscribe {
     utxos: BTreeMap<OutPoint, Amount>,
     change: Vec<Address>,
     destination: Address,
-    fee_rate: f64,
+    fee_rate: FeeRate,
   ) -> Result<(Transaction, Transaction, TweakedKeyPair)> {
     let satpoint = if let Some(satpoint) = satpoint {
       satpoint
@@ -206,9 +210,7 @@ impl Inscribe {
       reveal_tx.input[0].witness.push(&reveal_script);
       reveal_tx.input[0].witness.push(&control_block.serialize());
 
-      #[allow(clippy::cast_possible_truncation)]
-      #[allow(clippy::cast_sign_loss)]
-      Amount::from_sat((fee_rate * (reveal_tx.vsize() as f64)) as u64)
+      fee_rate.fee(reveal_tx.vsize())
     };
 
     reveal_tx.output[0].value = reveal_tx.output[0]
@@ -315,13 +317,13 @@ mod tests {
       utxos.into_iter().collect(),
       vec![commit_address, change(1)],
       reveal_address,
-      1.0,
+      FeeRate::try_from(1.0).unwrap(),
     )
     .unwrap();
 
     #[allow(clippy::cast_possible_truncation)]
     #[allow(clippy::cast_sign_loss)]
-    let fee = Amount::from_sat((1.0 * (reveal_tx.vsize() as f64)) as u64);
+    let fee = Amount::from_sat((1.0 * (reveal_tx.vsize() as f64)).ceil() as u64);
 
     assert_eq!(
       reveal_tx.output[0].value,
@@ -345,7 +347,7 @@ mod tests {
       utxos.into_iter().collect(),
       vec![commit_address, change(1)],
       reveal_address,
-      1.0,
+      FeeRate::try_from(1.0).unwrap(),
     )
     .unwrap_err()
     .to_string()
@@ -368,7 +370,7 @@ mod tests {
       utxos.into_iter().collect(),
       vec![commit_address, change(1)],
       reveal_address,
-      1.0,
+      FeeRate::try_from(1.0).unwrap(),
     )
     .unwrap_err()
     .to_string();
@@ -395,7 +397,7 @@ mod tests {
       utxos.into_iter().collect(),
       vec![commit_address, change(1)],
       reveal_address,
-      1.0,
+      FeeRate::try_from(1.0).unwrap(),
     )
     .unwrap();
 
@@ -428,7 +430,7 @@ mod tests {
       utxos.into_iter().collect(),
       vec![commit_address, change(1)],
       reveal_address,
-      1.0,
+      FeeRate::try_from(1.0).unwrap(),
     )
     .unwrap_err()
     .to_string();
@@ -468,7 +470,7 @@ mod tests {
       utxos.into_iter().collect(),
       vec![commit_address, change(1)],
       reveal_address,
-      1.0,
+      FeeRate::try_from(1.0).unwrap(),
     )
     .is_ok())
   }
@@ -493,7 +495,7 @@ mod tests {
     let commit_address = change(0);
     let reveal_address = recipient();
 
-    assert!(Inscribe::create_inscription_transactions(
+    let (commit_tx, reveal_tx, _private_key) = Inscribe::create_inscription_transactions(
       satpoint,
       inscription,
       inscriptions,
@@ -501,8 +503,18 @@ mod tests {
       utxos.into_iter().collect(),
       vec![commit_address, change(1)],
       reveal_address,
-      3.3,
+      FeeRate::try_from(3.3).unwrap(),
     )
-    .is_ok());
+    .unwrap();
+
+    #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_sign_loss)]
+    let fee = ((((3.3 * 1000.0 as f64).round() as u64) as f64) / 1000.0 * reveal_tx.vsize() as f64)
+      .ceil() as u64;
+
+    assert_eq!(
+      reveal_tx.output[0].value,
+      10_000 - fee - (10_000 - commit_tx.output[0].value),
+    );
   }
 }

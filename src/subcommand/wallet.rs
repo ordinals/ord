@@ -1,8 +1,6 @@
-use {super::*, transaction_builder::TransactionBuilder};
+use {super::*, fee_rate::FeeRate, transaction_builder::TransactionBuilder};
 
 mod balance;
-pub(crate) mod create;
-pub(crate) mod inscribe;
 mod inscriptions;
 mod receive;
 mod sats;
@@ -10,6 +8,8 @@ mod send;
 mod transaction_builder;
 mod transactions;
 mod utxos;
+pub(crate) mod create;
+pub(crate) mod inscribe;
 
 #[derive(Debug, Parser)]
 pub(crate) enum Wallet {

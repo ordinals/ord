@@ -69,7 +69,7 @@ impl std::error::Error for Error {}
 pub(crate) struct TransactionBuilder {
   amounts: BTreeMap<OutPoint, Amount>,
   change_addresses: BTreeSet<Address>,
-  fee_rate: f64,
+  fee_rate: FeeRate,
   inputs: Vec<OutPoint>,
   inscriptions: BTreeMap<SatPoint, InscriptionId>,
   outgoing: SatPoint,
@@ -82,7 +82,6 @@ pub(crate) struct TransactionBuilder {
 type Result<T> = std::result::Result<T, Error>;
 
 impl TransactionBuilder {
-  // pub(crate) const TARGET_FEE_RATE: Amount = Amount::from_sat(1);
   const MAX_POSTAGE: Amount = Amount::from_sat(2 * 10_000);
   const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
 
@@ -92,7 +91,7 @@ impl TransactionBuilder {
     amounts: BTreeMap<OutPoint, Amount>,
     recipient: Address,
     change: Vec<Address>,
-    fee_rate: f64,
+    fee_rate: FeeRate,
   ) -> Result<Transaction> {
     Self::new(outgoing, inscriptions, amounts, recipient, change, fee_rate)
       .select_outgoing()?
@@ -110,7 +109,7 @@ impl TransactionBuilder {
     amounts: BTreeMap<OutPoint, Amount>,
     recipient: Address,
     change: Vec<Address>,
-    fee_rate: f64,
+    fee_rate: FeeRate,
   ) -> Self {
     Self {
       utxos: amounts.keys().cloned().collect(),
@@ -295,9 +294,7 @@ impl TransactionBuilder {
   }
 
   fn estimate_fee(&self) -> Amount {
-    #[allow(clippy::cast_possible_truncation)]
-    #[allow(clippy::cast_sign_loss)]
-    Amount::from_sat((self.fee_rate * (self.estimate_vsize() as f64)) as u64)
+    self.fee_rate.fee(self.estimate_vsize())
   }
 
   fn build(self) -> Result<Transaction> {
@@ -429,12 +426,9 @@ impl TransactionBuilder {
       fee -= Amount::from_sat(output.value);
     }
 
-    #[allow(clippy::cast_possible_truncation)]
-    #[allow(clippy::cast_sign_loss)]
-    let total_rounded_fee = (self.fee_rate * (self.estimate_vsize() as f64)) as u64;
-
+    let total_rounded_fee = self.fee_rate.fee(self.estimate_vsize());
     assert!(
-      fee.to_sat() == total_rounded_fee,
+      fee == total_rounded_fee,
       "invariant: total fee is equal to rounded total fee",
     );
 
@@ -509,7 +503,7 @@ mod tests {
       utxos.clone().into_iter().collect(),
       recipient(),
       vec![change(0), change(1)],
-      1.0,
+      FeeRate::try_from(1.0).unwrap(),
     )
     .select_outgoing()
     .unwrap();
@@ -538,7 +532,7 @@ mod tests {
 
     let tx_builder = TransactionBuilder {
       amounts,
-      fee_rate: 1.0,
+      fee_rate: FeeRate::try_from(1.0).unwrap(),
       utxos: BTreeSet::new(),
       outgoing: satpoint(1, 0),
       inscriptions: BTreeMap::new(),
@@ -578,7 +572,7 @@ mod tests {
       utxos.into_iter().collect(),
       recipient(),
       vec![change(0), change(1)],
-      1.0,
+      FeeRate::try_from(1.0).unwrap(),
     )
     .unwrap()
     .is_explicitly_rbf())
@@ -595,7 +589,7 @@ mod tests {
         utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1)],
-        1.0,
+        FeeRate::try_from(1.0).unwrap(),
       ),
       Ok(Transaction {
         version: 1,
@@ -617,7 +611,7 @@ mod tests {
       utxos.into_iter().collect(),
       recipient(),
       vec![change(0), change(1)],
-      1.0,
+      FeeRate::try_from(1.0).unwrap(),
     )
     .select_outgoing()
     .unwrap()
@@ -640,7 +634,7 @@ mod tests {
         utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1)],
-        1.0,
+        FeeRate::try_from(1.0).unwrap(),
       ),
       Ok(Transaction {
         version: 1,
@@ -662,7 +656,7 @@ mod tests {
         utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1)],
-        1.0,
+        FeeRate::try_from(1.0).unwrap(),
       ),
       Err(Error::NotEnoughCardinalUtxos),
     )
@@ -682,7 +676,7 @@ mod tests {
         utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1)],
-        1.0,
+        FeeRate::try_from(1.0).unwrap(),
       ),
       Err(Error::NotEnoughCardinalUtxos),
     )
@@ -702,7 +696,7 @@ mod tests {
         utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1)],
-        1.0,
+        FeeRate::try_from(1.0).unwrap(),
       ),
       Ok(Transaction {
         version: 1,
@@ -728,7 +722,7 @@ mod tests {
         .collect(),
       recipient(),
       vec![change(0), change(1)],
-      1.0,
+      FeeRate::try_from(1.0).unwrap(),
     )
     .build()
     .unwrap();
@@ -745,7 +739,7 @@ mod tests {
         .collect(),
       recipient(),
       vec![change(0), change(1)],
-      1.0,
+      FeeRate::try_from(1.0).unwrap(),
     )
     .build()
     .unwrap();
@@ -762,7 +756,7 @@ mod tests {
         .collect(),
       recipient(),
       vec![change(0), change(1)],
-      1.0,
+      FeeRate::try_from(1.0).unwrap(),
     )
     .build()
     .unwrap();
@@ -779,7 +773,7 @@ mod tests {
         .collect(),
       recipient(),
       vec![change(0), change(1)],
-      1.0,
+      FeeRate::try_from(1.0).unwrap(),
     )
     .select_outgoing()
     .unwrap();
@@ -802,7 +796,7 @@ mod tests {
         .collect(),
       recipient(),
       vec![change(0), change(1)],
-      1.0,
+      FeeRate::try_from(1.0).unwrap(),
     )
     .select_outgoing()
     .unwrap();
@@ -823,7 +817,7 @@ mod tests {
         utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1)],
-        1.0,
+        FeeRate::try_from(1.0).unwrap(),
       ),
       Ok(Transaction {
         version: 1,
@@ -848,7 +842,7 @@ mod tests {
       utxos.into_iter().collect(),
       recipient(),
       vec![change(0), change(1)],
-      1.0,
+      FeeRate::try_from(1.0).unwrap(),
     )
     .select_outgoing()
     .unwrap()
@@ -867,7 +861,7 @@ mod tests {
         utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1)],
-        1.0,
+        FeeRate::try_from(1.0).unwrap(),
       ),
       Ok(Transaction {
         version: 1,
@@ -892,7 +886,7 @@ mod tests {
         utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1)],
-        1.0,
+        FeeRate::try_from(1.0).unwrap(),
       ),
       Ok(Transaction {
         version: 1,
@@ -914,7 +908,7 @@ mod tests {
       utxos.into_iter().collect(),
       recipient(),
       vec![change(0), change(1)],
-      1.0,
+      FeeRate::try_from(1.0).unwrap(),
     )
     .select_outgoing()
     .unwrap()
@@ -940,7 +934,7 @@ mod tests {
       utxos.into_iter().collect(),
       recipient(),
       vec![change(0), change(1)],
-      1.0,
+      FeeRate::try_from(1.0).unwrap(),
     )
     .select_outgoing()
     .unwrap()
@@ -964,7 +958,7 @@ mod tests {
       utxos.into_iter().collect(),
       recipient(),
       vec![change(0), change(1)],
-      1.0,
+      FeeRate::try_from(1.0).unwrap(),
     )
     .select_outgoing()
     .unwrap()
@@ -985,7 +979,7 @@ mod tests {
       utxos.into_iter().collect(),
       recipient(),
       vec![change(0), change(1)],
-      1.0,
+      FeeRate::try_from(1.0).unwrap(),
     )
     .select_outgoing()
     .unwrap()
@@ -1004,7 +998,7 @@ mod tests {
 
     TransactionBuilder {
       amounts,
-      fee_rate: 1.0,
+      fee_rate: FeeRate::try_from(1.0).unwrap(),
       utxos: BTreeSet::new(),
       outgoing: satpoint(1, 0),
       inscriptions: BTreeMap::new(),
@@ -1032,7 +1026,7 @@ mod tests {
 
     TransactionBuilder {
       amounts,
-      fee_rate: 1.0,
+      fee_rate: FeeRate::try_from(1.0).unwrap(),
       utxos: BTreeSet::new(),
       outgoing: satpoint(1, 0),
       inscriptions: BTreeMap::new(),
@@ -1069,7 +1063,7 @@ mod tests {
         utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1)],
-        1.0,
+        FeeRate::try_from(1.0).unwrap(),
       ),
       Err(Error::NotEnoughCardinalUtxos)
     )
@@ -1091,7 +1085,7 @@ mod tests {
         utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1)],
-        1.0,
+        FeeRate::try_from(1.0).unwrap(),
       ),
       Err(Error::UtxoContainsAdditionalInscription {
         outgoing_satpoint: satpoint(1, 0),
@@ -1119,7 +1113,7 @@ mod tests {
         utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1)],
-        25.8,
+        FeeRate::try_from(25.8).unwrap(),
       ),
       Ok(Transaction {
         version: 1,
@@ -1127,6 +1121,40 @@ mod tests {
         input: vec![tx_in(outpoint(1))],
         output: vec![tx_out(4_324, recipient())],
       })
+    )
+  }
+
+  #[test]
+  fn send_inscriptions_with_custom_fee_rate_calculated() {
+    let utxos = vec![(outpoint(1), Amount::from_sat(10_000))];
+
+    let fee_rate = FeeRate::try_from(17.3).unwrap();
+
+    let transaction = TransactionBuilder::build_transaction(
+      satpoint(1, 0),
+      BTreeMap::from([(
+        satpoint(1, 0),
+        "bed200b55adcf20e359bbb762392d5106cafbafc48e55f77c94d3041de3521da"
+          .parse()
+          .unwrap(),
+      )]),
+      utxos.into_iter().collect(),
+      recipient(),
+      vec![change(0), change(1)],
+      fee_rate,
+    )
+    .unwrap();
+
+    let calculated_fee = fee_rate.fee(transaction.vsize()).to_sat();
+
+    pretty_assert_eq!(
+      transaction,
+      Transaction {
+        version: 1,
+        lock_time: PackedLockTime::ZERO,
+        input: vec![tx_in(outpoint(1))],
+        output: vec![tx_out(10_000 - calculated_fee, recipient())],
+      }
     )
   }
 }
