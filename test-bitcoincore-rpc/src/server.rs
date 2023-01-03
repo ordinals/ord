@@ -4,7 +4,6 @@ use {
     secp256k1::{rand, KeyPair, Secp256k1, XOnlyPublicKey},
     Address, Witness,
   },
-  serde_json::json,
 };
 
 pub(crate) struct Server {
@@ -439,10 +438,18 @@ impl Api for Server {
 
   fn import_descriptors(
     &self,
-    _params: Vec<serde_json::Value>,
-  ) -> Result<serde_json::Value, jsonrpc_core::Error> {
-    self.state().descriptors += 1;
-    Ok(json!([{"success": true}]))
+    req: Vec<ImportDescriptors>,
+  ) -> Result<Vec<ImportMultiResult>, jsonrpc_core::Error> {
+    self
+      .state()
+      .descriptors
+      .extend(req.into_iter().map(|params| String::from(params.descriptor)));
+
+    Ok(vec![ImportMultiResult {
+      success: true,
+      warnings: Vec::new(),
+      error: None,
+    }])
   }
 
   fn get_new_address(

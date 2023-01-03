@@ -114,8 +114,8 @@ pub trait Api {
   #[rpc(name = "importdescriptors")]
   fn import_descriptors(
     &self,
-    params: Vec<serde_json::Value>,
-  ) -> Result<serde_json::Value, jsonrpc_core::Error>;
+    req: Vec<ImportDescriptors>,
+  ) -> Result<Vec<ImportMultiResult>, jsonrpc_core::Error>;
 
   #[rpc(name = "getnewaddress")]
   fn get_new_address(

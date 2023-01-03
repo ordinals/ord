@@ -18,7 +18,7 @@ use {
     GetNetworkInfoResult, GetRawTransactionResult, GetTransactionResult,
     GetTransactionResultDetail, GetTransactionResultDetailCategory, GetWalletInfoResult,
     ListTransactionResult, ListUnspentResultEntry, LoadWalletResult, SignRawTransactionResult,
-    WalletTxInfo,
+    WalletTxInfo, ImportDescriptors, ImportMultiResult,
   },
   jsonrpc_core::{IoHandler, Value},
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
@@ -211,8 +211,8 @@ impl Handle {
     self.state().mempool().to_vec()
   }
 
-  pub fn descriptors(&self) -> u64 {
-    self.state().descriptors
+  pub fn descriptors(&self) -> Vec<String> {
+    self.state().descriptors.clone()
   }
 
   pub fn sent(&self) -> Vec<Sent> {

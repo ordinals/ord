@@ -1,5 +1,7 @@
 use {super::*, std::str::FromStr};
 
+mod create;
+
 #[test]
 fn sats() {
   let rpc_server = test_bitcoincore_rpc::spawn();
@@ -246,7 +248,7 @@ fn inscribe() {
     .build();
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  assert_eq!(rpc_server.descriptors(), 0);
+  assert_eq!(rpc_server.descriptors().len(), 0);
 
   let stdout = CommandBuilder::new(format!(
     "--chain regtest wallet inscribe --satpoint {txid}:0:0 hello.txt"
@@ -256,7 +258,7 @@ fn inscribe() {
   .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
   .run();
 
-  assert_eq!(rpc_server.descriptors(), 1);
+  assert_eq!(rpc_server.descriptors().len(), 1);
 
   rpc_server.mine_blocks(1);
 
@@ -297,7 +299,7 @@ fn inscribe_no_backup() {
     .build();
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  assert_eq!(rpc_server.descriptors(), 0);
+  assert_eq!(rpc_server.descriptors().len(), 0);
 
   CommandBuilder::new(format!(
     "--chain regtest wallet inscribe --satpoint {txid}:0:0 hello.txt --no-backup"
@@ -307,7 +309,7 @@ fn inscribe_no_backup() {
   .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
   .run();
 
-  assert_eq!(rpc_server.descriptors(), 0);
+  assert_eq!(rpc_server.descriptors().len(), 0);
 }
 
 #[test]
@@ -764,21 +766,6 @@ fn inscribe_with_optional_satpoint_arg() {
     &format!("/inscription/{}", reveal_txid_from_inscribe_stdout(&stdout)),
     ".*HELLOWORLD.*",
   );
-}
-
-#[test]
-fn create() {
-  let rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Regtest)
-    .build();
-
-  assert!(!rpc_server.wallets().contains("ord"));
-
-  CommandBuilder::new("--chain regtest wallet create")
-    .rpc_server(&rpc_server)
-    .run();
-
-  assert!(rpc_server.wallets().contains("ord"));
 }
 
 #[test]
