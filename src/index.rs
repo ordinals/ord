@@ -203,12 +203,12 @@ impl Index {
         match schema_version.cmp(&SCHEMA_VERSION) {
           cmp::Ordering::Less =>
             bail!(
-              "index at `{}` has older schema version {schema_version} which is older than ord binary schema version {SCHEMA_VERSION}, consider deleting and rebuilding the index",
+              "index at `{}` appears to have been built with an older, incompatible version of ord, consider deleting and rebuilding the index: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
               database_path.display()
             ),
           cmp::Ordering::Greater =>
             bail!(
-              "index at `{}` has schema version {schema_version} which is newer than ord binary schema version {SCHEMA_VERSION}, consider updating ord ",
+              "index at `{}` appears to have been built with a newer, incompatible version of ord, consider updating ord: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
               database_path.display()
             ),
           cmp::Ordering::Equal => {
@@ -777,40 +777,18 @@ mod tests {
 
   struct ContextBuilder {
     args: Vec<OsString>,
+    tempdir: Option<TempDir>,
   }
 
   impl ContextBuilder {
     fn build(self) -> Context {
-      Context::with_args(self.args)
+      self.try_build().unwrap()
     }
 
-    fn arg(mut self, arg: impl Into<OsString>) -> Self {
-      self.args.push(arg.into());
-      self
-    }
-
-    fn args<T: Into<OsString>, I: IntoIterator<Item = T>>(mut self, args: I) -> Self {
-      self.args.extend(args.into_iter().map(|arg| arg.into()));
-      self
-    }
-  }
-
-  struct Context {
-    rpc_server: test_bitcoincore_rpc::Handle,
-    #[allow(unused)]
-    tempdir: TempDir,
-    index: Index,
-  }
-
-  impl Context {
-    fn builder() -> ContextBuilder {
-      ContextBuilder { args: Vec::new() }
-    }
-
-    fn with_args(args: Vec<OsString>) -> Self {
+    fn try_build(self) -> Result<Context> {
       let rpc_server = test_bitcoincore_rpc::spawn();
 
-      let tempdir = TempDir::new().unwrap();
+      let tempdir = self.tempdir.unwrap_or_else(|| TempDir::new().unwrap());
       let cookie_file = tempdir.path().join("cookie");
       fs::write(&cookie_file, "username:password").unwrap();
 
@@ -825,14 +803,45 @@ mod tests {
         "--regtest".into(),
       ];
 
-      let options = Options::try_parse_from(command.into_iter().chain(args)).unwrap();
-      let index = Index::open(&options).unwrap();
+      let options = Options::try_parse_from(command.into_iter().chain(self.args)).unwrap();
+      let index = Index::open(&options)?;
       index.update().unwrap();
 
-      Self {
+      Ok(Context {
         rpc_server,
         tempdir,
         index,
+      })
+    }
+
+    fn arg(mut self, arg: impl Into<OsString>) -> Self {
+      self.args.push(arg.into());
+      self
+    }
+
+    fn args<T: Into<OsString>, I: IntoIterator<Item = T>>(mut self, args: I) -> Self {
+      self.args.extend(args.into_iter().map(|arg| arg.into()));
+      self
+    }
+
+    fn tempdir(mut self, tempdir: TempDir) -> Self {
+      self.tempdir = Some(tempdir);
+      self
+    }
+  }
+
+  struct Context {
+    rpc_server: test_bitcoincore_rpc::Handle,
+    #[allow(unused)]
+    tempdir: TempDir,
+    index: Index,
+  }
+
+  impl Context {
+    fn builder() -> ContextBuilder {
+      ContextBuilder {
+        args: Vec::new(),
+        tempdir: None,
       }
     }
 
@@ -1670,16 +1679,51 @@ mod tests {
 
   #[test]
   fn old_schema_gives_correct_error() {
-    let context = Context::builder().build();
+    let tempdir = {
+      let context = Context::builder().build();
 
-    context
-      .index
-      .database
-      .begin_write()
-      .unwrap()
-      .open_table(STATISTIC_TO_COUNT)
-      .unwrap()
-      .insert(&Statistic::Schema.key(), &0)
-      .unwrap();
+      let wtx = context.index.database.begin_write().unwrap();
+
+      wtx
+        .open_table(STATISTIC_TO_COUNT)
+        .unwrap()
+        .insert(&Statistic::Schema.key(), &0)
+        .unwrap();
+
+      wtx.commit().unwrap();
+
+      context.tempdir
+    };
+
+    let path = tempdir.path().to_owned();
+
+    assert_eq!(
+      Context::builder().tempdir(tempdir).try_build().err().unwrap().to_string(),
+      format!("index at `{}/regtest/index.redb` appears to have been built with an older, incompatible version of ord, consider deleting and rebuilding the index: index schema 0, ord schema 1", path.display()));
+  }
+
+  #[test]
+  fn new_schema_gives_correct_error() {
+    let tempdir = {
+      let context = Context::builder().build();
+
+      let wtx = context.index.database.begin_write().unwrap();
+
+      wtx
+        .open_table(STATISTIC_TO_COUNT)
+        .unwrap()
+        .insert(&Statistic::Schema.key(), &u64::MAX)
+        .unwrap();
+
+      wtx.commit().unwrap();
+
+      context.tempdir
+    };
+
+    let path = tempdir.path().to_owned();
+
+    assert_eq!(
+      Context::builder().tempdir(tempdir).try_build().err().unwrap().to_string(),
+      format!("index at `{}/regtest/index.redb` appears to have been built with a newer, incompatible version of ord, consider updating ord: index schema {}, ord schema {SCHEMA_VERSION}", path.display(), u64::MAX));
   }
 }
