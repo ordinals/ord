@@ -1977,7 +1977,7 @@ dependencies = [
 [[package]]
 name = "ord-bitcoincore-rpc"
 version = "0.16.4"
-source = "git+https://github.com/raphjaph/rust-bitcoincore-rpc?branch=ord-add-list-descriptors#4b68bb87a1fc2c7aada07f33cf0f3dd5fa3712c3"
+source = "git+https://github.com/casey/rust-bitcoincore-rpc?branch=ord#45fef7914dbf6d0caa4e73610a4aca52e2f92e20"
 dependencies = [
  "jsonrpc",
  "log",
@@ -1989,7 +1989,7 @@ dependencies = [
 [[package]]
 name = "ord-bitcoincore-rpc-json"
 version = "0.16.4"
-source = "git+https://github.com/raphjaph/rust-bitcoincore-rpc?branch=ord-add-list-descriptors#4b68bb87a1fc2c7aada07f33cf0f3dd5fa3712c3"
+source = "git+https://github.com/casey/rust-bitcoincore-rpc?branch=ord#45fef7914dbf6d0caa4e73610a4aca52e2f92e20"
 dependencies = [
  "bitcoin",
  "serde",
