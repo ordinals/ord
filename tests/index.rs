@@ -17,7 +17,7 @@ fn custom_index_path() {
 }
 
 #[test]
-fn re_opening_database_doesnt_trigger_schema_check() {
+fn re_opening_database_does_not_trigger_schema_check() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   rpc_server.mine_blocks(1);
 
