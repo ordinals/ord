@@ -139,4 +139,9 @@ pub trait Api {
     unlock: bool,
     outputs: Vec<JsonOutPoint>,
   ) -> Result<bool, jsonrpc_core::Error>;
+
+  #[rpc(name = "listdescriptors")]
+  fn list_descriptors(
+    &self,
+  ) -> Result<ListDescriptorsResult, jsonrpc_core::Error>;
 }

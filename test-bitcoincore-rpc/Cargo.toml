@@ -13,7 +13,7 @@ hex = "0.4.3"
 jsonrpc-core = "18.0.0"
 jsonrpc-derive = "18.0.0"
 jsonrpc-http-server = "18.0.0"
-ord-bitcoincore-rpc = { git = "https://github.com/casey/rust-bitcoincore-rpc", branch = "ord" }
+ord-bitcoincore-rpc = { git = "https://github.com/raphjaph/rust-bitcoincore-rpc", branch = "ord-add-list-descriptors" }
 reqwest = { version = "0.11.10", features = ["blocking"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1.0.0"

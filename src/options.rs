@@ -164,6 +164,13 @@ impl Options {
         );
       }
     }
+
+    for descriptor in client.list_descriptors(None)?.descriptors {
+      let desc = descriptor.desc;
+      if !Regex::new(r"(tr|rawtr).*").unwrap().is_match(&desc) {
+        bail!("the ord wallet should only contain tr and rawtr descriptors: `{desc}`");
+      }
+    }
     Ok(client)
   }
 }

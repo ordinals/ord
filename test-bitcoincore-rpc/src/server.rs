@@ -440,10 +440,11 @@ impl Api for Server {
     &self,
     req: Vec<ImportDescriptors>,
   ) -> Result<Vec<ImportMultiResult>, jsonrpc_core::Error> {
-    self
-      .state()
-      .descriptors
-      .extend(req.into_iter().map(|params| String::from(params.descriptor)));
+    self.state().descriptors.extend(
+      req
+        .into_iter()
+        .map(|params| String::from(params.descriptor)),
+    );
 
     Ok(vec![ImportMultiResult {
       success: true,
@@ -532,5 +533,24 @@ impl Api for Server {
     }
 
     Ok(true)
+  }
+
+  fn list_descriptors(&self) -> Result<ListDescriptorsResult, jsonrpc_core::Error> {
+    Ok(ListDescriptorsResult {
+      wallet_name: "ord".into(),
+      descriptors: self
+        .state()
+        .descriptors
+        .iter()
+        .map(|desc| Descriptor {
+          desc: desc.to_string(),
+          timestamp: Timestamp::Now,
+          active: true,
+          internal: None,
+          range: None,
+          next: None,
+        })
+        .collect(),
+    })
   }
 }

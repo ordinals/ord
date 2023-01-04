@@ -13,12 +13,12 @@ use {
     Transaction, TxIn, TxMerkleNode, TxOut, Txid, Witness, Wtxid,
   },
   bitcoincore_rpc::json::{
-    Bip125Replaceable, CreateRawTransactionInput, EstimateMode, GetBalancesResult,
+    Bip125Replaceable, CreateRawTransactionInput, Descriptor, EstimateMode, GetBalancesResult,
     GetBalancesResultEntry, GetBlockHeaderResult, GetBlockchainInfoResult, GetDescriptorInfoResult,
     GetNetworkInfoResult, GetRawTransactionResult, GetTransactionResult,
     GetTransactionResultDetail, GetTransactionResultDetailCategory, GetWalletInfoResult,
-    ListTransactionResult, ListUnspentResultEntry, LoadWalletResult, SignRawTransactionResult,
-    WalletTxInfo, ImportDescriptors, ImportMultiResult,
+    ImportDescriptors, ImportMultiResult, ListDescriptorsResult, ListTransactionResult,
+    ListUnspentResultEntry, LoadWalletResult, SignRawTransactionResult, Timestamp, WalletTxInfo,
   },
   jsonrpc_core::{IoHandler, Value},
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
@@ -213,6 +213,10 @@ impl Handle {
 
   pub fn descriptors(&self) -> Vec<String> {
     self.state().descriptors.clone()
+  }
+
+  pub fn import_descriptor(&self, desc: String) {
+    self.state().descriptors.push(desc);
   }
 
   pub fn sent(&self) -> Vec<Sent> {
