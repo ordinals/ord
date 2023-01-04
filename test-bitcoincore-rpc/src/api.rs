@@ -141,7 +141,5 @@ pub trait Api {
   ) -> Result<bool, jsonrpc_core::Error>;
 
   #[rpc(name = "listdescriptors")]
-  fn list_descriptors(
-    &self,
-  ) -> Result<ListDescriptorsResult, jsonrpc_core::Error>;
+  fn list_descriptors(&self) -> Result<ListDescriptorsResult, jsonrpc_core::Error>;
 }

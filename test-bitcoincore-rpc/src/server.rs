@@ -443,7 +443,7 @@ impl Api for Server {
     self.state().descriptors.extend(
       req
         .into_iter()
-        .map(|params| String::from(params.descriptor)),
+        .map(|params| params.descriptor),
     );
 
     Ok(vec![ImportMultiResult {

@@ -267,7 +267,7 @@ impl Inscribe {
       range: None,
       next_index: None,
       internal: Some(false),
-      label: Some(format!("commit tx recovery key")),
+      label: Some("commit tx recovery key".to_string()),
     })?;
 
     for result in response {
