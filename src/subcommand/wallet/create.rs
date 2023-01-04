@@ -7,10 +7,8 @@ use {
 };
 
 pub(crate) fn run(options: Options) -> Result {
-  // TODO: check for correct bitcoin core version
-
   options
-    .bitcoin_rpc_client_for_wallet_command("ord wallet create")?
+    .bitcoin_rpc_client_for_wallet_command("ord wallet create", 240000)?
     .create_wallet("ord", None, Some(true), None, None)?;
 
   let secp256k1 = bitcoin::secp256k1::Secp256k1::new();
@@ -53,7 +51,7 @@ pub(crate) fn run(options: Options) -> Result {
   let change_desc = Descriptor::new_tr(change_public_key, None)?;
 
   options
-    .bitcoin_rpc_client_for_wallet_command("ord wallet create")?
+    .bitcoin_rpc_client_for_wallet_command("ord wallet create", 240000)?
     .import_descriptors(ImportDescriptors {
       descriptor: receive_desc.to_string_with_secret(&key_map),
       timestamp: Timestamp::Now,
@@ -65,7 +63,7 @@ pub(crate) fn run(options: Options) -> Result {
     })?;
 
   options
-    .bitcoin_rpc_client_for_wallet_command("ord wallet create")?
+    .bitcoin_rpc_client_for_wallet_command("ord wallet create", 240000)?
     .import_descriptors(ImportDescriptors {
       descriptor: change_desc.to_string_with_secret(&key_map),
       timestamp: Timestamp::Now,

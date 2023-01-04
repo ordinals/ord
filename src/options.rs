@@ -107,7 +107,16 @@ impl Options {
     Ok(self.chain().join_with_data_dir(&base))
   }
 
-  pub(crate) fn bitcoin_rpc_client(&self) -> Result<Client> {
+  fn format_bitcoin_core_version(version: usize) -> String {
+    format!(
+      "{}.{}.{}",
+      version / 10000,
+      version % 10000 / 100,
+      version % 100
+    )
+  }
+
+  pub(crate) fn bitcoin_rpc_client(&self, min_version: usize) -> Result<Client> {
     let cookie_file = self.cookie_file()?;
     let rpc_url = self.rpc_url();
     log::info!(
@@ -132,11 +141,24 @@ impl Options {
       bail!("Bitcoin RPC server is on {rpc_chain} but ord is on {ord_chain}");
     }
 
+    let bitcoin_version = client.version()?;
+    if bitcoin_version < min_version {
+      bail!(
+        "Bitcoin Core {} or newer required, current version is {}",
+        Self::format_bitcoin_core_version(min_version),
+        Self::format_bitcoin_core_version(bitcoin_version),
+      );
+    }
+
     Ok(client)
   }
 
-  pub(crate) fn bitcoin_rpc_client_mainnet_forbidden(&self, command: &str) -> Result<Client> {
-    let client = self.bitcoin_rpc_client()?;
+  pub(crate) fn bitcoin_rpc_client_mainnet_forbidden(
+    &self,
+    command: &str,
+    min_version: usize,
+  ) -> Result<Client> {
+    let client = self.bitcoin_rpc_client(min_version)?;
 
     if self.chain() == Chain::Mainnet {
       bail!("`{command}` is unstable and not yet supported on mainnet.");
@@ -144,8 +166,12 @@ impl Options {
     Ok(client)
   }
 
-  pub(crate) fn bitcoin_rpc_client_for_wallet_command(&self, command: &str) -> Result<Client> {
-    let client = self.bitcoin_rpc_client()?;
+  pub(crate) fn bitcoin_rpc_client_for_wallet_command(
+    &self,
+    command: &str,
+    min_version: usize,
+  ) -> Result<Client> {
+    let client = self.bitcoin_rpc_client(min_version)?;
 
     if self.chain() == Chain::Mainnet {
       let wallet_info = client.get_wallet_info()?;
@@ -171,6 +197,7 @@ impl Options {
         bail!("the ord wallet should only contain tr and rawtr descriptors: `{desc}`");
       }
     }
+
     Ok(client)
   }
 }
@@ -418,7 +445,7 @@ mod tests {
     .unwrap();
 
     assert_eq!(
-      options.bitcoin_rpc_client().unwrap_err().to_string(),
+      options.bitcoin_rpc_client(0).unwrap_err().to_string(),
       "Bitcoin RPC server is on testnet but ord is on mainnet"
     );
   }

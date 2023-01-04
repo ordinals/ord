@@ -440,11 +440,10 @@ impl Api for Server {
     &self,
     req: Vec<ImportDescriptors>,
   ) -> Result<Vec<ImportMultiResult>, jsonrpc_core::Error> {
-    self.state().descriptors.extend(
-      req
-        .into_iter()
-        .map(|params| params.descriptor),
-    );
+    self
+      .state()
+      .descriptors
+      .extend(req.into_iter().map(|params| params.descriptor));
 
     Ok(vec![ImportMultiResult {
       success: true,

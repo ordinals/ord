@@ -8,7 +8,7 @@ pub(crate) struct Transactions {
 
 impl Transactions {
   pub(crate) fn run(self, options: Options) -> Result {
-    for tx in options.bitcoin_rpc_client()?.list_transactions(
+    for tx in options.bitcoin_rpc_client(0)?.list_transactions(
       None,
       Some(self.limit.unwrap_or(u16::MAX).into()),
       None,
