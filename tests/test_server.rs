@@ -60,7 +60,7 @@ impl TestServer {
     format!("http://127.0.0.1:{}", self.port).parse().unwrap()
   }
 
-  pub(crate) fn assert_response_regex(&self, path: &str, regex: &str) {
+  pub(crate) fn assert_response_regex(&self, path: impl AsRef<str>, regex: impl AsRef<str>) {
     let client = Client::new(&self.rpc_url, Auth::None).unwrap();
     let chain_block_count = client.get_block_count().unwrap() + 1;
 
@@ -75,9 +75,9 @@ impl TestServer {
       thread::sleep(Duration::from_millis(25));
     }
 
-    let response = reqwest::blocking::get(self.url().join(path).unwrap()).unwrap();
+    let response = reqwest::blocking::get(self.url().join(path.as_ref()).unwrap()).unwrap();
     assert_eq!(response.status(), StatusCode::OK);
-    assert_regex_match!(response.text().unwrap(), regex);
+    assert_regex_match!(response.text().unwrap(), regex.as_ref());
   }
 
   pub(crate) fn request(&self, path: &str) -> Response {

@@ -28,7 +28,6 @@ use {
     sat_point::SatPoint,
     subcommand::Subcommand,
     tally::Tally,
-    templates::ContentHtml,
   },
   anyhow::{anyhow, bail, Context, Error},
   bitcoin::{

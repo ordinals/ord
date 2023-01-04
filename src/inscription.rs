@@ -89,7 +89,7 @@ impl Inscription {
     let content = self.content.as_ref()?;
 
     match self.content_type()? {
-      content_type::HTML | content_type::SVG => Some(Content::IFrame),
+      content_type::HTML | content_type::SVG => Some(Content::Iframe),
       content_type::TEXT => Some(Content::Text(str::from_utf8(content).ok()?)),
       content_type if content_type::is_image(content_type) => Some(Content::Image),
       _ => None,
@@ -100,11 +100,8 @@ impl Inscription {
     Some(self.content.as_ref()?)
   }
 
-  pub(crate) fn content_html(&self, inscription_id: InscriptionId) -> Trusted<ContentHtml> {
-    Trusted(ContentHtml {
-      content: self.content(),
-      inscription_id,
-    })
+  pub(crate) fn into_content(self) -> Option<Vec<u8>> {
+    self.content
   }
 
   pub(crate) fn content_size(&self) -> Option<usize> {

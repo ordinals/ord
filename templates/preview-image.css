@@ -1,0 +1,13 @@
+html {
+  height: 100%;
+}
+
+body {
+  background-image: url(/content/{{self.inscription_id}});
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  height: 100%;
+  image-rendering: pixelated;
+  margin: 0;
+}
