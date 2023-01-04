@@ -25,9 +25,13 @@ fn wallet_creates_correct_taproot_descriptor() {
     .rpc_server(&rpc_server)
     .run();
 
-  assert_eq!(rpc_server.descriptors().len(), 1);
+  assert_eq!(rpc_server.descriptors().len(), 2);
   assert_regex_match!(
     &rpc_server.descriptors()[0],
     r"tr\(\[.*/86'/0'/0'\]tprv.*/0/\*\)#.*"
+  );
+  assert_regex_match!(
+    &rpc_server.descriptors()[1],
+    r"tr\(\[.*/86'/0'/0'\]tprv.*/1/\*\)#.*"
   );
 }
