@@ -483,7 +483,7 @@ impl Index {
     self.client.get_block(&hash).into_option()
   }
 
-  pub(crate) fn get_inscription_by_sat(&self, sat: Sat) -> Result<Option<InscriptionId>> {
+  pub(crate) fn get_inscription_id_by_sat(&self, sat: Sat) -> Result<Option<InscriptionId>> {
     Ok(
       self
         .database
@@ -496,19 +496,19 @@ impl Index {
 
   pub(crate) fn get_inscription_by_id(
     &self,
-    txid: Txid,
+    inscription_id: InscriptionId,
   ) -> Result<Option<(Inscription, SatPoint)>> {
     let Some(satpoint) = self
         .database
         .begin_read()?
         .open_table(INSCRIPTION_ID_TO_SATPOINT)?
-        .get(txid.as_inner())?
+        .get(inscription_id.as_inner())?
         .map(|satpoint| decode_satpoint(*satpoint.value()))
         else {
       return Ok(None);
     };
 
-    let Some(inscription) = self.get_transaction(txid)?.and_then(|tx| Inscription::from_transaction(&tx)) else {
+    let Some(inscription) = self.get_transaction(inscription_id)?.and_then(|tx| Inscription::from_transaction(&tx)) else {
       return Ok(None);
     };
 

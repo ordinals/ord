@@ -334,7 +334,7 @@ impl Server {
         blocktime: index.blocktime(sat.height()).map_err(|err| {
           ServerError::Internal(anyhow!("failed to retrieve blocktime from index: {err}"))
         })?,
-        inscription: index.get_inscription_by_sat(sat).map_err(|err| {
+        inscription: index.get_inscription_id_by_sat(sat).map_err(|err| {
           ServerError::Internal(anyhow!(
             "failed to retrieve inscription for sat {sat} from index: {err}"
           ))
