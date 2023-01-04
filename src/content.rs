@@ -1,6 +1,6 @@
 #[derive(Debug, PartialEq)]
 pub(crate) enum Content<'a> {
-  IFrame,
+  Iframe,
   Image,
   Text(&'a str),
 }

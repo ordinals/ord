@@ -1,7 +1,5 @@
 <h1>Inscription {{ self.inscription_id }}</h1>
-<a class=content href=/content/{{self.inscription_id}}>
-{{ self.inscription.content_html(self.inscription_id) }}
-</a>
+<div class=inscription>{{Iframe::main(self.inscription_id)}}</div>
 <dl>
 %% if let Some(content_size) = self.inscription.content_size() {
   <dt>content size</dt>

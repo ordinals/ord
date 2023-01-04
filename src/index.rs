@@ -21,27 +21,23 @@ type SatRangeArray = [u8; 11];
 
 const SCHEMA_VERSION: u64 = 1;
 
-const HEIGHT_TO_BLOCK_HASH: TableDefinition<u64, &BlockHashArray> =
-  TableDefinition::new("HEIGHT_TO_BLOCK_HASH");
-const INSCRIPTION_ID_TO_HEIGHT: TableDefinition<&InscriptionIdArray, u64> =
-  TableDefinition::new("INSCRIPTION_ID_TO_HEIGHT");
-const INSCRIPTION_ID_TO_SATPOINT: TableDefinition<&InscriptionIdArray, &SatPointArray> =
-  TableDefinition::new("INSCRIPTION_ID_TO_SATPOINT");
-const INSCRIPTION_NUMBER_TO_INSCRIPTION_ID: TableDefinition<u64, &InscriptionIdArray> =
-  TableDefinition::new("INSCRIPTION_NUMBER_TO_INSCRIPTION_ID");
-const OUTPOINT_TO_SAT_RANGES: TableDefinition<&OutPointArray, &[u8]> =
-  TableDefinition::new("OUTPOINT_TO_SAT_RANGES");
-const OUTPOINT_TO_VALUE: TableDefinition<&OutPointArray, u64> =
-  TableDefinition::new("OUTPOINT_TO_VALUE");
-const SATPOINT_TO_INSCRIPTION_ID: TableDefinition<&SatPointArray, &InscriptionIdArray> =
-  TableDefinition::new("SATPOINT_TO_INSCRIPTION_ID");
-const SAT_TO_INSCRIPTION_ID: TableDefinition<u64, &InscriptionIdArray> =
-  TableDefinition::new("SAT_TO_INSCRIPTION_ID");
-const SAT_TO_SATPOINT: TableDefinition<u64, &SatPointArray> =
-  TableDefinition::new("SAT_TO_SATPOINT");
-const STATISTIC_TO_COUNT: TableDefinition<u64, u64> = TableDefinition::new("STATISTIC_TO_COUNT");
-const WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP: TableDefinition<u64, u128> =
-  TableDefinition::new("WRITE_TRANSACTION_START_BLOCK_COUNT_TO_TIMESTAMP");
+macro_rules! define_table {
+  ($name:ident, $key:ty, $value:ty) => {
+    const $name: TableDefinition<$key, $value> = TableDefinition::new(stringify!($name));
+  };
+}
+
+define_table! { HEIGHT_TO_BLOCK_HASH, u64, &BlockHashArray }
+define_table! { INSCRIPTION_ID_TO_HEIGHT, &InscriptionIdArray, u64 }
+define_table! { INSCRIPTION_ID_TO_SATPOINT, &InscriptionIdArray, &SatPointArray }
+define_table! { INSCRIPTION_NUMBER_TO_INSCRIPTION_ID, u64, &InscriptionIdArray }
+define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointArray, &[u8] }
+define_table! { OUTPOINT_TO_VALUE, &OutPointArray, u64}
+define_table! { SATPOINT_TO_INSCRIPTION_ID, &SatPointArray, &InscriptionIdArray }
+define_table! { SAT_TO_INSCRIPTION_ID, u64, &InscriptionIdArray }
+define_table! { SAT_TO_SATPOINT, u64, &SatPointArray }
+define_table! { STATISTIC_TO_COUNT, u64, u64 }
+define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u64, u128 }
 
 fn encode_outpoint(outpoint: OutPoint) -> OutPointArray {
   let mut array = [0; 36];
@@ -487,39 +483,32 @@ impl Index {
     self.client.get_block(&hash).into_option()
   }
 
-  pub(crate) fn get_inscription_by_sat(
-    &self,
-    sat: Sat,
-  ) -> Result<Option<(InscriptionId, Inscription)>> {
-    let db = self.database.begin_read()?;
-    let table = db.open_table(SAT_TO_INSCRIPTION_ID)?;
-
-    let Some(txid) = table.get(&sat.n())? else {
-      return Ok(None);
-    };
-
+  pub(crate) fn get_inscription_id_by_sat(&self, sat: Sat) -> Result<Option<InscriptionId>> {
     Ok(
       self
-        .get_inscription_by_inscription_id(Txid::from_inner(*txid.value()))?
-        .map(|(inscription, _)| (InscriptionId::from_inner(*txid.value()), inscription)),
+        .database
+        .begin_read()?
+        .open_table(SAT_TO_INSCRIPTION_ID)?
+        .get(&sat.n())?
+        .map(|inscription_id| decode_inscription_id(*inscription_id.value())),
     )
   }
 
-  pub(crate) fn get_inscription_by_inscription_id(
+  pub(crate) fn get_inscription_by_id(
     &self,
-    txid: Txid,
+    inscription_id: InscriptionId,
   ) -> Result<Option<(Inscription, SatPoint)>> {
     let Some(satpoint) = self
         .database
         .begin_read()?
         .open_table(INSCRIPTION_ID_TO_SATPOINT)?
-        .get(txid.as_inner())?
+        .get(inscription_id.as_inner())?
         .map(|satpoint| decode_satpoint(*satpoint.value()))
         else {
       return Ok(None);
     };
 
-    let Some(inscription) = self.get_transaction(txid)?.and_then(|tx| Inscription::from_transaction(&tx)) else {
+    let Some(inscription) = self.get_transaction(inscription_id)?.and_then(|tx| Inscription::from_transaction(&tx)) else {
       return Ok(None);
     };
 
@@ -662,33 +651,18 @@ impl Index {
     )
   }
 
-  pub(crate) fn get_latest_inscriptions(
-    &self,
-    n: usize,
-  ) -> Result<Vec<(Inscription, InscriptionId)>> {
-    let mut inscriptions = Vec::new();
-
-    for (_n, id) in self
-      .database
-      .begin_read()?
-      .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
-      .iter()?
-      .rev()
-    {
-      let id = decode_inscription_id(*id.value());
-
-      let Some((inscription, _satpoint)) = self.get_inscription_by_inscription_id(id)? else {
-        continue;
-      };
-
-      inscriptions.push((inscription, id));
-
-      if inscriptions.len() == n {
-        break;
-      }
-    }
-
-    Ok(inscriptions)
+  pub(crate) fn get_latest_inscriptions(&self, n: usize) -> Result<Vec<InscriptionId>> {
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
+        .iter()?
+        .rev()
+        .take(n)
+        .map(|(_number, id)| decode_inscription_id(*id.value()))
+        .collect(),
+    )
   }
 
   pub(crate) fn get_genesis_height(&self, inscription_id: InscriptionId) -> Result<u64> {
@@ -886,6 +860,51 @@ mod tests {
       context.mine_blocks(2);
       assert_eq!(context.index.height().unwrap(), Some(Height(1)));
       assert_eq!(context.index.block_count().unwrap(), 2);
+    }
+  }
+
+  #[test]
+  fn inscriptions_below_first_inscription_height_are_skipped() {
+    let inscription = inscription("text/plain", "hello");
+    let template = TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witness: inscription.to_witness(),
+      ..Default::default()
+    };
+
+    {
+      let context = Context::builder().build();
+      context.mine_blocks(1);
+      let inscription_id = context.rpc_server.broadcast_tx(template.clone());
+      context.mine_blocks(1);
+
+      assert_eq!(
+        context.index.get_inscription_by_id(inscription_id).unwrap(),
+        Some((
+          inscription,
+          SatPoint {
+            outpoint: OutPoint {
+              txid: inscription_id,
+              vout: 0,
+            },
+            offset: 0,
+          }
+        ))
+      );
+    }
+
+    {
+      let context = Context::builder()
+        .arg("--first-inscription-height=3")
+        .build();
+      context.mine_blocks(1);
+      let inscription_id = context.rpc_server.broadcast_tx(template);
+      context.mine_blocks(1);
+
+      assert_eq!(
+        context.index.get_inscription_by_id(inscription_id).unwrap(),
+        None,
+      );
     }
   }
 

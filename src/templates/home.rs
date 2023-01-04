@@ -4,14 +4,11 @@ use super::*;
 pub(crate) struct HomeHtml {
   last: u64,
   blocks: Vec<BlockHash>,
-  inscriptions: Vec<(Inscription, InscriptionId)>,
+  inscriptions: Vec<InscriptionId>,
 }
 
 impl HomeHtml {
-  pub(crate) fn new(
-    blocks: Vec<(u64, BlockHash)>,
-    inscriptions: Vec<(Inscription, InscriptionId)>,
-  ) -> Self {
+  pub(crate) fn new(blocks: Vec<(u64, BlockHash)>, inscriptions: Vec<InscriptionId>) -> Self {
     Self {
       last: blocks
         .get(0)
@@ -52,15 +49,13 @@ mod tests {
               .unwrap()
           )
         ],
-        vec![(
-          inscription("text/plain;charset=utf-8", "HELLOWORLD"),
-          txid(1)
-        )],
+        vec![txid(1), txid(2),],
       )
       .to_string(),
       "<h2>Latest Inscriptions</h2>
 <div class=inscriptions>
-  <a href=/inscription/1111111111111111111111111111111111111111111111111111111111111111><pre class=inscription>HELLOWORLD</pre></a>
+  <a href=/inscription/1{64}><iframe .* src=/preview/1{64}></iframe></a>
+  <a href=/inscription/2{64}><iframe .* src=/preview/2{64}></iframe></a>
 </div>
 <div class=center><a href=/inscriptions>more…</a></div>
 <h2>Latest Blocks</h2>
