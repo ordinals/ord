@@ -7,7 +7,7 @@ use {
   log::log_enabled,
   redb::{Database, ReadableTable, Table, TableDefinition, WriteStrategy, WriteTransaction},
   std::collections::HashMap,
-  std::sync::atomic::{AtomicBool, Ordering},
+  std::sync::atomic::{self, AtomicBool},
 };
 
 mod rtx;
@@ -18,6 +18,8 @@ type InscriptionIdArray = [u8; 32];
 type OutPointArray = [u8; 36];
 type SatPointArray = [u8; 44];
 type SatRangeArray = [u8; 11];
+
+const SCHEMA_VERSION: u64 = 1;
 
 const HEIGHT_TO_BLOCK_HASH: TableDefinition<u64, &BlockHashArray> =
   TableDefinition::new("HEIGHT_TO_BLOCK_HASH");
@@ -91,10 +93,11 @@ pub(crate) enum List {
 #[derive(Copy, Clone)]
 #[repr(u64)]
 pub(crate) enum Statistic {
-  OutputsTraversed = 0,
+  Schema = 0,
   Commits = 1,
-  SatRanges = 2,
-  LostSats = 3,
+  LostSats = 2,
+  OutputsTraversed = 3,
+  SatRanges = 4,
 }
 
 impl Statistic {
@@ -189,7 +192,31 @@ impl Index {
     };
 
     let database = match unsafe { redb::Database::builder().open_mmapped(&database_path) } {
-      Ok(database) => database,
+      Ok(database) => {
+        let schema_version = database
+          .begin_read()?
+          .open_table(STATISTIC_TO_COUNT)?
+          .get(&Statistic::Schema.key())?
+          .map(|x| x.value())
+          .unwrap_or(0);
+
+        match schema_version.cmp(&SCHEMA_VERSION) {
+          cmp::Ordering::Less =>
+            bail!(
+              "index at `{}` appears to have been built with an older, incompatible version of ord, consider deleting and rebuilding the index: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
+              database_path.display()
+            ),
+          cmp::Ordering::Greater =>
+            bail!(
+              "index at `{}` appears to have been built with a newer, incompatible version of ord, consider updating ord: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
+              database_path.display()
+            ),
+          cmp::Ordering::Equal => {
+          }
+        }
+
+        database
+      }
       Err(redb::Error::Io(error)) if error.kind() == io::ErrorKind::NotFound => {
         let database = unsafe {
           Database::builder()
@@ -217,8 +244,10 @@ impl Index {
         tx.open_table(SATPOINT_TO_INSCRIPTION_ID)?;
         tx.open_table(SAT_TO_INSCRIPTION_ID)?;
         tx.open_table(SAT_TO_SATPOINT)?;
-        tx.open_table(STATISTIC_TO_COUNT)?;
         tx.open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?;
+
+        tx.open_table(STATISTIC_TO_COUNT)?
+          .insert(&Statistic::Schema.key(), &SCHEMA_VERSION)?;
 
         if options.index_sats {
           tx.open_table(OUTPOINT_TO_SAT_RANGES)?;
@@ -336,7 +365,7 @@ impl Index {
   }
 
   pub(crate) fn is_reorged(&self) -> bool {
-    self.reorged.load(Ordering::Relaxed)
+    self.reorged.load(atomic::Ordering::Relaxed)
   }
 
   fn begin_read(&self) -> Result<rtx::Rtx> {
@@ -746,6 +775,61 @@ impl Index {
 mod tests {
   use super::*;
 
+  struct ContextBuilder {
+    args: Vec<OsString>,
+    tempdir: Option<TempDir>,
+  }
+
+  impl ContextBuilder {
+    fn build(self) -> Context {
+      self.try_build().unwrap()
+    }
+
+    fn try_build(self) -> Result<Context> {
+      let rpc_server = test_bitcoincore_rpc::spawn();
+
+      let tempdir = self.tempdir.unwrap_or_else(|| TempDir::new().unwrap());
+      let cookie_file = tempdir.path().join("cookie");
+      fs::write(&cookie_file, "username:password").unwrap();
+
+      let command: Vec<OsString> = vec![
+        "ord".into(),
+        "--rpc-url".into(),
+        rpc_server.url().into(),
+        "--data-dir".into(),
+        tempdir.path().into(),
+        "--cookie-file".into(),
+        cookie_file.into(),
+        "--regtest".into(),
+      ];
+
+      let options = Options::try_parse_from(command.into_iter().chain(self.args)).unwrap();
+      let index = Index::open(&options)?;
+      index.update().unwrap();
+
+      Ok(Context {
+        rpc_server,
+        tempdir,
+        index,
+      })
+    }
+
+    fn arg(mut self, arg: impl Into<OsString>) -> Self {
+      self.args.push(arg.into());
+      self
+    }
+
+    fn args<T: Into<OsString>, I: IntoIterator<Item = T>>(mut self, args: I) -> Self {
+      self.args.extend(args.into_iter().map(|arg| arg.into()));
+      self
+    }
+
+    fn tempdir(mut self, tempdir: TempDir) -> Self {
+      self.tempdir = Some(tempdir);
+      self
+    }
+  }
+
   struct Context {
     rpc_server: test_bitcoincore_rpc::Handle,
     #[allow(unused)]
@@ -754,36 +838,10 @@ mod tests {
   }
 
   impl Context {
-    fn with_args(args: &str) -> Self {
-      let rpc_server = test_bitcoincore_rpc::spawn();
-
-      let tempdir = TempDir::new().unwrap();
-      let cookie_file = tempdir.path().join("cookie");
-      fs::write(&cookie_file, "username:password").unwrap();
-      let options = Options::try_parse_from(
-        format!(
-          "
-          ord
-          --rpc-url {}
-          --data-dir {}
-          --cookie-file {}
-          --chain regtest
-          {args}
-        ",
-          rpc_server.url(),
-          tempdir.path().display(),
-          cookie_file.display(),
-        )
-        .split_whitespace(),
-      )
-      .unwrap();
-      let index = Index::open(&options).unwrap();
-      index.update().unwrap();
-
-      Self {
-        rpc_server,
-        tempdir,
-        index,
+    fn builder() -> ContextBuilder {
+      ContextBuilder {
+        args: Vec::new(),
+        tempdir: None,
       }
     }
 
@@ -800,28 +858,31 @@ mod tests {
     }
 
     fn configurations() -> Vec<Context> {
-      vec![Context::with_args(""), Context::with_args("--index-sats")]
+      vec![
+        Context::builder().build(),
+        Context::builder().arg("--index-sats").build(),
+      ]
     }
   }
 
   #[test]
   fn height_limit() {
     {
-      let context = Context::with_args("--height-limit 0");
+      let context = Context::builder().args(["--height-limit", "0"]).build();
       context.mine_blocks(1);
       assert_eq!(context.index.height().unwrap(), None);
       assert_eq!(context.index.block_count().unwrap(), 0);
     }
 
     {
-      let context = Context::with_args("--height-limit 1");
+      let context = Context::builder().args(["--height-limit", "1"]).build();
       context.mine_blocks(1);
       assert_eq!(context.index.height().unwrap(), Some(Height(0)));
       assert_eq!(context.index.block_count().unwrap(), 1);
     }
 
     {
-      let context = Context::with_args("--height-limit 2");
+      let context = Context::builder().args(["--height-limit", "2"]).build();
       context.mine_blocks(2);
       assert_eq!(context.index.height().unwrap(), Some(Height(1)));
       assert_eq!(context.index.block_count().unwrap(), 2);
@@ -830,7 +891,7 @@ mod tests {
 
   #[test]
   fn list_first_coinbase_transaction() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
     assert_eq!(
       context
         .index
@@ -847,7 +908,7 @@ mod tests {
 
   #[test]
   fn list_second_coinbase_transaction() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
     let txid = context.mine_blocks(1)[0].txdata[0].txid();
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
@@ -857,7 +918,7 @@ mod tests {
 
   #[test]
   fn list_split_ranges_are_tracked_correctly() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
 
     context.mine_blocks(1);
     let split_coinbase_output = TransactionTemplate {
@@ -883,7 +944,7 @@ mod tests {
 
   #[test]
   fn list_merge_ranges_are_tracked_correctly() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
 
     context.mine_blocks(2);
     let merge_coinbase_outputs = TransactionTemplate {
@@ -906,7 +967,7 @@ mod tests {
 
   #[test]
   fn list_fee_paying_transaction_range() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
 
     context.mine_blocks(1);
     let fee_paying_tx = TransactionTemplate {
@@ -940,7 +1001,7 @@ mod tests {
 
   #[test]
   fn list_two_fee_paying_transaction_range() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
 
     context.mine_blocks(2);
     let first_fee_paying_tx = TransactionTemplate {
@@ -974,7 +1035,7 @@ mod tests {
 
   #[test]
   fn list_null_output() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
 
     context.mine_blocks(1);
     let no_value_output = TransactionTemplate {
@@ -993,7 +1054,7 @@ mod tests {
 
   #[test]
   fn list_null_input() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
 
     context.mine_blocks(1);
     let no_value_output = TransactionTemplate {
@@ -1020,7 +1081,7 @@ mod tests {
 
   #[test]
   fn list_spent_output() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
     context.mine_blocks(1);
     context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0)],
@@ -1037,7 +1098,7 @@ mod tests {
 
   #[test]
   fn list_unknown_output() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
 
     assert_eq!(
       context
@@ -1054,7 +1115,7 @@ mod tests {
 
   #[test]
   fn find_first_sat() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
     assert_eq!(
       context.index.find(0).unwrap().unwrap(),
       SatPoint {
@@ -1068,7 +1129,7 @@ mod tests {
 
   #[test]
   fn find_second_sat() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
     assert_eq!(
       context.index.find(1).unwrap().unwrap(),
       SatPoint {
@@ -1082,7 +1143,7 @@ mod tests {
 
   #[test]
   fn find_first_sat_of_second_block() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
     context.mine_blocks(1);
     assert_eq!(
       context.index.find(50 * COIN_VALUE).unwrap().unwrap(),
@@ -1097,13 +1158,13 @@ mod tests {
 
   #[test]
   fn find_unmined_sat() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
     assert_eq!(context.index.find(50 * COIN_VALUE).unwrap(), None);
   }
 
   #[test]
   fn find_first_satoshi_spent_in_second_block() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
     context.mine_blocks(1);
     let spend_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0)],
@@ -1295,10 +1356,10 @@ mod tests {
   #[test]
   fn missing_inputs_are_fetched_from_bitcoin_core() {
     for args in [
-      "--first-inscription-height 2",
-      "--first-inscription-height 2 --index-sats",
+      ["--first-inscription-height", "2"].as_slice(),
+      ["--first-inscription-height", "2", "--index-sats"].as_slice(),
     ] {
-      let context = Context::with_args(args);
+      let context = Context::builder().args(args).build();
       context.mine_blocks(1);
 
       let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -1476,7 +1537,7 @@ mod tests {
 
   #[test]
   fn lost_sats_are_tracked_correctly() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
     assert_eq!(context.index.statistic(Statistic::LostSats), 0);
 
     context.mine_blocks(1);
@@ -1587,7 +1648,7 @@ mod tests {
 
   #[test]
   fn lost_rare_sats_are_tracked() {
-    let context = Context::with_args("--index-sats");
+    let context = Context::builder().arg("--index-sats").build();
     context.mine_blocks_with_subsidy(1, 0);
     context.mine_blocks_with_subsidy(1, 0);
 
@@ -1614,5 +1675,59 @@ mod tests {
         offset: 50 * COIN_VALUE,
       },
     );
+  }
+
+  #[test]
+  fn old_schema_gives_correct_error() {
+    let tempdir = {
+      let context = Context::builder().build();
+
+      let wtx = context.index.database.begin_write().unwrap();
+
+      wtx
+        .open_table(STATISTIC_TO_COUNT)
+        .unwrap()
+        .insert(&Statistic::Schema.key(), &0)
+        .unwrap();
+
+      wtx.commit().unwrap();
+
+      context.tempdir
+    };
+
+    let path = tempdir.path().to_owned();
+
+    let delimiter = if cfg!(windows) { '\\' } else { '/' };
+
+    assert_eq!(
+      Context::builder().tempdir(tempdir).try_build().err().unwrap().to_string(),
+      format!("index at `{}{delimiter}regtest{delimiter}index.redb` appears to have been built with an older, incompatible version of ord, consider deleting and rebuilding the index: index schema 0, ord schema 1", path.display()));
+  }
+
+  #[test]
+  fn new_schema_gives_correct_error() {
+    let tempdir = {
+      let context = Context::builder().build();
+
+      let wtx = context.index.database.begin_write().unwrap();
+
+      wtx
+        .open_table(STATISTIC_TO_COUNT)
+        .unwrap()
+        .insert(&Statistic::Schema.key(), &u64::MAX)
+        .unwrap();
+
+      wtx.commit().unwrap();
+
+      context.tempdir
+    };
+
+    let path = tempdir.path().to_owned();
+
+    let delimiter = if cfg!(windows) { '\\' } else { '/' };
+
+    assert_eq!(
+      Context::builder().tempdir(tempdir).try_build().err().unwrap().to_string(),
+      format!("index at `{}{delimiter}regtest{delimiter}index.redb` appears to have been built with a newer, incompatible version of ord, consider updating ord: index schema {}, ord schema {SCHEMA_VERSION}", path.display(), u64::MAX));
   }
 }

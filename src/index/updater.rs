@@ -265,7 +265,7 @@ impl Updater {
       let prev_hash = height_to_block_hash.get(&prev_height)?.unwrap();
 
       if prev_hash.value() != block.header.prev_blockhash.as_ref() {
-        index.reorged.store(true, Ordering::Relaxed);
+        index.reorged.store(true, atomic::Ordering::Relaxed);
         return Err(anyhow!("reorg detected at or before {prev_height}"));
       }
     }
