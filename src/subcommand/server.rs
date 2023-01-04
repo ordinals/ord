@@ -874,6 +874,25 @@ mod tests {
       assert_regex_match!(response.text().unwrap(), regex.as_ref());
     }
 
+    fn assert_response_csp(
+      &self,
+      path: impl AsRef<str>,
+      status: StatusCode,
+      content_security_policy: &str,
+      regex: impl AsRef<str>,
+    ) {
+      let response = self.get(path.as_ref());
+      assert_eq!(response.status(), status);
+      assert_eq!(
+        response
+          .headers()
+          .get(header::CONTENT_SECURITY_POLICY,)
+          .unwrap(),
+        content_security_policy
+      );
+      assert_regex_match!(response.text().unwrap(), regex.as_ref());
+    }
+
     fn assert_redirect(&self, path: &str, location: &str) {
       let response = reqwest::blocking::Client::builder()
         .redirect(reqwest::redirect::Policy::none())
@@ -1746,9 +1765,10 @@ next.*",
 
     server.mine_blocks(1);
 
-    server.assert_response_regex(
+    server.assert_response_csp(
       format!("/preview/{inscription_id}"),
       StatusCode::OK,
+      "default-src 'self'",
       ".*<pre>hello</pre>.*",
     );
   }
@@ -1770,9 +1790,10 @@ next.*",
 
     server.mine_blocks(1);
 
-    server.assert_response_regex(
+    server.assert_response_csp(
       format!("/preview/{inscription_id}"),
       StatusCode::OK,
+      "default-src 'self'",
       r".*<pre>&lt;script&gt;alert\(&apos;hello&apos;\);&lt;/script&gt;</pre>.*",
     );
   }
@@ -1790,9 +1811,10 @@ next.*",
 
     server.mine_blocks(1);
 
-    server.assert_response_regex(
+    server.assert_response_csp(
       format!("/preview/{inscription_id}"),
       StatusCode::OK,
+      "default-src 'self' 'unsafe-inline'",
       format!(r".*background-image: url\(/content/{inscription_id}\);.*"),
     );
   }
@@ -1810,9 +1832,10 @@ next.*",
 
     server.mine_blocks(1);
 
-    server.assert_response_regex(
+    server.assert_response_csp(
       format!("/preview/{inscription_id}"),
       StatusCode::OK,
+      "default-src 'unsafe-eval' 'unsafe-inline'",
       "hello",
     );
   }
@@ -1830,9 +1853,10 @@ next.*",
 
     server.mine_blocks(1);
 
-    server.assert_response_regex(
+    server.assert_response_csp(
       format!("/preview/{inscription_id}"),
       StatusCode::OK,
+      "default-src 'self'",
       fs::read_to_string("templates/preview-unknown.html").unwrap(),
     );
   }
