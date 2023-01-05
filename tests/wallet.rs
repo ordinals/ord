@@ -580,7 +580,7 @@ fn receive_ordinal() {
     .stdout_regex(".*")
     .run();
 
-  assert!(OrdinalAddress::from_str(stdout.trim()).is_ok());
+  assert!(stdout.starts_with("ord1"));
 }
 
 #[test]
@@ -818,10 +818,9 @@ fn send_btc() {
     rpc_server.sent(),
     &[Sent {
       amount: 1.0,
-      address: "rord1qpwxd9k4pm7t5peh8kml7asn2wgmxmfjac5kr8q"
-        .parse::<OrdinalAddress>()
-        .unwrap()
-        .into(),
+      address: "bcrt1qpwxd9k4pm7t5peh8kml7asn2wgmxmfjawahtjv"
+        .parse::<Address>()
+        .unwrap(),
       locked: Vec::new(),
     }]
   )
@@ -856,10 +855,9 @@ fn send_btc_locks_inscriptions() {
     rpc_server.sent(),
     &[Sent {
       amount: 1.0,
-      address: "rord1qpwxd9k4pm7t5peh8kml7asn2wgmxmfjac5kr8q"
-        .parse::<OrdinalAddress>()
-        .unwrap()
-        .into(),
+      address: "bcrt1qpwxd9k4pm7t5peh8kml7asn2wgmxmfjawahtjv"
+        .parse::<Address>()
+        .unwrap(),
       locked: vec![OutPoint {
         txid: inscription_id,
         vout: 0,
