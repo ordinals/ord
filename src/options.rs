@@ -191,11 +191,20 @@ impl Options {
       }
     }
 
+    let mut _num_rawtr = 0;
+    let mut num_tr = 0;
     for descriptor in client.list_descriptors(None)?.descriptors {
       let desc = descriptor.desc;
-      if !Regex::new(r"(tr|rawtr).*").unwrap().is_match(&desc) {
+      if Regex::new(r"tr.*").unwrap().is_match(&desc) {
+        num_tr += 1;
+      } else if Regex::new(r"rawtr.*").unwrap().is_match(&desc) {
+        num_rawtr += 1;
+      } else {
         bail!("the ord wallet should only contain tr and rawtr descriptors: `{desc}`");
       }
+    }
+    if num_tr > 2 || num_tr == 0 {
+      bail!("the ord wallet should contain 2 tr descriptors");
     }
 
     Ok(client)
