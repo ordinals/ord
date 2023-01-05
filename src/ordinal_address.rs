@@ -4,12 +4,12 @@ use {
 };
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct OrdinalAddress(Address);
+pub(crate) struct OrdinalAddress(Address);
 
 impl OrdinalAddress {
-  pub const PATTERN: &str = r"^(ord|ORD|tord|TORD|rord|RORD)1.*$";
+  pub(crate) const PATTERN: &str = r"^(ord|ORD|tord|TORD|rord|RORD)1.*$";
 
-  pub fn is_valid_for_network(&self, network: Network) -> bool {
+  pub(crate) fn is_valid_for_network(&self, network: Network) -> bool {
     self.0.is_valid_for_network(network)
   }
 }
@@ -88,7 +88,7 @@ impl Display for OrdinalAddress {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum ParseError {
+pub(crate) enum ParseError {
   Bech32(bech32::Error),
   Empty,
   Prefix(String),

@@ -81,7 +81,7 @@ fn get_unspent_outputs(options: &Options) -> Result<BTreeMap<OutPoint, Amount>> 
   );
 
   #[derive(Deserialize)]
-  pub struct JsonOutPoint {
+  pub(crate) struct JsonOutPoint {
     txid: bitcoin::Txid,
     vout: u32,
   }
