@@ -54,13 +54,11 @@ fn inscription_page() {
   rpc_server.mine_blocks(1);
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
-    &format!("/inscription/{reveal_tx}"),
-    &format!(
+    format!("/inscription/{reveal_tx}"),
+    format!(
       ".*<meta property=og:image content='/content/{reveal_tx}'>.*
 <h1>Inscription {reveal_tx}</h1>
-<a class=content href=/content/{reveal_tx}>
-<pre class=inscription>HELLOWORLD</pre>
-</a>
+.*<a href=/content/{reveal_tx}><iframe .* src=/preview/{reveal_tx}></iframe></a>.*
 <dl>
   <dt>content size</dt>
   <dd>10 bytes</dd>
@@ -97,8 +95,8 @@ fn inscription_appears_on_reveal_transaction_page() {
   rpc_server.mine_blocks(1);
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
-    &format!("/tx/{}", reveal_tx),
-    ".*<h1>Transaction .*</h1>.*HELLOWORLD.*",
+    format!("/tx/{reveal_tx}"),
+    format!(".*<h1>Transaction .*</h1>.*<a href=/inscription/{reveal_tx}.*"),
   );
 }
 
@@ -107,6 +105,7 @@ fn inscription_page_after_send() {
   let rpc_server = test_bitcoincore_rpc::builder()
     .network(Network::Regtest)
     .build();
+
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
@@ -123,11 +122,9 @@ fn inscription_page_after_send() {
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
-    &format!("/inscription/{reveal_txid}"),
-    &format!(
-      ".*<h1>Inscription {reveal_txid}</h1>.*HELLOWORLD.*<dl>.*<dt>location</dt>
-  <dd class=monospace>{reveal_txid}:0:0</dd>
-</dl>.*",
+    format!("/inscription/{reveal_txid}"),
+    format!(
+      r".*<h1>Inscription {reveal_txid}</h1>.*<dt>location</dt>\s*<dd class=monospace>{reveal_txid}:0:0</dd>.*",
     ),
   );
 
@@ -141,17 +138,13 @@ fn inscription_page_after_send() {
 
   rpc_server.mine_blocks(1);
 
+  let send_txid = txid.trim();
+
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
-    &format!("/inscription/{reveal_txid}"),
-    &format!(
-      ".*<h1>Inscription {reveal_txid}</h1>.*HELLOWORLD.*
-<dl>
-  .*
-  <dt>location</dt>
-  <dd class=monospace>{}:0:0</dd>
-</dl>.*",
-      txid.trim(),
+    format!("/inscription/{reveal_txid}"),
+    format!(
+      r".*<h1>Inscription {reveal_txid}</h1>.*<dt>location</dt>\s*<dd class=monospace>{send_txid}:0:0</dd>.*",
     ),
   )
 }
@@ -200,30 +193,10 @@ fn home_page_includes_latest_inscriptions() {
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     "/",
-    &format!(
+    format!(
       ".*<h2>Latest Inscriptions</h2>
 <div class=inscriptions>
-  <a href=/inscription/{inscription_id}><img .*></a>
-</div>.*"
-    ),
-  );
-}
-
-#[test]
-fn home_page_only_includes_graphical_inscriptions() {
-  let rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Regtest)
-    .build();
-
-  create_inscription(&rpc_server, "hello.txt");
-  let inscription_id = create_inscription(&rpc_server, "foo.png");
-
-  TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
-    "/",
-    &format!(
-      ".*<h2>Latest Inscriptions</h2>
-<div class=inscriptions>
-  <a href=/inscription/{inscription_id}><img .*></a>
+  <a href=/inscription/{inscription_id}><iframe .*></a>
 </div>.*"
     ),
   );
@@ -239,12 +212,12 @@ fn home_page_inscriptions_are_sorted() {
 
   for i in 0..8 {
     let id = create_inscription(&rpc_server, &format!("{i}.png"));
-    inscriptions.insert_str(0, &format!("\n  <a href=/inscription/{id}><img .*></a>"));
+    inscriptions.insert_str(0, &format!("\n  <a href=/inscription/{id}><iframe .*></a>"));
   }
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     "/",
-    &format!(
+    format!(
       ".*<h2>Latest Inscriptions</h2>
 <div class=inscriptions>{inscriptions}
 </div>.*"
@@ -274,10 +247,10 @@ fn inscriptions_page() {
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     "/inscriptions",
-    &format!(
+    format!(
       ".*<h1>Inscriptions</h1>
 <div class=inscriptions>
-  <a href=/inscription/{reveal_tx}><pre class=inscription>HELLOWORLD</pre></a>
+  <a href=/inscription/{reveal_tx}>.*</a>
 </div>
 .*",
     ),

@@ -28,7 +28,6 @@ use {
     sat_point::SatPoint,
     subcommand::Subcommand,
     tally::Tally,
-    templates::ContentHtml,
   },
   anyhow::{anyhow, bail, Context, Error},
   bitcoin::{
@@ -48,7 +47,7 @@ use {
   regex::Regex,
   serde::{Deserialize, Serialize},
   std::{
-    cmp::Ordering,
+    cmp,
     collections::{BTreeMap, HashSet, VecDeque},
     env,
     ffi::OsString,

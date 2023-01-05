@@ -2,7 +2,7 @@ use super::*;
 
 #[derive(Boilerplate)]
 pub(crate) struct InscriptionsHtml {
-  pub(crate) inscriptions: Vec<(Inscription, InscriptionId)>,
+  pub(crate) inscriptions: Vec<InscriptionId>,
 }
 
 impl PageContent for InscriptionsHtml {
@@ -17,19 +17,18 @@ mod tests {
 
   #[test]
   fn inscriptions() {
-    pretty_assert_eq!(
+    assert_regex_match!(
       InscriptionsHtml {
-        inscriptions: vec![(
-          inscription("text/plain;charset=utf-8", "HELLOWORLD"),
-          txid(1)
-        )],
-      }.to_string(),
+        inscriptions: vec![txid(1), txid(2)],
+      },
       "
         <h1>Inscriptions</h1>
         <div class=inscriptions>
-          <a href=/inscription/1111111111111111111111111111111111111111111111111111111111111111><pre class=inscription>HELLOWORLD</pre></a>
+          <a href=/inscription/1{64}><iframe .* src=/preview/1{64}></iframe></a>
+          <a href=/inscription/2{64}><iframe .* src=/preview/2{64}></iframe></a>
         </div>
-      ".unindent()
+      "
+      .unindent()
     );
   }
 }

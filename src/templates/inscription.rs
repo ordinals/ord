@@ -24,22 +24,18 @@ mod tests {
 
   #[test]
   fn html() {
-    pretty_assert_eq!(
+    assert_regex_match!(
       InscriptionHtml {
         genesis_height: 0,
-        inscription_id: InscriptionId::from_str(
-          "ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc"
-        )
-        .unwrap(),
+        inscription_id: "1111111111111111111111111111111111111111111111111111111111111111"
+          .parse()
+          .unwrap(),
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         satpoint: satpoint(1, 0),
-      }
-      .to_string(),
+      },
       "
-        <h1>Inscription ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc</h1>
-        <a class=content href=/content/ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc>
-        <pre class=inscription>HELLOWORLD</pre>
-        </a>
+        <h1>Inscription 1{64}</h1>
+        <div class=inscription><a href=/content/1{64}><iframe .* src=/preview/1{64}></iframe></a></div>
         <dl>
           <dt>content size</dt>
           <dd>10 bytes</dd>
@@ -48,9 +44,9 @@ mod tests {
           <dt>genesis height</dt>
           <dd>0</dd>
           <dt>genesis transaction</dt>
-          <dd><a class=monospace href=/tx/ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc>ec90757eb3b164aa43fc548faa2fa0c52025494f2c15d5ddf11260b4034ac6dc</a></dd>
+          <dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
           <dt>location</dt>
-          <dd class=monospace>1111111111111111111111111111111111111111111111111111111111111111:1:0</dd>
+          <dd class=monospace>1{64}:1:0</dd>
         </dl>
       "
       .unindent()

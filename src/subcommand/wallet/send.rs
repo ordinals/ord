@@ -35,7 +35,7 @@ impl Send {
         satpoint
       }
       Outgoing::InscriptionId(txid) => index
-        .get_inscription_by_inscription_id(txid)?
+        .get_inscription_by_id(txid)?
         .map(|(_inscription, satpoint)| satpoint)
         .ok_or_else(|| anyhow!("No inscription found for {txid}"))?,
       Outgoing::Amount(amount) => {

@@ -122,6 +122,7 @@ pub fn spawn() -> Handle {
   builder().build()
 }
 
+#[derive(Clone)]
 pub struct TransactionTemplate<'a> {
   pub fee: u64,
   pub inputs: &'a [(usize, usize, usize)],
