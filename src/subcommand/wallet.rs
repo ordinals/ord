@@ -22,7 +22,7 @@ pub(crate) enum Wallet {
   #[clap(about = "List wallet inscriptions")]
   Inscriptions,
   #[clap(about = "Generate a receive address")]
-  Receive,
+  Receive(receive::Receive),
   #[clap(about = "List wallet satoshis")]
   Sats(sats::Sats),
   #[clap(about = "Send a satoshi or inscription")]
@@ -40,7 +40,7 @@ impl Wallet {
       Self::Create => create::run(options),
       Self::Inscribe(inscribe) => inscribe.run(options),
       Self::Inscriptions => inscriptions::run(options),
-      Self::Receive => receive::run(options),
+      Self::Receive(receive) => receive.run(options),
       Self::Sats(sats) => sats.run(options),
       Self::Send(send) => send.run(options),
       Self::Transactions(transactions) => transactions.run(options),
@@ -81,7 +81,7 @@ fn get_unspent_outputs(options: &Options) -> Result<BTreeMap<OutPoint, Amount>> 
   );
 
   #[derive(Deserialize)]
-  pub struct JsonOutPoint {
+  pub(crate) struct JsonOutPoint {
     txid: bitcoin::Txid,
     vout: u32,
   }
