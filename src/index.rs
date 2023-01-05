@@ -515,14 +515,17 @@ impl Index {
     Ok(Some((inscription, satpoint)))
   }
 
-  pub(crate) fn get_inscriptions_on_output(&self, output: OutPoint) -> Result<Vec<InscriptionId>> {
+  pub(crate) fn get_inscriptions_on_output(
+    &self,
+    outpoint: OutPoint,
+  ) -> Result<Vec<InscriptionId>> {
     Ok(
       Self::inscriptions_on_output(
         &self
           .database
           .begin_read()?
           .open_table(SATPOINT_TO_INSCRIPTION_ID)?,
-        output,
+        outpoint,
       )?
       .map(|(_satpoint, inscription_id)| inscription_id)
       .collect(),
