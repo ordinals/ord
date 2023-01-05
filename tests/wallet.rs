@@ -99,6 +99,7 @@ fn send_works_on_signet() {
   .*
   <dt>location</dt>
   <dd class=monospace>{send_txid}:0:0</dd>
+  .*
 </dl>
 .*",
     ),

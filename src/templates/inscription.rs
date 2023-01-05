@@ -47,6 +47,10 @@ mod tests {
           <dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
           <dt>location</dt>
           <dd class=monospace>1{64}:1:0</dd>
+          <dt>output</dt>
+          <dd><a class=monospace href=/output/1{64}:1>1{64}:1</a></dd>
+          <dt>offset</dt>
+          <dd>0</dd>
         </dl>
       "
       .unindent()

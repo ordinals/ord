@@ -15,4 +15,8 @@
   <dd><a class=monospace href=/tx/{{ self.inscription_id }}>{{ self.inscription_id }}</a></dd>
   <dt>location</dt>
   <dd class=monospace>{{ self.satpoint }}</dd>
+  <dt>output</dt>
+  <dd><a class=monospace href=/output/{{ self.satpoint.outpoint }}>{{ self.satpoint.outpoint }}</a></dd>
+  <dt>offset</dt>
+  <dd>{{ self.satpoint.offset }}</dd>
 </dl>
