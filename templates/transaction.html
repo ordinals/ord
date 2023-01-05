@@ -1,6 +1,6 @@
 <h1>Transaction <span class=monospace>{{self.txid}}</span></h1>
 %% if let Some(inscription) = &self.inscription {
-<h2>Inscription</h2>
+<h2>Inscription Geneses</h2>
 {{ Iframe::preview(self.txid) }}
 %% }
 <h2>{{"Output".tally(self.transaction.output.len())}}</h2>

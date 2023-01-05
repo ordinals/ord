@@ -515,6 +515,23 @@ impl Index {
     Ok(Some((inscription, satpoint)))
   }
 
+  pub(crate) fn get_inscriptions_on_output(
+    &self,
+    outpoint: OutPoint,
+  ) -> Result<Vec<InscriptionId>> {
+    Ok(
+      Self::inscriptions_on_output(
+        &self
+          .database
+          .begin_read()?
+          .open_table(SATPOINT_TO_INSCRIPTION_ID)?,
+        outpoint,
+      )?
+      .map(|(_satpoint, inscription_id)| inscription_id)
+      .collect(),
+    )
+  }
+
   pub(crate) fn get_transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
     if txid == self.genesis_block_coinbase_txid {
       Ok(Some(self.genesis_block_coinbase_transaction.clone()))
@@ -742,6 +759,28 @@ impl Index {
         satpoint,
       );
     }
+  }
+
+  fn inscriptions_on_output<'a: 'tx, 'tx>(
+    satpoint_to_id: &'a impl ReadableTable<&'tx SatPointArray, &'tx InscriptionIdArray>,
+    outpoint: OutPoint,
+  ) -> Result<impl Iterator<Item = (SatPoint, InscriptionId)> + 'tx> {
+    let start = encode_satpoint(SatPoint {
+      outpoint,
+      offset: 0,
+    });
+
+    let end = encode_satpoint(SatPoint {
+      outpoint,
+      offset: u64::MAX,
+    });
+
+    Ok(satpoint_to_id.range(start..=end)?.map(|(satpoint, id)| {
+      (
+        decode_satpoint(*satpoint.value()),
+        InscriptionId::from_inner(*id.value()),
+      )
+    }))
   }
 }
 
@@ -1748,5 +1787,71 @@ mod tests {
     assert_eq!(
       Context::builder().tempdir(tempdir).try_build().err().unwrap().to_string(),
       format!("index at `{}{delimiter}regtest{delimiter}index.redb` appears to have been built with a newer, incompatible version of ord, consider updating ord: index schema {}, ord schema {SCHEMA_VERSION}", path.display(), u64::MAX));
+  }
+
+  #[test]
+  fn inscriptions_on_output() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0)],
+        witness: inscription("text/plain", "hello").to_witness(),
+        ..Default::default()
+      });
+
+      assert_eq!(
+        context
+          .index
+          .get_inscriptions_on_output(OutPoint {
+            txid: inscription_id,
+            vout: 0,
+          })
+          .unwrap(),
+        []
+      );
+
+      context.mine_blocks(1);
+
+      assert_eq!(
+        context
+          .index
+          .get_inscriptions_on_output(OutPoint {
+            txid: inscription_id,
+            vout: 0,
+          })
+          .unwrap(),
+        [inscription_id]
+      );
+
+      let send_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(2, 1, 0)],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      assert_eq!(
+        context
+          .index
+          .get_inscriptions_on_output(OutPoint {
+            txid: inscription_id,
+            vout: 0,
+          })
+          .unwrap(),
+        []
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_inscriptions_on_output(OutPoint {
+            txid: send_id,
+            vout: 0,
+          })
+          .unwrap(),
+        [inscription_id]
+      );
+    }
   }
 }
