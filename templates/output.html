@@ -1,10 +1,10 @@
 <h1>Output <span class=monospace>{{self.outpoint}}</span></h1>
 <dl>
-%% for (i, inscription) in self.inscriptions.iter().enumerate() {
-%% if i == 0 {
+%% if !self.inscriptions.is_empty() {
   <dt>inscriptions</dt>
-%% }
+%% for inscription in &self.inscriptions {
   <dd>{{Iframe::preview(*inscription)}}</dd>
+%% }
 %% }
   <dt>value</dt><dd>{{ self.output.value }}</dd>
   <dt>script pubkey</dt><dd class=data>{{ self.output.script_pubkey.asm() }}</dd>
