@@ -76,6 +76,16 @@ mod test;
 #[cfg(test)]
 use self::test::*;
 
+trait Value {
+  fn value(self) -> Self;
+}
+
+impl<T> Value for T {
+  fn value(self) -> Self {
+    self
+  }
+}
+
 mod arguments;
 mod blocktime;
 mod chain;

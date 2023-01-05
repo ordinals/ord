@@ -187,7 +187,7 @@ impl Index {
       data_dir.join("index.redb")
     };
 
-    let database = match unsafe { redb::Database::builder().open_mmapped(&database_path) } {
+    let database = match unsafe { redb::Database::open(&database_path) } {
       Ok(database) => {
         let schema_version = database
           .begin_read()?
@@ -221,7 +221,7 @@ impl Index {
             } else {
               WriteStrategy::TwoPhase
             })
-            .create_mmapped(&database_path)?
+            .create(&database_path)?
         };
         let tx = database.begin_write()?;
 

@@ -326,6 +326,7 @@ impl Updater {
               .remove(&key)?
               .ok_or_else(|| anyhow!("Could not find outpoint {} in index", input.previous_output))?
               .value()
+              .to_value()
               .to_vec(),
           };
 
