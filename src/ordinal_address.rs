@@ -210,7 +210,6 @@ mod tests {
   }
 
   #[test]
-  #[ignore]
   fn try_from_invalid_address() {
     let cardinal = "1MKSzMBTbTA8AugHWcMzxuCgLbSn81sDyb"
       .parse::<Address>()
@@ -220,7 +219,6 @@ mod tests {
   }
 
   #[test]
-  #[ignore]
   fn try_from_and_into_round_trip() {
     let cardinal = "bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw"
       .parse::<Address>()
@@ -230,7 +228,6 @@ mod tests {
   }
 
   #[test]
-  #[ignore]
   fn display() {
     assert_eq!(
       "ord1qcqgs2pps4u4yedfyl5pysdjjncs8et5u8gcumw"
