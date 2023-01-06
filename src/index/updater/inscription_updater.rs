@@ -71,7 +71,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
     if Inscription::from_transaction(tx).is_some() {
       inscriptions.push(Flotsam {
-        inscription_id: txid,
+        inscription_id: txid.into(),
         offset: 0,
         origin: Origin::New,
       });

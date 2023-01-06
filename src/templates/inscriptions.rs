@@ -19,7 +19,7 @@ mod tests {
   fn inscriptions() {
     assert_regex_match!(
       InscriptionsHtml {
-        inscriptions: vec![txid(1), txid(2)],
+        inscriptions: vec![inscription_id(1), inscription_id(2)],
       },
       "
         <h1>Inscriptions</h1>

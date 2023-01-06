@@ -48,7 +48,7 @@ mod tests {
   #[test]
   fn preview() {
     assert_regex_match!(
-      Iframe::preview(txid(1))
+      Iframe::preview(inscription_id(1))
       .0.to_string(),
       "<a href=/inscription/1{64}><iframe sandbox=allow-scripts scrolling=no src=/preview/1{64}></iframe></a>",
     );
@@ -57,7 +57,7 @@ mod tests {
   #[test]
   fn main() {
     assert_regex_match!(
-      Iframe::main(txid(1))
+      Iframe::main(inscription_id(1))
       .0.to_string(),
       "<a href=/content/1{64}><iframe sandbox=allow-scripts scrolling=no src=/preview/1{64}></iframe></a>",
     );

@@ -49,7 +49,7 @@ mod tests {
               .unwrap()
           )
         ],
-        vec![txid(1), txid(2),],
+        vec![inscription_id(1), inscription_id(2),],
       )
       .to_string(),
       "<h2>Latest Inscriptions</h2>

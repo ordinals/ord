@@ -18,10 +18,12 @@ use {
     content::Content,
     decimal::Decimal,
     degree::Degree,
+    deserialize_from_str::DeserializeFromStr,
     epoch::Epoch,
     height::Height,
     index::{Index, List},
     inscription::Inscription,
+    inscription_id::{InscriptionId, InscriptionIdArray},
     object::Object,
     options::Options,
     ordinal_address::OrdinalAddress,
@@ -50,7 +52,7 @@ use {
   html_escaper::{Escape, Trusted},
   lazy_static::lazy_static,
   regex::Regex,
-  serde::{Deserialize, Serialize},
+  serde::{de, Deserialize, Deserializer, Serialize},
   std::{
     cmp,
     collections::{BTreeMap, HashSet, VecDeque},
@@ -88,10 +90,12 @@ mod chain;
 mod content;
 mod decimal;
 mod degree;
+mod deserialize_from_str;
 mod epoch;
 mod height;
 mod index;
 mod inscription;
+mod inscription_id;
 mod object;
 mod options;
 mod ordinal_address;
@@ -105,8 +109,6 @@ mod tally;
 mod templates;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
-
-pub(crate) type InscriptionId = Txid;
 
 const DIFFCHANGE_INTERVAL: u64 = bitcoin::blockdata::constants::DIFFCHANGE_INTERVAL as u64;
 const SUBSIDY_HALVING_INTERVAL: u64 =

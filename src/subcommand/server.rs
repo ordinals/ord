@@ -1,7 +1,6 @@
 use super::*;
 
 use {
-  self::deserialize_from_str::DeserializeFromStr,
   crate::templates::{
     BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionsHtml, OutputHtml,
     PageContent, PageHtml, PreviewImageHtml, PreviewTextHtml, PreviewUnknownHtml, RangeHtml,
@@ -23,13 +22,10 @@ use {
     caches::DirCache,
     AcmeConfig,
   },
-  serde::{de, Deserializer},
   std::{cmp::Ordering, str},
   tokio_stream::StreamExt,
   tower_http::set_header::SetResponseHeaderLayer,
 };
-
-mod deserialize_from_str;
 
 enum BlockQuery {
   Height(u64),
@@ -491,7 +487,7 @@ impl Server {
     Path(txid): Path<Txid>,
   ) -> ServerResult<PageHtml<TransactionHtml>> {
     let inscription = index
-      .get_inscription_by_id(txid)
+      .get_inscription_by_id(txid.into())
       .map_err(|err| {
         ServerError::Internal(anyhow!(
           "failed to retrieve inscription from txid {txid} from index: {err}"

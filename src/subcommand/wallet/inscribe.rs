@@ -399,7 +399,8 @@ mod tests {
         outpoint: outpoint(1),
         offset: 0,
       },
-      Txid::from_str("06413a3ef4232f0485df2bc7c912c13c05c69f967c19639344753e05edb64bd5").unwrap(),
+      InscriptionId::from_str("06413a3ef4232f0485df2bc7c912c13c05c69f967c19639344753e05edb64bd50")
+        .unwrap(),
     );
 
     let inscription = inscription("text/plain", "ord");
@@ -438,7 +439,8 @@ mod tests {
         outpoint: outpoint(1),
         offset: 0,
       },
-      Txid::from_str("06413a3ef4232f0485df2bc7c912c13c05c69f967c19639344753e05edb64bd5").unwrap(),
+      InscriptionId::from_str("06413a3ef4232f0485df2bc7c912c13c05c69f967c19639344753e05edb64bd5")
+        .unwrap(),
     );
 
     let inscription = inscription("text/plain", "ord");
