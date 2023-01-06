@@ -90,8 +90,11 @@ impl Inscribe {
       .send_raw_transaction(&reveal_tx)
       .context("Failed to send reveal transaction")?;
 
+    let inscription_id = InscriptionId::from(reveal_txid);
+
     println!("commit\t{commit_txid}");
     println!("reveal\t{reveal_txid}");
+    println!("inscription id\t{inscription_id}");
     Ok(())
   }
 

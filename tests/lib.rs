@@ -46,7 +46,7 @@ fn reveal_txid_from_inscribe_stdout(stdout: &str) -> Txid {
     .unwrap()
 }
 
-fn create_inscription(rpc_server: &test_bitcoincore_rpc::Handle, filename: &str) -> Txid {
+fn inscribe(rpc_server: &test_bitcoincore_rpc::Handle, filename: &str) -> Txid {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
@@ -54,14 +54,16 @@ fn create_inscription(rpc_server: &test_bitcoincore_rpc::Handle, filename: &str)
   ))
   .write(filename, "HELLOWORLD")
   .rpc_server(rpc_server)
-  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+  .stdout_regex(
+    "commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\ninscription id\t[[:xdigit:]]{72}\n",
+  )
   .run();
 
-  let inscription_id = reveal_txid_from_inscribe_stdout(&stdout);
+  let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
 
   rpc_server.mine_blocks(1);
 
-  inscription_id
+  reveal_txid
 }
 
 mod command_builder;

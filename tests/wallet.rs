@@ -61,15 +61,7 @@ fn send_works_on_signet() {
 
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  let stdout = CommandBuilder::new(format!(
-    "--chain signet --index-sats wallet inscribe --satpoint {txid}:0:0 degenerate.png"
-  ))
-  .write("degenerate.png", [1; 520])
-  .rpc_server(&rpc_server)
-  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-  .run();
-
-  let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
+  let reveal_txid = inscribe(&rpc_server, "hello.txt");
 
   rpc_server.mine_blocks(1);
 
@@ -128,19 +120,11 @@ fn send_inscribed_sat() {
   let rpc_server = test_bitcoincore_rpc::builder()
     .network(Network::Signet)
     .build();
-  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
-
-  let stdout = CommandBuilder::new(format!(
-    "--chain signet --index-sats wallet inscribe --satpoint {txid}:0:0 degenerate.png"
-  ))
-  .write("degenerate.png", [1; 520])
-  .rpc_server(&rpc_server)
-  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-  .run();
-
   rpc_server.mine_blocks(1);
 
-  let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
+  let reveal_txid = inscribe(&rpc_server, "hello.txt");
+
+  rpc_server.mine_blocks(1);
 
   let stdout = CommandBuilder::new(format!(
     "--chain signet wallet send tord1q497kurvh0fgtedca5angel7j4rdwe0q8h925u0 {reveal_txid}"
