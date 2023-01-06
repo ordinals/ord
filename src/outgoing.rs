@@ -11,6 +11,7 @@ impl FromStr for Outgoing {
   type Err = Error;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
+    // todo: fix this length check
     Ok(if s.len() == 64 {
       Self::InscriptionId(s.parse()?)
     } else if s.contains(':') {

@@ -1363,19 +1363,20 @@ mod tests {
     for context in Context::configurations() {
       context.mine_blocks(1);
 
-      let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+      let inscribe_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
         witness: inscription("text/plain", "hello").to_witness(),
         ..Default::default()
       });
+      let inscription_id = inscribe_txid.into();
 
       context.mine_blocks(1);
 
       context.index.assert_inscription_location(
-        inscription_id,
+        inscribe_txid.into(),
         SatPoint {
           outpoint: OutPoint {
-            txid: inscription_id,
+            txid: inscribe_txid,
             vout: 0,
           },
           offset: 0,
@@ -1414,11 +1415,12 @@ mod tests {
       let context = Context::builder().args(args).build();
       context.mine_blocks(1);
 
-      let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+      let inscribe_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
         witness: inscription("text/plain", "hello").to_witness(),
         ..Default::default()
       });
+      let inscription_id = inscribe_txid.into();
 
       context.mine_blocks(1);
 
@@ -1426,7 +1428,7 @@ mod tests {
         inscription_id,
         SatPoint {
           outpoint: OutPoint {
-            txid: inscription_id,
+            txid: inscribe_txid,
             vout: 0,
           },
           offset: 0,
@@ -1460,11 +1462,12 @@ mod tests {
     for context in Context::configurations() {
       context.mine_blocks(1);
 
-      let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+      let inscribe_id = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
         witness: inscription("text/plain", "hello").to_witness(),
         ..Default::default()
       });
+      let inscription_id = inscribe_id.into();
 
       context.mine_blocks(1);
 
@@ -1495,12 +1498,13 @@ mod tests {
     for context in Context::configurations() {
       context.mine_blocks(1);
 
-      let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+      let inscribe_id = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
         fee: 50 * COIN_VALUE,
         witness: inscription("text/plain", "hello").to_witness(),
         ..Default::default()
       });
+      let inscription_id = inscribe_id.into();
 
       let coinbase_tx = context.mine_blocks(1)[0].txdata[0].txid();
 
@@ -1523,12 +1527,13 @@ mod tests {
     for context in Context::configurations() {
       context.mine_blocks(1);
 
-      let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+      let inscribe_id = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
         fee: 50 * COIN_VALUE,
         witness: inscription("text/plain", "hello").to_witness(),
         ..Default::default()
       });
+      let inscription_id = inscribe_id.into();
 
       context.mine_blocks_with_subsidy(1, 0);
 
@@ -1548,22 +1553,24 @@ mod tests {
     for context in Context::configurations() {
       context.mine_blocks(1);
 
-      let first_inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+      let first_inscribe_id = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
         fee: 50 * COIN_VALUE,
         witness: inscription("text/plain", "hello").to_witness(),
         ..Default::default()
       });
+      let first_inscription_id = first_inscribe_id.into();
 
       context.mine_blocks_with_subsidy(1, 0);
       context.mine_blocks(1);
 
-      let second_inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+      let second_inscribe_id = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(3, 0, 0)],
         fee: 50 * COIN_VALUE,
         witness: inscription("text/plain", "hello").to_witness(),
         ..Default::default()
       });
+      let second_inscription_id = second_inscribe_id.into();
 
       context.mine_blocks_with_subsidy(1, 0);
 
@@ -1620,12 +1627,13 @@ mod tests {
       context.mine_blocks_with_subsidy(1, 0);
       context.mine_blocks(1);
 
-      let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+      let inscribe_id = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(2, 0, 0)],
         outputs: 2,
         witness: inscription("text/plain", "hello").to_witness(),
         ..Default::default()
       });
+      let inscription_id = inscribe_id.into();
       context.mine_blocks(1);
 
       context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -1651,20 +1659,21 @@ mod tests {
     for context in Context::configurations() {
       context.mine_blocks(1);
 
-      let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+      let inscribe_id = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
         outputs: 2,
         witness: inscription("text/plain", "hello").to_witness(),
         output_values: &[0, 50 * COIN_VALUE],
         ..Default::default()
       });
+      let inscription_id = inscribe_id.into();
       context.mine_blocks(1);
 
       context.index.assert_inscription_location(
         inscription_id,
         SatPoint {
           outpoint: OutPoint {
-            txid: inscription_id,
+            txid: inscribe_id,
             vout: 1,
           },
           offset: 0,
@@ -1679,12 +1688,13 @@ mod tests {
     for context in Context::configurations() {
       context.mine_blocks(1);
 
-      let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+      let inscribe_id = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
         fee: 50 * COIN_VALUE,
         witness: inscription("text/plain", "hello").to_witness(),
         ..Default::default()
       });
+      let inscription_id = inscribe_id.into();
       context.mine_blocks_with_subsidy(1, 0);
 
       context.index.assert_inscription_location(

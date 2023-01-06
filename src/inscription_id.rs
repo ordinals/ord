@@ -2,6 +2,8 @@ use super::*;
 
 // TODO:
 // - always print vout bytes as two hex digits
+// - print inscription ID on send
+// - make parse recognize inscription IDs
 
 pub(crate) type InscriptionIdArray = [u8; 32];
 
