@@ -24,8 +24,8 @@ mod tests {
       "
         <h1>Inscriptions</h1>
         <div class=inscriptions>
-          <a href=/inscription/1{64}><iframe .* src=/preview/1{64}></iframe></a>
-          <a href=/inscription/2{64}><iframe .* src=/preview/2{64}></iframe></a>
+          <a href=/inscription/1{72}><iframe .* src=/preview/1{72}></iframe></a>
+          <a href=/inscription/2{72}><iframe .* src=/preview/2{72}></iframe></a>
         </div>
       "
       .unindent()

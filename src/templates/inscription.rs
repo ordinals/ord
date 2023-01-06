@@ -3,8 +3,8 @@ use super::*;
 #[derive(Boilerplate)]
 pub(crate) struct InscriptionHtml {
   pub(crate) genesis_height: u64,
-  pub(crate) inscription_id: InscriptionId,
   pub(crate) inscription: Inscription,
+  pub(crate) inscription_id: InscriptionId,
   pub(crate) satpoint: SatPoint,
 }
 
@@ -27,15 +27,13 @@ mod tests {
     assert_regex_match!(
       InscriptionHtml {
         genesis_height: 0,
-        inscription_id: "1111111111111111111111111111111111111111111111111111111111111111"
-          .parse()
-          .unwrap(),
+        inscription_id: inscription_id(1),
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         satpoint: satpoint(1, 0),
       },
       "
-        <h1>Inscription 1{64}</h1>
-        <div class=inscription><a href=/content/1{64}><iframe .* src=/preview/1{64}></iframe></a></div>
+        <h1>Inscription 1{72}</h1>
+        <div class=inscription><a href=/content/1{72}><iframe .* src=/preview/1{72}></iframe></a></div>
         <dl>
           <dt>content size</dt>
           <dd>10 bytes</dd>
