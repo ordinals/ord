@@ -1756,11 +1756,12 @@ next.*",
     let server = TestServer::new();
     server.mine_blocks(1);
 
-    let inscription_id = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let send_txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0)],
       witness: inscription("text/plain;charset=utf-8", "hello").to_witness(),
       ..Default::default()
     });
+    let inscription_id = InscriptionId::from(send_txid);
 
     server.mine_blocks(1);
 
@@ -1777,7 +1778,7 @@ next.*",
     let server = TestServer::new();
     server.mine_blocks(1);
 
-    let inscription_id = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let send_txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0)],
       witness: inscription(
         "text/plain;charset=utf-8",
@@ -1786,6 +1787,7 @@ next.*",
       .to_witness(),
       ..Default::default()
     });
+    let inscription_id = InscriptionId::from(send_txid);
 
     server.mine_blocks(1);
 
@@ -1802,11 +1804,12 @@ next.*",
     let server = TestServer::new();
     server.mine_blocks(1);
 
-    let inscription_id = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let send_txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0)],
       witness: inscription("image/png", "hello").to_witness(),
       ..Default::default()
     });
+    let inscription_id = InscriptionId::from(send_txid);
 
     server.mine_blocks(1);
 
@@ -1823,11 +1826,12 @@ next.*",
     let server = TestServer::new();
     server.mine_blocks(1);
 
-    let inscription_id = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let send_txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0)],
       witness: inscription("text/html;charset=utf-8", "hello").to_witness(),
       ..Default::default()
     });
+    let inscription_id = InscriptionId::from(send_txid);
 
     server.mine_blocks(1);
 
@@ -1844,11 +1848,12 @@ next.*",
     let server = TestServer::new();
     server.mine_blocks(1);
 
-    let inscription_id = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let send_txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0)],
       witness: inscription("text/foo", "hello").to_witness(),
       ..Default::default()
     });
+    let inscription_id = InscriptionId::from(send_txid);
 
     server.mine_blocks(1);
 

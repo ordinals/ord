@@ -11,8 +11,7 @@ impl FromStr for Outgoing {
   type Err = Error;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
-    // todo: fix this length check
-    Ok(if s.len() == 64 {
+    Ok(if s.len() == 72 {
       Self::InscriptionId(s.parse()?)
     } else if s.contains(':') {
       Self::SatPoint(s.parse()?)
@@ -35,11 +34,11 @@ mod tests {
   #[test]
   fn parse() {
     assert_eq!(
-      "0000000000000000000000000000000000000000000000000000000000000000"
+      "000000000000000000000000000000000000000000000000000000000000000000000000"
         .parse::<Outgoing>()
         .unwrap(),
       Outgoing::InscriptionId(
-        "0000000000000000000000000000000000000000000000000000000000000000"
+        "000000000000000000000000000000000000000000000000000000000000000000000000"
           .parse()
           .unwrap()
       ),

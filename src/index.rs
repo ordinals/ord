@@ -1780,7 +1780,7 @@ mod tests {
         ..Default::default()
       });
 
-      let inscription_id: InscriptionId = send_transaction.into();
+      let inscription_id = InscriptionId::from(send_transaction);
 
       assert_eq!(
         context
