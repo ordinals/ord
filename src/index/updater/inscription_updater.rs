@@ -93,11 +93,11 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         }
         self
           .outpoint_to_value
-          .remove(&encode_outpoint(tx_in.previous_output))?;
+          .remove(&tx_in.previous_output.to_array())?;
 
         input_value += if let Some(value) = self
           .outpoint_to_value
-          .get(&encode_outpoint(tx_in.previous_output))?
+          .get(&tx_in.previous_output.to_array())?
         {
           value.value()
         } else {
@@ -158,10 +158,11 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
     for (vout, tx_out) in tx.output.iter().enumerate() {
       self.outpoint_to_value.insert(
-        &encode_outpoint(OutPoint {
+        &OutPoint {
           vout: vout.try_into().unwrap(),
           txid,
-        }),
+        }
+        .to_array(),
         &tx_out.value,
       )?;
     }
@@ -192,11 +193,11 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     flotsam: Flotsam,
     new_satpoint: SatPoint,
   ) -> Result {
-    let inscription_id = flotsam.inscription_id.into_inner();
+    let inscription_id = flotsam.inscription_id.to_array();
 
     match flotsam.origin {
       Origin::Old(old_satpoint) => {
-        self.satpoint_to_id.remove(&encode_satpoint(old_satpoint))?;
+        self.satpoint_to_id.remove(&old_satpoint.to_array())?;
       }
       Origin::New => {
         self.id_to_height.insert(&inscription_id, &self.height)?;
@@ -222,7 +223,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       }
     }
 
-    let new_satpoint = encode_satpoint(new_satpoint);
+    let new_satpoint = new_satpoint.to_array();
 
     self.satpoint_to_id.insert(&new_satpoint, &inscription_id)?;
     self.id_to_satpoint.insert(&inscription_id, &new_satpoint)?;

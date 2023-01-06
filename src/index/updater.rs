@@ -315,7 +315,7 @@ impl Updater {
         let mut input_sat_ranges = VecDeque::new();
 
         for input in &tx.input {
-          let key = encode_outpoint(input.previous_output);
+          let key = input.previous_output.to_array();
 
           let sat_ranges = match self.cache.remove(&key) {
             Some(sat_ranges) => {
@@ -364,10 +364,11 @@ impl Updater {
           if !Sat(start).is_common() {
             sat_to_satpoint.insert(
               &start,
-              &encode_satpoint(SatPoint {
+              &SatPoint {
                 outpoint: OutPoint::null(),
                 offset: lost_sats,
-              }),
+              }
+              .to_array(),
             )?;
           }
 
@@ -426,10 +427,11 @@ impl Updater {
         if !Sat(range.0).is_common() {
           sat_to_satpoint.insert(
             &range.0,
-            &encode_satpoint(SatPoint {
+            &SatPoint {
               outpoint,
               offset: output.value - remaining,
-            }),
+            }
+            .to_array(),
           )?;
         }
 
@@ -458,7 +460,7 @@ impl Updater {
 
       *outputs_traversed += 1;
 
-      self.cache.insert(encode_outpoint(outpoint), sats);
+      self.cache.insert(outpoint.to_array(), sats);
       self.outputs_inserted_since_flush += 1;
     }
 

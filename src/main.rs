@@ -23,7 +23,7 @@ use {
     height::Height,
     index::{Index, List},
     inscription::Inscription,
-    inscription_id::{InscriptionId, InscriptionIdArray},
+    inscription_id::InscriptionId,
     object::Object,
     options::Options,
     ordinal_address::OrdinalAddress,

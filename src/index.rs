@@ -1,5 +1,5 @@
 use {
-  self::updater::Updater,
+  self::{array::Array, updater::Updater},
   super::*,
   bitcoin::BlockHeader,
   bitcoincore_rpc::{json::GetBlockHeaderResult, Auth, Client},
@@ -10,10 +10,12 @@ use {
   std::sync::atomic::{self, AtomicBool},
 };
 
+mod array;
 mod rtx;
 mod updater;
 
 type BlockHashArray = [u8; 32];
+type InscriptionIdArray = [u8; 36];
 type OutPointArray = [u8; 36];
 type SatPointArray = [u8; 44];
 type SatRangeArray = [u8; 11];
@@ -37,34 +39,6 @@ define_table! { SAT_TO_INSCRIPTION_ID, u64, &InscriptionIdArray }
 define_table! { SAT_TO_SATPOINT, u64, &SatPointArray }
 define_table! { STATISTIC_TO_COUNT, u64, u64 }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u64, u128 }
-
-fn encode_outpoint(outpoint: OutPoint) -> OutPointArray {
-  let mut array = [0; 36];
-  outpoint
-    .consensus_encode(&mut array.as_mut_slice())
-    .unwrap();
-  array
-}
-
-fn encode_satpoint(satpoint: SatPoint) -> SatPointArray {
-  let mut array = [0; 44];
-  satpoint
-    .consensus_encode(&mut array.as_mut_slice())
-    .unwrap();
-  array
-}
-
-fn decode_satpoint(array: SatPointArray) -> SatPoint {
-  Decodable::consensus_decode(&mut io::Cursor::new(array)).unwrap()
-}
-
-fn decode_outpoint(array: OutPointArray) -> OutPoint {
-  Decodable::consensus_decode(&mut io::Cursor::new(array)).unwrap()
-}
-
-fn decode_inscription_id(array: InscriptionIdArray) -> InscriptionId {
-  Decodable::consensus_decode(&mut io::Cursor::new(array)).unwrap()
-}
 
 pub(crate) struct Index {
   auth: Auth,
@@ -435,7 +409,7 @@ impl Index {
       let sat_to_satpoint = rtx.open_table(SAT_TO_SATPOINT)?;
 
       for (sat, satpoint) in sat_to_satpoint.range(0..)? {
-        result.push((Sat(sat.value()), decode_satpoint(*satpoint.value())));
+        result.push((Sat(sat.value()), SatPoint::from_array(*satpoint.value())));
       }
 
       Ok(Some(result))
@@ -452,7 +426,7 @@ impl Index {
           .begin_read()?
           .open_table(SAT_TO_SATPOINT)?
           .get(&sat.n())?
-          .map(|satpoint| decode_satpoint(*satpoint.value())),
+          .map(|satpoint| SatPoint::from_array(*satpoint.value())),
       )
     } else {
       Ok(None)
@@ -489,7 +463,7 @@ impl Index {
         .begin_read()?
         .open_table(SAT_TO_INSCRIPTION_ID)?
         .get(&sat.n())?
-        .map(|inscription_id| decode_inscription_id(*inscription_id.value())),
+        .map(|inscription_id| InscriptionId::from_array(*inscription_id.value())),
     )
   }
 
@@ -501,8 +475,8 @@ impl Index {
         .database
         .begin_read()?
         .open_table(INSCRIPTION_ID_TO_SATPOINT)?
-        .get(inscription_id.as_inner())?
-        .map(|satpoint| decode_satpoint(*satpoint.value()))
+        .get(&inscription_id.to_array())?
+        .map(|satpoint| SatPoint::from_array(*satpoint.value()))
         else {
       return Ok(None);
     };
@@ -570,7 +544,7 @@ impl Index {
       for chunk in value.value().chunks_exact(11) {
         let (start, end) = Index::decode_sat_range(chunk.try_into().unwrap());
         if start <= sat && sat < end {
-          let outpoint = decode_outpoint(*key.value());
+          let outpoint = OutPoint::from_array(*key.value());
           return Ok(Some(SatPoint {
             outpoint,
             offset: offset + sat - start,
@@ -597,7 +571,7 @@ impl Index {
   pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<List>> {
     self.require_satoshi_index("list")?;
 
-    let outpoint_encoded = encode_outpoint(outpoint);
+    let outpoint_encoded = outpoint.to_array();
 
     let sat_ranges = self.list_inner(outpoint_encoded)?;
 
@@ -658,8 +632,8 @@ impl Index {
         .range([0; 44]..)?
         .map(|(satpoint, id)| {
           (
-            decode_satpoint(*satpoint.value()),
-            decode_inscription_id(*id.value()),
+            SatPoint::from_array(*satpoint.value()),
+            InscriptionId::from_array(*id.value()),
           )
         })
         .take(n.unwrap_or(usize::MAX))
@@ -676,7 +650,7 @@ impl Index {
         .iter()?
         .rev()
         .take(n)
-        .map(|(_number, id)| decode_inscription_id(*id.value()))
+        .map(|(_number, id)| InscriptionId::from_array(*id.value()))
         .collect(),
     )
   }
@@ -686,7 +660,7 @@ impl Index {
       .database
       .begin_read()?
       .open_table(INSCRIPTION_ID_TO_HEIGHT)?
-      .get(inscription_id.as_inner())?
+      .get(&inscription_id.to_array())?
       .map(|x| x.value())
       .ok_or_else(|| anyhow!("no height for inscription"))
   }
@@ -710,9 +684,9 @@ impl Index {
     );
 
     assert_eq!(
-      decode_satpoint(
+      SatPoint::from_array(
         *inscription_id_to_satpoint
-          .get(&inscription_id.as_inner())
+          .get(&inscription_id.to_array())
           .unwrap()
           .unwrap()
           .value()
@@ -721,9 +695,9 @@ impl Index {
     );
 
     assert_eq!(
-      InscriptionId::from_inner(
+      InscriptionId::from_array(
         *satpoint_to_inscription_id
-          .get(&encode_satpoint(satpoint))
+          .get(&satpoint.to_array())
           .unwrap()
           .unwrap()
           .value()
@@ -733,7 +707,7 @@ impl Index {
 
     if self.has_sat_index().unwrap() {
       assert_eq!(
-        InscriptionId::from_inner(
+        InscriptionId::from_array(
           *rtx
             .open_table(SAT_TO_INSCRIPTION_ID)
             .unwrap()
@@ -746,7 +720,7 @@ impl Index {
       );
 
       assert_eq!(
-        decode_satpoint(
+        SatPoint::from_array(
           *rtx
             .open_table(SAT_TO_SATPOINT)
             .unwrap()
@@ -764,20 +738,22 @@ impl Index {
     satpoint_to_id: &'a impl ReadableTable<&'tx SatPointArray, &'tx InscriptionIdArray>,
     outpoint: OutPoint,
   ) -> Result<impl Iterator<Item = (SatPoint, InscriptionId)> + 'tx> {
-    let start = encode_satpoint(SatPoint {
+    let start = SatPoint {
       outpoint,
       offset: 0,
-    });
+    }
+    .to_array();
 
-    let end = encode_satpoint(SatPoint {
+    let end = SatPoint {
       outpoint,
       offset: u64::MAX,
-    });
+    }
+    .to_array();
 
     Ok(satpoint_to_id.range(start..=end)?.map(|(satpoint, id)| {
       (
-        decode_satpoint(*satpoint.value()),
-        InscriptionId::from_inner(*id.value()),
+        SatPoint::from_array(*satpoint.value()),
+        InscriptionId::from_array(*id.value()),
       )
     }))
   }
