@@ -63,7 +63,8 @@ update-ord-dev:
 
 rebuild-ord-dev-database: && update-ord-dev
   systemctl stop ord-dev
-  rm -f /var/lib/ord-dev/**/index.redb
+  rm -f /var/lib/ord-dev/index.redb
+  rm -f /var/lib/ord-dev/*/index.redb
   journalctl --unit ord-dev --rotate
   journalctl --unit ord-dev --vacuum-time 1s
 

@@ -1,8 +1,8 @@
 %% if !&self.inscriptions.is_empty() {
 <h2>Latest Inscriptions</h2>
 <div class=inscriptions>
-%% for (inscription, id) in &self.inscriptions {
-  <a href=/inscription/{{id}}>{{inscription.content_html(*id)}}</a>
+%% for id in &self.inscriptions {
+  {{Iframe::preview(*id)}}
 %% }
 </div>
 <div class=center><a href=/inscriptions>more…</a></div>

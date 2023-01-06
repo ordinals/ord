@@ -1,7 +1,5 @@
 <h1>Inscription {{ self.inscription_id }}</h1>
-<a class=content href=/content/{{self.inscription_id}}>
-{{ self.inscription.content_html(self.inscription_id) }}
-</a>
+<div class=inscription>{{Iframe::main(self.inscription_id)}}</div>
 <dl>
 %% if let Some(content_size) = self.inscription.content_size() {
   <dt>content size</dt>
@@ -17,4 +15,8 @@
   <dd><a class=monospace href=/tx/{{ self.inscription_id }}>{{ self.inscription_id }}</a></dd>
   <dt>location</dt>
   <dd class=monospace>{{ self.satpoint }}</dd>
+  <dt>output</dt>
+  <dd><a class=monospace href=/output/{{ self.satpoint.outpoint }}>{{ self.satpoint.outpoint }}</a></dd>
+  <dt>offset</dt>
+  <dd>{{ self.satpoint.offset }}</dd>
 </dl>

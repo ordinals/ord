@@ -1,8 +1,8 @@
 use super::*;
 
-pub const HTML: &str = "text/html;charset=utf-8";
-pub const SVG: &str = "image/svg+xml";
-pub const TEXT: &str = "text/plain;charset=utf-8";
+pub(crate) const HTML: &str = "text/html;charset=utf-8";
+pub(crate) const SVG: &str = "image/svg+xml";
+pub(crate) const TEXT: &str = "text/plain;charset=utf-8";
 
 const TABLE: &[(&str, bool, &[&str])] = &[
   ("image/apng", true, &["apng"]),

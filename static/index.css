@@ -34,6 +34,12 @@ h1 {
   width: 100%;
 }
 
+iframe {
+  aspect-ratio: 1 / 1;
+  border: none;
+  pointer-events: none;
+}
+
 a {
   color: var(--link);
   text-decoration: none;
@@ -168,62 +174,27 @@ a.mythic {
 }
 
 .inscriptions > a {
-  aspect-ratio: 1 / 1;
   border-radius: 2%;
   margin: 1%;
   overflow: hidden;
-  text-decoration: none;
   width: 23%;
 }
 
-.inscriptions img.inscription {
-  max-width: 100%;
-  min-width: 100%;
-  overflow: auto;
-}
-
-.inscriptions iframe.inscription {
+.inscriptions iframe {
   height: 101%;
   overflow: hidden;
   width: 101%;
 }
 
-.content {
+.inscription {
   display: flex;
   justify-content: center;
 }
 
-.content img {
-  min-width: 50%;
+.inscription > a {
+  width: 50%;
 }
 
-iframe {
-  border: none;
-  pointer-events: none;
-}
-
-.content iframe {
-  aspect-ratio: 1 / 1;
-  border: none;
-  min-width: 50%;
-}
-
-a.content {
-  color: inherit;
-  text-decoration: none;
-}
-
-img.inscription {
-  background-color: white;
-  image-rendering: pixelated;
-}
-
-iframe.inscription {
-  background-color: white;
-  border: none;
-  pointer-events: none;
-}
-
-pre.inscription {
-  color: white;
+.inscription > a > iframe {
+  width: 100%;
 }

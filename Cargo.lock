@@ -1925,6 +1925,7 @@ dependencies = [
  "anyhow",
  "axum",
  "axum-server",
+ "bech32",
  "bitcoin",
  "boilerplate",
  "chrono",
@@ -3001,6 +3002,7 @@ dependencies = [
  "jsonrpc-http-server",
  "ord-bitcoincore-rpc",
  "reqwest",
+ "serde",
  "serde_json",
 ]
 

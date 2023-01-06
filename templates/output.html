@@ -1,5 +1,11 @@
 <h1>Output <span class=monospace>{{self.outpoint}}</span></h1>
 <dl>
+%% if !self.inscriptions.is_empty() {
+  <dt>inscriptions</dt>
+%% for inscription in &self.inscriptions {
+  <dd>{{Iframe::preview(*inscription)}}</dd>
+%% }
+%% }
   <dt>value</dt><dd>{{ self.output.value }}</dd>
   <dt>script pubkey</dt><dd class=data>{{ self.output.script_pubkey.asm() }}</dd>
 %% if let Ok(address) = self.chain.address_from_script(&self.output.script_pubkey ) {

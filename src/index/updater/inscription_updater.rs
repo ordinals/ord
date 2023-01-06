@@ -3,7 +3,12 @@ use super::*;
 pub(super) struct Flotsam {
   inscription_id: InscriptionId,
   offset: u64,
-  old_satpoint: Option<SatPoint>,
+  origin: Origin,
+}
+
+enum Origin {
+  New,
+  Old(SatPoint),
 }
 
 pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
@@ -68,7 +73,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       inscriptions.push(Flotsam {
         inscription_id: txid,
         offset: 0,
-        old_satpoint: None,
+        origin: Origin::New,
       });
     };
 
@@ -77,27 +82,13 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       if tx_in.previous_output.is_null() {
         input_value += Height(self.height).subsidy();
       } else {
-        let outpoint = tx_in.previous_output;
-        let start = encode_satpoint(SatPoint {
-          outpoint,
-          offset: 0,
-        });
-
-        let end = encode_satpoint(SatPoint {
-          outpoint,
-          offset: u64::MAX,
-        });
-
-        for (old_satpoint, inscription_id) in self
-          .satpoint_to_id
-          .range(start..=end)?
-          .map(|(satpoint, id)| (*satpoint.value(), *id.value()))
+        for (old_satpoint, inscription_id) in
+          Index::inscriptions_on_output(self.satpoint_to_id, tx_in.previous_output)?
         {
-          let old_satpoint = decode_satpoint(old_satpoint);
           inscriptions.push(Flotsam {
             offset: input_value + old_satpoint.offset,
-            inscription_id: InscriptionId::from_inner(inscription_id),
-            old_satpoint: Some(old_satpoint),
+            inscription_id,
+            origin: Origin::Old(old_satpoint),
           });
         }
         self
@@ -155,9 +146,11 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           offset: flotsam.offset - output_value,
         };
 
-        self.update_inscription_location(input_sat_ranges, flotsam, new_satpoint)?;
-
-        inscriptions.next();
+        self.update_inscription_location(
+          input_sat_ranges,
+          inscriptions.next().unwrap(),
+          new_satpoint,
+        )?;
       }
 
       output_value = end;
@@ -179,7 +172,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           outpoint: OutPoint::null(),
           offset: self.lost_sats + flotsam.offset - output_value,
         };
-        self.update_inscription_location(input_sat_ranges, &flotsam, new_satpoint)?;
+        self.update_inscription_location(input_sat_ranges, flotsam, new_satpoint)?;
       }
 
       Ok(self.reward - output_value)
@@ -196,16 +189,16 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
   fn update_inscription_location(
     &mut self,
     input_sat_ranges: Option<&VecDeque<(u64, u64)>>,
-    flotsam: &Flotsam,
+    flotsam: Flotsam,
     new_satpoint: SatPoint,
   ) -> Result {
     let inscription_id = flotsam.inscription_id.into_inner();
 
-    match flotsam.old_satpoint {
-      Some(old_satpoint) => {
+    match flotsam.origin {
+      Origin::Old(old_satpoint) => {
         self.satpoint_to_id.remove(&encode_satpoint(old_satpoint))?;
       }
-      None => {
+      Origin::New => {
         self.id_to_height.insert(&inscription_id, &self.height)?;
         self
           .number_to_id

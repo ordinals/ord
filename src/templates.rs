@@ -1,19 +1,24 @@
 use {super::*, boilerplate::Boilerplate};
 
 pub(crate) use {
-  block::BlockHtml, clock::ClockSvg, content::ContentHtml, home::HomeHtml, input::InputHtml,
+  block::BlockHtml, clock::ClockSvg, home::HomeHtml, iframe::Iframe, input::InputHtml,
   inscription::InscriptionHtml, inscriptions::InscriptionsHtml, output::OutputHtml,
-  range::RangeHtml, rare::RareTxt, sat::SatHtml, transaction::TransactionHtml,
+  preview_image::PreviewImageHtml, preview_text::PreviewTextHtml,
+  preview_unknown::PreviewUnknownHtml, range::RangeHtml, rare::RareTxt, sat::SatHtml,
+  transaction::TransactionHtml,
 };
 
 mod block;
 mod clock;
-mod content;
 mod home;
+mod iframe;
 mod input;
 mod inscription;
 mod inscriptions;
 mod output;
+mod preview_image;
+mod preview_text;
+mod preview_unknown;
 mod range;
 mod rare;
 mod sat;
@@ -75,7 +80,7 @@ mod tests {
     }
 
     assert_regex_match!(
-      Foo.page(Chain::Mainnet, true).to_string(),
+      Foo.page(Chain::Mainnet, true),
       "<!doctype html>
 <html lang=en>
   <head>
