@@ -228,12 +228,12 @@ impl Handle {
     self.state().locked.insert(output);
   }
 
-  pub fn network_flag(&self) -> String {
+  pub fn network(&self) -> String {
     match self.state().network {
-      Network::Bitcoin => "".into(),
-      Network::Testnet => "--chain testnet".into(),
-      Network::Signet => "--chain signet".into(),
-      Network::Regtest => "--chain regtest".into(),
+      Network::Bitcoin => "mainnet".to_string(),
+      Network::Testnet => Network::Testnet.to_string(),
+      Network::Signet => Network::Signet.to_string(),
+      Network::Regtest => Network::Regtest.to_string(),
     }
   }
 }

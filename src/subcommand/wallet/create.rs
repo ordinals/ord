@@ -11,19 +11,19 @@ use {
 
 #[derive(Debug, Parser)]
 pub(crate) struct Create {
-  #[clap(long, default_value = "ord", help = "Give <NAME> to wallet")]
+  #[clap(long, default_value = "ord", help = "Create wallet with <NAME>")]
   pub(crate) name: String,
 }
 
 impl Create {
   pub(crate) fn run(&self, options: Options) -> Result {
     if !(self.name == "ord" || self.name.starts_with("ord-")) {
-      bail!("`ord wallet create` may only be used on mainnet with a wallet named `ord` or whose name starts with `ord-`");
+      bail!("`ord wallet create` may only be used with a wallet named `ord` or whose name starts with `ord-`");
     }
 
-    options
-      .bitcoin_rpc_client_for_wallet_command("ord wallet create")?
-      .create_wallet(&self.name, None, Some(true), None, None)?;
+    let client = options.bitcoin_rpc_client_for_wallet_command("ord wallet create")?;
+
+    client.create_wallet(&self.name, None, Some(true), None, None)?;
 
     let secp = bitcoin::secp256k1::Secp256k1::new();
     let mut seed = [0; 32];
@@ -33,22 +33,17 @@ impl Create {
 
     let fingerprint = master_private_key.fingerprint(&secp);
 
-    let derivation_path = if options.chain().network() == Network::Bitcoin {
-      DerivationPath::master()
-        .child(ChildNumber::Hardened { index: 86 })
-        .child(ChildNumber::Hardened { index: 0 })
-        .child(ChildNumber::Hardened { index: 0 })
-    } else {
-      DerivationPath::master()
-        .child(ChildNumber::Hardened { index: 86 })
-        .child(ChildNumber::Hardened { index: 1 })
-        .child(ChildNumber::Hardened { index: 0 })
-    };
+    let derivation_path = DerivationPath::master()
+      .child(ChildNumber::Hardened { index: 86 })
+      .child(ChildNumber::Hardened {
+        index: u32::from(options.chain().network() != Network::Bitcoin),
+      })
+      .child(ChildNumber::Hardened { index: 0 });
 
     let derived_private_key = master_private_key.derive_priv(&secp, &derivation_path)?;
 
     derive_and_import_descriptor(
-      &options,
+      &client,
       &secp,
       (fingerprint, derivation_path.clone()),
       derived_private_key,
@@ -56,7 +51,7 @@ impl Create {
     )?;
 
     derive_and_import_descriptor(
-      &options,
+      &client,
       &secp,
       (fingerprint, derivation_path),
       derived_private_key,
@@ -68,7 +63,7 @@ impl Create {
 }
 
 fn derive_and_import_descriptor(
-  options: &Options,
+  client: &Client,
   secp: &Secp256k1<All>,
   origin: (Fingerprint, DerivationPath),
   derived_private_key: ExtendedPrivKey,
@@ -88,17 +83,15 @@ fn derive_and_import_descriptor(
 
   let desc = Descriptor::new_tr(public_key, None)?;
 
-  options
-    .bitcoin_rpc_client_for_wallet_command("ord wallet create")?
-    .import_descriptors(ImportDescriptors {
-      descriptor: desc.to_string_with_secret(&key_map),
-      timestamp: Timestamp::Now,
-      active: Some(true),
-      range: None,
-      next_index: None,
-      internal: None,
-      label: None,
-    })?;
+  client.import_descriptors(ImportDescriptors {
+    descriptor: desc.to_string_with_secret(&key_map),
+    timestamp: Timestamp::Now,
+    active: Some(true),
+    range: None,
+    next_index: None,
+    internal: None,
+    label: None,
+  })?;
 
   Ok(())
 }

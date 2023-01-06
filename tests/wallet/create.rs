@@ -78,6 +78,21 @@ fn detect_wrong_descriptors() {
     .run();
 }
 
-#[ignore]
 #[test]
-fn consecutive_create_throws_error() {}
+fn consecutive_create_throws_error() {
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Bitcoin)
+    .build();
+
+  CommandBuilder::new("wallet create")
+    .rpc_server(&rpc_server)
+    .run();
+
+  CommandBuilder::new("wallet create")
+    .rpc_server(&rpc_server)
+    .expected_exit_code(1)
+    .expected_stderr(
+      "error: JSON-RPC error: RPC error response: RpcError { code: -4, message: \"wallet already exists\", data: None }\n"
+    )
+    .run();
+}

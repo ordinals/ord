@@ -168,25 +168,26 @@ impl Options {
       );
     }
 
-    if self.chain() == Chain::Mainnet {
-      let wallet_info = client.get_wallet_info()?;
+    if command != "ord wallet create" {
+      if self.chain() == Chain::Mainnet {
+        let wallet_info = client.get_wallet_info()?;
 
-      if !(wallet_info.wallet_name == "ord" || wallet_info.wallet_name.starts_with("ord-")) {
-        bail!("`{command}` may only be used on mainnet with a wallet named `ord` or whose name starts with `ord-`");
-      }
+        if !(wallet_info.wallet_name == "ord" || wallet_info.wallet_name.starts_with("ord-")) {
+          bail!("`{command}` may only be used on mainnet with a wallet named `ord` or whose name starts with `ord-`");
+        }
 
-      let balances = client.get_balances()?;
+        let balances = client.get_balances()?;
 
-      let total = balances.mine.trusted + balances.mine.untrusted_pending + balances.mine.immature;
+        let total =
+          balances.mine.trusted + balances.mine.untrusted_pending + balances.mine.immature;
 
-      if total > Amount::from_sat(1_000_000) {
-        bail!(
+        if total > Amount::from_sat(1_000_000) {
+          bail!(
           "`{command}` may not be used on mainnet with wallets containing more than 1,000,000 sats"
         );
+        }
       }
-    }
 
-    if command != "ord wallet create" {
       let descriptors = client.list_descriptors(None)?.descriptors;
 
       let tr = descriptors

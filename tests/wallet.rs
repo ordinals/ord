@@ -182,13 +182,14 @@ fn send_inscribed_sat() {
 
 #[test]
 fn send_on_mainnnet_refuses_to_work_with_wallet_name_foo() {
-  let rpc_server = test_bitcoincore_rpc::builder().build();
+  let rpc_server = test_bitcoincore_rpc::builder().wallet_name("foo").build();
+  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   CommandBuilder::new(
-    "wallet create --name foo".to_string(),
+    format!("wallet send bc1qzjeg3h996kw24zrg69nge97fw8jc4v7v7yznftzk06j3429t52vse9tkp9 {txid}:0:0")
   )
   .rpc_server(&rpc_server)
-  .expected_stderr("error: `ord wallet create` may only be used on mainnet with a wallet named `ord` or whose name starts with `ord-`\n")
+  .expected_stderr("error: `ord wallet send` may only be used on mainnet with a wallet named `ord` or whose name starts with `ord-`\n")
   .expected_exit_code(1)
   .run();
 }

@@ -97,7 +97,7 @@ fn get_unspent_outputs(options: &Options) -> Result<BTreeMap<OutPoint, Amount>> 
 }
 
 fn get_change_addresses(options: &Options, n: usize) -> Result<Vec<Address>> {
-  let client = options.bitcoin_rpc_client()?;
+  let client = options.bitcoin_rpc_client_for_wallet_command("ord wallet")?;
 
   let mut addresses = Vec::new();
   for _ in 0..n {
