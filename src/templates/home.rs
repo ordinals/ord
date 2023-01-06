@@ -35,27 +35,14 @@ mod tests {
   fn html() {
     assert_regex_match!(
       &HomeHtml::new(
-        vec![
-          (
-            1260001,
-            "1111111111111111111111111111111111111111111111111111111111111111"
-              .parse()
-              .unwrap()
-          ),
-          (
-            1260000,
-            "0000000000000000000000000000000000000000000000000000000000000000"
-              .parse()
-              .unwrap()
-          )
-        ],
-        vec![inscription_id(1), inscription_id(2),],
+        vec![(1260001, block_hash(1)), (1260000, block_hash(0))],
+        vec![inscription_id(1), inscription_id(2)],
       )
       .to_string(),
       "<h2>Latest Inscriptions</h2>
 <div class=inscriptions>
-  <a href=/inscription/1{64}><iframe .* src=/preview/1{64}></iframe></a>
-  <a href=/inscription/2{64}><iframe .* src=/preview/2{64}></iframe></a>
+  <a href=/inscription/1{64}0{7}1><iframe .* src=/preview/1{64}0{7}1></iframe></a>
+  <a href=/inscription/2{64}0{7}2><iframe .* src=/preview/2{64}0{7}2></iframe></a>
 </div>
 <div class=center><a href=/inscriptions>more…</a></div>
 <h2>Latest Blocks</h2>

@@ -50,7 +50,7 @@ mod tests {
     assert_regex_match!(
       Iframe::preview(inscription_id(1))
       .0.to_string(),
-      "<a href=/inscription/1{64}><iframe sandbox=allow-scripts scrolling=no src=/preview/1{64}></iframe></a>",
+      "<a href=/inscription/1{72}><iframe sandbox=allow-scripts scrolling=no src=/preview/1{72}></iframe></a>",
     );
   }
 
@@ -59,7 +59,7 @@ mod tests {
     assert_regex_match!(
       Iframe::main(inscription_id(1))
       .0.to_string(),
-      "<a href=/content/1{64}><iframe sandbox=allow-scripts scrolling=no src=/preview/1{64}></iframe></a>",
+      "<a href=/content/1{72}><iframe sandbox=allow-scripts scrolling=no src=/preview/1{72}></iframe></a>",
     );
   }
 }

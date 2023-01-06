@@ -17,14 +17,22 @@ macro_rules! assert_regex_match {
   };
 }
 
-pub(crate) fn txid(n: u32) -> Txid {
+pub(crate) fn hash(n: u32) -> String {
   let hex = format!("{n:x}");
 
   if hex.is_empty() || hex.len() > 1 {
     panic!();
   }
 
-  hex.repeat(64).parse().unwrap()
+  hex.repeat(64)
+}
+
+pub(crate) fn block_hash(n: u32) -> BlockHash {
+  hash(n).parse().unwrap()
+}
+
+pub(crate) fn txid(n: u32) -> Txid {
+  hash(n).parse().unwrap()
 }
 
 pub(crate) fn outpoint(n: u32) -> OutPoint {
@@ -75,9 +83,12 @@ pub(crate) fn inscription(content_type: &str, content: impl AsRef<[u8]>) -> Insc
   Inscription::new(Some(content_type.into()), Some(content.as_ref().into()))
 }
 
-pub(crate) fn inscription_id(vout: u32) -> InscriptionId {
-  InscriptionId {
-    txid: txid(vout),
-    vout,
+pub(crate) fn inscription_id(n: u32) -> InscriptionId {
+  let hex = format!("{n:x}");
+
+  if hex.is_empty() || hex.len() > 1 {
+    panic!();
   }
+
+  hex.repeat(72).parse().unwrap()
 }
