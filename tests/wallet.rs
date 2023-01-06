@@ -276,7 +276,7 @@ fn inscribe_forbidden_on_mainnet() {
 }
 
 #[test]
-fn inscribe() {
+fn inscribe_satpoint() {
   let rpc_server = test_bitcoincore_rpc::builder()
     .network(Network::Regtest)
     .build();
@@ -291,6 +291,38 @@ fn inscribe() {
   .rpc_server(&rpc_server)
   .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
   .run();
+
+  let inscription_id = reveal_txid_from_inscribe_stdout(&stdout);
+
+  assert_eq!(rpc_server.descriptors(), 1);
+
+  rpc_server.mine_blocks(1);
+
+  let request =
+    TestServer::spawn_with_args(&rpc_server, &[]).request(&format!("/content/{inscription_id}"));
+
+  assert_eq!(request.status(), 200);
+  assert_eq!(
+    request.headers().get("content-type").unwrap(),
+    "text/plain;charset=utf-8"
+  );
+  assert_eq!(request.text().unwrap(), "HELLOWORLD");
+}
+
+#[test]
+fn inscribe_without_satpoint() {
+  let rpc_server = test_bitcoincore_rpc::builder()
+    .network(Network::Regtest)
+    .build();
+  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+
+  assert_eq!(rpc_server.descriptors(), 0);
+
+  let stdout = CommandBuilder::new(format!("--chain regtest wallet inscribe hello.txt"))
+    .write("hello.txt", "HELLOWORLD")
+    .rpc_server(&rpc_server)
+    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+    .run();
 
   let inscription_id = reveal_txid_from_inscribe_stdout(&stdout);
 
