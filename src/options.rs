@@ -186,7 +186,7 @@ impl Options {
       }
     }
 
-    if !command.contains("create") {
+    if command != "ord wallet create" {
       let descriptors = client.list_descriptors(None)?.descriptors;
 
       let tr = descriptors
