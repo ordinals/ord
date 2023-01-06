@@ -1780,20 +1780,17 @@ mod tests {
         ..Default::default()
       });
 
-      let inscription_id = send_transaction.into();
-
-      // todo: remove this
-      let empty: &[InscriptionId] = &[];
+      let inscription_id: InscriptionId = send_transaction.into();
 
       assert_eq!(
         context
           .index
           .get_inscriptions_on_output(OutPoint {
-            txid: inscription_id,
+            txid: send_transaction,
             vout: 0,
           })
           .unwrap(),
-        empty
+        []
       );
 
       context.mine_blocks(1);
@@ -1802,7 +1799,7 @@ mod tests {
         context
           .index
           .get_inscriptions_on_output(OutPoint {
-            txid: inscription_id,
+            txid: send_transaction,
             vout: 0,
           })
           .unwrap(),
@@ -1820,11 +1817,11 @@ mod tests {
         context
           .index
           .get_inscriptions_on_output(OutPoint {
-            txid: inscription_id,
+            txid: send_transaction,
             vout: 0,
           })
           .unwrap(),
-        empty
+        []
       );
 
       assert_eq!(

@@ -23,16 +23,7 @@ impl<'de> Deserialize<'de> for InscriptionId {
 impl Display for InscriptionId {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     write!(f, "{}", self.txid)?;
-
-    for byte in self
-      .vout
-      .to_be_bytes()
-      .into_iter()
-      .skip_while(|byte| *byte == 0)
-    {
-      write!(f, "{:02x}", byte)?;
-    }
-
+    write!(f, "{:08x}", self.vout)?;
     Ok(())
   }
 }
@@ -41,25 +32,27 @@ impl FromStr for InscriptionId {
   type Err = Error;
 
   fn from_str(s: &str) -> Result<Self> {
+    const TXID_LEN: usize = 64;
+    const VOUT_LEN: usize = 8;
+    const TOTAL_LEN: usize = TXID_LEN + VOUT_LEN;
+
+    if s.len() != TOTAL_LEN {
+      bail!("inscription ids must be {TOTAL_LEN}");
+    }
+
+    let (txid, vout) = s.split_at(TXID_LEN);
+
     // todo: Test
     Ok(Self {
-      txid: s[0..64].parse()?,
-      vout: u32::from_str_radix(&s[64..], 16)?,
+      txid: txid.parse()?,
+      vout: u32::from_str_radix(&vout, 16)?,
     })
   }
 }
 
-// todo: remove this
 impl From<Txid> for InscriptionId {
   fn from(txid: Txid) -> Self {
     Self { txid, vout: 0 }
-  }
-}
-
-// todo: remove this
-impl PartialEq<Txid> for InscriptionId {
-  fn eq(&self, txid: &Txid) -> bool {
-    self.txid == *txid
   }
 }
 
@@ -71,42 +64,50 @@ mod tests {
   fn display() {
     assert_eq!(
       inscription_id(1).to_string(),
-      "111111111111111111111111111111111111111111111111111111111111111101",
+      "111111111111111111111111111111111111111111111111111111111111111100000001",
     );
     assert_eq!(
       InscriptionId {
         txid: txid(1),
-        vout: 0xFFFF,
+        vout: 0,
       }
       .to_string(),
-      "1111111111111111111111111111111111111111111111111111111111111111ffff",
+      "111111111111111111111111111111111111111111111111111111111111111100000000",
+    );
+    assert_eq!(
+      InscriptionId {
+        txid: txid(1),
+        vout: 0xFFFFFFFF,
+      }
+      .to_string(),
+      "1111111111111111111111111111111111111111111111111111111111111111ffffffff",
     );
   }
 
   #[test]
   fn from_str() {
     assert_eq!(
-      "111111111111111111111111111111111111111111111111111111111111111101"
+      "111111111111111111111111111111111111111111111111111111111111111100000001"
         .parse::<InscriptionId>()
         .unwrap(),
       inscription_id(1),
     );
     assert_eq!(
-      "1111111111111111111111111111111111111111111111111111111111111111ffff"
+      "1111111111111111111111111111111111111111111111111111111111111111ffffffff"
         .parse::<InscriptionId>()
         .unwrap(),
       InscriptionId {
         txid: txid(1),
-        vout: 0xFFFF,
+        vout: 0xFFFFFFFF,
       },
     );
     assert_eq!(
-      "1111111111111111111111111111111111111111111111111111111111111111FFFF"
+      "1111111111111111111111111111111111111111111111111111111111111111FFFFFFFF"
         .parse::<InscriptionId>()
         .unwrap(),
       InscriptionId {
         txid: txid(1),
-        vout: 0xFFFF,
+        vout: 0xFFFFFFFF,
       },
     );
   }
