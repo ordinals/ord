@@ -1934,6 +1934,7 @@ dependencies = [
  "anyhow",
  "axum",
  "axum-server",
+ "bech32",
  "bitcoin",
  "boilerplate",
  "chrono",

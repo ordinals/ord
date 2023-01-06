@@ -362,9 +362,12 @@ impl Server {
       .nth(outpoint.vout as usize)
       .ok_or_else(|| ServerError::NotFound(format!("output {outpoint} unknown")))?;
 
+    let inscriptions = index.get_inscriptions_on_output(outpoint).unwrap();
+
     Ok(
       OutputHtml {
         outpoint,
+        inscriptions,
         list: if index.has_sat_index().map_err(ServerError::Internal)? {
           Some(
             index

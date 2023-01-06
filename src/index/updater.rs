@@ -23,7 +23,7 @@ impl From<Block> for BlockData {
   }
 }
 
-pub struct Updater {
+pub(crate) struct Updater {
   cache: HashMap<OutPointArray, Vec<u8>>,
   height: u64,
   index_sats: bool,

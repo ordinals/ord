@@ -12,6 +12,7 @@
 
 use {
   self::{
+    any_address::AnyAddress,
     arguments::Arguments,
     blocktime::Blocktime,
     content::Content,
@@ -21,9 +22,12 @@ use {
     height::Height,
     index::{Index, List},
     inscription::Inscription,
+    object::Object,
     options::Options,
+    ordinal_address::OrdinalAddress,
     outgoing::Outgoing,
     rarity::Rarity,
+    representation::Representation,
     sat::Sat,
     sat_point::SatPoint,
     subcommand::Subcommand,
@@ -35,7 +39,8 @@ use {
     consensus::{self, Decodable, Encodable},
     hash_types::BlockHash,
     hashes::Hash,
-    Address, Amount, Block, OutPoint, Script, Sequence, Transaction, TxIn, TxOut, Txid,
+    util::address::{Payload, WitnessVersion},
+    Address, Amount, Block, Network, OutPoint, Script, Sequence, Transaction, TxIn, TxOut, Txid,
   },
   bitcoincore_rpc::{Client, RpcApi},
   chain::Chain,
@@ -76,6 +81,7 @@ mod test;
 #[cfg(test)]
 use self::test::*;
 
+mod any_address;
 mod arguments;
 mod blocktime;
 mod chain;
@@ -86,9 +92,12 @@ mod epoch;
 mod height;
 mod index;
 mod inscription;
+mod object;
 mod options;
+mod ordinal_address;
 mod outgoing;
 mod rarity;
+mod representation;
 mod sat;
 mod sat_point;
 mod subcommand;

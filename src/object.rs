@@ -1,0 +1,221 @@
+use super::*;
+
+#[derive(Debug, PartialEq)]
+pub(crate) enum Object {
+  CardinalAddress(Address),
+  Hash([u8; 32]),
+  Integer(u128),
+  OrdinalAddress(OrdinalAddress),
+  OutPoint(OutPoint),
+  Sat(Sat),
+  SatPoint(SatPoint),
+}
+
+impl FromStr for Object {
+  type Err = Error;
+
+  fn from_str(s: &str) -> Result<Self> {
+    use Representation::*;
+
+    match Representation::from_str(s)? {
+      CardinalAddress => Ok(Self::CardinalAddress(s.parse()?)),
+      Decimal | Degree | Percentile | Name => Ok(Self::Sat(s.parse()?)),
+      Hash => Ok(Self::Hash(
+        bitcoin::hashes::sha256::Hash::from_str(s)?.into_inner(),
+      )),
+      Integer => Ok(Self::Integer(s.parse()?)),
+      OrdinalAddress => Ok(Self::OrdinalAddress(s.parse()?)),
+      OutPoint => Ok(Self::OutPoint(s.parse()?)),
+      SatPoint => Ok(Self::SatPoint(s.parse()?)),
+    }
+  }
+}
+
+impl Display for Object {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    match self {
+      Self::CardinalAddress(cardinal_address) => write!(f, "{}", cardinal_address),
+      Self::Hash(hash) => {
+        for byte in hash {
+          write!(f, "{byte:02x}")?;
+        }
+        Ok(())
+      }
+      Self::Integer(integer) => write!(f, "{integer}"),
+      Self::OrdinalAddress(ordinal_address) => write!(f, "{}", ordinal_address),
+      Self::OutPoint(outpoint) => write!(f, "{}", outpoint),
+      Self::Sat(sat) => write!(f, "{sat}"),
+      Self::SatPoint(satpoint) => write!(f, "{}", satpoint),
+    }
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn from_str() {
+    #[track_caller]
+    fn case(s: &str, expected: Object) {
+      let actual = s.parse::<Object>().unwrap();
+      assert_eq!(actual, expected);
+      let round_trip = actual.to_string().parse::<Object>().unwrap();
+      assert_eq!(round_trip, expected);
+    }
+
+    assert_eq!(
+      "nvtdijuwxlp".parse::<Object>().unwrap(),
+      Object::Sat(Sat(0))
+    );
+    assert_eq!("a".parse::<Object>().unwrap(), Object::Sat(Sat::LAST));
+    assert_eq!(
+      "1.1".parse::<Object>().unwrap(),
+      Object::Sat(Sat(50 * COIN_VALUE + 1))
+    );
+    assert_eq!(
+      "1°0′0″0‴".parse::<Object>().unwrap(),
+      Object::Sat(Sat(2067187500000000))
+    );
+    assert_eq!("0%".parse::<Object>().unwrap(), Object::Sat(Sat(0)));
+
+    case("0", Object::Integer(0));
+
+    case(
+      "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      Object::Hash([
+        0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd,
+        0xef, 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0x01, 0x23, 0x45, 0x67, 0x89, 0xab,
+        0xcd, 0xef,
+      ]),
+    );
+    case(
+      "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4",
+      Object::CardinalAddress(
+        "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
+          .parse()
+          .unwrap(),
+      ),
+    );
+    case(
+      "BC1QW508D6QEJXTDG4Y5R3ZARVARY0C5XW7KV8F3T4",
+      Object::CardinalAddress(
+        "BC1QW508D6QEJXTDG4Y5R3ZARVARY0C5XW7KV8F3T4"
+          .parse()
+          .unwrap(),
+      ),
+    );
+    case(
+      "tb1qqqqqp399et2xygdj5xreqhjjvcmzhxw4aywxecjdzew6hylgvsesrxh6hy",
+      Object::CardinalAddress(
+        "tb1qqqqqp399et2xygdj5xreqhjjvcmzhxw4aywxecjdzew6hylgvsesrxh6hy"
+          .parse()
+          .unwrap(),
+      ),
+    );
+    case(
+      "TB1QQQQQP399ET2XYGDJ5XREQHJJVCMZHXW4AYWXECJDZEW6HYLGVSESRXH6HY",
+      Object::CardinalAddress(
+        "TB1QQQQQP399ET2XYGDJ5XREQHJJVCMZHXW4AYWXECJDZEW6HYLGVSESRXH6HY"
+          .parse()
+          .unwrap(),
+      ),
+    );
+    case(
+      "bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw",
+      Object::CardinalAddress(
+        "bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw"
+          .parse()
+          .unwrap(),
+      ),
+    );
+    case(
+      "BCRT1QS758URSH4Q9Z627KT3PP5YYSM78DDNY6TXAQGW",
+      Object::CardinalAddress(
+        "BCRT1QS758URSH4Q9Z627KT3PP5YYSM78DDNY6TXAQGW"
+          .parse()
+          .unwrap(),
+      ),
+    );
+    case(
+      "ord1qcqgs2pps4u4yedfyl5pysdjjncs8et5u8gcumw",
+      Object::OrdinalAddress(
+        "ord1qcqgs2pps4u4yedfyl5pysdjjncs8et5u8gcumw"
+          .parse()
+          .unwrap(),
+      ),
+    );
+    case(
+      "ORD1QCQGS2PPS4U4YEDFYL5PYSDJJNCS8ET5U8GCUMW",
+      Object::OrdinalAddress(
+        "ORD1QCQGS2PPS4U4YEDFYL5PYSDJJNCS8ET5U8GCUMW"
+          .parse()
+          .unwrap(),
+      ),
+    );
+    case(
+      "rord1qpwxd9k4pm7t5peh8kml7asn2wgmxmfjac5kr8q",
+      Object::OrdinalAddress(
+        "rord1qpwxd9k4pm7t5peh8kml7asn2wgmxmfjac5kr8q"
+          .parse()
+          .unwrap(),
+      ),
+    );
+    case(
+      "RORD1QPWXD9K4PM7T5PEH8KML7ASN2WGMXMFJAC5KR8Q",
+      Object::OrdinalAddress(
+        "RORD1QPWXD9K4PM7T5PEH8KML7ASN2WGMXMFJAC5KR8Q"
+          .parse()
+          .unwrap(),
+      ),
+    );
+    case(
+      "tord1q497kurvh0fgtedca5angel7j4rdwe0q8h925u0",
+      Object::OrdinalAddress(
+        "TORD1Q497KURVH0FGTEDCA5ANGEL7J4RDWE0Q8H925U0"
+          .parse()
+          .unwrap(),
+      ),
+    );
+    case(
+      "TORD1Q497KURVH0FGTEDCA5ANGEL7J4RDWE0Q8H925U0",
+      Object::OrdinalAddress(
+        "TORD1Q497KURVH0FGTEDCA5ANGEL7J4RDWE0Q8H925U0"
+          .parse()
+          .unwrap(),
+      ),
+    );
+    case(
+      "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef:123",
+      Object::OutPoint(
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef:123"
+          .parse()
+          .unwrap(),
+      ),
+    );
+    case(
+      "0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF:123",
+      Object::OutPoint(
+        "0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF:123"
+          .parse()
+          .unwrap(),
+      ),
+    );
+    case(
+      "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef:123:456",
+      Object::SatPoint(
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef:123:456"
+          .parse()
+          .unwrap(),
+      ),
+    );
+    case(
+      "0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF:123:456",
+      Object::SatPoint(
+        "0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF:123:456"
+          .parse()
+          .unwrap(),
+      ),
+    );
+  }
+}
