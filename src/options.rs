@@ -116,7 +116,7 @@ impl Options {
     )
   }
 
-  pub(crate) fn bitcoin_rpc_client(&self, min_version: usize) -> Result<Client> {
+  pub(crate) fn bitcoin_rpc_client(&self) -> Result<Client> {
     let cookie_file = self.cookie_file()?;
     let rpc_url = self.rpc_url();
     log::info!(
@@ -141,37 +141,32 @@ impl Options {
       bail!("Bitcoin RPC server is on {rpc_chain} but ord is on {ord_chain}");
     }
 
-    let bitcoin_version = client.version()?;
-    if bitcoin_version < min_version {
-      bail!(
-        "Bitcoin Core {} or newer required, current version is {}",
-        Self::format_bitcoin_core_version(min_version),
-        Self::format_bitcoin_core_version(bitcoin_version),
-      );
-    }
-
     Ok(client)
   }
 
-  pub(crate) fn bitcoin_rpc_client_mainnet_forbidden(
-    &self,
-    command: &str,
-    min_version: usize,
-  ) -> Result<Client> {
-    let client = self.bitcoin_rpc_client(min_version)?;
-
+  pub(crate) fn bitcoin_rpc_client_mainnet_forbidden(&self, command: &str) -> Result<Client> {
     if self.chain() == Chain::Mainnet {
       bail!("`{command}` is unstable and not yet supported on mainnet.");
     }
+
+    let client = self.bitcoin_rpc_client_for_wallet_command(command)?;
+
     Ok(client)
   }
 
-  pub(crate) fn bitcoin_rpc_client_for_wallet_command(
-    &self,
-    command: &str,
-    min_version: usize,
-  ) -> Result<Client> {
-    let client = self.bitcoin_rpc_client(min_version)?;
+  pub(crate) fn bitcoin_rpc_client_for_wallet_command(&self, command: &str) -> Result<Client> {
+    let client = self.bitcoin_rpc_client()?;
+
+    const MIN_VERSION: usize = 240000;
+
+    let bitcoin_version = client.version()?;
+    if bitcoin_version < MIN_VERSION {
+      bail!(
+        "Bitcoin Core {} or newer required, current version is {}",
+        Self::format_bitcoin_core_version(MIN_VERSION),
+        Self::format_bitcoin_core_version(bitcoin_version),
+      );
+    }
 
     if self.chain() == Chain::Mainnet {
       let wallet_info = client.get_wallet_info()?;
@@ -191,18 +186,24 @@ impl Options {
       }
     }
 
-    let mut num_tr = 0;
-    for descriptor in client.list_descriptors(None)?.descriptors {
-      let desc = descriptor.desc;
-      if Regex::new(r"tr.*").unwrap().is_match(&desc) {
-        num_tr += 1;
-      } else if Regex::new(r"rawtr.*").unwrap().is_match(&desc) {
-      } else {
-        bail!("the ord wallet should only contain tr and rawtr descriptors: `{desc}`");
+    if !command.contains("create") {
+      let descriptors = client.list_descriptors(None)?.descriptors;
+
+      let tr = descriptors
+        .iter()
+        .filter(|descriptor| descriptor.desc.starts_with("tr("))
+        .count();
+
+      let rawtr = descriptors
+        .iter()
+        .filter(|descriptor| descriptor.desc.starts_with("rawtr("))
+        .count();
+
+      if tr != 2 || descriptors.len() != 2 + rawtr {
+        bail!(
+          "this does not appear to be an ord wallet, please create one using `ord wallet create`"
+        );
       }
-    }
-    if num_tr > 2 {
-      bail!("the ord wallet should contain 2 tr descriptors");
     }
 
     Ok(client)
@@ -452,7 +453,7 @@ mod tests {
     .unwrap();
 
     assert_eq!(
-      options.bitcoin_rpc_client(0).unwrap_err().to_string(),
+      options.bitcoin_rpc_client().unwrap_err().to_string(),
       "Bitcoin RPC server is on testnet but ord is on mainnet"
     );
   }

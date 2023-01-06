@@ -227,6 +227,15 @@ impl Handle {
   pub fn lock(&self, output: OutPoint) {
     self.state().locked.insert(output);
   }
+
+  pub fn network_flag(&self) -> String {
+    match self.state().network {
+      Network::Bitcoin => "".into(),
+      Network::Testnet => "--chain testnet".into(),
+      Network::Signet => "--chain signet".into(),
+      Network::Regtest => "--chain regtest".into(),
+    }
+  }
 }
 
 impl Drop for Handle {
