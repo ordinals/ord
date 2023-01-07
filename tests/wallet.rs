@@ -227,20 +227,6 @@ fn send_on_mainnnet_works_with_wallet_whose_name_starts_with_ord() {
 }
 
 #[test]
-fn send_on_mainnnet_refuses_to_work_with_wallet_with_high_balance() {
-  let rpc_server = test_bitcoincore_rpc::builder().build();
-  let txid = rpc_server.mine_blocks_with_subsidy(1, 1_000_001)[0].txdata[0].txid();
-
-  CommandBuilder::new(format!("wallet send ord1qcqgs2pps4u4yedfyl5pysdjjncs8et5u8gcumw {txid}:0:0"))
-    .rpc_server(&rpc_server)
-    .expected_stderr(
-      "error: `ord wallet send` may not be used on mainnet with wallets containing more than 1,000,000 sats\n",
-    )
-    .expected_exit_code(1)
-    .run();
-}
-
-#[test]
 fn inscribe_fails_if_bitcoin_core_is_too_old() {
   let rpc_server = test_bitcoincore_rpc::builder()
     .network(Network::Regtest)
@@ -277,18 +263,6 @@ fn inscribe_no_backup() {
   .run();
 
   assert_eq!(rpc_server.descriptors(), 0);
-}
-
-#[test]
-fn inscribe_forbidden_on_mainnet() {
-  let rpc_server = test_bitcoincore_rpc::builder().build();
-  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
-
-  CommandBuilder::new(format!("wallet inscribe --satpoint {txid}:0:0 hello.txt"))
-    .rpc_server(&rpc_server)
-    .expected_exit_code(1)
-    .expected_stderr("error: `ord wallet inscribe` is unstable and not yet supported on mainnet.\n")
-    .run();
 }
 
 #[test]
