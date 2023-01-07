@@ -91,13 +91,10 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             origin: Origin::Old(old_satpoint),
           });
         }
-        self
-          .outpoint_to_value
-          .remove(&encode_outpoint(tx_in.previous_output))?;
 
         input_value += if let Some(value) = self
           .outpoint_to_value
-          .get(&encode_outpoint(tx_in.previous_output))?
+          .remove(&encode_outpoint(tx_in.previous_output))?
         {
           value.value()
         } else {
@@ -154,9 +151,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       }
 
       output_value = end;
-    }
 
-    for (vout, tx_out) in tx.output.iter().enumerate() {
       self.outpoint_to_value.insert(
         &encode_outpoint(OutPoint {
           vout: vout.try_into().unwrap(),
