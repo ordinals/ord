@@ -21,7 +21,7 @@ impl Create {
       bail!("`ord wallet create` may only be used with a wallet named `ord` or whose name starts with `ord-`");
     }
 
-    let client = options.bitcoin_rpc_client_for_wallet_command("ord wallet create")?;
+    let client = options.bitcoin_rpc_client_for_wallet_command(true)?;
 
     client.create_wallet(&self.name, None, Some(true), None, None)?;
 
