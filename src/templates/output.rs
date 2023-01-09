@@ -6,6 +6,7 @@ pub(crate) struct OutputHtml {
   pub(crate) list: Option<List>,
   pub(crate) chain: Chain,
   pub(crate) output: TxOut,
+  pub(crate) inscriptions: Vec<InscriptionId>,
 }
 
 impl PageContent for OutputHtml {
@@ -25,6 +26,7 @@ mod tests {
   fn unspent_output() {
     pretty_assert_eq!(
       OutputHtml {
+        inscriptions: Vec::new(),
         outpoint: "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0"
           .parse()
           .unwrap(),
@@ -57,6 +59,7 @@ mod tests {
   fn spent_output() {
     pretty_assert_eq!(
       OutputHtml {
+        inscriptions: Vec::new(),
         outpoint: "0000000000000000000000000000000000000000000000000000000000000000:0"
           .parse()
           .unwrap(),
@@ -84,6 +87,7 @@ mod tests {
   fn no_list() {
     pretty_assert_eq!(
       OutputHtml {
+        inscriptions: Vec::new(),
         outpoint: "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0"
           .parse()
           .unwrap(),

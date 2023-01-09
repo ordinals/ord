@@ -82,26 +82,12 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       if tx_in.previous_output.is_null() {
         input_value += Height(self.height).subsidy();
       } else {
-        let outpoint = tx_in.previous_output;
-        let start = encode_satpoint(SatPoint {
-          outpoint,
-          offset: 0,
-        });
-
-        let end = encode_satpoint(SatPoint {
-          outpoint,
-          offset: u64::MAX,
-        });
-
-        for (old_satpoint, inscription_id) in self
-          .satpoint_to_id
-          .range(start..=end)?
-          .map(|(satpoint, id)| (*satpoint.value(), *id.value()))
+        for (old_satpoint, inscription_id) in
+          Index::inscriptions_on_output(self.satpoint_to_id, tx_in.previous_output)?
         {
-          let old_satpoint = decode_satpoint(old_satpoint);
           inscriptions.push(Flotsam {
             offset: input_value + old_satpoint.offset,
-            inscription_id: InscriptionId::from_inner(inscription_id),
+            inscription_id,
             origin: Origin::Old(old_satpoint),
           });
         }
