@@ -7,6 +7,14 @@ pub(crate) struct Preview {
   inscriptions: Vec<PathBuf>,
 }
 
+struct KillOnDrop(process::Child);
+
+impl Drop for KillOnDrop {
+  fn drop(&mut self) {
+    self.0.kill().unwrap()
+  }
+}
+
 impl Preview {
   pub(crate) fn run(self) -> Result {
     let tmpdir = TempDir::new()?;
@@ -17,17 +25,19 @@ impl Preview {
 
     fs::create_dir(&bitcoin_data_dir)?;
 
-    let mut bitcoind = Command::new("bitcoind")
-      .arg({
-        let mut arg = OsString::from("-datadir=");
-        arg.push(&bitcoin_data_dir);
-        arg
-      })
-      .arg("-regtest")
-      .arg("-txindex=1")
-      .arg("-listen=0")
-      .arg(format!("-rpcport={rpc_port}"))
-      .spawn()?;
+    let _bitcoind = KillOnDrop(
+      Command::new("bitcoind")
+        .arg({
+          let mut arg = OsString::from("-datadir=");
+          arg.push(&bitcoin_data_dir);
+          arg
+        })
+        .arg("-regtest")
+        .arg("-txindex=1")
+        .arg("-listen=0")
+        .arg(format!("-rpcport={rpc_port}"))
+        .spawn()?,
+    );
 
     let options = Options {
       chain_argument: Chain::Regtest,
@@ -85,8 +95,6 @@ impl Preview {
       subcommand: Subcommand::Server(self.server),
     }
     .run()?;
-
-    bitcoind.kill()?;
 
     Ok(())
   }
