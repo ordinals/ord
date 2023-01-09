@@ -1762,7 +1762,7 @@ next.*",
     server.assert_response_regex(
       format!("/inscription/{inscription_id}"),
       StatusCode::OK,
-      r".*<dl>\s*<dt>sat</dt>\s*<dd><a href=/sat/5000000000>5000000000</a></dd>.*",
+      r".*<dl>\s*<dt>sat</dt>\s*<dd><a href=/sat/5000000000>5000000000</a></dd>\s*<dt>content</dt>.*",
     );
   }
 
@@ -1782,7 +1782,7 @@ next.*",
     server.assert_response_regex(
       format!("/inscription/{inscription_id}"),
       StatusCode::OK,
-      r".*<dl>\s*<dt>content size</dt>.*",
+      r".*<dl>\s*<dt>content</dt>.*",
     );
   }
 }

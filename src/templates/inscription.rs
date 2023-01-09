@@ -77,7 +77,7 @@ mod tests {
         <dl>
           <dt>sat</dt>
           <dd><a href=/sat/1>1</a></dd>
-          <dt>content size</dt>
+          <dt>content</dt>
           .*
         </dl>
       "
