@@ -273,7 +273,7 @@ impl<'a> InscriptionParser<'a> {
 mod tests {
   use super::*;
 
-  fn container(payload: &[&[u8]]) -> Witness {
+  fn envelope(payload: &[&[u8]]) -> Witness {
     let mut builder = script::Builder::new()
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF);
@@ -330,7 +330,7 @@ mod tests {
   #[test]
   fn duplicate_field() {
     assert_eq!(
-      InscriptionParser::parse(&container(&[
+      InscriptionParser::parse(&envelope(&[
         b"ord",
         &[1],
         b"text/plain;charset=utf-8",
@@ -346,7 +346,7 @@ mod tests {
   #[test]
   fn valid() {
     assert_eq!(
-      InscriptionParser::parse(&container(&[
+      InscriptionParser::parse(&envelope(&[
         b"ord",
         &[1],
         b"text/plain;charset=utf-8",
@@ -360,7 +360,7 @@ mod tests {
   #[test]
   fn valid_with_unknown_tag() {
     assert_eq!(
-      InscriptionParser::parse(&container(&[
+      InscriptionParser::parse(&envelope(&[
         b"ord",
         &[1],
         b"text/plain;charset=utf-8",
@@ -376,7 +376,7 @@ mod tests {
   #[test]
   fn no_content_tag() {
     assert_eq!(
-      InscriptionParser::parse(&container(&[b"ord", &[1], b"text/plain;charset=utf-8"])),
+      InscriptionParser::parse(&envelope(&[b"ord", &[1], b"text/plain;charset=utf-8"])),
       Ok(Inscription {
         content_type: Some(b"text/plain;charset=utf-8".to_vec()),
         content: None,
@@ -387,7 +387,7 @@ mod tests {
   #[test]
   fn no_content_type() {
     assert_eq!(
-      InscriptionParser::parse(&container(&[b"ord", &[], b"foo"])),
+      InscriptionParser::parse(&envelope(&[b"ord", &[], b"foo"])),
       Ok(Inscription {
         content_type: None,
         content: Some(b"foo".to_vec()),
@@ -398,7 +398,7 @@ mod tests {
   #[test]
   fn valid_content_in_multiple_pushes() {
     assert_eq!(
-      InscriptionParser::parse(&container(&[
+      InscriptionParser::parse(&envelope(&[
         b"ord",
         &[1],
         b"text/plain;charset=utf-8",
@@ -413,12 +413,7 @@ mod tests {
   #[test]
   fn valid_content_in_zero_pushes() {
     assert_eq!(
-      InscriptionParser::parse(&container(&[
-        b"ord",
-        &[1],
-        b"text/plain;charset=utf-8",
-        &[]
-      ])),
+      InscriptionParser::parse(&envelope(&[b"ord", &[1], b"text/plain;charset=utf-8", &[]])),
       Ok(inscription("text/plain;charset=utf-8", "")),
     );
   }
@@ -426,7 +421,7 @@ mod tests {
   #[test]
   fn valid_content_in_multiple_empty_pushes() {
     assert_eq!(
-      InscriptionParser::parse(&container(&[
+      InscriptionParser::parse(&envelope(&[
         b"ord",
         &[1],
         b"text/plain;charset=utf-8",
@@ -511,7 +506,7 @@ mod tests {
   #[test]
   fn invalid_utf8_does_not_render_inscription_invalid() {
     assert_eq!(
-      InscriptionParser::parse(&container(&[
+      InscriptionParser::parse(&envelope(&[
         b"ord",
         &[1],
         b"text/plain;charset=utf-8",
@@ -545,9 +540,23 @@ mod tests {
   }
 
   #[test]
+  fn no_op_false() {
+    let script = script::Builder::new()
+      .push_opcode(opcodes::all::OP_IF)
+      .push_slice("ord".as_bytes())
+      .push_opcode(opcodes::all::OP_ENDIF)
+      .into_script();
+
+    assert_eq!(
+      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
+      Err(InscriptionError::NoInscription)
+    );
+  }
+
+  #[test]
   fn no_content() {
     assert_eq!(
-      InscriptionParser::parse(&container(&[])),
+      InscriptionParser::parse(&envelope(&[])),
       Err(InscriptionError::NoInscription)
     );
   }
@@ -555,7 +564,7 @@ mod tests {
   #[test]
   fn wrong_magic_number() {
     assert_eq!(
-      InscriptionParser::parse(&container(&[b"foo"])),
+      InscriptionParser::parse(&envelope(&[b"foo"])),
       Err(InscriptionError::NoInscription),
     );
   }
@@ -569,7 +578,7 @@ mod tests {
         previous_output: OutPoint::null(),
         script_sig: Script::new(),
         sequence: Sequence(0),
-        witness: container(&[b"ord", &[1], b"text/plain;charset=utf-8", &[], b"ord"]),
+        witness: envelope(&[b"ord", &[1], b"text/plain;charset=utf-8", &[], b"ord"]),
       }],
       output: Vec::new(),
     };
@@ -615,7 +624,7 @@ mod tests {
   #[test]
   fn inscribe_png() {
     assert_eq!(
-      InscriptionParser::parse(&container(&[b"ord", &[1], b"image/png", &[], &[1; 100]])),
+      InscriptionParser::parse(&envelope(&[b"ord", &[1], b"image/png", &[], &[1; 100]])),
       Ok(inscription("image/png", [1; 100])),
     );
   }
@@ -711,7 +720,7 @@ mod tests {
   #[test]
   fn unknown_odd_fields_are_ignored() {
     assert_eq!(
-      InscriptionParser::parse(&container(&[b"ord", &[3], &[0]])),
+      InscriptionParser::parse(&envelope(&[b"ord", &[3], &[0]])),
       Ok(Inscription {
         content_type: None,
         content: None,
@@ -722,7 +731,7 @@ mod tests {
   #[test]
   fn unknown_even_fields_are_invalid() {
     assert_eq!(
-      InscriptionParser::parse(&container(&[b"ord", &[2], &[0]])),
+      InscriptionParser::parse(&envelope(&[b"ord", &[2], &[0]])),
       Err(InscriptionError::UnrecognizedEvenField),
     );
   }

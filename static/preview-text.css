@@ -1,7 +1,8 @@
-body {
-  margin: 0;
+html {
+  background-color: #131516;
+  color: white;
 }
 
-pre {
-  color: white;
+body {
+  margin: 0;
 }
