@@ -135,35 +135,15 @@ impl Options {
     Ok(client)
   }
 
-  pub(crate) fn bitcoin_rpc_client_mainnet_forbidden(&self, command: &str) -> Result<Client> {
-    let client = self.bitcoin_rpc_client()?;
-
-    if self.chain() == Chain::Mainnet {
-      bail!("`{command}` is unstable and not yet supported on mainnet.");
-    }
-    Ok(client)
-  }
-
   pub(crate) fn bitcoin_rpc_client_for_wallet_command(&self, command: &str) -> Result<Client> {
     let client = self.bitcoin_rpc_client()?;
 
-    if self.chain() == Chain::Mainnet {
-      let wallet_info = client.get_wallet_info()?;
+    let wallet_info = client.get_wallet_info()?;
 
-      if !(wallet_info.wallet_name == "ord" || wallet_info.wallet_name.starts_with("ord-")) {
-        bail!("`{command}` may only be used on mainnet with a wallet named `ord` or whose name starts with `ord-`");
-      }
-
-      let balances = client.get_balances()?;
-
-      let total = balances.mine.trusted + balances.mine.untrusted_pending + balances.mine.immature;
-
-      if total > Amount::from_sat(1_000_000) {
-        bail!(
-          "`{command}` may not be used on mainnet with wallets containing more than 1,000,000 sats"
-        );
-      }
+    if !(wallet_info.wallet_name == "ord" || wallet_info.wallet_name.starts_with("ord-")) {
+      bail!("`{command}` may only be used on mainnet with a wallet named `ord` or whose name starts with `ord-`");
     }
+
     Ok(client)
   }
 }
