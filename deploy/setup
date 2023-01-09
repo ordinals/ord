@@ -43,6 +43,9 @@ case $CHAIN in
   signet)
     ufw allow 38333
     ;;
+  testnet)
+    ufw allow 18333
+    ;;
   *)
     echo "Unknown chain: $CHAIN"
     exit 1
@@ -88,6 +91,9 @@ case $CHAIN in
     ;;
   signet)
     COOKIE_FILE_DIR=/var/lib/bitcoind/signet
+    ;;
+  testnet)
+    COOKIE_FILE_DIR=/var/lib/bitcoind/testnet3
     ;;
   *)
     echo "Unknown chain: $CHAIN"
