@@ -35,8 +35,10 @@ mod tests {
       },
       "
         <h1>Inscription 1{64}</h1>
-        <div class=inscription><a href=/content/1{64}><iframe .* src=/preview/1{64}></iframe></a></div>
+        <div class=inscription><a href=/preview/1{64}><iframe .* src=/preview/1{64}></iframe></a></div>
         <dl>
+          <dt>content</dt>
+          <dd><a href=/content/1{64}>link</a></dd>
           <dt>content size</dt>
           <dd>10 bytes</dd>
           <dt>content type</dt>
