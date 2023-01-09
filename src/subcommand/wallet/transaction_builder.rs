@@ -294,7 +294,6 @@ impl TransactionBuilder {
   }
 
   fn estimate_fee(&self) -> Amount {
-    dbg!(&self.estimate_vsize());
     self.fee_rate.fee(self.estimate_vsize())
   }
 
@@ -1150,7 +1149,6 @@ mod tests {
     .unwrap();
 
     let calculated_fee = fee_rate.fee(transaction.vsize()).to_sat();
-    dbg!(&transaction.vsize());
 
     pretty_assert_eq!(
       transaction,

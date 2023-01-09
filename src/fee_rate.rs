@@ -13,7 +13,7 @@ impl FromStr for FeeRate {
       return Err(anyhow!("fee rate can not be negative"));
     }
 
-    Ok(Self::try_from(fee_rate)?)
+    Self::try_from(fee_rate)
   }
 }
 
@@ -21,12 +21,16 @@ impl TryFrom<f64> for FeeRate {
   type Error = Error;
 
   fn try_from(float: f64) -> Result<Self, Self::Error> {
+    #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_sign_loss)]
     Ok(Self((float * 1000.0).round() as u64))
   }
 }
 
 impl FeeRate {
   pub(crate) fn fee(&self, vbytes: usize) -> Amount {
+    #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_sign_loss)]
     Amount::from_sat((self.0 as f64 * vbytes as f64 / 1000.0).ceil() as u64)
   }
 }
@@ -45,8 +49,17 @@ mod tests {
 
   #[test]
   fn fee() {
-    assert_eq!("2.5".parse::<FeeRate>().unwrap().fee(100), Amount::from_sat(250));
-    assert_eq!("2.0".parse::<FeeRate>().unwrap().fee(1024), Amount::from_sat(2048));
-    assert_eq!("1.1".parse::<FeeRate>().unwrap().fee(1), Amount::from_sat(2));
+    assert_eq!(
+      "2.5".parse::<FeeRate>().unwrap().fee(100),
+      Amount::from_sat(250)
+    );
+    assert_eq!(
+      "2.0".parse::<FeeRate>().unwrap().fee(1024),
+      Amount::from_sat(2048)
+    );
+    assert_eq!(
+      "1.1".parse::<FeeRate>().unwrap().fee(1),
+      Amount::from_sat(2)
+    );
   }
 }

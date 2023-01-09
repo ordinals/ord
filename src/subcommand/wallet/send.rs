@@ -91,7 +91,7 @@ impl Send {
       unspent_outputs,
       self.address.into(),
       change,
-      self.fee_rate
+      self.fee_rate,
     )?;
 
     let signed_tx = client

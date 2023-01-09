@@ -509,7 +509,7 @@ mod tests {
 
     #[allow(clippy::cast_possible_truncation)]
     #[allow(clippy::cast_sign_loss)]
-    let fee = ((((3.3 * 1000.0 as f64).round() as u64) as f64) / 1000.0 * reveal_tx.vsize() as f64)
+    let fee = ((((3.3 * 1000.0_f64).round() as u64) as f64) / 1000.0 * reveal_tx.vsize() as f64)
       .ceil() as u64;
 
     assert_eq!(
