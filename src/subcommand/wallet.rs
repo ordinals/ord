@@ -16,7 +16,7 @@ pub(crate) enum Wallet {
   #[clap(about = "Get wallet balance")]
   Balance,
   #[clap(about = "Create a new wallet")]
-  Create,
+  Create(create::Create),
   #[clap(about = "Create an inscription")]
   Inscribe(inscribe::Inscribe),
   #[clap(about = "List wallet inscriptions")]
@@ -37,7 +37,7 @@ impl Wallet {
   pub(crate) fn run(self, options: Options) -> Result {
     match self {
       Self::Balance => balance::run(options),
-      Self::Create => create::run(options),
+      Self::Create(create) => create.run(options),
       Self::Inscribe(inscribe) => inscribe.run(options),
       Self::Inscriptions => inscriptions::run(options),
       Self::Receive(receive) => receive.run(options),
@@ -64,7 +64,7 @@ fn get_unspent_output_ranges(
 }
 
 fn get_unspent_outputs(options: &Options) -> Result<BTreeMap<OutPoint, Amount>> {
-  let client = options.bitcoin_rpc_client()?;
+  let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
   let mut utxos = BTreeMap::new();
 
@@ -97,13 +97,13 @@ fn get_unspent_outputs(options: &Options) -> Result<BTreeMap<OutPoint, Amount>> 
 }
 
 fn get_change_addresses(options: &Options, n: usize) -> Result<Vec<Address>> {
-  let client = options.bitcoin_rpc_client()?;
+  let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
   let mut addresses = Vec::new();
   for _ in 0..n {
     addresses.push(
       client
-        .call("getrawchangeaddress", &[])
+        .call("getrawchangeaddress", &["bech32m".into()])
         .context("could not get change addresses from wallet")?,
     );
   }

@@ -11,21 +11,10 @@ use {
     util::taproot::{LeafVersion, TapLeafHash, TaprootBuilder},
     PackedLockTime, SchnorrSighashType, Witness,
   },
+  bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, Timestamp},
   bitcoincore_rpc::Client,
-  serde_json::json,
   std::collections::BTreeSet,
 };
-
-const MIN_BITCOIN_VERSION: usize = 240000;
-
-fn format_bitcoin_core_version(version: usize) -> String {
-  format!(
-    "{}.{}.{}",
-    version / 10000,
-    version % 10000 / 100,
-    version % 100
-  )
-}
 
 #[derive(Debug, Parser)]
 pub(crate) struct Inscribe {
@@ -39,16 +28,7 @@ pub(crate) struct Inscribe {
 
 impl Inscribe {
   pub(crate) fn run(self, options: Options) -> Result {
-    let client = options.bitcoin_rpc_client_for_wallet_command("ord wallet inscribe")?;
-
-    let bitcoin_version = client.version()?;
-    if bitcoin_version < MIN_BITCOIN_VERSION {
-      bail!(
-        "Bitcoin Core {} or newer required, current version is {}",
-        format_bitcoin_core_version(MIN_BITCOIN_VERSION),
-        format_bitcoin_core_version(bitcoin_version),
-      );
-    }
+    let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
     let inscription = Inscription::from_file(options.chain(), &self.file)?;
 
@@ -260,24 +240,15 @@ impl Inscribe {
 
     let info = client.get_descriptor_info(&format!("rawtr({})", recovery_private_key.to_wif()))?;
 
-    let params = json!([
-      {
-        "desc": format!("rawtr({})#{}", recovery_private_key.to_wif(), info.checksum),
-        "active": false,
-        "timestamp": "now",
-        "internal": false,
-        "label": format!("commit tx recovery key")
-      }
-    ]);
-
-    #[derive(Deserialize)]
-    struct ImportDescriptorsResult {
-      success: bool,
-    }
-
-    let response: Vec<ImportDescriptorsResult> = client
-      .call("importdescriptors", &[params])
-      .context("could not import commit tx recovery key")?;
+    let response = client.import_descriptors(ImportDescriptors {
+      descriptor: format!("rawtr({})#{}", recovery_private_key.to_wif(), info.checksum),
+      timestamp: Timestamp::Now,
+      active: Some(false),
+      range: None,
+      next_index: None,
+      internal: Some(false),
+      label: Some("commit tx recovery key".to_string()),
+    })?;
 
     for result in response {
       if !result.success {

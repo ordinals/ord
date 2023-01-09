@@ -10,7 +10,7 @@ pub(crate) struct Send {
 
 impl Send {
   pub(crate) fn run(self, options: Options) -> Result {
-    let client = options.bitcoin_rpc_client_for_wallet_command("ord wallet send")?;
+    let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
     if !self.cardinal && !self.address.is_ordinal() {
       bail!("refusing to send to cardinal adddress, which may be from wallet without sat control; the `--cardinal` flag bypasses this check");
