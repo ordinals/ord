@@ -61,6 +61,8 @@ fn inscription_page() {
 <h1>Inscription {reveal_tx}</h1>
 .*<a href=/preview/{reveal_tx}><iframe .* src=/preview/{reveal_tx}></iframe></a>.*
 <dl>
+  <dt>address</dt>
+  <dd class=monospace>bcrt1.*</dd>
   <dt>content</dt>
   <dd><a href=/content/{reveal_tx}>link</a></dd>
   <dt>content size</dt>
