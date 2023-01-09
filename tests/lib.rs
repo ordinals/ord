@@ -64,6 +64,12 @@ fn create_inscription(rpc_server: &test_bitcoincore_rpc::Handle, filename: &str)
   inscription_id
 }
 
+fn create_wallet(rpc_server: &test_bitcoincore_rpc::Handle) {
+  CommandBuilder::new(format!("--chain {} wallet create", rpc_server.network()))
+    .rpc_server(rpc_server)
+    .run();
+}
+
 mod command_builder;
 mod epochs;
 mod expected;
