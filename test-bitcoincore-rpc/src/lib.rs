@@ -13,12 +13,12 @@ use {
     Transaction, TxIn, TxMerkleNode, TxOut, Txid, Witness, Wtxid,
   },
   bitcoincore_rpc::json::{
-    Bip125Replaceable, CreateRawTransactionInput, EstimateMode, GetBalancesResult,
+    Bip125Replaceable, CreateRawTransactionInput, Descriptor, EstimateMode, GetBalancesResult,
     GetBalancesResultEntry, GetBlockHeaderResult, GetBlockchainInfoResult, GetDescriptorInfoResult,
     GetNetworkInfoResult, GetRawTransactionResult, GetTransactionResult,
     GetTransactionResultDetail, GetTransactionResultDetailCategory, GetWalletInfoResult,
-    ListTransactionResult, ListUnspentResultEntry, LoadWalletResult, SignRawTransactionResult,
-    WalletTxInfo,
+    ImportDescriptors, ImportMultiResult, ListDescriptorsResult, ListTransactionResult,
+    ListUnspentResultEntry, LoadWalletResult, SignRawTransactionResult, Timestamp, WalletTxInfo,
   },
   jsonrpc_core::{IoHandler, Value},
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
@@ -212,8 +212,12 @@ impl Handle {
     self.state().mempool().to_vec()
   }
 
-  pub fn descriptors(&self) -> u64 {
-    self.state().descriptors
+  pub fn descriptors(&self) -> Vec<String> {
+    self.state().descriptors.clone()
+  }
+
+  pub fn import_descriptor(&self, desc: String) {
+    self.state().descriptors.push(desc);
   }
 
   pub fn sent(&self) -> Vec<Sent> {
@@ -222,6 +226,15 @@ impl Handle {
 
   pub fn lock(&self, output: OutPoint) {
     self.state().locked.insert(output);
+  }
+
+  pub fn network(&self) -> String {
+    match self.state().network {
+      Network::Bitcoin => "mainnet".to_string(),
+      Network::Testnet => Network::Testnet.to_string(),
+      Network::Signet => Network::Signet.to_string(),
+      Network::Regtest => Network::Regtest.to_string(),
+    }
   }
 }
 
