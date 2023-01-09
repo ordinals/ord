@@ -24,7 +24,7 @@ impl From<Block> for BlockData {
 }
 
 pub(crate) struct Updater {
-  cache: HashMap<OutPointArray, Vec<u8>>,
+  range_cache: HashMap<OutPointArray, Vec<u8>>,
   height: u64,
   index_sats: bool,
   sat_ranges_since_flush: u64,
@@ -56,7 +56,7 @@ impl Updater {
       )?;
 
     let mut updater = Self {
-      cache: HashMap::new(),
+      range_cache: HashMap::new(),
       height,
       index_sats: index.has_sat_index()?,
       sat_ranges_since_flush: 0,
@@ -93,13 +93,14 @@ impl Updater {
     let rx = Self::fetch_blocks_from(index, self.height, self.index_sats)?;
 
     let mut uncommitted = 0;
+    let mut value_cache = HashMap::new();
     loop {
       let block = match rx.recv() {
         Ok(block) => block,
         Err(mpsc::RecvError) => break,
       };
 
-      self.index_block(index, &mut wtx, block)?;
+      self.index_block(index, &mut wtx, block, &mut value_cache)?;
 
       if let Some(progress_bar) = &mut progress_bar {
         progress_bar.inc(1);
@@ -112,7 +113,8 @@ impl Updater {
       uncommitted += 1;
 
       if uncommitted == 5000 {
-        self.commit(wtx)?;
+        self.commit(wtx, value_cache)?;
+        value_cache = HashMap::new();
         uncommitted = 0;
         wtx = index.begin_write()?;
         let height = wtx
@@ -144,7 +146,7 @@ impl Updater {
     }
 
     if uncommitted > 0 {
-      self.commit(wtx)?;
+      self.commit(wtx, value_cache)?;
     }
 
     if let Some(progress_bar) = &mut progress_bar {
@@ -245,6 +247,7 @@ impl Updater {
     index: &Index,
     wtx: &mut WriteTransaction,
     block: BlockData,
+    value_cache: &mut HashMap<OutPoint, u64>,
   ) -> Result<()> {
     let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
 
@@ -296,6 +299,7 @@ impl Updater {
       &mut outpoint_to_value,
       &mut sat_to_inscription_id,
       &mut satpoint_to_inscription_id,
+      value_cache,
     )?;
 
     if self.index_sats {
@@ -319,7 +323,7 @@ impl Updater {
         for input in &tx.input {
           let key = encode_outpoint(input.previous_output);
 
-          let sat_ranges = match self.cache.remove(&key) {
+          let sat_ranges = match self.range_cache.remove(&key) {
             Some(sat_ranges) => {
               self.outputs_cached += 1;
               sat_ranges
@@ -460,38 +464,45 @@ impl Updater {
 
       *outputs_traversed += 1;
 
-      self.cache.insert(encode_outpoint(outpoint), sats);
+      self.range_cache.insert(encode_outpoint(outpoint), sats);
       self.outputs_inserted_since_flush += 1;
     }
 
     Ok(())
   }
 
-  fn commit(&mut self, wtx: WriteTransaction) -> Result {
+  fn commit(&mut self, wtx: WriteTransaction, value_cache: HashMap<OutPoint, u64>) -> Result {
     log::info!(
       "Committing at block height {}, {} outputs traversed, {} in map, {} cached",
       self.height,
       self.outputs_traversed,
-      self.cache.len(),
+      self.range_cache.len(),
       self.outputs_cached
     );
 
     if self.index_sats {
       log::info!(
         "Flushing {} entries ({:.1}% resulting from {} insertions) from memory to database",
-        self.cache.len(),
-        self.cache.len() as f64 / self.outputs_inserted_since_flush as f64 * 100.,
+        self.range_cache.len(),
+        self.range_cache.len() as f64 / self.outputs_inserted_since_flush as f64 * 100.,
         self.outputs_inserted_since_flush,
       );
 
       let mut outpoint_to_sat_ranges = wtx.open_table(OUTPOINT_TO_SAT_RANGES)?;
 
-      for (k, v) in &self.cache {
-        outpoint_to_sat_ranges.insert(k, v)?;
+      for (outpoint, sat_range) in self.range_cache.drain() {
+        outpoint_to_sat_ranges.insert(&outpoint, &sat_range)?;
       }
 
-      self.cache.clear();
       self.outputs_inserted_since_flush = 0;
+    }
+
+    {
+      let mut outpoint_to_value = wtx.open_table(OUTPOINT_TO_VALUE)?;
+
+      for (outpoint, value) in value_cache {
+        outpoint_to_value.insert(&encode_outpoint(outpoint), &value)?;
+      }
     }
 
     Index::increment_statistic(&wtx, Statistic::OutputsTraversed, self.outputs_traversed)?;
