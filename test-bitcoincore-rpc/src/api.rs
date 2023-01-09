@@ -103,7 +103,10 @@ pub trait Api {
   fn list_lock_unspent(&self) -> Result<Vec<JsonOutPoint>, jsonrpc_core::Error>;
 
   #[rpc(name = "getrawchangeaddress")]
-  fn get_raw_change_address(&self) -> Result<bitcoin::Address, jsonrpc_core::Error>;
+  fn get_raw_change_address(
+    &self,
+    address_type: Option<bitcoincore_rpc::json::AddressType>,
+  ) -> Result<bitcoin::Address, jsonrpc_core::Error>;
 
   #[rpc(name = "getdescriptorinfo")]
   fn get_descriptor_info(
@@ -121,7 +124,7 @@ pub trait Api {
   fn get_new_address(
     &self,
     label: Option<String>,
-    address_type: Option<()>,
+    address_type: Option<bitcoincore_rpc::json::AddressType>,
   ) -> Result<bitcoin::Address, jsonrpc_core::Error>;
 
   #[rpc(name = "listtransactions")]

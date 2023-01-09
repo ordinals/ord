@@ -47,7 +47,7 @@ impl Create {
       &secp,
       (fingerprint, derivation_path.clone()),
       derived_private_key,
-      DerivationPath::master().child(ChildNumber::Normal { index: 0 }),
+      false,
     )?;
 
     derive_and_import_descriptor(
@@ -55,7 +55,7 @@ impl Create {
       &secp,
       (fingerprint, derivation_path),
       derived_private_key,
-      DerivationPath::master().child(ChildNumber::Normal { index: 1 }),
+      true,
     )?;
 
     Ok(())
@@ -67,12 +67,14 @@ fn derive_and_import_descriptor(
   secp: &Secp256k1<All>,
   origin: (Fingerprint, DerivationPath),
   derived_private_key: ExtendedPrivKey,
-  derivation_path: DerivationPath,
+  change: bool,
 ) -> Result {
   let secret_key = DescriptorSecretKey::XPrv(DescriptorXKey {
     origin: Some(origin),
     xkey: derived_private_key,
-    derivation_path,
+    derivation_path: DerivationPath::master().child(ChildNumber::Normal {
+      index: change.into(),
+    }),
     wildcard: Wildcard::Unhardened,
   });
 
@@ -89,7 +91,7 @@ fn derive_and_import_descriptor(
     active: Some(true),
     range: None,
     next_index: None,
-    internal: None,
+    internal: Some(!change),
     label: None,
   })?;
 

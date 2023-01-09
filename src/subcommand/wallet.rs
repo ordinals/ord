@@ -103,7 +103,7 @@ fn get_change_addresses(options: &Options, n: usize) -> Result<Vec<Address>> {
   for _ in 0..n {
     addresses.push(
       client
-        .call("getrawchangeaddress", &[])
+        .call("getrawchangeaddress", &["bech32m".into()])
         .context("could not get change addresses from wallet")?,
     );
   }

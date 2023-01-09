@@ -147,8 +147,6 @@ impl Options {
   pub(crate) fn bitcoin_rpc_client_for_wallet_command(&self, create: bool) -> Result<Client> {
     let client = self.bitcoin_rpc_client()?;
 
-    let wallet_info = client.get_wallet_info()?;
-
     const MIN_VERSION: usize = 240000;
 
     let bitcoin_version = client.version()?;
@@ -161,6 +159,8 @@ impl Options {
     }
 
     if !create {
+      let wallet_info = client.get_wallet_info()?;
+
       if !(wallet_info.wallet_name == "ord" || wallet_info.wallet_name.starts_with("ord-")) {
         bail!("wallet commands may only be used on mainnet with a wallet named `ord` or whose name starts with `ord-`");
       }
