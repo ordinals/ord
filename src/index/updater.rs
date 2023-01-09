@@ -495,12 +495,10 @@ impl Updater {
       self.outputs_inserted_since_flush = 0;
     }
 
-    if !value_cache.is_empty() {
-      let mut outpoint_to_value = wtx.open_table(OUTPOINT_TO_VALUE)?;
+    let mut outpoint_to_value = wtx.open_table(OUTPOINT_TO_VALUE)?;
 
-      for (outpoint, value) in value_cache {
-        outpoint_to_value.insert(&encode_outpoint(outpoint), &value)?;
-      }
+    for (outpoint, value) in value_cache {
+      outpoint_to_value.insert(&encode_outpoint(outpoint), &value)?;
     }
 
     Index::increment_statistic(&wtx, Statistic::OutputsTraversed, self.outputs_traversed)?;
