@@ -61,7 +61,7 @@ fn inscription_page() {
 .*<a href=/preview/{reveal_tx}><iframe .* src=/preview/{reveal_tx}></iframe></a>.*
 <dl>
   <dt>content</dt>
-  <dd><a href=/content/{reveal_tx}>/content/{reveal_tx}</a></dd>
+  <dd><a href=/content/{reveal_tx}>link</a></dd>
   <dt>content size</dt>
   <dd>10 bytes</dd>
   <dt>content type</dt>

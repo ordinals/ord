@@ -38,7 +38,7 @@ mod tests {
         <div class=inscription><a href=/preview/1{64}><iframe .* src=/preview/1{64}></iframe></a></div>
         <dl>
           <dt>content</dt>
-          <dd><a href=/content/1{64}>/content/1{64}</a></dd>
+          <dd><a href=/content/1{64}>link</a></dd>
           <dt>content size</dt>
           <dd>10 bytes</dd>
           <dt>content type</dt>
