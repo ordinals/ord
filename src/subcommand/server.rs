@@ -731,18 +731,18 @@ mod tests {
       }
     }
 
-    fn get(&self, path: &str) -> reqwest::blocking::Response {
+    fn get(&self, path: impl AsRef<str>) -> reqwest::blocking::Response {
       if let Err(error) = self.index.update() {
         log::error!("{error}");
       }
-      reqwest::blocking::get(self.join_url(path)).unwrap()
+      reqwest::blocking::get(self.join_url(path.as_ref())).unwrap()
     }
 
     fn join_url(&self, url: &str) -> Url {
       self.url.join(url).unwrap()
     }
 
-    fn assert_response(&self, path: &str, status: StatusCode, expected_response: &str) {
+    fn assert_response(&self, path: impl AsRef<str>, status: StatusCode, expected_response: &str) {
       let response = self.get(path);
       assert_eq!(response.status(), status, "{}", response.text().unwrap());
       pretty_assert_eq!(response.text().unwrap(), expected_response);
@@ -754,7 +754,7 @@ mod tests {
       status: StatusCode,
       regex: impl AsRef<str>,
     ) {
-      let response = self.get(path.as_ref());
+      let response = self.get(path);
       assert_eq!(response.status(), status);
       assert_regex_match!(response.text().unwrap(), regex.as_ref());
     }
@@ -766,7 +766,7 @@ mod tests {
       content_security_policy: &str,
       regex: impl AsRef<str>,
     ) {
-      let response = self.get(path.as_ref());
+      let response = self.get(path);
       assert_eq!(response.status(), status);
       assert_eq!(
         response
@@ -1743,6 +1743,46 @@ next.*",
       StatusCode::OK,
       "default-src 'self'",
       fs::read_to_string("templates/preview-unknown.html").unwrap(),
+    );
+  }
+
+  #[test]
+  fn inscription_page_has_sat_when_sats_are_tracked() {
+    let server = TestServer::new_with_args(&["--index-sats"]);
+    server.mine_blocks(1);
+
+    let inscription_id = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witness: inscription("text/foo", "hello").to_witness(),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/inscription/{inscription_id}"),
+      StatusCode::OK,
+      r".*<dl>\s*<dt>sat</dt>\s*<dd><a href=/sat/5000000000>5000000000</a></dd>.*",
+    );
+  }
+
+  #[test]
+  fn inscription_page_does_not_have_sat_when_sats_are_not_tracked() {
+    let server = TestServer::new();
+    server.mine_blocks(1);
+
+    let inscription_id = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witness: inscription("text/foo", "hello").to_witness(),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/inscription/{inscription_id}"),
+      StatusCode::OK,
+      r".*<dl>\s*<dt>content size</dt>.*",
     );
   }
 }
