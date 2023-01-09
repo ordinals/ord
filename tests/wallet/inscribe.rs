@@ -267,4 +267,3 @@ fn inscribe_with_fee_rate() {
     .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
     .run();
 }
-
