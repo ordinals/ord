@@ -57,7 +57,8 @@ impl Preview {
       options.clone(),
     )?;
 
-    let address = rpc_client.get_new_address(None, None)?;
+    let address =
+      rpc_client.get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))?;
 
     rpc_client.generate_to_address(101, &address)?;
 
