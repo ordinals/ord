@@ -1716,6 +1716,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a"
 
 [[package]]
+name = "miniscript"
+version = "9.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "123a10aae81d0712ecc09b780f6f0ae0b0f506a5c4c912974725760d59ba073e"
+dependencies = [
+ "bitcoin",
+]
+
+[[package]]
 name = "miniz_oxide"
 version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1944,6 +1953,7 @@ dependencies = [
  "log",
  "mime",
  "mime_guess",
+ "miniscript",
  "ord-bitcoincore-rpc",
  "pretty_assertions",
  "pulldown-cmark",
@@ -1968,8 +1978,7 @@ dependencies = [
 [[package]]
 name = "ord-bitcoincore-rpc"
 version = "0.16.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0e050561c1c3084a9eac260b2100a3751101886d302068a11c1facd8a67bade9"
+source = "git+https://github.com/casey/rust-bitcoincore-rpc?branch=ord#1bc2638f5a3049495a7aa953c4c6dac44fd1524b"
 dependencies = [
  "jsonrpc",
  "log",
@@ -1981,8 +1990,7 @@ dependencies = [
 [[package]]
 name = "ord-bitcoincore-rpc-json"
 version = "0.16.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "279b49e6ebf101f3446f32f58879b82d0a564b37f0eca01d2169901c250038de"
+source = "git+https://github.com/casey/rust-bitcoincore-rpc?branch=ord#1bc2638f5a3049495a7aa953c4c6dac44fd1524b"
 dependencies = [
  "bitcoin",
  "serde",
