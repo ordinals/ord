@@ -24,6 +24,7 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   reward: u64,
   sat_to_inscription_id: &'a mut Table<'db, 'tx, u64, &'tx InscriptionIdArray>,
   satpoint_to_id: &'a mut Table<'db, 'tx, &'tx SatPointArray, &'tx InscriptionIdArray>,
+  value_cache: &'a mut HashMap<OutPoint, u64>,
 }
 
 impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
@@ -37,6 +38,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     outpoint_to_value: &'a mut Table<'db, 'tx, &'tx OutPointArray, u64>,
     sat_to_inscription_id: &'a mut Table<'db, 'tx, u64, &'tx InscriptionIdArray>,
     satpoint_to_id: &'a mut Table<'db, 'tx, &'tx SatPointArray, &'tx InscriptionIdArray>,
+    value_cache: &'a mut HashMap<OutPoint, u64>,
   ) -> Result<Self> {
     let next_number = number_to_id
       .iter()?
@@ -58,6 +60,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       reward: Height(height).subsidy(),
       sat_to_inscription_id,
       satpoint_to_id,
+      value_cache,
     })
   }
 
@@ -92,7 +95,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           });
         }
 
-        input_value += if let Some(value) = self
+        input_value += if let Some(value) = self.value_cache.remove(&tx_in.previous_output) {
+          value
+        } else if let Some(value) = self
           .outpoint_to_value
           .remove(&encode_outpoint(tx_in.previous_output))?
         {
@@ -109,7 +114,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             })?
             .output[usize::try_from(tx_in.previous_output.vout).unwrap()]
           .value
-        }
+        };
       }
     }
 
@@ -152,13 +157,13 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
       output_value = end;
 
-      self.outpoint_to_value.insert(
-        &encode_outpoint(OutPoint {
+      self.value_cache.insert(
+        OutPoint {
           vout: vout.try_into().unwrap(),
           txid,
-        }),
-        &tx_out.value,
-      )?;
+        },
+        tx_out.value,
+      );
     }
 
     if is_coinbase {
