@@ -1,7 +1,10 @@
 use super::*;
 
 use {
-  self::deserialize_from_str::DeserializeFromStr,
+  self::{
+    deserialize_from_str::DeserializeFromStr,
+    error::{OptionExt, ServerError, ServerResult},
+  },
   crate::templates::{
     BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionsHtml, OutputHtml,
     PageContent, PageHtml, PreviewImageHtml, PreviewTextHtml, PreviewUnknownHtml, RangeHtml,
@@ -30,6 +33,7 @@ use {
 };
 
 mod deserialize_from_str;
+mod error;
 
 enum BlockQuery {
   Height(u64),
@@ -45,33 +49,6 @@ impl FromStr for BlockQuery {
     } else {
       BlockQuery::Height(s.parse()?)
     })
-  }
-}
-
-enum ServerError {
-  Internal(Error),
-  NotFound(String),
-  BadRequest(String),
-}
-
-type ServerResult<T> = Result<T, ServerError>;
-
-impl IntoResponse for ServerError {
-  fn into_response(self) -> Response {
-    match self {
-      Self::Internal(error) => {
-        eprintln!("error serving request: {error}");
-        (
-          StatusCode::INTERNAL_SERVER_ERROR,
-          StatusCode::INTERNAL_SERVER_ERROR
-            .canonical_reason()
-            .unwrap_or_default(),
-        )
-          .into_response()
-      }
-      Self::NotFound(message) => (StatusCode::NOT_FOUND, message).into_response(),
-      Self::BadRequest(message) => (StatusCode::BAD_REQUEST, message).into_response(),
-    }
   }
 }
 
@@ -306,10 +283,7 @@ impl Server {
   }
 
   fn index_height(index: &Index) -> ServerResult<Height> {
-    index
-      .height()
-      .map_err(|err| ServerError::Internal(anyhow!("failed to retrieve height from index: {err}")))?
-      .ok_or_else(|| ServerError::Internal(anyhow!("index has not indexed genesis block")))
+    index.height()?.ok_or_not_found(|| "genesis block")
   }
 
   async fn clock(Extension(index): Extension<Arc<Index>>) -> ServerResult<ClockSvg> {
@@ -321,26 +295,16 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(sat)): Path<DeserializeFromStr<Sat>>,
   ) -> ServerResult<PageHtml<SatHtml>> {
-    let satpoint = index.rare_sat_satpoint(sat).map_err(|err| {
-      ServerError::Internal(anyhow!(
-        "failed to satpoint for sat {sat} from index: {err}"
-      ))
-    })?;
+    let satpoint = index.rare_sat_satpoint(sat)?;
 
     Ok(
       SatHtml {
         sat,
         satpoint,
-        blocktime: index.blocktime(sat.height()).map_err(|err| {
-          ServerError::Internal(anyhow!("failed to retrieve blocktime from index: {err}"))
-        })?,
-        inscription: index.get_inscription_id_by_sat(sat).map_err(|err| {
-          ServerError::Internal(anyhow!(
-            "failed to retrieve inscription for sat {sat} from index: {err}"
-          ))
-        })?,
+        blocktime: index.blocktime(sat.height())?,
+        inscription: index.get_inscription_id_by_sat(sat)?,
       }
-      .page(chain, index.has_sat_index().map_err(ServerError::Internal)?),
+      .page(chain, index.has_sat_index()?),
     )
   }
 
@@ -354,13 +318,12 @@ impl Server {
     Path(outpoint): Path<OutPoint>,
   ) -> ServerResult<PageHtml<OutputHtml>> {
     let output = index
-      .get_transaction(outpoint.txid)
-      .map_err(ServerError::Internal)?
-      .ok_or_else(|| ServerError::NotFound(format!("output {outpoint} unknown")))?
+      .get_transaction(outpoint.txid)?
+      .ok_or_not_found(|| format!("output {outpoint}"))?
       .output
       .into_iter()
       .nth(outpoint.vout as usize)
-      .ok_or_else(|| ServerError::NotFound(format!("output {outpoint} unknown")))?;
+      .ok_or_not_found(|| format!("output {outpoint}"))?;
 
     let inscriptions = index.get_inscriptions_on_output(outpoint).unwrap();
 
@@ -368,12 +331,11 @@ impl Server {
       OutputHtml {
         outpoint,
         inscriptions,
-        list: if index.has_sat_index().map_err(ServerError::Internal)? {
+        list: if index.has_sat_index()? {
           Some(
             index
-              .list(outpoint)
-              .map_err(ServerError::Internal)?
-              .ok_or_else(|| ServerError::NotFound(format!("output {outpoint} unknown")))?,
+              .list(outpoint)?
+              .ok_or_not_found(|| format!("output {outpoint}"))?,
           )
         } else {
           None
@@ -381,7 +343,7 @@ impl Server {
         chain,
         output,
       }
-      .page(chain, index.has_sat_index().map_err(ServerError::Internal)?),
+      .page(chain, index.has_sat_index()?),
     )
   }
 
@@ -398,23 +360,16 @@ impl Server {
       Ordering::Greater => Err(ServerError::BadRequest(
         "range start greater than range end".to_string(),
       )),
-      Ordering::Less => Ok(
-        RangeHtml { start, end }.page(chain, index.has_sat_index().map_err(ServerError::Internal)?),
-      ),
+      Ordering::Less => Ok(RangeHtml { start, end }.page(chain, index.has_sat_index()?)),
     }
   }
 
   async fn rare_txt(Extension(index): Extension<Arc<Index>>) -> ServerResult<RareTxt> {
-    Ok(RareTxt(
-      index
-        .rare_sat_satpoints()
-        .map_err(|err| ServerError::Internal(anyhow!("error getting rare sat satpoints: {err}")))?
-        .ok_or_else(|| {
-          ServerError::NotFound(
-            "tracking rare sats requires index created with `--index-sats` flag".into(),
-          )
-        })?,
-    ))
+    Ok(RareTxt(index.rare_sat_satpoints()?.ok_or_else(|| {
+      ServerError::NotFound(
+        "tracking rare sats requires index created with `--index-sats` flag".into(),
+      )
+    })?))
   }
 
   async fn home(
@@ -422,15 +377,8 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<PageHtml<HomeHtml>> {
     Ok(
-      HomeHtml::new(
-        index
-          .blocks(100)
-          .map_err(|err| ServerError::Internal(anyhow!("error getting blocks: {err}")))?,
-        index
-          .get_latest_inscriptions(8)
-          .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?,
-      )
-      .page(chain, index.has_sat_index().map_err(ServerError::Internal)?),
+      HomeHtml::new(index.blocks(100)?, index.get_latest_inscriptions(8)?)
+        .page(chain, index.has_sat_index()?),
     )
   }
 
@@ -446,34 +394,19 @@ impl Server {
     let (block, height) = match query {
       BlockQuery::Height(height) => {
         let block = index
-          .get_block_by_height(height)
-          .map_err(|err| {
-            ServerError::Internal(anyhow!(
-              "error serving request for block with height {height}: {err}"
-            ))
-          })?
-          .ok_or_else(|| ServerError::NotFound(format!("block at height {height} unknown")))?;
+          .get_block_by_height(height)?
+          .ok_or_not_found(|| format!("block {height}"))?;
 
         (block, height)
       }
       BlockQuery::Hash(hash) => {
         let info = index
-          .block_header_info(hash)
-          .map_err(|err| {
-            ServerError::Internal(anyhow!(
-              "error serving request for block with hash {hash}: {err}"
-            ))
-          })?
-          .ok_or_else(|| ServerError::NotFound(format!("block {hash} unknown")))?;
+          .block_header_info(hash)?
+          .ok_or_not_found(|| format!("block {hash}"))?;
 
         let block = index
-          .get_block_by_hash(hash)
-          .map_err(|err| {
-            ServerError::Internal(anyhow!(
-              "error serving request for block with hash {hash}: {err}"
-            ))
-          })?
-          .ok_or_else(|| ServerError::NotFound(format!("block {hash} unknown")))?;
+          .get_block_by_hash(hash)?
+          .ok_or_not_found(|| format!("block {hash}"))?;
 
         (block, info.height as u64)
       }
@@ -481,7 +414,7 @@ impl Server {
 
     Ok(
       BlockHtml::new(block, Height(height), Self::index_height(&index)?)
-        .page(chain, index.has_sat_index().map_err(ServerError::Internal)?),
+        .page(chain, index.has_sat_index()?),
     )
   }
 
@@ -491,28 +424,18 @@ impl Server {
     Path(txid): Path<Txid>,
   ) -> ServerResult<PageHtml<TransactionHtml>> {
     let inscription = index
-      .get_inscription_by_id(txid)
-      .map_err(|err| {
-        ServerError::Internal(anyhow!(
-          "failed to retrieve inscription from txid {txid} from index: {err}"
-        ))
-      })?
+      .get_inscription_by_id(txid)?
       .map(|(inscription, _satpoint)| inscription);
 
     Ok(
       TransactionHtml::new(
         index
-          .get_transaction(txid)
-          .map_err(|err| {
-            ServerError::Internal(anyhow!(
-              "error serving request for transaction {txid}: {err}"
-            ))
-          })?
-          .ok_or_else(|| ServerError::NotFound(format!("transaction {txid} unknown")))?,
+          .get_transaction(txid)?
+          .ok_or_not_found(|| format!("transaction {txid}"))?,
         inscription,
         chain,
       )
-      .page(chain, index.has_sat_index().map_err(ServerError::Internal)?),
+      .page(chain, index.has_sat_index()?),
     )
   }
 
@@ -557,15 +480,7 @@ impl Server {
     let query = query.trim();
 
     if HASH.is_match(query) {
-      if index
-        .block_header(query.parse().unwrap())
-        .map_err(|err| {
-          ServerError::Internal(anyhow!(
-            "failed to retrieve block {query} from index: {err}"
-          ))
-        })?
-        .is_some()
-      {
+      if index.block_header(query.parse().unwrap())?.is_some() {
         Ok(Redirect::to(&format!("/block/{query}")))
       } else {
         Ok(Redirect::to(&format!("/tx/{query}")))
@@ -587,7 +502,7 @@ impl Server {
     } else {
       &path
     })
-    .ok_or_else(|| ServerError::NotFound(format!("asset {path} unknown")))?;
+    .ok_or_not_found(|| format!("asset {path}"))?;
     let body = body::boxed(body::Full::from(content.data));
     let mime = mime_guess::from_path(path).first_or_octet_stream();
     Ok(
@@ -599,14 +514,7 @@ impl Server {
   }
 
   async fn block_count(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
-    Ok(
-      index
-        .block_count()
-        .map_err(|err| {
-          ServerError::Internal(anyhow!("failed to retrieve block count from index: {err}"))
-        })?
-        .to_string(),
-    )
+    Ok(index.block_count()?.to_string())
   }
 
   async fn input(
@@ -614,23 +522,25 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(path): Path<(u64, usize, usize)>,
   ) -> Result<PageHtml<InputHtml>, ServerError> {
-    let not_found =
-      || ServerError::NotFound(format!("input /{}/{}/{} unknown", path.0, path.1, path.2));
+    let not_found = || format!("input /{}/{}/{}", path.0, path.1, path.2);
 
     let block = index
-      .get_block_by_height(path.0)
-      .map_err(ServerError::Internal)?
-      .ok_or_else(not_found)?;
+      .get_block_by_height(path.0)?
+      .ok_or_not_found(not_found)?;
 
-    let transaction = block.txdata.into_iter().nth(path.1).ok_or_else(not_found)?;
+    let transaction = block
+      .txdata
+      .into_iter()
+      .nth(path.1)
+      .ok_or_not_found(not_found)?;
 
     let input = transaction
       .input
       .into_iter()
       .nth(path.2)
-      .ok_or_else(not_found)?;
+      .ok_or_not_found(not_found)?;
 
-    Ok(InputHtml { path, input }.page(chain, index.has_sat_index().map_err(ServerError::Internal)?))
+    Ok(InputHtml { path, input }.page(chain, index.has_sat_index()?))
   }
 
   async fn faq() -> Redirect {
@@ -646,21 +556,12 @@ impl Server {
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<Response> {
     let (inscription, _) = index
-      .get_inscription_by_id(inscription_id)
-      .map_err(|err| {
-        ServerError::Internal(anyhow!(
-          "failed to retrieve inscription with inscription id {inscription_id} from index: {err}"
-        ))
-      })?
-      .ok_or_else(|| {
-        ServerError::NotFound(format!("transaction {inscription_id} has no inscription"))
-      })?;
+      .get_inscription_by_id(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
     Ok(
       Self::content_response(inscription)
-        .ok_or_else(|| {
-          ServerError::NotFound(format!("inscription {inscription_id} has no content"))
-        })?
+        .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
         .into_response(),
     )
   }
@@ -689,15 +590,8 @@ impl Server {
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<Response> {
     let (inscription, _) = index
-      .get_inscription_by_id(inscription_id)
-      .map_err(|err| {
-        ServerError::Internal(anyhow!(
-          "failed to retrieve inscription with inscription id {inscription_id} from index: {err}"
-        ))
-      })?
-      .ok_or_else(|| {
-        ServerError::NotFound(format!("transaction {inscription_id} has no inscription"))
-      })?;
+      .get_inscription_by_id(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
     match inscription.content() {
       Some(Content::Image) => Ok(
@@ -712,9 +606,7 @@ impl Server {
       ),
       Some(Content::Iframe) => Ok(
         Self::content_response(inscription)
-          .ok_or_else(|| {
-            ServerError::NotFound(format!("inscription {inscription_id} has no content"))
-          })?
+          .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
           .into_response(),
       ),
       Some(Content::Text(text)) => Ok(PreviewTextHtml { text }.into_response()),
@@ -728,30 +620,22 @@ impl Server {
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<PageHtml<InscriptionHtml>> {
     let (inscription, satpoint) = index
-      .get_inscription_by_id(inscription_id)
-      .map_err(|err| {
-        ServerError::Internal(anyhow!(
-          "failed to retrieve inscription with inscription id {inscription_id} from index: {err}"
-        ))
-      })?
-      .ok_or_else(|| {
-        ServerError::NotFound(format!("transaction {inscription_id} has no inscription"))
-      })?;
+      .get_inscription_by_id(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
-    let genesis_height = index.get_genesis_height(inscription_id).map_err(|err| {
-        ServerError::Internal(anyhow!(
-          "failed to retrieve height for inscriptiom with inscription id {inscription_id} from index: {err}"
-        ))
-      })?;
+    let genesis_height = index.get_genesis_height(inscription_id)?;
+
+    let sat = index.get_sat_by_inscription_id(inscription_id)?;
 
     Ok(
       InscriptionHtml {
         genesis_height,
-        inscription_id,
         inscription,
+        inscription_id,
+        sat,
         satpoint,
       }
-      .page(chain, index.has_sat_index().map_err(ServerError::Internal)?),
+      .page(chain, index.has_sat_index()?),
     )
   }
 
@@ -761,11 +645,9 @@ impl Server {
   ) -> ServerResult<PageHtml<InscriptionsHtml>> {
     Ok(
       InscriptionsHtml {
-        inscriptions: index
-          .get_latest_inscriptions(100)
-          .map_err(|err| ServerError::Internal(anyhow!("error getting inscriptions: {err}")))?,
+        inscriptions: index.get_latest_inscriptions(100)?,
       }
-      .page(chain, index.has_sat_index().map_err(ServerError::Internal)?),
+      .page(chain, index.has_sat_index()?),
     )
   }
 }
@@ -849,18 +731,18 @@ mod tests {
       }
     }
 
-    fn get(&self, path: &str) -> reqwest::blocking::Response {
+    fn get(&self, path: impl AsRef<str>) -> reqwest::blocking::Response {
       if let Err(error) = self.index.update() {
         log::error!("{error}");
       }
-      reqwest::blocking::get(self.join_url(path)).unwrap()
+      reqwest::blocking::get(self.join_url(path.as_ref())).unwrap()
     }
 
     fn join_url(&self, url: &str) -> Url {
       self.url.join(url).unwrap()
     }
 
-    fn assert_response(&self, path: &str, status: StatusCode, expected_response: &str) {
+    fn assert_response(&self, path: impl AsRef<str>, status: StatusCode, expected_response: &str) {
       let response = self.get(path);
       assert_eq!(response.status(), status, "{}", response.text().unwrap());
       pretty_assert_eq!(response.text().unwrap(), expected_response);
@@ -872,7 +754,7 @@ mod tests {
       status: StatusCode,
       regex: impl AsRef<str>,
     ) {
-      let response = self.get(path.as_ref());
+      let response = self.get(path);
       assert_eq!(response.status(), status);
       assert_regex_match!(response.text().unwrap(), regex.as_ref());
     }
@@ -884,7 +766,7 @@ mod tests {
       content_security_policy: &str,
       regex: impl AsRef<str>,
     ) {
-      let response = self.get(path.as_ref());
+      let response = self.get(path);
       assert_eq!(response.status(), status);
       assert_eq!(
         response
@@ -1315,7 +1197,7 @@ mod tests {
     TestServer::new().assert_response(
       "/output/0000000000000000000000000000000000000000000000000000000000000000:0",
       StatusCode::NOT_FOUND,
-      "output 0000000000000000000000000000000000000000000000000000000000000000:0 unknown",
+      "output 0000000000000000000000000000000000000000000000000000000000000000:0 not found",
     );
   }
 
@@ -1373,7 +1255,7 @@ mod tests {
     TestServer::new().assert_response(
       "/block/467a86f0642b1d284376d13a98ef58310caa49502b0f9a560ee222e0a122fe16",
       StatusCode::NOT_FOUND,
-      "block 467a86f0642b1d284376d13a98ef58310caa49502b0f9a560ee222e0a122fe16 unknown",
+      "block 467a86f0642b1d284376d13a98ef58310caa49502b0f9a560ee222e0a122fe16 not found",
     );
   }
 
@@ -1582,7 +1464,7 @@ next.*",
     TestServer::new().assert_response(
       "/input/1/1/1",
       StatusCode::NOT_FOUND,
-      "input /1/1/1 unknown",
+      "input /1/1/1 not found",
     );
   }
 
@@ -1861,6 +1743,46 @@ next.*",
       StatusCode::OK,
       "default-src 'self'",
       fs::read_to_string("templates/preview-unknown.html").unwrap(),
+    );
+  }
+
+  #[test]
+  fn inscription_page_has_sat_when_sats_are_tracked() {
+    let server = TestServer::new_with_args(&["--index-sats"]);
+    server.mine_blocks(1);
+
+    let inscription_id = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witness: inscription("text/foo", "hello").to_witness(),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/inscription/{inscription_id}"),
+      StatusCode::OK,
+      r".*<dl>\s*<dt>sat</dt>\s*<dd><a href=/sat/5000000000>5000000000</a></dd>\s*<dt>content</dt>.*",
+    );
+  }
+
+  #[test]
+  fn inscription_page_does_not_have_sat_when_sats_are_not_tracked() {
+    let server = TestServer::new();
+    server.mine_blocks(1);
+
+    let inscription_id = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witness: inscription("text/foo", "hello").to_witness(),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/inscription/{inscription_id}"),
+      StatusCode::OK,
+      r".*<dl>\s*<dt>content</dt>.*",
     );
   }
 }

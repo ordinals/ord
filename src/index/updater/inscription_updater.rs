@@ -17,6 +17,7 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   id_to_height: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, u64>,
   id_to_satpoint: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, &'tx SatPointArray>,
   index: &'a Index,
+  inscription_id_to_sat: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, u64>,
   lost_sats: u64,
   next_number: u64,
   number_to_id: &'a mut Table<'db, 'tx, u64, &'tx InscriptionIdArray>,
@@ -32,6 +33,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     id_to_height: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, u64>,
     id_to_satpoint: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, &'tx SatPointArray>,
     index: &'a Index,
+    inscription_id_to_sat: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, u64>,
     lost_sats: u64,
     number_to_id: &'a mut Table<'db, 'tx, u64, &'tx InscriptionIdArray>,
     outpoint_to_value: &'a mut Table<'db, 'tx, &'tx OutPointArray, u64>,
@@ -51,6 +53,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       id_to_height,
       id_to_satpoint,
       index,
+      inscription_id_to_sat,
       lost_sats,
       next_number,
       number_to_id,
@@ -209,9 +212,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           for (start, end) in input_sat_ranges {
             let size = end - start;
             if offset + size > flotsam.offset {
-              self
-                .sat_to_inscription_id
-                .insert(&(start + flotsam.offset - offset), &inscription_id)?;
+              let sat = start + flotsam.offset - offset;
+              self.sat_to_inscription_id.insert(&sat, &inscription_id)?;
+              self.inscription_id_to_sat.insert(&inscription_id, &sat)?;
               break;
             }
             offset += size;
