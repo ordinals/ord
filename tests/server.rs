@@ -59,8 +59,10 @@ fn inscription_page() {
     format!(
       ".*<meta property=og:image content='/content/{reveal_tx}'>.*
 <h1>Inscription {reveal_tx}</h1>
-.*<a href=/content/{reveal_tx}><iframe .* src=/preview/{reveal_tx}></iframe></a>.*
+.*<a href=/preview/{reveal_tx}><iframe .* src=/preview/{reveal_tx}></iframe></a>.*
 <dl>
+  <dt>content</dt>
+  <dd><a href=/content/{reveal_tx}>link</a></dd>
   <dt>content size</dt>
   <dd>10 bytes</dd>
   <dt>content type</dt>

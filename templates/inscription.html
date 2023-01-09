@@ -2,6 +2,8 @@
 <div class=inscription>{{Iframe::main(self.inscription_id)}}</div>
 <dl>
 %% if let Some(content_size) = self.inscription.content_size() {
+  <dt>content</dt>
+  <dd><a href=/content/{{self.inscription_id}}>link</a></dd>
   <dt>content size</dt>
   <dd>{{ content_size }} bytes</dd>
 %% }
