@@ -149,10 +149,6 @@ impl Options {
 
     let wallet_info = client.get_wallet_info()?;
 
-    if !(wallet_info.wallet_name == "ord" || wallet_info.wallet_name.starts_with("ord-")) {
-      bail!("wallet commands may only be used on mainnet with a wallet named `ord` or whose name starts with `ord-`");
-    }
-
     const MIN_VERSION: usize = 240000;
 
     let bitcoin_version = client.version()?;
@@ -165,6 +161,11 @@ impl Options {
     }
 
     if !create {
+
+      if !(wallet_info.wallet_name == "ord" || wallet_info.wallet_name.starts_with("ord-")) {
+        bail!("wallet commands may only be used on mainnet with a wallet named `ord` or whose name starts with `ord-`");
+      }
+
       let descriptors = client.list_descriptors(None)?.descriptors;
 
       let tr = descriptors

@@ -9,7 +9,7 @@ pub(crate) struct Receive {
 impl Receive {
   pub(crate) fn run(self, options: Options) -> Result {
     let address = options
-      .bitcoin_rpc_client_for_wallet_command("ord wallet receive")?
+      .bitcoin_rpc_client_for_wallet_command(false)?
       .get_new_address(None, None)?;
 
     if self.cardinal {

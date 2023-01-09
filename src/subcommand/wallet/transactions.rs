@@ -9,7 +9,7 @@ pub(crate) struct Transactions {
 impl Transactions {
   pub(crate) fn run(self, options: Options) -> Result {
     for tx in options
-      .bitcoin_rpc_client_for_wallet_command("ord wallet transactions")?
+      .bitcoin_rpc_client_for_wallet_command(false)?
       .list_transactions(
         None,
         Some(self.limit.unwrap_or(u16::MAX).into()),
