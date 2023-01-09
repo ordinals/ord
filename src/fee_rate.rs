@@ -61,5 +61,9 @@ mod tests {
       "1.1".parse::<FeeRate>().unwrap().fee(1),
       Amount::from_sat(2)
     );
+    assert_eq!(
+      "1.0".parse::<FeeRate>().unwrap().fee(1234),
+      Amount::from_sat(1234)
+    );
   }
 }
