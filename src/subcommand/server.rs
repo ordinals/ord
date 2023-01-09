@@ -627,11 +627,21 @@ impl Server {
 
     let sat = index.get_sat_by_inscription_id(inscription_id)?;
 
+    let output = index
+      .get_transaction(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id} genesis transaction"))?
+      .output
+      .into_iter()
+      .next()
+      .ok_or_not_found(|| format!("inscription {inscription_id} genesis transaction output"))?;
+
     Ok(
       InscriptionHtml {
+        chain,
         genesis_height,
         inscription,
         inscription_id,
+        output,
         sat,
         satpoint,
       }
