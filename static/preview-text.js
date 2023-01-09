@@ -1,8 +1,30 @@
-let text = document.getElementsByTagName('pre')[0].textContent;
+let pre = document.getElementsByTagName('pre')[0];
 
-let canvas = document.createElement('canvas');
-document.body.appendChild(canvas);
+// TODO:
+// - add margins
+// - make it work with noscript
+// - could use a fixed font with fixed dimensions, and make it pure css
+// - fix overflow cases
 
-var ctx = canvas.getContext("2d");
+let rect = pre.getBoundingClientRect();
 
-ctx.fillText(text, 0, 200);
+console.log('pre', rect);
+console.log('body', document.body.clientWidth, document.body.clientHeight);
+
+let last = null;
+
+if (false) {
+  pre.style.opacity = 1;
+} else {
+  function resize() {
+    let size = Math.min(document.body.clientWidth / rect.width, document.body.clientHeight / rect.height);
+    if(size != last) {
+      pre.style.fontSize = `${size}em`;
+      pre.style.opacity = 1;
+      last = size;
+    }
+  }
+
+  addEventListener("resize", resize);
+  resize();
+}

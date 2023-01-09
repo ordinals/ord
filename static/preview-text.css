@@ -1,16 +1,19 @@
 html {
   height: 100%;
+  background-color: #131516;
+  color: white;
 }
 
 body {
-  margin: 0;
-}
-
-canvas {
   height: 100%;
-  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 pre {
-  color: white;
+  margin: 0;
+  flex-shrink: 0;
+  opacity: 0;
+  display: inline-block;
 }
