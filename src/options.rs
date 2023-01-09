@@ -161,7 +161,6 @@ impl Options {
     }
 
     if !create {
-
       if !(wallet_info.wallet_name == "ord" || wallet_info.wallet_name.starts_with("ord-")) {
         bail!("wallet commands may only be used on mainnet with a wallet named `ord` or whose name starts with `ord-`");
       }
@@ -179,9 +178,7 @@ impl Options {
         .count();
 
       if tr != 2 || descriptors.len() != 2 + rawtr {
-        bail!(
-          "this does not appear to be an ord wallet, please create one using `ord wallet create`"
-        );
+        bail!("this does not appear to be an ord wallet, create one with `ord wallet create`");
       }
     }
 

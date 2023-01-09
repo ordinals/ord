@@ -4,13 +4,11 @@ mod create;
 
 #[test]
 fn sats() {
-  let rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Regtest)
-    .build();
+  let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
   let second_coinbase = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  CommandBuilder::new("--chain regtest --index-sats wallet sats")
+  CommandBuilder::new("--index-sats wallet sats")
     .rpc_server(&rpc_server)
     .expected_stdout(format!(
       "{}\t{}\t0\tuncommon\n",
@@ -22,13 +20,11 @@ fn sats() {
 
 #[test]
 fn sats_from_tsv_success() {
-  let rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Regtest)
-    .build();
+  let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
   let second_coinbase = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  CommandBuilder::new("--chain regtest --index-sats wallet sats --tsv foo.tsv")
+  CommandBuilder::new("--index-sats wallet sats --tsv foo.tsv")
     .write("foo.tsv", "nvtcsezkbtg")
     .rpc_server(&rpc_server)
     .expected_stdout(format!(
@@ -40,12 +36,10 @@ fn sats_from_tsv_success() {
 
 #[test]
 fn sats_from_tsv_parse_error() {
-  let rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Regtest)
-    .build();
+  let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  CommandBuilder::new("--chain regtest wallet sats --tsv foo.tsv")
+  CommandBuilder::new("wallet sats --tsv foo.tsv")
     .write("foo.tsv", "===")
     .rpc_server(&rpc_server)
     .expected_exit_code(1)
@@ -57,11 +51,9 @@ fn sats_from_tsv_parse_error() {
 
 #[test]
 fn sats_from_tsv_file_not_found() {
-  let rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Regtest)
-    .build();
+  let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
-  CommandBuilder::new("--chain regtest wallet sats --tsv foo.tsv")
+  CommandBuilder::new("wallet sats --tsv foo.tsv")
     .rpc_server(&rpc_server)
     .expected_exit_code(1)
     .stderr_regex("error: I/O error reading `.*`\nbecause: .*\n")
@@ -186,7 +178,7 @@ fn send_on_mainnnet_refuses_to_work_with_wallet_name_foo() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   CommandBuilder::new(
-    format!("wallet send bc1qzjeg3h996kw24zrg69nge97fw8jc4v7v7yznftzk06j3429t52vse9tkp9 {txid}:0:0")
+    format!("wallet send ord1qcqgs2pps4u4yedfyl5pysdjjncs8et5u8gcumw {txid}:0:0")
   )
   .rpc_server(&rpc_server)
   .expected_stderr("error: wallet commands may only be used on mainnet with a wallet named `ord` or whose name starts with `ord-`\n")
@@ -737,18 +729,16 @@ fn inscribe_with_optional_satpoint_arg() {
 
 #[test]
 fn transactions() {
-  let rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Regtest)
-    .build();
+  let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  CommandBuilder::new("--chain regtest wallet transactions")
+  CommandBuilder::new("wallet transactions")
     .rpc_server(&rpc_server)
     .run();
 
   rpc_server.mine_blocks(1);
 
-  CommandBuilder::new("--chain regtest wallet transactions")
+  CommandBuilder::new("wallet transactions")
     .rpc_server(&rpc_server)
     .stdout_regex("[[:xdigit:]]{64}\t1\n")
     .run();
@@ -756,30 +746,28 @@ fn transactions() {
 
 #[test]
 fn transactions_with_limit() {
-  let rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Regtest)
-    .build();
+  let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  CommandBuilder::new("--chain regtest wallet transactions")
+  CommandBuilder::new("wallet transactions")
     .rpc_server(&rpc_server)
     .run();
 
   rpc_server.mine_blocks(1);
 
-  CommandBuilder::new("--chain regtest wallet transactions")
+  CommandBuilder::new("wallet transactions")
     .rpc_server(&rpc_server)
     .stdout_regex("[[:xdigit:]]{64}\t1\n")
     .run();
 
   rpc_server.mine_blocks(1);
 
-  CommandBuilder::new("--chain regtest wallet transactions")
+  CommandBuilder::new("wallet transactions")
     .rpc_server(&rpc_server)
     .stdout_regex("[[:xdigit:]]{64}\t1\n[[:xdigit:]]{64}\t2\n")
     .run();
 
-  CommandBuilder::new("--chain regtest wallet transactions --limit 1")
+  CommandBuilder::new("wallet transactions --limit 1")
     .rpc_server(&rpc_server)
     .stdout_regex("[[:xdigit:]]{64}\t1\n")
     .run();

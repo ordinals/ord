@@ -2,13 +2,11 @@ use super::*;
 
 #[test]
 fn create() {
-  let rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Regtest)
-    .build();
+  let rpc_server = test_bitcoincore_rpc::spawn();
 
   assert!(!rpc_server.wallets().contains("ord"));
 
-  CommandBuilder::new("--chain regtest wallet create")
+  CommandBuilder::new("wallet create")
     .rpc_server(&rpc_server)
     .run();
 
@@ -17,9 +15,7 @@ fn create() {
 
 #[test]
 fn wallet_creates_correct_mainnet_taproot_descriptor() {
-  let rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Bitcoin)
-    .build();
+  let rpc_server = test_bitcoincore_rpc::spawn();
 
   CommandBuilder::new("wallet create")
     .rpc_server(&rpc_server)
@@ -37,7 +33,7 @@ fn wallet_creates_correct_mainnet_taproot_descriptor() {
 }
 
 #[test]
-fn wallet_creates_correct_taproot_descriptor() {
+fn wallet_creates_correct_test_network_taproot_descriptor() {
   let rpc_server = test_bitcoincore_rpc::builder()
     .network(Network::Signet)
     .build();
@@ -59,40 +55,32 @@ fn wallet_creates_correct_taproot_descriptor() {
 
 #[test]
 fn detect_wrong_descriptors() {
-  let rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Regtest)
-    .build();
+  let rpc_server = test_bitcoincore_rpc::spawn();
 
-  CommandBuilder::new("--chain regtest wallet create")
+  CommandBuilder::new("wallet create")
     .rpc_server(&rpc_server)
     .run();
 
   rpc_server.import_descriptor("wpkh([aslfjk])#a23ad2l".to_string());
 
-  CommandBuilder::new("--chain regtest wallet transactions")
+  CommandBuilder::new("wallet transactions")
     .rpc_server(&rpc_server)
     .stderr_regex(
-      "error: this does not appear to be an ord wallet, please create one using `ord wallet create`\n",
+      "error: this does not appear to be an ord wallet, create one with `ord wallet create`\n",
     )
     .expected_exit_code(1)
     .run();
 }
 
 #[test]
-fn consecutive_create_throws_error() {
-  let rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Bitcoin)
-    .build();
+fn create_wallet_with_wrong_name() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
 
-  CommandBuilder::new("wallet create")
+  CommandBuilder::new("wallet create --name nft-wallet")
     .rpc_server(&rpc_server)
-    .run();
-
-  CommandBuilder::new("wallet create")
-    .rpc_server(&rpc_server)
-    .expected_exit_code(1)
     .expected_stderr(
-      "error: JSON-RPC error: RPC error response: RpcError { code: -4, message: \"wallet already exists\", data: None }\n"
+      "error: `ord wallet create` may only be used with a wallet named `ord` or whose name starts with `ord-`\n",
     )
+    .expected_exit_code(1)
     .run();
 }

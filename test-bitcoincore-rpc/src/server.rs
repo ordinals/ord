@@ -225,17 +225,10 @@ impl Api for Server {
     _passphrase: Option<String>,
     _avoid_reuse: Option<bool>,
   ) -> Result<LoadWalletResult, jsonrpc_core::Error> {
-    if self.state().wallets.insert(name.clone()) {
-      return Ok(LoadWalletResult {
-        name,
-        warning: None,
-      });
-    }
-
-    Err(jsonrpc_core::Error {
-      code: jsonrpc_core::ErrorCode::ServerError(-4),
-      message: "wallet already exists".to_string(),
-      data: None,
+    self.state().wallets.insert(name.clone());
+    Ok(LoadWalletResult {
+      name,
+      warning: None,
     })
   }
 
