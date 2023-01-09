@@ -17,6 +17,7 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   id_to_height: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, u64>,
   id_to_satpoint: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, &'tx SatPointArray>,
   index: &'a Index,
+  inscription_id_to_sat: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, u64>,
   lost_sats: u64,
   next_number: u64,
   number_to_id: &'a mut Table<'db, 'tx, u64, &'tx InscriptionIdArray>,
@@ -24,6 +25,7 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   reward: u64,
   sat_to_inscription_id: &'a mut Table<'db, 'tx, u64, &'tx InscriptionIdArray>,
   satpoint_to_id: &'a mut Table<'db, 'tx, &'tx SatPointArray, &'tx InscriptionIdArray>,
+  value_cache: &'a mut HashMap<OutPoint, u64>,
 }
 
 impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
@@ -32,11 +34,13 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     id_to_height: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, u64>,
     id_to_satpoint: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, &'tx SatPointArray>,
     index: &'a Index,
+    inscription_id_to_sat: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, u64>,
     lost_sats: u64,
     number_to_id: &'a mut Table<'db, 'tx, u64, &'tx InscriptionIdArray>,
     outpoint_to_value: &'a mut Table<'db, 'tx, &'tx OutPointArray, u64>,
     sat_to_inscription_id: &'a mut Table<'db, 'tx, u64, &'tx InscriptionIdArray>,
     satpoint_to_id: &'a mut Table<'db, 'tx, &'tx SatPointArray, &'tx InscriptionIdArray>,
+    value_cache: &'a mut HashMap<OutPoint, u64>,
   ) -> Result<Self> {
     let next_number = number_to_id
       .iter()?
@@ -51,6 +55,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       id_to_height,
       id_to_satpoint,
       index,
+      inscription_id_to_sat,
       lost_sats,
       next_number,
       number_to_id,
@@ -58,6 +63,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       reward: Height(height).subsidy(),
       sat_to_inscription_id,
       satpoint_to_id,
+      value_cache,
     })
   }
 
@@ -91,13 +97,12 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             origin: Origin::Old(old_satpoint),
           });
         }
-        self
-          .outpoint_to_value
-          .remove(&encode_outpoint(tx_in.previous_output))?;
 
-        input_value += if let Some(value) = self
+        input_value += if let Some(value) = self.value_cache.remove(&tx_in.previous_output) {
+          value
+        } else if let Some(value) = self
           .outpoint_to_value
-          .get(&encode_outpoint(tx_in.previous_output))?
+          .remove(&encode_outpoint(tx_in.previous_output))?
         {
           value.value()
         } else {
@@ -112,7 +117,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             })?
             .output[usize::try_from(tx_in.previous_output.vout).unwrap()]
           .value
-        }
+        };
       }
     }
 
@@ -154,16 +159,14 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       }
 
       output_value = end;
-    }
 
-    for (vout, tx_out) in tx.output.iter().enumerate() {
-      self.outpoint_to_value.insert(
-        &encode_outpoint(OutPoint {
+      self.value_cache.insert(
+        OutPoint {
           vout: vout.try_into().unwrap(),
           txid,
-        }),
-        &tx_out.value,
-      )?;
+        },
+        tx_out.value,
+      );
     }
 
     if is_coinbase {
@@ -209,9 +212,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           for (start, end) in input_sat_ranges {
             let size = end - start;
             if offset + size > flotsam.offset {
-              self
-                .sat_to_inscription_id
-                .insert(&(start + flotsam.offset - offset), &inscription_id)?;
+              let sat = start + flotsam.offset - offset;
+              self.sat_to_inscription_id.insert(&sat, &inscription_id)?;
+              self.inscription_id_to_sat.insert(&inscription_id, &sat)?;
               break;
             }
             offset += size;

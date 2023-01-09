@@ -107,6 +107,15 @@ impl Options {
     Ok(self.chain().join_with_data_dir(&base))
   }
 
+  fn format_bitcoin_core_version(version: usize) -> String {
+    format!(
+      "{}.{}.{}",
+      version / 10000,
+      version % 10000 / 100,
+      version % 100
+    )
+  }
+
   pub(crate) fn bitcoin_rpc_client(&self) -> Result<Client> {
     let cookie_file = self.cookie_file()?;
     let rpc_url = self.rpc_url();
@@ -135,13 +144,42 @@ impl Options {
     Ok(client)
   }
 
-  pub(crate) fn bitcoin_rpc_client_for_wallet_command(&self, command: &str) -> Result<Client> {
+  pub(crate) fn bitcoin_rpc_client_for_wallet_command(&self, create: bool) -> Result<Client> {
     let client = self.bitcoin_rpc_client()?;
 
-    let wallet_info = client.get_wallet_info()?;
+    const MIN_VERSION: usize = 240000;
 
-    if !(wallet_info.wallet_name == "ord" || wallet_info.wallet_name.starts_with("ord-")) {
-      bail!("`{command}` may only be used on mainnet with a wallet named `ord` or whose name starts with `ord-`");
+    let bitcoin_version = client.version()?;
+    if bitcoin_version < MIN_VERSION {
+      bail!(
+        "Bitcoin Core {} or newer required, current version is {}",
+        Self::format_bitcoin_core_version(MIN_VERSION),
+        Self::format_bitcoin_core_version(bitcoin_version),
+      );
+    }
+
+    if !create {
+      let wallet_info = client.get_wallet_info()?;
+
+      if !(wallet_info.wallet_name == "ord" || wallet_info.wallet_name.starts_with("ord-")) {
+        bail!("wallet commands may only be used on mainnet with a wallet named `ord` or whose name starts with `ord-`");
+      }
+
+      let descriptors = client.list_descriptors(None)?.descriptors;
+
+      let tr = descriptors
+        .iter()
+        .filter(|descriptor| descriptor.desc.starts_with("tr("))
+        .count();
+
+      let rawtr = descriptors
+        .iter()
+        .filter(|descriptor| descriptor.desc.starts_with("rawtr("))
+        .count();
+
+      if tr != 2 || descriptors.len() != 2 + rawtr {
+        bail!("this does not appear to be an ord wallet, create one with `ord wallet create`");
+      }
     }
 
     Ok(client)

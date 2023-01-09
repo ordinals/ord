@@ -12,7 +12,8 @@ use {
     net::TcpListener,
     path::Path,
     process::{Child, Command, Stdio},
-    str, thread,
+    str::{self, FromStr},
+    thread,
     time::Duration,
   },
   tempfile::TempDir,
@@ -62,6 +63,12 @@ fn create_inscription(rpc_server: &test_bitcoincore_rpc::Handle, filename: &str)
   rpc_server.mine_blocks(1);
 
   inscription_id
+}
+
+fn create_wallet(rpc_server: &test_bitcoincore_rpc::Handle) {
+  CommandBuilder::new(format!("--chain {} wallet create", rpc_server.network()))
+    .rpc_server(rpc_server)
+    .run();
 }
 
 mod command_builder;

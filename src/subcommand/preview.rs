@@ -52,7 +52,10 @@ impl Preview {
 
     let rpc_client = options.bitcoin_rpc_client()?;
 
-    super::wallet::create::run(options.clone())?;
+    super::wallet::create::Create::run(
+      &super::wallet::create::Create { name: "ord".into() },
+      options.clone(),
+    )?;
 
     let address = rpc_client.get_new_address(None, None)?;
 
