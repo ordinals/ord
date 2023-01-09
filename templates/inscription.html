@@ -1,6 +1,10 @@
 <h1>Inscription {{ self.inscription_id }}</h1>
 <div class=inscription>{{Iframe::main(self.inscription_id)}}</div>
 <dl>
+%% if let Some(sat) = self.sat {
+  <dt>sat</dt>
+  <dd><a href=/sat/{{sat}}>{{sat}}</a></dd>
+%% }
 %% if let Some(content_size) = self.inscription.content_size() {
   <dt>content</dt>
   <dd><a href=/content/{{self.inscription_id}}>link</a></dd>

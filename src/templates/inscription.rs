@@ -3,8 +3,9 @@ use super::*;
 #[derive(Boilerplate)]
 pub(crate) struct InscriptionHtml {
   pub(crate) genesis_height: u64,
-  pub(crate) inscription_id: InscriptionId,
   pub(crate) inscription: Inscription,
+  pub(crate) inscription_id: InscriptionId,
+  pub(crate) sat: Option<Sat>,
   pub(crate) satpoint: SatPoint,
 }
 
@@ -23,14 +24,13 @@ mod tests {
   use super::*;
 
   #[test]
-  fn html() {
+  fn without_sat() {
     assert_regex_match!(
       InscriptionHtml {
         genesis_height: 0,
-        inscription_id: "1111111111111111111111111111111111111111111111111111111111111111"
-          .parse()
-          .unwrap(),
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
+        inscription_id: "1111111111111111111111111111111111111111111111111111111111111111".parse().unwrap(),
+        sat: None,
         satpoint: satpoint(1, 0),
       },
       "
@@ -53,6 +53,32 @@ mod tests {
           <dd><a class=monospace href=/output/1{64}:1>1{64}:1</a></dd>
           <dt>offset</dt>
           <dd>0</dd>
+        </dl>
+      "
+      .unindent()
+    );
+  }
+
+  #[test]
+  fn with_sat() {
+    assert_regex_match!(
+      InscriptionHtml {
+        genesis_height: 0,
+        inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
+        inscription_id: "1111111111111111111111111111111111111111111111111111111111111111"
+          .parse()
+          .unwrap(),
+        sat: Some(Sat(1)),
+        satpoint: satpoint(1, 0),
+      },
+      "
+        <h1>Inscription 1{64}</h1>
+        .*
+        <dl>
+          <dt>sat</dt>
+          <dd><a href=/sat/1>1</a></dd>
+          <dt>content</dt>
+          .*
         </dl>
       "
       .unindent()
