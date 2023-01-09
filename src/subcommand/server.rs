@@ -625,14 +625,14 @@ impl Server {
 
     let genesis_height = index.get_genesis_height(inscription_id)?;
 
-    // let sat = todo!();
+    let sat = index.get_sat_by_inscription_id(inscription_id)?;
 
     Ok(
       InscriptionHtml {
         genesis_height,
         inscription,
         inscription_id,
-        sat: None,
+        sat,
         satpoint,
       }
       .page(chain, index.has_sat_index()?),
