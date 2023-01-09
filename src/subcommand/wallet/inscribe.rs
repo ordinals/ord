@@ -28,7 +28,7 @@ pub(crate) struct Inscribe {
 
 impl Inscribe {
   pub(crate) fn run(self, options: Options) -> Result {
-    let client = options.bitcoin_rpc_client_mainnet_forbidden("ord wallet inscribe")?;
+    let client = options.bitcoin_rpc_client_for_wallet_command("ord wallet inscribe")?;
 
     let inscription = Inscription::from_file(options.chain(), &self.file)?;
 
