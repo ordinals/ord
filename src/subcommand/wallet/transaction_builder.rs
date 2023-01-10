@@ -84,6 +84,7 @@ type Result<T> = std::result::Result<T, Error>;
 impl TransactionBuilder {
   const MAX_POSTAGE: Amount = Amount::from_sat(2 * 10_000);
   const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
+  const SCHNORR_SIGNATURE_SIZE: usize = 64;
 
   pub(crate) fn build_transaction(
     outgoing: SatPoint,
@@ -191,7 +192,7 @@ impl TransactionBuilder {
   }
 
   fn add_postage(mut self) -> Result<Self> {
-    let estimated_fee = self.estimate_fee();
+    let estimated_fee = self.fee_rate.fee(self.estimate_vsize());
     let dust_limit = self.outputs.last().unwrap().0.script_pubkey().dust_value();
 
     if self.outputs.last().unwrap().1 < dust_limit + estimated_fee {
@@ -235,7 +236,7 @@ impl TransactionBuilder {
   fn deduct_fee(mut self) -> Self {
     let sat_offset = self.calculate_sat_offset();
 
-    let fee = self.estimate_fee();
+    let fee = self.fee_rate.fee(self.estimate_vsize());
 
     let total_output_amount = self
       .outputs
@@ -258,12 +259,10 @@ impl TransactionBuilder {
     self
   }
 
-  /// Estimate the size in virtual bytes of the transaction being built. Since
-  /// we don't know the size of the input script sigs and witnesses, assume
-  /// they are P2PKH, so that we get a worst case estimate, since it's probably
-  /// better to pay too overestimate and pay too much in fees than to
-  /// underestimate and never get the transaction confirmed, or, even worse, be
-  /// under the minimum relay fee and never even get relayed.
+  /// Estimate the size in virtual bytes of the transaction being built. We
+  /// know that the inputs are all taproot key path spends, since we create a
+  /// Bitcoin Core wallet with that specific property. The witness size is then
+  /// just the 64 byte Schnorr signature.
   fn estimate_vsize(&self) -> usize {
     Transaction {
       version: 1,
@@ -275,7 +274,7 @@ impl TransactionBuilder {
           previous_output: OutPoint::null(),
           script_sig: Script::new(),
           sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-          witness: Witness::from_vec(vec![vec![0; 64]]),
+          witness: Witness::from_vec(vec![vec![0; TransactionBuilder::SCHNORR_SIGNATURE_SIZE]]),
         })
         .collect(),
       output: self
@@ -288,10 +287,6 @@ impl TransactionBuilder {
         .collect(),
     }
     .vsize()
-  }
-
-  fn estimate_fee(&self) -> Amount {
-    self.fee_rate.fee(self.estimate_vsize())
   }
 
   fn build(self) -> Result<Transaction> {
@@ -423,11 +418,14 @@ impl TransactionBuilder {
       fee_with_dummy_witness -= Amount::from_sat(output.value);
     }
 
-    let fee_without_dummy_witness = self.fee_rate.fee(transaction.vsize());
+    let fee_without_dummy_witness = self.fee_rate.fee(
+      transaction.vsize()
+        + transaction.input.len() * ((TransactionBuilder::SCHNORR_SIGNATURE_SIZE / 4) + 1),
+    );
 
     assert!(
-      fee_with_dummy_witness >= fee_without_dummy_witness,
-      "invariant: fee paid is greater than fee without witness",
+      fee_with_dummy_witness == fee_without_dummy_witness,
+      "invariant: fee estimation is correct",
     );
 
     for tx_out in &transaction.output {
@@ -541,7 +539,7 @@ mod tests {
       outputs: vec![
         (recipient(), Amount::from_sat(5_000)),
         (change(0), Amount::from_sat(5_000)),
-        (change(1), Amount::from_sat(1_360)),
+        (change(1), Amount::from_sat(1_723)),
       ],
     };
 
@@ -554,7 +552,7 @@ mod tests {
         output: vec![
           tx_out(5_000, recipient()),
           tx_out(5_000, change(0)),
-          tx_out(1_360, change(1))
+          tx_out(1_723, change(1))
         ],
       })
     )
@@ -966,25 +964,25 @@ mod tests {
     .unwrap();
   }
 
-  //  #[test]
-  //  #[should_panic(expected = "invariant: total fee is equal to rounded total fee")]
-  //  fn invariant_fee_is_at_least_target_fee_rate() {
-  //    let utxos = vec![(outpoint(1), Amount::from_sat(10_000))];
-  //
-  //    TransactionBuilder::new(
-  //      satpoint(1, 0),
-  //      BTreeMap::new(),
-  //      utxos.into_iter().collect(),
-  //      recipient(),
-  //      vec![change(0), change(1)],
-  //      FeeRate::try_from(1.0).unwrap(),
-  //    )
-  //    .select_outgoing()
-  //    .unwrap()
-  //    .strip_excess_postage()
-  //    .build()
-  //    .unwrap();
-  //  }
+  #[test]
+  #[should_panic(expected = "invariant: fee estimation is correct")]
+  fn invariant_fee_is_at_least_target_fee_rate() {
+    let utxos = vec![(outpoint(1), Amount::from_sat(10_000))];
+
+    TransactionBuilder::new(
+      satpoint(1, 0),
+      BTreeMap::new(),
+      utxos.into_iter().collect(),
+      recipient(),
+      vec![change(0), change(1)],
+      FeeRate::try_from(1.0).unwrap(),
+    )
+    .select_outgoing()
+    .unwrap()
+    .strip_excess_postage()
+    .build()
+    .unwrap();
+  }
 
   #[test]
   #[should_panic(expected = "invariant: recipient address appears exactly once in outputs")]
@@ -1143,10 +1141,9 @@ mod tests {
     )
     .unwrap();
 
-    // + 17 because the dummy witness contains a 64byte witness, which is
-    // discounted by a factor of 4 -> 16bytes and the an extra byte for number
-    // of witness items?
-    let calculated_fee = fee_rate.fee(transaction.vsize() + 17).to_sat();
+    let calculated_fee = fee_rate
+      .fee(transaction.vsize() + TransactionBuilder::SCHNORR_SIGNATURE_SIZE / 4 + 1)
+      .to_sat();
 
     pretty_assert_eq!(
       transaction,
