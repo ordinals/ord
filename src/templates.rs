@@ -28,17 +28,17 @@ mod transaction;
 pub(crate) struct PageHtml<T: PageContent> {
   chain: Chain,
   content: T,
-  has_satoshi_index: bool,
+  has_sat_index: bool,
 }
 
 impl<T> PageHtml<T>
 where
   T: PageContent,
 {
-  pub(crate) fn new(content: T, chain: Chain, has_satoshi_index: bool) -> Self {
+  pub(crate) fn new(content: T, chain: Chain, has_sat_index: bool) -> Self {
     Self {
       content,
-      has_satoshi_index,
+      has_sat_index,
       chain,
     }
   }
@@ -47,11 +47,11 @@ where
 pub(crate) trait PageContent: Display + 'static {
   fn title(&self) -> String;
 
-  fn page(self, chain: Chain, has_satoshi_index: bool) -> PageHtml<Self>
+  fn page(self, chain: Chain, has_sat_index: bool) -> PageHtml<Self>
   where
     Self: Sized,
   {
-    PageHtml::new(self, chain, has_satoshi_index)
+    PageHtml::new(self, chain, has_sat_index)
   }
 
   fn preview_image_url(&self) -> Option<Trusted<String>> {
@@ -114,7 +114,7 @@ mod tests {
   }
 
   #[test]
-  fn page_no_satoshi_index() {
+  fn page_no_sat_index() {
     struct Foo;
 
     impl Display for Foo {

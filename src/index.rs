@@ -283,7 +283,7 @@ impl Index {
     }
   }
 
-  fn require_satoshi_index(&self, feature: &str) -> Result {
+  fn require_sat_index(&self, feature: &str) -> Result {
     if !self.has_sat_index()? {
       bail!("{feature} requires index created with `--index-sats` flag")
     }
@@ -572,7 +572,7 @@ impl Index {
   }
 
   pub(crate) fn find(&self, sat: u64) -> Result<Option<SatPoint>> {
-    self.require_satoshi_index("find")?;
+    self.require_sat_index("find")?;
 
     let rtx = self.begin_read()?;
 
@@ -612,7 +612,7 @@ impl Index {
   }
 
   pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<List>> {
-    self.require_satoshi_index("list")?;
+    self.require_sat_index("list")?;
 
     let outpoint_encoded = encode_outpoint(outpoint);
 
@@ -1237,7 +1237,7 @@ mod tests {
   }
 
   #[test]
-  fn find_first_satoshi_spent_in_second_block() {
+  fn find_first_sat_spent_in_second_block() {
     let context = Context::builder().arg("--index-sats").build();
     context.mine_blocks(1);
     let spend_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
