@@ -39,7 +39,7 @@ fn run() {
       .unwrap()
       .text()
       .unwrap()
-      .contains("TEST_INSCRIPTION")
+      .contains("<a href=/inscription/")
   );
 
   child.kill().unwrap();

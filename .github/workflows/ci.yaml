@@ -96,4 +96,6 @@ jobs:
     - uses: Swatinem/rust-cache@v2
 
     - name: Test
-      run: cargo test --all
+      run: |
+        cargo test --all
+        cargo test --all -- --ignored
