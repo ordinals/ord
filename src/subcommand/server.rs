@@ -1792,7 +1792,7 @@ next.*",
     server.assert_response_regex(
       format!("/inscription/{inscription_id}"),
       StatusCode::OK,
-      r".*<dt>value</dt>\s*<dd>5000000000</dd>\s*<dt>content</dt>.*",
+      r".*<dt>output value</dt>\s*<dd>5000000000</dd>\s*<dt>content</dt>.*",
     );
   }
 }

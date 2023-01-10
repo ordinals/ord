@@ -43,7 +43,7 @@ mod tests {
         <dl>
           <dt>address</dt>
           <dd class=monospace>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</dd>
-          <dt>value</dt>
+          <dt>output value</dt>
           <dd>1</dd>
           <dt>content</dt>
           <dd><a href=/content/1{64}>link</a></dd>
