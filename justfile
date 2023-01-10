@@ -28,7 +28,7 @@ deploy-mainnet: (deploy "master" "main" "ordinals.com")
 
 deploy-signet branch="master": (deploy branch "signet" "signet.ordinals.com")
 
-deploy-testnet branch="master": (deploy branch "testnet" "testnet.ordinals.com")
+deploy-testnet branch="master": (deploy branch "test" "testnet.ordinals.com")
 
 log unit="ord" domain="ordinals.com":
   ssh root@{{domain}} 'journalctl -fu {{unit}}'
