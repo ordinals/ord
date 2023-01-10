@@ -190,17 +190,13 @@ impl Inscribe {
       reveal_tx.input[0].witness.push(&reveal_script);
       reveal_tx.input[0].witness.push(&control_block.serialize());
 
-      // fee_rate.fee(reveal_tx.vsize())
-      Amount::from_sat(1) * reveal_tx.vsize().try_into().unwrap()
+      fee_rate.fee(reveal_tx.vsize())
     };
 
     reveal_tx.output[0].value = reveal_tx.output[0]
       .value
       .checked_sub(fee.to_sat())
       .context("commit transaction output value insufficient to pay transaction fee")?;
-
-    // dbg!(&reveal_tx);
-    // dbg!(&reveal_tx.output[0].script_pubkey.dust_value().to_sat());
 
     if reveal_tx.output[0].value < reveal_tx.output[0].script_pubkey.dust_value().to_sat() {
       bail!("commit transaction output would be dust");
@@ -331,7 +327,7 @@ mod tests {
 
   #[test]
   fn reveal_transaction_would_create_dust() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(600))];
+    let utxos = vec![(outpoint(1), Amount::from_sat(500))];
     let inscription = inscription("text/plain", "ord");
     let satpoint = Some(satpoint(1, 0));
     let commit_address = change(0);
@@ -469,6 +465,7 @@ mod tests {
     let satpoint = None;
     let commit_address = change(0);
     let reveal_address = recipient();
+    let fee_rate = 3.3;
 
     let (commit_tx, reveal_tx, _private_key) = Inscribe::create_inscription_transactions(
       satpoint,
@@ -478,15 +475,13 @@ mod tests {
       utxos.into_iter().collect(),
       vec![commit_address, change(1)],
       reveal_address,
-      FeeRate::try_from(3.3).unwrap(),
+      FeeRate::try_from(fee_rate).unwrap(),
     )
     .unwrap();
 
     #[allow(clippy::cast_possible_truncation)]
     #[allow(clippy::cast_sign_loss)]
-    // let fee = ((((3.3 * 1000.0_f64).round() as u64) as f64) / 1000.0 * reveal_tx.vsize() as f64)
-    // .ceil() as u64;
-    let fee = (3.3 * 1000 as u64 as f64 * reveal_tx.vsize() as f64 / 1000.0).ceil() as u64;
+    let fee = (fee_rate * 1000 as u64 as f64 * reveal_tx.vsize() as f64 / 1000.0).ceil() as u64;
 
     assert_eq!(
       reveal_tx.output[0].value,
