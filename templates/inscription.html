@@ -5,6 +5,8 @@
   <dt>address</dt>
   <dd class=monospace>{{ address }}</dd>
 %% }
+  <dt>value</dt>
+  <dd>{{ self.output.value }}</dd>
 %% if let Some(sat) = self.sat {
   <dt>sat</dt>
   <dd><a href=/sat/{{sat}}>{{sat}}</a></dd>
