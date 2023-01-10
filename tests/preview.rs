@@ -20,7 +20,7 @@ fn run() {
   let mut child = command.spawn().unwrap();
 
   for attempt in 0.. {
-    if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/status")) {
+    if let Ok(response) = reqwest::blocking::get(format!("http://127.0.0.1:{port}/status")) {
       if response.status() == 200 {
         assert_eq!(response.text().unwrap(), "OK");
         break;
@@ -35,7 +35,7 @@ fn run() {
   }
 
   assert!(
-    reqwest::blocking::get(format!("http://localhost:{port}/inscriptions"))
+    reqwest::blocking::get(format!("http://127.0.0.1:{port}/inscriptions"))
       .unwrap()
       .text()
       .unwrap()
