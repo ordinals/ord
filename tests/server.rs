@@ -57,6 +57,8 @@ fn inscription_page() {
 <h1>Inscription {reveal_tx}</h1>
 .*<a href=/preview/{reveal_tx}><iframe .* src=/preview/{reveal_tx}></iframe></a>.*
 <dl>
+  <dt>address</dt>
+  <dd class=monospace>bc1.*</dd>
   <dt>content</dt>
   <dd><a href=/content/{reveal_tx}>link</a></dd>
   <dt>content size</dt>
@@ -148,7 +150,7 @@ fn inscription_page_after_send() {
   );
 
   let txid = CommandBuilder::new(format!(
-    "wallet send ord1qcqgs2pps4u4yedfyl5pysdjjncs8et5u8gcumw {reveal_txid}"
+    "wallet send --cardinal bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {reveal_txid}"
   ))
   .write("hello.txt", "HELLOWORLD")
   .rpc_server(&rpc_server)
@@ -163,7 +165,7 @@ fn inscription_page_after_send() {
   ord_server.assert_response_regex(
     format!("/inscription/{reveal_txid}"),
     format!(
-      r".*<h1>Inscription {reveal_txid}</h1>.*<dt>location</dt>\s*<dd class=monospace>{send_txid}:0:0</dd>.*",
+      r".*<h1>Inscription {reveal_txid}</h1>.*<dt>address</dt>\s*<dd class=monospace>bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv</dd>.*<dt>location</dt>\s*<dd class=monospace>{send_txid}:0:0</dd>.*",
     ),
   )
 }

@@ -627,11 +627,21 @@ impl Server {
 
     let sat = index.get_sat_by_inscription_id(inscription_id)?;
 
+    let output = index
+      .get_transaction(satpoint.outpoint.txid)?
+      .ok_or_not_found(|| format!("inscription {inscription_id} current transaction"))?
+      .output
+      .into_iter()
+      .nth(satpoint.outpoint.vout.try_into().unwrap())
+      .ok_or_not_found(|| format!("inscription {inscription_id} current transaction output"))?;
+
     Ok(
       InscriptionHtml {
+        chain,
         genesis_height,
         inscription,
         inscription_id,
+        output,
         sat,
         satpoint,
       }
@@ -1762,7 +1772,7 @@ next.*",
     server.assert_response_regex(
       format!("/inscription/{inscription_id}"),
       StatusCode::OK,
-      r".*<dl>\s*<dt>sat</dt>\s*<dd><a href=/sat/5000000000>5000000000</a></dd>\s*<dt>content</dt>.*",
+      r".*<dt>sat</dt>\s*<dd><a href=/sat/5000000000>5000000000</a></dd>\s*<dt>content</dt>.*",
     );
   }
 
@@ -1782,7 +1792,7 @@ next.*",
     server.assert_response_regex(
       format!("/inscription/{inscription_id}"),
       StatusCode::OK,
-      r".*<dl>\s*<dt>content</dt>.*",
+      r".*<dt>output value</dt>\s*<dd>5000000000</dd>\s*<dt>content</dt>.*",
     );
   }
 }
