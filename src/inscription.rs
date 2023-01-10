@@ -591,13 +591,6 @@ mod tests {
 
   #[test]
   fn do_not_extract_from_second_input() {
-    let script = script::Builder::new()
-      .push_opcode(opcodes::OP_FALSE)
-      .push_opcode(opcodes::all::OP_IF)
-      .push_slice("ord".as_bytes())
-      .push_opcode(opcodes::all::OP_ENDIF)
-      .into_script();
-
     let tx = Transaction {
       version: 0,
       lock_time: bitcoin::PackedLockTime(0),
@@ -612,7 +605,7 @@ mod tests {
           previous_output: OutPoint::null(),
           script_sig: Script::new(),
           sequence: Sequence(0),
-          witness: Witness::from_vec(vec![script.into_bytes(), vec![]]),
+          witness: inscription("foo", [1; 1040]).to_witness(),
         },
       ],
       output: Vec::new(),
