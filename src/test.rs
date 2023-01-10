@@ -38,6 +38,12 @@ pub(crate) fn satpoint(n: u64, offset: u64) -> SatPoint {
   }
 }
 
+pub(crate) fn address() -> Address {
+  "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
+    .parse()
+    .unwrap()
+}
+
 pub(crate) fn recipient() -> Address {
   "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
     .parse()

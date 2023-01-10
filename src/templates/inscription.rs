@@ -7,6 +7,8 @@ pub(crate) struct InscriptionHtml {
   pub(crate) inscription_id: InscriptionId,
   pub(crate) sat: Option<Sat>,
   pub(crate) satpoint: SatPoint,
+  pub(crate) chain: Chain,
+  pub(crate) output: TxOut,
 }
 
 impl PageContent for InscriptionHtml {
@@ -32,11 +34,17 @@ mod tests {
         inscription_id: "1111111111111111111111111111111111111111111111111111111111111111".parse().unwrap(),
         sat: None,
         satpoint: satpoint(1, 0),
+        chain: Chain::Mainnet,
+        output: tx_out(1, address()),
       },
       "
         <h1>Inscription 1{64}</h1>
         <div class=inscription><a href=/preview/1{64}><iframe .* src=/preview/1{64}></iframe></a></div>
         <dl>
+          <dt>address</dt>
+          <dd class=monospace>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</dd>
+          <dt>output value</dt>
+          <dd>1</dd>
           <dt>content</dt>
           <dd><a href=/content/1{64}>link</a></dd>
           <dt>content size</dt>
@@ -70,11 +78,14 @@ mod tests {
           .unwrap(),
         sat: Some(Sat(1)),
         satpoint: satpoint(1, 0),
+        chain: Chain::Mainnet,
+        output: tx_out(1, address()),
       },
       "
         <h1>Inscription 1{64}</h1>
         .*
         <dl>
+          .*
           <dt>sat</dt>
           <dd><a href=/sat/1>1</a></dd>
           <dt>content</dt>

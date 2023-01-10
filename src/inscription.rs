@@ -63,7 +63,7 @@ impl Inscription {
     })
   }
 
-  pub(crate) fn append_reveal_script(&self, mut builder: script::Builder) -> Script {
+  fn append_reveal_script_to_builder(&self, mut builder: script::Builder) -> script::Builder {
     builder = builder
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
@@ -82,7 +82,11 @@ impl Inscription {
       }
     }
 
-    builder.push_opcode(opcodes::all::OP_ENDIF).into_script()
+    builder.push_opcode(opcodes::all::OP_ENDIF)
+  }
+
+  pub(crate) fn append_reveal_script(&self, builder: script::Builder) -> Script {
+    self.append_reveal_script_to_builder(builder).into_script()
   }
 
   pub(crate) fn content(&self) -> Option<Content> {
@@ -591,13 +595,6 @@ mod tests {
 
   #[test]
   fn do_not_extract_from_second_input() {
-    let script = script::Builder::new()
-      .push_opcode(opcodes::OP_FALSE)
-      .push_opcode(opcodes::all::OP_IF)
-      .push_slice("ord".as_bytes())
-      .push_opcode(opcodes::all::OP_ENDIF)
-      .into_script();
-
     let tx = Transaction {
       version: 0,
       lock_time: bitcoin::PackedLockTime(0),
@@ -612,13 +609,39 @@ mod tests {
           previous_output: OutPoint::null(),
           script_sig: Script::new(),
           sequence: Sequence(0),
-          witness: Witness::from_vec(vec![script.into_bytes(), vec![]]),
+          witness: inscription("foo", [1; 1040]).to_witness(),
         },
       ],
       output: Vec::new(),
     };
 
     assert_eq!(Inscription::from_transaction(&tx), None);
+  }
+
+  #[test]
+  fn do_not_extract_from_second_envelope() {
+    let mut builder = script::Builder::new();
+    builder = inscription("foo", [1; 100]).append_reveal_script_to_builder(builder);
+    builder = inscription("bar", [1; 100]).append_reveal_script_to_builder(builder);
+
+    let witness = Witness::from_vec(vec![builder.into_script().into_bytes(), vec![]]);
+
+    let tx = Transaction {
+      version: 0,
+      lock_time: bitcoin::PackedLockTime(0),
+      input: vec![TxIn {
+        previous_output: OutPoint::null(),
+        script_sig: Script::new(),
+        sequence: Sequence(0),
+        witness,
+      }],
+      output: Vec::new(),
+    };
+
+    assert_eq!(
+      Inscription::from_transaction(&tx),
+      Some(inscription("foo", [1; 100]))
+    );
   }
 
   #[test]
