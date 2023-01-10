@@ -43,7 +43,7 @@ case $CHAIN in
   signet)
     ufw allow 38333
     ;;
-  testnet)
+  test)
     ufw allow 18333
     ;;
   *)
@@ -92,7 +92,7 @@ case $CHAIN in
   signet)
     COOKIE_FILE_DIR=/var/lib/bitcoind/signet
     ;;
-  testnet)
+  test)
     COOKIE_FILE_DIR=/var/lib/bitcoind/testnet3
     ;;
   *)
@@ -106,7 +106,6 @@ while [[ ! -f $COOKIE_FILE_DIR/.cookie ]]; do
   sleep 1
 done
 
-chmod 710 /var/lib/bitcoind
 setfacl -m ord:x /var/lib/bitcoind
 setfacl -m ord:x $COOKIE_FILE_DIR
 setfacl -dm ord:r $COOKIE_FILE_DIR
