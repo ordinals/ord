@@ -628,12 +628,12 @@ impl Server {
     let sat = index.get_sat_by_inscription_id(inscription_id)?;
 
     let output = index
-      .get_transaction(inscription_id)?
-      .ok_or_not_found(|| format!("inscription {inscription_id} genesis transaction"))?
+      .get_transaction(satpoint.outpoint.txid)?
+      .ok_or_not_found(|| format!("inscription {inscription_id} current transaction"))?
       .output
       .into_iter()
-      .next()
-      .ok_or_not_found(|| format!("inscription {inscription_id} genesis transaction output"))?;
+      .nth(satpoint.outpoint.vout.try_into().unwrap())
+      .ok_or_not_found(|| format!("inscription {inscription_id} current transaction output"))?;
 
     Ok(
       InscriptionHtml {
