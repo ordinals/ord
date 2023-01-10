@@ -1168,7 +1168,7 @@ mod tests {
   }
 
   #[test]
-  fn output_with_satoshi_index() {
+  fn output_with_sat_index() {
     TestServer::new_with_args(&["--index-sats"]).assert_response_regex(
     "/output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
     StatusCode::OK,
@@ -1185,7 +1185,7 @@ mod tests {
   }
 
   #[test]
-  fn output_without_satoshi_index() {
+  fn output_without_sat_index() {
     TestServer::new().assert_response_regex(
     "/output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
     StatusCode::OK,
@@ -1420,7 +1420,7 @@ next.*",
   }
 
   #[test]
-  fn rare_without_satoshi_index() {
+  fn rare_without_sat_index() {
     TestServer::new_with_args(&[]).assert_response(
       "/rare.txt",
       StatusCode::NOT_FOUND,
@@ -1429,7 +1429,7 @@ next.*",
   }
 
   #[test]
-  fn show_rare_txt_in_header_with_satoshi_index() {
+  fn show_rare_txt_in_header_with_sat_index() {
     TestServer::new_with_args(&["--index-sats"]).assert_response_regex(
       "/",
       StatusCode::OK,
@@ -1450,7 +1450,7 @@ next.*",
   }
 
   #[test]
-  fn dont_show_rare_txt_in_header_without_satoshi_index() {
+  fn dont_show_rare_txt_in_header_without_sat_index() {
     TestServer::new().assert_response_regex(
       "/",
       StatusCode::OK,
