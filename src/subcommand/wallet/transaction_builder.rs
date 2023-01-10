@@ -425,7 +425,10 @@ impl TransactionBuilder {
 
     let fee_without_dummy_witness = self.fee_rate.fee(transaction.vsize());
 
-    assert!(fee_with_dummy_witness >= fee_without_dummy_witness, "invariant: fee paid is greater than fee without witness",);
+    assert!(
+      fee_with_dummy_witness >= fee_without_dummy_witness,
+      "invariant: fee paid is greater than fee without witness",
+    );
 
     for tx_out in &transaction.output {
       assert!(
