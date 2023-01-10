@@ -406,12 +406,11 @@ fn allow_send_to_cardinal_address_with_cardinal_flag() {
 
 #[test]
 fn wallet_send_with_fee_rate() {
-  let rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Signet)
-    .build();
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
-  let stdout = CommandBuilder::new("--chain signet --index-sats wallet inscribe degenerate.png")
+  let stdout = CommandBuilder::new("--index-sats wallet inscribe degenerate.png")
     .write("degenerate.png", [1; 520])
     .rpc_server(&rpc_server)
     .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
@@ -422,7 +421,7 @@ fn wallet_send_with_fee_rate() {
   let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
 
   CommandBuilder::new(format!(
-    "--chain signet wallet send tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw {reveal_txid} --fee-rate 2.0"
+    "wallet send ord1qcqgs2pps4u4yedfyl5pysdjjncs8et5u8gcumw {reveal_txid} --fee-rate 2.0"
   ))
   .rpc_server(&rpc_server)
   .stdout_regex("[[:xdigit:]]{64}\n")

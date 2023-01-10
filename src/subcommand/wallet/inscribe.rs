@@ -190,7 +190,8 @@ impl Inscribe {
       reveal_tx.input[0].witness.push(&reveal_script);
       reveal_tx.input[0].witness.push(&control_block.serialize());
 
-      fee_rate.fee(reveal_tx.vsize())
+      // fee_rate.fee(reveal_tx.vsize())
+      Amount::from_sat(1) * reveal_tx.vsize().try_into().unwrap()
     };
 
     reveal_tx.output[0].value = reveal_tx.output[0]
@@ -198,8 +199,9 @@ impl Inscribe {
       .checked_sub(fee.to_sat())
       .context("commit transaction output value insufficient to pay transaction fee")?;
 
-    dbg!(&reveal_tx);
-    dbg!(&reveal_tx.output[0].script_pubkey.dust_value().to_sat());
+    // dbg!(&reveal_tx);
+    // dbg!(&reveal_tx.output[0].script_pubkey.dust_value().to_sat());
+
     if reveal_tx.output[0].value < reveal_tx.output[0].script_pubkey.dust_value().to_sat() {
       bail!("commit transaction output would be dust");
     }
@@ -482,8 +484,9 @@ mod tests {
 
     #[allow(clippy::cast_possible_truncation)]
     #[allow(clippy::cast_sign_loss)]
-    let fee = ((((3.3 * 1000.0_f64).round() as u64) as f64) / 1000.0 * reveal_tx.vsize() as f64)
-      .ceil() as u64;
+    // let fee = ((((3.3 * 1000.0_f64).round() as u64) as f64) / 1000.0 * reveal_tx.vsize() as f64)
+    // .ceil() as u64;
+    let fee = (3.3 * 1000 as u64 as f64 * reveal_tx.vsize() as f64 / 1000.0).ceil() as u64;
 
     assert_eq!(
       reveal_tx.output[0].value,

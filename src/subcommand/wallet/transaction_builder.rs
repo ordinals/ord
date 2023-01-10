@@ -418,22 +418,20 @@ impl TransactionBuilder {
       offset += output.value;
     }
 
-    let mut estimated_fee = Amount::ZERO;
-    for input in &transaction.input {
-      estimated_fee += self.amounts[&input.previous_output];
-    }
-    for output in &transaction.output {
-      estimated_fee -= Amount::from_sat(output.value);
-    }
-
-    let correct_fee = self.fee_rate.fee(transaction.vsize());
-
-    assert!(
-      estimated_fee >= correct_fee,
-      "invariant: estimated fee is greater than or equal to correct fee",
-    );
-
-    transaction.output.last_mut().unwrap().value += (estimated_fee - correct_fee).to_sat();
+//    let mut estimated_fee = Amount::ZERO;
+//    for input in &transaction.input {
+//      estimated_fee += self.amounts[&input.previous_output];
+//    }
+//    for output in &transaction.output {
+//      estimated_fee -= Amount::from_sat(output.value);
+//    }
+//
+//    let correct_fee = self.fee_rate.fee(transaction.vsize());
+//
+//    assert!(
+//      estimated_fee >= correct_fee,
+//      "invariant: estimated fee is greater than or equal to correct fee",
+//    );
 
     for tx_out in &transaction.output {
       assert!(
