@@ -36,8 +36,8 @@ mod tests {
         genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: txid(1),
-        number: 1,
         next: None,
+        number: 1,
         output: tx_out(1, address()),
         previous: None,
         sat: None,
@@ -83,16 +83,16 @@ mod tests {
   fn with_sat() {
     assert_regex_match!(
       InscriptionHtml {
+        chain: Chain::Mainnet,
         genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: txid(1),
         next: None,
-        previous: None,
         number: 1,
+        output: tx_out(1, address()),
+        previous: None,
         sat: Some(Sat(1)),
         satpoint: satpoint(1, 0),
-        chain: Chain::Mainnet,
-        output: tx_out(1, address()),
       },
       "
         <h1>Inscription 1</h1>
@@ -113,16 +113,16 @@ mod tests {
   fn with_prev_and_next() {
     assert_regex_match!(
       InscriptionHtml {
+        chain: Chain::Mainnet,
         genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: txid(2),
-        sat: None,
-        number: 1,
         next: Some(txid(3)),
-        previous: Some(txid(1)),
-        satpoint: satpoint(1, 0),
-        chain: Chain::Mainnet,
+        number: 1,
         output: tx_out(1, address()),
+        previous: Some(txid(1)),
+        sat: None,
+        satpoint: satpoint(1, 0),
       },
       "
         <h1>Inscription 1</h1>
