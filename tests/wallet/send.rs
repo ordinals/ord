@@ -20,7 +20,7 @@ fn send_works() {
   rpc_server.mine_blocks(1);
 
   let stdout = CommandBuilder::new(format!(
-    "wallet send ord1qcqgs2pps4u4yedfyl5pysdjjncs8et5u8gcumw {reveal_txid}"
+    "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {reveal_txid}"
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(r".*")
@@ -116,7 +116,7 @@ fn send_on_mainnnet_refuses_to_work_with_wallet_name_foo() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   CommandBuilder::new(
-    format!("wallet send ord1qcqgs2pps4u4yedfyl5pysdjjncs8et5u8gcumw {txid}:0:0")
+    format!("wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0")
   )
   .rpc_server(&rpc_server)
   .expected_stderr("error: wallet commands may only be used on mainnet with a wallet named `ord` or whose name starts with `ord-`\n")
@@ -148,7 +148,7 @@ fn send_on_mainnnet_works_with_wallet_named_ord() {
   create_wallet(&rpc_server);
 
   let stdout = CommandBuilder::new(format!(
-    "wallet send ord1qcqgs2pps4u4yedfyl5pysdjjncs8et5u8gcumw {txid}:0:0"
+    "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0"
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(r".*")
@@ -167,7 +167,7 @@ fn send_on_mainnnet_works_with_wallet_whose_name_starts_with_ord() {
   let txid = rpc_server.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0].txid();
 
   let stdout = CommandBuilder::new(format!(
-    "wallet send ord1qcqgs2pps4u4yedfyl5pysdjjncs8et5u8gcumw {txid}:0:0"
+    "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0"
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(r".*")
@@ -193,7 +193,7 @@ fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
   let txid = rpc_server.mine_blocks_with_subsidy(1, 100)[0].txdata[0].txid();
 
   CommandBuilder::new(format!(
-    "wallet send ord1qcqgs2pps4u4yedfyl5pysdjjncs8et5u8gcumw {txid}:0:0"
+    "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0"
   ))
   .rpc_server(&rpc_server)
   .expected_exit_code(1)
@@ -225,7 +225,7 @@ fn do_not_accidentally_send_an_inscription() {
   };
 
   CommandBuilder::new(format!(
-    "wallet send ord1qcqgs2pps4u4yedfyl5pysdjjncs8et5u8gcumw  {inscription_utxo}:55"
+    "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4  {inscription_utxo}:55"
   ))
   .rpc_server(&rpc_server)
   .expected_exit_code(1)
@@ -252,7 +252,7 @@ fn inscriptions_cannot_be_sent_by_satpoint() {
   rpc_server.mine_blocks(1);
 
   CommandBuilder::new(format!(
-    "wallet send ord1qcqgs2pps4u4yedfyl5pysdjjncs8et5u8gcumw   {reveal_txid}:0:0"
+    "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4   {reveal_txid}:0:0"
   ))
   .write("hello.txt", "HELLOWORLD")
   .rpc_server(&rpc_server)
@@ -267,7 +267,7 @@ fn send_btc() {
 
   rpc_server.mine_blocks(1);
 
-  CommandBuilder::new("wallet send ord1qcqgs2pps4u4yedfyl5pysdjjncs8et5u8gcumw 1btc")
+  CommandBuilder::new("wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc")
     .rpc_server(&rpc_server)
     .expected_stdout("0000000000000000000000000000000000000000000000000000000000000000\n")
     .run();
@@ -301,7 +301,7 @@ fn send_btc_locks_inscriptions() {
 
   rpc_server.mine_blocks(1);
 
-  CommandBuilder::new("wallet send ord1qcqgs2pps4u4yedfyl5pysdjjncs8et5u8gcumw 1btc")
+  CommandBuilder::new("wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc")
     .rpc_server(&rpc_server)
     .expected_stdout("0000000000000000000000000000000000000000000000000000000000000000\n")
     .run();
@@ -330,7 +330,7 @@ fn send_btc_fails_if_lock_unspent_fails() {
 
   rpc_server.mine_blocks(1);
 
-  CommandBuilder::new("wallet send ord1qcqgs2pps4u4yedfyl5pysdjjncs8et5u8gcumw 1btc")
+  CommandBuilder::new("wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc")
     .rpc_server(&rpc_server)
     .expected_stderr("error: failed to lock ordinal UTXOs\n")
     .expected_exit_code(1)
@@ -360,7 +360,7 @@ fn allow_send_to_cardinal_address_with_cardinal_flag() {
 
   rpc_server.mine_blocks(1);
 
-  CommandBuilder::new("wallet send --cardinal ord1qcqgs2pps4u4yedfyl5pysdjjncs8et5u8gcumw 1btc")
+  CommandBuilder::new("wallet send --cardinal bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc")
     .rpc_server(&rpc_server)
     .expected_stdout("0000000000000000000000000000000000000000000000000000000000000000\n")
     .run();

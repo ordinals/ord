@@ -2,10 +2,9 @@ use super::*;
 
 #[derive(Debug, PartialEq)]
 pub(crate) enum Object {
-  CardinalAddress(Address),
+  Address(Address),
   Hash([u8; 32]),
   Integer(u128),
-  OrdinalAddress(OrdinalAddress),
   OutPoint(OutPoint),
   Sat(Sat),
   SatPoint(SatPoint),
@@ -18,13 +17,12 @@ impl FromStr for Object {
     use Representation::*;
 
     match Representation::from_str(s)? {
-      CardinalAddress => Ok(Self::CardinalAddress(s.parse()?)),
+      Address => Ok(Self::Address(s.parse()?)),
       Decimal | Degree | Percentile | Name => Ok(Self::Sat(s.parse()?)),
       Hash => Ok(Self::Hash(
         bitcoin::hashes::sha256::Hash::from_str(s)?.into_inner(),
       )),
       Integer => Ok(Self::Integer(s.parse()?)),
-      OrdinalAddress => Ok(Self::OrdinalAddress(s.parse()?)),
       OutPoint => Ok(Self::OutPoint(s.parse()?)),
       SatPoint => Ok(Self::SatPoint(s.parse()?)),
     }
@@ -34,7 +32,7 @@ impl FromStr for Object {
 impl Display for Object {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     match self {
-      Self::CardinalAddress(cardinal_address) => write!(f, "{}", cardinal_address),
+      Self::Address(address) => write!(f, "{}", address),
       Self::Hash(hash) => {
         for byte in hash {
           write!(f, "{byte:02x}")?;
@@ -42,7 +40,6 @@ impl Display for Object {
         Ok(())
       }
       Self::Integer(integer) => write!(f, "{integer}"),
-      Self::OrdinalAddress(ordinal_address) => write!(f, "{}", ordinal_address),
       Self::OutPoint(outpoint) => write!(f, "{}", outpoint),
       Self::Sat(sat) => write!(f, "{sat}"),
       Self::SatPoint(satpoint) => write!(f, "{}", satpoint),
@@ -91,7 +88,7 @@ mod tests {
     );
     case(
       "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4",
-      Object::CardinalAddress(
+      Object::Address(
         "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
           .parse()
           .unwrap(),
@@ -99,7 +96,7 @@ mod tests {
     );
     case(
       "BC1QW508D6QEJXTDG4Y5R3ZARVARY0C5XW7KV8F3T4",
-      Object::CardinalAddress(
+      Object::Address(
         "BC1QW508D6QEJXTDG4Y5R3ZARVARY0C5XW7KV8F3T4"
           .parse()
           .unwrap(),
@@ -107,7 +104,7 @@ mod tests {
     );
     case(
       "tb1qqqqqp399et2xygdj5xreqhjjvcmzhxw4aywxecjdzew6hylgvsesrxh6hy",
-      Object::CardinalAddress(
+      Object::Address(
         "tb1qqqqqp399et2xygdj5xreqhjjvcmzhxw4aywxecjdzew6hylgvsesrxh6hy"
           .parse()
           .unwrap(),
@@ -115,7 +112,7 @@ mod tests {
     );
     case(
       "TB1QQQQQP399ET2XYGDJ5XREQHJJVCMZHXW4AYWXECJDZEW6HYLGVSESRXH6HY",
-      Object::CardinalAddress(
+      Object::Address(
         "TB1QQQQQP399ET2XYGDJ5XREQHJJVCMZHXW4AYWXECJDZEW6HYLGVSESRXH6HY"
           .parse()
           .unwrap(),
@@ -123,7 +120,7 @@ mod tests {
     );
     case(
       "bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw",
-      Object::CardinalAddress(
+      Object::Address(
         "bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw"
           .parse()
           .unwrap(),
@@ -131,56 +128,8 @@ mod tests {
     );
     case(
       "BCRT1QS758URSH4Q9Z627KT3PP5YYSM78DDNY6TXAQGW",
-      Object::CardinalAddress(
+      Object::Address(
         "BCRT1QS758URSH4Q9Z627KT3PP5YYSM78DDNY6TXAQGW"
-          .parse()
-          .unwrap(),
-      ),
-    );
-    case(
-      "ord1qcqgs2pps4u4yedfyl5pysdjjncs8et5u8gcumw",
-      Object::OrdinalAddress(
-        "ord1qcqgs2pps4u4yedfyl5pysdjjncs8et5u8gcumw"
-          .parse()
-          .unwrap(),
-      ),
-    );
-    case(
-      "ORD1QCQGS2PPS4U4YEDFYL5PYSDJJNCS8ET5U8GCUMW",
-      Object::OrdinalAddress(
-        "ORD1QCQGS2PPS4U4YEDFYL5PYSDJJNCS8ET5U8GCUMW"
-          .parse()
-          .unwrap(),
-      ),
-    );
-    case(
-      "rord1qpwxd9k4pm7t5peh8kml7asn2wgmxmfjac5kr8q",
-      Object::OrdinalAddress(
-        "rord1qpwxd9k4pm7t5peh8kml7asn2wgmxmfjac5kr8q"
-          .parse()
-          .unwrap(),
-      ),
-    );
-    case(
-      "RORD1QPWXD9K4PM7T5PEH8KML7ASN2WGMXMFJAC5KR8Q",
-      Object::OrdinalAddress(
-        "RORD1QPWXD9K4PM7T5PEH8KML7ASN2WGMXMFJAC5KR8Q"
-          .parse()
-          .unwrap(),
-      ),
-    );
-    case(
-      "tord1q497kurvh0fgtedca5angel7j4rdwe0q8h925u0",
-      Object::OrdinalAddress(
-        "TORD1Q497KURVH0FGTEDCA5ANGEL7J4RDWE0Q8H925U0"
-          .parse()
-          .unwrap(),
-      ),
-    );
-    case(
-      "TORD1Q497KURVH0FGTEDCA5ANGEL7J4RDWE0Q8H925U0",
-      Object::OrdinalAddress(
-        "TORD1Q497KURVH0FGTEDCA5ANGEL7J4RDWE0Q8H925U0"
           .parse()
           .unwrap(),
       ),
