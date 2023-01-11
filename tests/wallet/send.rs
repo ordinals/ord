@@ -37,7 +37,7 @@ fn send_works() {
   ord_server.assert_response_regex(
     format!("/inscription/{reveal_txid}"),
     format!(
-      ".*<h1>Inscription {reveal_txid}</h1>.*<dl>.*
+      ".*<h1>Inscription 0</h1>.*<dl>.*
   <dt>content size</dt>
   <dd>520 bytes</dd>
   <dt>content type</dt>
@@ -105,7 +105,7 @@ fn send_inscribed_sat() {
   ord_server.assert_response_regex(
     format!("/inscription/{reveal_txid}"),
     format!(
-      ".*<h1>Inscription {reveal_txid}</h1>.*<dt>location</dt>.*<dd class=monospace>{send_txid}:0:0</dd>.*",
+      ".*<h1>Inscription 0</h1>.*<dt>location</dt>.*<dd class=monospace>{send_txid}:0:0</dd>.*",
     ),
   );
 }

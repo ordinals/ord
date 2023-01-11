@@ -300,11 +300,11 @@ fn inscriptions_page_has_next_and_previous() {
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     format!("/inscription/{b}"),
     format!(
-      ".*<h1>Inscription {b}</h1>.*
+      ".*<h1>Inscription 1</h1>.*
 <div class=inscription>
-<a href=/inscription/{a}>❮</a>
+<a class=previous href=/inscription/{a}>❮</a>
 <a href=/preview/{b}>.*</a>
-<a href=/inscription/{c}>❯</a>
+<a class=next href=/inscription/{c}>❯</a>
 </div>.*"
     ),
   );
