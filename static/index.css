@@ -203,7 +203,7 @@ a.mythic {
   opacity: 0;
 }
 
-.inscription > *:nth-child(1):hover, .inscription > *:nth-child(3):hover {
+.inscription > a:nth-child(1):hover, .inscription > a:nth-child(3):hover {
   opacity: 1;
 }
 
