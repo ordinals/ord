@@ -121,9 +121,9 @@ mod tests {
       "
         <h1>Inscription 2{64}</h1>
         <div class=inscription>
-        <a href=/inscription/3{64}>❮</a>
+        <a href=/inscription/1{64}>❮</a>
         <a href=/preview/2{64}><iframe .* src=/preview/2{64}></iframe></a>
-        <a href=/inscription/1{64}>❯</a>
+        <a href=/inscription/3{64}>❯</a>
         </div>
         .*
       "

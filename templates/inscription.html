@@ -1,13 +1,13 @@
 <h1>Inscription {{ self.inscription_id }}</h1>
 <div class=inscription>
-%% if let Some(next) = self.next {
-<a href=/inscription/{{next}}>❮</a>
+%% if let Some(previous) = self.previous {
+<a href=/inscription/{{previous}}>❮</a>
 %% } else {
 <div></div>
 %% }
 {{Iframe::main(self.inscription_id)}}
-%% if let Some(previous) = self.previous {
-<a href=/inscription/{{previous}}>❯</a>
+%% if let Some(next) = self.next {
+<a href=/inscription/{{next}}>❯</a>
 %% } else {
 <div></div>
 %% }
