@@ -1,10 +1,9 @@
-use super::*;
-
 use {
   self::{
     deserialize_from_str::DeserializeFromStr,
     error::{OptionExt, ServerError, ServerResult},
   },
+  super::*,
   crate::templates::{
     BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionsHtml, OutputHtml,
     PageContent, PageHtml, PreviewImageHtml, PreviewTextHtml, PreviewUnknownHtml, RangeHtml,
@@ -13,7 +12,7 @@ use {
   axum::{
     body,
     extract::{Extension, Path, Query},
-    http::{header, HeaderMap, HeaderValue, StatusCode},
+    http::{header, HeaderMap, HeaderValue, StatusCode, Uri},
     response::{IntoResponse, Redirect, Response},
     routing::get,
     Router,
@@ -110,6 +109,8 @@ pub(crate) struct Server {
   http: bool,
   #[clap(long, help = "Serve HTTPS traffic on <HTTPS_PORT>.")]
   https: bool,
+  #[clap(long, help = "Redirect HTTP traffic to HTTPS.")]
+  redirect_http_to_https: bool,
 }
 
 impl Server {
@@ -198,12 +199,33 @@ impl Server {
       );
     }
 
+    let redirect_destination = if self.redirect_http_to_https && https_acceptor.is_none() {
+      let acme_domain = Self::acme_domains(&self.acme_domain)?
+        .into_iter()
+        .nth(0)
+        .unwrap();
+
+      Some(format!("https://{acme_domain}"))
+    } else {
+      None
+    };
+
     Ok(tokio::spawn(async move {
       if let Some(acceptor) = https_acceptor {
         axum_server::Server::bind(addr)
           .handle(handle)
           .acceptor(acceptor)
           .serve(router.into_make_service())
+          .await
+      } else if let Some(redirect_destination) = redirect_destination {
+        axum_server::Server::bind(addr)
+          .handle(handle)
+          .serve(
+            Router::new()
+              .fallback(Self::redirect_http_to_https)
+              .layer(Extension(redirect_destination))
+              .into_make_service(),
+          )
           .await
       } else {
         axum_server::Server::bind(addr)
@@ -679,6 +701,17 @@ impl Server {
       .page(chain, index.has_sat_index()?),
     )
   }
+
+  async fn redirect_http_to_https(
+    Extension(mut destination): Extension<String>,
+    uri: Uri,
+  ) -> Redirect {
+    if let Some(path_and_query) = uri.path_and_query() {
+      destination.push_str(path_and_query.as_str());
+    }
+
+    Redirect::to(&destination)
+  }
 }
 
 #[cfg(test)]
@@ -696,10 +729,14 @@ mod tests {
 
   impl TestServer {
     fn new() -> Self {
-      Self::new_with_args(&[])
+      Self::new_with_args(&[], &[])
     }
 
-    fn new_with_args(args: &[&str]) -> Self {
+    fn new_with_sat_index() -> Self {
+      Self::new_with_args(&["--index-sats"], &[])
+    }
+
+    fn new_with_args(ord_args: &[&str], server_args: &[&str]) -> Self {
       let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
       let tempdir = TempDir::new().unwrap();
@@ -717,12 +754,13 @@ mod tests {
       let url = Url::parse(&format!("http://127.0.0.1:{port}")).unwrap();
 
       let (options, server) = parse_server_args(&format!(
-        "ord --chain regtest --rpc-url {} --cookie-file {} --data-dir {} {} server --http-port {} --address 127.0.0.1",
+        "ord --chain regtest --rpc-url {} --cookie-file {} --data-dir {} {} server --http-port {} --address 127.0.0.1 {}",
         bitcoin_rpc_server.url(),
         cookiefile.to_str().unwrap(),
         tempdir.path().to_str().unwrap(),
-        args.join(" "),
+        ord_args.join(" "),
         port,
+        server_args.join(" "),
       ));
 
       let index = Arc::new(Index::open(&options).unwrap());
@@ -738,8 +776,13 @@ mod tests {
         thread::sleep(Duration::from_millis(25));
       }
 
+      let client = reqwest::blocking::Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .build()
+        .unwrap();
+
       for i in 0.. {
-        match reqwest::blocking::get(format!("http://127.0.0.1:{port}/status")) {
+        match client.get(format!("http://127.0.0.1:{port}/status")).send() {
           Ok(_) => break,
           Err(err) => {
             if i == 400 {
@@ -1070,6 +1113,20 @@ mod tests {
   }
 
   #[test]
+  fn http_to_https_redirect_with_path() {
+    TestServer::new_with_args(&[], &["--redirect-http-to-https"]).assert_redirect(
+      "/sat/0",
+      &format!("https://{}/sat/0", sys_info::hostname().unwrap()),
+    );
+  }
+
+  #[test]
+  fn http_to_https_redirect_with_empty() {
+    TestServer::new_with_args(&[], &["--redirect-http-to-https"])
+      .assert_redirect("/", &format!("https://{}/", sys_info::hostname().unwrap()));
+  }
+
+  #[test]
   fn status() {
     TestServer::new().assert_response("/status", StatusCode::OK, "OK");
   }
@@ -1188,7 +1245,7 @@ mod tests {
 
   #[test]
   fn output_with_sat_index() {
-    TestServer::new_with_args(&["--index-sats"]).assert_response_regex(
+    TestServer::new_with_sat_index().assert_response_regex(
     "/output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
     StatusCode::OK,
     ".*<title>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</title>.*<h1>Output <span class=monospace>4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</span></h1>
@@ -1401,7 +1458,7 @@ mod tests {
 
   #[test]
   fn rare_with_index() {
-    TestServer::new_with_args(&["--index-sats"]).assert_response(
+    TestServer::new_with_sat_index().assert_response(
       "/rare.txt",
       StatusCode::OK,
       "sat\tsatpoint
@@ -1412,7 +1469,7 @@ mod tests {
 
   #[test]
   fn rare_without_sat_index() {
-    TestServer::new_with_args(&[]).assert_response(
+    TestServer::new().assert_response(
       "/rare.txt",
       StatusCode::NOT_FOUND,
       "tracking rare sats requires index created with `--index-sats` flag",
@@ -1421,7 +1478,7 @@ mod tests {
 
   #[test]
   fn show_rare_txt_in_header_with_sat_index() {
-    TestServer::new_with_args(&["--index-sats"]).assert_response_regex(
+    TestServer::new_with_sat_index().assert_response_regex(
       "/",
       StatusCode::OK,
       ".*
@@ -1433,7 +1490,7 @@ mod tests {
 
   #[test]
   fn rare_sat_location() {
-    TestServer::new_with_args(&["--index-sats"]).assert_response_regex(
+    TestServer::new_with_sat_index().assert_response_regex(
       "/sat/0",
       StatusCode::OK,
       ".*>4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0<.*",
@@ -1505,7 +1562,7 @@ mod tests {
 
   #[test]
   fn outputs_traversed_are_tracked() {
-    let server = TestServer::new_with_args(&["--index-sats"]);
+    let server = TestServer::new_with_sat_index();
 
     assert_eq!(
       server
@@ -1537,7 +1594,7 @@ mod tests {
 
   #[test]
   fn coinbase_sat_ranges_are_tracked() {
-    let server = TestServer::new_with_args(&["--index-sats"]);
+    let server = TestServer::new_with_sat_index();
 
     assert_eq!(
       server.index.statistic(crate::index::Statistic::SatRanges),
@@ -1561,7 +1618,7 @@ mod tests {
 
   #[test]
   fn split_sat_ranges_are_tracked() {
-    let server = TestServer::new_with_args(&["--index-sats"]);
+    let server = TestServer::new_with_sat_index();
 
     assert_eq!(
       server.index.statistic(crate::index::Statistic::SatRanges),
@@ -1585,7 +1642,7 @@ mod tests {
 
   #[test]
   fn fee_sat_ranges_are_tracked() {
-    let server = TestServer::new_with_args(&["--index-sats"]);
+    let server = TestServer::new_with_sat_index();
 
     assert_eq!(
       server.index.statistic(crate::index::Statistic::SatRanges),
@@ -1749,7 +1806,7 @@ mod tests {
 
   #[test]
   fn inscription_page_has_sat_when_sats_are_tracked() {
-    let server = TestServer::new_with_args(&["--index-sats"]);
+    let server = TestServer::new_with_sat_index();
     server.mine_blocks(1);
 
     let inscription_id = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
