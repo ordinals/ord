@@ -193,7 +193,7 @@ a.mythic {
 
 .inscription > *:nth-child(1), .inscription > *:nth-child(3) {
   color: var(--dark-fg);
-  flex-grow: 1;
+  flex: 1;
   font-size: 200%;
   text-decoration: none;
   display: flex;
@@ -207,7 +207,7 @@ a.mythic {
 }
 
 .inscription > *:nth-child(2) {
-  flex-grow: 2;
+  flex: 0 75%;
 }
 
 .inscription > a > iframe {
