@@ -9,6 +9,8 @@ pub(crate) struct InscriptionHtml {
   pub(crate) satpoint: SatPoint,
   pub(crate) chain: Chain,
   pub(crate) output: TxOut,
+  pub(crate) previous: Option<InscriptionId>,
+  pub(crate) next: Option<InscriptionId>,
 }
 
 impl PageContent for InscriptionHtml {

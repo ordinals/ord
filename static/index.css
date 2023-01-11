@@ -189,10 +189,26 @@ a.mythic {
 .inscription {
   display: flex;
   justify-content: center;
+  align-items: stretch;
 }
 
-.inscription > a {
-  width: 50%;
+.inscription > *:nth-child(1), .inscription > *:nth-child(3) {
+  color: var(--dark-fg);
+  flex-grow: 1;
+  font-size: 200%;
+  text-decoration: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+}
+
+.inscription > *:nth-child(1):hover, .inscription > *:nth-child(3):hover {
+  opacity: 1;
+}
+
+.inscription > *:nth-child(2) {
+  flex-grow: 2;
 }
 
 .inscription > a > iframe {

@@ -635,13 +635,31 @@ impl Server {
       .nth(satpoint.outpoint.vout.try_into().unwrap())
       .ok_or_not_found(|| format!("inscription {inscription_id} current transaction output"))?;
 
+    let number = index
+      .get_inscription_number_by_inscription_id(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id} number"))?;
+
+    let previous = if let Some(previous) = number.checked_sub(1) {
+      Some(
+        index
+          .get_inscription_id_by_inscription_number(previous)?
+          .ok_or_not_found(|| format!("inscription {previous}"))?,
+      )
+    } else {
+      None
+    };
+
+    let next = index.get_inscription_id_by_inscription_number(number + 1)?;
+
     Ok(
       InscriptionHtml {
         chain,
         genesis_height,
         inscription,
         inscription_id,
+        next,
         output,
+        previous,
         sat,
         satpoint,
       }

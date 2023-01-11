@@ -15,6 +15,7 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   flotsam: Vec<Flotsam>,
   height: u64,
   id_to_height: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, u64>,
+  id_to_number: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, u64>,
   id_to_satpoint: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, &'tx SatPointArray>,
   index: &'a Index,
   inscription_id_to_sat: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, u64>,
@@ -32,6 +33,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
   pub(super) fn new(
     height: u64,
     id_to_height: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, u64>,
+    id_to_number: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, u64>,
     id_to_satpoint: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, &'tx SatPointArray>,
     index: &'a Index,
     inscription_id_to_sat: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, u64>,
@@ -53,6 +55,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       flotsam: Vec::new(),
       height,
       id_to_height,
+      id_to_number,
       id_to_satpoint,
       index,
       inscription_id_to_sat,
@@ -203,6 +206,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       }
       Origin::New => {
         self.id_to_height.insert(&inscription_id, &self.height)?;
+        self
+          .id_to_number
+          .insert(&inscription_id, &self.next_number)?;
         self
           .number_to_id
           .insert(&self.next_number, &inscription_id)?;
