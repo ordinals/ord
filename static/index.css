@@ -189,7 +189,6 @@ a.mythic {
 .inscription {
   display: flex;
   justify-content: center;
-  align-items: stretch;
 }
 
 .inscription > *:nth-child(1), .inscription > *:nth-child(3) {
