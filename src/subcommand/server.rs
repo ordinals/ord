@@ -51,6 +51,12 @@ impl FromStr for BlockQuery {
   }
 }
 
+enum SpawnConfig {
+  Https(AxumAcceptor),
+  Http,
+  Redirect(String),
+}
+
 #[derive(Deserialize)]
 struct Search {
   query: String,
@@ -156,16 +162,45 @@ impl Server {
         ));
 
       match (self.http_port(), self.https_port()) {
-        (Some(http_port), None) => self.spawn(router, handle, http_port, None)?.await??,
+        (Some(http_port), None) => {
+          self
+            .spawn(router, handle, http_port, SpawnConfig::Http)?
+            .await??
+        }
         (None, Some(https_port)) => {
           self
-            .spawn(router, handle, https_port, Some(self.acceptor(&options)?))?
+            .spawn(
+              router,
+              handle,
+              https_port,
+              SpawnConfig::Https(self.acceptor(&options)?),
+            )?
             .await??
         }
         (Some(http_port), Some(https_port)) => {
+          let http_spawn_config = if self.redirect_http_to_https {
+            let acme_domain = Self::acme_domains(&self.acme_domain)?
+              .into_iter()
+              .nth(0)
+              .unwrap();
+
+            SpawnConfig::Redirect(if https_port == 443 {
+              format!("https://{acme_domain}")
+            } else {
+              format!("https://{acme_domain}:{https_port}")
+            })
+          } else {
+            SpawnConfig::Http
+          };
+
           let (http_result, https_result) = tokio::join!(
-            self.spawn(router.clone(), handle.clone(), http_port, None)?,
-            self.spawn(router, handle, https_port, Some(self.acceptor(&options)?))?
+            self.spawn(router.clone(), handle.clone(), http_port, http_spawn_config)?,
+            self.spawn(
+              router,
+              handle,
+              https_port,
+              SpawnConfig::Https(self.acceptor(&options)?),
+            )?
           );
           http_result.and(https_result)??;
         }
@@ -181,7 +216,7 @@ impl Server {
     router: Router,
     handle: Handle,
     port: u16,
-    https_acceptor: Option<AxumAcceptor>,
+    config: SpawnConfig,
   ) -> Result<task::JoinHandle<io::Result<()>>> {
     let addr = (self.address.as_str(), port)
       .to_socket_addrs()?
@@ -191,47 +226,39 @@ impl Server {
     if !integration_test() {
       eprintln!(
         "Listening on {}://{addr}",
-        if https_acceptor.is_some() {
-          "https"
-        } else {
-          "http"
+        match config {
+          SpawnConfig::Https(_) => "https",
+          _ => "http",
         }
       );
     }
 
-    let redirect_destination = if self.redirect_http_to_https && https_acceptor.is_none() {
-      let acme_domain = Self::acme_domains(&self.acme_domain)?
-        .into_iter()
-        .nth(0)
-        .unwrap();
-
-      Some(format!("https://{acme_domain}"))
-    } else {
-      None
-    };
-
     Ok(tokio::spawn(async move {
-      if let Some(acceptor) = https_acceptor {
-        axum_server::Server::bind(addr)
-          .handle(handle)
-          .acceptor(acceptor)
-          .serve(router.into_make_service())
-          .await
-      } else if let Some(redirect_destination) = redirect_destination {
-        axum_server::Server::bind(addr)
-          .handle(handle)
-          .serve(
-            Router::new()
-              .fallback(Self::redirect_http_to_https)
-              .layer(Extension(redirect_destination))
-              .into_make_service(),
-          )
-          .await
-      } else {
-        axum_server::Server::bind(addr)
-          .handle(handle)
-          .serve(router.into_make_service())
-          .await
+      match config {
+        SpawnConfig::Https(acceptor) => {
+          axum_server::Server::bind(addr)
+            .handle(handle)
+            .acceptor(acceptor)
+            .serve(router.into_make_service())
+            .await
+        }
+        SpawnConfig::Redirect(destination) => {
+          axum_server::Server::bind(addr)
+            .handle(handle)
+            .serve(
+              Router::new()
+                .fallback(Self::redirect_http_to_https)
+                .layer(Extension(destination))
+                .into_make_service(),
+            )
+            .await
+        }
+        SpawnConfig::Http => {
+          axum_server::Server::bind(addr)
+            .handle(handle)
+            .serve(router.into_make_service())
+            .await
+        }
       }
     }))
   }
@@ -1114,7 +1141,7 @@ mod tests {
 
   #[test]
   fn http_to_https_redirect_with_path() {
-    TestServer::new_with_args(&[], &["--redirect-http-to-https"]).assert_redirect(
+    TestServer::new_with_args(&[], &["--redirect-http-to-https", "--https"]).assert_redirect(
       "/sat/0",
       &format!("https://{}/sat/0", sys_info::hostname().unwrap()),
     );
@@ -1122,7 +1149,7 @@ mod tests {
 
   #[test]
   fn http_to_https_redirect_with_empty() {
-    TestServer::new_with_args(&[], &["--redirect-http-to-https"])
+    TestServer::new_with_args(&[], &["--redirect-http-to-https", "--https"])
       .assert_redirect("/", &format!("https://{}/", sys_info::hostname().unwrap()));
   }
 
