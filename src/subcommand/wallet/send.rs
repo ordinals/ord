@@ -54,16 +54,8 @@ impl Send {
           bail!("failed to lock ordinal UTXOs");
         }
 
-        let txid = client.send_to_address(
-          &self.address.into(),
-          amount,
-          None,
-          None,
-          None,
-          None,
-          None,
-          None,
-        )?;
+        let txid =
+          client.send_to_address(&self.address, amount, None, None, None, None, None, None)?;
 
         println!("{txid}");
 
@@ -77,7 +69,7 @@ impl Send {
       satpoint,
       inscriptions,
       unspent_outputs,
-      self.address.into(),
+      self.address,
       change,
     )?;
 
