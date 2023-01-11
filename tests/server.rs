@@ -286,3 +286,25 @@ fn inscriptions_page_is_sorted() {
   TestServer::spawn_with_args(&rpc_server, &[])
     .assert_response_regex("/inscriptions", &inscriptions);
 }
+
+#[test]
+fn inscriptions_page_has_next_and_previous() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+
+  let a = create_inscription(&rpc_server, "a.txt");
+  let b = create_inscription(&rpc_server, "b.txt");
+  let c = create_inscription(&rpc_server, "c.txt");
+
+  TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
+    format!("/inscription/{b}"),
+    format!(
+      ".*<h1>Inscription {b}</h1>.*
+<div class=inscription>
+<a href=/inscription/{c}>❮</a>
+<a href=/preview/{b}>.*</a>
+<a href=/inscription/{a}>❯</a>
+</div>.*"
+    ),
+  );
+}

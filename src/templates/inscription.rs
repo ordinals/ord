@@ -110,20 +110,20 @@ mod tests {
       InscriptionHtml {
         genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
-        inscription_id: txid(1),
+        inscription_id: txid(2),
         sat: None,
-        next: Some(txid(2)),
-        previous: Some(txid(3)),
+        next: Some(txid(3)),
+        previous: Some(txid(1)),
         satpoint: satpoint(1, 0),
         chain: Chain::Mainnet,
         output: tx_out(1, address()),
       },
       "
-        <h1>Inscription 1{64}</h1>
+        <h1>Inscription 2{64}</h1>
         <div class=inscription>
-        <a href=/inscription/2222222222222222222222222222222222222222222222222222222222222222>❮</a>
-        <a href=/preview/1{64}><iframe .* src=/preview/1{64}></iframe></a>
-        <a href=/inscription/3333333333333333333333333333333333333333333333333333333333333333>❯</a>
+        <a href=/inscription/3{64}>❮</a>
+        <a href=/preview/2{64}><iframe .* src=/preview/2{64}></iframe></a>
+        <a href=/inscription/1{64}>❯</a>
         </div>
         .*
       "
