@@ -2,13 +2,16 @@ use super::*;
 
 #[derive(Boilerplate)]
 pub(crate) struct InscriptionHtml {
+  pub(crate) chain: Chain,
   pub(crate) genesis_height: u64,
   pub(crate) inscription: Inscription,
   pub(crate) inscription_id: InscriptionId,
+  pub(crate) next: Option<InscriptionId>,
+  pub(crate) number: u64,
+  pub(crate) output: TxOut,
+  pub(crate) previous: Option<InscriptionId>,
   pub(crate) sat: Option<Sat>,
   pub(crate) satpoint: SatPoint,
-  pub(crate) chain: Chain,
-  pub(crate) output: TxOut,
 }
 
 impl PageContent for InscriptionHtml {
@@ -26,21 +29,30 @@ mod tests {
   use super::*;
 
   #[test]
-  fn without_sat() {
+  fn without_sat_or_nav_links() {
     assert_regex_match!(
       InscriptionHtml {
+        chain: Chain::Mainnet,
         genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
-        inscription_id: "1111111111111111111111111111111111111111111111111111111111111111".parse().unwrap(),
+        inscription_id: txid(1),
+        next: None,
+        number: 1,
+        output: tx_out(1, address()),
+        previous: None,
         sat: None,
         satpoint: satpoint(1, 0),
-        chain: Chain::Mainnet,
-        output: tx_out(1, address()),
       },
       "
-        <h1>Inscription 1{64}</h1>
-        <div class=inscription><a href=/preview/1{64}><iframe .* src=/preview/1{64}></iframe></a></div>
+        <h1>Inscription 1</h1>
+        <div class=inscription>
+        <div>❮</div>
+        <a href=/preview/1{64}><iframe .* src=/preview/1{64}></iframe></a>
+        <div>❯</div>
+        </div>
         <dl>
+          <dt>id</dt>
+          <dd class=monospace>1{64}</dd>
           <dt>address</dt>
           <dd class=monospace>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</dd>
           <dt>output value</dt>
@@ -71,18 +83,19 @@ mod tests {
   fn with_sat() {
     assert_regex_match!(
       InscriptionHtml {
+        chain: Chain::Mainnet,
         genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
-        inscription_id: "1111111111111111111111111111111111111111111111111111111111111111"
-          .parse()
-          .unwrap(),
+        inscription_id: txid(1),
+        next: None,
+        number: 1,
+        output: tx_out(1, address()),
+        previous: None,
         sat: Some(Sat(1)),
         satpoint: satpoint(1, 0),
-        chain: Chain::Mainnet,
-        output: tx_out(1, address()),
       },
       "
-        <h1>Inscription 1{64}</h1>
+        <h1>Inscription 1</h1>
         .*
         <dl>
           .*
@@ -91,6 +104,34 @@ mod tests {
           <dt>content</dt>
           .*
         </dl>
+      "
+      .unindent()
+    );
+  }
+
+  #[test]
+  fn with_prev_and_next() {
+    assert_regex_match!(
+      InscriptionHtml {
+        chain: Chain::Mainnet,
+        genesis_height: 0,
+        inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
+        inscription_id: txid(2),
+        next: Some(txid(3)),
+        number: 1,
+        output: tx_out(1, address()),
+        previous: Some(txid(1)),
+        sat: None,
+        satpoint: satpoint(1, 0),
+      },
+      "
+        <h1>Inscription 1</h1>
+        <div class=inscription>
+        <a class=previous href=/inscription/1{64}>❮</a>
+        <a href=/preview/2{64}><iframe .* src=/preview/2{64}></iframe></a>
+        <a class=next href=/inscription/3{64}>❯</a>
+        </div>
+        .*
       "
       .unindent()
     );

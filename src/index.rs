@@ -29,6 +29,7 @@ macro_rules! define_table {
 
 define_table! { HEIGHT_TO_BLOCK_HASH, u64, &BlockHashArray }
 define_table! { INSCRIPTION_ID_TO_HEIGHT, &InscriptionIdArray, u64 }
+define_table! { INSCRIPTION_ID_TO_INSCRIPTION_NUMBER, &InscriptionIdArray, u64}
 define_table! { INSCRIPTION_ID_TO_SAT, &InscriptionIdArray, u64 }
 define_table! { INSCRIPTION_ID_TO_SATPOINT, &InscriptionIdArray, &SatPointArray }
 define_table! { INSCRIPTION_NUMBER_TO_INSCRIPTION_ID, u64, &InscriptionIdArray }
@@ -235,6 +236,7 @@ impl Index {
 
         tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
         tx.open_table(INSCRIPTION_ID_TO_HEIGHT)?;
+        tx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_NUMBER)?;
         tx.open_table(INSCRIPTION_ID_TO_SAT)?;
         tx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
         tx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
@@ -493,6 +495,34 @@ impl Index {
         .open_table(SAT_TO_INSCRIPTION_ID)?
         .get(&sat.n())?
         .map(|inscription_id| decode_inscription_id(*inscription_id.value())),
+    )
+  }
+
+  pub(crate) fn get_inscription_number_by_inscription_id(
+    &self,
+    id: InscriptionId,
+  ) -> Result<Option<u64>> {
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(INSCRIPTION_ID_TO_INSCRIPTION_NUMBER)?
+        .get(&id.as_inner())?
+        .map(|n| n.value()),
+    )
+  }
+
+  pub(crate) fn get_inscription_id_by_inscription_number(
+    &self,
+    n: u64,
+  ) -> Result<Option<InscriptionId>> {
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
+        .get(&n)?
+        .map(|id| decode_inscription_id(*id.value())),
     )
   }
 

@@ -44,7 +44,7 @@ mod tests {
           <dt>time</dt><dd>1970-01-01 00:00:00</dd>
         </dl>
         prev
-        <a href=/sat/1>next</a>
+        <a class=next href=/sat/1>next</a>
       "
       .unindent()
     );
@@ -75,7 +75,7 @@ mod tests {
           <dt>rarity</dt><dd><span class=uncommon>uncommon</span></dd>
           <dt>time</dt><dd>1970-01-01 00:00:00</dd>
         </dl>
-        <a href=/sat/2099999997689998>prev</a>
+        <a class=previous href=/sat/2099999997689998>prev</a>
         next
       "
       .unindent()
@@ -91,7 +91,7 @@ mod tests {
         blocktime: Blocktime::Confirmed(0),
         inscription: None,
       },
-      r"<h1>Sat 1</h1>.*<a href=/sat/0>prev</a>\n<a href=/sat/2>next</a>\n",
+      r"<h1>Sat 1</h1>.*<a class=previous href=/sat/0>prev</a>\n<a class=next href=/sat/2>next</a>\n",
     );
   }
 
@@ -121,7 +121,7 @@ mod tests {
         blocktime: Blocktime::Confirmed(0),
         inscription: None,
       },
-      r"<h1>Sat 2099999997689999</h1>.*<a href=/sat/2099999997689998>prev</a>\nnext\n",
+      r"<h1>Sat 2099999997689999</h1>.*<a class=previous href=/sat/2099999997689998>prev</a>\nnext\n",
     );
   }
 

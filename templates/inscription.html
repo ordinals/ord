@@ -1,6 +1,20 @@
-<h1>Inscription {{ self.inscription_id }}</h1>
-<div class=inscription>{{Iframe::main(self.inscription_id)}}</div>
+<h1>Inscription {{ self.number }}</h1>
+<div class=inscription>
+%% if let Some(previous) = self.previous {
+<a class=previous href=/inscription/{{previous}}>❮</a>
+%% } else {
+<div>❮</div>
+%% }
+{{Iframe::main(self.inscription_id)}}
+%% if let Some(next) = self.next {
+<a class=next href=/inscription/{{next}}>❯</a>
+%% } else {
+<div>❯</div>
+%% }
+</div>
 <dl>
+  <dt>id</dt>
+  <dd class=monospace>{{ self.inscription_id }}</dd>
 %% if let Ok(address) = self.chain.address_from_script(&self.output.script_pubkey ) {
   <dt>address</dt>
   <dd class=monospace>{{ address }}</dd>
