@@ -19,12 +19,12 @@
 %% }
 </dl>
 %% if self.sat.n() > 0 {
-<a href=/sat/{{self.sat.n() - 1}}>prev</a>
+<a class=previous href=/sat/{{self.sat.n() - 1}}>prev</a>
 %% } else {
 prev
 %% }
 %% if self.sat < Sat::LAST {
-<a href=/sat/{{self.sat.n() + 1}}>next</a>
+<a class=next href=/sat/{{self.sat.n() + 1}}>next</a>
 %% } else {
 next
 %% }

@@ -657,6 +657,7 @@ impl Server {
         genesis_height,
         inscription,
         inscription_id,
+        number,
         next,
         output,
         previous,

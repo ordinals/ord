@@ -2,15 +2,16 @@ use super::*;
 
 #[derive(Boilerplate)]
 pub(crate) struct InscriptionHtml {
+  pub(crate) chain: Chain,
   pub(crate) genesis_height: u64,
   pub(crate) inscription: Inscription,
   pub(crate) inscription_id: InscriptionId,
-  pub(crate) sat: Option<Sat>,
-  pub(crate) satpoint: SatPoint,
-  pub(crate) chain: Chain,
+  pub(crate) next: Option<InscriptionId>,
+  pub(crate) number: u64,
   pub(crate) output: TxOut,
   pub(crate) previous: Option<InscriptionId>,
-  pub(crate) next: Option<InscriptionId>,
+  pub(crate) sat: Option<Sat>,
+  pub(crate) satpoint: SatPoint,
 }
 
 impl PageContent for InscriptionHtml {
@@ -31,24 +32,27 @@ mod tests {
   fn without_sat_or_nav_links() {
     assert_regex_match!(
       InscriptionHtml {
+        chain: Chain::Mainnet,
         genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: txid(1),
-        sat: None,
+        number: 1,
         next: None,
-        previous: None,
-        satpoint: satpoint(1, 0),
-        chain: Chain::Mainnet,
         output: tx_out(1, address()),
+        previous: None,
+        sat: None,
+        satpoint: satpoint(1, 0),
       },
       "
-        <h1>Inscription 1{64}</h1>
+        <h1>Inscription 1</h1>
         <div class=inscription>
         <div></div>
         <a href=/preview/1{64}><iframe .* src=/preview/1{64}></iframe></a>
         <div></div>
         </div>
         <dl>
+          <dt>id</dt>
+          <dd class=monospace>1{64}</dd>
           <dt>address</dt>
           <dd class=monospace>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</dd>
           <dt>output value</dt>
@@ -84,13 +88,14 @@ mod tests {
         inscription_id: txid(1),
         next: None,
         previous: None,
+        number: 1,
         sat: Some(Sat(1)),
         satpoint: satpoint(1, 0),
         chain: Chain::Mainnet,
         output: tx_out(1, address()),
       },
       "
-        <h1>Inscription 1{64}</h1>
+        <h1>Inscription 1</h1>
         .*
         <dl>
           .*
@@ -112,6 +117,7 @@ mod tests {
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: txid(2),
         sat: None,
+        number: 1,
         next: Some(txid(3)),
         previous: Some(txid(1)),
         satpoint: satpoint(1, 0),
@@ -119,7 +125,7 @@ mod tests {
         output: tx_out(1, address()),
       },
       "
-        <h1>Inscription 2{64}</h1>
+        <h1>Inscription 1</h1>
         <div class=inscription>
         <a href=/inscription/1{64}>❮</a>
         <a href=/preview/2{64}><iframe .* src=/preview/2{64}></iframe></a>
