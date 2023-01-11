@@ -121,7 +121,7 @@ mod tests {
         blocktime: Blocktime::Confirmed(0),
         inscription: None,
       },
-      r"<h1>Sat 2099999997689999</h1>.*<a href=/sat/2099999997689998>prev</a>\nnext\n",
+      r"<h1>Sat 2099999997689999</h1>.*<a class=previous href=/sat/2099999997689998>prev</a>\nnext\n",
     );
   }
 

@@ -46,9 +46,9 @@ mod tests {
       "
         <h1>Inscription 1</h1>
         <div class=inscription>
-        <div></div>
+        <div>❮</div>
         <a href=/preview/1{64}><iframe .* src=/preview/1{64}></iframe></a>
-        <div></div>
+        <div>❯</div>
         </div>
         <dl>
           <dt>id</dt>
@@ -127,9 +127,9 @@ mod tests {
       "
         <h1>Inscription 1</h1>
         <div class=inscription>
-        <a href=/inscription/1{64}>❮</a>
+        <a class=previous href=/inscription/1{64}>❮</a>
         <a href=/preview/2{64}><iframe .* src=/preview/2{64}></iframe></a>
-        <a href=/inscription/3{64}>❯</a>
+        <a class=next href=/inscription/3{64}>❯</a>
         </div>
         .*
       "
