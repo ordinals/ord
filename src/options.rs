@@ -134,7 +134,7 @@ impl Options {
     let cookie_file = self.cookie_file()?;
 
     let rpc_url = self.rpc_url(if with_wallet {
-      Some(format!("/wallets/{}", &self.wallet))
+      Some(format!("/wallet/{}", &self.wallet))
     } else {
       None
     });
