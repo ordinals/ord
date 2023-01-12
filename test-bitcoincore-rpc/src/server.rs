@@ -1,3 +1,6 @@
+use bitcoin::psbt::serialize::Deserialize;
+use bitcoincore_rpc::RawTx;
+
 use {
   super::*,
   bitcoin::{
@@ -241,9 +244,14 @@ impl Api for Server {
     assert_eq!(utxos, None, "utxos param not supported");
     assert_eq!(sighash_type, None, "sighash_type param not supported");
 
+    let mut transaction = Transaction::deserialize(&hex::decode(tx).unwrap()).unwrap();
+    for input in &mut transaction.input {
+      input.witness = Witness::from_vec(vec![vec![0; 64]]);
+    }
+
     Ok(
       serde_json::to_value(SignRawTransactionResult {
-        hex: hex::decode(tx).unwrap(),
+        hex: hex::decode(transaction.raw_hex()).unwrap(),
         complete: true,
         errors: None,
       })
