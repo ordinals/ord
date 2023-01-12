@@ -387,7 +387,7 @@ impl Index {
     let height_to_block_hash = rtx.0.open_table(HEIGHT_TO_BLOCK_HASH)?;
 
     for next in height_to_block_hash.range(0..block_count)?.rev().take(take) {
-      blocks.push((next.0.value(), BlockHash::load(*next.1.value())));
+      blocks.push((next.0.value(), Entry::load(*next.1.value())));
     }
 
     Ok(blocks)
