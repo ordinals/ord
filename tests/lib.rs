@@ -47,11 +47,11 @@ fn reveal_txid_from_inscribe_stdout(stdout: &str) -> Txid {
     .unwrap()
 }
 
-fn create_inscription(rpc_server: &test_bitcoincore_rpc::Handle, filename: &str) -> Txid {
-  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+fn create_inscription(rpc_server: &test_bitcoincore_rpc::Handle, filename: &str) -> String {
+  rpc_server.mine_blocks(1);
 
   let stdout = CommandBuilder::new(format!(
-    "--chain {} wallet inscribe --satpoint {txid}:0:0 {filename}",
+    "--chain {} wallet inscribe {filename}",
     rpc_server.network()
   ))
   .write(filename, "HELLOWORLD")
@@ -59,11 +59,11 @@ fn create_inscription(rpc_server: &test_bitcoincore_rpc::Handle, filename: &str)
   .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
   .run();
 
-  let inscription_id = reveal_txid_from_inscribe_stdout(&stdout);
+  let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
 
   rpc_server.mine_blocks(1);
 
-  inscription_id
+  format!("{reveal_txid}i0")
 }
 
 fn create_wallet(rpc_server: &test_bitcoincore_rpc::Handle) {

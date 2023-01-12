@@ -25,13 +25,11 @@ use {
     caches::DirCache,
     AcmeConfig,
   },
-  serde::{de, Deserializer},
   std::{cmp::Ordering, str},
   tokio_stream::StreamExt,
   tower_http::set_header::SetResponseHeaderLayer,
 };
 
-mod deserialize_from_str;
 mod error;
 
 enum BlockQuery {
@@ -469,14 +467,14 @@ impl Server {
     Extension(chain): Extension<Chain>,
     Path(txid): Path<Txid>,
   ) -> ServerResult<PageHtml<TransactionHtml>> {
-    let inscription = index.get_inscription_by_id(txid)?;
+    let inscription = index.get_inscription_by_id(txid.into())?;
 
     Ok(
       TransactionHtml::new(
         index
           .get_transaction(txid)?
           .ok_or_not_found(|| format!("transaction {txid}"))?,
-        inscription,
+        inscription.map(|_| txid.into()),
         chain,
       )
       .page(chain, index.has_sat_index()?),
@@ -1722,7 +1720,7 @@ mod tests {
     let server = TestServer::new();
     server.mine_blocks(1);
 
-    let inscription_id = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0)],
       witness: inscription("text/plain;charset=utf-8", "hello").to_witness(),
       ..Default::default()
@@ -1731,7 +1729,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_csp(
-      format!("/preview/{inscription_id}"),
+      format!("/preview/{}", InscriptionId::from(txid)),
       StatusCode::OK,
       "default-src 'self'",
       ".*<pre>hello</pre>.*",
@@ -1743,7 +1741,7 @@ mod tests {
     let server = TestServer::new();
     server.mine_blocks(1);
 
-    let inscription_id = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0)],
       witness: inscription(
         "text/plain;charset=utf-8",
@@ -1756,7 +1754,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_csp(
-      format!("/preview/{inscription_id}"),
+      format!("/preview/{}", InscriptionId::from(txid)),
       StatusCode::OK,
       "default-src 'self'",
       r".*<pre>&lt;script&gt;alert\(&apos;hello&apos;\);&lt;/script&gt;</pre>.*",
@@ -1768,11 +1766,12 @@ mod tests {
     let server = TestServer::new();
     server.mine_blocks(1);
 
-    let inscription_id = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0)],
       witness: inscription("image/png", "hello").to_witness(),
       ..Default::default()
     });
+    let inscription_id = InscriptionId::from(txid);
 
     server.mine_blocks(1);
 
@@ -1789,7 +1788,7 @@ mod tests {
     let server = TestServer::new();
     server.mine_blocks(1);
 
-    let inscription_id = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0)],
       witness: inscription("text/html;charset=utf-8", "hello").to_witness(),
       ..Default::default()
@@ -1798,7 +1797,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_csp(
-      format!("/preview/{inscription_id}"),
+      format!("/preview/{}", InscriptionId::from(txid)),
       StatusCode::OK,
       "default-src 'unsafe-eval' 'unsafe-inline'",
       "hello",
@@ -1810,7 +1809,7 @@ mod tests {
     let server = TestServer::new();
     server.mine_blocks(1);
 
-    let inscription_id = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0)],
       witness: inscription("text/foo", "hello").to_witness(),
       ..Default::default()
@@ -1819,7 +1818,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_csp(
-      format!("/preview/{inscription_id}"),
+      format!("/preview/{}", InscriptionId::from(txid)),
       StatusCode::OK,
       "default-src 'self'",
       fs::read_to_string("templates/preview-unknown.html").unwrap(),
@@ -1831,7 +1830,7 @@ mod tests {
     let server = TestServer::new_with_sat_index();
     server.mine_blocks(1);
 
-    let inscription_id = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0)],
       witness: inscription("text/foo", "hello").to_witness(),
       ..Default::default()
@@ -1840,7 +1839,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_regex(
-      format!("/inscription/{inscription_id}"),
+      format!("/inscription/{}", InscriptionId::from(txid)),
       StatusCode::OK,
       r".*<dt>sat</dt>\s*<dd><a href=/sat/5000000000>5000000000</a></dd>\s*<dt>content</dt>.*",
     );
@@ -1851,7 +1850,7 @@ mod tests {
     let server = TestServer::new();
     server.mine_blocks(1);
 
-    let inscription_id = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0)],
       witness: inscription("text/foo", "hello").to_witness(),
       ..Default::default()
@@ -1860,7 +1859,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_regex(
-      format!("/inscription/{inscription_id}"),
+      format!("/inscription/{}", InscriptionId::from(txid)),
       StatusCode::OK,
       r".*<dt>output value</dt>\s*<dd>5000000000</dd>\s*<dt>content</dt>.*",
     );

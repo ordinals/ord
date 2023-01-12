@@ -11,7 +11,7 @@ where
     D: Deserializer<'de>,
   {
     Ok(Self(
-      FromStr::from_str(&String::deserialize(deserializer)?).map_err(de::Error::custom)?,
+      FromStr::from_str(&String::deserialize(deserializer)?).map_err(serde::de::Error::custom)?,
     ))
   }
 }

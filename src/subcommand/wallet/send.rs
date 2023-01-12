@@ -40,9 +40,9 @@ impl Send {
         }
         satpoint
       }
-      Outgoing::InscriptionId(txid) => index
-        .get_inscription_satpoint_by_id(txid)?
-        .ok_or_else(|| anyhow!("No inscription found for {txid}"))?,
+      Outgoing::InscriptionId(id) => index
+        .get_inscription_satpoint_by_id(id)?
+        .ok_or_else(|| anyhow!("Inscription {id} not found"))?,
       Outgoing::Amount(amount) => {
         let all_inscription_outputs = inscriptions
           .keys()

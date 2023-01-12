@@ -24,7 +24,7 @@ impl From<Block> for BlockData {
 }
 
 pub(crate) struct Updater {
-  range_cache: HashMap<OutPointArray, Vec<u8>>,
+  range_cache: HashMap<OutPointValue, Vec<u8>>,
   height: u64,
   index_sats: bool,
   sat_ranges_since_flush: u64,
@@ -321,7 +321,7 @@ impl Updater {
         let mut input_sat_ranges = VecDeque::new();
 
         for input in &tx.input {
-          let key = encode_outpoint(input.previous_output);
+          let key = input.previous_output.store();
 
           let sat_ranges = match self.range_cache.remove(&key) {
             Some(sat_ranges) => {
@@ -370,10 +370,11 @@ impl Updater {
           if !Sat(start).is_common() {
             sat_to_satpoint.insert(
               &start,
-              &encode_satpoint(SatPoint {
+              &SatPoint {
                 outpoint: OutPoint::null(),
                 offset: lost_sats,
-              }),
+              }
+              .store(),
             )?;
           }
 
@@ -388,10 +389,7 @@ impl Updater {
 
     statistic_to_count.insert(&Statistic::LostSats.key(), &lost_sats)?;
 
-    height_to_block_hash.insert(
-      &self.height,
-      &block.header.block_hash().as_hash().into_inner(),
-    )?;
+    height_to_block_hash.insert(&self.height, &block.header.block_hash().store())?;
 
     self.height += 1;
     self.outputs_traversed += outputs_in_block;
@@ -408,7 +406,7 @@ impl Updater {
     &mut self,
     tx: &Transaction,
     txid: Txid,
-    sat_to_satpoint: &mut Table<u64, &SatPointArray>,
+    sat_to_satpoint: &mut Table<u64, &SatPointValue>,
     input_sat_ranges: &mut VecDeque<(u64, u64)>,
     sat_ranges_written: &mut u64,
     outputs_traversed: &mut u64,
@@ -432,10 +430,11 @@ impl Updater {
         if !Sat(range.0).is_common() {
           sat_to_satpoint.insert(
             &range.0,
-            &encode_satpoint(SatPoint {
+            &SatPoint {
               outpoint,
               offset: output.value - remaining,
-            }),
+            }
+            .store(),
           )?;
         }
 
@@ -464,7 +463,7 @@ impl Updater {
 
       *outputs_traversed += 1;
 
-      self.range_cache.insert(encode_outpoint(outpoint), sats);
+      self.range_cache.insert(outpoint.store(), sats);
       self.outputs_inserted_since_flush += 1;
     }
 
@@ -501,7 +500,7 @@ impl Updater {
       let mut outpoint_to_value = wtx.open_table(OUTPOINT_TO_VALUE)?;
 
       for (outpoint, value) in value_cache {
-        outpoint_to_value.insert(&encode_outpoint(outpoint), &value)?;
+        outpoint_to_value.insert(&outpoint.store(), &value)?;
       }
     }
 

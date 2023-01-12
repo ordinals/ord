@@ -1051,12 +1051,7 @@ mod tests {
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
         satpoint(1, 0),
-        BTreeMap::from([(
-          satpoint(2, 10 * COIN_VALUE),
-          "bed200b55adcf20e359bbb762392d5106cafbafc48e55f77c94d3041de3521da"
-            .parse()
-            .unwrap()
-        )]),
+        BTreeMap::from([(satpoint(2, 10 * COIN_VALUE), inscription_id(1))]),
         utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1)],
@@ -1073,12 +1068,7 @@ mod tests {
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
         satpoint(1, 0),
-        BTreeMap::from([(
-          satpoint(1, 500),
-          "bed200b55adcf20e359bbb762392d5106cafbafc48e55f77c94d3041de3521da"
-            .parse()
-            .unwrap()
-        )]),
+        BTreeMap::from([(satpoint(1, 500), inscription_id(1))]),
         utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1)],
@@ -1087,9 +1077,7 @@ mod tests {
       Err(Error::UtxoContainsAdditionalInscription {
         outgoing_satpoint: satpoint(1, 0),
         inscribed_satpoint: satpoint(1, 500),
-        inscription_id: "bed200b55adcf20e359bbb762392d5106cafbafc48e55f77c94d3041de3521da"
-          .parse()
-          .unwrap(),
+        inscription_id: inscription_id(1),
       })
     )
   }
@@ -1102,12 +1090,7 @@ mod tests {
 
     let transaction = TransactionBuilder::build_transaction(
       satpoint(1, 0),
-      BTreeMap::from([(
-        satpoint(1, 0),
-        "bed200b55adcf20e359bbb762392d5106cafbafc48e55f77c94d3041de3521da"
-          .parse()
-          .unwrap(),
-      )]),
+      BTreeMap::from([(satpoint(1, 0), inscription_id(1))]),
       utxos.into_iter().collect(),
       recipient(),
       vec![change(0), change(1)],
