@@ -1,5 +1,9 @@
 use {
-  self::{array::Array, updater::Updater},
+  self::{
+    array::Array,
+    inscription_entry::{InscriptionEntry, InscriptionEntryValue},
+    updater::Updater,
+  },
   super::*,
   bitcoin::BlockHeader,
   bitcoincore_rpc::{json::GetBlockHeaderResult, Auth, Client},
@@ -11,6 +15,7 @@ use {
 };
 
 mod array;
+mod inscription_entry;
 mod rtx;
 mod updater;
 
@@ -29,9 +34,7 @@ macro_rules! define_table {
 }
 
 define_table! { HEIGHT_TO_BLOCK_HASH, u64, &BlockHashArray }
-define_table! { INSCRIPTION_ID_TO_HEIGHT, &InscriptionIdArray, u64 }
-define_table! { INSCRIPTION_ID_TO_INSCRIPTION_NUMBER, &InscriptionIdArray, u64}
-define_table! { INSCRIPTION_ID_TO_SAT, &InscriptionIdArray, u64 }
+define_table! { INSCRIPTION_ID_TO_INSCRIPTION_ENTRY, &InscriptionIdArray, InscriptionEntryValue }
 define_table! { INSCRIPTION_ID_TO_SATPOINT, &InscriptionIdArray, &SatPointArray }
 define_table! { INSCRIPTION_NUMBER_TO_INSCRIPTION_ID, u64, &InscriptionIdArray }
 define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointArray, &[u8] }
@@ -134,13 +137,6 @@ impl Index {
     let rpc_url = options.rpc_url();
     let cookie_file = options.cookie_file()?;
 
-    if cfg!(test) {
-      // The default max database size is 10 MiB for Regtest and 1 TiB
-      // for all other networks. A larger database takes longer to
-      // initialize, so unit tests should use the regtest network.
-      assert_eq!(options.chain(), Chain::Regtest);
-    }
-
     log::info!(
       "Connecting to Bitcoin Core RPC server at {rpc_url} using credentials from `{}`",
       cookie_file.display()
@@ -208,9 +204,7 @@ impl Index {
         };
 
         tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
-        tx.open_table(INSCRIPTION_ID_TO_HEIGHT)?;
-        tx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_NUMBER)?;
-        tx.open_table(INSCRIPTION_ID_TO_SAT)?;
+        tx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
         tx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
         tx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
         tx.open_table(OUTPOINT_TO_VALUE)?;
@@ -471,20 +465,6 @@ impl Index {
     )
   }
 
-  pub(crate) fn get_inscription_number_by_inscription_id(
-    &self,
-    id: InscriptionId,
-  ) -> Result<Option<u64>> {
-    Ok(
-      self
-        .database
-        .begin_read()?
-        .open_table(INSCRIPTION_ID_TO_INSCRIPTION_NUMBER)?
-        .get(&id.array())?
-        .map(|n| n.value()),
-    )
-  }
-
   pub(crate) fn get_inscription_id_by_inscription_number(
     &self,
     n: u64,
@@ -499,39 +479,29 @@ impl Index {
     )
   }
 
-  pub(crate) fn get_sat_by_inscription_id(
+  pub(crate) fn get_inscription_satpoint_by_id(
     &self,
     inscription_id: InscriptionId,
-  ) -> Result<Option<Sat>> {
+  ) -> Result<Option<SatPoint>> {
     Ok(
       self
         .database
         .begin_read()?
-        .open_table(INSCRIPTION_ID_TO_SAT)?
+        .open_table(INSCRIPTION_ID_TO_SATPOINT)?
         .get(&inscription_id.array())?
-        .map(|value| Sat(value.value())),
+        .map(|satpoint| Array::from_array(*satpoint.value())),
     )
   }
 
   pub(crate) fn get_inscription_by_id(
     &self,
     inscription_id: InscriptionId,
-  ) -> Result<Option<(Inscription, SatPoint)>> {
-    let Some(satpoint) = self
-        .database
-        .begin_read()?
-        .open_table(INSCRIPTION_ID_TO_SATPOINT)?
-        .get(&inscription_id.array())?
-        .map(|satpoint| Array::from_array(*satpoint.value()))
-        else {
-      return Ok(None);
-    };
-
-    let Some(inscription) = self.get_transaction(inscription_id.txid)?.and_then(|tx| Inscription::from_transaction(&tx)) else {
-      return Ok(None);
-    };
-
-    Ok(Some((inscription, satpoint)))
+  ) -> Result<Option<Inscription>> {
+    Ok(
+      self
+        .get_transaction(inscription_id.txid)?
+        .and_then(|tx| Inscription::from_transaction(&tx)),
+    )
   }
 
   pub(crate) fn get_inscriptions_on_output(
@@ -700,14 +670,18 @@ impl Index {
     )
   }
 
-  pub(crate) fn get_genesis_height(&self, inscription_id: InscriptionId) -> Result<u64> {
-    self
-      .database
-      .begin_read()?
-      .open_table(INSCRIPTION_ID_TO_HEIGHT)?
-      .get(&inscription_id.array())?
-      .map(|x| x.value())
-      .ok_or_else(|| anyhow!("no height for inscription"))
+  pub(crate) fn get_inscription_entry(
+    &self,
+    inscription_id: InscriptionId,
+  ) -> Result<Option<InscriptionEntry>> {
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?
+        .get(&inscription_id.array())?
+        .map(|value| InscriptionEntry::load(value.value())),
+    )
   }
 
   #[cfg(test)]
@@ -940,13 +914,18 @@ mod tests {
 
       assert_eq!(
         context.index.get_inscription_by_id(inscription_id).unwrap(),
-        Some((
-          inscription,
-          SatPoint {
-            outpoint: OutPoint { txid, vout: 0 },
-            offset: 0,
-          }
-        ))
+        Some(inscription)
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_satpoint_by_id(inscription_id)
+          .unwrap(),
+        Some(SatPoint {
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 0,
+        })
       );
     }
 
@@ -960,7 +939,10 @@ mod tests {
       context.mine_blocks(1);
 
       assert_eq!(
-        context.index.get_inscription_by_id(inscription_id).unwrap(),
+        context
+          .index
+          .get_inscription_satpoint_by_id(inscription_id)
+          .unwrap(),
         None,
       );
     }

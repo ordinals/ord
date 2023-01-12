@@ -1,5 +1,7 @@
 use super::*;
 
+// TODO:
+// - rename to entry or something, and reuse for inscription entry
 pub(super) trait Array: Sized {
   type Array;
 

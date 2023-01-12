@@ -1,7 +1,9 @@
-use super::*;
-
 use {
-  self::error::{OptionExt, ServerError, ServerResult},
+  self::{
+    deserialize_from_str::DeserializeFromStr,
+    error::{OptionExt, ServerError, ServerResult},
+  },
+  super::*,
   crate::templates::{
     BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionsHtml, OutputHtml,
     PageContent, PageHtml, PreviewImageHtml, PreviewTextHtml, PreviewUnknownHtml, RangeHtml,
@@ -10,7 +12,7 @@ use {
   axum::{
     body,
     extract::{Extension, Path, Query},
-    http::{header, HeaderMap, HeaderValue, StatusCode},
+    http::{header, HeaderMap, HeaderValue, StatusCode, Uri},
     response::{IntoResponse, Redirect, Response},
     routing::get,
     Router,
@@ -45,6 +47,12 @@ impl FromStr for BlockQuery {
       BlockQuery::Height(s.parse()?)
     })
   }
+}
+
+enum SpawnConfig {
+  Https(AxumAcceptor),
+  Http,
+  Redirect(String),
 }
 
 #[derive(Deserialize)]
@@ -105,6 +113,8 @@ pub(crate) struct Server {
   http: bool,
   #[clap(long, help = "Serve HTTPS traffic on <HTTPS_PORT>.")]
   https: bool,
+  #[clap(long, help = "Redirect HTTP traffic to HTTPS.")]
+  redirect_http_to_https: bool,
 }
 
 impl Server {
@@ -150,16 +160,42 @@ impl Server {
         ));
 
       match (self.http_port(), self.https_port()) {
-        (Some(http_port), None) => self.spawn(router, handle, http_port, None)?.await??,
+        (Some(http_port), None) => {
+          self
+            .spawn(router, handle, http_port, SpawnConfig::Http)?
+            .await??
+        }
         (None, Some(https_port)) => {
           self
-            .spawn(router, handle, https_port, Some(self.acceptor(&options)?))?
+            .spawn(
+              router,
+              handle,
+              https_port,
+              SpawnConfig::Https(self.acceptor(&options)?),
+            )?
             .await??
         }
         (Some(http_port), Some(https_port)) => {
+          let http_spawn_config = if self.redirect_http_to_https {
+            let acme_domains = self.acme_domains()?;
+
+            SpawnConfig::Redirect(if https_port == 443 {
+              format!("https://{}", acme_domains[0])
+            } else {
+              format!("https://{}:{https_port}", acme_domains[0])
+            })
+          } else {
+            SpawnConfig::Http
+          };
+
           let (http_result, https_result) = tokio::join!(
-            self.spawn(router.clone(), handle.clone(), http_port, None)?,
-            self.spawn(router, handle, https_port, Some(self.acceptor(&options)?))?
+            self.spawn(router.clone(), handle.clone(), http_port, http_spawn_config)?,
+            self.spawn(
+              router,
+              handle,
+              https_port,
+              SpawnConfig::Https(self.acceptor(&options)?),
+            )?
           );
           http_result.and(https_result)??;
         }
@@ -175,7 +211,7 @@ impl Server {
     router: Router,
     handle: Handle,
     port: u16,
-    https_acceptor: Option<AxumAcceptor>,
+    config: SpawnConfig,
   ) -> Result<task::JoinHandle<io::Result<()>>> {
     let addr = (self.address.as_str(), port)
       .to_socket_addrs()?
@@ -185,26 +221,39 @@ impl Server {
     if !integration_test() {
       eprintln!(
         "Listening on {}://{addr}",
-        if https_acceptor.is_some() {
-          "https"
-        } else {
-          "http"
+        match config {
+          SpawnConfig::Https(_) => "https",
+          _ => "http",
         }
       );
     }
 
     Ok(tokio::spawn(async move {
-      if let Some(acceptor) = https_acceptor {
-        axum_server::Server::bind(addr)
-          .handle(handle)
-          .acceptor(acceptor)
-          .serve(router.into_make_service())
-          .await
-      } else {
-        axum_server::Server::bind(addr)
-          .handle(handle)
-          .serve(router.into_make_service())
-          .await
+      match config {
+        SpawnConfig::Https(acceptor) => {
+          axum_server::Server::bind(addr)
+            .handle(handle)
+            .acceptor(acceptor)
+            .serve(router.into_make_service())
+            .await
+        }
+        SpawnConfig::Redirect(destination) => {
+          axum_server::Server::bind(addr)
+            .handle(handle)
+            .serve(
+              Router::new()
+                .fallback(Self::redirect_http_to_https)
+                .layer(Extension(destination))
+                .into_make_service(),
+            )
+            .await
+        }
+        SpawnConfig::Http => {
+          axum_server::Server::bind(addr)
+            .handle(handle)
+            .serve(router.into_make_service())
+            .await
+        }
       }
     }))
   }
@@ -219,9 +268,9 @@ impl Server {
     Ok(acme_cache)
   }
 
-  fn acme_domains(acme_domain: &Vec<String>) -> Result<Vec<String>> {
-    if !acme_domain.is_empty() {
-      Ok(acme_domain.clone())
+  fn acme_domains(&self) -> Result<Vec<String>> {
+    if !self.acme_domain.is_empty() {
+      Ok(self.acme_domain.clone())
     } else {
       Ok(vec![sys_info::hostname()?])
     }
@@ -244,7 +293,7 @@ impl Server {
   }
 
   fn acceptor(&self, options: &Options) -> Result<AxumAcceptor> {
-    let config = AcmeConfig::new(Self::acme_domains(&self.acme_domain)?)
+    let config = AcmeConfig::new(self.acme_domains()?)
       .contact(&self.acme_contact)
       .cache_option(Some(DirCache::new(Self::acme_cache(
         self.acme_cache.as_ref(),
@@ -418,9 +467,7 @@ impl Server {
     Extension(chain): Extension<Chain>,
     Path(txid): Path<Txid>,
   ) -> ServerResult<PageHtml<TransactionHtml>> {
-    let inscription = index
-      .get_inscription_by_id(txid.into())?
-      .map(|(inscription, _satpoint)| inscription);
+    let inscription = index.get_inscription_by_id(txid.into())?;
 
     Ok(
       TransactionHtml::new(
@@ -550,7 +597,7 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<Response> {
-    let (inscription, _) = index
+    let inscription = index
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
@@ -584,7 +631,7 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<Response> {
-    let (inscription, _) = index
+    let inscription = index
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
@@ -614,13 +661,17 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<PageHtml<InscriptionHtml>> {
-    let (inscription, satpoint) = index
+    let entry = index
+      .get_inscription_entry(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    let inscription = index
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
-    let genesis_height = index.get_genesis_height(inscription_id)?;
-
-    let sat = index.get_sat_by_inscription_id(inscription_id)?;
+    let satpoint = index
+      .get_inscription_satpoint_by_id(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
     let output = index
       .get_transaction(satpoint.outpoint.txid)?
@@ -630,11 +681,7 @@ impl Server {
       .nth(satpoint.outpoint.vout.try_into().unwrap())
       .ok_or_not_found(|| format!("inscription {inscription_id} current transaction output"))?;
 
-    let number = index
-      .get_inscription_number_by_inscription_id(inscription_id)?
-      .ok_or_not_found(|| format!("inscription {inscription_id} number"))?;
-
-    let previous = if let Some(previous) = number.checked_sub(1) {
+    let previous = if let Some(previous) = entry.number.checked_sub(1) {
       Some(
         index
           .get_inscription_id_by_inscription_number(previous)?
@@ -644,20 +691,21 @@ impl Server {
       None
     };
 
-    let next = index.get_inscription_id_by_inscription_number(number + 1)?;
+    let next = index.get_inscription_id_by_inscription_number(entry.number + 1)?;
 
     Ok(
       InscriptionHtml {
         chain,
-        genesis_height,
+        genesis_height: entry.height,
         inscription,
         inscription_id,
-        number,
         next,
+        number: entry.number,
         output,
         previous,
-        sat,
+        sat: entry.sat,
         satpoint,
+        timestamp: timestamp(entry.timestamp),
       }
       .page(chain, index.has_sat_index()?),
     )
@@ -673,6 +721,17 @@ impl Server {
       }
       .page(chain, index.has_sat_index()?),
     )
+  }
+
+  async fn redirect_http_to_https(
+    Extension(mut destination): Extension<String>,
+    uri: Uri,
+  ) -> Redirect {
+    if let Some(path_and_query) = uri.path_and_query() {
+      destination.push_str(path_and_query.as_str());
+    }
+
+    Redirect::to(&destination)
   }
 }
 
@@ -691,10 +750,14 @@ mod tests {
 
   impl TestServer {
     fn new() -> Self {
-      Self::new_with_args(&[])
+      Self::new_with_args(&[], &[])
     }
 
-    fn new_with_args(args: &[&str]) -> Self {
+    fn new_with_sat_index() -> Self {
+      Self::new_with_args(&["--index-sats"], &[])
+    }
+
+    fn new_with_args(ord_args: &[&str], server_args: &[&str]) -> Self {
       let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
       let tempdir = TempDir::new().unwrap();
@@ -712,12 +775,13 @@ mod tests {
       let url = Url::parse(&format!("http://127.0.0.1:{port}")).unwrap();
 
       let (options, server) = parse_server_args(&format!(
-        "ord --chain regtest --rpc-url {} --cookie-file {} --data-dir {} {} server --http-port {} --address 127.0.0.1",
+        "ord --chain regtest --rpc-url {} --cookie-file {} --data-dir {} {} server --http-port {} --address 127.0.0.1 {}",
         bitcoin_rpc_server.url(),
         cookiefile.to_str().unwrap(),
         tempdir.path().to_str().unwrap(),
-        args.join(" "),
+        ord_args.join(" "),
         port,
+        server_args.join(" "),
       ));
 
       let index = Arc::new(Index::open(&options).unwrap());
@@ -733,8 +797,13 @@ mod tests {
         thread::sleep(Duration::from_millis(25));
       }
 
+      let client = reqwest::blocking::Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .build()
+        .unwrap();
+
       for i in 0.. {
-        match reqwest::blocking::get(format!("http://127.0.0.1:{port}/status")) {
+        match client.get(format!("http://127.0.0.1:{port}/status")).send() {
           Ok(_) => break,
           Err(err) => {
             if i == 400 {
@@ -988,18 +1057,17 @@ mod tests {
 
   #[test]
   fn acme_domain_defaults_to_hostname() {
+    let (_, server) = parse_server_args("ord server");
     assert_eq!(
-      Server::acme_domains(&Vec::new()).unwrap(),
+      server.acme_domains().unwrap(),
       &[sys_info::hostname().unwrap()]
     );
   }
 
   #[test]
   fn acme_domain_flag_is_respected() {
-    assert_eq!(
-      Server::acme_domains(&vec!["example.com".into()]).unwrap(),
-      &["example.com"]
-    );
+    let (_, server) = parse_server_args("ord server --acme-domain example.com");
+    assert_eq!(server.acme_domains().unwrap(), &["example.com"]);
   }
 
   #[test]
@@ -1062,6 +1130,20 @@ mod tests {
       "/search/0000000000000000000000000000000000000000000000000000000000000000:0",
       "/output/0000000000000000000000000000000000000000000000000000000000000000:0",
     );
+  }
+
+  #[test]
+  fn http_to_https_redirect_with_path() {
+    TestServer::new_with_args(&[], &["--redirect-http-to-https", "--https"]).assert_redirect(
+      "/sat/0",
+      &format!("https://{}/sat/0", sys_info::hostname().unwrap()),
+    );
+  }
+
+  #[test]
+  fn http_to_https_redirect_with_empty() {
+    TestServer::new_with_args(&[], &["--redirect-http-to-https", "--https"])
+      .assert_redirect("/", &format!("https://{}/", sys_info::hostname().unwrap()));
   }
 
   #[test]
@@ -1183,7 +1265,7 @@ mod tests {
 
   #[test]
   fn output_with_sat_index() {
-    TestServer::new_with_args(&["--index-sats"]).assert_response_regex(
+    TestServer::new_with_sat_index().assert_response_regex(
     "/output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
     StatusCode::OK,
     ".*<title>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</title>.*<h1>Output <span class=monospace>4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</span></h1>
@@ -1396,7 +1478,7 @@ mod tests {
 
   #[test]
   fn rare_with_index() {
-    TestServer::new_with_args(&["--index-sats"]).assert_response(
+    TestServer::new_with_sat_index().assert_response(
       "/rare.txt",
       StatusCode::OK,
       "sat\tsatpoint
@@ -1407,7 +1489,7 @@ mod tests {
 
   #[test]
   fn rare_without_sat_index() {
-    TestServer::new_with_args(&[]).assert_response(
+    TestServer::new().assert_response(
       "/rare.txt",
       StatusCode::NOT_FOUND,
       "tracking rare sats requires index created with `--index-sats` flag",
@@ -1416,7 +1498,7 @@ mod tests {
 
   #[test]
   fn show_rare_txt_in_header_with_sat_index() {
-    TestServer::new_with_args(&["--index-sats"]).assert_response_regex(
+    TestServer::new_with_sat_index().assert_response_regex(
       "/",
       StatusCode::OK,
       ".*
@@ -1428,7 +1510,7 @@ mod tests {
 
   #[test]
   fn rare_sat_location() {
-    TestServer::new_with_args(&["--index-sats"]).assert_response_regex(
+    TestServer::new_with_sat_index().assert_response_regex(
       "/sat/0",
       StatusCode::OK,
       ".*>4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0<.*",
@@ -1500,7 +1582,7 @@ mod tests {
 
   #[test]
   fn outputs_traversed_are_tracked() {
-    let server = TestServer::new_with_args(&["--index-sats"]);
+    let server = TestServer::new_with_sat_index();
 
     assert_eq!(
       server
@@ -1532,7 +1614,7 @@ mod tests {
 
   #[test]
   fn coinbase_sat_ranges_are_tracked() {
-    let server = TestServer::new_with_args(&["--index-sats"]);
+    let server = TestServer::new_with_sat_index();
 
     assert_eq!(
       server.index.statistic(crate::index::Statistic::SatRanges),
@@ -1556,7 +1638,7 @@ mod tests {
 
   #[test]
   fn split_sat_ranges_are_tracked() {
-    let server = TestServer::new_with_args(&["--index-sats"]);
+    let server = TestServer::new_with_sat_index();
 
     assert_eq!(
       server.index.statistic(crate::index::Statistic::SatRanges),
@@ -1580,7 +1662,7 @@ mod tests {
 
   #[test]
   fn fee_sat_ranges_are_tracked() {
-    let server = TestServer::new_with_args(&["--index-sats"]);
+    let server = TestServer::new_with_sat_index();
 
     assert_eq!(
       server.index.statistic(crate::index::Statistic::SatRanges),
@@ -1745,7 +1827,7 @@ mod tests {
 
   #[test]
   fn inscription_page_has_sat_when_sats_are_tracked() {
-    let server = TestServer::new_with_args(&["--index-sats"]);
+    let server = TestServer::new_with_sat_index();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {

@@ -71,6 +71,8 @@ fn inscription_page() {
   <dd>10 bytes</dd>
   <dt>content type</dt>
   <dd>text/plain;charset=utf-8</dd>
+  <dt>timestamp</dt>
+  <dd>1970-01-01 00:00:02</dd>
   <dt>genesis height</dt>
   <dd>2</dd>
   <dt>genesis transaction</dt>
@@ -112,9 +114,9 @@ fn inscription_appears_on_reveal_transaction_page() {
 fn inscription_appears_on_output_page() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
-  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+  rpc_server.mine_blocks(1);
 
-  let stdout = CommandBuilder::new(format!("wallet inscribe --satpoint {txid}:0:0 hello.txt"))
+  let stdout = CommandBuilder::new("wallet inscribe hello.txt")
     .write("hello.txt", "HELLOWORLD")
     .rpc_server(&rpc_server)
     .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
@@ -134,7 +136,6 @@ fn inscription_appears_on_output_page() {
 fn inscription_page_after_send() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
-
   rpc_server.mine_blocks(1);
 
   let stdout = CommandBuilder::new("wallet inscribe hello.txt")
@@ -158,7 +159,7 @@ fn inscription_page_after_send() {
   );
 
   let txid = CommandBuilder::new(format!(
-    "wallet send --cardinal bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {inscription_id}"
+    "wallet send bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {inscription_id}"
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(".*")
@@ -214,7 +215,7 @@ fn home_page_includes_latest_inscriptions() {
     "/",
     format!(
       ".*<h2>Latest Inscriptions</h2>
-<div class=inscriptions>
+<div class=thumbnails>
   <a href=/inscription/{inscription_id}><iframe .*></a>
 </div>.*"
     ),
@@ -237,7 +238,7 @@ fn home_page_inscriptions_are_sorted() {
     "/",
     format!(
       ".*<h2>Latest Inscriptions</h2>
-<div class=inscriptions>{inscriptions}
+<div class=thumbnails>{inscriptions}
 </div>.*"
     ),
   );
@@ -254,7 +255,7 @@ fn inscriptions_page() {
     "/inscriptions",
     format!(
       ".*<h1>Inscriptions</h1>
-<div class=inscriptions>
+<div class=thumbnails>
   <a href=/inscription/{inscription_id}>.*</a>
 </div>
 .*",

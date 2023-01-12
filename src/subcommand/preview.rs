@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, fee_rate::FeeRate};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Preview {
@@ -77,6 +77,7 @@ impl Preview {
         options: options.clone(),
         subcommand: Subcommand::Wallet(super::wallet::Wallet::Inscribe(
           super::wallet::inscribe::Inscribe {
+            fee_rate: FeeRate::try_from(1.0).unwrap(),
             file,
             no_backup: true,
             satpoint: None,

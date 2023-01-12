@@ -1,9 +1,11 @@
 use {
   super::*,
   bitcoin::{
+    psbt::serialize::Deserialize,
     secp256k1::{rand, KeyPair, Secp256k1, XOnlyPublicKey},
     Address, Witness,
   },
+  bitcoincore_rpc::RawTx,
 };
 
 pub(crate) struct Server {
@@ -241,9 +243,14 @@ impl Api for Server {
     assert_eq!(utxos, None, "utxos param not supported");
     assert_eq!(sighash_type, None, "sighash_type param not supported");
 
+    let mut transaction = Transaction::deserialize(&hex::decode(tx).unwrap()).unwrap();
+    for input in &mut transaction.input {
+      input.witness = Witness::from_vec(vec![vec![0; 64]]);
+    }
+
     Ok(
       serde_json::to_value(SignRawTransactionResult {
-        hex: hex::decode(tx).unwrap(),
+        hex: hex::decode(transaction.raw_hex()).unwrap(),
         complete: true,
         errors: None,
       })

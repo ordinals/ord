@@ -12,7 +12,6 @@
 
 use {
   self::{
-    any_address::AnyAddress,
     arguments::Arguments,
     blocktime::Blocktime,
     content::Content,
@@ -26,7 +25,6 @@ use {
     inscription_id::InscriptionId,
     object::Object,
     options::Options,
-    ordinal_address::OrdinalAddress,
     outgoing::Outgoing,
     rarity::Rarity,
     representation::Representation,
@@ -41,7 +39,6 @@ use {
     consensus::{self, Decodable, Encodable},
     hash_types::BlockHash,
     hashes::Hash,
-    util::address::{Payload, WitnessVersion},
     Address, Amount, Block, Network, OutPoint, Script, Sequence, Transaction, TxIn, TxOut, Txid,
   },
   bitcoincore_rpc::{Client, RpcApi},
@@ -83,7 +80,6 @@ mod test;
 #[cfg(test)]
 use self::test::*;
 
-mod any_address;
 mod arguments;
 mod blocktime;
 mod chain;
@@ -92,13 +88,13 @@ mod decimal;
 mod degree;
 mod deserialize_from_str;
 mod epoch;
+mod fee_rate;
 mod height;
 mod index;
 mod inscription;
 mod inscription_id;
 mod object;
 mod options;
-mod ordinal_address;
 mod outgoing;
 mod rarity;
 mod representation;
@@ -122,6 +118,10 @@ fn integration_test() -> bool {
   env::var_os("ORD_INTEGRATION_TEST")
     .map(|value| value.len() > 0)
     .unwrap_or(false)
+}
+
+fn timestamp(seconds: u32) -> NaiveDateTime {
+  NaiveDateTime::from_timestamp_opt(seconds.into(), 0).unwrap()
 }
 
 fn main() {

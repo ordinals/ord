@@ -1,10 +1,5 @@
 use super::*;
 
-// TODO:
-// - print inscription ID on send
-// - make sure we use inscriptionIDs in index methods
-// - test errors
-
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub(crate) struct InscriptionId {
   pub(crate) txid: Txid,
