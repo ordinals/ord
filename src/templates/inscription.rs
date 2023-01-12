@@ -12,6 +12,7 @@ pub(crate) struct InscriptionHtml {
   pub(crate) previous: Option<InscriptionId>,
   pub(crate) sat: Option<Sat>,
   pub(crate) satpoint: SatPoint,
+  pub(crate) timestamp: NaiveDateTime,
 }
 
 impl PageContent for InscriptionHtml {
@@ -42,6 +43,7 @@ mod tests {
         previous: None,
         sat: None,
         satpoint: satpoint(1, 0),
+        timestamp: timestamp(0),
       },
       "
         <h1>Inscription 1</h1>
@@ -63,6 +65,8 @@ mod tests {
           <dd>10 bytes</dd>
           <dt>content type</dt>
           <dd>text/plain;charset=utf-8</dd>
+          <dt>timestamp</dt>
+          <dd>1970-01-01 00:00:00</dd>
           <dt>genesis height</dt>
           <dd>0</dd>
           <dt>genesis transaction</dt>
@@ -93,6 +97,7 @@ mod tests {
         previous: None,
         sat: Some(Sat(1)),
         satpoint: satpoint(1, 0),
+        timestamp: timestamp(0),
       },
       "
         <h1>Inscription 1</h1>
@@ -123,6 +128,7 @@ mod tests {
         previous: Some(txid(1)),
         sat: None,
         satpoint: satpoint(1, 0),
+        timestamp: timestamp(0),
       },
       "
         <h1>Inscription 1</h1>
