@@ -259,10 +259,10 @@ impl TransactionBuilder {
     self
   }
 
-  /// Estimate the size in virtual bytes of the transaction being built. We
-  /// know that the inputs are all taproot key path spends, since we create a
-  /// Bitcoin Core wallet with that specific property. The witness size is then
-  /// just the 64 byte Schnorr signature.
+  /// Estimate the size in virtual bytes of the transaction under construction.
+  /// We initialize wallets with taproot descriptors only, so we know that all
+  /// inputs are taproot key path spends, which allows us to know that witnesses
+  /// will all consist of single Schnorr signatures.
   fn estimate_vsize(&self) -> usize {
     Transaction {
       version: 1,
@@ -410,21 +410,22 @@ impl TransactionBuilder {
       offset += output.value;
     }
 
-    let mut fee_with_dummy_witness = Amount::ZERO;
+    let mut actual_fee = Amount::ZERO;
     for input in &transaction.input {
-      fee_with_dummy_witness += self.amounts[&input.previous_output];
+      actual_fee += self.amounts[&input.previous_output];
     }
     for output in &transaction.output {
-      fee_with_dummy_witness -= Amount::from_sat(output.value);
+      actual_fee -= Amount::from_sat(output.value);
     }
 
-    let fee_without_dummy_witness = self.fee_rate.fee(
-      transaction.vsize()
-        + transaction.input.len() * ((TransactionBuilder::SCHNORR_SIGNATURE_SIZE / 4) + 1),
-    );
+    let mut modified_tx = transaction.clone();
+    for input in &mut modified_tx.input {
+      input.witness = Witness::from_vec(vec![vec![0; 64]]);
+    }
+    let expected_fee = self.fee_rate.fee(modified_tx.vsize());
 
-    assert!(
-      fee_with_dummy_witness == fee_without_dummy_witness,
+    assert_eq!(
+      actual_fee, expected_fee,
       "invariant: fee estimation is correct",
     );
 
@@ -539,7 +540,7 @@ mod tests {
       outputs: vec![
         (recipient(), Amount::from_sat(5_000)),
         (change(0), Amount::from_sat(5_000)),
-        (change(1), Amount::from_sat(1_723)),
+        (change(1), Amount::from_sat(1_724)),
       ],
     };
 
@@ -552,7 +553,7 @@ mod tests {
         output: vec![
           tx_out(5_000, recipient()),
           tx_out(5_000, change(0)),
-          tx_out(1_723, change(1))
+          tx_out(1_724, change(1))
         ],
       })
     )
@@ -1094,34 +1095,7 @@ mod tests {
   }
 
   #[test]
-  fn send_inscriptions_with_custom_fee_rate() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(10_000))];
-
-    pretty_assert_eq!(
-      TransactionBuilder::build_transaction(
-        satpoint(1, 0),
-        BTreeMap::from([(
-          satpoint(1, 0),
-          "bed200b55adcf20e359bbb762392d5106cafbafc48e55f77c94d3041de3521da"
-            .parse()
-            .unwrap()
-        )]),
-        utxos.into_iter().collect(),
-        recipient(),
-        vec![change(0), change(1)],
-        FeeRate::try_from(25.8).unwrap(),
-      ),
-      Ok(Transaction {
-        version: 1,
-        lock_time: PackedLockTime::ZERO,
-        input: vec![tx_in(outpoint(1))],
-        output: vec![tx_out(7_445, recipient())],
-      })
-    )
-  }
-
-  #[test]
-  fn send_inscriptions_with_custom_fee_rate_calculated() {
+  fn build_transaction_with_custom_fee_rate() {
     let utxos = vec![(outpoint(1), Amount::from_sat(10_000))];
 
     let fee_rate = FeeRate::try_from(17.3).unwrap();
@@ -1141,9 +1115,8 @@ mod tests {
     )
     .unwrap();
 
-    let calculated_fee = fee_rate
-      .fee(transaction.vsize() + TransactionBuilder::SCHNORR_SIGNATURE_SIZE / 4 + 1)
-      .to_sat();
+    let fee =
+      fee_rate.fee(transaction.vsize() + TransactionBuilder::SCHNORR_SIGNATURE_SIZE / 4 + 1);
 
     pretty_assert_eq!(
       transaction,
@@ -1151,7 +1124,7 @@ mod tests {
         version: 1,
         lock_time: PackedLockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
-        output: vec![tx_out(10_000 - calculated_fee, recipient())],
+        output: vec![tx_out(10_000 - fee.to_sat(), recipient())],
       }
     )
   }

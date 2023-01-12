@@ -1,19 +1,13 @@
 use super::*;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
-pub(crate) struct FeeRate(u64);
+pub(crate) struct FeeRate(f64);
 
 impl FromStr for FeeRate {
   type Err = Error;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
-    let fee_rate = f64::from_str(s)?;
-
-    if fee_rate.is_sign_negative() | fee_rate.is_nan() | fee_rate.is_infinite() {
-      return Err(anyhow!("fee rate can not be negative"));
-    }
-
-    Self::try_from(fee_rate)
+    Self::try_from(f64::from_str(s)?)
   }
 }
 
@@ -21,17 +15,18 @@ impl TryFrom<f64> for FeeRate {
   type Error = Error;
 
   fn try_from(float: f64) -> Result<Self, Self::Error> {
-    #[allow(clippy::cast_possible_truncation)]
-    #[allow(clippy::cast_sign_loss)]
-    Ok(Self((float * 1000.0).round() as u64))
+    if float.is_sign_negative() | float.is_nan() | float.is_infinite() {
+      return Err(anyhow!("fee rate can not be negative"));
+    }
+    Ok(Self(float))
   }
 }
 
 impl FeeRate {
-  pub(crate) fn fee(&self, vbytes: usize) -> Amount {
+  pub(crate) fn fee(&self, vsize: usize) -> Amount {
     #[allow(clippy::cast_possible_truncation)]
     #[allow(clippy::cast_sign_loss)]
-    Amount::from_sat((self.0 as f64 * vbytes as f64 / 1000.0).ceil() as u64)
+    Amount::from_sat((self.0 * vsize as f64).round() as u64)
   }
 }
 
@@ -41,9 +36,9 @@ mod tests {
 
   #[test]
   fn parse() {
-    assert_eq!("1.0".parse::<FeeRate>().unwrap().0, 1000);
-    assert_eq!("11.1119".parse::<FeeRate>().unwrap().0, 11112);
-    assert_eq!("11.1111".parse::<FeeRate>().unwrap().0, 11111);
+    assert_eq!("1.1".parse::<FeeRate>().unwrap().0, 1.1);
+    assert_eq!("11.19".parse::<FeeRate>().unwrap().0, 11.19);
+    assert_eq!("11.1111".parse::<FeeRate>().unwrap().0, 11.1111);
     assert!("-4.2".parse::<FeeRate>().is_err());
   }
 
@@ -58,8 +53,8 @@ mod tests {
       Amount::from_sat(2048)
     );
     assert_eq!(
-      "1.1".parse::<FeeRate>().unwrap().fee(1),
-      Amount::from_sat(2)
+      "1.1".parse::<FeeRate>().unwrap().fee(100),
+      Amount::from_sat(110)
     );
     assert_eq!(
       "1.0".parse::<FeeRate>().unwrap().fee(123456789),
