@@ -1,13 +1,63 @@
 use super::*;
 
-pub(super) type SatRangeValue = [u8; 11];
-
 pub(super) trait Entry: Sized {
   type Value;
 
   fn load(value: Self::Value) -> Self;
 
   fn store(self) -> Self::Value;
+}
+
+pub(super) type BlockHashValue = [u8; 32];
+
+impl Entry for BlockHash {
+  type Value = BlockHashValue;
+
+  fn load(value: Self::Value) -> Self {
+    BlockHash::from_inner(value)
+  }
+
+  fn store(self) -> Self::Value {
+    self.into_inner()
+  }
+}
+
+pub(crate) struct InscriptionEntry {
+  pub(crate) height: u64,
+  pub(crate) number: u64,
+  pub(crate) sat: Option<Sat>,
+  pub(crate) timestamp: u32,
+}
+
+pub(crate) type InscriptionEntryValue = (u64, u64, u64, u32);
+
+impl Entry for InscriptionEntry {
+  type Value = InscriptionEntryValue;
+
+  fn load((height, number, sat, timestamp): InscriptionEntryValue) -> Self {
+    Self {
+      height,
+      number,
+      sat: if sat == u64::MAX {
+        None
+      } else {
+        Some(Sat(sat))
+      },
+      timestamp,
+    }
+  }
+
+  fn store(self) -> Self::Value {
+    (
+      self.height,
+      self.number,
+      match self.sat {
+        Some(sat) => sat.n(),
+        None => u64::MAX,
+      },
+      self.timestamp,
+    )
+  }
 }
 
 pub(super) type InscriptionIdValue = [u8; 36];
@@ -64,54 +114,4 @@ impl Entry for SatPoint {
   }
 }
 
-pub(crate) struct InscriptionEntry {
-  pub(crate) height: u64,
-  pub(crate) number: u64,
-  pub(crate) sat: Option<Sat>,
-  pub(crate) timestamp: u32,
-}
-
-pub(crate) type InscriptionEntryValue = (u64, u64, u64, u32);
-
-impl Entry for InscriptionEntry {
-  type Value = InscriptionEntryValue;
-
-  fn load((height, number, sat, timestamp): InscriptionEntryValue) -> Self {
-    Self {
-      height,
-      number,
-      sat: if sat == u64::MAX {
-        None
-      } else {
-        Some(Sat(sat))
-      },
-      timestamp,
-    }
-  }
-
-  fn store(self) -> Self::Value {
-    (
-      self.height,
-      self.number,
-      match self.sat {
-        Some(sat) => sat.n(),
-        None => u64::MAX,
-      },
-      self.timestamp,
-    )
-  }
-}
-
-pub(super) type BlockHashValue = [u8; 32];
-
-impl Entry for BlockHash {
-  type Value = BlockHashValue;
-
-  fn load(value: Self::Value) -> Self {
-    BlockHash::from_inner(value)
-  }
-
-  fn store(self) -> Self::Value {
-    self.into_inner()
-  }
-}
+pub(super) type SatRangeValue = [u8; 11];
