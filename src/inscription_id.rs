@@ -137,4 +137,42 @@ mod tests {
       },
     );
   }
+
+  #[test]
+  fn from_str_bad_character() {
+    assert_matches!(
+      "→".parse::<InscriptionId>(),
+      Err(ParseError::Character('→')),
+    );
+  }
+
+  #[test]
+  fn from_str_bad_length() {
+    assert_matches!("foo".parse::<InscriptionId>(), Err(ParseError::Length(3)));
+  }
+
+  #[test]
+  fn from_str_bad_separator() {
+    assert_matches!(
+      "0000000000000000000000000000000000000000000000000000000000000000x0".parse::<InscriptionId>(),
+      Err(ParseError::Separator('x')),
+    );
+  }
+
+  #[test]
+  fn from_str_bad_index() {
+    assert_matches!(
+      "0000000000000000000000000000000000000000000000000000000000000000ifoo"
+        .parse::<InscriptionId>(),
+      Err(ParseError::Index(_)),
+    );
+  }
+
+  #[test]
+  fn from_str_bad_txid() {
+    assert_matches!(
+      "x000000000000000000000000000000000000000000000000000000000000000i0".parse::<InscriptionId>(),
+      Err(ParseError::Txid(_)),
+    );
+  }
 }
