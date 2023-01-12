@@ -1051,7 +1051,7 @@ mod tests {
     pretty_assert_eq!(
       TransactionBuilder::build_transaction(
         satpoint(1, 0),
-        BTreeMap::from([(satpoint(2, 10 * COIN_VALUE), inscription_id(1),)]),
+        BTreeMap::from([(satpoint(2, 10 * COIN_VALUE), inscription_id(1))]),
         utxos.into_iter().collect(),
         recipient(),
         vec![change(0), change(1)],
