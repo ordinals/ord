@@ -4,6 +4,12 @@ use super::*;
 pub(crate) struct Send {
   address: Address,
   outgoing: Outgoing,
+  #[clap(
+    long,
+    default_value = "1.0",
+    help = "Use fee rate of <FEE_RATE> sats/vB"
+  )]
+  fee_rate: FeeRate,
 }
 
 impl Send {
@@ -70,6 +76,7 @@ impl Send {
       unspent_outputs,
       self.address,
       change,
+      self.fee_rate,
     )?;
 
     let signed_tx = client

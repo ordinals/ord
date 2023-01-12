@@ -265,3 +265,32 @@ fn inscribe_with_optional_satpoint_arg() {
   TestServer::spawn_with_args(&rpc_server, &[])
     .assert_response_regex(format!("/content/{inscription_id}",), ".*HELLOWORLD.*");
 }
+
+#[test]
+fn inscribe_with_fee_rate() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  CommandBuilder::new("--index-sats wallet inscribe degenerate.png --fee-rate 2.0")
+    .write("degenerate.png", [1; 520])
+    .rpc_server(&rpc_server)
+    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+    .run();
+
+  let tx = &rpc_server.mempool()[0];
+  let mut fee = 0;
+  for input in &tx.input {
+    fee += rpc_server
+      .get_utxo_amount(&input.previous_output)
+      .unwrap()
+      .to_sat();
+  }
+  for output in &tx.output {
+    fee -= output.value;
+  }
+
+  let fee_rate = fee as f64 / tx.vsize() as f64;
+
+  pretty_assert_eq!(fee_rate, 2.0);
+}

@@ -85,6 +85,7 @@ mod content;
 mod decimal;
 mod degree;
 mod epoch;
+mod fee_rate;
 mod height;
 mod index;
 mod inscription;

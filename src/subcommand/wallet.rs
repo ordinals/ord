@@ -1,4 +1,4 @@
-use {super::*, transaction_builder::TransactionBuilder};
+use {super::*, fee_rate::FeeRate, transaction_builder::TransactionBuilder};
 
 mod balance;
 pub(crate) mod create;

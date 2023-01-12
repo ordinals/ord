@@ -331,3 +331,43 @@ fn send_btc_fails_if_lock_unspent_fails() {
     .expected_exit_code(1)
     .run();
 }
+
+#[test]
+fn wallet_send_with_fee_rate() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  let stdout = CommandBuilder::new("--index-sats wallet inscribe degenerate.png")
+    .write("degenerate.png", [1; 520])
+    .rpc_server(&rpc_server)
+    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+    .run();
+
+  rpc_server.mine_blocks(1);
+
+  let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
+
+  CommandBuilder::new(format!(
+    "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {reveal_txid} --fee-rate 2.0"
+  ))
+  .rpc_server(&rpc_server)
+  .stdout_regex("[[:xdigit:]]{64}\n")
+  .run();
+
+  let tx = &rpc_server.mempool()[0];
+  let mut fee = 0;
+  for input in &tx.input {
+    fee += rpc_server
+      .get_utxo_amount(&input.previous_output)
+      .unwrap()
+      .to_sat();
+  }
+  for output in &tx.output {
+    fee -= output.value;
+  }
+
+  let fee_rate = fee as f64 / tx.vsize() as f64;
+
+  pretty_assert_eq!(fee_rate, 2.0);
+}
