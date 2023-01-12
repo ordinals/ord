@@ -2,19 +2,13 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
-  address: AnyAddress,
+  address: Address,
   outgoing: Outgoing,
-  #[clap(long, help = "Allow sending to cardinal addresses")]
-  cardinal: bool,
 }
 
 impl Send {
   pub(crate) fn run(self, options: Options) -> Result {
     let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
-
-    if !self.cardinal && !self.address.is_ordinal() {
-      bail!("refusing to send to cardinal adddress, which may be from wallet without sat control; the `--cardinal` flag bypasses this check");
-    }
 
     if !self.address.is_valid_for_network(options.chain().network()) {
       bail!(
@@ -59,16 +53,8 @@ impl Send {
           bail!("failed to lock ordinal UTXOs");
         }
 
-        let txid = client.send_to_address(
-          &self.address.into(),
-          amount,
-          None,
-          None,
-          None,
-          None,
-          None,
-          None,
-        )?;
+        let txid =
+          client.send_to_address(&self.address, amount, None, None, None, None, None, None)?;
 
         println!("{txid}");
 
@@ -82,7 +68,7 @@ impl Send {
       satpoint,
       inscriptions,
       unspent_outputs,
-      self.address.into(),
+      self.address,
       change,
     )?;
 

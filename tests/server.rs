@@ -110,9 +110,9 @@ fn inscription_appears_on_reveal_transaction_page() {
 fn inscription_appears_on_output_page() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
-  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+  rpc_server.mine_blocks(1);
 
-  let stdout = CommandBuilder::new(format!("wallet inscribe --satpoint {txid}:0:0 hello.txt"))
+  let stdout = CommandBuilder::new("wallet inscribe hello.txt")
     .write("hello.txt", "HELLOWORLD")
     .rpc_server(&rpc_server)
     .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
@@ -132,10 +132,9 @@ fn inscription_appears_on_output_page() {
 fn inscription_page_after_send() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
 
-  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
-
-  let stdout = CommandBuilder::new(format!("wallet inscribe --satpoint {txid}:0:0 hello.txt"))
+  let stdout = CommandBuilder::new("wallet inscribe hello.txt")
     .write("hello.txt", "HELLOWORLD")
     .rpc_server(&rpc_server)
     .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
@@ -154,7 +153,7 @@ fn inscription_page_after_send() {
   );
 
   let txid = CommandBuilder::new(format!(
-    "wallet send --cardinal bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {reveal_txid}"
+    "wallet send bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {reveal_txid}"
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(".*")
