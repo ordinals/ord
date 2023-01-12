@@ -73,14 +73,14 @@ fn detect_wrong_descriptors() {
 }
 
 #[test]
-fn create_wallet_with_wrong_name() {
+fn create_with_different_name() {
   let rpc_server = test_bitcoincore_rpc::spawn();
 
-  CommandBuilder::new("wallet create --name nft-wallet")
+  assert!(!rpc_server.wallets().contains("inscription-wallet"));
+
+  CommandBuilder::new("--wallet inscription-wallet wallet create")
     .rpc_server(&rpc_server)
-    .expected_stderr(
-      "error: `ord wallet create` may only be used with a wallet named `ord` or whose name starts with `ord-`\n",
-    )
-    .expected_exit_code(1)
     .run();
+
+  assert!(rpc_server.wallets().contains("inscription-wallet"));
 }
