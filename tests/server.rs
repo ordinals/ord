@@ -216,7 +216,7 @@ fn home_page_includes_latest_inscriptions() {
     "/",
     format!(
       ".*<h2>Latest Inscriptions</h2>
-<div class=inscriptions>
+<div class=thumbnails>
   <a href=/inscription/{inscription_id}><iframe .*></a>
 </div>.*"
     ),
@@ -239,7 +239,7 @@ fn home_page_inscriptions_are_sorted() {
     "/",
     format!(
       ".*<h2>Latest Inscriptions</h2>
-<div class=inscriptions>{inscriptions}
+<div class=thumbnails>{inscriptions}
 </div>.*"
     ),
   );
@@ -266,7 +266,7 @@ fn inscriptions_page() {
     "/inscriptions",
     format!(
       ".*<h1>Inscriptions</h1>
-<div class=inscriptions>
+<div class=thumbnails>
   <a href=/inscription/{reveal_tx}>.*</a>
 </div>
 .*",

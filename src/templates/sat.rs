@@ -102,13 +102,9 @@ mod tests {
         sat: Sat(0),
         satpoint: None,
         blocktime: Blocktime::Confirmed(0),
-        inscription: Some(
-          "1111111111111111111111111111111111111111111111111111111111111111"
-            .parse()
-            .unwrap(),
-        ),
+        inscription: Some(txid(1)),
       },
-      r"<h1>Sat 0</h1>.*<dt>inscription</dt><dd><a href=/inscription/1{64}>.*</a></dd>.*",
+      r"<h1>Sat 0</h1>.*<dt>inscription</dt><dd class=thumbnails><a href=/inscription/1{64}>.*</a></dd>.*",
     );
   }
 

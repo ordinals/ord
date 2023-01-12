@@ -168,19 +168,19 @@ a.mythic {
   color: var(--mythic);
 }
 
-.inscriptions {
+.thumbnails {
   display: flex;
   flex-wrap: wrap;
 }
 
-.inscriptions > a {
+.thumbnails > a {
   border-radius: 2%;
   margin: 1%;
   overflow: hidden;
   width: 23%;
 }
 
-.inscriptions iframe {
+.thumbnails iframe {
   height: 101%;
   overflow: hidden;
   width: 101%;
