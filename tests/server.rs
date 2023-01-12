@@ -178,20 +178,14 @@ fn inscription_content() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+  rpc_server.mine_blocks(1);
 
-  let stdout = CommandBuilder::new(format!("wallet inscribe --satpoint {txid}:0:0 hello.txt"))
-    .write("hello.txt", "HELLOWORLD")
-    .rpc_server(&rpc_server)
-    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-    .run();
-
-  let reveal_tx = reveal_txid_from_inscribe_stdout(&stdout);
+  let inscription_id = create_inscription(&rpc_server, "foo.txt");
 
   rpc_server.mine_blocks(1);
 
   let response =
-    TestServer::spawn_with_args(&rpc_server, &[]).request(&format!("/content/{reveal_tx}"));
+    TestServer::spawn_with_args(&rpc_server, &[]).request(&format!("/content/{inscription_id}"));
 
   assert_eq!(response.status(), StatusCode::OK);
   assert_eq!(
