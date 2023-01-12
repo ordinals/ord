@@ -423,9 +423,7 @@ impl Server {
     Extension(chain): Extension<Chain>,
     Path(txid): Path<Txid>,
   ) -> ServerResult<PageHtml<TransactionHtml>> {
-    let inscription = index
-      .get_inscription_by_id(txid)?
-      .map(|(inscription, _satpoint)| inscription);
+    let inscription = index.get_inscription_by_id(txid)?;
 
     Ok(
       TransactionHtml::new(
@@ -555,7 +553,7 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<Response> {
-    let (inscription, _) = index
+    let inscription = index
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
@@ -589,7 +587,7 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<Response> {
-    let (inscription, _) = index
+    let inscription = index
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
@@ -619,13 +617,17 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<PageHtml<InscriptionHtml>> {
-    let (inscription, satpoint) = index
+    let entry = index
+      .get_inscription_entry(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    let inscription = index
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
-    let genesis_height = index.get_genesis_height(inscription_id)?;
-
-    let sat = index.get_sat_by_inscription_id(inscription_id)?;
+    let satpoint = index
+      .get_inscription_satpoint_by_id(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
     let output = index
       .get_transaction(satpoint.outpoint.txid)?
@@ -635,11 +637,7 @@ impl Server {
       .nth(satpoint.outpoint.vout.try_into().unwrap())
       .ok_or_not_found(|| format!("inscription {inscription_id} current transaction output"))?;
 
-    let number = index
-      .get_inscription_number_by_inscription_id(inscription_id)?
-      .ok_or_not_found(|| format!("inscription {inscription_id} number"))?;
-
-    let previous = if let Some(previous) = number.checked_sub(1) {
+    let previous = if let Some(previous) = entry.number.checked_sub(1) {
       Some(
         index
           .get_inscription_id_by_inscription_number(previous)?
@@ -649,20 +647,21 @@ impl Server {
       None
     };
 
-    let next = index.get_inscription_id_by_inscription_number(number + 1)?;
+    let next = index.get_inscription_id_by_inscription_number(entry.number + 1)?;
 
     Ok(
       InscriptionHtml {
         chain,
-        genesis_height,
+        genesis_height: entry.height,
         inscription,
         inscription_id,
-        number,
         next,
+        number: entry.number,
         output,
         previous,
-        sat,
+        sat: entry.sat,
         satpoint,
+        timestamp: timestamp(entry.timestamp),
       }
       .page(chain, index.has_sat_index()?),
     )
