@@ -11,10 +11,10 @@ impl FromStr for Outgoing {
   type Err = Error;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
-    Ok(if s.len() == 64 {
-      Self::InscriptionId(s.parse()?)
-    } else if s.contains(':') {
+    Ok(if s.contains(':') {
       Self::SatPoint(s.parse()?)
+    } else if s.len() >= 66 {
+      Self::InscriptionId(s.parse()?)
     } else if s.contains(' ') {
       Self::Amount(s.parse()?)
     } else if let Some(i) = s.find(|c: char| c.is_alphabetic()) {
@@ -34,11 +34,11 @@ mod tests {
   #[test]
   fn parse() {
     assert_eq!(
-      "0000000000000000000000000000000000000000000000000000000000000000"
+      "0000000000000000000000000000000000000000000000000000000000000000i0"
         .parse::<Outgoing>()
         .unwrap(),
       Outgoing::InscriptionId(
-        "0000000000000000000000000000000000000000000000000000000000000000"
+        "0000000000000000000000000000000000000000000000000000000000000000i0"
           .parse()
           .unwrap()
       ),
