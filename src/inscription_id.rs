@@ -1,9 +1,7 @@
 use super::*;
 
 // TODO:
-// - fix tests
 // - print inscription ID on send
-// - make parse recognize inscription IDs
 // - make sure we use inscriptionIDs in index methods
 
 #[derive(Debug, PartialEq, Copy, Clone)]

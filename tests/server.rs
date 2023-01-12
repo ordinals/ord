@@ -250,8 +250,6 @@ fn inscriptions_page() {
 
   let inscription_id = create_inscription(&rpc_server, "foo.png");
 
-  // rpc_server.mine_blocks(1);
-
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     "/inscriptions",
     format!(
