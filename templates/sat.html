@@ -12,7 +12,7 @@
   <dt>rarity</dt><dd><span class={{self.sat.rarity()}}>{{ self.sat.rarity() }}</span></dd>
   <dt>time</dt><dd>{{ self.blocktime }}</dd>
 %% if let Some((inscription)) = &self.inscription {
-  <dt>inscription</dt><dd>{{ Iframe::preview(*inscription) }}</dd>
+  <dt>inscription</dt><dd class=thumbnails>{{ Iframe::thumbnail(*inscription) }}</dd>
 %% }
 %% if let Some(satpoint) = self.satpoint {
   <dt>location</dt><dd class=monospace>{{ satpoint }}</dd>
