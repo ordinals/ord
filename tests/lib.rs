@@ -7,6 +7,7 @@ use {
   pretty_assertions::assert_eq as pretty_assert_eq,
   regex::Regex,
   reqwest::{StatusCode, Url},
+  serde::{de::DeserializeOwned, Deserialize},
   std::{
     fs,
     net::TcpListener,
@@ -35,35 +36,25 @@ macro_rules! assert_regex_match {
   };
 }
 
-fn reveal_txid_from_inscribe_stdout(stdout: &str) -> Txid {
-  stdout
-    .lines()
-    .nth(1)
-    .unwrap()
-    .split('\t')
-    .nth(1)
-    .unwrap()
-    .parse()
-    .unwrap()
+#[derive(Deserialize)]
+struct Inscribe {
+  #[allow(dead_code)]
+  commit: Txid,
+  inscription: String,
+  reveal: Txid,
 }
 
-fn create_inscription(rpc_server: &test_bitcoincore_rpc::Handle, filename: &str) -> String {
+fn inscribe(rpc_server: &test_bitcoincore_rpc::Handle) -> Inscribe {
   rpc_server.mine_blocks(1);
 
-  let stdout = CommandBuilder::new(format!(
-    "--chain {} wallet inscribe {filename}",
-    rpc_server.network()
-  ))
-  .write(filename, "HELLOWORLD")
-  .rpc_server(rpc_server)
-  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-  .run();
-
-  let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
+  let output = CommandBuilder::new("wallet inscribe foo.txt")
+    .write("foo.txt", "FOO")
+    .rpc_server(rpc_server)
+    .output();
 
   rpc_server.mine_blocks(1);
 
-  format!("{reveal_txid}i0")
+  output
 }
 
 fn create_wallet(rpc_server: &test_bitcoincore_rpc::Handle) {

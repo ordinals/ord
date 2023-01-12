@@ -15,6 +15,15 @@ impl<'de> Deserialize<'de> for InscriptionId {
   }
 }
 
+impl Serialize for InscriptionId {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    serializer.collect_str(self)
+  }
+}
+
 impl Display for InscriptionId {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     write!(f, "{}i{}", self.txid, self.index)
