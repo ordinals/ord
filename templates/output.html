@@ -2,9 +2,11 @@
 <dl>
 %% if !self.inscriptions.is_empty() {
   <dt>inscriptions</dt>
+  <dd class=thumbnails>
 %% for inscription in &self.inscriptions {
-  <dd>{{Iframe::preview(*inscription)}}</dd>
+    {{Iframe::thumbnail(*inscription)}}
 %% }
+  </dd>
 %% }
   <dt>value</dt><dd>{{ self.output.value }}</dd>
   <dt>script pubkey</dt><dd class=data>{{ self.output.script_pubkey.asm() }}</dd>

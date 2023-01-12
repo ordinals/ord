@@ -44,7 +44,7 @@ mod tests {
           <dt>time</dt><dd>1970-01-01 00:00:00</dd>
         </dl>
         prev
-        <a href=/sat/1>next</a>
+        <a class=next href=/sat/1>next</a>
       "
       .unindent()
     );
@@ -75,7 +75,7 @@ mod tests {
           <dt>rarity</dt><dd><span class=uncommon>uncommon</span></dd>
           <dt>time</dt><dd>1970-01-01 00:00:00</dd>
         </dl>
-        <a href=/sat/2099999997689998>prev</a>
+        <a class=previous href=/sat/2099999997689998>prev</a>
         next
       "
       .unindent()
@@ -91,7 +91,7 @@ mod tests {
         blocktime: Blocktime::Confirmed(0),
         inscription: None,
       },
-      r"<h1>Sat 1</h1>.*<a href=/sat/0>prev</a>\n<a href=/sat/2>next</a>\n",
+      r"<h1>Sat 1</h1>.*<a class=previous href=/sat/0>prev</a>\n<a class=next href=/sat/2>next</a>\n",
     );
   }
 
@@ -102,13 +102,9 @@ mod tests {
         sat: Sat(0),
         satpoint: None,
         blocktime: Blocktime::Confirmed(0),
-        inscription: Some(
-          "1111111111111111111111111111111111111111111111111111111111111111"
-            .parse()
-            .unwrap(),
-        ),
+        inscription: Some(txid(1)),
       },
-      r"<h1>Sat 0</h1>.*<dt>inscription</dt><dd><a href=/inscription/1{64}>.*</a></dd>.*",
+      r"<h1>Sat 0</h1>.*<dt>inscription</dt><dd class=thumbnails><a href=/inscription/1{64}>.*</a></dd>.*",
     );
   }
 
@@ -121,7 +117,7 @@ mod tests {
         blocktime: Blocktime::Confirmed(0),
         inscription: None,
       },
-      r"<h1>Sat 2099999997689999</h1>.*<a href=/sat/2099999997689998>prev</a>\nnext\n",
+      r"<h1>Sat 2099999997689999</h1>.*<a class=previous href=/sat/2099999997689998>prev</a>\nnext\n",
     );
   }
 

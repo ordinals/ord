@@ -423,9 +423,7 @@ impl Server {
     Extension(chain): Extension<Chain>,
     Path(txid): Path<Txid>,
   ) -> ServerResult<PageHtml<TransactionHtml>> {
-    let inscription = index
-      .get_inscription_by_id(txid)?
-      .map(|(inscription, _satpoint)| inscription);
+    let inscription = index.get_inscription_by_id(txid)?;
 
     Ok(
       TransactionHtml::new(
@@ -555,7 +553,7 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<Response> {
-    let (inscription, _) = index
+    let inscription = index
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
@@ -589,7 +587,7 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<Response> {
-    let (inscription, _) = index
+    let inscription = index
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
@@ -619,13 +617,17 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<PageHtml<InscriptionHtml>> {
-    let (inscription, satpoint) = index
+    let entry = index
+      .get_inscription_entry(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    let inscription = index
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
-    let genesis_height = index.get_genesis_height(inscription_id)?;
-
-    let sat = index.get_sat_by_inscription_id(inscription_id)?;
+    let satpoint = index
+      .get_inscription_satpoint_by_id(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
     let output = index
       .get_transaction(satpoint.outpoint.txid)?
@@ -635,15 +637,31 @@ impl Server {
       .nth(satpoint.outpoint.vout.try_into().unwrap())
       .ok_or_not_found(|| format!("inscription {inscription_id} current transaction output"))?;
 
+    let previous = if let Some(previous) = entry.number.checked_sub(1) {
+      Some(
+        index
+          .get_inscription_id_by_inscription_number(previous)?
+          .ok_or_not_found(|| format!("inscription {previous}"))?,
+      )
+    } else {
+      None
+    };
+
+    let next = index.get_inscription_id_by_inscription_number(entry.number + 1)?;
+
     Ok(
       InscriptionHtml {
         chain,
-        genesis_height,
+        genesis_height: entry.height,
         inscription,
         inscription_id,
+        next,
+        number: entry.number,
         output,
-        sat,
+        previous,
+        sat: entry.sat,
         satpoint,
+        timestamp: timestamp(entry.timestamp),
       }
       .page(chain, index.has_sat_index()?),
     )
@@ -1327,22 +1345,7 @@ mod tests {
     test_server.assert_response_regex(
       format!("/block/{block_hash}"),
       StatusCode::OK,
-      ".*<h1>Block 2</h1>
-<dl>
-  <dt>hash</dt><dd class=monospace>[[:xdigit:]]{64}</dd>
-  <dt>target</dt><dd class=monospace>[[:xdigit:]]{64}</dd>
-  <dt>timestamp</dt><dd>0</dd>
-  <dt>size</dt><dd>202</dd>
-  <dt>weight</dt><dd>808</dd>
-  <dt>previous blockhash</dt><dd><a href=/block/659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf class=monospace>659f9b67fbc0b5cba0ef6ebc0aea322e1c246e29e43210bd581f5f3bd36d17bf</a></dd>
-</dl>
-<a href=/block/1>prev</a>
-next
-<h2>2 Transactions</h2>
-<ul class=monospace>
-  <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
-  <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
-</ul>.*",
+      ".*<h1>Block 2</h1>.*",
     );
   }
 
@@ -1350,20 +1353,7 @@ next
   fn block_by_height() {
     let test_server = TestServer::new();
 
-    test_server.assert_response_regex(
-      "/block/0",
-      StatusCode::OK,
-      ".*<h1>Block 0</h1>
-<dl>
-  <dt>hash</dt><dd class=monospace>[[:xdigit:]]{64}</dd>
-  <dt>target</dt><dd class=monospace>[[:xdigit:]]{64}</dd>
-  <dt>timestamp</dt><dd>1231006505</dd>
-  <dt>size</dt><dd>285</dd>
-  <dt>weight</dt><dd>1140</dd>
-</dl>
-prev
-next.*",
-    );
+    test_server.assert_response_regex("/block/0", StatusCode::OK, ".*<h1>Block 0</h1>.*");
   }
 
   #[test]

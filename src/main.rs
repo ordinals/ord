@@ -123,6 +123,10 @@ fn integration_test() -> bool {
     .unwrap_or(false)
 }
 
+fn timestamp(seconds: u32) -> NaiveDateTime {
+  NaiveDateTime::from_timestamp_opt(seconds.into(), 0).unwrap()
+}
+
 fn main() {
   env_logger::init();
 
