@@ -49,7 +49,7 @@ use {
   html_escaper::{Escape, Trusted},
   lazy_static::lazy_static,
   regex::Regex,
-  serde::{Deserialize, Deserializer, Serialize},
+  serde::{Deserialize, Deserializer, Serialize, Serializer},
   std::{
     cmp,
     collections::{BTreeMap, HashSet, VecDeque},

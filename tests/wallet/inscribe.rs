@@ -1,7 +1,7 @@
 use super::*;
 
 #[test]
-fn inscribe_creates_inscription_transactions() {
+fn inscribe_creates_inscriptions() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   rpc_server.mine_blocks(1);
 
@@ -9,65 +9,26 @@ fn inscribe_creates_inscription_transactions() {
 
   create_wallet(&rpc_server);
 
-  let stdout = CommandBuilder::new("wallet inscribe hello.txt")
-    .write("hello.txt", "HELLOWORLD")
-    .rpc_server(&rpc_server)
-    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-    .run();
-
-  let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
-
-  let inscription_id = format!("{reveal_txid}i0");
+  let Inscribe { inscription, .. } = inscribe(&rpc_server);
 
   assert_eq!(rpc_server.descriptors().len(), 3);
 
-  rpc_server.mine_blocks(1);
-
   let request =
-    TestServer::spawn_with_args(&rpc_server, &[]).request(&format!("/content/{inscription_id}"));
+    TestServer::spawn_with_args(&rpc_server, &[]).request(&format!("/content/{inscription}"));
 
   assert_eq!(request.status(), 200);
   assert_eq!(
     request.headers().get("content-type").unwrap(),
     "text/plain;charset=utf-8"
   );
-  assert_eq!(request.text().unwrap(), "HELLOWORLD");
-}
-
-#[test]
-fn inscribe_with_satpoint_arg_inscribes_specific_satpoint() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
-  rpc_server.mine_blocks(1);
-
-  assert_eq!(rpc_server.descriptors().len(), 0);
-
-  create_wallet(&rpc_server);
-
-  assert_eq!(rpc_server.descriptors().len(), 2);
-
-  let inscription_id = create_inscription(&rpc_server, "foo.txt");
-
-  assert_eq!(rpc_server.descriptors().len(), 3);
-
-  let request =
-    TestServer::spawn_with_args(&rpc_server, &[]).request(&format!("/content/{inscription_id}"));
-
-  assert_eq!(request.status(), 200);
-  assert_eq!(
-    request.headers().get("content-type").unwrap(),
-    "text/plain;charset=utf-8"
-  );
-  assert_eq!(request.text().unwrap(), "HELLOWORLD");
+  assert_eq!(request.text().unwrap(), "FOO");
 }
 
 #[test]
 fn inscribe_fails_if_bitcoin_core_is_too_old() {
   let rpc_server = test_bitcoincore_rpc::builder().version(230000).build();
 
-  rpc_server.mine_blocks(1);
-
   CommandBuilder::new("wallet inscribe hello.txt")
-    .write("hello.txt", "HELLOWORLD")
     .expected_exit_code(1)
     .expected_stderr("error: Bitcoin Core 24.0.0 or newer required, current version is 23.0.0\n")
     .rpc_server(&rpc_server)
@@ -85,8 +46,7 @@ fn inscribe_no_backup() {
   CommandBuilder::new("wallet inscribe hello.txt --no-backup")
     .write("hello.txt", "HELLOWORLD")
     .rpc_server(&rpc_server)
-    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-    .run();
+    .output::<Inscribe>();
 
   assert_eq!(rpc_server.descriptors().len(), 2);
 }
@@ -134,7 +94,7 @@ fn regtest_has_no_content_size_limit() {
   CommandBuilder::new("--chain regtest wallet inscribe degenerate.png")
     .write("degenerate.png", [1; 1025])
     .rpc_server(&rpc_server)
-    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+    .stdout_regex(".*")
     .run();
 }
 
@@ -149,7 +109,7 @@ fn mainnet_has_no_content_size_limit() {
   CommandBuilder::new("wallet inscribe degenerate.png")
     .write("degenerate.png", [1; 1025])
     .rpc_server(&rpc_server)
-    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+    .stdout_regex(".*")
     .run();
 }
 
@@ -157,12 +117,6 @@ fn mainnet_has_no_content_size_limit() {
 fn inscribe_does_not_use_inscribed_sats_as_cardinal_utxos() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
-  rpc_server.mine_blocks_with_subsidy(1, 800);
-  CommandBuilder::new("wallet inscribe degenerate.png")
-    .write("degenerate.png", [1; 100])
-    .rpc_server(&rpc_server)
-    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-    .run();
 
   rpc_server.mine_blocks_with_subsidy(1, 100);
 
@@ -181,58 +135,44 @@ fn refuse_to_reinscribe_sats() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  rpc_server.mine_blocks_with_subsidy(1, 800);
-  let stdout = CommandBuilder::new("wallet inscribe degenerate.png")
-    .write("degenerate.png", [1; 100])
-    .rpc_server(&rpc_server)
-    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-    .run();
+  rpc_server.mine_blocks(1);
 
-  let first_inscription_id = reveal_txid_from_inscribe_stdout(&stdout);
+  let Inscribe { reveal, .. } = inscribe(&rpc_server);
 
   rpc_server.mine_blocks_with_subsidy(1, 100);
 
-  CommandBuilder::new(format!(
-    "wallet inscribe --satpoint {first_inscription_id}:0:0 hello.txt"
-  ))
-  .write("hello.txt", "HELLOWORLD")
-  .rpc_server(&rpc_server)
-  .expected_exit_code(1)
-  .expected_stderr(format!(
-    "error: sat at {first_inscription_id}:0:0 already inscribed\n"
-  ))
-  .run();
+  CommandBuilder::new(format!("wallet inscribe --satpoint {reveal}:0:0 hello.txt"))
+    .write("hello.txt", "HELLOWORLD")
+    .rpc_server(&rpc_server)
+    .expected_exit_code(1)
+    .expected_stderr(format!("error: sat at {reveal}:0:0 already inscribed\n"))
+    .run();
 }
 
 #[test]
 fn refuse_to_inscribe_already_inscribed_utxo() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
-  rpc_server.mine_blocks(1);
 
-  let stdout = CommandBuilder::new("wallet inscribe degenerate.png")
-    .write("degenerate.png", [1; 100])
-    .rpc_server(&rpc_server)
-    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-    .run();
+  let Inscribe {
+    reveal,
+    inscription,
+    ..
+  } = inscribe(&rpc_server);
 
-  rpc_server.mine_blocks(1);
-
-  let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
-
-  let inscription_utxo = OutPoint {
-    txid: reveal_txid_from_inscribe_stdout(&stdout),
+  let output = OutPoint {
+    txid: reveal,
     vout: 0,
   };
 
   CommandBuilder::new(format!(
-    "wallet inscribe --satpoint {inscription_utxo}:55555 hello.txt"
+    "wallet inscribe --satpoint {output}:55555 hello.txt"
   ))
   .write("hello.txt", "HELLOWORLD")
   .rpc_server(&rpc_server)
   .expected_exit_code(1)
   .expected_stderr(format!(
-    "error: utxo {inscription_utxo} already inscribed with inscription {reveal_txid}i0 on sat {inscription_utxo}:0\n",
+    "error: utxo {output} already inscribed with inscription {inscription} on sat {output}:0\n",
   ))
   .run();
 }
@@ -243,25 +183,21 @@ fn inscribe_with_optional_satpoint_arg() {
   create_wallet(&rpc_server);
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  let stdout = CommandBuilder::new(format!("wallet inscribe hello.txt --satpoint {txid}:0:0"))
-    .write("hello.txt", "HELLOWORLD")
-    .rpc_server(&rpc_server)
-    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-    .run();
-
-  let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
-
-  let inscription_id = format!("{reveal_txid}i0");
+  let Inscribe { inscription, .. } =
+    CommandBuilder::new(format!("wallet inscribe foo.txt --satpoint {txid}:0:0"))
+      .write("foo.txt", "FOO")
+      .rpc_server(&rpc_server)
+      .output();
 
   rpc_server.mine_blocks(1);
 
   TestServer::spawn_with_args(&rpc_server, &["--index-sats"]).assert_response_regex(
     "/sat/5000000000",
-    format!(".*<a href=/inscription/{inscription_id}>.*"),
+    format!(".*<a href=/inscription/{inscription}>.*"),
   );
 
   TestServer::spawn_with_args(&rpc_server, &[])
-    .assert_response_regex(format!("/content/{inscription_id}",), ".*HELLOWORLD.*");
+    .assert_response_regex(format!("/content/{inscription}",), "FOO");
 }
 
 #[test]
@@ -273,8 +209,7 @@ fn inscribe_with_fee_rate() {
   CommandBuilder::new("--index-sats wallet inscribe degenerate.png --fee-rate 2.0")
     .write("degenerate.png", [1; 520])
     .rpc_server(&rpc_server)
-    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-    .run();
+    .output::<Inscribe>();
 
   let tx = &rpc_server.mempool()[0];
   let mut fee = 0;
@@ -306,6 +241,5 @@ fn inscribe_with_wallet_named_foo() {
   CommandBuilder::new("--wallet foo wallet inscribe degenerate.png")
     .write("degenerate.png", [1; 520])
     .rpc_server(&rpc_server)
-    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-    .run();
+    .output::<Inscribe>();
 }

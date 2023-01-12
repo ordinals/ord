@@ -16,6 +16,13 @@ use {
   std::collections::BTreeSet,
 };
 
+#[derive(Serialize)]
+struct Output {
+  commit: Txid,
+  inscription: InscriptionId,
+  reveal: Txid,
+}
+
 #[derive(Debug, Parser)]
 pub(crate) struct Inscribe {
   #[clap(long, help = "Inscribe <SATPOINT>")]
@@ -69,16 +76,23 @@ impl Inscribe {
       .sign_raw_transaction_with_wallet(&unsigned_commit_tx, None, None)?
       .hex;
 
-    let commit_txid = client
+    let commit = client
       .send_raw_transaction(&signed_raw_commit_tx)
       .context("Failed to send commit transaction")?;
 
-    let reveal_txid = client
+    let reveal = client
       .send_raw_transaction(&reveal_tx)
       .context("Failed to send reveal transaction")?;
 
-    println!("commit\t{commit_txid}");
-    println!("reveal\t{reveal_txid}");
+    serde_json::to_writer_pretty(
+      io::stdout(),
+      &Output {
+        commit,
+        reveal,
+        inscription: reveal.into(),
+      },
+    )?;
+
     Ok(())
   }
 
