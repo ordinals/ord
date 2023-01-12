@@ -2,7 +2,6 @@ use super::*;
 
 // TODO:
 // - fix tests
-// - use TXIDiINSCRIPTION_NUMBER
 // - print inscription ID on send
 // - make parse recognize inscription IDs
 // - make sure we use inscriptionIDs in index methods
@@ -10,8 +9,7 @@ use super::*;
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub(crate) struct InscriptionId {
   pub(crate) txid: Txid,
-  // TODO: rename to index, i, or inscription
-  pub(crate) vout: u32,
+  pub(crate) index: u32,
 }
 
 impl<'de> Deserialize<'de> for InscriptionId {
@@ -25,7 +23,7 @@ impl<'de> Deserialize<'de> for InscriptionId {
 
 impl Display for InscriptionId {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-    write!(f, "{}i{}", self.txid, self.vout)
+    write!(f, "{}i{}", self.txid, self.index)
   }
 }
 
@@ -79,14 +77,14 @@ impl FromStr for InscriptionId {
 
     Ok(Self {
       txid: txid.parse().map_err(ParseError::Txid)?,
-      vout: vout.parse().map_err(ParseError::Index)?,
+      index: vout.parse().map_err(ParseError::Index)?,
     })
   }
 }
 
 impl From<Txid> for InscriptionId {
   fn from(txid: Txid) -> Self {
-    Self { txid, vout: 0 }
+    Self { txid, index: 0 }
   }
 }
 
@@ -103,7 +101,7 @@ mod tests {
     assert_eq!(
       InscriptionId {
         txid: txid(1),
-        vout: 0,
+        index: 0,
       }
       .to_string(),
       "1111111111111111111111111111111111111111111111111111111111111111i0",
@@ -111,7 +109,7 @@ mod tests {
     assert_eq!(
       InscriptionId {
         txid: txid(1),
-        vout: 0xFFFFFFFF,
+        index: 0xFFFFFFFF,
       }
       .to_string(),
       "1111111111111111111111111111111111111111111111111111111111111111i4294967295",
@@ -132,7 +130,7 @@ mod tests {
         .unwrap(),
       InscriptionId {
         txid: txid(1),
-        vout: 0xFFFFFFFF,
+        index: 0xFFFFFFFF,
       },
     );
     assert_eq!(
@@ -141,7 +139,7 @@ mod tests {
         .unwrap(),
       InscriptionId {
         txid: txid(1),
-        vout: 0xFFFFFFFF,
+        index: 0xFFFFFFFF,
       },
     );
   }

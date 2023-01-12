@@ -12,18 +12,18 @@ impl Array for InscriptionId {
   type Array = InscriptionIdArray;
 
   fn from_array(array: Self::Array) -> Self {
-    let (txid, vout) = array.split_at(32);
+    let (txid, index) = array.split_at(32);
     Self {
       txid: Txid::from_inner(txid.try_into().unwrap()),
-      vout: u32::from_be_bytes(vout.try_into().unwrap()),
+      index: u32::from_be_bytes(index.try_into().unwrap()),
     }
   }
 
   fn array(self) -> Self::Array {
     let mut array = [0; 36];
-    let (txid, vout) = array.split_at_mut(32);
+    let (txid, index) = array.split_at_mut(32);
     txid.copy_from_slice(self.txid.as_inner());
-    vout.copy_from_slice(&self.vout.to_be_bytes());
+    index.copy_from_slice(&self.index.to_be_bytes());
     array
   }
 }
