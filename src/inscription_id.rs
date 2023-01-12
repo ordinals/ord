@@ -29,32 +29,57 @@ impl Display for InscriptionId {
   }
 }
 
-impl FromStr for InscriptionId {
-  type Err = Error;
+#[derive(Debug)]
+pub(crate) enum ParseError {
+  Character(char),
+  Length(usize),
+  Separator(char),
+  Txid(bitcoin::hashes::hex::Error),
+  Index(std::num::ParseIntError),
+}
 
-  fn from_str(s: &str) -> Result<Self> {
-    if !s.is_ascii() {
-      bail!("invalid character");
+impl Display for ParseError {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    match self {
+      Self::Character(c) => write!(f, "invalid character: '{c}'"),
+      Self::Length(len) => write!(f, "invalid length: {len}"),
+      Self::Separator(c) => write!(f, "invalid seprator: `{c}`"),
+      Self::Txid(err) => write!(f, "invalid txid: {err}"),
+      Self::Index(err) => write!(f, "invalid index: {err}"),
+    }
+  }
+}
+
+impl std::error::Error for ParseError {}
+
+impl FromStr for InscriptionId {
+  type Err = ParseError;
+
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    if let Some(char) = s.chars().find(|char| !char.is_ascii()) {
+      return Err(ParseError::Character(char));
     }
 
     const TXID_LEN: usize = 64;
     const MIN_LEN: usize = TXID_LEN + 2;
 
     if s.len() < MIN_LEN {
-      bail!("invalid length");
+      return Err(ParseError::Length(s.len()));
     }
 
     let txid = &s[..TXID_LEN];
 
-    if &s[TXID_LEN..TXID_LEN + 1] != "i" {
-      bail!("invalid separator");
+    let separator = s.chars().nth(TXID_LEN).unwrap();
+
+    if separator != 'i' {
+      return Err(ParseError::Separator(separator));
     }
 
     let vout = &s[TXID_LEN + 1..];
 
     Ok(Self {
-      txid: txid.parse()?,
-      vout: vout.parse()?,
+      txid: txid.parse().map_err(ParseError::Txid)?,
+      vout: vout.parse().map_err(ParseError::Index)?,
     })
   }
 }
