@@ -179,15 +179,12 @@ impl Server {
         }
         (Some(http_port), Some(https_port)) => {
           let http_spawn_config = if self.redirect_http_to_https {
-            let acme_domain = Self::acme_domains(&self.acme_domain)?
-              .into_iter()
-              .nth(0)
-              .unwrap();
+            let acme_domains = self.acme_domains()?;
 
             SpawnConfig::Redirect(if https_port == 443 {
-              format!("https://{acme_domain}")
+              format!("https://{}", acme_domains[0])
             } else {
-              format!("https://{acme_domain}:{https_port}")
+              format!("https://{}:{https_port}", acme_domains[0])
             })
           } else {
             SpawnConfig::Http
@@ -273,9 +270,9 @@ impl Server {
     Ok(acme_cache)
   }
 
-  fn acme_domains(acme_domain: &Vec<String>) -> Result<Vec<String>> {
-    if !acme_domain.is_empty() {
-      Ok(acme_domain.clone())
+  fn acme_domains(&self) -> Result<Vec<String>> {
+    if !self.acme_domain.is_empty() {
+      Ok(self.acme_domain.clone())
     } else {
       Ok(vec![sys_info::hostname()?])
     }
@@ -298,7 +295,7 @@ impl Server {
   }
 
   fn acceptor(&self, options: &Options) -> Result<AxumAcceptor> {
-    let config = AcmeConfig::new(Self::acme_domains(&self.acme_domain)?)
+    let config = AcmeConfig::new(self.acme_domains()?)
       .contact(&self.acme_contact)
       .cache_option(Some(DirCache::new(Self::acme_cache(
         self.acme_cache.as_ref(),
@@ -1063,18 +1060,17 @@ mod tests {
 
   #[test]
   fn acme_domain_defaults_to_hostname() {
+    let (_, server) = parse_server_args("ord server");
     assert_eq!(
-      Server::acme_domains(&Vec::new()).unwrap(),
+      server.acme_domains().unwrap(),
       &[sys_info::hostname().unwrap()]
     );
   }
 
   #[test]
   fn acme_domain_flag_is_respected() {
-    assert_eq!(
-      Server::acme_domains(&vec!["example.com".into()]).unwrap(),
-      &["example.com"]
-    );
+    let (_, server) = parse_server_args("ord server --acme-domain example.com");
+    assert_eq!(server.acme_domains().unwrap(), &["example.com"]);
   }
 
   #[test]
