@@ -32,7 +32,7 @@ macro_rules! define_table {
 }
 
 define_table! { HEIGHT_TO_BLOCK_HASH, u64, &BlockHashArray }
-define_table! { INSCRIPTION_ID_TO_ENTRY, &InscriptionIdArray, InscriptionEntryValue }
+define_table! { INSCRIPTION_ID_TO_INSCRIPTION_ENTRY, &InscriptionIdArray, InscriptionEntryValue }
 define_table! { INSCRIPTION_ID_TO_SATPOINT, &InscriptionIdArray, &SatPointArray }
 define_table! { INSCRIPTION_NUMBER_TO_INSCRIPTION_ID, u64, &InscriptionIdArray }
 define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointArray, &[u8] }
@@ -230,7 +230,7 @@ impl Index {
         };
 
         tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
-        tx.open_table(INSCRIPTION_ID_TO_ENTRY)?;
+        tx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
         tx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
         tx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
         tx.open_table(OUTPOINT_TO_VALUE)?;
@@ -705,7 +705,7 @@ impl Index {
       self
         .database
         .begin_read()?
-        .open_table(INSCRIPTION_ID_TO_ENTRY)?
+        .open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?
         .get(inscription_id.as_inner())?
         .map(|value| InscriptionEntry::load(value.value())),
     )

@@ -273,7 +273,7 @@ impl Updater {
       }
     }
 
-    let mut inscription_id_to_entry = wtx.open_table(INSCRIPTION_ID_TO_ENTRY)?;
+    let mut inscription_id_to_entry = wtx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
     let mut inscription_id_to_satpoint = wtx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
     let mut inscription_number_to_inscription_id =
       wtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
