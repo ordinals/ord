@@ -40,6 +40,8 @@ mod tests {
     assert_eq!("11.19".parse::<FeeRate>().unwrap().0, 11.19);
     assert_eq!("11.1111".parse::<FeeRate>().unwrap().0, 11.1111);
     assert!("-4.2".parse::<FeeRate>().is_err());
+    assert!(FeeRate::try_from(f64::INFINITY).is_err());
+    assert!(FeeRate::try_from(f64::NAN).is_err());
   }
 
   #[test]
