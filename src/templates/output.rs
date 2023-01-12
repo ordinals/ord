@@ -115,10 +115,8 @@ mod tests {
   fn with_inscriptions() {
     assert_regex_match!(
       OutputHtml {
-        inscriptions: vec![txid(1)],
-        outpoint: "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0"
-          .parse()
-          .unwrap(),
+        inscriptions: vec![inscription_id(1)],
+        outpoint: outpoint(1),
         list: None,
         chain: Chain::Mainnet,
         output: TxOut {
@@ -127,15 +125,13 @@ mod tests {
         },
       },
       "
-        <h1>Output <span class=monospace>4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</span></h1>
+        <h1>Output <span class=monospace>1{64}:1</span></h1>
         <dl>
           <dt>inscriptions</dt>
           <dd class=thumbnails>
-            <a href=/inscription/1{64}><iframe .* src=/preview/1{64}></iframe></a>
+            <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
           </dd>
-          <dt>value</dt><dd>3</dd>
-          <dt>script pubkey</dt><dd class=data>OP_DUP OP_HASH160 OP_PUSHBYTES_20 0000000000000000000000000000000000000000 OP_EQUALVERIFY OP_CHECKSIG</dd>
-          <dt>address</dt><dd class=monospace>1111111111111111111114oLvT2</dd>
+          .*
         </dl>
       "
       .unindent()

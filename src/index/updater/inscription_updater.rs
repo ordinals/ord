@@ -14,16 +14,16 @@ enum Origin {
 pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   flotsam: Vec<Flotsam>,
   height: u64,
-  id_to_satpoint: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, &'tx SatPointArray>,
+  id_to_satpoint: &'a mut Table<'db, 'tx, &'tx InscriptionIdValue, &'tx SatPointValue>,
   index: &'a Index,
-  id_to_entry: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, InscriptionEntryValue>,
+  id_to_entry: &'a mut Table<'db, 'tx, &'tx InscriptionIdValue, InscriptionEntryValue>,
   lost_sats: u64,
   next_number: u64,
-  number_to_id: &'a mut Table<'db, 'tx, u64, &'tx InscriptionIdArray>,
-  outpoint_to_value: &'a mut Table<'db, 'tx, &'tx OutPointArray, u64>,
+  number_to_id: &'a mut Table<'db, 'tx, u64, &'tx InscriptionIdValue>,
+  outpoint_to_value: &'a mut Table<'db, 'tx, &'tx OutPointValue, u64>,
   reward: u64,
-  sat_to_inscription_id: &'a mut Table<'db, 'tx, u64, &'tx InscriptionIdArray>,
-  satpoint_to_id: &'a mut Table<'db, 'tx, &'tx SatPointArray, &'tx InscriptionIdArray>,
+  sat_to_inscription_id: &'a mut Table<'db, 'tx, u64, &'tx InscriptionIdValue>,
+  satpoint_to_id: &'a mut Table<'db, 'tx, &'tx SatPointValue, &'tx InscriptionIdValue>,
   timestamp: u32,
   value_cache: &'a mut HashMap<OutPoint, u64>,
 }
@@ -31,14 +31,14 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
 impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
   pub(super) fn new(
     height: u64,
-    id_to_satpoint: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, &'tx SatPointArray>,
+    id_to_satpoint: &'a mut Table<'db, 'tx, &'tx InscriptionIdValue, &'tx SatPointValue>,
     index: &'a Index,
-    id_to_entry: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, InscriptionEntryValue>,
+    id_to_entry: &'a mut Table<'db, 'tx, &'tx InscriptionIdValue, InscriptionEntryValue>,
     lost_sats: u64,
-    number_to_id: &'a mut Table<'db, 'tx, u64, &'tx InscriptionIdArray>,
-    outpoint_to_value: &'a mut Table<'db, 'tx, &'tx OutPointArray, u64>,
-    sat_to_inscription_id: &'a mut Table<'db, 'tx, u64, &'tx InscriptionIdArray>,
-    satpoint_to_id: &'a mut Table<'db, 'tx, &'tx SatPointArray, &'tx InscriptionIdArray>,
+    number_to_id: &'a mut Table<'db, 'tx, u64, &'tx InscriptionIdValue>,
+    outpoint_to_value: &'a mut Table<'db, 'tx, &'tx OutPointValue, u64>,
+    sat_to_inscription_id: &'a mut Table<'db, 'tx, u64, &'tx InscriptionIdValue>,
+    satpoint_to_id: &'a mut Table<'db, 'tx, &'tx SatPointValue, &'tx InscriptionIdValue>,
     timestamp: u32,
     value_cache: &'a mut HashMap<OutPoint, u64>,
   ) -> Result<Self> {
@@ -77,7 +77,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
     if Inscription::from_transaction(tx).is_some() {
       inscriptions.push(Flotsam {
-        inscription_id: txid,
+        inscription_id: txid.into(),
         offset: 0,
         origin: Origin::New,
       });
@@ -102,7 +102,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           value
         } else if let Some(value) = self
           .outpoint_to_value
-          .remove(&encode_outpoint(tx_in.previous_output))?
+          .remove(&tx_in.previous_output.store())?
         {
           value.value()
         } else {
@@ -195,11 +195,11 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     flotsam: Flotsam,
     new_satpoint: SatPoint,
   ) -> Result {
-    let inscription_id = flotsam.inscription_id.into_inner();
+    let inscription_id = flotsam.inscription_id.store();
 
     match flotsam.origin {
       Origin::Old(old_satpoint) => {
-        self.satpoint_to_id.remove(&encode_satpoint(old_satpoint))?;
+        self.satpoint_to_id.remove(&old_satpoint.store())?;
       }
       Origin::New => {
         self
@@ -236,7 +236,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       }
     }
 
-    let new_satpoint = encode_satpoint(new_satpoint);
+    let new_satpoint = new_satpoint.store();
 
     self.satpoint_to_id.insert(&new_satpoint, &inscription_id)?;
     self.id_to_satpoint.insert(&inscription_id, &new_satpoint)?;

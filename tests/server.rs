@@ -48,21 +48,25 @@ fn inscription_page() {
 
   let reveal_tx = reveal_txid_from_inscribe_stdout(&stdout);
 
+  let inscription_id = format!("{reveal_tx}i0");
+
   rpc_server.mine_blocks(1);
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
-    format!("/inscription/{reveal_tx}"),
+    format!("/inscription/{inscription_id}"),
     format!(
-      ".*<meta property=og:image content='/content/{reveal_tx}'>.*
+      ".*<meta property=og:image content='/content/{inscription_id}'>.*
 <h1>Inscription 0</h1>
-.*<a href=/preview/{reveal_tx}><iframe .* src=/preview/{reveal_tx}></iframe></a>.*
+.*<a href=/preview/{inscription_id}><iframe .* src=/preview/{inscription_id}></iframe></a>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{reveal_tx}</dd>
+  <dd class=monospace>{inscription_id}</dd>
   <dt>address</dt>
   <dd class=monospace>bc1.*</dd>
+  <dt>output value</dt>
+  <dd>9860</dd>
   <dt>content</dt>
-  <dd><a href=/content/{reveal_tx}>link</a></dd>
+  <dd><a href=/content/{inscription_id}>link</a></dd>
   <dt>content size</dt>
   <dd>10 bytes</dd>
   <dt>content type</dt>
@@ -142,18 +146,20 @@ fn inscription_page_after_send() {
 
   let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
 
+  let inscription_id = format!("{reveal_txid}i0");
+
   rpc_server.mine_blocks(1);
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
-    format!("/inscription/{reveal_txid}"),
+    format!("/inscription/{inscription_id}"),
     format!(
       r".*<h1>Inscription 0</h1>.*<dt>location</dt>\s*<dd class=monospace>{reveal_txid}:0:0</dd>.*",
     ),
   );
 
   let txid = CommandBuilder::new(format!(
-    "wallet send bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {reveal_txid}"
+    "wallet send bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {inscription_id}"
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(".*")
@@ -165,7 +171,7 @@ fn inscription_page_after_send() {
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
-    format!("/inscription/{reveal_txid}"),
+    format!("/inscription/{inscription_id}"),
     format!(
       r".*<h1>Inscription 0</h1>.*<dt>address</dt>\s*<dd class=monospace>bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv</dd>.*<dt>location</dt>\s*<dd class=monospace>{send_txid}:0:0</dd>.*",
     ),
@@ -177,20 +183,14 @@ fn inscription_content() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+  rpc_server.mine_blocks(1);
 
-  let stdout = CommandBuilder::new(format!("wallet inscribe --satpoint {txid}:0:0 hello.txt"))
-    .write("hello.txt", "HELLOWORLD")
-    .rpc_server(&rpc_server)
-    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-    .run();
-
-  let reveal_tx = reveal_txid_from_inscribe_stdout(&stdout);
+  let inscription_id = create_inscription(&rpc_server, "foo.txt");
 
   rpc_server.mine_blocks(1);
 
   let response =
-    TestServer::spawn_with_args(&rpc_server, &[]).request(&format!("/content/{reveal_tx}"));
+    TestServer::spawn_with_args(&rpc_server, &[]).request(&format!("/content/{inscription_id}"));
 
   assert_eq!(response.status(), StatusCode::OK);
   assert_eq!(
@@ -249,24 +249,14 @@ fn inscriptions_page() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
-
-  let stdout = CommandBuilder::new(format!("wallet inscribe --satpoint {txid}:0:0 hello.txt"))
-    .write("hello.txt", "HELLOWORLD")
-    .rpc_server(&rpc_server)
-    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-    .run();
-
-  let reveal_tx = reveal_txid_from_inscribe_stdout(&stdout);
-
-  rpc_server.mine_blocks(1);
+  let inscription_id = create_inscription(&rpc_server, "foo.png");
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     "/inscriptions",
     format!(
       ".*<h1>Inscriptions</h1>
 <div class=thumbnails>
-  <a href=/inscription/{reveal_tx}>.*</a>
+  <a href=/inscription/{inscription_id}>.*</a>
 </div>
 .*",
     ),

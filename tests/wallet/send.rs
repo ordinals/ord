@@ -4,21 +4,14 @@ use super::*;
 fn inscriptions_can_be_sent() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
-
   rpc_server.mine_blocks(1);
 
-  let stdout = CommandBuilder::new("--index-sats wallet inscribe degenerate.png")
-    .write("degenerate.png", [1; 520])
-    .rpc_server(&rpc_server)
-    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-    .run();
-
-  let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
+  let inscription_id = create_inscription(&rpc_server, "foo.txt");
 
   rpc_server.mine_blocks(1);
 
   let stdout = CommandBuilder::new(format!(
-    "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {reveal_txid}"
+    "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {inscription_id}"
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(r".*")
@@ -33,13 +26,13 @@ fn inscriptions_can_be_sent() {
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
-    format!("/inscription/{reveal_txid}"),
+    format!("/inscription/{inscription_id}"),
     format!(
       ".*<h1>Inscription 0</h1>.*<dl>.*
   <dt>content size</dt>
-  <dd>520 bytes</dd>
+  <dd>10 bytes</dd>
   <dt>content type</dt>
-  <dd>image/png</dd>
+  <dd>text/plain;charset=utf-8</dd>
   .*
   <dt>location</dt>
   <dd class=monospace>{send_txid}:0:0</dd>
@@ -58,10 +51,10 @@ fn send_unknown_inscription() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   CommandBuilder::new(format!(
-    "wallet send bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {txid}"
+    "wallet send bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {txid}i0"
   ))
   .rpc_server(&rpc_server)
-  .expected_stderr(format!("error: No inscription found for {txid}\n"))
+  .expected_stderr(format!("error: Inscription {txid}i0 not found\n"))
   .expected_exit_code(1)
   .run();
 }
@@ -70,22 +63,14 @@ fn send_unknown_inscription() {
 fn send_inscribed_sat() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
-  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+  rpc_server.mine_blocks(1);
 
-  let stdout = CommandBuilder::new(format!(
-    "--index-sats wallet inscribe --satpoint {txid}:0:0 degenerate.png"
-  ))
-  .write("degenerate.png", [1; 520])
-  .rpc_server(&rpc_server)
-  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-  .run();
+  let inscription_id = create_inscription(&rpc_server, "foo.txt");
 
   rpc_server.mine_blocks(1);
 
-  let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
-
   let stdout = CommandBuilder::new(format!(
-    "wallet send bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {reveal_txid}"
+    "wallet send bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv  {inscription_id}"
   ))
   .rpc_server(&rpc_server)
   .stdout_regex("[[:xdigit:]]{64}\n")
@@ -97,7 +82,7 @@ fn send_inscribed_sat() {
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
-    format!("/inscription/{reveal_txid}"),
+    format!("/inscription/{inscription_id}"),
     format!(
       ".*<h1>Inscription 0</h1>.*<dt>location</dt>.*<dd class=monospace>{send_txid}:0:0</dd>.*",
     ),
@@ -209,7 +194,7 @@ fn do_not_accidentally_send_an_inscription() {
   .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
   .run();
 
-  let inscription_id = reveal_txid_from_inscribe_stdout(&stdout);
+  let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
 
   rpc_server.mine_blocks(1);
 
@@ -224,7 +209,7 @@ fn do_not_accidentally_send_an_inscription() {
   .rpc_server(&rpc_server)
   .expected_exit_code(1)
   .expected_stderr(format!(
-    "error: cannot send {inscription_utxo}:55 without also sending inscription {inscription_id} at {inscription_utxo}:0\n"
+    "error: cannot send {inscription_utxo}:55 without also sending inscription {reveal_txid}i0 at {inscription_utxo}:0\n"
   ))
   .run();
 }
@@ -349,7 +334,7 @@ fn wallet_send_with_fee_rate() {
   let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
 
   CommandBuilder::new(format!(
-    "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {reveal_txid} --fee-rate 2.0"
+    "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {reveal_txid}i0 --fee-rate 2.0"
   ))
   .rpc_server(&rpc_server)
   .stdout_regex("[[:xdigit:]]{64}\n")

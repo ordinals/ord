@@ -1,8 +1,8 @@
 <h1>Transaction <span class=monospace>{{self.txid}}</span></h1>
-%% if let Some(inscription) = &self.inscription {
+%% if let Some(id) = self.inscription {
 <h2>Inscription Geneses</h2>
 <div class=thumbnails>
-{{ Iframe::thumbnail(self.txid) }}
+{{ Iframe::thumbnail(id) }}
 </div>
 %% }
 <h2>{{"Output".tally(self.transaction.output.len())}}</h2>

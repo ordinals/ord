@@ -48,18 +48,18 @@ mod tests {
   #[test]
   fn preview() {
     assert_regex_match!(
-      Iframe::thumbnail(txid(1))
+      Iframe::thumbnail(inscription_id(1))
       .0.to_string(),
-      "<a href=/inscription/1{64}><iframe sandbox=allow-scripts scrolling=no src=/preview/1{64}></iframe></a>",
+      "<a href=/inscription/1{64}i1><iframe sandbox=allow-scripts scrolling=no src=/preview/1{64}i1></iframe></a>",
     );
   }
 
   #[test]
   fn main() {
     assert_regex_match!(
-      Iframe::main(txid(1))
+      Iframe::main(inscription_id(1))
       .0.to_string(),
-      "<a href=/preview/1{64}><iframe sandbox=allow-scripts scrolling=no src=/preview/1{64}></iframe></a>",
+      "<a href=/preview/1{64}i1><iframe sandbox=allow-scripts scrolling=no src=/preview/1{64}i1></iframe></a>",
     );
   }
 }

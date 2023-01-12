@@ -4,6 +4,7 @@ use super::*;
 pub(crate) enum Object {
   Address(Address),
   Hash([u8; 32]),
+  InscriptionId(InscriptionId),
   Integer(u128),
   OutPoint(OutPoint),
   Sat(Sat),
@@ -22,6 +23,7 @@ impl FromStr for Object {
       Hash => Ok(Self::Hash(
         bitcoin::hashes::sha256::Hash::from_str(s)?.into_inner(),
       )),
+      InscriptionId => Ok(Self::InscriptionId(s.parse()?)),
       Integer => Ok(Self::Integer(s.parse()?)),
       OutPoint => Ok(Self::OutPoint(s.parse()?)),
       SatPoint => Ok(Self::SatPoint(s.parse()?)),
@@ -39,6 +41,7 @@ impl Display for Object {
         }
         Ok(())
       }
+      Self::InscriptionId(inscription_id) => write!(f, "{inscription_id}"),
       Self::Integer(integer) => write!(f, "{integer}"),
       Self::OutPoint(outpoint) => write!(f, "{}", outpoint),
       Self::Sat(sat) => write!(f, "{sat}"),
@@ -77,6 +80,15 @@ mod tests {
     assert_eq!("0%".parse::<Object>().unwrap(), Object::Sat(Sat(0)));
 
     case("0", Object::Integer(0));
+
+    case(
+      "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdefi1",
+      Object::InscriptionId(
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdefi1"
+          .parse()
+          .unwrap(),
+      ),
+    );
 
     case(
       "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
