@@ -1,12 +1,11 @@
-use bitcoin::psbt::serialize::Deserialize;
-use bitcoincore_rpc::RawTx;
-
 use {
   super::*,
   bitcoin::{
+    psbt::serialize::Deserialize,
     secp256k1::{rand, KeyPair, Secp256k1, XOnlyPublicKey},
     Address, Witness,
   },
+  bitcoincore_rpc::RawTx,
 };
 
 pub(crate) struct Server {

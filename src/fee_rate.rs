@@ -14,11 +14,11 @@ impl FromStr for FeeRate {
 impl TryFrom<f64> for FeeRate {
   type Error = Error;
 
-  fn try_from(float: f64) -> Result<Self, Self::Error> {
-    if float.is_sign_negative() | float.is_nan() | float.is_infinite() {
-      return Err(anyhow!("fee rate can not be negative"));
+  fn try_from(rate: f64) -> Result<Self, Self::Error> {
+    if rate.is_sign_negative() | rate.is_nan() | rate.is_infinite() {
+      bail!("invalid fee rate: {rate}")
     }
-    Ok(Self(float))
+    Ok(Self(rate))
   }
 }
 
