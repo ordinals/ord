@@ -418,7 +418,6 @@ impl Server {
     Extension(chain): Extension<Chain>,
     Path(txid): Path<Txid>,
   ) -> ServerResult<PageHtml<TransactionHtml>> {
-    // TODO: don't get whole inscription
     let inscription = index
       .get_inscription_by_id(txid.into())?
       .map(|(inscription, _satpoint)| inscription);
