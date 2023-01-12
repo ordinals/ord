@@ -6,13 +6,12 @@ fn inscriptions_can_be_sent() {
   create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
-  let output = inscribe(&rpc_server);
+  let Inscribe { inscription, .. } = inscribe(&rpc_server);
 
   rpc_server.mine_blocks(1);
 
   let stdout = CommandBuilder::new(format!(
-    "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {}",
-    output.inscription
+    "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {inscription}",
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(r".*")
@@ -27,7 +26,7 @@ fn inscriptions_can_be_sent() {
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
-    format!("/inscription/{}", output.inscription),
+    format!("/inscription/{inscription}"),
     format!(
       ".*<h1>Inscription 0</h1>.*<dl>.*
   <dt>content size</dt>

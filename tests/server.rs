@@ -230,17 +230,16 @@ fn inscriptions_page() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  let output = inscribe(&rpc_server);
+  let Inscribe { inscription, .. } = inscribe(&rpc_server);
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     "/inscriptions",
     format!(
       ".*<h1>Inscriptions</h1>
 <div class=thumbnails>
-  <a href=/inscription/{}>.*</a>
+  <a href=/inscription/{inscription}>.*</a>
 </div>
 .*",
-      output.inscription,
     ),
   );
 }
@@ -253,13 +252,8 @@ fn inscriptions_page_is_sorted() {
   let mut inscriptions = String::new();
 
   for _ in 0..8 {
-    inscriptions.insert_str(
-      0,
-      &format!(
-        ".*<a href=/inscription/{}>.*",
-        inscribe(&rpc_server).inscription
-      ),
-    );
+    let Inscribe { inscription, .. } = inscribe(&rpc_server);
+    inscriptions.insert_str(0, &format!(".*<a href=/inscription/{inscription}>.*"));
   }
 
   TestServer::spawn_with_args(&rpc_server, &[])
@@ -271,20 +265,19 @@ fn inscriptions_page_has_next_and_previous() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  let a = inscribe(&rpc_server);
-  let b = inscribe(&rpc_server);
-  let c = inscribe(&rpc_server);
+  let Inscribe { inscription: a, .. } = inscribe(&rpc_server);
+  let Inscribe { inscription: b, .. } = inscribe(&rpc_server);
+  let Inscribe { inscription: c, .. } = inscribe(&rpc_server);
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
-    format!("/inscription/{}", b.inscription),
+    format!("/inscription/{b}"),
     format!(
       ".*<h1>Inscription 1</h1>.*
 <div class=inscription>
-<a class=previous href=/inscription/{}>❮</a>
-<a href=/preview/{}>.*</a>
-<a class=next href=/inscription/{}>❯</a>
+<a class=previous href=/inscription/{a}>❮</a>
+<a href=/preview/{b}>.*</a>
+<a class=next href=/inscription/{c}>❯</a>
 </div>.*",
-      a.inscription, b.inscription, c.inscription
     ),
   );
 }
