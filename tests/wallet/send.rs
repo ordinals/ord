@@ -109,15 +109,13 @@ fn send_on_mainnnet_works_with_wallet_named_foo() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  CommandBuilder::new(
-    format!("wallet create --name foo")
-  )
-  .rpc_server(&rpc_server)
-  .run();
+  CommandBuilder::new("wallet create --name foo")
+    .rpc_server(&rpc_server)
+    .run();
 
-  CommandBuilder::new(
-    format!("--wallet foo wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0")
-  )
+  CommandBuilder::new(format!(
+    "--wallet foo wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0"
+  ))
   .rpc_server(&rpc_server)
   .stdout_regex(r"[[:xdigit:]]{64}\n")
   .run();
