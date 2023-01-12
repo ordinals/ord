@@ -7,7 +7,7 @@ fn inscriptions() {
   rpc_server.mine_blocks(1);
 
   let reveal_txid = reveal_txid_from_inscribe_stdout(
-    &CommandBuilder::new(format!("wallet inscribe hello.txt"))
+    &CommandBuilder::new("wallet inscribe hello.txt")
       .write("hello.txt", "HELLOWORLD")
       .rpc_server(&rpc_server)
       .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
