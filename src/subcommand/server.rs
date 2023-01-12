@@ -1706,7 +1706,7 @@ mod tests {
     let server = TestServer::new();
     server.mine_blocks(1);
 
-    let inscription_id = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0)],
       witness: inscription("text/html;charset=utf-8", "hello").to_witness(),
       ..Default::default()
@@ -1715,7 +1715,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_csp(
-      format!("/preview/{inscription_id}"),
+      format!("/preview/{}", InscriptionId::from(txid)),
       StatusCode::OK,
       "default-src 'unsafe-eval' 'unsafe-inline'",
       "hello",
