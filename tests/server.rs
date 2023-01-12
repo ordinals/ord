@@ -38,9 +38,9 @@ fn run() {
 fn inscription_page() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
-  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+  rpc_server.mine_blocks(1);
 
-  let stdout = CommandBuilder::new(format!("wallet inscribe --satpoint {txid}:0:0 hello.txt"))
+  let stdout = CommandBuilder::new(format!("wallet inscribe hello.txt"))
     .write("hello.txt", "HELLOWORLD")
     .rpc_server(&rpc_server)
     .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
@@ -48,21 +48,25 @@ fn inscription_page() {
 
   let reveal_tx = reveal_txid_from_inscribe_stdout(&stdout);
 
+  let inscription_id = format!("{reveal_tx}i0");
+
   rpc_server.mine_blocks(1);
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
-    format!("/inscription/{reveal_tx}"),
+    format!("/inscription/{inscription_id}"),
     format!(
-      ".*<meta property=og:image content='/content/{reveal_tx}'>.*
+      ".*<meta property=og:image content='/content/{inscription_id}'>.*
 <h1>Inscription 0</h1>
-.*<a href=/preview/{reveal_tx}><iframe .* src=/preview/{reveal_tx}></iframe></a>.*
+.*<a href=/preview/{inscription_id}><iframe .* src=/preview/{inscription_id}></iframe></a>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{reveal_tx}</dd>
+  <dd class=monospace>{inscription_id}</dd>
   <dt>address</dt>
   <dd class=monospace>bc1.*</dd>
+  <dt>output value</dt>
+  <dd>9860</dd>
   <dt>content</dt>
-  <dd><a href=/content/{reveal_tx}>link</a></dd>
+  <dd><a href=/content/{inscription_id}>link</a></dd>
   <dt>content size</dt>
   <dd>10 bytes</dd>
   <dt>content type</dt>
@@ -244,24 +248,16 @@ fn inscriptions_page() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+  let inscription_id = create_inscription(&rpc_server, "foo.png");
 
-  let stdout = CommandBuilder::new(format!("wallet inscribe --satpoint {txid}:0:0 hello.txt"))
-    .write("hello.txt", "HELLOWORLD")
-    .rpc_server(&rpc_server)
-    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-    .run();
-
-  let reveal_tx = reveal_txid_from_inscribe_stdout(&stdout);
-
-  rpc_server.mine_blocks(1);
+  // rpc_server.mine_blocks(1);
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     "/inscriptions",
     format!(
       ".*<h1>Inscriptions</h1>
 <div class=inscriptions>
-  <a href=/inscription/{reveal_tx}>.*</a>
+  <a href=/inscription/{inscription_id}>.*</a>
 </div>
 .*",
     ),
