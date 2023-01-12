@@ -6,12 +6,12 @@ fn inscriptions_can_be_sent() {
   create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
-  let inscription_id = create_inscription(&rpc_server, "foo.txt");
+  let Inscribe { inscription, .. } = inscribe(&rpc_server);
 
   rpc_server.mine_blocks(1);
 
   let stdout = CommandBuilder::new(format!(
-    "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {inscription_id}"
+    "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {inscription}",
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(r".*")
@@ -26,11 +26,11 @@ fn inscriptions_can_be_sent() {
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
-    format!("/inscription/{inscription_id}"),
+    format!("/inscription/{inscription}"),
     format!(
       ".*<h1>Inscription 0</h1>.*<dl>.*
   <dt>content size</dt>
-  <dd>10 bytes</dd>
+  <dd>3 bytes</dd>
   <dt>content type</dt>
   <dd>text/plain;charset=utf-8</dd>
   .*
@@ -65,12 +65,12 @@ fn send_inscribed_sat() {
   create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
-  let inscription_id = create_inscription(&rpc_server, "foo.txt");
+  let Inscribe { inscription, .. } = inscribe(&rpc_server);
 
   rpc_server.mine_blocks(1);
 
   let stdout = CommandBuilder::new(format!(
-    "wallet send bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv  {inscription_id}"
+    "wallet send bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {inscription}",
   ))
   .rpc_server(&rpc_server)
   .stdout_regex("[[:xdigit:]]{64}\n")
@@ -82,7 +82,7 @@ fn send_inscribed_sat() {
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
-    format!("/inscription/{inscription_id}"),
+    format!("/inscription/{inscription}"),
     format!(
       ".*<h1>Inscription 0</h1>.*<dt>location</dt>.*<dd class=monospace>{send_txid}:0:0</dd>.*",
     ),
@@ -169,8 +169,7 @@ fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
   ))
   .write("degenerate.png", [1; 100])
   .rpc_server(&rpc_server)
-  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-  .run();
+  .output::<Inscribe>();
 
   let txid = rpc_server.mine_blocks_with_subsidy(1, 100)[0].txdata[0].txid();
 
@@ -188,31 +187,26 @@ fn do_not_accidentally_send_an_inscription() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
-  let stdout = CommandBuilder::new(format!(
-    "wallet inscribe --satpoint {txid}:0:0 degenerate.png"
-  ))
-  .write("degenerate.png", [1; 100])
-  .rpc_server(&rpc_server)
-  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-  .run();
-
-  let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
+  let Inscribe {
+    reveal,
+    inscription,
+    ..
+  } = inscribe(&rpc_server);
 
   rpc_server.mine_blocks(1);
 
-  let inscription_utxo = OutPoint {
-    txid: reveal_txid_from_inscribe_stdout(&stdout),
+  let output = OutPoint {
+    txid: reveal,
     vout: 0,
   };
 
   CommandBuilder::new(format!(
-    "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4  {inscription_utxo}:55"
+    "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {output}:55"
   ))
   .rpc_server(&rpc_server)
   .expected_exit_code(1)
   .expected_stderr(format!(
-    "error: cannot send {inscription_utxo}:55 without also sending inscription {reveal_txid}i0 at {inscription_utxo}:0\n"
+    "error: cannot send {output}:55 without also sending inscription {inscription} at {output}:0\n"
   ))
   .run();
 }
@@ -221,22 +215,14 @@ fn do_not_accidentally_send_an_inscription() {
 fn inscriptions_cannot_be_sent_by_satpoint() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
-  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  let stdout = CommandBuilder::new(format!("wallet inscribe --satpoint {txid}:0:0 hello.txt"))
-    .write("hello.txt", "HELLOWORLD")
-    .rpc_server(&rpc_server)
-    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-    .run();
-
-  let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
+  let Inscribe { reveal, .. } = inscribe(&rpc_server);
 
   rpc_server.mine_blocks(1);
 
   CommandBuilder::new(format!(
-    "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4   {reveal_txid}:0:0"
+    "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {reveal}:0:0"
   ))
-  .write("hello.txt", "HELLOWORLD")
   .rpc_server(&rpc_server)
   .expected_stderr("error: inscriptions must be sent by inscription ID\n")
   .expected_exit_code(1)
@@ -274,15 +260,7 @@ fn send_btc_locks_inscriptions() {
 
   rpc_server.mine_blocks(1);
 
-  let stdout = CommandBuilder::new("wallet inscribe hello.txt")
-    .write("hello.txt", "HELLOWORLD")
-    .rpc_server(&rpc_server)
-    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-    .run();
-
-  let inscription_id = reveal_txid_from_inscribe_stdout(&stdout);
-
-  rpc_server.mine_blocks(1);
+  let Inscribe { reveal, .. } = inscribe(&rpc_server);
 
   CommandBuilder::new("wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc")
     .rpc_server(&rpc_server)
@@ -297,7 +275,7 @@ fn send_btc_locks_inscriptions() {
         .parse()
         .unwrap(),
       locked: vec![OutPoint {
-        txid: inscription_id,
+        txid: reveal,
         vout: 0,
       }]
     }]
@@ -326,18 +304,10 @@ fn wallet_send_with_fee_rate() {
   create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
-  let stdout = CommandBuilder::new("--index-sats wallet inscribe degenerate.png")
-    .write("degenerate.png", [1; 520])
-    .rpc_server(&rpc_server)
-    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-    .run();
-
-  rpc_server.mine_blocks(1);
-
-  let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
+  let Inscribe { inscription, .. } = inscribe(&rpc_server);
 
   CommandBuilder::new(format!(
-    "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {reveal_txid}i0 --fee-rate 2.0"
+    "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {inscription} --fee-rate 2.0"
   ))
   .rpc_server(&rpc_server)
   .stdout_regex("[[:xdigit:]]{64}\n")

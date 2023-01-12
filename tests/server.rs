@@ -38,37 +38,30 @@ fn run() {
 fn inscription_page() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
-  rpc_server.mine_blocks(1);
 
-  let stdout = CommandBuilder::new("wallet inscribe hello.txt")
-    .write("hello.txt", "HELLOWORLD")
-    .rpc_server(&rpc_server)
-    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-    .run();
-
-  let reveal_tx = reveal_txid_from_inscribe_stdout(&stdout);
-
-  let inscription_id = format!("{reveal_tx}i0");
-
-  rpc_server.mine_blocks(1);
+  let Inscribe {
+    inscription,
+    reveal,
+    ..
+  } = inscribe(&rpc_server);
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
-    format!("/inscription/{inscription_id}"),
+    format!("/inscription/{inscription}"),
     format!(
-      ".*<meta property=og:image content='/content/{inscription_id}'>.*
+      ".*<meta property=og:image content='/content/{inscription}'>.*
 <h1>Inscription 0</h1>
-.*<a href=/preview/{inscription_id}><iframe .* src=/preview/{inscription_id}></iframe></a>.*
+.*<a href=/preview/{inscription}><iframe .* src=/preview/{inscription}></iframe></a>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{inscription_id}</dd>
+  <dd class=monospace>{inscription}</dd>
   <dt>address</dt>
   <dd class=monospace>bc1.*</dd>
   <dt>output value</dt>
-  <dd>9860</dd>
+  <dd>9862</dd>
   <dt>content</dt>
-  <dd><a href=/content/{inscription_id}>link</a></dd>
+  <dd><a href=/content/{inscription}>link</a></dd>
   <dt>content size</dt>
-  <dd>10 bytes</dd>
+  <dd>3 bytes</dd>
   <dt>content type</dt>
   <dd>text/plain;charset=utf-8</dd>
   <dt>timestamp</dt>
@@ -76,11 +69,11 @@ fn inscription_page() {
   <dt>genesis height</dt>
   <dd>2</dd>
   <dt>genesis transaction</dt>
-  <dd><a class=monospace href=/tx/{reveal_tx}>{reveal_tx}</a></dd>
+  <dd><a class=monospace href=/tx/{reveal}>{reveal}</a></dd>
   <dt>location</dt>
-  <dd class=monospace>{reveal_tx}:0:0</dd>
+  <dd class=monospace>{reveal}:0:0</dd>
   <dt>output</dt>
-  <dd><a class=monospace href=/output/{reveal_tx}:0>{reveal_tx}:0</a></dd>
+  <dd><a class=monospace href=/output/{reveal}:0>{reveal}:0</a></dd>
   <dt>offset</dt>
   <dd>0</dd>
 </dl>.*",
@@ -92,21 +85,14 @@ fn inscription_page() {
 fn inscription_appears_on_reveal_transaction_page() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
-  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  let stdout = CommandBuilder::new(format!("wallet inscribe --satpoint {txid}:0:0 hello.txt"))
-    .write("hello.txt", "HELLOWORLD")
-    .rpc_server(&rpc_server)
-    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-    .run();
-
-  let reveal_tx = reveal_txid_from_inscribe_stdout(&stdout);
+  let Inscribe { reveal, .. } = inscribe(&rpc_server);
 
   rpc_server.mine_blocks(1);
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
-    format!("/tx/{reveal_tx}"),
-    format!(".*<h1>Transaction .*</h1>.*<a href=/inscription/{reveal_tx}.*"),
+    format!("/tx/{reveal}"),
+    format!(".*<h1>Transaction .*</h1>.*<a href=/inscription/{reveal}.*"),
   );
 }
 
@@ -114,21 +100,18 @@ fn inscription_appears_on_reveal_transaction_page() {
 fn inscription_appears_on_output_page() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
-  rpc_server.mine_blocks(1);
 
-  let stdout = CommandBuilder::new("wallet inscribe hello.txt")
-    .write("hello.txt", "HELLOWORLD")
-    .rpc_server(&rpc_server)
-    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-    .run();
-
-  let reveal_tx = reveal_txid_from_inscribe_stdout(&stdout);
+  let Inscribe {
+    reveal,
+    inscription,
+    ..
+  } = inscribe(&rpc_server);
 
   rpc_server.mine_blocks(1);
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
-    format!("/output/{reveal_tx}:0"),
-    format!(".*<h1>Output <span class=monospace>{reveal_tx}:0</span></h1>.*<a href=/inscription/{reveal_tx}.*"),
+    format!("/output/{reveal}:0"),
+    format!(".*<h1>Output <span class=monospace>{reveal}:0</span></h1>.*<a href=/inscription/{inscription}.*"),
   );
 }
 
@@ -136,30 +119,25 @@ fn inscription_appears_on_output_page() {
 fn inscription_page_after_send() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
-  rpc_server.mine_blocks(1);
 
-  let stdout = CommandBuilder::new("wallet inscribe hello.txt")
-    .write("hello.txt", "HELLOWORLD")
-    .rpc_server(&rpc_server)
-    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-    .run();
-
-  let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
-
-  let inscription_id = format!("{reveal_txid}i0");
+  let Inscribe {
+    reveal,
+    inscription,
+    ..
+  } = inscribe(&rpc_server);
 
   rpc_server.mine_blocks(1);
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
-    format!("/inscription/{inscription_id}"),
+    format!("/inscription/{inscription}"),
     format!(
-      r".*<h1>Inscription 0</h1>.*<dt>location</dt>\s*<dd class=monospace>{reveal_txid}:0:0</dd>.*",
+      r".*<h1>Inscription 0</h1>.*<dt>location</dt>\s*<dd class=monospace>{reveal}:0:0</dd>.*",
     ),
   );
 
   let txid = CommandBuilder::new(format!(
-    "wallet send bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {inscription_id}"
+    "wallet send bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {inscription}"
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(".*")
@@ -167,13 +145,13 @@ fn inscription_page_after_send() {
 
   rpc_server.mine_blocks(1);
 
-  let send_txid = txid.trim();
+  let send = txid.trim();
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
-    format!("/inscription/{inscription_id}"),
+    format!("/inscription/{inscription}"),
     format!(
-      r".*<h1>Inscription 0</h1>.*<dt>address</dt>\s*<dd class=monospace>bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv</dd>.*<dt>location</dt>\s*<dd class=monospace>{send_txid}:0:0</dd>.*",
+      r".*<h1>Inscription 0</h1>.*<dt>address</dt>\s*<dd class=monospace>bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv</dd>.*<dt>location</dt>\s*<dd class=monospace>{send}:0:0</dd>.*",
     ),
   )
 }
@@ -185,12 +163,12 @@ fn inscription_content() {
 
   rpc_server.mine_blocks(1);
 
-  let inscription_id = create_inscription(&rpc_server, "foo.txt");
+  let Inscribe { inscription, .. } = inscribe(&rpc_server);
 
   rpc_server.mine_blocks(1);
 
   let response =
-    TestServer::spawn_with_args(&rpc_server, &[]).request(&format!("/content/{inscription_id}"));
+    TestServer::spawn_with_args(&rpc_server, &[]).request(&format!("/content/{inscription}"));
 
   assert_eq!(response.status(), StatusCode::OK);
   assert_eq!(
@@ -201,7 +179,7 @@ fn inscription_content() {
     response.headers().get("content-security-policy").unwrap(),
     "default-src 'unsafe-eval' 'unsafe-inline'"
   );
-  assert_eq!(response.bytes().unwrap(), "HELLOWORLD");
+  assert_eq!(response.bytes().unwrap(), "FOO");
 }
 
 #[test]
@@ -209,15 +187,15 @@ fn home_page_includes_latest_inscriptions() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  let inscription_id = create_inscription(&rpc_server, "foo.png");
+  let Inscribe { inscription, .. } = inscribe(&rpc_server);
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     "/",
     format!(
       ".*<h2>Latest Inscriptions</h2>
 <div class=thumbnails>
-  <a href=/inscription/{inscription_id}><iframe .*></a>
-</div>.*"
+  <a href=/inscription/{inscription}><iframe .*></a>
+</div>.*",
     ),
   );
 }
@@ -229,9 +207,12 @@ fn home_page_inscriptions_are_sorted() {
 
   let mut inscriptions = String::new();
 
-  for i in 0..8 {
-    let id = create_inscription(&rpc_server, &format!("{i}.png"));
-    inscriptions.insert_str(0, &format!("\n  <a href=/inscription/{id}><iframe .*></a>"));
+  for _ in 0..8 {
+    let Inscribe { inscription, .. } = inscribe(&rpc_server);
+    inscriptions.insert_str(
+      0,
+      &format!("\n  <a href=/inscription/{inscription}><iframe .*></a>"),
+    );
   }
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
@@ -249,14 +230,14 @@ fn inscriptions_page() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  let inscription_id = create_inscription(&rpc_server, "foo.png");
+  let Inscribe { inscription, .. } = inscribe(&rpc_server);
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     "/inscriptions",
     format!(
       ".*<h1>Inscriptions</h1>
 <div class=thumbnails>
-  <a href=/inscription/{inscription_id}>.*</a>
+  <a href=/inscription/{inscription}>.*</a>
 </div>
 .*",
     ),
@@ -270,9 +251,9 @@ fn inscriptions_page_is_sorted() {
 
   let mut inscriptions = String::new();
 
-  for i in 0..8 {
-    let id = create_inscription(&rpc_server, &format!("{i}.png"));
-    inscriptions.insert_str(0, &format!(".*<a href=/inscription/{id}>.*"));
+  for _ in 0..8 {
+    let Inscribe { inscription, .. } = inscribe(&rpc_server);
+    inscriptions.insert_str(0, &format!(".*<a href=/inscription/{inscription}>.*"));
   }
 
   TestServer::spawn_with_args(&rpc_server, &[])
@@ -284,9 +265,9 @@ fn inscriptions_page_has_next_and_previous() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  let a = create_inscription(&rpc_server, "a.txt");
-  let b = create_inscription(&rpc_server, "b.txt");
-  let c = create_inscription(&rpc_server, "c.txt");
+  let Inscribe { inscription: a, .. } = inscribe(&rpc_server);
+  let Inscribe { inscription: b, .. } = inscribe(&rpc_server);
+  let Inscribe { inscription: c, .. } = inscribe(&rpc_server);
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     format!("/inscription/{b}"),
@@ -296,7 +277,7 @@ fn inscriptions_page_has_next_and_previous() {
 <a class=previous href=/inscription/{a}>❮</a>
 <a href=/preview/{b}>.*</a>
 <a class=next href=/inscription/{c}>❯</a>
-</div>.*"
+</div>.*",
     ),
   );
 }
