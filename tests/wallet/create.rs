@@ -78,7 +78,7 @@ fn create_with_different_name() {
 
   assert!(!rpc_server.wallets().contains("inscription-wallet"));
 
-  CommandBuilder::new("wallet create --name inscription-wallet")
+  CommandBuilder::new("--wallet inscription-wallet wallet create")
     .rpc_server(&rpc_server)
     .run();
 

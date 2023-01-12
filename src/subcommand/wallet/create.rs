@@ -9,53 +9,45 @@ use {
   miniscript::descriptor::{Descriptor, DescriptorSecretKey, DescriptorXKey, Wildcard},
 };
 
-#[derive(Debug, Parser)]
-pub(crate) struct Create {
-  #[clap(long, default_value = "ord", help = "Create wallet with <NAME>")]
-  pub(crate) name: String,
-}
+pub(crate) fn run(options: Options) -> Result {
+  let client = options.bitcoin_rpc_client_for_wallet_command(true)?;
 
-impl Create {
-  pub(crate) fn run(&self, options: Options) -> Result {
-    let client = options.bitcoin_rpc_client_for_wallet_command(true)?;
+  client.create_wallet(&options.wallet, None, Some(true), None, None)?;
 
-    client.create_wallet(&self.name, None, Some(true), None, None)?;
+  let secp = bitcoin::secp256k1::Secp256k1::new();
+  let mut seed = [0; 32];
+  bitcoin::secp256k1::rand::thread_rng().fill_bytes(&mut seed);
 
-    let secp = bitcoin::secp256k1::Secp256k1::new();
-    let mut seed = [0; 32];
-    bitcoin::secp256k1::rand::thread_rng().fill_bytes(&mut seed);
+  let master_private_key = ExtendedPrivKey::new_master(options.chain().network(), &seed)?;
 
-    let master_private_key = ExtendedPrivKey::new_master(options.chain().network(), &seed)?;
+  let fingerprint = master_private_key.fingerprint(&secp);
 
-    let fingerprint = master_private_key.fingerprint(&secp);
+  let derivation_path = DerivationPath::master()
+    .child(ChildNumber::Hardened { index: 86 })
+    .child(ChildNumber::Hardened {
+      index: u32::from(options.chain().network() != Network::Bitcoin),
+    })
+    .child(ChildNumber::Hardened { index: 0 });
 
-    let derivation_path = DerivationPath::master()
-      .child(ChildNumber::Hardened { index: 86 })
-      .child(ChildNumber::Hardened {
-        index: u32::from(options.chain().network() != Network::Bitcoin),
-      })
-      .child(ChildNumber::Hardened { index: 0 });
+  let derived_private_key = master_private_key.derive_priv(&secp, &derivation_path)?;
 
-    let derived_private_key = master_private_key.derive_priv(&secp, &derivation_path)?;
+  derive_and_import_descriptor(
+    &client,
+    &secp,
+    (fingerprint, derivation_path.clone()),
+    derived_private_key,
+    false,
+  )?;
 
-    derive_and_import_descriptor(
-      &client,
-      &secp,
-      (fingerprint, derivation_path.clone()),
-      derived_private_key,
-      false,
-    )?;
+  derive_and_import_descriptor(
+    &client,
+    &secp,
+    (fingerprint, derivation_path),
+    derived_private_key,
+    true,
+  )?;
 
-    derive_and_import_descriptor(
-      &client,
-      &secp,
-      (fingerprint, derivation_path),
-      derived_private_key,
-      true,
-    )?;
-
-    Ok(())
-  }
+  Ok(())
 }
 
 fn derive_and_import_descriptor(

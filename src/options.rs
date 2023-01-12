@@ -39,7 +39,7 @@ pub(crate) struct Options {
   pub(crate) signet: bool,
   #[clap(long, short, help = "Use testnet. Equivalent to `--chain testnet`.")]
   pub(crate) testnet: bool,
-  #[clap(long, default_value = "ord", help = "Use <WALLET> wallet.")]
+  #[clap(long, default_value = "ord", help = "Use wallet named <WALLET>.")]
   pub(crate) wallet: String,
 }
 
@@ -68,24 +68,17 @@ impl Options {
     }
   }
 
-  pub(crate) fn rpc_url(&self, path: Option<String>) -> String {
-    if let Some(path) = path {
-      self
-        .rpc_url
-        .as_ref()
-        .unwrap_or(&format!(
-          "127.0.0.1:{}{}",
-          self.chain().default_rpc_port(),
-          path
-        ))
-        .into()
-    } else {
-      self
-        .rpc_url
-        .as_ref()
-        .unwrap_or(&format!("127.0.0.1:{}", self.chain().default_rpc_port()))
-        .into()
+  pub(crate) fn rpc_url(&self, with_wallet: bool) -> String {
+    let mut rpc_url = self
+      .rpc_url
+      .clone()
+      .unwrap_or_else(|| format!("127.0.0.1:{}", self.chain().default_rpc_port()));
+
+    if with_wallet {
+      rpc_url.push_str(&format!("/wallet/{}", self.wallet));
     }
+
+    rpc_url.to_string()
   }
 
   pub(crate) fn cookie_file(&self) -> Result<PathBuf> {
@@ -133,11 +126,7 @@ impl Options {
   pub(crate) fn bitcoin_rpc_client(&self, with_wallet: bool) -> Result<Client> {
     let cookie_file = self.cookie_file()?;
 
-    let rpc_url = self.rpc_url(if with_wallet {
-      Some(format!("/wallet/{}", &self.wallet))
-    } else {
-      None
-    });
+    let rpc_url = self.rpc_url(with_wallet);
 
     log::info!(
       "Connecting to Bitcoin Core RPC server at {rpc_url} using credentials from `{}`",
@@ -210,7 +199,7 @@ mod tests {
       Arguments::try_parse_from(["ord", "--rpc-url=127.0.0.1:1234", "--chain=signet", "index"])
         .unwrap()
         .options
-        .rpc_url(None),
+        .rpc_url(false),
       "127.0.0.1:1234"
     );
   }
@@ -231,7 +220,7 @@ mod tests {
   fn use_default_network() {
     let arguments = Arguments::try_parse_from(["ord", "index"]).unwrap();
 
-    assert_eq!(arguments.options.rpc_url(None), "127.0.0.1:8332");
+    assert_eq!(arguments.options.rpc_url(false), "127.0.0.1:8332");
 
     assert!(arguments
       .options
@@ -244,7 +233,7 @@ mod tests {
   fn uses_network_defaults() {
     let arguments = Arguments::try_parse_from(["ord", "--chain=signet", "index"]).unwrap();
 
-    assert_eq!(arguments.options.rpc_url(None), "127.0.0.1:38332");
+    assert_eq!(arguments.options.rpc_url(false), "127.0.0.1:38332");
 
     assert!(arguments
       .options
@@ -497,5 +486,24 @@ mod tests {
         .chain(),
       Chain::Testnet
     );
+  }
+
+  #[test]
+  fn wallet_flag_overrides_default_name() {
+    assert_eq!(
+      Arguments::try_parse_from(["ord", "wallet", "create"])
+        .unwrap()
+        .options
+        .wallet,
+      "ord"
+    );
+
+    assert_eq!(
+      Arguments::try_parse_from(["ord", "--wallet", "foo", "wallet", "create"])
+        .unwrap()
+        .options
+        .wallet,
+      "foo"
+    )
   }
 }

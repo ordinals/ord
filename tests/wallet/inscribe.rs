@@ -299,7 +299,7 @@ fn inscribe_with_fee_rate() {
 fn inscribe_with_wallet_named_foo() {
   let rpc_server = test_bitcoincore_rpc::spawn();
 
-  CommandBuilder::new("wallet create --name foo")
+  CommandBuilder::new("--wallet foo wallet create")
     .rpc_server(&rpc_server)
     .run();
 

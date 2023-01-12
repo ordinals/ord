@@ -16,7 +16,7 @@ pub(crate) enum Wallet {
   #[clap(about = "Get wallet balance")]
   Balance,
   #[clap(about = "Create a new wallet")]
-  Create(create::Create),
+  Create,
   #[clap(about = "Create an inscription")]
   Inscribe(inscribe::Inscribe),
   #[clap(about = "List wallet inscriptions")]
@@ -37,7 +37,7 @@ impl Wallet {
   pub(crate) fn run(self, options: Options) -> Result {
     match self {
       Self::Balance => balance::run(options),
-      Self::Create(create) => create.run(options),
+      Self::Create => create::run(options),
       Self::Inscribe(inscribe) => inscribe.run(options),
       Self::Inscriptions => inscriptions::run(options),
       Self::Receive => receive::run(options),
