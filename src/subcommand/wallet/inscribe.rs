@@ -76,20 +76,20 @@ impl Inscribe {
       .sign_raw_transaction_with_wallet(&unsigned_commit_tx, None, None)?
       .hex;
 
-    let commit_txid = client
+    let commit = client
       .send_raw_transaction(&signed_raw_commit_tx)
       .context("Failed to send commit transaction")?;
 
-    let reveal_txid = client
+    let reveal = client
       .send_raw_transaction(&reveal_tx)
       .context("Failed to send reveal transaction")?;
 
     serde_json::to_writer_pretty(
       io::stdout(),
       &Output {
-        commit: commit_txid,
-        reveal: reveal_txid,
-        inscription: reveal_txid.into(),
+        commit,
+        reveal,
+        inscription: reveal.into(),
       },
     )?;
 
