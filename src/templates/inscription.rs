@@ -47,18 +47,18 @@ mod tests {
         <h1>Inscription 1</h1>
         <div class=inscription>
         <div>❮</div>
-        <a href=/preview/1{64}><iframe .* src=/preview/1{64}></iframe></a>
+        <a href=/preview/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
         <div>❯</div>
         </div>
         <dl>
           <dt>id</dt>
-          <dd class=monospace>1{64}</dd>
+          <dd class=monospace>1{64}i1</dd>
           <dt>address</dt>
           <dd class=monospace>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</dd>
           <dt>output value</dt>
           <dd>1</dd>
           <dt>content</dt>
-          <dd><a href=/content/1{64}>link</a></dd>
+          <dd><a href=/content/1{64}i1>link</a></dd>
           <dt>content size</dt>
           <dd>10 bytes</dd>
           <dt>content type</dt>
@@ -127,9 +127,9 @@ mod tests {
       "
         <h1>Inscription 1</h1>
         <div class=inscription>
-        <a class=previous href=/inscription/1{64}>❮</a>
-        <a href=/preview/2{64}><iframe .* src=/preview/2{64}></iframe></a>
-        <a class=next href=/inscription/3{64}>❯</a>
+        <a class=previous href=/inscription/1{64}i1>❮</a>
+        <a href=/preview/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
+        <a class=next href=/inscription/3{64}i3>❯</a>
         </div>
         .*
       "
