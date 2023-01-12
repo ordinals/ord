@@ -1749,7 +1749,7 @@ mod tests {
     let server = TestServer::new_with_args(&["--index-sats"]);
     server.mine_blocks(1);
 
-    let inscription_id = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0)],
       witness: inscription("text/foo", "hello").to_witness(),
       ..Default::default()
@@ -1758,7 +1758,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_regex(
-      format!("/inscription/{inscription_id}"),
+      format!("/inscription/{}", InscriptionId::from(txid)),
       StatusCode::OK,
       r".*<dt>sat</dt>\s*<dd><a href=/sat/5000000000>5000000000</a></dd>\s*<dt>content</dt>.*",
     );
@@ -1769,7 +1769,7 @@ mod tests {
     let server = TestServer::new();
     server.mine_blocks(1);
 
-    let inscription_id = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0)],
       witness: inscription("text/foo", "hello").to_witness(),
       ..Default::default()
@@ -1778,7 +1778,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_regex(
-      format!("/inscription/{inscription_id}"),
+      format!("/inscription/{}", InscriptionId::from(txid)),
       StatusCode::OK,
       r".*<dt>output value</dt>\s*<dd>5000000000</dd>\s*<dt>content</dt>.*",
     );
