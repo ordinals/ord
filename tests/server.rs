@@ -163,12 +163,12 @@ fn inscription_content() {
 
   rpc_server.mine_blocks(1);
 
-  let output = inscribe(&rpc_server);
+  let Inscribe { inscription, .. } = inscribe(&rpc_server);
 
   rpc_server.mine_blocks(1);
 
-  let response = TestServer::spawn_with_args(&rpc_server, &[])
-    .request(&format!("/content/{}", output.inscription));
+  let response =
+    TestServer::spawn_with_args(&rpc_server, &[]).request(&format!("/content/{inscription}"));
 
   assert_eq!(response.status(), StatusCode::OK);
   assert_eq!(
@@ -187,16 +187,15 @@ fn home_page_includes_latest_inscriptions() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  let output = inscribe(&rpc_server);
+  let Inscribe { inscription, .. } = inscribe(&rpc_server);
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     "/",
     format!(
       ".*<h2>Latest Inscriptions</h2>
 <div class=thumbnails>
-  <a href=/inscription/{}><iframe .*></a>
+  <a href=/inscription/{inscription}><iframe .*></a>
 </div>.*",
-      output.inscription
     ),
   );
 }
@@ -209,13 +208,10 @@ fn home_page_inscriptions_are_sorted() {
   let mut inscriptions = String::new();
 
   for _ in 0..8 {
-    let output = inscribe(&rpc_server);
+    let Inscribe { inscription, .. } = inscribe(&rpc_server);
     inscriptions.insert_str(
       0,
-      &format!(
-        "\n  <a href=/inscription/{}><iframe .*></a>",
-        output.inscription
-      ),
+      &format!("\n  <a href=/inscription/{inscription}><iframe .*></a>"),
     );
   }
 
