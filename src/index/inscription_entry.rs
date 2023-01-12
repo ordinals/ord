@@ -14,7 +14,11 @@ impl InscriptionEntry {
     Self {
       height,
       number,
-      sat: if sat == 0 { None } else { Some(Sat(sat)) },
+      sat: if sat == u64::MAX {
+        None
+      } else {
+        Some(Sat(sat))
+      },
       timestamp,
     }
   }
@@ -25,7 +29,7 @@ impl InscriptionEntry {
       self.number,
       match self.sat {
         Some(sat) => sat.n(),
-        None => 0,
+        None => u64::MAX,
       },
       self.timestamp,
     )
