@@ -94,7 +94,7 @@ impl State {
         version: 0,
         prev_blockhash: *self.hashes.last().unwrap(),
         merkle_root: TxMerkleNode::all_zeros(),
-        time: 0,
+        time: self.blocks.len() as u32 + 1,
         bits: 0,
         nonce: self.nonce,
       },

@@ -14,11 +14,9 @@ enum Origin {
 pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   flotsam: Vec<Flotsam>,
   height: u64,
-  id_to_height: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, u64>,
-  id_to_number: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, u64>,
   id_to_satpoint: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, &'tx SatPointArray>,
   index: &'a Index,
-  inscription_id_to_sat: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, u64>,
+  id_to_entry: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, InscriptionEntryValue>,
   lost_sats: u64,
   next_number: u64,
   number_to_id: &'a mut Table<'db, 'tx, u64, &'tx InscriptionIdArray>,
@@ -26,22 +24,22 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   reward: u64,
   sat_to_inscription_id: &'a mut Table<'db, 'tx, u64, &'tx InscriptionIdArray>,
   satpoint_to_id: &'a mut Table<'db, 'tx, &'tx SatPointArray, &'tx InscriptionIdArray>,
+  timestamp: u32,
   value_cache: &'a mut HashMap<OutPoint, u64>,
 }
 
 impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
   pub(super) fn new(
     height: u64,
-    id_to_height: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, u64>,
-    id_to_number: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, u64>,
     id_to_satpoint: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, &'tx SatPointArray>,
     index: &'a Index,
-    inscription_id_to_sat: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, u64>,
+    id_to_entry: &'a mut Table<'db, 'tx, &'tx InscriptionIdArray, InscriptionEntryValue>,
     lost_sats: u64,
     number_to_id: &'a mut Table<'db, 'tx, u64, &'tx InscriptionIdArray>,
     outpoint_to_value: &'a mut Table<'db, 'tx, &'tx OutPointArray, u64>,
     sat_to_inscription_id: &'a mut Table<'db, 'tx, u64, &'tx InscriptionIdArray>,
     satpoint_to_id: &'a mut Table<'db, 'tx, &'tx SatPointArray, &'tx InscriptionIdArray>,
+    timestamp: u32,
     value_cache: &'a mut HashMap<OutPoint, u64>,
   ) -> Result<Self> {
     let next_number = number_to_id
@@ -54,11 +52,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     Ok(Self {
       flotsam: Vec::new(),
       height,
-      id_to_height,
-      id_to_number,
       id_to_satpoint,
       index,
-      inscription_id_to_sat,
+      id_to_entry,
       lost_sats,
       next_number,
       number_to_id,
@@ -66,6 +62,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       reward: Height(height).subsidy(),
       sat_to_inscription_id,
       satpoint_to_id,
+      timestamp,
       value_cache,
     })
   }
@@ -205,27 +202,35 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         self.satpoint_to_id.remove(&encode_satpoint(old_satpoint))?;
       }
       Origin::New => {
-        self.id_to_height.insert(&inscription_id, &self.height)?;
-        self
-          .id_to_number
-          .insert(&inscription_id, &self.next_number)?;
         self
           .number_to_id
           .insert(&self.next_number, &inscription_id)?;
 
+        let mut sat = None;
         if let Some(input_sat_ranges) = input_sat_ranges {
           let mut offset = 0;
           for (start, end) in input_sat_ranges {
             let size = end - start;
             if offset + size > flotsam.offset {
-              let sat = start + flotsam.offset - offset;
-              self.sat_to_inscription_id.insert(&sat, &inscription_id)?;
-              self.inscription_id_to_sat.insert(&inscription_id, &sat)?;
+              let n = start + flotsam.offset - offset;
+              self.sat_to_inscription_id.insert(&n, &inscription_id)?;
+              sat = Some(Sat(n));
               break;
             }
             offset += size;
           }
         }
+
+        self.id_to_entry.insert(
+          &inscription_id,
+          &InscriptionEntry {
+            height: self.height,
+            number: self.next_number,
+            sat,
+            timestamp: self.timestamp,
+          }
+          .store(),
+        )?;
 
         self.next_number += 1;
       }
