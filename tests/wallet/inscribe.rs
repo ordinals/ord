@@ -241,6 +241,5 @@ fn inscribe_with_wallet_named_foo() {
   CommandBuilder::new("--wallet foo wallet inscribe degenerate.png")
     .write("degenerate.png", [1; 520])
     .rpc_server(&rpc_server)
-    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-    .run();
+    .output::<Inscribe>();
 }
