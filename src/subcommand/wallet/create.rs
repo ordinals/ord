@@ -17,10 +17,6 @@ pub(crate) struct Create {
 
 impl Create {
   pub(crate) fn run(&self, options: Options) -> Result {
-    if !(self.name == "ord" || self.name.starts_with("ord-")) {
-      bail!("`ord wallet create` may only be used with a wallet named `ord` or whose name starts with `ord-`");
-    }
-
     let client = options.bitcoin_rpc_client_for_wallet_command(true)?;
 
     client.create_wallet(&self.name, None, Some(true), None, None)?;

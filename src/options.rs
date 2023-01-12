@@ -39,6 +39,8 @@ pub(crate) struct Options {
   pub(crate) signet: bool,
   #[clap(long, short, help = "Use testnet. Equivalent to `--chain testnet`.")]
   pub(crate) testnet: bool,
+  #[clap(long, default_value = "ord", help = "Use <WALLET> wallet.")]
+  pub(crate) wallet: String,
 }
 
 impl Options {
@@ -66,12 +68,24 @@ impl Options {
     }
   }
 
-  pub(crate) fn rpc_url(&self) -> String {
-    self
-      .rpc_url
-      .as_ref()
-      .unwrap_or(&format!("127.0.0.1:{}", self.chain().default_rpc_port(),))
-      .into()
+  pub(crate) fn rpc_url(&self, path: Option<String>) -> String {
+    if let Some(path) = path {
+      self
+        .rpc_url
+        .as_ref()
+        .unwrap_or(&format!(
+          "127.0.0.1:{}{}",
+          self.chain().default_rpc_port(),
+          path
+        ))
+        .into()
+    } else {
+      self
+        .rpc_url
+        .as_ref()
+        .unwrap_or(&format!("127.0.0.1:{}", self.chain().default_rpc_port()))
+        .into()
+    }
   }
 
   pub(crate) fn cookie_file(&self) -> Result<PathBuf> {
@@ -116,9 +130,15 @@ impl Options {
     )
   }
 
-  pub(crate) fn bitcoin_rpc_client(&self) -> Result<Client> {
+  pub(crate) fn bitcoin_rpc_client(&self, with_wallet: bool) -> Result<Client> {
     let cookie_file = self.cookie_file()?;
-    let rpc_url = self.rpc_url();
+
+    let rpc_url = self.rpc_url(if with_wallet {
+      Some(format!("/wallets/{}", &self.wallet))
+    } else {
+      None
+    });
+
     log::info!(
       "Connecting to Bitcoin Core RPC server at {rpc_url} using credentials from `{}`",
       cookie_file.display()
@@ -145,7 +165,7 @@ impl Options {
   }
 
   pub(crate) fn bitcoin_rpc_client_for_wallet_command(&self, create: bool) -> Result<Client> {
-    let client = self.bitcoin_rpc_client()?;
+    let client = self.bitcoin_rpc_client(true)?;
 
     const MIN_VERSION: usize = 240000;
 
@@ -159,12 +179,6 @@ impl Options {
     }
 
     if !create {
-      let wallet_info = client.get_wallet_info()?;
-
-      if !(wallet_info.wallet_name == "ord" || wallet_info.wallet_name.starts_with("ord-")) {
-        bail!("wallet commands may only be used on mainnet with a wallet named `ord` or whose name starts with `ord-`");
-      }
-
       let descriptors = client.list_descriptors(None)?.descriptors;
 
       let tr = descriptors
@@ -196,7 +210,7 @@ mod tests {
       Arguments::try_parse_from(["ord", "--rpc-url=127.0.0.1:1234", "--chain=signet", "index"])
         .unwrap()
         .options
-        .rpc_url(),
+        .rpc_url(None),
       "127.0.0.1:1234"
     );
   }
@@ -217,7 +231,7 @@ mod tests {
   fn use_default_network() {
     let arguments = Arguments::try_parse_from(["ord", "index"]).unwrap();
 
-    assert_eq!(arguments.options.rpc_url(), "127.0.0.1:8332");
+    assert_eq!(arguments.options.rpc_url(None), "127.0.0.1:8332");
 
     assert!(arguments
       .options
@@ -230,7 +244,7 @@ mod tests {
   fn uses_network_defaults() {
     let arguments = Arguments::try_parse_from(["ord", "--chain=signet", "index"]).unwrap();
 
-    assert_eq!(arguments.options.rpc_url(), "127.0.0.1:38332");
+    assert_eq!(arguments.options.rpc_url(None), "127.0.0.1:38332");
 
     assert!(arguments
       .options
@@ -429,7 +443,7 @@ mod tests {
     .unwrap();
 
     assert_eq!(
-      options.bitcoin_rpc_client().unwrap_err().to_string(),
+      options.bitcoin_rpc_client(false).unwrap_err().to_string(),
       "Bitcoin RPC server is on testnet but ord is on mainnet"
     );
   }
