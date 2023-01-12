@@ -1,7 +1,9 @@
 use {
   self::{
-    array::Array,
-    inscription_entry::{InscriptionEntry, InscriptionEntryValue},
+    entry::{
+      BlockHashValue, Entry, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
+      OutPointValue, SatPointValue, SatRangeValue,
+    },
     updater::Updater,
   },
   super::*,
@@ -14,16 +16,9 @@ use {
   std::sync::atomic::{self, AtomicBool},
 };
 
-mod array;
-mod inscription_entry;
+mod entry;
 mod rtx;
 mod updater;
-
-type BlockHashArray = [u8; 32];
-type InscriptionIdArray = [u8; 36];
-type OutPointArray = [u8; 36];
-type SatPointArray = [u8; 44];
-type SatRangeArray = [u8; 11];
 
 const SCHEMA_VERSION: u64 = 1;
 
@@ -33,15 +28,15 @@ macro_rules! define_table {
   };
 }
 
-define_table! { HEIGHT_TO_BLOCK_HASH, u64, &BlockHashArray }
-define_table! { INSCRIPTION_ID_TO_INSCRIPTION_ENTRY, &InscriptionIdArray, InscriptionEntryValue }
-define_table! { INSCRIPTION_ID_TO_SATPOINT, &InscriptionIdArray, &SatPointArray }
-define_table! { INSCRIPTION_NUMBER_TO_INSCRIPTION_ID, u64, &InscriptionIdArray }
-define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointArray, &[u8] }
-define_table! { OUTPOINT_TO_VALUE, &OutPointArray, u64}
-define_table! { SATPOINT_TO_INSCRIPTION_ID, &SatPointArray, &InscriptionIdArray }
-define_table! { SAT_TO_INSCRIPTION_ID, u64, &InscriptionIdArray }
-define_table! { SAT_TO_SATPOINT, u64, &SatPointArray }
+define_table! { HEIGHT_TO_BLOCK_HASH, u64, &BlockHashValue }
+define_table! { INSCRIPTION_ID_TO_INSCRIPTION_ENTRY, &InscriptionIdValue, InscriptionEntryValue }
+define_table! { INSCRIPTION_ID_TO_SATPOINT, &InscriptionIdValue, &SatPointValue }
+define_table! { INSCRIPTION_NUMBER_TO_INSCRIPTION_ID, u64, &InscriptionIdValue }
+define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointValue, &[u8] }
+define_table! { OUTPOINT_TO_VALUE, &OutPointValue, u64}
+define_table! { SATPOINT_TO_INSCRIPTION_ID, &SatPointValue, &InscriptionIdValue }
+define_table! { SAT_TO_INSCRIPTION_ID, u64, &InscriptionIdValue }
+define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
 define_table! { STATISTIC_TO_COUNT, u64, u64 }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u64, u128 }
 
@@ -310,7 +305,7 @@ impl Index {
     Ok(info)
   }
 
-  pub(crate) fn decode_sat_range(bytes: SatRangeArray) -> (u64, u64) {
+  pub(crate) fn decode_sat_range(bytes: SatRangeValue) -> (u64, u64) {
     let raw_base = u64::from_le_bytes([
       bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], 0,
     ]);
@@ -392,7 +387,7 @@ impl Index {
     let height_to_block_hash = rtx.0.open_table(HEIGHT_TO_BLOCK_HASH)?;
 
     for next in height_to_block_hash.range(0..block_count)?.rev().take(take) {
-      blocks.push((next.0.value(), BlockHash::from_slice(next.1.value())?));
+      blocks.push((next.0.value(), BlockHash::load(*next.1.value())));
     }
 
     Ok(blocks)
@@ -407,7 +402,7 @@ impl Index {
       let sat_to_satpoint = rtx.open_table(SAT_TO_SATPOINT)?;
 
       for (sat, satpoint) in sat_to_satpoint.range(0..)? {
-        result.push((Sat(sat.value()), Array::from_array(*satpoint.value())));
+        result.push((Sat(sat.value()), Entry::load(*satpoint.value())));
       }
 
       Ok(Some(result))
@@ -424,7 +419,7 @@ impl Index {
           .begin_read()?
           .open_table(SAT_TO_SATPOINT)?
           .get(&sat.n())?
-          .map(|satpoint| Array::from_array(*satpoint.value())),
+          .map(|satpoint| Entry::load(*satpoint.value())),
       )
     } else {
       Ok(None)
@@ -461,7 +456,7 @@ impl Index {
         .begin_read()?
         .open_table(SAT_TO_INSCRIPTION_ID)?
         .get(&sat.n())?
-        .map(|inscription_id| Array::from_array(*inscription_id.value())),
+        .map(|inscription_id| Entry::load(*inscription_id.value())),
     )
   }
 
@@ -475,7 +470,7 @@ impl Index {
         .begin_read()?
         .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
         .get(&n)?
-        .map(|id| Array::from_array(*id.value())),
+        .map(|id| Entry::load(*id.value())),
     )
   }
 
@@ -488,8 +483,8 @@ impl Index {
         .database
         .begin_read()?
         .open_table(INSCRIPTION_ID_TO_SATPOINT)?
-        .get(&inscription_id.array())?
-        .map(|satpoint| Array::from_array(*satpoint.value())),
+        .get(&inscription_id.store())?
+        .map(|satpoint| Entry::load(*satpoint.value())),
     )
   }
 
@@ -561,7 +556,7 @@ impl Index {
         let (start, end) = Index::decode_sat_range(chunk.try_into().unwrap());
         if start <= sat && sat < end {
           return Ok(Some(SatPoint {
-            outpoint: Array::from_array(*key.value()),
+            outpoint: Entry::load(*key.value()),
             offset: offset + sat - start,
           }));
         }
@@ -572,7 +567,7 @@ impl Index {
     Ok(None)
   }
 
-  fn list_inner(&self, outpoint: OutPointArray) -> Result<Option<Vec<u8>>> {
+  fn list_inner(&self, outpoint: OutPointValue) -> Result<Option<Vec<u8>>> {
     Ok(
       self
         .database
@@ -586,7 +581,7 @@ impl Index {
   pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<List>> {
     self.require_sat_index("list")?;
 
-    let array = outpoint.array();
+    let array = outpoint.store();
 
     let sat_ranges = self.list_inner(array)?;
 
@@ -645,12 +640,7 @@ impl Index {
         .begin_read()?
         .open_table(SATPOINT_TO_INSCRIPTION_ID)?
         .range([0; 44]..)?
-        .map(|(satpoint, id)| {
-          (
-            Array::from_array(*satpoint.value()),
-            Array::from_array(*id.value()),
-          )
-        })
+        .map(|(satpoint, id)| (Entry::load(*satpoint.value()), Entry::load(*id.value())))
         .take(n.unwrap_or(usize::MAX))
         .collect(),
     )
@@ -665,7 +655,7 @@ impl Index {
         .iter()?
         .rev()
         .take(n)
-        .map(|(_number, id)| Array::from_array(*id.value()))
+        .map(|(_number, id)| Entry::load(*id.value()))
         .collect(),
     )
   }
@@ -679,7 +669,7 @@ impl Index {
         .database
         .begin_read()?
         .open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?
-        .get(&inscription_id.array())?
+        .get(&inscription_id.store())?
         .map(|value| InscriptionEntry::load(value.value())),
     )
   }
@@ -703,9 +693,9 @@ impl Index {
     );
 
     assert_eq!(
-      SatPoint::from_array(
+      SatPoint::load(
         *inscription_id_to_satpoint
-          .get(&inscription_id.array())
+          .get(&inscription_id.store())
           .unwrap()
           .unwrap()
           .value()
@@ -714,9 +704,9 @@ impl Index {
     );
 
     assert_eq!(
-      InscriptionId::from_array(
+      InscriptionId::load(
         *satpoint_to_inscription_id
-          .get(&satpoint.array())
+          .get(&satpoint.store())
           .unwrap()
           .unwrap()
           .value()
@@ -726,7 +716,7 @@ impl Index {
 
     if self.has_sat_index().unwrap() {
       assert_eq!(
-        InscriptionId::from_array(
+        InscriptionId::load(
           *rtx
             .open_table(SAT_TO_INSCRIPTION_ID)
             .unwrap()
@@ -739,7 +729,7 @@ impl Index {
       );
 
       assert_eq!(
-        SatPoint::from_array(
+        SatPoint::load(
           *rtx
             .open_table(SAT_TO_SATPOINT)
             .unwrap()
@@ -754,27 +744,26 @@ impl Index {
   }
 
   fn inscriptions_on_output<'a: 'tx, 'tx>(
-    satpoint_to_id: &'a impl ReadableTable<&'tx SatPointArray, &'tx InscriptionIdArray>,
+    satpoint_to_id: &'a impl ReadableTable<&'tx SatPointValue, &'tx InscriptionIdValue>,
     outpoint: OutPoint,
   ) -> Result<impl Iterator<Item = (SatPoint, InscriptionId)> + 'tx> {
     let start = SatPoint {
       outpoint,
       offset: 0,
     }
-    .array();
+    .store();
 
     let end = SatPoint {
       outpoint,
       offset: u64::MAX,
     }
-    .array();
+    .store();
 
-    Ok(satpoint_to_id.range(start..=end)?.map(|(satpoint, id)| {
-      (
-        Array::from_array(*satpoint.value()),
-        Array::from_array(*id.value()),
-      )
-    }))
+    Ok(
+      satpoint_to_id
+        .range(start..=end)?
+        .map(|(satpoint, id)| (Entry::load(*satpoint.value()), Entry::load(*id.value()))),
+    )
   }
 }
 
