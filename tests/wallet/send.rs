@@ -90,16 +90,19 @@ fn send_inscribed_sat() {
 }
 
 #[test]
-fn send_on_mainnnet_refuses_to_work_with_wallet_name_foo() {
-  let rpc_server = test_bitcoincore_rpc::builder().wallet_name("foo").build();
+fn send_on_mainnnet_works_with_wallet_named_foo() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  CommandBuilder::new(
-    format!("wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0")
-  )
+  CommandBuilder::new("--wallet foo wallet create")
+    .rpc_server(&rpc_server)
+    .run();
+
+  CommandBuilder::new(format!(
+    "--wallet foo wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0"
+  ))
   .rpc_server(&rpc_server)
-  .expected_stderr("error: wallet commands may only be used on mainnet with a wallet named `ord` or whose name starts with `ord-`\n")
-  .expected_exit_code(1)
+  .stdout_regex(r"[[:xdigit:]]{64}\n")
   .run();
 }
 

@@ -292,3 +292,20 @@ fn inscribe_with_fee_rate() {
 
   pretty_assert_eq!(fee_rate, 2.0);
 }
+
+#[test]
+fn inscribe_with_wallet_named_foo() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  CommandBuilder::new("--wallet foo wallet create")
+    .rpc_server(&rpc_server)
+    .run();
+
+  rpc_server.mine_blocks(1);
+
+  CommandBuilder::new("--wallet foo wallet inscribe degenerate.png")
+    .write("degenerate.png", [1; 520])
+    .rpc_server(&rpc_server)
+    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
+    .run();
+}
