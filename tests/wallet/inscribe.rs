@@ -36,23 +36,17 @@ fn inscribe_no_backup() {
 #[test]
 fn inscribe() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+  rpc_server.mine_blocks(1);
 
   assert_eq!(rpc_server.descriptors().len(), 0);
 
   create_wallet(&rpc_server);
 
-  let stdout = CommandBuilder::new(format!("wallet inscribe --satpoint {txid}:0:0 hello.txt"))
-    .write("hello.txt", "HELLOWORLD")
-    .rpc_server(&rpc_server)
-    .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-    .run();
+  assert_eq!(rpc_server.descriptors().len(), 2);
 
-  let inscription_id = reveal_txid_from_inscribe_stdout(&stdout);
+  let inscription_id = create_inscription(&rpc_server, "foo.txt");
 
   assert_eq!(rpc_server.descriptors().len(), 3);
-
-  rpc_server.mine_blocks(1);
 
   let request =
     TestServer::spawn_with_args(&rpc_server, &[]).request(&format!("/content/{inscription_id}"));
@@ -194,6 +188,7 @@ fn refuse_to_inscribe_already_inscribed_utxo() {
   create_wallet(&rpc_server);
 
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+
   let stdout = CommandBuilder::new(format!(
     "wallet inscribe --satpoint {txid}:0:0 degenerate.png"
   ))
@@ -204,7 +199,7 @@ fn refuse_to_inscribe_already_inscribed_utxo() {
 
   rpc_server.mine_blocks(1);
 
-  let inscription_id = reveal_txid_from_inscribe_stdout(&stdout);
+  let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
 
   let inscription_utxo = OutPoint {
     txid: reveal_txid_from_inscribe_stdout(&stdout),
@@ -218,7 +213,7 @@ fn refuse_to_inscribe_already_inscribed_utxo() {
   .rpc_server(&rpc_server)
   .expected_exit_code(1)
   .expected_stderr(format!(
-    "error: utxo {inscription_utxo} already inscribed with inscription {inscription_id} on sat {inscription_utxo}:0\n",
+    "error: utxo {inscription_utxo} already inscribed with inscription {reveal_txid}i0 on sat {inscription_utxo}:0\n",
   ))
   .run();
 }
@@ -227,15 +222,17 @@ fn refuse_to_inscribe_already_inscribed_utxo() {
 fn inscribe_with_optional_satpoint_arg() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
-  rpc_server.mine_blocks(1);
+  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  let stdout = CommandBuilder::new("wallet inscribe hello.txt")
+  let stdout = CommandBuilder::new(format!("wallet inscribe hello.txt --satpoint {txid}:0:0"))
     .write("hello.txt", "HELLOWORLD")
     .rpc_server(&rpc_server)
     .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
     .run();
 
-  let inscription_id = reveal_txid_from_inscribe_stdout(&stdout);
+  let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
+
+  let inscription_id = format!("{reveal_txid}i0");
 
   rpc_server.mine_blocks(1);
 

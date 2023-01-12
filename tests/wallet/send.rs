@@ -4,23 +4,14 @@ use super::*;
 fn send_works() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
 
-  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
-
-  let stdout = CommandBuilder::new(format!(
-    "--index-sats wallet inscribe --satpoint {txid}:0:0 degenerate.png"
-  ))
-  .write("degenerate.png", [1; 520])
-  .rpc_server(&rpc_server)
-  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-  .run();
-
-  let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
+  let inscription_id = create_inscription(&rpc_server, "foo.txt");
 
   rpc_server.mine_blocks(1);
 
   let stdout = CommandBuilder::new(format!(
-    "wallet send ord1qcqgs2pps4u4yedfyl5pysdjjncs8et5u8gcumw {reveal_txid}"
+    "wallet send ord1qcqgs2pps4u4yedfyl5pysdjjncs8et5u8gcumw {inscription_id}"
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(r".*")
@@ -35,13 +26,13 @@ fn send_works() {
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
-    format!("/inscription/{reveal_txid}"),
+    format!("/inscription/{inscription_id}"),
     format!(
       ".*<h1>Inscription 0</h1>.*<dl>.*
   <dt>content size</dt>
-  <dd>520 bytes</dd>
+  <dd>10 bytes</dd>
   <dt>content type</dt>
-  <dd>image/png</dd>
+  <dd>text/plain;charset=utf-8</dd>
   .*
   <dt>location</dt>
   <dd class=monospace>{send_txid}:0:0</dd>
@@ -54,44 +45,32 @@ fn send_works() {
 
 #[test]
 fn send_unknown_inscription() {
-  let rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Signet)
-    .build();
+  let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   CommandBuilder::new(format!(
-    "--chain signet wallet send tord1q497kurvh0fgtedca5angel7j4rdwe0q8h925u0 {txid}"
+    "wallet send ord1qcqgs2pps4u4yedfyl5pysdjjncs8et5u8gcumw {txid}i0"
   ))
   .rpc_server(&rpc_server)
-  .expected_stderr(format!("error: No inscription found for {txid}\n"))
+  .expected_stderr(format!("error: Inscription {txid}i0 not found\n"))
   .expected_exit_code(1)
   .run();
 }
 
 #[test]
 fn send_inscribed_sat() {
-  let rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Signet)
-    .build();
+  let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
-  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+  rpc_server.mine_blocks(1);
 
-  let stdout = CommandBuilder::new(format!(
-    "--chain signet --index-sats wallet inscribe --satpoint {txid}:0:0 degenerate.png"
-  ))
-  .write("degenerate.png", [1; 520])
-  .rpc_server(&rpc_server)
-  .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
-  .run();
+  let inscription_id = create_inscription(&rpc_server, "foo.txt");
 
   rpc_server.mine_blocks(1);
 
-  let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
-
   let stdout = CommandBuilder::new(format!(
-    "--chain signet wallet send tord1q497kurvh0fgtedca5angel7j4rdwe0q8h925u0 {reveal_txid}"
+    "wallet send ord1qcqgs2pps4u4yedfyl5pysdjjncs8et5u8gcumw {inscription_id}"
   ))
   .rpc_server(&rpc_server)
   .stdout_regex("[[:xdigit:]]{64}\n")
@@ -103,7 +82,7 @@ fn send_inscribed_sat() {
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
-    format!("/inscription/{reveal_txid}"),
+    format!("/inscription/{inscription_id}"),
     format!(
       ".*<h1>Inscription 0</h1>.*<dt>location</dt>.*<dd class=monospace>{send_txid}:0:0</dd>.*",
     ),
@@ -215,7 +194,7 @@ fn do_not_accidentally_send_an_inscription() {
   .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
   .run();
 
-  let inscription_id = reveal_txid_from_inscribe_stdout(&stdout);
+  let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
 
   rpc_server.mine_blocks(1);
 
@@ -230,7 +209,7 @@ fn do_not_accidentally_send_an_inscription() {
   .rpc_server(&rpc_server)
   .expected_exit_code(1)
   .expected_stderr(format!(
-    "error: cannot send {inscription_utxo}:55 without also sending inscription {inscription_id} at {inscription_utxo}:0\n"
+    "error: cannot send {inscription_utxo}:55 without also sending inscription {reveal_txid}i0 at {inscription_utxo}:0\n"
   ))
   .run();
 }

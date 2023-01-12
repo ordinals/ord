@@ -131,9 +131,9 @@ fn inscription_page_after_send() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+  rpc_server.mine_blocks(1);
 
-  let stdout = CommandBuilder::new(format!("wallet inscribe --satpoint {txid}:0:0 hello.txt"))
+  let stdout = CommandBuilder::new(format!("wallet inscribe hello.txt"))
     .write("hello.txt", "HELLOWORLD")
     .rpc_server(&rpc_server)
     .stdout_regex("commit\t[[:xdigit:]]{64}\nreveal\t[[:xdigit:]]{64}\n")
@@ -141,18 +141,20 @@ fn inscription_page_after_send() {
 
   let reveal_txid = reveal_txid_from_inscribe_stdout(&stdout);
 
+  let inscription_id = format!("{reveal_txid}i0");
+
   rpc_server.mine_blocks(1);
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
-    format!("/inscription/{reveal_txid}"),
+    format!("/inscription/{inscription_id}"),
     format!(
       r".*<h1>Inscription 0</h1>.*<dt>location</dt>\s*<dd class=monospace>{reveal_txid}:0:0</dd>.*",
     ),
   );
 
   let txid = CommandBuilder::new(format!(
-    "wallet send --cardinal bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {reveal_txid}"
+    "wallet send --cardinal bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {inscription_id}"
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(".*")
@@ -164,7 +166,7 @@ fn inscription_page_after_send() {
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
-    format!("/inscription/{reveal_txid}"),
+    format!("/inscription/{inscription_id}"),
     format!(
       r".*<h1>Inscription 0</h1>.*<dt>address</dt>\s*<dd class=monospace>bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv</dd>.*<dt>location</dt>\s*<dd class=monospace>{send_txid}:0:0</dd>.*",
     ),
