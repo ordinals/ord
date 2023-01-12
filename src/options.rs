@@ -168,6 +168,8 @@ impl Options {
     }
 
     if !create {
+      client.load_wallet(&self.wallet)?;
+
       let descriptors = client.list_descriptors(None)?.descriptors;
 
       let tr = descriptors

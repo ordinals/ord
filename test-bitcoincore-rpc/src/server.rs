@@ -562,4 +562,15 @@ impl Api for Server {
         .collect(),
     })
   }
+
+  fn load_wallet(&self, wallet: String) -> Result<LoadWalletResult, jsonrpc_core::Error> {
+    if self.state().wallets.contains(&wallet) {
+      Ok(LoadWalletResult {
+        name: wallet,
+        warning: None,
+      })
+    } else {
+      Err(Self::not_found())
+    }
+  }
 }

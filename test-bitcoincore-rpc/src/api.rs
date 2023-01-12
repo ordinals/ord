@@ -145,4 +145,7 @@ pub trait Api {
 
   #[rpc(name = "listdescriptors")]
   fn list_descriptors(&self) -> Result<ListDescriptorsResult, jsonrpc_core::Error>;
+
+  #[rpc(name = "loadwallet")]
+  fn load_wallet(&self, wallet: String) -> Result<LoadWalletResult, jsonrpc_core::Error>;
 }
