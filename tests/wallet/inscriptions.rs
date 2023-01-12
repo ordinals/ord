@@ -53,6 +53,7 @@ fn inscriptions_includes_locked_utxos() {
   let Inscribe {
     inscription,
     reveal,
+    ..
   } = inscribe(&rpc_server);
 
   rpc_server.mine_blocks(1);

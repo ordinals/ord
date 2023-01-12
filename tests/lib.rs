@@ -38,8 +38,10 @@ macro_rules! assert_regex_match {
 
 #[derive(Deserialize)]
 struct Inscribe {
-  reveal: Txid,
+  #[allow(dead_code)]
+  commit: Txid,
   inscription: String,
+  reveal: Txid,
 }
 
 fn inscribe(rpc_server: &test_bitcoincore_rpc::Handle) -> Inscribe {

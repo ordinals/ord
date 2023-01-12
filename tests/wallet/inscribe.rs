@@ -13,8 +13,6 @@ fn inscribe_creates_inscriptions() {
 
   assert_eq!(rpc_server.descriptors().len(), 3);
 
-  rpc_server.mine_blocks(1);
-
   let request =
     TestServer::spawn_with_args(&rpc_server, &[]).request(&format!("/content/{inscription}"));
 

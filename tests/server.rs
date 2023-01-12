@@ -42,6 +42,7 @@ fn inscription_page() {
   let Inscribe {
     inscription,
     reveal,
+    ..
   } = inscribe(&rpc_server);
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(

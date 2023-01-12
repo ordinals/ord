@@ -189,6 +189,7 @@ fn do_not_accidentally_send_an_inscription() {
   let Inscribe {
     reveal,
     inscription,
+    ..
   } = inscribe(&rpc_server);
 
   rpc_server.mine_blocks(1);
