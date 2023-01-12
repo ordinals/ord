@@ -324,7 +324,7 @@ impl Updater {
         let mut input_sat_ranges = VecDeque::new();
 
         for input in &tx.input {
-          let key = encode_outpoint(input.previous_output);
+          let key = input.previous_output.array();
 
           let sat_ranges = match self.range_cache.remove(&key) {
             Some(sat_ranges) => {
@@ -373,10 +373,11 @@ impl Updater {
           if !Sat(start).is_common() {
             sat_to_satpoint.insert(
               &start,
-              &encode_satpoint(SatPoint {
+              &SatPoint {
                 outpoint: OutPoint::null(),
                 offset: lost_sats,
-              }),
+              }
+              .array(),
             )?;
           }
 
@@ -435,10 +436,11 @@ impl Updater {
         if !Sat(range.0).is_common() {
           sat_to_satpoint.insert(
             &range.0,
-            &encode_satpoint(SatPoint {
+            &SatPoint {
               outpoint,
               offset: output.value - remaining,
-            }),
+            }
+            .array(),
           )?;
         }
 
@@ -467,7 +469,7 @@ impl Updater {
 
       *outputs_traversed += 1;
 
-      self.range_cache.insert(encode_outpoint(outpoint), sats);
+      self.range_cache.insert(outpoint.array(), sats);
       self.outputs_inserted_since_flush += 1;
     }
 
@@ -504,7 +506,7 @@ impl Updater {
       let mut outpoint_to_value = wtx.open_table(OUTPOINT_TO_VALUE)?;
 
       for (outpoint, value) in value_cache {
-        outpoint_to_value.insert(&encode_outpoint(outpoint), &value)?;
+        outpoint_to_value.insert(&outpoint.array(), &value)?;
       }
     }
 

@@ -1,10 +1,7 @@
 use super::*;
 
 use {
-  self::{
-    deserialize_from_str::DeserializeFromStr,
-    error::{OptionExt, ServerError, ServerResult},
-  },
+  self::error::{OptionExt, ServerError, ServerResult},
   crate::templates::{
     BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionsHtml, OutputHtml,
     PageContent, PageHtml, PreviewImageHtml, PreviewTextHtml, PreviewUnknownHtml, RangeHtml,
@@ -26,13 +23,11 @@ use {
     caches::DirCache,
     AcmeConfig,
   },
-  serde::{de, Deserializer},
   std::{cmp::Ordering, str},
   tokio_stream::StreamExt,
   tower_http::set_header::SetResponseHeaderLayer,
 };
 
-mod deserialize_from_str;
 mod error;
 
 enum BlockQuery {
@@ -423,8 +418,9 @@ impl Server {
     Extension(chain): Extension<Chain>,
     Path(txid): Path<Txid>,
   ) -> ServerResult<PageHtml<TransactionHtml>> {
+    // TODO: don't get whole inscription
     let inscription = index
-      .get_inscription_by_id(txid)?
+      .get_inscription_by_id(txid.into())?
       .map(|(inscription, _satpoint)| inscription);
 
     Ok(
@@ -432,7 +428,7 @@ impl Server {
         index
           .get_transaction(txid)?
           .ok_or_not_found(|| format!("transaction {txid}"))?,
-        inscription,
+        inscription.map(|_| txid.into()),
         chain,
       )
       .page(chain, index.has_sat_index()?),
