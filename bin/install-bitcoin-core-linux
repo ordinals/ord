@@ -4,7 +4,7 @@ set -euxo pipefail
 
 wget \
   -O bitcoin.tar.gz \
-  https://bitcoincore.org/bin/bitcoin-core-23.0/bitcoin-23.0-x86_64-linux-gnu.tar.gz
+  https://bitcoincore.org/bin/bitcoin-core-24.0.1/bitcoin-24.0.1-x86_64-linux-gnu.tar.gz
 
 tar \
   -xzvf bitcoin.tar.gz \
