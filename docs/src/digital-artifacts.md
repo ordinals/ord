@@ -36,3 +36,6 @@ yours:
 
 - Digital artifacts are immutable. An NFT with an upgrade key is not a digital
   artifact.
+
+The definition of a digital artifact is intended to reflect what NFTs *should*
+be, sometimes are, and what inscriptions *always* are, by their very nature.
