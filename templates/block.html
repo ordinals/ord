@@ -10,12 +10,12 @@
 %% }
 </dl>
 %% if let Some(prev_height) = self.height.n().checked_sub(1) {
-<a href=/block/{{prev_height}}>prev</a>
+<a class=previous href=/block/{{prev_height}}>prev</a>
 %% } else {
 prev
 %% }
 %% if self.height < self.best_height {
-<a href=/block/{{self.height + 1}}>next</a>
+<a class=next href=/block/{{self.height + 1}}>next</a>
 %% } else {
 next
 %% }

@@ -24,7 +24,7 @@ impl From<Block> for BlockData {
 }
 
 pub(crate) struct Updater {
-  cache: HashMap<OutPointArray, Vec<u8>>,
+  range_cache: HashMap<OutPointValue, Vec<u8>>,
   height: u64,
   index_sats: bool,
   sat_ranges_since_flush: u64,
@@ -56,7 +56,7 @@ impl Updater {
       )?;
 
     let mut updater = Self {
-      cache: HashMap::new(),
+      range_cache: HashMap::new(),
       height,
       index_sats: index.has_sat_index()?,
       sat_ranges_since_flush: 0,
@@ -93,13 +93,14 @@ impl Updater {
     let rx = Self::fetch_blocks_from(index, self.height, self.index_sats)?;
 
     let mut uncommitted = 0;
+    let mut value_cache = HashMap::new();
     loop {
       let block = match rx.recv() {
         Ok(block) => block,
         Err(mpsc::RecvError) => break,
       };
 
-      self.index_block(index, &mut wtx, block)?;
+      self.index_block(index, &mut wtx, block, &mut value_cache)?;
 
       if let Some(progress_bar) = &mut progress_bar {
         progress_bar.inc(1);
@@ -112,7 +113,8 @@ impl Updater {
       uncommitted += 1;
 
       if uncommitted == 5000 {
-        self.commit(wtx)?;
+        self.commit(wtx, value_cache)?;
+        value_cache = HashMap::new();
         uncommitted = 0;
         wtx = index.begin_write()?;
         let height = wtx
@@ -144,7 +146,7 @@ impl Updater {
     }
 
     if uncommitted > 0 {
-      self.commit(wtx)?;
+      self.commit(wtx, value_cache)?;
     }
 
     if let Some(progress_bar) = &mut progress_bar {
@@ -245,6 +247,7 @@ impl Updater {
     index: &Index,
     wtx: &mut WriteTransaction,
     block: BlockData,
+    value_cache: &mut HashMap<OutPoint, u64>,
   ) -> Result<()> {
     let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
 
@@ -270,7 +273,8 @@ impl Updater {
       }
     }
 
-    let mut inscription_id_to_height = wtx.open_table(INSCRIPTION_ID_TO_HEIGHT)?;
+    let mut inscription_id_to_inscription_entry =
+      wtx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
     let mut inscription_id_to_satpoint = wtx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
     let mut inscription_number_to_inscription_id =
       wtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
@@ -286,14 +290,16 @@ impl Updater {
 
     let mut inscription_updater = InscriptionUpdater::new(
       self.height,
-      &mut inscription_id_to_height,
       &mut inscription_id_to_satpoint,
       index,
+      &mut inscription_id_to_inscription_entry,
       lost_sats,
       &mut inscription_number_to_inscription_id,
       &mut outpoint_to_value,
       &mut sat_to_inscription_id,
       &mut satpoint_to_inscription_id,
+      block.header.time,
+      value_cache,
     )?;
 
     if self.index_sats {
@@ -315,9 +321,9 @@ impl Updater {
         let mut input_sat_ranges = VecDeque::new();
 
         for input in &tx.input {
-          let key = encode_outpoint(input.previous_output);
+          let key = input.previous_output.store();
 
-          let sat_ranges = match self.cache.remove(&key) {
+          let sat_ranges = match self.range_cache.remove(&key) {
             Some(sat_ranges) => {
               self.outputs_cached += 1;
               sat_ranges
@@ -364,10 +370,11 @@ impl Updater {
           if !Sat(start).is_common() {
             sat_to_satpoint.insert(
               &start,
-              &encode_satpoint(SatPoint {
+              &SatPoint {
                 outpoint: OutPoint::null(),
                 offset: lost_sats,
-              }),
+              }
+              .store(),
             )?;
           }
 
@@ -382,10 +389,7 @@ impl Updater {
 
     statistic_to_count.insert(&Statistic::LostSats.key(), &lost_sats)?;
 
-    height_to_block_hash.insert(
-      &self.height,
-      &block.header.block_hash().as_hash().into_inner(),
-    )?;
+    height_to_block_hash.insert(&self.height, &block.header.block_hash().store())?;
 
     self.height += 1;
     self.outputs_traversed += outputs_in_block;
@@ -402,7 +406,7 @@ impl Updater {
     &mut self,
     tx: &Transaction,
     txid: Txid,
-    sat_to_satpoint: &mut Table<u64, &SatPointArray>,
+    sat_to_satpoint: &mut Table<u64, &SatPointValue>,
     input_sat_ranges: &mut VecDeque<(u64, u64)>,
     sat_ranges_written: &mut u64,
     outputs_traversed: &mut u64,
@@ -426,10 +430,11 @@ impl Updater {
         if !Sat(range.0).is_common() {
           sat_to_satpoint.insert(
             &range.0,
-            &encode_satpoint(SatPoint {
+            &SatPoint {
               outpoint,
               offset: output.value - remaining,
-            }),
+            }
+            .store(),
           )?;
         }
 
@@ -458,38 +463,45 @@ impl Updater {
 
       *outputs_traversed += 1;
 
-      self.cache.insert(encode_outpoint(outpoint), sats);
+      self.range_cache.insert(outpoint.store(), sats);
       self.outputs_inserted_since_flush += 1;
     }
 
     Ok(())
   }
 
-  fn commit(&mut self, wtx: WriteTransaction) -> Result {
+  fn commit(&mut self, wtx: WriteTransaction, value_cache: HashMap<OutPoint, u64>) -> Result {
     log::info!(
       "Committing at block height {}, {} outputs traversed, {} in map, {} cached",
       self.height,
       self.outputs_traversed,
-      self.cache.len(),
+      self.range_cache.len(),
       self.outputs_cached
     );
 
     if self.index_sats {
       log::info!(
         "Flushing {} entries ({:.1}% resulting from {} insertions) from memory to database",
-        self.cache.len(),
-        self.cache.len() as f64 / self.outputs_inserted_since_flush as f64 * 100.,
+        self.range_cache.len(),
+        self.range_cache.len() as f64 / self.outputs_inserted_since_flush as f64 * 100.,
         self.outputs_inserted_since_flush,
       );
 
       let mut outpoint_to_sat_ranges = wtx.open_table(OUTPOINT_TO_SAT_RANGES)?;
 
-      for (k, v) in &self.cache {
-        outpoint_to_sat_ranges.insert(k, v)?;
+      for (outpoint, sat_range) in self.range_cache.drain() {
+        outpoint_to_sat_ranges.insert(&outpoint, &sat_range)?;
       }
 
-      self.cache.clear();
       self.outputs_inserted_since_flush = 0;
+    }
+
+    {
+      let mut outpoint_to_value = wtx.open_table(OUTPOINT_TO_VALUE)?;
+
+      for (outpoint, value) in value_cache {
+        outpoint_to_value.insert(&outpoint.store(), &value)?;
+      }
     }
 
     Index::increment_statistic(&wtx, Statistic::OutputsTraversed, self.outputs_traversed)?;
