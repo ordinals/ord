@@ -2,19 +2,19 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
-  address: AnyAddress,
+  address: Address,
   outgoing: Outgoing,
-  #[clap(long, help = "Allow sending to cardinal addresses")]
-  cardinal: bool,
+  #[clap(
+    long,
+    default_value = "1.0",
+    help = "Use fee rate of <FEE_RATE> sats/vB"
+  )]
+  fee_rate: FeeRate,
 }
 
 impl Send {
   pub(crate) fn run(self, options: Options) -> Result {
     let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
-
-    if !self.cardinal && !self.address.is_ordinal() {
-      bail!("refusing to send to cardinal adddress, which may be from wallet without sat control; the `--cardinal` flag bypasses this check");
-    }
 
     if !self.address.is_valid_for_network(options.chain().network()) {
       bail!(
@@ -40,10 +40,9 @@ impl Send {
         }
         satpoint
       }
-      Outgoing::InscriptionId(txid) => index
-        .get_inscription_by_id(txid)?
-        .map(|(_inscription, satpoint)| satpoint)
-        .ok_or_else(|| anyhow!("No inscription found for {txid}"))?,
+      Outgoing::InscriptionId(id) => index
+        .get_inscription_satpoint_by_id(id)?
+        .ok_or_else(|| anyhow!("Inscription {id} not found"))?,
       Outgoing::Amount(amount) => {
         let all_inscription_outputs = inscriptions
           .keys()
@@ -60,16 +59,8 @@ impl Send {
           bail!("failed to lock ordinal UTXOs");
         }
 
-        let txid = client.send_to_address(
-          &self.address.into(),
-          amount,
-          None,
-          None,
-          None,
-          None,
-          None,
-          None,
-        )?;
+        let txid =
+          client.send_to_address(&self.address, amount, None, None, None, None, None, None)?;
 
         println!("{txid}");
 
@@ -83,8 +74,9 @@ impl Send {
       satpoint,
       inscriptions,
       unspent_outputs,
-      self.address.into(),
+      self.address,
       change,
+      self.fee_rate,
     )?;
 
     let signed_tx = client

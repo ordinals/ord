@@ -203,6 +203,10 @@ impl Handle {
     self.state().pop_block()
   }
 
+  pub fn get_utxo_amount(&self, outpoint: &OutPoint) -> Option<Amount> {
+    self.state().utxos.get(outpoint).cloned()
+  }
+
   pub fn tx(&self, bi: usize, ti: usize) -> Transaction {
     let state = self.state();
     state.blocks[&state.hashes[bi]].txdata[ti].clone()

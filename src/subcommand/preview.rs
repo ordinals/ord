@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, fee_rate::FeeRate};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Preview {
@@ -49,7 +49,7 @@ impl Preview {
     };
 
     for attempt in 0.. {
-      if options.bitcoin_rpc_client().is_ok() {
+      if options.bitcoin_rpc_client(false).is_ok() {
         break;
       }
 
@@ -60,12 +60,9 @@ impl Preview {
       thread::sleep(Duration::from_millis(50));
     }
 
-    let rpc_client = options.bitcoin_rpc_client()?;
+    let rpc_client = options.bitcoin_rpc_client(false)?;
 
-    super::wallet::create::Create::run(
-      &super::wallet::create::Create { name: "ord".into() },
-      options.clone(),
-    )?;
+    super::wallet::create::run(options.clone())?;
 
     let address =
       rpc_client.get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))?;
@@ -77,6 +74,7 @@ impl Preview {
         options: options.clone(),
         subcommand: Subcommand::Wallet(super::wallet::Wallet::Inscribe(
           super::wallet::inscribe::Inscribe {
+            fee_rate: FeeRate::try_from(1.0).unwrap(),
             file,
             no_backup: true,
             satpoint: None,

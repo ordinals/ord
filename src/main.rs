@@ -12,19 +12,19 @@
 
 use {
   self::{
-    any_address::AnyAddress,
     arguments::Arguments,
     blocktime::Blocktime,
     content::Content,
     decimal::Decimal,
     degree::Degree,
+    deserialize_from_str::DeserializeFromStr,
     epoch::Epoch,
     height::Height,
     index::{Index, List},
     inscription::Inscription,
+    inscription_id::InscriptionId,
     object::Object,
     options::Options,
-    ordinal_address::OrdinalAddress,
     outgoing::Outgoing,
     rarity::Rarity,
     representation::Representation,
@@ -39,7 +39,6 @@ use {
     consensus::{self, Decodable, Encodable},
     hash_types::BlockHash,
     hashes::Hash,
-    util::address::{Payload, WitnessVersion},
     Address, Amount, Block, Network, OutPoint, Script, Sequence, Transaction, TxIn, TxOut, Txid,
   },
   bitcoincore_rpc::{Client, RpcApi},
@@ -50,7 +49,7 @@ use {
   html_escaper::{Escape, Trusted},
   lazy_static::lazy_static,
   regex::Regex,
-  serde::{Deserialize, Serialize},
+  serde::{Deserialize, Deserializer, Serialize, Serializer},
   std::{
     cmp,
     collections::{BTreeMap, HashSet, VecDeque},
@@ -81,20 +80,21 @@ mod test;
 #[cfg(test)]
 use self::test::*;
 
-mod any_address;
 mod arguments;
 mod blocktime;
 mod chain;
 mod content;
 mod decimal;
 mod degree;
+mod deserialize_from_str;
 mod epoch;
+mod fee_rate;
 mod height;
 mod index;
 mod inscription;
+mod inscription_id;
 mod object;
 mod options;
-mod ordinal_address;
 mod outgoing;
 mod rarity;
 mod representation;
@@ -105,8 +105,6 @@ mod tally;
 mod templates;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
-
-pub(crate) type InscriptionId = Txid;
 
 const DIFFCHANGE_INTERVAL: u64 = bitcoin::blockdata::constants::DIFFCHANGE_INTERVAL as u64;
 const SUBSIDY_HALVING_INTERVAL: u64 =
@@ -120,6 +118,10 @@ fn integration_test() -> bool {
   env::var_os("ORD_INTEGRATION_TEST")
     .map(|value| value.len() > 0)
     .unwrap_or(false)
+}
+
+fn timestamp(seconds: u32) -> NaiveDateTime {
+  NaiveDateTime::from_timestamp_opt(seconds.into(), 0).unwrap()
 }
 
 fn main() {

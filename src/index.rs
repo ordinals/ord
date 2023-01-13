@@ -1,5 +1,11 @@
 use {
-  self::updater::Updater,
+  self::{
+    entry::{
+      BlockHashValue, Entry, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
+      OutPointValue, SatPointValue, SatRangeValue,
+    },
+    updater::Updater,
+  },
   super::*,
   bitcoin::BlockHeader,
   bitcoincore_rpc::{json::GetBlockHeaderResult, Auth, Client},
@@ -10,14 +16,9 @@ use {
   std::sync::atomic::{self, AtomicBool},
 };
 
+mod entry;
 mod rtx;
 mod updater;
-
-type BlockHashArray = [u8; 32];
-type InscriptionIdArray = [u8; 32];
-type OutPointArray = [u8; 36];
-type SatPointArray = [u8; 44];
-type SatRangeArray = [u8; 11];
 
 const SCHEMA_VERSION: u64 = 1;
 
@@ -27,46 +28,17 @@ macro_rules! define_table {
   };
 }
 
-define_table! { HEIGHT_TO_BLOCK_HASH, u64, &BlockHashArray }
-define_table! { INSCRIPTION_ID_TO_HEIGHT, &InscriptionIdArray, u64 }
-define_table! { INSCRIPTION_ID_TO_SAT, &InscriptionIdArray, u64 }
-define_table! { INSCRIPTION_ID_TO_SATPOINT, &InscriptionIdArray, &SatPointArray }
-define_table! { INSCRIPTION_NUMBER_TO_INSCRIPTION_ID, u64, &InscriptionIdArray }
-define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointArray, &[u8] }
-define_table! { OUTPOINT_TO_VALUE, &OutPointArray, u64}
-define_table! { SATPOINT_TO_INSCRIPTION_ID, &SatPointArray, &InscriptionIdArray }
-define_table! { SAT_TO_INSCRIPTION_ID, u64, &InscriptionIdArray }
-define_table! { SAT_TO_SATPOINT, u64, &SatPointArray }
+define_table! { HEIGHT_TO_BLOCK_HASH, u64, &BlockHashValue }
+define_table! { INSCRIPTION_ID_TO_INSCRIPTION_ENTRY, &InscriptionIdValue, InscriptionEntryValue }
+define_table! { INSCRIPTION_ID_TO_SATPOINT, &InscriptionIdValue, &SatPointValue }
+define_table! { INSCRIPTION_NUMBER_TO_INSCRIPTION_ID, u64, &InscriptionIdValue }
+define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointValue, &[u8] }
+define_table! { OUTPOINT_TO_VALUE, &OutPointValue, u64}
+define_table! { SATPOINT_TO_INSCRIPTION_ID, &SatPointValue, &InscriptionIdValue }
+define_table! { SAT_TO_INSCRIPTION_ID, u64, &InscriptionIdValue }
+define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
 define_table! { STATISTIC_TO_COUNT, u64, u64 }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u64, u128 }
-
-fn encode_outpoint(outpoint: OutPoint) -> OutPointArray {
-  let mut array = [0; 36];
-  outpoint
-    .consensus_encode(&mut array.as_mut_slice())
-    .unwrap();
-  array
-}
-
-fn encode_satpoint(satpoint: SatPoint) -> SatPointArray {
-  let mut array = [0; 44];
-  satpoint
-    .consensus_encode(&mut array.as_mut_slice())
-    .unwrap();
-  array
-}
-
-fn decode_satpoint(array: SatPointArray) -> SatPoint {
-  Decodable::consensus_decode(&mut io::Cursor::new(array)).unwrap()
-}
-
-fn decode_outpoint(array: OutPointArray) -> OutPoint {
-  Decodable::consensus_decode(&mut io::Cursor::new(array)).unwrap()
-}
-
-fn decode_inscription_id(array: InscriptionIdArray) -> InscriptionId {
-  Decodable::consensus_decode(&mut io::Cursor::new(array)).unwrap()
-}
 
 pub(crate) struct Index {
   auth: Auth,
@@ -157,15 +129,8 @@ impl<T> BitcoinCoreRpcResultExt<T> for Result<T, bitcoincore_rpc::Error> {
 
 impl Index {
   pub(crate) fn open(options: &Options) -> Result<Self> {
-    let rpc_url = options.rpc_url();
+    let rpc_url = options.rpc_url(false);
     let cookie_file = options.cookie_file()?;
-
-    if cfg!(test) {
-      // The default max database size is 10 MiB for Regtest and 1 TiB
-      // for all other networks. A larger database takes longer to
-      // initialize, so unit tests should use the regtest network.
-      assert_eq!(options.chain(), Chain::Regtest);
-    }
 
     log::info!(
       "Connecting to Bitcoin Core RPC server at {rpc_url} using credentials from `{}`",
@@ -234,8 +199,7 @@ impl Index {
         };
 
         tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
-        tx.open_table(INSCRIPTION_ID_TO_HEIGHT)?;
-        tx.open_table(INSCRIPTION_ID_TO_SAT)?;
+        tx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
         tx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
         tx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
         tx.open_table(OUTPOINT_TO_VALUE)?;
@@ -341,7 +305,7 @@ impl Index {
     Ok(info)
   }
 
-  pub(crate) fn decode_sat_range(bytes: SatRangeArray) -> (u64, u64) {
+  pub(crate) fn decode_sat_range(bytes: SatRangeValue) -> (u64, u64) {
     let raw_base = u64::from_le_bytes([
       bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], 0,
     ]);
@@ -423,7 +387,7 @@ impl Index {
     let height_to_block_hash = rtx.0.open_table(HEIGHT_TO_BLOCK_HASH)?;
 
     for next in height_to_block_hash.range(0..block_count)?.rev().take(take) {
-      blocks.push((next.0.value(), BlockHash::from_slice(next.1.value())?));
+      blocks.push((next.0.value(), Entry::load(*next.1.value())));
     }
 
     Ok(blocks)
@@ -438,7 +402,7 @@ impl Index {
       let sat_to_satpoint = rtx.open_table(SAT_TO_SATPOINT)?;
 
       for (sat, satpoint) in sat_to_satpoint.range(0..)? {
-        result.push((Sat(sat.value()), decode_satpoint(*satpoint.value())));
+        result.push((Sat(sat.value()), Entry::load(*satpoint.value())));
       }
 
       Ok(Some(result))
@@ -455,7 +419,7 @@ impl Index {
           .begin_read()?
           .open_table(SAT_TO_SATPOINT)?
           .get(&sat.n())?
-          .map(|satpoint| decode_satpoint(*satpoint.value())),
+          .map(|satpoint| Entry::load(*satpoint.value())),
       )
     } else {
       Ok(None)
@@ -492,43 +456,47 @@ impl Index {
         .begin_read()?
         .open_table(SAT_TO_INSCRIPTION_ID)?
         .get(&sat.n())?
-        .map(|inscription_id| decode_inscription_id(*inscription_id.value())),
+        .map(|inscription_id| Entry::load(*inscription_id.value())),
     )
   }
 
-  pub(crate) fn get_sat_by_inscription_id(
+  pub(crate) fn get_inscription_id_by_inscription_number(
     &self,
-    inscription_id: InscriptionId,
-  ) -> Result<Option<Sat>> {
+    n: u64,
+  ) -> Result<Option<InscriptionId>> {
     Ok(
       self
         .database
         .begin_read()?
-        .open_table(INSCRIPTION_ID_TO_SAT)?
-        .get(inscription_id.as_inner())?
-        .map(|value| Sat(value.value())),
+        .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
+        .get(&n)?
+        .map(|id| Entry::load(*id.value())),
+    )
+  }
+
+  pub(crate) fn get_inscription_satpoint_by_id(
+    &self,
+    inscription_id: InscriptionId,
+  ) -> Result<Option<SatPoint>> {
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(INSCRIPTION_ID_TO_SATPOINT)?
+        .get(&inscription_id.store())?
+        .map(|satpoint| Entry::load(*satpoint.value())),
     )
   }
 
   pub(crate) fn get_inscription_by_id(
     &self,
     inscription_id: InscriptionId,
-  ) -> Result<Option<(Inscription, SatPoint)>> {
-    let Some(satpoint) = self
-        .database
-        .begin_read()?
-        .open_table(INSCRIPTION_ID_TO_SATPOINT)?
-        .get(inscription_id.as_inner())?
-        .map(|satpoint| decode_satpoint(*satpoint.value()))
-        else {
-      return Ok(None);
-    };
-
-    let Some(inscription) = self.get_transaction(inscription_id)?.and_then(|tx| Inscription::from_transaction(&tx)) else {
-      return Ok(None);
-    };
-
-    Ok(Some((inscription, satpoint)))
+  ) -> Result<Option<Inscription>> {
+    Ok(
+      self
+        .get_transaction(inscription_id.txid)?
+        .and_then(|tx| Inscription::from_transaction(&tx)),
+    )
   }
 
   pub(crate) fn get_inscriptions_on_output(
@@ -587,9 +555,8 @@ impl Index {
       for chunk in value.value().chunks_exact(11) {
         let (start, end) = Index::decode_sat_range(chunk.try_into().unwrap());
         if start <= sat && sat < end {
-          let outpoint = decode_outpoint(*key.value());
           return Ok(Some(SatPoint {
-            outpoint,
+            outpoint: Entry::load(*key.value()),
             offset: offset + sat - start,
           }));
         }
@@ -600,7 +567,7 @@ impl Index {
     Ok(None)
   }
 
-  fn list_inner(&self, outpoint: OutPointArray) -> Result<Option<Vec<u8>>> {
+  fn list_inner(&self, outpoint: OutPointValue) -> Result<Option<Vec<u8>>> {
     Ok(
       self
         .database
@@ -614,9 +581,9 @@ impl Index {
   pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<List>> {
     self.require_sat_index("list")?;
 
-    let outpoint_encoded = encode_outpoint(outpoint);
+    let array = outpoint.store();
 
-    let sat_ranges = self.list_inner(outpoint_encoded)?;
+    let sat_ranges = self.list_inner(array)?;
 
     match sat_ranges {
       Some(sat_ranges) => Ok(Some(List::Unspent(
@@ -673,12 +640,7 @@ impl Index {
         .begin_read()?
         .open_table(SATPOINT_TO_INSCRIPTION_ID)?
         .range([0; 44]..)?
-        .map(|(satpoint, id)| {
-          (
-            decode_satpoint(*satpoint.value()),
-            decode_inscription_id(*id.value()),
-          )
-        })
+        .map(|(satpoint, id)| (Entry::load(*satpoint.value()), Entry::load(*id.value())))
         .take(n.unwrap_or(usize::MAX))
         .collect(),
     )
@@ -693,19 +655,23 @@ impl Index {
         .iter()?
         .rev()
         .take(n)
-        .map(|(_number, id)| decode_inscription_id(*id.value()))
+        .map(|(_number, id)| Entry::load(*id.value()))
         .collect(),
     )
   }
 
-  pub(crate) fn get_genesis_height(&self, inscription_id: InscriptionId) -> Result<u64> {
-    self
-      .database
-      .begin_read()?
-      .open_table(INSCRIPTION_ID_TO_HEIGHT)?
-      .get(inscription_id.as_inner())?
-      .map(|x| x.value())
-      .ok_or_else(|| anyhow!("no height for inscription"))
+  pub(crate) fn get_inscription_entry(
+    &self,
+    inscription_id: InscriptionId,
+  ) -> Result<Option<InscriptionEntry>> {
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?
+        .get(&inscription_id.store())?
+        .map(|value| InscriptionEntry::load(value.value())),
+    )
   }
 
   #[cfg(test)]
@@ -727,9 +693,9 @@ impl Index {
     );
 
     assert_eq!(
-      decode_satpoint(
+      SatPoint::load(
         *inscription_id_to_satpoint
-          .get(&inscription_id.as_inner())
+          .get(&inscription_id.store())
           .unwrap()
           .unwrap()
           .value()
@@ -738,9 +704,9 @@ impl Index {
     );
 
     assert_eq!(
-      InscriptionId::from_inner(
+      InscriptionId::load(
         *satpoint_to_inscription_id
-          .get(&encode_satpoint(satpoint))
+          .get(&satpoint.store())
           .unwrap()
           .unwrap()
           .value()
@@ -750,7 +716,7 @@ impl Index {
 
     if self.has_sat_index().unwrap() {
       assert_eq!(
-        InscriptionId::from_inner(
+        InscriptionId::load(
           *rtx
             .open_table(SAT_TO_INSCRIPTION_ID)
             .unwrap()
@@ -763,7 +729,7 @@ impl Index {
       );
 
       assert_eq!(
-        decode_satpoint(
+        SatPoint::load(
           *rtx
             .open_table(SAT_TO_SATPOINT)
             .unwrap()
@@ -778,25 +744,26 @@ impl Index {
   }
 
   fn inscriptions_on_output<'a: 'tx, 'tx>(
-    satpoint_to_id: &'a impl ReadableTable<&'tx SatPointArray, &'tx InscriptionIdArray>,
+    satpoint_to_id: &'a impl ReadableTable<&'tx SatPointValue, &'tx InscriptionIdValue>,
     outpoint: OutPoint,
   ) -> Result<impl Iterator<Item = (SatPoint, InscriptionId)> + 'tx> {
-    let start = encode_satpoint(SatPoint {
+    let start = SatPoint {
       outpoint,
       offset: 0,
-    });
+    }
+    .store();
 
-    let end = encode_satpoint(SatPoint {
+    let end = SatPoint {
       outpoint,
       offset: u64::MAX,
-    });
+    }
+    .store();
 
-    Ok(satpoint_to_id.range(start..=end)?.map(|(satpoint, id)| {
-      (
-        decode_satpoint(*satpoint.value()),
-        InscriptionId::from_inner(*id.value()),
-      )
-    }))
+    Ok(
+      satpoint_to_id
+        .range(start..=end)?
+        .map(|(satpoint, id)| (Entry::load(*satpoint.value()), Entry::load(*id.value()))),
+    )
   }
 }
 
@@ -930,21 +897,24 @@ mod tests {
     {
       let context = Context::builder().build();
       context.mine_blocks(1);
-      let inscription_id = context.rpc_server.broadcast_tx(template.clone());
+      let txid = context.rpc_server.broadcast_tx(template.clone());
+      let inscription_id = InscriptionId::from(txid);
       context.mine_blocks(1);
 
       assert_eq!(
         context.index.get_inscription_by_id(inscription_id).unwrap(),
-        Some((
-          inscription,
-          SatPoint {
-            outpoint: OutPoint {
-              txid: inscription_id,
-              vout: 0,
-            },
-            offset: 0,
-          }
-        ))
+        Some(inscription)
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_satpoint_by_id(inscription_id)
+          .unwrap(),
+        Some(SatPoint {
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 0,
+        })
       );
     }
 
@@ -953,11 +923,15 @@ mod tests {
         .arg("--first-inscription-height=3")
         .build();
       context.mine_blocks(1);
-      let inscription_id = context.rpc_server.broadcast_tx(template);
+      let txid = context.rpc_server.broadcast_tx(template);
+      let inscription_id = InscriptionId::from(txid);
       context.mine_blocks(1);
 
       assert_eq!(
-        context.index.get_inscription_by_id(inscription_id).unwrap(),
+        context
+          .index
+          .get_inscription_satpoint_by_id(inscription_id)
+          .unwrap(),
         None,
       );
     }
@@ -1260,21 +1234,19 @@ mod tests {
     for context in Context::configurations() {
       context.mine_blocks(1);
 
-      let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
         witness: inscription("text/plain", "hello").to_witness(),
         ..Default::default()
       });
+      let inscription_id = InscriptionId::from(txid);
 
       context.mine_blocks(1);
 
       context.index.assert_inscription_location(
         inscription_id,
         SatPoint {
-          outpoint: OutPoint {
-            txid: inscription_id,
-            vout: 0,
-          },
+          outpoint: OutPoint { txid, vout: 0 },
           offset: 0,
         },
         50 * COIN_VALUE,
@@ -1287,21 +1259,19 @@ mod tests {
     for context in Context::configurations() {
       context.mine_blocks(1);
 
-      let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
         witness: inscription("text/plain", "hello").to_witness(),
         ..Default::default()
       });
+      let inscription_id = InscriptionId::from(txid);
 
       context.mine_blocks(1);
 
       context.index.assert_inscription_location(
         inscription_id,
         SatPoint {
-          outpoint: OutPoint {
-            txid: inscription_id,
-            vout: 0,
-          },
+          outpoint: OutPoint { txid, vout: 0 },
           offset: 0,
         },
         50 * COIN_VALUE,
@@ -1333,17 +1303,20 @@ mod tests {
     for context in Context::configurations() {
       context.mine_blocks(2);
 
-      let first_inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+      let first_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
         witness: inscription("text/plain", "hello").to_witness(),
         ..Default::default()
       });
 
-      let second_inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+      let first_inscription_id = InscriptionId::from(first_txid);
+
+      let second_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(2, 0, 0)],
         witness: inscription("text/png", [1; 100]).to_witness(),
         ..Default::default()
       });
+      let second_inscription_id = InscriptionId::from(second_txid);
 
       context.mine_blocks(1);
 
@@ -1385,21 +1358,19 @@ mod tests {
     for context in Context::configurations() {
       context.mine_blocks(1);
 
-      let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
         witness: inscription("text/plain", "hello").to_witness(),
         ..Default::default()
       });
+      let inscription_id = InscriptionId::from(txid);
 
       context.mine_blocks(1);
 
       context.index.assert_inscription_location(
         inscription_id,
         SatPoint {
-          outpoint: OutPoint {
-            txid: inscription_id,
-            vout: 0,
-          },
+          outpoint: OutPoint { txid, vout: 0 },
           offset: 0,
         },
         50 * COIN_VALUE,
@@ -1436,21 +1407,19 @@ mod tests {
       let context = Context::builder().args(args).build();
       context.mine_blocks(1);
 
-      let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
         witness: inscription("text/plain", "hello").to_witness(),
         ..Default::default()
       });
+      let inscription_id = InscriptionId::from(txid);
 
       context.mine_blocks(1);
 
       context.index.assert_inscription_location(
         inscription_id,
         SatPoint {
-          outpoint: OutPoint {
-            txid: inscription_id,
-            vout: 0,
-          },
+          outpoint: OutPoint { txid, vout: 0 },
           offset: 0,
         },
         50 * COIN_VALUE,
@@ -1482,11 +1451,12 @@ mod tests {
     for context in Context::configurations() {
       context.mine_blocks(1);
 
-      let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
         witness: inscription("text/plain", "hello").to_witness(),
         ..Default::default()
       });
+      let inscription_id = InscriptionId::from(txid);
 
       context.mine_blocks(1);
 
@@ -1517,12 +1487,13 @@ mod tests {
     for context in Context::configurations() {
       context.mine_blocks(1);
 
-      let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
         fee: 50 * COIN_VALUE,
         witness: inscription("text/plain", "hello").to_witness(),
         ..Default::default()
       });
+      let inscription_id = InscriptionId::from(txid);
 
       let coinbase_tx = context.mine_blocks(1)[0].txdata[0].txid();
 
@@ -1545,12 +1516,13 @@ mod tests {
     for context in Context::configurations() {
       context.mine_blocks(1);
 
-      let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
         fee: 50 * COIN_VALUE,
         witness: inscription("text/plain", "hello").to_witness(),
         ..Default::default()
       });
+      let inscription_id = InscriptionId::from(txid);
 
       context.mine_blocks_with_subsidy(1, 0);
 
@@ -1570,22 +1542,24 @@ mod tests {
     for context in Context::configurations() {
       context.mine_blocks(1);
 
-      let first_inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+      let first_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
         fee: 50 * COIN_VALUE,
         witness: inscription("text/plain", "hello").to_witness(),
         ..Default::default()
       });
+      let first_inscription_id = InscriptionId::from(first_txid);
 
       context.mine_blocks_with_subsidy(1, 0);
       context.mine_blocks(1);
 
-      let second_inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+      let second_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(3, 0, 0)],
         fee: 50 * COIN_VALUE,
         witness: inscription("text/plain", "hello").to_witness(),
         ..Default::default()
       });
+      let second_inscription_id = InscriptionId::from(second_txid);
 
       context.mine_blocks_with_subsidy(1, 0);
 
@@ -1642,12 +1616,13 @@ mod tests {
       context.mine_blocks_with_subsidy(1, 0);
       context.mine_blocks(1);
 
-      let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(2, 0, 0)],
         outputs: 2,
         witness: inscription("text/plain", "hello").to_witness(),
         ..Default::default()
       });
+      let inscription_id = InscriptionId::from(txid);
       context.mine_blocks(1);
 
       context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -1673,22 +1648,20 @@ mod tests {
     for context in Context::configurations() {
       context.mine_blocks(1);
 
-      let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
         outputs: 2,
         witness: inscription("text/plain", "hello").to_witness(),
         output_values: &[0, 50 * COIN_VALUE],
         ..Default::default()
       });
+      let inscription_id = InscriptionId::from(txid);
       context.mine_blocks(1);
 
       context.index.assert_inscription_location(
         inscription_id,
         SatPoint {
-          outpoint: OutPoint {
-            txid: inscription_id,
-            vout: 1,
-          },
+          outpoint: OutPoint { txid, vout: 1 },
           offset: 0,
         },
         50 * COIN_VALUE,
@@ -1701,12 +1674,13 @@ mod tests {
     for context in Context::configurations() {
       context.mine_blocks(1);
 
-      let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
         fee: 50 * COIN_VALUE,
         witness: inscription("text/plain", "hello").to_witness(),
         ..Default::default()
       });
+      let inscription_id = InscriptionId::from(txid);
       context.mine_blocks_with_subsidy(1, 0);
 
       context.index.assert_inscription_location(
@@ -1810,19 +1784,18 @@ mod tests {
     for context in Context::configurations() {
       context.mine_blocks(1);
 
-      let inscription_id = context.rpc_server.broadcast_tx(TransactionTemplate {
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
         witness: inscription("text/plain", "hello").to_witness(),
         ..Default::default()
       });
 
+      let inscription_id = InscriptionId::from(txid);
+
       assert_eq!(
         context
           .index
-          .get_inscriptions_on_output(OutPoint {
-            txid: inscription_id,
-            vout: 0,
-          })
+          .get_inscriptions_on_output(OutPoint { txid, vout: 0 })
           .unwrap(),
         []
       );
@@ -1832,10 +1805,7 @@ mod tests {
       assert_eq!(
         context
           .index
-          .get_inscriptions_on_output(OutPoint {
-            txid: inscription_id,
-            vout: 0,
-          })
+          .get_inscriptions_on_output(OutPoint { txid, vout: 0 })
           .unwrap(),
         [inscription_id]
       );
@@ -1850,10 +1820,7 @@ mod tests {
       assert_eq!(
         context
           .index
-          .get_inscriptions_on_output(OutPoint {
-            txid: inscription_id,
-            vout: 0,
-          })
+          .get_inscriptions_on_output(OutPoint { txid, vout: 0 })
           .unwrap(),
         []
       );

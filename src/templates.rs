@@ -63,22 +63,22 @@ pub(crate) trait PageContent: Display + 'static {
 mod tests {
   use super::*;
 
+  struct Foo;
+
+  impl Display for Foo {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+      write!(f, "<h1>Foo</h1>")
+    }
+  }
+
+  impl PageContent for Foo {
+    fn title(&self) -> String {
+      "Foo".to_string()
+    }
+  }
+
   #[test]
-  fn page_mainnet() {
-    struct Foo;
-
-    impl Display for Foo {
-      fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "<h1>Foo</h1>")
-      }
-    }
-
-    impl PageContent for Foo {
-      fn title(&self) -> String {
-        "Foo".to_string()
-      }
-    }
-
+  fn page() {
     assert_regex_match!(
       Foo.page(Chain::Mainnet, true),
       "<!doctype html>
@@ -90,6 +90,7 @@ mod tests {
     <title>Foo</title>
     <link href=/static/index.css rel=stylesheet>
     <link href=/static/modern-normalize.css rel=stylesheet>
+    <script src=/static/index.js defer></script>
   </head>
   <body>
   <header>
@@ -110,105 +111,30 @@ mod tests {
   </body>
 </html>
 "
+    );
+  }
+
+  #[test]
+  fn page_mainnet() {
+    assert_regex_match!(
+      Foo.page(Chain::Mainnet, true),
+      r".*<nav>\s*<a href=/>Ordinals<sup>alpha</sup></a>.*"
     );
   }
 
   #[test]
   fn page_no_sat_index() {
-    struct Foo;
-
-    impl Display for Foo {
-      fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "<h1>Foo</h1>")
-      }
-    }
-
-    impl PageContent for Foo {
-      fn title(&self) -> String {
-        "Foo".to_string()
-      }
-    }
-
     assert_regex_match!(
-      Foo.page(Chain::Mainnet, false).to_string(),
-      "<!doctype html>
-<html lang=en>
-  <head>
-    <meta charset=utf-8>
-    <meta name=format-detection content='telephone=no'>
-    <meta name=viewport content='width=device-width,initial-scale=1.0'>
-    <title>Foo</title>
-    <link href=/static/index.css rel=stylesheet>
-    <link href=/static/modern-normalize.css rel=stylesheet>
-  </head>
-  <body>
-  <header>
-    <nav>
-      <a href=/>Ordinals<sup>alpha</sup></a>
-      .*
-      <a href=/clock>Clock</a>
-      <form action=/search method=get>
-        <input type=text .*>
-        <input type=submit value=Search>
-      </form>
-    </nav>
-  </header>
-  <main>
-<h1>Foo</h1>
-  </main>
-  </body>
-</html>
-"
+      Foo.page(Chain::Mainnet, false),
+      r".*<nav>\s*<a href=/>Ordinals<sup>alpha</sup></a>.*<a href=/clock>Clock</a>\s*<form action=/search.*",
     );
   }
 
   #[test]
   fn page_signet() {
-    struct Foo;
-
-    impl Display for Foo {
-      fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "<h1>Foo</h1>")
-      }
-    }
-
-    impl PageContent for Foo {
-      fn title(&self) -> String {
-        "Foo".to_string()
-      }
-    }
-
     assert_regex_match!(
-      Foo.page(Chain::Signet, true).to_string(),
-      "<!doctype html>
-<html lang=en>
-  <head>
-    <meta charset=utf-8>
-    <meta name=format-detection content='telephone=no'>
-    <meta name=viewport content='width=device-width,initial-scale=1.0'>
-    <title>Foo</title>
-    <link href=/static/index.css rel=stylesheet>
-    <link href=/static/modern-normalize.css rel=stylesheet>
-  </head>
-  <body>
-  <header>
-    <nav>
-      <a href=/>Ordinals<sup>signet</sup></a>
-      .*
-      <a href=/clock>Clock</a>
-      <a href=/rare.txt>rare.txt</a>
-      <form action=/search method=get>
-        <input type=text .*>
-        <input type=submit value=Search>
-      </form>
-    </nav>
-  </header>
-  <main>
-<h1>Foo</h1>
-  </main>
-  </body>
-</html>
-"
+      Foo.page(Chain::Signet, true),
+      r".*<nav>\s*<a href=/>Ordinals<sup>signet</sup></a>.*"
     );
   }
 }
