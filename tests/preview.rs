@@ -1,5 +1,13 @@
 use super::*;
 
+struct KillOnDrop(std::process::Child);
+
+impl Drop for KillOnDrop {
+  fn drop(&mut self) {
+    self.0.kill().unwrap()
+  }
+}
+
 #[test]
 #[ignore]
 fn run() {
@@ -12,12 +20,10 @@ fn run() {
     .port();
 
   let builder = CommandBuilder::new(format!("preview --http-port {port} foo.txt"))
-    .rpc_server(&rpc_server)
-    .write("foo.txt", "TEST_INSCRIPTION");
+    .write("foo.txt", "foo")
+    .rpc_server(&rpc_server);
 
-  let mut command = builder.command();
-
-  let mut child = command.spawn().unwrap();
+  let _child = KillOnDrop(builder.command().spawn().unwrap());
 
   for attempt in 0.. {
     if let Ok(response) = reqwest::blocking::get(format!("http://127.0.0.1:{port}/status")) {
@@ -41,6 +47,4 @@ fn run() {
       .unwrap()
       .contains("<a href=/inscription/")
   );
-
-  child.kill().unwrap();
 }
