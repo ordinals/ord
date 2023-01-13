@@ -99,7 +99,7 @@ jobs:
     - name: Test
       run: cargo test --all
 
-  smoke:
+  core:
     runs-on: ubuntu-latest
 
     env:
