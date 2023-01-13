@@ -71,6 +71,7 @@ jobs:
       run: |
         sudo apt-get install ripgrep
         ./bin/forbid
+
   test:
     strategy:
       matrix:
@@ -96,6 +97,27 @@ jobs:
     - uses: Swatinem/rust-cache@v2
 
     - name: Test
-      run: |
-        cargo test --all
-        cargo test --all -- --ignored
+      run: cargo test --all
+
+  smoke:
+    runs-on: ubuntu-latest
+
+    env:
+      RUSTFLAGS: --deny warnings
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Rust Toolchain Components
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+
+    - uses: Swatinem/rust-cache@v2
+
+    - name: Install Bitcoin Core
+      run: ./bin/install-bitcoin-core-linux
+
+    - name: Test
+      run: cargo test --all -- --ignored

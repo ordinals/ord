@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -euxo pipefail
+
+wget \
+  -O bitcoin.tar.gz \
+  https://bitcoincore.org/bin/bitcoin-core-23.0/bitcoin-23.0-x86_64-linux-gnu.tar.gz
+
+tar \
+  -xzvf bitcoin.tar.gz \
+  -C /usr/local/bin \
+  --strip-components 2 \
+  bitcoin-23.0/bin/bitcoin-cli bitcoin-23.0/bin/bitcoind
