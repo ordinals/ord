@@ -10,7 +10,7 @@ pub(crate) struct SatHtml {
 
 impl PageContent for SatHtml {
   fn title(&self) -> String {
-    self.sat.degree().to_string()
+    format!("Sat {}", self.sat)
   }
 }
 
