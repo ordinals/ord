@@ -96,7 +96,7 @@ fn send_on_mainnnet_works_with_wallet_named_foo() {
 
   CommandBuilder::new("--wallet foo wallet create")
     .rpc_server(&rpc_server)
-    .run();
+    .output::<Create>();
 
   CommandBuilder::new(format!(
     "--wallet foo wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0"

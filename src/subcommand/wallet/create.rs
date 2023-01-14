@@ -2,20 +2,21 @@ use super::*;
 
 #[derive(Serialize)]
 struct Output {
-  seed_phrase: Mnemonic,
+  mnemonic: Mnemonic,
 }
 
 pub(crate) fn run(options: Options) -> Result {
   let mut entropy = [0; 16];
   rand::thread_rng().fill_bytes(&mut entropy);
 
-  let seed_phrase = Mnemonic::from_entropy(&entropy)?;
+  let mnemonic = Mnemonic::from_entropy(&entropy)?;
 
-  assert_eq!(seed_phrase.word_count(), 12);
+  // TODO:
+  // - actually use PBKDF2 as prescribed in BIP-39 to generate seed
 
   initialize_wallet(&options, &entropy)?;
 
-  serde_json::to_writer_pretty(io::stdout(), &Output { seed_phrase })?;
+  serde_json::to_writer_pretty(io::stdout(), &Output { mnemonic })?;
 
   Ok(())
 }
