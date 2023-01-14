@@ -1,19 +1,27 @@
 html {
-  height: 100%;
   background-color: #131516;
   color: white;
+  font-size: 16px;
+  height: 100%;
 }
 
 body {
+  display: grid;
+  grid-template: 1fr / 1fr;
   height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  margin: 0;
+  place-items: center;
 }
 
 pre {
   margin: 0;
-  flex-shrink: 0;
+}
+
+body > * {
+  grid-column: 1 / 1;
+  grid-row: 1 / 1;
+}
+
+body > pre {
   opacity: 0;
-  display: inline-block;
 }
