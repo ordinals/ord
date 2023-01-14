@@ -492,6 +492,16 @@ impl Index {
     &self,
     inscription_id: InscriptionId,
   ) -> Result<Option<Inscription>> {
+    if self
+      .database
+      .begin_read()?
+      .open_table(INSCRIPTION_ID_TO_SATPOINT)?
+      .get(&inscription_id.store())?
+      .is_none()
+    {
+      return Ok(None);
+    }
+
     Ok(
       self
         .get_transaction(inscription_id.txid)?
@@ -1899,6 +1909,12 @@ mod tests {
       assert!(context
         .index
         .get_inscription_entry(second.into())
+        .unwrap()
+        .is_none());
+
+      assert!(context
+        .index
+        .get_inscription_by_id(second.into())
         .unwrap()
         .is_none());
     }
