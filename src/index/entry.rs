@@ -114,12 +114,10 @@ impl Entry for SatPoint {
   }
 }
 
-pub(super) type SatRangeValue = [u8; 11];
-
 pub(super) type SatRange = (u64, u64);
 
 impl Entry for SatRange {
-  type Value = SatRangeValue;
+  type Value = [u8; 11];
 
   fn load([b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10]: Self::Value) -> Self {
     let raw_base = u64::from_le_bytes([b0, b1, b2, b3, b4, b5, b6, 0]);

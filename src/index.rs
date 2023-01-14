@@ -2,7 +2,7 @@ use {
   self::{
     entry::{
       BlockHashValue, Entry, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
-      OutPointValue, SatPointValue, SatRange, SatRangeValue,
+      OutPointValue, SatPointValue, SatRange,
     },
     updater::Updater,
   },
