@@ -10,7 +10,7 @@ impl Drop for KillOnDrop {
 
 #[test]
 #[ignore]
-fn run() {
+fn preview() {
   let rpc_server = test_bitcoincore_rpc::spawn();
 
   let port = TcpListener::bind("127.0.0.1:0")
