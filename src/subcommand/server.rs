@@ -137,6 +137,7 @@ impl Server {
         .route("/content/:inscription_id", get(Self::content))
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
+        .route("/feed.xml", get(Self::feed))
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_id", get(Self::inscription))
         .route("/inscriptions", get(Self::inscriptions))
@@ -536,6 +537,53 @@ impl Server {
 
   async fn favicon() -> ServerResult<Response> {
     Self::static_asset(Path("/favicon.png".to_string())).await
+  }
+
+  async fn feed(
+    Extension(chain): Extension<Chain>,
+    Extension(index): Extension<Arc<Index>>,
+  ) -> ServerResult<Response> {
+    // TODO:
+    // - figure out how include absolute URL
+    // - write test
+
+    let mut builder = rss::ChannelBuilder::default();
+
+    match chain {
+      Chain::Mainnet => builder.title("Inscriptions"),
+      _ => builder.title(format!("Inscriptions – {chain:?}")),
+    };
+
+    builder
+      .link("http://example.com")
+      .description("An RSS feed.")
+      .generator(Some("ord".to_string()))
+      .image(Some(
+        rss::ImageBuilder::default()
+          .url("/favicon.ico".to_string())
+          .build(),
+      ));
+
+    for (number, id) in index.get_feed_inscriptions(100)? {
+      builder.item(
+        rss::ItemBuilder::default()
+          .title(format!("Inscription {number}"))
+          .link(format!("/inscription/{id}"))
+          .guid(Some(rss::Guid {
+            value: format!("/inscription/{id}"),
+            permalink: true,
+          }))
+          .build(),
+      );
+    }
+
+    Ok(
+      (
+        [(header::CONTENT_TYPE, "application/rss+xml")],
+        builder.build().to_string(),
+      )
+        .into_response(),
+    )
   }
 
   async fn static_asset(Path(path): Path<String>) -> ServerResult<Response> {
