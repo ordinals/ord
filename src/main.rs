@@ -34,6 +34,7 @@ use {
     tally::Tally,
   },
   anyhow::{anyhow, bail, Context, Error},
+  bip39::Mnemonic,
   bitcoin::{
     blockdata::constants::COIN_VALUE,
     consensus::{self, Decodable, Encodable},
