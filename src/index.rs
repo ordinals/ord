@@ -212,7 +212,8 @@ impl Index {
           .insert(&Statistic::Schema.key(), &SCHEMA_VERSION)?;
 
         if options.index_sats {
-          tx.open_table(OUTPOINT_TO_SAT_RANGES)?;
+          tx.open_table(OUTPOINT_TO_SAT_RANGES)?
+            .insert(&OutPoint::null().store(), &[])?;
         }
 
         tx.commit()?;
@@ -1590,6 +1591,57 @@ mod tests {
     assert_eq!(
       context.index.statistic(Statistic::LostSats),
       100 * COIN_VALUE
+    );
+  }
+
+  #[test]
+  fn lost_sat_ranges_are_tracked_correctly() {
+    let context = Context::builder().arg("--index-sats").build();
+
+    let list = || match context.index.list(OutPoint::null()).unwrap().unwrap() {
+      List::Unspent(ranges) => ranges,
+      _ => panic!(),
+    };
+
+    assert!(list().is_empty());
+
+    context.mine_blocks(1);
+
+    assert!(list().is_empty());
+
+    context.mine_blocks_with_subsidy(1, 0);
+
+    assert_eq!(list(), [(100 * COIN_VALUE, 150 * COIN_VALUE)]);
+
+    context.mine_blocks_with_subsidy(1, 0);
+
+    assert_eq!(
+      list(),
+      [
+        (100 * COIN_VALUE, 150 * COIN_VALUE),
+        (150 * COIN_VALUE, 200 * COIN_VALUE)
+      ]
+    );
+
+    context.mine_blocks(1);
+
+    assert_eq!(
+      list(),
+      [
+        (100 * COIN_VALUE, 150 * COIN_VALUE),
+        (150 * COIN_VALUE, 200 * COIN_VALUE)
+      ]
+    );
+
+    context.mine_blocks_with_subsidy(1, 0);
+
+    assert_eq!(
+      list(),
+      [
+        (100 * COIN_VALUE, 150 * COIN_VALUE),
+        (150 * COIN_VALUE, 200 * COIN_VALUE),
+        (250 * COIN_VALUE, 300 * COIN_VALUE)
+      ]
     );
   }
 

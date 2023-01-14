@@ -366,6 +366,11 @@ impl Updater {
       }
 
       if !coinbase_inputs.is_empty() {
+        let mut lost_sat_ranges = outpoint_to_sat_ranges
+          .remove(&OutPoint::null().store())?
+          .map(|ranges| ranges.value().to_vec())
+          .unwrap_or_default();
+
         for (start, end) in coinbase_inputs {
           if !Sat(start).is_common() {
             sat_to_satpoint.insert(
@@ -378,8 +383,12 @@ impl Updater {
             )?;
           }
 
+          lost_sat_ranges.extend_from_slice(&(start, end).store());
+
           lost_sats += end - start;
         }
+
+        outpoint_to_sat_ranges.insert(&OutPoint::null().store(), &lost_sat_ranges)?;
       }
     } else {
       for (tx, txid) in block.txdata.iter().skip(1).chain(block.txdata.first()) {
