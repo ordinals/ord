@@ -11,17 +11,14 @@ impl Drop for KillOnDrop {
 #[test]
 #[ignore]
 fn preview() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
-
   let port = TcpListener::bind("127.0.0.1:0")
     .unwrap()
     .local_addr()
     .unwrap()
     .port();
 
-  let builder = CommandBuilder::new(format!("preview --http-port {port} foo.txt"))
-    .write("foo.txt", "foo")
-    .rpc_server(&rpc_server);
+  let builder =
+    CommandBuilder::new(format!("preview --http-port {port} foo.txt")).write("foo.txt", "foo");
 
   let _child = KillOnDrop(builder.command().spawn().unwrap());
 
