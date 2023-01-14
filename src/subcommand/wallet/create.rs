@@ -1,5 +1,6 @@
 use {
   super::*,
+  bip39::Mnemonic,
   bitcoin::secp256k1::{rand::RngCore, All, Secp256k1},
   bitcoin::{
     util::bip32::{ChildNumber, DerivationPath, ExtendedPrivKey, Fingerprint},
@@ -9,43 +10,56 @@ use {
   miniscript::descriptor::{Descriptor, DescriptorSecretKey, DescriptorXKey, Wildcard},
 };
 
+#[derive(Serialize)]
+struct Output {
+  seed_phrase: Mnemonic,
+}
+
 pub(crate) fn run(options: Options) -> Result {
   let client = options.bitcoin_rpc_client_for_wallet_command(true)?;
 
   client.create_wallet(&options.wallet, None, Some(true), None, None)?;
 
-  let secp = bitcoin::secp256k1::Secp256k1::new();
-  let mut seed = [0; 32];
-  bitcoin::secp256k1::rand::thread_rng().fill_bytes(&mut seed);
+  let mut entropy = [0; 32];
+  bitcoin::secp256k1::rand::thread_rng().fill_bytes(&mut entropy);
 
-  let master_private_key = ExtendedPrivKey::new_master(options.chain().network(), &seed)?;
+  derive_and_import_descriptors(client, options.chain().network(), entropy)?;
+
+  serde_json::to_writer_pretty(
+    io::stdout(),
+    &Output {
+      seed_phrase: Mnemonic::from_entropy(&entropy)?,
+    },
+  )?;
+
+  Ok(())
+}
+
+fn derive_and_import_descriptors(client: Client, network: Network, entropy: [u8; 32]) -> Result {
+  let secp = bitcoin::secp256k1::Secp256k1::new();
+
+  let master_private_key = ExtendedPrivKey::new_master(network, &entropy)?;
 
   let fingerprint = master_private_key.fingerprint(&secp);
 
   let derivation_path = DerivationPath::master()
     .child(ChildNumber::Hardened { index: 86 })
     .child(ChildNumber::Hardened {
-      index: u32::from(options.chain().network() != Network::Bitcoin),
+      index: u32::from(network != Network::Bitcoin),
     })
     .child(ChildNumber::Hardened { index: 0 });
 
   let derived_private_key = master_private_key.derive_priv(&secp, &derivation_path)?;
 
-  derive_and_import_descriptor(
-    &client,
-    &secp,
-    (fingerprint, derivation_path.clone()),
-    derived_private_key,
-    false,
-  )?;
-
-  derive_and_import_descriptor(
-    &client,
-    &secp,
-    (fingerprint, derivation_path),
-    derived_private_key,
-    true,
-  )?;
+  for change in [false, true] {
+    derive_and_import_descriptor(
+      &client,
+      &secp,
+      (fingerprint, derivation_path.clone()),
+      derived_private_key,
+      change,
+    )?;
+  }
 
   Ok(())
 }

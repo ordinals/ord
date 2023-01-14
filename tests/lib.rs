@@ -57,10 +57,16 @@ fn inscribe(rpc_server: &test_bitcoincore_rpc::Handle) -> Inscribe {
   output
 }
 
+#[derive(Deserialize)]
+struct Create {
+  #[allow(dead_code)]
+  seed_phrase: String,
+}
+
 fn create_wallet(rpc_server: &test_bitcoincore_rpc::Handle) {
   CommandBuilder::new(format!("--chain {} wallet create", rpc_server.network()))
     .rpc_server(rpc_server)
-    .run();
+    .output::<Create>();
 }
 
 mod command_builder;
