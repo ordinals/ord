@@ -2,7 +2,7 @@ use {
   self::{
     entry::{
       BlockHashValue, Entry, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
-      OutPointValue, SatPointValue, SatRangeValue,
+      OutPointValue, SatPointValue, SatRange, SatRangeValue,
     },
     updater::Updater,
   },
@@ -305,23 +305,6 @@ impl Index {
     Ok(info)
   }
 
-  pub(crate) fn decode_sat_range(bytes: SatRangeValue) -> (u64, u64) {
-    let raw_base = u64::from_le_bytes([
-      bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], 0,
-    ]);
-
-    // 51 bit base
-    let base = raw_base & ((1 << 51) - 1);
-
-    let raw_delta =
-      u64::from_le_bytes([bytes[6], bytes[7], bytes[8], bytes[9], bytes[10], 0, 0, 0]);
-
-    // 33 bit delta
-    let delta = raw_delta >> 3;
-
-    (base, base + delta)
-  }
-
   pub(crate) fn update(&self) -> Result {
     Updater::update(self)
   }
@@ -553,7 +536,7 @@ impl Index {
     for (key, value) in outpoint_to_sat_ranges.range([0; 36]..)? {
       let mut offset = 0;
       for chunk in value.value().chunks_exact(11) {
-        let (start, end) = Index::decode_sat_range(chunk.try_into().unwrap());
+        let (start, end) = SatRange::load(chunk.try_into().unwrap());
         if start <= sat && sat < end {
           return Ok(Some(SatPoint {
             outpoint: Entry::load(*key.value()),
@@ -589,7 +572,7 @@ impl Index {
       Some(sat_ranges) => Ok(Some(List::Unspent(
         sat_ranges
           .chunks_exact(11)
-          .map(|chunk| Self::decode_sat_range(chunk.try_into().unwrap()))
+          .map(|chunk| SatRange::load(chunk.try_into().unwrap()))
           .collect(),
       ))),
       None => {

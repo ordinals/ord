@@ -336,7 +336,7 @@ impl Updater {
           };
 
           for chunk in sat_ranges.chunks_exact(11) {
-            input_sat_ranges.push_back(Index::decode_sat_range(chunk.try_into().unwrap()));
+            input_sat_ranges.push_back(SatRange::load(chunk.try_into().unwrap()));
           }
         }
 
@@ -449,12 +449,7 @@ impl Updater {
           range
         };
 
-        let base = assigned.0;
-        let delta = assigned.1 - assigned.0;
-
-        let n = u128::from(base) | u128::from(delta) << 51;
-
-        sats.extend_from_slice(&n.to_le_bytes()[0..11]);
+        sats.extend_from_slice(&assigned.store());
 
         remaining -= assigned.1 - assigned.0;
 
