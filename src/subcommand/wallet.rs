@@ -129,7 +129,7 @@ fn get_change_addresses(options: &Options, n: usize) -> Result<Vec<Address>> {
   Ok(addresses)
 }
 
-fn initialize_wallet(options: &Options, entropy: &[u8]) -> Result {
+fn initialize_wallet(options: &Options, seed: [u8; 64]) -> Result {
   let client = options.bitcoin_rpc_client_for_wallet_command(true)?;
   let network = options.chain().network();
 
@@ -137,7 +137,7 @@ fn initialize_wallet(options: &Options, entropy: &[u8]) -> Result {
 
   let secp = Secp256k1::new();
 
-  let master_private_key = ExtendedPrivKey::new_master(network, &entropy)?;
+  let master_private_key = ExtendedPrivKey::new_master(network, &seed)?;
 
   let fingerprint = master_private_key.fingerprint(&secp);
 
