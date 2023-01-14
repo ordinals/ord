@@ -25,7 +25,34 @@ apt-get install --yes \
   libsqlite3-dev\
   libssl-dev \
   pkg-config \
+  ufw \
   vim
+
+ufw default allow outgoing
+ufw default deny incoming
+
+ufw allow 8080
+ufw allow http
+ufw allow https
+ufw allow ssh
+
+case $CHAIN in
+  main)
+    ufw allow 8333
+    ;;
+  signet)
+    ufw allow 38333
+    ;;
+  test)
+    ufw allow 18333
+    ;;
+  *)
+    echo "Unknown chain: $CHAIN"
+    exit 1
+    ;;
+esac
+
+ufw --force enable
 
 if ! which bitcoind; then
   wget -O bitcoin.tar.gz 'https://bitcoincore.org/bin/bitcoin-core-23.0/bitcoin-23.0-x86_64-linux-gnu.tar.gz'
@@ -64,6 +91,9 @@ case $CHAIN in
     ;;
   signet)
     COOKIE_FILE_DIR=/var/lib/bitcoind/signet
+    ;;
+  test)
+    COOKIE_FILE_DIR=/var/lib/bitcoind/testnet3
     ;;
   *)
     echo "Unknown chain: $CHAIN"

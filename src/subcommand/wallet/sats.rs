@@ -17,7 +17,7 @@ impl Sats {
     let utxos = get_unspent_output_ranges(&options, &index)?;
 
     if let Some(path) = &self.tsv {
-      for (output, sat) in satoshis_from_tsv(
+      for (output, sat) in sats_from_tsv(
         utxos,
         &fs::read_to_string(path)
           .with_context(|| format!("I/O error reading `{}`", path.display()))?,
@@ -25,7 +25,7 @@ impl Sats {
         println!("{output}\t{sat}");
       }
     } else {
-      for (output, sat, offset, rarity) in rare_satoshis(utxos) {
+      for (output, sat, offset, rarity) in rare_sats(utxos) {
         println!("{output}\t{sat}\t{offset}\t{rarity}");
       }
     }
@@ -34,7 +34,7 @@ impl Sats {
   }
 }
 
-fn rare_satoshis(utxos: Vec<(OutPoint, Vec<(u64, u64)>)>) -> Vec<(OutPoint, Sat, u64, Rarity)> {
+fn rare_sats(utxos: Vec<(OutPoint, Vec<(u64, u64)>)>) -> Vec<(OutPoint, Sat, u64, Rarity)> {
   utxos
     .into_iter()
     .flat_map(|(outpoint, sat_ranges)| {
@@ -54,7 +54,7 @@ fn rare_satoshis(utxos: Vec<(OutPoint, Vec<(u64, u64)>)>) -> Vec<(OutPoint, Sat,
     .collect()
 }
 
-fn satoshis_from_tsv(
+fn sats_from_tsv(
   utxos: Vec<(OutPoint, Vec<(u64, u64)>)>,
   tsv: &str,
 ) -> Result<Vec<(OutPoint, &str)>> {
@@ -115,7 +115,7 @@ mod tests {
   #[test]
   fn identify_no_rare_sats() {
     assert_eq!(
-      rare_satoshis(vec![(
+      rare_sats(vec![(
         outpoint(1),
         vec![(51 * COIN_VALUE, 100 * COIN_VALUE), (1234, 5678)],
       )]),
@@ -126,7 +126,7 @@ mod tests {
   #[test]
   fn identify_one_rare_sat() {
     assert_eq!(
-      rare_satoshis(vec![(
+      rare_sats(vec![(
         outpoint(1),
         vec![(10, 80), (50 * COIN_VALUE, 100 * COIN_VALUE)],
       )]),
@@ -137,7 +137,7 @@ mod tests {
   #[test]
   fn identify_two_rare_sats() {
     assert_eq!(
-      rare_satoshis(vec![(
+      rare_sats(vec![(
         outpoint(1),
         vec![(0, 100), (1050000000000000, 1150000000000000)],
       )]),
@@ -151,7 +151,7 @@ mod tests {
   #[test]
   fn identify_rare_sats_in_different_outpoints() {
     assert_eq!(
-      rare_satoshis(vec![
+      rare_sats(vec![
         (outpoint(1), vec![(50 * COIN_VALUE, 55 * COIN_VALUE)]),
         (outpoint(2), vec![(100 * COIN_VALUE, 111 * COIN_VALUE)],),
       ]),
@@ -165,7 +165,7 @@ mod tests {
   #[test]
   fn identify_from_tsv_none() {
     assert_eq!(
-      satoshis_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "1\n").unwrap(),
+      sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "1\n").unwrap(),
       vec![]
     )
   }
@@ -173,7 +173,7 @@ mod tests {
   #[test]
   fn identify_from_tsv_single() {
     assert_eq!(
-      satoshis_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n").unwrap(),
+      sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n").unwrap(),
       vec![(outpoint(1), "0"),]
     )
   }
@@ -181,7 +181,7 @@ mod tests {
   #[test]
   fn identify_from_tsv_two_in_one_range() {
     assert_eq!(
-      satoshis_from_tsv(vec![(outpoint(1), vec![(0, 2)])], "0\n1\n").unwrap(),
+      sats_from_tsv(vec![(outpoint(1), vec![(0, 2)])], "0\n1\n").unwrap(),
       vec![(outpoint(1), "0"), (outpoint(1), "1"),]
     )
   }
@@ -189,7 +189,7 @@ mod tests {
   #[test]
   fn identify_from_tsv_out_of_order_tsv() {
     assert_eq!(
-      satoshis_from_tsv(vec![(outpoint(1), vec![(0, 2)])], "1\n0\n").unwrap(),
+      sats_from_tsv(vec![(outpoint(1), vec![(0, 2)])], "1\n0\n").unwrap(),
       vec![(outpoint(1), "0"), (outpoint(1), "1"),]
     )
   }
@@ -197,7 +197,7 @@ mod tests {
   #[test]
   fn identify_from_tsv_out_of_order_ranges() {
     assert_eq!(
-      satoshis_from_tsv(vec![(outpoint(1), vec![(1, 2), (0, 1)])], "1\n0\n").unwrap(),
+      sats_from_tsv(vec![(outpoint(1), vec![(1, 2), (0, 1)])], "1\n0\n").unwrap(),
       vec![(outpoint(1), "0"), (outpoint(1), "1"),]
     )
   }
@@ -205,7 +205,7 @@ mod tests {
   #[test]
   fn identify_from_tsv_two_in_two_ranges() {
     assert_eq!(
-      satoshis_from_tsv(vec![(outpoint(1), vec![(0, 1), (1, 2)])], "0\n1\n").unwrap(),
+      sats_from_tsv(vec![(outpoint(1), vec![(0, 1), (1, 2)])], "0\n1\n").unwrap(),
       vec![(outpoint(1), "0"), (outpoint(1), "1"),]
     )
   }
@@ -213,7 +213,7 @@ mod tests {
   #[test]
   fn identify_from_tsv_two_in_two_outputs() {
     assert_eq!(
-      satoshis_from_tsv(
+      sats_from_tsv(
         vec![(outpoint(1), vec![(0, 1)]), (outpoint(2), vec![(1, 2)])],
         "0\n1\n"
       )
@@ -225,7 +225,7 @@ mod tests {
   #[test]
   fn identify_from_tsv_ignores_extra_columns() {
     assert_eq!(
-      satoshis_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\t===\n").unwrap(),
+      sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\t===\n").unwrap(),
       vec![(outpoint(1), "0"),]
     )
   }
@@ -233,7 +233,7 @@ mod tests {
   #[test]
   fn identify_from_tsv_ignores_empty_lines() {
     assert_eq!(
-      satoshis_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n\n\n").unwrap(),
+      sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n\n\n").unwrap(),
       vec![(outpoint(1), "0"),]
     )
   }
@@ -241,7 +241,7 @@ mod tests {
   #[test]
   fn identify_from_tsv_ignores_comments() {
     assert_eq!(
-      satoshis_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n#===\n").unwrap(),
+      sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n#===\n").unwrap(),
       vec![(outpoint(1), "0"),]
     )
   }
@@ -249,7 +249,7 @@ mod tests {
   #[test]
   fn parse_error_reports_line_and_value() {
     assert_eq!(
-      satoshis_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n===\n")
+      sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "0\n===\n")
         .unwrap_err()
         .to_string(),
       "failed to parse sat from string \"===\" on line 2: invalid digit found in string",
@@ -282,7 +282,7 @@ mod tests {
 
     let start = Instant::now();
     assert_eq!(
-      satoshis_from_tsv(utxos, &tsv)
+      sats_from_tsv(utxos, &tsv)
         .unwrap()
         .into_iter()
         .map(|(outpoint, s)| (outpoint, s.parse().unwrap()))

@@ -3,7 +3,7 @@ use super::*;
 #[derive(Boilerplate)]
 pub(crate) struct TransactionHtml {
   chain: Chain,
-  inscription: Option<Inscription>,
+  inscription: Option<InscriptionId>,
   transaction: Transaction,
   txid: Txid,
 }
@@ -11,7 +11,7 @@ pub(crate) struct TransactionHtml {
 impl TransactionHtml {
   pub(crate) fn new(
     transaction: Transaction,
-    inscription: Option<Inscription>,
+    inscription: Option<InscriptionId>,
     chain: Chain,
   ) -> Self {
     Self {

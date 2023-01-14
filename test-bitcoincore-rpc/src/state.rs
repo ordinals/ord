@@ -2,7 +2,7 @@ use super::*;
 
 pub(crate) struct State {
   pub(crate) blocks: BTreeMap<BlockHash, Block>,
-  pub(crate) descriptors: u64,
+  pub(crate) descriptors: Vec<String>,
   pub(crate) fail_lock_unspent: bool,
   pub(crate) hashes: Vec<BlockHash>,
   pub(crate) locked: BTreeSet<OutPoint>,
@@ -34,7 +34,7 @@ impl State {
 
     Self {
       blocks,
-      descriptors: 0,
+      descriptors: Vec::new(),
       fail_lock_unspent,
       hashes,
       locked: BTreeSet::new(),
@@ -94,7 +94,7 @@ impl State {
         version: 0,
         prev_blockhash: *self.hashes.last().unwrap(),
         merkle_root: TxMerkleNode::all_zeros(),
-        time: 0,
+        time: self.blocks.len().try_into().unwrap(),
         bits: 0,
         nonce: self.nonce,
       },

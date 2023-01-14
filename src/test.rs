@@ -17,6 +17,19 @@ macro_rules! assert_regex_match {
   };
 }
 
+macro_rules! assert_matches {
+  ($expression:expr, $( $pattern:pat_param )|+ $( if $guard:expr )? $(,)?) => {
+    match $expression {
+      $( $pattern )|+ $( if $guard )? => {}
+      left => panic!(
+        "assertion failed: (left ~= right)\n  left: `{:?}`\n right: `{}`",
+        left,
+        stringify!($($pattern)|+ $(if $guard)?)
+      ),
+    }
+  }
+}
+
 pub(crate) fn txid(n: u64) -> Txid {
   let hex = format!("{n:x}");
 
@@ -36,6 +49,12 @@ pub(crate) fn satpoint(n: u64, offset: u64) -> SatPoint {
     outpoint: outpoint(n),
     offset,
   }
+}
+
+pub(crate) fn address() -> Address {
+  "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
+    .parse()
+    .unwrap()
 }
 
 pub(crate) fn recipient() -> Address {
@@ -73,4 +92,14 @@ pub(crate) fn tx_out(value: u64, address: Address) -> TxOut {
 
 pub(crate) fn inscription(content_type: &str, content: impl AsRef<[u8]>) -> Inscription {
   Inscription::new(Some(content_type.into()), Some(content.as_ref().into()))
+}
+
+pub(crate) fn inscription_id(n: u32) -> InscriptionId {
+  let hex = format!("{n:x}");
+
+  if hex.is_empty() || hex.len() > 1 {
+    panic!();
+  }
+
+  format!("{}i{n}", hex.repeat(64)).parse().unwrap()
 }

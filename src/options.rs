@@ -39,6 +39,8 @@ pub(crate) struct Options {
   pub(crate) signet: bool,
   #[clap(long, short, help = "Use testnet. Equivalent to `--chain testnet`.")]
   pub(crate) testnet: bool,
+  #[clap(long, default_value = "ord", help = "Use wallet named <WALLET>.")]
+  pub(crate) wallet: String,
 }
 
 impl Options {
@@ -66,12 +68,17 @@ impl Options {
     }
   }
 
-  pub(crate) fn rpc_url(&self) -> String {
-    self
+  pub(crate) fn rpc_url(&self, with_wallet: bool) -> String {
+    let mut rpc_url = self
       .rpc_url
-      .as_ref()
-      .unwrap_or(&format!("127.0.0.1:{}", self.chain().default_rpc_port(),))
-      .into()
+      .clone()
+      .unwrap_or_else(|| format!("127.0.0.1:{}", self.chain().default_rpc_port()));
+
+    if with_wallet {
+      rpc_url.push_str(&format!("/wallet/{}", self.wallet));
+    }
+
+    rpc_url.to_string()
   }
 
   pub(crate) fn cookie_file(&self) -> Result<PathBuf> {
@@ -107,9 +114,20 @@ impl Options {
     Ok(self.chain().join_with_data_dir(&base))
   }
 
-  pub(crate) fn bitcoin_rpc_client(&self) -> Result<Client> {
+  fn format_bitcoin_core_version(version: usize) -> String {
+    format!(
+      "{}.{}.{}",
+      version / 10000,
+      version % 10000 / 100,
+      version % 100
+    )
+  }
+
+  pub(crate) fn bitcoin_rpc_client(&self, with_wallet: bool) -> Result<Client> {
     let cookie_file = self.cookie_file()?;
-    let rpc_url = self.rpc_url();
+
+    let rpc_url = self.rpc_url(with_wallet);
+
     log::info!(
       "Connecting to Bitcoin Core RPC server at {rpc_url} using credentials from `{}`",
       cookie_file.display()
@@ -135,35 +153,38 @@ impl Options {
     Ok(client)
   }
 
-  pub(crate) fn bitcoin_rpc_client_mainnet_forbidden(&self, command: &str) -> Result<Client> {
-    let client = self.bitcoin_rpc_client()?;
+  pub(crate) fn bitcoin_rpc_client_for_wallet_command(&self, create: bool) -> Result<Client> {
+    let client = self.bitcoin_rpc_client(true)?;
 
-    if self.chain() == Chain::Mainnet {
-      bail!("`{command}` is unstable and not yet supported on mainnet.");
+    const MIN_VERSION: usize = 240000;
+
+    let bitcoin_version = client.version()?;
+    if bitcoin_version < MIN_VERSION {
+      bail!(
+        "Bitcoin Core {} or newer required, current version is {}",
+        Self::format_bitcoin_core_version(MIN_VERSION),
+        Self::format_bitcoin_core_version(bitcoin_version),
+      );
     }
-    Ok(client)
-  }
 
-  pub(crate) fn bitcoin_rpc_client_for_wallet_command(&self, command: &str) -> Result<Client> {
-    let client = self.bitcoin_rpc_client()?;
+    if !create {
+      let descriptors = client.list_descriptors(None)?.descriptors;
 
-    if self.chain() == Chain::Mainnet {
-      let wallet_info = client.get_wallet_info()?;
+      let tr = descriptors
+        .iter()
+        .filter(|descriptor| descriptor.desc.starts_with("tr("))
+        .count();
 
-      if !(wallet_info.wallet_name == "ord" || wallet_info.wallet_name.starts_with("ord-")) {
-        bail!("`{command}` may only be used on mainnet with a wallet named `ord` or whose name starts with `ord-`");
-      }
+      let rawtr = descriptors
+        .iter()
+        .filter(|descriptor| descriptor.desc.starts_with("rawtr("))
+        .count();
 
-      let balances = client.get_balances()?;
-
-      let total = balances.mine.trusted + balances.mine.untrusted_pending + balances.mine.immature;
-
-      if total > Amount::from_sat(1_000_000) {
-        bail!(
-          "`{command}` may not be used on mainnet with wallets containing more than 1,000,000 sats"
-        );
+      if tr != 2 || descriptors.len() != 2 + rawtr {
+        bail!("this does not appear to be an ord wallet, create one with `ord wallet create`");
       }
     }
+
     Ok(client)
   }
 }
@@ -178,7 +199,7 @@ mod tests {
       Arguments::try_parse_from(["ord", "--rpc-url=127.0.0.1:1234", "--chain=signet", "index"])
         .unwrap()
         .options
-        .rpc_url(),
+        .rpc_url(false),
       "127.0.0.1:1234"
     );
   }
@@ -199,7 +220,7 @@ mod tests {
   fn use_default_network() {
     let arguments = Arguments::try_parse_from(["ord", "index"]).unwrap();
 
-    assert_eq!(arguments.options.rpc_url(), "127.0.0.1:8332");
+    assert_eq!(arguments.options.rpc_url(false), "127.0.0.1:8332");
 
     assert!(arguments
       .options
@@ -212,7 +233,7 @@ mod tests {
   fn uses_network_defaults() {
     let arguments = Arguments::try_parse_from(["ord", "--chain=signet", "index"]).unwrap();
 
-    assert_eq!(arguments.options.rpc_url(), "127.0.0.1:38332");
+    assert_eq!(arguments.options.rpc_url(false), "127.0.0.1:38332");
 
     assert!(arguments
       .options
@@ -411,7 +432,7 @@ mod tests {
     .unwrap();
 
     assert_eq!(
-      options.bitcoin_rpc_client().unwrap_err().to_string(),
+      options.bitcoin_rpc_client(false).unwrap_err().to_string(),
       "Bitcoin RPC server is on testnet but ord is on mainnet"
     );
   }
@@ -465,5 +486,24 @@ mod tests {
         .chain(),
       Chain::Testnet
     );
+  }
+
+  #[test]
+  fn wallet_flag_overrides_default_name() {
+    assert_eq!(
+      Arguments::try_parse_from(["ord", "wallet", "create"])
+        .unwrap()
+        .options
+        .wallet,
+      "ord"
+    );
+
+    assert_eq!(
+      Arguments::try_parse_from(["ord", "--wallet", "foo", "wallet", "create"])
+        .unwrap()
+        .options
+        .wallet,
+      "foo"
+    )
   }
 }

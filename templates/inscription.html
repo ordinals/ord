@@ -1,9 +1,33 @@
-<h1>Inscription {{ self.inscription_id }}</h1>
-<div class=inscription>{{Iframe::main(self.inscription_id)}}</div>
+<h1>Inscription {{ self.number }}</h1>
+<div class=inscription>
+%% if let Some(previous) = self.previous {
+<a class=previous href=/inscription/{{previous}}>❮</a>
+%% } else {
+<div>❮</div>
+%% }
+{{Iframe::main(self.inscription_id)}}
+%% if let Some(next) = self.next {
+<a class=next href=/inscription/{{next}}>❯</a>
+%% } else {
+<div>❯</div>
+%% }
+</div>
 <dl>
+  <dt>id</dt>
+  <dd class=monospace>{{ self.inscription_id }}</dd>
+%% if let Ok(address) = self.chain.address_from_script(&self.output.script_pubkey ) {
+  <dt>address</dt>
+  <dd class=monospace>{{ address }}</dd>
+%% }
+  <dt>output value</dt>
+  <dd>{{ self.output.value }}</dd>
+%% if let Some(sat) = self.sat {
+  <dt>sat</dt>
+  <dd><a href=/sat/{{sat}}>{{sat}}</a></dd>
+%% }
 %% if let Some(content_size) = self.inscription.content_size() {
   <dt>content</dt>
-  <dd><a href=/content/{{self.inscription_id}}>/content/{{self.inscription_id}}</a></dd>
+  <dd><a href=/content/{{self.inscription_id}}>link</a></dd>
   <dt>content size</dt>
   <dd>{{ content_size }} bytes</dd>
 %% }
@@ -11,10 +35,12 @@
   <dt>content type</dt>
   <dd>{{ content_type }}</dd>
 %% }
+  <dt>timestamp</dt>
+  <dd>{{ self.timestamp }}</dd>
   <dt>genesis height</dt>
   <dd>{{ self.genesis_height }}</dd>
   <dt>genesis transaction</dt>
-  <dd><a class=monospace href=/tx/{{ self.inscription_id }}>{{ self.inscription_id }}</a></dd>
+  <dd><a class=monospace href=/tx/{{ self.inscription_id.txid }}>{{ self.inscription_id.txid }}</a></dd>
   <dt>location</dt>
   <dd class=monospace>{{ self.satpoint }}</dd>
   <dt>output</dt>

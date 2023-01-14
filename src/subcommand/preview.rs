@@ -1,10 +1,18 @@
-use super::*;
+use {super::*, fee_rate::FeeRate};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Preview {
   #[clap(flatten)]
   server: super::server::Server,
   inscriptions: Vec<PathBuf>,
+}
+
+struct KillOnDrop(process::Child);
+
+impl Drop for KillOnDrop {
+  fn drop(&mut self) {
+    self.0.kill().unwrap()
+  }
 }
 
 impl Preview {
@@ -17,17 +25,19 @@ impl Preview {
 
     fs::create_dir(&bitcoin_data_dir)?;
 
-    let mut bitcoind = Command::new("bitcoind")
-      .arg({
-        let mut arg = OsString::from("-datadir=");
-        arg.push(&bitcoin_data_dir);
-        arg
-      })
-      .arg("-regtest")
-      .arg("-txindex=1")
-      .arg("-listen=0")
-      .arg(format!("-rpcport={rpc_port}"))
-      .spawn()?;
+    let _bitcoind = KillOnDrop(
+      Command::new("bitcoind")
+        .arg({
+          let mut arg = OsString::from("-datadir=");
+          arg.push(&bitcoin_data_dir);
+          arg
+        })
+        .arg("-regtest")
+        .arg("-txindex=1")
+        .arg("-listen=0")
+        .arg(format!("-rpcport={rpc_port}"))
+        .spawn()?,
+    );
 
     let options = Options {
       chain_argument: Chain::Regtest,
@@ -39,7 +49,7 @@ impl Preview {
     };
 
     for attempt in 0.. {
-      if options.bitcoin_rpc_client().is_ok() {
+      if options.bitcoin_rpc_client(false).is_ok() {
         break;
       }
 
@@ -50,11 +60,12 @@ impl Preview {
       thread::sleep(Duration::from_millis(50));
     }
 
-    let rpc_client = options.bitcoin_rpc_client()?;
+    let rpc_client = options.bitcoin_rpc_client(false)?;
 
     super::wallet::create::run(options.clone())?;
 
-    let address = rpc_client.get_new_address(None, None)?;
+    let address =
+      rpc_client.get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))?;
 
     rpc_client.generate_to_address(101, &address)?;
 
@@ -63,6 +74,7 @@ impl Preview {
         options: options.clone(),
         subcommand: Subcommand::Wallet(super::wallet::Wallet::Inscribe(
           super::wallet::inscribe::Inscribe {
+            fee_rate: FeeRate::try_from(1.0).unwrap(),
             file,
             no_backup: true,
             satpoint: None,
@@ -81,8 +93,6 @@ impl Preview {
       subcommand: Subcommand::Server(self.server),
     }
     .run()?;
-
-    bitcoind.kill()?;
 
     Ok(())
   }

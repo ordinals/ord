@@ -1,4 +1,4 @@
-use {super::*, transaction_builder::TransactionBuilder};
+use {super::*, fee_rate::FeeRate, transaction_builder::TransactionBuilder};
 
 mod balance;
 pub(crate) mod create;
@@ -22,7 +22,7 @@ pub(crate) enum Wallet {
   #[clap(about = "List wallet inscriptions")]
   Inscriptions,
   #[clap(about = "Generate a receive address")]
-  Receive(receive::Receive),
+  Receive,
   #[clap(about = "List wallet satoshis")]
   Sats(sats::Sats),
   #[clap(about = "Send a satoshi or inscription")]
@@ -40,7 +40,7 @@ impl Wallet {
       Self::Create => create::run(options),
       Self::Inscribe(inscribe) => inscribe.run(options),
       Self::Inscriptions => inscriptions::run(options),
-      Self::Receive(receive) => receive.run(options),
+      Self::Receive => receive::run(options),
       Self::Sats(sats) => sats.run(options),
       Self::Send(send) => send.run(options),
       Self::Transactions(transactions) => transactions.run(options),
@@ -64,7 +64,7 @@ fn get_unspent_output_ranges(
 }
 
 fn get_unspent_outputs(options: &Options) -> Result<BTreeMap<OutPoint, Amount>> {
-  let client = options.bitcoin_rpc_client()?;
+  let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
   let mut utxos = BTreeMap::new();
 
@@ -97,13 +97,13 @@ fn get_unspent_outputs(options: &Options) -> Result<BTreeMap<OutPoint, Amount>> 
 }
 
 fn get_change_addresses(options: &Options, n: usize) -> Result<Vec<Address>> {
-  let client = options.bitcoin_rpc_client()?;
+  let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
   let mut addresses = Vec::new();
   for _ in 0..n {
     addresses.push(
       client
-        .call("getrawchangeaddress", &[])
+        .call("getrawchangeaddress", &["bech32m".into()])
         .context("could not get change addresses from wallet")?,
     );
   }

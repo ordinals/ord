@@ -110,4 +110,31 @@ mod tests {
       .unindent()
     );
   }
+
+  #[test]
+  fn with_inscriptions() {
+    assert_regex_match!(
+      OutputHtml {
+        inscriptions: vec![inscription_id(1)],
+        outpoint: outpoint(1),
+        list: None,
+        chain: Chain::Mainnet,
+        output: TxOut {
+          value: 3,
+          script_pubkey: Script::new_p2pkh(&PubkeyHash::all_zeros()),
+        },
+      },
+      "
+        <h1>Output <span class=monospace>1{64}:1</span></h1>
+        <dl>
+          <dt>inscriptions</dt>
+          <dd class=thumbnails>
+            <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
+          </dd>
+          .*
+        </dl>
+      "
+      .unindent()
+    );
+  }
 }

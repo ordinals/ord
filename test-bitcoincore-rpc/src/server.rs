@@ -1,10 +1,11 @@
 use {
   super::*,
   bitcoin::{
+    psbt::serialize::Deserialize,
     secp256k1::{rand, KeyPair, Secp256k1, XOnlyPublicKey},
     Address, Witness,
   },
-  serde_json::json,
+  bitcoincore_rpc::RawTx,
 };
 
 pub(crate) struct Server {
@@ -242,9 +243,14 @@ impl Api for Server {
     assert_eq!(utxos, None, "utxos param not supported");
     assert_eq!(sighash_type, None, "sighash_type param not supported");
 
+    let mut transaction = Transaction::deserialize(&hex::decode(tx).unwrap()).unwrap();
+    for input in &mut transaction.input {
+      input.witness = Witness::from_vec(vec![vec![0; 64]]);
+    }
+
     Ok(
       serde_json::to_value(SignRawTransactionResult {
-        hex: hex::decode(tx).unwrap(),
+        hex: hex::decode(transaction.raw_hex()).unwrap(),
         complete: true,
         errors: None,
       })
@@ -415,7 +421,10 @@ impl Api for Server {
     )
   }
 
-  fn get_raw_change_address(&self) -> Result<bitcoin::Address, jsonrpc_core::Error> {
+  fn get_raw_change_address(
+    &self,
+    _address_type: Option<bitcoincore_rpc::json::AddressType>,
+  ) -> Result<bitcoin::Address, jsonrpc_core::Error> {
     let secp256k1 = Secp256k1::new();
     let key_pair = KeyPair::new(&secp256k1, &mut rand::thread_rng());
     let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);
@@ -439,16 +448,24 @@ impl Api for Server {
 
   fn import_descriptors(
     &self,
-    _params: Vec<serde_json::Value>,
-  ) -> Result<serde_json::Value, jsonrpc_core::Error> {
-    self.state().descriptors += 1;
-    Ok(json!([{"success": true}]))
+    req: Vec<ImportDescriptors>,
+  ) -> Result<Vec<ImportMultiResult>, jsonrpc_core::Error> {
+    self
+      .state()
+      .descriptors
+      .extend(req.into_iter().map(|params| params.descriptor));
+
+    Ok(vec![ImportMultiResult {
+      success: true,
+      warnings: Vec::new(),
+      error: None,
+    }])
   }
 
   fn get_new_address(
     &self,
     _label: Option<String>,
-    _address_type: Option<()>,
+    _address_type: Option<bitcoincore_rpc::json::AddressType>,
   ) -> Result<bitcoin::Address, jsonrpc_core::Error> {
     let secp256k1 = Secp256k1::new();
     let key_pair = KeyPair::new(&secp256k1, &mut rand::thread_rng());
@@ -525,5 +542,24 @@ impl Api for Server {
     }
 
     Ok(true)
+  }
+
+  fn list_descriptors(&self) -> Result<ListDescriptorsResult, jsonrpc_core::Error> {
+    Ok(ListDescriptorsResult {
+      wallet_name: "ord".into(),
+      descriptors: self
+        .state()
+        .descriptors
+        .iter()
+        .map(|desc| Descriptor {
+          desc: desc.to_string(),
+          timestamp: Timestamp::Now,
+          active: true,
+          internal: None,
+          range: None,
+          next: None,
+        })
+        .collect(),
+    })
   }
 }
