@@ -1,14 +1,14 @@
 use super::*;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
-pub(crate) enum Content {
+pub(crate) enum Media {
   Audio,
   Iframe,
   Image,
   Text,
 }
 
-impl Content {
+impl Media {
   pub(crate) fn content_type_for_extension(extension: &str) -> Result<&'static str, Error> {
     let extension = extension.to_lowercase();
 
@@ -32,7 +32,7 @@ impl Content {
   }
 }
 
-impl FromStr for Content {
+impl FromStr for Media {
   type Err = Error;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -46,18 +46,18 @@ impl FromStr for Content {
   }
 }
 
-const TABLE: &[(&str, Content, &[&str])] = &[
-  ("audio/flac", Content::Audio, &["flac"]),
-  ("audio/mpeg", Content::Audio, &["mp3"]),
-  ("audio/wav", Content::Audio, &["wav"]),
-  ("image/apng", Content::Image, &["apng"]),
-  ("image/gif", Content::Image, &["gif"]),
-  ("image/jpeg", Content::Image, &["jpg", "jpeg"]),
-  ("image/png", Content::Image, &["png"]),
-  ("image/svg+xml", Content::Iframe, &["svg"]),
-  ("image/webp", Content::Image, &["webp"]),
-  ("text/html;charset=utf-8", Content::Iframe, &["html"]),
-  ("text/plain;charset=utf-8", Content::Text, &["txt"]),
+const TABLE: &[(&str, Media, &[&str])] = &[
+  ("audio/flac", Media::Audio, &["flac"]),
+  ("audio/mpeg", Media::Audio, &["mp3"]),
+  ("audio/wav", Media::Audio, &["wav"]),
+  ("image/apng", Media::Image, &["apng"]),
+  ("image/gif", Media::Image, &["gif"]),
+  ("image/jpeg", Media::Image, &["jpg", "jpeg"]),
+  ("image/png", Media::Image, &["png"]),
+  ("image/svg+xml", Media::Iframe, &["svg"]),
+  ("image/webp", Media::Image, &["webp"]),
+  ("text/html;charset=utf-8", Media::Iframe, &["html"]),
+  ("text/plain;charset=utf-8", Media::Text, &["txt"]),
 ];
 
 #[cfg(test)]
@@ -67,20 +67,20 @@ mod tests {
   #[test]
   fn for_extension() {
     assert_eq!(
-      Content::content_type_for_extension("jpg").unwrap(),
+      Media::content_type_for_extension("jpg").unwrap(),
       "image/jpeg"
     );
     assert_eq!(
-      Content::content_type_for_extension("jpeg").unwrap(),
+      Media::content_type_for_extension("jpeg").unwrap(),
       "image/jpeg"
     );
     assert_eq!(
-      Content::content_type_for_extension("JPG").unwrap(),
+      Media::content_type_for_extension("JPG").unwrap(),
       "image/jpeg"
     );
 
     assert_regex_match!(
-      Content::content_type_for_extension("foo").unwrap_err(),
+      Media::content_type_for_extension("foo").unwrap_err(),
       r"unsupported file extension `\.foo`, supported extensions: apng .*"
     );
   }

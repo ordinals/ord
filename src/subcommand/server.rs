@@ -639,9 +639,9 @@ impl Server {
       .content_bytes()
       .ok_or_not_found(|| format!("inscription {inscription_id} content"))?;
 
-    return match inscription.content() {
-      Some(Content::Audio) => Ok(PreviewAudioHtml { inscription_id }.into_response()),
-      Some(Content::Image) => Ok(
+    return match inscription.media() {
+      Some(Media::Audio) => Ok(PreviewAudioHtml { inscription_id }.into_response()),
+      Some(Media::Image) => Ok(
         (
           [(
             header::CONTENT_SECURITY_POLICY,
@@ -651,12 +651,12 @@ impl Server {
         )
           .into_response(),
       ),
-      Some(Content::Iframe) => Ok(
+      Some(Media::Iframe) => Ok(
         Self::content_response(inscription)
           .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
           .into_response(),
       ),
-      Some(Content::Text) => Ok(
+      Some(Media::Text) => Ok(
         PreviewTextHtml {
           text: str::from_utf8(content).map_err(|err| anyhow!("Failed to decode UTF-8: {err}"))?,
         }

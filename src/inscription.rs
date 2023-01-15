@@ -47,7 +47,7 @@ impl Inscription {
       }
     }
 
-    let content_type = Content::content_type_for_extension(
+    let content_type = Media::content_type_for_extension(
       path
         .extension()
         .ok_or_else(|| anyhow!("file must have extension"))?
@@ -87,7 +87,7 @@ impl Inscription {
     self.append_reveal_script_to_builder(builder).into_script()
   }
 
-  pub(crate) fn content(&self) -> Option<Content> {
+  pub(crate) fn media(&self) -> Option<Media> {
     self.content_type()?.parse().ok()
   }
 
