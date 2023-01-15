@@ -6,8 +6,8 @@ use {
   super::*,
   crate::templates::{
     BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionsHtml, OutputHtml,
-    PageContent, PageHtml, PreviewImageHtml, PreviewTextHtml, PreviewUnknownHtml, RangeHtml,
-    RareTxt, SatHtml, TransactionHtml,
+    PageContent, PageHtml, PreviewAudioHtml, PreviewImageHtml, PreviewTextHtml, PreviewUnknownHtml,
+    RangeHtml, RareTxt, SatHtml, TransactionHtml,
   },
   axum::{
     body,
@@ -635,7 +635,12 @@ impl Server {
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
-    match inscription.content() {
+    let content = inscription
+      .content_bytes()
+      .ok_or_not_found(|| format!("inscription {inscription_id} content"))?;
+
+    return match inscription.content() {
+      Some(Content::Audio) => Ok(PreviewAudioHtml { inscription_id }.into_response()),
       Some(Content::Image) => Ok(
         (
           [(
@@ -651,9 +656,15 @@ impl Server {
           .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
           .into_response(),
       ),
-      Some(Content::Text(text)) => Ok(PreviewTextHtml { text }.into_response()),
+      Some(Content::Text) => Ok(
+        // todo: Test that text with invalid UTF-8 produces error
+        PreviewTextHtml {
+          text: str::from_utf8(&content).map_err(|err| anyhow!("Failed to decode UTF-8: {err}"))?,
+        }
+        .into_response(),
+      ),
       None => Ok(PreviewUnknownHtml.into_response()),
-    }
+    };
   }
 
   async fn inscription(
