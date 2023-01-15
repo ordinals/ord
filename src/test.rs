@@ -30,6 +30,16 @@ macro_rules! assert_matches {
   }
 }
 
+pub(crate) fn blockhash(n: u64) -> BlockHash {
+  let hex = format!("{n:x}");
+
+  if hex.is_empty() || hex.len() > 1 {
+    panic!();
+  }
+
+  hex.repeat(64).parse().unwrap()
+}
+
 pub(crate) fn txid(n: u64) -> Txid {
   let hex = format!("{n:x}");
 

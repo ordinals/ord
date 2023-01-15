@@ -40,7 +40,7 @@ mod tests {
   };
 
   #[test]
-  fn transaction_html() {
+  fn html() {
     let transaction = Transaction {
       version: 0,
       lock_time: PackedLockTime(0),
@@ -57,15 +57,18 @@ mod tests {
       ],
     };
 
+    let txid = transaction.txid();
+
     pretty_assert_eq!(
       TransactionHtml::new(transaction, None, None, Chain::Mainnet).to_string(),
-      "
-        <h1>Transaction <span class=monospace>9c03542773bfbbf2a951a54e73e2955eeb0e070df07e753e1055de1ea54a74bb</span></h1>
+      format!(
+        "
+        <h1>Transaction <span class=monospace>{txid}</span></h1>
         <h2>2 Outputs</h2>
         <ul class=monospace>
           <li>
-            <a href=/output/9c03542773bfbbf2a951a54e73e2955eeb0e070df07e753e1055de1ea54a74bb:0 class=monospace>
-              9c03542773bfbbf2a951a54e73e2955eeb0e070df07e753e1055de1ea54a74bb:0
+            <a href=/output/{txid}:0 class=monospace>
+              {txid}:0
             </a>
             <dl>
               <dt>value</dt><dd>5000000000</dd>
@@ -73,8 +76,8 @@ mod tests {
             </dl>
           </li>
           <li>
-            <a href=/output/9c03542773bfbbf2a951a54e73e2955eeb0e070df07e753e1055de1ea54a74bb:1 class=monospace>
-              9c03542773bfbbf2a951a54e73e2955eeb0e070df07e753e1055de1ea54a74bb:1
+            <a href=/output/{txid}:1 class=monospace>
+              {txid}:1
             </a>
             <dl>
               <dt>value</dt><dd>5000000000</dd>
@@ -82,6 +85,39 @@ mod tests {
             </dl>
           </li>
         </ul>
+      "
+      )
+      .unindent()
+    );
+  }
+
+  #[test]
+  fn with_blockhash() {
+    let transaction = Transaction {
+      version: 0,
+      lock_time: PackedLockTime(0),
+      input: Vec::new(),
+      output: vec![
+        TxOut {
+          value: 50 * COIN_VALUE,
+          script_pubkey: script::Builder::new().push_int(0).into_script(),
+        },
+        TxOut {
+          value: 50 * COIN_VALUE,
+          script_pubkey: script::Builder::new().push_int(1).into_script(),
+        },
+      ],
+    };
+
+    assert_regex_match!(
+      TransactionHtml::new(transaction, Some(blockhash(0)), None, Chain::Mainnet),
+      "
+        <h1>Transaction <span class=monospace>[[:xdigit:]]{64}</span></h1>
+        <dl>
+          <dt>block</dt>
+          <dd><a href=/block/0{64} class=monospace>0{64}</a></dd>
+        </dl>
+        .*
       "
       .unindent()
     );
