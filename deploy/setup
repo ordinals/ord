@@ -22,6 +22,7 @@ hostnamectl set-hostname $DOMAIN
 apt-get install --yes \
   acl \
   clang \
+  haproxy \
   libsqlite3-dev\
   libssl-dev \
   pkg-config \
@@ -53,6 +54,14 @@ case $CHAIN in
 esac
 
 ufw --force enable
+
+if [[ ! -f /etc/haproxy/haproxy-original.cfg ]]; then
+  cp /etc/haproxy/{haproxy,haproxy-original}.cfg
+fi
+
+cat /etc/haproxy/haproxy-original.cfg deploy/haproxy.cfg > /etc/haproxy/haproxy.cfg
+
+systemctl reload haproxy
 
 if ! which bitcoind; then
   wget -O bitcoin.tar.gz 'https://bitcoincore.org/bin/bitcoin-core-23.0/bitcoin-23.0-x86_64-linux-gnu.tar.gz'
