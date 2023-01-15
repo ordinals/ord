@@ -2,6 +2,7 @@ use super::*;
 
 #[derive(Boilerplate)]
 pub(crate) struct TransactionHtml {
+  blockhash: Option<BlockHash>,
   chain: Chain,
   inscription: Option<InscriptionId>,
   transaction: Transaction,
@@ -11,11 +12,13 @@ pub(crate) struct TransactionHtml {
 impl TransactionHtml {
   pub(crate) fn new(
     transaction: Transaction,
+    blockhash: Option<BlockHash>,
     inscription: Option<InscriptionId>,
     chain: Chain,
   ) -> Self {
     Self {
       txid: transaction.txid(),
+      blockhash,
       chain,
       inscription,
       transaction,
@@ -55,7 +58,7 @@ mod tests {
     };
 
     pretty_assert_eq!(
-      TransactionHtml::new(transaction, None, Chain::Mainnet).to_string(),
+      TransactionHtml::new(transaction, None, None, Chain::Mainnet).to_string(),
       "
         <h1>Transaction <span class=monospace>9c03542773bfbbf2a951a54e73e2955eeb0e070df07e753e1055de1ea54a74bb</span></h1>
         <h2>2 Outputs</h2>

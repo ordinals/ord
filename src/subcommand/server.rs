@@ -469,11 +469,14 @@ impl Server {
   ) -> ServerResult<PageHtml<TransactionHtml>> {
     let inscription = index.get_inscription_by_id(txid.into())?;
 
+    let blockhash = index.get_transaction_blockhash(txid)?;
+
     Ok(
       TransactionHtml::new(
         index
           .get_transaction(txid)?
           .ok_or_not_found(|| format!("transaction {txid}"))?,
+        blockhash,
         inscription.map(|_| txid.into()),
         chain,
       )

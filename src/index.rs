@@ -524,17 +524,29 @@ impl Index {
     }
   }
 
+  pub(crate) fn get_transaction_blockhash(&self, txid: Txid) -> Result<Option<BlockHash>> {
+    Ok(
+      self
+        .client
+        .get_raw_transaction_info(&txid, None)
+        .into_option()?
+        .and_then(|info| {
+          if info.in_active_chain.unwrap_or_default() {
+            info.blockhash
+          } else {
+            None
+          }
+        }),
+    )
+  }
+
   pub(crate) fn is_transaction_in_active_chain(&self, txid: Txid) -> Result<bool> {
     Ok(
       self
         .client
         .get_raw_transaction_info(&txid, None)
         .into_option()?
-        .and_then(|transaction_info| {
-          transaction_info
-            .confirmations
-            .map(|confirmations| confirmations > 0)
-        })
+        .and_then(|info| info.in_active_chain)
         .unwrap_or(false),
     )
   }
