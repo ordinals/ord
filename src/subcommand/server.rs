@@ -659,7 +659,7 @@ impl Server {
       Some(Content::Text) => Ok(
         // todo: Test that text with invalid UTF-8 produces error
         PreviewTextHtml {
-          text: str::from_utf8(&content).map_err(|err| anyhow!("Failed to decode UTF-8: {err}"))?,
+          text: str::from_utf8(content).map_err(|err| anyhow!("Failed to decode UTF-8: {err}"))?,
         }
         .into_response(),
       ),
@@ -1769,6 +1769,27 @@ mod tests {
       StatusCode::OK,
       "default-src 'self'",
       r".*<pre>&lt;script&gt;alert\(&apos;hello&apos;\);&lt;/script&gt;</pre>.*",
+    );
+  }
+
+  #[test]
+  fn audio_preview() {
+    let server = TestServer::new();
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witness: inscription("audio/flac", "hello").to_witness(),
+      ..Default::default()
+    });
+    let inscription_id = InscriptionId::from(txid);
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/preview/{inscription_id}"),
+      StatusCode::OK,
+      format!(r".*<audio .*>\s*<source src=/content/{inscription_id}>.*"),
     );
   }
 

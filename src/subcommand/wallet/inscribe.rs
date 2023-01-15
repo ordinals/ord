@@ -159,9 +159,6 @@ impl Inscribe {
 
     let commit_tx_address = Address::p2tr_tweaked(taproot_spend_info.output_key(), network);
 
-    // TODO: not sure why we're using the transaction builder to construct
-    // the commit transaction, it's a vanilla bitcoin transaction, so we could
-    // conceivably ask bitcoin core to construct it
     let unsigned_commit_tx = TransactionBuilder::build_transaction(
       satpoint,
       inscriptions,

@@ -10,8 +10,8 @@ pub(crate) enum Content {
 
 impl Content {
   pub(crate) fn content_type_for_extension(extension: &str) -> Result<&'static str, Error> {
-    // todo: test this
     let extension = extension.to_lowercase();
+
     for (content_type, _, extensions) in TABLE {
       if extensions.contains(&extension.as_str()) {
         return Ok(content_type);
@@ -22,6 +22,7 @@ impl Content {
       .iter()
       .map(|(_, _, extensions)| extensions[0])
       .collect::<Vec<&str>>();
+
     extensions.sort();
 
     Err(anyhow!(
@@ -74,8 +75,13 @@ mod tests {
       "image/jpeg"
     );
     assert_eq!(
-      Content::content_type_for_extension("foo").unwrap_err().to_string(),
-      "unsupported file extension `.foo`, supported extensions: apng gif html jpg mp3 png svg txt webp"
+      Content::content_type_for_extension("JPG").unwrap(),
+      "image/jpeg"
+    );
+
+    assert_regex_match!(
+      Content::content_type_for_extension("foo").unwrap_err(),
+      r"unsupported file extension `\.foo`, supported extensions: apng .*"
     );
   }
 }

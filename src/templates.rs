@@ -1,10 +1,18 @@
 use {super::*, boilerplate::Boilerplate};
 
 pub(crate) use {
-  block::BlockHtml, clock::ClockSvg, home::HomeHtml, iframe::Iframe, input::InputHtml,
-  inscription::InscriptionHtml, inscriptions::InscriptionsHtml, output::OutputHtml,
-  preview_audio::PreviewAudioHtml, preview_image::PreviewImageHtml, preview_text::PreviewTextHtml,
-  preview_unknown::PreviewUnknownHtml, range::RangeHtml, rare::RareTxt, sat::SatHtml,
+  block::BlockHtml,
+  clock::ClockSvg,
+  home::HomeHtml,
+  iframe::Iframe,
+  input::InputHtml,
+  inscription::InscriptionHtml,
+  inscriptions::InscriptionsHtml,
+  output::OutputHtml,
+  preview::{PreviewAudioHtml, PreviewImageHtml, PreviewTextHtml, PreviewUnknownHtml},
+  range::RangeHtml,
+  rare::RareTxt,
+  sat::SatHtml,
   transaction::TransactionHtml,
 };
 
@@ -16,11 +24,7 @@ mod input;
 mod inscription;
 mod inscriptions;
 mod output;
-// TODO: move all of these into the same module
-mod preview_audio;
-mod preview_image;
-mod preview_text;
-mod preview_unknown;
+mod preview;
 mod range;
 mod rare;
 mod sat;
