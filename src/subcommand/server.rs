@@ -657,7 +657,6 @@ impl Server {
           .into_response(),
       ),
       Some(Content::Text) => Ok(
-        // todo: Test that text with invalid UTF-8 produces error
         PreviewTextHtml {
           text: str::from_utf8(content).map_err(|err| anyhow!("Failed to decode UTF-8: {err}"))?,
         }
@@ -1744,6 +1743,26 @@ mod tests {
       StatusCode::OK,
       "default-src 'self'",
       ".*<pre>hello</pre>.*",
+    );
+  }
+
+  #[test]
+  fn text_preview_returns_error_when_content_is_not_utf8() {
+    let server = TestServer::new();
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witness: inscription("text/plain;charset=utf-8", b"\xc3\x28").to_witness(),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    server.assert_response(
+      format!("/preview/{}", InscriptionId::from(txid)),
+      StatusCode::INTERNAL_SERVER_ERROR,
+      "Internal Server Error",
     );
   }
 
