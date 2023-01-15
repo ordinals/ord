@@ -12,7 +12,7 @@ use {
   axum::{
     body,
     extract::{Extension, Path, Query},
-    http::{header, HeaderMap, HeaderValue, StatusCode, Uri},
+    http::{header, HeaderMap, HeaderValue, StatusCode},
     response::{IntoResponse, Redirect, Response},
     routing::get,
     Router,
@@ -52,7 +52,6 @@ impl FromStr for BlockQuery {
 enum SpawnConfig {
   Https(AxumAcceptor),
   Http,
-  Redirect(String),
 }
 
 #[derive(Deserialize)]
@@ -113,8 +112,6 @@ pub(crate) struct Server {
   http: bool,
   #[clap(long, help = "Serve HTTPS traffic on <HTTPS_PORT>.")]
   https: bool,
-  #[clap(long, help = "Redirect HTTP traffic to HTTPS.")]
-  redirect_http_to_https: bool,
 }
 
 impl Server {
@@ -176,20 +173,8 @@ impl Server {
             .await??
         }
         (Some(http_port), Some(https_port)) => {
-          let http_spawn_config = if self.redirect_http_to_https {
-            let acme_domains = self.acme_domains()?;
-
-            SpawnConfig::Redirect(if https_port == 443 {
-              format!("https://{}", acme_domains[0])
-            } else {
-              format!("https://{}:{https_port}", acme_domains[0])
-            })
-          } else {
-            SpawnConfig::Http
-          };
-
           let (http_result, https_result) = tokio::join!(
-            self.spawn(router.clone(), handle.clone(), http_port, http_spawn_config)?,
+            self.spawn(router.clone(), handle.clone(), http_port, SpawnConfig::Http)?,
             self.spawn(
               router,
               handle,
@@ -235,17 +220,6 @@ impl Server {
             .handle(handle)
             .acceptor(acceptor)
             .serve(router.into_make_service())
-            .await
-        }
-        SpawnConfig::Redirect(destination) => {
-          axum_server::Server::bind(addr)
-            .handle(handle)
-            .serve(
-              Router::new()
-                .fallback(Self::redirect_http_to_https)
-                .layer(Extension(destination))
-                .into_make_service(),
-            )
             .await
         }
         SpawnConfig::Http => {
@@ -722,17 +696,6 @@ impl Server {
       .page(chain, index.has_sat_index()?),
     )
   }
-
-  async fn redirect_http_to_https(
-    Extension(mut destination): Extension<String>,
-    uri: Uri,
-  ) -> Redirect {
-    if let Some(path_and_query) = uri.path_and_query() {
-      destination.push_str(path_and_query.as_str());
-    }
-
-    Redirect::to(&destination)
-  }
 }
 
 #[cfg(test)]
@@ -750,14 +713,14 @@ mod tests {
 
   impl TestServer {
     fn new() -> Self {
-      Self::new_with_args(&[], &[])
+      Self::new_with_args(&[])
     }
 
     fn new_with_sat_index() -> Self {
-      Self::new_with_args(&["--index-sats"], &[])
+      Self::new_with_args(&["--index-sats"])
     }
 
-    fn new_with_args(ord_args: &[&str], server_args: &[&str]) -> Self {
+    fn new_with_args(ord_args: &[&str]) -> Self {
       let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
 
       let tempdir = TempDir::new().unwrap();
@@ -775,13 +738,12 @@ mod tests {
       let url = Url::parse(&format!("http://127.0.0.1:{port}")).unwrap();
 
       let (options, server) = parse_server_args(&format!(
-        "ord --chain regtest --rpc-url {} --cookie-file {} --data-dir {} {} server --http-port {} --address 127.0.0.1 {}",
+        "ord --chain regtest --rpc-url {} --cookie-file {} --data-dir {} {} server --http-port {} --address 127.0.0.1",
         bitcoin_rpc_server.url(),
         cookiefile.to_str().unwrap(),
         tempdir.path().to_str().unwrap(),
         ord_args.join(" "),
         port,
-        server_args.join(" "),
       ));
 
       let index = Arc::new(Index::open(&options).unwrap());
@@ -1130,20 +1092,6 @@ mod tests {
       "/search/0000000000000000000000000000000000000000000000000000000000000000:0",
       "/output/0000000000000000000000000000000000000000000000000000000000000000:0",
     );
-  }
-
-  #[test]
-  fn http_to_https_redirect_with_path() {
-    TestServer::new_with_args(&[], &["--redirect-http-to-https", "--https"]).assert_redirect(
-      "/sat/0",
-      &format!("https://{}/sat/0", sys_info::hostname().unwrap()),
-    );
-  }
-
-  #[test]
-  fn http_to_https_redirect_with_empty() {
-    TestServer::new_with_args(&[], &["--redirect-http-to-https", "--https"])
-      .assert_redirect("/", &format!("https://{}/", sys_info::hostname().unwrap()));
   }
 
   #[test]
