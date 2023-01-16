@@ -49,7 +49,7 @@ impl Preview {
     };
 
     for attempt in 0.. {
-      if options.bitcoin_rpc_client(false).is_ok() {
+      if options.bitcoin_rpc_client().is_ok() {
         break;
       }
 
@@ -60,7 +60,7 @@ impl Preview {
       thread::sleep(Duration::from_millis(50));
     }
 
-    let rpc_client = options.bitcoin_rpc_client(false)?;
+    let rpc_client = options.bitcoin_rpc_client()?;
 
     super::wallet::create::run(options.clone())?;
 
