@@ -36,7 +36,8 @@ impl Preview {
         .arg("-txindex=1")
         .arg("-listen=0")
         .arg(format!("-rpcport={rpc_port}"))
-        .spawn()?,
+        .spawn()
+        .with_context(|| format!("failed to spawn `bitcoind`"))?,
     );
 
     let options = Options {
