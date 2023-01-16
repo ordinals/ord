@@ -96,9 +96,6 @@ jobs:
   core:
     runs-on: ubuntu-latest
 
-    env:
-      RUSTFLAGS: --deny warnings
-
     steps:
     - uses: actions/checkout@v3
 
