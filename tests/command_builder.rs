@@ -107,10 +107,8 @@ impl CommandBuilder {
     command
       .env("ORD_INTEGRATION_TEST", "1")
       .stdin(Stdio::null())
-      .stdout(Stdio::inherit())
-      .stderr(Stdio::inherit())
-      // .stdout(Stdio::piped())
-      // .stderr(Stdio::piped())
+      .stdout(Stdio::piped())
+      .stderr(Stdio::piped())
       .current_dir(&self.tempdir)
       .arg("--data-dir")
       .arg(self.tempdir.path())

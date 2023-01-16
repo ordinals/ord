@@ -574,4 +574,15 @@ impl Api for Server {
       Err(Self::not_found())
     }
   }
+
+  fn list_wallets(&self) -> Result<Vec<String>, jsonrpc_core::Error> {
+    Ok(
+      self
+        .state()
+        .loaded_wallets
+        .clone()
+        .into_iter()
+        .collect::<Vec<String>>(),
+    )
+  }
 }

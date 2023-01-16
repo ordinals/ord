@@ -148,4 +148,7 @@ pub trait Api {
 
   #[rpc(name = "loadwallet")]
   fn load_wallet(&self, wallet: String) -> Result<LoadWalletResult, jsonrpc_core::Error>;
+
+  #[rpc(name = "listwallets")]
+  fn list_wallets(&self) -> Result<Vec<String>, jsonrpc_core::Error>;
 }
