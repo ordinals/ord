@@ -27,11 +27,21 @@ ordinal degenerates.
 Wallet
 ------
 
-`ord` wallets rely on Bitcoin Core for private key management and transaction
-signing, so `ord` wallet commands interact with Bitcoin Core wallets. `ord`
-should not be used in the presence of  wallets that contain a material amount
-of funds. Using `bitcoin-cli` commands and RPC calls with `ord` wallets may
-lead to loss of sats and inscriptions.
+`ord` relies on Bitcoin Core for private key managment and transaction signing.
+This has a number of implications that you must understand in order to use
+`ord` wallet commands safely:
+
+- Bitcoin Core does is not aware of inscriptions and does not perform sat
+  control. Using `bitcoin-cli` commands and RPC calls with `ord` wallets may
+  lead to loss of inscriptions.
+
+- `ord wallet` commands automatically load the `ord` wallet given by the
+  `--wallet` option, which defaults to 'ord'. Keep in mind that after running
+  an `ord wallet` command, an `ord` wallet may be loaded.
+
+- Because `ord` has access to your Bitcoin Core wallets, `ord` should not be
+  used with wallets that contain a material amount of funds. Keep ordinal and
+  cardinal wallets segregated.
 
 ### Pre-alpha wallet migration
 
