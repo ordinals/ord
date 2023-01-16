@@ -27,7 +27,10 @@ use {
   },
   std::{cmp::Ordering, str},
   tokio_stream::StreamExt,
-  tower_http::set_header::SetResponseHeaderLayer,
+  tower_http::{
+    set_header::SetResponseHeaderLayer,
+    trace::{DefaultMakeSpan, TraceLayer},
+  },
 };
 
 mod error;
@@ -154,6 +157,10 @@ impl Server {
         .route("/tx/:txid", get(Self::transaction))
         .layer(Extension(index))
         .layer(Extension(options.chain()))
+        .layer(
+          TraceLayer::new_for_http()
+            .make_span_with(DefaultMakeSpan::new().level(tracing::Level::INFO)),
+        )
         .layer(SetResponseHeaderLayer::if_not_present(
           header::CONTENT_SECURITY_POLICY,
           HeaderValue::from_static("default-src 'self'"),
