@@ -44,7 +44,7 @@ pub(crate) struct Index {
   auth: Auth,
   client: Client,
   database: Database,
-  database_path: PathBuf,
+  path: PathBuf,
   first_inscription_height: u64,
   genesis_block_coinbase_transaction: Transaction,
   genesis_block_coinbase_txid: Txid,
@@ -87,11 +87,12 @@ pub(crate) struct Info {
   pub(crate) branch_pages: usize,
   pub(crate) fragmented_bytes: usize,
   pub(crate) index_file_size: u64,
+  pub(crate) index_path: PathBuf,
   pub(crate) leaf_pages: usize,
   pub(crate) metadata_bytes: usize,
-  pub(crate) sat_ranges: u64,
   pub(crate) outputs_traversed: u64,
   pub(crate) page_size: usize,
+  pub(crate) sat_ranges: u64,
   pub(crate) stored_bytes: usize,
   pub(crate) transactions: Vec<TransactionInfo>,
   pub(crate) tree_height: usize,
@@ -147,13 +148,13 @@ impl Index {
       bail!("failed to create data dir `{}`: {err}", data_dir.display());
     }
 
-    let database_path = if let Some(database_path) = &options.index {
-      database_path.clone()
+    let path = if let Some(path) = &options.index {
+      path.clone()
     } else {
       data_dir.join("index.redb")
     };
 
-    let database = match unsafe { redb::Database::builder().open_mmapped(&database_path) } {
+    let database = match unsafe { redb::Database::builder().open_mmapped(&path) } {
       Ok(database) => {
         let schema_version = database
           .begin_read()?
@@ -166,12 +167,12 @@ impl Index {
           cmp::Ordering::Less =>
             bail!(
               "index at `{}` appears to have been built with an older, incompatible version of ord, consider deleting and rebuilding the index: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
-              database_path.display()
+              path.display()
             ),
           cmp::Ordering::Greater =>
             bail!(
               "index at `{}` appears to have been built with a newer, incompatible version of ord, consider updating ord: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
-              database_path.display()
+              path.display()
             ),
           cmp::Ordering::Equal => {
           }
@@ -187,7 +188,7 @@ impl Index {
             } else {
               WriteStrategy::TwoPhase
             })
-            .create_mmapped(&database_path)?
+            .create_mmapped(&path)?
         };
         let tx = database.begin_write()?;
 
@@ -230,7 +231,7 @@ impl Index {
       auth,
       client,
       database,
-      database_path,
+      path,
       first_inscription_height: options.first_inscription_height(),
       genesis_block_coinbase_transaction,
       height_limit: options.height_limit,
@@ -271,6 +272,7 @@ impl Index {
         .map(|x| x.value())
         .unwrap_or(0);
       Info {
+        index_path: self.path.clone(),
         blocks_indexed: wtx
           .open_table(HEIGHT_TO_BLOCK_HASH)?
           .range(0..)?
@@ -280,7 +282,7 @@ impl Index {
           .unwrap_or(0),
         branch_pages: stats.branch_pages(),
         fragmented_bytes: stats.fragmented_bytes(),
-        index_file_size: fs::metadata(&self.database_path)?.len(),
+        index_file_size: fs::metadata(&self.path)?.len(),
         leaf_pages: stats.leaf_pages(),
         metadata_bytes: stats.metadata_bytes(),
         sat_ranges,
