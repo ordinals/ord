@@ -84,14 +84,11 @@ impl Inscribe {
       .send_raw_transaction(&reveal_tx)
       .context("Failed to send reveal transaction")?;
 
-    serde_json::to_writer_pretty(
-      io::stdout(),
-      &Output {
-        commit,
-        reveal,
-        inscription: reveal.into(),
-      },
-    )?;
+    print_json(Output {
+      commit,
+      reveal,
+      inscription: reveal.into(),
+    })?;
 
     Ok(())
   }
