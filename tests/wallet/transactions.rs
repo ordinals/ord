@@ -11,7 +11,7 @@ fn transactions() {
     .rpc_server(&rpc_server)
     .run();
 
-  assert_eq!(rpc_server.loaded_wallets().len(), 1);
+  assert_eq!(rpc_server.loaded_wallets().first().unwrap(), "ord");
 
   rpc_server.mine_blocks(1);
 
