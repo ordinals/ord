@@ -59,9 +59,7 @@ jobs:
     - uses: Swatinem/rust-cache@v2
 
     - name: Clippy
-      run: |
-        cargo clippy --all --all-targets
-        cargo clippy --all --all-targets --tests
+      run: cargo clippy --all --all-targets
 
     - name: Format
       run: cargo fmt --all -- --check
