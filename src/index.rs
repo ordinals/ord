@@ -1598,25 +1598,25 @@ mod tests {
   fn lost_sat_ranges_are_tracked_correctly() {
     let context = Context::builder().arg("--index-sats").build();
 
-    let list = || match context.index.list(OutPoint::null()).unwrap().unwrap() {
+    let null_ranges = || match context.index.list(OutPoint::null()).unwrap().unwrap() {
       List::Unspent(ranges) => ranges,
       _ => panic!(),
     };
 
-    assert!(list().is_empty());
+    assert!(null_ranges().is_empty());
 
     context.mine_blocks(1);
 
-    assert!(list().is_empty());
+    assert!(null_ranges().is_empty());
 
     context.mine_blocks_with_subsidy(1, 0);
 
-    assert_eq!(list(), [(100 * COIN_VALUE, 150 * COIN_VALUE)]);
+    assert_eq!(null_ranges(), [(100 * COIN_VALUE, 150 * COIN_VALUE)]);
 
     context.mine_blocks_with_subsidy(1, 0);
 
     assert_eq!(
-      list(),
+      null_ranges(),
       [
         (100 * COIN_VALUE, 150 * COIN_VALUE),
         (150 * COIN_VALUE, 200 * COIN_VALUE)
@@ -1626,7 +1626,7 @@ mod tests {
     context.mine_blocks(1);
 
     assert_eq!(
-      list(),
+      null_ranges(),
       [
         (100 * COIN_VALUE, 150 * COIN_VALUE),
         (150 * COIN_VALUE, 200 * COIN_VALUE)
@@ -1636,7 +1636,7 @@ mod tests {
     context.mine_blocks_with_subsidy(1, 0);
 
     assert_eq!(
-      list(),
+      null_ranges(),
       [
         (100 * COIN_VALUE, 150 * COIN_VALUE),
         (150 * COIN_VALUE, 200 * COIN_VALUE),
