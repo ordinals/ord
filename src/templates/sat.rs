@@ -38,7 +38,7 @@ mod tests {
           <dt>cycle</dt><dd>0</dd>
           <dt>epoch</dt><dd>0</dd>
           <dt>period</dt><dd>0</dd>
-          <dt>block</dt><dd>0</dd>
+          <dt>block</dt><dd><a href=/block/0>0</a></dd>
           <dt>offset</dt><dd>0</dd>
           <dt>rarity</dt><dd><span class=mythic>mythic</span></dd>
           <dt>time</dt><dd>1970-01-01 00:00:00</dd>
@@ -70,7 +70,7 @@ mod tests {
           <dt>cycle</dt><dd>5</dd>
           <dt>epoch</dt><dd>32</dd>
           <dt>period</dt><dd>3437</dd>
-          <dt>block</dt><dd>6929999</dd>
+          <dt>block</dt><dd><a href=/block/6929999>6929999</a></dd>
           <dt>offset</dt><dd>0</dd>
           <dt>rarity</dt><dd><span class=uncommon>uncommon</span></dd>
           <dt>time</dt><dd>1970-01-01 00:00:00</dd>
