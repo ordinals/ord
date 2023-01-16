@@ -15,6 +15,7 @@ pub(crate) struct State {
   pub(crate) version: usize,
   pub(crate) wallet_name: String,
   pub(crate) wallets: BTreeSet<String>,
+  pub(crate) loaded_wallets: BTreeSet<String>,
 }
 
 impl State {
@@ -47,6 +48,7 @@ impl State {
       version,
       wallet_name: wallet_name.to_string(),
       wallets: BTreeSet::new(),
+      loaded_wallets: BTreeSet::new(),
     }
   }
 

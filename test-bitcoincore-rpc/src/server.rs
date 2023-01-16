@@ -565,6 +565,7 @@ impl Api for Server {
 
   fn load_wallet(&self, wallet: String) -> Result<LoadWalletResult, jsonrpc_core::Error> {
     if self.state().wallets.contains(&wallet) {
+      self.state().loaded_wallets.insert(wallet.clone());
       Ok(LoadWalletResult {
         name: wallet,
         warning: None,
