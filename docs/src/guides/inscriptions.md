@@ -41,6 +41,8 @@ Installing Bitcoin Core
 Bitcoin Core is available from [bitcoincore.org](https://bitcoincore.org/) on
 the [download page](https://bitcoincore.org/en/download/).
 
+Making inscriptions requires Bitcoin Core 24 or newer.
+
 This guide does not cover installing Bitcoin Core in detail. Once Bitcoin Core
 is installed, you should be able to run `bitcoind -version` successfully from
 the command line.

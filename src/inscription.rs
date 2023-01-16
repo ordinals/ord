@@ -11,8 +11,6 @@ use {
   std::{iter::Peekable, str},
 };
 
-mod content_type;
-
 const PROTOCOL_ID: &[u8] = b"ord";
 
 const CONTENT_TAG: &[u8] = &[];
@@ -49,7 +47,7 @@ impl Inscription {
       }
     }
 
-    let content_type = content_type::for_extension(
+    let content_type = Media::content_type_for_extension(
       path
         .extension()
         .ok_or_else(|| anyhow!("file must have extension"))?
@@ -89,15 +87,8 @@ impl Inscription {
     self.append_reveal_script_to_builder(builder).into_script()
   }
 
-  pub(crate) fn content(&self) -> Option<Content> {
-    let content = self.content.as_ref()?;
-
-    match self.content_type()? {
-      content_type::HTML | content_type::SVG => Some(Content::Iframe),
-      content_type::TEXT => Some(Content::Text(str::from_utf8(content).ok()?)),
-      content_type if content_type::is_image(content_type) => Some(Content::Image),
-      _ => None,
-    }
+  pub(crate) fn media(&self) -> Option<Media> {
+    self.content_type()?.parse().ok()
   }
 
   pub(crate) fn content_bytes(&self) -> Option<&[u8]> {
@@ -518,14 +509,6 @@ mod tests {
         &[0b10000000]
       ])),
       Ok(inscription("text/plain;charset=utf-8", [0b10000000])),
-    );
-  }
-
-  #[test]
-  fn invalid_utf8_has_no_content() {
-    assert_eq!(
-      inscription("text/plain;charset=utf-8", [0b10000000]).content(),
-      None,
     );
   }
 
