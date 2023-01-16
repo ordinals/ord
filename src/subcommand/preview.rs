@@ -37,7 +37,7 @@ impl Preview {
         .arg("-listen=0")
         .arg(format!("-rpcport={rpc_port}"))
         .spawn()
-        .with_context(|| format!("failed to spawn `bitcoind`"))?,
+        .context("failed to spawn `bitcoind`")?,
     );
 
     let options = Options {
