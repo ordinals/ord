@@ -181,7 +181,7 @@ impl Options {
         .count();
 
       if tr != 2 || descriptors.len() != 2 + rawtr {
-        bail!("this does not appear to be an ord wallet, create one with `ord wallet create`");
+        bail!("wallet \"{}\" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`", self.wallet);
       }
     }
 
