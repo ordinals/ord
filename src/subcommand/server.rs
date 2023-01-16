@@ -469,11 +469,14 @@ impl Server {
   ) -> ServerResult<PageHtml<TransactionHtml>> {
     let inscription = index.get_inscription_by_id(txid.into())?;
 
+    let blockhash = index.get_transaction_blockhash(txid)?;
+
     Ok(
       TransactionHtml::new(
         index
           .get_transaction(txid)?
           .ok_or_not_found(|| format!("transaction {txid}"))?,
+        blockhash,
         inscription.map(|_| txid.into()),
         chain,
       )
@@ -1275,37 +1278,40 @@ mod tests {
 
   #[test]
   fn output_with_sat_index() {
+    let txid = "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b";
     TestServer::new_with_sat_index().assert_response_regex(
-    "/output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
-    StatusCode::OK,
-    ".*<title>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</title>.*<h1>Output <span class=monospace>4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</span></h1>
+      format!("/output/{txid}:0"),
+      StatusCode::OK,
+      format!(
+        ".*<title>Output {txid}:0</title>.*<h1>Output <span class=monospace>{txid}:0</span></h1>
 <dl>
   <dt>value</dt><dd>5000000000</dd>
-  <dt>script pubkey</dt><dd class=data>OP_PUSHBYTES_65 04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f OP_CHECKSIG</dd>
+  <dt>script pubkey</dt><dd class=data>OP_PUSHBYTES_65 [[:xdigit:]]{{130}} OP_CHECKSIG</dd>
+  <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
 </dl>
 <h2>1 Sat Range</h2>
 <ul class=monospace>
   <li><a href=/range/0/5000000000 class=mythic>0–5000000000</a></li>
-</ul>.*",
-  );
+</ul>.*"
+      ),
+    );
   }
 
   #[test]
   fn output_without_sat_index() {
+    let txid = "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b";
     TestServer::new().assert_response_regex(
-    "/output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
-    StatusCode::OK,
-    ".*<title>Output 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</title>.*<h1>Output <span class=monospace>4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</span></h1>
+      format!("/output/{txid}:0"),
+      StatusCode::OK,
+      format!(
+        ".*<title>Output {txid}:0</title>.*<h1>Output <span class=monospace>{txid}:0</span></h1>
 <dl>
   <dt>value</dt><dd>5000000000</dd>
-  <dt>script pubkey</dt><dd class=data>OP_PUSHBYTES_65 04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f OP_CHECKSIG</dd>
-</dl>
-
-  </main>
-  </body>
-</html>
-",
-  );
+  <dt>script pubkey</dt><dd class=data>OP_PUSHBYTES_65 [[:xdigit:]]{{130}} OP_CHECKSIG</dd>
+  <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
+</dl>.*"
+      ),
+    );
   }
 
   #[test]
