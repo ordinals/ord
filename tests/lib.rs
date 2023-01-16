@@ -2,6 +2,7 @@
 
 use {
   self::{command_builder::CommandBuilder, expected::Expected, test_server::TestServer},
+  bip39::Mnemonic,
   bitcoin::{blockdata::constants::COIN_VALUE, Address, Network, OutPoint, Txid},
   executable_path::executable_path,
   pretty_assertions::assert_eq as pretty_assert_eq,
@@ -57,10 +58,15 @@ fn inscribe(rpc_server: &test_bitcoincore_rpc::Handle) -> Inscribe {
   output
 }
 
+#[derive(Deserialize)]
+struct Create {
+  mnemonic: Mnemonic,
+}
+
 fn create_wallet(rpc_server: &test_bitcoincore_rpc::Handle) {
   CommandBuilder::new(format!("--chain {} wallet create", rpc_server.network()))
     .rpc_server(rpc_server)
-    .run();
+    .output::<Create>();
 }
 
 mod command_builder;
