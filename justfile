@@ -6,6 +6,7 @@ watch +args='test':
 ci: clippy forbid
   cargo fmt -- --check
   cargo test --all
+  cargo test --all -- --ignored
 
 forbid:
   ./bin/forbid
