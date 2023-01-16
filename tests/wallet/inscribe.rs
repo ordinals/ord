@@ -234,7 +234,7 @@ fn inscribe_with_wallet_named_foo() {
 
   CommandBuilder::new("--wallet foo wallet create")
     .rpc_server(&rpc_server)
-    .run();
+    .output::<Create>();
 
   rpc_server.mine_blocks(1);
 

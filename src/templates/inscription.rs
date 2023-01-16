@@ -17,7 +17,7 @@ pub(crate) struct InscriptionHtml {
 
 impl PageContent for InscriptionHtml {
   fn title(&self) -> String {
-    format!("Inscription {}", self.inscription_id)
+    format!("Inscription {}", self.number)
   }
 
   fn preview_image_url(&self) -> Option<Trusted<String>> {

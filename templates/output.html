@@ -13,6 +13,7 @@
 %% if let Ok(address) = self.chain.address_from_script(&self.output.script_pubkey ) {
   <dt>address</dt><dd class=monospace>{{ address }}</dd>
 %% }
+  <dt>transaction</dt><dd><a class=monospace href=/tx/{{ self.outpoint.txid }}>{{ self.outpoint.txid }}</a></dd>
 </dl>
 %% if let Some(list) = &self.list {
 %% match list {

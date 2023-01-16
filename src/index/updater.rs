@@ -336,7 +336,7 @@ impl Updater {
           };
 
           for chunk in sat_ranges.chunks_exact(11) {
-            input_sat_ranges.push_back(Index::decode_sat_range(chunk.try_into().unwrap()));
+            input_sat_ranges.push_back(SatRange::load(chunk.try_into().unwrap()));
           }
         }
 
@@ -366,6 +366,11 @@ impl Updater {
       }
 
       if !coinbase_inputs.is_empty() {
+        let mut lost_sat_ranges = outpoint_to_sat_ranges
+          .remove(&OutPoint::null().store())?
+          .map(|ranges| ranges.value().to_vec())
+          .unwrap_or_default();
+
         for (start, end) in coinbase_inputs {
           if !Sat(start).is_common() {
             sat_to_satpoint.insert(
@@ -378,8 +383,12 @@ impl Updater {
             )?;
           }
 
+          lost_sat_ranges.extend_from_slice(&(start, end).store());
+
           lost_sats += end - start;
         }
+
+        outpoint_to_sat_ranges.insert(&OutPoint::null().store(), &lost_sat_ranges)?;
       }
     } else {
       for (tx, txid) in block.txdata.iter().skip(1).chain(block.txdata.first()) {
@@ -449,12 +458,7 @@ impl Updater {
           range
         };
 
-        let base = assigned.0;
-        let delta = assigned.1 - assigned.0;
-
-        let n = u128::from(base) | u128::from(delta) << 51;
-
-        sats.extend_from_slice(&n.to_le_bytes()[0..11]);
+        sats.extend_from_slice(&assigned.store());
 
         remaining -= assigned.1 - assigned.0;
 
