@@ -130,9 +130,9 @@ creation step, the anonymity set of ordinal number users is maximized.
 
 Since a sat has an output that contains it, and an output has a public key that
 controls it, the owner of a sat can respond to challenges by signing messages
-using the address associated with the controlling UTXO. Additionally, an sat
-can change hands, or its private key can be rotated without a change of
-ownership, by transferring it to a new output.
+using the address associated with the controlling UTXO. Additionally, a sat can
+change hands, or its private key can be rotated without a change of ownership,
+by transferring it to a new output.
 
 Ordinals require no changes to blocks, transactions, or network protocols, and
 can thus be immediately adopted, or ignored, without impacting existing users.
