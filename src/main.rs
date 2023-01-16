@@ -14,7 +14,6 @@ use {
   self::{
     arguments::Arguments,
     blocktime::Blocktime,
-    content::Content,
     decimal::Decimal,
     degree::Degree,
     deserialize_from_str::DeserializeFromStr,
@@ -23,6 +22,7 @@ use {
     index::{Index, List},
     inscription::Inscription,
     inscription_id::InscriptionId,
+    media::Media,
     object::Object,
     options::Options,
     outgoing::Outgoing,
@@ -84,7 +84,6 @@ use self::test::*;
 mod arguments;
 mod blocktime;
 mod chain;
-mod content;
 mod decimal;
 mod degree;
 mod deserialize_from_str;
@@ -94,6 +93,7 @@ mod height;
 mod index;
 mod inscription;
 mod inscription_id;
+mod media;
 mod object;
 mod options;
 mod outgoing;
