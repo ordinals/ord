@@ -42,7 +42,7 @@ pub(crate) enum Wallet {
   Restore(restore::Restore),
   #[clap(about = "List wallet satoshis")]
   Sats(sats::Sats),
-  #[clap(about = "Send satoshi or inscription")]
+  #[clap(about = "Send sat or inscription")]
   Send(send::Send),
   #[clap(about = "See wallet transactions")]
   Transactions(transactions::Transactions),
