@@ -13,7 +13,7 @@ pub(crate) fn run(options: Options) -> Result {
 
   initialize_wallet(&options, mnemonic.to_seed(""))?;
 
-  serde_json::to_writer_pretty(io::stdout(), &Output { mnemonic })?;
+  print_json(Output { mnemonic })?;
 
   Ok(())
 }
