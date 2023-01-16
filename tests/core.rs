@@ -34,7 +34,7 @@ fn preview() {
       panic!("Server did not respond to status check",);
     }
 
-    thread::sleep(Duration::from_millis(500));
+    thread::sleep(Duration::from_millis(50));
   }
 
   assert!(
