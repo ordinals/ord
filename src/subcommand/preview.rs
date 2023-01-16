@@ -11,7 +11,11 @@ struct KillOnDrop(process::Child);
 
 impl Drop for KillOnDrop {
   fn drop(&mut self) {
-    self.0.kill().unwrap()
+    Command::new("kill")
+      .arg("-SIGINT")
+      .arg(self.0.id().to_string())
+      .spawn()
+      .expect("failed to SIGINT kill process");
   }
 }
 
@@ -50,7 +54,7 @@ impl Preview {
     };
 
     for attempt in 0.. {
-      if options.bitcoin_rpc_client(false).is_ok() {
+      if options.bitcoin_rpc_client().is_ok() {
         break;
       }
 
@@ -61,9 +65,9 @@ impl Preview {
       thread::sleep(Duration::from_millis(50));
     }
 
-    let rpc_client = options.bitcoin_rpc_client(false)?;
-
     super::wallet::create::run(options.clone())?;
+
+    let rpc_client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
     let address =
       rpc_client.get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))?;
