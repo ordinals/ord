@@ -16,6 +16,7 @@ anyhow = { version = "1.0.56", features = ["backtrace"] }
 axum = "0.6.1"
 axum-server = "0.4.0"
 bech32 = "0.9.1"
+bip39 = "1.0.1"
 bitcoin = { version = "0.29.1", features = ["rand"] }
 boilerplate = { version = "0.2.3", features = ["axum"] }
 chrono = "0.4.19"
