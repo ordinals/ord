@@ -25,7 +25,7 @@ impl BlockHtml {
 
 impl PageContent for BlockHtml {
   fn title(&self) -> String {
-    format!("Block {}", self.hash)
+    format!("Block {}", self.height)
   }
 }
 

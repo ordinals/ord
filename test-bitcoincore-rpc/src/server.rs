@@ -343,7 +343,7 @@ impl Api for Server {
       match self.state().transactions.get(&txid) {
         Some(_) => Ok(
           serde_json::to_value(GetRawTransactionResult {
-            in_active_chain: None,
+            in_active_chain: Some(true),
             hex: Vec::new(),
             txid: Txid::all_zeros(),
             hash: Wtxid::all_zeros(),

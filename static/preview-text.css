@@ -1,8 +1,28 @@
 html {
   background-color: #131516;
   color: white;
+  font-size: 16px;
+  height: 100%;
+  line-height: 1;
 }
 
 body {
+  display: grid;
+  grid-template: 1fr / 1fr;
+  height: 100%;
   margin: 0;
+  place-items: center;
+}
+
+pre {
+  margin: 0;
+}
+
+body > * {
+  grid-column: 1 / 1;
+  grid-row: 1 / 1;
+}
+
+body > pre {
+  opacity: 0;
 }
