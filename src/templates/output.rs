@@ -24,26 +24,24 @@ mod tests {
 
   #[test]
   fn unspent_output() {
-    pretty_assert_eq!(
+    assert_regex_match!(
       OutputHtml {
         inscriptions: Vec::new(),
-        outpoint: "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0"
-          .parse()
-          .unwrap(),
+        outpoint: outpoint(1),
         list: Some(List::Unspent(vec![(0, 1), (1, 3)])),
         chain: Chain::Mainnet,
         output: TxOut {
           value: 3,
           script_pubkey: Script::new_p2pkh(&PubkeyHash::all_zeros()),
         },
-      }
-      .to_string(),
+      },
       "
-        <h1>Output <span class=monospace>4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</span></h1>
+        <h1>Output <span class=monospace>1{64}:1</span></h1>
         <dl>
           <dt>value</dt><dd>3</dd>
-          <dt>script pubkey</dt><dd class=data>OP_DUP OP_HASH160 OP_PUSHBYTES_20 0000000000000000000000000000000000000000 OP_EQUALVERIFY OP_CHECKSIG</dd>
+          <dt>script pubkey</dt><dd class=data>OP_DUP OP_HASH160 OP_PUSHBYTES_20 0{40} OP_EQUALVERIFY OP_CHECKSIG</dd>
           <dt>address</dt><dd class=monospace>1111111111111111111114oLvT2</dd>
+          <dt>transaction</dt><dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
         </dl>
         <h2>2 Sat Ranges</h2>
         <ul class=monospace>
@@ -57,25 +55,23 @@ mod tests {
 
   #[test]
   fn spent_output() {
-    pretty_assert_eq!(
+    assert_regex_match!(
       OutputHtml {
         inscriptions: Vec::new(),
-        outpoint: "0000000000000000000000000000000000000000000000000000000000000000:0"
-          .parse()
-          .unwrap(),
+        outpoint: outpoint(1),
         list: Some(List::Spent),
         chain: Chain::Mainnet,
         output: TxOut {
           value: 1,
           script_pubkey: script::Builder::new().push_int(0).into_script(),
         },
-      }
-      .to_string(),
+      },
       "
-        <h1>Output <span class=monospace>0000000000000000000000000000000000000000000000000000000000000000:0</span></h1>
+        <h1>Output <span class=monospace>1{64}:1</span></h1>
         <dl>
           <dt>value</dt><dd>1</dd>
           <dt>script pubkey</dt><dd class=data>OP_0</dd>
+          <dt>transaction</dt><dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
         </dl>
         <p>Output has been spent.</p>
       "
@@ -85,12 +81,10 @@ mod tests {
 
   #[test]
   fn no_list() {
-    pretty_assert_eq!(
+    assert_regex_match!(
       OutputHtml {
         inscriptions: Vec::new(),
-        outpoint: "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0"
-          .parse()
-          .unwrap(),
+        outpoint: outpoint(1),
         list: None,
         chain: Chain::Mainnet,
         output: TxOut {
@@ -100,11 +94,12 @@ mod tests {
       }
       .to_string(),
       "
-        <h1>Output <span class=monospace>4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</span></h1>
+        <h1>Output <span class=monospace>1{64}:1</span></h1>
         <dl>
           <dt>value</dt><dd>3</dd>
-          <dt>script pubkey</dt><dd class=data>OP_DUP OP_HASH160 OP_PUSHBYTES_20 0000000000000000000000000000000000000000 OP_EQUALVERIFY OP_CHECKSIG</dd>
+          <dt>script pubkey</dt><dd class=data>OP_DUP OP_HASH160 OP_PUSHBYTES_20 0{40} OP_EQUALVERIFY OP_CHECKSIG</dd>
           <dt>address</dt><dd class=monospace>1111111111111111111114oLvT2</dd>
+          <dt>transaction</dt><dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
         </dl>
       "
       .unindent()
