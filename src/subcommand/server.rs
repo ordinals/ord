@@ -157,6 +157,10 @@ impl Server {
         .layer(SetResponseHeaderLayer::if_not_present(
           header::CONTENT_SECURITY_POLICY,
           HeaderValue::from_static("default-src 'self'"),
+        ))
+        .layer(SetResponseHeaderLayer::overriding(
+          header::STRICT_TRANSPORT_SECURITY,
+          HeaderValue::from_static("max-age=31536000; includeSubDomains; preload"),
         ));
 
       match (self.http_port(), self.https_port()) {
@@ -1919,6 +1923,18 @@ mod tests {
       format!("/inscription/{}", InscriptionId::from(txid)),
       StatusCode::OK,
       r".*<dt>output value</dt>\s*<dd>5000000000</dd>\s*<dt>content</dt>.*",
+    );
+  }
+
+  #[test]
+  fn strict_transport_security_header_is_set() {
+    assert_eq!(
+      TestServer::new()
+        .get("/status")
+        .headers()
+        .get(header::STRICT_TRANSPORT_SECURITY)
+        .unwrap(),
+      "max-age=31536000; includeSubDomains; preload",
     );
   }
 }
