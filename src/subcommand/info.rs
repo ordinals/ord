@@ -27,7 +27,7 @@ impl Info {
         );
       }
     } else {
-      serde_json::to_writer(io::stdout(), &info)?;
+      print_json(info)?;
     }
 
     Ok(())
