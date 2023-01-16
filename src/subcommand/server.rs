@@ -1258,7 +1258,16 @@ mod tests {
     TestServer::new().assert_response_regex(
       "/sat/0",
       StatusCode::OK,
-      ".*<title>0°0′0″0‴</title>.*<h1>Sat 0</h1>.*",
+      ".*<title>Sat 0</title>.*<h1>Sat 0</h1>.*",
+    );
+  }
+
+  #[test]
+  fn block() {
+    TestServer::new().assert_response_regex(
+      "/block/0",
+      StatusCode::OK,
+      ".*<title>Block 0</title>.*<h1>Block 0</h1>.*",
     );
   }
 
@@ -1883,6 +1892,26 @@ mod tests {
       StatusCode::OK,
       "default-src 'self'",
       fs::read_to_string("templates/preview-unknown.html").unwrap(),
+    );
+  }
+
+  #[test]
+  fn inscription_page_title() {
+    let server = TestServer::new_with_sat_index();
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witness: inscription("text/foo", "hello").to_witness(),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/inscription/{}", InscriptionId::from(txid)),
+      StatusCode::OK,
+      ".*<title>Inscription 0</title>.*",
     );
   }
 
