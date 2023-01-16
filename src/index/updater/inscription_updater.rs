@@ -75,14 +75,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
   ) -> Result<u64> {
     let mut inscriptions = Vec::new();
 
-    if Inscription::from_transaction(tx).is_some() {
-      inscriptions.push(Flotsam {
-        inscription_id: txid.into(),
-        offset: 0,
-        origin: Origin::New,
-      });
-    };
-
     let mut input_value = 0;
     for tx_in in &tx.input {
       if tx_in.previous_output.is_null() {
@@ -120,6 +112,16 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         };
       }
     }
+
+    if inscriptions.iter().all(|flotsam| flotsam.offset != 0)
+      && Inscription::from_transaction(tx).is_some()
+    {
+      inscriptions.push(Flotsam {
+        inscription_id: txid.into(),
+        offset: 0,
+        origin: Origin::New,
+      });
+    };
 
     let is_coinbase = tx
       .input
