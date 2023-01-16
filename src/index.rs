@@ -478,6 +478,16 @@ impl Index {
     &self,
     inscription_id: InscriptionId,
   ) -> Result<Option<Inscription>> {
+    if self
+      .database
+      .begin_read()?
+      .open_table(INSCRIPTION_ID_TO_SATPOINT)?
+      .get(&inscription_id.store())?
+      .is_none()
+    {
+      return Ok(None);
+    }
+
     Ok(
       self
         .get_transaction(inscription_id.txid)?
@@ -1884,6 +1894,78 @@ mod tests {
           .unwrap(),
         [inscription_id]
       );
+    }
+  }
+
+  #[test]
+  fn inscriptions_on_same_sat_after_the_first_are_ignored() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let first = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0)],
+        witness: inscription("text/plain", "hello").to_witness(),
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let inscription_id = InscriptionId::from(first);
+
+      assert_eq!(
+        context
+          .index
+          .get_inscriptions_on_output(OutPoint {
+            txid: first,
+            vout: 0
+          })
+          .unwrap(),
+        [inscription_id]
+      );
+
+      context.index.assert_inscription_location(
+        inscription_id,
+        SatPoint {
+          outpoint: OutPoint {
+            txid: first,
+            vout: 0,
+          },
+          offset: 0,
+        },
+        50 * COIN_VALUE,
+      );
+
+      let second = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(2, 1, 0)],
+        witness: inscription("text/plain", "hello").to_witness(),
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      context.index.assert_inscription_location(
+        inscription_id,
+        SatPoint {
+          outpoint: OutPoint {
+            txid: second,
+            vout: 0,
+          },
+          offset: 0,
+        },
+        50 * COIN_VALUE,
+      );
+
+      assert!(context
+        .index
+        .get_inscription_entry(second.into())
+        .unwrap()
+        .is_none());
+
+      assert!(context
+        .index
+        .get_inscription_by_id(second.into())
+        .unwrap()
+        .is_none());
     }
   }
 }
