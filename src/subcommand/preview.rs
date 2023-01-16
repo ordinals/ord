@@ -11,11 +11,7 @@ struct KillOnDrop(process::Child);
 
 impl Drop for KillOnDrop {
   fn drop(&mut self) {
-    Command::new("kill")
-      .arg("-SIGINT")
-      .arg(self.0.id().to_string())
-      .spawn()
-      .expect("failed to SIGINT kill process");
+    self.0.kill().unwrap()
   }
 }
 
