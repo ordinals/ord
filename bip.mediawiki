@@ -247,7 +247,7 @@ Indexes supporting fast queries related to ordinals are slow to build and
 consume large amounts of space.
 
 An O(1) index that maps UTXOs to the ordinals that they contain is currently
-100GiB. The same index including spent outputs is 10TiB.
+100 GiB. The same index including spent outputs is 10 TiB.
 
 An O(1) index supporting the opposite mapping, that of individual ordinals to
 the UTXO that contains them, is likely to be intractable. However, an O(n)
@@ -260,7 +260,7 @@ A proof can be constructed that demonstrates that a particular sat is contained
 in a particular output, however the proofs are large. Such a proof consists of:
 
 - Block headers
-- A merkle path to the coinbase transaction that created the sat
+- A Merkle path to the coinbase transaction that created the sat
 - The coinbase transaction that created the sat
 - And for every spend of that sat:
   - The spend transaction
