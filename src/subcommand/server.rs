@@ -157,6 +157,10 @@ impl Server {
         .layer(SetResponseHeaderLayer::if_not_present(
           header::CONTENT_SECURITY_POLICY,
           HeaderValue::from_static("default-src 'self'"),
+        ))
+        .layer(SetResponseHeaderLayer::overriding(
+          header::STRICT_TRANSPORT_SECURITY,
+          HeaderValue::from_static("max-age=31536000; includeSubDomains; preload"),
         ));
 
       match (self.http_port(), self.https_port()) {
@@ -1254,7 +1258,16 @@ mod tests {
     TestServer::new().assert_response_regex(
       "/sat/0",
       StatusCode::OK,
-      ".*<title>0°0′0″0‴</title>.*<h1>Sat 0</h1>.*",
+      ".*<title>Sat 0</title>.*<h1>Sat 0</h1>.*",
+    );
+  }
+
+  #[test]
+  fn block() {
+    TestServer::new().assert_response_regex(
+      "/block/0",
+      StatusCode::OK,
+      ".*<title>Block 0</title>.*<h1>Block 0</h1>.*",
     );
   }
 
@@ -1883,6 +1896,26 @@ mod tests {
   }
 
   #[test]
+  fn inscription_page_title() {
+    let server = TestServer::new_with_sat_index();
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witness: inscription("text/foo", "hello").to_witness(),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/inscription/{}", InscriptionId::from(txid)),
+      StatusCode::OK,
+      ".*<title>Inscription 0</title>.*",
+    );
+  }
+
+  #[test]
   fn inscription_page_has_sat_when_sats_are_tracked() {
     let server = TestServer::new_with_sat_index();
     server.mine_blocks(1);
@@ -1919,6 +1952,18 @@ mod tests {
       format!("/inscription/{}", InscriptionId::from(txid)),
       StatusCode::OK,
       r".*<dt>output value</dt>\s*<dd>5000000000</dd>\s*<dt>content</dt>.*",
+    );
+  }
+
+  #[test]
+  fn strict_transport_security_header_is_set() {
+    assert_eq!(
+      TestServer::new()
+        .get("/status")
+        .headers()
+        .get(header::STRICT_TRANSPORT_SECURITY)
+        .unwrap(),
+      "max-age=31536000; includeSubDomains; preload",
     );
   }
 }

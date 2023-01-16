@@ -46,7 +46,7 @@ mod tests {
   use super::*;
 
   #[test]
-  fn preview() {
+  fn thumbnail() {
     assert_regex_match!(
       Iframe::thumbnail(inscription_id(1))
       .0.to_string(),
