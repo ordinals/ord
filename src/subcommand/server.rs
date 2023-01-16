@@ -6,8 +6,8 @@ use {
   super::*,
   crate::templates::{
     BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionsHtml, OutputHtml,
-    PageContent, PageHtml, PreviewImageHtml, PreviewTextHtml, PreviewUnknownHtml, RangeHtml,
-    RareTxt, SatHtml, TransactionHtml,
+    PageContent, PageHtml, PreviewAudioHtml, PreviewImageHtml, PreviewTextHtml, PreviewUnknownHtml,
+    RangeHtml, RareTxt, SatHtml, TransactionHtml,
   },
   axum::{
     body,
@@ -635,8 +635,13 @@ impl Server {
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
-    match inscription.content() {
-      Some(Content::Image) => Ok(
+    let content = inscription
+      .content_bytes()
+      .ok_or_not_found(|| format!("inscription {inscription_id} content"))?;
+
+    return match inscription.media() {
+      Some(Media::Audio) => Ok(PreviewAudioHtml { inscription_id }.into_response()),
+      Some(Media::Image) => Ok(
         (
           [(
             header::CONTENT_SECURITY_POLICY,
@@ -646,14 +651,19 @@ impl Server {
         )
           .into_response(),
       ),
-      Some(Content::Iframe) => Ok(
+      Some(Media::Iframe) => Ok(
         Self::content_response(inscription)
           .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
           .into_response(),
       ),
-      Some(Content::Text(text)) => Ok(PreviewTextHtml { text }.into_response()),
+      Some(Media::Text) => Ok(
+        PreviewTextHtml {
+          text: str::from_utf8(content).map_err(|err| anyhow!("Failed to decode UTF-8: {err}"))?,
+        }
+        .into_response(),
+      ),
       None => Ok(PreviewUnknownHtml.into_response()),
-    }
+    };
   }
 
   async fn inscription(
@@ -1737,6 +1747,26 @@ mod tests {
   }
 
   #[test]
+  fn text_preview_returns_error_when_content_is_not_utf8() {
+    let server = TestServer::new();
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witness: inscription("text/plain;charset=utf-8", b"\xc3\x28").to_witness(),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    server.assert_response(
+      format!("/preview/{}", InscriptionId::from(txid)),
+      StatusCode::INTERNAL_SERVER_ERROR,
+      "Internal Server Error",
+    );
+  }
+
+  #[test]
   fn text_preview_text_is_escaped() {
     let server = TestServer::new();
     server.mine_blocks(1);
@@ -1758,6 +1788,27 @@ mod tests {
       StatusCode::OK,
       "default-src 'self'",
       r".*<pre>&lt;script&gt;alert\(&apos;hello&apos;\);&lt;/script&gt;</pre>.*",
+    );
+  }
+
+  #[test]
+  fn audio_preview() {
+    let server = TestServer::new();
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witness: inscription("audio/flac", "hello").to_witness(),
+      ..Default::default()
+    });
+    let inscription_id = InscriptionId::from(txid);
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/preview/{inscription_id}"),
+      StatusCode::OK,
+      format!(r".*<audio .*>\s*<source src=/content/{inscription_id}>.*"),
     );
   }
 
