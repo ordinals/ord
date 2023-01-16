@@ -4,11 +4,11 @@ struct KillOnDrop(std::process::Child);
 
 impl Drop for KillOnDrop {
   fn drop(&mut self) {
-    Command::new("kill")
-      .arg("-SIGINT")
+    assert!(Command::new("kill")
       .arg(self.0.id().to_string())
-      .spawn()
-      .expect("failed to SIGINT kill process");
+      .status()
+      .unwrap()
+      .success());
   }
 }
 
