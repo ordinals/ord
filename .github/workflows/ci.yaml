@@ -12,6 +12,9 @@ defaults:
   run:
     shell: bash
 
+env:
+  RUSTFLAGS: --deny warnings
+
 jobs:
   docs:
     runs-on: ubuntu-latest
@@ -42,9 +45,6 @@ jobs:
         publish_dir: docs/build/html
   lint:
     runs-on: ubuntu-latest
-
-    env:
-      RUSTFLAGS: --deny warnings
 
     steps:
     - uses: actions/checkout@v3
