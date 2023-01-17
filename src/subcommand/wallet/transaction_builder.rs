@@ -51,7 +51,7 @@ pub(crate) enum Error {
     inscription_id: InscriptionId,
   },
   Dust {
-    value: Amount,
+    output_value: Amount,
     dust_value: Amount,
   },
 }
@@ -66,9 +66,9 @@ impl fmt::Display for Error {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self {
       Error::Dust {
-        value,
+        output_value,
         dust_value,
-      } => write!(f, "output value is below dust value: {value} < {dust_value}"),
+      } => write!(f, "output value is below dust value: {output_value} < {dust_value}"),
       Error::NotInWallet(outgoing_satpoint) => write!(f, "outgoing satpoint {outgoing_satpoint} not in wallet"),
       Error::NotEnoughCardinalUtxos => write!(
         f,
@@ -139,12 +139,15 @@ impl TransactionBuilder {
     recipient: Address,
     change: Vec<Address>,
     fee_rate: FeeRate,
-    value: Amount,
+    output_value: Amount,
   ) -> Result<Transaction> {
     let dust_value = recipient.script_pubkey().dust_value();
 
-    if value < dust_value {
-      return Err(Error::Dust { value, dust_value });
+    if output_value < dust_value {
+      return Err(Error::Dust {
+        output_value,
+        dust_value,
+      });
     }
 
     Self::new(
@@ -154,7 +157,7 @@ impl TransactionBuilder {
       recipient,
       change,
       fee_rate,
-      Target::Exact(value),
+      Target::Exact(output_value),
     )
     .build_transaction()
   }
@@ -1342,7 +1345,7 @@ mod tests {
         Amount::from_sat(1)
       ),
       Err(Error::Dust {
-        value: Amount::from_sat(1),
+        output_value: Amount::from_sat(1),
         dust_value: Amount::from_sat(294)
       })
     )
