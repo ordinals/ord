@@ -37,6 +37,8 @@ pub(crate) struct Inscribe {
   pub(crate) file: PathBuf,
   #[clap(long, help = "Do not back up recovery key.")]
   pub(crate) no_backup: bool,
+  #[clap(long, default_value = "false", help = "Show total fee that would be paid")]
+  pub(crate) dry_run: bool,
 }
 
 impl Inscribe {
@@ -62,11 +64,18 @@ impl Inscribe {
         inscription,
         inscriptions,
         options.chain().network(),
-        utxos,
+        utxos.clone(),
         commit_tx_change,
         reveal_tx_destination,
         self.fee_rate,
       )?;
+
+    if self.dry_run {
+      let total_fee =
+        Self::fee(unsigned_commit_tx, utxos.clone()) + Self::fee(reveal_tx, utxos.clone());
+      println!("total fee: {}", total_fee);
+      return Ok(());
+    }
 
     if !self.no_backup {
       Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
@@ -91,6 +100,14 @@ impl Inscribe {
     })?;
 
     Ok(())
+  }
+
+  fn fee(tx: Transaction, utxos: BTreeMap<OutPoint, Amount>) -> u64 {
+    tx.input
+      .iter()
+      .map(|txin| utxos.get(&txin.previous_output).unwrap().to_sat())
+      .sum::<u64>()
+      - tx.output.iter().map(|txout| txout.value).sum::<u64>()
   }
 
   fn create_inscription_transactions(

@@ -79,6 +79,7 @@ impl Preview {
             file,
             no_backup: true,
             satpoint: None,
+            dry_run: false,
           },
         )),
       }
