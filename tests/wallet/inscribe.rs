@@ -243,3 +243,30 @@ fn inscribe_with_wallet_named_foo() {
     .rpc_server(&rpc_server)
     .output::<Inscribe>();
 }
+
+#[test]
+fn inscribe_with_dry_run_flag() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  let total_fee_dry_run =
+    CommandBuilder::new("--index-sats wallet inscribe --dry-run degenerate.png")
+      .write("degenerate.png", [1; 520])
+      .rpc_server(&rpc_server)
+      .output::<Inscribe>()
+      .total_fee;
+
+  assert!(rpc_server.mempool().is_empty());
+
+  let total_fee_normal =
+    CommandBuilder::new("--index-sats wallet inscribe degenerate.png --fee-rate 1.1")
+      .write("degenerate.png", [1; 520])
+      .rpc_server(&rpc_server)
+      .output::<Inscribe>()
+      .total_fee;
+
+  assert_eq!(rpc_server.mempool().len(), 2);
+
+  assert!(total_fee_dry_run < total_fee_normal);
+}

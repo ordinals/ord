@@ -80,7 +80,7 @@ impl Inscribe {
     let commit = unsigned_commit_tx.txid();
     let reveal = reveal_tx.txid();
     let inscription: InscriptionId = reveal.into();
-    let total_fee = Self::calculate_fee(unsigned_commit_tx.clone(), utxos.clone())
+    let total_fee = Self::calculate_fee(unsigned_commit_tx.clone(), utxos)
       + Self::calculate_fee(reveal_tx.clone(), all_utxos);
 
     if !self.dry_run {
