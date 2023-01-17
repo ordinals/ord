@@ -1402,7 +1402,7 @@ mod tests {
 
   #[test]
   fn additional_output_size_is_correct() {
-    let before = TransactionBuilder::estimate_vbytes_with(0, vec![]);
+    let before = TransactionBuilder::estimate_vbytes_with(0, Vec::new());
     let after = TransactionBuilder::estimate_vbytes_with(
       0,
       vec![
