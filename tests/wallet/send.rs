@@ -163,16 +163,16 @@ fn send_on_mainnnet_works_with_wallet_whose_name_starts_with_ord() {
 fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
-  let txid = rpc_server.mine_blocks_with_subsidy(1, 800)[0].txdata[0].txid();
+
+  let txid = rpc_server.mine_blocks_with_subsidy(1, 10_000)[0].txdata[0].txid();
   CommandBuilder::new(format!(
-    "wallet inscribe --satpoint {txid}:0:0 degenerate.png"
+    "wallet inscribe --satpoint {txid}:0:0 degenerate.png --fee-rate 0"
   ))
   .write("degenerate.png", [1; 100])
   .rpc_server(&rpc_server)
   .output::<Inscribe>();
 
   let txid = rpc_server.mine_blocks_with_subsidy(1, 100)[0].txdata[0].txid();
-
   CommandBuilder::new(format!(
     "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0"
   ))

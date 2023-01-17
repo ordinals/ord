@@ -1104,7 +1104,7 @@ mod tests {
 
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
-      List::Unspent(vec![])
+      List::Unspent(Vec::new())
     );
   }
 
@@ -1131,7 +1131,7 @@ mod tests {
 
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
-      List::Unspent(vec![])
+      List::Unspent(Vec::new())
     );
   }
 

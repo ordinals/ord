@@ -279,7 +279,7 @@ mod tests {
 
     let script = builder.push_opcode(opcodes::all::OP_ENDIF).into_script();
 
-    Witness::from_vec(vec![script.into_bytes(), vec![]])
+    Witness::from_vec(vec![script.into_bytes(), Vec::new()])
   }
 
   #[test]
@@ -293,7 +293,7 @@ mod tests {
   #[test]
   fn ignore_key_path_spends() {
     assert_eq!(
-      InscriptionParser::parse(&Witness::from_vec(vec![vec![]])),
+      InscriptionParser::parse(&Witness::from_vec(vec![Vec::new()])),
       Err(InscriptionError::KeyPathSpend),
     );
   }
@@ -301,7 +301,7 @@ mod tests {
   #[test]
   fn ignore_key_path_spends_with_annex() {
     assert_eq!(
-      InscriptionParser::parse(&Witness::from_vec(vec![vec![], vec![0x50]])),
+      InscriptionParser::parse(&Witness::from_vec(vec![Vec::new(), vec![0x50]])),
       Err(InscriptionError::KeyPathSpend),
     );
   }
@@ -309,7 +309,7 @@ mod tests {
   #[test]
   fn ignore_unparsable_scripts() {
     assert_eq!(
-      InscriptionParser::parse(&Witness::from_vec(vec![vec![0x01], vec![]])),
+      InscriptionParser::parse(&Witness::from_vec(vec![vec![0x01], Vec::new()])),
       Err(InscriptionError::Script(script::Error::EarlyEndOfScript)),
     );
   }
@@ -317,7 +317,10 @@ mod tests {
   #[test]
   fn no_inscription() {
     assert_eq!(
-      InscriptionParser::parse(&Witness::from_vec(vec![Script::new().into_bytes(), vec![]])),
+      InscriptionParser::parse(&Witness::from_vec(vec![
+        Script::new().into_bytes(),
+        Vec::new()
+      ])),
       Err(InscriptionError::NoInscription),
     );
   }
@@ -446,7 +449,7 @@ mod tests {
       .into_script();
 
     assert_eq!(
-      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
+      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), Vec::new()])),
       Ok(inscription("text/plain;charset=utf-8", "ord")),
     );
   }
@@ -466,7 +469,7 @@ mod tests {
       .into_script();
 
     assert_eq!(
-      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
+      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), Vec::new()])),
       Ok(inscription("text/plain;charset=utf-8", "ord")),
     );
   }
@@ -493,7 +496,7 @@ mod tests {
       .into_script();
 
     assert_eq!(
-      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
+      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), Vec::new()])),
       Ok(inscription("text/plain;charset=utf-8", "foo")),
     );
   }
@@ -521,7 +524,7 @@ mod tests {
       .into_script();
 
     assert_eq!(
-      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
+      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), Vec::new()])),
       Err(InscriptionError::NoInscription)
     );
   }
@@ -535,7 +538,7 @@ mod tests {
       .into_script();
 
     assert_eq!(
-      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), vec![]])),
+      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), Vec::new()])),
       Err(InscriptionError::NoInscription)
     );
   }
@@ -607,7 +610,7 @@ mod tests {
     builder = inscription("foo", [1; 100]).append_reveal_script_to_builder(builder);
     builder = inscription("bar", [1; 100]).append_reveal_script_to_builder(builder);
 
-    let witness = Witness::from_vec(vec![builder.into_script().into_bytes(), vec![]]);
+    let witness = Witness::from_vec(vec![builder.into_script().into_bytes(), Vec::new()]);
 
     let tx = Transaction {
       version: 0,

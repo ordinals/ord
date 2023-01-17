@@ -1738,7 +1738,8 @@ mod tests {
 
   #[test]
   fn content_response_no_content_type() {
-    let (headers, body) = Server::content_response(Inscription::new(None, Some(vec![]))).unwrap();
+    let (headers, body) =
+      Server::content_response(Inscription::new(None, Some(Vec::new()))).unwrap();
 
     assert_eq!(headers["content-type"], "application/octet-stream");
     assert!(body.is_empty());

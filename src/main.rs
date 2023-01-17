@@ -81,6 +81,16 @@ mod test;
 #[cfg(test)]
 use self::test::*;
 
+macro_rules! tprintln {
+    ($($arg:tt)*) => {
+
+      if cfg!(test) {
+        eprint!("==> ");
+        eprintln!($($arg)*);
+      }
+    };
+}
+
 mod arguments;
 mod blocktime;
 mod chain;
