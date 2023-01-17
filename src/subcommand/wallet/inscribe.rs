@@ -21,6 +21,7 @@ struct Output {
   commit: Txid,
   inscription: InscriptionId,
   reveal: Txid,
+  total_fee: u64,
 }
 
 #[derive(Debug, Parser)]
@@ -37,7 +38,7 @@ pub(crate) struct Inscribe {
   pub(crate) file: PathBuf,
   #[clap(long, help = "Do not back up recovery key.")]
   pub(crate) no_backup: bool,
-  #[clap(long, default_value = "false", help = "Show total fee that would be paid")]
+  #[clap(long, help = "Show total fee that would be paid")]
   pub(crate) dry_run: bool,
 }
 
@@ -70,39 +71,47 @@ impl Inscribe {
         self.fee_rate,
       )?;
 
-    if self.dry_run {
-      let total_fee =
-        Self::fee(unsigned_commit_tx, utxos.clone()) + Self::fee(reveal_tx, utxos.clone());
-      println!("total fee: {}", total_fee);
-      return Ok(());
-    }
+    let mut all_utxos = utxos.clone();
+    all_utxos.insert(
+      reveal_tx.input[0].previous_output,
+      Amount::from_sat(unsigned_commit_tx.output[0].value),
+    );
 
-    if !self.no_backup {
-      Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
-    }
+    let commit = unsigned_commit_tx.txid();
+    let reveal = reveal_tx.txid();
+    let inscription: InscriptionId = reveal.into();
+    let total_fee = Self::calculate_fee(unsigned_commit_tx.clone(), utxos.clone())
+      + Self::calculate_fee(reveal_tx.clone(), all_utxos);
 
-    let signed_raw_commit_tx = client
-      .sign_raw_transaction_with_wallet(&unsigned_commit_tx, None, None)?
-      .hex;
+    if !self.dry_run {
+      if !self.no_backup {
+        Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
+      }
 
-    let commit = client
-      .send_raw_transaction(&signed_raw_commit_tx)
-      .context("Failed to send commit transaction")?;
+      let signed_raw_commit_tx = client
+        .sign_raw_transaction_with_wallet(&unsigned_commit_tx, None, None)?
+        .hex;
 
-    let reveal = client
-      .send_raw_transaction(&reveal_tx)
-      .context("Failed to send reveal transaction")?;
+      let _commit = client
+        .send_raw_transaction(&signed_raw_commit_tx)
+        .context("Failed to send commit transaction")?;
+
+      let _reveal = client
+        .send_raw_transaction(&reveal_tx)
+        .context("Failed to send reveal transaction")?;
+    };
 
     print_json(Output {
       commit,
       reveal,
-      inscription: reveal.into(),
+      inscription,
+      total_fee,
     })?;
 
     Ok(())
   }
 
-  fn fee(tx: Transaction, utxos: BTreeMap<OutPoint, Amount>) -> u64 {
+  fn calculate_fee(tx: Transaction, utxos: BTreeMap<OutPoint, Amount>) -> u64 {
     tx.input
       .iter()
       .map(|txin| utxos.get(&txin.previous_output).unwrap().to_sat())
