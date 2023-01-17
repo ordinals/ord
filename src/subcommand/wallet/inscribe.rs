@@ -76,19 +76,17 @@ impl Inscribe {
       Amount::from_sat(unsigned_commit_tx.output[0].value),
     );
 
-    let fees = Self::sum_fees(vec![&unsigned_commit_tx, &reveal_tx], &utxos);
+    let fees =
+      Self::calculate_fee(&unsigned_commit_tx, &utxos) + Self::calculate_fee(&reveal_tx, &utxos);
 
     if self.dry_run {
-
       print_json(Output {
         commit: unsigned_commit_tx.txid(),
         reveal: reveal_tx.txid(),
         inscription: reveal_tx.txid().into(),
         fees,
       })?;
-
     } else {
-
       if !self.no_backup {
         Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
       }
@@ -116,17 +114,12 @@ impl Inscribe {
     Ok(())
   }
 
-  fn sum_fees(transactions: Vec<&Transaction>, utxos: &BTreeMap<OutPoint, Amount>) -> u64 {
-    transactions
+  fn calculate_fee(tx: &Transaction, utxos: &BTreeMap<OutPoint, Amount>) -> u64 {
+    tx.input
       .iter()
-      .map(|tx| {
-        tx.input
-          .iter()
-          .map(|txin| utxos.get(&txin.previous_output).unwrap().to_sat())
-          .sum::<u64>()
-          - tx.output.iter().map(|txout| txout.value).sum::<u64>()
-      })
-      .sum()
+      .map(|txin| utxos.get(&txin.previous_output).unwrap().to_sat())
+      .sum::<u64>()
+      - tx.output.iter().map(|txout| txout.value).sum::<u64>()
   }
 
   fn create_inscription_transactions(
