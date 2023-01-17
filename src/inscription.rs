@@ -317,7 +317,10 @@ mod tests {
   #[test]
   fn no_inscription() {
     assert_eq!(
-      InscriptionParser::parse(&Witness::from_vec(vec![Script::new().into_bytes(), Vec::new()])),
+      InscriptionParser::parse(&Witness::from_vec(vec![
+        Script::new().into_bytes(),
+        Vec::new()
+      ])),
       Err(InscriptionError::NoInscription),
     );
   }
