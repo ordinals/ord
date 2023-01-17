@@ -125,7 +125,7 @@ impl Server {
         if let Err(error) = clone.update() {
           log::error!("{error}");
         }
-        thread::sleep(Duration::from_millis(100));
+        thread::sleep(Duration::from_millis(5000));
       });
 
       let router = Router::new()
