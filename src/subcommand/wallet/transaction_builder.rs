@@ -1415,7 +1415,7 @@ mod tests {
   }
 
   #[test]
-  fn do_not_strip_excess_value_if_it_would_crate_dust() {
+  fn do_not_strip_excess_value_if_it_would_create_dust() {
     pretty_assert_eq!(
       TransactionBuilder::build_transaction_with_value(
         satpoint(1, 0),
