@@ -70,7 +70,7 @@ impl Send {
 
     let change = get_change_addresses(&options, 2)?;
 
-    let unsigned_transaction = TransactionBuilder::build_transaction(
+    let unsigned_transaction = TransactionBuilder::build_transaction_with_postage(
       satpoint,
       inscriptions,
       unspent_outputs,

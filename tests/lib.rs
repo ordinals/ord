@@ -37,7 +37,7 @@ macro_rules! assert_regex_match {
   };
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 struct Inscribe {
   #[allow(dead_code)]
   commit: Txid,
