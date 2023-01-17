@@ -43,6 +43,7 @@ struct Inscribe {
   commit: Txid,
   inscription: String,
   reveal: Txid,
+  fees: u64,
 }
 
 fn inscribe(rpc_server: &test_bitcoincore_rpc::Handle) -> Inscribe {
