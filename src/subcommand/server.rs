@@ -136,7 +136,8 @@ impl Server {
         .route("/clock", get(Self::clock))
         .route("/content/:inscription_id", get(Self::content))
         .route("/faq", get(Self::faq))
-        .route("/favicon.ico", get(Self::favicon))
+        .route("/favicon.ico", get(Self::favicon_ico))
+        .route("/favicon.svg", get(Self::favicon_svg))
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_id", get(Self::inscription))
         .route("/inscriptions", get(Self::inscriptions))
@@ -541,8 +542,19 @@ impl Server {
     }
   }
 
-  async fn favicon() -> ServerResult<Response> {
+  async fn favicon_ico() -> ServerResult<Response> {
     Self::static_asset(Path("/favicon.png".to_string())).await
+  }
+
+  async fn favicon_svg() -> Response {
+    (
+      [(
+        header::CONTENT_SECURITY_POLICY,
+        HeaderValue::from_static("default-src 'unsafe-inline'"),
+      )],
+      Self::static_asset(Path("/favicon.svg".to_string())).await,
+    )
+      .into_response()
   }
 
   async fn static_asset(Path(path): Path<String>) -> ServerResult<Response> {
@@ -628,7 +640,7 @@ impl Server {
     );
     headers.insert(
       header::CONTENT_SECURITY_POLICY,
-      "default-src 'unsafe-eval' 'unsafe-inline'".parse().unwrap(),
+      HeaderValue::from_static("default-src 'unsafe-eval' 'unsafe-inline'"),
     );
 
     Some((headers, inscription.into_content()?))
