@@ -550,10 +550,6 @@ impl Server {
     Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<Response> {
-    // TODO:
-    // - figure out how include absolute URL
-    // - write test
-
     let mut builder = rss::ChannelBuilder::default();
 
     match chain {
@@ -561,15 +557,7 @@ impl Server {
       _ => builder.title(format!("Inscriptions – {chain:?}")),
     };
 
-    builder
-      .link("http://example.com")
-      .description("An RSS feed.")
-      .generator(Some("ord".to_string()))
-      .image(Some(
-        rss::ImageBuilder::default()
-          .url("/favicon.ico".to_string())
-          .build(),
-      ));
+    builder.generator(Some("ord".to_string()));
 
     for (number, id) in index.get_feed_inscriptions(100)? {
       builder.item(
@@ -586,7 +574,13 @@ impl Server {
 
     Ok(
       (
-        [(header::CONTENT_TYPE, "application/rss+xml")],
+        [
+          (header::CONTENT_TYPE, "application/rss+xml"),
+          (
+            header::CONTENT_SECURITY_POLICY,
+            "default-src 'unsafe-inline'",
+          ),
+        ],
         builder.build().to_string(),
       )
         .into_response(),
@@ -2013,6 +2007,26 @@ mod tests {
         .get(header::STRICT_TRANSPORT_SECURITY)
         .unwrap(),
       "max-age=31536000; includeSubDomains; preload",
+    );
+  }
+
+  #[test]
+  fn feed() {
+    let server = TestServer::new_with_sat_index();
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witness: inscription("text/foo", "hello").to_witness(),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      "/feed.xml",
+      StatusCode::OK,
+      ".*<title>Inscription 0</title>.*",
     );
   }
 }
