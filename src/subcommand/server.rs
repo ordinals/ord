@@ -335,8 +335,17 @@ impl Server {
     index.height()?.ok_or_not_found(|| "genesis block")
   }
 
-  async fn clock(Extension(index): Extension<Arc<Index>>) -> ServerResult<ClockSvg> {
-    Ok(ClockSvg::new(Self::index_height(&index)?))
+  async fn clock(Extension(index): Extension<Arc<Index>>) -> ServerResult<Response> {
+    Ok(
+      (
+        [(
+          header::CONTENT_SECURITY_POLICY,
+          HeaderValue::from_static("default-src 'unsafe-inline'"),
+        )],
+        ClockSvg::new(Self::index_height(&index)?),
+      )
+        .into_response(),
+    )
   }
 
   async fn sat(
@@ -546,15 +555,17 @@ impl Server {
     Self::static_asset(Path("/favicon.png".to_string())).await
   }
 
-  async fn favicon_svg() -> Response {
-    (
-      [(
-        header::CONTENT_SECURITY_POLICY,
-        HeaderValue::from_static("default-src 'unsafe-inline'"),
-      )],
-      Self::static_asset(Path("/favicon.svg".to_string())).await,
+  async fn favicon_svg() -> ServerResult<Response> {
+    Ok(
+      (
+        [(
+          header::CONTENT_SECURITY_POLICY,
+          HeaderValue::from_static("default-src 'unsafe-inline'"),
+        )],
+        Self::static_asset(Path("/favicon.svg".to_string())).await?,
+      )
+        .into_response(),
     )
-      .into_response()
   }
 
   async fn static_asset(Path(path): Path<String>) -> ServerResult<Response> {
@@ -1443,9 +1454,17 @@ mod tests {
   #[test]
   fn clock_updates() {
     let test_server = TestServer::new();
-    test_server.assert_response_regex("/clock", StatusCode::OK, ".*<text.*>0</text>.*");
+    test_server.assert_response_regex(
+      "/clock",
+      StatusCode::OK,
+      r#".*<line y2="-9" transform="rotate\(0\)"><title>Subsidy</title></line>.*"#,
+    );
     test_server.mine_blocks(1);
-    test_server.assert_response_regex("/clock", StatusCode::OK, ".*<text.*>1</text>.*");
+    test_server.assert_response_regex(
+      "/clock",
+      StatusCode::OK,
+      r#".*<line y2="-9" transform="rotate\(0.00005194805194805195\)"><title>Subsidy</title></line>.*"#,
+    );
   }
 
   #[test]
