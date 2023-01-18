@@ -114,19 +114,16 @@ fn get_unspent_outputs(options: &Options) -> Result<BTreeMap<OutPoint, Amount>> 
   Ok(utxos)
 }
 
-fn get_change_addresses(options: &Options, n: usize) -> Result<Vec<Address>> {
+fn get_change_addresses(options: &Options, n: usize) -> Result<[Address; 2]> {
   let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
-  let mut addresses = Vec::new();
-  for _ in 0..n {
-    addresses.push(
-      client
-        .call("getrawchangeaddress", &["bech32m".into()])
-        .context("could not get change addresses from wallet")?,
-    );
-  }
+  let get_raw_change_address = || -> Result<Address> {
+    client
+      .call("getrawchangeaddress", &["bech32m".into()])
+      .context("could not get change addresses from wallet")
+  };
 
-  Ok(addresses)
+  Ok([get_raw_change_address()?, get_raw_change_address()?])
 }
 
 fn initialize_wallet(options: &Options, seed: [u8; 64]) -> Result {

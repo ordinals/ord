@@ -129,7 +129,7 @@ impl Inscribe {
     inscriptions: BTreeMap<SatPoint, InscriptionId>,
     network: Network,
     utxos: BTreeMap<OutPoint, Amount>,
-    change: Vec<Address>,
+    change: [Address; 2],
     destination: Address,
     fee_rate: FeeRate,
   ) -> Result<(Transaction, Transaction, TweakedKeyPair)> {
@@ -370,7 +370,7 @@ mod tests {
       BTreeMap::new(),
       Network::Bitcoin,
       utxos.into_iter().collect(),
-      vec![commit_address, change(1)],
+      [commit_address, change(1)],
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
     )
@@ -399,7 +399,7 @@ mod tests {
       BTreeMap::new(),
       Network::Bitcoin,
       utxos.into_iter().collect(),
-      vec![commit_address, change(1)],
+      [commit_address, change(1)],
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
     )
@@ -432,7 +432,7 @@ mod tests {
       inscriptions,
       Network::Bitcoin,
       utxos.into_iter().collect(),
-      vec![commit_address, change(1)],
+      [commit_address, change(1)],
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
     )
@@ -472,7 +472,7 @@ mod tests {
       inscriptions,
       Network::Bitcoin,
       utxos.into_iter().collect(),
-      vec![commit_address, change(1)],
+      [commit_address, change(1)],
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
     )
@@ -506,7 +506,7 @@ mod tests {
       inscriptions,
       bitcoin::Network::Signet,
       utxos.into_iter().collect(),
-      vec![commit_address, change(1)],
+      [commit_address, change(1)],
       reveal_address,
       FeeRate::try_from(fee_rate).unwrap(),
     )
@@ -538,7 +538,7 @@ mod tests {
       BTreeMap::new(),
       Network::Bitcoin,
       utxos.into_iter().collect(),
-      vec![commit_address, change(1)],
+      [commit_address, change(1)],
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
     )
