@@ -7,6 +7,7 @@ edition = "2021"
 autotests = false
 homepage = "https://github.com/casey/ord"
 repository = "https://github.com/casey/ord"
+autobins = false
 
 [workspace]
 members = [".", "test-bitcoincore-rpc"]
@@ -56,6 +57,14 @@ pretty_assertions = "1.2.1"
 reqwest = { version = "0.11.10", features = ["blocking"] }
 test-bitcoincore-rpc = { path = "test-bitcoincore-rpc" }
 unindent = "0.1.7"
+
+[[bin]]
+name = "ord"
+path = "src/bin/main.rs"
+
+[lib]
+name = "ord"
+path = "src/lib.rs"
 
 [[test]]
 name = "integration"
