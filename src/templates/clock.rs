@@ -2,6 +2,7 @@ use super::*;
 
 #[derive(Boilerplate)]
 pub(crate) struct ClockSvg {
+  height: Height,
   hour: f64,
   minute: f64,
   second: f64,
@@ -12,6 +13,7 @@ impl ClockSvg {
     let min = height.min(Epoch::FIRST_POST_SUBSIDY.starting_height());
 
     Self {
+      height,
       hour: (min.n() % Epoch::FIRST_POST_SUBSIDY.starting_height().n()) as f64
         / Epoch::FIRST_POST_SUBSIDY.starting_height().n() as f64
         * 360.0,
@@ -86,6 +88,7 @@ mod tests {
       ClockSvg::new(Height(6929999)).to_string(),
       r##"<\?xml version="1.0" encoding="UTF-8"\?>
 <svg.*>.*
+  <text.*>6929999</text>.*
   <line y2="-9" transform="rotate\(359.9999480519481\)"><title>Subsidy</title></line>.*
   <line y2="-13" stroke-width="0.6" transform="rotate\(359.9982857142857\)"><title>Epoch</title></line>.*
   <line y2="-16" stroke="#d00505" stroke-width="0.2" transform="rotate\(179.82142857142858\)"><title>Period</title></line>.*

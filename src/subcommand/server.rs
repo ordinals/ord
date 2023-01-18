@@ -1454,17 +1454,9 @@ mod tests {
   #[test]
   fn clock_updates() {
     let test_server = TestServer::new();
-    test_server.assert_response_regex(
-      "/clock",
-      StatusCode::OK,
-      r#".*<line y2="-9" transform="rotate\(0\)"><title>Subsidy</title></line>.*"#,
-    );
+    test_server.assert_response_regex("/clock", StatusCode::OK, ".*<text.*>0</text>.*");
     test_server.mine_blocks(1);
-    test_server.assert_response_regex(
-      "/clock",
-      StatusCode::OK,
-      r#".*<line y2="-9" transform="rotate\(0.00005194805194805195\)"><title>Subsidy</title></line>.*"#,
-    );
+    test_server.assert_response_regex("/clock", StatusCode::OK, ".*<text.*>1</text>.*");
   }
 
   #[test]
