@@ -1,9 +1,9 @@
 use super::*;
 
 #[derive(Debug, PartialEq, Copy, Clone, Eq, PartialOrd, Ord)]
-pub(crate) struct SatPoint {
-  pub(crate) outpoint: OutPoint,
-  pub(crate) offset: u64,
+pub struct SatPoint {
+  pub outpoint: OutPoint,
+  pub offset: u64,
 }
 
 impl Display for SatPoint {
