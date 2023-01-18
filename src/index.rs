@@ -668,6 +668,20 @@ impl Index {
     )
   }
 
+  pub(crate) fn get_feed_inscriptions(&self, n: usize) -> Result<Vec<(u64, InscriptionId)>> {
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
+        .iter()?
+        .rev()
+        .take(n)
+        .map(|(number, id)| (number.value(), Entry::load(*id.value())))
+        .collect(),
+    )
+  }
+
   pub(crate) fn get_inscription_entry(
     &self,
     inscription_id: InscriptionId,
