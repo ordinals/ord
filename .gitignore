@@ -1,12 +1,12 @@
 /.idea/
 /.vagrant
 /docs/build
+/fuzz/artifacts
+/fuzz/corpus
+/fuzz/coverage
+/fuzz/target
 /index.redb
 /ord.log
 /target
 /test-times.txt
 /tmp
-/fuzz/target
-/fuzz/corpus
-/fuzz/artifacts
-/fuzz/coverage
