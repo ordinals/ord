@@ -18,10 +18,9 @@ fuzz_target!(|input: Input| {
     .parse::<OutPoint>()
     .unwrap();
 
-  let satpoint = SatPoint {
-    outpoint,
-    offset: 0,
-  };
+  let satpoint = "1111111111111111111111111111111111111111111111111111111111111111:1:0"
+    .parse::<SatPoint>()
+    .unwrap();
 
   let inscription_id = "1111111111111111111111111111111111111111111111111111111111111111i1"
     .parse()

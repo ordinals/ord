@@ -83,7 +83,7 @@ impl fmt::Display for Error {
         f,
         "cannot send {outgoing_satpoint} without also sending inscription {inscription_id} at {inscribed_satpoint}"
       ),
-      Error::ValueOverflow => write!(f, "overflow when adding target value and estimated fees"),
+      Error::ValueOverflow => write!(f, "overflow adding target value and estimated fee"),
     }
   }
 }
