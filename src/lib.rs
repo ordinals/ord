@@ -29,7 +29,6 @@ use {
     rarity::Rarity,
     representation::Representation,
     sat::Sat,
-    sat_point::SatPoint,
     subcommand::Subcommand,
     tally::Tally,
   },
@@ -72,6 +71,11 @@ use {
   },
   tempfile::TempDir,
   tokio::{runtime::Runtime, task},
+};
+
+pub use crate::{
+  fee_rate::FeeRate, sat_point::SatPoint,
+  subcommand::wallet::transaction_builder::TransactionBuilder,
 };
 
 #[cfg(test)]

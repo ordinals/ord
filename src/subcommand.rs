@@ -11,7 +11,7 @@ mod server;
 mod subsidy;
 mod supply;
 mod traits;
-mod wallet;
+pub(crate) mod wallet;
 
 fn print_json(output: impl Serialize) -> Result {
   serde_json::to_writer_pretty(io::stdout(), &output)?;

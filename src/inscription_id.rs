@@ -1,7 +1,7 @@
 use super::*;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
-pub(crate) struct InscriptionId {
+pub struct InscriptionId {
   pub(crate) txid: Txid,
   pub(crate) index: u32,
 }
@@ -31,7 +31,7 @@ impl Display for InscriptionId {
 }
 
 #[derive(Debug)]
-pub(crate) enum ParseError {
+pub enum ParseError {
   Character(char),
   Length(usize),
   Separator(char),
