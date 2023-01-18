@@ -6,3 +6,7 @@
 /target
 /test-times.txt
 /tmp
+/fuzz/target
+/fuzz/corpus
+/fuzz/artifacts
+/fuzz/coverage
