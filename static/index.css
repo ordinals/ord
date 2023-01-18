@@ -181,9 +181,8 @@ a.mythic {
 }
 
 .thumbnails iframe {
-  height: 101%;
-  overflow: hidden;
-  width: 101%;
+  height: 100%;
+  width: 100%;
 }
 
 .inscription {

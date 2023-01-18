@@ -2,6 +2,7 @@
 
 use {
   self::{command_builder::CommandBuilder, expected::Expected, test_server::TestServer},
+  bip39::Mnemonic,
   bitcoin::{blockdata::constants::COIN_VALUE, Address, Network, OutPoint, Txid},
   executable_path::executable_path,
   pretty_assertions::assert_eq as pretty_assert_eq,
@@ -36,12 +37,13 @@ macro_rules! assert_regex_match {
   };
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 struct Inscribe {
   #[allow(dead_code)]
   commit: Txid,
   inscription: String,
   reveal: Txid,
+  fees: u64,
 }
 
 fn inscribe(rpc_server: &test_bitcoincore_rpc::Handle) -> Inscribe {
@@ -57,13 +59,19 @@ fn inscribe(rpc_server: &test_bitcoincore_rpc::Handle) -> Inscribe {
   output
 }
 
+#[derive(Deserialize)]
+struct Create {
+  mnemonic: Mnemonic,
+}
+
 fn create_wallet(rpc_server: &test_bitcoincore_rpc::Handle) {
   CommandBuilder::new(format!("--chain {} wallet create", rpc_server.network()))
     .rpc_server(rpc_server)
-    .run();
+    .output::<Create>();
 }
 
 mod command_builder;
+mod core;
 mod epochs;
 mod expected;
 mod find;
@@ -71,7 +79,6 @@ mod index;
 mod info;
 mod list;
 mod parse;
-mod preview;
 mod server;
 mod subsidy;
 mod supply;

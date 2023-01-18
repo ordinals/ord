@@ -6,6 +6,7 @@ watch +args='test':
 ci: clippy forbid
   cargo fmt -- --check
   cargo test --all
+  cargo test --all -- --ignored
 
 forbid:
   ./bin/forbid
@@ -15,6 +16,9 @@ fmt:
 
 clippy:
   cargo clippy --all --all-targets
+
+lclippy:
+  cargo lclippy --all --all-targets -- -D warnings
 
 deploy branch chain domain:
   ssh root@{{domain}} "mkdir -p deploy \

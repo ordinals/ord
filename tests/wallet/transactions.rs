@@ -5,9 +5,14 @@ fn transactions() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
+  assert!(rpc_server.loaded_wallets().is_empty());
+
   CommandBuilder::new("wallet transactions")
     .rpc_server(&rpc_server)
     .run();
+
+  assert_eq!(rpc_server.loaded_wallets().len(), 1);
+  assert_eq!(rpc_server.loaded_wallets().first().unwrap(), "ord");
 
   rpc_server.mine_blocks(1);
 

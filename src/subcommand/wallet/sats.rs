@@ -119,7 +119,7 @@ mod tests {
         outpoint(1),
         vec![(51 * COIN_VALUE, 100 * COIN_VALUE), (1234, 5678)],
       )]),
-      vec![]
+      Vec::new()
     )
   }
 
@@ -166,7 +166,7 @@ mod tests {
   fn identify_from_tsv_none() {
     assert_eq!(
       sats_from_tsv(vec![(outpoint(1), vec![(0, 1)])], "1\n").unwrap(),
-      vec![]
+      Vec::new()
     )
   }
 

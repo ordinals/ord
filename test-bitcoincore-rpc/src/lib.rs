@@ -240,6 +240,10 @@ impl Handle {
       Network::Regtest => Network::Regtest.to_string(),
     }
   }
+
+  pub fn loaded_wallets(&self) -> BTreeSet<String> {
+    self.state().loaded_wallets.clone()
+  }
 }
 
 impl Drop for Handle {

@@ -33,10 +33,11 @@ impl Preview {
           arg
         })
         .arg("-regtest")
-        .arg("-txindex=1")
+        .arg("-txindex")
         .arg("-listen=0")
         .arg(format!("-rpcport={rpc_port}"))
-        .spawn()?,
+        .spawn()
+        .context("failed to spawn `bitcoind`")?,
     );
 
     let options = Options {
@@ -49,7 +50,7 @@ impl Preview {
     };
 
     for attempt in 0.. {
-      if options.bitcoin_rpc_client(false).is_ok() {
+      if options.bitcoin_rpc_client().is_ok() {
         break;
       }
 
@@ -60,9 +61,9 @@ impl Preview {
       thread::sleep(Duration::from_millis(50));
     }
 
-    let rpc_client = options.bitcoin_rpc_client(false)?;
-
     super::wallet::create::run(options.clone())?;
+
+    let rpc_client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
     let address =
       rpc_client.get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))?;
@@ -78,6 +79,7 @@ impl Preview {
             file,
             no_backup: true,
             satpoint: None,
+            dry_run: false,
           },
         )),
       }

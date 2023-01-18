@@ -8,9 +8,18 @@ fn create() {
 
   CommandBuilder::new("wallet create")
     .rpc_server(&rpc_server)
-    .run();
+    .output::<Create>();
 
   assert!(rpc_server.wallets().contains("ord"));
+}
+
+#[test]
+fn seed_phrases_are_twelve_words_long() {
+  let Create { mnemonic } = CommandBuilder::new("wallet create")
+    .rpc_server(&test_bitcoincore_rpc::spawn())
+    .output::<Create>();
+
+  assert_eq!(mnemonic.word_count(), 12);
 }
 
 #[test]
@@ -19,7 +28,7 @@ fn wallet_creates_correct_mainnet_taproot_descriptor() {
 
   CommandBuilder::new("wallet create")
     .rpc_server(&rpc_server)
-    .run();
+    .output::<Create>();
 
   assert_eq!(rpc_server.descriptors().len(), 2);
   assert_regex_match!(
@@ -40,7 +49,7 @@ fn wallet_creates_correct_test_network_taproot_descriptor() {
 
   CommandBuilder::new("--chain signet wallet create")
     .rpc_server(&rpc_server)
-    .run();
+    .output::<Create>();
 
   assert_eq!(rpc_server.descriptors().len(), 2);
   assert_regex_match!(
@@ -59,14 +68,14 @@ fn detect_wrong_descriptors() {
 
   CommandBuilder::new("wallet create")
     .rpc_server(&rpc_server)
-    .run();
+    .output::<Create>();
 
   rpc_server.import_descriptor("wpkh([aslfjk])#a23ad2l".to_string());
 
   CommandBuilder::new("wallet transactions")
     .rpc_server(&rpc_server)
     .stderr_regex(
-      "error: this does not appear to be an ord wallet, create one with `ord wallet create`\n",
+      r#"error: wallet "ord" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`\n"#,
     )
     .expected_exit_code(1)
     .run();
@@ -80,7 +89,7 @@ fn create_with_different_name() {
 
   CommandBuilder::new("--wallet inscription-wallet wallet create")
     .rpc_server(&rpc_server)
-    .run();
+    .output::<Create>();
 
   assert!(rpc_server.wallets().contains("inscription-wallet"));
 }

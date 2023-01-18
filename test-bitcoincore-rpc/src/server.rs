@@ -343,7 +343,7 @@ impl Api for Server {
       match self.state().transactions.get(&txid) {
         Some(_) => Ok(
           serde_json::to_value(GetRawTransactionResult {
-            in_active_chain: None,
+            in_active_chain: Some(true),
             hex: Vec::new(),
             txid: Txid::all_zeros(),
             hash: Wtxid::all_zeros(),
@@ -561,5 +561,28 @@ impl Api for Server {
         })
         .collect(),
     })
+  }
+
+  fn load_wallet(&self, wallet: String) -> Result<LoadWalletResult, jsonrpc_core::Error> {
+    if self.state().wallets.contains(&wallet) {
+      self.state().loaded_wallets.insert(wallet.clone());
+      Ok(LoadWalletResult {
+        name: wallet,
+        warning: None,
+      })
+    } else {
+      Err(Self::not_found())
+    }
+  }
+
+  fn list_wallets(&self) -> Result<Vec<String>, jsonrpc_core::Error> {
+    Ok(
+      self
+        .state()
+        .loaded_wallets
+        .clone()
+        .into_iter()
+        .collect::<Vec<String>>(),
+    )
   }
 }
