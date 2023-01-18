@@ -49,7 +49,7 @@ fuzz_target!(|input: Input| {
       .unwrap(),
   ];
 
-  let fee_rate = FeeRate::try_from(1.0).unwrap();
+  let Ok(fee_rate) = FeeRate::try_from(input.fee_rate) else { return; };
 
   let output_value = Amount::from_sat(input.output_value);
 

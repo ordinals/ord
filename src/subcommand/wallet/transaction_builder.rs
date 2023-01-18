@@ -54,7 +54,7 @@ pub enum Error {
     output_value: Amount,
     dust_value: Amount,
   },
-  Overflow,
+  ValueOverflow,
 }
 
 #[derive(Debug, PartialEq)]
@@ -83,7 +83,7 @@ impl fmt::Display for Error {
         f,
         "cannot send {outgoing_satpoint} without also sending inscription {inscription_id} at {inscribed_satpoint}"
       ),
-      Error::Overflow => todo!(),
+      Error::ValueOverflow => write!(f, "overflow when adding target value and estimated fees"),
     }
   }
 }
@@ -290,7 +290,7 @@ impl TransactionBuilder {
 
     let total = min_value
       .checked_add(estimated_fee)
-      .ok_or(Error::Overflow)?;
+      .ok_or(Error::ValueOverflow)?;
 
     if let Some(deficit) = total.checked_sub(self.outputs.last().unwrap().1) {
       if deficit > Amount::ZERO {
@@ -329,17 +329,6 @@ impl TransactionBuilder {
       };
 
       if excess > max
-        && value.checked_sub(target).unwrap()
-          > self
-            .unused_change_addresses
-            .last()
-            .unwrap()
-            .script_pubkey()
-            .dust_value()
-        && value.checked_sub(target).unwrap()
-          > self
-            .fee_rate
-            .fee(self.estimate_vbytes() + Self::ADDITIONAL_OUTPUT_VBYTES)
         && value.checked_sub(target).unwrap()
           > self
             .unused_change_addresses
