@@ -23,11 +23,11 @@ members = ["."]
 debug = 1
 
 [[bin]]
-name = "fuzz_target_1"
-path = "fuzz_targets/fuzz_target_1.rs"
+name = "transaction_builder"
+path = "fuzz_targets/transaction_builder.rs"
 test = false
 doc = false
 
 [patch.crates-io]
-jsonrpc = { git = "https://github.com/casey/rust-jsonrpc.git", branch = "fix-fuzzing-cfg" }
+jsonrpc = { git = "https://github.com/apoelstra/rust-jsonrpc.git", rev = "64b58797dd517c4de0cec769ff5652220801fe18" }
 redb = { git = "https://github.com/casey/redb.git", branch = "ord" }

@@ -29,7 +29,6 @@ use {
     rarity::Rarity,
     representation::Representation,
     sat::Sat,
-    sat_point::SatPoint,
     subcommand::Subcommand,
     tally::Tally,
   },
@@ -74,6 +73,11 @@ use {
   tokio::{runtime::Runtime, task},
 };
 
+pub use {
+  fee_rate::FeeRate, sat_point::SatPoint,
+  subcommand::wallet::transaction_builder::TransactionBuilder,
+};
+
 #[cfg(test)]
 #[macro_use]
 mod test;
@@ -98,7 +102,7 @@ mod decimal;
 mod degree;
 mod deserialize_from_str;
 mod epoch;
-pub mod fee_rate;
+mod fee_rate;
 mod height;
 mod index;
 mod inscription;
@@ -110,8 +114,8 @@ mod outgoing;
 mod rarity;
 mod representation;
 mod sat;
-pub mod sat_point;
-pub mod subcommand;
+mod sat_point;
+mod subcommand;
 mod tally;
 mod templates;
 

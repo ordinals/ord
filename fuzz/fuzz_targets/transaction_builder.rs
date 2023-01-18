@@ -3,10 +3,7 @@
 use {
   bitcoin::{Amount, OutPoint},
   libfuzzer_sys::fuzz_target,
-  ord::{
-    fee_rate::FeeRate, sat_point::SatPoint,
-    subcommand::wallet::transaction_builder::TransactionBuilder,
-  },
+  ord::{FeeRate, SatPoint, TransactionBuilder},
   std::collections::BTreeMap,
 };
 
