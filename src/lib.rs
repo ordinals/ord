@@ -73,7 +73,7 @@ use {
   tokio::{runtime::Runtime, task},
 };
 
-pub use {
+pub use crate::{
   fee_rate::FeeRate, sat_point::SatPoint,
   subcommand::wallet::transaction_builder::TransactionBuilder,
 };
