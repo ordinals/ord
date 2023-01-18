@@ -2015,7 +2015,7 @@ mod tests {
     let server = TestServer::new_with_sat_index();
     server.mine_blocks(1);
 
-    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0)],
       witness: inscription("text/foo", "hello").to_witness(),
       ..Default::default()
