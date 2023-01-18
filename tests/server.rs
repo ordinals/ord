@@ -274,7 +274,7 @@ fn inscriptions_page_has_next_and_previous() {
     format!(
       ".*<h1>Inscription 1</h1>.*
 <div class=inscription>
-<a class=previous href=/inscription/{a}>❮</a>
+<a class=prev href=/inscription/{a}>❮</a>
 <a href=/preview/{b}>.*</a>
 <a class=next href=/inscription/{c}>❯</a>
 </div>.*",

@@ -668,6 +668,59 @@ impl Index {
     )
   }
 
+  pub(crate) fn get_latest_inscription_numbers(
+    &self,
+    n: usize,
+  ) -> Result<Vec<(u64, InscriptionId)>> {
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
+        .iter()?
+        .rev()
+        .take(n)
+        .map(|(number, id)| (number.value(), Entry::load(*id.value())))
+        .collect(),
+    )
+  }
+
+  pub(crate) fn get_latest_inscriptions_from(
+    &self,
+    n: usize,
+    from: u64,
+  ) -> Result<(Vec<InscriptionId>, Option<u64>, Option<u64>)> {
+    let rtx = self.database.begin_read()?;
+
+    let inscription_number_to_inscription_id =
+      rtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
+
+    let prev = if let Some(prev) = from.checked_sub(n.try_into()?) {
+      inscription_number_to_inscription_id
+        .get(&prev)?
+        .map(|_| prev)
+    } else {
+      None
+    };
+
+    let next = if let Some(next) = from.checked_add(n.try_into()?) {
+      inscription_number_to_inscription_id
+        .get(&next)?
+        .map(|_| next)
+    } else {
+      None
+    };
+
+    let inscriptions = inscription_number_to_inscription_id
+      .range(..=from)?
+      .rev()
+      .take(n)
+      .map(|(_number, id)| Entry::load(*id.value()))
+      .collect();
+
+    Ok((inscriptions, prev, next))
+  }
+
   pub(crate) fn get_inscription_entry(
     &self,
     inscription_id: InscriptionId,

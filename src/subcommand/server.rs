@@ -140,6 +140,7 @@ impl Server {
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_id", get(Self::inscription))
         .route("/inscriptions", get(Self::inscriptions))
+        .route("/inscriptions/:from", get(Self::inscriptions_from))
         .route("/install.sh", get(Self::install_script))
         .route("/ordinal/:sat", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
@@ -732,9 +733,35 @@ impl Server {
     Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<PageHtml<InscriptionsHtml>> {
+    let mut inscriptions = index.get_latest_inscription_numbers(101)?;
+
+    let prev = if inscriptions.len() == 101 {
+      Some(inscriptions.pop().unwrap().0)
+    } else {
+      None
+    };
+
     Ok(
       InscriptionsHtml {
-        inscriptions: index.get_latest_inscriptions(100)?,
+        inscriptions: inscriptions.into_iter().map(|(_number, id)| id).collect(),
+        next: None,
+        prev,
+      }
+      .page(chain, index.has_sat_index()?),
+    )
+  }
+
+  async fn inscriptions_from(
+    Extension(chain): Extension<Chain>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(from): Path<u64>,
+  ) -> ServerResult<PageHtml<InscriptionsHtml>> {
+    let (inscriptions, prev, next) = index.get_latest_inscriptions_from(100, from)?;
+    Ok(
+      InscriptionsHtml {
+        inscriptions,
+        next,
+        prev,
       }
       .page(chain, index.has_sat_index()?),
     )

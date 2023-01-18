@@ -70,7 +70,7 @@ mod tests {
   fn prev_active_when_not_first() {
     assert_regex_match!(
       BlockHtml::new(Chain::Mainnet.genesis_block(), Height(1), Height(1)),
-      r"<h1>Block 1</h1>.*<a class=previous href=/block/0>prev</a>\s*next.*",
+      r"<h1>Block 1</h1>.*<a class=prev href=/block/0>prev</a>\s*next.*",
     );
   }
 }

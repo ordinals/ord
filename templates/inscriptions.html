@@ -4,3 +4,13 @@
   {{Iframe::thumbnail(*id)}}
 %% }
 </div>
+%% if let Some(prev) = self.prev {
+<a class=prev href=/inscriptions/{{prev}}>prev</a>
+%% } else {
+prev
+%% }
+%% if let Some(next) = self.next {
+<a class=next href=/inscriptions/{{next}}>next</a>
+%% } else {
+next
+%% }
