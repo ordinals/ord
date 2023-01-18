@@ -87,15 +87,17 @@ mod tests {
   fn page() {
     assert_regex_match!(
       Foo.page(Chain::Mainnet, true),
-      "<!doctype html>
+      r"<!doctype html>
 <html lang=en>
   <head>
     <meta charset=utf-8>
     <meta name=format-detection content='telephone=no'>
     <meta name=viewport content='width=device-width,initial-scale=1.0'>
     <title>Foo</title>
-    <link href=/static/index.css rel=stylesheet>
-    <link href=/static/modern-normalize.css rel=stylesheet>
+    <link rel=icon type=image/svg\+xml href=/favicon.svg>
+    <link rel=icon type=image/png href=/favicon.ico>
+    <link rel=stylesheet href=/static/index.css>
+    <link rel=stylesheet href=/static/modern-normalize.css>
     <script src=/static/index.js defer></script>
   </head>
   <body>
