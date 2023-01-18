@@ -2,6 +2,7 @@ use {
   super::*,
   bitcoin::{
     blockdata::{opcodes, script},
+    policy::MAX_STANDARD_TX_WEIGHT,
     schnorr::{TapTweak, TweakedKeyPair, TweakedPublicKey, UntweakedKeyPair},
     secp256k1::{
       self, constants::SCHNORR_SIGNATURE_SIZE, rand, schnorr::Signature, Secp256k1, XOnlyPublicKey,
@@ -276,6 +277,14 @@ impl Inscribe {
       commit_tx_address
     );
 
+    let reveal_weight = reveal_tx.weight();
+
+    if reveal_weight > MAX_STANDARD_TX_WEIGHT.try_into().unwrap() {
+      bail!(
+        "reveal transaction weight greater than {MAX_STANDARD_TX_WEIGHT} (MAX_STANDARD_TX_WEIGHT): {reveal_weight}"
+      );
+    }
+
     Ok((unsigned_commit_tx, reveal_tx, recovery_key_pair))
   }
 
@@ -511,6 +520,35 @@ mod tests {
     assert_eq!(
       reveal_tx.output[0].value,
       20_000 - fee - (20_000 - commit_tx.output[0].value),
+    );
+  }
+
+  #[test]
+  fn inscribe_over_max_standard_tx_weight() {
+    let utxos = vec![(outpoint(1), Amount::from_sat(50 * COIN_VALUE))];
+
+    let inscription = inscription("text/plain", [0; MAX_STANDARD_TX_WEIGHT as usize]);
+    let satpoint = None;
+    let commit_address = change(0);
+    let reveal_address = recipient();
+
+    let error = Inscribe::create_inscription_transactions(
+      satpoint,
+      inscription,
+      BTreeMap::new(),
+      Network::Bitcoin,
+      utxos.into_iter().collect(),
+      vec![commit_address, change(1)],
+      reveal_address,
+      FeeRate::try_from(1.0).unwrap(),
+    )
+    .unwrap_err()
+    .to_string();
+
+    assert!(
+      error.contains(&format!("reveal transaction weight greater than {MAX_STANDARD_TX_WEIGHT} (MAX_STANDARD_TX_WEIGHT): 402799")),
+      "{}",
+      error
     );
   }
 }
