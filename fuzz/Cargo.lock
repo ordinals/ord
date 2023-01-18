@@ -1581,7 +1581,7 @@ dependencies = [
 [[package]]
 name = "jsonrpc"
 version = "0.14.0"
-source = "git+https://github.com/casey/rust-jsonrpc.git?branch=fix-fuzzing-cfg#82ede67e1127109f7b64d7472563105e3b436d5d"
+source = "git+https://github.com/apoelstra/rust-jsonrpc.git?rev=64b58797dd517c4de0cec769ff5652220801fe18#64b58797dd517c4de0cec769ff5652220801fe18"
 dependencies = [
  "base64 0.13.1",
  "serde",

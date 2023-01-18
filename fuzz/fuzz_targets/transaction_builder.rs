@@ -8,9 +8,9 @@ use {
 };
 
 #[derive(Clone, Debug, arbitrary::Arbitrary)]
-pub struct Input {
-  pub output_value: u64,
-  pub fee_rate: f64,
+struct Input {
+  output_value: u64,
+  fee_rate: f64,
 }
 
 fuzz_target!(|input: Input| {
