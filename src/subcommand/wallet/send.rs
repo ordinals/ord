@@ -68,7 +68,7 @@ impl Send {
       }
     };
 
-    let change = get_change_addresses(&options, 2)?;
+    let change = [get_change_address(&client)?, get_change_address(&client)?];
 
     let unsigned_transaction = TransactionBuilder::build_transaction_with_postage(
       satpoint,

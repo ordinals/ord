@@ -36,7 +36,7 @@ fuzz_target!(|input: Input| {
     .parse()
     .unwrap();
 
-  let change = vec![
+  let change = [
     "bc1pxwww0ct9ue7e8tdnlmug5m2tamfn7q06sahstg39ys4c9f3340qqxrdu9k"
       .parse()
       .unwrap(),

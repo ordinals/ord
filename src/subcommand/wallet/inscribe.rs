@@ -56,9 +56,9 @@ impl Inscribe {
 
     let inscriptions = index.get_inscriptions(None)?;
 
-    let commit_tx_change = get_change_addresses(&options, 2)?;
+    let commit_tx_change = [get_change_address(&client)?, get_change_address(&client)?];
 
-    let reveal_tx_destination = get_change_addresses(&options, 1)?[0].clone();
+    let reveal_tx_destination = get_change_address(&client)?;
 
     let (unsigned_commit_tx, reveal_tx, recovery_key_pair) =
       Inscribe::create_inscription_transactions(
