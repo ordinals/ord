@@ -535,6 +535,7 @@ impl Server {
     lazy_static! {
       static ref HASH: Regex = Regex::new(r"^[[:xdigit:]]{64}$").unwrap();
       static ref OUTPOINT: Regex = Regex::new(r"^[[:xdigit:]]{64}:\d+$").unwrap();
+      static ref INSCRIPTION_ID: Regex = Regex::new(r"^[[:xdigit:]]{64}i\d+$").unwrap();
     }
 
     let query = query.trim();
@@ -547,6 +548,8 @@ impl Server {
       }
     } else if OUTPOINT.is_match(query) {
       Ok(Redirect::to(&format!("/output/{query}")))
+    } else if INSCRIPTION_ID.is_match(query) {
+      Ok(Redirect::to(&format!("/inscription/{query}")))
     } else {
       Ok(Redirect::to(&format!("/sat/{query}")))
     }
@@ -1184,6 +1187,14 @@ mod tests {
   }
 
   #[test]
+  fn search_by_query_returns_inscription() {
+    TestServer::new().assert_redirect(
+      "/search?query=0000000000000000000000000000000000000000000000000000000000000000i0",
+      "/inscription/0000000000000000000000000000000000000000000000000000000000000000i0",
+    );
+  }
+
+  #[test]
   fn search_is_whitespace_insensitive() {
     TestServer::new().assert_redirect("/search/ 0 ", "/sat/0");
   }
@@ -1214,6 +1225,14 @@ mod tests {
     TestServer::new().assert_redirect(
       "/search/0000000000000000000000000000000000000000000000000000000000000000:0",
       "/output/0000000000000000000000000000000000000000000000000000000000000000:0",
+    );
+  }
+
+  #[test]
+  fn search_for_inscription_id_returns_inscription() {
+    TestServer::new().assert_redirect(
+      "/search/0000000000000000000000000000000000000000000000000000000000000000i0",
+      "/inscription/0000000000000000000000000000000000000000000000000000000000000000i0",
     );
   }
 
