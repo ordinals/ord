@@ -43,6 +43,11 @@ impl CommandBuilder {
     }
   }
 
+  pub(crate) fn with_args(mut self, args: impl ToArgs) -> Self {
+    self.args = args.to_args();
+    self
+  }
+
   pub(crate) fn write(self, path: impl AsRef<Path>, contents: impl AsRef<[u8]>) -> Self {
     fs::write(self.tempdir.path().join(path), contents).unwrap();
     self

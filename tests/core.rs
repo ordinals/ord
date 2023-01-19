@@ -21,8 +21,22 @@ fn preview() {
     .unwrap()
     .port();
 
-  let builder =
-    CommandBuilder::new(format!("preview --http-port {port} foo.txt")).write("foo.txt", "foo");
+  let examples = fs::read_dir("./examples").unwrap();
+
+  let mut files = String::new();
+  let mut num_files = 0;
+  let mut builder = CommandBuilder::new("");
+  for example in examples {
+    let path = example.unwrap().path();
+    let content = fs::read(&path).unwrap();
+    let file_name = path.file_name().unwrap().to_str().unwrap();
+
+    builder = builder.write(file_name, content);
+    files.push_str(&format!("{} ", file_name));
+    num_files += 1;
+  }
+
+  builder = builder.with_args(format!("preview --http-port {port} {files}"));
 
   let _child = KillOnDrop(builder.command().spawn().unwrap());
 
@@ -41,11 +55,13 @@ fn preview() {
     thread::sleep(Duration::from_millis(500));
   }
 
-  assert!(
-    reqwest::blocking::get(format!("http://127.0.0.1:{port}/inscriptions"))
-      .unwrap()
-      .text()
-      .unwrap()
-      .contains("<a href=/inscription/")
+  assert_regex_match!(
+    reqwest::blocking::get(format!(
+      "http://127.0.0.1:{port}/inscriptions"
+    ))
+    .unwrap()
+    .text()
+    .unwrap(),
+    format!(".*(<a href=/inscription/.*){{{num_files}}}")
   );
 }
