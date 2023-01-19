@@ -13,22 +13,19 @@ use {
 
 const PROTOCOL_ID: &[u8] = b"ord";
 
-const CONTENT_TAG: &[u8] = &[];
+const BODY_TAG: &[u8] = &[];
 const CONTENT_TYPE_TAG: &[u8] = &[1];
 
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) struct Inscription {
-  content: Option<Vec<u8>>,
+  body: Option<Vec<u8>>,
   content_type: Option<Vec<u8>>,
 }
 
 impl Inscription {
   #[cfg(test)]
-  pub(crate) fn new(content_type: Option<Vec<u8>>, content: Option<Vec<u8>>) -> Self {
-    Self {
-      content_type,
-      content,
-    }
+  pub(crate) fn new(content_type: Option<Vec<u8>>, body: Option<Vec<u8>>) -> Self {
+    Self { content_type, body }
   }
 
   pub(crate) fn from_transaction(tx: &Transaction) -> Option<Inscription> {
@@ -38,10 +35,10 @@ impl Inscription {
   pub(crate) fn from_file(chain: Chain, path: impl AsRef<Path>) -> Result<Self, Error> {
     let path = path.as_ref();
 
-    let content = fs::read(path).with_context(|| format!("io error reading {}", path.display()))?;
+    let body = fs::read(path).with_context(|| format!("io error reading {}", path.display()))?;
 
     if let Some(limit) = chain.inscription_content_size_limit() {
-      let len = content.len();
+      let len = body.len();
       if len > limit {
         bail!("content size of {len} bytes exceeds {limit} byte limit for {chain} inscriptions");
       }
@@ -56,7 +53,7 @@ impl Inscription {
     )?;
 
     Ok(Self {
-      content: Some(content),
+      body: Some(body),
       content_type: Some(content_type.into()),
     })
   }
@@ -73,9 +70,9 @@ impl Inscription {
         .push_slice(content_type);
     }
 
-    if let Some(content) = &self.content {
-      builder = builder.push_slice(CONTENT_TAG);
-      for chunk in content.chunks(520) {
+    if let Some(body) = &self.body {
+      builder = builder.push_slice(BODY_TAG);
+      for chunk in body.chunks(520) {
         builder = builder.push_slice(chunk);
       }
     }
@@ -87,20 +84,28 @@ impl Inscription {
     self.append_reveal_script_to_builder(builder).into_script()
   }
 
-  pub(crate) fn media(&self) -> Option<Media> {
-    self.content_type()?.parse().ok()
+  pub(crate) fn media(&self) -> Media {
+    if self.body.is_none() {
+      return Media::Unknown;
+    }
+
+    let Some(content_type) = self.content_type() else {
+      return Media::Unknown;
+    };
+
+    content_type.parse().unwrap_or(Media::Unknown)
   }
 
-  pub(crate) fn content_bytes(&self) -> Option<&[u8]> {
-    Some(self.content.as_ref()?)
+  pub(crate) fn body(&self) -> Option<&[u8]> {
+    Some(self.body.as_ref()?)
   }
 
-  pub(crate) fn into_content(self) -> Option<Vec<u8>> {
-    self.content
+  pub(crate) fn into_body(self) -> Option<Vec<u8>> {
+    self.body
   }
 
-  pub(crate) fn content_size(&self) -> Option<usize> {
-    Some(self.content_bytes()?.len())
+  pub(crate) fn content_length(&self) -> Option<usize> {
+    Some(self.body()?.len())
   }
 
   pub(crate) fn content_type(&self) -> Option<&str> {
@@ -202,12 +207,12 @@ impl<'a> InscriptionParser<'a> {
 
       loop {
         match self.advance()? {
-          Instruction::PushBytes(CONTENT_TAG) => {
-            let mut content = Vec::new();
+          Instruction::PushBytes(BODY_TAG) => {
+            let mut body = Vec::new();
             while !self.accept(Instruction::Op(opcodes::all::OP_ENDIF))? {
-              content.extend_from_slice(self.expect_push()?);
+              body.extend_from_slice(self.expect_push()?);
             }
-            fields.insert(CONTENT_TAG, content);
+            fields.insert(BODY_TAG, body);
             break;
           }
           Instruction::PushBytes(tag) => {
@@ -221,7 +226,7 @@ impl<'a> InscriptionParser<'a> {
         }
       }
 
-      let content = fields.remove(CONTENT_TAG);
+      let body = fields.remove(BODY_TAG);
       let content_type = fields.remove(CONTENT_TYPE_TAG);
 
       for tag in fields.keys() {
@@ -232,10 +237,7 @@ impl<'a> InscriptionParser<'a> {
         }
       }
 
-      return Ok(Some(Inscription {
-        content,
-        content_type,
-      }));
+      return Ok(Some(Inscription { body, content_type }));
     }
 
     Ok(None)
@@ -377,7 +379,7 @@ mod tests {
       InscriptionParser::parse(&envelope(&[b"ord", &[1], b"text/plain;charset=utf-8"])),
       Ok(Inscription {
         content_type: Some(b"text/plain;charset=utf-8".to_vec()),
-        content: None,
+        body: None,
       }),
     );
   }
@@ -388,13 +390,13 @@ mod tests {
       InscriptionParser::parse(&envelope(&[b"ord", &[], b"foo"])),
       Ok(Inscription {
         content_type: None,
-        content: Some(b"foo".to_vec()),
+        body: Some(b"foo".to_vec()),
       }),
     );
   }
 
   #[test]
-  fn valid_content_in_multiple_pushes() {
+  fn valid_body_in_multiple_pushes() {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[
         b"ord",
@@ -409,7 +411,7 @@ mod tests {
   }
 
   #[test]
-  fn valid_content_in_zero_pushes() {
+  fn valid_body_in_zero_pushes() {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[b"ord", &[1], b"text/plain;charset=utf-8", &[]])),
       Ok(inscription("text/plain;charset=utf-8", "")),
@@ -417,7 +419,7 @@ mod tests {
   }
 
   #[test]
-  fn valid_content_in_multiple_empty_pushes() {
+  fn valid_body_in_multiple_empty_pushes() {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[
         b"ord",
@@ -544,7 +546,7 @@ mod tests {
   }
 
   #[test]
-  fn no_content() {
+  fn empty_envelope() {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[])),
       Err(InscriptionError::NoInscription)
@@ -710,7 +712,7 @@ mod tests {
     witness.push(
       &Inscription {
         content_type: None,
-        content: None,
+        body: None,
       }
       .append_reveal_script(script::Builder::new()),
     );
@@ -721,7 +723,7 @@ mod tests {
       InscriptionParser::parse(&witness).unwrap(),
       Inscription {
         content_type: None,
-        content: None,
+        body: None,
       }
     );
   }
@@ -732,7 +734,7 @@ mod tests {
       InscriptionParser::parse(&envelope(&[b"ord", &[3], &[0]])),
       Ok(Inscription {
         content_type: None,
-        content: None,
+        body: None,
       }),
     );
   }

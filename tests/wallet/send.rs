@@ -29,7 +29,7 @@ fn inscriptions_can_be_sent() {
     format!("/inscription/{inscription}"),
     format!(
       ".*<h1>Inscription 0</h1>.*<dl>.*
-  <dt>content size</dt>
+  <dt>content length</dt>
   <dd>3 bytes</dd>
   <dt>content type</dt>
   <dd>text/plain;charset=utf-8</dd>
