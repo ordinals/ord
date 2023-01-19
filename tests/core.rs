@@ -56,12 +56,10 @@ fn preview() {
   }
 
   assert_regex_match!(
-    reqwest::blocking::get(format!(
-      "http://127.0.0.1:{port}/inscriptions"
-    ))
-    .unwrap()
-    .text()
-    .unwrap(),
+    reqwest::blocking::get(format!("http://127.0.0.1:{port}/inscriptions"))
+      .unwrap()
+      .text()
+      .unwrap(),
     format!(".*(<a href=/inscription/.*){{{num_files}}}")
   );
 }
