@@ -23,7 +23,7 @@ mod receive;
 mod restore;
 mod sats;
 mod send;
-mod transaction_builder;
+pub(crate) mod transaction_builder;
 mod transactions;
 
 #[derive(Debug, Parser)]

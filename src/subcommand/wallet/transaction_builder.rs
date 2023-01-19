@@ -42,7 +42,7 @@ use {
 };
 
 #[derive(Debug, PartialEq)]
-pub(crate) enum Error {
+pub enum Error {
   NotInWallet(SatPoint),
   NotEnoughCardinalUtxos,
   UtxoContainsAdditionalInscription {
@@ -54,6 +54,7 @@ pub(crate) enum Error {
     output_value: Amount,
     dust_value: Amount,
   },
+  ValueOverflow,
 }
 
 #[derive(Debug, PartialEq)]
@@ -82,6 +83,7 @@ impl fmt::Display for Error {
         f,
         "cannot send {outgoing_satpoint} without also sending inscription {inscription_id} at {inscribed_satpoint}"
       ),
+      Error::ValueOverflow => write!(f, "overflow adding target value and estimated fee"),
     }
   }
 }
@@ -89,7 +91,7 @@ impl fmt::Display for Error {
 impl std::error::Error for Error {}
 
 #[derive(Debug)]
-pub(crate) struct TransactionBuilder {
+pub struct TransactionBuilder {
   amounts: BTreeMap<OutPoint, Amount>,
   change_addresses: BTreeSet<Address>,
   fee_rate: FeeRate,
@@ -132,7 +134,7 @@ impl TransactionBuilder {
     .build_transaction()
   }
 
-  pub(crate) fn build_transaction_with_value(
+  pub fn build_transaction_with_value(
     outgoing: SatPoint,
     inscriptions: BTreeMap<SatPoint, InscriptionId>,
     amounts: BTreeMap<OutPoint, Amount>,
@@ -286,7 +288,11 @@ impl TransactionBuilder {
       Target::Exact(value) => value,
     };
 
-    if let Some(deficit) = (min_value + estimated_fee).checked_sub(self.outputs.last().unwrap().1) {
+    let total = min_value
+      .checked_add(estimated_fee)
+      .ok_or(Error::ValueOverflow)?;
+
+    if let Some(deficit) = total.checked_sub(self.outputs.last().unwrap().1) {
       if deficit > Amount::ZERO {
         let (utxo, value) =
           self.select_cardinal_utxo(deficit + self.fee_rate.fee(Self::ADDITIONAL_INPUT_VBYTES))?;
@@ -330,10 +336,9 @@ impl TransactionBuilder {
             .unwrap()
             .script_pubkey()
             .dust_value()
-        && value.checked_sub(target).unwrap()
-          > self
-            .fee_rate
-            .fee(self.estimate_vbytes() + Self::ADDITIONAL_OUTPUT_VBYTES)
+            + self
+              .fee_rate
+              .fee(self.estimate_vbytes() + Self::ADDITIONAL_OUTPUT_VBYTES)
       {
         tprintln!("stripped {} sats", (value - target).to_sat());
         self.outputs.last_mut().expect("no outputs found").1 = target;

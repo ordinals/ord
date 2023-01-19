@@ -1,7 +1,7 @@
 use super::*;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
-pub(crate) struct FeeRate(f64);
+pub struct FeeRate(f64);
 
 impl FromStr for FeeRate {
   type Err = Error;
