@@ -22,6 +22,12 @@ impl<const N: usize> ToArgs for [&str; N] {
   }
 }
 
+impl ToArgs for Vec<String> {
+  fn to_args(&self) -> Vec<String> {
+    self.clone()
+  }
+}
+
 pub(crate) struct CommandBuilder {
   args: Vec<String>,
   expected_exit_code: i32,
@@ -41,11 +47,6 @@ impl CommandBuilder {
       rpc_server_url: None,
       tempdir: TempDir::new().unwrap(),
     }
-  }
-
-  pub(crate) fn with_args(mut self, args: impl ToArgs) -> Self {
-    self.args = args.to_args();
-    self
   }
 
   pub(crate) fn write(self, path: impl AsRef<Path>, contents: impl AsRef<[u8]>) -> Self {

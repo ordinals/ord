@@ -21,22 +21,28 @@ fn preview() {
     .unwrap()
     .port();
 
-  let examples = fs::read_dir("./examples").unwrap();
+  let examples = fs::read_dir("examples")
+    .unwrap()
+    .map(|entry| {
+      entry
+        .unwrap()
+        .path()
+        .canonicalize()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .into()
+    })
+    .collect::<Vec<String>>();
 
-  let mut files = String::new();
-  let mut num_files = 0;
-  let mut builder = CommandBuilder::new("");
-  for example in examples {
-    let path = example.unwrap().path();
-    let content = fs::read(&path).unwrap();
-    let file_name = path.file_name().unwrap().to_str().unwrap();
+  let mut args = vec![
+    "preview".to_string(),
+    "--http-port".to_string(),
+    port.to_string(),
+  ];
+  args.extend(examples.clone());
 
-    builder = builder.write(file_name, content);
-    files.push_str(&format!("{} ", file_name));
-    num_files += 1;
-  }
-
-  builder = builder.with_args(format!("preview --http-port {port} {files}"));
+  let builder = CommandBuilder::new(args);
 
   let _child = KillOnDrop(builder.command().spawn().unwrap());
 
@@ -60,6 +66,6 @@ fn preview() {
       .unwrap()
       .text()
       .unwrap(),
-    format!(".*(<a href=/inscription/.*){{{num_files}}}")
+    format!(".*(<a href=/inscription/.*){{{}}}.*", examples.len())
   );
 }

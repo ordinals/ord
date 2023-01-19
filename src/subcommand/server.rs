@@ -141,6 +141,10 @@ impl Server {
         .route("/feed.xml", get(Self::feed))
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_id", get(Self::inscription))
+        .route(
+          "/inscriptions/:inscription_number",
+          get(Self::inscription_by_number),
+        )
         .route("/inscriptions", get(Self::inscriptions))
         .route("/install.sh", get(Self::install_script))
         .route("/ordinal/:sat", get(Self::ordinal))
@@ -791,6 +795,23 @@ impl Server {
       }
       .page(chain, index.has_sat_index()?),
     )
+  }
+
+  async fn inscription_by_number(
+    chain_extension: Extension<Chain>,
+    index_extension: Extension<Arc<Index>>,
+    Path(inscription_number): Path<u64>,
+  ) -> ServerResult<PageHtml<InscriptionHtml>> {
+    // let Extension(chain) = chain_extension.clone();
+    let Extension(index) = index_extension.clone();
+
+    let inscription_id = index
+      .get_inscription_id_by_inscription_number(inscription_number)?
+      .ok_or(ServerError::NotFound(format!(
+        "could not find inscription for inscription number {inscription_number}"
+      )))?;
+
+    Self::inscription(chain_extension, index_extension, Path(inscription_id)).await
   }
 
   async fn inscriptions(
