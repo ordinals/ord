@@ -503,6 +503,17 @@ impl TransactionBuilder {
     }
     assert!(found, "invariant: outgoing sat is found in inputs");
 
+    for tx_in in &transaction.input {
+      for (satpoint, _inscription_id) in &self.inscriptions {
+        if *satpoint != self.outgoing {
+          assert_ne!(
+            satpoint.outpoint, tx_in.previous_output,
+            "invariant: inscriptions are not used as inputs"
+          );
+        }
+      }
+    }
+
     let mut output_end = 0;
     let mut found = false;
     for tx_out in &transaction.output {
@@ -1259,6 +1270,34 @@ mod tests {
         FeeRate::try_from(1.0).unwrap(),
       ),
       Err(Error::NotEnoughCardinalUtxos)
+    )
+  }
+
+  #[test]
+  fn inscriptions_can_be_sent_by_satpoint() {
+    let outpoint = outpoint(1);
+    let satpoint = SatPoint {
+      outpoint,
+      offset: 0,
+    };
+
+    pretty_assert_eq!(
+      TransactionBuilder::build_transaction_with_postage(
+        satpoint,
+        BTreeMap::from([(satpoint, inscription_id(1))]),
+        vec![(outpoint, Amount::from_sat(1000))]
+          .into_iter()
+          .collect(),
+        recipient(),
+        [change(0), change(1)],
+        FeeRate::try_from(1.0).unwrap(),
+      ),
+      Ok(Transaction {
+        version: 1,
+        lock_time: PackedLockTime::ZERO,
+        input: vec![tx_in(outpoint)],
+        output: vec![tx_out(901, recipient())],
+      })
     )
   }
 
