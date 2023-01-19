@@ -10,7 +10,7 @@ repository = "https://github.com/casey/ord"
 autobins = false
 
 [workspace]
-members = [".", "test-bitcoincore-rpc", "fuzz"]
+members = [".", "fuzz", "test-bitcoincore-rpc"]
 
 [dependencies]
 anyhow = { version = "1.0.56", features = ["backtrace"] }
