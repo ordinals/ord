@@ -59,7 +59,7 @@ profile-tests:
     | tee test-times.txt
 
 fuzz:
-  cd fuzz && cargo +nightly fuzz run transaction-builder
+  RUSTFLAGS='-C debuginfo=1' cargo +nightly fuzz run transaction_builder
 
 open:
   open http://localhost
