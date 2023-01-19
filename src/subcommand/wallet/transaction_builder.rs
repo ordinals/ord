@@ -504,7 +504,7 @@ impl TransactionBuilder {
     assert!(found, "invariant: outgoing sat is found in inputs");
 
     for tx_in in &transaction.input {
-      for (satpoint, _inscription_id) in &self.inscriptions {
+      for satpoint in self.inscriptions.keys() {
         if *satpoint != self.outgoing {
           assert_ne!(
             satpoint.outpoint, tx_in.previous_output,
