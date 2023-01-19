@@ -116,7 +116,7 @@ impl TransactionBuilder {
   const SCHNORR_SIGNATURE_SIZE: usize = 64;
   pub(crate) const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
 
-  pub(crate) fn build_transaction_with_postage(
+  pub fn build_transaction_with_postage(
     outgoing: SatPoint,
     inscriptions: BTreeMap<SatPoint, InscriptionId>,
     amounts: BTreeMap<OutPoint, Amount>,
