@@ -43,16 +43,17 @@ use {
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
-  NotInWallet(SatPoint),
+  DuplicateAddress(Address),
+  Dust {
+    output_value: Amount,
+    dust_value: Amount,
+  },
   NotEnoughCardinalUtxos,
+  NotInWallet(SatPoint),
   UtxoContainsAdditionalInscription {
     outgoing_satpoint: SatPoint,
     inscribed_satpoint: SatPoint,
     inscription_id: InscriptionId,
-  },
-  Dust {
-    output_value: Amount,
-    dust_value: Amount,
   },
   ValueOverflow,
 }
@@ -83,7 +84,8 @@ impl fmt::Display for Error {
         f,
         "cannot send {outgoing_satpoint} without also sending inscription {inscription_id} at {inscribed_satpoint}"
       ),
-      Error::ValueOverflow => write!(f, "overflow adding target value and estimated fee"),
+      Error::ValueOverflow => write!(f, "arithmetic overflow calculating value"),
+      Error::DuplicateAddress(address) => write!(f, "duplicate input address: {address}"),
     }
   }
 }
@@ -130,7 +132,7 @@ impl TransactionBuilder {
       change,
       fee_rate,
       Target::Postage,
-    )
+    )?
     .build_transaction()
   }
 
@@ -160,7 +162,7 @@ impl TransactionBuilder {
       change,
       fee_rate,
       Target::Exact(output_value),
-    )
+    )?
     .build_transaction()
   }
 
@@ -183,8 +185,16 @@ impl TransactionBuilder {
     change: [Address; 2],
     fee_rate: FeeRate,
     target: Target,
-  ) -> Self {
-    Self {
+  ) -> Result<Self> {
+    if change.contains(&recipient) {
+      return Err(Error::DuplicateAddress(recipient));
+    }
+
+    if change[0] == change[1] {
+      return Err(Error::DuplicateAddress(change[0].clone()));
+    }
+
+    Ok(Self {
       utxos: amounts.keys().cloned().collect(),
       amounts,
       change_addresses: change.iter().cloned().collect(),
@@ -196,7 +206,7 @@ impl TransactionBuilder {
       recipient,
       unused_change_addresses: change.to_vec(),
       target,
-    }
+    })
   }
 
   fn select_outgoing(mut self) -> Result<Self> {
@@ -294,8 +304,10 @@ impl TransactionBuilder {
 
     if let Some(deficit) = total.checked_sub(self.outputs.last().unwrap().1) {
       if deficit > Amount::ZERO {
-        let (utxo, value) =
-          self.select_cardinal_utxo(deficit + self.fee_rate.fee(Self::ADDITIONAL_INPUT_VBYTES))?;
+        let needed = deficit
+          .checked_add(self.fee_rate.fee(Self::ADDITIONAL_INPUT_VBYTES))
+          .ok_or(Error::ValueOverflow)?;
+        let (utxo, value) = self.select_cardinal_utxo(needed)?;
         self.inputs.push(utxo);
         self.outputs.last_mut().unwrap().1 += value;
         tprintln!("added {value} sat input to cover {deficit} sat deficit");
@@ -662,6 +674,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
+    .unwrap()
     .select_outgoing()
     .unwrap();
 
@@ -772,6 +785,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
+    .unwrap()
     .select_outgoing()
     .unwrap()
     .align_outgoing()
@@ -884,6 +898,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
+    .unwrap()
     .build()
     .unwrap();
   }
@@ -902,6 +917,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
+    .unwrap()
     .build()
     .unwrap();
   }
@@ -920,6 +936,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
+    .unwrap()
     .build()
     .unwrap();
   }
@@ -938,6 +955,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
+    .unwrap()
     .select_outgoing()
     .unwrap();
 
@@ -962,6 +980,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
+    .unwrap()
     .select_outgoing()
     .unwrap();
 
@@ -1009,6 +1028,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
+    .unwrap()
     .select_outgoing()
     .unwrap()
     .build()
@@ -1076,6 +1096,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
+    .unwrap()
     .select_outgoing()
     .unwrap()
     .align_outgoing()
@@ -1103,6 +1124,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
+    .unwrap()
     .select_outgoing()
     .unwrap()
     .align_outgoing()
@@ -1128,6 +1150,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
+    .unwrap()
     .select_outgoing()
     .unwrap()
     .strip_value()
@@ -1150,6 +1173,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
+    .unwrap()
     .select_outgoing()
     .unwrap()
     .strip_value()
@@ -1502,6 +1526,42 @@ mod tests {
         Amount::from_sat(1000)
       ),
       Err(Error::NotEnoughCardinalUtxos)
+    );
+  }
+
+  #[test]
+  fn recipient_address_must_be_unique() {
+    pretty_assert_eq!(
+      TransactionBuilder::build_transaction_with_value(
+        satpoint(1, 0),
+        BTreeMap::new(),
+        vec![(outpoint(1), Amount::from_sat(1000))]
+          .into_iter()
+          .collect(),
+        recipient(),
+        [recipient(), change(1)],
+        FeeRate::try_from(0.0).unwrap(),
+        Amount::from_sat(1000)
+      ),
+      Err(Error::DuplicateAddress(recipient()))
+    );
+  }
+
+  #[test]
+  fn change_addresses_must_be_unique() {
+    pretty_assert_eq!(
+      TransactionBuilder::build_transaction_with_value(
+        satpoint(1, 0),
+        BTreeMap::new(),
+        vec![(outpoint(1), Amount::from_sat(1000))]
+          .into_iter()
+          .collect(),
+        recipient(),
+        [change(0), change(0)],
+        FeeRate::try_from(0.0).unwrap(),
+        Amount::from_sat(1000)
+      ),
+      Err(Error::DuplicateAddress(change(0)))
     );
   }
 }
