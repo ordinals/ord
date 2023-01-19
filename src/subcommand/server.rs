@@ -2052,4 +2052,27 @@ mod tests {
       ".*<title>Inscription 0</title>.*",
     );
   }
+
+  #[test]
+  fn inscription_with_no_body_has_unknonwn_preview() {
+    let server = TestServer::new_with_sat_index();
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witness: Inscription::new(Some("text/plain;charset=utf-8".as_bytes().to_vec()), None)
+        .to_witness(),
+      ..Default::default()
+    });
+
+    let inscription_id = InscriptionId::from(txid);
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/preview/{}", inscription_id),
+      StatusCode::OK,
+      ".*<title>Inscription 0</title>.*",
+    );
+  }
 }
