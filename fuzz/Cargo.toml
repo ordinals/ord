@@ -12,3 +12,9 @@ arbitrary = { version = "1", features = ["derive"] }
 bitcoin = { version = "0.29.1", features = ["rand"] }
 libfuzzer-sys = "0.4"
 ord = { path = ".." }
+
+[[bin]]
+name = "transaction_builder"
+path = "fuzz_targets/transaction_builder.rs"
+test = false
+doc = false
