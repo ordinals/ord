@@ -696,7 +696,7 @@ impl Server {
       HeaderValue::from_static("default-src 'unsafe-eval' 'unsafe-inline'"),
     );
 
-    Some((headers, inscription.into_content()?))
+    Some((headers, inscription.into_body()?))
   }
 
   async fn preview(
@@ -707,13 +707,9 @@ impl Server {
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
-    let content = inscription
-      .content_bytes()
-      .ok_or_not_found(|| format!("inscription {inscription_id} content"))?;
-
     return match inscription.media() {
-      Some(Media::Audio) => Ok(PreviewAudioHtml { inscription_id }.into_response()),
-      Some(Media::Image) => Ok(
+      Media::Audio => Ok(PreviewAudioHtml { inscription_id }.into_response()),
+      Media::Image => Ok(
         (
           [(
             header::CONTENT_SECURITY_POLICY,
@@ -723,18 +719,25 @@ impl Server {
         )
           .into_response(),
       ),
-      Some(Media::Iframe) => Ok(
+      Media::Iframe => Ok(
         Self::content_response(inscription)
           .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
           .into_response(),
       ),
-      Some(Media::Text) => Ok(
-        PreviewTextHtml {
-          text: str::from_utf8(content).map_err(|err| anyhow!("Failed to decode UTF-8: {err}"))?,
-        }
-        .into_response(),
-      ),
-      None => Ok(PreviewUnknownHtml.into_response()),
+      Media::Text => {
+        let content = inscription
+          .body()
+          .ok_or_not_found(|| format!("inscription {inscription_id} content"))?;
+
+        Ok(
+          PreviewTextHtml {
+            text: str::from_utf8(content)
+              .map_err(|err| anyhow!("Failed to decode UTF-8: {err}"))?,
+          }
+          .into_response(),
+        )
+      }
+      Media::Unknown => Ok(PreviewUnknownHtml.into_response()),
     };
   }
 
@@ -2050,6 +2053,50 @@ mod tests {
       "/feed.xml",
       StatusCode::OK,
       ".*<title>Inscription 0</title>.*",
+    );
+  }
+
+  #[test]
+  fn inscription_with_unknown_type_and_no_body_has_unknown_preview() {
+    let server = TestServer::new_with_sat_index();
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witness: Inscription::new(Some("foo/bar".as_bytes().to_vec()), None).to_witness(),
+      ..Default::default()
+    });
+
+    let inscription_id = InscriptionId::from(txid);
+
+    server.mine_blocks(1);
+
+    server.assert_response(
+      format!("/preview/{}", inscription_id),
+      StatusCode::OK,
+      &fs::read_to_string("templates/preview-unknown.html").unwrap(),
+    );
+  }
+
+  #[test]
+  fn inscription_with_known_type_and_no_body_has_unknown_preview() {
+    let server = TestServer::new_with_sat_index();
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witness: Inscription::new(Some("image/png".as_bytes().to_vec()), None).to_witness(),
+      ..Default::default()
+    });
+
+    let inscription_id = InscriptionId::from(txid);
+
+    server.mine_blocks(1);
+
+    server.assert_response(
+      format!("/preview/{}", inscription_id),
+      StatusCode::OK,
+      &fs::read_to_string("templates/preview-unknown.html").unwrap(),
     );
   }
 }
