@@ -60,7 +60,7 @@ pub enum Error {
 
 #[derive(Debug, PartialEq)]
 enum Target {
-  Exact(Amount),
+  Value(Amount),
   Postage,
 }
 
@@ -161,7 +161,7 @@ impl TransactionBuilder {
       recipient,
       change,
       fee_rate,
-      Target::Exact(output_value),
+      Target::Value(output_value),
     )?
     .build_transaction()
   }
@@ -295,7 +295,7 @@ impl TransactionBuilder {
 
     let min_value = match self.target {
       Target::Postage => self.outputs.last().unwrap().0.script_pubkey().dust_value(),
-      Target::Exact(value) => value,
+      Target::Value(value) => value,
     };
 
     let total = min_value
@@ -337,7 +337,7 @@ impl TransactionBuilder {
     if let Some(excess) = value.checked_sub(self.fee_rate.fee(self.estimate_vbytes())) {
       let (max, target) = match self.target {
         Target::Postage => (Self::MAX_POSTAGE, Self::TARGET_POSTAGE),
-        Target::Exact(value) => (value, value),
+        Target::Value(value) => (value, value),
       };
 
       if excess > max
@@ -553,7 +553,7 @@ impl TransactionBuilder {
               "invariant: excess postage is stripped"
             );
           }
-          Target::Exact(value) => {
+          Target::Value(value) => {
             assert!(
               Amount::from_sat(output.value).checked_sub(value).unwrap()
                 <= self
