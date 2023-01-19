@@ -21,8 +21,28 @@ fn preview() {
     .unwrap()
     .port();
 
-  let builder =
-    CommandBuilder::new(format!("preview --http-port {port} foo.txt")).write("foo.txt", "foo");
+  let examples = fs::read_dir("examples")
+    .unwrap()
+    .map(|entry| {
+      entry
+        .unwrap()
+        .path()
+        .canonicalize()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .into()
+    })
+    .collect::<Vec<String>>();
+
+  let mut args = vec![
+    "preview".to_string(),
+    "--http-port".to_string(),
+    port.to_string(),
+  ];
+  args.extend(examples.clone());
+
+  let builder = CommandBuilder::new(args);
 
   let _child = KillOnDrop(builder.command().spawn().unwrap());
 
@@ -41,11 +61,11 @@ fn preview() {
     thread::sleep(Duration::from_millis(500));
   }
 
-  assert!(
+  assert_regex_match!(
     reqwest::blocking::get(format!("http://127.0.0.1:{port}/inscriptions"))
       .unwrap()
       .text()
-      .unwrap()
-      .contains("<a href=/inscription/")
+      .unwrap(),
+    format!(".*(<a href=/inscription/.*){{{}}}.*", examples.len())
   );
 }
