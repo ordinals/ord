@@ -6,6 +6,7 @@ pub(crate) enum Media {
   Iframe,
   Image,
   Text,
+  Unknown,
 }
 
 impl Media {

@@ -87,8 +87,16 @@ impl Inscription {
     self.append_reveal_script_to_builder(builder).into_script()
   }
 
-  pub(crate) fn media(&self) -> Option<Media> {
-    self.content_type()?.parse().ok()
+  pub(crate) fn media(&self) -> Media {
+    if self.content.is_none() {
+      return Media::Unknown;
+    }
+
+    let Some(content_type) = self.content_type() else {
+      return Media::Unknown;
+    };
+
+    content_type.parse().unwrap_or(Media::Unknown)
   }
 
   pub(crate) fn content_bytes(&self) -> Option<&[u8]> {
