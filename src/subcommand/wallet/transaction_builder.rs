@@ -544,23 +544,26 @@ impl TransactionBuilder {
     let mut offset = 0;
     for output in &transaction.output {
       if output.script_pubkey == self.recipient.script_pubkey() {
+        let slop = self.fee_rate.fee(Self::ADDITIONAL_OUTPUT_VBYTES);
+
         match self.target {
           Target::Postage => {
             assert!(
-              Amount::from_sat(output.value) <= Self::MAX_POSTAGE,
+              Amount::from_sat(output.value) <= Self::MAX_POSTAGE + slop,
               "invariant: excess postage is stripped"
             );
           }
           Target::Exact(value) => {
             assert!(
               Amount::from_sat(output.value).checked_sub(value).unwrap()
-                < self
+                <= self
                   .change_addresses
                   .iter()
                   .map(|address| address.script_pubkey().dust_value())
                   .max()
-                  .unwrap_or_default(),
-              "invariant: output equals target value"
+                  .unwrap_or_default()
+                  + slop,
+              "invariant: output equals target value",
             );
           }
         }
@@ -1562,6 +1565,51 @@ mod tests {
         Amount::from_sat(1000)
       ),
       Err(Error::DuplicateAddress(change(0)))
+    );
+  }
+
+  #[test]
+  fn output_over_value_because_fees_prevent_excess_value_stripping() {
+    pretty_assert_eq!(
+      TransactionBuilder::build_transaction_with_value(
+        satpoint(1, 0),
+        BTreeMap::new(),
+        vec![(outpoint(1), Amount::from_sat(2000))]
+          .into_iter()
+          .collect(),
+        recipient(),
+        [change(0), change(1)],
+        FeeRate::try_from(2.0).unwrap(),
+        Amount::from_sat(1500)
+      ),
+      Ok(Transaction {
+        version: 1,
+        lock_time: PackedLockTime::ZERO,
+        input: vec![tx_in(outpoint(1))],
+        output: vec![tx_out(1802, recipient())],
+      }),
+    );
+  }
+
+  #[test]
+  fn output_over_max_postage_because_fees_prevent_excess_value_stripping() {
+    pretty_assert_eq!(
+      TransactionBuilder::build_transaction_with_postage(
+        satpoint(1, 0),
+        BTreeMap::new(),
+        vec![(outpoint(1), Amount::from_sat(45000))]
+          .into_iter()
+          .collect(),
+        recipient(),
+        [change(0), change(1)],
+        FeeRate::try_from(250.0).unwrap(),
+      ),
+      Ok(Transaction {
+        version: 1,
+        lock_time: PackedLockTime::ZERO,
+        input: vec![tx_in(outpoint(1))],
+        output: vec![tx_out(20250, recipient())],
+      }),
     );
   }
 }
