@@ -1,0 +1,33 @@
+[package]
+name = "ord-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+bitcoin = { version = "0.29.1", features = ["rand"] }
+arbitrary = { version = "1", features = ["derive"] }
+
+[dependencies.ord]
+path = ".."
+
+# Prevent this from interfering with workspaces
+[workspace]
+members = ["."]
+
+[profile.release]
+debug = 1
+
+[[bin]]
+name = "transaction_builder"
+path = "fuzz_targets/transaction_builder.rs"
+test = false
+doc = false
+
+[patch.crates-io]
+jsonrpc = { git = "https://github.com/apoelstra/rust-jsonrpc.git", rev = "64b58797dd517c4de0cec769ff5652220801fe18" }
+redb = { git = "https://github.com/casey/redb.git", branch = "ord" }

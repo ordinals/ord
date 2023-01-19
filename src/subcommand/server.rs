@@ -136,7 +136,9 @@ impl Server {
         .route("/clock", get(Self::clock))
         .route("/content/:inscription_id", get(Self::content))
         .route("/faq", get(Self::faq))
-        .route("/favicon.ico", get(Self::favicon))
+        .route("/favicon.ico", get(Self::favicon_ico))
+        .route("/favicon.svg", get(Self::favicon_svg))
+        .route("/feed.xml", get(Self::feed))
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_id", get(Self::inscription))
         .route("/inscriptions", get(Self::inscriptions))
@@ -335,8 +337,17 @@ impl Server {
     index.height()?.ok_or_not_found(|| "genesis block")
   }
 
-  async fn clock(Extension(index): Extension<Arc<Index>>) -> ServerResult<ClockSvg> {
-    Ok(ClockSvg::new(Self::index_height(&index)?))
+  async fn clock(Extension(index): Extension<Arc<Index>>) -> ServerResult<Response> {
+    Ok(
+      (
+        [(
+          header::CONTENT_SECURITY_POLICY,
+          HeaderValue::from_static("default-src 'unsafe-inline'"),
+        )],
+        ClockSvg::new(Self::index_height(&index)?),
+      )
+        .into_response(),
+    )
   }
 
   async fn sat(
@@ -542,8 +553,62 @@ impl Server {
     }
   }
 
-  async fn favicon() -> ServerResult<Response> {
+  async fn favicon_ico() -> ServerResult<Response> {
     Self::static_asset(Path("/favicon.png".to_string())).await
+  }
+
+  async fn favicon_svg() -> ServerResult<Response> {
+    Ok(
+      (
+        [(
+          header::CONTENT_SECURITY_POLICY,
+          HeaderValue::from_static("default-src 'unsafe-inline'"),
+        )],
+        Self::static_asset(Path("/favicon.svg".to_string())).await?,
+      )
+        .into_response(),
+    )
+  }
+
+  async fn feed(
+    Extension(chain): Extension<Chain>,
+    Extension(index): Extension<Arc<Index>>,
+  ) -> ServerResult<Response> {
+    let mut builder = rss::ChannelBuilder::default();
+
+    match chain {
+      Chain::Mainnet => builder.title("Inscriptions"),
+      _ => builder.title(format!("Inscriptions – {chain:?}")),
+    };
+
+    builder.generator(Some("ord".to_string()));
+
+    for (number, id) in index.get_feed_inscriptions(100)? {
+      builder.item(
+        rss::ItemBuilder::default()
+          .title(format!("Inscription {number}"))
+          .link(format!("/inscription/{id}"))
+          .guid(Some(rss::Guid {
+            value: format!("/inscription/{id}"),
+            permalink: true,
+          }))
+          .build(),
+      );
+    }
+
+    Ok(
+      (
+        [
+          (header::CONTENT_TYPE, "application/rss+xml"),
+          (
+            header::CONTENT_SECURITY_POLICY,
+            "default-src 'unsafe-inline'",
+          ),
+        ],
+        builder.build().to_string(),
+      )
+        .into_response(),
+    )
   }
 
   async fn static_asset(Path(path): Path<String>) -> ServerResult<Response> {
@@ -629,7 +694,7 @@ impl Server {
     );
     headers.insert(
       header::CONTENT_SECURITY_POLICY,
-      "default-src 'unsafe-eval' 'unsafe-inline'".parse().unwrap(),
+      HeaderValue::from_static("default-src 'unsafe-eval' 'unsafe-inline'"),
     );
 
     Some((headers, inscription.into_content()?))
@@ -1992,6 +2057,26 @@ mod tests {
         .get(header::STRICT_TRANSPORT_SECURITY)
         .unwrap(),
       "max-age=31536000; includeSubDomains; preload",
+    );
+  }
+
+  #[test]
+  fn feed() {
+    let server = TestServer::new_with_sat_index();
+    server.mine_blocks(1);
+
+    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witness: inscription("text/foo", "hello").to_witness(),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      "/feed.xml",
+      StatusCode::OK,
+      ".*<title>Inscription 0</title>.*",
     );
   }
 }
