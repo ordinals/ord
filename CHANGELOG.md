@@ -5,6 +5,7 @@ Changelog
 ---------------------------------------------------------------------
 
 ### Added
+- Support searching for inscription IDs (#1294)
 - Add RSS feed (#1229)
 - Add --dry-run-flag (#1265)
 - Support recovering wallet from mnemonic (#1215)
@@ -127,6 +128,7 @@ Changelog
 - Add link to docs in readme (#995)
 - Add inscription docs (#994)
 - Fix softprops/actions-gh-release version (#992)
+- Fuzz test transaction builder with multiple UTXOs (#1291)
 
 [0.3.0](https://github.com/casey/ord/releases/tag/0.3.0) - 2022-12-16
 ---------------------------------------------------------------------
