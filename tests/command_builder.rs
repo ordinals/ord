@@ -22,6 +22,12 @@ impl<const N: usize> ToArgs for [&str; N] {
   }
 }
 
+impl ToArgs for Vec<String> {
+  fn to_args(&self) -> Vec<String> {
+    self.clone()
+  }
+}
+
 pub(crate) struct CommandBuilder {
   args: Vec<String>,
   expected_exit_code: i32,
