@@ -15,7 +15,7 @@ fmt:
   cargo fmt
 
 clippy:
-  cargo clippy --all --all-targets
+  cargo clippy --all --all-targets -- -D warnings
 
 lclippy:
   cargo lclippy --all --all-targets -- -D warnings
@@ -57,6 +57,9 @@ profile-tests:
   cargo +nightly test -- -Z unstable-options --report-time \
     | sed -n 's/^test \(.*\) ... ok <\(.*\)s>/\2 \1/p' | sort -n \
     | tee test-times.txt
+
+fuzz case='':
+  RUSTFLAGS='-C debuginfo=1' cargo +nightly fuzz run transaction-builder {{case}}
 
 open:
   open http://localhost

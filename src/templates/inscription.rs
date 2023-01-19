@@ -61,7 +61,7 @@ mod tests {
           <dd>1</dd>
           <dt>content</dt>
           <dd><a href=/content/1{64}i1>link</a></dd>
-          <dt>content size</dt>
+          <dt>content length</dt>
           <dd>10 bytes</dd>
           <dt>content type</dt>
           <dd>text/plain;charset=utf-8</dd>

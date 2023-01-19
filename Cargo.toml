@@ -10,7 +10,7 @@ repository = "https://github.com/casey/ord"
 autobins = false
 
 [workspace]
-members = [".", "test-bitcoincore-rpc"]
+members = [".", "fuzz", "test-bitcoincore-rpc"]
 
 [dependencies]
 anyhow = { version = "1.0.56", features = ["backtrace"] }
@@ -73,3 +73,7 @@ path = "tests/lib.rs"
 
 [build-dependencies]
 pulldown-cmark = "0.9.2"
+
+[patch.crates-io]
+jsonrpc = { git = "https://github.com/apoelstra/rust-jsonrpc.git", rev = "64b58797dd517c4de0cec769ff5652220801fe18" }
+redb = { git = "https://github.com/casey/redb.git", branch = "ord" }

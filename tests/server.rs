@@ -60,7 +60,7 @@ fn inscription_page() {
   <dd>10000</dd>
   <dt>content</dt>
   <dd><a href=/content/{inscription}>link</a></dd>
-  <dt>content size</dt>
+  <dt>content length</dt>
   <dd>3 bytes</dd>
   <dt>content type</dt>
   <dd>text/plain;charset=utf-8</dd>

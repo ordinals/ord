@@ -56,9 +56,9 @@ impl Inscribe {
 
     let inscriptions = index.get_inscriptions(None)?;
 
-    let commit_tx_change = get_change_addresses(&options, 2)?;
+    let commit_tx_change = [get_change_address(&client)?, get_change_address(&client)?];
 
-    let reveal_tx_destination = get_change_addresses(&options, 1)?[0].clone();
+    let reveal_tx_destination = get_change_address(&client)?;
 
     let (unsigned_commit_tx, reveal_tx, recovery_key_pair) =
       Inscribe::create_inscription_transactions(
@@ -129,7 +129,7 @@ impl Inscribe {
     inscriptions: BTreeMap<SatPoint, InscriptionId>,
     network: Network,
     utxos: BTreeMap<OutPoint, Amount>,
-    change: Vec<Address>,
+    change: [Address; 2],
     destination: Address,
     fee_rate: FeeRate,
   ) -> Result<(Transaction, Transaction, TweakedKeyPair)> {
@@ -232,11 +232,6 @@ impl Inscribe {
       .value
       .checked_sub(fee.to_sat())
       .context("commit transaction output value insufficient to pay transaction fee")?;
-
-    assert_eq!(
-      reveal_tx.output[0].value,
-      TransactionBuilder::TARGET_POSTAGE.to_sat()
-    );
 
     if reveal_tx.output[0].value < reveal_tx.output[0].script_pubkey.dust_value().to_sat() {
       bail!("commit transaction output would be dust");
@@ -370,7 +365,7 @@ mod tests {
       BTreeMap::new(),
       Network::Bitcoin,
       utxos.into_iter().collect(),
-      vec![commit_address, change(1)],
+      [commit_address, change(1)],
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
     )
@@ -399,7 +394,7 @@ mod tests {
       BTreeMap::new(),
       Network::Bitcoin,
       utxos.into_iter().collect(),
-      vec![commit_address, change(1)],
+      [commit_address, change(1)],
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
     )
@@ -432,7 +427,7 @@ mod tests {
       inscriptions,
       Network::Bitcoin,
       utxos.into_iter().collect(),
-      vec![commit_address, change(1)],
+      [commit_address, change(1)],
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
     )
@@ -472,7 +467,7 @@ mod tests {
       inscriptions,
       Network::Bitcoin,
       utxos.into_iter().collect(),
-      vec![commit_address, change(1)],
+      [commit_address, change(1)],
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
     )
@@ -506,7 +501,7 @@ mod tests {
       inscriptions,
       bitcoin::Network::Signet,
       utxos.into_iter().collect(),
-      vec![commit_address, change(1)],
+      [commit_address, change(1)],
       reveal_address,
       FeeRate::try_from(fee_rate).unwrap(),
     )
@@ -538,7 +533,7 @@ mod tests {
       BTreeMap::new(),
       Network::Bitcoin,
       utxos.into_iter().collect(),
-      vec![commit_address, change(1)],
+      [commit_address, change(1)],
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
     )
