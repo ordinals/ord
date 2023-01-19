@@ -12,6 +12,7 @@ use {
 struct Input {
   output_value: Option<u64>,
   fee_rate: f64,
+  utxos: Vec<u64>,
 }
 
 fuzz_target!(|input: Input| {
@@ -32,6 +33,15 @@ fuzz_target!(|input: Input| {
 
   let mut amounts = BTreeMap::new();
   amounts.insert(outpoint, Amount::from_sat(1_000_000));
+
+  for (i, value) in input.utxos.into_iter().enumerate() {
+    amounts.insert(
+      format!("0000000000000000000000000000000000000000000000000000000000000000:{i}",)
+        .parse()
+        .unwrap(),
+      Amount::from_sat(value),
+    );
+  }
 
   let recipient = "bc1pdqrcrxa8vx6gy75mfdfj84puhxffh4fq46h3gkp6jxdd0vjcsdyspfxcv6"
     .parse()
