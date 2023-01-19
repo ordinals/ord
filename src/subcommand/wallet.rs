@@ -115,11 +115,9 @@ fn get_unspent_outputs(options: &Options) -> Result<BTreeMap<OutPoint, Amount>> 
 }
 
 fn get_change_address(client: &Client) -> Result<Address> {
-  Ok(
-    client
-      .call("getrawchangeaddress", &["bech32m".into()])
-      .context("could not get change addresses from wallet")?,
-  )
+  client
+    .call("getrawchangeaddress", &["bech32m".into()])
+    .context("could not get change addresses from wallet")
 }
 
 fn initialize_wallet(options: &Options, seed: [u8; 64]) -> Result {

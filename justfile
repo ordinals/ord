@@ -15,7 +15,7 @@ fmt:
   cargo fmt
 
 clippy:
-  cargo clippy --all --all-targets
+  cargo clippy --all --all-targets -- -D warnings
 
 lclippy:
   cargo lclippy --all --all-targets -- -D warnings
