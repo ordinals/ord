@@ -696,7 +696,7 @@ impl Server {
       HeaderValue::from_static("default-src 'unsafe-eval' 'unsafe-inline'"),
     );
 
-    Some((headers, inscription.into_content()?))
+    Some((headers, inscription.into_body()?))
   }
 
   async fn preview(
@@ -726,7 +726,7 @@ impl Server {
       ),
       Media::Text => {
         let content = inscription
-          .content_bytes()
+          .body()
           .ok_or_not_found(|| format!("inscription {inscription_id} content"))?;
 
         Ok(

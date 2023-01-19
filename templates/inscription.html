@@ -25,11 +25,11 @@
   <dt>sat</dt>
   <dd><a href=/sat/{{sat}}>{{sat}}</a></dd>
 %% }
-%% if let Some(content_size) = self.inscription.content_size() {
+%% if let Some(content_length) = self.inscription.content_length() {
   <dt>content</dt>
   <dd><a href=/content/{{self.inscription_id}}>link</a></dd>
-  <dt>content size</dt>
-  <dd>{{ content_size }} bytes</dd>
+  <dt>content length</dt>
+  <dd>{{ content_length }} bytes</dd>
 %% }
 %% if let Some(content_type) = self.inscription.content_type() {
   <dt>content type</dt>
