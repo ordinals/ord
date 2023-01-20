@@ -58,8 +58,8 @@ profile-tests:
     | sed -n 's/^test \(.*\) ... ok <\(.*\)s>/\2 \1/p' | sort -n \
     | tee test-times.txt
 
-fuzz case='':
-  RUSTFLAGS='-C debuginfo=1' cargo +nightly fuzz run transaction-builder {{case}}
+fuzz:
+  cd fuzz && cargo +nightly fuzz run transaction-builder
 
 open:
   open http://localhost
