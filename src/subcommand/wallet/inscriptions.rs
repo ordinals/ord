@@ -4,6 +4,7 @@ use super::*;
 struct Output {
   inscription: InscriptionId,
   location: SatPoint,
+  explorer: String,
 }
 
 pub(crate) fn run(options: Options) -> Result {
@@ -13,6 +14,13 @@ pub(crate) fn run(options: Options) -> Result {
   let inscriptions = index.get_inscriptions(None)?;
   let unspent_outputs = get_unspent_outputs(&options)?;
 
+  let explorer = match options.chain().network() {
+    Network::Bitcoin => "https://ordinals.com/inscription/".to_string(),
+    Network::Signet => "https://signet.ordinals.com/inscription/".to_string(),
+    Network::Testnet => "https://testnet.ordinals.com/inscription/".to_string(),
+    Network::Regtest => "http://localhost/inscription/".to_string(),
+  };
+
   let mut output = Vec::new();
 
   for (location, inscription) in inscriptions {
@@ -20,11 +28,12 @@ pub(crate) fn run(options: Options) -> Result {
       output.push(Output {
         location,
         inscription,
+        explorer: format!("{}{}", explorer, inscription),
       });
     }
   }
 
-  serde_json::to_writer_pretty(io::stdout(), &output)?;
+  print_json(&output)?;
 
   Ok(())
 }
