@@ -4,6 +4,7 @@ use super::*;
 struct Inscription {
   inscription: String,
   location: String,
+  explorer: String,
 }
 
 #[test]
@@ -26,6 +27,10 @@ fn inscriptions() {
   assert_eq!(inscriptions.len(), 1);
   assert_eq!(inscriptions[0].inscription, inscription);
   assert_eq!(inscriptions[0].location, format!("{reveal}:0:0"));
+  assert_eq!(
+    inscriptions[0].explorer,
+    format!("https://ordinals.com/inscription/{inscription}")
+  );
 
   let stdout = CommandBuilder::new("wallet receive")
     .rpc_server(&rpc_server)
