@@ -30,7 +30,7 @@
     }
   </style>
   <circle r="19" stroke-width="0.2"/>
-  <text y="4" dominant-baseline="middle" text-anchor="middle" stroke="none" fill="lightgrey" fill-opacity="0" font-size="4">{{self.height}}</text>
+  <text y="4" dominant-baseline="middle" text-anchor="middle" stroke="none" fill="lightgrey" fill-opacity="0" font-size="4" font-family="sans-serif">{{self.height}}</text>
   <a href="/sat/0°0′0″0‴"><line class="mythic" y1="-16" y2="-15" stroke-width="0.3" stroke="#d00505"><title>Genesis</title></line></a>
   <a href="/sat/0°0′336″0‴"><line class="epic" y1="-16" y2="-15" stroke-width="0.3" transform="rotate(10.90909090909091)"><title>1st Halving</title></line></a>
   <a href="/sat/0°0′672″0‴"><line class="epic" y1="-16" y2="-15" stroke-width="0.3" transform="rotate(21.81818181818182)"><title>2nd Halving</title></line></a>
