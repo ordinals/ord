@@ -555,10 +555,14 @@ impl Server {
     }
   }
 
-  async fn favicon(user_agent: TypedHeader<UserAgent>) -> ServerResult<Response> {
-    if user_agent.as_str().contains("Safari/")
-      && !user_agent.as_str().contains("Chrome/")
-      && !user_agent.as_str().contains("Chromium/")
+  async fn favicon(user_agent: Option<TypedHeader<UserAgent>>) -> ServerResult<Response> {
+    if user_agent
+      .map(|user_agent| {
+        user_agent.as_str().contains("Safari/")
+          && !user_agent.as_str().contains("Chrome/")
+          && !user_agent.as_str().contains("Chromium/")
+      })
+      .unwrap_or_default()
     {
       Ok(
         Self::static_asset(Path("/favicon.png".to_string()))
