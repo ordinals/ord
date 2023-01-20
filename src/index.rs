@@ -20,7 +20,7 @@ mod entry;
 mod rtx;
 mod updater;
 
-const SCHEMA_VERSION: u64 = 1;
+const SCHEMA_VERSION: u64 = 2;
 
 macro_rules! define_table {
   ($name:ident, $key:ty, $value:ty) => {
@@ -1822,7 +1822,7 @@ mod tests {
 
     assert_eq!(
       Context::builder().tempdir(tempdir).try_build().err().unwrap().to_string(),
-      format!("index at `{}{delimiter}regtest{delimiter}index.redb` appears to have been built with an older, incompatible version of ord, consider deleting and rebuilding the index: index schema 0, ord schema 1", path.display()));
+      format!("index at `{}{delimiter}regtest{delimiter}index.redb` appears to have been built with an older, incompatible version of ord, consider deleting and rebuilding the index: index schema 0, ord schema {SCHEMA_VERSION}", path.display()));
   }
 
   #[test]
