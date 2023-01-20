@@ -14,11 +14,11 @@ pub(crate) fn run(options: Options) -> Result {
   let inscriptions = index.get_inscriptions(None)?;
   let unspent_outputs = get_unspent_outputs(&options)?;
 
-  let explorer = match options.chain().network() {
-    Network::Bitcoin => "https://ordinals.com/inscription/".to_string(),
-    Network::Signet => "https://signet.ordinals.com/inscription/".to_string(),
-    Network::Testnet => "https://testnet.ordinals.com/inscription/".to_string(),
-    Network::Regtest => "http://localhost/inscription/".to_string(),
+  let explorer = match options.chain() {
+    Chain::Mainnet => "https://ordinals.com/inscription/",
+    Chain::Regtest => "http://localhost/inscription/",
+    Chain::Signet => "https://signet.ordinals.com/inscription/",
+    Chain::Testnet => "https://testnet.ordinals.com/inscription/",
   };
 
   let mut output = Vec::new();
