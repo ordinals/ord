@@ -12,10 +12,11 @@ use {
   axum::{
     body,
     extract::{Extension, Path, Query},
+    headers::UserAgent,
     http::{header, HeaderMap, HeaderValue, StatusCode, Uri},
     response::{IntoResponse, Redirect, Response},
     routing::get,
-    Router,
+    Router, TypedHeader,
   },
   axum_server::Handle,
   rust_embed::RustEmbed,
@@ -136,8 +137,7 @@ impl Server {
         .route("/clock", get(Self::clock))
         .route("/content/:inscription_id", get(Self::content))
         .route("/faq", get(Self::faq))
-        .route("/favicon.ico", get(Self::favicon_ico))
-        .route("/favicon.svg", get(Self::favicon_svg))
+        .route("/favicon.ico", get(Self::favicon))
         .route("/feed.xml", get(Self::feed))
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_id", get(Self::inscription))
@@ -555,21 +555,32 @@ impl Server {
     }
   }
 
-  async fn favicon_ico() -> ServerResult<Response> {
-    Self::static_asset(Path("/favicon.png".to_string())).await
-  }
-
-  async fn favicon_svg() -> ServerResult<Response> {
-    Ok(
-      (
-        [(
-          header::CONTENT_SECURITY_POLICY,
-          HeaderValue::from_static("default-src 'unsafe-inline'"),
-        )],
-        Self::static_asset(Path("/favicon.svg".to_string())).await?,
+  async fn favicon(user_agent: Option<TypedHeader<UserAgent>>) -> ServerResult<Response> {
+    if user_agent
+      .map(|user_agent| {
+        user_agent.as_str().contains("Safari/")
+          && !user_agent.as_str().contains("Chrome/")
+          && !user_agent.as_str().contains("Chromium/")
+      })
+      .unwrap_or_default()
+    {
+      Ok(
+        Self::static_asset(Path("/favicon.png".to_string()))
+          .await
+          .into_response(),
       )
-        .into_response(),
-    )
+    } else {
+      Ok(
+        (
+          [(
+            header::CONTENT_SECURITY_POLICY,
+            HeaderValue::from_static("default-src 'unsafe-inline'"),
+          )],
+          Self::static_asset(Path("/favicon.svg".to_string())).await?,
+        )
+          .into_response(),
+      )
+    }
   }
 
   async fn feed(

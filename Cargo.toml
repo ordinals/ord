@@ -14,7 +14,7 @@ members = [".", "test-bitcoincore-rpc"]
 
 [dependencies]
 anyhow = { version = "1.0.56", features = ["backtrace"] }
-axum = "0.6.1"
+axum = { version = "0.6.1", features = ["headers"] }
 axum-server = "0.4.0"
 bech32 = "0.9.1"
 bip39 = "1.0.1"
