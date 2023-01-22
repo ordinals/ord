@@ -154,7 +154,7 @@ impl Index {
       data_dir.join("index.redb")
     };
 
-    let database = match unsafe { redb::Database::builder().open_mmapped(&path) } {
+    let database = match unsafe { Database::builder().open(&path) } {
       Ok(database) => {
         let schema_version = database
           .begin_read()?
@@ -188,7 +188,7 @@ impl Index {
             } else {
               WriteStrategy::TwoPhase
             })
-            .create_mmapped(&path)?
+            .create(&path)?
         };
         let tx = database.begin_write()?;
 
@@ -559,7 +559,7 @@ impl Index {
 
     let outpoint_to_sat_ranges = rtx.0.open_table(OUTPOINT_TO_SAT_RANGES)?;
 
-    for (key, value) in outpoint_to_sat_ranges.range::<&[u8; 36]>(&[0u8; 36]..)? {
+    for (key, value) in outpoint_to_sat_ranges.range::<&[u8; 36]>(&[0; 36]..)? {
       let mut offset = 0;
       for chunk in value.value().chunks_exact(11) {
         let (start, end) = SatRange::load(chunk.try_into().unwrap());
@@ -648,7 +648,7 @@ impl Index {
         .database
         .begin_read()?
         .open_table(SATPOINT_TO_INSCRIPTION_ID)?
-        .range::<&[u8; 44]>(&[0u8; 44]..)?
+        .range::<&[u8; 44]>(&[0; 44]..)?
         .map(|(satpoint, id)| (Entry::load(*satpoint.value()), Entry::load(*id.value())))
         .take(n.unwrap_or(usize::MAX))
         .collect(),
