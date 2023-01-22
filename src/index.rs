@@ -214,7 +214,7 @@ impl Index {
 
         if options.index_sats {
           tx.open_table(OUTPOINT_TO_SAT_RANGES)?
-            .insert(&OutPoint::null().store(), &[])?;
+            .insert(&OutPoint::null().store(), [].as_slice())?;
         }
 
         tx.commit()?;
@@ -507,6 +507,7 @@ impl Index {
           .open_table(SATPOINT_TO_INSCRIPTION_ID)?,
         outpoint,
       )?
+      .into_iter()
       .map(|(_satpoint, inscription_id)| inscription_id)
       .collect(),
     )
@@ -558,7 +559,7 @@ impl Index {
 
     let outpoint_to_sat_ranges = rtx.0.open_table(OUTPOINT_TO_SAT_RANGES)?;
 
-    for (key, value) in outpoint_to_sat_ranges.range([0; 36]..)? {
+    for (key, value) in outpoint_to_sat_ranges.range::<&[u8; 36]>(&[0u8; 36]..)? {
       let mut offset = 0;
       for chunk in value.value().chunks_exact(11) {
         let (start, end) = SatRange::load(chunk.try_into().unwrap());
@@ -647,7 +648,7 @@ impl Index {
         .database
         .begin_read()?
         .open_table(SATPOINT_TO_INSCRIPTION_ID)?
-        .range([0; 44]..)?
+        .range::<&[u8; 44]>(&[0u8; 44]..)?
         .map(|(satpoint, id)| (Entry::load(*satpoint.value()), Entry::load(*id.value())))
         .take(n.unwrap_or(usize::MAX))
         .collect(),
@@ -768,7 +769,7 @@ impl Index {
   fn inscriptions_on_output<'a: 'tx, 'tx>(
     satpoint_to_id: &'a impl ReadableTable<&'tx SatPointValue, &'tx InscriptionIdValue>,
     outpoint: OutPoint,
-  ) -> Result<impl Iterator<Item = (SatPoint, InscriptionId)> + 'tx> {
+  ) -> Result<Vec<(SatPoint, InscriptionId)>> {
     let start = SatPoint {
       outpoint,
       offset: 0,
@@ -781,11 +782,12 @@ impl Index {
     }
     .store();
 
-    Ok(
-      satpoint_to_id
-        .range(start..=end)?
-        .map(|(satpoint, id)| (Entry::load(*satpoint.value()), Entry::load(*id.value()))),
-    )
+    let inscriptions = satpoint_to_id
+      .range::<&[u8; 44]>(&start..=&end)?
+      .map(|(satpoint, id)| (Entry::load(*satpoint.value()), Entry::load(*id.value())))
+      .collect();
+
+    Ok(inscriptions)
   }
 }
 
