@@ -154,7 +154,7 @@ impl Index {
       data_dir.join("index.redb")
     };
 
-    let database = match unsafe { Database::builder().open(&path) } {
+    let database = match Database::builder().open(&path) {
       Ok(database) => {
         let schema_version = database
           .begin_read()?
@@ -181,15 +181,13 @@ impl Index {
         database
       }
       Err(redb::Error::Io(error)) if error.kind() == io::ErrorKind::NotFound => {
-        let database = unsafe {
-          Database::builder()
-            .set_write_strategy(if cfg!(test) {
-              WriteStrategy::Checksum
-            } else {
-              WriteStrategy::TwoPhase
-            })
-            .create(&path)?
-        };
+        let database = Database::builder()
+          .set_write_strategy(if cfg!(test) {
+            WriteStrategy::Checksum
+          } else {
+            WriteStrategy::TwoPhase
+          })
+          .create(&path)?;
         let tx = database.begin_write()?;
 
         #[cfg(test)]
