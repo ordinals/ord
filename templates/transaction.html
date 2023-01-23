@@ -21,7 +21,7 @@
     </a>
     <dl>
       <dt>value</dt><dd>{{ output.value }}</dd>
-      <dt>script pubkey</dt><dd class=data>{{ output.script_pubkey.asm() }}</dd>
+      <dt>script pubkey</dt><dd class=monospace>{{ output.script_pubkey.asm() }}</dd>
 %% if let Ok(address) = self.chain.address_from_script(&output.script_pubkey) {
       <dt>address</dt><dd class=monospace>{{ address }}</dd>
 %% }
