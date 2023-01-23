@@ -1,7 +1,7 @@
 use super::*;
 
 #[test]
-fn wallet_balance() {
+fn wallet_balance_only_counts_cardinal_utxos() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
@@ -10,10 +10,10 @@ fn wallet_balance() {
     .expected_stdout("0\n")
     .run();
 
-  rpc_server.mine_blocks(1);
+  inscribe(&rpc_server);
 
   CommandBuilder::new("wallet balance")
     .rpc_server(&rpc_server)
-    .expected_stdout("5000000000\n")
+    .expected_stdout(format!("{}\n", 100 * COIN_VALUE - 10_000))
     .run();
 }
