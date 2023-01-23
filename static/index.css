@@ -102,6 +102,10 @@ ul, li {
   }
 }
 
+.monospace {
+  font-family: monospace, monospace;
+}
+
 .blocks {
   font-family: monospace, monospace;
   list-style-position: inside;
