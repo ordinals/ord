@@ -8,14 +8,15 @@ secure, and decentralized as Bitcoin itself.
 
 Working with inscriptions requires a Bitcoin full node, to give you a view of
 the current state of the Bitcoin blockchain, and a wallet that can create
-inscriptions, and perform sat control when constructing transactions to send
-them to another wallet.
+inscriptions and perform sat control when constructing transactions to send
+inscriptions to another wallet.
 
 Bitcoin Core provides both a Bitcoin full node and wallet. However, the Bitcoin
-Core wallet cannot make ordinal-aware transactions. Making ordinal-aware
-transactions requires [`ord`](https://github.com/casey/ord), the ordinal
-utility. `ord` doesn't implement its own wallet, so `ord wallet` subcommands
-interact with an existing Bitcoin Core wallet.
+Core wallet cannot create inscriptions and does not perform sat control.
+
+This requires [`ord`](https://github.com/casey/ord), the ordinal utility. `ord`
+doesn't implement its own wallet, so `ord wallet` subcommands interact with
+Bitcoin Core wallets.
 
 This guide covers:
 
@@ -84,56 +85,6 @@ agrees with the block count on a block explorer like [the mempool.space block
 explorer](https://mempool.space/). `ord` interacts with `bitcoind`, so you
 should leave `bitcoind` running in the background when you're using `ord`.
 
-Creating a Bitcoin Core Wallet
-------------------------------
-
-`ord` uses Bitcoin Core to manage private keys, sign transactions, and
-broadcast transactions to the Bitcoin network.
-
-To create a Bitcoin Core wallet named `ord` for use with `ord`, run:
-
-```
-ord wallet create
-```
-
-
-Loading the Bitcoin Core Wallet
--------------------------------
-
-Bitcoin Core wallets must be loaded before they can be used with `ord`. Wallets
-are loaded automatically after being created, so you do not need to load your
-wallet if you just created it. Otherwise, run:
-
-```
-bitcoin-cli loadwallet ord
-```
-
-Once your wallet is loaded, you should be able to run:
-
-```
-ord wallet receive
-```
-
-…and get a fresh receive address.
-
-If you get an error message like:
-
-```
-error: JSON-RPC error: RPC error response: RpcError { code: -19, message: "Wallet file not specified (must request wallet RPC through /wallet/<filename> uri-path).", data: None }
-```
-
-This means that `bitcoind` has more than one wallet loaded. List loaded wallets with:
-
-```
-bitcoin-cli listwallets
-```
-
-And unload all wallets other than `ord`:
-
-```
-bitcoin-cli unloadwallet foo
-```
-
 Installing `ord`
 ----------------
 
@@ -154,6 +105,18 @@ ord --version
 ```
 
 Which prints out `ord`'s version number.
+
+Creating a Bitcoin Core Wallet
+------------------------------
+
+`ord` uses Bitcoin Core to manage private keys, sign transactions, and
+broadcast transactions to the Bitcoin network.
+
+To create a Bitcoin Core wallet named `ord` for use with `ord`, run:
+
+```
+ord wallet create
+```
 
 Receiving Sats
 --------------
@@ -188,8 +151,8 @@ Additionally, inscriptions are included in transactions, so the larger the
 content, the higher the fee that the inscription transaction must pay.
 
 Inscription content is included in transaction witnesses, which receive the
-witness discount. To calculate the approximate fee, divide the content size by
-four and muliply by the fee rate.
+witness discount. To calculate the approximate fee that in inscribe transaction
+will pay, divide the content size by four and muliply by the fee rate.
 
 Inscription transactions must be less than 400,000 weight units, or they will
 not be relayed by Bitcoin Core. One byte of inscription content costs one
@@ -207,7 +170,9 @@ ord wallet inscribe FILE
 ```
 
 Ord will output two transactions IDs, one for the commit transaction, and one
-for the reveal transaction.
+for the reveal transaction, and the inscription ID. Inscription IDs are of the
+form `TXIDiN`, where `TXID` is the transaction ID of the reveal transaction,
+and `N` is the index of the inscription in the reveal transaction.
 
 The commit transaction commits to a tapscript containing the contents of the
 inscription, and the reveal transaction spends from that tapscript, revealing
@@ -228,7 +193,6 @@ ord wallet inscriptions
 And when you visit [the ordinals explorer](https://ordinals.com/) at
 `ordinals.com/inscription/INSCRIPTION_ID`.
 
-
 Sending Inscriptions
 --------------------
 
@@ -241,10 +205,11 @@ ord wallet receive
 Send the inscription by running:
 
 ```
-ord wallet send INSCRIPTION_ID ADDRESS
+ord wallet send ADDRESS INSCRIPTION_ID
 ```
 
 See the pending transaction with:
+
 ```
 ord wallet transactions
 ```
@@ -268,7 +233,7 @@ ord wallet receive
 The sender can transfer the inscription to your address using:
 
 ```
-ord wallet send INSCRIPTION_ID ADDRESS
+ord wallet send ADDRESS INSCRIPTION_ID
 ```
 
 See the pending transaction with:
