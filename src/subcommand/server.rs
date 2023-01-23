@@ -1445,7 +1445,7 @@ mod tests {
   }
 
   #[test]
-  fn null_output_page_succeeds() {
+  fn null_output_is_initially_empty() {
     let txid = "0000000000000000000000000000000000000000000000000000000000000000";
     TestServer::new_with_sat_index().assert_response_regex(
       format!("/output/{txid}:4294967295"),
@@ -1465,7 +1465,7 @@ mod tests {
   }
 
   #[test]
-  fn null_output_page_displays_lost_sats() {
+  fn null_output_receives_lost_sats() {
     let server = TestServer::new_with_sat_index();
 
     server.mine_blocks_with_subsidy(1, 0);
