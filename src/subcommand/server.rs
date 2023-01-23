@@ -1439,6 +1439,26 @@ mod tests {
   }
 
   #[test]
+  fn null_output_page_succeeds() {
+    let txid = "0000000000000000000000000000000000000000000000000000000000000000";
+    TestServer::new_with_sat_index().assert_response_regex(
+      format!("/output/{txid}:4294967295"),
+      StatusCode::OK,
+      format!(
+        ".*<title>Output {txid}:4294967295</title>.*<h1>Output <span class=monospace>{txid}:4294967295</span></h1>
+<dl>
+  <dt>value</dt><dd>0</dd>
+  <dt>script pubkey</dt><dd class=monospace></dd>
+  <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
+</dl>
+<h2>0 Sat Ranges</h2>
+<ul class=monospace>
+</ul>.*"
+      ),
+    );
+  }
+
+  #[test]
   fn unknown_output_returns_404() {
     TestServer::new().assert_response(
       "/output/0000000000000000000000000000000000000000000000000000000000000000:0",
