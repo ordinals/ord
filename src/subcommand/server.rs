@@ -376,29 +376,42 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(outpoint): Path<OutPoint>,
   ) -> ServerResult<PageHtml<OutputHtml>> {
-    let output = index
-      .get_transaction(outpoint.txid)?
-      .ok_or_not_found(|| format!("output {outpoint}"))?
-      .output
-      .into_iter()
-      .nth(outpoint.vout as usize)
-      .ok_or_not_found(|| format!("output {outpoint}"))?;
+    let list = if index.has_sat_index()? {
+      index.list(outpoint)?
+    } else {
+      None
+    };
 
-    let inscriptions = index.get_inscriptions_on_output(outpoint).unwrap();
+    let output = if outpoint == OutPoint::null() {
+      let mut value = 0;
+
+      if let Some(List::Unspent(ranges)) = &list {
+        for (start, end) in ranges {
+          value += end - start;
+        }
+      }
+
+      TxOut {
+        value,
+        script_pubkey: Script::new(),
+      }
+    } else {
+      index
+        .get_transaction(outpoint.txid)?
+        .ok_or_not_found(|| format!("output {outpoint}"))?
+        .output
+        .into_iter()
+        .nth(outpoint.vout as usize)
+        .ok_or_not_found(|| format!("output {outpoint}"))?
+    };
+
+    let inscriptions = index.get_inscriptions_on_output(outpoint)?;
 
     Ok(
       OutputHtml {
         outpoint,
         inscriptions,
-        list: if index.has_sat_index()? {
-          Some(
-            index
-              .list(outpoint)?
-              .ok_or_not_found(|| format!("output {outpoint}"))?,
-          )
-        } else {
-          None
-        },
+        list,
         chain,
         output,
       }
