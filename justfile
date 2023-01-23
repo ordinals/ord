@@ -30,7 +30,7 @@ deploy branch chain domain:
 
 deploy-all: deploy-testnet deploy-signet deploy-mainnet
 
-deploy-mainnet: (deploy "master" "main" "ordinals.com")
+deploy-mainnet branch="master": (deploy branch "main" "ordinals.com")
 
 deploy-signet branch="master": (deploy branch "signet" "signet.ordinals.com")
 
