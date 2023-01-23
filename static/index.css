@@ -102,10 +102,6 @@ ul, li {
   }
 }
 
-.monospace {
-  font-family: monospace, monospace;
-}
-
 .blocks {
   font-family: monospace, monospace;
   list-style-position: inside;
@@ -115,6 +111,10 @@ ul, li {
 
 .center {
   text-align: center;
+}
+
+.monospace {
+  font-family: monospace, monospace;
 }
 
 span.common, span.uncommon, span.rare, span.epic, span.legendary, span.mythic {
