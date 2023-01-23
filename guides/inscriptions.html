@@ -145,31 +145,31 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="ordinal-inscription-guide"><a class="header" href="#ordinal-inscription-guide">Ordinal Inscription Guide</a></h1>
-<p>Individual satoshis can be inscribed with arbitrary content, creating
+<p>Individual sats can be inscribed with arbitrary content, creating
 Bitcoin-native digital artifacts that can be held in a Bitcoin wallet and
 transferred using Bitcoin transactions. Inscriptions are as durable, immutable,
 secure, and decentralized as Bitcoin itself.</p>
 <p>Working with inscriptions requires a Bitcoin full node, to give you a view of
-the current state of the Bitcoin blockchain, and a wallet that can make
-ordinal-aware transactions that inscribe satoshis with content and transfer
-individual satoshis using ordinal theory.</p>
+the current state of the Bitcoin blockchain, and a wallet that can create
+inscriptions and perform sat control when constructing transactions to send
+inscriptions to another wallet.</p>
 <p>Bitcoin Core provides both a Bitcoin full node and wallet. However, the Bitcoin
-Core wallet cannot make ordinal-aware transactions. Making ordinal-aware
-transactions requires <a href="https://github.com/casey/ord"><code>ord</code></a>, the ordinal theory
-utility. <code>ord</code> doesn't implement its own wallet, so <code>ord wallet</code> subcommands
-interact with an existing Bitcoin Core wallet.</p>
+Core wallet cannot create inscriptions and does not perform sat control.</p>
+<p>This requires <a href="https://github.com/casey/ord"><code>ord</code></a>, the ordinal utility. <code>ord</code>
+doesn't implement its own wallet, so <code>ord wallet</code> subcommands interact with
+Bitcoin Core wallets.</p>
 <p>This guide covers:</p>
 <ol>
 <li>Installing Bitcoin Core</li>
 <li>Syncing the Bitcoin blockchain</li>
 <li>Creating a Bitcoin Core wallet</li>
-<li>Using <code>ord wallet receive</code> to receive satoshis</li>
+<li>Using <code>ord wallet receive</code> to receive sats</li>
 <li>Creating inscriptions with <code>ord wallet inscribe</code></li>
 <li>Sending inscriptions with <code>ord wallet send</code></li>
 <li>Receiving inscriptions with <code>ord wallet receive</code></li>
 </ol>
 <h2 id="getting-help"><a class="header" href="#getting-help">Getting Help</a></h2>
-<p>If you get stuck, try asking for help on the <a href="https://discord.com/invite/87cjuz4FYg">Ordinal Theory Discord
+<p>If you get stuck, try asking for help on the <a href="https://discord.com/invite/87cjuz4FYg">Ordinals Discord
 Server</a>, or checking GitHub for relevant
 <a href="https://github.com/casey/ord/issues">issues</a> and
 <a href="https://github.com/casey/ord/discussions">discussions</a>.</p>
@@ -181,61 +181,24 @@ the <a href="https://bitcoincore.org/en/download/">download page</a>.</p>
 is installed, you should be able to run <code>bitcoind -version</code> successfully from
 the command line.</p>
 <h2 id="configuring-bitcoin-core"><a class="header" href="#configuring-bitcoin-core">Configuring Bitcoin Core</a></h2>
-<p><code>ord wallet</code> subcommands cannot yet be used on mainnet, so your Bitcoin Core
-node must be configured to use another chain. This guide uses signet, but
-testnet or regtest mode may also be used. Additionally, <code>ord</code> requires Bitcoin
-Core's transaction index.</p>
-<p>To configure your Bitcoin Core node to use signet and maintain a transaction
+<p><code>ord</code> requires Bitcoin Core's transaction index.</p>
+<p>To configure your Bitcoin Core node to use maintain a transaction
 index, add the following to your <code>bitcoin.conf</code>:</p>
-<pre><code>signet=1
-txindex=1
+<pre><code>txindex=1
 </code></pre>
-<p>Or, run <code>bitcoind</code> with <code>-signet</code> and <code>-txindex</code>:</p>
-<pre><code>bitcoind -signet -txindex
+<p>Or, run <code>bitcoind</code> with <code>-txindex</code>:</p>
+<pre><code>bitcoind -txindex
 </code></pre>
 <h2 id="syncing-the-bitcoin-blockchain"><a class="header" href="#syncing-the-bitcoin-blockchain">Syncing the Bitcoin Blockchain</a></h2>
-<p>Once Bitcoin Core has been configured to use signet, you'll need to sync the
-blockchain. Signet is a low-volume test network, so this shouldn't take long.</p>
 <p>To sync the chain, run:</p>
-<pre><code>bitcoind -signet -txindex
+<pre><code>bitcoind -txindex
 </code></pre>
 <p>…and leave it running until <code>getblockchount</code>:</p>
-<pre><code>bitcoin-cli -signet getblockcount
+<pre><code>bitcoin-cli getblockcount
 </code></pre>
-<p>agrees with the block count on a block explorer like <a href="https://mempool.space/signet">the mempool.space signet
-block explorer</a>. <code>ord</code> interacts with <code>bitcoind</code>,
-so you should leave <code>bitcoind</code> running in the background when you're using
-<code>ord</code>.</p>
-<h2 id="creating-a-bitcoin-core-wallet"><a class="header" href="#creating-a-bitcoin-core-wallet">Creating a Bitcoin Core Wallet</a></h2>
-<p><code>ord</code> uses Bitcoin Core to manage private keys, sign transactions, and
-broadcast transactions to the Bitcoin network.</p>
-<p><code>ord</code> wallets must be named <code>ord</code>, or start with <code>ord-</code>, to avoid
-unintentionally using the <code>ord</code> utility with non-ordinal Bitcoin wallets.</p>
-<p>To create a Bitcoin Core wallet named <code>ord</code> for use with <code>ord</code>, run:</p>
-<pre><code>ord --signet wallet create
-</code></pre>
-<p>This is equivalent to running:</p>
-<pre><code>bitcoin-cli -signet createwallet ord
-</code></pre>
-<h2 id="loading-the-bitcoin-core-wallet"><a class="header" href="#loading-the-bitcoin-core-wallet">Loading the Bitcoin Core Wallet</a></h2>
-<p>Bitcoin Core wallets must be loaded before they can be used with <code>ord</code>. Wallets
-are loaded automatically after being created, so you do not need to load your
-wallet if you just created it. Otherwise, run:</p>
-<pre><code>bitcoin-cli -signet loadwallet ord
-</code></pre>
-<p>Once your wallet is loaded, you should be able to run:</p>
-<pre><code>ord --signet wallet receive
-</code></pre>
-<p>…and get a fresh receive address.</p>
-<p>If you get an error message like:</p>
-<pre><code>error: JSON-RPC error: RPC error response: RpcError { code: -19, message: &quot;Wallet file not specified (must request wallet RPC through /wallet/&lt;filename&gt; uri-path).&quot;, data: None }
-</code></pre>
-<p>This means that <code>bitcoind</code> has more than one wallet loaded. List loaded wallets with:</p>
-<pre><code>bitcoin-cli -signet listwallets
-</code></pre>
-<p>And unload all wallets other than <code>ord</code>:</p>
-<pre><code>bitcoin-cli -signet unloadwallet foo
-</code></pre>
+<p>agrees with the block count on a block explorer like <a href="https://mempool.space/">the mempool.space block
+explorer</a>. <code>ord</code> interacts with <code>bitcoind</code>, so you
+should leave <code>bitcoind</code> running in the background when you're using <code>ord</code>.</p>
 <h2 id="installing-ord"><a class="header" href="#installing-ord">Installing <code>ord</code></a></h2>
 <p>The <code>ord</code> utility is written in Rust and can be built from
 <a href="https://github.com/casey/ord">source</a>. Pre-built binaries are available on the
@@ -247,73 +210,84 @@ wallet if you just created it. Otherwise, run:</p>
 <pre><code>ord --version
 </code></pre>
 <p>Which prints out <code>ord</code>'s version number.</p>
-<h2 id="receiving-satoshis"><a class="header" href="#receiving-satoshis">Receiving Satoshis</a></h2>
-<p>Inscriptions are made on individual satoshis, using normal Bitcoin transactions
-that pay fees in satoshis, so your wallet will need some sats.</p>
+<h2 id="creating-a-bitcoin-core-wallet"><a class="header" href="#creating-a-bitcoin-core-wallet">Creating a Bitcoin Core Wallet</a></h2>
+<p><code>ord</code> uses Bitcoin Core to manage private keys, sign transactions, and
+broadcast transactions to the Bitcoin network.</p>
+<p>To create a Bitcoin Core wallet named <code>ord</code> for use with <code>ord</code>, run:</p>
+<pre><code>ord wallet create
+</code></pre>
+<h2 id="receiving-sats"><a class="header" href="#receiving-sats">Receiving Sats</a></h2>
+<p>Inscriptions are made on individual sats, using normal Bitcoin transactions
+that pay fees in sats, so your wallet will need some sats.</p>
 <p>Get a new address from your <code>ord</code> wallet by running:</p>
-<pre><code>ord --signet wallet receive
+<pre><code>ord wallet receive
 </code></pre>
-<p>Use a signet faucet to send satoshis to the address you generated. Two faucets
-you might try are <a href="https://signet.bc-2.jp/">signet.bc-2.jp</a> and
-<a href="https://alt.signetfaucet.com/">alt.signetfaucet.com</a>.</p>
+<p>And send it some funds.</p>
 <p>You can see pending transactions with:</p>
-<pre><code>ord --signet wallet transactions
+<pre><code>ord wallet transactions
 </code></pre>
-<p>Once the faucet transaction confirms, you should be able to see the
-transactions outputs with <code>ord --signet wallet utxos</code>.</p>
+<p>Once the transaction confirms, you should be able to see the transactions
+outputs with <code>ord wallet utxos</code>.</p>
 <h2 id="creating-inscription-content"><a class="header" href="#creating-inscription-content">Creating Inscription Content</a></h2>
-<p>Create a <code>.png</code> or <code>.txt</code> file smaller than 1024 bytes to inscribe.</p>
-<p>Satoshis can be inscribed with any kind of content, but the <code>ord</code> wallet and
-explorer are currently limited to <code>.png</code> and <code>.txt</code> files.</p>
-<p>Additionally, inscriptions made on signet must be 1024 bytes or less, to avoid
-congesting signet for other users. Inscriptions are stored in Taproot input
-witnesses, so mainnet inscriptions will be limited only by the depths of your
-pockets and the 4,000,000 byte witness size limit.</p>
+<p>Sats can be inscribed with any kind of content, but the <code>ord</code> wallet only
+supports content types that can be displayed by the <code>ord</code> block explorer.</p>
+<p>Additionally, inscriptions are included in transactions, so the larger the
+content, the higher the fee that the inscription transaction must pay.</p>
+<p>Inscription content is included in transaction witnesses, which receive the
+witness discount. To calculate the approximate fee that in inscribe transaction
+will pay, divide the content size by four and muliply by the fee rate.</p>
+<p>Inscription transactions must be less than 400,000 weight units, or they will
+not be relayed by Bitcoin Core. One byte of inscription content costs one
+weight unit. Since an inscription transaction includes not just the inscription
+content, limit inscription content to less than 400,000 weight units. 390,000
+weight units should be safe.</p>
 <h2 id="creating-inscriptions"><a class="header" href="#creating-inscriptions">Creating Inscriptions</a></h2>
 <p>To create an inscription with the contents of <code>FILE</code>, run:</p>
-<pre><code>ord --signet wallet inscribe FILE
+<pre><code>ord wallet inscribe FILE
 </code></pre>
 <p>Ord will output two transactions IDs, one for the commit transaction, and one
-for the reveal transaction.</p>
+for the reveal transaction, and the inscription ID. Inscription IDs are of the
+form <code>TXIDiN</code>, where <code>TXID</code> is the transaction ID of the reveal transaction,
+and <code>N</code> is the index of the inscription in the reveal transaction.</p>
 <p>The commit transaction commits to a tapscript containing the contents of the
 inscription, and the reveal transaction spends from that tapscript, revealing
-the contents on chain and inscribing them on the first satoshi of the first
-output of the reveal transaction.</p>
+the contents on chain and inscribing them on the first sat of the first output
+of the reveal transaction.</p>
 <p>Wait for the reveal transaction to be mined. You can check the status of the
-commit and reveal transactions using  <a href="https://mempool.space/signet">the mempool.space signet block
+commit and reveal transactions using  <a href="https://mempool.space/">the mempool.space block
 explorer</a>.</p>
 <p>Once the reveal transaction has been mined, the inscription ID should be
 printed when you run:</p>
-<pre><code>ord --signet wallet inscriptions
+<pre><code>ord wallet inscriptions
 </code></pre>
-<p>And when you visit <a href="https://signet.ordinals.com/">the signet ordinals explorer</a>
-at <code>signet.ordinals.com/inscription/INSCRIPTION_ID</code>.</p>
+<p>And when you visit <a href="https://ordinals.com/">the ordinals explorer</a> at
+<code>ordinals.com/inscription/INSCRIPTION_ID</code>.</p>
 <h2 id="sending-inscriptions"><a class="header" href="#sending-inscriptions">Sending Inscriptions</a></h2>
 <p>Ask the recipient to generate a new address by running:</p>
-<pre><code>ord --signet wallet receive
+<pre><code>ord wallet receive
 </code></pre>
 <p>Send the inscription by running:</p>
-<pre><code>ord --signet wallet send INSCRIPTION_ID ADDRESS
+<pre><code>ord wallet send ADDRESS INSCRIPTION_ID
 </code></pre>
 <p>See the pending transaction with:</p>
-<pre><code>ord --signet wallet transactions
+<pre><code>ord wallet transactions
 </code></pre>
 <p>Once the send transaction confirms, the recipient can confirm receipt by
 running:</p>
-<pre><code>ord --signet wallet inscriptions
+<pre><code>ord wallet inscriptions
 </code></pre>
 <h2 id="receiving-inscriptions"><a class="header" href="#receiving-inscriptions">Receiving Inscriptions</a></h2>
 <p>Generate a new receive address using:</p>
-<pre><code>ord --signet wallet receive
+<pre><code>ord wallet receive
 </code></pre>
 <p>The sender can transfer the inscription to your address using:</p>
-<pre><code>ord --signet wallet send INSCRIPTION_ID ADDRESS
+<pre><code>ord wallet send ADDRESS INSCRIPTION_ID
 </code></pre>
 <p>See the pending transaction with:</p>
-<pre><code>ord --signet wallet transactions
+<pre><code>ord wallet transactions
 </code></pre>
 <p>Once the send transaction confirms, you can can confirm receipt by running:</p>
-<pre><code>ord --signet wallet inscriptions
+<pre><code>ord wallet inscriptions
 </code></pre>
 
                     </main>
