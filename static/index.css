@@ -194,18 +194,17 @@ a.mythic {
 }
 
 .inscription > *:nth-child(1), .inscription > *:nth-child(3) {
-  color: var(--dark-fg);
+  color: var(--dark-bg);
   flex: 1;
   font-size: 200%;
   text-decoration: none;
   display: flex;
   justify-content: center;
   align-items: center;
-  opacity: 0;
 }
 
 .inscription > a:nth-child(1):hover, .inscription > a:nth-child(3):hover {
-  opacity: 1;
+  color: var(--dark-fg);
 }
 
 .inscription > *:nth-child(2) {
