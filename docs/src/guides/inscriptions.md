@@ -179,7 +179,7 @@ outputs with `ord wallet utxos`.
 Creating Inscription Content
 ----------------------------
 
-Satoshis can be inscribed with any kind of content, but the `ord` wallet only
+Sats can be inscribed with any kind of content, but the `ord` wallet only
 supports content types that can be displayed by the `ord` block explorer.
 
 Additionally, inscriptions are included in transactions, so the larger the
@@ -209,8 +209,8 @@ for the reveal transaction.
 
 The commit transaction commits to a tapscript containing the contents of the
 inscription, and the reveal transaction spends from that tapscript, revealing
-the contents on chain and inscribing them on the first satoshi of the first
-output of the reveal transaction.
+the contents on chain and inscribing them on the first sat of the first output
+of the reveal transaction.
 
 Wait for the reveal transaction to be mined. You can check the status of the
 commit and reveal transactions using  [the mempool.space block
