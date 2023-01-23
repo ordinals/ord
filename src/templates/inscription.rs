@@ -49,7 +49,7 @@ mod tests {
         <h1>Inscription 1</h1>
         <div class=inscription>
         <div>❮</div>
-        <a href=/preview/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
+        <iframe .* src=/preview/1{64}i1></iframe>
         <div>❯</div>
         </div>
         <dl>
@@ -59,6 +59,8 @@ mod tests {
           <dd class=monospace>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</dd>
           <dt>output value</dt>
           <dd>1</dd>
+          <dt>preview</dt>
+          <dd><a href=/preview/1{64}i1>link</a></dd>
           <dt>content</dt>
           <dd><a href=/content/1{64}i1>link</a></dd>
           <dt>content length</dt>
@@ -106,7 +108,7 @@ mod tests {
           .*
           <dt>sat</dt>
           <dd><a href=/sat/1>1</a></dd>
-          <dt>content</dt>
+          <dt>preview</dt>
           .*
         </dl>
       "
@@ -134,7 +136,7 @@ mod tests {
         <h1>Inscription 1</h1>
         <div class=inscription>
         <a class=previous href=/inscription/1{64}i1>❮</a>
-        <a href=/preview/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
+        <iframe .* src=/preview/2{64}i2></iframe>
         <a class=next href=/inscription/3{64}i3>❯</a>
         </div>
         .*
