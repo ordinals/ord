@@ -37,7 +37,6 @@ h1 {
 iframe {
   aspect-ratio: 1 / 1;
   border: none;
-  pointer-events: none;
 }
 
 a {
@@ -185,6 +184,7 @@ a.mythic {
 
 .thumbnails iframe {
   height: 100%;
+  pointer-events: none;
   width: 100%;
 }
 

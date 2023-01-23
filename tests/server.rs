@@ -50,7 +50,7 @@ fn inscription_page() {
     format!(
       ".*<meta property=og:image content='/content/{inscription}'>.*
 <h1>Inscription 0</h1>
-.*<a href=/preview/{inscription}><iframe .* src=/preview/{inscription}></iframe></a>.*
+.*<iframe .* src=/preview/{inscription}></iframe>.*
 <dl>
   <dt>id</dt>
   <dd class=monospace>{inscription}</dd>
@@ -58,6 +58,8 @@ fn inscription_page() {
   <dd class=monospace>bc1.*</dd>
   <dt>output value</dt>
   <dd>10000</dd>
+  <dt>preview</dt>
+  <dd><a href=/preview/{inscription}>link</a></dd>
   <dt>content</dt>
   <dd><a href=/content/{inscription}>link</a></dd>
   <dt>content length</dt>
@@ -275,7 +277,7 @@ fn inscriptions_page_has_next_and_previous() {
       ".*<h1>Inscription 1</h1>.*
 <div class=inscription>
 <a class=previous href=/inscription/{a}>❮</a>
-<a href=/preview/{b}>.*</a>
+<iframe .* src=/preview/{b}></iframe>
 <a class=next href=/inscription/{c}>❯</a>
 </div>.*",
     ),
