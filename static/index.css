@@ -87,6 +87,14 @@ input[type=text] {
   min-width: 0;
 }
 
+dl {
+  overflow-wrap: break-word;
+}
+
+ul, li {
+  overflow: hidden;
+}
+
 @media (max-width: 38rem) {
   nav {
     flex-direction: column;
@@ -106,11 +114,6 @@ input[type=text] {
 
 .monospace {
   font-family: monospace, monospace;
-}
-
-.data {
-  font-family: monospace, monospace;
-  overflow-wrap: break-word;
 }
 
 span.common, span.uncommon, span.rare, span.epic, span.legendary, span.mythic {

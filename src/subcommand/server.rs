@@ -1397,7 +1397,7 @@ mod tests {
         ".*<title>Output {txid}:0</title>.*<h1>Output <span class=monospace>{txid}:0</span></h1>
 <dl>
   <dt>value</dt><dd>5000000000</dd>
-  <dt>script pubkey</dt><dd class=data>OP_PUSHBYTES_65 [[:xdigit:]]{{130}} OP_CHECKSIG</dd>
+  <dt>script pubkey</dt><dd class=monospace>OP_PUSHBYTES_65 [[:xdigit:]]{{130}} OP_CHECKSIG</dd>
   <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
 </dl>
 <h2>1 Sat Range</h2>
@@ -1418,7 +1418,7 @@ mod tests {
         ".*<title>Output {txid}:0</title>.*<h1>Output <span class=monospace>{txid}:0</span></h1>
 <dl>
   <dt>value</dt><dd>5000000000</dd>
-  <dt>script pubkey</dt><dd class=data>OP_PUSHBYTES_65 [[:xdigit:]]{{130}} OP_CHECKSIG</dd>
+  <dt>script pubkey</dt><dd class=monospace>OP_PUSHBYTES_65 [[:xdigit:]]{{130}} OP_CHECKSIG</dd>
   <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
 </dl>.*"
       ),
@@ -1581,7 +1581,7 @@ mod tests {
     </a>
     <dl>
       <dt>value</dt><dd>5000000000</dd>
-      <dt>script pubkey</dt><dd class=data></dd>
+      <dt>script pubkey</dt><dd class=monospace></dd>
     </dl>
   </li>
 </ul>.*"
