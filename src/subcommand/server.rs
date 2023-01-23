@@ -376,29 +376,42 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(outpoint): Path<OutPoint>,
   ) -> ServerResult<PageHtml<OutputHtml>> {
-    let output = index
-      .get_transaction(outpoint.txid)?
-      .ok_or_not_found(|| format!("output {outpoint}"))?
-      .output
-      .into_iter()
-      .nth(outpoint.vout as usize)
-      .ok_or_not_found(|| format!("output {outpoint}"))?;
+    let list = if index.has_sat_index()? {
+      index.list(outpoint)?
+    } else {
+      None
+    };
 
-    let inscriptions = index.get_inscriptions_on_output(outpoint).unwrap();
+    let output = if outpoint == OutPoint::null() {
+      let mut value = 0;
+
+      if let Some(List::Unspent(ranges)) = &list {
+        for (start, end) in ranges {
+          value += end - start;
+        }
+      }
+
+      TxOut {
+        value,
+        script_pubkey: Script::new(),
+      }
+    } else {
+      index
+        .get_transaction(outpoint.txid)?
+        .ok_or_not_found(|| format!("output {outpoint}"))?
+        .output
+        .into_iter()
+        .nth(outpoint.vout as usize)
+        .ok_or_not_found(|| format!("output {outpoint}"))?
+    };
+
+    let inscriptions = index.get_inscriptions_on_output(outpoint)?;
 
     Ok(
       OutputHtml {
         outpoint,
         inscriptions,
-        list: if index.has_sat_index()? {
-          Some(
-            index
-              .list(outpoint)?
-              .ok_or_not_found(|| format!("output {outpoint}"))?,
-          )
-        } else {
-          None
-        },
+        list,
         chain,
         output,
       }
@@ -988,6 +1001,12 @@ mod tests {
       self.index.update().unwrap();
       blocks
     }
+
+    fn mine_blocks_with_subsidy(&self, n: u64, subsidy: u64) -> Vec<Block> {
+      let blocks = self.bitcoin_rpc_server.mine_blocks_with_subsidy(n, subsidy);
+      self.index.update().unwrap();
+      blocks
+    }
   }
 
   impl Drop for TestServer {
@@ -1421,6 +1440,52 @@ mod tests {
   <dt>script pubkey</dt><dd class=monospace>OP_PUSHBYTES_65 [[:xdigit:]]{{130}} OP_CHECKSIG</dd>
   <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
 </dl>.*"
+      ),
+    );
+  }
+
+  #[test]
+  fn null_output_is_initially_empty() {
+    let txid = "0000000000000000000000000000000000000000000000000000000000000000";
+    TestServer::new_with_sat_index().assert_response_regex(
+      format!("/output/{txid}:4294967295"),
+      StatusCode::OK,
+      format!(
+        ".*<title>Output {txid}:4294967295</title>.*<h1>Output <span class=monospace>{txid}:4294967295</span></h1>
+<dl>
+  <dt>value</dt><dd>0</dd>
+  <dt>script pubkey</dt><dd class=monospace></dd>
+  <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
+</dl>
+<h2>0 Sat Ranges</h2>
+<ul class=monospace>
+</ul>.*"
+      ),
+    );
+  }
+
+  #[test]
+  fn null_output_receives_lost_sats() {
+    let server = TestServer::new_with_sat_index();
+
+    server.mine_blocks_with_subsidy(1, 0);
+
+    let txid = "0000000000000000000000000000000000000000000000000000000000000000";
+
+    server.assert_response_regex(
+      format!("/output/{txid}:4294967295"),
+      StatusCode::OK,
+      format!(
+        ".*<title>Output {txid}:4294967295</title>.*<h1>Output <span class=monospace>{txid}:4294967295</span></h1>
+<dl>
+  <dt>value</dt><dd>5000000000</dd>
+  <dt>script pubkey</dt><dd class=monospace></dd>
+  <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
+</dl>
+<h2>1 Sat Range</h2>
+<ul class=monospace>
+  <li><a href=/range/5000000000/10000000000 class=uncommon>5000000000–10000000000</a></li>
+</ul>.*"
       ),
     );
   }
