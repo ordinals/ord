@@ -11,18 +11,14 @@ pub(crate) fn run(options: Options) -> Result {
     .map(|satpoint| satpoint.outpoint)
     .collect::<BTreeSet<OutPoint>>();
 
-  let cardinal_balance = get_unspent_outputs(&options)?
-    .iter()
-    .map(|(outpoint, amount)| {
-      if inscription_outputs.contains(outpoint) {
-        0
-      } else {
-        amount.to_sat()
-      }
-    })
-    .sum::<u64>();
+  let mut balance = 0;
+  for (outpoint, amount) in get_unspent_outputs(&options)? {
+    if !inscription_outputs.contains(&outpoint) {
+      balance += amount.to_sat()
+    }
+  }
 
-  println!("{}", cardinal_balance);
+  println!("{}", balance);
 
   Ok(())
 }
