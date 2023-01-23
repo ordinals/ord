@@ -33,8 +33,7 @@ impl Display for Iframe {
     } else {
       write!(
         f,
-        "<a href=/preview/{}><iframe sandbox=allow-scripts scrolling=no src=/preview/{}></iframe></a>",
-        self.inscription_id,
+        "<iframe sandbox=allow-scripts scrolling=no src=/preview/{}></iframe>",
         self.inscription_id,
       )
     }
@@ -57,9 +56,8 @@ mod tests {
   #[test]
   fn main() {
     assert_regex_match!(
-      Iframe::main(inscription_id(1))
-      .0.to_string(),
-      "<a href=/preview/1{64}i1><iframe sandbox=allow-scripts scrolling=no src=/preview/1{64}i1></iframe></a>",
+      Iframe::main(inscription_id(1)).0.to_string(),
+      "<iframe sandbox=allow-scripts scrolling=no src=/preview/1{64}i1></iframe>",
     );
   }
 }

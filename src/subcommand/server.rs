@@ -2095,7 +2095,7 @@ mod tests {
     server.assert_response_regex(
       format!("/inscription/{}", InscriptionId::from(txid)),
       StatusCode::OK,
-      r".*<dt>sat</dt>\s*<dd><a href=/sat/5000000000>5000000000</a></dd>\s*<dt>content</dt>.*",
+      r".*<dt>sat</dt>\s*<dd><a href=/sat/5000000000>5000000000</a></dd>\s*<dt>preview</dt>.*",
     );
   }
 
@@ -2115,7 +2115,7 @@ mod tests {
     server.assert_response_regex(
       format!("/inscription/{}", InscriptionId::from(txid)),
       StatusCode::OK,
-      r".*<dt>output value</dt>\s*<dd>5000000000</dd>\s*<dt>content</dt>.*",
+      r".*<dt>output value</dt>\s*<dd>5000000000</dd>\s*<dt>preview</dt>.*",
     );
   }
 
