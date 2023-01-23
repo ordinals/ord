@@ -68,6 +68,8 @@ bitcoind -txindex
 Syncing the Bitcoin Blockchain
 ------------------------------
 
+To sync the chain, run:
+
 ```
 bitcoind -txindex
 ```
