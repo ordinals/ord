@@ -767,7 +767,7 @@ impl Index {
   fn inscriptions_on_output<'a: 'tx, 'tx>(
     satpoint_to_id: &'a impl ReadableTable<&'tx SatPointValue, &'tx InscriptionIdValue>,
     outpoint: OutPoint,
-  ) -> Result<Vec<(SatPoint, InscriptionId)>> {
+  ) -> Result<impl Iterator<Item = (SatPoint, InscriptionId)> + 'tx> {
     let start = SatPoint {
       outpoint,
       offset: 0,
@@ -780,12 +780,11 @@ impl Index {
     }
     .store();
 
-    let inscriptions = satpoint_to_id
-      .range::<&[u8; 44]>(&start..=&end)?
-      .map(|(satpoint, id)| (Entry::load(*satpoint.value()), Entry::load(*id.value())))
-      .collect();
-
-    Ok(inscriptions)
+    Ok(
+      satpoint_to_id
+        .range::<&[u8; 44]>(&start..=&end)?
+        .map(|(satpoint, id)| (Entry::load(*satpoint.value()), Entry::load(*id.value()))),
+    )
   }
 }
 
