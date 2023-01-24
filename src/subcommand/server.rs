@@ -730,6 +730,10 @@ impl Server {
       header::CONTENT_SECURITY_POLICY,
       HeaderValue::from_static("default-src 'unsafe-eval' 'unsafe-inline'"),
     );
+    headers.insert(
+      header::CACHE_CONTROL,
+      HeaderValue::from_static("max-age=31536000, immutable"),
+    );
 
     Some((headers, inscription.into_body()?))
   }
@@ -2252,6 +2256,28 @@ mod tests {
       format!("/preview/{}", inscription_id),
       StatusCode::OK,
       &fs::read_to_string("templates/preview-unknown.html").unwrap(),
+    );
+  }
+
+  #[test]
+  fn content_responses_have_cache_control_headers() {
+    let server = TestServer::new();
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witness: inscription("text/foo", "hello").to_witness(),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let response = server.get(format!("/content/{}", InscriptionId::from(txid)));
+
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(
+      response.headers().get(header::CACHE_CONTROL).unwrap(),
+      "max-age=31536000, immutable"
     );
   }
 }
