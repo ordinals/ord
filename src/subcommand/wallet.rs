@@ -14,7 +14,7 @@ use {
   transaction_builder::TransactionBuilder,
 };
 
-mod balance;
+pub mod balance;
 pub(crate) mod create;
 pub(crate) mod inscribe;
 pub mod inscriptions;
