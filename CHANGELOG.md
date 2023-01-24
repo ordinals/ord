@@ -1,6 +1,18 @@
 Changelog
 =========
 
+[0.4.2](https://github.com/casey/ord/releases/tag/0.4.2) - 2022-01-24
+---------------------------------------------------------------------
+
+### Changed
+- Fetch transactions below first inscription height
+
+### Fixed
+- Fix install script directory (#1356)
+
+### Misc
+- Fix guide typo: getblockchount -> getblockcount (#1354)
+
 [0.4.1](https://github.com/casey/ord/releases/tag/0.4.1) - 2022-01-24
 ---------------------------------------------------------------------
 
