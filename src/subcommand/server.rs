@@ -2014,6 +2014,27 @@ mod tests {
   }
 
   #[test]
+  fn pdf_preview() {
+    let server = TestServer::new();
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witness: inscription("application/pdf", "hello").to_witness(),
+      ..Default::default()
+    });
+    let inscription_id = InscriptionId::from(txid);
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/preview/{inscription_id}"),
+      StatusCode::OK,
+      format!(r".*<canvas data-inscription={inscription_id}></canvas>.*"),
+    );
+  }
+
+  #[test]
   fn image_preview() {
     let server = TestServer::new();
     server.mine_blocks(1);
