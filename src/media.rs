@@ -5,8 +5,10 @@ pub(crate) enum Media {
   Audio,
   Iframe,
   Image,
+  Pdf,
   Text,
   Unknown,
+  Video,
 }
 
 impl Media {
@@ -48,6 +50,7 @@ impl FromStr for Media {
 }
 
 const TABLE: &[(&str, Media, &[&str])] = &[
+  ("application/pdf", Media::Pdf, &["pdf"]),
   ("audio/flac", Media::Audio, &["flac"]),
   ("audio/mpeg", Media::Audio, &["mp3"]),
   ("audio/wav", Media::Audio, &["wav"]),
@@ -59,6 +62,7 @@ const TABLE: &[(&str, Media, &[&str])] = &[
   ("image/webp", Media::Image, &["webp"]),
   ("text/html;charset=utf-8", Media::Iframe, &["html"]),
   ("text/plain;charset=utf-8", Media::Text, &["txt"]),
+  ("video/webm", Media::Video, &["webm"]),
 ];
 
 #[cfg(test)]
