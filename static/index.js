@@ -1,3 +1,7 @@
+for (let time of document.body.getElementsByTagName('time')) {
+  time.setAttribute('title', new Date(time.textContent));
+}
+
 let next = document.querySelector('a.next');
 let previous = document.querySelector('a.previous');
 
@@ -19,7 +23,3 @@ window.addEventListener('keydown', e => {
       return;
   }
 });
-
-for (let time of document.body.getElementsByTagName('time')) {
-  time.setAttribute('title', new Date(time.textContent));
-}
