@@ -1,10 +1,10 @@
 use super::*;
 
-#[derive(Serialize)]
-struct Output {
-  inscription: InscriptionId,
-  location: SatPoint,
-  explorer: String,
+#[derive(Serialize, Deserialize)]
+pub struct Output {
+  pub inscription: InscriptionId,
+  pub location: SatPoint,
+  pub explorer: String,
 }
 
 pub(crate) fn run(options: Options) -> Result {
