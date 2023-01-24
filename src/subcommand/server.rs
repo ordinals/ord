@@ -6,8 +6,8 @@ use {
   super::*,
   crate::templates::{
     BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionsHtml, OutputHtml,
-    PageContent, PageHtml, PreviewAudioHtml, PreviewImageHtml, PreviewTextHtml, PreviewUnknownHtml,
-    RangeHtml, RareTxt, SatHtml, TransactionHtml,
+    PageContent, PageHtml, PreviewAudioHtml, PreviewImageHtml, PreviewPdfHtml, PreviewTextHtml,
+    PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, SatHtml, TransactionHtml,
   },
   axum::{
     body,
@@ -28,7 +28,10 @@ use {
   },
   std::{cmp::Ordering, str},
   tokio_stream::StreamExt,
-  tower_http::set_header::SetResponseHeaderLayer,
+  tower_http::{
+    cors::{Any, CorsLayer},
+    set_header::SetResponseHeaderLayer,
+  },
 };
 
 mod error;
@@ -163,7 +166,12 @@ impl Server {
         .layer(SetResponseHeaderLayer::overriding(
           header::STRICT_TRANSPORT_SECURITY,
           HeaderValue::from_static("max-age=31536000; includeSubDomains; preload"),
-        ));
+        ))
+        .layer(
+          CorsLayer::new()
+            .allow_methods([http::Method::GET])
+            .allow_origin(Any),
+        );
 
       match (self.http_port(), self.https_port()) {
         (Some(http_port), None) => {
@@ -722,6 +730,10 @@ impl Server {
       header::CONTENT_SECURITY_POLICY,
       HeaderValue::from_static("default-src 'unsafe-eval' 'unsafe-inline'"),
     );
+    headers.insert(
+      header::CACHE_CONTROL,
+      HeaderValue::from_static("max-age=31536000, immutable"),
+    );
 
     Some((headers, inscription.into_body()?))
   }
@@ -736,6 +748,11 @@ impl Server {
 
     return match inscription.media() {
       Media::Audio => Ok(PreviewAudioHtml { inscription_id }.into_response()),
+      Media::Iframe => Ok(
+        Self::content_response(inscription)
+          .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
+          .into_response(),
+      ),
       Media::Image => Ok(
         (
           [(
@@ -746,16 +763,20 @@ impl Server {
         )
           .into_response(),
       ),
-      Media::Iframe => Ok(
-        Self::content_response(inscription)
-          .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
+      Media::Pdf => Ok(
+        (
+          [(
+            header::CONTENT_SECURITY_POLICY,
+            "script-src-elem 'self' https://cdn.jsdelivr.net",
+          )],
+          PreviewPdfHtml { inscription_id },
+        )
           .into_response(),
       ),
       Media::Text => {
         let content = inscription
           .body()
           .ok_or_not_found(|| format!("inscription {inscription_id} content"))?;
-
         Ok(
           PreviewTextHtml {
             text: str::from_utf8(content)
@@ -765,6 +786,7 @@ impl Server {
         )
       }
       Media::Unknown => Ok(PreviewUnknownHtml.into_response()),
+      Media::Video => Ok(PreviewVideoHtml { inscription_id }.into_response()),
     };
   }
 
@@ -1562,7 +1584,7 @@ mod tests {
     TestServer::new().assert_response_regex(
       "/sat/0",
       StatusCode::OK,
-      ".*<dt>time</dt><dd>2009-01-03 18:15:05</dd>.*",
+      ".*<dt>timestamp</dt><dd><time>2009-01-03 18:15:05 UTC</time></dd>.*",
     );
   }
 
@@ -1571,7 +1593,7 @@ mod tests {
     TestServer::new().assert_response_regex(
       "/sat/5000000000",
       StatusCode::OK,
-      ".*<dt>time</dt><dd>.* \\(expected\\)</dd>.*",
+      ".*<dt>timestamp</dt><dd><time>.*</time> \\(expected\\)</dd>.*",
     );
   }
 
@@ -1996,6 +2018,27 @@ mod tests {
   }
 
   #[test]
+  fn pdf_preview() {
+    let server = TestServer::new();
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witness: inscription("application/pdf", "hello").to_witness(),
+      ..Default::default()
+    });
+    let inscription_id = InscriptionId::from(txid);
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/preview/{inscription_id}"),
+      StatusCode::OK,
+      format!(r".*<canvas data-inscription={inscription_id}></canvas>.*"),
+    );
+  }
+
+  #[test]
   fn image_preview() {
     let server = TestServer::new();
     server.mine_blocks(1);
@@ -2056,6 +2099,27 @@ mod tests {
       StatusCode::OK,
       "default-src 'self'",
       fs::read_to_string("templates/preview-unknown.html").unwrap(),
+    );
+  }
+
+  #[test]
+  fn video_preview() {
+    let server = TestServer::new();
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witness: inscription("video/webm", "hello").to_witness(),
+      ..Default::default()
+    });
+    let inscription_id = InscriptionId::from(txid);
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/preview/{inscription_id}"),
+      StatusCode::OK,
+      format!(r".*<video .*>\s*<source src=/content/{inscription_id}>.*"),
     );
   }
 
@@ -2192,6 +2256,28 @@ mod tests {
       format!("/preview/{}", inscription_id),
       StatusCode::OK,
       &fs::read_to_string("templates/preview-unknown.html").unwrap(),
+    );
+  }
+
+  #[test]
+  fn content_responses_have_cache_control_headers() {
+    let server = TestServer::new();
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witness: inscription("text/foo", "hello").to_witness(),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let response = server.get(format!("/content/{}", InscriptionId::from(txid)));
+
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(
+      response.headers().get(header::CACHE_CONTROL).unwrap(),
+      "max-age=31536000, immutable"
     );
   }
 }

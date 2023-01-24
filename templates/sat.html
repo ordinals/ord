@@ -10,7 +10,7 @@
   <dt>block</dt><dd><a href=/block/{{self.sat.height()}}>{{ self.sat.height() }}</a></dd>
   <dt>offset</dt><dd>{{ self.sat.third() }}</dd>
   <dt>rarity</dt><dd><span class={{self.sat.rarity()}}>{{ self.sat.rarity() }}</span></dd>
-  <dt>time</dt><dd>{{ self.blocktime }}</dd>
+  <dt>timestamp</dt><dd><time>{{self.blocktime.timestamp()}}</time>{{self.blocktime.suffix()}}</dd>
 %% if let Some((inscription)) = &self.inscription {
   <dt>inscription</dt><dd class=thumbnails>{{ Iframe::thumbnail(*inscription) }}</dd>
 %% }

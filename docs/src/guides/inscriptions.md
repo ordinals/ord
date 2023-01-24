@@ -75,7 +75,7 @@ To sync the chain, run:
 bitcoind -txindex
 ```
 
-…and leave it running until `getblockchount`:
+…and leave it running until `getblockcount`:
 
 ```
 bitcoin-cli getblockcount

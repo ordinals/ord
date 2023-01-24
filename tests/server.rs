@@ -67,7 +67,7 @@ fn inscription_page() {
   <dt>content type</dt>
   <dd>text/plain;charset=utf-8</dd>
   <dt>timestamp</dt>
-  <dd>1970-01-01 00:00:02</dd>
+  <dd><time>1970-01-01 00:00:02 UTC</time></dd>
   <dt>genesis height</dt>
   <dd>2</dd>
   <dt>genesis transaction</dt>

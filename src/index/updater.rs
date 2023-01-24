@@ -168,7 +168,8 @@ impl Updater {
     let client =
       Client::new(&index.rpc_url, index.auth.clone()).context("failed to connect to RPC URL")?;
 
-    let first_inscription_height = index.first_inscription_height;
+    // NB: We temporarily always fetch transactions, to avoid expensive cache misses.
+    let first_inscription_height = index.first_inscription_height.min(0);
 
     thread::spawn(move || loop {
       if let Some(height_limit) = height_limit {
@@ -255,7 +256,7 @@ impl Updater {
     let mut sat_ranges_written = 0;
     let mut outputs_in_block = 0;
 
-    let time = Utc.timestamp_opt(block.header.time.into(), 0).unwrap();
+    let time = timestamp(block.header.time);
 
     log::info!(
       "Block {} at {} with {} transactions…",

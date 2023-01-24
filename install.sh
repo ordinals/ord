@@ -19,7 +19,7 @@ FLAGS:
 
 OPTIONS:
     --tag TAG       Tag (version) of the crate to install, defaults to latest release
-    --to LOCATION   Where to install the binary [default: ~/.cargo/bin]
+    --to LOCATION   Where to install the binary [default: ~/bin]
     --target TARGET
 EOF
 }
@@ -94,7 +94,7 @@ if [ -z ${tag-} ]; then
 fi
 
 if [ -z ${dest-} ]; then
-  dest="$HOME/.cargo/bin"
+  dest="$HOME/bin"
 fi
 
 if [ -z ${tag-} ]; then
