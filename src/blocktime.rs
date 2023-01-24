@@ -11,10 +11,6 @@ impl Blocktime {
     Self::Confirmed(timestamp(seconds))
   }
 
-  pub(crate) fn expected(seconds: u32) -> Self {
-    Self::Expected(timestamp(seconds))
-  }
-
   fn timestamp(self) -> DateTime<Utc> {
     match self {
       Self::Confirmed(timestamp) | Self::Expected(timestamp) => timestamp,
@@ -45,7 +41,7 @@ mod tests {
       "1970-01-01 00:00:00 UTC"
     );
     assert_eq!(
-      Blocktime::expected(0).to_string(),
+      Blocktime::Expected(timestamp(0)).to_string(),
       "1970-01-01 00:00:00 UTC (expected)"
     );
   }

@@ -632,7 +632,11 @@ impl Index {
         })?;
 
         Ok(Blocktime::Expected(
-          Utc::now() + chrono::Duration::seconds(10 * 60 * i64::try_from(expected_blocks).unwrap()),
+          Utc::now()
+            .checked_add_signed(chrono::Duration::seconds(
+              10 * 60 * i64::try_from(expected_blocks)?,
+            ))
+            .ok_or_else(|| anyhow!("block timestamp out of range"))?,
         ))
       }
     }
