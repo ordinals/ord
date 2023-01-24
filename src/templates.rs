@@ -10,7 +10,8 @@ pub(crate) use {
   inscriptions::InscriptionsHtml,
   output::OutputHtml,
   preview::{
-    PreviewAudioHtml, PreviewImageHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
+    PreviewAudioHtml, PreviewImageHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
+    PreviewVideoHtml,
   },
   range::RangeHtml,
   rare::RareTxt,
