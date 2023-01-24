@@ -20,7 +20,7 @@ fn transactions() {
     .rpc_server(&rpc_server)
     .output::<Vec<Output>>();
 
-  assert_regex_match!(output[0].txid.to_string(), "[[:xdigit:]]{64}");
+  assert_regex_match!(output[0].transaction.to_string(), "[[:xdigit:]]{64}");
   assert_eq!(output[0].confirmations, 1);
 }
 
@@ -40,7 +40,7 @@ fn transactions_with_limit() {
     .rpc_server(&rpc_server)
     .output::<Vec<Output>>();
 
-  assert_regex_match!(output[0].txid.to_string(), "[[:xdigit:]]{64}");
+  assert_regex_match!(output[0].transaction.to_string(), "[[:xdigit:]]{64}");
   assert_eq!(output[0].confirmations, 1);
 
   rpc_server.mine_blocks(1);
@@ -49,13 +49,13 @@ fn transactions_with_limit() {
     .rpc_server(&rpc_server)
     .output::<Vec<Output>>();
 
-  assert_regex_match!(output[1].txid.to_string(), "[[:xdigit:]]{64}");
+  assert_regex_match!(output[1].transaction.to_string(), "[[:xdigit:]]{64}");
   assert_eq!(output[1].confirmations, 2);
 
   let output = CommandBuilder::new("wallet transactions --limit 1")
     .rpc_server(&rpc_server)
     .output::<Vec<Output>>();
 
-  assert_regex_match!(output[0].txid.to_string(), "[[:xdigit:]]{64}");
+  assert_regex_match!(output[0].transaction.to_string(), "[[:xdigit:]]{64}");
   assert_eq!(output[0].confirmations, 1);
 }

@@ -3,7 +3,7 @@ use std::collections::BTreeSet;
 
 #[derive(Serialize, Deserialize)]
 pub struct Output {
-  pub balance: u64,
+  pub cardinal: u64,
 }
 
 pub(crate) fn run(options: Options) -> Result {
@@ -23,7 +23,7 @@ pub(crate) fn run(options: Options) -> Result {
     }
   }
 
-  print_json(&Output { balance })?;
+  print_json(Output { cardinal: balance })?;
 
   Ok(())
 }

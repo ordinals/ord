@@ -2,20 +2,20 @@ use super::*;
 
 #[derive(Serialize, Deserialize)]
 pub struct Output {
-  pub outpoint: OutPoint,
+  pub output: OutPoint,
   pub amount: u64,
 }
 
 pub(crate) fn run(options: Options) -> Result {
-  let mut output = Vec::new();
-  for (outpoint, amount) in get_unspent_outputs(&options)? {
-    output.push(Output {
-      outpoint,
+  let mut outputs = Vec::new();
+  for (output, amount) in get_unspent_outputs(&options)? {
+    outputs.push(Output {
+      output,
       amount: amount.to_sat(),
     });
   }
 
-  print_json(&output)?;
+  print_json(outputs)?;
 
   Ok(())
 }

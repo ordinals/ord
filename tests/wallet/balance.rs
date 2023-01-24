@@ -9,7 +9,7 @@ fn wallet_balance() {
     CommandBuilder::new("wallet balance")
       .rpc_server(&rpc_server)
       .output::<Output>()
-      .balance,
+      .cardinal,
     0
   );
 
@@ -19,7 +19,7 @@ fn wallet_balance() {
     CommandBuilder::new("wallet balance")
       .rpc_server(&rpc_server)
       .output::<Output>()
-      .balance,
+      .cardinal,
     50 * COIN_VALUE
   );
 }
@@ -33,7 +33,7 @@ fn wallet_balance_only_counts_cardinal_utxos() {
     CommandBuilder::new("wallet balance")
       .rpc_server(&rpc_server)
       .output::<Output>()
-      .balance,
+      .cardinal,
     0
   );
 
@@ -43,7 +43,7 @@ fn wallet_balance_only_counts_cardinal_utxos() {
     CommandBuilder::new("wallet balance")
       .rpc_server(&rpc_server)
       .output::<Output>()
-      .balance,
+      .cardinal,
     100 * COIN_VALUE - 10_000
   );
 }

@@ -241,7 +241,7 @@ fn send_btc() {
     .output::<Output>();
 
   assert_eq!(
-    output.txid,
+    output.transaction,
     "0000000000000000000000000000000000000000000000000000000000000000"
       .parse()
       .unwrap()
@@ -273,7 +273,7 @@ fn send_btc_locks_inscriptions() {
     .output::<Output>();
 
   assert_eq!(
-    output.txid,
+    output.transaction,
     "0000000000000000000000000000000000000000000000000000000000000000"
       .parse()
       .unwrap()

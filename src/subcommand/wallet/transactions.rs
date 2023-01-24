@@ -8,7 +8,7 @@ pub(crate) struct Transactions {
 
 #[derive(Serialize, Deserialize)]
 pub struct Output {
-  pub txid: Txid,
+  pub transaction: Txid,
   pub confirmations: i32,
 }
 
@@ -25,12 +25,12 @@ impl Transactions {
       )?
     {
       output.push(Output {
-        txid: tx.info.txid,
+        transaction: tx.info.txid,
         confirmations: tx.info.confirmations,
       });
     }
 
-    print_json(&output)?;
+    print_json(output)?;
 
     Ok(())
   }

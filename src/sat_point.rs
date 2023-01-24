@@ -96,4 +96,20 @@ mod tests {
       .parse::<SatPoint>()
       .unwrap_err();
   }
+
+  #[test]
+  fn deserialize_ok() {
+    assert_eq!(
+      serde_json::from_str::<SatPoint>(
+        "\"1111111111111111111111111111111111111111111111111111111111111111:1:1\""
+      )
+      .unwrap(),
+      SatPoint {
+        outpoint: "1111111111111111111111111111111111111111111111111111111111111111:1"
+          .parse()
+          .unwrap(),
+        offset: 1,
+      }
+    );
+  }
 }

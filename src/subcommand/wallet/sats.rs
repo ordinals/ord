@@ -10,17 +10,17 @@ pub(crate) struct Sats {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct OutputExoticSats {
+pub struct OutputTsv {
   pub sat: String,
-  pub outpoint: OutPoint,
+  pub output: OutPoint,
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct OutputRareSats {
+pub struct OutputRare {
   pub sat: Sat,
-  pub outpoint: OutPoint,
+  pub output: OutPoint,
   pub offset: u64,
-  pub rarity: String,
+  pub rarity: Rarity,
 }
 
 impl Sats {
@@ -37,23 +37,23 @@ impl Sats {
         &fs::read_to_string(path)
           .with_context(|| format!("I/O error reading `{}`", path.display()))?,
       )? {
-        output.push(OutputExoticSats {
-          sat: sat.to_string(),
-          outpoint,
+        output.push(OutputTsv {
+          sat: sat.into(),
+          output: outpoint,
         });
       }
-      print_json(&output)?;
+      print_json(output)?;
     } else {
       let mut output = Vec::new();
       for (outpoint, sat, offset, rarity) in rare_sats(utxos) {
-        output.push(OutputRareSats {
+        output.push(OutputRare {
           sat,
-          outpoint,
+          output: outpoint,
           offset,
-          rarity: rarity.to_string(),
+          rarity,
         });
       }
-      print_json(&output)?;
+      print_json(output)?;
     }
 
     Ok(())

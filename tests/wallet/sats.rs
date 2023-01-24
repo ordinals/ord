@@ -1,6 +1,6 @@
 use {
   super::*,
-  ord::subcommand::wallet::sats::{OutputExoticSats, OutputRareSats},
+  ord::subcommand::wallet::sats::{OutputTsv, OutputRare},
 };
 
 #[test]
@@ -11,11 +11,11 @@ fn sats() {
 
   let output = CommandBuilder::new("--index-sats wallet sats")
     .rpc_server(&rpc_server)
-    .output::<Vec<OutputRareSats>>();
+    .output::<Vec<OutputRare>>();
 
   assert_eq!(output[0].sat, 50 * COIN_VALUE);
   assert_eq!(
-    output[0].outpoint.to_string(),
+    output[0].output.to_string(),
     format!("{second_coinbase}:0")
   );
 }
@@ -29,11 +29,11 @@ fn sats_from_tsv_success() {
   let output = CommandBuilder::new("--index-sats wallet sats --tsv foo.tsv")
     .write("foo.tsv", "nvtcsezkbtg")
     .rpc_server(&rpc_server)
-    .output::<Vec<OutputExoticSats>>();
+    .output::<Vec<OutputTsv>>();
 
   assert_eq!(output[0].sat, "nvtcsezkbtg");
   assert_eq!(
-    output[0].outpoint.to_string(),
+    output[0].output.to_string(),
     format!("{second_coinbase}:0")
   );
 }

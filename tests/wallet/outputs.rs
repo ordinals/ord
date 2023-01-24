@@ -13,7 +13,7 @@ fn outputs() {
     .rpc_server(&rpc_server)
     .output::<Vec<Output>>();
 
-  assert_eq!(output[0].outpoint, outpoint);
+  assert_eq!(output[0].output, outpoint);
   assert_eq!(output[0].amount, amount);
 }
 
@@ -32,6 +32,6 @@ fn outputs_includes_locked_outputs() {
     .rpc_server(&rpc_server)
     .output::<Vec<Output>>();
 
-  assert_eq!(output[0].outpoint, outpoint);
+  assert_eq!(output[0].output, outpoint);
   assert_eq!(output[0].amount, amount);
 }

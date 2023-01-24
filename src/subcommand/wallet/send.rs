@@ -14,7 +14,7 @@ pub(crate) struct Send {
 
 #[derive(Serialize, Deserialize)]
 pub struct Output {
-  pub txid: Txid,
+  pub transaction: Txid,
 }
 
 impl Send {
@@ -67,7 +67,7 @@ impl Send {
         let txid =
           client.send_to_address(&self.address, amount, None, None, None, None, None, None)?;
 
-        print_json(&Output { txid })?;
+        print_json(Output { transaction: txid })?;
 
         return Ok(());
       }
