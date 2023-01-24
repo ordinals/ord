@@ -912,58 +912,6 @@ mod tests {
   }
 
   #[test]
-  fn inscriptions_below_first_inscription_height_are_skipped() {
-    let inscription = inscription("text/plain", "hello");
-    let template = TransactionTemplate {
-      inputs: &[(1, 0, 0)],
-      witness: inscription.to_witness(),
-      ..Default::default()
-    };
-
-    {
-      let context = Context::builder().build();
-      context.mine_blocks(1);
-      let txid = context.rpc_server.broadcast_tx(template.clone());
-      let inscription_id = InscriptionId::from(txid);
-      context.mine_blocks(1);
-
-      assert_eq!(
-        context.index.get_inscription_by_id(inscription_id).unwrap(),
-        Some(inscription)
-      );
-
-      assert_eq!(
-        context
-          .index
-          .get_inscription_satpoint_by_id(inscription_id)
-          .unwrap(),
-        Some(SatPoint {
-          outpoint: OutPoint { txid, vout: 0 },
-          offset: 0,
-        })
-      );
-    }
-
-    {
-      let context = Context::builder()
-        .arg("--first-inscription-height=3")
-        .build();
-      context.mine_blocks(1);
-      let txid = context.rpc_server.broadcast_tx(template);
-      let inscription_id = InscriptionId::from(txid);
-      context.mine_blocks(1);
-
-      assert_eq!(
-        context
-          .index
-          .get_inscription_satpoint_by_id(inscription_id)
-          .unwrap(),
-        None,
-      );
-    }
-  }
-
-  #[test]
   fn list_first_coinbase_transaction() {
     let context = Context::builder().arg("--index-sats").build();
     assert_eq!(
