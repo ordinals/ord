@@ -72,7 +72,7 @@ mod tests {
             </a>
             <dl>
               <dt>value</dt><dd>5000000000</dd>
-              <dt>script pubkey</dt><dd class=data>OP_0</dd>
+              <dt>script pubkey</dt><dd class=monospace>OP_0</dd>
             </dl>
           </li>
           <li>
@@ -81,7 +81,7 @@ mod tests {
             </a>
             <dl>
               <dt>value</dt><dd>5000000000</dd>
-              <dt>script pubkey</dt><dd class=data>OP_PUSHNUM_1</dd>
+              <dt>script pubkey</dt><dd class=monospace>OP_PUSHNUM_1</dd>
             </dl>
           </li>
         </ul>
