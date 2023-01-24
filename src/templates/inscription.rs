@@ -12,7 +12,7 @@ pub(crate) struct InscriptionHtml {
   pub(crate) previous: Option<InscriptionId>,
   pub(crate) sat: Option<Sat>,
   pub(crate) satpoint: SatPoint,
-  pub(crate) timestamp: NaiveDateTime,
+  pub(crate) timestamp: DateTime<Utc>,
 }
 
 impl PageContent for InscriptionHtml {
@@ -68,7 +68,7 @@ mod tests {
           <dt>content type</dt>
           <dd>text/plain;charset=utf-8</dd>
           <dt>timestamp</dt>
-          <dd>1970-01-01 00:00:00</dd>
+          <dd><time>1970-01-01 00:00:00 UTC</time></dd>
           <dt>genesis height</dt>
           <dd>0</dd>
           <dt>genesis transaction</dt>

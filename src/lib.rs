@@ -43,7 +43,7 @@ use {
   },
   bitcoincore_rpc::{Client, RpcApi},
   chain::Chain,
-  chrono::{NaiveDateTime, TimeZone, Utc},
+  chrono::{DateTime, TimeZone, Utc},
   clap::{ArgGroup, Parser},
   derive_more::{Display, FromStr},
   html_escaper::{Escape, Trusted},
@@ -135,8 +135,8 @@ fn integration_test() -> bool {
     .unwrap_or(false)
 }
 
-fn timestamp(seconds: u32) -> NaiveDateTime {
-  NaiveDateTime::from_timestamp_opt(seconds.into(), 0).unwrap()
+fn timestamp(seconds: u32) -> DateTime<Utc> {
+  Utc.timestamp_opt(seconds.into(), 0).unwrap()
 }
 
 pub fn main() {
