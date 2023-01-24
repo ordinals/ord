@@ -255,7 +255,7 @@ impl Updater {
     let mut sat_ranges_written = 0;
     let mut outputs_in_block = 0;
 
-    let time = Utc.timestamp_opt(block.header.time.into(), 0).unwrap();
+    let time = timestamp(block.header.time);
 
     log::info!(
       "Block {} at {} with {} transactions…",

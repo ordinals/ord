@@ -614,7 +614,7 @@ impl Index {
     let height = height.n();
 
     match self.get_block_by_height(height)? {
-      Some(block) => Ok(Blocktime::Confirmed(block.header.time.into())),
+      Some(block) => Ok(Blocktime::confirmed(block.header.time)),
       None => {
         let tx = self.database.begin_read()?;
 
@@ -632,7 +632,11 @@ impl Index {
         })?;
 
         Ok(Blocktime::Expected(
-          Utc::now().timestamp() + 10 * 60 * i64::try_from(expected_blocks).unwrap(),
+          Utc::now()
+            .checked_add_signed(chrono::Duration::seconds(
+              10 * 60 * i64::try_from(expected_blocks)?,
+            ))
+            .ok_or_else(|| anyhow!("block timestamp out of range"))?,
         ))
       }
     }
