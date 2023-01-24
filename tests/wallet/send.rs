@@ -240,7 +240,12 @@ fn send_btc() {
     .rpc_server(&rpc_server)
     .output::<Output>();
 
-  assert_eq!(output.txid, "0000000000000000000000000000000000000000000000000000000000000000".parse().unwrap());
+  assert_eq!(
+    output.txid,
+    "0000000000000000000000000000000000000000000000000000000000000000"
+      .parse()
+      .unwrap()
+  );
 
   assert_eq!(
     rpc_server.sent(),
@@ -267,7 +272,12 @@ fn send_btc_locks_inscriptions() {
     .rpc_server(&rpc_server)
     .output::<Output>();
 
-  assert_eq!(output.txid, "0000000000000000000000000000000000000000000000000000000000000000".parse().unwrap());
+  assert_eq!(
+    output.txid,
+    "0000000000000000000000000000000000000000000000000000000000000000"
+      .parse()
+      .unwrap()
+  );
 
   assert_eq!(
     rpc_server.sent(),
