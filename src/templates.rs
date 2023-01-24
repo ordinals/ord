@@ -11,6 +11,7 @@ pub(crate) use {
   output::OutputHtml,
   preview::{
     PreviewAudioHtml, PreviewImageHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
+    PreviewVideoHtml,
   },
   range::RangeHtml,
   rare::RareTxt,

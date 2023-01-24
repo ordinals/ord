@@ -7,7 +7,7 @@ use {
   crate::templates::{
     BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionsHtml, OutputHtml,
     PageContent, PageHtml, PreviewAudioHtml, PreviewImageHtml, PreviewPdfHtml, PreviewTextHtml,
-    PreviewUnknownHtml, RangeHtml, RareTxt, SatHtml, TransactionHtml,
+    PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, SatHtml, TransactionHtml,
   },
   axum::{
     body,
@@ -744,6 +744,11 @@ impl Server {
 
     return match inscription.media() {
       Media::Audio => Ok(PreviewAudioHtml { inscription_id }.into_response()),
+      Media::Iframe => Ok(
+        Self::content_response(inscription)
+          .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
+          .into_response(),
+      ),
       Media::Image => Ok(
         (
           [(
@@ -752,11 +757,6 @@ impl Server {
           )],
           PreviewImageHtml { inscription_id },
         )
-          .into_response(),
-      ),
-      Media::Iframe => Ok(
-        Self::content_response(inscription)
-          .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
           .into_response(),
       ),
       Media::Pdf => Ok(
@@ -773,7 +773,6 @@ impl Server {
         let content = inscription
           .body()
           .ok_or_not_found(|| format!("inscription {inscription_id} content"))?;
-
         Ok(
           PreviewTextHtml {
             text: str::from_utf8(content)
@@ -783,6 +782,7 @@ impl Server {
         )
       }
       Media::Unknown => Ok(PreviewUnknownHtml.into_response()),
+      Media::Video => Ok(PreviewVideoHtml { inscription_id }.into_response()),
     };
   }
 
@@ -2095,6 +2095,27 @@ mod tests {
       StatusCode::OK,
       "default-src 'self'",
       fs::read_to_string("templates/preview-unknown.html").unwrap(),
+    );
+  }
+
+  #[test]
+  fn video_preview() {
+    let server = TestServer::new();
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witness: inscription("video/webm", "hello").to_witness(),
+      ..Default::default()
+    });
+    let inscription_id = InscriptionId::from(txid);
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/preview/{inscription_id}"),
+      StatusCode::OK,
+      format!(r".*<video .*>\s*<source src=/content/{inscription_id}>.*"),
     );
   }
 
