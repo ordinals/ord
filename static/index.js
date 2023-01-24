@@ -1,23 +1,25 @@
-let next = document.querySelector("a.next");
+let next = document.querySelector('a.next');
+let previous = document.querySelector('a.previous');
 
-if (next) {
-  window.addEventListener("keydown", e => {
-    if (e.key == "ArrowRight") {
-      window.location = next.href;
-    }
-  });
-}
+window.addEventListener('keydown', e => {
+  if (document.activeElement.tagName == 'INPUT') {
+    return;
+  }
 
-let previous = document.querySelector("a.previous");
+  switch (e.key) {
+    case 'ArrowRight':
+      if (next) {
+        window.location = next.href;
+      }
+      return;
+    case 'ArrowLeft':
+      if (previous) {
+        window.location = previous.href;
+      }
+      return;
+  }
+});
 
-if (previous) {
-  window.addEventListener("keydown", e => {
-    if (e.key == "ArrowLeft") {
-      window.location = previous.href;
-    }
-  });
-}
-
-for (let time of document.body.getElementsByTagName("time")) {
+for (let time of document.body.getElementsByTagName('time')) {
   time.setAttribute('title', new Date(time.textContent));
 }
