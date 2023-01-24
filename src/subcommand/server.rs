@@ -1571,7 +1571,7 @@ mod tests {
     TestServer::new().assert_response_regex(
       "/sat/5000000000",
       StatusCode::OK,
-      ".*<dt>timestamp</dt><dd><time>.* \\(expected\\)</time></dd>.*",
+      ".*<dt>timestamp</dt><dd><time>.*</time> \\(expected\\)</dd>.*",
     );
   }
 

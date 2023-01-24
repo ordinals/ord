@@ -11,38 +11,16 @@ impl Blocktime {
     Self::Confirmed(timestamp(seconds))
   }
 
-  fn timestamp(self) -> DateTime<Utc> {
+  pub(crate) fn timestamp(self) -> DateTime<Utc> {
     match self {
       Self::Confirmed(timestamp) | Self::Expected(timestamp) => timestamp,
     }
   }
-}
 
-impl Display for Blocktime {
-  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-    write!(f, "{}", self.timestamp())?;
-
-    if let Self::Expected(_) = self {
-      write!(f, " (expected)")?;
+  pub(crate) fn suffix(self) -> &'static str {
+    match self {
+      Self::Confirmed(_) => "",
+      Self::Expected(_) => " (expected)",
     }
-
-    Ok(())
-  }
-}
-
-#[cfg(test)]
-mod tests {
-  use super::*;
-
-  #[test]
-  fn display() {
-    assert_eq!(
-      Blocktime::confirmed(0).to_string(),
-      "1970-01-01 00:00:00 UTC"
-    );
-    assert_eq!(
-      Blocktime::Expected(timestamp(0)).to_string(),
-      "1970-01-01 00:00:00 UTC (expected)"
-    );
   }
 }
