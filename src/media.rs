@@ -8,6 +8,7 @@ pub(crate) enum Media {
   Pdf,
   Text,
   Unknown,
+  Video,
 }
 
 impl Media {
@@ -61,6 +62,7 @@ const TABLE: &[(&str, Media, &[&str])] = &[
   ("image/webp", Media::Image, &["webp"]),
   ("text/html;charset=utf-8", Media::Iframe, &["html"]),
   ("text/plain;charset=utf-8", Media::Text, &["txt"]),
+  ("video/webm", Media::Video, &["webm"]),
 ];
 
 #[cfg(test)]
