@@ -1,6 +1,37 @@
 Changelog
 =========
 
+[0.4.1](https://github.com/casey/ord/releases/tag/0.4.1) - 2022-01-24
+---------------------------------------------------------------------
+
+### Added
+- Support video inscriptions (#1349)
+- Support PDF Inscriptions (#1352)
+- Display lost sats on /output (#1336)
+- Show explorer URLs in `ord wallet inscriptions` (#1308)
+
+### Changed
+- Display timestamps as UTC (#1348)
+- Enable pointer events on inscription page iframes (#1344)
+- Exclude inscribed utxos when calculating wallet balance (#1341)
+
+### Misc
+- Activate nav arrows on single tap on iOS Safari (#1347)
+- Ignore keyboard events search box has focus (#1346)
+- Cache content responses (#1318)
+- Show unordered list decorations (#1353)
+- Update inscriptions guide for mainnet (#1342)
+- Hide list overflow and break dl overflow between words (#1343)
+- Add white on black fish eye logo (#1325)
+- Un-reverse thumbnail row order (#1321)
+- Deploy branches other than master to mainnet (#1319)
+- Add Just recipe to deploy to all chains (#1313)
+- Display newest inscriptions on right (#1311)
+- Allow publishing arbitrary revisions with publish recipe (#1307)
+- Make genesis clock mark orange and add tooltip to height (#1312)
+- Serve favicon as PNG to Safari and SVG others (#1302)
+- Use sans-serif font for height on clock (#1300)
+
 [0.4.0](https://github.com/casey/ord/releases/tag/0.4.0) - 2022-01-19
 ---------------------------------------------------------------------
 
