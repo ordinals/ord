@@ -6,8 +6,8 @@ use {
   super::*,
   crate::templates::{
     BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionsHtml, OutputHtml,
-    PageContent, PageHtml, PreviewAudioHtml, PreviewImageHtml, PreviewTextHtml, PreviewUnknownHtml,
-    RangeHtml, RareTxt, SatHtml, TransactionHtml,
+    PageContent, PageHtml, PreviewAudioHtml, PreviewImageHtml, PreviewPdfHtml, PreviewTextHtml,
+    PreviewUnknownHtml, RangeHtml, RareTxt, SatHtml, TransactionHtml,
   },
   axum::{
     body,
@@ -28,7 +28,10 @@ use {
   },
   std::{cmp::Ordering, str},
   tokio_stream::StreamExt,
-  tower_http::set_header::SetResponseHeaderLayer,
+  tower_http::{
+    cors::{Any, CorsLayer},
+    set_header::SetResponseHeaderLayer,
+  },
 };
 
 mod error;
@@ -163,7 +166,12 @@ impl Server {
         .layer(SetResponseHeaderLayer::overriding(
           header::STRICT_TRANSPORT_SECURITY,
           HeaderValue::from_static("max-age=31536000; includeSubDomains; preload"),
-        ));
+        ))
+        .layer(
+          CorsLayer::new()
+            .allow_methods([http::Method::GET])
+            .allow_origin(Any),
+        );
 
       match (self.http_port(), self.https_port()) {
         (Some(http_port), None) => {
@@ -749,6 +757,16 @@ impl Server {
       Media::Iframe => Ok(
         Self::content_response(inscription)
           .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
+          .into_response(),
+      ),
+      Media::Pdf => Ok(
+        (
+          [(
+            header::CONTENT_SECURITY_POLICY,
+            "script-src-elem 'self' https://cdn.jsdelivr.net",
+          )],
+          PreviewPdfHtml { inscription_id },
+        )
           .into_response(),
       ),
       Media::Text => {

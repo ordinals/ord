@@ -5,6 +5,7 @@ pub(crate) enum Media {
   Audio,
   Iframe,
   Image,
+  Pdf,
   Text,
   Unknown,
 }
@@ -48,6 +49,7 @@ impl FromStr for Media {
 }
 
 const TABLE: &[(&str, Media, &[&str])] = &[
+  ("application/pdf", Media::Pdf, &["pdf"]),
   ("audio/flac", Media::Audio, &["flac"]),
   ("audio/mpeg", Media::Audio, &["mp3"]),
   ("audio/wav", Media::Audio, &["wav"]),
