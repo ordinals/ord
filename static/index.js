@@ -17,3 +17,7 @@ if (previous) {
     }
   });
 }
+
+for (let time of document.body.getElementsByTagName("time")) {
+  time.setAttribute('title', new Date(time.textContent));
+}
