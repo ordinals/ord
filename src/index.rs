@@ -689,7 +689,7 @@ impl Index {
     )
   }
 
-  pub(crate) fn get_latest_inscriptions_from(
+  pub(crate) fn get_latest_inscriptions_with_prev_and_next(
     &self,
     n: usize,
     from: u64,

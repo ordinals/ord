@@ -873,7 +873,7 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(from): Path<u64>,
   ) -> ServerResult<PageHtml<InscriptionsHtml>> {
-    let (inscriptions, prev, next) = index.get_latest_inscriptions_from(100, from)?;
+    let (inscriptions, prev, next) = index.get_latest_inscriptions_with_prev_and_next(100, from)?;
     Ok(
       InscriptionsHtml {
         inscriptions,
