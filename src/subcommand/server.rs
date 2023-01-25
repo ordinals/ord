@@ -850,28 +850,21 @@ impl Server {
     Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<PageHtml<InscriptionsHtml>> {
-    let mut inscriptions = index.get_latest_inscription_numbers(101)?;
-
-    let prev = if inscriptions.len() == 101 {
-      Some(inscriptions.pop().unwrap().0)
-    } else {
-      None
-    };
-
-    Ok(
-      InscriptionsHtml {
-        inscriptions: inscriptions.into_iter().map(|(_number, id)| id).collect(),
-        next: None,
-        prev,
-      }
-      .page(chain, index.has_sat_index()?),
-    )
+    Self::inscriptions_inner(chain, index, None).await
   }
 
   async fn inscriptions_from(
     Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
     Path(from): Path<u64>,
+  ) -> ServerResult<PageHtml<InscriptionsHtml>> {
+    Self::inscriptions_inner(chain, index, Some(from)).await
+  }
+
+  async fn inscriptions_inner(
+    chain: Chain,
+    index: Arc<Index>,
+    from: Option<u64>,
   ) -> ServerResult<PageHtml<InscriptionsHtml>> {
     let (inscriptions, prev, next) = index.get_latest_inscriptions_with_prev_and_next(100, from)?;
     Ok(
