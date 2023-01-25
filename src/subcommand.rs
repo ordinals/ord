@@ -1,6 +1,6 @@
 use super::*;
 
-mod epochs;
+pub mod epochs;
 pub mod find;
 mod index;
 pub mod info;

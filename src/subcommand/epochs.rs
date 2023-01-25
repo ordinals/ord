@@ -2,16 +2,16 @@ use super::*;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Output {
-  pub sat: Sat,
+  pub starting_sats: Vec<Sat>,
 }
 
 pub(crate) fn run() -> Result {
-  let mut output = Vec::new();
+  let mut starting_sats = Vec::new();
   for sat in Epoch::STARTING_SATS {
-    output.push(sat);
+    starting_sats.push(sat);
   }
 
-  print_json(output)?;
+  print_json(Output { starting_sats })?;
 
   Ok(())
 }
