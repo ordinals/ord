@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, ord::subcommand::info::TransactionsOutput};
 
 #[test]
 fn json_with_satoshi_index() {
@@ -72,33 +72,37 @@ fn transactions() {
 
   let index_path = tempdir.path().join("index.redb");
 
-  CommandBuilder::new(format!(
+  assert!(CommandBuilder::new(format!(
     "--index {} info --transactions",
     index_path.display()
   ))
   .rpc_server(&rpc_server)
-  .expected_stdout("start\tend\tcount\telapsed\n")
-  .run();
+  .output::<Vec<TransactionsOutput>>()
+  .is_empty());
 
   rpc_server.mine_blocks(10);
 
-  CommandBuilder::new(format!(
+  let output = CommandBuilder::new(format!(
     "--index {} info --transactions",
     index_path.display()
   ))
   .rpc_server(&rpc_server)
-  .stdout_regex("start\tend\tcount\telapsed\n0\t1\t1\t\\d+\\.\\d+\n")
-  .run();
+  .output::<Vec<TransactionsOutput>>();
+
+  assert_eq!(output[0].start, 0);
+  assert_eq!(output[0].end, 1);
+  assert_eq!(output[0].count, 1);
 
   rpc_server.mine_blocks(10);
 
-  CommandBuilder::new(format!(
+  let output = CommandBuilder::new(format!(
     "--index {} info --transactions",
     index_path.display()
   ))
   .rpc_server(&rpc_server)
-  .expected_stdout("start\tend\tcount\telapsed\n")
-  .stdout_regex("start\tend\tcount\telapsed\n0\t1\t1\t\\d+\\.\\d+\n")
-  .stdout_regex("start\tend\tcount\telapsed\n0\t1\t1\t\\d+\\.\\d+\n1\t11\t10\t\\d+\\.\\d+\n")
-  .run();
+  .output::<Vec<TransactionsOutput>>();
+
+  assert_eq!(output[1].start, 1);
+  assert_eq!(output[1].end, 11);
+  assert_eq!(output[1].count, 10);
 }

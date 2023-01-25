@@ -1,14 +1,26 @@
-use super::*;
+use {super::*, ord::subcommand::list::Output};
 
 #[test]
 fn output_found() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  CommandBuilder::new(
+  let output = CommandBuilder::new(
     "--index-sats list 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
   )
   .rpc_server(&rpc_server)
-  .expected_stdout("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0\t0\t5000000000\tmythic\tnvtdijuwxlp\n")
-  .run();
+  .output::<Vec<Output>>();
+
+  assert_eq!(
+    output,
+    vec![Output {
+      output: "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0"
+        .parse()
+        .unwrap(),
+      start: 0,
+      size: 50 * COIN_VALUE,
+      rarity: "mythic".parse().unwrap(),
+      name: "nvtdijuwxlp".into(),
+    }]
+  );
 }
 
 #[test]

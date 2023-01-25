@@ -23,12 +23,9 @@ use {
     inscription::Inscription,
     inscription_id::InscriptionId,
     media::Media,
-    object::Object,
     options::Options,
     outgoing::Outgoing,
-    rarity::Rarity,
     representation::Representation,
-    sat::Sat,
     subcommand::Subcommand,
     tally::Tally,
   },
@@ -74,7 +71,7 @@ use {
 };
 
 pub use crate::{
-  fee_rate::FeeRate, sat_point::SatPoint,
+  fee_rate::FeeRate, object::Object, rarity::Rarity, sat::Sat, sat_point::SatPoint,
   subcommand::wallet::transaction_builder::TransactionBuilder,
 };
 
