@@ -2,7 +2,7 @@
 <dl>
   <dt>hash</dt><dd class=monospace>{{self.hash}}</dd>
   <dt>target</dt><dd class=monospace>{{self.target}}</dd>
-  <dt>timestamp</dt><dd>{{self.block.header.time}}</dd>
+  <dt>timestamp</dt><dd><time>{{timestamp(self.block.header.time)}}</time></dd>
   <dt>size</dt><dd>{{self.block.size()}}</dd>
   <dt>weight</dt><dd>{{self.block.weight()}}</dd>
 %% if self.height.0 > 0 {

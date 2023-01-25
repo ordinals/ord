@@ -14,17 +14,17 @@ use {
   transaction_builder::TransactionBuilder,
 };
 
-mod balance;
+pub mod balance;
 pub(crate) mod create;
 pub(crate) mod inscribe;
-mod inscriptions;
-mod outputs;
-mod receive;
+pub mod inscriptions;
+pub mod outputs;
+pub mod receive;
 mod restore;
-mod sats;
-mod send;
+pub mod sats;
+pub mod send;
 pub(crate) mod transaction_builder;
-mod transactions;
+pub mod transactions;
 
 #[derive(Debug, Parser)]
 pub(crate) enum Wallet {
@@ -114,19 +114,10 @@ fn get_unspent_outputs(options: &Options) -> Result<BTreeMap<OutPoint, Amount>> 
   Ok(utxos)
 }
 
-fn get_change_addresses(options: &Options, n: usize) -> Result<Vec<Address>> {
-  let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
-
-  let mut addresses = Vec::new();
-  for _ in 0..n {
-    addresses.push(
-      client
-        .call("getrawchangeaddress", &["bech32m".into()])
-        .context("could not get change addresses from wallet")?,
-    );
-  }
-
-  Ok(addresses)
+fn get_change_address(client: &Client) -> Result<Address> {
+  client
+    .call("getrawchangeaddress", &["bech32m".into()])
+    .context("could not get change addresses from wallet")
 }
 
 fn initialize_wallet(options: &Options, seed: [u8; 64]) -> Result {

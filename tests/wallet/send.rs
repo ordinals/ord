@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, ord::subcommand::wallet::send::Output};
 
 #[test]
 fn inscriptions_can_be_sent() {
@@ -29,7 +29,7 @@ fn inscriptions_can_be_sent() {
     format!("/inscription/{inscription}"),
     format!(
       ".*<h1>Inscription 0</h1>.*<dl>.*
-  <dt>content size</dt>
+  <dt>content length</dt>
   <dd>3 bytes</dd>
   <dt>content type</dt>
   <dd>text/plain;charset=utf-8</dd>
@@ -236,10 +236,16 @@ fn send_btc() {
 
   rpc_server.mine_blocks(1);
 
-  CommandBuilder::new("wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc")
+  let output = CommandBuilder::new("wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc")
     .rpc_server(&rpc_server)
-    .expected_stdout("0000000000000000000000000000000000000000000000000000000000000000\n")
-    .run();
+    .output::<Output>();
+
+  assert_eq!(
+    output.transaction,
+    "0000000000000000000000000000000000000000000000000000000000000000"
+      .parse()
+      .unwrap()
+  );
 
   assert_eq!(
     rpc_server.sent(),
@@ -262,10 +268,16 @@ fn send_btc_locks_inscriptions() {
 
   let Inscribe { reveal, .. } = inscribe(&rpc_server);
 
-  CommandBuilder::new("wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc")
+  let output = CommandBuilder::new("wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc")
     .rpc_server(&rpc_server)
-    .expected_stdout("0000000000000000000000000000000000000000000000000000000000000000\n")
-    .run();
+    .output::<Output>();
+
+  assert_eq!(
+    output.transaction,
+    "0000000000000000000000000000000000000000000000000000000000000000"
+      .parse()
+      .unwrap()
+  );
 
   assert_eq!(
     rpc_server.sent(),

@@ -15,7 +15,7 @@ fmt:
   cargo fmt
 
 clippy:
-  cargo clippy --all --all-targets
+  cargo clippy --all --all-targets -- -D warnings
 
 lclippy:
   cargo lclippy --all --all-targets -- -D warnings
@@ -28,7 +28,9 @@ deploy branch chain domain:
   rsync -avz deploy/checkout root@{{domain}}:deploy/checkout
   ssh root@{{domain}} 'cd deploy && ./checkout {{branch}} {{chain}} {{domain}}'
 
-deploy-mainnet: (deploy "master" "main" "ordinals.com")
+deploy-all: deploy-testnet deploy-signet deploy-mainnet
+
+deploy-mainnet branch="master": (deploy branch "main" "ordinals.com")
 
 deploy-signet branch="master": (deploy branch "signet" "signet.ordinals.com")
 
@@ -58,6 +60,9 @@ profile-tests:
     | sed -n 's/^test \(.*\) ... ok <\(.*\)s>/\2 \1/p' | sort -n \
     | tee test-times.txt
 
+fuzz:
+  cd fuzz && cargo +nightly fuzz run transaction-builder
+
 open:
   open http://localhost
 
@@ -74,13 +79,13 @@ rebuild-ord-dev-database: && update-ord-dev
   journalctl --unit ord-dev --rotate
   journalctl --unit ord-dev --vacuum-time 1s
 
-# publish current GitHub master branch
-publish:
+publish revision='master':
   #!/usr/bin/env bash
   set -euxo pipefail
   rm -rf tmp/release
   git clone git@github.com:casey/ord.git tmp/release
   cd tmp/release
+  git checkout {{ revision }}
   VERSION=`sed -En 's/version[[:space:]]*=[[:space:]]*"([^"]+)"/\1/p' Cargo.toml | head -1`
   git tag -a $VERSION -m "Release $VERSION"
   git push origin $VERSION

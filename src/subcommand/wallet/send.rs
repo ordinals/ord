@@ -12,6 +12,11 @@ pub(crate) struct Send {
   fee_rate: FeeRate,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct Output {
+  pub transaction: Txid,
+}
+
 impl Send {
   pub(crate) fn run(self, options: Options) -> Result {
     let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
@@ -62,13 +67,13 @@ impl Send {
         let txid =
           client.send_to_address(&self.address, amount, None, None, None, None, None, None)?;
 
-        println!("{txid}");
+        print_json(Output { transaction: txid })?;
 
         return Ok(());
       }
     };
 
-    let change = get_change_addresses(&options, 2)?;
+    let change = [get_change_address(&client)?, get_change_address(&client)?];
 
     let unsigned_transaction = TransactionBuilder::build_transaction_with_postage(
       satpoint,

@@ -39,6 +39,15 @@ impl Serialize for SatPoint {
   }
 }
 
+impl<'de> Deserialize<'de> for SatPoint {
+  fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+  where
+    D: Deserializer<'de>,
+  {
+    Ok(DeserializeFromStr::deserialize(deserializer)?.0)
+  }
+}
+
 impl FromStr for SatPoint {
   type Err = Error;
 
@@ -86,5 +95,21 @@ mod tests {
     "1111111111111111111111111111111111111111111111111111111111111111:1:foo"
       .parse::<SatPoint>()
       .unwrap_err();
+  }
+
+  #[test]
+  fn deserialize_ok() {
+    assert_eq!(
+      serde_json::from_str::<SatPoint>(
+        "\"1111111111111111111111111111111111111111111111111111111111111111:1:1\""
+      )
+      .unwrap(),
+      SatPoint {
+        outpoint: "1111111111111111111111111111111111111111111111111111111111111111:1"
+          .parse()
+          .unwrap(),
+        offset: 1,
+      }
+    );
   }
 }

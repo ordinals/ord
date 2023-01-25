@@ -43,7 +43,7 @@ mod tests {
         <dl>
           <dt>hash</dt><dd class=monospace>000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</dd>
           <dt>target</dt><dd class=monospace>00000000ffff0000000000000000000000000000000000000000000000000000</dd>
-          <dt>timestamp</dt><dd>1231006505</dd>
+          <dt>timestamp</dt><dd><time>2009-01-03 18:15:05 UTC</time></dd>
           <dt>size</dt><dd>285</dd>
           <dt>weight</dt><dd>1140</dd>
         </dl>

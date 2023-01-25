@@ -1,9 +1,10 @@
 use super::*;
 
-#[derive(Serialize)]
-struct Output {
-  inscription: InscriptionId,
-  location: SatPoint,
+#[derive(Serialize, Deserialize)]
+pub struct Output {
+  pub inscription: InscriptionId,
+  pub location: SatPoint,
+  pub explorer: String,
 }
 
 pub(crate) fn run(options: Options) -> Result {
@@ -13,6 +14,13 @@ pub(crate) fn run(options: Options) -> Result {
   let inscriptions = index.get_inscriptions(None)?;
   let unspent_outputs = get_unspent_outputs(&options)?;
 
+  let explorer = match options.chain() {
+    Chain::Mainnet => "https://ordinals.com/inscription/",
+    Chain::Regtest => "http://localhost/inscription/",
+    Chain::Signet => "https://signet.ordinals.com/inscription/",
+    Chain::Testnet => "https://testnet.ordinals.com/inscription/",
+  };
+
   let mut output = Vec::new();
 
   for (location, inscription) in inscriptions {
@@ -20,11 +28,12 @@ pub(crate) fn run(options: Options) -> Result {
       output.push(Output {
         location,
         inscription,
+        explorer: format!("{}{}", explorer, inscription),
       });
     }
   }
 
-  serde_json::to_writer_pretty(io::stdout(), &output)?;
+  print_json(&output)?;
 
   Ok(())
 }

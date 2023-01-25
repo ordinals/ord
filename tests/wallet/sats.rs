@@ -1,4 +1,7 @@
-use super::*;
+use {
+  super::*,
+  ord::subcommand::wallet::sats::{OutputRare, OutputTsv},
+};
 
 #[test]
 fn sats() {
@@ -6,14 +9,12 @@ fn sats() {
   create_wallet(&rpc_server);
   let second_coinbase = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  CommandBuilder::new("--index-sats wallet sats")
+  let output = CommandBuilder::new("--index-sats wallet sats")
     .rpc_server(&rpc_server)
-    .expected_stdout(format!(
-      "{}\t{}\t0\tuncommon\n",
-      OutPoint::new(second_coinbase, 0),
-      50 * COIN_VALUE,
-    ))
-    .run();
+    .output::<Vec<OutputRare>>();
+
+  assert_eq!(output[0].sat, 50 * COIN_VALUE);
+  assert_eq!(output[0].output.to_string(), format!("{second_coinbase}:0"));
 }
 
 #[test]
@@ -22,14 +23,13 @@ fn sats_from_tsv_success() {
   create_wallet(&rpc_server);
   let second_coinbase = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  CommandBuilder::new("--index-sats wallet sats --tsv foo.tsv")
+  let output = CommandBuilder::new("--index-sats wallet sats --tsv foo.tsv")
     .write("foo.tsv", "nvtcsezkbtg")
     .rpc_server(&rpc_server)
-    .expected_stdout(format!(
-      "{}\tnvtcsezkbtg\n",
-      OutPoint::new(second_coinbase, 0),
-    ))
-    .run();
+    .output::<Vec<OutputTsv>>();
+
+  assert_eq!(output[0].sat, "nvtcsezkbtg");
+  assert_eq!(output[0].output.to_string(), format!("{second_coinbase}:0"));
 }
 
 #[test]

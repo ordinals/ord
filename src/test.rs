@@ -100,8 +100,8 @@ pub(crate) fn tx_out(value: u64, address: Address) -> TxOut {
   }
 }
 
-pub(crate) fn inscription(content_type: &str, content: impl AsRef<[u8]>) -> Inscription {
-  Inscription::new(Some(content_type.into()), Some(content.as_ref().into()))
+pub(crate) fn inscription(content_type: &str, body: impl AsRef<[u8]>) -> Inscription {
+  Inscription::new(Some(content_type.into()), Some(body.as_ref().into()))
 }
 
 pub(crate) fn inscription_id(n: u32) -> InscriptionId {

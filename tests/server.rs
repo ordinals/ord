@@ -10,7 +10,8 @@ fn run() {
     .unwrap()
     .port();
 
-  let builder = CommandBuilder::new(format!("server --http-port {}", port)).rpc_server(&rpc_server);
+  let builder = CommandBuilder::new(format!("server --address 127.0.0.1 --http-port {}", port))
+    .rpc_server(&rpc_server);
 
   let mut command = builder.command();
 
@@ -50,7 +51,7 @@ fn inscription_page() {
     format!(
       ".*<meta property=og:image content='/content/{inscription}'>.*
 <h1>Inscription 0</h1>
-.*<a href=/preview/{inscription}><iframe .* src=/preview/{inscription}></iframe></a>.*
+.*<iframe .* src=/preview/{inscription}></iframe>.*
 <dl>
   <dt>id</dt>
   <dd class=monospace>{inscription}</dd>
@@ -58,14 +59,16 @@ fn inscription_page() {
   <dd class=monospace>bc1.*</dd>
   <dt>output value</dt>
   <dd>10000</dd>
+  <dt>preview</dt>
+  <dd><a href=/preview/{inscription}>link</a></dd>
   <dt>content</dt>
   <dd><a href=/content/{inscription}>link</a></dd>
-  <dt>content size</dt>
+  <dt>content length</dt>
   <dd>3 bytes</dd>
   <dt>content type</dt>
   <dd>text/plain;charset=utf-8</dd>
   <dt>timestamp</dt>
-  <dd>1970-01-01 00:00:02</dd>
+  <dd><time>1970-01-01 00:00:02 UTC</time></dd>
   <dt>genesis height</dt>
   <dd>2</dd>
   <dt>genesis transaction</dt>
@@ -275,7 +278,7 @@ fn inscriptions_page_has_next_and_previous() {
       ".*<h1>Inscription 1</h1>.*
 <div class=inscription>
 <a class=prev href=/inscription/{a}>❮</a>
-<a href=/preview/{b}>.*</a>
+<iframe .* src=/preview/{b}></iframe>
 <a class=next href=/inscription/{c}>❯</a>
 </div>.*",
     ),

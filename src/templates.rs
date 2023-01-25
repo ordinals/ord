@@ -9,7 +9,10 @@ pub(crate) use {
   inscription::InscriptionHtml,
   inscriptions::InscriptionsHtml,
   output::OutputHtml,
-  preview::{PreviewAudioHtml, PreviewImageHtml, PreviewTextHtml, PreviewUnknownHtml},
+  preview::{
+    PreviewAudioHtml, PreviewImageHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
+    PreviewVideoHtml,
+  },
   range::RangeHtml,
   rare::RareTxt,
   sat::SatHtml,
@@ -95,8 +98,6 @@ mod tests {
     <meta name=viewport content='width=device-width,initial-scale=1.0'>
     <title>Foo</title>
     <link rel=alternate href=/feed.xml type=application/rss\+xml title='Inscription RSS Feed'>
-    <link rel=icon type=image/svg\+xml href=/favicon.svg>
-    <link rel=icon type=image/png href=/favicon.ico>
     <link rel=stylesheet href=/static/index.css>
     <link rel=stylesheet href=/static/modern-normalize.css>
     <script src=/static/index.js defer></script>
