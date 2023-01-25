@@ -20,7 +20,6 @@ use {
   },
   tempfile::TempDir,
   test_bitcoincore_rpc::Sent,
-  unindent::Unindent,
 };
 
 macro_rules! assert_regex_match {
