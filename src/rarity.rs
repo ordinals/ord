@@ -56,15 +56,15 @@ impl FromStr for Rarity {
   type Err = Error;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
-      match s {
-        "common" => Ok(Self::Common),
-        "uncommon" => Ok(Self::Uncommon),
-        "rare" => Ok(Self::Rare),
-        "epic" => Ok(Self::Epic),
-        "legendary" => Ok(Self::Legendary),
-        "mythic" => Ok(Self::Mythic),
-        _ => Err(anyhow!("invalid rarity: {s}"))
-      }
+    match s {
+      "common" => Ok(Self::Common),
+      "uncommon" => Ok(Self::Uncommon),
+      "rare" => Ok(Self::Rare),
+      "epic" => Ok(Self::Epic),
+      "legendary" => Ok(Self::Legendary),
+      "mythic" => Ok(Self::Mythic),
+      _ => Err(anyhow!("invalid rarity: {s}")),
+    }
   }
 }
 
@@ -128,5 +128,45 @@ mod tests {
     assert_eq!(Sat(2067187500000000 - 1).rarity(), Rarity::Common);
     assert_eq!(Sat(2067187500000000).rarity(), Rarity::Legendary);
     assert_eq!(Sat(2067187500000000 + 1).rarity(), Rarity::Common);
+  }
+
+  #[test]
+  fn from_str_ok() {
+    #[track_caller]
+    fn case(s: &str, expected: Rarity) {
+      let actual = s.parse::<Rarity>().unwrap();
+      assert_eq!(actual, expected);
+      let round_trip = actual.to_string().parse::<Rarity>().unwrap();
+      assert_eq!(round_trip, expected);
+    }
+
+    case("common", Rarity::Common);
+    case("uncommon", Rarity::Uncommon);
+    case("rare", Rarity::Rare);
+    case("epic", Rarity::Epic);
+    case("legendary", Rarity::Legendary);
+    case("mythic", Rarity::Mythic);
+  }
+
+  #[test]
+  fn from_str_err() {
+    "abc".parse::<Rarity>().unwrap_err();
+
+    "".parse::<Rarity>().unwrap_err();
+  }
+
+  #[test]
+  fn deserialize_ok() {
+    #[track_caller]
+    fn case(rarity: Rarity) {
+      assert!(serde_json::from_str::<Rarity>(&serde_json::to_string(&rarity).unwrap()).is_ok());
+    }
+
+    case(Rarity::Common);
+    case(Rarity::Uncommon);
+    case(Rarity::Rare);
+    case(Rarity::Epic);
+    case(Rarity::Legendary);
+    case(Rarity::Mythic);
   }
 }

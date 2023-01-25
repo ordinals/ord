@@ -1,6 +1,6 @@
 use {
   super::*,
-  ord::subcommand::wallet::sats::{OutputTsv, OutputRare},
+  ord::subcommand::wallet::sats::{OutputRare, OutputTsv},
 };
 
 #[test]
@@ -14,10 +14,7 @@ fn sats() {
     .output::<Vec<OutputRare>>();
 
   assert_eq!(output[0].sat, 50 * COIN_VALUE);
-  assert_eq!(
-    output[0].output.to_string(),
-    format!("{second_coinbase}:0")
-  );
+  assert_eq!(output[0].output.to_string(), format!("{second_coinbase}:0"));
 }
 
 #[test]
@@ -32,10 +29,7 @@ fn sats_from_tsv_success() {
     .output::<Vec<OutputTsv>>();
 
   assert_eq!(output[0].sat, "nvtcsezkbtg");
-  assert_eq!(
-    output[0].output.to_string(),
-    format!("{second_coinbase}:0")
-  );
+  assert_eq!(output[0].output.to_string(), format!("{second_coinbase}:0"));
 }
 
 #[test]
