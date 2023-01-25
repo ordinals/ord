@@ -29,6 +29,7 @@ use {
   std::{cmp::Ordering, str},
   tokio_stream::StreamExt,
   tower_http::{
+    compression::CompressionLayer,
     cors::{Any, CorsLayer},
     set_header::SetResponseHeaderLayer,
   },
@@ -172,7 +173,8 @@ impl Server {
           CorsLayer::new()
             .allow_methods([http::Method::GET])
             .allow_origin(Any),
-        );
+        )
+        .layer(CompressionLayer::new());
 
       match (self.http_port(), self.https_port()) {
         (Some(http_port), None) => {
@@ -2351,6 +2353,50 @@ mod tests {
       "/inscriptions/0",
       StatusCode::OK,
       ".*prev\n<a class=next href=/inscriptions/100>next</a>.*",
+    );
+  }
+
+  #[test]
+  fn resonses_are_gzipped() {
+    let server = TestServer::new();
+
+    let mut headers = HeaderMap::new();
+
+    headers.insert(header::ACCEPT_ENCODING, "gzip".parse().unwrap());
+
+    let response = reqwest::blocking::Client::builder()
+      .default_headers(headers)
+      .build()
+      .unwrap()
+      .get(server.join_url("/"))
+      .send()
+      .unwrap();
+
+    assert_eq!(
+      response.headers().get(header::CONTENT_ENCODING).unwrap(),
+      "gzip"
+    );
+  }
+
+  #[test]
+  fn resonses_are_brotlied() {
+    let server = TestServer::new();
+
+    let mut headers = HeaderMap::new();
+
+    headers.insert(header::ACCEPT_ENCODING, "br".parse().unwrap());
+
+    let response = reqwest::blocking::Client::builder()
+      .default_headers(headers)
+      .build()
+      .unwrap()
+      .get(server.join_url("/"))
+      .send()
+      .unwrap();
+
+    assert_eq!(
+      response.headers().get(header::CONTENT_ENCODING).unwrap(),
+      "br"
     );
   }
 }
