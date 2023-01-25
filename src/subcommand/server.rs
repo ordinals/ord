@@ -2300,4 +2300,57 @@ mod tests {
       "max-age=31536000, immutable"
     );
   }
+
+  #[test]
+  fn inscriptions_page_with_no_prev_or_next() {
+    TestServer::new_with_sat_index().assert_response_regex(
+      "/inscriptions",
+      StatusCode::OK,
+      ".*prev\nnext.*",
+    );
+  }
+
+  #[test]
+  fn inscriptions_page_with_no_next() {
+    let server = TestServer::new_with_sat_index();
+
+    for i in 0..101 {
+      server.mine_blocks(1);
+      server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(i + 1, 0, 0)],
+        witness: inscription("text/foo", "hello").to_witness(),
+        ..Default::default()
+      });
+    }
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      "/inscriptions",
+      StatusCode::OK,
+      ".*<a class=prev href=/inscriptions/0>prev</a>\nnext.*",
+    );
+  }
+
+  #[test]
+  fn inscriptions_page_with_no_prev() {
+    let server = TestServer::new_with_sat_index();
+
+    for i in 0..101 {
+      server.mine_blocks(1);
+      server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(i + 1, 0, 0)],
+        witness: inscription("text/foo", "hello").to_witness(),
+        ..Default::default()
+      });
+    }
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      "/inscriptions/0",
+      StatusCode::OK,
+      ".*prev\n<a class=next href=/inscriptions/100>next</a>.*",
+    );
+  }
 }

@@ -682,14 +682,12 @@ impl Index {
     let inscription_number_to_inscription_id =
       rtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
 
-    let from = if let Some(from) = from {
-      from
-    } else {
-      match inscription_number_to_inscription_id.iter()?.rev().next() {
-        Some((number, _id)) => number.value(),
-        None => return Ok(Default::default()),
-      }
+    let latest = match inscription_number_to_inscription_id.iter()?.rev().next() {
+      Some((number, _id)) => number.value(),
+      None => return Ok(Default::default()),
     };
+
+    let from = if let Some(from) = from { from } else { latest };
 
     let prev = if let Some(prev) = from.checked_sub(n.try_into()?) {
       inscription_number_to_inscription_id
@@ -699,10 +697,13 @@ impl Index {
       None
     };
 
-    let next = if let Some(next) = from.checked_add(n.try_into()?) {
-      inscription_number_to_inscription_id
-        .get(&next)?
-        .map(|_| next)
+    let next = if from < latest {
+      Some(
+        from
+          .checked_add(n.try_into()?)
+          .unwrap_or(latest)
+          .max(latest),
+      )
     } else {
       None
     };
@@ -1977,6 +1978,67 @@ mod tests {
         .get_inscription_by_id(second.into())
         .unwrap()
         .is_none());
+    }
+  }
+
+  #[test]
+  fn get_latest_inscriptions_with_no_prev_and_next() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0)],
+        witness: inscription("text/plain", "hello").to_witness(),
+        ..Default::default()
+      });
+      let inscription_id = InscriptionId::from(txid);
+
+      context.mine_blocks(1);
+
+      let (inscriptions, prev, next) = context
+        .index
+        .get_latest_inscriptions_with_prev_and_next(100, None)
+        .unwrap();
+      assert_eq!(inscriptions, &[inscription_id]);
+      assert_eq!(prev, None);
+      assert_eq!(next, None);
+    }
+  }
+
+  #[test]
+  fn get_latest_inscriptions_with_prev_and_next() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let mut ids = Vec::new();
+
+      for i in 0..103 {
+        let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+          inputs: &[(i + 1, 0, 0)],
+          witness: inscription("text/plain", "hello").to_witness(),
+          ..Default::default()
+        });
+        ids.push(InscriptionId::from(txid));
+        context.mine_blocks(1);
+      }
+
+      ids.reverse();
+
+      let (inscriptions, prev, next) = context
+        .index
+        .get_latest_inscriptions_with_prev_and_next(100, None)
+        .unwrap();
+      assert_eq!(inscriptions, &ids[..100]);
+      assert_eq!(prev, Some(2));
+      assert_eq!(next, None);
+
+      let (inscriptions, prev, next) = context
+        .index
+        .get_latest_inscriptions_with_prev_and_next(100, Some(101))
+        .unwrap();
+      assert_eq!(inscriptions, &ids[1..101]);
+      assert_eq!(prev, Some(1));
+      assert_eq!(next, Some(201));
     }
   }
 }
