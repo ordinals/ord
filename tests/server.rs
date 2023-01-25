@@ -10,7 +10,8 @@ fn run() {
     .unwrap()
     .port();
 
-  let builder = CommandBuilder::new(format!("server --http-port {}", port)).rpc_server(&rpc_server);
+  let builder = CommandBuilder::new(format!("server --address 127.0.0.1 --http-port {}", port))
+    .rpc_server(&rpc_server);
 
   let mut command = builder.command();
 
