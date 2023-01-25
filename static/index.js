@@ -3,7 +3,7 @@ for (let time of document.body.getElementsByTagName('time')) {
 }
 
 let next = document.querySelector('a.next');
-let previous = document.querySelector('a.previous');
+let prev = document.querySelector('a.prev');
 
 window.addEventListener('keydown', e => {
   if (document.activeElement.tagName == 'INPUT') {
@@ -17,8 +17,8 @@ window.addEventListener('keydown', e => {
       }
       return;
     case 'ArrowLeft':
-      if (previous) {
-        window.location = previous.href;
+      if (prev) {
+        window.location = prev.href;
       }
       return;
   }

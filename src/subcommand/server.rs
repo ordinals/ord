@@ -145,6 +145,7 @@ impl Server {
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_id", get(Self::inscription))
         .route("/inscriptions", get(Self::inscriptions))
+        .route("/inscriptions/:from", get(Self::inscriptions_from))
         .route("/install.sh", get(Self::install_script))
         .route("/ordinal/:sat", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
@@ -457,7 +458,7 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<PageHtml<HomeHtml>> {
     Ok(
-      HomeHtml::new(index.blocks(100)?, index.get_latest_inscriptions(8)?)
+      HomeHtml::new(index.blocks(100)?, index.get_homepage_inscriptions()?)
         .page(chain, index.has_sat_index()?),
     )
   }
@@ -849,9 +850,28 @@ impl Server {
     Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<PageHtml<InscriptionsHtml>> {
+    Self::inscriptions_inner(chain, index, None).await
+  }
+
+  async fn inscriptions_from(
+    Extension(chain): Extension<Chain>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(from): Path<u64>,
+  ) -> ServerResult<PageHtml<InscriptionsHtml>> {
+    Self::inscriptions_inner(chain, index, Some(from)).await
+  }
+
+  async fn inscriptions_inner(
+    chain: Chain,
+    index: Arc<Index>,
+    from: Option<u64>,
+  ) -> ServerResult<PageHtml<InscriptionsHtml>> {
+    let (inscriptions, prev, next) = index.get_latest_inscriptions_with_prev_and_next(100, from)?;
     Ok(
       InscriptionsHtml {
-        inscriptions: index.get_latest_inscriptions(100)?,
+        inscriptions,
+        next,
+        prev,
       }
       .page(chain, index.has_sat_index()?),
     )
@@ -2278,6 +2298,59 @@ mod tests {
     assert_eq!(
       response.headers().get(header::CACHE_CONTROL).unwrap(),
       "max-age=31536000, immutable"
+    );
+  }
+
+  #[test]
+  fn inscriptions_page_with_no_prev_or_next() {
+    TestServer::new_with_sat_index().assert_response_regex(
+      "/inscriptions",
+      StatusCode::OK,
+      ".*prev\nnext.*",
+    );
+  }
+
+  #[test]
+  fn inscriptions_page_with_no_next() {
+    let server = TestServer::new_with_sat_index();
+
+    for i in 0..101 {
+      server.mine_blocks(1);
+      server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(i + 1, 0, 0)],
+        witness: inscription("text/foo", "hello").to_witness(),
+        ..Default::default()
+      });
+    }
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      "/inscriptions",
+      StatusCode::OK,
+      ".*<a class=prev href=/inscriptions/0>prev</a>\nnext.*",
+    );
+  }
+
+  #[test]
+  fn inscriptions_page_with_no_prev() {
+    let server = TestServer::new_with_sat_index();
+
+    for i in 0..101 {
+      server.mine_blocks(1);
+      server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(i + 1, 0, 0)],
+        witness: inscription("text/foo", "hello").to_witness(),
+        ..Default::default()
+      });
+    }
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      "/inscriptions/0",
+      StatusCode::OK,
+      ".*prev\n<a class=next href=/inscriptions/100>next</a>.*",
     );
   }
 }

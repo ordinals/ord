@@ -18,8 +18,9 @@
   <dt>location</dt><dd class=monospace>{{ satpoint }}</dd>
 %% }
 </dl>
+<div class=center>
 %% if self.sat.n() > 0 {
-<a class=previous href=/sat/{{self.sat.n() - 1}}>prev</a>
+<a class=prev href=/sat/{{self.sat.n() - 1}}>prev</a>
 %% } else {
 prev
 %% }
@@ -28,3 +29,4 @@ prev
 %% } else {
 next
 %% }
+</div>
