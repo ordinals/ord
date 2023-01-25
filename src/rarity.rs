@@ -131,13 +131,15 @@ mod tests {
   }
 
   #[test]
-  fn from_str_ok() {
+  fn from_str_and_deserialize_ok() {
     #[track_caller]
     fn case(s: &str, expected: Rarity) {
       let actual = s.parse::<Rarity>().unwrap();
       assert_eq!(actual, expected);
       let round_trip = actual.to_string().parse::<Rarity>().unwrap();
       assert_eq!(round_trip, expected);
+      let serialized = serde_json::to_string(&expected).unwrap();
+      assert!(serde_json::from_str::<Rarity>(&serialized).is_ok());
     }
 
     case("common", Rarity::Common);
@@ -153,20 +155,5 @@ mod tests {
     "abc".parse::<Rarity>().unwrap_err();
 
     "".parse::<Rarity>().unwrap_err();
-  }
-
-  #[test]
-  fn deserialize_ok() {
-    #[track_caller]
-    fn case(rarity: Rarity) {
-      assert!(serde_json::from_str::<Rarity>(&serde_json::to_string(&rarity).unwrap()).is_ok());
-    }
-
-    case(Rarity::Common);
-    case(Rarity::Uncommon);
-    case(Rarity::Rare);
-    case(Rarity::Epic);
-    case(Rarity::Legendary);
-    case(Rarity::Mythic);
   }
 }
