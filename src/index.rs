@@ -702,7 +702,7 @@ impl Index {
         from
           .checked_add(n.try_into()?)
           .unwrap_or(latest)
-          .max(latest),
+          .min(latest),
       )
     } else {
       None
@@ -2038,7 +2038,15 @@ mod tests {
         .unwrap();
       assert_eq!(inscriptions, &ids[1..101]);
       assert_eq!(prev, Some(1));
-      assert_eq!(next, Some(201));
+      assert_eq!(next, Some(102));
+
+      let (inscriptions, prev, next) = context
+        .index
+        .get_latest_inscriptions_with_prev_and_next(100, Some(0))
+        .unwrap();
+      assert_eq!(inscriptions, &ids[102..103]);
+      assert_eq!(prev, None);
+      assert_eq!(next, Some(100));
     }
   }
 }
