@@ -687,7 +687,7 @@ impl Index {
     } else {
       match inscription_number_to_inscription_id.iter()?.rev().next() {
         Some((number, _id)) => number.value(),
-        None => return Ok((Vec::new(), None, None)),
+        None => return Ok(Default::default()),
       }
     };
 
