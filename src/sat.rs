@@ -2,7 +2,7 @@ use super::*;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Display, Ord, PartialOrd, Deserialize, Serialize)]
 #[serde(transparent)]
-pub struct Sat(pub(crate) u64);
+pub struct Sat(pub u64);
 
 impl Sat {
   pub(crate) const LAST: Self = Self(Self::SUPPLY - 1);

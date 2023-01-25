@@ -1,7 +1,7 @@
 use super::*;
 
 #[derive(Debug, PartialEq)]
-pub(crate) enum Object {
+pub enum Object {
   Address(Address),
   Hash([u8; 32]),
   InscriptionId(InscriptionId),
@@ -47,6 +47,24 @@ impl Display for Object {
       Self::Sat(sat) => write!(f, "{sat}"),
       Self::SatPoint(satpoint) => write!(f, "{}", satpoint),
     }
+  }
+}
+
+impl Serialize for Object {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    serializer.collect_str(self)
+  }
+}
+
+impl<'de> Deserialize<'de> for Object {
+  fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+  where
+    D: Deserializer<'de>,
+  {
+    Ok(DeserializeFromStr::deserialize(deserializer)?.0)
   }
 }
 
