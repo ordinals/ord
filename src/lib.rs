@@ -115,7 +115,7 @@ mod rarity;
 mod representation;
 mod sat;
 mod sat_point;
-mod subcommand;
+pub mod subcommand;
 mod tally;
 mod templates;
 

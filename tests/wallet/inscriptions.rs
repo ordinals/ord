@@ -1,11 +1,7 @@
-use super::*;
-
-#[derive(Deserialize)]
-struct Inscription {
-  inscription: String,
-  location: String,
-  explorer: String,
-}
+use {
+  super::*,
+  ord::subcommand::wallet::{inscriptions::Output, receive},
+};
 
 #[test]
 fn inscriptions() {
@@ -19,26 +15,22 @@ fn inscriptions() {
     ..
   } = inscribe(&rpc_server);
 
-  let inscriptions = CommandBuilder::new("wallet inscriptions")
+  let output = CommandBuilder::new("wallet inscriptions")
     .rpc_server(&rpc_server)
-    .expected_stdout(format!("{inscription}\t{reveal}:0:0\n"))
-    .output::<Vec<Inscription>>();
+    .output::<Vec<Output>>();
 
-  assert_eq!(inscriptions.len(), 1);
-  assert_eq!(inscriptions[0].inscription, inscription);
-  assert_eq!(inscriptions[0].location, format!("{reveal}:0:0"));
+  assert_eq!(output.len(), 1);
+  assert_eq!(output[0].inscription, inscription.parse().unwrap());
+  assert_eq!(output[0].location, format!("{reveal}:0:0").parse().unwrap());
   assert_eq!(
-    inscriptions[0].explorer,
+    output[0].explorer,
     format!("https://ordinals.com/inscription/{inscription}")
   );
 
-  let stdout = CommandBuilder::new("wallet receive")
+  let address = CommandBuilder::new("wallet receive")
     .rpc_server(&rpc_server)
-    .expected_exit_code(0)
-    .stdout_regex(".*")
-    .run();
-
-  let address = stdout.trim();
+    .output::<receive::Output>()
+    .address;
 
   let stdout = CommandBuilder::new(format!("wallet send {address} {inscription}"))
     .rpc_server(&rpc_server)
@@ -50,13 +42,13 @@ fn inscriptions() {
 
   let txid = Txid::from_str(stdout.trim()).unwrap();
 
-  let inscriptions = CommandBuilder::new("wallet inscriptions")
+  let output = CommandBuilder::new("wallet inscriptions")
     .rpc_server(&rpc_server)
-    .output::<Vec<Inscription>>();
+    .output::<Vec<Output>>();
 
-  assert_eq!(inscriptions.len(), 1);
-  assert_eq!(inscriptions[0].inscription, inscription);
-  assert_eq!(inscriptions[0].location, format!("{txid}:0:0"));
+  assert_eq!(output.len(), 1);
+  assert_eq!(output[0].inscription, inscription.parse().unwrap());
+  assert_eq!(output[0].location, format!("{txid}:0:0").parse().unwrap());
 }
 
 #[test]
@@ -79,11 +71,11 @@ fn inscriptions_includes_locked_utxos() {
     vout: 0,
   });
 
-  let inscriptions = CommandBuilder::new("wallet inscriptions")
+  let output = CommandBuilder::new("wallet inscriptions")
     .rpc_server(&rpc_server)
-    .output::<Vec<Inscription>>();
+    .output::<Vec<Output>>();
 
-  assert_eq!(inscriptions.len(), 1);
-  assert_eq!(inscriptions[0].inscription, inscription);
-  assert_eq!(inscriptions[0].location, format!("{reveal}:0:0"));
+  assert_eq!(output.len(), 1);
+  assert_eq!(output[0].inscription, inscription.parse().unwrap());
+  assert_eq!(output[0].location, format!("{reveal}:0:0").parse().unwrap());
 }
