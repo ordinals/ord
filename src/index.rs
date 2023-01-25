@@ -687,7 +687,7 @@ impl Index {
       None => return Ok(Default::default()),
     };
 
-    let from = if let Some(from) = from { from } else { latest };
+    let from = from.unwrap_or(latest);
 
     let prev = if let Some(prev) = from.checked_sub(n.try_into()?) {
       inscription_number_to_inscription_id
