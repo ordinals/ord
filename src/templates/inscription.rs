@@ -135,7 +135,7 @@ mod tests {
       "
         <h1>Inscription 1</h1>
         <div class=inscription>
-        <a class=previous href=/inscription/1{64}i1>❮</a>
+        <a class=prev href=/inscription/1{64}i1>❮</a>
         <iframe .* src=/preview/2{64}i2></iframe>
         <a class=next href=/inscription/3{64}i3>❯</a>
         </div>

@@ -21,8 +21,8 @@ html {
 }
 
 main {
-  margin: 0 auto 0 auto;
-  padding: 0 1rem 0 1rem;
+  margin: 0 auto;
+  padding: 0 1rem 1rem;
   max-width: 100%;
   width: 50rem;
 }
@@ -119,7 +119,7 @@ ul {
 span.common, span.uncommon, span.rare, span.epic, span.legendary, span.mythic {
   border-radius: 0.25rem;
   color: white;
-  padding: 0.125rem 0.25rem 0.125rem 0.25rem;
+  padding: 0.125rem 0.25rem;
 }
 
 span.common {

@@ -9,8 +9,9 @@
   <dt>previous blockhash</dt><dd><a href=/block/{{self.block.header.prev_blockhash}} class=monospace>{{self.block.header.prev_blockhash}}</a></dd>
 %% }
 </dl>
+<div class=center>
 %% if let Some(prev_height) = self.height.n().checked_sub(1) {
-<a class=previous href=/block/{{prev_height}}>prev</a>
+<a class=prev href=/block/{{prev_height}}>prev</a>
 %% } else {
 prev
 %% }
@@ -19,6 +20,7 @@ prev
 %% } else {
 next
 %% }
+</div>
 <h2>{{"Transaction".tally(self.block.txdata.len())}}</h2>
 <ul class=monospace>
 %% for tx in &self.block.txdata {

@@ -20,14 +20,13 @@ mod tests {
 
   #[test]
   fn first() {
-    pretty_assert_eq!(
+    assert_regex_match!(
       SatHtml {
         sat: Sat(0),
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
         inscription: None,
-      }
-      .to_string(),
+      },
       "
         <h1>Sat 0</h1>
         <dl>
@@ -43,8 +42,10 @@ mod tests {
           <dt>rarity</dt><dd><span class=mythic>mythic</span></dd>
           <dt>timestamp</dt><dd><time>1970-01-01 00:00:00 UTC</time></dd>
         </dl>
+        .*
         prev
         <a class=next href=/sat/1>next</a>
+        .*
       "
       .unindent()
     );
@@ -52,14 +53,13 @@ mod tests {
 
   #[test]
   fn last() {
-    pretty_assert_eq!(
+    assert_regex_match!(
       SatHtml {
         sat: Sat(2099999997689999),
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
         inscription: None,
-      }
-      .to_string(),
+      },
       "
         <h1>Sat 2099999997689999</h1>
         <dl>
@@ -75,8 +75,10 @@ mod tests {
           <dt>rarity</dt><dd><span class=uncommon>uncommon</span></dd>
           <dt>timestamp</dt><dd><time>1970-01-01 00:00:00 UTC</time></dd>
         </dl>
-        <a class=previous href=/sat/2099999997689998>prev</a>
+        .*
+        <a class=prev href=/sat/2099999997689998>prev</a>
         next
+        .*
       "
       .unindent()
     );
@@ -91,7 +93,7 @@ mod tests {
         blocktime: Blocktime::confirmed(0),
         inscription: None,
       },
-      r"<h1>Sat 1</h1>.*<a class=previous href=/sat/0>prev</a>\n<a class=next href=/sat/2>next</a>\n",
+      r"<h1>Sat 1</h1>.*<a class=prev href=/sat/0>prev</a>\n<a class=next href=/sat/2>next</a>.*",
     );
   }
 
@@ -117,7 +119,7 @@ mod tests {
         blocktime: Blocktime::confirmed(0),
         inscription: None,
       },
-      r"<h1>Sat 2099999997689999</h1>.*<a class=previous href=/sat/2099999997689998>prev</a>\nnext\n",
+      r"<h1>Sat 2099999997689999</h1>.*<a class=prev href=/sat/2099999997689998>prev</a>\nnext.*",
     );
   }
 

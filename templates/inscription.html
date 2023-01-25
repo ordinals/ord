@@ -1,7 +1,7 @@
 <h1>Inscription {{ self.number }}</h1>
 <div class=inscription>
 %% if let Some(previous) = self.previous {
-<a class=previous href=/inscription/{{previous}}>❮</a>
+<a class=prev href=/inscription/{{previous}}>❮</a>
 %% } else {
 <div>❮</div>
 %% }
