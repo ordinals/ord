@@ -458,7 +458,7 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<PageHtml<HomeHtml>> {
     Ok(
-      HomeHtml::new(index.blocks(100)?, index.get_latest_inscriptions(8)?)
+      HomeHtml::new(index.blocks(100)?, index.get_homepage_inscriptions()?)
         .page(chain, index.has_sat_index()?),
     )
   }

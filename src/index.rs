@@ -658,7 +658,7 @@ impl Index {
     )
   }
 
-  pub(crate) fn get_latest_inscriptions(&self, n: usize) -> Result<Vec<InscriptionId>> {
+  pub(crate) fn get_homepage_inscriptions(&self) -> Result<Vec<InscriptionId>> {
     Ok(
       self
         .database
@@ -666,7 +666,7 @@ impl Index {
         .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
         .iter()?
         .rev()
-        .take(n)
+        .take(8)
         .map(|(_number, id)| Entry::load(*id.value()))
         .collect(),
     )
