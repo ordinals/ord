@@ -27,14 +27,15 @@ pub(crate) struct InscriptionEntry {
   pub(crate) number: u64,
   pub(crate) sat: Option<Sat>,
   pub(crate) timestamp: u32,
+  pub(crate) inscription_fee: u64,
 }
 
-pub(crate) type InscriptionEntryValue = (u64, u64, u64, u32);
+pub(crate) type InscriptionEntryValue = (u64, u64, u64, u32, u64);
 
 impl Entry for InscriptionEntry {
   type Value = InscriptionEntryValue;
 
-  fn load((height, number, sat, timestamp): InscriptionEntryValue) -> Self {
+  fn load((height, number, sat, timestamp, inscription_fee): InscriptionEntryValue) -> Self {
     Self {
       height,
       number,
@@ -44,6 +45,7 @@ impl Entry for InscriptionEntry {
         Some(Sat(sat))
       },
       timestamp,
+      inscription_fee,
     }
   }
 
@@ -56,6 +58,7 @@ impl Entry for InscriptionEntry {
         None => u64::MAX,
       },
       self.timestamp,
+      self.inscription_fee,
     )
   }
 }

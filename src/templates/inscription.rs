@@ -6,6 +6,7 @@ pub(crate) struct InscriptionHtml {
   pub(crate) genesis_height: u64,
   pub(crate) inscription: Inscription,
   pub(crate) inscription_id: InscriptionId,
+  pub(crate) inscription_fee: u64,
   pub(crate) next: Option<InscriptionId>,
   pub(crate) number: u64,
   pub(crate) output: TxOut,
@@ -37,6 +38,7 @@ mod tests {
         genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
+        inscription_fee: 1,
         next: None,
         number: 1,
         output: tx_out(1, address()),
@@ -58,6 +60,8 @@ mod tests {
           <dt>address</dt>
           <dd class=monospace>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</dd>
           <dt>output value</dt>
+          <dd>1</dd>
+          <dt>inscription fee</dt>
           <dd>1</dd>
           <dt>preview</dt>
           <dd><a href=/preview/1{64}i1>link</a></dd>
@@ -93,6 +97,7 @@ mod tests {
         genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
+        inscription_fee: 1,
         next: None,
         number: 1,
         output: tx_out(1, address()),
@@ -124,6 +129,7 @@ mod tests {
         genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(2),
+        inscription_fee: 1,
         next: Some(inscription_id(3)),
         number: 1,
         output: tx_out(1, address()),
