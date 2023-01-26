@@ -141,16 +141,16 @@ fn inscription_page_after_send() {
     ),
   );
 
-  let txid = CommandBuilder::new(format!(
+  let output = CommandBuilder::new(format!(
     "wallet send bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {inscription}"
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(".*")
-  .run();
+  .output::<ord::subcommand::wallet::send::Output>();
 
   rpc_server.mine_blocks(1);
 
-  let send = txid.trim();
+  let send = output.transaction;
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
