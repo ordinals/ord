@@ -116,12 +116,10 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     if inscriptions.iter().all(|flotsam| flotsam.offset != 0)
       && Inscription::from_transaction(tx).is_some()
     {
-      let fee = input_value - tx.output.iter().map(|txout| txout.value).sum::<u64>();
-
       inscriptions.push(Flotsam {
         inscription_id: txid.into(),
         offset: 0,
-        origin: Origin::New(fee),
+        origin: Origin::New(input_value - tx.output.iter().map(|txout| txout.value).sum::<u64>()),
       });
     };
 
@@ -228,11 +226,11 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         self.id_to_entry.insert(
           &inscription_id,
           &InscriptionEntry {
+            fee,
             height: self.height,
             number: self.next_number,
             sat,
             timestamp: self.timestamp,
-            fee,
           }
           .store(),
         )?;
