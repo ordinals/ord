@@ -3,8 +3,8 @@ use super::*;
 #[derive(Boilerplate)]
 pub(crate) struct InscriptionHtml {
   pub(crate) chain: Chain,
-  pub(crate) genesis_height: u64,
   pub(crate) genesis_fee: u64,
+  pub(crate) genesis_height: u64,
   pub(crate) inscription: Inscription,
   pub(crate) inscription_id: InscriptionId,
   pub(crate) next: Option<InscriptionId>,
@@ -35,8 +35,8 @@ mod tests {
     assert_regex_match!(
       InscriptionHtml {
         chain: Chain::Mainnet,
-        genesis_height: 0,
         genesis_fee: 1,
+        genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
         next: None,
@@ -94,8 +94,8 @@ mod tests {
     assert_regex_match!(
       InscriptionHtml {
         chain: Chain::Mainnet,
-        genesis_height: 0,
         genesis_fee: 1,
+        genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
         next: None,
@@ -126,8 +126,8 @@ mod tests {
     assert_regex_match!(
       InscriptionHtml {
         chain: Chain::Mainnet,
-        genesis_height: 0,
         genesis_fee: 1,
+        genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(2),
         next: Some(inscription_id(3)),

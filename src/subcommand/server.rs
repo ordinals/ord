@@ -833,8 +833,8 @@ impl Server {
     Ok(
       InscriptionHtml {
         chain,
-        genesis_height: entry.height,
         genesis_fee: entry.fee,
+        genesis_height: entry.height,
         inscription,
         inscription_id,
         next,
