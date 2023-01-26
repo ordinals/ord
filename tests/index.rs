@@ -11,7 +11,7 @@ fn custom_index_path() {
 
   CommandBuilder::new(format!("--index {} index", index_path.display()))
     .rpc_server(&rpc_server)
-    .run();
+    .output::<Empty>();
 
   assert!(index_path.is_file())
 }

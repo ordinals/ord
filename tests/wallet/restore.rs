@@ -16,7 +16,7 @@ fn restore_generates_same_descriptors() {
 
   CommandBuilder::new(["wallet", "restore", &mnemonic.to_string()])
     .rpc_server(&rpc_server)
-    .run();
+    .output::<Empty>();
 
   assert_eq!(rpc_server.descriptors(), descriptors);
 }
