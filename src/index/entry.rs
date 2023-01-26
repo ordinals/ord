@@ -37,6 +37,7 @@ impl Entry for InscriptionEntry {
 
   fn load((fee, height, number, sat, timestamp): InscriptionEntryValue) -> Self {
     Self {
+      fee,
       height,
       number,
       sat: if sat == u64::MAX {
@@ -45,7 +46,6 @@ impl Entry for InscriptionEntry {
         Some(Sat(sat))
       },
       timestamp,
-      fee,
     }
   }
 
