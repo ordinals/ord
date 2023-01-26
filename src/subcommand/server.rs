@@ -833,6 +833,7 @@ impl Server {
     Ok(
       InscriptionHtml {
         chain,
+        genesis_fee: entry.fee,
         genesis_height: entry.height,
         inscription,
         inscription_id,
@@ -2253,7 +2254,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response(
-      format!("/preview/{}", inscription_id),
+      format!("/preview/{inscription_id}"),
       StatusCode::OK,
       &fs::read_to_string("templates/preview-unknown.html").unwrap(),
     );
@@ -2275,7 +2276,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response(
-      format!("/preview/{}", inscription_id),
+      format!("/preview/{inscription_id}"),
       StatusCode::OK,
       &fs::read_to_string("templates/preview-unknown.html").unwrap(),
     );

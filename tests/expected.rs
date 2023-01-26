@@ -8,7 +8,7 @@ pub(crate) enum Expected {
 
 impl Expected {
   pub(crate) fn regex(pattern: &str) -> Self {
-    Self::Regex(Regex::new(&format!("^(?s){}$", pattern)).unwrap())
+    Self::Regex(Regex::new(&format!("^(?s){pattern}$")).unwrap())
   }
 
   pub(crate) fn assert_match(&self, output: &str) {
@@ -16,9 +16,7 @@ impl Expected {
       Self::String(string) => pretty_assert_eq!(output, string),
       Self::Regex(regex) => assert!(
         regex.is_match(output),
-        "regex:\n{}\ndid not match output:\n{}",
-        regex,
-        output
+        "regex:\n{regex}\ndid not match output:\n{output}",
       ),
     }
   }
