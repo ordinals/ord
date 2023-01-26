@@ -155,11 +155,11 @@ pub fn main() {
   .expect("Error setting ctrl-c handler");
 
   if let Err(err) = Arguments::parse().run() {
-    eprintln!("error: {}", err);
+    eprintln!("error: {err}");
     err
       .chain()
       .skip(1)
-      .for_each(|cause| eprintln!("because: {}", cause));
+      .for_each(|cause| eprintln!("because: {cause}"));
     if env::var_os("RUST_BACKTRACE")
       .map(|val| val == "1")
       .unwrap_or_default()

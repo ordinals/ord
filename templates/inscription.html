@@ -21,8 +21,6 @@
 %% }
   <dt>output value</dt>
   <dd>{{ self.output.value }}</dd>
-  <dt>inscription fee</dt>
-  <dd>{{ self.inscription_fee }}</dd>
 %% if let Some(sat) = self.sat {
   <dt>sat</dt>
   <dd><a href=/sat/{{sat}}>{{sat}}</a></dd>
@@ -43,6 +41,8 @@
   <dd><time>{{ self.timestamp }}</time></dd>
   <dt>genesis height</dt>
   <dd>{{ self.genesis_height }}</dd>
+  <dt>genesis fee</dt>
+  <dd>{{ self.genesis_fee }}</dd>
   <dt>genesis transaction</dt>
   <dd><a class=monospace href=/tx/{{ self.inscription_id.txid }}>{{ self.inscription_id.txid }}</a></dd>
   <dt>location</dt>

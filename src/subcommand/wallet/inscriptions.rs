@@ -28,7 +28,7 @@ pub(crate) fn run(options: Options) -> Result {
       output.push(Output {
         location,
         inscription,
-        explorer: format!("{}{}", explorer, inscription),
+        explorer: format!("{explorer}{inscription}"),
       });
     }
   }

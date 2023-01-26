@@ -233,7 +233,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             number: self.next_number,
             sat,
             timestamp: self.timestamp,
-            inscription_fee,
+            genesis_fee: inscription_fee,
           }
           .store(),
         )?;

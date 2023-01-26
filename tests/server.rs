@@ -10,7 +10,7 @@ fn run() {
     .unwrap()
     .port();
 
-  let builder = CommandBuilder::new(format!("server --address 127.0.0.1 --http-port {}", port))
+  let builder = CommandBuilder::new(format!("server --address 127.0.0.1 --http-port {port}"))
     .rpc_server(&rpc_server);
 
   let mut command = builder.command();
@@ -59,8 +59,6 @@ fn inscription_page() {
   <dd class=monospace>bc1.*</dd>
   <dt>output value</dt>
   <dd>10000</dd>
-  <dt>inscription fee</dt>
-  <dd>138</dd>
   <dt>preview</dt>
   <dd><a href=/preview/{inscription}>link</a></dd>
   <dt>content</dt>
@@ -73,6 +71,8 @@ fn inscription_page() {
   <dd><time>1970-01-01 00:00:02 UTC</time></dd>
   <dt>genesis height</dt>
   <dd>2</dd>
+  <dt>genesis fee</dt>
+  <dd>138</dd>
   <dt>genesis transaction</dt>
   <dd><a class=monospace href=/tx/{reveal}>{reveal}</a></dd>
   <dt>location</dt>

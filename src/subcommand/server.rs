@@ -834,9 +834,9 @@ impl Server {
       InscriptionHtml {
         chain,
         genesis_height: entry.height,
+        genesis_fee: entry.genesis_fee,
         inscription,
         inscription_id,
-        inscription_fee: entry.inscription_fee,
         next,
         number: entry.number,
         output,
@@ -2202,7 +2202,7 @@ mod tests {
     server.assert_response_regex(
       format!("/inscription/{}", InscriptionId::from(txid)),
       StatusCode::OK,
-      r".*<dt>inscription fee</dt>\s*<dd>0</dd>\s*<dt>preview</dt>.*",
+      r".*<dt>output value</dt>\s*<dd>5000000000</dd>\s*<dt>preview</dt>.*",
     );
   }
 
@@ -2254,7 +2254,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response(
-      format!("/preview/{}", inscription_id),
+      format!("/preview/{inscription_id}"),
       StatusCode::OK,
       &fs::read_to_string("templates/preview-unknown.html").unwrap(),
     );
@@ -2276,7 +2276,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response(
-      format!("/preview/{}", inscription_id),
+      format!("/preview/{inscription_id}"),
       StatusCode::OK,
       &fs::read_to_string("templates/preview-unknown.html").unwrap(),
     );

@@ -18,7 +18,7 @@ fn inscriptions_can_be_sent() {
   .run();
 
   let txid = rpc_server.mempool()[0].txid();
-  assert_eq!(format!("{}\n", txid), stdout);
+  assert_eq!(format!("{txid}\n"), stdout);
 
   rpc_server.mine_blocks(1);
 
@@ -137,7 +137,7 @@ fn send_on_mainnnet_works_with_wallet_named_ord() {
   .run();
 
   let txid = rpc_server.mempool()[0].txid();
-  assert_eq!(format!("{}\n", txid), stdout);
+  assert_eq!(format!("{txid}\n"), stdout);
 }
 
 #[test]
@@ -156,7 +156,7 @@ fn send_on_mainnnet_works_with_wallet_whose_name_starts_with_ord() {
   .run();
 
   let txid = rpc_server.mempool()[0].txid();
-  assert_eq!(format!("{}\n", txid), stdout);
+  assert_eq!(format!("{txid}\n"), stdout);
 }
 
 #[test]

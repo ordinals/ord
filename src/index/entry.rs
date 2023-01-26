@@ -27,7 +27,7 @@ pub(crate) struct InscriptionEntry {
   pub(crate) number: u64,
   pub(crate) sat: Option<Sat>,
   pub(crate) timestamp: u32,
-  pub(crate) inscription_fee: u64,
+  pub(crate) genesis_fee: u64,
 }
 
 pub(crate) type InscriptionEntryValue = (u64, u64, u64, u32, u64);
@@ -45,7 +45,7 @@ impl Entry for InscriptionEntry {
         Some(Sat(sat))
       },
       timestamp,
-      inscription_fee,
+      genesis_fee: inscription_fee,
     }
   }
 
@@ -58,7 +58,7 @@ impl Entry for InscriptionEntry {
         None => u64::MAX,
       },
       self.timestamp,
-      self.inscription_fee,
+      self.genesis_fee,
     )
   }
 }

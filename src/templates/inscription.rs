@@ -4,9 +4,9 @@ use super::*;
 pub(crate) struct InscriptionHtml {
   pub(crate) chain: Chain,
   pub(crate) genesis_height: u64,
+  pub(crate) genesis_fee: u64,
   pub(crate) inscription: Inscription,
   pub(crate) inscription_id: InscriptionId,
-  pub(crate) inscription_fee: u64,
   pub(crate) next: Option<InscriptionId>,
   pub(crate) number: u64,
   pub(crate) output: TxOut,
@@ -36,9 +36,9 @@ mod tests {
       InscriptionHtml {
         chain: Chain::Mainnet,
         genesis_height: 0,
+        genesis_fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
-        inscription_fee: 1,
         next: None,
         number: 1,
         output: tx_out(1, address()),
@@ -61,8 +61,6 @@ mod tests {
           <dd class=monospace>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</dd>
           <dt>output value</dt>
           <dd>1</dd>
-          <dt>inscription fee</dt>
-          <dd>1</dd>
           <dt>preview</dt>
           <dd><a href=/preview/1{64}i1>link</a></dd>
           <dt>content</dt>
@@ -75,6 +73,8 @@ mod tests {
           <dd><time>1970-01-01 00:00:00 UTC</time></dd>
           <dt>genesis height</dt>
           <dd>0</dd>
+          <dt>genesis fee</dt>
+          <dd>1</dd>
           <dt>genesis transaction</dt>
           <dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
           <dt>location</dt>
@@ -95,9 +95,9 @@ mod tests {
       InscriptionHtml {
         chain: Chain::Mainnet,
         genesis_height: 0,
+        genesis_fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
-        inscription_fee: 1,
         next: None,
         number: 1,
         output: tx_out(1, address()),
@@ -127,9 +127,9 @@ mod tests {
       InscriptionHtml {
         chain: Chain::Mainnet,
         genesis_height: 0,
+        genesis_fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(2),
-        inscription_fee: 1,
         next: Some(inscription_id(3)),
         number: 1,
         output: tx_out(1, address()),
