@@ -9,6 +9,7 @@ use {
   super::*,
   bitcoin::BlockHeader,
   bitcoincore_rpc::{json::GetBlockHeaderResult, Auth, Client},
+  chrono::SubsecRound,
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
   redb::{Database, ReadableTable, Table, TableDefinition, WriteStrategy, WriteTransaction},
@@ -633,6 +634,7 @@ impl Index {
 
         Ok(Blocktime::Expected(
           Utc::now()
+            .round_subsecs(0)
             .checked_add_signed(chrono::Duration::seconds(
               10 * 60 * i64::try_from(expected_blocks)?,
             ))
