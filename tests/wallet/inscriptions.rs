@@ -32,23 +32,22 @@ fn inscriptions() {
     .output::<receive::Output>()
     .address;
 
-  let stdout = CommandBuilder::new(format!("wallet send {address} {inscription}"))
+  let send = CommandBuilder::new(format!("wallet send {address} {inscription}"))
     .rpc_server(&rpc_server)
-    .expected_exit_code(0)
-    .stdout_regex(".*")
-    .run();
+    .output::<ord::subcommand::wallet::send::Output>();
 
   rpc_server.mine_blocks(1);
 
-  let txid = Txid::from_str(stdout.trim()).unwrap();
-
-  let output = CommandBuilder::new("wallet inscriptions")
+  let inscriptions = CommandBuilder::new("wallet inscriptions")
     .rpc_server(&rpc_server)
     .output::<Vec<Output>>();
 
-  assert_eq!(output.len(), 1);
-  assert_eq!(output[0].inscription, inscription.parse().unwrap());
-  assert_eq!(output[0].location, format!("{txid}:0:0").parse().unwrap());
+  assert_eq!(inscriptions.len(), 1);
+  assert_eq!(inscriptions[0].inscription, inscription.parse().unwrap());
+  assert_eq!(
+    inscriptions[0].location,
+    format!("{}:0:0", send.transaction).parse().unwrap()
+  );
 }
 
 #[test]
