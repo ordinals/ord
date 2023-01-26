@@ -834,7 +834,7 @@ impl Server {
       InscriptionHtml {
         chain,
         genesis_height: entry.height,
-        genesis_fee: entry.genesis_fee,
+        genesis_fee: entry.fee,
         inscription,
         inscription_id,
         next,

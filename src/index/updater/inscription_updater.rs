@@ -116,8 +116,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     if inscriptions.iter().all(|flotsam| flotsam.offset != 0)
       && Inscription::from_transaction(tx).is_some()
     {
-      let mut fee = input_value;
-      fee -= tx.output.iter().map(|txout| txout.value).sum::<u64>();
+      let fee = input_value - tx.output.iter().map(|txout| txout.value).sum::<u64>();
 
       inscriptions.push(Flotsam {
         inscription_id: txid.into(),
@@ -206,7 +205,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       Origin::Old(old_satpoint) => {
         self.satpoint_to_id.remove(&old_satpoint.store())?;
       }
-      Origin::New(inscription_fee) => {
+      Origin::New(fee) => {
         self
           .number_to_id
           .insert(&self.next_number, &inscription_id)?;
@@ -233,7 +232,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             number: self.next_number,
             sat,
             timestamp: self.timestamp,
-            genesis_fee: inscription_fee,
+            fee,
           }
           .store(),
         )?;

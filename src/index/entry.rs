@@ -23,19 +23,19 @@ impl Entry for BlockHash {
 }
 
 pub(crate) struct InscriptionEntry {
-  pub(crate) genesis_fee: u64,
+  pub(crate) fee: u64,
   pub(crate) height: u64,
   pub(crate) number: u64,
   pub(crate) sat: Option<Sat>,
   pub(crate) timestamp: u32,
 }
 
-pub(crate) type InscriptionEntryValue = (u64, u64, u64, u32, u64);
+pub(crate) type InscriptionEntryValue = (u64, u64, u64, u64, u32);
 
 impl Entry for InscriptionEntry {
   type Value = InscriptionEntryValue;
 
-  fn load((height, number, sat, timestamp, inscription_fee): InscriptionEntryValue) -> Self {
+  fn load((fee, height, number, sat, timestamp): InscriptionEntryValue) -> Self {
     Self {
       height,
       number,
@@ -45,12 +45,13 @@ impl Entry for InscriptionEntry {
         Some(Sat(sat))
       },
       timestamp,
-      genesis_fee: inscription_fee,
+      fee,
     }
   }
 
   fn store(self) -> Self::Value {
     (
+      self.fee,
       self.height,
       self.number,
       match self.sat {
@@ -58,7 +59,6 @@ impl Entry for InscriptionEntry {
         None => u64::MAX,
       },
       self.timestamp,
-      self.genesis_fee,
     )
   }
 }
