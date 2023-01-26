@@ -34,7 +34,7 @@ impl FromStr for Object {
 impl Display for Object {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     match self {
-      Self::Address(address) => write!(f, "{}", address),
+      Self::Address(address) => write!(f, "{address}"),
       Self::Hash(hash) => {
         for byte in hash {
           write!(f, "{byte:02x}")?;
@@ -43,9 +43,9 @@ impl Display for Object {
       }
       Self::InscriptionId(inscription_id) => write!(f, "{inscription_id}"),
       Self::Integer(integer) => write!(f, "{integer}"),
-      Self::OutPoint(outpoint) => write!(f, "{}", outpoint),
+      Self::OutPoint(outpoint) => write!(f, "{outpoint}"),
       Self::Sat(sat) => write!(f, "{sat}"),
-      Self::SatPoint(satpoint) => write!(f, "{}", satpoint),
+      Self::SatPoint(satpoint) => write!(f, "{satpoint}"),
     }
   }
 }
