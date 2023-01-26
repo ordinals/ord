@@ -91,7 +91,7 @@ dl {
   overflow-wrap: break-word;
 }
 
-ul {
+ol, ul {
   overflow: hidden;
 }
 
