@@ -5,6 +5,7 @@ use {
   bip39::Mnemonic,
   bitcoin::{blockdata::constants::COIN_VALUE, Network, OutPoint, Txid},
   executable_path::executable_path,
+  ord::Empty,
   pretty_assertions::assert_eq as pretty_assert_eq,
   regex::Regex,
   reqwest::{StatusCode, Url},

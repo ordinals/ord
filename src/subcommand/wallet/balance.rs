@@ -6,7 +6,7 @@ pub struct Output {
   pub cardinal: u64,
 }
 
-pub(crate) fn run(options: Options) -> Result {
+pub(crate) fn run(options: Options) -> SubcommandResult {
   let index = Index::open(&options)?;
   index.update()?;
 
@@ -16,14 +16,12 @@ pub(crate) fn run(options: Options) -> Result {
     .map(|satpoint| satpoint.outpoint)
     .collect::<BTreeSet<OutPoint>>();
 
-  let mut balance = 0;
+  let mut cardinal = 0;
   for (outpoint, amount) in get_unspent_outputs(&options)? {
     if !inscription_outputs.contains(&outpoint) {
-      balance += amount.to_sat()
+      cardinal += amount.to_sat()
     }
   }
 
-  print_json(Output { cardinal: balance })?;
-
-  Ok(())
+  Ok(Box::new(Output { cardinal }))
 }

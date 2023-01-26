@@ -13,12 +13,6 @@ pub mod supply;
 pub mod traits;
 pub mod wallet;
 
-fn print_json(output: impl Serialize) -> Result {
-  serde_json::to_writer_pretty(io::stdout(), &output)?;
-  println!();
-  Ok(())
-}
-
 #[derive(Debug, Parser)]
 pub(crate) enum Subcommand {
   #[clap(about = "List the first satoshis of each reward epoch")]
@@ -48,7 +42,7 @@ pub(crate) enum Subcommand {
 }
 
 impl Subcommand {
-  pub(crate) fn run(self, options: Options) -> Result {
+  pub(crate) fn run(self, options: Options) -> SubcommandResult {
     match self {
       Self::Epochs => epochs::run(),
       Self::Preview(preview) => preview.run(),

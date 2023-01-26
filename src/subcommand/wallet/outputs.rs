@@ -6,7 +6,7 @@ pub struct Output {
   pub amount: u64,
 }
 
-pub(crate) fn run(options: Options) -> Result {
+pub(crate) fn run(options: Options) -> SubcommandResult {
   let mut outputs = Vec::new();
   for (output, amount) in get_unspent_outputs(&options)? {
     outputs.push(Output {
@@ -15,7 +15,5 @@ pub(crate) fn run(options: Options) -> Result {
     });
   }
 
-  print_json(outputs)?;
-
-  Ok(())
+  Ok(Box::new(outputs))
 }

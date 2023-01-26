@@ -18,7 +18,7 @@ pub struct Output {
 }
 
 impl Send {
-  pub(crate) fn run(self, options: Options) -> Result {
+  pub(crate) fn run(self, options: Options) -> SubcommandResult {
     let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
     if !self.address.is_valid_for_network(options.chain().network()) {
@@ -67,9 +67,7 @@ impl Send {
         let txid =
           client.send_to_address(&self.address, amount, None, None, None, None, None, None)?;
 
-        print_json(Output { transaction: txid })?;
-
-        return Ok(());
+        return Ok(Box::new(Output { transaction: txid }));
       }
     };
 
@@ -90,8 +88,6 @@ impl Send {
 
     let txid = client.send_raw_transaction(&signed_tx)?;
 
-    println!("{txid}");
-
-    Ok(())
+    Ok(Box::new(Output { transaction: txid }))
   }
 }

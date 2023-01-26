@@ -123,7 +123,7 @@ pub(crate) struct Server {
 }
 
 impl Server {
-  pub(crate) fn run(self, options: Options, index: Arc<Index>, handle: Handle) -> Result {
+  pub(crate) fn run(self, options: Options, index: Arc<Index>, handle: Handle) -> SubcommandResult {
     Runtime::new()?.block_on(async {
       let clone = index.clone();
       thread::spawn(move || loop {
@@ -219,7 +219,7 @@ impl Server {
         (None, None) => unreachable!(),
       }
 
-      Ok(())
+      Ok(Box::new(Empty {}) as Box<dyn Output>)
     })
   }
 

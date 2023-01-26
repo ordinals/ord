@@ -136,6 +136,25 @@ fn timestamp(seconds: u32) -> DateTime<Utc> {
   Utc.timestamp_opt(seconds.into(), 0).unwrap()
 }
 
+trait Output: Send {
+  fn print_json(&self);
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Empty {}
+
+impl<T> Output for T
+where
+  T: Serialize + Send,
+{
+  fn print_json(&self) {
+    serde_json::to_writer_pretty(io::stdout(), self).ok();
+    println!();
+  }
+}
+
+type SubcommandResult = Result<Box<dyn Output>>;
+
 pub fn main() {
   env_logger::init();
 
@@ -154,18 +173,23 @@ pub fn main() {
   })
   .expect("Error setting ctrl-c handler");
 
-  if let Err(err) = Arguments::parse().run() {
-    eprintln!("error: {err}");
-    err
-      .chain()
-      .skip(1)
-      .for_each(|cause| eprintln!("because: {cause}"));
-    if env::var_os("RUST_BACKTRACE")
-      .map(|val| val == "1")
-      .unwrap_or_default()
-    {
-      eprintln!("{}", err.backtrace());
+  match Arguments::parse().run() {
+    Ok(output) => {
+      output.print_json();
     }
-    process::exit(1);
+    Err(err) => {
+      eprintln!("error: {err}");
+      err
+        .chain()
+        .skip(1)
+        .for_each(|cause| eprintln!("because: {cause}"));
+      if env::var_os("RUST_BACKTRACE")
+        .map(|val| val == "1")
+        .unwrap_or_default()
+      {
+        eprintln!("{}", err.backtrace());
+      }
+      process::exit(1);
+    }
   }
 }

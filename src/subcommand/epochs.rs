@@ -5,13 +5,11 @@ pub struct Output {
   pub starting_sats: Vec<Sat>,
 }
 
-pub(crate) fn run() -> Result {
+pub(crate) fn run() -> SubcommandResult {
   let mut starting_sats = Vec::new();
   for sat in Epoch::STARTING_SATS {
     starting_sats.push(sat);
   }
 
-  print_json(Output { starting_sats })?;
-
-  Ok(())
+  Ok(Box::new(Output { starting_sats }))
 }
