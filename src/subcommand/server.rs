@@ -1,5 +1,6 @@
 use {
   self::{
+    accept::Accept,
     deserialize_from_str::DeserializeFromStr,
     error::{OptionExt, ServerError, ServerResult},
   },
@@ -12,8 +13,11 @@ use {
   axum::{
     body,
     extract::{Extension, Path, Query},
-    headers::UserAgent,
-    http::{header, HeaderMap, HeaderValue, StatusCode, Uri},
+    headers::{self, Header, UserAgent},
+    http::{
+      header::{self, HeaderName},
+      HeaderMap, HeaderValue, StatusCode, Uri,
+    },
     response::{IntoResponse, Redirect, Response},
     routing::get,
     Router, TypedHeader,
@@ -35,6 +39,7 @@ use {
   },
 };
 
+mod accept;
 mod error;
 
 enum BlockQuery {
@@ -347,14 +352,25 @@ impl Server {
     index.height()?.ok_or_not_found(|| "genesis block")
   }
 
-  async fn clock(Extension(index): Extension<Arc<Index>>) -> ServerResult<Response> {
+  async fn clock(
+    Extension(index): Extension<Arc<Index>>,
+    accept: Option<TypedHeader<Accept>>,
+  ) -> ServerResult<Response> {
+    let clock = ClockSvg::new(Self::index_height(&index)?);
+
+    if let Some(accept) = accept {
+      if accept.0 .0 == "application/json" {
+        return Ok(axum::Json(clock).into_response());
+      }
+    }
+
     Ok(
       (
         [(
           header::CONTENT_SECURITY_POLICY,
           HeaderValue::from_static("default-src 'unsafe-inline'"),
         )],
-        ClockSvg::new(Self::index_height(&index)?),
+        clock,
       )
         .into_response(),
     )
