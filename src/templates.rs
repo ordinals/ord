@@ -37,6 +37,7 @@ mod transaction;
 pub(crate) struct PageHtml<T: PageContent> {
   chain: Chain,
   content: T,
+  domain: String,
   has_sat_index: bool,
 }
 
@@ -44,10 +45,11 @@ impl<T> PageHtml<T>
 where
   T: PageContent,
 {
-  pub(crate) fn new(content: T, chain: Chain, has_sat_index: bool) -> Self {
+  pub(crate) fn new(content: T, chain: Chain, domain: String, has_sat_index: bool) -> Self {
     Self {
       content,
       has_sat_index,
+      domain,
       chain,
     }
   }
@@ -56,11 +58,11 @@ where
 pub(crate) trait PageContent: Display + 'static {
   fn title(&self) -> String;
 
-  fn page(self, chain: Chain, has_sat_index: bool) -> PageHtml<Self>
+  fn page(self, chain: Chain, domain: String, has_sat_index: bool) -> PageHtml<Self>
   where
     Self: Sized,
   {
-    PageHtml::new(self, chain, has_sat_index)
+    PageHtml::new(self, chain, domain, has_sat_index)
   }
 
   fn preview_image_url(&self) -> Option<Trusted<String>> {
@@ -89,7 +91,7 @@ mod tests {
   #[test]
   fn page() {
     assert_regex_match!(
-      Foo.page(Chain::Mainnet, true),
+      Foo.page(Chain::Mainnet, "example.com".into(), true),
       r"<!doctype html>
 <html lang=en>
   <head>
@@ -127,7 +129,7 @@ mod tests {
   #[test]
   fn page_mainnet() {
     assert_regex_match!(
-      Foo.page(Chain::Mainnet, true),
+      Foo.page(Chain::Mainnet, "example.com".into(), true),
       r".*<nav>\s*<a href=/>Ordinals<sup>alpha</sup></a>.*"
     );
   }
@@ -135,7 +137,7 @@ mod tests {
   #[test]
   fn page_no_sat_index() {
     assert_regex_match!(
-      Foo.page(Chain::Mainnet, false),
+      Foo.page(Chain::Mainnet, "example.com".into(), false),
       r".*<nav>\s*<a href=/>Ordinals<sup>alpha</sup></a>.*<a href=/clock>Clock</a>\s*<form action=/search.*",
     );
   }
@@ -143,7 +145,7 @@ mod tests {
   #[test]
   fn page_signet() {
     assert_regex_match!(
-      Foo.page(Chain::Signet, true),
+      Foo.page(Chain::Signet, "example.com".into(), true),
       r".*<nav>\s*<a href=/>Ordinals<sup>signet</sup></a>.*"
     );
   }

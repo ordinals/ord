@@ -4,9 +4,9 @@
     <meta charset=utf-8>
     <meta name=format-detection content='telephone=no'>
     <meta name=viewport content='width=device-width,initial-scale=1.0'>
-%% if let Some(url) = self.content.preview_image_url() {
-    <meta property=og:image content='{{ url }}'>
-%% }
+    <meta property=og:title content='{{ self.content.title() }}'>
+    <meta property=og:image content=https://{{ self.domain }}/favicon.png>
+    <meta property=twitter:card content="summary">
     <title>{{ self.content.title() }}</title>
     <link rel=alternate href=/feed.xml type=application/rss+xml title='Inscription RSS Feed'>
     <link rel=stylesheet href=/static/index.css>
