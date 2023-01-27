@@ -286,3 +286,13 @@ fn inscriptions_page_has_next_and_previous() {
     ),
   );
 }
+
+#[test]
+fn expected_sat_time_is_rounded() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
+    "/sat/2099999997689999",
+    r".*<dt>timestamp</dt><dd><time>.* \d+:\d+:\d+ UTC</time> \(expected\)</dd>.*",
+  );
+}
