@@ -72,7 +72,7 @@ mod tests {
           <dt>timestamp</dt>
           <dd><time>1970-01-01 00:00:00 UTC</time></dd>
           <dt>genesis height</dt>
-          <dd>0</dd>
+          <dd><a href=/block/0>0</a></dd>
           <dt>genesis fee</dt>
           <dd>1</dd>
           <dt>genesis transaction</dt>
