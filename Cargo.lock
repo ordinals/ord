@@ -2123,6 +2123,7 @@ name = "ord"
 version = "0.4.2"
 dependencies = [
  "anyhow",
+ "async-trait",
  "axum",
  "axum-server",
  "bech32",
