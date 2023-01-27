@@ -133,6 +133,8 @@ impl Server {
         thread::sleep(Duration::from_millis(5000));
       });
 
+      let config = options.load_config()?;
+
       let router = Router::new()
         .route("/", get(Self::home))
         .route("/block-count", get(Self::block_count))
@@ -161,6 +163,7 @@ impl Server {
         .route("/tx/:txid", get(Self::transaction))
         .layer(Extension(index))
         .layer(Extension(options.chain()))
+        .layer(Extension(Arc::new(config)))
         .layer(SetResponseHeaderLayer::if_not_present(
           header::CONTENT_SECURITY_POLICY,
           HeaderValue::from_static("default-src 'self'"),
@@ -705,8 +708,13 @@ impl Server {
 
   async fn content(
     Extension(index): Extension<Arc<Index>>,
+    Extension(config): Extension<Arc<Config>>,
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<Response> {
+    if config.is_hidden(inscription_id) {
+      return Ok(PreviewUnknownHtml.into_response());
+    }
+
     let inscription = index
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
@@ -743,8 +751,13 @@ impl Server {
 
   async fn preview(
     Extension(index): Extension<Arc<Index>>,
+    Extension(config): Extension<Arc<Config>>,
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<Response> {
+    if config.is_hidden(inscription_id) {
+      return Ok(PreviewUnknownHtml.into_response());
+    }
+
     let inscription = index
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
@@ -915,8 +928,22 @@ mod tests {
     }
 
     fn new_with_args(ord_args: &[&str], server_args: &[&str]) -> Self {
-      let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+      Self::new_server(test_bitcoincore_rpc::spawn(), None, ord_args, server_args)
+    }
 
+    fn new_with_bitcoin_rpc_server_and_config(
+      bitcoin_rpc_server: test_bitcoincore_rpc::Handle,
+      config: String,
+    ) -> Self {
+      Self::new_server(bitcoin_rpc_server, Some(config), &[], &[])
+    }
+
+    fn new_server(
+      bitcoin_rpc_server: test_bitcoincore_rpc::Handle,
+      config: Option<String>,
+      ord_args: &[&str],
+      server_args: &[&str],
+    ) -> Self {
       let tempdir = TempDir::new().unwrap();
 
       let cookiefile = tempdir.path().join("cookie");
@@ -931,8 +958,17 @@ mod tests {
 
       let url = Url::parse(&format!("http://127.0.0.1:{port}")).unwrap();
 
+      let config_args = match config {
+        Some(config) => {
+          let config_path = tempdir.path().join("ord.yaml");
+          fs::write(&config_path, config).unwrap();
+          format!("--config {}", config_path.display())
+        }
+        None => "".to_string(),
+      };
+
       let (options, server) = parse_server_args(&format!(
-        "ord --chain regtest --rpc-url {} --cookie-file {} --data-dir {} {} server --http-port {} --address 127.0.0.1 {}",
+        "ord --chain regtest --rpc-url {} --cookie-file {} --data-dir {} {config_args} {} server --http-port {} --address 127.0.0.1 {}",
         bitcoin_rpc_server.url(),
         cookiefile.to_str().unwrap(),
         tempdir.path().to_str().unwrap(),
@@ -2398,6 +2434,36 @@ mod tests {
     assert_eq!(
       response.headers().get(header::CONTENT_ENCODING).unwrap(),
       "br"
+    );
+  }
+
+  #[test]
+  fn inscriptions_can_be_hidden_with_config() {
+    let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+    bitcoin_rpc_server.mine_blocks(1);
+    let txid = bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witness: inscription("text/plain;charset=utf-8", "hello").to_witness(),
+      ..Default::default()
+    });
+    let inscription = InscriptionId::from(txid);
+    bitcoin_rpc_server.mine_blocks(1);
+
+    let server = TestServer::new_with_bitcoin_rpc_server_and_config(
+      bitcoin_rpc_server,
+      format!("\"hidden\":\n - {inscription}"),
+    );
+
+    server.assert_response(
+      format!("/preview/{inscription}"),
+      StatusCode::OK,
+      &fs::read_to_string("templates/preview-unknown.html").unwrap(),
+    );
+
+    server.assert_response(
+      format!("/content/{inscription}"),
+      StatusCode::OK,
+      &fs::read_to_string("templates/preview-unknown.html").unwrap(),
     );
   }
 }

@@ -173,7 +173,7 @@ fn inscription_content() {
   rpc_server.mine_blocks(1);
 
   let response =
-    TestServer::spawn_with_args(&rpc_server, &[]).request(&format!("/content/{inscription}"));
+    TestServer::spawn_with_args(&rpc_server, &[]).request(format!("/content/{inscription}"));
 
   assert_eq!(response.status(), StatusCode::OK);
   assert_eq!(
