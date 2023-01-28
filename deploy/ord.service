@@ -19,6 +19,7 @@ ExecStart=/usr/local/bin/ord \
   --https \
   --redirect-http-to-https
 Group=ord
+LimitNOFILE=65536
 MemoryDenyWriteExecute=true
 NoNewPrivileges=true
 PrivateDevices=true
