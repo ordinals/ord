@@ -142,6 +142,7 @@ impl Server {
         .route("/content/:inscription_id", get(Self::content))
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
+        .route("/favicon.png", get(Self::favicon_png))
         .route("/feed.xml", get(Self::feed))
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_id", get(Self::inscription))
@@ -161,6 +162,7 @@ impl Server {
         .route("/tx/:txid", get(Self::transaction))
         .layer(Extension(index))
         .layer(Extension(options.chain()))
+        .layer(Extension(self.acme_domains()?.first().cloned()))
         .layer(SetResponseHeaderLayer::if_not_present(
           header::CONTENT_SECURITY_POLICY,
           HeaderValue::from_static("default-src 'self'"),
@@ -362,6 +364,7 @@ impl Server {
 
   async fn sat(
     Extension(chain): Extension<Chain>,
+    Extension(domain): Extension<Option<String>>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(sat)): Path<DeserializeFromStr<Sat>>,
   ) -> ServerResult<PageHtml<SatHtml>> {
@@ -374,7 +377,7 @@ impl Server {
         blocktime: index.blocktime(sat.height())?,
         inscription: index.get_inscription_id_by_sat(sat)?,
       }
-      .page(chain, index.has_sat_index()?),
+      .page(chain, domain, index.has_sat_index()?),
     )
   }
 
@@ -384,6 +387,7 @@ impl Server {
 
   async fn output(
     Extension(chain): Extension<Chain>,
+    Extension(domain): Extension<Option<String>>,
     Extension(index): Extension<Arc<Index>>,
     Path(outpoint): Path<OutPoint>,
   ) -> ServerResult<PageHtml<OutputHtml>> {
@@ -426,12 +430,13 @@ impl Server {
         chain,
         output,
       }
-      .page(chain, index.has_sat_index()?),
+      .page(chain, domain, index.has_sat_index()?),
     )
   }
 
   async fn range(
     Extension(chain): Extension<Chain>,
+    Extension(domain): Extension<Option<String>>,
     Extension(index): Extension<Arc<Index>>,
     Path((DeserializeFromStr(start), DeserializeFromStr(end))): Path<(
       DeserializeFromStr<Sat>,
@@ -443,7 +448,7 @@ impl Server {
       Ordering::Greater => Err(ServerError::BadRequest(
         "range start greater than range end".to_string(),
       )),
-      Ordering::Less => Ok(RangeHtml { start, end }.page(chain, index.has_sat_index()?)),
+      Ordering::Less => Ok(RangeHtml { start, end }.page(chain, domain, index.has_sat_index()?)),
     }
   }
 
@@ -457,11 +462,15 @@ impl Server {
 
   async fn home(
     Extension(chain): Extension<Chain>,
+    Extension(domain): Extension<Option<String>>,
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<PageHtml<HomeHtml>> {
     Ok(
-      HomeHtml::new(index.blocks(100)?, index.get_homepage_inscriptions()?)
-        .page(chain, index.has_sat_index()?),
+      HomeHtml::new(index.blocks(100)?, index.get_homepage_inscriptions()?).page(
+        chain,
+        domain,
+        index.has_sat_index()?,
+      ),
     )
   }
 
@@ -471,6 +480,7 @@ impl Server {
 
   async fn block(
     Extension(chain): Extension<Chain>,
+    Extension(domain): Extension<Option<String>>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(query)): Path<DeserializeFromStr<BlockQuery>>,
   ) -> ServerResult<PageHtml<BlockHtml>> {
@@ -496,13 +506,17 @@ impl Server {
     };
 
     Ok(
-      BlockHtml::new(block, Height(height), Self::index_height(&index)?)
-        .page(chain, index.has_sat_index()?),
+      BlockHtml::new(block, Height(height), Self::index_height(&index)?).page(
+        chain,
+        domain,
+        index.has_sat_index()?,
+      ),
     )
   }
 
   async fn transaction(
     Extension(index): Extension<Arc<Index>>,
+    Extension(domain): Extension<Option<String>>,
     Extension(chain): Extension<Chain>,
     Path(txid): Path<Txid>,
   ) -> ServerResult<PageHtml<TransactionHtml>> {
@@ -519,7 +533,7 @@ impl Server {
         inscription.map(|_| txid.into()),
         chain,
       )
-      .page(chain, index.has_sat_index()?),
+      .page(chain, domain, index.has_sat_index()?),
     )
   }
 
@@ -588,11 +602,7 @@ impl Server {
       })
       .unwrap_or_default()
     {
-      Ok(
-        Self::static_asset(Path("/favicon.png".to_string()))
-          .await
-          .into_response(),
-      )
+      Self::favicon_png().await
     } else {
       Ok(
         (
@@ -607,6 +617,14 @@ impl Server {
     }
   }
 
+  async fn favicon_png() -> ServerResult<Response> {
+    Ok(
+      Self::static_asset(Path("/favicon.png".to_string()))
+        .await
+        .into_response(),
+    )
+  }
+
   async fn feed(
     Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
@@ -614,7 +632,7 @@ impl Server {
     let mut builder = rss::ChannelBuilder::default();
 
     match chain {
-      Chain::Mainnet => builder.title("Inscriptions"),
+      Chain::Mainnet => builder.title("Inscriptions".to_string()),
       _ => builder.title(format!("Inscriptions – {chain:?}")),
     };
 
@@ -623,8 +641,8 @@ impl Server {
     for (number, id) in index.get_feed_inscriptions(100)? {
       builder.item(
         rss::ItemBuilder::default()
-          .title(format!("Inscription {number}"))
-          .link(format!("/inscription/{id}"))
+          .title(Some(format!("Inscription {number}")))
+          .link(Some(format!("/inscription/{id}")))
           .guid(Some(rss::Guid {
             value: format!("/inscription/{id}"),
             permalink: true,
@@ -671,6 +689,7 @@ impl Server {
 
   async fn input(
     Extension(chain): Extension<Chain>,
+    Extension(domain): Extension<Option<String>>,
     Extension(index): Extension<Arc<Index>>,
     Path(path): Path<(u64, usize, usize)>,
   ) -> Result<PageHtml<InputHtml>, ServerError> {
@@ -692,7 +711,7 @@ impl Server {
       .nth(path.2)
       .ok_or_not_found(not_found)?;
 
-    Ok(InputHtml { path, input }.page(chain, index.has_sat_index()?))
+    Ok(InputHtml { path, input }.page(chain, domain, index.has_sat_index()?))
   }
 
   async fn faq() -> Redirect {
@@ -795,6 +814,7 @@ impl Server {
 
   async fn inscription(
     Extension(chain): Extension<Chain>,
+    Extension(domain): Extension<Option<String>>,
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<PageHtml<InscriptionHtml>> {
@@ -845,27 +865,30 @@ impl Server {
         satpoint,
         timestamp: timestamp(entry.timestamp),
       }
-      .page(chain, index.has_sat_index()?),
+      .page(chain, domain, index.has_sat_index()?),
     )
   }
 
   async fn inscriptions(
     Extension(chain): Extension<Chain>,
+    Extension(domain): Extension<Option<String>>,
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<PageHtml<InscriptionsHtml>> {
-    Self::inscriptions_inner(chain, index, None).await
+    Self::inscriptions_inner(chain, domain, index, None).await
   }
 
   async fn inscriptions_from(
     Extension(chain): Extension<Chain>,
+    Extension(domain): Extension<Option<String>>,
     Extension(index): Extension<Arc<Index>>,
     Path(from): Path<u64>,
   ) -> ServerResult<PageHtml<InscriptionsHtml>> {
-    Self::inscriptions_inner(chain, index, Some(from)).await
+    Self::inscriptions_inner(chain, domain, index, Some(from)).await
   }
 
   async fn inscriptions_inner(
     chain: Chain,
+    domain: Option<String>,
     index: Arc<Index>,
     from: Option<u64>,
   ) -> ServerResult<PageHtml<InscriptionsHtml>> {
@@ -876,7 +899,7 @@ impl Server {
         next,
         prev,
       }
-      .page(chain, index.has_sat_index()?),
+      .page(chain, domain, index.has_sat_index()?),
     )
   }
 
