@@ -16,8 +16,7 @@ ExecStart=/usr/local/bin/ord \
   server \
   --acme-contact mailto:casey@rodarmor.com \
   --http \
-  --https \
-  --redirect-http-to-https
+  --https
 Group=ord
 MemoryDenyWriteExecute=true
 NoNewPrivileges=true
