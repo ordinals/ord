@@ -44,17 +44,7 @@ impl Inscription {
       }
     }
 
-    let extension = path
-      .extension()
-      .ok_or_else(|| anyhow!("file must have extension"))?
-      .to_str()
-      .ok_or_else(|| anyhow!("unrecognized extension"))?;
-
-    if extension == "mp4" {
-      Media::check_mp4_codec(path)?;
-    }
-
-    let content_type = Media::content_type_for_extension(extension)?;
+    let content_type = Media::content_type_for_path(path)?;
 
     Ok(Self {
       body: Some(body),
