@@ -1,4 +1,8 @@
-use super::*;
+use {
+  super::*,
+  mp4::{MediaType, Mp4Reader, TrackType},
+  std::{fs::File, io::BufReader},
+};
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub(crate) enum Media {
@@ -33,6 +37,26 @@ impl Media {
       extensions.join(" "),
     ))
   }
+
+  pub(crate) fn check_mp4_codec(path: &Path) -> Result<(), Error> {
+    let f = File::open(path)?;
+    let size = f.metadata()?.len();
+    let reader = BufReader::new(f);
+
+    let mp4 = Mp4Reader::read_header(reader, size)?;
+
+    for track in mp4.tracks().values() {
+      if let TrackType::Video = track.track_type()? {
+        if let MediaType::H264 = track.media_type()? {
+          return Ok(());
+        } else {
+          return Err(anyhow!("h264 format supported, only"));
+        }
+      }
+    }
+
+    return Err(anyhow!("Unrecognized MP4 format"));
+  }
 }
 
 impl FromStr for Media {
@@ -63,7 +87,7 @@ const TABLE: &[(&str, Media, &[&str])] = &[
   ("text/html;charset=utf-8", Media::Iframe, &["html"]),
   ("text/plain;charset=utf-8", Media::Text, &["txt"]),
   ("video/webm", Media::Video, &["webm"]),
-  ("video/mp4", Media::Video, &[]),
+  ("video/mp4", Media::Video, &["mp4"]),
 ];
 
 #[cfg(test)]
@@ -88,6 +112,14 @@ mod tests {
     assert_regex_match!(
       Media::content_type_for_extension("foo").unwrap_err(),
       r"unsupported file extension `\.foo`, supported extensions: apng .*"
+    );
+  }
+
+  #[test]
+  fn check_mp4_codec() {
+    assert!(
+      Media::check_mp4_codec(Path::new("bitcoin-pup.mp4")).is_ok(),
+      "Checks for h264 codec on mp4"
     );
   }
 }
