@@ -69,7 +69,6 @@ where
       Trusted(self.chain.to_string())
     }
   }
-
 }
 
 pub(crate) trait PageContent: Display + 'static {
