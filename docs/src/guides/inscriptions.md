@@ -139,7 +139,7 @@ ord wallet transactions
 ```
 
 Once the transaction confirms, you should be able to see the transactions
-outputs with `ord wallet utxos`.
+outputs with `ord wallet outputs`.
 
 Creating Inscription Content
 ----------------------------
