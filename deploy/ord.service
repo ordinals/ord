@@ -18,6 +18,7 @@ ExecStart=/usr/local/bin/ord \
   --http \
   --https
 Group=ord
+LimitNOFILE=65536
 MemoryDenyWriteExecute=true
 NoNewPrivileges=true
 PrivateDevices=true
