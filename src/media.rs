@@ -63,7 +63,7 @@ const TABLE: &[(&str, Media, &[&str])] = &[
   ("text/html;charset=utf-8", Media::Iframe, &["html"]),
   ("text/plain;charset=utf-8", Media::Text, &["txt"]),
   ("video/webm", Media::Video, &["webm"]),
-  ("video/mp4", Media::Video, &["mp4"]),
+  ("video/mp4", Media::Video, &[]),
 ];
 
 #[cfg(test)]
