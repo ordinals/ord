@@ -182,7 +182,7 @@ fn inscription_content() {
   );
   assert_eq!(
     response.headers().get("content-security-policy").unwrap(),
-    "default-src 'unsafe-eval' 'unsafe-inline'"
+    "default-src 'unsafe-eval' 'unsafe-inline' data:"
   );
   assert_eq!(response.bytes().unwrap(), "FOO");
 }
