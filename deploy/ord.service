@@ -11,6 +11,7 @@ Environment=RUST_LOG=info
 ExecStart=/usr/local/bin/ord \
   --bitcoin-data-dir /var/lib/bitcoind \
   --data-dir /var/lib/ord \
+  --config /var/lib/ord/ord.yaml \
   --chain ${CHAIN} \
   --index-sats \
   server \
