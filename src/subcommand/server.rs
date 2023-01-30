@@ -135,10 +135,11 @@ impl Server {
       });
 
       let config = options.load_config()?;
+      let acme_domains = self.acme_domains()?;
 
       let page_config = Arc::new(PageConfig {
         chain: options.chain(),
-        domain: self.acme_domains()?.first().cloned(),
+        domain: acme_domains.first().cloned(),
       });
 
       let router = Router::new()
