@@ -51,7 +51,7 @@ fn inscription_page() {
     format!(
       ".*<meta property=og:title content='Inscription 0'>.*
 .*<meta property=og:image content='https://.*/favicon.png'>.*
-.*<meta property=twitter:card content='summary'>.*
+.*<meta property=twitter:card content=summary>.*
 <h1>Inscription 0</h1>
 .*<iframe .* src=/preview/{inscription}></iframe>.*
 <dl>
