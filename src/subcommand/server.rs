@@ -625,7 +625,7 @@ impl Server {
 
     let chain = page_config.chain;
     match chain {
-      Chain::Mainnet => builder.title("Inscriptions".to_string()),
+      Chain::Mainnet => builder.title("Inscriptions"),
       _ => builder.title(format!("Inscriptions – {chain:?}")),
     };
 
@@ -634,8 +634,8 @@ impl Server {
     for (number, id) in index.get_feed_inscriptions(100)? {
       builder.item(
         rss::ItemBuilder::default()
-          .title(Some(format!("Inscription {number}")))
-          .link(Some(format!("/inscription/{id}")))
+          .title(format!("Inscription {number}"))
+          .link(format!("/inscription/{id}"))
           .guid(Some(rss::Guid {
             value: format!("/inscription/{id}"),
             permalink: true,
