@@ -142,7 +142,6 @@ impl Server {
         .route("/content/:inscription_id", get(Self::content))
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
-        .route("/favicon.png", get(Self::favicon_png))
         .route("/feed.xml", get(Self::feed))
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_id", get(Self::inscription))
@@ -602,7 +601,11 @@ impl Server {
       })
       .unwrap_or_default()
     {
-      Self::favicon_png().await
+      Ok(
+        Self::static_asset(Path("/favicon.png".to_string()))
+          .await
+          .into_response(),
+      )
     } else {
       Ok(
         (
@@ -615,14 +618,6 @@ impl Server {
           .into_response(),
       )
     }
-  }
-
-  async fn favicon_png() -> ServerResult<Response> {
-    Ok(
-      Self::static_asset(Path("/favicon.png".to_string()))
-        .await
-        .into_response(),
-    )
   }
 
   async fn feed(

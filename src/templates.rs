@@ -53,6 +53,23 @@ where
       has_sat_index,
     }
   }
+
+  fn og_image(&self) -> Trusted<String> {
+    if let Some(domain) = self.domain.clone() {
+      Trusted(format!("https://{domain}/static/favicon.png"))
+    } else {
+      Trusted("https://ordinals.com/static/favicon.png".into())
+    }
+  }
+
+  fn superscript(&self) -> Trusted<String> {
+    if self.chain == Chain::Mainnet {
+      Trusted("alpha".into())
+    } else {
+      Trusted(self.chain.to_string())
+    }
+  }
+
 }
 
 pub(crate) trait PageContent: Display + 'static {
@@ -99,7 +116,7 @@ mod tests {
     <meta name=format-detection content='telephone=no'>
     <meta name=viewport content='width=device-width,initial-scale=1.0'>
     <meta property=og:title content='Foo'>
-    <meta property=og:image content='https://signet.ordinals.com/favicon.png'>
+    <meta property=og:image content='https://signet.ordinals.com/static/favicon.png'>
     <meta property=twitter:card content='summary'>
     <title>Foo</title>
     <link rel=alternate href=/feed.xml type=application/rss\+xml title='Inscription RSS Feed'>
