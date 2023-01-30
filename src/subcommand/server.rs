@@ -2099,7 +2099,7 @@ mod tests {
     server.assert_response_csp(
       format!("/preview/{}", InscriptionId::from(txid)),
       StatusCode::OK,
-      "default-src 'unsafe-eval' 'unsafe-inline'",
+      "default-src 'unsafe-eval' 'unsafe-inline' data:",
       "hello",
     );
   }
