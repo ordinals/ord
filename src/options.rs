@@ -16,6 +16,8 @@ pub(crate) struct Options {
     help = "Use <CHAIN>."
   )]
   pub(crate) chain_argument: Chain,
+  #[clap(long, help = "Load configuration from <CONFIG>.")]
+  pub(crate) config: Option<PathBuf>,
   #[clap(long, help = "Load Bitcoin Core RPC cookie file from <COOKIE_FILE>.")]
   pub(crate) cookie_file: Option<PathBuf>,
   #[clap(long, help = "Store index in <DATA_DIR>.")]
@@ -109,6 +111,13 @@ impl Options {
     };
 
     Ok(self.chain().join_with_data_dir(&base))
+  }
+
+  pub(crate) fn load_config(&self) -> Result<Config> {
+    match &self.config {
+      Some(path) => Ok(serde_yaml::from_reader(File::open(path)?)?),
+      None => Ok(Default::default()),
+    }
   }
 
   fn format_bitcoin_core_version(version: usize) -> String {
@@ -506,5 +515,39 @@ mod tests {
         .wallet,
       "foo"
     )
+  }
+
+  #[test]
+  fn default_config_is_returned_if_config_option_is_not_passed() {
+    assert_eq!(
+      Arguments::try_parse_from(["ord", "index"])
+        .unwrap()
+        .options
+        .load_config()
+        .unwrap(),
+      Default::default()
+    );
+  }
+
+  #[test]
+  fn config_is_loaded_from_config_option_path() {
+    let id = "8d363b28528b0cb86b5fd48615493fb175bdf132d2a3d20b4251bba3f130a5abi0"
+      .parse::<InscriptionId>()
+      .unwrap();
+
+    let tempdir = TempDir::new().unwrap();
+    let path = tempdir.path().join("ord.yaml");
+    fs::write(&path, format!("hidden:\n- \"{id}\"")).unwrap();
+
+    assert_eq!(
+      Arguments::try_parse_from(["ord", "--config", path.to_str().unwrap(), "index",])
+        .unwrap()
+        .options
+        .load_config()
+        .unwrap(),
+      Config {
+        hidden: iter::once(id).collect(),
+      }
+    );
   }
 }
