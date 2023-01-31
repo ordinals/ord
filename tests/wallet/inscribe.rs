@@ -14,7 +14,7 @@ fn inscribe_creates_inscriptions() {
   assert_eq!(rpc_server.descriptors().len(), 3);
 
   let request =
-    TestServer::spawn_with_args(&rpc_server, &[]).request(&format!("/content/{inscription}"));
+    TestServer::spawn_with_args(&rpc_server, &[]).request(format!("/content/{inscription}"));
 
   assert_eq!(request.status(), 200);
   assert_eq!(

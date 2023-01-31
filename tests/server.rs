@@ -173,7 +173,7 @@ fn inscription_content() {
   rpc_server.mine_blocks(1);
 
   let response =
-    TestServer::spawn_with_args(&rpc_server, &[]).request(&format!("/content/{inscription}"));
+    TestServer::spawn_with_args(&rpc_server, &[]).request(format!("/content/{inscription}"));
 
   assert_eq!(response.status(), StatusCode::OK);
   assert_eq!(
@@ -182,7 +182,7 @@ fn inscription_content() {
   );
   assert_eq!(
     response.headers().get("content-security-policy").unwrap(),
-    "default-src 'unsafe-eval' 'unsafe-inline'"
+    "default-src 'unsafe-eval' 'unsafe-inline' data:"
   );
   assert_eq!(response.bytes().unwrap(), "FOO");
 }
