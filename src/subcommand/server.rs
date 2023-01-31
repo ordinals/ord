@@ -204,7 +204,6 @@ impl Server {
         }
         (Some(http_port), Some(https_port)) => {
           let http_spawn_config = if self.redirect_http_to_https {
-
             SpawnConfig::Redirect(if https_port == 443 {
               format!("https://{}", acme_domains[0])
             } else {
