@@ -1,7 +1,7 @@
 # Summary
 [Introduction](introduction.md)
 - [Overview](overview.md)
-- [Digital Aritacts](digital-artifacts.md)
+- [Digital Artifacts](digital-artifacts.md)
 - [Inscriptions](inscriptions.md)
 - [FAQ](faq.md)
 - [Contributing](contributing.md)
