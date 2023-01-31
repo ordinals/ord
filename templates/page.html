@@ -4,9 +4,9 @@
     <meta charset=utf-8>
     <meta name=format-detection content='telephone=no'>
     <meta name=viewport content='width=device-width,initial-scale=1.0'>
-%% if let Some(url) = self.content.preview_image_url() {
-    <meta property=og:image content='{{ url }}'>
-%% }
+    <meta property=og:title content='{{ self.content.title() }}'>
+    <meta property=og:image content='{{ self.og_image() }}'>
+    <meta property=twitter:card content=summary>
     <title>{{ self.content.title() }}</title>
     <link rel=alternate href=/feed.xml type=application/rss+xml title='Inscription RSS Feed'>
     <link rel=stylesheet href=/static/index.css>
@@ -16,7 +16,7 @@
   <body>
   <header>
     <nav>
-      <a href=/>Ordinals<sup>{% if self.chain == Chain::Mainnet { %}alpha{% } else { %}{{self.chain}}{% } %}</sup></a>
+      <a href=/>Ordinals<sup>{{ self.superscript() }}</sup></a>
       <a href=https://docs.ordinals.com/>Handbook</a>
       <a href=https://github.com/casey/ord>Wallet</a>
       <a href=/clock>Clock</a>
