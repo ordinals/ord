@@ -111,6 +111,7 @@ mod media;
 mod object;
 mod options;
 mod outgoing;
+mod page_config;
 mod rarity;
 mod representation;
 mod sat;
