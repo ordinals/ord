@@ -53,19 +53,19 @@ where
     }
   }
 
-  fn og_image(&self) -> Trusted<String> {
+  fn og_image(&self) -> String {
     if let Some(domain) = &self.page_config.domain {
-      Trusted(format!("https://{domain}/static/favicon.png"))
+      format!("https://{domain}/static/favicon.png")
     } else {
-      Trusted("https://ordinals.com/static/favicon.png".into())
+      "https://ordinals.com/static/favicon.png".into()
     }
   }
 
-  fn superscript(&self) -> Trusted<String> {
+  fn superscript(&self) -> String {
     if self.page_config.chain == Chain::Mainnet {
-      Trusted("alpha".into())
+      "alpha".into()
     } else {
-      Trusted(self.page_config.chain.to_string())
+      self.page_config.chain.to_string()
     }
   }
 }
