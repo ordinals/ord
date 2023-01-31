@@ -55,6 +55,7 @@ const TABLE: &[(&str, Media, &[&str])] = &[
   ("audio/mpeg", Media::Audio, &["mp3"]),
   ("audio/wav", Media::Audio, &["wav"]),
   ("image/apng", Media::Image, &["apng"]),
+  ("image/avif", Media::Image, &["avif"]),
   ("image/gif", Media::Image, &["gif"]),
   ("image/jpeg", Media::Image, &["jpg", "jpeg"]),
   ("image/png", Media::Image, &["png"]),
