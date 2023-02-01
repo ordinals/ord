@@ -49,7 +49,9 @@ fn inscription_page() {
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     format!("/inscription/{inscription}"),
     format!(
-      ".*<meta property=og:image content='/content/{inscription}'>.*
+      ".*<meta property=og:title content='Inscription 0'>.*
+.*<meta property=og:image content='https://.*/favicon.png'>.*
+.*<meta property=twitter:card content=summary>.*
 <h1>Inscription 0</h1>
 .*<iframe .* src=/preview/{inscription}></iframe>.*
 <dl>
@@ -70,7 +72,7 @@ fn inscription_page() {
   <dt>timestamp</dt>
   <dd><time>1970-01-01 00:00:02 UTC</time></dd>
   <dt>genesis height</dt>
-  <dd>2</dd>
+  <dd><a href=/block/2>2</a></dd>
   <dt>genesis fee</dt>
   <dd>138</dd>
   <dt>genesis transaction</dt>
@@ -173,7 +175,7 @@ fn inscription_content() {
   rpc_server.mine_blocks(1);
 
   let response =
-    TestServer::spawn_with_args(&rpc_server, &[]).request(&format!("/content/{inscription}"));
+    TestServer::spawn_with_args(&rpc_server, &[]).request(format!("/content/{inscription}"));
 
   assert_eq!(response.status(), StatusCode::OK);
   assert_eq!(
@@ -182,7 +184,7 @@ fn inscription_content() {
   );
   assert_eq!(
     response.headers().get("content-security-policy").unwrap(),
-    "default-src 'unsafe-eval' 'unsafe-inline'"
+    "default-src 'unsafe-eval' 'unsafe-inline' data:"
   );
   assert_eq!(response.bytes().unwrap(), "FOO");
 }

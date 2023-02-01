@@ -79,7 +79,7 @@ impl TestServer {
     assert_regex_match!(response.text().unwrap(), regex.as_ref());
   }
 
-  pub(crate) fn request(&self, path: &str) -> Response {
+  pub(crate) fn request(&self, path: impl AsRef<str>) -> Response {
     let client = Client::new(&self.rpc_url, Auth::None).unwrap();
     let chain_block_count = client.get_block_count().unwrap() + 1;
 
@@ -94,7 +94,7 @@ impl TestServer {
       thread::sleep(Duration::from_millis(25));
     }
 
-    reqwest::blocking::get(self.url().join(path).unwrap()).unwrap()
+    reqwest::blocking::get(self.url().join(path.as_ref()).unwrap()).unwrap()
   }
 }
 
