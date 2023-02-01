@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, ord::subcommand::wallet::outputs::Output};
 
 #[test]
 fn outputs() {
@@ -9,10 +9,12 @@ fn outputs() {
   let outpoint = OutPoint::new(coinbase_tx.txid(), 0);
   let amount = coinbase_tx.output[0].value;
 
-  CommandBuilder::new("wallet outputs")
+  let output = CommandBuilder::new("wallet outputs")
     .rpc_server(&rpc_server)
-    .expected_stdout(format!("{outpoint}\t{amount}\n"))
-    .run();
+    .output::<Vec<Output>>();
+
+  assert_eq!(output[0].output, outpoint);
+  assert_eq!(output[0].amount, amount);
 }
 
 #[test]
@@ -26,8 +28,10 @@ fn outputs_includes_locked_outputs() {
 
   rpc_server.lock(outpoint);
 
-  CommandBuilder::new("wallet outputs")
+  let output = CommandBuilder::new("wallet outputs")
     .rpc_server(&rpc_server)
-    .expected_stdout(format!("{outpoint}\t{amount}\n"))
-    .run();
+    .output::<Vec<Output>>();
+
+  assert_eq!(output[0].output, outpoint);
+  assert_eq!(output[0].amount, amount);
 }

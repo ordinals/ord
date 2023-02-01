@@ -1,15 +1,29 @@
 use super::*;
+use std::collections::BTreeSet;
+
+#[derive(Serialize, Deserialize)]
+pub struct Output {
+  pub cardinal: u64,
+}
 
 pub(crate) fn run(options: Options) -> Result {
-  println!(
-    "{}",
-    options
-      .bitcoin_rpc_client_for_wallet_command(false)?
-      .get_balances()?
-      .mine
-      .trusted
-      .to_sat()
-  );
+  let index = Index::open(&options)?;
+  index.update()?;
+
+  let inscription_outputs = index
+    .get_inscriptions(None)?
+    .keys()
+    .map(|satpoint| satpoint.outpoint)
+    .collect::<BTreeSet<OutPoint>>();
+
+  let mut balance = 0;
+  for (outpoint, amount) in get_unspent_outputs(&options)? {
+    if !inscription_outputs.contains(&outpoint) {
+      balance += amount.to_sat()
+    }
+  }
+
+  print_json(Output { cardinal: balance })?;
 
   Ok(())
 }

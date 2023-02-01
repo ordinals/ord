@@ -10,7 +10,8 @@ fn run() {
     .unwrap()
     .port();
 
-  let builder = CommandBuilder::new(format!("server --http-port {}", port)).rpc_server(&rpc_server);
+  let builder = CommandBuilder::new(format!("server --address 127.0.0.1 --http-port {port}"))
+    .rpc_server(&rpc_server);
 
   let mut command = builder.command();
 
@@ -48,9 +49,11 @@ fn inscription_page() {
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     format!("/inscription/{inscription}"),
     format!(
-      ".*<meta property=og:image content='/content/{inscription}'>.*
+      ".*<meta property=og:title content='Inscription 0'>.*
+.*<meta property=og:image content='https://.*/favicon.png'>.*
+.*<meta property=twitter:card content=summary>.*
 <h1>Inscription 0</h1>
-.*<a href=/preview/{inscription}><iframe .* src=/preview/{inscription}></iframe></a>.*
+.*<iframe .* src=/preview/{inscription}></iframe>.*
 <dl>
   <dt>id</dt>
   <dd class=monospace>{inscription}</dd>
@@ -58,6 +61,8 @@ fn inscription_page() {
   <dd class=monospace>bc1.*</dd>
   <dt>output value</dt>
   <dd>10000</dd>
+  <dt>preview</dt>
+  <dd><a href=/preview/{inscription}>link</a></dd>
   <dt>content</dt>
   <dd><a href=/content/{inscription}>link</a></dd>
   <dt>content length</dt>
@@ -65,9 +70,11 @@ fn inscription_page() {
   <dt>content type</dt>
   <dd>text/plain;charset=utf-8</dd>
   <dt>timestamp</dt>
-  <dd>1970-01-01 00:00:02</dd>
+  <dd><time>1970-01-01 00:00:02 UTC</time></dd>
   <dt>genesis height</dt>
-  <dd>2</dd>
+  <dd><a href=/block/2>2</a></dd>
+  <dt>genesis fee</dt>
+  <dd>138</dd>
   <dt>genesis transaction</dt>
   <dd><a class=monospace href=/tx/{reveal}>{reveal}</a></dd>
   <dt>location</dt>
@@ -168,7 +175,7 @@ fn inscription_content() {
   rpc_server.mine_blocks(1);
 
   let response =
-    TestServer::spawn_with_args(&rpc_server, &[]).request(&format!("/content/{inscription}"));
+    TestServer::spawn_with_args(&rpc_server, &[]).request(format!("/content/{inscription}"));
 
   assert_eq!(response.status(), StatusCode::OK);
   assert_eq!(
@@ -177,7 +184,7 @@ fn inscription_content() {
   );
   assert_eq!(
     response.headers().get("content-security-policy").unwrap(),
-    "default-src 'unsafe-eval' 'unsafe-inline'"
+    "default-src 'unsafe-eval' 'unsafe-inline' data:"
   );
   assert_eq!(response.bytes().unwrap(), "FOO");
 }
@@ -274,10 +281,20 @@ fn inscriptions_page_has_next_and_previous() {
     format!(
       ".*<h1>Inscription 1</h1>.*
 <div class=inscription>
-<a class=previous href=/inscription/{a}>❮</a>
-<a href=/preview/{b}>.*</a>
+<a class=prev href=/inscription/{a}>❮</a>
+<iframe .* src=/preview/{b}></iframe>
 <a class=next href=/inscription/{c}>❯</a>
 </div>.*",
     ),
+  );
+}
+
+#[test]
+fn expected_sat_time_is_rounded() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
+    "/sat/2099999997689999",
+    r".*<dt>timestamp</dt><dd><time>.* \d+:\d+:\d+ UTC</time> \(expected\)</dd>.*",
   );
 }

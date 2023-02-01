@@ -6,9 +6,16 @@ pub(crate) struct Parse {
   object: Object,
 }
 
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct Output {
+  pub object: Object,
+}
+
 impl Parse {
   pub(crate) fn run(self) -> Result {
-    println!("{}", self.object);
+    print_json(Output {
+      object: self.object,
+    })?;
     Ok(())
   }
 }

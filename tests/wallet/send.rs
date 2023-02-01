@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, ord::subcommand::wallet::send::Output};
 
 #[test]
 fn inscriptions_can_be_sent() {
@@ -18,7 +18,7 @@ fn inscriptions_can_be_sent() {
   .run();
 
   let txid = rpc_server.mempool()[0].txid();
-  assert_eq!(format!("{}\n", txid), stdout);
+  assert_eq!(format!("{txid}\n"), stdout);
 
   rpc_server.mine_blocks(1);
 
@@ -137,7 +137,7 @@ fn send_on_mainnnet_works_with_wallet_named_ord() {
   .run();
 
   let txid = rpc_server.mempool()[0].txid();
-  assert_eq!(format!("{}\n", txid), stdout);
+  assert_eq!(format!("{txid}\n"), stdout);
 }
 
 #[test]
@@ -156,7 +156,7 @@ fn send_on_mainnnet_works_with_wallet_whose_name_starts_with_ord() {
   .run();
 
   let txid = rpc_server.mempool()[0].txid();
-  assert_eq!(format!("{}\n", txid), stdout);
+  assert_eq!(format!("{txid}\n"), stdout);
 }
 
 #[test]
@@ -236,10 +236,16 @@ fn send_btc() {
 
   rpc_server.mine_blocks(1);
 
-  CommandBuilder::new("wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc")
+  let output = CommandBuilder::new("wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc")
     .rpc_server(&rpc_server)
-    .expected_stdout("0000000000000000000000000000000000000000000000000000000000000000\n")
-    .run();
+    .output::<Output>();
+
+  assert_eq!(
+    output.transaction,
+    "0000000000000000000000000000000000000000000000000000000000000000"
+      .parse()
+      .unwrap()
+  );
 
   assert_eq!(
     rpc_server.sent(),
@@ -262,10 +268,16 @@ fn send_btc_locks_inscriptions() {
 
   let Inscribe { reveal, .. } = inscribe(&rpc_server);
 
-  CommandBuilder::new("wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc")
+  let output = CommandBuilder::new("wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc")
     .rpc_server(&rpc_server)
-    .expected_stdout("0000000000000000000000000000000000000000000000000000000000000000\n")
-    .run();
+    .output::<Output>();
+
+  assert_eq!(
+    output.transaction,
+    "0000000000000000000000000000000000000000000000000000000000000000"
+      .parse()
+      .unwrap()
+  );
 
   assert_eq!(
     rpc_server.sent(),

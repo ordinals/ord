@@ -14,17 +14,17 @@ use {
   transaction_builder::TransactionBuilder,
 };
 
-mod balance;
+pub mod balance;
 pub(crate) mod create;
 pub(crate) mod inscribe;
-mod inscriptions;
-mod outputs;
-mod receive;
+pub mod inscriptions;
+pub mod outputs;
+pub mod receive;
 mod restore;
-mod sats;
-mod send;
+pub mod sats;
+pub mod send;
 pub(crate) mod transaction_builder;
-mod transactions;
+pub mod transactions;
 
 #[derive(Debug, Parser)]
 pub(crate) enum Wallet {

@@ -2,7 +2,7 @@ use super::*;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Display, Ord, PartialOrd, Deserialize, Serialize)]
 #[serde(transparent)]
-pub(crate) struct Sat(pub(crate) u64);
+pub struct Sat(pub u64);
 
 impl Sat {
   pub(crate) const LAST: Self = Self(Self::SUPPLY - 1);
@@ -215,7 +215,7 @@ impl FromStr for Sat {
   type Err = Error;
 
   fn from_str(s: &str) -> Result<Self> {
-    if s.chars().any(|c| matches!(c, 'a'..='z')) {
+    if s.chars().any(|c| c.is_ascii_lowercase()) {
       Self::from_name(s)
     } else if s.contains('°') {
       Self::from_degree(s)

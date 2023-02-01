@@ -6,6 +6,15 @@ pub(crate) struct List {
   outpoint: OutPoint,
 }
 
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct Output {
+  pub output: OutPoint,
+  pub start: u64,
+  pub size: u64,
+  pub rarity: Rarity,
+  pub name: String,
+}
+
 impl List {
   pub(crate) fn run(self, options: Options) -> Result {
     let index = Index::open(&options)?;
@@ -14,9 +23,18 @@ impl List {
 
     match index.list(self.outpoint)? {
       Some(crate::index::List::Unspent(ranges)) => {
+        let mut outputs = Vec::new();
         for (output, start, size, rarity, name) in list(self.outpoint, ranges) {
-          println!("{output}\t{start}\t{size}\t{rarity}\t{name}");
+          outputs.push(Output {
+            output,
+            start,
+            size,
+            rarity,
+            name,
+          });
         }
+
+        print_json(outputs)?;
 
         Ok(())
       }

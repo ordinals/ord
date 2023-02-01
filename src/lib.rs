@@ -14,6 +14,7 @@ use {
   self::{
     arguments::Arguments,
     blocktime::Blocktime,
+    config::Config,
     decimal::Decimal,
     degree::Degree,
     deserialize_from_str::DeserializeFromStr,
@@ -23,12 +24,9 @@ use {
     inscription::Inscription,
     inscription_id::InscriptionId,
     media::Media,
-    object::Object,
     options::Options,
     outgoing::Outgoing,
-    rarity::Rarity,
     representation::Representation,
-    sat::Sat,
     subcommand::Subcommand,
     tally::Tally,
   },
@@ -43,7 +41,7 @@ use {
   },
   bitcoincore_rpc::{Client, RpcApi},
   chain::Chain,
-  chrono::{NaiveDateTime, TimeZone, Utc},
+  chrono::{DateTime, TimeZone, Utc},
   clap::{ArgGroup, Parser},
   derive_more::{Display, FromStr},
   html_escaper::{Escape, Trusted},
@@ -56,7 +54,8 @@ use {
     env,
     ffi::OsString,
     fmt::{self, Display, Formatter},
-    fs, io,
+    fs::{self, File},
+    io,
     net::{TcpListener, ToSocketAddrs},
     ops::{Add, AddAssign, Sub},
     path::{Path, PathBuf},
@@ -74,7 +73,7 @@ use {
 };
 
 pub use crate::{
-  fee_rate::FeeRate, sat_point::SatPoint,
+  fee_rate::FeeRate, object::Object, rarity::Rarity, sat::Sat, sat_point::SatPoint,
   subcommand::wallet::transaction_builder::TransactionBuilder,
 };
 
@@ -98,6 +97,7 @@ macro_rules! tprintln {
 mod arguments;
 mod blocktime;
 mod chain;
+mod config;
 mod decimal;
 mod degree;
 mod deserialize_from_str;
@@ -111,11 +111,12 @@ mod media;
 mod object;
 mod options;
 mod outgoing;
+mod page_config;
 mod rarity;
 mod representation;
 mod sat;
 mod sat_point;
-mod subcommand;
+pub mod subcommand;
 mod tally;
 mod templates;
 
@@ -135,8 +136,8 @@ fn integration_test() -> bool {
     .unwrap_or(false)
 }
 
-fn timestamp(seconds: u32) -> NaiveDateTime {
-  NaiveDateTime::from_timestamp_opt(seconds.into(), 0).unwrap()
+fn timestamp(seconds: u32) -> DateTime<Utc> {
+  Utc.timestamp_opt(seconds.into(), 0).unwrap()
 }
 
 pub fn main() {
@@ -158,11 +159,11 @@ pub fn main() {
   .expect("Error setting ctrl-c handler");
 
   if let Err(err) = Arguments::parse().run() {
-    eprintln!("error: {}", err);
+    eprintln!("error: {err}");
     err
       .chain()
       .skip(1)
-      .for_each(|cause| eprintln!("because: {}", cause));
+      .for_each(|cause| eprintln!("because: {cause}"));
     if env::var_os("RUST_BACKTRACE")
       .map(|val| val == "1")
       .unwrap_or_default()

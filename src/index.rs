@@ -9,6 +9,7 @@ use {
   super::*,
   bitcoin::BlockHeader,
   bitcoincore_rpc::{json::GetBlockHeaderResult, Auth, Client},
+  chrono::SubsecRound,
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
   redb::{Database, ReadableTable, Table, TableDefinition, WriteStrategy, WriteTransaction},
@@ -613,7 +614,7 @@ impl Index {
     let height = height.n();
 
     match self.get_block_by_height(height)? {
-      Some(block) => Ok(Blocktime::Confirmed(block.header.time.into())),
+      Some(block) => Ok(Blocktime::confirmed(block.header.time)),
       None => {
         let tx = self.database.begin_read()?;
 
@@ -631,7 +632,12 @@ impl Index {
         })?;
 
         Ok(Blocktime::Expected(
-          Utc::now().timestamp() + 10 * 60 * i64::try_from(expected_blocks).unwrap(),
+          Utc::now()
+            .round_subsecs(0)
+            .checked_add_signed(chrono::Duration::seconds(
+              10 * 60 * i64::try_from(expected_blocks)?,
+            ))
+            .ok_or_else(|| anyhow!("block timestamp out of range"))?,
         ))
       }
     }
@@ -653,7 +659,7 @@ impl Index {
     )
   }
 
-  pub(crate) fn get_latest_inscriptions(&self, n: usize) -> Result<Vec<InscriptionId>> {
+  pub(crate) fn get_homepage_inscriptions(&self) -> Result<Vec<InscriptionId>> {
     Ok(
       self
         .database
@@ -661,10 +667,56 @@ impl Index {
         .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
         .iter()?
         .rev()
-        .take(n)
+        .take(8)
         .map(|(_number, id)| Entry::load(*id.value()))
         .collect(),
     )
+  }
+
+  pub(crate) fn get_latest_inscriptions_with_prev_and_next(
+    &self,
+    n: usize,
+    from: Option<u64>,
+  ) -> Result<(Vec<InscriptionId>, Option<u64>, Option<u64>)> {
+    let rtx = self.database.begin_read()?;
+
+    let inscription_number_to_inscription_id =
+      rtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
+
+    let latest = match inscription_number_to_inscription_id.iter()?.rev().next() {
+      Some((number, _id)) => number.value(),
+      None => return Ok(Default::default()),
+    };
+
+    let from = from.unwrap_or(latest);
+
+    let prev = if let Some(prev) = from.checked_sub(n.try_into()?) {
+      inscription_number_to_inscription_id
+        .get(&prev)?
+        .map(|_| prev)
+    } else {
+      None
+    };
+
+    let next = if from < latest {
+      Some(
+        from
+          .checked_add(n.try_into()?)
+          .unwrap_or(latest)
+          .min(latest),
+      )
+    } else {
+      None
+    };
+
+    let inscriptions = inscription_number_to_inscription_id
+      .range(..=from)?
+      .rev()
+      .take(n)
+      .map(|(_number, id)| Entry::load(*id.value()))
+      .collect();
+
+    Ok((inscriptions, prev, next))
   }
 
   pub(crate) fn get_feed_inscriptions(&self, n: usize) -> Result<Vec<(u64, InscriptionId)>> {
@@ -903,58 +955,6 @@ mod tests {
       context.mine_blocks(2);
       assert_eq!(context.index.height().unwrap(), Some(Height(1)));
       assert_eq!(context.index.block_count().unwrap(), 2);
-    }
-  }
-
-  #[test]
-  fn inscriptions_below_first_inscription_height_are_skipped() {
-    let inscription = inscription("text/plain", "hello");
-    let template = TransactionTemplate {
-      inputs: &[(1, 0, 0)],
-      witness: inscription.to_witness(),
-      ..Default::default()
-    };
-
-    {
-      let context = Context::builder().build();
-      context.mine_blocks(1);
-      let txid = context.rpc_server.broadcast_tx(template.clone());
-      let inscription_id = InscriptionId::from(txid);
-      context.mine_blocks(1);
-
-      assert_eq!(
-        context.index.get_inscription_by_id(inscription_id).unwrap(),
-        Some(inscription)
-      );
-
-      assert_eq!(
-        context
-          .index
-          .get_inscription_satpoint_by_id(inscription_id)
-          .unwrap(),
-        Some(SatPoint {
-          outpoint: OutPoint { txid, vout: 0 },
-          offset: 0,
-        })
-      );
-    }
-
-    {
-      let context = Context::builder()
-        .arg("--first-inscription-height=3")
-        .build();
-      context.mine_blocks(1);
-      let txid = context.rpc_server.broadcast_tx(template);
-      let inscription_id = InscriptionId::from(txid);
-      context.mine_blocks(1);
-
-      assert_eq!(
-        context
-          .index
-          .get_inscription_satpoint_by_id(inscription_id)
-          .unwrap(),
-        None,
-      );
     }
   }
 
@@ -1979,6 +1979,75 @@ mod tests {
         .get_inscription_by_id(second.into())
         .unwrap()
         .is_none());
+    }
+  }
+
+  #[test]
+  fn get_latest_inscriptions_with_no_prev_and_next() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0)],
+        witness: inscription("text/plain", "hello").to_witness(),
+        ..Default::default()
+      });
+      let inscription_id = InscriptionId::from(txid);
+
+      context.mine_blocks(1);
+
+      let (inscriptions, prev, next) = context
+        .index
+        .get_latest_inscriptions_with_prev_and_next(100, None)
+        .unwrap();
+      assert_eq!(inscriptions, &[inscription_id]);
+      assert_eq!(prev, None);
+      assert_eq!(next, None);
+    }
+  }
+
+  #[test]
+  fn get_latest_inscriptions_with_prev_and_next() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let mut ids = Vec::new();
+
+      for i in 0..103 {
+        let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+          inputs: &[(i + 1, 0, 0)],
+          witness: inscription("text/plain", "hello").to_witness(),
+          ..Default::default()
+        });
+        ids.push(InscriptionId::from(txid));
+        context.mine_blocks(1);
+      }
+
+      ids.reverse();
+
+      let (inscriptions, prev, next) = context
+        .index
+        .get_latest_inscriptions_with_prev_and_next(100, None)
+        .unwrap();
+      assert_eq!(inscriptions, &ids[..100]);
+      assert_eq!(prev, Some(2));
+      assert_eq!(next, None);
+
+      let (inscriptions, prev, next) = context
+        .index
+        .get_latest_inscriptions_with_prev_and_next(100, Some(101))
+        .unwrap();
+      assert_eq!(inscriptions, &ids[1..101]);
+      assert_eq!(prev, Some(1));
+      assert_eq!(next, Some(102));
+
+      let (inscriptions, prev, next) = context
+        .index
+        .get_latest_inscriptions_with_prev_and_next(100, Some(0))
+        .unwrap();
+      assert_eq!(inscriptions, &ids[102..103]);
+      assert_eq!(prev, None);
+      assert_eq!(next, Some(100));
     }
   }
 }

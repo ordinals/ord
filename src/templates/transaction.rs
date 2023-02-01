@@ -44,7 +44,12 @@ mod tests {
     let transaction = Transaction {
       version: 0,
       lock_time: PackedLockTime(0),
-      input: Vec::new(),
+      input: vec![TxIn {
+        sequence: Default::default(),
+        previous_output: Default::default(),
+        script_sig: Default::default(),
+        witness: Default::default(),
+      }],
       output: vec![
         TxOut {
           value: 50 * COIN_VALUE,
@@ -64,6 +69,10 @@ mod tests {
       format!(
         "
         <h1>Transaction <span class=monospace>{txid}</span></h1>
+        <h2>1 Input</h2>
+        <ul>
+          <li><a class=monospace href=/output/0000000000000000000000000000000000000000000000000000000000000000:4294967295>0000000000000000000000000000000000000000000000000000000000000000:4294967295</a></li>
+        </ul>
         <h2>2 Outputs</h2>
         <ul class=monospace>
           <li>
@@ -72,7 +81,7 @@ mod tests {
             </a>
             <dl>
               <dt>value</dt><dd>5000000000</dd>
-              <dt>script pubkey</dt><dd class=data>OP_0</dd>
+              <dt>script pubkey</dt><dd class=monospace>OP_0</dd>
             </dl>
           </li>
           <li>
@@ -81,7 +90,7 @@ mod tests {
             </a>
             <dl>
               <dt>value</dt><dd>5000000000</dd>
-              <dt>script pubkey</dt><dd class=data>OP_PUSHNUM_1</dd>
+              <dt>script pubkey</dt><dd class=monospace>OP_PUSHNUM_1</dd>
             </dl>
           </li>
         </ul>

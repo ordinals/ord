@@ -9,6 +9,20 @@ pub(crate) struct Sats {
   tsv: Option<PathBuf>,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct OutputTsv {
+  pub sat: String,
+  pub output: OutPoint,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct OutputRare {
+  pub sat: Sat,
+  pub output: OutPoint,
+  pub offset: u64,
+  pub rarity: Rarity,
+}
+
 impl Sats {
   pub(crate) fn run(&self, options: Options) -> Result {
     let index = Index::open(&options)?;
@@ -17,17 +31,29 @@ impl Sats {
     let utxos = get_unspent_output_ranges(&options, &index)?;
 
     if let Some(path) = &self.tsv {
-      for (output, sat) in sats_from_tsv(
+      let mut output = Vec::new();
+      for (outpoint, sat) in sats_from_tsv(
         utxos,
         &fs::read_to_string(path)
           .with_context(|| format!("I/O error reading `{}`", path.display()))?,
       )? {
-        println!("{output}\t{sat}");
+        output.push(OutputTsv {
+          sat: sat.into(),
+          output: outpoint,
+        });
       }
+      print_json(output)?;
     } else {
-      for (output, sat, offset, rarity) in rare_sats(utxos) {
-        println!("{output}\t{sat}\t{offset}\t{rarity}");
+      let mut output = Vec::new();
+      for (outpoint, sat, offset, rarity) in rare_sats(utxos) {
+        output.push(OutputRare {
+          sat,
+          output: outpoint,
+          offset,
+          rarity,
+        });
       }
+      print_json(output)?;
     }
 
     Ok(())

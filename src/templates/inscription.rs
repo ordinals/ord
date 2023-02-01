@@ -3,6 +3,7 @@ use super::*;
 #[derive(Boilerplate)]
 pub(crate) struct InscriptionHtml {
   pub(crate) chain: Chain,
+  pub(crate) genesis_fee: u64,
   pub(crate) genesis_height: u64,
   pub(crate) inscription: Inscription,
   pub(crate) inscription_id: InscriptionId,
@@ -12,7 +13,7 @@ pub(crate) struct InscriptionHtml {
   pub(crate) previous: Option<InscriptionId>,
   pub(crate) sat: Option<Sat>,
   pub(crate) satpoint: SatPoint,
-  pub(crate) timestamp: NaiveDateTime,
+  pub(crate) timestamp: DateTime<Utc>,
 }
 
 impl PageContent for InscriptionHtml {
@@ -34,6 +35,7 @@ mod tests {
     assert_regex_match!(
       InscriptionHtml {
         chain: Chain::Mainnet,
+        genesis_fee: 1,
         genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
@@ -49,7 +51,7 @@ mod tests {
         <h1>Inscription 1</h1>
         <div class=inscription>
         <div>❮</div>
-        <a href=/preview/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
+        <iframe .* src=/preview/1{64}i1></iframe>
         <div>❯</div>
         </div>
         <dl>
@@ -59,6 +61,8 @@ mod tests {
           <dd class=monospace>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</dd>
           <dt>output value</dt>
           <dd>1</dd>
+          <dt>preview</dt>
+          <dd><a href=/preview/1{64}i1>link</a></dd>
           <dt>content</dt>
           <dd><a href=/content/1{64}i1>link</a></dd>
           <dt>content length</dt>
@@ -66,9 +70,11 @@ mod tests {
           <dt>content type</dt>
           <dd>text/plain;charset=utf-8</dd>
           <dt>timestamp</dt>
-          <dd>1970-01-01 00:00:00</dd>
+          <dd><time>1970-01-01 00:00:00 UTC</time></dd>
           <dt>genesis height</dt>
-          <dd>0</dd>
+          <dd><a href=/block/0>0</a></dd>
+          <dt>genesis fee</dt>
+          <dd>1</dd>
           <dt>genesis transaction</dt>
           <dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
           <dt>location</dt>
@@ -88,6 +94,7 @@ mod tests {
     assert_regex_match!(
       InscriptionHtml {
         chain: Chain::Mainnet,
+        genesis_fee: 1,
         genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
@@ -106,7 +113,7 @@ mod tests {
           .*
           <dt>sat</dt>
           <dd><a href=/sat/1>1</a></dd>
-          <dt>content</dt>
+          <dt>preview</dt>
           .*
         </dl>
       "
@@ -119,6 +126,7 @@ mod tests {
     assert_regex_match!(
       InscriptionHtml {
         chain: Chain::Mainnet,
+        genesis_fee: 1,
         genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(2),
@@ -133,8 +141,8 @@ mod tests {
       "
         <h1>Inscription 1</h1>
         <div class=inscription>
-        <a class=previous href=/inscription/1{64}i1>❮</a>
-        <a href=/preview/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
+        <a class=prev href=/inscription/1{64}i1>❮</a>
+        <iframe .* src=/preview/2{64}i2></iframe>
         <a class=next href=/inscription/3{64}i3>❯</a>
         </div>
         .*

@@ -4,10 +4,11 @@ use {
     error::{OptionExt, ServerError, ServerResult},
   },
   super::*,
+  crate::page_config::PageConfig,
   crate::templates::{
     BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionsHtml, OutputHtml,
-    PageContent, PageHtml, PreviewAudioHtml, PreviewImageHtml, PreviewTextHtml, PreviewUnknownHtml,
-    RangeHtml, RareTxt, SatHtml, TransactionHtml,
+    PageContent, PageHtml, PreviewAudioHtml, PreviewImageHtml, PreviewPdfHtml, PreviewTextHtml,
+    PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, SatHtml, TransactionHtml,
   },
   axum::{
     body,
@@ -28,7 +29,11 @@ use {
   },
   std::{cmp::Ordering, str},
   tokio_stream::StreamExt,
-  tower_http::set_header::SetResponseHeaderLayer,
+  tower_http::{
+    compression::CompressionLayer,
+    cors::{Any, CorsLayer},
+    set_header::SetResponseHeaderLayer,
+  },
 };
 
 mod error;
@@ -129,6 +134,14 @@ impl Server {
         thread::sleep(Duration::from_millis(5000));
       });
 
+      let config = options.load_config()?;
+      let acme_domains = self.acme_domains()?;
+
+      let page_config = Arc::new(PageConfig {
+        chain: options.chain(),
+        domain: acme_domains.first().cloned(),
+      });
+
       let router = Router::new()
         .route("/", get(Self::home))
         .route("/block-count", get(Self::block_count))
@@ -142,6 +155,7 @@ impl Server {
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_id", get(Self::inscription))
         .route("/inscriptions", get(Self::inscriptions))
+        .route("/inscriptions/:from", get(Self::inscriptions_from))
         .route("/install.sh", get(Self::install_script))
         .route("/ordinal/:sat", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
@@ -155,7 +169,8 @@ impl Server {
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
         .layer(Extension(index))
-        .layer(Extension(options.chain()))
+        .layer(Extension(page_config))
+        .layer(Extension(Arc::new(config)))
         .layer(SetResponseHeaderLayer::if_not_present(
           header::CONTENT_SECURITY_POLICY,
           HeaderValue::from_static("default-src 'self'"),
@@ -163,7 +178,13 @@ impl Server {
         .layer(SetResponseHeaderLayer::overriding(
           header::STRICT_TRANSPORT_SECURITY,
           HeaderValue::from_static("max-age=31536000; includeSubDomains; preload"),
-        ));
+        ))
+        .layer(
+          CorsLayer::new()
+            .allow_methods([http::Method::GET])
+            .allow_origin(Any),
+        )
+        .layer(CompressionLayer::new());
 
       match (self.http_port(), self.https_port()) {
         (Some(http_port), None) => {
@@ -183,8 +204,6 @@ impl Server {
         }
         (Some(http_port), Some(https_port)) => {
           let http_spawn_config = if self.redirect_http_to_https {
-            let acme_domains = self.acme_domains()?;
-
             SpawnConfig::Redirect(if https_port == 443 {
               format!("https://{}", acme_domains[0])
             } else {
@@ -350,7 +369,7 @@ impl Server {
   }
 
   async fn sat(
-    Extension(chain): Extension<Chain>,
+    Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(sat)): Path<DeserializeFromStr<Sat>>,
   ) -> ServerResult<PageHtml<SatHtml>> {
@@ -363,7 +382,7 @@ impl Server {
         blocktime: index.blocktime(sat.height())?,
         inscription: index.get_inscription_id_by_sat(sat)?,
       }
-      .page(chain, index.has_sat_index()?),
+      .page(page_config, index.has_sat_index()?),
     )
   }
 
@@ -372,42 +391,55 @@ impl Server {
   }
 
   async fn output(
-    Extension(chain): Extension<Chain>,
+    Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(outpoint): Path<OutPoint>,
   ) -> ServerResult<PageHtml<OutputHtml>> {
-    let output = index
-      .get_transaction(outpoint.txid)?
-      .ok_or_not_found(|| format!("output {outpoint}"))?
-      .output
-      .into_iter()
-      .nth(outpoint.vout as usize)
-      .ok_or_not_found(|| format!("output {outpoint}"))?;
+    let list = if index.has_sat_index()? {
+      index.list(outpoint)?
+    } else {
+      None
+    };
 
-    let inscriptions = index.get_inscriptions_on_output(outpoint).unwrap();
+    let output = if outpoint == OutPoint::null() {
+      let mut value = 0;
+
+      if let Some(List::Unspent(ranges)) = &list {
+        for (start, end) in ranges {
+          value += end - start;
+        }
+      }
+
+      TxOut {
+        value,
+        script_pubkey: Script::new(),
+      }
+    } else {
+      index
+        .get_transaction(outpoint.txid)?
+        .ok_or_not_found(|| format!("output {outpoint}"))?
+        .output
+        .into_iter()
+        .nth(outpoint.vout as usize)
+        .ok_or_not_found(|| format!("output {outpoint}"))?
+    };
+
+    let inscriptions = index.get_inscriptions_on_output(outpoint)?;
 
     Ok(
       OutputHtml {
         outpoint,
         inscriptions,
-        list: if index.has_sat_index()? {
-          Some(
-            index
-              .list(outpoint)?
-              .ok_or_not_found(|| format!("output {outpoint}"))?,
-          )
-        } else {
-          None
-        },
-        chain,
+        list,
+        chain: page_config.chain,
         output,
       }
-      .page(chain, index.has_sat_index()?),
+      .page(page_config, index.has_sat_index()?),
     )
   }
 
   async fn range(
-    Extension(chain): Extension<Chain>,
+    Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path((DeserializeFromStr(start), DeserializeFromStr(end))): Path<(
       DeserializeFromStr<Sat>,
@@ -419,7 +451,7 @@ impl Server {
       Ordering::Greater => Err(ServerError::BadRequest(
         "range start greater than range end".to_string(),
       )),
-      Ordering::Less => Ok(RangeHtml { start, end }.page(chain, index.has_sat_index()?)),
+      Ordering::Less => Ok(RangeHtml { start, end }.page(page_config, index.has_sat_index()?)),
     }
   }
 
@@ -432,12 +464,12 @@ impl Server {
   }
 
   async fn home(
-    Extension(chain): Extension<Chain>,
+    Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<PageHtml<HomeHtml>> {
     Ok(
-      HomeHtml::new(index.blocks(100)?, index.get_latest_inscriptions(8)?)
-        .page(chain, index.has_sat_index()?),
+      HomeHtml::new(index.blocks(100)?, index.get_homepage_inscriptions()?)
+        .page(page_config, index.has_sat_index()?),
     )
   }
 
@@ -446,7 +478,7 @@ impl Server {
   }
 
   async fn block(
-    Extension(chain): Extension<Chain>,
+    Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(query)): Path<DeserializeFromStr<BlockQuery>>,
   ) -> ServerResult<PageHtml<BlockHtml>> {
@@ -473,13 +505,13 @@ impl Server {
 
     Ok(
       BlockHtml::new(block, Height(height), Self::index_height(&index)?)
-        .page(chain, index.has_sat_index()?),
+        .page(page_config, index.has_sat_index()?),
     )
   }
 
   async fn transaction(
+    Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Extension(chain): Extension<Chain>,
     Path(txid): Path<Txid>,
   ) -> ServerResult<PageHtml<TransactionHtml>> {
     let inscription = index.get_inscription_by_id(txid.into())?;
@@ -493,9 +525,9 @@ impl Server {
           .ok_or_not_found(|| format!("transaction {txid}"))?,
         blockhash,
         inscription.map(|_| txid.into()),
-        chain,
+        page_config.chain,
       )
-      .page(chain, index.has_sat_index()?),
+      .page(page_config, index.has_sat_index()?),
     )
   }
 
@@ -584,11 +616,12 @@ impl Server {
   }
 
   async fn feed(
-    Extension(chain): Extension<Chain>,
+    Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<Response> {
     let mut builder = rss::ChannelBuilder::default();
 
+    let chain = page_config.chain;
     match chain {
       Chain::Mainnet => builder.title("Inscriptions"),
       _ => builder.title(format!("Inscriptions – {chain:?}")),
@@ -646,7 +679,7 @@ impl Server {
   }
 
   async fn input(
-    Extension(chain): Extension<Chain>,
+    Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(path): Path<(u64, usize, usize)>,
   ) -> Result<PageHtml<InputHtml>, ServerError> {
@@ -668,7 +701,7 @@ impl Server {
       .nth(path.2)
       .ok_or_not_found(not_found)?;
 
-    Ok(InputHtml { path, input }.page(chain, index.has_sat_index()?))
+    Ok(InputHtml { path, input }.page(page_config, index.has_sat_index()?))
   }
 
   async fn faq() -> Redirect {
@@ -681,8 +714,13 @@ impl Server {
 
   async fn content(
     Extension(index): Extension<Arc<Index>>,
+    Extension(config): Extension<Arc<Config>>,
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<Response> {
+    if config.is_hidden(inscription_id) {
+      return Ok(PreviewUnknownHtml.into_response());
+    }
+
     let inscription = index
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
@@ -707,7 +745,11 @@ impl Server {
     );
     headers.insert(
       header::CONTENT_SECURITY_POLICY,
-      HeaderValue::from_static("default-src 'unsafe-eval' 'unsafe-inline'"),
+      HeaderValue::from_static("default-src 'unsafe-eval' 'unsafe-inline' data:"),
+    );
+    headers.insert(
+      header::CACHE_CONTROL,
+      HeaderValue::from_static("max-age=31536000, immutable"),
     );
 
     Some((headers, inscription.into_body()?))
@@ -715,14 +757,24 @@ impl Server {
 
   async fn preview(
     Extension(index): Extension<Arc<Index>>,
+    Extension(config): Extension<Arc<Config>>,
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<Response> {
+    if config.is_hidden(inscription_id) {
+      return Ok(PreviewUnknownHtml.into_response());
+    }
+
     let inscription = index
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
     return match inscription.media() {
       Media::Audio => Ok(PreviewAudioHtml { inscription_id }.into_response()),
+      Media::Iframe => Ok(
+        Self::content_response(inscription)
+          .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
+          .into_response(),
+      ),
       Media::Image => Ok(
         (
           [(
@@ -733,16 +785,20 @@ impl Server {
         )
           .into_response(),
       ),
-      Media::Iframe => Ok(
-        Self::content_response(inscription)
-          .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
+      Media::Pdf => Ok(
+        (
+          [(
+            header::CONTENT_SECURITY_POLICY,
+            "script-src-elem 'self' https://cdn.jsdelivr.net",
+          )],
+          PreviewPdfHtml { inscription_id },
+        )
           .into_response(),
       ),
       Media::Text => {
         let content = inscription
           .body()
           .ok_or_not_found(|| format!("inscription {inscription_id} content"))?;
-
         Ok(
           PreviewTextHtml {
             text: str::from_utf8(content)
@@ -752,11 +808,12 @@ impl Server {
         )
       }
       Media::Unknown => Ok(PreviewUnknownHtml.into_response()),
+      Media::Video => Ok(PreviewVideoHtml { inscription_id }.into_response()),
     };
   }
 
   async fn inscription(
-    Extension(chain): Extension<Chain>,
+    Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<PageHtml<InscriptionHtml>> {
@@ -794,7 +851,8 @@ impl Server {
 
     Ok(
       InscriptionHtml {
-        chain,
+        chain: page_config.chain,
+        genesis_fee: entry.fee,
         genesis_height: entry.height,
         inscription,
         inscription_id,
@@ -806,19 +864,38 @@ impl Server {
         satpoint,
         timestamp: timestamp(entry.timestamp),
       }
-      .page(chain, index.has_sat_index()?),
+      .page(page_config, index.has_sat_index()?),
     )
   }
 
   async fn inscriptions(
-    Extension(chain): Extension<Chain>,
+    Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<PageHtml<InscriptionsHtml>> {
+    Self::inscriptions_inner(page_config, index, None).await
+  }
+
+  async fn inscriptions_from(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(from): Path<u64>,
+  ) -> ServerResult<PageHtml<InscriptionsHtml>> {
+    Self::inscriptions_inner(page_config, index, Some(from)).await
+  }
+
+  async fn inscriptions_inner(
+    page_config: Arc<PageConfig>,
+    index: Arc<Index>,
+    from: Option<u64>,
+  ) -> ServerResult<PageHtml<InscriptionsHtml>> {
+    let (inscriptions, prev, next) = index.get_latest_inscriptions_with_prev_and_next(100, from)?;
     Ok(
       InscriptionsHtml {
-        inscriptions: index.get_latest_inscriptions(100)?,
+        inscriptions,
+        next,
+        prev,
       }
-      .page(chain, index.has_sat_index()?),
+      .page(page_config, index.has_sat_index()?),
     )
   }
 
@@ -857,8 +934,22 @@ mod tests {
     }
 
     fn new_with_args(ord_args: &[&str], server_args: &[&str]) -> Self {
-      let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+      Self::new_server(test_bitcoincore_rpc::spawn(), None, ord_args, server_args)
+    }
 
+    fn new_with_bitcoin_rpc_server_and_config(
+      bitcoin_rpc_server: test_bitcoincore_rpc::Handle,
+      config: String,
+    ) -> Self {
+      Self::new_server(bitcoin_rpc_server, Some(config), &[], &[])
+    }
+
+    fn new_server(
+      bitcoin_rpc_server: test_bitcoincore_rpc::Handle,
+      config: Option<String>,
+      ord_args: &[&str],
+      server_args: &[&str],
+    ) -> Self {
       let tempdir = TempDir::new().unwrap();
 
       let cookiefile = tempdir.path().join("cookie");
@@ -873,8 +964,17 @@ mod tests {
 
       let url = Url::parse(&format!("http://127.0.0.1:{port}")).unwrap();
 
+      let config_args = match config {
+        Some(config) => {
+          let config_path = tempdir.path().join("ord.yaml");
+          fs::write(&config_path, config).unwrap();
+          format!("--config {}", config_path.display())
+        }
+        None => "".to_string(),
+      };
+
       let (options, server) = parse_server_args(&format!(
-        "ord --chain regtest --rpc-url {} --cookie-file {} --data-dir {} {} server --http-port {} --address 127.0.0.1 {}",
+        "ord --chain regtest --rpc-url {} --cookie-file {} --data-dir {} {config_args} {} server --http-port {} --address 127.0.0.1 {}",
         bitcoin_rpc_server.url(),
         cookiefile.to_str().unwrap(),
         tempdir.path().to_str().unwrap(),
@@ -985,6 +1085,12 @@ mod tests {
 
     fn mine_blocks(&self, n: u64) -> Vec<bitcoin::Block> {
       let blocks = self.bitcoin_rpc_server.mine_blocks(n);
+      self.index.update().unwrap();
+      blocks
+    }
+
+    fn mine_blocks_with_subsidy(&self, n: u64, subsidy: u64) -> Vec<Block> {
+      let blocks = self.bitcoin_rpc_server.mine_blocks_with_subsidy(n, subsidy);
       self.index.update().unwrap();
       blocks
     }
@@ -1397,7 +1503,7 @@ mod tests {
         ".*<title>Output {txid}:0</title>.*<h1>Output <span class=monospace>{txid}:0</span></h1>
 <dl>
   <dt>value</dt><dd>5000000000</dd>
-  <dt>script pubkey</dt><dd class=data>OP_PUSHBYTES_65 [[:xdigit:]]{{130}} OP_CHECKSIG</dd>
+  <dt>script pubkey</dt><dd class=monospace>OP_PUSHBYTES_65 [[:xdigit:]]{{130}} OP_CHECKSIG</dd>
   <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
 </dl>
 <h2>1 Sat Range</h2>
@@ -1418,9 +1524,55 @@ mod tests {
         ".*<title>Output {txid}:0</title>.*<h1>Output <span class=monospace>{txid}:0</span></h1>
 <dl>
   <dt>value</dt><dd>5000000000</dd>
-  <dt>script pubkey</dt><dd class=data>OP_PUSHBYTES_65 [[:xdigit:]]{{130}} OP_CHECKSIG</dd>
+  <dt>script pubkey</dt><dd class=monospace>OP_PUSHBYTES_65 [[:xdigit:]]{{130}} OP_CHECKSIG</dd>
   <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
 </dl>.*"
+      ),
+    );
+  }
+
+  #[test]
+  fn null_output_is_initially_empty() {
+    let txid = "0000000000000000000000000000000000000000000000000000000000000000";
+    TestServer::new_with_sat_index().assert_response_regex(
+      format!("/output/{txid}:4294967295"),
+      StatusCode::OK,
+      format!(
+        ".*<title>Output {txid}:4294967295</title>.*<h1>Output <span class=monospace>{txid}:4294967295</span></h1>
+<dl>
+  <dt>value</dt><dd>0</dd>
+  <dt>script pubkey</dt><dd class=monospace></dd>
+  <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
+</dl>
+<h2>0 Sat Ranges</h2>
+<ul class=monospace>
+</ul>.*"
+      ),
+    );
+  }
+
+  #[test]
+  fn null_output_receives_lost_sats() {
+    let server = TestServer::new_with_sat_index();
+
+    server.mine_blocks_with_subsidy(1, 0);
+
+    let txid = "0000000000000000000000000000000000000000000000000000000000000000";
+
+    server.assert_response_regex(
+      format!("/output/{txid}:4294967295"),
+      StatusCode::OK,
+      format!(
+        ".*<title>Output {txid}:4294967295</title>.*<h1>Output <span class=monospace>{txid}:4294967295</span></h1>
+<dl>
+  <dt>value</dt><dd>5000000000</dd>
+  <dt>script pubkey</dt><dd class=monospace></dd>
+  <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
+</dl>
+<h2>1 Sat Range</h2>
+<ul class=monospace>
+  <li><a href=/range/5000000000/10000000000 class=uncommon>5000000000–10000000000</a></li>
+</ul>.*"
       ),
     );
   }
@@ -1497,7 +1649,7 @@ mod tests {
     TestServer::new().assert_response_regex(
       "/sat/0",
       StatusCode::OK,
-      ".*<dt>time</dt><dd>2009-01-03 18:15:05</dd>.*",
+      ".*<dt>timestamp</dt><dd><time>2009-01-03 18:15:05 UTC</time></dd>.*",
     );
   }
 
@@ -1506,7 +1658,7 @@ mod tests {
     TestServer::new().assert_response_regex(
       "/sat/5000000000",
       StatusCode::OK,
-      ".*<dt>time</dt><dd>.* \\(expected\\)</dd>.*",
+      ".*<dt>timestamp</dt><dd><time>.*</time> \\(expected\\)</dd>.*",
     );
   }
 
@@ -1573,6 +1725,10 @@ mod tests {
       StatusCode::OK,
       format!(
         ".*<title>Transaction {txid}</title>.*<h1>Transaction <span class=monospace>{txid}</span></h1>
+<h2>1 Input</h2>
+<ul>
+  <li><a class=monospace href=/output/0000000000000000000000000000000000000000000000000000000000000000:4294967295>0000000000000000000000000000000000000000000000000000000000000000:4294967295</a></li>
+</ul>
 <h2>1 Output</h2>
 <ul class=monospace>
   <li>
@@ -1581,7 +1737,7 @@ mod tests {
     </a>
     <dl>
       <dt>value</dt><dd>5000000000</dd>
-      <dt>script pubkey</dt><dd class=data></dd>
+      <dt>script pubkey</dt><dd class=monospace></dd>
     </dl>
   </li>
 </ul>.*"
@@ -1931,6 +2087,27 @@ mod tests {
   }
 
   #[test]
+  fn pdf_preview() {
+    let server = TestServer::new();
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witness: inscription("application/pdf", "hello").to_witness(),
+      ..Default::default()
+    });
+    let inscription_id = InscriptionId::from(txid);
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/preview/{inscription_id}"),
+      StatusCode::OK,
+      format!(r".*<canvas data-inscription={inscription_id}></canvas>.*"),
+    );
+  }
+
+  #[test]
   fn image_preview() {
     let server = TestServer::new();
     server.mine_blocks(1);
@@ -1968,7 +2145,7 @@ mod tests {
     server.assert_response_csp(
       format!("/preview/{}", InscriptionId::from(txid)),
       StatusCode::OK,
-      "default-src 'unsafe-eval' 'unsafe-inline'",
+      "default-src 'unsafe-eval' 'unsafe-inline' data:",
       "hello",
     );
   }
@@ -1991,6 +2168,27 @@ mod tests {
       StatusCode::OK,
       "default-src 'self'",
       fs::read_to_string("templates/preview-unknown.html").unwrap(),
+    );
+  }
+
+  #[test]
+  fn video_preview() {
+    let server = TestServer::new();
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witness: inscription("video/webm", "hello").to_witness(),
+      ..Default::default()
+    });
+    let inscription_id = InscriptionId::from(txid);
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/preview/{inscription_id}"),
+      StatusCode::OK,
+      format!(r".*<video .*>\s*<source src=/content/{inscription_id}>.*"),
     );
   }
 
@@ -2030,7 +2228,7 @@ mod tests {
     server.assert_response_regex(
       format!("/inscription/{}", InscriptionId::from(txid)),
       StatusCode::OK,
-      r".*<dt>sat</dt>\s*<dd><a href=/sat/5000000000>5000000000</a></dd>\s*<dt>content</dt>.*",
+      r".*<dt>sat</dt>\s*<dd><a href=/sat/5000000000>5000000000</a></dd>\s*<dt>preview</dt>.*",
     );
   }
 
@@ -2050,7 +2248,7 @@ mod tests {
     server.assert_response_regex(
       format!("/inscription/{}", InscriptionId::from(txid)),
       StatusCode::OK,
-      r".*<dt>output value</dt>\s*<dd>5000000000</dd>\s*<dt>content</dt>.*",
+      r".*<dt>output value</dt>\s*<dd>5000000000</dd>\s*<dt>preview</dt>.*",
     );
   }
 
@@ -2102,7 +2300,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response(
-      format!("/preview/{}", inscription_id),
+      format!("/preview/{inscription_id}"),
       StatusCode::OK,
       &fs::read_to_string("templates/preview-unknown.html").unwrap(),
     );
@@ -2124,7 +2322,156 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response(
-      format!("/preview/{}", inscription_id),
+      format!("/preview/{inscription_id}"),
+      StatusCode::OK,
+      &fs::read_to_string("templates/preview-unknown.html").unwrap(),
+    );
+  }
+
+  #[test]
+  fn content_responses_have_cache_control_headers() {
+    let server = TestServer::new();
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witness: inscription("text/foo", "hello").to_witness(),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let response = server.get(format!("/content/{}", InscriptionId::from(txid)));
+
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(
+      response.headers().get(header::CACHE_CONTROL).unwrap(),
+      "max-age=31536000, immutable"
+    );
+  }
+
+  #[test]
+  fn inscriptions_page_with_no_prev_or_next() {
+    TestServer::new_with_sat_index().assert_response_regex(
+      "/inscriptions",
+      StatusCode::OK,
+      ".*prev\nnext.*",
+    );
+  }
+
+  #[test]
+  fn inscriptions_page_with_no_next() {
+    let server = TestServer::new_with_sat_index();
+
+    for i in 0..101 {
+      server.mine_blocks(1);
+      server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(i + 1, 0, 0)],
+        witness: inscription("text/foo", "hello").to_witness(),
+        ..Default::default()
+      });
+    }
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      "/inscriptions",
+      StatusCode::OK,
+      ".*<a class=prev href=/inscriptions/0>prev</a>\nnext.*",
+    );
+  }
+
+  #[test]
+  fn inscriptions_page_with_no_prev() {
+    let server = TestServer::new_with_sat_index();
+
+    for i in 0..101 {
+      server.mine_blocks(1);
+      server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(i + 1, 0, 0)],
+        witness: inscription("text/foo", "hello").to_witness(),
+        ..Default::default()
+      });
+    }
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      "/inscriptions/0",
+      StatusCode::OK,
+      ".*prev\n<a class=next href=/inscriptions/100>next</a>.*",
+    );
+  }
+
+  #[test]
+  fn resonses_are_gzipped() {
+    let server = TestServer::new();
+
+    let mut headers = HeaderMap::new();
+
+    headers.insert(header::ACCEPT_ENCODING, "gzip".parse().unwrap());
+
+    let response = reqwest::blocking::Client::builder()
+      .default_headers(headers)
+      .build()
+      .unwrap()
+      .get(server.join_url("/"))
+      .send()
+      .unwrap();
+
+    assert_eq!(
+      response.headers().get(header::CONTENT_ENCODING).unwrap(),
+      "gzip"
+    );
+  }
+
+  #[test]
+  fn resonses_are_brotlied() {
+    let server = TestServer::new();
+
+    let mut headers = HeaderMap::new();
+
+    headers.insert(header::ACCEPT_ENCODING, "br".parse().unwrap());
+
+    let response = reqwest::blocking::Client::builder()
+      .default_headers(headers)
+      .build()
+      .unwrap()
+      .get(server.join_url("/"))
+      .send()
+      .unwrap();
+
+    assert_eq!(
+      response.headers().get(header::CONTENT_ENCODING).unwrap(),
+      "br"
+    );
+  }
+
+  #[test]
+  fn inscriptions_can_be_hidden_with_config() {
+    let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+    bitcoin_rpc_server.mine_blocks(1);
+    let txid = bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witness: inscription("text/plain;charset=utf-8", "hello").to_witness(),
+      ..Default::default()
+    });
+    let inscription = InscriptionId::from(txid);
+    bitcoin_rpc_server.mine_blocks(1);
+
+    let server = TestServer::new_with_bitcoin_rpc_server_and_config(
+      bitcoin_rpc_server,
+      format!("\"hidden\":\n - {inscription}"),
+    );
+
+    server.assert_response(
+      format!("/preview/{inscription}"),
+      StatusCode::OK,
+      &fs::read_to_string("templates/preview-unknown.html").unwrap(),
+    );
+
+    server.assert_response(
+      format!("/content/{inscription}"),
       StatusCode::OK,
       &fs::read_to_string("templates/preview-unknown.html").unwrap(),
     );

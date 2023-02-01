@@ -1,7 +1,7 @@
 <h1>Inscription {{ self.number }}</h1>
 <div class=inscription>
 %% if let Some(previous) = self.previous {
-<a class=previous href=/inscription/{{previous}}>❮</a>
+<a class=prev href=/inscription/{{previous}}>❮</a>
 %% } else {
 <div>❮</div>
 %% }
@@ -26,6 +26,8 @@
   <dd><a href=/sat/{{sat}}>{{sat}}</a></dd>
 %% }
 %% if let Some(content_length) = self.inscription.content_length() {
+  <dt>preview</dt>
+  <dd><a href=/preview/{{self.inscription_id}}>link</a></dd>
   <dt>content</dt>
   <dd><a href=/content/{{self.inscription_id}}>link</a></dd>
   <dt>content length</dt>
@@ -36,9 +38,11 @@
   <dd>{{ content_type }}</dd>
 %% }
   <dt>timestamp</dt>
-  <dd>{{ self.timestamp }}</dd>
+  <dd><time>{{ self.timestamp }}</time></dd>
   <dt>genesis height</dt>
-  <dd>{{ self.genesis_height }}</dd>
+  <dd><a href=/block/{{ self.genesis_height }}>{{ self.genesis_height }}</a></dd>
+  <dt>genesis fee</dt>
+  <dd>{{ self.genesis_fee }}</dd>
   <dt>genesis transaction</dt>
   <dd><a class=monospace href=/tx/{{ self.inscription_id.txid }}>{{ self.inscription_id.txid }}</a></dd>
   <dt>location</dt>

@@ -1,17 +1,26 @@
-use super::*;
+use {super::*, ord::subcommand::parse::Output, ord::Object};
 
 #[test]
 fn name() {
-  CommandBuilder::new("parse a")
-    .expected_stdout("2099999997689999\n")
-    .run();
+  assert_eq!(
+    CommandBuilder::new("parse a").output::<Output>(),
+    Output {
+      object: Object::Integer(2099999997689999),
+    }
+  );
 }
 
 #[test]
 fn hash() {
-  CommandBuilder::new("parse 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
-    .expected_stdout("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\n")
-    .run();
+  assert_eq!(
+    CommandBuilder::new("parse 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
+      .output::<Output>(),
+    Output {
+      object: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        .parse::<Object>()
+        .unwrap(),
+    }
+  );
 }
 
 #[test]
