@@ -27,7 +27,7 @@ ordinal degenerates.
 Wallet
 ------
 
-`ord` relies on Bitcoin Core for private key managment and transaction signing.
+`ord` relies on Bitcoin Core for private key management and transaction signing.
 This has a number of implications that you must understand in order to use
 `ord` wallet commands safely:
 
