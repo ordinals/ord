@@ -1,7 +1,7 @@
-use std::io::Write;
-use std::time;
 use bitcoin::hashes::hex::ToHex;
 use bitcoin::psbt::serialize::Serialize;
+use std::io::Write;
+use std::time;
 use {
   super::*,
   bitcoin::{
@@ -45,7 +45,10 @@ pub(crate) struct Inscribe {
   pub(crate) no_backup: bool,
   #[clap(long, help = "Don't sign or broadcast transactions.")]
   pub(crate) dry_run: bool,
-  #[clap(long, help = "Wait for the commit transaction to be confirmed before broadcasting the reveal")]
+  #[clap(
+    long,
+    help = "Wait for the commit transaction to be confirmed before broadcasting the reveal"
+  )]
   pub(crate) delay: bool,
 }
 
