@@ -17,7 +17,7 @@ pub(crate) fn run(options: Options) -> Result {
     .collect::<BTreeSet<OutPoint>>();
 
   let mut balance = 0;
-  for (outpoint, amount) in get_unspent_outputs(&options)? {
+  for (outpoint, amount) in index.get_unspent_outputs()? {
     if !inscription_outputs.contains(&outpoint) {
       balance += amount.to_sat()
     }

@@ -28,7 +28,7 @@ impl Sats {
     let index = Index::open(&options)?;
     index.update()?;
 
-    let utxos = get_unspent_output_ranges(&options, &index)?;
+    let utxos = get_unspent_output_ranges(&index)?;
 
     if let Some(path) = &self.tsv {
       let mut output = Vec::new();
