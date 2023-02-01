@@ -49,7 +49,9 @@ fn inscription_page() {
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     format!("/inscription/{inscription}"),
     format!(
-      ".*<meta property=og:image content='/content/{inscription}'>.*
+      ".*<meta property=og:title content='Inscription 0'>.*
+.*<meta property=og:image content='https://.*/favicon.png'>.*
+.*<meta property=twitter:card content=summary>.*
 <h1>Inscription 0</h1>
 .*<iframe .* src=/preview/{inscription}></iframe>.*
 <dl>
