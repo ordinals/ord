@@ -68,11 +68,10 @@ impl Wallet {
 }
 
 fn get_unspent_output_ranges(
-  options: &Options,
   index: &Index,
 ) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
   index
-    .get_unspent_outputs(options)?
+    .get_unspent_outputs()?
     .into_keys()
     .map(|outpoint| match index.list(outpoint)? {
       Some(List::Unspent(sat_ranges)) => Ok((outpoint, sat_ranges)),

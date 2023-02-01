@@ -242,15 +242,11 @@ impl Index {
     })
   }
 
-  pub(crate) fn get_unspent_outputs(
-    &self,
-    options: &Options,
-  ) -> Result<BTreeMap<OutPoint, Amount>> {
-    let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
-
+  pub(crate) fn get_unspent_outputs(&self) -> Result<BTreeMap<OutPoint, Amount>> {
     let mut utxos = BTreeMap::new();
     utxos.extend(
-      client
+      self
+        .client
         .list_unspent(None, None, None, None, None)?
         .into_iter()
         .map(|utxo| {
@@ -267,10 +263,13 @@ impl Index {
       vout: u32,
     }
 
-    for JsonOutPoint { txid, vout } in client.call::<Vec<JsonOutPoint>>("listlockunspent", &[])? {
+    for JsonOutPoint { txid, vout } in self
+      .client
+      .call::<Vec<JsonOutPoint>>("listlockunspent", &[])?
+    {
       utxos.insert(
         OutPoint { txid, vout },
-        Amount::from_sat(client.get_raw_transaction(&txid, None)?.output[vout as usize].value),
+        Amount::from_sat(self.client.get_raw_transaction(&txid, None)?.output[vout as usize].value),
       );
     }
 
@@ -2096,6 +2095,14 @@ mod tests {
       assert_eq!(inscriptions, &ids[102..103]);
       assert_eq!(prev, None);
       assert_eq!(next, Some(100));
+    }
+  }
+
+  #[test]
+  fn unsynced_index_fails() {
+    for context in Context::configurations() {
+      context.rpc_server.mine_blocks(1);
+      assert_eq!(context.index.get_unspent_outputs().unwrap_err().to_string(), "output in Bitcoin Core but not in ordinals index");
     }
   }
 }

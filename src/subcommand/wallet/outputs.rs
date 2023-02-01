@@ -11,7 +11,7 @@ pub(crate) fn run(options: Options) -> Result {
   index.update()?;
 
   let mut outputs = Vec::new();
-  for (output, amount) in index.get_unspent_outputs(&options)? {
+  for (output, amount) in index.get_unspent_outputs()? {
     outputs.push(Output {
       output,
       amount: amount.to_sat(),

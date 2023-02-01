@@ -300,27 +300,3 @@ fn inscribe_with_dry_run_flag_fees_inscrease() {
 
   assert!(total_fee_dry_run < total_fee_normal);
 }
-
-#[test]
-fn inscribe_with_desynced_index_fails() {
-  let tempdir = TempDir::new().unwrap().into_path();
-  let rpc_server = test_bitcoincore_rpc::spawn();
-  rpc_server.mine_blocks(1);
-
-  CommandBuilder::new("index")
-    .with_tempdir(tempdir.clone())
-    .rpc_server(&rpc_server)
-    .run();
-
-  let desynced_rpc_server = test_bitcoincore_rpc::spawn();
-  desynced_rpc_server.mine_blocks_with_subsidy(1, 10_000);
-  create_wallet(&desynced_rpc_server);
-
-  CommandBuilder::new("wallet inscribe foo.txt")
-    .with_tempdir(tempdir)
-    .write("foo.txt", "FOO")
-    .rpc_server(&desynced_rpc_server)
-    .expected_exit_code(1)
-    .expected_stderr("error: output in Bitcoin Core but not in ordinals index\n")
-    .run();
-}
