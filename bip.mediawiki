@@ -230,7 +230,7 @@ the users otherwise pseudonymous wallet outputs.
 
 === Fungibility considerations ===
 
-Since any sat can be sent to any address at any time, sat that are transferred,
+Since any sat can be sent to any address at any time, sats that are transferred,
 even those with some public history, should be considered to be fungible with
 other sats with no such history.
 

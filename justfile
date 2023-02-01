@@ -30,13 +30,13 @@ deploy branch chain domain:
 
 deploy-all: deploy-testnet deploy-signet deploy-mainnet
 
-deploy-mainnet branch="master": (deploy branch "main" "ordinals.com")
+deploy-mainnet branch="master": (deploy branch "main" "ordinals.net")
 
-deploy-signet branch="master": (deploy branch "signet" "signet.ordinals.com")
+deploy-signet branch="master": (deploy branch "signet" "signet.ordinals.net")
 
-deploy-testnet branch="master": (deploy branch "test" "testnet.ordinals.com")
+deploy-testnet branch="master": (deploy branch "test" "testnet.ordinals.net")
 
-log unit="ord" domain="ordinals.com":
+log unit="ord" domain="ordinals.net":
   ssh root@{{domain}} 'journalctl -fu {{unit}}'
 
 test-deploy:
@@ -102,11 +102,11 @@ update-modern-normalize:
     https://raw.githubusercontent.com/sindresorhus/modern-normalize/main/modern-normalize.css \
     > static/modern-normalize.css
 
-download-log unit='ord' host='ordinals.com':
+download-log unit='ord' host='ordinals.net':
   ssh root@{{host}} 'mkdir -p tmp && journalctl -u {{unit}} > tmp/{{unit}}.log'
   rsync --progress --compress root@{{host}}:tmp/{{unit}}.log tmp/{{unit}}.log
 
-download-index unit='ord' host='ordinals.com':
+download-index unit='ord' host='ordinals.net':
   rsync --progress --compress root@{{host}}:/var/lib/{{unit}}/index.redb tmp/{{unit}}.index.redb
 
 graph log:
@@ -119,12 +119,12 @@ benchmark index height-limit:
   ./bin/benchmark $1 $2
 
 benchmark-revision rev:
-  ssh root@ordinals.com "mkdir -p benchmark \
+  ssh root@ordinals.net "mkdir -p benchmark \
     && apt-get update --yes \
     && apt-get upgrade --yes \
     && apt-get install --yes git rsync"
-  rsync -avz benchmark/checkout root@ordinals.com:benchmark/checkout
-  ssh root@ordinals.com 'cd benchmark && ./checkout {{rev}}'
+  rsync -avz benchmark/checkout root@ordinals.net:benchmark/checkout
+  ssh root@ordinals.net 'cd benchmark && ./checkout {{rev}}'
 
 build-snapshots:
   #!/usr/bin/env bash
