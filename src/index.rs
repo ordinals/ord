@@ -272,15 +272,10 @@ impl Index {
         Amount::from_sat(self.client.get_raw_transaction(&txid, None)?.output[vout as usize].value),
       );
     }
-
+    let binding = self.database.begin_read()?;
+    let outpoint_to_value = binding.open_table(OUTPOINT_TO_VALUE)?;
     for outpoint in utxos.keys() {
-      if self
-        .database
-        .begin_read()?
-        .open_table(OUTPOINT_TO_VALUE)?
-        .get(&outpoint.store())?
-        .is_none()
-      {
+      if outpoint_to_value.get(&outpoint.store())?.is_none() {
         return Err(anyhow!("output in Bitcoin Core but not in ordinals index"));
       }
     }
@@ -2102,7 +2097,10 @@ mod tests {
   fn unsynced_index_fails() {
     for context in Context::configurations() {
       context.rpc_server.mine_blocks(1);
-      assert_eq!(context.index.get_unspent_outputs().unwrap_err().to_string(), "output in Bitcoin Core but not in ordinals index");
+      assert_eq!(
+        context.index.get_unspent_outputs().unwrap_err().to_string(),
+        "output in Bitcoin Core but not in ordinals index"
+      );
     }
   }
 }
