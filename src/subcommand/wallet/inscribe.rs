@@ -1,3 +1,6 @@
+use std::io::Write;
+use bitcoin::hashes::hex::ToHex;
+use bitcoin::psbt::serialize::Serialize;
 use {
   super::*,
   bitcoin::{
@@ -41,6 +44,8 @@ pub(crate) struct Inscribe {
   pub(crate) no_backup: bool,
   #[clap(long, help = "Don't sign or broadcast transactions.")]
   pub(crate) dry_run: bool,
+  #[clap(long, help = "Wait for the commit transaction to be confirmed before broadcasting the reveal")]
+  pub(crate) delay: bool,
 }
 
 impl Inscribe {
@@ -99,6 +104,21 @@ impl Inscribe {
       let commit = client
         .send_raw_transaction(&signed_raw_commit_tx)
         .context("Failed to send commit transaction")?;
+
+      if self.delay {
+        let backup_fname = format!("{}.txt", reveal_tx.txid());
+        let mut reveal_backup_file = std::fs::File::create(&backup_fname)?;
+        reveal_backup_file.write_all(reveal_tx.serialize().to_hex().as_bytes())?;
+        println!("Reveal transaction hex written to {backup_fname} in-case you need to manually broadcast it.");
+        println!("Waiting for the commit transaction to be confirmed...");
+        loop {
+          let get_tx_result = client.get_transaction(&commit, None)?;
+          if get_tx_result.info.confirmations > 0 {
+            break;
+          }
+        }
+        println!("commit transaction confirmed. Broadcasting reveal transaction.");
+      }
 
       let reveal = client
         .send_raw_transaction(&reveal_tx)
