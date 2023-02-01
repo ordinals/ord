@@ -1,4 +1,5 @@
 use std::io::Write;
+use std::time;
 use bitcoin::hashes::hex::ToHex;
 use bitcoin::psbt::serialize::Serialize;
 use {
@@ -116,6 +117,7 @@ impl Inscribe {
           if get_tx_result.info.confirmations > 0 {
             break;
           }
+          thread::sleep(time::Duration::from_secs(10));
         }
         println!("commit transaction confirmed. Broadcasting reveal transaction.");
       }
