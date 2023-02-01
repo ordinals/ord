@@ -26,14 +26,14 @@ impl Display for Iframe {
     if self.thumbnail {
       write!(
         f,
-        "<a href=/inscription/{}><iframe sandbox=allow-scripts scrolling=no src=/preview/{}></iframe></a>",
+        "<a href=/inscription/{}><iframe sandbox=allow-scripts scrolling=no loading=lazy src=/preview/{}></iframe></a>",
         self.inscription_id,
         self.inscription_id,
       )
     } else {
       write!(
         f,
-        "<iframe sandbox=allow-scripts scrolling=no src=/preview/{}></iframe>",
+        "<iframe sandbox=allow-scripts scrolling=no loading=lazy src=/preview/{}></iframe>",
         self.inscription_id,
       )
     }
