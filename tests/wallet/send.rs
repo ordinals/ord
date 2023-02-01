@@ -341,3 +341,26 @@ fn wallet_send_with_fee_rate() {
 
   pretty_assert_eq!(fee_rate, 2.0);
 }
+
+#[test]
+fn send_with_desynced_index_fails() {
+  let tempdir = TempDir::new().unwrap().into_path();
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  rpc_server.mine_blocks(1);
+
+  CommandBuilder::new("index")
+    .with_tempdir(tempdir.clone())
+    .rpc_server(&rpc_server)
+    .run();
+
+  let desynced_rpc_server = test_bitcoincore_rpc::spawn();
+  desynced_rpc_server.mine_blocks_with_subsidy(1, 10_000);
+  create_wallet(&desynced_rpc_server);
+
+  CommandBuilder::new("wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc")
+    .with_tempdir(tempdir)
+    .rpc_server(&desynced_rpc_server)
+    .expected_exit_code(1)
+    .expected_stderr("error: output in Bitcoin Core but not in ordinals index\n")
+    .run();
+}

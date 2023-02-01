@@ -1,4 +1,5 @@
 use super::*;
+use std::path::PathBuf;
 
 pub(crate) trait ToArgs {
   fn to_args(&self) -> Vec<String>;
@@ -34,7 +35,7 @@ pub(crate) struct CommandBuilder {
   expected_stderr: Expected,
   expected_stdout: Expected,
   rpc_server_url: Option<String>,
-  tempdir: TempDir,
+  tempdir_path: PathBuf,
 }
 
 impl CommandBuilder {
@@ -45,12 +46,19 @@ impl CommandBuilder {
       expected_stderr: Expected::String(String::new()),
       expected_stdout: Expected::String(String::new()),
       rpc_server_url: None,
-      tempdir: TempDir::new().unwrap(),
+      tempdir_path: TempDir::new().unwrap().into_path(),
+    }
+  }
+
+  pub(crate) fn with_tempdir(self, tempdir_path: PathBuf) -> Self {
+    Self {
+      tempdir_path,
+      ..self
     }
   }
 
   pub(crate) fn write(self, path: impl AsRef<Path>, contents: impl AsRef<[u8]>) -> Self {
-    fs::write(self.tempdir.path().join(path), contents).unwrap();
+    fs::write(self.tempdir_path.join(path), contents).unwrap();
     self
   }
 
@@ -93,7 +101,7 @@ impl CommandBuilder {
     let mut command = Command::new(executable_path("ord"));
 
     if let Some(rpc_server_url) = &self.rpc_server_url {
-      let cookiefile = self.tempdir.path().join("cookie");
+      let cookiefile = self.tempdir_path.join("cookie");
       fs::write(&cookiefile, "username:password").unwrap();
       command.args([
         "--rpc-url",
@@ -108,9 +116,9 @@ impl CommandBuilder {
       .stdin(Stdio::null())
       .stdout(Stdio::piped())
       .stderr(Stdio::piped())
-      .current_dir(&self.tempdir)
+      .current_dir(&self.tempdir_path)
       .arg("--data-dir")
-      .arg(self.tempdir.path())
+      .arg(self.tempdir_path.clone())
       .args(&self.args);
 
     command

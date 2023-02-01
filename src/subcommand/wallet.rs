@@ -71,7 +71,8 @@ fn get_unspent_output_ranges(
   options: &Options,
   index: &Index,
 ) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
-  get_unspent_outputs(options)?
+  index
+    .get_unspent_outputs(options)?
     .into_keys()
     .map(|outpoint| match index.list(outpoint)? {
       Some(List::Unspent(sat_ranges)) => Ok((outpoint, sat_ranges)),
@@ -79,39 +80,6 @@ fn get_unspent_output_ranges(
       None => bail!("index has not seen {outpoint}"),
     })
     .collect()
-}
-
-fn get_unspent_outputs(options: &Options) -> Result<BTreeMap<OutPoint, Amount>> {
-  let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
-
-  let mut utxos = BTreeMap::new();
-
-  utxos.extend(
-    client
-      .list_unspent(None, None, None, None, None)?
-      .into_iter()
-      .map(|utxo| {
-        let outpoint = OutPoint::new(utxo.txid, utxo.vout);
-        let amount = utxo.amount;
-
-        (outpoint, amount)
-      }),
-  );
-
-  #[derive(Deserialize)]
-  pub(crate) struct JsonOutPoint {
-    txid: bitcoin::Txid,
-    vout: u32,
-  }
-
-  for JsonOutPoint { txid, vout } in client.call::<Vec<JsonOutPoint>>("listlockunspent", &[])? {
-    utxos.insert(
-      OutPoint { txid, vout },
-      Amount::from_sat(client.get_raw_transaction(&txid, None)?.output[vout as usize].value),
-    );
-  }
-
-  Ok(utxos)
 }
 
 fn get_change_address(client: &Client) -> Result<Address> {

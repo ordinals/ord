@@ -34,6 +34,7 @@ define_table! { INSCRIPTION_ID_TO_INSCRIPTION_ENTRY, &InscriptionIdValue, Inscri
 define_table! { INSCRIPTION_ID_TO_SATPOINT, &InscriptionIdValue, &SatPointValue }
 define_table! { INSCRIPTION_NUMBER_TO_INSCRIPTION_ID, u64, &InscriptionIdValue }
 define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointValue, &[u8] }
+
 define_table! { OUTPOINT_TO_VALUE, &OutPointValue, u64}
 define_table! { SATPOINT_TO_INSCRIPTION_ID, &SatPointValue, &InscriptionIdValue }
 define_table! { SAT_TO_INSCRIPTION_ID, u64, &InscriptionIdValue }
@@ -240,6 +241,53 @@ impl Index {
       reorged: AtomicBool::new(false),
       rpc_url,
     })
+  }
+
+  pub(crate) fn get_unspent_outputs(
+    &self,
+    options: &Options,
+  ) -> Result<BTreeMap<OutPoint, Amount>> {
+    let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
+
+    let mut utxos = BTreeMap::new();
+    utxos.extend(
+      client
+        .list_unspent(None, None, None, None, None)?
+        .into_iter()
+        .map(|utxo| {
+          let outpoint = OutPoint::new(utxo.txid, utxo.vout);
+          let amount = utxo.amount;
+
+          (outpoint, amount)
+        }),
+    );
+
+    #[derive(Deserialize)]
+    pub(crate) struct JsonOutPoint {
+      txid: bitcoin::Txid,
+      vout: u32,
+    }
+
+    for JsonOutPoint { txid, vout } in client.call::<Vec<JsonOutPoint>>("listlockunspent", &[])? {
+      utxos.insert(
+        OutPoint { txid, vout },
+        Amount::from_sat(client.get_raw_transaction(&txid, None)?.output[vout as usize].value),
+      );
+    }
+
+    for outpoint in utxos.keys() {
+      if self
+        .database
+        .begin_read()?
+        .open_table(OUTPOINT_TO_VALUE)?
+        .get(&outpoint.store())?
+        .is_none()
+      {
+        return Err(anyhow!("output in Bitcoin Core but not in ordinals index"));
+      }
+    }
+
+    Ok(utxos)
   }
 
   pub(crate) fn has_sat_index(&self) -> Result<bool> {
