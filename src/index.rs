@@ -242,6 +242,49 @@ impl Index {
     })
   }
 
+  pub(crate) fn get_unspent_outputs(&self) -> Result<BTreeMap<OutPoint, Amount>> {
+    let mut utxos = BTreeMap::new();
+    utxos.extend(
+      self
+        .client
+        .list_unspent(None, None, None, None, None)?
+        .into_iter()
+        .map(|utxo| {
+          let outpoint = OutPoint::new(utxo.txid, utxo.vout);
+          let amount = utxo.amount;
+
+          (outpoint, amount)
+        }),
+    );
+
+    #[derive(Deserialize)]
+    pub(crate) struct JsonOutPoint {
+      txid: bitcoin::Txid,
+      vout: u32,
+    }
+
+    for JsonOutPoint { txid, vout } in self
+      .client
+      .call::<Vec<JsonOutPoint>>("listlockunspent", &[])?
+    {
+      utxos.insert(
+        OutPoint { txid, vout },
+        Amount::from_sat(self.client.get_raw_transaction(&txid, None)?.output[vout as usize].value),
+      );
+    }
+    let rtx = self.database.begin_read()?;
+    let outpoint_to_value = rtx.open_table(OUTPOINT_TO_VALUE)?;
+    for outpoint in utxos.keys() {
+      if outpoint_to_value.get(&outpoint.store())?.is_none() {
+        return Err(anyhow!(
+          "output in Bitcoin Core wallet but not in ord index: {outpoint}"
+        ));
+      }
+    }
+
+    Ok(utxos)
+  }
+
   pub(crate) fn has_sat_index(&self) -> Result<bool> {
     match self.begin_read()?.0.open_table(OUTPOINT_TO_SAT_RANGES) {
       Ok(_) => Ok(true),
@@ -2049,6 +2092,17 @@ mod tests {
       assert_eq!(inscriptions, &ids[102..103]);
       assert_eq!(prev, None);
       assert_eq!(next, Some(100));
+    }
+  }
+
+  #[test]
+  fn unsynced_index_fails() {
+    for context in Context::configurations() {
+      context.rpc_server.mine_blocks(1);
+      assert_regex_match!(
+        context.index.get_unspent_outputs().unwrap_err().to_string(),
+        r"output in Bitcoin Core wallet but not in ord index: [[:xdigit:]]{64}:\d+"
+      );
     }
   }
 }
