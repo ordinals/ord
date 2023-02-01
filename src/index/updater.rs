@@ -389,7 +389,7 @@ impl Updater {
           lost_sats += end - start;
         }
 
-        outpoint_to_sat_ranges.insert(&OutPoint::null().store(), &lost_sat_ranges)?;
+        outpoint_to_sat_ranges.insert(&OutPoint::null().store(), lost_sat_ranges.as_slice())?;
       }
     } else {
       for (tx, txid) in block.txdata.iter().skip(1).chain(block.txdata.first()) {
@@ -495,7 +495,7 @@ impl Updater {
       let mut outpoint_to_sat_ranges = wtx.open_table(OUTPOINT_TO_SAT_RANGES)?;
 
       for (outpoint, sat_range) in self.range_cache.drain() {
-        outpoint_to_sat_ranges.insert(&outpoint, &sat_range)?;
+        outpoint_to_sat_ranges.insert(&outpoint, sat_range.as_slice())?;
       }
 
       self.outputs_inserted_since_flush = 0;
