@@ -31,7 +31,7 @@ Wallet
 This has a number of implications that you must understand in order to use
 `ord` wallet commands safely:
 
-- Bitcoin Core does is not aware of inscriptions and does not perform sat
+- Bitcoin Core is not aware of inscriptions and does not perform sat
   control. Using `bitcoin-cli` commands and RPC calls with `ord` wallets may
   lead to loss of inscriptions.
 
