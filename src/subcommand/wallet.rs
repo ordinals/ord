@@ -67,9 +67,7 @@ impl Wallet {
   }
 }
 
-fn get_unspent_output_ranges(
-  index: &Index,
-) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
+fn get_unspent_output_ranges(index: &Index) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
   index
     .get_unspent_outputs()?
     .into_keys()
