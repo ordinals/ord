@@ -32,7 +32,7 @@ impl Send {
     let index = Index::open(&options)?;
     index.update()?;
 
-    let unspent_outputs = get_unspent_outputs(&options)?;
+    let unspent_outputs = index.get_unspent_outputs()?;
 
     let inscriptions = index.get_inscriptions(None)?;
 
