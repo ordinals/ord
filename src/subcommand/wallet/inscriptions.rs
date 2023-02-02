@@ -12,7 +12,7 @@ pub(crate) fn run(options: Options) -> Result {
   index.update()?;
 
   let inscriptions = index.get_inscriptions(None)?;
-  let unspent_outputs = get_unspent_outputs(&options)?;
+  let unspent_outputs = index.get_unspent_outputs()?;
 
   let explorer = match options.chain() {
     Chain::Mainnet => "https://ordinals.com/inscription/",

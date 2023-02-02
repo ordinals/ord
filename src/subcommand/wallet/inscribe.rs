@@ -61,7 +61,7 @@ impl Inscribe {
     let index = Index::open(&options)?;
     index.update()?;
 
-    let mut utxos = get_unspent_outputs(&options)?;
+    let mut utxos = index.get_unspent_outputs()?;
 
     let inscriptions = index.get_inscriptions(None)?;
 

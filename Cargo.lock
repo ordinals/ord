@@ -2403,9 +2403,9 @@ dependencies = [
 
 [[package]]
 name = "pyo3-build-config"
-version = "0.17.3"
+version = "0.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "28fcd1e73f06ec85bf3280c48c67e731d8290ad3d730f8be9dc07946923005c8"
+checksum = "9cd09fe469834db21ee60e0051030339e5d361293d8cb5ec02facf7fdcf52dbf"
 dependencies = [
  "once_cell",
  "target-lexicon",
@@ -2521,9 +2521,9 @@ dependencies = [
 
 [[package]]
 name = "redb"
-version = "0.11.0"
+version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f8b4cc3bef0a4f1ef5953df24395705e4b53d44000fa1169d0a9cdab2d5bd92"
+checksum = "104c124eba7be2bc4c2c9f97d1abfdc8d8f3e0fc16fe95c030dcbebd4860a749"
 dependencies = [
  "libc",
  "pyo3-build-config",

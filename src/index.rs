@@ -155,7 +155,7 @@ impl Index {
       data_dir.join("index.redb")
     };
 
-    let database = match unsafe { redb::Database::builder().open_mmapped(&path) } {
+    let database = match unsafe { Database::builder().open_mmapped(&path) } {
       Ok(database) => {
         let schema_version = database
           .begin_read()?
@@ -215,7 +215,7 @@ impl Index {
 
         if options.index_sats {
           tx.open_table(OUTPOINT_TO_SAT_RANGES)?
-            .insert(&OutPoint::null().store(), &[])?;
+            .insert(&OutPoint::null().store(), [].as_slice())?;
         }
 
         tx.commit()?;
@@ -240,6 +240,49 @@ impl Index {
       reorged: AtomicBool::new(false),
       rpc_url,
     })
+  }
+
+  pub(crate) fn get_unspent_outputs(&self) -> Result<BTreeMap<OutPoint, Amount>> {
+    let mut utxos = BTreeMap::new();
+    utxos.extend(
+      self
+        .client
+        .list_unspent(None, None, None, None, None)?
+        .into_iter()
+        .map(|utxo| {
+          let outpoint = OutPoint::new(utxo.txid, utxo.vout);
+          let amount = utxo.amount;
+
+          (outpoint, amount)
+        }),
+    );
+
+    #[derive(Deserialize)]
+    pub(crate) struct JsonOutPoint {
+      txid: bitcoin::Txid,
+      vout: u32,
+    }
+
+    for JsonOutPoint { txid, vout } in self
+      .client
+      .call::<Vec<JsonOutPoint>>("listlockunspent", &[])?
+    {
+      utxos.insert(
+        OutPoint { txid, vout },
+        Amount::from_sat(self.client.get_raw_transaction(&txid, None)?.output[vout as usize].value),
+      );
+    }
+    let rtx = self.database.begin_read()?;
+    let outpoint_to_value = rtx.open_table(OUTPOINT_TO_VALUE)?;
+    for outpoint in utxos.keys() {
+      if outpoint_to_value.get(&outpoint.store())?.is_none() {
+        return Err(anyhow!(
+          "output in Bitcoin Core wallet but not in ord index: {outpoint}"
+        ));
+      }
+    }
+
+    Ok(utxos)
   }
 
   pub(crate) fn has_sat_index(&self) -> Result<bool> {
@@ -508,6 +551,7 @@ impl Index {
           .open_table(SATPOINT_TO_INSCRIPTION_ID)?,
         outpoint,
       )?
+      .into_iter()
       .map(|(_satpoint, inscription_id)| inscription_id)
       .collect(),
     )
@@ -559,7 +603,7 @@ impl Index {
 
     let outpoint_to_sat_ranges = rtx.0.open_table(OUTPOINT_TO_SAT_RANGES)?;
 
-    for (key, value) in outpoint_to_sat_ranges.range([0; 36]..)? {
+    for (key, value) in outpoint_to_sat_ranges.range::<&[u8; 36]>(&[0; 36]..)? {
       let mut offset = 0;
       for chunk in value.value().chunks_exact(11) {
         let (start, end) = SatRange::load(chunk.try_into().unwrap());
@@ -653,7 +697,7 @@ impl Index {
         .database
         .begin_read()?
         .open_table(SATPOINT_TO_INSCRIPTION_ID)?
-        .range([0; 44]..)?
+        .range::<&[u8; 44]>(&[0; 44]..)?
         .map(|(satpoint, id)| (Entry::load(*satpoint.value()), Entry::load(*id.value())))
         .take(n.unwrap_or(usize::MAX))
         .collect(),
@@ -835,7 +879,7 @@ impl Index {
 
     Ok(
       satpoint_to_id
-        .range(start..=end)?
+        .range::<&[u8; 44]>(&start..=&end)?
         .map(|(satpoint, id)| (Entry::load(*satpoint.value()), Entry::load(*id.value()))),
     )
   }
@@ -2049,6 +2093,17 @@ mod tests {
       assert_eq!(inscriptions, &ids[102..103]);
       assert_eq!(prev, None);
       assert_eq!(next, Some(100));
+    }
+  }
+
+  #[test]
+  fn unsynced_index_fails() {
+    for context in Context::configurations() {
+      context.rpc_server.mine_blocks(1);
+      assert_regex_match!(
+        context.index.get_unspent_outputs().unwrap_err().to_string(),
+        r"output in Bitcoin Core wallet but not in ord index: [[:xdigit:]]{64}:\d+"
+      );
     }
   }
 }
