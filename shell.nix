@@ -8,5 +8,6 @@ in
     buildInputs = [
       nixpkgs.latest.rustChannels.stable.rust
       just
+      pkg-config openssl
     ];
   }
