@@ -50,6 +50,8 @@ impl FromStr for Media {
 }
 
 const TABLE: &[(&str, Media, &[&str])] = &[
+  ("application/json", Media::Text, &["json"]),
+  ("application/yaml", Media::Text, &["yaml", "yml"]),
   ("application/pdf", Media::Pdf, &["pdf"]),
   ("application/pgp-signature", Media::Text, &["asc"]),
   ("audio/flac", Media::Audio, &["flac"]),
