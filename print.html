@@ -81,7 +81,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="overview.html"><strong aria-hidden="true">1.</strong> Overview</a></li><li class="chapter-item expanded "><a href="digital-artifacts.html"><strong aria-hidden="true">2.</strong> Digital Artifacts</a></li><li class="chapter-item expanded "><a href="inscriptions.html"><strong aria-hidden="true">3.</strong> Inscriptions</a></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">4.</strong> FAQ</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="guides.html"><strong aria-hidden="true">6.</strong> Guides</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="guides/explorer.html"><strong aria-hidden="true">6.1.</strong> Explorer</a></li><li class="chapter-item expanded "><a href="guides/inscriptions.html"><strong aria-hidden="true">6.2.</strong> Inscriptions</a></li><li class="chapter-item expanded "><a href="guides/sat-hunting.html"><strong aria-hidden="true">6.3.</strong> Sat Hunting</a></li></ol></li><li class="chapter-item expanded "><a href="bounties.html"><strong aria-hidden="true">7.</strong> Bounties</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="bounty/0.html"><strong aria-hidden="true">7.1.</strong> Bounty 0: 100,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="bounty/1.html"><strong aria-hidden="true">7.2.</strong> Bounty 1: 200,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="bounty/2.html"><strong aria-hidden="true">7.3.</strong> Bounty 2: 300,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="bounty/3.html"><strong aria-hidden="true">7.4.</strong> Bounty 3: 400,000 sats</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="overview.html"><strong aria-hidden="true">1.</strong> Overview</a></li><li class="chapter-item expanded "><a href="digital-artifacts.html"><strong aria-hidden="true">2.</strong> Digital Artifacts</a></li><li class="chapter-item expanded "><a href="inscriptions.html"><strong aria-hidden="true">3.</strong> Inscriptions</a></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">4.</strong> FAQ</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="guides.html"><strong aria-hidden="true">6.</strong> Guides</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="guides/explorer.html"><strong aria-hidden="true">6.1.</strong> Explorer</a></li><li class="chapter-item expanded "><a href="guides/inscriptions.html"><strong aria-hidden="true">6.2.</strong> Inscriptions</a></li><li class="chapter-item expanded "><a href="guides/sat-hunting.html"><strong aria-hidden="true">6.3.</strong> Sat Hunting</a></li><li class="chapter-item expanded "><a href="guides/collecting.html"><strong aria-hidden="true">6.4.</strong> Collecting</a></li></ol></li><li class="chapter-item expanded "><a href="bounties.html"><strong aria-hidden="true">7.</strong> Bounties</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="bounty/0.html"><strong aria-hidden="true">7.1.</strong> Bounty 0: 100,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="bounty/1.html"><strong aria-hidden="true">7.2.</strong> Bounty 1: 200,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="bounty/2.html"><strong aria-hidden="true">7.3.</strong> Bounty 2: 300,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="bounty/3.html"><strong aria-hidden="true">7.4.</strong> Bounty 3: 400,000 sats</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -1192,6 +1192,24 @@ button to display the descriptor.</p>
 <code>bitcoin-cli</code> commands <code>createrawtransaction</code>, <code>signrawtransactionwithwallet</code>,
 and <code>sendrawtransaction</code>, how to do so is complex and outside the scope of this
 guide.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="collecting"><a class="header" href="#collecting">Collecting</a></h1>
+<p>Currently, <a href="https://github.com/casey/ord/">ord</a> is the only wallet supporting
+sat-control and sat-selection, which are required to safely store and send rare
+sats and inscriptions, hereafter ordinals.</p>
+<p>The recommended way to send, receive, and store ordinals is with <code>ord</code>, but if
+you are careful, it is possible to safely store, and in some cases send,
+ordinals with other wallets.</p>
+<p>As a general note, receiving ordinals in an unsupported wallet is not
+dangerous. Ordinals can be sent to any bitcoin address, and are safe as long as
+the UTXO that contains them is not spent. However, if that wallet is then used
+to send bitcoin, it may select the UTXO containing the ordinal as an input, and
+send the inscription or spend it to fees.</p>
+<p><a href="https://github.com/windsok">windsok</a> has kindly written a guide to creating an
+<code>ord</code>-compatible wallet with <a href="https://sparrowwallet.com/">Sparrow</a>, available
+on <a href="https://gist.github.com/windsok/5b53a1ced6ef3eddbde260337de28980">GitHub</a>.
+Please note that if you follow this guide, you should not use the wallet you
+create to send BTC, unless you perform manual coin-selection to avoid sending
+ordinals.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-bounty-hunting-hints"><a class="header" href="#ordinal-bounty-hunting-hints">Ordinal Bounty Hunting Hints</a></h1>
 <ul>
 <li>
