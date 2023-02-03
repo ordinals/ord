@@ -130,15 +130,12 @@ mod tests {
   }
 
   #[test]
-  fn check_mp4_codec() {
-    assert!(
-      Media::check_mp4_codec(Path::new("bitcoin-pup.mp4")).is_ok(),
-      "Allows h264 codec in mp4"
-    );
+  fn h264_in_mp4_is_allowed() {
+    assert!(Media::check_mp4_codec(Path::new("examples/h264.mp4")).is_ok(),);
+  }
 
-    assert!(
-      Media::check_mp4_codec(Path::new("good-pets.mp4")).is_err(),
-      "Rejects av1 codec in mp4"
-    );
+  #[test]
+  fn av1_in_mp4_is_rejected() {
+    assert!(Media::check_mp4_codec(Path::new("examples/av1.mp4")).is_err(),);
   }
 }
