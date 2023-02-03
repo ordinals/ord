@@ -11,9 +11,9 @@ ordinals with other wallets.
 
 As a general note, receiving ordinals in an unsupported wallet is not
 dangerous. Ordinals can be sent to any bitcoin address, and are safe as long as
-the UTXO that contains them is not spent. However, if that will is used to send
-bitcoin, it may select the UTXO containing the ordinal as an input, and send
-the inscription or spend it to fees.
+the UTXO that contains them is not spent. However, if that wallet is then used
+to send bitcoin, it may select the UTXO containing the ordinal as an input, and
+send the inscription or spend it to fees.
 
 [windsok](https://github.com/windsok) has kindly written a guide to creating an
 `ord`-compatible wallet with [Sparrow](https://sparrowwallet.com/), available
