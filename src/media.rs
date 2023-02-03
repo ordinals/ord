@@ -98,6 +98,7 @@ const TABLE: &[(&str, Media, &[&str])] = &[
   ("image/png", Media::Image, &["png"]),
   ("image/svg+xml", Media::Iframe, &["svg"]),
   ("image/webp", Media::Image, &["webp"]),
+  ("model/stl", Media::Unknown, &["stl"]),
   ("text/html;charset=utf-8", Media::Iframe, &["html"]),
   ("text/plain;charset=utf-8", Media::Text, &["txt"]),
   ("video/mp4", Media::Video, &["mp4"]),
