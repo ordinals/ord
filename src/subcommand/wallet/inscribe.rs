@@ -41,6 +41,10 @@ pub(crate) struct Inscribe {
   pub(crate) no_backup: bool,
   #[clap(long, help = "Don't sign or broadcast transactions.")]
   pub(crate) dry_run: bool,
+  #[clap(
+    help = "Use <CONTENT_TYPE> as the inscription's content type, instead of guessing from the filename. Unsupported content types, even if standard formats, may never be supported by the ordinals block explorer, and thus not render correctly on public block explorers."
+  )]
+  pub(crate) content_type: String,
 }
 
 impl Inscribe {
