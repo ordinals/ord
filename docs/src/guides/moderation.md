@@ -14,7 +14,7 @@ In order to prevent particular inscriptions from being displayed on an `ord`
 instance, they can be included in a YAML config file, which is loaded with the
 `--config` option.
 
-To hide inscriptions, first create a config file, wiht the inscription ID you
+To hide inscriptions, first create a config file, with the inscription ID you
 want to hide:
 
 ```yaml
