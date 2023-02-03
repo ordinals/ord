@@ -60,7 +60,7 @@ impl Media {
         let media_type = track.media_type()?;
         if media_type != MediaType::H264 {
           return Err(anyhow!(
-            "Unsupported video codec, only H.264 is supported in MP4s: {media_type}"
+            "Unsupported video codec, only H.264 is supported in MP4: {media_type}"
           ));
         }
       }
