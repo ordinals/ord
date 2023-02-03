@@ -86,9 +86,9 @@ impl FromStr for Media {
 
 const TABLE: &[(&str, Media, &[&str])] = &[
   ("application/json", Media::Text, &["json"]),
-  ("application/yaml", Media::Text, &["yaml", "yml"]),
   ("application/pdf", Media::Pdf, &["pdf"]),
   ("application/pgp-signature", Media::Text, &["asc"]),
+  ("application/yaml", Media::Text, &["yaml", "yml"]),
   ("audio/flac", Media::Audio, &["flac"]),
   ("audio/mpeg", Media::Audio, &["mp3"]),
   ("audio/wav", Media::Audio, &["wav"]),
@@ -100,8 +100,8 @@ const TABLE: &[(&str, Media, &[&str])] = &[
   ("image/webp", Media::Image, &["webp"]),
   ("text/html;charset=utf-8", Media::Iframe, &["html"]),
   ("text/plain;charset=utf-8", Media::Text, &["txt"]),
-  ("video/webm", Media::Video, &["webm"]),
   ("video/mp4", Media::Video, &["mp4"]),
+  ("video/webm", Media::Video, &["webm"]),
 ];
 
 #[cfg(test)]
