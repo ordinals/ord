@@ -15,10 +15,9 @@ the UTXO that contains them is not spent. However, if that will is used to send
 bitcoin, it may select the UTXO containing the ordinal as an input, and send
 the inscription or spend it to fees.
 
-[winddsok](https://github.com/windsok) has kindly written a guide to creating
-an `ord`-compatible wallet with [Sparrow](https://sparrowwallet.com/),
-available on
-[GitHub](https://gist.github.com/windsok/5b53a1ced6ef3eddbde260337de28980).
+[windsok](https://github.com/windsok) has kindly written a guide to creating an
+`ord`-compatible wallet with [Sparrow](https://sparrowwallet.com/), available
+on [GitHub](https://gist.github.com/windsok/5b53a1ced6ef3eddbde260337de28980).
 Please note that if you follow this guide, you should not use the wallet you
 create to send BTC, unless you perform manual coin-selection to avoid sending
 ordinals.
