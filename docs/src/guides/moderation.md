@@ -3,8 +3,8 @@ Moderation
 
 `ord` includes a block explorer, which you can run locally with `ord server`.
 
-The block explorer allows viewing inscriptions. Inscriptions are are
-user-generated content, which may be objectionable or unlawful.
+The block explorer allows viewing inscriptions. Inscriptions are user-generated
+content, which may be objectionable or unlawful.
 
 It is the responsibility of each individual who runs an ordinal block explorer
 instance to understand their responsibilities with respect to unlawful content,
@@ -14,7 +14,8 @@ In order to prevent particular inscriptions from being displayed on an `ord`
 instance, they can be included in a YAML config file, which is loaded with the
 `--config` option.
 
-To hide inscriptions, first create a config file:
+To hide inscriptions, first create a config file, wiht the inscription ID you
+want to hide:
 
 ```yaml
 hidden:
