@@ -44,13 +44,7 @@ impl Inscription {
       }
     }
 
-    let content_type = Media::content_type_for_extension(
-      path
-        .extension()
-        .ok_or_else(|| anyhow!("file must have extension"))?
-        .to_str()
-        .ok_or_else(|| anyhow!("unrecognized extension"))?,
-    )?;
+    let content_type = Media::content_type_for_path(path)?;
 
     Ok(Self {
       body: Some(body),
