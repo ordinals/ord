@@ -10,6 +10,7 @@
   - [Inscriptions](guides/inscriptions.md)
   - [Sat Hunting](guides/sat-hunting.md)
   - [Collecting](guides/collecting.md)
+  - [Moderation](guides/moderation.md)
 - [Bounties](bounties.md)
   - [Bounty 0: 100,000 sats Claimed!](bounty/0.md)
   - [Bounty 1: 200,000 sats Claimed!](bounty/1.md)
