@@ -30,7 +30,7 @@ below.
 
 Pick one that speaks to you, and send to it what you will.
 
-Love,
+Love,  
 Casey
 
 1. `13aG4o1cEKVLzuLdwKrmmP65o6WKh8t4L3`
