@@ -9,7 +9,7 @@ paid out of pocket by me, and I have not raised outside funds, and may never.
 If you so desire, consider a donation. Donations of bitcoin are appreciated,
 but donations of rare, exotic, and inscribed sats are especially treasured.
 
-Donations are not tax-deductable, refundable, or earmarked for any specific
+Donations are not tax-deductible, refundable, or earmarked for any specific
 purpose. They are personal gifts to me, made out of love, support,
 encouragement, or in the vain hope that if I get enough bitcoin I'll stop doing
 all this and go away.
@@ -18,7 +18,7 @@ Donations may sold, lost, given away, or held until death. Donations of bitcoin
 are likely to be spent on rare and exotic sats and making whole-block
 inscriptions.
 
-Ordinals and inscriptions are love letter to Bitcoin, the Internet,
+Ordinals and inscriptions are a love letter to Bitcoin, the Internet,
 programming, and the World Wide Web. Money is nice, but that's not why I'm
 doing it. Don't worry if you can't donate. Merely using this strange, evolving
 creation is thanks enough. I love having you along for the ride, wherever it
