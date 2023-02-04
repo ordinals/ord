@@ -20,9 +20,9 @@ inscriptions.
 
 Ordinals and inscriptions are a love letter to Bitcoin, the Internet,
 programming, and the World Wide Web. Money is nice, but that's not why I'm
-doing it. Don't worry if you can't donate. Merely using this strange, evolving
-creation is thanks enough. I love having you along for the ride, wherever it
-may take us.
+doing this. Don't worry if you can't donate. Merely using this strange,
+evolving creation is thanks enough. I love having you along for the ride,
+wherever it may take us.
 
 I have in my possession [21
 opendimes](https://www.youtube.com/watch?v=bLOlsa6K5TI) whose addresses are
