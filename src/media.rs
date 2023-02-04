@@ -16,6 +16,27 @@ pub(crate) enum Media {
 }
 
 impl Media {
+  const TABLE: &'static [(&'static str, Media, &'static [&'static str])] = &[
+    ("application/json", Media::Text, &["json"]),
+    ("application/pdf", Media::Pdf, &["pdf"]),
+    ("application/pgp-signature", Media::Text, &["asc"]),
+    ("application/yaml", Media::Text, &["yaml", "yml"]),
+    ("audio/flac", Media::Audio, &["flac"]),
+    ("audio/mpeg", Media::Audio, &["mp3"]),
+    ("audio/wav", Media::Audio, &["wav"]),
+    ("image/apng", Media::Image, &["apng"]),
+    ("image/gif", Media::Image, &["gif"]),
+    ("image/jpeg", Media::Image, &["jpg", "jpeg"]),
+    ("image/png", Media::Image, &["png"]),
+    ("image/svg+xml", Media::Iframe, &["svg"]),
+    ("image/webp", Media::Image, &["webp"]),
+    ("model/stl", Media::Unknown, &["stl"]),
+    ("text/html;charset=utf-8", Media::Iframe, &["html"]),
+    ("text/plain;charset=utf-8", Media::Text, &["txt"]),
+    ("video/mp4", Media::Video, &["mp4"]),
+    ("video/webm", Media::Video, &["webm"]),
+  ];
+
   pub(crate) fn content_type_for_path(path: &Path) -> Result<&'static str, Error> {
     let extension = path
       .extension()
@@ -29,13 +50,13 @@ impl Media {
       Media::check_mp4_codec(path)?;
     }
 
-    for (content_type, _, extensions) in TABLE {
+    for (content_type, _, extensions) in Self::TABLE {
       if extensions.contains(&extension.as_str()) {
         return Ok(content_type);
       }
     }
 
-    let mut extensions = TABLE
+    let mut extensions = Self::TABLE
       .iter()
       .map(|(_, _, extensions)| extensions[0])
       .collect::<Vec<&str>>();
@@ -74,7 +95,7 @@ impl FromStr for Media {
   type Err = Error;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
-    for entry in TABLE {
+    for entry in Self::TABLE {
       if entry.0 == s {
         return Ok(entry.1);
       }
@@ -83,26 +104,6 @@ impl FromStr for Media {
     Err(anyhow!("unknown content type: {s}"))
   }
 }
-
-const TABLE: &[(&str, Media, &[&str])] = &[
-  ("application/json", Media::Text, &["json"]),
-  ("application/pdf", Media::Pdf, &["pdf"]),
-  ("application/pgp-signature", Media::Text, &["asc"]),
-  ("application/yaml", Media::Text, &["yaml", "yml"]),
-  ("audio/flac", Media::Audio, &["flac"]),
-  ("audio/mpeg", Media::Audio, &["mp3"]),
-  ("audio/wav", Media::Audio, &["wav"]),
-  ("image/apng", Media::Image, &["apng"]),
-  ("image/gif", Media::Image, &["gif"]),
-  ("image/jpeg", Media::Image, &["jpg", "jpeg"]),
-  ("image/png", Media::Image, &["png"]),
-  ("image/svg+xml", Media::Iframe, &["svg"]),
-  ("image/webp", Media::Image, &["webp"]),
-  ("text/html;charset=utf-8", Media::Iframe, &["html"]),
-  ("text/plain;charset=utf-8", Media::Text, &["txt"]),
-  ("video/mp4", Media::Video, &["mp4"]),
-  ("video/webm", Media::Video, &["webm"]),
-];
 
 #[cfg(test)]
 mod tests {
