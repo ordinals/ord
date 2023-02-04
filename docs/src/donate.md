@@ -14,8 +14,8 @@ purpose. They are personal gifts to me, made out of love, support,
 encouragement, or in the vain hope that if I get enough bitcoin I'll stop doing
 all this and go away.
 
-Donations may sold, lost, given away, or held until death. Donations of bitcoin
-are likely to be spent on rare and exotic sats and making whole-block
+Donations may be sold, lost, given away, or held until death. Donations of
+bitcoin are likely to be spent on rare and exotic sats and making whole-block
 inscriptions.
 
 Ordinals and inscriptions are a love letter to Bitcoin, the Internet,
