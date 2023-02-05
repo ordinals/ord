@@ -64,20 +64,20 @@ enum Target {
   Postage,
 }
 
-pub enum CommitChangeAddress {
+pub enum ChangeAddresses {
   Single(Address),
   Double([Address; 2]),
 }
 
-impl From<Address> for CommitChangeAddress {
+impl From<Address> for ChangeAddresses {
   fn from(value: Address) -> Self {
-    CommitChangeAddress::Single(value)
+    ChangeAddresses::Single(value)
   }
 }
 
-impl From<[Address; 2]> for CommitChangeAddress {
+impl From<[Address; 2]> for ChangeAddresses {
   fn from(value: [Address; 2]) -> Self {
-    CommitChangeAddress::Double(value)
+    ChangeAddresses::Double(value)
   }
 }
 
@@ -138,7 +138,7 @@ impl TransactionBuilder {
     inscriptions: BTreeMap<SatPoint, InscriptionId>,
     amounts: BTreeMap<OutPoint, Amount>,
     recipient: Address,
-    change: CommitChangeAddress,
+    change: ChangeAddresses,
     fee_rate: FeeRate,
   ) -> Result<Transaction> {
     Self::new(
@@ -158,7 +158,7 @@ impl TransactionBuilder {
     inscriptions: BTreeMap<SatPoint, InscriptionId>,
     amounts: BTreeMap<OutPoint, Amount>,
     recipient: Address,
-    change: CommitChangeAddress,
+    change: ChangeAddresses,
     fee_rate: FeeRate,
     output_value: Amount,
   ) -> Result<Transaction> {
@@ -199,18 +199,18 @@ impl TransactionBuilder {
     inscriptions: BTreeMap<SatPoint, InscriptionId>,
     amounts: BTreeMap<OutPoint, Amount>,
     recipient: Address,
-    change: CommitChangeAddress,
+    change: ChangeAddresses,
     fee_rate: FeeRate,
     target: Target,
   ) -> Result<Self> {
     let change_addresses = match change {
-      CommitChangeAddress::Single(address) => {
+      ChangeAddresses::Single(address) => {
         if address == recipient {
           return Err(Error::DuplicateAddress(recipient));
         }
         BTreeSet::from([address])
       }
-      CommitChangeAddress::Double(addresses) => {
+      ChangeAddresses::Double(addresses) => {
         if addresses.contains(&recipient) {
           return Err(Error::DuplicateAddress(recipient));
         }
@@ -700,7 +700,7 @@ mod tests {
       BTreeMap::new(),
       utxos.clone().into_iter().collect(),
       recipient(),
-      CommitChangeAddress::Double([change(0), change(1)]),
+      ChangeAddresses::Double([change(0), change(1)]),
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )

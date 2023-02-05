@@ -1,4 +1,4 @@
-use crate::subcommand::wallet::transaction_builder::CommitChangeAddress;
+use crate::subcommand::wallet::transaction_builder::ChangeAddresses;
 use {
   super::*,
   bitcoin::{
@@ -67,9 +67,9 @@ impl Inscribe {
     let inscriptions = index.get_inscriptions(None)?;
 
     let commit_tx_change = match self.commit_change {
-      Some(address) => CommitChangeAddress::Single(address),
+      Some(address) => ChangeAddresses::Single(address),
       None => {
-        CommitChangeAddress::Double([get_change_address(&client)?, get_change_address(&client)?])
+        ChangeAddresses::Double([get_change_address(&client)?, get_change_address(&client)?])
       }
     };
 
@@ -146,7 +146,7 @@ impl Inscribe {
     inscriptions: BTreeMap<SatPoint, InscriptionId>,
     network: Network,
     utxos: BTreeMap<OutPoint, Amount>,
-    change: CommitChangeAddress,
+    change: ChangeAddresses,
     destination: Address,
     fee_rate: FeeRate,
   ) -> Result<(Transaction, Transaction, TweakedKeyPair)> {
