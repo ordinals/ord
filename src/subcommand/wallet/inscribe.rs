@@ -68,9 +68,7 @@ impl Inscribe {
 
     let commit_tx_change = match self.commit_change {
       Some(address) => ChangeAddresses::Single(address),
-      None => {
-        ChangeAddresses::Double([get_change_address(&client)?, get_change_address(&client)?])
-      }
+      None => ChangeAddresses::Double([get_change_address(&client)?, get_change_address(&client)?]),
     };
 
     let reveal_tx_destination = self
@@ -150,6 +148,11 @@ impl Inscribe {
     destination: Address,
     fee_rate: FeeRate,
   ) -> Result<(Transaction, Transaction, TweakedKeyPair)> {
+    if let ChangeAddresses::Single(_) = change {
+      if satpoint.is_some() {
+        bail!("Can not specify satpoint and only provide a single change address")
+      }
+    }
     let satpoint = if let Some(satpoint) = satpoint {
       satpoint
     } else {
@@ -562,5 +565,78 @@ mod tests {
       "{}",
       error
     );
+  }
+
+  #[test]
+  fn inscribe_with_specific_destination() {
+    let utxos = vec![(outpoint(1), Amount::from_sat(20000))];
+    let inscription = inscription("text/plain", "ord");
+    let commit_address = change(0);
+    let reveal_address = recipient();
+
+    let (_, reveal_tx, _) = Inscribe::create_inscription_transactions(
+      Some(satpoint(1, 0)),
+      inscription,
+      BTreeMap::new(),
+      Network::Bitcoin,
+      utxos.into_iter().collect(),
+      [commit_address, change(1)].into(),
+      reveal_address,
+      FeeRate::try_from(1.0).unwrap(),
+    )
+    .unwrap();
+
+    assert_eq!(
+      reveal_tx.output.first().unwrap().script_pubkey,
+      recipient().script_pubkey()
+    );
+  }
+
+  #[test]
+  fn inscribe_with_specific_commit_change_address() {
+    let utxos = vec![(outpoint(1), Amount::from_sat(20000))];
+    let inscription = inscription("text/plain", "ord");
+    let change_address = change(1);
+    let reveal_address = recipient();
+
+    let (commit_tx, _, _) = Inscribe::create_inscription_transactions(
+      None,
+      inscription,
+      BTreeMap::new(),
+      Network::Bitcoin,
+      utxos.into_iter().collect(),
+      change_address.clone().into(),
+      reveal_address,
+      FeeRate::try_from(1.0).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(
+      commit_tx.output.get(1).unwrap().script_pubkey,
+      change_address.script_pubkey()
+    );
+  }
+
+  #[test]
+  fn cant_inscribe_satpoint_with_single_change_address() {
+    let utxos = vec![(outpoint(1), Amount::from_sat(50 * COIN_VALUE))];
+
+    let inscription = inscription("text/plain", [0; MAX_STANDARD_TX_WEIGHT as usize]);
+    let change_address = change(0);
+    let reveal_address = recipient();
+
+    let error = Inscribe::create_inscription_transactions(
+      Some(satpoint(1, 0)),
+      inscription,
+      BTreeMap::new(),
+      Network::Bitcoin,
+      utxos.into_iter().collect(),
+      change_address.into(),
+      reveal_address,
+      FeeRate::try_from(1.0).unwrap(),
+    )
+    .unwrap_err()
+    .to_string();
+
+    assert!(error.contains("Can not specify satpoint and only provide a single change address"));
   }
 }
