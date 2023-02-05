@@ -1,3 +1,4 @@
+use crate::subcommand::wallet::transaction_builder::CommitChangeAddress;
 use {
   super::*,
   bitcoin::{
@@ -41,10 +42,19 @@ pub(crate) struct Inscribe {
   pub(crate) no_backup: bool,
   #[clap(long, help = "Don't sign or broadcast transactions.")]
   pub(crate) dry_run: bool,
+  #[clap(long, help = "Send commit change to <COMMIT_CHANGE>")]
+  pub(crate) commit_change: Option<Address>,
+  #[clap(long, help = "Send reveal output to <INSCRIPTION_DESTINATION>")]
+  pub(crate) inscription_destination: Option<Address>,
 }
 
 impl Inscribe {
   pub(crate) fn run(self, options: Options) -> Result {
+    if self.satpoint.is_some() && self.commit_change.is_some() {
+      // inscribing a specific satspoint might require splitting a UTXO. don't allow specifying a single
+      // change address if a specific satspoint is being inscribed.
+      bail!("Can not specify satspoint and commit-change in the same command.")
+    }
     let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
     let inscription = Inscription::from_file(options.chain(), &self.file)?;
@@ -56,9 +66,16 @@ impl Inscribe {
 
     let inscriptions = index.get_inscriptions(None)?;
 
-    let commit_tx_change = [get_change_address(&client)?, get_change_address(&client)?];
+    let commit_tx_change = match self.commit_change {
+      Some(address) => CommitChangeAddress::Single(address),
+      None => {
+        CommitChangeAddress::Double([get_change_address(&client)?, get_change_address(&client)?])
+      }
+    };
 
-    let reveal_tx_destination = get_change_address(&client)?;
+    let reveal_tx_destination = self
+      .inscription_destination
+      .unwrap_or(get_change_address(&client)?);
 
     let (unsigned_commit_tx, reveal_tx, recovery_key_pair) =
       Inscribe::create_inscription_transactions(
@@ -129,7 +146,7 @@ impl Inscribe {
     inscriptions: BTreeMap<SatPoint, InscriptionId>,
     network: Network,
     utxos: BTreeMap<OutPoint, Amount>,
-    change: [Address; 2],
+    change: CommitChangeAddress,
     destination: Address,
     fee_rate: FeeRate,
   ) -> Result<(Transaction, Transaction, TweakedKeyPair)> {
@@ -365,7 +382,7 @@ mod tests {
       BTreeMap::new(),
       Network::Bitcoin,
       utxos.into_iter().collect(),
-      [commit_address, change(1)],
+      [commit_address, change(1)].into(),
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
     )
@@ -394,7 +411,7 @@ mod tests {
       BTreeMap::new(),
       Network::Bitcoin,
       utxos.into_iter().collect(),
-      [commit_address, change(1)],
+      [commit_address, change(1)].into(),
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
     )
@@ -427,7 +444,7 @@ mod tests {
       inscriptions,
       Network::Bitcoin,
       utxos.into_iter().collect(),
-      [commit_address, change(1)],
+      [commit_address, change(1)].into(),
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
     )
@@ -467,7 +484,7 @@ mod tests {
       inscriptions,
       Network::Bitcoin,
       utxos.into_iter().collect(),
-      [commit_address, change(1)],
+      [commit_address, change(1)].into(),
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
     )
@@ -501,7 +518,7 @@ mod tests {
       inscriptions,
       bitcoin::Network::Signet,
       utxos.into_iter().collect(),
-      [commit_address, change(1)],
+      [commit_address, change(1)].into(),
       reveal_address,
       FeeRate::try_from(fee_rate).unwrap(),
     )
@@ -533,7 +550,7 @@ mod tests {
       BTreeMap::new(),
       Network::Bitcoin,
       utxos.into_iter().collect(),
-      [commit_address, change(1)],
+      [commit_address, change(1)].into(),
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
     )

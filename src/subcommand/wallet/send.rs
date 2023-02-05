@@ -1,4 +1,5 @@
 use super::*;
+use crate::subcommand::wallet::transaction_builder::CommitChangeAddress;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
@@ -73,7 +74,8 @@ impl Send {
       }
     };
 
-    let change = [get_change_address(&client)?, get_change_address(&client)?];
+    let change =
+      CommitChangeAddress::Double([get_change_address(&client)?, get_change_address(&client)?]);
 
     let unsigned_transaction = TransactionBuilder::build_transaction_with_postage(
       satpoint,

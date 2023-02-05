@@ -80,6 +80,8 @@ impl Preview {
             no_backup: true,
             satpoint: None,
             dry_run: false,
+            commit_change: None,
+            inscription_destination: None,
           },
         )),
       }
