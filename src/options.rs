@@ -35,6 +35,10 @@ pub(crate) struct Options {
   pub(crate) index_sats: bool,
   #[clap(long, short, help = "Use regtest. Equivalent to `--chain regtest`.")]
   pub(crate) regtest: bool,
+  #[clap(long, help = "Authenticate to Bitcoin Core RPC as <RPC_USER>.")]
+  pub(crate) rpc_user: Option<String>,
+  #[clap(long, help = "Authenticate to Bitcoin Core RPC with <RPC_PASS>.")]
+  pub(crate) rpc_pass: Option<String>,
   #[clap(long, help = "Connect to Bitcoin Core RPC at <RPC_URL>.")]
   pub(crate) rpc_url: Option<String>,
   #[clap(long, short, help = "Use signet. Equivalent to `--chain signet`.")]
@@ -130,17 +134,27 @@ impl Options {
   }
 
   pub(crate) fn bitcoin_rpc_client(&self) -> Result<Client> {
-    let cookie_file = self.cookie_file()?;
-
     let rpc_url = self.rpc_url();
 
-    log::info!(
-      "Connecting to Bitcoin Core RPC server at {rpc_url} using credentials from `{}`",
-      cookie_file.display()
-    );
+    let client =
+      if let (Some(rpc_user), Some(rpc_pass)) = (self.rpc_user.clone(), self.rpc_pass.clone()) {
+        log::info!(
+          "Connecting to Bitcoin Core RPC server at {rpc_url} using rpc_pass for `{rpc_user}`",
+        );
 
-    let client = Client::new(&rpc_url, Auth::CookieFile(cookie_file))
-      .with_context(|| format!("failed to connect to Bitcoin Core RPC at {rpc_url}"))?;
+        Client::new(&rpc_url, Auth::UserPass(rpc_user, rpc_pass))
+          .with_context(|| format!("failed to connect to Bitcoin Core RPC at {rpc_url}"))?
+      } else {
+        let cookie_file = self.cookie_file()?;
+
+        log::info!(
+          "Connecting to Bitcoin Core RPC server at {rpc_url} using credentials from `{}`",
+          cookie_file.display()
+        );
+
+        Client::new(&rpc_url, Auth::CookieFile(cookie_file))
+          .with_context(|| format!("failed to connect to Bitcoin Core RPC at {rpc_url}"))?
+      };
 
     let rpc_chain = match client.get_blockchain_info()?.chain.as_str() {
       "main" => Chain::Mainnet,
@@ -549,5 +563,22 @@ mod tests {
         hidden: iter::once(id).collect(),
       }
     );
+  }
+
+  #[test]
+  fn test_rpc_user_and_pass() {
+    let options = Arguments::try_parse_from([
+      "ord",
+      "--rpc-user",
+      "satoshi",
+      "--rpc-pass",
+      "123456secret",
+      "index",
+    ])
+    .unwrap()
+    .options;
+
+    assert_eq!(options.rpc_user.unwrap(), "satoshi".to_string());
+    assert_eq!(options.rpc_pass.unwrap(), "123456secret".to_string());
   }
 }
