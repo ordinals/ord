@@ -37,7 +37,7 @@ pub(crate) struct Inscribe {
   pub(crate) fee_rate: FeeRate,
   #[clap(
     long,
-    help = "Use fee rate of <COMMIT_FEE_RATE> sats/vB for commit transaction only.\nIf not set uses fee-rate for commit transaction."
+    help = "Use <COMMIT_FEE_RATE> sats/vbyte for commit transaction.\nDefaults to <FEE_RATE> if unset."
   )]
   pub(crate) commit_fee_rate: Option<FeeRate>,
   #[clap(help = "Inscribe sat with contents of <FILE>")]
