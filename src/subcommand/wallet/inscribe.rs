@@ -35,6 +35,11 @@ pub(crate) struct Inscribe {
     help = "Use fee rate of <FEE_RATE> sats/vB"
   )]
   pub(crate) fee_rate: FeeRate,
+  #[clap(
+    long,
+    help = "Use <COMMIT_FEE_RATE> sats/vbyte for commit transaction.\nDefaults to <FEE_RATE> if unset."
+  )]
+  pub(crate) commit_fee_rate: Option<FeeRate>,
   #[clap(help = "Inscribe sat with contents of <FILE>")]
   pub(crate) file: PathBuf,
   #[clap(long, help = "Do not back up recovery key.")]
@@ -69,6 +74,7 @@ impl Inscribe {
         utxos.clone(),
         commit_tx_change,
         reveal_tx_destination,
+        self.commit_fee_rate.unwrap_or(self.fee_rate),
         self.fee_rate,
       )?;
 
@@ -131,7 +137,8 @@ impl Inscribe {
     utxos: BTreeMap<OutPoint, Amount>,
     change: [Address; 2],
     destination: Address,
-    fee_rate: FeeRate,
+    commit_fee_rate: FeeRate,
+    reveal_fee_rate: FeeRate,
   ) -> Result<(Transaction, Transaction, TweakedKeyPair)> {
     let satpoint = if let Some(satpoint) = satpoint {
       satpoint
@@ -188,7 +195,7 @@ impl Inscribe {
 
     let (_, reveal_fee) = Self::build_reveal_transaction(
       &control_block,
-      fee_rate,
+      reveal_fee_rate,
       OutPoint::null(),
       TxOut {
         script_pubkey: destination.script_pubkey(),
@@ -203,7 +210,7 @@ impl Inscribe {
       utxos,
       commit_tx_address.clone(),
       change,
-      fee_rate,
+      commit_fee_rate,
       reveal_fee + TransactionBuilder::TARGET_POSTAGE,
     )?;
 
@@ -216,7 +223,7 @@ impl Inscribe {
 
     let (mut reveal_tx, fee) = Self::build_reveal_transaction(
       &control_block,
-      fee_rate,
+      reveal_fee_rate,
       OutPoint {
         txid: unsigned_commit_tx.txid(),
         vout: vout.try_into().unwrap(),
@@ -368,6 +375,7 @@ mod tests {
       [commit_address, change(1)],
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
+      FeeRate::try_from(1.0).unwrap(),
     )
     .unwrap();
 
@@ -396,6 +404,7 @@ mod tests {
       utxos.into_iter().collect(),
       [commit_address, change(1)],
       reveal_address,
+      FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
     )
     .unwrap();
@@ -429,6 +438,7 @@ mod tests {
       utxos.into_iter().collect(),
       [commit_address, change(1)],
       reveal_address,
+      FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
     )
     .unwrap_err()
@@ -470,6 +480,7 @@ mod tests {
       [commit_address, change(1)],
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
+      FeeRate::try_from(1.0).unwrap(),
     )
     .is_ok())
   }
@@ -504,8 +515,85 @@ mod tests {
       [commit_address, change(1)],
       reveal_address,
       FeeRate::try_from(fee_rate).unwrap(),
+      FeeRate::try_from(fee_rate).unwrap(),
     )
     .unwrap();
+
+    let sig_vbytes = 17;
+    let fee = FeeRate::try_from(fee_rate)
+      .unwrap()
+      .fee(commit_tx.vsize() + sig_vbytes)
+      .to_sat();
+
+    let reveal_value = commit_tx
+      .output
+      .iter()
+      .map(|o| o.value)
+      .reduce(|acc, i| acc + i)
+      .unwrap();
+
+    assert_eq!(reveal_value, 20_000 - fee);
+
+    let fee = FeeRate::try_from(fee_rate)
+      .unwrap()
+      .fee(reveal_tx.vsize())
+      .to_sat();
+
+    assert_eq!(
+      reveal_tx.output[0].value,
+      20_000 - fee - (20_000 - commit_tx.output[0].value),
+    );
+  }
+
+  #[test]
+  fn inscribe_with_commit_fee_rate() {
+    let utxos = vec![
+      (outpoint(1), Amount::from_sat(10_000)),
+      (outpoint(2), Amount::from_sat(20_000)),
+    ];
+    let mut inscriptions = BTreeMap::new();
+    inscriptions.insert(
+      SatPoint {
+        outpoint: outpoint(1),
+        offset: 0,
+      },
+      inscription_id(1),
+    );
+
+    let inscription = inscription("text/plain", "ord");
+    let satpoint = None;
+    let commit_address = change(0);
+    let reveal_address = recipient();
+    let commit_fee_rate = 3.3;
+    let fee_rate = 1.0;
+
+    let (commit_tx, reveal_tx, _private_key) = Inscribe::create_inscription_transactions(
+      satpoint,
+      inscription,
+      inscriptions,
+      bitcoin::Network::Signet,
+      utxos.into_iter().collect(),
+      [commit_address, change(1)],
+      reveal_address,
+      FeeRate::try_from(commit_fee_rate).unwrap(),
+      FeeRate::try_from(fee_rate).unwrap(),
+    )
+    .unwrap();
+
+    let sig_vbytes = 17;
+    let fee = FeeRate::try_from(commit_fee_rate)
+      .unwrap()
+      .fee(commit_tx.vsize() + sig_vbytes)
+      .to_sat();
+
+    let reveal_value = commit_tx
+      .output
+      .iter()
+      .map(|o| o.value)
+      .reduce(|acc, i| acc + i)
+      .unwrap();
+
+    assert_eq!(reveal_value, 20_000 - fee);
 
     let fee = FeeRate::try_from(fee_rate)
       .unwrap()
@@ -535,6 +623,7 @@ mod tests {
       utxos.into_iter().collect(),
       [commit_address, change(1)],
       reveal_address,
+      FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
     )
     .unwrap_err()
