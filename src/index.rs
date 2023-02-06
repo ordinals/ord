@@ -862,7 +862,7 @@ impl Index {
   }
 
   fn inscriptions_on_output<'a: 'tx, 'tx>(
-    satpoint_to_id: &'a impl ReadableTable<&'tx SatPointValue, &'tx InscriptionIdValue>,
+    satpoint_to_id: &'a impl ReadableTable<&'static SatPointValue, &'static InscriptionIdValue>,
     outpoint: OutPoint,
   ) -> Result<impl Iterator<Item = (SatPoint, InscriptionId)> + 'tx> {
     let start = SatPoint {
