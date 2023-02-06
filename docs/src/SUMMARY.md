@@ -5,6 +5,7 @@
 - [Inscriptions](inscriptions.md)
 - [FAQ](faq.md)
 - [Contributing](contributing.md)
+- [Donate](donate.md)
 - [Guides](guides.md)
   - [Explorer](guides/explorer.md)
   - [Inscriptions](guides/inscriptions.md)

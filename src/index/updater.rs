@@ -188,7 +188,7 @@ impl Updater {
         }
         Ok(None) => break,
         Err(err) => {
-          log::error!("Failed to fetch block {height}: {err}");
+          log::error!("failed to fetch block {height}: {err}");
           break;
         }
       }
@@ -229,7 +229,7 @@ impl Updater {
 
           errors += 1;
           let seconds = 1 << errors;
-          log::error!("failed to fetch block {height}, retrying in {seconds}s: {err}");
+          log::warn!("failed to fetch block {height}, retrying in {seconds}s: {err}");
 
           if seconds > 120 {
             log::error!("would sleep for more than 120s, giving up");
