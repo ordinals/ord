@@ -28,6 +28,8 @@ impl Sats {
     let index = Index::open(&options)?;
     index.update()?;
 
+    options.bitcoin_rpc_client_for_wallet_command(false)?;
+
     let utxos = get_unspent_output_ranges(&index)?;
 
     if let Some(path) = &self.tsv {
