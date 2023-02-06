@@ -25,6 +25,7 @@ impl Media {
     ("audio/mpeg", Media::Audio, &["mp3"]),
     ("audio/wav", Media::Audio, &["wav"]),
     ("image/apng", Media::Image, &["apng"]),
+    ("image/avif", Media::Image, &[]),
     ("image/gif", Media::Image, &["gif"]),
     ("image/jpeg", Media::Image, &["jpg", "jpeg"]),
     ("image/png", Media::Image, &["png"]),
@@ -58,7 +59,7 @@ impl Media {
 
     let mut extensions = Self::TABLE
       .iter()
-      .map(|(_, _, extensions)| extensions[0])
+      .flat_map(|(_, _, extensions)| extensions.first().cloned())
       .collect::<Vec<&str>>();
 
     extensions.sort();
