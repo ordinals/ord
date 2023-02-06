@@ -129,7 +129,7 @@ impl Server {
       let clone = index.clone();
       thread::spawn(move || loop {
         if let Err(error) = clone.update() {
-          log::error!("{error}");
+          log::warn!("{error}");
         }
         thread::sleep(Duration::from_millis(5000));
       });
