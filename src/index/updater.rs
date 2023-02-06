@@ -188,7 +188,7 @@ impl Updater {
         }
         Ok(None) => break,
         Err(err) => {
-          log::error!("failed to fetch block {height}: {err}");
+          log::warn!("failed to fetch block {height}: {err}");
           break;
         }
       }
