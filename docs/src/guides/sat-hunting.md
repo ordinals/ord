@@ -1,5 +1,5 @@
-Ordinal Hunting
-===============
+Sat Hunting
+===========
 
 *This guide is out of date. Since it was written, the `ord` binary was changed
 to only build the full satoshi index when the `--index-sats` flag is supplied.
