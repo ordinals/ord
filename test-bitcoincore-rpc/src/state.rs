@@ -1,4 +1,4 @@
-use {super::*, std::iter};
+use super::*;
 
 pub(crate) struct State {
   pub(crate) blocks: BTreeMap<BlockHash, Block>,
@@ -34,11 +34,10 @@ impl State {
     hashes.push(genesis_block_hash);
     blocks.insert(genesis_block_hash, genesis_block);
 
-    let wallets = if !descriptors.is_empty() {
-      iter::once(wallet_name.to_string()).collect::<BTreeSet<String>>()
-    } else {
-      BTreeSet::new()
-    };
+    let mut wallets = BTreeSet::new();
+    if !descriptors.is_empty() {
+      wallets.insert(wallet_name.to_string());
+    }
 
     Self {
       blocks,
