@@ -65,16 +65,16 @@ struct Create {
 
 fn create_wallet(rpc_server: &test_bitcoincore_rpc::Handle, wallet_name: Option<String>) {
   if let Some(name) = wallet_name {
-    CommandBuilder::new(format!("--chain {} --wallet {name} wallet create", rpc_server.network()))
-      .rpc_server(rpc_server)
-      .output::<Create>();
-  } else {
     CommandBuilder::new(format!(
-      "--chain {} wallet create",
+      "--chain {} --wallet {name} wallet create",
       rpc_server.network()
     ))
     .rpc_server(rpc_server)
     .output::<Create>();
+  } else {
+    CommandBuilder::new(format!("--chain {} wallet create", rpc_server.network()))
+      .rpc_server(rpc_server)
+      .output::<Create>();
   }
 }
 

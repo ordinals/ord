@@ -18,11 +18,7 @@ pub(crate) struct State {
 }
 
 impl State {
-  pub(crate) fn new(
-    network: Network,
-    version: usize,
-    fail_lock_unspent: bool,
-  ) -> Self {
+  pub(crate) fn new(network: Network, version: usize, fail_lock_unspent: bool) -> Self {
     let mut hashes = Vec::new();
     let mut blocks = BTreeMap::new();
 
