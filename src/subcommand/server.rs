@@ -129,7 +129,7 @@ impl Server {
       let clone = index.clone();
       thread::spawn(move || loop {
         if let Err(error) = clone.update() {
-          log::error!("{error}");
+          log::warn!("{error}");
         }
         thread::sleep(Duration::from_millis(5000));
       });
@@ -802,7 +802,7 @@ impl Server {
         Ok(
           PreviewTextHtml {
             text: str::from_utf8(content)
-              .map_err(|err| anyhow!("Failed to decode UTF-8: {err}"))?,
+              .map_err(|err| anyhow!("Failed to decode {inscription_id} text: {err}"))?,
           }
           .into_response(),
         )
