@@ -46,6 +46,8 @@ pub(crate) struct Inscribe {
   pub(crate) no_backup: bool,
   #[clap(long, help = "Don't sign or broadcast transactions.")]
   pub(crate) dry_run: bool,
+  #[clap(long, help = "Send reveal output to <INSCRIPTION_DESTINATION>")]
+  pub(crate) inscription_destination: Option<Address>,
 }
 
 impl Inscribe {
@@ -63,7 +65,9 @@ impl Inscribe {
 
     let commit_tx_change = [get_change_address(&client)?, get_change_address(&client)?];
 
-    let reveal_tx_destination = get_change_address(&client)?;
+    let reveal_tx_destination = self
+      .inscription_destination
+      .unwrap_or(get_change_address(&client)?);
 
     let (unsigned_commit_tx, reveal_tx, recovery_key_pair) =
       Inscribe::create_inscription_transactions(
@@ -633,6 +637,32 @@ mod tests {
       error.contains(&format!("reveal transaction weight greater than {MAX_STANDARD_TX_WEIGHT} (MAX_STANDARD_TX_WEIGHT): 402799")),
       "{}",
       error
+    );
+  }
+
+  #[test]
+  fn inscribe_with_specific_destination() {
+    let utxos = vec![(outpoint(1), Amount::from_sat(20000))];
+    let inscription = inscription("text/plain", "ord");
+    let commit_address = change(0);
+    let reveal_address = recipient();
+
+    let (_, reveal_tx, _) = Inscribe::create_inscription_transactions(
+      Some(satpoint(1, 0)),
+      inscription,
+      BTreeMap::new(),
+      Network::Bitcoin,
+      utxos.into_iter().collect(),
+      [commit_address, change(1)],
+      reveal_address,
+      FeeRate::try_from(1.0).unwrap(),
+      FeeRate::try_from(1.0).unwrap(),
+    )
+    .unwrap();
+
+    assert_eq!(
+      reveal_tx.output.first().unwrap().script_pubkey,
+      recipient().script_pubkey()
     );
   }
 }
