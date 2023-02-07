@@ -3,7 +3,7 @@ use {super::*, ord::subcommand::wallet::send::Output};
 #[test]
 fn inscriptions_can_be_sent() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
   let Inscribe { inscription, .. } = inscribe(&rpc_server);
@@ -46,7 +46,7 @@ fn inscriptions_can_be_sent() {
 #[test]
 fn send_unknown_inscription() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
 
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
@@ -62,7 +62,7 @@ fn send_unknown_inscription() {
 #[test]
 fn send_inscribed_sat() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
   let Inscribe { inscription, .. } = inscribe(&rpc_server);
@@ -110,7 +110,7 @@ fn send_on_mainnnet_works_with_wallet_named_foo() {
 fn send_addresses_must_be_valid_for_network() {
   let rpc_server = test_bitcoincore_rpc::builder().build();
   let txid = rpc_server.mine_blocks_with_subsidy(1, 1_000)[0].txdata[0].txid();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
 
   CommandBuilder::new(format!(
     "wallet send tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz {txid}:0:0"
@@ -127,7 +127,7 @@ fn send_addresses_must_be_valid_for_network() {
 fn send_on_mainnnet_works_with_wallet_named_ord() {
   let rpc_server = test_bitcoincore_rpc::builder().build();
   let txid = rpc_server.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0].txid();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
 
   let stdout = CommandBuilder::new(format!(
     "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0"
@@ -141,26 +141,9 @@ fn send_on_mainnnet_works_with_wallet_named_ord() {
 }
 
 #[test]
-fn send_on_mainnnet_works_with_wallet_whose_name_starts_with_ord() {
-  let rpc_server = test_bitcoincore_rpc::builder().build();
-  create_wallet(&rpc_server, Some("ord-foo".into()));
-  let txid = rpc_server.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0].txid();
-
-  let stdout = CommandBuilder::new(format!(
-    "--wallet ord-foo wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0"
-  ))
-  .rpc_server(&rpc_server)
-  .stdout_regex(r".*")
-  .run();
-
-  let txid = rpc_server.mempool()[0].txid();
-  assert_eq!(format!("{txid}\n"), stdout);
-}
-
-#[test]
 fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
 
   let txid = rpc_server.mine_blocks_with_subsidy(1, 10_000)[0].txdata[0].txid();
   CommandBuilder::new(format!(
@@ -183,7 +166,7 @@ fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
 #[test]
 fn do_not_accidentally_send_an_inscription() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
 
   let Inscribe {
     reveal,
@@ -212,7 +195,7 @@ fn do_not_accidentally_send_an_inscription() {
 #[test]
 fn inscriptions_cannot_be_sent_by_satpoint() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
 
   let Inscribe { reveal, .. } = inscribe(&rpc_server);
 
@@ -230,7 +213,7 @@ fn inscriptions_cannot_be_sent_by_satpoint() {
 #[test]
 fn send_btc() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
 
   rpc_server.mine_blocks(1);
 
@@ -260,7 +243,7 @@ fn send_btc() {
 #[test]
 fn send_btc_locks_inscriptions() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
 
   rpc_server.mine_blocks(1);
 
@@ -297,7 +280,7 @@ fn send_btc_fails_if_lock_unspent_fails() {
   let rpc_server = test_bitcoincore_rpc::builder()
     .fail_lock_unspent(true)
     .build();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
 
   rpc_server.mine_blocks(1);
 
@@ -311,7 +294,7 @@ fn send_btc_fails_if_lock_unspent_fails() {
 #[test]
 fn wallet_send_with_fee_rate() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
   let Inscribe { inscription, .. } = inscribe(&rpc_server);

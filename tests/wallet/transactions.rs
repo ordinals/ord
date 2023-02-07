@@ -3,7 +3,7 @@ use {super::*, ord::subcommand::wallet::transactions::Output};
 #[test]
 fn transactions() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
 
   assert!(rpc_server.loaded_wallets().is_empty());
 
@@ -27,7 +27,7 @@ fn transactions() {
 #[test]
 fn transactions_with_limit() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
 
   CommandBuilder::new("wallet transactions")
     .rpc_server(&rpc_server)

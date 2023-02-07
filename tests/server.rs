@@ -38,7 +38,7 @@ fn run() {
 #[test]
 fn inscription_page() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
 
   let Inscribe {
     inscription,
@@ -91,7 +91,7 @@ fn inscription_page() {
 #[test]
 fn inscription_appears_on_reveal_transaction_page() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
 
   let Inscribe { reveal, .. } = inscribe(&rpc_server);
 
@@ -106,7 +106,7 @@ fn inscription_appears_on_reveal_transaction_page() {
 #[test]
 fn inscription_appears_on_output_page() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
 
   let Inscribe {
     reveal,
@@ -125,7 +125,7 @@ fn inscription_appears_on_output_page() {
 #[test]
 fn inscription_page_after_send() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
 
   let Inscribe {
     reveal,
@@ -166,7 +166,7 @@ fn inscription_page_after_send() {
 #[test]
 fn inscription_content() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
 
   rpc_server.mine_blocks(1);
 
@@ -192,7 +192,7 @@ fn inscription_content() {
 #[test]
 fn home_page_includes_latest_inscriptions() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
 
   let Inscribe { inscription, .. } = inscribe(&rpc_server);
 
@@ -210,7 +210,7 @@ fn home_page_includes_latest_inscriptions() {
 #[test]
 fn home_page_inscriptions_are_sorted() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
 
   let mut inscriptions = String::new();
 
@@ -235,7 +235,7 @@ fn home_page_inscriptions_are_sorted() {
 #[test]
 fn inscriptions_page() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
 
   let Inscribe { inscription, .. } = inscribe(&rpc_server);
 
@@ -254,7 +254,7 @@ fn inscriptions_page() {
 #[test]
 fn inscriptions_page_is_sorted() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
 
   let mut inscriptions = String::new();
 
@@ -270,7 +270,7 @@ fn inscriptions_page_is_sorted() {
 #[test]
 fn inscriptions_page_has_next_and_previous() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
 
   let Inscribe { inscription: a, .. } = inscribe(&rpc_server);
   let Inscribe { inscription: b, .. } = inscribe(&rpc_server);

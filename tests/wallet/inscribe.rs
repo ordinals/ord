@@ -7,7 +7,7 @@ fn inscribe_creates_inscriptions() {
 
   assert_eq!(rpc_server.descriptors().len(), 0);
 
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
 
   let Inscribe { inscription, .. } = inscribe(&rpc_server);
 
@@ -27,7 +27,7 @@ fn inscribe_creates_inscriptions() {
 #[test]
 fn inscribe_works_with_huge_expensive_inscriptions() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   CommandBuilder::new(format!(
@@ -54,7 +54,7 @@ fn inscribe_no_backup() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   rpc_server.mine_blocks(1);
 
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
   assert_eq!(rpc_server.descriptors().len(), 2);
 
   CommandBuilder::new("wallet inscribe hello.txt --no-backup")
@@ -68,7 +68,7 @@ fn inscribe_no_backup() {
 #[test]
 fn inscribe_unknown_file_extension() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
   CommandBuilder::new("wallet inscribe pepe.xyz")
@@ -84,7 +84,7 @@ fn inscribe_exceeds_chain_limit() {
   let rpc_server = test_bitcoincore_rpc::builder()
     .network(Network::Signet)
     .build();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
   CommandBuilder::new("--chain signet wallet inscribe degenerate.png")
@@ -102,7 +102,7 @@ fn regtest_has_no_content_size_limit() {
   let rpc_server = test_bitcoincore_rpc::builder()
     .network(Network::Regtest)
     .build();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
   CommandBuilder::new("--chain regtest wallet inscribe degenerate.png")
@@ -117,7 +117,7 @@ fn mainnet_has_no_content_size_limit() {
   let rpc_server = test_bitcoincore_rpc::builder()
     .network(Network::Bitcoin)
     .build();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
   CommandBuilder::new("wallet inscribe degenerate.png")
@@ -130,7 +130,7 @@ fn mainnet_has_no_content_size_limit() {
 #[test]
 fn inscribe_does_not_use_inscribed_sats_as_cardinal_utxos() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
 
   rpc_server.mine_blocks_with_subsidy(1, 100);
 
@@ -147,7 +147,7 @@ fn inscribe_does_not_use_inscribed_sats_as_cardinal_utxos() {
 #[test]
 fn refuse_to_reinscribe_sats() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
 
   rpc_server.mine_blocks(1);
 
@@ -166,7 +166,7 @@ fn refuse_to_reinscribe_sats() {
 #[test]
 fn refuse_to_inscribe_already_inscribed_utxo() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
 
   let Inscribe {
     reveal,
@@ -194,7 +194,7 @@ fn refuse_to_inscribe_already_inscribed_utxo() {
 #[test]
 fn inscribe_with_optional_satpoint_arg() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let Inscribe { inscription, .. } =
@@ -217,7 +217,7 @@ fn inscribe_with_optional_satpoint_arg() {
 #[test]
 fn inscribe_with_fee_rate() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
   CommandBuilder::new("--index-sats wallet inscribe degenerate.png --fee-rate 2.0")
@@ -258,7 +258,7 @@ fn inscribe_with_fee_rate() {
 #[test]
 fn inscribe_with_commit_fee_rate() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
   CommandBuilder::new("--index-sats wallet inscribe degenerate.png --commit-fee-rate 2.0")
@@ -315,7 +315,7 @@ fn inscribe_with_wallet_named_foo() {
 #[test]
 fn inscribe_with_dry_run_flag() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
   CommandBuilder::new("wallet inscribe --dry-run degenerate.png")
@@ -336,7 +336,7 @@ fn inscribe_with_dry_run_flag() {
 #[test]
 fn inscribe_with_dry_run_flag_fees_inscrease() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
   let total_fee_dry_run = CommandBuilder::new("wallet inscribe --dry-run degenerate.png")

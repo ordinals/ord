@@ -3,7 +3,7 @@ use {super::*, ord::subcommand::wallet::outputs::Output};
 #[test]
 fn outputs() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
 
   let coinbase_tx = &rpc_server.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0];
   let outpoint = OutPoint::new(coinbase_tx.txid(), 0);
@@ -20,7 +20,7 @@ fn outputs() {
 #[test]
 fn outputs_includes_locked_outputs() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server, None);
+  create_wallet(&rpc_server);
 
   let coinbase_tx = &rpc_server.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0];
   let outpoint = OutPoint::new(coinbase_tx.txid(), 0);
