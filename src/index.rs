@@ -903,7 +903,10 @@ impl Index {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+  use {
+    super::*,
+    bitcoin::secp256k1::rand::{self, RngCore},
+  };
 
   struct ContextBuilder {
     args: Vec<OsString>,
@@ -918,7 +921,6 @@ mod tests {
     fn try_build(self) -> Result<Context> {
       let rpc_server = test_bitcoincore_rpc::builder()
         .network(Network::Regtest)
-        .descriptors(vec!["tr()".into(), "tr()".into()])
         .build();
 
       let tempdir = self.tempdir.unwrap_or_else(|| TempDir::new().unwrap());
@@ -2120,6 +2122,10 @@ mod tests {
   #[test]
   fn unsynced_index_fails() {
     for context in Context::configurations() {
+      let mut entropy = [0; 16];
+      rand::thread_rng().fill_bytes(&mut entropy);
+      let mnemonic = Mnemonic::from_entropy(&entropy).unwrap();
+      crate::subcommand::wallet::initialize_wallet(&context.options, mnemonic.to_seed("")).unwrap();
       context.rpc_server.mine_blocks(1);
       assert_regex_match!(
         context

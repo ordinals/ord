@@ -73,7 +73,7 @@ fn get_change_address(client: &Client) -> Result<Address> {
     .context("could not get change addresses from wallet")
 }
 
-fn initialize_wallet(options: &Options, seed: [u8; 64]) -> Result {
+pub(crate) fn initialize_wallet(options: &Options, seed: [u8; 64]) -> Result {
   let client = options.bitcoin_rpc_client_for_wallet_command(true)?;
   let network = options.chain().network();
 

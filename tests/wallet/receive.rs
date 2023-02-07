@@ -3,7 +3,7 @@ use {super::*, ord::subcommand::wallet::receive::Output};
 #[test]
 fn receive() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server);
+  create_wallet(&rpc_server, None);
 
   let output = CommandBuilder::new("wallet receive")
     .rpc_server(&rpc_server)

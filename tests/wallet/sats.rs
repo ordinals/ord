@@ -6,7 +6,7 @@ use {
 #[test]
 fn sats() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server);
+  create_wallet(&rpc_server, None);
   let second_coinbase = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let output = CommandBuilder::new("--index-sats wallet sats")
@@ -20,7 +20,7 @@ fn sats() {
 #[test]
 fn sats_from_tsv_success() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server);
+  create_wallet(&rpc_server, None);
   let second_coinbase = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let output = CommandBuilder::new("--index-sats wallet sats --tsv foo.tsv")
@@ -35,7 +35,7 @@ fn sats_from_tsv_success() {
 #[test]
 fn sats_from_tsv_parse_error() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server);
+  create_wallet(&rpc_server, None);
 
   CommandBuilder::new("wallet sats --tsv foo.tsv")
     .write("foo.tsv", "===")
@@ -50,7 +50,7 @@ fn sats_from_tsv_parse_error() {
 #[test]
 fn sats_from_tsv_file_not_found() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server);
+  create_wallet(&rpc_server, None);
   CommandBuilder::new("wallet sats --tsv foo.tsv")
     .rpc_server(&rpc_server)
     .expected_exit_code(1)

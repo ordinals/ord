@@ -6,7 +6,7 @@ use {
 #[test]
 fn inscriptions() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server);
+  create_wallet(&rpc_server, None);
   rpc_server.mine_blocks(1);
 
   let Inscribe {
@@ -54,7 +54,7 @@ fn inscriptions() {
 #[test]
 fn inscriptions_includes_locked_utxos() {
   let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server);
+  create_wallet(&rpc_server, None);
 
   rpc_server.mine_blocks(1);
 
