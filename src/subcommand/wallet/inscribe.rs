@@ -1,5 +1,6 @@
 use {
   super::*,
+  crate::wallet::Wallet,
   bitcoin::{
     blockdata::{opcodes, script},
     policy::MAX_STANDARD_TX_WEIGHT,
@@ -57,7 +58,7 @@ impl Inscribe {
     let index = Index::open(&options)?;
     index.update()?;
 
-    let mut utxos = index.get_unspent_outputs()?;
+    let mut utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
 
     let inscriptions = index.get_inscriptions(None)?;
 

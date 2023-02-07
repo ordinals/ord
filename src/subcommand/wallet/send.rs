@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, crate::wallet::Wallet};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
@@ -32,7 +32,7 @@ impl Send {
     let index = Index::open(&options)?;
     index.update()?;
 
-    let unspent_outputs = index.get_unspent_outputs()?;
+    let unspent_outputs = index.get_unspent_outputs(Wallet::load(&options)?)?;
 
     let inscriptions = index.get_inscriptions(None)?;
 
