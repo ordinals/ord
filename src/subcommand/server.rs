@@ -802,7 +802,7 @@ impl Server {
         Ok(
           PreviewTextHtml {
             text: str::from_utf8(content)
-              .map_err(|err| anyhow!("Failed to decode UTF-8: {err}"))?,
+              .map_err(|err| anyhow!("Failed to decode {inscription_id} text: {err}"))?,
           }
           .into_response(),
         )
