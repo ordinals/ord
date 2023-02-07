@@ -10,8 +10,6 @@ pub(crate) fn run(options: Options) -> Result {
   let index = Index::open(&options)?;
   index.update()?;
 
-  options.bitcoin_rpc_client_for_wallet_command(false)?;
-
   let mut outputs = Vec::new();
   for (output, amount) in index.get_unspent_outputs(Wallet::load(&options)?)? {
     outputs.push(Output {
