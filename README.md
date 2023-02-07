@@ -53,7 +53,7 @@ wallet receive`.
 Dependencies
 ------------
 
-GLIBC_2.32 and higher is required.<br>
+GLIBC_2.32 version and higher is required.<br>
 If you are using Ubuntu 20.04, then consider upgrading to Ubuntu 22.04.
 
 ```
