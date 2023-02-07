@@ -20,6 +20,10 @@ pub(crate) struct Options {
   pub(crate) config: Option<PathBuf>,
   #[clap(long, help = "Load Bitcoin Core RPC cookie file from <COOKIE_FILE>.")]
   pub(crate) cookie_file: Option<PathBuf>,
+  #[clap(long, help = "Authenticate Bitcoin Core RPC using BasicAuth.")]
+  pub(crate) rpc_username: Option<String>,
+  #[clap(long, help = "Authenticate Bitcoin Core RPC using BasicAuth.")]
+  pub(crate) rpc_password: Option<String>,
   #[clap(long, help = "Store index in <DATA_DIR>.")]
   pub(crate) data_dir: Option<PathBuf>,
   #[clap(
@@ -78,6 +82,20 @@ impl Options {
         self.wallet
       )
     })
+  }
+
+  pub(crate) fn rpc_userpass(&self) -> Option<(String, String)> {
+    let user = match &self.rpc_username {
+      Some(username) => username.clone(),
+      None => return None
+    };
+
+    let pass = match &self.rpc_password {
+      Some(password) => password.clone(),
+      None => "".to_string()
+    };
+
+    return Some((user, pass));
   }
 
   pub(crate) fn cookie_file(&self) -> Result<PathBuf> {
