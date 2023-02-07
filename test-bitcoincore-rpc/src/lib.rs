@@ -39,6 +39,7 @@ mod state;
 
 pub fn builder() -> Builder {
   Builder {
+    descriptors: Vec::new(),
     fail_lock_unspent: false,
     network: Network::Bitcoin,
     version: 240000,
@@ -47,6 +48,7 @@ pub fn builder() -> Builder {
 }
 
 pub struct Builder {
+  descriptors: Vec<String>,
   fail_lock_unspent: bool,
   network: Network,
   version: usize,
@@ -76,8 +78,16 @@ impl Builder {
     }
   }
 
+  pub fn descriptors(self, descriptors: Vec<String>) -> Self {
+    Self {
+      descriptors,
+      ..self
+    }
+  }
+
   pub fn build(self) -> Handle {
     let state = Arc::new(Mutex::new(State::new(
+      self.descriptors,
       self.network,
       self.version,
       self.wallet_name,

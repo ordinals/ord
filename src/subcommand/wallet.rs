@@ -67,18 +67,6 @@ impl Wallet {
   }
 }
 
-fn get_unspent_output_ranges(index: &Index) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
-  index
-    .get_unspent_outputs()?
-    .into_keys()
-    .map(|outpoint| match index.list(outpoint)? {
-      Some(List::Unspent(sat_ranges)) => Ok((outpoint, sat_ranges)),
-      Some(List::Spent) => bail!("output {outpoint} in wallet but is spent according to index"),
-      None => bail!("index has not seen {outpoint}"),
-    })
-    .collect()
-}
-
 fn get_change_address(client: &Client) -> Result<Address> {
   client
     .call("getrawchangeaddress", &["bech32m".into()])

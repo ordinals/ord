@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, crate::wallet::Wallet};
 
 #[derive(Serialize, Deserialize)]
 pub struct Output {
@@ -13,7 +13,7 @@ pub(crate) fn run(options: Options) -> Result {
   options.bitcoin_rpc_client_for_wallet_command(false)?;
 
   let mut outputs = Vec::new();
-  for (output, amount) in index.get_unspent_outputs()? {
+  for (output, amount) in index.get_unspent_outputs(Wallet::load(&options)?)? {
     outputs.push(Output {
       output,
       amount: amount.to_sat(),

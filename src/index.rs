@@ -7,6 +7,7 @@ use {
     updater::Updater,
   },
   super::*,
+  crate::wallet::Wallet,
   bitcoin::BlockHeader,
   bitcoincore_rpc::{json::GetBlockHeaderResult, Auth, Client},
   chrono::SubsecRound,
@@ -242,7 +243,7 @@ impl Index {
     })
   }
 
-  pub(crate) fn get_unspent_outputs(&self) -> Result<BTreeMap<OutPoint, Amount>> {
+  pub(crate) fn get_unspent_outputs(&self, _wallet: Wallet) -> Result<BTreeMap<OutPoint, Amount>> {
     let mut utxos = BTreeMap::new();
     utxos.extend(
       self
@@ -283,6 +284,21 @@ impl Index {
     }
 
     Ok(utxos)
+  }
+
+  pub(crate) fn get_unspent_output_ranges(
+    &self,
+    wallet: Wallet,
+  ) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
+    self
+      .get_unspent_outputs(wallet)?
+      .into_keys()
+      .map(|outpoint| match self.list(outpoint)? {
+        Some(List::Unspent(sat_ranges)) => Ok((outpoint, sat_ranges)),
+        Some(List::Spent) => bail!("output {outpoint} in wallet but is spent according to index"),
+        None => bail!("index has not seen {outpoint}"),
+      })
+      .collect()
   }
 
   pub(crate) fn has_sat_index(&self) -> Result<bool> {
@@ -900,7 +916,10 @@ mod tests {
     }
 
     fn try_build(self) -> Result<Context> {
-      let rpc_server = test_bitcoincore_rpc::spawn();
+      let rpc_server = test_bitcoincore_rpc::builder()
+        .network(Network::Regtest)
+        .descriptors(vec!["tr()".into(), "tr()".into()])
+        .build();
 
       let tempdir = self.tempdir.unwrap_or_else(|| TempDir::new().unwrap());
       let cookie_file = tempdir.path().join("cookie");
@@ -922,6 +941,7 @@ mod tests {
       index.update().unwrap();
 
       Ok(Context {
+        options,
         rpc_server,
         tempdir,
         index,
@@ -945,6 +965,7 @@ mod tests {
   }
 
   struct Context {
+    options: Options,
     rpc_server: test_bitcoincore_rpc::Handle,
     #[allow(unused)]
     tempdir: TempDir,
@@ -2101,7 +2122,11 @@ mod tests {
     for context in Context::configurations() {
       context.rpc_server.mine_blocks(1);
       assert_regex_match!(
-        context.index.get_unspent_outputs().unwrap_err().to_string(),
+        context
+          .index
+          .get_unspent_outputs(Wallet::load(&context.options).unwrap())
+          .unwrap_err()
+          .to_string(),
         r"output in Bitcoin Core wallet but not in ord index: [[:xdigit:]]{64}:\d+"
       );
     }
