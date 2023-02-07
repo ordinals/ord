@@ -4,7 +4,7 @@ Ordinal Theory FAQ
 What is ordinal theory?
 -----------------------
 
-Ordinal theory is is a protocol for assigning serial numbers to satoshis, the
+Ordinal theory is a protocol for assigning serial numbers to satoshis, the
 smallest subdivision of a bitcoin, and tracking those satoshis as they are
 spent by transactions.
 
@@ -146,9 +146,9 @@ given Ethereum NFT is stored.
 
 *Inscriptions are much simpler.*
 
-Ethereum NFTs depend on the Ethereum network and virtual machine, which are
-highly complex, constantly changing, and which introduce changes via
-backwards-incompatible hard forks.
+Ethereum NFTs significantly depend on the Ethereum Virtual Machine(a runtime environment on the Ethereum network) and ERC-based Smart Contracts(ERC-721, ERC-1155, ETC), which are
+highly complex, constantly changing, and are at risk of
+backward-incompatible hard forks.
 
 Inscriptions, on the other hand, depend on the Bitcoin blockchain, which is
 relatively simple and conservative, and which introduces changes via
@@ -211,7 +211,7 @@ underlying protocol.
 
 ### RGB and Taro assets?
 
-RGB and Taro are both second-layer asset protocols built on Bitcoin. Compared
+<a href= "https://www.rgbfaq.com/faq/what-is-rgb">RGB</a> and <a href = "https://docs.lightning.engineering/the-lightning-network/taro">Taro</a> are both second-layer asset protocols built on Bitcoin. Compared
 to inscriptions, they are much more complicated, but much more featureful.
 
 Ordinal theory has been designed from the ground up for digital artifacts,
