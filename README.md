@@ -75,6 +75,12 @@ On Debian and Ubuntu, `ord` requires `libssl-dev` when building from source:
 sudo apt-get install libssl-dev
 ```
 
+### Docker
+
+```
+docker build -t casey/ord .
+```
+
 Syncing
 -------
 
