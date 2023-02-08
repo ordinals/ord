@@ -354,3 +354,14 @@ fn inscribe_with_dry_run_flag_fees_inscrease() {
 
   assert!(total_fee_dry_run < total_fee_normal);
 }
+
+#[test]
+fn inscribe_with_no_limit() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  CommandBuilder::new("wallet inscribe --no-limit degenerate.png")
+    .write("degenerate.png", [1; 1_000_000])
+    .rpc_server(&rpc_server);
+}
