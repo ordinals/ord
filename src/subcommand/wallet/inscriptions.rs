@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, crate::wallet::Wallet};
 
 #[derive(Serialize, Deserialize)]
 pub struct Output {
@@ -12,7 +12,7 @@ pub(crate) fn run(options: Options) -> Result {
   index.update()?;
 
   let inscriptions = index.get_inscriptions(None)?;
-  let unspent_outputs = index.get_unspent_outputs()?;
+  let unspent_outputs = index.get_unspent_outputs(Wallet::load(&options)?)?;
 
   let explorer = match options.chain() {
     Chain::Mainnet => "https://ordinals.com/inscription/",

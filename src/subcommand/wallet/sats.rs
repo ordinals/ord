@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, crate::wallet::Wallet};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Sats {
@@ -28,7 +28,7 @@ impl Sats {
     let index = Index::open(&options)?;
     index.update()?;
 
-    let utxos = get_unspent_output_ranges(&index)?;
+    let utxos = index.get_unspent_output_ranges(Wallet::load(&options)?)?;
 
     if let Some(path) = &self.tsv {
       let mut output = Vec::new();
