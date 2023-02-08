@@ -34,6 +34,11 @@ jobs:
         chmod +x mdbook-linkcheck
         pwd >> $GITHUB_PATH
 
+    - name: Prettier
+      uses: creyD/prettier_action@v4.2
+      with:
+        prettier_options: --write .
+
     - run: mdbook build docs
 
     - name: Deploy Pages
@@ -68,11 +73,6 @@ jobs:
       run: |
         sudo apt-get install ripgrep
         ./bin/forbid
-
-    - name: Prettier
-      uses: creyD/prettier_action@v4.2
-      with:
-        prettier_options: --write .
 
   test:
     strategy:
