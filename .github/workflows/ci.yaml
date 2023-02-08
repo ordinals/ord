@@ -69,6 +69,11 @@ jobs:
         sudo apt-get install ripgrep
         ./bin/forbid
 
+    - name: Prettier
+      uses: creyD/prettier_action@v4.2
+      with:
+        prettier_options: --write .
+
   test:
     strategy:
       matrix:
