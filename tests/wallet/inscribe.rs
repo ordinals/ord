@@ -361,7 +361,8 @@ fn inscribe_with_no_limit() {
   create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
+  let four_megger = std::iter::repeat(0).take(4_000_000).collect::<Vec<u8>>();
   CommandBuilder::new("wallet inscribe --no-limit degenerate.png")
-    .write("degenerate.png", [1; 1_000_000])
+    .write("degenerate.png", four_megger)
     .rpc_server(&rpc_server);
 }
