@@ -86,7 +86,7 @@ To build `ord` from source:
 ```
 git clone https://github.com/casey/ord.git
 cd ord
-cargo build
+cargo build --release
 ```
 
 Syncing
