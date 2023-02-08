@@ -113,8 +113,7 @@ impl Updater {
       uncommitted += 1;
 
       if uncommitted == 5000 {
-        self.commit(wtx, value_cache)?;
-        value_cache = HashMap::new();
+        self.commit(wtx, &mut value_cache)?;
         uncommitted = 0;
         wtx = index.begin_write()?;
         let height = wtx
@@ -146,7 +145,7 @@ impl Updater {
     }
 
     if uncommitted > 0 {
-      self.commit(wtx, value_cache)?;
+      self.commit(wtx, &mut value_cache)?;
     }
 
     if let Some(progress_bar) = &mut progress_bar {
@@ -475,7 +474,7 @@ impl Updater {
     Ok(())
   }
 
-  fn commit(&mut self, wtx: WriteTransaction, value_cache: HashMap<OutPoint, u64>) -> Result {
+  fn commit(&mut self, wtx: WriteTransaction, value_cache: &mut HashMap<OutPoint, u64>) -> Result {
     log::info!(
       "Committing at block height {}, {} outputs traversed, {} in map, {} cached",
       self.height,
@@ -504,7 +503,7 @@ impl Updater {
     {
       let mut outpoint_to_value = wtx.open_table(OUTPOINT_TO_VALUE)?;
 
-      for (outpoint, value) in value_cache {
+      for (outpoint, value) in value_cache.drain() {
         outpoint_to_value.insert(&outpoint.store(), &value)?;
       }
     }
