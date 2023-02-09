@@ -1,4 +1,4 @@
-FROM debian:bullseye as builder
+FROM rust:latest as builder
 
 ARG VERSION=0.4.2
 
@@ -11,7 +11,7 @@ RUN set -ex \
 	&& mkdir bin \
 	&& tar -xzvf ord.tar.gz -C /tmp/bin "ord"
 
-FROM debian:bullseye
+FROM rust:latest
 COPY --from=builder "/tmp/bin" /usr/local/bin
 
 ENTRYPOINT [ "ord" ]
