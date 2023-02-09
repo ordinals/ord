@@ -141,25 +141,6 @@ fn send_on_mainnnet_works_with_wallet_named_ord() {
 }
 
 #[test]
-fn send_on_mainnnet_works_with_wallet_whose_name_starts_with_ord() {
-  let rpc_server = test_bitcoincore_rpc::builder()
-    .wallet_name("ord-foo")
-    .build();
-  create_wallet(&rpc_server);
-  let txid = rpc_server.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0].txid();
-
-  let stdout = CommandBuilder::new(format!(
-    "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0"
-  ))
-  .rpc_server(&rpc_server)
-  .stdout_regex(r".*")
-  .run();
-
-  let txid = rpc_server.mempool()[0].txid();
-  assert_eq!(format!("{txid}\n"), stdout);
-}
-
-#[test]
 fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);

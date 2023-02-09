@@ -42,7 +42,6 @@ pub fn builder() -> Builder {
     fail_lock_unspent: false,
     network: Network::Bitcoin,
     version: 240000,
-    wallet_name: "ord",
   }
 }
 
@@ -50,7 +49,6 @@ pub struct Builder {
   fail_lock_unspent: bool,
   network: Network,
   version: usize,
-  wallet_name: &'static str,
 }
 
 impl Builder {
@@ -69,18 +67,10 @@ impl Builder {
     Self { version, ..self }
   }
 
-  pub fn wallet_name(self, wallet_name: &'static str) -> Self {
-    Self {
-      wallet_name,
-      ..self
-    }
-  }
-
   pub fn build(self) -> Handle {
     let state = Arc::new(Mutex::new(State::new(
       self.network,
       self.version,
-      self.wallet_name,
       self.fail_lock_unspent,
     )));
     let server = Server::new(state.clone());
