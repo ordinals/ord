@@ -8,6 +8,7 @@ homepage = "https://github.com/casey/ord"
 repository = "https://github.com/casey/ord"
 
 [dependencies]
+anyhow = "1.0.69"
 bitcoin = { version = "0.29.1", features = ["serde", "rand"] }
 hex = "0.4.3"
 jsonrpc-core = "18.0.0"

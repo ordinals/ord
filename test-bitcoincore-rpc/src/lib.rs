@@ -74,6 +74,7 @@ impl Builder {
       self.fail_lock_unspent,
     )));
     let server = Server::new(state.clone());
+    let p2p_port = server.listen().unwrap();
     let mut io = IoHandler::default();
     io.extend_with(server.to_delegate());
 
@@ -103,6 +104,7 @@ impl Builder {
     Handle {
       close_handle: Some(close_handle),
       port,
+      p2p_port,
       state,
     }
   }
@@ -158,12 +160,17 @@ impl<'a> Default for TransactionTemplate<'a> {
 pub struct Handle {
   close_handle: Option<CloseHandle>,
   port: u16,
+  p2p_port: u16,
   state: Arc<Mutex<State>>,
 }
 
 impl Handle {
   pub fn url(&self) -> String {
     format!("http://127.0.0.1:{}", self.port)
+  }
+
+  pub fn p2p_port(&self) -> String {
+    format!("{}", self.p2p_port)
   }
 
   fn state(&self) -> MutexGuard<State> {
@@ -190,7 +197,8 @@ impl Handle {
   }
 
   pub fn invalidate_tip(&self) -> BlockHash {
-    self.state().pop_block()
+    let header = self.state().pop_block();
+    header.block_hash()
   }
 
   pub fn get_utxo_amount(&self, outpoint: &OutPoint) -> Option<Amount> {
@@ -199,7 +207,7 @@ impl Handle {
 
   pub fn tx(&self, bi: usize, ti: usize) -> Transaction {
     let state = self.state();
-    state.blocks[&state.hashes[bi]].txdata[ti].clone()
+    state.blocks[&state.headers[bi].block_hash()].txdata[ti].clone()
   }
 
   pub fn mempool(&self) -> Vec<Transaction> {

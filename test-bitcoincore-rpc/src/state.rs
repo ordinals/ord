@@ -4,7 +4,7 @@ pub(crate) struct State {
   pub(crate) blocks: BTreeMap<BlockHash, Block>,
   pub(crate) descriptors: Vec<String>,
   pub(crate) fail_lock_unspent: bool,
-  pub(crate) hashes: Vec<BlockHash>,
+  pub(crate) headers: Vec<BlockHeader>,
   pub(crate) locked: BTreeSet<OutPoint>,
   pub(crate) mempool: Vec<Transaction>,
   pub(crate) network: Network,
@@ -19,19 +19,19 @@ pub(crate) struct State {
 
 impl State {
   pub(crate) fn new(network: Network, version: usize, fail_lock_unspent: bool) -> Self {
-    let mut hashes = Vec::new();
+    let mut headers = Vec::new();
     let mut blocks = BTreeMap::new();
 
     let genesis_block = bitcoin::blockdata::constants::genesis_block(network);
     let genesis_block_hash = genesis_block.block_hash();
-    hashes.push(genesis_block_hash);
+    headers.push(genesis_block.header);
     blocks.insert(genesis_block_hash, genesis_block);
 
     Self {
       blocks,
       descriptors: Vec::new(),
       fail_lock_unspent,
-      hashes,
+      headers,
       locked: BTreeSet::new(),
       mempool: Vec::new(),
       network,
@@ -87,7 +87,7 @@ impl State {
     let block = Block {
       header: BlockHeader {
         version: 0,
-        prev_blockhash: *self.hashes.last().unwrap(),
+        prev_blockhash: self.headers.last().unwrap().block_hash(),
         merkle_root: TxMerkleNode::all_zeros(),
         time: self.blocks.len().try_into().unwrap(),
         bits: 0,
@@ -115,24 +115,28 @@ impl State {
     }
 
     self.blocks.insert(block.block_hash(), block.clone());
-    self.hashes.push(block.block_hash());
+    self.headers.push(block.header);
     self.nonce += 1;
 
     block
   }
 
-  pub(crate) fn pop_block(&mut self) -> BlockHash {
-    let blockhash = self.hashes.pop().unwrap();
-    self.blocks.remove(&blockhash);
+  pub(crate) fn pop_block(&mut self) -> BlockHeader {
+    let header = self.headers.pop().unwrap();
+    self.blocks.remove(&header.block_hash());
 
-    blockhash
+    header
   }
 
   pub(crate) fn broadcast_tx(&mut self, template: TransactionTemplate) -> Txid {
     let mut total_value = 0;
     let mut input = Vec::new();
     for (i, (height, tx, vout)) in template.inputs.iter().enumerate() {
-      let tx = &self.blocks.get(&self.hashes[*height]).unwrap().txdata[*tx];
+      let tx = &self
+        .blocks
+        .get(&self.headers[*height].block_hash())
+        .unwrap()
+        .txdata[*tx];
       total_value += tx.output[*vout].value;
       input.push(TxIn {
         previous_output: OutPoint::new(tx.txid(), *vout as u32),
@@ -177,8 +181,14 @@ impl State {
   }
 
   pub(crate) fn get_confirmations(&self, tx: &Transaction) -> i32 {
-    for (confirmations, hash) in self.hashes.iter().rev().enumerate() {
-      if self.blocks.get(hash).unwrap().txdata.contains(tx) {
+    for (confirmations, header) in self.headers.iter().rev().enumerate() {
+      if self
+        .blocks
+        .get(&header.block_hash())
+        .unwrap()
+        .txdata
+        .contains(tx)
+      {
         return (confirmations + 1).try_into().unwrap();
       }
     }

@@ -1,11 +1,18 @@
 use {
   super::*,
+  anyhow::Result,
   bitcoin::{
+    consensus::{encode, Decodable},
+    network::{
+      message::{NetworkMessage, RawNetworkMessage},
+      message_blockdata::Inventory,
+    },
     psbt::serialize::Deserialize,
     secp256k1::{rand, KeyPair, Secp256k1, XOnlyPublicKey},
     Address, Witness,
   },
   bitcoincore_rpc::RawTx,
+  std::{cmp, io::Write, net::TcpListener},
 };
 
 pub(crate) struct Server {
@@ -17,6 +24,84 @@ impl Server {
   pub(crate) fn new(state: Arc<Mutex<State>>) -> Self {
     let network = state.lock().unwrap().network;
     Self { network, state }
+  }
+
+  pub(crate) fn listen(&self) -> Result<u16> {
+    let listener = TcpListener::bind("127.0.0.1:0")?;
+    let port = listener.local_addr()?.port();
+    let state = self.state.clone();
+
+    std::thread::spawn(move || loop {
+      let Ok((mut stream, _)) = listener.accept() else { return; };
+      let state = state.clone();
+      std::thread::spawn(move || loop {
+        let Ok(raw_msg) = RawNetworkMessage::consensus_decode(&mut stream) else {
+           return; };
+        let magic = raw_msg.magic;
+        let msg = raw_msg.payload;
+
+        match msg {
+          NetworkMessage::GetHeaders(req) => {
+            let start_hash = req.locator_hashes.first();
+            let headers = if start_hash.copied().unwrap_or_else(BlockHash::all_zeros)
+              == BlockHash::all_zeros()
+            {
+              let state = state.lock().unwrap();
+              state.headers[0..cmp::min(state.headers.len(), 2000)].to_vec()
+            } else {
+              let state = state.lock().unwrap();
+              let pos = state
+                .headers
+                .iter()
+                .position(|header| header.prev_blockhash == *start_hash.unwrap());
+              if let Some(pos) = pos {
+                state.headers[pos..cmp::min(state.headers.len(), 2000)].to_vec()
+              } else if let Some(last_header) = state.headers.last() {
+                if last_header.block_hash() == *start_hash.unwrap() {
+                  Vec::new()
+                } else {
+                  state.headers[0..cmp::min(state.headers.len(), 2000)].to_vec()
+                }
+              } else {
+                state.headers[0..cmp::min(state.headers.len(), 2000)].to_vec()
+              }
+            };
+            let msg = NetworkMessage::Headers(headers);
+            let raw_msg = RawNetworkMessage {
+              magic,
+              payload: msg,
+            };
+            let Ok(_) = stream.write_all(encode::serialize(&raw_msg).as_slice()) else { return; };
+          }
+          NetworkMessage::GetData(invs) => {
+            for inv in invs {
+              let Inventory::WitnessBlock(hash) = inv else { continue; };
+              let state = state.lock().unwrap();
+              let Some(block) = state.blocks.get(&hash) else { continue };
+              let msg = NetworkMessage::Block(block.clone());
+              let raw_msg = RawNetworkMessage {
+                magic,
+                payload: msg,
+              };
+              let Ok(_) = stream.write_all(encode::serialize(&raw_msg).as_slice()) else {
+                return; };
+              if hash == state.headers.last().unwrap().block_hash() {
+                return;
+              }
+            }
+          }
+          NetworkMessage::Version(_) => {
+            let raw_msg = RawNetworkMessage {
+              magic,
+              payload: NetworkMessage::Verack,
+            };
+            let Ok(_) = stream.write_all(encode::serialize(&raw_msg).as_slice()) else { return; };
+          }
+          _ => (),
+        }
+      });
+    });
+    Ok(port)
   }
 
   fn state(&self) -> MutexGuard<State> {
@@ -54,7 +139,7 @@ impl Api for Server {
       }),
       blocks: 0,
       headers: 0,
-      best_block_hash: self.state().hashes[0],
+      best_block_hash: self.state().headers[0].block_hash(),
       difficulty: 0.0,
       median_time: 0,
       verification_progress: 0.0,
@@ -91,8 +176,8 @@ impl Api for Server {
   }
 
   fn get_block_hash(&self, height: usize) -> Result<BlockHash, jsonrpc_core::Error> {
-    match self.state().hashes.get(height) {
-      Some(block_hash) => Ok(*block_hash),
+    match self.state().headers.get(height) {
+      Some(header) => Ok(header.block_hash()),
       None => Err(Self::not_found()),
     }
   }
@@ -105,9 +190,9 @@ impl Api for Server {
     if verbose {
       let height = match self
         .state()
-        .hashes
+        .headers
         .iter()
-        .position(|hash| *hash == block_hash)
+        .position(|header| header.block_hash() == block_hash)
       {
         Some(height) => height,
         None => return Err(Self::not_found()),
@@ -157,7 +242,7 @@ impl Api for Server {
     Ok(
       self
         .state()
-        .hashes
+        .headers
         .len()
         .saturating_sub(1)
         .try_into()
