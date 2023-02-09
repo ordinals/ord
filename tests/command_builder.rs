@@ -34,6 +34,7 @@ pub(crate) struct CommandBuilder {
   expected_stderr: Expected,
   expected_stdout: Expected,
   rpc_server_url: Option<String>,
+  p2p_port: Option<String>,
   tempdir: TempDir,
 }
 
@@ -45,6 +46,7 @@ impl CommandBuilder {
       expected_stderr: Expected::String(String::new()),
       expected_stdout: Expected::String(String::new()),
       rpc_server_url: None,
+      p2p_port: None,
       tempdir: TempDir::new().unwrap(),
     }
   }
@@ -57,6 +59,7 @@ impl CommandBuilder {
   pub(crate) fn rpc_server(self, rpc_server: &test_bitcoincore_rpc::Handle) -> Self {
     Self {
       rpc_server_url: Some(rpc_server.url()),
+      p2p_port: Some(rpc_server.p2p_port()),
       ..self
     }
   }
@@ -98,6 +101,8 @@ impl CommandBuilder {
       command.args([
         "--rpc-url",
         rpc_server_url,
+        "--p2p-port",
+        self.p2p_port.as_ref().unwrap(),
         "--cookie-file",
         cookiefile.to_str().unwrap(),
       ]);

@@ -945,6 +945,8 @@ mod tests {
         "ord".into(),
         "--rpc-url".into(),
         rpc_server.url().into(),
+        "--p2p-port".into(),
+        rpc_server.p2p_port().into(),
         "--data-dir".into(),
         tempdir.path().into(),
         "--cookie-file".into(),
