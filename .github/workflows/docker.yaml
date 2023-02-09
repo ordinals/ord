@@ -13,6 +13,9 @@ env:
 jobs:
   push:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     if: github.event_name == 'push'
     env:
       DOCKER_CLI_EXPERIMENTAL: "enabled"
