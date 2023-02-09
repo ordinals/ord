@@ -20,6 +20,7 @@ impl Preview {
     let tmpdir = TempDir::new()?;
 
     let rpc_port = TcpListener::bind("127.0.0.1:0")?.local_addr()?.port();
+    let p2p_port = TcpListener::bind("127.0.0.1:0")?.local_addr()?.port();
 
     let bitcoin_data_dir = tmpdir.path().join("bitcoin");
 
@@ -34,8 +35,9 @@ impl Preview {
         })
         .arg("-regtest")
         .arg("-txindex")
-        .arg("-listen=0")
+        .arg("-listen=1")
         .arg(format!("-rpcport={rpc_port}"))
+        .arg(format!("-port={p2p_port}"))
         .spawn()
         .context("failed to spawn `bitcoind`")?,
     );
@@ -45,6 +47,7 @@ impl Preview {
       bitcoin_data_dir: Some(bitcoin_data_dir),
       data_dir: Some(tmpdir.path().into()),
       rpc_url: Some(format!("127.0.0.1:{rpc_port}")),
+      p2p_port: Some(p2p_port),
       index_sats: true,
       ..Options::default()
     };

@@ -16,9 +16,11 @@ use {
   redb::{Database, ReadableTable, Table, TableDefinition, WriteStrategy, WriteTransaction},
   std::collections::HashMap,
   std::sync::atomic::{self, AtomicBool},
+  url::Url,
 };
 
 mod entry;
+mod p2p;
 mod rtx;
 mod updater;
 
@@ -43,7 +45,6 @@ define_table! { STATISTIC_TO_COUNT, u64, u64 }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u64, u128 }
 
 pub(crate) struct Index {
-  auth: Auth,
   client: Client,
   database: Database,
   path: PathBuf,
@@ -52,7 +53,8 @@ pub(crate) struct Index {
   genesis_block_coinbase_txid: Txid,
   height_limit: Option<u64>,
   reorged: AtomicBool,
-  rpc_url: String,
+  p2p_url: String,
+  network: Network,
 }
 
 #[derive(Debug, PartialEq)]
@@ -142,7 +144,7 @@ impl Index {
 
     let auth = Auth::CookieFile(cookie_file);
 
-    let client = Client::new(&rpc_url, auth.clone()).context("failed to connect to RPC URL")?;
+    let client = Client::new(&rpc_url, auth).context("failed to connect to RPC URL")?;
 
     let data_dir = options.data_dir()?;
 
@@ -229,9 +231,20 @@ impl Index {
     let genesis_block_coinbase_transaction =
       options.chain().genesis_block().coinbase().unwrap().clone();
 
+    let p2p_url = match Url::parse(&rpc_url) {
+      Ok(url) => url.host().unwrap().to_string(),
+      Err(_) => rpc_url
+        .split(':')
+        .collect::<Vec<_>>()
+        .first()
+        .unwrap()
+        .to_string(),
+    };
+
+    let p2p_url = format!("{}:{}", p2p_url, options.p2p_port());
+
     Ok(Self {
       genesis_block_coinbase_txid: genesis_block_coinbase_transaction.txid(),
-      auth,
       client,
       database,
       path,
@@ -239,7 +252,8 @@ impl Index {
       genesis_block_coinbase_transaction,
       height_limit: options.height_limit,
       reorged: AtomicBool::new(false),
-      rpc_url,
+      p2p_url,
+      network: options.chain().network(),
     })
   }
 

@@ -37,6 +37,8 @@ pub(crate) struct Options {
   pub(crate) regtest: bool,
   #[clap(long, help = "Connect to Bitcoin Core RPC at <RPC_URL>.")]
   pub(crate) rpc_url: Option<String>,
+  #[clap(long, help = "Connect to Bitcoin Core P2P at <P2P_PORT>.")]
+  pub(crate) p2p_port: Option<u16>,
   #[clap(long, short, help = "Use signet. Equivalent to `--chain signet`.")]
   pub(crate) signet: bool,
   #[clap(long, short, help = "Use testnet. Equivalent to `--chain testnet`.")]
@@ -78,6 +80,12 @@ impl Options {
         self.wallet
       )
     })
+  }
+
+  pub(crate) fn p2p_port(&self) -> u16 {
+    self
+      .p2p_port
+      .unwrap_or_else(|| self.chain().default_p2p_port())
   }
 
   pub(crate) fn cookie_file(&self) -> Result<PathBuf> {

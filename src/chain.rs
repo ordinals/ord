@@ -31,6 +31,15 @@ impl Chain {
     }
   }
 
+  pub(crate) fn default_p2p_port(self) -> u16 {
+    match self {
+      Self::Mainnet => 8333,
+      Self::Regtest => 18444,
+      Self::Signet => 38333,
+      Self::Testnet => 18333,
+    }
+  }
+
   pub(crate) fn inscription_content_size_limit(self) -> Option<usize> {
     match self {
       Self::Mainnet | Self::Regtest => None,

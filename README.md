@@ -93,7 +93,7 @@ Syncing
 -------
 
 `ord` requires a synced `bitcoind` node with `-txindex` to build the index of
-satoshi locations. `ord` communicates with `bitcoind` via RPC.
+satoshi locations. `ord` communicates with `bitcoind` via RPC and P2P.
 
 If `bitcoind` is run locally by the same user, without additional
 configuration, `ord` should find it automatically by reading the `.cookie` file

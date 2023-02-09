@@ -1,4 +1,9 @@
-use {self::inscription_updater::InscriptionUpdater, super::*, std::sync::mpsc};
+use {
+  self::inscription_updater::InscriptionUpdater,
+  super::{p2p::Connection, *},
+  bitcoin::hashes::Hash,
+  std::sync::mpsc,
+};
 
 mod inscription_updater;
 
@@ -90,13 +95,27 @@ impl Updater {
       Some(progress_bar)
     };
 
-    let rx = Self::fetch_blocks_from(index, self.height, self.index_sats)?;
+    let hash = 'hash: {
+      let Some(prev_height) = self.height.checked_sub(1) else { break 'hash Ok::<Option<BlockHash>, Error>(None); };
+
+      let height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
+
+      let hash = height_to_block_hash.get(prev_height)?.unwrap();
+      let hash = hash.value();
+      Ok(Some(BlockHash::from_slice(hash)?))
+    }?;
+
+    let rx = Self::fetch_blocks_from(index, self.height, hash, self.index_sats)?;
 
     let mut uncommitted = 0;
     let mut value_cache = HashMap::new();
     loop {
       let block = match rx.recv() {
-        Ok(block) => block,
+        Ok(Some(block)) => block,
+        Ok(None) => {
+          index.reorged.store(true, atomic::Ordering::Relaxed);
+          return Err(anyhow!("reorg detected at or before {}", self.height));
+        }
         Err(mpsc::RecvError) => break,
       };
 
@@ -159,88 +178,109 @@ impl Updater {
   fn fetch_blocks_from(
     index: &Index,
     mut height: u64,
+    hash: Option<BlockHash>,
     index_sats: bool,
-  ) -> Result<mpsc::Receiver<BlockData>> {
+  ) -> Result<mpsc::Receiver<Option<BlockData>>> {
     let (tx, rx) = mpsc::sync_channel(32);
 
     let height_limit = index.height_limit;
 
-    let client =
-      Client::new(&index.rpc_url, index.auth.clone()).context("failed to connect to RPC URL")?;
+    let mut conn = Connection::connect(index.network, index.p2p_url.parse()?)
+      .context("Failed to connect to P2P URL. Is listen=1 set in bitcoin.conf?")?;
 
     // NB: We temporarily always fetch transactions, to avoid expensive cache misses.
     let first_inscription_height = index.first_inscription_height.min(0);
 
+    let mut hash = hash;
     thread::spawn(move || loop {
       if let Some(height_limit) = height_limit {
         if height >= height_limit {
-          break;
+          return;
         }
       }
 
-      match Self::get_block_with_retries(&client, height, index_sats, first_inscription_height) {
-        Ok(Some(block)) => {
-          if let Err(err) = tx.send(block.into()) {
+      let headers = conn.get_headers(hash).unwrap();
+
+      match headers.first() {
+        None => return,
+        Some(new_header) => {
+          if let Some(prev_hash) = hash {
+            if new_header.prev_blockhash != prev_hash {
+              // Reorg
+              if let Err(err) = tx.send(None) {
+                log::info!("Block receiver disconnected: {err}");
+                return;
+              }
+              return;
+            }
+          }
+        }
+      }
+      hash = headers.last().map(|header| header.block_hash());
+      let headers_only_height = if index_sats || height >= first_inscription_height {
+        0
+      } else {
+        cmp::min(
+          headers.len(),
+          (first_inscription_height - height).try_into().unwrap(),
+        )
+      };
+      for header in &headers[0..headers_only_height] {
+        let block = Block {
+          header: *header,
+          txdata: Vec::new(),
+        };
+        if let Err(err) = tx.send(Some(block.into())) {
+          log::info!("Block receiver disconnected: {err}");
+          return;
+        }
+        height += 1;
+        if let Some(height_limit) = height_limit {
+          if height >= height_limit {
+            return;
+          }
+        }
+      }
+
+      let remainder = headers.len() as u64;
+      let remainder = if let Some(height_limit) = height_limit {
+        if height_limit < height + remainder {
+          height + remainder - height_limit
+        } else {
+          remainder
+        }
+      } else {
+        remainder
+      };
+      let remaining_headers = &headers[headers_only_height..remainder.try_into().unwrap()];
+      let hashes = remaining_headers
+        .iter()
+        .map(|header| header.block_hash())
+        .collect::<Vec<_>>();
+      let chunk_size = 10;
+      for chunk in hashes.chunks(chunk_size) {
+        let mut disconnected = false;
+        let _ = conn.for_blocks(chunk, |block| {
+          if disconnected {
+            return;
+          }
+          if let Err(err) = tx.send(Some(block.into())) {
             log::info!("Block receiver disconnected: {err}");
-            break;
+            disconnected = true;
           }
           height += 1;
+        });
+        if disconnected {
+          return;
         }
-        Ok(None) => break,
-        Err(err) => {
-          log::error!("failed to fetch block {height}: {err}");
-          break;
-        }
+      }
+      let max_headers_len = 2000;
+      if headers.len() < max_headers_len {
+        return;
       }
     });
 
     Ok(rx)
-  }
-
-  fn get_block_with_retries(
-    client: &Client,
-    height: u64,
-    index_sats: bool,
-    first_inscription_height: u64,
-  ) -> Result<Option<Block>> {
-    let mut errors = 0;
-    loop {
-      match client
-        .get_block_hash(height)
-        .into_option()
-        .and_then(|option| {
-          option
-            .map(|hash| {
-              if index_sats || height >= first_inscription_height {
-                Ok(client.get_block(&hash)?)
-              } else {
-                Ok(Block {
-                  header: client.get_block_header(&hash)?,
-                  txdata: Vec::new(),
-                })
-              }
-            })
-            .transpose()
-        }) {
-        Err(err) => {
-          if cfg!(test) {
-            return Err(err);
-          }
-
-          errors += 1;
-          let seconds = 1 << errors;
-          log::warn!("failed to fetch block {height}, retrying in {seconds}s: {err}");
-
-          if seconds > 120 {
-            log::error!("would sleep for more than 120s, giving up");
-            return Err(err);
-          }
-
-          thread::sleep(Duration::from_secs(seconds));
-        }
-        Ok(result) => return Ok(result),
-      }
-    }
   }
 
   fn index_block(
@@ -264,15 +304,6 @@ impl Updater {
       time,
       block.txdata.len()
     );
-
-    if let Some(prev_height) = self.height.checked_sub(1) {
-      let prev_hash = height_to_block_hash.get(&prev_height)?.unwrap();
-
-      if prev_hash.value() != block.header.prev_blockhash.as_ref() {
-        index.reorged.store(true, atomic::Ordering::Relaxed);
-        return Err(anyhow!("reorg detected at or before {prev_height}"));
-      }
-    }
 
     let mut inscription_id_to_inscription_entry =
       wtx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
