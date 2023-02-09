@@ -211,7 +211,7 @@ underlying protocol.
 
 ### RGB and Taro assets?
 
-<a href= "https://www.rgbfaq.com/faq/what-is-rgb">RGB</a> and <a href = "https://docs.lightning.engineering/the-lightning-network/taro">Taro</a> are both second-layer asset protocols built on Bitcoin. Compared
+[RGB](https://www.rgbfaq.com/faq/what-is-rgb) and [Taro](https://docs.lightning.engineering/the-lightning-network/taro) are both second-layer asset protocols built on Bitcoin. Compared
 to inscriptions, they are much more complicated, but much more featureful.
 
 Ordinal theory has been designed from the ground up for digital artifacts,
