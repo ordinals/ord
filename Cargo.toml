@@ -8,6 +8,7 @@ autotests = false
 homepage = "https://github.com/casey/ord"
 repository = "https://github.com/casey/ord"
 autobins = false
+rust-version = "1.67"
 
 [workspace]
 members = [".", "test-bitcoincore-rpc"]
