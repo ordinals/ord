@@ -1,4 +1,4 @@
-FROM debian:stretch-slim as builder
+FROM debian:bullseye as builder
 
 ARG VERSION=0.4.2
 
@@ -11,7 +11,7 @@ RUN set -ex \
 	&& mkdir bin \
 	&& tar -xzvf ord.tar.gz -C /tmp/bin "ord"
 
-FROM debian:stretch-slim
+FROM debian:bullseye
 COPY --from=builder "/tmp/bin" /usr/local/bin
 
 ENTRYPOINT [ "ord" ]
