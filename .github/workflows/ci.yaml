@@ -20,13 +20,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-      with:
-        ref: ${{ github.head_ref }}
 
     - name: Run Prettier
       uses: creyD/prettier_action@v4.2
       with:
-        prettier_options: --write .
+        dry: true
+        prettier_options: --check .
 
     - uses: peaceiris/actions-mdbook@v1
       with:
