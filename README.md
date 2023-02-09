@@ -89,6 +89,8 @@ cd ord
 cargo build --release
 ```
 
+The default location for the `ord` binary once built is `./target/release/ord`.
+
 Syncing
 -------
 
