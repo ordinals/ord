@@ -20,6 +20,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        ref: ${{ github.head_ref }}
+
+    - name: Run Prettier
+      uses: creyD/prettier_action@v4.2
+      with:
+        prettier_options: --write .
 
     - uses: peaceiris/actions-mdbook@v1
       with:
@@ -33,11 +40,6 @@ jobs:
         unzip mdbook-linkcheck.x86_64-unknown-linux-gnu.zip
         chmod +x mdbook-linkcheck
         pwd >> $GITHUB_PATH
-
-    - name: Prettier
-      uses: creyD/prettier_action@v4.2
-      with:
-        prettier_options: --write .
 
     - run: mdbook build docs
 
