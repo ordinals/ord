@@ -81,7 +81,7 @@ impl Preview {
             no_backup: true,
             satpoint: None,
             dry_run: false,
-            inscription_destination: None,
+            destination: None,
           },
         )),
       }
