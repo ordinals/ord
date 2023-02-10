@@ -19,8 +19,6 @@ RUN set -ex \
 	&& cargo clean \
 	&& cargo build --release
 
-RUN ls -la
-
 FROM debian:buster-slim
 
 # Copy the compiled binaries into the new container.
