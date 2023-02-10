@@ -141,7 +141,6 @@ impl Options {
         log::info!(
           "Connecting to Bitcoin Core RPC server at {rpc_url} using rpc_pass for `{rpc_user}`",
         );
-
         Client::new(&rpc_url, Auth::UserPass(rpc_user, rpc_pass))
           .with_context(|| format!("failed to connect to Bitcoin Core RPC at {rpc_url}"))?
       } else {

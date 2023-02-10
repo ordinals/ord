@@ -1,5 +1,4 @@
-use super::*;
-use std::collections::BTreeSet;
+use {super::*, crate::wallet::Wallet, std::collections::BTreeSet};
 
 #[derive(Serialize, Deserialize)]
 pub struct Output {
@@ -17,7 +16,7 @@ pub(crate) fn run(options: Options) -> Result {
     .collect::<BTreeSet<OutPoint>>();
 
   let mut balance = 0;
-  for (outpoint, amount) in index.get_unspent_outputs()? {
+  for (outpoint, amount) in index.get_unspent_outputs(Wallet::load(&options)?)? {
     if !inscription_outputs.contains(&outpoint) {
       balance += amount.to_sat()
     }
