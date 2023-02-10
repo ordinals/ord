@@ -45,4 +45,4 @@ jobs:
           --file ./Dockerfile 
           --tag ghcr.io/tiero/$IMAGE_NAME:latest 
           --tag ghcr.io/tiero/$IMAGE_NAME:$VERSION 
-          --platform linux/amd64, linux/arm64 .
+          --platform linux/amd64,linux/arm64 .
