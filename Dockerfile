@@ -8,11 +8,17 @@ WORKDIR /builder
 
 RUN set -ex \
 	&& apt update \
-	&& apt install -y libssl-dev \
-	&& git clone https://github.com/casey/ord.git \
+	&& apt install -y libssl-dev
+
+
+RUN git clone https://github.com/casey/ord.git
+
+
+RUN set -ex \
 	&& cd ord \
 	&& cargo clean \
-	&& cargo build --release
+	&& cargo build --release \
+	&& ls -la
 
 FROM debian:buster-slim
 
