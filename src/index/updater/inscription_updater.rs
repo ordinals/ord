@@ -98,7 +98,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         {
           value.value()
         } else {
-          self
+          let tx = self
             .index
             .get_transaction(tx_in.previous_output.txid)?
             .ok_or_else(|| {
@@ -106,9 +106,23 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
                 "failed to get transaction for {}",
                 tx_in.previous_output.txid
               )
-            })?
-            .output[usize::try_from(tx_in.previous_output.vout).unwrap()]
-          .value
+            })?;
+          // Put all outputs we're not using into value cache
+          let txid = tx.txid();
+          let index = usize::try_from(tx_in.previous_output.vout).unwrap();
+          for (i, output) in tx.output.iter().enumerate() {
+            if index == i {
+              continue;
+            }
+            self.value_cache.insert(
+              OutPoint {
+                txid,
+                vout: i.try_into().unwrap(),
+              },
+              output.value,
+            );
+          }
+          tx.output[index].value
         };
       }
     }
