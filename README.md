@@ -24,6 +24,8 @@ where the project is and where it's going.
 Join [the Discord server](https://discord.gg/87cjuz4FYg) to chat with fellow
 ordinal degenerates.
 
+See [the Chinese intro](/docs/src/chinese-intro.md) for explaination and bitcoin regtest net guides.
+
 Wallet
 ------
 
