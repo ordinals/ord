@@ -12,8 +12,6 @@ they are mined, and preserved across transactions.
 
 See [the docs](https://docs.ordinals.com) for documentation and guides.
 
-See [the Chinese intro](./README-cn.md) for documentation and regtest net guides.
-
 See [the BIP](bip.mediawiki) for a technical description of the assignment and
 transfer algorithm.
 
