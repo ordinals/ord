@@ -380,6 +380,7 @@ fn inscribe_to_specific_destination() {
     destination.script_pubkey()
   );
 }
+
 #[test]
 fn inscribe_with_no_limit() {
   let rpc_server = test_bitcoincore_rpc::spawn();
