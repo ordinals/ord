@@ -2,18 +2,24 @@ FROM rust:latest as builder
 
 ARG VERSION=0.4.2
 
+RUN USER=root
+RUN mkdir builder
+WORKDIR /builder
+
 RUN set -ex \
 	&& apt-get update \
-	&& apt-get install -qq --no-install-recommends ca-certificates wget \
-	&& cd /tmp \
-	&& wget -qO ord.tar.gz "https://github.com/casey/ord/releases/download/${VERSION}/ord-${VERSION}-x86_64-unknown-linux-gnu.tar.gz" \
-  && ls -la \
-	&& mkdir bin \
-	&& tar -xzvf ord.tar.gz -C /tmp/bin "ord"
+	&& apt-get install libssl-dev \
+	&& git clone https://github.com/casey/ord.git \
+	&& cd ord \
+	&& cargo clean \
+	&& cargo build --release
 
-FROM rust:latest
-COPY --from=builder "/tmp/bin" /usr/local/bin
+FROM debian:buster-slim
 
-ENTRYPOINT [ "ord" ]
+# Copy the compiled binaries into the new container.
+COPY --from=builder /builder/target/release/ord /usr/local/bin
+
+CMD ["ord"]
+
 
 
