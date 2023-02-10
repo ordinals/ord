@@ -2,7 +2,7 @@ FROM rust:latest as builder
 
 ARG VERSION=0.4.2
 
-RUN USER=root
+USER root
 RUN mkdir builder
 WORKDIR /builder
 
@@ -19,12 +19,10 @@ RUN set -ex \
 	&& cargo clean \
 	&& cargo build --release
 
-FROM debian:buster-slim
-
-# Copy the compiled binaries into the new container.
+FROM debian:bullseye-slim AS runtime
+USER root
 COPY --from=builder /builder/ord/target/release/ord /usr/local/bin
-
-CMD ["ord"]
+ENTRYPOINT ["/usr/local/bin/ord"]
 
 
 
