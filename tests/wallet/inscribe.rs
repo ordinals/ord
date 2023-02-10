@@ -375,3 +375,14 @@ fn inscribe_to_specific_destination() {
   assert_eq!(reveal_tx.output.first().unwrap().script_pubkey, destination.script_pubkey());
 
 }
+#[test]
+fn inscribe_with_no_limit() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  let four_megger = std::iter::repeat(0).take(4_000_000).collect::<Vec<u8>>();
+  CommandBuilder::new("wallet inscribe --no-limit degenerate.png")
+    .write("degenerate.png", four_megger)
+    .rpc_server(&rpc_server);
+}

@@ -75,6 +75,22 @@ On Debian and Ubuntu, `ord` requires `libssl-dev` when building from source:
 sudo apt-get install libssl-dev
 ```
 
+You'll also need Rust:
+
+```
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+To build `ord` from source:
+
+```
+git clone https://github.com/casey/ord.git
+cd ord
+cargo build --release
+```
+
+`ord` requires `rustc` version 1.67.0 or later. Run `rustc --version` to ensure you have this version. Run `rustup update` to get the latest stable release.
+
 Syncing
 -------
 

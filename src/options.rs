@@ -130,7 +130,9 @@ impl Options {
   }
 
   pub(crate) fn bitcoin_rpc_client(&self) -> Result<Client> {
-    let cookie_file = self.cookie_file()?;
+    let cookie_file = self
+      .cookie_file()
+      .map_err(|err| anyhow!("failed to get cookie file path: {err}"))?;
 
     let rpc_url = self.rpc_url();
 
@@ -139,8 +141,13 @@ impl Options {
       cookie_file.display()
     );
 
-    let client = Client::new(&rpc_url, Auth::CookieFile(cookie_file))
-      .with_context(|| format!("failed to connect to Bitcoin Core RPC at {rpc_url}"))?;
+    let client =
+      Client::new(&rpc_url, Auth::CookieFile(cookie_file.clone())).with_context(|| {
+        format!(
+          "failed to connect to Bitcoin Core RPC at {rpc_url} using cookie file {}",
+          cookie_file.display()
+        )
+      })?;
 
     let rpc_chain = match client.get_blockchain_info()?.chain.as_str() {
       "main" => Chain::Mainnet,

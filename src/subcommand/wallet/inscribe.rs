@@ -1,5 +1,6 @@
 use {
   super::*,
+  crate::wallet::Wallet,
   bitcoin::{
     blockdata::{opcodes, script},
     policy::MAX_STANDARD_TX_WEIGHT,
@@ -44,6 +45,11 @@ pub(crate) struct Inscribe {
   pub(crate) file: PathBuf,
   #[clap(long, help = "Do not back up recovery key.")]
   pub(crate) no_backup: bool,
+  #[clap(
+    long,
+    help = "Do not check that transactions are equal to or below the MAX_STANDARD_TX_WEIGHT of 400,000 weight units. Transactions over this limit are currently nonstandard and will not be relayed by bitcoind in its default configuration. Do not use this flag unless you understand the implications."
+  )]
+  pub(crate) no_limit: bool,
   #[clap(long, help = "Don't sign or broadcast transactions.")]
   pub(crate) dry_run: bool,
   #[clap(long, help = "Send inscription to <DESTINATION>")]
@@ -59,7 +65,7 @@ impl Inscribe {
     let index = Index::open(&options)?;
     index.update()?;
 
-    let mut utxos = index.get_unspent_outputs()?;
+    let mut utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
 
     let inscriptions = index.get_inscriptions(None)?;
 
@@ -80,6 +86,7 @@ impl Inscribe {
         reveal_tx_destination,
         self.commit_fee_rate.unwrap_or(self.fee_rate),
         self.fee_rate,
+        self.no_limit,
       )?;
 
     utxos.insert(
@@ -143,6 +150,7 @@ impl Inscribe {
     destination: Address,
     commit_fee_rate: FeeRate,
     reveal_fee_rate: FeeRate,
+    no_limit: bool,
   ) -> Result<(Transaction, Transaction, TweakedKeyPair)> {
     let satpoint = if let Some(satpoint) = satpoint {
       satpoint
@@ -285,7 +293,7 @@ impl Inscribe {
 
     let reveal_weight = reveal_tx.weight();
 
-    if reveal_weight > MAX_STANDARD_TX_WEIGHT.try_into().unwrap() {
+    if !no_limit && reveal_weight > MAX_STANDARD_TX_WEIGHT.try_into().unwrap() {
       bail!(
         "reveal transaction weight greater than {MAX_STANDARD_TX_WEIGHT} (MAX_STANDARD_TX_WEIGHT): {reveal_weight}"
       );
@@ -380,6 +388,7 @@ mod tests {
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
+      false,
     )
     .unwrap();
 
@@ -410,6 +419,7 @@ mod tests {
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
+      false,
     )
     .unwrap();
 
@@ -444,6 +454,7 @@ mod tests {
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
+      false,
     )
     .unwrap_err()
     .to_string();
@@ -485,6 +496,7 @@ mod tests {
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
+      false,
     )
     .is_ok())
   }
@@ -520,6 +532,7 @@ mod tests {
       reveal_address,
       FeeRate::try_from(fee_rate).unwrap(),
       FeeRate::try_from(fee_rate).unwrap(),
+      false,
     )
     .unwrap();
 
@@ -581,6 +594,7 @@ mod tests {
       reveal_address,
       FeeRate::try_from(commit_fee_rate).unwrap(),
       FeeRate::try_from(fee_rate).unwrap(),
+      false,
     )
     .unwrap();
 
@@ -629,6 +643,7 @@ mod tests {
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
+      false,
     )
     .unwrap_err()
     .to_string();
@@ -638,5 +653,31 @@ mod tests {
       "{}",
       error
     );
+  }
+
+  #[test]
+  fn inscribe_with_no_max_standard_tx_weight() {
+    let utxos = vec![(outpoint(1), Amount::from_sat(50 * COIN_VALUE))];
+
+    let inscription = inscription("text/plain", [0; MAX_STANDARD_TX_WEIGHT as usize]);
+    let satpoint = None;
+    let commit_address = change(0);
+    let reveal_address = recipient();
+
+    let (_commit_tx, reveal_tx, _private_key) = Inscribe::create_inscription_transactions(
+      satpoint,
+      inscription,
+      BTreeMap::new(),
+      Network::Bitcoin,
+      utxos.into_iter().collect(),
+      [commit_address, change(1)],
+      reveal_address,
+      FeeRate::try_from(1.0).unwrap(),
+      FeeRate::try_from(1.0).unwrap(),
+      true,
+    )
+    .unwrap();
+
+    assert!(reveal_tx.size() >= MAX_STANDARD_TX_WEIGHT as usize);
   }
 }
