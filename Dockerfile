@@ -7,8 +7,8 @@ RUN mkdir builder
 WORKDIR /builder
 
 RUN set -ex \
-	&& apt-get update \
-	&& apt-get install libssl-dev \
+	&& apt update \
+	&& apt install -y libssl-dev \
 	&& git clone https://github.com/casey/ord.git \
 	&& cd ord \
 	&& cargo clean \
