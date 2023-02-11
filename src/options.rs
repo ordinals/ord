@@ -1,6 +1,6 @@
 use {super::*, bitcoincore_rpc::Auth};
 
-#[derive(Clone, Default, Debug, Parser)]
+#[derive(Clone, Default, Debug, Deserialize, Parser)]
 #[clap(group(
   ArgGroup::new("chains")
     .required(false)
