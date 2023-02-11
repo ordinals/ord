@@ -18,7 +18,7 @@ use {
   std::sync::atomic::{self, AtomicBool},
 };
 
-mod entry;
+pub(crate) mod entry;
 mod rtx;
 mod updater;
 
