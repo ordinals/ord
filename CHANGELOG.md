@@ -1,7 +1,7 @@
 Changelog
 =========
 
-[0.5.0](https://github.com/casey/ord/releases/tag/0.5.0) - 2022-02-11
+[0.5.0](https://github.com/casey/ord/releases/tag/0.5.0) - 2023-02-11
 ---------------------------------------------------------------------
 
 ### Breaking Changes
@@ -67,7 +67,7 @@ Changelog
 - Avoid listening on 0.0.0.0 in tests (#1365)
 - Rename `GitHub` nav link to `Wallet` (#1360)
 
-[0.4.2](https://github.com/casey/ord/releases/tag/0.4.2) - 2022-01-24
+[0.4.2](https://github.com/casey/ord/releases/tag/0.4.2) - 2023-01-24
 ---------------------------------------------------------------------
 
 ### Changed
@@ -79,7 +79,7 @@ Changelog
 ### Misc
 - Fix guide typo: getblockchount -> getblockcount (#1354)
 
-[0.4.1](https://github.com/casey/ord/releases/tag/0.4.1) - 2022-01-24
+[0.4.1](https://github.com/casey/ord/releases/tag/0.4.1) - 2023-01-24
 ---------------------------------------------------------------------
 
 ### Added
@@ -110,7 +110,7 @@ Changelog
 - Serve favicon as PNG to Safari and SVG others (#1302)
 - Use sans-serif font for height on clock (#1300)
 
-[0.4.0](https://github.com/casey/ord/releases/tag/0.4.0) - 2022-01-19
+[0.4.0](https://github.com/casey/ord/releases/tag/0.4.0) - 2023-01-19
 ---------------------------------------------------------------------
 
 ### Added
