@@ -1,6 +1,69 @@
 Contributing
 ============
 
+# Disclaimer
+
 Unless you explicitly state otherwise, any contribution intentionally
 submitted for inclusion in the work by you shall be licensed as in
 LICENSE, without any additional terms or conditions.
+
+# Table of Contents
+
+Contributions are welcome! Here's how you can help:
+
+- [Reporting Errors/Issues](#issues)
+- [Contributing Code/Documentation](#code)
+- [Translating](#translations)
+
+## Code
+
+1. [Fork](https://help.github.com/articles/fork-a-repo/) the repository and
+   [clone](https://help.github.com/articles/cloning-a-repository/) your fork.
+
+2. Before you start coding, consider opening an
+   [issue at Github](https://github.com/casey/ord/issues) to discuss the
+   suitability and implementation of your intended contribution with the ord development community.
+
+   You may also benefit from discussing on our [Discord](https://discord.gg/ordinals). 
+   or our [Github Discussion Board](https://github.com/casey/ord/discussions)
+
+3. Start coding!
+    - Refer to the
+      [Contributor Documentation](https://docs.ordinals.com/contributing.html)
+    - Follow the [Rust Code Style](.github/workflows/ci.yaml) code-style/linting.
+    - Check your code works, has relevant/effective testing, and resolves/mitigates the targeted error.
+
+4. Commit & [push](https://help.github.com/articles/pushing-to-a-remote/) your changes to a new branch (not `master`)
+    - Commit messages should:
+        - Avoid opinionated language
+        - Be descriptive. See the commit messages by core developers for examples.
+
+5. Once you are happy with your changes, submit a pull request.
+     - Open the [pull-request form](https://github.com/casey/ord/pull/new/master).
+     - Add a description explaining what you've done and/or what is left to be done.
+     - TODO: Develop pull request template
+
+### A pull-request may be considered for merging when:
+
+1. It works.
+2. It follows the code style/linting for [Rust](.github/workflows/ci.yaml).
+3. The code's interfaces is well-designed and extensive/conducive to further development
+4. It uses libraries and patterns which include/expose the required compatibility.
+
+## Issues
+
+If you experience an issue, we would like to know the details.
+
+1. Do a quick search on GitHub to check if the issue has already been reported.
+2. [Open an issue](https://github.com/casey/ord/issues/new) and describe
+   the issue you are having - you could include:
+     - Error logs and Screenshots
+     - Ways you have tried to solve the issue, and whether they worked or not
+     - Your platform (e.g. Windows 10 or Ubuntu 15.04 x64)
+
+After reporting, you should continue to participate in discussion to help identify the root cause for timely resolution.
+
+## Translations
+
+TODO: Documentation regarding how best to assist translation/localization efforts
+
