@@ -1,6 +1,72 @@
 Changelog
 =========
 
+[0.5.0](https://github.com/casey/ord/releases/tag/0.5.0) - 2022-02-11
+---------------------------------------------------------------------
+
+### Breaking Changes
+- Upgrade to redb 0.13.0 (#1513)
+- Update redb to 0.12.1 (#1329)
+- Display inscription genesis fee (#1381)
+
+### Added
+- Add support for `.glb` inscriptions (#1689)
+- Add --no-limit flag to bypass MAX_STANDARD_TX_WEIGHT check to allow four meggers (#1571)
+- Add `--commit-fee-rate` for setting inscribe commit transaction fee rate (#1490)
+- Allow viewing but not creating AVIF inscriptions (#1428)
+- Support STL inscriptions (#1492)
+- Support MP4 inscriptions (#1419)
+- Preview JSON and YAML inscriptions as text (#1449)
+- Display inputs on /tx (#1433)
+- Support PGP signature inscriptions (#1413)
+- Add config (#1392)
+- Add paging to /inscriptions (#1279)
+
+### Changed
+- Increase deployment mempool size to 1024 megabytes (#1587)
+- Increase number of inscriptions in RSS feed (#1567)
+- Link to block from /inscription (#1395)
+- Use favicon as icon for Twitter preview (#1425)
+- Allow data URIs in content security policy (#1422)
+- Raise server open file limit (#1408)
+- Remove HTTP to HTTPS redirect (#1414)
+- Use JSON for more command output (#1367)
+- Use JSON for `wallet` command output (#1359)
+
+### Misc
+- Set rustc version in Cargo.toml & README (#1615)
+- Disable Prettier format-on-save (#1593)
+- Add build instructions to README (#1573)
+- Ensure wallet commands load wallet (#1524)
+- Improve error messages related to cookie file (#1537)
+- Include inscription ID in text inscription decode error (#1540)
+- Lazily load iframes (#1456)
+- Log recoverable errors as warnings
+- Add alert pop-up example (#1498)
+- Use custom Discord invite link in handbox (#1506)
+- Note that bounty 3 requires sat index (#1509)
+- Link donation addresses to mempool.space (#1510)
+- Add linebreak to donate page (#1500)
+- Add donate page to handbook (#1499)
+- Moderation guide typo: wiht → with (#1483)
+- Add moderation guide (#1473)
+- Add collecting guide to docs (#1474)
+- Add missing dependencies to shell.nix (#1463)
+- Mute and autoplay video inscriptions (#1420)
+- Throw an error Bitcoin Core wallet and ord index are out of sync (#1459)
+- Typo: managment -> management (#1441)
+- Fix README.md grammar (#1406)
+- Typo: Aritacts -> Artifacts (#1434)
+- Update justfile to use unproxied domains (#1391)
+- Typo: sat -> sats (#1411)
+- Docs: `ord wallet utxos` -> `ord wallet outputs` (#1405)
+- Round expected sat timestamps (#1386)
+- Remove ellipsis (#1376)
+- Hide overflowing ordered lists (#1384)
+- Compress responses (#1366)
+- Avoid listening on 0.0.0.0 in tests (#1365)
+- Rename `GitHub` nav link to `Wallet` (#1360)
+
 [0.4.2](https://github.com/casey/ord/releases/tag/0.4.2) - 2022-01-24
 ---------------------------------------------------------------------
 
