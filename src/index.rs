@@ -22,7 +22,7 @@ mod entry;
 mod rtx;
 mod updater;
 
-const SCHEMA_VERSION: u64 = 2;
+const SCHEMA_VERSION: u64 = 3;
 
 macro_rules! define_table {
   ($name:ident, $key:ty, $value:ty) => {
