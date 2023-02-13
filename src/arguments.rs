@@ -11,7 +11,6 @@ pub(crate) struct Arguments {
 
 impl Arguments {
   pub(crate) fn run(self) -> Result {
-      
     self.subcommand.run(self.options)
   }
 }
