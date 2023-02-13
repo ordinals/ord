@@ -544,7 +544,7 @@ mod tests {
   }
 
   #[test]
-  fn config_is_loaded_from_config_option_file_path() {
+  fn config_is_loaded_from_config_option_path() {
     let id = "8d363b28528b0cb86b5fd48615493fb175bdf132d2a3d20b4251bba3f130a5abi0"
       .parse::<InscriptionId>()
       .unwrap();
@@ -566,7 +566,7 @@ mod tests {
   }
 
   #[test]
-  fn config_is_loaded_from_config_option_dir_path() {
+  fn config_is_loaded_from_config_dir_option_path() {
     let id = "8d363b28528b0cb86b5fd48615493fb175bdf132d2a3d20b4251bba3f130a5abi0"
       .parse::<InscriptionId>()
       .unwrap();
