@@ -17,29 +17,31 @@ pub(crate) enum Media {
 
 impl Media {
   const TABLE: &'static [(&'static str, Media, &'static [&'static str])] = &[
-    ("application/json", Media::Text, &["json"]),
-    ("application/pdf", Media::Pdf, &["pdf"]),
-    ("application/pgp-signature", Media::Text, &["asc"]),
-    ("application/yaml", Media::Text, &["yaml", "yml"]),
-    ("audio/flac", Media::Audio, &["flac"]),
-    ("audio/mpeg", Media::Audio, &["mp3"]),
-    ("audio/wav", Media::Audio, &["wav"]),
-    ("image/apng", Media::Image, &["apng"]),
-    ("image/avif", Media::Image, &[]),
-    ("image/gif", Media::Image, &["gif"]),
-    ("image/jpeg", Media::Image, &["jpg", "jpeg"]),
-    ("image/png", Media::Image, &["png"]),
-    ("image/svg+xml", Media::Iframe, &["svg"]),
-    ("image/webp", Media::Image, &["webp"]),
-    ("model/gltf-binary", Media::Unknown, &["glb"]),
-    ("model/stl", Media::Unknown, &["stl"]),
-    ("text/html;charset=utf-8", Media::Iframe, &["html"]),
-    ("text/plain;charset=utf-8", Media::Text, &["txt"]),
-    ("video/mp4", Media::Video, &["mp4"]),
-    ("video/webm", Media::Video, &["webm"]),
+    ("application/json", Media::Text, &["json"], true),
+    ("application/pdf", Media::Pdf, &["pdf"], false),
+    ("application/pgp-signature", Media::Text, &["asc"], true),
+    ("application/yaml", Media::Text, &["yaml", "yml"], true),
+    ("audio/flac", Media::Audio, &["flac"], false),
+    ("audio/mpeg", Media::Audio, &["mp3"], false),
+    ("audio/wav", Media::Audio, &["wav"], false),
+    ("image/apng", Media::Image, &["apng"], false),
+    ("image/avif", Media::Image, &[], false),
+    ("image/gif", Media::Image, &["gif"], false),
+    ("image/jpeg", Media::Image, &["jpg", "jpeg"], false),
+    ("image/png", Media::Image, &["png"], false),
+    ("image/svg+xml", Media::Iframe, &["svg"], false),
+    ("image/webp", Media::Image, &["webp"], false),
+    ("model/gltf-binary", Media::Unknown, &["glb"], false),
+    ("model/stl", Media::Unknown, &["stl"], false),
+    ("text/html;charset=utf-8", Media::Iframe, &["html"], false),
+    ("text/plain;charset=utf-8", Media::Text, &["txt"], true),
+    ("video/mp4", Media::Video, &["mp4"], false),
+    ("video/webm", Media::Video, &["webm"], false),
   ];
 
-  pub(crate) fn content_type_for_path(path: &Path) -> Result<&'static str, Error> {
+  pub(crate) fn content_type_and_compress_for_path(
+    path: &Path,
+  ) -> Result<(&'static str, bool), Error> {
     let extension = path
       .extension()
       .ok_or_else(|| anyhow!("file must have extension"))?
@@ -52,9 +54,9 @@ impl Media {
       Media::check_mp4_codec(path)?;
     }
 
-    for (content_type, _, extensions) in Self::TABLE {
+    for (content_type, _, extensions, compress) in Self::TABLE {
       if extensions.contains(&extension.as_str()) {
-        return Ok(content_type);
+        return Ok((content_type, compress));
       }
     }
 
@@ -91,17 +93,6 @@ impl Media {
 
     Ok(())
   }
-
-  pub(crate) fn media_for_content_type(content_type: &'static str) -> Self {
-    Self::TABLE
-      .iter()
-      .filter(|(have, _, _)| *have == content_type)
-      .map(|(_, media, _)| *media)
-      .collect::<Vec<Media>>()
-      .first()
-      .cloned()
-      .unwrap_or(Media::Unknown)
-  }
 }
 
 impl FromStr for Media {
@@ -126,33 +117,20 @@ mod tests {
   fn for_extension() {
     assert_eq!(
       Media::content_type_for_path(Path::new("pepe.jpg")).unwrap(),
-      "image/jpeg"
+      ("image/jpeg", false)
     );
     assert_eq!(
       Media::content_type_for_path(Path::new("pepe.jpeg")).unwrap(),
-      "image/jpeg"
+      ("image/jpeg", false)
     );
     assert_eq!(
       Media::content_type_for_path(Path::new("pepe.JPG")).unwrap(),
-      "image/jpeg"
+      ("image/jpeg", false)
     );
 
     assert_regex_match!(
       Media::content_type_for_path(Path::new("pepe.foo")).unwrap_err(),
       r"unsupported file extension `\.foo`, supported extensions: apng .*"
-    );
-  }
-
-  #[test]
-  fn for_content_type() {
-    assert_eq!(
-      Media::media_for_content_type("application/json"),
-      Media::Text
-    );
-    assert_eq!(Media::media_for_content_type("application/pdf"), Media::Pdf);
-    assert_eq!(
-      Media::media_for_content_type("application/foo"),
-      Media::Unknown
     );
   }
 

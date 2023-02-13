@@ -46,15 +46,13 @@ impl Inscription {
   pub(crate) fn from_file(chain: Chain, path: impl AsRef<Path>) -> Result<Self, Error> {
     let path = path.as_ref();
 
-    let content_type = Media::content_type_for_path(path)?;
-
-    let media = Media::media_for_content_type(content_type);
+    let (content_type, compress) = Media::content_type_and_compress_for_path(path)?;
 
     let body = fs::read(path).with_context(|| format!("io error reading {}", path.display()))?;
 
     let mut compressed = Vec::new();
 
-    if media == Media::Text {
+    if compress {
       // TODO: should we allow user configuration?
       // i.e. buffer size, quality and window size
       let mut compressor = CompressorWriter::new(&mut compressed, 4096, 11, 22);
@@ -62,7 +60,7 @@ impl Inscription {
     }
 
     let (result, content_encoding) =
-      if media == Media::Text && (1.0 - (compressed.len() as f64 / body.len() as f64)) > 0.0 {
+      if compress && (1.0 - (compressed.len() as f64 / body.len() as f64)) > 0.0 {
         (compressed, Some(b"br".to_vec()))
       } else {
         (body, None)
