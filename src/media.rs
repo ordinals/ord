@@ -16,7 +16,7 @@ pub(crate) enum Media {
 }
 
 impl Media {
-  const TABLE: &'static [(&'static str, Media, &'static [&'static str])] = &[
+  const TABLE: &'static [(&'static str, Media, &'static [&'static str], bool)] = &[
     ("application/json", Media::Text, &["json"], true),
     ("application/pdf", Media::Pdf, &["pdf"], false),
     ("application/pgp-signature", Media::Text, &["asc"], true),
@@ -56,13 +56,13 @@ impl Media {
 
     for (content_type, _, extensions, compress) in Self::TABLE {
       if extensions.contains(&extension.as_str()) {
-        return Ok((content_type, compress));
+        return Ok((content_type, *compress));
       }
     }
 
     let mut extensions = Self::TABLE
       .iter()
-      .flat_map(|(_, _, extensions)| extensions.first().cloned())
+      .flat_map(|(_, _, extensions, _)| extensions.first().cloned())
       .collect::<Vec<&str>>();
 
     extensions.sort();
@@ -116,20 +116,20 @@ mod tests {
   #[test]
   fn for_extension() {
     assert_eq!(
-      Media::content_type_for_path(Path::new("pepe.jpg")).unwrap(),
+      Media::content_type_and_compress_for_path(Path::new("pepe.jpg")).unwrap(),
       ("image/jpeg", false)
     );
     assert_eq!(
-      Media::content_type_for_path(Path::new("pepe.jpeg")).unwrap(),
+      Media::content_type_and_compress_for_path(Path::new("pepe.jpeg")).unwrap(),
       ("image/jpeg", false)
     );
     assert_eq!(
-      Media::content_type_for_path(Path::new("pepe.JPG")).unwrap(),
+      Media::content_type_and_compress_for_path(Path::new("pepe.JPG")).unwrap(),
       ("image/jpeg", false)
     );
 
     assert_regex_match!(
-      Media::content_type_for_path(Path::new("pepe.foo")).unwrap_err(),
+      Media::content_type_and_compress_for_path(Path::new("pepe.foo")).unwrap_err(),
       r"unsupported file extension `\.foo`, supported extensions: apng .*"
     );
   }
