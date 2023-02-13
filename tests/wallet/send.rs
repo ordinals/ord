@@ -6,7 +6,7 @@ fn inscriptions_can_be_sent() {
   create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
-  let Inscribe { inscription, .. } = inscribe(&rpc_server);
+  let Inscribe { inscription, .. } = inscribe(&rpc_server, "foo.txt");
 
   rpc_server.mine_blocks(1);
 
@@ -65,7 +65,7 @@ fn send_inscribed_sat() {
   create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
-  let Inscribe { inscription, .. } = inscribe(&rpc_server);
+  let Inscribe { inscription, .. } = inscribe(&rpc_server, "foo.txt");
 
   rpc_server.mine_blocks(1);
 
@@ -172,7 +172,7 @@ fn do_not_accidentally_send_an_inscription() {
     reveal,
     inscription,
     ..
-  } = inscribe(&rpc_server);
+  } = inscribe(&rpc_server, "foo.txt");
 
   rpc_server.mine_blocks(1);
 
@@ -197,7 +197,7 @@ fn inscriptions_cannot_be_sent_by_satpoint() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  let Inscribe { reveal, .. } = inscribe(&rpc_server);
+  let Inscribe { reveal, .. } = inscribe(&rpc_server, "foo.txt");
 
   rpc_server.mine_blocks(1);
 
@@ -247,7 +247,7 @@ fn send_btc_locks_inscriptions() {
 
   rpc_server.mine_blocks(1);
 
-  let Inscribe { reveal, .. } = inscribe(&rpc_server);
+  let Inscribe { reveal, .. } = inscribe(&rpc_server, "foo.txt");
 
   let output = CommandBuilder::new("wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc")
     .rpc_server(&rpc_server)
@@ -297,7 +297,7 @@ fn wallet_send_with_fee_rate() {
   create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
-  let Inscribe { inscription, .. } = inscribe(&rpc_server);
+  let Inscribe { inscription, .. } = inscribe(&rpc_server, "foo.txt");
 
   CommandBuilder::new(format!(
     "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {inscription} --fee-rate 2.0"

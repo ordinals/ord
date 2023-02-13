@@ -44,7 +44,7 @@ fn inscription_page() {
     inscription,
     reveal,
     ..
-  } = inscribe(&rpc_server);
+  } = inscribe(&rpc_server, "foo.txt");
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     format!("/inscription/{inscription}"),
@@ -93,7 +93,7 @@ fn inscription_appears_on_reveal_transaction_page() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  let Inscribe { reveal, .. } = inscribe(&rpc_server);
+  let Inscribe { reveal, .. } = inscribe(&rpc_server, "foo.txt");
 
   rpc_server.mine_blocks(1);
 
@@ -112,7 +112,7 @@ fn inscription_appears_on_output_page() {
     reveal,
     inscription,
     ..
-  } = inscribe(&rpc_server);
+  } = inscribe(&rpc_server, "foo.txt");
 
   rpc_server.mine_blocks(1);
 
@@ -131,7 +131,7 @@ fn inscription_page_after_send() {
     reveal,
     inscription,
     ..
-  } = inscribe(&rpc_server);
+  } = inscribe(&rpc_server, "foo.txt");
 
   rpc_server.mine_blocks(1);
 
@@ -170,7 +170,7 @@ fn inscription_content() {
 
   rpc_server.mine_blocks(1);
 
-  let Inscribe { inscription, .. } = inscribe(&rpc_server);
+  let Inscribe { inscription, .. } = inscribe(&rpc_server, "foo.txt");
 
   rpc_server.mine_blocks(1);
 
@@ -190,11 +190,42 @@ fn inscription_content() {
 }
 
 #[test]
+fn inscription_content_gets_compressed() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+
+  rpc_server.mine_blocks(1);
+
+  let Inscribe { inscription, .. } = inscribe(&rpc_server, "alice29.txt");
+
+  rpc_server.mine_blocks(1);
+
+  let response =
+    TestServer::spawn_with_args(&rpc_server, &[]).request(format!("/content/{inscription}"));
+
+  assert_eq!(response.status(), StatusCode::OK);
+
+  assert_eq!(
+    response.headers().get("content-type").unwrap(),
+    "text/plain;charset=utf-8"
+  );
+
+  assert_eq!(response.headers().get("content-encoding").unwrap(), "br");
+
+  assert_eq!(
+    response.headers().get("content-security-policy").unwrap(),
+    "default-src 'unsafe-eval' 'unsafe-inline' data:"
+  );
+
+  // assert!(response.bytes().unwrap().len() < original_length);
+}
+
+#[test]
 fn home_page_includes_latest_inscriptions() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  let Inscribe { inscription, .. } = inscribe(&rpc_server);
+  let Inscribe { inscription, .. } = inscribe(&rpc_server, "foo.txt");
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     "/",
@@ -215,7 +246,7 @@ fn home_page_inscriptions_are_sorted() {
   let mut inscriptions = String::new();
 
   for _ in 0..8 {
-    let Inscribe { inscription, .. } = inscribe(&rpc_server);
+    let Inscribe { inscription, .. } = inscribe(&rpc_server, "foo.txt");
     inscriptions.insert_str(
       0,
       &format!("\n  <a href=/inscription/{inscription}><iframe .*></a>"),
@@ -237,7 +268,7 @@ fn inscriptions_page() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  let Inscribe { inscription, .. } = inscribe(&rpc_server);
+  let Inscribe { inscription, .. } = inscribe(&rpc_server, "foo.txt");
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     "/inscriptions",
@@ -259,7 +290,7 @@ fn inscriptions_page_is_sorted() {
   let mut inscriptions = String::new();
 
   for _ in 0..8 {
-    let Inscribe { inscription, .. } = inscribe(&rpc_server);
+    let Inscribe { inscription, .. } = inscribe(&rpc_server, "foo.txt");
     inscriptions.insert_str(0, &format!(".*<a href=/inscription/{inscription}>.*"));
   }
 
@@ -272,9 +303,9 @@ fn inscriptions_page_has_next_and_previous() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  let Inscribe { inscription: a, .. } = inscribe(&rpc_server);
-  let Inscribe { inscription: b, .. } = inscribe(&rpc_server);
-  let Inscribe { inscription: c, .. } = inscribe(&rpc_server);
+  let Inscribe { inscription: a, .. } = inscribe(&rpc_server, "foo.txt");
+  let Inscribe { inscription: b, .. } = inscribe(&rpc_server, "foo.txt");
+  let Inscribe { inscription: c, .. } = inscribe(&rpc_server, "foo.txt");
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     format!("/inscription/{b}"),

@@ -5,6 +5,7 @@ use {
   bip39::Mnemonic,
   bitcoin::{blockdata::constants::COIN_VALUE, Network, OutPoint, Txid},
   executable_path::executable_path,
+  include_dir::{include_dir, Dir},
   pretty_assertions::assert_eq as pretty_assert_eq,
   regex::Regex,
   reqwest::{StatusCode, Url},
@@ -45,11 +46,19 @@ struct Inscribe {
   fees: u64,
 }
 
-fn inscribe(rpc_server: &test_bitcoincore_rpc::Handle) -> Inscribe {
+static INSCRIPTION_DIR: Dir<'_> = include_dir!("tests/inscriptions");
+
+fn inscribe(rpc_server: &test_bitcoincore_rpc::Handle, filename: &str) -> Inscribe {
   rpc_server.mine_blocks(1);
 
-  let output = CommandBuilder::new("wallet inscribe foo.txt")
-    .write("foo.txt", "FOO")
+  let content = INSCRIPTION_DIR
+    .get_file(filename)
+    .unwrap()
+    .contents_utf8()
+    .unwrap();
+
+  let output = CommandBuilder::new(format!("wallet inscribe {filename}"))
+    .write(filename, content)
     .rpc_server(rpc_server)
     .output();
 

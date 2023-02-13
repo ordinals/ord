@@ -9,7 +9,7 @@ fn inscribe_creates_inscriptions() {
 
   create_wallet(&rpc_server);
 
-  let Inscribe { inscription, .. } = inscribe(&rpc_server);
+  let Inscribe { inscription, .. } = inscribe(&rpc_server, "foo.txt");
 
   assert_eq!(rpc_server.descriptors().len(), 3);
 
@@ -151,7 +151,7 @@ fn refuse_to_reinscribe_sats() {
 
   rpc_server.mine_blocks(1);
 
-  let Inscribe { reveal, .. } = inscribe(&rpc_server);
+  let Inscribe { reveal, .. } = inscribe(&rpc_server, "foo.txt");
 
   rpc_server.mine_blocks_with_subsidy(1, 100);
 
@@ -172,7 +172,7 @@ fn refuse_to_inscribe_already_inscribed_utxo() {
     reveal,
     inscription,
     ..
-  } = inscribe(&rpc_server);
+  } = inscribe(&rpc_server, "foo.txt");
 
   let output = OutPoint {
     txid: reveal,

@@ -58,6 +58,7 @@ tower-http = { version = "0.3.3", features = ["compression-br", "compression-gzi
 
 [dev-dependencies]
 executable-path = "1.0.0"
+include_dir = "0.7.3"
 pretty_assertions = "1.2.1"
 reqwest = { version = "0.11.10", features = ["blocking"] }
 test-bitcoincore-rpc = { path = "test-bitcoincore-rpc" }

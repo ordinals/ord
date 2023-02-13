@@ -743,10 +743,16 @@ impl Server {
         .parse()
         .unwrap(),
     );
+
+    if let Some(content_encoding) = inscription.content_encoding() {
+      headers.insert(header::CONTENT_ENCODING, content_encoding.parse().unwrap());
+    }
+
     headers.insert(
       header::CONTENT_SECURITY_POLICY,
       HeaderValue::from_static("default-src 'unsafe-eval' 'unsafe-inline' data:"),
     );
+
     headers.insert(
       header::CACHE_CONTROL,
       HeaderValue::from_static("max-age=31536000, immutable"),

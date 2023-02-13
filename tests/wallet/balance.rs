@@ -37,7 +37,7 @@ fn wallet_balance_only_counts_cardinal_utxos() {
     0
   );
 
-  inscribe(&rpc_server);
+  inscribe(&rpc_server, "foo.txt");
 
   assert_eq!(
     CommandBuilder::new("wallet balance")
