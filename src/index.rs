@@ -19,6 +19,7 @@ use {
 };
 
 mod entry;
+mod rest;
 mod rtx;
 mod updater;
 
