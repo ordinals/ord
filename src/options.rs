@@ -574,7 +574,7 @@ mod tests {
     let tempdir = TempDir::new().unwrap();
 
     fs::write(
-      &tempdir.path().join("ord.yaml"),
+      tempdir.path().join("ord.yaml"),
       format!("hidden:\n- \"{id}\""),
     )
     .unwrap();
