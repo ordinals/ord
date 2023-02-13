@@ -54,8 +54,6 @@ impl Inscription {
 
     let mut compressed = Vec::new();
 
-    // Only apply brotli compression to text-based data for now
-    // TODO: multiple formats/compression schemes?
     if media == Media::Text {
       // TODO: should we allow user configuration?
       // i.e. buffer size, quality and window size
