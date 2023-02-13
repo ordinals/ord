@@ -937,6 +937,17 @@ mod tests {
       Self::new_server(test_bitcoincore_rpc::spawn(), None, ord_args, server_args)
     }
 
+    fn new_with_regtest() -> Self {
+      Self::new_server(
+        test_bitcoincore_rpc::builder()
+          .network(bitcoin::Network::Regtest)
+          .build(),
+        None,
+        &["--chain", "regtest"],
+        &[],
+      )
+    }
+
     fn new_with_bitcoin_rpc_server_and_config(
       bitcoin_rpc_server: test_bitcoincore_rpc::Handle,
       config: String,
@@ -974,7 +985,7 @@ mod tests {
       };
 
       let (options, server) = parse_server_args(&format!(
-        "ord --chain regtest --rpc-url {} --cookie-file {} --data-dir {} {config_args} {} server --http-port {} --address 127.0.0.1 {}",
+        "ord --rpc-url {} --cookie-file {} --data-dir {} {config_args} {} server --http-port {} --address 127.0.0.1 {}",
         bitcoin_rpc_server.url(),
         cookiefile.to_str().unwrap(),
         tempdir.path().to_str().unwrap(),
@@ -1615,7 +1626,7 @@ mod tests {
 
   #[test]
   fn nav_displays_chain() {
-    TestServer::new().assert_response_regex(
+    TestServer::new_with_regtest().assert_response_regex(
       "/",
       StatusCode::OK,
       ".*<a href=/>Ordinals<sup>regtest</sup></a>.*",

@@ -28,6 +28,7 @@ pub(crate) struct Updater {
   height: u64,
   index_sats: bool,
   sat_ranges_since_flush: u64,
+  options: Options,
   outputs_cached: u64,
   outputs_inserted_since_flush: u64,
   outputs_traversed: u64,
@@ -60,6 +61,7 @@ impl Updater {
       height,
       index_sats: index.has_sat_index()?,
       sat_ranges_since_flush: 0,
+      options: index.options.clone(),
       outputs_cached: 0,
       outputs_inserted_since_flush: 0,
       outputs_traversed: 0,
@@ -90,7 +92,7 @@ impl Updater {
       Some(progress_bar)
     };
 
-    let rx = Self::fetch_blocks_from(index, self.height, self.index_sats)?;
+    let rx = Self::fetch_blocks_from(index, self.height, self.index_sats, self.options.clone())?;
 
     let mut uncommitted = 0;
     let mut value_cache = HashMap::new();
@@ -160,13 +162,13 @@ impl Updater {
     index: &Index,
     mut height: u64,
     index_sats: bool,
+    options: Options,
   ) -> Result<mpsc::Receiver<BlockData>> {
     let (tx, rx) = mpsc::sync_channel(32);
 
     let height_limit = index.height_limit;
 
-    let client =
-      Client::new(&index.rpc_url, index.auth.clone()).context("failed to connect to RPC URL")?;
+    let client = options.bitcoin_rpc_client()?;
 
     // NB: We temporarily always fetch transactions, to avoid expensive cache misses.
     let first_inscription_height = index.first_inscription_height.min(0);

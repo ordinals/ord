@@ -136,24 +136,35 @@ impl Options {
   pub(crate) fn bitcoin_rpc_client(&self) -> Result<Client> {
     let rpc_url = self.rpc_url();
 
-    let client =
+    let auth =
       if let (Some(rpc_user), Some(rpc_pass)) = (self.rpc_user.clone(), self.rpc_pass.clone()) {
         log::info!(
           "Connecting to Bitcoin Core RPC server at {rpc_url} using rpc_pass for `{rpc_user}`",
         );
-        Client::new(&rpc_url, Auth::UserPass(rpc_user, rpc_pass))
-          .with_context(|| format!("failed to connect to Bitcoin Core RPC at {rpc_url}"))?
+
+        Auth::UserPass(rpc_user, rpc_pass)
+      } else if let (Some(rpc_user), Some(rpc_pass)) =
+        (env::var_os("RPC_USER"), env::var_os("RPC_PASS"))
+      {
+        log::info!(
+          "Connecting to Bitcoin Core RPC server at {rpc_url} using env vars RPC_USER and RPC_PASS",
+        );
+        Auth::UserPass(
+          rpc_user.into_string().expect("RPC_USER is invalid UTF-8"),
+          rpc_pass.into_string().expect("RPC_PASS is invalid UTF-8"),
+        )
       } else {
         let cookie_file = self.cookie_file()?;
-
         log::info!(
           "Connecting to Bitcoin Core RPC server at {rpc_url} using credentials from `{}`",
           cookie_file.display()
         );
 
-        Client::new(&rpc_url, Auth::CookieFile(cookie_file))
-          .with_context(|| format!("failed to connect to Bitcoin Core RPC at {rpc_url}"))?
+        Auth::CookieFile(cookie_file)
       };
+
+    let client = Client::new(&rpc_url, auth)
+      .with_context(|| format!("failed to connect to Bitcoin Core RPC at {rpc_url}"))?;
 
     let rpc_chain = match client.get_blockchain_info()?.chain.as_str() {
       "main" => Chain::Mainnet,
@@ -573,20 +584,6 @@ mod tests {
       "--rpc-pass",
       "123456secret",
       "index",
-    ])
-    .unwrap()
-    .options;
-
-    assert_eq!(options.rpc_user.unwrap(), "satoshi".to_string());
-    assert_eq!(options.rpc_pass.unwrap(), "123456secret".to_string());
-  }
-
-  #[test]
-  fn test_rpc_user_and_pass_env() {
-    // TODO: add env
-    let options = Arguments::try_parse_from([
-      "ord",
-      "server",
     ])
     .unwrap()
     .options;
