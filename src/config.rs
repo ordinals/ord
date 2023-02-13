@@ -3,6 +3,8 @@ use super::*;
 #[derive(Deserialize, Default, PartialEq, Debug)]
 pub(crate) struct Config {
   pub(crate) hidden: HashSet<InscriptionId>,
+  pub(crate) rpc_user: Option<String>,
+  pub(crate) rpc_pass: Option<String>,
 }
 
 impl Config {
@@ -27,6 +29,8 @@ mod tests {
 
     let config = Config {
       hidden: iter::once(a).collect(),
+      rpc_user: None,
+      rpc_pass: None,
     };
 
     assert!(config.is_hidden(a));

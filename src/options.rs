@@ -136,32 +136,40 @@ impl Options {
   pub(crate) fn bitcoin_rpc_client(&self) -> Result<Client> {
     let rpc_url = self.rpc_url();
 
-    let auth =
-      if let (Some(rpc_user), Some(rpc_pass)) = (self.rpc_user.clone(), self.rpc_pass.clone()) {
-        log::info!(
-          "Connecting to Bitcoin Core RPC server at {rpc_url} using rpc_pass for `{rpc_user}`",
-        );
+    let config = self.load_config().unwrap();
 
-        Auth::UserPass(rpc_user, rpc_pass)
-      } else if let (Some(rpc_user), Some(rpc_pass)) =
-        (env::var_os("RPC_USER"), env::var_os("RPC_PASS"))
-      {
-        log::info!(
-          "Connecting to Bitcoin Core RPC server at {rpc_url} using env vars RPC_USER and RPC_PASS",
-        );
-        Auth::UserPass(
-          rpc_user.into_string().expect("RPC_USER is invalid UTF-8"),
-          rpc_pass.into_string().expect("RPC_PASS is invalid UTF-8"),
-        )
-      } else {
-        let cookie_file = self.cookie_file()?;
-        log::info!(
-          "Connecting to Bitcoin Core RPC server at {rpc_url} using credentials from `{}`",
-          cookie_file.display()
-        );
+    let auth = if let (Some(rpc_user), Some(rpc_pass)) = (config.rpc_user, config.rpc_pass) {
+      log::info!(
+        "Connecting to Bitcoin Core RPC server at {rpc_url} using credentials from ord.yaml",
+      );
 
-        Auth::CookieFile(cookie_file)
-      };
+      Auth::UserPass(rpc_user, rpc_pass)
+    } else if let (Some(rpc_user), Some(rpc_pass)) = (self.rpc_user.clone(), self.rpc_pass.clone())
+    {
+      log::info!(
+        "Connecting to Bitcoin Core RPC server at {rpc_url} using rpc_pass for `{rpc_user}`",
+      );
+
+      Auth::UserPass(rpc_user, rpc_pass)
+    } else if let (Some(rpc_user), Some(rpc_pass)) =
+      (env::var_os("RPC_USER"), env::var_os("RPC_PASS"))
+    {
+      log::info!(
+        "Connecting to Bitcoin Core RPC server at {rpc_url} using env vars RPC_USER and RPC_PASS",
+      );
+      Auth::UserPass(
+        rpc_user.into_string().expect("RPC_USER is invalid UTF-8"),
+        rpc_pass.into_string().expect("RPC_PASS is invalid UTF-8"),
+      )
+    } else {
+      let cookie_file = self.cookie_file()?;
+      log::info!(
+        "Connecting to Bitcoin Core RPC server at {rpc_url} using credentials from `{}`",
+        cookie_file.display()
+      );
+
+      Auth::CookieFile(cookie_file)
+    };
 
     let client = Client::new(&rpc_url, auth)
       .with_context(|| format!("failed to connect to Bitcoin Core RPC at {rpc_url}"))?;
@@ -571,6 +579,8 @@ mod tests {
         .unwrap(),
       Config {
         hidden: iter::once(id).collect(),
+        rpc_user: None,
+        rpc_pass: None,
       }
     );
   }
@@ -590,5 +600,29 @@ mod tests {
 
     assert_eq!(options.rpc_user.unwrap(), "satoshi".to_string());
     assert_eq!(options.rpc_pass.unwrap(), "123456secret".to_string());
+  }
+
+  #[test]
+  fn config_with_rpc_user_pass() {
+    let tempdir = TempDir::new().unwrap();
+    let path = tempdir.path().join("ord.yaml");
+    fs::write(
+      &path,
+      format!("hidden:\nrpc_user: satoshi\nrpc_pass: 123456secret"),
+    )
+    .unwrap();
+
+    assert_eq!(
+      Arguments::try_parse_from(["ord", "--config", path.to_str().unwrap(), "index",])
+        .unwrap()
+        .options
+        .load_config()
+        .unwrap(),
+      Config {
+        hidden: HashSet::new(),
+        rpc_user: Some("satoshi".into()),
+        rpc_pass: Some("123456secret".into()),
+      }
+    );
   }
 }
