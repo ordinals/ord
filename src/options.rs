@@ -606,11 +606,7 @@ mod tests {
   fn config_with_rpc_user_pass() {
     let tempdir = TempDir::new().unwrap();
     let path = tempdir.path().join("ord.yaml");
-    fs::write(
-      &path,
-      format!("hidden:\nrpc_user: satoshi\nrpc_pass: 123456secret"),
-    )
-    .unwrap();
+    fs::write(&path, "hidden:\nrpc_user: satoshi\nrpc_pass: 123456secret").unwrap();
 
     assert_eq!(
       Arguments::try_parse_from(["ord", "--config", path.to_str().unwrap(), "index",])
