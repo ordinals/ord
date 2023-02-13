@@ -53,8 +53,6 @@ impl Inscription {
     let mut compressed = Vec::new();
 
     if compress {
-      // TODO: should we allow user configuration?
-      // i.e. buffer size, quality and window size
       let mut compressor = CompressorWriter::new(&mut compressed, 4096, 11, 22);
       compressor.write_all(&body)?;
     }
