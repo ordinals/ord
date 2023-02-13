@@ -565,7 +565,7 @@ mod tests {
   }
 
   #[test]
-  fn test_rpc_user_and_pass() {
+  fn test_rpc_user_and_pass_flags() {
     let options = Arguments::try_parse_from([
       "ord",
       "--rpc-user",
@@ -573,6 +573,20 @@ mod tests {
       "--rpc-pass",
       "123456secret",
       "index",
+    ])
+    .unwrap()
+    .options;
+
+    assert_eq!(options.rpc_user.unwrap(), "satoshi".to_string());
+    assert_eq!(options.rpc_pass.unwrap(), "123456secret".to_string());
+  }
+
+  #[test]
+  fn test_rpc_user_and_pass_env() {
+    // TODO: add env
+    let options = Arguments::try_parse_from([
+      "ord",
+      "server",
     ])
     .unwrap()
     .options;
