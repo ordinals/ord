@@ -91,6 +91,17 @@ impl Media {
 
     Ok(())
   }
+
+  pub(crate) fn media_for_content_type(content_type: &'static str) -> Self {
+    Self::TABLE
+      .iter()
+      .filter(|(have, _, _)| *have == content_type)
+      .map(|(_, media, _)| *media)
+      .collect::<Vec<Media>>()
+      .first()
+      .cloned()
+      .unwrap_or(Media::Unknown)
+  }
 }
 
 impl FromStr for Media {
@@ -129,6 +140,19 @@ mod tests {
     assert_regex_match!(
       Media::content_type_for_path(Path::new("pepe.foo")).unwrap_err(),
       r"unsupported file extension `\.foo`, supported extensions: apng .*"
+    );
+  }
+
+  #[test]
+  fn for_content_type() {
+    assert_eq!(
+      Media::media_for_content_type("application/json"),
+      Media::Text
+    );
+    assert_eq!(Media::media_for_content_type("application/pdf"), Media::Pdf);
+    assert_eq!(
+      Media::media_for_content_type("application/foo"),
+      Media::Unknown
     );
   }
 

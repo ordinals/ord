@@ -8,24 +8,35 @@ use {
     util::taproot::TAPROOT_ANNEX_PREFIX,
     Script, Witness,
   },
-  std::{iter::Peekable, str},
+  brotli::enc::writer::CompressorWriter,
+  std::{io::Write, iter::Peekable, str},
 };
 
 const PROTOCOL_ID: &[u8] = b"ord";
 
 const BODY_TAG: &[u8] = &[];
 const CONTENT_TYPE_TAG: &[u8] = &[1];
+const CONTENT_ENCODING_TAG: &[u8] = &[2];
 
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) struct Inscription {
-  body: Option<Vec<u8>>,
   content_type: Option<Vec<u8>>,
+  content_encoding: Option<Vec<u8>>,
+  body: Option<Vec<u8>>,
 }
 
 impl Inscription {
   #[cfg(test)]
-  pub(crate) fn new(content_type: Option<Vec<u8>>, body: Option<Vec<u8>>) -> Self {
-    Self { content_type, body }
+  pub(crate) fn new(
+    content_type: Option<Vec<u8>>,
+    content_encoding: Option<Vec<u8>>,
+    body: Option<Vec<u8>>,
+  ) -> Self {
+    Self {
+      content_type,
+      content_encoding,
+      body,
+    }
   }
 
   pub(crate) fn from_transaction(tx: &Transaction) -> Option<Inscription> {
@@ -35,20 +46,41 @@ impl Inscription {
   pub(crate) fn from_file(chain: Chain, path: impl AsRef<Path>) -> Result<Self, Error> {
     let path = path.as_ref();
 
+    let content_type = Media::content_type_for_path(path)?;
+
+    let media = Media::media_for_content_type(content_type);
+
     let body = fs::read(path).with_context(|| format!("io error reading {}", path.display()))?;
 
+    let mut compressed = Vec::new();
+
+    // Only apply brotli compression to text-based data for now
+    // TODO: multiple formats/compression schemes?
+    if media == Media::Text {
+      // TODO: should we allow user configuration?
+      // i.e. buffer size, quality and window size
+      let mut compressor = CompressorWriter::new(&mut compressed, 4096, 11, 22);
+      compressor.write_all(&body)?;
+    }
+
+    let (result, content_encoding) =
+      if media == Media::Text && (1.0 - (compressed.len() as f64 / body.len() as f64)) > 0.0 {
+        (compressed, Some(b"br".to_vec()))
+      } else {
+        (body, None)
+      };
+
     if let Some(limit) = chain.inscription_content_size_limit() {
-      let len = body.len();
+      let len = result.len();
       if len > limit {
         bail!("content size of {len} bytes exceeds {limit} byte limit for {chain} inscriptions");
       }
     }
 
-    let content_type = Media::content_type_for_path(path)?;
-
     Ok(Self {
-      body: Some(body),
       content_type: Some(content_type.into()),
+      content_encoding,
+      body: Some(result),
     })
   }
 
@@ -62,6 +94,12 @@ impl Inscription {
       builder = builder
         .push_slice(CONTENT_TYPE_TAG)
         .push_slice(content_type);
+    }
+
+    if let Some(content_encoding) = &self.content_encoding {
+      builder = builder
+        .push_slice(CONTENT_ENCODING_TAG)
+        .push_slice(content_encoding);
     }
 
     if let Some(body) = &self.body {
@@ -222,6 +260,7 @@ impl<'a> InscriptionParser<'a> {
 
       let body = fields.remove(BODY_TAG);
       let content_type = fields.remove(CONTENT_TYPE_TAG);
+      let content_encoding = fields.remove(CONTENT_ENCODING_TAG);
 
       for tag in fields.keys() {
         if let Some(lsb) = tag.first() {
@@ -231,7 +270,11 @@ impl<'a> InscriptionParser<'a> {
         }
       }
 
-      return Ok(Some(Inscription { body, content_type }));
+      return Ok(Some(Inscription {
+        body,
+        content_encoding,
+        content_type,
+      }));
     }
 
     Ok(None)
@@ -373,6 +416,7 @@ mod tests {
       InscriptionParser::parse(&envelope(&[b"ord", &[1], b"text/plain;charset=utf-8"])),
       Ok(Inscription {
         content_type: Some(b"text/plain;charset=utf-8".to_vec()),
+        content_encoding: None,
         body: None,
       }),
     );
@@ -384,6 +428,7 @@ mod tests {
       InscriptionParser::parse(&envelope(&[b"ord", &[], b"foo"])),
       Ok(Inscription {
         content_type: None,
+        content_encoding: None,
         body: Some(b"foo".to_vec()),
       }),
     );
@@ -706,6 +751,7 @@ mod tests {
     witness.push(
       &Inscription {
         content_type: None,
+        content_encoding: None,
         body: None,
       }
       .append_reveal_script(script::Builder::new()),
@@ -717,6 +763,7 @@ mod tests {
       InscriptionParser::parse(&witness).unwrap(),
       Inscription {
         content_type: None,
+        content_encoding: None,
         body: None,
       }
     );
@@ -728,6 +775,7 @@ mod tests {
       InscriptionParser::parse(&envelope(&[b"ord", &[3], &[0]])),
       Ok(Inscription {
         content_type: None,
+        content_encoding: None,
         body: None,
       }),
     );
@@ -736,8 +784,20 @@ mod tests {
   #[test]
   fn unknown_even_fields_are_invalid() {
     assert_eq!(
-      InscriptionParser::parse(&envelope(&[b"ord", &[2], &[0]])),
+      InscriptionParser::parse(&envelope(&[b"ord", &[4], &[0]])),
       Err(InscriptionError::UnrecognizedEvenField),
+    );
+  }
+
+  #[test]
+  fn parse_content_encoding() {
+    assert_eq!(
+      InscriptionParser::parse(&envelope(&[b"ord", &[2], b"br"])),
+      Ok(Inscription {
+        body: None,
+        content_encoding: Some(b"br".to_vec()),
+        content_type: None,
+      }),
     );
   }
 }
