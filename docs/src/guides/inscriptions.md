@@ -51,19 +51,20 @@ the command line. Do *NOT* use `bitcoin-qt`.
 Configuring Bitcoin Core
 ------------------------
 
-`ord` requires Bitcoin Core's transaction index.
+`ord` requires Bitcoin Core's transaction index and rest interface.
 
 To configure your Bitcoin Core node to maintain a transaction
-index, add the following to your `bitcoin.conf`:
+index and open the rest interface, add the following to your `bitcoin.conf`:
 
 ```
 txindex=1
+rest=1
 ```
 
-Or, run `bitcoind` with `-txindex`:
+Or, run `bitcoind` with `-txindex -rest`:
 
 ```
-bitcoind -txindex
+bitcoind -txindex -rest
 ```
 
 Details on creating or modifying your `bitcoin.conf` file can be found 
@@ -132,6 +133,9 @@ return something like
 If it only returns `{}`, `txindex` is not set.
 If it returns `"synced": false`, `bitcoind` is still creating the `txindex`.
 Wait until `"synced": true` before using `ord`.
+
+If you have `maxuploadtarget` set it can interfere with fetching blocks for
+`ord` index. Either remove it or set `whitebind=127.0.0.1:8333`.
 
 Installing `ord`
 ----------------
