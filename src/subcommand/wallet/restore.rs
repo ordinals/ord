@@ -4,7 +4,7 @@ use super::*;
 pub(crate) struct Restore {
   #[clap(help = "Restore wallet from <MNEMONIC>")]
   mnemonic: Mnemonic,
-  #[clap(long, short = 'p', help = "Use <PASSPHRASE> when deriving wallet")]
+  #[clap(long, help = "Use <PASSPHRASE> when deriving wallet")]
   pub(crate) passphrase: Option<String>,
 }
 
