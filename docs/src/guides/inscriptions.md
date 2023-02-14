@@ -66,6 +66,9 @@ Or, run `bitcoind` with `-txindex`:
 bitcoind -txindex
 ```
 
+Details on creating or modifying your `bitcoin.conf` file can be found 
+[here](https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md).
+
 Syncing the Bitcoin Blockchain
 ------------------------------
 
@@ -87,8 +90,8 @@ should leave `bitcoind` running in the background when you're using `ord`.
 
 The blockchain takes about 600GB of disk space. If you have an external drive
 you want to store blocks on, use the configuration option
-`-blocksdir=<external_drive_path>`. This is much simpler than using the
-`-datadir` option because the cookie file will still be in the default location
+`blocksdir=<external_drive_path>`. This is much simpler than using the
+`datadir` option because the cookie file will still be in the default location
 for `bitcoin-cli` and `ord` to find.
 
 Troubleshooting
