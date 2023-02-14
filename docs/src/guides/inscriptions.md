@@ -53,7 +53,7 @@ Configuring Bitcoin Core
 
 `ord` requires Bitcoin Core's transaction index.
 
-To configure your Bitcoin Core node to use maintain a transaction
+To configure your Bitcoin Core node to maintain a transaction
 index, add the following to your `bitcoin.conf`:
 
 ```
