@@ -163,7 +163,3 @@ Make sure that your wallet is connected to a bitcoin node. To validate this, hea
 
 From there you can select a node and click `Test Connection` to validate that Sparrow is able to connect successfully
 ![](images/troubleshooting_02.png)
-
-
-
-
