@@ -211,7 +211,7 @@ Exotics
 Satoshis may be prized for reasons other than their name or rarity. This might
 be due to a quality of the number itself, like having an integer square or cube
 root. Or it might be due to a connection to a historical event, such as
-satoshis from block 477,120, the block in which SegWit activated,
+satoshis from block 477,120, the block in which SegWit activated, or
 2099999997689999°, the last satoshi that will ever be mined.
 
 Such satoshis are termed "exotic". Which satoshis are exotic and what makes
