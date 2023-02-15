@@ -5,7 +5,7 @@
 software with no warranty. See [LICENSE](LICENSE) for more details.
 
 Ordinal theory imbues satoshis with numismatic value, allowing them to
-collected and traded as curios.
+be collected and traded as curios.
 
 Ordinal numbers are serial numbers for satoshis, assigned in the order in which
 they are mined, and preserved across transactions.
@@ -75,7 +75,25 @@ On Debian and Ubuntu, `ord` requires `libssl-dev` when building from source:
 sudo apt-get install libssl-dev
 ```
 
-### Docker
+=======
+You'll also need Rust:
+
+```
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+To build `ord` from source:
+
+```
+git clone https://github.com/casey/ord.git
+cd ord
+cargo build --release
+```
+
+`ord` requires `rustc` version 1.67.0 or later. Run `rustc --version` to ensure you have this version. Run `rustup update` to get the latest stable release.
+
+=======
+Or, you can build a Docker image:
 
 ```
 docker build -t casey/ord .
