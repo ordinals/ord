@@ -75,7 +75,6 @@ On Debian and Ubuntu, `ord` requires `libssl-dev` when building from source:
 sudo apt-get install libssl-dev
 ```
 
-=======
 You'll also need Rust:
 
 ```
