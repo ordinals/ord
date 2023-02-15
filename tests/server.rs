@@ -144,7 +144,7 @@ fn inscription_page_after_send() {
   );
 
   let txid = CommandBuilder::new(format!(
-    "wallet send bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {inscription}"
+    "wallet send --fee-rate 1 bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {inscription}"
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(".*")
