@@ -14,27 +14,34 @@ Do not spend any satoshis from this wallet unless you are sure you know what you
 
 Download the Sparrow Wallet from the [releases page](https://sparrowwallet.com/download/) for your particular operating system.
 
-Select `File -> New Wallet` and create a new wallet called `ord`
+Select `File -> New Wallet` and create a new wallet called `ord`.
+
 ![](images/wallet_setup_01.png)
 
-Change the `Script Type` to `Taproot (P2TR)` and select the `New or Imported Software Wallet` Option
+Change the `Script Type` to `Taproot (P2TR)` and select the `New or Imported Software Wallet` option.
+
 ![](images/wallet_setup_02.png)
 
-Select `Use 12 Words` and then click the `Generate New Button`. Leave the passphrase blank
+Select `Use 12 Words` and then click `Generate New`. Leave the passphrase blank.
+
 ![](images/wallet_setup_03.png)
 
 A new 12 word BIP39 seed phrase will be generated for you. Write this down somewhere safe as this is your backup to get access to your wallet. NEVER share or show this seed phrase to anyone else.
 
-Once you have written down the seed phrase click `Confirm Backup`
+Once you have written down the seed phrase click `Confirm Backup`.
+
 ![](images/wallet_setup_04.png)
 
-Re-enter the seed phrase which you wrote down, and then click `Create Keystore`
+Re-enter the seed phrase which you wrote down, and then click `Create Keystore`.
+
 ![](images/wallet_setup_05.png)
 
-Click `Import Keystore`
+Click `Import Keystore`.
+
 ![](images/wallet_setup_06.png)
 
 Click `Apply`. Add a password for the wallet if you want to.
+
 ![](images/wallet_setup_07.png)
 
 You now have a wallet which is compatible with `ord`, and can be imported into `ord` using the BIP39 Seed Phrase. To receive ordinals or inscriptions, click on the `Receive` tab and copy a new address.
@@ -44,6 +51,7 @@ Each time you want to receive you should use a brand-new address, and not re-use
 Note that bitcoin is different to some other blockchain wallets, in that this wallet can generate an unlimited number of new addreses. You can generate a new address by clicking on the `Get Next Address` button. You can see all of your addresses in the `Addresses` tab of the app.
 
 You can add a label to each address, so you can keep track of what it was used for.
+
 ![](images/wallet_setup_08.png)
 
 ## Validating / Viewing Received Inscriptions
@@ -51,9 +59,11 @@ You can add a label to each address, so you can keep track of what it was used f
 Once you have received an inscription you will see a new transaction in the `Transactions` tab of Sparrow, as well as a new UTXO in the `UTXOs` tab.
 
 Initially this transaction may have an "Unconfirmed" status, and you will need to wait for it to be mined into a bitcoin block before it is fully received.
+
 ![](images/validating_viewing_01.png)
 
-To track the status of your transaction you can right-click on it,  select `Copy Transaction ID` and then paste that transaction id into [mempool.space](http://mempool.space)
+To track the status of your transaction you can right-click on it,  select `Copy Transaction ID` and then paste that transaction id into [mempool.space](http://mempool.space).
+
 ![](images/validating_viewing_02.png)
 
 Once the transaction has confirmed, you can validate and view your inscription by heading over to the `UTXOs` tab, finding the UTXO you want to check, right-clicking on the `Output` and selecting `Copy Transaction Output`. This transaction output id can then be pasted into the [ordinals.com](https://ordinals.com) search.
@@ -108,6 +118,7 @@ When inspecting your inscription before sending the main thing you will want to 
 To do this, you can follow the [Validating / Viewing Received Inscriptions](./sparrow-wallet.md#validating--viewing-received-inscriptions) described above to find the inscription page for your inscription on ordinals.com
 
 There you will find some metadata about your inscription which looks like the following:
+
 ![](images/sending_01.png)
 
 There is a few of important things to check here:
@@ -124,7 +135,8 @@ To send an inscription navigate to the `UTXOs` tab, and find the UTXO which you 
 
 If you previously froze the UXTO you will need to right-click on it and unfreeze it
 
-Select the UTXO you want to send, and ensure that is the _only_ UTXO is selected. You should see `UTXOs 1/1` in the interface. Once you are sure this is the case you can hit `Send Selected`
+Select the UTXO you want to send, and ensure that is the _only_ UTXO is selected. You should see `UTXOs 1/1` in the interface. Once you are sure this is the case you can hit `Send Selected`.
+
 ![](images/sending_02.png)
 
 You will then be presented with the transaction construction interface. There is a few things you need to check here to make sure that this is a safe send:
@@ -138,16 +150,20 @@ You should set an appropriate transaction fee, Sparrow will usually recommend a 
 
 You should add a label for the recipient address, a label like `alice address for inscription #123` would be ideal.
 
-Once you have checked the transaction is a safe transaction using the checks above, and you are confident to send it you can click `Create Transaction`
+Once you have checked the transaction is a safe transaction using the checks above, and you are confident to send it you can click `Create Transaction`.
+
 ![](images/sending_03.png)
 
-Here again you can double check that your transaction looks safe, and once you are confident you can click `Finalize Transaction for signing`
+Here again you can double check that your transaction looks safe, and once you are confident you can click `Finalize Transaction for signing`.
+
 ![](images/sending_04.png)
 
-Here you can triple check everything before hitting `Sign`
+Here you can triple check everything before hitting `Sign`.
+
 ![](images/sending_05.png)
 
 And then actually you get very very last chance to check everything before hitting `Broadcast Transaction`. Once you broadcast the transaction it is sent to the bitcoin network, and starts being propagated into the mempool's of all the nodes in the network.
+
 ![](images/sending_06.png)
 
 If you want to track the status of your transaction you can copy the `Transaction Id` and paste that into [mempool.space](http://mempool.space)
@@ -158,8 +174,10 @@ Once the transaction has confirmed you can check the inscription page on ordinal
 
 #### Sparrow wallet is not showing a transaction/UTXO, but I can see it on mempool.space!
 
-Make sure that your wallet is connected to a bitcoin node. To validate this, head into the `Preferences`-> `Server` settings, and click `Edit Existing Connection`
+Make sure that your wallet is connected to a bitcoin node. To validate this, head into the `Preferences`-> `Server` settings, and click `Edit Existing Connection`.
+
 ![](images/troubleshooting_01.png)
 
-From there you can select a node and click `Test Connection` to validate that Sparrow is able to connect successfully
+From there you can select a node and click `Test Connection` to validate that Sparrow is able to connect successfully.
+
 ![](images/troubleshooting_02.png)
