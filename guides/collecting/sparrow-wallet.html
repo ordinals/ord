@@ -1,0 +1,300 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js coal">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Sparrow Wallet - Ordinal Theory Handbook</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../../highlight.css">
+        <link rel="stylesheet" href="../../tomorrow-night.css">
+        <link rel="stylesheet" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "coal";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('coal')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../../introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="../../overview.html"><strong aria-hidden="true">1.</strong> Overview</a></li><li class="chapter-item expanded "><a href="../../digital-artifacts.html"><strong aria-hidden="true">2.</strong> Digital Artifacts</a></li><li class="chapter-item expanded "><a href="../../inscriptions.html"><strong aria-hidden="true">3.</strong> Inscriptions</a></li><li class="chapter-item expanded "><a href="../../faq.html"><strong aria-hidden="true">4.</strong> FAQ</a></li><li class="chapter-item expanded "><a href="../../contributing.html"><strong aria-hidden="true">5.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="../../donate.html"><strong aria-hidden="true">6.</strong> Donate</a></li><li class="chapter-item expanded "><a href="../../guides.html"><strong aria-hidden="true">7.</strong> Guides</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../guides/explorer.html"><strong aria-hidden="true">7.1.</strong> Explorer</a></li><li class="chapter-item expanded "><a href="../../guides/inscriptions.html"><strong aria-hidden="true">7.2.</strong> Inscriptions</a></li><li class="chapter-item expanded "><a href="../../guides/sat-hunting.html"><strong aria-hidden="true">7.3.</strong> Sat Hunting</a></li><li class="chapter-item expanded "><a href="../../guides/collecting.html"><strong aria-hidden="true">7.4.</strong> Collecting</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../guides/collecting/sparrow-wallet.html" class="active"><strong aria-hidden="true">7.4.1.</strong> Sparrow Wallet</a></li></ol></li><li class="chapter-item expanded "><a href="../../guides/moderation.html"><strong aria-hidden="true">7.5.</strong> Moderation</a></li></ol></li><li class="chapter-item expanded "><a href="../../bounties.html"><strong aria-hidden="true">8.</strong> Bounties</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../bounty/0.html"><strong aria-hidden="true">8.1.</strong> Bounty 0: 100,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="../../bounty/1.html"><strong aria-hidden="true">8.2.</strong> Bounty 1: 200,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="../../bounty/2.html"><strong aria-hidden="true">8.3.</strong> Bounty 2: 300,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="../../bounty/3.html"><strong aria-hidden="true">8.4.</strong> Bounty 3: 400,000 sats</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Ordinal Theory Handbook</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/casey/ord" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="collecting-inscriptions-and-ordinals-with-sparrow-wallet"><a class="header" href="#collecting-inscriptions-and-ordinals-with-sparrow-wallet">Collecting Inscriptions and Ordinals with Sparrow Wallet</a></h1>
+<p>Users who cannot or have not yet set up the <a href="https://github.com/casey/ord">ord</a> wallet can receive inscriptions and ordinals with alternative bitcoin wallets, as long as they are <em>very</em> careful about how they spend from that wallet.</p>
+<p>This guide gives some basic steps on how to create a wallet with <a href="https://sparrowwallet.com/">Sparrow Wallet</a> which is compatible with <code>ord</code> and can be later imported into <code>ord</code></p>
+<h2 id="-warning-"><a class="header" href="#-warning-">⚠️⚠️ Warning!! ⚠️⚠️</a></h2>
+<p>As a general rule if you take this approach, you should use this wallet with the Sparrow software as a receive-only wallet.</p>
+<p>Do not spend any satoshis from this wallet unless you are sure you know what you are doing. You could very easily inadvertently lose access to your ordinals and inscriptions if you don't heed this warning.</p>
+<h2 id="wallet-setup--receiving"><a class="header" href="#wallet-setup--receiving">Wallet Setup &amp; Receiving</a></h2>
+<p>Download the Sparrow Wallet from the <a href="https://sparrowwallet.com/download/">releases page</a> for your particular operating system.</p>
+<p>Select <code>File -&gt; New Wallet</code> and create a new wallet called <code>ord</code>.</p>
+<p><img src="images/wallet_setup_01.png" alt="" /></p>
+<p>Change the <code>Script Type</code> to <code>Taproot (P2TR)</code> and select the <code>New or Imported Software Wallet</code> option.</p>
+<p><img src="images/wallet_setup_02.png" alt="" /></p>
+<p>Select <code>Use 12 Words</code> and then click <code>Generate New</code>. Leave the passphrase blank.</p>
+<p><img src="images/wallet_setup_03.png" alt="" /></p>
+<p>A new 12 word BIP39 seed phrase will be generated for you. Write this down somewhere safe as this is your backup to get access to your wallet. NEVER share or show this seed phrase to anyone else.</p>
+<p>Once you have written down the seed phrase click <code>Confirm Backup</code>.</p>
+<p><img src="images/wallet_setup_04.png" alt="" /></p>
+<p>Re-enter the seed phrase which you wrote down, and then click <code>Create Keystore</code>.</p>
+<p><img src="images/wallet_setup_05.png" alt="" /></p>
+<p>Click <code>Import Keystore</code>.</p>
+<p><img src="images/wallet_setup_06.png" alt="" /></p>
+<p>Click <code>Apply</code>. Add a password for the wallet if you want to.</p>
+<p><img src="images/wallet_setup_07.png" alt="" /></p>
+<p>You now have a wallet which is compatible with <code>ord</code>, and can be imported into <code>ord</code> using the BIP39 Seed Phrase. To receive ordinals or inscriptions, click on the <code>Receive</code> tab and copy a new address.</p>
+<p>Each time you want to receive you should use a brand-new address, and not re-use existing addresses.</p>
+<p>Note that bitcoin is different to some other blockchain wallets, in that this wallet can generate an unlimited number of new addreses. You can generate a new address by clicking on the <code>Get Next Address</code> button. You can see all of your addresses in the <code>Addresses</code> tab of the app.</p>
+<p>You can add a label to each address, so you can keep track of what it was used for.</p>
+<p><img src="images/wallet_setup_08.png" alt="" /></p>
+<h2 id="validating--viewing-received-inscriptions"><a class="header" href="#validating--viewing-received-inscriptions">Validating / Viewing Received Inscriptions</a></h2>
+<p>Once you have received an inscription you will see a new transaction in the <code>Transactions</code> tab of Sparrow, as well as a new UTXO in the <code>UTXOs</code> tab.</p>
+<p>Initially this transaction may have an &quot;Unconfirmed&quot; status, and you will need to wait for it to be mined into a bitcoin block before it is fully received.</p>
+<p><img src="images/validating_viewing_01.png" alt="" /></p>
+<p>To track the status of your transaction you can right-click on it,  select <code>Copy Transaction ID</code> and then paste that transaction id into <a href="https://mempool.space">mempool.space</a>.</p>
+<p><img src="images/validating_viewing_02.png" alt="" /></p>
+<p>Once the transaction has confirmed, you can validate and view your inscription by heading over to the <code>UTXOs</code> tab, finding the UTXO you want to check, right-clicking on the <code>Output</code> and selecting <code>Copy Transaction Output</code>. This transaction output id can then be pasted into the <a href="https://ordinals.com">ordinals.com</a> search.</p>
+<h2 id="freezing-utxos"><a class="header" href="#freezing-utxos">Freezing UTXO's</a></h2>
+<p>As explained above, each of your inscriptions is stored in an Unspent Transaction Output (UTXO). You want to be very careful not to accidentally spend your inscriptions, and one way to make it harder for this to happen is to freeze the UTXO.</p>
+<p>To do this, go to the <code>UTXOs</code> tab, find the UTXO you want to freeze, right-click on the <code>Output</code> and select <code>Freeze UTXO</code>.</p>
+<p>This UTXO (Inscription) is now un-spendable within the Sparrow Wallet until you unfreeze it.</p>
+<h2 id="importing-into-ord-wallet"><a class="header" href="#importing-into-ord-wallet">Importing into <code>ord</code> wallet</a></h2>
+<p>For details on setting up Bitcoin Core and the <code>ord</code> wallet check out the <a href="../inscriptions.html">Inscriptions Guide</a></p>
+<p>When setting up <code>ord</code>, instead of running <code>ord wallet create</code> to create a brand-new wallet, you can import your existing wallet using <code>ord wallet restore &quot;BIP39 SEED PHRASE&quot;</code> using the seed phrase you generated with Sparrow Wallet.</p>
+<p>There is currently a <a href="https://github.com/casey/ord/issues/1589">bug</a> which causes an imported wallet to not be automatically rescanned against the blockchain. To work around this you will need to manually trigger a rescan using the bitcoin core cli:
+<code>bitcoin-cli -rpcwallet=ord rescanblockchain 767430</code></p>
+<p>You can then check your wallet's inscriptions using <code>ord wallet inscriptions</code></p>
+<p>Note that if you have previously created a wallet with <code>ord</code>, then you will already have a wallet with the default name, and will need to give your imported wallet a different name. You can use the <code>--wallet</code> parameter in all <code>ord</code> commands to reference a different wallet, eg:</p>
+<p><code>ord --wallet ord_from_sparrow restore &quot;BIP39 SEED PHRASE&quot;</code></p>
+<p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
+<p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
+<h2 id="sending-inscriptions-with-sparrow-wallet"><a class="header" href="#sending-inscriptions-with-sparrow-wallet">Sending inscriptions with Sparrow Wallet</a></h2>
+<h4 id="-warning--1"><a class="header" href="#-warning--1">⚠️⚠️ Warning ⚠️⚠️</a></h4>
+<p>While it is highly recommended that you set up a bitcoin core node and run the <code>ord</code> software, there are certain limited ways you can send inscriptions out of Sparrow Wallet in a safe way. Please note that this is not recommended, and you should only do this if you fully understand what you are doing.</p>
+<p>Using the <code>ord</code> software will remove much of the complexity we are describing here, as it is able to automatically and safely handle sending inscriptions in an easy way.</p>
+<h4 id="-additional-warning-"><a class="header" href="#-additional-warning-">⚠️⚠️ Additional Warning ⚠️⚠️</a></h4>
+<p>Don't use your sparrow inscriptions wallet to do general sends of non-inscription bitcoin. You can setup a separate wallet in sparrow if you need to do normal bitcoin transactions, and keep your inscriptions wallet separate.</p>
+<h4 id="bitcoins-utxo-model"><a class="header" href="#bitcoins-utxo-model">Bitcoin's UTXO model</a></h4>
+<p>Before sending any transaction it's important that you have a good mental model for bitcoin's Unspent Transaction Output (UTXO) system. The way Bitcoin works is fundamentally different to many other blockchains such as Ethereum. In Ethereum generally you have a single address in which you store ETH, and you cannot differentiate between any of the ETH -  it is just all a single value of the total amount in that address. Bitcoin works very differently in that we generate a new address in the wallet for each receive, and every time you receive sats to an address in your wallet you are creating a new UTXO. Each UTXO can be seen and managed individually. You can select specific UTXO's which you want to spend, and you can choose not to spend certain UTXO's.</p>
+<p>Some Bitcoin wallets do not expose this level of detail, and they just show you a single summed up value of all the bitcoin in your wallet. However, when sending inscriptions it is important that you use a wallet like Sparrow which allows for UTXO control.</p>
+<h4 id="inspecting-your-inscription-before-sending"><a class="header" href="#inspecting-your-inscription-before-sending">Inspecting your inscription before sending</a></h4>
+<p>Like we have previously described inscriptions are inscribed onto sats, and sats are stored within UTXOs. UTXO's are a collection of satoshis with some particular value of the number of satoshis (the output value). Usually (but not always) the inscription will be inscribed on the first satoshi in the UTXO.</p>
+<p>When inspecting your inscription before sending the main thing you will want to check is which satoshi in the UTXO your inscription is inscribed on.</p>
+<p>To do this, you can follow the <a href="./sparrow-wallet.html#validating--viewing-received-inscriptions">Validating / Viewing Received Inscriptions</a> described above to find the inscription page for your inscription on ordinals.com</p>
+<p>There you will find some metadata about your inscription which looks like the following:</p>
+<p><img src="images/sending_01.png" alt="" /></p>
+<p>There is a few of important things to check here:</p>
+<ul>
+<li>The <code>output</code> identifier matches the identifier of the UTXO you are going to send</li>
+<li>The <code>offset</code> of the inscription is <code>0</code> (this means that the inscription is located on the first sat in the UTXO)</li>
+<li>the <code>output_value</code> has enough sats to cover the transaction fee (postage) for sending the transaction. The exact amount you will need depends on the fee rate you will select for the transaction</li>
+</ul>
+<p>If all of the above are true for your inscription, it should be safe for you to send it using the method below.</p>
+<p>⚠️⚠️ Be very careful sending your inscription particularly if the <code>offset</code> value is not <code>0</code>. It is not recommended to use this method if that is the case, as doing so you could accidentally send your inscription to a bitcoin miner unless you know what you are doing.</p>
+<h4 id="sending-your-inscription"><a class="header" href="#sending-your-inscription">Sending your inscription</a></h4>
+<p>To send an inscription navigate to the <code>UTXOs</code> tab, and find the UTXO which you previously validated contains your inscription.</p>
+<p>If you previously froze the UXTO you will need to right-click on it and unfreeze it.</p>
+<p>Select the UTXO you want to send, and ensure that is the <em>only</em> UTXO is selected. You should see <code>UTXOs 1/1</code> in the interface. Once you are sure this is the case you can hit <code>Send Selected</code>.</p>
+<p><img src="images/sending_02.png" alt="" /></p>
+<p>You will then be presented with the transaction construction interface. There is a few things you need to check here to make sure that this is a safe send:</p>
+<ul>
+<li>The transaction should have only 1 input, and this should be the UTXO with the label you want to send</li>
+<li>The transaction should have only 1 output, which is the address/label where you want to send the inscription</li>
+</ul>
+<p>If your transaction looks any different, for example you have multiple inputs, or multiple outputs then this may not be a safe transfer of your inscription, and you should abandon sending until you understand more, or can import into the <code>ord</code> wallet.</p>
+<p>You should set an appropriate transaction fee, Sparrow will usually recommend a reasonable one, but you can also check <a href="https://mempool.space">mempool.space</a> to see what the recommended fee rate is for sending a transaction.</p>
+<p>You should add a label for the recipient address, a label like <code>alice address for inscription #123</code> would be ideal.</p>
+<p>Once you have checked the transaction is a safe transaction using the checks above, and you are confident to send it you can click <code>Create Transaction</code>.</p>
+<p><img src="images/sending_03.png" alt="" /></p>
+<p>Here again you can double check that your transaction looks safe, and once you are confident you can click <code>Finalize Transaction for Signing</code>.</p>
+<p><img src="images/sending_04.png" alt="" /></p>
+<p>Here you can triple check everything before hitting <code>Sign</code>.</p>
+<p><img src="images/sending_05.png" alt="" /></p>
+<p>And then actually you get very very last chance to check everything before hitting <code>Broadcast Transaction</code>. Once you broadcast the transaction it is sent to the bitcoin network, and starts being propagated into the mempool.</p>
+<p><img src="images/sending_06.png" alt="" /></p>
+<p>If you want to track the status of your transaction you can copy the <code>Transaction Id (Txid)</code> and paste that into <a href="https://mempool.space">mempool.space</a></p>
+<p>Once the transaction has confirmed you can check the inscription page on <a href="https://ordinals.com">ordinals.com</a> to validate that it has moved to the new output location and address.</p>
+<h2 id="troubleshooting"><a class="header" href="#troubleshooting">Troubleshooting</a></h2>
+<h4 id="sparrow-wallet-is-not-showing-a-transactionutxo-but-i-can-see-it-on-mempoolspace"><a class="header" href="#sparrow-wallet-is-not-showing-a-transactionutxo-but-i-can-see-it-on-mempoolspace">Sparrow wallet is not showing a transaction/UTXO, but I can see it on mempool.space!</a></h4>
+<p>Make sure that your wallet is connected to a bitcoin node. To validate this, head into the <code>Preferences</code>-&gt; <code>Server</code> settings, and click <code>Edit Existing Connection</code>.</p>
+<p><img src="images/troubleshooting_01.png" alt="" /></p>
+<p>From there you can select a node and click <code>Test Connection</code> to validate that Sparrow is able to connect successfully.</p>
+<p><img src="images/troubleshooting_02.png" alt="" /></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../guides/collecting.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="../../guides/moderation.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../guides/collecting.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="../../guides/moderation.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>
