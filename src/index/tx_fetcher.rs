@@ -53,7 +53,7 @@ impl TxFetcher {
     let mut reqs = Vec::with_capacity(txids.len());
     for (i, txid) in txids.iter().enumerate() {
       let req =
-        format!("{{\"jsonrpc\":\"1.0\",\"id\":\"{i}\",\"method\":\"getrawtransaction\",\"params\":[\"{txid:x}\"]}}");
+        format!("{{\"jsonrpc\":\"2.0\",\"id\":\"{i}\",\"method\":\"getrawtransaction\",\"params\":[\"{txid:x}\"]}}");
       reqs.push(req);
     }
 
@@ -62,6 +62,7 @@ impl TxFetcher {
       .method(Method::POST)
       .uri(&self.url)
       .header(hyper::header::AUTHORIZATION, &self.auth)
+      .header(hyper::header::CONTENT_TYPE, "application/json")
       .body(Body::from(body))?;
 
     let response = self.client.request(req).await?;
