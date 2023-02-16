@@ -20,6 +20,7 @@ use {
 
 mod entry;
 mod rtx;
+mod tx_fetcher;
 mod updater;
 
 const SCHEMA_VERSION: u64 = 3;
