@@ -265,8 +265,8 @@ impl Updater {
       tokio::sync::mpsc::channel::<OutPoint>(CHANNEL_BUFFER_SIZE);
     let (value_sender, value_receiver) = tokio::sync::mpsc::channel::<u64>(CHANNEL_BUFFER_SIZE);
 
-    const BATCH_SIZE: usize = 4096;
-    const RPC_THREADS: usize = 4;
+    const BATCH_SIZE: usize = 2048;
+    const PARALLEL_REQUESTS: usize = 12;
 
     std::thread::spawn(move || {
       let rt = tokio::runtime::Builder::new_multi_thread()
@@ -286,8 +286,8 @@ impl Updater {
             };
             outpoints.push(outpoint);
           }
-          let parts = (outpoints.len() / RPC_THREADS).max(1);
-          let mut futs = Vec::with_capacity(RPC_THREADS);
+          let parts = (outpoints.len() / PARALLEL_REQUESTS) + 1;
+          let mut futs = Vec::with_capacity(PARALLEL_REQUESTS);
           for chunk in outpoints.chunks(parts) {
             let txids = chunk.iter().map(|outpoint| outpoint.txid).collect();
             let fut = tx_fetcher.get_transactions(txids);
@@ -296,8 +296,8 @@ impl Updater {
           let txs = match try_join_all(futs).await {
             Ok(txs) => txs,
             Err(e) => {
-            log::warn!("Couldn't receive txs {e}");
-            return;
+              log::warn!("Couldn't receive txs {e}");
+              return;
             }
           };
           for (i, tx) in txs.iter().flatten().enumerate() {
