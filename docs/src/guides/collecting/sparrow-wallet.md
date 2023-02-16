@@ -62,7 +62,7 @@ Initially this transaction may have an "Unconfirmed" status, and you will need t
 
 ![](images/validating_viewing_01.png)
 
-To track the status of your transaction you can right-click on it,  select `Copy Transaction ID` and then paste that transaction id into [mempool.space](http://mempool.space).
+To track the status of your transaction you can right-click on it,  select `Copy Transaction ID` and then paste that transaction id into [mempool.space](https://mempool.space).
 
 ![](images/validating_viewing_02.png)
 
@@ -133,7 +133,7 @@ If all of the above are true for your inscription, it should be safe for you to 
 #### Sending your inscription
 To send an inscription navigate to the `UTXOs` tab, and find the UTXO which you previously validated contains your inscription.
 
-If you previously froze the UXTO you will need to right-click on it and unfreeze it
+If you previously froze the UXTO you will need to right-click on it and unfreeze it.
 
 Select the UTXO you want to send, and ensure that is the _only_ UTXO is selected. You should see `UTXOs 1/1` in the interface. Once you are sure this is the case you can hit `Send Selected`.
 
@@ -146,7 +146,7 @@ You will then be presented with the transaction construction interface. There is
 
 If your transaction looks any different, for example you have multiple inputs, or multiple outputs then this may not be a safe transfer of your inscription, and you should abandon sending until you understand more, or can import into the `ord` wallet.
 
-You should set an appropriate transaction fee, Sparrow will usually recommend a reasonable one, but you can also check [mempool.space](http://mempool.space) to see what the recommended fee rate is for sending a transaction
+You should set an appropriate transaction fee, Sparrow will usually recommend a reasonable one, but you can also check [mempool.space](https://mempool.space) to see what the recommended fee rate is for sending a transaction.
 
 You should add a label for the recipient address, a label like `alice address for inscription #123` would be ideal.
 
@@ -154,7 +154,7 @@ Once you have checked the transaction is a safe transaction using the checks abo
 
 ![](images/sending_03.png)
 
-Here again you can double check that your transaction looks safe, and once you are confident you can click `Finalize Transaction for signing`.
+Here again you can double check that your transaction looks safe, and once you are confident you can click `Finalize Transaction for Signing`.
 
 ![](images/sending_04.png)
 
@@ -162,13 +162,13 @@ Here you can triple check everything before hitting `Sign`.
 
 ![](images/sending_05.png)
 
-And then actually you get very very last chance to check everything before hitting `Broadcast Transaction`. Once you broadcast the transaction it is sent to the bitcoin network, and starts being propagated into the mempool's of all the nodes in the network.
+And then actually you get very very last chance to check everything before hitting `Broadcast Transaction`. Once you broadcast the transaction it is sent to the bitcoin network, and starts being propagated into the mempool.
 
 ![](images/sending_06.png)
 
-If you want to track the status of your transaction you can copy the `Transaction Id` and paste that into [mempool.space](http://mempool.space)
+If you want to track the status of your transaction you can copy the `Transaction Id (Txid)` and paste that into [mempool.space](https://mempool.space)
 
-Once the transaction has confirmed you can check the inscription page on ordinals.com to validate that it has moved to the new output location and address.
+Once the transaction has confirmed you can check the inscription page on [ordinals.com](https://ordinals.com) to validate that it has moved to the new output location and address.
 
 ## Troubleshooting
 
