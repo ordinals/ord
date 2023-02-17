@@ -8,8 +8,8 @@ struct Output {
 
 #[derive(Debug, Parser)]
 pub(crate) struct Create {
-  #[clap(long, help = "Use <PASSPHRASE> when deriving wallet")]
-  pub(crate) passphrase: Option<String>,
+  #[clap(long, default_value = "", help = "Use <PASSPHRASE> to derive wallet seed.")]
+  pub(crate) passphrase: String,
 }
 
 impl Create {
