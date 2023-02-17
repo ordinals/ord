@@ -18,6 +18,8 @@ pub(crate) struct Options {
   pub(crate) chain_argument: Chain,
   #[clap(long, help = "Load configuration from <CONFIG>.")]
   pub(crate) config: Option<PathBuf>,
+  #[clap(long, help = "Load configuration from <CONFIG_DIR>.")]
+  pub(crate) config_dir: Option<PathBuf>,
   #[clap(long, help = "Load Bitcoin Core RPC cookie file from <COOKIE_FILE>.")]
   pub(crate) cookie_file: Option<PathBuf>,
   #[clap(long, help = "Store index in <DATA_DIR>.")]
@@ -116,7 +118,12 @@ impl Options {
   pub(crate) fn load_config(&self) -> Result<Config> {
     match &self.config {
       Some(path) => Ok(serde_yaml::from_reader(File::open(path)?)?),
-      None => Ok(Default::default()),
+      None => match &self.config_dir {
+        Some(dir) if dir.join("ord.yaml").exists() => {
+          Ok(serde_yaml::from_reader(File::open(dir.join("ord.yaml"))?)?)
+        }
+        Some(_) | None => Ok(Default::default()),
+      },
     }
   }
 
@@ -552,6 +559,37 @@ mod tests {
         .options
         .load_config()
         .unwrap(),
+      Config {
+        hidden: iter::once(id).collect(),
+      }
+    );
+  }
+
+  #[test]
+  fn config_is_loaded_from_config_dir_option_path() {
+    let id = "8d363b28528b0cb86b5fd48615493fb175bdf132d2a3d20b4251bba3f130a5abi0"
+      .parse::<InscriptionId>()
+      .unwrap();
+
+    let tempdir = TempDir::new().unwrap();
+
+    fs::write(
+      tempdir.path().join("ord.yaml"),
+      format!("hidden:\n- \"{id}\""),
+    )
+    .unwrap();
+
+    assert_eq!(
+      Arguments::try_parse_from([
+        "ord",
+        "--config-dir",
+        tempdir.path().to_str().unwrap(),
+        "index",
+      ])
+      .unwrap()
+      .options
+      .load_config()
+      .unwrap(),
       Config {
         hidden: iter::once(id).collect(),
       }
