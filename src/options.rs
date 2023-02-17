@@ -43,6 +43,11 @@ pub(crate) struct Options {
   pub(crate) testnet: bool,
   #[clap(long, default_value = "ord", help = "Use wallet named <WALLET>.")]
   pub(crate) wallet: String,
+  #[clap(long, help = "Username for Bitcoin Core RPC")]
+  pub(crate) rpc_user: Option<String>,
+  #[clap(long, help = "Password for Bitcoin Core RPC")]
+  pub(crate) rpc_pass: Option<String>,
+
 }
 
 impl Options {
@@ -71,14 +76,26 @@ impl Options {
   }
 
   pub(crate) fn rpc_url(&self) -> String {
-    self.rpc_url.clone().unwrap_or_else(|| {
+    if let Some(url) = &self.rpc_url {
+      format!("{}/wallet/{}", url.trim_end_matches('/'), self.wallet)
+    } else {
       format!(
         "127.0.0.1:{}/wallet/{}",
         self.chain().default_rpc_port(),
         self.wallet
       )
-    })
+    }
   }
+
+  pub(crate) fn rpc_pass(&self) -> Option<String> {
+    self.rpc_pass.clone()
+  }
+
+  pub(crate) fn rpc_user(&self) -> Option<String> {
+    self.rpc_user.clone()
+  }
+
+
 
   pub(crate) fn cookie_file(&self) -> Result<PathBuf> {
     if let Some(cookie_file) = &self.cookie_file {

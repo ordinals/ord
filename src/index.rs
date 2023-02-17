@@ -133,14 +133,30 @@ impl<T> BitcoinCoreRpcResultExt<T> for Result<T, bitcoincore_rpc::Error> {
 impl Index {
   pub(crate) fn open(options: &Options) -> Result<Self> {
     let rpc_url = options.rpc_url();
+    let rpc_user = options.rpc_user();
+    let rpc_pass = options.rpc_pass();
     let cookie_file = options.cookie_file()?;
+    let cookie_file_path = cookie_file.clone();
 
-    log::info!(
-      "Connecting to Bitcoin Core RPC server at {rpc_url} using credentials from `{}`",
-      cookie_file.display()
-    );
 
+    // by default we use a cookie file
     let auth = Auth::CookieFile(cookie_file);
+
+    // if options.rpc_pass and rpc_user is not empty, use Auth::UserPass
+    let auth = if !rpc_pass.is_none() && !rpc_user.is_none() {
+      let ruser = rpc_user.unwrap();
+      let rpass = rpc_pass.unwrap();
+      log::info!("Using RPC credentials from command line {ruser} and {rpass}");
+
+      Auth::UserPass(ruser.clone(), rpass.clone())
+    } else {
+      log::info!(
+        "Connecting to Bitcoin Core RPC server at {rpc_url} using credentials from `{}`",
+        cookie_file_path.display()
+      );
+      auth
+    };
+
 
     let client = Client::new(&rpc_url, auth.clone()).context("failed to connect to RPC URL")?;
 
