@@ -205,7 +205,7 @@ ord wallet receive
 Send the inscription by running:
 
 ```
-ord wallet send ADDRESS INSCRIPTION_ID
+ord wallet send --fee-rate <FEE_RATE> <ADDRESS> <INSCRIPTION_ID>
 ```
 
 See the pending transaction with:
