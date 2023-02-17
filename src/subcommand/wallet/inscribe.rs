@@ -133,7 +133,8 @@ impl Inscribe {
       .iter()
       .map(|txin| utxos.get(&txin.previous_output).unwrap().to_sat())
       .sum::<u64>()
-      - tx.output.iter().map(|txout| txout.value).sum::<u64>()
+      .checked_sub(tx.output.iter().map(|txout| txout.value).sum::<u64>())
+      .unwrap()
   }
 
   fn create_inscription_transactions(
