@@ -146,7 +146,7 @@ impl Index {
     let auth = if !rpc_pass.is_none() && !rpc_user.is_none() {
       let ruser = rpc_user.unwrap();
       let rpass = rpc_pass.unwrap();
-      log::info!("Using RPC credentials from command line {ruser} and {rpass}");
+      log::info!("Using RPC credentials from command line {ruser}");
 
       Auth::UserPass(ruser.clone(), rpass.clone())
     } else {
