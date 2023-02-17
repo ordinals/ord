@@ -5,6 +5,7 @@ struct Output {
   mnemonic: Mnemonic,
   passphrase: Option<String>,
 }
+
 #[derive(Debug, Parser)]
 pub(crate) struct Create {
   #[clap(long, help = "Use <PASSPHRASE> when deriving wallet")]
