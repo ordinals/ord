@@ -23,7 +23,7 @@ fn restore_generates_same_descriptors() {
 
 #[test]
 fn restore_generates_same_descriptors_with_passphrase() {
-  let passphrase = "unittest";
+  let passphrase = "foo";
   let (mnemonic, descriptors) = {
     let rpc_server = test_bitcoincore_rpc::spawn();
 
