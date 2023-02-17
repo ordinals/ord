@@ -21,7 +21,7 @@ impl Create {
 
     initialize_wallet(
       &options,
-      mnemonic.to_seed(self.passphrase.clone().unwrap_or("".into())),
+      mnemonic.to_seed(self.passphrase),
     )?;
 
     print_json(Output {
