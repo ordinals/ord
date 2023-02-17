@@ -21,12 +21,12 @@ impl Create {
 
     initialize_wallet(
       &options,
-      mnemonic.to_seed(self.passphrase),
+      mnemonic.to_seed(self.passphrase.clone()),
     )?;
 
     print_json(Output {
       mnemonic,
-      passphrase: self.passphrase,
+      passphrase: Some(self.passphrase),
     })?;
 
     Ok(())
