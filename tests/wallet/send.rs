@@ -331,7 +331,7 @@ fn user_must_provide_fee_rate_to_send() {
   create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
-  let Inscribe { inscription, .. } = inscribe(&rpc_server);
+  let Inscribe { inscription, .. } = inscribe(&rpc_server, "foo.txt");
 
   CommandBuilder::new(format!(
     "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {inscription}"
