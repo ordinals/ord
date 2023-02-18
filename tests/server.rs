@@ -216,8 +216,6 @@ fn inscription_content_gets_compressed() {
     response.headers().get("content-security-policy").unwrap(),
     "default-src 'unsafe-eval' 'unsafe-inline' data:"
   );
-
-  // assert!(response.bytes().unwrap().len() < original_length);
 }
 
 #[test]
