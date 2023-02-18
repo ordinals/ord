@@ -90,24 +90,23 @@ impl Fetcher {
     // Results from batched JSON-RPC requests can come back in any order, so we must sort them by id
     results.sort_by(|a, b| a.id.cmp(&b.id));
 
-    Ok(
-      results
-        .into_iter()
-        .map(|res| {
-          res
-            .result
-            .ok_or_else(|| anyhow!("Missing result for batched JSON-RPC response"))
-            .and_then(|str| {
-              hex::decode(&str)
-                .map_err(|e| anyhow!("Result for batched JSON-RPC response not valid hex: {e}"))
+    let txs = results
+      .into_iter()
+      .map(|res| {
+        res
+          .result
+          .ok_or_else(|| anyhow!("Missing result for batched JSON-RPC response"))
+          .and_then(|str| {
+            hex::decode(str)
+              .map_err(|e| anyhow!("Result for batched JSON-RPC response not valid hex: {e}"))
+          })
+          .and_then(|hex| {
+            bitcoin::consensus::deserialize(&hex).map_err(|e| {
+              anyhow!("Result for batched JSON-RPC response not valid bitcoin tx: {e}")
             })
-            .and_then(|hex| {
-              bitcoin::consensus::deserialize(&hex).map_err(|e| {
-                anyhow!("Result for batched JSON-RPC response not valid bitcoin tx: {e}")
-              })
-            })
-        })
-        .collect::<Result<Vec<Transaction>>>()?,
-    )
+          })
+      })
+      .collect::<Result<Vec<Transaction>>>()?;
+    Ok(txs)
   }
 }
