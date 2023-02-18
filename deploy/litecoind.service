@@ -1,17 +1,17 @@
 [Unit]
 After=network-online.target
-Description=Bitcoin daemon
-Documentation=https://github.com/bitcoin/bitcoin/blob/master/doc/init.md
+Description=litecoindaemon
+Documentation=https://github.com/litecoin/litecoin/blob/master/doc/init.md
 Wants=network-online.target
 
 [Service]
-ConfigurationDirectory=bitcoin
+ConfigurationDirectory=litecoin
 ConfigurationDirectoryMode=0710
-ExecStart=/usr/local/bin/bitcoind \
-  -conf=/etc/bitcoin/bitcoin.conf \
+ExecStart=/usr/local/bin/litecoind \
+  -conf=/etc/litecoin/litecoin.conf \
   -chain=${CHAIN}
-ExecStartPre=/bin/chgrp bitcoin /etc/bitcoin
-Group=bitcoin
+ExecStartPre=/bin/chgrp litecoin /etc/litecoin
+Group=litecoin
 MemoryDenyWriteExecute=true
 NoNewPrivileges=true
 PermissionsStartOnly=true
@@ -20,14 +20,14 @@ PrivateTmp=true
 ProtectHome=true
 ProtectSystem=full
 Restart=on-failure
-RuntimeDirectory=bitcoind
+RuntimeDirectory=litecoin
 RuntimeDirectoryMode=0710
-StateDirectory=bitcoind
+StateDirectory=litecoin
 StateDirectoryMode=0710
 TimeoutStartSec=infinity
 TimeoutStopSec=600
 Type=simple
-User=bitcoin
+User=litecoin
 
 [Install]
 WantedBy=multi-user.target

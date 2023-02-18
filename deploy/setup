@@ -10,11 +10,11 @@ touch ~/.hushlogin
 sed -i -E 's/#?PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
 
 mkdir -p \
-  /etc/systemd/system/bitcoind.service.d \
+  /etc/systemd/system/litecoind.service.d \
   /etc/systemd/system/ord.service.d
 
 printf "[Service]\nEnvironment=CHAIN=%s\n" $CHAIN \
-  | tee /etc/systemd/system/bitcoind.service.d/override.conf \
+  | tee /etc/systemd/system/litecoind.service.d/override.conf \
   > /etc/systemd/system/ord.service.d/override.conf
 
 hostnamectl set-hostname $DOMAIN
@@ -38,13 +38,13 @@ ufw allow ssh
 
 case $CHAIN in
   main)
-    ufw allow 8333
+    ufw allow 9333
     ;;
   signet)
-    ufw allow 38333
+    ufw allow 39333
     ;;
   test)
-    ufw allow 18333
+    ufw allow 19333
     ;;
   *)
     echo "Unknown chain: $CHAIN"
@@ -54,11 +54,11 @@ esac
 
 ufw --force enable
 
-if ! which bitcoind; then
-  ./bin/install-bitcoin-core-linux
+if ! which litecoind; then
+  ./bin/install-litecoin-core-linux
 fi
 
-bitcoind --version
+litecoind --version
 
 if [[ ! -e ~/.cargo/env ]]; then
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -74,25 +74,25 @@ if [[ -f /usr/local/bin/ord ]]; then
 fi
 cp target/release/ord /usr/local/bin/ord
 
-id --user bitcoin || useradd --system bitcoin
+id --user litecoin || useradd --system litecoin
 id --user ord || useradd --system ord
 
-cp deploy/bitcoind.service /etc/systemd/system/
-mkdir -p /etc/bitcoin
-cp deploy/bitcoin.conf /etc/bitcoin/bitcoin.conf
+cp deploy/litecoind.service /etc/systemd/system/
+mkdir -p /etc/litecoin
+cp deploy/litecoin.conf /etc/litecoin/litecoin.conf
 systemctl daemon-reload
-systemctl enable bitcoind
-systemctl restart bitcoind
+systemctl enable litecoind
+systemctl restart litecoind
 
 case $CHAIN in
   main)
-    COOKIE_FILE_DIR=/var/lib/bitcoind
+    COOKIE_FILE_DIR=/var/lib/litecoind
     ;;
   signet)
-    COOKIE_FILE_DIR=/var/lib/bitcoind/signet
+    COOKIE_FILE_DIR=/var/lib/litecoind/signet
     ;;
   test)
-    COOKIE_FILE_DIR=/var/lib/bitcoind/testnet3
+    COOKIE_FILE_DIR=/var/lib/litecoind/testnet3
     ;;
   *)
     echo "Unknown chain: $CHAIN"
@@ -101,11 +101,11 @@ case $CHAIN in
 esac
 
 while [[ ! -f $COOKIE_FILE_DIR/.cookie ]]; do
-  echo "Waiting for bitcoind…"
+  echo "Waiting for litecoind…"
   sleep 1
 done
 
-setfacl -m ord:x /var/lib/bitcoind
+setfacl -m ord:x /var/lib/litecoind
 setfacl -m ord:x $COOKIE_FILE_DIR
 setfacl -dm ord:r $COOKIE_FILE_DIR
 setfacl -m ord:r $COOKIE_FILE_DIR/.cookie

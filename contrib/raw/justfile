@@ -3,7 +3,7 @@ create INPUT_TXID INPUT_VOUT OUTPUT_DESTINATION OUTPUT_AMOUNT:
 
   set -euxo pipefail
 
-  bitcoin-cli createrawtransaction \
+  litecoin-cli createrawtransaction \
     '[
       {
         "txid": "{{INPUT_TXID}}",
@@ -18,7 +18,7 @@ create INPUT_TXID INPUT_VOUT OUTPUT_DESTINATION OUTPUT_AMOUNT:
     > raw.hex
 
 sign WALLET_NAME:
-  bitcoin-cli -rpcwallet={{WALLET_NAME}} signrawtransactionwithwallet `cat raw.hex` > signed.json
+  litecoin-cli -rpcwallet={{WALLET_NAME}} signrawtransactionwithwallet `cat raw.hex` > signed.json
 
 send:
-  bitcoin-cli sendrawtransaction `cat signed.json | jq '.hex' --raw-output`
+  litecoin-cli sendrawtransaction `cat signed.json | jq '.hex' --raw-output`

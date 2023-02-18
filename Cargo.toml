@@ -1,12 +1,12 @@
 [package]
-name = "ord"
-description = "◉ Ordinal wallet and block explorer"
+name = "ord-litecoin"
+description = "◉ Ordinal wallet and block explorer for litecoin"
 version = "0.5.0"
 license = "CC0-1.0"
 edition = "2021"
 autotests = false
-homepage = "https://github.com/casey/ord"
-repository = "https://github.com/casey/ord"
+homepage = "https://github.com/ynohtna92/ord-litecoin"
+repository = "https://github.com/ynohtna92/ord-litecoin"
 autobins = false
 rust-version = "1.67"
 
@@ -38,7 +38,7 @@ mime = "0.3.16"
 mime_guess = "2.0.4"
 miniscript = "9.0.0"
 mp4 = "0.13.0"
-ord-bitcoincore-rpc = "0.16.5"
+bitcoincore-rpc = "0.16.0"
 redb = "0.13.0"
 regex = "1.6.0"
 rss = "2.0.1"
@@ -76,3 +76,7 @@ path = "tests/lib.rs"
 
 [build-dependencies]
 pulldown-cmark = "0.9.2"
+
+[patch.crates-io]
+bitcoin = { git = "https://github.com/ynohtna92/rust-litecoin" }
+bitcoincore-rpc = { git = "https://github.com/ynohtna92/rust-bitcoincore-rpc" }

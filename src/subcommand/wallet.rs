@@ -69,44 +69,45 @@ impl Wallet {
 
 fn get_change_address(client: &Client) -> Result<Address> {
   client
-    .call("getrawchangeaddress", &["bech32m".into()])
+    .call("getrawchangeaddress", &["bech32".into()])
     .context("could not get change addresses from wallet")
 }
 
-pub(crate) fn initialize_wallet(options: &Options, seed: [u8; 64]) -> Result {
+pub(crate) fn initialize_wallet(options: &Options, _seed: [u8; 64]) -> Result {
   let client = options.bitcoin_rpc_client_for_wallet_command(true)?;
-  let network = options.chain().network();
+  let _network = options.chain().network();
 
-  client.create_wallet(&options.wallet, None, Some(true), None, None)?;
+  client.create_wallet(&options.wallet, None, None, None, None)?;
 
-  let secp = Secp256k1::new();
+  // Functionally not supported with Litecoin
+  // let secp = Secp256k1::new();
 
-  let master_private_key = ExtendedPrivKey::new_master(network, &seed)?;
+  // let master_private_key = ExtendedPrivKey::new_master(network, &seed)?;
 
-  let fingerprint = master_private_key.fingerprint(&secp);
+  // let fingerprint = master_private_key.fingerprint(&secp);
 
-  let derivation_path = DerivationPath::master()
-    .child(ChildNumber::Hardened { index: 86 })
-    .child(ChildNumber::Hardened {
-      index: u32::from(network != Network::Bitcoin),
-    })
-    .child(ChildNumber::Hardened { index: 0 });
+  // let derivation_path = DerivationPath::master()
+  //   .child(ChildNumber::Hardened { index: 86 })
+  //   .child(ChildNumber::Hardened {
+  //     index: u32::from(network != Network::Bitcoin),
+  //   })
+  //   .child(ChildNumber::Hardened { index: 0 });
 
-  let derived_private_key = master_private_key.derive_priv(&secp, &derivation_path)?;
+  // let derived_private_key = master_private_key.derive_priv(&secp, &derivation_path)?;
 
-  for change in [false, true] {
-    derive_and_import_descriptor(
-      &client,
-      &secp,
-      (fingerprint, derivation_path.clone()),
-      derived_private_key,
-      change,
-    )?;
-  }
-
+  // for change in [false, true] {
+  //   derive_and_import_descriptor(
+  //     &client,
+  //     &secp,
+  //     (fingerprint, derivation_path.clone()),
+  //     derived_private_key,
+  //     change,
+  //   )?;
+  // }
   Ok(())
 }
 
+#[allow(dead_code)]
 fn derive_and_import_descriptor(
   client: &Client,
   secp: &Secp256k1<All>,

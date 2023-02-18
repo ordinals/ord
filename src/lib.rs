@@ -125,7 +125,7 @@ type Result<T = (), E = Error> = std::result::Result<T, E>;
 
 const DIFFCHANGE_INTERVAL: u64 = bitcoin::blockdata::constants::DIFFCHANGE_INTERVAL as u64;
 const SUBSIDY_HALVING_INTERVAL: u64 =
-  bitcoin::blockdata::constants::SUBSIDY_HALVING_INTERVAL as u64;
+  (bitcoin::blockdata::constants::SUBSIDY_HALVING_INTERVAL * 4) as u64;
 const CYCLE_EPOCHS: u64 = 6;
 
 static INTERRUPTS: AtomicU64 = AtomicU64::new(0);

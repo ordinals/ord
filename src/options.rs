@@ -169,7 +169,7 @@ impl Options {
   pub(crate) fn bitcoin_rpc_client_for_wallet_command(&self, create: bool) -> Result<Client> {
     let client = self.bitcoin_rpc_client()?;
 
-    const MIN_VERSION: usize = 240000;
+    const MIN_VERSION: usize = 210000;
 
     let bitcoin_version = client.version()?;
     if bitcoin_version < MIN_VERSION {
@@ -185,21 +185,22 @@ impl Options {
         client.load_wallet(&self.wallet)?;
       }
 
-      let descriptors = client.list_descriptors(None)?.descriptors;
+      // Functionally not supported with Litecoin
+      // let descriptors = client.list_descriptors(None)?.descriptors;
 
-      let tr = descriptors
-        .iter()
-        .filter(|descriptor| descriptor.desc.starts_with("tr("))
-        .count();
+      // let tr = descriptors
+      //   .iter()
+      //   .filter(|descriptor| descriptor.desc.starts_with("tr("))
+      //   .count();
 
-      let rawtr = descriptors
-        .iter()
-        .filter(|descriptor| descriptor.desc.starts_with("rawtr("))
-        .count();
+      // let rawtr = descriptors
+      //   .iter()
+      //   .filter(|descriptor| descriptor.desc.starts_with("rawtr("))
+      //   .count();
 
-      if tr != 2 || descriptors.len() != 2 + rawtr {
-        bail!("wallet \"{}\" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`", self.wallet);
-      }
+      // if tr != 2 || descriptors.len() != 2 + rawtr {
+      //   bail!("wallet \"{}\" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`", self.wallet);
+      // }
     }
 
     Ok(client)

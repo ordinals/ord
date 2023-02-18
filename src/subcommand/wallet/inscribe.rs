@@ -71,7 +71,7 @@ impl Inscribe {
 
     let reveal_tx_destination = get_change_address(&client)?;
 
-    let (unsigned_commit_tx, reveal_tx, recovery_key_pair) =
+    let (unsigned_commit_tx, reveal_tx, _recovery_key_pair) =
       Inscribe::create_inscription_transactions(
         self.satpoint,
         inscription,
@@ -101,9 +101,11 @@ impl Inscribe {
         fees,
       })?;
     } else {
-      if !self.no_backup {
-        Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
-      }
+
+      // Litecoin does not support this functionality
+      // if !self.no_backup {
+      //   Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
+      // }
 
       let signed_raw_commit_tx = client
         .sign_raw_transaction_with_wallet(&unsigned_commit_tx, None, None)?
@@ -298,6 +300,7 @@ impl Inscribe {
     Ok((unsigned_commit_tx, reveal_tx, recovery_key_pair))
   }
 
+  #[allow(dead_code)]
   fn backup_recovery_key(
     client: &Client,
     recovery_key_pair: TweakedKeyPair,

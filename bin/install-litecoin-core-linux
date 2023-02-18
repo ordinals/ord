@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -euxo pipefail
+
+version=21.2.1
+
+wget \
+  -O litcoin.tar.gz \
+  https://download.litecoin.org/litecoin-0.21.2.1/linux/litecoin-0.21.2.1-x86_64-linux-gnu.tar.gz
+
+tar \
+  -xzvf litecoin.tar.gz \
+  -C /usr/local/bin \
+  --strip-components 2 \
+  litecoin-$version/bin/{litecoin-cli,litecoind}

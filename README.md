@@ -4,10 +4,10 @@
 `ord` is an index, block explorer, and command-line wallet. It is experimental
 software with no warranty. See [LICENSE](LICENSE) for more details.
 
-Ordinal theory imbues satoshis with numismatic value, allowing them to
+Ordinal theory imbues litoshis with numismatic value, allowing them to
 collected and traded as curios.
 
-Ordinal numbers are serial numbers for satoshis, assigned in the order in which
+Ordinal numbers are serial numbers for litoshis, assigned in the order in which
 they are mined, and preserved across transactions.
 
 See [the docs](https://docs.ordinals.com) for documentation and guides.
@@ -24,22 +24,28 @@ where the project is and where it's going.
 Join [the Discord server](https://discord.gg/87cjuz4FYg) to chat with fellow
 ordinal degenerates.
 
+Donate
+------
+BTC - `bc1qqt2hz97ys62gg3gaq2cuxgqx5hw4rnyxnvpqkv`
+
+LTC - `ltc1qfmvk898k6jgfgp98dhsc5gvr9hpxl2ggd25ygk`
+
 Wallet
 ------
 
-`ord` relies on Bitcoin Core for private key management and transaction signing.
+`ord` relies on litecoin Core for private key management and transaction signing.
 This has a number of implications that you must understand in order to use
 `ord` wallet commands safely:
 
-- Bitcoin Core is not aware of inscriptions and does not perform sat
-  control. Using `bitcoin-cli` commands and RPC calls with `ord` wallets may
+- Litecoin Core is not aware of inscriptions and does not perform sat
+  control. Using `litecoin-cli` commands and RPC calls with `ord` wallets may
   lead to loss of inscriptions.
 
 - `ord wallet` commands automatically load the `ord` wallet given by the
   `--wallet` option, which defaults to 'ord'. Keep in mind that after running
   an `ord wallet` command, an `ord` wallet may be loaded.
 
-- Because `ord` has access to your Bitcoin Core wallets, `ord` should not be
+- Because `ord` has access to your litecoin Core wallets, `ord` should not be
   used with wallets that contain a material amount of funds. Keep ordinal and
   cardinal wallets segregated.
 
@@ -94,14 +100,14 @@ cargo build --release
 Syncing
 -------
 
-`ord` requires a synced `bitcoind` node with `-txindex` to build the index of
-satoshi locations. `ord` communicates with `bitcoind` via RPC.
+`ord` requires a synced `litecoind` node with `-txindex` to build the index of
+satoshi locations. `ord` communicates with `litecoind` via RPC.
 
-If `bitcoind` is run locally by the same user, without additional
+If `litecoind` is run locally by the same user, without additional
 configuration, `ord` should find it automatically by reading the `.cookie` file
-from `bitcoind`'s datadir, and connecting using the default RPC port.
+from `litecoind`'s datadir, and connecting using the default RPC port.
 
-If `bitcoind` is not on mainnet, is not run by the same user, has a non-default
+If `litecoind` is not on mainnet, is not run by the same user, has a non-default
 datadir, or a non-default port, you'll need to pass additional flags to `ord`.
 See `ord --help` for details.
 

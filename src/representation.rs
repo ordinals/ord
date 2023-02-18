@@ -19,7 +19,7 @@ impl Representation {
     (
       self,
       match self {
-        Self::Address => r"^(bc|BC|tb|TB|bcrt|BCRT)1.*$",
+        Self::Address => r"^(bc|BC|tb|TB|bcrt|BCRT|ltc|LTC|tltc|TLTC|rltc|RLTC)1.*$",
         Self::Decimal => r"^.*\..*$",
         Self::Degree => r"^.*°.*′.*″(.*‴)?$",
         Self::Hash => r"^[[:xdigit:]]{64}$",
