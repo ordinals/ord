@@ -1,6 +1,6 @@
 use {
   self::inscription_updater::InscriptionUpdater,
-  super::{tx_fetcher::TxFetcher, *},
+  super::{fetcher::Fetcher, *},
   futures::future::try_join_all,
   std::sync::mpsc,
   tokio::sync::mpsc::{error::TryRecvError, Receiver, Sender},
@@ -98,7 +98,7 @@ impl Updater {
 
     let rx = Self::fetch_blocks_from(index, self.height, self.index_sats)?;
 
-    let (mut outpoint_sender, mut value_receiver) = Self::spawn_tx_fetcher(index)?;
+    let (mut outpoint_sender, mut value_receiver) = Self::spawn_fetcher(index)?;
 
     let mut uncommitted = 0;
     let mut value_cache = HashMap::new();
@@ -257,15 +257,21 @@ impl Updater {
     }
   }
 
-  fn spawn_tx_fetcher(index: &Index) -> Result<(Sender<OutPoint>, Receiver<u64>)> {
-    let tx_fetcher = TxFetcher::new(&index.rpc_url, index.auth.clone())?;
+  fn spawn_fetcher(index: &Index) -> Result<(Sender<OutPoint>, Receiver<u64>)> {
+    let fetcher = Fetcher::new(&index.rpc_url, index.auth.clone())?;
 
+    // Not sure if any block has more than 20k inputs, but none so far after first inscription block
     const CHANNEL_BUFFER_SIZE: usize = 20_000;
     let (outpoint_sender, mut outpoint_receiver) =
       tokio::sync::mpsc::channel::<OutPoint>(CHANNEL_BUFFER_SIZE);
     let (value_sender, value_receiver) = tokio::sync::mpsc::channel::<u64>(CHANNEL_BUFFER_SIZE);
 
+    // Batch 2048 missing inputs at a time. Arbitrarily chosen for now, maybe higher or lower can be faster?
+    // Did rudimentary benchmarks with 1024 and 4096 and time was roughly the same.
     const BATCH_SIZE: usize = 2048;
+    // Default rpcworkqueue in bitcoind is 16, meaning more than 16 concurrent requests will be rejected.
+    // Since we are already requesting blocks on a separate thread, and we don't want to break if anything
+    // else runs a request, we keep this to 12.
     const PARALLEL_REQUESTS: usize = 12;
 
     std::thread::spawn(move || {
@@ -276,9 +282,11 @@ impl Updater {
       rt.block_on(async move {
         loop {
           let Some(outpoint) = outpoint_receiver.recv().await else {
-            log::info!("Outpoint channel closed");
+            log::debug!("Outpoint channel closed");
             return;
           };
+          // There's no try_iter on tokio::sync::mpsc::Receiver like std::sync::mpsc::Receiver.
+          // So we just loop until BATCH_SIZE doing try_recv until it returns None.
           let mut outpoints = vec![outpoint];
           for _ in 0..BATCH_SIZE-1 {
             let Ok(outpoint) = outpoint_receiver.try_recv() else {
@@ -286,23 +294,25 @@ impl Updater {
             };
             outpoints.push(outpoint);
           }
-          let parts = (outpoints.len() / PARALLEL_REQUESTS) + 1;
+          // Break outpoints into chunks for parallel requests
+          let chunk_size = (outpoints.len() / PARALLEL_REQUESTS) + 1;
           let mut futs = Vec::with_capacity(PARALLEL_REQUESTS);
-          for chunk in outpoints.chunks(parts) {
+          for chunk in outpoints.chunks(chunk_size) {
             let txids = chunk.iter().map(|outpoint| outpoint.txid).collect();
-            let fut = tx_fetcher.get_transactions(txids);
+            let fut = fetcher.get_transactions(txids);
             futs.push(fut);
           }
           let txs = match try_join_all(futs).await {
             Ok(txs) => txs,
             Err(e) => {
-              log::warn!("Couldn't receive txs {e}");
+              log::error!("Couldn't receive txs {e}");
               return;
             }
           };
+          // Send all tx output values back in order
           for (i, tx) in txs.iter().flatten().enumerate() {
             let Ok(_) = value_sender.send(tx.output[usize::try_from(outpoints[i].vout).unwrap()].value).await else {
-              log::warn!("Value channel closed unexpectedly");
+              log::error!("Value channel closed unexpectedly");
               return;
             };
           }
@@ -322,11 +332,16 @@ impl Updater {
     block: BlockData,
     value_cache: &mut HashMap<OutPoint, u64>,
   ) -> Result<()> {
-    let Err(TryRecvError::Empty) = value_receiver.try_recv() else { return Err(anyhow!("Previous block did not consume all input values")); };
+    // If value_receiver still has values something went wrong with the last block
+    // Could be an assert, shouldn't recover from this and commit the last block
+    let Err(TryRecvError::Empty) = value_receiver.try_recv() else { 
+      return Err(anyhow!("Previous block did not consume all input values")); 
+    };
 
     let mut outpoint_to_value = wtx.open_table(OUTPOINT_TO_VALUE)?;
 
     if !self.index_sats {
+      // Send all missing input outpoints to be fetched right away
       let txids = block
         .txdata
         .iter()
@@ -335,18 +350,25 @@ impl Updater {
       for (tx, _) in &block.txdata {
         for input in &tx.input {
           let prev_output = input.previous_output;
+          // We don't need coinbase input value
           if prev_output.is_null() {
             continue;
           }
+          // We don't need input values from txs earlier in the block, since they'll be added to value_cache
+          // when the tx is indexed
           if txids.contains(&prev_output.txid) {
             continue;
           }
+          // We don't need input values we already have in our value_cache from earlier blocks
           if value_cache.contains_key(&prev_output) {
             continue;
           }
+          // We don't need input values we already have in our outpoint_to_value table from earlier blocks that
+          // were committed to db already
           if outpoint_to_value.get(&prev_output.store())?.is_some() {
             continue;
           }
+          // We don't know the value of this tx input. Send this outpoint to background thread to be fetched
           outpoint_sender.blocking_send(prev_output)?;
         }
       }

@@ -1,22 +1,23 @@
 use {
   anyhow::{anyhow, Result},
-  bitcoin::{consensus::deserialize, Transaction, Txid},
+  bitcoin::{Transaction, Txid},
   bitcoincore_rpc::Auth,
-  hyper::{client::HttpConnector, Body, Client, Method, Request},
+  hyper::{client::HttpConnector, Body, Client, Method, Request, Uri},
   serde::Deserialize,
+  serde_json::{json, Value},
 };
 
-pub(crate) struct TxFetcher {
+pub(crate) struct Fetcher {
   client: Client<HttpConnector>,
-  url: String,
+  url: Uri,
   auth: String,
 }
 
 #[derive(Deserialize, Debug)]
-struct JsonResponse {
-  result: Option<String>,
+struct JsonResponse<T> {
+  result: Option<T>,
   error: Option<JsonError>,
-  id: String,
+  id: usize,
 }
 
 #[derive(Deserialize, Debug)]
@@ -25,10 +26,10 @@ struct JsonError {
   message: String,
 }
 
-impl TxFetcher {
+impl Fetcher {
   pub(crate) fn new(url: &str, auth: Auth) -> Result<Self> {
     if auth == Auth::None {
-      return Err(anyhow!("No authentication provided"));
+      return Err(anyhow!("No rpc authentication provided"));
     }
 
     let client = Client::new();
@@ -39,10 +40,12 @@ impl TxFetcher {
       "http://".to_string() + url
     };
 
+    let url = Uri::try_from(&url).map_err(|e| anyhow!("Invalid rpc url {url}: {e}"))?;
+
     let (user, password) = auth.get_user_pass()?;
     let auth = format!("{}:{}", user.unwrap(), password.unwrap());
     let auth = format!("Basic {}", &base64::encode(auth));
-    Ok(TxFetcher { client, url, auth })
+    Ok(Fetcher { client, url, auth })
   }
 
   pub(crate) async fn get_transactions(&self, txids: Vec<Txid>) -> Result<Vec<Transaction>> {
@@ -52,12 +55,16 @@ impl TxFetcher {
 
     let mut reqs = Vec::with_capacity(txids.len());
     for (i, txid) in txids.iter().enumerate() {
-      let req =
-        format!("{{\"jsonrpc\":\"2.0\",\"id\":\"{i}\",\"method\":\"getrawtransaction\",\"params\":[\"{txid:x}\"]}}");
+      let req = json!({
+        "jsonrpc": "2.0",
+        "id": i, // Use the index as id, so we can quickly sort the response
+        "method": "getrawtransaction",
+        "params": [ txid ]
+      });
       reqs.push(req);
     }
 
-    let body = format!("[{}]", reqs.join(","));
+    let body = Value::Array(reqs).to_string();
     let req = Request::builder()
       .method(Method::POST)
       .uri(&self.url)
@@ -69,8 +76,9 @@ impl TxFetcher {
 
     let buf = hyper::body::to_bytes(response).await?;
 
-    let mut results: Vec<JsonResponse> = serde_json::from_slice(&buf)?;
+    let mut results: Vec<JsonResponse<String>> = serde_json::from_slice(&buf)?;
 
+    // Return early on any error, because we need all results to proceed
     if let Some(err) = results.iter().find_map(|res| res.error.as_ref()) {
       return Err(anyhow!(
         "Failed to fetch raw transaction: code {} message {}",
@@ -79,18 +87,27 @@ impl TxFetcher {
       ));
     }
 
-    results.sort_by(|a, b| {
-      a.id
-        .parse::<usize>()
-        .unwrap()
-        .cmp(&b.id.parse::<usize>().unwrap())
-    });
+    // Results from batched JSON-RPC requests can come back in any order, so we must sort them by id
+    results.sort_by(|a, b| a.id.cmp(&b.id));
 
     Ok(
       results
         .into_iter()
-        .map(|res| deserialize(&hex::decode(res.result.unwrap()).unwrap()).unwrap())
-        .collect(),
+        .map(|res| {
+          res
+            .result
+            .ok_or_else(|| anyhow!("Missing result for batched JSON-RPC response"))
+            .and_then(|str| {
+              hex::decode(&str)
+                .map_err(|e| anyhow!("Result for batched JSON-RPC response not valid hex: {e}"))
+            })
+            .and_then(|hex| {
+              bitcoin::consensus::deserialize(&hex).map_err(|e| {
+                anyhow!("Result for batched JSON-RPC response not valid bitcoin tx: {e}")
+              })
+            })
+        })
+        .collect::<Result<Vec<Transaction>>>()?,
     )
   }
 }
