@@ -33,7 +33,7 @@ mod tests {
           <dt>decimal</dt><dd>0.0</dd>
           <dt>degree</dt><dd>0°0′0″0‴</dd>
           <dt>percentile</dt><dd>0%</dd>
-          <dt>name</dt><dd>nvtdijuwxlp</dd>
+          <dt>name</dt><dd>bgmbqkqiqsxl</dd>
           <dt>cycle</dt><dd>0</dd>
           <dt>epoch</dt><dd>0</dd>
           <dt>period</dt><dd>0</dd>
@@ -55,28 +55,28 @@ mod tests {
   fn last() {
     assert_regex_match!(
       SatHtml {
-        sat: Sat(2099999997689999),
+        sat: Sat(8399999990759999),
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
         inscription: None,
       },
       "
-        <h1>Sat 2099999997689999</h1>
+        <h1>Sat 8399999990759999</h1>
         <dl>
-          <dt>decimal</dt><dd>6929999.0</dd>
-          <dt>degree</dt><dd>5°209999′1007″0‴</dd>
+          <dt>decimal</dt><dd>27719999.0</dd>
+          <dt>degree</dt><dd>10°839999′2015″0‴</dd>
           <dt>percentile</dt><dd>100%</dd>
           <dt>name</dt><dd>a</dd>
-          <dt>cycle</dt><dd>5</dd>
+          <dt>cycle</dt><dd>10</dd>
           <dt>epoch</dt><dd>32</dd>
-          <dt>period</dt><dd>3437</dd>
-          <dt>block</dt><dd><a href=/block/6929999>6929999</a></dd>
+          <dt>period</dt><dd>13749</dd>
+          <dt>block</dt><dd><a href=/block/27719999>27719999</a></dd>
           <dt>offset</dt><dd>0</dd>
           <dt>rarity</dt><dd><span class=uncommon>uncommon</span></dd>
           <dt>timestamp</dt><dd><time>1970-01-01 00:00:00 UTC</time></dd>
         </dl>
         .*
-        <a class=prev href=/sat/2099999997689998>prev</a>
+        <a class=prev href=/sat/8399999990759998>prev</a>
         next
         .*
       "
@@ -119,7 +119,7 @@ mod tests {
         blocktime: Blocktime::confirmed(0),
         inscription: None,
       },
-      r"<h1>Sat 2099999997689999</h1>.*<a class=prev href=/sat/2099999997689998>prev</a>\nnext.*",
+      r"<h1>Sat 8399999990759999</h1>.*<a class=prev href=/sat/8399999990759998>prev</a>\nnext.*",
     );
   }
 

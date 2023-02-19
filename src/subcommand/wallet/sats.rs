@@ -165,11 +165,11 @@ mod tests {
     assert_eq!(
       rare_sats(vec![(
         outpoint(1),
-        vec![(0, 100), (1050000000000000, 1150000000000000)],
+        vec![(0, 100), (4200000000000000, 4600000000000000)],
       )]),
       vec![
         (outpoint(1), Sat(0), 0, Rarity::Mythic),
-        (outpoint(1), Sat(1050000000000000), 100, Rarity::Epic)
+        (outpoint(1), Sat(4200000000000000), 100, Rarity::Epic)
       ]
     )
   }

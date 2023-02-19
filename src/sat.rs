@@ -115,17 +115,17 @@ impl Sat {
 
     let cycle_start_epoch = cycle_number * CYCLE_EPOCHS;
 
-    const HALVING_INCREMENT: u64 = SUBSIDY_HALVING_INTERVAL % DIFFCHANGE_INTERVAL;
+    const HALVING_INCREMENT: i64 = (SUBSIDY_HALVING_INTERVAL % DIFFCHANGE_INTERVAL) as i64 / -2;
 
     // For valid degrees the relationship between epoch_offset and period_offset
-    // will increment by 336 every halving.
+    // will decrement by 672 every halving.
     let relationship = period_offset + SUBSIDY_HALVING_INTERVAL * CYCLE_EPOCHS - epoch_offset;
 
-    if relationship % HALVING_INCREMENT != 0 {
-      bail!("relationship between epoch offset and period offset must be multiple of 336");
+    if relationship as i64 % HALVING_INCREMENT != 0 {
+      bail!("relationship between epoch offset and period offset must be multiple of 672");
     }
 
-    let epochs_since_cycle_start = relationship % DIFFCHANGE_INTERVAL / HALVING_INCREMENT;
+    let epochs_since_cycle_start = relationship % DIFFCHANGE_INTERVAL / HALVING_INCREMENT as u64;
 
     let epoch = cycle_start_epoch + epochs_since_cycle_start;
 
@@ -255,25 +255,25 @@ mod tests {
       SUBSIDY_HALVING_INTERVAL * 2
     );
     assert_eq!(Sat(50 * COIN_VALUE).height(), 1);
-    assert_eq!(Sat(2099999997689999).height(), 6929999);
-    assert_eq!(Sat(2099999997689998).height(), 6929998);
+    assert_eq!(Sat(2099999997689999).height(), 419999);
+    assert_eq!(Sat(2099999997689998).height(), 419999);
   }
 
   #[test]
   fn name() {
-    assert_eq!(Sat(0).name(), "nvtdijuwxlp");
-    assert_eq!(Sat(1).name(), "nvtdijuwxlo");
-    assert_eq!(Sat(26).name(), "nvtdijuwxkp");
-    assert_eq!(Sat(27).name(), "nvtdijuwxko");
-    assert_eq!(Sat(2099999997689999).name(), "a");
-    assert_eq!(Sat(2099999997689999 - 1).name(), "b");
-    assert_eq!(Sat(2099999997689999 - 25).name(), "z");
-    assert_eq!(Sat(2099999997689999 - 26).name(), "aa");
+    assert_eq!(Sat(0).name(), "bgmbqkqiqsxl");
+    assert_eq!(Sat(1).name(), "bgmbqkqiqsxk");
+    assert_eq!(Sat(26).name(), "bgmbqkqiqswl");
+    assert_eq!(Sat(27).name(), "bgmbqkqiqswk");
+    assert_eq!(Sat(8399999990759999).name(), "a");
+    assert_eq!(Sat(8399999990759999 - 1).name(), "b");
+    assert_eq!(Sat(8399999990759999 - 25).name(), "z");
+    assert_eq!(Sat(8399999990759999 - 26).name(), "aa");
   }
 
   #[test]
   fn number() {
-    assert_eq!(Sat(2099999997689999).n(), 2099999997689999);
+    assert_eq!(Sat(8399999990759999).n(), 8399999990759999);
   }
 
   #[test]
@@ -308,26 +308,26 @@ mod tests {
       Sat(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL - 1)
         .degree()
         .to_string(),
-      "0°209999′335″4999999999‴"
+      "0°839999′1343″4999999999‴"
     );
     assert_eq!(
       Sat(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL)
         .degree()
         .to_string(),
-      "0°0′336″0‴"
+      "0°0′1344″0‴"
     );
     assert_eq!(
       Sat(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL + 1)
         .degree()
         .to_string(),
-      "0°0′336″1‴"
+      "0°0′1344″1‴"
     );
     assert_eq!(
-      Sat(2067187500000000 - 1).degree().to_string(),
-      "0°209999′2015″156249999‴"
+      Sat(8268750000000000 - 1).degree().to_string(),
+      "1°839999′2015″156249999‴"
     );
-    assert_eq!(Sat(2067187500000000).degree().to_string(), "1°0′0″0‴");
-    assert_eq!(Sat(2067187500000000 + 1).degree().to_string(), "1°0′0″1‴");
+    assert_eq!(Sat(8268750000000000).degree().to_string(), "2°0′0″0‴");
+    assert_eq!(Sat(8268750000000000 + 1).degree().to_string(), "2°0′0″1‴");
   }
 
   #[test]
@@ -358,13 +358,13 @@ mod tests {
   fn period() {
     assert_eq!(Sat(0).period(), 0);
     assert_eq!(Sat(10080000000000).period(), 1);
-    assert_eq!(Sat(2099999997689999).period(), 3437);
+    assert_eq!(Sat(2099999997689999).period(), 208);
     assert_eq!(Sat(10075000000000).period(), 0);
     assert_eq!(Sat(10080000000000 - 1).period(), 0);
     assert_eq!(Sat(10080000000000).period(), 1);
     assert_eq!(Sat(10080000000000 + 1).period(), 1);
     assert_eq!(Sat(10085000000000).period(), 1);
-    assert_eq!(Sat(2099999997689999).period(), 3437);
+    assert_eq!(Sat(2099999997689999).period(), 208);
   }
 
   #[test]
@@ -372,7 +372,7 @@ mod tests {
     assert_eq!(Sat(0).epoch(), 0);
     assert_eq!(Sat(1).epoch(), 0);
     assert_eq!(Sat(50 * COIN_VALUE * SUBSIDY_HALVING_INTERVAL).epoch(), 1);
-    assert_eq!(Sat(2099999997689999).epoch(), 32);
+    assert_eq!(Sat(8399999990759999).epoch(), 32);
   }
 
   #[test]
@@ -458,9 +458,9 @@ mod tests {
     assert_eq!(parse("0.0").unwrap(), 0);
     assert_eq!(parse("0.1").unwrap(), 1);
     assert_eq!(parse("1.0").unwrap(), 50 * COIN_VALUE);
-    assert_eq!(parse("6929999.0").unwrap(), 2099999997689999);
+    assert_eq!(parse("6929999.0").unwrap(), 8371289042968750);
     assert!(parse("0.5000000000").is_err());
-    assert!(parse("6930000.0").is_err());
+    assert!(parse("27720000.0").is_err());
   }
 
   #[test]
@@ -478,13 +478,13 @@ mod tests {
     assert_eq!(parse("0°0′672″0‴").unwrap(), 1575000000000000);
     assert_eq!(parse("0°209999′1007″0‴").unwrap(), 1837498750000000);
     assert_eq!(parse("0°0′1008″0‴").unwrap(), 1837500000000000);
-    assert_eq!(parse("1°0′0″0‴").unwrap(), 2067187500000000);
-    assert_eq!(parse("2°0′0″0‴").unwrap(), 2099487304530000);
-    assert_eq!(parse("3°0′0″0‴").unwrap(), 2099991988080000);
-    assert_eq!(parse("4°0′0″0‴").unwrap(), 2099999873370000);
-    assert_eq!(parse("5°0′0″0‴").unwrap(), 2099999996220000);
-    assert_eq!(parse("5°0′336″0‴").unwrap(), 2099999997060000);
-    assert_eq!(parse("5°0′672″0‴").unwrap(), 2099999997480000);
+    assert_eq!(parse("1°0′0″0‴").unwrap(), 7350000000000000);
+    assert_eq!(parse("2°0′0″0‴").unwrap(), 8268750000000000);
+    assert_eq!(parse("3°0′0″0‴").unwrap(), 8383593750000000);
+    assert_eq!(parse("4°0′0″0‴").unwrap(), 8397949218120000);
+    assert_eq!(parse("5°0′0″0‴").unwrap(), 8399743650480000);
+    assert_eq!(parse("5°0′1344″0‴").unwrap(), 8399871823560000);
+    assert_eq!(parse("5°0′1344″0‴").unwrap(), 2099999997480000);
     assert_eq!(parse("5°1′673″0‴").unwrap(), 2099999997480001);
     assert_eq!(parse("5°209999′1007″0‴").unwrap(), 2099999997689999);
   }
@@ -492,20 +492,20 @@ mod tests {
   #[test]
   fn from_str_number() {
     assert_eq!(parse("0").unwrap(), 0);
-    assert_eq!(parse("2099999997689999").unwrap(), 2099999997689999);
-    assert!(parse("2099999997690000").is_err());
+    assert_eq!(parse("8399999990759999").unwrap(), 8399999990759999);
+    assert!(parse("8399999990760000").is_err());
   }
 
   #[test]
   fn from_str_degree_invalid_cycle_number() {
-    assert!(parse("5°0′0″0‴").is_ok());
-    assert!(parse("6°0′0″0‴").is_err());
+    assert!(parse("10°0′0″0‴").is_ok());
+    assert!(parse("11°0′0″0‴").is_err());
   }
 
   #[test]
   fn from_str_degree_invalid_epoch_offset() {
     assert!(parse("0°209999′335″0‴").is_ok());
-    assert!(parse("0°210000′336″0‴").is_err());
+    assert!(parse("0°840000′336″0‴").is_err());
   }
 
   #[test]
@@ -538,11 +538,11 @@ mod tests {
 
   #[test]
   fn from_str_name() {
-    assert_eq!(parse("nvtdijuwxlp").unwrap(), 0);
-    assert_eq!(parse("a").unwrap(), 2099999997689999);
+    assert_eq!(parse("bgmbqkqiqsxl").unwrap(), 0);
+    assert_eq!(parse("a").unwrap(), 8399999990759999);
     assert!(parse("(").is_err());
     assert!(parse("").is_err());
-    assert!(parse("nvtdijuwxlq").is_err());
+    assert!(parse("bgmbqkqiqsxq").is_err());
   }
 
   #[test]
@@ -562,9 +562,9 @@ mod tests {
     );
 
     assert_eq!(Sat(0).cycle(), 0);
-    assert_eq!(Sat(2067187500000000 - 1).cycle(), 0);
-    assert_eq!(Sat(2067187500000000).cycle(), 1);
-    assert_eq!(Sat(2067187500000000 + 1).cycle(), 1);
+    assert_eq!(Sat(7350000000000000 - 1).cycle(), 0);
+    assert_eq!(Sat(7350000000000000).cycle(), 1);
+    assert_eq!(Sat(7350000000000000 + 1).cycle(), 1);
   }
 
   #[test]
@@ -578,7 +578,7 @@ mod tests {
   #[test]
   fn percentile() {
     assert_eq!(Sat(0).percentile(), "0%");
-    assert_eq!(Sat(Sat::LAST.n() / 2).percentile(), "49.99999999999998%");
+    assert_eq!(Sat(Sat::LAST.n() / 2).percentile(), "49.99999999999999%");
     assert_eq!(Sat::LAST.percentile(), "100%");
   }
 

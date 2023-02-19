@@ -1478,7 +1478,7 @@ mod tests {
   #[test]
   fn sat_out_of_range() {
     TestServer::new().assert_response(
-      "/sat/2099999997690000",
+      "/sat/8399999990760000",
       StatusCode::BAD_REQUEST,
       "Invalid URL: invalid sat",
     );

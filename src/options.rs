@@ -238,7 +238,7 @@ mod tests {
   fn use_default_network() {
     let arguments = Arguments::try_parse_from(["ord", "index"]).unwrap();
 
-    assert_eq!(arguments.options.rpc_url(), "127.0.0.1:8332/wallet/ord");
+    assert_eq!(arguments.options.rpc_url(), "127.0.0.1:9332/wallet/ord");
 
     assert!(arguments
       .options
@@ -251,7 +251,7 @@ mod tests {
   fn uses_network_defaults() {
     let arguments = Arguments::try_parse_from(["ord", "--chain=signet", "index"]).unwrap();
 
-    assert_eq!(arguments.options.rpc_url(), "127.0.0.1:38332/wallet/ord");
+    assert_eq!(arguments.options.rpc_url(), "127.0.0.1:39332/wallet/ord");
 
     assert!(arguments
       .options
