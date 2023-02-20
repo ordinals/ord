@@ -3,17 +3,33 @@ use super::*;
 #[derive(Serialize)]
 struct Output {
   mnemonic: Mnemonic,
+  passphrase: Option<String>,
 }
 
-pub(crate) fn run(options: Options) -> Result {
-  let mut entropy = [0; 16];
-  rand::thread_rng().fill_bytes(&mut entropy);
+#[derive(Debug, Parser)]
+pub(crate) struct Create {
+  #[clap(
+    long,
+    default_value = "",
+    help = "Use <PASSPHRASE> to derive wallet seed."
+  )]
+  pub(crate) passphrase: String,
+}
 
-  let mnemonic = Mnemonic::from_entropy(&entropy)?;
+impl Create {
+  pub(crate) fn run(self, options: Options) -> Result {
+    let mut entropy = [0; 16];
+    rand::thread_rng().fill_bytes(&mut entropy);
 
-  initialize_wallet(&options, mnemonic.to_seed(""))?;
+    let mnemonic = Mnemonic::from_entropy(&entropy)?;
 
-  print_json(Output { mnemonic })?;
+    initialize_wallet(&options, mnemonic.to_seed(self.passphrase.clone()))?;
 
-  Ok(())
+    print_json(Output {
+      mnemonic,
+      passphrase: Some(self.passphrase),
+    })?;
+
+    Ok(())
+  }
 }
