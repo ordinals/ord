@@ -71,9 +71,10 @@ impl Inscribe {
 
     let commit_tx_change = [get_change_address(&client)?, get_change_address(&client)?];
 
-    let reveal_tx_destination = self.destination.unwrap_or_else(|| {
-      get_change_address(&client).expect("Could not generate destination address")
-    });
+    let reveal_tx_destination = self
+      .destination
+      .map(Ok)
+      .unwrap_or_else(|| get_change_address(&client))?;
 
     let (unsigned_commit_tx, reveal_tx, recovery_key_pair) =
       Inscribe::create_inscription_transactions(
