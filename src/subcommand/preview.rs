@@ -61,7 +61,10 @@ impl Preview {
       thread::sleep(Duration::from_millis(50));
     }
 
-    super::wallet::create::run(options.clone())?;
+    super::wallet::Wallet::Create(super::wallet::create::Create {
+      passphrase: "".into(),
+    })
+    .run(options.clone())?;
 
     let rpc_client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
