@@ -13,6 +13,7 @@ pub(crate) enum Media {
   Text,
   Unknown,
   Video,
+  HashTorrent,
 }
 
 impl Media {
@@ -37,6 +38,7 @@ impl Media {
     ("text/plain;charset=utf-8", Media::Text, &["txt"]),
     ("video/mp4", Media::Video, &["mp4"]),
     ("video/webm", Media::Video, &["webm"]),
+    ("sha2,btih", Media::HashTorrent, &[]),
   ];
 
   pub(crate) fn content_type_for_path(path: &Path) -> Result<&'static str, Error> {

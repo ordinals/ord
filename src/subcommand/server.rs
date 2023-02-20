@@ -8,7 +8,8 @@ use {
   crate::templates::{
     BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionsHtml, OutputHtml,
     PageContent, PageHtml, PreviewAudioHtml, PreviewImageHtml, PreviewPdfHtml, PreviewTextHtml,
-    PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, SatHtml, TransactionHtml,
+    PreviewTorrentHashHtml, PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, SatHtml,
+    TransactionHtml,
   },
   axum::{
     body,
@@ -809,6 +810,13 @@ impl Server {
       }
       Media::Unknown => Ok(PreviewUnknownHtml.into_response()),
       Media::Video => Ok(PreviewVideoHtml { inscription_id }.into_response()),
+      Media::HashTorrent => {
+        let torrent_data = inscription
+          .torrent_data()
+          .ok_or_not_found(|| format!("inscription {inscription_id} torrent commitment data"))?;
+
+        Ok(PreviewTorrentHashHtml(torrent_data).into_response())
+      }
     };
   }
 

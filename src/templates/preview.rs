@@ -27,3 +27,6 @@ pub(crate) struct PreviewUnknownHtml;
 pub(crate) struct PreviewVideoHtml {
   pub(crate) inscription_id: InscriptionId,
 }
+
+#[derive(boilerplate::Boilerplate)]
+pub(crate) struct PreviewTorrentHashHtml(pub(crate) super::torrent::TorrentHashData);

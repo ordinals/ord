@@ -1,0 +1,20 @@
+%% use bitcoin::hashes::hex::ToHex;
+
+<!doctype html>
+<html lang=en>
+  <head>
+    <meta charset=utf-8>
+    <link rel=stylesheet href=/static/index.css>
+  </head>
+  <body>
+    <dl>
+      <dt>file sha256</dt>
+      <dd class=monospace>{{self.0.sha256.to_hex()}}</dd>
+      <dt>torrent infohash</dt>
+      <dd class=monospace>{{self.0.infohash.to_hex()}}</dd>
+      <dt>torrent magnet</dt>
+      %% let magnet_uri = self.0.magnet_uri();
+      <dd><a href={{ magnet_uri }}>download</a> <a href="https://instant.io/#{{magnet_uri}}">[instant.io]</a></dd>
+    </dl>
+  </body>
+</html>

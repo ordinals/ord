@@ -1,3 +1,4 @@
+%% use bitcoin::hashes::hex::ToHex;
 <h1>Inscription {{ self.number }}</h1>
 <div class=inscription>
 %% if let Some(previous) = self.previous {
@@ -36,6 +37,15 @@
 %% if let Some(content_type) = self.inscription.content_type() {
   <dt>content type</dt>
   <dd>{{ content_type }}</dd>
+%% }
+%% if let Some(torrent_data) = self.inscription.torrent_data() {
+  <dt>file sha256</dt>
+  <dd class=monospace>{{torrent_data.sha256.to_hex()}}</dd>
+  <dt>torrent infohash</dt>
+  <dd class=monospace>{{torrent_data.infohash.to_hex()}}</dd>
+  <dt>torrent magnet</dt>
+  %% let magnet_uri = torrent_data.magnet_uri();
+  <dd><a href="{{ magnet_uri }}">download</a> <a href="https://instant.io/#{{magnet_uri}}"><em>[instant.io]</em></a></dd>
 %% }
   <dt>timestamp</dt>
   <dd><time>{{ self.timestamp }}</time></dd>

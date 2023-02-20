@@ -68,6 +68,50 @@ pub(crate) fn make_torrent_inscription(
   ))
 }
 
+pub fn parse_inscription_data(data: &[u8]) -> Option<TorrentHashData> {
+  if data.len() != 32 + 20 {
+    None
+  } else {
+    Some(TorrentHashData {
+      sha256: data[0..32].to_vec(),
+      infohash: data[32..].to_vec(),
+    })
+  }
+}
+
+pub struct TorrentHashData {
+  pub sha256: Vec<u8>,
+  pub infohash: Vec<u8>,
+}
+
+impl TorrentHashData {
+  pub fn magnet_uri(&self) -> String {
+    // Constructs a magnet URI with the following params:
+    //
+    // xt (Exact Topic) - URI with the infohash
+    // tr (TRacker) - Tracker URL
+    // xs (eXact Source) - HTTP URL for fetching the .torrent file
+    // ws (Web Seed) - HTTP URL for fetching the torrent contents
+    // x.pe (PEer) - ip:port of peers to connect to
+
+    // To enable direct HTTP downloads even when there are no bittorrent peers, both xs and ws must be specified.
+    // See https://github.com/webtorrent/webtorrent/issues/1393#issuecomment-389805621
+
+    let infohash = self.infohash.to_hex();
+
+    format!(
+      "magnet:?xt=urn:btih:{}&tr={}&xs={}/{}.torrent&ws={}/{}/&x.pe={}",
+      infohash,
+      encode(DEFAULT_TRACKER),
+      encode(DEFAULT_WEBSEED),
+      infohash,
+      encode(DEFAULT_WEBSEED),
+      infohash,
+      encode(DEFAULT_PEER),
+    )
+  }
+}
+
 fn get_torrent_path(file_path: &Path, torrent_path: Option<impl AsRef<Path>>) -> PathBuf {
   if let Some(torrent_path) = torrent_path {
     torrent_path.as_ref().to_owned()

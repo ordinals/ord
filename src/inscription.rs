@@ -105,6 +105,14 @@ impl Inscription {
     str::from_utf8(self.content_type.as_ref()?).ok()
   }
 
+  pub(crate) fn torrent_data(&self) -> Option<super::torrent::TorrentHashData> {
+    if self.content_type() == Some("sha2,btih") {
+      super::torrent::parse_inscription_data(self.body()?)
+    } else {
+      None
+    }
+  }
+
   #[cfg(test)]
   pub(crate) fn to_witness(&self) -> Witness {
     let builder = script::Builder::new();
