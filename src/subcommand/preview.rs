@@ -86,6 +86,10 @@ impl Preview {
             dry_run: false,
             no_limit: false,
             destination: None,
+            torrent: false,
+            torrent_path: None,
+            torrent_tracker: "".to_string(),
+            torrent_peers: "".to_string(),
           },
         )),
       }

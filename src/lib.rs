@@ -119,6 +119,7 @@ mod sat_point;
 pub mod subcommand;
 mod tally;
 mod templates;
+mod torrent;
 mod wallet;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;

@@ -1,6 +1,6 @@
 use {
   super::*,
-  crate::wallet::Wallet,
+  crate::{torrent, wallet::Wallet},
   bitcoin::{
     blockdata::{opcodes, script},
     policy::MAX_STANDARD_TX_WEIGHT,
@@ -54,11 +54,37 @@ pub(crate) struct Inscribe {
   pub(crate) dry_run: bool,
   #[clap(long, help = "Send inscription to <DESTINATION>.")]
   pub(crate) destination: Option<Address>,
+
+  #[clap(long, help = "Create a torrent for <FILE> and inscribe its infohash")]
+  pub(crate) torrent: bool,
+  #[clap(long, help = "Path to save .torrent file [default: <FILE>.torrent]")]
+  pub(crate) torrent_path: Option<PathBuf>,
+  #[clap(
+    long,
+    help = "Torrent tracker URL to include in .torrent file",
+    default_value = torrent::DEFAULT_TRACKER,
+  )]
+  pub(crate) torrent_tracker: String,
+  #[clap(
+    long,
+    help = "Torrent peers to include in .torrent file (space-separated <host>:<port>)",
+    default_value = torrent::DEFAULT_PEER,
+  )]
+  pub(crate) torrent_peers: String,
 }
 
 impl Inscribe {
   pub(crate) fn run(self, options: Options) -> Result {
-    let inscription = Inscription::from_file(options.chain(), &self.file)?;
+    let inscription = if !self.torrent {
+      Inscription::from_file(options.chain(), &self.file)?
+    } else {
+      torrent::make_torrent_inscription(
+        self.file,
+        self.torrent_path,
+        &self.torrent_tracker,
+        &self.torrent_peers,
+      )?
+    };
 
     let index = Index::open(&options)?;
     index.update()?;

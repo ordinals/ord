@@ -23,7 +23,6 @@ pub(crate) struct Inscription {
 }
 
 impl Inscription {
-  #[cfg(test)]
   pub(crate) fn new(content_type: Option<Vec<u8>>, body: Option<Vec<u8>>) -> Self {
     Self { content_type, body }
   }
