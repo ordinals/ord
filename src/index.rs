@@ -1029,7 +1029,7 @@ mod tests {
 
   #[test]
   fn inscriptions_below_first_inscription_height_are_skipped() {
-    let inscription = inscription("text/plain", "hello");
+    let inscription = inscription("text/plain;charset=utf-8", "hello");
     let template = TransactionTemplate {
       inputs: &[(1, 0, 0)],
       witness: inscription.to_witness(),
