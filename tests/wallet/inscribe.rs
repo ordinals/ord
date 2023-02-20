@@ -373,6 +373,7 @@ fn inscribe_to_specific_destination() {
   .rpc_server(&rpc_server)
   .output::<Inscribe>()
   .reveal;
+  
   let reveal_tx = &rpc_server.mempool()[1]; // item 0 is the commit, item 1 is the reveal.
   assert_eq!(reveal_tx.txid(), txid);
   assert_eq!(
