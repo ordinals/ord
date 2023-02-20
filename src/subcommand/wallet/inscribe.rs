@@ -52,6 +52,8 @@ pub(crate) struct Inscribe {
   pub(crate) no_limit: bool,
   #[clap(long, help = "Don't sign or broadcast transactions.")]
   pub(crate) dry_run: bool,
+  #[clap(long, help = "Send inscription to <DESTINATION>.")]
+  pub(crate) destination: Option<Address>,
 }
 
 impl Inscribe {
@@ -69,7 +71,10 @@ impl Inscribe {
 
     let commit_tx_change = [get_change_address(&client)?, get_change_address(&client)?];
 
-    let reveal_tx_destination = get_change_address(&client)?;
+    let reveal_tx_destination = self
+      .destination
+      .map(Ok)
+      .unwrap_or_else(|| get_change_address(&client))?;
 
     let (unsigned_commit_tx, reveal_tx, recovery_key_pair) =
       Inscribe::create_inscription_transactions(
