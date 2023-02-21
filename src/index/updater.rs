@@ -111,8 +111,7 @@ impl Updater {
       runtime.clone(),
     )?;
 
-    let (mut outpoint_sender, mut value_receiver) =
-      Self::spawn_fetcher(fetcher.clone(), runtime.clone())?;
+    let (mut outpoint_sender, mut value_receiver) = Self::spawn_fetcher(fetcher, runtime)?;
 
     let mut uncommitted = 0;
     let mut value_cache = HashMap::new();
