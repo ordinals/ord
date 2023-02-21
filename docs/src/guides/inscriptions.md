@@ -152,7 +152,7 @@ content, the higher the fee that the inscription transaction must pay.
 
 Inscription content is included in transaction witnesses, which receive the
 witness discount. To calculate the approximate fee that in inscribe transaction
-will pay, divide the content size by four and muliply by the fee rate.
+will pay, divide the content size by four and multiply by the fee rate.
 
 Inscription transactions must be less than 400,000 weight units, or they will
 not be relayed by Bitcoin Core. One byte of inscription content costs one
