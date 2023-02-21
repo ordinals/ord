@@ -31,7 +31,7 @@ created by the commit transaction is spent, revealing the inscription content
 on-chain.
 
 Inscription content is serialized using data pushes within unexecuted
-conditionals, called an "envelopes". Envelopes consist of an `OP_FALSE OP_IF …
+conditionals, called "envelopes". Envelopes consist of an `OP_FALSE OP_IF …
 OP_ENDIF` wrapping any number of data pushes. Because envelopes are effectively
 no-ops, they do not change the semantics of the script in which they are
 included, and can be combined with any other locking script.
