@@ -1,10 +1,9 @@
-Sat Hunting
-===========
+# Sat Hunting
 
-*This guide is out of date. Since it was written, the `ord` binary was changed
+_This guide is out of date. Since it was written, the `ord` binary was changed
 to only build the full satoshi index when the `--index-sats` flag is supplied.
 Additionally, `ord` now has a built-in wallet that wraps a Bitcoin Core wallet.
-See `ord wallet --help`.*
+See `ord wallet --help`._
 
 Ordinal hunting is difficult but rewarding. The feeling of owning a wallet full
 of UTXOs, redolent with the scent of rare and exotic sats, is beyond compare.
@@ -12,8 +11,7 @@ of UTXOs, redolent with the scent of rare and exotic sats, is beyond compare.
 Ordinals are numbers for satoshis. Every satoshi has an ordinal number and
 every ordinal number has a satoshi.
 
-Preparation
------------
+## Preparation
 
 There are a few things you'll need before you start.
 
@@ -49,8 +47,7 @@ There are a few things you'll need before you start.
 
 3. Third, you'll need a wallet with UTXOs that you want to search.
 
-Searching for Rare Ordinals
----------------------------
+## Searching for Rare Ordinals
 
 ### Searching for Rare Ordinals in a Bitcoin Core Wallet
 
@@ -127,7 +124,7 @@ your wallet of funds.
    bitcoin-cli getwalletinfo
    ```
 
-7. Display your wallet's rare ordinals:
+6. Display your wallet's rare ordinals:
 
    ```sh
    ord wallet sats
@@ -200,7 +197,7 @@ those multiple descriptors into Bitcoin Core.
    bitcoin-cli loadwallet foo-watch-only
    ```
 
-4. Now import the descriptors, with the correct checksums, into Bitcoin Core.
+5. Now import the descriptors, with the correct checksums, into Bitcoin Core.
 
    ```sh
    bitcoin-cli \
@@ -222,7 +219,7 @@ those multiple descriptors into Bitcoin Core.
    instead of `0`. This will reduce the time it takes for Bitcoin Core to
    search for your wallet's UTXOs.
 
-5. Check that everything worked:
+6. Check that everything worked:
 
    ```sh
    bitcoin-cli getwalletinfo

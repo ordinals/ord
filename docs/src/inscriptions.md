@@ -1,5 +1,4 @@
-Inscriptions
-============
+# Inscriptions
 
 Inscriptions inscribe sats with arbitrary content, creating bitcoin-native
 digital artifacts, more commonly known as NFTs. Inscriptions do not require a

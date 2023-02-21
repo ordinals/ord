@@ -1,5 +1,4 @@
-Moderation
-==========
+# Moderation
 
 `ord` includes a block explorer, which you can run locally with `ord server`.
 
@@ -19,7 +18,7 @@ want to hide:
 
 ```yaml
 hidden:
-- 0000000000000000000000000000000000000000000000000000000000000000i0
+  - 0000000000000000000000000000000000000000000000000000000000000000i0
 ```
 
 The suggested name for `ord` config files is `ord.yaml`, but any filename can
@@ -34,8 +33,7 @@ subcommand.
 
 `ord` must be restarted in to load changes to the config file.
 
-`ordinals.com`
---------------
+## `ordinals.com`
 
 The `ordinals.com` instances use `systemd` to run the `ord server` service,
 which is called `ord`, with a config file located at `/var/lib/ord/ord.yaml`.

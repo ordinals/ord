@@ -1,5 +1,4 @@
-Digital Artifacts
-=================
+# Digital Artifacts
 
 Imagine a physical artifact. A rare coin, say, held safe for untold years in
 the dark, secret clutch of a Viking hoard, now dug from the earth by your
@@ -37,5 +36,5 @@ yours:
 - Digital artifacts are immutable. An NFT with an upgrade key is not a digital
   artifact.
 
-The definition of a digital artifact is intended to reflect what NFTs *should*
-be, sometimes are, and what inscriptions *always* are, by their very nature.
+The definition of a digital artifact is intended to reflect what NFTs _should_
+be, sometimes are, and what inscriptions _always_ are, by their very nature.

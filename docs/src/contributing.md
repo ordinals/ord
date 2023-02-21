@@ -1,8 +1,6 @@
-Contributing to `ord`
-=====================
+# Contributing to `ord`
 
-Suggested Steps
----------------
+## Suggested Steps
 
 1. Find an issue you want to work on.
 2. Figure out what would be a good first step towards resolving the issue. This
@@ -24,13 +22,13 @@ Suggested Steps
 7. Revise the PR as needed.
 8. And finally, mergies!
 
-Start small
------------
+## Start small
 
 Small changes will allow you to make an impact
 quickly, and if you take the wrong tack, you won't have wasted much time.
 
 Ideas for small issues:
+
 - Add a new test or test case that increases test coverage
 - Add or improve documentation
 - Find an issue that needs more research, and do that research and summarize it
@@ -39,8 +37,7 @@ Ideas for small issues:
 - Find an issue that shouldn't be done, and provide constrictive feedback
   detailing why you think that is the case
 
-Merge early and often
----------------------
+## Merge early and often
 
 Break up large tasks into multiple smaller steps that individually make
 progress. If there's a bug, you can open a PR that adds a failing ignored test.
@@ -61,24 +58,21 @@ change, you won't have wasted much time as compared to a larger change that
 represents many hours of work. Getting a PR in quickly improves the project a
 little bit immediately, instead of having to wait a long time for larger
 improvement. Small changes are less likely to accumulate merge conflict. As the
-Athenians said: *The fast commit what they will, the slow merge what they
-must.*
+Athenians said: _The fast commit what they will, the slow merge what they
+must._
 
-Get help
---------
+## Get help
 
 If you're stuck for more than 15 minutes, ask for help, like a Rust Discord,
 Stack Exchange, or in a project issue or discussion.
 
-Practice hypothesis-driven debugging
-------------------------------------
+## Practice hypothesis-driven debugging
 
 Formulate a hypothesis as to what is causing the problem. Figure out how to
 test that hypothesis. Perform that tests. If it works, great, you fixed the
 issue or now you know how to fix the issue. If not, repeat with a new
 hypothesis.
 
-Pay attention to error messages
--------------------------------
+## Pay attention to error messages
 
 Read all error messages and don't tolerate warnings.

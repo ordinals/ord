@@ -1,5 +1,4 @@
-Donate
-======
+# Donate
 
 Ordinals is an open-source project by me, Casey Rodarmor, in development since
 early 2022. I have been assisted by a ragtag band of contributors, bitcoiners,

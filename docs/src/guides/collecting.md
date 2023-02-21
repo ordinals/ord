@@ -1,5 +1,4 @@
-Collecting
-==========
+# Collecting
 
 Currently, [ord](https://github.com/casey/ord/) is the only wallet supporting
 sat-control and sat-selection, which are required to safely store and send rare

@@ -1,5 +1,4 @@
-Ordinal Inscription Guide
-=========================
+# Ordinal Inscription Guide
 
 Individual sats can be inscribed with arbitrary content, creating
 Bitcoin-native digital artifacts that can be held in a Bitcoin wallet and
@@ -28,16 +27,14 @@ This guide covers:
 6. Sending inscriptions with `ord wallet send`
 7. Receiving inscriptions with `ord wallet receive`
 
-Getting Help
-------------
+## Getting Help
 
 If you get stuck, try asking for help on the [Ordinals Discord
 Server](https://discord.com/invite/87cjuz4FYg), or checking GitHub for relevant
 [issues](https://github.com/casey/ord/issues) and
 [discussions](https://github.com/casey/ord/discussions).
 
-Installing Bitcoin Core
------------------------
+## Installing Bitcoin Core
 
 Bitcoin Core is available from [bitcoincore.org](https://bitcoincore.org/) on
 the [download page](https://bitcoincore.org/en/download/).
@@ -48,8 +45,7 @@ This guide does not cover installing Bitcoin Core in detail. Once Bitcoin Core
 is installed, you should be able to run `bitcoind -version` successfully from
 the command line.
 
-Configuring Bitcoin Core
-------------------------
+## Configuring Bitcoin Core
 
 `ord` requires Bitcoin Core's transaction index.
 
@@ -66,8 +62,7 @@ Or, run `bitcoind` with `-txindex`:
 bitcoind -txindex
 ```
 
-Syncing the Bitcoin Blockchain
-------------------------------
+## Syncing the Bitcoin Blockchain
 
 To sync the chain, run:
 
@@ -85,8 +80,7 @@ agrees with the block count on a block explorer like [the mempool.space block
 explorer](https://mempool.space/). `ord` interacts with `bitcoind`, so you
 should leave `bitcoind` running in the background when you're using `ord`.
 
-Installing `ord`
-----------------
+## Installing `ord`
 
 The `ord` utility is written in Rust and can be built from
 [source](https://github.com/casey/ord). Pre-built binaries are available on the
@@ -106,8 +100,7 @@ ord --version
 
 Which prints out `ord`'s version number.
 
-Creating a Bitcoin Core Wallet
-------------------------------
+## Creating a Bitcoin Core Wallet
 
 `ord` uses Bitcoin Core to manage private keys, sign transactions, and
 broadcast transactions to the Bitcoin network.
@@ -118,8 +111,7 @@ To create a Bitcoin Core wallet named `ord` for use with `ord`, run:
 ord wallet create
 ```
 
-Receiving Sats
---------------
+## Receiving Sats
 
 Inscriptions are made on individual sats, using normal Bitcoin transactions
 that pay fees in sats, so your wallet will need some sats.
@@ -141,8 +133,7 @@ ord wallet transactions
 Once the transaction confirms, you should be able to see the transactions
 outputs with `ord wallet outputs`.
 
-Creating Inscription Content
-----------------------------
+## Creating Inscription Content
 
 Sats can be inscribed with any kind of content, but the `ord` wallet only
 supports content types that can be displayed by the `ord` block explorer.
@@ -160,8 +151,7 @@ weight unit. Since an inscription transaction includes not just the inscription
 content, limit inscription content to less than 400,000 weight units. 390,000
 weight units should be safe.
 
-Creating Inscriptions
----------------------
+## Creating Inscriptions
 
 To create an inscription with the contents of `FILE`, run:
 
@@ -180,7 +170,7 @@ the contents on chain and inscribing them on the first sat of the first output
 of the reveal transaction.
 
 Wait for the reveal transaction to be mined. You can check the status of the
-commit and reveal transactions using  [the mempool.space block
+commit and reveal transactions using [the mempool.space block
 explorer](https://mempool.space/).
 
 Once the reveal transaction has been mined, the inscription ID should be
@@ -193,8 +183,7 @@ ord wallet inscriptions
 And when you visit [the ordinals explorer](https://ordinals.com/) at
 `ordinals.com/inscription/INSCRIPTION_ID`.
 
-Sending Inscriptions
---------------------
+## Sending Inscriptions
 
 Ask the recipient to generate a new address by running:
 
@@ -221,8 +210,7 @@ running:
 ord wallet inscriptions
 ```
 
-Receiving Inscriptions
-----------------------
+## Receiving Inscriptions
 
 Generate a new receive address using:
 
@@ -237,6 +225,7 @@ ord wallet send ADDRESS INSCRIPTION_ID
 ```
 
 See the pending transaction with:
+
 ```
 ord wallet transactions
 ```

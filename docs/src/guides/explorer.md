@@ -1,12 +1,10 @@
-Ordinal Explorer
-================
+# Ordinal Explorer
 
 The `ord` binary includes a block explorer. We host a instance of the block
 explorer on mainnet at [ordinals.com](https://ordinals.com), and on signet at
 [signet.ordinals.com](https://signet.ordinals.com).
 
-Search
-------
+## Search
 
 The search box accepts a variety of object representations.
 

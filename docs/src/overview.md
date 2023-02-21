@@ -1,14 +1,13 @@
-Ordinal Theory Overview
-=======================
+# Ordinal Theory Overview
 
 Ordinals are a numbering scheme for satoshis that allows tracking and
 transferring individual sats. These numbers are called [ordinal
 numbers](https://ordinals.com). Satoshis are numbered in the order in which
 they're mined, and transferred from transaction inputs to transaction outputs
 first-in-first-out. Both the numbering scheme and the transfer scheme rely on
-*order*, the numbering scheme on the *order* in which satoshis are mined, and
-the transfer scheme on the *order* of transaction inputs and outputs. Thus the
-name, *ordinals*.
+_order_, the numbering scheme on the _order_ in which satoshis are mined, and
+the transfer scheme on the _order_ of transaction inputs and outputs. Thus the
+name, _ordinals_.
 
 Technical details are available in [the
 BIP](https://github.com/casey/ord/blob/master/bip.mediawiki).
@@ -18,25 +17,25 @@ changes to Bitcoin. It works right now.
 
 Ordinal numbers have a few different representations:
 
-- *Integer notation*:
+- _Integer notation_:
   [`2099994106992659`](https://ordinals.com/sat/2099994106992659) The
   ordinal number, assigned according to the order in which the satoshi was
   mined.
 
-- *Decimal notation*:
+- _Decimal notation_:
   [`3891094.16797`](https://ordinals.com/sat/3891094.16797) The first
   number is the block height in which the satoshi was mined, the second the
   offset of the satoshi within the block.
 
-- *Degree notation*:
+- _Degree notation_:
   [`3°111094′214″16797‴`](https://ordinals.com/sat/3%C2%B0111094%E2%80%B2214%E2%80%B316797%E2%80%B4).
   We'll get to that in a moment.
 
-- *Percentile notation*:
+- _Percentile notation_:
   [`99.99971949060254%`](https://ordinals.com/sat/99.99971949060254%25) .
   The satoshi's position in Bitcoin's supply, expressed as a percentage.
 
-- *Name*: [`satoshi`](https://ordinals.com/sat/satoshi). An encoding of the
+- _Name_: [`satoshi`](https://ordinals.com/sat/satoshi). An encoding of the
   ordinal number using the characters `a` through `z`.
 
 Arbitrary assets, such as NFTs, security tokens, accounts, or stablecoins can
@@ -49,8 +48,7 @@ track the location of all satoshis, a wallet that allows making ordinal-aware
 transactions, a block explorer for interactive exploration of the blockchain,
 functionality for inscribing satoshis with digital artifacts, and this manual.
 
-Rarity
-------
+## Rarity
 
 Humans are collectors, and since satoshis can now be tracked and transferred,
 people will naturally want to collect them. Ordinal theorists can decide for
@@ -59,17 +57,17 @@ themselves which sats are rare and desirable, but there are some hints…
 Bitcoin has periodic events, some frequent, some more uncommon, and these
 naturally lend themselves to a system of rarity. These periodic events are:
 
-- *Blocks*: A new block is mined approximately every 10 minutes, from now until
+- _Blocks_: A new block is mined approximately every 10 minutes, from now until
   the end of time.
 
-- *Difficulty adjustments*: Every 2016 blocks, or approximately every two
+- _Difficulty adjustments_: Every 2016 blocks, or approximately every two
   weeks, the Bitcoin network responds to changes in hashrate by adjusting the
   difficulty target which blocks must meet in order to be accepted.
 
-- *Halvings*: Every 210,000 blocks, or roughly every four years, the amount of
+- _Halvings_: Every 210,000 blocks, or roughly every four years, the amount of
   new sats created in every block is cut in half.
 
-- *Cycles*: Every six halvings, something magical happens: the halving and the
+- _Cycles_: Every six halvings, something magical happens: the halving and the
   difficulty adjustment coincide. This is called a conjunction, and the time
   period between conjunctions a cycle. A conjunction occurs roughly every 24
   years. The first conjunction should happen some time in 2032.
@@ -95,7 +93,7 @@ A°B′C″D‴
 ```
 
 Ordinal theorists often use the terms "hour", "minute", "second", and "third"
-for *A*, *B*, *C*, and *D*, respectively.
+for _A_, _B_, _C_, and _D_, respectively.
 
 Now for some examples. This satoshi is common:
 
@@ -106,7 +104,6 @@ Now for some examples. This satoshi is common:
 │ ╰───── Not first block in halving epoch
 ╰─────── Second cycle
 ```
-
 
 This satoshi is uncommon:
 
@@ -168,8 +165,7 @@ from above:
 ╰───── Second cycle
 ```
 
-Rare Satoshi Supply
--------------------
+## Rare Satoshi Supply
 
 ### Total Supply
 
@@ -193,10 +189,9 @@ At the moment, even uncommon satoshis are quite rare. As of this writing,
 745,855 uncommon satoshis have been mined - one per 25.6 bitcoin in
 circulation.
 
-Names
------
+## Names
 
-Each satoshi has a name, consisting of the letters *A* through *Z*, that get
+Each satoshi has a name, consisting of the letters _A_ through _Z_, that get
 shorter the further into the future the satoshi was mined. They could start
 short and get longer, but then all the good, short names would be trapped in
 the unspendable genesis block.
@@ -205,8 +200,7 @@ As an example, 1905530482684727°'s name is "iaiufjszmoba". The name of the last
 satoshi to be mined is "a". Every combination of 10 characters or less is out
 there, or will be out there, some day.
 
-Exotics
--------
+## Exotics
 
 Satoshis may be prized for reasons other than their name or rarity. This might
 be due to a quality of the number itself, like having an integer square or cube
@@ -218,8 +212,7 @@ Such satoshis are termed "exotic". Which satoshis are exotic and what makes
 them so is subjective. Ordinal theorists are encouraged to seek out exotics
 based on criteria of their own devising.
 
-Inscriptions
-------------
+## Inscriptions
 
 Satoshis can be inscribed with arbitrary content, creating Bitcoin-native
 digital artifacts. Inscribing is done by sending the satoshi to be inscribed in
@@ -228,8 +221,7 @@ then inextricably linked to that satoshi, turning it into an immutable digital
 artifact that can be tracked, transferred, hoarded, bought, sold, lost, and
 rediscovered.
 
-Archaeology
------------
+## Archaeology
 
 A lively community of archaeologists devoted to cataloging and collecting early
 NFTs has sprung up. [Here's a great summary of historical NFTs by

@@ -1,8 +1,6 @@
-Ordinal Theory FAQ
-==================
+# Ordinal Theory FAQ
 
-What is ordinal theory?
------------------------
+## What is ordinal theory?
 
 Ordinal theory is is a protocol for assigning serial numbers to satoshis, the
 smallest subdivision of a bitcoin, and tracking those satoshis as they are
@@ -11,14 +9,12 @@ spent by transactions.
 These serial numbers are large numbers, like this 804766073970493. Every
 satoshi, which is ¹⁄₁₀₀₀₀₀₀₀₀ of a bitcoin, has an ordinal number.
 
-Does ordinal theory require a side chain, a separate token, or changes to Bitcoin?
-----------------------------------------------------------------------------------
+## Does ordinal theory require a side chain, a separate token, or changes to Bitcoin?
 
 Nope! Ordinal theory works right now, without a side chain, and the only token
 needed is bitcoin itself.
 
-What is ordinal theory good for?
---------------------------------
+## What is ordinal theory good for?
 
 Collecting, trading, and scheming. Ordinal theory assigns identities to
 individual satoshis, allowing them to be individually tracked and traded, as
@@ -28,8 +24,7 @@ Ordinal theory also enables inscriptions, a protocol for attaching arbitrary
 content to individual satoshis, turning them into bitcoin-native digital
 artifacts.
 
-How does ordinal theory work?
------------------------------
+## How does ordinal theory work?
 
 Ordinal numbers are assigned to satoshis in the order in which they are mined.
 The first satoshi in the first block has ordinal number 0, the second has
@@ -86,13 +81,11 @@ this:
 
     [SUBSIDY] [e f] → [SUBSIDY e f]
 
-Where can I find the nitty-gritty details?
-------------------------------------------
+## Where can I find the nitty-gritty details?
 
 [The BIP!](https://github.com/casey/ord/blob/master/bip.mediawiki)
 
-Why are sat inscriptions called "digital artifacts" instead of "NFTs"?
-----------------------------------------------------------------------
+## Why are sat inscriptions called "digital artifacts" instead of "NFTs"?
 
 An inscription is an NFT, but the term "digital artifact" is used instead,
 because it's simple, suggestive, and familiar.
@@ -105,17 +98,16 @@ Additionally, "NFT" feels like financial terminology, and the both word
 "fungible" and sense of the word "token" as used in "NFT" is uncommon outside
 of financial contexts.
 
-How do sat inscriptions compare to…
------------------------------------
+## How do sat inscriptions compare to…
 
 ### Ethereum NFTs?
 
-*Inscriptions are always immutable.*
+_Inscriptions are always immutable._
 
 There is simply no way to for the creator of an inscription, or the owner of an
 inscription, to modify it after it has been created.
 
-Ethereum NFTs *can* be immutable, but many are not, and can be changed or
+Ethereum NFTs _can_ be immutable, but many are not, and can be changed or
 deleted by the NFT contract owner.
 
 In order to make sure that a particular Ethereum NFT is immutable, the contract
@@ -127,7 +119,7 @@ Ethereum NFT is mutable or immutable, and Ethereum NFT platforms make no effort
 to distinguish whether an NFT is mutable or immutable, and whether the contract
 source code is available and has been audited.
 
-*Inscription content is always on-chain.*
+_Inscription content is always on-chain._
 
 There is no way for an inscription to refer to off-chain content. This makes
 inscriptions more durable, because content cannot be lost, and scarcer, because
@@ -144,7 +136,7 @@ disappear at any time.
 It is very hard for a non-technical user to determine where the content of a
 given Ethereum NFT is stored.
 
-*Inscriptions are much simpler.*
+_Inscriptions are much simpler._
 
 Ethereum NFTs depend on the Ethereum network and virtual machine, which are
 highly complex, constantly changing, and which introduce changes via
@@ -154,7 +146,7 @@ Inscriptions, on the other hand, depend on the Bitcoin blockchain, which is
 relatively simple and conservative, and which introduces changes via
 backwards-compatible soft forks.
 
-*Inscriptions are more secure.*
+_Inscriptions are more secure._
 
 Inscriptions inherit Bitcoin's transaction model, which allow a user to see
 exactly which inscriptions are being transferred by a transaction before they
@@ -168,7 +160,7 @@ third-party apps unlimited permissions over a user's NFTs, and interact with
 complex and unpredictable smart contracts. This creates a minefield of hazards
 for Ethereum NFT users which are simply not a concern for ordinal theorists.
 
-*Inscriptions are scarcer.*
+_Inscriptions are scarcer._
 
 Inscriptions require bitcoin to mint, transfer, and store. This seems like a
 downside on the surface, but the raison d'etre of digital artifacts is to be
@@ -178,7 +170,7 @@ Ethereum NFTs, on the other hand, can be minted in virtually unlimited
 qualities with a single transaction, making them inherently less scarce, and
 thus, potentially less valuable.
 
-*Inscriptions do not pretend to support on-chain royalties.*
+_Inscriptions do not pretend to support on-chain royalties._
 
 On-chain royalties are a good idea in theory but not in practice. Royalty
 payment cannot be enforced on-chain without complex and invasive restrictions.
@@ -191,7 +183,7 @@ Inscriptions avoid this situation entirely by making no false promises of
 supporting royalties on-chain, thus avoiding the confusion, chaos, and
 negativity of the Ethereum NFT situation.
 
-*Inscriptions unlock new markets.*
+_Inscriptions unlock new markets._
 
 Bitcoin's market capitalization and liquidity are greater than Ethereum's by a
 large margin. Much of this liquidity is not available to Ethereum NFTs, since
@@ -201,7 +193,7 @@ concerns related to simplicity, security, and decentralization.
 Such Bitcoiners may be more interested in inscriptions than Ethereum NFTs,
 unlocking new classes of collector.
 
-*Inscriptions have a richer data model.*
+_Inscriptions have a richer data model._
 
 Inscriptions consist of a content type, also known as a MIME type, and content,
 which is an arbitrary byte string. This is the same data model used by the web,
@@ -237,35 +229,34 @@ second layer for bitcoin.
 Ordinal theory has been designed from the ground up for digital artifacts,
 whereas Counterparty was primarily designed for financial token issuance.
 
-Inscriptions for…
------------------
+## Inscriptions for…
 
 ### Artists
 
-*Inscriptions are on Bitcoin.* Bitcoin is the digital currency with the highest
+_Inscriptions are on Bitcoin._ Bitcoin is the digital currency with the highest
 status and greatest chance of long-term survival. If you want to guarantee that
 your art survives into the future, there is no better way to publish it than as
 inscriptions.
 
-*Cheaper on-chain storage.* At $20,000 per BTC and the minimum relay fee of 1
+_Cheaper on-chain storage._ At $20,000 per BTC and the minimum relay fee of 1
 satoshi per vbyte, publishing inscription content costs $50 per 1 million
 bytes.
 
-*Inscriptions are early!* Inscriptions are still in development, and have not
+_Inscriptions are early!_ Inscriptions are still in development, and have not
 yet launched on mainnet. This gives you an opportunity to be an early adopter,
 and explore the medium as it evolves.
 
-*Inscriptions are simple.* Inscriptions do not require writing or understanding
+_Inscriptions are simple._ Inscriptions do not require writing or understanding
 smart contracts.
 
-*Inscriptions unlock new liquidity.* Inscriptions are more accessible and
+_Inscriptions unlock new liquidity._ Inscriptions are more accessible and
 appealing to bitcoin holders, unlocking an entirely new class of collector.
 
-*Inscriptions are designed for digital artifacts.* Inscriptions are designed
+_Inscriptions are designed for digital artifacts._ Inscriptions are designed
 from the ground up to support NFTs, and feature a better data model, and
 features like globally unique symbols and enhanced provenance.
 
-*Inscriptions do not support on-chain royalties.* This is negative, but only
+_Inscriptions do not support on-chain royalties._ This is negative, but only
 depending on how you look at it. On-chain royalties have been a boon for
 creators, but have also created a huge amount of confusion in the Ethereum NFT
 ecosystem. The ecosystem now grapples with this issue, and is is engaged in a
@@ -278,10 +269,10 @@ royalties.
 
 ### Collectors
 
-*Inscriptions are simple, clear, and have no surprises.* They are always
+_Inscriptions are simple, clear, and have no surprises._ They are always
 immutable and on-chain, with no special due diligence required.
 
-*Inscriptions are on Bitcoin.* You can verify the location and properties of
+_Inscriptions are on Bitcoin._ You can verify the location and properties of
 inscriptions easily with Bitcoin full node that you control.
 
 ### Bitcoiners
@@ -310,7 +301,7 @@ transition to a fee-dependent security model, as the block subsidy is halved
 into insignificance.
 
 Inscription content is stored on-chain, and thus the demand for block space for
-use in inscriptions is unlimited. This creates a buyer of last resort for *all*
+use in inscriptions is unlimited. This creates a buyer of last resort for _all_
 Bitcoin block space. This will help support a robust fee market, which ensures
 that Bitcoin remains secure.
 
