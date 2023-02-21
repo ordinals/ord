@@ -134,7 +134,7 @@ impl Updater {
         progress_bar.inc(1);
 
         if progress_bar.position() > progress_bar.length().unwrap() {
-          if let Ok(count) = index.client.get_block_count() {
+          if let Ok(count) = runtime.block_on(async { fetcher.get_block_count().await }) {
             progress_bar.set_length(count + 1);
           } else {
             log::warn!("Failed to fetch latest block height");
