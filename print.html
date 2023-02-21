@@ -362,7 +362,7 @@ there, or will be out there, some day.</p>
 <p>Satoshis may be prized for reasons other than their name or rarity. This might
 be due to a quality of the number itself, like having an integer square or cube
 root. Or it might be due to a connection to a historical event, such as
-satoshis from block 477,120, the block in which SegWit activated,
+satoshis from block 477,120, the block in which SegWit activated, or
 2099999997689999°, the last satoshi that will ever be mined.</p>
 <p>Such satoshis are termed &quot;exotic&quot;. Which satoshis are exotic and what makes
 them so is subjective. Ordinal theorists are encouraged to seek out exotics
@@ -427,7 +427,7 @@ because nobody can own it.</p>
 </li>
 <li>
 <p>Digital artifacts are complete. An NFT that points to off-chain content
-on IPFS or Arweave is incomplete, and thus not a digital artifacts.</p>
+on IPFS or Arweave is incomplete, and thus is not a digital artifact.</p>
 </li>
 <li>
 <p>Digital artifacts are permissionless. An NFT which cannot be sold without
@@ -471,7 +471,7 @@ inscription content is created. Second, in the reveal transaction, the output
 created by the commit transaction is spent, revealing the inscription content
 on-chain.</p>
 <p>Inscription content is serialized using data pushes within unexecuted
-conditionals, called an &quot;envelopes&quot;. Envelopes consist of an <code>OP_FALSE OP_IF … OP_ENDIF</code> wrapping any number of data pushes. Because envelopes are effectively
+conditionals, called &quot;envelopes&quot;. Envelopes consist of an <code>OP_FALSE OP_IF … OP_ENDIF</code> wrapping any number of data pushes. Because envelopes are effectively
 no-ops, they do not change the semantics of the script in which they are
 included, and can be combined with any other locking script.</p>
 <p>A text inscription containing the string &quot;Hello, world!&quot; is serialized as
@@ -981,8 +981,8 @@ supports content types that can be displayed by the <code>ord</code> block explo
 <p>Additionally, inscriptions are included in transactions, so the larger the
 content, the higher the fee that the inscription transaction must pay.</p>
 <p>Inscription content is included in transaction witnesses, which receive the
-witness discount. To calculate the approximate fee that in inscribe transaction
-will pay, divide the content size by four and multiply by the fee rate.</p>
+witness discount. To calculate the approximate fee that an inscribe transaction
+will pay, divide the content size by four and muliply by the fee rate.</p>
 <p>Inscription transactions must be less than 400,000 weight units, or they will
 not be relayed by Bitcoin Core. One byte of inscription content costs one
 weight unit. Since an inscription transaction includes not just the inscription

@@ -171,7 +171,7 @@ inscription content is created. Second, in the reveal transaction, the output
 created by the commit transaction is spent, revealing the inscription content
 on-chain.</p>
 <p>Inscription content is serialized using data pushes within unexecuted
-conditionals, called an &quot;envelopes&quot;. Envelopes consist of an <code>OP_FALSE OP_IF … OP_ENDIF</code> wrapping any number of data pushes. Because envelopes are effectively
+conditionals, called &quot;envelopes&quot;. Envelopes consist of an <code>OP_FALSE OP_IF … OP_ENDIF</code> wrapping any number of data pushes. Because envelopes are effectively
 no-ops, they do not change the semantics of the script in which they are
 included, and can be combined with any other locking script.</p>
 <p>A text inscription containing the string &quot;Hello, world!&quot; is serialized as
