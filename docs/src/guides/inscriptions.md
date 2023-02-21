@@ -53,7 +53,7 @@ Configuring Bitcoin Core
 
 `ord` requires Bitcoin Core's transaction index.
 
-To configure your Bitcoin Core node to use maintain a transaction
+To configure your Bitcoin Core node to maintain a transaction
 index, add the following to your `bitcoin.conf`:
 
 ```
@@ -205,7 +205,7 @@ ord wallet receive
 Send the inscription by running:
 
 ```
-ord wallet send ADDRESS INSCRIPTION_ID
+ord wallet send --fee-rate <FEE_RATE> <ADDRESS> <INSCRIPTION_ID>
 ```
 
 See the pending transaction with:
