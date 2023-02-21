@@ -79,7 +79,14 @@ impl Updater {
     index: &'index Index,
     mut wtx: WriteTransaction<'index>,
   ) -> Result {
-    let starting_height = index.client.get_block_count()? + 1;
+    let fetcher = Fetcher::new(&index.rpc_url, index.auth.clone())?;
+    let runtime = Arc::new(
+      tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()?,
+    );
+
+    let starting_height = runtime.block_on(async { fetcher.get_block_count().await })? + 1;
 
     let mut progress_bar = if cfg!(test)
       || log_enabled!(log::Level::Info)
@@ -96,9 +103,16 @@ impl Updater {
       Some(progress_bar)
     };
 
-    let rx = Self::fetch_blocks_from(index, self.height, self.index_sats)?;
+    let rx = Self::fetch_blocks_from(
+      index,
+      self.height,
+      self.index_sats,
+      fetcher.clone(),
+      runtime.clone(),
+    )?;
 
-    let (mut outpoint_sender, mut value_receiver) = Self::spawn_fetcher(index)?;
+    let (mut outpoint_sender, mut value_receiver) =
+      Self::spawn_fetcher(fetcher.clone(), runtime.clone())?;
 
     let mut uncommitted = 0;
     let mut value_cache = HashMap::new();
@@ -121,7 +135,7 @@ impl Updater {
         progress_bar.inc(1);
 
         if progress_bar.position() > progress_bar.length().unwrap() {
-          progress_bar.set_length(index.client.get_block_count()? + 1);
+          progress_bar.set_length(runtime.block_on(async { fetcher.get_block_count().await })? + 1);
         }
       }
 
@@ -175,91 +189,93 @@ impl Updater {
     index: &Index,
     mut height: u64,
     index_sats: bool,
+    fetcher: Fetcher,
+    runtime: Arc<Runtime>,
   ) -> Result<mpsc::Receiver<BlockData>> {
     let (tx, rx) = mpsc::sync_channel(32);
 
     let height_limit = index.height_limit;
 
-    let client =
-      Client::new(&index.rpc_url, index.auth.clone()).context("failed to connect to RPC URL")?;
-
     let first_inscription_height = index.first_inscription_height;
 
-    thread::spawn(move || loop {
-      if let Some(height_limit) = height_limit {
-        if height >= height_limit {
-          break;
-        }
-      }
-
-      match Self::get_block_with_retries(&client, height, index_sats, first_inscription_height) {
-        Ok(Some(block)) => {
-          if let Err(err) = tx.send(block.into()) {
-            log::info!("Block receiver disconnected: {err}");
-            break;
+    thread::spawn(move || {
+      runtime.block_on(async {
+        loop {
+          if let Some(height_limit) = height_limit {
+            if height >= height_limit {
+              break;
+            }
           }
-          height += 1;
+
+          let hashes = fetcher.get_block_hashes(height).await?;
+          if hashes.is_empty() {
+            return Ok::<_, anyhow::Error>(());
+          }
+          let headers_only_height = if index_sats || height >= first_inscription_height {
+            0
+          } else {
+            cmp::min(
+              hashes.len(),
+              (first_inscription_height - height).try_into()?,
+            )
+          };
+          if headers_only_height > 0 {
+            let headers = fetcher
+              .get_block_headers(&hashes[0..headers_only_height])
+              .await?;
+            for header in headers {
+              let block = Block {
+                header,
+                txdata: Vec::new(),
+              };
+              if let Err(err) = tx.send(block.into()) {
+                log::debug!("Block receiver disconnected: {err}");
+                return Ok(());
+              }
+              height += 1;
+              if let Some(height_limit) = height_limit {
+                if height >= height_limit {
+                  return Ok(());
+                }
+              }
+            }
+          }
+          let remainder = hashes.len() as u64;
+          let remainder = if let Some(height_limit) = height_limit {
+            if height_limit < height + remainder {
+              height + remainder - height_limit
+            } else {
+              remainder
+            }
+          } else {
+            remainder
+          };
+          let remaining_hashes = &hashes[headers_only_height..remainder.try_into()?];
+          for hash in remaining_hashes {
+            let block = fetcher.get_block(hash).await?;
+            if let Err(err) = tx.send(block.into()) {
+              log::debug!("Block receiver disconnected: {err}");
+              return Ok(());
+            }
+            height += 1;
+            if let Some(height_limit) = height_limit {
+              if height >= height_limit {
+                return Ok(());
+              }
+            }
+          }
         }
-        Ok(None) => break,
-        Err(err) => {
-          log::error!("failed to fetch block {height}: {err}");
-          break;
-        }
-      }
+        Ok(())
+      })
     });
 
     Ok(rx)
   }
 
-  fn get_block_with_retries(
-    client: &Client,
-    height: u64,
-    index_sats: bool,
-    first_inscription_height: u64,
-  ) -> Result<Option<Block>> {
-    let mut errors = 0;
-    loop {
-      match client
-        .get_block_hash(height)
-        .into_option()
-        .and_then(|option| {
-          option
-            .map(|hash| {
-              if index_sats || height >= first_inscription_height {
-                Ok(client.get_block(&hash)?)
-              } else {
-                Ok(Block {
-                  header: client.get_block_header(&hash)?,
-                  txdata: Vec::new(),
-                })
-              }
-            })
-            .transpose()
-        }) {
-        Err(err) => {
-          if cfg!(test) {
-            return Err(err);
-          }
-
-          errors += 1;
-          let seconds = 1 << errors;
-          log::warn!("failed to fetch block {height}, retrying in {seconds}s: {err}");
-
-          if seconds > 120 {
-            log::error!("would sleep for more than 120s, giving up");
-            return Err(err);
-          }
-
-          thread::sleep(Duration::from_secs(seconds));
-        }
-        Ok(result) => return Ok(result),
-      }
-    }
-  }
-
-  fn spawn_fetcher(index: &Index) -> Result<(Sender<OutPoint>, Receiver<u64>)> {
-    let fetcher = Fetcher::new(&index.rpc_url, index.auth.clone())?;
-
+  fn spawn_fetcher(
+    fetcher: Fetcher,
+    runtime: Arc<Runtime>,
+  ) -> Result<(Sender<OutPoint>, Receiver<u64>)> {
     // Not sure if any block has more than 20k inputs, but none so far after first inscription block
     const CHANNEL_BUFFER_SIZE: usize = 20_000;
     let (outpoint_sender, mut outpoint_receiver) =
@@ -275,11 +291,7 @@ impl Updater {
     const PARALLEL_REQUESTS: usize = 12;
 
     std::thread::spawn(move || {
-      let rt = tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()
-        .unwrap();
-      rt.block_on(async move {
+      runtime.block_on(async move {
         loop {
           let Some(outpoint) = outpoint_receiver.recv().await else {
             log::debug!("Outpoint channel closed");
