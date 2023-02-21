@@ -356,6 +356,33 @@ fn inscribe_with_dry_run_flag_fees_inscrease() {
 }
 
 #[test]
+fn inscribe_to_specific_destination() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  let destination = CommandBuilder::new("wallet receive")
+    .rpc_server(&rpc_server)
+    .output::<ord::subcommand::wallet::receive::Output>()
+    .address;
+
+  let txid = CommandBuilder::new(format!(
+    "wallet inscribe --destination {destination} degenerate.png"
+  ))
+  .write("degenerate.png", [1; 520])
+  .rpc_server(&rpc_server)
+  .output::<Inscribe>()
+  .reveal;
+
+  let reveal_tx = &rpc_server.mempool()[1]; // item 0 is the commit, item 1 is the reveal.
+  assert_eq!(reveal_tx.txid(), txid);
+  assert_eq!(
+    reveal_tx.output.first().unwrap().script_pubkey,
+    destination.script_pubkey()
+  );
+}
+
+#[test]
 fn inscribe_with_no_limit() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
