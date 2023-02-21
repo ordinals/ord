@@ -136,7 +136,7 @@ impl Index {
     let cookie_file = options.cookie_file()?;
 
     log::info!(
-      "Connecting to Bitcoin Core RPC server at {rpc_url} using credentials from `{}`",
+      "Connecting to Litecoin Core RPC server at {rpc_url} using credentials from `{}`",
       cookie_file.display()
     );
 

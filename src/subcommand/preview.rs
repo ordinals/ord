@@ -21,15 +21,15 @@ impl Preview {
 
     let rpc_port = TcpListener::bind("127.0.0.1:0")?.local_addr()?.port();
 
-    let bitcoin_data_dir = tmpdir.path().join("bitcoin");
+    let litecoin_data_dir = tmpdir.path().join("litecoin");
 
-    fs::create_dir(&bitcoin_data_dir)?;
+    fs::create_dir(&litecoin_data_dir)?;
 
     let _bitcoind = KillOnDrop(
-      Command::new("bitcoind")
+      Command::new("litecoind")
         .arg({
           let mut arg = OsString::from("-datadir=");
-          arg.push(&bitcoin_data_dir);
+          arg.push(&litecoin_data_dir);
           arg
         })
         .arg("-regtest")
@@ -37,12 +37,12 @@ impl Preview {
         .arg("-listen=0")
         .arg(format!("-rpcport={rpc_port}"))
         .spawn()
-        .context("failed to spawn `bitcoind`")?,
+        .context("failed to spawn `litecoind`")?,
     );
 
     let options = Options {
       chain_argument: Chain::Regtest,
-      bitcoin_data_dir: Some(bitcoin_data_dir),
+      litecoin_data_dir: Some(litecoin_data_dir),
       data_dir: Some(tmpdir.path().into()),
       rpc_url: Some(format!("127.0.0.1:{rpc_port}")),
       index_sats: true,
@@ -55,7 +55,7 @@ impl Preview {
       }
 
       if attempt == 100 {
-        panic!("Bitcoin Core RPC did not respond");
+        panic!("Litecoin Core RPC did not respond");
       }
 
       thread::sleep(Duration::from_millis(50));
