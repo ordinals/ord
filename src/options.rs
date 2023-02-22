@@ -95,8 +95,6 @@ impl Options {
     self.rpc_user.clone()
   }
 
-
-
   pub(crate) fn cookie_file(&self) -> Result<PathBuf> {
     if let Some(cookie_file) = &self.cookie_file {
       return Ok(cookie_file.clone());
