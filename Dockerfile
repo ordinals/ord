@@ -23,6 +23,3 @@ FROM debian:bullseye-slim AS runtime
 USER root
 COPY --from=builder /builder/ord/target/release/ord /usr/local/bin
 ENTRYPOINT ["/usr/local/bin/ord"]
-
-
-
