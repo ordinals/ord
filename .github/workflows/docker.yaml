@@ -2,13 +2,12 @@ name: Docker
 
 on:
   push:
-    branches:
-      - master
+    tags:
+      - '*'
 
 env:
   # TODO: Change variable to your image's name.
   IMAGE_NAME: ord
-  VERSION: "0.4.2"
 
 jobs:
   push:
@@ -43,6 +42,6 @@ jobs:
         run: >-
           docker buildx build --push 
           --file ./Dockerfile 
-          --tag ghcr.io/tiero/$IMAGE_NAME:latest 
-          --tag ghcr.io/tiero/$IMAGE_NAME:$VERSION 
+          --tag ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:latest 
+          --tag ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:${{ github.ref_name }} 
           --platform linux/amd64,linux/arm64 .
