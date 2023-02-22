@@ -89,7 +89,10 @@ cd ord
 cargo build --release
 ```
 
+The default location for the `ord` binary once built is `./target/release/ord`.
+
 `ord` requires `rustc` version 1.67.0 or later. Run `rustc --version` to ensure you have this version. Run `rustup update` to get the latest stable release.
+
 
 Syncing
 -------
