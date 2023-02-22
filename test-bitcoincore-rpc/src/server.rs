@@ -339,11 +339,11 @@ impl Api for Server {
   fn get_raw_transaction(
     &self,
     txid: Txid,
-    verbose: bool,
+    verbose: Option<bool>,
     blockhash: Option<BlockHash>,
   ) -> Result<Value, jsonrpc_core::Error> {
     assert_eq!(blockhash, None, "Blockhash param is unsupported");
-    if verbose {
+    if verbose.unwrap_or(false) {
       match self.state().transactions.get(&txid) {
         Some(_) => Ok(
           serde_json::to_value(GetRawTransactionResult {
