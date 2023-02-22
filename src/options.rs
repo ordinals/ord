@@ -150,16 +150,34 @@ impl Options {
     let cookie_file = self
       .cookie_file()
       .map_err(|err| anyhow!("failed to get cookie file path: {err}"))?;
+    let cookie_file_path = cookie_file.clone();
 
     let rpc_url = self.rpc_url();
+    let rpc_user = self.rpc_user();
+    let rpc_pass = self.rpc_pass();
 
-    log::info!(
-      "Connecting to Bitcoin Core RPC server at {rpc_url} using credentials from `{}`",
-      cookie_file.display()
-    );
+
+    // by default we use a cookie file
+    let auth = Auth::CookieFile(cookie_file.clone());
+
+
+    // if options.rpc_pass and rpc_user is not empty, use Auth::UserPass
+    let auth = if !rpc_pass.is_none() && !rpc_user.is_none() {
+      let ruser = rpc_user.unwrap();
+      let rpass = rpc_pass.unwrap();
+      log::info!("Using RPC credentials from command line {ruser}");
+
+      Auth::UserPass(ruser.clone(), rpass.clone())
+    } else {
+      log::info!(
+        "Connecting to Bitcoin Core RPC server at {rpc_url} using credentials from `{}`",
+        cookie_file_path.display()
+      );
+      auth
+    };
 
     let client =
-      Client::new(&rpc_url, Auth::CookieFile(cookie_file.clone())).with_context(|| {
+      Client::new(&rpc_url, auth.clone()).with_context(|| {
         format!(
           "failed to connect to Bitcoin Core RPC at {rpc_url} using cookie file {}",
           cookie_file.display()
