@@ -1,6 +1,6 @@
 FROM rust:latest as builder
 
-ARG VERSION=0.4.2
+ARG TAG=0.5.1
 
 USER root
 RUN mkdir builder
@@ -13,9 +13,9 @@ RUN set -ex \
 
 RUN git clone https://github.com/casey/ord.git
 
-
 RUN set -ex \
 	&& cd ord \
+  && git checkout $TAG \
 	&& cargo clean \
 	&& cargo build --release
 
