@@ -1,6 +1,6 @@
 FROM rust:latest as builder
 
-ARG TAG=0.5.1
+ARG TAG=master
 
 USER root
 RUN mkdir builder
@@ -11,7 +11,7 @@ RUN set -ex \
 	&& apt install -y libssl-dev
 
 
-RUN git clone https://github.com/casey/ord.git
+RUN git clone https://github.com/tiero/ord.git
 
 RUN set -ex \
 	&& cd ord \
