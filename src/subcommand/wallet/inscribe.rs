@@ -57,12 +57,11 @@ pub(crate) struct Inscribe {
 impl Inscribe {
   pub(crate) fn run(self, options: Options) -> Result {
     let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
-
+    println!("Indscribing....");
     let inscription = Inscription::from_file(options.chain(), &self.file)?;
 
     let index = Index::open(&options)?;
     index.update()?;
-    println!("Indscribing....");
 
     let mut utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
 
