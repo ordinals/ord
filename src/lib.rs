@@ -118,6 +118,7 @@ mod sat;
 mod sat_point;
 pub mod subcommand;
 mod tally;
+mod teleburn_address;
 mod templates;
 mod wallet;
 

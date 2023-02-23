@@ -13,6 +13,7 @@ pub(crate) struct InscriptionHtml {
   pub(crate) previous: Option<InscriptionId>,
   pub(crate) sat: Option<Sat>,
   pub(crate) satpoint: SatPoint,
+  pub(crate) teleburn_address: String,
   pub(crate) timestamp: DateTime<Utc>,
 }
 
@@ -29,6 +30,7 @@ impl PageContent for InscriptionHtml {
 #[cfg(test)]
 mod tests {
   use super::*;
+  use teleburn_address::EthereumTeleburnAddress;
 
   #[test]
   fn without_sat_or_nav_links() {
@@ -45,6 +47,7 @@ mod tests {
         previous: None,
         sat: None,
         satpoint: satpoint(1, 0),
+        teleburn_address: EthereumTeleburnAddress::from(inscription_id(1)).address,
         timestamp: timestamp(0),
       },
       "
@@ -83,6 +86,8 @@ mod tests {
           <dd><a class=monospace href=/output/1{64}:1>1{64}:1</a></dd>
           <dt>offset</dt>
           <dd>0</dd>
+          <dt>Ethereum Teleburn Address</dt>
+          <dd>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
         </dl>
       "
       .unindent()
@@ -104,6 +109,7 @@ mod tests {
         previous: None,
         sat: Some(Sat(1)),
         satpoint: satpoint(1, 0),
+        teleburn_address: EthereumTeleburnAddress::from(inscription_id(1)).address,
         timestamp: timestamp(0),
       },
       "
@@ -136,6 +142,7 @@ mod tests {
         previous: Some(inscription_id(1)),
         sat: None,
         satpoint: satpoint(1, 0),
+        teleburn_address: EthereumTeleburnAddress::from(inscription_id(2)).address,
         timestamp: timestamp(0),
       },
       "
