@@ -62,6 +62,7 @@ impl Inscribe {
 
     let index = Index::open(&options)?;
     index.update()?;
+    println!("Indscribing....");
 
     let mut utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
 
