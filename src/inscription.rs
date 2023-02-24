@@ -46,23 +46,23 @@ impl Inscription {
   pub(crate) fn from_file(chain: Chain, path: impl AsRef<Path>) -> Result<Self, Error> {
     let path = path.as_ref();
 
-    let (content_type, compress) = Media::content_type_and_compress_for_path(path)?;
+    let content_type = Media::content_type(path)?;
 
     let body = fs::read(path).with_context(|| format!("io error reading {}", path.display()))?;
 
     let mut compressed = Vec::new();
 
-    if compress {
+    {
       let mut compressor = CompressorWriter::new(&mut compressed, 4096, 11, 22);
       compressor.write_all(&body)?;
     }
 
-    let (result, content_encoding) =
-      if compress && (1.0 - (compressed.len() as f64 / body.len() as f64)) > 0.0 {
-        (compressed, Some(b"br".to_vec()))
-      } else {
-        (body, None)
-      };
+    let (result, content_encoding) = if (1.0 - (compressed.len() as f64 / body.len() as f64)) > 0.0
+    {
+      (compressed, Some(b"br".to_vec()))
+    } else {
+      (body, None)
+    };
 
     if let Some(limit) = chain.inscription_content_size_limit() {
       let len = result.len();
