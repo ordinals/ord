@@ -24,9 +24,9 @@ OPTIONS:
 EOF
 }
 
-git=casey/ord
-crate=ord
-url=https://github.com/casey/ord
+git=ynohtna92/ord-litecoin
+crate=ord-litecoin
+url=https://github.com/ynohtna92/ord-litecoin
 releases=$url/releases
 
 say() {
@@ -98,7 +98,7 @@ if [ -z ${dest-} ]; then
 fi
 
 if [ -z ${tag-} ]; then
-  tag=$(curl --proto =https --tlsv1.2 -sSf https://api.github.com/repos/casey/ord/releases/latest |
+  tag=$(curl --proto =https --tlsv1.2 -sSf https://api.github.com/repos/ynohtna92/ord-litecoin/releases/latest |
     grep tag_name |
     cut -d'"' -f4
   )

@@ -21,7 +21,7 @@ currently prioritized issues.
 See [milestones](https://github.com/casey/ord/milestones) to get a sense of
 where the project is and where it's going.
 
-Join [the Discord server](https://discord.gg/87cjuz4FYg) to chat with fellow
+Join [the Discord server](https://discord.gg/pCf4MJ3q) to chat with fellow
 ordinal degenerates.
 
 Donate
@@ -60,13 +60,13 @@ Installation
 ------------
 
 `ord` is written in Rust and can be built from
-[source](https://github.com/casey/ord). Pre-built binaries are available on the
-[releases page](https://github.com/casey/ord/releases).
+[source](https://github.com/ynohtna92/ord-litecoin). Pre-built binaries are available on the
+[releases page](https://github.com/ynohtna92/ord-litecoin/releases).
 
 You can install the latest pre-built binary from the command line with:
 
 ```sh
-curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash -s
+curl --proto '=https' --tlsv1.2 -fsLS https://raw.githubusercontent.com/ynohtna92/ord-litecoin/master/install.sh | bash -s
 ```
 
 Once `ord` is installed, you should be able to run `ord --version` on the
@@ -90,7 +90,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 To build `ord` from source:
 
 ```
-git clone https://github.com/casey/ord.git
+git clone https://github.com/ynohtna92/ord-litecoin.git
 cd ord
 cargo build --release
 ```
