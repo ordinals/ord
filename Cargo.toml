@@ -1,7 +1,7 @@
 [package]
 name = "ord"
 description = "◉ Ordinal wallet and block explorer"
-version = "0.12.0"
+version = "8.0.0"
 license = "CC0-1.0"
 edition = "2021"
 autotests = false
@@ -15,7 +15,7 @@ copyright = "The Ord Maintainers"
 maintainer = "The Ord Maintainers"
 
 [workspace]
-members = [".", "test-bitcoincore-rpc"]
+members = [".", "test-bitcoincore-rpc", "ord-kafka-macros"]
 
 [dependencies]
 anyhow = { version = "1.0.56", features = ["backtrace"] }
@@ -49,6 +49,9 @@ miniscript = "10.0.0"
 mp4 = "0.14.0"
 ord-bitcoincore-rpc = "0.17.1"
 redb = "1.4.0"
+axum-tracing-opentelemetry = "0.14.1"
+opentelemetry = { version = "0.20.0", features = ["rt-tokio"] }
+opentelemetry-datadog = { version = "0.8.0", features = ["reqwest-blocking-client"] }
 regex = "1.6.0"
 rss = "2.0.1"
 rust-embed = "8.0.0"
@@ -63,7 +66,12 @@ tempfile = "3.2.0"
 tokio = { version = "1.17.0", features = ["rt-multi-thread"] }
 tokio-stream = "0.1.9"
 tokio-util = {version = "0.7.3", features = ["compat"] }
-tower-http = { version = "0.4.0", features = ["compression-br", "compression-gzip", "cors", "set-header"] }
+tower-http = { version = "0.4.0", features = ["compression-br", "compression-gzip", "cors", "set-header", "timeout"] }
+
+rdkafka = { version = "0.33.2" }
+axum-jrpc = { version = "0.5.1", features = ["serde_json", "anyhow_error"] }
+ord-kafka-macros = { path = "ord-kafka-macros" }
+
 
 [dev-dependencies]
 executable-path = "1.0.0"

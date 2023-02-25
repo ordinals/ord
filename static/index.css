@@ -13,6 +13,13 @@
   --search-border: #aaaaaa;
   --search-fg: #000000;
   --uncommon: forestgreen;
+  --vintage: #ff1493;
+  --nakamoto: #ff8c00;
+  --firsttransaction: #00bfff;
+  --pizza: #ff0000;
+  --block9: #00ff00;
+  --block78: #ffff00;
+  --palindrome: #0000ff;
 }
 
 html {
@@ -197,6 +204,68 @@ a.legendary {
 
 a.mythic {
   color: var(--mythic);
+}
+
+span.vintage, span.nakamoto, span.firsttransaction, span.pizza, span.block9, span.block78, span.palindrome {
+  border-radius: 0.25rem;
+  color: white;
+  padding: 0.125rem 0.25rem;
+}
+
+span.vintage {
+  background-color: var(--vintage);
+}
+
+span.nakamoto {
+  background-color: var(--nakamoto);
+}
+
+span.firsttransaction {
+  background-color: var(--firsttransaction);
+}
+
+span.pizza {
+  background-color: var(--pizza);
+}
+
+span.block9 {
+  background-color: var(--block9);
+}
+
+span.block78 {
+  background-color: var(--block78);
+}
+
+span.palindrome {
+  background-color: var(--palindrome);
+}
+
+a.vintage {
+  color: var(--vintage);
+}
+
+a.nakamoto {
+  color: var(--nakamoto);
+}
+
+a.firsttransaction {
+  color: var(--firsttransaction);
+}
+
+a.pizza {
+  color: var(--pizza);
+}
+
+a.block9 {
+  color: var(--block9);
+}
+
+a.block78 {
+  color: var(--block78);
+}
+
+a.palindrome {
+  color: var(--palindrome);
 }
 
 .thumbnails {
