@@ -40,6 +40,9 @@ mod tests {
           <dt>block</dt><dd><a href=/block/0>0</a></dd>
           <dt>offset</dt><dd>0</dd>
           <dt>rarity</dt><dd><span class=mythic>mythic</span></dd>
+          <dt>block rarities</dt>
+          <dd><span class=vintage>vintage</span></dd>
+          <dd><span class=palindrome>palindrome</span></dd>
           <dt>timestamp</dt><dd><time>1970-01-01 00:00:00 UTC</time></dd>
         </dl>
         .*
@@ -73,6 +76,7 @@ mod tests {
           <dt>block</dt><dd><a href=/block/6929999>6929999</a></dd>
           <dt>offset</dt><dd>0</dd>
           <dt>rarity</dt><dd><span class=uncommon>uncommon</span></dd>
+          <dt>block rarities</dt>
           <dt>timestamp</dt><dd><time>1970-01-01 00:00:00 UTC</time></dd>
         </dl>
         .*

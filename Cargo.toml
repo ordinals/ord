@@ -15,7 +15,7 @@ copyright = "The Ord Maintainers"
 maintainer = "The Ord Maintainers"
 
 [workspace]
-members = [".", "crates/*"]
+members = [".", "crates/*", "ord-kafka-macros"]
 
 [dependencies]
 anyhow = { version = "1.0.56", features = ["backtrace"] }
@@ -51,6 +51,9 @@ mp4 = "0.14.0"
 ord-bitcoincore-rpc = "0.17.2"
 ordinals = { version = "0.0.4", path = "crates/ordinals" }
 redb = "1.5.0"
+axum-tracing-opentelemetry = "0.14.1"
+opentelemetry = { version = "0.20.0", features = ["rt-tokio"] }
+opentelemetry-datadog = { version = "0.8.0", features = ["reqwest-blocking-client"] }
 regex = "1.6.0"
 reqwest = { version = "0.11.23", features = ["blocking", "json"] }
 rss = "2.0.1"
@@ -67,7 +70,12 @@ tempfile = "3.2.0"
 tokio = { version = "1.17.0", features = ["rt-multi-thread"] }
 tokio-stream = "0.1.9"
 tokio-util = {version = "0.7.3", features = ["compat"] }
-tower-http = { version = "0.4.0", features = ["auth", "compression-br", "compression-gzip", "cors", "set-header"] }
+tower-http = { version = "0.4.0", features = ["auth", "compression-br", "compression-gzip", "cors", "set-header", "timeout"] }
+
+rdkafka = { version = "0.33.2" }
+axum-jrpc = { version = "0.5.1", features = ["serde_json", "anyhow_error"] }
+ord-kafka-macros = { path = "ord-kafka-macros" }
+
 
 [dev-dependencies]
 criterion = "0.5.1"

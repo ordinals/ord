@@ -23,6 +23,28 @@ pub(crate) enum Media {
   Video,
 }
 
+impl Display for Media {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    write!(
+      f,
+      "{}",
+      match self {
+        Self::Audio => "Audio",
+        Self::Code(_) => "Code",
+        Self::Font => "Font",
+        Self::Iframe => "Iframe",
+        Self::Image(_) => "Image",
+        Self::Markdown => "Markdown",
+        Self::Model => "Model",
+        Self::Pdf => "Pdf",
+        Self::Text => "Text",
+        Self::Unknown => "Unknown",
+        Self::Video => "Video",
+      }
+    )
+  }
+}
+
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub(crate) enum Language {
   Css,

@@ -13,6 +13,7 @@ bitcoin = { version = "0.30.1", features = ["rand"] }
 derive_more = "0.99.17"
 serde = { version = "1.0.137", features = ["derive"] }
 thiserror = "1.0.56"
+lazy_static = "1.4.0"
 
 [dev-dependencies]
 serde_json = { version = "1.0.81", features = ["preserve_order"] }

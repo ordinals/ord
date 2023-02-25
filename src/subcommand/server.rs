@@ -1,3 +1,6 @@
+use axum::routing::post;
+// use axum_tracing_opentelemetry::middleware::{OtelAxumLayer, OtelInResponseLayer};
+
 use {
   self::{
     accept_encoding::AcceptEncoding,
@@ -38,6 +41,7 @@ use {
     compression::CompressionLayer,
     cors::{Any, CorsLayer},
     set_header::SetResponseHeaderLayer,
+    timeout::TimeoutLayer,
     validate_request::ValidateRequestHeaderLayer,
   },
 };
@@ -45,7 +49,53 @@ use {
 mod accept_encoding;
 mod accept_json;
 mod error;
+mod middleware;
 pub(crate) mod query;
+mod rpc;
+
+#[derive(Copy, Clone)]
+pub(crate) enum InscriptionQuery {
+  Id(InscriptionId),
+  Number(i32),
+}
+
+impl FromStr for InscriptionQuery {
+  type Err = Error;
+
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    Ok(if s.contains('i') {
+      Self::Id(s.parse()?)
+    } else {
+      Self::Number(s.parse()?)
+    })
+  }
+}
+
+impl Display for InscriptionQuery {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    match self {
+      Self::Id(id) => write!(f, "{id}"),
+      Self::Number(number) => write!(f, "{number}"),
+    }
+  }
+}
+
+enum BlockQuery {
+  Height(u32),
+  Hash(BlockHash),
+}
+
+impl FromStr for BlockQuery {
+  type Err = Error;
+
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    Ok(if s.len() == 64 {
+      BlockQuery::Hash(s.parse()?)
+    } else {
+      BlockQuery::Height(s.parse()?)
+    })
+  }
+}
 
 enum SpawnConfig {
   Https(AxumAcceptor),
@@ -137,6 +187,11 @@ pub struct Server {
     help = "Poll Bitcoin Core every <POLLING_INTERVAL>."
   )]
   pub(crate) polling_interval: humantime::Duration,
+  #[clap(
+    long,
+    help = "Timeout requests after <SECONDS> seconds. Default: 30 seconds."
+  )]
+  timeout: Option<u64>,
 }
 
 impl Server {
@@ -254,6 +309,10 @@ impl Server {
         .route("/static/*path", get(Self::static_asset))
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
+
+        // API routes
+        .route("/rpc/v1", post(rpc::handler))
+        .layer(axum::middleware::from_fn(middleware::tracing_layer))
         .layer(Extension(index))
         .layer(Extension(server_config.clone()))
         .layer(Extension(settings.clone()))
@@ -271,6 +330,7 @@ impl Server {
             .allow_origin(Any),
         )
         .layer(CompressionLayer::new())
+        .layer(TimeoutLayer::new(Duration::from_secs(self.timeout.unwrap_or(30))))
         .with_state(server_config);
 
       let router = if let Some((username, password)) = settings.credentials() {
@@ -3245,6 +3305,15 @@ mod tests {
 </ul>.*"
         ),
       );
+  }
+
+  #[test]
+  fn output_with_timeout() {
+    TestServer::new_with_timeout().assert_response_regex(
+      "/block/0",
+      StatusCode::OK,
+      ".*<title>Block 0</title>.*<h1>Block 0</h1>.*",
+    );
   }
 
   #[test]

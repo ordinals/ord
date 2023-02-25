@@ -1301,6 +1301,21 @@ impl Index {
     Ok(satpoint)
   }
 
+  pub(crate) fn get_inscription_by_id_unsafe(
+    &self,
+    inscription_id: InscriptionId,
+  ) -> Result<Option<Inscription>> {
+    let tx = self
+      .get_transaction(inscription_id.txid)
+      .unwrap_or(self.get_transaction(inscription_id.txid)?);
+    Ok(tx.and_then(|tx| {
+      ParsedEnvelope::from_transaction(&tx)
+        .into_iter()
+        .nth(inscription_id.index as usize)
+        .map(|envelope| envelope.payload)
+    }))
+  }
+
   pub(crate) fn get_inscription_by_id(
     &self,
     inscription_id: InscriptionId,

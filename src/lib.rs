@@ -121,6 +121,7 @@ mod settings;
 pub mod subcommand;
 mod tally;
 pub mod templates;
+mod tracer;
 pub mod wallet;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
@@ -214,12 +215,20 @@ fn gracefully_shutdown_indexer() {
 pub fn main() {
   env_logger::init();
 
+  // Tracer setup
+  if env::var("DD_SERVICE").is_ok() {
+    tracer::init().unwrap_or_else(|err| {
+      log::error!("Fatal - failed to initialize tracer: {:?}", err);
+      process::exit(1);
+    });
+  }
+
   ctrlc::set_handler(move || {
     if SHUTTING_DOWN.fetch_or(true, atomic::Ordering::Relaxed) {
       process::exit(1);
     }
 
-    println!("Shutting down gracefully. Press <CTRL-C> again to shutdown immediately.");
+    log::info!("Shutting down gracefully. Press <CTRL-C> again to shutdown immediately.");
 
     LISTENERS
       .lock()
@@ -260,4 +269,7 @@ pub fn main() {
       gracefully_shutdown_indexer();
     }
   }
+
+  gracefully_shutdown_indexer();
+  tracer::close();
 }

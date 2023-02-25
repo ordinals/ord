@@ -1,4 +1,5 @@
 use super::*;
+use stream::StreamEvent;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 enum Curse {
@@ -12,6 +13,7 @@ enum Curse {
   Stutter,
   UnrecognizedEvenField,
 }
+mod stream;
 
 #[derive(Debug, Clone)]
 pub(super) struct Flotsam {
@@ -31,6 +33,7 @@ enum Origin {
     reinscription: bool,
     unbound: bool,
     vindicated: bool,
+    inscription: Inscription,
   },
   Old {
     old_satpoint: SatPoint,
@@ -67,6 +70,7 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   pub(super) unbound_inscriptions: u64,
   pub(super) value_cache: &'a mut HashMap<OutPoint, u64>,
   pub(super) value_receiver: &'a mut Receiver<u64>,
+  pub(super) block_hash: BlockHash,
 }
 
 impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
@@ -74,7 +78,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     &mut self,
     tx: &Transaction,
     txid: Txid,
+    tx_block_index: usize,
     input_sat_ranges: Option<&VecDeque<(u64, u64)>>,
+    index: &Index,
   ) -> Result {
     let mut floating_inscriptions = Vec::new();
     let mut id_counter = 0;
@@ -222,6 +228,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
               || curse == Some(Curse::UnrecognizedEvenField)
               || inscription.payload.unrecognized_even_field,
             vindicated: curse.is_some() && jubilant,
+            inscription: inscription.clone().payload,
           },
         });
 
@@ -346,7 +353,14 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         _ => new_satpoint,
       };
 
-      self.update_inscription_location(input_sat_ranges, flotsam, new_satpoint)?;
+      self.update_inscription_location(
+        input_sat_ranges,
+        flotsam,
+        new_satpoint,
+        tx,
+        tx_block_index,
+        index,
+      )?;
     }
 
     if is_coinbase {
@@ -355,7 +369,14 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           outpoint: OutPoint::null(),
           offset: self.lost_sats + flotsam.offset - output_value,
         };
-        self.update_inscription_location(input_sat_ranges, flotsam, new_satpoint)?;
+        self.update_inscription_location(
+          input_sat_ranges,
+          flotsam,
+          new_satpoint,
+          tx,
+          tx_block_index,
+          index,
+        )?;
       }
       self.lost_sats += self.reward - output_value;
       Ok(())
@@ -393,10 +414,25 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     input_sat_ranges: Option<&VecDeque<(u64, u64)>>,
     flotsam: Flotsam,
     new_satpoint: SatPoint,
+    tx: &Transaction,
+    tx_block_index: usize,
+    index: &Index,
   ) -> Result {
     let inscription_id = flotsam.inscription_id;
     let (unbound, sequence_number) = match flotsam.origin {
       Origin::Old { old_satpoint } => {
+        StreamEvent::new(
+          tx,
+          tx_block_index,
+          flotsam.inscription_id,
+          new_satpoint,
+          self.timestamp,
+          self.height,
+          self.block_hash,
+        )
+        .with_transfer(old_satpoint, index)
+        .publish()?;
+
         self
           .satpoint_to_sequence_number
           .remove_all(&old_satpoint.store())?;
@@ -428,6 +464,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         reinscription,
         unbound,
         vindicated,
+        inscription,
+        ..
       } => {
         let inscription_number = if cursed {
           let number: i32 = self.cursed_inscription_count.try_into().unwrap();
@@ -477,6 +515,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             Rarity::Rare => Charm::Rare.set(&mut charms),
             Rarity::Epic => Charm::Epic.set(&mut charms),
             Rarity::Legendary => Charm::Legendary.set(&mut charms),
+            _ => {}
           }
         }
 
@@ -554,6 +593,23 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             self.home_inscription_count += 1;
           }
         }
+        StreamEvent::new(
+          tx,
+          tx_block_index,
+          flotsam.inscription_id,
+          match unbound {
+            true => SatPoint {
+              outpoint: unbound_outpoint(),
+              offset: self.unbound_inscriptions,
+            },
+            false => new_satpoint,
+          },
+          self.timestamp,
+          self.height,
+          self.block_hash,
+        )
+        .with_create(sat, i64::from(inscription_number), inscription, parent)
+        .publish()?;
 
         (unbound, sequence_number)
       }
