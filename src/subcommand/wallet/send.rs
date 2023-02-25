@@ -1,16 +1,21 @@
 use {super::*, crate::wallet::Wallet};
 
+#[derive(Serialize)]
+struct Output {
+  address: Address,
+  amount: u64,
+  txid: Option<Txid>,
+  outpoints: Vec<OutPoint>,
+}
+
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
   address: Address,
   outgoing: Outgoing,
   #[clap(long, help = "Use fee rate of <FEE_RATE> sats/vB")]
   fee_rate: FeeRate,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct Output {
-  pub transaction: Txid,
+  #[clap(long, help = "Don't  broadcast transactions.")]
+  pub(crate) dry_run: bool,
 }
 
 impl Send {
@@ -55,16 +60,28 @@ impl Send {
           .filter(|utxo| all_inscription_outputs.contains(utxo))
           .cloned()
           .collect::<Vec<OutPoint>>();
+        if self.dry_run {
+          print_json(Output {
+            address: self.address,
+            amount: amount.to_sat(),
+            txid: None,
+            outpoints: wallet_inscription_outputs,
+          })?;
+        } else {
+          if !client.lock_unspent(&wallet_inscription_outputs)? {
+            bail!("failed to lock ordinal UTXOs");
+          }
 
-        if !client.lock_unspent(&wallet_inscription_outputs)? {
-          bail!("failed to lock ordinal UTXOs");
+          let txid =
+            client.send_to_address(&self.address, amount, None, None, None, None, None, None)?;
+
+          print_json(Output {
+            address: self.address,
+            amount: amount.to_sat(),
+            txid: Some(txid),
+            outpoints: wallet_inscription_outputs,
+          })?;
         }
-
-        let txid =
-          client.send_to_address(&self.address, amount, None, None, None, None, None, None)?;
-
-        print_json(Output { transaction: txid })?;
-
         return Ok(());
       }
     };

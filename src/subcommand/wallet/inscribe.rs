@@ -61,7 +61,9 @@ impl Inscribe {
     let inscription = Inscription::from_file(options.chain(), &self.file)?;
 
     let index = Index::open(&options)?;
+    println!("Updating index....");
     index.update()?;
+    println!("Updated index");
 
     let mut utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
 
