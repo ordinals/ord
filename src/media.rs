@@ -39,9 +39,7 @@ impl Media {
     ("video/webm", Media::Video, &["webm"]),
   ];
 
-  pub(crate) fn content_type(
-    path: &Path,
-  ) -> Result<&'static str, Error> {
+  pub(crate) fn content_type(path: &Path) -> Result<&'static str, Error> {
     let extension = path
       .extension()
       .ok_or_else(|| anyhow!("file must have extension"))?
