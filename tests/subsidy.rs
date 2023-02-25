@@ -7,7 +7,7 @@ fn genesis() {
     Output {
       first: 0,
       subsidy: 5000000000,
-      name: "nvtdijuwxlp".into(),
+      name: "bgmbqkqiqsxl".into(),
     }
   );
 }
@@ -19,7 +19,7 @@ fn second_block() {
     Output {
       first: 5000000000,
       subsidy: 5000000000,
-      name: "nvtcsezkbth".into(),
+      name: "bgmbpulndxfd".into(),
     }
   );
 }
@@ -27,9 +27,9 @@ fn second_block() {
 #[test]
 fn second_to_last_block_with_subsidy() {
   assert_eq!(
-    CommandBuilder::new("subsidy 6929998").output::<Output>(),
+    CommandBuilder::new("subsidy 27719998").output::<Output>(),
     Output {
-      first: 2099999997689998,
+      first: 8399999990759998,
       subsidy: 1,
       name: "b".into(),
     }
@@ -39,9 +39,9 @@ fn second_to_last_block_with_subsidy() {
 #[test]
 fn last_block_with_subsidy() {
   assert_eq!(
-    CommandBuilder::new("subsidy 6929999").output::<Output>(),
+    CommandBuilder::new("subsidy 27719999").output::<Output>(),
     Output {
-      first: 2099999997689999,
+      first: 8399999990759999,
       subsidy: 1,
       name: "a".into(),
     }
@@ -50,8 +50,8 @@ fn last_block_with_subsidy() {
 
 #[test]
 fn first_block_without_subsidy() {
-  CommandBuilder::new("subsidy 6930000")
-    .expected_stderr("error: block 6930000 has no subsidy\n")
+  CommandBuilder::new("subsidy 27720000")
+    .expected_stderr("error: block 27720000 has no subsidy\n")
     .expected_exit_code(1)
     .run();
 }

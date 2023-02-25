@@ -11,7 +11,7 @@ fn inscriptions_can_be_sent() {
   rpc_server.mine_blocks(1);
 
   let stdout = CommandBuilder::new(format!(
-    "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {inscription}",
+    "wallet send --fee-rate 1 ltc1qfmvk898k6jgfgp98dhsc5gvr9hpxl2ggd25ygk {inscription}",
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(r".*")
@@ -51,7 +51,7 @@ fn send_unknown_inscription() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   CommandBuilder::new(format!(
-    "wallet send --fee-rate 1 bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {txid}i0"
+    "wallet send --fee-rate 1 ltc1qfmvk898k6jgfgp98dhsc5gvr9hpxl2ggd25ygk {txid}i0"
   ))
   .rpc_server(&rpc_server)
   .expected_stderr(format!("error: Inscription {txid}i0 not found\n"))
@@ -70,7 +70,7 @@ fn send_inscribed_sat() {
   rpc_server.mine_blocks(1);
 
   let stdout = CommandBuilder::new(format!(
-    "wallet send --fee-rate 1 bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {inscription}",
+    "wallet send --fee-rate 1 ltc1qfmvk898k6jgfgp98dhsc5gvr9hpxl2ggd25ygk {inscription}",
   ))
   .rpc_server(&rpc_server)
   .stdout_regex("[[:xdigit:]]{64}\n")
@@ -99,7 +99,7 @@ fn send_on_mainnnet_works_with_wallet_named_foo() {
     .output::<Create>();
 
   CommandBuilder::new(format!(
-    "--wallet foo wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0"
+    "--wallet foo wallet send --fee-rate 1 ltc1qfmvk898k6jgfgp98dhsc5gvr9hpxl2ggd25ygk {txid}:0:0"
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(r"[[:xdigit:]]{64}\n")
@@ -113,11 +113,11 @@ fn send_addresses_must_be_valid_for_network() {
   create_wallet(&rpc_server);
 
   CommandBuilder::new(format!(
-    "wallet send --fee-rate 1 tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz {txid}:0:0"
+    "wallet send --fee-rate 1 tltc1qfk58sxvnsy27ww6408qr3h7294anh7kqn8rn2r {txid}:0:0"
   ))
   .rpc_server(&rpc_server)
   .expected_stderr(
-    "error: Address `tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz` is not valid for mainnet\n",
+    "error: Address `tltc1qfk58sxvnsy27ww6408qr3h7294anh7kqn8rn2r` is not valid for mainnet\n",
   )
   .expected_exit_code(1)
   .run();
@@ -130,7 +130,7 @@ fn send_on_mainnnet_works_with_wallet_named_ord() {
   create_wallet(&rpc_server);
 
   let stdout = CommandBuilder::new(format!(
-    "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0"
+    "wallet send --fee-rate 1 ltc1qfmvk898k6jgfgp98dhsc5gvr9hpxl2ggd25ygk {txid}:0:0"
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(r".*")
@@ -155,7 +155,7 @@ fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
 
   let txid = rpc_server.mine_blocks_with_subsidy(1, 100)[0].txdata[0].txid();
   CommandBuilder::new(format!(
-    "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0"
+    "wallet send --fee-rate 1 ltc1qfmvk898k6jgfgp98dhsc5gvr9hpxl2ggd25ygk {txid}:0:0"
   ))
   .rpc_server(&rpc_server)
   .expected_exit_code(1)

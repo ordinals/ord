@@ -24,11 +24,11 @@ fn sats_from_tsv_success() {
   let second_coinbase = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let output = CommandBuilder::new("--index-sats wallet sats --tsv foo.tsv")
-    .write("foo.tsv", "nvtcsezkbtg")
+    .write("foo.tsv", "bgmbpulndxfd")
     .rpc_server(&rpc_server)
     .output::<Vec<OutputTsv>>();
 
-  assert_eq!(output[0].sat, "nvtcsezkbtg");
+  assert_eq!(output[0].sat, "bgmbpulndxfd");
   assert_eq!(output[0].output.to_string(), format!("{second_coinbase}:0"));
 }
 

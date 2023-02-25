@@ -25,7 +25,7 @@ impl Representation {
         Self::Hash => r"^[[:xdigit:]]{64}$",
         Self::InscriptionId => r"^[[:xdigit:]]{64}i\d+$",
         Self::Integer => r"^[0-9]*$",
-        Self::Name => r"^[a-z]{1,11}$",
+        Self::Name => r"^[a-z]{1,12}$",
         Self::OutPoint => r"^[[:xdigit:]]{64}:\d+$",
         Self::Percentile => r"^.*%$",
         Self::SatPoint => r"^[[:xdigit:]]{64}:\d+:\d+$",

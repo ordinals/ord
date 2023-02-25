@@ -40,7 +40,7 @@ mod tests {
         <dl>
           <dt>value</dt><dd>3</dd>
           <dt>script pubkey</dt><dd class=monospace>OP_DUP OP_HASH160 OP_PUSHBYTES_20 0{40} OP_EQUALVERIFY OP_CHECKSIG</dd>
-          <dt>address</dt><dd class=monospace>1111111111111111111114oLvT2</dd>
+          <dt>address</dt><dd class=monospace>LKDxGDJq5fF4FohAB8zJH24mDDNHDNtqsE</dd>
           <dt>transaction</dt><dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
         </dl>
         <h2>2 Sat Ranges</h2>
@@ -98,7 +98,7 @@ mod tests {
         <dl>
           <dt>value</dt><dd>3</dd>
           <dt>script pubkey</dt><dd class=monospace>OP_DUP OP_HASH160 OP_PUSHBYTES_20 0{40} OP_EQUALVERIFY OP_CHECKSIG</dd>
-          <dt>address</dt><dd class=monospace>1111111111111111111114oLvT2</dd>
+          <dt>address</dt><dd class=monospace>LKDxGDJq5fF4FohAB8zJH24mDDNHDNtqsE</dd>
           <dt>transaction</dt><dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
         </dl>
       "

@@ -1451,7 +1451,7 @@ mod tests {
   #[test]
   fn sat_name() {
     TestServer::new().assert_response_regex(
-      "/sat/nvtdijuwxlp",
+      "/sat/bgmbqkqiqsxl",
       StatusCode::OK,
       ".*<h1>Sat 0</h1>.*",
     );

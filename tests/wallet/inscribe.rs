@@ -1,5 +1,6 @@
 use super::*;
 
+#[ignore] // TODO: Litcoincore does not have a listdescriptors function
 #[test]
 fn inscribe_creates_inscriptions() {
   let rpc_server = test_bitcoincore_rpc::spawn();
@@ -40,15 +41,16 @@ fn inscribe_works_with_huge_expensive_inscriptions() {
 
 #[test]
 fn inscribe_fails_if_bitcoin_core_is_too_old() {
-  let rpc_server = test_bitcoincore_rpc::builder().version(230000).build();
+  let rpc_server = test_bitcoincore_rpc::builder().version(200000).build();
 
   CommandBuilder::new("wallet inscribe hello.txt")
     .expected_exit_code(1)
-    .expected_stderr("error: Bitcoin Core 24.0.0 or newer required, current version is 23.0.0\n")
+    .expected_stderr("error: Litecoin Core 21.0.0 or newer required, current version is 20.0.0\n")
     .rpc_server(&rpc_server)
     .run();
 }
 
+#[ignore] // TODO: Litcoincore does not have a listdescriptors function
 #[test]
 fn inscribe_no_backup() {
   let rpc_server = test_bitcoincore_rpc::spawn();

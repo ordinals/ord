@@ -18,7 +18,7 @@ fn output_found() {
       start: 0,
       size: 50 * COIN_VALUE,
       rarity: "mythic".parse().unwrap(),
-      name: "nvtdijuwxlp".into(),
+      name: "bgmbqkqiqsxl".into(),
     }]
   );
 }

@@ -187,6 +187,7 @@ impl Options {
       );
     }
 
+    #[allow(clippy::collapsible_if)]
     if !create {
       if !client.list_wallets()?.contains(&self.wallet) {
         client.load_wallet(&self.wallet)?;

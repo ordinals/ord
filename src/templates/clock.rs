@@ -63,21 +63,21 @@ mod tests {
   fn final_subsidy_height() {
     pretty_assert_eq!(
       ClockSvg::new(Height(27719999)).second,
-      1007.0 / 2016.0 * 360.0
+      2015.0 / 2016.0 * 360.0
     );
     pretty_assert_eq!(
       ClockSvg::new(Height(27719999)).minute,
-      209_999.0 / 210_000.0 * 360.0
+      839_999.0 / 840_000.0 * 360.0
     );
     pretty_assert_eq!(
       ClockSvg::new(Height(27719999)).hour,
-      6929999.0 / 6930000.0 * 360.0
+      27719999.0 / 27720000.0 * 360.0
     );
   }
 
   #[test]
   fn first_post_subsidy_height() {
-    pretty_assert_eq!(ClockSvg::new(Height(27720000)).second, 180.0);
+    pretty_assert_eq!(ClockSvg::new(Height(27720000)).second, 0.0);
     pretty_assert_eq!(ClockSvg::new(Height(27720000)).minute, 0.0);
     pretty_assert_eq!(ClockSvg::new(Height(27720000)).hour, 0.0);
   }
@@ -85,13 +85,13 @@ mod tests {
   #[test]
   fn clock_svg() {
     assert_regex_match!(
-      ClockSvg::new(Height(6929999)).to_string(),
+      ClockSvg::new(Height(27719999)).to_string(),
       r##"<\?xml version="1.0" encoding="UTF-8"\?>
 <svg.*>.*
-  <text.*>6929999</text>.*
-  <line y2="-9" transform="rotate\(359.9999480519481\)"><title>Subsidy</title></line>.*
-  <line y2="-13" stroke-width="0.6" transform="rotate\(359.9982857142857\)"><title>Epoch</title></line>.*
-  <line y2="-16" stroke="#d00505" stroke-width="0.2" transform="rotate\(179.82142857142858\)"><title>Period</title></line>.*
+  <text.*>27719999</text>.*
+  <line y2="-9" transform="rotate\(359.999987012987\)"><title>Subsidy</title></line>.*
+  <line y2="-13" stroke-width="0.6" transform="rotate\(359.9995714285714\)"><title>Epoch</title></line>.*
+  <line y2="-16" stroke="#d00505" stroke-width="0.2" transform="rotate\(359.82142857142856\)"><title>Period</title></line>.*
   <circle r="0.7" stroke="#d00505" stroke-width="0.3"/>.*
 </svg>
 "##,

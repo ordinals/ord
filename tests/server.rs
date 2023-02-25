@@ -58,7 +58,7 @@ fn inscription_page() {
   <dt>id</dt>
   <dd class=monospace>{inscription}</dd>
   <dt>address</dt>
-  <dd class=monospace>bc1.*</dd>
+  <dd class=monospace>ltc1.*</dd>
   <dt>output value</dt>
   <dd>10000</dd>
   <dt>preview</dt>
@@ -144,7 +144,7 @@ fn inscription_page_after_send() {
   );
 
   let txid = CommandBuilder::new(format!(
-    "wallet send --fee-rate 1 bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {inscription}"
+    "wallet send --fee-rate 1 ltc1qcqgs2pps4u4yedfyl5pysdjjncs8et5u0vraeu {inscription}"
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(".*")
@@ -158,7 +158,7 @@ fn inscription_page_after_send() {
   ord_server.assert_response_regex(
     format!("/inscription/{inscription}"),
     format!(
-      r".*<h1>Inscription 0</h1>.*<dt>address</dt>\s*<dd class=monospace>bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv</dd>.*<dt>location</dt>\s*<dd class=monospace>{send}:0:0</dd>.*",
+      r".*<h1>Inscription 0</h1>.*<dt>address</dt>\s*<dd class=monospace>ltc1qcqgs2pps4u4yedfyl5pysdjjncs8et5u0vraeu</dd>.*<dt>location</dt>\s*<dd class=monospace>{send}:0:0</dd>.*",
     ),
   )
 }

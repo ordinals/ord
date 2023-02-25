@@ -83,7 +83,7 @@ mod tests {
     }
 
     assert_eq!(
-      "nvtdijuwxlp".parse::<Object>().unwrap(),
+      "bgmbqkqiqsxl".parse::<Object>().unwrap(),
       Object::Sat(Sat(0))
     );
     assert_eq!("a".parse::<Object>().unwrap(), Object::Sat(Sat::LAST));
@@ -93,7 +93,7 @@ mod tests {
     );
     assert_eq!(
       "1°0′0″0‴".parse::<Object>().unwrap(),
-      Object::Sat(Sat(2067187500000000))
+      Object::Sat(Sat(7350000000000000))
     );
     assert_eq!("0%".parse::<Object>().unwrap(), Object::Sat(Sat(0)));
 
@@ -117,49 +117,33 @@ mod tests {
       ]),
     );
     case(
-      "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4",
+      "ltc1qfmvk898k6jgfgp98dhsc5gvr9hpxl2ggd25ygk",
       Object::Address(
-        "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
+        "ltc1qfmvk898k6jgfgp98dhsc5gvr9hpxl2ggd25ygk"
           .parse()
           .unwrap(),
       ),
     );
     case(
-      "BC1QW508D6QEJXTDG4Y5R3ZARVARY0C5XW7KV8F3T4",
+      "LTC1QFMVK898K6JGFGP98DHSC5GVR9HPXL2GGD25YGK",
       Object::Address(
-        "BC1QW508D6QEJXTDG4Y5R3ZARVARY0C5XW7KV8F3T4"
+        "LTC1QFMVK898K6JGFGP98DHSC5GVR9HPXL2GGD25YGK"
           .parse()
           .unwrap(),
       ),
     );
     case(
-      "tb1qqqqqp399et2xygdj5xreqhjjvcmzhxw4aywxecjdzew6hylgvsesrxh6hy",
+      "tltc1q6wj92hpclq5758cxz9r9z42ms02cxycrln7mg5",
       Object::Address(
-        "tb1qqqqqp399et2xygdj5xreqhjjvcmzhxw4aywxecjdzew6hylgvsesrxh6hy"
+        "tltc1q6wj92hpclq5758cxz9r9z42ms02cxycrln7mg5"
           .parse()
           .unwrap(),
       ),
     );
     case(
-      "TB1QQQQQP399ET2XYGDJ5XREQHJJVCMZHXW4AYWXECJDZEW6HYLGVSESRXH6HY",
+      "TLTC1Q6WJ92HPCLQ5758CXZ9R9Z42MS02CXYCRLN7MG5",
       Object::Address(
-        "TB1QQQQQP399ET2XYGDJ5XREQHJJVCMZHXW4AYWXECJDZEW6HYLGVSESRXH6HY"
-          .parse()
-          .unwrap(),
-      ),
-    );
-    case(
-      "bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw",
-      Object::Address(
-        "bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw"
-          .parse()
-          .unwrap(),
-      ),
-    );
-    case(
-      "BCRT1QS758URSH4Q9Z627KT3PP5YYSM78DDNY6TXAQGW",
-      Object::Address(
-        "BCRT1QS758URSH4Q9Z627KT3PP5YYSM78DDNY6TXAQGW"
+        "TLTC1Q6WJ92HPCLQ5758CXZ9R9Z42MS02CXYCRLN7MG5"
           .parse()
           .unwrap(),
       ),
