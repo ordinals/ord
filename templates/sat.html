@@ -10,6 +10,10 @@
   <dt>block</dt><dd><a href=/block/{{self.sat.height()}}>{{ self.sat.height() }}</a></dd>
   <dt>offset</dt><dd>{{ self.sat.third() }}</dd>
   <dt>rarity</dt><dd><span class={{self.sat.rarity()}}>{{ self.sat.rarity() }}</span></dd>
+  <dt>block rarities</dt>
+%% for block_rarity in &self.sat.block_rarities() {
+  <dd><span class={{ block_rarity }}>{{ block_rarity }}</span></dd>
+%% }
   <dt>timestamp</dt><dd><time>{{self.blocktime.timestamp()}}</time>{{self.blocktime.suffix()}}</dd>
 %% if !self.inscriptions.is_empty() {
   <dt>inscriptions</dt>

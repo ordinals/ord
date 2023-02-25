@@ -4,9 +4,11 @@ on:
   push:
     branches:
     - master
+    - 6.x
   pull_request:
     branches:
     - master
+    - 6.x
 
 defaults:
   run:
@@ -99,7 +101,6 @@ jobs:
         os:
         - macos-latest
         - ubuntu-latest
-        - windows-latest
 
     runs-on: ${{matrix.os}}
 

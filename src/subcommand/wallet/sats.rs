@@ -63,24 +63,42 @@ impl Sats {
   }
 }
 
-fn rare_sats(utxos: Vec<(OutPoint, Vec<(u64, u64)>)>) -> Vec<(OutPoint, Sat, u64, Rarity)> {
+pub(crate) fn rare_sats(
+  utxos: Vec<(OutPoint, Vec<(u64, u64)>)>,
+) -> Vec<(OutPoint, Sat, u64, Rarity)> {
   utxos
     .into_iter()
-    .flat_map(|(outpoint, sat_ranges)| {
-      let mut offset = 0;
-      sat_ranges.into_iter().filter_map(move |(start, end)| {
-        let sat = Sat(start);
-        let rarity = sat.rarity();
-        let start_offset = offset;
-        offset += end - start;
-        if rarity > Rarity::Common {
-          Some((outpoint, sat, start_offset, rarity))
-        } else {
-          None
-        }
-      })
-    })
+    .flat_map(|(outpoint, sat_ranges)| rare_sats_from_outpoint(outpoint, sat_ranges))
     .collect()
+}
+
+pub(crate) fn rare_sats_from_outpoint(
+  outpoint: OutPoint,
+  sat_ranges: Vec<(u64, u64)>,
+) -> Vec<(OutPoint, Sat, u64, Rarity)> {
+  let mut offset = 0;
+  let mut rare_sats = vec![];
+  for (start, end) in sat_ranges {
+    let first_offset = offset;
+    offset += end - start;
+    let last_offset = offset - 1;
+
+    let first_sat = Sat(start);
+    let first_rarity = first_sat.rarity();
+    if first_rarity > Rarity::Common {
+      rare_sats.push((outpoint, first_sat, first_offset, first_rarity));
+    }
+
+    if end - 1 > start {
+      let last_sat = Sat(end - 1);
+      let last_rarity = last_sat.rarity();
+
+      if last_rarity > Rarity::Common {
+        rare_sats.push((outpoint, last_sat, last_offset, last_rarity));
+      }
+    }
+  }
+  rare_sats
 }
 
 fn sats_from_tsv(
@@ -146,7 +164,7 @@ mod tests {
     assert_eq!(
       rare_sats(vec![(
         outpoint(1),
-        vec![(51 * COIN_VALUE, 100 * COIN_VALUE), (1234, 5678)],
+        vec![(51 * COIN_VALUE, 100 * COIN_VALUE - 2), (1234, 5678)],
       )]),
       Vec::new()
     )
@@ -157,14 +175,33 @@ mod tests {
     assert_eq!(
       rare_sats(vec![(
         outpoint(1),
-        vec![(10, 80), (50 * COIN_VALUE, 100 * COIN_VALUE)],
+        vec![(10, 80), (50 * COIN_VALUE, 100 * COIN_VALUE - 2)],
       )]),
       vec![(outpoint(1), Sat(50 * COIN_VALUE), 70, Rarity::Uncommon)]
     )
   }
 
   #[test]
-  fn identify_two_rare_sats() {
+  fn identify_black_rare_sat() {
+    assert_eq!(
+      rare_sats(vec![(
+        outpoint(1),
+        vec![(
+          50 * COIN_VALUE * DIFFCHANGE_INTERVAL - 1,
+          50 * COIN_VALUE * DIFFCHANGE_INTERVAL
+        )],
+      )]),
+      vec![(
+        outpoint(1),
+        Sat(50 * COIN_VALUE * DIFFCHANGE_INTERVAL - 1),
+        0,
+        Rarity::BlackRare
+      )]
+    )
+  }
+
+  #[test]
+  fn identify_two_rare_sats_one_black_rare_sats() {
     assert_eq!(
       rare_sats(vec![(
         outpoint(1),
@@ -172,7 +209,13 @@ mod tests {
       )]),
       vec![
         (outpoint(1), Sat(0), 0, Rarity::Mythic),
-        (outpoint(1), Sat(1050000000000000), 100, Rarity::Epic)
+        (outpoint(1), Sat(1050000000000000), 100, Rarity::Epic),
+        (
+          outpoint(1),
+          Sat(1149999999999999),
+          100000000000099,
+          Rarity::BlackUncommon
+        )
       ]
     )
   }

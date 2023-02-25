@@ -1,3 +1,5 @@
+use opentelemetry::trace::Tracer;
+use ord_kafka_macros::trace;
 use {
   self::{inscription_updater::InscriptionUpdater, rune_updater::RuneUpdater},
   super::{fetcher::Fetcher, *},
@@ -88,6 +90,7 @@ impl<'index> Updater<'_> {
 
     let mut uncommitted = 0;
     let mut value_cache = HashMap::new();
+
     while let Ok(block) = rx.recv() {
       self.index_block(
         self.index,
@@ -156,6 +159,7 @@ impl<'index> Updater<'_> {
     Ok(())
   }
 
+  #[trace]
   fn fetch_blocks_from(
     index: &Index,
     mut height: u32,
@@ -169,11 +173,20 @@ impl<'index> Updater<'_> {
 
     let first_inscription_height = index.first_inscription_height;
 
+    let target_height_limit = u32::try_from(client.get_block_count()?).unwrap()
+      - env::var("BLOCKS_BEHIND")
+        .ok()
+        .and_then(|blocks_behind| blocks_behind.parse().ok())
+        .unwrap_or(0);
+
     thread::spawn(move || loop {
       if let Some(height_limit) = height_limit {
         if height >= height_limit {
           break;
         }
+      }
+      if height > target_height_limit {
+        break;
       }
 
       match Self::get_block_with_retries(&client, height, index_sats, first_inscription_height) {
@@ -310,6 +323,7 @@ impl<'index> Updater<'_> {
     Ok((outpoint_sender, value_receiver))
   }
 
+  #[trace]
   fn index_block(
     &mut self,
     index: &Index,
@@ -442,6 +456,7 @@ impl<'index> Updater<'_> {
       unbound_inscriptions,
       value_cache,
       value_receiver,
+      block_hash: block.header.block_hash(),
     };
 
     if self.index.index_sats {
@@ -456,7 +471,7 @@ impl<'index> Updater<'_> {
         coinbase_inputs.push_front((start.n(), (start + h.subsidy()).n()));
         self.sat_ranges_since_flush += 1;
       }
-
+      let mut tx_block_index = 0;
       for (tx_offset, (tx, txid)) in block.txdata.iter().enumerate().skip(1) {
         log::trace!("Indexing transaction {tx_offset}…");
 
@@ -485,14 +500,17 @@ impl<'index> Updater<'_> {
         self.index_transaction_sats(
           tx,
           *txid,
+          tx_block_index,
           &mut sat_to_satpoint,
           &mut input_sat_ranges,
           &mut sat_ranges_written,
           &mut outputs_in_block,
           &mut inscription_updater,
           index_inscriptions,
+          index,
         )?;
 
+        tx_block_index += 1;
         coinbase_inputs.extend(input_sat_ranges);
       }
 
@@ -500,12 +518,14 @@ impl<'index> Updater<'_> {
         self.index_transaction_sats(
           tx,
           *txid,
+          tx_block_index,
           &mut sat_to_satpoint,
           &mut coinbase_inputs,
           &mut sat_ranges_written,
           &mut outputs_in_block,
           &mut inscription_updater,
           index_inscriptions,
+          index,
         )?;
       }
 
@@ -535,8 +555,14 @@ impl<'index> Updater<'_> {
         outpoint_to_sat_ranges.insert(&OutPoint::null().store(), lost_sat_ranges.as_slice())?;
       }
     } else {
-      for (tx, txid) in block.txdata.iter().skip(1).chain(block.txdata.first()) {
-        inscription_updater.index_envelopes(tx, *txid, None)?;
+      for (tx_block_index, (tx, txid)) in block
+        .txdata
+        .iter()
+        .skip(1)
+        .chain(block.txdata.first())
+        .enumerate()
+      {
+        inscription_updater.index_envelopes(tx, *txid, tx_block_index, None, index)?;
       }
     }
 
@@ -617,15 +643,23 @@ impl<'index> Updater<'_> {
     &mut self,
     tx: &Transaction,
     txid: Txid,
+    tx_block_index: usize,
     sat_to_satpoint: &mut Table<u64, &SatPointValue>,
     input_sat_ranges: &mut VecDeque<(u64, u64)>,
     sat_ranges_written: &mut u64,
     outputs_traversed: &mut u64,
     inscription_updater: &mut InscriptionUpdater,
     index_inscriptions: bool,
+    index: &Index,
   ) -> Result {
     if index_inscriptions {
-      inscription_updater.index_envelopes(tx, txid, Some(input_sat_ranges))?;
+      inscription_updater.index_envelopes(
+        tx,
+        txid,
+        tx_block_index,
+        Some(input_sat_ranges),
+        index,
+      )?;
     }
 
     for (vout, output) in tx.output.iter().enumerate() {
