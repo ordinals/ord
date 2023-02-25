@@ -170,11 +170,20 @@ impl<'index> Updater<'_> {
 
     let first_inscription_height = index.first_inscription_height;
 
+    let target_height_limit = client.get_block_count()?
+      - env::var("BLOCKS_BEHIND")
+        .ok()
+        .and_then(|blocks_behind| blocks_behind.parse().ok())
+        .unwrap_or(0);
+
     thread::spawn(move || loop {
       if let Some(height_limit) = height_limit {
         if height >= height_limit {
           break;
         }
+      }
+      if height > target_height_limit {
+        break;
       }
 
       match Self::get_block_with_retries(&client, height, index_sats, first_inscription_height) {
@@ -408,6 +417,7 @@ impl<'index> Updater<'_> {
       &mut satpoint_to_inscription_id,
       block.header.time,
       unbound_inscriptions,
+      block.header.block_hash(),
       value_cache,
     )?;
 
@@ -424,6 +434,7 @@ impl<'index> Updater<'_> {
         self.sat_ranges_since_flush += 1;
       }
 
+      let mut tx_block_index = 0;
       for (tx_offset, (tx, txid)) in block.txdata.iter().enumerate().skip(1) {
         log::trace!("Indexing transaction {tx_offset}…");
 
@@ -452,13 +463,16 @@ impl<'index> Updater<'_> {
         self.index_transaction_sats(
           tx,
           *txid,
+          tx_block_index,
           &mut sat_to_satpoint,
           &mut input_sat_ranges,
           &mut sat_ranges_written,
           &mut outputs_in_block,
           &mut inscription_updater,
           index_inscriptions,
+          index,
         )?;
+        tx_block_index += 1;
 
         coinbase_inputs.extend(input_sat_ranges);
       }
@@ -467,12 +481,14 @@ impl<'index> Updater<'_> {
         self.index_transaction_sats(
           tx,
           *txid,
+          tx_block_index,
           &mut sat_to_satpoint,
           &mut coinbase_inputs,
           &mut sat_ranges_written,
           &mut outputs_in_block,
           &mut inscription_updater,
           index_inscriptions,
+          index,
         )?;
       }
 
@@ -502,8 +518,20 @@ impl<'index> Updater<'_> {
         outpoint_to_sat_ranges.insert(&OutPoint::null().store(), lost_sat_ranges.as_slice())?;
       }
     } else {
-      for (tx, txid) in block.txdata.iter().skip(1).chain(block.txdata.first()) {
-        inscription_updater.index_transaction_inscriptions(tx, *txid, None)?;
+      for (tx_block_index, (tx, txid)) in block
+        .txdata
+        .iter()
+        .skip(1)
+        .chain(block.txdata.first())
+        .enumerate()
+      {
+        inscription_updater.index_transaction_inscriptions(
+          tx,
+          *txid,
+          tx_block_index,
+          None,
+          index,
+        )?;
       }
     }
 
@@ -531,15 +559,23 @@ impl<'index> Updater<'_> {
     &mut self,
     tx: &Transaction,
     txid: Txid,
+    tx_block_index: usize,
     sat_to_satpoint: &mut Table<u64, &SatPointValue>,
     input_sat_ranges: &mut VecDeque<(u64, u64)>,
     sat_ranges_written: &mut u64,
     outputs_traversed: &mut u64,
     inscription_updater: &mut InscriptionUpdater,
     index_inscriptions: bool,
+    index: &Index,
   ) -> Result {
     if index_inscriptions {
-      inscription_updater.index_transaction_inscriptions(tx, txid, Some(input_sat_ranges))?;
+      inscription_updater.index_transaction_inscriptions(
+        tx,
+        txid,
+        tx_block_index,
+        Some(input_sat_ranges),
+        index,
+      )?;
     }
 
     for (vout, output) in tx.output.iter().enumerate() {

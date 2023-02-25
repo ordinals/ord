@@ -58,6 +58,8 @@ tokio = { version = "1.17.0", features = ["rt-multi-thread"] }
 tokio-stream = "0.1.9"
 tokio-util = {version = "0.7.3", features = ["compat"] }
 tower-http = { version = "0.4.0", features = ["compression-br", "compression-gzip", "cors", "set-header"] }
+rdkafka = { version = "0.33.2" }
+
 
 [dev-dependencies]
 executable-path = "1.0.0"

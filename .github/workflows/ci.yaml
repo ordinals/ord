@@ -4,9 +4,11 @@ on:
   push:
     branches:
     - master
+    - kafka
   pull_request:
     branches:
     - master
+    - kafka
 
 defaults:
   run:

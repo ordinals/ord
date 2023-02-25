@@ -667,6 +667,20 @@ impl Index {
     )
   }
 
+  pub(crate) fn get_inscription_by_id_unsafe(
+    &self,
+    inscription_id: InscriptionId,
+  ) -> Result<Option<Inscription>> {
+    let tx = self
+      .get_transaction(inscription_id.txid)
+      .unwrap_or(self.get_transaction(inscription_id.txid)?);
+    Ok(tx.and_then(|tx| {
+      Inscription::from_transaction(&tx)
+        .get(inscription_id.index as usize)
+        .map(|transaction_inscription| transaction_inscription.inscription.clone())
+    }))
+  }
+
   pub(crate) fn get_inscription_by_id(
     &self,
     inscription_id: InscriptionId,
@@ -681,11 +695,7 @@ impl Index {
       return Ok(None);
     }
 
-    Ok(self.get_transaction(inscription_id.txid)?.and_then(|tx| {
-      Inscription::from_transaction(&tx)
-        .get(inscription_id.index as usize)
-        .map(|transaction_inscription| transaction_inscription.inscription.clone())
-    }))
+    self.get_inscription_by_id_unsafe(inscription_id)
   }
 
   pub(crate) fn get_inscriptions_on_output_with_satpoints(

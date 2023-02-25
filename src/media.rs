@@ -4,7 +4,7 @@ use {
   std::{fs::File, io::BufReader},
 };
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Copy, Clone, Display)]
 pub(crate) enum Media {
   Audio,
   Iframe,
