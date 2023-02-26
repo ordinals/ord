@@ -101,7 +101,7 @@ impl Inscribe {
     if self.dry_run {
       print_json(Output {
         commit: unsigned_commit_tx.txid(),
-        raw: Some((&unsigned_commit_tx).raw_hex()),
+        raw: Some(unsigned_commit_tx.raw_hex()),
         reveal: reveal_tx.txid(),
         inscription: reveal_tx.txid().into(),
         fees,
