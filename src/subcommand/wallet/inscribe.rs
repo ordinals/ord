@@ -19,7 +19,11 @@ use {
   bitcoincore_rpc::Client,
   std::collections::BTreeSet,
 };
-
+#[derive(Serialize)]
+struct TrxData {
+  output: Transaction,
+  input: Transaction,
+}
 #[derive(Serialize)]
 struct Output {
   commit: Txid,
@@ -27,6 +31,7 @@ struct Output {
   reveal: Txid,
   fees: u64,
   raw: Option<String>,
+  commit_trx: Transaction,
 }
 
 #[derive(Debug, Parser)]
@@ -102,6 +107,7 @@ impl Inscribe {
       print_json(Output {
         commit: unsigned_commit_tx.txid(),
         raw: Some(unsigned_commit_tx.raw_hex()),
+        commit_trx: unsigned_commit_tx,
         reveal: reveal_tx.txid(),
         inscription: reveal_tx.txid().into(),
         fees,
@@ -129,6 +135,7 @@ impl Inscribe {
         inscription: reveal.into(),
         fees,
         raw: None,
+        commit_trx: unsigned_commit_tx,
       })?;
     };
 
