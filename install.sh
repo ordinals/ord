@@ -25,7 +25,7 @@ EOF
 }
 
 git=ynohtna92/ord-litecoin
-crate=ord-litecoin
+crate=ord
 url=https://github.com/ynohtna92/ord-litecoin
 releases=$url/releases
 
