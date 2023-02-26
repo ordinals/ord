@@ -1,3 +1,5 @@
+use bitcoincore_rpc::RawTx;
+
 use {
   super::*,
   crate::wallet::Wallet,
@@ -24,6 +26,7 @@ struct Output {
   inscription: InscriptionId,
   reveal: Txid,
   fees: u64,
+  raw: Option<String>,
 }
 
 #[derive(Debug, Parser)]
@@ -98,6 +101,7 @@ impl Inscribe {
     if self.dry_run {
       print_json(Output {
         commit: unsigned_commit_tx.txid(),
+        raw: Some((&unsigned_commit_tx).raw_hex()),
         reveal: reveal_tx.txid(),
         inscription: reveal_tx.txid().into(),
         fees,
@@ -124,6 +128,7 @@ impl Inscribe {
         reveal,
         inscription: reveal.into(),
         fees,
+        raw: None,
       })?;
     };
 
