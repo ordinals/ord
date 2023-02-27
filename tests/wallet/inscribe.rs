@@ -1,6 +1,6 @@
 use super::*;
 
-#[ignore] // TODO: Litcoincore does not have a listdescriptors function
+#[ignore] // Litcoincore does not have a listdescriptors function
 #[test]
 fn inscribe_creates_inscriptions() {
   let rpc_server = test_bitcoincore_rpc::spawn();
@@ -50,7 +50,7 @@ fn inscribe_fails_if_bitcoin_core_is_too_old() {
     .run();
 }
 
-#[ignore] // TODO: Litcoincore does not have a listdescriptors function
+#[ignore] // Litcoincore does not have a listdescriptors function
 #[test]
 fn inscribe_no_backup() {
   let rpc_server = test_bitcoincore_rpc::spawn();

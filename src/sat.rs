@@ -592,7 +592,7 @@ mod tests {
     "101%".parse::<Sat>().unwrap_err();
   }
 
-  #[ignore] // TODO: Not important, we can fix this later. Failing due to bigger number space
+  #[ignore] // Not important, we can fix this later. Failing due to bigger number space
   #[test]
   fn percentile_round_trip() {
     fn case(n: u64) {

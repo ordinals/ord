@@ -22,7 +22,7 @@ fn seed_phrases_are_twelve_words_long() {
   assert_eq!(mnemonic.word_count(), 12);
 }
 
-#[ignore] // TODO: Litcoincore does not have a listdescriptors function
+#[ignore] // Litcoincore does not have a listdescriptors function
 #[test]
 fn wallet_creates_correct_mainnet_taproot_descriptor() {
   let rpc_server = test_bitcoincore_rpc::spawn();
@@ -42,7 +42,7 @@ fn wallet_creates_correct_mainnet_taproot_descriptor() {
   );
 }
 
-#[ignore] // TODO: Litcoincore does not have a listdescriptors function
+#[ignore] // Litcoincore does not have a listdescriptors function
 #[test]
 fn wallet_creates_correct_test_network_taproot_descriptor() {
   let rpc_server = test_bitcoincore_rpc::builder()
@@ -64,7 +64,7 @@ fn wallet_creates_correct_test_network_taproot_descriptor() {
   );
 }
 
-#[ignore] // TODO: Litcoincore does not have a listdescriptors function
+#[ignore] // Litcoincore does not have a listdescriptors function
 #[test]
 fn detect_wrong_descriptors() {
   let rpc_server = test_bitcoincore_rpc::spawn();
