@@ -32,6 +32,7 @@ struct Output {
   fees: u64,
   raw: Option<String>,
   commit_trx: Transaction,
+  reveal_trx: Transaction,
 }
 
 #[derive(Debug, Parser)]
@@ -102,7 +103,9 @@ impl Inscribe {
 
     let fees =
       Self::calculate_fee(&unsigned_commit_tx, &utxos) + Self::calculate_fee(&reveal_tx, &utxos);
-
+    if !self.no_backup {
+      Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
+    }
     if self.dry_run {
       print_json(Output {
         commit: unsigned_commit_tx.txid(),
@@ -111,12 +114,9 @@ impl Inscribe {
         reveal: reveal_tx.txid(),
         inscription: reveal_tx.txid().into(),
         fees,
+        reveal_trx: reveal_tx,
       })?;
     } else {
-      if !self.no_backup {
-        Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
-      }
-
       let signed_raw_commit_tx = client
         .sign_raw_transaction_with_wallet(&unsigned_commit_tx, None, None)?
         .hex;
@@ -136,6 +136,7 @@ impl Inscribe {
         fees,
         raw: None,
         commit_trx: unsigned_commit_tx,
+        reveal_trx: reveal_tx,
       })?;
     };
 
