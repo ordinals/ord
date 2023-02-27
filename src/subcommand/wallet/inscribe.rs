@@ -335,6 +335,7 @@ impl Inscribe {
 
     for result in response {
       if !result.success {
+        print!(result);
         return Err(anyhow!("commit tx recovery key import failed"));
       }
     }
