@@ -120,7 +120,7 @@ impl Sat {
     // For valid degrees the relationship between epoch_offset and period_offset
     // will decrement by 672 every halving.
     let relationship = period_offset + SUBSIDY_HALVING_INTERVAL * CYCLE_EPOCHS - epoch_offset;
-    
+
     if relationship % HALVING_INCREMENT != 0 {
       bail!("relationship between epoch offset and period offset must be multiple of 672");
     }
@@ -356,10 +356,7 @@ mod tests {
     // }
     assert_eq!(Sat(6720000000000).degree().to_string(), "0°1344′1344″0‴");
     assert_eq!(parse("0°1344′0″0‴").unwrap(), 6301680000000000);
-    assert_eq!(
-      Sat(6720000000000).degree().to_string(),
-      "0°1344′1344″0‴"
-    );
+    assert_eq!(Sat(6720000000000).degree().to_string(), "0°1344′1344″0‴");
     assert_eq!(parse("0°1344′672″0‴").unwrap(), 4203360000000000);
   }
 
