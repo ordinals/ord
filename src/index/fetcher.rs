@@ -27,7 +27,7 @@ struct JsonError {
 }
 
 impl Fetcher {
-  pub(crate) fn new(url: &str, auth: Auth) -> Result<Self> {
+  pub(crate) fn new(options: &Options) -> Result<Self> {
     if auth == Auth::None {
       return Err(anyhow!("No rpc authentication provided"));
     }

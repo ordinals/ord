@@ -264,7 +264,7 @@ impl Updater {
   }
 
   fn spawn_fetcher(index: &Index) -> Result<(Sender<OutPoint>, Receiver<u64>)> {
-    let fetcher = Fetcher::new(&index.rpc_url, index.auth.clone())?;
+    let fetcher = Fetcher::new(&index.options)?;
 
     // Not sure if any block has more than 20k inputs, but none so far after first inscription block
     const CHANNEL_BUFFER_SIZE: usize = 20_000;
