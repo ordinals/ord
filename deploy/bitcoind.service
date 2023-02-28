@@ -26,7 +26,7 @@ StateDirectory=bitcoind
 StateDirectoryMode=0710
 TimeoutStartSec=infinity
 TimeoutStopSec=600
-Type=simple
+Type=forking
 User=bitcoin
 
 [Install]
