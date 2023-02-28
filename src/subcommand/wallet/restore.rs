@@ -13,9 +13,14 @@ pub(crate) struct Restore {
 }
 
 impl Restore {
-  pub(crate) fn run(self, options: Options) -> Result {
-    initialize_wallet(&options, self.mnemonic.to_seed(self.passphrase))?;
+  pub(crate) fn run(self, _options: Options) -> Result {
+    bail!(
+      "Descriptor wallets are not supported in Litecoincore 21.2.1, copy your wallet.dat into \
+      your Litecoincore data directory."
+    );
 
-    Ok(())
+    // initialize_wallet(&options, self.mnemonic.to_seed(self.passphrase))?;
+    //
+    // Ok(())
   }
 }

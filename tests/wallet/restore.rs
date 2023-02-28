@@ -1,5 +1,6 @@
 use super::*;
 
+#[ignore] // Litecoincore does not support descriptors
 #[test]
 fn restore_generates_same_descriptors() {
   let (mnemonic, descriptors) = {
@@ -21,6 +22,7 @@ fn restore_generates_same_descriptors() {
   assert_eq!(rpc_server.descriptors(), descriptors);
 }
 
+#[ignore] // Litecoincore does not support descriptors
 #[test]
 fn restore_generates_same_descriptors_with_passphrase() {
   let passphrase = "foo";
