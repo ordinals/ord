@@ -20,8 +20,6 @@ pub(crate) struct Send {
 
 impl Send {
   pub(crate) fn run(self, options: Options) -> Result {
-    let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
-
     if !self.address.is_valid_for_network(options.chain().network()) {
       bail!(
         "Address `{}` is not valid for {}",
@@ -32,6 +30,8 @@ impl Send {
 
     let index = Index::open(&options)?;
     index.update()?;
+
+    let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
     let unspent_outputs = index.get_unspent_outputs(Wallet::load(&options)?)?;
 

@@ -1,6 +1,31 @@
 Changelog
 =========
 
+[0.5.1](https://github.com/casey/ord/releases/tag/0.5.1) - 2023-02-21
+---------------------------------------------------------------------
+
+### Performance
+- Batch tx requests and re-enable skipping transactions (#1759)
+
+### Added
+- Add option to set inscription destination address (#1536)
+- Allow supplying passphrase for `ord wallet create` and `ord wallet restore` (#1669)
+- Add `--config-dir` option (#1697)
+
+### Changed
+- Require users manually specify a `--fee-rate` for `wallet send` (#1755)
+
+### Documentation
+- Add Sparrow Wallet Guide to Handbook (#1742)
+
+### Misc
+- Handle block count RPC error gracefully (#1637)
+- Fix typos in overview.md (#1715)
+- Typo fix (#1682)
+- README typo fix (#1716)
+- Fix changelog dates: 2022 → 2023 (#1700)
+- Bump version number (#1695)
+
 [0.5.0](https://github.com/casey/ord/releases/tag/0.5.0) - 2023-02-11
 ---------------------------------------------------------------------
 

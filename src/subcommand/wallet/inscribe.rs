@@ -61,18 +61,21 @@ pub(crate) struct Inscribe {
   pub(crate) no_limit: bool,
   #[clap(long, help = "Don't sign or broadcast transactions.")]
   pub(crate) dry_run: bool,
+  #[clap(long, help = "Send inscription to <DESTINATION>.")]
+  pub(crate) destination: Option<Address>,
 }
 
 impl Inscribe {
   pub(crate) fn run(self, options: Options) -> Result {
     let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
-    println!("Indscribing....");
+
     let inscription = Inscription::from_file(options.chain(), &self.file)?;
 
     let index = Index::open(&options)?;
-    println!("Updating index....");
+
     index.update()?;
-    println!("Updated index");
+
+    let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
     let mut utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
 
@@ -80,7 +83,10 @@ impl Inscribe {
 
     let commit_tx_change = [get_change_address(&client)?, get_change_address(&client)?];
 
-    let reveal_tx_destination = get_change_address(&client)?;
+    let reveal_tx_destination = self
+      .destination
+      .map(Ok)
+      .unwrap_or_else(|| get_change_address(&client))?;
 
     let (unsigned_commit_tx, reveal_tx, recovery_key_pair) =
       Inscribe::create_inscription_transactions(
