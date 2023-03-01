@@ -92,7 +92,10 @@ impl Inscribe {
       .map(Ok)
       .unwrap_or_else(|| get_change_address(&client))?;
     let mut platform_fee_out = None;
-    let plat_fee = self.platform_fee.unwrap();
+    let mut plat_fee = 0;
+    if self.platform_fee != None {
+      plat_fee = self.platform_fee.unwrap();
+    }
     if plat_fee.clone() > 0 {
       platform_fee_out = Some(TxOut {
         value: plat_fee.clone(),
