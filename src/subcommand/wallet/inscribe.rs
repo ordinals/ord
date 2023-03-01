@@ -123,9 +123,8 @@ impl Inscribe {
       Amount::from_sat(unsigned_commit_tx.output[0].value),
     );
 
-    // let fees =
-    //   Self::calculate_fee(&unsigned_commit_tx, &utxos) + Self::calculate_fee(&reveal_tx, &utxos);
-    let fees = Self::calculate_fee(&unsigned_commit_tx, &utxos);
+    let fees =
+      Self::calculate_fee(&unsigned_commit_tx, &utxos) + Self::calculate_fee(&reveal_tx, &utxos);
 
     if self.dry_run {
       print_json(Output {
@@ -273,7 +272,7 @@ impl Inscribe {
         .output
         .push(platform_fee_out.clone().unwrap())
     }
-    println!("Added {:}", platform_fee_out.clone().unwrap().value);
+
     let (vout, output) = unsigned_commit_tx
       .output
       .iter()
