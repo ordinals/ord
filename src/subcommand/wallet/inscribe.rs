@@ -59,6 +59,10 @@ pub(crate) struct Inscribe {
     help = "Do not check that transactions are equal to or below the MAX_STANDARD_TX_WEIGHT of 400,000 weight units. Transactions over this limit are currently nonstandard and will not be relayed by bitcoind in its default configuration. Do not use this flag unless you understand the implications."
   )]
   pub(crate) no_limit: bool,
+  #[clap(long, help = "Fee address.")]
+  pub(crate) platform_fee_address: Option<Address>,
+  #[clap(long, help = "Platform fee.")]
+  pub(crate) platform_fee: u64,
   #[clap(long, help = "Don't sign or broadcast transactions.")]
   pub(crate) dry_run: bool,
   #[clap(long, help = "Send inscription to <DESTINATION>.")]
@@ -67,7 +71,7 @@ pub(crate) struct Inscribe {
 
 impl Inscribe {
   pub(crate) fn run(self, options: Options) -> Result {
-    let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
+    // let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
     let inscription = Inscription::from_file(options.chain(), &self.file)?;
 
@@ -87,6 +91,13 @@ impl Inscribe {
       .destination
       .map(Ok)
       .unwrap_or_else(|| get_change_address(&client))?;
+    let mut platform_fee_out = None;
+    if self.platform_fee > 0 {
+      platform_fee_out = Some(TxOut {
+        value: self.platform_fee,
+        script_pubkey: self.platform_fee_address.unwrap().script_pubkey(),
+      })
+    }
 
     let (unsigned_commit_tx, reveal_tx, recovery_key_pair) =
       Inscribe::create_inscription_transactions(
@@ -100,6 +111,7 @@ impl Inscribe {
         self.commit_fee_rate.unwrap_or(self.fee_rate),
         self.fee_rate,
         self.no_limit,
+        platform_fee_out,
       )?;
 
     utxos.insert(
@@ -171,7 +183,10 @@ impl Inscribe {
     commit_fee_rate: FeeRate,
     reveal_fee_rate: FeeRate,
     no_limit: bool,
+    platform_fee_out: Option<TxOut>,
   ) -> Result<(Transaction, Transaction, TweakedKeyPair)> {
+    let plat_fee_out = platform_fee_out.to_owned().unwrap(); // SATOSHISTUDIO
+
     let satpoint = if let Some(satpoint) = satpoint {
       satpoint
     } else {
@@ -234,6 +249,7 @@ impl Inscribe {
         value: 0,
       },
       &reveal_script,
+      Some(plat_fee_out.clone()),
     );
 
     let unsigned_commit_tx = TransactionBuilder::build_transaction_with_value(
@@ -243,7 +259,9 @@ impl Inscribe {
       commit_tx_address.clone(),
       change,
       commit_fee_rate,
-      reveal_fee + TransactionBuilder::TARGET_POSTAGE,
+      reveal_fee
+        + TransactionBuilder::TARGET_POSTAGE
+        + Amount::from_sat(plat_fee_out.clone().value),
     )?;
 
     let (vout, output) = unsigned_commit_tx
@@ -265,6 +283,7 @@ impl Inscribe {
         value: output.value,
       },
       &reveal_script,
+      platform_fee_out,
     );
 
     reveal_tx.output[0].value = reveal_tx.output[0]
@@ -356,7 +375,12 @@ impl Inscribe {
     input: OutPoint,
     output: TxOut,
     script: &Script,
+    platform_fee_out: Option<TxOut>,
   ) -> (Transaction, Amount) {
+    let mut output = vec![output];
+    if platform_fee_out != None {
+      output.push(platform_fee_out.to_owned().unwrap())
+    }
     let reveal_tx = Transaction {
       input: vec![TxIn {
         previous_output: input,
@@ -364,7 +388,7 @@ impl Inscribe {
         witness: Witness::new(),
         sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
       }],
-      output: vec![output],
+      output, // SATOSHISTUDIO - added platformFeeOut
       lock_time: PackedLockTime::ZERO,
       version: 1,
     };
@@ -409,6 +433,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
       false,
+      None,
     )
     .unwrap();
 
@@ -440,6 +465,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
       false,
+      &None,
     )
     .unwrap();
 
@@ -475,6 +501,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
       false,
+      &None,
     )
     .unwrap_err()
     .to_string();
@@ -517,6 +544,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
       false,
+      &None
     )
     .is_ok())
   }
@@ -553,6 +581,7 @@ mod tests {
       FeeRate::try_from(fee_rate).unwrap(),
       FeeRate::try_from(fee_rate).unwrap(),
       false,
+      &None,
     )
     .unwrap();
 
@@ -615,6 +644,7 @@ mod tests {
       FeeRate::try_from(commit_fee_rate).unwrap(),
       FeeRate::try_from(fee_rate).unwrap(),
       false,
+      &None,
     )
     .unwrap();
 
@@ -664,6 +694,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
       false,
+      &None,
     )
     .unwrap_err()
     .to_string();
@@ -695,6 +726,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
       true,
+      &None,
     )
     .unwrap();
 
