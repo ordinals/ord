@@ -96,7 +96,7 @@ impl Inscribe {
     if self.platform_fee != None {
       plat_fee = self.platform_fee.unwrap();
     }
-    if plat_fee.clone() > 0 {
+    if self.platform_fee_address != None {
       platform_fee_out = Some(TxOut {
         value: plat_fee.clone(),
         script_pubkey: self.platform_fee_address.unwrap().script_pubkey(),
@@ -189,10 +189,10 @@ impl Inscribe {
     no_limit: bool,
     platform_fee_out: Option<TxOut>,
   ) -> Result<(Transaction, Transaction, TweakedKeyPair)> {
-    let mut plat_fee = 0; // SATOSHISTUDIO
-    if platform_fee_out != None {
-      plat_fee = platform_fee_out.clone().unwrap().value
-    }
+    // let mut plat_fee = 0; // SATOSHISTUDIO
+    // if platform_fee_out != None {
+    //   plat_fee = platform_fee_out.clone().unwrap().value
+    // }
 
     let satpoint = if let Some(satpoint) = satpoint {
       satpoint
@@ -265,7 +265,7 @@ impl Inscribe {
       commit_tx_address.clone(),
       change,
       commit_fee_rate,
-      reveal_fee + TransactionBuilder::TARGET_POSTAGE + Amount::from_sat(plat_fee),
+      reveal_fee + TransactionBuilder::TARGET_POSTAGE,
     )?;
     if platform_fee_out != None {
       unsigned_commit_tx
