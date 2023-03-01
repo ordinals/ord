@@ -86,7 +86,7 @@ impl Inscribe {
     let inscriptions = index.get_inscriptions(None)?;
 
     let commit_tx_change = [get_change_address(&client)?, get_change_address(&client)?];
-
+    println!("Done getting change addresses..");
     let reveal_tx_destination = self
       .destination
       .map(Ok)
