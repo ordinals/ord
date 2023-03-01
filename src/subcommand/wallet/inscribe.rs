@@ -268,11 +268,12 @@ impl Inscribe {
       commit_fee_rate,
       reveal_fee + TransactionBuilder::TARGET_POSTAGE + Amount::from_sat(plat_fee),
     )?;
-    // if platform_fee_out != None {
-    //   unsigned_commit_tx
-    //     .output
-    //     .push(platform_fee_out.clone().unwrap())
-    // }
+    if platform_fee_out != None {
+      unsigned_commit_tx
+        .output
+        .push(platform_fee_out.clone().unwrap())
+    }
+    println!("Added {:}", platform_fee_out.clone().unwrap().value);
     let (vout, output) = unsigned_commit_tx
       .output
       .iter()
