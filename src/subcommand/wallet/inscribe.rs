@@ -78,7 +78,7 @@ impl Inscribe {
     let index = Index::open(&options)?;
 
     index.update()?;
-
+    println!("Done updating index...");
     let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
     let mut utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
