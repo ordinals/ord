@@ -62,7 +62,7 @@ pub(crate) struct Inscribe {
   #[clap(long, help = "Fee address.")]
   pub(crate) platform_fee_address: Option<Address>,
   #[clap(long, help = "Platform fee.")]
-  pub(crate) platform_fee: u64,
+  pub(crate) platform_fee: Option<u64>,
   #[clap(long, help = "Don't sign or broadcast transactions.")]
   pub(crate) dry_run: bool,
   #[clap(long, help = "Send inscription to <DESTINATION>.")]
@@ -92,9 +92,10 @@ impl Inscribe {
       .map(Ok)
       .unwrap_or_else(|| get_change_address(&client))?;
     let mut platform_fee_out = None;
-    if self.platform_fee > 0 {
+    let plat_fee = self.platform_fee.unwrap();
+    if plat_fee.clone() > 0 {
       platform_fee_out = Some(TxOut {
-        value: self.platform_fee,
+        value: plat_fee.clone(),
         script_pubkey: self.platform_fee_address.unwrap().script_pubkey(),
       })
     }

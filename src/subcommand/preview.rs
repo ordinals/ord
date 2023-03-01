@@ -86,7 +86,7 @@ impl Preview {
             dry_run: false,
             no_limit: false,
             destination: None,
-            platform_fee: 0,
+            platform_fee: Some(0),
             platform_fee_address: None,
           },
         )),
