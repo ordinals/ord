@@ -257,10 +257,9 @@ impl Inscribe {
         value: 0,
       },
       &reveal_script,
-      platform_fee_out.clone(),
+      // platform_fee_out.clone(),
     );
-
-    let unsigned_commit_tx = TransactionBuilder::build_transaction_with_value(
+    let mut unsigned_commit_tx = TransactionBuilder::build_transaction_with_value(
       satpoint,
       inscriptions,
       utxos,
@@ -269,7 +268,11 @@ impl Inscribe {
       commit_fee_rate,
       reveal_fee + TransactionBuilder::TARGET_POSTAGE + Amount::from_sat(plat_fee),
     )?;
-
+    if platform_fee_out != None {
+      unsigned_commit_tx
+        .output
+        .push(platform_fee_out.clone().unwrap())
+    }
     let (vout, output) = unsigned_commit_tx
       .output
       .iter()
@@ -289,7 +292,7 @@ impl Inscribe {
         value: output.value,
       },
       &reveal_script,
-      platform_fee_out,
+      // platform_fee_out,
     );
 
     reveal_tx.output[0].value = reveal_tx.output[0]
@@ -381,12 +384,12 @@ impl Inscribe {
     input: OutPoint,
     output: TxOut,
     script: &Script,
-    platform_fee_out: Option<TxOut>,
+    // platform_fee_out: Option<TxOut>,
   ) -> (Transaction, Amount) {
-    let mut output = vec![output];
-    if platform_fee_out != None {
-      output.push(platform_fee_out.to_owned().unwrap())
-    }
+    let output = vec![output];
+    // if platform_fee_out != None {
+    //   output.push(platform_fee_out.to_owned().unwrap())
+    // }
     let reveal_tx = Transaction {
       input: vec![TxIn {
         previous_output: input,
@@ -394,7 +397,7 @@ impl Inscribe {
         witness: Witness::new(),
         sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
       }],
-      output, // SATOSHISTUDIO - added platformFeeOut
+      output,
       lock_time: PackedLockTime::ZERO,
       version: 1,
     };

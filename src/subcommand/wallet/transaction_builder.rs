@@ -105,6 +105,7 @@ pub struct TransactionBuilder {
   unused_change_addresses: Vec<Address>,
   utxos: BTreeSet<OutPoint>,
   target: Target,
+  // platform_fee_out: Option<TxOut>,
 }
 
 type Result<T> = std::result::Result<T, Error>;
@@ -132,6 +133,7 @@ impl TransactionBuilder {
       change,
       fee_rate,
       Target::Postage,
+      // platform_fee_out,
     )?
     .build_transaction()
   }
@@ -144,6 +146,7 @@ impl TransactionBuilder {
     change: [Address; 2],
     fee_rate: FeeRate,
     output_value: Amount,
+    //  platform_fee_out: Option<TxOut>,
   ) -> Result<Transaction> {
     let dust_value = recipient.script_pubkey().dust_value();
 
@@ -162,6 +165,7 @@ impl TransactionBuilder {
       change,
       fee_rate,
       Target::Value(output_value),
+      // platform_fee_out,
     )?
     .build_transaction()
   }
@@ -185,6 +189,7 @@ impl TransactionBuilder {
     change: [Address; 2],
     fee_rate: FeeRate,
     target: Target,
+    // platform_fee_out: Option<TxOut>,
   ) -> Result<Self> {
     if change.contains(&recipient) {
       return Err(Error::DuplicateAddress(recipient));
@@ -206,6 +211,7 @@ impl TransactionBuilder {
       recipient,
       unused_change_addresses: change.to_vec(),
       target,
+      //platform_fee_out,
     })
   }
 
