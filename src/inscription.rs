@@ -65,7 +65,7 @@ impl Inscription {
     let content_type = Media::content_type_for_path(path)?;
 
     let parent = if let Some(inscription_id) = parent {
-      Some(inscription_id.to_string().into_bytes())
+      Some(inscription_id.store())
     } else {
       None
     };
