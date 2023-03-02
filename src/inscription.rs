@@ -137,7 +137,7 @@ impl Inscription {
 
   pub(crate) fn get_parent_id(&self) -> Option<InscriptionId> {
     if let Some(vec) = &self.parent {
-      InscriptionId::from_str(str::from_utf8(&vec).unwrap()).ok()
+      InscriptionId::load(todo!())
     } else {
       None
     }
