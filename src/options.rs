@@ -16,6 +16,10 @@ pub(crate) struct Options {
     help = "Use <CHAIN>."
   )]
   pub(crate) chain_argument: Chain,
+  #[clap(long, help = "Load configuration from <CONFIG>.")]
+  pub(crate) config: Option<PathBuf>,
+  #[clap(long, help = "Load configuration from <CONFIG_DIR>.")]
+  pub(crate) config_dir: Option<PathBuf>,
   #[clap(long, help = "Load Bitcoin Core RPC cookie file from <COOKIE_FILE>.")]
   pub(crate) cookie_file: Option<PathBuf>,
   #[clap(long, help = "Store index in <DATA_DIR>.")]
@@ -111,6 +115,18 @@ impl Options {
     Ok(self.chain().join_with_data_dir(&base))
   }
 
+  pub(crate) fn load_config(&self) -> Result<Config> {
+    match &self.config {
+      Some(path) => Ok(serde_yaml::from_reader(File::open(path)?)?),
+      None => match &self.config_dir {
+        Some(dir) if dir.join("ord.yaml").exists() => {
+          Ok(serde_yaml::from_reader(File::open(dir.join("ord.yaml"))?)?)
+        }
+        Some(_) | None => Ok(Default::default()),
+      },
+    }
+  }
+
   fn format_bitcoin_core_version(version: usize) -> String {
     format!(
       "{}.{}.{}",
@@ -121,7 +137,9 @@ impl Options {
   }
 
   pub(crate) fn bitcoin_rpc_client(&self) -> Result<Client> {
-    let cookie_file = self.cookie_file()?;
+    let cookie_file = self
+      .cookie_file()
+      .map_err(|err| anyhow!("failed to get cookie file path: {err}"))?;
 
     let rpc_url = self.rpc_url();
 
@@ -130,8 +148,13 @@ impl Options {
       cookie_file.display()
     );
 
-    let client = Client::new(&rpc_url, Auth::CookieFile(cookie_file))
-      .with_context(|| format!("failed to connect to Bitcoin Core RPC at {rpc_url}"))?;
+    let client =
+      Client::new(&rpc_url, Auth::CookieFile(cookie_file.clone())).with_context(|| {
+        format!(
+          "failed to connect to Bitcoin Core RPC at {rpc_url} using cookie file {}",
+          cookie_file.display()
+        )
+      })?;
 
     let rpc_chain = match client.get_blockchain_info()?.chain.as_str() {
       "main" => Chain::Mainnet,
@@ -506,5 +529,70 @@ mod tests {
         .wallet,
       "foo"
     )
+  }
+
+  #[test]
+  fn default_config_is_returned_if_config_option_is_not_passed() {
+    assert_eq!(
+      Arguments::try_parse_from(["ord", "index"])
+        .unwrap()
+        .options
+        .load_config()
+        .unwrap(),
+      Default::default()
+    );
+  }
+
+  #[test]
+  fn config_is_loaded_from_config_option_path() {
+    let id = "8d363b28528b0cb86b5fd48615493fb175bdf132d2a3d20b4251bba3f130a5abi0"
+      .parse::<InscriptionId>()
+      .unwrap();
+
+    let tempdir = TempDir::new().unwrap();
+    let path = tempdir.path().join("ord.yaml");
+    fs::write(&path, format!("hidden:\n- \"{id}\"")).unwrap();
+
+    assert_eq!(
+      Arguments::try_parse_from(["ord", "--config", path.to_str().unwrap(), "index",])
+        .unwrap()
+        .options
+        .load_config()
+        .unwrap(),
+      Config {
+        hidden: iter::once(id).collect(),
+      }
+    );
+  }
+
+  #[test]
+  fn config_is_loaded_from_config_dir_option_path() {
+    let id = "8d363b28528b0cb86b5fd48615493fb175bdf132d2a3d20b4251bba3f130a5abi0"
+      .parse::<InscriptionId>()
+      .unwrap();
+
+    let tempdir = TempDir::new().unwrap();
+
+    fs::write(
+      tempdir.path().join("ord.yaml"),
+      format!("hidden:\n- \"{id}\""),
+    )
+    .unwrap();
+
+    assert_eq!(
+      Arguments::try_parse_from([
+        "ord",
+        "--config-dir",
+        tempdir.path().to_str().unwrap(),
+        "index",
+      ])
+      .unwrap()
+      .options
+      .load_config()
+      .unwrap(),
+      Config {
+        hidden: iter::once(id).collect(),
+      }
+    );
   }
 }

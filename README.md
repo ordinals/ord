@@ -5,7 +5,7 @@
 software with no warranty. See [LICENSE](LICENSE) for more details.
 
 Ordinal theory imbues satoshis with numismatic value, allowing them to
-collected and traded as curios.
+be collected and traded as curios.
 
 Ordinal numbers are serial numbers for satoshis, assigned in the order in which
 they are mined, and preserved across transactions.
@@ -24,14 +24,16 @@ where the project is and where it's going.
 Join [the Discord server](https://discord.gg/87cjuz4FYg) to chat with fellow
 ordinal degenerates.
 
+Tune in to the [Twitch stream](https://www.twitch.tv/ordinalsofficial) to watch us work on this project!
+
 Wallet
 ------
 
-`ord` relies on Bitcoin Core for private key managment and transaction signing.
+`ord` relies on Bitcoin Core for private key management and transaction signing.
 This has a number of implications that you must understand in order to use
 `ord` wallet commands safely:
 
-- Bitcoin Core does is not aware of inscriptions and does not perform sat
+- Bitcoin Core is not aware of inscriptions and does not perform sat
   control. Using `bitcoin-cli` commands and RPC calls with `ord` wallets may
   lead to loss of inscriptions.
 
@@ -74,6 +76,25 @@ On Debian and Ubuntu, `ord` requires `libssl-dev` when building from source:
 ```
 sudo apt-get install libssl-dev
 ```
+
+You'll also need Rust:
+
+```
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+To build `ord` from source:
+
+```
+git clone https://github.com/casey/ord.git
+cd ord
+cargo build --release
+```
+
+The default location for the `ord` binary once built is `./target/release/ord`.
+
+`ord` requires `rustc` version 1.67.0 or later. Run `rustc --version` to ensure you have this version. Run `rustup update` to get the latest stable release.
+
 
 Syncing
 -------

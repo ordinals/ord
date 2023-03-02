@@ -14,7 +14,7 @@ fn inscribe_creates_inscriptions() {
   assert_eq!(rpc_server.descriptors().len(), 3);
 
   let request =
-    TestServer::spawn_with_args(&rpc_server, &[]).request(&format!("/content/{inscription}"));
+    TestServer::spawn_with_args(&rpc_server, &[]).request(format!("/content/{inscription}"));
 
   assert_eq!(request.status(), 200);
   assert_eq!(
@@ -43,6 +43,7 @@ fn inscribe_fails_if_bitcoin_core_is_too_old() {
   let rpc_server = test_bitcoincore_rpc::builder().version(230000).build();
 
   CommandBuilder::new("wallet inscribe hello.txt")
+    .write("hello.txt", "HELLOWORLD")
     .expected_exit_code(1)
     .expected_stderr("error: Bitcoin Core 24.0.0 or newer required, current version is 23.0.0\n")
     .rpc_server(&rpc_server)
@@ -225,21 +226,75 @@ fn inscribe_with_fee_rate() {
     .rpc_server(&rpc_server)
     .output::<Inscribe>();
 
-  let tx = &rpc_server.mempool()[0];
+  let tx1 = &rpc_server.mempool()[0];
   let mut fee = 0;
-  for input in &tx.input {
+  for input in &tx1.input {
     fee += rpc_server
       .get_utxo_amount(&input.previous_output)
       .unwrap()
       .to_sat();
   }
-  for output in &tx.output {
+  for output in &tx1.output {
     fee -= output.value;
   }
 
-  let fee_rate = fee as f64 / tx.vsize() as f64;
+  let fee_rate = fee as f64 / tx1.vsize() as f64;
 
   pretty_assert_eq!(fee_rate, 2.0);
+
+  let tx2 = &rpc_server.mempool()[1];
+  let mut fee = 0;
+  for input in &tx2.input {
+    fee += &tx1.output[input.previous_output.vout as usize].value;
+  }
+  for output in &tx2.output {
+    fee -= output.value;
+  }
+
+  let fee_rate = fee as f64 / tx2.vsize() as f64;
+
+  pretty_assert_eq!(fee_rate, 2.0);
+}
+
+#[test]
+fn inscribe_with_commit_fee_rate() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  CommandBuilder::new("--index-sats wallet inscribe degenerate.png --commit-fee-rate 2.0")
+    .write("degenerate.png", [1; 520])
+    .rpc_server(&rpc_server)
+    .output::<Inscribe>();
+
+  let tx1 = &rpc_server.mempool()[0];
+  let mut fee = 0;
+  for input in &tx1.input {
+    fee += rpc_server
+      .get_utxo_amount(&input.previous_output)
+      .unwrap()
+      .to_sat();
+  }
+  for output in &tx1.output {
+    fee -= output.value;
+  }
+
+  let fee_rate = fee as f64 / tx1.vsize() as f64;
+
+  pretty_assert_eq!(fee_rate, 2.0);
+
+  let tx2 = &rpc_server.mempool()[1];
+  let mut fee = 0;
+  for input in &tx2.input {
+    fee += &tx1.output[input.previous_output.vout as usize].value;
+  }
+  for output in &tx2.output {
+    fee -= output.value;
+  }
+
+  let fee_rate = fee as f64 / tx2.vsize() as f64;
+
+  pretty_assert_eq!(fee_rate, 1.0);
 }
 
 #[test]
@@ -299,4 +354,43 @@ fn inscribe_with_dry_run_flag_fees_inscrease() {
       .fees;
 
   assert!(total_fee_dry_run < total_fee_normal);
+}
+
+#[test]
+fn inscribe_to_specific_destination() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  let destination = CommandBuilder::new("wallet receive")
+    .rpc_server(&rpc_server)
+    .output::<ord::subcommand::wallet::receive::Output>()
+    .address;
+
+  let txid = CommandBuilder::new(format!(
+    "wallet inscribe --destination {destination} degenerate.png"
+  ))
+  .write("degenerate.png", [1; 520])
+  .rpc_server(&rpc_server)
+  .output::<Inscribe>()
+  .reveal;
+
+  let reveal_tx = &rpc_server.mempool()[1]; // item 0 is the commit, item 1 is the reveal.
+  assert_eq!(reveal_tx.txid(), txid);
+  assert_eq!(
+    reveal_tx.output.first().unwrap().script_pubkey,
+    destination.script_pubkey()
+  );
+}
+
+#[test]
+fn inscribe_with_no_limit() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  let four_megger = std::iter::repeat(0).take(4_000_000).collect::<Vec<u8>>();
+  CommandBuilder::new("wallet inscribe --no-limit degenerate.png")
+    .write("degenerate.png", four_megger)
+    .rpc_server(&rpc_server);
 }

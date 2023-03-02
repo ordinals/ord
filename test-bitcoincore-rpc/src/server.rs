@@ -166,23 +166,27 @@ impl Api for Server {
   }
 
   fn get_wallet_info(&self) -> Result<GetWalletInfoResult, jsonrpc_core::Error> {
-    Ok(GetWalletInfoResult {
-      avoid_reuse: None,
-      balance: Amount::from_sat(0),
-      hd_seed_id: None,
-      immature_balance: Amount::from_sat(0),
-      keypool_oldest: None,
-      keypool_size: 0,
-      keypool_size_hd_internal: 0,
-      pay_tx_fee: Amount::from_sat(0),
-      private_keys_enabled: false,
-      scanning: None,
-      tx_count: 0,
-      unconfirmed_balance: Amount::from_sat(0),
-      unlocked_until: None,
-      wallet_name: self.state().wallet_name.clone(),
-      wallet_version: 0,
-    })
+    if let Some(wallet_name) = self.state().loaded_wallets.first().cloned() {
+      Ok(GetWalletInfoResult {
+        avoid_reuse: None,
+        balance: Amount::from_sat(0),
+        hd_seed_id: None,
+        immature_balance: Amount::from_sat(0),
+        keypool_oldest: None,
+        keypool_size: 0,
+        keypool_size_hd_internal: 0,
+        pay_tx_fee: Amount::from_sat(0),
+        private_keys_enabled: false,
+        scanning: None,
+        tx_count: 0,
+        unconfirmed_balance: Amount::from_sat(0),
+        unlocked_until: None,
+        wallet_name,
+        wallet_version: 0,
+      })
+    } else {
+      Err(Self::not_found())
+    }
   }
 
   fn create_raw_transaction(
@@ -335,11 +339,11 @@ impl Api for Server {
   fn get_raw_transaction(
     &self,
     txid: Txid,
-    verbose: bool,
+    verbose: Option<bool>,
     blockhash: Option<BlockHash>,
   ) -> Result<Value, jsonrpc_core::Error> {
     assert_eq!(blockhash, None, "Blockhash param is unsupported");
-    if verbose {
+    if verbose.unwrap_or(false) {
       match self.state().transactions.get(&txid) {
         Some(_) => Ok(
           serde_json::to_value(GetRawTransactionResult {

@@ -37,7 +37,7 @@ Links
 
 - [GitHub](https://github.com/casey/ord/)
 - [BIP](https://github.com/casey/ord/blob/master/bip.mediawiki)
-- [Discord](https://discord.gg/87cjuz4FYg)
+- [Discord](https://discord.gg/ordinals)
 - [Mainnet Block Explorer](https://ordinals.com)
 - [Signet Block Explorer](https://signet.ordinals.com)
 

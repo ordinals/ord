@@ -7,6 +7,7 @@ use {
     updater::Updater,
   },
   super::*,
+  crate::wallet::Wallet,
   bitcoin::BlockHeader,
   bitcoincore_rpc::{json::GetBlockHeaderResult, Auth, Client},
   chrono::SubsecRound,
@@ -18,6 +19,7 @@ use {
 };
 
 mod entry;
+mod fetcher;
 mod rtx;
 mod updater;
 
@@ -155,7 +157,7 @@ impl Index {
       data_dir.join("index.redb")
     };
 
-    let database = match unsafe { redb::Database::builder().open_mmapped(&path) } {
+    let database = match unsafe { Database::builder().open_mmapped(&path) } {
       Ok(database) => {
         let schema_version = database
           .begin_read()?
@@ -215,7 +217,7 @@ impl Index {
 
         if options.index_sats {
           tx.open_table(OUTPOINT_TO_SAT_RANGES)?
-            .insert(&OutPoint::null().store(), &[])?;
+            .insert(&OutPoint::null().store(), [].as_slice())?;
         }
 
         tx.commit()?;
@@ -240,6 +242,64 @@ impl Index {
       reorged: AtomicBool::new(false),
       rpc_url,
     })
+  }
+
+  pub(crate) fn get_unspent_outputs(&self, _wallet: Wallet) -> Result<BTreeMap<OutPoint, Amount>> {
+    let mut utxos = BTreeMap::new();
+    utxos.extend(
+      self
+        .client
+        .list_unspent(None, None, None, None, None)?
+        .into_iter()
+        .map(|utxo| {
+          let outpoint = OutPoint::new(utxo.txid, utxo.vout);
+          let amount = utxo.amount;
+
+          (outpoint, amount)
+        }),
+    );
+
+    #[derive(Deserialize)]
+    pub(crate) struct JsonOutPoint {
+      txid: bitcoin::Txid,
+      vout: u32,
+    }
+
+    for JsonOutPoint { txid, vout } in self
+      .client
+      .call::<Vec<JsonOutPoint>>("listlockunspent", &[])?
+    {
+      utxos.insert(
+        OutPoint { txid, vout },
+        Amount::from_sat(self.client.get_raw_transaction(&txid, None)?.output[vout as usize].value),
+      );
+    }
+    let rtx = self.database.begin_read()?;
+    let outpoint_to_value = rtx.open_table(OUTPOINT_TO_VALUE)?;
+    for outpoint in utxos.keys() {
+      if outpoint_to_value.get(&outpoint.store())?.is_none() {
+        return Err(anyhow!(
+          "output in Bitcoin Core wallet but not in ord index: {outpoint}"
+        ));
+      }
+    }
+
+    Ok(utxos)
+  }
+
+  pub(crate) fn get_unspent_output_ranges(
+    &self,
+    wallet: Wallet,
+  ) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
+    self
+      .get_unspent_outputs(wallet)?
+      .into_keys()
+      .map(|outpoint| match self.list(outpoint)? {
+        Some(List::Unspent(sat_ranges)) => Ok((outpoint, sat_ranges)),
+        Some(List::Spent) => bail!("output {outpoint} in wallet but is spent according to index"),
+        None => bail!("index has not seen {outpoint}"),
+      })
+      .collect()
   }
 
   pub(crate) fn has_sat_index(&self) -> Result<bool> {
@@ -508,6 +568,7 @@ impl Index {
           .open_table(SATPOINT_TO_INSCRIPTION_ID)?,
         outpoint,
       )?
+      .into_iter()
       .map(|(_satpoint, inscription_id)| inscription_id)
       .collect(),
     )
@@ -559,7 +620,7 @@ impl Index {
 
     let outpoint_to_sat_ranges = rtx.0.open_table(OUTPOINT_TO_SAT_RANGES)?;
 
-    for (key, value) in outpoint_to_sat_ranges.range([0; 36]..)? {
+    for (key, value) in outpoint_to_sat_ranges.range::<&[u8; 36]>(&[0; 36]..)? {
       let mut offset = 0;
       for chunk in value.value().chunks_exact(11) {
         let (start, end) = SatRange::load(chunk.try_into().unwrap());
@@ -653,7 +714,7 @@ impl Index {
         .database
         .begin_read()?
         .open_table(SATPOINT_TO_INSCRIPTION_ID)?
-        .range([0; 44]..)?
+        .range::<&[u8; 44]>(&[0; 44]..)?
         .map(|(satpoint, id)| (Entry::load(*satpoint.value()), Entry::load(*id.value())))
         .take(n.unwrap_or(usize::MAX))
         .collect(),
@@ -818,7 +879,7 @@ impl Index {
   }
 
   fn inscriptions_on_output<'a: 'tx, 'tx>(
-    satpoint_to_id: &'a impl ReadableTable<&'tx SatPointValue, &'tx InscriptionIdValue>,
+    satpoint_to_id: &'a impl ReadableTable<&'static SatPointValue, &'static InscriptionIdValue>,
     outpoint: OutPoint,
   ) -> Result<impl Iterator<Item = (SatPoint, InscriptionId)> + 'tx> {
     let start = SatPoint {
@@ -835,7 +896,7 @@ impl Index {
 
     Ok(
       satpoint_to_id
-        .range(start..=end)?
+        .range::<&[u8; 44]>(&start..=&end)?
         .map(|(satpoint, id)| (Entry::load(*satpoint.value()), Entry::load(*id.value()))),
     )
   }
@@ -843,7 +904,10 @@ impl Index {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+  use {
+    super::*,
+    bitcoin::secp256k1::rand::{self, RngCore},
+  };
 
   struct ContextBuilder {
     args: Vec<OsString>,
@@ -856,7 +920,9 @@ mod tests {
     }
 
     fn try_build(self) -> Result<Context> {
-      let rpc_server = test_bitcoincore_rpc::spawn();
+      let rpc_server = test_bitcoincore_rpc::builder()
+        .network(Network::Regtest)
+        .build();
 
       let tempdir = self.tempdir.unwrap_or_else(|| TempDir::new().unwrap());
       let cookie_file = tempdir.path().join("cookie");
@@ -878,6 +944,7 @@ mod tests {
       index.update().unwrap();
 
       Ok(Context {
+        options,
         rpc_server,
         tempdir,
         index,
@@ -901,6 +968,7 @@ mod tests {
   }
 
   struct Context {
+    options: Options,
     rpc_server: test_bitcoincore_rpc::Handle,
     #[allow(unused)]
     tempdir: TempDir,
@@ -956,6 +1024,58 @@ mod tests {
       context.mine_blocks(2);
       assert_eq!(context.index.height().unwrap(), Some(Height(1)));
       assert_eq!(context.index.block_count().unwrap(), 2);
+    }
+  }
+
+  #[test]
+  fn inscriptions_below_first_inscription_height_are_skipped() {
+    let inscription = inscription("text/plain;charset=utf-8", "hello");
+    let template = TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witness: inscription.to_witness(),
+      ..Default::default()
+    };
+
+    {
+      let context = Context::builder().build();
+      context.mine_blocks(1);
+      let txid = context.rpc_server.broadcast_tx(template.clone());
+      let inscription_id = InscriptionId::from(txid);
+      context.mine_blocks(1);
+
+      assert_eq!(
+        context.index.get_inscription_by_id(inscription_id).unwrap(),
+        Some(inscription)
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_satpoint_by_id(inscription_id)
+          .unwrap(),
+        Some(SatPoint {
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 0,
+        })
+      );
+    }
+
+    {
+      let context = Context::builder()
+        .arg("--first-inscription-height=3")
+        .build();
+      context.mine_blocks(1);
+      let txid = context.rpc_server.broadcast_tx(template);
+      let inscription_id = InscriptionId::from(txid);
+      context.mine_blocks(1);
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_satpoint_by_id(inscription_id)
+          .unwrap(),
+        None,
+      );
     }
   }
 
@@ -2049,6 +2169,25 @@ mod tests {
       assert_eq!(inscriptions, &ids[102..103]);
       assert_eq!(prev, None);
       assert_eq!(next, Some(100));
+    }
+  }
+
+  #[test]
+  fn unsynced_index_fails() {
+    for context in Context::configurations() {
+      let mut entropy = [0; 16];
+      rand::thread_rng().fill_bytes(&mut entropy);
+      let mnemonic = Mnemonic::from_entropy(&entropy).unwrap();
+      crate::subcommand::wallet::initialize_wallet(&context.options, mnemonic.to_seed("")).unwrap();
+      context.rpc_server.mine_blocks(1);
+      assert_regex_match!(
+        context
+          .index
+          .get_unspent_outputs(Wallet::load(&context.options).unwrap())
+          .unwrap_err()
+          .to_string(),
+        r"output in Bitcoin Core wallet but not in ord index: [[:xdigit:]]{64}:\d+"
+      );
     }
   }
 }

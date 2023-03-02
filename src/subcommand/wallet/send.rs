@@ -1,14 +1,10 @@
-use super::*;
+use {super::*, crate::wallet::Wallet};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
   address: Address,
   outgoing: Outgoing,
-  #[clap(
-    long,
-    default_value = "1.0",
-    help = "Use fee rate of <FEE_RATE> sats/vB"
-  )]
+  #[clap(long, help = "Use fee rate of <FEE_RATE> sats/vB")]
   fee_rate: FeeRate,
 }
 
@@ -19,8 +15,6 @@ pub struct Output {
 
 impl Send {
   pub(crate) fn run(self, options: Options) -> Result {
-    let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
-
     if !self.address.is_valid_for_network(options.chain().network()) {
       bail!(
         "Address `{}` is not valid for {}",
@@ -32,7 +26,9 @@ impl Send {
     let index = Index::open(&options)?;
     index.update()?;
 
-    let unspent_outputs = get_unspent_outputs(&options)?;
+    let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
+
+    let unspent_outputs = index.get_unspent_outputs(Wallet::load(&options)?)?;
 
     let inscriptions = index.get_inscriptions(None)?;
 
