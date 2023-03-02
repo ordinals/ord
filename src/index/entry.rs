@@ -26,10 +26,12 @@ pub(crate) struct InscriptionEntry {
   pub(crate) fee: u64,
   pub(crate) height: u64,
   pub(crate) number: u64,
+  // pub(crate) parent: Option<InsciptionId>,
   pub(crate) sat: Option<Sat>,
   pub(crate) timestamp: u32,
 }
 
+// pub(crate) type InscriptionEntryValue = (u64, u64, u64, (u128, u128), u64, u32);
 pub(crate) type InscriptionEntryValue = (u64, u64, u64, u64, u32);
 
 impl Entry for InscriptionEntry {
@@ -141,5 +143,118 @@ impl Entry for SatRange {
     let delta = self.1 - self.0;
     let n = u128::from(base) | u128::from(delta) << 51;
     n.to_le_bytes()[0..11].try_into().unwrap()
+  }
+}
+
+pub(super) type TxidValue = [u8; 32];
+
+impl Entry for Txid {
+  type Value = TxidValue;
+
+  fn load(value: Self::Value) -> Self {
+    Txid::from_inner(value)
+  }
+
+  fn store(self) -> Self::Value {
+    Txid::into_inner(self)
+  }
+}
+
+impl Entry for Option<InscriptionId> {
+  type Value = (u128, u128, u32);
+
+  fn load(value: Self::Value) -> Self {
+    if (0, 0, u32::MAX) == value {
+      None
+    } else {
+      let (head, tail, index) = value;
+      debug_assert_eq!(index, 0);
+      let head_array = head.to_le_bytes();
+      let tail_array = tail.to_le_bytes();
+      let array = [
+        head_array[0],
+        head_array[1],
+        head_array[2],
+        head_array[3],
+        head_array[4],
+        head_array[5],
+        head_array[6],
+        head_array[7],
+        head_array[8],
+        head_array[9],
+        head_array[10],
+        head_array[11],
+        head_array[12],
+        head_array[13],
+        head_array[14],
+        head_array[15],
+        tail_array[0],
+        tail_array[1],
+        tail_array[2],
+        tail_array[3],
+        tail_array[4],
+        tail_array[5],
+        tail_array[6],
+        tail_array[7],
+        tail_array[8],
+        tail_array[9],
+        tail_array[10],
+        tail_array[11],
+        tail_array[12],
+        tail_array[13],
+        tail_array[14],
+        tail_array[15],
+      ];
+      let txid = Txid::load(array);
+      // TODO: do we want to handle inscriptions not at index 0
+      Some(InscriptionId::from(txid))
+    }
+  }
+
+  fn store(self) -> Self::Value {
+    if let Some(inscription_id) = self {
+      let txid_entry = inscription_id.txid.store();
+      let head = u128::from_le_bytes([
+        txid_entry[0],
+        txid_entry[1],
+        txid_entry[2],
+        txid_entry[3],
+        txid_entry[4],
+        txid_entry[5],
+        txid_entry[6],
+        txid_entry[7],
+        txid_entry[8],
+        txid_entry[9],
+        txid_entry[10],
+        txid_entry[11],
+        txid_entry[12],
+        txid_entry[13],
+        txid_entry[14],
+        txid_entry[15],
+      ]);
+
+      let tail = u128::from_le_bytes([
+        txid_entry[16 + 0],
+        txid_entry[16 + 1],
+        txid_entry[16 + 2],
+        txid_entry[16 + 3],
+        txid_entry[16 + 4],
+        txid_entry[16 + 5],
+        txid_entry[16 + 6],
+        txid_entry[16 + 7],
+        txid_entry[16 + 8],
+        txid_entry[16 + 9],
+        txid_entry[16 + 10],
+        txid_entry[16 + 11],
+        txid_entry[16 + 12],
+        txid_entry[16 + 13],
+        txid_entry[16 + 14],
+        txid_entry[16 + 15],
+      ]);
+
+      (head, tail, inscription_id.index)
+    } else {
+      (0, 0, u32::MAX)
+    }
   }
 }

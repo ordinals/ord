@@ -7,7 +7,9 @@ pub(super) struct Flotsam {
   parent: Option<InscriptionId>,
 }
 
+// change name to Jetsam or more poetic german word
 enum Origin {
+  // put Some(parent_id) in Origin::New() 
   New(u64),
   Old(SatPoint),
 }
