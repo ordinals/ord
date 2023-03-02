@@ -404,6 +404,7 @@ impl Updater {
 
     let mut inscription_id_to_inscription_entry =
       wtx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
+    let mut inscription_id_to_parent_id = wtx.open_table(INSCRIPTION_ID_TO_PARENT_ID)?;
     let mut inscription_id_to_satpoint = wtx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
     let mut inscription_number_to_inscription_id =
       wtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
@@ -421,6 +422,7 @@ impl Updater {
       &mut inscription_id_to_satpoint,
       value_receiver,
       &mut inscription_id_to_inscription_entry,
+      &mut inscription_id_to_parent_id,
       lost_sats,
       &mut inscription_number_to_inscription_id,
       &mut outpoint_to_value,
@@ -519,6 +521,7 @@ impl Updater {
         outpoint_to_sat_ranges.insert(&OutPoint::null().store(), lost_sat_ranges.as_slice())?;
       }
     } else {
+      // move coinbase to end
       for (tx, txid) in block.txdata.iter().skip(1).chain(block.txdata.first()) {
         lost_sats += inscription_updater.index_transaction_inscriptions(tx, *txid, None)?;
       }

@@ -22,6 +22,7 @@ use {
 struct Output {
   commit: Txid,
   inscription: InscriptionId,
+  parent: Option<InscriptionId>,
   reveal: Txid,
   fees: u64,
 }
@@ -54,12 +55,12 @@ pub(crate) struct Inscribe {
   pub(crate) dry_run: bool,
   #[clap(long, help = "Send inscription to <DESTINATION>.")]
   pub(crate) destination: Option<Address>,
+  #[clap(long, help = "Establish parent relationship with <PARENT>.")]
+  pub(crate) parent: Option<InscriptionId>,
 }
 
 impl Inscribe {
   pub(crate) fn run(self, options: Options) -> Result {
-    let inscription = Inscription::from_file(options.chain(), &self.file)?;
-
     let index = Index::open(&options)?;
     index.update()?;
 
@@ -69,6 +70,34 @@ impl Inscribe {
 
     let inscriptions = index.get_inscriptions(None)?;
 
+    let (parent, commit_input_offset) = if let Some(parent_id) = self.parent {
+      if let Some(satpoint) = index.get_inscription_satpoint_by_id(parent_id)? {
+        if !utxos.contains_key(&satpoint.outpoint) {
+          return Err(anyhow!(format!(
+            "unrelated parent {parent_id} not accepting mailman's child" // for the germans: "Kuckuckskind"
+          )));
+        }
+
+        let output = index
+          .get_transaction(satpoint.outpoint.txid)?
+          .expect("not found")
+          .output
+          .into_iter()
+          .nth(satpoint.outpoint.vout.try_into().unwrap())
+          .expect("current transaction output");
+
+        (Some((satpoint, output)), 1)
+      } else {
+        return Err(anyhow!(format!(
+          "specified parent {parent_id} does not exist"
+        )));
+      }
+    } else {
+      (None, 0)
+    };
+
+    let inscription = Inscription::from_file(options.chain(), &self.file, self.parent)?;
+
     let commit_tx_change = [get_change_address(&client)?, get_change_address(&client)?];
 
     let reveal_tx_destination = self
@@ -76,9 +105,10 @@ impl Inscribe {
       .map(Ok)
       .unwrap_or_else(|| get_change_address(&client))?;
 
-    let (unsigned_commit_tx, reveal_tx, recovery_key_pair) =
+    let (unsigned_commit_tx, partially_signed_reveal_tx, recovery_key_pair) =
       Inscribe::create_inscription_transactions(
         self.satpoint,
+        parent,
         inscription,
         inscriptions,
         options.chain().network(),
@@ -91,18 +121,19 @@ impl Inscribe {
       )?;
 
     utxos.insert(
-      reveal_tx.input[0].previous_output,
-      Amount::from_sat(unsigned_commit_tx.output[0].value),
+      partially_signed_reveal_tx.input[commit_input_offset].previous_output,
+      Amount::from_sat(unsigned_commit_tx.output[commit_input_offset].value),
     );
 
-    let fees =
-      Self::calculate_fee(&unsigned_commit_tx, &utxos) + Self::calculate_fee(&reveal_tx, &utxos);
+    let fees = Self::calculate_fee(&unsigned_commit_tx, &utxos)
+      + Self::calculate_fee(&partially_signed_reveal_tx, &utxos);
 
     if self.dry_run {
       print_json(Output {
         commit: unsigned_commit_tx.txid(),
-        reveal: reveal_tx.txid(),
-        inscription: reveal_tx.txid().into(),
+        reveal: partially_signed_reveal_tx.txid(),
+        inscription: partially_signed_reveal_tx.txid().into(),
+        parent: self.parent,
         fees,
       })?;
     } else {
@@ -118,17 +149,32 @@ impl Inscribe {
         .send_raw_transaction(&signed_raw_commit_tx)
         .context("Failed to send commit transaction")?;
 
-      let reveal = client
-        .send_raw_transaction(&reveal_tx)
-        .context("Failed to send reveal transaction")?;
+      let reveal = if self.parent.is_some() {
+        let fully_signed_raw_reveal_tx = client
+          .sign_raw_transaction_with_wallet(&partially_signed_reveal_tx, None, None)?
+          .hex;
+
+        client
+          .send_raw_transaction(&fully_signed_raw_reveal_tx)
+          .context("Failed to send reveal transaction")?
+      } else {
+        client
+          .send_raw_transaction(&partially_signed_reveal_tx)
+          .context("Failed to send reveal transaction")?
+      };
 
       print_json(Output {
         commit,
         reveal,
         inscription: reveal.into(),
+        parent: self.parent,
         fees,
       })?;
     };
+
+    // if self.parent.is_some() {
+    // println!("{}", partially_signed_reveal_tx.raw_hex());
+    // }
 
     Ok(())
   }
@@ -144,6 +190,7 @@ impl Inscribe {
 
   fn create_inscription_transactions(
     satpoint: Option<SatPoint>,
+    parent: Option<(SatPoint, TxOut)>,
     inscription: Inscription,
     inscriptions: BTreeMap<SatPoint, InscriptionId>,
     network: Network,
@@ -207,17 +254,41 @@ impl Inscribe {
 
     let commit_tx_address = Address::p2tr_tweaked(taproot_spend_info.output_key(), network);
 
+    let (mut inputs, mut outputs, commit_input_offset) = if let Some((satpoint, output)) = parent {
+      (
+        vec![satpoint.outpoint, OutPoint::null()],
+        vec![
+          TxOut {
+            script_pubkey: output.script_pubkey,
+            value: output.value,
+          },
+          TxOut {
+            script_pubkey: destination.script_pubkey(),
+            value: 0,
+          },
+        ],
+        1,
+      )
+    } else {
+      (
+        vec![OutPoint::null()],
+        vec![TxOut {
+          script_pubkey: destination.script_pubkey(),
+          value: 0,
+        }],
+        0,
+      )
+    };
+
     let (_, reveal_fee) = Self::build_reveal_transaction(
       &control_block,
       reveal_fee_rate,
-      OutPoint::null(),
-      TxOut {
-        script_pubkey: destination.script_pubkey(),
-        value: 0,
-      },
+      inputs.clone(),
+      outputs.clone(),
       &reveal_script,
     );
 
+    // watch out that parent and inscription preserved
     let unsigned_commit_tx = TransactionBuilder::build_transaction_with_value(
       satpoint,
       inscriptions,
@@ -235,26 +306,35 @@ impl Inscribe {
       .find(|(_vout, output)| output.script_pubkey == commit_tx_address.script_pubkey())
       .expect("should find sat commit/inscription output");
 
+    inputs[commit_input_offset] = OutPoint {
+      txid: unsigned_commit_tx.txid(),
+      vout: vout.try_into().unwrap(),
+    };
+
+    outputs[commit_input_offset] = TxOut {
+      script_pubkey: destination.script_pubkey(),
+      value: output.value,
+    };
+
     let (mut reveal_tx, fee) = Self::build_reveal_transaction(
       &control_block,
       reveal_fee_rate,
-      OutPoint {
-        txid: unsigned_commit_tx.txid(),
-        vout: vout.try_into().unwrap(),
-      },
-      TxOut {
-        script_pubkey: destination.script_pubkey(),
-        value: output.value,
-      },
+      inputs,
+      outputs,
       &reveal_script,
     );
 
-    reveal_tx.output[0].value = reveal_tx.output[0]
+    reveal_tx.output[commit_input_offset].value = reveal_tx.output[commit_input_offset]
       .value
       .checked_sub(fee.to_sat())
       .context("commit transaction output value insufficient to pay transaction fee")?;
 
-    if reveal_tx.output[0].value < reveal_tx.output[0].script_pubkey.dust_value().to_sat() {
+    if reveal_tx.output[commit_input_offset].value
+      < reveal_tx.output[commit_input_offset]
+        .script_pubkey
+        .dust_value()
+        .to_sat()
+    {
       bail!("commit transaction output would be dust");
     }
 
@@ -262,10 +342,10 @@ impl Inscribe {
 
     let signature_hash = sighash_cache
       .taproot_script_spend_signature_hash(
-        0,
-        &Prevouts::All(&[output]),
+        commit_input_offset,
+        &Prevouts::One(commit_input_offset, output),
         TapLeafHash::from_script(&reveal_script, LeafVersion::TapScript),
-        SchnorrSighashType::Default,
+        SchnorrSighashType::AllPlusAnyoneCanPay,
       )
       .expect("signature hash should compute");
 
@@ -276,7 +356,7 @@ impl Inscribe {
     );
 
     let witness = sighash_cache
-      .witness_mut(0)
+      .witness_mut(commit_input_offset)
       .expect("getting mutable witness reference should work");
     witness.push(signature.as_ref());
     witness.push(reveal_script);
@@ -335,18 +415,21 @@ impl Inscribe {
   fn build_reveal_transaction(
     control_block: &ControlBlock,
     fee_rate: FeeRate,
-    input: OutPoint,
-    output: TxOut,
+    inputs: Vec<OutPoint>,
+    outputs: Vec<TxOut>,
     script: &Script,
   ) -> (Transaction, Amount) {
     let reveal_tx = Transaction {
-      input: vec![TxIn {
-        previous_output: input,
-        script_sig: script::Builder::new().into_script(),
-        witness: Witness::new(),
-        sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-      }],
-      output: vec![output],
+      input: inputs
+        .iter()
+        .map(|outpoint| TxIn {
+          previous_output: *outpoint,
+          script_sig: script::Builder::new().into_script(),
+          witness: Witness::new(),
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+        })
+        .collect(),
+      output: outputs,
       lock_time: PackedLockTime::ZERO,
       version: 1,
     };
@@ -354,13 +437,15 @@ impl Inscribe {
     let fee = {
       let mut reveal_tx = reveal_tx.clone();
 
-      reveal_tx.input[0].witness.push(
-        Signature::from_slice(&[0; SCHNORR_SIGNATURE_SIZE])
-          .unwrap()
-          .as_ref(),
-      );
-      reveal_tx.input[0].witness.push(script);
-      reveal_tx.input[0].witness.push(&control_block.serialize());
+      for txin in &mut reveal_tx.input {
+        txin.witness.push(
+          Signature::from_slice(&[0; SCHNORR_SIGNATURE_SIZE])
+            .unwrap()
+            .as_ref(),
+        );
+        txin.witness.push(script);
+        txin.witness.push(&control_block.serialize());
+      }
 
       fee_rate.fee(reveal_tx.vsize())
     };
@@ -382,6 +467,7 @@ mod tests {
 
     let (commit_tx, reveal_tx, _private_key) = Inscribe::create_inscription_transactions(
       Some(satpoint(1, 0)),
+      None,
       inscription,
       BTreeMap::new(),
       Network::Bitcoin,
@@ -413,6 +499,7 @@ mod tests {
 
     let (commit_tx, reveal_tx, _) = Inscribe::create_inscription_transactions(
       Some(satpoint(1, 0)),
+      None,
       inscription,
       BTreeMap::new(),
       Network::Bitcoin,
@@ -448,6 +535,7 @@ mod tests {
 
     let error = Inscribe::create_inscription_transactions(
       satpoint,
+      None,
       inscription,
       inscriptions,
       Network::Bitcoin,
@@ -490,6 +578,7 @@ mod tests {
 
     assert!(Inscribe::create_inscription_transactions(
       satpoint,
+      None,
       inscription,
       inscriptions,
       Network::Bitcoin,
@@ -526,6 +615,7 @@ mod tests {
 
     let (commit_tx, reveal_tx, _private_key) = Inscribe::create_inscription_transactions(
       satpoint,
+      None,
       inscription,
       inscriptions,
       bitcoin::Network::Signet,
@@ -588,6 +678,7 @@ mod tests {
 
     let (commit_tx, reveal_tx, _private_key) = Inscribe::create_inscription_transactions(
       satpoint,
+      None,
       inscription,
       inscriptions,
       bitcoin::Network::Signet,
@@ -637,6 +728,7 @@ mod tests {
 
     let error = Inscribe::create_inscription_transactions(
       satpoint,
+      None,
       inscription,
       BTreeMap::new(),
       Network::Bitcoin,
@@ -668,6 +760,7 @@ mod tests {
 
     let (_commit_tx, reveal_tx, _private_key) = Inscribe::create_inscription_transactions(
       satpoint,
+      None,
       inscription,
       BTreeMap::new(),
       Network::Bitcoin,

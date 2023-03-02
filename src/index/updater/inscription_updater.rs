@@ -4,6 +4,7 @@ pub(super) struct Flotsam {
   inscription_id: InscriptionId,
   offset: u64,
   origin: Origin,
+  parent: Option<InscriptionId>,
 }
 
 enum Origin {
@@ -17,6 +18,7 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   id_to_satpoint: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, &'static SatPointValue>,
   value_receiver: &'a mut Receiver<u64>,
   id_to_entry: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, InscriptionEntryValue>,
+  id_to_parent_id: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, &'static InscriptionIdValue>,
   lost_sats: u64,
   next_number: u64,
   number_to_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
@@ -34,6 +36,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     id_to_satpoint: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, &'static SatPointValue>,
     value_receiver: &'a mut Receiver<u64>,
     id_to_entry: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, InscriptionEntryValue>,
+    id_to_parent_id: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, &'static InscriptionIdValue>,
     lost_sats: u64,
     number_to_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
     outpoint_to_value: &'a mut Table<'db, 'tx, &'static OutPointValue, u64>,
@@ -55,6 +58,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       id_to_satpoint,
       value_receiver,
       id_to_entry,
+      id_to_parent_id,
       lost_sats,
       next_number,
       number_to_id,
@@ -70,13 +74,15 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
   pub(super) fn index_transaction_inscriptions(
     &mut self,
     tx: &Transaction,
-    txid: Txid,
+    txid: Txid, // we can calulcate this from tx. Is this expensive?
     input_sat_ranges: Option<&VecDeque<(u64, u64)>>,
   ) -> Result<u64> {
     let mut inscriptions = Vec::new();
 
+    // go through all flotsam and ensure parent is there
     let mut input_value = 0;
     for tx_in in &tx.input {
+      // if coinbase
       if tx_in.previous_output.is_null() {
         input_value += Height(self.height).subsidy();
       } else {
@@ -87,6 +93,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             offset: input_value + old_satpoint.offset,
             inscription_id,
             origin: Origin::Old(old_satpoint),
+            parent: None,
           });
         }
 
@@ -108,14 +115,27 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       }
     }
 
-    if inscriptions.iter().all(|flotsam| flotsam.offset != 0)
-      && Inscription::from_transaction(tx).is_some()
-    {
-      inscriptions.push(Flotsam {
-        inscription_id: txid.into(),
-        offset: 0,
-        origin: Origin::New(input_value - tx.output.iter().map(|txout| txout.value).sum::<u64>()),
-      });
+    // make sure no re-inscriptions
+    if inscriptions.iter().all(|flotsam| flotsam.offset != 0) {
+      if let Some(inscription) = Inscription::from_transaction(tx) {
+
+        let parent = if let Some(parent_id) = inscription.get_parent_id() {
+          if inscriptions.iter().any(|flotsam| flotsam.inscription_id == parent_id) {
+            Some(parent_id)
+          } else {
+            None
+          }
+        } else {
+          None
+        };
+
+        inscriptions.push(Flotsam {
+          inscription_id: txid.into(),
+          offset: 0,
+          origin: Origin::New(input_value - tx.output.iter().map(|txout| txout.value).sum::<u64>()),
+          parent,
+        });
+      }
     };
 
     let is_coinbase = tx
@@ -217,6 +237,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             offset += size;
           }
         }
+
+
 
         self.id_to_entry.insert(
           &inscription_id,

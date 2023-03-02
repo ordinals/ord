@@ -15,24 +15,42 @@ const PROTOCOL_ID: &[u8] = b"ord";
 
 const BODY_TAG: &[u8] = &[];
 const CONTENT_TYPE_TAG: &[u8] = &[1];
+const PARENT_TAG: &[u8] = &[3];
 
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) struct Inscription {
-  body: Option<Vec<u8>>,
+  parent: Option<Vec<u8>>,
   content_type: Option<Vec<u8>>,
+  body: Option<Vec<u8>>,
 }
 
 impl Inscription {
   #[cfg(test)]
-  pub(crate) fn new(content_type: Option<Vec<u8>>, body: Option<Vec<u8>>) -> Self {
-    Self { content_type, body }
+  pub(crate) fn new(
+    parent: Option<Vec<u8>>,
+    content_type: Option<Vec<u8>>,
+    body: Option<Vec<u8>>,
+  ) -> Self {
+    Self {
+      parent,
+      content_type,
+      body,
+    }
   }
 
   pub(crate) fn from_transaction(tx: &Transaction) -> Option<Inscription> {
+    // let mut inscriptions = Vec::new();
+    // for input in tx.input {
+    // InscriptionParser::parse(input.witness).ok()
+    // }
     InscriptionParser::parse(&tx.input.get(0)?.witness).ok()
   }
 
-  pub(crate) fn from_file(chain: Chain, path: impl AsRef<Path>) -> Result<Self, Error> {
+  pub(crate) fn from_file(
+    chain: Chain,
+    path: impl AsRef<Path>,
+    parent: Option<InscriptionId>,
+  ) -> Result<Self, Error> {
     let path = path.as_ref();
 
     let body = fs::read(path).with_context(|| format!("io error reading {}", path.display()))?;
@@ -46,7 +64,14 @@ impl Inscription {
 
     let content_type = Media::content_type_for_path(path)?;
 
+    let parent = if let Some(inscription_id) = parent {
+      Some(inscription_id.to_string().into_bytes())
+    } else {
+      None
+    };
+
     Ok(Self {
+      parent,
       body: Some(body),
       content_type: Some(content_type.into()),
     })
@@ -57,6 +82,10 @@ impl Inscription {
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
       .push_slice(PROTOCOL_ID);
+
+    if let Some(parent) = &self.parent {
+      builder = builder.push_slice(PARENT_TAG).push_slice(parent);
+    }
 
     if let Some(content_type) = &self.content_type {
       builder = builder
@@ -104,6 +133,14 @@ impl Inscription {
 
   pub(crate) fn content_type(&self) -> Option<&str> {
     str::from_utf8(self.content_type.as_ref()?).ok()
+  }
+
+  pub(crate) fn get_parent_id(&self) -> Option<InscriptionId> {
+    if let Some(vec) = &self.parent {
+      InscriptionId::from_str(str::from_utf8(&vec).unwrap()).ok()
+    } else {
+      None
+    }
   }
 
   #[cfg(test)]
@@ -222,6 +259,7 @@ impl<'a> InscriptionParser<'a> {
 
       let body = fields.remove(BODY_TAG);
       let content_type = fields.remove(CONTENT_TYPE_TAG);
+      let parent = fields.remove(PARENT_TAG);
 
       for tag in fields.keys() {
         if let Some(lsb) = tag.first() {
@@ -231,7 +269,11 @@ impl<'a> InscriptionParser<'a> {
         }
       }
 
-      return Ok(Some(Inscription { body, content_type }));
+      return Ok(Some(Inscription {
+        body,
+        content_type,
+        parent,
+      }));
     }
 
     Ok(None)
@@ -358,7 +400,7 @@ mod tests {
         b"ord",
         &[1],
         b"text/plain;charset=utf-8",
-        &[3],
+        &[5],
         b"bar",
         &[],
         b"ord",
@@ -372,6 +414,7 @@ mod tests {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[b"ord", &[1], b"text/plain;charset=utf-8"])),
       Ok(Inscription {
+        parent: None,
         content_type: Some(b"text/plain;charset=utf-8".to_vec()),
         body: None,
       }),
@@ -383,6 +426,7 @@ mod tests {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[b"ord", &[], b"foo"])),
       Ok(Inscription {
+        parent: None,
         content_type: None,
         body: Some(b"foo".to_vec()),
       }),
@@ -705,6 +749,7 @@ mod tests {
 
     witness.push(
       &Inscription {
+        parent: None,
         content_type: None,
         body: None,
       }
@@ -716,6 +761,7 @@ mod tests {
     assert_eq!(
       InscriptionParser::parse(&witness).unwrap(),
       Inscription {
+        parent: None,
         content_type: None,
         body: None,
       }
@@ -725,8 +771,9 @@ mod tests {
   #[test]
   fn unknown_odd_fields_are_ignored() {
     assert_eq!(
-      InscriptionParser::parse(&envelope(&[b"ord", &[3], &[0]])),
+      InscriptionParser::parse(&envelope(&[b"ord", &[5], &[0]])),
       Ok(Inscription {
+        parent: None,
         content_type: None,
         body: None,
       }),

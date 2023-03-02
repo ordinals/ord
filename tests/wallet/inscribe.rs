@@ -335,7 +335,7 @@ fn inscribe_with_dry_run_flag() {
 }
 
 #[test]
-fn inscribe_with_dry_run_flag_fees_inscrease() {
+fn inscribe_with_dry_run_flag_fees_increase() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
@@ -393,4 +393,45 @@ fn inscribe_with_no_limit() {
   CommandBuilder::new("wallet inscribe --no-limit degenerate.png")
     .write("degenerate.png", four_megger)
     .rpc_server(&rpc_server);
+}
+
+#[test]
+fn inscribe_with_parent_inscription() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  let parent_id = CommandBuilder::new("wallet inscribe parent.png")
+    .write("parent.png", [1; 520])
+    .rpc_server(&rpc_server)
+    .output::<Inscribe>()
+    .inscription;
+
+  rpc_server.mine_blocks(1);
+
+  assert_eq!(
+    parent_id,
+    CommandBuilder::new(format!("wallet inscribe --parent {parent_id} child.png"))
+      .write("child.png", [1; 520])
+      .rpc_server(&rpc_server)
+      .output::<Inscribe>()
+      .parent
+      .unwrap()
+  );
+}
+
+#[test]
+fn inscribe_with_non_existent_parent_inscription() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  let parent_id = "3ac40a8f3c0d295386e1e597467a1ee0578df780834be885cd62337c2ed738a5i0";
+
+  CommandBuilder::new(format!("wallet inscribe --parent {parent_id} child.png"))
+    .write("child.png", [1; 520])
+    .rpc_server(&rpc_server)
+    .expected_stderr(format!("error: specified parent {parent_id} does not exist\n"))
+    .expected_exit_code(1)
+    .run();
 }
