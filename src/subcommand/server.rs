@@ -806,7 +806,8 @@ impl Server {
     Extension(chain): Extension<Chain>,
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
-  ) -> ServerResult<PageHtml<InscriptionHtml>> {
+    accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
     let entry = index
       .get_inscription_entry(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
@@ -839,7 +840,9 @@ impl Server {
 
     let next = index.get_inscription_id_by_inscription_number(entry.number + 1)?;
 
-    Ok(
+    Ok(if accept_json.0 {
+      axum::Json(serde_json::json!({ "inscription_id": inscription_id })).into_response()
+    } else {
       InscriptionHtml {
         chain,
         genesis_fee: entry.fee,
@@ -854,8 +857,9 @@ impl Server {
         satpoint,
         timestamp: timestamp(entry.timestamp),
       }
-      .page(chain, index.has_sat_index()?),
-    )
+      .page(chain, index.has_sat_index()?)
+      .into_response()
+    })
   }
 
   async fn inscriptions(
