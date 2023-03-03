@@ -76,13 +76,13 @@ impl Inscribe {
     // let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
     let inscription = Inscription::from_file(options.chain(), &self.file)?;
-    if verbose.clone().value != None {
+    if self.verbose.clone() != None {
       println!("Update index..");
     }
     let index = Index::open(&options)?;
 
     index.update()?;
-    if verbose.clone().value != None {
+    if self.verbose.clone() != None {
       println!("Done updating index...");
     }
     let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
