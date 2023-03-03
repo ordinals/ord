@@ -1,5 +1,6 @@
 use {
   super::*,
+  crate::index::entry::Entry,
   bitcoin::{
     blockdata::{
       opcodes,
@@ -64,14 +65,8 @@ impl Inscription {
 
     let content_type = Media::content_type_for_path(path)?;
 
-    let parent = if let Some(inscription_id) = parent {
-      Some(inscription_id.store())
-    } else {
-      None
-    };
-
     Ok(Self {
-      parent,
+      parent: parent.store(),
       body: Some(body),
       content_type: Some(content_type.into()),
     })
@@ -137,7 +132,9 @@ impl Inscription {
 
   pub(crate) fn get_parent_id(&self) -> Option<InscriptionId> {
     if let Some(vec) = &self.parent {
-      InscriptionId::load(todo!())
+      Some(InscriptionId::load(
+        vec.clone().try_into().expect("expected a [u8; 36]"),
+      ))
     } else {
       None
     }
