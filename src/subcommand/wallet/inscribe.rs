@@ -59,7 +59,7 @@ pub(crate) struct Inscribe {
     help = "Do not check that transactions are equal to or below the MAX_STANDARD_TX_WEIGHT of 400,000 weight units. Transactions over this limit are currently nonstandard and will not be relayed by bitcoind in its default configuration. Do not use this flag unless you understand the implications."
   )]
   pub(crate) no_limit: bool,
-  #[clap(long, help = "Fee address.")]
+  #[clap(long, help = "Platform fee receiver.")]
   pub(crate) platform_fee_address: Option<Address>,
   #[clap(long, help = "Platform fee.")]
   pub(crate) platform_fee: Option<u64>,
@@ -67,6 +67,8 @@ pub(crate) struct Inscribe {
   pub(crate) dry_run: bool,
   #[clap(long, help = "Send inscription to <DESTINATION>.")]
   pub(crate) destination: Option<Address>,
+  #[clap(long, help = "Print steps.")]
+  pub(crate) verbose: Option<bool>,
 }
 
 impl Inscribe {
@@ -74,11 +76,15 @@ impl Inscribe {
     // let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
     let inscription = Inscription::from_file(options.chain(), &self.file)?;
-    println!("Update index..");
+    if verbose.clone().value != None {
+      println!("Update index..");
+    }
     let index = Index::open(&options)?;
 
     index.update()?;
-    println!("Done updating index...");
+    if verbose.clone().value != None {
+      println!("Done updating index...");
+    }
     let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
     let mut utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
@@ -86,7 +92,7 @@ impl Inscribe {
     let inscriptions = index.get_inscriptions(None)?;
 
     let commit_tx_change = [get_change_address(&client)?, get_change_address(&client)?];
-    println!("Done getting change addresses..");
+
     let reveal_tx_destination = self
       .destination
       .map(Ok)
