@@ -88,6 +88,7 @@ impl Preview {
             destination: None,
             platform_fee: Some(0),
             platform_fee_address: None,
+            verbose: None,
           },
         )),
       }
