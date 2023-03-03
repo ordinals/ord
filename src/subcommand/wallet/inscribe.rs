@@ -30,7 +30,8 @@ struct Output {
   inscription: InscriptionId,
   reveal: Txid,
   fees: u64,
-  raw: Option<String>,
+  commit_raw: Option<String>,
+  reveal_raw: Option<String>,
   commit_trx: Transaction,
   reveal_trx: Transaction,
 }
@@ -135,7 +136,8 @@ impl Inscribe {
     if self.dry_run {
       print_json(Output {
         commit: unsigned_commit_tx.txid(),
-        raw: Some(unsigned_commit_tx.raw_hex()),
+        commit_raw: Some(unsigned_commit_tx.raw_hex()),
+        reveal_raw: Some(reveal_tx.raw_hex()),
         commit_trx: unsigned_commit_tx,
         reveal: reveal_tx.txid(),
         inscription: reveal_tx.txid().into(),
@@ -164,7 +166,8 @@ impl Inscribe {
         reveal,
         inscription: reveal.into(),
         fees,
-        raw: None,
+        commit_raw: Some(unsigned_commit_tx.raw_hex()),
+        reveal_raw: Some(reveal_tx.raw_hex()),
         commit_trx: unsigned_commit_tx,
         reveal_trx: reveal_tx,
       })?;
