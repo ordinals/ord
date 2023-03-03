@@ -250,9 +250,13 @@ impl Index {
         .client
         .list_unspent(None, None, None, None, None)?
         .into_iter()
-          .filter(|utxo| {
-            utxo.address.is_some() && utxo.address.as_ref().unwrap().address_type().unwrap() != bitcoin::AddressType::Mweb
-          })
+        .filter(|utxo| {
+          if let Some(address) = &utxo.address {
+            address.address_type() != Some(bitcoin::AddressType::Mweb)
+          } else {
+            true
+          }
+        })
         .map(|utxo| {
           let outpoint = OutPoint::new(utxo.txid, utxo.vout.unwrap_or(0));
           let amount = utxo.amount;
