@@ -16,7 +16,7 @@ const PROTOCOL_ID: &[u8] = b"ord";
 
 const BODY_TAG: &[u8] = &[];
 const CONTENT_TYPE_TAG: &[u8] = &[1];
-const CONTENT_ENCODING_TAG: &[u8] = &[2];
+const CONTENT_ENCODING_TAG: &[u8] = &[3];
 
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) struct Inscription {
@@ -399,7 +399,7 @@ mod tests {
         b"ord",
         &[1],
         b"text/plain;charset=utf-8",
-        &[3],
+        &[5],
         b"bar",
         &[],
         b"ord",
@@ -770,7 +770,7 @@ mod tests {
   #[test]
   fn unknown_odd_fields_are_ignored() {
     assert_eq!(
-      InscriptionParser::parse(&envelope(&[b"ord", &[3], &[0]])),
+      InscriptionParser::parse(&envelope(&[b"ord", &[5], &[0]])),
       Ok(Inscription {
         content_type: None,
         content_encoding: None,
@@ -790,7 +790,7 @@ mod tests {
   #[test]
   fn parse_content_encoding() {
     assert_eq!(
-      InscriptionParser::parse(&envelope(&[b"ord", &[2], b"br"])),
+      InscriptionParser::parse(&envelope(&[b"ord", &[3], b"br"])),
       Ok(Inscription {
         body: None,
         content_encoding: Some(b"br".to_vec()),
