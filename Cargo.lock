@@ -514,7 +514,7 @@ dependencies = [
 [[package]]
 name = "bitcoin"
 version = "0.29.2"
-source = "git+https://github.com/ynohtna92/rust-litecoin#b3ee3197d611115225a0040d4aa5243afcc1db15"
+source = "git+https://github.com/ynohtna92/rust-litecoin#a60a7eb924e29a788f30f1de06ce9cd1300e60dc"
 dependencies = [
  "bech32",
  "bitcoin_hashes 0.11.0",
@@ -540,7 +540,7 @@ dependencies = [
 [[package]]
 name = "bitcoincore-rpc"
 version = "0.16.0"
-source = "git+https://github.com/ynohtna92/rust-bitcoincore-rpc#6c969ca2a8f85d0f7795e196cc9d8a90232e0881"
+source = "git+https://github.com/ynohtna92/rust-bitcoincore-rpc#7c014c22aba20b424d2bc2c3bf41327bbccb3d47"
 dependencies = [
  "bitcoincore-rpc-json",
  "jsonrpc 0.13.0",
@@ -552,7 +552,7 @@ dependencies = [
 [[package]]
 name = "bitcoincore-rpc-json"
 version = "0.16.0"
-source = "git+https://github.com/ynohtna92/rust-bitcoincore-rpc#6c969ca2a8f85d0f7795e196cc9d8a90232e0881"
+source = "git+https://github.com/ynohtna92/rust-bitcoincore-rpc#7c014c22aba20b424d2bc2c3bf41327bbccb3d47"
 dependencies = [
  "bitcoin",
  "serde",

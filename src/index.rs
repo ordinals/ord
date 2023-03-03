@@ -250,8 +250,11 @@ impl Index {
         .client
         .list_unspent(None, None, None, None, None)?
         .into_iter()
+          .filter(|utxo| {
+            utxo.address.is_some() && utxo.address.as_ref().unwrap().address_type().unwrap() != bitcoin::AddressType::Mweb
+          })
         .map(|utxo| {
-          let outpoint = OutPoint::new(utxo.txid, utxo.vout);
+          let outpoint = OutPoint::new(utxo.txid, utxo.vout.unwrap_or(0));
           let amount = utxo.amount;
 
           (outpoint, amount)
@@ -278,7 +281,7 @@ impl Index {
     for outpoint in utxos.keys() {
       if outpoint_to_value.get(&outpoint.store())?.is_none() {
         return Err(anyhow!(
-          "output in Bitcoin Core wallet but not in ord index: {outpoint}"
+          "output in Litecoin Core wallet but not in ord index: {outpoint}"
         ));
       }
     }
@@ -2133,7 +2136,7 @@ mod tests {
           .get_unspent_outputs(Wallet::load(&context.options).unwrap())
           .unwrap_err()
           .to_string(),
-        r"output in Bitcoin Core wallet but not in ord index: [[:xdigit:]]{64}:\d+"
+        r"output in Litecoin Core wallet but not in ord index: [[:xdigit:]]{64}:\d+"
       );
     }
   }
