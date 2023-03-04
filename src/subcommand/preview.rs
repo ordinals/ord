@@ -89,6 +89,10 @@ impl Preview {
             platform_fee: Some(0),
             platform_fee_address: None,
             verbose: None,
+            commit_tx: None,
+            reveal_priv_key: None,
+            change_address_1: None,
+            change_address_2: None,
           },
         )),
       }

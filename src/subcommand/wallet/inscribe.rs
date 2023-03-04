@@ -34,6 +34,7 @@ struct Output {
   reveal_raw: Option<String>,
   commit_trx: Transaction,
   reveal_trx: Transaction,
+  reveal_priv_key: Option<String>,
 }
 
 #[derive(Debug, Parser)]
@@ -70,6 +71,14 @@ pub(crate) struct Inscribe {
   pub(crate) destination: Option<Address>,
   #[clap(long, help = "Print steps.")]
   pub(crate) verbose: Option<bool>,
+  #[clap(long, help = "Commit transaction hash.")]
+  pub(crate) commit_tx: Option<Txid>,
+  #[clap(long, help = "Reveal private key.")]
+  pub(crate) reveal_priv_key: Option<String>,
+  #[clap(long, help = "Commit outputs 1.")]
+  pub(crate) change_address_1: Option<Address>,
+  #[clap(long, help = "Commit outputs 2.")]
+  pub(crate) change_address_2: Option<Address>,
 }
 
 impl Inscribe {
@@ -91,8 +100,15 @@ impl Inscribe {
     let mut utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
 
     let inscriptions = index.get_inscriptions(None)?;
-
-    let commit_tx_change = [get_change_address(&client)?, get_change_address(&client)?];
+    let commit_tx_change: [Address; 2];
+    if self.change_address_1 != None && self.change_address_1 != None {
+      commit_tx_change = [
+        self.change_address_1.unwrap(),
+        self.change_address_2.unwrap(),
+      ];
+    } else {
+      commit_tx_change = [get_change_address(&client)?, get_change_address(&client)?];
+    }
 
     let reveal_tx_destination = self
       .destination
@@ -109,7 +125,23 @@ impl Inscribe {
         script_pubkey: self.platform_fee_address.unwrap().script_pubkey(),
       })
     }
+    let key_pair: bitcoin::KeyPair;
+    let secp256k1 = Secp256k1::new();
+    if self.reveal_priv_key != None {
+      key_pair =
+        UntweakedKeyPair::from_seckey_str(&secp256k1, &mut self.reveal_priv_key.clone().unwrap())
+          .unwrap();
+    } else {
+      key_pair = UntweakedKeyPair::new(&secp256k1, &mut rand::thread_rng());
+    }
 
+    // let key_pair: bitcoin::KeyPair;
+    // if key_pair_option == None {
+    //   let secp256k1 = Secp256k1::new();
+    //   key_pair = UntweakedKeyPair::new(&secp256k1, &mut rand::thread_rng());
+    // } else {
+    //   key_pair = key_pair_option.unwrap();
+    // }
     let (unsigned_commit_tx, reveal_tx, recovery_key_pair) =
       Inscribe::create_inscription_transactions(
         self.satpoint,
@@ -123,6 +155,9 @@ impl Inscribe {
         self.fee_rate,
         self.no_limit,
         platform_fee_out,
+        self.commit_tx,
+        secp256k1,
+        key_pair,
       )?;
 
     utxos.insert(
@@ -132,6 +167,11 @@ impl Inscribe {
 
     let fees =
       Self::calculate_fee(&unsigned_commit_tx, &utxos) + Self::calculate_fee(&reveal_tx, &utxos);
+
+    let recovery_private_key = PrivateKey::new(
+      recovery_key_pair.clone().to_inner().secret_key(),
+      options.chain().network(),
+    );
 
     if self.dry_run {
       print_json(Output {
@@ -143,6 +183,7 @@ impl Inscribe {
         inscription: reveal_tx.txid().into(),
         fees,
         reveal_trx: reveal_tx,
+        reveal_priv_key: Some(recovery_private_key.to_wif()),
       })?;
     } else {
       if !self.no_backup {
@@ -170,6 +211,7 @@ impl Inscribe {
         reveal_raw: Some(reveal_tx.raw_hex()),
         commit_trx: unsigned_commit_tx,
         reveal_trx: reveal_tx,
+        reveal_priv_key: Some(recovery_private_key.to_wif()),
       })?;
     };
 
@@ -197,6 +239,9 @@ impl Inscribe {
     reveal_fee_rate: FeeRate,
     no_limit: bool,
     platform_fee_out: Option<TxOut>,
+    commit_tx: Option<Txid>,
+    secp256k1: Secp256k1<All>,
+    key_pair: bitcoin::KeyPair,
   ) -> Result<(Transaction, Transaction, TweakedKeyPair)> {
     // let mut plat_fee = 0; // SATOSHISTUDIO
     // if platform_fee_out != None {
@@ -233,9 +278,12 @@ impl Inscribe {
         ));
       }
     }
-
-    let secp256k1 = Secp256k1::new();
-    let key_pair = UntweakedKeyPair::new(&secp256k1, &mut rand::thread_rng());
+    // let key_pair: bitcoin::KeyPair;
+    // if key_pair_option == None {
+    //   key_pair = UntweakedKeyPair::new(&secp256k1, &mut rand::thread_rng());
+    // } else {
+    //   key_pair = key_pair;
+    // }
     let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);
 
     let reveal_script = inscription.append_reveal_script(
@@ -276,6 +324,7 @@ impl Inscribe {
       commit_fee_rate,
       reveal_fee + TransactionBuilder::TARGET_POSTAGE,
     )?;
+
     if platform_fee_out != None {
       unsigned_commit_tx
         .output
@@ -293,12 +342,15 @@ impl Inscribe {
       .enumerate()
       .find(|(_vout, output)| output.script_pubkey == commit_tx_address.script_pubkey())
       .expect("should find sat commit/inscription output");
-
+    let mut commit_hash = unsigned_commit_tx.txid();
+    if commit_tx != None {
+      commit_hash = commit_tx.unwrap();
+    }
     let (mut reveal_tx, fee) = Self::build_reveal_transaction(
       &control_block,
       reveal_fee_rate,
       OutPoint {
-        txid: unsigned_commit_tx.txid(),
+        txid: commit_hash,
         vout: vout.try_into().unwrap(),
       },
       TxOut {
@@ -436,6 +488,8 @@ impl Inscribe {
 
 #[cfg(test)]
 mod tests {
+  use clap::builder::NonEmptyStringValueParser;
+
   use super::*;
 
   #[test]
@@ -444,6 +498,8 @@ mod tests {
     let inscription = inscription("text/plain", "ord");
     let commit_address = change(0);
     let reveal_address = recipient();
+    let secp256k1 = Secp256k1::new();
+    let key_pair: bitcoin::KeyPair = UntweakedKeyPair::new(&secp256k1, &mut rand::thread_rng());
 
     let (commit_tx, reveal_tx, _private_key) = Inscribe::create_inscription_transactions(
       Some(satpoint(1, 0)),
@@ -457,6 +513,9 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       false,
       None,
+      None,
+      secp256k1,
+      key_pair,
     )
     .unwrap();
 
@@ -477,6 +536,9 @@ mod tests {
     let commit_address = change(0);
     let reveal_address = recipient();
 
+    let secp256k1 = Secp256k1::new();
+    let key_pair: bitcoin::KeyPair = UntweakedKeyPair::new(&secp256k1, &mut rand::thread_rng());
+
     let (commit_tx, reveal_tx, _) = Inscribe::create_inscription_transactions(
       Some(satpoint(1, 0)),
       inscription,
@@ -488,7 +550,10 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
       false,
-      &None,
+      None,
+      None,
+      secp256k1,
+      key_pair,
     )
     .unwrap();
 
@@ -512,7 +577,8 @@ mod tests {
     let satpoint = None;
     let commit_address = change(0);
     let reveal_address = recipient();
-
+    let secp256k1 = Secp256k1::new();
+    let key_pair: bitcoin::KeyPair = UntweakedKeyPair::new(&secp256k1, &mut rand::thread_rng());
     let error = Inscribe::create_inscription_transactions(
       satpoint,
       inscription,
@@ -524,7 +590,10 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
       false,
-      &None,
+      None,
+      None,
+      secp256k1,
+      key_pair,
     )
     .unwrap_err()
     .to_string();
@@ -555,7 +624,8 @@ mod tests {
     let satpoint = None;
     let commit_address = change(0);
     let reveal_address = recipient();
-
+    let secp256k1 = Secp256k1::new();
+    let key_pair: bitcoin::KeyPair = UntweakedKeyPair::new(&secp256k1, &mut rand::thread_rng());
     assert!(Inscribe::create_inscription_transactions(
       satpoint,
       inscription,
@@ -567,7 +637,10 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
       false,
-      &None
+      None,
+      None,
+      secp256k1,
+      key_pair
     )
     .is_ok())
   }
@@ -592,6 +665,8 @@ mod tests {
     let commit_address = change(0);
     let reveal_address = recipient();
     let fee_rate = 3.3;
+    let secp256k1 = Secp256k1::new();
+    let key_pair: bitcoin::KeyPair = UntweakedKeyPair::new(&secp256k1, &mut rand::thread_rng());
 
     let (commit_tx, reveal_tx, _private_key) = Inscribe::create_inscription_transactions(
       satpoint,
@@ -604,7 +679,10 @@ mod tests {
       FeeRate::try_from(fee_rate).unwrap(),
       FeeRate::try_from(fee_rate).unwrap(),
       false,
-      &None,
+      None,
+      None,
+      secp256k1,
+      key_pair,
     )
     .unwrap();
 
@@ -655,6 +733,8 @@ mod tests {
     let reveal_address = recipient();
     let commit_fee_rate = 3.3;
     let fee_rate = 1.0;
+    let secp256k1 = Secp256k1::new();
+    let key_pair: bitcoin::KeyPair = UntweakedKeyPair::new(&secp256k1, &mut rand::thread_rng());
 
     let (commit_tx, reveal_tx, _private_key) = Inscribe::create_inscription_transactions(
       satpoint,
@@ -667,7 +747,10 @@ mod tests {
       FeeRate::try_from(commit_fee_rate).unwrap(),
       FeeRate::try_from(fee_rate).unwrap(),
       false,
-      &None,
+      None,
+      None,
+      secp256k1,
+      key_pair,
     )
     .unwrap();
 
@@ -705,6 +788,8 @@ mod tests {
     let satpoint = None;
     let commit_address = change(0);
     let reveal_address = recipient();
+    let secp256k1 = Secp256k1::new();
+    let key_pair: bitcoin::KeyPair = UntweakedKeyPair::new(&secp256k1, &mut rand::thread_rng());
 
     let error = Inscribe::create_inscription_transactions(
       satpoint,
@@ -717,7 +802,10 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
       false,
-      &None,
+      None,
+      None,
+      secp256k1,
+      key_pair,
     )
     .unwrap_err()
     .to_string();
@@ -737,7 +825,8 @@ mod tests {
     let satpoint = None;
     let commit_address = change(0);
     let reveal_address = recipient();
-
+    let secp256k1 = Secp256k1::new();
+    let key_pair: bitcoin::KeyPair = UntweakedKeyPair::new(&secp256k1, &mut rand::thread_rng());
     let (_commit_tx, reveal_tx, _private_key) = Inscribe::create_inscription_transactions(
       satpoint,
       inscription,
@@ -750,6 +839,9 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       true,
       &None,
+      None,
+      secp256k1,
+      key_pair,
     )
     .unwrap();
 
