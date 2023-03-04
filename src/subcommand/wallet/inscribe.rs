@@ -1,3 +1,4 @@
+use bitcoin::hashes::hex::ToHex;
 use bitcoincore_rpc::RawTx;
 
 use {
@@ -183,7 +184,7 @@ impl Inscribe {
         inscription: reveal_tx.txid().into(),
         fees,
         reveal_trx: reveal_tx,
-        reveal_priv_key: Some(recovery_private_key.to_bytes().raw_hex()),
+        reveal_priv_key: Some(key_pair.secret_bytes().to_hex()),
       })?;
     } else {
       if !self.no_backup {
