@@ -95,6 +95,8 @@ cd ord
 cargo build --release
 ```
 
+The default location for the `ord` binary once built is `./target/release/ord`.
+
 `ord` requires `rustc` version 1.67.0 or later. Run `rustc --version` to ensure you have this version. Run `rustup update` to get the latest stable release.
 
 Syncing
@@ -110,6 +112,19 @@ from `litecoind`'s datadir, and connecting using the default RPC port.
 If `litecoind` is not on mainnet, is not run by the same user, has a non-default
 datadir, or a non-default port, you'll need to pass additional flags to `ord`.
 See `ord --help` for details.
+
+### Windows Compatibility
+To prevent port exhaustion when running `ord index` you should change the register values
+below with the following steps:
+
+1. From the command prompt, run `regedit`.
+2. Navigate to `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\TCPIP\Parameters`.
+3. Create a new key for `REG_DWORD`, and specify the name `MaxUserPort`.
+4. Enter the decimal value `32768`.
+5. Create a new key for `REG_DWORD`, and specify the name `TcpTimedWaitDelay`.
+6. Type the minimum decimal value `30` (which is 0x0000001e in hexadecimal), if you have a 
+newer system (Windows 8 or later) the minimum decimal value can be entered as `2`.
+7. Restart the workstation.
 
 Logging
 --------

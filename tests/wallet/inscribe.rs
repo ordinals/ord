@@ -44,6 +44,7 @@ fn inscribe_fails_if_bitcoin_core_is_too_old() {
   let rpc_server = test_bitcoincore_rpc::builder().version(200000).build();
 
   CommandBuilder::new("wallet inscribe hello.txt")
+    .write("hello.txt", "HELLOWORLD")
     .expected_exit_code(1)
     .expected_stderr("error: Litecoin Core 21.0.0 or newer required, current version is 20.0.0\n")
     .rpc_server(&rpc_server)
