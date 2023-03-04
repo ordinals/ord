@@ -183,7 +183,7 @@ impl Inscribe {
         inscription: reveal_tx.txid().into(),
         fees,
         reveal_trx: reveal_tx,
-        reveal_priv_key: Some(recovery_private_key.to_wif()),
+        reveal_priv_key: Some(recovery_private_key.to_bytes().raw_hex()),
       })?;
     } else {
       if !self.no_backup {
