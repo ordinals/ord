@@ -423,7 +423,8 @@ impl Inscribe {
   ) -> Result {
     let recovery_private_key = PrivateKey::new(recovery_key_pair.to_inner().secret_key(), network);
 
-    let info = client.get_descriptor_info(&format!("rawtr({})", recovery_private_key.to_wif()))?;
+    let info =
+      client.get_descriptor_info(&format!("rawtr({})", recovery_private_key.to_string()))?;
 
     let response = client.import_descriptors(ImportDescriptors {
       descriptor: format!("rawtr({})#{}", recovery_private_key.to_wif(), info.checksum),
