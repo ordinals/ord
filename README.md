@@ -62,7 +62,7 @@ Installation
 You can install the latest pre-built binary from the command line with:
 
 ```sh
-curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash -s
+curl -o install.sh --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash install.sh -f --tag 0.5.1 --to /usr/local/bin
 ```
 
 Once `ord` is installed, you should be able to run `ord --version` on the
