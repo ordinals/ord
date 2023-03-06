@@ -180,8 +180,8 @@ impl Inscribe {
     if self.dry_run {
       print_json(Output {
         commit: unsigned_commit_tx.txid(),
-        commit_raw: Some(unsigned_commit_tx.clone().to_owned().raw_hex()),
-        reveal_raw: Some(reveal_tx.clone().to_owned().raw_hex()),
+        commit_raw: Some(unsigned_commit_tx.clone().raw_hex()),
+        reveal_raw: Some(reveal_tx.clone().raw_hex()),
         commit_trx: unsigned_commit_tx,
         reveal: reveal_tx.txid(),
         inscription: reveal_tx.txid().into(),
