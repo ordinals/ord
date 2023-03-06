@@ -36,6 +36,8 @@ struct Output {
   commit_trx: Transaction,
   reveal_trx: Transaction,
   reveal_priv_key: Option<String>,
+  change_address_1: Option<String>,
+  change_address_2: Option<String>,
 }
 
 #[derive(Debug, Parser)]
@@ -185,6 +187,8 @@ impl Inscribe {
         fees,
         reveal_trx: reveal_tx,
         reveal_priv_key: Some(key_pair.secret_bytes().to_hex()),
+        change_address_1: Some(commit_tx_change[0]),
+        change_address_2: Somie(commit_tx_change[1]),
       })?;
     } else {
       if !self.no_backup {
@@ -213,6 +217,8 @@ impl Inscribe {
         commit_trx: unsigned_commit_tx,
         reveal_trx: reveal_tx,
         reveal_priv_key: Some(recovery_private_key.to_wif()),
+        change_address_1: Some(commit_tx_change[0]),
+        change_address_2: Somie(commit_tx_change[1]),
       })?;
     };
 
