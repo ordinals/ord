@@ -1,7 +1,32 @@
 Changelog
 =========
 
-[0.5.0](https://github.com/casey/ord/releases/tag/0.5.0) - 2022-02-11
+[0.5.1](https://github.com/casey/ord/releases/tag/0.5.1) - 2023-02-21
+---------------------------------------------------------------------
+
+### Performance
+- Batch tx requests and re-enable skipping transactions (#1759)
+
+### Added
+- Add option to set inscription destination address (#1536)
+- Allow supplying passphrase for `ord wallet create` and `ord wallet restore` (#1669)
+- Add `--config-dir` option (#1697)
+
+### Changed
+- Require users manually specify a `--fee-rate` for `wallet send` (#1755)
+
+### Documentation
+- Add Sparrow Wallet Guide to Handbook (#1742)
+
+### Misc
+- Handle block count RPC error gracefully (#1637)
+- Fix typos in overview.md (#1715)
+- Typo fix (#1682)
+- README typo fix (#1716)
+- Fix changelog dates: 2022 → 2023 (#1700)
+- Bump version number (#1695)
+
+[0.5.0](https://github.com/casey/ord/releases/tag/0.5.0) - 2023-02-11
 ---------------------------------------------------------------------
 
 ### Breaking Changes
@@ -67,7 +92,7 @@ Changelog
 - Avoid listening on 0.0.0.0 in tests (#1365)
 - Rename `GitHub` nav link to `Wallet` (#1360)
 
-[0.4.2](https://github.com/casey/ord/releases/tag/0.4.2) - 2022-01-24
+[0.4.2](https://github.com/casey/ord/releases/tag/0.4.2) - 2023-01-24
 ---------------------------------------------------------------------
 
 ### Changed
@@ -79,7 +104,7 @@ Changelog
 ### Misc
 - Fix guide typo: getblockchount -> getblockcount (#1354)
 
-[0.4.1](https://github.com/casey/ord/releases/tag/0.4.1) - 2022-01-24
+[0.4.1](https://github.com/casey/ord/releases/tag/0.4.1) - 2023-01-24
 ---------------------------------------------------------------------
 
 ### Added
@@ -110,7 +135,7 @@ Changelog
 - Serve favicon as PNG to Safari and SVG others (#1302)
 - Use sans-serif font for height on clock (#1300)
 
-[0.4.0](https://github.com/casey/ord/releases/tag/0.4.0) - 2022-01-19
+[0.4.0](https://github.com/casey/ord/releases/tag/0.4.0) - 2023-01-19
 ---------------------------------------------------------------------
 
 ### Added

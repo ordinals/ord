@@ -53,7 +53,7 @@ Configuring Bitcoin Core
 
 `ord` requires Bitcoin Core's transaction index.
 
-To configure your Bitcoin Core node to use maintain a transaction
+To configure your Bitcoin Core node to maintain a transaction
 index, add the following to your `bitcoin.conf`:
 
 ```
@@ -151,7 +151,7 @@ Additionally, inscriptions are included in transactions, so the larger the
 content, the higher the fee that the inscription transaction must pay.
 
 Inscription content is included in transaction witnesses, which receive the
-witness discount. To calculate the approximate fee that in inscribe transaction
+witness discount. To calculate the approximate fee that an inscribe transaction
 will pay, divide the content size by four and muliply by the fee rate.
 
 Inscription transactions must be less than 400,000 weight units, or they will
@@ -205,7 +205,7 @@ ord wallet receive
 Send the inscription by running:
 
 ```
-ord wallet send ADDRESS INSCRIPTION_ID
+ord wallet send --fee-rate <FEE_RATE> <ADDRESS> <INSCRIPTION_ID>
 ```
 
 See the pending transaction with:
