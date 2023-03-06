@@ -41,7 +41,6 @@ Contributions are welcome! Here's how you can help:
 5. Once you are happy with your changes, submit a pull request.
      - Open the [pull-request form](https://github.com/casey/ord/pull/new/master).
      - Add a description explaining what you've done and/or what is left to be done.
-     - TODO: Develop pull request template
 
 ### A pull-request may be considered for merging when:
 
@@ -62,8 +61,4 @@ If you experience an issue, we would like to know the details.
      - Your platform (e.g. Windows 10 or Ubuntu 15.04 x64)
 
 After reporting, you should continue to participate in discussion to help identify the root cause for timely resolution.
-
-## Translations
-
-TODO: Documentation regarding how best to assist translation/localization efforts
 
