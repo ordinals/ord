@@ -121,7 +121,11 @@ impl Updater {
         progress_bar.inc(1);
 
         if progress_bar.position() > progress_bar.length().unwrap() {
-          progress_bar.set_length(index.client.get_block_count()? + 1);
+          if let Ok(count) = index.client.get_block_count() {
+            progress_bar.set_length(count + 1);
+          } else {
+            log::warn!("Failed to fetch latest block height");
+          }
         }
       }
 

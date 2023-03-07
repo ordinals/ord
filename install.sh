@@ -113,6 +113,7 @@ if [ -z ${target-} ]; then
     x86_64-Linux) target=x86_64-unknown-linux-gnu;;
     *)
       err 'Could not determine target from output of `uname -m`-`uname -s`, please use `--target`:' $uname_target
+      err 'Please try building from source: https://github.com/casey/ord#building'
     ;;
   esac
 fi
