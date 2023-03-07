@@ -419,14 +419,12 @@ fn inscribe_with_parent_inscription() {
     .rpc_server(&rpc_server)
     .output::<Inscribe>();
 
-  rpc_server.mine_blocks(1);
-
   assert_eq!(parent_id, child_output.parent.unwrap());
 
-  println!("{}", child_output.inscription);
+  rpc_server.mine_blocks(1);
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
-    format!("/inscription/{}", child_output.inscription),
+    format!("/inscription/{}", dbg!(child_output.inscription)),
     format!(".*parent.*{}", parent_id),
   );
 }

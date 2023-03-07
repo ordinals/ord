@@ -104,6 +104,12 @@ pub(crate) fn inscription(content_type: &str, body: impl AsRef<[u8]>) -> Inscrip
   Inscription::new(None, Some(content_type.into()), Some(body.as_ref().into()))
 }
 
+pub(crate) fn inscription_with_parent(content_type: &str, body: impl AsRef<[u8]>, parent: InscriptionId) -> Inscription {
+  let mut vec = parent.txid.to_vec();
+  vec.push(parent.index.try_into().unwrap());
+  Inscription::new(Some(vec), Some(content_type.into()), Some(body.as_ref().into()))
+}
+
 pub(crate) fn inscription_id(n: u32) -> InscriptionId {
   let hex = format!("{n:x}");
 

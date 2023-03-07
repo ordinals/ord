@@ -859,7 +859,7 @@ impl Server {
         next,
         number: entry.number,
         output,
-        parent: entry.parent,
+        parent: dbg!(entry.parent),
         previous,
         sat: entry.sat,
         satpoint,

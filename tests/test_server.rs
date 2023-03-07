@@ -74,6 +74,7 @@ impl TestServer {
       thread::sleep(Duration::from_millis(25));
     }
 
+    dbg!(path.as_ref());
     let response = reqwest::blocking::get(self.url().join(path.as_ref()).unwrap()).unwrap();
     assert_eq!(response.status(), StatusCode::OK);
     assert_regex_match!(response.text().unwrap(), regex.as_ref());
