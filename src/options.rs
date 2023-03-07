@@ -140,49 +140,66 @@ impl Options {
     )
   }
 
+  fn derive_var(
+    arg: Option<OsString>,
+    env: Option<OsString>,
+    config: Option<OsString>,
+    default: Option<OsString>,
+  ) -> Option<OsString> {
+    arg.or(env).or(config).or(default)
+  }
+
   pub(crate) fn auth(&self) -> Auth {
-    let rpc_url = self.rpc_url();
+    log::info!("Connecting to Bitcoin Core at {}", self.rpc_url());
 
-    let config = self.load_config().unwrap();
+    let rpc_user = Options::derive_var(
+      self.rpc_user.clone().map(|string| string.into()),
+      env::var_os("RPC_USER"),
+      self
+        .load_config()
+        .unwrap()
+        .rpc_user
+        .map(|string| string.into()),
+      // None,
+      fs::read_to_string(self.cookie_file().unwrap())
+        .unwrap()
+        .split_once(":")
+        .map(|(rpc_user, _rpc_pass)| rpc_user.into()),
+    )
+    .unwrap();
 
-    if let (Some(rpc_user), Some(rpc_pass)) = (config.rpc_user, config.rpc_pass) {
-      log::info!(
-        "Connecting to Bitcoin Core RPC server at {rpc_url} using credentials from ord.yaml",
-      );
+    let rpc_pass = Options::derive_var(
+      self.rpc_pass.clone().map(|string| string.into()),
+      env::var_os("RPC_PASS"),
+      self
+        .load_config()
+        .unwrap()
+        .rpc_pass
+        .map(|string| string.into()),
+      // None,
+      fs::read_to_string(self.cookie_file().unwrap())
+        .unwrap()
+        .split_once(":")
+        .map(|(_rpc_user, rpc_pass)| rpc_pass.into()),
+    )
+    .unwrap();
 
-      Auth::UserPass(rpc_user, rpc_pass)
-    } else if let (Some(rpc_user), Some(rpc_pass)) = (self.rpc_user.clone(), self.rpc_pass.clone())
-    {
-      log::info!(
-        "Connecting to Bitcoin Core RPC server at {rpc_url} using rpc_pass for `{rpc_user}`",
-      );
+    Auth::UserPass(
+      rpc_user.into_string().expect("rpc_user is invalid UTF-8"),
+      rpc_pass.into_string().expect("rpc_pass is invalid UTF-8"),
+    )
 
-      Auth::UserPass(rpc_user, rpc_pass)
-    } else if let (Some(rpc_user), Some(rpc_pass)) =
-      (env::var_os("RPC_USER"), env::var_os("RPC_PASS"))
-    {
-      log::info!(
-        "Connecting to Bitcoin Core RPC server at {rpc_url} using env vars RPC_USER and RPC_PASS",
-      );
-      Auth::UserPass(
-        rpc_user.into_string().expect("RPC_USER is invalid UTF-8"),
-        rpc_pass.into_string().expect("RPC_PASS is invalid UTF-8"),
-      )
-    } else {
-      let cookie_file = self.cookie_file().unwrap();
-      log::info!(
-        "Connecting to Bitcoin Core RPC server at {rpc_url} using credentials from `{}`",
-        cookie_file.display()
-      );
-
-      Auth::CookieFile(cookie_file)
-    }
+    // match (rpc_user, rpc_pass) {
+    //   (Some(rpc_user), Some(rpc_pass)) => Auth::UserPass(
+    //     rpc_user.into_string().expect("rpc_user is invalid UTF-8"),
+    //     rpc_pass.into_string().expect("rpc_pass is invalid UTF-8"),
+    //   ),
+    //   _ => Auth::CookieFile(self.cookie_file().unwrap()),
+    // }
   }
 
   pub(crate) fn bitcoin_rpc_client(&self) -> Result<Client> {
     let rpc_url = self.rpc_url();
-
-    let config = self.load_config().unwrap();
 
     let auth = self.auth();
 
@@ -602,26 +619,20 @@ mod tests {
 
   #[test]
   fn test_rpc_user_and_pass_flags() {
-    let options = Arguments::try_parse_from([
-      "ord",
-      "--rpc-user",
-      "satoshi",
-      "--rpc-pass",
-      "123456secret",
-      "index",
-    ])
-    .unwrap()
-    .options;
+    let options =
+      Arguments::try_parse_from(["ord", "--rpc-user", "foo", "--rpc-pass", "bar", "index"])
+        .unwrap()
+        .options;
 
-    assert_eq!(options.rpc_user.unwrap(), "satoshi".to_string());
-    assert_eq!(options.rpc_pass.unwrap(), "123456secret".to_string());
+    assert_eq!(options.rpc_user.unwrap(), "foo".to_string());
+    assert_eq!(options.rpc_pass.unwrap(), "bar".to_string());
   }
 
   #[test]
   fn config_with_rpc_user_pass() {
     let tempdir = TempDir::new().unwrap();
     let path = tempdir.path().join("ord.yaml");
-    fs::write(&path, "hidden:\nrpc_user: satoshi\nrpc_pass: 123456secret").unwrap();
+    fs::write(&path, "hidden:\nrpc_user: foo\nrpc_pass: bar").unwrap();
 
     assert_eq!(
       Arguments::try_parse_from(["ord", "--config", path.to_str().unwrap(), "index",])
@@ -631,8 +642,8 @@ mod tests {
         .unwrap(),
       Config {
         hidden: HashSet::new(),
-        rpc_user: Some("satoshi".into()),
-        rpc_pass: Some("123456secret".into()),
+        rpc_user: Some("foo".into()),
+        rpc_pass: Some("bar".into()),
       }
     );
   }
@@ -667,6 +678,45 @@ mod tests {
         rpc_user: None,
         rpc_pass: None,
       }
+    );
+  }
+
+  #[test]
+  fn test_derive_var() {
+    assert_eq!(Options::derive_var(None, None, None, None), None);
+
+    assert_eq!(
+      Options::derive_var(None, None, None, Some("foo".into())),
+      Some("foo".into())
+    );
+
+    assert_eq!(
+      Options::derive_var(None, None, Some("bar".into()), Some("foo".into())),
+      Some("bar".into())
+    );
+
+    assert_eq!(
+      Options::derive_var(
+        None,
+        Some("baz".into()),
+        Some("bar".into()),
+        Some("foo".into())
+      ),
+      Some("baz".into())
+    );
+
+    assert_eq!(
+      Options::derive_var(
+        Some("qux".into()),
+        Some("baz".into()),
+        Some("bar".into()),
+        Some("foo".into())
+      ),
+      Some("qux".into())
+    );
+
+    assert!(
+      Options::derive_var(Some("qux".into()), None, None, Some("foo".into())) != Some("foo".into())
     );
   }
 }
