@@ -141,6 +141,8 @@ fn timestamp(seconds: u32) -> DateTime<Utc> {
   Utc.timestamp_opt(seconds.into(), 0).unwrap()
 }
 
+const INTERRUPT_LIMIT: u64 = 5;
+
 pub fn main() {
   env_logger::init();
 
@@ -151,9 +153,11 @@ pub fn main() {
       .iter()
       .for_each(|handle| handle.graceful_shutdown(Some(Duration::from_millis(100))));
 
+    println!("Detected Ctrl-C, attempting to shut down ord gracefully. Press Ctrl-C {INTERRUPT_LIMIT} times to force shutdown.");
+
     let interrupts = INTERRUPTS.fetch_add(1, atomic::Ordering::Relaxed);
 
-    if interrupts > 5 {
+    if interrupts > INTERRUPT_LIMIT {
       process::exit(1);
     }
   })
