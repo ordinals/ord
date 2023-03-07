@@ -16,7 +16,9 @@ use {
   bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, Timestamp},
   bitcoincore_rpc::Client,
   std::collections::BTreeSet,
+
 };
+
 
 #[derive(Serialize)]
 struct Output {
@@ -54,10 +56,15 @@ pub(crate) struct Inscribe {
   pub(crate) dry_run: bool,
   #[clap(long, help = "Send inscription to <DESTINATION>.")]
   pub(crate) destination: Option<Address>,
+  #[clap(long, help = "Additional metadata for the inscription in JSON format.")]
+  pub(crate) inscription_metadata: Option<String>,
 }
 
 impl Inscribe {
   pub(crate) fn run(self, options: Options) -> Result {
+
+    let _file_with_meta = Self::set_metadata(&self.file);
+    
     let inscription = Inscription::from_file(options.chain(), &self.file)?;
 
     let index = Index::open(&options)?;
@@ -70,6 +77,8 @@ impl Inscribe {
     let inscriptions = index.get_inscriptions(None)?;
 
     let commit_tx_change = [get_change_address(&client)?, get_change_address(&client)?];
+
+
 
     let reveal_tx_destination = self
       .destination
@@ -92,9 +101,7 @@ impl Inscribe {
 
     utxos.insert(
       reveal_tx.input[0].previous_output,
-      Amount::from_sat(
-        unsigned_commit_tx.output[reveal_tx.input[0].previous_output.vout as usize].value,
-      ),
+      Amount::from_sat(unsigned_commit_tx.output[0].value),
     );
 
     let fees =
@@ -143,6 +150,16 @@ impl Inscribe {
       .checked_sub(tx.output.iter().map(|txout| txout.value).sum::<u64>())
       .unwrap()
   }
+
+
+
+  fn set_metadata(_path: impl AsRef<Path>) {
+    //Todo: Add meta
+
+    //use kamadak-exif = "0.5.5" to write exif data
+
+  }
+
 
   fn create_inscription_transactions(
     satpoint: Option<SatPoint>,
