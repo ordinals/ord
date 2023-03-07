@@ -1,0 +1,6 @@
+- name: Upload tag folder to release
+  uses: actions/upload-artifact@v2
+  with:
+    name: tag-folder
+    path: ./tag
+
