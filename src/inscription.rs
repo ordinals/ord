@@ -140,11 +140,11 @@ impl Inscription {
 
   pub(crate) fn get_parent_id(&self) -> Option<InscriptionId> {
     if let Some(vec) = &self.parent {
-      if let Some(vec2) = vec.clone().try_into().ok() {
-        Some(InscriptionId::load(vec2))
-      } else {
-        None
-      }
+      vec
+        .clone()
+        .try_into()
+        .ok()
+        .map(|vec| InscriptionId::load(vec))
     } else {
       None
     }
