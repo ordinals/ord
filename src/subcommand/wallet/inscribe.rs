@@ -122,7 +122,9 @@ impl Inscribe {
 
     utxos.insert(
       partially_signed_reveal_tx.input[commit_input_offset].previous_output,
-      Amount::from_sat(unsigned_commit_tx.output[commit_input_offset].value),
+      Amount::from_sat(
+        unsigned_commit_tx.output[partially_signed_reveal_tx.input[commit_input_offset].previous_output.vout as usize].value,
+      ),
     );
 
     let fees = Self::calculate_fee(&unsigned_commit_tx, &utxos)

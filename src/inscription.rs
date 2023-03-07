@@ -65,8 +65,16 @@ impl Inscription {
 
     let content_type = Media::content_type_for_path(path)?;
 
+    let parent = if let Some(inscription_id) = parent {
+      let mut vec = inscription_id.txid.to_vec();
+      vec.push(inscription_id.index.try_into().unwrap());
+      Some(vec)
+    } else {
+      None
+    };
+
     Ok(Self {
-      parent: parent.store(),
+      parent,
       body: Some(body),
       content_type: Some(content_type.into()),
     })

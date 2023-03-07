@@ -9,7 +9,7 @@ pub(super) struct Flotsam {
 
 // change name to Jetsam or more poetic german word
 enum Origin {
-  // put Some(parent_id) in Origin::New() 
+  // put Some(parent_id) in Origin::New()
   New(u64),
   Old(SatPoint),
 }
@@ -20,7 +20,6 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   id_to_satpoint: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, &'static SatPointValue>,
   value_receiver: &'a mut Receiver<u64>,
   id_to_entry: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, InscriptionEntryValue>,
-  id_to_parent_id: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, &'static InscriptionIdValue>,
   lost_sats: u64,
   next_number: u64,
   number_to_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
@@ -38,7 +37,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     id_to_satpoint: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, &'static SatPointValue>,
     value_receiver: &'a mut Receiver<u64>,
     id_to_entry: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, InscriptionEntryValue>,
-    id_to_parent_id: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, &'static InscriptionIdValue>,
     lost_sats: u64,
     number_to_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
     outpoint_to_value: &'a mut Table<'db, 'tx, &'static OutPointValue, u64>,
@@ -60,7 +58,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       id_to_satpoint,
       value_receiver,
       id_to_entry,
-      id_to_parent_id,
       lost_sats,
       next_number,
       number_to_id,
@@ -120,9 +117,11 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     // make sure no re-inscriptions
     if inscriptions.iter().all(|flotsam| flotsam.offset != 0) {
       if let Some(inscription) = Inscription::from_transaction(tx) {
-
         let parent = if let Some(parent_id) = inscription.get_parent_id() {
-          if inscriptions.iter().any(|flotsam| flotsam.inscription_id == parent_id) {
+          if inscriptions
+            .iter()
+            .any(|flotsam| flotsam.inscription_id == parent_id)
+          {
             Some(parent_id)
           } else {
             None
@@ -240,14 +239,13 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           }
         }
 
-
-
         self.id_to_entry.insert(
           &inscription_id,
           &InscriptionEntry {
             fee,
             height: self.height,
             number: self.next_number,
+            parent: None,
             sat,
             timestamp: self.timestamp,
           }

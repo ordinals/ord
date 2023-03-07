@@ -26,22 +26,22 @@ pub(crate) struct InscriptionEntry {
   pub(crate) fee: u64,
   pub(crate) height: u64,
   pub(crate) number: u64,
-  // pub(crate) parent: Option<InsciptionId>,
+  pub(crate) parent: Option<InscriptionId>,
   pub(crate) sat: Option<Sat>,
   pub(crate) timestamp: u32,
 }
 
-// pub(crate) type InscriptionEntryValue = (u64, u64, u64, (u128, u128), u64, u32);
-pub(crate) type InscriptionEntryValue = (u64, u64, u64, u64, u32);
+pub(crate) type InscriptionEntryValue = (u64, u64, u64, (u128, u128, u32), u64, u32);
 
 impl Entry for InscriptionEntry {
   type Value = InscriptionEntryValue;
 
-  fn load((fee, height, number, sat, timestamp): InscriptionEntryValue) -> Self {
+  fn load((fee, height, number, parent, sat, timestamp): InscriptionEntryValue) -> Self {
     Self {
       fee,
       height,
       number,
+      parent: Entry::load(parent),
       sat: if sat == u64::MAX {
         None
       } else {
@@ -56,6 +56,7 @@ impl Entry for InscriptionEntry {
       self.fee,
       self.height,
       self.number,
+      self.parent.store(),
       match self.sat {
         Some(sat) => sat.n(),
         None => u64::MAX,
