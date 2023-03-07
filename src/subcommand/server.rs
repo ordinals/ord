@@ -2012,7 +2012,7 @@ mod tests {
 
   #[test]
   fn text_preview() {
-    let server = TestServer::new();
+    let server = TestServer::new_with_regtest();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -2033,7 +2033,7 @@ mod tests {
 
   #[test]
   fn text_preview_returns_error_when_content_is_not_utf8() {
-    let server = TestServer::new();
+    let server = TestServer::new_with_regtest();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -2053,7 +2053,7 @@ mod tests {
 
   #[test]
   fn text_preview_text_is_escaped() {
-    let server = TestServer::new();
+    let server = TestServer::new_with_regtest();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -2078,7 +2078,7 @@ mod tests {
 
   #[test]
   fn audio_preview() {
-    let server = TestServer::new();
+    let server = TestServer::new_with_regtest();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -2099,7 +2099,7 @@ mod tests {
 
   #[test]
   fn pdf_preview() {
-    let server = TestServer::new();
+    let server = TestServer::new_with_regtest();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -2120,7 +2120,7 @@ mod tests {
 
   #[test]
   fn image_preview() {
-    let server = TestServer::new();
+    let server = TestServer::new_with_regtest();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -2142,7 +2142,7 @@ mod tests {
 
   #[test]
   fn iframe_preview() {
-    let server = TestServer::new();
+    let server = TestServer::new_with_regtest();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -2163,7 +2163,7 @@ mod tests {
 
   #[test]
   fn unknown_preview() {
-    let server = TestServer::new();
+    let server = TestServer::new_with_regtest();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -2184,7 +2184,7 @@ mod tests {
 
   #[test]
   fn video_preview() {
-    let server = TestServer::new();
+    let server = TestServer::new_with_regtest();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -2245,7 +2245,7 @@ mod tests {
 
   #[test]
   fn inscription_page_does_not_have_sat_when_sats_are_not_tracked() {
-    let server = TestServer::new();
+    let server = TestServer::new_with_regtest();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -2341,7 +2341,7 @@ mod tests {
 
   #[test]
   fn content_responses_have_cache_control_headers() {
-    let server = TestServer::new();
+    let server = TestServer::new_with_regtest();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {

@@ -1,10 +1,10 @@
 use {
+  crate::Options,
   anyhow::{anyhow, Result},
   bitcoin::{Transaction, Txid},
   hyper::{client::HttpConnector, Body, Client, Method, Request, Uri},
   serde::Deserialize,
   serde_json::{json, Value},
-  crate::Options,
 };
 
 pub(crate) struct Fetcher {
@@ -31,7 +31,7 @@ impl Fetcher {
     let client = Client::new();
 
     let url = if options.rpc_url().starts_with("http://") {
-      options.rpc_url().to_string()
+      options.rpc_url()
     } else {
       "http://".to_string() + &options.rpc_url()
     };

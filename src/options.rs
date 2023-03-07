@@ -160,13 +160,8 @@ impl Options {
         .unwrap()
         .rpc_user
         .map(|string| string.into()),
-      // None,
-      fs::read_to_string(self.cookie_file().unwrap())
-        .unwrap()
-        .split_once(":")
-        .map(|(rpc_user, _rpc_pass)| rpc_user.into()),
-    )
-    .unwrap();
+      None,
+    );
 
     let rpc_pass = Options::derive_var(
       self.rpc_pass.clone().map(|string| string.into()),
@@ -176,26 +171,16 @@ impl Options {
         .unwrap()
         .rpc_pass
         .map(|string| string.into()),
-      // None,
-      fs::read_to_string(self.cookie_file().unwrap())
-        .unwrap()
-        .split_once(":")
-        .map(|(_rpc_user, rpc_pass)| rpc_pass.into()),
-    )
-    .unwrap();
+      None,
+    );
 
-    Auth::UserPass(
-      rpc_user.into_string().expect("rpc_user is invalid UTF-8"),
-      rpc_pass.into_string().expect("rpc_pass is invalid UTF-8"),
-    )
-
-    // match (rpc_user, rpc_pass) {
-    //   (Some(rpc_user), Some(rpc_pass)) => Auth::UserPass(
-    //     rpc_user.into_string().expect("rpc_user is invalid UTF-8"),
-    //     rpc_pass.into_string().expect("rpc_pass is invalid UTF-8"),
-    //   ),
-    //   _ => Auth::CookieFile(self.cookie_file().unwrap()),
-    // }
+    match (rpc_user, rpc_pass) {
+      (Some(rpc_user), Some(rpc_pass)) => Auth::UserPass(
+        rpc_user.into_string().expect("rpc_user is invalid UTF-8"),
+        rpc_pass.into_string().expect("rpc_pass is invalid UTF-8"),
+      ),
+      _ => Auth::CookieFile(self.cookie_file().unwrap()),
+    }
   }
 
   pub(crate) fn bitcoin_rpc_client(&self) -> Result<Client> {
