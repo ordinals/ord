@@ -89,17 +89,19 @@ impl Entry for InscriptionId {
   }
 }
 
+type ParentValue = (u128, u128, u32);
+
 impl Entry for Option<InscriptionId> {
-  type Value = (u128, u128, u32);
+  type Value = ParentValue;
 
   fn load(value: Self::Value) -> Self {
     if (0, 0, u32::MAX) == value {
       None
     } else {
       let (head, tail, index) = value;
-      debug_assert_eq!(index, 0);
       let head_array = head.to_le_bytes();
       let tail_array = tail.to_le_bytes();
+      let index_array = index.to_be_bytes();
       let array = [
         head_array[0],
         head_array[1],
@@ -133,55 +135,22 @@ impl Entry for Option<InscriptionId> {
         tail_array[13],
         tail_array[14],
         tail_array[15],
+        index_array[0],
+        index_array[1],
+        index_array[2],
+        index_array[3],
       ];
-      let txid = Txid::load(array);
-      // TODO: do we want to handle inscriptions not at index 0
-      Some(InscriptionId::from(txid))
+
+      Some(InscriptionId::load(array))
     }
   }
-
+  // TODO: test head and tail byte order
   fn store(self) -> Self::Value {
     if let Some(inscription_id) = self {
       let txid_entry = inscription_id.txid.store();
-      let head = u128::from_le_bytes([
-        txid_entry[0],
-        txid_entry[1],
-        txid_entry[2],
-        txid_entry[3],
-        txid_entry[4],
-        txid_entry[5],
-        txid_entry[6],
-        txid_entry[7],
-        txid_entry[8],
-        txid_entry[9],
-        txid_entry[10],
-        txid_entry[11],
-        txid_entry[12],
-        txid_entry[13],
-        txid_entry[14],
-        txid_entry[15],
-      ]);
-
-      let tail = u128::from_le_bytes([
-        txid_entry[16 + 0],
-        txid_entry[16 + 1],
-        txid_entry[16 + 2],
-        txid_entry[16 + 3],
-        txid_entry[16 + 4],
-        txid_entry[16 + 5],
-        txid_entry[16 + 6],
-        txid_entry[16 + 7],
-        txid_entry[16 + 8],
-        txid_entry[16 + 9],
-        txid_entry[16 + 10],
-        txid_entry[16 + 11],
-        txid_entry[16 + 12],
-        txid_entry[16 + 13],
-        txid_entry[16 + 14],
-        txid_entry[16 + 15],
-      ]);
-
-      (head, tail, inscription_id.index)
+      let little_end = u128::from_le_bytes(txid_entry[..16].try_into().unwrap());
+      let big_end = u128::from_le_bytes(txid_entry[16..].try_into().unwrap());
+      (little_end, big_end, inscription_id.index)
     } else {
       (0, 0, u32::MAX)
     }
@@ -258,5 +227,88 @@ impl Entry for Txid {
 
   fn store(self) -> Self::Value {
     Txid::into_inner(self)
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn parent_entry() {
+    let inscription_id: Option<InscriptionId> = None;
+
+    assert_eq!(inscription_id.store(), (0, 0, u32::MAX));
+    assert_eq!(
+      <Option<InscriptionId> as Entry>::load((0, 0, u32::MAX)),
+      inscription_id
+    );
+
+    let inscription_id = Some(
+      "0000000000000000000000000000000000000000000000000000000000000000i0"
+        .parse::<InscriptionId>()
+        .unwrap(),
+    );
+
+    assert_eq!(inscription_id.store(), (0, 0, 0));
+    assert_eq!(
+      <Option<InscriptionId> as Entry>::load((0, 0, 0)),
+      inscription_id
+    );
+
+    let inscription_id = Some(
+      "ffffffffffffffffffffffffffffffff00000000000000000000000000000000i0"
+        .parse::<InscriptionId>()
+        .unwrap(),
+    );
+
+    assert_eq!(inscription_id.store(), (0, u128::MAX, 0));
+    assert_eq!(
+      <Option<InscriptionId> as Entry>::load((0, u128::MAX, 0)),
+      inscription_id
+    );
+  }
+
+  #[test]
+  fn parent_entry_individual_byte_order() {
+    let inscription_id = Some(
+      "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdefi0"
+        .parse::<InscriptionId>()
+        .unwrap(),
+    );
+
+    assert_eq!(
+      inscription_id.store(),
+      (
+        0x0123456789abcdef0123456789abcdef,
+        0x0123456789abcdef0123456789abcdef,
+        0
+      )
+    );
+
+    assert_eq!(
+      <Option<InscriptionId> as Entry>::load((
+        0x0123456789abcdef0123456789abcdef,
+        0x0123456789abcdef0123456789abcdef,
+        0
+      )),
+      inscription_id
+    );
+  }
+
+  #[test]
+  fn parent_entry_index() {
+    let inscription_id = Some(
+      "0000000000000000000000000000000000000000000000000000000000000000i1"
+        .parse::<InscriptionId>()
+        .unwrap(),
+    );
+
+    assert_eq!(inscription_id.store(), (0, 0, 1));
+
+    assert_eq!(
+      <Option<InscriptionId> as Entry>::load((0, 0, 1)),
+      inscription_id
+    );
   }
 }

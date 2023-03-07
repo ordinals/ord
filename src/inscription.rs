@@ -20,7 +20,7 @@ const PARENT_TAG: &[u8] = &[3];
 
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) struct Inscription {
-  parent: Option<Vec<u8>>,
+  parent: Option<InscriptionId>,
   content_type: Option<Vec<u8>>,
   body: Option<Vec<u8>>,
 }
@@ -28,7 +28,7 @@ pub(crate) struct Inscription {
 impl Inscription {
   #[cfg(test)]
   pub(crate) fn new(
-    parent: Option<Vec<u8>>,
+    parent: Option<InscriptionId>,
     content_type: Option<Vec<u8>>,
     body: Option<Vec<u8>>,
   ) -> Self {
@@ -65,14 +65,6 @@ impl Inscription {
 
     let content_type = Media::content_type_for_path(path)?;
 
-    let parent = if let Some(inscription_id) = parent {
-      let mut vec = inscription_id.txid.to_vec();
-      vec.push(inscription_id.index.try_into().unwrap());
-      Some(vec)
-    } else {
-      None
-    };
-
     Ok(Self {
       parent,
       body: Some(body),
@@ -87,7 +79,7 @@ impl Inscription {
       .push_slice(PROTOCOL_ID);
 
     if let Some(parent) = &self.parent {
-      builder = builder.push_slice(PARENT_TAG).push_slice(parent);
+      builder = builder.push_slice(PARENT_TAG).push_slice(&parent.store());
     }
 
     if let Some(content_type) = &self.content_type {
@@ -139,15 +131,7 @@ impl Inscription {
   }
 
   pub(crate) fn get_parent_id(&self) -> Option<InscriptionId> {
-    if let Some(vec) = &self.parent {
-      vec
-        .clone()
-        .try_into()
-        .ok()
-        .map(|vec| InscriptionId::load(vec))
-    } else {
-      None
-    }
+    self.parent
   }
 
   #[cfg(test)]
@@ -279,7 +263,7 @@ impl<'a> InscriptionParser<'a> {
       return Ok(Some(Inscription {
         body,
         content_type,
-        parent,
+        parent: parent.map(|parent| InscriptionId::load(parent.as_slice().try_into().unwrap())),
       }));
     }
 

@@ -73,15 +73,13 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
   pub(super) fn index_transaction_inscriptions(
     &mut self,
     tx: &Transaction,
-    txid: Txid, // we can calulcate this from tx. Is this expensive?
+    txid: Txid,
     input_sat_ranges: Option<&VecDeque<(u64, u64)>>,
   ) -> Result<u64> {
     let mut inscriptions = Vec::new();
 
-    // go through all flotsam and ensure parent is there
     let mut input_value = 0;
     for tx_in in &tx.input {
-      // if coinbase
       if tx_in.previous_output.is_null() {
         input_value += Height(self.height).subsidy();
       } else {
@@ -113,7 +111,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       }
     }
 
-    // make sure no re-inscriptions
+    // TODO: find a different way to 
+    // TODO: handle re-inscriptions properly
     if inscriptions.iter().all(|flotsam| flotsam.offset != 0) {
       if let Some(inscription) = Inscription::from_transaction(tx) {
         let parent = if let Some(parent_id) = inscription.get_parent_id() {
@@ -132,7 +131,10 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         inscriptions.push(Flotsam {
           inscription_id: txid.into(),
           offset: 0,
-          origin: Origin::New((input_value - tx.output.iter().map(|txout| txout.value).sum::<u64>(), parent)),
+          origin: Origin::New((
+            input_value - tx.output.iter().map(|txout| txout.value).sum::<u64>(),
+            parent,
+          )),
         });
       }
     };
@@ -169,6 +171,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
         self.update_inscription_location(
           input_sat_ranges,
+          // TODO: something with two inscriptions in the input
           inscriptions.next().unwrap(),
           new_satpoint,
         )?;

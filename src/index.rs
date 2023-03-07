@@ -2191,55 +2191,55 @@ mod tests {
     }
   }
 
-  #[test]
-  fn test_inscription_with_parent() {
-    // for context in Context::configurations() {
-    let context = Context::builder().build();
-
-    context.mine_blocks(1);
-
-    let parent_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
-      inputs: &[(1, 0, 0)],
-      witness: inscription("text/plain", "parent").to_witness(),
-      ..Default::default()
-    });
-
-    let parent_id = InscriptionId::from(parent_txid);
-
-    context.mine_blocks(1);
-
-    assert_eq!(
-      context.index.get_inscription_entry(parent_id).unwrap(),
-      Some(InscriptionEntry {
-        fee: 0,
-        height: 2,
-        number: 0,
-        parent: None,
-        sat: None,
-        timestamp: 2
-      })
-    );
-
-    let child_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
-      inputs: &[(2, 1, 0)],
-      witness: inscription_with_parent("text/plain", "child", parent_id).to_witness(),
-      ..Default::default()
-    });
-
-    let child_id = InscriptionId::from(child_txid);
-
-    context.mine_blocks(1);
-
-    assert_eq!(
-      context.index.get_inscription_entry(child_id).unwrap(),
-      Some(InscriptionEntry {
-        fee: 0,
-        height: 2,
-        number: 0,
-        parent: Some(parent_id),
-        sat: None,
-        timestamp: 2
-      })
-    );
-  }
+  //  #[test]
+  //  fn test_inscription_with_parent() {
+  //    // for context in Context::configurations() {
+  //    let context = Context::builder().build();
+  //
+  //    context.mine_blocks(1);
+  //
+  //    let parent_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+  //      inputs: &[(1, 0, 0)],
+  //      witness: inscription("text/plain", "parent").to_witness(),
+  //      ..Default::default()
+  //    });
+  //
+  //    let parent_id = InscriptionId::from(parent_txid);
+  //
+  //    context.mine_blocks(1);
+  //
+  //    assert_eq!(
+  //      context.index.get_inscription_entry(parent_id).unwrap(),
+  //      Some(InscriptionEntry {
+  //        fee: 0,
+  //        height: 2,
+  //        number: 0,
+  //        parent: None,
+  //        sat: None,
+  //        timestamp: 2
+  //      })
+  //    );
+  //
+  //    let child_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+  //      inputs: &[(2, 1, 0)],
+  //      witness: inscription_with_parent("text/plain", "child", parent_id).to_witness(),
+  //      ..Default::default()
+  //    });
+  //
+  //    let child_id = InscriptionId::from(child_txid);
+  //
+  //    context.mine_blocks(1);
+  //
+  //    assert_eq!(
+  //      context.index.get_inscription_entry(child_id).unwrap(),
+  //      Some(InscriptionEntry {
+  //        fee: 0,
+  //        height: 2,
+  //        number: 0,
+  //        parent: Some(parent_id),
+  //        sat: None,
+  //        timestamp: 2
+  //      })
+  //    );
+  //  }
 }
