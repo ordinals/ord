@@ -1,5 +1,4 @@
-use super::*;
-use crate::command_builder::ToArgs;
+use {super::*, crate::command_builder::ToArgs};
 
 #[test]
 fn custom_index_path() {

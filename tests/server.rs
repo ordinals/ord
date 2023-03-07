@@ -1,6 +1,4 @@
-use crate::command_builder::ToArgs;
-
-use super::*;
+use {super::*, crate::command_builder::ToArgs};
 
 #[test]
 fn run() {

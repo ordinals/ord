@@ -96,7 +96,7 @@ impl Updater {
       Some(progress_bar)
     };
 
-    let rx = Self::fetch_blocks_from(index, self.height, self.index_sats, index.options.clone())?;
+    let rx = Self::fetch_blocks_from(index, self.height, self.index_sats)?;
 
     let (mut outpoint_sender, mut value_receiver) = Self::spawn_fetcher(index)?;
 
@@ -179,13 +179,12 @@ impl Updater {
     index: &Index,
     mut height: u64,
     index_sats: bool,
-    options: Options,
   ) -> Result<mpsc::Receiver<BlockData>> {
     let (tx, rx) = mpsc::sync_channel(32);
 
     let height_limit = index.height_limit;
 
-    let client = options.bitcoin_rpc_client()?;
+    let client = index.options.bitcoin_rpc_client()?;
 
     let first_inscription_height = index.first_inscription_height;
 

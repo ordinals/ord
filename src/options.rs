@@ -152,25 +152,19 @@ impl Options {
   pub(crate) fn auth(&self) -> Auth {
     log::info!("Connecting to Bitcoin Core at {}", self.rpc_url());
 
+    let config = self.load_config().unwrap();
+
     let rpc_user = Options::derive_var(
-      self.rpc_user.clone().map(|string| string.into()),
+      self.rpc_user.as_ref().map(|string| string.into()),
       env::var_os("RPC_USER"),
-      self
-        .load_config()
-        .unwrap()
-        .rpc_user
-        .map(|string| string.into()),
+      config.rpc_user.map(|string| string.into()),
       None,
     );
 
     let rpc_pass = Options::derive_var(
-      self.rpc_pass.clone().map(|string| string.into()),
+      self.rpc_pass.as_ref().map(|string| string.into()),
       env::var_os("RPC_PASS"),
-      self
-        .load_config()
-        .unwrap()
-        .rpc_pass
-        .map(|string| string.into()),
+      config.rpc_pass.map(|string| string.into()),
       None,
     );
 
