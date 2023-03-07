@@ -343,7 +343,9 @@ impl Updater {
 
     let mut outpoint_to_value = wtx.open_table(OUTPOINT_TO_VALUE)?;
 
-    if !self.index_sats {
+    let index_inscriptions = self.height >= index.first_inscription_height;
+
+    if index_inscriptions {
       // Send all missing input outpoints to be fetched right away
       let txids = block
         .txdata
@@ -475,6 +477,7 @@ impl Updater {
           &mut sat_ranges_written,
           &mut outputs_in_block,
           &mut inscription_updater,
+          index_inscriptions,
         )?;
 
         coinbase_inputs.extend(input_sat_ranges);
@@ -489,6 +492,7 @@ impl Updater {
           &mut sat_ranges_written,
           &mut outputs_in_block,
           &mut inscription_updater,
+          index_inscriptions,
         )?;
       }
 
@@ -547,8 +551,11 @@ impl Updater {
     sat_ranges_written: &mut u64,
     outputs_traversed: &mut u64,
     inscription_updater: &mut InscriptionUpdater,
+    index_inscriptions: bool,
   ) -> Result {
-    inscription_updater.index_transaction_inscriptions(tx, txid, Some(input_sat_ranges))?;
+    if index_inscriptions {
+      inscription_updater.index_transaction_inscriptions(tx, txid, Some(input_sat_ranges))?;
+    }
 
     for (vout, output) in tx.output.iter().enumerate() {
       let outpoint = OutPoint {
