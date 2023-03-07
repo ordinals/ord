@@ -146,14 +146,14 @@ const INTERRUPT_LIMIT: u64 = 5;
 pub fn main() {
   env_logger::init();
 
-  println!("Detected Ctrl-C, attempting to shut down ord gracefully. Press Ctrl-C {INTERRUPT_LIMIT} times to force shutdown.");
-
   ctrlc::set_handler(move || {
     LISTENERS
       .lock()
       .unwrap()
       .iter()
       .for_each(|handle| handle.graceful_shutdown(Some(Duration::from_millis(100))));
+
+    println!("Detected Ctrl-C, attempting to shut down ord gracefully. Press Ctrl-C {INTERRUPT_LIMIT} times to force shutdown.");
 
     let interrupts = INTERRUPTS.fetch_add(1, atomic::Ordering::Relaxed);
 
