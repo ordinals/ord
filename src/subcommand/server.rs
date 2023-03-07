@@ -859,6 +859,7 @@ impl Server {
         next,
         number: entry.number,
         output,
+        parent: entry.parent,
         previous,
         sat: entry.sat,
         satpoint,

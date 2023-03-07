@@ -409,14 +409,25 @@ fn inscribe_with_parent_inscription() {
 
   rpc_server.mine_blocks(1);
 
-  assert_eq!(
-    parent_id,
-    CommandBuilder::new(format!("wallet inscribe --parent {parent_id} child.png"))
-      .write("child.png", [1; 520])
-      .rpc_server(&rpc_server)
-      .output::<Inscribe>()
-      .parent
-      .unwrap()
+  TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
+    format!("/inscription/{parent_id}"),
+    format!(".*"),
+  );
+
+  let child_output = CommandBuilder::new(format!("wallet inscribe --parent {parent_id} child.png"))
+    .write("child.png", [1; 520])
+    .rpc_server(&rpc_server)
+    .output::<Inscribe>();
+
+  rpc_server.mine_blocks(1);
+
+  assert_eq!(parent_id, child_output.parent.unwrap());
+
+  println!("{}", child_output.inscription);
+
+  TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
+    format!("/inscription/{}", child_output.inscription),
+    format!(".*parent.*{}", parent_id),
   );
 }
 
@@ -431,7 +442,9 @@ fn inscribe_with_non_existent_parent_inscription() {
   CommandBuilder::new(format!("wallet inscribe --parent {parent_id} child.png"))
     .write("child.png", [1; 520])
     .rpc_server(&rpc_server)
-    .expected_stderr(format!("error: specified parent {parent_id} does not exist\n"))
+    .expected_stderr(format!(
+      "error: specified parent {parent_id} does not exist\n"
+    ))
     .expected_exit_code(1)
     .run();
 }
