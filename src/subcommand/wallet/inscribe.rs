@@ -346,18 +346,22 @@ impl Inscribe {
 
     let mut sighash_cache = SighashCache::new(&mut reveal_tx);
 
-    let signature_hash = sighash_cache
-      .taproot_script_spend_signature_hash(
+    let signature_hash = if let Some(_parent) = parent {
+      sighash_cache.taproot_script_spend_signature_hash(
         commit_input_offset,
         &Prevouts::One(commit_input_offset, output),
         TapLeafHash::from_script(&reveal_script, LeafVersion::TapScript),
-        if let Some(_parent) = parent {
-          SchnorrSighashType::AllPlusAnyoneCanPay
-        } else {
-          SchnorrSighashType::Default
-        },
+        SchnorrSighashType::AllPlusAnyoneCanPay,
       )
-      .expect("signature hash should compute");
+    } else {
+      sighash_cache.taproot_script_spend_signature_hash(
+        commit_input_offset,
+        &Prevouts::All(&[output]),
+        TapLeafHash::from_script(&reveal_script, LeafVersion::TapScript),
+        SchnorrSighashType::Default,
+      )
+    }
+    .expect("signature hash should compute");
 
     let signature = secp256k1.sign_schnorr(
       &secp256k1::Message::from_slice(signature_hash.as_inner())
