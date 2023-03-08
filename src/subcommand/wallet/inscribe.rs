@@ -30,10 +30,7 @@ struct Output {
 pub(crate) struct Inscribe {
   #[clap(long, help = "Inscribe <SATPOINT>")]
   pub(crate) satpoint: Option<SatPoint>,
-  #[clap(
-    long,
-    help = "Use fee rate of <FEE_RATE> sats/vB"
-  )]
+  #[clap(long, help = "Use fee rate of <FEE_RATE> sats/vB")]
   pub(crate) fee_rate: FeeRate,
   #[clap(
     long,

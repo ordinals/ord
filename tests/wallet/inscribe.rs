@@ -156,12 +156,14 @@ fn refuse_to_reinscribe_sats() {
 
   rpc_server.mine_blocks_with_subsidy(1, 100);
 
-  CommandBuilder::new(format!("wallet inscribe --satpoint {reveal}:0:0 hello.txt --fee-rate 1"))
-    .write("hello.txt", "HELLOWORLD")
-    .rpc_server(&rpc_server)
-    .expected_exit_code(1)
-    .expected_stderr(format!("error: sat at {reveal}:0:0 already inscribed\n"))
-    .run();
+  CommandBuilder::new(format!(
+    "wallet inscribe --satpoint {reveal}:0:0 hello.txt --fee-rate 1"
+  ))
+  .write("hello.txt", "HELLOWORLD")
+  .rpc_server(&rpc_server)
+  .expected_exit_code(1)
+  .expected_stderr(format!("error: sat at {reveal}:0:0 already inscribed\n"))
+  .run();
 }
 
 #[test]
@@ -198,11 +200,12 @@ fn inscribe_with_optional_satpoint_arg() {
   create_wallet(&rpc_server);
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  let Inscribe { inscription, .. } =
-    CommandBuilder::new(format!("wallet inscribe foo.txt --satpoint {txid}:0:0 --fee-rate 1"))
-      .write("foo.txt", "FOO")
-      .rpc_server(&rpc_server)
-      .output();
+  let Inscribe { inscription, .. } = CommandBuilder::new(format!(
+    "wallet inscribe foo.txt --satpoint {txid}:0:0 --fee-rate 1"
+  ))
+  .write("foo.txt", "FOO")
+  .rpc_server(&rpc_server)
+  .output();
 
   rpc_server.mine_blocks(1);
 
@@ -262,10 +265,12 @@ fn inscribe_with_commit_fee_rate() {
   create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
-  CommandBuilder::new("--index-sats wallet inscribe degenerate.png --commit-fee-rate 2.0 --fee-rate 1")
-    .write("degenerate.png", [1; 520])
-    .rpc_server(&rpc_server)
-    .output::<Inscribe>();
+  CommandBuilder::new(
+    "--index-sats wallet inscribe degenerate.png --commit-fee-rate 2.0 --fee-rate 1",
+  )
+  .write("degenerate.png", [1; 520])
+  .rpc_server(&rpc_server)
+  .output::<Inscribe>();
 
   let tx1 = &rpc_server.mempool()[0];
   let mut fee = 0;
@@ -340,11 +345,12 @@ fn inscribe_with_dry_run_flag_fees_inscrease() {
   create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
-  let total_fee_dry_run = CommandBuilder::new("wallet inscribe --dry-run degenerate.png --fee-rate 1")
-    .write("degenerate.png", [1; 520])
-    .rpc_server(&rpc_server)
-    .output::<Inscribe>()
-    .fees;
+  let total_fee_dry_run =
+    CommandBuilder::new("wallet inscribe --dry-run degenerate.png --fee-rate 1")
+      .write("degenerate.png", [1; 520])
+      .rpc_server(&rpc_server)
+      .output::<Inscribe>()
+      .fees;
 
   let total_fee_normal =
     CommandBuilder::new("wallet inscribe --dry-run degenerate.png --fee-rate 1.1")
