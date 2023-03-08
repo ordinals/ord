@@ -259,31 +259,32 @@ impl Inscribe {
 
     let commit_tx_address = Address::p2tr_tweaked(taproot_spend_info.output_key(), network);
 
-    let (mut inputs, mut outputs, commit_input_offset) = if let Some((satpoint, output)) = parent {
-      (
-        vec![satpoint.outpoint, OutPoint::null()],
-        vec![
-          TxOut {
-            script_pubkey: output.script_pubkey,
-            value: output.value,
-          },
-          TxOut {
+    let (mut inputs, mut outputs, commit_input_offset) =
+      if let Some((satpoint, output)) = parent.clone() {
+        (
+          vec![satpoint.outpoint, OutPoint::null()],
+          vec![
+            TxOut {
+              script_pubkey: output.script_pubkey,
+              value: output.value,
+            },
+            TxOut {
+              script_pubkey: destination.script_pubkey(),
+              value: 0,
+            },
+          ],
+          1,
+        )
+      } else {
+        (
+          vec![OutPoint::null()],
+          vec![TxOut {
             script_pubkey: destination.script_pubkey(),
             value: 0,
-          },
-        ],
-        1,
-      )
-    } else {
-      (
-        vec![OutPoint::null()],
-        vec![TxOut {
-          script_pubkey: destination.script_pubkey(),
-          value: 0,
-        }],
-        0,
-      )
-    };
+          }],
+          0,
+        )
+      };
 
     let (_, reveal_fee) = Self::build_reveal_transaction(
       &control_block,
@@ -350,7 +351,11 @@ impl Inscribe {
         commit_input_offset,
         &Prevouts::One(commit_input_offset, output),
         TapLeafHash::from_script(&reveal_script, LeafVersion::TapScript),
-        SchnorrSighashType::AllPlusAnyoneCanPay,
+        if let Some(_parent) = parent {
+          SchnorrSighashType::AllPlusAnyoneCanPay
+        } else {
+          SchnorrSighashType::Default
+        },
       )
       .expect("signature hash should compute");
 
