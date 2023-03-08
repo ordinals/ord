@@ -14,6 +14,7 @@ pub(crate) struct InscriptionHtml {
   pub(crate) sat: Option<Sat>,
   pub(crate) satpoint: SatPoint,
   pub(crate) timestamp: DateTime<Utc>,
+  pub(crate) metadata: Option<&'static str>,
 }
 
 impl PageContent for InscriptionHtml {
@@ -46,6 +47,7 @@ mod tests {
         sat: None,
         satpoint: satpoint(1, 0),
         timestamp: timestamp(0),
+        metadata: Some("Hello"),
       },
       "
         <h1>Inscription 1</h1>
@@ -83,6 +85,8 @@ mod tests {
           <dd><a class=monospace href=/output/1{64}:1>1{64}:1</a></dd>
           <dt>offset</dt>
           <dd>0</dd>
+          <dt>metadata</dt>
+          <dd>Hello</dd>
         </dl>
       "
       .unindent()
@@ -105,6 +109,7 @@ mod tests {
         sat: Some(Sat(1)),
         satpoint: satpoint(1, 0),
         timestamp: timestamp(0),
+        metadata: None,
       },
       "
         <h1>Inscription 1</h1>
@@ -137,6 +142,7 @@ mod tests {
         sat: None,
         satpoint: satpoint(1, 0),
         timestamp: timestamp(0),
+        metadata: None,
       },
       "
         <h1>Inscription 1</h1>

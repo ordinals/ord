@@ -20,19 +20,20 @@ const CONTENT_TYPE_TAG: &[u8] = &[1];
 pub(crate) struct Inscription {
   body: Option<Vec<u8>>,
   content_type: Option<Vec<u8>>,
+  pub metadata: Option<&'static str>,
 }
 
 impl Inscription {
   #[cfg(test)]
   pub(crate) fn new(content_type: Option<Vec<u8>>, body: Option<Vec<u8>>) -> Self {
-    Self { content_type, body }
+    Self { content_type, body, metadata: None }
   }
 
   pub(crate) fn from_transaction(tx: &Transaction) -> Option<Inscription> {
     InscriptionParser::parse(&tx.input.get(0)?.witness).ok()
   }
 
-  pub(crate) fn from_file(chain: Chain, path: impl AsRef<Path>) -> Result<Self, Error> {
+  pub(crate) fn from_file(chain: Chain, path: impl AsRef<Path>, metadata: Option<&'static str>) -> Result<Self, Error> {
     let path = path.as_ref();
 
     let body = fs::read(path).with_context(|| format!("io error reading {}", path.display()))?;
@@ -49,6 +50,7 @@ impl Inscription {
     Ok(Self {
       body: Some(body),
       content_type: Some(content_type.into()),
+      metadata
     })
   }
 
@@ -222,7 +224,6 @@ impl<'a> InscriptionParser<'a> {
 
       let body = fields.remove(BODY_TAG);
       let content_type = fields.remove(CONTENT_TYPE_TAG);
-
       for tag in fields.keys() {
         if let Some(lsb) = tag.first() {
           if lsb % 2 == 0 {
@@ -231,7 +232,7 @@ impl<'a> InscriptionParser<'a> {
         }
       }
 
-      return Ok(Some(Inscription { body, content_type }));
+      return Ok(Some(Inscription { body, content_type, metadata: None }));
     }
 
     Ok(None)
@@ -374,6 +375,7 @@ mod tests {
       Ok(Inscription {
         content_type: Some(b"text/plain;charset=utf-8".to_vec()),
         body: None,
+        metadata: None,
       }),
     );
   }
@@ -385,6 +387,7 @@ mod tests {
       Ok(Inscription {
         content_type: None,
         body: Some(b"foo".to_vec()),
+        metadata: None,
       }),
     );
   }
@@ -707,6 +710,7 @@ mod tests {
       &Inscription {
         content_type: None,
         body: None,
+        metadata: None,
       }
       .append_reveal_script(script::Builder::new()),
     );
@@ -718,6 +722,7 @@ mod tests {
       Inscription {
         content_type: None,
         body: None,
+        metadata: None,
       }
     );
   }
@@ -729,6 +734,7 @@ mod tests {
       Ok(Inscription {
         content_type: None,
         body: None,
+        metadata: None,
       }),
     );
   }

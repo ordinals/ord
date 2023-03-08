@@ -51,4 +51,8 @@
   <dd><a class=monospace href=/output/{{ self.satpoint.outpoint }}>{{ self.satpoint.outpoint }}</a></dd>
   <dt>offset</dt>
   <dd>{{ self.satpoint.offset }}</dd>
+%% if let Some(metadata) = self.metadata {
+  <dt>metadata</dt>
+  <dd>{{ metadata }}</dd>
+%% }
 </dl>
