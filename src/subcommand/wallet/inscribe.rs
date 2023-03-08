@@ -92,7 +92,9 @@ impl Inscribe {
 
     utxos.insert(
       reveal_tx.input[0].previous_output,
-      Amount::from_sat(unsigned_commit_tx.output[0].value),
+      Amount::from_sat(
+        unsigned_commit_tx.output[reveal_tx.input[0].previous_output.vout as usize].value,
+      ),
     );
 
     let fees =
