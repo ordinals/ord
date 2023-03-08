@@ -40,11 +40,11 @@ impl Inscription {
   }
 
   pub(crate) fn from_transaction(tx: &Transaction) -> Option<Inscription> {
-    // let mut inscriptions = Vec::new();
-    // for input in tx.input {
-    // InscriptionParser::parse(input.witness).ok()
-    // }
     InscriptionParser::parse(&tx.input.get(0)?.witness).ok()
+  }
+
+  pub(crate) fn from_tx_input(tx_in: &TxIn) -> Option<Inscription> {
+    InscriptionParser::parse(&tx_in.witness).ok()
   }
 
   pub(crate) fn from_file(
