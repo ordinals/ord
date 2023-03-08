@@ -32,7 +32,6 @@ pub(crate) struct Inscribe {
   pub(crate) satpoint: Option<SatPoint>,
   #[clap(
     long,
-    default_value = "1.0",
     help = "Use fee rate of <FEE_RATE> sats/vB"
   )]
   pub(crate) fee_rate: FeeRate,
