@@ -825,7 +825,7 @@ impl Server {
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
     
-    let metadata = inscription.metadata;
+    let metadata = inscription.metadata();
 
     let satpoint = index
       .get_inscription_satpoint_by_id(inscription_id)?

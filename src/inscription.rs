@@ -20,7 +20,7 @@ const CONTENT_TYPE_TAG: &[u8] = &[1];
 pub(crate) struct Inscription {
   body: Option<Vec<u8>>,
   content_type: Option<Vec<u8>>,
-  pub metadata: Option<&'static str>,
+  metadata: Option<&'static str>,
 }
 
 impl Inscription {
@@ -98,6 +98,10 @@ impl Inscription {
 
   pub(crate) fn into_body(self) -> Option<Vec<u8>> {
     self.body
+  }
+
+  pub(crate) fn metadata(&self) -> Option<&'static str> {
+    self.metadata
   }
 
   pub(crate) fn content_length(&self) -> Option<usize> {
