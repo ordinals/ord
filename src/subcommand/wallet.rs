@@ -18,6 +18,7 @@ pub mod balance;
 pub mod create;
 pub(crate) mod inscribe;
 pub mod inscriptions;
+mod offer;
 pub mod outputs;
 pub mod receive;
 mod restore;
@@ -48,6 +49,8 @@ pub(crate) enum Wallet {
   Transactions(transactions::Transactions),
   #[clap(about = "List wallet outputs")]
   Outputs,
+  #[clap(about = "Create an offer for an inscription")]
+  Offer(offer::Offer),
 }
 
 impl Wallet {
@@ -63,6 +66,7 @@ impl Wallet {
       Self::Send(send) => send.run(options),
       Self::Transactions(transactions) => transactions.run(options),
       Self::Outputs => outputs::run(options),
+      Self::Offer(offer) => offer.run(options),
     }
   }
 }
