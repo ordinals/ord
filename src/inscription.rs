@@ -15,6 +15,7 @@ const PROTOCOL_ID: &[u8] = b"ord";
 
 const BODY_TAG: &[u8] = &[];
 const CONTENT_TYPE_TAG: &[u8] = &[1];
+const METADATA_TAG: &[u8] = &[2];
 
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) struct Inscription {
@@ -26,14 +27,22 @@ pub(crate) struct Inscription {
 impl Inscription {
   #[cfg(test)]
   pub(crate) fn new(content_type: Option<Vec<u8>>, body: Option<Vec<u8>>) -> Self {
-    Self { content_type, body, metadata: None }
+    Self {
+      content_type,
+      body,
+      metadata: None,
+    }
   }
 
   pub(crate) fn from_transaction(tx: &Transaction) -> Option<Inscription> {
     InscriptionParser::parse(&tx.input.get(0)?.witness).ok()
   }
 
-  pub(crate) fn from_file(chain: Chain, path: impl AsRef<Path>, metadata: Option<&'static str>) -> Result<Self, Error> {
+  pub(crate) fn from_file(
+    chain: Chain,
+    path: impl AsRef<Path>,
+    metadata: Option<&'static str>,
+  ) -> Result<Self, Error> {
     let path = path.as_ref();
 
     let body = fs::read(path).with_context(|| format!("io error reading {}", path.display()))?;
@@ -50,7 +59,7 @@ impl Inscription {
     Ok(Self {
       body: Some(body),
       content_type: Some(content_type.into()),
-      metadata
+      metadata,
     })
   }
 
@@ -59,6 +68,12 @@ impl Inscription {
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
       .push_slice(PROTOCOL_ID);
+
+    if let Some(metadata) = &self.metadata {
+      builder = builder
+        .push_slice(METADATA_TAG)
+        .push_slice(metadata.as_bytes());
+    }
 
     if let Some(content_type) = &self.content_type {
       builder = builder
@@ -204,7 +219,7 @@ impl<'a> InscriptionParser<'a> {
       }
 
       let mut fields = BTreeMap::new();
-
+      
       loop {
         match self.advance()? {
           Instruction::PushBytes(BODY_TAG) => {
@@ -228,6 +243,7 @@ impl<'a> InscriptionParser<'a> {
 
       let body = fields.remove(BODY_TAG);
       let content_type = fields.remove(CONTENT_TYPE_TAG);
+      let metadata = fields.remove(METADATA_TAG);
       for tag in fields.keys() {
         if let Some(lsb) = tag.first() {
           if lsb % 2 == 0 {
@@ -236,7 +252,16 @@ impl<'a> InscriptionParser<'a> {
         }
       }
 
-      return Ok(Some(Inscription { body, content_type, metadata: None }));
+      let metadata = if let Some(metadata) = metadata {
+        Some(Box::leak(String::from_utf8(metadata).unwrap().into_boxed_str()) as &str)
+      } else {
+        None
+      };
+      return Ok(Some(Inscription {
+        body,
+        content_type,
+        metadata,
+      }));
     }
 
     Ok(None)
@@ -331,8 +356,6 @@ mod tests {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[
         b"ord",
-        &[1],
-        b"text/plain;charset=utf-8",
         &[1],
         b"text/plain;charset=utf-8",
         &[],
@@ -509,6 +532,8 @@ mod tests {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[
         b"ord",
+        &[2],
+        b"Hello World",
         &[1],
         b"text/plain;charset=utf-8",
         &[],
