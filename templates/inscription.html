@@ -21,6 +21,10 @@
 %% }
   <dt>output value</dt>
   <dd>{{ self.output.value }}</dd>
+%% if let Some(metadata) = self.inscription.metadata() {
+  <dt>metadata</dt>
+  <dd>{{ metadata }}</dd>
+%% }
 %% if let Some(sat) = self.sat {
   <dt>sat</dt>
   <dd><a href=/sat/{{sat}}>{{sat}}</a></dd>

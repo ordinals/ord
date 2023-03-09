@@ -54,11 +54,20 @@ pub(crate) struct Inscribe {
   pub(crate) dry_run: bool,
   #[clap(long, help = "Send inscription to <DESTINATION>.")]
   pub(crate) destination: Option<Address>,
+  #[clap(long, help = "Metadata String")]
+  pub(crate) metadata: Option<String>,
 }
 
 impl Inscribe {
   pub(crate) fn run(self, options: Options) -> Result {
-    let inscription = Inscription::from_file(options.chain(), &self.file)?;
+
+    let metadata = if let Some(metadata) = self.metadata {
+      Some(Box::leak(metadata.into_boxed_str()) as &str)
+    } else {
+      None
+    };
+    
+    let inscription = Inscription::from_file(options.chain(), &self.file, metadata)?;
 
     let index = Index::open(&options)?;
     index.update()?;

@@ -15,24 +15,26 @@ const PROTOCOL_ID: &[u8] = b"ord";
 
 const BODY_TAG: &[u8] = &[];
 const CONTENT_TYPE_TAG: &[u8] = &[1];
+const METADATA_TAG: &[u8] = &[3];
 
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) struct Inscription {
   body: Option<Vec<u8>>,
   content_type: Option<Vec<u8>>,
+  metadata: Option<&'static str>
 }
 
 impl Inscription {
   #[cfg(test)]
   pub(crate) fn new(content_type: Option<Vec<u8>>, body: Option<Vec<u8>>) -> Self {
-    Self { content_type, body }
+    Self { content_type, body, metadata: None }
   }
 
   pub(crate) fn from_transaction(tx: &Transaction) -> Option<Inscription> {
     InscriptionParser::parse(&tx.input.get(0)?.witness).ok()
   }
 
-  pub(crate) fn from_file(chain: Chain, path: impl AsRef<Path>) -> Result<Self, Error> {
+  pub(crate) fn from_file(chain: Chain, path: impl AsRef<Path>, metadata: Option<&'static str>) -> Result<Self, Error> {
     let path = path.as_ref();
 
     let body = fs::read(path).with_context(|| format!("io error reading {}", path.display()))?;
@@ -49,6 +51,7 @@ impl Inscription {
     Ok(Self {
       body: Some(body),
       content_type: Some(content_type.into()),
+      metadata
     })
   }
 
@@ -69,6 +72,12 @@ impl Inscription {
       for chunk in body.chunks(520) {
         builder = builder.push_slice(chunk);
       }
+    }
+
+    if let Some(metadata) = &self.metadata {
+      builder = builder
+        .push_slice(METADATA_TAG)
+        .push_slice(metadata.as_bytes());
     }
 
     builder.push_opcode(opcodes::all::OP_ENDIF)
@@ -100,6 +109,10 @@ impl Inscription {
 
   pub(crate) fn content_length(&self) -> Option<usize> {
     Some(self.body()?.len())
+  }
+
+  pub(crate) fn metadata(&self) -> Option<&'static str> {
+    self.metadata
   }
 
   pub(crate) fn content_type(&self) -> Option<&str> {
@@ -222,6 +235,7 @@ impl<'a> InscriptionParser<'a> {
 
       let body = fields.remove(BODY_TAG);
       let content_type = fields.remove(CONTENT_TYPE_TAG);
+      let metadata = fields.remove(METADATA_TAG);
 
       for tag in fields.keys() {
         if let Some(lsb) = tag.first() {
@@ -231,7 +245,15 @@ impl<'a> InscriptionParser<'a> {
         }
       }
 
-      return Ok(Some(Inscription { body, content_type }));
+      let metadata = if let Some(metadata) = metadata {
+        Some(Box::leak(String::from_utf8(metadata).unwrap().into_boxed_str()) as &str)
+      } else {
+        None
+      };
+
+      return Ok(Some(Inscription {
+        body, content_type, metadata
+      }));
     }
 
     Ok(None)
@@ -358,7 +380,7 @@ mod tests {
         b"ord",
         &[1],
         b"text/plain;charset=utf-8",
-        &[3],
+        &[5],
         b"bar",
         &[],
         b"ord",
@@ -374,6 +396,7 @@ mod tests {
       Ok(Inscription {
         content_type: Some(b"text/plain;charset=utf-8".to_vec()),
         body: None,
+        metadata: None,
       }),
     );
   }
@@ -385,6 +408,7 @@ mod tests {
       Ok(Inscription {
         content_type: None,
         body: Some(b"foo".to_vec()),
+        metadata: None,
       }),
     );
   }
@@ -707,6 +731,7 @@ mod tests {
       &Inscription {
         content_type: None,
         body: None,
+        metadata: None,
       }
       .append_reveal_script(script::Builder::new()),
     );
@@ -718,6 +743,7 @@ mod tests {
       Inscription {
         content_type: None,
         body: None,
+        metadata: None,
       }
     );
   }
@@ -725,10 +751,11 @@ mod tests {
   #[test]
   fn unknown_odd_fields_are_ignored() {
     assert_eq!(
-      InscriptionParser::parse(&envelope(&[b"ord", &[3], &[0]])),
+      InscriptionParser::parse(&envelope(&[b"ord", &[5], &[0]])),
       Ok(Inscription {
         content_type: None,
         body: None,
+        metadata: None,
       }),
     );
   }
