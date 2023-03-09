@@ -21,20 +21,20 @@ const METADATA_TAG: &[u8] = &[3];
 pub(crate) struct Inscription {
   body: Option<Vec<u8>>,
   content_type: Option<Vec<u8>>,
-  metadata: Option<&'static str>
+  metadata: Option<&'static str>,
 }
 
 impl Inscription {
   #[cfg(test)]
   pub(crate) fn new(content_type: Option<Vec<u8>>, body: Option<Vec<u8>>) -> Self {
-    Self { content_type, body, metadata: None }
+    Self { content_type, body, metadata: None, }
   }
 
   pub(crate) fn from_transaction(tx: &Transaction) -> Option<Inscription> {
     InscriptionParser::parse(&tx.input.get(0)?.witness).ok()
   }
 
-  pub(crate) fn from_file(chain: Chain, path: impl AsRef<Path>, metadata: Option<&'static str>) -> Result<Self, Error> {
+  pub(crate) fn from_file(chain: Chain, path: impl AsRef<Path>, metadata: Option<&'static str>,) -> Result<Self, Error> {
     let path = path.as_ref();
 
     let body = fs::read(path).with_context(|| format!("io error reading {}", path.display()))?;
@@ -51,7 +51,7 @@ impl Inscription {
     Ok(Self {
       body: Some(body),
       content_type: Some(content_type.into()),
-      metadata
+      metadata,
     })
   }
 
@@ -60,6 +60,12 @@ impl Inscription {
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
       .push_slice(PROTOCOL_ID);
+
+    if let Some(metadata) = &self.metadata {
+      builder = builder
+        .push_slice(METADATA_TAG)
+        .push_slice(metadata.as_bytes());
+    }
 
     if let Some(content_type) = &self.content_type {
       builder = builder
@@ -72,12 +78,6 @@ impl Inscription {
       for chunk in body.chunks(520) {
         builder = builder.push_slice(chunk);
       }
-    }
-
-    if let Some(metadata) = &self.metadata {
-      builder = builder
-        .push_slice(METADATA_TAG)
-        .push_slice(metadata.as_bytes());
     }
 
     builder.push_opcode(opcodes::all::OP_ENDIF)
@@ -252,7 +252,7 @@ impl<'a> InscriptionParser<'a> {
       };
 
       return Ok(Some(Inscription {
-        body, content_type, metadata
+        body, content_type, metadata,
       }));
     }
 
