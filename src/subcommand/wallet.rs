@@ -15,6 +15,7 @@ use {
 };
 
 pub mod balance;
+pub mod cardinals;
 pub mod create;
 pub(crate) mod inscribe;
 pub mod inscriptions;
@@ -48,6 +49,8 @@ pub(crate) enum Wallet {
   Transactions(transactions::Transactions),
   #[clap(about = "List wallet outputs")]
   Outputs,
+  #[clap(about = "List wallet cardinals")]
+  Cardinals,
 }
 
 impl Wallet {
@@ -63,6 +66,7 @@ impl Wallet {
       Self::Send(send) => send.run(options),
       Self::Transactions(transactions) => transactions.run(options),
       Self::Outputs => outputs::run(options),
+      Self::Cardinals => cardinals::run(options),
     }
   }
 }
