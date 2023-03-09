@@ -358,6 +358,8 @@ mod tests {
         b"ord",
         &[1],
         b"text/plain;charset=utf-8",
+        &[1],
+        b"text/plain;charset=utf-8",
         &[],
         b"ord",
       ])),
@@ -532,8 +534,6 @@ mod tests {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[
         b"ord",
-        &[2],
-        b"Hello World",
         &[1],
         b"text/plain;charset=utf-8",
         &[],
@@ -771,7 +771,7 @@ mod tests {
   #[test]
   fn unknown_even_fields_are_invalid() {
     assert_eq!(
-      InscriptionParser::parse(&envelope(&[b"ord", &[2], &[0]])),
+      InscriptionParser::parse(&envelope(&[b"ord", &[4], &[0]])),
       Err(InscriptionError::UnrecognizedEvenField),
     );
   }
