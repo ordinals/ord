@@ -15,7 +15,7 @@ const PROTOCOL_ID: &[u8] = b"ord";
 
 const BODY_TAG: &[u8] = &[];
 const CONTENT_TYPE_TAG: &[u8] = &[1];
-const METADATA_TAG: &[u8] = &[2];
+const METADATA_TAG: &[u8] = &[3];
 
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) struct Inscription {
@@ -388,7 +388,7 @@ mod tests {
         b"ord",
         &[1],
         b"text/plain;charset=utf-8",
-        &[3],
+        &[5],
         b"bar",
         &[],
         b"ord",
@@ -759,7 +759,7 @@ mod tests {
   #[test]
   fn unknown_odd_fields_are_ignored() {
     assert_eq!(
-      InscriptionParser::parse(&envelope(&[b"ord", &[3], &[0]])),
+      InscriptionParser::parse(&envelope(&[b"ord", &[5], &[0]])),
       Ok(Inscription {
         content_type: None,
         body: None,
@@ -771,7 +771,7 @@ mod tests {
   #[test]
   fn unknown_even_fields_are_invalid() {
     assert_eq!(
-      InscriptionParser::parse(&envelope(&[b"ord", &[4], &[0]])),
+      InscriptionParser::parse(&envelope(&[b"ord", &[2], &[0]])),
       Err(InscriptionError::UnrecognizedEvenField),
     );
   }
