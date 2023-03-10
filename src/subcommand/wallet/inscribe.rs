@@ -1,4 +1,4 @@
-use bitcoin::consensus::serialize;
+use bitcoin::{consensus::serialize, SchnorrSig};
 
 use {
   super::*,
@@ -165,7 +165,7 @@ impl Inscribe {
           .sign_raw_transaction_with_wallet(&partially_signed_reveal_tx, None, None)?
           .hex;
         // TODO: there is a bug here, the fully signed reveal TX no longer contains
-        // the inscription data
+        // the inscription data when backup key is in bitcoin core wallet
         log::debug!(
           "fully signed reveal tx: {}",
           hex::encode(serialize(&fully_signed_raw_reveal_tx))
@@ -188,10 +188,6 @@ impl Inscribe {
         fees,
       })?;
     };
-
-    // if self.parent.is_some() {
-    // println!("{}", partially_signed_reveal_tx.raw_hex());
-    // }
 
     Ok(())
   }
@@ -358,7 +354,7 @@ impl Inscribe {
 
     let mut sighash_cache = SighashCache::new(&mut reveal_tx);
 
-    let signature_hash = if let Some(_parent) = parent {
+    let signature_hash = if parent.is_some() {
       sighash_cache.taproot_script_spend_signature_hash(
         commit_input_offset,
         &Prevouts::One(commit_input_offset, output),
@@ -384,7 +380,15 @@ impl Inscribe {
     let witness = sighash_cache
       .witness_mut(commit_input_offset)
       .expect("getting mutable witness reference should work");
-    witness.push(signature.as_ref());
+    if parent.is_some() {
+      let encoded_sig = SchnorrSig {
+        sig: signature,
+        hash_ty: SchnorrSighashType::AllPlusAnyoneCanPay,
+      };
+      witness.push(encoded_sig.to_vec());
+    } else {
+      witness.push(signature.as_ref());
+    }
     witness.push(reveal_script);
     witness.push(&control_block.serialize());
 
