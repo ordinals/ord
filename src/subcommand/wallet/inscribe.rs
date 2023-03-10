@@ -160,6 +160,9 @@ impl Inscribe {
         "partially signed reveal tx: {}",
         hex::encode(serialize(&partially_signed_reveal_tx))
       );
+
+      // TODO: get Bitcoin Core to attach reveal witness
+      // after signing replace witness with correct one
       let reveal = if self.parent.is_some() {
         let fully_signed_raw_reveal_tx = client
           .sign_raw_transaction_with_wallet(&partially_signed_reveal_tx, None, None)?
