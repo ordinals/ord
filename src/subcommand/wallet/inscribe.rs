@@ -1,3 +1,5 @@
+use bitcoin::consensus::serialize;
+
 use {
   super::*,
   crate::wallet::Wallet,
@@ -154,10 +156,20 @@ impl Inscribe {
         .send_raw_transaction(&signed_raw_commit_tx)
         .context("Failed to send commit transaction")?;
 
+      log::debug!(
+        "partially signed reveal tx: {}",
+        hex::encode(serialize(&partially_signed_reveal_tx))
+      );
       let reveal = if self.parent.is_some() {
         let fully_signed_raw_reveal_tx = client
           .sign_raw_transaction_with_wallet(&partially_signed_reveal_tx, None, None)?
           .hex;
+        // TODO: there is a bug here, the fully signed reveal TX no longer contains
+        // the inscription data
+        log::debug!(
+          "fully signed reveal tx: {}",
+          hex::encode(serialize(&fully_signed_raw_reveal_tx))
+        );
 
         client
           .send_raw_transaction(&fully_signed_raw_reveal_tx)

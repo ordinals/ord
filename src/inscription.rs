@@ -263,7 +263,15 @@ impl<'a> InscriptionParser<'a> {
       return Ok(Some(Inscription {
         body,
         content_type,
-        parent: parent.map(|parent| InscriptionId::load(parent.as_slice().try_into().unwrap())),
+        parent: match parent {
+          None => None,
+          Some(bytes) => {
+            if bytes.len() != 36 {
+              return Err(InscriptionError::InvalidInscription)
+            }
+            Some(InscriptionId::load(bytes.as_slice().try_into().unwrap()))
+          }
+        },
       }));
     }
 
