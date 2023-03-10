@@ -1032,7 +1032,7 @@ mod tests {
     let inscription = inscription("text/plain;charset=utf-8", "hello");
     let template = TransactionTemplate {
       inputs: &[(1, 0, 0)],
-      witness: inscription.to_witness(),
+      witnesses: vec![inscription.to_witness()],
       ..Default::default()
     };
 
@@ -1378,7 +1378,7 @@ mod tests {
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
-        witness: inscription("text/plain", "hello").to_witness(),
+        witnesses: vec![inscription("text/plain", "hello").to_witness()],
         ..Default::default()
       });
       let inscription_id = InscriptionId::from(txid);
@@ -1403,7 +1403,7 @@ mod tests {
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
-        witness: inscription("text/plain", "hello").to_witness(),
+        witnesses: vec![inscription("text/plain", "hello").to_witness()],
         ..Default::default()
       });
       let inscription_id = InscriptionId::from(txid);
@@ -1447,7 +1447,7 @@ mod tests {
 
       let first_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
-        witness: inscription("text/plain", "hello").to_witness(),
+        witnesses: vec![inscription("text/plain", "hello").to_witness()],
         ..Default::default()
       });
 
@@ -1455,7 +1455,7 @@ mod tests {
 
       let second_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(2, 0, 0)],
-        witness: inscription("text/png", [1; 100]).to_witness(),
+        witnesses: vec![inscription("text/png", [1; 100]).to_witness()],
         ..Default::default()
       });
       let second_inscription_id = InscriptionId::from(second_txid);
@@ -1502,7 +1502,7 @@ mod tests {
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
-        witness: inscription("text/plain", "hello").to_witness(),
+        witnesses: vec![inscription("text/plain", "hello").to_witness()],
         ..Default::default()
       });
       let inscription_id = InscriptionId::from(txid);
@@ -1551,7 +1551,7 @@ mod tests {
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
-        witness: inscription("text/plain", "hello").to_witness(),
+        witnesses: vec![inscription("text/plain", "hello").to_witness()],
         ..Default::default()
       });
       let inscription_id = InscriptionId::from(txid);
@@ -1595,7 +1595,7 @@ mod tests {
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
-        witness: inscription("text/plain", "hello").to_witness(),
+        witnesses: vec![inscription("text/plain", "hello").to_witness()],
         ..Default::default()
       });
       let inscription_id = InscriptionId::from(txid);
@@ -1632,7 +1632,7 @@ mod tests {
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
         fee: 50 * COIN_VALUE,
-        witness: inscription("text/plain", "hello").to_witness(),
+        witnesses: vec![inscription("text/plain", "hello").to_witness()],
         ..Default::default()
       });
       let inscription_id = InscriptionId::from(txid);
@@ -1661,7 +1661,7 @@ mod tests {
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
         fee: 50 * COIN_VALUE,
-        witness: inscription("text/plain", "hello").to_witness(),
+        witnesses: vec![inscription("text/plain", "hello").to_witness()],
         ..Default::default()
       });
       let inscription_id = InscriptionId::from(txid);
@@ -1687,7 +1687,7 @@ mod tests {
       let first_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
         fee: 50 * COIN_VALUE,
-        witness: inscription("text/plain", "hello").to_witness(),
+        witnesses: vec![inscription("text/plain", "hello").to_witness()],
         ..Default::default()
       });
       let first_inscription_id = InscriptionId::from(first_txid);
@@ -1698,7 +1698,7 @@ mod tests {
       let second_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(3, 0, 0)],
         fee: 50 * COIN_VALUE,
-        witness: inscription("text/plain", "hello").to_witness(),
+        witnesses: vec![inscription("text/plain", "hello").to_witness()],
         ..Default::default()
       });
       let second_inscription_id = InscriptionId::from(second_txid);
@@ -1812,7 +1812,7 @@ mod tests {
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(2, 0, 0)],
         outputs: 2,
-        witness: inscription("text/plain", "hello").to_witness(),
+        witnesses: vec![inscription("text/plain", "hello").to_witness()],
         ..Default::default()
       });
       let inscription_id = InscriptionId::from(txid);
@@ -1844,7 +1844,7 @@ mod tests {
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
         outputs: 2,
-        witness: inscription("text/plain", "hello").to_witness(),
+        witnesses: vec![inscription("text/plain", "hello").to_witness()],
         output_values: &[0, 50 * COIN_VALUE],
         ..Default::default()
       });
@@ -1870,7 +1870,7 @@ mod tests {
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
         fee: 50 * COIN_VALUE,
-        witness: inscription("text/plain", "hello").to_witness(),
+        witnesses: vec![inscription("text/plain", "hello").to_witness()],
         ..Default::default()
       });
       let inscription_id = InscriptionId::from(txid);
@@ -1979,7 +1979,7 @@ mod tests {
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
-        witness: inscription("text/plain", "hello").to_witness(),
+        witnesses: vec![inscription("text/plain", "hello").to_witness()],
         ..Default::default()
       });
 
@@ -2038,7 +2038,7 @@ mod tests {
 
       let first = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
-        witness: inscription("text/plain", "hello").to_witness(),
+        witnesses: vec![inscription("text/plain", "hello").to_witness()],
         ..Default::default()
       });
 
@@ -2071,7 +2071,7 @@ mod tests {
 
       let second = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(2, 1, 0)],
-        witness: inscription("text/plain", "hello").to_witness(),
+        witnesses: vec![inscription("text/plain", "hello").to_witness()],
         ..Default::default()
       });
 
@@ -2110,7 +2110,7 @@ mod tests {
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
-        witness: inscription("text/plain", "hello").to_witness(),
+        witnesses: vec![inscription("text/plain", "hello").to_witness()],
         ..Default::default()
       });
       let inscription_id = InscriptionId::from(txid);
@@ -2137,7 +2137,7 @@ mod tests {
       for i in 0..103 {
         let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
           inputs: &[(i + 1, 0, 0)],
-          witness: inscription("text/plain", "hello").to_witness(),
+          witnesses: vec![inscription("text/plain", "hello").to_witness()],
           ..Default::default()
         });
         ids.push(InscriptionId::from(txid));
@@ -2191,55 +2191,75 @@ mod tests {
     }
   }
 
-  //  #[test]
-  //  fn test_inscription_with_parent() {
-  //    // for context in Context::configurations() {
-  //    let context = Context::builder().build();
-  //
-  //    context.mine_blocks(1);
-  //
-  //    let parent_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
-  //      inputs: &[(1, 0, 0)],
-  //      witness: inscription("text/plain", "parent").to_witness(),
-  //      ..Default::default()
-  //    });
-  //
-  //    let parent_id = InscriptionId::from(parent_txid);
-  //
-  //    context.mine_blocks(1);
-  //
-  //    assert_eq!(
-  //      context.index.get_inscription_entry(parent_id).unwrap(),
-  //      Some(InscriptionEntry {
-  //        fee: 0,
-  //        height: 2,
-  //        number: 0,
-  //        parent: None,
-  //        sat: None,
-  //        timestamp: 2
-  //      })
-  //    );
-  //
-  //    let child_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
-  //      inputs: &[(2, 1, 0)],
-  //      witness: inscription_with_parent("text/plain", "child", parent_id).to_witness(),
-  //      ..Default::default()
-  //    });
-  //
-  //    let child_id = InscriptionId::from(child_txid);
-  //
-  //    context.mine_blocks(1);
-  //
-  //    assert_eq!(
-  //      context.index.get_inscription_entry(child_id).unwrap(),
-  //      Some(InscriptionEntry {
-  //        fee: 0,
-  //        height: 2,
-  //        number: 0,
-  //        parent: Some(parent_id),
-  //        sat: None,
-  //        timestamp: 2
-  //      })
-  //    );
-  //  }
+  #[test]
+  fn test_inscription_with_parent() {
+    // for context in Context::configurations() {
+    let context = Context::builder().build();
+
+    context.mine_blocks(1);
+
+    let parent_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witnesses: vec![inscription("text/plain", "parent").to_witness()],
+      ..Default::default()
+    });
+
+    let parent_id = InscriptionId::from(parent_txid);
+
+    context.mine_blocks(1);
+
+    assert_eq!(
+      context.index.get_inscription_entry(parent_id).unwrap(),
+      Some(InscriptionEntry {
+        fee: 0,
+        height: 2,
+        number: 0,
+        parent: None,
+        sat: None,
+        timestamp: 2
+      })
+    );
+
+    let child_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 1, 0), (2, 0, 0)],
+      witnesses: vec![
+        Witness::new(),
+        inscription_with_parent("text/plain", "child", parent_id).to_witness(),
+      ],
+      ..Default::default()
+    });
+
+    let child_id = InscriptionId {
+      txid: child_txid,
+      index: 0,
+    };
+
+    context.mine_blocks(1);
+
+    // parent is transferred successfully
+    context.index.assert_inscription_location(
+      parent_id,
+      SatPoint {
+        outpoint: OutPoint {
+          txid: child_txid,
+          vout: 0,
+        },
+        offset: 0,
+      },
+      50 * COIN_VALUE,
+    );
+
+    // child inscription successfully added to database
+    assert_eq!(
+      context.index.get_inscription_entry(child_id).unwrap(),
+      Some(InscriptionEntry {
+        fee: 0,
+        height: 3,
+        number: 1,
+        parent: Some(parent_id),
+        sat: None,
+        timestamp: 3
+      })
+    );
+  }
 }

@@ -1,6 +1,6 @@
 use {super::*, std::collections::BTreeSet};
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub(super) struct Flotsam {
   inscription_id: InscriptionId,
   offset: u64,
@@ -8,7 +8,7 @@ pub(super) struct Flotsam {
 }
 
 // change name to Jetsam or more poetic german word
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 enum Origin {
   New((u64, Option<InscriptionId>)),
   Old(SatPoint),
@@ -121,7 +121,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           floating_inscriptions.push(Flotsam {
             inscription_id: InscriptionId {
               txid,
-              index: input_value as u32, // TODO: is index a sat offset or and number of inscriptions offset
+              index: 0,
             },
             offset: input_value,
             origin: Origin::New((0, parent)),
@@ -147,6 +147,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       }
     }
 
+    // TODO: inefficient
+    // calulate genesis fee for new inscriptions
     let mut floating_inscriptions = floating_inscriptions
       .into_iter()
       .map(|flotsam| {
