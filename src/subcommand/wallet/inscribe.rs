@@ -355,27 +355,31 @@ impl Inscribe {
       bail!("commit transaction output would be dust");
     }
 
-    let mut sighash_cache = SighashCache::new(&mut reveal_tx);
+    // NB. This binding is to avoid borrow-checker problems
+    let prevouts_all_inputs = &[output];
 
-    let signature_hash = if parent.is_some() {
-      sighash_cache.taproot_script_spend_signature_hash(
-        commit_input_offset,
-        &Prevouts::One(commit_input_offset, output),
-        TapLeafHash::from_script(&reveal_script, LeafVersion::TapScript),
+    let (prevouts, hash_type) = if parent.is_some() {
+      (
+        Prevouts::One(commit_input_offset, output),
         SchnorrSighashType::AllPlusAnyoneCanPay,
       )
     } else {
-      sighash_cache.taproot_script_spend_signature_hash(
-        commit_input_offset,
-        &Prevouts::All(&[output]),
-        TapLeafHash::from_script(&reveal_script, LeafVersion::TapScript),
-        SchnorrSighashType::Default,
-      )
-    }
-    .expect("signature hash should compute");
+      (Prevouts::All(prevouts_all_inputs), SchnorrSighashType::Default)
+    };
 
-    let signature = secp256k1.sign_schnorr(
-      &secp256k1::Message::from_slice(signature_hash.as_inner())
+    let mut sighash_cache = SighashCache::new(&mut reveal_tx);
+
+    let message = sighash_cache
+      .taproot_script_spend_signature_hash(
+        commit_input_offset,
+        &prevouts,
+        TapLeafHash::from_script(&reveal_script, LeafVersion::TapScript),
+        hash_type,
+      )
+      .expect("signature hash should compute");
+
+    let sig = secp256k1.sign_schnorr(
+      &secp256k1::Message::from_slice(message.as_inner())
         .expect("should be cryptographically secure hash"),
       &key_pair,
     );
@@ -383,15 +387,9 @@ impl Inscribe {
     let witness = sighash_cache
       .witness_mut(commit_input_offset)
       .expect("getting mutable witness reference should work");
-    if parent.is_some() {
-      let encoded_sig = SchnorrSig {
-        sig: signature,
-        hash_ty: SchnorrSighashType::AllPlusAnyoneCanPay,
-      };
-      witness.push(encoded_sig.to_vec());
-    } else {
-      witness.push(signature.as_ref());
-    }
+
+    witness.push(SchnorrSig { sig, hash_ty: hash_type }.to_vec());
+
     witness.push(reveal_script);
     witness.push(&control_block.serialize());
 
