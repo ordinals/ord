@@ -552,7 +552,7 @@ impl Index {
     Ok(
       self
         .get_transaction(inscription_id.txid)?
-        .and_then(|tx| Inscription::from_transaction(&tx)),
+        .and_then(|tx| Inscription::from_tx_input(tx.input.get(inscription_id.index as usize)?)),
     )
   }
 

@@ -103,23 +103,26 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       if let Some(inscription) = Inscription::from_tx_input(tx_in) {
         // ignore new inscriptions on already inscribed offset (sats)
         if !inscribed_offsets.contains(&input_value) {
-          let parent = if let Some(parent_id) = inscription.get_parent_id() {
+          let (parent, input_index) = if let Some(parent_id) = inscription.get_parent_id() {
             // parent has to be in an input before child
             // think about specifying a more general approach in a protocol doc/BIP
             if floating_inscriptions
               .iter()
               .any(|flotsam| flotsam.inscription_id == parent_id)
             {
-              Some(parent_id)
+              (Some(parent_id), 1)
             } else {
-              None
+              (None, 0)
             }
           } else {
-            None
+            (None, 0)
           };
 
           floating_inscriptions.push(Flotsam {
-            inscription_id: InscriptionId { txid, index: 0 },
+            inscription_id: InscriptionId {
+              txid,
+              index: input_index,
+            },
             offset: input_value,
             origin: Origin::New((0, parent)),
           });
@@ -146,6 +149,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
     // TODO: inefficient
     // calulate genesis fee for new inscriptions
+    let total_output_value = tx.output.iter().map(|txout| txout.value).sum::<u64>();
     let mut floating_inscriptions = floating_inscriptions
       .into_iter()
       .map(|flotsam| {
@@ -158,10 +162,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           Flotsam {
             inscription_id,
             offset,
-            origin: Origin::New((
-              input_value - tx.output.iter().map(|txout| txout.value).sum::<u64>(),
-              parent,
-            )),
+            origin: Origin::New((input_value - total_output_value, parent)),
           }
         } else {
           flotsam

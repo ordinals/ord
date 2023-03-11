@@ -183,10 +183,15 @@ impl Inscribe {
           .context("Failed to send reveal transaction")?
       };
 
+      let inscription = InscriptionId {
+        txid: reveal,
+        index: commit_input_offset as u32,
+      };
+
       print_json(Output {
         commit,
         reveal,
-        inscription: reveal.into(),
+        inscription,
         parent: self.parent,
         fees,
       })?;
