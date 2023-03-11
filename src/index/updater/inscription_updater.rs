@@ -119,10 +119,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           };
 
           floating_inscriptions.push(Flotsam {
-            inscription_id: InscriptionId {
-              txid,
-              index: 0,
-            },
+            inscription_id: InscriptionId { txid, index: 0 },
             offset: input_value,
             origin: Origin::New((0, parent)),
           });

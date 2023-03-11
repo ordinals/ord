@@ -364,7 +364,10 @@ impl Inscribe {
         SchnorrSighashType::AllPlusAnyoneCanPay,
       )
     } else {
-      (Prevouts::All(prevouts_all_inputs), SchnorrSighashType::Default)
+      (
+        Prevouts::All(prevouts_all_inputs),
+        SchnorrSighashType::Default,
+      )
     };
 
     let mut sighash_cache = SighashCache::new(&mut reveal_tx);
@@ -388,7 +391,13 @@ impl Inscribe {
       .witness_mut(commit_input_offset)
       .expect("getting mutable witness reference should work");
 
-    witness.push(SchnorrSig { sig, hash_ty: hash_type }.to_vec());
+    witness.push(
+      SchnorrSig {
+        sig,
+        hash_ty: hash_type,
+      }
+      .to_vec(),
+    );
 
     witness.push(reveal_script);
     witness.push(&control_block.serialize());

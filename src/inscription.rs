@@ -263,9 +263,8 @@ impl<'a> InscriptionParser<'a> {
       return Ok(Some(Inscription {
         body,
         content_type,
-        parent: parent.and_then(|parent| {
-          Some(InscriptionId::load(parent.as_slice().try_into().ok()?))
-        }),
+        parent: parent
+          .and_then(|parent| Some(InscriptionId::load(parent.as_slice().try_into().ok()?))),
       }));
     }
 

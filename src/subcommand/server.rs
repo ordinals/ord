@@ -2294,7 +2294,9 @@ mod tests {
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0)],
-      witnesses: vec![Inscription::new(None, Some("foo/bar".as_bytes().to_vec()), None).to_witness()],
+      witnesses: vec![
+        Inscription::new(None, Some("foo/bar".as_bytes().to_vec()), None).to_witness(),
+      ],
       ..Default::default()
     });
 
@@ -2316,7 +2318,9 @@ mod tests {
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0)],
-      witnesses: vec![Inscription::new(None, Some("image/png".as_bytes().to_vec()), None).to_witness()],
+      witnesses: vec![
+        Inscription::new(None, Some("image/png".as_bytes().to_vec()), None).to_witness(),
+      ],
       ..Default::default()
     });
 
