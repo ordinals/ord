@@ -279,6 +279,9 @@ impl Api for Server {
     replaceable: Option<bool>,
     confirmation_target: Option<u32>,
     estimate_mode: Option<EstimateMode>,
+    avoid_reuse: Option<bool>,
+    _fee_rate: Option<f64>,
+    verbose: Option<bool>,
   ) -> Result<Txid, jsonrpc_core::Error> {
     assert_eq!(comment, None);
     assert_eq!(comment_to, None);
@@ -286,6 +289,8 @@ impl Api for Server {
     assert_eq!(replaceable, None);
     assert_eq!(confirmation_target, None);
     assert_eq!(estimate_mode, None);
+    assert_eq!(avoid_reuse, None);
+    assert_eq!(verbose, None);
 
     let mut state = self.state.lock().unwrap();
     let locked = state.locked.iter().cloned().collect();
