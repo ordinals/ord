@@ -93,7 +93,7 @@ impl Send {
     inscriptions: BTreeMap<SatPoint, InscriptionId>,
     unspent_outputs: BTreeMap<bitcoin::OutPoint, bitcoin::Amount>,
   ) -> Result {
-    Self::lock_inscriptions(&client, inscriptions, unspent_outputs)?;
+    Self::lock_inscriptions(client, inscriptions, unspent_outputs)?;
     let txid = client.call(
       "sendtoaddress",
       &[
@@ -120,11 +120,11 @@ impl Send {
     inscriptions: BTreeMap<SatPoint, InscriptionId>,
     unspent_outputs: BTreeMap<bitcoin::OutPoint, bitcoin::Amount>,
   ) -> Result {
-    Self::lock_inscriptions(&client, inscriptions, unspent_outputs)?;
+    Self::lock_inscriptions(client, inscriptions, unspent_outputs)?;
     let result: SendAllOutput = client.call(
       "sendall",
       &[
-        vec![serde_json::to_value((&self.address).to_string())?].into(), // 1. recipients
+        vec![serde_json::to_value((self.address).to_string())?].into(), //  1. recipients
         serde_json::Value::Null, //                                         2. conf_target
         serde_json::Value::Null, //                                         3. estimate_mode
         self.fee_rate.fee(1).to_sat().into(), //                            4. fee_rate
