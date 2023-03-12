@@ -109,7 +109,6 @@ impl Send {
         self.fee_rate.fee(1).to_sat().into(), // 10. fee_rate
       ],
     )?;
-    client.send_to_address(&self.address, amount, None, None, None, None, None, None)?;
     print_json(Output { transaction: txid })?;
     Ok(())
   }
