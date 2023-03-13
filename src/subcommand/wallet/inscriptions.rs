@@ -5,6 +5,7 @@ pub struct Output {
   pub inscription: InscriptionId,
   pub location: SatPoint,
   pub explorer: String,
+  pub amount: u64,
 }
 
 pub(crate) fn run(options: Options) -> Result {
@@ -29,6 +30,7 @@ pub(crate) fn run(options: Options) -> Result {
         location,
         inscription,
         explorer: format!("{explorer}{inscription}"),
+        amount: unspent_outputs.get(&location.outpoint).unwrap().to_sat(),
       });
     }
   }
