@@ -74,7 +74,7 @@ fn inscription_page() {
   <dt>genesis height</dt>
   <dd><a href=/block/2>2</a></dd>
   <dt>genesis fee</dt>
-  <dd>138</dd>
+  <dd>141</dd>
   <dt>genesis transaction</dt>
   <dd><a class=monospace href=/tx/{reveal}>{reveal}</a></dd>
   <dt>location</dt>

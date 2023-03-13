@@ -1,3 +1,7 @@
+use std::io::{Write};
+
+use brotlic::{CompressorWriter};
+
 pub(crate) use {
   super::*, bitcoin::Witness, pretty_assertions::assert_eq as pretty_assert_eq, std::iter,
   test_bitcoincore_rpc::TransactionTemplate, unindent::Unindent,
@@ -100,8 +104,31 @@ pub(crate) fn tx_out(value: u64, address: Address) -> TxOut {
   }
 }
 
-pub(crate) fn inscription(content_type: &str, body: impl AsRef<[u8]>) -> Inscription {
-  Inscription::new(Some(content_type.into()), Some(body.as_ref().into()))
+pub(crate) fn inscription(content_type: &str, body: impl AsRef<[u8]>, content_encoding: &str) -> Inscription {
+let new_body;
+  if content_encoding == "br" {
+   
+   new_body = match body {
+    body=> {
+      let mut compressor = CompressorWriter::new( Vec::new()); // write to memory
+
+      compressor.write_all(&body.as_ref()).unwrap();
+      let compressed_body = compressor.into_inner().unwrap();
+      compressed_body
+      
+    }
+  
+  };
+}
+else {
+
+if body.as_ref().len() == 0 {
+  return   Inscription::new(Some(content_type.into()), None,Some(content_encoding.into()))
+}
+ return   Inscription::new(Some(content_type.into()), Some(body.as_ref().into()),Some(content_encoding.into()))
+}
+
+  Inscription::new(Some(content_type.into()), Some(new_body), Some(content_encoding.into()))
 }
 
 pub(crate) fn inscription_id(n: u32) -> InscriptionId {

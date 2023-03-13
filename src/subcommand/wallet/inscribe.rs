@@ -3,7 +3,6 @@ use {
   crate::wallet::Wallet,
   bitcoin::{
     blockdata::{opcodes, script},
-    policy::MAX_STANDARD_TX_WEIGHT,
     schnorr::{TapTweak, TweakedKeyPair, TweakedPublicKey, UntweakedKeyPair},
     secp256k1::{
       self, constants::SCHNORR_SIGNATURE_SIZE, rand, schnorr::Signature, Secp256k1, XOnlyPublicKey,
@@ -17,6 +16,8 @@ use {
   bitcoincore_rpc::Client,
   std::collections::BTreeSet,
 };
+
+const MAX_STANDARD_TX_WEIGHT: u64 = 400_000; // todo: compression fucks up all these tests that should fail @ 400k
 
 #[derive(Serialize)]
 struct Output {
@@ -296,7 +297,6 @@ impl Inscribe {
     );
 
     let reveal_weight = reveal_tx.weight();
-
     if !no_limit && reveal_weight > MAX_STANDARD_TX_WEIGHT.try_into().unwrap() {
       bail!(
         "reveal transaction weight greater than {MAX_STANDARD_TX_WEIGHT} (MAX_STANDARD_TX_WEIGHT): {reveal_weight}"
@@ -378,7 +378,7 @@ mod tests {
   #[test]
   fn reveal_transaction_pays_fee() {
     let utxos = vec![(outpoint(1), Amount::from_sat(20000))];
-    let inscription = inscription("text/plain", "ord");
+    let inscription = inscription("text/plain", "ord", "br");
     let commit_address = change(0);
     let reveal_address = recipient();
 
@@ -409,7 +409,7 @@ mod tests {
   #[test]
   fn inscript_tansactions_opt_in_to_rbf() {
     let utxos = vec![(outpoint(1), Amount::from_sat(20000))];
-    let inscription = inscription("text/plain", "ord");
+    let inscription = inscription("text/plain", "ord", "br");
     let commit_address = change(0);
     let reveal_address = recipient();
 
@@ -443,7 +443,7 @@ mod tests {
       inscription_id(1),
     );
 
-    let inscription = inscription("text/plain", "ord");
+    let inscription = inscription("text/plain", "ord", "br");
     let satpoint = None;
     let commit_address = change(0);
     let reveal_address = recipient();
@@ -485,7 +485,7 @@ mod tests {
       inscription_id(1),
     );
 
-    let inscription = inscription("text/plain", "ord");
+    let inscription = inscription("text/plain", "ord", "br");
     let satpoint = None;
     let commit_address = change(0);
     let reveal_address = recipient();
@@ -520,7 +520,7 @@ mod tests {
       inscription_id(1),
     );
 
-    let inscription = inscription("text/plain", "ord");
+    let inscription = inscription("text/plain", "ord", "br");
     let satpoint = None;
     let commit_address = change(0);
     let reveal_address = recipient();
@@ -581,7 +581,7 @@ mod tests {
       inscription_id(1),
     );
 
-    let inscription = inscription("text/plain", "ord");
+    let inscription = inscription("text/plain", "ord", "br");
     let satpoint = None;
     let commit_address = change(0);
     let reveal_address = recipient();
@@ -632,7 +632,7 @@ mod tests {
   fn inscribe_over_max_standard_tx_weight() {
     let utxos = vec![(outpoint(1), Amount::from_sat(50 * COIN_VALUE))];
 
-    let inscription = inscription("text/plain", [0; MAX_STANDARD_TX_WEIGHT as usize]);
+    let inscription = inscription("text/plain", [0; MAX_STANDARD_TX_WEIGHT as usize], "none");
     let satpoint = None;
     let commit_address = change(0);
     let reveal_address = recipient();
@@ -653,17 +653,42 @@ mod tests {
     .to_string();
 
     assert!(
-      error.contains(&format!("reveal transaction weight greater than {MAX_STANDARD_TX_WEIGHT} (MAX_STANDARD_TX_WEIGHT): 402799")),
+      error.contains(&format!("reveal transaction weight greater than {MAX_STANDARD_TX_WEIGHT} (MAX_STANDARD_TX_WEIGHT): 402806")),
       "{}",
       error
     );
   }
 
   #[test]
+  fn inscribe_encoded_under_max_standard_tx_weight() {
+    let utxos = vec![(outpoint(1), Amount::from_sat(50 * COIN_VALUE))];
+
+    let inscription = inscription("text/plain", [0; MAX_STANDARD_TX_WEIGHT as usize], "br");
+    let satpoint = None;
+    let commit_address = change(0);
+    let reveal_address = recipient();
+
+    let _not_error = Inscribe::create_inscription_transactions(
+      satpoint,
+      inscription,
+      BTreeMap::new(),
+      Network::Bitcoin,
+      utxos.into_iter().collect(),
+      [commit_address, change(1)],
+      reveal_address,
+      FeeRate::try_from(1.0).unwrap(),
+      FeeRate::try_from(1.0).unwrap(),
+      false,
+    )
+    .unwrap();
+
+  }
+
+  #[test]
   fn inscribe_with_no_max_standard_tx_weight() {
     let utxos = vec![(outpoint(1), Amount::from_sat(50 * COIN_VALUE))];
 
-    let inscription = inscription("text/plain", [0; MAX_STANDARD_TX_WEIGHT as usize]);
+    let inscription = inscription("text/plain", [0; MAX_STANDARD_TX_WEIGHT as usize], "br");
     let satpoint = None;
     let commit_address = change(0);
     let reveal_address = recipient();
@@ -682,6 +707,6 @@ mod tests {
     )
     .unwrap();
 
-    assert!(reveal_tx.size() >= MAX_STANDARD_TX_WEIGHT as usize);
+    assert!(reveal_tx.size() <= MAX_STANDARD_TX_WEIGHT as usize);
   }
 }

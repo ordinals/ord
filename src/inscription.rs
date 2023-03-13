@@ -1,3 +1,7 @@
+use std::{io::{Write, Read}};
+
+use brotlic::{CompressorWriter, DecompressorReader};
+
 use {
   super::*,
   bitcoin::{
@@ -15,17 +19,19 @@ const PROTOCOL_ID: &[u8] = b"ord";
 
 const BODY_TAG: &[u8] = &[];
 const CONTENT_TYPE_TAG: &[u8] = &[1];
+const CONTENT_ENCODING_TAG: &[u8] = &[2];
 
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) struct Inscription {
   body: Option<Vec<u8>>,
   content_type: Option<Vec<u8>>,
+  content_encoding: Option<Vec<u8>>
 }
 
 impl Inscription {
   #[cfg(test)]
-  pub(crate) fn new(content_type: Option<Vec<u8>>, body: Option<Vec<u8>>) -> Self {
-    Self { content_type, body }
+  pub(crate) fn new(content_type: Option<Vec<u8>>, body: Option<Vec<u8>>, content_encoding: Option<Vec<u8>>) -> Self {
+    Self { content_type, body, content_encoding }
   }
 
   pub(crate) fn from_transaction(tx: &Transaction) -> Option<Inscription> {
@@ -36,9 +42,13 @@ impl Inscription {
     let path = path.as_ref();
 
     let body = fs::read(path).with_context(|| format!("io error reading {}", path.display()))?;
+    let mut compressor = CompressorWriter::new(Vec::new()); // write to memory
+    
+    compressor.write_all(&body).with_context(|| format!("io error compressing {}", path.display()))?;
 
+    let encoded_body = compressor.into_inner()?; // read to vec
     if let Some(limit) = chain.inscription_content_size_limit() {
-      let len = body.len();
+      let len = encoded_body.len();
       if len > limit {
         bail!("content size of {len} bytes exceeds {limit} byte limit for {chain} inscriptions");
       }
@@ -47,8 +57,9 @@ impl Inscription {
     let content_type = Media::content_type_for_path(path)?;
 
     Ok(Self {
-      body: Some(body),
+      body: Some(encoded_body),
       content_type: Some(content_type.into()),
+      content_encoding: Some("br".into()) 
     })
   }
 
@@ -62,6 +73,11 @@ impl Inscription {
       builder = builder
         .push_slice(CONTENT_TYPE_TAG)
         .push_slice(content_type);
+    }
+    if let Some(content_encoding) = &self.content_encoding {
+      builder = builder
+        .push_slice(CONTENT_ENCODING_TAG)
+        .push_slice(content_encoding);
     }
 
     if let Some(body) = &self.body {
@@ -104,6 +120,10 @@ impl Inscription {
 
   pub(crate) fn content_type(&self) -> Option<&str> {
     str::from_utf8(self.content_type.as_ref()?).ok()
+  }
+
+  pub(crate) fn content_encoding(&self) -> Option<&str> {
+    str::from_utf8(self.content_encoding.as_ref()?).ok()
   }
 
   #[cfg(test)]
@@ -203,9 +223,11 @@ impl<'a> InscriptionParser<'a> {
         match self.advance()? {
           Instruction::PushBytes(BODY_TAG) => {
             let mut body = Vec::new();
+            
             while !self.accept(Instruction::Op(opcodes::all::OP_ENDIF))? {
               body.extend_from_slice(self.expect_push()?);
             }
+            
             fields.insert(BODY_TAG, body);
             break;
           }
@@ -219,9 +241,36 @@ impl<'a> InscriptionParser<'a> {
           _ => return Err(InscriptionError::InvalidInscription),
         }
       }
+      
 
       let body = fields.remove(BODY_TAG);
+
       let content_type = fields.remove(CONTENT_TYPE_TAG);
+      let content_encoding = fields.remove(CONTENT_ENCODING_TAG);
+      let decoded_input;
+      if content_encoding == Some("br".to_string().into_bytes()) {
+      decoded_input = match body {
+        Some(body) => {
+          
+          let mut decompressed_reader = DecompressorReader::new(
+            body.as_slice(),
+          );
+          let mut decoded_input = Vec::new();
+          decompressed_reader.read_to_end(&mut decoded_input).unwrap();
+          
+
+          decoded_input
+        }
+        None => Vec::new()
+      };
+    }
+    else {
+      decoded_input = match body {
+        Some(body) => body,
+        None => Vec::new()
+      };
+    }
+
 
       for tag in fields.keys() {
         if let Some(lsb) = tag.first() {
@@ -230,8 +279,12 @@ impl<'a> InscriptionParser<'a> {
           }
         }
       }
-
-      return Ok(Some(Inscription { body, content_type }));
+      if decoded_input.len() == 0 {
+        return Ok(Some(Inscription { body: None, content_type: content_type, content_encoding: content_encoding }));
+      }
+      else {
+        return Ok(Some(Inscription { body: Some(decoded_input), content_type: content_type, content_encoding: content_encoding }));
+      }
     }
 
     Ok(None)
@@ -315,6 +368,7 @@ mod tests {
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![
         Script::new().into_bytes(),
+        Vec::new(),
         Vec::new()
       ])),
       Err(InscriptionError::NoInscription),
@@ -344,10 +398,12 @@ mod tests {
         b"ord",
         &[1],
         b"text/plain;charset=utf-8",
+        (&[2]),
+       b"none",
         &[],
         b"ord",
       ])),
-      Ok(inscription("text/plain;charset=utf-8", "ord")),
+      Ok(inscription("text/plain;charset=utf-8", "ord", "none")),
     );
   }
 
@@ -358,12 +414,14 @@ mod tests {
         b"ord",
         &[1],
         b"text/plain;charset=utf-8",
+        &[2],
+        b"none",
         &[3],
         b"bar",
         &[],
         b"ord",
       ])),
-      Ok(inscription("text/plain;charset=utf-8", "ord")),
+      Ok(inscription("text/plain;charset=utf-8", "ord", "none")),
     );
   }
 
@@ -374,6 +432,7 @@ mod tests {
       Ok(Inscription {
         content_type: Some(b"text/plain;charset=utf-8".to_vec()),
         body: None,
+        content_encoding: None
       }),
     );
   }
@@ -385,6 +444,7 @@ mod tests {
       Ok(Inscription {
         content_type: None,
         body: Some(b"foo".to_vec()),
+        content_encoding: None
       }),
     );
   }
@@ -396,19 +456,21 @@ mod tests {
         b"ord",
         &[1],
         b"text/plain;charset=utf-8",
+        (&[2]),
+       b"none",
         &[],
         b"foo",
         b"bar"
       ])),
-      Ok(inscription("text/plain;charset=utf-8", "foobar")),
+      Ok(inscription("text/plain;charset=utf-8", "foobar", "none")),
     );
   }
 
   #[test]
   fn valid_body_in_zero_pushes() {
     assert_eq!(
-      InscriptionParser::parse(&envelope(&[b"ord", &[1], b"text/plain;charset=utf-8", &[]])),
-      Ok(inscription("text/plain;charset=utf-8", "")),
+      InscriptionParser::parse(&envelope(&[b"ord", &[1], b"text/plain;charset=utf-8",&[2], b"none", &[]])),
+      Ok(inscription("text/plain;charset=utf-8", "", "none")),
     );
   }
 
@@ -419,6 +481,8 @@ mod tests {
         b"ord",
         &[1],
         b"text/plain;charset=utf-8",
+        &[2],
+        b"none",
         &[],
         &[],
         &[],
@@ -426,7 +490,7 @@ mod tests {
         &[],
         &[],
       ])),
-      Ok(inscription("text/plain;charset=utf-8", "")),
+      Ok(inscription("text/plain;charset=utf-8", "", "none")),
     );
   }
 
@@ -438,6 +502,8 @@ mod tests {
       .push_slice(b"ord")
       .push_slice(&[1])
       .push_slice(b"text/plain;charset=utf-8")
+    .push_slice(&[2])
+    .push_slice(b"none")
       .push_slice(&[])
       .push_slice(b"ord")
       .push_opcode(opcodes::all::OP_ENDIF)
@@ -446,7 +512,7 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), Vec::new()])),
-      Ok(inscription("text/plain;charset=utf-8", "ord")),
+      Ok(inscription("text/plain;charset=utf-8", "ord", "none")),
     );
   }
 
@@ -459,6 +525,8 @@ mod tests {
       .push_slice(b"ord")
       .push_slice(&[1])
       .push_slice(b"text/plain;charset=utf-8")
+      .push_slice(&[2])
+      .push_slice(b"none")
       .push_slice(&[])
       .push_slice(b"ord")
       .push_opcode(opcodes::all::OP_ENDIF)
@@ -466,7 +534,7 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), Vec::new()])),
-      Ok(inscription("text/plain;charset=utf-8", "ord")),
+      Ok(inscription("text/plain;charset=utf-8", "ord", "none")),
     );
   }
 
@@ -478,6 +546,8 @@ mod tests {
       .push_slice(b"ord")
       .push_slice(&[1])
       .push_slice(b"text/plain;charset=utf-8")
+    .push_slice(&[2])
+    .push_slice(b"none")
       .push_slice(&[])
       .push_slice(b"foo")
       .push_opcode(opcodes::all::OP_ENDIF)
@@ -486,6 +556,8 @@ mod tests {
       .push_slice(b"ord")
       .push_slice(&[1])
       .push_slice(b"text/plain;charset=utf-8")
+    .push_slice(&[2])
+    .push_slice(b"none")
       .push_slice(&[])
       .push_slice(b"bar")
       .push_opcode(opcodes::all::OP_ENDIF)
@@ -493,7 +565,7 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), Vec::new()])),
-      Ok(inscription("text/plain;charset=utf-8", "foo")),
+      Ok(inscription("text/plain;charset=utf-8", "foo", "none")),
     );
   }
 
@@ -504,10 +576,12 @@ mod tests {
         b"ord",
         &[1],
         b"text/plain;charset=utf-8",
+        &[2],
+        b"none",
         &[],
         &[0b10000000]
       ])),
-      Ok(inscription("text/plain;charset=utf-8", [0b10000000])),
+      Ok(inscription("text/plain;charset=utf-8", [0b10000000], "none")),
     );
   }
 
@@ -564,14 +638,14 @@ mod tests {
         previous_output: OutPoint::null(),
         script_sig: Script::new(),
         sequence: Sequence(0),
-        witness: envelope(&[b"ord", &[1], b"text/plain;charset=utf-8", &[], b"ord"]),
+        witness: envelope(&[b"ord", &[1], b"text/plain;charset=utf-8",&[2], b"none", &[], b"ord"]),
       }],
       output: Vec::new(),
     };
 
     assert_eq!(
       Inscription::from_transaction(&tx),
-      Some(inscription("text/plain;charset=utf-8", "ord")),
+      Some(inscription("text/plain;charset=utf-8", "ord", "none")),
     );
   }
 
@@ -591,7 +665,7 @@ mod tests {
           previous_output: OutPoint::null(),
           script_sig: Script::new(),
           sequence: Sequence(0),
-          witness: inscription("foo", [1; 1040]).to_witness(),
+          witness: inscription("foo", [1; 1040], "br").to_witness(),
         },
       ],
       output: Vec::new(),
@@ -603,8 +677,8 @@ mod tests {
   #[test]
   fn do_not_extract_from_second_envelope() {
     let mut builder = script::Builder::new();
-    builder = inscription("foo", [1; 100]).append_reveal_script_to_builder(builder);
-    builder = inscription("bar", [1; 100]).append_reveal_script_to_builder(builder);
+    builder = inscription("foo", [1; 100], "none").append_reveal_script_to_builder(builder);
+    builder = inscription("bar", [1; 100], "none").append_reveal_script_to_builder(builder);
 
     let witness = Witness::from_vec(vec![builder.into_script().into_bytes(), Vec::new()]);
 
@@ -622,30 +696,22 @@ mod tests {
 
     assert_eq!(
       Inscription::from_transaction(&tx),
-      Some(inscription("foo", [1; 100]))
+      Some(inscription("foo", [1; 100], "none"))
     );
   }
 
   #[test]
   fn inscribe_png() {
     assert_eq!(
-      InscriptionParser::parse(&envelope(&[b"ord", &[1], b"image/png", &[], &[1; 100]])),
-      Ok(inscription("image/png", [1; 100])),
+      InscriptionParser::parse(&envelope(&[b"ord", &[1], b"image/png",&[2], b"none", &[], &[1; 100]])),
+      Ok(inscription("image/png", [1; 100], "none")),
     );
   }
 
   #[test]
   fn reveal_script_chunks_data() {
     assert_eq!(
-      inscription("foo", [])
-        .append_reveal_script(script::Builder::new())
-        .instructions()
-        .count(),
-      7
-    );
-
-    assert_eq!(
-      inscription("foo", [0; 1])
+      inscription("foo", [], "")
         .append_reveal_script(script::Builder::new())
         .instructions()
         .count(),
@@ -653,31 +719,39 @@ mod tests {
     );
 
     assert_eq!(
-      inscription("foo", [0; 520])
+      inscription("foo", [0; 1], "br")
         .append_reveal_script(script::Builder::new())
         .instructions()
         .count(),
-      8
+      10
     );
 
     assert_eq!(
-      inscription("foo", [0; 521])
+      inscription("foo", [0; 520], "br")
         .append_reveal_script(script::Builder::new())
         .instructions()
         .count(),
-      9
+      10
     );
 
     assert_eq!(
-      inscription("foo", [0; 1040])
+      inscription("foo", [0; 521], "br")
         .append_reveal_script(script::Builder::new())
         .instructions()
         .count(),
-      9
+      10
     );
 
     assert_eq!(
-      inscription("foo", [0; 1041])
+      inscription("foo", [0; 1040], "br")
+        .append_reveal_script(script::Builder::new())
+        .instructions()
+        .count(),
+      10
+    );
+
+    assert_eq!(
+      inscription("foo", [0; 1041], "br")
         .append_reveal_script(script::Builder::new())
         .instructions()
         .count(),
@@ -689,13 +763,13 @@ mod tests {
   fn chunked_data_is_parsable() {
     let mut witness = Witness::new();
 
-    witness.push(&inscription("foo", [1; 1040]).append_reveal_script(script::Builder::new()));
+    witness.push(&inscription("foo", [1; 1040], "none").append_reveal_script(script::Builder::new()));
 
     witness.push([]);
 
     assert_eq!(
       InscriptionParser::parse(&witness).unwrap(),
-      inscription("foo", [1; 1040]),
+      inscription("foo", [1; 1040], "none"),
     );
   }
 
@@ -707,6 +781,7 @@ mod tests {
       &Inscription {
         content_type: None,
         body: None,
+        content_encoding: None
       }
       .append_reveal_script(script::Builder::new()),
     );
@@ -718,6 +793,7 @@ mod tests {
       Inscription {
         content_type: None,
         body: None,
+        content_encoding: None
       }
     );
   }
@@ -729,6 +805,7 @@ mod tests {
       Ok(Inscription {
         content_type: None,
         body: None,
+        content_encoding: None
       }),
     );
   }
@@ -736,7 +813,7 @@ mod tests {
   #[test]
   fn unknown_even_fields_are_invalid() {
     assert_eq!(
-      InscriptionParser::parse(&envelope(&[b"ord", &[2], &[0]])),
+      InscriptionParser::parse(&envelope(&[b"ord", &[4], &[0]])),
       Err(InscriptionError::UnrecognizedEvenField),
     );
   }

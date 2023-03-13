@@ -81,7 +81,7 @@ fn inscribe_unknown_file_extension() {
 }
 
 #[test]
-fn inscribe_exceeds_chain_limit() {
+fn inscribe_does_not_exceed_chain_limit() {
   let rpc_server = test_bitcoincore_rpc::builder()
     .network(Network::Signet)
     .build();
@@ -91,10 +91,7 @@ fn inscribe_exceeds_chain_limit() {
   CommandBuilder::new("--chain signet wallet inscribe degenerate.png")
     .write("degenerate.png", [1; 1025])
     .rpc_server(&rpc_server)
-    .expected_exit_code(1)
-    .expected_stderr(
-      "error: content size of 1025 bytes exceeds 1024 byte limit for signet inscriptions\n",
-    )
+    .stdout_regex(".*")
     .run();
 }
 

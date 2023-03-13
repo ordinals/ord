@@ -612,6 +612,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "brotlic"
+version = "0.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c8d5a350a871e06f5274bc1206bcd0da426522b4d0fbfad5fcec92806d854e5b"
+dependencies = [
+ "brotlic-sys",
+]
+
+[[package]]
+name = "brotlic-sys"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c3833491b42b269ddbbbfcb2c97d23f2a837ded4a67f76948477b8a1f4b664f2"
+dependencies = [
+ "cc",
+]
+
+[[package]]
 name = "bstr"
 version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2169,6 +2187,7 @@ dependencies = [
  "bip39",
  "bitcoin",
  "boilerplate",
+ "brotlic",
  "chrono",
  "clap",
  "ctrlc",

@@ -37,7 +37,7 @@ mod tests {
         chain: Chain::Mainnet,
         genesis_fee: 1,
         genesis_height: 0,
-        inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
+        inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD", "br"),
         inscription_id: inscription_id(1),
         next: None,
         number: 1,
@@ -66,7 +66,7 @@ mod tests {
           <dt>content</dt>
           <dd><a href=/content/1{64}i1>link</a></dd>
           <dt>content length</dt>
-          <dd>10 bytes</dd>
+          <dd>14 bytes</dd>
           <dt>content type</dt>
           <dd>text/plain;charset=utf-8</dd>
           <dt>timestamp</dt>
@@ -96,7 +96,7 @@ mod tests {
         chain: Chain::Mainnet,
         genesis_fee: 1,
         genesis_height: 0,
-        inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
+        inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD", "br"),
         inscription_id: inscription_id(1),
         next: None,
         number: 1,
@@ -128,7 +128,7 @@ mod tests {
         chain: Chain::Mainnet,
         genesis_fee: 1,
         genesis_height: 0,
-        inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
+        inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD", "br"),
         inscription_id: inscription_id(2),
         next: Some(inscription_id(3)),
         number: 1,
