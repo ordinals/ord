@@ -164,7 +164,7 @@ fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
 }
 
 #[test]
-fn do_not_accidentally_send_an_inscription() {
+fn do_not_send_within_dust_limit_of_an_inscription() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
@@ -182,13 +182,35 @@ fn do_not_accidentally_send_an_inscription() {
   };
 
   CommandBuilder::new(format!(
-    "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {output}:55"
+    "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {output}:329"
   ))
   .rpc_server(&rpc_server)
   .expected_exit_code(1)
   .expected_stderr(format!(
-    "error: cannot send {output}:55 without also sending inscription {inscription} at {output}:0\n"
+    "error: cannot send {output}:329 without also sending inscription {inscription} at {output}:0\n"
   ))
+  .run();
+}
+
+#[test]
+fn can_send_after_dust_limit_from_an_inscription() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+
+  let Inscribe { reveal, .. } = inscribe(&rpc_server);
+
+  rpc_server.mine_blocks(1);
+
+  let output = OutPoint {
+    txid: reveal,
+    vout: 0,
+  };
+
+  CommandBuilder::new(format!(
+    "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {output}:330"
+  ))
+  .rpc_server(&rpc_server)
+  .stdout_regex("[[:xdigit:]]{64}\n")
   .run();
 }
 
