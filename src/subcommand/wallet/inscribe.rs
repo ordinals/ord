@@ -358,7 +358,7 @@ impl Inscribe {
     // NB. This binding is to avoid borrow-checker problems
     let prevouts_all_inputs = &[output];
 
-    let (prevouts, hash_type) = if parent.is_some() {
+    let (prevouts, hash_ty) = if parent.is_some() {
       (
         Prevouts::One(commit_input_offset, output),
         SchnorrSighashType::AllPlusAnyoneCanPay,
@@ -374,7 +374,7 @@ impl Inscribe {
         commit_input_offset,
         &prevouts,
         TapLeafHash::from_script(&reveal_script, LeafVersion::TapScript),
-        hash_type,
+        hash_ty,
       )
       .expect("signature hash should compute");
 
@@ -388,7 +388,7 @@ impl Inscribe {
       .witness_mut(commit_input_offset)
       .expect("getting mutable witness reference should work");
 
-    witness.push(SchnorrSig { sig, hash_ty: hash_type }.to_vec());
+    witness.push(SchnorrSig { sig, hash_ty }.to_vec());
 
     witness.push(reveal_script);
     witness.push(&control_block.serialize());
