@@ -103,25 +103,25 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       if let Some(inscription) = Inscription::from_tx_input(tx_in) {
         // ignore new inscriptions on already inscribed offset (sats)
         if !inscribed_offsets.contains(&input_value) {
-          let (parent, input_index) = if let Some(parent_id) = inscription.get_parent_id() {
+          let parent = if let Some(parent_id) = inscription.get_parent_id() {
             // parent has to be in an input before child
             // think about specifying a more general approach in a protocol doc/BIP
             if floating_inscriptions
               .iter()
               .any(|flotsam| flotsam.inscription_id == parent_id)
             {
-              (Some(parent_id), 1)
+              Some(parent_id)
             } else {
-              (None, 0)
+              None
             }
           } else {
-            (None, 0)
+            None
           };
 
           floating_inscriptions.push(Flotsam {
             inscription_id: InscriptionId {
               txid,
-              index: input_index,
+              index: 0,
             },
             offset: input_value,
             origin: Origin::New((0, parent)),
