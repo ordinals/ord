@@ -138,7 +138,10 @@ impl State {
         previous_output: OutPoint::new(tx.txid(), *vout as u32),
         script_sig: Script::new(),
         sequence: Sequence::MAX,
-        witness: template.witnesses.get(i).map_or(Witness::new(), |i| i.clone()),
+        witness: template
+          .witnesses
+          .get(i)
+          .map_or(Witness::new(), |i| i.clone()),
       });
     }
 
