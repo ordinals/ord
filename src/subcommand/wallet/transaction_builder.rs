@@ -212,9 +212,9 @@ impl TransactionBuilder {
   }
 
   fn select_outgoing(mut self) -> Result<Self> {
-    for (inscribed_satpoint, inscription_id) in &self.inscriptions {
+    for (inscribed_satpoint, inscription_id) in self.inscriptions.iter().rev() {
       if self.outgoing.outpoint == inscribed_satpoint.outpoint
-        && self.outgoing.offset != inscribed_satpoint.offset
+        && self.outgoing.offset < inscribed_satpoint.offset
       {
         return Err(Error::UtxoContainsAdditionalInscription {
           outgoing_satpoint: self.outgoing,
