@@ -948,6 +948,17 @@ mod tests {
       )
     }
 
+    fn new_with_regtest_with_index_sats() -> Self {
+      Self::new_server(
+        test_bitcoincore_rpc::builder()
+          .network(bitcoin::Network::Regtest)
+          .build(),
+        None,
+        &["--chain", "regtest", "--index-sats"],
+        &[],
+      )
+    }
+
     fn new_with_bitcoin_rpc_server_and_config(
       bitcoin_rpc_server: test_bitcoincore_rpc::Handle,
       config: String,
@@ -2205,7 +2216,7 @@ mod tests {
 
   #[test]
   fn inscription_page_title() {
-    let server = TestServer::new_with_sat_index();
+    let server = TestServer::new_with_regtest_with_index_sats();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -2225,7 +2236,7 @@ mod tests {
 
   #[test]
   fn inscription_page_has_sat_when_sats_are_tracked() {
-    let server = TestServer::new_with_sat_index();
+    let server = TestServer::new_with_regtest_with_index_sats();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -2277,7 +2288,8 @@ mod tests {
 
   #[test]
   fn feed() {
-    let server = TestServer::new_with_sat_index();
+    // let server = TestServer::new_with_sat_index();
+    let server = TestServer::new_with_regtest_with_index_sats();
     server.mine_blocks(1);
 
     server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -2297,7 +2309,7 @@ mod tests {
 
   #[test]
   fn inscription_with_unknown_type_and_no_body_has_unknown_preview() {
-    let server = TestServer::new_with_sat_index();
+    let server = TestServer::new_with_regtest_with_index_sats();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -2319,7 +2331,7 @@ mod tests {
 
   #[test]
   fn inscription_with_known_type_and_no_body_has_unknown_preview() {
-    let server = TestServer::new_with_sat_index();
+    let server = TestServer::new_with_regtest_with_index_sats();
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -2363,7 +2375,7 @@ mod tests {
 
   #[test]
   fn inscriptions_page_with_no_prev_or_next() {
-    TestServer::new_with_sat_index().assert_response_regex(
+    TestServer::new_with_regtest_with_index_sats().assert_response_regex(
       "/inscriptions",
       StatusCode::OK,
       ".*prev\nnext.*",
@@ -2372,7 +2384,7 @@ mod tests {
 
   #[test]
   fn inscriptions_page_with_no_next() {
-    let server = TestServer::new_with_sat_index();
+    let server = TestServer::new_with_regtest_with_index_sats();
 
     for i in 0..101 {
       server.mine_blocks(1);
@@ -2394,7 +2406,7 @@ mod tests {
 
   #[test]
   fn inscriptions_page_with_no_prev() {
-    let server = TestServer::new_with_sat_index();
+    let server = TestServer::new_with_regtest_with_index_sats();
 
     for i in 0..101 {
       server.mine_blocks(1);
