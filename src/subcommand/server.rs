@@ -768,7 +768,7 @@ impl Server {
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
-    return match inscription.media() {
+    match inscription.media() {
       Media::Audio => Ok(PreviewAudioHtml { inscription_id }.into_response()),
       Media::Iframe => Ok(
         Self::content_response(inscription)
@@ -809,7 +809,7 @@ impl Server {
       }
       Media::Unknown => Ok(PreviewUnknownHtml.into_response()),
       Media::Video => Ok(PreviewVideoHtml { inscription_id }.into_response()),
-    };
+    }
   }
 
   async fn inscription(
