@@ -116,7 +116,7 @@ impl Inscription {
     self.body
   }
 
-  pub(crate) fn metadata(&self) -> Option<String> {
+  pub(crate) fn metadata(&self) -> Option<&'static str> {
     let data: serde_json::Value = serde_json::from_str(self.metadata.unwrap_or_default()).ok()?;
     let traits_array = data.get("traits")?.as_array()?;
     let key_value_pairs = traits_array
@@ -128,7 +128,7 @@ impl Inscription {
       })
       .collect::<Vec<String>>();
 
-    Some(key_value_pairs.join("\n"))
+    Some(Box::leak(key_value_pairs.join("\n").into_boxed_str()))
   }
 
   pub(crate) fn content_length(&self) -> Option<usize> {
