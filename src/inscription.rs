@@ -8,6 +8,7 @@ use {
     util::taproot::TAPROOT_ANNEX_PREFIX,
     Script, Witness,
   },
+  serde_json,
   std::{iter::Peekable, str},
 };
 
@@ -115,8 +116,19 @@ impl Inscription {
     self.body
   }
 
-  pub(crate) fn metadata(&self) -> Option<&'static str> {
-    self.metadata
+  pub(crate) fn metadata(&self) -> Option<String> {
+    let data: serde_json::Value = serde_json::from_str(self.metadata.unwrap_or_default()).ok()?;
+    let traits_array = data.get("traits")?.as_array()?;
+    let key_value_pairs = traits_array
+      .iter()
+      .filter_map(|t| {
+        let trait_type = t.get("trait_type")?.as_str()?;
+        let value = t.get("value")?.as_str()?;
+        Some(format!("{} : {}", trait_type, value))
+      })
+      .collect::<Vec<String>>();
+
+    Some(key_value_pairs.join("\n"))
   }
 
   pub(crate) fn content_length(&self) -> Option<usize> {
@@ -219,7 +231,7 @@ impl<'a> InscriptionParser<'a> {
       }
 
       let mut fields = BTreeMap::new();
-      
+
       loop {
         match self.advance()? {
           Instruction::PushBytes(BODY_TAG) => {
