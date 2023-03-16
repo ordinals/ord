@@ -482,6 +482,14 @@ impl Index {
   }
 
   pub(crate) fn get_block_by_height(&self, height: u64) -> Result<Option<Block>> {
+    let tx = self.database.begin_read()?;
+
+    let indexed = tx.open_table(HEIGHT_TO_BLOCK_HASH)?.get(&height)?.is_some();
+
+    if !indexed {
+      return Ok(None);
+    }
+
     Ok(
       self
         .client
@@ -493,6 +501,19 @@ impl Index {
   }
 
   pub(crate) fn get_block_by_hash(&self, hash: BlockHash) -> Result<Option<Block>> {
+    let tx = self.database.begin_read()?;
+
+    // check if the given hash exists as a value in the database
+    let indexed = tx
+      .open_table(HEIGHT_TO_BLOCK_HASH)?
+      .range(0..)?
+      .rev()
+      .any(|(_, block_hash)| block_hash.value() == hash.as_inner());
+
+    if !indexed {
+      return Ok(None);
+    }
+
     self.client.get_block(&hash).into_option()
   }
 
