@@ -279,7 +279,12 @@ impl TransactionBuilder {
     if self.outputs[0].0 == self.recipient {
       tprintln!("no alignment output");
     } else {
-      let dust_limit = self.recipient.script_pubkey().dust_value();
+      let dust_limit = self
+        .unused_change_addresses
+        .last()
+        .unwrap()
+        .script_pubkey()
+        .dust_value();
       if self.outputs[0].1 >= dust_limit {
         tprintln!("no padding needed");
       } else {
