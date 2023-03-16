@@ -134,3 +134,17 @@ Release x.y.z
 - Update dependencies
 - Update database schema version
 ```
+
+Debian packaging
+
+to build a .deb package:
+
+1.
+```
+ cargo install cargo-deb
+```
+
+2.
+```
+cargo deb
+```

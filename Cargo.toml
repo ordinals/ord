@@ -10,6 +10,10 @@ repository = "https://github.com/casey/ord"
 autobins = false
 rust-version = "1.67"
 
+[package.metadata.deb]
+maintainer = "Casey Rodarmor <casey@rodarmor.com>"
+copyright = "2023, Casey Rodarmor <casey@rodarmor.com>"
+
 [workspace]
 members = [".", "test-bitcoincore-rpc"]
 
