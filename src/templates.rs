@@ -103,6 +103,8 @@ mod tests {
     }
   }
 
+  // BEGIN UPDATED TEST FOR HEADER - Added by Nobi
+
   #[test]
   fn page() {
     assert_regex_match!(
@@ -131,7 +133,7 @@ mod tests {
   <body>
   <header>
     <nav>
-      <a href=/>Ordinals<sup>alpha</sup></a>
+      <a href=/>Libre<sup>ordinals</sup></a>
       .*
       <a href=/clock>Clock</a>
       <a href=/rare.txt>rare.txt</a>
@@ -149,6 +151,8 @@ mod tests {
 "
     );
   }
+
+  // END UPDATED TEST FOR HEADER - Added by Nobi
 
   #[test]
   fn page_mainnet() {

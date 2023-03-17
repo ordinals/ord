@@ -65,7 +65,8 @@ impl Inscribe {
 
     let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
-    let mut utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
+    // Updated - replaced get_unspent_outputs with get_unspent_outputs2 - modified by Levan
+    let mut utxos = index.get_unspent_outputs2(Wallet::load(&options)?, Amount::from_sat(2000))?;
 
     let inscriptions = index.get_inscriptions(None)?;
 
@@ -92,9 +93,7 @@ impl Inscribe {
 
     utxos.insert(
       reveal_tx.input[0].previous_output,
-      Amount::from_sat(
-        unsigned_commit_tx.output[reveal_tx.input[0].previous_output.vout as usize].value,
-      ),
+      Amount::from_sat(unsigned_commit_tx.output[0].value),
     );
 
     let fees =

@@ -168,6 +168,12 @@ impl Server {
         .route("/static/*path", get(Self::static_asset))
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
+        // Modified by Levan
+        .route("/reverse/:inscription_number", get(Self::reverse))
+        .route(
+          "/reverse_content/:inscription_number",
+          get(Self::reverse_content),
+        )
         .layer(Extension(index))
         .layer(Extension(page_config))
         .layer(Extension(Arc::new(config)))
@@ -731,6 +737,28 @@ impl Server {
         .into_response(),
     )
   }
+  // BEGIN REVERSE CONTENT - added by Levan
+  async fn reverse_content(
+    Extension(index): Extension<Arc<Index>>,
+    Extension(config): Extension<Arc<Config>>,
+    Path(inscription_number): Path<u64>,
+  ) -> ServerResult<Response> {
+    let inscription_id = index
+      .get_inscription_id_by_inscription_number(inscription_number)?
+      .ok_or_not_found(|| format!("inscription {inscription_number}"))?;
+
+    let inscription = index
+      .get_inscription_by_id(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    Ok(
+      Self::content_response(inscription)
+        .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
+        .into_response(),
+    )
+  }
+
+  // END REVERSE CONTENT
 
   fn content_response(inscription: Inscription) -> Option<(HeaderMap, Vec<u8>)> {
     let mut headers = HeaderMap::new();
@@ -811,6 +839,70 @@ impl Server {
       Media::Video => Ok(PreviewVideoHtml { inscription_id }.into_response()),
     };
   }
+
+  // BEGIN REVERSE FUNC  - added by Levan
+
+  async fn reverse(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(inscription_number): Path<u64>,
+  ) -> ServerResult<PageHtml<InscriptionHtml>> {
+    let inscription_id = index
+      .get_inscription_id_by_inscription_number(inscription_number)?
+      .ok_or_not_found(|| format!("inscription {inscription_number}"))?;
+
+    let entry = index
+      .get_inscription_entry(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_number}"))?;
+
+    let inscription = index
+      .get_inscription_by_id(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    let satpoint = index
+      .get_inscription_satpoint_by_id(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    let output = index
+      .get_transaction(satpoint.outpoint.txid)?
+      .ok_or_not_found(|| format!("inscription {inscription_id} current transaction"))?
+      .output
+      .into_iter()
+      .nth(satpoint.outpoint.vout.try_into().unwrap())
+      .ok_or_not_found(|| format!("inscription {inscription_id} current transaction output"))?;
+
+    let previous = if let Some(previous) = entry.number.checked_sub(1) {
+      Some(
+        index
+          .get_inscription_id_by_inscription_number(previous)?
+          .ok_or_not_found(|| format!("inscription {previous}"))?,
+      )
+    } else {
+      None
+    };
+
+    let next = index.get_inscription_id_by_inscription_number(entry.number + 1)?;
+
+    Ok(
+      InscriptionHtml {
+        chain: page_config.chain,
+        genesis_fee: entry.fee,
+        genesis_height: entry.height,
+        inscription,
+        inscription_id,
+        next,
+        number: entry.number,
+        output,
+        previous,
+        sat: entry.sat,
+        satpoint,
+        timestamp: timestamp(entry.timestamp),
+      }
+      .page(page_config, index.has_sat_index()?),
+    )
+  }
+
+  // END REVERSE FUNC  - added by Levan
 
   async fn inscription(
     Extension(page_config): Extension<Arc<PageConfig>>,

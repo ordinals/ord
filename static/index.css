@@ -1,20 +1,23 @@
+/* BEGIN ROOT COLOR UPDATES - ADDED BY BEN */
+
 :root {
-  --common: grey;
-  --dark-bg: #131516;
-  --dark-fg: #98a3ad;
+  --common: rgb(0, 0, 0);
+  --dark-bg: #ffffff;
+  --dark-fg: #000000;
   --epic: darkorchid;
   --legendary: gold;
-  --light-bg: #292c2f;
-  --light-fg: #a1adb8;
+  --light-bg: #ffffff;
+  --light-fg: #000000;
   --link: #4169e1;
   --mythic: #f2a900;
   --rare: cornflowerblue;
-  --search-bg: #b7b7b7;
-  --search-border: #aaaaaa;
+  --search-bg: #e1e1e1;
+  --search-border: #676767;
   --search-fg: #000000;
   --uncommon: forestgreen;
 }
 
+/* END ROOT COLOR UPDATES - ADDED BY BEN */
 html {
   background-color: var(--dark-bg);
   color: var(--dark-fg);
@@ -65,7 +68,7 @@ nav {
   padding: 1rem;
 }
 
-nav > :first-child {
+nav> :first-child {
   color: var(--light-fg);
   font-weight: bold;
 }
@@ -91,7 +94,8 @@ dl {
   overflow-wrap: break-word;
 }
 
-ol, ul {
+ol,
+ul {
   overflow: hidden;
 }
 
@@ -116,7 +120,12 @@ ol, ul {
   font-family: monospace, monospace;
 }
 
-span.common, span.uncommon, span.rare, span.epic, span.legendary, span.mythic {
+span.common,
+span.uncommon,
+span.rare,
+span.epic,
+span.legendary,
+span.mythic {
   border-radius: 0.25rem;
   color: white;
   padding: 0.125rem 0.25rem;
@@ -175,7 +184,7 @@ a.mythic {
   flex-wrap: wrap;
 }
 
-.thumbnails > a {
+.thumbnails>a {
   border-radius: 2%;
   margin: 1%;
   overflow: hidden;
@@ -193,7 +202,8 @@ a.mythic {
   justify-content: center;
 }
 
-.inscription > *:nth-child(1), .inscription > *:nth-child(3) {
+.inscription>*:nth-child(1),
+.inscription>*:nth-child(3) {
   color: var(--dark-bg);
   flex: 1;
   font-size: 200%;
@@ -203,14 +213,15 @@ a.mythic {
   align-items: center;
 }
 
-.inscription > a:nth-child(1):hover, .inscription > a:nth-child(3):hover {
+.inscription>a:nth-child(1):hover,
+.inscription>a:nth-child(3):hover {
   color: var(--dark-fg);
 }
 
-.inscription > *:nth-child(2) {
+.inscription>*:nth-child(2) {
   flex: 0 75%;
 }
 
-.inscription > a > iframe {
+.inscription>a>iframe {
   width: 100%;
 }

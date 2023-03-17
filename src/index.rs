@@ -287,6 +287,64 @@ impl Index {
     Ok(utxos)
   }
 
+  // BEGIN UNSPENT_OUTPUTS2 - added by Levan
+
+  pub(crate) fn get_unspent_outputs2(
+    &self,
+    _wallet: Wallet,
+    amount_needed: Amount,
+  ) -> Result<BTreeMap<OutPoint, Amount>> {
+    let mut utxos = BTreeMap::new();
+    let mut total_amount = Amount::ZERO;
+    utxos.extend(
+      self
+        .client
+        .list_unspent(None, None, None, None, None)?
+        .into_iter()
+        .map(|utxo| {
+          let outpoint = OutPoint::new(utxo.txid, utxo.vout);
+          let amount = utxo.amount;
+
+          (outpoint, amount)
+        }),
+    );
+
+    #[derive(Deserialize)]
+    pub(crate) struct JsonOutPoint {
+      txid: bitcoin::Txid,
+      vout: u32,
+    }
+
+    for JsonOutPoint { txid, vout } in self
+      .client
+      .call::<Vec<JsonOutPoint>>("listlockunspent", &[])?
+    {
+      if total_amount > amount_needed {
+        break;
+      }
+      let amount =
+        Amount::from_sat(self.client.get_raw_transaction(&txid, None)?.output[vout as usize].value);
+      total_amount += amount;
+      if total_amount > amount_needed {
+        break;
+      }
+      utxos.insert(OutPoint { txid, vout }, amount);
+    }
+    let rtx = self.database.begin_read()?;
+    let outpoint_to_value = rtx.open_table(OUTPOINT_TO_VALUE)?;
+    for outpoint in utxos.keys() {
+      if outpoint_to_value.get(&outpoint.store())?.is_none() {
+        return Err(anyhow!(
+          "output in Bitcoin Core wallet but not in ord index: {outpoint}"
+        ));
+      }
+    }
+
+    Ok(utxos)
+  }
+
+  // END UNSPENT_OUTPUTS2 - added by Levan
+
   pub(crate) fn get_unspent_output_ranges(
     &self,
     wallet: Wallet,

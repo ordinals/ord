@@ -1,28 +1,32 @@
 <!doctype html>
 <html lang=en>
-  <head>
-    <meta charset=utf-8>
-    <meta name=format-detection content='telephone=no'>
-    <meta name=viewport content='width=device-width,initial-scale=1.0'>
-    <meta property=og:title content='{{ self.content.title() }}'>
-    <meta property=og:image content='{{ self.og_image() }}'>
-    <meta property=twitter:card content=summary>
-    <title>{{ self.content.title() }}</title>
-    <link rel=alternate href=/feed.xml type=application/rss+xml title='Inscription RSS Feed'>
-    <link rel=stylesheet href=/static/index.css>
-    <link rel=stylesheet href=/static/modern-normalize.css>
-    <script src=/static/index.js defer></script>
-  </head>
-  <body>
+
+<head>
+  <meta charset=utf-8>
+  <meta name=format-detection content='telephone=no'>
+  <meta name=viewport content='width=device-width,initial-scale=1.0'>
+  <meta property=og:title content='{{ self.content.title() }}'>
+  <meta property=og:image content='{{ self.og_image() }}'>
+  <meta property=twitter:card content=summary>
+  <title>{{ self.content.title() }}</title>
+  <link rel=alternate href=/feed.xml type=application/rss+xml title='Inscription RSS Feed'>
+  <link rel=stylesheet href=/static/index.css>
+  <link rel=stylesheet href=/static/modern-normalize.css>
+  <script src=/static/index.js defer></script>
+</head>
+
+<body>
   <header>
     <nav>
-      <a href=/>Ordinals<sup>{{ self.superscript() }}</sup></a>
-      <a href=https://docs.ordinals.com/>Handbook</a>
-      <a href=https://github.com/casey/ord>Wallet</a>
+      <a href= />Ordinals<sup>Libre</sup></a>
+      <a href=https://docs.ordinals.com />Handbook</a>
+      {{/* BEGIN ADDED MARKET - Ben */}}
+      <a href=https://libre.org>Market</a>
+      {{/* END ADDED MARKET - Ben */}}
       <a href=/clock>Clock</a>
-%% if self.has_sat_index {
+      %% if self.has_sat_index {
       <a href=/rare.txt>rare.txt</a>
-%% }
+      %% }
       <form action=/search method=get>
         <input type=text autocapitalize=off autocomplete=off autocorrect=off name=query spellcheck=false>
         <input type=submit value=Search>
@@ -30,7 +34,8 @@
     </nav>
   </header>
   <main>
-$$ Trusted(&self.content)
+    $$ Trusted(&self.content)
   </main>
-  </body>
+</body>
+
 </html>
