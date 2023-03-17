@@ -136,7 +136,7 @@ Release x.y.z
 ```
 
 Debian packaging
-------------
+----------------
 
 To build a .deb package:
 
