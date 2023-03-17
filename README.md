@@ -114,6 +114,15 @@ Once built, the `ord` binary can be found at `./target/release/ord`.
 
 `ord` requires `rustc` version 1.67.0 or later. Run `rustc --version` to ensure you have this version. Run `rustup update` to get the latest stable release.
 
+### Debian Package
+
+To build a `.deb` package:
+
+```
+cargo install cargo-deb
+cargo deb
+```
+
 Contributing
 ------------
 
