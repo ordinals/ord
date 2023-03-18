@@ -1093,7 +1093,7 @@ mod tests {
       context
         .index
         .list(
-          "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0"
+          "97ddfbbae6be97fd6cdf3e7ca13232a3afff2353e29badfab7f73011edd4ced9:0"
             .parse()
             .unwrap()
         )
@@ -1316,7 +1316,7 @@ mod tests {
     assert_eq!(
       context.index.find(0).unwrap().unwrap(),
       SatPoint {
-        outpoint: "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0"
+        outpoint: "97ddfbbae6be97fd6cdf3e7ca13232a3afff2353e29badfab7f73011edd4ced9:0"
           .parse()
           .unwrap(),
         offset: 0,
@@ -1330,7 +1330,7 @@ mod tests {
     assert_eq!(
       context.index.find(1).unwrap().unwrap(),
       SatPoint {
-        outpoint: "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0"
+        outpoint: "97ddfbbae6be97fd6cdf3e7ca13232a3afff2353e29badfab7f73011edd4ced9:0"
           .parse()
           .unwrap(),
         offset: 1,

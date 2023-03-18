@@ -8,7 +8,7 @@ fn find_command_returns_satpoint_for_sat() {
       .rpc_server(&rpc_server)
       .output::<Output>(),
     Output {
-      satpoint: "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0"
+      satpoint: "97ddfbbae6be97fd6cdf3e7ca13232a3afff2353e29badfab7f73011edd4ced9:0:0"
         .parse()
         .unwrap()
     }

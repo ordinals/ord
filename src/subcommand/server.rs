@@ -1324,8 +1324,8 @@ mod tests {
   #[test]
   fn search_for_blockhash_returns_block() {
     TestServer::new().assert_redirect(
-      "/search/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
-      "/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
+      "/search/12a765e31ffd4059bada1e25190f6e98c99d9714d334efa41a195a7e7e04bfe2",
+      "/block/12a765e31ffd4059bada1e25190f6e98c99d9714d334efa41a195a7e7e04bfe2",
     );
   }
 
@@ -1495,7 +1495,7 @@ mod tests {
 
   #[test]
   fn output_with_sat_index() {
-    let txid = "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b";
+    let txid = "97ddfbbae6be97fd6cdf3e7ca13232a3afff2353e29badfab7f73011edd4ced9";
     TestServer::new_with_sat_index().assert_response_regex(
       format!("/output/{txid}:0"),
       StatusCode::OK,
@@ -1516,7 +1516,7 @@ mod tests {
 
   #[test]
   fn output_without_sat_index() {
-    let txid = "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b";
+    let txid = "97ddfbbae6be97fd6cdf3e7ca13232a3afff2353e29badfab7f73011edd4ced9";
     TestServer::new().assert_response_regex(
       format!("/output/{txid}:0"),
       StatusCode::OK,
@@ -1608,7 +1608,7 @@ mod tests {
 <h2>Latest Blocks</h2>
 <ol start=1 reversed class=blocks>
   <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
-  <li><a href=/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f>000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</a></li>
+  <li><a href=/block/12a765e31ffd4059bada1e25190f6e98c99d9714d334efa41a195a7e7e04bfe2>12a765e31ffd4059bada1e25190f6e98c99d9714d334efa41a195a7e7e04bfe2</a></li>
 </ol>.*",
   );
   }
@@ -1649,7 +1649,7 @@ mod tests {
     TestServer::new().assert_response_regex(
       "/sat/0",
       StatusCode::OK,
-      ".*<dt>timestamp</dt><dd><time>2009-01-03 18:15:05 UTC</time></dd>.*",
+      ".*<dt>timestamp</dt><dd><time>2011-10-07 07:31:05 UTC</time></dd>.*",
     );
   }
 
@@ -1765,7 +1765,7 @@ mod tests {
       "/rare.txt",
       StatusCode::OK,
       "sat\tsatpoint
-0\t4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0
+0\t97ddfbbae6be97fd6cdf3e7ca13232a3afff2353e29badfab7f73011edd4ced9:0:0
 ",
     );
   }
@@ -1796,7 +1796,7 @@ mod tests {
     TestServer::new_with_sat_index().assert_response_regex(
       "/sat/0",
       StatusCode::OK,
-      ".*>4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0<.*",
+      ".*>97ddfbbae6be97fd6cdf3e7ca13232a3afff2353e29badfab7f73011edd4ced9:0:0<.*",
     );
   }
 
@@ -1816,7 +1816,7 @@ mod tests {
     TestServer::new().assert_response_regex(
       "/input/0/0/0",
       StatusCode::OK,
-      ".*<title>Input /0/0/0</title>.*<h1>Input /0/0/0</h1>.*<dt>text</dt><dd>.*The Times 03/Jan/2009 Chancellor on brink of second bailout for banks</dd>.*",
+      ".*<title>Input /0/0/0</title>.*<h1>Input /0/0/0</h1>.*<dt>text</dt><dd>.*NY Times 05/Oct/2011 Steve Jobs, Apple’s Visionary, Dies at 56</dd>.*",
     );
   }
 
