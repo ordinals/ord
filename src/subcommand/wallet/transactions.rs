@@ -24,6 +24,10 @@ impl Transactions {
         None,
       )?
     {
+      if tx.detail.vout.is_none() {
+        // MWEB transactions do not have a vout
+        continue;
+      }
       output.push(Output {
         transaction: tx.info.txid,
         confirmations: tx.info.confirmations,
