@@ -2,6 +2,7 @@ use super::*;
 
 #[derive(Deserialize, Default, PartialEq, Debug)]
 pub(crate) struct Config {
+  pub(crate) api_key: Option<String>,
   pub(crate) hidden: HashSet<InscriptionId>,
 }
 
@@ -26,6 +27,7 @@ mod tests {
       .unwrap();
 
     let config = Config {
+      api_key: None,
       hidden: iter::once(a).collect(),
     };
 

@@ -5,7 +5,9 @@ use {
     error::{OptionExt, ServerError, ServerResult},
   },
   super::*,
+  crate::wallet::Wallet,
   crate::page_config::PageConfig,
+  crate::subcommand::wallet::transactions::Output,
   crate::templates::{
     BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionsHtml, OutputHtml,
     PageContent, PageHtml, PreviewAudioHtml, PreviewImageHtml, PreviewPdfHtml, PreviewTextHtml,
@@ -35,6 +37,7 @@ use {
     cors::{Any, CorsLayer},
     set_header::SetResponseHeaderLayer,
   },
+  std::collections::BTreeSet,
 };
 
 mod accept_json;
@@ -136,6 +139,7 @@ impl Server {
         thread::sleep(Duration::from_millis(5000));
       });
 
+      let wallet_client = options.bitcoin_rpc_client_for_wallet_command(false)?;
       let config = options.load_config()?;
       let acme_domains = self.acme_domains()?;
 
@@ -171,9 +175,14 @@ impl Server {
         .route("/static/*path", get(Self::static_asset))
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
+        .route("/wallet/balance", get(Self::balance))
+        .route("/wallet/receive", get(Self::receive))
+        .route("/wallet/transactions", get(Self::transactions))
         .layer(Extension(index))
         .layer(Extension(page_config))
         .layer(Extension(Arc::new(config)))
+        .layer(Extension(Arc::new(options.clone())))
+        .layer(Extension(Arc::new(wallet_client)))
         .layer(SetResponseHeaderLayer::if_not_present(
           header::CONTENT_SECURITY_POLICY,
           HeaderValue::from_static("default-src 'self'"),
@@ -739,7 +748,8 @@ impl Server {
 
     Ok(if accept_json.0 {
       axum::Json(serde_json::json!({
-        "inscription_height": inscriptions.first().unwrap().0,
+        "total": inscriptions.first().unwrap().0,
+        "count": inscriptions.len(),
         "_links": {
           "self": {
             "href": "/feed",
@@ -1090,6 +1100,148 @@ impl Server {
         prev,
       }
       .page(page_config, index.has_sat_index()?),
+    )
+  }
+
+  async fn transactions(
+    Extension(config): Extension<Arc<Config>>,
+    Extension(client): Extension<Arc<Client>>,
+    accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
+    if config.api_key.is_none() || !header.contains_key("x-api-key") ||
+        config.api_key.as_ref().unwrap().as_str() != header.get("x-api-key").unwrap() {
+      return Err(ServerError::Unauthorized(
+        "Authentication failure".to_string(),
+      ));
+    }
+    if !accept_json.0 {
+      return Err(ServerError::BadRequest(
+        "Only application/json is allowed".to_string(),
+      ));
+    }
+
+    let mut outputs = Vec::new();
+    let transactions = client.list_transactions(None, Some(u16::MAX.into()), None, None);
+    if transactions.is_err() {
+      return Err(ServerError::Internal(Error::from(
+        transactions.err().unwrap(),
+      )));
+    }
+    for tx in transactions.unwrap() {
+      if tx.detail.vout.is_none() {
+        // MWEB transactions do not have a vout
+        continue;
+      }
+      outputs.push(Output {
+        transaction: tx.info.txid,
+        confirmations: tx.info.confirmations,
+      });
+    }
+
+    Ok(
+      axum::Json(serde_json::json!({
+        "count": outputs.len(),
+        "transactions": outputs.iter().map(|output| {
+          serde_json::json!({
+            "transaction": output.transaction,
+            "confirmations": output.confirmations,
+            "_links": {
+              "transaction": {
+                "href": format!("/tx/{}", output.transaction),
+              },
+            },
+          })
+        }).collect::<Vec<_>>(),
+        "_links": {
+          "self": {
+            "href": format!("/wallet/transactions"),
+          },
+        }
+      }))
+      .into_response(),
+    )
+  }
+
+  async fn balance(
+    Extension(index): Extension<Arc<Index>>,
+    Extension(config): Extension<Arc<Config>>,
+    Extension(options): Extension<Arc<Options>>,
+    accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
+    if config.api_key.is_none() || !header.contains_key("x-api-key") ||
+        config.api_key.as_ref().unwrap().as_str() != header.get("x-api-key").unwrap() {
+      return Err(ServerError::Unauthorized(
+        "Authentication failure".to_string(),
+      ));
+    }
+    if !accept_json.0 {
+      return Err(ServerError::BadRequest(
+        "Only application/json is allowed".to_string(),
+      ));
+    }
+
+    let inscription_outputs = index
+        .get_inscriptions(None)?
+        .keys()
+        .map(|satpoint| satpoint.outpoint)
+        .collect::<BTreeSet<OutPoint>>();
+
+    let mut balance = 0;
+    for (outpoint, amount) in index.get_unspent_outputs(Wallet::load(&options)?)? {
+      if !inscription_outputs.contains(&outpoint) {
+        balance += amount.to_sat()
+      }
+    }
+
+    Ok(
+      axum::Json(serde_json::json!({
+        "cardinal": balance,
+        "_links": {
+          "self": {
+            "href": format!("/wallet/balance"),
+          },
+        }
+      }))
+      .into_response()
+    )
+  }
+
+  async fn receive(
+    Extension(config): Extension<Arc<Config>>,
+    Extension(client): Extension<Arc<Client>>,
+    accept_json: AcceptJson,
+    header: HeaderMap,
+  ) -> ServerResult<Response> {
+    if config.api_key.is_none() || !header.contains_key("x-api-key") ||
+        config.api_key.as_ref().unwrap().as_str() != header.get("x-api-key").unwrap() {
+      return Err(ServerError::Unauthorized(
+        "Authentication failure".to_string(),
+      ));
+    }
+    if !accept_json.0 {
+      return Err(ServerError::BadRequest(
+        "Only application/json is allowed".to_string(),
+      ));
+    }
+
+    let address_resp =
+      client.get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32));
+    if address_resp.is_err() {
+      return Err(ServerError::Internal(Error::from(
+        address_resp.err().unwrap(),
+      )));
+    }
+
+    Ok(
+      axum::Json(serde_json::json!({
+        "address": address_resp.unwrap(),
+        "_links": {
+          "self": {
+            "href": format!("/wallet/receive"),
+          },
+        }
+      }))
+      .into_response(),
     )
   }
 
