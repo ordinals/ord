@@ -5,7 +5,6 @@ use {
     error::{OptionExt, ServerError, ServerResult},
   },
   super::*,
-  crate::wallet::Wallet,
   crate::page_config::PageConfig,
   crate::subcommand::wallet::transactions::Output,
   crate::templates::{
@@ -13,6 +12,7 @@ use {
     PageContent, PageHtml, PreviewAudioHtml, PreviewImageHtml, PreviewPdfHtml, PreviewTextHtml,
     PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, SatHtml, TransactionHtml,
   },
+  crate::wallet::Wallet,
   axum::{
     body,
     extract::{Extension, Path, Query},
@@ -30,6 +30,7 @@ use {
     caches::DirCache,
     AcmeConfig,
   },
+  std::collections::BTreeSet,
   std::{cmp::Ordering, str},
   tokio_stream::StreamExt,
   tower_http::{
@@ -37,7 +38,6 @@ use {
     cors::{Any, CorsLayer},
     set_header::SetResponseHeaderLayer,
   },
-  std::collections::BTreeSet,
 };
 
 mod accept_json;
@@ -1107,9 +1107,12 @@ impl Server {
     Extension(config): Extension<Arc<Config>>,
     Extension(client): Extension<Arc<Client>>,
     accept_json: AcceptJson,
+    header: HeaderMap,
   ) -> ServerResult<Response> {
-    if config.api_key.is_none() || !header.contains_key("x-api-key") ||
-        config.api_key.as_ref().unwrap().as_str() != header.get("x-api-key").unwrap() {
+    if config.api_key.is_none()
+      || !header.contains_key("x-api-key")
+      || config.api_key.as_ref().unwrap().as_str() != header.get("x-api-key").unwrap()
+    {
       return Err(ServerError::Unauthorized(
         "Authentication failure".to_string(),
       ));
@@ -1167,9 +1170,12 @@ impl Server {
     Extension(config): Extension<Arc<Config>>,
     Extension(options): Extension<Arc<Options>>,
     accept_json: AcceptJson,
+    header: HeaderMap,
   ) -> ServerResult<Response> {
-    if config.api_key.is_none() || !header.contains_key("x-api-key") ||
-        config.api_key.as_ref().unwrap().as_str() != header.get("x-api-key").unwrap() {
+    if config.api_key.is_none()
+      || !header.contains_key("x-api-key")
+      || config.api_key.as_ref().unwrap().as_str() != header.get("x-api-key").unwrap()
+    {
       return Err(ServerError::Unauthorized(
         "Authentication failure".to_string(),
       ));
@@ -1181,10 +1187,10 @@ impl Server {
     }
 
     let inscription_outputs = index
-        .get_inscriptions(None)?
-        .keys()
-        .map(|satpoint| satpoint.outpoint)
-        .collect::<BTreeSet<OutPoint>>();
+      .get_inscriptions(None)?
+      .keys()
+      .map(|satpoint| satpoint.outpoint)
+      .collect::<BTreeSet<OutPoint>>();
 
     let mut balance = 0;
     for (outpoint, amount) in index.get_unspent_outputs(Wallet::load(&options)?)? {
@@ -1202,7 +1208,7 @@ impl Server {
           },
         }
       }))
-      .into_response()
+      .into_response(),
     )
   }
 
@@ -1212,8 +1218,10 @@ impl Server {
     accept_json: AcceptJson,
     header: HeaderMap,
   ) -> ServerResult<Response> {
-    if config.api_key.is_none() || !header.contains_key("x-api-key") ||
-        config.api_key.as_ref().unwrap().as_str() != header.get("x-api-key").unwrap() {
+    if config.api_key.is_none()
+      || !header.contains_key("x-api-key")
+      || config.api_key.as_ref().unwrap().as_str() != header.get("x-api-key").unwrap()
+    {
       return Err(ServerError::Unauthorized(
         "Authentication failure".to_string(),
       ));
