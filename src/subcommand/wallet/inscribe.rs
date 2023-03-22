@@ -143,59 +143,48 @@ impl Inscribe {
         parent: self.parent,
         fees,
       })?;
-    } else {
-      if !self.no_backup {
-        Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
-      }
 
-      let signed_raw_commit_tx = client
-        .sign_raw_transaction_with_wallet(&unsigned_commit_tx, None, None)?
+      return Ok(());
+    }
+
+    // if !self.no_backup {
+    // Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
+    // }
+
+    let signed_raw_commit_tx = client
+      .sign_raw_transaction_with_wallet(&unsigned_commit_tx, None, None)?
+      .hex;
+
+    let commit = client
+      .send_raw_transaction(&signed_raw_commit_tx)
+      .context("Failed to send commit transaction")?;
+
+    let reveal = if self.parent.is_some() {
+      let fully_signed_raw_reveal_tx = client
+        .sign_raw_transaction_with_wallet(&partially_signed_reveal_tx, None, None)?
         .hex;
 
-      let commit = client
-        .send_raw_transaction(&signed_raw_commit_tx)
-        .context("Failed to send commit transaction")?;
-
-      log::debug!(
-        "partially signed reveal tx: {}",
-        hex::encode(serialize(&partially_signed_reveal_tx))
-      );
-
-      // TODO: get Bitcoin Core to attach reveal witness
-      // after signing replace witness with correct one
-      let reveal = if self.parent.is_some() {
-        let fully_signed_raw_reveal_tx = client
-          .sign_raw_transaction_with_wallet(&partially_signed_reveal_tx, None, None)?
-          .hex;
-        // TODO: there is a bug here, the fully signed reveal TX no longer contains
-        // the inscription data when backup key is in bitcoin core wallet
-        log::debug!(
-          "fully signed reveal tx: {}",
-          hex::encode(serialize(&fully_signed_raw_reveal_tx))
-        );
-
-        client
-          .send_raw_transaction(&fully_signed_raw_reveal_tx)
-          .context("Failed to send reveal transaction")?
-      } else {
-        client
-          .send_raw_transaction(&partially_signed_reveal_tx)
-          .context("Failed to send reveal transaction")?
-      };
-
-      let inscription = InscriptionId {
-        txid: reveal,
-        index: commit_input_offset as u32,
-      };
-
-      print_json(Output {
-        commit,
-        reveal,
-        inscription,
-        parent: self.parent,
-        fees,
-      })?;
+      client
+        .send_raw_transaction(&fully_signed_raw_reveal_tx)
+        .context("Failed to send reveal transaction")?
+    } else {
+      client
+        .send_raw_transaction(&partially_signed_reveal_tx)
+        .context("Failed to send reveal transaction")?
     };
+
+    let inscription = InscriptionId {
+      txid: reveal,
+      index: 0,
+    };
+
+    print_json(Output {
+      commit,
+      reveal,
+      inscription,
+      parent: self.parent,
+      fees,
+    })?;
 
     Ok(())
   }

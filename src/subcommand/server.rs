@@ -821,6 +821,9 @@ impl Server {
       .get_inscription_entry(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
+    dbg!(&inscription_id);
+    dbg!(&entry);
+
     let inscription = index
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
@@ -859,7 +862,7 @@ impl Server {
         next,
         number: entry.number,
         output,
-        parent: dbg!(entry.parent),
+        parent: entry.parent,
         previous,
         sat: entry.sat,
         satpoint,

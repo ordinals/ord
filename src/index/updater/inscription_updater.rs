@@ -117,11 +117,11 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           } else {
             None
           };
-
+          
           floating_inscriptions.push(Flotsam {
             inscription_id: InscriptionId {
               txid,
-              index: 0,
+              index: 0, // will have to be updated for multi inscriptions
             },
             offset: input_value,
             origin: Origin::New((0, parent)),
@@ -203,7 +203,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         self.update_inscription_location(
           input_sat_ranges,
           // TODO: do something with two inscriptions in the input
-          inscriptions.next().unwrap(),
+          dbg!(inscriptions.next().unwrap()),
           new_satpoint,
         )?;
       }
@@ -271,9 +271,11 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           }
         }
 
+        dbg!(&parent); 
+        
         self.id_to_entry.insert(
           &inscription_id,
-          &InscriptionEntry {
+          &dbg!(InscriptionEntry {
             fee,
             height: self.height,
             number: self.next_number,
@@ -281,7 +283,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             sat,
             timestamp: self.timestamp,
           }
-          .store(),
+          .store()),
         )?;
 
         self.next_number += 1;
