@@ -548,7 +548,7 @@ impl Index {
     {
       return Ok(None);
     }
-    
+
     Ok(
       self
         .get_transaction(inscription_id.txid)?

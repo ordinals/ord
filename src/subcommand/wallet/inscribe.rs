@@ -1,4 +1,4 @@
-use bitcoin::{SchnorrSig};
+use bitcoin::SchnorrSig;
 
 use {
   super::*,
