@@ -1,11 +1,14 @@
+use bitcoincore_rpc::RawTx;
+
 use {super::*, crate::wallet::Wallet};
 
 #[derive(Serialize)]
 struct Output {
   address: Address,
-  amount: u64,
+  amount: Option<u64>,
   txid: Option<Txid>,
-  outpoints: Vec<OutPoint>,
+  outpoints: Option<Vec<OutPoint>>,
+  txraw: Option<String>,
 }
 
 #[derive(Debug, Parser)]
@@ -63,9 +66,10 @@ impl Send {
         if self.dry_run {
           print_json(Output {
             address: self.address,
-            amount: amount.to_sat(),
+            amount: Some(amount.to_sat()),
             txid: None,
-            outpoints: wallet_inscription_outputs,
+            outpoints: Some(wallet_inscription_outputs),
+            txraw: None,
           })?;
         } else {
           if !client.lock_unspent(&wallet_inscription_outputs)? {
@@ -77,9 +81,10 @@ impl Send {
 
           print_json(Output {
             address: self.address,
-            amount: amount.to_sat(),
+            amount: Some(amount.to_sat()),
             txid: Some(txid),
-            outpoints: wallet_inscription_outputs,
+            outpoints: Some(wallet_inscription_outputs),
+            txraw: None,
           })?;
         }
         return Ok(());
@@ -96,15 +101,23 @@ impl Send {
       change,
       self.fee_rate,
     )?;
+    if self.dry_run {
+      print_json(Output {
+        address: self.address,
+        amount: None,
+        txid: None,
+        outpoints: None,
+        txraw: Some(unsigned_transaction.clone().raw_hex()),
+      })?;
+    } else {
+      let signed_tx = client
+        .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
+        .hex;
 
-    let signed_tx = client
-      .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
-      .hex;
+      let txid = client.send_raw_transaction(&signed_tx)?;
 
-    let txid = client.send_raw_transaction(&signed_tx)?;
-
-    println!("{txid}");
-
+      println!("{txid}");
+    }
     Ok(())
   }
 }
