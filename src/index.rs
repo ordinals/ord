@@ -425,11 +425,12 @@ impl Index {
   }
 
   pub(crate) fn blocks(&self, take: usize) -> Result<Vec<(u64, BlockHash)>> {
-    let mut blocks = Vec::new();
 
     let rtx = self.begin_read()?;
 
     let block_count = rtx.block_count()?;
+
+    let mut blocks = Vec::with_capacity(block_count as usize);
 
     let height_to_block_hash = rtx.0.open_table(HEIGHT_TO_BLOCK_HASH)?;
 
@@ -442,11 +443,12 @@ impl Index {
 
   pub(crate) fn rare_sat_satpoints(&self) -> Result<Option<Vec<(Sat, SatPoint)>>> {
     if self.has_sat_index()? {
-      let mut result = Vec::new();
-
       let rtx = self.database.begin_read()?;
 
+
       let sat_to_satpoint = rtx.open_table(SAT_TO_SATPOINT)?;
+      
+      let mut result = Vec::with_capacity(sat_to_satpoint.len()?);
 
       for (sat, satpoint) in sat_to_satpoint.range(0..)? {
         result.push((Sat(sat.value()), Entry::load(*satpoint.value())));
