@@ -97,7 +97,7 @@ impl Send {
       satpoint,
       inscriptions,
       unspent_outputs,
-      self.address,
+      self.address.clone(),
       change,
       self.fee_rate,
     )?;
