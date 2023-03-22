@@ -103,21 +103,14 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       if let Some(inscription) = Inscription::from_tx_input(tx_in) {
         // ignore new inscriptions on already inscribed offset (sats)
         if !inscribed_offsets.contains(&input_value) {
-          let parent = if let Some(parent_id) = inscription.get_parent_id() {
-            // parent has to be in an input before child
-            // think about specifying a more general approach in a protocol doc/BIP
-            if floating_inscriptions
+          // parent has to be in an input before child
+          // think about specifying a more general approach in a protocol doc/BIP
+          let parent = inscription.get_parent_id().filter(|&parent_id| {
+            floating_inscriptions
               .iter()
               .any(|flotsam| flotsam.inscription_id == parent_id)
-            {
-              Some(parent_id)
-            } else {
-              None
-            }
-          } else {
-            None
-          };
-          
+          });
+
           floating_inscriptions.push(Flotsam {
             inscription_id: InscriptionId {
               txid,
@@ -202,8 +195,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
         self.update_inscription_location(
           input_sat_ranges,
-          // TODO: do something with two inscriptions in the input
-          dbg!(inscriptions.next().unwrap()),
+          inscriptions.next().unwrap(), // TODO: do something with two inscriptions in the input
           new_satpoint,
         )?;
       }
@@ -271,11 +263,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           }
         }
 
-        dbg!(&parent); 
-        
         self.id_to_entry.insert(
           &inscription_id,
-          &dbg!(InscriptionEntry {
+          &InscriptionEntry {
             fee,
             height: self.height,
             number: self.next_number,
@@ -283,7 +273,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             sat,
             timestamp: self.timestamp,
           }
-          .store()),
+          .store(),
         )?;
 
         self.next_number += 1;

@@ -84,8 +84,8 @@ fn get_free_port() -> u16 {
 }
 
 fn ord(
-  cookiefile: &std::path::PathBuf,
-  ord_data_dir: &std::path::PathBuf,
+  cookiefile: &std::path::Path,
+  ord_data_dir: &std::path::Path,
   rpc_port: u16,
   args: &[&str],
 ) -> Result<String, String> {
@@ -96,16 +96,16 @@ fn ord(
     .stdin(Stdio::null())
     .stdout(Stdio::piped())
     .stderr(Stdio::piped())
-    .current_dir(&ord_data_dir)
+    .current_dir(ord_data_dir)
     .arg("--regtest")
     .arg("--data-dir")
-    .arg(ord_data_dir.as_path())
+    .arg(ord_data_dir)
     .arg("--rpc-url")
     .arg(&format!("127.0.0.1:{}", rpc_port))
     .arg("--cookie-file")
     .arg(cookiefile.to_str().unwrap())
     .args(args);
-  
+
   let output = ord.output().unwrap();
 
   if output.status.success() {
@@ -150,12 +150,13 @@ fn inscribe_child() {
   let cookiefile = bitcoin_data_dir.as_path().join("regtest/.cookie");
 
   for attempt in 0.. {
-    match Client::new(
+    if Client::new(
       &format!("127.0.0.1:{rpc_port}"),
       bitcoincore_rpc::Auth::CookieFile(cookiefile.clone()),
-    ) {
-      Ok(_) => break,
-      _ => (),
+    )
+    .is_ok()
+    {
+      break;
     }
 
     if attempt == 500 {
@@ -188,11 +189,11 @@ fn inscribe_child() {
 
   #[derive(Deserialize, Debug)]
   struct Output {
-    commit: String,
+    _commit: String,
     inscription: String,
-    parent: Option<String>,
-    reveal: String,
-    fees: u64,
+    _parent: Option<String>,
+    _reveal: String,
+    _fees: u64,
   }
 
   let output: Output = match ord(
@@ -214,13 +215,7 @@ fn inscribe_child() {
     &cookiefile,
     &ord_data_dir,
     rpc_port,
-    &[
-      "wallet",
-      "inscribe",
-      "--parent",
-      &parent_id,
-      "child.txt",
-    ],
+    &["wallet", "inscribe", "--parent", &parent_id, "child.txt"],
   ) {
     Ok(s) => serde_json::from_str(&s)
       .unwrap_or_else(|err| panic!("Failed to deserialize JSON: {err}\n{s}")),
@@ -229,7 +224,7 @@ fn inscribe_child() {
 
   let child_id = output.inscription;
   let ord_port = 8080;
-  
+
   rpc_client.generate_to_address(1, &address).unwrap();
 
   let _ord_server = KillOnDrop(
@@ -238,7 +233,7 @@ fn inscribe_child() {
       .stdin(Stdio::null())
       // .stdout(Stdio::piped())
       // .stderr(Stdio::piped())
-      .current_dir(&ord_data_dir)
+      .current_dir(ord_data_dir.clone())
       .arg("--regtest")
       .arg("--data-dir")
       .arg(ord_data_dir.as_path())
@@ -275,18 +270,25 @@ fn inscribe_child() {
   }
 
   let response = client
-    .get(format!("http://127.0.0.1:{ord_port}/inscription/{parent_id}"))
+    .get(format!(
+      "http://127.0.0.1:{ord_port}/inscription/{parent_id}"
+    ))
     .send()
     .unwrap();
 
   assert_regex_match!(response.text().unwrap(), &format!(".*id.*{}.*", parent_id));
-  
+
   thread::sleep(Duration::from_secs(10));
- 
+
   let response = client
-    .get(format!("http://127.0.0.1:{ord_port}/inscription/{child_id}"))
+    .get(format!(
+      "http://127.0.0.1:{ord_port}/inscription/{child_id}"
+    ))
     .send()
     .unwrap();
 
-  assert_regex_match!(response.text().unwrap(), &format!(".*parent.*{}.*", parent_id));
+  assert_regex_match!(
+    response.text().unwrap(),
+    &format!(".*parent.*{}.*", parent_id)
+  );
 }

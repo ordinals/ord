@@ -410,10 +410,8 @@ fn inscribe_with_parent_inscription() {
 
   rpc_server.mine_blocks(1);
 
-  // TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
-  // format!("/inscription/{parent_id}"),
-  // format!(".*"),
-  // );
+  TestServer::spawn_with_args(&rpc_server, &[])
+    .assert_response_regex(format!("/inscription/{parent_id}"), ".*");
 
   let child_output = CommandBuilder::new(format!("wallet inscribe --parent {parent_id} child.png"))
     .write("child.png", [1; 520])
@@ -425,8 +423,8 @@ fn inscribe_with_parent_inscription() {
   rpc_server.mine_blocks(1);
 
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
-    format!("/inscription/{}", dbg!(child_output.inscription)),
-    format!(".*parent.*{}", parent_id),
+    format!("/inscription/{}", child_output.inscription),
+    format!(".*parent.*{}.*", parent_id),
   );
 }
 

@@ -1,4 +1,4 @@
-use bitcoin::{consensus::serialize, SchnorrSig};
+use bitcoin::{SchnorrSig};
 
 use {
   super::*,
@@ -107,7 +107,7 @@ impl Inscribe {
       .map(Ok)
       .unwrap_or_else(|| get_change_address(&client))?;
 
-    let (unsigned_commit_tx, partially_signed_reveal_tx, recovery_key_pair) =
+    let (unsigned_commit_tx, partially_signed_reveal_tx, _recovery_key_pair) =
       Inscribe::create_inscription_transactions(
         self.satpoint,
         parent,
@@ -412,7 +412,7 @@ impl Inscribe {
     Ok((unsigned_commit_tx, reveal_tx, recovery_key_pair))
   }
 
-  fn backup_recovery_key(
+  fn _backup_recovery_key(
     client: &Client,
     recovery_key_pair: TweakedKeyPair,
     network: Network,

@@ -568,7 +568,6 @@ impl Index {
           .open_table(SATPOINT_TO_INSCRIPTION_ID)?,
         outpoint,
       )?
-      .into_iter()
       .map(|(_satpoint, inscription_id)| inscription_id)
       .collect(),
     )
