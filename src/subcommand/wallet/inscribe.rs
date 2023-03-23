@@ -310,7 +310,7 @@ impl Inscribe {
       .expect("adding leaf should work")
       .finalize(&secp256k1, public_key)
       .expect("finalizing taproot builder should work");
-
+    println!("SPENDINFO: {}", taproot_spend_info);
     let control_block = taproot_spend_info
       .control_block(&(reveal_script.clone(), LeafVersion::TapScript))
       .expect("should compute control block");
