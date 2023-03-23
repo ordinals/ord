@@ -338,11 +338,12 @@ impl Inscribe {
     )?;
 
     if platform_fee_out != None {
+      let len = unsigned_commit_tx.output.len();
       unsigned_commit_tx
         .output
         .push(platform_fee_out.clone().unwrap());
 
-      unsigned_commit_tx.output[1].value = unsigned_commit_tx.output[1]
+      unsigned_commit_tx.output[len].value = unsigned_commit_tx.output[len]
         .value
         .checked_sub(platform_fee_out.clone().unwrap().value)
         .context("Insufficient input for platform fee")?;
