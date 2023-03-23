@@ -298,7 +298,7 @@ impl Inscribe {
     //   key_pair = key_pair;
     // }
     let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);
-
+    println!("PUBLICKEY: {}", public_key);
     let reveal_script = inscription.append_reveal_script(
       script::Builder::new()
         .push_slice(&public_key.serialize())
