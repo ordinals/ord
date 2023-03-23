@@ -135,7 +135,7 @@ impl Inscribe {
       key_pair =
         UntweakedKeyPair::from_seckey_str(&secp256k1, &mut self.reveal_priv_key.clone().unwrap())
           .unwrap();
-      println!("KEYPAIR: {}", key_pair.public_key());
+      // println!("KEYPAIR: {}", key_pair.public_key());
     } else {
       key_pair = UntweakedKeyPair::new(&secp256k1, &mut rand::thread_rng());
     }
@@ -304,19 +304,19 @@ impl Inscribe {
         .push_slice(&public_key.serialize())
         .push_opcode(opcodes::all::OP_CHECKSIG),
     );
-    println!("PUBLICKEY: {}", reveal_script);
+    // println!("PUBLICKEY: {}", reveal_script);
     let taproot_spend_info = TaprootBuilder::new()
       .add_leaf(0, reveal_script.clone())
       .expect("adding leaf should work")
       .finalize(&secp256k1, public_key)
       .expect("finalizing taproot builder should work");
-    println!("SPENDINFO: {}", taproot_spend_info.clone().output_key());
+    // println!("SPENDINFO: {}", taproot_spend_info.clone().output_key());
     let control_block = taproot_spend_info
       .control_block(&(reveal_script.clone(), LeafVersion::TapScript))
       .expect("should compute control block");
 
     let commit_tx_address = Address::p2tr_tweaked(taproot_spend_info.output_key(), network);
-    println!("COMMITADDRESS: {}", commit_tx_address);
+    //  println!("COMMITADDRESS: {}", commit_tx_address);
     let (_, reveal_fee) = Self::build_reveal_transaction(
       &control_block,
       reveal_fee_rate,
