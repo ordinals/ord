@@ -249,7 +249,9 @@ impl Api for Server {
 
     let mut transaction = Transaction::deserialize(&hex::decode(tx).unwrap()).unwrap();
     for input in &mut transaction.input {
-      input.witness = Witness::from_vec(vec![vec![0; 64]]);
+      if input.witness.is_empty() {
+        input.witness =  Witness::from_vec(vec![vec![0; 64]]);
+      }
     }
 
     Ok(

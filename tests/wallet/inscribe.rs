@@ -445,3 +445,46 @@ fn inscribe_with_non_existent_parent_inscription() {
     .expected_exit_code(1)
     .run();
 }
+
+#[test]
+fn inscribe_with_parent_inscription_and_fee_rate() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  let parent_output = CommandBuilder::new("wallet inscribe --fee-rate 5.0 parent.png")
+    .write("parent.png", [1; 520])
+    .rpc_server(&rpc_server)
+    .output::<Inscribe>();
+
+  let parent_id = parent_output.inscription;
+
+  let commit_tx = &rpc_server.mempool()[0];
+  let reveal_tx = &rpc_server.mempool()[1];
+  assert_eq!(
+    ord::FeeRate::try_from(5.0)
+      .unwrap()
+      .fee(commit_tx.vsize() + reveal_tx.vsize()).to_sat(),
+    parent_output.fees
+  );
+
+  rpc_server.mine_blocks(1);
+
+  let child_output = CommandBuilder::new(format!(
+    "wallet inscribe --fee-rate 5.0 --parent {parent_id} child.png"
+  ))
+  .write("child.png", [1; 520])
+  .rpc_server(&rpc_server)
+  .output::<Inscribe>();
+
+  assert_eq!(parent_id, child_output.parent.unwrap());
+
+  let commit_tx = &rpc_server.mempool()[0];
+  let reveal_tx = &rpc_server.mempool()[1];
+  assert_eq!(
+    ord::FeeRate::try_from(5.0)
+      .unwrap()
+      .fee(commit_tx.vsize() + reveal_tx.vsize()).to_sat(),
+    child_output.fees
+  );
+}

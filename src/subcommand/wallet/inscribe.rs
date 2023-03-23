@@ -265,9 +265,9 @@ impl Inscribe {
     let commit_tx_address = Address::p2tr_tweaked(taproot_spend_info.output_key(), network);
 
     let (mut inputs, mut outputs, commit_input_offset) =
-      if let Some((satpoint, output)) = parent.clone() {
+      if let Some((parent_satpoint, output)) = parent.clone() {
         (
-          vec![satpoint.outpoint, OutPoint::null()],
+          vec![parent_satpoint.outpoint, OutPoint::null()],
           vec![
             TxOut {
               script_pubkey: output.script_pubkey,
@@ -466,13 +466,18 @@ impl Inscribe {
       let mut reveal_tx = reveal_tx.clone();
 
       for txin in &mut reveal_tx.input {
-        txin.witness.push(
-          Signature::from_slice(&[0; SCHNORR_SIGNATURE_SIZE])
-            .unwrap()
-            .as_ref(),
-        );
-        txin.witness.push(script);
-        txin.witness.push(&control_block.serialize());
+        // only add dummy witness for reveal input/commit output
+        if txin.previous_output == OutPoint::null() {
+          txin.witness.push(
+            Signature::from_slice(&[0; SCHNORR_SIGNATURE_SIZE])
+              .unwrap()
+              .as_ref(),
+          );
+          txin.witness.push(script);
+          txin.witness.push(&control_block.serialize());
+        } else {
+          txin.witness = Witness::from_vec(vec![vec![0; SCHNORR_SIGNATURE_SIZE]]);
+        }
       }
 
       fee_rate.fee(reveal_tx.vsize())
