@@ -298,13 +298,13 @@ impl Inscribe {
     //   key_pair = key_pair;
     // }
     let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);
-    println!("PUBLICKEY: {}", public_key);
+
     let reveal_script = inscription.append_reveal_script(
       script::Builder::new()
         .push_slice(&public_key.serialize())
         .push_opcode(opcodes::all::OP_CHECKSIG),
     );
-
+    println!("PUBLICKEY: {}", reveal_script);
     let taproot_spend_info = TaprootBuilder::new()
       .add_leaf(0, reveal_script.clone())
       .expect("adding leaf should work")
