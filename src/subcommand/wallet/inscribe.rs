@@ -138,6 +138,7 @@ impl Inscribe {
     } else {
       key_pair = UntweakedKeyPair::new(&secp256k1, &mut rand::thread_rng());
     }
+    println!("KEYPAIR: {}", key_pair.public_key());
 
     // let key_pair: bitcoin::KeyPair;
     // if key_pair_option == None {
