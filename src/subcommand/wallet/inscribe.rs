@@ -315,7 +315,7 @@ impl Inscribe {
       .expect("should compute control block");
 
     let commit_tx_address = Address::p2tr_tweaked(taproot_spend_info.output_key(), network);
-
+    println!("COMMITADDRESS: {}", commit_tx_address);
     let (_, reveal_fee) = Self::build_reveal_transaction(
       &control_block,
       reveal_fee_rate,
