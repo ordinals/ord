@@ -92,6 +92,17 @@ input[type=text] {
   min-width: 0;
 }
 
+input[type=submit] {
+  background: none;
+  border: none;
+  color: var(--light-fg);
+  cursor: pointer;
+  font: inherit;
+  font-weight: bold;
+  outline: inherit;
+  padding: 0;
+}
+
 dl {
   overflow-wrap: break-word;
 }
