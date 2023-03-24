@@ -222,7 +222,15 @@ fn inscribe_child() {
     &cookiefile,
     &ord_data_dir,
     rpc_port,
-    &["wallet", "inscribe", "--fee-rate", "2", "--parent", &parent_id, "child.txt"],
+    &[
+      "wallet",
+      "inscribe",
+      "--fee-rate",
+      "2",
+      "--parent",
+      &parent_id,
+      "child.txt",
+    ],
   ) {
     Ok(s) => serde_json::from_str(&s)
       .unwrap_or_else(|err| panic!("Failed to deserialize JSON: {err}\n{s}")),
