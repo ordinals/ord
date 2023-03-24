@@ -4,8 +4,8 @@
   --dark-fg: #98a3ad;
   --epic: darkorchid;
   --legendary: gold;
-  --light-bg: #292c2f;
-  --light-fg: #a1adb8;
+  --light-bg: #000000;
+  --light-fg: #ffffff;
   --link: #4169e1;
   --mythic: #f2a900;
   --rare: cornflowerblue;
@@ -48,10 +48,6 @@ a:hover {
   text-decoration: underline;
 }
 
-a:visited {
-  color: var(--link);
-}
-
 dt {
   font-weight: bold;
   margin-top: 0.5rem;
@@ -70,6 +66,15 @@ nav > :first-child {
   font-weight: bold;
 }
 
+nav a:hover {
+  color: var(--link);
+  text-decoration: none;
+}
+
+nav a {
+  color: var(--light-fg);
+}
+
 form {
   display: flex;
   flex-grow: 1;
@@ -85,6 +90,17 @@ input[type=text] {
   color: var(--search-fg);
   flex-grow: 1;
   min-width: 0;
+}
+
+input[type=submit] {
+  background: none;
+  border: none;
+  color: var(--light-fg);
+  cursor: pointer;
+  font-weight: bold;
+  font: inherit;
+  outline: inherit;
+  padding: 0;
 }
 
 dl {
