@@ -295,6 +295,7 @@ impl Inscribe {
       &control_block,
       reveal_fee_rate,
       inputs.clone(),
+      commit_input_offset,
       outputs.clone(),
       &reveal_script,
     );
@@ -331,6 +332,7 @@ impl Inscribe {
       &control_block,
       reveal_fee_rate,
       inputs,
+      commit_input_offset,
       outputs,
       &reveal_script,
     );
@@ -444,6 +446,7 @@ impl Inscribe {
     control_block: &ControlBlock,
     fee_rate: FeeRate,
     inputs: Vec<OutPoint>,
+    commit_input_index: usize,
     outputs: Vec<TxOut>,
     script: &Script,
   ) -> (Transaction, Amount) {
@@ -465,9 +468,9 @@ impl Inscribe {
     let fee = {
       let mut reveal_tx = reveal_tx.clone();
 
-      for txin in &mut reveal_tx.input {
-        // only add dummy witness for reveal input/commit output
-        if txin.previous_output == OutPoint::null() {
+      for (current_index, txin) in reveal_tx.input.iter_mut().enumerate() {
+        // add dummy inscription witness for reveal input/commit output
+        if current_index == commit_input_index {
           txin.witness.push(
             Signature::from_slice(&[0; SCHNORR_SIGNATURE_SIZE])
               .unwrap()
@@ -685,6 +688,76 @@ mod tests {
       reveal_tx.output[0].value,
       20_000 - fee - (20_000 - commit_tx.output[0].value),
     );
+  }
+
+  #[test]
+  fn inscribe_with_custom_fee_rate_and_parent() {
+    let utxos = vec![
+      (outpoint(1), Amount::from_sat(10_000)),
+      (outpoint(2), Amount::from_sat(20_000)),
+    ];
+    let mut inscriptions = BTreeMap::new();
+    inscriptions.insert(
+      SatPoint {
+        outpoint: outpoint(1),
+        offset: 0,
+      },
+      inscription_id(1),
+    );
+
+    let inscription = inscription("text/plain", [b'O'; 100]);
+
+    let satpoint = None;
+    let commit_address = change(1);
+    let reveal_address = recipient();
+    let fee_rate = 4.0;
+
+    let (commit_tx, reveal_tx, _private_key) = Inscribe::create_inscription_transactions(
+      satpoint,
+      Some((
+        SatPoint {
+          outpoint: outpoint(1),
+          offset: 0,
+        },
+        TxOut {
+          script_pubkey: change(0).script_pubkey(),
+          value: 10000,
+        },
+      )),
+      inscription,
+      inscriptions,
+      bitcoin::Network::Signet,
+      utxos.into_iter().collect(),
+      [commit_address, change(2)],
+      reveal_address,
+      FeeRate::try_from(fee_rate).unwrap(),
+      FeeRate::try_from(fee_rate).unwrap(),
+      false,
+    )
+    .unwrap();
+
+    let sig_vbytes = 17;
+    let fee = FeeRate::try_from(fee_rate)
+      .unwrap()
+      .fee(commit_tx.vsize() + sig_vbytes)
+      .to_sat();
+
+    let reveal_value = commit_tx
+      .output
+      .iter()
+      .map(|o| o.value)
+      .reduce(|acc, i| acc + i)
+      .unwrap();
+
+    assert_eq!(reveal_value, 20_000 - fee);
+
+    let sig_vbytes = 16;
+    let fee = FeeRate::try_from(fee_rate)
+      .unwrap()
+      .fee(reveal_tx.vsize() + sig_vbytes)
+      .to_sat();
+
+    assert_eq!(fee, commit_tx.output[0].value - reveal_tx.output[1].value,);
   }
 
   #[test]

@@ -464,7 +464,8 @@ fn inscribe_with_parent_inscription_and_fee_rate() {
   assert_eq!(
     ord::FeeRate::try_from(5.0)
       .unwrap()
-      .fee(commit_tx.vsize() + reveal_tx.vsize()).to_sat(),
+      .fee(commit_tx.vsize() + reveal_tx.vsize())
+      .to_sat(),
     parent_output.fees
   );
 
@@ -484,7 +485,8 @@ fn inscribe_with_parent_inscription_and_fee_rate() {
   assert_eq!(
     ord::FeeRate::try_from(5.0)
       .unwrap()
-      .fee(commit_tx.vsize() + reveal_tx.vsize()).to_sat(),
+      .fee(commit_tx.vsize() + reveal_tx.vsize())
+      .to_sat(),
     child_output.fees
   );
 }
