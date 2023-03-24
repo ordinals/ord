@@ -67,7 +67,7 @@ nav > :first-child {
 }
 
 nav a:hover {
-  color: var(--link)
+  color: var(--link);
   text-decoration: none;
 }
 
