@@ -16,6 +16,7 @@
 }
 
 html {
+  text-align: center;
   background-color: var(--dark-bg);
   color: var(--dark-fg);
 }
@@ -32,6 +33,10 @@ h1 {
   text-overflow: ellipsis;
   white-space: nowrap;
   width: 100%;
+}
+
+h2 {
+  color: var(--light-fg);
 }
 
 iframe {
@@ -59,6 +64,7 @@ nav {
   display: flex;
   gap: 1rem;
   padding: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 nav > :first-child {
@@ -229,4 +235,35 @@ a.mythic {
 
 .inscription > a > iframe {
   width: 100%;
+}
+
+.tab-content {
+   display: none;
+}
+
+#inscriptions-tab:checked ~ .tab-content:nth-of-type(1),
+#blocks-tab:checked ~ .tab-content:nth-of-type(2) {
+  display: block;
+}
+
+#inscriptions-tab:checked + label,
+#blocks-tab:checked + label {
+  color: var(--light-fg);
+  font-weight: bold;
+}
+
+label {
+  font-size: 32px;
+  border: none;
+  cursor: pointer;
+}
+
+.toggle-seperator {
+  font-size: 32px;
+  border: none;
+}
+
+input[type=radio] {
+  position: absolute;
+  left: -9999px;
 }
