@@ -167,6 +167,7 @@ impl Server {
         .route("/search/:query", get(Self::search_by_path))
         .route("/static/*path", get(Self::static_asset))
         .route("/status", get(Self::status))
+        .route("/api/tx/:txid", get(Self::transaction_api))
         .route("/tx/:txid", get(Self::transaction))
         .layer(Extension(index))
         .layer(Extension(page_config))
@@ -517,7 +518,6 @@ impl Server {
     let inscription = index.get_inscription_by_id(txid.into())?;
 
     let blockhash = index.get_transaction_blockhash(txid)?;
-
     Ok(
       TransactionHtml::new(
         index
@@ -529,6 +529,24 @@ impl Server {
       )
       .page(page_config, index.has_sat_index()?),
     )
+  }
+
+  async fn transaction_api(
+    Extension(index): Extension<Arc<Index>>,
+    Path(txid): Path<Txid>,
+  ) -> ServerResult<String> {
+    let inscription = index.get_inscription_by_id(txid.into())?;
+
+    let blockhash = index.get_transaction_blockhash(txid)?;
+
+    let obj = serde_json::json!({"transaction": index
+      .get_transaction(txid)?
+      .ok_or_not_found(|| format!("transaction {txid}"))?,
+      "blockhash":blockhash,
+      "inscription": inscription.map(|_|  <bitcoin::Txid as Into<InscriptionId>>::into(txid)),
+    });
+    println!("{}", serde_json::to_string_pretty(&obj).unwrap());
+    Ok(serde_json::to_string_pretty(&obj).unwrap())
   }
 
   async fn status(Extension(index): Extension<Arc<Index>>) -> (StatusCode, &'static str) {
