@@ -48,10 +48,6 @@ a:hover {
   text-decoration: underline;
 }
 
-a:visited {
-  color: var(--link);
-}
-
 dt {
   font-weight: bold;
   margin-top: 0.5rem;
@@ -68,6 +64,15 @@ nav {
 nav > :first-child {
   color: var(--light-fg);
   font-weight: bold;
+}
+
+nav a:hover {
+  color: var(--link)
+  text-decoration: none;
+}
+
+nav a {
+  color: var(--light-fg);
 }
 
 form {
