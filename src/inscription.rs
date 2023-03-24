@@ -618,8 +618,8 @@ mod tests {
   }
 
   #[test]
-  #[ignore] // we need to do this now for parent-child relationships
-  fn do_not_extract_from_second_input() {
+  fn do_extract_from_second_input() {
+    let inscription = inscription("foo", [1; 1040]);
     let tx = Transaction {
       version: 0,
       lock_time: bitcoin::PackedLockTime(0),
@@ -634,13 +634,13 @@ mod tests {
           previous_output: OutPoint::null(),
           script_sig: Script::new(),
           sequence: Sequence(0),
-          witness: inscription("foo", [1; 1040]).to_witness(),
+          witness: inscription.to_witness(),
         },
       ],
       output: Vec::new(),
     };
 
-    assert_eq!(Inscription::from_transaction(&tx), None);
+    assert_eq!(Inscription::from_transaction(&tx), Some(inscription));
   }
 
   #[test]

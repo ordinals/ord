@@ -1,3 +1,5 @@
+use bitcoin::Address;
+
 use {
   super::*,
   bitcoincore_rpc::{Client, RpcApi},
@@ -183,17 +185,21 @@ fn inscribe_child() {
     .get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))
     .unwrap();
 
-  rpc_client.generate_to_address(101, &address).unwrap();
+  let not_ours = Address::from_str("bcrt1qyr2zc4lhadk9k35hwfh2unn7hgvtpwpx8mjx4h").unwrap();
+
+  rpc_client.generate_to_address(1, &address).unwrap();
+  rpc_client.generate_to_address(100, &not_ours).unwrap(); // need to mine 100 blocks for coins to become spendable. use address outside our wallet to prevent slow rescan
 
   fs::write(ord_data_dir.as_path().join("parent.txt"), "Pater").unwrap();
 
   #[derive(Deserialize, Debug)]
+  #[allow(dead_code)] // required because of the `serde` macro, can't use _
   struct Output {
-    _commit: String,
+    commit: String,
     inscription: String,
-    _parent: Option<String>,
-    _reveal: String,
-    _fees: u64,
+    parent: Option<String>,
+    reveal: String,
+    fees: u64,
   }
 
   let output: Output = match ord(
@@ -209,13 +215,14 @@ fn inscribe_child() {
   let parent_id = output.inscription;
 
   rpc_client.generate_to_address(1, &address).unwrap();
+  thread::sleep(Duration::from_secs(1));
 
   fs::write(ord_data_dir.as_path().join("child.txt"), "Filius").unwrap();
   let output: Output = match ord(
     &cookiefile,
     &ord_data_dir,
     rpc_port,
-    &["wallet", "inscribe", "--parent", &parent_id, "child.txt"],
+    &["wallet", "inscribe", "--fee-rate", "2", "--parent", &parent_id, "child.txt"],
   ) {
     Ok(s) => serde_json::from_str(&s)
       .unwrap_or_else(|err| panic!("Failed to deserialize JSON: {err}\n{s}")),
@@ -223,16 +230,16 @@ fn inscribe_child() {
   };
 
   let child_id = output.inscription;
-  let ord_port = 8080;
 
   rpc_client.generate_to_address(1, &address).unwrap();
 
+  let ord_port = 8080;
   let _ord_server = KillOnDrop(
     Command::new(executable_path("ord"))
       .env("ORD_INTEGRATION_TEST", "1")
       .stdin(Stdio::null())
-      // .stdout(Stdio::piped())
-      // .stderr(Stdio::piped())
+      .stdout(Stdio::piped())
+      .stderr(Stdio::piped())
       .current_dir(ord_data_dir.clone())
       .arg("--regtest")
       .arg("--data-dir")
