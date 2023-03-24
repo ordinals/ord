@@ -144,7 +144,7 @@ impl Entry for Option<InscriptionId> {
       Some(InscriptionId::load(array))
     }
   }
-  // TODO: test head and tail byte order
+
   fn store(self) -> Self::Value {
     if let Some(inscription_id) = self {
       let txid_entry = inscription_id.txid.store();

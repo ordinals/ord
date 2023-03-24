@@ -140,7 +140,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       }
     }
 
-    // TODO: inefficient
     // calulate genesis fee for new inscriptions
     let total_output_value = tx.output.iter().map(|txout| txout.value).sum::<u64>();
     let mut floating_inscriptions = floating_inscriptions
@@ -195,7 +194,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
         self.update_inscription_location(
           input_sat_ranges,
-          inscriptions.next().unwrap(), // TODO: do something with two inscriptions in the input
+          inscriptions.next().unwrap(), // This will need to change when we implement multiple inscriptions per TX (#1298).
           new_satpoint,
         )?;
       }
