@@ -141,7 +141,7 @@ impl Server {
         chain: options.chain(),
         domain: acme_domains.first().cloned(),
       });
-
+      println!("Starting server...");
       let router = Router::new()
         .route("/", get(Self::home))
         .route("/block-count", get(Self::block_count))
