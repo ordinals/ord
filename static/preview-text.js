@@ -16,21 +16,28 @@ function parseIpfsUrl(url) {
     return url;
 }
 
-function getMetaData(url) {
-    console.log('Getting url...', url);
-    fetch(url).then((response) => {
-        console.log(response);
-      }, (error) => {
-        console.log(error);
-      });
+async function getMetaData(url) {
+ try {
+    return await ((await fetch(url)).json());
+ }catch(e) {
+    return null;
+ }
 }
 
 
 let result = document.getElementById('text').innerText;
 try{
     const resultJson = JSON.parse(decodeHtml(result));
-  getMetaData(parseIpfsUrl(resultJson.uri));
-  result = JSON.stringify(resultJson, null, 2);
+    result = JSON.stringify(resultJson, null, 2);
+    if(url.endsWith('json')) {
+        getMetaData(parseIpfsUrl(resultJson.uri)).then(metadata=> {
+            if(metadata) {
+                result = `<img src="${parseIpfsUrl(metadata.image)}" />`;
+                document.getElementById('preview').innerText = result;
+            }
+        })
+    }
+  
   console.log('RESULT', result);
 } catch(e) {
   
