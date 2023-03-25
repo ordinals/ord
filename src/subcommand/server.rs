@@ -154,6 +154,10 @@ impl Server {
         .route("/feed.xml", get(Self::feed))
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_id", get(Self::inscription))
+        .route(
+          "/api/inscription/:inscription_id",
+          get(Self::inscription_api),
+        )
         .route("/inscriptions", get(Self::inscriptions))
         .route("/inscriptions/:from", get(Self::inscriptions_from))
         .route("/install.sh", get(Self::install_script))
@@ -553,6 +557,63 @@ impl Server {
     }});
     println!("{}", serde_json::to_string_pretty(&obj).unwrap());
     Ok(serde_json::to_string_pretty(&obj).unwrap())
+  }
+
+  async fn inscription_api(
+    Extension(index): Extension<Arc<Index>>,
+    Path(inscription_id): Path<InscriptionId>,
+  ) -> ServerResult<String> {
+    let entry = index
+      .get_inscription_entry(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    let inscription = index
+      .get_inscription_by_id(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    let satpoint = index
+      .get_inscription_satpoint_by_id(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    let output = index
+      .get_transaction(satpoint.outpoint.txid)?
+      .ok_or_not_found(|| format!("inscription {inscription_id} current transaction"))?
+      .output
+      .into_iter()
+      .nth(satpoint.outpoint.vout.try_into().unwrap())
+      .ok_or_not_found(|| format!("inscription {inscription_id} current transaction output"))?;
+
+    let previous = if let Some(previous) = entry.number.checked_sub(1) {
+      Some(
+        index
+          .get_inscription_id_by_inscription_number(previous)?
+          .ok_or_not_found(|| format!("inscription {previous}"))?,
+      )
+    } else {
+      None
+    };
+
+    let next = index.get_inscription_id_by_inscription_number(entry.number + 1)?;
+    let data = serde_json::json!({
+      "genesis_fee": entry.fee,
+      "genesis_height": entry.height,
+      "inscription": {
+        "body": inscription.body(),
+        "content_length": inscription.content_length(),
+        "content_type": inscription.content_type(),
+        "media": inscription.media(),
+      },
+      "inscription_id": inscription_id,
+      "next": next,
+      "number": entry.number,
+      "output": output,
+      "previous": previous,
+      "sat": entry.sat,
+      "satpoint": satpoint,
+      "timestamp": timestamp(entry.timestamp).to_string(),
+    });
+
+    Ok(serde_json::to_string_pretty(&data).unwrap())
   }
 
   async fn status(Extension(index): Extension<Arc<Index>>) -> (StatusCode, &'static str) {
