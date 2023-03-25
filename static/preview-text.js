@@ -37,7 +37,7 @@ try{
     if(resultJson.uri.endsWith('json')) {
         getMetaData(parseIpfsUrl(resultJson.uri)).then(metadata=> {
             if(metadata) {
-                result = `<div  style="text-align:center;">
+                result = `<div  style="text-align:center;justify-content: center;">
                 <img height="400" src="${parseIpfsUrl(metadata.image)}" />
                 <div style="text-align:center; margin-top: 20px">`;
                 if(resultJson.chain_data) {
