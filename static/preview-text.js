@@ -15,10 +15,7 @@ function parseIpfsUrl(url) {
     return url;
 }
 function getMetaData(url) {
-    axios({
-        method: 'get',
-        url,
-      }).then((response) => {
+    fetch(url).then((response) => {
         console.log(response);
       }, (error) => {
         console.log(error);
