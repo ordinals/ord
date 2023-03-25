@@ -10,12 +10,28 @@ function decodeHtml(html) {
     txt.innerHTML = html;
     return txt.value;
 }
+function parseIpfsUrl(url) {
+    if(url.startsWith('ipfs://')) return url.replace('ipfs://', 'https://ipfs.io/ipfs');
+    return url;
+}
+function getMetaData(url) {
+    axios({
+        method: 'get',
+        url,
+      }).then((response) => {
+        console.log(response);
+      }, (error) => {
+        console.log(error);
+      });
+}
+
 
 let result = document.getElementById('text').innerText;
 try{
   result = JSON.stringify(JSON.parse(decodeHtml(result)), null, 2);
   console.log('RESULT', result);
 } catch(e) {
+    getMetaData(parseIpfsUrl(result.uri));
 console.log('ERROR', e, decodeHtml(result));
 }
 document.getElementById('text').innerText='';
