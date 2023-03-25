@@ -536,18 +536,18 @@ impl Server {
     Path(txid): Path<Txid>,
   ) -> ServerResult<String> {
     let inscription_id = txid.into();
-    let inscription = index.get_inscription_by_id(inscription_id)?;
+    let inscription = index.get_inscription_by_id(txid.into())?;
 
     let blockhash = index.get_transaction_blockhash(txid)?;
-
-    let satpoint = index
-      .get_inscription_satpoint_by_id(inscription_id)?
+    let entry = index
+      .get_inscription_entry(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+    let inscription_number = entry.number;
 
     let obj = serde_json::json!({"meta": {"success": true}, "data": {"transaction": index
       .get_transaction(txid)?
       .ok_or_not_found(|| format!("transaction {txid}"))?,
-     "satpoint": satpoint,
+     "number": inscription_number,
       "blockhash":blockhash,
       "inscription": inscription.map(|_|  <bitcoin::Txid as Into<InscriptionId>>::into(txid)),
     }});
