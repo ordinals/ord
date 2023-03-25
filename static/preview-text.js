@@ -15,7 +15,7 @@ let result = document.getElementById('text').innerText;
 try{
   result = JSON.stringify(JSON.parse(decodeHtml(result)));
 } catch(e) {
-console.log('ERROR', e);
+console.log('ERROR', e, decodeHtml(result));
 }
 document.getElementById('preview').innerText = result;
 
