@@ -600,8 +600,7 @@ impl Server {
       "inscription": {
         "body": inscription.body(),
         "content_length": inscription.content_length(),
-        "content_type": inscription.content_type(),
-        "media": inscription.media(),
+        "content_type": inscription.content_type()
       },
       "inscription_id": inscription_id,
       "next": next,
