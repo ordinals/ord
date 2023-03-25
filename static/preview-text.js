@@ -58,14 +58,14 @@ try{
     }
   
   console.log('RESULT', result);
-  return;
+  
 } catch(e) {
- 
 console.log('ERROR', e, decodeHtml(result));
-}
 document.getElementById('text').style.display = '';
 document.getElementById('text').style.visibility = 'visible';
 document.getElementById('text').innerText=result;
 document.getElementById('image').innerText = '';
+}
+
 
 console.log('Parseing...')
