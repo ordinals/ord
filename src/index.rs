@@ -573,6 +573,8 @@ impl Index {
         children.push(InscriptionId::load(*key.value()));
       }
     }
+    
+    // TODO: do with accumulators and reutrn None
     Ok(children)
   }
 

@@ -160,7 +160,7 @@ impl Server {
           get(Self::inscription_children),
         )
         .route(
-          "/inscription/:inscription_id/children/:index",
+          "/inscription/:inscription_id/child/:index",
           get(Self::inscription_child),
         )
         .route("/inscriptions", get(Self::inscriptions))
@@ -834,6 +834,8 @@ impl Server {
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
+    let children = index.get_children_by_id(inscription_id)?;
+
     let satpoint = index
       .get_inscription_satpoint_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
@@ -861,6 +863,7 @@ impl Server {
     Ok(
       InscriptionHtml {
         chain: page_config.chain,
+        children,
         genesis_fee: entry.fee,
         genesis_height: entry.height,
         inscription,
@@ -883,12 +886,10 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<PageHtml<InscriptionChildrenHtml>> {
-    
-
     Ok(
       InscriptionChildrenHtml {
         parent_id: inscription_id,
-        
+        children: index.get_children_by_id(inscription_id)?,
       }
       .page(page_config, index.has_sat_index()?),
     )
@@ -897,13 +898,15 @@ impl Server {
   async fn inscription_child(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path(inscription_id): Path<InscriptionId>,
-    Path(child_num): Path<u64>,
+    Path((parent_id, child_num)): Path<(InscriptionId, usize)>,
   ) -> ServerResult<PageHtml<InscriptionHtml>> {
-    // get nth child of parent 
-    // load the inscription page of that child
+    let children = index.get_children_by_id(parent_id)?;
 
-    Self::inscription(Extension(page_config), Extension(index), Path(inscription_id)).await
+    let child_id = children
+      .get(child_num)
+      .ok_or_not_found(|| format!("child #{child_num} for parent {parent_id}"))?;
+
+    Self::inscription(Extension(page_config), Extension(index), Path(*child_id)).await
   }
 
   async fn inscriptions(

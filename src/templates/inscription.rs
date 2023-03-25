@@ -3,6 +3,7 @@ use super::*;
 #[derive(Boilerplate)]
 pub(crate) struct InscriptionHtml {
   pub(crate) chain: Chain,
+  pub(crate) children: Vec<InscriptionId>,
   pub(crate) genesis_fee: u64,
   pub(crate) genesis_height: u64,
   pub(crate) inscription: Inscription,
@@ -36,6 +37,7 @@ mod tests {
     assert_regex_match!(
       InscriptionHtml {
         chain: Chain::Mainnet,
+        children: vec![],
         genesis_fee: 1,
         genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
@@ -96,6 +98,7 @@ mod tests {
     assert_regex_match!(
       InscriptionHtml {
         chain: Chain::Mainnet,
+        children: vec![],
         genesis_fee: 1,
         genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
@@ -129,6 +132,39 @@ mod tests {
     assert_regex_match!(
       InscriptionHtml {
         chain: Chain::Mainnet,
+        children: vec![],
+        genesis_fee: 1,
+        genesis_height: 0,
+        inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
+        inscription_id: inscription_id(2),
+        next: Some(inscription_id(3)),
+        number: 1,
+        output: tx_out(1, address()),
+        parent: None,
+        previous: Some(inscription_id(1)),
+        sat: None,
+        satpoint: satpoint(1, 0),
+        timestamp: timestamp(0),
+      },
+      "
+        <h1>Inscription 1</h1>
+        <div class=inscription>
+        <a class=prev href=/inscription/1{64}i1>❮</a>
+        <iframe .* src=/preview/2{64}i2></iframe>
+        <a class=next href=/inscription/3{64}i3>❯</a>
+        </div>
+        .*
+      "
+      .unindent()
+    );
+  }
+
+  #[test]
+  fn with_children() {
+    assert_regex_match!(
+      InscriptionHtml {
+        chain: Chain::Mainnet,
+        children: vec![inscription_id(5), inscription_id(6)],
         genesis_fee: 1,
         genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),

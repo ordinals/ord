@@ -26,7 +26,7 @@ mod tests {
     assert_regex_match!(
       InscriptionChildrenHtml {
         parent_id: inscription_id(0),
-        children: vec![inscription_id(1), inscription_id(2), inscription_id(3)]
+        children: vec![inscription_id(1), inscription_id(2), inscription_id(3)],
       },
       "
         <h1>0{64}i0's children</h1>
