@@ -560,7 +560,20 @@ impl Index {
     &self,
     inscription_id: InscriptionId,
   ) -> Result<Vec<InscriptionId>> {
-    Ok(Vec::new())
+    let mut children = Vec::new();
+
+    for (key, entry_value) in self
+      .database
+      .begin_read()?
+      .open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?
+      .iter()?
+    {
+      let entry = InscriptionEntry::load(entry_value.value());
+      if entry.parent == Some(inscription_id) {
+        children.push(InscriptionId::load(*key.value()));
+      }
+    }
+    Ok(children)
   }
 
   pub(crate) fn get_inscriptions_on_output(
