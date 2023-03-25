@@ -24,6 +24,11 @@ async function getMetaData(url) {
  }
 }
 
+function toLink(url, label) {
+    if(!label) label = url;
+    return `<a href="${url}" target="_blank">${url}</a>`;
+}
+
 
 let result = document.getElementById('text').innerText;
 try{
@@ -32,7 +37,14 @@ try{
     if(resultJson.uri.endsWith('json')) {
         getMetaData(parseIpfsUrl(resultJson.uri)).then(metadata=> {
             if(metadata) {
-                result = `<img src="${parseIpfsUrl(metadata.image)}" />`;
+                result = `<div>
+                <img height="400" src="${parseIpfsUrl(metadata.image)}" />
+                <div style="text-align:center; margin-top: 20">
+                Token URI: ${resultJson.uri}</br>
+                Info: ${toLink(resultJson.info ?? resultJson.info_uri)}</br>
+                Collection: ${toLink(resultJson.collection ?? resultJson.collection_uri)}</br>
+                </div>
+                </div>`;
                 document.getElementById('preview').innerHTML = result;
             }
         })
