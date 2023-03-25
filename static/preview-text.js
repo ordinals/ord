@@ -39,10 +39,15 @@ try{
             if(metadata) {
                 result = `<div>
                 <img height="400" src="${parseIpfsUrl(metadata.image)}" />
-                <div style="text-align:center; margin-top: 20">
-                Token URI: ${resultJson.uri}</br>
-                Info: ${toLink(resultJson.info ?? resultJson.info_uri)}</br>
-                Collection: ${toLink(resultJson.collection ?? resultJson.collection_uri)}</br>
+                <div style="text-align:center; margin-top: 20">`;
+                if(resultJson.chain_data) {
+                    result +=`Chain: ${resultJson.chain_data.chain}</br>`
+                    result +=`Contract Address: ${resultJson.chain_data.contract}</br>`
+                    result +=`TokenId: ${resultJson.chain_data.tokenId}</br>`
+                }
+                result +=`
+                Info Url: ${toLink(resultJson.info ?? resultJson.info_uri)}</br>
+                Collection Url: ${toLink(resultJson.collection ?? resultJson.collection_uri)}</br>
                 </div>
                 </div>`;
                 document.getElementById('preview').innerHTML = result;
