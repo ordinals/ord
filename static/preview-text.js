@@ -29,7 +29,7 @@ let result = document.getElementById('text').innerText;
 try{
     const resultJson = JSON.parse(decodeHtml(result));
     result = JSON.stringify(resultJson, null, 2);
-    if(url.endsWith('json')) {
+    if(resultJson.uri.endsWith('json')) {
         getMetaData(parseIpfsUrl(resultJson.uri)).then(metadata=> {
             if(metadata) {
                 result = `<img src="${parseIpfsUrl(metadata.image)}" />`;
