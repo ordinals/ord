@@ -6,9 +6,10 @@ use {
   super::*,
   crate::page_config::PageConfig,
   crate::templates::{
-    BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionsHtml, OutputHtml,
-    PageContent, PageHtml, PreviewAudioHtml, PreviewImageHtml, PreviewPdfHtml, PreviewTextHtml,
-    PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, SatHtml, TransactionHtml,
+    BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionChildrenHtml, InscriptionHtml,
+    InscriptionsHtml, OutputHtml, PageContent, PageHtml, PreviewAudioHtml, PreviewImageHtml,
+    PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt,
+    SatHtml, TransactionHtml,
   },
   axum::{
     body,
@@ -154,6 +155,14 @@ impl Server {
         .route("/feed.xml", get(Self::feed))
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_id", get(Self::inscription))
+        .route(
+          "/inscription/:inscription_id/children",
+          get(Self::inscription_children),
+        )
+        .route(
+          "/inscription/:inscription_id/children/:index",
+          get(Self::inscription_child),
+        )
         .route("/inscriptions", get(Self::inscriptions))
         .route("/inscriptions/:from", get(Self::inscriptions_from))
         .route("/install.sh", get(Self::install_script))
@@ -867,6 +876,34 @@ impl Server {
       }
       .page(page_config, index.has_sat_index()?),
     )
+  }
+
+  async fn inscription_children(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(inscription_id): Path<InscriptionId>,
+  ) -> ServerResult<PageHtml<InscriptionChildrenHtml>> {
+    
+
+    Ok(
+      InscriptionChildrenHtml {
+        parent_id: inscription_id,
+        
+      }
+      .page(page_config, index.has_sat_index()?),
+    )
+  }
+
+  async fn inscription_child(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(inscription_id): Path<InscriptionId>,
+    Path(child_num): Path<u64>,
+  ) -> ServerResult<PageHtml<InscriptionHtml>> {
+    // get nth child of parent 
+    // load the inscription page of that child
+
+    Self::inscription(Extension(page_config), Extension(index), Path(inscription_id)).await
   }
 
   async fn inscriptions(

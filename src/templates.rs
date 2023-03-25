@@ -18,6 +18,7 @@ pub(crate) use {
   rare::RareTxt,
   sat::SatHtml,
   transaction::TransactionHtml,
+  inscription_children::InscriptionChildrenHtml,
 };
 
 mod block;
@@ -26,6 +27,7 @@ mod home;
 mod iframe;
 mod input;
 mod inscription;
+mod inscription_children;
 mod inscriptions;
 mod output;
 mod preview;
