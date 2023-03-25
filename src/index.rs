@@ -2280,5 +2280,9 @@ mod tests {
         timestamp: 3
       })
     );
+
+    // child successfully retrieved from parent
+    let children = context.index.get_children_by_id(parent_id).unwrap();
+    assert_eq!(children, vec![child_id]);
   }
 }
