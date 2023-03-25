@@ -542,7 +542,11 @@ impl Server {
     let obj = serde_json::json!({"meta": {"success": true}, "data": {"transaction": index
       .get_transaction(txid)?
       .ok_or_not_found(|| format!("transaction {txid}"))?,
-      "satpoint": index.rare_sat_satpoints(),
+      "satpoint": index.rare_sat_satpoints()?.ok_or_else(|| {
+        ServerError::NotFound(
+          "tracking rare sats requires index created with `--index-sats` flag".into(),
+        )
+      })?,
       "blockhash":blockhash,
       "inscription": inscription.map(|_|  <bitcoin::Txid as Into<InscriptionId>>::into(txid)),
     }});
