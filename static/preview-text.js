@@ -47,8 +47,8 @@ try{
                     result +=`TokenId: ${resultJson.chain_data.tokenId}</br>`
                 }
                 result +=`
-                <span style="white-space: nowrap"><b>Info Url:</b> ${toLink(resultJson.info ?? resultJson.info_uri)}</span></br>
-                <span style="white-space: nowrap"><b>Collection Url:</b> ${toLink(resultJson.collection ?? resultJson.collection_uri)}</span></br>
+                <span style="white-space: nowrap"><b>Info Url:</b></br> ${toLink(resultJson.info ?? resultJson.info_uri)}</span></br>
+                <span style="white-space: nowrap"><b>Collection Url:</b></br> ${toLink(resultJson.collection ?? resultJson.collection_uri)}</span></br>
                 </div>
                 </div>`;
                 document.getElementById('image').innerHTML = result;
