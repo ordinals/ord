@@ -39,7 +39,7 @@ try{
             if(metadata) {
                 result = `<div>
                 <img height="400" src="${parseIpfsUrl(metadata.image)}" />
-                <div style="text-align:center; margin-top: 20">`;
+                <div style="text-align:center; margin-top: 20px">`;
                 if(resultJson.chain_data) {
                     result +=`Chain: ${resultJson.chain_data.chain}</br>`
                     result +=`Contract Address: ${resultJson.chain_data.contract}</br>`
