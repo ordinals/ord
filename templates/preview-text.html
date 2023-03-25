@@ -5,15 +5,7 @@
     <meta name=format-detection content='telephone=no'>
     <link href=/static/preview-text.css rel=stylesheet>
     <script src=/static/preview-text.js defer></script>
-    <script>
-      let result = document.getElementById('text').innerText;
-      try{
-        result = JSON.stringify(JSON.parse(result));
-      } catch(e) {
-console.log('ERROR', e);
-      }
-      document.getElementById('preview').innerText = result;
-    </script>
+   
   </head>
   <body>
     <pre id="text">{{self.text}}</pre>
