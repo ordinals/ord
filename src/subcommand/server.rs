@@ -174,7 +174,9 @@ impl Server {
         .layer(Extension(Arc::new(config)))
         .layer(SetResponseHeaderLayer::if_not_present(
           header::CONTENT_SECURITY_POLICY,
-          HeaderValue::from_static("default-src 'self'"),
+          HeaderValue::from_static(
+            "default-src 'self'; script-src 'https://ipfs.io' 'self' 'unsafe-eval' 'unsafe-inline'",
+          ),
         ))
         .layer(SetResponseHeaderLayer::overriding(
           header::STRICT_TRANSPORT_SECURITY,
