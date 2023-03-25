@@ -12,7 +12,7 @@ function decodeHtml(html) {
 }
 function parseIpfsUrl(url) {
     if(!url) return;
-    if(url.startsWith('ipfs://')) return url.replace('ipfs://', 'https://ipfs.io/ipfs');
+    if(url.startsWith('ipfs://')) return url.replace('ipfs://', 'https://ipfs.io/ipfs/');
     return url;
 }
 
