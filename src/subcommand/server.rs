@@ -542,6 +542,7 @@ impl Server {
     let obj = serde_json::json!({"meta": {"success": true}, "data": {"transaction": index
       .get_transaction(txid)?
       .ok_or_not_found(|| format!("transaction {txid}"))?,
+      "satpoint": index.rare_sat_satpoints(),
       "blockhash":blockhash,
       "inscription": inscription.map(|_|  <bitcoin::Txid as Into<InscriptionId>>::into(txid)),
     }});
