@@ -33,7 +33,7 @@ try{
         getMetaData(parseIpfsUrl(resultJson.uri)).then(metadata=> {
             if(metadata) {
                 result = `<img src="${parseIpfsUrl(metadata.image)}" />`;
-                document.getElementById('preview').innerText = result;
+                document.getElementById('preview').innerHTML = result;
             }
         })
     }
