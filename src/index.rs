@@ -556,6 +556,13 @@ impl Index {
     )
   }
 
+  pub(crate) fn get_children_by_id(
+    &self,
+    inscription_id: InscriptionId,
+  ) -> Result<Vec<InscriptionId>> {
+    Ok(Vec::new())
+  }
+
   pub(crate) fn get_inscriptions_on_output(
     &self,
     outpoint: OutPoint,
