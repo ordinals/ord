@@ -18,6 +18,7 @@ try{
 } catch(e) {
 console.log('ERROR', e, decodeHtml(result));
 }
+document.getElementById('text').innerText='';
 document.getElementById('preview').innerText = result;
 
 console.log('Parseing...')
