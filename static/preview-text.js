@@ -11,10 +11,13 @@ function decodeHtml(html) {
     return txt.value;
 }
 function parseIpfsUrl(url) {
+    if(!url) return;
     if(url.startsWith('ipfs://')) return url.replace('ipfs://', 'https://ipfs.io/ipfs');
     return url;
 }
+
 function getMetaData(url) {
+    console.log('Getting url...', url);
     fetch(url).then((response) => {
         console.log(response);
       }, (error) => {
