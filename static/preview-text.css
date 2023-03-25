@@ -20,6 +20,10 @@ pre {
   margin: 0;
 }
 
+.center {
+  justify-content: center;
+  text-align: center;
+}
 
 body > * {
   grid-column: 1 / 1;
