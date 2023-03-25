@@ -25,6 +25,7 @@ async function getMetaData(url) {
 }
 
 function toLink(url, label) {
+    return url;
     if(!label) label = url;
     return `<a href="${url}" target="_blank">${url}</a>`;
 }
