@@ -556,6 +556,26 @@ impl Index {
     )
   }
 
+  pub(crate) fn get_children_by_id(
+    &self,
+    inscription_id: InscriptionId,
+  ) -> Result<Vec<InscriptionId>> {
+    let mut children = Vec::new();
+
+    for (key, entry_value) in self
+      .database
+      .begin_read()?
+      .open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?
+      .iter()?
+    {
+      let entry = InscriptionEntry::load(entry_value.value());
+      if entry.parent == Some(inscription_id) {
+        children.push(InscriptionId::load(*key.value()));
+      }
+    }
+    Ok(children)
+  }
+
   pub(crate) fn get_inscriptions_on_output(
     &self,
     outpoint: OutPoint,
@@ -2260,5 +2280,9 @@ mod tests {
         timestamp: 3
       })
     );
+
+    // child successfully retrieved from parent
+    let children = context.index.get_children_by_id(parent_id).unwrap();
+    assert_eq!(children, vec![child_id]);
   }
 }
