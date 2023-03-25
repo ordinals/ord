@@ -12,3 +12,5 @@ try{
 console.log('ERROR', e);
 }
 document.getElementById('preview').innerText = result;
+
+console.log('Parseing...')
