@@ -178,7 +178,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       Ok(self.reward - output_value)
     } else {
       self.flotsam.extend(inscriptions.map(|flotsam| Flotsam {
-        offset: self.reward + flotsam.offset,
+        offset: self.reward + flotsam.offset - output_value,
         ..flotsam
       }));
       self.reward += input_value - output_value;
