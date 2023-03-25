@@ -535,18 +535,19 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(txid): Path<Txid>,
   ) -> ServerResult<String> {
-    let inscription = index.get_inscription_by_id(txid.into())?;
+    let inscription_id = txid.into();
+    let inscription = index.get_inscription_by_id(inscription_id)?;
 
     let blockhash = index.get_transaction_blockhash(txid)?;
+
+    let satpoint = index
+      .get_inscription_satpoint_by_id(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
     let obj = serde_json::json!({"meta": {"success": true}, "data": {"transaction": index
       .get_transaction(txid)?
       .ok_or_not_found(|| format!("transaction {txid}"))?,
-      "satpoint": index.rare_sat_satpoints()?.ok_or_else(|| {
-        ServerError::NotFound(
-          "tracking rare sats requires index created with `--index-sats` flag".into(),
-        )
-      })?,
+     "satpoint": satpoint,
       "blockhash":blockhash,
       "inscription": inscription.map(|_|  <bitcoin::Txid as Into<InscriptionId>>::into(txid)),
     }});
