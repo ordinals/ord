@@ -28,8 +28,9 @@ function getMetaData(url) {
 
 let result = document.getElementById('text').innerText;
 try{
-  result = JSON.stringify(JSON.parse(decodeHtml(result)), null, 2);
-  getMetaData(parseIpfsUrl(result.uri));
+    const resultJson = JSON.parse(decodeHtml(result));
+  getMetaData(parseIpfsUrl(resultJson.uri));
+  result = JSON.stringify(resultJson, null, 2);
   console.log('RESULT', result);
 } catch(e) {
   
