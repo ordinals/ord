@@ -539,12 +539,12 @@ impl Server {
 
     let blockhash = index.get_transaction_blockhash(txid)?;
 
-    let obj = serde_json::json!({"transaction": index
+    let obj = serde_json::json!({"meta": {"success": true}, "data": {"transaction": index
       .get_transaction(txid)?
       .ok_or_not_found(|| format!("transaction {txid}"))?,
       "blockhash":blockhash,
       "inscription": inscription.map(|_|  <bitcoin::Txid as Into<InscriptionId>>::into(txid)),
-    });
+    }});
     println!("{}", serde_json::to_string_pretty(&obj).unwrap());
     Ok(serde_json::to_string_pretty(&obj).unwrap())
   }
