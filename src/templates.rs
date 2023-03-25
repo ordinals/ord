@@ -7,6 +7,7 @@ pub(crate) use {
   iframe::Iframe,
   input::InputHtml,
   inscription::InscriptionHtml,
+  inscription_children::InscriptionChildrenHtml,
   inscriptions::InscriptionsHtml,
   output::OutputHtml,
   page_config::PageConfig,
@@ -18,7 +19,6 @@ pub(crate) use {
   rare::RareTxt,
   sat::SatHtml,
   transaction::TransactionHtml,
-  inscription_children::InscriptionChildrenHtml,
 };
 
 mod block;

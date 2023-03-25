@@ -16,6 +16,7 @@ use {
   redb::{Database, ReadableTable, Table, TableDefinition, WriteStrategy, WriteTransaction},
   std::collections::HashMap,
   std::sync::atomic::{self, AtomicBool},
+  std::sync::Mutex,
 };
 
 pub(crate) mod entry;
@@ -54,6 +55,7 @@ pub(crate) struct Index {
   height_limit: Option<u64>,
   reorged: AtomicBool,
   rpc_url: String,
+  cached_children_by_id: Mutex<HashMap<InscriptionId, Vec<InscriptionId>>>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -241,6 +243,7 @@ impl Index {
       height_limit: options.height_limit,
       reorged: AtomicBool::new(false),
       rpc_url,
+      cached_children_by_id: Mutex::new(HashMap::new()),
     })
   }
 
@@ -560,21 +563,34 @@ impl Index {
     &self,
     inscription_id: InscriptionId,
   ) -> Result<Vec<InscriptionId>> {
-    let mut children = Vec::new();
+    {
+      let cache = self.cached_children_by_id.lock().unwrap();
+      if let Some(cached_result) = cache.get(&inscription_id) {
+        return Ok(cached_result.clone());
+      }
+    }
 
-    for (key, entry_value) in self
+    let children = self
       .database
       .begin_read()?
       .open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?
       .iter()?
-    {
-      let entry = InscriptionEntry::load(entry_value.value());
-      if entry.parent == Some(inscription_id) {
-        children.push(InscriptionId::load(*key.value()));
-      }
-    }
-    
-    // TODO: do with accumulators and reutrn None
+      .map(|(key, entry_value)| {
+        let entry = InscriptionEntry::load(entry_value.value());
+        if entry.parent == Some(inscription_id) {
+          Ok(InscriptionId::load(*key.value()))
+        } else {
+          Err(())
+        }
+      })
+      .filter_map(Result::ok)
+      .collect::<Vec<InscriptionId>>();
+
+    self
+      .cached_children_by_id
+      .lock()
+      .unwrap()
+      .insert(inscription_id, children.clone());
     Ok(children)
   }
 

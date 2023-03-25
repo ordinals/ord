@@ -2,10 +2,9 @@ use super::*;
 
 #[derive(Boilerplate)]
 pub(crate) struct InscriptionChildrenHtml {
-  pub(crate) parent_id: InscriptionId, 
-  pub(crate) children: Vec<InscriptionId>, 
+  pub(crate) parent_id: InscriptionId,
+  pub(crate) children: Vec<InscriptionId>,
 }
-
 
 impl PageContent for InscriptionChildrenHtml {
   fn title(&self) -> String {
