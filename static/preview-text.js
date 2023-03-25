@@ -50,7 +50,8 @@ try{
                 Collection Url: ${toLink(resultJson.collection ?? resultJson.collection_uri)}</br>
                 </div>
                 </div>`;
-                document.getElementById('preview').innerHTML = result;
+                document.getElementById('image').innerHTML = result;
+                document.getElementById('text').innerText = '';
             }
         })
     }
