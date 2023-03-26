@@ -29,7 +29,7 @@ impl From<Block> for BlockData {
   }
 }
 
-pub(crate) struct Updater {
+pub(crate) struct Updater<'a> {
   range_cache: HashMap<OutPointValue, Vec<u8>>,
   height: u64,
   index_sats: bool,
@@ -37,10 +37,11 @@ pub(crate) struct Updater {
   outputs_cached: u64,
   outputs_inserted_since_flush: u64,
   outputs_traversed: u64,
+  cached_children_by_id: &'a Mutex<HashMap<InscriptionId, Vec<InscriptionId>>>,
 }
 
-impl Updater {
-  pub(crate) fn update(index: &Index) -> Result {
+impl<'a> Updater<'a> {
+  pub(crate) fn update(index: &'a Index) -> Result {
     let wtx = index.begin_write()?;
 
     let height = wtx
@@ -70,6 +71,7 @@ impl Updater {
       outputs_cached: 0,
       outputs_inserted_since_flush: 0,
       outputs_traversed: 0,
+      cached_children_by_id: &index.cached_children_by_id,
     };
 
     updater.update_index(index, wtx)
@@ -431,6 +433,7 @@ impl Updater {
       &mut satpoint_to_inscription_id,
       block.header.time,
       value_cache,
+      &self.cached_children_by_id,
     )?;
 
     if self.index_sats {

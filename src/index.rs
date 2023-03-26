@@ -591,6 +591,7 @@ impl Index {
       .lock()
       .unwrap()
       .insert(inscription_id, children.clone());
+
     Ok(children)
   }
 

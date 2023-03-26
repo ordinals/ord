@@ -29,6 +29,7 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   satpoint_to_id: &'a mut Table<'db, 'tx, &'static SatPointValue, &'static InscriptionIdValue>,
   timestamp: u32,
   value_cache: &'a mut HashMap<OutPoint, u64>,
+  cached_children_by_id: &'a Mutex<HashMap<InscriptionId, Vec<InscriptionId>>>,
 }
 
 impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
@@ -44,6 +45,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     satpoint_to_id: &'a mut Table<'db, 'tx, &'static SatPointValue, &'static InscriptionIdValue>,
     timestamp: u32,
     value_cache: &'a mut HashMap<OutPoint, u64>,
+    cached_children_by_id: &'a Mutex<HashMap<InscriptionId, Vec<InscriptionId>>>,
   ) -> Result<Self> {
     let next_number = number_to_id
       .iter()?
@@ -67,6 +69,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       satpoint_to_id,
       timestamp,
       value_cache,
+      cached_children_by_id,
     })
   }
 
@@ -103,19 +106,37 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       if let Some(inscription) = Inscription::from_tx_input(tx_in) {
         // ignore new inscriptions on already inscribed offset (sats)
         if !inscribed_offsets.contains(&input_value) {
+          let inscription_id = InscriptionId {
+            txid,
+            index: 0, // will have to be updated for multi inscriptions
+          };
+
           // parent has to be in an input before child
           // think about specifying a more general approach in a protocol doc/BIP
+          if let Some(parent_candidate) = inscription.get_parent_id() {
+            log::debug!(
+              "INDEX: inscription {} has inscribed parent {}",
+              inscription_id,
+              parent_candidate
+            );
+          }
+
           let parent = inscription.get_parent_id().filter(|&parent_id| {
             floating_inscriptions
               .iter()
               .any(|flotsam| flotsam.inscription_id == parent_id)
           });
 
+          if let Some(parent) = parent {
+            log::debug!(
+              "INDEX: inscription {} has confirmed parent {}",
+              inscription_id,
+              parent
+            );
+          }
+
           floating_inscriptions.push(Flotsam {
-            inscription_id: InscriptionId {
-              txid,
-              index: 0, // will have to be updated for multi inscriptions
-            },
+            inscription_id,
             offset: input_value,
             origin: Origin::New((0, parent)),
           });
@@ -262,6 +283,13 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           }
         }
 
+        log::debug!(
+          "INDEX: assigned {} for inscription {} at height {}",
+          &self.next_number,
+          flotsam.inscription_id,
+          self.height
+        );
+
         self.id_to_entry.insert(
           &inscription_id,
           &InscriptionEntry {
@@ -275,6 +303,10 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           .store(),
         )?;
 
+        if let Some(parent) = parent {
+          self.update_cached_children(parent, flotsam.inscription_id);
+        }
+
         self.next_number += 1;
       }
     }
@@ -285,5 +317,18 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     self.id_to_satpoint.insert(&inscription_id, &new_satpoint)?;
 
     Ok(())
+  }
+
+  fn update_cached_children(&self, parent: InscriptionId, inscription_id: InscriptionId) {
+    let mut cache = self.cached_children_by_id.lock().unwrap();
+
+    match cache.get_mut(&parent) {
+      Some(children) => {
+        children.push(inscription_id);
+      }
+      None => {
+        cache.insert(parent, vec![inscription_id]);
+      }
+    }
   }
 }
