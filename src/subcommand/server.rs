@@ -886,9 +886,14 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<PageHtml<InscriptionChildrenHtml>> {
+    let entry = index
+    .get_inscription_entry(inscription_id)?
+    .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
     Ok(
       InscriptionChildrenHtml {
         parent_id: inscription_id,
+        parent_number: entry.number,
         children: index.get_children_by_id(inscription_id)?,
       }
       .page(page_config, index.has_sat_index()?),

@@ -1,4 +1,6 @@
-<h1>{{ self.parent_id }}'s children</h1>
+<h1>Parent inscription {{ self.parent_number }}</h1>
+{{Iframe::main(self.parent_id)}}
+<h2>Children</h2>
 <div class=thumbnails>
 %% for id in &self.children {
   {{Iframe::thumbnail(*id)}}
