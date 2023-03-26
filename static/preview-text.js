@@ -31,33 +31,33 @@ function toLink(url, label) {
 }
 
 
-let result = document.getElementById('text').innerText;
+const result = document.getElementById('text').innerText;
 try{
     const resultJson = JSON.parse(decodeHtml(result));
-    result = JSON.stringify(resultJson, null, 2);
+    // const json = JSON.stringify(resultJson, null, 2);
     if(resultJson.uri.endsWith('json')) {
         getMetaData(parseIpfsUrl(resultJson.uri)).then(metadata=> {
             if(metadata) {
-                result = `<div class="center">
+                let html = `<div class="center">
                 <img height="400" src="${parseIpfsUrl(metadata.image)}" />
                 <div style="text-align:left; width:100%; margin-top: 20px">`;
                 if(resultJson.chain_data) {
-                    result +=`Chain: ${resultJson.chain_data.chain}</br>`
-                    result +=`Contract Address: ${resultJson.chain_data.contract}</br>`
-                    result +=`TokenId: ${resultJson.chain_data.tokenId}</br>`
+                    html +=`Chain: ${resultJson.chain_data.chain}</br>`
+                    html +=`Contract Address: ${resultJson.chain_data.contract}</br>`
+                    html +=`TokenId: ${resultJson.chain_data.tokenId}</br>`
                 }
-                result +=`
+                html +=`
                 <span style=""><b>Info Url:</b></br> ${toLink(resultJson.info ?? resultJson.info_uri)}</span></br>
                 <span style=""><b>Collection Url:</b></br> ${toLink(resultJson.collection ?? resultJson.collection_uri)}</span></br>
                 </div>
                 </div>`;
-                document.getElementById('image').innerHTML = result;
+                document.getElementById('image').innerHTML = html;
                 document.getElementById('text').innerText = '';
             }
         })
     }
   
-  console.log('RESULT', result);
+  console.log('RESULT', json);
   
 } catch(e) {
 console.log('ERROR', e, decodeHtml(result));
