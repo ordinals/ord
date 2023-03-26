@@ -18,6 +18,7 @@ use {
     response::{IntoResponse, Redirect, Response},
     routing::get,
     Router, TypedHeader,
+    Json
   },
   axum_server::Handle,
   rust_embed::RustEmbed,
@@ -154,6 +155,8 @@ impl Server {
         .route("/feed.xml", get(Self::feed))
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_id", get(Self::inscription))
+        .route("/inscription_json/:inscription_id", get(Self::inscription_json))
+        .route("/collection_json", get(Self::collection_json))
         .route("/inscriptions", get(Self::inscriptions))
         .route("/inscriptions/:from", get(Self::inscriptions_from))
         .route("/install.sh", get(Self::install_script))
@@ -811,6 +814,95 @@ impl Server {
       Media::Video => Ok(PreviewVideoHtml { inscription_id }.into_response()),
     };
   }
+
+  async fn inscription_json(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(inscription_id): Path<InscriptionId>,
+) -> ServerResult<Json<serde_json::Value>> {
+    let entry = index
+        .get_inscription_entry(inscription_id)?
+        .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    let inscription = index
+        .get_inscription_by_id(inscription_id)?
+        .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    let satpoint = index
+        .get_inscription_satpoint_by_id(inscription_id)?
+        .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    let output = index
+        .get_transaction(satpoint.outpoint.txid)?
+        .ok_or_not_found(|| format!("inscription {inscription_id} current transaction"))?
+        .output
+        .into_iter()
+        .nth(satpoint.outpoint.vout.try_into().unwrap())
+        .ok_or_not_found(|| format!("inscription {inscription_id} current transaction output"))?;
+
+    let previous = if let Some(previous) = entry.number.checked_sub(1) {
+        Some(
+            index
+                .get_inscription_id_by_inscription_number(previous)?
+                .ok_or_not_found(|| format!("inscription {previous}"))?,
+        )
+    } else {
+        None
+    };
+
+    let next = index.get_inscription_id_by_inscription_number(entry.number + 1)?;
+
+    let content = format!("{}{}", "/content/", inscription_id);
+    let preview = format!("{}{}", "/preview/", inscription_id);
+    let metadata = inscription.metadata();
+    let result = serde_json::json!({
+        "chain": page_config.chain,
+        "genesis_fee": entry.fee,
+        "genesis_height": entry.height,
+        "inscription_id": inscription_id,
+        "next": next,
+        "number": entry.number,
+        "output": output,
+        "previous": previous,
+        "sat": entry.sat,
+        "satpoint": satpoint,
+        "content": content,
+        "preview": preview,
+        "traits": metadata,
+        "collection_name":"Bitcoin Toddlers",
+        "collection_author":"De Gods",
+        "collection_description":"Bitcoin Toddlers are byte-inscriptions xyz",
+    });
+
+    let data = serde_json::json!({"data":result});
+
+    Ok(Json(data))
+  }
+
+
+  async fn collection_json(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>
+) -> ServerResult<Json<serde_json::Value>> {
+
+    let collection = serde_json::json!({
+      "collection_name": "some name",
+      "popularity_tag": "Exclusive collection",
+      "popular_images": [
+          "/content/80c7e2eb2f1f48b32e5f03ddd511530c337e8a4b71eda6b72c456c7813180afdi0",
+          "/content/80c7e2eb2f1f48b32e5f03ddd511530c337e8a4b71eda6b72c456c7813180afdi0"
+      ],
+      "volume": "abc",
+      "floor_price": "xyz",
+      "top_offer": "def"
+    });
+
+    let collections = [collection];
+    let data = serde_json::json!({"collections":collections});
+
+    Ok(Json(data))
+  }
+
 
   async fn inscription(
     Extension(page_config): Extension<Arc<PageConfig>>,
