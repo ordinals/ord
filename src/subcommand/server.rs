@@ -887,8 +887,8 @@ impl Server {
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<PageHtml<InscriptionChildrenHtml>> {
     let entry = index
-    .get_inscription_entry(inscription_id)?
-    .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+      .get_inscription_entry(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
     Ok(
       InscriptionChildrenHtml {

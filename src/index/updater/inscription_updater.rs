@@ -326,9 +326,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       Some(children) => {
         children.push(inscription_id);
       }
-      None => {
-        cache.insert(parent, vec![inscription_id]);
-      }
+      None => {} // leave the cache empty, so we retrieve the full list of children when required
     }
   }
 }
