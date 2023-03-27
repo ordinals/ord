@@ -180,12 +180,14 @@ mod tests {
       },
       "
         <h1>Inscription 1</h1>
-        <div class=inscription>
-        <a class=prev href=/inscription/1{64}i1>❮</a>
-        <iframe .* src=/preview/2{64}i2></iframe>
-        <a class=next href=/inscription/3{64}i3>❯</a>
-        </div>
         .*
+        <dl>
+          .*
+          <dt><a href=/inscription/2{64}i2/children>children</a></dt>
+          <dd><a href=/inscription/2{64}i2/child/0>5{64}i5</a></dd>
+          <dd><a href=/inscription/2{64}i2/child/1>6{64}i6</a></dd>
+          .*
+        </dl>
       "
       .unindent()
     );

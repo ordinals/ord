@@ -20,9 +20,9 @@
   <dd><a href=/inscription/{{parent}}>{{parent}}</a></dd>
 %% }
 %% if !self.children.is_empty() {
-  <dt><a href={{self.inscription_id}}/children>children</a></dt>
+  <dt><a href=/inscription/{{self.inscription_id}}/children>children</a></dt>
 %%  for (i, child) in self.children.iter().enumerate() {
-  <dd><a href={{self.inscription_id}}/child/{{i}}>{{child}}</a></dd>
+  <dd><a href=/inscription/{{self.inscription_id}}/child/{{i}}>{{child}}</a></dd>
 %%  }
 %% }
 %% if let Ok(address) = self.chain.address_from_script(&self.output.script_pubkey ) {
