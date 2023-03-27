@@ -246,7 +246,7 @@ content, limit inscription content to less than 400,000 weight units. 390,000
 weight units should be safe.</p>
 <h2 id="creating-inscriptions"><a class="header" href="#creating-inscriptions">Creating Inscriptions</a></h2>
 <p>To create an inscription with the contents of <code>FILE</code>, run:</p>
-<pre><code>ord wallet inscribe FILE
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE FILE
 </code></pre>
 <p>Ord will output two transactions IDs, one for the commit transaction, and one
 for the reveal transaction, and the inscription ID. Inscription IDs are of the
