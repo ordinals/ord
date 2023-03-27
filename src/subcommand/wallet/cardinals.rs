@@ -16,18 +16,22 @@ pub(crate) fn run(options: Options) -> Result {
     .map(|satpoint| satpoint.outpoint)
     .collect::<BTreeSet<OutPoint>>();
 
-  let mut outputs = Vec::new();
-  for (output, amount) in index.get_unspent_outputs(Wallet::load(&options)?)? {
-    if inscribed_utxos.contains(&output) {
-      continue;
-    }
-    outputs.push(Cardinal {
-      output,
-      amount: amount.to_sat(),
-    });
-  }
+  let cardinal_utxos = index
+    .get_unspent_outputs(Wallet::load(&options)?)?
+    .iter()
+    .filter_map(|(output, amount)| {
+      if !inscribed_utxos.contains(&output) {
+        Some(Cardinal {
+          output: *output,
+          amount: amount.to_sat(),
+        })
+      } else {
+        None
+      }
+    })
+    .collect::<Vec<Cardinal>>();
 
-  print_json(outputs)?;
+  print_json(cardinal_utxos)?;
 
   Ok(())
 }

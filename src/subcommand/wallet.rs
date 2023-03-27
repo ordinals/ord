@@ -47,9 +47,9 @@ pub(crate) enum Wallet {
   Send(send::Send),
   #[clap(about = "See wallet transactions")]
   Transactions(transactions::Transactions),
-  #[clap(about = "List wallet outputs")]
+  #[clap(about = "List all unspent outputs in wallet")]
   Outputs,
-  #[clap(about = "List wallet cardinals")]
+  #[clap(about = "List unspent cardinal outputs in wallet")]
   Cardinals,
 }
 
