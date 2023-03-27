@@ -140,7 +140,7 @@ fn derive_and_import_descriptor(
     active: Some(true),
     range: None,
     next_index: None,
-    internal: Some(!change),
+    internal: Some(change),
     label: None,
   })?;
 
