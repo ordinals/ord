@@ -427,7 +427,6 @@ impl TransactionBuilder {
       version: 1,
       lock_time: PackedLockTime::ZERO,
       input: (0..inputs)
-        .into_iter()
         .map(|_| TxIn {
           previous_output: OutPoint::null(),
           script_sig: Script::new(),
