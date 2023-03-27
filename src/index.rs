@@ -12,6 +12,7 @@ use {
   bitcoincore_rpc::{json::GetBlockHeaderResult, Auth, Client},
   chrono::SubsecRound,
   indicatif::{ProgressBar, ProgressStyle},
+  itertools::Itertools,
   log::log_enabled,
   redb::{Database, ReadableTable, Table, TableDefinition, WriteStrategy, WriteTransaction},
   std::collections::HashMap,
@@ -570,29 +571,32 @@ impl Index {
       }
     }
 
-    let children = self
+    let sorted_children = self
       .database
       .begin_read()?
       .open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?
       .iter()?
-      .map(|(key, entry_value)| {
+      .filter_map(|(key, entry_value)| {
         let entry = InscriptionEntry::load(entry_value.value());
         if entry.parent == Some(inscription_id) {
-          Ok(InscriptionId::load(*key.value()))
+          Some((InscriptionId::load(*key.value()), entry.number))
         } else {
-          Err(())
+          None
         }
       })
-      .filter_map(Result::ok)
+      .collect::<Vec<(InscriptionId, u64)>>()
+      .into_iter()
+      .sorted_by_key(|&(_id, number)| number)
+      .map(|(id, _)| id)
       .collect::<Vec<InscriptionId>>();
 
     self
       .cached_children_by_id
       .lock()
       .unwrap()
-      .insert(inscription_id, children.clone());
+      .insert(inscription_id, sorted_children.clone());
 
-    Ok(children)
+    Ok(sorted_children)
   }
 
   pub(crate) fn get_inscriptions_on_output(
