@@ -14,7 +14,7 @@ fn cardinals() {
   let all_outputs = CommandBuilder::new("wallet outputs")
     .rpc_server(&rpc_server)
     .output::<Vec<Output>>();
-  
+
   let cardinal_outputs = CommandBuilder::new("wallet cardinals")
     .rpc_server(&rpc_server)
     .output::<Vec<Cardinal>>();
