@@ -170,11 +170,6 @@ fn inscribe_child() {
 
   let _ = ord(&cookiefile, &ord_data_dir, rpc_port, &["wallet", "create"]);
 
-  // get funds in wallet
-  // inscribe parent
-  // mine block
-  // inscribe child with parent
-
   let rpc_client = Client::new(
     &format!("127.0.0.1:{rpc_port}/wallet/ord"),
     bitcoincore_rpc::Auth::CookieFile(cookiefile.clone()),
@@ -206,7 +201,7 @@ fn inscribe_child() {
     &cookiefile,
     &ord_data_dir,
     rpc_port,
-    &["wallet", "inscribe", "parent.txt"],
+    &["wallet", "inscribe", "--fee-rate", "1.0", "parent.txt"],
   ) {
     Ok(s) => serde_json::from_str(&s)
       .unwrap_or_else(|err| panic!("Failed to deserialize JSON: {err}\n{s}")),
