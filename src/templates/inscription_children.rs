@@ -9,7 +9,7 @@ pub(crate) struct InscriptionChildrenHtml {
 
 impl PageContent for InscriptionChildrenHtml {
   fn title(&self) -> String {
-    format!("Children")
+    format!("Children of parent inscription {}", self.parent_number)
   }
 
   fn preview_image_url(&self) -> Option<Trusted<String>> {
@@ -31,7 +31,9 @@ mod tests {
       },
       "
         <h1>Parent inscription 0</h1>
-        <a href=/inscription/0{64}i1><iframe .* src=/preview/0{64}i1></iframe></a>
+        <div class=\"thumbnails parent\">
+          <a href=/inscription/0{64}i0><iframe .* src=/preview/0{64}i0></iframe></a>
+        </div>
         <h2>Children</h2>
         <div class=thumbnails>
           <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>

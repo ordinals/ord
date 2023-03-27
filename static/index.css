@@ -204,6 +204,17 @@ a.mythic {
   width: 100%;
 }
 
+.parent {
+  justify-content: center;
+}
+
+.parent > a {
+  border-radius: 2%;
+  margin: 1%;
+  overflow: hidden;
+  width: 48%;
+}
+
 .inscription {
   display: flex;
   justify-content: center;

@@ -433,7 +433,7 @@ impl<'a> Updater<'a> {
       &mut satpoint_to_inscription_id,
       block.header.time,
       value_cache,
-      &self.cached_children_by_id,
+      self.cached_children_by_id,
     )?;
 
     if self.index_sats {

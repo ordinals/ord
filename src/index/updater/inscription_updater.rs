@@ -322,11 +322,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
   fn update_cached_children(&self, parent: InscriptionId, inscription_id: InscriptionId) {
     let mut cache = self.cached_children_by_id.lock().unwrap();
 
-    match cache.get_mut(&parent) {
-      Some(children) => {
-        children.push(inscription_id);
-      }
-      None => {} // leave the cache empty, so we retrieve the full list of children when required
+    // only update the cache if it is already populated, so we retrieve the full list of children when required
+    if let Some(children) = cache.get_mut(&parent) {
+      children.push(inscription_id);
     }
   }
 }
