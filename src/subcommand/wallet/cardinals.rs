@@ -20,13 +20,13 @@ pub(crate) fn run(options: Options) -> Result {
     .get_unspent_outputs(Wallet::load(&options)?)?
     .iter()
     .filter_map(|(output, amount)| {
-      if !inscribed_utxos.contains(&output) {
+      if inscribed_utxos.contains(output) {
+        None
+      } else {
         Some(Cardinal {
           output: *output,
           amount: amount.to_sat(),
         })
-      } else {
-        None
       }
     })
     .collect::<Vec<Cardinal>>();
