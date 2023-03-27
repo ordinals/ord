@@ -65,6 +65,7 @@ impl Updater {
       range_cache: HashMap::new(),
       height,
       index_sats: index.has_sat_index()?,
+
       sat_ranges_since_flush: 0,
       outputs_cached: 0,
       outputs_inserted_since_flush: 0,
@@ -523,6 +524,7 @@ impl Updater {
         outpoint_to_sat_ranges.insert(&OutPoint::null().store(), lost_sat_ranges.as_slice())?;
       }
     } else {
+      // move coinbase to end
       for (tx, txid) in block.txdata.iter().skip(1).chain(block.txdata.first()) {
         lost_sats += inscription_updater.index_transaction_inscriptions(tx, *txid, None)?;
       }

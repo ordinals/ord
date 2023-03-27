@@ -43,6 +43,7 @@ struct Inscribe {
   inscription: String,
   reveal: Txid,
   fees: u64,
+  parent: Option<String>,
 }
 
 fn inscribe(rpc_server: &test_bitcoincore_rpc::Handle) -> Inscribe {

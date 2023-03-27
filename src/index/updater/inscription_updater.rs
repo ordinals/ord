@@ -1,13 +1,16 @@
-use super::*;
+use {super::*, std::collections::BTreeSet};
 
+#[derive(Clone, Copy, Debug)]
 pub(super) struct Flotsam {
   inscription_id: InscriptionId,
   offset: u64,
   origin: Origin,
 }
 
+// change name to Jetsam or more poetic german word
+#[derive(Clone, Copy, Debug)]
 enum Origin {
-  New(u64),
+  New((u64, Option<InscriptionId>)),
   Old(SatPoint),
 }
 
@@ -73,50 +76,92 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     txid: Txid,
     input_sat_ranges: Option<&VecDeque<(u64, u64)>>,
   ) -> Result<u64> {
-    let mut inscriptions = Vec::new();
-
+    let mut floating_inscriptions = Vec::new();
+    let mut inscribed_offsets = BTreeSet::new();
     let mut input_value = 0;
     for tx_in in &tx.input {
+      // skip subsidy since no inscriptions possible
       if tx_in.previous_output.is_null() {
         input_value += Height(self.height).subsidy();
-      } else {
-        for (old_satpoint, inscription_id) in
-          Index::inscriptions_on_output(self.satpoint_to_id, tx_in.previous_output)?
-        {
-          inscriptions.push(Flotsam {
-            offset: input_value + old_satpoint.offset,
-            inscription_id,
-            origin: Origin::Old(old_satpoint),
+        continue;
+      }
+
+      // find existing inscriptions on input aka transfers
+      for (old_satpoint, inscription_id) in
+        Index::inscriptions_on_output(self.satpoint_to_id, tx_in.previous_output)?
+      {
+        floating_inscriptions.push(Flotsam {
+          offset: input_value + old_satpoint.offset,
+          inscription_id,
+          origin: Origin::Old(old_satpoint),
+        });
+
+        inscribed_offsets.insert(input_value + old_satpoint.offset);
+      }
+
+      // find new inscriptions
+      if let Some(inscription) = Inscription::from_tx_input(tx_in) {
+        // ignore new inscriptions on already inscribed offset (sats)
+        if !inscribed_offsets.contains(&input_value) {
+          // parent has to be in an input before child
+          // think about specifying a more general approach in a protocol doc/BIP
+          let parent = inscription.get_parent_id().filter(|&parent_id| {
+            floating_inscriptions
+              .iter()
+              .any(|flotsam| flotsam.inscription_id == parent_id)
+          });
+
+          floating_inscriptions.push(Flotsam {
+            inscription_id: InscriptionId {
+              txid,
+              index: 0, // will have to be updated for multi inscriptions
+            },
+            offset: input_value,
+            origin: Origin::New((0, parent)),
           });
         }
+      }
 
-        input_value += if let Some(value) = self.value_cache.remove(&tx_in.previous_output) {
-          value
-        } else if let Some(value) = self
-          .outpoint_to_value
-          .remove(&tx_in.previous_output.store())?
-        {
-          value.value()
-        } else {
-          self.value_receiver.blocking_recv().ok_or_else(|| {
-            anyhow!(
-              "failed to get transaction for {}",
-              tx_in.previous_output.txid
-            )
-          })?
-        }
+      // different ways to get the utxo set (input amount)
+      input_value += if let Some(value) = self.value_cache.remove(&tx_in.previous_output) {
+        value
+      } else if let Some(value) = self
+        .outpoint_to_value
+        .remove(&tx_in.previous_output.store())?
+      {
+        value.value()
+      } else {
+        self.value_receiver.blocking_recv().ok_or_else(|| {
+          anyhow!(
+            "failed to get transaction for {}",
+            tx_in.previous_output.txid
+          )
+        })?
       }
     }
 
-    if inscriptions.iter().all(|flotsam| flotsam.offset != 0)
-      && Inscription::from_transaction(tx).is_some()
-    {
-      inscriptions.push(Flotsam {
-        inscription_id: txid.into(),
-        offset: 0,
-        origin: Origin::New(input_value - tx.output.iter().map(|txout| txout.value).sum::<u64>()),
-      });
-    };
+    // TODO: inefficient
+    // calulate genesis fee for new inscriptions
+    let total_output_value = tx.output.iter().map(|txout| txout.value).sum::<u64>();
+    let mut floating_inscriptions = floating_inscriptions
+      .into_iter()
+      .map(|flotsam| {
+        if let Flotsam {
+          inscription_id,
+          offset,
+          origin: Origin::New((_, parent)),
+        } = flotsam
+        {
+          Flotsam {
+            inscription_id,
+            offset,
+            origin: Origin::New((input_value - total_output_value, parent)),
+          }
+        } else {
+          flotsam
+        }
+      })
+      .collect::<Vec<Flotsam>>();
 
     let is_coinbase = tx
       .input
@@ -125,11 +170,11 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       .unwrap_or_default();
 
     if is_coinbase {
-      inscriptions.append(&mut self.flotsam);
+      floating_inscriptions.append(&mut self.flotsam);
     }
 
-    inscriptions.sort_by_key(|flotsam| flotsam.offset);
-    let mut inscriptions = inscriptions.into_iter().peekable();
+    floating_inscriptions.sort_by_key(|flotsam| flotsam.offset);
+    let mut inscriptions = floating_inscriptions.into_iter().peekable();
 
     let mut output_value = 0;
     for (vout, tx_out) in tx.output.iter().enumerate() {
@@ -150,7 +195,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
         self.update_inscription_location(
           input_sat_ranges,
-          inscriptions.next().unwrap(),
+          inscriptions.next().unwrap(), // TODO: do something with two inscriptions in the input
           new_satpoint,
         )?;
       }
@@ -198,7 +243,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       Origin::Old(old_satpoint) => {
         self.satpoint_to_id.remove(&old_satpoint.store())?;
       }
-      Origin::New(fee) => {
+      Origin::New((fee, parent)) => {
         self
           .number_to_id
           .insert(&self.next_number, &inscription_id)?;
@@ -224,6 +269,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             fee,
             height: self.height,
             number: self.next_number,
+            parent,
             sat,
             timestamp: self.timestamp,
           }

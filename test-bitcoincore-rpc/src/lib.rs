@@ -118,7 +118,7 @@ pub struct TransactionTemplate<'a> {
   pub inputs: &'a [(usize, usize, usize)],
   pub output_values: &'a [u64],
   pub outputs: usize,
-  pub witness: Witness,
+  pub witnesses: Vec<Witness>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -150,7 +150,7 @@ impl<'a> Default for TransactionTemplate<'a> {
       inputs: &[],
       output_values: &[],
       outputs: 1,
-      witness: Witness::default(),
+      witnesses: vec![],
     }
   }
 }
