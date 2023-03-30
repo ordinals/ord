@@ -893,7 +893,7 @@ impl Server {
     Path(collection_id): Path<String>,
 ) -> ServerResult<Json<serde_json::Value>> {
 
-  let ins_id = "80c7e2eb2f1f48b32e5f03ddd511530c337e8a4b71eda6b72c456c7813180afdi0";
+  let ins_id = "0221fbc0db3c323eb42dddc85f7f3182e7976e821becb576738acb100c716cd5i0";
 
   let base_url = "http://localhost";
   let relative_url = "/inscription_json/";
