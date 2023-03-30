@@ -35,6 +35,7 @@ use {
     cors::{Any, CorsLayer},
     set_header::SetResponseHeaderLayer,
   },
+  reqwest,
 };
 
 mod error;
@@ -53,6 +54,12 @@ impl FromStr for BlockQuery {
     } else {
       BlockQuery::Height(s.parse()?)
     })
+  }
+}
+
+impl From<reqwest::Error> for ServerError {
+  fn from(err: reqwest::Error) -> Self {
+    ServerError::NotFound(format!("Reqwest error: {}", err))
   }
 }
 
@@ -156,6 +163,7 @@ impl Server {
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_id", get(Self::inscription))
         .route("/inscription_json/:inscription_id", get(Self::inscription_json))
+        .route("/collection_json/:collection_id", get(Self::collection_json_id))
         .route("/collection_json", get(Self::collection_json))
         .route("/inscriptions", get(Self::inscriptions))
         .route("/inscriptions/:from", get(Self::inscriptions_from))
@@ -878,6 +886,36 @@ impl Server {
 
     Ok(Json(data))
   }
+
+  async fn collection_json_id(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(collection_id): Path<String>,
+) -> ServerResult<Json<serde_json::Value>> {
+
+  let ins_id = "80c7e2eb2f1f48b32e5f03ddd511530c337e8a4b71eda6b72c456c7813180afdi0";
+
+  let base_url = "http://localhost";
+  let relative_url = "/inscription_json/";
+  let url = format!("{}{}{}", base_url, relative_url,ins_id);
+  let inscription_response = reqwest::get(&url).await?;
+  let inscription_res_json = inscription_response.json::<serde_json::Value>().await?;
+    let inscriptions =[inscription_res_json];
+
+    let result = serde_json::json!({
+        "collection": {
+            "collection_id": collection_id,
+            "collection_author": "De Gods",
+            "collection_description": "Bitcoin Toddlers are byte-inscriptions xyz",
+            "collection_name": "Bitcoin Toddlers",
+            "inscriptions": inscriptions,
+        },
+    });
+
+    let data = serde_json::json!({"data":result});
+
+    Ok(Json(data))
+}
 
 
   async fn collection_json(
