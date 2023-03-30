@@ -894,8 +894,12 @@ impl Server {
 ) -> ServerResult<Json<serde_json::Value>> {
 
 
+  if collection_id != "2e45df" {
+    return Err(ServerError::BadRequest("Invalid collection ID".into()));
+  }
+  
 
-  let ins_id = "bf7e2fa3246440a22e00bc7750e61b8a9e9337d449fc4dde513becfd2de8aa7ci0";
+  let ins_id = "0f0226818f3d8b4a3d1c4cb1d5e9c8ddce83603a16b365a960b6ef9576ec1b93i0";
 
   //let data = Self::inscription_json(Extension(page_config), Extension(index),ins_id);
   
