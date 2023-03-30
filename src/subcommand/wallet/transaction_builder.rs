@@ -347,7 +347,7 @@ impl TransactionBuilder {
       };
 
       if excess > max
-        && value.checked_sub(target).unwrap()
+        && excess.checked_sub(target).unwrap()
           > self
             .unused_change_addresses
             .last()
@@ -358,14 +358,14 @@ impl TransactionBuilder {
               .fee_rate
               .fee(self.estimate_vbytes() + Self::ADDITIONAL_OUTPUT_VBYTES)
       {
-        tprintln!("stripped {} sats", (value - target).to_sat());
+        tprintln!("stripped {} sats", (excess - target).to_sat());
         self.outputs.last_mut().expect("no outputs found").1 = target;
         self.outputs.push((
           self
             .unused_change_addresses
             .pop()
             .expect("not enough change addresses"),
-          value - target,
+          excess - target,
         ));
       }
     }
