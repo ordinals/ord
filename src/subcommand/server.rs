@@ -908,9 +908,9 @@ impl Server {
   .build()?;
 
   let inscription_response = client.get(&url).send().await?;
-  let inscription_res_json = inscription_response.text().await?;
-  log::warn!("{}",inscription_res_json);
-  print!("{}",inscription_res_json);
+  let inscription_res_json = inscription_response.json::<serde_json::Value>().await?;
+  // log::warn!("{}",inscription_res_json);
+  // print!("{}",inscription_res_json);
   
   let inscriptions =[inscription_res_json];
 
