@@ -903,7 +903,7 @@ impl Server {
 
   //let data = Self::inscription_json(Extension(page_config), Extension(index),ins_id);
   
-  let base_url = "https://www.ordrare.org";
+  let base_url = "https://www.api.ordrare.org";
   let relative_url = "/inscription_json/";
   let url = format!("{}{}{}", base_url, relative_url,ins_id);
 
