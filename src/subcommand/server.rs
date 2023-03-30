@@ -877,9 +877,9 @@ impl Server {
         "content": content,
         "preview": preview,
         "traits": metadata,
-        "collection_name":"Bitcoin Toddlers",
-        "collection_author":"De Gods",
-        "collection_description":"Bitcoin Toddlers are byte-inscriptions xyz",
+        "collection_name":"People of Eden",
+        "collection_author":"MahaDAO",
+        "collection_description":"The People of Eden is first of its kind DeFi PFP collection combining art, robust utility, and storytelling to communicate the importance of financial freedom through an open yet decentralized ecosystem using $MAHA and $ARTH.",
     });
 
     let data = serde_json::json!({"data":result});
@@ -922,9 +922,9 @@ impl Server {
     let result = serde_json::json!({
         "collection": {
             "collection_id": collection_id,
-            "collection_author": "De Gods",
-            "collection_description": "Bitcoin Toddlers are byte-inscriptions xyz",
-            "collection_name": "Bitcoin Toddlers",
+            "collection_author": "MahaDAO",
+            "collection_description": "The People of Eden is first of its kind DeFi PFP collection combining art, robust utility, and storytelling to communicate the importance of financial freedom through an open yet decentralized ecosystem using $MAHA and $ARTH.",
+            "collection_name": "People of Eden",
             "inscriptions": inscriptions,
         },
     });
@@ -941,7 +941,8 @@ impl Server {
 ) -> ServerResult<Json<serde_json::Value>> {
 
     let collection = serde_json::json!({
-      "collection_name": "some name",
+      "collection_name": "People of Eden",
+      "collection_author":"MahaDAO",
       "popularity_tag": "Exclusive collection",
       "popular_images": [
           "/content/80c7e2eb2f1f48b32e5f03ddd511530c337e8a4b71eda6b72c456c7813180afdi0",
