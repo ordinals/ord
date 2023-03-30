@@ -895,7 +895,7 @@ impl Server {
 
 
 
-  let ins_id = "0221fbc0db3c323eb42dddc85f7f3182e7976e821becb576738acb100c716cd5i0";
+  let ins_id = "bf7e2fa3246440a22e00bc7750e61b8a9e9337d449fc4dde513becfd2de8aa7ci0";
 
   //let data = Self::inscription_json(Extension(page_config), Extension(index),ins_id);
   
