@@ -893,14 +893,22 @@ impl Server {
     Path(collection_id): Path<String>,
 ) -> ServerResult<Json<serde_json::Value>> {
 
+
+
   let ins_id = "0221fbc0db3c323eb42dddc85f7f3182e7976e821becb576738acb100c716cd5i0";
 
+  //let data = Self::inscription_json(Extension(page_config), Extension(index),ins_id);
+  
   let base_url = "https://www.ordrare.org";
   let relative_url = "/inscription_json/";
   let url = format!("{}{}{}", base_url, relative_url,ins_id);
   let inscription_response = reqwest::get(&url).await?;
-  let inscription_res_json = inscription_response.json::<serde_json::Value>().await?;
-    let inscriptions =[inscription_res_json];
+  let inscription_res_json = inscription_response.text().await?;
+  log::warn!("{}",inscription_res_json);
+  print!("{}",inscription_res_json);
+  
+  let inscriptions =[inscription_res_json];
+
 
     let result = serde_json::json!({
         "collection": {
