@@ -895,7 +895,7 @@ impl Server {
 
   let ins_id = "0221fbc0db3c323eb42dddc85f7f3182e7976e821becb576738acb100c716cd5i0";
 
-  let base_url = "http://localhost";
+  let base_url = "https://www.ordrare.org";
   let relative_url = "/inscription_json/";
   let url = format!("{}{}{}", base_url, relative_url,ins_id);
   let inscription_response = reqwest::get(&url).await?;
