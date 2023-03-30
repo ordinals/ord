@@ -902,7 +902,12 @@ impl Server {
   let base_url = "https://www.ordrare.org";
   let relative_url = "/inscription_json/";
   let url = format!("{}{}{}", base_url, relative_url,ins_id);
-  let inscription_response = reqwest::get(&url).await?;
+
+  let client = reqwest::Client::builder()
+  .timeout(std::time::Duration::from_secs(10))
+  .build()?;
+
+  let inscription_response = client.get(&url).send().await?;
   let inscription_res_json = inscription_response.text().await?;
   log::warn!("{}",inscription_res_json);
   print!("{}",inscription_res_json);
