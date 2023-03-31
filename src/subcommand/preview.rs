@@ -86,6 +86,7 @@ impl Preview {
             dry_run: false,
             no_limit: false,
             destination: None,
+            postage: Some(TransactionBuilder::DEFAULT_TARGET_POSTAGE),
           },
         )),
       }

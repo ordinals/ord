@@ -6,6 +6,10 @@ pub(crate) struct Send {
   outgoing: Outgoing,
   #[clap(long, help = "Use fee rate of <FEE_RATE> sats/vB")]
   fee_rate: FeeRate,
+  #[clap(long, help = "Target amount of postage to include in the sent output. Default `10000 sats`")]
+  pub(crate) target_postage: Option<Amount>,
+  #[clap(long, help = "Maximum amount of postage to include in the sent output. Default `20000 sats`")]
+  pub(crate) max_postage: Option<Amount>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -78,6 +82,14 @@ impl Send {
       self.address,
       change,
       self.fee_rate,
+      match self.target_postage {
+        Some(target_postage) => target_postage,
+        _ => TransactionBuilder::DEFAULT_TARGET_POSTAGE,
+      },
+      match self.max_postage {
+        Some(max_postage) => max_postage,
+        _ => TransactionBuilder::DEFAULT_MAX_POSTAGE,
+      },
     )?;
 
     let signed_tx = client
