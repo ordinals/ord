@@ -4,6 +4,8 @@ use super::*;
 pub(crate) struct Find {
   #[clap(help = "Find output and offset of <SAT>.")]
   sat: Sat,
+  #[clap(help = "Find output and offset of all sats in the range <SAT>-<END>.")]
+  end: Option<Sat>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -17,12 +19,29 @@ impl Find {
 
     index.update()?;
 
-    match index.find(self.sat.0)? {
-      Some(satpoint) => {
-        print_json(Output { satpoint })?;
-        Ok(())
+    match self.end {
+      Some(end) => {
+        if self.sat < end {
+          match index.find_range(self.sat.0, end.0)? {
+            Some(result) => {
+              print_json(result)?;
+              Ok(())
+            }
+            None => Err(anyhow!("range has not been mined as of index height")),
+          }
+        } else {
+          Err(anyhow!("range is empty"))
+        }
       }
-      None => Err(anyhow!("sat has not been mined as of index height")),
+      None => {
+        match index.find(self.sat.0)? {
+          Some(satpoint) => {
+            print_json(Output { satpoint })?;
+            Ok(())
+          }
+          None => Err(anyhow!("sat has not been mined as of index height")),
+        }
+      }
     }
   }
 }
