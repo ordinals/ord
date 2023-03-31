@@ -21,9 +21,13 @@
 %% }
 %% if !self.children.is_empty() {
   <dt><a href=/inscription/{{self.inscription_id}}/children>children</a></dt>
+  <dd>
+    <div class=thumbnails>
 %%  for (i, child) in self.children.iter().enumerate() {
-  <dd><a href=/inscription/{{self.inscription_id}}/child/{{i}}>{{child}}</a></dd>
+  {{ Iframe::thumbnail(*child) }}
 %%  }
+    </div>
+  </dd>
 %% }
 %% if let Ok(address) = self.chain.address_from_script(&self.output.script_pubkey ) {
   <dt>address</dt>
