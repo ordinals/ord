@@ -145,17 +145,15 @@ impl Index {
 
     let client = Client::new(&rpc_url, auth.clone()).context("failed to connect to RPC URL")?;
 
-    let data_dir = options.data_dir()?;
-
-    if let Err(err) = fs::create_dir_all(&data_dir) {
-      bail!("failed to create data dir `{}`: {err}", data_dir.display());
-    }
-
     let path = if let Some(path) = &options.index {
       path.clone()
     } else {
-      data_dir.join("index.redb")
+      options.data_dir()?.join("index.redb")
     };
+
+    if let Err(err) = fs::create_dir_all(&path.parent().unwrap()) {
+      bail!("failed to create data dir `{}`: {err}", path.parent().unwrap().display());
+    }
 
     let database = match unsafe { Database::builder().open_mmapped(&path) } {
       Ok(database) => {
