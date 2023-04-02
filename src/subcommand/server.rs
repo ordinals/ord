@@ -1173,8 +1173,10 @@ impl Server {
       "collection_author":"MahaDAO",
       "popularity_tag": "Exclusive collection",
       "popular_images": [
-          "/content/80c7e2eb2f1f48b32e5f03ddd511530c337e8a4b71eda6b72c456c7813180afdi0",
-          "/content/80c7e2eb2f1f48b32e5f03ddd511530c337e8a4b71eda6b72c456c7813180afdi0"
+          "/content/7331f9bbed073f987dbf1967f0ce58970c50a4acb7cc5ac033db84ee1f76e600i0",
+          "/content/79f14f5467c5ed92b28d44ed8c5469239cbe89ee88534b71e668f829303c5501i0",
+          "/content/e77c2fbec4640430cab6e22756c92f84f5673bce17ab2b31b88912e00bcfc501i0",
+          "/content/d341f3799e6ca24c419f9a18377a1d1583e6b3de7d3266e477f15957305be401i0"
       ],
       "volume": "abc",
       "floor_price": "xyz",
