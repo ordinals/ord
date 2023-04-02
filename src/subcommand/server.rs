@@ -36,6 +36,7 @@ use {
     set_header::SetResponseHeaderLayer,
   },
   reqwest,
+  std::collections::HashMap,
 };
 
 mod error;
@@ -1139,11 +1140,18 @@ impl Server {
 
     let mut inscriptions = Vec::new();
 
+    let mut cached_inscriptions: HashMap<&str, serde_json::Value> = HashMap::new();
+
     for ins_id in ins_ids.iter() {
-      let url = format!("{}{}{}", base_url, relative_url, ins_id);
-      let inscription_response = client.get(&url).send().await?;
-      let inscription_res_json = inscription_response.json::<serde_json::Value>().await?;
-      inscriptions.push(inscription_res_json);
+        if let Some(cached_inscription) = cached_inscriptions.get(&ins_id[..]) {
+            inscriptions.push(cached_inscription.clone());
+        } else {
+            let url = format!("{}{}{}", base_url, relative_url, ins_id);
+            let inscription_response = client.get(&url).send().await?;
+            let inscription_res_json = inscription_response.json::<serde_json::Value>().await?;
+            cached_inscriptions.insert(&ins_id[..], inscription_res_json.clone());
+            inscriptions.push(inscription_res_json);
+        }
     }
 
 
