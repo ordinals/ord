@@ -7,6 +7,15 @@ pub(crate) enum Outgoing {
   SatPoint(SatPoint),
 }
 
+impl<'de> Deserialize<'de> for Outgoing {
+  fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+  {
+    Ok(DeserializeFromStr::deserialize(deserializer)?.0)
+  }
+}
+
 impl FromStr for Outgoing {
   type Err = Error;
 

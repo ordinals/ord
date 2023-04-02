@@ -15,11 +15,12 @@ use {
   crate::wallet::Wallet,
   axum::{
     body,
-    extract::{Extension, Path, Query},
+    extract::{Extension, Path, Query, Json},
     headers::UserAgent,
     http::{header, HeaderMap, HeaderValue, StatusCode, Uri},
     response::{IntoResponse, Redirect, Response},
     routing::get,
+    routing::post,
     Router, TypedHeader,
   },
   axum_server::Handle,
@@ -39,6 +40,8 @@ use {
     set_header::SetResponseHeaderLayer,
   },
 };
+use crate::subcommand::wallet::inscribe;
+use crate::subcommand::wallet::send;
 
 mod accept_json;
 mod error;
@@ -178,6 +181,8 @@ impl Server {
         .route("/wallet/balance", get(Self::balance))
         .route("/wallet/receive", get(Self::receive))
         .route("/wallet/transactions", get(Self::transactions))
+        .route("/wallet/inscribe", post(Self::inscribe))
+        .route("/wallet/send", post(Self::send))
         .layer(Extension(index))
         .layer(Extension(page_config))
         .layer(Extension(Arc::new(config)))
@@ -194,6 +199,7 @@ impl Server {
         .layer(
           CorsLayer::new()
             .allow_methods([http::Method::GET])
+            .allow_methods([http::Method::POST])
             .allow_origin(Any),
         )
         .layer(CompressionLayer::new());
@@ -1250,6 +1256,88 @@ impl Server {
         }
       }))
       .into_response(),
+    )
+  }
+
+  async fn inscribe(
+    Extension(index): Extension<Arc<Index>>,
+    Extension(config): Extension<Arc<Config>>,
+    Extension(options): Extension<Arc<Options>>,
+    Extension(client): Extension<Arc<Client>>,
+    accept_json: AcceptJson,
+    header: HeaderMap,
+    Json(inscribe): Json<inscribe::Inscribe>,
+  ) -> ServerResult<Response> {
+    if config.api_key.is_none()
+        || !header.contains_key("x-api-key")
+        || config.api_key.as_ref().unwrap().as_str() != header.get("x-api-key").unwrap()
+    {
+      return Err(ServerError::Unauthorized(
+        "Authentication failure".to_string(),
+      ));
+    }
+    if !accept_json.0 {
+      return Err(ServerError::BadRequest(
+        "Only application/json is allowed".to_string(),
+      ));
+    }
+
+    let inscription = Inscription::from_file(options.chain(), &inscribe.file)?;
+
+    let utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
+
+    let inscriptions = index.get_inscriptions(None)?;
+
+    let output = inscribe.inscribe(&options, inscription, utxos, inscriptions, &client)?;
+
+    Ok(
+      axum::Json(serde_json::json!({
+        "output": format!("{:?}", output),
+        "_links": {
+          "self": {
+            "href": format!("/wallet/inscribe"),
+          },
+        }
+      }))
+      .into_response(),
+    )
+  }
+
+  async fn send(
+    Extension(index): Extension<Arc<Index>>,
+    Extension(config): Extension<Arc<Config>>,
+    Extension(options): Extension<Arc<Options>>,
+    Extension(client): Extension<Arc<Client>>,
+    accept_json: AcceptJson,
+    header: HeaderMap,
+    Json(send): Json<send::Send>,
+  ) -> ServerResult<Response> {
+    if config.api_key.is_none()
+        || !header.contains_key("x-api-key")
+        || config.api_key.as_ref().unwrap().as_str() != header.get("x-api-key").unwrap()
+    {
+      return Err(ServerError::Unauthorized(
+        "Authentication failure".to_string(),
+      ));
+    }
+    if !accept_json.0 {
+      return Err(ServerError::BadRequest(
+        "Only application/json is allowed".to_string(),
+      ));
+    }
+
+    let txid = send.send_inscription(&options, &index, &client)?;
+
+    Ok(
+      axum::Json(serde_json::json!({
+        "txid": txid,
+        "_links": {
+          "self": {
+            "href": format!("/wallet/send"),
+          },
+        }
+      }))
+          .into_response(),
     )
   }
 
