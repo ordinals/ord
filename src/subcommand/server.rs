@@ -888,12 +888,23 @@ impl Server {
     Ok(Json(data))
   }
 
+
   async fn collection_json_id(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(collection_id): Path<String>,
 ) -> ServerResult<Json<serde_json::Value>> {
 
+  lazy_static! {
+    static ref CACHE: Mutex<HashMap<&'static str, serde_json::Value>> = Mutex::new(HashMap::new());
+  }
+
+
+  if let cache = CACHE.lock().unwrap(){
+    if let Some(v)= cache.get("key").cloned(){
+    return Ok(Json(v.clone()))
+    }
+  }
 
   if collection_id != "2e45df" {
     return Err(ServerError::BadRequest("Invalid collection ID".into()));
@@ -1166,7 +1177,12 @@ impl Server {
     });
 
     let data = serde_json::json!({"data":result});
+    let cloned_data = data.clone();
 
+    
+    let mut cache = CACHE.lock().unwrap();
+    cache.insert("key", cloned_data.to_owned());
+    //cache.insert("key", cloned_data);
     Ok(Json(data))
 }
 
@@ -1192,6 +1208,7 @@ impl Server {
     });
 
     let collections = [collection];
+    
     let data = serde_json::json!({"collections":collections});
 
     Ok(Json(data))
