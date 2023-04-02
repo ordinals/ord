@@ -4,6 +4,7 @@ pub mod epochs;
 pub mod find;
 mod index;
 pub mod info;
+pub mod inscriptions;
 pub mod list;
 pub mod parse;
 mod preview;
@@ -31,6 +32,8 @@ pub(crate) enum Subcommand {
   Index,
   #[clap(about = "Display index statistics")]
   Info(info::Info),
+  #[clap(about = "List all inscriptions")]
+  Inscriptions(inscriptions::Inscriptions),
   #[clap(about = "List the satoshis in an output")]
   List(list::List),
   #[clap(about = "Parse a satoshi from ordinal notation")]
@@ -55,6 +58,7 @@ impl Subcommand {
       Self::Find(find) => find.run(options),
       Self::Index => index::run(options),
       Self::Info(info) => info.run(options),
+      Self::Inscriptions(inscriptions) => inscriptions.run(options),
       Self::List(list) => list.run(options),
       Self::Parse(parse) => parse.run(),
       Self::Subsidy(subsidy) => subsidy.run(),

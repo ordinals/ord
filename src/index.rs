@@ -704,6 +704,24 @@ impl Index {
     }
   }
 
+  pub(crate) fn get_inscriptions_by_sat(
+    &self,
+    n: Option<usize>,
+  ) -> Result<BTreeMap<Sat, InscriptionId>> {
+    self.require_sat_index("inscriptions")?;
+
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(SAT_TO_INSCRIPTION_ID)?
+        .range::<u64>(0..)?
+        .map(|(sat, id)| (Sat(sat.value()), Entry::load(*id.value())))
+        .take(n.unwrap_or(usize::MAX))
+        .collect(),
+    )
+  }
+
   pub(crate) fn get_inscriptions(
     &self,
     n: Option<usize>,
