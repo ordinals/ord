@@ -10,7 +10,9 @@ pub(crate) struct List {
 pub struct Output {
   pub output: OutPoint,
   pub start: u64,
+  pub end: u64,
   pub size: u64,
+  pub offset: u64,
   pub rarity: Rarity,
   pub name: String,
 }
@@ -24,14 +26,18 @@ impl List {
     match index.list(self.outpoint)? {
       Some(crate::index::List::Unspent(ranges)) => {
         let mut outputs = Vec::new();
-        for (output, start, size, rarity, name) in list(self.outpoint, ranges) {
+        let mut offset = 0;
+        for (output, start, end, size, rarity, name) in list(self.outpoint, ranges) {
           outputs.push(Output {
             output,
             start,
+            end,
             size,
+            offset,
             rarity,
             name,
           });
+          offset += size;
         }
 
         print_json(outputs)?;
@@ -44,7 +50,7 @@ impl List {
   }
 }
 
-fn list(outpoint: OutPoint, ranges: Vec<(u64, u64)>) -> Vec<(OutPoint, u64, u64, Rarity, String)> {
+fn list(outpoint: OutPoint, ranges: Vec<(u64, u64)>) -> Vec<(OutPoint, u64, u64, u64, Rarity, String)> {
   ranges
     .into_iter()
     .map(|(start, end)| {
@@ -52,7 +58,7 @@ fn list(outpoint: OutPoint, ranges: Vec<(u64, u64)>) -> Vec<(OutPoint, u64, u64,
       let rarity = Sat(start).rarity();
       let name = Sat(start).name();
 
-      (outpoint, start, size, rarity, name)
+      (outpoint, start, end, size, rarity, name)
     })
     .collect()
 }
