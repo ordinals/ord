@@ -4,6 +4,8 @@ use super::*;
 pub(crate) struct Inscriptions {
   #[clap(long, help = "Maximum number of inscriptions to list")]
   max: Option<usize>,
+  #[clap(long, help = "Only list inscriptions on uncommon sats or rarer.")]
+  uncommon: bool,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -20,7 +22,7 @@ impl Inscriptions {
 
     index.update()?;
 
-    let inscriptions = index.get_inscriptions_by_sat(self.max)?;
+    let inscriptions = index.get_inscriptions_by_sat(self.max, self.uncommon)?;
 
     let mut output = Vec::new();
 

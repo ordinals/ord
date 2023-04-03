@@ -707,6 +707,7 @@ impl Index {
   pub(crate) fn get_inscriptions_by_sat(
     &self,
     n: Option<usize>,
+    uncommon: bool,    
   ) -> Result<BTreeMap<Sat, InscriptionId>> {
     self.require_sat_index("inscriptions")?;
 
@@ -717,6 +718,7 @@ impl Index {
         .open_table(SAT_TO_INSCRIPTION_ID)?
         .range::<u64>(0..)?
         .map(|(sat, id)| (Sat(sat.value()), Entry::load(*id.value())))
+        .filter(|(sat, _id)| !uncommon || sat.rarity() != Rarity::Common)
         .take(n.unwrap_or(usize::MAX))
         .collect(),
     )
