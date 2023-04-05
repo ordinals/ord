@@ -52,17 +52,30 @@ mod tests {
         vec![inscription_id(1), inscription_id(2)],
       )
       .to_string(),
-      "<h2>Latest Inscriptions</h2>
-<div class=thumbnails>
-  <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
-  <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
+      ".*<input type=radio id=inscriptions-tab name=toggle checked>
+<label for=inscriptions-tab>&#9678;</label>
+
+<span class=toggle-seperator>&#9168;</span>
+
+<input type=radio id=blocks-tab name=toggle>
+<label for=blocks-tab>&#9633;</label>
+
+<div class=tab-content>
+  <h2>Latest Inscriptions</h2>
+  <div class=thumbnails>
+    <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
+    <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
+  </div>
+  <div class=center><a href=/inscriptions>more</a></div>
 </div>
-<div class=center><a href=/inscriptions>more</a></div>
-<h2>Latest Blocks</h2>
-<ol start=1260001 reversed class=blocks>
-  <li><a href=/block/1{64}>1{64}</a></li>
-  <li><a href=/block/0{64}>0{64}</a></li>
-</ol>
+
+<div class=tab-content>
+  <h2>Latest Blocks</h2>
+  <ol start=1260001 reversed class=blocks>
+    <li><a href=/block/1{64}>1{64}</a></li>
+    <li><a href=/block/0{64}>0{64}</a></li>
+  </ol>
+</div>.*
 ",
     );
   }

@@ -200,9 +200,9 @@ fn home_page_includes_latest_inscriptions() {
     "/",
     format!(
       ".*<h2>Latest Inscriptions</h2>
-<div class=thumbnails>
-  <a href=/inscription/{inscription}><iframe .*></a>
-</div>.*",
+  <div class=thumbnails>
+    <a href=/inscription/{inscription}><iframe .*></a>
+  </div>.*",
     ),
   );
 }
@@ -218,7 +218,7 @@ fn home_page_inscriptions_are_sorted() {
     let Inscribe { inscription, .. } = inscribe(&rpc_server);
     inscriptions.insert_str(
       0,
-      &format!("\n  <a href=/inscription/{inscription}><iframe .*></a>"),
+      &format!("\n    <a href=/inscription/{inscription}><iframe .*></a>"),
     );
   }
 
@@ -226,8 +226,8 @@ fn home_page_inscriptions_are_sorted() {
     "/",
     format!(
       ".*<h2>Latest Inscriptions</h2>
-<div class=thumbnails>{inscriptions}
-</div>.*"
+  <div class=thumbnails>{inscriptions}
+  </div>.*"
     ),
   );
 }

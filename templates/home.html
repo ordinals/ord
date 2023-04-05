@@ -11,12 +11,11 @@
   <h2>Latest Inscriptions</h2>
   <div class=thumbnails>
 %% for id in &self.inscriptions {
-  {{Iframe::thumbnail(*id)}}
+    {{Iframe::thumbnail(*id)}}
 %% }
   </div>
   <div class=center><a href=/inscriptions>more</a></div>
 </div>
-
 %% }
 
 <div class=tab-content>
