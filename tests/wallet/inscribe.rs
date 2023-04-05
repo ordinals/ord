@@ -1,29 +1,29 @@
 use super::*;
 
-#[ignore] // Litcoincore does not have a listdescriptors function
-#[test]
-fn inscribe_creates_inscriptions() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
-  rpc_server.mine_blocks(1);
-
-  assert_eq!(rpc_server.descriptors().len(), 0);
-
-  create_wallet(&rpc_server);
-
-  let Inscribe { inscription, .. } = inscribe(&rpc_server);
-
-  assert_eq!(rpc_server.descriptors().len(), 3);
-
-  let request =
-    TestServer::spawn_with_args(&rpc_server, &[]).request(format!("/content/{inscription}"));
-
-  assert_eq!(request.status(), 200);
-  assert_eq!(
-    request.headers().get("content-type").unwrap(),
-    "text/plain;charset=utf-8"
-  );
-  assert_eq!(request.text().unwrap(), "FOO");
-}
+// #[ignore] // Litcoincore does not have a listdescriptors function
+// #[test]
+// fn inscribe_creates_inscriptions() {
+//   let rpc_server = test_bitcoincore_rpc::spawn();
+//   rpc_server.mine_blocks(1);
+//
+//   assert_eq!(rpc_server.descriptors().len(), 0);
+//
+//   create_wallet(&rpc_server);
+//
+//   let Inscribe { inscription, .. } = inscribe(&rpc_server);
+//
+//   assert_eq!(rpc_server.descriptors().len(), 3);
+//
+//   let request =
+//     TestServer::spawn_with_args(&rpc_server, &[]).request(format!("/content/{inscription}"));
+//
+//   assert_eq!(request.status(), 200);
+//   assert_eq!(
+//     request.headers().get("content-type").unwrap(),
+//     "text/plain;charset=utf-8"
+//   );
+//   assert_eq!(request.text().unwrap(), "FOO");
+// }
 
 #[test]
 fn inscribe_works_with_huge_expensive_inscriptions() {
@@ -51,22 +51,22 @@ fn inscribe_fails_if_bitcoin_core_is_too_old() {
     .run();
 }
 
-#[ignore] // Litcoincore does not have a listdescriptors function
-#[test]
-fn inscribe_no_backup() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
-  rpc_server.mine_blocks(1);
-
-  create_wallet(&rpc_server);
-  assert_eq!(rpc_server.descriptors().len(), 2);
-
-  CommandBuilder::new("wallet inscribe hello.txt --no-backup --fee-rate 1")
-    .write("hello.txt", "HELLOWORLD")
-    .rpc_server(&rpc_server)
-    .output::<Inscribe>();
-
-  assert_eq!(rpc_server.descriptors().len(), 2);
-}
+// #[ignore] // Litcoincore does not have a listdescriptors function
+// #[test]
+// fn inscribe_no_backup() {
+//   let rpc_server = test_bitcoincore_rpc::spawn();
+//   rpc_server.mine_blocks(1);
+//
+//   create_wallet(&rpc_server);
+//   assert_eq!(rpc_server.descriptors().len(), 2);
+//
+//   CommandBuilder::new("wallet inscribe hello.txt --no-backup --fee-rate 1")
+//     .write("hello.txt", "HELLOWORLD")
+//     .rpc_server(&rpc_server)
+//     .output::<Inscribe>();
+//
+//   assert_eq!(rpc_server.descriptors().len(), 2);
+// }
 
 #[test]
 fn inscribe_unknown_file_extension() {

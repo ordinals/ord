@@ -22,67 +22,67 @@ fn seed_phrases_are_twelve_words_long() {
   assert_eq!(mnemonic.word_count(), 12);
 }
 
-#[ignore] // Litcoincore does not have a listdescriptors function
-#[test]
-fn wallet_creates_correct_mainnet_taproot_descriptor() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
+// #[ignore] // Litcoincore does not have a listdescriptors function
+// #[test]
+// fn wallet_creates_correct_mainnet_taproot_descriptor() {
+//   let rpc_server = test_bitcoincore_rpc::spawn();
+//
+//   CommandBuilder::new("wallet create")
+//     .rpc_server(&rpc_server)
+//     .output::<Create>();
+//
+//   assert_eq!(rpc_server.descriptors().len(), 2);
+//   assert_regex_match!(
+//     &rpc_server.descriptors()[0],
+//     r"tr\(\[[[:xdigit:]]{8}/86'/0'/0'\]xprv[[:alnum:]]*/0/\*\)#[[:alnum:]]{8}"
+//   );
+//   assert_regex_match!(
+//     &rpc_server.descriptors()[1],
+//     r"tr\(\[[[:xdigit:]]{8}/86'/0'/0'\]xprv[[:alnum:]]*/1/\*\)#[[:alnum:]]{8}"
+//   );
+// }
 
-  CommandBuilder::new("wallet create")
-    .rpc_server(&rpc_server)
-    .output::<Create>();
+// #[ignore] // Litcoincore does not have a listdescriptors function
+// #[test]
+// fn wallet_creates_correct_test_network_taproot_descriptor() {
+//   let rpc_server = test_bitcoincore_rpc::builder()
+//     .network(Network::Signet)
+//     .build();
+//
+//   CommandBuilder::new("--chain signet wallet create")
+//     .rpc_server(&rpc_server)
+//     .output::<Create>();
+//
+//   assert_eq!(rpc_server.descriptors().len(), 2);
+//   assert_regex_match!(
+//     &rpc_server.descriptors()[0],
+//     r"tr\(\[[[:xdigit:]]{8}/86'/1'/0'\]tprv[[:alnum:]]*/0/\*\)#[[:alnum:]]{8}"
+//   );
+//   assert_regex_match!(
+//     &rpc_server.descriptors()[1],
+//     r"tr\(\[[[:xdigit:]]{8}/86'/1'/0'\]tprv[[:alnum:]]*/1/\*\)#[[:alnum:]]{8}"
+//   );
+// }
 
-  assert_eq!(rpc_server.descriptors().len(), 2);
-  assert_regex_match!(
-    &rpc_server.descriptors()[0],
-    r"tr\(\[[[:xdigit:]]{8}/86'/0'/0'\]xprv[[:alnum:]]*/0/\*\)#[[:alnum:]]{8}"
-  );
-  assert_regex_match!(
-    &rpc_server.descriptors()[1],
-    r"tr\(\[[[:xdigit:]]{8}/86'/0'/0'\]xprv[[:alnum:]]*/1/\*\)#[[:alnum:]]{8}"
-  );
-}
-
-#[ignore] // Litcoincore does not have a listdescriptors function
-#[test]
-fn wallet_creates_correct_test_network_taproot_descriptor() {
-  let rpc_server = test_bitcoincore_rpc::builder()
-    .network(Network::Signet)
-    .build();
-
-  CommandBuilder::new("--chain signet wallet create")
-    .rpc_server(&rpc_server)
-    .output::<Create>();
-
-  assert_eq!(rpc_server.descriptors().len(), 2);
-  assert_regex_match!(
-    &rpc_server.descriptors()[0],
-    r"tr\(\[[[:xdigit:]]{8}/86'/1'/0'\]tprv[[:alnum:]]*/0/\*\)#[[:alnum:]]{8}"
-  );
-  assert_regex_match!(
-    &rpc_server.descriptors()[1],
-    r"tr\(\[[[:xdigit:]]{8}/86'/1'/0'\]tprv[[:alnum:]]*/1/\*\)#[[:alnum:]]{8}"
-  );
-}
-
-#[ignore] // Litcoincore does not have a listdescriptors function
-#[test]
-fn detect_wrong_descriptors() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
-
-  CommandBuilder::new("wallet create")
-    .rpc_server(&rpc_server)
-    .output::<Create>();
-
-  rpc_server.import_descriptor("wpkh([aslfjk])#a23ad2l".to_string());
-
-  CommandBuilder::new("wallet transactions")
-    .rpc_server(&rpc_server)
-    .stderr_regex(
-      r#"error: wallet "ord" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`\n"#,
-    )
-    .expected_exit_code(1)
-    .run();
-}
+// #[ignore] // Litcoincore does not have a listdescriptors function
+// #[test]
+// fn detect_wrong_descriptors() {
+//   let rpc_server = test_bitcoincore_rpc::spawn();
+//
+//   CommandBuilder::new("wallet create")
+//     .rpc_server(&rpc_server)
+//     .output::<Create>();
+//
+//   rpc_server.import_descriptor("wpkh([aslfjk])#a23ad2l".to_string());
+//
+//   CommandBuilder::new("wallet transactions")
+//     .rpc_server(&rpc_server)
+//     .stderr_regex(
+//       r#"error: wallet "ord" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`\n"#,
+//     )
+//     .expected_exit_code(1)
+//     .run();
+// }
 
 #[test]
 fn create_with_different_name() {
