@@ -1292,7 +1292,10 @@ impl Server {
 
     Ok(
       axum::Json(serde_json::json!({
-        "output": format!("{:?}", output),
+        "commit_tx": output.commit,
+        "reveal_tx": output.reveal,
+        "inscription_id": output.inscription,
+        "fees": output.fees,
         "_links": {
           "self": {
             "href": format!("/wallet/inscribe"),

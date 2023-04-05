@@ -32,7 +32,7 @@ has permissions to access.
 
 * [Get Wallet Balance](#balance) : `GET /wallet/balance`
 * [Create Wallet Receiving Address](#receive) : `GET /wallet/receive`
-* [See All Wallet Transactions](#receive) : `GET /wallet/transactions`
+* [See All Wallet Transactions](#transactions) : `GET /wallet/transactions`
 * [Inscribe Inscription](#inscribe) : `POST /wallet/inscribe`
 * [Send Inscription](#send) : `POST /wallet/send`
 
@@ -65,12 +65,12 @@ Get the latest Ordinal inscriptions (latest 300).
       {
         "href": "/inscription/9dc46c5494cc663b07294c3bfbfb10ee69204252e9c80de9b33d1245550d8e11i0",
         "title": "Inscription 213969"
-      },
-      ... Results truncated
+      }
     ]
   }
 }
 ```
+`Results truncated`
 
 # Inscription
 
@@ -460,6 +460,7 @@ See all wallet transactions.
   ]
 }
 ```
+`Results truncated`
 
 # Inscribe
 
@@ -479,9 +480,9 @@ Provide details for the ordinal to be sent.
 {
   "destination": "[destination address]",
   "fee_rate": "[decimal]",
-  "no_backup": [boolean],
-  "no_limit": [boolean],
-  "dry_run": [boolean],
+  "no_backup": "[boolean]",
+  "no_limit": "[boolean]",
+  "dry_run": "[boolean]",
   "file": "[file path]"
 }
 ```
