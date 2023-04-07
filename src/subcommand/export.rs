@@ -36,17 +36,21 @@ impl Export {
     let entry = index
       .get_inscription_entry(id)?
       .ok_or_else(|| anyhow!("inscription entry not found: {id}"))?;
+    let number = entry.number;
     let content_type = inscription
       .content_type()
-      .ok_or_else(|| anyhow!("content_type missing for {id}"))?;
-    let extension = Media::extension_for_content_type(content_type)
-      .ok_or_else(|| anyhow!("unknown content_type: {content_type}"))?;
-    let file = self
-      .output_dir
-      .join(format!("{}.{}", entry.number, extension));
+      .ok_or_else(|| anyhow!("content_type missing for {number}"))?;
+    let extension = Media::extension_for_content_type(content_type);
+    let file = match extension {
+      None => {
+        log::info!("inscription {number} has an unsupported content_type: {content_type}");
+        self.output_dir.join(number.to_string())
+      }
+      Some(extension) => self.output_dir.join(format!("{number}.{extension}")),
+    };
     let body = inscription.body();
     match body {
-      None => log::info!("inscription body not found: {id}"),
+      None => log::info!("inscription {number} has no body"),
       Some(body) => fs::write(file, body)?,
     }
     Ok(())
@@ -100,7 +104,7 @@ mod test {
   }
 
   #[test]
-  fn writes_other_media_types() -> Result {
+  fn writes_other_content_types() -> Result {
     let context = Context::builder().build();
     let entry = context.write_test_inscription(inscription("application/json", "{}"))?;
     let export = Export {
@@ -115,7 +119,17 @@ mod test {
   }
 
   #[test]
-  fn skips_unsupported_media_types() -> Result {
+  fn writes_unsupported_content_types_without_extensions() -> Result {
+    let context = Context::builder().build();
+    let entry = context.write_test_inscription(inscription("something unsupported", "foo"))?;
+    let export = Export {
+      output_dir: context.export_dir(),
+    };
+    export.run_with_index(context.index())?;
+    assert_eq!(
+      fs::read_to_string(context.export_dir().join(format!("{}", entry.number)))?,
+      "foo"
+    );
     Ok(())
   }
 
