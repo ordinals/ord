@@ -2288,7 +2288,6 @@ mod tests {
 
   #[test]
   fn feed() {
-    // let server = TestServer::new_with_sat_index();
     let server = TestServer::new_with_regtest_with_index_sats();
     server.mine_blocks(1);
 
