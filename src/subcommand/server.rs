@@ -124,7 +124,7 @@ pub(crate) struct Server {
   redirect_http_to_https: bool,
   #[clap(
     long,
-    help = "Set basic authentication by providing <BASIC_AUTH> in a <username>:<password> format",
+    help = "Set basic authentication by providing <BASIC_AUTH> in a <username>:<password> format.",
     validator_regex(Regex::new(r".+:.+").unwrap(), "<BASIC_AUTH> format is invalid. Use <username>:<password> format.")
   )]
   basic_auth: Option<String>,
