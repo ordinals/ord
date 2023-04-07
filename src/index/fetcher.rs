@@ -38,7 +38,7 @@ impl Fetcher {
 
     let url = Uri::try_from(&url).map_err(|e| anyhow!("Invalid rpc url {url}: {e}"))?;
 
-    let (user, password) = options.auth().get_user_pass()?;
+    let (user, password) = options.auth()?.get_user_pass()?;
     let auth = format!("{}:{}", user.unwrap(), password.unwrap());
     let auth = format!("Basic {}", &base64::encode(auth));
     Ok(Fetcher { client, url, auth })

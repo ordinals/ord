@@ -140,47 +140,56 @@ impl Options {
     )
   }
 
-  fn derive_var(
-    arg: Option<OsString>,
-    env: Option<OsString>,
-    config: Option<OsString>,
-    default: Option<OsString>,
-  ) -> Option<OsString> {
+  fn derive_var<'a>(
+    arg: Option<&'a str>,
+    env: Option<&'a str>,
+    config: Option<&'a str>,
+    default: Option<&'a str>,
+  ) -> Option<&'a str> {
     arg.or(env).or(config).or(default)
   }
 
-  pub(crate) fn auth(&self) -> Auth {
+  pub(crate) fn auth(&self) -> Result<Auth> {
     log::info!("Connecting to Bitcoin Core at {}", self.rpc_url());
 
-    let config = self.load_config().unwrap();
+    let config = self.load_config()?;
 
     let rpc_user = Options::derive_var(
-      self.rpc_user.as_ref().map(|string| string.into()),
-      env::var_os("RPC_USER"),
-      config.rpc_user.map(|string| string.into()),
+      self.rpc_user.map(|string| string.as_ref()),
+      env::var_os("RPC_USER").map(|string| {
+        string
+          .into_string()
+          .expect("env var RPC_USER is invalid UTF-8")
+          .as_ref()
+      }),
+      config.rpc_user.map(|string| string.as_ref()),
       None,
     );
 
     let rpc_pass = Options::derive_var(
-      self.rpc_pass.as_ref().map(|string| string.into()),
-      env::var_os("RPC_PASS"),
-      config.rpc_pass.map(|string| string.into()),
+      self.rpc_pass.as_ref().map(|string| string.as_ref()),
+      env::var_os("RPC_PASS").map(|string| {
+        string
+          .into_string()
+          .expect("env var RPC_PASS is invalid UTF-8")
+          .as_ref()
+      }),
+      config.rpc_pass.map(|string| string.as_ref()),
       None,
     );
 
     match (rpc_user, rpc_pass) {
-      (Some(rpc_user), Some(rpc_pass)) => Auth::UserPass(
-        rpc_user.into_string().expect("rpc_user is invalid UTF-8"),
-        rpc_pass.into_string().expect("rpc_pass is invalid UTF-8"),
-      ),
-      _ => Auth::CookieFile(self.cookie_file().unwrap()),
+      (Some(rpc_user), Some(rpc_pass)) => {
+        Ok(Auth::UserPass(rpc_user.to_string(), rpc_pass.to_string()))
+      }
+      _ => Ok(Auth::CookieFile(self.cookie_file().unwrap())),
     }
   }
 
   pub(crate) fn bitcoin_rpc_client(&self) -> Result<Client> {
     let rpc_url = self.rpc_url();
 
-    let auth = self.auth();
+    let auth = self.auth()?;
 
     let client = Client::new(&rpc_url, auth)
       .with_context(|| format!("failed to connect to Bitcoin Core RPC at {rpc_url}"))?;
