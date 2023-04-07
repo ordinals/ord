@@ -30,6 +30,7 @@ use {
   std::{cmp::Ordering, str},
   tokio_stream::StreamExt,
   tower_http::{
+    auth::RequireAuthorizationLayer,
     compression::CompressionLayer,
     cors::{Any, CorsLayer},
     set_header::SetResponseHeaderLayer,
@@ -121,6 +122,12 @@ pub(crate) struct Server {
   https: bool,
   #[clap(long, help = "Redirect HTTP traffic to HTTPS.")]
   redirect_http_to_https: bool,
+  #[clap(
+    long,
+    help = "Set basic authentication by providing a username and password in the format of <USERNAME>:<PASSWORD>",
+    validator_regex(Regex::new(r".+:.+").unwrap(), "<BASIC_AUTH> format is invalid. Use <USERNAME>:<PASSWORD> format.")
+  )]
+  basic_auth: Option<String>,
 }
 
 impl Server {
@@ -142,7 +149,7 @@ impl Server {
         domain: acme_domains.first().cloned(),
       });
 
-      let router = Router::new()
+      let mut router = Router::new()
         .route("/", get(Self::home))
         .route("/block-count", get(Self::block_count))
         .route("/block/:query", get(Self::block))
@@ -185,6 +192,11 @@ impl Server {
             .allow_origin(Any),
         )
         .layer(CompressionLayer::new());
+
+      if let Some(basic_auth) = self.basic_auth.as_deref() {
+        let (username, password) = basic_auth.split_once(":").unwrap();
+        router = router.layer(RequireAuthorizationLayer::basic(username, password));
+      }
 
       match (self.http_port(), self.https_port()) {
         (Some(http_port), None) => {
@@ -1370,6 +1382,33 @@ mod tests {
   #[test]
   fn status() {
     TestServer::new().assert_response("/status", StatusCode::OK, "OK");
+  }
+
+  #[test]
+  fn basic_auth_args() {
+    assert!(Arguments::try_parse_from(["ord", "server", "--basic-auth", "adminonly",]).is_err());
+    assert!(Arguments::try_parse_from(["ord", "server", "--basic-auth", "admin:secret",]).is_ok());
+  }
+
+  #[test]
+  fn basic_auth() {
+    let server = TestServer::new_with_args(&[], &["--basic-auth", "admin:secret"]);
+    let mut headers = HeaderMap::new();
+    headers.insert(
+      header::AUTHORIZATION,
+      "Basic YWRtaW46c2VjcmV0".parse().unwrap(),
+    );
+    let unauthorized_response = server.get("/status");
+    let authorized_response = reqwest::blocking::Client::builder()
+      .default_headers(headers)
+      .build()
+      .unwrap()
+      .get(server.join_url("/status"))
+      .send()
+      .unwrap();
+
+    assert_eq!(unauthorized_response.status(), StatusCode::UNAUTHORIZED);
+    assert_eq!(authorized_response.status(), StatusCode::OK);
   }
 
   #[test]
