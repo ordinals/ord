@@ -8,16 +8,16 @@ use {
 };
 
 pub(crate) struct Fetcher {
+  auth: String,
   client: Client<HttpConnector>,
   url: Uri,
-  auth: String,
 }
 
 #[derive(Deserialize, Debug)]
 struct JsonResponse<T> {
-  result: Option<T>,
   error: Option<JsonError>,
   id: usize,
+  result: Option<T>,
 }
 
 #[derive(Deserialize, Debug)]
