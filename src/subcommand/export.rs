@@ -37,10 +37,11 @@ impl Export {
       .get_inscription_entry(id)?
       .ok_or_else(|| anyhow!("inscription entry not found: {id}"))?;
     let file = self.output_dir.join(format!("{}.txt", entry.number));
-    let body = inscription
-      .body()
-      .ok_or_else(|| anyhow!("inscription body not found: {id}"))?;
-    fs::write(file, body)?;
+    let body = inscription.body();
+    match body {
+      None => log::info!("inscription body not found: {id}"),
+      Some(body) => fs::write(file, body)?,
+    }
     Ok(())
   }
 }
@@ -57,12 +58,11 @@ mod test {
     fn export_dir(&self) -> PathBuf {
       self.tempdir.path().join("inscriptions")
     }
-
-    fn write_test_inscription(&self, contents: &str) -> Result<InscriptionEntry> {
+    fn write_test_inscription(&self, inscription: Inscription) -> Result<InscriptionEntry> {
       self.mine_blocks(1);
       let txid = self.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
-        witness: inscription("text/plain", contents).to_witness(),
+        witness: inscription.to_witness(),
         ..Default::default()
       });
       let inscription_id = InscriptionId::from(txid);
@@ -80,7 +80,7 @@ mod test {
   #[test]
   fn writes_inscriptions_to_disk_by_number() -> Result {
     let context = Context::builder().build();
-    let entry = context.write_test_inscription("foo")?;
+    let entry = context.write_test_inscription(inscription("text/plain", "foo"))?;
     let export = Export {
       output_dir: context.export_dir(),
     };
@@ -94,6 +94,17 @@ mod test {
 
   #[test]
   fn handles_inscriptions_without_bodies_gracefully() -> Result {
+    let context = Context::builder().build();
+    context.write_test_inscription(Inscription::new(Some("plain/text".into()), None))?;
+    let export = Export {
+      output_dir: context.export_dir(),
+    };
+    export.run_with_index(context.index())?;
+    Ok(())
+  }
+
+  #[test]
+  fn skips_unsupported_media_types() -> Result {
     Ok(())
   }
 
@@ -107,7 +118,7 @@ mod test {
     let context = Context::builder().build();
     let n = 100;
     for _ in 0..n {
-      context.write_test_inscription("foo")?;
+      context.write_test_inscription(inscription("text/plain", "foo"))?;
     }
     let thread = {
       let export = Export {
