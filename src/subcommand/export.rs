@@ -18,7 +18,7 @@ impl Export {
   }
 
   fn run_with_index(self, index: Arc<Index>) -> Result {
-    fs::create_dir_all(&self.output_dir)?;
+    self.prepare_directory_tree()?;
     let all_ids = index.get_inscriptions(None)?;
     for id in all_ids.values() {
       self.export_inscription_by_id(&index, id.to_owned())?;
@@ -27,6 +27,15 @@ impl Export {
       }
     }
     Ok(())
+  }
+
+  fn prepare_directory_tree(&self) -> Result {
+    fs::create_dir_all(self.numbers_dir())?;
+    Ok(())
+  }
+
+  fn numbers_dir(&self) -> PathBuf {
+    self.output_dir.join("numbers")
   }
 
   fn export_inscription_by_id(&self, index: &Arc<Index>, id: InscriptionId) -> Result {
@@ -44,9 +53,9 @@ impl Export {
     let file = match extension {
       None => {
         log::info!("inscription {number} has an unsupported content_type: {content_type}");
-        self.output_dir.join(number.to_string())
+        self.numbers_dir().join(number.to_string())
       }
-      Some(extension) => self.output_dir.join(format!("{number}.{extension}")),
+      Some(extension) => self.numbers_dir().join(format!("{number}.{extension}")),
     };
     let body = inscription.body();
     match body {
@@ -77,9 +86,7 @@ mod test {
         ..Default::default()
       });
       let inscription_id = InscriptionId::from(txid);
-
       self.mine_blocks(1);
-
       let entry = self
         .index()
         .get_inscription_entry(inscription_id)?
@@ -97,7 +104,11 @@ mod test {
     };
     export.run_with_index(context.index())?;
     assert_eq!(
-      fs::read_to_string(context.export_dir().join(format!("{}.txt", entry.number)))?,
+      fs::read_to_string(
+        context
+          .export_dir()
+          .join(format!("numbers/{}.txt", entry.number))
+      )?,
       "foo"
     );
     Ok(())
@@ -112,7 +123,12 @@ mod test {
     };
     export.run_with_index(context.index())?;
     assert_eq!(
-      fs::read_to_string(context.export_dir().join(format!("{}.json", entry.number)))?,
+      fs::read_to_string(
+        context
+          .export_dir()
+          .join("numbers")
+          .join(format!("{}.json", entry.number))
+      )?,
       "{}"
     );
     Ok(())
@@ -127,7 +143,12 @@ mod test {
     };
     export.run_with_index(context.index())?;
     assert_eq!(
-      fs::read_to_string(context.export_dir().join(format!("{}", entry.number)))?,
+      fs::read_to_string(
+        context
+          .export_dir()
+          .join("numbers")
+          .join(format!("{}", entry.number))
+      )?,
       "foo"
     );
     Ok(())
@@ -167,7 +188,7 @@ mod test {
     SHUTTING_DOWN.store(true, atomic::Ordering::Relaxed);
     thread.join().unwrap()?;
     let written_files = fs::read_dir(context.export_dir())?.count();
-    assert!(written_files > 0, "all {n} inscriptions written");
+    assert!(written_files > 0, "no inscriptions written");
     assert!(written_files < n, "all {n} inscriptions written");
     Ok(())
   }
