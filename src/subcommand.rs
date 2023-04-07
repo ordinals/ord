@@ -1,6 +1,7 @@
 use super::*;
 
 pub mod epochs;
+pub mod export;
 pub mod find;
 mod index;
 pub mod info;
@@ -45,6 +46,8 @@ pub(crate) enum Subcommand {
   Traits(traits::Traits),
   #[clap(subcommand, about = "Wallet commands")]
   Wallet(wallet::Wallet),
+  #[clap(about = "Write all inscriptions out into files")]
+  Export(export::Export),
 }
 
 impl Subcommand {
@@ -67,6 +70,7 @@ impl Subcommand {
       Self::Supply => supply::run(),
       Self::Traits(traits) => traits.run(),
       Self::Wallet(wallet) => wallet.run(options),
+      Self::Export(export) => export.run(options),
     }
   }
 }

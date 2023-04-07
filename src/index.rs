@@ -18,7 +18,7 @@ use {
   std::sync::atomic::{self, AtomicBool},
 };
 
-mod entry;
+pub(crate) mod entry;
 mod fetcher;
 mod rtx;
 mod updater;
@@ -902,19 +902,19 @@ impl Index {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
   use {
     super::*,
     bitcoin::secp256k1::rand::{self, RngCore},
   };
 
-  struct ContextBuilder {
+  pub(crate) struct ContextBuilder {
     args: Vec<OsString>,
     tempdir: Option<TempDir>,
   }
 
   impl ContextBuilder {
-    fn build(self) -> Context {
+    pub(crate) fn build(self) -> Context {
       self.try_build().unwrap()
     }
 
@@ -966,23 +966,23 @@ mod tests {
     }
   }
 
-  struct Context {
+  pub(crate) struct Context {
     options: Options,
-    rpc_server: test_bitcoincore_rpc::Handle,
+    pub(crate) rpc_server: test_bitcoincore_rpc::Handle,
     #[allow(unused)]
-    tempdir: TempDir,
-    index: Index,
+    pub(crate) tempdir: TempDir,
+    pub(crate) index: Index,
   }
 
   impl Context {
-    fn builder() -> ContextBuilder {
+    pub(crate) fn builder() -> ContextBuilder {
       ContextBuilder {
         args: Vec::new(),
         tempdir: None,
       }
     }
 
-    fn mine_blocks(&self, n: u64) -> Vec<Block> {
+    pub(crate) fn mine_blocks(&self, n: u64) -> Vec<Block> {
       let blocks = self.rpc_server.mine_blocks(n);
       self.index.update().unwrap();
       blocks
