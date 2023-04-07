@@ -939,7 +939,7 @@ pub(crate) mod tests {
       ];
 
       let options = Options::try_parse_from(command.into_iter().chain(self.args)).unwrap();
-      let index = Index::open(&options)?;
+      let index = Arc::new(Index::open(&options)?);
       index.update().unwrap();
 
       Ok(Context {
@@ -971,7 +971,7 @@ pub(crate) mod tests {
     pub(crate) rpc_server: test_bitcoincore_rpc::Handle,
     #[allow(unused)]
     pub(crate) tempdir: TempDir,
-    pub(crate) index: Index,
+    index: Arc<Index>,
   }
 
   impl Context {
@@ -980,6 +980,10 @@ pub(crate) mod tests {
         args: Vec::new(),
         tempdir: None,
       }
+    }
+
+    pub(crate) fn index(&self) -> Arc<Index> {
+      self.index.clone()
     }
 
     pub(crate) fn mine_blocks(&self, n: u64) -> Vec<Block> {

@@ -12,21 +12,24 @@ pub(crate) struct Export {
 
 impl Export {
   pub(crate) fn run(self, options: Options) -> Result {
-    let index = Index::open(&options)?;
-    self.run_with_index(&index)?;
+    let index = Arc::new(Index::open(&options)?);
+    self.run_with_index(index)?;
     Ok(())
   }
 
-  fn run_with_index(self, index: &Index) -> Result {
+  fn run_with_index(self, index: Arc<Index>) -> Result {
     fs::create_dir_all(&self.output_dir)?;
     let all_ids = index.get_inscriptions(None)?;
     for id in all_ids.values() {
-      self.export_inscription_by_id(index, id.to_owned())?;
+      self.export_inscription_by_id(&index, id.to_owned())?;
+      if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
+        break;
+      }
     }
     Ok(())
   }
 
-  fn export_inscription_by_id(&self, index: &Index, id: InscriptionId) -> Result {
+  fn export_inscription_by_id(&self, index: &Arc<Index>, id: InscriptionId) -> Result {
     let inscription = index
       .get_inscription_by_id(id)?
       .ok_or_else(|| anyhow!("inscription not found: {id}"))?;
@@ -50,57 +53,87 @@ mod test {
   use crate::test::{inscription, InscriptionId};
   use test_bitcoincore_rpc::TransactionTemplate;
 
-  fn write_test_inscription(context: &Context, contents: &str) -> Result<InscriptionEntry> {
-    context.mine_blocks(1);
-    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
-      inputs: &[(1, 0, 0)],
-      witness: inscription("text/plain", contents).to_witness(),
-      ..Default::default()
-    });
-    let inscription_id = InscriptionId::from(txid);
+  impl Context {
+    fn export_dir(&self) -> PathBuf {
+      self.tempdir.path().join("inscriptions")
+    }
 
-    context.mine_blocks(1);
+    fn write_test_inscription(&self, contents: &str) -> Result<InscriptionEntry> {
+      self.mine_blocks(1);
+      let txid = self.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0)],
+        witness: inscription("text/plain", contents).to_witness(),
+        ..Default::default()
+      });
+      let inscription_id = InscriptionId::from(txid);
 
-    let entry = context
-      .index
-      .get_inscription_entry(inscription_id)?
-      .ok_or_else(|| anyhow!("no entry for {inscription_id}"))?;
-    Ok(entry)
+      self.mine_blocks(1);
+
+      let entry = self
+        .index()
+        .get_inscription_entry(inscription_id)?
+        .ok_or_else(|| anyhow!("no entry for {inscription_id}"))?;
+      Ok(entry)
+    }
   }
 
   #[test]
   fn writes_inscriptions_to_disk_by_number() -> Result {
     let context = Context::builder().build();
-    let entry = write_test_inscription(&context, "foo")?;
+    let entry = context.write_test_inscription("foo")?;
     let export = Export {
-      output_dir: context.tempdir.path().join("inscriptions"),
+      output_dir: context.export_dir(),
     };
-    export.run_with_index(&context.index)?;
+    export.run_with_index(context.index())?;
     assert_eq!(
-      fs::read_to_string(
-        context
-          .tempdir
-          .path()
-          .join("inscriptions")
-          .join(format!("{}.txt", entry.number))
-      )?,
+      fs::read_to_string(context.export_dir().join(format!("{}.txt", entry.number)))?,
       "foo"
     );
     Ok(())
   }
 
   #[test]
-  fn handles_inscriptions_without_bodies_gracefully() {}
+  fn handles_inscriptions_without_bodies_gracefully() -> Result {
+    Ok(())
+  }
 
   #[test]
-  fn writes_other_media_types() {}
+  fn writes_other_media_types() -> Result {
+    Ok(())
+  }
 
   #[test]
-  fn aborts_gracefully_on_ctrl_c() {}
+  fn aborts_gracefully_on_ctrl_c() -> Result {
+    let context = Context::builder().build();
+    let n = 100;
+    for _ in 0..n {
+      context.write_test_inscription("foo")?;
+    }
+    let thread = {
+      let export = Export {
+        output_dir: context.export_dir(),
+      };
+      let index = context.index();
+      thread::spawn(|| -> Result {
+        export.run_with_index(index)?;
+        Ok(())
+      })
+    };
+    SHUTTING_DOWN.store(true, atomic::Ordering::Relaxed);
+    thread.join().unwrap()?;
+    let written_files = fs::read_dir(context.export_dir())?.count();
+    assert!(written_files > 0, "all {n} inscriptions written");
+    assert!(written_files < n, "all {n} inscriptions written");
+    Ok(())
+  }
 
   #[test]
-  fn avoids_rewriting_existing_files() {}
+  fn avoids_rewriting_existing_files() -> Result {
+    Ok(())
+  }
 
   #[test]
-  fn shows_a_progress_bar() {}
+  fn shows_a_progress_bar() -> Result {
+    Ok(())
+  }
 }
