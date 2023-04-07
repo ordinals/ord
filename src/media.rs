@@ -71,6 +71,16 @@ impl Media {
     ))
   }
 
+  pub(crate) fn extension_for_content_type(content_type: &str) -> Option<&'static str> {
+    let content_type = content_type.to_lowercase();
+    for (ct, _, extensions) in Self::TABLE {
+      if ct == &content_type {
+        return extensions.first().cloned();
+      }
+    }
+    None
+  }
+
   pub(crate) fn check_mp4_codec(path: &Path) -> Result<(), Error> {
     let f = File::open(path)?;
     let size = f.metadata()?.len();

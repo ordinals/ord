@@ -36,7 +36,14 @@ impl Export {
     let entry = index
       .get_inscription_entry(id)?
       .ok_or_else(|| anyhow!("inscription entry not found: {id}"))?;
-    let file = self.output_dir.join(format!("{}.txt", entry.number));
+    let content_type = inscription
+      .content_type()
+      .ok_or_else(|| anyhow!("content_type missing for {id}"))?;
+    let extension = Media::extension_for_content_type(content_type)
+      .ok_or_else(|| anyhow!("unknown content_type: {content_type}"))?;
+    let file = self
+      .output_dir
+      .join(format!("{}.{}", entry.number, extension));
     let body = inscription.body();
     match body {
       None => log::info!("inscription body not found: {id}"),
@@ -80,7 +87,7 @@ mod test {
   #[test]
   fn writes_inscriptions_to_disk_by_number() -> Result {
     let context = Context::builder().build();
-    let entry = context.write_test_inscription(inscription("text/plain", "foo"))?;
+    let entry = context.write_test_inscription(inscription("text/plain;charset=utf-8", "foo"))?;
     let export = Export {
       output_dir: context.export_dir(),
     };
@@ -93,13 +100,17 @@ mod test {
   }
 
   #[test]
-  fn handles_inscriptions_without_bodies_gracefully() -> Result {
+  fn writes_other_media_types() -> Result {
     let context = Context::builder().build();
-    context.write_test_inscription(Inscription::new(Some("plain/text".into()), None))?;
+    let entry = context.write_test_inscription(inscription("application/json", "{}"))?;
     let export = Export {
       output_dir: context.export_dir(),
     };
     export.run_with_index(context.index())?;
+    assert_eq!(
+      fs::read_to_string(context.export_dir().join(format!("{}.json", entry.number)))?,
+      "{}"
+    );
     Ok(())
   }
 
@@ -109,7 +120,16 @@ mod test {
   }
 
   #[test]
-  fn writes_other_media_types() -> Result {
+  fn handles_inscriptions_without_bodies_gracefully() -> Result {
+    let context = Context::builder().build();
+    context.write_test_inscription(Inscription::new(
+      Some("text/plain;charset=utf-8".into()),
+      None,
+    ))?;
+    let export = Export {
+      output_dir: context.export_dir(),
+    };
+    export.run_with_index(context.index())?;
     Ok(())
   }
 
@@ -118,7 +138,7 @@ mod test {
     let context = Context::builder().build();
     let n = 100;
     for _ in 0..n {
-      context.write_test_inscription(inscription("text/plain", "foo"))?;
+      context.write_test_inscription(inscription("text/plain;charset=utf-8", "foo"))?;
     }
     let thread = {
       let export = Export {
