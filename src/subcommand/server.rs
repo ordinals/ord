@@ -1386,8 +1386,8 @@ mod tests {
 
   #[test]
   fn basic_auth_args() {
-    assert!(Arguments::try_parse_from(["ord", "server", "--basic-auth", "adminonly",]).is_err());
-    assert!(Arguments::try_parse_from(["ord", "server", "--basic-auth", "admin:secret",]).is_ok());
+    assert!(Arguments::try_parse_from(["ord", "server", "--basic-auth", "adminonly"]).is_err());
+    assert!(Arguments::try_parse_from(["ord", "server", "--basic-auth", "admin:secret"]).is_ok());
   }
 
   #[test]
