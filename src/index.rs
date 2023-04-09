@@ -151,7 +151,7 @@ impl Index {
       options.data_dir()?.join("index.redb")
     };
 
-    if let Err(err) = fs::create_dir_all(&path.parent().unwrap()) {
+    if let Err(err) = fs::create_dir_all(path.parent().unwrap()) {
       bail!("failed to create data dir `{}`: {err}", path.parent().unwrap().display());
     }
 
