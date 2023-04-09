@@ -152,7 +152,10 @@ impl Index {
     };
 
     if let Err(err) = fs::create_dir_all(path.parent().unwrap()) {
-      bail!("failed to create data dir `{}`: {err}", path.parent().unwrap().display());
+      bail!(
+        "failed to create data dir `{}`: {err}",
+        path.parent().unwrap().display()
+      );
     }
 
     let database = match unsafe { Database::builder().open_mmapped(&path) } {
