@@ -30,8 +30,13 @@ impl Inscriptions {
       output.push(Output {
         sat,
         inscription,
-        location: index.get_inscription_satpoint_by_id(inscription)?.ok_or_else(|| anyhow!("Inscription {inscription} not found"))?,
-        number: index.get_inscription_entry(inscription)?.ok_or_else(|| anyhow!("Inscription {inscription} not found"))?.number,
+        location: index
+          .get_inscription_satpoint_by_id(inscription)?
+          .ok_or_else(|| anyhow!("Inscription {inscription} not found"))?,
+        number: index
+          .get_inscription_entry(inscription)?
+          .ok_or_else(|| anyhow!("Inscription {inscription} not found"))?
+          .number,
       });
     }
 

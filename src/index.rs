@@ -707,7 +707,7 @@ impl Index {
   pub(crate) fn get_inscriptions_by_sat(
     &self,
     n: Option<usize>,
-    uncommon: bool,    
+    uncommon: bool,
   ) -> Result<BTreeMap<Sat, InscriptionId>> {
     self.require_sat_index("inscriptions")?;
 
