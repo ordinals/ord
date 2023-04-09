@@ -915,7 +915,10 @@ mod tests {
         input: vec![tx_in(outpoint(1)), tx_in(outpoint(2))],
         output: vec![
           tx_out(4_950, change(1)),
-          tx_out(TransactionBuilder::DEFAULT_TARGET_POSTAGE.to_sat(), recipient()),
+          tx_out(
+            TransactionBuilder::DEFAULT_TARGET_POSTAGE.to_sat(),
+            recipient()
+          ),
           tx_out(14_831, change(0)),
         ],
       })
@@ -1057,7 +1060,10 @@ mod tests {
         lock_time: PackedLockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
         output: vec![
-          tx_out(TransactionBuilder::DEFAULT_TARGET_POSTAGE.to_sat(), recipient()),
+          tx_out(
+            TransactionBuilder::DEFAULT_TARGET_POSTAGE.to_sat(),
+            recipient()
+          ),
           tx_out(989_870, change(1))
         ],
       })
