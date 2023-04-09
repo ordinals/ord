@@ -26,8 +26,7 @@ impl List {
     match index.list(self.outpoint)? {
       Some(crate::index::List::Unspent(ranges)) => {
         let mut outputs = Vec::new();
-        let mut offset = 0;
-        for (output, start, end, size, rarity, name) in list(self.outpoint, ranges) {
+        for (output, start, end, size, offset, rarity, name) in list(self.outpoint, ranges) {
           outputs.push(Output {
             output,
             start,
@@ -37,7 +36,6 @@ impl List {
             rarity,
             name,
           });
-          offset += size;
         }
 
         print_json(outputs)?;
@@ -53,15 +51,17 @@ impl List {
 fn list(
   outpoint: OutPoint,
   ranges: Vec<(u64, u64)>,
-) -> Vec<(OutPoint, u64, u64, u64, Rarity, String)> {
+) -> Vec<(OutPoint, u64, u64, u64, u64, Rarity, String)> {
+  let mut offset = 0;
   ranges
     .into_iter()
     .map(|(start, end)| {
       let size = end - start;
       let rarity = Sat(start).rarity();
       let name = Sat(start).name();
-
-      (outpoint, start, end, size, rarity, name)
+      let ret = (outpoint, start, end, size, offset, rarity, name);
+      offset += size;
+      ret
     })
     .collect()
 }
@@ -89,6 +89,7 @@ mod tests {
           50 * COIN_VALUE,
           55 * COIN_VALUE,
           5 * COIN_VALUE,
+          0,
           Rarity::Uncommon,
           "nvtcsezkbth".to_string()
         ),
@@ -98,6 +99,7 @@ mod tests {
           10,
           100,
           90,
+          5 * COIN_VALUE,
           Rarity::Common,
           "nvtdijuwxlf".to_string()
         ),
@@ -107,6 +109,7 @@ mod tests {
           1050000000000000,
           1150000000000000,
           100000000000000,
+          5 * COIN_VALUE + 90,
           Rarity::Epic,
           "gkjbdrhkfqf".to_string()
         )
