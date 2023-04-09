@@ -50,7 +50,10 @@ impl List {
   }
 }
 
-fn list(outpoint: OutPoint, ranges: Vec<(u64, u64)>) -> Vec<(OutPoint, u64, u64, u64, Rarity, String)> {
+fn list(
+  outpoint: OutPoint,
+  ranges: Vec<(u64, u64)>,
+) -> Vec<(OutPoint, u64, u64, u64, Rarity, String)> {
   ranges
     .into_iter()
     .map(|(start, end)| {
