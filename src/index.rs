@@ -1590,7 +1590,7 @@ mod tests {
   #[test]
   fn fee_spent_inscriptions_are_tracked_correctly() {
     for context in Context::configurations() {
-      context.mine_blocks(1);
+      context.mine_blocks(2);
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
@@ -1602,7 +1602,7 @@ mod tests {
       context.mine_blocks(1);
 
       context.rpc_server.broadcast_tx(TransactionTemplate {
-        inputs: &[(2, 1, 0)],
+        inputs: &[(2, 0, 0), (3, 1, 0)],
         fee: 50 * COIN_VALUE,
         ..Default::default()
       });
