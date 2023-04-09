@@ -643,7 +643,11 @@ impl Index {
     Ok(None)
   }
 
-  pub(crate) fn find_range(&self, search_start: u64, search_end: u64) -> Result<Option<Vec<FindRangeOutput>>> {
+  pub(crate) fn find_range(
+    &self,
+    search_start: u64,
+    search_end: u64,
+  ) -> Result<Option<Vec<FindRangeOutput>>> {
     self.require_sat_index("find")?;
 
     let rtx = self.begin_read()?;
