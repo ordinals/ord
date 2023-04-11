@@ -106,7 +106,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             index: id_index,
           };
 
-          id_index += 1; 
+          id_index += 1;
 
           floating_inscriptions.push(Flotsam {
             inscription_id,
