@@ -155,26 +155,26 @@ impl Options {
     let config = self.load_config()?;
 
     let rpc_user = Options::derive_var(
-      self.rpc_user.map(|string| string.as_ref()),
+      self.rpc_user.as_deref(),
       env::var_os("RPC_USER").map(|string| {
         string
           .into_string()
           .expect("env var RPC_USER is invalid UTF-8")
           .as_ref()
       }),
-      config.rpc_user.map(|string| string.as_ref()),
+      config.rpc_user.as_deref(),
       None,
     );
 
     let rpc_pass = Options::derive_var(
-      self.rpc_pass.as_ref().map(|string| string.as_ref()),
+      self.rpc_pass.as_deref(),
       env::var_os("RPC_PASS").map(|string| {
         string
           .into_string()
           .expect("env var RPC_PASS is invalid UTF-8")
           .as_ref()
       }),
-      config.rpc_pass.map(|string| string.as_ref()),
+      config.rpc_pass.as_deref(),
       None,
     );
 
