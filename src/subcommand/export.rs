@@ -235,8 +235,8 @@ mod test {
   fn abort_gracefully_on_ctrl_c() -> Result {
     let context = Context::builder().build();
     let n = 100;
-    for _ in 0..n {
-      context.write_test_inscription(1, inscription("text/plain;charset=utf-8", "foo"))?;
+    for i in 0..n {
+      context.write_test_inscription(i + 1, inscription("text/plain;charset=utf-8", "foo"))?;
     }
     let thread = {
       let export = Export {
