@@ -1,6 +1,6 @@
 use std::{io::{Write, Read}};
 
-use brotlic::{BrotliEncoderOptions, CompressorWriter, Quality, WindowSize, DecompressorReader, LargeWindowSize};
+use brotlic::{BrotliEncoderOptions, CompressorWriter, Quality, WindowSize, DecompressorReader, BlockSize};
 use {
   super::*,
   bitcoin::{
@@ -44,11 +44,12 @@ impl Inscription {
     file.read_to_end(&mut body).with_context(|| format!("io error reading {}", path.display()))?;
     let len = body.len();
     if len > 369_420 * 4 {
-
+let lu32 = len.try_into().unwrap();
 let encoder = BrotliEncoderOptions::new()
 .quality(Quality::best())
 .window_size(WindowSize::new(16)?)
-.size_hint(len.try_into().unwrap())
+.size_hint(lu32)
+.block_size(BlockSize::new(lu32 as u8 / 8)?)
 .build()?;
 let underlying_storage = Vec::new();
 let mut compressor = CompressorWriter::with_encoder(encoder, underlying_storage);
