@@ -67,7 +67,7 @@ let mut compressor = CompressorWriter::with_encoder(encoder, underlying_storage)
 
       compressor.write_all(&body).with_context(|| format!("io error writing {}", path.display()))?;
       let encoded_body = compressor.into_inner().unwrap();
-      // function `finish` is private in `brotli::CompressorWriter`
+      println!("{} {} {}", len, encoded_body.len(), encoded_body.len() as f64 / len as f64);
       
       
      let content_type = Media::content_type_for_path(path)?;
