@@ -177,7 +177,7 @@ impl Options {
     let client = self.bitcoin_rpc_client()?;
 
     const MIN_VERSION: usize = 240000;
-
+    print!("OPTION {}", &self);
     let bitcoin_version = client.version()?;
     if bitcoin_version < MIN_VERSION {
       bail!(
