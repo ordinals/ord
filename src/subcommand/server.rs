@@ -568,7 +568,7 @@ impl Server {
       "blockhash":blockhash,
       "inscription": inscription.map(|_|  <bitcoin::Txid as Into<InscriptionId>>::into(txid)),
     }});
-    println!("{}", serde_json::to_string_pretty(&obj).unwrap());
+    // println!("{}", serde_json::to_string_pretty(&obj).unwrap());
     Ok(serde_json::to_string_pretty(&obj).unwrap())
   }
 
