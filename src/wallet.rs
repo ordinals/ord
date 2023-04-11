@@ -6,9 +6,9 @@ pub(crate) struct Wallet {
 
 impl Wallet {
   pub(crate) fn load(options: &Options) -> Result<Self> {
-    println!("BEFOREWALLET: {}", opt.wallet);
+    println!("BEFOREWALLET: {}", options.wallet);
     options.bitcoin_rpc_client_for_wallet_command(false)?;
-    println!("AFTerWALLET: {}", opt.wallet);
+    println!("AFTerWALLET: {}", options.wallet);
     Ok(Self { _private: () })
   }
 }
