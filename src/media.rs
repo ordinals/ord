@@ -126,7 +126,7 @@ mod tests {
   use super::*;
 
   #[test]
-  fn for_extension() {
+  fn content_type_for_extension() {
     assert_eq!(
       Media::content_type_for_path(Path::new("pepe.jpg")).unwrap(),
       "image/jpeg"
@@ -147,7 +147,7 @@ mod tests {
   }
 
   #[test]
-  fn extension_for_content_types() -> Result {
+  fn extension_for_content_type() -> Result {
     let test_cases = vec![
       ("application/json", "json"),
       ("image/jpeg", "jpg"),

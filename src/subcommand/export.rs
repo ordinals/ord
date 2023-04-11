@@ -101,7 +101,7 @@ mod test {
   }
 
   #[test]
-  fn writes_inscriptions_to_disk_by_number() -> Result {
+  fn write_inscriptions_to_disk_by_number() -> Result {
     let context = Context::builder().build();
     let entry =
       context.write_test_inscription(1, inscription("text/plain;charset=utf-8", "foo"))?;
@@ -121,7 +121,7 @@ mod test {
   }
 
   #[test]
-  fn writes_multiple_inscriptions() -> Result {
+  fn write_multiple_inscriptions() -> Result {
     let context = Context::builder().build();
     let contents = vec!["foo", "bar"];
     let entries = contents
@@ -148,7 +148,7 @@ mod test {
   }
 
   #[test]
-  fn writes_other_content_types() -> Result {
+  fn other_content_types() -> Result {
     let context = Context::builder().build();
     let entry = context.write_test_inscription(1, inscription("application/json", "{}"))?;
     let export = Export {
@@ -168,7 +168,7 @@ mod test {
   }
 
   #[test]
-  fn writes_unsupported_content_types_without_extensions() -> Result {
+  fn write_unsupported_content_types_without_extensions() -> Result {
     let context = Context::builder().build();
     let entry = context.write_test_inscription(1, inscription("something unsupported", "foo"))?;
     let export = Export {
@@ -188,7 +188,7 @@ mod test {
   }
 
   #[test]
-  fn handle_content_types_without_charsets() -> Result {
+  fn content_types_without_charset_parameter() -> Result {
     let context = Context::builder().build();
     let text_entry = context.write_test_inscription(1, inscription("text/plain", "foo"))?;
     let html_entry = context.write_test_inscription(2, inscription("text/html", "<foo/>"))?;
@@ -218,7 +218,7 @@ mod test {
   }
 
   #[test]
-  fn handles_inscriptions_without_bodies_gracefully() -> Result {
+  fn handle_inscriptions_without_bodies_gracefully() -> Result {
     let context = Context::builder().build();
     context.write_test_inscription(
       1,
@@ -232,7 +232,7 @@ mod test {
   }
 
   #[test]
-  fn aborts_gracefully_on_ctrl_c() -> Result {
+  fn abort_gracefully_on_ctrl_c() -> Result {
     let context = Context::builder().build();
     let n = 100;
     for _ in 0..n {
@@ -257,12 +257,12 @@ mod test {
   }
 
   #[test]
-  fn avoids_rewriting_existing_files() -> Result {
+  fn avoid_rewriting_existing_files() -> Result {
     Ok(())
   }
 
   #[test]
-  fn shows_a_progress_bar() -> Result {
+  fn progress_bar() -> Result {
     Ok(())
   }
 }
