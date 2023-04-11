@@ -1,7 +1,6 @@
 use std::{io::{Write, Read}};
 
-use brotlic::{CompressorWriter, DecompressorReader};
-
+use brotlic::{BrotliEncoderOptions, CompressorWriter, Quality, WindowSize, DecompressorReader, LargeWindowSize};
 use {
   super::*,
   bitcoin::{
@@ -40,34 +39,43 @@ impl Inscription {
 
   pub(crate) fn from_file(chain: Chain, path: impl AsRef<Path>) -> Result<Self, Error> {
     let path = path.as_ref();
-
-    let body = fs::read(path).with_context(|| format!("io error reading {}", path.display()))?;
-    // get size in bytes 
+    let mut file = fs::File::open(path).with_context(|| format!("io error opening {}", path.display()))?;
+    let mut body = Vec::new();
+    file.read_to_end(&mut body).with_context(|| format!("io error reading {}", path.display()))?;
     let len = body.len();
     if len > 369_420 * 4 {
-   
-    let mut compressor = CompressorWriter::new(Vec::new()); // write to memory
-    
-    compressor.write_all(&body).with_context(|| format!("io error compressing {}", path.display()))?;
 
-    let encoded_body = compressor.into_inner()?; // read to vec
-    println!("Compressed {} bytes to {} bytes", len, encoded_body.len());
-    let content_type = Media::content_type_for_path(path)?;
+let encoder = BrotliEncoderOptions::new()
+.quality(Quality::best())
+.window_size(WindowSize::new(16)?)
+.large_window_size(LargeWindowSize::new(255)?)
 
-    Ok(Self {
-      body: Some(encoded_body),
-      content_type: Some(content_type.into()),
-      content_encoding: Some("br".into()) 
-    })
-  } else {
-    let content_type = Media::content_type_for_path(path)?;
+.build()?;
+let underlying_storage = Vec::new();
+let mut compressor = CompressorWriter::with_encoder(encoder, underlying_storage);
 
-    Ok(Self {
-      body: Some(body),
-      content_type: Some(content_type.into()),
-      content_encoding: None
-    })
-  }
+  
+      
+
+      compressor.write_all(&body).with_context(|| format!("io error writing {}", path.display()))?;
+      let encoded_body = compressor.into_inner().unwrap();
+      // function `finish` is private in `brotli::CompressorWriter`
+      
+      
+     let content_type = Media::content_type_for_path(path)?;
+      Ok(Self {
+        body: Some(encoded_body),
+        content_type: Some(content_type.into()),
+        content_encoding: Some("br".into()) 
+      })
+    } else {
+      let content_type = Media::content_type_for_path(path)?;
+      Ok(Self {
+        body: Some(body),
+        content_type: Some(content_type.into()),
+        content_encoding: None
+      })
+    }
   }
 
   fn append_reveal_script_to_builder(&self, mut builder: script::Builder) -> script::Builder {
