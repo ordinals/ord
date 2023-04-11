@@ -57,7 +57,6 @@ tokio-stream = "0.1.9"
 tokio-util = {version = "0.7.3", features = ["compat"] }
 tower-http = { version = "0.3.3", features = ["compression-br", "compression-gzip", "cors", "set-header"] }
 brotlic = "*"
-oxipng = "8.0.0"
 [dev-dependencies]
 executable-path = "1.0.0"
 pretty_assertions = "1.2.1"
