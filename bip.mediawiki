@@ -72,7 +72,7 @@ Sats are numbered and transferred with the following algorithm:
 <pre>
 # subsidy of block at given height
 def subsidy(height):
-  return 50 * 100_000_000 >> height // 210_000
+  return 50 * 100_000_000 >> height // 2666
 
 # first ordinal of subsidy of block at given height
 def first_ordinal(height):

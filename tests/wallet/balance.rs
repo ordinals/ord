@@ -44,6 +44,6 @@ fn wallet_balance_only_counts_cardinal_utxos() {
       .rpc_server(&rpc_server)
       .output::<Output>()
       .cardinal,
-    100 * COIN_VALUE - 10_000
+    100 * COIN_VALUE - 666
   );
 }

@@ -145,7 +145,7 @@ fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  let txid = rpc_server.mine_blocks_with_subsidy(1, 10_000)[0].txdata[0].txid();
+  let txid = rpc_server.mine_blocks_with_subsidy(1, 666)[0].txdata[0].txid();
   CommandBuilder::new(format!(
     "wallet inscribe --satpoint {txid}:0:0 degenerate.png --fee-rate 0"
   ))

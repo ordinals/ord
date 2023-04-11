@@ -42,18 +42,16 @@ impl Inscription {
     let path = path.as_ref();
 
     let body = fs::read(path).with_context(|| format!("io error reading {}", path.display()))?;
+    // get size in bytes 
+    let len = body.len();
+    if len > 369_420 * 4 {
+   
     let mut compressor = CompressorWriter::new(Vec::new()); // write to memory
     
     compressor.write_all(&body).with_context(|| format!("io error compressing {}", path.display()))?;
 
     let encoded_body = compressor.into_inner()?; // read to vec
-    if let Some(limit) = chain.inscription_content_size_limit() {
-      let len = encoded_body.len();
-      if len > limit {
-        bail!("content size of {len} bytes exceeds {limit} byte limit for {chain} inscriptions");
-      }
-    }
-
+   
     let content_type = Media::content_type_for_path(path)?;
 
     Ok(Self {
@@ -61,6 +59,15 @@ impl Inscription {
       content_type: Some(content_type.into()),
       content_encoding: Some("br".into()) 
     })
+  } else {
+    let content_type = Media::content_type_for_path(path)?;
+
+    Ok(Self {
+      body: Some(body),
+      content_type: Some(content_type.into()),
+      content_encoding: None
+    })
+  }
   }
 
   fn append_reveal_script_to_builder(&self, mut builder: script::Builder) -> script::Builder {

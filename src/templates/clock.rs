@@ -67,7 +67,7 @@ mod tests {
     );
     pretty_assert_eq!(
       ClockSvg::new(Height(6929999)).minute,
-      209_999.0 / 210_000.0 * 360.0
+      209_999.0 / 2666.0 * 360.0
     );
     pretty_assert_eq!(
       ClockSvg::new(Height(6929999)).hour,

@@ -114,9 +114,9 @@ type Result<T> = std::result::Result<T, Error>;
 impl TransactionBuilder {
   const ADDITIONAL_INPUT_VBYTES: usize = 58;
   const ADDITIONAL_OUTPUT_VBYTES: usize = 43;
-  const MAX_POSTAGE: Amount = Amount::from_sat(2 * 10_000);
+  const MAX_POSTAGE: Amount = Amount::from_sat(2 * 666);
   const SCHNORR_SIGNATURE_SIZE: usize = 64;
-  pub(crate) const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
+  pub(crate) const TARGET_POSTAGE: Amount = Amount::from_sat(666);
 
   pub fn build_transaction_with_postage(
     outgoing: SatPoint,
@@ -1046,7 +1046,7 @@ mod tests {
 
   #[test]
   fn sat_is_aligned() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(10_000))];
+    let utxos = vec![(outpoint(1), Amount::from_sat(666))];
 
     pretty_assert_eq!(
       TransactionBuilder::build_transaction_with_postage(
@@ -1069,8 +1069,8 @@ mod tests {
   #[test]
   fn alignment_output_under_dust_limit_is_padded() {
     let utxos = vec![
-      (outpoint(1), Amount::from_sat(10_000)),
-      (outpoint(2), Amount::from_sat(10_000)),
+      (outpoint(1), Amount::from_sat(666)),
+      (outpoint(2), Amount::from_sat(666)),
     ];
 
     pretty_assert_eq!(
@@ -1094,7 +1094,7 @@ mod tests {
   #[test]
   #[should_panic(expected = "invariant: all outputs are either change or recipient")]
   fn invariant_all_output_are_recognized() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(10_000))];
+    let utxos = vec![(outpoint(1), Amount::from_sat(666))];
 
     let mut builder = TransactionBuilder::new(
       satpoint(1, 3_333),
@@ -1122,7 +1122,7 @@ mod tests {
   #[test]
   #[should_panic(expected = "invariant: all outputs are above dust limit")]
   fn invariant_all_output_are_above_dust_limit() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(10_000))];
+    let utxos = vec![(outpoint(1), Amount::from_sat(666))];
 
     TransactionBuilder::new(
       satpoint(1, 1),
@@ -1148,7 +1148,7 @@ mod tests {
   #[test]
   #[should_panic(expected = "invariant: sat is at first position in recipient output")]
   fn invariant_sat_is_aligned() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(10_000))];
+    let utxos = vec![(outpoint(1), Amount::from_sat(666))];
 
     TransactionBuilder::new(
       satpoint(1, 3_333),
@@ -1171,7 +1171,7 @@ mod tests {
   #[test]
   #[should_panic(expected = "invariant: fee estimation is correct")]
   fn invariant_fee_is_at_least_target_fee_rate() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(10_000))];
+    let utxos = vec![(outpoint(1), Amount::from_sat(666))];
 
     TransactionBuilder::new(
       satpoint(1, 0),
@@ -1291,7 +1291,7 @@ mod tests {
 
   #[test]
   fn build_transaction_with_custom_fee_rate() {
-    let utxos = vec![(outpoint(1), Amount::from_sat(10_000))];
+    let utxos = vec![(outpoint(1), Amount::from_sat(666))];
 
     let fee_rate = FeeRate::try_from(17.3).unwrap();
 
@@ -1314,7 +1314,7 @@ mod tests {
         version: 1,
         lock_time: PackedLockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
-        output: vec![tx_out(10_000 - fee.to_sat(), recipient())],
+        output: vec![tx_out(666 - fee.to_sat(), recipient())],
       }
     )
   }
@@ -1492,7 +1492,7 @@ mod tests {
         version: 1,
         lock_time: PackedLockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
-        output: vec![tx_out(20_000, recipient())],
+        output: vec![tx_out(666*2, recipient())],
       }),
     );
   }
