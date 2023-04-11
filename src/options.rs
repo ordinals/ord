@@ -190,7 +190,6 @@ impl Options {
     if !create {
       println!("OPTIONWALLET: {}", &self.wallet);
       if !client.list_wallets()?.contains(&self.wallet) {
-        println!("OPTIONWALLET2: {}", &self.wallet);
         client.load_wallet(&self.wallet)?;
       }
 
