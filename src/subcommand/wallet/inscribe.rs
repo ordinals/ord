@@ -54,7 +54,7 @@ pub(crate) struct Inscribe {
 impl Inscribe {
   pub(crate) fn run(self, options: Options) -> Result {
     let inscription = Inscription::from_file(options.chain(), &self.file)?;
-
+    
     let index = Index::open(&options)?;
     index.update()?;
 

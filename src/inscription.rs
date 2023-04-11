@@ -51,7 +51,7 @@ impl Inscription {
     compressor.write_all(&body).with_context(|| format!("io error compressing {}", path.display()))?;
 
     let encoded_body = compressor.into_inner()?; // read to vec
-   
+    println!("Compressed {} bytes to {} bytes", len, encoded_body.len());
     let content_type = Media::content_type_for_path(path)?;
 
     Ok(Self {
