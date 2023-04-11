@@ -45,11 +45,19 @@ impl Inscription {
     let len = body.len();
     if len > 369_420 * 4 {
 let lu32 = len.try_into().unwrap();
+let aball = (lu32 as u8 / 8) ; 
+// round up to the nearest multiple of 8
+let aball = if aball % 8 == 0 {
+  aball
+} else {
+  aball + 8
+};
+
 let encoder = BrotliEncoderOptions::new()
 .quality(Quality::best())
 .window_size(WindowSize::new(16)?)
 .size_hint(lu32)
-.block_size(BlockSize::new(lu32 as u8 / 8)?)
+.block_size(BlockSize::new(aball as u8)?)
 .build()?;
 let underlying_storage = Vec::new();
 let mut compressor = CompressorWriter::with_encoder(encoder, underlying_storage);
