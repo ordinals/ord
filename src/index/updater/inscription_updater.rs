@@ -76,6 +76,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     let mut floating_inscriptions = Vec::new();
     let mut inscribed_offsets = BTreeSet::new();
     let mut input_value = 0;
+    let mut id_index = 0;
     for tx_in in &tx.input {
       // skip subsidy since no inscriptions possible
       if tx_in.previous_output.is_null() {
@@ -102,8 +103,10 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         if !inscribed_offsets.contains(&input_value) {
           let inscription_id = InscriptionId {
             txid,
-            index: 0, // will have to be updated for multi/batch inscriptions
+            index: id_index,
           };
+
+          id_index += 1; 
 
           floating_inscriptions.push(Flotsam {
             inscription_id,
