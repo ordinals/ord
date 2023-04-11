@@ -636,6 +636,7 @@ impl Server {
     let inscriptions = index.get_inscriptions(None)?;
     let mut opt = (&options).clone();
     opt.wallet = wallet;
+    print!("WALLET{}", opt.wallet);
     let unspent_outputs = index.get_unspent_outputs(Wallet::load(&opt)?)?;
 
     let explorer = match options.chain() {
