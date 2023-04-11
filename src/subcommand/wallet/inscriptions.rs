@@ -15,7 +15,7 @@ pub(crate) fn run(options: Options) -> Result {
   let unspent_outputs = index.get_unspent_outputs(Wallet::load(&options)?)?;
 
   let explorer = match options.chain() {
-    Chain::Mainnet => "https://ordinals.com/inscription/",
+    Chain::Mainnet => "https://explorer.satoshistudio.art/inscription/",
     Chain::Regtest => "http://localhost/inscription/",
     Chain::Signet => "https://signet.ordinals.com/inscription/",
     Chain::Testnet => "https://testnet.ordinals.com/inscription/",

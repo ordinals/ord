@@ -3,7 +3,7 @@ use {
     deserialize_from_str::DeserializeFromStr,
     error::{OptionExt, ServerError, ServerResult},
   },
-  super::*,
+  super::Options,
   crate::page_config::PageConfig,
   crate::templates::{
     BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionsHtml, OutputHtml,
@@ -35,6 +35,7 @@ use {
     set_header::SetResponseHeaderLayer,
   },
 };
+use {super::*, crate::wallet::Wallet};
 
 mod error;
 
@@ -123,6 +124,13 @@ pub(crate) struct Server {
   redirect_http_to_https: bool,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct InscriptionsOutput {
+  pub inscription: InscriptionId,
+  pub location: SatPoint,
+  pub explorer: String,
+}
+
 impl Server {
   pub(crate) fn run(self, options: Options, index: Arc<Index>, handle: Handle) -> Result {
     Runtime::new()?.block_on(async {
@@ -173,7 +181,12 @@ impl Server {
         .route("/status", get(Self::status))
         .route("/api/tx/:txid", get(Self::transaction_api))
         .route("/tx/:txid", get(Self::transaction))
+        .route(
+          "/api/wallet/:wallet/inscriptions",
+          get(Self::wallet_inscriptions_api),
+        )
         .layer(Extension(index))
+        .layer(Extension(options.clone()))
         .layer(Extension(page_config))
         .layer(Extension(Arc::new(config)))
         .layer(SetResponseHeaderLayer::if_not_present(
@@ -615,6 +628,39 @@ impl Server {
     Ok(serde_json::to_string_pretty(&data).unwrap())
   }
 
+  async fn wallet_inscriptions_api(
+    Extension(index): Extension<Arc<Index>>,
+    Extension(options): Extension<Options>,
+    Path(wallet): Path<String>,
+  ) -> ServerResult<String> {
+    let inscriptions = index.get_inscriptions(None)?;
+    let mut opt = (&options).clone();
+    opt.wallet = wallet;
+    let unspent_outputs = index.get_unspent_outputs(Wallet::load(&opt)?)?;
+
+    let explorer = match options.chain() {
+      Chain::Mainnet => "https://explorer.satoshistudio.art/inscription/",
+      Chain::Regtest => "http://localhost/inscription/",
+      Chain::Signet => "https://signet.ordinals.com/inscription/",
+      Chain::Testnet => "https://testnet.ordinals.com/inscription/",
+    };
+
+    let mut output = Vec::new();
+
+    for (location, inscription) in inscriptions {
+      if unspent_outputs.contains_key(&location.outpoint) {
+        output.push(InscriptionsOutput {
+          location,
+          inscription,
+          explorer: format!("{explorer}{inscription}"),
+        });
+      }
+    }
+
+    // print_json(&output)?;
+    Ok(serde_json::to_string_pretty(&output).unwrap())
+  }
+
   async fn status(Extension(index): Extension<Arc<Index>>) -> (StatusCode, &'static str) {
     if index.is_reorged() {
       (
@@ -973,6 +1019,7 @@ impl Server {
     from: Option<u64>,
   ) -> ServerResult<PageHtml<InscriptionsHtml>> {
     let (inscriptions, prev, next) = index.get_latest_inscriptions_with_prev_and_next(100, from)?;
+
     Ok(
       InscriptionsHtml {
         inscriptions,
