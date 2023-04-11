@@ -140,13 +140,21 @@ impl Options {
     )
   }
 
-  fn derive_var<'a>(
-    arg: Option<&'a str>,
-    env: Option<&'a str>,
-    config: Option<&'a str>,
-    default: Option<&'a str>,
-  ) -> Option<&'a str> {
-    arg.or(env).or(config).or(default)
+  fn derive_var(
+    arg: Option<String>,
+    env: Option<&str>,
+    config: Option<String>,
+    default: Option<String>,
+  ) -> Result<Option<String>> {
+    let env_value = match env {
+      Some(env_var) => env::var_os(env_var)
+        .map(|os_string| os_string.into_string())
+        .transpose()
+        .map_err(|_| anyhow!("env var {} is invalid UTF-8", env_var))?,
+      None => None,
+    };
+
+    Ok(arg.or(env_value).or(config).or(default))
   }
 
   pub(crate) fn auth(&self) -> Result<Auth> {
@@ -155,34 +163,22 @@ impl Options {
     let config = self.load_config()?;
 
     let rpc_user = Options::derive_var(
-      self.rpc_user.as_deref(),
-      env::var_os("RPC_USER").map(|string| {
-        string
-          .into_string()
-          .expect("env var RPC_USER is invalid UTF-8")
-          .as_ref()
-      }),
-      config.rpc_user.as_deref(),
+      self.rpc_user.clone(),
+      Some("RPC_USER"),
+      config.rpc_user,
       None,
-    );
+    )?;
 
     let rpc_pass = Options::derive_var(
-      self.rpc_pass.as_deref(),
-      env::var_os("RPC_PASS").map(|string| {
-        string
-          .into_string()
-          .expect("env var RPC_PASS is invalid UTF-8")
-          .as_ref()
-      }),
-      config.rpc_pass.as_deref(),
+      self.rpc_pass.clone(),
+      Some("RPC_PASS"),
+      config.rpc_pass,
       None,
-    );
+    )?;
 
     match (rpc_user, rpc_pass) {
-      (Some(rpc_user), Some(rpc_pass)) => {
-        Ok(Auth::UserPass(rpc_user.to_string(), rpc_pass.to_string()))
-      }
-      _ => Ok(Auth::CookieFile(self.cookie_file().unwrap())),
+      (Some(rpc_user), Some(rpc_pass)) => Ok(Auth::UserPass(rpc_user, rpc_pass)),
+      _ => Ok(Auth::CookieFile(self.cookie_file()?)),
     }
   }
 
@@ -599,8 +595,8 @@ mod tests {
         .unwrap(),
       Config {
         hidden: iter::once(id).collect(),
-        rpc_user: None,
         rpc_pass: None,
+        rpc_user: None,
       }
     );
   }
@@ -671,40 +667,32 @@ mod tests {
 
   #[test]
   fn test_derive_var() {
-    assert_eq!(Options::derive_var(None, None, None, None), None);
+    assert_eq!(Options::derive_var(None, None, None, None).unwrap(), None);
 
     assert_eq!(
-      Options::derive_var(None, None, None, Some("foo".into())),
+      Options::derive_var(None, None, None, Some("foo".into())).unwrap(),
       Some("foo".into())
     );
 
     assert_eq!(
-      Options::derive_var(None, None, Some("bar".into()), Some("foo".into())),
+      Options::derive_var(None, None, Some("bar".into()), Some("foo".into())).unwrap(),
       Some("bar".into())
     );
 
     assert_eq!(
       Options::derive_var(
-        None,
-        Some("baz".into()),
-        Some("bar".into()),
-        Some("foo".into())
-      ),
-      Some("baz".into())
-    );
-
-    assert_eq!(
-      Options::derive_var(
         Some("qux".into()),
-        Some("baz".into()),
+        Some("baz"),
         Some("bar".into()),
         Some("foo".into())
-      ),
+      )
+      .unwrap(),
       Some("qux".into())
     );
 
     assert!(
-      Options::derive_var(Some("qux".into()), None, None, Some("foo".into())) != Some("foo".into())
+      Options::derive_var(Some("qux".into()), None, None, Some("foo".into())).unwrap()
+        != Some("foo".into())
     );
   }
 }
