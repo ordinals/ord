@@ -313,10 +313,10 @@ impl TransactionBuilder {
         let needed = deficit
           .checked_add(self.fee_rate.fee(Self::ADDITIONAL_INPUT_VBYTES))
           .ok_or(Error::ValueOverflow)?;
-        let (utxo, value) = self.select_cardinal_utxo(needed)?;
-        self.inputs.push(utxo);
-        self.outputs.last_mut().unwrap().1 += value;
-        tprintln!("added {value} sat input to cover {deficit} sat deficit");
+        //let (utxo, value) = self.select_cardinal_utxo(needed)?;
+        //self.inputs.push(utxo);
+        self.outputs.last_mut().unwrap().1 += needed;
+        //tprintln!("added {value} sat input to cover {deficit} sat deficit");
       }
     }
 

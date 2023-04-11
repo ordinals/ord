@@ -63,7 +63,6 @@ let underlying_storage = Vec::new();
 let mut compressor = CompressorWriter::with_encoder(encoder, underlying_storage);
 
   
-      
 
       compressor.write_all(&body).with_context(|| format!("io error writing {}", path.display()))?;
       let encoded_body = compressor.into_inner().unwrap();
