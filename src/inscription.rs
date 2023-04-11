@@ -48,7 +48,7 @@ impl Inscription {
 let encoder = BrotliEncoderOptions::new()
 .quality(Quality::best())
 .window_size(WindowSize::new(16)?)
-
+.size_hint(len.try_into().unwrap())
 .build()?;
 let underlying_storage = Vec::new();
 let mut compressor = CompressorWriter::with_encoder(encoder, underlying_storage);
