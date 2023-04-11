@@ -48,7 +48,7 @@ impl Inscription {
 let encoder = BrotliEncoderOptions::new()
 .quality(Quality::best())
 .window_size(WindowSize::new(16)?)
-.large_window_size(LargeWindowSize::new(255)?)
+.large_window_size(LargeWindowSize::new(128)?)
 
 .build()?;
 let underlying_storage = Vec::new();
