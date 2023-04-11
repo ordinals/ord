@@ -1,7 +1,7 @@
 use {
   super::*,
   mp4::{MediaType, Mp4Reader, TrackType},
-  std::{fs::File, io::BufReader},
+  std::{fs::File, io::BufReader, str::FromStr},
 };
 
 #[derive(Debug, PartialEq, Copy, Clone)]
@@ -71,14 +71,18 @@ impl Media {
     ))
   }
 
-  pub(crate) fn extension_for_content_type(content_type: &str) -> Option<&'static str> {
-    let content_type = content_type.to_lowercase();
-    for (ct, _, extensions) in Self::TABLE {
-      if ct == &content_type {
-        return extensions.first().cloned();
+  pub(crate) fn extension_for_content_type(content_type: &str) -> Result<&'static str> {
+    let content_type = accept_header::MediaType::from_str(content_type)?;
+    let content_type = content_type.mime.essence_str();
+    for (candidate, _, extensions) in Self::TABLE {
+      let candidate = accept_header::MediaType::from_str(candidate)?;
+      let candidate = candidate.mime.essence_str();
+      if candidate == content_type {
+        return (extensions.first().copied())
+          .ok_or_else(|| anyhow!("no extension found for {content_type}"));
       }
     }
-    None
+    Err(anyhow!("no extension found for {content_type}"))
   }
 
   pub(crate) fn check_mp4_codec(path: &Path) -> Result<(), Error> {
@@ -140,6 +144,34 @@ mod tests {
       Media::content_type_for_path(Path::new("pepe.foo")).unwrap_err(),
       r"unsupported file extension `\.foo`, supported extensions: apng .*"
     );
+  }
+
+  #[test]
+  fn extension_for_content_types() -> Result {
+    let test_cases = vec![
+      ("application/json", "json"),
+      ("image/jpeg", "jpg"),
+      ("image/png", "png"),
+      ("image/svg+xml", "svg"),
+      ("text/html;charset=utf-8", "html"),
+      ("text/plain;charset=utf-8", "txt"),
+      ("text/html", "html"),
+      ("text/plain", "txt"),
+      ("  text/html", "html"),
+      ("text/plain   ", "txt"),
+      ("text/html; charset=utf-8", "html"),
+      ("text/plain  ;charset=utf-8", "txt"),
+      ("text/plain  ;charset=utf-8 ", "txt"),
+      ("iMagE/jpEg", "jpg"),
+    ];
+    for (content_type, expected_extension) in test_cases {
+      assert_eq!(
+        Media::extension_for_content_type(content_type)?,
+        expected_extension,
+        "content_type: {content_type:?}",
+      );
+    }
+    Ok(())
   }
 
   #[test]

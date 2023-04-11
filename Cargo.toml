@@ -14,6 +14,7 @@ rust-version = "1.67"
 members = [".", "test-bitcoincore-rpc"]
 
 [dependencies]
+accept-header = "0.2.3"
 anyhow = { version = "1.0.56", features = ["backtrace"] }
 axum = { version = "0.6.1", features = ["headers"] }
 axum-server = "0.4.0"

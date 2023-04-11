@@ -46,21 +46,21 @@ impl Export {
       .get_inscription_entry(id)?
       .ok_or_else(|| anyhow!("inscription entry not found: {id}"))?;
     let number = entry.number;
-    let content_type = inscription
-      .content_type()
-      .ok_or_else(|| anyhow!("content_type missing for {number}"))?;
-    let extension = Media::extension_for_content_type(content_type);
-    let file = match extension {
-      None => {
-        log::info!("inscription {number} has an unsupported content_type: {content_type}");
-        self.numbers_dir().join(number.to_string())
-      }
-      Some(extension) => self.numbers_dir().join(format!("{number}.{extension}")),
-    };
-    let body = inscription.body();
-    match body {
+    match inscription.body() {
       None => log::info!("inscription {number} has no body"),
-      Some(body) => fs::write(file, body)?,
+      Some(body) => {
+        let content_type = inscription
+          .content_type()
+          .ok_or_else(|| anyhow!("content_type missing for {number}"))?;
+        let file = match Media::extension_for_content_type(content_type) {
+          Err(message) => {
+            log::info!("{message}, writing inscription {number} without file extension");
+            self.numbers_dir().join(number.to_string())
+          }
+          Ok(extension) => self.numbers_dir().join(format!("{number}.{extension}")),
+        };
+        fs::write(file, body)?;
+      }
     }
     Ok(())
   }
@@ -78,10 +78,15 @@ mod test {
     fn export_dir(&self) -> PathBuf {
       self.tempdir.path().join("inscriptions")
     }
-    fn write_test_inscription(&self, inscription: Inscription) -> Result<InscriptionEntry> {
+
+    fn write_test_inscription(
+      &self,
+      input: usize,
+      inscription: Inscription,
+    ) -> Result<InscriptionEntry> {
       self.mine_blocks(1);
       let txid = self.rpc_server.broadcast_tx(TransactionTemplate {
-        inputs: &[(1, 0, 0)],
+        inputs: &[(input, 0, 0)],
         witness: inscription.to_witness(),
         ..Default::default()
       });
@@ -98,7 +103,8 @@ mod test {
   #[test]
   fn writes_inscriptions_to_disk_by_number() -> Result {
     let context = Context::builder().build();
-    let entry = context.write_test_inscription(inscription("text/plain;charset=utf-8", "foo"))?;
+    let entry =
+      context.write_test_inscription(1, inscription("text/plain;charset=utf-8", "foo"))?;
     let export = Export {
       output_dir: context.export_dir(),
     };
@@ -115,9 +121,36 @@ mod test {
   }
 
   #[test]
+  fn writes_multiple_inscriptions() -> Result {
+    let context = Context::builder().build();
+    let contents = vec!["foo", "bar"];
+    let entries = contents
+      .iter()
+      .enumerate()
+      .map(|(i, contents)| {
+        context.write_test_inscription(i + 1, inscription("text/plain;charset=utf-8", contents))
+      })
+      .collect::<Result<Vec<InscriptionEntry>>>()?;
+    let export = Export {
+      output_dir: context.export_dir(),
+    };
+    export.run_with_index(context.index())?;
+    for (expected_contents, entry) in contents.iter().zip(entries) {
+      let file = context
+        .export_dir()
+        .join(format!("numbers/{}.txt", entry.number));
+      assert_eq!(
+        &anyhow::Context::context(fs::read_to_string(&file), format!("file: {file:?}"))?,
+        *expected_contents,
+      );
+    }
+    Ok(())
+  }
+
+  #[test]
   fn writes_other_content_types() -> Result {
     let context = Context::builder().build();
-    let entry = context.write_test_inscription(inscription("application/json", "{}"))?;
+    let entry = context.write_test_inscription(1, inscription("application/json", "{}"))?;
     let export = Export {
       output_dir: context.export_dir(),
     };
@@ -137,7 +170,7 @@ mod test {
   #[test]
   fn writes_unsupported_content_types_without_extensions() -> Result {
     let context = Context::builder().build();
-    let entry = context.write_test_inscription(inscription("something unsupported", "foo"))?;
+    let entry = context.write_test_inscription(1, inscription("something unsupported", "foo"))?;
     let export = Export {
       output_dir: context.export_dir(),
     };
@@ -155,12 +188,42 @@ mod test {
   }
 
   #[test]
+  fn handle_content_types_without_charsets() -> Result {
+    let context = Context::builder().build();
+    let text_entry = context.write_test_inscription(1, inscription("text/plain", "foo"))?;
+    let html_entry = context.write_test_inscription(2, inscription("text/html", "<foo/>"))?;
+    let export = Export {
+      output_dir: context.export_dir(),
+    };
+    export.run_with_index(context.index())?;
+    assert_eq!(
+      fs::read_to_string(
+        context
+          .export_dir()
+          .join("numbers")
+          .join(format!("{}.txt", text_entry.number))
+      )?,
+      "foo"
+    );
+    assert_eq!(
+      fs::read_to_string(
+        context
+          .export_dir()
+          .join("numbers")
+          .join(format!("{}.html", html_entry.number))
+      )?,
+      "<foo/>"
+    );
+    Ok(())
+  }
+
+  #[test]
   fn handles_inscriptions_without_bodies_gracefully() -> Result {
     let context = Context::builder().build();
-    context.write_test_inscription(Inscription::new(
-      Some("text/plain;charset=utf-8".into()),
-      None,
-    ))?;
+    context.write_test_inscription(
+      1,
+      Inscription::new(Some("text/plain;charset=utf-8".into()), None),
+    )?;
     let export = Export {
       output_dir: context.export_dir(),
     };
@@ -173,7 +236,7 @@ mod test {
     let context = Context::builder().build();
     let n = 100;
     for _ in 0..n {
-      context.write_test_inscription(inscription("text/plain;charset=utf-8", "foo"))?;
+      context.write_test_inscription(1, inscription("text/plain;charset=utf-8", "foo"))?;
     }
     let thread = {
       let export = Export {
