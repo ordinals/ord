@@ -29,7 +29,17 @@ impl Inscription {
   }
 
   pub(crate) fn from_transaction(tx: &Transaction) -> Option<Inscription> {
-    InscriptionParser::parse(&tx.input.get(0)?.witness).ok()
+    for input in &tx.input {
+      if let Some(inscription) = Inscription::from_tx_input(input) {
+        return Some(inscription);
+      }
+    }
+
+    None
+  }
+
+  pub(crate) fn from_tx_input(tx_in: &TxIn) -> Option<Inscription> {
+    InscriptionParser::parse(&tx_in.witness).ok()
   }
 
   pub(crate) fn from_file(chain: Chain, path: impl AsRef<Path>) -> Result<Self, Error> {
@@ -576,7 +586,9 @@ mod tests {
   }
 
   #[test]
-  fn do_not_extract_from_second_input() {
+  fn do_extract_from_second_input() {
+    let inscription = inscription("foo", [1; 1040]);
+
     let tx = Transaction {
       version: 0,
       lock_time: bitcoin::PackedLockTime(0),
@@ -591,13 +603,13 @@ mod tests {
           previous_output: OutPoint::null(),
           script_sig: Script::new(),
           sequence: Sequence(0),
-          witness: inscription("foo", [1; 1040]).to_witness(),
+          witness: inscription.to_witness(),
         },
       ],
       output: Vec::new(),
     };
 
-    assert_eq!(Inscription::from_transaction(&tx), None);
+    assert_eq!(Inscription::from_transaction(&tx), Some(inscription));
   }
 
   #[test]
