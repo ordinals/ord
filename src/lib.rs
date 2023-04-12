@@ -61,15 +61,16 @@ use {
     path::{Path, PathBuf},
     process::{self, Command},
     str::FromStr,
-    sync::{atomic, Arc, Mutex},
+    sync::{
+      atomic::{self, AtomicBool},
+      Arc, Mutex,
+    },
     thread,
     time::{Duration, Instant, SystemTime},
   },
   tempfile::TempDir,
   tokio::{runtime::Runtime, task},
 };
-
-use std::sync::atomic::AtomicBool;
 
 pub use crate::{
   fee_rate::FeeRate, object::Object, rarity::Rarity, sat::Sat, sat_point::SatPoint,
