@@ -20,7 +20,7 @@ use {
     deserialize_from_str::DeserializeFromStr,
     epoch::Epoch,
     height::Height,
-    index::{entry::InscriptionEntry, Index, List},
+    index::{Index, List},
     inscription::Inscription,
     inscription_id::InscriptionId,
     media::Media,
@@ -45,9 +45,7 @@ use {
   clap::{ArgGroup, Parser},
   derive_more::{Display, FromStr},
   html_escaper::{Escape, Trusted},
-  indicatif::{ProgressIterator, ProgressStyle},
   lazy_static::lazy_static,
-  log::log_enabled,
   regex::Regex,
   serde::{Deserialize, Deserializer, Serialize, Serializer},
   std::{

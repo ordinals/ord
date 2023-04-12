@@ -1,4 +1,9 @@
-use super::*;
+use {
+  super::*,
+  crate::index::entry::InscriptionEntry,
+  indicatif::{ProgressIterator, ProgressStyle},
+  log::log_enabled,
+};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Export {
