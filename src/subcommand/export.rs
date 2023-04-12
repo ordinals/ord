@@ -13,6 +13,7 @@ pub(crate) struct Export {
 impl Export {
   pub(crate) fn run(&self, options: Options) -> Result {
     let index = Arc::new(Index::open(&options)?);
+    index.update()?;
     self.run_with_index(index)?;
     Ok(())
   }
