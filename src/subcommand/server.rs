@@ -637,7 +637,9 @@ impl Server {
     let mut opt = (&options).clone();
     opt.wallet = wallet;
     println!("WALLET: {}", opt.wallet);
-    let unspent_outputs = index.get_unspent_outputs(Wallet::load(&opt)?)?;
+
+    let unspent_outputs =
+      index.get_wallet_unspent_outputs(Wallet::load(&opt)?, opt.bitcoin_rpc_client().unwrap())?;
 
     let explorer = match options.chain() {
       Chain::Mainnet => "https://explorer.satoshistudio.art/inscription/",

@@ -196,7 +196,7 @@ impl Options {
       println!("OPTIONWALLET3: {}", &self.wallet);
 
       let descriptors = client.list_descriptors(None)?.descriptors;
-
+      println!("OPTIONWALLET4: {}", &self.wallet);
       let tr = descriptors
         .iter()
         .filter(|descriptor| descriptor.desc.starts_with("tr("))
@@ -210,6 +210,7 @@ impl Options {
       if tr != 2 || descriptors.len() != 2 + rawtr {
         bail!("wallet \"{}\" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`", self.wallet);
       }
+      println!("OPTIONWALLET5: {}", &self.wallet);
     }
 
     Ok(client)
