@@ -115,12 +115,15 @@ impl Export {
 
 #[cfg(test)]
 mod test {
-  use super::*;
-  use crate::index::entry::InscriptionEntry;
-  use crate::index::tests::Context;
-  use crate::test::{inscription, InscriptionId};
-  use pretty_assertions::assert_eq;
-  use test_bitcoincore_rpc::TransactionTemplate;
+  use {
+    super::*,
+    crate::{
+      index::{entry::InscriptionEntry, tests::Context},
+      test::{inscription, InscriptionId},
+    },
+    pretty_assertions::assert_eq,
+    test_bitcoincore_rpc::TransactionTemplate,
+  };
 
   impl Context {
     fn export_dir(&self) -> PathBuf {
