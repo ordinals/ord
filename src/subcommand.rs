@@ -46,7 +46,10 @@ pub(crate) enum Subcommand {
   Traits(traits::Traits),
   #[clap(subcommand, about = "Wallet commands")]
   Wallet(wallet::Wallet),
-  #[clap(about = "Write all inscriptions out into files")]
+  #[clap(
+    about = "Write all inscriptions out into files",
+    long_about = "Write all inscriptions out into files. This will write files from untrusted sources into your local filesystem. This may be a security risk, if programs treat local files not as completely untrusted."
+  )]
   Export(export::Export),
 }
 

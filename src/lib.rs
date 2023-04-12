@@ -45,7 +45,9 @@ use {
   clap::{ArgGroup, Parser},
   derive_more::{Display, FromStr},
   html_escaper::{Escape, Trusted},
+  indicatif::{ProgressIterator, ProgressStyle},
   lazy_static::lazy_static,
+  log::log_enabled,
   regex::Regex,
   serde::{Deserialize, Deserializer, Serialize, Serializer},
   std::{

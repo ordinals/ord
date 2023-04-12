@@ -22,12 +22,12 @@ impl Export {
     let written_numbers = self.get_written_numbers()?;
     let ids = index.get_inscriptions(None)?;
     let ids = ids
-      .values()
+      .into_values()
       .map(|id| {
         Ok((
           id,
           index
-            .get_inscription_entry(*id)?
+            .get_inscription_entry(id)?
             .ok_or_else(|| anyhow!("inscription entry not found: {id}"))?,
         ))
       })
@@ -35,9 +35,9 @@ impl Export {
         Ok((_, entry)) => !written_numbers.contains(&entry.number),
         Err(_) => true,
       })
-      .collect::<Result<Vec<(&InscriptionId, InscriptionEntry)>>>()?;
-    for (id, entry) in ids {
-      self.export_inscription_by_id(&index, id.to_owned(), entry)?;
+      .collect::<Result<Vec<(InscriptionId, InscriptionEntry)>>>()?;
+    for (id, entry) in Export::add_progress_bar(ids.into_iter()) {
+      self.export_inscription_by_id(&index, id, entry)?;
       if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
         break;
       }
@@ -62,6 +62,19 @@ impl Export {
         })
         .collect(),
     )
+  }
+
+  fn add_progress_bar<Iter, T>(iterator: Iter) -> Box<(dyn Iterator<Item = T>)>
+  where
+    Iter: Iterator<Item = T> + ExactSizeIterator + 'static,
+  {
+    if cfg!(test) || log_enabled!(log::Level::Info) || integration_test() {
+      Box::new(iterator)
+    } else {
+      Box::new(iterator.into_iter().progress_with_style(
+        ProgressStyle::with_template("[exporting inscriptions] {wide_bar} {pos}/{len}").unwrap(),
+      ))
+    }
   }
 
   fn export_inscription_by_id(
@@ -300,12 +313,6 @@ mod test {
     fs::write(&file, "bar")?;
     export.run_with_index(context.index())?;
     assert_eq!(fs::read_to_string(file)?, "bar");
-    Ok(())
-  }
-
-  #[test]
-  #[ignore]
-  fn progress_bar() -> Result {
     Ok(())
   }
 }
