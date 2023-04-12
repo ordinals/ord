@@ -20,7 +20,7 @@ use {
     deserialize_from_str::DeserializeFromStr,
     epoch::Epoch,
     height::Height,
-    index::{Index, List},
+    index::{entry::InscriptionEntry, Index, List},
     inscription::Inscription,
     inscription_id::InscriptionId,
     media::Media,

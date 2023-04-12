@@ -11,17 +11,33 @@ pub(crate) struct Export {
 }
 
 impl Export {
-  pub(crate) fn run(self, options: Options) -> Result {
+  pub(crate) fn run(&self, options: Options) -> Result {
     let index = Arc::new(Index::open(&options)?);
     self.run_with_index(index)?;
     Ok(())
   }
 
-  fn run_with_index(self, index: Arc<Index>) -> Result {
+  fn run_with_index(&self, index: Arc<Index>) -> Result {
     self.prepare_directory_tree()?;
-    let all_ids = index.get_inscriptions(None)?;
-    for id in all_ids.values() {
-      self.export_inscription_by_id(&index, id.to_owned())?;
+    let written_numbers = self.get_written_numbers()?;
+    let ids = index.get_inscriptions(None)?;
+    let ids = ids
+      .values()
+      .map(|id| {
+        Ok((
+          id,
+          index
+            .get_inscription_entry(*id)?
+            .ok_or_else(|| anyhow!("inscription entry not found: {id}"))?,
+        ))
+      })
+      .filter(|result| match result {
+        Ok((_, entry)) => !written_numbers.contains(&entry.number),
+        Err(_) => true,
+      })
+      .collect::<Result<Vec<(&InscriptionId, InscriptionEntry)>>>()?;
+    for (id, entry) in ids {
+      self.export_inscription_by_id(&index, id.to_owned(), entry)?;
       if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
         break;
       }
@@ -38,13 +54,25 @@ impl Export {
     self.output_dir.join("numbers")
   }
 
-  fn export_inscription_by_id(&self, index: &Arc<Index>, id: InscriptionId) -> Result {
+  fn get_written_numbers(&self) -> Result<HashSet<u64>> {
+    Ok(
+      fs::read_dir(self.numbers_dir())?
+        .filter_map(|dir_entry| -> Option<u64> {
+          u64::from_str(dir_entry.ok()?.path().file_stem()?.to_str()?).ok()
+        })
+        .collect(),
+    )
+  }
+
+  fn export_inscription_by_id(
+    &self,
+    index: &Arc<Index>,
+    id: InscriptionId,
+    entry: InscriptionEntry,
+  ) -> Result {
     let inscription = index
       .get_inscription_by_id(id)?
       .ok_or_else(|| anyhow!("inscription not found: {id}"))?;
-    let entry = index
-      .get_inscription_entry(id)?
-      .ok_or_else(|| anyhow!("inscription entry not found: {id}"))?;
     let number = entry.number;
     match inscription.body() {
       None => log::info!("inscription {number} has no body"),
@@ -72,6 +100,7 @@ mod test {
   use crate::index::entry::InscriptionEntry;
   use crate::index::tests::Context;
   use crate::test::{inscription, InscriptionId};
+  use pretty_assertions::assert_eq;
   use test_bitcoincore_rpc::TransactionTemplate;
 
   impl Context {
@@ -243,7 +272,7 @@ mod test {
         output_dir: context.export_dir(),
       };
       let index = context.index();
-      thread::spawn(|| -> Result {
+      thread::spawn(move || -> Result {
         export.run_with_index(index)?;
         Ok(())
       })
@@ -258,10 +287,24 @@ mod test {
 
   #[test]
   fn avoid_rewriting_existing_files() -> Result {
+    let context = Context::builder().build();
+    let entry = context.write_test_inscription(1, inscription("text/plain", "foo"))?;
+    let export = Export {
+      output_dir: context.export_dir(),
+    };
+    export.run_with_index(context.index())?;
+    let file = context
+      .export_dir()
+      .join("numbers")
+      .join(format!("{}.txt", entry.number));
+    fs::write(&file, "bar")?;
+    export.run_with_index(context.index())?;
+    assert_eq!(fs::read_to_string(file)?, "bar");
     Ok(())
   }
 
   #[test]
+  #[ignore]
   fn progress_bar() -> Result {
     Ok(())
   }

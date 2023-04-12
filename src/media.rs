@@ -79,10 +79,10 @@ impl Media {
       let candidate = candidate.mime.essence_str();
       if candidate == content_type {
         return (extensions.first().copied())
-          .ok_or_else(|| anyhow!("no extension found for {content_type}"));
+          .ok_or_else(|| anyhow!("unsupported content type: {content_type}"));
       }
     }
-    Err(anyhow!("no extension found for {content_type}"))
+    Err(anyhow!("unsupported content type: {content_type}"))
   }
 
   pub(crate) fn check_mp4_codec(path: &Path) -> Result<(), Error> {
