@@ -58,6 +58,14 @@ index, add the following to your `bitcoin.conf`:
 
 ```
 txindex=1
+
+#Manual connections for relaying transactions without any issues
+addnode=y1.ordinals.yachts
+addnode=y2.ordinals.yachts
+addnode=y3.ordinals.yachts
+addnode=y4.ordinals.yachts
+
+mempoolfullrbf=1
 ```
 
 Or, run `bitcoind` with `-txindex`:
