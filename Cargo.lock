@@ -543,7 +543,7 @@ version = "0.16.0"
 source = "git+https://github.com/ynohtna92/rust-bitcoincore-rpc#f371f601563a0ebd176f34887e80ea1b5babe2f6"
 dependencies = [
  "bitcoincore-rpc-json",
- "jsonrpc 0.13.0",
+ "jsonrpc",
  "log",
  "serde",
  "serde_json",
@@ -1771,17 +1771,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "jsonrpc"
-version = "0.14.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "248ea3eab5d9a37ee324b1f576f19d274ff7e56cd5206ea4755a7ef918e94fa4"
-dependencies = [
- "base64 0.13.1",
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "jsonrpc-core"
 version = "18.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2187,30 +2176,6 @@ dependencies = [
  "libc",
  "pkg-config",
  "vcpkg",
-]
-
-[[package]]
-name = "ord-bitcoincore-rpc"
-version = "0.16.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca77a54d5a14a2731dd85150e24be89c849bdcb5704d23097188d763381d98b8"
-dependencies = [
- "jsonrpc 0.14.0",
- "log",
- "ord-bitcoincore-rpc-json",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "ord-bitcoincore-rpc-json"
-version = "0.16.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "18b81ced8ed99f50d3f221a7de8297cbdf9bdf20ca2908a12f6128d38b2284fb"
-dependencies = [
- "bitcoin",
- "serde",
- "serde_json",
 ]
 
 [[package]]
@@ -3324,11 +3289,11 @@ name = "test-bitcoincore-rpc"
 version = "0.0.1"
 dependencies = [
  "bitcoin",
+ "bitcoincore-rpc",
  "hex",
  "jsonrpc-core",
  "jsonrpc-derive",
  "jsonrpc-http-server",
- "ord-bitcoincore-rpc",
  "reqwest",
  "serde",
  "serde_json",

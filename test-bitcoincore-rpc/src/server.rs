@@ -397,18 +397,18 @@ impl Api for Server {
         .filter(|(outpoint, _amount)| !state.locked.contains(outpoint))
         .map(|(outpoint, &amount)| ListUnspentResultEntry {
           txid: outpoint.txid,
-          vout: outpoint.vout,
+          vout: Some(outpoint.vout),
           address: None,
           label: None,
           redeem_script: None,
           witness_script: None,
-          script_pub_key: Script::new(),
+          script_pub_key: Some(Script::new()),
           amount,
           confirmations: 0,
           spendable: true,
-          solvable: true,
+          solvable: Some(true),
           descriptor: None,
-          safe: true,
+          safe: Some(true),
         })
         .collect(),
     )
@@ -512,7 +512,7 @@ impl Api for Server {
             category: GetTransactionResultDetailCategory::Immature,
             amount: SignedAmount::from_sat(0),
             label: None,
-            vout: 0,
+            vout: Some(0),
             fee: Some(SignedAmount::from_sat(0)),
             abandoned: None,
           },
