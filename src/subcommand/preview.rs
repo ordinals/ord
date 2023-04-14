@@ -69,7 +69,7 @@ impl Preview {
     let rpc_client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
     let address =
-      rpc_client.get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))?;
+      rpc_client.get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32))?;
 
     rpc_client.generate_to_address(101, &address)?;
 
@@ -78,7 +78,7 @@ impl Preview {
         options: options.clone(),
         subcommand: Subcommand::Wallet(super::wallet::Wallet::Inscribe(
           super::wallet::inscribe::Inscribe {
-            fee_rate: FeeRate::try_from(1.0).unwrap(),
+            fee_rate: FeeRate::try_from(1.1).unwrap(),
             commit_fee_rate: None,
             file,
             no_backup: true,
