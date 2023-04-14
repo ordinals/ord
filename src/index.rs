@@ -1588,7 +1588,7 @@ mod tests {
   }
 
   #[test]
-  fn fee_spent_inscriptions_are_tracked_correctly() {
+  fn one_input_fee_spent_inscriptions_are_tracked_correctly() {
     for context in Context::configurations() {
       context.mine_blocks(1);
 
@@ -1603,6 +1603,42 @@ mod tests {
 
       context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(2, 1, 0)],
+        fee: 50 * COIN_VALUE,
+        ..Default::default()
+      });
+
+      let coinbase_tx = context.mine_blocks(1)[0].txdata[0].txid();
+
+      context.index.assert_inscription_location(
+        inscription_id,
+        SatPoint {
+          outpoint: OutPoint {
+            txid: coinbase_tx,
+            vout: 0,
+          },
+          offset: 50 * COIN_VALUE,
+        },
+        50 * COIN_VALUE,
+      );
+    }
+  }
+
+  #[test]
+  fn two_input_fee_spent_inscriptions_are_tracked_correctly() {
+    for context in Context::configurations() {
+      context.mine_blocks(2);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0)],
+        witness: inscription("text/plain", "hello").to_witness(),
+        ..Default::default()
+      });
+      let inscription_id = InscriptionId::from(txid);
+
+      context.mine_blocks(1);
+
+      context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(2, 0, 0), (3, 1, 0)],
         fee: 50 * COIN_VALUE,
         ..Default::default()
       });
