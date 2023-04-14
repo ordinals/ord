@@ -12,7 +12,10 @@ pub(crate) struct Inscriptions {
   max_sat: Option<Sat>,
   #[clap(long, help = "Only list inscriptions on uncommon sats or rarer.")]
   uncommon: bool,
-  #[clap(long, help = "List inscriptions in order of inscribed satoshi ordinals.")]
+  #[clap(
+    long,
+    help = "List inscriptions in order of inscribed satoshi ordinals."
+  )]
   order_by_sat: bool,
 }
 
@@ -53,12 +56,23 @@ impl Inscriptions {
       }
     }
 
-    let inscriptions =
-      if self.order_by_sat {
-        index.get_inscriptions_by_sat(self.limit, self.max_number, self.max_height, self.max_sat, self.uncommon)?
-      } else {
-        index.get_inscriptions_by_inscription_number(self.limit, self.max_number, self.max_height, self.max_sat, self.uncommon)?
-      };
+    let inscriptions = if self.order_by_sat {
+      index.get_inscriptions_by_sat(
+        self.limit,
+        self.max_number,
+        self.max_height,
+        self.max_sat,
+        self.uncommon,
+      )?
+    } else {
+      index.get_inscriptions_by_inscription_number(
+        self.limit,
+        self.max_number,
+        self.max_height,
+        self.max_sat,
+        self.uncommon,
+      )?
+    };
 
     let mut output_with_sat = Vec::new();
     let mut output_without_sat = Vec::new();

@@ -727,11 +727,12 @@ impl Index {
             Some(None)
           } else if (!uncommon || entry.sat.unwrap().rarity() != Rarity::Common)
             && (max_number.is_none() || entry.number <= max_number.unwrap())
-            && (max_height.is_none() || entry.height <= max_height.unwrap()) {
-              Some(Some(id))
-            } else {
-              None
-            }
+            && (max_height.is_none() || entry.height <= max_height.unwrap())
+          {
+            Some(Some(id))
+          } else {
+            None
+          }
         })
         .map_while(|x| x)
         .take(n.unwrap_or(usize::MAX))
@@ -760,11 +761,12 @@ impl Index {
             Some(None)
           } else if (!uncommon || entry.sat.unwrap().rarity() != Rarity::Common)
             && (max_height.is_none() || entry.height <= max_height.unwrap())
-            && (max_sat.is_none() || entry.sat.unwrap() <= max_sat.unwrap()) {
-              Some(Some(id))
-            } else {
-              None
-            }
+            && (max_sat.is_none() || entry.sat.unwrap() <= max_sat.unwrap())
+          {
+            Some(Some(id))
+          } else {
+            None
+          }
         })
         .map_while(|x| x)
         .take(n.unwrap_or(usize::MAX))
