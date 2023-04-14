@@ -707,9 +707,12 @@ impl Index {
   pub(crate) fn get_inscriptions_by_sat(
     &self,
     n: Option<usize>,
+    max_number: Option<u64>,
+    max_height: Option<u64>,
+    max_sat: Option<Sat>,
     uncommon: bool,
-  ) -> Result<BTreeMap<Sat, InscriptionId>> {
-    self.require_sat_index("inscriptions")?;
+  ) -> Result<Vec<InscriptionId>> {
+    self.require_sat_index("--order-by-sat")?;
 
     Ok(
       self
@@ -717,8 +720,53 @@ impl Index {
         .begin_read()?
         .open_table(SAT_TO_INSCRIPTION_ID)?
         .range::<u64>(0..)?
-        .map(|(sat, id)| (Sat(sat.value()), Entry::load(*id.value())))
-        .filter(|(sat, _id)| !uncommon || sat.rarity() != Rarity::Common)
+        .map(|(_sat, id)| Entry::load(*id.value()))
+        .filter_map(|id| {
+          let entry = self.get_inscription_entry(id).unwrap().unwrap();
+          if max_sat.is_some() && entry.sat.unwrap() > max_sat.unwrap() {
+            Some(None)
+          } else if (!uncommon || entry.sat.unwrap().rarity() != Rarity::Common)
+            && (max_number.is_none() || entry.number <= max_number.unwrap())
+            && (max_height.is_none() || entry.height <= max_height.unwrap()) {
+              Some(Some(id))
+            } else {
+              None
+            }
+        })
+        .map_while(|x| x)
+        .take(n.unwrap_or(usize::MAX))
+        .collect(),
+    )
+  }
+
+  pub(crate) fn get_inscriptions_by_inscription_number(
+    &self,
+    n: Option<usize>,
+    max_number: Option<u64>,
+    max_height: Option<u64>,
+    max_sat: Option<Sat>,
+    uncommon: bool,
+  ) -> Result<Vec<InscriptionId>> {
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
+        .range::<u64>(0..)?
+        .map(|(_sat, id)| Entry::load(*id.value()))
+        .filter_map(|id| {
+          let entry = self.get_inscription_entry(id).unwrap().unwrap();
+          if max_number.is_some() && entry.number > max_number.unwrap() {
+            Some(None)
+          } else if (!uncommon || entry.sat.unwrap().rarity() != Rarity::Common)
+            && (max_height.is_none() || entry.height <= max_height.unwrap())
+            && (max_sat.is_none() || entry.sat.unwrap() <= max_sat.unwrap()) {
+              Some(Some(id))
+            } else {
+              None
+            }
+        })
+        .map_while(|x| x)
         .take(n.unwrap_or(usize::MAX))
         .collect(),
     )
