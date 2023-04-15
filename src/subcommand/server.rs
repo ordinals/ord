@@ -153,6 +153,7 @@ impl Server {
 
       let router = Router::new()
         .route("/", get(Self::home))
+        .route("/api", get(Self::api))
         .route("/block-count", get(Self::block_count))
         .route("/block/:query", get(Self::block))
         .route("/bounties", get(Self::bounties))
@@ -870,6 +871,10 @@ impl Server {
 
   async fn bounties() -> Redirect {
     Redirect::to("https://docs.ordinals.com/bounty/")
+  }
+
+  async fn api() -> Redirect {
+    Redirect::to("https://ynohtna92.github.io/ord-litecoin/guides/restapi.html")
   }
 
   async fn content(
