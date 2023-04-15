@@ -107,8 +107,8 @@ jobs:
 
     - uses: Swatinem/rust-cache@v2
 
-    - name: Install Bitcoin Core
-      run: ./bin/install-bitcoin-core-linux
+    - name: Install Litecoin Core
+      run: ./bin/install-litecoin-core-linux
 
     - name: Test
       run: cargo test --all -- --ignored
