@@ -2,10 +2,10 @@
 
 set -euxo pipefail
 
-version=21.2.1
+version=0.21.2.1
 
 wget \
-  -O litcoin.tar.gz \
+  -O litecoin.tar.gz \
   https://download.litecoin.org/litecoin-0.21.2.1/linux/litecoin-0.21.2.1-x86_64-linux-gnu.tar.gz
 
 tar \
