@@ -9,8 +9,8 @@ pub(crate) enum Outgoing {
 
 impl<'de> Deserialize<'de> for Outgoing {
   fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
+  where
+    D: Deserializer<'de>,
   {
     Ok(DeserializeFromStr::deserialize(deserializer)?.0)
   }

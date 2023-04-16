@@ -72,27 +72,34 @@ impl Inscribe {
     Ok(())
   }
 
-  pub fn inscribe(self, options: &Options, inscription: Inscription, mut utxos: BTreeMap<OutPoint, Amount>, inscriptions: BTreeMap<SatPoint, InscriptionId>, client: &Client) -> Result<Output> {
+  pub fn inscribe(
+    self,
+    options: &Options,
+    inscription: Inscription,
+    mut utxos: BTreeMap<OutPoint, Amount>,
+    inscriptions: BTreeMap<SatPoint, InscriptionId>,
+    client: &Client,
+  ) -> Result<Output> {
     let commit_tx_change = [get_change_address(&client)?, get_change_address(&client)?];
 
     let reveal_tx_destination = self
-        .destination
-        .map(Ok)
-        .unwrap_or_else(|| get_change_address(&client))?;
+      .destination
+      .map(Ok)
+      .unwrap_or_else(|| get_change_address(&client))?;
 
     let (unsigned_commit_tx, reveal_tx, _recovery_key_pair) =
-        Inscribe::create_inscription_transactions(
-          self.satpoint,
-          inscription,
-          inscriptions,
-          options.chain().network(),
-          utxos.clone(),
-          commit_tx_change,
-          reveal_tx_destination,
-          self.commit_fee_rate.unwrap_or(self.fee_rate),
-          self.fee_rate,
-          self.no_limit,
-        )?;
+      Inscribe::create_inscription_transactions(
+        self.satpoint,
+        inscription,
+        inscriptions,
+        options.chain().network(),
+        utxos.clone(),
+        commit_tx_change,
+        reveal_tx_destination,
+        self.commit_fee_rate.unwrap_or(self.fee_rate),
+        self.fee_rate,
+        self.no_limit,
+      )?;
 
     utxos.insert(
       reveal_tx.input[0].previous_output,
@@ -102,7 +109,7 @@ impl Inscribe {
     );
 
     let fees =
-        Self::calculate_fee(&unsigned_commit_tx, &utxos) + Self::calculate_fee(&reveal_tx, &utxos);
+      Self::calculate_fee(&unsigned_commit_tx, &utxos) + Self::calculate_fee(&reveal_tx, &utxos);
 
     if self.dry_run {
       Ok(Output {
@@ -117,16 +124,16 @@ impl Inscribe {
       }
 
       let signed_raw_commit_tx = client
-          .sign_raw_transaction_with_wallet(&unsigned_commit_tx, None, None)?
-          .hex;
+        .sign_raw_transaction_with_wallet(&unsigned_commit_tx, None, None)?
+        .hex;
 
       let commit = client
-          .send_raw_transaction(&signed_raw_commit_tx)
-          .context("Failed to send commit transaction")?;
+        .send_raw_transaction(&signed_raw_commit_tx)
+        .context("Failed to send commit transaction")?;
 
       let reveal = client
-          .send_raw_transaction(&reveal_tx)
-          .context("Failed to send reveal transaction")?;
+        .send_raw_transaction(&reveal_tx)
+        .context("Failed to send reveal transaction")?;
 
       Ok(Output {
         commit,

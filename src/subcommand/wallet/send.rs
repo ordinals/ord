@@ -35,7 +35,12 @@ impl Send {
     Ok(())
   }
 
-  pub(crate) fn send_inscription(self, options: &Options, index: &Index, client: &Client) -> Result<Txid> {
+  pub(crate) fn send_inscription(
+    self,
+    options: &Options,
+    index: &Index,
+    client: &Client,
+  ) -> Result<Txid> {
     let unspent_outputs = index.get_unspent_outputs(Wallet::load(&options)?)?;
 
     let inscriptions = index.get_inscriptions(None)?;
@@ -50,26 +55,26 @@ impl Send {
         satpoint
       }
       Outgoing::InscriptionId(id) => index
-          .get_inscription_satpoint_by_id(id)?
-          .ok_or_else(|| anyhow!("Inscription {id} not found"))?,
+        .get_inscription_satpoint_by_id(id)?
+        .ok_or_else(|| anyhow!("Inscription {id} not found"))?,
       Outgoing::Amount(amount) => {
         let all_inscription_outputs = inscriptions
-            .keys()
-            .map(|satpoint| satpoint.outpoint)
-            .collect::<HashSet<OutPoint>>();
+          .keys()
+          .map(|satpoint| satpoint.outpoint)
+          .collect::<HashSet<OutPoint>>();
 
         let wallet_inscription_outputs = unspent_outputs
-            .keys()
-            .filter(|utxo| all_inscription_outputs.contains(utxo))
-            .cloned()
-            .collect::<Vec<OutPoint>>();
+          .keys()
+          .filter(|utxo| all_inscription_outputs.contains(utxo))
+          .cloned()
+          .collect::<Vec<OutPoint>>();
 
         if !client.lock_unspent(&wallet_inscription_outputs)? {
           bail!("failed to lock ordinal UTXOs");
         }
 
         let txid =
-            client.send_to_address(&self.address, amount, None, None, None, None, None, None)?;
+          client.send_to_address(&self.address, amount, None, None, None, None, None, None)?;
 
         return Ok(txid);
       }
@@ -87,8 +92,8 @@ impl Send {
     )?;
 
     let signed_tx = client
-        .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
-        .hex;
+      .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
+      .hex;
 
     let txid = client.send_raw_transaction(&signed_tx)?;
 

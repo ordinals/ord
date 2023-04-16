@@ -143,3 +143,15 @@ impl Entry for SatRange {
     n.to_le_bytes()[0..11].try_into().unwrap()
   }
 }
+
+impl Entry for u64 {
+  type Value = [u8; 8];
+
+  fn load([b0, b1, b2, b3, b4, b5, b6, b7]: Self::Value) -> Self {
+    u64::from_le_bytes([b0, b1, b2, b3, b4, b5, b6, b7])
+  }
+
+  fn store(self) -> Self::Value {
+    self.to_le_bytes()
+  }
+}

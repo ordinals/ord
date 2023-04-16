@@ -6,7 +6,7 @@ use {
   },
   super::*,
   crate::page_config::PageConfig,
-  crate::subcommand::wallet::transactions::Output,
+  crate::subcommand::wallet::{inscribe, send, transactions::Output},
   crate::templates::{
     BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionsHtml, OutputHtml,
     PageContent, PageHtml, PreviewAudioHtml, PreviewImageHtml, PreviewPdfHtml, PreviewTextHtml,
@@ -15,7 +15,7 @@ use {
   crate::wallet::Wallet,
   axum::{
     body,
-    extract::{Extension, Path, Query, Json},
+    extract::{Extension, Json, Path, Query},
     headers::UserAgent,
     http::{header, HeaderMap, HeaderValue, StatusCode, Uri},
     response::{IntoResponse, Redirect, Response},
@@ -40,8 +40,6 @@ use {
     set_header::SetResponseHeaderLayer,
   },
 };
-use crate::subcommand::wallet::inscribe;
-use crate::subcommand::wallet::send;
 
 mod accept_json;
 mod error;
@@ -1274,8 +1272,8 @@ impl Server {
     Json(inscribe): Json<inscribe::Inscribe>,
   ) -> ServerResult<Response> {
     if config.api_key.is_none()
-        || !header.contains_key("x-api-key")
-        || config.api_key.as_ref().unwrap().as_str() != header.get("x-api-key").unwrap()
+      || !header.contains_key("x-api-key")
+      || config.api_key.as_ref().unwrap().as_str() != header.get("x-api-key").unwrap()
     {
       return Err(ServerError::Unauthorized(
         "Authentication failure".to_string(),
@@ -1321,8 +1319,8 @@ impl Server {
     Json(send): Json<send::Send>,
   ) -> ServerResult<Response> {
     if config.api_key.is_none()
-        || !header.contains_key("x-api-key")
-        || config.api_key.as_ref().unwrap().as_str() != header.get("x-api-key").unwrap()
+      || !header.contains_key("x-api-key")
+      || config.api_key.as_ref().unwrap().as_str() != header.get("x-api-key").unwrap()
     {
       return Err(ServerError::Unauthorized(
         "Authentication failure".to_string(),
@@ -1345,7 +1343,7 @@ impl Server {
           },
         }
       }))
-          .into_response(),
+      .into_response(),
     )
   }
 
