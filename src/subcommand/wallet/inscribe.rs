@@ -50,6 +50,8 @@ pub(crate) struct Inscribe {
   pub(crate) dry_run: bool,
   #[clap(long, help = "Send inscription to <DESTINATION>.")]
   pub(crate) destination: Option<Address>,
+  #[clap(long, help = "Use at most <MAX_INPUTS> inputs to build the commit transaction.")]
+  pub(crate) max_inputs: Option<usize>,
 }
 
 impl Inscribe {
@@ -83,6 +85,7 @@ impl Inscribe {
         reveal_tx_destination,
         self.commit_fee_rate.unwrap_or(self.fee_rate),
         self.fee_rate,
+        self.max_inputs,
         self.no_limit,
       )?;
 
@@ -150,6 +153,7 @@ impl Inscribe {
     destination: Address,
     commit_fee_rate: FeeRate,
     reveal_fee_rate: FeeRate,
+    max_inputs: Option<usize>,
     no_limit: bool,
   ) -> Result<(Transaction, Transaction, TweakedKeyPair)> {
     let satpoint = if let Some(satpoint) = satpoint {
@@ -223,6 +227,7 @@ impl Inscribe {
       commit_tx_address.clone(),
       change,
       commit_fee_rate,
+      max_inputs,
       reveal_fee + TransactionBuilder::TARGET_POSTAGE,
     )?;
 
@@ -388,6 +393,7 @@ mod tests {
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
+      None,
       false,
     )
     .unwrap();
@@ -419,6 +425,7 @@ mod tests {
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
+      None,
       false,
     )
     .unwrap();
@@ -454,6 +461,7 @@ mod tests {
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
+      None,
       false,
     )
     .unwrap_err()
@@ -496,6 +504,7 @@ mod tests {
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
+      None,
       false,
     )
     .is_ok())
@@ -532,6 +541,7 @@ mod tests {
       reveal_address,
       FeeRate::try_from(fee_rate).unwrap(),
       FeeRate::try_from(fee_rate).unwrap(),
+      None,
       false,
     )
     .unwrap();
@@ -594,6 +604,7 @@ mod tests {
       reveal_address,
       FeeRate::try_from(commit_fee_rate).unwrap(),
       FeeRate::try_from(fee_rate).unwrap(),
+      None,
       false,
     )
     .unwrap();
@@ -643,6 +654,7 @@ mod tests {
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
+      None,
       false,
     )
     .unwrap_err()
@@ -674,6 +686,7 @@ mod tests {
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
+      None,
       true,
     )
     .unwrap();

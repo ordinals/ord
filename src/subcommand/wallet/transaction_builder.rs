@@ -51,6 +51,7 @@ pub enum Error {
   NotEnoughCardinalUtxos,
   NotInWallet(SatPoint),
   OutOfRange(SatPoint, u64),
+  TooManyInputs(usize),
   UtxoContainsAdditionalInscription {
     outgoing_satpoint: SatPoint,
     inscribed_satpoint: SatPoint,
@@ -74,6 +75,7 @@ impl fmt::Display for Error {
       } => write!(f, "output value is below dust value: {output_value} < {dust_value}"),
       Error::NotInWallet(outgoing_satpoint) => write!(f, "outgoing satpoint {outgoing_satpoint} not in wallet"),
       Error::OutOfRange(outgoing_satpoint, maximum) => write!(f, "outgoing satpoint {outgoing_satpoint} offset higher than maximum {maximum}"),
+      Error::TooManyInputs(max_inputs) => write!(f, "--max-inputs ({max_inputs}) exceeded"),
       Error::NotEnoughCardinalUtxos => write!(
         f,
         "wallet does not contain enough cardinal UTXOs, please add additional funds to wallet."
@@ -99,6 +101,7 @@ pub struct TransactionBuilder {
   amounts: BTreeMap<OutPoint, Amount>,
   change_addresses: BTreeSet<Address>,
   fee_rate: FeeRate,
+  max_inputs: Option<usize>,
   inputs: Vec<OutPoint>,
   inscriptions: BTreeMap<SatPoint, InscriptionId>,
   outgoing: SatPoint,
@@ -125,6 +128,7 @@ impl TransactionBuilder {
     recipient: Address,
     change: [Address; 2],
     fee_rate: FeeRate,
+    max_inputs: Option<usize>,
   ) -> Result<Transaction> {
     Self::new(
       outgoing,
@@ -133,6 +137,7 @@ impl TransactionBuilder {
       recipient,
       change,
       fee_rate,
+      max_inputs,
       Target::Postage,
     )?
     .build_transaction()
@@ -145,6 +150,7 @@ impl TransactionBuilder {
     recipient: Address,
     change: [Address; 2],
     fee_rate: FeeRate,
+    max_inputs: Option<usize>,
     output_value: Amount,
   ) -> Result<Transaction> {
     let dust_value = recipient.script_pubkey().dust_value();
@@ -163,6 +169,7 @@ impl TransactionBuilder {
       recipient,
       change,
       fee_rate,
+      max_inputs,
       Target::Value(output_value),
     )?
     .build_transaction()
@@ -186,6 +193,7 @@ impl TransactionBuilder {
     recipient: Address,
     change: [Address; 2],
     fee_rate: FeeRate,
+    max_inputs: Option<usize>,
     target: Target,
   ) -> Result<Self> {
     if change.contains(&recipient) {
@@ -196,11 +204,16 @@ impl TransactionBuilder {
       return Err(Error::DuplicateAddress(change[0].clone()));
     }
 
+    if max_inputs.is_some() && max_inputs.unwrap() < 1 {
+      return Err(Error::TooManyInputs(max_inputs.unwrap()));
+    }
+
     Ok(Self {
       utxos: amounts.keys().cloned().collect(),
       amounts,
       change_addresses: change.iter().cloned().collect(),
       fee_rate,
+      max_inputs,
       inputs: Vec::new(),
       inscriptions,
       outgoing,
@@ -651,6 +664,10 @@ impl TransactionBuilder {
     let mut found = None;
     let mut best = Amount::ZERO;
 
+    if self.max_inputs.is_some() && self.inputs.len() == self.max_inputs.unwrap() {
+      return Err(Error::TooManyInputs(self.max_inputs.unwrap()));
+    }
+
     tprintln!(
       "looking for {} cardinal worth {target_value}",
       if prefer_under { "smaller" } else { "bigger" }
@@ -725,6 +742,7 @@ mod tests {
       recipient(),
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
+      None,
       Target::Postage,
     )
     .unwrap()
@@ -756,6 +774,7 @@ mod tests {
     let tx_builder = TransactionBuilder {
       amounts,
       fee_rate: FeeRate::try_from(1.0).unwrap(),
+      max_inputs: None,
       utxos: BTreeSet::new(),
       outgoing: satpoint(1, 0),
       inscriptions: BTreeMap::new(),
@@ -797,6 +816,7 @@ mod tests {
       recipient(),
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
+      None,
     )
     .unwrap()
     .is_explicitly_rbf())
@@ -814,6 +834,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
+        None,
       ),
       Ok(Transaction {
         version: 1,
@@ -836,6 +857,7 @@ mod tests {
       recipient(),
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
+      None,
       Target::Postage,
     )
     .unwrap()
@@ -861,6 +883,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
+        None,
       ),
       Ok(Transaction {
         version: 1,
@@ -883,6 +906,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
+        None,
       ),
       Err(Error::NotEnoughCardinalUtxos),
     )
@@ -903,6 +927,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
+        None,
       ),
       Err(Error::NotEnoughCardinalUtxos),
     )
@@ -923,6 +948,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
+        None,
       ),
       Ok(Transaction {
         version: 1,
@@ -949,6 +975,7 @@ mod tests {
       recipient(),
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
+      None,
       Target::Postage,
     )
     .unwrap()
@@ -968,6 +995,7 @@ mod tests {
       recipient(),
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
+      None,
       Target::Postage,
     )
     .unwrap()
@@ -987,6 +1015,7 @@ mod tests {
       recipient(),
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
+      None,
       Target::Postage,
     )
     .unwrap()
@@ -1006,6 +1035,7 @@ mod tests {
       recipient(),
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
+      None,
       Target::Postage,
     )
     .unwrap()
@@ -1031,6 +1061,7 @@ mod tests {
       recipient(),
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
+      None,
       Target::Postage,
     )
     .unwrap()
@@ -1054,6 +1085,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
+        None,
       ),
       Ok(Transaction {
         version: 1,
@@ -1079,6 +1111,7 @@ mod tests {
       recipient(),
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
+      None,
       Target::Postage,
     )
     .unwrap()
@@ -1100,6 +1133,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
+        None,
       ),
       Ok(Transaction {
         version: 1,
@@ -1125,6 +1159,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
+        None,
       ),
       Ok(Transaction {
         version: 1,
@@ -1147,6 +1182,7 @@ mod tests {
       recipient(),
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
+      None,
       Target::Postage,
     )
     .unwrap()
@@ -1175,6 +1211,7 @@ mod tests {
       recipient(),
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
+      None,
       Target::Postage,
     )
     .unwrap()
@@ -1201,6 +1238,7 @@ mod tests {
       recipient(),
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
+      None,
       Target::Postage,
     )
     .unwrap()
@@ -1224,6 +1262,7 @@ mod tests {
       recipient(),
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
+      None,
       Target::Postage,
     )
     .unwrap()
@@ -1245,6 +1284,7 @@ mod tests {
     TransactionBuilder {
       amounts,
       fee_rate: FeeRate::try_from(1.0).unwrap(),
+      max_inputs: None,
       utxos: BTreeSet::new(),
       outgoing: satpoint(1, 0),
       inscriptions: BTreeMap::new(),
@@ -1274,6 +1314,7 @@ mod tests {
     TransactionBuilder {
       amounts,
       fee_rate: FeeRate::try_from(1.0).unwrap(),
+      max_inputs: None,
       utxos: BTreeSet::new(),
       outgoing: satpoint(1, 0),
       inscriptions: BTreeMap::new(),
@@ -1307,6 +1348,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
+        None,
       ),
       Err(Error::NotEnoughCardinalUtxos)
     )
@@ -1324,6 +1366,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
+        None,
       ),
       Err(Error::UtxoContainsAdditionalInscription {
         outgoing_satpoint: satpoint(1, 0),
@@ -1346,6 +1389,7 @@ mod tests {
       recipient(),
       [change(0), change(1)],
       fee_rate,
+      None,
     )
     .unwrap();
 
@@ -1375,6 +1419,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
+        None,
         Amount::from_sat(1000)
       ),
       Ok(Transaction {
@@ -1401,6 +1446,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
+        None,
         Amount::from_sat(1500)
       ),
       Ok(Transaction {
@@ -1424,6 +1470,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
+        None,
         Amount::from_sat(1)
       ),
       Err(Error::Dust {
@@ -1448,6 +1495,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
+        None,
         Amount::from_sat(1000)
       ),
       Err(Error::NotEnoughCardinalUtxos),
@@ -1469,6 +1517,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(4.0).unwrap(),
+        None,
         Amount::from_sat(1000)
       ),
       Err(Error::NotEnoughCardinalUtxos),
@@ -1508,6 +1557,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
+        None,
         Amount::from_sat(707)
       ),
       Ok(Transaction {
@@ -1531,6 +1581,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
+        None,
       ),
       Ok(Transaction {
         version: 1,
@@ -1553,6 +1604,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(5.0).unwrap(),
+        None,
         Amount::from_sat(1000)
       ),
       Ok(Transaction {
@@ -1576,6 +1628,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(6.0).unwrap(),
+        None,
         Amount::from_sat(1000)
       ),
       Err(Error::NotEnoughCardinalUtxos)
@@ -1594,6 +1647,7 @@ mod tests {
         recipient(),
         [recipient(), change(1)],
         FeeRate::try_from(0.0).unwrap(),
+        None,
         Amount::from_sat(1000)
       ),
       Err(Error::DuplicateAddress(recipient()))
@@ -1612,6 +1666,7 @@ mod tests {
         recipient(),
         [change(0), change(0)],
         FeeRate::try_from(0.0).unwrap(),
+        None,
         Amount::from_sat(1000)
       ),
       Err(Error::DuplicateAddress(change(0)))
@@ -1630,6 +1685,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(2.0).unwrap(),
+        None,
         Amount::from_sat(1500)
       ),
       Ok(Transaction {
@@ -1653,6 +1709,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(250.0).unwrap(),
+        None,
       ),
       Ok(Transaction {
         version: 1,
@@ -1681,6 +1738,7 @@ mod tests {
       recipient(),
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
+      None,
       Target::Value(Amount::from_sat(10_000)),
     )
     .unwrap()
@@ -1726,6 +1784,7 @@ mod tests {
       recipient(),
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
+      None,
       Target::Value(Amount::from_sat(10_000)),
     )
     .unwrap()
@@ -1778,6 +1837,7 @@ mod tests {
       recipient(),
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
+      None,
       Target::Value(Amount::from_sat(10_000)),
     )
     .unwrap();
