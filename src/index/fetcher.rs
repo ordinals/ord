@@ -1,5 +1,6 @@
 use {
   anyhow::{anyhow, Result},
+  base64::Engine,
   bitcoin::{Transaction, Txid},
   bitcoincore_rpc::Auth,
   hyper::{client::HttpConnector, Body, Client, Method, Request, Uri},
@@ -44,7 +45,10 @@ impl Fetcher {
 
     let (user, password) = auth.get_user_pass()?;
     let auth = format!("{}:{}", user.unwrap(), password.unwrap());
-    let auth = format!("Basic {}", &base64::encode(auth));
+    let auth = format!(
+      "Basic {}",
+      &base64::engine::general_purpose::STANDARD.encode(auth)
+    );
     Ok(Fetcher { client, url, auth })
   }
 
