@@ -188,15 +188,11 @@ impl Options {
     }
 
     if !create {
-      println!("OPTIONWALLET: {}", &self.wallet);
       if !client.list_wallets()?.contains(&self.wallet) {
-        println!("OPTIONWALLET2: {}", &self.wallet);
         client.load_wallet(&self.wallet)?;
       }
-      println!("OPTIONWALLET3: {}", &self.wallet);
 
       let descriptors = client.list_descriptors(None)?.descriptors;
-      println!("OPTIONWALLET4: {}", &self.wallet);
       let tr = descriptors
         .iter()
         .filter(|descriptor| descriptor.desc.starts_with("tr("))
