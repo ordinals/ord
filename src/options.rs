@@ -16,9 +16,9 @@ pub(crate) struct Options {
     help = "Use <CHAIN>."
   )]
   pub(crate) chain_argument: Chain,
-  #[clap(long, help = "Load configuration from <CONFIG>.")]
+  #[clap(long, help = "Load server configuration from <CONFIG>.")]
   pub(crate) config: Option<PathBuf>,
-  #[clap(long, help = "Load configuration from <CONFIG_DIR>.")]
+  #[clap(long, help = "Load server configuration from <CONFIG_DIR>.")]
   pub(crate) config_dir: Option<PathBuf>,
   #[clap(long, help = "Load Bitcoin Core RPC cookie file from <COOKIE_FILE>.")]
   pub(crate) cookie_file: Option<PathBuf>,
