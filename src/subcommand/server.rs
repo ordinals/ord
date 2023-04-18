@@ -192,7 +192,7 @@ impl Server {
         .layer(SetResponseHeaderLayer::if_not_present(
           header::CONTENT_SECURITY_POLICY,
           HeaderValue::from_static(
-            "default-src 'self' https://ipfs.io https://satoshistudio.art https://githubusercontent.com; script-src * 'self'",
+            "default-src 'self' https://ipfs.io https://satoshistudio.art https://raw.githubusercontent.com; script-src * 'self'",
           ),
         ))
         .layer(SetResponseHeaderLayer::overriding(
