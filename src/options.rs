@@ -206,7 +206,6 @@ impl Options {
       if tr != 2 || descriptors.len() != 2 + rawtr {
         bail!("wallet \"{}\" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`", self.wallet);
       }
-      println!("OPTIONWALLET5: {}", &self.wallet);
     }
 
     Ok(client)
