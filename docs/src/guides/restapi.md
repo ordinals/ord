@@ -16,6 +16,7 @@ Open endpoints require no Authentication.
 * [Sat details](#sat) : `GET /sat/:sat`
 * [Transaction details](#transaction) : `GET /tx/:tx`
 * [Output details](#output) : `GET /output/:tx`
+* [Address details](#address) : `GET /address/:address`
 * [Block details](#block) : `GET /block/:block_num`
 * [Content](#content) : `GET /content/:inscription_id`
 * [Preview (thumbnail)](#preview) : `GET /preview/:inscription_id`
@@ -264,6 +265,48 @@ Get transaction outputs.
   "script_pubkey": "OP_0 OP_PUSHBYTES_20 52551656d3a270e967a4627928e540aeb00d81ab", 
   "transaction": "ae1266bdb59ba2794471100beea8ce6449d901e9ceead477f3e1fa61d841a039", 
   "value": 10000
+}
+```
+
+# Address
+
+Get inscriptions held by address.
+
+**URL** : `/address/:address`
+
+**URL Parameters** : `address=[string]` where `address` is the address on the blockchain.
+
+**Method** : `GET`
+
+**Auth required** : NO
+
+**Data**: `{}`
+
+## Success Response
+
+**Code** : `200 OK`
+
+**Content example**
+
+```json
+{
+  "_links":
+  {
+    "self":
+    {
+      "href": "/address/rltc1qxdnvy4s3tnz8q8spj8cmkhz7j6dlf7mhksjtug"
+    }
+  },
+  "address": "rltc1qxdnvy4s3tnz8q8spj8cmkhz7j6dlf7mhksjtug",
+  "inscriptions":
+  [
+    {
+      "href": "/inscription/51308c35c3e6fe2d93d7b51bb77c9e99ed97bd2b58085a8ba7f04d1951dc4de9i0"
+    },
+    {
+      "href": "/inscription/5f651869974362575b57f461e06aa6c8d369cd7390f2d3f5b897232adcd9e1d9i0"
+    }
+  ]
 }
 ```
 
