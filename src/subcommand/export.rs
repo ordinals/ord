@@ -27,22 +27,13 @@ impl Export {
     self.prepare_directory_tree()?;
     let written_numbers = self.get_written_numbers()?;
     let ids = index.get_inscriptions(None)?;
-    let ids = Export::add_progress_bar("gathering missing inscription files", ids.into_values())
-      .map(|id| {
-        Ok((
-          id,
-          index
-            .get_inscription_entry(id)?
-            .ok_or_else(|| anyhow!("inscription entry not found: {id}"))?,
-        ))
-      })
-      .filter(|result| match result {
-        Ok((_, entry)) => !written_numbers.contains(&entry.number),
-        Err(_) => true,
-      })
-      .collect::<Result<Vec<(InscriptionId, InscriptionEntry)>>>()?;
-    for (id, entry) in Export::add_progress_bar("exporting inscriptions", ids.into_iter()) {
-      self.export_inscription_by_id(&index, id, entry)?;
+    for id in Export::add_progress_bar("exporting inscriptions", ids.into_values()) {
+      let entry = index
+        .get_inscription_entry(id)?
+        .ok_or_else(|| anyhow!("inscription entry not found: {id}"))?;
+      if !written_numbers.contains(&entry.number) {
+        self.export_inscription_by_id(&index, id, entry)?;
+      }
       if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
         break;
       }
