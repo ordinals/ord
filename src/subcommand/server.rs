@@ -152,6 +152,7 @@ impl Server {
       let router = Router::new()
         .route("/", get(Self::home))
         .route("/api", get(Self::api))
+        .route("/address/:address", get(Self::address))
         .route("/block-count", get(Self::block_count))
         .route("/block/:query", get(Self::block))
         .route("/bounties", get(Self::bounties))
@@ -658,6 +659,30 @@ impl Server {
       .page(page_config, index.has_sat_index()?)
       .into_response()
     })
+  }
+
+  async fn address(
+    Extension(index): Extension<Arc<Index>>,
+    Path(DeserializeFromStr(address)): Path<DeserializeFromStr<Address>>,
+  ) -> ServerResult<Response> {
+    let inscription_ids = index.get_inscriptions_by_address(&address)?.unwrap();
+
+    Ok(
+      axum::Json(serde_json::json!({
+        "address": address,
+        "_links": {
+          "self": {
+            "href": format!("/address/{}", address),
+          },
+        },
+        "inscriptions": inscription_ids.iter().map(|inscription_id| {
+          serde_json::json!({
+            "href": format!("/inscription/{}", inscription_id),
+          })
+        }).collect::<Vec<_>>(),
+      }))
+      .into_response(),
+    )
   }
 
   async fn status(Extension(index): Extension<Arc<Index>>) -> (StatusCode, &'static str) {

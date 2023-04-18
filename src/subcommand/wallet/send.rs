@@ -41,7 +41,7 @@ impl Send {
     index: &Index,
     client: &Client,
   ) -> Result<Txid> {
-    let unspent_outputs = index.get_unspent_outputs(Wallet::load(&options)?)?;
+    let unspent_outputs = index.get_unspent_outputs(Wallet::load(options)?)?;
 
     let inscriptions = index.get_inscriptions(None)?;
 
@@ -80,7 +80,7 @@ impl Send {
       }
     };
 
-    let change = [get_change_address(&client)?, get_change_address(&client)?];
+    let change = [get_change_address(client)?, get_change_address(client)?];
 
     let unsigned_transaction = TransactionBuilder::build_transaction_with_postage(
       satpoint,

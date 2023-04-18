@@ -80,12 +80,12 @@ impl Inscribe {
     inscriptions: BTreeMap<SatPoint, InscriptionId>,
     client: &Client,
   ) -> Result<Output> {
-    let commit_tx_change = [get_change_address(&client)?, get_change_address(&client)?];
+    let commit_tx_change = [get_change_address(client)?, get_change_address(client)?];
 
     let reveal_tx_destination = self
       .destination
       .map(Ok)
-      .unwrap_or_else(|| get_change_address(&client))?;
+      .unwrap_or_else(|| get_change_address(client))?;
 
     let (unsigned_commit_tx, reveal_tx, _recovery_key_pair) =
       Inscribe::create_inscription_transactions(
