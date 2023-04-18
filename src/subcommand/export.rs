@@ -27,8 +27,7 @@ impl Export {
     self.prepare_directory_tree()?;
     let written_numbers = self.get_written_numbers()?;
     let ids = index.get_inscriptions(None)?;
-    let ids = ids
-      .into_values()
+    let ids = Export::add_progress_bar("gathering missing inscription files", ids.into_values())
       .map(|id| {
         Ok((
           id,
@@ -42,7 +41,7 @@ impl Export {
         Err(_) => true,
       })
       .collect::<Result<Vec<(InscriptionId, InscriptionEntry)>>>()?;
-    for (id, entry) in Export::add_progress_bar(ids.into_iter()) {
+    for (id, entry) in Export::add_progress_bar("exporting inscriptions", ids.into_iter()) {
       self.export_inscription_by_id(&index, id, entry)?;
       if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
         break;
@@ -70,7 +69,7 @@ impl Export {
     )
   }
 
-  fn add_progress_bar<Iter, T>(iterator: Iter) -> Box<(dyn Iterator<Item = T>)>
+  fn add_progress_bar<Iter, T>(message: &str, iterator: Iter) -> Box<(dyn Iterator<Item = T>)>
   where
     Iter: Iterator<Item = T> + ExactSizeIterator + 'static,
   {
@@ -78,7 +77,7 @@ impl Export {
       Box::new(iterator)
     } else {
       Box::new(iterator.into_iter().progress_with_style(
-        ProgressStyle::with_template("[exporting inscriptions] {wide_bar} {pos}/{len}").unwrap(),
+        ProgressStyle::with_template(&format!("[{message}] {{wide_bar}} {{pos}}/{{len}}")).unwrap(),
       ))
     }
   }
