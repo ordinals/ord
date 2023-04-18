@@ -86,20 +86,36 @@ impl Export {
     match inscription.body() {
       None => log::info!("inscription {number} has no body"),
       Some(body) => {
-        let content_type = inscription
-          .content_type()
-          .ok_or_else(|| anyhow!("content_type missing for {number}"))?;
-        let file = match Media::extension_for_content_type(content_type) {
-          Err(message) => {
-            log::info!("{message}, writing inscription {number} without file extension");
-            self.numbers_dir().join(number.to_string())
-          }
-          Ok(extension) => self.numbers_dir().join(format!("{number}.{extension}")),
-        };
+        let file = self.file_name(&inscription, number);
         fs::write(file, body)?;
       }
     }
     Ok(())
+  }
+
+  fn file_name(&self, inscription: &Inscription, number: u64) -> PathBuf {
+    let mut file = self.numbers_dir().join(number.to_string());
+    let extension = Export::file_extension(inscription, number);
+    if let Some(extension) = extension {
+      file.set_extension(extension);
+    }
+    file
+  }
+
+  fn file_extension(inscription: &Inscription, number: u64) -> Option<&'static str> {
+    match inscription.content_type() {
+      None => {
+        log::info!("content_type missing, writing inscription {number} without file extension");
+        None
+      }
+      Some(content_type) => match Media::extension_for_content_type(content_type) {
+        Err(message) => {
+          log::info!("{message}, writing inscription {number} without file extension");
+          None
+        }
+        Ok(extension) => Some(extension),
+      },
+    }
   }
 }
 
@@ -254,6 +270,26 @@ mod test {
           .join(format!("{}.html", html_entry.number))
       )?,
       "<foo/>"
+    );
+    Ok(())
+  }
+
+  #[test]
+  fn write_inscriptions_without_content_types_without_file_extension() -> Result {
+    let context = Context::builder().build();
+    let entry = context.write_test_inscription(1, Inscription::new(None, Some("foo".into())))?;
+    let export = Export {
+      output_dir: context.export_dir(),
+    };
+    export.run_with_index(context.index())?;
+    assert_eq!(
+      fs::read_to_string(
+        context
+          .export_dir()
+          .join("numbers")
+          .join(entry.number.to_string())
+      )?,
+      "foo"
     );
     Ok(())
   }
