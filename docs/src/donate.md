@@ -28,7 +28,6 @@ may take us.
 
 **Feel free to send Bitcoin AND/OR inscriptions to ANY of the following addresses to send a gift to the Ordinals core team. Your support is felt and appreciated!**
 
-
 Love,
 Casey
 
