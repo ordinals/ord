@@ -137,6 +137,14 @@ struct InscriptionParser<'a> {
   instructions: Peekable<Instructions<'a>>,
 }
 
+struct Envelope<'a> {
+  contents: Vec<Instruction<'a>>,
+}
+
+struct EnvelopeParser<'a> {
+  instructions: Peekable<Instructions<'a>>,
+}
+
 impl<'a> InscriptionParser<'a> {
   fn parse(witness: &Witness) -> Result<Inscription> {
     if witness.is_empty() {
