@@ -24,11 +24,10 @@ doing it. Don't worry if you can't donate. Merely using this strange, evolving
 creation is thanks enough. I love having you along for the ride, wherever it
 may take us.
 
-I have in my possession [21
-opendimes](https://www.youtube.com/watch?v=bLOlsa6K5TI) whose addresses are
-below.
+**Below are addresses for 21 opendimes belonging to me, Casey, the Ordinals Project lead.**
 
-Pick one that speaks to you, and send to it what you will.
+**Feel free to send Bitcoin AND/OR inscriptions to ANY of the following addresses to send a gift to the Ordinals core team. Your support is felt and appreciated!**
+
 
 Love,
 Casey
