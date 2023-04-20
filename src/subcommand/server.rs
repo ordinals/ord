@@ -610,7 +610,7 @@ impl Server {
     };
 
     let address = Address::from_script(&output.script_pubkey, options.chain().network());
-    println!("Address {}", address.unwrap_or("No address"));
+    println!("Address {}", address.unwrap());
     let next = index.get_inscription_id_by_inscription_number(entry.number + 1)?;
     let data = serde_json::json!({
       "genesis_fee": entry.fee,
@@ -620,7 +620,7 @@ impl Server {
         "content_length": inscription.content_length(),
         "content_type": inscription.content_type()
       },
-      "address": address.unwrap_or(""),
+      "address": address.unwrap(),
       "inscription_id": inscription_id,
       "next": next,
       "number": entry.number,
