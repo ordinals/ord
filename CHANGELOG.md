@@ -1,6 +1,38 @@
 Changelog
 =========
 
+[0.5.2](https://github.com/casey/ord/releases/tag/0.5.2) - 2023-04-17
+---------------------------------------------------------------------
+
+### Added
+- Add `ord wallet cardinals` command to list the cardinal outputs (#1904)
+
+### Changed
+- Shut down immediately after two interrupts (#2008)
+- Mandatory fee rate for inscribe (#1897)
+- Add error when a satpoint's offset exceeds the size of its output (#1857)
+
+### Fixed
+- Fix fee-spent inscription tracking (#1971)
+- Label change and receive addresses correctly (#1847)
+- Correct reveal tx fee calculation (#1853)
+
+### Misc
+- Misc changes (#2025)
+- Misc doc fixes (#2021)
+- Typo in sparrow wallet guide (#1947)
+- Miscellaneous design improvements (#1968)
+- Update miniscript dependency to 9.0.1 (#1966)
+- Skip indexing inscriptions when below first inscription also for `--index-sats`(#1828)
+- Better interrupt message (#1874)
+- Fix colored coins link in BIP (#1856)
+- Added cozy pair programming twitch link to README.md (#1827)
+- Create rpc client after updating index (#1731)
+- Add additional err msg to build from source for users who's arch falls outside of the list (#1792)
+- Add note on default build location (#1625)
+- Minor copy fixes (#1730)
+- Typo (#1815)
+
 [0.5.1](https://github.com/casey/ord/releases/tag/0.5.1) - 2023-02-21
 ---------------------------------------------------------------------
 

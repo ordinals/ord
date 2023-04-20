@@ -15,6 +15,7 @@ use {
 };
 
 pub mod balance;
+pub mod cardinals;
 pub mod create;
 pub(crate) mod inscribe;
 pub mod inscriptions;
@@ -46,8 +47,10 @@ pub(crate) enum Wallet {
   Send(send::Send),
   #[clap(about = "See wallet transactions")]
   Transactions(transactions::Transactions),
-  #[clap(about = "List wallet outputs")]
+  #[clap(about = "List all unspent outputs in wallet")]
   Outputs,
+  #[clap(about = "List unspent cardinal outputs in wallet")]
+  Cardinals,
 }
 
 impl Wallet {
@@ -63,6 +66,7 @@ impl Wallet {
       Self::Send(send) => send.run(options),
       Self::Transactions(transactions) => transactions.run(options),
       Self::Outputs => outputs::run(options),
+      Self::Cardinals => cardinals::run(options),
     }
   }
 }
@@ -136,7 +140,7 @@ fn derive_and_import_descriptor(
     active: Some(true),
     range: None,
     next_index: None,
-    internal: Some(!change),
+    internal: Some(change),
     label: None,
   })?;
 
