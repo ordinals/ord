@@ -38,7 +38,7 @@ I have in my possession 21 glittering [Opendimes](https://opendime.com/):
 
 <iframe frameborder=0 style=aspect-ratio:16/9
 src=https://www.youtube.com/embed/bLOlsa6K5TI title="YouTube video player"
-width=100% ></iframe>
+width=100%></iframe>
 
 Each of these possesses a private key, whence is derived a donation address:
 
