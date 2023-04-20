@@ -576,6 +576,7 @@ impl Server {
 
   async fn inscription_api(
     Extension(index): Extension<Arc<Index>>,
+    Extension(options): Extension<Options>,
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<String> {
     let entry = index
@@ -608,6 +609,7 @@ impl Server {
       None
     };
 
+    let address = Address::from_script(&output.script_pubkey, options.chain().network());
     let next = index.get_inscription_id_by_inscription_number(entry.number + 1)?;
     let data = serde_json::json!({
       "genesis_fee": entry.fee,
@@ -617,6 +619,7 @@ impl Server {
         "content_length": inscription.content_length(),
         "content_type": inscription.content_type()
       },
+      "address": address.unwrap(),
       "inscription_id": inscription_id,
       "next": next,
       "number": entry.number,
