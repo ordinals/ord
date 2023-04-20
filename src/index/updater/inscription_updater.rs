@@ -208,9 +208,15 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
   ) -> Result {
     let inscription_id = flotsam.inscription_id.store();
 
+    let mut inscription_number = self.next_number;
+
     match flotsam.origin {
       Origin::Old(old_satpoint) => {
         self.satpoint_to_id.remove(&old_satpoint.store())?;
+
+        if let Some(entry) = self.index.get_inscription_entry(flotsam.inscription_id)? {
+          inscription_number = entry.number;
+        }
 
         if let Some(old_output) = self
           .index
@@ -225,21 +231,17 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             .chain
             .address_from_script(&old_output.script_pubkey)
           {
-            let number = self.next_number.store();
-            let mut new_value: Vec<u8> = Vec::new();
-
+            let mut new_value = Vec::new();
             if let Some(array) = self
               .address_to_numbers
-              .get(old_address.to_string().as_str())
-              .unwrap_or_default()
+              .get(old_address.to_string().as_str())?
             {
+              let number = inscription_number.store();
               new_value.extend_from_slice(array.value());
+              if let Some(index) = new_value.chunks_exact(8).position(|chunk| chunk == &number) {
+                new_value.drain(index * 8..(index + 1) * 8);
+              }
             }
-
-            if let Some(index) = new_value.chunks_exact(8).position(|chunk| chunk == &number) {
-              new_value.drain(index * 8..(index + 1) * 8);
-            }
-
             if new_value.is_empty() {
               self
                 .address_to_numbers
@@ -284,37 +286,25 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           .store(),
         )?;
 
-        println!("{:?} {}", new_address, &self.next_number);
-
-        if let Some(new_address) = new_address {
-          let number = self.next_number.store();
-          let mut new_value: Vec<u8> = Vec::new();
-          if let Some(array) = self
-            .address_to_numbers
-            .get(new_address.to_string().as_str())
-            .unwrap_or_default()
-          {
-            new_value.extend_from_slice(array.value());
-          }
-          let mut duplicate = false;
-          for chunk in new_value.chunks_exact(8) {
-            if chunk == &number {
-              duplicate = true;
-            }
-          }
-          if !duplicate {
-            new_value.extend_from_slice(&number);
-          }
-          self
-            .address_to_numbers
-            .insert(new_address.to_string().as_str(), new_value.as_slice())?;
-        }
-
         self.next_number += 1;
       }
     }
 
     let new_satpoint = new_satpoint.store();
+
+    if let Some(new_address) = new_address {
+      let number = inscription_number.store();
+      let mut new_value = self
+        .address_to_numbers
+        .get(new_address.to_string().as_str())?
+        .map_or_else(Vec::new, |array| array.value().to_vec());
+      if !new_value.chunks_exact(8).any(|chunk| chunk == &number) {
+        new_value.extend_from_slice(&number);
+        self
+          .address_to_numbers
+          .insert(new_address.to_string().as_str(), new_value.as_slice())?;
+      }
+    }
 
     self.satpoint_to_id.insert(&new_satpoint, &inscription_id)?;
     self.id_to_satpoint.insert(&inscription_id, &new_satpoint)?;

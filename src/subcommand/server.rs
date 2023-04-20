@@ -665,7 +665,9 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(address)): Path<DeserializeFromStr<Address>>,
   ) -> ServerResult<Response> {
-    let inscription_ids = index.get_inscriptions_by_address(&address)?.unwrap();
+    let inscription_ids = index
+      .get_inscriptions_by_address(&address)?
+      .ok_or_not_found(|| format!("Address {address}"))?;
 
     Ok(
       axum::Json(serde_json::json!({
