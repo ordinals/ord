@@ -153,6 +153,7 @@ build-docs:
   mdbook build docs
 
 update-changelog:
+  echo >> CHANGELOG.md
   git log --pretty='format:- %s' >> CHANGELOG.md
 
 preview-examples:
