@@ -160,6 +160,14 @@ mod test {
     fn export_dir(&self) -> PathBuf {
       self.tempdir.path().join("inscriptions")
     }
+
+    fn run_export(&self) -> Result {
+      let export = Export {
+        output_dir: self.export_dir(),
+      };
+      export.run_with_index(self.index())?;
+      Ok(())
+    }
   }
 
   #[test]
@@ -167,10 +175,7 @@ mod test {
     let context = Context::builder().build();
     let entry =
       context.write_test_inscription(1, inscription("text/plain;charset=utf-8", "foo"))?;
-    let export = Export {
-      output_dir: context.export_dir(),
-    };
-    export.run_with_index(context.index())?;
+    context.run_export()?;
     assert_eq!(
       fs::read_to_string(
         context
@@ -193,10 +198,7 @@ mod test {
         context.write_test_inscription(i + 1, inscription("text/plain;charset=utf-8", contents))
       })
       .collect::<Result<Vec<InscriptionEntry>>>()?;
-    let export = Export {
-      output_dir: context.export_dir(),
-    };
-    export.run_with_index(context.index())?;
+    context.run_export()?;
     for (expected_contents, entry) in contents.iter().zip(entries) {
       let file = context
         .export_dir()
@@ -213,10 +215,7 @@ mod test {
   fn other_content_types() -> Result {
     let context = Context::builder().build();
     let entry = context.write_test_inscription(1, inscription("application/json", "{}"))?;
-    let export = Export {
-      output_dir: context.export_dir(),
-    };
-    export.run_with_index(context.index())?;
+    context.run_export()?;
     assert_eq!(
       fs::read_to_string(
         context
@@ -233,10 +232,7 @@ mod test {
   fn write_unsupported_content_types_without_extensions() -> Result {
     let context = Context::builder().build();
     let entry = context.write_test_inscription(1, inscription("something unsupported", "foo"))?;
-    let export = Export {
-      output_dir: context.export_dir(),
-    };
-    export.run_with_index(context.index())?;
+    context.run_export()?;
     assert_eq!(
       fs::read_to_string(
         context
@@ -254,10 +250,7 @@ mod test {
     let context = Context::builder().build();
     let text_entry = context.write_test_inscription(1, inscription("text/plain", "foo"))?;
     let html_entry = context.write_test_inscription(2, inscription("text/html", "<foo/>"))?;
-    let export = Export {
-      output_dir: context.export_dir(),
-    };
-    export.run_with_index(context.index())?;
+    context.run_export()?;
     assert_eq!(
       fs::read_to_string(
         context
@@ -283,10 +276,7 @@ mod test {
   fn write_inscriptions_without_content_types_without_file_extension() -> Result {
     let context = Context::builder().build();
     let entry = context.write_test_inscription(1, Inscription::new(None, Some("foo".into())))?;
-    let export = Export {
-      output_dir: context.export_dir(),
-    };
-    export.run_with_index(context.index())?;
+    context.run_export()?;
     assert_eq!(
       fs::read_to_string(
         context
@@ -306,10 +296,7 @@ mod test {
       1,
       Inscription::new(Some("text/plain;charset=utf-8".into()), None),
     )?;
-    let export = Export {
-      output_dir: context.export_dir(),
-    };
-    export.run_with_index(context.index())?;
+    context.run_export()?;
     Ok(())
   }
 
@@ -342,16 +329,13 @@ mod test {
   fn avoid_rewriting_existing_files() -> Result {
     let context = Context::builder().build();
     let entry = context.write_test_inscription(1, inscription("text/plain", "foo"))?;
-    let export = Export {
-      output_dir: context.export_dir(),
-    };
-    export.run_with_index(context.index())?;
+    context.run_export()?;
     let file = context
       .export_dir()
       .join("numbers")
       .join(format!("{}.txt", entry.number));
     fs::write(&file, "bar")?;
-    export.run_with_index(context.index())?;
+    context.run_export()?;
     assert_eq!(fs::read_to_string(file)?, "bar");
     Ok(())
   }
