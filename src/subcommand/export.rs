@@ -28,7 +28,7 @@ impl Export {
     let written_numbers = self.get_written_numbers()?;
     let ids = index.get_inscriptions(None)?;
     let index = index.as_ref();
-    for id in Export::add_progress_bar("exporting inscriptions", ids.into_values()) {
+    for id in Export::add_progress_bar(ids.into_values()) {
       Export::retry(|| {
         let entry = index
           .get_inscription_entry(id)?
@@ -109,16 +109,19 @@ impl Export {
     }
   }
 
-  fn add_progress_bar<Iter, T>(message: &str, iterator: Iter) -> Box<(dyn Iterator<Item = T>)>
+  fn add_progress_bar<Iter, T>(iterator: Iter) -> Box<(dyn Iterator<Item = T>)>
   where
     Iter: Iterator<Item = T> + ExactSizeIterator + 'static,
   {
     if cfg!(test) || log_enabled!(log::Level::Info) || integration_test() {
       Box::new(iterator)
     } else {
-      Box::new(iterator.into_iter().progress_with_style(
-        ProgressStyle::with_template(&format!("[{message}] {{wide_bar}} {{pos}}/{{len}}")).unwrap(),
-      ))
+      Box::new(
+        iterator.into_iter().progress_with_style(
+          ProgressStyle::with_template("[exporting inscriptions] {{wide_bar}} {{pos}}/{{len}}")
+            .unwrap(),
+        ),
+      )
     }
   }
 
