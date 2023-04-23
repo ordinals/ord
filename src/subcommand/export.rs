@@ -27,13 +27,17 @@ impl Export {
     self.prepare_directory_tree()?;
     let written_numbers = self.get_written_numbers()?;
     let ids = index.get_inscriptions(None)?;
+    let index = index.as_ref();
     for id in Export::add_progress_bar("exporting inscriptions", ids.into_values()) {
-      let entry = index
-        .get_inscription_entry(id)?
-        .ok_or_else(|| anyhow!("inscription entry not found: {id}"))?;
-      if !written_numbers.contains(&entry.number) {
-        self.export_inscription_by_id(&index, id, entry)?;
-      }
+      Export::retry(|| {
+        let entry = index
+          .get_inscription_entry(id)?
+          .ok_or_else(|| anyhow!("inscription entry not found: {id}"))?;
+        if !written_numbers.contains(&entry.number) {
+          self.export_inscription_by_id(index, id, entry)?;
+        }
+        Ok(())
+      })?;
       if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
         break;
       }
@@ -60,22 +64,9 @@ impl Export {
     )
   }
 
-  fn add_progress_bar<Iter, T>(message: &str, iterator: Iter) -> Box<(dyn Iterator<Item = T>)>
-  where
-    Iter: Iterator<Item = T> + ExactSizeIterator + 'static,
-  {
-    if cfg!(test) || log_enabled!(log::Level::Info) || integration_test() {
-      Box::new(iterator)
-    } else {
-      Box::new(iterator.into_iter().progress_with_style(
-        ProgressStyle::with_template(&format!("[{message}] {{wide_bar}} {{pos}}/{{len}}")).unwrap(),
-      ))
-    }
-  }
-
   fn export_inscription_by_id(
     &self,
-    index: &Arc<Index>,
+    index: &Index,
     id: InscriptionId,
     entry: InscriptionEntry,
   ) -> Result {
@@ -115,6 +106,38 @@ impl Export {
         }
         Ok(extension) => Some(extension),
       },
+    }
+  }
+
+  fn add_progress_bar<Iter, T>(message: &str, iterator: Iter) -> Box<(dyn Iterator<Item = T>)>
+  where
+    Iter: Iterator<Item = T> + ExactSizeIterator + 'static,
+  {
+    if cfg!(test) || log_enabled!(log::Level::Info) || integration_test() {
+      Box::new(iterator)
+    } else {
+      Box::new(iterator.into_iter().progress_with_style(
+        ProgressStyle::with_template(&format!("[{message}] {{wide_bar}} {{pos}}/{{len}}")).unwrap(),
+      ))
+    }
+  }
+
+  fn retry<F, T>(mut f: F) -> Result<T>
+  where
+    F: FnMut() -> Result<T>,
+  {
+    let mut tries = 5;
+    loop {
+      match f() {
+        Err(e) => {
+          if tries > 0 {
+            tries -= 1;
+          } else {
+            return Err(e);
+          }
+        }
+        Ok(t) => return Ok(t),
+      }
     }
   }
 }
@@ -349,5 +372,33 @@ mod test {
     export.run_with_index(context.index())?;
     assert_eq!(fs::read_to_string(file)?, "bar");
     Ok(())
+  }
+
+  #[test]
+  fn retry_succeeds_for_single_failures() {
+    fn f(first: &mut bool) -> Result {
+      if *first {
+        *first = false;
+        Err(anyhow!("fails first"))
+      } else {
+        Ok(())
+      }
+    }
+    let mut first = true;
+    assert_eq!(
+      Export::retry(|| f(&mut first)).map_err(|e| e.to_string()),
+      Ok(())
+    );
+  }
+
+  #[test]
+  fn retry_fails_on_persisting_failures() {
+    fn f() -> Result {
+      Err(anyhow!("fails always"))
+    }
+    assert_eq!(
+      Export::retry(f).map_err(|e| e.to_string()),
+      Err("fails always".to_string())
+    );
   }
 }
