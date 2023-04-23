@@ -1,7 +1,7 @@
 use {
   super::*,
   mp4::{MediaType, Mp4Reader, TrackType},
-  std::{fs::File, io::BufReader, str::FromStr},
+  std::{fs::File, io::BufReader},
 };
 
 #[derive(Debug, PartialEq, Copy, Clone)]
