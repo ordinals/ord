@@ -149,10 +149,7 @@ impl Export {
 mod test {
   use {
     super::*,
-    crate::{
-      index::{entry::InscriptionEntry, tests::Context},
-      test::inscription,
-    },
+    crate::{index::tests::Context, test::inscription},
     pretty_assertions::assert_eq,
   };
 
@@ -190,24 +187,25 @@ mod test {
   #[test]
   fn write_multiple_inscriptions() -> Result {
     let context = Context::builder().build();
-    let contents = vec!["foo", "bar"];
-    let entries = contents
-      .iter()
-      .enumerate()
-      .map(|(i, contents)| {
-        context.write_test_inscription(i + 1, inscription("text/plain;charset=utf-8", contents))
-      })
-      .collect::<Result<Vec<InscriptionEntry>>>()?;
+    let a = context.write_test_inscription(1, inscription("text/plain;charset=utf-8", "foo"))?;
+    let b = context.write_test_inscription(2, inscription("text/plain;charset=utf-8", "bar"))?;
     context.run_export()?;
-    for (expected_contents, entry) in contents.iter().zip(entries) {
-      let file = context
-        .export_dir()
-        .join(format!("numbers/{}.txt", entry.number));
-      assert_eq!(
-        &anyhow::Context::context(fs::read_to_string(&file), format!("file: {file:?}"))?,
-        *expected_contents,
-      );
-    }
+    assert_eq!(
+      fs::read_to_string(
+        context
+          .export_dir()
+          .join(format!("numbers/{}.txt", a.number))
+      )?,
+      "foo"
+    );
+    assert_eq!(
+      fs::read_to_string(
+        context
+          .export_dir()
+          .join(format!("numbers/{}.txt", b.number))
+      )?,
+      "bar"
+    );
     Ok(())
   }
 
