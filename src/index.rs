@@ -1004,6 +1004,26 @@ pub(crate) mod tests {
         Context::builder().arg("--index-sats").build(),
       ]
     }
+
+    pub(crate) fn write_test_inscription(
+      &self,
+      input: usize,
+      inscription: Inscription,
+    ) -> Result<InscriptionEntry> {
+      self.mine_blocks(1);
+      let txid = self.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(input, 0, 0)],
+        witness: inscription.to_witness(),
+        ..Default::default()
+      });
+      let inscription_id = InscriptionId::from(txid);
+      self.mine_blocks(1);
+      let entry = self
+        .index()
+        .get_inscription_entry(inscription_id)?
+        .ok_or_else(|| anyhow!("no entry for {inscription_id}"))?;
+      Ok(entry)
+    }
   }
 
   #[test]

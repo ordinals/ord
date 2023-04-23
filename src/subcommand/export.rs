@@ -151,35 +151,14 @@ mod test {
     super::*,
     crate::{
       index::{entry::InscriptionEntry, tests::Context},
-      test::{inscription, InscriptionId},
+      test::inscription,
     },
     pretty_assertions::assert_eq,
-    test_bitcoincore_rpc::TransactionTemplate,
   };
 
   impl Context {
     fn export_dir(&self) -> PathBuf {
       self.tempdir.path().join("inscriptions")
-    }
-
-    fn write_test_inscription(
-      &self,
-      input: usize,
-      inscription: Inscription,
-    ) -> Result<InscriptionEntry> {
-      self.mine_blocks(1);
-      let txid = self.rpc_server.broadcast_tx(TransactionTemplate {
-        inputs: &[(input, 0, 0)],
-        witness: inscription.to_witness(),
-        ..Default::default()
-      });
-      let inscription_id = InscriptionId::from(txid);
-      self.mine_blocks(1);
-      let entry = self
-        .index()
-        .get_inscription_entry(inscription_id)?
-        .ok_or_else(|| anyhow!("no entry for {inscription_id}"))?;
-      Ok(entry)
     }
   }
 
