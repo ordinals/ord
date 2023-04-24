@@ -141,12 +141,12 @@ impl Options {
   }
 
   fn derive_var(
-    arg: Option<String>,
-    env: Option<&str>,
-    config: Option<String>,
-    default: Option<String>,
+    arg_value: Option<&str>,
+    env_key: Option<&str>,
+    config_value: Option<&str>,
+    default_value: Option<&str>,
   ) -> Result<Option<String>> {
-    let env_value = match env {
+    let env_value = match env_key {
       Some(env_var) => env::var_os(env_var)
         .map(|os_string| os_string.into_string())
         .transpose()
@@ -154,7 +154,7 @@ impl Options {
       None => None,
     };
 
-    Ok(arg.or(env_value).or(config).or(default))
+    Ok(arg_value.or(env_value.as_deref()).or(config_value).or(default_value).map(str::to_string))
   }
 
   pub(crate) fn auth(&self) -> Result<Auth> {
@@ -163,16 +163,16 @@ impl Options {
     let config = self.load_config()?;
 
     let rpc_user = Options::derive_var(
-      self.rpc_user.clone(),
+      self.rpc_user.as_deref(),
       Some("RPC_USER"),
-      config.rpc_user,
+      config.rpc_user.as_deref(),
       None,
     )?;
 
     let rpc_pass = Options::derive_var(
-      self.rpc_pass.clone(),
+      self.rpc_pass.as_deref(),
       Some("RPC_PASS"),
-      config.rpc_pass,
+      config.rpc_pass.as_deref(),
       None,
     )?;
 
