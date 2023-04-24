@@ -29,8 +29,7 @@ mod tests {
 
     let config = Config {
       hidden: iter::once(a).collect(),
-      rpc_pass: None,
-      rpc_user: None,
+      ..Default::default()
     };
 
     assert!(config.is_hidden(a));
