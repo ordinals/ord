@@ -9,6 +9,10 @@ use {super::*, bitcoincore_rpc::Auth};
 pub(crate) struct Options {
   #[clap(long, help = "Load Bitcoin Core data dir from <BITCOIN_DATA_DIR>.")]
   pub(crate) bitcoin_data_dir: Option<PathBuf>,
+  #[clap(long, help = "Authenticate to Bitcoin Core RPC with <RPC_PASS>.")]
+  pub(crate) bitcoin_rpc_pass: Option<String>,
+  #[clap(long, help = "Authenticate to Bitcoin Core RPC as <RPC_USER>.")]
+  pub(crate) bitcoin_rpc_user: Option<String>,
   #[clap(
     long = "chain",
     arg_enum,
@@ -37,10 +41,6 @@ pub(crate) struct Options {
   pub(crate) index_sats: bool,
   #[clap(long, short, help = "Use regtest. Equivalent to `--chain regtest`.")]
   pub(crate) regtest: bool,
-  #[clap(long, help = "Authenticate to Bitcoin Core RPC as <RPC_USER>.")]
-  pub(crate) rpc_user: Option<String>,
-  #[clap(long, help = "Authenticate to Bitcoin Core RPC with <RPC_PASS>.")]
-  pub(crate) rpc_pass: Option<String>,
   #[clap(long, help = "Connect to Bitcoin Core RPC at <RPC_URL>.")]
   pub(crate) rpc_url: Option<String>,
   #[clap(long, short, help = "Use signet. Equivalent to `--chain signet`.")]
@@ -168,14 +168,14 @@ impl Options {
     let config = self.load_config()?;
 
     let rpc_user = Options::derive_var(
-      self.rpc_user.as_deref(),
+      self.bitcoin_rpc_user.as_deref(),
       Some("BITCOIN_RPC_USER"),
       config.rpc_user.as_deref(),
       None,
     )?;
 
     let rpc_pass = Options::derive_var(
-      self.rpc_pass.as_deref(),
+      self.bitcoin_rpc_pass.as_deref(),
       Some("BITCOIN_RPC_PASS"),
       config.rpc_pass.as_deref(),
       None,
@@ -617,13 +617,19 @@ mod tests {
 
   #[test]
   fn test_rpc_user_and_pass_flags() {
-    let options =
-      Arguments::try_parse_from(["ord", "--rpc-user", "foo", "--rpc-pass", "bar", "index"])
-        .unwrap()
-        .options;
+    let options = Arguments::try_parse_from([
+      "ord",
+      "--bitcoin-rpc-user",
+      "foo",
+      "--bitcoin-rpc-pass",
+      "bar",
+      "index",
+    ])
+    .unwrap()
+    .options;
 
-    assert_eq!(options.rpc_user.unwrap(), "foo".to_string());
-    assert_eq!(options.rpc_pass.unwrap(), "bar".to_string());
+    assert_eq!(options.bitcoin_rpc_user.unwrap(), "foo".to_string());
+    assert_eq!(options.bitcoin_rpc_pass.unwrap(), "bar".to_string());
   }
 
   #[test]
