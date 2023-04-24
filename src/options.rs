@@ -627,9 +627,9 @@ mod tests {
         .load_config()
         .unwrap(),
       Config {
-        hidden: HashSet::new(),
         rpc_user: Some("foo".into()),
         rpc_pass: Some("bar".into()),
+        ..Default::default()
       }
     );
   }
@@ -661,8 +661,7 @@ mod tests {
       .unwrap(),
       Config {
         hidden: iter::once(id).collect(),
-        rpc_user: None,
-        rpc_pass: None,
+        ..Default::default()
       }
     );
   }
