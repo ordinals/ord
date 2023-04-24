@@ -683,7 +683,7 @@ mod tests {
     assert_eq!(
       Options::derive_var(
         Some("qux".into()),
-        Some("baz"),
+        None,
         Some("bar".into()),
         Some("foo".into())
       )
@@ -691,9 +691,9 @@ mod tests {
       Some("qux".into())
     );
 
-    assert!(
-      Options::derive_var(Some("qux".into()), None, None, Some("foo".into())).unwrap()
-        != Some("foo".into())
+    assert_eq!(
+      Options::derive_var(Some("qux".into()), None, None, Some("foo".into())).unwrap(),
+      Some("qux".into()),
     );
   }
 }
