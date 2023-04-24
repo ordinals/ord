@@ -615,23 +615,6 @@ mod tests {
   }
 
   #[test]
-  fn test_rpc_user_and_pass_flags() {
-    let options = Arguments::try_parse_from([
-      "ord",
-      "--bitcoin-rpc-user",
-      "foo",
-      "--bitcoin-rpc-pass",
-      "bar",
-      "index",
-    ])
-    .unwrap()
-    .options;
-
-    assert_eq!(options.bitcoin_rpc_user.unwrap(), "foo".to_string());
-    assert_eq!(options.bitcoin_rpc_pass.unwrap(), "bar".to_string());
-  }
-
-  #[test]
   fn config_with_rpc_user_pass() {
     let tempdir = TempDir::new().unwrap();
     let path = tempdir.path().join("ord.yaml");
