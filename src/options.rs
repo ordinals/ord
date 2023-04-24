@@ -165,8 +165,6 @@ impl Options {
   }
 
   pub(crate) fn auth(&self) -> Result<Auth> {
-    log::info!("Connecting to Bitcoin Core at {}", self.rpc_url());
-
     let config = self.load_config()?;
 
     let rpc_user = Options::derive_var(
@@ -193,6 +191,8 @@ impl Options {
     let rpc_url = self.rpc_url();
 
     let auth = self.auth()?;
+
+    log::info!("Connecting to Bitcoin Core at {}", self.rpc_url());
 
     if let Auth::CookieFile(cookie_file) = &auth {
       log::info!(
