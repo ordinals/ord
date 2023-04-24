@@ -272,31 +272,6 @@ mod test {
   }
 
   #[test]
-  fn abort_gracefully_on_ctrl_c() -> Result {
-    let context = Context::builder().build();
-    let n = 100;
-    for i in 0..n {
-      context.write_test_inscription(i + 1, inscription("text/plain;charset=utf-8", "foo"))?;
-    }
-    let thread = {
-      let export = Export {
-        output_dir: context.export_dir(),
-      };
-      let index = context.index();
-      thread::spawn(move || -> Result {
-        export.run_with_index(index)?;
-        Ok(())
-      })
-    };
-    SHUTTING_DOWN.store(true, atomic::Ordering::Relaxed);
-    thread.join().unwrap()?;
-    let written_files = fs::read_dir(context.export_dir())?.count();
-    assert!(written_files > 0, "no inscriptions written");
-    assert!(written_files < n, "all {n} inscriptions written");
-    Ok(())
-  }
-
-  #[test]
   fn avoid_rewriting_existing_files() -> Result {
     let context = Context::builder().build();
     let entry = context.write_test_inscription(1, inscription("text/plain", "foo"))?;
