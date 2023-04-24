@@ -318,9 +318,9 @@ fn server_runs_with_rpc_user_and_pass_as_env_vars() {
       tempdir.path().display(),
       tempdir.path().display()).to_args()
       )
+      .env("ORD_BITCOIN_RPC_PASS", "bar")
+      .env("ORD_BITCOIN_RPC_USER", "foo")
       .env("ORD_INTEGRATION_TEST", "1")
-      .env("RPC_USER", "foo")
-      .env("RPC_PASS", "bar")
       .current_dir(&tempdir)
       .spawn().unwrap();
 

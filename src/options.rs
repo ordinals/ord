@@ -147,7 +147,7 @@ impl Options {
     default_value: Option<&str>,
   ) -> Result<Option<String>> {
     let env_value = match env_key {
-      Some(env_key) => match env::var(env_key) {
+      Some(env_key) => match env::var(format!("ORD_{env_key}")) {
         Ok(env_value) => Some(env_value),
         Err(err @ env::VarError::NotUnicode(_)) => return Err(err.into()),
         Err(env::VarError::NotPresent) => None,
@@ -169,14 +169,14 @@ impl Options {
 
     let rpc_user = Options::derive_var(
       self.rpc_user.as_deref(),
-      Some("RPC_USER"),
+      Some("BITCOIN_RPC_USER"),
       config.rpc_user.as_deref(),
       None,
     )?;
 
     let rpc_pass = Options::derive_var(
       self.rpc_pass.as_deref(),
-      Some("RPC_PASS"),
+      Some("BITCOIN_RPC_PASS"),
       config.rpc_pass.as_deref(),
       None,
     )?;
