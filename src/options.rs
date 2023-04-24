@@ -609,8 +609,7 @@ mod tests {
         .unwrap(),
       Config {
         hidden: iter::once(id).collect(),
-        rpc_pass: None,
-        rpc_user: None,
+        ..Default::default()
       }
     );
   }
