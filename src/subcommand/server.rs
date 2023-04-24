@@ -1623,7 +1623,7 @@ mod tests {
   }
 
   #[test]
-  fn home_block_limit() {
+  fn home_block_limit_foo() {
     let test_server = TestServer::new();
 
     test_server.mine_blocks(101);
