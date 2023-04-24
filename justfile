@@ -21,11 +21,12 @@ lclippy:
   cargo +nightly lclippy --all --all-targets -- -D warnings
 
 deploy branch chain domain:
-  ssh root@{{domain}} 'mkdir -p deploy \
+  ssh root@{{domain}} "mkdir -p deploy \
     && apt-get update --yes \
-    && apt-get upgrade --yes'
-  scp -r ./ 8el:~/infrastructure/website
-  ssh 8el 'cd infrastructure/website && zola build && docker restart caddy'
+    && apt-get upgrade --yes \
+    && apt-get install --yes git rsync"
+  rsync -avz deploy/checkout root@{{domain}}:deploy/checkout
+  ssh root@{{domain}} 'cd deploy && ./checkout {{branch}} {{chain}} {{domain}}'
 
 deploy-all: deploy-testnet deploy-signet deploy-mainnet
 
