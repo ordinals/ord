@@ -156,6 +156,10 @@ mod test {
       self.tempdir.path().join("inscriptions")
     }
 
+    fn numbers_dir(&self) -> PathBuf {
+      self.export_dir().join("numbers")
+    }
+
     fn run_export(&self) -> Result {
       let export = Export {
         output_dir: self.export_dir(),
@@ -172,12 +176,7 @@ mod test {
       context.write_test_inscription(1, inscription("text/plain;charset=utf-8", "foo"))?;
     context.run_export()?;
     assert_eq!(
-      fs::read_to_string(
-        context
-          .export_dir()
-          .join("numbers")
-          .join(format!("{}.txt", entry.number))
-      )?,
+      fs::read_to_string(context.numbers_dir().join(format!("{}.txt", entry.number)))?,
       "foo"
     );
     Ok(())
@@ -190,21 +189,11 @@ mod test {
     let b = context.write_test_inscription(2, inscription("text/plain;charset=utf-8", "bar"))?;
     context.run_export()?;
     assert_eq!(
-      fs::read_to_string(
-        context
-          .export_dir()
-          .join("numbers")
-          .join(format!("{}.txt", a.number))
-      )?,
+      fs::read_to_string(context.numbers_dir().join(format!("{}.txt", a.number)))?,
       "foo"
     );
     assert_eq!(
-      fs::read_to_string(
-        context
-          .export_dir()
-          .join("numbers")
-          .join(format!("{}.txt", b.number))
-      )?,
+      fs::read_to_string(context.numbers_dir().join(format!("{}.txt", b.number)))?,
       "bar"
     );
     Ok(())
@@ -216,12 +205,7 @@ mod test {
     let entry = context.write_test_inscription(1, inscription("application/json", "{}"))?;
     context.run_export()?;
     assert_eq!(
-      fs::read_to_string(
-        context
-          .export_dir()
-          .join("numbers")
-          .join(format!("{}.json", entry.number))
-      )?,
+      fs::read_to_string(context.numbers_dir().join(format!("{}.json", entry.number)))?,
       "{}"
     );
     Ok(())
@@ -233,12 +217,7 @@ mod test {
     let entry = context.write_test_inscription(1, inscription("something unsupported", "foo"))?;
     context.run_export()?;
     assert_eq!(
-      fs::read_to_string(
-        context
-          .export_dir()
-          .join("numbers")
-          .join(format!("{}", entry.number))
-      )?,
+      fs::read_to_string(context.numbers_dir().join(entry.number.to_string()))?,
       "foo"
     );
     Ok(())
@@ -253,8 +232,7 @@ mod test {
     assert_eq!(
       fs::read_to_string(
         context
-          .export_dir()
-          .join("numbers")
+          .numbers_dir()
           .join(format!("{}.txt", text_entry.number))
       )?,
       "foo"
@@ -262,8 +240,7 @@ mod test {
     assert_eq!(
       fs::read_to_string(
         context
-          .export_dir()
-          .join("numbers")
+          .numbers_dir()
           .join(format!("{}.html", html_entry.number))
       )?,
       "<foo/>"
@@ -277,12 +254,7 @@ mod test {
     let entry = context.write_test_inscription(1, Inscription::new(None, Some("foo".into())))?;
     context.run_export()?;
     assert_eq!(
-      fs::read_to_string(
-        context
-          .export_dir()
-          .join("numbers")
-          .join(entry.number.to_string())
-      )?,
+      fs::read_to_string(context.numbers_dir().join(entry.number.to_string()))?,
       "foo"
     );
     Ok(())
@@ -329,10 +301,7 @@ mod test {
     let context = Context::builder().build();
     let entry = context.write_test_inscription(1, inscription("text/plain", "foo"))?;
     context.run_export()?;
-    let file = context
-      .export_dir()
-      .join("numbers")
-      .join(format!("{}.txt", entry.number));
+    let file = context.numbers_dir().join(format!("{}.txt", entry.number));
     fs::write(&file, "bar")?;
     context.run_export()?;
     assert_eq!(fs::read_to_string(file)?, "bar");
