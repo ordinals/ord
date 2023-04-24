@@ -116,12 +116,9 @@ impl Export {
     if cfg!(test) || log_enabled!(log::Level::Info) || integration_test() {
       Box::new(iterator)
     } else {
-      Box::new(
-        iterator.into_iter().progress_with_style(
-          ProgressStyle::with_template("[exporting inscriptions] {{wide_bar}} {{pos}}/{{len}}")
-            .unwrap(),
-        ),
-      )
+      Box::new(iterator.into_iter().progress_with_style(
+        ProgressStyle::with_template("[exporting inscriptions] {wide_bar} {pos}/{len}").unwrap(),
+      ))
     }
   }
 
