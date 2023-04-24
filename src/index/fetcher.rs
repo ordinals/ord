@@ -1,6 +1,7 @@
 use {
   crate::Options,
   anyhow::{anyhow, Result},
+  base64::Engine,
   bitcoin::{Transaction, Txid},
   hyper::{client::HttpConnector, Body, Client, Method, Request, Uri},
   serde::Deserialize,
@@ -40,7 +41,10 @@ impl Fetcher {
 
     let (user, password) = options.auth()?.get_user_pass()?;
     let auth = format!("{}:{}", user.unwrap(), password.unwrap());
-    let auth = format!("Basic {}", &base64::encode(auth));
+    let auth = format!(
+      "Basic {}",
+      &base64::engine::general_purpose::STANDARD.encode(auth)
+    );
     Ok(Fetcher { client, url, auth })
   }
 
