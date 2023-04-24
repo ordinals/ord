@@ -147,14 +147,21 @@ impl Options {
     default_value: Option<&str>,
   ) -> Result<Option<String>> {
     let env_value = match env_key {
-      Some(env_var) => env::var_os(env_var)
-        .map(|os_string| os_string.into_string())
-        .transpose()
-        .map_err(|_| anyhow!("env var {} is invalid UTF-8", env_var))?,
+      Some(env_key) => match env::var(env_key) {
+        Ok(env_value) => Some(env_value),
+        Err(err @ env::VarError::NotUnicode(_)) => return Err(err.into()),
+        Err(env::VarError::NotPresent) => None,
+      },
       None => None,
     };
 
-    Ok(arg_value.or(env_value.as_deref()).or(config_value).or(default_value).map(str::to_string))
+    Ok(
+      arg_value
+        .or(env_value.as_deref())
+        .or(config_value)
+        .or(default_value)
+        .map(str::to_string),
+    )
   }
 
   pub(crate) fn auth(&self) -> Result<Auth> {
