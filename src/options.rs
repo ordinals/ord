@@ -95,11 +95,11 @@ impl Options {
       bitcoin_data_dir.clone()
     } else if cfg!(target_os = "linux") {
       dirs::home_dir()
-        .ok_or_else(|| anyhow!("failed to retrieve home dir"))?
+        .ok_or_else(|| anyhow!("failed to get cookie file path: could not get home dir"))?
         .join(".bitcoin")
     } else {
       dirs::data_dir()
-        .ok_or_else(|| anyhow!("failed to retrieve data dir"))?
+        .ok_or_else(|| anyhow!("failed to get cookie file path: could not get data dir"))?
         .join("Bitcoin")
     };
 
@@ -193,6 +193,13 @@ impl Options {
     let rpc_url = self.rpc_url();
 
     let auth = self.auth()?;
+
+    if let Auth::CookieFile(cookie_file) = &auth {
+      log::info!(
+        "Using credentials from cookie file at `{}`",
+        cookie_file.display()
+      );
+    }
 
     let client = Client::new(&rpc_url, auth)
       .with_context(|| format!("failed to connect to Bitcoin Core RPC at {rpc_url}"))?;
