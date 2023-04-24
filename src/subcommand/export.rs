@@ -178,7 +178,8 @@ mod test {
       fs::read_to_string(
         context
           .export_dir()
-          .join(format!("numbers/{}.txt", entry.number))
+          .join("numbers")
+          .join(format!("{}.txt", entry.number))
       )?,
       "foo"
     );
@@ -195,7 +196,8 @@ mod test {
       fs::read_to_string(
         context
           .export_dir()
-          .join(format!("numbers/{}.txt", a.number))
+          .join("numbers")
+          .join(format!("{}.txt", a.number))
       )?,
       "foo"
     );
@@ -203,7 +205,8 @@ mod test {
       fs::read_to_string(
         context
           .export_dir()
-          .join(format!("numbers/{}.txt", b.number))
+          .join("numbers")
+          .join(format!("{}.txt", b.number))
       )?,
       "bar"
     );
