@@ -29,7 +29,7 @@ impl Export {
     let ids = index.get_inscriptions(None)?;
     let index = index.as_ref();
     for id in Export::add_progress_bar(ids.into_values()) {
-      Export::retry(|| {
+      Export::retry(&format!("failed to export inscription {id}"), || {
         let entry = index
           .get_inscription_entry(id)?
           .ok_or_else(|| anyhow!("inscription entry not found: {id}"))?;
@@ -125,18 +125,19 @@ impl Export {
     }
   }
 
-  fn retry<F, T>(mut f: F) -> Result<T>
+  fn retry<F, T>(message: &str, mut f: F) -> Result<T>
   where
     F: FnMut() -> Result<T>,
   {
     let mut tries = 5;
     loop {
       match f() {
-        Err(e) => {
+        Err(err) => {
           if tries > 0 {
             tries -= 1;
+            log::warn!("{message}: {err}");
           } else {
-            return Err(e);
+            return Err(err);
           }
         }
         Ok(t) => return Ok(t),
@@ -350,7 +351,7 @@ mod test {
     }
     let mut first = true;
     assert_eq!(
-      Export::retry(|| f(&mut first)).map_err(|e| e.to_string()),
+      Export::retry("", || f(&mut first)).map_err(|e| e.to_string()),
       Ok(())
     );
   }
@@ -361,7 +362,7 @@ mod test {
       Err(anyhow!("fails always"))
     }
     assert_eq!(
-      Export::retry(f).map_err(|e| e.to_string()),
+      Export::retry("", f).map_err(|e| e.to_string()),
       Err("fails always".to_string())
     );
   }
