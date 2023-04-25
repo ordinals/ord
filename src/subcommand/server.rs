@@ -1111,32 +1111,59 @@ impl Server {
   async fn inscriptions(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
-  ) -> ServerResult<PageHtml<InscriptionsHtml>> {
-    Self::inscriptions_inner(page_config, index, None).await
+  ) -> ServerResult<Response> {
+    Self::inscriptions_inner(page_config, index, None, false).await
   }
 
   async fn inscriptions_from(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(from): Path<u64>,
-  ) -> ServerResult<PageHtml<InscriptionsHtml>> {
-    Self::inscriptions_inner(page_config, index, Some(from)).await
+    accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
+    Self::inscriptions_inner(page_config, index, Some(from), accept_json.0).await
   }
 
   async fn inscriptions_inner(
     page_config: Arc<PageConfig>,
     index: Arc<Index>,
     from: Option<u64>,
-  ) -> ServerResult<PageHtml<InscriptionsHtml>> {
+    as_json: bool,
+  ) -> ServerResult<Response> {
     let (inscriptions, prev, next) = index.get_latest_inscriptions_with_prev_and_next(100, from)?;
-    Ok(
+    Ok(if as_json {
+      axum::Json(serde_json::json!({
+        "inscriptions": inscriptions.iter().map(|inscription| {
+          serde_json::json!({
+            "href": format!("/inscription/{}", inscription),
+          })
+        }).collect::<Vec<_>>(),
+        "_links": {
+          "self": {
+            "href": format!("/inscriptions/{}", from.unwrap_or(0)),
+          },
+          "next": (next.is_some()).then(|| {
+            serde_json::json!({
+              "href": format!("/inscriptions/{}", next.unwrap()),
+            })
+          }),
+          "prev": (prev.is_some()).then(|| {
+            serde_json::json!({
+              "href": format!("/inscriptions/{}", prev.unwrap()),
+            })
+          }),
+        }
+      }))
+      .into_response()
+    } else {
       InscriptionsHtml {
         inscriptions,
         next,
         prev,
       }
-      .page(page_config, index.has_sat_index()?),
-    )
+      .page(page_config, index.has_sat_index()?)
+      .into_response()
+    })
   }
 
   async fn transactions(
