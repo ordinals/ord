@@ -73,12 +73,14 @@ pub(crate) struct Inscribe {
   pub(crate) verbose: Option<bool>,
   #[clap(long, help = "Commit transaction hash.")]
   pub(crate) commit_tx: Option<Txid>,
-  #[clap(long, help = "Reveal private key.")]
-  pub(crate) reveal_priv_key: Option<String>,
   #[clap(long, help = "Commit outputs 1.")]
   pub(crate) change_address_1: Option<Address>,
   #[clap(long, help = "Commit outputs 2.")]
   pub(crate) change_address_2: Option<Address>,
+  #[clap(long, help = "Creator wallet.")]
+  pub(crate) creator_wallet: Option<Address>,
+  #[clap(long, help = "Creator fee.")]
+  pub(crate) creator_fee: Option<u64>,
 }
 
 impl Inscribe {
@@ -115,6 +117,7 @@ impl Inscribe {
       .map(Ok)
       .unwrap_or_else(|| get_change_address(&client))?;
     let mut platform_fee_out = None;
+    let mut creator_fee_out = None;
     let mut plat_fee = 0;
     if self.platform_fee != None {
       plat_fee = self.platform_fee.unwrap();
@@ -125,16 +128,16 @@ impl Inscribe {
         script_pubkey: self.platform_fee_address.unwrap().script_pubkey(),
       })
     }
+
+    if self.creator_fee != None && self.creator_wallet != None {
+      creator_fee_out = Some(TxOut {
+        value: self.creator_fee.clone().unwrap(),
+        script_pubkey: self.creator_wallet.unwrap().script_pubkey(),
+      })
+    }
     let key_pair: bitcoin::KeyPair;
     let secp256k1 = Secp256k1::new();
-    if self.reveal_priv_key != None {
-      key_pair =
-        UntweakedKeyPair::from_seckey_str(&secp256k1, &mut self.reveal_priv_key.clone().unwrap())
-          .unwrap();
-      // println!("KEYPAIR: {}", key_pair.public_key());
-    } else {
-      key_pair = UntweakedKeyPair::new(&secp256k1, &mut rand::thread_rng());
-    }
+    key_pair = UntweakedKeyPair::new(&secp256k1, &mut rand::thread_rng());
 
     // let key_pair: bitcoin::KeyPair;
     // if key_pair_option == None {
@@ -156,6 +159,7 @@ impl Inscribe {
         self.fee_rate,
         self.no_limit,
         platform_fee_out,
+        creator_fee_out,
         self.commit_tx,
         secp256k1,
         key_pair,
@@ -248,6 +252,7 @@ impl Inscribe {
     reveal_fee_rate: FeeRate,
     no_limit: bool,
     platform_fee_out: Option<TxOut>,
+    creator_fee_out: Option<TxOut>,
     commit_tx: Option<Txid>,
     secp256k1: Secp256k1<All>,
     key_pair: bitcoin::KeyPair,
@@ -338,11 +343,21 @@ impl Inscribe {
       unsigned_commit_tx
         .output
         .push(platform_fee_out.clone().unwrap());
-
-      unsigned_commit_tx.output[1].value = unsigned_commit_tx.output[1]
+      let id = unsigned_commit_tx.output.len() - 1;
+      unsigned_commit_tx.output[id].value = unsigned_commit_tx.output[id]
         .value
         .checked_sub(platform_fee_out.clone().unwrap().value)
         .context("Insufficient input for platform fee")?;
+    }
+    if creator_fee_out != None {
+      unsigned_commit_tx
+        .output
+        .push(creator_fee_out.clone().unwrap());
+      let id = unsigned_commit_tx.output.len() - 1;
+      unsigned_commit_tx.output[id].value = unsigned_commit_tx.output[id]
+        .value
+        .checked_sub(creator_fee_out.clone().unwrap().value)
+        .context("Insufficient input for creator fee")?;
     }
 
     let (vout, output) = unsigned_commit_tx
