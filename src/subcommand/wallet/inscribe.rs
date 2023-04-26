@@ -87,7 +87,7 @@ impl Inscribe {
       .map(Ok)
       .unwrap_or_else(|| get_change_address(client))?;
 
-    let (unsigned_commit_tx, reveal_tx, _recovery_key_pair) =
+    let (unsigned_commit_tx, reveal_tx, recovery_key_pair) =
       Inscribe::create_inscription_transactions(
         self.satpoint,
         inscription,

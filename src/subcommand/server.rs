@@ -1167,10 +1167,6 @@ impl Server {
       )));
     }
     for tx in transactions.unwrap() {
-      if tx.detail.vout.is_none() {
-        // MWEB transactions do not have a vout
-        continue;
-      }
       outputs.push(Output {
         transaction: tx.info.txid,
         confirmations: tx.info.confirmations,
