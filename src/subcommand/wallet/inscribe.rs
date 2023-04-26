@@ -232,7 +232,7 @@ impl Inscribe {
   }
 
   fn calculate_fee(tx: &Transaction, utxos: &BTreeMap<OutPoint, Amount>) -> u64 {
-    print!(
+    println!(
       "FEEESS {} {}",
       tx.input
         .iter()
