@@ -131,7 +131,7 @@ impl Inscribe {
 
     if self.creator_fee != None && self.creator_wallet != None {
       creator_fee_out = Some(TxOut {
-        value: self.creator_fee.clone().unwrap(),
+        value: self.creator_fee.unwrap(),
         script_pubkey: self.creator_wallet.unwrap().script_pubkey(),
       })
     }
@@ -159,7 +159,7 @@ impl Inscribe {
         self.fee_rate,
         self.no_limit,
         platform_fee_out,
-        creator_fee_out,
+        creator_fee_out.clone(),
         self.commit_tx,
         secp256k1,
         key_pair,
@@ -349,16 +349,14 @@ impl Inscribe {
       //   .checked_sub(platform_fee_out.clone().unwrap().value)
       //   .context("Insufficient input for platform fee")?;
     }
-    // if creator_fee_out != None {
-    //   unsigned_commit_tx
-    //     .output
-    //     .push(creator_fee_out.clone().unwrap());
-    //   // let id = unsigned_commit_tx.output.len() - 1;
-    //   // unsigned_commit_tx.output[id].value = unsigned_commit_tx.output[id]
-    //   //   .value
-    //   //   .checked_sub(creator_fee_out.clone().unwrap().value)
-    //   //   .context("Insufficient input for creator fee")?;
-    // }
+    if creator_fee_out != None {
+      unsigned_commit_tx.output.push(creator_fee_out.unwrap());
+      // let id = unsigned_commit_tx.output.len() - 1;
+      // unsigned_commit_tx.output[id].value = unsigned_commit_tx.output[id]
+      //   .value
+      //   .checked_sub(creator_fee_out.clone().unwrap().value)
+      //   .context("Insufficient input for creator fee")?;
+    }
 
     let (vout, output) = unsigned_commit_tx
       .output
@@ -539,6 +537,7 @@ mod tests {
       false,
       None,
       None,
+      None,
       secp256k1,
       key_pair,
     )
@@ -575,6 +574,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
       false,
+      None,
       None,
       None,
       secp256k1,
@@ -615,6 +615,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
       false,
+      None,
       None,
       None,
       secp256k1,
@@ -664,6 +665,7 @@ mod tests {
       false,
       None,
       None,
+      None,
       secp256k1,
       key_pair
     )
@@ -704,6 +706,7 @@ mod tests {
       FeeRate::try_from(fee_rate).unwrap(),
       FeeRate::try_from(fee_rate).unwrap(),
       false,
+      None,
       None,
       None,
       secp256k1,
@@ -864,6 +867,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       true,
       &None,
+      None,
       None,
       secp256k1,
       key_pair,
