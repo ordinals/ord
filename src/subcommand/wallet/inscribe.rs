@@ -234,7 +234,10 @@ impl Inscribe {
   fn calculate_fee(tx: &Transaction, utxos: &BTreeMap<OutPoint, Amount>) -> u64 {
     print!(
       "FEEESS {} {}",
-      tx.input,
+      tx.input
+        .iter()
+        .map(|txin| utxos.get(&txin.previous_output).unwrap().to_sat())
+        .sum::<u64>(),
       tx.output.iter().map(|txout| txout.value).sum::<u64>()
     );
     tx.input
