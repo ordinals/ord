@@ -172,7 +172,8 @@ impl Inscribe {
       ),
     );
 
-    let fees = Self::calculate_fee(&reveal_tx, &utxos);
+    let fees =
+      Self::calculate_fee(&unsigned_commit_tx, &utxos) + Self::calculate_fee(&reveal_tx, &utxos);
 
     let recovery_private_key = PrivateKey::new(
       recovery_key_pair.clone().to_inner().secret_key(),
@@ -231,6 +232,11 @@ impl Inscribe {
   }
 
   fn calculate_fee(tx: &Transaction, utxos: &BTreeMap<OutPoint, Amount>) -> u64 {
+    print!(
+      "FEEESS {} {}",
+      tx.input,
+      tx.output.iter().map(|txout| txout.value).sum::<u64>()
+    );
     tx.input
       .iter()
       .map(|txin| utxos.get(&txin.previous_output).unwrap().to_sat())
