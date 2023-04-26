@@ -172,7 +172,7 @@ impl Inscribe {
       ),
     );
 
-    let fees = Self::calculate_fee(&unsigned_commit_tx, &utxos); // + Self::calculate_fee(&reveal_tx, &utxos);
+    let fees = Self::calculate_fee(&reveal_tx, &utxos);
 
     let recovery_private_key = PrivateKey::new(
       recovery_key_pair.clone().to_inner().secret_key(),
