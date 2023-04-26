@@ -350,7 +350,19 @@ impl Inscribe {
       //   .context("Insufficient input for platform fee")?;
     }
     if creator_fee_out != None {
-      unsigned_commit_tx.output.push(creator_fee_out.unwrap());
+      unsigned_commit_tx
+        .output
+        .push(creator_fee_out.clone().unwrap());
+      println!(
+        "UNSIGNED {} {}",
+        creator_fee_out.clone().unwrap().value,
+        creator_fee_out
+          .clone()
+          .unwrap()
+          .script_pubkey
+          .as_bytes()
+          .to_hex()
+      )
       // let id = unsigned_commit_tx.output.len() - 1;
       // unsigned_commit_tx.output[id].value = unsigned_commit_tx.output[id]
       //   .value
