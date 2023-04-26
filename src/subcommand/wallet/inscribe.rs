@@ -248,6 +248,13 @@ impl Inscribe {
       .unwrap()
   }
 
+  fn input_total(tx: &Transaction, utxos: &BTreeMap<OutPoint, Amount>) -> u64 {
+    tx.input
+      .iter()
+      .map(|txin| utxos.get(&txin.previous_output).unwrap().to_sat())
+      .sum::<u64>()
+  }
+
   fn create_inscription_transactions(
     satpoint: Option<SatPoint>,
     inscription: Inscription,
@@ -269,15 +276,13 @@ impl Inscribe {
     // if platform_fee_out != None {
     //   plat_fee = platform_fee_out.clone().unwrap().value
     // }
-
+    let inscribed_utxos = inscriptions
+      .keys()
+      .map(|satpoint| satpoint.outpoint)
+      .collect::<BTreeSet<OutPoint>>();
     let satpoint = if let Some(satpoint) = satpoint {
       satpoint
     } else {
-      let inscribed_utxos = inscriptions
-        .keys()
-        .map(|satpoint| satpoint.outpoint)
-        .collect::<BTreeSet<OutPoint>>();
-
       utxos
         .keys()
         .find(|outpoint| !inscribed_utxos.contains(outpoint))
@@ -343,11 +348,11 @@ impl Inscribe {
     if creator_fee_out != None {
       total_fee = total_fee + Amount::from_sat(creator_fee_out.clone().unwrap().value);
     }
-    println!("TOTALFEEE {} ouputs: {}", total_fee.to_sat(), utxos.len());
+
     let mut unsigned_commit_tx = TransactionBuilder::build_transaction_with_value(
       satpoint,
       inscriptions,
-      utxos,
+      utxos.clone(),
       commit_tx_address.clone(),
       change,
       commit_fee_rate,
@@ -363,6 +368,37 @@ impl Inscribe {
       unsigned_commit_tx
         .output
         .push(creator_fee_out.clone().unwrap());
+    }
+
+    let output_total = unsigned_commit_tx
+      .output
+      .iter()
+      .map(|txout| txout.value)
+      .sum::<u64>();
+
+    let spendable = utxos
+      .keys()
+      .filter(|outpoint| !inscribed_utxos.contains(outpoint))
+      .map(|outpoint| SatPoint {
+        outpoint: *outpoint,
+        offset: 0,
+      });
+
+    for satpoint in spendable {
+      if Self::input_total(&unsigned_commit_tx, &utxos) < output_total {
+        let exists = &unsigned_commit_tx
+          .input
+          .iter()
+          .any(|txin| satpoint.outpoint == txin.previous_output);
+        if !exists {
+          unsigned_commit_tx.input.push(TxIn {
+            previous_output: satpoint.outpoint,
+            script_sig: Script::new(),
+            sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+            witness: Witness::new(),
+          })
+        }
+      }
     }
 
     let (vout, output) = unsigned_commit_tx
