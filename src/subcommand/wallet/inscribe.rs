@@ -343,6 +343,7 @@ impl Inscribe {
     if creator_fee_out != None {
       total_fee = total_fee + Amount::from_sat(creator_fee_out.clone().unwrap().value);
     }
+    println!("TOTALFEEE {}", total_fee);
     let mut unsigned_commit_tx = TransactionBuilder::build_transaction_with_value(
       satpoint,
       inscriptions,
