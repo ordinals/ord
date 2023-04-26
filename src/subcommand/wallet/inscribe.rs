@@ -232,14 +232,6 @@ impl Inscribe {
   }
 
   fn calculate_fee(tx: &Transaction, utxos: &BTreeMap<OutPoint, Amount>) -> u64 {
-    print!(
-      "FEEESS {} {}",
-      tx.input
-        .iter()
-        .map(|txin| utxos.get(&txin.previous_output).unwrap().to_sat())
-        .sum::<u64>(),
-      tx.output.iter().map(|txout| txout.value).sum::<u64>()
-    );
     tx.input
       .iter()
       .map(|txin| utxos.get(&txin.previous_output).unwrap().to_sat())
@@ -313,13 +305,12 @@ impl Inscribe {
         .push_slice(&public_key.serialize())
         .push_opcode(opcodes::all::OP_CHECKSIG),
     );
-    // println!("PUBLICKEY: {}", reveal_script);
+
     let taproot_spend_info = TaprootBuilder::new()
       .add_leaf(0, reveal_script.clone())
       .expect("adding leaf should work")
       .finalize(&secp256k1, public_key)
       .expect("finalizing taproot builder should work");
-    // println!("SPENDINFO: {}", taproot_spend_info.clone().output_key());
     let control_block = taproot_spend_info
       .control_block(&(reveal_script.clone(), LeafVersion::TapScript))
       .expect("should compute control block");
@@ -351,31 +342,11 @@ impl Inscribe {
       unsigned_commit_tx
         .output
         .push(platform_fee_out.clone().unwrap());
-      // let id = unsigned_commit_tx.output.len() - 1;
-      // unsigned_commit_tx.output[id].value = unsigned_commit_tx.output[id]
-      //   .value
-      //   .checked_sub(platform_fee_out.clone().unwrap().value)
-      //   .context("Insufficient input for platform fee")?;
     }
     if creator_fee_out != None {
       unsigned_commit_tx
         .output
         .push(creator_fee_out.clone().unwrap());
-      // println!(
-      //   "UNSIGNED {} {}",
-      //   creator_fee_out.clone().unwrap().value,
-      //   creator_fee_out
-      //     .clone()
-      //     .unwrap()
-      //     .script_pubkey
-      //     .as_bytes()
-      //     .to_hex()
-      // )
-      // let id = unsigned_commit_tx.output.len() - 1;
-      // unsigned_commit_tx.output[id].value = unsigned_commit_tx.output[id]
-      //   .value
-      //   .checked_sub(creator_fee_out.clone().unwrap().value)
-      //   .context("Insufficient input for creator fee")?;
     }
 
     let (vout, output) = unsigned_commit_tx
