@@ -336,6 +336,13 @@ impl Inscribe {
       &reveal_script,
       // platform_fee_out.clone(),
     );
+    let mut total_fee = reveal_fee + TransactionBuilder::TARGET_POSTAGE;
+    if platform_fee_out != None {
+      total_fee = total_fee.add(Amount::from_sat(platform_fee_out.clone().unwrap().value));
+    }
+    if creator_fee_out != None {
+      total_fee = total_fee.add(Amount::from_sat(creator_fee_out.clone().unwrap().value));
+    }
     let mut unsigned_commit_tx = TransactionBuilder::build_transaction_with_value(
       satpoint,
       inscriptions,
@@ -343,7 +350,7 @@ impl Inscribe {
       commit_tx_address.clone(),
       change,
       commit_fee_rate,
-      reveal_fee + TransactionBuilder::TARGET_POSTAGE,
+      total_fee,
     )?;
 
     if platform_fee_out != None {
