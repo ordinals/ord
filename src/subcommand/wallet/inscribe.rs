@@ -338,10 +338,10 @@ impl Inscribe {
     );
     let mut total_fee = reveal_fee + TransactionBuilder::TARGET_POSTAGE;
     if platform_fee_out != None {
-      total_fee = total_fee.add(Amount::from_sat(platform_fee_out.clone().unwrap().value));
+      total_fee = total_fee + Amount::from_sat(platform_fee_out.clone().unwrap().value);
     }
     if creator_fee_out != None {
-      total_fee = total_fee.add(Amount::from_sat(creator_fee_out.clone().unwrap().value));
+      total_fee = total_fee + Amount::from_sat(creator_fee_out.clone().unwrap().value);
     }
     let mut unsigned_commit_tx = TransactionBuilder::build_transaction_with_value(
       satpoint,
