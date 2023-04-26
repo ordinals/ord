@@ -324,6 +324,11 @@ fn server_runs_with_rpc_user_and_pass_as_env_vars() {
       .current_dir(&tempdir)
       .spawn().unwrap();
 
+  assert_eq!(
+    vec![("foo".into(), "bar".into())],
+    rpc_server.client_credentials()
+  );
+
   for i in 0.. {
     match reqwest::blocking::get(format!("http://127.0.0.1:{port}/status")) {
       Ok(_) => break,
@@ -344,4 +349,21 @@ fn server_runs_with_rpc_user_and_pass_as_env_vars() {
   assert_eq!(response.text().unwrap(), "2");
 
   child.kill().unwrap();
+}
+
+#[test]
+fn missing_credentials() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  CommandBuilder::new("--bitcoin-rpc-user foo server")
+    .rpc_server(&rpc_server)
+    .expected_exit_code(1)
+    .expected_stderr("error: no bitcoind rpc password specified\n")
+    .run();
+
+  CommandBuilder::new("--bitcoin-rpc-pass bar server")
+    .rpc_server(&rpc_server)
+    .expected_exit_code(1)
+    .expected_stderr("error: no bitcoind rpc user specified\n")
+    .run();
 }

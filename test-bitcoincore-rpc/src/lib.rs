@@ -234,6 +234,19 @@ impl Handle {
   pub fn loaded_wallets(&self) -> BTreeSet<String> {
     self.state().loaded_wallets.clone()
   }
+
+  pub fn set_client_credential(&self, rpc_user: String, rpc_pass: String) {
+    self.state().client_credentials.insert(rpc_user, rpc_pass);
+  }
+
+  pub fn client_credentials(&self) -> Vec<(String, String)> {
+    self
+      .state()
+      .client_credentials
+      .clone()
+      .into_iter()
+      .collect()
+  }
 }
 
 impl Drop for Handle {

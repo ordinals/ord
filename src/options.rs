@@ -183,6 +183,8 @@ impl Options {
 
     match (rpc_user, rpc_pass) {
       (Some(rpc_user), Some(rpc_pass)) => Ok(Auth::UserPass(rpc_user, rpc_pass)),
+      (None, Some(_rpc_pass)) => Err(anyhow!("no bitcoind rpc user specified")),
+      (Some(_rpc_user), None) => Err(anyhow!("no bitcoind rpc password specified")),
       _ => Ok(Auth::CookieFile(self.cookie_file()?)),
     }
   }
@@ -671,28 +673,22 @@ mod tests {
     assert_eq!(Options::derive_var(None, None, None, None).unwrap(), None);
 
     assert_eq!(
-      Options::derive_var(None, None, None, Some("foo".into())).unwrap(),
+      Options::derive_var(None, None, None, Some("foo")).unwrap(),
       Some("foo".into())
     );
 
     assert_eq!(
-      Options::derive_var(None, None, Some("bar".into()), Some("foo".into())).unwrap(),
+      Options::derive_var(None, None, Some("bar"), Some("foo")).unwrap(),
       Some("bar".into())
     );
 
     assert_eq!(
-      Options::derive_var(
-        Some("qux".into()),
-        None,
-        Some("bar".into()),
-        Some("foo".into())
-      )
-      .unwrap(),
+      Options::derive_var(Some("qux"), None, Some("bar"), Some("foo")).unwrap(),
       Some("qux".into())
     );
 
     assert_eq!(
-      Options::derive_var(Some("qux".into()), None, None, Some("foo".into())).unwrap(),
+      Options::derive_var(Some("qux"), None, None, Some("foo")).unwrap(),
       Some("qux".into()),
     );
   }
