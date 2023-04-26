@@ -214,7 +214,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       Origin::Old(old_satpoint) => {
         self.satpoint_to_id.remove(&old_satpoint.store())?;
 
-        let entry = self.id_to_entry.get(&inscription_id).unwrap().unwrap().value();
+        let entry = self.id_to_entry.get(&inscription_id)?.unwrap().value();
         inscription_number = entry.2;
 
         if let Some(old_output) = self
