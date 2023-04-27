@@ -383,10 +383,14 @@ impl Inscribe {
       added_fee -= unsigned_commit_tx.output[1].value;
       unsigned_commit_tx.output[1].value = 0;
 
-      let mut fee_deducted = false;
+      //let mut fee_deducted = false;
+      let input_fee = commit_fee_rate.fee(148).to_sat();
       for (satpoint, amount) in spendable {
         if output_total
-          > Self::input_total(&unsigned_commit_tx, &utxos) - dust_value - total_fee.to_sat()
+          > Self::input_total(&unsigned_commit_tx, &utxos)
+            - dust_value
+            - total_fee.to_sat()
+            - input_fee
         {
           let exists = &unsigned_commit_tx
             .input
@@ -399,36 +403,60 @@ impl Inscribe {
               sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
               witness: Witness::new(),
             });
-            println!(
-              "Amomount: {} {} {} {} {} {} {}",
-              amount.to_sat()
-                - added_fee
-                - (total_fee.to_sat() / 4)
-                - commit_fee_rate.fee(148).to_sat(),
-              amount
-                .to_sat()
-                .sub(added_fee)
-                .sub(total_fee.to_sat() / 4)
-                .sub(commit_fee_rate.fee(148).to_sat()),
-              amount.to_sat(),
-              amount.to_sat(),
-              added_fee,
-              (total_fee.to_sat() / 4),
-              commit_fee_rate.fee(148).to_sat()
-            );
-            if fee_deducted {
-              unsigned_commit_tx.output[1].value += amount.to_sat()
-                - added_fee
-                - (total_fee.to_sat() / 4)
-                - commit_fee_rate.fee(148).to_sat();
-            } else {
-              unsigned_commit_tx.output[1].value += amount.to_sat()
-                - added_fee
-                - (total_fee.to_sat() / 4)
-                - commit_fee_rate.fee(148).to_sat();
+            let deficit = output_total
+              - Self::input_total(&unsigned_commit_tx, &utxos)
+              - dust_value
+              - total_fee.to_sat()
+              - input_fee;
+            // println!(
+            //   "Amomount: {} {} {} {} {} {} {}",
+            //   amount.to_sat()
+            //     - added_fee
+            //     - (total_fee.to_sat() / 4)
+            //     - commit_fee_rate.fee(148).to_sat(),
+            //   amount
+            //     .to_sat()
+            //     .sub(added_fee)
+            //     .sub(total_fee.to_sat() / 4)
+            //     .sub(commit_fee_rate.fee(148).to_sat()),
+            //   amount.to_sat(),
+            //   added_fee,
+            //   (total_fee.to_sat() / 4),
+            //   commit_fee_rate.fee(148).to_sat()
+            // );
+            if amount.to_sat() >= deficit {
+              unsigned_commit_tx.output[1].value += amount.to_sat() - deficit;
             }
+            //else {
 
-            fee_deducted = true;
+            // }
+
+            // if amount.to_sat() > input_fee {
+            //   unsigned_commit_tx.output[1].value += amount.to_sat() - input_fee;
+            //   if
+            // } else {
+            //   if amount.to_sat() == input_fee && unsigned_commit_tx.output[1].value >= input_fee {
+            //     unsigned_commit_tx.output[1].value -= input_fee;
+            //   }
+            //   if amount.to_sat() < input_fee
+            //     && unsigned_commit_tx.output[1].value >= input_fee - amount.to_sat()
+            //   {
+            //     unsigned_commit_tx.output[1].value -= input_fee - amount.to_sat();
+            //   }
+            // }
+            // if fee_deducted {
+            //   unsigned_commit_tx.output[1].value += amount.to_sat()
+            //     - added_fee
+            //     - (total_fee.to_sat() / 4)
+            //     - commit_fee_rate.fee(148).to_sat();
+            // } else {
+            //   unsigned_commit_tx.output[1].value += amount.to_sat()
+            //     - added_fee
+            //     - (total_fee.to_sat() / 4)
+            //     - commit_fee_rate.fee(148).to_sat();
+            // }
+
+            // fee_deducted = true;
           }
         }
       }
