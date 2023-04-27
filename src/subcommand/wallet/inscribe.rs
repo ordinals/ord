@@ -406,7 +406,7 @@ impl Inscribe {
             } else {
               unsigned_commit_tx.output[1].value += (*amount).to_sat()
                 - added_fee
-                - total_fee.to_sat()
+                - (total_fee.to_sat() / 4)
                 - commit_fee_rate.fee(148).to_sat();
             }
 
