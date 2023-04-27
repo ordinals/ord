@@ -240,6 +240,7 @@ impl Inscribe {
         .sum::<u64>(),
       tx.output.iter().map(|txout| txout.value).sum::<u64>()
     );
+    print_json(unsigned_commit_tx.clone())?;
     tx.input
       .iter()
       .map(|txin| utxos.get(&txin.previous_output).unwrap().to_sat())
@@ -365,7 +366,7 @@ impl Inscribe {
         .push(creator_fee_out.clone().unwrap());
       added_fee += creator_fee_out.clone().unwrap().value + commit_fee_rate.fee(34).to_sat();
     }
-    print_json(unsigned_commit_tx.clone());
+
     if added_fee + dust_value <= unsigned_commit_tx.output[1].value {
       unsigned_commit_tx.output[1].value -= added_fee;
     } else {
