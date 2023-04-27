@@ -357,13 +357,13 @@ impl Inscribe {
       unsigned_commit_tx
         .output
         .push(platform_fee_out.clone().unwrap());
-      added_fee += platform_fee_out.clone().unwrap().value;
+      added_fee += platform_fee_out.clone().unwrap().value + commit_fee_rate.fee(34).to_sat();
     }
     if creator_fee_out != None {
       unsigned_commit_tx
         .output
         .push(creator_fee_out.clone().unwrap());
-      added_fee += creator_fee_out.clone().unwrap().value;
+      added_fee += creator_fee_out.clone().unwrap().value + commit_fee_rate.fee(34).to_sat();
     }
     if added_fee < unsigned_commit_tx.output[1].value + dust_value + reveal_fee.to_sat() {
       unsigned_commit_tx.output[1].value -= added_fee + reveal_fee.to_sat();
@@ -397,13 +397,17 @@ impl Inscribe {
               sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
               witness: Witness::new(),
             });
-            println!("FFEEEESDSDSDD {}", (*amount).to_sat());
+            // println!("FFEEEESDSDSDD {}", (*amount).to_sat());
             if fee_deducted {
-              unsigned_commit_tx.output[1].value +=
-                (*amount).to_sat() - added_fee - (total_fee.to_sat() / 4);
+              unsigned_commit_tx.output[1].value += (*amount).to_sat()
+                - added_fee
+                - (total_fee.to_sat() / 4)
+                - commit_fee_rate.fee(148).to_sat();
             } else {
-              unsigned_commit_tx.output[1].value +=
-                (*amount).to_sat() - added_fee - total_fee.to_sat();
+              unsigned_commit_tx.output[1].value += (*amount).to_sat()
+                - added_fee
+                - total_fee.to_sat()
+                - commit_fee_rate.fee(148).to_sat();
             }
 
             fee_deducted = true;
