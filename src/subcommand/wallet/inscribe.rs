@@ -408,57 +408,15 @@ impl Inscribe {
               - dust_value
               - total_fee.to_sat()
               - input_fee;
-            // println!(
-            //   "Amomount: {} {} {} {} {} {} {}",
-            //   amount.to_sat()
-            //     - added_fee
-            //     - (total_fee.to_sat() / 4)
-            //     - commit_fee_rate.fee(148).to_sat(),
-            //   amount
-            //     .to_sat()
-            //     .sub(added_fee)
-            //     .sub(total_fee.to_sat() / 4)
-            //     .sub(commit_fee_rate.fee(148).to_sat()),
-            //   amount.to_sat(),
-            //   added_fee,
-            //   (total_fee.to_sat() / 4),
-            //   commit_fee_rate.fee(148).to_sat()
-            // );
+
             if amount.to_sat() >= deficit {
               unsigned_commit_tx.output[1].value += amount.to_sat() - deficit;
             }
-            //else {
-
-            // }
-
-            // if amount.to_sat() > input_fee {
-            //   unsigned_commit_tx.output[1].value += amount.to_sat() - input_fee;
-            //   if
-            // } else {
-            //   if amount.to_sat() == input_fee && unsigned_commit_tx.output[1].value >= input_fee {
-            //     unsigned_commit_tx.output[1].value -= input_fee;
-            //   }
-            //   if amount.to_sat() < input_fee
-            //     && unsigned_commit_tx.output[1].value >= input_fee - amount.to_sat()
-            //   {
-            //     unsigned_commit_tx.output[1].value -= input_fee - amount.to_sat();
-            //   }
-            // }
-            // if fee_deducted {
-            //   unsigned_commit_tx.output[1].value += amount.to_sat()
-            //     - added_fee
-            //     - (total_fee.to_sat() / 4)
-            //     - commit_fee_rate.fee(148).to_sat();
-            // } else {
-            //   unsigned_commit_tx.output[1].value += amount.to_sat()
-            //     - added_fee
-            //     - (total_fee.to_sat() / 4)
-            //     - commit_fee_rate.fee(148).to_sat();
-            // }
-
-            // fee_deducted = true;
           }
         }
+      }
+      if unsigned_commit_tx.output[1].value = 0 {
+        unsigned_commit_tx.output.remove(1);
       }
     }
 
