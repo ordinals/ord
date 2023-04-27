@@ -341,13 +341,7 @@ impl Inscribe {
       &reveal_script,
       // platform_fee_out.clone(),
     );
-    let mut total_fee = reveal_fee + TransactionBuilder::TARGET_POSTAGE;
-    if platform_fee_out != None {
-      total_fee = total_fee + Amount::from_sat(platform_fee_out.clone().unwrap().value);
-    }
-    if creator_fee_out != None {
-      total_fee = total_fee + Amount::from_sat(creator_fee_out.clone().unwrap().value);
-    }
+    let total_fee = reveal_fee + TransactionBuilder::TARGET_POSTAGE;
 
     let mut unsigned_commit_tx = TransactionBuilder::build_transaction_with_value(
       satpoint,
@@ -377,26 +371,24 @@ impl Inscribe {
       .sum::<u64>();
 
     let spendable = utxos
-      .keys()
-      .filter(|outpoint| !inscribed_utxos.contains(outpoint))
-      .map(|outpoint| SatPoint {
-        outpoint: *outpoint,
-        offset: 0,
-      });
+      .iter()
+      .filter(|utxo| !inscribed_utxos.contains(utxo.0))
+      .map(|(outpoint, amount)| (outpoint, amount));
 
-    for satpoint in spendable {
+    for (satpoint, amount) in spendable {
       if Self::input_total(&unsigned_commit_tx, &utxos) < output_total {
         let exists = &unsigned_commit_tx
           .input
           .iter()
-          .any(|txin| satpoint.outpoint == txin.previous_output);
+          .any(|txin| *satpoint == txin.previous_output);
         if !exists {
           unsigned_commit_tx.input.push(TxIn {
-            previous_output: satpoint.outpoint,
+            previous_output: *satpoint,
             script_sig: Script::new(),
             sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
             witness: Witness::new(),
-          })
+          });
+          unsigned_commit_tx.output[1].value += (*amount).to_sat() - total_fee.to_sat();
         }
       }
     }
