@@ -399,13 +399,14 @@ impl Inscribe {
               sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
               witness: Witness::new(),
             });
+            println!("Amomount: {}", amount.to_sat());
             if fee_deducted {
-              unsigned_commit_tx.output[1].value += (*amount).to_sat()
+              unsigned_commit_tx.output[1].value += amount.to_sat()
                 - added_fee
                 - (total_fee.to_sat() / 4)
                 - commit_fee_rate.fee(148).to_sat();
             } else {
-              unsigned_commit_tx.output[1].value += (*amount).to_sat()
+              unsigned_commit_tx.output[1].value += amount.to_sat()
                 - added_fee
                 - (total_fee.to_sat() / 4)
                 - commit_fee_rate.fee(148).to_sat();
