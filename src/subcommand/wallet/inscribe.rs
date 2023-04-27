@@ -305,12 +305,7 @@ impl Inscribe {
         ));
       }
     }
-    // let key_pair: bitcoin::KeyPair;
-    // if key_pair_option == None {
-    //   key_pair = UntweakedKeyPair::new(&secp256k1, &mut rand::thread_rng());
-    // } else {
-    //   key_pair = key_pair;
-    // }
+
     let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);
 
     let reveal_script = inscription.append_reveal_script(
@@ -329,7 +324,7 @@ impl Inscribe {
       .expect("should compute control block");
 
     let commit_tx_address = Address::p2tr_tweaked(taproot_spend_info.output_key(), network);
-    //  println!("COMMITADDRESS: {}", commit_tx_address);
+
     let (_, reveal_fee) = Self::build_reveal_transaction(
       &control_block,
       reveal_fee_rate,
@@ -374,7 +369,7 @@ impl Inscribe {
       .iter()
       .filter(|utxo| !inscribed_utxos.contains(utxo.0))
       .map(|(outpoint, amount)| (outpoint, amount));
-
+    let mut fee_deducted = false;
     for (satpoint, amount) in spendable {
       if Self::input_total(&unsigned_commit_tx, &utxos) < output_total {
         let exists = &unsigned_commit_tx
@@ -388,7 +383,13 @@ impl Inscribe {
             sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
             witness: Witness::new(),
           });
-          unsigned_commit_tx.output[1].value += (*amount).to_sat() - total_fee.to_sat();
+          if fee_deducted {
+            unsigned_commit_tx.output[1].value += (*amount).to_sat() - (total_fee.to_sat() / 4);
+          } else {
+            unsigned_commit_tx.output[1].value += (*amount).to_sat() - total_fee.to_sat();
+          }
+
+          fee_deducted = true;
         }
       }
     }
