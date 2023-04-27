@@ -415,7 +415,7 @@ impl Inscribe {
           }
         }
       }
-      if unsigned_commit_tx.output[1].value = 0 {
+      if unsigned_commit_tx.output[1].value == 0 {
         unsigned_commit_tx.output.remove(1);
       }
     }
