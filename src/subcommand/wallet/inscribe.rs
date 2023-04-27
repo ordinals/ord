@@ -232,8 +232,6 @@ impl Inscribe {
   }
 
   fn calculate_fee(tx: &Transaction, utxos: &BTreeMap<OutPoint, Amount>) -> u64 {
-    println!(
-      "FEEESS {} {}",
       tx.input
         .iter()
         .map(|txin| utxos.get(&txin.previous_output).unwrap().to_sat())
@@ -397,7 +395,6 @@ impl Inscribe {
               sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
               witness: Witness::new(),
             });
-            // println!("FFEEEESDSDSDD {}", (*amount).to_sat());
             if fee_deducted {
               unsigned_commit_tx.output[1].value += (*amount).to_sat()
                 - added_fee
