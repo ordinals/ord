@@ -348,49 +348,66 @@ impl Inscribe {
       total_fee,
     )?;
 
+    let mut added_fee: u64 = 0;
+    let dust_value = unsigned_commit_tx.output[1]
+      .script_pubkey
+      .dust_value()
+      .to_sat();
     if platform_fee_out != None {
       unsigned_commit_tx
         .output
         .push(platform_fee_out.clone().unwrap());
+      added_fee += platform_fee_out.clone().unwrap().value;
     }
     if creator_fee_out != None {
       unsigned_commit_tx
         .output
         .push(creator_fee_out.clone().unwrap());
+      added_fee += creator_fee_out.clone().unwrap().value;
     }
+    if added_fee < unsigned_commit_tx.output[1].value + dust_value {
+      unsigned_commit_tx.output[1].value -= added_fee;
+    } else {
+      let output_total = unsigned_commit_tx
+        .output
+        .iter()
+        .map(|txout| txout.value)
+        .sum::<u64>();
 
-    let output_total = unsigned_commit_tx
-      .output
-      .iter()
-      .map(|txout| txout.value)
-      .sum::<u64>();
+      let spendable = utxos
+        .iter()
+        .filter(|utxo| !inscribed_utxos.contains(utxo.0))
+        .map(|(outpoint, amount)| (outpoint, amount));
+      added_fee -= unsigned_commit_tx.output[1].value;
+      unsigned_commit_tx.output[1].value = 0;
 
-    let spendable = utxos
-      .iter()
-      .filter(|utxo| !inscribed_utxos.contains(utxo.0))
-      .map(|(outpoint, amount)| (outpoint, amount));
-    let mut fee_deducted = false;
-    for (satpoint, amount) in spendable {
-      if Self::input_total(&unsigned_commit_tx, &utxos) < output_total {
-        let exists = &unsigned_commit_tx
-          .input
-          .iter()
-          .any(|txin| *satpoint == txin.previous_output);
-        if !exists {
-          unsigned_commit_tx.input.push(TxIn {
-            previous_output: *satpoint,
-            script_sig: Script::new(),
-            sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-            witness: Witness::new(),
-          });
-          println!("FFEEEESDSDSDD {}", (*amount).to_sat());
-          if fee_deducted {
-            unsigned_commit_tx.output[1].value += (*amount).to_sat() - (total_fee.to_sat() / 4);
-          } else {
-            unsigned_commit_tx.output[1].value += (*amount).to_sat() - total_fee.to_sat();
+      let mut fee_deducted = false;
+      for (satpoint, amount) in spendable {
+        if output_total
+          > Self::input_total(&unsigned_commit_tx, &utxos) - dust_value - total_fee.to_sat()
+        {
+          let exists = &unsigned_commit_tx
+            .input
+            .iter()
+            .any(|txin| *satpoint == txin.previous_output);
+          if !exists {
+            unsigned_commit_tx.input.push(TxIn {
+              previous_output: *satpoint,
+              script_sig: Script::new(),
+              sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+              witness: Witness::new(),
+            });
+            println!("FFEEEESDSDSDD {}", (*amount).to_sat());
+            if fee_deducted {
+              unsigned_commit_tx.output[1].value +=
+                (*amount).to_sat() - added_fee - (total_fee.to_sat() / 4);
+            } else {
+              unsigned_commit_tx.output[1].value +=
+                (*amount).to_sat() - added_fee - total_fee.to_sat();
+            }
+
+            fee_deducted = true;
           }
-
-          fee_deducted = true;
         }
       }
     }
