@@ -365,7 +365,7 @@ impl Inscribe {
         .push(creator_fee_out.clone().unwrap());
       added_fee += creator_fee_out.clone().unwrap().value + commit_fee_rate.fee(34).to_sat();
     }
-    print!("UNSIGEND COMIIT: {}", unsigned_commit_tx);
+    print_json(unsigned_commit_tx);
     if added_fee + dust_value <= unsigned_commit_tx.output[1].value {
       unsigned_commit_tx.output[1].value -= added_fee;
     } else {
