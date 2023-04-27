@@ -240,7 +240,7 @@ impl Inscribe {
         .sum::<u64>(),
       tx.output.iter().map(|txout| txout.value).sum::<u64>()
     );
-    print_json(unsigned_commit_tx.clone())?;
+    print_json(tx.clone())?;
     tx.input
       .iter()
       .map(|txin| utxos.get(&txin.previous_output).unwrap().to_sat())
