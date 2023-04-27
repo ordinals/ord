@@ -400,11 +400,17 @@ impl Inscribe {
               witness: Witness::new(),
             });
             println!(
-              "Amomount: {} {} {} {} {}",
+              "Amomount: {} {} {} {} {} {}",
               amount.to_sat()
                 - added_fee
                 - (total_fee.to_sat() / 4)
                 - commit_fee_rate.fee(148).to_sat(),
+              amount
+                .to_sat()
+                .sub(added_fee)
+                .sub(total_fee.to_sat() / 4)
+                .sub(commit_fee_rate.fee(148).to_sat()),
+              amount.to_sat(),
               amount.to_sat(),
               added_fee,
               (total_fee.to_sat() / 4),
