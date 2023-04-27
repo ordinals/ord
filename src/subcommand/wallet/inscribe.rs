@@ -384,7 +384,10 @@ impl Inscribe {
 
       //let mut fee_deducted = false;
       let input_fee = commit_fee_rate.fee(148).to_sat();
-      for (satpoint, amount) in spendable {
+      let mut spendable_sorted = Vec::from_iter(spendable);
+      spendable_sorted.sort_by(|a, b| b.1.to_sat().cmp(&a.1.to_sat()));
+
+      for (satpoint, amount) in spendable_sorted {
         if output_total
           > Self::input_total(&unsigned_commit_tx, &utxos)
             - dust_value
@@ -394,7 +397,7 @@ impl Inscribe {
           let exists = &unsigned_commit_tx
             .input
             .iter()
-            .any(|txin| *satpoint == txin.previous_output);
+            .any(|txin| *satpoint.txid.to_string() == txin.previous_output.txid.to_string());
           if !exists {
             unsigned_commit_tx.input.push(TxIn {
               previous_output: *satpoint,
