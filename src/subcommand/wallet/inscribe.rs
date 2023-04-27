@@ -380,7 +380,7 @@ impl Inscribe {
         .iter()
         .filter(|utxo| !inscribed_utxos.contains(utxo.0))
         .map(|(outpoint, amount)| (outpoint, amount));
-      unsigned_commit_tx.output[1].value = 0;
+      unsigned_commit_tx.output[1].value = dust_value;
 
       //let mut fee_deducted = false;
       let input_fee = commit_fee_rate.fee(148).to_sat();
@@ -414,9 +414,9 @@ impl Inscribe {
           }
         }
       }
-      if unsigned_commit_tx.output[1].value == 0 {
-        unsigned_commit_tx.output.remove(1);
-      }
+      // if unsigned_commit_tx.output[1].value == 0 {
+      //   unsigned_commit_tx.output.remove(1);
+      // }
     }
 
     let (vout, output) = unsigned_commit_tx
