@@ -232,15 +232,15 @@ impl Inscribe {
   }
 
   fn calculate_fee(tx: &Transaction, utxos: &BTreeMap<OutPoint, Amount>) -> u64 {
-    println!(
-      "FEEESS {} {}",
-      tx.input
-        .iter()
-        .map(|txin| utxos.get(&txin.previous_output).unwrap().to_sat())
-        .sum::<u64>(),
-      tx.output.iter().map(|txout| txout.value).sum::<u64>()
-    );
-    print_json(tx.clone());
+    // println!(
+    //   "FEEESS {} {}",
+    //   tx.input
+    //     .iter()
+    //     .map(|txin| utxos.get(&txin.previous_output).unwrap().to_sat())
+    //     .sum::<u64>(),
+    //   tx.output.iter().map(|txout| txout.value).sum::<u64>()
+    // );
+    // print_json(tx.clone());
     tx.input
       .iter()
       .map(|txin| utxos.get(&txin.previous_output).unwrap().to_sat())
@@ -380,7 +380,6 @@ impl Inscribe {
         .iter()
         .filter(|utxo| !inscribed_utxos.contains(utxo.0))
         .map(|(outpoint, amount)| (outpoint, amount));
-      added_fee -= unsigned_commit_tx.output[1].value;
       unsigned_commit_tx.output[1].value = 0;
 
       //let mut fee_deducted = false;
