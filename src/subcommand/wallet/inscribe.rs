@@ -366,7 +366,7 @@ impl Inscribe {
       added_fee += creator_fee_out.clone().unwrap().value;
     }
     if added_fee < unsigned_commit_tx.output[1].value + dust_value + reveal_fee.to_sat() {
-      unsigned_commit_tx.output[1].value -= added_fee - reveal_fee.to_sat();
+      unsigned_commit_tx.output[1].value -= added_fee + reveal_fee.to_sat();
     } else {
       let output_total = unsigned_commit_tx
         .output
