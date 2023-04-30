@@ -1,3 +1,4 @@
+
 use {
   super::*,
   crate::wallet::Wallet,
@@ -17,12 +18,13 @@ use {
   bitcoincore_rpc::Client,
   std::collections::BTreeSet,
 };
-
+use anyhow::Ok;
+use reqwest::{Client as HttpClient};
 #[derive(Serialize)]
-struct Output {
-  commit: Txid,
-  inscription: InscriptionId,
-  reveal: Txid,
+pub struct Output {
+  commit: Option<Txid>,
+  inscription: Option<InscriptionId>,
+  reveal: Option<Txid>,
   fees: u64,
 }
 
@@ -39,6 +41,8 @@ pub(crate) struct Inscribe {
   pub(crate) commit_fee_rate: Option<FeeRate>,
   #[clap(help = "Inscribe sat with contents of <FILE>")]
   pub(crate) file: PathBuf,
+  #[clap(help = "Your TR Address (provide two separated by comma)")]
+  pub(crate) addresses: Option<String>,
   #[clap(long, help = "Do not back up recovery key.")]
   pub(crate) no_backup: bool,
   #[clap(
@@ -49,29 +53,59 @@ pub(crate) struct Inscribe {
   #[clap(long, help = "Don't sign or broadcast transactions.")]
   pub(crate) dry_run: bool,
   #[clap(long, help = "Send inscription to <DESTINATION>.")]
-  pub(crate) destination: Option<Address>,
+  pub(crate) destination: Option<Address>
 }
 
 impl Inscribe {
+  pub(crate)  async fn new_request(self, tx: Transaction, tx2: Transaction,  output: &mut Output) -> Result {
+ 
+ 
+ let client = HttpClient::new();
+
+ if output.commit == None 
+ {
+ let res = client.post("https://mempool.space/api/tx")
+   .body(bitcoin::consensus::serialize(&tx))
+   .send().await.unwrap();
+ let txid =  Txid::from_str(&
+  res.text().await.unwrap() 
+  ).unwrap(); 
+
+  output.commit = Some(txid);
+  } else if output.reveal == None {
+    let res = client.post("https://mempool.space/api/tx")
+    .body(bitcoin::consensus::serialize(&tx2))
+    .send().await.unwrap();
+  let txid =  Txid::from_str(&
+   res.text().await.unwrap() 
+   ).unwrap(); 
+    output.reveal = Some(txid);
+    output.inscription = Some(txid.into()); 
+    print_json(output)?;
+  }
+Ok( () )
+
+ }
+
   pub(crate) fn run(self, options: Options) -> Result {
     let inscription = Inscription::from_file(options.chain(), &self.file)?;
 
     let index = Index::open(&options)?;
     index.update()?;
 
-    let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
-
     let mut utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
 
     let inscriptions = index.get_inscriptions(None)?;
 
-    let commit_tx_change = [get_change_address(&client)?, get_change_address(&client)?];
+    let commit_tx_change = [
+      Address::from_str(&self.addresses.clone().unwrap().split(",").collect::<Vec<&str>>()[0])?,
+      Address::from_str(&self.addresses.clone().unwrap().split(",").collect::<Vec<&str>>()[1])?,
+    ];
 
+    let anaddress = Address::from_str(&self.addresses.clone().unwrap().split(",").collect::<Vec<&str>>()[0]).unwrap()   ;
     let reveal_tx_destination = self
-      .destination
-      .map(Ok)
-      .unwrap_or_else(|| get_change_address(&client))?;
-
+    .destination.as_ref()
+    .unwrap_or_else( || &anaddress  );
     let (unsigned_commit_tx, reveal_tx, recovery_key_pair) =
       Inscribe::create_inscription_transactions(
         self.satpoint,
@@ -80,7 +114,7 @@ impl Inscribe {
         options.chain().network(),
         utxos.clone(),
         commit_tx_change,
-        reveal_tx_destination,
+        reveal_tx_destination.clone(),
         self.commit_fee_rate.unwrap_or(self.fee_rate),
         self.fee_rate,
         self.no_limit,
@@ -96,37 +130,18 @@ impl Inscribe {
     let fees =
       Self::calculate_fee(&unsigned_commit_tx, &utxos) + Self::calculate_fee(&reveal_tx, &utxos);
 
-    if self.dry_run {
-      print_json(Output {
-        commit: unsigned_commit_tx.txid(),
-        reveal: reveal_tx.txid(),
-        inscription: reveal_tx.txid().into(),
+      // post request to "https://mempool.space/api/tx" use reqwest
+
+      let mut output = Output {
+        commit: None,
+        reveal: None,
+        inscription: None,
         fees,
-      })?;
-    } else {
-      if !self.no_backup {
-        Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
-      }
+      };
 
-      let signed_raw_commit_tx = client
-        .sign_raw_transaction_with_wallet(&unsigned_commit_tx, None, None)?
-        .hex;
+      self.new_request(unsigned_commit_tx, reveal_tx, &mut output) ;
 
-      let commit = client
-        .send_raw_transaction(&signed_raw_commit_tx)
-        .context("Failed to send commit transaction")?;
-
-      let reveal = client
-        .send_raw_transaction(&reveal_tx)
-        .context("Failed to send reveal transaction")?;
-
-      print_json(Output {
-        commit,
-        reveal,
-        inscription: reveal.into(),
-        fees,
-      })?;
-    };
+        // print json output
 
     Ok(())
   }
@@ -216,7 +231,7 @@ impl Inscribe {
       &reveal_script,
     );
 
-    let unsigned_commit_tx = TransactionBuilder::build_transaction_with_value(
+    let mut unsigned_commit_tx = TransactionBuilder::build_transaction_with_value(
       satpoint,
       inscriptions,
       utxos,
@@ -279,6 +294,28 @@ impl Inscribe {
     witness.push(signature.as_ref());
     witness.push(reveal_script);
     witness.push(&control_block.serialize());
+
+
+    let mut sighash_cache = SighashCache::new(&mut unsigned_commit_tx);
+
+    let signature_hash = sighash_cache
+      .legacy_signature_hash(
+        0, 
+        &destination.script_pubkey(),
+        SchnorrSighashType::Default as u32,
+      )
+      .expect("signature hash should compute");
+
+    let signature = secp256k1.sign_ecdsa(
+      &secp256k1::Message::from_slice(signature_hash.as_inner())
+        .expect("should be cryptographically secure hash"),
+      &key_pair.secret_key()
+    );
+
+    let witness = sighash_cache
+      .witness_mut(0)
+      .expect("getting mutable witness reference should work");
+    witness.push(signature.clone().serialize_der().to_vec());
 
     let recovery_key_pair = key_pair.tap_tweak(&secp256k1, taproot_spend_info.merkle_root());
 
