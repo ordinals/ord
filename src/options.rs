@@ -170,14 +170,14 @@ impl Options {
     let rpc_user = Options::derive_var(
       self.bitcoin_rpc_user.as_deref(),
       Some("BITCOIN_RPC_USER"),
-      config.rpc_user.as_deref(),
+      config.bitcoin_rpc_user.as_deref(),
       None,
     )?;
 
     let rpc_pass = Options::derive_var(
       self.bitcoin_rpc_pass.as_deref(),
       Some("BITCOIN_RPC_PASS"),
-      config.rpc_pass.as_deref(),
+      config.bitcoin_rpc_pass.as_deref(),
       None,
     )?;
 
@@ -620,7 +620,11 @@ mod tests {
   fn config_with_rpc_user_pass() {
     let tempdir = TempDir::new().unwrap();
     let path = tempdir.path().join("ord.yaml");
-    fs::write(&path, "hidden:\nrpc_user: foo\nrpc_pass: bar").unwrap();
+    fs::write(
+      &path,
+      "hidden:\nbitcoin_rpc_user: foo\nbitcoin_rpc_pass: bar",
+    )
+    .unwrap();
 
     assert_eq!(
       Arguments::try_parse_from(["ord", "--config", path.to_str().unwrap(), "index",])
@@ -629,8 +633,8 @@ mod tests {
         .load_config()
         .unwrap(),
       Config {
-        rpc_user: Some("foo".into()),
-        rpc_pass: Some("bar".into()),
+        bitcoin_rpc_user: Some("foo".into()),
+        bitcoin_rpc_pass: Some("bar".into()),
         ..Default::default()
       }
     );

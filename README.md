@@ -110,10 +110,12 @@ See `ord --help` for details.
 `bitcoind` RPC Authentication
 -----------------------------
 
-`ord` can authenticate calls to `bitcoind` using credentials from a cookie
-file, or with a supplied username and password.
+`ord` makes RPC calls to `bitcoind`, which usually requires a username and
+password.
 
-A username and password can be supplied using command-line arguments:
+By default, `ord` looks a username and password in `bitcoind`'s cookie file,
+but can also be supplied with a username and password using command-line
+arguments:
 
 ```
 ord --bitcoin-rpc-user foo --bitcoin-rpc-pass bar server
@@ -130,12 +132,9 @@ ord server
 Or in the config file:
 
 ```yaml
-bitcoin-rpc-user: foo
-bitcoin-rpc-pass: foo
+bitcoin_rpc_user: foo
+bitcoin_rpc_pass: bar
 ```
-
-If no username or password is supplied, or will defualt to reading the username
-and password from the cookie file created by `bitcoind`.
 
 Logging
 --------
