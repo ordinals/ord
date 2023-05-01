@@ -692,4 +692,44 @@ mod tests {
       Some("qux".into()),
     );
   }
+
+  #[test]
+  fn auth() {
+    let options = Options {
+      bitcoin_rpc_user: Some("foo".into()),
+      ..Default::default()
+    };
+    assert_eq!(
+      options.auth().unwrap_err().to_string(),
+      "no bitcoind rpc password specified"
+    );
+
+    let options = Options {
+      bitcoin_rpc_pass: Some("bar".into()),
+      ..Default::default()
+    };
+    assert_eq!(
+      options.auth().unwrap_err().to_string(),
+      "no bitcoind rpc user specified"
+    );
+
+    let options = Options {
+      bitcoin_rpc_user: Some("foo".into()),
+      bitcoin_rpc_pass: Some("bar".into()),
+      ..Default::default()
+    };
+    assert_eq!(
+      options.auth().unwrap(),
+      Auth::UserPass("foo".into(), "bar".into())
+    );
+
+    let options = Options {
+      cookie_file: Some("/var/lib/Bitcoin/.cookie".into()),
+      ..Default::default()
+    };
+    assert_eq!(
+      options.auth().unwrap(),
+      Auth::CookieFile("/var/lib/Bitcoin/.cookie".into())
+    );
+  }
 }
