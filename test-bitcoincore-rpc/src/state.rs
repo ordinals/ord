@@ -2,7 +2,6 @@ use super::*;
 
 pub(crate) struct State {
   pub(crate) blocks: BTreeMap<BlockHash, Block>,
-  pub(crate) client_credentials: BTreeMap<String, String>,
   pub(crate) descriptors: Vec<String>,
   pub(crate) fail_lock_unspent: bool,
   pub(crate) hashes: Vec<BlockHash>,
@@ -30,7 +29,6 @@ impl State {
 
     Self {
       blocks,
-      client_credentials: BTreeMap::new(),
       descriptors: Vec::new(),
       fail_lock_unspent,
       hashes,
