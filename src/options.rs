@@ -694,7 +694,7 @@ mod tests {
   }
 
   #[test]
-  fn auth() {
+  fn auth_missing_rpc_pass_is_an_error() {
     let options = Options {
       bitcoin_rpc_user: Some("foo".into()),
       ..Default::default()
@@ -703,7 +703,10 @@ mod tests {
       options.auth().unwrap_err().to_string(),
       "no bitcoind rpc password specified"
     );
+  }
 
+  #[test]
+  fn auth_missing_rpc_user_is_an_error() {
     let options = Options {
       bitcoin_rpc_pass: Some("bar".into()),
       ..Default::default()
@@ -712,7 +715,10 @@ mod tests {
       options.auth().unwrap_err().to_string(),
       "no bitcoind rpc user specified"
     );
+  }
 
+  #[test]
+  fn auth_with_user_and_pass() {
     let options = Options {
       bitcoin_rpc_user: Some("foo".into()),
       bitcoin_rpc_pass: Some("bar".into()),
@@ -722,7 +728,10 @@ mod tests {
       options.auth().unwrap(),
       Auth::UserPass("foo".into(), "bar".into())
     );
+  }
 
+  #[test]
+  fn auth_with_cookie_file() {
     let options = Options {
       cookie_file: Some("/var/lib/Bitcoin/.cookie".into()),
       ..Default::default()
