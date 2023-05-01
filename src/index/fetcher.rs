@@ -1,24 +1,24 @@
 use {
+  crate::Options,
   anyhow::{anyhow, Result},
   base64::Engine,
   bitcoin::{Transaction, Txid},
-  bitcoincore_rpc::Auth,
   hyper::{client::HttpConnector, Body, Client, Method, Request, Uri},
   serde::Deserialize,
   serde_json::{json, Value},
 };
 
 pub(crate) struct Fetcher {
+  auth: String,
   client: Client<HttpConnector>,
   url: Uri,
-  auth: String,
 }
 
 #[derive(Deserialize, Debug)]
 struct JsonResponse<T> {
-  result: Option<T>,
   error: Option<JsonError>,
   id: usize,
+  result: Option<T>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -28,22 +28,18 @@ struct JsonError {
 }
 
 impl Fetcher {
-  pub(crate) fn new(url: &str, auth: Auth) -> Result<Self> {
-    if auth == Auth::None {
-      return Err(anyhow!("No rpc authentication provided"));
-    }
-
+  pub(crate) fn new(options: &Options) -> Result<Self> {
     let client = Client::new();
 
-    let url = if url.starts_with("http://") {
-      url.to_string()
+    let url = if options.rpc_url().starts_with("http://") {
+      options.rpc_url()
     } else {
-      "http://".to_string() + url
+      "http://".to_string() + &options.rpc_url()
     };
 
     let url = Uri::try_from(&url).map_err(|e| anyhow!("Invalid rpc url {url}: {e}"))?;
 
-    let (user, password) = auth.get_user_pass()?;
+    let (user, password) = options.auth()?.get_user_pass()?;
     let auth = format!("{}:{}", user.unwrap(), password.unwrap());
     let auth = format!(
       "Basic {}",
