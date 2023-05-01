@@ -110,18 +110,26 @@ See `ord --help` for details.
 `bitcoind` RPC Authentication
 -----------------------------
 
-`ord` makes RPC calls to `bitcoind`, which usually requires a username and
+`ord` makes RPC calls to `bitcoind`, which usually require a username and
 password.
 
-By default, `ord` looks a username and password in `bitcoind`'s cookie file,
-but can also be supplied with a username and password using command-line
-arguments:
+By default, `ord` looks a username and password in the cookie file created by
+`bitcoind`.
+
+The cookie file path can be configured using `--cookie-file`:
+
+```
+ord --cookie-file /path/to/cookie/file server
+```
+
+Alternatively, `ord` can be supplied with a username and password on the
+command line:
 
 ```
 ord --bitcoin-rpc-user foo --bitcoin-rpc-pass bar server
 ```
 
-Environment variables:
+Using environment variables:
 
 ```
 export ORD_BITCOIN_RPC_USER=foo
