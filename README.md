@@ -107,6 +107,36 @@ If `bitcoind` is not on mainnet, is not run by the same user, has a non-default
 datadir, or a non-default port, you'll need to pass additional flags to `ord`.
 See `ord --help` for details.
 
+`bitcoind` RPC Authentication
+-----------------------------
+
+`ord` can authenticate calls to `bitcoind` using credentials from a cookie
+file, or with a supplied username and password.
+
+A username and password can be supplied using command-line arguments:
+
+```
+ord --bitcoin-rpc-user foo --bitcoin-rpc-pass bar server
+```
+
+Environment variables:
+
+```
+export ORD_BITCOIN_RPC_USER=foo
+export ORD_BITCOIN_RPC_PASS=bar
+ord server
+```
+
+Or in the config file:
+
+```yaml
+bitcoin-rpc-user: foo
+bitcoin-rpc-pass: foo
+```
+
+If no username or password is supplied, or will defualt to reading the username
+and password from the cookie file created by `bitcoind`.
+
 Logging
 --------
 
