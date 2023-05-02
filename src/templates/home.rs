@@ -52,14 +52,7 @@ mod tests {
         vec![inscription_id(1), inscription_id(2)],
       )
       .to_string(),
-      ".*<input type=radio id=inscriptions-tab name=toggle checked>
-<label for=inscriptions-tab>&#9678;</label>
-
-<span class=toggle-seperator>&#9168;</span>
-
-<input type=radio id=blocks-tab name=toggle>
-<label for=blocks-tab>&#9633;</label>
-
+      ".*
 <div class=tab-content>
   <h2>Latest Inscriptions</h2>
   <div class=thumbnails>
