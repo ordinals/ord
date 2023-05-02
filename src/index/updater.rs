@@ -159,7 +159,7 @@ impl Updater {
           )?;
       }
 
-      if INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
+      if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
         break;
       }
     }
@@ -184,8 +184,7 @@ impl Updater {
 
     let height_limit = index.height_limit;
 
-    let client =
-      Client::new(&index.rpc_url, index.auth.clone()).context("failed to connect to RPC URL")?;
+    let client = index.options.bitcoin_rpc_client()?;
 
     let first_inscription_height = index.first_inscription_height;
 
@@ -262,7 +261,7 @@ impl Updater {
   }
 
   fn spawn_fetcher(index: &Index) -> Result<(Sender<OutPoint>, Receiver<u64>)> {
-    let fetcher = Fetcher::new(&index.rpc_url, index.auth.clone())?;
+    let fetcher = Fetcher::new(&index.options)?;
 
     // Not sure if any block has more than 20k inputs, but none so far after first inscription block
     const CHANNEL_BUFFER_SIZE: usize = 20_000;
@@ -339,7 +338,7 @@ impl Updater {
     // If value_receiver still has values something went wrong with the last block
     // Could be an assert, shouldn't recover from this and commit the last block
     let Err(TryRecvError::Empty) = value_receiver.try_recv() else {
-      return Err(anyhow!("Previous block did not consume all input values")); 
+      return Err(anyhow!("Previous block did not consume all input values"));
     };
 
     let mut outpoint_to_value = wtx.open_table(OUTPOINT_TO_VALUE)?;

@@ -8,7 +8,6 @@ fn cardinals() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  // this creates 2 more cardinal outputs and one inscribed output
   inscribe(&rpc_server);
 
   let all_outputs = CommandBuilder::new("wallet outputs")
