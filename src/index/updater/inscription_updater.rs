@@ -7,8 +7,8 @@ pub(super) struct Flotsam {
 }
 
 enum Origin {
-  New(u64),
-  Old(SatPoint),
+  New { fee: u64 },
+  Old { old_satpoint: SatPoint },
 }
 
 pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
@@ -86,7 +86,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           inscriptions.push(Flotsam {
             offset: input_value + old_satpoint.offset,
             inscription_id,
-            origin: Origin::Old(old_satpoint),
+            origin: Origin::Old { old_satpoint },
           });
         }
 
@@ -114,7 +114,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       inscriptions.push(Flotsam {
         inscription_id: txid.into(),
         offset: 0,
-        origin: Origin::New(input_value - tx.output.iter().map(|txout| txout.value).sum::<u64>()),
+        origin: Origin::New {
+          fee: input_value - tx.output.iter().map(|txout| txout.value).sum::<u64>(),
+        },
       });
     };
 
@@ -195,10 +197,10 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     let inscription_id = flotsam.inscription_id.store();
 
     match flotsam.origin {
-      Origin::Old(old_satpoint) => {
+      Origin::Old { old_satpoint } => {
         self.satpoint_to_id.remove(&old_satpoint.store())?;
       }
-      Origin::New(fee) => {
+      Origin::New { fee } => {
         self
           .number_to_id
           .insert(&self.next_number, &inscription_id)?;
