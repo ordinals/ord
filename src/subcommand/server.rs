@@ -753,7 +753,7 @@ impl Server {
       header::CACHE_CONTROL,
       HeaderValue::from_static("max-age=31536000, immutable"),
     );
-    let maybepath = PathBuf::from_str(&("/tmp/".to_owned()+&inscription_id.unwrap()+".png" )).unwrap();
+    let maybepath = PathBuf::from_str(&("/tmp/".to_owned()+&inscription_id.clone().unwrap()+".png" )).unwrap();
     // check if filename exists
     if maybepath.exists() {
       let body = fs::read(maybepath).with_context(|| format!("io error reading")).unwrap();
@@ -770,10 +770,10 @@ impl Server {
       .arg("../compression/models/tfci.py")
       .arg("decompress")
       .arg("/tmp/image2.png")
-      .arg(("/tmp/".to_owned()+&inscription_id.unwrap()+".png" ))
+      .arg(("/tmp/".to_owned()+&inscription_id.clone().unwrap()+".png" ))
       .spawn()
       .expect("ls command failed to start");
-      let body = fs::read(("/tmp/".to_owned()+&inscription_id.unwrap()+".png" )).with_context(|| format!("io error reading")).unwrap();
+      let body = fs::read(("/tmp/".to_owned()+&inscription_id.clone().unwrap()+".png" )).with_context(|| format!("io error reading")).unwrap();
 
       
       return Some((headers, body))
