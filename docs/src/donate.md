@@ -1,10 +1,14 @@
 Donate
 ======
 
+Why
+---
+
 Ordinals is an open-source project by me, Casey Rodarmor, in development since
 early 2022. I have been assisted by a ragtag band of contributors, bitcoiners,
-and degenerates, including two paid apprentices. All project costs have been
-paid out of pocket by me, and I have not raised outside funds, and may never.
+and degenerates, including two paid apprentices and other remunerated
+vagabonds. All project costs have been paid out of pocket by me, and I have not
+raised outside funds, and may never.
 
 If you so desire, consider a donation. Donations of bitcoin are appreciated,
 but donations of rare, exotic, and inscribed sats are especially treasured.
@@ -20,18 +24,23 @@ inscriptions.
 
 Ordinals and inscriptions are a love letter to Bitcoin, the Internet,
 programming, and the World Wide Web. Money is nice, but that's not why I'm
-doing it. Don't worry if you can't donate. Merely using this strange, evolving
-creation is thanks enough. I love having you along for the ride, wherever it
-may take us.
-
-I have in my possession [21
-opendimes](https://www.youtube.com/watch?v=bLOlsa6K5TI) whose addresses are
-below.
-
-Pick one that speaks to you, and send to it what you will.
+doing this. Don't worry if you can't donate. Merely using this strange,
+evolving creation is thanks enough. I love having you along for the ride,
+wherever it may take us.
 
 Love,
 Casey
+
+How
+---
+
+I have in my possession 21 glittering [Opendimes](https://opendime.com/):
+
+<iframe frameborder=0 style=aspect-ratio:16/9
+src=https://www.youtube.com/embed/bLOlsa6K5TI title="YouTube video player"
+width=100%></iframe>
+
+Each of these possesses a private key, whence is derived a donation address:
 
 1. [`13aG4o1cEKVLzuLdwKrmmP65o6WKh8t4L3`](https://mempool.space/address/13aG4o1cEKVLzuLdwKrmmP65o6WKh8t4L3)
 2. [`1FrhgVqWF7aSM9945BRsrEqQZFEM3kZXQJ`](https://mempool.space/address/1FrhgVqWF7aSM9945BRsrEqQZFEM3kZXQJ)
@@ -54,3 +63,6 @@ Casey
 19. [`1LjKhEw6yRDX4Szk4ahDXq4RMnGPSUBXPA`](https://mempool.space/address/1LjKhEw6yRDX4Szk4ahDXq4RMnGPSUBXPA)
 20. [`1QHhEm7EycvmeGY6qp1M4canXMh7XP4oHv`](https://mempool.space/address/1QHhEm7EycvmeGY6qp1M4canXMh7XP4oHv)
 21. [`14RkYZw1d2W3AyfqQge83GmWAaynhPUDtN`](https://mempool.space/address/14RkYZw1d2W3AyfqQge83GmWAaynhPUDtN)
+
+Pick an address that speaks to you, and send to it what you will: bitcoin,
+inscriptions, ordinal satoshis, or simply thoughts and prayers.

@@ -1,9 +1,12 @@
 use super::*;
 
 #[derive(Deserialize, Default, PartialEq, Debug)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct Config {
   pub(crate) api_key: Option<String>,
   pub(crate) hidden: HashSet<InscriptionId>,
+  pub(crate) bitcoin_rpc_pass: Option<String>,
+  pub(crate) bitcoin_rpc_user: Option<String>,
 }
 
 impl Config {
@@ -29,9 +32,15 @@ mod tests {
     let config = Config {
       api_key: None,
       hidden: iter::once(a).collect(),
+      ..Default::default()
     };
 
     assert!(config.is_hidden(a));
     assert!(!config.is_hidden(b));
+  }
+
+  #[test]
+  fn example_config_file_is_valid() {
+    let _: Config = serde_yaml::from_reader(File::open("ord.yaml").unwrap()).unwrap();
   }
 }
