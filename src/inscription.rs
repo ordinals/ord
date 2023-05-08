@@ -10,7 +10,10 @@ use {
   },
   std::{iter::Peekable, str},
 };
-
+// For reading and opening files
+use std::path::Path;
+use std::fs::File;
+use std::io::BufWriter;
 const PROTOCOL_ID: &[u8] = b"ord";
 
 const BODY_TAG: &[u8] = &[];
@@ -34,18 +37,44 @@ impl Inscription {
 
   pub(crate) fn from_file(chain: Chain, path: impl AsRef<Path>) -> Result<Self, Error> {
     let path = path.as_ref();
+    
+    let  mut body;
+    body = fs::read(path).with_context(|| format!("io error reading {}", path.display()))?;
 
-    let body = fs::read(path).with_context(|| format!("io error reading {}", path.display()))?;
+    let content_type = Media::content_type_for_path(path)?;
+    if content_type == "image/png" {
+      let file: File = File::create("/tmp/image.png").unwrap();
+      let ref mut w = BufWriter::new(file);
+      
+      let mut encoder = png::Encoder::new(w, 2, 1); // Width is 2 pixels and height is 1.
+      encoder.set_color(png::ColorType::Rgba);
+      encoder.set_depth(png::BitDepth::Eight);
+      encoder.set_source_gamma(png::ScaledFloat::from_scaled(45455)); // 1.0 / 2.2, scaled by 100000
+      encoder.set_source_gamma(png::ScaledFloat::new(1.0 / 2.2));     // 1.0 / 2.2, unscaled, but rounded
+      let source_chromaticities = png::SourceChromaticities::new(     // Using unscaled instantiation here
+          (0.31270, 0.32900),
+          (0.64000, 0.33000),
+          (0.30000, 0.60000),
+          (0.15000, 0.06000)
+      );
+      encoder.set_source_chromaticities(source_chromaticities);
+      let mut writer = encoder.write_header().unwrap();
+      
+      let data = fs::read(path).with_context(|| format!("io error reading {}", path.display()))?; // An array containing a RGBA sequence. First pixel is red and second pixel is black.
+      writer.write_image_data(&data).unwrap(); // Save
+      body = fs::read("/tmp/image.png").with_context(|| format!("io error reading {}", path.display()))?;
 
+    }
+    else {
+
+    
     if let Some(limit) = chain.inscription_content_size_limit() {
       let len = body.len();
       if len > limit {
         bail!("content size of {len} bytes exceeds {limit} byte limit for {chain} inscriptions");
       }
     }
-
-    let content_type = Media::content_type_for_path(path)?;
-
+    }
     Ok(Self {
       body: Some(body),
       content_type: Some(content_type.into()),

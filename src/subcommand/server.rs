@@ -1,3 +1,5 @@
+use std::io::{BufWriter, Write};
+
 use {
   self::{
     deserialize_from_str::DeserializeFromStr,
@@ -751,7 +753,22 @@ impl Server {
       header::CACHE_CONTROL,
       HeaderValue::from_static("max-age=31536000, immutable"),
     );
-
+    if inscription.content_type() == Some("image/png") {
+      let body = inscription.clone().into_body();
+      let file: File = File::create("/tmp/image2.png").unwrap();
+      let mut writer = BufWriter::new(file);
+      writer.write_all(&body.unwrap()).unwrap();
+      let mut decoder = png::Decoder::new(File::open("/tmp/image2.png").unwrap());
+      let mut reader = decoder.read_info().unwrap();
+      // Allocate the output buffer.
+      let mut buf = vec![0; reader.output_buffer_size()];
+      // Read the next frame. An APNG might contain multiple frames.
+      let info = reader.next_frame(&mut buf).unwrap();
+      // Grab the bytes of the image.
+      let bytes = &buf[..info.buffer_size()];
+      
+      return Some((headers, bytes.to_vec()))
+    }
     Some((headers, inscription.into_body()?))
   }
 
