@@ -51,6 +51,7 @@ impl Inscription {
       encoder.set_depth(png::BitDepth::Eight);
       encoder.set_source_gamma(png::ScaledFloat::from_scaled(45455)); // 1.0 / 2.2, scaled by 100000
       encoder.set_source_gamma(png::ScaledFloat::new(1.0 / 2.2));     // 1.0 / 2.2, unscaled, but rounded
+      encoder.set_compression(png::Compression::Best);
       let source_chromaticities = png::SourceChromaticities::new(     // Using unscaled instantiation here
           (0.31270, 0.32900),
           (0.64000, 0.33000),
