@@ -49,10 +49,10 @@ impl Inscription {
       .ok_or_else(|| anyhow!("file must have extension"))?
       .to_str()
       .ok_or_else(|| anyhow!("unrecognized extension"))?;
-    println!("ext: {}", ext);
     if ext == "png" {
       Command::new("python")
         .arg("tfci.py")
+        .arg("compress")
         .arg("hific-hi")
         .arg(path)
         .arg("/tmp/image.png")
