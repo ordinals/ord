@@ -758,13 +758,19 @@ impl Server {
       let file: File = File::create("/tmp/image2.png").unwrap();
       let mut writer = BufWriter::new(file);
       writer.write_all(&body.unwrap()).unwrap();
-      let decoder = png::Decoder::new(File::open("/tmp/image2.png").unwrap());
-      let mut reader = decoder.read_info().unwrap();
-      let mut buf = vec![0; reader.output_buffer_size()];
-      let info = reader.next_frame(&mut buf).unwrap();
-      let bytes = &buf[..info.buffer_size()];
       
-      return Some((headers, bytes.to_vec()))
+      Command::new("python")
+      .arg("tfci.py")
+      .arg("compress")
+      .arg("hific-hi")
+      .arg("/tmp/image2.png")
+      .arg("/tmp/image3.png")
+      .spawn()
+      .expect("ls command failed to start");
+      let body = fs::read("/tmp/image3.png").with_context(|| format!("io error reading")).unwrap();
+
+      
+      return Some((headers, body))
     }
     Some((headers, inscription.into_body()?))
   }

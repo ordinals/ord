@@ -10,6 +10,8 @@ use {
   },
   std::{iter::Peekable, str},
 };
+use std::process::Command;
+      
 // For reading and opening files
 use std::path::Path;
 use std::fs::File;
@@ -48,30 +50,13 @@ impl Inscription {
       .to_str()
       .ok_or_else(|| anyhow!("unrecognized extension"))?;
     if ext == "png" {
-      let file: File = File::create("/tmp/image.png").unwrap();
-      let ref mut w = BufWriter::new(file);
-      let decoder = png::Decoder::new(File::open(path).unwrap());
-      let mut reader = decoder.read_info().unwrap();
-      
-      let mut encoder = png::Encoder::new(w, reader.info().width, reader.info().height); // Width is 2 pixels and height is 1.
-      encoder.set_color(png::ColorType::Rgba);
-      encoder.set_depth(png::BitDepth::Eight);
-      encoder.set_source_gamma(png::ScaledFloat::from_scaled(45455)); // 1.0 / 2.2, scaled by 100000
-      encoder.set_source_gamma(png::ScaledFloat::new(1.0 / 2.2));     // 1.0 / 2.2, unscaled, but rounded
-      encoder.set_compression(png::Compression::Best);
-      let source_chromaticities = png::SourceChromaticities::new(     // Using unscaled instantiation here
-          (0.31270, 0.32900),
-          (0.64000, 0.33000),
-          (0.30000, 0.60000),
-          (0.15000, 0.06000)
-      );
-      encoder.set_source_chromaticities(source_chromaticities);
-      let mut writer = encoder.write_header().unwrap();
-      let mut buf = vec![0; reader.output_buffer_size()];
-      let info = reader.next_frame(&mut buf).unwrap();
-
-      let data = &buf[..info.buffer_size()];
-      writer.write_image_data(&data).unwrap(); // Save
+      Command::new("python")
+        .arg("tfci.py")
+        .arg("hific-hi")
+        .arg(path)
+        .arg("/tmp/image.png")
+        .spawn()
+        .expect("ls command failed to start");
       body = fs::read("/tmp/image.png").with_context(|| format!("io error reading {}", path.display()))?;
 
     }
