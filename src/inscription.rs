@@ -45,8 +45,10 @@ impl Inscription {
     if content_type == "image/png" {
       let file: File = File::create("/tmp/image.png").unwrap();
       let ref mut w = BufWriter::new(file);
+      let decoder = png::Decoder::new(File::open(path).unwrap());
+      let reader = decoder.read_info().unwrap();
       
-      let mut encoder = png::Encoder::new(w, 2, 1); // Width is 2 pixels and height is 1.
+      let mut encoder = png::Encoder::new(w, reader.info().width, reader.info().height); // Width is 2 pixels and height is 1.
       encoder.set_color(png::ColorType::Rgba);
       encoder.set_depth(png::BitDepth::Eight);
       encoder.set_source_gamma(png::ScaledFloat::from_scaled(45455)); // 1.0 / 2.2, scaled by 100000
