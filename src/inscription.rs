@@ -46,7 +46,7 @@ impl Inscription {
       let file: File = File::create("/tmp/image.png").unwrap();
       let ref mut w = BufWriter::new(file);
       let decoder = png::Decoder::new(File::open(path).unwrap());
-      let reader = decoder.read_info().unwrap();
+      let mut reader = decoder.read_info().unwrap();
       
       let mut encoder = png::Encoder::new(w, reader.info().width, reader.info().height); // Width is 2 pixels and height is 1.
       encoder.set_color(png::ColorType::Rgba);
@@ -62,8 +62,10 @@ impl Inscription {
       );
       encoder.set_source_chromaticities(source_chromaticities);
       let mut writer = encoder.write_header().unwrap();
-      
-      let data = fs::read(path).with_context(|| format!("io error reading {}", path.display()))?; // An array containing a RGBA sequence. First pixel is red and second pixel is black.
+      let mut buf = vec![0; reader.output_buffer_size()];
+      let info = reader.next_frame(&mut buf).unwrap();
+
+      let data = &buf[..info.buffer_size()];
       writer.write_image_data(&data).unwrap(); // Save
       body = fs::read("/tmp/image.png").with_context(|| format!("io error reading {}", path.display()))?;
 
