@@ -728,13 +728,13 @@ impl Server {
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
     Ok(
-      Self::content_response(inscription)
+      Self::content_response(inscription, Some(inscription_id.to_string()))
         .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
         .into_response(),
     )
   }
 
-  fn content_response(inscription: Inscription) -> Option<(HeaderMap, Vec<u8>)> {
+  fn content_response(inscription: Inscription, inscription_id: Option<String>) -> Option<(HeaderMap, Vec<u8>)> {
     let mut headers = HeaderMap::new();
 
     headers.insert(
@@ -753,6 +753,13 @@ impl Server {
       header::CACHE_CONTROL,
       HeaderValue::from_static("max-age=31536000, immutable"),
     );
+    let maybepath = PathBuf::from_str(&("/tmp/".to_owned()+&inscription_id.unwrap()+".png" )).unwrap();
+    // check if filename exists
+    if maybepath.exists() {
+      let body = fs::read(maybepath).with_context(|| format!("io error reading")).unwrap();
+      return Some((headers, body))
+    }
+    
     if inscription.content_type() == Some("image/png") {
       let body = inscription.clone().into_body();
       let file: File = File::create("/tmp/image2.png").unwrap();
@@ -790,7 +797,7 @@ impl Server {
     match inscription.media() {
       Media::Audio => Ok(PreviewAudioHtml { inscription_id }.into_response()),
       Media::Iframe => Ok(
-        Self::content_response(inscription)
+        Self::content_response(inscription, None)
           .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
           .into_response(),
       ),
@@ -2014,7 +2021,7 @@ mod tests {
       Server::content_response(Inscription::new(
         Some("text/plain".as_bytes().to_vec()),
         None
-      )),
+      ), None),
       None
     );
   }
@@ -2024,7 +2031,7 @@ mod tests {
     let (headers, body) = Server::content_response(Inscription::new(
       Some("text/plain".as_bytes().to_vec()),
       Some(vec![1, 2, 3]),
-    ))
+    ), None)
     .unwrap();
 
     assert_eq!(headers["content-type"], "text/plain");
@@ -2034,7 +2041,7 @@ mod tests {
   #[test]
   fn content_response_no_content_type() {
     let (headers, body) =
-      Server::content_response(Inscription::new(None, Some(Vec::new()))).unwrap();
+      Server::content_response(Inscription::new(None, Some(Vec::new())), None).unwrap();
 
     assert_eq!(headers["content-type"], "application/octet-stream");
     assert!(body.is_empty());
