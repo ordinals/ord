@@ -759,7 +759,7 @@ impl Server {
       let mut writer = BufWriter::new(file);
       writer.write_all(&body.unwrap()).unwrap();
       
-      Command::new("python")
+      Command::new("python3")
       .arg("tfci.py")
       .arg("compress")
       .arg("hific-hi")

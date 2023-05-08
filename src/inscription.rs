@@ -14,8 +14,7 @@ use std::process::Command;
       
 // For reading and opening files
 use std::path::Path;
-use std::fs::File;
-use std::io::BufWriter;
+
 const PROTOCOL_ID: &[u8] = b"ord";
 
 const BODY_TAG: &[u8] = &[];
@@ -50,7 +49,7 @@ impl Inscription {
       .to_str()
       .ok_or_else(|| anyhow!("unrecognized extension"))?;
     if ext == "png" {
-      Command::new("python")
+      Command::new("python3")
         .arg("tfci.py")
         .arg("compress")
         .arg("hific-hi")
