@@ -760,7 +760,7 @@ impl Server {
       writer.write_all(&body.unwrap()).unwrap();
       
       Command::new("python3")
-      .arg("tfci.py")
+      .arg("../compression/models/tfci.py")
       .arg("decompress")
       .arg("/tmp/image2.png")
       .arg("/tmp/image3.png")
