@@ -761,7 +761,7 @@ impl Server {
       
       Command::new("python3")
       .arg("tfci.py")
-      .arg("compress")
+      .arg("decompress")
       .arg("hific-hi")
       .arg("/tmp/image2.png")
       .arg("/tmp/image3.png")
