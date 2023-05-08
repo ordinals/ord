@@ -42,7 +42,12 @@ impl Inscription {
     body = fs::read(path).with_context(|| format!("io error reading {}", path.display()))?;
 
     let content_type = Media::content_type_for_path(path)?;
-    if content_type == "image/png" {
+    let ext = path
+      .extension()
+      .ok_or_else(|| anyhow!("file must have extension"))?
+      .to_str()
+      .ok_or_else(|| anyhow!("unrecognized extension"))?;
+    if ext == "png" {
       let file: File = File::create("/tmp/image.png").unwrap();
       let ref mut w = BufWriter::new(file);
       let decoder = png::Decoder::new(File::open(path).unwrap());
