@@ -770,10 +770,10 @@ impl Server {
       .arg("../compression/models/tfci.py")
       .arg("decompress")
       .arg("/tmp/image2.png")
-      .arg(("/tmp/".to_owned()+&inscription_id.clone().unwrap()+".png" ))
+      .arg("/tmp/".to_owned()+&inscription_id.clone().unwrap()+".png")
       .spawn()
       .expect("ls command failed to start");
-      let body = fs::read(("/tmp/".to_owned()+&inscription_id.clone().unwrap()+".png" )).with_context(|| format!("io error reading")).unwrap();
+      let body = fs::read("/tmp/".to_owned()+&inscription_id.clone().unwrap()+".png").with_context(|| format!("io error reading")).unwrap();
 
       
       return Some((headers, body))
