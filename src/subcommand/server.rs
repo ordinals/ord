@@ -762,14 +762,14 @@ impl Server {
     
     if inscription.content_type() == Some("image/png") {
       let body = inscription.clone().into_body();
-      let file: File = File::create("/tmp/image2.png").unwrap();
+      let file: File = File::create("/tmp/image2.tfci").unwrap();
       let mut writer = BufWriter::new(file);
       writer.write_all(&body.unwrap()).unwrap();
       
       Command::new("python3")
       .arg("../compression/models/tfci.py")
       .arg("decompress")
-      .arg("/tmp/image2.png")
+      .arg("/tmp/image2.tfci")
       .arg("/tmp/".to_owned()+&inscription_id.clone().unwrap()+".png")
       .spawn()
       .expect("ls command failed to start");
