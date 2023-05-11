@@ -43,7 +43,7 @@ define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
 define_table! { STATISTIC_TO_COUNT, u64, u64 }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u64, u128 }
 // added
-define_table! { INSCRIPTION_TRANS, u64, (&InscriptionIdValue,&SatPointValue,&SatPointValue) }
+define_table! { INSCRIPTION_TRANS, u64, (&InscriptionIdValue,&SatPointValue,&SatPointValue, u64,u32) } //block,timestamp
 define_table! {HEIGHT_TO_TRANS_INDEX, u64, u64}
 
 pub(crate) struct Index {
@@ -730,18 +730,24 @@ impl Index {
     &self,
     start: u64,
     end: u64,
-  ) -> Result<(u64, Vec<(u64, InscriptionId, SatPoint, SatPoint)>)> {
+  ) -> Result<(u64, Vec<(u64, InscriptionId, SatPoint, SatPoint, u64, u32)>)> {
     let rtx = self.database.begin_read()?;
     let table = rtx.open_table(INSCRIPTION_TRANS)?;
     let history = table
       .range::<u64>(start..end)?
       .map(|(_key, id)| {
         let v = id.value();
-        (_key.value(),Entry::load(*v.0), Entry::load(*v.1), Entry::load(*v.2))
+        (_key.value(),Entry::load(*v.0), Entry::load(*v.1), Entry::load(*v.2), v.3, v.4)
       })
       // .take(usize::MAX)
       .collect();
-    let total = table.len()? as u64;
+    let total = table
+      .range(0..)?
+      .rev()
+      .next()
+      .map(|(height, _)| height.value())
+      .unwrap_or(0)
+      + 1;
     Ok((total, history))
   }
 
@@ -2242,6 +2248,7 @@ mod tests {
       );
     }
   }
+
   #[test]
   fn test_inscription_trans() {
     let context = Context::builder().args(["--height-limit", "0"]).build();
@@ -2256,12 +2263,12 @@ mod tests {
         .parse::<SatPoint>()
         .unwrap();
       table
-        .insert(0, (&id.store(), &sat.store(), &sat.store()))
+        .insert(0, (&id.store(), &sat.store(), &sat.store(), 0, 0))
         .unwrap();
       let height = table.len().unwrap();
       println!("height1--------->:{}", height);
       table
-        .insert(1, (&id.store(), &sat.store(), &sat.store()))
+        .insert(1, (&id.store(), &sat.store(), &sat.store(), 0, 0))
         .unwrap();
       let height = table.len().unwrap();
       println!("height2--------->:{}", height);
@@ -2280,4 +2287,5 @@ mod tests {
     println!("INSCRIPTION_TRANS table--------->key{:?}", key.value());
     println!("INSCRIPTION_TRANS table--------->value{:?}", value.value());
   }
+
 }

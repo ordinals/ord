@@ -107,7 +107,7 @@ impl Updater {
       .range(0..)?
       .rev()
       .next()
-      .map(|(height, _)| height.value())
+      .map(|(height, _)| height.value() + 1) //must add 1 
       .unwrap_or(0);
 
     let mut value_cache = HashMap::new();
