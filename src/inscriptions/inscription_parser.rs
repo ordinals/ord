@@ -213,7 +213,7 @@ mod tests {
         Script::new().into_bytes(),
         Vec::new()
       ])),
-     Ok(vec![]),
+      Ok(vec![]),
     );
   }
 
@@ -420,7 +420,7 @@ mod tests {
       Ok(vec![]),
     );
   }
-  
+
   // TODO: write envelope specific tests
   #[test]
   fn no_op_false() {
@@ -429,8 +429,7 @@ mod tests {
       .push_slice("ord".as_bytes())
       .push_opcode(opcodes::all::OP_ENDIF)
       .into_script();
-    
-    
+
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), Vec::new()])),
       Ok(vec![])
@@ -439,18 +438,12 @@ mod tests {
 
   #[test]
   fn empty_envelope() {
-    assert_eq!(
-      InscriptionParser::parse(&envelope(&[])),
-      Ok(vec![])
-    );
+    assert_eq!(InscriptionParser::parse(&envelope(&[])), Ok(vec![]));
   }
 
   #[test]
   fn wrong_magic_number() {
-    assert_eq!(
-      InscriptionParser::parse(&envelope(&[b"foo"])),
-      Ok(vec![]),
-    );
+    assert_eq!(InscriptionParser::parse(&envelope(&[b"foo"])), Ok(vec![]),);
   }
 
   #[test]

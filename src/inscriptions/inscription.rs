@@ -22,11 +22,10 @@ impl Inscription {
   pub(crate) fn from_transaction(tx: &Transaction) -> Vec<TransactionInscription> {
     let mut result = Vec::new();
     for (index, tx_in) in tx.input.iter().enumerate() {
-
       // if index != 0 { break }; // TODO: If before activation block height
 
       let Ok(inscriptions) = InscriptionParser::parse(&tx_in.witness) else { continue };
-      
+
       result.extend(
         inscriptions
           .into_iter()
