@@ -15,10 +15,10 @@ fmt:
   cargo fmt
 
 clippy:
-  cargo clippy --all --all-targets -- -D warnings
+  cargo +nightly clippy --all --all-targets -- -D warnings
 
 lclippy:
-  cargo lclippy --all --all-targets -- -D warnings
+  cargo +nightly lclippy --all --all-targets -- -D warnings
 
 deploy branch chain domain:
   ssh root@{{domain}} "mkdir -p deploy \
@@ -153,6 +153,7 @@ build-docs:
   mdbook build docs
 
 update-changelog:
+  echo >> CHANGELOG.md
   git log --pretty='format:- %s' >> CHANGELOG.md
 
 preview-examples:

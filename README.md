@@ -24,8 +24,6 @@ where the project is and where it's going.
 Join [the Discord server](https://discord.gg/87cjuz4FYg) to chat with fellow
 ordinal degenerates.
 
-Tune in to the [Twitch stream](https://www.twitch.tv/ordinalsofficial) to watch us work on this project!
-
 Wallet
 ------
 
@@ -91,10 +89,9 @@ cd ord
 cargo build --release
 ```
 
-The default location for the `ord` binary once built is `./target/release/ord`.
+Once built, the `ord` binary can be found at `./target/release/ord`.
 
 `ord` requires `rustc` version 1.67.0 or later. Run `rustc --version` to ensure you have this version. Run `rustup update` to get the latest stable release.
-
 
 Syncing
 -------
@@ -109,6 +106,43 @@ from `bitcoind`'s datadir, and connecting using the default RPC port.
 If `bitcoind` is not on mainnet, is not run by the same user, has a non-default
 datadir, or a non-default port, you'll need to pass additional flags to `ord`.
 See `ord --help` for details.
+
+`bitcoind` RPC Authentication
+-----------------------------
+
+`ord` makes RPC calls to `bitcoind`, which usually require a username and
+password.
+
+By default, `ord` looks a username and password in the cookie file created by
+`bitcoind`.
+
+The cookie file path can be configured using `--cookie-file`:
+
+```
+ord --cookie-file /path/to/cookie/file server
+```
+
+Alternatively, `ord` can be supplied with a username and password on the
+command line:
+
+```
+ord --bitcoin-rpc-user foo --bitcoin-rpc-pass bar server
+```
+
+Using environment variables:
+
+```
+export ORD_BITCOIN_RPC_USER=foo
+export ORD_BITCOIN_RPC_PASS=bar
+ord server
+```
+
+Or in the config file:
+
+```yaml
+bitcoin_rpc_user: foo
+bitcoin_rpc_pass: bar
+```
 
 Logging
 --------

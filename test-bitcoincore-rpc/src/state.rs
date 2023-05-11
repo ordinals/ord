@@ -5,6 +5,7 @@ pub(crate) struct State {
   pub(crate) descriptors: Vec<String>,
   pub(crate) fail_lock_unspent: bool,
   pub(crate) hashes: Vec<BlockHash>,
+  pub(crate) loaded_wallets: BTreeSet<String>,
   pub(crate) locked: BTreeSet<OutPoint>,
   pub(crate) mempool: Vec<Transaction>,
   pub(crate) network: Network,
@@ -14,7 +15,6 @@ pub(crate) struct State {
   pub(crate) utxos: BTreeMap<OutPoint, Amount>,
   pub(crate) version: usize,
   pub(crate) wallets: BTreeSet<String>,
-  pub(crate) loaded_wallets: BTreeSet<String>,
 }
 
 impl State {

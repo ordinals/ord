@@ -9,7 +9,7 @@ use {
   super::*,
   crate::wallet::Wallet,
   bitcoin::BlockHeader,
-  bitcoincore_rpc::{json::GetBlockHeaderResult, Auth, Client},
+  bitcoincore_rpc::{json::GetBlockHeaderResult, Client},
   chrono::SubsecRound,
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
@@ -47,7 +47,6 @@ define_table! { INSCRIPTION_TRANS, u64, (&InscriptionIdValue,&SatPointValue,&Sat
 define_table! {HEIGHT_TO_TRANS_INDEX, u64, u64}
 
 pub(crate) struct Index {
-  auth: Auth,
   client: Client,
   database: Database,
   path: PathBuf,
@@ -55,8 +54,8 @@ pub(crate) struct Index {
   genesis_block_coinbase_transaction: Transaction,
   genesis_block_coinbase_txid: Txid,
   height_limit: Option<u64>,
+  options: Options,
   reorged: AtomicBool,
-  rpc_url: String,
 }
 
 #[derive(Debug, PartialEq)]
@@ -136,17 +135,7 @@ impl<T> BitcoinCoreRpcResultExt<T> for Result<T, bitcoincore_rpc::Error> {
 
 impl Index {
   pub(crate) fn open(options: &Options) -> Result<Self> {
-    let rpc_url = options.rpc_url();
-    let cookie_file = options.cookie_file()?;
-
-    log::info!(
-      "Connecting to Bitcoin Core RPC server at {rpc_url} using credentials from `{}`",
-      cookie_file.display()
-    );
-
-    let auth = Auth::CookieFile(cookie_file);
-
-    let client = Client::new(&rpc_url, auth.clone()).context("failed to connect to RPC URL")?;
+    let client = options.bitcoin_rpc_client()?;
 
     let data_dir = options.data_dir()?;
 
@@ -235,7 +224,6 @@ impl Index {
 
     Ok(Self {
       genesis_block_coinbase_txid: genesis_block_coinbase_transaction.txid(),
-      auth,
       client,
       database,
       path,
@@ -243,7 +231,7 @@ impl Index {
       genesis_block_coinbase_transaction,
       height_limit: options.height_limit,
       reorged: AtomicBool::new(false),
-      rpc_url,
+      options: options.clone(),
     })
   }
 
@@ -571,7 +559,6 @@ impl Index {
           .open_table(SATPOINT_TO_INSCRIPTION_ID)?,
         outpoint,
       )?
-      .into_iter()
       .map(|(_satpoint, inscription_id)| inscription_id)
       .collect(),
     )
@@ -1618,7 +1605,7 @@ mod tests {
   }
 
   #[test]
-  fn fee_spent_inscriptions_are_tracked_correctly() {
+  fn one_input_fee_spent_inscriptions_are_tracked_correctly() {
     for context in Context::configurations() {
       context.mine_blocks(1);
 
@@ -1633,6 +1620,42 @@ mod tests {
 
       context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(2, 1, 0)],
+        fee: 50 * COIN_VALUE,
+        ..Default::default()
+      });
+
+      let coinbase_tx = context.mine_blocks(1)[0].txdata[0].txid();
+
+      context.index.assert_inscription_location(
+        inscription_id,
+        SatPoint {
+          outpoint: OutPoint {
+            txid: coinbase_tx,
+            vout: 0,
+          },
+          offset: 50 * COIN_VALUE,
+        },
+        50 * COIN_VALUE,
+      );
+    }
+  }
+
+  #[test]
+  fn two_input_fee_spent_inscriptions_are_tracked_correctly() {
+    for context in Context::configurations() {
+      context.mine_blocks(2);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0)],
+        witness: inscription("text/plain", "hello").to_witness(),
+        ..Default::default()
+      });
+      let inscription_id = InscriptionId::from(txid);
+
+      context.mine_blocks(1);
+
+      context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(2, 0, 0), (3, 1, 0)],
         fee: 50 * COIN_VALUE,
         ..Default::default()
       });
