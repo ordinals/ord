@@ -50,6 +50,7 @@ pub enum Error {
   },
   NotEnoughCardinalUtxos,
   NotInWallet(SatPoint),
+  OutOfRange(SatPoint, u64),
   UtxoContainsAdditionalInscription {
     outgoing_satpoint: SatPoint,
     inscribed_satpoint: SatPoint,
@@ -72,6 +73,7 @@ impl fmt::Display for Error {
         dust_value,
       } => write!(f, "output value is below dust value: {output_value} < {dust_value}"),
       Error::NotInWallet(outgoing_satpoint) => write!(f, "outgoing satpoint {outgoing_satpoint} not in wallet"),
+      Error::OutOfRange(outgoing_satpoint, maximum) => write!(f, "outgoing satpoint {outgoing_satpoint} offset higher than maximum {maximum}"),
       Error::NotEnoughCardinalUtxos => write!(
         f,
         "wallet does not contain enough cardinal UTXOs, please add additional funds to wallet."
@@ -226,6 +228,10 @@ impl TransactionBuilder {
       .amounts
       .get(&self.outgoing.outpoint)
       .ok_or(Error::NotInWallet(self.outgoing))?;
+
+    if self.outgoing.offset >= amount.to_sat() {
+      return Err(Error::OutOfRange(self.outgoing, amount.to_sat() - 1));
+    }
 
     self.utxos.remove(&self.outgoing.outpoint);
     self.inputs.push(self.outgoing.outpoint);
@@ -421,7 +427,6 @@ impl TransactionBuilder {
       version: 1,
       lock_time: PackedLockTime::ZERO,
       input: (0..inputs)
-        .into_iter()
         .map(|_| TxIn {
           previous_output: OutPoint::null(),
           script_sig: Script::new(),

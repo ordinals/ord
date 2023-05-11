@@ -30,11 +30,7 @@ struct Output {
 pub(crate) struct Inscribe {
   #[clap(long, help = "Inscribe <SATPOINT>")]
   pub(crate) satpoint: Option<SatPoint>,
-  #[clap(
-    long,
-    default_value = "1.0",
-    help = "Use fee rate of <FEE_RATE> sats/vB"
-  )]
+  #[clap(long, help = "Use fee rate of <FEE_RATE> sats/vB")]
   pub(crate) fee_rate: FeeRate,
   #[clap(
     long,
@@ -92,7 +88,9 @@ impl Inscribe {
 
     utxos.insert(
       reveal_tx.input[0].previous_output,
-      Amount::from_sat(unsigned_commit_tx.output[0].value),
+      Amount::from_sat(
+        unsigned_commit_tx.output[reveal_tx.input[0].previous_output.vout as usize].value,
+      ),
     );
 
     let fees =
