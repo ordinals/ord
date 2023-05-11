@@ -730,18 +730,24 @@ impl Index {
     &self,
     start: u64,
     end: u64,
-  ) -> Result<(u64, Vec<(u64, InscriptionId, SatPoint, SatPoint)>)> {
+  ) -> Result<(u64, Vec<(u64, InscriptionId, SatPoint, SatPoint, u64, u32)>)> {
     let rtx = self.database.begin_read()?;
     let table = rtx.open_table(INSCRIPTION_TRANS)?;
     let history = table
       .range::<u64>(start..end)?
       .map(|(_key, id)| {
         let v = id.value();
-        (_key.value(),Entry::load(*v.0), Entry::load(*v.1), Entry::load(*v.2))
+        (_key.value(),Entry::load(*v.0), Entry::load(*v.1), Entry::load(*v.2), v.3, v.4)
       })
       // .take(usize::MAX)
       .collect();
-    let total = table.len()? as u64;
+    let total = table
+      .range(0..)?
+      .rev()
+      .next()
+      .map(|(height, _)| height.value())
+      .unwrap_or(0)
+      + 1;
     Ok((total, history))
   }
 
