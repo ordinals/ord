@@ -43,7 +43,7 @@ define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
 define_table! { STATISTIC_TO_COUNT, u64, u64 }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u64, u128 }
 // added
-define_table! { INSCRIPTION_TRANS, u64, (&InscriptionIdValue,&SatPointValue,&SatPointValue) }
+define_table! { INSCRIPTION_TRANS, u64, (&InscriptionIdValue,&SatPointValue,&SatPointValue, u64,u32) } //block,timestamp
 define_table! {HEIGHT_TO_TRANS_INDEX, u64, u64}
 
 pub(crate) struct Index {
@@ -2248,6 +2248,7 @@ mod tests {
       );
     }
   }
+
   #[test]
   fn test_inscription_trans() {
     let context = Context::builder().args(["--height-limit", "0"]).build();
@@ -2262,12 +2263,12 @@ mod tests {
         .parse::<SatPoint>()
         .unwrap();
       table
-        .insert(0, (&id.store(), &sat.store(), &sat.store()))
+        .insert(0, (&id.store(), &sat.store(), &sat.store(), 0, 0))
         .unwrap();
       let height = table.len().unwrap();
       println!("height1--------->:{}", height);
       table
-        .insert(1, (&id.store(), &sat.store(), &sat.store()))
+        .insert(1, (&id.store(), &sat.store(), &sat.store(), 0, 0))
         .unwrap();
       let height = table.len().unwrap();
       println!("height2--------->:{}", height);
@@ -2286,4 +2287,5 @@ mod tests {
     println!("INSCRIPTION_TRANS table--------->key{:?}", key.value());
     println!("INSCRIPTION_TRANS table--------->value{:?}", value.value());
   }
+
 }
