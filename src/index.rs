@@ -9,7 +9,7 @@ use {
   super::*,
   crate::wallet::Wallet,
   bitcoin::BlockHeader,
-  bitcoincore_rpc::{json::GetBlockHeaderResult, Auth, Client},
+  bitcoincore_rpc::{json::GetBlockHeaderResult, Client},
   chrono::SubsecRound,
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
@@ -44,7 +44,6 @@ define_table! { STATISTIC_TO_COUNT, u64, u64 }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u64, u128 }
 
 pub(crate) struct Index {
-  auth: Auth,
   client: Client,
   database: Database,
   path: PathBuf,
@@ -52,8 +51,8 @@ pub(crate) struct Index {
   genesis_block_coinbase_transaction: Transaction,
   genesis_block_coinbase_txid: Txid,
   height_limit: Option<u64>,
+  options: Options,
   reorged: AtomicBool,
-  rpc_url: String,
 }
 
 #[derive(Debug, PartialEq)]
@@ -133,17 +132,7 @@ impl<T> BitcoinCoreRpcResultExt<T> for Result<T, bitcoincore_rpc::Error> {
 
 impl Index {
   pub(crate) fn open(options: &Options) -> Result<Self> {
-    let rpc_url = options.rpc_url();
-    let cookie_file = options.cookie_file()?;
-
-    log::info!(
-      "Connecting to Bitcoin Core RPC server at {rpc_url} using credentials from `{}`",
-      cookie_file.display()
-    );
-
-    let auth = Auth::CookieFile(cookie_file);
-
-    let client = Client::new(&rpc_url, auth.clone()).context("failed to connect to RPC URL")?;
+    let client = options.bitcoin_rpc_client()?;
 
     let data_dir = options.data_dir()?;
 
@@ -232,7 +221,6 @@ impl Index {
 
     Ok(Self {
       genesis_block_coinbase_txid: genesis_block_coinbase_transaction.txid(),
-      auth,
       client,
       database,
       path,
@@ -240,7 +228,7 @@ impl Index {
       genesis_block_coinbase_transaction,
       height_limit: options.height_limit,
       reorged: AtomicBool::new(false),
-      rpc_url,
+      options: options.clone(),
     })
   }
 
