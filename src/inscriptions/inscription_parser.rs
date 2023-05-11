@@ -47,19 +47,47 @@ impl<'a> InscriptionParser<'a> {
     InscriptionParser {
       instructions: Script::from(Vec::from(script)).instructions().peekable(),
     }
-    .parse_script()
+    .parse_inscription()
   }
 
-  fn parse_script(mut self) -> Result<Inscription> {
-    loop {
-      let next = self.advance()?;
+  fn parse_inscription(&mut self) -> Result<Inscription> {
+    self.advance_into_inscription_envelope()?;
 
-      if next == Instruction::PushBytes(&[]) {
-        if let Some(inscription) = self.parse_inscription()? {
-          return Ok(inscription);
+    let mut fields = BTreeMap::new();
+
+    loop {
+      match self.advance()? {
+        Instruction::PushBytes(BODY_TAG) => {
+          let mut body = Vec::new();
+          while !self.accept(&Instruction::Op(opcodes::all::OP_ENDIF))? {
+            body.extend_from_slice(self.expect_push()?);
+          }
+          fields.insert(BODY_TAG, body);
+          break;
+        }
+        Instruction::PushBytes(tag) => {
+          if fields.contains_key(tag) {
+            return Err(InscriptionError::InvalidInscription);
+          }
+          fields.insert(tag, self.expect_push()?.to_vec());
+        }
+        Instruction::Op(opcodes::all::OP_ENDIF) => break,
+        _ => return Err(InscriptionError::InvalidInscription),
+      }
+    }
+
+    let body = fields.remove(BODY_TAG);
+    let content_type = fields.remove(CONTENT_TYPE_TAG);
+
+    for tag in fields.keys() {
+      if let Some(lsb) = tag.first() {
+        if lsb % 2 == 0 {
+          return Err(InscriptionError::UnrecognizedEvenField);
         }
       }
     }
+
+    return Ok(Inscription { body, content_type });
   }
 
   fn advance(&mut self) -> Result<Instruction<'a>> {
@@ -70,50 +98,24 @@ impl<'a> InscriptionParser<'a> {
       .map_err(InscriptionError::Script)
   }
 
-  fn parse_inscription(&mut self) -> Result<Option<Inscription>> {
-    if self.advance()? == Instruction::Op(opcodes::all::OP_IF) {
-      if !self.accept(Instruction::PushBytes(PROTOCOL_ID))? {
-        return Err(InscriptionError::NoInscription);
+  fn advance_into_inscription_envelope(&mut self) -> Result<()> {
+    loop {
+      if self.match_instructions(&INSCRIPTION_ENVELOPE)? {
+        break;
       }
-
-      let mut fields = BTreeMap::new();
-
-      loop {
-        match self.advance()? {
-          Instruction::PushBytes(BODY_TAG) => {
-            let mut body = Vec::new();
-            while !self.accept(Instruction::Op(opcodes::all::OP_ENDIF))? {
-              body.extend_from_slice(self.expect_push()?);
-            }
-            fields.insert(BODY_TAG, body);
-            break;
-          }
-          Instruction::PushBytes(tag) => {
-            if fields.contains_key(tag) {
-              return Err(InscriptionError::InvalidInscription);
-            }
-            fields.insert(tag, self.expect_push()?.to_vec());
-          }
-          Instruction::Op(opcodes::all::OP_ENDIF) => break,
-          _ => return Err(InscriptionError::InvalidInscription),
-        }
-      }
-
-      let body = fields.remove(BODY_TAG);
-      let content_type = fields.remove(CONTENT_TYPE_TAG);
-
-      for tag in fields.keys() {
-        if let Some(lsb) = tag.first() {
-          if lsb % 2 == 0 {
-            return Err(InscriptionError::UnrecognizedEvenField);
-          }
-        }
-      }
-
-      return Ok(Some(Inscription { body, content_type }));
     }
 
-    Ok(None)
+    Ok(())
+  }
+
+  fn match_instructions(&mut self, instructions: &[Instruction]) -> Result<bool> {
+    for instruction in instructions {
+      if &self.advance()? != instruction {
+        return Ok(false);
+      }
+    }
+
+    Ok(true)
   }
 
   fn expect_push(&mut self) -> Result<&'a [u8]> {
@@ -123,10 +125,10 @@ impl<'a> InscriptionParser<'a> {
     }
   }
 
-  fn accept(&mut self, instruction: Instruction) -> Result<bool> {
+  fn accept(&mut self, instruction: &Instruction) -> Result<bool> {
     match self.instructions.peek() {
       Some(Ok(next)) => {
-        if *next == instruction {
+        if next == instruction {
           self.advance()?;
           Ok(true)
         } else {
