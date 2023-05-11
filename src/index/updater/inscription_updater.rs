@@ -228,9 +228,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       "0000000000000000000000000000000000000000000000000000000000000000:0:0"
         .parse::<SatPoint>()
         .unwrap();
-
     match flotsam.origin {
-      Origin::Old(old_satpoint) => {
+      
+      Origin::Old { old_satpoint } => {
         _old_satpoint = old_satpoint;
         self.satpoint_to_id.remove(&old_satpoint.store())?;
       }
