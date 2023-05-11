@@ -101,6 +101,15 @@ impl Updater {
     let (mut outpoint_sender, mut value_receiver) = Self::spawn_fetcher(index)?;
 
     let mut uncommitted = 0;
+
+    let mut history_len = wtx
+      .open_table(INSCRIPTION_TRANS)?
+      .range(0..)?
+      .rev()
+      .next()
+      .map(|(height, _)| height.value())
+      .unwrap_or(0);
+
     let mut value_cache = HashMap::new();
     loop {
       let block = match rx.recv() {
@@ -115,6 +124,7 @@ impl Updater {
         &mut wtx,
         block,
         &mut value_cache,
+        &mut history_len,
       )?;
 
       if let Some(progress_bar) = &mut progress_bar {
@@ -335,6 +345,7 @@ impl Updater {
     wtx: &mut WriteTransaction,
     block: BlockData,
     value_cache: &mut HashMap<OutPoint, u64>,
+    history_len: &mut u64,
   ) -> Result<()> {
     // If value_receiver still has values something went wrong with the last block
     // Could be an assert, shouldn't recover from this and commit the last block
@@ -416,6 +427,13 @@ impl Updater {
       .map(|lost_sats| lost_sats.value())
       .unwrap_or(0);
 
+    //------------------ add inscription_trans------------------//
+    let mut inscription_trans = wtx.open_table(INSCRIPTION_TRANS)?;
+    let mut height_to_trans_index = wtx.open_table(HEIGHT_TO_TRANS_INDEX)?;
+
+    let _ = height_to_trans_index.insert(self.height, history_len.clone());
+
+    // height_to_trans_index.insert(self.height, inscription_trans.len()? as u64);
     let mut inscription_updater = InscriptionUpdater::new(
       self.height,
       &mut inscription_id_to_satpoint,
@@ -428,6 +446,8 @@ impl Updater {
       &mut satpoint_to_inscription_id,
       block.header.time,
       value_cache,
+      &mut inscription_trans,
+      history_len,
     )?;
 
     if self.index_sats {

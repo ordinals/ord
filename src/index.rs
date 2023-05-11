@@ -42,6 +42,9 @@ define_table! { SAT_TO_INSCRIPTION_ID, u64, &InscriptionIdValue }
 define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
 define_table! { STATISTIC_TO_COUNT, u64, u64 }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u64, u128 }
+// added
+define_table! { INSCRIPTION_TRANS, u64, (&InscriptionIdValue,&SatPointValue,&SatPointValue) }
+define_table! {HEIGHT_TO_TRANS_INDEX, u64, u64}
 
 pub(crate) struct Index {
   auth: Auth,
@@ -733,6 +736,32 @@ impl Index {
         .map(|(_number, id)| Entry::load(*id.value()))
         .collect(),
     )
+  }
+
+  //query inscription_trans
+  pub(crate) fn get_inscription_trans(
+    &self,
+    start: u64,
+    end: u64,
+  ) -> Result<(u64, Vec<(u64, InscriptionId, SatPoint, SatPoint)>)> {
+    let rtx = self.database.begin_read()?;
+    let table = rtx.open_table(INSCRIPTION_TRANS)?;
+    let history = table
+      .range::<u64>(start..end)?
+      .map(|(_key, id)| {
+        let v = id.value();
+        (_key.value(),Entry::load(*v.0), Entry::load(*v.1), Entry::load(*v.2))
+      })
+      // .take(usize::MAX)
+      .collect();
+    let total = table.len()? as u64;
+    Ok((total, history))
+  }
+
+  pub(crate) fn get_height_index(&self, height: u64) -> Result<u64> {
+    let rtx = self.database.begin_read()?;
+    let table = rtx.open_table(HEIGHT_TO_TRANS_INDEX)?;
+    return Ok(table.get(&height)?.unwrap().value());
   }
 
   pub(crate) fn get_latest_inscriptions_with_prev_and_next(
@@ -2189,5 +2218,43 @@ mod tests {
         r"output in Bitcoin Core wallet but not in ord index: [[:xdigit:]]{64}:\d+"
       );
     }
+  }
+  #[test]
+  fn test_inscription_trans() {
+    let context = Context::builder().args(["--height-limit", "0"]).build();
+    let db = context.index.database;
+    let write_txn = db.begin_write().unwrap();
+    {
+      let mut table = write_txn.open_table(INSCRIPTION_TRANS).unwrap();
+      let id = "8d363b28528b0cb86b5fd48615493fb175bdf132d2a3d20b4251bba3f130a5abi0"
+        .parse::<InscriptionId>()
+        .unwrap();
+      let sat = "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0"
+        .parse::<SatPoint>()
+        .unwrap();
+      table
+        .insert(0, (&id.store(), &sat.store(), &sat.store()))
+        .unwrap();
+      let height = table.len().unwrap();
+      println!("height1--------->:{}", height);
+      table
+        .insert(1, (&id.store(), &sat.store(), &sat.store()))
+        .unwrap();
+      let height = table.len().unwrap();
+      println!("height2--------->:{}", height);
+    }
+
+    write_txn.commit().unwrap();
+
+    let write_txn = db.begin_write().unwrap();
+    let mut table = write_txn.open_table(INSCRIPTION_TRANS).unwrap();
+    {
+      let (key, value) = table.pop_first().unwrap().unwrap();
+      println!("INSCRIPTION_TRANS table--------->key{:?}", key.value());
+      println!("INSCRIPTION_TRANS table--------->value{:?}", value.value());
+    }
+    let (key, value) = table.pop_first().unwrap().unwrap();
+    println!("INSCRIPTION_TRANS table--------->key{:?}", key.value());
+    println!("INSCRIPTION_TRANS table--------->value{:?}", value.value());
   }
 }

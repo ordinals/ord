@@ -146,6 +146,11 @@ impl Server {
 
       let router = Router::new()
         .route("/", get(Self::home))
+        .route(
+          "/inscription_trans/:start/:end",
+          get(Self::inscription_trans),
+        )
+        .route("/height/:height", get(Self::get_height_index))
         .route("/block-count", get(Self::block_count))
         .route("/block/:query", get(Self::block))
         .route("/bounties", get(Self::bounties))
@@ -156,6 +161,15 @@ impl Server {
         .route("/feed.xml", get(Self::feed))
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_id", get(Self::inscription))
+        .route(
+          "/inscriptionmini/:inscription_id",
+          get(Self::inscriptionmini),
+        )
+        .route(
+          "/inscription2num/:inscription_id",
+          get(Self::inscription2num),
+        )
+        .route("/number/:number", get(Self::number))
         .route("/inscriptions", get(Self::inscriptions))
         .route("/inscriptions/:from", get(Self::inscriptions_from))
         .route("/install.sh", get(Self::install_script))
@@ -403,7 +417,8 @@ impl Server {
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(outpoint): Path<OutPoint>,
-  ) -> ServerResult<PageHtml<OutputHtml>> {
+    accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
     let list = if index.has_sat_index()? {
       index.list(outpoint)?
     } else {
@@ -432,19 +447,53 @@ impl Server {
         .nth(outpoint.vout as usize)
         .ok_or_not_found(|| format!("output {outpoint}"))?
     };
+    if accept_json.0 {
+      Ok(
+        axum::Json(serde_json::json!({
+          // "outpoint":outpoint,
+          // "inscriptions":inscriptions,
+          // "list":list,
+          // "chain": page_config.chain,
+          "output":output,
+        }))
+        .into_response(),
+      )
+    } else {
+      let inscriptions = index.get_inscriptions_on_output(outpoint)?;
+      Ok(
+        OutputHtml {
+          outpoint,
+          inscriptions,
+          list,
+          chain: page_config.chain,
+          output,
+        }
+        .page(page_config, index.has_sat_index()?)
+        .into_response(),
+      )
+    }
+    // let inscriptions = index.get_inscriptions_on_output(outpoint)?;
 
-    let inscriptions = index.get_inscriptions_on_output(outpoint)?;
+    // Ok(
+    //   OutputHtml {
+    //     outpoint,
+    //     inscriptions,
+    //     list,
+    //     chain: page_config.chain,
+    //     output,
+    //   }
+    //   .page(page_config, index.has_sat_index()?),
+    // )
+  }
 
-    Ok(
-      OutputHtml {
-        outpoint,
-        inscriptions,
-        list,
-        chain: page_config.chain,
-        output,
-      }
-      .page(page_config, index.has_sat_index()?),
-    )
+  async fn number(
+    // Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(DeserializeFromStr(number)): Path<DeserializeFromStr<u64>>,
+  ) -> ServerResult<Response> {
+    let inscription_id = index.get_inscription_id_by_inscription_number(number)?;
+
+    Ok(axum::Json(serde_json::json!({ "inscription_id": inscription_id })).into_response())
   }
 
   async fn range(
@@ -480,6 +529,27 @@ impl Server {
       HomeHtml::new(index.blocks(100)?, index.get_homepage_inscriptions()?)
         .page(page_config, index.has_sat_index()?),
     )
+  }
+  async fn get_height_index(
+    // Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(DeserializeFromStr(height)): Path<DeserializeFromStr<u64>>,
+    // accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
+    Ok(axum::Json(serde_json::json!({ "index": index.get_height_index(height)? })).into_response())
+  }
+
+  async fn inscription_trans(
+    // Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path((DeserializeFromStr(start), DeserializeFromStr(end))): Path<(
+      DeserializeFromStr<u64>,
+      DeserializeFromStr<u64>,
+    )>,
+    // accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
+    let trans = index.get_inscription_trans(start, end)?;
+    Ok(axum::Json(serde_json::json!({ "history": trans })).into_response())
   }
 
   async fn install_script() -> Redirect {
@@ -632,7 +702,7 @@ impl Server {
 
     let chain = page_config.chain;
     match chain {
-      Chain::Mainnet => builder.title("Inscriptions"),
+      Chain::Mainnet => builder.title("Inscriptions".to_owned()),
       _ => builder.title(format!("Inscriptions – {chain:?}")),
     };
 
@@ -641,8 +711,8 @@ impl Server {
     for (number, id) in index.get_feed_inscriptions(300)? {
       builder.item(
         rss::ItemBuilder::default()
-          .title(format!("Inscription {number}"))
-          .link(format!("/inscription/{id}"))
+          .title(Some(format!("Inscription {number}")))
+          .link(Some(format!("/inscription/{id}")))
           .guid(Some(rss::Guid {
             value: format!("/inscription/{id}"),
             permalink: true,
@@ -665,7 +735,7 @@ impl Server {
         .into_response(),
     )
   }
-
+  
   async fn static_asset(Path(path): Path<String>) -> ServerResult<Response> {
     let content = StaticAssets::get(if let Some(stripped) = path.strip_prefix('/') {
       stripped
@@ -819,6 +889,90 @@ impl Server {
       Media::Unknown => Ok(PreviewUnknownHtml.into_response()),
       Media::Video => Ok(PreviewVideoHtml { inscription_id }.into_response()),
     };
+  }
+
+  async fn inscriptionmini(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(inscription_id): Path<InscriptionId>,
+    // accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
+    let entry = index
+      .get_inscription_entry(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    let inscription = index
+      .get_inscription_by_id(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    let satpoint = index
+      .get_inscription_satpoint_by_id(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    let output = index
+      .get_transaction(satpoint.outpoint.txid)?
+      .ok_or_not_found(|| format!("inscription {inscription_id} current transaction"))?
+      .output
+      .into_iter()
+      .nth(satpoint.outpoint.vout.try_into().unwrap())
+      .ok_or_not_found(|| format!("inscription {inscription_id} current transaction output"))?;
+
+    let previous = if let Some(previous) = entry.number.checked_sub(1) {
+      Some(
+        index
+          .get_inscription_id_by_inscription_number(previous)?
+          .ok_or_not_found(|| format!("inscription {previous}"))?,
+      )
+    } else {
+      None
+    };
+
+    let next = index.get_inscription_id_by_inscription_number(entry.number + 1)?;
+
+    Ok(
+      axum::Json(serde_json::json!({
+        "chain": page_config.chain,
+        "genesis_fee": entry.fee,
+        "genesis_height": entry.height,
+        "inscription":{
+          "content-type": inscription.content_type(),
+          "content-length": match inscription.body() {
+            Some(o) => o.len(),
+            None => 0
+          },
+          "body": match inscription.body() {
+            Some(v) => v ,
+            None => &[]
+          }
+        },
+        "created":{
+          "genesis_tx_id": inscription_id.txid,
+          "index":inscription_id.index
+        },
+        "next":next,
+        "number": entry.number,
+        "output":output,
+        "previous":previous,
+        "sat": entry.sat,
+        "satpoint":satpoint,
+        "timestamp": timestamp(entry.timestamp).timestamp(),
+        // "has_sat_index":index.has_sat_index()?,
+      }))
+      .into_response(),
+    )
+  }
+
+  async fn inscription2num(
+    // Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(inscription_id): Path<InscriptionId>,
+    // accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
+    let entry = index
+      .get_inscription_entry(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    Ok(axum::Json(serde_json::json!({ "number": entry.number })).into_response())
   }
 
   async fn inscription(
