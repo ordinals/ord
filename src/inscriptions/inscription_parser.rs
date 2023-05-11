@@ -87,7 +87,7 @@ impl<'a> InscriptionParser<'a> {
       }
     }
 
-    return Ok(Inscription { body, content_type });
+    Ok(Inscription { body, content_type })
   }
 
   fn advance(&mut self) -> Result<Instruction<'a>> {
