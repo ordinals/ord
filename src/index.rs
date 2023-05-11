@@ -44,7 +44,7 @@ define_table! { STATISTIC_TO_COUNT, u64, u64 }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u64, u128 }
 // added
 define_table! { INSCRIPTION_TRANS, u64, (&InscriptionIdValue,&SatPointValue,&SatPointValue, u64,u32) } //block,timestamp
-define_table! {HEIGHT_TO_TRANS_INDEX, u64, u64}
+define_table! { HEIGHT_TO_TRANS_INDEX, u64, u64 }
 
 pub(crate) struct Index {
   client: Client,
@@ -2287,5 +2287,4 @@ mod tests {
     println!("INSCRIPTION_TRANS table--------->key{:?}", key.value());
     println!("INSCRIPTION_TRANS table--------->value{:?}", value.value());
   }
-
 }
