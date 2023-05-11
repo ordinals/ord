@@ -21,8 +21,7 @@ use {
     epoch::Epoch,
     height::Height,
     index::{Index, List},
-    inscription::Inscription,
-    inscription_id::InscriptionId,
+    inscriptions::{Inscription, InscriptionId},
     media::Media,
     options::Options,
     outgoing::Outgoing,
@@ -105,8 +104,7 @@ mod epoch;
 mod fee_rate;
 mod height;
 mod index;
-mod inscription;
-mod inscription_id;
+mod inscriptions;
 mod media;
 mod object;
 mod options;
