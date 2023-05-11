@@ -139,7 +139,7 @@ impl Inscribe {
       .checked_sub(tx.output.iter().map(|txout| txout.value).sum::<u64>())
       .unwrap()
   }
-
+ 
   fn create_inscription_transactions(
     satpoint: Option<SatPoint>,
     inscription: Inscription,
