@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, std::collections::BTreeSet};
 
 pub(super) struct Flotsam {
   inscription_id: InscriptionId,
@@ -73,52 +73,89 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     txid: Txid,
     input_sat_ranges: Option<&VecDeque<(u64, u64)>>,
   ) -> Result<u64> {
-    let mut inscriptions = Vec::new();
-
+    let mut floating_inscriptions = Vec::new();
+    let mut inscribed_offsets = BTreeSet::new();
     let mut input_value = 0;
+
     for tx_in in &tx.input {
+      // skip subsidy since no inscriptions possible
       if tx_in.previous_output.is_null() {
         input_value += Height(self.height).subsidy();
-      } else {
-        for (old_satpoint, inscription_id) in
-          Index::inscriptions_on_output(self.satpoint_to_id, tx_in.previous_output)?
-        {
-          inscriptions.push(Flotsam {
-            offset: input_value + old_satpoint.offset,
+        continue;
+      }
+
+      // find existing inscriptions on input aka transfers of inscriptions
+      for (old_satpoint, inscription_id) in
+        Index::inscriptions_on_output(self.satpoint_to_id, tx_in.previous_output)?
+      {
+        floating_inscriptions.push(Flotsam {
+          offset: input_value + old_satpoint.offset,
+          inscription_id,
+          origin: Origin::Old { old_satpoint },
+        });
+
+        inscribed_offsets.insert(input_value + old_satpoint.offset);
+      }
+
+      // find new inscriptions
+      if let Some(_inscription) = Inscription::from_tx_input(tx_in) {
+
+        // ignore reinscriptions on already inscribed offset (sats)
+        if !inscribed_offsets.contains(&input_value) {
+          let inscription_id = InscriptionId {
+            txid,
+            index: 0, // will have to be updated for multi/batch inscriptions
+          };
+
+          floating_inscriptions.push(Flotsam {
             inscription_id,
-            origin: Origin::Old { old_satpoint },
+            offset: input_value,
+            origin: Origin::New { fee: 0 },
           });
         }
+      }
 
-        input_value += if let Some(value) = self.value_cache.remove(&tx_in.previous_output) {
-          value
-        } else if let Some(value) = self
-          .outpoint_to_value
-          .remove(&tx_in.previous_output.store())?
-        {
-          value.value()
-        } else {
-          self.value_receiver.blocking_recv().ok_or_else(|| {
-            anyhow!(
-              "failed to get transaction for {}",
-              tx_in.previous_output.txid
-            )
-          })?
-        }
+      // different ways to get the utxo set (input amount)
+      input_value += if let Some(value) = self.value_cache.remove(&tx_in.previous_output) {
+        value
+      } else if let Some(value) = self
+        .outpoint_to_value
+        .remove(&tx_in.previous_output.store())?
+      {
+        value.value()
+      } else {
+        self.value_receiver.blocking_recv().ok_or_else(|| {
+          anyhow!(
+            "failed to get transaction for {}",
+            tx_in.previous_output.txid
+          )
+        })?
       }
     }
 
-    if inscriptions.iter().all(|flotsam| flotsam.offset != 0)
-      && Inscription::from_transaction(tx).is_some()
-    {
-      inscriptions.push(Flotsam {
-        inscription_id: txid.into(),
-        offset: 0,
-        origin: Origin::New {
-          fee: input_value - tx.output.iter().map(|txout| txout.value).sum::<u64>(),
-        },
-      });
-    };
+    // calulate genesis fee for new inscriptions
+    let total_output_value = tx.output.iter().map(|txout| txout.value).sum::<u64>();
+    let mut floating_inscriptions = floating_inscriptions
+      .into_iter()
+      .map(|flotsam| {
+        if let Flotsam {
+          inscription_id,
+          offset,
+          origin: Origin::New { fee: _ },
+        } = flotsam
+        {
+          Flotsam {
+            inscription_id,
+            offset,
+            origin: Origin::New {
+              fee: input_value - total_output_value,
+            },
+          }
+        } else {
+          flotsam
+        }
+      })
+      .collect::<Vec<Flotsam>>();
 
     let is_coinbase = tx
       .input
@@ -127,11 +164,11 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       .unwrap_or_default();
 
     if is_coinbase {
-      inscriptions.append(&mut self.flotsam);
+      floating_inscriptions.append(&mut self.flotsam);
     }
 
-    inscriptions.sort_by_key(|flotsam| flotsam.offset);
-    let mut inscriptions = inscriptions.into_iter().peekable();
+    floating_inscriptions.sort_by_key(|flotsam| flotsam.offset);
+    let mut inscriptions = floating_inscriptions.into_iter().peekable();
 
     let mut output_value = 0;
     for (vout, tx_out) in tx.output.iter().enumerate() {
@@ -149,10 +186,11 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           },
           offset: flotsam.offset - output_value,
         };
-
+        
+        // There can be muliple inscriptions per output
         self.update_inscription_location(
           input_sat_ranges,
-          inscriptions.next().unwrap(),
+          inscriptions.next().unwrap(), // This will need to change when we implement multiple inscriptions per TX (#1298)
           new_satpoint,
         )?;
       }
