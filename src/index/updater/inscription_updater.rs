@@ -187,10 +187,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           offset: flotsam.offset - output_value,
         };
         
-        // There can be muliple inscriptions per output
         self.update_inscription_location(
           input_sat_ranges,
-          inscriptions.next().unwrap(), // This will need to change when we implement multiple inscriptions per TX (#1298)
+          inscriptions.next().unwrap(),
           new_satpoint,
         )?;
       }
