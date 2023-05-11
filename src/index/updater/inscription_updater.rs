@@ -26,6 +26,17 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   satpoint_to_id: &'a mut Table<'db, 'tx, &'static SatPointValue, &'static InscriptionIdValue>,
   timestamp: u32,
   value_cache: &'a mut HashMap<OutPoint, u64>,
+  inscription_trans: &'a mut Table<
+    'db,
+    'tx,
+    u64,
+    (
+      &'static InscriptionIdValue,
+      &'static SatPointValue,
+      &'static SatPointValue,
+    ),
+  >,
+  history_len: &'a mut u64,
 }
 
 impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
@@ -41,6 +52,17 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     satpoint_to_id: &'a mut Table<'db, 'tx, &'static SatPointValue, &'static InscriptionIdValue>,
     timestamp: u32,
     value_cache: &'a mut HashMap<OutPoint, u64>,
+    inscription_trans: &'a mut Table<
+      'db,
+      'tx,
+      u64,
+      (
+        &'static InscriptionIdValue,
+        &'static SatPointValue,
+        &'static SatPointValue,
+      ),
+    >,
+    history_len: &'a mut u64,
   ) -> Result<Self> {
     let next_number = number_to_id
       .iter()?
@@ -64,6 +86,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       satpoint_to_id,
       timestamp,
       value_cache,
+      inscription_trans,
+      history_len,
     })
   }
 
@@ -171,7 +195,11 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     if is_coinbase {
       for flotsam in inscriptions {
         let new_satpoint = SatPoint {
-          outpoint: OutPoint::null(),
+          // outpoint: OutPoint::null(),
+          outpoint: OutPoint {
+            vout: 0,
+            txid: tx.txid(),
+          },
           offset: self.lost_sats + flotsam.offset - output_value,
         };
         self.update_inscription_location(input_sat_ranges, flotsam, new_satpoint)?;
@@ -196,8 +224,14 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
   ) -> Result {
     let inscription_id = flotsam.inscription_id.store();
 
+    let mut _old_satpoint: SatPoint =
+      "0000000000000000000000000000000000000000000000000000000000000000:0:0"
+        .parse::<SatPoint>()
+        .unwrap();
+
     match flotsam.origin {
-      Origin::Old { old_satpoint } => {
+      Origin::Old(old_satpoint) => {
+        _old_satpoint = old_satpoint;
         self.satpoint_to_id.remove(&old_satpoint.store())?;
       }
       Origin::New { fee } => {
@@ -240,6 +274,19 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
     self.satpoint_to_id.insert(&new_satpoint, &inscription_id)?;
     self.id_to_satpoint.insert(&inscription_id, &new_satpoint)?;
+
+    //add inscription_trans
+    self.inscription_trans.insert(
+      self.history_len.clone(),
+      (&inscription_id, &_old_satpoint.store(), &new_satpoint),
+    )?;
+    *(self.history_len) += 1;
+    // println!("self.history_len--------->{}", self.history_len);
+
+    // self.inscription_trans.insert(
+    //   self.inscription_trans.len().unwrap() as u64,
+    //   (&inscription_id, &_old_satpoint.store(), &new_satpoint),
+    // )?;
 
     Ok(())
   }

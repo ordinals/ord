@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Boilerplate)]
+#[derive(Boilerplate, Serialize)]
 pub(crate) struct ClockSvg {
   height: Height,
   hour: f64,
