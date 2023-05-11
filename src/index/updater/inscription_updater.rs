@@ -77,8 +77,13 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     let mut inscribed_offsets = BTreeSet::new();
     let mut input_value = 0;
 
-    for tx_in in &tx.input {
+    let mut input_starting_offset = Vec::new();
+
+    for tx_in in tx.input.iter() {
+      input_starting_offset.push(input_value);
+
       // skip subsidy since no inscriptions possible
+      // TODO: what happens with super_testnet's 0 input 0 output transaction
       if tx_in.previous_output.is_null() {
         input_value += Height(self.height).subsidy();
         continue;
@@ -97,23 +102,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         inscribed_offsets.insert(input_value + old_satpoint.offset);
       }
 
-      // find new inscriptions
-      if let Some(_inscription) = Inscription::from_tx_input(tx_in) {
-        // ignore reinscriptions on already inscribed offset (sats)
-        if !inscribed_offsets.contains(&input_value) {
-          let inscription_id = InscriptionId {
-            txid,
-            index: 0, // will have to be updated for multi/batch inscriptions
-          };
-
-          floating_inscriptions.push(Flotsam {
-            inscription_id,
-            offset: input_value,
-            origin: Origin::New { fee: 0 },
-          });
-        }
-      }
-
       // different ways to get the utxo set (input amount)
       input_value += if let Some(value) = self.value_cache.remove(&tx_in.previous_output) {
         value
@@ -129,6 +117,30 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             tx_in.previous_output.txid
           )
         })?
+      }
+    }
+
+    // find all new inscriptions in a transaction
+    let new_inscriptions = Inscription::from_transaction(tx);
+
+    // find new inscriptions
+    for (index, tx_inscription) in new_inscriptions.iter().enumerate() {
+      // offset within the range of total sat input to this transaction; TODO: ask ShatJibbity
+      let inscription_offset = input_starting_offset[tx_inscription.tx_input_index as usize]
+        + tx_inscription.tx_input_offset as u64;
+
+      // ignore reinscriptions on already inscribed offset (sats)
+      if !inscribed_offsets.contains(&inscription_offset) {
+        let inscription_id = InscriptionId {
+          txid,
+          index: index as u32, // will have to be updated for multi/batch inscriptions
+        };
+
+        floating_inscriptions.push(Flotsam {
+          inscription_id,
+          offset: inscription_offset,
+          origin: Origin::New { fee: 0 },
+        });
       }
     }
 
@@ -186,9 +198,10 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           offset: flotsam.offset - output_value,
         };
 
+        // TODO: an output can have multiple inscriptions?
         self.update_inscription_location(
           input_sat_ranges,
-          inscriptions.next().unwrap(),
+          inscriptions.next().unwrap(), // TODO: multi/batch inscriptions
           new_satpoint,
         )?;
       }

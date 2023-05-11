@@ -1,6 +1,13 @@
 use super::*;
 
 #[derive(Debug, PartialEq, Clone)]
+pub(crate) struct TransactionInscription {
+  pub(crate) inscription: Inscription,
+  pub(crate) tx_input_index: u32,
+  pub(crate) tx_input_offset: u32,
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub(crate) struct Inscription {
   pub(crate) body: Option<Vec<u8>>,
   pub(crate) content_type: Option<Vec<u8>>,
@@ -12,12 +19,28 @@ impl Inscription {
     Self { content_type, body }
   }
 
-  pub(crate) fn from_transaction(tx: &Transaction) -> Option<Inscription> {
-    InscriptionParser::parse(&tx.input.get(0)?.witness).ok()
-  }
+  pub(crate) fn from_transaction(tx: &Transaction) -> Vec<TransactionInscription> {
+    let mut result = Vec::new();
+    for (index, tx_in) in tx.input.iter().enumerate() {
 
-  pub(crate) fn from_tx_input(tx_in: &TxIn) -> Option<Inscription> {
-    InscriptionParser::parse(&tx_in.witness).ok()
+      // if index != 0 { break }; // TODO: If before activation block height
+
+      let Ok(inscriptions) = InscriptionParser::parse(&tx_in.witness) else { continue };
+      
+      result.extend(
+        inscriptions
+          .into_iter()
+          .enumerate()
+          .map(|(offset, inscription)| TransactionInscription {
+            inscription,
+            tx_input_index: index as u32,
+            tx_input_offset: offset as u32,
+          })
+          .collect::<Vec<TransactionInscription>>(),
+      )
+    }
+
+    result
   }
 
   pub(crate) fn from_file(chain: Chain, path: impl AsRef<Path>) -> Result<Self, Error> {
