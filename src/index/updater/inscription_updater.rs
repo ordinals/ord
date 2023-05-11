@@ -99,7 +99,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
       // find new inscriptions
       if let Some(_inscription) = Inscription::from_tx_input(tx_in) {
-
         // ignore reinscriptions on already inscribed offset (sats)
         if !inscribed_offsets.contains(&input_value) {
           let inscription_id = InscriptionId {
@@ -186,7 +185,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           },
           offset: flotsam.offset - output_value,
         };
-        
+
         self.update_inscription_location(
           input_sat_ranges,
           inscriptions.next().unwrap(),
