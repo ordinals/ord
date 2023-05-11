@@ -530,26 +530,29 @@ impl Server {
         .page(page_config, index.has_sat_index()?),
     )
   }
+
   async fn get_height_index(
-    // Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(height)): Path<DeserializeFromStr<u64>>,
-    // accept_json: AcceptJson,
   ) -> ServerResult<Response> {
     Ok(axum::Json(serde_json::json!({ "index": index.get_height_index(height)? })).into_response())
   }
 
   async fn inscription_trans(
-    // Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path((DeserializeFromStr(start), DeserializeFromStr(end))): Path<(
       DeserializeFromStr<u64>,
       DeserializeFromStr<u64>,
     )>,
-    // accept_json: AcceptJson,
   ) -> ServerResult<Response> {
     let trans = index.get_inscription_trans(start, end)?;
-    Ok(axum::Json(serde_json::json!({ "history": trans })).into_response())
+    Ok(
+      axum::Json(serde_json::json!({
+        "count": trans.0,
+        "histories":trans.1
+      }))
+      .into_response(),
+    )
   }
 
   async fn install_script() -> Redirect {
