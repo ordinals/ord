@@ -5,6 +5,8 @@ pub mod find;
 mod index;
 pub mod info;
 pub mod list;
+pub mod ordgrid;
+pub mod ordtime;
 pub mod parse;
 mod preview;
 mod server;
@@ -21,6 +23,11 @@ fn print_json(output: impl Serialize) -> Result {
 
 #[derive(Debug, Parser)]
 pub(crate) enum Subcommand {
+  #[clap(about = "Run the Ordtime indexer")]
+  Ordtime(ordtime::Ordtime),
+  #[clap(about = "Run the Ordgrid indexer")]
+  Ordgrid(ordgrid::Ordgrid),
+
   #[clap(about = "List the first satoshis of each reward epoch")]
   Epochs,
   #[clap(about = "Run an explorer server populated with inscriptions")]
@@ -50,6 +57,8 @@ pub(crate) enum Subcommand {
 impl Subcommand {
   pub(crate) fn run(self, options: Options) -> Result {
     match self {
+      Self::Ordtime(_) => ordtime::Ordtime::run(options),
+      Self::Ordgrid(_) => ordgrid::Ordgrid::run(options),
       Self::Epochs => epochs::run(),
       Self::Preview(preview) => preview.run(),
       Self::Find(find) => find.run(options),

@@ -1,3 +1,5 @@
+use crate::subcommand::{ordgrid::OrdgridInscription, ordtime::OrdtimeInscription};
+
 use {
   self::{
     entry::{
@@ -42,6 +44,25 @@ define_table! { SAT_TO_INSCRIPTION_ID, u64, &InscriptionIdValue }
 define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
 define_table! { STATISTIC_TO_COUNT, u64, u64 }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u64, u128 }
+
+// ORDGRID
+
+// Determine how for we have indexed the ordgrids
+define_table! { ORDGRID_HEIGHT_TO_BLOCK_HASH, u64, &BlockHashValue }
+// map an ordgrid xy coordinate index to an reg inscription ID
+define_table! { ORDGRID_INDEX_TO_INSCRIPTION_ID, &InscriptionIdValue, &InscriptionIdValue }
+// Map an ordgrid xy coordinate index to an img inscription ID
+define_table! { ORDGRID_INDEX_TO_IMG_INSCRIPTION_ID, &InscriptionIdValue, &InscriptionIdValue }
+
+// ORDTIME
+pub type OrdtimeIndexValue = [u8; 36];
+
+define_table!(ORDTIME_HEIGHT_TO_BLOCK_HASH, u64, &BlockHashValue);
+define_table!(
+  ORDTIME_INDEX_TO_INSCRIPTION_ID,
+  &OrdtimeIndexValue,
+  &InscriptionIdValue
+);
 
 pub(crate) struct Index {
   client: Client,
@@ -201,6 +222,13 @@ impl Index {
         tx.open_table(SAT_TO_SATPOINT)?;
         tx.open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?;
 
+        tx.open_table(ORDTIME_HEIGHT_TO_BLOCK_HASH)?;
+        tx.open_table(ORDTIME_INDEX_TO_INSCRIPTION_ID)?;
+
+        tx.open_table(ORDGRID_HEIGHT_TO_BLOCK_HASH)?;
+        tx.open_table(ORDGRID_INDEX_TO_INSCRIPTION_ID)?;
+        tx.open_table(ORDGRID_INDEX_TO_IMG_INSCRIPTION_ID)?;
+
         tx.open_table(STATISTIC_TO_COUNT)?
           .insert(&Statistic::Schema.key(), &SCHEMA_VERSION)?;
 
@@ -231,6 +259,203 @@ impl Index {
       options: options.clone(),
     })
   }
+
+  //
+  //
+  // ORDGRID STUFF
+  //
+  //
+
+  pub(crate) fn get_ordgrid_block_count(&self) -> Result<u64> {
+    let tx = self.begin_read()?;
+    let table = tx.0.open_table(ORDGRID_HEIGHT_TO_BLOCK_HASH);
+
+    if table.is_err() {
+      return Ok(0);
+    }
+
+    let count = table?.iter()?.count() as u64;
+
+    Ok(count)
+  }
+
+  pub(crate) fn increment_ordgrid_block_index(&self, hash: &BlockHash) -> Result {
+    let tx = self.begin_write()?;
+    let last_index = &self.get_ordgrid_block_count()?;
+    let new_index = last_index + 1;
+
+    tx.open_table(ORDGRID_HEIGHT_TO_BLOCK_HASH)?
+      .insert(new_index, &hash.store())?;
+    tx.commit()?;
+    Ok(())
+  }
+
+  pub(crate) fn get_reg_ordgrid_inscription_by_xy(
+    &self,
+    inscription: &OrdgridInscription,
+  ) -> Result<Option<OrdgridInscription>> {
+    let tx = self.begin_read()?;
+    let table = tx.0.open_table(ORDGRID_INDEX_TO_INSCRIPTION_ID)?;
+    let ordgrid_index_value = table
+      .get(&inscription.to_index())?
+      .map(|x| x.value().to_vec())
+      .unwrap_or_default();
+    Ok(OrdgridInscription::from_index(&ordgrid_index_value)?)
+  }
+
+  pub(crate) fn register_reg_inscription(
+    &self,
+    ordgrid: &OrdgridInscription,
+    inscription_id: &InscriptionId,
+  ) -> Result {
+    let tx = self.begin_write()?;
+    tx.open_table(ORDGRID_INDEX_TO_INSCRIPTION_ID)?
+      .insert(&ordgrid.to_index(), &inscription_id.store())?;
+    tx.commit()?;
+    Ok(())
+  }
+
+  pub(crate) fn upsert_ordgrid_image(
+    &self,
+    ordgrid: &OrdgridInscription,
+    image: &InscriptionId,
+  ) -> Result {
+    let tx = self.begin_write()?;
+    tx.open_table(ORDGRID_INDEX_TO_IMG_INSCRIPTION_ID)?
+      .insert(&ordgrid.to_index(), &image.store())?;
+    tx.commit()?;
+    Ok(())
+  }
+
+  pub(crate) fn reset_ordgrid_indexes(&self) -> Result<bool> {
+    let tx = self.begin_write()?;
+
+    tx.delete_table(ORDGRID_INDEX_TO_IMG_INSCRIPTION_ID)?;
+    tx.delete_table(ORDGRID_INDEX_TO_INSCRIPTION_ID)?;
+    tx.delete_table(ORDGRID_HEIGHT_TO_BLOCK_HASH)?;
+
+    tx.commit()?;
+
+    let t = self.begin_write()?;
+    t.open_table(ORDGRID_INDEX_TO_IMG_INSCRIPTION_ID)?;
+    t.open_table(ORDGRID_INDEX_TO_INSCRIPTION_ID)?;
+    t.open_table(ORDGRID_HEIGHT_TO_BLOCK_HASH)?;
+    t.commit()?;
+
+    let rt = self.begin_read()?.0;
+
+    let block_count = rt.open_table(ORDGRID_HEIGHT_TO_BLOCK_HASH)?.iter()?.count();
+    let img_inscrip_count = rt
+      .open_table(ORDGRID_INDEX_TO_IMG_INSCRIPTION_ID)?
+      .iter()?
+      .count();
+
+    let inscrip_count = rt
+      .open_table(ORDGRID_INDEX_TO_INSCRIPTION_ID)?
+      .iter()?
+      .count();
+
+    Ok(block_count + img_inscrip_count + inscrip_count == 0)
+  }
+
+  //
+  //
+  // ORDTIME
+  //
+  //
+
+  pub(crate) fn get_ordtime_by_time(
+    &self,
+    ordtime: &OrdtimeInscription,
+  ) -> Result<Option<OrdtimeInscription>> {
+    let tx = self.begin_read()?;
+    let table = tx.0.open_table(ORDTIME_INDEX_TO_INSCRIPTION_ID)?;
+    let ordtime_index_value = table
+      .get(&ordtime.to_index())?
+      .map(|x| x.value().to_vec())
+      .unwrap_or_default();
+    Ok(OrdtimeInscription::from_index(&ordtime_index_value))
+  }
+
+  pub(crate) fn register_ordtime_inscription_id(
+    &self,
+    ordtime: &OrdtimeInscription,
+    inscription_id: &InscriptionId,
+  ) -> Result {
+    let tx = self.begin_write()?;
+    tx.open_table(ORDTIME_INDEX_TO_INSCRIPTION_ID)?
+      .insert(&ordtime.to_index(), &inscription_id.store())?;
+    tx.commit()?;
+    Ok(())
+  }
+
+  pub(crate) fn increment_ordtime_block_index(&self, hash: &BlockHash) -> Result<u64> {
+    let tx = self.begin_write()?;
+    // TODO make sure that the block index equals the count...
+    let last_index = &self.get_ordtime_block_index()?;
+    let new_index = last_index + 1;
+    tx.open_table(ORDTIME_HEIGHT_TO_BLOCK_HASH)?
+      .insert(new_index, &hash.store())?;
+    tx.commit()?;
+    Ok(new_index)
+  }
+
+  pub(crate) fn get_ordtime_block_count(&self) -> Result<u64> {
+    let tx = self.begin_read()?;
+    let table = tx.0.open_table(ORDTIME_HEIGHT_TO_BLOCK_HASH)?;
+    let count = table.iter()?.count() as u64;
+    Ok(count)
+  }
+
+  pub(crate) fn get_ordtime_block_index(&self) -> Result<u64> {
+    let tx = self.begin_read()?;
+    let table = tx.0.open_table(ORDTIME_HEIGHT_TO_BLOCK_HASH);
+
+    if table.is_err() {
+      return Ok(0);
+    }
+
+    let index = table
+      .unwrap()
+      .range(0..)?
+      .rev()
+      .next()
+      .map(|(height, _hash)| height.value() + 1)
+      .unwrap_or(0);
+
+    Ok(index)
+  }
+
+  pub(crate) fn reset_ordtime_indexes(&self) -> Result<bool> {
+    let tx = self.begin_write()?;
+
+    tx.delete_table(ORDTIME_HEIGHT_TO_BLOCK_HASH)?;
+    tx.delete_table(ORDTIME_INDEX_TO_INSCRIPTION_ID)?;
+
+    tx.commit()?;
+
+    let t = self.begin_write()?;
+    t.open_table(ORDTIME_HEIGHT_TO_BLOCK_HASH)?;
+    t.open_table(ORDTIME_INDEX_TO_INSCRIPTION_ID)?;
+    t.commit()?;
+
+    let rt = self.begin_read()?.0;
+
+    let block_count = rt.open_table(ORDTIME_HEIGHT_TO_BLOCK_HASH)?.iter()?.count();
+
+    let inscrip_count = rt
+      .open_table(ORDTIME_INDEX_TO_INSCRIPTION_ID)?
+      .iter()?
+      .count();
+
+    Ok(block_count + inscrip_count == 0)
+  }
+
+  //
+  //
+  // ORDTIME END
+  //
+  //
 
   pub(crate) fn get_unspent_outputs(&self, _wallet: Wallet) -> Result<BTreeMap<OutPoint, Amount>> {
     let mut utxos = BTreeMap::new();

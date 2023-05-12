@@ -7,6 +7,12 @@ use {super::*, bitcoincore_rpc::Auth};
     .args(&["chain-argument", "signet", "regtest", "testnet"]),
 ))]
 pub(crate) struct Options {
+  #[clap(long, help = "Provide Redis URL")]
+  pub(crate) redis_uri: Option<String>,
+
+  #[clap(long, help = "Drop existing ordtime or ordgrid index")]
+  pub(crate) reindex: Option<bool>,
+
   #[clap(long, help = "Load Bitcoin Core data dir from <BITCOIN_DATA_DIR>.")]
   pub(crate) bitcoin_data_dir: Option<PathBuf>,
   #[clap(long, help = "Authenticate to Bitcoin Core RPC with <RPC_PASS>.")]
