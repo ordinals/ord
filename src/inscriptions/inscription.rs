@@ -2,7 +2,7 @@ use super::*;
 
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) struct TransactionInscription {
-  pub(crate) inscription: Inscription,
+  pub(crate) parsed_inscription: ParsedInscription,
   pub(crate) tx_input_index: u32,
   pub(crate) tx_input_offset: u32,
 }
@@ -11,6 +11,12 @@ pub(crate) struct TransactionInscription {
 pub(crate) struct Inscription {
   pub(crate) body: Option<Vec<u8>>,
   pub(crate) content_type: Option<Vec<u8>>,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub(crate) struct ParsedInscription {
+  pub(crate) inscription: Inscription,
+  pub(crate) cursed: bool,
 }
 
 impl Inscription {
@@ -30,8 +36,11 @@ impl Inscription {
         inscriptions
           .into_iter()
           .enumerate()
-          .map(|(offset, inscription)| TransactionInscription {
-            inscription,
+          .map(|(offset, parsed_inscription)| TransactionInscription {
+            parsed_inscription: ParsedInscription {
+              cursed: parsed_inscription.cursed || index != 0 || offset != 0,
+              inscription: parsed_inscription.inscription,
+            },
             tx_input_index: index as u32,
             tx_input_offset: offset as u32,
           })
@@ -62,7 +71,7 @@ impl Inscription {
     })
   }
 
-  pub(super) fn append_reveal_script_to_builder(
+  pub(crate) fn append_reveal_script_to_builder(
     &self,
     mut builder: script::Builder,
   ) -> script::Builder {

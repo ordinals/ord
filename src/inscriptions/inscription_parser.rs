@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, inscriptions::inscription::ParsedInscription};
 
 #[derive(Debug, PartialEq)]
 pub(crate) enum InscriptionError {
@@ -7,7 +7,6 @@ pub(crate) enum InscriptionError {
   KeyPathSpend,
   NoInscription,
   Script(script::Error),
-  UnrecognizedEvenField,
 }
 
 type Result<T, E = InscriptionError> = std::result::Result<T, E>;
@@ -16,16 +15,8 @@ pub(crate) struct InscriptionParser<'a> {
   instructions: Peekable<Instructions<'a>>,
 }
 
-struct Envelope<'a> {
-  contents: Vec<Instruction<'a>>,
-}
-
-struct EnvelopeParser<'a> {
-  instructions: Peekable<Instructions<'a>>,
-}
-
 impl<'a> InscriptionParser<'a> {
-  pub(crate) fn parse(witness: &Witness) -> Result<Vec<Inscription>> {
+  pub(crate) fn parse(witness: &Witness) -> Result<Vec<ParsedInscription>> {
     if witness.is_empty() {
       return Err(InscriptionError::EmptyWitness);
     }
@@ -60,7 +51,7 @@ impl<'a> InscriptionParser<'a> {
     .collect()
   }
 
-  fn parse_inscriptions(&mut self) -> Vec<Result<Inscription>> {
+  fn parse_inscriptions(&mut self) -> Vec<Result<ParsedInscription>> {
     let mut inscriptions = Vec::new();
     loop {
       let current = self.parse_one_inscription();
@@ -73,7 +64,7 @@ impl<'a> InscriptionParser<'a> {
     inscriptions
   }
 
-  fn parse_one_inscription(&mut self) -> Result<Inscription> {
+  fn parse_one_inscription(&mut self) -> Result<ParsedInscription> {
     self.advance_into_inscription_envelope()?;
 
     let mut fields = BTreeMap::new();
@@ -101,16 +92,20 @@ impl<'a> InscriptionParser<'a> {
 
     let body = fields.remove(BODY_TAG);
     let content_type = fields.remove(CONTENT_TYPE_TAG);
+    let mut cursed = false;
 
     for tag in fields.keys() {
       if let Some(lsb) = tag.first() {
         if lsb % 2 == 0 {
-          return Err(InscriptionError::UnrecognizedEvenField);
+          cursed = true;
         }
       }
     }
 
-    Ok(Inscription { body, content_type })
+    Ok(ParsedInscription {
+      inscription: Inscription { body, content_type },
+      cursed,
+    })
   }
 
   fn advance(&mut self) -> Result<Instruction<'a>> {
@@ -166,7 +161,10 @@ impl<'a> InscriptionParser<'a> {
 
 #[cfg(test)]
 mod tests {
-  use {super::*, inscriptions::inscription::TransactionInscription};
+  use {
+    super::*,
+    inscriptions::inscription::{ParsedInscription, TransactionInscription},
+  };
 
   fn envelope(payload: &[&[u8]]) -> Witness {
     let mut builder = script::Builder::new()
@@ -251,7 +249,11 @@ mod tests {
         &[],
         b"ord",
       ])),
-      Ok(vec![inscription("text/plain;charset=utf-8", "ord")]),
+      Ok(vec![parsed_inscription(
+        "text/plain;charset=utf-8",
+        "ord",
+        false
+      )]),
     );
   }
 
@@ -267,7 +269,11 @@ mod tests {
         &[],
         b"ord",
       ])),
-      Ok(vec![inscription("text/plain;charset=utf-8", "ord")]),
+      Ok(vec![parsed_inscription(
+        "text/plain;charset=utf-8",
+        "ord",
+        false
+      )]),
     );
   }
 
@@ -275,9 +281,12 @@ mod tests {
   fn no_content_tag() {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[b"ord", &[1], b"text/plain;charset=utf-8"])),
-      Ok(vec![Inscription {
-        content_type: Some(b"text/plain;charset=utf-8".to_vec()),
-        body: None,
+      Ok(vec![ParsedInscription {
+        inscription: Inscription {
+          content_type: Some(b"text/plain;charset=utf-8".to_vec()),
+          body: None,
+        },
+        cursed: false
       }]),
     );
   }
@@ -286,9 +295,12 @@ mod tests {
   fn no_content_type() {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[b"ord", &[], b"foo"])),
-      Ok(vec![Inscription {
-        content_type: None,
-        body: Some(b"foo".to_vec()),
+      Ok(vec![ParsedInscription {
+        inscription: Inscription {
+          content_type: None,
+          body: Some(b"foo".to_vec())
+        },
+        cursed: false,
       }]),
     );
   }
@@ -304,7 +316,11 @@ mod tests {
         b"foo",
         b"bar"
       ])),
-      Ok(vec![inscription("text/plain;charset=utf-8", "foobar")]),
+      Ok(vec![parsed_inscription(
+        "text/plain;charset=utf-8",
+        "foobar",
+        false
+      )]),
     );
   }
 
@@ -312,7 +328,11 @@ mod tests {
   fn valid_body_in_zero_pushes() {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[b"ord", &[1], b"text/plain;charset=utf-8", &[]])),
-      Ok(vec![inscription("text/plain;charset=utf-8", "")]),
+      Ok(vec![parsed_inscription(
+        "text/plain;charset=utf-8",
+        "",
+        false
+      )]),
     );
   }
 
@@ -330,7 +350,11 @@ mod tests {
         &[],
         &[],
       ])),
-      Ok(vec![inscription("text/plain;charset=utf-8", "")]),
+      Ok(vec![parsed_inscription(
+        "text/plain;charset=utf-8",
+        "",
+        false
+      )]),
     );
   }
 
@@ -350,7 +374,11 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), Vec::new()])),
-      Ok(vec![inscription("text/plain;charset=utf-8", "ord")]),
+      Ok(vec![parsed_inscription(
+        "text/plain;charset=utf-8",
+        "ord",
+        false
+      )]),
     );
   }
 
@@ -370,12 +398,20 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), Vec::new()])),
-      Ok(vec![inscription("text/plain;charset=utf-8", "ord")]),
+      Ok(vec![parsed_inscription(
+        "text/plain;charset=utf-8",
+        "ord",
+        false
+      )]),
     );
   }
 
   #[test]
   fn valid_ignore_inscriptions_after_first() {
+    valid_ignore_inscriptions_after_first_helper(false);
+  }
+
+  fn valid_ignore_inscriptions_after_first_helper(after_blessing: bool) {
     let script = script::Builder::new()
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
@@ -395,10 +431,16 @@ mod tests {
       .push_opcode(opcodes::all::OP_ENDIF)
       .into_script();
 
-    assert_eq!(
-      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), Vec::new()])),
-      Ok(vec![inscription("text/plain;charset=utf-8", "foo")]),
-    );
+    if after_blessing {
+      assert_eq!(
+        InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), Vec::new()]))
+          .unwrap(),
+        vec![
+          parsed_inscription("text/plain;charset=utf-8", "foo", false),
+          parsed_inscription("text/plain;charset=utf-8", "bar", true),
+        ],
+      );
+    }
   }
 
   #[test]
@@ -411,7 +453,11 @@ mod tests {
         &[],
         &[0b10000000]
       ])),
-      Ok(vec![inscription("text/plain;charset=utf-8", [0b10000000])]),
+      Ok(vec![parsed_inscription(
+        "text/plain;charset=utf-8",
+        [0b10000000],
+        false
+      )]),
     );
   }
 
@@ -471,7 +517,10 @@ mod tests {
     assert_eq!(
       Inscription::from_transaction(&tx),
       vec![TransactionInscription {
-        inscription: inscription("text/plain;charset=utf-8", "ord"),
+        parsed_inscription: ParsedInscription {
+          cursed: false,
+          inscription: inscription("text/plain;charset=utf-8", "ord"),
+        },
         tx_input_index: 0,
         tx_input_offset: 0
       }],
@@ -480,6 +529,10 @@ mod tests {
 
   #[test]
   fn do_not_extract_from_second_input() {
+    do_not_extract_from_second_input_helper(false);
+  }
+
+  fn do_not_extract_from_second_input_helper(after_blessing: bool) {
     let tx = Transaction {
       version: 0,
       lock_time: bitcoin::PackedLockTime(0),
@@ -500,11 +553,17 @@ mod tests {
       output: Vec::new(),
     };
 
-    assert_eq!(Inscription::from_transaction(&tx), vec![]);
+    if after_blessing {
+      assert_eq!(Inscription::from_transaction(&tx), vec![]);
+    }
   }
 
   #[test]
   fn do_not_extract_from_second_envelope() {
+    do_not_extract_from_second_envelope_helper(false);
+  }
+
+  fn do_not_extract_from_second_envelope_helper(after_blessing: bool) {
     let mut builder = script::Builder::new();
     builder = inscription("foo", [1; 100]).append_reveal_script_to_builder(builder);
     builder = inscription("bar", [1; 100]).append_reveal_script_to_builder(builder);
@@ -523,21 +582,58 @@ mod tests {
       output: Vec::new(),
     };
 
-    assert_eq!(
-      Inscription::from_transaction(&tx),
-      vec![TransactionInscription {
-        inscription: inscription("foo", [1; 100]),
-        tx_input_index: 0,
-        tx_input_offset: 0
-      }]
-    );
+    if after_blessing {
+      assert_eq!(
+        Inscription::from_transaction(&tx),
+        vec![
+          TransactionInscription {
+            parsed_inscription: ParsedInscription {
+              cursed: false,
+              inscription: inscription("foo", [1; 100]),
+            },
+            tx_input_index: 0,
+            tx_input_offset: 0
+          },
+          TransactionInscription {
+            parsed_inscription: ParsedInscription {
+              cursed: false,
+              inscription: inscription("bar", [1; 100]),
+            },
+            tx_input_index: 0,
+            tx_input_offset: 1
+          }
+        ]
+      );
+    } else {
+      assert_eq!(
+        Inscription::from_transaction(&tx),
+        vec![
+          TransactionInscription {
+            parsed_inscription: ParsedInscription {
+              cursed: false,
+              inscription: inscription("foo", [1; 100]),
+            },
+            tx_input_index: 0,
+            tx_input_offset: 0
+          },
+          TransactionInscription {
+            parsed_inscription: ParsedInscription {
+              cursed: true,
+              inscription: inscription("bar", [1; 100]),
+            },
+            tx_input_index: 0,
+            tx_input_offset: 1
+          }
+        ]
+      );
+    }
   }
 
   #[test]
   fn inscribe_png() {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[b"ord", &[1], b"image/png", &[], &[1; 100]])),
-      Ok(vec![inscription("image/png", [1; 100])]),
+      Ok(vec![parsed_inscription("image/png", [1; 100], false)]),
     );
   }
 
@@ -602,7 +698,7 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&witness).unwrap(),
-      vec![inscription("foo", [1; 1040])],
+      vec![parsed_inscription("foo", [1; 1040], false)],
     );
   }
 
@@ -622,9 +718,12 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&witness).unwrap(),
-      vec![Inscription {
-        content_type: None,
-        body: None,
+      vec![ParsedInscription {
+        inscription: Inscription {
+          content_type: None,
+          body: None,
+        },
+        cursed: false,
       }]
     );
   }
@@ -633,18 +732,27 @@ mod tests {
   fn unknown_odd_fields_are_ignored() {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[b"ord", &[3], &[0]])),
-      Ok(vec![Inscription {
-        content_type: None,
-        body: None,
-      }]),
+      Ok(vec![ParsedInscription {
+        inscription: Inscription {
+          content_type: None,
+          body: None,
+        },
+        cursed: false,
+      }])
     );
   }
 
   #[test]
-  fn unknown_even_fields_are_invalid() {
+  fn unknown_even_fields_are_valid_but_cursed() {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[b"ord", &[2], &[0]])),
-      Err(InscriptionError::UnrecognizedEvenField),
-    );
+      Ok(vec![ParsedInscription {
+        inscription: Inscription {
+          body: None,
+          content_type: None
+        },
+        cursed: true
+      }])
+    )
   }
 }

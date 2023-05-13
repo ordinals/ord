@@ -1,5 +1,6 @@
 pub(crate) use {
-  super::*, bitcoin::Witness, pretty_assertions::assert_eq as pretty_assert_eq, std::iter,
+  super::*, bitcoin::Witness, inscriptions::inscription::ParsedInscription,
+  pretty_assertions::assert_eq as pretty_assert_eq, std::iter,
   test_bitcoincore_rpc::TransactionTemplate, unindent::Unindent,
 };
 
@@ -102,6 +103,17 @@ pub(crate) fn tx_out(value: u64, address: Address) -> TxOut {
 
 pub(crate) fn inscription(content_type: &str, body: impl AsRef<[u8]>) -> Inscription {
   Inscription::new(Some(content_type.into()), Some(body.as_ref().into()))
+}
+
+pub(crate) fn parsed_inscription(
+  content_type: &str,
+  body: impl AsRef<[u8]>,
+  cursed: bool,
+) -> ParsedInscription {
+  ParsedInscription {
+    inscription: Inscription::new(Some(content_type.into()), Some(body.as_ref().into())),
+    cursed,
+  }
 }
 
 pub(crate) fn inscription_id(n: u32) -> InscriptionId {

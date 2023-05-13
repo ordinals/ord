@@ -23,7 +23,7 @@ mod fetcher;
 mod rtx;
 mod updater;
 
-const SCHEMA_VERSION: u64 = 3;
+const SCHEMA_VERSION: u64 = 4;
 
 macro_rules! define_table {
   ($name:ident, $key:ty, $value:ty) => {
@@ -540,7 +540,12 @@ impl Index {
     Ok(self.get_transaction(inscription_id.txid)?.and_then(|tx| {
       Inscription::from_transaction(&tx)
         .get(inscription_id.index as usize)
-        .map(|transaction_inscription| transaction_inscription.inscription.clone())
+        .map(|transaction_inscription| {
+          transaction_inscription
+            .parsed_inscription
+            .inscription
+            .clone()
+        })
     }))
   }
 
@@ -850,18 +855,20 @@ impl Index {
         inscription_id,
       );
 
-      assert_eq!(
-        SatPoint::load(
-          *rtx
-            .open_table(SAT_TO_SATPOINT)
-            .unwrap()
-            .get(&sat)
-            .unwrap()
-            .unwrap()
-            .value()
-        ),
-        satpoint,
-      );
+      if !Sat(sat).is_common() {
+        assert_eq!(
+          SatPoint::load(
+            *rtx
+              .open_table(SAT_TO_SATPOINT)
+              .unwrap()
+              .get(&sat)
+              .unwrap()
+              .unwrap()
+              .value()
+          ),
+          satpoint,
+        );
+      }
     }
   }
 
@@ -2210,6 +2217,90 @@ mod tests {
           .unwrap_err()
           .to_string(),
         r"output in Bitcoin Core wallet but not in ord index: [[:xdigit:]]{64}:\d+"
+      );
+    }
+  }
+
+  #[test]
+  fn cursed_inscriptions_are_tracked() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let mut builder = bitcoin::blockdata::script::Builder::new();
+      builder = inscription("text/plain", "foo").append_reveal_script_to_builder(builder);
+      builder = inscription("text/plain", "bar").append_reveal_script_to_builder(builder);
+      builder = inscription("text/plain", "baz").append_reveal_script_to_builder(builder);
+
+      let mut witness = Witness::new();
+      witness.push(builder.into_script());
+      witness.push([]);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0)],
+        witness,
+        ..Default::default()
+      });
+      let inscription_id_0 = InscriptionId { txid, index: 0 };
+      let inscription_id_1 = InscriptionId { txid, index: 1 };
+      let inscription_id_2 = InscriptionId { txid, index: 2 };
+
+      context.mine_blocks(1);
+
+      context.index.assert_inscription_location(
+        inscription_id_0,
+        SatPoint {
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 0,
+        },
+        50 * COIN_VALUE,
+      );
+
+      context.index.assert_inscription_location(
+        inscription_id_1,
+        SatPoint {
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 1,
+        },
+        50 * COIN_VALUE + 1,
+      );
+
+      context.index.assert_inscription_location(
+        inscription_id_2,
+        SatPoint {
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 2,
+        },
+        50 * COIN_VALUE + 2,
+      );
+
+      assert!(
+        context
+          .index
+          .get_inscription_entry(inscription_id_0)
+          .unwrap()
+          .unwrap()
+          .number
+          == 0
+      );
+
+      assert!(
+        context
+          .index
+          .get_inscription_entry(inscription_id_1)
+          .unwrap()
+          .unwrap()
+          .number
+          == -1
+      );
+
+      assert!(
+        context
+          .index
+          .get_inscription_entry(inscription_id_2)
+          .unwrap()
+          .unwrap()
+          .number
+          == -2
       );
     }
   }

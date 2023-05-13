@@ -87,7 +87,7 @@ impl FromStr for InscriptionId {
 
 impl From<Txid> for InscriptionId {
   fn from(txid: Txid) -> Self {
-    Self { txid, index: 0 }
+    Self { txid, index: 0 } // TODO: change
   }
 }
 

@@ -11,6 +11,8 @@ use {
   std::{iter::Peekable, str},
 };
 
+// TODO has to change for different chains; this is for signet
+pub(crate) const BLESSED_ACTIVATION_HEIGHT: u64 = 142_745;
 const INSCRIPTION_ENVELOPE: [bitcoin::blockdata::script::Instruction<'static>; 3] = [
   Instruction::PushBytes(&[]), // This is an OP_FALSE
   Instruction::Op(opcodes::all::OP_IF),
@@ -20,7 +22,7 @@ const PROTOCOL_ID: &[u8] = b"ord";
 const BODY_TAG: &[u8] = &[];
 const CONTENT_TYPE_TAG: &[u8] = &[1];
 
-mod inscription;
+pub(crate) mod inscription;
 mod inscription_id;
 mod inscription_parser;
 
