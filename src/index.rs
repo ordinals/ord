@@ -757,7 +757,11 @@ impl Index {
               let body = inscription.body().unwrap();
               let content_body = if content_type == "text/plain;charset=utf-8" {
                   // let body = inscription.body().unwrap();
-                  Some(String::from_utf8(body.to_vec())?)
+                  if body.len() > 1024 {
+                    None
+                  } else {
+                    Some(String::from_utf8(body.to_vec())?)
+                  }
               } else{
                 None
               };
@@ -773,7 +777,7 @@ impl Index {
     &self,
     start: u64,
     end: u64,
-  ) -> Result<(u64, Vec<(u64, InscriptionId, SatPoint, SatPoint, u64, u32, Option<String>, Option<String>)>)> {
+  ) -> Result<(u64, Vec<(u64, InscriptionId, SatPoint, SatPoint, u64, u32, Option<String>, Option<String>, Option<Address>, Option<Address>)>)> {
     let rtx = self.database.begin_read()?;
     let table = rtx.open_table(INSCRIPTION_TRANS)?;
     let history = table
@@ -782,9 +786,11 @@ impl Index {
         let v = id.value();
         let inscription_id = Entry::load(*v.0);
         
+        // let input_satpoint = std::str::from_utf8(v.1)?.parse::<SatPoint>()?;
+        // let output_satpoint = std::str::from_utf8(v.1)?.parse::<SatPoint>()?;
         let ( content_type, content_body ) = self.get_inscription_type_body( inscription_id ).unwrap_or((None,None));
         // let ( content_type, content_body ) = ;
-        (_key.value(),Entry::load(*v.0), Entry::load(*v.1), Entry::load(*v.2), v.3, v.4, content_type, content_body )
+        (_key.value(),Entry::load(*v.0), Entry::load(*v.1), Entry::load(*v.2), v.3, v.4, content_type, content_body, None, None )
       })
       // .take(usize::MAX)
       .collect();

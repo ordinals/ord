@@ -448,13 +448,15 @@ impl Server {
         .ok_or_not_found(|| format!("output {outpoint}"))?
     };
     if accept_json.0 {
+      let address = page_config.chain.address_from_script( &output.script_pubkey).unwrap();
       Ok(
         axum::Json(serde_json::json!({
           // "outpoint":outpoint,
           // "inscriptions":inscriptions,
           // "list":list,
-          // "chain": page_config.chain,
+          "chain": page_config.chain,
           "output":output,
+          "address": address
         }))
         .into_response(),
       )
@@ -539,6 +541,7 @@ impl Server {
   }
 
   async fn inscription_trans(
+    // Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path((DeserializeFromStr(start), DeserializeFromStr(end))): Path<(
       DeserializeFromStr<u64>,
@@ -546,6 +549,14 @@ impl Server {
     )>,
   ) -> ServerResult<Response> {
     let trans = index.get_inscription_trans(start, end)?;
+    
+    // let eventlogs = trans.1;
+
+    // let histories = eventlogs.iter().map( | record | {
+    //   let satpoint1 = record.2 ;
+    //   let satpoint2 = record.3 ;
+    // });
+    
     Ok(
       axum::Json(serde_json::json!({
         "count": trans.0,
