@@ -799,7 +799,7 @@ impl Index {
 
     let mut _end = end ;
     if end > total {
-      _end = total ;
+      _end = total - 1;
     }
 
     let history = table
