@@ -753,8 +753,16 @@ impl Index {
       let entry = self.get_inscription_by_id(inscription_id).unwrap();
       match entry {
           Some(inscription) => {
-              let content_type = inscription.content_type().unwrap();
-              let body = inscription.body().unwrap();
+              let content_type = match inscription.content_type() {
+                Some( v ) =>  v , 
+                None => ""
+              };
+
+              let body = match inscription.body() {
+                Some(v) => v , 
+                None => &[]
+              };
+              // let content_type = inscription.content_type().unwrap_or("");
               let content_body = if content_type == "text/plain;charset=utf-8" {
                   // let body = inscription.body().unwrap();
                   if body.len() > 1024 {
@@ -791,7 +799,7 @@ impl Index {
 
     let mut _end = end ;
     if end > total {
-      _end = total ;
+      _end = total - 1;
     }
 
     let history = table
