@@ -725,19 +725,66 @@ impl Index {
     )
   }
 
+  // pub(crate) fn get_inscription_type_body(
+  //   &self,
+  //   inscription_id: InscriptionId
+  // ) -> Result<( &str, &str)>{
+  //   let entry = self.get_inscription_by_id( inscription_id ).unwrap();
+  //   // let inscription = entry.unwrap();
+  //   match entry {
+  //     Some( inscription ) => {
+  //       let content_type = inscription.content_type().unwrap_or("");
+  //       let content_body;
+  //       if content_type == "text/plain;charset=utf-8" {
+  //         let body = inscription.body().unwrap();
+  //         content_body = std::str::from_utf8( &body ).unwrap();
+  //       };
+  //       Ok(( content_type, content_body ))
+  //     } ,
+  //     None => {
+  //       Ok((&"",&""))
+  //     }
+  //   }
+  // }
+  pub(crate) fn get_inscription_type_body(
+    &self,
+    inscription_id: InscriptionId,
+  ) -> Result<(Option<String>, Option<String>)> {
+      let entry = self.get_inscription_by_id(inscription_id).unwrap();
+      match entry {
+          Some(inscription) => {
+              let content_type = inscription.content_type().unwrap();
+              let body = inscription.body().unwrap();
+              let content_body = if content_type == "text/plain;charset=utf-8" {
+                  // let body = inscription.body().unwrap();
+                  Some(String::from_utf8(body.to_vec())?)
+              } else{
+                None
+              };
+              let c_type = Some(String::from(content_type)) ;
+              Ok(( c_type, content_body))
+          }
+          None => Ok((None, None)),
+      }
+  }
+
   //query inscription_trans
   pub(crate) fn get_inscription_trans(
     &self,
     start: u64,
     end: u64,
-  ) -> Result<(u64, Vec<(u64, InscriptionId, SatPoint, SatPoint, u64, u32)>)> {
+  ) -> Result<(u64, Vec<(u64, InscriptionId, SatPoint, SatPoint, u64, u32, Option<String>, Option<String>)>)> {
     let rtx = self.database.begin_read()?;
     let table = rtx.open_table(INSCRIPTION_TRANS)?;
     let history = table
       .range::<u64>(start..end)?
       .map(|(_key, id)| {
         let v = id.value();
-        (_key.value(),Entry::load(*v.0), Entry::load(*v.1), Entry::load(*v.2), v.3, v.4)
+        let inscription_id = Entry::load(*v.0);
+        
+        let ( content_type, content_body ) = self.get_inscription_type_body( inscription_id ).unwrap_or((None,None));
+        // let ( content_type, content_body ) = ;
+        (_key.value(),Entry::load(*v.0), Entry::load(*v.1), Entry::load(*v.2), v.3, v.4, content_type, content_body )
       })
       // .take(usize::MAX)
       .collect();
