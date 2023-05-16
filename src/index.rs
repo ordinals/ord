@@ -780,8 +780,22 @@ impl Index {
   ) -> Result<(u64, Vec<(u64, InscriptionId, SatPoint, SatPoint, u64, u32, Option<String>, Option<String>, Option<Address>, Option<Address>)>)> {
     let rtx = self.database.begin_read()?;
     let table = rtx.open_table(INSCRIPTION_TRANS)?;
+
+    let total = table
+      .range(0..)?
+      .rev()
+      .next()
+      .map(|(height, _)| height.value())
+      .unwrap_or(0)
+      + 1;
+
+    let mut _end = end ;
+    if end > total {
+      _end = total ;
+    }
+
     let history = table
-      .range::<u64>(start..end)?
+      .range::<u64>(start.._end)?
       .map(|(_key, id)| {
         let v = id.value();
         let inscription_id = Entry::load(*v.0);
@@ -794,13 +808,7 @@ impl Index {
       })
       // .take(usize::MAX)
       .collect();
-    let total = table
-      .range(0..)?
-      .rev()
-      .next()
-      .map(|(height, _)| height.value())
-      .unwrap_or(0)
-      + 1;
+    
     Ok((total, history))
   }
 
