@@ -448,7 +448,10 @@ impl Server {
         .ok_or_not_found(|| format!("output {outpoint}"))?
     };
     if accept_json.0 {
-      let address = page_config.chain.address_from_script( &output.script_pubkey).unwrap();
+      let address = match page_config.chain.address_from_script( &output.script_pubkey) {
+        Ok(v) => Some(v) ,
+        Err(e) => None
+      };
       Ok(
         axum::Json(serde_json::json!({
           // "outpoint":outpoint,
