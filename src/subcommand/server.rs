@@ -491,6 +491,11 @@ impl Server {
         "script_pubkey": output.script_pubkey.asm(),
         "address": page_config.chain.address_from_script(&output.script_pubkey).unwrap(),
         "transaction": outpoint.txid,
+        "inscriptions": inscriptions.iter().map(|inscription| {
+          serde_json::json!({
+            "href": format!("/inscription/{}", inscription),
+          })
+        }).collect::<Vec<_>>(),
         "_links": {
           "self": {
             "href": format!("/output/{}", outpoint),
@@ -1029,12 +1034,11 @@ impl Server {
       .ok_or_not_found(|| format!("inscription {inscription_id} current transaction output"))?;
 
     let genesis_output = index
-        .get_transaction(inscription_id.txid)?
-        .ok_or_not_found(|| format!("inscription {inscription_id} current transaction"))?
-        .output
-        .into_iter()
-        .nth(0)
-        .ok_or_not_found(|| format!("inscription {inscription_id} genesis transaction output"))?;
+      .get_transaction(inscription_id.txid)?
+      .ok_or_not_found(|| format!("inscription {inscription_id} current transaction"))?
+      .output
+      .into_iter().next()
+      .ok_or_not_found(|| format!("inscription {inscription_id} genesis transaction output"))?;
 
     let previous = if let Some(previous) = entry.number.checked_sub(1) {
       Some(
@@ -1102,7 +1106,7 @@ impl Server {
         chain: page_config.chain,
         genesis_fee: entry.fee,
         genesis_height: entry.height,
-        genesis_output: genesis_output,
+        genesis_output,
         inscription,
         inscription_id,
         next,
