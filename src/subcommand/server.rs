@@ -450,7 +450,7 @@ impl Server {
     if accept_json.0 {
       let address = match page_config.chain.address_from_script( &output.script_pubkey) {
         Ok(v) => Some(v) ,
-        Err(e) => None
+        Err(_e) => None
       };
       Ok(
         axum::Json(serde_json::json!({
