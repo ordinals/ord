@@ -36,6 +36,7 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
       &'static SatPointValue,
       u64,
       u32,
+      u64,
     ),
   >,
   history_len: &'a mut u64,
@@ -64,6 +65,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         &'static SatPointValue,
         u64,
         u32,
+        u64,
       ),
     >,
     history_len: &'a mut u64,
@@ -287,6 +289,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         &new_satpoint,
         self.height,
         self.timestamp,
+        self.next_number - 1
       ),
     )?;
     *(self.history_len) += 1;
