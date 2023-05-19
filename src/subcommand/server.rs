@@ -166,6 +166,11 @@ impl Server {
           "/api/inscription/:inscription_id",
           get(Self::inscription_api),
         )
+
+        .route("/api/inscriptions", get(Self::inscriptions_api))
+        .route("/api/inscriptions/:from", get(Self::inscriptions_from_api))
+
+
         .route("/inscriptions", get(Self::inscriptions))
         .route("/inscriptions/:from", get(Self::inscriptions_from))
         .route("/install.sh", get(Self::install_script))
@@ -1031,27 +1036,42 @@ impl Server {
     )
   }
 
-  async fn inscriptions(
+  async fn inscriptions_api(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<String> {
+    Self::inscriptions_inner_api(page_config, index, None).await
+  }
+
+  async fn inscriptions(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+  ) -> ServerResult<PageHtml<InscriptionsHtml>> {
     Self::inscriptions_inner(page_config, index, None).await
+  }
+
+  async fn inscriptions_from_api(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(from): Path<u64>,
+  ) -> ServerResult<String> {
+    Self::inscriptions_inner_api(page_config, index, Some(from)).await
   }
 
   async fn inscriptions_from(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(from): Path<u64>,
-  ) -> ServerResult<String> {
+  ) -> ServerResult<PageHtml<InscriptionsHtml>> {
     Self::inscriptions_inner(page_config, index, Some(from)).await
   }
 
-  async fn inscriptions_inner(
+  async fn inscriptions_inner_api(
     page_config: Arc<PageConfig>,
     index: Arc<Index>,
     from: Option<u64>,
   ) -> ServerResult<String> {
-    let (inscriptions, prev, next) = index.get_latest_inscriptions_with_prev_and_next(100, from)?;
+    let (inscriptions, prev, next) = index.get_latest_inscriptions_with_prev_and_next(4, from)?;
 
     let obj = serde_json::json!({"meta": {"success": true, "pagination": {
       "prev": prev,
@@ -1069,6 +1089,23 @@ impl Server {
     //   }
     //   .page(page_config, index.has_sat_index()?),
     // )
+  }
+
+  async fn inscriptions_inner(
+    page_config: Arc<PageConfig>,
+    index: Arc<Index>,
+    from: Option<u64>,
+  ) -> ServerResult<PageHtml<InscriptionsHtml>> {
+    let (inscriptions, prev, next) = index.get_latest_inscriptions_with_prev_and_next(4, from)?;
+
+    Ok(
+      InscriptionsHtml {
+        inscriptions,
+        next,
+        prev,
+      }
+      .page(page_config, index.has_sat_index()?),
+    )
   }
 
   async fn redirect_http_to_https(
