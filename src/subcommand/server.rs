@@ -1034,7 +1034,7 @@ impl Server {
   async fn inscriptions(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
-  ) -> ServerResult<PageHtml<InscriptionsHtml>> {
+  ) -> ServerResult<String> {
     Self::inscriptions_inner(page_config, index, None).await
   }
 
@@ -1042,7 +1042,7 @@ impl Server {
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(from): Path<u64>,
-  ) -> ServerResult<PageHtml<InscriptionsHtml>> {
+  ) -> ServerResult<String> {
     Self::inscriptions_inner(page_config, index, Some(from)).await
   }
 
@@ -1050,17 +1050,25 @@ impl Server {
     page_config: Arc<PageConfig>,
     index: Arc<Index>,
     from: Option<u64>,
-  ) -> ServerResult<PageHtml<InscriptionsHtml>> {
+  ) -> ServerResult<String> {
     let (inscriptions, prev, next) = index.get_latest_inscriptions_with_prev_and_next(100, from)?;
 
-    Ok(
-      InscriptionsHtml {
-        inscriptions,
-        next,
-        prev,
-      }
-      .page(page_config, index.has_sat_index()?),
-    )
+    let obj = serde_json::json!({"meta": {"success": true, "pagination": {
+      "prev": prev,
+      "current": next.and_then(|value| Some(value - 1)).unwrap_or(1).clamp(1, u64::MAX),
+      "next": next
+    }}, "data": inscriptions});
+    // println!("{}", serde_json::to_string_pretty(&obj).unwrap());
+    println!("{}", next.and_then(|value| Some(value - 1)).unwrap_or(1).clamp(1, u64::MAX));
+    Ok(serde_json::to_string_pretty(&obj).unwrap())
+    // Ok(
+    //   InscriptionsHtml {
+    //     inscriptions,
+    //     next,
+    //     prev,
+    //   }
+    //   .page(page_config, index.has_sat_index()?),
+    // )
   }
 
   async fn redirect_http_to_https(
