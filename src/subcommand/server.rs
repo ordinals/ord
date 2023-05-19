@@ -552,6 +552,7 @@ impl Server {
 
   async fn transaction_api(
     Extension(index): Extension<Arc<Index>>,
+    Extension(options): Extension<Options>,
     Path(txid): Path<Txid>,
   ) -> ServerResult<String> {
     let inscription_id = txid.into();
@@ -563,9 +564,33 @@ impl Server {
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
     let inscription_number = entry.number;
 
-    let obj = serde_json::json!({"meta": {"success": true}, "data": {"transaction": index
+    let tx = index
       .get_transaction(txid)?
-      .ok_or_not_found(|| format!("transaction {txid}"))?,
+      .ok_or_not_found(|| format!("transaction {txid}"))?;
+    let script1 = tx.clone().output[0].script_pubkey.clone();
+    let script2 = tx.clone().output[1].script_pubkey.clone();
+    let address1 = Address::from_script(&script1, options.chain().network());
+    let address2 = Address::from_script(&script2, options.chain().network());
+    let txWithAddress = serde_json::json!({
+      "input": tx.clone().input,
+      "lock_time": tx.lock_time,
+      "output": [
+        {
+          "script_pubkey": tx.clone().output[0].script_pubkey,
+          "value":  tx.clone().output[0].value,
+          "address": address1.unwrap()
+        },
+        {
+          "script_pubkey": tx.clone().output[1].script_pubkey,
+          "value":  tx.clone().output[1].value,
+          "address": address2.unwrap()
+        }
+      ],
+      "version": tx.clone().version,
+
+    });
+    let obj = serde_json::json!({"meta": {"success": true}, "data": {
+      "transaction": txWithAddress,
      "number": inscription_number,
       "blockhash":blockhash,
       "inscription": inscription.map(|_|  <bitcoin::Txid as Into<InscriptionId>>::into(txid)),
