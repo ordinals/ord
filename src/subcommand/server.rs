@@ -27,6 +27,7 @@ use {
     caches::DirCache,
     AcmeConfig,
   },
+  serde::{Deserialize, Serialize},
   std::{cmp::Ordering, str},
   tokio_stream::StreamExt,
   tower_http::{
@@ -54,6 +55,13 @@ impl FromStr for BlockQuery {
       BlockQuery::Height(s.parse()?)
     })
   }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Output {
+  script_pubkey: Script,
+  value: u64,
+  address: Address,
 }
 
 enum SpawnConfig {
@@ -567,28 +575,24 @@ impl Server {
     let tx = index
       .get_transaction(txid)?
       .ok_or_not_found(|| format!("transaction {txid}"))?;
-    let script1 = tx.clone().output[0].script_pubkey.clone();
-    let script2 = tx.clone().output[1].script_pubkey.clone();
-    let address1 = Address::from_script(&script1, options.chain().network());
-    let address2 = Address::from_script(&script2, options.chain().network());
+    let mut outputs = Vec::new();
+
+    for o in tx.clone().output.iter() {
+      let script = o.clone().script_pubkey;
+      outputs.push(Output {
+        script_pubkey: script.clone(),
+        value: o.clone().value,
+        address: Address::from_script(&script, options.chain().network()).unwrap(),
+      });
+    }
+
     let tx_with_address = serde_json::json!({
       "input": tx.clone().input,
       "lock_time": tx.lock_time,
-      "output": [
-        {
-          "script_pubkey": tx.clone().output[0].script_pubkey,
-          "value":  tx.clone().output[0].value,
-          "address": address1.unwrap()
-        },
-        {
-          "script_pubkey": tx.clone().output[1].script_pubkey,
-          "value":  tx.clone().output[1].value,
-          "address": address2.unwrap()
-        }
-      ],
+      "output": outputs,
       "version": tx.clone().version,
-
     });
+
     let obj = serde_json::json!({"meta": {"success": true}, "data": {
       "transaction": tx_with_address,
      "number": inscription_number,
