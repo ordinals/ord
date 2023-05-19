@@ -166,11 +166,6 @@ impl Server {
           "/api/inscription/:inscription_id",
           get(Self::inscription_api),
         )
-
-        .route("/api/inscriptions", get(Self::inscriptions_api))
-        .route("/api/inscriptions/:from", get(Self::inscriptions_from_api))
-
-
         .route("/inscriptions", get(Self::inscriptions))
         .route("/inscriptions/:from", get(Self::inscriptions_from))
         .route("/install.sh", get(Self::install_script))
@@ -576,7 +571,7 @@ impl Server {
     let script2 = tx.clone().output[1].script_pubkey.clone();
     let address1 = Address::from_script(&script1, options.chain().network());
     let address2 = Address::from_script(&script2, options.chain().network());
-    let txWithAddress = serde_json::json!({
+    let tx_with_address = serde_json::json!({
       "input": tx.clone().input,
       "lock_time": tx.lock_time,
       "output": [
@@ -595,7 +590,7 @@ impl Server {
 
     });
     let obj = serde_json::json!({"meta": {"success": true}, "data": {
-      "transaction": txWithAddress,
+      "transaction": tx_with_address,
      "number": inscription_number,
       "blockhash":blockhash,
       "inscription": inscription.map(|_|  <bitcoin::Txid as Into<InscriptionId>>::into(txid)),
@@ -1036,26 +1031,11 @@ impl Server {
     )
   }
 
-  async fn inscriptions_api(
-    Extension(page_config): Extension<Arc<PageConfig>>,
-    Extension(index): Extension<Arc<Index>>,
-  ) -> ServerResult<String> {
-    Self::inscriptions_inner_api(page_config, index, None).await
-  }
-
   async fn inscriptions(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<PageHtml<InscriptionsHtml>> {
     Self::inscriptions_inner(page_config, index, None).await
-  }
-
-  async fn inscriptions_from_api(
-    Extension(page_config): Extension<Arc<PageConfig>>,
-    Extension(index): Extension<Arc<Index>>,
-    Path(from): Path<u64>,
-  ) -> ServerResult<String> {
-    Self::inscriptions_inner_api(page_config, index, Some(from)).await
   }
 
   async fn inscriptions_from(
@@ -1066,37 +1046,12 @@ impl Server {
     Self::inscriptions_inner(page_config, index, Some(from)).await
   }
 
-  async fn inscriptions_inner_api(
-    page_config: Arc<PageConfig>,
-    index: Arc<Index>,
-    from: Option<u64>,
-  ) -> ServerResult<String> {
-    let (inscriptions, prev, next) = index.get_latest_inscriptions_with_prev_and_next(4, from)?;
-
-    let obj = serde_json::json!({"meta": {"success": true, "pagination": {
-      "prev": prev,
-      "current": next.and_then(|value| Some(value - 1)).unwrap_or(1).clamp(1, u64::MAX),
-      "next": next
-    }}, "data": inscriptions});
-    // println!("{}", serde_json::to_string_pretty(&obj).unwrap());
-    println!("{}", next.and_then(|value| Some(value - 1)).unwrap_or(1).clamp(1, u64::MAX));
-    Ok(serde_json::to_string_pretty(&obj).unwrap())
-    // Ok(
-    //   InscriptionsHtml {
-    //     inscriptions,
-    //     next,
-    //     prev,
-    //   }
-    //   .page(page_config, index.has_sat_index()?),
-    // )
-  }
-
   async fn inscriptions_inner(
     page_config: Arc<PageConfig>,
     index: Arc<Index>,
     from: Option<u64>,
   ) -> ServerResult<PageHtml<InscriptionsHtml>> {
-    let (inscriptions, prev, next) = index.get_latest_inscriptions_with_prev_and_next(4, from)?;
+    let (inscriptions, prev, next) = index.get_latest_inscriptions_with_prev_and_next(100, from)?;
 
     Ok(
       InscriptionsHtml {
