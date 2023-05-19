@@ -1,0 +1,6 @@
+{ 
+  "p": "brc-20",
+  "op": "transfer",
+  "tick": "ordi",
+  "amt": "100"
+}
