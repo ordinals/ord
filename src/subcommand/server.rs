@@ -767,7 +767,7 @@ impl Server {
       writer.write_all(&body.unwrap()).unwrap();
       
       Command::new("python3")
-      .arg("../compression/models/tfci.py")
+      .arg("../models/tfci.py")
       .arg("decompress")
       .arg("/tmp/image2.tfci")
       .arg("/tmp/".to_owned()+&inscription_id.clone().unwrap()+".png")

@@ -138,6 +138,11 @@ mod tests {
   }
 
   #[test]
+  fn h264_in_mp4_is_allowed() {
+    assert!(Media::check_mp4_codec(Path::new("examples/h264.mp4")).is_ok(),);
+  }
+  
+  #[test]
   fn av1_in_mp4_is_rejected() {
     assert!(Media::check_mp4_codec(Path::new("examples/av1.mp4")).is_err(),);
   }
