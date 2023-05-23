@@ -2202,6 +2202,7 @@ dependencies = [
  "rustls",
  "rustls-acme",
  "serde",
+ "serde-big-array",
  "serde_json",
  "serde_yaml",
  "sys-info",
@@ -2947,6 +2948,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "71b2f6e1ab5c2b98c05f0f35b236b22e8df7ead6ffbf51d7808da7f8817e7ab6"
 dependencies = [
  "serde_derive",
+]
+
+[[package]]
+name = "serde-big-array"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "11fc7cc2c76d73e0f27ee52abbd64eec84d46f370c88371120433196934e4b7f"
+dependencies = [
+ "serde",
 ]
 
 [[package]]
