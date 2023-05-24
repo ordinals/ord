@@ -9,7 +9,7 @@ use {
   super::*,
   crate::wallet::Wallet,
   bitcoin::BlockHeader,
-  bitcoincore_rpc::{json::GetBlockHeaderResult, Client},
+  bitcoincore_rpc::{json::GetBlockHeaderResult, json::GetRawTransactionResult, Client},
   chrono::SubsecRound,
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
@@ -573,6 +573,7 @@ impl Index {
     }
   }
 
+  #[allow(dead_code)]
   pub(crate) fn get_transaction_blockhash(&self, txid: Txid) -> Result<Option<BlockHash>> {
     Ok(
       self
@@ -598,6 +599,13 @@ impl Index {
         .and_then(|info| info.in_active_chain)
         .unwrap_or(false),
     )
+  }
+
+  pub(crate) fn get_raw_transaction(&self, txid: Txid) -> Result<Option<GetRawTransactionResult>> {
+    self
+      .client
+      .get_raw_transaction_info(&txid, None)
+      .into_option()
   }
 
   pub(crate) fn find(&self, sat: u64) -> Result<Option<SatPoint>> {

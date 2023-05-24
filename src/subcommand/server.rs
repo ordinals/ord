@@ -592,6 +592,7 @@ impl Server {
         "size": block.size(),
         "weight": block.weight(),
         "timestamp": timestamp(block.header.time).to_string(),
+        "height": height,
         "previous_blockhash": block.header.prev_blockhash,
         "_links": {
           "self": {
@@ -610,6 +611,7 @@ impl Server {
     })
   }
 
+  #[allow(clippy::cast_possible_truncation)]
   async fn transaction(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
@@ -618,15 +620,23 @@ impl Server {
   ) -> ServerResult<Response> {
     let inscription = index.get_inscription_by_id(txid.into())?;
 
-    let blockhash = index.get_transaction_blockhash(txid)?;
-
     let transaction = index
       .get_transaction(txid)?
       .ok_or_not_found(|| format!("transaction {txid}"))?;
 
+    let info = index.get_raw_transaction(txid)?.unwrap();
+
+    let blockhash = info.blockhash;
+
+    let blocktime = info.blocktime.unwrap_or_default() as u32;
+
+    let confirmations = info.confirmations.unwrap_or_default();
+
     Ok(if accept_json.0 {
       axum::Json(serde_json::json!({
         "transaction": txid,
+        "timestamp": timestamp(blocktime).to_string(),
+        "confirmations": confirmations,
         "_links": {
           "self": {
             "href": format!("/tx/{}", txid),
@@ -1037,7 +1047,8 @@ impl Server {
       .get_transaction(inscription_id.txid)?
       .ok_or_not_found(|| format!("inscription {inscription_id} current transaction"))?
       .output
-      .into_iter().next()
+      .into_iter()
+      .next()
       .ok_or_not_found(|| format!("inscription {inscription_id} genesis transaction output"))?;
 
     let previous = if let Some(previous) = entry.number.checked_sub(1) {
