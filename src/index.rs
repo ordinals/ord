@@ -43,13 +43,6 @@ define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
 define_table! { STATISTIC_TO_COUNT, u64, u64 }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u64, u128 }
 
-fn unbound_outpoint() -> OutPoint {
-  OutPoint {
-    txid: Hash::all_zeros(),
-    vout: 0,
-  }
-}
-
 pub(crate) struct Index {
   client: Client,
   database: Database,
