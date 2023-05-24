@@ -829,13 +829,19 @@ impl Server {
       .get_inscription_satpoint_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
-    let output = index
-      .get_transaction(satpoint.outpoint.txid)?
-      .ok_or_not_found(|| format!("inscription {inscription_id} current transaction"))?
-      .output
-      .into_iter()
-      .nth(satpoint.outpoint.vout.try_into().unwrap())
-      .ok_or_not_found(|| format!("inscription {inscription_id} current transaction output"))?;
+    let output = if satpoint.outpoint == unbound_outpoint() {
+      None
+    } else {
+      Some(
+        index
+          .get_transaction(satpoint.outpoint.txid)?
+          .ok_or_not_found(|| format!("inscription {inscription_id} current transaction"))?
+          .output
+          .into_iter()
+          .nth(satpoint.outpoint.vout.try_into().unwrap())
+          .ok_or_not_found(|| format!("inscription {inscription_id} current transaction output"))?,
+      )
+    };
 
     let previous = if let Some(previous) = entry.number.checked_sub(1) {
       Some(
@@ -1595,6 +1601,43 @@ mod tests {
 <ul class=monospace>
   <li><a href=/range/5000000000/10000000000 class=uncommon>5000000000–10000000000</a></li>
 </ul>.*"
+      ),
+    );
+  }
+
+  #[test]
+  fn unbound_output_recieves_unbound_inscriptions() {
+    let server = TestServer::new_with_regtest();
+
+    server.mine_blocks(1);
+
+    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      fee: 50 * 100_000_000,
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 1, 0)],
+      witness: inscription("text/plain;charset=utf-8", "hello").to_witness(),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let inscription_id = InscriptionId::from(txid);
+
+    server.assert_response_regex(
+      format!("/inscription/{}", inscription_id),
+      StatusCode::OK,
+      format!(
+        ".*<dl>
+  <dt>id</dt>
+  <dd class=monospace>{inscription_id}</dd>
+  <dt>preview</dt>.*<dt>output</dt>
+  <dd><a class=monospace href=/output/0000000000000000000000000000000000000000000000000000000000000000:0>0000000000000000000000000000000000000000000000000000000000000000:0</a></dd>.*"
       ),
     );
   }

@@ -9,7 +9,7 @@ pub(crate) struct InscriptionHtml {
   pub(crate) inscription_id: InscriptionId,
   pub(crate) next: Option<InscriptionId>,
   pub(crate) number: u64,
-  pub(crate) output: TxOut,
+  pub(crate) output: Option<TxOut>,
   pub(crate) previous: Option<InscriptionId>,
   pub(crate) sat: Option<Sat>,
   pub(crate) satpoint: SatPoint,
@@ -31,7 +31,7 @@ mod tests {
   use super::*;
 
   #[test]
-  fn without_sat_or_nav_links() {
+  fn without_sat_nav_links_or_output() {
     assert_regex_match!(
       InscriptionHtml {
         chain: Chain::Mainnet,
@@ -41,7 +41,7 @@ mod tests {
         inscription_id: inscription_id(1),
         next: None,
         number: 1,
-        output: tx_out(1, address()),
+        output: None,
         previous: None,
         sat: None,
         satpoint: satpoint(1, 0),
@@ -57,10 +57,6 @@ mod tests {
         <dl>
           <dt>id</dt>
           <dd class=monospace>1{64}i1</dd>
-          <dt>address</dt>
-          <dd class=monospace>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</dd>
-          <dt>output value</dt>
-          <dd>1</dd>
           <dt>preview</dt>
           <dd><a href=/preview/1{64}i1>link</a></dd>
           <dt>content</dt>
@@ -90,6 +86,43 @@ mod tests {
   }
 
   #[test]
+  fn with_output() {
+    assert_regex_match!(
+      InscriptionHtml {
+        chain: Chain::Mainnet,
+        genesis_fee: 1,
+        genesis_height: 0,
+        inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
+        inscription_id: inscription_id(1),
+        next: None,
+        number: 1,
+        output: Some(tx_out(1, address())),
+        previous: None,
+        sat: None,
+        satpoint: satpoint(1, 0),
+        timestamp: timestamp(0),
+      },
+      "
+        <h1>Inscription 1</h1>
+        <div class=inscription>
+        <div>❮</div>
+        <iframe .* src=/preview/1{64}i1></iframe>
+        <div>❯</div>
+        </div>
+        <dl>
+          .*
+          <dt>address</dt>
+          <dd class=monospace>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</dd>
+          <dt>output value</dt>
+          <dd>1</dd>
+          .*
+        </dl>
+      "
+      .unindent()
+    );
+  }
+
+  #[test]
   fn with_sat() {
     assert_regex_match!(
       InscriptionHtml {
@@ -100,7 +133,7 @@ mod tests {
         inscription_id: inscription_id(1),
         next: None,
         number: 1,
-        output: tx_out(1, address()),
+        output: Some(tx_out(1, address())),
         previous: None,
         sat: Some(Sat(1)),
         satpoint: satpoint(1, 0),
@@ -132,7 +165,7 @@ mod tests {
         inscription_id: inscription_id(2),
         next: Some(inscription_id(3)),
         number: 1,
-        output: tx_out(1, address()),
+        output: Some(tx_out(1, address())),
         previous: Some(inscription_id(1)),
         sat: None,
         satpoint: satpoint(1, 0),
