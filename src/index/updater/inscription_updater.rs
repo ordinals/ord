@@ -9,8 +9,14 @@ pub(super) struct Flotsam {
 
 #[derive(Debug)]
 enum Origin {
-  New { fee: u64, cursed: bool },
-  Old { old_satpoint: SatPoint },
+  New {
+    fee: u64,
+    cursed: bool,
+    unbound: bool,
+  },
+  Old {
+    old_satpoint: SatPoint,
+  },
 }
 
 pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
@@ -127,31 +133,18 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       _ => (None, false, false),
     };
 
-    if inscriptions.iter().all(|flotsam| flotsam.offset != 0)
-      && inscription.is_some() 
-    {
+    if inscriptions.iter().all(|flotsam| flotsam.offset != 0) && inscription.is_some() {
       let flotsam = Flotsam {
         inscription_id: txid.into(),
         offset: 0,
         origin: Origin::New {
           fee: input_value - tx.output.iter().map(|txout| txout.value).sum::<u64>(),
-          cursed
+          cursed,
+          unbound: unbound || input_value == 0,
         },
       };
 
-      if input_value == 0 || unbound {
-        self.update_inscription_location(
-          input_sat_ranges,
-          flotsam,
-          SatPoint {
-            outpoint: unbound_outpoint(),
-            offset: self.unbound_inscriptions,
-          },
-        )?;
-        self.unbound_inscriptions += 1;
-      } else {
-        inscriptions.push(flotsam);
-      }
+      inscriptions.push(flotsam);
     };
 
     let is_coinbase = tx
@@ -230,14 +223,27 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
   ) -> Result {
     let inscription_id = flotsam.inscription_id.store();
 
-    match flotsam.origin {
+    let unbound = match flotsam.origin {
       Origin::Old { old_satpoint } => {
         self.satpoint_to_id.remove(&old_satpoint.store())?;
+
+        false
       }
-      Origin::New { fee, cursed } => {
-        self
-          .number_to_id
-          .insert(&self.next_number, &inscription_id)?;
+      Origin::New {
+        fee,
+        cursed,
+        unbound,
+      } => {
+        let number = if cursed {
+          // This looks awkward
+          self.next_cursed_number -= 1;
+          self.next_cursed_number + 1
+        } else {
+          self.next_number += 1;
+          self.next_number - 1
+        };
+
+        self.number_to_id.insert(number, &inscription_id)?;
 
         let mut sat = None;
         if let Some(input_sat_ranges) = input_sat_ranges {
@@ -259,21 +265,31 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           &InscriptionEntry {
             fee,
             height: self.height,
-            number: self.next_number,
+            number,
             sat,
             timestamp: self.timestamp,
           }
           .store(),
         )?;
 
-        self.next_number += 1;
+        unbound
       }
-    }
+    };
 
-    let new_satpoint = new_satpoint.store();
+    let satpoint = if unbound {
+      let new_unbound_satpoint = SatPoint {
+        outpoint: unbound_outpoint(),
+        offset: self.unbound_inscriptions,
+      };
+      self.unbound_inscriptions += 1;
 
-    self.satpoint_to_id.insert(&new_satpoint, &inscription_id)?;
-    self.id_to_satpoint.insert(&inscription_id, &new_satpoint)?;
+      new_unbound_satpoint.store()
+    } else {
+      new_satpoint.store()
+    };
+
+    self.satpoint_to_id.insert(&satpoint, &inscription_id)?;
+    self.id_to_satpoint.insert(&inscription_id, &satpoint)?;
 
     Ok(())
   }

@@ -843,15 +843,7 @@ impl Server {
       )
     };
 
-    let previous = if let Some(previous) = entry.number.checked_sub(1) {
-      Some(
-        index
-          .get_inscription_id_by_inscription_number(previous)?
-          .ok_or_not_found(|| format!("inscription {previous}"))?,
-      )
-    } else {
-      None
-    };
+    let previous = index.get_inscription_id_by_inscription_number(entry.number - 1)?;
 
     let next = index.get_inscription_id_by_inscription_number(entry.number + 1)?;
 

@@ -29,7 +29,13 @@ impl Inscription {
   }
 
   pub(crate) fn from_transaction(tx: &Transaction) -> Result<Inscription> {
-    InscriptionParser::parse(&tx.input.get(0).ok_or(InscriptionError::NoInscription)?.witness)
+    InscriptionParser::parse(
+      &tx
+        .input
+        .get(0)
+        .ok_or(InscriptionError::NoInscription)?
+        .witness,
+    )
   }
 
   pub(crate) fn from_file(chain: Chain, path: impl AsRef<Path>) -> Result<Self, Error> {
@@ -266,20 +272,6 @@ impl<'a> InscriptionParser<'a> {
 #[cfg(test)]
 mod tests {
   use super::*;
-
-  fn envelope(payload: &[&[u8]]) -> Witness {
-    let mut builder = script::Builder::new()
-      .push_opcode(opcodes::OP_FALSE)
-      .push_opcode(opcodes::all::OP_IF);
-
-    for data in payload {
-      builder = builder.push_slice(data);
-    }
-
-    let script = builder.push_opcode(opcodes::all::OP_ENDIF).into_script();
-
-    Witness::from_vec(vec![script.into_bytes(), Vec::new()])
-  }
 
   #[test]
   fn empty() {
