@@ -28,8 +28,8 @@ impl Inscription {
     Self { content_type, body }
   }
 
-  pub(crate) fn from_transaction(tx: &Transaction) -> Option<Inscription> {
-    InscriptionParser::parse(&tx.input.get(0)?.witness).ok()
+  pub(crate) fn from_transaction(tx: &Transaction) -> Result<Inscription> {
+    InscriptionParser::parse(&tx.input.get(0).ok_or(InscriptionError::NoInscription)?.witness)
   }
 
   pub(crate) fn from_file(chain: Chain, path: impl AsRef<Path>) -> Result<Self, Error> {
@@ -122,13 +122,13 @@ impl Inscription {
 }
 
 #[derive(Debug, PartialEq)]
-enum InscriptionError {
+pub(crate) enum InscriptionError {
   EmptyWitness,
   InvalidInscription,
   KeyPathSpend,
   NoInscription,
   Script(script::Error),
-  UnrecognizedEvenField,
+  UnrecognizedEvenField(Inscription),
 }
 
 type Result<T, E = InscriptionError> = std::result::Result<T, E>;
@@ -226,7 +226,10 @@ impl<'a> InscriptionParser<'a> {
       for tag in fields.keys() {
         if let Some(lsb) = tag.first() {
           if lsb % 2 == 0 {
-            return Err(InscriptionError::UnrecognizedEvenField);
+            return Err(InscriptionError::UnrecognizedEvenField(Inscription {
+              body,
+              content_type,
+            }));
           }
         }
       }
@@ -570,7 +573,7 @@ mod tests {
     };
 
     assert_eq!(
-      Inscription::from_transaction(&tx),
+      Inscription::from_transaction(&tx).ok(),
       Some(inscription("text/plain;charset=utf-8", "ord")),
     );
   }
@@ -597,7 +600,7 @@ mod tests {
       output: Vec::new(),
     };
 
-    assert_eq!(Inscription::from_transaction(&tx), None);
+    assert_eq!(Inscription::from_transaction(&tx).ok(), None);
   }
 
   #[test]
@@ -621,7 +624,7 @@ mod tests {
     };
 
     assert_eq!(
-      Inscription::from_transaction(&tx),
+      Inscription::from_transaction(&tx).ok(),
       Some(inscription("foo", [1; 100]))
     );
   }
@@ -734,10 +737,13 @@ mod tests {
   }
 
   #[test]
-  fn unknown_even_fields_are_invalid() {
+  fn unknown_even_fields_are_valid_but_unbound() {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[b"ord", &[2], &[0]])),
-      Err(InscriptionError::UnrecognizedEvenField),
+      Err(InscriptionError::UnrecognizedEvenField(Inscription {
+        body: None,
+        content_type: None
+      })),
     );
   }
 }

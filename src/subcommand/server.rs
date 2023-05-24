@@ -884,7 +884,7 @@ impl Server {
   async fn inscriptions_from(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path(from): Path<u64>,
+    Path(from): Path<i64>,
   ) -> ServerResult<PageHtml<InscriptionsHtml>> {
     Self::inscriptions_inner(page_config, index, Some(from)).await
   }
@@ -892,7 +892,7 @@ impl Server {
   async fn inscriptions_inner(
     page_config: Arc<PageConfig>,
     index: Arc<Index>,
-    from: Option<u64>,
+    from: Option<i64>,
   ) -> ServerResult<PageHtml<InscriptionsHtml>> {
     let (inscriptions, prev, next) = index.get_latest_inscriptions_with_prev_and_next(100, from)?;
     Ok(
