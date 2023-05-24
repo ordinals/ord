@@ -5,6 +5,7 @@ pub(crate) struct InscriptionHtml {
   pub(crate) chain: Chain,
   pub(crate) genesis_fee: u64,
   pub(crate) genesis_height: u64,
+  pub(crate) genesis_output: TxOut,
   pub(crate) inscription: Inscription,
   pub(crate) inscription_id: InscriptionId,
   pub(crate) next: Option<InscriptionId>,
@@ -37,6 +38,7 @@ mod tests {
         chain: Chain::Mainnet,
         genesis_fee: 1,
         genesis_height: 0,
+        genesis_output: tx_out(1, address()),
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
         next: None,
@@ -77,6 +79,8 @@ mod tests {
           <dd>1</dd>
           <dt>genesis transaction</dt>
           <dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
+          <dt>genesis address</dt>
+          <dd class=monospace>ltc1qw508d6qejxtdg4y5r3zarvary0c5xw7kgmn4n9</dd>
           <dt>location</dt>
           <dd class=monospace>1{64}:1:0</dd>
           <dt>output</dt>
@@ -96,6 +100,7 @@ mod tests {
         chain: Chain::Mainnet,
         genesis_fee: 1,
         genesis_height: 0,
+        genesis_output: tx_out(1, address()),
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
         next: None,
@@ -128,6 +133,7 @@ mod tests {
         chain: Chain::Mainnet,
         genesis_fee: 1,
         genesis_height: 0,
+        genesis_output: tx_out(1, address()),
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(2),
         next: Some(inscription_id(3)),
