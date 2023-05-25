@@ -15,6 +15,7 @@ const PROTOCOL_ID: &[u8] = b"ord";
 
 const BODY_TAG: &[u8] = &[];
 const CONTENT_TYPE_TAG: &[u8] = &[1];
+const MANUALLY_CURSED_TAG: &[u8] = &[66];
 
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) struct Inscription {
@@ -128,6 +129,7 @@ enum InscriptionError {
   KeyPathSpend,
   NoInscription,
   Script(script::Error),
+  ManuallyCursed,
   UnrecognizedEvenField,
 }
 
@@ -222,6 +224,7 @@ impl<'a> InscriptionParser<'a> {
 
       let body = fields.remove(BODY_TAG);
       let content_type = fields.remove(CONTENT_TYPE_TAG);
+      let cursed_tag = fields.remove(MANUALLY_CURSED_TAG);
 
       for tag in fields.keys() {
         if let Some(lsb) = tag.first() {
@@ -229,6 +232,10 @@ impl<'a> InscriptionParser<'a> {
             return Err(InscriptionError::UnrecognizedEvenField);
           }
         }
+      }
+
+      if cursed_tag {
+        return Err(InscriptionError::ManuallyCursed);
       }
 
       return Ok(Some(Inscription { body, content_type }));
