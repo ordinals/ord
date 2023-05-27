@@ -7,7 +7,7 @@ CHAIN=$2
 DOMAIN=$3
 
 if [[ ! -d ord ]]; then
-  git clone https://github.com/casey/ord.git
+  git clone https://github.com/ordinals/ord.git
 fi
 
 cd ord
