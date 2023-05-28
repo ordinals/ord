@@ -118,7 +118,7 @@
                         <a href="../../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
-                        <a href="https://github.com/casey/ord" title="Git repository" aria-label="Git repository">
+                        <a href="https://github.com/ordinals/ord" title="Git repository" aria-label="Git repository">
                             <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
 
@@ -148,7 +148,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="collecting-inscriptions-and-ordinals-with-sparrow-wallet"><a class="header" href="#collecting-inscriptions-and-ordinals-with-sparrow-wallet">Collecting Inscriptions and Ordinals with Sparrow Wallet</a></h1>
-<p>Users who cannot or have not yet set up the <a href="https://github.com/casey/ord">ord</a> wallet can receive inscriptions and ordinals with alternative bitcoin wallets, as long as they are <em>very</em> careful about how they spend from that wallet.</p>
+<p>Users who cannot or have not yet set up the <a href="https://github.com/ordinals/ord">ord</a> wallet can receive inscriptions and ordinals with alternative bitcoin wallets, as long as they are <em>very</em> careful about how they spend from that wallet.</p>
 <p>This guide gives some basic steps on how to create a wallet with <a href="https://sparrowwallet.com/">Sparrow Wallet</a> which is compatible with <code>ord</code> and can be later imported into <code>ord</code></p>
 <h2 id="-warning-"><a class="header" href="#-warning-">⚠️⚠️ Warning!! ⚠️⚠️</a></h2>
 <p>As a general rule if you take this approach, you should use this wallet with the Sparrow software as a receive-only wallet.</p>
@@ -189,7 +189,7 @@
 <h2 id="importing-into-ord-wallet"><a class="header" href="#importing-into-ord-wallet">Importing into <code>ord</code> wallet</a></h2>
 <p>For details on setting up Bitcoin Core and the <code>ord</code> wallet check out the <a href="../inscriptions.html">Inscriptions Guide</a></p>
 <p>When setting up <code>ord</code>, instead of running <code>ord wallet create</code> to create a brand-new wallet, you can import your existing wallet using <code>ord wallet restore &quot;BIP39 SEED PHRASE&quot;</code> using the seed phrase you generated with Sparrow Wallet.</p>
-<p>There is currently a <a href="https://github.com/casey/ord/issues/1589">bug</a> which causes an imported wallet to not be automatically rescanned against the blockchain. To work around this you will need to manually trigger a rescan using the bitcoin core cli:
+<p>There is currently a <a href="https://github.com/ordinals/ord/issues/1589">bug</a> which causes an imported wallet to not be automatically rescanned against the blockchain. To work around this you will need to manually trigger a rescan using the bitcoin core cli:
 <code>bitcoin-cli -rpcwallet=ord rescanblockchain 767430</code></p>
 <p>You can then check your wallet's inscriptions using <code>ord wallet inscriptions</code></p>
 <p>Note that if you have previously created a wallet with <code>ord</code>, then you will already have a wallet with the default name, and will need to give your imported wallet a different name. You can use the <code>--wallet</code> parameter in all <code>ord</code> commands to reference a different wallet, eg:</p>
