@@ -15,6 +15,6 @@ This address is 2 of 4 multisig wallet with keys held by
 [ordinally](https://twitter.com/veryordinally).
 
 Bitcoin received will go towards funding maintainance and development of `ord`,
-as well as hosting costs for [https://ordinals.com](ordinals.com).
+as well as hosting costs for [ordinals.com](https://ordinals.com).
 
 Thank you for donating!
