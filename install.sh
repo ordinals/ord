@@ -26,7 +26,7 @@ EOF
 
 git=casey/ord
 crate=ord
-url=https://github.com/casey/ord
+url=https://github.com/ordinals/ord
 releases=$url/releases
 
 say() {
@@ -114,7 +114,7 @@ if [ -z ${target-} ]; then
     *)
       err 'Could not determine target from output of `uname -m`-`uname -s`, please use `--target`:' $uname_target
       err 'Target architecture is not supported by this install script.'
-      err 'Consider opening an issue or building from source: https://github.com/casey/ord'
+      err 'Consider opening an issue or building from source: https://github.com/ordinals/ord'
     ;;
   esac
 fi
