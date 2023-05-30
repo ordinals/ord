@@ -18,11 +18,32 @@ transfer algorithm.
 See [the project board](https://github.com/users/casey/projects/3/) for
 currently prioritized issues.
 
-See [milestones](https://github.com/casey/ord/milestones) to get a sense of
+See [milestones](https://github.com/ordinals/ord/milestones) to get a sense of
 where the project is and where it's going.
 
 Join [the Discord server](https://discord.gg/87cjuz4FYg) to chat with fellow
 ordinal degenerates.
+
+Donate
+------
+
+Ordinals is open-source and community funded. The current lead maintainer of
+`ord` is [raphjaph](https://github.com/raphjaph/). Raph's work on `ord` is
+entirely funded by donations. If you can, please consider donating!
+
+The donation address is
+[bc1q8kt9pyd6r27k2840l8g5d7zshz3cg9v6rfda0m248lva3ve5072q3sxelt](https://mempool.space/address/bc1q8kt9pyd6r27k2840l8g5d7zshz3cg9v6rfda0m248lva3ve5072q3sxelt).
+
+This address is 2 of 4 multisig wallet with keys held by
+[raphjaph](https://twitter.com/raphjaph),
+[erin](https://twitter.com/realizingerin),
+[rodarmor](https://twitter.com/rodarmor), and
+[ordinally](https://twitter.com/veryordinally).
+
+Bitcoin received will go towards funding maintainance and development of `ord`,
+as well as hosting costs for [ordinals.com](https://ordinals.com).
+
+Thank you for donating!
 
 Wallet
 ------
@@ -54,8 +75,8 @@ Installation
 ------------
 
 `ord` is written in Rust and can be built from
-[source](https://github.com/casey/ord). Pre-built binaries are available on the
-[releases page](https://github.com/casey/ord/releases).
+[source](https://github.com/ordinals/ord). Pre-built binaries are available on the
+[releases page](https://github.com/ordinals/ord/releases).
 
 You can install the latest pre-built binary from the command line with:
 
@@ -84,7 +105,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 To build `ord` from source:
 
 ```
-git clone https://github.com/casey/ord.git
+git clone https://github.com/ordinals/ord.git
 cd ord
 cargo build --release
 ```

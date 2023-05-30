@@ -17,7 +17,7 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   id_to_satpoint: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, &'static SatPointValue>,
   value_receiver: &'a mut Receiver<u64>,
   id_to_entry: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, InscriptionEntryValue>,
-  lost_sats: u64,
+  pub(super) lost_sats: u64,
   next_number: u64,
   number_to_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
   outpoint_to_value: &'a mut Table<'db, 'tx, &'static OutPointValue, u64>,
@@ -25,6 +25,7 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   sat_to_inscription_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
   satpoint_to_id: &'a mut Table<'db, 'tx, &'static SatPointValue, &'static InscriptionIdValue>,
   timestamp: u32,
+  pub(super) unbound_inscriptions: u64,
   value_cache: &'a mut HashMap<OutPoint, u64>,
 }
 
@@ -40,6 +41,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     sat_to_inscription_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
     satpoint_to_id: &'a mut Table<'db, 'tx, &'static SatPointValue, &'static InscriptionIdValue>,
     timestamp: u32,
+    unbound_inscriptions: u64,
     value_cache: &'a mut HashMap<OutPoint, u64>,
   ) -> Result<Self> {
     let next_number = number_to_id
@@ -63,6 +65,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       sat_to_inscription_id,
       satpoint_to_id,
       timestamp,
+      unbound_inscriptions,
       value_cache,
     })
   }
@@ -72,7 +75,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     tx: &Transaction,
     txid: Txid,
     input_sat_ranges: Option<&VecDeque<(u64, u64)>>,
-  ) -> Result<u64> {
+  ) -> Result {
     let mut inscriptions = Vec::new();
 
     let mut input_value = 0;
@@ -111,13 +114,27 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     if inscriptions.iter().all(|flotsam| flotsam.offset != 0)
       && Inscription::from_transaction(tx).is_some()
     {
-      inscriptions.push(Flotsam {
+      let flotsam = Flotsam {
         inscription_id: txid.into(),
         offset: 0,
         origin: Origin::New {
           fee: input_value - tx.output.iter().map(|txout| txout.value).sum::<u64>(),
         },
-      });
+      };
+
+      if input_value == 0 {
+        self.update_inscription_location(
+          input_sat_ranges,
+          flotsam,
+          SatPoint {
+            outpoint: unbound_outpoint(),
+            offset: self.unbound_inscriptions,
+          },
+        )?;
+        self.unbound_inscriptions += 1;
+      } else {
+        inscriptions.push(flotsam);
+      }
     };
 
     let is_coinbase = tx
@@ -176,15 +193,15 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         };
         self.update_inscription_location(input_sat_ranges, flotsam, new_satpoint)?;
       }
-
-      Ok(self.reward - output_value)
+      self.lost_sats += self.reward - output_value;
+      Ok(())
     } else {
       self.flotsam.extend(inscriptions.map(|flotsam| Flotsam {
         offset: self.reward + flotsam.offset - output_value,
         ..flotsam
       }));
       self.reward += input_value - output_value;
-      Ok(0)
+      Ok(())
     }
   }
 
