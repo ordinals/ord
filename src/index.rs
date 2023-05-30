@@ -2384,4 +2384,48 @@ mod tests {
       );
     }
   }
+
+  #[test]
+  fn zero_value_transaction_inscription_not_cursed_but_unbound() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0)],
+        fee: 50 * 100_000_000,
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(2, 1, 0)],
+        witness: inscription("text/plain", "hello").to_witness(),
+        ..Default::default()
+      });
+
+      let inscription_id = InscriptionId::from(txid);
+
+      context.mine_blocks(1);
+
+      context.index.assert_inscription_location(
+        inscription_id,
+        SatPoint {
+          outpoint: unbound_outpoint(),
+          offset: 0,
+        },
+        None,
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_entry(inscription_id)
+          .unwrap()
+          .unwrap()
+          .number,
+        0
+      );
+    }
+  }
 }

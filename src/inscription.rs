@@ -134,7 +134,7 @@ pub(crate) enum InscriptionError {
   KeyPathSpend,
   NoInscription,
   Script(script::Error),
-  UnrecognizedEvenField(Inscription),
+  UnrecognizedEvenField,
 }
 
 type Result<T, E = InscriptionError> = std::result::Result<T, E>;
@@ -232,10 +232,7 @@ impl<'a> InscriptionParser<'a> {
       for tag in fields.keys() {
         if let Some(lsb) = tag.first() {
           if lsb % 2 == 0 {
-            return Err(InscriptionError::UnrecognizedEvenField(Inscription {
-              body,
-              content_type,
-            }));
+            return Err(InscriptionError::UnrecognizedEvenField);
           }
         }
       }
@@ -732,10 +729,7 @@ mod tests {
   fn unknown_even_fields_are_valid_but_unbound() {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[b"ord", &[2], &[0]])),
-      Err(InscriptionError::UnrecognizedEvenField(Inscription {
-        body: None,
-        content_type: None
-      })),
+      Err(InscriptionError::UnrecognizedEvenField),
     );
   }
 }

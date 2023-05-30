@@ -127,13 +127,13 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       }
     }
 
-    let (inscription, cursed, unbound) = match Inscription::from_transaction(tx) {
-      Ok(inscription) => (Some(inscription), false, false),
-      Err(InscriptionError::UnrecognizedEvenField(inscription)) => (Some(inscription), true, true),
-      _ => (None, false, false),
+    let (has_inscription, cursed, unbound) = match Inscription::from_transaction(tx) {
+      Ok(_inscription) => (true, false, false),
+      Err(InscriptionError::UnrecognizedEvenField) => (true, true, true),
+      _ => (false, false, false),
     };
 
-    if inscriptions.iter().all(|flotsam| flotsam.offset != 0) && inscription.is_some() {
+    if inscriptions.iter().all(|flotsam| flotsam.offset != 0) && has_inscription {
       let flotsam = Flotsam {
         inscription_id: txid.into(),
         offset: 0,
