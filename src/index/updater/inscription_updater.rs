@@ -235,12 +235,15 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         unbound,
       } => {
         let number = if cursed {
-          // This looks awkward
+          let next_cursed_number = self.next_cursed_number;
           self.next_cursed_number -= 1;
-          self.next_cursed_number + 1
+
+          next_cursed_number
         } else {
+          let next_number = self.next_number;
           self.next_number += 1;
-          self.next_number - 1
+
+          next_number
         };
 
         self.number_to_id.insert(number, &inscription_id)?;
