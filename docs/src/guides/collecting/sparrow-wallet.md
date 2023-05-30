@@ -1,7 +1,7 @@
 Collecting Inscriptions and Ordinals with Sparrow Wallet
 =====================
 
-Users who cannot or have not yet set up the [ord](https://github.com/casey/ord) wallet can receive inscriptions and ordinals with alternative bitcoin wallets, as long as they are _very_ careful about how they spend from that wallet.
+Users who cannot or have not yet set up the [ord](https://github.com/ordinals/ord) wallet can receive inscriptions and ordinals with alternative bitcoin wallets, as long as they are _very_ careful about how they spend from that wallet.
 
 This guide gives some basic steps on how to create a wallet with [Sparrow Wallet](https://sparrowwallet.com/) which is compatible with `ord` and can be later imported into `ord`
 
@@ -82,7 +82,7 @@ For details on setting up Bitcoin Core and the `ord` wallet check out the [Inscr
 
 When setting up `ord`, instead of running `ord wallet create` to create a brand-new wallet, you can import your existing wallet using `ord wallet restore "BIP39 SEED PHRASE"` using the seed phrase you generated with Sparrow Wallet.
 
-There is currently a [bug](https://github.com/casey/ord/issues/1589) which causes an imported wallet to not be automatically rescanned against the blockchain. To work around this you will need to manually trigger a rescan using the bitcoin core cli:
+There is currently a [bug](https://github.com/ordinals/ord/issues/1589) which causes an imported wallet to not be automatically rescanned against the blockchain. To work around this you will need to manually trigger a rescan using the bitcoin core cli:
 `bitcoin-cli -rpcwallet=ord rescanblockchain 767430`
 
 You can then check your wallet's inscriptions using `ord wallet inscriptions`
