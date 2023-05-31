@@ -181,16 +181,15 @@ follows:</p>
 <pre><code>OP_FALSE
 OP_IF
   OP_PUSH &quot;ord&quot;
-  OP_1
+  OP_PUSH 1
   OP_PUSH &quot;text/plain;charset=utf-8&quot;
-  OP_0
+  OP_PUSH 0
   OP_PUSH &quot;Hello, world!&quot;
 OP_ENDIF
 </code></pre>
 <p>First the string <code>ord</code> is pushed, to disambiguate inscriptions from other uses
 of envelopes.</p>
-<p><code>OP_1</code> indicates that the next push contains the content type, and <code>OP_0</code>
-indicates that subsequent data pushes contain the content itself. Multiple data
+<p><code>OP_PUSH 1</code> indicates that the next push contains the content type, and <code>OP_PUSH 0</code>indicates that subsequent data pushes contain the content itself. Multiple data
 pushes must be used for large inscriptions, as one of taproot's few
 restrictions is that individual data pushes may not be larger than 520 bytes.</p>
 <p>The inscription content is contained within the input of a reveal transaction,
