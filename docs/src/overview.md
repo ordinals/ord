@@ -11,7 +11,7 @@ the transfer scheme on the *order* of transaction inputs and outputs. Thus the
 name, *ordinals*.
 
 Technical details are available in [the
-BIP](https://github.com/casey/ord/blob/master/bip.mediawiki).
+BIP](https://github.com/ordinals/ord/blob/master/bip.mediawiki).
 
 Ordinal theory does not require a separate token, another blockchain, or any
 changes to Bitcoin. It works right now.
@@ -43,7 +43,7 @@ Arbitrary assets, such as NFTs, security tokens, accounts, or stablecoins can
 be attached to satoshis using ordinal numbers as stable identifiers.
 
 Ordinals is an open-source project, developed [on
-GitHub](https://github.com/casey/ord). The project consists of a BIP describing
+GitHub](https://github.com/ordinals/ord). The project consists of a BIP describing
 the ordinal scheme, an index that communicates with a Bitcoin Core node to
 track the location of all satoshis, a wallet that allows making ordinal-aware
 transactions, a block explorer for interactive exploration of the blockchain,
