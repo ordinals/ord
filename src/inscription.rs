@@ -15,6 +15,7 @@ const PROTOCOL_ID: &[u8] = b"ord";
 
 const BODY_TAG: &[u8] = &[];
 const CONTENT_TYPE_TAG: &[u8] = &[1];
+const METADATA_TAG: &[u8] = &[0x42];
 
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) struct Inscription {
@@ -222,6 +223,8 @@ impl<'a> InscriptionParser<'a> {
 
       let body = fields.remove(BODY_TAG);
       let content_type = fields.remove(CONTENT_TYPE_TAG);
+      let metadata = fields.remove(METADATA_TAG);
+      log::debug!("metadata: {:?}", metadata);
 
       for tag in fields.keys() {
         if let Some(lsb) = tag.first() {
@@ -427,6 +430,22 @@ mod tests {
         &[],
       ])),
       Ok(inscription("text/plain;charset=utf-8", "")),
+    );
+  }
+
+  #[test]
+  fn valid_with_metadata_tag() {
+    assert_eq!(
+      InscriptionParser::parse(&envelope(&[
+        b"ord",
+        &[1],
+        b"text/plain;charset=utf-8",
+        &[0x42],
+        b"{\"foo\": \"bar\"}",
+        &[],
+        b"ord",
+      ])),
+      Ok(inscription("text/plain;charset=utf-8", "ord")),
     );
   }
 
