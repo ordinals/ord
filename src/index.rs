@@ -13,7 +13,7 @@ use {
   chrono::SubsecRound,
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
-  redb::{Database, Durability, ReadableTable, Table, TableDefinition, WriteTransaction},
+  redb::{Database, ReadableTable, Table, TableDefinition, WriteTransaction},
   std::collections::HashMap,
   std::sync::atomic::{self, AtomicBool},
 };
@@ -206,7 +206,6 @@ impl Index {
 
         database
       }
-      Err(error) => return Err(error.into()),
     };
 
     let genesis_block_coinbase_transaction =
