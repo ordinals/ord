@@ -308,7 +308,7 @@ impl<'a> InscriptionParser<'a> {
 #[cfg(test)]
 mod tests {
   use super::*;
-  
+
   #[test]
   fn empty() {
     assert_eq!(
@@ -348,7 +348,7 @@ mod tests {
         Script::new().into_bytes(),
         Vec::new()
       ])),
-     Ok(vec![])
+      Ok(vec![])
     );
   }
 
@@ -524,7 +524,10 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), Vec::new()])),
-      Ok(vec![inscription("text/plain;charset=utf-8", "foo"), inscription("text/plain;charset=utf-8", "bar")]),
+      Ok(vec![
+        inscription("text/plain;charset=utf-8", "foo"),
+        inscription("text/plain;charset=utf-8", "bar")
+      ]),
     );
   }
 
@@ -572,18 +575,12 @@ mod tests {
 
   #[test]
   fn empty_envelope() {
-    assert_eq!(
-      InscriptionParser::parse(&envelope(&[])),
-      Ok(vec![])
-    );
+    assert_eq!(InscriptionParser::parse(&envelope(&[])), Ok(vec![]));
   }
 
   #[test]
   fn wrong_magic_number() {
-    assert_eq!(
-      InscriptionParser::parse(&envelope(&[b"foo"])),
-      Ok(vec![])
-    );
+    assert_eq!(InscriptionParser::parse(&envelope(&[b"foo"])), Ok(vec![]));
   }
 
   #[test]
@@ -602,7 +599,12 @@ mod tests {
 
     assert_eq!(
       Inscription::from_transaction(&tx),
-      vec![transaction_inscription("text/plain;charset=utf-8", "ord", 0, 0)],
+      vec![transaction_inscription(
+        "text/plain;charset=utf-8",
+        "ord",
+        0,
+        0
+      )],
     );
   }
 
@@ -628,7 +630,10 @@ mod tests {
       output: Vec::new(),
     };
 
-    assert_eq!(Inscription::from_transaction(&tx), vec![transaction_inscription("foo", [1; 1040], 1, 0)]);
+    assert_eq!(
+      Inscription::from_transaction(&tx),
+      vec![transaction_inscription("foo", [1; 1040], 1, 0)]
+    );
   }
 
   #[test]
@@ -653,7 +658,10 @@ mod tests {
 
     assert_eq!(
       Inscription::from_transaction(&tx),
-      vec![transaction_inscription("foo", [1; 100], 0, 0), transaction_inscription("bar", [1; 100], 0, 1)]
+      vec![
+        transaction_inscription("foo", [1; 100], 0, 0),
+        transaction_inscription("bar", [1; 100], 0, 1)
+      ]
     );
   }
 
