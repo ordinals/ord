@@ -21,7 +21,7 @@ use {
     epoch::Epoch,
     height::Height,
     index::{Index, List},
-    inscription::{Inscription, InscriptionError},
+    inscription::{Inscription, TransactionInscription, InscriptionError},
     inscription_id::InscriptionId,
     media::Media,
     options::Options,

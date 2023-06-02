@@ -109,6 +109,14 @@ pub(crate) fn inscription(content_type: &str, body: impl AsRef<[u8]>) -> Inscrip
   Inscription::new(Some(content_type.into()), Some(body.as_ref().into()))
 }
 
+pub(crate) fn transaction_inscription(content_type: &str, body: impl AsRef<[u8]>, tx_in_index: u32, tx_in_offset: u32) -> TransactionInscription {
+  TransactionInscription {
+    inscription: inscription(content_type, body),
+    tx_in_index,
+    tx_in_offset,
+  }
+}
+
 pub(crate) fn inscription_id(n: u32) -> InscriptionId {
   let hex = format!("{n:x}");
 

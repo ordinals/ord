@@ -11,8 +11,12 @@ use {
   std::{iter::Peekable, str},
 };
 
+const INSCRIPTION_ENVELOPE: [bitcoin::blockdata::script::Instruction<'static>; 3] = [
+  Instruction::PushBytes(&[]), // This is an OP_FALSE
+  Instruction::Op(opcodes::all::OP_IF),
+  Instruction::PushBytes(PROTOCOL_ID),
+];
 const PROTOCOL_ID: &[u8] = b"ord";
-
 const BODY_TAG: &[u8] = &[];
 const CONTENT_TYPE_TAG: &[u8] = &[1];
 
@@ -22,20 +26,38 @@ pub(crate) struct Inscription {
   content_type: Option<Vec<u8>>,
 }
 
+#[derive(Debug, PartialEq, Clone)]
+pub(crate) struct TransactionInscription {
+  pub(crate) inscription: Inscription,
+  pub(crate) tx_in_index: u32,
+  pub(crate) tx_in_offset: u32,
+}
+
 impl Inscription {
   #[cfg(test)]
   pub(crate) fn new(content_type: Option<Vec<u8>>, body: Option<Vec<u8>>) -> Self {
     Self { content_type, body }
   }
 
-  pub(crate) fn from_transaction(tx: &Transaction) -> Result<Inscription> {
-    InscriptionParser::parse(
-      &tx
-        .input
-        .get(0)
-        .ok_or(InscriptionError::NoInscription)?
-        .witness,
-    )
+  pub(crate) fn from_transaction(tx: &Transaction) -> Vec<TransactionInscription> {
+    let mut result = Vec::new();
+    for (index, tx_in) in tx.input.iter().enumerate() {
+      let Ok(inscriptions) = InscriptionParser::parse(&tx_in.witness) else { continue };
+
+      result.extend(
+        inscriptions
+          .into_iter()
+          .enumerate()
+          .map(|(offset, inscription)| TransactionInscription {
+            inscription,
+            tx_in_index: index as u32,
+            tx_in_offset: offset as u32,
+          })
+          .collect::<Vec<TransactionInscription>>(),
+      )
+    }
+
+    result
   }
 
   pub(crate) fn from_file(chain: Chain, path: impl AsRef<Path>) -> Result<Self, Error> {
@@ -144,7 +166,7 @@ struct InscriptionParser<'a> {
 }
 
 impl<'a> InscriptionParser<'a> {
-  fn parse(witness: &Witness) -> Result<Inscription> {
+  fn parse(witness: &Witness) -> Result<Vec<Inscription>> {
     if witness.is_empty() {
       return Err(InscriptionError::EmptyWitness);
     }
@@ -174,19 +196,62 @@ impl<'a> InscriptionParser<'a> {
     InscriptionParser {
       instructions: Script::from(Vec::from(script)).instructions().peekable(),
     }
-    .parse_script()
+    .parse_inscriptions()
+    .into_iter()
+    .collect()
   }
 
-  fn parse_script(mut self) -> Result<Inscription> {
+  fn parse_inscriptions(&mut self) -> Vec<Result<Inscription>> {
+    let mut inscriptions = Vec::new();
     loop {
-      let next = self.advance()?;
+      let current = self.parse_one_inscription();
+      if current == Err(InscriptionError::NoInscription) {
+        break;
+      }
+      inscriptions.push(current);
+    }
 
-      if next == Instruction::PushBytes(&[]) {
-        if let Some(inscription) = self.parse_inscription()? {
-          return Ok(inscription);
+    inscriptions
+  }
+
+  fn parse_one_inscription(&mut self) -> Result<Inscription> {
+    self.advance_into_inscription_envelope()?;
+
+    let mut fields = BTreeMap::new();
+
+    loop {
+      match self.advance()? {
+        Instruction::PushBytes(BODY_TAG) => {
+          let mut body = Vec::new();
+          while !self.accept(&Instruction::Op(opcodes::all::OP_ENDIF))? {
+            body.extend_from_slice(self.expect_push()?);
+          }
+          fields.insert(BODY_TAG, body);
+          break;
+        }
+        Instruction::PushBytes(tag) => {
+          if fields.contains_key(tag) {
+            return Err(InscriptionError::InvalidInscription);
+          }
+          fields.insert(tag, self.expect_push()?.to_vec());
+        }
+        Instruction::Op(opcodes::all::OP_ENDIF) => break,
+        _ => return Err(InscriptionError::InvalidInscription),
+      }
+    }
+
+    let body = fields.remove(BODY_TAG);
+    let content_type = fields.remove(CONTENT_TYPE_TAG);
+
+    for tag in fields.keys() {
+      if let Some(lsb) = tag.first() {
+        if lsb % 2 == 0 {
+          return Err(InscriptionError::UnrecognizedEvenField);
         }
       }
     }
+
+    Ok(Inscription { body, content_type })
   }
 
   fn advance(&mut self) -> Result<Instruction<'a>> {
@@ -197,50 +262,24 @@ impl<'a> InscriptionParser<'a> {
       .map_err(InscriptionError::Script)
   }
 
-  fn parse_inscription(&mut self) -> Result<Option<Inscription>> {
-    if self.advance()? == Instruction::Op(opcodes::all::OP_IF) {
-      if !self.accept(Instruction::PushBytes(PROTOCOL_ID))? {
-        return Err(InscriptionError::NoInscription);
+  fn advance_into_inscription_envelope(&mut self) -> Result<()> {
+    loop {
+      if self.match_instructions(&INSCRIPTION_ENVELOPE)? {
+        break;
       }
-
-      let mut fields = BTreeMap::new();
-
-      loop {
-        match self.advance()? {
-          Instruction::PushBytes(BODY_TAG) => {
-            let mut body = Vec::new();
-            while !self.accept(Instruction::Op(opcodes::all::OP_ENDIF))? {
-              body.extend_from_slice(self.expect_push()?);
-            }
-            fields.insert(BODY_TAG, body);
-            break;
-          }
-          Instruction::PushBytes(tag) => {
-            if fields.contains_key(tag) {
-              return Err(InscriptionError::InvalidInscription);
-            }
-            fields.insert(tag, self.expect_push()?.to_vec());
-          }
-          Instruction::Op(opcodes::all::OP_ENDIF) => break,
-          _ => return Err(InscriptionError::InvalidInscription),
-        }
-      }
-
-      let body = fields.remove(BODY_TAG);
-      let content_type = fields.remove(CONTENT_TYPE_TAG);
-
-      for tag in fields.keys() {
-        if let Some(lsb) = tag.first() {
-          if lsb % 2 == 0 {
-            return Err(InscriptionError::UnrecognizedEvenField);
-          }
-        }
-      }
-
-      return Ok(Some(Inscription { body, content_type }));
     }
 
-    Ok(None)
+    Ok(())
+  }
+
+  fn match_instructions(&mut self, instructions: &[Instruction]) -> Result<bool> {
+    for instruction in instructions {
+      if &self.advance()? != instruction {
+        return Ok(false);
+      }
+    }
+
+    Ok(true)
   }
 
   fn expect_push(&mut self) -> Result<&'a [u8]> {
@@ -250,10 +289,10 @@ impl<'a> InscriptionParser<'a> {
     }
   }
 
-  fn accept(&mut self, instruction: Instruction) -> Result<bool> {
+  fn accept(&mut self, instruction: &Instruction) -> Result<bool> {
     match self.instructions.peek() {
       Some(Ok(next)) => {
-        if *next == instruction {
+        if next == instruction {
           self.advance()?;
           Ok(true)
         } else {
@@ -269,7 +308,7 @@ impl<'a> InscriptionParser<'a> {
 #[cfg(test)]
 mod tests {
   use super::*;
-
+  
   #[test]
   fn empty() {
     assert_eq!(
@@ -309,7 +348,7 @@ mod tests {
         Script::new().into_bytes(),
         Vec::new()
       ])),
-      Err(InscriptionError::NoInscription),
+     Ok(vec![])
     );
   }
 
@@ -339,7 +378,7 @@ mod tests {
         &[],
         b"ord",
       ])),
-      Ok(inscription("text/plain;charset=utf-8", "ord")),
+      Ok(vec![inscription("text/plain;charset=utf-8", "ord")]),
     );
   }
 
@@ -355,7 +394,7 @@ mod tests {
         &[],
         b"ord",
       ])),
-      Ok(inscription("text/plain;charset=utf-8", "ord")),
+      Ok(vec![inscription("text/plain;charset=utf-8", "ord")]),
     );
   }
 
@@ -363,10 +402,10 @@ mod tests {
   fn no_content_tag() {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[b"ord", &[1], b"text/plain;charset=utf-8"])),
-      Ok(Inscription {
+      Ok(vec![Inscription {
         content_type: Some(b"text/plain;charset=utf-8".to_vec()),
         body: None,
-      }),
+      }]),
     );
   }
 
@@ -374,10 +413,10 @@ mod tests {
   fn no_content_type() {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[b"ord", &[], b"foo"])),
-      Ok(Inscription {
+      Ok(vec![Inscription {
         content_type: None,
         body: Some(b"foo".to_vec()),
-      }),
+      }]),
     );
   }
 
@@ -392,7 +431,7 @@ mod tests {
         b"foo",
         b"bar"
       ])),
-      Ok(inscription("text/plain;charset=utf-8", "foobar")),
+      Ok(vec![inscription("text/plain;charset=utf-8", "foobar")]),
     );
   }
 
@@ -400,7 +439,7 @@ mod tests {
   fn valid_body_in_zero_pushes() {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[b"ord", &[1], b"text/plain;charset=utf-8", &[]])),
-      Ok(inscription("text/plain;charset=utf-8", "")),
+      Ok(vec![inscription("text/plain;charset=utf-8", "")]),
     );
   }
 
@@ -418,7 +457,7 @@ mod tests {
         &[],
         &[],
       ])),
-      Ok(inscription("text/plain;charset=utf-8", "")),
+      Ok(vec![inscription("text/plain;charset=utf-8", "")]),
     );
   }
 
@@ -438,7 +477,7 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), Vec::new()])),
-      Ok(inscription("text/plain;charset=utf-8", "ord")),
+      Ok(vec![inscription("text/plain;charset=utf-8", "ord")]),
     );
   }
 
@@ -458,12 +497,12 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), Vec::new()])),
-      Ok(inscription("text/plain;charset=utf-8", "ord")),
+      Ok(vec![inscription("text/plain;charset=utf-8", "ord")]),
     );
   }
 
   #[test]
-  fn valid_ignore_inscriptions_after_first() {
+  fn do_not_ignore_inscriptions_after_first() {
     let script = script::Builder::new()
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
@@ -485,7 +524,7 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), Vec::new()])),
-      Ok(inscription("text/plain;charset=utf-8", "foo")),
+      Ok(vec![inscription("text/plain;charset=utf-8", "foo"), inscription("text/plain;charset=utf-8", "bar")]),
     );
   }
 
@@ -499,7 +538,7 @@ mod tests {
         &[],
         &[0b10000000]
       ])),
-      Ok(inscription("text/plain;charset=utf-8", [0b10000000])),
+      Ok(vec![inscription("text/plain;charset=utf-8", [0b10000000])]),
     );
   }
 
@@ -513,7 +552,7 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), Vec::new()])),
-      Err(InscriptionError::NoInscription)
+      Ok(vec![])
     );
   }
 
@@ -527,7 +566,7 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), Vec::new()])),
-      Err(InscriptionError::NoInscription)
+      Ok(vec![])
     );
   }
 
@@ -535,7 +574,7 @@ mod tests {
   fn empty_envelope() {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[])),
-      Err(InscriptionError::NoInscription)
+      Ok(vec![])
     );
   }
 
@@ -543,7 +582,7 @@ mod tests {
   fn wrong_magic_number() {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[b"foo"])),
-      Err(InscriptionError::NoInscription),
+      Ok(vec![])
     );
   }
 
@@ -562,13 +601,13 @@ mod tests {
     };
 
     assert_eq!(
-      Inscription::from_transaction(&tx).ok(),
-      Some(inscription("text/plain;charset=utf-8", "ord")),
+      Inscription::from_transaction(&tx),
+      vec![transaction_inscription("text/plain;charset=utf-8", "ord", 0, 0)],
     );
   }
 
   #[test]
-  fn do_not_extract_from_second_input() {
+  fn extract_from_second_input() {
     let tx = Transaction {
       version: 0,
       lock_time: bitcoin::PackedLockTime(0),
@@ -589,11 +628,11 @@ mod tests {
       output: Vec::new(),
     };
 
-    assert_eq!(Inscription::from_transaction(&tx).ok(), None);
+    assert_eq!(Inscription::from_transaction(&tx), vec![transaction_inscription("foo", [1; 1040], 1, 0)]);
   }
 
   #[test]
-  fn do_not_extract_from_second_envelope() {
+  fn extract_from_second_envelope() {
     let mut builder = script::Builder::new();
     builder = inscription("foo", [1; 100]).append_reveal_script_to_builder(builder);
     builder = inscription("bar", [1; 100]).append_reveal_script_to_builder(builder);
@@ -613,8 +652,8 @@ mod tests {
     };
 
     assert_eq!(
-      Inscription::from_transaction(&tx).ok(),
-      Some(inscription("foo", [1; 100]))
+      Inscription::from_transaction(&tx),
+      vec![transaction_inscription("foo", [1; 100], 0, 0), transaction_inscription("bar", [1; 100], 0, 1)]
     );
   }
 
@@ -622,7 +661,7 @@ mod tests {
   fn inscribe_png() {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[b"ord", &[1], b"image/png", &[], &[1; 100]])),
-      Ok(inscription("image/png", [1; 100])),
+      Ok(vec![inscription("image/png", [1; 100])]),
     );
   }
 
@@ -687,7 +726,7 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&witness).unwrap(),
-      inscription("foo", [1; 1040]),
+      vec![inscription("foo", [1; 1040])],
     );
   }
 
@@ -707,10 +746,10 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&witness).unwrap(),
-      Inscription {
+      vec![Inscription {
         content_type: None,
         body: None,
-      }
+      }]
     );
   }
 
@@ -718,10 +757,10 @@ mod tests {
   fn unknown_odd_fields_are_ignored() {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[b"ord", &[3], &[0]])),
-      Ok(Inscription {
+      Ok(vec![Inscription {
         content_type: None,
         body: None,
-      }),
+      }]),
     );
   }
 

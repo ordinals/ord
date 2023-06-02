@@ -1,13 +1,13 @@
-use super::*;
+use {super::*, std::collections::BTreeSet};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(super) struct Flotsam {
   inscription_id: InscriptionId,
   offset: u64,
   origin: Origin,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum Origin {
   New {
     fee: u64,
@@ -92,60 +92,88 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     txid: Txid,
     input_sat_ranges: Option<&VecDeque<(u64, u64)>>,
   ) -> Result {
-    let mut inscriptions = Vec::new();
-
+    let mut new_inscriptions = Inscription::from_transaction(tx).into_iter().peekable();
+    let mut floating_inscriptions = Vec::new();
+    let mut inscribed_offsets = BTreeSet::new();
     let mut input_value = 0;
-    for tx_in in &tx.input {
+    let mut id_counter = 0;
+    // let total_output_value = tx.output.iter().map(|txout| txout.value).sum::<u64>();
+
+    for (input_index, tx_in) in tx.input.iter().enumerate() {
+      // skip subsidy since no inscriptions possible
       if tx_in.previous_output.is_null() {
         input_value += Height(self.height).subsidy();
-      } else {
-        for (old_satpoint, inscription_id) in
-          Index::inscriptions_on_output(self.satpoint_to_id, tx_in.previous_output)?
-        {
-          inscriptions.push(Flotsam {
-            offset: input_value + old_satpoint.offset,
-            inscription_id,
-            origin: Origin::Old { old_satpoint },
-          });
-        }
-
-        input_value += if let Some(value) = self.value_cache.remove(&tx_in.previous_output) {
-          value
-        } else if let Some(value) = self
-          .outpoint_to_value
-          .remove(&tx_in.previous_output.store())?
-        {
-          value.value()
-        } else {
-          self.value_receiver.blocking_recv().ok_or_else(|| {
-            anyhow!(
-              "failed to get transaction for {}",
-              tx_in.previous_output.txid
-            )
-          })?
-        }
+        continue;
       }
-    }
 
-    let (has_inscription, cursed, unbound) = match Inscription::from_transaction(tx) {
-      Ok(_inscription) => (true, false, false),
-      Err(InscriptionError::UnrecognizedEvenField) => (true, true, true),
-      _ => (false, false, false),
-    };
+      // find existing inscriptions on input aka transfers of inscriptions
+      for (old_satpoint, inscription_id) in
+        Index::inscriptions_on_output(self.satpoint_to_id, tx_in.previous_output)?
+      {
+        let offset = input_value + old_satpoint.offset;
+        floating_inscriptions.push(Flotsam {
+          offset,
+          inscription_id,
+          origin: Origin::Old { old_satpoint },
+        });
 
-    if inscriptions.iter().all(|flotsam| flotsam.offset != 0) && has_inscription {
-      let flotsam = Flotsam {
-        inscription_id: txid.into(),
-        offset: 0,
-        origin: Origin::New {
-          fee: input_value - tx.output.iter().map(|txout| txout.value).sum::<u64>(),
-          cursed,
-          unbound: unbound || input_value == 0,
-        },
+        inscribed_offsets.insert(offset);
+      }
+
+      let offset = input_value;
+
+      // different ways to get the utxo set (input amount)
+      input_value += if let Some(value) = self.value_cache.remove(&tx_in.previous_output) {
+        value
+      } else if let Some(value) = self
+        .outpoint_to_value
+        .remove(&tx_in.previous_output.store())?
+      {
+        value.value()
+      } else {
+        self.value_receiver.blocking_recv().ok_or_else(|| {
+          anyhow!(
+            "failed to get transaction for {}",
+            tx_in.previous_output.txid
+          )
+        })?
       };
 
-      inscriptions.push(flotsam);
-    };
+      // go through all inscriptions in this input
+      while let Some(inscription) = new_inscriptions.peek() {
+        if inscription.tx_in_index != input_index as u32 {
+          break;
+        }
+
+        // ignore reinscriptions on already inscribed offset (sats)
+        // For now we do not allow reinscriptions (for example inscriptions in same input or on
+        // existing inscribed sat
+        let unbound =
+          inscribed_offsets.contains(&offset) || inscription.tx_in_offset != 0 || input_value == 0;
+
+        let cursed = inscribed_offsets.contains(&offset)
+          || inscription.tx_in_index != 0
+          || inscription.tx_in_offset != 0;
+
+        let inscription_id = InscriptionId {
+          txid,
+          index: id_counter,
+        };
+
+        floating_inscriptions.push(Flotsam {
+          inscription_id,
+          offset,
+          origin: Origin::New {
+            fee: 0, //input_value - total_output_value, // TODO
+            cursed,
+            unbound,
+          },
+        });
+
+        new_inscriptions.next();
+        id_counter += 1;
+      }
+    }
 
     let is_coinbase = tx
       .input
@@ -154,11 +182,11 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       .unwrap_or_default();
 
     if is_coinbase {
-      inscriptions.append(&mut self.flotsam);
+      floating_inscriptions.append(&mut self.flotsam);
     }
 
-    inscriptions.sort_by_key(|flotsam| flotsam.offset);
-    let mut inscriptions = inscriptions.into_iter().peekable();
+    floating_inscriptions.sort_by_key(|flotsam| flotsam.offset);
+    let mut inscriptions = floating_inscriptions.into_iter().peekable();
 
     let mut output_value = 0;
     for (vout, tx_out) in tx.output.iter().enumerate() {
@@ -222,7 +250,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     new_satpoint: SatPoint,
   ) -> Result {
     let inscription_id = flotsam.inscription_id.store();
-
     let unbound = match flotsam.origin {
       Origin::Old { old_satpoint } => {
         self.satpoint_to_id.remove(&old_satpoint.store())?;
@@ -285,7 +312,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         offset: self.unbound_inscriptions,
       };
       self.unbound_inscriptions += 1;
-
       new_unbound_satpoint.store()
     } else {
       new_satpoint.store()
