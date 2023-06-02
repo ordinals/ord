@@ -8,7 +8,7 @@ pub(crate) struct InscriptionHtml {
   pub(crate) inscription: Inscription,
   pub(crate) inscription_id: InscriptionId,
   pub(crate) next: Option<InscriptionId>,
-  pub(crate) number: u64,
+  pub(crate) number: i64,
   pub(crate) output: Option<TxOut>,
   pub(crate) previous: Option<InscriptionId>,
   pub(crate) sat: Option<Sat>,

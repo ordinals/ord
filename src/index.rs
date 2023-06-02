@@ -23,7 +23,7 @@ mod fetcher;
 mod rtx;
 mod updater;
 
-const SCHEMA_VERSION: u64 = 3;
+const SCHEMA_VERSION: u64 = 4;
 
 macro_rules! define_table {
   ($name:ident, $key:ty, $value:ty) => {
@@ -34,7 +34,7 @@ macro_rules! define_table {
 define_table! { HEIGHT_TO_BLOCK_HASH, u64, &BlockHashValue }
 define_table! { INSCRIPTION_ID_TO_INSCRIPTION_ENTRY, &InscriptionIdValue, InscriptionEntryValue }
 define_table! { INSCRIPTION_ID_TO_SATPOINT, &InscriptionIdValue, &SatPointValue }
-define_table! { INSCRIPTION_NUMBER_TO_INSCRIPTION_ID, u64, &InscriptionIdValue }
+define_table! { INSCRIPTION_NUMBER_TO_INSCRIPTION_ID, i64, &InscriptionIdValue }
 define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_VALUE, &OutPointValue, u64}
 define_table! { SATPOINT_TO_INSCRIPTION_ID, &SatPointValue, &InscriptionIdValue }
@@ -498,7 +498,7 @@ impl Index {
 
   pub(crate) fn get_inscription_id_by_inscription_number(
     &self,
-    n: u64,
+    n: i64,
   ) -> Result<Option<InscriptionId>> {
     Ok(
       self
@@ -541,7 +541,7 @@ impl Index {
     Ok(
       self
         .get_transaction(inscription_id.txid)?
-        .and_then(|tx| Inscription::from_transaction(&tx)),
+        .and_then(|tx| Inscription::from_transaction(&tx).ok()),
     )
   }
 
@@ -726,8 +726,8 @@ impl Index {
   pub(crate) fn get_latest_inscriptions_with_prev_and_next(
     &self,
     n: usize,
-    from: Option<u64>,
-  ) -> Result<(Vec<InscriptionId>, Option<u64>, Option<u64>)> {
+    from: Option<i64>,
+  ) -> Result<(Vec<InscriptionId>, Option<i64>, Option<i64>)> {
     let rtx = self.database.begin_read()?;
 
     let inscription_number_to_inscription_id =
@@ -769,7 +769,7 @@ impl Index {
     Ok((inscriptions, prev, next))
   }
 
-  pub(crate) fn get_feed_inscriptions(&self, n: usize) -> Result<Vec<(u64, InscriptionId)>> {
+  pub(crate) fn get_feed_inscriptions(&self, n: usize) -> Result<Vec<(i64, InscriptionId)>> {
     Ok(
       self
         .database
@@ -2276,6 +2276,155 @@ mod tests {
           .unwrap_err()
           .to_string(),
         r"output in Bitcoin Core wallet but not in ord index: [[:xdigit:]]{64}:\d+"
+      );
+    }
+  }
+
+  #[test]
+  fn unrecognized_even_field_inscriptions_are_cursed_and_unbound() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let witness = envelope(&[
+        b"ord",
+        &[1],
+        b"text/plain;charset=utf-8",
+        &[2],
+        b"bar",
+        &[4],
+        b"ord",
+      ]);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0)],
+        witness,
+        ..Default::default()
+      });
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      context.mine_blocks(1);
+
+      context.index.assert_inscription_location(
+        inscription_id,
+        SatPoint {
+          outpoint: unbound_outpoint(),
+          offset: 0,
+        },
+        None,
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_entry(inscription_id)
+          .unwrap()
+          .unwrap()
+          .number,
+        -1
+      );
+    }
+  }
+
+  #[test]
+  fn cursed_inscriptions_assigned_negative_numbers() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let witness = envelope(&[
+        b"ord",
+        &[1],
+        b"text/plain;charset=utf-8",
+        &[2],
+        b"bar",
+        &[4],
+        b"ord",
+      ]);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0)],
+        witness,
+        ..Default::default()
+      });
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      context.mine_blocks(1);
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_entry(inscription_id)
+          .unwrap()
+          .unwrap()
+          .number,
+        -1
+      );
+
+      let witness = envelope(&[b"ord", &[1], b"text/plain;charset=utf-8", &[66], b"zoo"]);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(2, 0, 0)],
+        witness,
+        ..Default::default()
+      });
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      context.mine_blocks(1);
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_entry(inscription_id)
+          .unwrap()
+          .unwrap()
+          .number,
+        -2
+      );
+    }
+  }
+
+  #[test]
+  fn zero_value_transaction_inscription_not_cursed_but_unbound() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0)],
+        fee: 50 * 100_000_000,
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(2, 1, 0)],
+        witness: inscription("text/plain", "hello").to_witness(),
+        ..Default::default()
+      });
+
+      let inscription_id = InscriptionId::from(txid);
+
+      context.mine_blocks(1);
+
+      context.index.assert_inscription_location(
+        inscription_id,
+        SatPoint {
+          outpoint: unbound_outpoint(),
+          offset: 0,
+        },
+        None,
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_entry(inscription_id)
+          .unwrap()
+          .unwrap()
+          .number,
+        0
       );
     }
   }

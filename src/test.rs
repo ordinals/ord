@@ -1,6 +1,11 @@
 pub(crate) use {
-  super::*, bitcoin::Witness, pretty_assertions::assert_eq as pretty_assert_eq, std::iter,
-  test_bitcoincore_rpc::TransactionTemplate, unindent::Unindent,
+  super::*,
+  bitcoin::blockdata::{opcodes, script},
+  bitcoin::Witness,
+  pretty_assertions::assert_eq as pretty_assert_eq,
+  std::iter,
+  test_bitcoincore_rpc::TransactionTemplate,
+  unindent::Unindent,
 };
 
 macro_rules! assert_regex_match {
@@ -112,4 +117,18 @@ pub(crate) fn inscription_id(n: u32) -> InscriptionId {
   }
 
   format!("{}i{n}", hex.repeat(64)).parse().unwrap()
+}
+
+pub(crate) fn envelope(payload: &[&[u8]]) -> Witness {
+  let mut builder = script::Builder::new()
+    .push_opcode(opcodes::OP_FALSE)
+    .push_opcode(opcodes::all::OP_IF);
+
+  for data in payload {
+    builder = builder.push_slice(data);
+  }
+
+  let script = builder.push_opcode(opcodes::all::OP_ENDIF).into_script();
+
+  Witness::from_vec(vec![script.into_bytes(), Vec::new()])
 }

@@ -1,14 +1,22 @@
 use super::*;
 
+#[derive(Debug)]
 pub(super) struct Flotsam {
   inscription_id: InscriptionId,
   offset: u64,
   origin: Origin,
 }
 
+#[derive(Debug)]
 enum Origin {
-  New { fee: u64 },
-  Old { old_satpoint: SatPoint },
+  New {
+    fee: u64,
+    cursed: bool,
+    unbound: bool,
+  },
+  Old {
+    old_satpoint: SatPoint,
+  },
 }
 
 pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
@@ -18,8 +26,9 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   value_receiver: &'a mut Receiver<u64>,
   id_to_entry: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, InscriptionEntryValue>,
   pub(super) lost_sats: u64,
-  next_number: u64,
-  number_to_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
+  next_cursed_number: i64,
+  next_number: i64,
+  number_to_id: &'a mut Table<'db, 'tx, i64, &'static InscriptionIdValue>,
   outpoint_to_value: &'a mut Table<'db, 'tx, &'static OutPointValue, u64>,
   reward: u64,
   sat_to_inscription_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
@@ -36,7 +45,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     value_receiver: &'a mut Receiver<u64>,
     id_to_entry: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, InscriptionEntryValue>,
     lost_sats: u64,
-    number_to_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
+    number_to_id: &'a mut Table<'db, 'tx, i64, &'static InscriptionIdValue>,
     outpoint_to_value: &'a mut Table<'db, 'tx, &'static OutPointValue, u64>,
     sat_to_inscription_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
     satpoint_to_id: &'a mut Table<'db, 'tx, &'static SatPointValue, &'static InscriptionIdValue>,
@@ -44,6 +53,12 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     unbound_inscriptions: u64,
     value_cache: &'a mut HashMap<OutPoint, u64>,
   ) -> Result<Self> {
+    let next_cursed_number = number_to_id
+      .iter()?
+      .map(|(number, _id)| number.value() - 1)
+      .next()
+      .unwrap_or(-1);
+
     let next_number = number_to_id
       .iter()?
       .rev()
@@ -58,6 +73,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       value_receiver,
       id_to_entry,
       lost_sats,
+      next_cursed_number,
       next_number,
       number_to_id,
       outpoint_to_value,
@@ -111,30 +127,24 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       }
     }
 
-    if inscriptions.iter().all(|flotsam| flotsam.offset != 0)
-      && Inscription::from_transaction(tx).is_some()
-    {
+    let (has_inscription, cursed, unbound) = match Inscription::from_transaction(tx) {
+      Ok(_inscription) => (true, false, false),
+      Err(InscriptionError::UnrecognizedEvenField) => (true, true, true),
+      _ => (false, false, false),
+    };
+
+    if inscriptions.iter().all(|flotsam| flotsam.offset != 0) && has_inscription {
       let flotsam = Flotsam {
         inscription_id: txid.into(),
         offset: 0,
         origin: Origin::New {
           fee: input_value - tx.output.iter().map(|txout| txout.value).sum::<u64>(),
+          cursed,
+          unbound: unbound || input_value == 0,
         },
       };
 
-      if input_value == 0 {
-        self.update_inscription_location(
-          input_sat_ranges,
-          flotsam,
-          SatPoint {
-            outpoint: unbound_outpoint(),
-            offset: self.unbound_inscriptions,
-          },
-        )?;
-        self.unbound_inscriptions += 1;
-      } else {
-        inscriptions.push(flotsam);
-      }
+      inscriptions.push(flotsam);
     };
 
     let is_coinbase = tx
@@ -213,14 +223,30 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
   ) -> Result {
     let inscription_id = flotsam.inscription_id.store();
 
-    match flotsam.origin {
+    let unbound = match flotsam.origin {
       Origin::Old { old_satpoint } => {
         self.satpoint_to_id.remove(&old_satpoint.store())?;
+
+        false
       }
-      Origin::New { fee } => {
-        self
-          .number_to_id
-          .insert(&self.next_number, &inscription_id)?;
+      Origin::New {
+        fee,
+        cursed,
+        unbound,
+      } => {
+        let number = if cursed {
+          let next_cursed_number = self.next_cursed_number;
+          self.next_cursed_number -= 1;
+
+          next_cursed_number
+        } else {
+          let next_number = self.next_number;
+          self.next_number += 1;
+
+          next_number
+        };
+
+        self.number_to_id.insert(number, &inscription_id)?;
 
         let mut sat = None;
         if let Some(input_sat_ranges) = input_sat_ranges {
@@ -242,21 +268,31 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           &InscriptionEntry {
             fee,
             height: self.height,
-            number: self.next_number,
+            number,
             sat,
             timestamp: self.timestamp,
           }
           .store(),
         )?;
 
-        self.next_number += 1;
+        unbound
       }
-    }
+    };
 
-    let new_satpoint = new_satpoint.store();
+    let satpoint = if unbound {
+      let new_unbound_satpoint = SatPoint {
+        outpoint: unbound_outpoint(),
+        offset: self.unbound_inscriptions,
+      };
+      self.unbound_inscriptions += 1;
 
-    self.satpoint_to_id.insert(&new_satpoint, &inscription_id)?;
-    self.id_to_satpoint.insert(&inscription_id, &new_satpoint)?;
+      new_unbound_satpoint.store()
+    } else {
+      new_satpoint.store()
+    };
+
+    self.satpoint_to_id.insert(&satpoint, &inscription_id)?;
+    self.id_to_satpoint.insert(&inscription_id, &satpoint)?;
 
     Ok(())
   }

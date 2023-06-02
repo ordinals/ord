@@ -28,8 +28,14 @@ impl Inscription {
     Self { content_type, body }
   }
 
-  pub(crate) fn from_transaction(tx: &Transaction) -> Option<Inscription> {
-    InscriptionParser::parse(&tx.input.get(0)?.witness).ok()
+  pub(crate) fn from_transaction(tx: &Transaction) -> Result<Inscription> {
+    InscriptionParser::parse(
+      &tx
+        .input
+        .get(0)
+        .ok_or(InscriptionError::NoInscription)?
+        .witness,
+    )
   }
 
   pub(crate) fn from_file(chain: Chain, path: impl AsRef<Path>) -> Result<Self, Error> {
@@ -122,7 +128,7 @@ impl Inscription {
 }
 
 #[derive(Debug, PartialEq)]
-enum InscriptionError {
+pub(crate) enum InscriptionError {
   EmptyWitness,
   InvalidInscription,
   KeyPathSpend,
@@ -263,20 +269,6 @@ impl<'a> InscriptionParser<'a> {
 #[cfg(test)]
 mod tests {
   use super::*;
-
-  fn envelope(payload: &[&[u8]]) -> Witness {
-    let mut builder = script::Builder::new()
-      .push_opcode(opcodes::OP_FALSE)
-      .push_opcode(opcodes::all::OP_IF);
-
-    for data in payload {
-      builder = builder.push_slice(data);
-    }
-
-    let script = builder.push_opcode(opcodes::all::OP_ENDIF).into_script();
-
-    Witness::from_vec(vec![script.into_bytes(), Vec::new()])
-  }
 
   #[test]
   fn empty() {
@@ -570,7 +562,7 @@ mod tests {
     };
 
     assert_eq!(
-      Inscription::from_transaction(&tx),
+      Inscription::from_transaction(&tx).ok(),
       Some(inscription("text/plain;charset=utf-8", "ord")),
     );
   }
@@ -597,7 +589,7 @@ mod tests {
       output: Vec::new(),
     };
 
-    assert_eq!(Inscription::from_transaction(&tx), None);
+    assert_eq!(Inscription::from_transaction(&tx).ok(), None);
   }
 
   #[test]
@@ -621,7 +613,7 @@ mod tests {
     };
 
     assert_eq!(
-      Inscription::from_transaction(&tx),
+      Inscription::from_transaction(&tx).ok(),
       Some(inscription("foo", [1; 100]))
     );
   }
@@ -734,7 +726,7 @@ mod tests {
   }
 
   #[test]
-  fn unknown_even_fields_are_invalid() {
+  fn unknown_even_fields_are_valid_but_unbound() {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[b"ord", &[2], &[0]])),
       Err(InscriptionError::UnrecognizedEvenField),
