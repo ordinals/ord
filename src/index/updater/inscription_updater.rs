@@ -47,7 +47,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     let next_number = number_to_id
       .iter()?
       .rev()
-      .map(|(number, _id)| number.value() + 1)
+      .flat_map(|result| result.map(|(number, _id)| number.value() + 1))
       .next()
       .unwrap_or(0);
 
