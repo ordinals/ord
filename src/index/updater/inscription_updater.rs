@@ -97,7 +97,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     let mut inscribed_offsets = BTreeSet::new();
     let mut input_value = 0;
     let mut id_counter = 0;
-    // let total_output_value = tx.output.iter().map(|txout| txout.value).sum::<u64>();
 
     for (input_index, tx_in) in tx.input.iter().enumerate() {
       // skip subsidy since no inscriptions possible
@@ -141,12 +140,12 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
       // go through all inscriptions in this input
       while let Some(inscription) = new_inscriptions.peek() {
-        if inscription.tx_in_index != input_index as u32 {
+        if inscription.tx_in_index != u32::try_from(input_index).unwrap() {
           break;
         }
 
         // ignore reinscriptions on already inscribed offset (sats)
-        // For now we do not allow reinscriptions (for example inscriptions in same input or on
+        // For now we do not allow reinscriptions (for example iscriptions in same input or on
         // existing inscribed sat
         let unbound =
           inscribed_offsets.contains(&offset) || inscription.tx_in_offset != 0 || input_value == 0;
@@ -164,7 +163,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           inscription_id,
           offset,
           origin: Origin::New {
-            fee: 0, //input_value - total_output_value, // TODO
+            fee: 0,
             cursed,
             unbound,
           },
@@ -174,6 +173,37 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         id_counter += 1;
       }
     }
+  
+    // TODO: normalize over multiple inscriptions per tx and inscription size; make a function
+    let total_output_value = tx.output.iter().map(|txout| txout.value).sum::<u64>();
+    let mut floating_inscriptions = floating_inscriptions
+      .into_iter()
+      .map(|flotsam| {
+        if let Flotsam {
+          inscription_id,
+          offset,
+          origin:
+            Origin::New {
+              fee: _,
+              cursed,
+              unbound,
+            },
+        } = flotsam
+        {
+          Flotsam {
+            inscription_id,
+            offset,
+            origin: Origin::New {
+              fee: input_value - total_output_value,
+              cursed,
+              unbound,
+            },
+          }
+        } else {
+          flotsam
+        }
+      })
+      .collect::<Vec<Flotsam>>();
 
     let is_coinbase = tx
       .input

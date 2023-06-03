@@ -50,8 +50,8 @@ impl Inscription {
           .enumerate()
           .map(|(offset, inscription)| TransactionInscription {
             inscription,
-            tx_in_index: index as u32,
-            tx_in_offset: offset as u32,
+            tx_in_index: u32::try_from(index).unwrap(),
+            tx_in_offset: u32::try_from(offset).unwrap(),
           })
           .collect::<Vec<TransactionInscription>>(),
       )

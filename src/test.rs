@@ -6,6 +6,7 @@ pub(crate) use {
   std::iter,
   test_bitcoincore_rpc::TransactionTemplate,
   unindent::Unindent,
+  crate::inscription::TransactionInscription,
 };
 
 macro_rules! assert_regex_match {
