@@ -183,4 +183,36 @@ mod tests {
       .unindent()
     );
   }
+
+  #[test]
+  #[ignore]
+  fn with_cursed_and_unbound() {
+    assert_regex_match!(
+      InscriptionHtml {
+        chain: Chain::Mainnet,
+        genesis_fee: 1,
+        genesis_height: 0,
+        inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
+        inscription_id: inscription_id(2),
+        next: None,
+        number: -1,
+        output: Some(tx_out(1, address())),
+        previous: None,
+        sat: None,
+        satpoint: SatPoint { outpoint: unbound_outpoint(), offset: 0 },
+        timestamp: timestamp(0),
+      },
+      "
+        <h1>Inscription -1</h1>
+        .*
+        <dl>
+          .*
+          <dt>location</dt>
+          <dd class=monospace>0{64}:0:0 (unbound)</dd>
+          .*
+        </dl>
+      "
+      .unindent()
+    );
+  }
 }

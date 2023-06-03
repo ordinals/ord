@@ -401,7 +401,7 @@ impl Server {
       None
     };
 
-    let output = if outpoint == OutPoint::null() {
+    let output = if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
       let mut value = 0;
 
       if let Some(List::Unspent(ranges)) = &list {
@@ -1629,7 +1629,7 @@ mod tests {
   <dt>id</dt>
   <dd class=monospace>{inscription_id}</dd>
   <dt>preview</dt>.*<dt>output</dt>
-  <dd><a class=monospace href=/output/0000000000000000000000000000000000000000000000000000000000000000:0>0000000000000000000000000000000000000000000000000000000000000000:0</a></dd>.*"
+  <dd><a class=monospace href=/output/0000000000000000000000000000000000000000000000000000000000000000:0>0000000000000000000000000000000000000000000000000000000000000000:0 \\(unbound\\)</a></dd>.*"
       ),
     );
   }
@@ -1637,9 +1637,9 @@ mod tests {
   #[test]
   fn unknown_output_returns_404() {
     TestServer::new().assert_response(
-      "/output/0000000000000000000000000000000000000000000000000000000000000000:0",
+      "/output/0000000000000000000000000000000000000000000000000000000000000001:0",
       StatusCode::NOT_FOUND,
-      "output 0000000000000000000000000000000000000000000000000000000000000000:0 not found",
+      "output 0000000000000000000000000000000000000000000000000000000000000001:0 not found",
     );
   }
 
