@@ -185,7 +185,6 @@ mod tests {
   }
 
   #[test]
-  #[ignore]
   fn with_cursed_and_unbound() {
     assert_regex_match!(
       InscriptionHtml {
@@ -199,7 +198,10 @@ mod tests {
         output: Some(tx_out(1, address())),
         previous: None,
         sat: None,
-        satpoint: SatPoint { outpoint: unbound_outpoint(), offset: 0 },
+        satpoint: SatPoint {
+          outpoint: unbound_outpoint(),
+          offset: 0
+        },
         timestamp: timestamp(0),
       },
       "
@@ -208,7 +210,9 @@ mod tests {
         <dl>
           .*
           <dt>location</dt>
-          <dd class=monospace>0{64}:0:0 (unbound)</dd>
+          <dd class=monospace>0{64}:0:0 \\(unbound\\)</dd>
+          <dt>output</dt>
+          <dd><a class=monospace href=/output/0{64}:0>0{64}:0 \\(unbound\\)</a></dd>
           .*
         </dl>
       "

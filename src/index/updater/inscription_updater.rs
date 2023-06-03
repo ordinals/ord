@@ -173,8 +173,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         id_counter += 1;
       }
     }
-  
-    // TODO: normalize over multiple inscriptions per tx and inscription size; make a function
+
+    // still have to normalize over multiple inscriptions per tx and inscription size
     let total_output_value = tx.output.iter().map(|txout| txout.value).sum::<u64>();
     let mut floating_inscriptions = floating_inscriptions
       .into_iter()

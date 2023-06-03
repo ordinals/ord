@@ -2516,7 +2516,7 @@ mod tests {
       context.rpc_server.mine_blocks(1);
       context.rpc_server.mine_blocks(1);
       context.rpc_server.mine_blocks(1);
-      
+
       let script = script::Builder::new()
         .push_opcode(opcodes::OP_FALSE)
         .push_opcode(opcodes::all::OP_IF)
@@ -2555,7 +2555,7 @@ mod tests {
       let first = InscriptionId { txid, index: 0 }; // normal
       let fourth = InscriptionId { txid, index: 3 }; // cursed but bound
       let ninth = InscriptionId { txid, index: 8 }; // cursed and unbound
-      
+
       context.mine_blocks(1);
 
       context.index.assert_inscription_location(
