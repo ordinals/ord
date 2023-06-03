@@ -1,7 +1,7 @@
 Changelog
 =========
 
-[0.5.2](https://github.com/casey/ord/releases/tag/0.5.2) - 2023-04-17
+[0.5.2](https://github.com/ordinals/ord/releases/tag/0.5.2) - 2023-04-17
 ---------------------------------------------------------------------
 
 ### Added
@@ -33,7 +33,7 @@ Changelog
 - Minor copy fixes (#1730)
 - Typo (#1815)
 
-[0.5.1](https://github.com/casey/ord/releases/tag/0.5.1) - 2023-02-21
+[0.5.1](https://github.com/ordinals/ord/releases/tag/0.5.1) - 2023-02-21
 ---------------------------------------------------------------------
 
 ### Performance
@@ -58,7 +58,7 @@ Changelog
 - Fix changelog dates: 2022 → 2023 (#1700)
 - Bump version number (#1695)
 
-[0.5.0](https://github.com/casey/ord/releases/tag/0.5.0) - 2023-02-11
+[0.5.0](https://github.com/ordinals/ord/releases/tag/0.5.0) - 2023-02-11
 ---------------------------------------------------------------------
 
 ### Breaking Changes
@@ -124,7 +124,7 @@ Changelog
 - Avoid listening on 0.0.0.0 in tests (#1365)
 - Rename `GitHub` nav link to `Wallet` (#1360)
 
-[0.4.2](https://github.com/casey/ord/releases/tag/0.4.2) - 2023-01-24
+[0.4.2](https://github.com/ordinals/ord/releases/tag/0.4.2) - 2023-01-24
 ---------------------------------------------------------------------
 
 ### Changed
@@ -136,7 +136,7 @@ Changelog
 ### Misc
 - Fix guide typo: getblockchount -> getblockcount (#1354)
 
-[0.4.1](https://github.com/casey/ord/releases/tag/0.4.1) - 2023-01-24
+[0.4.1](https://github.com/ordinals/ord/releases/tag/0.4.1) - 2023-01-24
 ---------------------------------------------------------------------
 
 ### Added
@@ -167,7 +167,7 @@ Changelog
 - Serve favicon as PNG to Safari and SVG others (#1302)
 - Use sans-serif font for height on clock (#1300)
 
-[0.4.0](https://github.com/casey/ord/releases/tag/0.4.0) - 2023-01-19
+[0.4.0](https://github.com/ordinals/ord/releases/tag/0.4.0) - 2023-01-19
 ---------------------------------------------------------------------
 
 ### Added
@@ -296,7 +296,7 @@ Changelog
 - Fix softprops/actions-gh-release version (#992)
 - Fuzz test transaction builder with multiple UTXOs (#1291)
 
-[0.3.0](https://github.com/casey/ord/releases/tag/0.3.0) - 2022-12-16
+[0.3.0](https://github.com/ordinals/ord/releases/tag/0.3.0) - 2022-12-16
 ---------------------------------------------------------------------
 
 - Update CI dependencies (#986)
@@ -304,12 +304,12 @@ Changelog
 - Display content type and size /inscription (#975)
 - Use "sat" in place of "ordinal" (#979)
 
-[0.2.1](https://github.com/casey/ord/releases/tag/0.2.1) - 2022-12-14
+[0.2.1](https://github.com/ordinals/ord/releases/tag/0.2.1) - 2022-12-14
 ---------------------------------------------------------------------
 
 - Revise inscription guide after mainnet walkthrough (#968)
 
-[0.2.0](https://github.com/casey/ord/releases/tag/0.2.0) - 2022-12-14
+[0.2.0](https://github.com/ordinals/ord/releases/tag/0.2.0) - 2022-12-14
 ---------------------------------------------------------------------
 
 - Add `ord wallet create` (#958)
@@ -400,13 +400,13 @@ Changelog
 - Remove old recipes from justfile (#718)
 - Update roadmap (#722)
 
-[0.1.0](https://github.com/casey/ord/releases/tag/0.1.0) - 2022-10-25
+[0.1.0](https://github.com/ordinals/ord/releases/tag/0.1.0) - 2022-10-25
 ---------------------------------------------------------------------
 
 - Add index updater (#703)
 - Speed up rarity check while indexing (#702)
 
-[0.0.6](https://github.com/casey/ord/releases/tag/0.0.6) - 2022-10-25
+[0.0.6](https://github.com/ordinals/ord/releases/tag/0.0.6) - 2022-10-25
 ---------------------------------------------------------------------
 
 - Switch to ord-bitcoincore-rpc (#707)
@@ -481,7 +481,7 @@ Changelog
 - Add ordinal hunting how-to docs page (#596)
 - Fix bounty example links (#595)
 
-[0.0.5](https://github.com/casey/ord/releases/tag/0.0.5) - 2022-10-02
+[0.0.5](https://github.com/ordinals/ord/releases/tag/0.0.5) - 2022-10-02
 ---------------------------------------------------------------------
 
 - Add bitcoin.conf (#592)
@@ -511,7 +511,7 @@ Changelog
 - Convert block and transaction integration tests to unit tests (#560)
 - Fix release script (#562)
 
-[0.0.4](https://github.com/casey/ord/releases/tag/0.0.4) - 2022-09-26
+[0.0.4](https://github.com/ordinals/ord/releases/tag/0.0.4) - 2022-09-26
 ---------------------------------------------------------------------
 
 - Add more links and labels to clocks (#552)
@@ -675,7 +675,7 @@ Changelog
 - Add nix flake (#214)
 - Build binaries for releases (#213)
 
-[0.0.1](https://github.com/casey/ord/releases/tag/0.0.1) - 2022-06-05
+[0.0.1](https://github.com/ordinals/ord/releases/tag/0.0.1) - 2022-06-05
 ---------------------------------------------------------------------
 
 - Add commands to mint and verify NFTs (#211)

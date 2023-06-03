@@ -4,7 +4,7 @@
   Title: Ordinal Numbers
   Author: Casey Rodarmor <casey@rodarmor.com>
   Comments-Summary: No comments yet.
-  Comments-URI: https://github.com/casey/ord/discussions/126
+  Comments-URI: https://github.com/ordinals/ord/discussions/126
   Status: Draft
   Type: Informational
   Created: 2022-02-02
@@ -274,7 +274,7 @@ in a particular output, however the proofs are large. Such a proof consists of:
 == Reference implementation ==
 
 This document and an implementation of an index that tracks the position of
-sats in the main chain are maintained [https://github.com/casey/ord here].
+sats in the main chain are maintained [https://github.com/ordinals/ord here].
 
 == References ==
 
