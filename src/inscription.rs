@@ -773,7 +773,7 @@ mod tests {
   }
 
   #[test]
-  fn unknown_even_fields_are_valid_but_unbound() {
+  fn unknown_even_fields_are_invalid() {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[b"ord", &[2], &[0]])),
       Err(InscriptionError::UnrecognizedEvenField),
