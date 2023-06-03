@@ -10,19 +10,19 @@ fn inscriptions_can_be_sent() {
 
   rpc_server.mine_blocks(1);
 
-  let stdout = CommandBuilder::new(format!(
+  let output = CommandBuilder::new(format!(
     "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {inscription}",
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(r".*")
-  .run();
+  .output::<Output>();
 
   let txid = rpc_server.mempool()[0].txid();
-  assert_eq!(format!("{txid}\n"), stdout);
+  assert_eq!(format!("{txid}"), output.transaction.to_string());
 
   rpc_server.mine_blocks(1);
 
-  let send_txid = stdout.trim();
+  let send_txid = output.transaction;
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
@@ -69,16 +69,16 @@ fn send_inscribed_sat() {
 
   rpc_server.mine_blocks(1);
 
-  let stdout = CommandBuilder::new(format!(
+  let output = CommandBuilder::new(format!(
     "wallet send --fee-rate 1 bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {inscription}",
   ))
   .rpc_server(&rpc_server)
-  .stdout_regex("[[:xdigit:]]{64}\n")
-  .run();
+  .stdout_regex(".*[[:xdigit:]]{64}.*")
+  .output::<Output>();
 
   rpc_server.mine_blocks(1);
 
-  let send_txid = stdout.trim();
+  let send_txid = output.transaction;
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
@@ -102,7 +102,7 @@ fn send_on_mainnnet_works_with_wallet_named_foo() {
     "--wallet foo wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0"
   ))
   .rpc_server(&rpc_server)
-  .stdout_regex(r"[[:xdigit:]]{64}\n")
+  .stdout_regex(r".*[[:xdigit:]]{64}.*")
   .run();
 }
 
@@ -129,15 +129,15 @@ fn send_on_mainnnet_works_with_wallet_named_ord() {
   let txid = rpc_server.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0].txid();
   create_wallet(&rpc_server);
 
-  let stdout = CommandBuilder::new(format!(
+  let output = CommandBuilder::new(format!(
     "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0"
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(r".*")
-  .run();
+  .output::<Output>();
 
   let txid = rpc_server.mempool()[0].txid();
-  assert_eq!(format!("{txid}\n"), stdout);
+  assert_eq!(format!("{txid}"), output.transaction.to_string());
 }
 
 #[test]
@@ -305,7 +305,7 @@ fn wallet_send_with_fee_rate() {
     "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {inscription} --fee-rate 2.0"
   ))
   .rpc_server(&rpc_server)
-  .stdout_regex("[[:xdigit:]]{64}\n")
+  .stdout_regex(r".*[[:xdigit:]]{64}.*")
   .run();
 
   let tx = &rpc_server.mempool()[0];

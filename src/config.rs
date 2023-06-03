@@ -4,6 +4,7 @@ use super::*;
 #[serde(deny_unknown_fields)]
 pub(crate) struct Config {
   pub(crate) api_key: Option<String>,
+  pub(crate) api_wallet_enable: Option<bool>,
   pub(crate) hidden: HashSet<InscriptionId>,
   pub(crate) bitcoin_rpc_pass: Option<String>,
   pub(crate) bitcoin_rpc_user: Option<String>,

@@ -76,7 +76,7 @@ mod tests {
           <dt>genesis transaction</dt>
           <dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
           <dt>genesis address</dt>
-          <dd class=monospace>ltc1qw508d6qejxtdg4y5r3zarvary0c5xw7kgmn4n9</dd>
+          <dd class=monospace>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</dd>
           <dt>location</dt>
           <dd class=monospace>1{64}:1:0</dd>
           <dt>output</dt>
@@ -96,6 +96,7 @@ mod tests {
         chain: Chain::Mainnet,
         genesis_fee: 1,
         genesis_height: 0,
+        genesis_output: tx_out(1, address()),
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
         next: None,

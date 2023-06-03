@@ -136,6 +136,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             outpoint: unbound_outpoint(),
             offset: self.unbound_inscriptions,
           },
+          None,
         )?;
         self.unbound_inscriptions += 1;
       } else {

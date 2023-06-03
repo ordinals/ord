@@ -140,9 +140,16 @@ impl Server {
         thread::sleep(Duration::from_millis(5000));
       });
 
-      let wallet_client = options.bitcoin_rpc_client_for_wallet_command(false)?;
       let config = options.load_config()?;
       let acme_domains = self.acme_domains()?;
+
+      let api_wallet_enabled = config.api_wallet_enable.unwrap_or_default();
+
+      let wallet_client: Option<Client> = if api_wallet_enabled {
+        options.bitcoin_rpc_client_for_wallet_command(false)?.into()
+      } else {
+        None
+      };
 
       let page_config = Arc::new(PageConfig {
         chain: options.chain(),
@@ -1075,7 +1082,9 @@ impl Server {
         "genesis_height": entry.height,
         "genesis_transaction": inscription_id.txid,
         "genesis_address": page_config.chain.address_from_script(&genesis_output.script_pubkey).unwrap(),
-        "address": page_config.chain.address_from_script(&output.script_pubkey).unwrap(),
+        "address": output.is_some().then(|| {
+          page_config.chain.address_from_script(&output.unwrap().script_pubkey).unwrap()
+        }),
         "number": entry.number,
         "content_length": inscription.content_length(),
         "content_type": inscription.content_type(),
@@ -1199,11 +1208,12 @@ impl Server {
 
   async fn transactions(
     Extension(config): Extension<Arc<Config>>,
-    Extension(client): Extension<Arc<Client>>,
+    Extension(client): Extension<Arc<Option<Client>>>,
     accept_json: AcceptJson,
     header: HeaderMap,
   ) -> ServerResult<Response> {
-    if config.api_key.is_none()
+    if client.is_none()
+      || config.api_key.is_none()
       || !header.contains_key("x-api-key")
       || config.api_key.as_ref().unwrap().as_str() != header.get("x-api-key").unwrap()
     {
@@ -1217,52 +1227,58 @@ impl Server {
       ));
     }
 
-    let mut outputs = Vec::new();
-    let transactions = client.list_transactions(None, Some(u16::MAX.into()), None, None);
-    if transactions.is_err() {
-      return Err(ServerError::Internal(Error::from(
-        transactions.err().unwrap(),
-      )));
-    }
-    for tx in transactions.unwrap() {
-      outputs.push(Output {
-        transaction: tx.info.txid,
-        confirmations: tx.info.confirmations,
-      });
-    }
+    if let Some(client) = client.as_ref() {
+      let mut outputs = Vec::new();
+      let transactions = client.list_transactions(None, Some(u16::MAX.into()), None, None);
+      if transactions.is_err() {
+        return Err(ServerError::Internal(Error::from(
+          transactions.err().unwrap(),
+        )));
+      }
+      for tx in transactions.unwrap() {
+        outputs.push(Output {
+          transaction: tx.info.txid,
+          confirmations: tx.info.confirmations,
+        });
+      }
 
-    Ok(
-      axum::Json(serde_json::json!({
-        "count": outputs.len(),
-        "transactions": outputs.iter().map(|output| {
-          serde_json::json!({
-            "transaction": output.transaction,
-            "confirmations": output.confirmations,
-            "_links": {
-              "transaction": {
-                "href": format!("/tx/{}", output.transaction),
+      Ok(
+        axum::Json(serde_json::json!({
+          "count": outputs.len(),
+          "transactions": outputs.iter().map(|output| {
+            serde_json::json!({
+              "transaction": output.transaction,
+              "confirmations": output.confirmations,
+              "_links": {
+                "transaction": {
+                  "href": format!("/tx/{}", output.transaction),
+                },
               },
+            })
+          }).collect::<Vec<_>>(),
+          "_links": {
+            "self": {
+              "href": format!("/wallet/transactions"),
             },
-          })
-        }).collect::<Vec<_>>(),
-        "_links": {
-          "self": {
-            "href": format!("/wallet/transactions"),
-          },
-        }
-      }))
-      .into_response(),
-    )
+          }
+        }))
+        .into_response(),
+      )
+    } else {
+      Err(ServerError::Internal(Error::msg("Client not found.")))
+    }
   }
 
   async fn balance(
     Extension(index): Extension<Arc<Index>>,
     Extension(config): Extension<Arc<Config>>,
     Extension(options): Extension<Arc<Options>>,
+    Extension(client): Extension<Arc<Option<Client>>>,
     accept_json: AcceptJson,
     header: HeaderMap,
   ) -> ServerResult<Response> {
-    if config.api_key.is_none()
+    if client.is_none()
+      || config.api_key.is_none()
       || !header.contains_key("x-api-key")
       || config.api_key.as_ref().unwrap().as_str() != header.get("x-api-key").unwrap()
     {
@@ -1304,11 +1320,12 @@ impl Server {
 
   async fn receive(
     Extension(config): Extension<Arc<Config>>,
-    Extension(client): Extension<Arc<Client>>,
+    Extension(client): Extension<Arc<Option<Client>>>,
     accept_json: AcceptJson,
     header: HeaderMap,
   ) -> ServerResult<Response> {
-    if config.api_key.is_none()
+    if client.is_none()
+      || config.api_key.is_none()
       || !header.contains_key("x-api-key")
       || config.api_key.as_ref().unwrap().as_str() != header.get("x-api-key").unwrap()
     {
@@ -1322,37 +1339,42 @@ impl Server {
       ));
     }
 
-    let address_resp =
-      client.get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32));
-    if address_resp.is_err() {
-      return Err(ServerError::Internal(Error::from(
-        address_resp.err().unwrap(),
-      )));
-    }
+    if let Some(client) = client.as_ref() {
+      let address_resp =
+        client.get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32));
+      if address_resp.is_err() {
+        return Err(ServerError::Internal(Error::from(
+          address_resp.err().unwrap(),
+        )));
+      }
 
-    Ok(
-      axum::Json(serde_json::json!({
-        "address": address_resp.unwrap(),
-        "_links": {
-          "self": {
-            "href": format!("/wallet/receive"),
-          },
-        }
-      }))
-      .into_response(),
-    )
+      Ok(
+        axum::Json(serde_json::json!({
+          "address": address_resp.unwrap(),
+          "_links": {
+            "self": {
+              "href": format!("/wallet/receive"),
+            },
+          }
+        }))
+        .into_response(),
+      )
+    } else {
+      Err(ServerError::Internal(Error::msg("Client not found.")))
+    }
   }
 
   async fn inscribe(
     Extension(index): Extension<Arc<Index>>,
     Extension(config): Extension<Arc<Config>>,
     Extension(options): Extension<Arc<Options>>,
-    Extension(client): Extension<Arc<Client>>,
+    Extension(client): Extension<Arc<Option<Client>>>,
     accept_json: AcceptJson,
     header: HeaderMap,
     Json(inscribe): Json<inscribe::Inscribe>,
   ) -> ServerResult<Response> {
-    if config.api_key.is_none()
+    if client.is_none()
+      || config.api_key.is_none()
       || !header.contains_key("x-api-key")
       || config.api_key.as_ref().unwrap().as_str() != header.get("x-api-key").unwrap()
     {
@@ -1372,34 +1394,38 @@ impl Server {
 
     let inscriptions = index.get_inscriptions(None)?;
 
-    let output = inscribe.inscribe(&options, inscription, utxos, inscriptions, &client)?;
-
-    Ok(
-      axum::Json(serde_json::json!({
-        "commit_tx": output.commit,
-        "reveal_tx": output.reveal,
-        "inscription_id": output.inscription,
-        "fees": output.fees,
-        "_links": {
-          "self": {
-            "href": format!("/wallet/inscribe"),
-          },
-        }
-      }))
-      .into_response(),
-    )
+    if let Some(client) = client.as_ref() {
+      let output = inscribe.inscribe(&options, inscription, utxos, inscriptions, client)?;
+      Ok(
+        axum::Json(serde_json::json!({
+          "commit_tx": output.commit,
+          "reveal_tx": output.reveal,
+          "inscription_id": output.inscription,
+          "fees": output.fees,
+          "_links": {
+            "self": {
+              "href": format!("/wallet/inscribe"),
+            },
+          }
+        }))
+        .into_response(),
+      )
+    } else {
+      Err(ServerError::Internal(Error::msg("Client not found.")))
+    }
   }
 
   async fn send(
     Extension(index): Extension<Arc<Index>>,
     Extension(config): Extension<Arc<Config>>,
     Extension(options): Extension<Arc<Options>>,
-    Extension(client): Extension<Arc<Client>>,
+    Extension(client): Extension<Arc<Option<Client>>>,
     accept_json: AcceptJson,
     header: HeaderMap,
     Json(send): Json<send::Send>,
   ) -> ServerResult<Response> {
-    if config.api_key.is_none()
+    if client.is_none()
+      || config.api_key.is_none()
       || !header.contains_key("x-api-key")
       || config.api_key.as_ref().unwrap().as_str() != header.get("x-api-key").unwrap()
     {
@@ -1413,19 +1439,23 @@ impl Server {
       ));
     }
 
-    let txid = send.send_inscription(&options, &index, &client)?;
+    if let Some(client) = client.as_ref() {
+      let txid = send.send_inscription(&options, &index, client)?;
 
-    Ok(
-      axum::Json(serde_json::json!({
-        "txid": txid,
-        "_links": {
-          "self": {
-            "href": format!("/wallet/send"),
-          },
-        }
-      }))
-      .into_response(),
-    )
+      Ok(
+        axum::Json(serde_json::json!({
+          "txid": txid,
+          "_links": {
+            "self": {
+              "href": format!("/wallet/send"),
+            },
+          }
+        }))
+        .into_response(),
+      )
+    } else {
+      Err(ServerError::Internal(Error::msg("Client not found.")))
+    }
   }
 
   async fn redirect_http_to_https(

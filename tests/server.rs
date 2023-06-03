@@ -1,3 +1,4 @@
+use ord::subcommand::wallet::send;
 use {super::*, crate::command_builder::ToArgs};
 
 #[test]
@@ -77,6 +78,8 @@ fn inscription_page() {
   <dd>138</dd>
   <dt>genesis transaction</dt>
   <dd><a class=monospace href=/tx/{reveal}>{reveal}</a></dd>
+  <dt>genesis address</dt>
+  <dd class=monospace>bc1.*</dd>
   <dt>location</dt>
   <dd class=monospace>{reveal}:0:0</dd>
   <dt>output</dt>
@@ -147,12 +150,11 @@ fn inscription_page_after_send() {
     "wallet send --fee-rate 1 bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {inscription}"
   ))
   .rpc_server(&rpc_server)
-  .stdout_regex(".*")
-  .run();
+  .output::<send::Output>();
 
   rpc_server.mine_blocks(1);
 
-  let send = txid.trim();
+  let send = txid.transaction;
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
