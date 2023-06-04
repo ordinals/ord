@@ -1,4 +1,8 @@
+%% if self.number >= 0 {
 <h1>Inscription {{ self.number }}</h1>
+%% } else {
+<h1>Inscription {{ self.number }} (unstable)</h1>
+%% }
 <div class=inscription>
 %% if let Some(previous) = self.previous {
 <a class=prev href=/inscription/{{previous}}>❮</a>
@@ -48,9 +52,15 @@
   <dt>genesis transaction</dt>
   <dd><a class=monospace href=/tx/{{ self.inscription_id.txid }}>{{ self.inscription_id.txid }}</a></dd>
   <dt>location</dt>
+%% if self.satpoint.outpoint == unbound_outpoint() {
+  <dd class=monospace>{{ self.satpoint }} (unbound)</dd>
+  <dt>output</dt>
+  <dd><a class=monospace href=/output/{{ self.satpoint.outpoint }}>{{ self.satpoint.outpoint }} (unbound)</a></dd>
+%% } else {
   <dd class=monospace>{{ self.satpoint }}</dd>
   <dt>output</dt>
   <dd><a class=monospace href=/output/{{ self.satpoint.outpoint }}>{{ self.satpoint.outpoint }}</a></dd>
+%% }
   <dt>offset</dt>
   <dd>{{ self.satpoint.offset }}</dd>
 </dl>

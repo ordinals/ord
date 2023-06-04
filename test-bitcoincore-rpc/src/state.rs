@@ -131,18 +131,14 @@ impl State {
   pub(crate) fn broadcast_tx(&mut self, template: TransactionTemplate) -> Txid {
     let mut total_value = 0;
     let mut input = Vec::new();
-    for (i, (height, tx, vout)) in template.inputs.iter().enumerate() {
+    for (height, tx, vout) in template.inputs.iter() {
       let tx = &self.blocks.get(&self.hashes[*height]).unwrap().txdata[*tx];
       total_value += tx.output[*vout].value;
       input.push(TxIn {
         previous_output: OutPoint::new(tx.txid(), *vout as u32),
         script_sig: Script::new(),
         sequence: Sequence::MAX,
-        witness: if i == 0 {
-          template.witness.clone()
-        } else {
-          Witness::new()
-        },
+        witness: template.witness.clone(),
       });
     }
 
