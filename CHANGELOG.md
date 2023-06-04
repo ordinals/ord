@@ -1,6 +1,34 @@
 Changelog
 =========
 
+[0.6.0](https://github.com/ordinals/ord/releases/tag/0.6.0) - 2023-06-04
+---------------------------------------------------------------------
+
+### Added
+- Cursed Inscriptions [1/n] (#2145)
+- Authenticate to bitcoin using a username and password (#1527)
+- Add example config file (#2044)
+
+### Changed
+- Unbind inscriptions from zero-sat transactions (#2107)
+
+### Documentation
+- Tweak doc: Inscriptions made on first sat of input (#2148)
+- `OP_PUSH` instead of `OP_1` in inscription docs (#2135)
+- Document bitcoind RPC authentication options (#2056)
+- Fix typo in Sparrow Wallet docs (#2077)
+- Update donate.md for inscriptions donations. (#2125)
+- Promote raphjaph to lead maintainer 🫡 (#2119)
+- Improve donation page (#2034)
+
+### Misc
+- Switch CI back to stable clippy (#2108)
+- Update dependencies (#2068) 
+- Use struct variants in Origin enum (#2067) 
+- Fix test name typos(#2043)
+- Switch to nightly clippy (#2037)
+
+
 [0.5.2](https://github.com/ordinals/ord/releases/tag/0.5.2) - 2023-04-17
 ---------------------------------------------------------------------
 
