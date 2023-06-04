@@ -851,7 +851,7 @@ impl Index {
           ),
           inscription_id,
         );
-        
+
         // we do not track common sats or anything in the unbound output
         if !Sat(sat).is_common() && satpoint.outpoint != unbound_outpoint() {
           assert_eq!(
@@ -2618,7 +2618,7 @@ mod tests {
       );
     }
   }
-  
+
   #[test]
   fn genesis_fee_distributed_evenly() {
     for context in Context::configurations() {
@@ -2660,7 +2660,7 @@ mod tests {
         ..Default::default()
       });
 
-      let first = InscriptionId { txid, index: 0 }; 
+      let first = InscriptionId { txid, index: 0 };
       let second = InscriptionId { txid, index: 1 };
 
       context.mine_blocks(1);

@@ -144,7 +144,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           break;
         }
 
-        // In this first part of the cursed inscriptions implementation we ignore reinscriptions. 
+        // In this first part of the cursed inscriptions implementation we ignore reinscriptions.
         // This will change once we implement reinscriptions.
         let unbound =
           inscribed_offsets.contains(&offset) || inscription.tx_in_offset != 0 || input_value == 0;
@@ -193,7 +193,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             inscription_id,
             offset,
             origin: Origin::New {
-              fee: (input_value - total_output_value) / id_counter as u64,
+              fee: (input_value - total_output_value) / u64::from(id_counter),
               cursed,
               unbound,
             },
