@@ -1,4 +1,4 @@
-use {super::*, std::collections::BTreeSet};
+use super::*;
 
 #[derive(Debug, Clone)]
 pub(super) struct Flotsam {
@@ -94,7 +94,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
   ) -> Result {
     let mut new_inscriptions = Inscription::from_transaction(tx).into_iter().peekable();
     let mut floating_inscriptions = Vec::new();
-    let mut inscribed_offsets = BTreeSet::new();
+    let mut inscribed_offsets = BTreeMap::new();
     let mut input_value = 0;
     let mut id_counter = 0;
 
@@ -116,7 +116,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           origin: Origin::Old { old_satpoint },
         });
 
-        inscribed_offsets.insert(offset);
+        inscribed_offsets.insert(offset, inscription_id);
       }
 
       let offset = input_value;
@@ -144,14 +144,26 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           break;
         }
 
+        let initial_inscription_is_cursed = inscribed_offsets
+          .get(&offset)
+          .and_then(
+            |inscription_id| match self.id_to_entry.get(&inscription_id.store()) {
+              Ok(option) => option.map(|entry| InscriptionEntry::load(entry.value()).number < 0),
+              Err(_) => None,
+            },
+          )
+          .unwrap_or(false);
+
+        let cursed = !initial_inscription_is_cursed
+          && (inscription.tx_in_index != 0
+            || inscription.tx_in_offset != 0
+            || inscribed_offsets.contains_key(&offset));
+
         // In this first part of the cursed inscriptions implementation we ignore reinscriptions.
         // This will change once we implement reinscriptions.
-        let unbound =
-          inscribed_offsets.contains(&offset) || inscription.tx_in_offset != 0 || input_value == 0;
-
-        let cursed = inscribed_offsets.contains(&offset)
-          || inscription.tx_in_index != 0
-          || inscription.tx_in_offset != 0;
+        let unbound = inscribed_offsets.contains_key(&offset)
+          || inscription.tx_in_offset != 0
+          || input_value == 0;
 
         let inscription_id = InscriptionId {
           txid,
