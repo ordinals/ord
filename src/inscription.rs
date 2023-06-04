@@ -11,7 +11,7 @@ use {
   std::{iter::Peekable, str},
 };
 
-const INSCRIPTION_ENVELOPE: [bitcoin::blockdata::script::Instruction<'static>; 3] = [
+const INSCRIPTION_ENVELOPE_HEADER: [bitcoin::blockdata::script::Instruction<'static>; 3] = [
   Instruction::PushBytes(&[]), // This is an OP_FALSE
   Instruction::Op(opcodes::all::OP_IF),
   Instruction::PushBytes(PROTOCOL_ID),
@@ -264,7 +264,7 @@ impl<'a> InscriptionParser<'a> {
 
   fn advance_into_inscription_envelope(&mut self) -> Result<()> {
     loop {
-      if self.match_instructions(&INSCRIPTION_ENVELOPE)? {
+      if self.match_instructions(&INSCRIPTION_ENVELOPE_HEADER)? {
         break;
       }
     }

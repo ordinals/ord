@@ -121,7 +121,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
       let offset = input_value;
 
-      // different ways to get the utxo set (input amount)
+      // multi-level cache for UTXO set to get to the input amount
       input_value += if let Some(value) = self.value_cache.remove(&tx_in.previous_output) {
         value
       } else if let Some(value) = self
@@ -144,9 +144,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           break;
         }
 
-        // ignore reinscriptions on already inscribed offset (sats)
-        // For now we do not allow reinscriptions (for example iscriptions in same input or on
-        // existing inscribed sat
+        // In this first part of the cursed inscriptions implementation we ignore reinscriptions. 
+        // This will change once we implement reinscriptions.
         let unbound =
           inscribed_offsets.contains(&offset) || inscription.tx_in_offset != 0 || input_value == 0;
 
@@ -174,7 +173,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       }
     }
 
-    // still have to normalize over multiple inscriptions per tx and inscription size
+    // still have to normalize over inscription size
     let total_output_value = tx.output.iter().map(|txout| txout.value).sum::<u64>();
     let mut floating_inscriptions = floating_inscriptions
       .into_iter()
@@ -194,7 +193,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             inscription_id,
             offset,
             origin: Origin::New {
-              fee: input_value - total_output_value,
+              fee: (input_value - total_output_value) / id_counter as u64,
               cursed,
               unbound,
             },

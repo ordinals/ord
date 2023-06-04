@@ -205,7 +205,7 @@ mod tests {
         timestamp: timestamp(0),
       },
       "
-        <h1>Inscription -1</h1>
+        <h1>Inscription -1 \\(unstable\\)</h1>
         .*
         <dl>
           .*

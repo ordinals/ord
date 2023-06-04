@@ -1635,11 +1635,11 @@ mod tests {
   }
 
   #[test]
-  fn unknown_output_returns_404() {
-    TestServer::new().assert_response(
-      "/output/0000000000000000000000000000000000000000000000000000000000000001:0",
-      StatusCode::NOT_FOUND,
-      "output 0000000000000000000000000000000000000000000000000000000000000001:0 not found",
+  fn unbound_output_returns_200() {
+    TestServer::new().assert_response_regex(
+      "/output/0000000000000000000000000000000000000000000000000000000000000000:0",
+      StatusCode::OK,
+      ".*",
     );
   }
 

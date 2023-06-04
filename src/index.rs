@@ -851,7 +851,8 @@ impl Index {
           ),
           inscription_id,
         );
-
+        
+        // we do not track common sats or anything in the unbound output
         if !Sat(sat).is_common() && satpoint.outpoint != unbound_outpoint() {
           assert_eq!(
             SatPoint::load(
@@ -2282,6 +2283,7 @@ mod tests {
   }
 
   #[test]
+  // https://github.com/ordinals/ord/issues/2062
   fn zero_value_transaction_inscription_not_cursed_but_unbound() {
     for context in Context::configurations() {
       context.mine_blocks(1);
@@ -2548,7 +2550,7 @@ mod tests {
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0), (2, 0, 0), (3, 0, 0)],
-        witness,
+        witness, // the witness is replicated over all inputs
         ..Default::default()
       });
 
@@ -2613,6 +2615,74 @@ mod tests {
           .unwrap()
           .number,
         -8
+      );
+    }
+  }
+  
+  #[test]
+  fn genesis_fee_distributed_evenly() {
+    for context in Context::configurations() {
+      context.rpc_server.mine_blocks(1);
+
+      let script = script::Builder::new()
+        .push_opcode(opcodes::OP_FALSE)
+        .push_opcode(opcodes::all::OP_IF)
+        .push_slice(b"ord")
+        .push_slice(&[1])
+        .push_slice(b"text/plain;charset=utf-8")
+        .push_slice(&[])
+        .push_slice(b"foo")
+        .push_opcode(opcodes::all::OP_ENDIF)
+        .push_opcode(opcodes::OP_FALSE)
+        .push_opcode(opcodes::all::OP_IF)
+        .push_slice(b"ord")
+        .push_slice(&[1])
+        .push_slice(b"text/plain;charset=utf-8")
+        .push_slice(&[])
+        .push_slice(b"bar")
+        .push_opcode(opcodes::all::OP_ENDIF)
+        .push_opcode(opcodes::OP_FALSE)
+        .push_opcode(opcodes::all::OP_IF)
+        .push_slice(b"ord")
+        .push_slice(&[1])
+        .push_slice(b"text/plain;charset=utf-8")
+        .push_slice(&[])
+        .push_slice(b"qix")
+        .push_opcode(opcodes::all::OP_ENDIF)
+        .into_script();
+
+      let witness = Witness::from_vec(vec![script.into_bytes(), Vec::new()]);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0)],
+        witness,
+        fee: 33,
+        ..Default::default()
+      });
+
+      let first = InscriptionId { txid, index: 0 }; 
+      let second = InscriptionId { txid, index: 1 };
+
+      context.mine_blocks(1);
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_entry(first)
+          .unwrap()
+          .unwrap()
+          .fee,
+        11
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_entry(second)
+          .unwrap()
+          .unwrap()
+          .fee,
+        11
       );
     }
   }
