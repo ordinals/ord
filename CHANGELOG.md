@@ -3,14 +3,9 @@ Changelog
 
 [0.6.0](https://github.com/ordinals/ord/releases/tag/0.6.0) - 2023-06-04
 ---------------------------------------------------------------------
-Release x.y.z
-
-- Bump version: x.y.z → x.y.z
-- Update changelog
-- Update dependencies
-- Update database schema version
 
 ### Added
+- Cursed Inscriptions [1/n] (#2145)
 - Authenticate to bitcoin using a username and password (#1527)
 - Add example config file (#2044)
 
