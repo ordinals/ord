@@ -401,7 +401,7 @@ impl Server {
       None
     };
 
-    let output = if outpoint == OutPoint::null() {
+    let output = if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
       let mut value = 0;
 
       if let Some(List::Unspent(ranges)) = &list {
@@ -843,15 +843,7 @@ impl Server {
       )
     };
 
-    let previous = if let Some(previous) = entry.number.checked_sub(1) {
-      Some(
-        index
-          .get_inscription_id_by_inscription_number(previous)?
-          .ok_or_not_found(|| format!("inscription {previous}"))?,
-      )
-    } else {
-      None
-    };
+    let previous = index.get_inscription_id_by_inscription_number(entry.number - 1)?;
 
     let next = index.get_inscription_id_by_inscription_number(entry.number + 1)?;
 
@@ -884,7 +876,7 @@ impl Server {
   async fn inscriptions_from(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path(from): Path<u64>,
+    Path(from): Path<i64>,
   ) -> ServerResult<PageHtml<InscriptionsHtml>> {
     Self::inscriptions_inner(page_config, index, Some(from)).await
   }
@@ -892,7 +884,7 @@ impl Server {
   async fn inscriptions_inner(
     page_config: Arc<PageConfig>,
     index: Arc<Index>,
-    from: Option<u64>,
+    from: Option<i64>,
   ) -> ServerResult<PageHtml<InscriptionsHtml>> {
     let (inscriptions, prev, next) = index.get_latest_inscriptions_with_prev_and_next(100, from)?;
     Ok(
@@ -1637,17 +1629,17 @@ mod tests {
   <dt>id</dt>
   <dd class=monospace>{inscription_id}</dd>
   <dt>preview</dt>.*<dt>output</dt>
-  <dd><a class=monospace href=/output/0000000000000000000000000000000000000000000000000000000000000000:0>0000000000000000000000000000000000000000000000000000000000000000:0</a></dd>.*"
+  <dd><a class=monospace href=/output/0000000000000000000000000000000000000000000000000000000000000000:0>0000000000000000000000000000000000000000000000000000000000000000:0 \\(unbound\\)</a></dd>.*"
       ),
     );
   }
 
   #[test]
-  fn unknown_output_returns_404() {
-    TestServer::new().assert_response(
+  fn unbound_output_returns_200() {
+    TestServer::new().assert_response_regex(
       "/output/0000000000000000000000000000000000000000000000000000000000000000:0",
-      StatusCode::NOT_FOUND,
-      "output 0000000000000000000000000000000000000000000000000000000000000000:0 not found",
+      StatusCode::OK,
+      ".*",
     );
   }
 

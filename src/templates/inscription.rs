@@ -8,7 +8,7 @@ pub(crate) struct InscriptionHtml {
   pub(crate) inscription: Inscription,
   pub(crate) inscription_id: InscriptionId,
   pub(crate) next: Option<InscriptionId>,
-  pub(crate) number: u64,
+  pub(crate) number: i64,
   pub(crate) output: Option<TxOut>,
   pub(crate) previous: Option<InscriptionId>,
   pub(crate) sat: Option<Sat>,
@@ -179,6 +179,42 @@ mod tests {
         <a class=next href=/inscription/3{64}i3>❯</a>
         </div>
         .*
+      "
+      .unindent()
+    );
+  }
+
+  #[test]
+  fn with_cursed_and_unbound() {
+    assert_regex_match!(
+      InscriptionHtml {
+        chain: Chain::Mainnet,
+        genesis_fee: 1,
+        genesis_height: 0,
+        inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
+        inscription_id: inscription_id(2),
+        next: None,
+        number: -1,
+        output: Some(tx_out(1, address())),
+        previous: None,
+        sat: None,
+        satpoint: SatPoint {
+          outpoint: unbound_outpoint(),
+          offset: 0
+        },
+        timestamp: timestamp(0),
+      },
+      "
+        <h1>Inscription -1 \\(unstable\\)</h1>
+        .*
+        <dl>
+          .*
+          <dt>location</dt>
+          <dd class=monospace>0{64}:0:0 \\(unbound\\)</dd>
+          <dt>output</dt>
+          <dd><a class=monospace href=/output/0{64}:0>0{64}:0 \\(unbound\\)</a></dd>
+          .*
+        </dl>
       "
       .unindent()
     );
