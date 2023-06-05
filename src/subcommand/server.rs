@@ -11,7 +11,7 @@ use {
     PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, SatHtml, TransactionHtml,
   },
   axum::{
-    Json;
+    Json,
     body,
     extract::{Extension, Path, Query},
     headers::UserAgent,
