@@ -1,7 +1,6 @@
 use super::*;
 
 use serde::Serialize;
-use axum::Json;
 
 #[derive(Serialize)]
 pub(crate) struct TransactionJson {
