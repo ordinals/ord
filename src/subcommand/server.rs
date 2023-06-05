@@ -130,7 +130,7 @@ pub(crate) struct InscriptionJson {
   sat: Option<Sat>,
   satpoint: SatPoint,
   #[serde(with = "ts_seconds_option")]
-  timestamp: DateTime<Utc>,
+  timestamp: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Parser)]
