@@ -35,7 +35,7 @@ use {
     cors::{Any, CorsLayer},
     set_header::SetResponseHeaderLayer,
   },
-  serde::Serialize
+  serde::Serialize,
 };
 
 mod error;
