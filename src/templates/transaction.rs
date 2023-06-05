@@ -1,33 +1,5 @@
 use super::*;
 
-use serde::Serialize;
-
-#[derive(Serialize)]
-pub(crate) struct TransactionJson {
-  blockhash: Option<BlockHash>,
-  chain: Chain,
-  inscription: Option<InscriptionId>,
-  transaction: Transaction,
-  txid: Txid,
-}
-
-impl TransactionJson {
-  pub(crate) fn new(
-    transaction: Transaction,
-    blockhash: Option<BlockHash>,
-    inscription: Option<InscriptionId>,
-    chain: Chain,
-  ) -> Self {
-    Self {
-      txid: transaction.txid(),
-      blockhash,
-      chain,
-      inscription,
-      transaction,
-    }
-  }
-}
-
 #[derive(Boilerplate)]
 pub(crate) struct TransactionHtml {
   blockhash: Option<BlockHash>,

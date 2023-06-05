@@ -9,7 +9,6 @@ use {
     BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionsHtml, OutputHtml,
     PageContent, PageHtml, PreviewAudioHtml, PreviewImageHtml, PreviewPdfHtml, PreviewTextHtml,
     PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, SatHtml, TransactionHtml,
-    TransactionJson,
   },
   axum::{
     Json;
@@ -36,6 +35,7 @@ use {
     cors::{Any, CorsLayer},
     set_header::SetResponseHeaderLayer,
   },
+  serde::Serialize
 };
 
 mod error;
@@ -86,6 +86,32 @@ impl PageContent for StaticHtml {
 impl Display for StaticHtml {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     f.write_str(self.html)
+  }
+}
+
+#[derive(Serialize)]
+pub(crate) struct TransactionJson {
+  blockhash: Option<BlockHash>,
+  chain: Chain,
+  inscription: Option<InscriptionId>,
+  transaction: Transaction,
+  txid: Txid,
+}
+
+impl TransactionJson {
+  pub(crate) fn new(
+    transaction: Transaction,
+    blockhash: Option<BlockHash>,
+    inscription: Option<InscriptionId>,
+    chain: Chain,
+  ) -> Self {
+    Self {
+      txid: transaction.txid(),
+      blockhash,
+      chain,
+      inscription,
+      transaction,
+    }
   }
 }
 
