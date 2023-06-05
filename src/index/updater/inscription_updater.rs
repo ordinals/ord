@@ -316,20 +316,25 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
         self.number_to_id.insert(number, &inscription_id)?;
 
-        let mut sat = None;
-        if let Some(input_sat_ranges) = input_sat_ranges {
-          let mut offset = 0;
-          for (start, end) in input_sat_ranges {
-            let size = end - start;
-            if offset + size > flotsam.offset {
-              let n = start + flotsam.offset - offset;
-              self.sat_to_inscription_id.insert(&n, &inscription_id)?;
-              sat = Some(Sat(n));
-              break;
+        let sat = if unbound {
+          None
+        } else {
+          let mut sat = None;
+          if let Some(input_sat_ranges) = input_sat_ranges {
+            let mut offset = 0;
+            for (start, end) in input_sat_ranges {
+              let size = end - start;
+              if offset + size > flotsam.offset {
+                let n = start + flotsam.offset - offset;
+                self.sat_to_inscription_id.insert(&n, &inscription_id)?;
+                sat = Some(Sat(n));
+                break;
+              }
+              offset += size;
             }
-            offset += size;
           }
-        }
+          sat
+        };
 
         self.id_to_entry.insert(
           &inscription_id,
