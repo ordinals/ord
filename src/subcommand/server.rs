@@ -133,6 +133,35 @@ pub(crate) struct InscriptionJson {
   timestamp: Option<DateTime<Utc>>,
 }
 
+use serde::Serialize;
+
+#[derive(Serialize)]
+pub(crate) struct OutputJson {
+  outpoint: OutPoint,
+  list: Option<List>,
+  chain: Chain,
+  output: TxOut,
+  inscriptions: Vec<InscriptionId>,
+}
+
+impl OutputJson {
+  pub(crate) fn new(
+    outpoint: OutPoint,
+    list: Option<List>,
+    chain: Chain,
+    output: TxOut,
+    inscriptions: Vec<InscriptionId>,
+  ) -> Self {
+    Self {
+      outpoint,
+      list,
+      chain,
+      output,
+      inscriptions,
+    }
+  }
+}
+
 #[derive(Debug, Parser)]
 pub(crate) struct Server {
   #[clap(
@@ -206,6 +235,7 @@ impl Server {
         .route("/install.sh", get(Self::install_script))
         .route("/ordinal/:sat", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
+        .route("/api/output/:output", get(Self::output_json))
         .route("/preview/:inscription_id", get(Self::preview))
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
@@ -437,6 +467,51 @@ impl Server {
   async fn ordinal(Path(sat): Path<String>) -> Redirect {
     Redirect::to(&format!("/sat/{sat}"))
   }
+
+  async fn output_json(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(outpoint): Path<OutPoint>,
+  ) -> ServerResult<Json<OutputJson>> {
+    let list = if index.has_sat_index()? {
+      index.list(outpoint)?
+    } else {
+      None
+    };
+  
+    let output = if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
+      let mut value = 0;
+  
+      if let Some(List::Unspent(ranges)) = &list {
+        for (start, end) in ranges {
+          value += end - start;
+        }
+      }
+  
+      TxOut {
+        value,
+        script_pubkey: Script::new(),
+      }
+    } else {
+      index
+        .get_transaction(outpoint.txid)?
+        .ok_or_not_found(|| format!("output {outpoint}"))?
+        .output
+        .into_iter()
+        .nth(outpoint.vout as usize)
+        .ok_or_not_found(|| format!("output {outpoint}"))?
+    };
+  
+    let inscriptions = index.get_inscriptions_on_output(outpoint)?;
+  
+    Ok(Json(OutputJson::new(
+      outpoint,
+      list,
+      page_config.chain,
+      output,
+      inscriptions,
+    )))
+  }  
 
   async fn output(
     Extension(page_config): Extension<Arc<PageConfig>>,
