@@ -133,8 +133,6 @@ pub(crate) struct InscriptionJson {
   timestamp: Option<DateTime<Utc>>,
 }
 
-use serde::Serialize;
-
 #[derive(Serialize)]
 pub(crate) struct OutputJson {
   outpoint: OutPoint,
