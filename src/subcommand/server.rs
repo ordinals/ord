@@ -162,6 +162,24 @@ impl OutputJson {
   }
 }
 
+#[derive(Serialize)]
+pub(crate) struct InputJson {
+  path: (u64, usize, usize),
+  input: TxIn,
+}
+
+impl InputJson {
+  pub(crate) fn new(
+    path: (u64, usize, usize),
+    input: TxIn,
+  ) -> Self {
+    Self {
+      path,
+      input,
+    }
+  }
+}
+
 #[derive(Debug, Parser)]
 pub(crate) struct Server {
   #[clap(
@@ -228,6 +246,7 @@ impl Server {
         .route("/favicon.ico", get(Self::favicon))
         .route("/feed.xml", get(Self::feed))
         .route("/input/:block/:transaction/:input", get(Self::input))
+        .route("/api/:block/:transaction/:input", get(Self::input_json))
         .route("/inscription/:inscription_id", get(Self::inscription))
         .route("/api/inscription/:inscription_id", get(Self::inscription_json))
         .route("/inscriptions", get(Self::inscriptions))
@@ -821,6 +840,32 @@ impl Server {
   async fn block_count(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
     Ok(index.block_count()?.to_string())
   }
+
+  async fn input_json(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(path): Path<(u64, usize, usize)>,
+  ) -> ServerResult<Json<InputJson>> {
+    let not_found = || format!("input /{}/{}/{}", path.0, path.1, path.2);
+  
+    let block = index
+      .get_block_by_height(path.0)?
+      .ok_or_not_found(not_found)?;
+  
+    let transaction = block
+      .txdata
+      .into_iter()
+      .nth(path.1)
+      .ok_or_not_found(not_found)?;
+  
+    let input = transaction
+      .input
+      .into_iter()
+      .nth(path.2)
+      .ok_or_not_found(not_found)?;
+  
+    Ok(Json(InputJson::new(path, input)))
+  }  
 
   async fn input(
     Extension(page_config): Extension<Arc<PageConfig>>,
