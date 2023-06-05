@@ -1,7 +1,7 @@
 use super::*;
 use serde::ser::{Serialize, Serializer, SerializeStruct};
 
-#[derive(Debug, Parser)]
+#[derive(Debug, Parser, Serialize)]
 pub(crate) struct List {
   #[clap(help = "List sats in <OUTPOINT>.")]
   outpoint: OutPoint,
