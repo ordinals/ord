@@ -11,6 +11,7 @@ use {
     PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, SatHtml, TransactionHtml,
   },
   axum::{
+    Json;
     body,
     extract::{Extension, Path, Query},
     headers::UserAgent,
@@ -168,6 +169,7 @@ impl Server {
         .route("/static/*path", get(Self::static_asset))
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
+        .route("/api/tx/:txid", get(Self::transaction_json))
         .layer(Extension(index))
         .layer(Extension(page_config))
         .layer(Extension(Arc::new(config)))
@@ -506,6 +508,27 @@ impl Server {
     Ok(
       BlockHtml::new(block, Height(height), Self::index_height(&index)?)
         .page(page_config, index.has_sat_index()?),
+    )
+  }
+
+  async fn transaction_json(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(txid): Path<Txid>,
+  ) -> ServerResult<Json<TransactionJson>> {
+    let inscription = index.get_inscription_by_id(txid.into())?;
+
+    let blockhash = index.get_transaction_blockhash(txid)?;
+
+    Ok(
+      Json(TransactionJson::new(
+        index
+          .get_transaction(txid)?
+          .ok_or_not_found(|| format!("transaction {txid}"))?,
+        blockhash,
+        inscription.map(|_| txid.into()),
+        page_config.chain,
+      ))
     )
   }
 
