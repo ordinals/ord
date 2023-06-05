@@ -7,17 +7,6 @@ pub(crate) struct List {
   outpoint: OutPoint,
 }
 
-impl Serialize for List {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-      S: Serializer,
-  {
-      let mut s = serializer.serialize_struct("List", 1)?;
-      s.serialize_field("outpoint", &self.outpoint.to_string())?;
-      s.end()
-  }
-}
-
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Output {
   pub output: OutPoint,
