@@ -115,6 +115,22 @@ impl TransactionJson {
   }
 }
 
+#[derive(Serialize)]
+pub(crate) struct InscriptionJson {
+  pub(crate) chain: Chain,
+  pub(crate) genesis_fee: u64,
+  pub(crate) genesis_height: u64,
+  pub(crate) inscription: Inscription,
+  pub(crate) inscription_id: InscriptionId,
+  pub(crate) next: Option<InscriptionId>,
+  pub(crate) number: i64,
+  pub(crate) output: Option<TxOut>,
+  pub(crate) previous: Option<InscriptionId>,
+  pub(crate) sat: Option<Sat>,
+  pub(crate) satpoint: SatPoint,
+  pub(crate) timestamp: DateTime<Utc>,
+}
+
 #[derive(Debug, Parser)]
 pub(crate) struct Server {
   #[clap(
@@ -182,6 +198,7 @@ impl Server {
         .route("/feed.xml", get(Self::feed))
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_id", get(Self::inscription))
+        .route("/api/inscription/:inscription_id", get(Self::inscription_json))
         .route("/inscriptions", get(Self::inscriptions))
         .route("/inscriptions/:from", get(Self::inscriptions_from))
         .route("/install.sh", get(Self::install_script))
@@ -861,6 +878,60 @@ impl Server {
       Media::Video => Ok(PreviewVideoHtml { inscription_id }.into_response()),
     }
   }
+
+  async fn inscription_json(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(inscription_id): Path<InscriptionId>,
+  ) -> Result<Json<InscriptionJson>, ServerError> {
+    let entry = index
+      .get_inscription_entry(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    let inscription = index
+      .get_inscription_by_id(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    let satpoint = index
+      .get_inscription_satpoint_by_id(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    let output = if satpoint.outpoint == unbound_outpoint() {
+      None
+    } else {
+      Some(
+        index
+          .get_transaction(satpoint.outpoint.txid)?
+          .ok_or_not_found(|| format!("inscription {inscription_id} current transaction"))?
+          .output
+          .into_iter()
+          .nth(satpoint.outpoint.vout.try_into().unwrap())
+          .ok_or_not_found(|| format!("inscription {inscription_id} current transaction output"))?,
+      )
+    };
+
+    let previous = index.get_inscription_id_by_inscription_number(entry.number - 1)?;
+
+    let next = index.get_inscription_id_by_inscription_number(entry.number + 1)?;
+
+    let response = InscriptionJson {
+        chain: page_config.chain,
+        genesis_fee: entry.fee,
+        genesis_height: entry.height,
+        inscription,
+        inscription_id,
+        next,
+        number: entry.number,
+        output,
+        previous,
+        sat: entry.sat,
+        satpoint,
+        timestamp: timestamp(entry.timestamp),
+    };
+
+    Ok(Json(response))
+  }
+
 
   async fn inscription(
     Extension(page_config): Extension<Arc<PageConfig>>,
