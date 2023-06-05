@@ -115,6 +115,7 @@ impl TransactionJson {
   }
 }
 
+#[serde_as]
 #[derive(Serialize)]
 pub(crate) struct InscriptionJson {
   chain: Chain,
