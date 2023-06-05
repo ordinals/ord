@@ -1,9 +1,21 @@
 use super::*;
+use serde::ser::{Serialize, Serializer, SerializeStruct};
 
 #[derive(Debug, Parser)]
 pub(crate) struct List {
   #[clap(help = "List sats in <OUTPOINT>.")]
   outpoint: OutPoint,
+}
+
+impl Serialize for List {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+      S: Serializer,
+  {
+      let mut s = serializer.serialize_struct("List", 1)?;
+      s.serialize_field("outpoint", &self.outpoint.to_string())?;
+      s.end()
+  }
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
