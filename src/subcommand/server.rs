@@ -928,7 +928,7 @@ impl Server {
         previous,
         sat: entry.sat,
         satpoint,
-        timestamp: timestamp(entry.timestamp)?,
+        timestamp: timestamp(entry.timestamp),
     };
 
     Ok(Json(response))
