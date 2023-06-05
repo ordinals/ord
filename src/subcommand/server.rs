@@ -115,7 +115,7 @@ impl TransactionJson {
   }
 }
 
-#[serde_as]
+use chrono::serde::ts_seconds_option;
 #[derive(Serialize)]
 pub(crate) struct InscriptionJson {
   chain: Chain,
@@ -129,6 +129,7 @@ pub(crate) struct InscriptionJson {
   previous: Option<InscriptionId>,
   sat: Option<Sat>,
   satpoint: SatPoint,
+  #[serde(with = "ts_seconds_option")]
   timestamp: DateTime<Utc>,
 }
 
