@@ -117,18 +117,18 @@ impl TransactionJson {
 
 #[derive(Serialize)]
 pub(crate) struct InscriptionJson {
-  pub(crate) chain: Chain,
-  pub(crate) genesis_fee: u64,
-  pub(crate) genesis_height: u64,
-  pub(crate) inscription: Inscription,
-  pub(crate) inscription_id: InscriptionId,
-  pub(crate) next: Option<InscriptionId>,
-  pub(crate) number: i64,
-  pub(crate) output: Option<TxOut>,
-  pub(crate) previous: Option<InscriptionId>,
-  pub(crate) sat: Option<Sat>,
-  pub(crate) satpoint: SatPoint,
-  pub(crate) timestamp: DateTime<Utc>,
+  chain: Chain,
+  genesis_fee: u64,
+  genesis_height: u64,
+  inscription: Inscription,
+  inscription_id: InscriptionId,
+  next: Option<InscriptionId>,
+  number: i64,
+  output: Option<TxOut>,
+  previous: Option<InscriptionId>,
+  sat: Option<Sat>,
+  satpoint: SatPoint,
+  timestamp: DateTime<Utc>,
 }
 
 #[derive(Debug, Parser)]
