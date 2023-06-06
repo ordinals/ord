@@ -1,6 +1,14 @@
 Changelog
 =========
 
+[0.6.1](https://github.com/ordinals/ord/releases/tag/0.6.1) - 2023-06-06
+---------------------------------------------------------------------
+
+### Changed 
+- Fix sat index test and unbound assignment (#2154)
+- Updated install.sh for new repo name (#2155)
+
+
 [0.6.0](https://github.com/ordinals/ord/releases/tag/0.6.0) - 2023-06-04
 ---------------------------------------------------------------------
 
