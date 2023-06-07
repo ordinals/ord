@@ -15,10 +15,10 @@ fmt:
   cargo fmt
 
 clippy:
-  cargo +nightly clippy --all --all-targets -- -D warnings
+  cargo clippy --all --all-targets -- -D warnings
 
 lclippy:
-  cargo +nightly lclippy --all --all-targets -- -D warnings
+  cargo lclippy --all --all-targets -- -D warnings
 
 deploy branch chain domain:
   ssh root@{{domain}} "mkdir -p deploy \

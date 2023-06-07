@@ -428,13 +428,6 @@ impl Updater {
       .map(|lost_sats| lost_sats.value())
       .unwrap_or(0);
 
-    //------------------ add inscription_trans------------------//
-    let mut inscription_trans = wtx.open_table(INSCRIPTION_TRANS)?;
-    let mut height_to_trans_index = wtx.open_table(HEIGHT_TO_TRANS_INDEX)?;
-
-    let _ = height_to_trans_index.insert(self.height, history_len.clone());
-
-    // height_to_trans_index.insert(self.height, inscription_trans.len()? as u64);
     let mut inscription_updater = InscriptionUpdater::new(
       self.height,
       &mut inscription_id_to_satpoint,
@@ -446,6 +439,7 @@ impl Updater {
       &mut sat_to_inscription_id,
       &mut satpoint_to_inscription_id,
       block.header.time,
+      unbound_inscriptions,
       value_cache,
       &mut inscription_trans,
       history_len,
@@ -543,11 +537,16 @@ impl Updater {
       }
     } else {
       for (tx, txid) in block.txdata.iter().skip(1).chain(block.txdata.first()) {
-        lost_sats += inscription_updater.index_transaction_inscriptions(tx, *txid, None)?;
+        inscription_updater.index_transaction_inscriptions(tx, *txid, None)?;
       }
     }
 
-    statistic_to_count.insert(&Statistic::LostSats.key(), &lost_sats)?;
+    statistic_to_count.insert(&Statistic::LostSats.key(), &inscription_updater.lost_sats)?;
+
+    statistic_to_count.insert(
+      &Statistic::UnboundInscriptions.key(),
+      &inscription_updater.unbound_inscriptions,
+    )?;
 
     height_to_block_hash.insert(&self.height, &block.header.block_hash().store())?;
 
