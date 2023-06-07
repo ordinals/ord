@@ -49,25 +49,17 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Install rustfmt
+    - name: Install Rust Toolchain Components
       uses: actions-rs/toolchain@v1
       with:
-        components: rustfmt
+        components: clippy, rustfmt
         override: true
         toolchain: stable
 
-    - name: Install clippy nightly
-      uses: actions-rs/toolchain@v1
-      with:
-        components: clippy
-        toolchain: nightly
-
     - uses: Swatinem/rust-cache@v2
-      with:
-        key: "clippy-nightly"
 
     - name: Clippy
-      run: cargo +nightly clippy --all --all-targets
+      run: cargo clippy --all --all-targets
 
     - name: Format
       run: cargo fmt --all -- --check

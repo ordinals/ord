@@ -1,12 +1,12 @@
 [package]
 name = "ord"
 description = "◉ Ordinal wallet and block explorer"
-version = "0.5.2"
+version = "0.6.1"
 license = "CC0-1.0"
 edition = "2021"
 autotests = false
-homepage = "https://github.com/casey/ord"
-repository = "https://github.com/casey/ord"
+homepage = "https://github.com/ordinals/ord"
+repository = "https://github.com/ordinals/ord"
 autobins = false
 rust-version = "1.67"
 

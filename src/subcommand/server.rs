@@ -425,7 +425,7 @@ impl Server {
       None
     };
 
-    let output = if outpoint == OutPoint::null() {
+    let output = if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
       let mut value = 0;
 
       if let Some(List::Unspent(ranges)) = &list {
@@ -926,23 +926,21 @@ impl Server {
       .get_inscription_satpoint_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
-    let output = index
-      .get_transaction(satpoint.outpoint.txid)?
-      .ok_or_not_found(|| format!("inscription {inscription_id} current transaction"))?
-      .output
-      .into_iter()
-      .nth(satpoint.outpoint.vout.try_into().unwrap())
-      .ok_or_not_found(|| format!("inscription {inscription_id} current transaction output"))?;
-
-    let previous = if let Some(previous) = entry.number.checked_sub(1) {
+    let output = if satpoint.outpoint == unbound_outpoint() {
+      None
+    } else {
       Some(
         index
-          .get_inscription_id_by_inscription_number(previous)?
-          .ok_or_not_found(|| format!("inscription {previous}"))?,
+          .get_transaction(satpoint.outpoint.txid)?
+          .ok_or_not_found(|| format!("inscription {inscription_id} current transaction"))?
+          .output
+          .into_iter()
+          .nth(satpoint.outpoint.vout.try_into().unwrap())
+          .ok_or_not_found(|| format!("inscription {inscription_id} current transaction output"))?,
       )
-    } else {
-      None
     };
+
+    let previous = index.get_inscription_id_by_inscription_number(entry.number - 1)?;
 
     let next = index.get_inscription_id_by_inscription_number(entry.number + 1)?;
 
@@ -1062,7 +1060,7 @@ impl Server {
   async fn inscriptions_from(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path(from): Path<u64>,
+    Path(from): Path<i64>,
   ) -> ServerResult<PageHtml<InscriptionsHtml>> {
     Self::inscriptions_inner(page_config, index, Some(from)).await
   }
@@ -1070,7 +1068,7 @@ impl Server {
   async fn inscriptions_inner(
     page_config: Arc<PageConfig>,
     index: Arc<Index>,
-    from: Option<u64>,
+    from: Option<i64>,
   ) -> ServerResult<PageHtml<InscriptionsHtml>> {
     let (inscriptions, prev, next) = index.get_latest_inscriptions_with_prev_and_next(100, from)?;
     Ok(
@@ -1784,11 +1782,48 @@ mod tests {
   }
 
   #[test]
-  fn unknown_output_returns_404() {
-    TestServer::new().assert_response(
+  fn unbound_output_recieves_unbound_inscriptions() {
+    let server = TestServer::new_with_regtest();
+
+    server.mine_blocks(1);
+
+    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      fee: 50 * 100_000_000,
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 1, 0)],
+      witness: inscription("text/plain;charset=utf-8", "hello").to_witness(),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let inscription_id = InscriptionId::from(txid);
+
+    server.assert_response_regex(
+      format!("/inscription/{}", inscription_id),
+      StatusCode::OK,
+      format!(
+        ".*<dl>
+  <dt>id</dt>
+  <dd class=monospace>{inscription_id}</dd>
+  <dt>preview</dt>.*<dt>output</dt>
+  <dd><a class=monospace href=/output/0000000000000000000000000000000000000000000000000000000000000000:0>0000000000000000000000000000000000000000000000000000000000000000:0 \\(unbound\\)</a></dd>.*"
+      ),
+    );
+  }
+
+  #[test]
+  fn unbound_output_returns_200() {
+    TestServer::new().assert_response_regex(
       "/output/0000000000000000000000000000000000000000000000000000000000000000:0",
-      StatusCode::NOT_FOUND,
-      "output 0000000000000000000000000000000000000000000000000000000000000000:0 not found",
+      StatusCode::OK,
+      ".*",
     );
   }
 
