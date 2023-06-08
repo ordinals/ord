@@ -46,7 +46,6 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
       &'static SatPointValue,
       u64,
       u32,
-      u64,
     ),
   >,
   history_len: &'a mut u64,
@@ -76,7 +75,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         &'static SatPointValue,
         u64,
         u32,
-        u64,
       ),
     >,
     history_len: &'a mut u64,
@@ -326,9 +324,14 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
   ) -> Result {
     let inscription_id = flotsam.inscription_id.store();
 
-    match flotsam.origin {
+    let mut old_satpoint_clone: SatPoint =
+      "0000000000000000000000000000000000000000000000000000000000000000:0:0"
+        .parse::<SatPoint>()
+        .unwrap();
+
+    let unbound = match flotsam.origin {
       Origin::Old { old_satpoint } => {
-        _old_satpoint = old_satpoint;
+        old_satpoint_clone = old_satpoint;
         self.satpoint_to_id.remove(&old_satpoint.store())?;
 
         false
@@ -407,20 +410,13 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       self.history_len.clone(),
       (
         &inscription_id,
-        &_old_satpoint.store(),
-        &new_satpoint,
+        &old_satpoint_clone.store(),
+        &new_satpoint.store(),
         self.height,
         self.timestamp,
-        self.next_number - 1
-      ),
+      )
     )?;
     *(self.history_len) += 1;
-    // println!("self.history_len--------->{}", self.history_len);
-
-    // self.inscription_trans.insert(
-    //   self.inscription_trans.len().unwrap() as u64,
-    //   (&inscription_id, &_old_satpoint.store(), &new_satpoint),
-    // )?;
 
     Ok(())
   }

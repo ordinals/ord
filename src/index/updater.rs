@@ -428,6 +428,14 @@ impl Updater {
       .map(|lost_sats| lost_sats.value())
       .unwrap_or(0);
 
+    let unbound_inscriptions = statistic_to_count
+      .get(&Statistic::UnboundInscriptions.key())?
+      .map(|unbound_inscriptions| unbound_inscriptions.value())
+      .unwrap_or(0);
+
+    //------------------ add inscription_trans------------------//
+    let mut inscription_trans = wtx.open_table(INSCRIPTION_TRANS)?;
+
     let mut inscription_updater = InscriptionUpdater::new(
       self.height,
       &mut inscription_id_to_satpoint,

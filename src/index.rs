@@ -2,7 +2,7 @@ use {
   self::{
     entry::{
       BlockHashValue, Entry, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
-      OutPointValue, SatPointValue, SatRange,
+      OutPointValue, SatPointValue, SatRange
     },
     updater::Updater,
   },
@@ -43,7 +43,8 @@ define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
 define_table! { STATISTIC_TO_COUNT, u64, u64 }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u64, u128 }
 // added
-define_table! { INSCRIPTION_TRANS, u64, (&InscriptionIdValue,&SatPointValue,&SatPointValue, u64, u32, u64) } //block,timestamp
+define_table! { INSCRIPTION_TRANS, u64, (&InscriptionIdValue, &SatPointValue,&SatPointValue, u64, u32) } //block,timestamp
+
 define_table! { HEIGHT_TO_TRANS_INDEX, u64, u64 }
 
 pub(crate) struct Index {
@@ -786,7 +787,7 @@ impl Index {
     &self,
     start: u64,
     end: u64,
-  ) -> Result<(u64, Vec<(u64, InscriptionId, SatPoint, SatPoint, u64, u32, u64, Option<String>, Option<String>, Option<Address>, Option<Address>)>)> {
+  ) -> Result<(u64, Vec<(u64, InscriptionId, SatPoint, SatPoint, u64, u32, Option<String>, Option<String> )>)> {
     let rtx = self.database.begin_read()?;
     let table = rtx.open_table(INSCRIPTION_TRANS)?;
 
@@ -809,13 +810,11 @@ impl Index {
         let v = id.value();
         let inscription_id = Entry::load(*v.0);
         
-        // let input_satpoint = std::str::from_utf8(v.1)?.parse::<SatPoint>()?;
-        // let output_satpoint = std::str::from_utf8(v.1)?.parse::<SatPoint>()?;
         let ( content_type, content_body ) = self.get_inscription_type_body( inscription_id ).unwrap_or((None,None));
-        // let ( content_type, content_body ) = ;
-        (_key.value(),Entry::load(*v.0), Entry::load(*v.1), Entry::load(*v.2), v.3, v.4, v.5, content_type, content_body, None, None )
+        
+        (_key.value(),Entry::load(*v.0), Entry::load(*v.1), Entry::load(*v.2), v.3, v.4, content_type, content_body )
+        
       })
-      // .take(usize::MAX)
       .collect();
     
     Ok((total, history))

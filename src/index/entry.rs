@@ -144,3 +144,44 @@ impl Entry for SatRange {
     n.to_le_bytes()[0..11].try_into().unwrap()
   }
 }
+
+// pub(super) type InscriptionTranEntityValue = (
+//   &'static InscriptionIdValue,
+//   i64,
+//   &'static SatPointValue,
+//   &'static SatPointValue,
+//   u64,
+//   u32,
+// );
+
+// impl Entry for InscriptionTranEntity {
+//   type Value = InscriptionTranEntityValue;
+
+//   fn load(
+//     (inscription_id, number, old_satpoint, new_satpoint, height, timestamp): self::Value,
+//   ) {
+//     Self {
+//       inscription_id,
+//       number,
+//       old_satpoint,
+//       new_satpoint,
+//       height,
+//       timestamp,
+//     }
+//   }
+
+//   fn store(self) -> Self::Value {
+//     (
+//       // match self.inscription_id {
+//       //   Some(inscription_id) => inscription_id,
+//       //   None => [],
+//       // },
+//       &self.inscription_id,
+//       self.number,
+//       &self.old_satpoint,
+//       &self.new_satpoint,
+//       self.height,
+//       self.timestamp,
+//     )
+//   }
+// }
