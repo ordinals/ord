@@ -5,6 +5,7 @@ use {
   },
   super::*,
   crate::page_config::PageConfig,
+  crate::teleburn_address::EthereumTeleburnAddress,
   crate::templates::{
     BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionsHtml, OutputHtml,
     PageContent, PageHtml, PreviewAudioHtml, PreviewImageHtml, PreviewPdfHtml, PreviewTextHtml,
@@ -837,6 +838,8 @@ impl Server {
       .nth(satpoint.outpoint.vout.try_into().unwrap())
       .ok_or_not_found(|| format!("inscription {inscription_id} current transaction output"))?;
 
+    let teleburn_address = EthereumTeleburnAddress::from(inscription_id).address;
+
     let previous = if let Some(previous) = entry.number.checked_sub(1) {
       Some(
         index
@@ -862,6 +865,7 @@ impl Server {
         previous,
         sat: entry.sat,
         satpoint,
+        teleburn_address,
         timestamp: timestamp(entry.timestamp),
       }
       .page(page_config, index.has_sat_index()?),

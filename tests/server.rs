@@ -46,6 +46,8 @@ fn inscription_page() {
     ..
   } = inscribe(&rpc_server);
 
+  let teleburn_address = teleburn(&rpc_server, &inscription).ethereum.address;
+
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     format!("/inscription/{inscription}"),
     format!(
@@ -83,6 +85,8 @@ fn inscription_page() {
   <dd><a class=monospace href=/output/{reveal}:0>{reveal}:0</a></dd>
   <dt>offset</dt>
   <dd>0</dd>
+  <dt>Ethereum Teleburn Address</dt>
+  <dd>{teleburn_address}</dd>
 </dl>.*",
     ),
   );

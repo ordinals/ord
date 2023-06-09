@@ -69,6 +69,22 @@ fn create_wallet(rpc_server: &test_bitcoincore_rpc::Handle) {
     .output::<Create>();
 }
 
+#[derive(Deserialize)]
+struct EthereumTeleburnAddress {
+  address: String,
+}
+#[derive(Deserialize)]
+struct Teleburn {
+  ethereum: EthereumTeleburnAddress,
+}
+
+fn teleburn(rpc_server: &test_bitcoincore_rpc::Handle, inscription: &str) -> Teleburn {
+  let output = CommandBuilder::new(format!("teleburn {inscription}"))
+    .rpc_server(rpc_server)
+    .output();
+  output
+}
+
 mod command_builder;
 mod core;
 mod epochs;
