@@ -144,7 +144,6 @@ impl Server {
 
       let router = Router::new()
         .route("/", get(Self::home))
-        .route("/-/content/:inscription_id", get(Self::content))
         .route("/block-count", get(Self::block_count))
         .route("/block/:query", get(Self::block))
         .route("/bounties", get(Self::bounties))
@@ -750,7 +749,7 @@ impl Server {
     );
     headers.append(
       header::CONTENT_SECURITY_POLICY,
-      HeaderValue::from_static("default-src *:*/-/ 'unsafe-eval' 'unsafe-inline' data:"),
+      HeaderValue::from_static("default-src *:*/content/ 'unsafe-eval' 'unsafe-inline' data:"),
     );
     headers.insert(
       header::CACHE_CONTROL,
