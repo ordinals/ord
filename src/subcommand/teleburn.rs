@@ -1,5 +1,4 @@
-use super::*;
-use crate::teleburn_address::EthereumTeleburnAddress;
+use {super::*, crate::teleburn_address::EthereumTeleburnAddress};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Teleburn {
