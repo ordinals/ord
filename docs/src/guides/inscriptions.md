@@ -14,7 +14,7 @@ inscriptions to another wallet.
 Bitcoin Core provides both a Bitcoin full node and wallet. However, the Bitcoin
 Core wallet cannot create inscriptions and does not perform sat control.
 
-This requires [`ord`](https://github.com/casey/ord), the ordinal utility. `ord`
+This requires [`ord`](https://github.com/ordinals/ord), the ordinal utility. `ord`
 doesn't implement its own wallet, so `ord wallet` subcommands interact with
 Bitcoin Core wallets.
 
@@ -33,8 +33,8 @@ Getting Help
 
 If you get stuck, try asking for help on the [Ordinals Discord
 Server](https://discord.com/invite/87cjuz4FYg), or checking GitHub for relevant
-[issues](https://github.com/casey/ord/issues) and
-[discussions](https://github.com/casey/ord/discussions).
+[issues](https://github.com/ordinals/ord/issues) and
+[discussions](https://github.com/ordinals/ord/discussions).
 
 Installing Bitcoin Core
 -----------------------
@@ -53,7 +53,7 @@ Configuring Bitcoin Core
 
 `ord` requires Bitcoin Core's transaction index.
 
-To configure your Bitcoin Core node to use maintain a transaction
+To configure your Bitcoin Core node to maintain a transaction
 index, add the following to your `bitcoin.conf`:
 
 ```
@@ -89,8 +89,8 @@ Installing `ord`
 ----------------
 
 The `ord` utility is written in Rust and can be built from
-[source](https://github.com/casey/ord). Pre-built binaries are available on the
-[releases page](https://github.com/casey/ord/releases).
+[source](https://github.com/ordinals/ord). Pre-built binaries are available on the
+[releases page](https://github.com/ordinals/ord/releases).
 
 You can install the latest pre-built binary from the command line with:
 
@@ -151,7 +151,7 @@ Additionally, inscriptions are included in transactions, so the larger the
 content, the higher the fee that the inscription transaction must pay.
 
 Inscription content is included in transaction witnesses, which receive the
-witness discount. To calculate the approximate fee that in inscribe transaction
+witness discount. To calculate the approximate fee that an inscribe transaction
 will pay, divide the content size by four and muliply by the fee rate.
 
 Inscription transactions must be less than 400,000 weight units, or they will
@@ -166,7 +166,7 @@ Creating Inscriptions
 To create an inscription with the contents of `FILE`, run:
 
 ```
-ord wallet inscribe FILE
+ord wallet inscribe --fee-rate FEE_RATE FILE
 ```
 
 Ord will output two transactions IDs, one for the commit transaction, and one
@@ -205,7 +205,7 @@ ord wallet receive
 Send the inscription by running:
 
 ```
-ord wallet send ADDRESS INSCRIPTION_ID
+ord wallet send --fee-rate <FEE_RATE> <ADDRESS> <INSCRIPTION_ID>
 ```
 
 See the pending transaction with:

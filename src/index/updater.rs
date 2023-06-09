@@ -1,4 +1,10 @@
-use {self::inscription_updater::InscriptionUpdater, super::*, std::sync::mpsc};
+use {
+  self::inscription_updater::InscriptionUpdater,
+  super::{fetcher::Fetcher, *},
+  futures::future::try_join_all,
+  std::sync::mpsc,
+  tokio::sync::mpsc::{error::TryRecvError, Receiver, Sender},
+};
 
 mod inscription_updater;
 
@@ -92,6 +98,8 @@ impl Updater {
 
     let rx = Self::fetch_blocks_from(index, self.height, self.index_sats)?;
 
+    let (mut outpoint_sender, mut value_receiver) = Self::spawn_fetcher(index)?;
+
     let mut uncommitted = 0;
     let mut value_cache = HashMap::new();
     loop {
@@ -100,13 +108,24 @@ impl Updater {
         Err(mpsc::RecvError) => break,
       };
 
-      self.index_block(index, &mut wtx, block, &mut value_cache)?;
+      self.index_block(
+        index,
+        &mut outpoint_sender,
+        &mut value_receiver,
+        &mut wtx,
+        block,
+        &mut value_cache,
+      )?;
 
       if let Some(progress_bar) = &mut progress_bar {
         progress_bar.inc(1);
 
         if progress_bar.position() > progress_bar.length().unwrap() {
-          progress_bar.set_length(index.client.get_block_count()? + 1);
+          if let Ok(count) = index.client.get_block_count() {
+            progress_bar.set_length(count + 1);
+          } else {
+            log::warn!("Failed to fetch latest block height");
+          }
         }
       }
 
@@ -140,7 +159,7 @@ impl Updater {
           )?;
       }
 
-      if INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
+      if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
         break;
       }
     }
@@ -165,11 +184,9 @@ impl Updater {
 
     let height_limit = index.height_limit;
 
-    let client =
-      Client::new(&index.rpc_url, index.auth.clone()).context("failed to connect to RPC URL")?;
+    let client = index.options.bitcoin_rpc_client()?;
 
-    // NB: We temporarily always fetch transactions, to avoid expensive cache misses.
-    let first_inscription_height = index.first_inscription_height.min(0);
+    let first_inscription_height = index.first_inscription_height;
 
     thread::spawn(move || loop {
       if let Some(height_limit) = height_limit {
@@ -243,13 +260,125 @@ impl Updater {
     }
   }
 
+  fn spawn_fetcher(index: &Index) -> Result<(Sender<OutPoint>, Receiver<u64>)> {
+    let fetcher = Fetcher::new(&index.options)?;
+
+    // Not sure if any block has more than 20k inputs, but none so far after first inscription block
+    const CHANNEL_BUFFER_SIZE: usize = 20_000;
+    let (outpoint_sender, mut outpoint_receiver) =
+      tokio::sync::mpsc::channel::<OutPoint>(CHANNEL_BUFFER_SIZE);
+    let (value_sender, value_receiver) = tokio::sync::mpsc::channel::<u64>(CHANNEL_BUFFER_SIZE);
+
+    // Batch 2048 missing inputs at a time. Arbitrarily chosen for now, maybe higher or lower can be faster?
+    // Did rudimentary benchmarks with 1024 and 4096 and time was roughly the same.
+    const BATCH_SIZE: usize = 2048;
+    // Default rpcworkqueue in bitcoind is 16, meaning more than 16 concurrent requests will be rejected.
+    // Since we are already requesting blocks on a separate thread, and we don't want to break if anything
+    // else runs a request, we keep this to 12.
+    const PARALLEL_REQUESTS: usize = 12;
+
+    std::thread::spawn(move || {
+      let rt = tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .unwrap();
+      rt.block_on(async move {
+        loop {
+          let Some(outpoint) = outpoint_receiver.recv().await else {
+            log::debug!("Outpoint channel closed");
+            return;
+          };
+          // There's no try_iter on tokio::sync::mpsc::Receiver like std::sync::mpsc::Receiver.
+          // So we just loop until BATCH_SIZE doing try_recv until it returns None.
+          let mut outpoints = vec![outpoint];
+          for _ in 0..BATCH_SIZE-1 {
+            let Ok(outpoint) = outpoint_receiver.try_recv() else {
+              break;
+            };
+            outpoints.push(outpoint);
+          }
+          // Break outpoints into chunks for parallel requests
+          let chunk_size = (outpoints.len() / PARALLEL_REQUESTS) + 1;
+          let mut futs = Vec::with_capacity(PARALLEL_REQUESTS);
+          for chunk in outpoints.chunks(chunk_size) {
+            let txids = chunk.iter().map(|outpoint| outpoint.txid).collect();
+            let fut = fetcher.get_transactions(txids);
+            futs.push(fut);
+          }
+          let txs = match try_join_all(futs).await {
+            Ok(txs) => txs,
+            Err(e) => {
+              log::error!("Couldn't receive txs {e}");
+              return;
+            }
+          };
+          // Send all tx output values back in order
+          for (i, tx) in txs.iter().flatten().enumerate() {
+            let Ok(_) = value_sender.send(tx.output[usize::try_from(outpoints[i].vout).unwrap()].value).await else {
+              log::error!("Value channel closed unexpectedly");
+              return;
+            };
+          }
+        }
+      })
+    });
+
+    Ok((outpoint_sender, value_receiver))
+  }
+
   fn index_block(
     &mut self,
     index: &Index,
+    outpoint_sender: &mut Sender<OutPoint>,
+    value_receiver: &mut Receiver<u64>,
     wtx: &mut WriteTransaction,
     block: BlockData,
     value_cache: &mut HashMap<OutPoint, u64>,
   ) -> Result<()> {
+    // If value_receiver still has values something went wrong with the last block
+    // Could be an assert, shouldn't recover from this and commit the last block
+    let Err(TryRecvError::Empty) = value_receiver.try_recv() else {
+      return Err(anyhow!("Previous block did not consume all input values"));
+    };
+
+    let mut outpoint_to_value = wtx.open_table(OUTPOINT_TO_VALUE)?;
+
+    let index_inscriptions = self.height >= index.first_inscription_height;
+
+    if index_inscriptions {
+      // Send all missing input outpoints to be fetched right away
+      let txids = block
+        .txdata
+        .iter()
+        .map(|(_, txid)| txid)
+        .collect::<HashSet<_>>();
+      for (tx, _) in &block.txdata {
+        for input in &tx.input {
+          let prev_output = input.previous_output;
+          // We don't need coinbase input value
+          if prev_output.is_null() {
+            continue;
+          }
+          // We don't need input values from txs earlier in the block, since they'll be added to value_cache
+          // when the tx is indexed
+          if txids.contains(&prev_output.txid) {
+            continue;
+          }
+          // We don't need input values we already have in our value_cache from earlier blocks
+          if value_cache.contains_key(&prev_output) {
+            continue;
+          }
+          // We don't need input values we already have in our outpoint_to_value table from earlier blocks that
+          // were committed to db already
+          if outpoint_to_value.get(&prev_output.store())?.is_some() {
+            continue;
+          }
+          // We don't know the value of this tx input. Send this outpoint to background thread to be fetched
+          outpoint_sender.blocking_send(prev_output)?;
+        }
+      }
+    }
+
     let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
 
     let start = Instant::now();
@@ -279,7 +408,6 @@ impl Updater {
     let mut inscription_id_to_satpoint = wtx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
     let mut inscription_number_to_inscription_id =
       wtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
-    let mut outpoint_to_value = wtx.open_table(OUTPOINT_TO_VALUE)?;
     let mut sat_to_inscription_id = wtx.open_table(SAT_TO_INSCRIPTION_ID)?;
     let mut satpoint_to_inscription_id = wtx.open_table(SATPOINT_TO_INSCRIPTION_ID)?;
     let mut statistic_to_count = wtx.open_table(STATISTIC_TO_COUNT)?;
@@ -289,10 +417,15 @@ impl Updater {
       .map(|lost_sats| lost_sats.value())
       .unwrap_or(0);
 
+    let unbound_inscriptions = statistic_to_count
+      .get(&Statistic::UnboundInscriptions.key())?
+      .map(|unbound_inscriptions| unbound_inscriptions.value())
+      .unwrap_or(0);
+
     let mut inscription_updater = InscriptionUpdater::new(
       self.height,
       &mut inscription_id_to_satpoint,
-      index,
+      value_receiver,
       &mut inscription_id_to_inscription_entry,
       lost_sats,
       &mut inscription_number_to_inscription_id,
@@ -300,6 +433,7 @@ impl Updater {
       &mut sat_to_inscription_id,
       &mut satpoint_to_inscription_id,
       block.header.time,
+      unbound_inscriptions,
       value_cache,
     )?;
 
@@ -349,6 +483,7 @@ impl Updater {
           &mut sat_ranges_written,
           &mut outputs_in_block,
           &mut inscription_updater,
+          index_inscriptions,
         )?;
 
         coinbase_inputs.extend(input_sat_ranges);
@@ -363,6 +498,7 @@ impl Updater {
           &mut sat_ranges_written,
           &mut outputs_in_block,
           &mut inscription_updater,
+          index_inscriptions,
         )?;
       }
 
@@ -393,11 +529,16 @@ impl Updater {
       }
     } else {
       for (tx, txid) in block.txdata.iter().skip(1).chain(block.txdata.first()) {
-        lost_sats += inscription_updater.index_transaction_inscriptions(tx, *txid, None)?;
+        inscription_updater.index_transaction_inscriptions(tx, *txid, None)?;
       }
     }
 
-    statistic_to_count.insert(&Statistic::LostSats.key(), &lost_sats)?;
+    statistic_to_count.insert(&Statistic::LostSats.key(), &inscription_updater.lost_sats)?;
+
+    statistic_to_count.insert(
+      &Statistic::UnboundInscriptions.key(),
+      &inscription_updater.unbound_inscriptions,
+    )?;
 
     height_to_block_hash.insert(&self.height, &block.header.block_hash().store())?;
 
@@ -421,8 +562,11 @@ impl Updater {
     sat_ranges_written: &mut u64,
     outputs_traversed: &mut u64,
     inscription_updater: &mut InscriptionUpdater,
+    index_inscriptions: bool,
   ) -> Result {
-    inscription_updater.index_transaction_inscriptions(tx, txid, Some(input_sat_ranges))?;
+    if index_inscriptions {
+      inscription_updater.index_transaction_inscriptions(tx, txid, Some(input_sat_ranges))?;
+    }
 
     for (vout, output) in tx.output.iter().enumerate() {
       let outpoint = OutPoint {

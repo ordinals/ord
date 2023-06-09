@@ -30,11 +30,7 @@ struct Output {
 pub(crate) struct Inscribe {
   #[clap(long, help = "Inscribe <SATPOINT>")]
   pub(crate) satpoint: Option<SatPoint>,
-  #[clap(
-    long,
-    default_value = "1.0",
-    help = "Use fee rate of <FEE_RATE> sats/vB"
-  )]
+  #[clap(long, help = "Use fee rate of <FEE_RATE> sats/vB")]
   pub(crate) fee_rate: FeeRate,
   #[clap(
     long,
@@ -52,16 +48,18 @@ pub(crate) struct Inscribe {
   pub(crate) no_limit: bool,
   #[clap(long, help = "Don't sign or broadcast transactions.")]
   pub(crate) dry_run: bool,
+  #[clap(long, help = "Send inscription to <DESTINATION>.")]
+  pub(crate) destination: Option<Address>,
 }
 
 impl Inscribe {
   pub(crate) fn run(self, options: Options) -> Result {
-    let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
-
     let inscription = Inscription::from_file(options.chain(), &self.file)?;
 
     let index = Index::open(&options)?;
     index.update()?;
+
+    let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
     let mut utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
 
@@ -69,7 +67,10 @@ impl Inscribe {
 
     let commit_tx_change = [get_change_address(&client)?, get_change_address(&client)?];
 
-    let reveal_tx_destination = get_change_address(&client)?;
+    let reveal_tx_destination = self
+      .destination
+      .map(Ok)
+      .unwrap_or_else(|| get_change_address(&client))?;
 
     let (unsigned_commit_tx, reveal_tx, recovery_key_pair) =
       Inscribe::create_inscription_transactions(
@@ -87,7 +88,9 @@ impl Inscribe {
 
     utxos.insert(
       reveal_tx.input[0].previous_output,
-      Amount::from_sat(unsigned_commit_tx.output[0].value),
+      Amount::from_sat(
+        unsigned_commit_tx.output[reveal_tx.input[0].previous_output.vout as usize].value,
+      ),
     );
 
     let fees =
@@ -133,7 +136,8 @@ impl Inscribe {
       .iter()
       .map(|txin| utxos.get(&txin.previous_output).unwrap().to_sat())
       .sum::<u64>()
-      - tx.output.iter().map(|txout| txout.value).sum::<u64>()
+      .checked_sub(tx.output.iter().map(|txout| txout.value).sum::<u64>())
+      .unwrap()
   }
 
   fn create_inscription_transactions(

@@ -31,6 +31,7 @@ impl Media {
     ("image/png", Media::Image, &["png"]),
     ("image/svg+xml", Media::Iframe, &["svg"]),
     ("image/webp", Media::Image, &["webp"]),
+    ("model/gltf-binary", Media::Unknown, &["glb"]),
     ("model/stl", Media::Unknown, &["stl"]),
     ("text/html;charset=utf-8", Media::Iframe, &["html"]),
     ("text/plain;charset=utf-8", Media::Text, &["txt"]),

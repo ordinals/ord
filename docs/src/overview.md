@@ -11,7 +11,7 @@ the transfer scheme on the *order* of transaction inputs and outputs. Thus the
 name, *ordinals*.
 
 Technical details are available in [the
-BIP](https://github.com/casey/ord/blob/master/bip.mediawiki).
+BIP](https://github.com/ordinals/ord/blob/master/bip.mediawiki).
 
 Ordinal theory does not require a separate token, another blockchain, or any
 changes to Bitcoin. It works right now.
@@ -43,7 +43,7 @@ Arbitrary assets, such as NFTs, security tokens, accounts, or stablecoins can
 be attached to satoshis using ordinal numbers as stable identifiers.
 
 Ordinals is an open-source project, developed [on
-GitHub](https://github.com/casey/ord). The project consists of a BIP describing
+GitHub](https://github.com/ordinals/ord). The project consists of a BIP describing
 the ordinal scheme, an index that communicates with a Bitcoin Core node to
 track the location of all satoshis, a wallet that allows making ordinal-aware
 transactions, a block explorer for interactive exploration of the blockchain,
@@ -211,11 +211,11 @@ Exotics
 Satoshis may be prized for reasons other than their name or rarity. This might
 be due to a quality of the number itself, like having an integer square or cube
 root. Or it might be due to a connection to a historical event, such as
-satoshis from block 477,120, the block in which SegWit activated,
+satoshis from block 477,120, the block in which SegWit activated, or
 2099999997689999°, the last satoshi that will ever be mined.
 
 Such satoshis are termed "exotic". Which satoshis are exotic and what makes
-them so is subjective. Ordinal theorists are are encouraged to seek out exotics
+them so is subjective. Ordinal theorists are encouraged to seek out exotics
 based on criteria of their own devising.
 
 Inscriptions
@@ -258,7 +258,7 @@ forum](https://bitcointalk.org/index.php?topic=102355.0). This wasn't an asset
 scheme, but did use the ordinal algorithm, and was implemented but never
 deployed.
 
-On October 8th, 2012, jl2012 [posted a scheme to the the same
+On October 8th, 2012, jl2012 [posted a scheme to the same
 forum](https://bitcointalk.org/index.php?topic=117224.0) which uses decimal
 notation and has all the important properties of ordinals. The scheme was
 discussed but never implemented.

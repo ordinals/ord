@@ -85,7 +85,7 @@ pub trait Api {
   fn get_raw_transaction(
     &self,
     txid: Txid,
-    verbose: bool,
+    verbose: Option<bool>,
     blockhash: Option<BlockHash>,
   ) -> Result<Value, jsonrpc_core::Error>;
 

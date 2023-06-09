@@ -4,8 +4,8 @@ description = "Test Bitcoin Core RPC server"
 version = "0.0.1"
 edition = "2021"
 license = "CC0-1.0"
-homepage = "https://github.com/casey/ord"
-repository = "https://github.com/casey/ord"
+homepage = "https://github.com/ordinals/ord"
+repository = "https://github.com/ordinals/ord"
 
 [dependencies]
 bitcoin = { version = "0.29.1", features = ["serde", "rand"] }

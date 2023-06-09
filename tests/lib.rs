@@ -48,7 +48,7 @@ struct Inscribe {
 fn inscribe(rpc_server: &test_bitcoincore_rpc::Handle) -> Inscribe {
   rpc_server.mine_blocks(1);
 
-  let output = CommandBuilder::new("wallet inscribe foo.txt")
+  let output = CommandBuilder::new("wallet inscribe --fee-rate 1 foo.txt")
     .write("foo.txt", "FOO")
     .rpc_server(rpc_server)
     .output();

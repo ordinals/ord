@@ -15,7 +15,8 @@ use {
 };
 
 pub mod balance;
-pub(crate) mod create;
+pub mod cardinals;
+pub mod create;
 pub(crate) mod inscribe;
 pub mod inscriptions;
 pub mod outputs;
@@ -31,7 +32,7 @@ pub(crate) enum Wallet {
   #[clap(about = "Get wallet balance")]
   Balance,
   #[clap(about = "Create new wallet")]
-  Create,
+  Create(create::Create),
   #[clap(about = "Create inscription")]
   Inscribe(inscribe::Inscribe),
   #[clap(about = "List wallet inscriptions")]
@@ -46,15 +47,17 @@ pub(crate) enum Wallet {
   Send(send::Send),
   #[clap(about = "See wallet transactions")]
   Transactions(transactions::Transactions),
-  #[clap(about = "List wallet outputs")]
+  #[clap(about = "List all unspent outputs in wallet")]
   Outputs,
+  #[clap(about = "List unspent cardinal outputs in wallet")]
+  Cardinals,
 }
 
 impl Wallet {
   pub(crate) fn run(self, options: Options) -> Result {
     match self {
       Self::Balance => balance::run(options),
-      Self::Create => create::run(options),
+      Self::Create(create) => create.run(options),
       Self::Inscribe(inscribe) => inscribe.run(options),
       Self::Inscriptions => inscriptions::run(options),
       Self::Receive => receive::run(options),
@@ -63,6 +66,7 @@ impl Wallet {
       Self::Send(send) => send.run(options),
       Self::Transactions(transactions) => transactions.run(options),
       Self::Outputs => outputs::run(options),
+      Self::Cardinals => cardinals::run(options),
     }
   }
 }
@@ -136,7 +140,7 @@ fn derive_and_import_descriptor(
     active: Some(true),
     range: None,
     next_index: None,
-    internal: Some(!change),
+    internal: Some(change),
     label: None,
   })?;
 
