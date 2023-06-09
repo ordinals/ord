@@ -832,8 +832,6 @@ impl Server {
 
     let teleburn_address = EthereumTeleburnAddress::from(inscription_id).address;
 
-    let previous = if let Some(previous) = entry.number.checked_sub(1) {
-
     let output = if satpoint.outpoint == unbound_outpoint() {
       None
     } else {

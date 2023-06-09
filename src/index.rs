@@ -19,7 +19,6 @@ use {
 };
 
 pub(crate) mod entry;
-mod entry;
 mod fetcher;
 mod rtx;
 mod updater;

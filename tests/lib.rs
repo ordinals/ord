@@ -79,10 +79,9 @@ struct Teleburn {
 }
 
 fn teleburn(rpc_server: &test_bitcoincore_rpc::Handle, inscription: &str) -> Teleburn {
-  let output = CommandBuilder::new(format!("teleburn {inscription}"))
+  CommandBuilder::new(format!("teleburn {inscription}"))
     .rpc_server(rpc_server)
-    .output();
-  output
+    .output()
 }
 
 mod command_builder;

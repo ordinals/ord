@@ -105,6 +105,7 @@ mod tests {
         previous: None,
         sat: None,
         satpoint: satpoint(1, 0),
+        teleburn_address: EthereumTeleburnAddress::from(inscription_id(1)).address,
         timestamp: timestamp(0),
       },
       "
@@ -209,6 +210,7 @@ mod tests {
           outpoint: unbound_outpoint(),
           offset: 0
         },
+        teleburn_address: EthereumTeleburnAddress::from(inscription_id(2)).address,
         timestamp: timestamp(0),
       },
       "
