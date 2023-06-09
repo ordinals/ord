@@ -1,4 +1,3 @@
-use crate::teleburn_address::EthereumTeleburnAddress;
 use {
   self::{
     deserialize_from_str::DeserializeFromStr,
@@ -6,6 +5,7 @@ use {
   },
   super::*,
   crate::page_config::PageConfig,
+  crate::teleburn_address::EthereumTeleburnAddress,
   crate::templates::{
     BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionsHtml, OutputHtml,
     PageContent, PageHtml, PreviewAudioHtml, PreviewImageHtml, PreviewPdfHtml, PreviewTextHtml,

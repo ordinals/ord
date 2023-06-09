@@ -1,8 +1,7 @@
-use super::*;
-use crate::index::entry::Entry;
-use bitcoin::hashes::hex::ToHex;
-use crypto::digest::Digest;
-use crypto::sha3::Sha3;
+use {
+  super::*, crate::index::entry::Entry, bitcoin::hashes::hex::ToHex, crypto::digest::Digest,
+  crypto::sha3::Sha3,
+};
 
 #[derive(Debug, PartialEq, Serialize)]
 pub(crate) struct EthereumTeleburnAddress {
@@ -46,11 +45,13 @@ fn create_address_with_checksum(addr: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-  use crate::inscription_id::InscriptionId;
-  use crate::teleburn_address::{create_address_with_checksum, EthereumTeleburnAddress};
-  use bitcoin::hashes::Hash;
-  use bitcoin::Txid;
-  use std::str::FromStr;
+  use {
+    crate::inscription_id::InscriptionId,
+    crate::teleburn_address::{create_address_with_checksum, EthereumTeleburnAddress},
+    bitcoin::hashes::Hash,
+    bitcoin::Txid,
+    std::str::FromStr,
+  };
 
   #[test]
   fn test_eth_checksum_generation() {
