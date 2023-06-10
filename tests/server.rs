@@ -183,8 +183,15 @@ fn inscription_content() {
     "text/plain;charset=utf-8"
   );
   assert_eq!(
-    response.headers().get("content-security-policy").unwrap(),
-    "default-src 'unsafe-eval' 'unsafe-inline' data:"
+    response
+      .headers()
+      .get_all("content-security-policy")
+      .into_iter()
+      .collect::<Vec<&http::HeaderValue>>(),
+    &[
+      "default-src 'self' 'unsafe-eval' 'unsafe-inline' data:",
+      "default-src *:*/content/ 'unsafe-eval' 'unsafe-inline' data:"
+    ]
   );
   assert_eq!(response.bytes().unwrap(), "FOO");
 }
