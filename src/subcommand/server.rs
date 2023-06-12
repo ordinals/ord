@@ -772,6 +772,18 @@ impl Server {
       header::CONTENT_SECURITY_POLICY,
       HeaderValue::from_static("default-src *:*/content/ 'unsafe-eval' 'unsafe-inline' data:"),
     );
+    headers.append(
+      header::CONTENT_SECURITY_POLICY,
+      HeaderValue::from_static("default-src *:*/blockheight 'unsafe-eval' 'unsafe-inline' data:"),
+    );
+    headers.append(
+      header::CONTENT_SECURITY_POLICY,
+      HeaderValue::from_static("default-src *:*/blockhash 'unsafe-eval' 'unsafe-inline' data:"),
+    );
+    headers.append(
+      header::CONTENT_SECURITY_POLICY,
+      HeaderValue::from_static("default-src *:*/blocktime 'unsafe-eval' 'unsafe-inline' data:"),
+    );
     headers.insert(
       header::CACHE_CONTROL,
       HeaderValue::from_static("max-age=31536000, immutable"),
