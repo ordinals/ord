@@ -67,7 +67,7 @@ Content
 -------
 
 The data model of inscriptions is that of a HTTP response, allowing inscription
-content to be server by a web server and viewed in a web browser.
+content to be served by a web server and viewed in a web browser.
 
 Sandboxing
 ----------
