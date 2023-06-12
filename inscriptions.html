@@ -196,6 +196,38 @@ restrictions is that individual data pushes may not be larger than 520 bytes.</p
 and the inscription is made on the first sat of its input. This sat can
 then be tracked using the familiar rules of ordinal theory, allowing it to be
 transferred, bought, sold, lost to fees, and recovered.</p>
+<h2 id="content"><a class="header" href="#content">Content</a></h2>
+<p>The data model of inscriptions is that of a HTTP response, allowing inscription
+content to be served by a web server and viewed in a web browser.</p>
+<h2 id="sandboxing"><a class="header" href="#sandboxing">Sandboxing</a></h2>
+<p>HTML and SVG inscriptions are sandboxed in order to prevent references to
+off-chain content, thus keeping inscriptions immutable and self-contained.</p>
+<p>This is accomplished by loading HTML and SVG inscriptions inside <code>iframes</code> with
+the <code>sandbox</code> attribute, as well as serving inscription content with
+<code>Content-Security-Policy</code> headers.</p>
+<h2 id="recursion"><a class="header" href="#recursion">Recursion</a></h2>
+<p>An important exception to sandboxing is recursion: access to <code>ord</code>'s <code>/content</code>
+endpoint is permitted, allowing inscriptions to access the content of other
+inscriptions by requesting <code>/content/&lt;INSCRIPTION_ID&gt;</code>.</p>
+<p>This has a number of interesting use-cases:</p>
+<ul>
+<li>
+<p>Remixing the content of existing inscriptions.</p>
+</li>
+<li>
+<p>Publishing snippets of code, images, audio, or stylesheets as shared public
+resources.</p>
+</li>
+<li>
+<p>Generative art collections where an algorithm is inscribed as JavaScript ,
+and instantiated from multiple inscriptions with unique seeds.</p>
+</li>
+<li>
+<p>Generative profile picture collections where accessories and attributes are
+inscribed as individual images, or in a shared texture atlas, and then
+combined, collage-style, in unique combinations in multiple inscriptions.</p>
+</li>
+</ul>
 
                     </main>
 
