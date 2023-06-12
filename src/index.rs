@@ -413,6 +413,10 @@ impl Index {
     self.begin_read()?.block_count()
   }
 
+  pub(crate) fn block_hash(&self) -> Result<Option<BlockHash>> {
+    self.begin_read()?.block_hash()
+  }
+
   pub(crate) fn blocks(&self, take: usize) -> Result<Vec<(u64, BlockHash)>> {
     let mut blocks = Vec::new();
 
