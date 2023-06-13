@@ -683,9 +683,7 @@ impl Server {
   }
 
   async fn block_height(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
-    let height = index
-      .block_height()?
-      .ok_or_not_found(|| "blockheight")?;
+    let height = index.block_height()?.ok_or_not_found(|| "blockheight")?;
 
     Ok(height.to_string())
   }
@@ -700,7 +698,9 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(height): Path<u64>,
   ) -> ServerResult<String> {
-    let hash = index.block_hash(Some(height))?.ok_or_not_found(|| "blockhash")?;
+    let hash = index
+      .block_hash(Some(height))?
+      .ok_or_not_found(|| "blockhash")?;
 
     Ok(hash.to_string())
   }
