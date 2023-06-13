@@ -147,8 +147,8 @@ impl Server {
         .route("/block/:query", get(Self::block))
         .route("/blockcount", get(Self::block_count))
         .route("/blockheight", get(Self::block_height))
-        .route("/blockheight/:hash", get(Self::block_height))
         .route("/blockhash", get(Self::block_hash))
+        .route("/blockhash/:height", get(Self::block_hash_from_height))
         .route("/blocktime", get(Self::block_time))
         .route("/bounties", get(Self::bounties))
         .route("/clock", get(Self::clock))
@@ -683,13 +683,24 @@ impl Server {
   }
 
   async fn block_height(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
-    let height = index.block_height()?.ok_or_not_found(|| "blockheight")?;
+    let height = index
+      .block_height()?
+      .ok_or_not_found(|| "blockheight")?;
 
     Ok(height.to_string())
   }
 
   async fn block_hash(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
-    let hash = index.block_hash()?.ok_or_not_found(|| "blockhash")?;
+    let height = index.block_hash(None)?.ok_or_not_found(|| "blockheight")?;
+
+    Ok(height.to_string())
+  }
+
+  async fn block_hash_from_height(
+    Extension(index): Extension<Arc<Index>>,
+    Path(height): Path<u64>,
+  ) -> ServerResult<String> {
+    let hash = index.block_hash(Some(height))?.ok_or_not_found(|| "blockhash")?;
 
     Ok(hash.to_string())
   }
@@ -697,7 +708,7 @@ impl Server {
   async fn block_time(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
     let height = index.block_height()?.ok_or_not_found(|| "blocktime")?;
 
-    Ok(index.blocktime(height)?.timestamp().to_string())
+    Ok(index.blocktime(height)?.unix_timestamp().to_string())
   }
 
   async fn input(
@@ -1434,7 +1445,7 @@ mod tests {
     assert_eq!(response.status(), StatusCode::OK);
     assert_eq!(response.text().unwrap(), "2");
   }
-  
+
   #[test]
   fn block_height_endpoint() {
     let test_server = TestServer::new();
@@ -1466,13 +1477,26 @@ mod tests {
   }
 
   #[test]
+  fn block_hash_from_height_endpoint() {
+    let test_server = TestServer::new();
+
+    let response = test_server.get("/blockhash/0");
+
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(
+      response.text().unwrap(),
+      "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
+    );
+  }
+
+  #[test]
   fn block_time_endpoint() {
     let test_server = TestServer::new();
 
     let response = test_server.get("/blocktime");
 
     assert_eq!(response.status(), StatusCode::OK);
-    assert_eq!(response.text().unwrap(), "2009-01-03 18:15:05 UTC");
+    assert_eq!(response.text().unwrap(), "1231006505");
   }
 
   #[test]

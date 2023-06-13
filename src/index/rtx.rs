@@ -28,15 +28,24 @@ impl Rtx<'_> {
     )
   }
 
-  pub(crate) fn block_hash(&self) -> Result<Option<BlockHash>> {
-    Ok(
-      self
-        .0
-        .open_table(HEIGHT_TO_BLOCK_HASH)?
-        .range(0..)?
-        .rev()
-        .next()
-        .map(|(_height, hash)| BlockHash::load(*hash.value())),
-    )
+  pub(crate) fn block_hash(&self, height: Option<u64>) -> Result<Option<BlockHash>> {
+    match height {
+      Some(height) => Ok(
+        self
+          .0
+          .open_table(HEIGHT_TO_BLOCK_HASH)?
+          .get(height)?
+          .map(|hash| BlockHash::load(*hash.value())),
+      ),
+      None => Ok(
+        self
+          .0
+          .open_table(HEIGHT_TO_BLOCK_HASH)?
+          .range(0..)?
+          .rev()
+          .next()
+          .map(|(_height, hash)| BlockHash::load(*hash.value())),
+      ),
+    }
   }
 }

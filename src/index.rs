@@ -405,16 +405,16 @@ impl Index {
       .unwrap_or(0)
   }
 
-  pub(crate) fn block_height(&self) -> Result<Option<Height>> {
-    self.begin_read()?.block_height()
-  }
-
   pub(crate) fn block_count(&self) -> Result<u64> {
     self.begin_read()?.block_count()
   }
 
-  pub(crate) fn block_hash(&self) -> Result<Option<BlockHash>> {
-    self.begin_read()?.block_hash()
+  pub(crate) fn block_height(&self) -> Result<Option<Height>> {
+    self.begin_read()?.block_height()
+  }
+
+  pub(crate) fn block_hash(&self, height: Option<u64>) -> Result<Option<BlockHash>> {
+    self.begin_read()?.block_hash(height)
   }
 
   pub(crate) fn blocks(&self, take: usize) -> Result<Vec<(u64, BlockHash)>> {
