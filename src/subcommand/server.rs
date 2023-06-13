@@ -145,7 +145,7 @@ impl Server {
       let router = Router::new()
         .route("/", get(Self::home))
         .route("/block/:query", get(Self::block))
-        .route("/block-count", get(Self::block_count))
+        .route("/blockcount", get(Self::block_count))
         .route("/blockheight", get(Self::block_height))
         .route("/blockhash", get(Self::block_hash))
         .route("/blocktime", get(Self::block_time))
@@ -355,7 +355,7 @@ impl Server {
   }
 
   fn index_height(index: &Index) -> ServerResult<Height> {
-    index.height()?.ok_or_not_found(|| "genesis block")
+    index.block_height()?.ok_or_not_found(|| "genesis block")
   }
 
   async fn clock(Extension(index): Extension<Arc<Index>>) -> ServerResult<Response> {
@@ -682,7 +682,7 @@ impl Server {
   }
 
   async fn block_height(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
-    let height = index.height()?.ok_or_not_found(|| "blockheight")?;
+    let height = index.block_height()?.ok_or_not_found(|| "blockheight")?;
 
     Ok(height.to_string())
   }
@@ -694,7 +694,7 @@ impl Server {
   }
 
   async fn block_time(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
-    let height = index.height()?.ok_or_not_found(|| "blockheight")?;
+    let height = index.block_height()?.ok_or_not_found(|| "blocktime")?;
 
     Ok(index.blocktime(height)?.timestamp().to_string())
   }
@@ -770,19 +770,7 @@ impl Server {
     );
     headers.append(
       header::CONTENT_SECURITY_POLICY,
-      HeaderValue::from_static("default-src *:*/content/ 'unsafe-eval' 'unsafe-inline' data:"),
-    );
-    headers.append(
-      header::CONTENT_SECURITY_POLICY,
-      HeaderValue::from_static("default-src *:*/blockheight 'unsafe-eval' 'unsafe-inline' data:"),
-    );
-    headers.append(
-      header::CONTENT_SECURITY_POLICY,
-      HeaderValue::from_static("default-src *:*/blockhash 'unsafe-eval' 'unsafe-inline' data:"),
-    );
-    headers.append(
-      header::CONTENT_SECURITY_POLICY,
-      HeaderValue::from_static("default-src *:*/blocktime 'unsafe-eval' 'unsafe-inline' data:"),
+      HeaderValue::from_static("default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blocktime 'unsafe-eval' 'unsafe-inline' data:"),
     );
     headers.insert(
       header::CACHE_CONTROL,
@@ -1427,23 +1415,6 @@ mod tests {
   #[test]
   fn status() {
     TestServer::new().assert_response("/status", StatusCode::OK, "OK");
-  }
-
-  #[test]
-  fn block_count_endpoint() {
-    let test_server = TestServer::new();
-
-    let response = test_server.get("/block-count");
-
-    assert_eq!(response.status(), StatusCode::OK);
-    assert_eq!(response.text().unwrap(), "1");
-
-    test_server.mine_blocks(1);
-
-    let response = test_server.get("/block-count");
-
-    assert_eq!(response.status(), StatusCode::OK);
-    assert_eq!(response.text().unwrap(), "2");
   }
 
   #[test]

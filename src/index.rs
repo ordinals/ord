@@ -405,8 +405,8 @@ impl Index {
       .unwrap_or(0)
   }
 
-  pub(crate) fn height(&self) -> Result<Option<Height>> {
-    self.begin_read()?.height()
+  pub(crate) fn block_height(&self) -> Result<Option<Height>> {
+    self.begin_read()?.block_height()
   }
 
   pub(crate) fn block_count(&self) -> Result<u64> {
@@ -1014,21 +1014,21 @@ mod tests {
     {
       let context = Context::builder().args(["--height-limit", "0"]).build();
       context.mine_blocks(1);
-      assert_eq!(context.index.height().unwrap(), None);
+      assert_eq!(context.index.block_height().unwrap(), None);
       assert_eq!(context.index.block_count().unwrap(), 0);
     }
 
     {
       let context = Context::builder().args(["--height-limit", "1"]).build();
       context.mine_blocks(1);
-      assert_eq!(context.index.height().unwrap(), Some(Height(0)));
+      assert_eq!(context.index.block_height().unwrap(), Some(Height(0)));
       assert_eq!(context.index.block_count().unwrap(), 1);
     }
 
     {
       let context = Context::builder().args(["--height-limit", "2"]).build();
       context.mine_blocks(2);
-      assert_eq!(context.index.height().unwrap(), Some(Height(1)));
+      assert_eq!(context.index.block_height().unwrap(), Some(Height(1)));
       assert_eq!(context.index.block_count().unwrap(), 2);
     }
   }

@@ -190,10 +190,7 @@ fn inscription_content() {
       .collect::<Vec<&http::HeaderValue>>(),
     &[
       "default-src 'self' 'unsafe-eval' 'unsafe-inline' data:",
-      "default-src *:*/content/ 'unsafe-eval' 'unsafe-inline' data:",
-      "default-src *:*/blockheight 'unsafe-eval' 'unsafe-inline' data:",
-      "default-src *:*/blockhash 'unsafe-eval' 'unsafe-inline' data:",
-      "default-src *:*/blocktime 'unsafe-eval' 'unsafe-inline' data:",
+      "default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blocktime 'unsafe-eval' 'unsafe-inline' data:",
     ]
   );
   assert_eq!(response.bytes().unwrap(), "FOO");
@@ -349,9 +346,9 @@ fn server_runs_with_rpc_user_and_pass_as_env_vars() {
 
   rpc_server.mine_blocks(1);
 
-  let response = reqwest::blocking::get(format!("http://127.0.0.1:{port}/block-count")).unwrap();
+  let response = reqwest::blocking::get(format!("http://127.0.0.1:{port}/blockheight")).unwrap();
   assert_eq!(response.status(), StatusCode::OK);
-  assert_eq!(response.text().unwrap(), "2");
+  assert_eq!(response.text().unwrap(), "1");
 
   child.kill().unwrap();
 }
