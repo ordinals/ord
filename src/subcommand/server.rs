@@ -147,6 +147,7 @@ impl Server {
         .route("/block/:query", get(Self::block))
         .route("/blockcount", get(Self::block_count))
         .route("/blockheight", get(Self::block_height))
+        .route("/blockheight/:hash", get(Self::block_height))
         .route("/blockhash", get(Self::block_hash))
         .route("/blocktime", get(Self::block_time))
         .route("/bounties", get(Self::bounties))
@@ -1417,6 +1418,23 @@ mod tests {
     TestServer::new().assert_response("/status", StatusCode::OK, "OK");
   }
 
+  #[test]
+  fn block_count_endpoint() {
+    let test_server = TestServer::new();
+
+    let response = test_server.get("/blockcount");
+
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(response.text().unwrap(), "1");
+
+    test_server.mine_blocks(1);
+
+    let response = test_server.get("/blockcount");
+
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(response.text().unwrap(), "2");
+  }
+  
   #[test]
   fn block_height_endpoint() {
     let test_server = TestServer::new();
