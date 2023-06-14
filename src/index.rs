@@ -664,7 +664,7 @@ impl Index {
     }
   }
 
-  pub(crate) fn blocktime(&self, height: Height) -> Result<Blocktime> {
+  pub(crate) fn block_time(&self, height: Height) -> Result<Blocktime> {
     let height = height.n();
 
     match self.get_block_by_height(height)? {

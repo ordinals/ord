@@ -383,7 +383,7 @@ impl Server {
       SatHtml {
         sat,
         satpoint,
-        blocktime: index.blocktime(sat.height())?,
+        blocktime: index.block_time(sat.height())?,
         inscription: index.get_inscription_id_by_sat(sat)?,
       }
       .page(page_config, index.has_sat_index()?),
@@ -683,32 +683,42 @@ impl Server {
   }
 
   async fn block_height(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
-    let height = index.block_height()?.ok_or_not_found(|| "blockheight")?;
-
-    Ok(height.to_string())
+    Ok(
+      index
+        .block_height()?
+        .ok_or_not_found(|| "blockheight")?
+        .to_string(),
+    )
   }
 
   async fn block_hash(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
-    let height = index.block_hash(None)?.ok_or_not_found(|| "blockheight")?;
-
-    Ok(height.to_string())
+    Ok(
+      index
+        .block_hash(None)?
+        .ok_or_not_found(|| "blockhash")?
+        .to_string(),
+    )
   }
 
   async fn block_hash_from_height(
     Extension(index): Extension<Arc<Index>>,
     Path(height): Path<u64>,
   ) -> ServerResult<String> {
-    let hash = index
-      .block_hash(Some(height))?
-      .ok_or_not_found(|| "blockhash")?;
-
-    Ok(hash.to_string())
+    Ok(
+      index
+        .block_hash(Some(height))?
+        .ok_or_not_found(|| "blockhash")?
+        .to_string(),
+    )
   }
 
   async fn block_time(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
-    let height = index.block_height()?.ok_or_not_found(|| "blocktime")?;
-
-    Ok(index.blocktime(height)?.unix_timestamp().to_string())
+    Ok(
+      index
+        .block_time(index.block_height()?.ok_or_not_found(|| "blocktime")?)?
+        .unix_timestamp()
+        .to_string(),
+    )
   }
 
   async fn input(
@@ -782,7 +792,7 @@ impl Server {
     );
     headers.append(
       header::CONTENT_SECURITY_POLICY,
-      HeaderValue::from_static("default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blocktime 'unsafe-eval' 'unsafe-inline' data:"),
+      HeaderValue::from_static("default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime 'unsafe-eval' 'unsafe-inline' data:"),
     );
     headers.insert(
       header::CACHE_CONTROL,
