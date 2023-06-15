@@ -1,6 +1,19 @@
 Changelog
 =========
 
+[0.6.2](https://github.com/ordinals/ord/releases/tag/0.6.2) - 2023-06-15
+---------------------------------------------------------------------
+
+### Added
+- Recursive endpoints: `/blockhash, /blockheight, /blocktime` (#2175)
+- Document recursion (#2174)
+- Add CSS and JavaScript media types (#2173)
+- Recursive Inscriptions (#2167)
+
+### Misc
+- Update ord dependency in lockfile (#2168)
+
+
 [0.6.1](https://github.com/ordinals/ord/releases/tag/0.6.1) - 2023-06-06
 ---------------------------------------------------------------------
 
