@@ -219,7 +219,7 @@ inscriptions by requesting <code>/content/&lt;INSCRIPTION_ID&gt;</code>.</p>
 resources.</p>
 </li>
 <li>
-<p>Generative art collections where an algorithm is inscribed as JavaScript ,
+<p>Generative art collections where an algorithm is inscribed as JavaScript,
 and instantiated from multiple inscriptions with unique seeds.</p>
 </li>
 <li>
@@ -227,6 +227,13 @@ and instantiated from multiple inscriptions with unique seeds.</p>
 inscribed as individual images, or in a shared texture atlas, and then
 combined, collage-style, in unique combinations in multiple inscriptions.</p>
 </li>
+</ul>
+<p>A couple other endpoints that inscriptions may access are the following:</p>
+<ul>
+<li><code>/blockheight</code>: latest block height.</li>
+<li><code>/blockhash</code>: latest block hash.</li>
+<li><code>/blockhash/&lt;HEIGHT&gt;</code>: block hash at given block height.</li>
+<li><code>/blocktime</code>: UNIX time stamp of latest block.</li>
 </ul>
 
                     </main>
