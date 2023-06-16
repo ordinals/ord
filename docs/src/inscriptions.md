@@ -62,3 +62,47 @@ The inscription content is contained within the input of a reveal transaction,
 and the inscription is made on the first sat of its input. This sat can
 then be tracked using the familiar rules of ordinal theory, allowing it to be
 transferred, bought, sold, lost to fees, and recovered.
+
+Content
+-------
+
+The data model of inscriptions is that of a HTTP response, allowing inscription
+content to be served by a web server and viewed in a web browser.
+
+Sandboxing
+----------
+
+HTML and SVG inscriptions are sandboxed in order to prevent references to
+off-chain content, thus keeping inscriptions immutable and self-contained.
+
+This is accomplished by loading HTML and SVG inscriptions inside `iframes` with
+the `sandbox` attribute, as well as serving inscription content with
+`Content-Security-Policy` headers.
+
+Recursion
+---------
+
+An important exception to sandboxing is recursion: access to `ord`'s `/content`
+endpoint is permitted, allowing inscriptions to access the content of other
+inscriptions by requesting `/content/<INSCRIPTION_ID>`.
+
+This has a number of interesting use-cases:
+
+- Remixing the content of existing inscriptions.
+
+- Publishing snippets of code, images, audio, or stylesheets as shared public
+  resources.
+
+- Generative art collections where an algorithm is inscribed as JavaScript,
+  and instantiated from multiple inscriptions with unique seeds.
+
+- Generative profile picture collections where accessories and attributes are
+  inscribed as individual images, or in a shared texture atlas, and then
+  combined, collage-style, in unique combinations in multiple inscriptions.
+
+A couple other endpoints that inscriptions may access are the following:
+
+- `/blockheight`: latest block height.
+- `/blockhash`: latest block hash.
+- `/blockhash/<HEIGHT>`: block hash at given block height.
+- `/blocktime`: UNIX time stamp of latest block.
