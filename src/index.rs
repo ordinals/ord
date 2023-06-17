@@ -769,9 +769,9 @@ impl Index {
                 None => &[]
               };
               // let content_type = inscription.content_type().unwrap_or("");
-              let content_body = if content_type == "text/plain;charset=utf-8" {
+              let content_body = if content_type == "text/plain;charset=utf-8" || content_type == "application/json" {
                   // let body = inscription.body().unwrap();
-                  if body.len() > 1024 {
+                  if body.len() > 4096 {
                     None
                   } else {
                     Some(String::from_utf8(body.to_vec())?)
