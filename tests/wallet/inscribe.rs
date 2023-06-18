@@ -395,9 +395,9 @@ fn inscribe_to_address_on_different_network() {
   create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
-  CommandBuilder::new(format!(
+  CommandBuilder::new(
     "wallet inscribe --destination tb1qsgx55dp6gn53tsmyjjv4c2ye403hgxynxs0dnm degenerate.png --fee-rate 1"
-  ))
+  )
   .write("degenerate.png", [1; 520])
   .rpc_server(&rpc_server)
   .expected_exit_code(1)
