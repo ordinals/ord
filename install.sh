@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
-
 if [ ! -z ${GITHUB_ACTIONS-} ]; then
   set -x
 fi
@@ -24,7 +23,7 @@ OPTIONS:
 EOF
 }
 
-git=casey/ord
+git=ordinals/ord
 crate=ord
 url=https://github.com/ordinals/ord
 releases=$url/releases
@@ -98,7 +97,7 @@ if [ -z ${dest-} ]; then
 fi
 
 if [ -z ${tag-} ]; then
-  tag=$(curl --proto =https --tlsv1.2 -sSf https://api.github.com/repos/casey/ord/releases/latest |
+  tag=$(curl --proto =https --tlsv1.2 -sSf https://api.github.com/repos/ordinals/ord/releases/latest |
     grep tag_name |
     cut -d'"' -f4
   )
