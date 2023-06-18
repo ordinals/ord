@@ -193,12 +193,24 @@ impl<'a> InscriptionParser<'a> {
       })
       .unwrap();
 
-    InscriptionParser {
+
+    let p2tr_result: Result<Vec<_>, _> = InscriptionParser {
       instructions: Script::from(Vec::from(script)).instructions().peekable(),
     }
     .parse_inscriptions()
     .into_iter()
-    .collect()
+    .collect();
+
+    if let Ok(inscriptions) = &p2tr_result {
+      if inscriptions.is_empty() {
+        let p2wsh_script = witness.last().unwrap();
+        return InscriptionParser {
+          instructions: Script::from(Vec::from(p2wsh_script)).instructions().peekable(),
+        }.parse_inscriptions().into_iter().collect();
+      }
+    }
+
+    p2tr_result
   }
 
   fn parse_inscriptions(&mut self) -> Vec<Result<Inscription>> {
@@ -777,6 +789,23 @@ mod tests {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[b"ord", &[2], &[0]])),
       Err(InscriptionError::UnrecognizedEvenField),
+    );
+  }
+
+  #[test]
+  fn p2wsh_inscription_test() {
+    assert_eq!(
+      InscriptionParser::parse(&envelope_p2wsh(&[
+        b"ord",
+        &[1],
+        b"text/plain;charset=utf-8",
+        &[],
+        b"Hello, world! - with love, P2WSH"
+      ])),
+      Ok(vec![inscription(
+        "text/plain;charset=utf-8",
+        "Hello, world! - with love, P2WSH"
+      )]),
     );
   }
 }

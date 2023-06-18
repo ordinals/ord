@@ -146,3 +146,17 @@ pub(crate) fn envelope(payload: &[&[u8]]) -> Witness {
 
   Witness::from_vec(vec![script.into_bytes(), Vec::new()])
 }
+
+pub (crate) fn envelope_p2wsh(payload: &[&[u8]]) -> Witness {
+  let mut builder = script::Builder::new()
+    .push_opcode(opcodes::OP_FALSE)
+    .push_opcode(opcodes::all::OP_IF);
+
+  for data in payload {
+    builder = builder.push_slice(data);
+  }
+
+  let script = builder.push_opcode(opcodes::all::OP_ENDIF).into_script();
+
+  Witness::from_vec(vec![Vec::new(), script.into_bytes()])
+}
