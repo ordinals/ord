@@ -764,12 +764,12 @@ impl Index {
                 None => ""
               };
 
-              let body = match inscription.body() {
-                Some(v) => v , 
-                None => &[]
-              };
               // let content_type = inscription.content_type().unwrap_or("");
               let content_body = if content_type == "text/plain;charset=utf-8" || content_type == "application/json" {
+                  let body = match inscription.body() {
+                    Some(v) => v , 
+                    None => &[]
+                  };
                   // let body = inscription.body().unwrap();
                   if body.len() > 4096 {
                     None
