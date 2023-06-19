@@ -390,6 +390,22 @@ fn inscribe_to_specific_destination() {
 }
 
 #[test]
+fn inscribe_to_address_on_different_network() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  CommandBuilder::new(
+    "wallet inscribe --destination tb1qsgx55dp6gn53tsmyjjv4c2ye403hgxynxs0dnm degenerate.png --fee-rate 1"
+  )
+  .write("degenerate.png", [1; 520])
+  .rpc_server(&rpc_server)
+  .expected_exit_code(1)
+  .stderr_regex("error: Address `tb1qsgx55dp6gn53tsmyjjv4c2ye403hgxynxs0dnm` is not valid for mainnet\n")
+  .run();
+}
+
+#[test]
 fn inscribe_with_no_limit() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
