@@ -31,8 +31,10 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   number_to_id: &'a mut Table<'db, 'tx, i64, &'static InscriptionIdValue>,
   outpoint_to_value: &'a mut Table<'db, 'tx, &'static OutPointValue, u64>,
   reward: u64,
-  sat_to_inscription_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
-  satpoint_to_id: &'a mut Table<'db, 'tx, &'static SatPointValue, &'static InscriptionIdValue>,
+  reinscription_id_to_seq_num: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, u64>,
+  sat_to_inscription_id: &'a mut MultimapTable<'db, 'tx, u64, &'static InscriptionIdValue>,
+  satpoint_to_id:
+    &'a mut MultimapTable<'db, 'tx, &'static SatPointValue, &'static InscriptionIdValue>,
   timestamp: u32,
   pub(super) unbound_inscriptions: u64,
   value_cache: &'a mut HashMap<OutPoint, u64>,
@@ -47,8 +49,14 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     lost_sats: u64,
     number_to_id: &'a mut Table<'db, 'tx, i64, &'static InscriptionIdValue>,
     outpoint_to_value: &'a mut Table<'db, 'tx, &'static OutPointValue, u64>,
-    sat_to_inscription_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
-    satpoint_to_id: &'a mut Table<'db, 'tx, &'static SatPointValue, &'static InscriptionIdValue>,
+    reinscription_id_to_seq_num: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, u64>,
+    sat_to_inscription_id: &'a mut MultimapTable<'db, 'tx, u64, &'static InscriptionIdValue>,
+    satpoint_to_id: &'a mut MultimapTable<
+      'db,
+      'tx,
+      &'static SatPointValue,
+      &'static InscriptionIdValue,
+    >,
     timestamp: u32,
     unbound_inscriptions: u64,
     value_cache: &'a mut HashMap<OutPoint, u64>,
@@ -78,6 +86,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       number_to_id,
       outpoint_to_value,
       reward: Height(height).subsidy(),
+      reinscription_id_to_seq_num,
       sat_to_inscription_id,
       satpoint_to_id,
       timestamp,
@@ -107,7 +116,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
       // find existing inscriptions on input aka transfers of inscriptions
       for (old_satpoint, inscription_id) in
-        Index::inscriptions_on_output(self.satpoint_to_id, tx_in.previous_output)?
+        self.inscriptions_on_output_ordered(self.satpoint_to_id, tx_in.previous_output)?
       {
         let offset = input_value + old_satpoint.offset;
         floating_inscriptions.push(Flotsam {
@@ -116,7 +125,10 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           origin: Origin::Old { old_satpoint },
         });
 
-        inscribed_offsets.insert(offset, inscription_id);
+        inscribed_offsets
+          .entry(offset)
+          .and_modify(|(_id, count)| *count += 1)
+          .or_insert((inscription_id, 0));
       }
 
       let offset = input_value;
@@ -144,31 +156,40 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           break;
         }
 
-        let initial_inscription_is_cursed = inscribed_offsets
-          .get(&offset)
-          .and_then(
-            |inscription_id| match self.id_to_entry.get(&inscription_id.store()) {
-              Ok(option) => option.map(|entry| InscriptionEntry::load(entry.value()).number < 0),
-              Err(_) => None,
-            },
-          )
-          .unwrap_or(false);
-
-        let cursed = !initial_inscription_is_cursed
-          && (inscription.tx_in_index != 0
-            || inscription.tx_in_offset != 0
-            || inscribed_offsets.contains_key(&offset));
-
-        // In this first part of the cursed inscriptions implementation we ignore reinscriptions.
-        // This will change once we implement reinscriptions.
-        let unbound = inscribed_offsets.contains_key(&offset)
-          || inscription.tx_in_offset != 0
-          || input_value == 0;
-
         let inscription_id = InscriptionId {
           txid,
           index: id_counter,
         };
+
+        if inscribed_offsets.contains_key(&offset) {
+          let seq_num = self.reinscription_id_to_seq_num.len().unwrap_or(0) as u64 + 1;
+          self
+            .reinscription_id_to_seq_num
+            .insert(&inscription_id.store(), seq_num)?;
+        }
+
+        let first_reinscription = inscribed_offsets
+          .get(&offset)
+          .and_then(|(_id, count)| Some(count == &0))
+          .unwrap_or(false);
+
+        let initial_inscription_is_cursed = inscribed_offsets
+          .get(&offset)
+          .and_then(|(inscription_id, _count)| {
+            match self.id_to_entry.get(&inscription_id.store()) {
+              Ok(option) => option.map(|entry| InscriptionEntry::load(entry.value()).number < 0),
+              Err(_) => None,
+            }
+          })
+          .unwrap_or(false);
+
+        let cursed = !(initial_inscription_is_cursed && first_reinscription)
+          && (inscription.tx_in_index != 0
+            || inscription.tx_in_offset != 0
+            || inscribed_offsets.contains_key(&offset));
+
+        let unbound = inscription.tx_in_offset != 0 || input_value == 0;
+        // || inscribed_offsets.contains_key(&offset)
 
         floating_inscriptions.push(Flotsam {
           inscription_id,
@@ -293,7 +314,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     let inscription_id = flotsam.inscription_id.store();
     let unbound = match flotsam.origin {
       Origin::Old { old_satpoint } => {
-        self.satpoint_to_id.remove(&old_satpoint.store())?;
+        self.satpoint_to_id.remove_all(&old_satpoint.store())?;
 
         false
       }
@@ -367,5 +388,31 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     self.id_to_satpoint.insert(&inscription_id, &satpoint)?;
 
     Ok(())
+  }
+
+  fn inscriptions_on_output_ordered(
+    &self,
+    satpoint_to_id: &'a impl ReadableMultimapTable<&'static SatPointValue, &'static InscriptionIdValue>,
+    outpoint: OutPoint,
+  ) -> Result<Vec<(SatPoint, InscriptionId)>> {
+    let mut result = Index::inscriptions_on_output(satpoint_to_id, outpoint)?
+      .collect::<Vec<(SatPoint, InscriptionId)>>();
+
+    if result.len() <= 1 {
+      return Ok(result);
+    }
+
+    result.sort_by_key(|(_satpoint, inscription_id)| {
+      match self
+        .reinscription_id_to_seq_num
+        .get(&inscription_id.store())
+      {
+        Ok(Some(num)) => num.value(),
+        Ok(None) => 0,
+        _ => 0, // TODO
+      }
+    });
+
+    Ok(result)
   }
 }

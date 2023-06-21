@@ -13,7 +13,10 @@ use {
   chrono::SubsecRound,
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
-  redb::{Database, ReadableTable, Table, TableDefinition, WriteStrategy, WriteTransaction},
+  redb::{
+    Database, MultimapTable, MultimapTableDefinition, ReadableMultimapTable, ReadableTable, Table,
+    TableDefinition, WriteStrategy, WriteTransaction,
+  },
   std::collections::HashMap,
   std::sync::atomic::{self, AtomicBool},
 };
@@ -23,11 +26,18 @@ mod fetcher;
 mod rtx;
 mod updater;
 
-const SCHEMA_VERSION: u64 = 4;
+const SCHEMA_VERSION: u64 = 5;
 
 macro_rules! define_table {
   ($name:ident, $key:ty, $value:ty) => {
     const $name: TableDefinition<$key, $value> = TableDefinition::new(stringify!($name));
+  };
+}
+
+macro_rules! define_multimap_table {
+  ($name:ident, $key:ty, $value:ty) => {
+    const $name: MultimapTableDefinition<$key, $value> =
+      MultimapTableDefinition::new(stringify!($name));
   };
 }
 
@@ -37,8 +47,9 @@ define_table! { INSCRIPTION_ID_TO_SATPOINT, &InscriptionIdValue, &SatPointValue 
 define_table! { INSCRIPTION_NUMBER_TO_INSCRIPTION_ID, i64, &InscriptionIdValue }
 define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_VALUE, &OutPointValue, u64}
-define_table! { SATPOINT_TO_INSCRIPTION_ID, &SatPointValue, &InscriptionIdValue }
-define_table! { SAT_TO_INSCRIPTION_ID, u64, &InscriptionIdValue }
+define_table! { REINSCRIPTION_ID_TO_SEQUENCE_NUMBER, &InscriptionIdValue, u64 }
+define_multimap_table! { SATPOINT_TO_INSCRIPTION_ID, &SatPointValue, &InscriptionIdValue }
+define_multimap_table! { SAT_TO_INSCRIPTION_ID, u64, &InscriptionIdValue }
 define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
 define_table! { STATISTIC_TO_COUNT, u64, u64 }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u64, u128 }
@@ -197,8 +208,9 @@ impl Index {
         tx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
         tx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
         tx.open_table(OUTPOINT_TO_VALUE)?;
-        tx.open_table(SATPOINT_TO_INSCRIPTION_ID)?;
-        tx.open_table(SAT_TO_INSCRIPTION_ID)?;
+        tx.open_table(REINSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
+        tx.open_multimap_table(SATPOINT_TO_INSCRIPTION_ID)?;
+        tx.open_multimap_table(SAT_TO_INSCRIPTION_ID)?;
         tx.open_table(SAT_TO_SATPOINT)?;
         tx.open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?;
 
@@ -494,8 +506,9 @@ impl Index {
       self
         .database
         .begin_read()?
-        .open_table(SAT_TO_INSCRIPTION_ID)?
+        .open_multimap_table(SAT_TO_INSCRIPTION_ID)?
         .get(&sat.n())?
+        .next()
         .map(|inscription_id| Entry::load(*inscription_id.value())),
     )
   }
@@ -558,7 +571,7 @@ impl Index {
         &self
           .database
           .begin_read()?
-          .open_table(SATPOINT_TO_INSCRIPTION_ID)?,
+          .open_multimap_table(SATPOINT_TO_INSCRIPTION_ID)?,
         outpoint,
       )?
       .map(|(_satpoint, inscription_id)| inscription_id)
@@ -705,9 +718,11 @@ impl Index {
       self
         .database
         .begin_read()?
-        .open_table(SATPOINT_TO_INSCRIPTION_ID)?
+        .open_multimap_table(SATPOINT_TO_INSCRIPTION_ID)?
         .range::<&[u8; 44]>(&[0; 44]..)?
-        .map(|(satpoint, id)| (Entry::load(*satpoint.value()), Entry::load(*id.value())))
+        .flat_map(|(satpoint, id_iter)| {
+          id_iter.map(move |id| (Entry::load(*satpoint.value()), Entry::load(*id.value())))
+        })
         .take(n.unwrap_or(usize::MAX))
         .collect(),
     )
@@ -810,7 +825,7 @@ impl Index {
   ) {
     let rtx = self.database.begin_read().unwrap();
 
-    let satpoint_to_inscription_id = rtx.open_table(SATPOINT_TO_INSCRIPTION_ID).unwrap();
+    let satpoint_to_inscription_id = rtx.open_multimap_table(SATPOINT_TO_INSCRIPTION_ID).unwrap();
 
     let inscription_id_to_satpoint = rtx.open_table(INSCRIPTION_ID_TO_SATPOINT).unwrap();
 
@@ -830,34 +845,22 @@ impl Index {
       satpoint,
     );
 
-    assert_eq!(
-      InscriptionId::load(
-        *satpoint_to_inscription_id
-          .get(&satpoint.store())
-          .unwrap()
-          .unwrap()
-          .value()
-      ),
-      inscription_id,
-    );
+    assert!(satpoint_to_inscription_id
+      .get(&satpoint.store())
+      .unwrap()
+      .any(|id| InscriptionId::load(*id.value()) == inscription_id));
 
     match sat {
       Some(sat) => {
         if self.has_sat_index().unwrap() {
           // unbound inscriptions should not be assigned to a sat
           assert!(satpoint.outpoint != unbound_outpoint());
-          assert_eq!(
-            InscriptionId::load(
-              *rtx
-                .open_table(SAT_TO_INSCRIPTION_ID)
-                .unwrap()
-                .get(&sat)
-                .unwrap()
-                .unwrap()
-                .value()
-            ),
-            inscription_id,
-          );
+          assert!(rtx
+            .open_multimap_table(SAT_TO_INSCRIPTION_ID)
+            .unwrap()
+            .get(&sat)
+            .unwrap()
+            .any(|id| InscriptionId::load(*id.value()) == inscription_id));
 
           // we do not track common sats (only the sat ranges)
           if !Sat(sat).is_common() {
@@ -885,7 +888,7 @@ impl Index {
   }
 
   fn inscriptions_on_output<'a: 'tx, 'tx>(
-    satpoint_to_id: &'a impl ReadableTable<&'static SatPointValue, &'static InscriptionIdValue>,
+    satpoint_to_id: &'a impl ReadableMultimapTable<&'static SatPointValue, &'static InscriptionIdValue>,
     outpoint: OutPoint,
   ) -> Result<impl Iterator<Item = (SatPoint, InscriptionId)> + 'tx> {
     let start = SatPoint {
@@ -903,7 +906,9 @@ impl Index {
     Ok(
       satpoint_to_id
         .range::<&[u8; 44]>(&start..=&end)?
-        .map(|(satpoint, id)| (Entry::load(*satpoint.value()), Entry::load(*id.value()))),
+        .flat_map(|(satpoint, id_iter)| {
+          id_iter.map(move |id| (Entry::load(*satpoint.value()), Entry::load(*id.value())))
+        }),
     )
   }
 }
@@ -2137,7 +2142,7 @@ mod tests {
   }
 
   #[test]
-  fn inscriptions_on_same_sat_after_the_first_are_unbound() {
+  fn inscriptions_on_same_sat_after_the_first_are_not_unbound() {
     for context in Context::configurations() {
       context.mine_blocks(1);
 
@@ -2187,10 +2192,13 @@ mod tests {
       context.index.assert_inscription_location(
         inscription_id,
         SatPoint {
-          outpoint: unbound_outpoint(),
+          outpoint: OutPoint {
+            txid: second,
+            vout: 0,
+          },
           offset: 0,
         },
-        None, // should not be on a sat
+        Some(50 * COIN_VALUE),
       );
 
       assert!(context
@@ -2701,7 +2709,7 @@ mod tests {
   }
 
   #[test]
-  fn reinscription_on_cursed_inscription_is_not_cursed_but_unbound() {
+  fn reinscription_on_cursed_inscription_is_not_cursed() {
     for context in Context::configurations() {
       context.mine_blocks(1);
       context.mine_blocks(1);
@@ -2765,10 +2773,10 @@ mod tests {
       context.index.assert_inscription_location(
         reinscription_on_cursed,
         SatPoint {
-          outpoint: unbound_outpoint(),
+          outpoint: OutPoint { txid, vout: 0 },
           offset: 0,
         },
-        None,
+        Some(100 * COIN_VALUE),
       );
 
       assert_eq!(
@@ -2784,7 +2792,7 @@ mod tests {
   }
 
   #[test]
-  fn second_reinscription_on_cursed_inscription_is_cursed_and_unbound() {
+  fn second_reinscription_on_cursed_inscription_is_cursed() {
     for context in Context::configurations() {
       context.mine_blocks(1);
       context.mine_blocks(1);
@@ -2848,10 +2856,10 @@ mod tests {
       context.index.assert_inscription_location(
         reinscription_on_cursed,
         SatPoint {
-          outpoint: unbound_outpoint(),
+          outpoint: OutPoint { txid, vout: 0 },
           offset: 0,
         },
-        None,
+        Some(100 * COIN_VALUE),
       );
 
       assert_eq!(
@@ -2885,10 +2893,10 @@ mod tests {
       context.index.assert_inscription_location(
         second_reinscription_on_cursed,
         SatPoint {
-          outpoint: unbound_outpoint(),
-          offset: 1,
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 0,
         },
-        None,
+        Some(100 * COIN_VALUE),
       );
 
       assert_eq!(
