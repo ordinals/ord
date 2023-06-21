@@ -435,6 +435,7 @@ impl Updater {
       block.header.time,
       unbound_inscriptions,
       value_cache,
+      index
     )?;
 
     if self.index_sats {

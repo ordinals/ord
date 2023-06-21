@@ -1,3 +1,5 @@
+use bitcoin::{util::address::WitnessVersion};
+
 use super::*;
 
 #[derive(Debug, Clone)]
@@ -36,6 +38,7 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   timestamp: u32,
   pub(super) unbound_inscriptions: u64,
   value_cache: &'a mut HashMap<OutPoint, u64>,
+  index: &'a Index,
 }
 
 impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
@@ -52,6 +55,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     timestamp: u32,
     unbound_inscriptions: u64,
     value_cache: &'a mut HashMap<OutPoint, u64>,
+    index: &'a Index,
   ) -> Result<Self> {
     let next_cursed_number = number_to_id
       .iter()?
@@ -83,6 +87,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       timestamp,
       unbound_inscriptions,
       value_cache,
+      index,
     })
   }
 
@@ -99,6 +104,18 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     let mut id_counter = 0;
 
     for (input_index, tx_in) in tx.input.iter().enumerate() {
+      let previous_tx = self
+        .index
+        .get_transaction(tx_in.previous_output.txid)
+        .unwrap()
+        .unwrap();
+      let previous_output = previous_tx
+        .output
+        .get(tx_in.previous_output.vout as usize)
+        .unwrap();
+      let script_pub_key = previous_output.script_pubkey.clone();
+      let witness_version = script_pub_key.witness_version();
+
       // skip subsidy since no inscriptions possible
       if tx_in.previous_output.is_null() {
         input_value += Height(self.height).subsidy();
@@ -157,7 +174,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         let cursed = !initial_inscription_is_cursed
           && (inscription.tx_in_index != 0
             || inscription.tx_in_offset != 0
-            || inscribed_offsets.contains_key(&offset));
+            || inscribed_offsets.contains_key(&offset))
+          || witness_version != Some(WitnessVersion::V1);
 
         // In this first part of the cursed inscriptions implementation we ignore reinscriptions.
         // This will change once we implement reinscriptions.
