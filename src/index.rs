@@ -579,6 +579,23 @@ impl Index {
     )
   }
 
+  pub(crate) fn get_inscriptions_on_output_ordered(
+    &self,
+    outpoint: OutPoint,
+  ) -> Result<Vec<InscriptionId>> {
+    let rtx = &self.database.begin_read()?;
+
+    let sat_to_id = rtx.open_multimap_table(SATPOINT_TO_INSCRIPTION_ID)?;
+
+    let re_id_to_seq_num = rtx.open_table(REINSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
+
+    Ok(Self::inscriptions_on_output_ordered(
+      &re_id_to_seq_num,
+      &sat_to_id,
+      outpoint,
+    )?)
+  }
+
   pub(crate) fn get_transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
     if txid == self.genesis_block_coinbase_txid {
       Ok(Some(self.genesis_block_coinbase_transaction.clone()))
@@ -910,6 +927,30 @@ impl Index {
           id_iter.map(move |id| (Entry::load(*satpoint.value()), Entry::load(*id.value())))
         }),
     )
+  }
+
+  fn inscriptions_on_output_ordered<'a: 'tx, 'tx>(
+    re_id_to_seq_num: &'a impl ReadableTable<&'static InscriptionIdValue, u64>,
+    satpoint_to_id: &'a impl ReadableMultimapTable<&'static SatPointValue, &'static InscriptionIdValue>,
+    outpoint: OutPoint,
+  ) -> Result<Vec<InscriptionId>> {
+    let mut result = Self::inscriptions_on_output(satpoint_to_id, outpoint)?
+      .map(|(_satpoint, inscription_id)| inscription_id)
+      .collect::<Vec<InscriptionId>>();
+
+    if result.len() <= 1 {
+      return Ok(result);
+    }
+
+    result.sort_by_key(|inscription_id| {
+      match re_id_to_seq_num.get(&inscription_id.store()) {
+        Ok(Some(num)) => num.value(),
+        Ok(None) => 0,
+        _ => 0, // TODO
+      }
+    });
+
+    Ok(result)
   }
 }
 
@@ -2908,6 +2949,62 @@ mod tests {
           .number,
         -2
       );
+
+      assert_eq!(
+        vec![
+          cursed,
+          reinscription_on_cursed,
+          second_reinscription_on_cursed
+        ],
+        context
+          .index
+          .get_inscriptions_on_output_ordered(OutPoint { txid, vout: 0 })
+          .unwrap()
+      )
+    }
+  }
+
+  #[test]
+  fn reinscriptions_on_output_correctly_ordered() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0)],
+        witness: inscription("text/plain;charset=utf-8", "hello").to_witness(),
+        ..Default::default()
+      });
+
+      let first = InscriptionId { txid, index: 0 };
+
+      context.mine_blocks(1);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(2, 1, 0)],
+        witness: inscription("text/plain;charset=utf-8", "hello").to_witness(),
+        ..Default::default()
+      });
+
+      let second = InscriptionId { txid, index: 0 };
+
+      context.mine_blocks(1);
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(3, 1, 0)],
+        witness: inscription("text/plain;charset=utf-8", "hello").to_witness(),
+        ..Default::default()
+      });
+
+      let third = InscriptionId { txid, index: 0 };
+
+      context.mine_blocks(1);
+
+      assert_eq!(
+        vec![first, second, third],
+        context
+          .index
+          .get_inscriptions_on_output_ordered(OutPoint { txid, vout: 0 })
+          .unwrap()
+      )
     }
   }
 }

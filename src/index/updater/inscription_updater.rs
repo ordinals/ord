@@ -129,6 +129,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           .entry(offset)
           .and_modify(|(_id, count)| *count += 1)
           .or_insert((inscription_id, 0));
+
+        log::info!("{:?}", inscribed_offsets);
       }
 
       let offset = input_value;
@@ -161,17 +163,47 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           index: id_counter,
         };
 
+        // if reinscription track it's ordering
         if inscribed_offsets.contains_key(&offset) {
-          let seq_num = self.reinscription_id_to_seq_num.len().unwrap_or(0) as u64 + 1;
+          let seq_num = self
+            .reinscription_id_to_seq_num
+            .iter()?
+            .rev()
+            .next()
+            .map(|(_id, number)| number.value() + 1)
+            .unwrap_or(0);
+
+          log::info!("ID: {inscription_id}\nsequence number: {seq_num}\n");
           self
             .reinscription_id_to_seq_num
             .insert(&inscription_id.store(), seq_num)?;
+
+          if let Some(sat_ranges) = input_sat_ranges {
+            let mut previous_ranges_size = 0;
+            for range in sat_ranges {
+              if offset <= previous_ranges_size + (range.1 - range.0) {
+                log::info!(
+                  "reinscription {} on sat {} at offset {} in range ({}, {}) ({:?})",
+                  inscription_id,
+                  range.0 + offset,
+                  offset,
+                  range.0,
+                  range.1,
+                  sat_ranges
+                );
+                break;
+              }
+              previous_ranges_size += range.1 - range.0;
+            }
+          }
         }
 
         let first_reinscription = inscribed_offsets
           .get(&offset)
           .and_then(|(_id, count)| Some(count == &0))
           .unwrap_or(false);
+
+        log::info!("is first reinscription: {first_reinscription}");
 
         let initial_inscription_is_cursed = inscribed_offsets
           .get(&offset)
@@ -182,6 +214,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             }
           })
           .unwrap_or(false);
+
+        log::info!("initial inscription cursed: {initial_inscription_is_cursed}");
 
         let cursed = !(initial_inscription_is_cursed && first_reinscription)
           && (inscription.tx_in_index != 0
