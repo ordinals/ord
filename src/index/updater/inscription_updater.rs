@@ -129,8 +129,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           .entry(offset)
           .and_modify(|(_id, count)| *count += 1)
           .or_insert((inscription_id, 0));
-
-        log::info!("{:?}", inscribed_offsets);
       }
 
       let offset = input_value;
@@ -165,6 +163,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
         // if reinscription track it's ordering
         if inscribed_offsets.contains_key(&offset) {
+          log::info!("{:?}", inscribed_offsets);
+
           let seq_num = self
             .reinscription_id_to_seq_num
             .iter()?
@@ -174,6 +174,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             .unwrap_or(0);
 
           log::info!("ID: {inscription_id}\nsequence number: {seq_num}\n");
+
           self
             .reinscription_id_to_seq_num
             .insert(&inscription_id.store(), seq_num)?;
@@ -198,29 +199,33 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           }
         }
 
-        let first_reinscription = inscribed_offsets
-          .get(&offset)
-          .and_then(|(_id, count)| Some(count == &0))
-          .unwrap_or(false);
+        let cursed = inscription.tx_in_index != 0
+          || inscription.tx_in_offset != 0
+          || inscribed_offsets.contains_key(&offset);
 
-        log::info!("is first reinscription: {first_reinscription}");
+        let cursed = if cursed {
+          let first_reinscription = inscribed_offsets
+            .get(&offset)
+            .and_then(|(_id, count)| Some(count == &0))
+            .unwrap_or(false);
 
-        let initial_inscription_is_cursed = inscribed_offsets
-          .get(&offset)
-          .and_then(|(inscription_id, _count)| {
-            match self.id_to_entry.get(&inscription_id.store()) {
-              Ok(option) => option.map(|entry| InscriptionEntry::load(entry.value()).number < 0),
-              Err(_) => None,
-            }
-          })
-          .unwrap_or(false);
+          log::info!("is first reinscription: {first_reinscription}");
 
-        log::info!("initial inscription cursed: {initial_inscription_is_cursed}");
+          let initial_inscription_is_cursed = inscribed_offsets
+            .get(&offset)
+            .and_then(|(inscription_id, _count)| {
+              match self.id_to_entry.get(&inscription_id.store()) {
+                Ok(option) => option.map(|entry| InscriptionEntry::load(entry.value()).number < 0),
+                Err(_) => None,
+              }
+            })
+            .unwrap_or(false);
 
-        let cursed = !(initial_inscription_is_cursed && first_reinscription)
-          && (inscription.tx_in_index != 0
-            || inscription.tx_in_offset != 0
-            || inscribed_offsets.contains_key(&offset));
+          log::info!("initial inscription cursed: {initial_inscription_is_cursed}");
+          !(initial_inscription_is_cursed && first_reinscription)
+        } else {
+          cursed
+        };
 
         let unbound = inscription.tx_in_offset != 0 || input_value == 0;
         // || inscribed_offsets.contains_key(&offset)
