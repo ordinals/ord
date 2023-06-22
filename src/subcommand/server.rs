@@ -788,11 +788,11 @@ impl Server {
     );
     headers.insert(
       header::CONTENT_SECURITY_POLICY,
-      HeaderValue::from_static("default-src 'self' 'unsafe-eval' 'unsafe-inline' data:"),
+      HeaderValue::from_static("default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:"),
     );
     headers.append(
       header::CONTENT_SECURITY_POLICY,
-      HeaderValue::from_static("default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime 'unsafe-eval' 'unsafe-inline' data:"),
+      HeaderValue::from_static("default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime 'unsafe-eval' 'unsafe-inline' data: blob:"),
     );
     headers.insert(
       header::CACHE_CONTROL,
