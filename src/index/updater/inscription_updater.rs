@@ -199,7 +199,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
               match self.id_to_entry.get(&inscription_id.store()) {
                 Ok(option) => option.map(|entry| {
                   let loaded_entry = InscriptionEntry::load(entry.value());
-                  loaded_entry.number < 0 || loaded_entry.height < Self::CURSED_ERA_START_HEIGHT
+                  loaded_entry.number < 0 && loaded_entry.height < Self::CURSED_ERA_START_HEIGHT
                 }),
                 Err(_) => None,
               }
