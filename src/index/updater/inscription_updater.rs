@@ -41,6 +41,9 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
 }
 
 impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
+  const CURSED_ERA_START_HEIGHT: u64 = 792_876; // deployment block height for ord 0.6.0 introducing cursed inscriptions on ordinals.com - everything before that is precursed.
+                                                // TODO: this is mainnet only, need to make this configurable
+
   pub(super) fn new(
     height: u64,
     id_to_satpoint: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, &'static SatPointValue>,
@@ -161,10 +164,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           index: id_counter,
         };
 
-        // if reinscription track it's ordering
+        // if reinscription track its ordering
         if inscribed_offsets.contains_key(&offset) {
-          log::info!("{:?}", inscribed_offsets);
-
           let seq_num = self
             .reinscription_id_to_seq_num
             .iter()?
@@ -173,62 +174,45 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             .map(|(_id, number)| number.value() + 1)
             .unwrap_or(0);
 
-          log::info!("ID: {inscription_id}\nsequence number: {seq_num}\n");
+          let sat = Self::calculate_sat(input_sat_ranges, offset);
+          log::info!("processing reinscription {inscription_id} on sat {:?}: sequence number {seq_num}, inscribed offsets {:?}", sat, inscribed_offsets);
 
           self
             .reinscription_id_to_seq_num
             .insert(&inscription_id.store(), seq_num)?;
-
-          if let Some(sat_ranges) = input_sat_ranges {
-            let mut previous_ranges_size = 0;
-            for range in sat_ranges {
-              if offset <= previous_ranges_size + (range.1 - range.0) {
-                log::info!(
-                  "reinscription {} on sat {} at offset {} in range ({}, {}) ({:?})",
-                  inscription_id,
-                  range.0 + offset,
-                  offset,
-                  range.0,
-                  range.1,
-                  sat_ranges
-                );
-                break;
-              }
-              previous_ranges_size += range.1 - range.0;
-            }
-          }
         }
 
         let cursed = inscription.tx_in_index != 0
           || inscription.tx_in_offset != 0
           || inscribed_offsets.contains_key(&offset);
 
+        // special case to keep inscription numbers stable for reinscribed inscriptions where an initial cursed inscription was made in the precursed era, that inscription was then reinscribed (but not recognized as a reinscription by ord prior to 0.6.0), and thus got assigned a normal positive inscription number.
         let cursed = if cursed {
           let first_reinscription = inscribed_offsets
             .get(&offset)
             .and_then(|(_id, count)| Some(count == &0))
             .unwrap_or(false);
 
-          log::info!("is first reinscription: {first_reinscription}");
-
-          let initial_inscription_is_cursed = inscribed_offsets
+          let initial_inscription_is_precursed = inscribed_offsets
             .get(&offset)
             .and_then(|(inscription_id, _count)| {
               match self.id_to_entry.get(&inscription_id.store()) {
-                Ok(option) => option.map(|entry| InscriptionEntry::load(entry.value()).number < 0),
+                Ok(option) => option.map(|entry| {
+                  let loaded_entry = InscriptionEntry::load(entry.value());
+                  loaded_entry.number < 0 || loaded_entry.height < Self::CURSED_ERA_START_HEIGHT
+                }),
                 Err(_) => None,
               }
             })
             .unwrap_or(false);
+          log::info!("{inscription_id}: is first reinscription: {first_reinscription}, initial inscription is precursed: {initial_inscription_is_precursed}");
 
-          log::info!("initial inscription cursed: {initial_inscription_is_cursed}");
-          !(initial_inscription_is_cursed && first_reinscription)
+          !(initial_inscription_is_precursed && first_reinscription)
         } else {
           cursed
         };
 
         let unbound = inscription.tx_in_offset != 0 || input_value == 0;
-        // || inscribed_offsets.contains_key(&offset)
 
         floating_inscriptions.push(Flotsam {
           inscription_id,
@@ -342,6 +326,26 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       self.reward += input_value - output_value;
       Ok(())
     }
+  }
+
+  fn calculate_sat(
+    input_sat_ranges: Option<&VecDeque<(u64, u64)>>,
+    input_offset: u64,
+  ) -> Option<Sat> {
+    let mut sat = None;
+    if let Some(input_sat_ranges) = input_sat_ranges {
+      let mut offset = 0;
+      for (start, end) in input_sat_ranges {
+        let size = end - start;
+        if offset + size > input_offset {
+          let n = start + input_offset - offset;
+          sat = Some(Sat(n));
+          break;
+        }
+        offset += size;
+      }
+    }
+    sat
   }
 
   fn update_inscription_location(
