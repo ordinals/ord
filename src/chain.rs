@@ -31,6 +31,17 @@ impl Chain {
     }
   }
 
+  pub(crate) fn cursed_era_start_height(self) -> u64 {
+    // deployment block height for ord 0.6.0 introducing cursed inscriptions on ordinals.com - everything before that is precursed.
+    // TODO: this is mainnet only, need to make this configurable
+    match self {
+      Self::Mainnet => 792_876,
+      Self::Regtest => 11,
+      Self::Signet => 38332, // FIXME
+      Self::Testnet => 18332,
+    }
+  }
+
   pub(crate) fn inscription_content_size_limit(self) -> Option<usize> {
     match self {
       Self::Mainnet | Self::Regtest => None,

@@ -37,6 +37,7 @@ pub(crate) struct Updater {
   outputs_cached: u64,
   outputs_inserted_since_flush: u64,
   outputs_traversed: u64,
+  chain: Chain,
 }
 
 impl Updater {
@@ -69,6 +70,7 @@ impl Updater {
       outputs_cached: 0,
       outputs_inserted_since_flush: 0,
       outputs_traversed: 0,
+      chain: index.chain(),
     };
 
     updater.update_index(index, wtx)
@@ -437,6 +439,7 @@ impl Updater {
       block.header.time,
       unbound_inscriptions,
       value_cache,
+      self.chain,
     )?;
 
     if self.index_sats {

@@ -38,12 +38,10 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   timestamp: u32,
   pub(super) unbound_inscriptions: u64,
   value_cache: &'a mut HashMap<OutPoint, u64>,
+  chain: Chain,
 }
 
 impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
-  const CURSED_ERA_START_HEIGHT: u64 = 792_876; // deployment block height for ord 0.6.0 introducing cursed inscriptions on ordinals.com - everything before that is precursed.
-                                                // TODO: this is mainnet only, need to make this configurable
-
   pub(super) fn new(
     height: u64,
     id_to_satpoint: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, &'static SatPointValue>,
@@ -63,6 +61,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     timestamp: u32,
     unbound_inscriptions: u64,
     value_cache: &'a mut HashMap<OutPoint, u64>,
+    chain: Chain,
   ) -> Result<Self> {
     let next_cursed_number = number_to_id
       .iter()?
@@ -95,6 +94,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       timestamp,
       unbound_inscriptions,
       value_cache,
+      chain,
     })
   }
 
@@ -199,7 +199,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
               match self.id_to_entry.get(&inscription_id.store()) {
                 Ok(option) => option.map(|entry| {
                   let loaded_entry = InscriptionEntry::load(entry.value());
-                  loaded_entry.number < 0 && loaded_entry.height < Self::CURSED_ERA_START_HEIGHT
+                  loaded_entry.number < 0
+                    && loaded_entry.height < self.chain.cursed_era_start_height()
                 }),
                 Err(_) => None,
               }
