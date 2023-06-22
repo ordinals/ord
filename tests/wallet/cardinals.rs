@@ -12,11 +12,11 @@ fn cardinals() {
 
   let all_outputs = CommandBuilder::new("wallet outputs")
     .rpc_server(&rpc_server)
-    .output::<Vec<Output>>();
+    .run_and_check_output::<Vec<Output>>();
 
   let cardinal_outputs = CommandBuilder::new("wallet cardinals")
     .rpc_server(&rpc_server)
-    .output::<Vec<Cardinal>>();
+    .run_and_check_output::<Vec<Cardinal>>();
 
   assert_eq!(all_outputs.len() - cardinal_outputs.len(), 1);
 }
