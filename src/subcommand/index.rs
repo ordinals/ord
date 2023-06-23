@@ -2,7 +2,7 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) enum IndexSubcommand {
-  #[clap(about = "Write inscription number and id to a file")]
+  #[clap(about = "Write inscription numbers and ids to a tab-separated file")]
   Export(Export),
   #[clap(about = "Update the index")]
   Run,
