@@ -22,7 +22,7 @@ pub(crate) struct Export {
   #[clap(
     long,
     default_value = "inscription_number_to_id.tsv",
-    help = "Listen on <ADDRESS> for incoming requests."
+    help = "<TSV> file to write to"
   )]
   tsv: String,
 }
