@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, inscription::Curse};
 
 #[derive(Debug, Clone)]
 pub(super) struct Flotsam {
@@ -161,22 +161,22 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           index: id_counter,
         };
 
-        let mut curse = inscription::CursedType::NotCursed;
+        let mut curse = None;
 
         if inscription.tx_in_index != 0 {
-          curse = inscription::CursedType::NotFirstInput;
+          curse = Some(Curse::NotInFirstInput);
         } else if inscription.tx_in_offset != 0 {
-          curse = inscription::CursedType::NotOffsetZero;
+          curse = Some(Curse::NotAtOffsetZero);
         } else if inscribed_offsets.contains_key(&offset) {
-          curse = inscription::CursedType::Reinscription;
+          curse = Some(Curse::Reinscription);
         }
 
-        if curse != inscription::CursedType::NotCursed {
+        if curse != None {
           log::info!("found cursed inscription {inscription_id}: {:?}", curse);
         }
 
         // if reinscription track its ordering
-        if curse == inscription::CursedType::Reinscription {
+        if curse == Some(Curse::Reinscription) {
           let seq_num = self
             .reinscription_id_to_seq_num
             .iter()?
@@ -193,8 +193,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             .insert(&inscription_id.store(), seq_num)?;
         }
 
-        // special case to keep inscription numbers stable for reinscribed inscriptions where an initial cursed inscription was made in the precursed era, that inscription was then reinscribed (but not recognized as a reinscription by ord prior to 0.6.0), and thus got assigned a normal positive inscription number.
-        let cursed = if curse == inscription::CursedType::Reinscription {
+        let cursed = if curse == Some(Curse::Reinscription) {
           let first_reinscription = inscribed_offsets
             .get(&offset)
             .and_then(|(_id, count)| Some(count == &0))
@@ -216,12 +215,12 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
           !(initial_inscription_is_cursed && first_reinscription)
         } else {
-          curse != inscription::CursedType::NotCursed
+          curse != None
         };
 
         let unbound = inscription.tx_in_offset != 0 || input_value == 0;
 
-        if curse != inscription::CursedType::NotCursed || unbound {
+        if curse != None || unbound {
           log::info!(
             "indexing inscription {inscription_id} with curse {:?} as cursed {} and unbound {}",
             curse,

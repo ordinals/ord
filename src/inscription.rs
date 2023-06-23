@@ -21,10 +21,9 @@ const BODY_TAG: &[u8] = &[];
 const CONTENT_TYPE_TAG: &[u8] = &[1];
 
 #[derive(Debug, PartialEq, Clone)]
-pub(crate) enum CursedType {
-  NotCursed,
-  NotFirstInput,
-  NotOffsetZero,
+pub(crate) enum Curse {
+  NotInFirstInput,
+  NotAtOffsetZero,
   Reinscription,
 }
 
