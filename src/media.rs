@@ -37,6 +37,7 @@ impl Media {
     ("text/html;charset=utf-8", Media::Iframe, &["html"]),
     ("text/javascript", Media::Text, &["js"]),
     ("text/plain;charset=utf-8", Media::Text, &["txt"]),
+    ("text/markdown;charset=utf-8", Media::Text, &["md"]),
     ("video/mp4", Media::Video, &["mp4"]),
     ("video/webm", Media::Video, &["webm"]),
   ];
