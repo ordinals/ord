@@ -579,21 +579,18 @@ impl Index {
     )
   }
 
+  #[cfg(test)]
   pub(crate) fn get_inscriptions_on_output_ordered(
     &self,
     outpoint: OutPoint,
-  ) -> Result<Vec<InscriptionId>> {
+  ) -> Result<Vec<(SatPoint, InscriptionId)>> {
     let rtx = &self.database.begin_read()?;
 
     let sat_to_id = rtx.open_multimap_table(SATPOINT_TO_INSCRIPTION_ID)?;
 
     let re_id_to_seq_num = rtx.open_table(REINSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
 
-    Ok(Self::inscriptions_on_output_ordered(
-      &re_id_to_seq_num,
-      &sat_to_id,
-      outpoint,
-    )?)
+    Self::inscriptions_on_output_ordered(&re_id_to_seq_num, &sat_to_id, outpoint)
   }
 
   pub(crate) fn get_transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
@@ -933,20 +930,19 @@ impl Index {
     re_id_to_seq_num: &'a impl ReadableTable<&'static InscriptionIdValue, u64>,
     satpoint_to_id: &'a impl ReadableMultimapTable<&'static SatPointValue, &'static InscriptionIdValue>,
     outpoint: OutPoint,
-  ) -> Result<Vec<InscriptionId>> {
+  ) -> Result<Vec<(SatPoint, InscriptionId)>> {
     let mut result = Self::inscriptions_on_output(satpoint_to_id, outpoint)?
-      .map(|(_satpoint, inscription_id)| inscription_id)
-      .collect::<Vec<InscriptionId>>();
+      .collect::<Vec<(SatPoint, InscriptionId)>>();
 
     if result.len() <= 1 {
       return Ok(result);
     }
 
-    result.sort_by_key(|inscription_id| {
+    result.sort_by_key(|(_satpoint, inscription_id)| {
       match re_id_to_seq_num.get(&inscription_id.store()) {
         Ok(Some(num)) => num.value(),
         Ok(None) => 0,
-        _ => 0, // TODO
+        _ => 0,
       }
     });
 
@@ -2960,6 +2956,9 @@ mod tests {
           .index
           .get_inscriptions_on_output_ordered(OutPoint { txid, vout: 0 })
           .unwrap()
+          .iter()
+          .map(|(_satpoint, inscription_id)| *inscription_id)
+          .collect::<Vec<InscriptionId>>()
       )
     }
   }
@@ -3004,6 +3003,9 @@ mod tests {
           .index
           .get_inscriptions_on_output_ordered(OutPoint { txid, vout: 0 })
           .unwrap()
+          .iter()
+          .map(|(_satpoint, inscription_id)| *inscription_id)
+          .collect::<Vec<InscriptionId>>()
       )
     }
   }

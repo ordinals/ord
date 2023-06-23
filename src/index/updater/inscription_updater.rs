@@ -115,9 +115,11 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       }
 
       // find existing inscriptions on input aka transfers of inscriptions
-      for (old_satpoint, inscription_id) in
-        self.inscriptions_on_output_ordered(self.satpoint_to_id, tx_in.previous_output)?
-      {
+      for (old_satpoint, inscription_id) in Index::inscriptions_on_output_ordered(
+        self.reinscription_id_to_seq_num,
+        self.satpoint_to_id,
+        tx_in.previous_output,
+      )? {
         let offset = input_value + old_satpoint.offset;
         floating_inscriptions.push(Flotsam {
           offset,
@@ -187,14 +189,14 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           None
         };
 
-        if curse != None {
+        if curse.is_some() {
           log::info!("found cursed inscription {inscription_id}: {:?}", curse);
         }
 
         let cursed = if let Some(Curse::Reinscription) = curse {
           let first_reinscription = inscribed_offsets
             .get(&offset)
-            .and_then(|(_id, count)| Some(count == &0))
+            .map(|(_id, count)| count == &0)
             .unwrap_or(false);
 
           let initial_inscription_is_cursed = inscribed_offsets
@@ -214,12 +216,12 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
           !(initial_inscription_is_cursed && first_reinscription)
         } else {
-          curse != None
+          curse.is_some()
         };
 
         let unbound = input_value == 0 || inscription.tx_in_offset != 0;
 
-        if curse != None || unbound {
+        if curse.is_some() || unbound {
           log::info!(
             "indexing inscription {inscription_id} with curse {:?} as cursed {} and unbound {}",
             curse,
@@ -445,31 +447,5 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     self.id_to_satpoint.insert(&inscription_id, &satpoint)?;
 
     Ok(())
-  }
-
-  fn inscriptions_on_output_ordered(
-    &self,
-    satpoint_to_id: &'a impl ReadableMultimapTable<&'static SatPointValue, &'static InscriptionIdValue>,
-    outpoint: OutPoint,
-  ) -> Result<Vec<(SatPoint, InscriptionId)>> {
-    let mut result = Index::inscriptions_on_output(satpoint_to_id, outpoint)?
-      .collect::<Vec<(SatPoint, InscriptionId)>>();
-
-    if result.len() <= 1 {
-      return Ok(result);
-    }
-
-    result.sort_by_key(|(_satpoint, inscription_id)| {
-      match self
-        .reinscription_id_to_seq_num
-        .get(&inscription_id.store())
-      {
-        Ok(Some(num)) => num.value(),
-        Ok(None) => 0,
-        _ => 0, // TODO
-      }
-    });
-
-    Ok(result)
   }
 }
