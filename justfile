@@ -81,6 +81,7 @@ rebuild-ord-dev-database: && update-ord-dev
 
 prepare-release revision='master':
   #!/usr/bin/env bash
+  set -euxo pipefail
   git checkout {{ revision }}
   git pull upstream {{ revision }}
   echo >> CHANGELOG.md
@@ -88,6 +89,7 @@ prepare-release revision='master':
   $EDITOR CHANGELOG.md
   $EDITOR Cargo.toml
   VERSION=`sed -En 's/version[[:space:]]*=[[:space:]]*"([^"]+)"/\1/p' Cargo.toml | head -1`
+  cargo check
   git checkout -b release-$VERSION
   git add -u
   git commit -m "Release $VERSION"
