@@ -363,8 +363,8 @@ impl Index {
     Updater::update(self)
   }
 
-  pub(crate) fn export(&self) -> Result {
-    let mut writer = BufWriter::new(File::create("inscription_number_to_id.tsv")?);
+  pub(crate) fn export(&self, filename: &String) -> Result {
+    let mut writer = BufWriter::new(File::create(filename)?);
 
     for (number, id) in self
       .database

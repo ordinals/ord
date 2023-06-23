@@ -3,7 +3,7 @@ use super::*;
 #[derive(Debug, Parser)]
 pub(crate) enum IndexSubcommand {
   #[clap(about = "Write inscription number and id to a file")]
-  Export,
+  Export(Export),
   #[clap(about = "Update the index")]
   Run,
 }
@@ -11,19 +11,32 @@ pub(crate) enum IndexSubcommand {
 impl IndexSubcommand {
   pub(crate) fn run(self, options: Options) -> Result {
     match self {
-      Self::Export => index::export(options),
+      Self::Export(export) => export.run(options),
       Self::Run => index::run(options),
     }
   }
 }
 
-pub(crate) fn export(options: Options) -> Result {
-  let index = Index::open(&options)?;
+#[derive(Debug, Parser)]
+pub(crate) struct Export {
+  #[clap(
+    long,
+    default_value = "inscription_number_to_id.tsv",
+    help = "Listen on <ADDRESS> for incoming requests."
+  )]
+  tsv: String,
+}
 
-  index.update()?;
-  index.export()?;
 
-  Ok(())
+impl Export {
+  pub(crate) fn run(self, options: Options) -> Result {
+    let index = Index::open(&options)?;
+
+    index.update()?;
+    index.export(&self.tsv)?;
+
+    Ok(())
+  }
 }
 
 pub(crate) fn run(options: Options) -> Result {
