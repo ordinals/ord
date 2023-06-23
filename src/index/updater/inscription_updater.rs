@@ -191,7 +191,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           log::info!("found cursed inscription {inscription_id}: {:?}", curse);
         }
 
-        let cursed = if curse == Some(Curse::Reinscription) {
+        let cursed = if let Some(Curse::Reinscription) = curse {
           let first_reinscription = inscribed_offsets
             .get(&offset)
             .and_then(|(_id, count)| Some(count == &0))
@@ -209,6 +209,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
               }
             })
             .unwrap_or(false);
+
           log::info!("{inscription_id}: is first reinscription: {first_reinscription}, initial inscription is cursed: {initial_inscription_is_cursed}");
 
           !(initial_inscription_is_cursed && first_reinscription)
@@ -216,7 +217,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           curse != None
         };
 
-        let unbound = inscription.tx_in_offset != 0 || input_value == 0;
+        let unbound = input_value == 0 || inscription.tx_in_offset != 0;
 
         if curse != None || unbound {
           log::info!(
