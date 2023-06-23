@@ -7,7 +7,7 @@ fn receive() {
 
   let output = CommandBuilder::new("wallet receive")
     .rpc_server(&rpc_server)
-    .output::<Output>();
+    .run_and_check_output::<Output>();
 
   assert!(output.address.is_valid_for_network(Network::Bitcoin));
 }

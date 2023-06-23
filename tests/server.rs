@@ -148,7 +148,7 @@ fn inscription_page_after_send() {
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(".*")
-  .run();
+  .run_and_extract_stdout();
 
   rpc_server.mine_blocks(1);
 
@@ -361,11 +361,11 @@ fn missing_credentials() {
     .rpc_server(&rpc_server)
     .expected_exit_code(1)
     .expected_stderr("error: no bitcoind rpc password specified\n")
-    .run();
+    .run_and_extract_stdout();
 
   CommandBuilder::new("--bitcoin-rpc-pass bar server")
     .rpc_server(&rpc_server)
     .expected_exit_code(1)
     .expected_stderr("error: no bitcoind rpc user specified\n")
-    .run();
+    .run_and_extract_stdout();
 }

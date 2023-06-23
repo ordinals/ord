@@ -18,6 +18,7 @@ use {
     TableDefinition, WriteStrategy, WriteTransaction,
   },
   std::collections::HashMap,
+  std::io::{BufWriter, Write},
   std::sync::atomic::{self, AtomicBool},
 };
 
@@ -372,6 +373,27 @@ impl Index {
 
   pub(crate) fn update(&self) -> Result {
     Updater::update(self)
+  }
+
+  pub(crate) fn export(&self, filename: &String) -> Result {
+    let mut writer = BufWriter::new(File::create(filename)?);
+
+    for (number, id) in self
+      .database
+      .begin_read()?
+      .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
+      .iter()?
+    {
+      writeln!(
+        writer,
+        "{}\t{}",
+        number.value(),
+        InscriptionId::load(*id.value())
+      )?;
+    }
+
+    writer.flush()?;
+    Ok(())
   }
 
   pub(crate) fn is_reorged(&self) -> bool {
