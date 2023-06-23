@@ -27,7 +27,6 @@ pub(crate) struct Export {
   tsv: String,
 }
 
-
 impl Export {
   pub(crate) fn run(self, options: Options) -> Result {
     let index = Index::open(&options)?;
