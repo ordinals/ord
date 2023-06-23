@@ -38,7 +38,6 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   timestamp: u32,
   pub(super) unbound_inscriptions: u64,
   value_cache: &'a mut HashMap<OutPoint, u64>,
-  chain: Chain,
 }
 
 impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
@@ -61,7 +60,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     timestamp: u32,
     unbound_inscriptions: u64,
     value_cache: &'a mut HashMap<OutPoint, u64>,
-    chain: Chain,
   ) -> Result<Self> {
     let next_cursed_number = number_to_id
       .iter()?
@@ -94,7 +92,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       timestamp,
       unbound_inscriptions,
       value_cache,
-      chain,
     })
   }
 
@@ -203,22 +200,21 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             .and_then(|(_id, count)| Some(count == &0))
             .unwrap_or(false);
 
-          let initial_inscription_is_precursed = inscribed_offsets
+          let initial_inscription_is_cursed = inscribed_offsets
             .get(&offset)
             .and_then(|(inscription_id, _count)| {
               match self.id_to_entry.get(&inscription_id.store()) {
                 Ok(option) => option.map(|entry| {
                   let loaded_entry = InscriptionEntry::load(entry.value());
                   loaded_entry.number < 0
-                    && loaded_entry.height < self.chain.cursed_era_start_height()
                 }),
                 Err(_) => None,
               }
             })
             .unwrap_or(false);
-          log::info!("{inscription_id}: is first reinscription: {first_reinscription}, initial inscription is precursed: {initial_inscription_is_precursed}");
+          log::info!("{inscription_id}: is first reinscription: {first_reinscription}, initial inscription is cursed: {initial_inscription_is_cursed}");
 
-          !(initial_inscription_is_precursed && first_reinscription)
+          !(initial_inscription_is_cursed && first_reinscription)
         } else {
           curse != inscription::CursedType::NotCursed
         };
