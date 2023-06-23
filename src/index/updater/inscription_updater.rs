@@ -161,22 +161,11 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           index: id_counter,
         };
 
-        let mut curse = None;
-
-        if inscription.tx_in_index != 0 {
-          curse = Some(Curse::NotInFirstInput);
+        let curse = if inscription.tx_in_index != 0 {
+          Some(Curse::NotInFirstInput)
         } else if inscription.tx_in_offset != 0 {
-          curse = Some(Curse::NotAtOffsetZero);
+          Some(Curse::NotAtOffsetZero)
         } else if inscribed_offsets.contains_key(&offset) {
-          curse = Some(Curse::Reinscription);
-        }
-
-        if curse != None {
-          log::info!("found cursed inscription {inscription_id}: {:?}", curse);
-        }
-
-        // if reinscription track its ordering
-        if curse == Some(Curse::Reinscription) {
           let seq_num = self
             .reinscription_id_to_seq_num
             .iter()?
@@ -188,9 +177,18 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           let sat = Self::calculate_sat(input_sat_ranges, offset);
           log::info!("processing reinscription {inscription_id} on sat {:?}: sequence number {seq_num}, inscribed offsets {:?}", sat, inscribed_offsets);
 
+          // if reinscription track its ordering
           self
             .reinscription_id_to_seq_num
             .insert(&inscription_id.store(), seq_num)?;
+
+          Some(Curse::Reinscription)
+        } else {
+          None
+        };
+
+        if curse != None {
+          log::info!("found cursed inscription {inscription_id}: {:?}", curse);
         }
 
         let cursed = if curse == Some(Curse::Reinscription) {
