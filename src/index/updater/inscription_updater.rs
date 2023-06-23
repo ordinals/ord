@@ -164,8 +164,22 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           index: id_counter,
         };
 
+        let mut curse = inscription::CursedType::NotCursed;
+
+        if inscription.tx_in_index != 0 {
+          curse = inscription::CursedType::NotFirstInput;
+        } else if inscription.tx_in_offset != 0 {
+          curse = inscription::CursedType::NotOffsetZero;
+        } else if inscribed_offsets.contains_key(&offset) {
+          curse = inscription::CursedType::Reinscription;
+        }
+
+        if curse != inscription::CursedType::NotCursed {
+          log::info!("found cursed inscription {inscription_id}: {:?}", curse);
+        }
+
         // if reinscription track its ordering
-        if inscribed_offsets.contains_key(&offset) {
+        if curse == inscription::CursedType::Reinscription {
           let seq_num = self
             .reinscription_id_to_seq_num
             .iter()?
@@ -182,12 +196,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             .insert(&inscription_id.store(), seq_num)?;
         }
 
-        let cursed = inscription.tx_in_index != 0
-          || inscription.tx_in_offset != 0
-          || inscribed_offsets.contains_key(&offset);
-
         // special case to keep inscription numbers stable for reinscribed inscriptions where an initial cursed inscription was made in the precursed era, that inscription was then reinscribed (but not recognized as a reinscription by ord prior to 0.6.0), and thus got assigned a normal positive inscription number.
-        let cursed = if cursed {
+        let cursed = if curse == inscription::CursedType::Reinscription {
           let first_reinscription = inscribed_offsets
             .get(&offset)
             .and_then(|(_id, count)| Some(count == &0))
@@ -210,10 +220,19 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
           !(initial_inscription_is_precursed && first_reinscription)
         } else {
-          cursed
+          curse != inscription::CursedType::NotCursed
         };
 
         let unbound = inscription.tx_in_offset != 0 || input_value == 0;
+
+        if curse != inscription::CursedType::NotCursed || unbound {
+          log::info!(
+            "indexing inscription {inscription_id} with curse {:?} as cursed {} and unbound {}",
+            curse,
+            cursed,
+            unbound
+          );
+        }
 
         floating_inscriptions.push(Flotsam {
           inscription_id,
