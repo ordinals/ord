@@ -8,7 +8,7 @@ fn wallet_balance() {
   assert_eq!(
     CommandBuilder::new("wallet balance")
       .rpc_server(&rpc_server)
-      .output::<Output>()
+      .run_and_check_output::<Output>()
       .cardinal,
     0
   );
@@ -18,7 +18,7 @@ fn wallet_balance() {
   assert_eq!(
     CommandBuilder::new("wallet balance")
       .rpc_server(&rpc_server)
-      .output::<Output>()
+      .run_and_check_output::<Output>()
       .cardinal,
     50 * COIN_VALUE
   );
@@ -32,7 +32,7 @@ fn wallet_balance_only_counts_cardinal_utxos() {
   assert_eq!(
     CommandBuilder::new("wallet balance")
       .rpc_server(&rpc_server)
-      .output::<Output>()
+      .run_and_check_output::<Output>()
       .cardinal,
     0
   );
@@ -42,7 +42,7 @@ fn wallet_balance_only_counts_cardinal_utxos() {
   assert_eq!(
     CommandBuilder::new("wallet balance")
       .rpc_server(&rpc_server)
-      .output::<Output>()
+      .run_and_check_output::<Output>()
       .cardinal,
     100 * COIN_VALUE - 10_000
   );

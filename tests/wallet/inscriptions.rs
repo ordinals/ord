@@ -17,7 +17,7 @@ fn inscriptions() {
 
   let output = CommandBuilder::new("wallet inscriptions")
     .rpc_server(&rpc_server)
-    .output::<Vec<Output>>();
+    .run_and_check_output::<Vec<Output>>();
 
   assert_eq!(output.len(), 1);
   assert_eq!(output[0].inscription, inscription.parse().unwrap());
@@ -29,14 +29,14 @@ fn inscriptions() {
 
   let address = CommandBuilder::new("wallet receive")
     .rpc_server(&rpc_server)
-    .output::<receive::Output>()
+    .run_and_check_output::<receive::Output>()
     .address;
 
   let stdout = CommandBuilder::new(format!("wallet send --fee-rate 1 {address} {inscription}"))
     .rpc_server(&rpc_server)
     .expected_exit_code(0)
     .stdout_regex(".*")
-    .run();
+    .run_and_extract_stdout();
 
   rpc_server.mine_blocks(1);
 
@@ -44,7 +44,7 @@ fn inscriptions() {
 
   let output = CommandBuilder::new("wallet inscriptions")
     .rpc_server(&rpc_server)
-    .output::<Vec<Output>>();
+    .run_and_check_output::<Vec<Output>>();
 
   assert_eq!(output.len(), 1);
   assert_eq!(output[0].inscription, inscription.parse().unwrap());
@@ -73,7 +73,7 @@ fn inscriptions_includes_locked_utxos() {
 
   let output = CommandBuilder::new("wallet inscriptions")
     .rpc_server(&rpc_server)
-    .output::<Vec<Output>>();
+    .run_and_check_output::<Vec<Output>>();
 
   assert_eq!(output.len(), 1);
   assert_eq!(output[0].inscription, inscription.parse().unwrap());
