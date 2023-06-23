@@ -2964,7 +2964,7 @@ mod tests {
   }
 
   #[test]
-  fn reinscriptions_on_output_correctly_ordered() {
+  fn reinscriptions_on_output_correctly_ordered_and_transferred() {
     for context in Context::configurations() {
       context.mine_blocks(1);
 
@@ -2997,15 +2997,17 @@ mod tests {
 
       context.mine_blocks(1);
 
+      let location = SatPoint {
+        outpoint: OutPoint { txid, vout: 0 },
+        offset: 0,
+      };
+
       assert_eq!(
-        vec![first, second, third],
+        vec![(location, first), (location, second), (location, third)],
         context
           .index
           .get_inscriptions_on_output_ordered(OutPoint { txid, vout: 0 })
           .unwrap()
-          .iter()
-          .map(|(_satpoint, inscription_id)| *inscription_id)
-          .collect::<Vec<InscriptionId>>()
       )
     }
   }

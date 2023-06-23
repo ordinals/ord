@@ -114,7 +114,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         continue;
       }
 
-      // find existing inscriptions on input aka transfers of inscriptions
+      // find existing inscriptions on input (transfers of inscriptions)
       for (old_satpoint, inscription_id) in Index::inscriptions_on_output_ordered(
         self.reinscription_id_to_seq_num,
         self.satpoint_to_id,
