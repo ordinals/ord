@@ -16,7 +16,8 @@ To specify a port add the `--http-port` flag:
 
 To run the server in regtest to test out your inscriptions:
 
-```bitcoind -regtest -txindex
+```
+bitcoind -regtest -txindex
 ord -r wallet create
 ord -r wallet receive
 bitcoin-cli -regtest generatetoaddress 101 <receiveAddress>
