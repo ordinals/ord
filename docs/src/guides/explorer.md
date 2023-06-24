@@ -5,6 +5,27 @@ The `ord` binary includes a block explorer. We host a instance of the block
 explorer on mainnet at [ordinals.com](https://ordinals.com), and on signet at
 [signet.ordinals.com](https://signet.ordinals.com).
 
+### Running The Explorer
+The server can be run locally with:
+
+`ord server`
+
+To specify a port add the `--http-port` flag:
+
+`ord server --http-port 8080`
+
+To run the server in regtest to test out your inscriptions:
+
+```bitcoind -regtest -txindex
+ord -r wallet create
+ord -r wallet receive
+bitcoin-cli -regtest generatetoaddress 101 <receiveAddress>
+ord -r wallet balance
+ord -r wallet inscribe <file> --fee-rate 1
+bitcoin-cli -regtest generatetoaddress 1 <receiveAddress>
+ord -r server --http-port 8080
+```
+
 Search
 ------
 
