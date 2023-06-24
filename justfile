@@ -79,16 +79,30 @@ rebuild-ord-dev-database: && update-ord-dev
   journalctl --unit ord-dev --rotate
   journalctl --unit ord-dev --vacuum-time 1s
 
-publish revision='master':
+prepare-release revision='master':
+  #!/usr/bin/env bash
+  set -euxo pipefail
+  git checkout {{ revision }}
+  git pull upstream {{ revision }}
+  echo >> CHANGELOG.md
+  git log --pretty='format:- %s' >> CHANGELOG.md
+  $EDITOR CHANGELOG.md
+  $EDITOR Cargo.toml
+  VERSION=`sed -En 's/version[[:space:]]*=[[:space:]]*"([^"]+)"/\1/p' Cargo.toml | head -1`
+  cargo check
+  git checkout -b release-$VERSION
+  git add -u
+  git commit -m "Release $VERSION"
+  git tag -a $VERSION -m "Release $VERSION"
+  gh pr create --web
+
+publish-release revision='master':
   #!/usr/bin/env bash
   set -euxo pipefail
   rm -rf tmp/release
-  git clone git@github.com:casey/ord.git tmp/release
+  git clone https://github.com/ordinals/ord.git tmp/release
   cd tmp/release
   git checkout {{ revision }}
-  VERSION=`sed -En 's/version[[:space:]]*=[[:space:]]*"([^"]+)"/\1/p' Cargo.toml | head -1`
-  git tag -a $VERSION -m "Release $VERSION"
-  git push origin $VERSION
   cargo publish
   cd ../..
   rm -rf tmp/release

@@ -9,9 +9,9 @@ fn custom_index_path() {
 
   let index_path = tempdir.path().join("foo.redb");
 
-  CommandBuilder::new(format!("--index {} index", index_path.display()))
+  CommandBuilder::new(format!("--index {} index run", index_path.display()))
     .rpc_server(&rpc_server)
-    .run();
+    .run_and_extract_stdout();
 
   assert!(index_path.is_file())
 }
@@ -25,15 +25,15 @@ fn re_opening_database_does_not_trigger_schema_check() {
 
   let index_path = tempdir.path().join("foo.redb");
 
-  CommandBuilder::new(format!("--index {} index", index_path.display()))
+  CommandBuilder::new(format!("--index {} index run", index_path.display()))
     .rpc_server(&rpc_server)
-    .run();
+    .run_and_extract_stdout();
 
   assert!(index_path.is_file());
 
-  CommandBuilder::new(format!("--index {} index", index_path.display()))
+  CommandBuilder::new(format!("--index {} index run", index_path.display()))
     .rpc_server(&rpc_server)
-    .run();
+    .run_and_extract_stdout();
 }
 
 #[test]
@@ -46,7 +46,7 @@ fn index_runs_with_rpc_user_and_pass_as_env_vars() {
   let ord = Command::new(executable_path("ord"))
     .args(
       format!(
-        "--rpc-url {} --bitcoin-data-dir {} --data-dir {} index",
+        "--rpc-url {} --bitcoin-data-dir {} --data-dir {} index run",
         rpc_server.url(),
         tempdir.path().display(),
         tempdir.path().display()
@@ -63,4 +63,39 @@ fn index_runs_with_rpc_user_and_pass_as_env_vars() {
   rpc_server.mine_blocks(1);
 
   assert_eq!(ord.wait_with_output().unwrap().status.code(), Some(0));
+}
+
+#[test]
+fn export_inscription_number_to_id_tsv() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  let temp_dir = TempDir::new().unwrap();
+  create_wallet(&rpc_server);
+
+  inscribe(&rpc_server);
+  inscribe(&rpc_server);
+  let Inscribe { inscription, .. } = inscribe(&rpc_server);
+
+  rpc_server.mine_blocks(1);
+
+  let tsv = CommandBuilder::new("index export --tsv foo.tsv")
+    .rpc_server(&rpc_server)
+    .temp_dir(temp_dir)
+    .run_and_extract_file("foo.tsv");
+
+  let entries: std::collections::BTreeMap<i64, ord::Object> = tsv
+    .lines()
+    .filter(|line| !line.is_empty() && !line.starts_with('#'))
+    .map(|line| {
+      let value = line.split('\t').collect::<Vec<&str>>();
+      let inscription_number = i64::from_str(value[0]).unwrap();
+      let inscription_id = ord::Object::from_str(value[1]).unwrap();
+
+      (inscription_number, inscription_id)
+    })
+    .collect();
+
+  assert_eq!(
+    entries.get(&2).unwrap(),
+    &ord::Object::from_str(&inscription).unwrap()
+  )
 }

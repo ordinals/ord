@@ -1,6 +1,31 @@
 Changelog
 =========
 
+[0.7.0](https://github.com/ordinals/ord/releases/tag/0.7.0) - 2023-06-23
+---------------------------------------------------------------------
+
+### Added
+- Tweak publish recipe (#2212)
+- Handle cursed inscriptions edge cases (#2209)
+- Add export command for <INSCRIPTION_NUMBER_TO_INSCRIPTION_ID> table (#2208)
+- Add Markdown media type (#2206)
+- Add blob urls to Content Security Policy headers (#2203)
+- Check inscribe destination address network (#2189)
+
+
+[0.6.2](https://github.com/ordinals/ord/releases/tag/0.6.2) - 2023-06-15
+---------------------------------------------------------------------
+
+### Added
+- Recursive endpoints: `/blockhash, /blockheight, /blocktime` (#2175)
+- Document recursion (#2174)
+- Add CSS and JavaScript media types (#2173)
+- Recursive Inscriptions (#2167)
+
+### Misc
+- Update ord dependency in lockfile (#2168)
+
+
 [0.6.1](https://github.com/ordinals/ord/releases/tag/0.6.1) - 2023-06-06
 ---------------------------------------------------------------------
 

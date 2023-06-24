@@ -64,7 +64,7 @@ impl TestServer {
     let chain_block_count = client.get_block_count().unwrap() + 1;
 
     for i in 0.. {
-      let response = reqwest::blocking::get(self.url().join("/block-count").unwrap()).unwrap();
+      let response = reqwest::blocking::get(self.url().join("/blockcount").unwrap()).unwrap();
       assert_eq!(response.status(), StatusCode::OK);
       if response.text().unwrap().parse::<u64>().unwrap() == chain_block_count {
         break;
@@ -84,7 +84,7 @@ impl TestServer {
     let chain_block_count = client.get_block_count().unwrap() + 1;
 
     for i in 0.. {
-      let response = reqwest::blocking::get(self.url().join("/block-count").unwrap()).unwrap();
+      let response = reqwest::blocking::get(self.url().join("/blockcount").unwrap()).unwrap();
       assert_eq!(response.status(), StatusCode::OK);
       if response.text().unwrap().parse::<u64>().unwrap() == chain_block_count {
         break;
