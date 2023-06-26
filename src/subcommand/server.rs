@@ -768,6 +768,29 @@ impl Server {
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
+    if inscription.content_type() == Some("text/shadow") {
+      let shadowed_inscription_id_raw = String::from_utf8(inscription.body().unwrap().to_vec()).unwrap();
+      let shadowed_inscription_id_parsed: String = shadowed_inscription_id_raw.chars().filter(|c| !c.is_whitespace()).collect();
+
+      let entry = index
+        .get_inscription_entry(inscription_id)?
+        .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+      let block = index
+        .get_block_by_height(entry.height)?
+        .ok_or_not_found(|| format!("block {inscription_id}"))?;
+
+      return Ok(Redirect::to(
+        format!(
+          "/content/{}?block={}&height={}&sat={}",
+          shadowed_inscription_id_parsed,
+          block.header.block_hash(),
+          entry.height.to_string(),
+          entry.sat.unwrap_or(Sat(0)).to_string(),
+        ).as_str()).into_response()
+      );
+    }
+
     Ok(
       Self::content_response(inscription)
         .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
@@ -2154,6 +2177,42 @@ mod tests {
 
     assert_eq!(headers["content-type"], "application/octet-stream");
     assert!(body.is_empty());
+  }
+
+  #[test]
+  fn shadow_inscription_redirect() {
+    let server = TestServer::new_with_regtest();
+    server.mine_blocks(1);
+
+    let shadowed_inscription_txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0)],
+      witness: inscription("text/plain", "shadowed").to_witness(),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let shadowed_inscription_id = InscriptionId::from(shadowed_inscription_txid);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0)],
+      witness: inscription("text/shadow", shadowed_inscription_id.to_string()).to_witness(),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    server.assert_response(
+      format!("/content/{}", shadowed_inscription_id.to_string()),
+      StatusCode::OK,
+      "shadowed"
+    );
+
+    server.assert_response(
+      format!("/content/{}", InscriptionId::from(txid)),
+      StatusCode::OK, // @todo - maybe we want a different status code (like 302) here?
+      "shadowed"
+    );
   }
 
   #[test]
