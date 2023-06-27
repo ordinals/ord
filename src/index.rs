@@ -186,7 +186,9 @@ impl Index {
         database
       }
       Err(_) => {
-        let database = Database::create(&path)?;
+        let database = Database::builder()
+          .set_cache_size(17179869184)
+          .create(&path)?;
 
         let mut tx = database.begin_write()?;
 
