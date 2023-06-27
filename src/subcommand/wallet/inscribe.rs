@@ -67,10 +67,15 @@ impl Inscribe {
 
     let commit_tx_change = [get_change_address(&client)?, get_change_address(&client)?];
 
-    let reveal_tx_destination = self
-      .destination
-      .map(Ok)
-      .unwrap_or_else(|| get_change_address(&client))?;
+    let reveal_tx_destination = match self.destination {
+      Some(address) => {
+        options
+          .chain()
+          .check_address_is_valid_for_network(&address)?;
+        address
+      }
+      None => get_change_address(&client)?,
+    };
 
     let (unsigned_commit_tx, reveal_tx, recovery_key_pair) =
       Inscribe::create_inscription_transactions(
