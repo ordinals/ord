@@ -79,10 +79,10 @@ This is accomplished by loading HTML and SVG inscriptions inside `iframes` with
 the `sandbox` attribute, as well as serving inscription content with
 `Content-Security-Policy` headers.
 
-Recursion
+Composition
 ---------
 
-An important exception to sandboxing is recursion: access to `ord`'s `/content`
+An important exception to sandboxing is composition: access to `ord`'s `/content`
 endpoint is permitted, allowing inscriptions to access the content of other
 inscriptions by requesting `/content/<INSCRIPTION_ID>`.
 
