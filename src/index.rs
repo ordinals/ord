@@ -191,7 +191,7 @@ impl Index {
         let mut tx = database.begin_write()?;
 
         if cfg!(test) {
-          tx.set_durability(redb::Durability::Eventual);
+          tx.set_durability(redb::Durability::None);
         } else {
           tx.set_durability(redb::Durability::Immediate);
         };
