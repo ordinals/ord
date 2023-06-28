@@ -186,9 +186,7 @@ impl Index {
         database
       }
       Err(_) => {
-        let database = Database::builder()
-          .set_cache_size(17179869184)
-          .create(&path)?;
+        let database = Database::builder().create(&path)?;
 
         let mut tx = database.begin_write()?;
 
@@ -522,7 +520,6 @@ impl Index {
     self.client.get_block(&hash).into_option()
   }
 
-  /// This gets the first inscription on a sat, with reinscriptions enabled it would return a Vec
   pub(crate) fn get_inscription_id_by_sat(&self, sat: Sat) -> Result<Option<InscriptionId>> {
     Ok(
       self
