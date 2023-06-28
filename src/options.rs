@@ -28,6 +28,8 @@ pub(crate) struct Options {
   pub(crate) cookie_file: Option<PathBuf>,
   #[clap(long, help = "Store index in <DATA_DIR>.")]
   pub(crate) data_dir: Option<PathBuf>,
+  #[clap(long, default_value = "8589934592", help = "Set index cache to <DB_CACHE_SIZE> bytes.")]
+  pub(crate) db_cache_size: usize,
   #[clap(
     long,
     help = "Don't look for inscriptions below <FIRST_INSCRIPTION_HEIGHT>."
@@ -765,5 +767,14 @@ mod tests {
       options.auth().unwrap(),
       Auth::CookieFile("/var/lib/Bitcoin/.cookie".into())
     );
+  }
+
+  #[test]
+  fn default_and_setting_db_cache_size() {
+    let arguments = Arguments::try_parse_from(["ord", "index", "run"]).unwrap();
+    assert_eq!(arguments.options.db_cache_size, 8589934592);
+    
+    let arguments = Arguments::try_parse_from(["ord", "--db-cache-size", "16000000000", "index", "run"]).unwrap();
+    assert_eq!(arguments.options.db_cache_size, 16000000000);
   }
 }
