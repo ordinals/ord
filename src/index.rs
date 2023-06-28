@@ -189,7 +189,7 @@ impl Index {
         let database = Database::builder()
           .set_cache_size(options.db_cache_size)
           .create(&path)?;
-        
+
         let mut tx = database.begin_write()?;
 
         if cfg!(test) {
