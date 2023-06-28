@@ -12,9 +12,11 @@ DIR="ord-${BRANCH}-${COMMIT}"
 ssh root@${DOMAIN} "mkdir -p /var/lib/ord/${DIR}"
 rsync -avz --exclude-from='.gitignore' --exclude ".git" ./ root@${DOMAIN}:/var/lib/ord/${DIR}
 
+# Clean and prepare
 ssh root@${DOMAIN} "echo 'export BRANCH=${BRANCH}' >> ~/.bashrc  \
   && echo 'export COMMIT=${COMMIT}' >> ~/.bashrc \
-  && echo 'export DIR=${DIR}' >> ~/.bashrc"
+  && echo 'export DIR=${DIR}' >> ~/.bashrc \
+  && rm /var/lib/ord/index.redb"
 
 ssh root@${DOMAIN} "cd /var/lib/ord/${DIR} \
   && /root/.cargo/bin/cargo build --release \

@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
-PS1='$ '
+export PS1='$ '
 source ~/.bashrc
-
+env
 # Stop, save and export state of running instance
 systemctl stop ord-dev
 
 cd /var/lib/ord
+
+cp index.redb ./${DIR}/index-${BRANCH}-${COMMIT}.redb
 
 /usr/local/bin/ord --bitcoin-data-dir /var/lib/bitcoind \
   --data-dir /var/lib/ord \
@@ -14,4 +16,3 @@ cd /var/lib/ord
   --tsv inscription_number_to_id-${BRANCH}-${COMMIT}.tsv
 
 mv inscription_number_to_id-${BRANCH}-${COMMIT}.tsv ./${DIR}
-mv index.redb ./${DIR}/index-${BRANCH}-${COMMIT}.redb
