@@ -237,6 +237,14 @@ impl Index {
     })
   }
 
+  pub(crate) fn check(&mut self) -> Result<bool> {
+    self.database.check_integrity().map_err(|err| anyhow!(err))
+  }
+
+  pub(crate) fn compact(&mut self) -> Result<bool> {
+    self.database.compact().map_err(|err| anyhow!(err))
+  }
+
   pub(crate) fn get_unspent_outputs(&self, _wallet: Wallet) -> Result<BTreeMap<OutPoint, Amount>> {
     let mut utxos = BTreeMap::new();
     utxos.extend(
