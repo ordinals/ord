@@ -63,15 +63,17 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
   ) -> Result<Self> {
     let next_cursed_number = number_to_id
       .iter()?
-      .map(|(number, _id)| number.value() - 1)
       .next()
+      .and_then(|result| result.ok())
+      .map(|(number, _id)| number.value() - 1)
       .unwrap_or(-1);
 
     let next_number = number_to_id
       .iter()?
       .rev()
-      .map(|(number, _id)| number.value() + 1)
       .next()
+      .and_then(|result| result.ok())
+      .map(|(number, _id)| number.value() + 1)
       .unwrap_or(0);
 
     Ok(Self {
@@ -173,6 +175,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             .iter()?
             .rev()
             .next()
+            .and_then(|result| result.ok())
             .map(|(_id, number)| number.value() + 1)
             .unwrap_or(0);
 
