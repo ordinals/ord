@@ -30,10 +30,9 @@ pub(crate) struct Options {
   pub(crate) data_dir: Option<PathBuf>,
   #[clap(
     long,
-    default_value = "8589934592",
-    help = "Set index cache to <DB_CACHE_SIZE> bytes."
+    help = "Set index cache to <DB_CACHE_SIZE> bytes. By default takes 1/4 of available RAM."
   )]
-  pub(crate) db_cache_size: usize,
+  pub(crate) db_cache_size: Option<usize>,
   #[clap(
     long,
     help = "Don't look for inscriptions below <FIRST_INSCRIPTION_HEIGHT>."
@@ -774,12 +773,9 @@ mod tests {
   }
 
   #[test]
-  fn default_and_setting_db_cache_size() {
-    let arguments = Arguments::try_parse_from(["ord", "index", "run"]).unwrap();
-    assert_eq!(arguments.options.db_cache_size, 8589934592);
-
+  fn setting_db_cache_size() {
     let arguments =
       Arguments::try_parse_from(["ord", "--db-cache-size", "16000000000", "index", "run"]).unwrap();
-    assert_eq!(arguments.options.db_cache_size, 16000000000);
+    assert_eq!(arguments.options.db_cache_size, Some(16000000000));
   }
 }

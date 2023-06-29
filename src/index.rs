@@ -186,8 +186,19 @@ impl Index {
         database
       }
       Err(_) => {
+        let db_cache_size = match options.db_cache_size {
+          Some(db_cache_size) => db_cache_size,
+          None => {
+            let mut sys = System::new();
+            sys.refresh_memory();
+            usize::try_from(sys.total_memory() / 4)?
+          }
+        };
+
+        log::info!("Setting DB cache size to {} bytes", db_cache_size);
+
         let database = Database::builder()
-          .set_cache_size(options.db_cache_size)
+          .set_cache_size(db_cache_size)
           .create(&path)?;
 
         let mut tx = database.begin_write()?;
