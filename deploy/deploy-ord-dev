@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euxo pipefail
 
+# This script deploys whatever is currently 
+# in working directory to our dev server
 DOMAIN="ordinals-dev.com"
 
 # Current local working state 
