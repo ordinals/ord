@@ -8,6 +8,7 @@ env
 cp index.redb ./${DIR}/index-${BRANCH}-${COMMIT}.redb
 
 # Export state
+# Still have to manually set --index-sats or --height-limit
 /usr/local/bin/ord --bitcoin-data-dir /var/lib/bitcoind \
   --data-dir /var/lib/ord \
   index export
