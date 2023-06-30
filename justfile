@@ -43,13 +43,6 @@ ord-dev-save-state domain="ordinals-dev.com":
 ord-dev-deploy:
   ./deploy/deploy-ord-dev
 
-rebuild-ord-dev-database:
-  systemctl stop ord-dev
-  rm -f /var/lib/ord-dev/index.redb
-  rm -f /var/lib/ord-dev/*/index.redb
-  journalctl --unit ord-dev --rotate
-  journalctl --unit ord-dev --vacuum-time 1s
-
 log unit="ord" domain="ordinals.net":
   ssh root@{{domain}} 'journalctl -fu {{unit}}'
 
