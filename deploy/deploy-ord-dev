@@ -10,6 +10,7 @@ BRANCH=$(git rev-parse --abbrev-ref HEAD)
 COMMIT=$(git rev-parse --short HEAD)
 DIR="ord-${BRANCH}-${COMMIT}"
 
+# Edit service file if you want
 $EDITOR ./deploy/ord-dev.service
 
 # Create own directory for every deploy
