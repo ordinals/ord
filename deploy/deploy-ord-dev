@@ -9,23 +9,24 @@ COMMIT=$(git rev-parse --short HEAD)
 DIR="ord-${BRANCH}-${COMMIT}"
 
 # Create own directory for every deploy
-ssh root@${DOMAIN} "mkdir -p /var/lib/ord/${DIR}"
-rsync -avz --exclude-from='.gitignore' --exclude ".git" ./ root@${DOMAIN}:/var/lib/ord/${DIR}
+ssh root@${DOMAIN} "mkdir -p /var/lib/ord/${DIR}/repo"
+rsync -avz --exclude-from='.gitignore' --exclude ".git" --exclude "*.redb" ./ root@${DOMAIN}:/var/lib/ord/${DIR}/repo
 
-# Clean and prepare
-ssh root@${DOMAIN} "echo 'export BRANCH=${BRANCH}' >> ~/.bashrc  \
-  && echo 'export COMMIT=${COMMIT}' >> ~/.bashrc \
-  && echo 'export DIR=${DIR}' >> ~/.bashrc \
-  && rm /var/lib/ord/index.redb"
+# Store deployment info in environmental variables
+ssh root@${DOMAIN} "echo 'BRANCH=${BRANCH}' >> /etc/environment \
+  && echo 'COMMIT=${COMMIT}' >> /etc/environment \
+  && echo 'DIR=${DIR}' >> /etc/environment"
 
-ssh root@${DOMAIN} "cd /var/lib/ord/${DIR} \
+# Deploy
+ssh root@${DOMAIN} "cd /var/lib/ord/${DIR}/repo \
   && /root/.cargo/bin/cargo build --release \
-  && cp ./target/release/ord /usr/local/bin/ord \
   && systemctl stop ord-dev \
-  && cp /var/lib/ord/${DIR}/deploy/ord-dev.service /etc/systemd/system/ \
+  && cp ./target/release/ord /usr/local/bin/ord \
+  && cp /var/lib/ord/${DIR}/repo/deploy/ord-dev.service /etc/systemd/system/ \
   && systemctl daemon-reload \
   && systemctl enable ord-dev \
-  && systemctl restart ord-dev"
+  && systemctl restart ord-dev \
+  && systemctl status ord-dev"
 
 
 

@@ -36,11 +36,11 @@ deploy-signet branch="master": (deploy branch "signet" "signet.ordinals.net")
 
 deploy-testnet branch="master": (deploy branch "test" "testnet.ordinals.net")
 
-save-ord-dev-state domain="ordinals-dev.com":
+ord-dev-save-state domain="ordinals-dev.com":
   scp ./deploy/save-ord-dev-state root@{{domain}}:~
   ssh root@{{domain}} "./save-ord-dev-state"
 
-deploy-ord-dev domain="ordinals-dev.com":
+ord-dev-deploy:
   ./deploy/deploy-ord-dev
 
 rebuild-ord-dev-database:

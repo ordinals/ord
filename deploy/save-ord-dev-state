@@ -1,18 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
-export PS1='$ '
-source ~/.bashrc
-env
-# Stop, save and export state of running instance
+
+# Stop and copy index of running instance
 systemctl stop ord-dev
-
 cd /var/lib/ord
-
+env
 cp index.redb ./${DIR}/index-${BRANCH}-${COMMIT}.redb
 
+# Export state
 /usr/local/bin/ord --bitcoin-data-dir /var/lib/bitcoind \
   --data-dir /var/lib/ord \
-  index export \
-  --tsv inscription_number_to_id-${BRANCH}-${COMMIT}.tsv
+  index export
 
-mv inscription_number_to_id-${BRANCH}-${COMMIT}.tsv ./${DIR}
+mv inscription_number_to_id.tsv ./${DIR}/inscription_number_to_id-${BRANCH}-${COMMIT}.tsv
