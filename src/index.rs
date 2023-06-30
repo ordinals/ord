@@ -3196,4 +3196,36 @@ mod tests {
       )
     }
   }
+
+  #[test]
+  fn recover_from_reorg() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0)],
+        witness: inscription("text/plain;charset=utf-8", "hello").to_witness(),
+        ..Default::default()
+      });
+
+      let first = InscriptionId { txid, index: 0 };
+      let first_location = SatPoint { outpoint: OutPoint {txid, vout: 0 }, offset: 0 };
+
+      context.mine_blocks(6);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(2, 0, 0)],
+        witness: inscription("text/plain;charset=utf-8", "hello").to_witness(),
+        ..Default::default()
+      });
+
+      let second = InscriptionId { txid, index: 0 };
+      
+      context.mine_blocks(1);
+
+      context.rpc_server.invalidate_tip();
+      
+      context.index.assert_inscription_location(first, first_location, None);
+    }
+  }
 }

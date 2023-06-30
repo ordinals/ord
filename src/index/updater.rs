@@ -2,6 +2,7 @@ use {
   self::inscription_updater::InscriptionUpdater,
   super::{fetcher::Fetcher, *},
   futures::future::try_join_all,
+  redb::Savepoint,
   std::sync::mpsc,
   tokio::sync::mpsc::{error::TryRecvError, Receiver, Sender},
 };
@@ -34,6 +35,7 @@ pub(crate) struct Updater {
   height: u64,
   index_sats: bool,
   sat_ranges_since_flush: u64,
+  savepoints: VecDeque<Savepoint>,
   outputs_cached: u64,
   outputs_inserted_since_flush: u64,
   outputs_traversed: u64,
@@ -66,6 +68,7 @@ impl Updater {
       height,
       index_sats: index.has_sat_index()?,
       sat_ranges_since_flush: 0,
+      savepoints: VecDeque::with_capacity(6),
       outputs_cached: 0,
       outputs_inserted_since_flush: 0,
       outputs_traversed: 0,
@@ -335,6 +338,27 @@ impl Updater {
     let Err(TryRecvError::Empty) = value_receiver.try_recv() else {
       return Err(anyhow!("Previous block did not consume all input values"));
     };
+
+    if self.savepoints.len() >= 6 {
+      std::mem::drop(self.savepoints.pop_front().unwrap())
+    }
+
+    self.savepoints.push_back(wtx.ephemeral_savepoint()?);
+
+    if let Some(prev_height) = self.height.checked_sub(1) {
+      let prev_hash = index.client.get_block_hash(prev_height)?;
+      dbg!(&prev_hash);
+      if prev_hash != block.header.prev_blockhash {
+        index.reorged.store(true, atomic::Ordering::Relaxed);
+        if let Some(savepoint) = self.savepoints.pop_front() {
+          wtx.restore_savepoint(&savepoint)?;
+          self.savepoints.clear();
+
+        } else {
+          return Err(anyhow!("reorg detected at or before {prev_height}"));
+        }
+      }
+    }
 
     let mut outpoint_to_value = wtx.open_table(OUTPOINT_TO_VALUE)?;
 
