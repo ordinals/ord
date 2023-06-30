@@ -17,10 +17,10 @@ pub(crate) enum Media {
 
 impl Media {
   const TABLE: &'static [(&'static str, Media, &'static [&'static str])] = &[
-    ("application/json", Media::Text, &["json"]),
+    ("application/json;br", Media::Text, &["json"]),
     ("application/pdf", Media::Pdf, &["pdf"]),
-    ("application/pgp-signature", Media::Text, &["asc"]),
-    ("application/yaml", Media::Text, &["yaml", "yml"]),
+    ("application/pgp-signature;br", Media::Text, &["asc"]),
+    ("application/yaml;br", Media::Text, &["yaml", "yml"]),
     ("audio/flac", Media::Audio, &["flac"]),
     ("audio/mpeg", Media::Audio, &["mp3"]),
     ("audio/wav", Media::Audio, &["wav"]),
@@ -33,11 +33,11 @@ impl Media {
     ("image/webp", Media::Image, &["webp"]),
     ("model/gltf-binary", Media::Unknown, &["glb"]),
     ("model/stl", Media::Unknown, &["stl"]),
-    ("text/css", Media::Text, &["css"]),
+    ("text/css;br", Media::Text, &["css"]),
     ("text/html;charset=utf-8", Media::Iframe, &["html"]),
-    ("text/javascript", Media::Text, &["js"]),
-    ("text/plain;charset=utf-8", Media::Text, &["txt"]),
-    ("text/markdown;charset=utf-8", Media::Text, &["md"]),
+    ("text/javascript;br", Media::Text, &["js"]),
+    ("text/plain;charset=utf-8;br", Media::Text, &["txt"]),
+    ("text/markdown;charset=utf-8;br", Media::Text, &["md"]),
     ("video/mp4", Media::Video, &["mp4"]),
     ("video/webm", Media::Video, &["webm"]),
   ];

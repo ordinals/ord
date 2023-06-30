@@ -66,9 +66,9 @@ fn inscription_page() {
   <dt>content</dt>
   <dd><a href=/content/{inscription}>link</a></dd>
   <dt>content length</dt>
-  <dd>3 bytes</dd>
+  <dd>7 bytes</dd>
   <dt>content type</dt>
-  <dd>text/plain;charset=utf-8</dd>
+  <dd>text/plain;charset=utf-8;br</dd>
   <dt>timestamp</dt>
   <dd><time>1970-01-01 00:00:02 UTC</time></dd>
   <dt>genesis height</dt>
@@ -180,7 +180,7 @@ fn inscription_content() {
   assert_eq!(response.status(), StatusCode::OK);
   assert_eq!(
     response.headers().get("content-type").unwrap(),
-    "text/plain;charset=utf-8"
+    "text/plain;charset=utf-8;br"
   );
   assert_eq!(
     response

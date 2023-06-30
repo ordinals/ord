@@ -1,5 +1,8 @@
 use super::*;
 
+use std::io::{Write};
+use brotlic::{CompressorWriter, BlockSize, WindowSize, Quality, BrotliEncoderOptions};
+
 #[test]
 fn inscribe_creates_inscriptions() {
   let rpc_server = test_bitcoincore_rpc::spawn();
@@ -19,9 +22,22 @@ fn inscribe_creates_inscriptions() {
   assert_eq!(request.status(), 200);
   assert_eq!(
     request.headers().get("content-type").unwrap(),
-    "text/plain;charset=utf-8"
+    "text/plain;charset=utf-8;br"
   );
-  assert_eq!(request.text().unwrap(), "FOO");
+  let input = "FOO";
+
+  let encoder = BrotliEncoderOptions::new()
+  .quality(Quality::best())
+  .window_size(WindowSize::best())
+  .block_size(BlockSize::best())
+  .build().unwrap();
+  
+  let writer = Vec::new();
+  let mut compressor = CompressorWriter::with_encoder(encoder, writer);
+
+  let _ = compressor.write_all(input.as_bytes());
+  let body = compressor.into_inner(); // read to vec
+  assert_eq!(request.text().unwrap().as_bytes(), body.unwrap());
 }
 
 #[test]
@@ -200,10 +216,23 @@ fn inscribe_with_optional_satpoint_arg() {
   create_wallet(&rpc_server);
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
+  let input = "FOO";
+
+  let encoder = BrotliEncoderOptions::new()
+  .quality(Quality::best())
+  .window_size(WindowSize::best())
+  .block_size(BlockSize::best())
+  .build().unwrap();
+  
+  let writer = Vec::new();
+  let mut compressor = CompressorWriter::with_encoder(encoder, writer);
+
+  let _ = compressor.write_all(input.as_bytes());
+  let body = compressor.into_inner(); // read 
   let Inscribe { inscription, .. } = CommandBuilder::new(format!(
     "wallet inscribe foo.txt --satpoint {txid}:0:0 --fee-rate 1"
   ))
-  .write("foo.txt", "FOO")
+  .write("foo.txt", body.unwrap())
   .rpc_server(&rpc_server)
   .run_and_check_output();
 

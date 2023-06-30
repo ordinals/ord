@@ -36,6 +36,8 @@ use {
   },
 };
 
+use std::io::{self, Read};
+use brotlic::{DecompressorReader};
 mod error;
 
 enum BlockQuery {
@@ -843,9 +845,20 @@ impl Server {
           .into_response(),
       ),
       Media::Text => {
-        let content = inscription
+        let mut content = inscription 
           .body()
           .ok_or_not_found(|| format!("inscription {inscription_id} content"))?;
+          let mut decoded_input = Vec::new();
+
+        if inscription.content_type().expect("we hab content").ends_with("r") {
+        let mut decompressed_reader = DecompressorReader::new(content);
+        
+        decompressed_reader.read_to_end(&mut decoded_input)
+        .map_err(|err| anyhow!("Failed to decode {inscription_id} text: {err}"))?;
+
+        content = &decoded_input;
+
+                }
         Ok(
           PreviewTextHtml {
             text: str::from_utf8(content)
@@ -853,7 +866,8 @@ impl Server {
           }
           .into_response(),
         )
-      }
+      
+      },
       Media::Unknown => Ok(PreviewUnknownHtml.into_response()),
       Media::Video => Ok(PreviewVideoHtml { inscription_id }.into_response()),
     }
@@ -958,6 +972,9 @@ impl Server {
 
 #[cfg(test)]
 mod tests {
+
+  use std::io::{Write};
+  use brotlic::{CompressorWriter, BlockSize, WindowSize, Quality, BrotliEncoderOptions};  
   use {super::*, reqwest::Url, std::net::TcpListener};
 
   struct TestServer {
@@ -1711,9 +1728,23 @@ mod tests {
 
     server.mine_blocks(1);
 
+
+    let input = "hello";
+
+    let encoder = BrotliEncoderOptions::new()
+    .quality(Quality::best())
+    .window_size(WindowSize::best())
+    .block_size(BlockSize::best())
+    .build().unwrap();
+    
+    let writer = Vec::new();
+    let mut compressor = CompressorWriter::with_encoder(encoder, writer);
+  
+    let _ = compressor.write_all(input.as_bytes());
+    let body = compressor.into_inner(); // read to 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 1, 0)],
-      witness: inscription("text/plain;charset=utf-8", "hello").to_witness(),
+      witness: inscription("text/plain;charset=utf-8;br", body.unwrap()).to_witness(),
       ..Default::default()
     });
 
@@ -2161,9 +2192,23 @@ mod tests {
     let server = TestServer::new_with_regtest();
     server.mine_blocks(1);
 
+
+    let input = "hello";
+
+    let encoder = BrotliEncoderOptions::new()
+    .quality(Quality::best())
+    .window_size(WindowSize::best())
+    .block_size(BlockSize::best())
+    .build().unwrap();
+    
+    let writer = Vec::new();
+    let mut compressor = CompressorWriter::with_encoder(encoder, writer);
+  
+    let _ = compressor.write_all(input.as_bytes());
+    let body = compressor.into_inner(); // read to vec
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0)],
-      witness: inscription("text/plain;charset=utf-8", "hello").to_witness(),
+      witness: inscription("text/plain;charset=utf-8;br", body.unwrap()).to_witness(),
       ..Default::default()
     });
 
@@ -2182,9 +2227,22 @@ mod tests {
     let server = TestServer::new_with_regtest();
     server.mine_blocks(1);
 
+    let input = b"\xc3\x28";
+
+    let encoder = BrotliEncoderOptions::new()
+    .quality(Quality::best())
+    .window_size(WindowSize::best())
+    .block_size(BlockSize::best())
+    .build().unwrap();
+    
+    let writer = Vec::new();
+    let mut compressor = CompressorWriter::with_encoder(encoder, writer);
+  
+    let _ = compressor.write_all(input);
+    let body = compressor.into_inner(); // read to vec
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0)],
-      witness: inscription("text/plain;charset=utf-8", b"\xc3\x28").to_witness(),
+      witness: inscription("text/plain;charset=utf-8;br", body.unwrap()).to_witness(),
       ..Default::default()
     });
 
@@ -2202,11 +2260,24 @@ mod tests {
     let server = TestServer::new_with_regtest();
     server.mine_blocks(1);
 
+    let input = "<script>alert('hello');</script>";
+
+    let encoder = BrotliEncoderOptions::new()
+    .quality(Quality::best())
+    .window_size(WindowSize::best())
+    .block_size(BlockSize::best())
+    .build().unwrap();
+    
+    let writer = Vec::new();
+    let mut compressor = CompressorWriter::with_encoder(encoder, writer);
+  
+    let _ = compressor.write_all(input.as_bytes());
+    let body = compressor.into_inner(); // read to vec
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0)],
       witness: inscription(
-        "text/plain;charset=utf-8",
-        "<script>alert('hello');</script>",
+        "text/plain;charset=utf-8;br",
+        body.unwrap(),
       )
       .to_witness(),
       ..Default::default()
@@ -2291,9 +2362,23 @@ mod tests {
     let server = TestServer::new_with_regtest();
     server.mine_blocks(1);
 
+
+    let input = "hello";
+
+    let encoder = BrotliEncoderOptions::new()
+    .quality(Quality::best())
+    .window_size(WindowSize::best())
+    .block_size(BlockSize::best())
+    .build().unwrap();
+    
+    let writer = Vec::new();
+    let mut compressor = CompressorWriter::with_encoder(encoder, writer);
+  
+    let _ = compressor.write_all(input.as_bytes());
+    let body = compressor.into_inner(); // read to 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0)],
-      witness: inscription("text/html;charset=utf-8", "hello").to_witness(),
+      witness: inscription("text/html;charset=utf-8;br", body.unwrap()).to_witness(),
       ..Default::default()
     });
 
@@ -2608,9 +2693,24 @@ mod tests {
   fn inscriptions_can_be_hidden_with_config() {
     let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
     bitcoin_rpc_server.mine_blocks(1);
+
+
+    let input = "hello";
+
+    let encoder = BrotliEncoderOptions::new()
+    .quality(Quality::best())
+    .window_size(WindowSize::best())
+    .block_size(BlockSize::best())
+    .build().unwrap();
+    
+    let writer = Vec::new();
+    let mut compressor = CompressorWriter::with_encoder(encoder, writer);
+  
+    let _ = compressor.write_all(input.as_bytes());
+    let body = compressor.into_inner(); // read to 
     let txid = bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0)],
-      witness: inscription("text/plain;charset=utf-8", "hello").to_witness(),
+      witness: inscription("text/plain;charset=utf-8;br", body.unwrap()).to_witness(),
       ..Default::default()
     });
     let inscription = InscriptionId::from(txid);

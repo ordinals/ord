@@ -30,9 +30,9 @@ fn inscriptions_can_be_sent() {
     format!(
       ".*<h1>Inscription 0</h1>.*<dl>.*
   <dt>content length</dt>
-  <dd>3 bytes</dd>
+  <dd>7 bytes</dd>
   <dt>content type</dt>
-  <dd>text/plain;charset=utf-8</dd>
+  <dd>text/plain;charset=utf-8;br</dd>
   .*
   <dt>location</dt>
   <dd class=monospace>{send_txid}:0:0</dd>

@@ -11,6 +11,10 @@ use {
   std::{iter::Peekable, str},
 };
 
+use std::io::{Write};
+use brotlic::{CompressorWriter, BlockSize, WindowSize, Quality, BrotliEncoderOptions};
+
+
 const INSCRIPTION_ENVELOPE_HEADER: [bitcoin::blockdata::script::Instruction<'static>; 3] = [
   Instruction::PushBytes(&[]), // This is an OP_FALSE
   Instruction::Op(opcodes::all::OP_IF),
@@ -70,7 +74,7 @@ impl Inscription {
   pub(crate) fn from_file(chain: Chain, path: impl AsRef<Path>) -> Result<Self, Error> {
     let path = path.as_ref();
 
-    let body = fs::read(path).with_context(|| format!("io error reading {}", path.display()))?;
+    let mut body = fs::read(path).with_context(|| format!("io error reading {}", path.display()))?;
 
     if let Some(limit) = chain.inscription_content_size_limit() {
       let len = body.len();
@@ -78,12 +82,29 @@ impl Inscription {
         bail!("content size of {len} bytes exceeds {limit} byte limit for {chain} inscriptions");
       }
     }
-
+    let mut compression = "";
     let content_type = Media::content_type_for_path(path)?;
+    if content_type.starts_with('t') { 
 
+      let input = body.to_vec();
+
+      let encoder = BrotliEncoderOptions::new()
+      .quality(Quality::best())
+      .window_size(WindowSize::best())
+      .block_size(BlockSize::best())
+      .build()?;
+      
+      let writer = Vec::new();
+      let mut compressor = CompressorWriter::with_encoder(encoder, writer);
+
+      compressor.write_all(input.as_slice())?;
+      body = compressor.into_inner()?; // read to vec
+      compression = "br";
+    }
+    
     Ok(Self {
       body: Some(body),
-      content_type: Some(content_type.into()),
+      content_type: Some((content_type.to_owned() + ";" + compression).into())
     })
   }
 
