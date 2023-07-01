@@ -1,6 +1,17 @@
 Changelog
 =========
 
+[0.8.0](https://github.com/ordinals/ord/releases/tag/0.8.0) - 2023-07-01
+---------------------------------------------------------------------
+
+### Added
+
+- Dev server deploy script (#2228)
+- Set DB cache size (#2224)
+- Update redb from 0.13.0 to 1.0.2 (#2141)
+- Fix typo in BIP (#2220)
+
+
 [0.7.0](https://github.com/ordinals/ord/releases/tag/0.7.0) - 2023-06-23
 ---------------------------------------------------------------------
 
