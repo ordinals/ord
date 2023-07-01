@@ -796,12 +796,19 @@ impl Server {
       header::CONTENT_SECURITY_POLICY,
       HeaderValue::from_static("default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime 'unsafe-eval' 'unsafe-inline' data: blob:"),
     );
+
+    let body = inscription.into_body();
+    let max_age = match body {
+      Some(_) => "31536000",
+      None => "600",
+    };
+    let cache_control = format!("max-age={}, immutable", max_age);
     headers.insert(
       header::CACHE_CONTROL,
-      HeaderValue::from_static("max-age=31536000, immutable"),
+      HeaderValue::from_str(&cache_control).unwrap()
     );
 
-    Some((headers, inscription.into_body()?))
+    Some((headers, body?))
   }
 
   async fn preview(
