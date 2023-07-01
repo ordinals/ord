@@ -790,7 +790,7 @@ impl Server {
     );
     headers.insert(
       header::CONTENT_SECURITY_POLICY,
-      HeaderValue::from_static("default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:"),
+      HeaderValue::from_static("default-src 'unsafe-eval' 'unsafe-inline' 'self' data: blob:"),
     );
     headers.append(
       header::CONTENT_SECURITY_POLICY,
