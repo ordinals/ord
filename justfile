@@ -11,6 +11,9 @@ ci: clippy forbid
 forbid:
   ./bin/forbid
 
+install:
+  cargo install --force --path .
+  
 fmt:
   cargo fmt
 

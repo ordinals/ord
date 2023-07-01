@@ -87,6 +87,20 @@ curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash -s
 Once `ord` is installed, you should be able to run `ord --version` on the
 command line.
 
+For local develop install `ord` from source:
+
+```
+git clone https://github.com/ordinals/ord.git
+cd ord
+cargo install --force --path .
+```
+
+if you have [just](https://github.com/casey/just) installed.
+
+```
+just install
+```
+
 Building
 --------
 
