@@ -804,7 +804,7 @@ impl Server {
     };
     headers.insert(
       header::CACHE_CONTROL,
-      HeaderValue::from_str(&cache_control).unwrap(),
+      HeaderValue::from_str(cache_control).unwrap(),
     );
 
     Some((headers, body?))
