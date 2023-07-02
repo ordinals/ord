@@ -798,11 +798,10 @@ impl Server {
     );
 
     let body = inscription.into_body();
-    let max_age = match body {
-      Some(_) => "31536000",
-      None => "600",
+    let cache_control = match body {
+      Some(_) => "max-age=31536000, immutable",
+      None => "max-age=600",
     };
-    let cache_control = format!("max-age={}, immutable", max_age);
     headers.insert(
       header::CACHE_CONTROL,
       HeaderValue::from_str(&cache_control).unwrap(),
