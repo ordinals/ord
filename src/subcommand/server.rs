@@ -805,7 +805,7 @@ impl Server {
     let cache_control = format!("max-age={}, immutable", max_age);
     headers.insert(
       header::CACHE_CONTROL,
-      HeaderValue::from_str(&cache_control).unwrap()
+      HeaderValue::from_str(&cache_control).unwrap(),
     );
 
     Some((headers, body?))
