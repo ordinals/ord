@@ -8,14 +8,16 @@ StartLimitIntervalSec=10m
 AmbientCapabilities=CAP_NET_BIND_SERVICE
 Environment=RUST_BACKTRACE=1
 Environment=RUST_LOG=info
-ExecStart=/usr/local/bin/ord-dev \
+ExecStart=/usr/local/bin/ord \
   --bitcoin-data-dir /var/lib/bitcoind \
-  --chain ${CHAIN} \
-  --data-dir /var/lib/ord-dev \
-  --index-sats \
+  --data-dir /var/lib/ord \
+#  --index-sats \
   server \
-  --http-port 8080
+  --acme-contact mailto:casey@rodarmor.com \
+  --http \
+  --https
 Group=ord
+LimitNOFILE=65536
 MemoryDenyWriteExecute=true
 NoNewPrivileges=true
 PrivateDevices=true
@@ -24,9 +26,12 @@ ProtectHome=true
 ProtectSystem=full
 Restart=on-failure
 RestartSec=5s
-StateDirectory=ord-dev
+StateDirectory=ord
 StateDirectoryMode=0700
 TimeoutStopSec=10m
 Type=simple
 User=ord
-WorkingDirectory=/var/lib/ord-dev
+WorkingDirectory=/var/lib/ord
+
+[Install]
+WantedBy=multi-user.target
