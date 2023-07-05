@@ -1,5 +1,6 @@
 use {
   self::{
+    accept_json::AcceptJson,
     deserialize_from_str::DeserializeFromStr,
     error::{OptionExt, ServerError, ServerResult},
   },
@@ -12,7 +13,7 @@ use {
   },
   axum::{
     body,
-    extract::{Extension, Path, Query},
+    extract::{Extension, Json, Path, Query},
     headers::UserAgent,
     http::{header, HeaderMap, HeaderValue, StatusCode, Uri},
     response::{IntoResponse, Redirect, Response},
@@ -36,6 +37,7 @@ use {
   },
 };
 
+mod accept_json;
 mod error;
 
 enum BlockQuery {
@@ -378,18 +380,58 @@ impl Server {
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(sat)): Path<DeserializeFromStr<Sat>>,
-  ) -> ServerResult<PageHtml<SatHtml>> {
+    accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
     let satpoint = index.rare_sat_satpoint(sat)?;
 
-    Ok(
+    Ok(if accept_json.0 {
+      Json(serde_json::json!({
+        "decimal": sat.decimal().to_string(),
+        "degree": sat.degree().to_string(),
+        "percentile": sat.percentile(),
+        "name": sat.name(),
+        "cycle": sat.cycle(),
+        "epoch": sat.epoch(),
+        "period": sat.period(),
+        "block": sat.height(),
+        "offset": sat.third(),
+        "rarity": sat.rarity(),
+        "timestamp": index.block_time(sat.height())?.timestamp().to_string(),
+        "_links": {
+          "self": {
+            "href": format!("/sat/{}", sat),
+          },
+          "block": {
+            "href": format!("/block/{}", sat.height()),
+          },
+          "inscription": (index.get_inscription_id_by_sat(sat)?.is_some()).then(|| {
+            serde_json::json!({
+              "href": format!("/inscription/{:?}", index.get_inscription_id_by_sat(sat)),
+            })
+          }),
+          "next": (sat < Sat::LAST.0).then(|| {
+            serde_json::json!({
+              "href": format!("/sat/{}", sat.0 + 1),
+            })
+          }),
+          "prev": (sat > 0).then(|| {
+            serde_json::json!({
+              "href": format!("/sat/{}", sat.0 - 1),
+            })
+          }),
+        }
+      }))
+      .into_response()
+    } else {
       SatHtml {
         sat,
         satpoint,
         blocktime: index.block_time(sat.height())?,
         inscription: index.get_inscription_id_by_sat(sat)?,
       }
-      .page(page_config, index.has_sat_index()?),
-    )
+      .page(page_config, index.has_sat_index()?)
+      .into_response()
+    })
   }
 
   async fn ordinal(Path(sat): Path<String>) -> Redirect {
