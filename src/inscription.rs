@@ -233,17 +233,30 @@ impl<'a> InscriptionParser<'a> {
           while !self.accept(&Instruction::Op(opcodes::all::OP_ENDIF))? {
             body.extend_from_slice(self.expect_push()?);
           }
-          fields.insert(BODY_TAG, body);
+          fields.insert(BODY_TAG.to_vec(), body);
           break;
         }
         Instruction::PushBytes(tag) => {
           if fields.contains_key(tag) {
             return Err(InscriptionError::InvalidInscription);
           }
+          fields.insert(tag.to_vec(), self.expect_push()?.to_vec());
+        }
+        // this pattern needs to be checked before we check any other opcodes
+        Instruction::Op(opcodes::all::OP_ENDIF) => break,
+        Instruction::Op(op_code) => {
+          let code = op_code.to_u8();
+          if !(81..=96).contains(&code) {
+            return Err(InscriptionError::InvalidInscription);
+          }
+          // we're dealing with an OP_1 through OP_16
+          let number = code - 80; // a little magic number here
+          let tag = vec![number];
+          if fields.contains_key(&tag) {
+            return Err(InscriptionError::InvalidInscription);
+          }
           fields.insert(tag, self.expect_push()?.to_vec());
         }
-        Instruction::Op(opcodes::all::OP_ENDIF) => break,
-        _ => return Err(InscriptionError::InvalidInscription),
       }
     }
 
@@ -469,6 +482,27 @@ mod tests {
   }
 
   #[test]
+  fn valid_with_opcode_tags() {
+    let script = script::Builder::new()
+      .push_opcode(opcodes::all::OP_CHECKSIG)
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
+      .push_slice(b"ord")
+      .push_int(1)
+      .push_slice(b"text/plain;charset=utf-8")
+      .push_slice(&[])
+      .push_slice(b"foo")
+      .push_slice(b"bar")
+      .push_opcode(opcodes::all::OP_ENDIF)
+      .into_script();
+
+    assert_eq!(
+      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), Vec::new()])),
+      Ok(vec![inscription("text/plain;charset=utf-8", "foobar")]),
+    );
+  }
+
+  #[test]
   fn valid_ignore_trailing() {
     let script = script::Builder::new()
       .push_opcode(opcodes::OP_FALSE)
@@ -496,6 +530,26 @@ mod tests {
       .push_opcode(opcodes::all::OP_IF)
       .push_slice(b"ord")
       .push_slice(&[1])
+      .push_slice(b"text/plain;charset=utf-8")
+      .push_slice(&[])
+      .push_slice(b"ord")
+      .push_opcode(opcodes::all::OP_ENDIF)
+      .into_script();
+
+    assert_eq!(
+      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), Vec::new()])),
+      Ok(vec![inscription("text/plain;charset=utf-8", "ord")]),
+    );
+  }
+
+  #[test]
+  fn valid_ignore_preceding_with_opcode_tags() {
+    let script = script::Builder::new()
+      .push_opcode(opcodes::all::OP_CHECKSIG)
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
+      .push_slice(b"ord")
+      .push_int(1)
       .push_slice(b"text/plain;charset=utf-8")
       .push_slice(&[])
       .push_slice(b"ord")
