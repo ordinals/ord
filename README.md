@@ -123,8 +123,8 @@ categories of tests: unit, integration and fuzz. Unit tests can usually be found
 the bottom of a file in a mod block called `tests`. If you add or modify a
 function please also add a corresponding test. Integration tests try to test
 end-to-end functionality by executing a subcommand of the binary. Those can be
-found in the [tests](./tests) directory. We don't have a lot of fuzzing but the
-basic structure of how we do it can be found in the [fuzz](./fuzz) directory.
+found in the [tests](tests) directory. We don't have a lot of fuzzing but the
+basic structure of how we do it can be found in the [fuzz](fuzz) directory.
 
 We strongly recommend installing [just](https://github.com/casey/just) to make
 running the tests easier. To run our CI test suite you would do:
@@ -141,7 +141,7 @@ cargo test --all
 cargo test --all -- --ignored
 ```
 
-Have look at the [justfile](./justfile) to see some more helpful recipes
+Have look at the [justfile](justfile) to see some more helpful recipes
 (commands). Here are a couple more good ones:
 
 ```
