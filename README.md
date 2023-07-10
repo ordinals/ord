@@ -152,10 +152,11 @@ just watch ltest --all
 ```
 
 We also try to follow a TDD (Test-Driven-Development) approach, which means we
-use tests as a way to get view inside the code. Tests have to run fast for that
+use tests as a way to get visibility into the code. Tests have to run fast for that
 reason so that the feedback loop between making a change, running the test and
 seeing the result is small. To facilitate that we created a mocked Bitcoin Core
-instance in [test-bitcoincore-rpc](./test-bitcoincore-rpc).
+instance in [test-bitcoincore-rpc](./test-bitcoincore-rpc) so that tests
+run very fast.
 
 Syncing
 -------
