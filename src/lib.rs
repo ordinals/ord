@@ -131,6 +131,7 @@ const CYCLE_EPOCHS: u64 = 6;
 
 static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);
 static LISTENERS: Mutex<Vec<axum_server::Handle>> = Mutex::new(Vec::new());
+static UPDATE_THREAD: Mutex<Option<thread::JoinHandle<()>>> = Mutex::new(Option::None);
 
 fn integration_test() -> bool {
   env::var_os("ORD_INTEGRATION_TEST")
@@ -153,17 +154,25 @@ pub fn main() {
   env_logger::init();
 
   ctrlc::set_handler(move || {
-    LISTENERS
-      .lock()
-      .unwrap()
-      .iter()
-      .for_each(|handle| handle.graceful_shutdown(Some(Duration::from_millis(100))));
-
     println!("Shutting down gracefully. Press <CTRL-C> again to shutdown immediately.");
 
     if SHUTTING_DOWN.fetch_or(true, atomic::Ordering::Relaxed) {
       process::exit(1);
     }
+
+    let mut update_thread_lock = UPDATE_THREAD.lock().unwrap();
+
+    if let Some(update_thread) = update_thread_lock.take() {
+      if update_thread.join().is_err() {
+        log::warn!("Update thread panicked; join failed");
+      }
+    }
+
+    LISTENERS
+      .lock()
+      .unwrap()
+      .iter()
+      .for_each(|handle| handle.graceful_shutdown(Some(Duration::from_millis(100))));
   })
   .expect("Error setting <CTRL-C> handler");
 

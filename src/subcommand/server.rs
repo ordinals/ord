@@ -127,12 +127,13 @@ impl Server {
   pub(crate) fn run(self, options: Options, index: Arc<Index>, handle: Handle) -> Result {
     Runtime::new()?.block_on(async {
       let clone = index.clone();
-      thread::spawn(move || loop {
+      let update_thread = thread::spawn(move || loop {
         if let Err(error) = clone.update() {
           log::warn!("{error}");
         }
         thread::sleep(Duration::from_millis(5000));
       });
+      UPDATE_THREAD.lock().unwrap().replace(update_thread);
 
       let config = options.load_config()?;
       let acme_domains = self.acme_domains()?;
