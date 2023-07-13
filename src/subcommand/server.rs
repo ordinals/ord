@@ -128,6 +128,9 @@ impl Server {
     Runtime::new()?.block_on(async {
       let clone = index.clone();
       let update_thread = thread::spawn(move || loop {
+        if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
+          break;
+        }
         if let Err(error) = clone.update() {
           log::warn!("{error}");
         }
