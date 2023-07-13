@@ -154,19 +154,11 @@ pub fn main() {
   env_logger::init();
 
   ctrlc::set_handler(move || {
-    println!("Shutting down gracefully. Press <CTRL-C> again to shutdown immediately.");
-
     if SHUTTING_DOWN.fetch_or(true, atomic::Ordering::Relaxed) {
       process::exit(1);
     }
 
-    let mut update_thread_lock = UPDATE_THREAD.lock().unwrap();
-
-    if let Some(update_thread) = update_thread_lock.take() {
-      if update_thread.join().is_err() {
-        log::warn!("Update thread panicked; join failed");
-      }
-    }
+    println!("Shutting down gracefully. Press <CTRL-C> again to shutdown immediately.");
 
     LISTENERS
       .lock()
@@ -189,5 +181,13 @@ pub fn main() {
       eprintln!("{}", err.backtrace());
     }
     process::exit(1);
+  }
+
+  let mut update_thread_lock = UPDATE_THREAD.lock().unwrap();
+
+  if let Some(update_thread) = update_thread_lock.take() {
+    if update_thread.join().is_err() {
+      log::warn!("Update thread panicked; join failed");
+    }
   }
 }
