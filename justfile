@@ -12,7 +12,7 @@ forbid:
   ./bin/forbid
 
 fmt:
-  cargo fmt
+  cargo fmt --all
 
 clippy:
   cargo clippy --all --all-targets -- -D warnings

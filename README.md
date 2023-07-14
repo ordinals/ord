@@ -114,6 +114,49 @@ Once built, the `ord` binary can be found at `./target/release/ord`.
 
 `ord` requires `rustc` version 1.67.0 or later. Run `rustc --version` to ensure you have this version. Run `rustup update` to get the latest stable release.
 
+Contributing
+------------
+
+If you wish to contribute there are a couple things that are helpful to know. We
+put a lot of emphasis on proper testing in the code base, with three broad
+categories of tests: unit, integration and fuzz. Unit tests can usually be found at
+the bottom of a file in a mod block called `tests`. If you add or modify a
+function please also add a corresponding test. Integration tests try to test
+end-to-end functionality by executing a subcommand of the binary. Those can be
+found in the [tests](tests) directory. We don't have a lot of fuzzing but the
+basic structure of how we do it can be found in the [fuzz](fuzz) directory.
+
+We strongly recommend installing [just](https://github.com/casey/just) to make
+running the tests easier. To run our CI test suite you would do:
+
+```
+just ci
+```
+
+This corresponds to the commands:
+
+```
+cargo fmt -- --check
+cargo test --all
+cargo test --all -- --ignored
+```
+
+Have look at the [justfile](justfile) to see some more helpful recipes
+(commands). Here are a couple more good ones:
+
+```
+just fmt
+just fuzz
+just doc
+just watch ltest --all
+```
+
+We also try to follow a TDD (Test-Driven-Development) approach, which means we
+use tests as a way to get visibility into the code. Tests have to run fast for that
+reason so that the feedback loop between making a change, running the test and
+seeing the result is small. To facilitate that we created a mocked Bitcoin Core
+instance in [test-bitcoincore-rpc](./test-bitcoincore-rpc).
+
 Syncing
 -------
 
