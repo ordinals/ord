@@ -154,6 +154,8 @@ fn gracefully_shutdown_update_thread() {
   let mut update_thread_lock = UPDATE_THREAD.lock().unwrap();
 
   if let Some(update_thread) = update_thread_lock.take() {
+    // We explicitly set this to true to notify the thread to not take on new work
+    SHUTTING_DOWN.store(true, atomic::Ordering::Relaxed);
     log::info!("Update thread running; waiting for it to finish...");
     if update_thread.join().is_err() {
       log::warn!("Update thread panicked; join failed");
