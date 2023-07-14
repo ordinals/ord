@@ -76,3 +76,4 @@ Or by percentile, the percentage of bitcoin's supply that has been or will have
 been issued when they are mined:
 
 [100%](https://ordinals.com/search/100%)
+
