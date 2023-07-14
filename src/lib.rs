@@ -131,7 +131,7 @@ const CYCLE_EPOCHS: u64 = 6;
 
 static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);
 static LISTENERS: Mutex<Vec<axum_server::Handle>> = Mutex::new(Vec::new());
-static UPDATE_THREAD: Mutex<Option<thread::JoinHandle<()>>> = Mutex::new(Option::None);
+static INDEXER: Mutex<Option<thread::JoinHandle<()>>> = Mutex::new(Option::None);
 
 fn integration_test() -> bool {
   env::var_os("ORD_INTEGRATION_TEST")
@@ -150,15 +150,13 @@ fn unbound_outpoint() -> OutPoint {
   }
 }
 
-fn gracefully_shutdown_update_thread() {
-  let mut update_thread_lock = UPDATE_THREAD.lock().unwrap();
-
-  if let Some(update_thread) = update_thread_lock.take() {
+fn gracefully_shutdown_indexer() {
+  if let Some(indexer) = INDEXER.lock().unwrap().take() {
     // We explicitly set this to true to notify the thread to not take on new work
     SHUTTING_DOWN.store(true, atomic::Ordering::Relaxed);
-    log::info!("Update thread running; waiting for it to finish...");
-    if update_thread.join().is_err() {
-      log::warn!("Update thread panicked; join failed");
+    log::info!("Waiting for index thread to finish...");
+    if indexer.join().is_err() {
+      log::warn!("Index thread panicked; join failed");
     }
   }
 }
@@ -194,10 +192,10 @@ pub fn main() {
       eprintln!("{}", err.backtrace());
     }
 
-    gracefully_shutdown_update_thread();
+    gracefully_shutdown_indexer();
 
     process::exit(1);
   }
 
-  gracefully_shutdown_update_thread();
+  gracefully_shutdown_indexer();
 }

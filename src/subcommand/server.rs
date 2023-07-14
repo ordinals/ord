@@ -126,17 +126,17 @@ pub(crate) struct Server {
 impl Server {
   pub(crate) fn run(self, options: Options, index: Arc<Index>, handle: Handle) -> Result {
     Runtime::new()?.block_on(async {
-      let clone = index.clone();
-      let update_thread = thread::spawn(move || loop {
+      let index_clone = index.clone();
+      let index_thread = thread::spawn(move || loop {
         if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
           break;
         }
-        if let Err(error) = clone.update() {
+        if let Err(error) = index_clone.update() {
           log::warn!("{error}");
         }
         thread::sleep(Duration::from_millis(5000));
       });
-      UPDATE_THREAD.lock().unwrap().replace(update_thread);
+      INDEXER.lock().unwrap().replace(index_thread);
 
       let config = options.load_config()?;
       let acme_domains = self.acme_domains()?;
