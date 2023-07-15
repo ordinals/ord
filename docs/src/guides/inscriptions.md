@@ -14,7 +14,7 @@ inscriptions to another wallet.
 Bitcoin Core provides both a Bitcoin full node and wallet. However, the Bitcoin
 Core wallet cannot create inscriptions and does not perform sat control.
 
-This requires [`ord`](https://github.com/casey/ord), the ordinal utility. `ord`
+This requires [`ord`](https://github.com/ordinals/ord), the ordinal utility. `ord`
 doesn't implement its own wallet, so `ord wallet` subcommands interact with
 Bitcoin Core wallets.
 
@@ -33,8 +33,8 @@ Getting Help
 
 If you get stuck, try asking for help on the [Ordinals Discord
 Server](https://discord.com/invite/87cjuz4FYg), or checking GitHub for relevant
-[issues](https://github.com/casey/ord/issues) and
-[discussions](https://github.com/casey/ord/discussions).
+[issues](https://github.com/ordinals/ord/issues) and
+[discussions](https://github.com/ordinals/ord/discussions).
 
 Installing Bitcoin Core
 -----------------------
@@ -89,8 +89,8 @@ Installing `ord`
 ----------------
 
 The `ord` utility is written in Rust and can be built from
-[source](https://github.com/casey/ord). Pre-built binaries are available on the
-[releases page](https://github.com/casey/ord/releases).
+[source](https://github.com/ordinals/ord). Pre-built binaries are available on the
+[releases page](https://github.com/ordinals/ord/releases).
 
 You can install the latest pre-built binary from the command line with:
 
