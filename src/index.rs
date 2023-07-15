@@ -159,7 +159,7 @@ impl Index {
         path.parent().unwrap().display()
       );
     }
-    
+
     let db_cache_size = match options.db_cache_size {
       Some(db_cache_size) => db_cache_size,
       None => {
