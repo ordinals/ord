@@ -12,7 +12,7 @@ forbid:
   ./bin/forbid
 
 fmt:
-  cargo fmt
+  cargo fmt --all
 
 clippy:
   cargo clippy --all --all-targets -- -D warnings
@@ -35,6 +35,13 @@ deploy-mainnet branch="master": (deploy branch "main" "ordinals.net")
 deploy-signet branch="master": (deploy branch "signet" "signet.ordinals.net")
 
 deploy-testnet branch="master": (deploy branch "test" "testnet.ordinals.net")
+
+ord-dev-save-state domain="ordinals-dev.com":
+  scp ./deploy/save-ord-dev-state root@{{domain}}:~
+  ssh root@{{domain}} "./save-ord-dev-state"
+
+ord-dev-deploy:
+  ./deploy/deploy-ord-dev
 
 log unit="ord" domain="ordinals.net":
   ssh root@{{domain}} 'journalctl -fu {{unit}}'
@@ -69,26 +76,30 @@ open:
 doc:
   cargo doc --all --open
 
-update-ord-dev:
-  ./bin/update-ord-dev
+prepare-release revision='master':
+  #!/usr/bin/env bash
+  set -euxo pipefail
+  git checkout {{ revision }}
+  git pull upstream {{ revision }}
+  echo >> CHANGELOG.md
+  git log --pretty='format:- %s' >> CHANGELOG.md
+  $EDITOR CHANGELOG.md
+  $EDITOR Cargo.toml
+  VERSION=`sed -En 's/version[[:space:]]*=[[:space:]]*"([^"]+)"/\1/p' Cargo.toml | head -1`
+  cargo check
+  git checkout -b release-$VERSION
+  git add -u
+  git commit -m "Release $VERSION"
+  git tag -a $VERSION -m "Release $VERSION"
+  gh pr create --web
 
-rebuild-ord-dev-database: && update-ord-dev
-  systemctl stop ord-dev
-  rm -f /var/lib/ord-dev/index.redb
-  rm -f /var/lib/ord-dev/*/index.redb
-  journalctl --unit ord-dev --rotate
-  journalctl --unit ord-dev --vacuum-time 1s
-
-publish revision='master':
+publish-release revision='master':
   #!/usr/bin/env bash
   set -euxo pipefail
   rm -rf tmp/release
-  git clone git@github.com:casey/ord.git tmp/release
+  git clone https://github.com/ordinals/ord.git tmp/release
   cd tmp/release
   git checkout {{ revision }}
-  VERSION=`sed -En 's/version[[:space:]]*=[[:space:]]*"([^"]+)"/\1/p' Cargo.toml | head -1`
-  git tag -a $VERSION -m "Release $VERSION"
-  git push origin $VERSION
   cargo publish
   cd ../..
   rm -rf tmp/release
@@ -153,6 +164,7 @@ build-docs:
   mdbook build docs
 
 update-changelog:
+  echo >> CHANGELOG.md
   git log --pretty='format:- %s' >> CHANGELOG.md
 
 preview-examples:

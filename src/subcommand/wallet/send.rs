@@ -15,13 +15,9 @@ pub struct Output {
 
 impl Send {
   pub(crate) fn run(self, options: Options) -> Result {
-    if !self.address.is_valid_for_network(options.chain().network()) {
-      bail!(
-        "Address `{}` is not valid for {}",
-        self.address,
-        options.chain()
-      );
-    }
+    options
+      .chain()
+      .check_address_is_valid_for_network(&self.address)?;
 
     let index = Index::open(&options)?;
     index.update()?;

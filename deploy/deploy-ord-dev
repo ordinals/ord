@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -euxo pipefail
+
+# This script deploys whatever is currently 
+# in working directory to our dev server
+DOMAIN="ordinals-dev.com"
+
+# Current local working state 
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+COMMIT=$(git rev-parse --short HEAD)
+DIR="ord-${BRANCH}-${COMMIT}"
+
+# Edit service file if you want
+$EDITOR ./deploy/ord-dev.service
+
+# Create own directory for every deploy
+ssh root@${DOMAIN} "mkdir -p /var/lib/ord/${DIR}/repo"
+rsync -avz --exclude-from='.gitignore' --exclude ".git" --exclude "*.redb" ./ root@${DOMAIN}:/var/lib/ord/${DIR}/repo
+
+# Store deployment info in environmental variables
+ssh root@${DOMAIN} "echo 'BRANCH=${BRANCH}' >> /etc/environment \
+  && echo 'COMMIT=${COMMIT}' >> /etc/environment \
+  && echo 'DIR=${DIR}' >> /etc/environment"
+
+# Deploy
+ssh root@${DOMAIN} "cd /var/lib/ord/${DIR}/repo \
+  && /root/.cargo/bin/cargo build --release \
+  && systemctl stop ord-dev \
+  && cp ./target/release/ord /usr/local/bin/ord \
+  && cp /var/lib/ord/${DIR}/repo/deploy/ord-dev.service /etc/systemd/system/ \
+  && systemctl daemon-reload \
+  && systemctl enable ord-dev \
+  && systemctl restart ord-dev \
+  && systemctl status ord-dev"
