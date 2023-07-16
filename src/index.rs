@@ -598,35 +598,28 @@ impl Index {
     }))
   }
 
+  pub(crate) fn get_inscriptions_on_output_with_satpoints(
+    &self,
+    outpoint: OutPoint,
+  ) -> Result<Vec<(SatPoint, InscriptionId)>> {
+    let rtx = &self.database.begin_read()?;
+    let sat_to_id = rtx.open_multimap_table(SATPOINT_TO_INSCRIPTION_ID)?;
+    let re_id_to_seq_num = rtx.open_table(REINSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
+
+    Self::inscriptions_on_output_ordered(&re_id_to_seq_num, &sat_to_id, outpoint)
+  }
+
   pub(crate) fn get_inscriptions_on_output(
     &self,
     outpoint: OutPoint,
   ) -> Result<Vec<InscriptionId>> {
     Ok(
-      Self::inscriptions_on_output(
-        &self
-          .database
-          .begin_read()?
-          .open_multimap_table(SATPOINT_TO_INSCRIPTION_ID)?,
-        outpoint,
-      )?
-      .map(|(_satpoint, inscription_id)| inscription_id)
-      .collect(),
+      self
+        .get_inscriptions_on_output_with_satpoints(outpoint)?
+        .iter()
+        .map(|(_satpoint, inscription_id)| *inscription_id)
+        .collect(),
     )
-  }
-
-  #[cfg(test)]
-  pub(crate) fn get_inscriptions_on_output_ordered(
-    &self,
-    outpoint: OutPoint,
-  ) -> Result<Vec<(SatPoint, InscriptionId)>> {
-    let rtx = &self.database.begin_read()?;
-
-    let sat_to_id = rtx.open_multimap_table(SATPOINT_TO_INSCRIPTION_ID)?;
-
-    let re_id_to_seq_num = rtx.open_table(REINSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
-
-    Self::inscriptions_on_output_ordered(&re_id_to_seq_num, &sat_to_id, outpoint)
   }
 
   pub(crate) fn get_transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
@@ -778,7 +771,7 @@ impl Index {
         let id = id_result?;
         result.insert(Entry::load(*satpoint.value()), Entry::load(*id.value()));
       }
-      if result.len() == n.unwrap_or(usize::MAX) {
+      if result.len() >= n.unwrap_or(usize::MAX) {
         break;
       }
     }
@@ -946,7 +939,7 @@ impl Index {
     }
   }
 
-  fn inscriptions_on_output<'a: 'tx, 'tx>(
+  fn inscriptions_on_output_unordered<'a: 'tx, 'tx>(
     satpoint_to_id: &'a impl ReadableMultimapTable<&'static SatPointValue, &'static InscriptionIdValue>,
     outpoint: OutPoint,
   ) -> Result<impl Iterator<Item = (SatPoint, InscriptionId)> + 'tx> {
@@ -980,7 +973,7 @@ impl Index {
     satpoint_to_id: &'a impl ReadableMultimapTable<&'static SatPointValue, &'static InscriptionIdValue>,
     outpoint: OutPoint,
   ) -> Result<Vec<(SatPoint, InscriptionId)>> {
-    let mut result = Self::inscriptions_on_output(satpoint_to_id, outpoint)?
+    let mut result = Self::inscriptions_on_output_unordered(satpoint_to_id, outpoint)?
       .collect::<Vec<(SatPoint, InscriptionId)>>();
 
     if result.len() <= 1 {
@@ -3003,7 +2996,7 @@ mod tests {
         ],
         context
           .index
-          .get_inscriptions_on_output_ordered(OutPoint { txid, vout: 0 })
+          .get_inscriptions_on_output_with_satpoints(OutPoint { txid, vout: 0 })
           .unwrap()
           .iter()
           .map(|(_satpoint, inscription_id)| *inscription_id)
@@ -3055,7 +3048,7 @@ mod tests {
         vec![(location, first), (location, second), (location, third)],
         context
           .index
-          .get_inscriptions_on_output_ordered(OutPoint { txid, vout: 0 })
+          .get_inscriptions_on_output_with_satpoints(OutPoint { txid, vout: 0 })
           .unwrap()
       )
     }
