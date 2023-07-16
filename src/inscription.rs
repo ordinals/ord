@@ -594,10 +594,10 @@ mod tests {
   fn extract_from_transaction() {
     let tx = Transaction {
       version: 0,
-      lock_time: bitcoin::PackedLockTime(0),
+      lock_time: bitcoin::locktime::absolute::LockTime::ZERO,
       input: vec![TxIn {
         previous_output: OutPoint::null(),
-        script_sig: Script::new(),
+        script_sig: ScriptBuf::new(),
         sequence: Sequence(0),
         witness: envelope(&[b"ord", &[1], b"text/plain;charset=utf-8", &[], b"ord"]),
       }],
@@ -619,17 +619,17 @@ mod tests {
   fn extract_from_second_input() {
     let tx = Transaction {
       version: 0,
-      lock_time: bitcoin::PackedLockTime(0),
+      lock_time: bitcoin::locktime::absolute::LockTime::ZERO,
       input: vec![
         TxIn {
           previous_output: OutPoint::null(),
-          script_sig: Script::new(),
+          script_sig: ScriptBuf::new(),
           sequence: Sequence(0),
           witness: Witness::new(),
         },
         TxIn {
           previous_output: OutPoint::null(),
-          script_sig: Script::new(),
+          script_sig: ScriptBuf::new(),
           sequence: Sequence(0),
           witness: inscription("foo", [1; 1040]).to_witness(),
         },
@@ -653,10 +653,10 @@ mod tests {
 
     let tx = Transaction {
       version: 0,
-      lock_time: bitcoin::PackedLockTime(0),
+      lock_time: bitcoin::locktime::absolute::LockTime::ZERO,
       input: vec![TxIn {
         previous_output: OutPoint::null(),
-        script_sig: Script::new(),
+        script_sig: ScriptBuf::new(),
         sequence: Sequence(0),
         witness,
       }],

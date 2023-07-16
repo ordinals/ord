@@ -2,7 +2,7 @@ pub(crate) use {
   super::*,
   crate::inscription::TransactionInscription,
   bitcoin::blockdata::{opcodes, script},
-  bitcoin::Witness,
+  bitcoin::{ScriptBuf, Witness},
   pretty_assertions::assert_eq as pretty_assert_eq,
   std::iter,
   test_bitcoincore_rpc::TransactionTemplate,
@@ -93,7 +93,7 @@ pub(crate) fn change(n: u64) -> Address {
 pub(crate) fn tx_in(previous_output: OutPoint) -> TxIn {
   TxIn {
     previous_output,
-    script_sig: Script::new(),
+    script_sig: ScriptBuf::new(),
     sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
     witness: Witness::new(),
   }
