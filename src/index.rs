@@ -3129,8 +3129,6 @@ mod tests {
           ..Default::default()
         });
 
-        dbg!(i, txid);
-
         let inscription_id = InscriptionId { txid, index: 0 };
         inscription_ids.push(inscription_id);
 
