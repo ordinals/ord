@@ -1010,7 +1010,7 @@ supports content types that can be displayed by the <code>ord</code> block explo
 content, the higher the fee that the inscription transaction must pay.</p>
 <p>Inscription content is included in transaction witnesses, which receive the
 witness discount. To calculate the approximate fee that an inscribe transaction
-will pay, divide the content size by four and muliply by the fee rate.</p>
+will pay, divide the content size by four and multiply by the fee rate.</p>
 <p>Inscription transactions must be less than 400,000 weight units, or they will
 not be relayed by Bitcoin Core. One byte of inscription content costs one
 weight unit. Since an inscription transaction includes not just the inscription
@@ -1024,10 +1024,10 @@ weight units should be safe.</p>
 for the reveal transaction, and the inscription ID. Inscription IDs are of the
 form <code>TXIDiN</code>, where <code>TXID</code> is the transaction ID of the reveal transaction,
 and <code>N</code> is the index of the inscription in the reveal transaction.</p>
-<p>The commit transaction commits to a tapscript containing the contents of the
+<p>The commit transaction commits to a tapscript containing the content of the
 inscription, and the reveal transaction spends from that tapscript, revealing
-the contents on chain and inscribing them on the first sat of the first output
-of the reveal transaction.</p>
+the content on chain and inscribing it on the first sat of the input that
+contains the corresponding tapscript.</p>
 <p>Wait for the reveal transaction to be mined. You can check the status of the
 commit and reveal transactions using  <a href="https://mempool.space/">the mempool.space block
 explorer</a>.</p>
