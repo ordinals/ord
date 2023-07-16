@@ -147,17 +147,18 @@ impl Index {
   pub(crate) fn open(options: &Options) -> Result<Self> {
     let client = options.bitcoin_rpc_client()?;
 
-    let data_dir = options.data_dir()?;
-
-    if let Err(err) = fs::create_dir_all(&data_dir) {
-      bail!("failed to create data dir `{}`: {err}", data_dir.display());
-    }
-
     let path = if let Some(path) = &options.index {
       path.clone()
     } else {
-      data_dir.join("index.redb")
+      options.data_dir()?.join("index.redb")
     };
+
+    if let Err(err) = fs::create_dir_all(path.parent().unwrap()) {
+      bail!(
+        "failed to create data dir `{}`: {err}",
+        path.parent().unwrap().display()
+      );
+    }
 
     let db_cache_size = match options.db_cache_size {
       Some(db_cache_size) => db_cache_size,

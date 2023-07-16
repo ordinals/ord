@@ -16,7 +16,9 @@ fn output_found() {
         .parse()
         .unwrap(),
       start: 0,
+      end: 50 * COIN_VALUE,
       size: 50 * COIN_VALUE,
+      offset: 0,
       rarity: "mythic".parse().unwrap(),
       name: "nvtdijuwxlp".into(),
     }]
