@@ -38,7 +38,7 @@ lazy_static = "1.4.0"
 log = "0.4.14"
 mime = "0.3.16"
 mime_guess = "2.0.4"
-miniscript = "9.0.1"
+miniscript = { git = "https://github.com/apoelstra/rust-miniscript", rev = "f1c1272" }
 mp4 = "0.13.0"
 ord-bitcoincore-rpc = "0.16.5"
 redb = "1.0.2"

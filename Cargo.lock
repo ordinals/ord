@@ -1952,9 +1952,8 @@ checksum = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a"
 
 [[package]]
 name = "miniscript"
-version = "9.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b9601439f168c13bdc5bf84349c2e61c815be4a4dcebe8c4ff4af58f4e8a6d20"
+version = "9.0.2"
+source = "git+https://github.com/apoelstra/rust-miniscript?rev=f1c1272#f1c12724d04b7ad28d25c866383a948cd493e698"
 dependencies = [
  "bitcoin",
 ]
