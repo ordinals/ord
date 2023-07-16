@@ -169,8 +169,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         } else if inscription.tx_in_offset != 0 {
           Some(Curse::NotAtOffsetZero)
         } else if inscribed_offsets.contains_key(&offset) {
-          let seq_num = self
-            .reinscription_id_to_seq_num.len()?;
+          let seq_num = self.reinscription_id_to_seq_num.len()?;
 
           let sat = Self::calculate_sat(input_sat_ranges, offset);
           log::info!("processing reinscription {inscription_id} on sat {:?}: sequence number {seq_num}, inscribed offsets {:?}", sat, inscribed_offsets);
