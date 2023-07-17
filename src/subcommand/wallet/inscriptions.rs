@@ -11,8 +11,6 @@ pub(crate) fn run(options: Options) -> Result {
   let index = Index::open(&options)?;
   index.update()?;
 
-  // BACKLOG - change the logic here to only get inscriptions for outputs actually in the wallet
-
   let inscriptions = index.get_inscriptions(None)?;
   let unspent_outputs = index.get_unspent_outputs(Wallet::load(&options)?)?;
 
