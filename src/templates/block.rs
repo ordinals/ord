@@ -3,7 +3,7 @@ use super::*;
 #[derive(Boilerplate)]
 pub(crate) struct BlockHtml {
   hash: BlockHash,
-  target: BlockHash,
+  target: bitcoin::pow::Target,
   best_height: Height,
   block: Block,
   height: Height,
@@ -11,11 +11,9 @@ pub(crate) struct BlockHtml {
 
 impl BlockHtml {
   pub(crate) fn new(block: Block, height: Height, best_height: Height) -> Self {
-    let mut target = block.header.target().to_be_bytes();
-    target.reverse();
     Self {
       hash: block.header.block_hash(),
-      target: BlockHash::from_inner(target),
+      target: block.header.target(),
       block,
       height,
       best_height,

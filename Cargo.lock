@@ -540,6 +540,7 @@ dependencies = [
  "bitcoin_hashes 0.12.0",
  "hex_lit",
  "secp256k1 0.27.0",
+ "serde",
 ]
 
 [[package]]
@@ -564,6 +565,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5d7066118b13d4b20b23645932dfb3a81ce7e29f95726c2036fa33cd7b092501"
 dependencies = [
  "bitcoin-private",
+ "serde",
 ]
 
 [[package]]
@@ -2997,7 +2999,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6b1629c9c557ef9b293568b338dddfc8208c98a18c59d722a9d53f859d9c9b62"
 dependencies = [
  "bitcoin_hashes 0.11.0",
- "rand 0.8.5",
  "secp256k1-sys 0.6.1",
  "serde",
 ]
@@ -3011,6 +3012,7 @@ dependencies = [
  "bitcoin_hashes 0.12.0",
  "rand 0.8.5",
  "secp256k1-sys 0.8.1",
+ "serde",
 ]
 
 [[package]]
@@ -3440,7 +3442,7 @@ dependencies = [
 name = "test-bitcoincore-rpc"
 version = "0.0.1"
 dependencies = [
- "bitcoin 0.29.2",
+ "bitcoin 0.30.0",
  "hex",
  "jsonrpc-core",
  "jsonrpc-derive",

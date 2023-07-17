@@ -89,7 +89,7 @@ mod tests {
         chain: Chain::Mainnet,
         output: TxOut {
           value: 3,
-          script_pubkey: Script::new_p2pkh(&PubkeyHash::all_zeros()),
+          script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()),
         },
       }
       .to_string(),
