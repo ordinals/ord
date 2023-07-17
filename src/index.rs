@@ -590,7 +590,7 @@ impl Index {
       let re_id_to_seq_num = rtx.open_table(REINSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
       ids.sort_by_key(
         |inscription_id| match re_id_to_seq_num.get(&inscription_id.store()) {
-          Ok(Some(num)) => num.value() + 1,
+          Ok(Some(num)) => num.value() + 1, // remove at next index refactor
           _ => 0,
         },
       );
@@ -1032,7 +1032,7 @@ impl Index {
 
     result.sort_by_key(|(_satpoint, inscription_id)| {
       match re_id_to_seq_num.get(&inscription_id.store()) {
-        Ok(Some(num)) => num.value() + 1,
+        Ok(Some(num)) => num.value() + 1, // remove at next index refactor
         Ok(None) => 0,
         _ => 0,
       }
@@ -3110,18 +3110,14 @@ mod tests {
       context.mine_blocks(1);
 
       let mut inscription_ids = vec![];
-
       for i in 1..=5 {
-        let inscription_text =
-          inscription("text/plain;charset=utf-8", &format!("hello {}", i)).to_witness();
         let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
           inputs: &[(i, if i == 1 { 0 } else { 1 }, 0)], // for the first inscription use coinbase, otherwise use the previous tx
-          witness: inscription_text,
+          witness: inscription("text/plain;charset=utf-8", &format!("hello {}", i)).to_witness(),
           ..Default::default()
         });
 
-        let inscription_id = InscriptionId { txid, index: 0 };
-        inscription_ids.push(inscription_id);
+        inscription_ids.push(InscriptionId { txid, index: 0 });
 
         context.mine_blocks(1);
       }
@@ -3131,8 +3127,8 @@ mod tests {
 
       for (index, id) in inscription_ids.iter().enumerate() {
         match re_id_to_seq_num.get(&id.store()) {
-          Ok(Some(access_guard)) => {
-            let sequence_number = access_guard.value() + 1;
+          Ok(Some(num)) => {
+            let sequence_number = num.value() + 1; // remove at next index refactor
             assert_eq!(
               index as u64, sequence_number,
               "sequence number mismatch for {:?}",
@@ -3156,18 +3152,14 @@ mod tests {
       context.mine_blocks(1);
 
       let mut inscription_ids = vec![];
-
       for i in 1..=21 {
-        let inscription_text =
-          inscription("text/plain;charset=utf-8", &format!("hello {}", i)).to_witness();
         let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
           inputs: &[(i, if i == 1 { 0 } else { 1 }, 0)], // for the first inscription use coinbase, otherwise use the previous tx
-          witness: inscription_text,
+          witness: inscription("text/plain;charset=utf-8", &format!("hello {}", i)).to_witness(),
           ..Default::default()
         });
 
-        let inscription_id = InscriptionId { txid, index: 0 };
-        inscription_ids.push(inscription_id);
+        inscription_ids.push(InscriptionId { txid, index: 0 });
 
         context.mine_blocks(1);
       }
@@ -3184,7 +3176,7 @@ mod tests {
       let expected_result = inscription_ids
         .iter()
         .map(|id| (location, *id))
-        .collect::<Vec<_>>();
+        .collect::<Vec<(SatPoint, InscriptionId)>>();
 
       assert_eq!(
         expected_result,
