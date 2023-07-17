@@ -531,9 +531,9 @@ dependencies = [
 
 [[package]]
 name = "bitcoin"
-version = "0.30.0"
+version = "0.30.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b36f4c848f6bd9ff208128f08751135846cc23ae57d66ab10a22efff1c675f3c"
+checksum = "4e99ff7289b20a7385f66a0feda78af2fc119d28fb56aea8886a9cd0a4abdd75"
 dependencies = [
  "bech32",
  "bitcoin-private",
@@ -1992,7 +1992,7 @@ version = "10.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1eb102b66b2127a872dbcc73095b7b47aeb9d92f7b03c2b2298253ffc82c7594"
 dependencies = [
- "bitcoin 0.30.0",
+ "bitcoin 0.30.1",
  "bitcoin-private",
 ]
 
@@ -2265,7 +2265,7 @@ dependencies = [
  "base64 0.21.0",
  "bech32",
  "bip39",
- "bitcoin 0.30.0",
+ "bitcoin 0.30.1",
  "boilerplate",
  "chrono",
  "clap",
@@ -2286,7 +2286,7 @@ dependencies = [
  "mime_guess",
  "miniscript",
  "mp4",
- "ord-bitcoincore-rpc",
+ "ord-bitcoincore-rpc 0.17.0",
  "pretty_assertions",
  "pulldown-cmark",
  "redb",
@@ -2317,7 +2317,19 @@ checksum = "ca77a54d5a14a2731dd85150e24be89c849bdcb5704d23097188d763381d98b8"
 dependencies = [
  "jsonrpc",
  "log",
- "ord-bitcoincore-rpc-json",
+ "ord-bitcoincore-rpc-json 0.16.5",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "ord-bitcoincore-rpc"
+version = "0.17.0"
+dependencies = [
+ "bitcoin-private",
+ "jsonrpc",
+ "log",
+ "ord-bitcoincore-rpc-json 0.17.0",
  "serde",
  "serde_json",
 ]
@@ -2329,6 +2341,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "18b81ced8ed99f50d3f221a7de8297cbdf9bdf20ca2908a12f6128d38b2284fb"
 dependencies = [
  "bitcoin 0.29.2",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "ord-bitcoincore-rpc-json"
+version = "0.17.0"
+dependencies = [
+ "bitcoin 0.30.1",
+ "bitcoin-private",
  "serde",
  "serde_json",
 ]
@@ -2999,6 +3021,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6b1629c9c557ef9b293568b338dddfc8208c98a18c59d722a9d53f859d9c9b62"
 dependencies = [
  "bitcoin_hashes 0.11.0",
+ "rand 0.8.5",
  "secp256k1-sys 0.6.1",
  "serde",
 ]
@@ -3442,12 +3465,12 @@ dependencies = [
 name = "test-bitcoincore-rpc"
 version = "0.0.1"
 dependencies = [
- "bitcoin 0.30.0",
+ "bitcoin 0.29.2",
  "hex",
  "jsonrpc-core",
  "jsonrpc-derive",
  "jsonrpc-http-server",
- "ord-bitcoincore-rpc",
+ "ord-bitcoincore-rpc 0.16.5",
  "reqwest",
  "serde",
  "serde_json",

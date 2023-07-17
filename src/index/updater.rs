@@ -9,7 +9,7 @@ use {
 mod inscription_updater;
 
 struct BlockData {
-  header: BlockHeader,
+  header: Header,
   txdata: Vec<(Transaction, Txid)>,
 }
 

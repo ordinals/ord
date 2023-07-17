@@ -1,24 +1,28 @@
 use {
   super::*,
   bitcoin::{
+    ScriptBuf,
     blockdata::{
       opcodes,
-      script::{self, Instruction, Instructions},
+      script::{self, Instruction, Instructions, PushBytes, PushBytesBuf},
     },
-    util::taproot::TAPROOT_ANNEX_PREFIX,
+    taproot::TAPROOT_ANNEX_PREFIX,
     Script, Witness,
   },
   std::{iter::Peekable, str},
 };
 
 const INSCRIPTION_ENVELOPE_HEADER: [bitcoin::blockdata::script::Instruction<'static>; 3] = [
-  Instruction::PushBytes(&[]), // This is an OP_FALSE
+  Instruction::Op(opcodes::OP_FALSE),
   Instruction::Op(opcodes::all::OP_IF),
-  Instruction::PushBytes(PROTOCOL_ID),
+  Instruction::PushBytes(PROTOCOL_ID.into()),
 ];
-const PROTOCOL_ID: &[u8] = b"ord";
-const BODY_TAG: &[u8] = &[];
-const CONTENT_TYPE_TAG: &[u8] = &[1];
+const PROTOCOL_ID: &[u8; 3] = b"ord";
+const TMP: &[u8; 1] = &[0];
+const CONTENT_TYPE_TAG: &[u8; 1] = &[1];
+
+const BODY_TAG: &PushBytes = TMP.try_into().unwrap();
+
 
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) enum Curse {
@@ -94,22 +98,26 @@ impl Inscription {
       .push_slice(PROTOCOL_ID);
 
     if let Some(content_type) = &self.content_type {
+      let mut buffer = PushBytesBuf::new();
+      buffer.extend_from_slice(content_type.as_slice());
       builder = builder
         .push_slice(CONTENT_TYPE_TAG)
-        .push_slice(content_type);
+        .push_slice(buffer.as_push_bytes());
     }
 
     if let Some(body) = &self.body {
       builder = builder.push_slice(BODY_TAG);
+      let mut buffer = PushBytesBuf::new();
       for chunk in body.chunks(520) {
-        builder = builder.push_slice(chunk);
+        buffer.extend_from_slice(chunk);
       }
+      builder = builder.push_slice(buffer.as_push_bytes());
     }
 
     builder.push_opcode(opcodes::all::OP_ENDIF)
   }
 
-  pub(crate) fn append_reveal_script(&self, builder: script::Builder) -> Script {
+  pub(crate) fn append_reveal_script(&self, builder: script::Builder) -> ScriptBuf {
     self.append_reveal_script_to_builder(builder).into_script()
   }
 
@@ -201,7 +209,7 @@ impl<'a> InscriptionParser<'a> {
       .unwrap();
 
     InscriptionParser {
-      instructions: Script::from(Vec::from(script)).instructions().peekable(),
+      instructions: ScriptBuf::from(Vec::from(script)).instructions().peekable(),
     }
     .parse_inscriptions()
     .into_iter()

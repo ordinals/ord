@@ -54,7 +54,7 @@ impl Chain {
   pub(crate) fn address_from_script(
     self,
     script: &Script,
-  ) -> Result<Address, bitcoin::util::address::Error> {
+  ) -> Result<Address, bitcoin::address::Error> {
     Address::from_script(script, self.network())
   }
 

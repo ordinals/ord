@@ -33,6 +33,7 @@ use {
   anyhow::{anyhow, bail, Context, Error},
   bip39::Mnemonic,
   bitcoin::{
+    ScriptBuf,
     blockdata::constants::COIN_VALUE,
     consensus::{self, Decodable, Encodable},
     hash_types::BlockHash,
