@@ -180,6 +180,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             .insert(&inscription_id.store(), seq_num)?;
 
           Some(Curse::Reinscription)
+        } else if inscription.inscription.uses_minimal_opcodes {
+          Some(Curse::MinimalOpcode)
         } else {
           None
         };

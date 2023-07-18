@@ -25,12 +25,14 @@ pub(crate) enum Curse {
   NotInFirstInput,
   NotAtOffsetZero,
   Reinscription,
+  MinimalOpcode,
 }
 
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) struct Inscription {
   body: Option<Vec<u8>>,
   content_type: Option<Vec<u8>>,
+  pub(crate) uses_minimal_opcodes: bool
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -43,13 +45,13 @@ pub(crate) struct TransactionInscription {
 impl Inscription {
   #[cfg(test)]
   pub(crate) fn new(content_type: Option<Vec<u8>>, body: Option<Vec<u8>>) -> Self {
-    Self { content_type, body }
+    Self { content_type, body, uses_minimal_opcodes: false }
   }
 
   pub(crate) fn from_transaction(tx: &Transaction) -> Vec<TransactionInscription> {
     let mut result = Vec::new();
     for (index, tx_in) in tx.input.iter().enumerate() {
-      let Ok(inscriptions) = InscriptionParser::parse(&tx_in.witness) else { continue };
+      let Ok(inscriptions) = InscriptionParser::parse(&tx_in.witness) else { continue; };
 
       result.extend(
         inscriptions
@@ -84,6 +86,7 @@ impl Inscription {
     Ok(Self {
       body: Some(body),
       content_type: Some(content_type.into()),
+      uses_minimal_opcodes: false
     })
   }
 
@@ -225,6 +228,7 @@ impl<'a> InscriptionParser<'a> {
     self.advance_into_inscription_envelope()?;
 
     let mut fields = BTreeMap::new();
+    let mut uses_minimal_opcodes = false;
 
     loop {
       match self.advance()? {
@@ -255,6 +259,7 @@ impl<'a> InscriptionParser<'a> {
           if fields.contains_key(&tag) {
             return Err(InscriptionError::InvalidInscription);
           }
+          uses_minimal_opcodes = true;
           fields.insert(tag, self.expect_push()?.to_vec());
         }
       }
@@ -271,7 +276,7 @@ impl<'a> InscriptionParser<'a> {
       }
     }
 
-    Ok(Inscription { body, content_type })
+    Ok(Inscription { body, content_type, uses_minimal_opcodes })
   }
 
   fn advance(&mut self) -> Result<Instruction<'a>> {
@@ -425,6 +430,7 @@ mod tests {
       Ok(vec![Inscription {
         content_type: Some(b"text/plain;charset=utf-8".to_vec()),
         body: None,
+        uses_minimal_opcodes: false
       }]),
     );
   }
@@ -436,6 +442,7 @@ mod tests {
       Ok(vec![Inscription {
         content_type: None,
         body: Some(b"foo".to_vec()),
+        uses_minimal_opcodes: false
       }]),
     );
   }
@@ -807,6 +814,7 @@ mod tests {
       &Inscription {
         content_type: None,
         body: None,
+        uses_minimal_opcodes: false
       }
       .append_reveal_script(script::Builder::new()),
     );
@@ -818,6 +826,7 @@ mod tests {
       vec![Inscription {
         content_type: None,
         body: None,
+        uses_minimal_opcodes: false
       }]
     );
   }
@@ -829,6 +838,7 @@ mod tests {
       Ok(vec![Inscription {
         content_type: None,
         body: None,
+        uses_minimal_opcodes: false
       }]),
     );
   }
