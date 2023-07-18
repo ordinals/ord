@@ -1,7 +1,7 @@
 use {
   super::*,
   bitcoin::{
-    psbt::serialize::Deserialize,
+    // psbt::serialize::Deserialize,
     secp256k1::{rand, KeyPair, Secp256k1, XOnlyPublicKey},
     Address, Witness,
   },
@@ -51,6 +51,7 @@ impl Api for Server {
         Network::Testnet => "test",
         Network::Signet => "signet",
         Network::Regtest => "regtest",
+        _ => panic!(),
       }),
       blocks: 0,
       headers: 0,
@@ -128,7 +129,7 @@ impl Api for Server {
           nonce: 0,
           previous_block_hash: None,
           time: 0,
-          version: 0,
+          version: Version::ONE,
           version_hex: Some(vec![0, 0, 0, 0]),
         })
         .unwrap(),
@@ -201,12 +202,12 @@ impl Api for Server {
 
     let tx = Transaction {
       version: 0,
-      lock_time: PackedLockTime(0),
+      lock_time: LockTime::ZERO,
       input: utxos
         .iter()
         .map(|input| TxIn {
           previous_output: OutPoint::new(input.txid, input.vout),
-          script_sig: Script::new(),
+          script_sig: ScriptBuf::new(),
           sequence: Sequence::MAX,
           witness: Witness::new(),
         })
@@ -215,7 +216,7 @@ impl Api for Server {
         .values()
         .map(|amount| TxOut {
           value: (*amount * COIN_VALUE as f64) as u64,
-          script_pubkey: Script::new(),
+          script_pubkey: ScriptBuf::new(),
         })
         .collect(),
     };
@@ -247,9 +248,9 @@ impl Api for Server {
     assert_eq!(utxos, None, "utxos param not supported");
     assert_eq!(sighash_type, None, "sighash_type param not supported");
 
-    let mut transaction = Transaction::deserialize(&hex::decode(tx).unwrap()).unwrap();
+    let mut transaction: Transaction = deserialize(&hex::decode(tx).unwrap()).unwrap();
     for input in &mut transaction.input {
-      input.witness = Witness::from_vec(vec![vec![0; 64]]);
+      input.witness = Witness::from_slice(&[&[0; 64]]);
     }
 
     Ok(
@@ -402,7 +403,7 @@ impl Api for Server {
           label: None,
           redeem_script: None,
           witness_script: None,
-          script_pub_key: Script::new(),
+          script_pub_key: ScriptBuf::new(),
           amount,
           confirmations: 0,
           spendable: true,
@@ -548,23 +549,21 @@ impl Api for Server {
     Ok(true)
   }
 
-  fn list_descriptors(&self) -> Result<ListDescriptorsResult, jsonrpc_core::Error> {
-    Ok(ListDescriptorsResult {
-      wallet_name: "ord".into(),
-      descriptors: self
+  fn list_descriptors(&self) -> Result<Vec<GetDescriptorInfoResult>, jsonrpc_core::Error> {
+    Ok(
+      self
         .state()
         .descriptors
         .iter()
-        .map(|desc| Descriptor {
-          desc: desc.to_string(),
-          timestamp: Timestamp::Now,
-          active: true,
-          internal: None,
-          range: None,
-          next: None,
+        .map(|desc| GetDescriptorInfoResult {
+          descriptor: desc.to_string(),
+          checksum: "98usadf".into(),
+          is_range: false,
+          is_solvable: false,
+          has_private_keys: false,
         })
         .collect(),
-    })
+    )
   }
 
   fn load_wallet(&self, wallet: String) -> Result<LoadWalletResult, jsonrpc_core::Error> {

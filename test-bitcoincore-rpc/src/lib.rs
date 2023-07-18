@@ -3,22 +3,24 @@
 use {
   api::Api,
   bitcoin::{
+    pow::CompactTarget,
+    ScriptBuf,
     blockdata::constants::COIN_VALUE,
-    blockdata::script,
+    blockdata::{ block::Version, script},
     consensus::encode::{deserialize, serialize},
-    hash_types::BlockHash,
+    hash_types::{BlockHash, TxMerkleNode},
     hashes::Hash,
-    util::amount::SignedAmount,
-    Address, Amount, Block, BlockHeader, Network, OutPoint, PackedLockTime, Script, Sequence,
-    Transaction, TxIn, TxMerkleNode, TxOut, Txid, Witness, Wtxid,
+    amount::SignedAmount,
+    Address, Amount, Block, block::Header, Network, OutPoint, locktime::absolute::LockTime, Sequence,
+    Transaction, TxIn, TxOut, Txid, Witness, Wtxid,
   },
   bitcoincore_rpc::json::{
-    Bip125Replaceable, CreateRawTransactionInput, Descriptor, EstimateMode, GetBalancesResult,
+    Bip125Replaceable, CreateRawTransactionInput, EstimateMode, GetBalancesResult,
     GetBalancesResultEntry, GetBlockHeaderResult, GetBlockchainInfoResult, GetDescriptorInfoResult,
     GetNetworkInfoResult, GetRawTransactionResult, GetTransactionResult,
     GetTransactionResultDetail, GetTransactionResultDetailCategory, GetWalletInfoResult,
-    ImportDescriptors, ImportMultiResult, ListDescriptorsResult, ListTransactionResult,
-    ListUnspentResultEntry, LoadWalletResult, SignRawTransactionResult, Timestamp, WalletTxInfo,
+    ImportDescriptors, ImportMultiResult, ListTransactionResult,
+    ListUnspentResultEntry, LoadWalletResult, SignRawTransactionResult, WalletTxInfo,
   },
   jsonrpc_core::{IoHandler, Value},
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
@@ -228,6 +230,7 @@ impl Handle {
       Network::Testnet => Network::Testnet.to_string(),
       Network::Signet => Network::Signet.to_string(),
       Network::Regtest => Network::Regtest.to_string(),
+      _ => panic!(),
     }
   }
 
