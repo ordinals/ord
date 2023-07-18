@@ -7,7 +7,7 @@ use {
       script::{self, Instruction, Instructions, PushBytes, PushBytesBuf},
     },
     taproot::TAPROOT_ANNEX_PREFIX,
-    Script, Witness,
+    Witness,
   },
   std::{iter::Peekable, str},
 };

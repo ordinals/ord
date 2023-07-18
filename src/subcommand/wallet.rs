@@ -71,10 +71,15 @@ impl Wallet {
   }
 }
 
-fn get_change_address(client: &Client) -> Result<Address> {
-  client
-    .call("getrawchangeaddress", &["bech32m".into()])
-    .context("could not get change addresses from wallet")
+fn get_change_address(client: &Client, options: &Options) -> Result<Address> {
+  Ok(
+    Address::from(
+      client
+        .call("getrawchangeaddress", &["bech32m".into()])
+        .context("could not get change addresses from wallet")?,
+    )
+    .require_network(options.chain().network())?,
+  )
 }
 
 pub(crate) fn initialize_wallet(options: &Options, seed: [u8; 64]) -> Result {
