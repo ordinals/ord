@@ -3,7 +3,7 @@ use {
   bitcoin::{
     // psbt::serialize::Deserialize,
     secp256k1::{rand, KeyPair, Secp256k1, XOnlyPublicKey},
-    Address, Witness,
+    Witness,
   },
   bitcoincore_rpc::RawTx,
 };
@@ -272,7 +272,7 @@ impl Api for Server {
 
   fn send_to_address(
     &self,
-    address: Address,
+    address: Address<NetworkUnchecked>,
     amount: f64,
     comment: Option<String>,
     comment_to: Option<String>,
@@ -292,7 +292,7 @@ impl Api for Server {
     let locked = state.locked.iter().cloned().collect();
 
     state.sent.push(Sent {
-      address,
+      address: address.assume_checked(),
       amount,
       locked,
     });
@@ -379,7 +379,7 @@ impl Api for Server {
     &self,
     minconf: Option<usize>,
     maxconf: Option<usize>,
-    address: Option<bitcoin::Address>,
+    address: Option<Address<NetworkUnchecked>>,
     include_unsafe: Option<bool>,
     query_options: Option<String>,
   ) -> Result<Vec<ListUnspentResultEntry>, jsonrpc_core::Error> {
@@ -429,7 +429,7 @@ impl Api for Server {
   fn get_raw_change_address(
     &self,
     _address_type: Option<bitcoincore_rpc::json::AddressType>,
-  ) -> Result<bitcoin::Address, jsonrpc_core::Error> {
+  ) -> Result<Address, jsonrpc_core::Error> {
     let secp256k1 = Secp256k1::new();
     let key_pair = KeyPair::new(&secp256k1, &mut rand::thread_rng());
     let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);
@@ -549,21 +549,23 @@ impl Api for Server {
     Ok(true)
   }
 
-  fn list_descriptors(&self) -> Result<Vec<GetDescriptorInfoResult>, jsonrpc_core::Error> {
-    Ok(
-      self
+  fn list_descriptors(&self) -> Result<ListDescriptorsResult, jsonrpc_core::Error> {
+    Ok(ListDescriptorsResult {
+      wallet_name: "ord".into(),
+      descriptors: self
         .state()
         .descriptors
         .iter()
-        .map(|desc| GetDescriptorInfoResult {
-          descriptor: desc.to_string(),
-          checksum: "98usadf".into(),
-          is_range: false,
-          is_solvable: false,
-          has_private_keys: false,
+        .map(|desc| Descriptor {
+          desc: desc.to_string(),
+          timestamp: Timestamp::Now,
+          active: true,
+          internal: None,
+          range: None,
+          next: None,
         })
         .collect(),
-    )
+    })
   }
 
   fn load_wallet(&self, wallet: String) -> Result<LoadWalletResult, jsonrpc_core::Error> {
