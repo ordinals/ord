@@ -15,14 +15,11 @@ use {
 const INSCRIPTION_ENVELOPE_HEADER: [bitcoin::blockdata::script::Instruction<'static>; 3] = [
   Instruction::Op(opcodes::OP_FALSE),
   Instruction::Op(opcodes::all::OP_IF),
-  Instruction::PushBytes(PROTOCOL_ID.into()),
+  Instruction::PushBytes(PROTOCOL_ID),
 ];
-const PROTOCOL_ID: &[u8; 3] = b"ord";
-const TMP: &[u8; 1] = &[0];
-const CONTENT_TYPE_TAG: &[u8; 1] = &[1];
-
-const BODY_TAG: &PushBytes = TMP.try_into().unwrap();
-
+const PROTOCOL_ID: &[u8] = b"ord";
+const BODY_TAG: &[u8] = &[];
+const CONTENT_TYPE_TAG: &[u8] = &[1];
 
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) enum Curse {
