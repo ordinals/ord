@@ -399,6 +399,8 @@ impl Index {
 
     writeln!(writer, "# export at block height {}", blocks_indexed)?;
 
+    log::info!("exporting database tables to {filename}");
+
     for result in rtx
       .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
       .iter()?
@@ -406,13 +408,11 @@ impl Index {
       let (number, id) = result?;
       let inscription_id = InscriptionId::load(*id.value());
 
-      write!(writer, "{}\t{}", number.value(), inscription_id)?;
-
       let satpoint = self
         .get_inscription_satpoint_by_id(inscription_id)?
         .unwrap();
 
-      write!(writer, "\t{}", satpoint)?;
+      write!(writer, "{}\t{}\t{}", number.value(), inscription_id, satpoint)?;
 
       if include_addresses {
         let address = if satpoint.outpoint == unbound_outpoint() {
