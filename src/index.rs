@@ -412,7 +412,13 @@ impl Index {
         .get_inscription_satpoint_by_id(inscription_id)?
         .unwrap();
 
-      write!(writer, "{}\t{}\t{}", number.value(), inscription_id, satpoint)?;
+      write!(
+        writer,
+        "{}\t{}\t{}",
+        number.value(),
+        inscription_id,
+        satpoint
+      )?;
 
       if include_addresses {
         let address = if satpoint.outpoint == unbound_outpoint() {
