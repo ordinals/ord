@@ -15,9 +15,7 @@ pub struct Output {
 
 impl Send {
   pub(crate) fn run(self, options: Options) -> Result {
-    let address = self
-      .address
-      .require_network(options.chain().network())?;
+    let address = self.address.require_network(options.chain().network())?;
 
     let index = Index::open(&options)?;
     index.update()?;

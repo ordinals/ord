@@ -2546,7 +2546,7 @@ mod tests {
         .push_opcode(opcodes::all::OP_ENDIF)
         .into_script();
 
-      let witness = Witness::from_vec(vec![script.into_bytes(), Vec::new()]);
+      let witness = Witness::from_slice(&[script.into_bytes(), Vec::new()]);
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
@@ -2653,7 +2653,7 @@ mod tests {
         .push_opcode(opcodes::all::OP_ENDIF)
         .into_script();
 
-      let witness = Witness::from_vec(vec![script.into_bytes(), Vec::new()]);
+      let witness = Witness::from_slice(&[script.into_bytes(), Vec::new()]);
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0), (2, 0, 0), (3, 0, 0)],
@@ -2758,7 +2758,7 @@ mod tests {
         .push_opcode(opcodes::all::OP_ENDIF)
         .into_script();
 
-      let witness = Witness::from_vec(vec![script.into_bytes(), Vec::new()]);
+      let witness = Witness::from_slice(&[script.into_bytes(), Vec::new()]);
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],

@@ -234,8 +234,9 @@ fn send_btc() {
     &[Sent {
       amount: 1.0,
       address: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
-        .parse()
-        .unwrap(),
+        .parse::<Address<NetworkUnchecked>>()
+        .unwrap()
+        .assume_checked(),
       locked: Vec::new(),
     }]
   )
@@ -267,8 +268,9 @@ fn send_btc_locks_inscriptions() {
     &[Sent {
       amount: 1.0,
       address: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
-        .parse()
-        .unwrap(),
+        .parse::<Address<NetworkUnchecked>>()
+        .unwrap()
+        .assume_checked(),
       locked: vec![OutPoint {
         txid: reveal,
         vout: 0,

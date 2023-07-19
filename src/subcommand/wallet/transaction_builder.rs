@@ -35,9 +35,8 @@
 use {
   super::*,
   bitcoin::{
-    ScriptBuf,
-    Amount,
     blockdata::{locktime::absolute::LockTime, witness::Witness},
+    Amount, ScriptBuf,
   },
   std::collections::{BTreeMap, BTreeSet},
 };
@@ -969,8 +968,9 @@ mod tests {
     .unwrap();
 
     builder.outputs[0].0 = "tb1qx4gf3ya0cxfcwydpq8vr2lhrysneuj5d7lqatw"
-      .parse()
-      .unwrap();
+      .parse::<Address<NetworkUnchecked>>()
+      .unwrap()
+      .assume_checked();
 
     builder.build().unwrap();
   }
@@ -1445,8 +1445,9 @@ mod tests {
       0,
       vec![
         "bc1pxwww0ct9ue7e8tdnlmug5m2tamfn7q06sahstg39ys4c9f3340qqxrdu9k"
-          .parse()
-          .unwrap(),
+          .parse::<Address<NetworkUnchecked>>()
+          .unwrap()
+          .assume_checked(),
       ],
     );
     assert_eq!(after - before, TransactionBuilder::ADDITIONAL_OUTPUT_VBYTES);
