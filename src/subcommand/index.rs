@@ -25,6 +25,8 @@ pub(crate) struct Export {
     help = "<TSV> file to write to"
   )]
   tsv: String,
+  #[clap(long, help = "Whether to include addresses in export")]
+  include_addresses: bool,
 }
 
 impl Export {
@@ -32,7 +34,7 @@ impl Export {
     let index = Index::open(&options)?;
 
     index.update()?;
-    index.export(&self.tsv)?;
+    index.export(&self.tsv, self.include_addresses)?;
 
     Ok(())
   }
