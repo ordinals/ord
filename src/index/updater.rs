@@ -102,12 +102,7 @@ impl Updater {
 
     let mut uncommitted = 0;
     let mut value_cache = HashMap::new();
-    loop {
-      let block = match rx.recv() {
-        Ok(block) => block,
-        Err(mpsc::RecvError) => break,
-      };
-
+    while let Ok(block) = rx.recv() {
       self.index_block(
         index,
         &mut outpoint_sender,

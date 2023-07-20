@@ -223,7 +223,7 @@ impl<'a> InscriptionParser<'a> {
 
   fn parse_one_inscription(&mut self) -> Result<Inscription> {
     self.advance_into_inscription_envelope()?;
-
+    dbg!("here");
     let mut fields = BTreeMap::new();
 
     loop {
@@ -484,9 +484,9 @@ mod tests {
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
       .push_slice(b"ord")
-      .push_slice(&[1])
+      .push_slice([1])
       .push_slice(b"text/plain;charset=utf-8")
-      .push_slice(&[])
+      .push_slice([])
       .push_slice(b"ord")
       .push_opcode(opcodes::all::OP_ENDIF)
       .push_opcode(opcodes::all::OP_CHECKSIG)
@@ -505,9 +505,9 @@ mod tests {
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
       .push_slice(b"ord")
-      .push_slice(&[1])
+      .push_slice([1])
       .push_slice(b"text/plain;charset=utf-8")
-      .push_slice(&[])
+      .push_slice([])
       .push_slice(b"ord")
       .push_opcode(opcodes::all::OP_ENDIF)
       .into_script();
@@ -524,17 +524,17 @@ mod tests {
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
       .push_slice(b"ord")
-      .push_slice(&[1])
+      .push_slice([1])
       .push_slice(b"text/plain;charset=utf-8")
-      .push_slice(&[])
+      .push_slice([])
       .push_slice(b"foo")
       .push_opcode(opcodes::all::OP_ENDIF)
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
       .push_slice(b"ord")
-      .push_slice(&[1])
+      .push_slice([1])
       .push_slice(b"text/plain;charset=utf-8")
-      .push_slice(&[])
+      .push_slice([])
       .push_slice(b"bar")
       .push_opcode(opcodes::all::OP_ENDIF)
       .into_script();
