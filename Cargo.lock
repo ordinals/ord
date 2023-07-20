@@ -2009,6 +2009,7 @@ dependencies = [
  "bech32",
  "bip39",
  "bitcoin",
+ "bitcoin_hashes 0.12.0",
  "boilerplate",
  "chrono",
  "clap",

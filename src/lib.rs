@@ -33,7 +33,7 @@ use {
   anyhow::{anyhow, bail, Context, Error},
   bip39::Mnemonic,
   bitcoin::{
-    address::{Address, NetworkChecked, NetworkUnchecked},
+    address::{Address, NetworkUnchecked},
     blockdata::constants::COIN_VALUE,
     consensus::{self, Decodable, Encodable},
     hash_types::BlockHash,

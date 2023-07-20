@@ -117,7 +117,7 @@ fn send_addresses_must_be_valid_for_network() {
   ))
   .rpc_server(&rpc_server)
   .expected_stderr(
-    "error: Address `tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz` is not valid for mainnet\n",
+    "error: address tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz belongs to network testnet which is different from required bitcoin\n",
   )
   .expected_exit_code(1)
   .run_and_extract_stdout();

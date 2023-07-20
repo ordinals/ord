@@ -3,7 +3,7 @@ use {
   bitcoin::{
     blockdata::{
       opcodes,
-      script::{self, Instruction, Instructions, PushBytes, PushBytesBuf},
+      script::{self, Instruction, Instructions, PushBytesBuf},
     },
     taproot::TAPROOT_ANNEX_PREFIX,
     ScriptBuf, Witness,
@@ -88,21 +88,17 @@ impl Inscription {
       .push_opcode(opcodes::all::OP_IF)
       .push_slice(PROTOCOL_ID);
 
-    if let Some(content_type) = &self.content_type {
-      let mut buffer = PushBytesBuf::new();
-      buffer.extend_from_slice(content_type.as_slice());
+    if let Some(content_type) = self.content_type.clone() {
       builder = builder
         .push_slice(CONTENT_TYPE_TAG)
-        .push_slice(buffer.as_push_bytes());
+        .push_slice(PushBytesBuf::try_from(content_type).unwrap());
     }
 
     if let Some(body) = &self.body {
       builder = builder.push_slice(BODY_TAG);
-      let mut buffer = PushBytesBuf::new();
       for chunk in body.chunks(520) {
-        buffer.extend_from_slice(chunk);
+        builder = builder.push_slice(PushBytesBuf::try_from(chunk.to_vec()).unwrap());
       }
-      builder = builder.push_slice(buffer.as_push_bytes());
     }
 
     builder.push_opcode(opcodes::all::OP_ENDIF)
@@ -223,7 +219,6 @@ impl<'a> InscriptionParser<'a> {
 
   fn parse_one_inscription(&mut self) -> Result<Inscription> {
     self.advance_into_inscription_envelope()?;
-    dbg!("here");
     let mut fields = BTreeMap::new();
 
     loop {
@@ -258,8 +253,6 @@ impl<'a> InscriptionParser<'a> {
       }
     }
 
-    dbg!(&fields);
-
     Ok(Inscription { body, content_type })
   }
 
@@ -274,7 +267,7 @@ impl<'a> InscriptionParser<'a> {
   fn advance_into_inscription_envelope(&mut self) -> Result<()> {
     loop {
       if self.match_instructions(&[
-        Instruction::Op(opcodes::OP_FALSE),
+        Instruction::PushBytes((&[]).into()), // represents an OF_FALSE
         Instruction::Op(opcodes::all::OP_IF),
         Instruction::PushBytes((&PROTOCOL_ID).into()),
       ])? {
@@ -286,12 +279,8 @@ impl<'a> InscriptionParser<'a> {
   }
 
   fn match_instructions(&mut self, instructions: &[Instruction]) -> Result<bool> {
-    dbg!("INSTRUCTIONS+++++++++++++++++++++");
-    dbg!(&instructions);
     for instruction in instructions {
-      dbg!(&self);
       if &self.advance()? != instruction {
-        dbg!("inside");
         return Ok(false);
       }
     }
@@ -567,7 +556,7 @@ mod tests {
     let script = script::Builder::new()
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
-      .push_slice(PushBytesBuf::from(b"ord"))
+      .push_slice(b"ord")
       .into_script();
 
     assert_eq!(
@@ -580,7 +569,7 @@ mod tests {
   fn no_op_false() {
     let script = script::Builder::new()
       .push_opcode(opcodes::all::OP_IF)
-      .push_slice(PushBytesBuf::from(b"ord"))
+      .push_slice(b"ord")
       .push_opcode(opcodes::all::OP_ENDIF)
       .into_script();
 
