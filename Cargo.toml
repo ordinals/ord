@@ -79,6 +79,3 @@ path = "tests/lib.rs"
 
 [build-dependencies]
 pulldown-cmark = "0.9.2"
-
-[patch.crates-io]
-ord-bitcoincore-rpc = { path = "../ord-rust-bitcoincore-rpc/client" }
