@@ -1,25 +1,19 @@
 use {
   super::*,
   bitcoin::{
-    ScriptBuf,
     blockdata::{
       opcodes,
       script::{self, Instruction, Instructions, PushBytes, PushBytesBuf},
     },
     taproot::TAPROOT_ANNEX_PREFIX,
-    Witness,
+    ScriptBuf, Witness,
   },
   std::{iter::Peekable, str},
 };
 
-const INSCRIPTION_ENVELOPE_HEADER: [bitcoin::blockdata::script::Instruction<'static>; 3] = [
-  Instruction::Op(opcodes::OP_FALSE),
-  Instruction::Op(opcodes::all::OP_IF),
-  Instruction::PushBytes(PROTOCOL_ID),
-];
-const PROTOCOL_ID: &[u8] = b"ord";
-const BODY_TAG: &[u8] = &[];
-const CONTENT_TYPE_TAG: &[u8] = &[1];
+const PROTOCOL_ID: [u8; 3] = *b"ord";
+const BODY_TAG: [u8; 0] = [];
+const CONTENT_TYPE_TAG: [u8; 1] = [1];
 
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) enum Curse {
@@ -233,27 +227,27 @@ impl<'a> InscriptionParser<'a> {
 
     loop {
       match self.advance()? {
-        Instruction::PushBytes(BODY_TAG) => {
+        Instruction::PushBytes(tag) if tag.as_bytes() == BODY_TAG.as_slice() => {
           let mut body = Vec::new();
           while !self.accept(&Instruction::Op(opcodes::all::OP_ENDIF))? {
             body.extend_from_slice(self.expect_push()?);
           }
-          fields.insert(BODY_TAG, body);
+          fields.insert(BODY_TAG.as_slice(), body);
           break;
         }
         Instruction::PushBytes(tag) => {
-          if fields.contains_key(tag) {
+          if fields.contains_key(tag.as_bytes()) {
             return Err(InscriptionError::InvalidInscription);
           }
-          fields.insert(tag, self.expect_push()?.to_vec());
+          fields.insert(tag.as_bytes(), self.expect_push()?.to_vec());
         }
         Instruction::Op(opcodes::all::OP_ENDIF) => break,
         _ => return Err(InscriptionError::InvalidInscription),
       }
     }
 
-    let body = fields.remove(BODY_TAG);
-    let content_type = fields.remove(CONTENT_TYPE_TAG);
+    let body = fields.remove(BODY_TAG.as_slice());
+    let content_type = fields.remove(CONTENT_TYPE_TAG.as_slice());
 
     for tag in fields.keys() {
       if let Some(lsb) = tag.first() {
@@ -276,7 +270,11 @@ impl<'a> InscriptionParser<'a> {
 
   fn advance_into_inscription_envelope(&mut self) -> Result<()> {
     loop {
-      if self.match_instructions(&INSCRIPTION_ENVELOPE_HEADER)? {
+      if self.match_instructions(&[
+        Instruction::Op(opcodes::OP_FALSE),
+        Instruction::Op(opcodes::all::OP_IF),
+        Instruction::PushBytes((&PROTOCOL_ID).into()),
+      ])? {
         break;
       }
     }
@@ -296,7 +294,7 @@ impl<'a> InscriptionParser<'a> {
 
   fn expect_push(&mut self) -> Result<&'a [u8]> {
     match self.advance()? {
-      Instruction::PushBytes(bytes) => Ok(bytes),
+      Instruction::PushBytes(bytes) => Ok(bytes.as_bytes()),
       _ => Err(InscriptionError::InvalidInscription),
     }
   }

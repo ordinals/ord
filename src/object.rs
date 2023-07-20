@@ -34,7 +34,7 @@ impl FromStr for Object {
 impl Display for Object {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     match self {
-      Self::Address(address) => write!(f, "{}", address.assume_checked()),
+      Self::Address(address) => write!(f, "{}", address.clone().assume_checked()),
       Self::Hash(hash) => {
         for byte in hash {
           write!(f, "{byte:02x}")?;

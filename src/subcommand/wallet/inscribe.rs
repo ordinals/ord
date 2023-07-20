@@ -198,7 +198,7 @@ impl Inscribe {
     );
 
     let taproot_spend_info = TaprootBuilder::new()
-      .add_leaf(0, reveal_script)
+      .add_leaf(0, reveal_script.clone())
       .expect("adding leaf should work")
       .finalize(&secp256k1, public_key)
       .expect("finalizing taproot builder should work");
