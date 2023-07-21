@@ -48,7 +48,7 @@ impl State {
   pub(crate) fn push_block(&mut self, subsidy: u64) -> Block {
     let coinbase = Transaction {
       version: 0,
-      lock_time: PackedLockTime(0),
+      lock_time: LockTime::ZERO,
       input: vec![TxIn {
         previous_output: OutPoint::null(),
         script_sig: script::Builder::new()
@@ -78,19 +78,19 @@ impl State {
               fee
             })
             .sum::<u64>(),
-        script_pubkey: Script::new(),
+        script_pubkey: ScriptBuf::new(),
       }],
     };
 
     self.transactions.insert(coinbase.txid(), coinbase.clone());
 
     let block = Block {
-      header: BlockHeader {
-        version: 0,
+      header: Header {
+        version: Version::ONE,
         prev_blockhash: *self.hashes.last().unwrap(),
         merkle_root: TxMerkleNode::all_zeros(),
         time: self.blocks.len().try_into().unwrap(),
-        bits: 0,
+        bits: CompactTarget::from_consensus(0),
         nonce: self.nonce,
       },
       txdata: std::iter::once(coinbase)
@@ -136,7 +136,7 @@ impl State {
       total_value += tx.output[*vout].value;
       input.push(TxIn {
         previous_output: OutPoint::new(tx.txid(), *vout as u32),
-        script_sig: Script::new(),
+        script_sig: ScriptBuf::new(),
         sequence: Sequence::MAX,
         witness: template.witness.clone(),
       });
@@ -150,7 +150,7 @@ impl State {
 
     let tx = Transaction {
       version: 0,
-      lock_time: PackedLockTime(0),
+      lock_time: LockTime::ZERO,
       input,
       output: (0..template.outputs)
         .map(|i| TxOut {
