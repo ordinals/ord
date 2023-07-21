@@ -1,7 +1,6 @@
 use {
   super::*,
   bitcoin::{
-    // psbt::serialize::Deserialize,
     secp256k1::{rand, KeyPair, Secp256k1, XOnlyPublicKey},
     Witness,
   },

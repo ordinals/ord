@@ -21,7 +21,6 @@ base64 = "0.21.0"
 bech32 = "0.9.1"
 bip39 = "2.0.0"
 bitcoin = { version = "0.30.0", features = ["rand"] }
-bitcoin_hashes = "0.12.0"
 boilerplate = { version = "0.2.3", features = ["axum"] }
 chrono = "0.4.19"
 clap = { version = "3.2.18", features = ["derive", "deprecated"] }

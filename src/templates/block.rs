@@ -13,9 +13,7 @@ impl BlockHtml {
   pub(crate) fn new(block: Block, height: Height, best_height: Height) -> Self {
     Self {
       hash: block.header.block_hash(),
-      target: BlockHash::from_raw_hash(
-        bitcoin_hashes::sha256d::Hash::from_slice(&block.header.target().to_be_bytes()).unwrap(),
-      ),
+      target: BlockHash::from_raw_hash(Hash::from_byte_array(block.header.target().to_be_bytes())),
       block,
       height,
       best_height,
