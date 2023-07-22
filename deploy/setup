@@ -25,7 +25,6 @@ printf "[Service]\nEnvironment=CHAIN=%s\n" $CHAIN \
 
 printf 'BRANCH=%s\n' $BRANCH >> /etc/environment \
   && printf 'COMMIT=%s\n' $COMMIT >> /etc/environment \
-  && printf 'DIR=%s\n' $DIR >> /etc/environment \
   && printf 'REVISION=%s\n' $REVISION >> /etc/environment
 
 hostnamectl set-hostname $DOMAIN
