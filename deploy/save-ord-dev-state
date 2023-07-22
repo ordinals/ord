@@ -6,12 +6,14 @@ systemctl stop ord-dev
 
 cd /var/lib/ord
 
+mkdir -p /var/lib/ord/${REVISION}/repo
+
 # Still have to manually set --index-sats or --height-limit
 /usr/local/bin/ord --bitcoin-data-dir /var/lib/bitcoind \
   --data-dir /var/lib/ord \
   index export
 
-mv inscription_number_to_id.tsv ./${DIR}/inscription_number_to_id-${BRANCH}-${COMMIT}.tsv
+mv inscription_number_to_id.tsv ./${REVISION}/inscription_number_to_id-${BRANCH}-${COMMIT}.tsv
 
-mv index.redb ./${DIR}/index-${BRANCH}-${COMMIT}.redb
+mv index.redb ./${REVISION}/index-${BRANCH}-${COMMIT}.redb
 
