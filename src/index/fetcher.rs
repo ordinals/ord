@@ -65,18 +65,27 @@ impl Fetcher {
     }
 
     let body = Value::Array(reqs).to_string();
-    let req = Request::builder()
-      .method(Method::POST)
-      .uri(&self.url)
-      .header(hyper::header::AUTHORIZATION, &self.auth)
-      .header(hyper::header::CONTENT_TYPE, "application/json")
-      .body(Body::from(body))?;
 
-    let response = self.client.request(req).await?;
+    let mut results: Vec<JsonResponse<String>>;
 
-    let buf = hyper::body::to_bytes(response).await?;
+    let mut tries = 0;
 
-    let mut results: Vec<JsonResponse<String>> = serde_json::from_slice(&buf)?;
+    loop {
+      if tries >= 3 {
+        return Err(anyhow!("Failed to fetch raw transaction after 3 tries"));
+      }
+
+      results = match self.try_get_transactions(body.clone()).await {
+        Ok(results) => results,
+        Err(error) => {
+          log::warn!("Failed to fetch raw transaction, retrying: {}", error);
+          tries += 1;
+          tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+          continue;
+        }
+      };
+      break;
+    }
 
     // Return early on any error, because we need all results to proceed
     if let Some(err) = results.iter().find_map(|res| res.error.as_ref()) {
@@ -108,5 +117,22 @@ impl Fetcher {
       })
       .collect::<Result<Vec<Transaction>>>()?;
     Ok(txs)
+  }
+
+  async fn try_get_transactions(&self, body: String) -> Result<Vec<JsonResponse<String>>> {
+    let req = Request::builder()
+      .method(Method::POST)
+      .uri(&self.url)
+      .header(hyper::header::AUTHORIZATION, &self.auth)
+      .header(hyper::header::CONTENT_TYPE, "application/json")
+      .body(Body::from(body))?;
+
+    let response = self.client.request(req).await?;
+
+    let buf = hyper::body::to_bytes(response).await?;
+
+    let results: Vec<JsonResponse<String>> = serde_json::from_slice(&buf)?;
+
+    Ok(results)
   }
 }
