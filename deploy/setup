@@ -80,7 +80,7 @@ rustup update stable
 
 cargo build --release
 if [[ -f /usr/local/bin/ord ]]; then
-  mv /usr/local/bin/ord /usr/local/bin/${REVISION}.bak
+  mv /usr/local/bin/ord /usr/local/bin/$REVISION.bak
 fi
 cp target/release/ord /usr/local/bin/ord
 
