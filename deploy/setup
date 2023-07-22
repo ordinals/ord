@@ -9,7 +9,7 @@ CHAIN=$1
 DOMAIN=$2
 BRANCH=$3
 COMMIT=$4
-REVISION="ord-${BRANCH}-${COMMIT}"
+REVISION="ord-$BRANCH-$COMMIT"
 
 touch ~/.hushlogin
 
@@ -23,10 +23,10 @@ printf "[Service]\nEnvironment=CHAIN=%s\n" $CHAIN \
   | tee /etc/systemd/system/bitcoind.service.d/override.conf \
   > /etc/systemd/system/ord.service.d/override.conf
 
-echo 'BRANCH=${BRANCH}' >> /etc/environment \
-  && echo 'COMMIT=${COMMIT}' >> /etc/environment \
-  && echo 'DIR=${DIR}' >> /etc/environment \
-  && echo 'REVISION=${REVISION}' >> /etc/environment
+printf 'BRANCH=%s\n' $BRANCH >> /etc/environment \
+  && printf 'COMMIT=%s\n' $COMMIT >> /etc/environment \
+  && printf 'DIR=%s\n' $DIR >> /etc/environment \
+  && printf 'REVISION=%s\n' $REVISION >> /etc/environment
 
 hostnamectl set-hostname $DOMAIN
 
