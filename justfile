@@ -39,6 +39,7 @@ deploy-testnet branch="master": (deploy branch "test" "testnet.ordinals.net")
 deploy-ord-dev branch="master" chain="main" domain="ordinals-dev.com": (deploy branch chain domain)
 
 save-ord-dev-state domain="ordinals-dev.com":
+  $EDITOR ./deploy/save-ord-dev-state
   scp ./deploy/save-ord-dev-state root@{{domain}}:~
   ssh root@{{domain}} "./save-ord-dev-state"
 
