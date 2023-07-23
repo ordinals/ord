@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 
+# This script is idempotent in the sense that running it more
+# than once will not change the state beyond the initial application
+
 set -euxo pipefail
 
 CHAIN=$1
 DOMAIN=$2
+BRANCH=$3
+COMMIT=$4
+REVISION="ord-$BRANCH-$COMMIT"
 
 touch ~/.hushlogin
 
@@ -16,6 +22,10 @@ mkdir -p \
 printf "[Service]\nEnvironment=CHAIN=%s\n" $CHAIN \
   | tee /etc/systemd/system/bitcoind.service.d/override.conf \
   > /etc/systemd/system/ord.service.d/override.conf
+
+printf 'BRANCH=%s\n' $BRANCH >> /etc/environment \
+  && printf 'COMMIT=%s\n' $COMMIT >> /etc/environment \
+  && printf 'REVISION=%s\n' $REVISION >> /etc/environment
 
 hostnamectl set-hostname $DOMAIN
 
@@ -70,7 +80,7 @@ rustup update stable
 
 cargo build --release
 if [[ -f /usr/local/bin/ord ]]; then
-  mv /usr/local/bin/ord /usr/local/bin/ord.bak
+  mv /usr/local/bin/ord /usr/local/bin/$REVISION.bak
 fi
 cp target/release/ord /usr/local/bin/ord
 
