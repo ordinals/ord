@@ -67,27 +67,26 @@ impl Fetcher {
     let body = Value::Array(reqs).to_string();
 
     let mut results: Vec<JsonResponse<String>>;
-    let mut tries = 0;
+    let mut retries = 0;
 
     loop {
       results = match self.try_get_transactions(body.clone()).await {
         Ok(results) => results,
         Err(error) => {
-          if tries >= 5 {
+          if retries >= 5 {
             return Err(anyhow!(
-              "Failed to fetch raw transactions after 5 retries. Error: {}",
+              "failed to fetch raw transactions after 5 retries: {}",
               error
             ));
           }
 
-          log::info!(
-            "Failed to fetch raw transactions, retrying. Error: {}",
-            error
-          );
-          tries += 1;
+          log::info!("failed to fetch raw transactions, retrying: {}", error);
 
-          let sleep_time = tokio::time::Duration::from_millis(100 * u64::pow(tries, 2));
-          tokio::time::sleep(sleep_time).await;
+          tokio::time::sleep(tokio::time::Duration::from_millis(
+            100 * u64::pow(2, retries),
+          ))
+          .await;
+          retries += 1;
           continue;
         }
       };
@@ -97,7 +96,7 @@ impl Fetcher {
     // Return early on any error, because we need all results to proceed
     if let Some(err) = results.iter().find_map(|res| res.error.as_ref()) {
       return Err(anyhow!(
-        "Failed to fetch raw transaction: code {} message {}",
+        "failed to fetch raw transaction: code {} message {}",
         err.code,
         err.message
       ));
@@ -142,7 +141,7 @@ impl Fetcher {
       Ok(results) => results,
       Err(e) => {
         return Err(anyhow!(
-          "Failed to parse JSON-RPC response: {e}. Response: {response}",
+          "failed to parse JSON-RPC response: {e}. response: {response}",
           e = e,
           response = String::from_utf8_lossy(&buf)
         ))
