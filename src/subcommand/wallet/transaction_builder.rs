@@ -204,24 +204,23 @@ impl TransactionBuilder {
       return Err(Error::DuplicateAddress(change[0].clone()));
     }
 
-    if max_inputs.is_some() && max_inputs.unwrap() < 1 {
-      return Err(Error::TooManyInputs(max_inputs.unwrap()));
+    match max_inputs {
+      Some(max) if max < 1 => Err(Error::TooManyInputs(max)),
+      _ => Ok(Self {
+        utxos: amounts.keys().cloned().collect(),
+        amounts,
+        change_addresses: change.iter().cloned().collect(),
+        fee_rate,
+        max_inputs,
+        inputs: Vec::new(),
+        inscriptions,
+        outgoing,
+        outputs: Vec::new(),
+        recipient,
+        unused_change_addresses: change.to_vec(),
+        target,
+      }),
     }
-
-    Ok(Self {
-      utxos: amounts.keys().cloned().collect(),
-      amounts,
-      change_addresses: change.iter().cloned().collect(),
-      fee_rate,
-      max_inputs,
-      inputs: Vec::new(),
-      inscriptions,
-      outgoing,
-      outputs: Vec::new(),
-      recipient,
-      unused_change_addresses: change.to_vec(),
-      target,
-    })
   }
 
   fn select_outgoing(mut self) -> Result<Self> {
