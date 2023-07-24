@@ -1,4 +1,4 @@
-use {super::*, ord::sat::Output, ord::Rarity};
+use {super::*, ord::subcommand::traits::Output, ord::Rarity};
 
 #[test]
 fn traits_command_prints_sat_traits() {
@@ -9,13 +9,12 @@ fn traits_command_prints_sat_traits() {
       decimal: "0.0".into(),
       degree: "0°0′0″0‴".into(),
       name: "nvtdijuwxlp".into(),
-      block: 0,
+      height: 0,
       cycle: 0,
       epoch: 0,
       period: 0,
       offset: 0,
       rarity: Rarity::Mythic,
-      percentile: "0%".into(),
     }
   );
 }
@@ -28,13 +27,12 @@ fn traits_command_for_last_sat() {
       decimal: "6929999.0".into(),
       degree: "5°209999′1007″0‴".into(),
       name: "a".into(),
-      block: 6929999,
+      height: 6929999,
       cycle: 5,
       epoch: 32,
       period: 3437,
       offset: 0,
       rarity: Rarity::Uncommon,
-      percentile: "100%".into(),
     }
   );
 }

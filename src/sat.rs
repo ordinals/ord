@@ -185,21 +185,6 @@ impl Sat {
   }
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct Output {
-  pub number: u64,
-  pub decimal: String,
-  pub degree: String,
-  pub name: String,
-  pub block: u64,
-  pub cycle: u64,
-  pub epoch: u64,
-  pub period: u64,
-  pub offset: u64,
-  pub rarity: Rarity,
-  pub percentile: String,
-}
-
 impl PartialEq<u64> for Sat {
   fn eq(&self, other: &u64) -> bool {
     self.0 == *other

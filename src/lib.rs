@@ -116,11 +116,11 @@ mod outgoing;
 mod page_config;
 mod rarity;
 mod representation;
-pub mod sat;
+pub(crate) mod sat;
 mod sat_point;
 pub mod subcommand;
 mod tally;
-mod templates;
+pub mod templates;
 mod wallet;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;

@@ -387,9 +387,11 @@ impl Server {
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
     let satpoint = index.rare_sat_satpoint(sat)?;
+    let blocktime = index.block_time(sat.height())?;
+    let inscriptions = index.get_inscription_ids_by_sat(sat)?;
 
     Ok(if accept_json.0 {
-      Json(sat::Output {
+      Json(templates::sat::SatJson {
         number: sat.0,
         decimal: sat.decimal().to_string(),
         degree: sat.degree().to_string(),
@@ -401,14 +403,17 @@ impl Server {
         offset: sat.third(),
         rarity: sat.rarity(),
         percentile: sat.percentile(),
+        satpoint,
+        timestamp: blocktime.timestamp().to_string(),
+        inscriptions,
       })
       .into_response()
     } else {
       SatHtml {
         sat,
         satpoint,
-        blocktime: index.block_time(sat.height())?,
-        inscriptions: index.get_inscription_ids_by_sat(sat)?,
+        blocktime,
+        inscriptions,
       }
       .page(page_config, index.has_sat_index()?)
       .into_response()
