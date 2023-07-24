@@ -89,10 +89,7 @@ fn inscriptions_with_postage() {
   create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
-  let Inscribe {
-    inscription,
-    ..
-  } = inscribe(&rpc_server);
+  let Inscribe { inscription, .. } = inscribe(&rpc_server);
 
   let output = CommandBuilder::new("wallet inscriptions")
     .rpc_server(&rpc_server)
