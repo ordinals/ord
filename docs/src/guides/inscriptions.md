@@ -14,7 +14,7 @@ inscriptions to another wallet.
 Bitcoin Core provides both a Bitcoin full node and wallet. However, the Bitcoin
 Core wallet cannot create inscriptions and does not perform sat control.
 
-This requires [`ord`](https://github.com/casey/ord), the ordinal utility. `ord`
+This requires [`ord`](https://github.com/ordinals/ord), the ordinal utility. `ord`
 doesn't implement its own wallet, so `ord wallet` subcommands interact with
 Bitcoin Core wallets.
 
@@ -33,8 +33,8 @@ Getting Help
 
 If you get stuck, try asking for help on the [Ordinals Discord
 Server](https://discord.com/invite/87cjuz4FYg), or checking GitHub for relevant
-[issues](https://github.com/casey/ord/issues) and
-[discussions](https://github.com/casey/ord/discussions).
+[issues](https://github.com/ordinals/ord/issues) and
+[discussions](https://github.com/ordinals/ord/discussions).
 
 Installing Bitcoin Core
 -----------------------
@@ -89,8 +89,8 @@ Installing `ord`
 ----------------
 
 The `ord` utility is written in Rust and can be built from
-[source](https://github.com/casey/ord). Pre-built binaries are available on the
-[releases page](https://github.com/casey/ord/releases).
+[source](https://github.com/ordinals/ord). Pre-built binaries are available on the
+[releases page](https://github.com/ordinals/ord/releases).
 
 You can install the latest pre-built binary from the command line with:
 
@@ -152,7 +152,7 @@ content, the higher the fee that the inscription transaction must pay.
 
 Inscription content is included in transaction witnesses, which receive the
 witness discount. To calculate the approximate fee that an inscribe transaction
-will pay, divide the content size by four and muliply by the fee rate.
+will pay, divide the content size by four and multiply by the fee rate.
 
 Inscription transactions must be less than 400,000 weight units, or they will
 not be relayed by Bitcoin Core. One byte of inscription content costs one
@@ -174,10 +174,10 @@ for the reveal transaction, and the inscription ID. Inscription IDs are of the
 form `TXIDiN`, where `TXID` is the transaction ID of the reveal transaction,
 and `N` is the index of the inscription in the reveal transaction.
 
-The commit transaction commits to a tapscript containing the contents of the
+The commit transaction commits to a tapscript containing the content of the
 inscription, and the reveal transaction spends from that tapscript, revealing
-the contents on chain and inscribing them on the first sat of the first output
-of the reveal transaction.
+the content on chain and inscribing it on the first sat of the input that
+contains the corresponding tapscript.
 
 Wait for the reveal transaction to be mined. You can check the status of the
 commit and reveal transactions using  [the mempool.space block

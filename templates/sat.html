@@ -11,8 +11,13 @@
   <dt>offset</dt><dd>{{ self.sat.third() }}</dd>
   <dt>rarity</dt><dd><span class={{self.sat.rarity()}}>{{ self.sat.rarity() }}</span></dd>
   <dt>timestamp</dt><dd><time>{{self.blocktime.timestamp()}}</time>{{self.blocktime.suffix()}}</dd>
-%% if let Some((inscription)) = &self.inscription {
-  <dt>inscription</dt><dd class=thumbnails>{{ Iframe::thumbnail(*inscription) }}</dd>
+%% if !self.inscriptions.is_empty() {
+  <dt>inscriptions</dt>
+  <dd class=thumbnails>
+%% for inscription in &self.inscriptions {
+    {{Iframe::thumbnail(*inscription)}}
+%% }
+  </dd>
 %% }
 %% if let Some(satpoint) = self.satpoint {
   <dt>location</dt><dd class=monospace>{{ satpoint }}</dd>
