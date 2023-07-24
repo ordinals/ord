@@ -14,11 +14,11 @@ impl Entry for BlockHash {
   type Value = BlockHashValue;
 
   fn load(value: Self::Value) -> Self {
-    BlockHash::from_inner(value)
+    BlockHash::from_raw_hash(Hash::from_byte_array(value))
   }
 
   fn store(self) -> Self::Value {
-    self.into_inner()
+    *self.as_ref()
   }
 }
 
@@ -72,7 +72,7 @@ impl Entry for InscriptionId {
   fn load(value: Self::Value) -> Self {
     let (txid, index) = value.split_at(32);
     Self {
-      txid: Txid::from_inner(txid.try_into().unwrap()),
+      txid: Txid::from_raw_hash(Hash::from_slice(txid).unwrap()),
       index: u32::from_be_bytes(index.try_into().unwrap()),
     }
   }
@@ -80,7 +80,7 @@ impl Entry for InscriptionId {
   fn store(self) -> Self::Value {
     let mut value = [0; 36];
     let (txid, index) = value.split_at_mut(32);
-    txid.copy_from_slice(self.txid.as_inner());
+    txid.copy_from_slice(self.txid.as_ref());
     index.copy_from_slice(&self.index.to_be_bytes());
     value
   }

@@ -3,7 +3,11 @@
 use {
   self::{command_builder::CommandBuilder, expected::Expected, test_server::TestServer},
   bip39::Mnemonic,
-  bitcoin::{blockdata::constants::COIN_VALUE, Network, OutPoint, Txid},
+  bitcoin::{
+    address::{Address, NetworkUnchecked},
+    blockdata::constants::COIN_VALUE,
+    Network, OutPoint, Txid,
+  },
   executable_path::executable_path,
   pretty_assertions::assert_eq as pretty_assert_eq,
   regex::Regex,
