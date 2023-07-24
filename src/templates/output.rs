@@ -19,7 +19,7 @@ impl PageContent for OutputHtml {
 mod tests {
   use {
     super::*,
-    bitcoin::{blockdata::script, PubkeyHash, Script},
+    bitcoin::{blockdata::script, PubkeyHash},
   };
 
   #[test]
@@ -32,7 +32,7 @@ mod tests {
         chain: Chain::Mainnet,
         output: TxOut {
           value: 3,
-          script_pubkey: Script::new_p2pkh(&PubkeyHash::all_zeros()),
+          script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()),
         },
       },
       "
@@ -89,7 +89,7 @@ mod tests {
         chain: Chain::Mainnet,
         output: TxOut {
           value: 3,
-          script_pubkey: Script::new_p2pkh(&PubkeyHash::all_zeros()),
+          script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()),
         },
       }
       .to_string(),
@@ -116,7 +116,7 @@ mod tests {
         chain: Chain::Mainnet,
         output: TxOut {
           value: 3,
-          script_pubkey: Script::new_p2pkh(&PubkeyHash::all_zeros()),
+          script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()),
         },
       },
       "
