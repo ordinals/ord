@@ -16,7 +16,7 @@ pub(crate) use {
   },
   range::RangeHtml,
   rare::RareTxt,
-  sat::SatHtml,
+  sat::{SatHtml, SatJson},
   transaction::TransactionHtml,
 };
 

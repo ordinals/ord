@@ -9,7 +9,7 @@ use {
   crate::templates::{
     BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionsHtml, OutputHtml,
     PageContent, PageHtml, PreviewAudioHtml, PreviewImageHtml, PreviewPdfHtml, PreviewTextHtml,
-    PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, SatHtml, TransactionHtml,
+    PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, SatJson, SatHtml, TransactionHtml,
   },
   axum::{
     body,
@@ -391,7 +391,7 @@ impl Server {
     let inscriptions = index.get_inscription_ids_by_sat(sat)?;
 
     Ok(if accept_json.0 {
-      Json(templates::sat::SatJson {
+      Json(SatJson {
         number: sat.0,
         decimal: sat.decimal().to_string(),
         degree: sat.degree().to_string(),
