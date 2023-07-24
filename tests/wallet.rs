@@ -1,6 +1,7 @@
 use super::*;
 
 mod balance;
+mod cardinals;
 mod create;
 mod inscribe;
 mod inscriptions;
