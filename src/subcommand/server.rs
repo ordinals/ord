@@ -385,42 +385,19 @@ impl Server {
     let satpoint = index.rare_sat_satpoint(sat)?;
 
     Ok(if accept_json.0 {
-      Json(serde_json::json!({
-        "decimal": sat.decimal().to_string(),
-        "degree": sat.degree().to_string(),
-        "percentile": sat.percentile(),
-        "name": sat.name(),
-        "cycle": sat.cycle(),
-        "epoch": sat.epoch(),
-        "period": sat.period(),
-        "block": sat.height(),
-        "offset": sat.third(),
-        "rarity": sat.rarity(),
-        "timestamp": index.block_time(sat.height())?.timestamp().to_string(),
-        "_links": {
-          "self": {
-            "href": format!("/sat/{}", sat),
-          },
-          "block": {
-            "href": format!("/block/{}", sat.height()),
-          },
-          "inscription": (index.get_inscription_id_by_sat(sat)?.is_some()).then(|| {
-            serde_json::json!({
-              "href": format!("/inscription/{:?}", index.get_inscription_id_by_sat(sat)),
-            })
-          }),
-          "next": (sat < Sat::LAST.0).then(|| {
-            serde_json::json!({
-              "href": format!("/sat/{}", sat.0 + 1),
-            })
-          }),
-          "prev": (sat > 0).then(|| {
-            serde_json::json!({
-              "href": format!("/sat/{}", sat.0 - 1),
-            })
-          }),
-        }
-      }))
+      Json(sat::Output {
+        number: sat.0,
+        decimal: sat.decimal().to_string(),
+        degree: sat.degree().to_string(),
+        name: sat.name(),
+        block: sat.height().0,
+        cycle: sat.cycle(),
+        epoch: sat.epoch().0,
+        period: sat.period(),
+        offset: sat.third(),
+        rarity: sat.rarity(),
+        percentile: sat.percentile(),
+      })
       .into_response()
     } else {
       SatHtml {

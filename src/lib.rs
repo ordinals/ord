@@ -115,7 +115,7 @@ mod outgoing;
 mod page_config;
 mod rarity;
 mod representation;
-mod sat;
+pub mod sat;
 mod sat_point;
 pub mod subcommand;
 mod tally;
