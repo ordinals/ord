@@ -18,13 +18,32 @@ transfer algorithm.
 See [the project board](https://github.com/users/casey/projects/3/) for
 currently prioritized issues.
 
-See [milestones](https://github.com/casey/ord/milestones) to get a sense of
+See [milestones](https://github.com/ordinals/ord/milestones) to get a sense of
 where the project is and where it's going.
 
 Join [the Discord server](https://discord.gg/87cjuz4FYg) to chat with fellow
 ordinal degenerates.
 
-Tune in to the [Twitch stream](https://www.twitch.tv/ordinalsofficial) to watch us work on this project!
+Donate
+------
+
+Ordinals is open-source and community funded. The current lead maintainer of
+`ord` is [raphjaph](https://github.com/raphjaph/). Raph's work on `ord` is
+entirely funded by donations. If you can, please consider donating!
+
+The donation address is
+[bc1q8kt9pyd6r27k2840l8g5d7zshz3cg9v6rfda0m248lva3ve5072q3sxelt](https://mempool.space/address/bc1q8kt9pyd6r27k2840l8g5d7zshz3cg9v6rfda0m248lva3ve5072q3sxelt).
+
+This address is 2 of 4 multisig wallet with keys held by
+[raphjaph](https://twitter.com/raphjaph),
+[erin](https://twitter.com/realizingerin),
+[rodarmor](https://twitter.com/rodarmor), and
+[ordinally](https://twitter.com/veryordinally).
+
+Bitcoin received will go towards funding maintainance and development of `ord`,
+as well as hosting costs for [ordinals.com](https://ordinals.com).
+
+Thank you for donating!
 
 Wallet
 ------
@@ -56,8 +75,8 @@ Installation
 ------------
 
 `ord` is written in Rust and can be built from
-[source](https://github.com/casey/ord). Pre-built binaries are available on the
-[releases page](https://github.com/casey/ord/releases).
+[source](https://github.com/ordinals/ord). Pre-built binaries are available on the
+[releases page](https://github.com/ordinals/ord/releases).
 
 You can install the latest pre-built binary from the command line with:
 
@@ -86,15 +105,57 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 To build `ord` from source:
 
 ```
-git clone https://github.com/casey/ord.git
+git clone https://github.com/ordinals/ord.git
 cd ord
 cargo build --release
 ```
 
-The default location for the `ord` binary once built is `./target/release/ord`.
+Once built, the `ord` binary can be found at `./target/release/ord`.
 
 `ord` requires `rustc` version 1.67.0 or later. Run `rustc --version` to ensure you have this version. Run `rustup update` to get the latest stable release.
 
+Contributing
+------------
+
+If you wish to contribute there are a couple things that are helpful to know. We
+put a lot of emphasis on proper testing in the code base, with three broad
+categories of tests: unit, integration and fuzz. Unit tests can usually be found at
+the bottom of a file in a mod block called `tests`. If you add or modify a
+function please also add a corresponding test. Integration tests try to test
+end-to-end functionality by executing a subcommand of the binary. Those can be
+found in the [tests](tests) directory. We don't have a lot of fuzzing but the
+basic structure of how we do it can be found in the [fuzz](fuzz) directory.
+
+We strongly recommend installing [just](https://github.com/casey/just) to make
+running the tests easier. To run our CI test suite you would do:
+
+```
+just ci
+```
+
+This corresponds to the commands:
+
+```
+cargo fmt -- --check
+cargo test --all
+cargo test --all -- --ignored
+```
+
+Have look at the [justfile](justfile) to see some more helpful recipes
+(commands). Here are a couple more good ones:
+
+```
+just fmt
+just fuzz
+just doc
+just watch ltest --all
+```
+
+We also try to follow a TDD (Test-Driven-Development) approach, which means we
+use tests as a way to get visibility into the code. Tests have to run fast for that
+reason so that the feedback loop between making a change, running the test and
+seeing the result is small. To facilitate that we created a mocked Bitcoin Core
+instance in [test-bitcoincore-rpc](./test-bitcoincore-rpc).
 
 Syncing
 -------
@@ -109,6 +170,43 @@ from `bitcoind`'s datadir, and connecting using the default RPC port.
 If `bitcoind` is not on mainnet, is not run by the same user, has a non-default
 datadir, or a non-default port, you'll need to pass additional flags to `ord`.
 See `ord --help` for details.
+
+`bitcoind` RPC Authentication
+-----------------------------
+
+`ord` makes RPC calls to `bitcoind`, which usually require a username and
+password.
+
+By default, `ord` looks a username and password in the cookie file created by
+`bitcoind`.
+
+The cookie file path can be configured using `--cookie-file`:
+
+```
+ord --cookie-file /path/to/cookie/file server
+```
+
+Alternatively, `ord` can be supplied with a username and password on the
+command line:
+
+```
+ord --bitcoin-rpc-user foo --bitcoin-rpc-pass bar server
+```
+
+Using environment variables:
+
+```
+export ORD_BITCOIN_RPC_USER=foo
+export ORD_BITCOIN_RPC_PASS=bar
+ord server
+```
+
+Or in the config file:
+
+```yaml
+bitcoin_rpc_user: foo
+bitcoin_rpc_pass: bar
+```
 
 Logging
 --------

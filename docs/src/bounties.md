@@ -7,8 +7,8 @@ Ordinal Bounty Hunting Hints
 
 - For more information about ordinal theory, check out the [FAQ](./faq.md) for
   an overview, the
-  [BIP](https://github.com/casey/ord/blob/master/bip.mediawiki) for the
-  technical details, and the [ord repo](https://github.com/casey/ord) for the
+  [BIP](https://github.com/ordinals/ord/blob/master/bip.mediawiki) for the
+  technical details, and the [ord repo](https://github.com/ordinals/ord) for the
   `ord` wallet and block explorer.
 
 - Satoshi was the original developer of ordinal theory. However, he knew that

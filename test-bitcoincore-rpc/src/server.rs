@@ -1,9 +1,8 @@
 use {
   super::*,
   bitcoin::{
-    psbt::serialize::Deserialize,
     secp256k1::{rand, KeyPair, Secp256k1, XOnlyPublicKey},
-    Address, Witness,
+    Witness,
   },
   bitcoincore_rpc::RawTx,
 };
@@ -51,6 +50,7 @@ impl Api for Server {
         Network::Testnet => "test",
         Network::Signet => "signet",
         Network::Regtest => "regtest",
+        _ => panic!(),
       }),
       blocks: 0,
       headers: 0,
@@ -128,7 +128,7 @@ impl Api for Server {
           nonce: 0,
           previous_block_hash: None,
           time: 0,
-          version: 0,
+          version: Version::ONE,
           version_hex: Some(vec![0, 0, 0, 0]),
         })
         .unwrap(),
@@ -201,12 +201,12 @@ impl Api for Server {
 
     let tx = Transaction {
       version: 0,
-      lock_time: PackedLockTime(0),
+      lock_time: LockTime::ZERO,
       input: utxos
         .iter()
         .map(|input| TxIn {
           previous_output: OutPoint::new(input.txid, input.vout),
-          script_sig: Script::new(),
+          script_sig: ScriptBuf::new(),
           sequence: Sequence::MAX,
           witness: Witness::new(),
         })
@@ -215,7 +215,7 @@ impl Api for Server {
         .values()
         .map(|amount| TxOut {
           value: (*amount * COIN_VALUE as f64) as u64,
-          script_pubkey: Script::new(),
+          script_pubkey: ScriptBuf::new(),
         })
         .collect(),
     };
@@ -247,9 +247,9 @@ impl Api for Server {
     assert_eq!(utxos, None, "utxos param not supported");
     assert_eq!(sighash_type, None, "sighash_type param not supported");
 
-    let mut transaction = Transaction::deserialize(&hex::decode(tx).unwrap()).unwrap();
+    let mut transaction: Transaction = deserialize(&hex::decode(tx).unwrap()).unwrap();
     for input in &mut transaction.input {
-      input.witness = Witness::from_vec(vec![vec![0; 64]]);
+      input.witness = Witness::from_slice(&[&[0; 64]]);
     }
 
     Ok(
@@ -271,7 +271,7 @@ impl Api for Server {
 
   fn send_to_address(
     &self,
-    address: Address,
+    address: Address<NetworkUnchecked>,
     amount: f64,
     comment: Option<String>,
     comment_to: Option<String>,
@@ -296,7 +296,7 @@ impl Api for Server {
     let locked = state.locked.iter().cloned().collect();
 
     state.sent.push(Sent {
-      address,
+      address: address.assume_checked(),
       amount,
       locked,
     });
@@ -383,7 +383,7 @@ impl Api for Server {
     &self,
     minconf: Option<usize>,
     maxconf: Option<usize>,
-    address: Option<bitcoin::Address>,
+    address: Option<Address<NetworkUnchecked>>,
     include_unsafe: Option<bool>,
     query_options: Option<String>,
   ) -> Result<Vec<ListUnspentResultEntry>, jsonrpc_core::Error> {
@@ -407,7 +407,7 @@ impl Api for Server {
           label: None,
           redeem_script: None,
           witness_script: None,
-          script_pub_key: Script::new(),
+          script_pub_key: ScriptBuf::new(),
           amount,
           confirmations: 0,
           spendable: true,
@@ -433,7 +433,7 @@ impl Api for Server {
   fn get_raw_change_address(
     &self,
     _address_type: Option<bitcoincore_rpc::json::AddressType>,
-  ) -> Result<bitcoin::Address, jsonrpc_core::Error> {
+  ) -> Result<Address, jsonrpc_core::Error> {
     let secp256k1 = Secp256k1::new();
     let key_pair = KeyPair::new(&secp256k1, &mut rand::thread_rng());
     let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);

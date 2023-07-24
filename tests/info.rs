@@ -29,7 +29,7 @@ fn json_with_satoshi_index() {
 \}
 "#,
     )
-    .run();
+    .run_and_extract_stdout();
 }
 
 #[test]
@@ -61,7 +61,7 @@ fn json_without_satoshi_index() {
 \}
 "#,
     )
-    .run();
+    .run_and_extract_stdout();
 }
 
 #[test]
@@ -77,7 +77,7 @@ fn transactions() {
     index_path.display()
   ))
   .rpc_server(&rpc_server)
-  .output::<Vec<TransactionsOutput>>()
+  .run_and_check_output::<Vec<TransactionsOutput>>()
   .is_empty());
 
   rpc_server.mine_blocks(10);
@@ -87,7 +87,7 @@ fn transactions() {
     index_path.display()
   ))
   .rpc_server(&rpc_server)
-  .output::<Vec<TransactionsOutput>>();
+  .run_and_check_output::<Vec<TransactionsOutput>>();
 
   assert_eq!(output[0].start, 0);
   assert_eq!(output[0].end, 1);
@@ -100,7 +100,7 @@ fn transactions() {
     index_path.display()
   ))
   .rpc_server(&rpc_server)
-  .output::<Vec<TransactionsOutput>>();
+  .run_and_check_output::<Vec<TransactionsOutput>>();
 
   assert_eq!(output[1].start, 1);
   assert_eq!(output[1].end, 11);
