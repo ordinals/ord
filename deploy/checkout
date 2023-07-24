@@ -7,7 +7,7 @@ CHAIN=$2
 DOMAIN=$3
 
 if [[ ! -d ord ]]; then
-  git clone https://github.com/casey/ord.git
+  git clone https://github.com/ordinals/ord.git
 fi
 
 cd ord
@@ -15,4 +15,7 @@ cd ord
 git fetch origin
 git checkout -B $BRANCH
 git reset --hard origin/$BRANCH
-./deploy/setup $CHAIN $DOMAIN
+
+COMMIT=$(git rev-parse --short HEAD)
+
+./deploy/setup $CHAIN $DOMAIN $BRANCH $COMMIT

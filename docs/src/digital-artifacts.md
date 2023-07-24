@@ -25,7 +25,7 @@ yours:
   because nobody can own it.
 
 - Digital artifacts are complete. An NFT that points to off-chain content
-  on IPFS or Arweave is incomplete, and thus is not a digital artifact.
+  on IPFS or Arweave is incomplete, and thus not a digital artifact.
 
 - Digital artifacts are permissionless. An NFT which cannot be sold without
   paying a royalty is not permissionless, and thus not a digital artifact.
