@@ -1,3 +1,5 @@
+use axum::routing::post;
+
 use {
   self::{
     accept_json::AcceptJson,
@@ -40,6 +42,7 @@ use {
 
 mod accept_json;
 mod error;
+mod rpc;
 
 #[derive(Clone)]
 pub struct ServerConfig {
@@ -190,6 +193,10 @@ impl Server {
         .route("/static/*path", get(Self::static_asset))
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
+
+        // API routes
+        .route("/rpc/v1", post(rpc::handler))
+
         .layer(Extension(index))
         .layer(Extension(page_config))
         .layer(Extension(Arc::new(config)))

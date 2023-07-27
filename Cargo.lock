@@ -391,6 +391,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "axum-jrpc"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "983f77cc067351b9c643abbad94f3f63c8ad5936138c3c8c3a83309cfa83b4b3"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "axum",
+ "cfg-if 1.0.0",
+ "mime",
+ "serde",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
 name = "axum-server"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2053,6 +2069,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "axum",
+ "axum-jrpc",
  "axum-server",
  "base64 0.21.2",
  "bech32",
