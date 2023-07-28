@@ -88,10 +88,8 @@ impl Options {
         self.chain().default_rpc_port(),
         self.wallet
       )
-    } else{
-      format!("{}/wallet/{}",
-      self.rpc_url.clone().unwrap(), 
-      self.wallet)
+    } else {
+      format!("{}/wallet/{}", self.rpc_url.clone().unwrap(), self.wallet)
     }
   }
 
