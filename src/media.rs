@@ -33,8 +33,11 @@ impl Media {
     ("image/webp", Media::Image, &["webp"]),
     ("model/gltf-binary", Media::Unknown, &["glb"]),
     ("model/stl", Media::Unknown, &["stl"]),
+    ("text/css", Media::Text, &["css"]),
     ("text/html;charset=utf-8", Media::Iframe, &["html"]),
+    ("text/javascript", Media::Text, &["js"]),
     ("text/plain;charset=utf-8", Media::Text, &["txt"]),
+    ("text/markdown;charset=utf-8", Media::Text, &["md"]),
     ("video/mp4", Media::Video, &["mp4"]),
     ("video/webm", Media::Video, &["webm"]),
   ];

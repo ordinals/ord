@@ -5,6 +5,7 @@ pub struct Output {
   pub inscription: InscriptionId,
   pub location: SatPoint,
   pub explorer: String,
+  pub postage: u64,
 }
 
 pub(crate) fn run(options: Options) -> Result {
@@ -24,12 +25,13 @@ pub(crate) fn run(options: Options) -> Result {
   let mut output = Vec::new();
 
   for (location, inscription) in inscriptions {
-    if unspent_outputs.contains_key(&location.outpoint) {
+    if let Some(postage) = unspent_outputs.get(&location.outpoint) {
       output.push(Output {
         location,
         inscription,
         explorer: format!("{explorer}{inscription}"),
-      });
+        postage: postage.to_sat(),
+      })
     }
   }
 

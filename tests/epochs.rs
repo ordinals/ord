@@ -3,7 +3,7 @@ use {super::*, ord::subcommand::epochs::Output, ord::Sat};
 #[test]
 fn empty() {
   assert_eq!(
-    CommandBuilder::new("epochs").output::<Output>(),
+    CommandBuilder::new("epochs").run_and_check_output::<Output>(),
     Output {
       starting_sats: vec![
         Sat(0),
