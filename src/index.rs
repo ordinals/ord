@@ -18,7 +18,7 @@ use {
     TableDefinition, WriteTransaction,
   },
   std::collections::HashMap,
-  std::io::{BufWriter, Write},
+  std::io::{BufWriter, Read, Write},
   std::sync::atomic::{self, AtomicBool},
 };
 
@@ -168,6 +168,20 @@ impl Index {
         usize::try_from(sys.total_memory() / 4)?
       }
     };
+
+    if let Ok(mut file) = fs::OpenOptions::new().read(true).open(&path) {
+      // use cberner's quick hack to check the redb recovery bit
+      // https://github.com/cberner/redb/issues/639#issuecomment-1628037591
+      const MAGICNUMBER: [u8; 9] = [b'r', b'e', b'd', b'b', 0x1A, 0x0A, 0xA9, 0x0D, 0x0A];
+      const RECOVERY_REQUIRED: u8 = 2;
+
+      let mut buffer = [0; MAGICNUMBER.len() + 1];
+      file.read_exact(&mut buffer).unwrap();
+
+      if buffer[MAGICNUMBER.len()] & RECOVERY_REQUIRED != 0 {
+        println!("Index file {:?} needs recovery. This can take a long time, especially for the --index-sats index.", path);
+      }
+    }
 
     log::info!("Setting DB cache size to {} bytes", db_cache_size);
 
