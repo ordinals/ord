@@ -2,7 +2,10 @@
 
 use {
   arbitrary::Arbitrary,
-  bitcoin::{Amount, OutPoint},
+  bitcoin::{
+    address::{Address, NetworkUnchecked},
+    Amount, OutPoint,
+  },
   libfuzzer_sys::fuzz_target,
   ord::{FeeRate, SatPoint, TransactionBuilder},
   std::collections::BTreeMap,
@@ -13,6 +16,7 @@ struct Input {
   output_value: Option<u64>,
   fee_rate: f64,
   utxos: Vec<u64>,
+  max_inputs: Option<usize>,
 }
 
 fuzz_target!(|input: Input| {
@@ -44,16 +48,19 @@ fuzz_target!(|input: Input| {
   }
 
   let recipient = "bc1pdqrcrxa8vx6gy75mfdfj84puhxffh4fq46h3gkp6jxdd0vjcsdyspfxcv6"
-    .parse()
-    .unwrap();
+    .parse::<Address<NetworkUnchecked>>()
+    .unwrap()
+    .assume_checked();
 
   let change = [
     "bc1pxwww0ct9ue7e8tdnlmug5m2tamfn7q06sahstg39ys4c9f3340qqxrdu9k"
-      .parse()
-      .unwrap(),
+      .parse::<Address<NetworkUnchecked>>()
+      .unwrap()
+      .assume_checked(),
     "bc1pxwww0ct9ue7e8tdnlmug5m2tamfn7q06sahstg39ys4c9f3340qqxrdu9k"
-      .parse()
-      .unwrap(),
+      .parse::<Address<NetworkUnchecked>>()
+      .unwrap()
+      .assume_checked(),
   ];
 
   let Ok(fee_rate) = FeeRate::try_from(input.fee_rate) else { return; };
@@ -67,6 +74,7 @@ fuzz_target!(|input: Input| {
         recipient,
         change,
         fee_rate,
+        input.max_inputs,
         Amount::from_sat(output_value),
       );
     }
@@ -78,6 +86,7 @@ fuzz_target!(|input: Input| {
         recipient,
         change,
         fee_rate,
+        input.max_inputs,
       );
     }
   }
