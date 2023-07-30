@@ -234,7 +234,6 @@ impl Inscribe {
       commit_tx_address.clone(),
       change,
       commit_fee_rate,
-      max_inputs,
       reveal_fee + TransactionBuilder::TARGET_POSTAGE,
     )?;
 

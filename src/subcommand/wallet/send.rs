@@ -6,11 +6,6 @@ pub(crate) struct Send {
   outgoing: Outgoing,
   #[clap(long, help = "Use fee rate of <FEE_RATE> sats/vB")]
   fee_rate: FeeRate,
-  #[clap(
-    long,
-    help = "Use at most <MAX_INPUTS> inputs to build the transaction sending a satpoint or an inscription."
-  )]
-  pub(crate) max_inputs: Option<usize>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -79,7 +74,6 @@ impl Send {
       address,
       change,
       self.fee_rate,
-      self.max_inputs,
     )?;
 
     let signed_tx = client

@@ -16,7 +16,6 @@ struct Input {
   output_value: Option<u64>,
   fee_rate: f64,
   utxos: Vec<u64>,
-  max_inputs: Option<usize>,
 }
 
 fuzz_target!(|input: Input| {
@@ -74,7 +73,6 @@ fuzz_target!(|input: Input| {
         recipient,
         change,
         fee_rate,
-        input.max_inputs,
         Amount::from_sat(output_value),
       );
     }
@@ -86,7 +84,6 @@ fuzz_target!(|input: Input| {
         recipient,
         change,
         fee_rate,
-        input.max_inputs,
       );
     }
   }
