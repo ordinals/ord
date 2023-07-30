@@ -87,7 +87,6 @@ impl Preview {
             dry_run: false,
             no_limit: false,
             destination: None,
-            max_inputs: None,
           },
         )),
       }
