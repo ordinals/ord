@@ -54,7 +54,6 @@ pub enum Error {
   NotEnoughCardinalUtxos,
   NotInWallet(SatPoint),
   OutOfRange(SatPoint, u64),
-  TooManyInputs(usize),
   UtxoContainsAdditionalInscription {
     outgoing_satpoint: SatPoint,
     inscribed_satpoint: SatPoint,
@@ -78,7 +77,6 @@ impl fmt::Display for Error {
       } => write!(f, "output value is below dust value: {output_value} < {dust_value}"),
       Error::NotInWallet(outgoing_satpoint) => write!(f, "outgoing satpoint {outgoing_satpoint} not in wallet"),
       Error::OutOfRange(outgoing_satpoint, maximum) => write!(f, "outgoing satpoint {outgoing_satpoint} offset higher than maximum {maximum}"),
-      Error::TooManyInputs(max_inputs) => write!(f, "--max-inputs ({max_inputs}) exceeded"),
       Error::NotEnoughCardinalUtxos => write!(
         f,
         "wallet does not contain enough cardinal UTXOs, please add additional funds to wallet."
