@@ -826,24 +826,15 @@ impl Index {
 
   pub(crate) fn get_inscriptions(
     &self,
-    n: Option<usize>,
+    utxos: BTreeMap<OutPoint, Amount>,
   ) -> Result<BTreeMap<SatPoint, InscriptionId>> {
     let rtx = self.database.begin_read()?;
 
     let mut result = BTreeMap::new();
 
-    for range_result in rtx
-      .open_multimap_table(SATPOINT_TO_INSCRIPTION_ID)?
-      .range::<&[u8; 44]>(&[0; 44]..)?
-    {
-      let (satpoint, ids) = range_result?;
-      for id_result in ids {
-        let id = id_result?;
-        result.insert(Entry::load(*satpoint.value()), Entry::load(*id.value()));
-      }
-      if result.len() >= n.unwrap_or(usize::MAX) {
-        break;
-      }
+    let table = rtx.open_multimap_table(SATPOINT_TO_INSCRIPTION_ID)?;
+    for utxo in utxos.keys() {
+      result.extend(Self::inscriptions_on_output_unordered(&table, *utxo)?);
     }
 
     Ok(result)
