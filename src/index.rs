@@ -4,7 +4,7 @@ use {
       BlockHashValue, Entry, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
       OutPointValue, SatPointValue, SatRange,
     },
-    updater::Updater,
+    updater::{Updater, UpdaterError},
   },
   super::*,
   crate::wallet::Wallet,
@@ -19,7 +19,6 @@ use {
   },
   std::collections::HashMap,
   std::io::{BufWriter, Read, Write},
-  std::sync::atomic::{self, AtomicBool},
 };
 
 mod entry;
@@ -130,25 +129,6 @@ impl<T> BitcoinCoreRpcResultExt<T> for Result<T, bitcoincore_rpc::Error> {
     }
   }
 }
-
-//#[derive(Debug, PartialEq)]
-//pub enum Error {
-//  Reorged(u64),
-//}
-//
-//impl fmt::Display for Error {
-//  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//    match self {
-//      Error::Reorged(height) => write!(f, "Reorg detected at height {height}"),
-//    }
-//  }
-//}
-//
-//impl std::error::Error for Error {}
-//
-//// type Result<T> = std::result::Result<T, Error>;
-//
-//type Result<T = (), E = dyn std::error::Error> = std::result::Result<T, E>;
 
 pub(crate) struct Index {
   client: Client,
@@ -410,19 +390,25 @@ impl Index {
 
   pub(crate) fn update(&self) -> Result {
     let mut updater = Updater::new(self)?;
+
     loop {
       match updater.update_index() {
         Ok(ok) => return Ok(ok),
-        Err(err) if err.to_string().contains("reorg") => {
-          self.handle_reorg()?;
-          updater = Updater::new(self)?;
+        Err(err) => {
+          if let Some(&UpdaterError::Reorged(height)) = err.downcast_ref::<UpdaterError>() {
+            log::info!("{}", err.to_string());
+            self.handle_reorg(height)?;
+            updater = Updater::new(self)?;
+          } else {
+            return Err(err);
+          }
         }
-        Err(err) => return Err(err),
       }
     }
   }
 
-  pub(crate) fn handle_reorg(&self) -> Result {
+  pub(crate) fn handle_reorg(&self, height: u64) -> Result {
+    log::info!("rolling back database to height {}", height - 6);
     let mut wtx = self.begin_write()?;
 
     let savepoints = wtx.list_persistent_savepoints()?.collect::<Vec<u64>>();

@@ -29,6 +29,25 @@ impl From<Block> for BlockData {
   }
 }
 
+#[derive(Debug, PartialEq)]
+pub(crate) enum UpdaterError {
+  Reorged(u64),
+}
+
+impl fmt::Display for UpdaterError {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    match self {
+      UpdaterError::Reorged(height) => write!(f, "Reorg detected at height {height}"),
+    }
+  }
+}
+
+impl std::error::Error for UpdaterError {}
+
+// type Result<T> = std::result::Result<T, Error>;
+
+// type Result<T = (), E = Box<dyn std::error::Error>> = std::result::Result<T, E>;
+
 pub(crate) struct Updater<'index> {
   range_cache: HashMap<OutPointValue, Vec<u8>>,
   height: u64,
@@ -348,7 +367,7 @@ impl<'index> Updater<'_> {
       let prev_hash = height_to_block_hash.get(&prev_height)?.unwrap();
 
       if prev_hash.value() != &block.header.prev_blockhash.as_raw_hash().to_byte_array() {
-        return Err(anyhow!("reorg"));
+        return Err(UpdaterError::Reorged(prev_height).into());
       }
     }
 
