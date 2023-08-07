@@ -653,21 +653,9 @@ impl<'index> Updater<'_> {
     self.outputs_traversed = 0;
     Index::increment_statistic(&wtx, Statistic::SatRanges, self.sat_ranges_since_flush)?;
     self.sat_ranges_since_flush = 0;
-    Index::increment_statistic(&wtx, Statistic::Commits, 1)?;
-
-    wtx.commit()?;
-
-    self.update_savepoints()?;
-
-    Ok(())
-  }
-
-  fn update_savepoints(&self) -> Result {
-    let wtx = self.index.begin_write()?;
 
     let savepoints = wtx.list_persistent_savepoints()?.collect::<Vec<u64>>();
 
-    // delete oldest savepoint
     if savepoints.len() >= 6 {
       wtx.delete_persistent_savepoint(savepoints.into_iter().min().unwrap())?;
     }
@@ -675,6 +663,8 @@ impl<'index> Updater<'_> {
 
     let wtx = self.index.begin_write()?;
     wtx.persistent_savepoint()?;
+
+    Index::increment_statistic(&wtx, Statistic::Commits, 2)?;
     wtx.commit()?;
 
     Ok(())
