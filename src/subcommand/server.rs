@@ -1994,7 +1994,7 @@ mod tests {
     assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 2);
 
     let info = server.index.info().unwrap();
-    assert_eq!(info.transactions.len(), 2);
+    assert_eq!(info.transactions.len(), 1);
     assert_eq!(info.transactions[0].starting_block_count, 0);
 
     server.mine_blocks(1);
@@ -2005,7 +2005,7 @@ mod tests {
     assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 4);
 
     let info = server.index.info().unwrap();
-    assert_eq!(info.transactions.len(), 3);
+    assert_eq!(info.transactions.len(), 2);
     assert_eq!(info.transactions[0].starting_block_count, 0);
     assert_eq!(info.transactions[1].starting_block_count, 1);
     assert!(
