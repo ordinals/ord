@@ -44,10 +44,6 @@ impl fmt::Display for UpdaterError {
 
 impl std::error::Error for UpdaterError {}
 
-// type Result<T> = std::result::Result<T, Error>;
-
-// type Result<T = (), E = Box<dyn std::error::Error>> = std::result::Result<T, E>;
-
 pub(crate) struct Updater<'index> {
   range_cache: HashMap<OutPointValue, Vec<u8>>,
   height: u64,
@@ -61,31 +57,9 @@ pub(crate) struct Updater<'index> {
 
 impl<'index> Updater<'_> {
   pub(crate) fn new(index: &'index Index) -> Result<Updater<'index>> {
-    let wtx = index.begin_write()?;
-
-    let height = wtx
-      .open_table(HEIGHT_TO_BLOCK_HASH)?
-      .range(0..)?
-      .next_back()
-      .and_then(|result| result.ok())
-      .map(|(height, _hash)| height.value() + 1)
-      .unwrap_or(0);
-
-    wtx
-      .open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?
-      .insert(
-        &height,
-        &SystemTime::now()
-          .duration_since(SystemTime::UNIX_EPOCH)
-          .map(|duration| duration.as_millis())
-          .unwrap_or(0),
-      )?;
-
-    wtx.commit()?;
-
     Ok(Updater {
       range_cache: HashMap::new(),
-      height,
+      height: index.block_count()?,
       index,
       index_sats: index.has_sat_index()?,
       sat_ranges_since_flush: 0,
@@ -98,6 +72,16 @@ impl<'index> Updater<'_> {
   pub(crate) fn update_index(&mut self) -> Result {
     let mut wtx = self.index.begin_write()?;
     let starting_height = self.index.client.get_block_count()? + 1;
+
+    wtx
+      .open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?
+      .insert(
+        &self.height,
+        &SystemTime::now()
+          .duration_since(SystemTime::UNIX_EPOCH)
+          .map(|duration| duration.as_millis())
+          .unwrap_or(0),
+      )?;
 
     let mut progress_bar = if cfg!(test)
       || log_enabled!(log::Level::Info)
