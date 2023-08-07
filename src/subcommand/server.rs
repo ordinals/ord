@@ -1921,13 +1921,14 @@ mod tests {
     let test_server = TestServer::new();
 
     test_server.mine_blocks(1);
+    test_server.mine_blocks(1);
 
     test_server.assert_response("/status", StatusCode::OK, "OK");
 
     test_server.bitcoin_rpc_server.invalidate_tip();
     test_server.bitcoin_rpc_server.mine_blocks(2);
 
-    test_server.assert_response_regex("/status", StatusCode::OK, "reorg detected.*");
+    test_server.assert_response_regex("/status", StatusCode::OK, ".*reorg.*");
   }
 
   #[test]

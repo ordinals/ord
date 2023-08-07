@@ -55,18 +55,6 @@ define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
 define_table! { STATISTIC_TO_COUNT, u64, u64 }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u64, u128 }
 
-pub(crate) struct Index {
-  client: Client,
-  database: Database,
-  path: PathBuf,
-  first_inscription_height: u64,
-  genesis_block_coinbase_transaction: Transaction,
-  genesis_block_coinbase_txid: Txid,
-  height_limit: Option<u64>,
-  options: Options,
-  reorged: AtomicBool,
-}
-
 #[derive(Debug, PartialEq)]
 pub(crate) enum List {
   Spent,
@@ -143,6 +131,37 @@ impl<T> BitcoinCoreRpcResultExt<T> for Result<T, bitcoincore_rpc::Error> {
   }
 }
 
+//#[derive(Debug, PartialEq)]
+//pub enum Error {
+//  Reorged(u64),
+//}
+//
+//impl fmt::Display for Error {
+//  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+//    match self {
+//      Error::Reorged(height) => write!(f, "Reorg detected at height {height}"),
+//    }
+//  }
+//}
+//
+//impl std::error::Error for Error {}
+//
+//// type Result<T> = std::result::Result<T, Error>;
+//
+//type Result<T = (), E = dyn std::error::Error> = std::result::Result<T, E>;
+
+pub(crate) struct Index {
+  client: Client,
+  database: Database,
+  path: PathBuf,
+  first_inscription_height: u64,
+  genesis_block_coinbase_transaction: Transaction,
+  genesis_block_coinbase_txid: Txid,
+  height_limit: Option<u64>,
+  options: Options,
+  reorged: AtomicBool,
+}
+
 impl Index {
   pub(crate) fn open(options: &Options) -> Result<Self> {
     let client = options.bitcoin_rpc_client()?;
@@ -207,11 +226,7 @@ impl Index {
 
         let mut tx = database.begin_write()?;
 
-        if cfg!(test) {
-          tx.set_durability(redb::Durability::None);
-        } else {
-          tx.set_durability(redb::Durability::Immediate);
-        };
+        tx.set_durability(redb::Durability::Immediate);
 
         tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
         tx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
@@ -382,7 +397,40 @@ impl Index {
   }
 
   pub(crate) fn update(&self) -> Result {
-    Updater::update(self)
+    let mut updater = Updater::new(self)?;
+    loop {
+      match updater.update_index() {
+        Ok(ok) => return Ok(ok),
+        Err(err) => {
+          if err.to_string().contains("reorg") {
+            let mut wtx = self.begin_write()?;
+
+            dbg!(&self.block_height()?);
+
+            let savepoints = wtx
+              .list_persistent_savepoints()?
+              .into_iter()
+              .collect::<Vec<u64>>();
+
+            let oldest_savepoint =
+              wtx.get_persistent_savepoint(savepoints.clone().into_iter().min().unwrap())?;
+
+            wtx.restore_savepoint(&oldest_savepoint)?;
+
+            for savepoint in savepoints {
+              wtx.delete_persistent_savepoint(savepoint)?;
+            }
+            wtx.commit()?;
+
+            dbg!(&self.block_height()?);
+
+            updater = Updater::new(self)?;
+          } else {
+            return Err(err);
+          }
+        }
+      }
+    }
   }
 
   pub(crate) fn export(&self, filename: &String, include_addresses: bool) -> Result {
@@ -459,13 +507,7 @@ impl Index {
   }
 
   fn begin_write(&self) -> Result<WriteTransaction> {
-    if cfg!(test) {
-      let mut tx = self.database.begin_write()?;
-      tx.set_durability(redb::Durability::None);
-      Ok(tx)
-    } else {
-      Ok(self.database.begin_write()?)
-    }
+    Ok(self.database.begin_write()?)
   }
 
   fn increment_statistic(wtx: &WriteTransaction, statistic: Statistic, n: u64) -> Result {
@@ -990,6 +1032,65 @@ impl Index {
       None => {
         if self.has_sat_index().unwrap() {
           assert!(satpoint.outpoint == unbound_outpoint())
+        }
+      }
+    }
+  }
+
+  #[cfg(test)]
+  fn assert_non_existence_of_inscription(&self, inscription_id: InscriptionId) {
+    let rtx = self.database.begin_read().unwrap();
+
+    let inscription_id_to_satpoint = rtx.open_table(INSCRIPTION_ID_TO_SATPOINT).unwrap();
+    assert!(inscription_id_to_satpoint
+      .get(&inscription_id.store())
+      .unwrap()
+      .is_none());
+
+    let inscription_id_to_entry = rtx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY).unwrap();
+    assert!(inscription_id_to_entry
+      .get(&inscription_id.store())
+      .unwrap()
+      .is_none());
+
+    for range in rtx
+      .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)
+      .unwrap()
+      .iter()
+      .into_iter()
+    {
+      for entry in range.into_iter() {
+        let (_number, id) = entry.unwrap();
+        assert!(InscriptionId::load(*id.value()) != inscription_id);
+      }
+    }
+
+    for range in rtx
+      .open_multimap_table(SATPOINT_TO_INSCRIPTION_ID)
+      .unwrap()
+      .iter()
+      .into_iter()
+    {
+      for entry in range.into_iter() {
+        let (_satpoint, ids) = entry.unwrap();
+        assert!(!ids
+          .into_iter()
+          .any(|id| InscriptionId::load(*id.unwrap().value()) == inscription_id))
+      }
+    }
+
+    if self.has_sat_index().unwrap() {
+      for range in rtx
+        .open_multimap_table(SAT_TO_INSCRIPTION_ID)
+        .unwrap()
+        .iter()
+        .into_iter()
+      {
+        for entry in range.into_iter() {
+          let (_sat, ids) = entry.unwrap();
+          assert!(!ids
+            .into_iter()
+            .any(|id| InscriptionId::load(*id.unwrap().value()) == inscription_id))
         }
       }
     }
@@ -3194,6 +3295,47 @@ mod tests {
           })
           .unwrap()
       )
+    }
+  }
+
+  #[test]
+  fn recover_from_reorg() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0)],
+        witness: inscription("text/plain;charset=utf-8", "hello").to_witness(),
+        ..Default::default()
+      });
+
+      let first_id = InscriptionId { txid, index: 0 };
+      let first_location = SatPoint {
+        outpoint: OutPoint { txid, vout: 0 },
+        offset: 0,
+      };
+
+      context.mine_blocks(6);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(7, 0, 0)],
+        witness: inscription("text/plain;charset=utf-8", "hello").to_witness(),
+        ..Default::default()
+      });
+
+      let second_id = InscriptionId { txid, index: 0 };
+
+      context.mine_blocks(1);
+
+      context.rpc_server.invalidate_tip();
+
+      context.mine_blocks(2);
+
+      context
+        .index
+        .assert_inscription_location(first_id, first_location, Some(50 * COIN_VALUE));
+
+      context.index.assert_non_existence_of_inscription(second_id);
     }
   }
 }
