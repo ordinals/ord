@@ -541,18 +541,11 @@ impl Server {
     )
   }
 
-  async fn status(Extension(index): Extension<Arc<Index>>) -> (StatusCode, &'static str) {
-    if index.is_reorged() {
-      (
-        StatusCode::OK,
-        "reorg detected, please rebuild the database.",
-      )
-    } else {
-      (
-        StatusCode::OK,
-        StatusCode::OK.canonical_reason().unwrap_or_default(),
-      )
-    }
+  async fn status() -> (StatusCode, &'static str) {
+    (
+      StatusCode::OK,
+      StatusCode::OK.canonical_reason().unwrap_or_default(),
+    )
   }
 
   async fn search_by_query(
@@ -1914,21 +1907,6 @@ mod tests {
 </ul>.*"
       ),
     );
-  }
-
-  #[test]
-  fn detect_reorg() {
-    let test_server = TestServer::new();
-
-    test_server.mine_blocks(1);
-    test_server.mine_blocks(1);
-
-    test_server.assert_response("/status", StatusCode::OK, "OK");
-
-    test_server.bitcoin_rpc_server.invalidate_tip();
-    test_server.bitcoin_rpc_server.mine_blocks(2);
-
-    test_server.assert_response_regex("/status", StatusCode::OK, ".*reorg.*");
   }
 
   #[test]

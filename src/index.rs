@@ -159,7 +159,6 @@ pub(crate) struct Index {
   genesis_block_coinbase_txid: Txid,
   height_limit: Option<u64>,
   options: Options,
-  reorged: AtomicBool,
 }
 
 impl Index {
@@ -278,7 +277,6 @@ impl Index {
       first_inscription_height: options.first_inscription_height(),
       genesis_block_coinbase_transaction,
       height_limit: options.height_limit,
-      reorged: AtomicBool::new(false),
       options: options.clone(),
     })
   }
@@ -438,8 +436,6 @@ impl Index {
     }
     wtx.commit()?;
 
-    self.reorged.store(false, atomic::Ordering::Relaxed);
-
     Ok(())
   }
 
@@ -506,10 +502,6 @@ impl Index {
     }
     writer.flush()?;
     Ok(())
-  }
-
-  pub(crate) fn is_reorged(&self) -> bool {
-    self.reorged.load(atomic::Ordering::Relaxed)
   }
 
   fn begin_read(&self) -> Result<rtx::Rtx> {
