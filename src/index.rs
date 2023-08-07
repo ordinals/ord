@@ -405,12 +405,7 @@ impl Index {
           if err.to_string().contains("reorg") {
             let mut wtx = self.begin_write()?;
 
-            dbg!(&self.block_height()?);
-
-            let savepoints = wtx
-              .list_persistent_savepoints()?
-              .into_iter()
-              .collect::<Vec<u64>>();
+            let savepoints = wtx.list_persistent_savepoints()?.collect::<Vec<u64>>();
 
             let oldest_savepoint =
               wtx.get_persistent_savepoint(savepoints.clone().into_iter().min().unwrap())?;
@@ -421,8 +416,6 @@ impl Index {
               wtx.delete_persistent_savepoint(savepoint)?;
             }
             wtx.commit()?;
-
-            dbg!(&self.block_height()?);
 
             updater = Updater::new(self)?;
           } else {

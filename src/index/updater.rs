@@ -665,7 +665,7 @@ impl<'index> Updater<'_> {
   fn update_savepoints(&self) -> Result {
     let wtx = self.index.begin_write()?;
 
-    let savepoints: Vec<u64> = wtx.list_persistent_savepoints()?.into_iter().collect();
+    let savepoints = wtx.list_persistent_savepoints()?.collect::<Vec<u64>>();
 
     // delete oldest savepoint
     if savepoints.len() >= 6 {
