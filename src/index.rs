@@ -415,29 +415,32 @@ impl Index {
     loop {
       match updater.update_index() {
         Ok(ok) => return Ok(ok),
-        Err(err) => {
-          if err.to_string().contains("reorg") {
-            let mut wtx = self.begin_write()?;
-
-            let savepoints = wtx.list_persistent_savepoints()?.collect::<Vec<u64>>();
-
-            let oldest_savepoint =
-              wtx.get_persistent_savepoint(savepoints.clone().into_iter().min().unwrap())?;
-
-            wtx.restore_savepoint(&oldest_savepoint)?;
-
-            for savepoint in savepoints {
-              wtx.delete_persistent_savepoint(savepoint)?;
-            }
-            wtx.commit()?;
-
-            updater = Updater::new(self)?;
-          } else {
-            return Err(err);
-          }
+        Err(err) if err.to_string().contains("reorg") => {
+          self.handle_reorg()?;
+          updater = Updater::new(self)?;
         }
+        Err(err) => return Err(err),
       }
     }
+  }
+
+  pub(crate) fn handle_reorg(&self) -> Result {
+    let mut wtx = self.begin_write()?;
+
+    let savepoints = wtx.list_persistent_savepoints()?.collect::<Vec<u64>>();
+
+    let oldest_savepoint = wtx.get_persistent_savepoint(*savepoints.iter().min().unwrap())?;
+
+    wtx.restore_savepoint(&oldest_savepoint)?;
+
+    for savepoint in savepoints {
+      wtx.delete_persistent_savepoint(savepoint)?;
+    }
+    wtx.commit()?;
+
+    self.reorged.store(false, atomic::Ordering::Relaxed);
+
+    Ok(())
   }
 
   pub(crate) fn export(&self, filename: &String, include_addresses: bool) -> Result {
