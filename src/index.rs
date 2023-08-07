@@ -207,11 +207,7 @@ impl Index {
 
         let mut tx = database.begin_write()?;
 
-        if cfg!(test) {
-          tx.set_durability(redb::Durability::None);
-        } else {
-          tx.set_durability(redb::Durability::Immediate);
-        };
+        tx.set_durability(redb::Durability::Immediate);
 
         tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
         tx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
@@ -382,7 +378,9 @@ impl Index {
   }
 
   pub(crate) fn update(&self) -> Result {
-    Updater::update(self)
+    let mut updater = Updater::new(self)?;
+
+    updater.update_index()
   }
 
   pub(crate) fn export(&self, filename: &String, include_addresses: bool) -> Result {
@@ -459,13 +457,7 @@ impl Index {
   }
 
   fn begin_write(&self) -> Result<WriteTransaction> {
-    if cfg!(test) {
-      let mut tx = self.database.begin_write()?;
-      tx.set_durability(redb::Durability::None);
-      Ok(tx)
-    } else {
-      Ok(self.database.begin_write()?)
-    }
+    Ok(self.database.begin_write()?)
   }
 
   fn increment_statistic(wtx: &WriteTransaction, statistic: Statistic, n: u64) -> Result {
@@ -3209,7 +3201,10 @@ mod tests {
       });
 
       let first = InscriptionId { txid, index: 0 };
-      let first_location = SatPoint { outpoint: OutPoint {txid, vout: 0 }, offset: 0 };
+      let first_location = SatPoint {
+        outpoint: OutPoint { txid, vout: 0 },
+        offset: 0,
+      };
 
       context.mine_blocks(6);
 
@@ -3219,13 +3214,15 @@ mod tests {
         ..Default::default()
       });
 
-      let second = InscriptionId { txid, index: 0 };
-      
+      let _second = InscriptionId { txid, index: 0 };
+
       context.mine_blocks(1);
 
       context.rpc_server.invalidate_tip();
-      
-      context.index.assert_inscription_location(first, first_location, None);
+
+      context
+        .index
+        .assert_inscription_location(first, first_location, None);
     }
   }
 }
