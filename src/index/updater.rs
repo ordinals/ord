@@ -669,8 +669,7 @@ impl<'index> Updater<'_> {
       log::debug!("creating savepoint at height {}", self.height);
       wtx.persistent_savepoint()?;
       wtx.commit()?;
-    }
-    else {
+    } else {
       Index::increment_statistic(&wtx, Statistic::Commits, 1)?;
       wtx.commit()?;
     }
