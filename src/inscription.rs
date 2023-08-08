@@ -32,7 +32,7 @@ pub(crate) enum Curse {
 pub(crate) struct Inscription {
   body: Option<Vec<u8>>,
   content_type: Option<Vec<u8>>,
-  pub(crate) uses_minimal_opcodes: bool
+  pub(crate) uses_minimal_opcodes: bool,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -45,7 +45,11 @@ pub(crate) struct TransactionInscription {
 impl Inscription {
   #[cfg(test)]
   pub(crate) fn new(content_type: Option<Vec<u8>>, body: Option<Vec<u8>>) -> Self {
-    Self { content_type, body, uses_minimal_opcodes: false }
+    Self {
+      content_type,
+      body,
+      uses_minimal_opcodes: false,
+    }
   }
 
   pub(crate) fn from_transaction(tx: &Transaction) -> Vec<TransactionInscription> {
@@ -86,7 +90,7 @@ impl Inscription {
     Ok(Self {
       body: Some(body),
       content_type: Some(content_type.into()),
-      uses_minimal_opcodes: false
+      uses_minimal_opcodes: false,
     })
   }
 
@@ -276,7 +280,11 @@ impl<'a> InscriptionParser<'a> {
       }
     }
 
-    Ok(Inscription { body, content_type, uses_minimal_opcodes })
+    Ok(Inscription {
+      body,
+      content_type,
+      uses_minimal_opcodes,
+    })
   }
 
   fn advance(&mut self) -> Result<Instruction<'a>> {
@@ -814,7 +822,7 @@ mod tests {
       &Inscription {
         content_type: None,
         body: None,
-        uses_minimal_opcodes: false
+        uses_minimal_opcodes: false,
       }
       .append_reveal_script(script::Builder::new()),
     );
