@@ -39,11 +39,15 @@ pub(crate) struct TransactionInscription {
 
 impl Inscription {
   #[cfg(test)]
-  pub(crate) fn new(content_type: Option<Vec<u8>>, body: Option<Vec<u8>>) -> Self {
+  pub(crate) fn new(
+    content_type: Option<Vec<u8>>,
+    body: Option<Vec<u8>>,
+    uses_minimal_opcodes: bool,
+  ) -> Self {
     Self {
       content_type,
       body,
-      uses_minimal_opcodes: false,
+      uses_minimal_opcodes,
     }
   }
 
@@ -512,7 +516,10 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_slice(&[script.into_bytes(), Vec::new()])),
-      Ok(vec![inscription("text/plain;charset=utf-8", "foobar")]),
+      Ok(vec![inscription_min_opcodes(
+        "text/plain;charset=utf-8",
+        "foobar"
+      )]),
     );
   }
 
@@ -572,7 +579,10 @@ mod tests {
 
     assert_eq!(
       InscriptionParser::parse(&Witness::from_slice(&[script.into_bytes(), Vec::new()])),
-      Ok(vec![inscription("text/plain;charset=utf-8", "ord")]),
+      Ok(vec![inscription_min_opcodes(
+        "text/plain;charset=utf-8",
+        "ord"
+      )]),
     );
   }
 

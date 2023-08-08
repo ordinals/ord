@@ -2143,7 +2143,8 @@ mod tests {
     assert_eq!(
       Server::content_response(Inscription::new(
         Some("text/plain".as_bytes().to_vec()),
-        None
+        None,
+        false
       )),
       None
     );
@@ -2154,6 +2155,7 @@ mod tests {
     let (headers, body) = Server::content_response(Inscription::new(
       Some("text/plain".as_bytes().to_vec()),
       Some(vec![1, 2, 3]),
+      false,
     ))
     .unwrap();
 
@@ -2164,7 +2166,7 @@ mod tests {
   #[test]
   fn content_response_no_content_type() {
     let (headers, body) =
-      Server::content_response(Inscription::new(None, Some(Vec::new()))).unwrap();
+      Server::content_response(Inscription::new(None, Some(Vec::new()), false)).unwrap();
 
     assert_eq!(headers["content-type"], "application/octet-stream");
     assert!(body.is_empty());
@@ -2462,7 +2464,7 @@ mod tests {
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0)],
-      witness: Inscription::new(Some("foo/bar".as_bytes().to_vec()), None).to_witness(),
+      witness: Inscription::new(Some("foo/bar".as_bytes().to_vec()), None, false).to_witness(),
       ..Default::default()
     });
 
@@ -2484,7 +2486,7 @@ mod tests {
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0)],
-      witness: Inscription::new(Some("image/png".as_bytes().to_vec()), None).to_witness(),
+      witness: Inscription::new(Some("image/png".as_bytes().to_vec()), None, false).to_witness(),
       ..Default::default()
     });
 

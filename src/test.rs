@@ -111,7 +111,11 @@ pub(crate) fn tx_out(value: u64, address: Address) -> TxOut {
 }
 
 pub(crate) fn inscription(content_type: &str, body: impl AsRef<[u8]>) -> Inscription {
-  Inscription::new(Some(content_type.into()), Some(body.as_ref().into()))
+  Inscription::new(Some(content_type.into()), Some(body.as_ref().into()), false)
+}
+
+pub(crate) fn inscription_min_opcodes(content_type: &str, body: impl AsRef<[u8]>) -> Inscription {
+  Inscription::new(Some(content_type.into()), Some(body.as_ref().into()), true)
 }
 
 pub(crate) fn transaction_inscription(
