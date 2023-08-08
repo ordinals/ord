@@ -54,7 +54,7 @@ impl Chain {
   pub(crate) fn address_from_script(
     self,
     script: &Script,
-  ) -> Result<Address, bitcoin::util::address::Error> {
+  ) -> Result<Address, bitcoin::address::Error> {
     Address::from_script(script, self.network())
   }
 
@@ -65,13 +65,6 @@ impl Chain {
       Self::Signet => data_dir.join("signet"),
       Self::Regtest => data_dir.join("regtest"),
     }
-  }
-
-  pub(crate) fn check_address_is_valid_for_network(self, address: &Address) -> Result {
-    if !address.is_valid_for_network(self.network()) {
-      bail!("Address `{address}` is not valid for {self}");
-    }
-    Ok(())
   }
 }
 

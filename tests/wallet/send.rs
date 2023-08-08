@@ -117,7 +117,7 @@ fn send_addresses_must_be_valid_for_network() {
   ))
   .rpc_server(&rpc_server)
   .expected_stderr(
-    "error: Address `tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz` is not valid for mainnet\n",
+    "error: address tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz belongs to network testnet which is different from required bitcoin\n",
   )
   .expected_exit_code(1)
   .run_and_extract_stdout();
@@ -234,8 +234,9 @@ fn send_btc() {
     &[Sent {
       amount: 1.0,
       address: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
-        .parse()
-        .unwrap(),
+        .parse::<Address<NetworkUnchecked>>()
+        .unwrap()
+        .assume_checked(),
       locked: Vec::new(),
     }]
   )
@@ -267,8 +268,9 @@ fn send_btc_locks_inscriptions() {
     &[Sent {
       amount: 1.0,
       address: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
-        .parse()
-        .unwrap(),
+        .parse::<Address<NetworkUnchecked>>()
+        .unwrap()
+        .assume_checked(),
       locked: vec![OutPoint {
         txid: reveal,
         vout: 0,

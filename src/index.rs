@@ -8,7 +8,7 @@ use {
   },
   super::*,
   crate::wallet::Wallet,
-  bitcoin::BlockHeader,
+  bitcoin::block::Header,
   bitcoincore_rpc::{json::GetBlockHeaderResult, Client},
   chrono::SubsecRound,
   indicatif::{ProgressBar, ProgressStyle},
@@ -18,7 +18,7 @@ use {
     TableDefinition, WriteTransaction,
   },
   std::collections::HashMap,
-  std::io::{BufWriter, Write},
+  std::io::{BufWriter, Read, Write},
   std::sync::atomic::{self, AtomicBool},
 };
 
@@ -168,6 +168,20 @@ impl Index {
         usize::try_from(sys.total_memory() / 4)?
       }
     };
+
+    if let Ok(mut file) = fs::OpenOptions::new().read(true).open(&path) {
+      // use cberner's quick hack to check the redb recovery bit
+      // https://github.com/cberner/redb/issues/639#issuecomment-1628037591
+      const MAGICNUMBER: [u8; 9] = [b'r', b'e', b'd', b'b', 0x1A, 0x0A, 0xA9, 0x0D, 0x0A];
+      const RECOVERY_REQUIRED: u8 = 2;
+
+      let mut buffer = [0; MAGICNUMBER.len() + 1];
+      file.read_exact(&mut buffer).unwrap();
+
+      if buffer[MAGICNUMBER.len()] & RECOVERY_REQUIRED != 0 {
+        println!("Index file {:?} needs recovery. This can take a long time, especially for the --index-sats index.", path);
+      }
+    }
 
     log::info!("Setting DB cache size to {} bytes", db_cache_size);
 
@@ -385,24 +399,67 @@ impl Index {
     Updater::update(self)
   }
 
-  pub(crate) fn export(&self, filename: &String) -> Result {
+  pub(crate) fn export(&self, filename: &String, include_addresses: bool) -> Result {
     let mut writer = BufWriter::new(File::create(filename)?);
+    let rtx = self.database.begin_read()?;
 
-    for result in self
-      .database
-      .begin_read()?
+    let blocks_indexed = rtx
+      .open_table(HEIGHT_TO_BLOCK_HASH)?
+      .range(0..)?
+      .next_back()
+      .and_then(|result| result.ok())
+      .map(|(height, _hash)| height.value() + 1)
+      .unwrap_or(0);
+
+    writeln!(writer, "# export at block height {}", blocks_indexed)?;
+
+    log::info!("exporting database tables to {filename}");
+
+    for result in rtx
       .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
       .iter()?
     {
       let (number, id) = result?;
-      writeln!(
-        writer,
-        "{}\t{}",
-        number.value(),
-        InscriptionId::load(*id.value())
-      )?;
-    }
+      let inscription_id = InscriptionId::load(*id.value());
 
+      let satpoint = self
+        .get_inscription_satpoint_by_id(inscription_id)?
+        .unwrap();
+
+      write!(
+        writer,
+        "{}\t{}\t{}",
+        number.value(),
+        inscription_id,
+        satpoint
+      )?;
+
+      if include_addresses {
+        let address = if satpoint.outpoint == unbound_outpoint() {
+          "unbound".to_string()
+        } else {
+          let output = self
+            .get_transaction(satpoint.outpoint.txid)?
+            .unwrap()
+            .output
+            .into_iter()
+            .nth(satpoint.outpoint.vout.try_into().unwrap())
+            .unwrap();
+          self
+            .options
+            .chain()
+            .address_from_script(&output.script_pubkey)
+            .map(|address| address.to_string())
+            .unwrap_or_else(|e| e.to_string())
+        };
+        write!(writer, "\t{}", address)?;
+      }
+      writeln!(writer)?;
+
+      if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
+        break;
+      }
+    }
     writer.flush()?;
     Ok(())
   }
@@ -513,7 +570,7 @@ impl Index {
     }
   }
 
-  pub(crate) fn block_header(&self, hash: BlockHash) -> Result<Option<BlockHeader>> {
+  pub(crate) fn block_header(&self, hash: BlockHash) -> Result<Option<Header>> {
     self.client.get_block_header(&hash).into_option()
   }
 
@@ -2529,30 +2586,30 @@ mod tests {
         .push_opcode(opcodes::OP_FALSE)
         .push_opcode(opcodes::all::OP_IF)
         .push_slice(b"ord")
-        .push_slice(&[1])
+        .push_slice([1])
         .push_slice(b"text/plain;charset=utf-8")
-        .push_slice(&[])
+        .push_slice([])
         .push_slice(b"foo")
         .push_opcode(opcodes::all::OP_ENDIF)
         .push_opcode(opcodes::OP_FALSE)
         .push_opcode(opcodes::all::OP_IF)
         .push_slice(b"ord")
-        .push_slice(&[1])
+        .push_slice([1])
         .push_slice(b"text/plain;charset=utf-8")
-        .push_slice(&[])
+        .push_slice([])
         .push_slice(b"bar")
         .push_opcode(opcodes::all::OP_ENDIF)
         .push_opcode(opcodes::OP_FALSE)
         .push_opcode(opcodes::all::OP_IF)
         .push_slice(b"ord")
-        .push_slice(&[1])
+        .push_slice([1])
         .push_slice(b"text/plain;charset=utf-8")
-        .push_slice(&[])
+        .push_slice([])
         .push_slice(b"qix")
         .push_opcode(opcodes::all::OP_ENDIF)
         .into_script();
 
-      let witness = Witness::from_vec(vec![script.into_bytes(), Vec::new()]);
+      let witness = Witness::from_slice(&[script.into_bytes(), Vec::new()]);
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],
@@ -2636,30 +2693,30 @@ mod tests {
         .push_opcode(opcodes::OP_FALSE)
         .push_opcode(opcodes::all::OP_IF)
         .push_slice(b"ord")
-        .push_slice(&[1])
+        .push_slice([1])
         .push_slice(b"text/plain;charset=utf-8")
-        .push_slice(&[])
+        .push_slice([])
         .push_slice(b"foo")
         .push_opcode(opcodes::all::OP_ENDIF)
         .push_opcode(opcodes::OP_FALSE)
         .push_opcode(opcodes::all::OP_IF)
         .push_slice(b"ord")
-        .push_slice(&[1])
+        .push_slice([1])
         .push_slice(b"text/plain;charset=utf-8")
-        .push_slice(&[])
+        .push_slice([])
         .push_slice(b"bar")
         .push_opcode(opcodes::all::OP_ENDIF)
         .push_opcode(opcodes::OP_FALSE)
         .push_opcode(opcodes::all::OP_IF)
         .push_slice(b"ord")
-        .push_slice(&[1])
+        .push_slice([1])
         .push_slice(b"text/plain;charset=utf-8")
-        .push_slice(&[])
+        .push_slice([])
         .push_slice(b"qix")
         .push_opcode(opcodes::all::OP_ENDIF)
         .into_script();
 
-      let witness = Witness::from_vec(vec![script.into_bytes(), Vec::new()]);
+      let witness = Witness::from_slice(&[script.into_bytes(), Vec::new()]);
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0), (2, 0, 0), (3, 0, 0)],
@@ -2741,30 +2798,30 @@ mod tests {
         .push_opcode(opcodes::OP_FALSE)
         .push_opcode(opcodes::all::OP_IF)
         .push_slice(b"ord")
-        .push_slice(&[1])
+        .push_slice([1])
         .push_slice(b"text/plain;charset=utf-8")
-        .push_slice(&[])
+        .push_slice([])
         .push_slice(b"foo")
         .push_opcode(opcodes::all::OP_ENDIF)
         .push_opcode(opcodes::OP_FALSE)
         .push_opcode(opcodes::all::OP_IF)
         .push_slice(b"ord")
-        .push_slice(&[1])
+        .push_slice([1])
         .push_slice(b"text/plain;charset=utf-8")
-        .push_slice(&[])
+        .push_slice([])
         .push_slice(b"bar")
         .push_opcode(opcodes::all::OP_ENDIF)
         .push_opcode(opcodes::OP_FALSE)
         .push_opcode(opcodes::all::OP_IF)
         .push_slice(b"ord")
-        .push_slice(&[1])
+        .push_slice([1])
         .push_slice(b"text/plain;charset=utf-8")
-        .push_slice(&[])
+        .push_slice([])
         .push_slice(b"qix")
         .push_opcode(opcodes::all::OP_ENDIF)
         .into_script();
 
-      let witness = Witness::from_vec(vec![script.into_bytes(), Vec::new()]);
+      let witness = Witness::from_slice(&[script.into_bytes(), Vec::new()]);
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0)],

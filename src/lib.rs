@@ -33,11 +33,12 @@ use {
   anyhow::{anyhow, bail, Context, Error},
   bip39::Mnemonic,
   bitcoin::{
+    address::{Address, NetworkUnchecked},
     blockdata::constants::COIN_VALUE,
     consensus::{self, Decodable, Encodable},
     hash_types::BlockHash,
     hashes::Hash,
-    Address, Amount, Block, Network, OutPoint, Script, Sequence, Transaction, TxIn, TxOut, Txid,
+    Amount, Block, Network, OutPoint, Script, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid,
   },
   bitcoincore_rpc::{Client, RpcApi},
   chain::Chain,

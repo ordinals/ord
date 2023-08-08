@@ -9,7 +9,7 @@ use {
 mod inscription_updater;
 
 struct BlockData {
-  header: BlockHeader,
+  header: Header,
   txdata: Vec<(Transaction, Txid)>,
 }
 
@@ -102,12 +102,7 @@ impl Updater {
 
     let mut uncommitted = 0;
     let mut value_cache = HashMap::new();
-    loop {
-      let block = match rx.recv() {
-        Ok(block) => block,
-        Err(mpsc::RecvError) => break,
-      };
-
+    while let Ok(block) = rx.recv() {
       self.index_block(
         index,
         &mut outpoint_sender,
@@ -397,7 +392,7 @@ impl Updater {
     if let Some(prev_height) = self.height.checked_sub(1) {
       let prev_hash = height_to_block_hash.get(&prev_height)?.unwrap();
 
-      if prev_hash.value() != block.header.prev_blockhash.as_ref() {
+      if prev_hash.value() != &block.header.prev_blockhash.as_raw_hash().to_byte_array() {
         index.reorged.store(true, atomic::Ordering::Relaxed);
         return Err(anyhow!("reorg detected at or before {prev_height}"));
       }

@@ -82,13 +82,15 @@ impl Options {
   }
 
   pub(crate) fn rpc_url(&self) -> String {
-    self.rpc_url.clone().unwrap_or_else(|| {
+    if let Some(rpc_url) = &self.rpc_url {
+      format!("{rpc_url}/wallet/{}", self.wallet)
+    } else {
       format!(
         "127.0.0.1:{}/wallet/{}",
         self.chain().default_rpc_port(),
         self.wallet
       )
-    })
+    }
   }
 
   pub(crate) fn cookie_file(&self) -> Result<PathBuf> {
@@ -285,7 +287,7 @@ mod tests {
       .unwrap()
       .options
       .rpc_url(),
-      "127.0.0.1:1234"
+      "127.0.0.1:1234/wallet/ord"
     );
   }
 
