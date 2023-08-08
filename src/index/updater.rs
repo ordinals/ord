@@ -656,18 +656,24 @@ impl<'index> Updater<'_> {
     Index::increment_statistic(&wtx, Statistic::SatRanges, self.sat_ranges_since_flush)?;
     self.sat_ranges_since_flush = 0;
 
-    let savepoints = wtx.list_persistent_savepoints()?.collect::<Vec<u64>>();
+    if self.height < 5 || self.height % 5 == 0 {
+      let savepoints = wtx.list_persistent_savepoints()?.collect::<Vec<u64>>();
 
-    if savepoints.len() >= 6 {
-      wtx.delete_persistent_savepoint(savepoints.into_iter().min().unwrap())?;
+      if savepoints.len() >= 2 {
+        wtx.delete_persistent_savepoint(savepoints.into_iter().min().unwrap())?;
+      }
+
+      Index::increment_statistic(&wtx, Statistic::Commits, 2)?;
+      wtx.commit()?;
+      let wtx = self.index.begin_write()?;
+      log::debug!("creating savepoint at height {}", self.height);
+      wtx.persistent_savepoint()?;
+      wtx.commit()?;
     }
-    wtx.commit()?;
-
-    let wtx = self.index.begin_write()?;
-    wtx.persistent_savepoint()?;
-
-    Index::increment_statistic(&wtx, Statistic::Commits, 2)?;
-    wtx.commit()?;
+    else {
+      Index::increment_statistic(&wtx, Statistic::Commits, 1)?;
+      wtx.commit()?;
+    }
 
     Ok(())
   }

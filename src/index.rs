@@ -408,7 +408,7 @@ impl Index {
   }
 
   pub(crate) fn handle_reorg(&self, height: u64) -> Result {
-    log::info!("rolling back database to height {}", height - 6);
+    log::info!("rolling back database after reorg at height {}", height);
     let mut wtx = self.begin_write()?;
 
     let oldest_savepoint =
@@ -417,6 +417,10 @@ impl Index {
     wtx.restore_savepoint(&oldest_savepoint)?;
 
     wtx.commit()?;
+    log::info!(
+      "successfully rolled back database to height {}",
+      self.block_count()?
+    );
 
     Ok(())
   }
@@ -3383,6 +3387,57 @@ mod tests {
       context.rpc_server.invalidate_tip();
 
       context.mine_blocks(2);
+
+      context
+        .index
+        .assert_inscription_location(first_id, first_location, Some(50 * COIN_VALUE));
+    }
+  }
+
+  #[test]
+  fn recover_from_very_unlikely_7_block_deep_reorg() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0)],
+        witness: inscription("text/plain;charset=utf-8", "hello").to_witness(),
+        ..Default::default()
+      });
+
+      context.mine_blocks(6);
+
+      let first_id = InscriptionId { txid, index: 0 };
+      let first_location = SatPoint {
+        outpoint: OutPoint { txid, vout: 0 },
+        offset: 0,
+      };
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(7, 0, 0)],
+        witness: inscription("text/plain;charset=utf-8", "hello").to_witness(),
+        ..Default::default()
+      });
+
+      let second_id = InscriptionId { txid, index: 0 };
+      let second_location = SatPoint {
+        outpoint: OutPoint { txid, vout: 0 },
+        offset: 0,
+      };
+
+      context.mine_blocks(7);
+
+      context
+        .index
+        .assert_inscription_location(second_id, second_location, Some(350 * COIN_VALUE));
+
+      for _ in 0..7 {
+        context.rpc_server.invalidate_tip();
+      }
+
+      context.mine_blocks(9);
+
+      context.index.assert_non_existence_of_inscription(second_id);
 
       context
         .index
