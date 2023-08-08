@@ -226,7 +226,7 @@ impl<'a> InscriptionParser<'a> {
 
   fn parse_one_inscription(&mut self) -> Result<Inscription> {
     self.advance_into_inscription_envelope()?;
-    let mut fields = BTreeMap::new();
+    let mut fields = BTreeMap::<Vec<u8>, Vec<u8>>::new();
     let mut uses_minimal_opcodes = false;
 
     loop {
@@ -236,14 +236,14 @@ impl<'a> InscriptionParser<'a> {
           while !self.accept(&Instruction::Op(opcodes::all::OP_ENDIF))? {
             body.extend_from_slice(self.expect_push()?);
           }
-          fields.insert(BODY_TAG.as_slice(), body);
+          fields.insert(BODY_TAG.to_vec(), body);
           break;
         }
         Instruction::PushBytes(tag) => {
           if fields.contains_key(tag.as_bytes()) {
             return Err(InscriptionError::InvalidInscription);
           }
-          fields.insert(tag.as_bytes(), self.expect_push()?.to_vec());
+          fields.insert(tag.as_bytes().to_vec(), self.expect_push()?.to_vec());
         }
         // this pattern needs to be checked before we check any other opcodes
         Instruction::Op(opcodes::all::OP_ENDIF) => break,
@@ -264,8 +264,8 @@ impl<'a> InscriptionParser<'a> {
       }
     }
 
-    let body = fields.remove(BODY_TAG.as_slice());
-    let content_type = fields.remove(CONTENT_TYPE_TAG.as_slice());
+    let body = fields.remove(&BODY_TAG.to_vec());
+    let content_type = fields.remove(&CONTENT_TYPE_TAG.to_vec());
 
     for tag in fields.keys() {
       if let Some(lsb) = tag.first() {
@@ -511,7 +511,7 @@ mod tests {
       .into_script();
 
     assert_eq!(
-      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), Vec::new()])),
+      InscriptionParser::parse(&Witness::from_slice(&[script.into_bytes(), Vec::new()])),
       Ok(vec![inscription("text/plain;charset=utf-8", "foobar")]),
     );
   }
@@ -571,7 +571,7 @@ mod tests {
       .into_script();
 
     assert_eq!(
-      InscriptionParser::parse(&Witness::from_vec(vec![script.into_bytes(), Vec::new()])),
+      InscriptionParser::parse(&Witness::from_slice(&[script.into_bytes(), Vec::new()])),
       Ok(vec![inscription("text/plain;charset=utf-8", "ord")]),
     );
   }
