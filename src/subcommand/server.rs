@@ -541,11 +541,18 @@ impl Server {
     )
   }
 
-  async fn status() -> (StatusCode, &'static str) {
-    (
-      StatusCode::OK,
-      StatusCode::OK.canonical_reason().unwrap_or_default(),
-    )
+  async fn status(Extension(index): Extension<Arc<Index>>) -> (StatusCode, &'static str) {
+    if index.is_unrecoverably_reorged() {
+      (
+        StatusCode::OK,
+        "unrecoverable reorg detected, please rebuild the database.",
+      )
+    } else {
+      (
+        StatusCode::OK,
+        StatusCode::OK.canonical_reason().unwrap_or_default(),
+      )
+    }
   }
 
   async fn search_by_query(
@@ -1910,6 +1917,23 @@ mod tests {
   }
 
   #[test]
+  fn detect_unrecoverable_reorg() {
+    let test_server = TestServer::new();
+
+    test_server.mine_blocks(21);
+
+    test_server.assert_response("/status", StatusCode::OK, "OK");
+
+    for _ in 0..15 {
+      test_server.bitcoin_rpc_server.invalidate_tip();
+    }
+
+    test_server.bitcoin_rpc_server.mine_blocks(21);
+
+    test_server.assert_response_regex("/status", StatusCode::OK, "unrecoverable reorg detected.*");
+  }
+
+  #[test]
   fn rare_with_index() {
     TestServer::new_with_sat_index().assert_response(
       "/rare.txt",
@@ -1991,7 +2015,7 @@ mod tests {
 
     server.index.update().unwrap();
 
-    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 2);
+    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 3);
 
     let info = server.index.info().unwrap();
     assert_eq!(info.transactions.len(), 1);
@@ -2002,7 +2026,7 @@ mod tests {
     thread::sleep(Duration::from_millis(10));
     server.index.update().unwrap();
 
-    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 4);
+    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 6);
 
     let info = server.index.info().unwrap();
     assert_eq!(info.transactions.len(), 2);

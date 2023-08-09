@@ -8,9 +8,9 @@ use {
 
 mod inscription_updater;
 
-struct BlockData {
-  header: Header,
-  txdata: Vec<(Transaction, Txid)>,
+pub(crate) struct BlockData {
+  pub(crate) header: Header,
+  pub(crate) txdata: Vec<(Transaction, Txid)>,
 }
 
 impl From<Block> for BlockData {
@@ -28,21 +28,6 @@ impl From<Block> for BlockData {
     }
   }
 }
-
-#[derive(Debug, PartialEq)]
-pub(crate) enum UpdaterError {
-  Reorged(u64),
-}
-
-impl fmt::Display for UpdaterError {
-  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    match self {
-      UpdaterError::Reorged(height) => write!(f, "Reorg detected at height {height}"),
-    }
-  }
-}
-
-impl std::error::Error for UpdaterError {}
 
 pub(crate) struct Updater<'index> {
   range_cache: HashMap<OutPointValue, Vec<u8>>,
@@ -332,28 +317,18 @@ impl<'index> Updater<'_> {
     block: BlockData,
     value_cache: &mut HashMap<OutPoint, u64>,
   ) -> Result<()> {
-    let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
+    Reorg::detect_reorg(&block, self.height, self.index)?;
 
     let start = Instant::now();
     let mut sat_ranges_written = 0;
     let mut outputs_in_block = 0;
 
-    let time = timestamp(block.header.time);
-
     log::info!(
       "Block {} at {} with {} transactions…",
       self.height,
-      time,
+      timestamp(block.header.time),
       block.txdata.len()
     );
-
-    if let Some(prev_height) = self.height.checked_sub(1) {
-      let prev_hash = height_to_block_hash.get(&prev_height)?.unwrap();
-
-      if prev_hash.value() != &block.header.prev_blockhash.as_raw_hash().to_byte_array() {
-        return Err(UpdaterError::Reorged(prev_height).into());
-      }
-    }
 
     // If value_receiver still has values something went wrong with the last block
     // Could be an assert, shouldn't recover from this and commit the last block
@@ -399,6 +374,7 @@ impl<'index> Updater<'_> {
       }
     }
 
+    let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
     let mut inscription_id_to_inscription_entry =
       wtx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
     let mut inscription_id_to_satpoint = wtx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
@@ -655,24 +631,10 @@ impl<'index> Updater<'_> {
     self.outputs_traversed = 0;
     Index::increment_statistic(&wtx, Statistic::SatRanges, self.sat_ranges_since_flush)?;
     self.sat_ranges_since_flush = 0;
+    Index::increment_statistic(&wtx, Statistic::Commits, 1)?;
+    wtx.commit()?;
 
-    if self.height < 5 || self.height % 5 == 0 {
-      let savepoints = wtx.list_persistent_savepoints()?.collect::<Vec<u64>>();
-
-      if savepoints.len() >= 2 {
-        wtx.delete_persistent_savepoint(savepoints.into_iter().min().unwrap())?;
-      }
-
-      Index::increment_statistic(&wtx, Statistic::Commits, 2)?;
-      wtx.commit()?;
-      let wtx = self.index.begin_write()?;
-      log::debug!("creating savepoint at height {}", self.height);
-      wtx.persistent_savepoint()?;
-      wtx.commit()?;
-    } else {
-      Index::increment_statistic(&wtx, Statistic::Commits, 1)?;
-      wtx.commit()?;
-    }
+    Reorg::update_savepoints(self.index, self.height)?;
 
     Ok(())
   }

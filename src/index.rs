@@ -4,7 +4,8 @@ use {
       BlockHashValue, Entry, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
       OutPointValue, SatPointValue, SatRange,
     },
-    updater::{Updater, UpdaterError},
+    reorg::*,
+    updater::Updater,
   },
   super::*,
   crate::wallet::Wallet,
@@ -23,6 +24,7 @@ use {
 
 mod entry;
 mod fetcher;
+mod reorg;
 mod rtx;
 mod updater;
 
@@ -139,6 +141,7 @@ pub(crate) struct Index {
   genesis_block_coinbase_txid: Txid,
   height_limit: Option<u64>,
   options: Options,
+  unrecoverably_reorged: AtomicBool,
 }
 
 impl Index {
@@ -258,6 +261,7 @@ impl Index {
       genesis_block_coinbase_transaction,
       height_limit: options.height_limit,
       options: options.clone(),
+      unrecoverably_reorged: AtomicBool::new(false),
     })
   }
 
@@ -395,34 +399,25 @@ impl Index {
       match updater.update_index() {
         Ok(ok) => return Ok(ok),
         Err(err) => {
-          if let Some(&UpdaterError::Reorged(height)) = err.downcast_ref::<UpdaterError>() {
-            log::info!("{}", err.to_string());
-            self.handle_reorg(height)?;
-            updater = Updater::new(self)?;
-          } else {
-            return Err(err);
-          }
+          log::info!("{}", err.to_string());
+
+          match err.downcast_ref() {
+            Some(&ReorgError::Recoverable((height, depth))) => {
+              Reorg::handle_reorg(self, height, depth)?;
+
+              updater = Updater::new(self)?;
+            }
+            Some(&ReorgError::Unrecoverable) => {
+              self
+                .unrecoverably_reorged
+                .store(true, atomic::Ordering::Relaxed);
+              return Err(anyhow!(ReorgError::Unrecoverable));
+            }
+            _ => return Err(err),
+          };
         }
       }
     }
-  }
-
-  pub(crate) fn handle_reorg(&self, height: u64) -> Result {
-    log::info!("rolling back database after reorg at height {}", height);
-    let mut wtx = self.begin_write()?;
-
-    let oldest_savepoint =
-      wtx.get_persistent_savepoint(wtx.list_persistent_savepoints()?.min().unwrap())?;
-
-    wtx.restore_savepoint(&oldest_savepoint)?;
-
-    wtx.commit()?;
-    log::info!(
-      "successfully rolled back database to height {}",
-      self.block_count()?
-    );
-
-    Ok(())
   }
 
   pub(crate) fn export(&self, filename: &String, include_addresses: bool) -> Result {
@@ -488,6 +483,10 @@ impl Index {
     }
     writer.flush()?;
     Ok(())
+  }
+
+  pub(crate) fn is_unrecoverably_reorged(&self) -> bool {
+    self.unrecoverably_reorged.load(atomic::Ordering::Relaxed)
   }
 
   fn begin_read(&self) -> Result<rtx::Rtx> {
@@ -3296,14 +3295,13 @@ mod tests {
         witness: inscription("text/plain;charset=utf-8", "hello").to_witness(),
         ..Default::default()
       });
-
-      context.mine_blocks(6);
-
       let first_id = InscriptionId { txid, index: 0 };
       let first_location = SatPoint {
         outpoint: OutPoint { txid, vout: 0 },
         offset: 0,
       };
+
+      context.mine_blocks(6);
 
       context
         .index
@@ -3314,21 +3312,19 @@ mod tests {
         witness: inscription("text/plain;charset=utf-8", "hello").to_witness(),
         ..Default::default()
       });
-
-      context.mine_blocks(1);
-
       let second_id = InscriptionId { txid, index: 0 };
       let second_location = SatPoint {
         outpoint: OutPoint { txid, vout: 0 },
         offset: 0,
       };
 
+      context.mine_blocks(1);
+
       context
         .index
         .assert_inscription_location(second_id, second_location, Some(350 * COIN_VALUE));
 
       context.rpc_server.invalidate_tip();
-
       context.mine_blocks(2);
 
       context
@@ -3349,28 +3345,26 @@ mod tests {
         witness: inscription("text/plain;charset=utf-8", "hello").to_witness(),
         ..Default::default()
       });
-
-      context.mine_blocks(6);
-
       let first_id = InscriptionId { txid, index: 0 };
       let first_location = SatPoint {
         outpoint: OutPoint { txid, vout: 0 },
         offset: 0,
       };
 
+      context.mine_blocks(6);
+
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(7, 0, 0)],
         witness: inscription("text/plain;charset=utf-8", "hello").to_witness(),
         ..Default::default()
       });
-
       let second_id = InscriptionId { txid, index: 0 };
       let second_location = SatPoint {
         outpoint: OutPoint { txid, vout: 0 },
         offset: 0,
       };
 
-      context.mine_blocks(3);
+      context.mine_blocks(1);
 
       context
         .index
