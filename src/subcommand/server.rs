@@ -569,10 +569,10 @@ impl Server {
   }
 
   async fn status(Extension(index): Extension<Arc<Index>>) -> (StatusCode, &'static str) {
-    if index.is_reorged() {
+    if index.is_unrecoverably_reorged() {
       (
         StatusCode::OK,
-        "reorg detected, please rebuild the database.",
+        "unrecoverable reorg detected, please rebuild the database.",
       )
     } else {
       (
@@ -1944,17 +1944,20 @@ mod tests {
   }
 
   #[test]
-  fn detect_reorg() {
+  fn detect_unrecoverable_reorg() {
     let test_server = TestServer::new();
 
-    test_server.mine_blocks(1);
+    test_server.mine_blocks(21);
 
     test_server.assert_response("/status", StatusCode::OK, "OK");
 
-    test_server.bitcoin_rpc_server.invalidate_tip();
-    test_server.bitcoin_rpc_server.mine_blocks(2);
+    for _ in 0..15 {
+      test_server.bitcoin_rpc_server.invalidate_tip();
+    }
 
-    test_server.assert_response_regex("/status", StatusCode::OK, "reorg detected.*");
+    test_server.bitcoin_rpc_server.mine_blocks(21);
+
+    test_server.assert_response_regex("/status", StatusCode::OK, "unrecoverable reorg detected.*");
   }
 
   #[test]
@@ -2031,7 +2034,8 @@ mod tests {
   fn commits_are_tracked() {
     let server = TestServer::new();
 
-    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 1);
+    thread::sleep(Duration::from_millis(25));
+    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 3);
 
     let info = server.index.info().unwrap();
     assert_eq!(info.transactions.len(), 1);
@@ -2039,7 +2043,7 @@ mod tests {
 
     server.index.update().unwrap();
 
-    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 1);
+    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 3);
 
     let info = server.index.info().unwrap();
     assert_eq!(info.transactions.len(), 1);
@@ -2050,7 +2054,7 @@ mod tests {
     thread::sleep(Duration::from_millis(10));
     server.index.update().unwrap();
 
-    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 2);
+    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 6);
 
     let info = server.index.info().unwrap();
     assert_eq!(info.transactions.len(), 2);
