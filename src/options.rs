@@ -57,7 +57,7 @@ pub(crate) struct Options {
   #[clap(
     long,
     short,
-    help = "Enable JSON API to get JSON responses from the server instead of HTML."
+    help = "Enable JSON API."
   )]
   pub(crate) enable_json_api: bool,
 }
