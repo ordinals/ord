@@ -18,7 +18,7 @@ use {
     TableDefinition, WriteTransaction,
   },
   std::collections::HashMap,
-  std::io::{BufWriter, Write},
+  std::io::{BufWriter, Read, Write},
   std::sync::atomic::{self, AtomicBool},
 };
 
@@ -168,6 +168,20 @@ impl Index {
         usize::try_from(sys.total_memory() / 4)?
       }
     };
+
+    if let Ok(mut file) = fs::OpenOptions::new().read(true).open(&path) {
+      // use cberner's quick hack to check the redb recovery bit
+      // https://github.com/cberner/redb/issues/639#issuecomment-1628037591
+      const MAGICNUMBER: [u8; 9] = [b'r', b'e', b'd', b'b', 0x1A, 0x0A, 0xA9, 0x0D, 0x0A];
+      const RECOVERY_REQUIRED: u8 = 2;
+
+      let mut buffer = [0; MAGICNUMBER.len() + 1];
+      file.read_exact(&mut buffer).unwrap();
+
+      if buffer[MAGICNUMBER.len()] & RECOVERY_REQUIRED != 0 {
+        println!("Index file {:?} needs recovery. This can take a long time, especially for the --index-sats index.", path);
+      }
+    }
 
     log::info!("Setting DB cache size to {} bytes", db_cache_size);
 
@@ -812,24 +826,15 @@ impl Index {
 
   pub(crate) fn get_inscriptions(
     &self,
-    n: Option<usize>,
+    utxos: BTreeMap<OutPoint, Amount>,
   ) -> Result<BTreeMap<SatPoint, InscriptionId>> {
     let rtx = self.database.begin_read()?;
 
     let mut result = BTreeMap::new();
 
-    for range_result in rtx
-      .open_multimap_table(SATPOINT_TO_INSCRIPTION_ID)?
-      .range::<&[u8; 44]>(&[0; 44]..)?
-    {
-      let (satpoint, ids) = range_result?;
-      for id_result in ids {
-        let id = id_result?;
-        result.insert(Entry::load(*satpoint.value()), Entry::load(*id.value()));
-      }
-      if result.len() >= n.unwrap_or(usize::MAX) {
-        break;
-      }
+    let table = rtx.open_multimap_table(SATPOINT_TO_INSCRIPTION_ID)?;
+    for utxo in utxos.keys() {
+      result.extend(Self::inscriptions_on_output_unordered(&table, *utxo)?);
     }
 
     Ok(result)

@@ -24,7 +24,3 @@ name = "transaction-builder"
 path = "fuzz_targets/transaction_builder.rs"
 test = false
 doc = false
-
-[patch.crates-io]
-jsonrpc = { git = "https://github.com/apoelstra/rust-jsonrpc.git", rev = "64b58797dd517c4de0cec769ff5652220801fe18" }
-redb = { git = "https://github.com/casey/redb.git", branch = "ord" }
