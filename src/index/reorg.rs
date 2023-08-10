@@ -32,7 +32,7 @@ impl Reorg {
       Some(index_prev_blockhash) if index_prev_blockhash == bitcoind_prev_blockhash => Ok(()),
       Some(index_prev_blockhash) if index_prev_blockhash != bitcoind_prev_blockhash => {
         let max_recoverable_reorg_depth =
-          height % SAVEPOINT_INTERVAL + (MAX_SAVEPOINTS as u64 * SAVEPOINT_INTERVAL);
+         (MAX_SAVEPOINTS as u64 - 1 * SAVEPOINT_INTERVAL) + height % SAVEPOINT_INTERVAL;
 
         for depth in 1..max_recoverable_reorg_depth {
           let index_block_hash = index.block_hash(height.checked_sub(depth))?;
