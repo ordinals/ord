@@ -1,5 +1,6 @@
 use {
   self::{
+    accept_json::AcceptJson,
     deserialize_from_str::DeserializeFromStr,
     error::{OptionExt, ServerError, ServerResult},
   },
@@ -8,11 +9,11 @@ use {
   crate::templates::{
     BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionsHtml, OutputHtml,
     PageContent, PageHtml, PreviewAudioHtml, PreviewImageHtml, PreviewPdfHtml, PreviewTextHtml,
-    PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, SatHtml, TransactionHtml,
+    PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, SatHtml, SatJson, TransactionHtml,
   },
   axum::{
     body,
-    extract::{Extension, Path, Query},
+    extract::{Extension, Json, Path, Query},
     headers::UserAgent,
     http::{header, HeaderMap, HeaderValue, StatusCode, Uri},
     response::{IntoResponse, Redirect, Response},
@@ -36,6 +37,7 @@ use {
   },
 };
 
+mod accept_json;
 mod error;
 
 enum BlockQuery {
@@ -382,18 +384,43 @@ impl Server {
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(sat)): Path<DeserializeFromStr<Sat>>,
-  ) -> ServerResult<PageHtml<SatHtml>> {
+    accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
     let satpoint = index.rare_sat_satpoint(sat)?;
-
-    Ok(
+    let blocktime = index.block_time(sat.height())?;
+    let inscriptions = index.get_inscription_ids_by_sat(sat)?;
+    Ok(if accept_json.0 {
+      if index.is_json_api_enabled() {
+        Json(SatJson {
+          number: sat.0,
+          decimal: sat.decimal().to_string(),
+          degree: sat.degree().to_string(),
+          name: sat.name(),
+          block: sat.height().0,
+          cycle: sat.cycle(),
+          epoch: sat.epoch().0,
+          period: sat.period(),
+          offset: sat.third(),
+          rarity: sat.rarity(),
+          percentile: sat.percentile(),
+          satpoint,
+          timestamp: blocktime.timestamp().to_string(),
+          inscriptions,
+        })
+        .into_response()
+      } else {
+        StatusCode::NOT_ACCEPTABLE.into_response()
+      }
+    } else {
       SatHtml {
         sat,
         satpoint,
-        blocktime: index.block_time(sat.height())?,
-        inscriptions: index.get_inscription_ids_by_sat(sat)?,
+        blocktime,
+        inscriptions,
       }
-      .page(page_config, index.has_sat_index()?),
-    )
+      .page(page_config, index.has_sat_index()?)
+      .into_response()
+    })
   }
 
   async fn ordinal(Path(sat): Path<String>) -> Redirect {

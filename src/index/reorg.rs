@@ -21,7 +21,7 @@ impl std::error::Error for ReorgError {}
 
 const MAX_SAVEPOINTS: usize = 2;
 const SAVEPOINT_INTERVAL: u64 = 10;
-const CHAIN_TIP_DISTANCE: u64 = 25;
+const CHAIN_TIP_DISTANCE: u64 = 21;
 
 pub(crate) struct Reorg {}
 
