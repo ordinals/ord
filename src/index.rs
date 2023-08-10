@@ -1159,19 +1159,6 @@ mod tests {
   }
 
   #[test]
-  fn json_api_enabled() {
-    {
-      let context = Context::builder().build();
-      assert_eq!(context.options.enable_json_api, false);
-    }
-
-    {
-      let context = Context::builder().args(["--enable-json-api"]).build();
-      assert_eq!(context.options.enable_json_api, true);
-    }
-  }
-
-  #[test]
   fn height_limit() {
     {
       let context = Context::builder().args(["--height-limit", "0"]).build();

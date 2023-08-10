@@ -389,25 +389,28 @@ impl Server {
     let satpoint = index.rare_sat_satpoint(sat)?;
     let blocktime = index.block_time(sat.height())?;
     let inscriptions = index.get_inscription_ids_by_sat(sat)?;
-
-    Ok(if index.is_json_api_enabled() && accept_json.0 {
-      Json(SatJson {
-        number: sat.0,
-        decimal: sat.decimal().to_string(),
-        degree: sat.degree().to_string(),
-        name: sat.name(),
-        block: sat.height().0,
-        cycle: sat.cycle(),
-        epoch: sat.epoch().0,
-        period: sat.period(),
-        offset: sat.third(),
-        rarity: sat.rarity(),
-        percentile: sat.percentile(),
-        satpoint,
-        timestamp: blocktime.timestamp().to_string(),
-        inscriptions,
-      })
-      .into_response()
+    Ok(if accept_json.0 {
+      if index.is_json_api_enabled() {
+        Json(SatJson {
+          number: sat.0,
+          decimal: sat.decimal().to_string(),
+          degree: sat.degree().to_string(),
+          name: sat.name(),
+          block: sat.height().0,
+          cycle: sat.cycle(),
+          epoch: sat.epoch().0,
+          period: sat.period(),
+          offset: sat.third(),
+          rarity: sat.rarity(),
+          percentile: sat.percentile(),
+          satpoint,
+          timestamp: blocktime.timestamp().to_string(),
+          inscriptions,
+        })
+        .into_response()
+      } else {
+        StatusCode::NOT_ACCEPTABLE.into_response()
+      }
     } else {
       SatHtml {
         sat,
