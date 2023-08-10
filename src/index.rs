@@ -3308,7 +3308,7 @@ mod tests {
         .assert_inscription_location(first_id, first_location, Some(50 * COIN_VALUE));
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
-        inputs: &[(7, 0, 0)],
+        inputs: &[(2, 0, 0)],
         witness: inscription("text/plain;charset=utf-8", "hello").to_witness(),
         ..Default::default()
       });
@@ -3322,7 +3322,7 @@ mod tests {
 
       context
         .index
-        .assert_inscription_location(second_id, second_location, Some(350 * COIN_VALUE));
+        .assert_inscription_location(second_id, second_location, Some(100 * COIN_VALUE));
 
       context.rpc_server.invalidate_tip();
       context.mine_blocks(2);
@@ -3351,10 +3351,10 @@ mod tests {
         offset: 0,
       };
 
-      context.mine_blocks(6);
+      context.mine_blocks(10);
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
-        inputs: &[(7, 0, 0)],
+        inputs: &[(2, 0, 0)],
         witness: inscription("text/plain;charset=utf-8", "hello").to_witness(),
         ..Default::default()
       });
@@ -3368,7 +3368,7 @@ mod tests {
 
       context
         .index
-        .assert_inscription_location(second_id, second_location, Some(350 * COIN_VALUE));
+        .assert_inscription_location(second_id, second_location, Some(100 * COIN_VALUE));
 
       context.rpc_server.invalidate_tip();
       context.rpc_server.invalidate_tip();
@@ -3399,7 +3399,7 @@ mod tests {
         ..Default::default()
       });
 
-      context.mine_blocks(6);
+      context.mine_blocks(11);
 
       let first_id = InscriptionId { txid, index: 0 };
       let first_location = SatPoint {
@@ -3408,7 +3408,7 @@ mod tests {
       };
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
-        inputs: &[(7, 0, 0)],
+        inputs: &[(2, 0, 0)],
         witness: inscription("text/plain;charset=utf-8", "hello").to_witness(),
         ..Default::default()
       });
@@ -3423,7 +3423,7 @@ mod tests {
 
       context
         .index
-        .assert_inscription_location(second_id, second_location, Some(350 * COIN_VALUE));
+        .assert_inscription_location(second_id, second_location, Some(100 * COIN_VALUE));
 
       for _ in 0..7 {
         context.rpc_server.invalidate_tip();

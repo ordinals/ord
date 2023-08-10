@@ -20,7 +20,8 @@ impl fmt::Display for ReorgError {
 impl std::error::Error for ReorgError {}
 
 const MAX_SAVEPOINTS: usize = 2;
-const SAVEPOINT_INTERVAL: u64 = 5;
+const SAVEPOINT_INTERVAL: u64 = 10;
+const CHAIN_TIP_DISTANCE: u64 = 100;
 
 pub(crate) struct Reorg {}
 
@@ -32,7 +33,7 @@ impl Reorg {
       Some(index_prev_blockhash) if index_prev_blockhash == bitcoind_prev_blockhash => Ok(()),
       Some(index_prev_blockhash) if index_prev_blockhash != bitcoind_prev_blockhash => {
         let max_recoverable_reorg_depth =
-         (MAX_SAVEPOINTS as u64 - 1 * SAVEPOINT_INTERVAL) + height % SAVEPOINT_INTERVAL;
+          (MAX_SAVEPOINTS as u64 - 1) * SAVEPOINT_INTERVAL + height % SAVEPOINT_INTERVAL;
 
         for depth in 1..max_recoverable_reorg_depth {
           let index_block_hash = index.block_hash(height.checked_sub(depth))?;
@@ -72,7 +73,14 @@ impl Reorg {
   }
 
   pub(crate) fn update_savepoints(index: &Index, height: u64) -> Result {
-    if height < SAVEPOINT_INTERVAL || height % SAVEPOINT_INTERVAL == 0 {
+    if (height < SAVEPOINT_INTERVAL || height % SAVEPOINT_INTERVAL == 0)
+      && index
+        .client
+        .get_blockchain_info()?
+        .headers
+        .saturating_sub(height)
+        <= CHAIN_TIP_DISTANCE
+    {
       let wtx = index.begin_write()?;
 
       let savepoints = wtx.list_persistent_savepoints()?.collect::<Vec<u64>>();
