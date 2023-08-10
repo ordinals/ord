@@ -7,8 +7,8 @@ use {
 fn get_sat_without_sat_index() {
   let rpc_server = test_bitcoincore_rpc::spawn();
 
-  let response =
-    TestServer::spawn_with_args(&rpc_server, &[]).json_request("/sat/2099999997689999");
+  let response = TestServer::spawn_with_args(&rpc_server, &["--enable-json-api"])
+    .json_request("/sat/2099999997689999");
 
   assert_eq!(response.status(), StatusCode::OK);
 
@@ -47,7 +47,7 @@ fn get_sat_with_inscription_and_sat_index() {
   let Inscribe { reveal, .. } = inscribe(&rpc_server);
   let inscription_id = InscriptionId::from(reveal);
 
-  let response = TestServer::spawn_with_args(&rpc_server, &["--index-sats"])
+  let response = TestServer::spawn_with_args(&rpc_server, &["--index-sats", "--enable-json-api"])
     .json_request(format!("/sat/{}", 50 * COIN_VALUE));
 
   assert_eq!(response.status(), StatusCode::OK);

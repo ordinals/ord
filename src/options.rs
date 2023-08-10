@@ -54,6 +54,12 @@ pub(crate) struct Options {
   pub(crate) testnet: bool,
   #[clap(long, default_value = "ord", help = "Use wallet named <WALLET>.")]
   pub(crate) wallet: String,
+  #[clap(
+    long,
+    short,
+    help = "Enable JSON API."
+  )]
+  pub(crate) enable_json_api: bool,
 }
 
 impl Options {

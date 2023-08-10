@@ -464,6 +464,10 @@ impl Index {
     Ok(())
   }
 
+  pub(crate) fn is_json_api_enabled(&self) -> bool {
+    self.options.enable_json_api
+  }
+
   pub(crate) fn is_reorged(&self) -> bool {
     self.reorged.load(atomic::Ordering::Relaxed)
   }
@@ -1151,6 +1155,19 @@ mod tests {
         Context::builder().build(),
         Context::builder().arg("--index-sats").build(),
       ]
+    }
+  }
+
+  #[test]
+  fn json_api_enabled() {
+    {
+      let context = Context::builder().build();
+      assert_eq!(context.options.enable_json_api, false);
+    }
+
+    {
+      let context = Context::builder().args(["--enable-json-api"]).build();
+      assert_eq!(context.options.enable_json_api, true);
     }
   }
 

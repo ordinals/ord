@@ -390,7 +390,7 @@ impl Server {
     let blocktime = index.block_time(sat.height())?;
     let inscriptions = index.get_inscription_ids_by_sat(sat)?;
 
-    Ok(if accept_json.0 {
+    Ok(if index.is_json_api_enabled() && accept_json.0 {
       Json(SatJson {
         number: sat.0,
         decimal: sat.decimal().to_string(),
