@@ -2007,6 +2007,7 @@ mod tests {
   fn commits_are_tracked() {
     let server = TestServer::new();
 
+    thread::sleep(Duration::from_millis(25));
     assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 3);
 
     let info = server.index.info().unwrap();

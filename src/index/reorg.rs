@@ -63,7 +63,9 @@ impl Reorg {
 
     wtx.restore_savepoint(&oldest_savepoint)?;
 
+    Index::increment_statistic(&wtx, Statistic::Commits, 1)?;
     wtx.commit()?;
+
     log::info!(
       "successfully rolled back database to height {}",
       index.block_count()?
