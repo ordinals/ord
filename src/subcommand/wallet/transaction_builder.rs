@@ -1780,6 +1780,8 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Value(Amount::from_sat(10_000)),
+      TransactionBuilder::DEFAULT_TARGET_POSTAGE,
+      TransactionBuilder::DEFAULT_MAX_POSTAGE,
     )
     .unwrap()
     .select_outgoing()
@@ -1825,6 +1827,8 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Value(Amount::from_sat(10_000)),
+      TransactionBuilder::DEFAULT_TARGET_POSTAGE,
+      TransactionBuilder::DEFAULT_MAX_POSTAGE,
     )
     .unwrap()
     .select_outgoing()
@@ -1877,6 +1881,8 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Value(Amount::from_sat(10_000)),
+      TransactionBuilder::DEFAULT_TARGET_POSTAGE,
+      TransactionBuilder::DEFAULT_MAX_POSTAGE,
     )
     .unwrap();
 

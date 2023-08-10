@@ -51,14 +51,11 @@ pub(crate) struct Inscribe {
   pub(crate) dry_run: bool,
   #[clap(long, help = "Send inscription to <DESTINATION>.")]
   pub(crate) destination: Option<Address<NetworkUnchecked>>,
-  pub(crate) destination: Option<Address>,
   #[clap(
     long,
     help = "Amount of postage to include in the inscription. Default `10000 sats`"
   )]
   pub(crate) postage: Option<Amount>,
-  pub(crate) destination: Option<Address<NetworkUnchecked>>,
-
 }
 
 impl Inscribe {
