@@ -51,11 +51,14 @@ pub(crate) struct Inscribe {
   pub(crate) dry_run: bool,
   #[clap(long, help = "Send inscription to <DESTINATION>.")]
   pub(crate) destination: Option<Address<NetworkUnchecked>>,
+  pub(crate) destination: Option<Address>,
   #[clap(
     long,
     help = "Amount of postage to include in the inscription. Default `10000 sats`"
   )]
   pub(crate) postage: Option<Amount>,
+  pub(crate) destination: Option<Address<NetworkUnchecked>>,
+
 }
 
 impl Inscribe {
@@ -69,7 +72,7 @@ impl Inscribe {
 
     let mut utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
 
-    let inscriptions = index.get_inscriptions(None)?;
+    let inscriptions = index.get_inscriptions(utxos.clone())?;
 
     let commit_tx_change = [
       get_change_address(&client, &options)?,

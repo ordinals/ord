@@ -34,7 +34,7 @@ impl Send {
 
     let unspent_outputs = index.get_unspent_outputs(Wallet::load(&options)?)?;
 
-    let inscriptions = index.get_inscriptions(None)?;
+    let inscriptions = index.get_inscriptions(unspent_outputs.clone())?;
 
     let satpoint = match self.outgoing {
       Outgoing::SatPoint(satpoint) => {
