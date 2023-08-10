@@ -464,6 +464,10 @@ impl Index {
     Ok(())
   }
 
+  pub(crate) fn is_json_api_enabled(&self) -> bool {
+    self.options.enable_json_api
+  }
+
   pub(crate) fn is_reorged(&self) -> bool {
     self.reorged.load(atomic::Ordering::Relaxed)
   }
