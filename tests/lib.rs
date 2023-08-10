@@ -3,7 +3,11 @@
 use {
   self::{command_builder::CommandBuilder, expected::Expected, test_server::TestServer},
   bip39::Mnemonic,
-  bitcoin::{blockdata::constants::COIN_VALUE, Network, OutPoint, Txid},
+  bitcoin::{
+    address::{Address, NetworkUnchecked},
+    blockdata::constants::COIN_VALUE,
+    Network, OutPoint, Txid,
+  },
   executable_path::executable_path,
   pretty_assertions::assert_eq as pretty_assert_eq,
   regex::Regex,
@@ -51,7 +55,7 @@ fn inscribe(rpc_server: &test_bitcoincore_rpc::Handle) -> Inscribe {
   let output = CommandBuilder::new("wallet inscribe --fee-rate 1 foo.txt")
     .write("foo.txt", "FOO")
     .rpc_server(rpc_server)
-    .output();
+    .run_and_check_output();
 
   rpc_server.mine_blocks(1);
 
@@ -66,22 +70,24 @@ struct Create {
 fn create_wallet(rpc_server: &test_bitcoincore_rpc::Handle) {
   CommandBuilder::new(format!("--chain {} wallet create", rpc_server.network()))
     .rpc_server(rpc_server)
-    .output::<Create>();
+    .run_and_check_output::<Create>();
 }
 
 mod command_builder;
+mod expected;
+mod test_server;
+
 mod core;
 mod epochs;
-mod expected;
 mod find;
 mod index;
 mod info;
+mod json_api;
 mod list;
 mod parse;
 mod server;
 mod subsidy;
 mod supply;
-mod test_server;
 mod traits;
 mod version;
 mod wallet;

@@ -68,8 +68,9 @@ impl Preview {
 
     let rpc_client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
-    let address =
-      rpc_client.get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))?;
+    let address = rpc_client
+      .get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))?
+      .require_network(Network::Regtest)?;
 
     rpc_client.generate_to_address(101, &address)?;
 
