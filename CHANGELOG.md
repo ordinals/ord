@@ -1,6 +1,32 @@
 Changelog
 =========
 
+[0.8.1](https://github.com/ordinals/ord/releases/tag/0.8.1) - 2023-07-23
+---------------------------------------------------------------------
+
+### Added
+
+- Add retry to fetcher (#2297)
+- Add satpoint and address to index export (#2284)
+- Don't create default data directory if --index overrides it (#1991)
+- Implement clean index shutdown to prevent index corruption (with clippy updates for Rust 1.71) (#2275)
+- Set lower max age for not found (#2240)
+
+### Changed
+
+- Fix justfile recipe (#2299)
+- Clean up deploy scripts (#2298)
+- Update redb (#2294)
+- Update bitcoin dependencies (#2281)
+- Fix ordering for reinscriptions and show all reinscriptions for sat (#2279)
+- Modify `ord list` output to include the end of each range (#1998)
+
+### Documentation
+
+- Fix docs inconsistency (#2276)
+- Add contributing section (#2261)
+
+
 [0.8.0](https://github.com/ordinals/ord/releases/tag/0.8.0) - 2023-07-01
 ---------------------------------------------------------------------
 
@@ -40,7 +66,7 @@ Changelog
 [0.6.1](https://github.com/ordinals/ord/releases/tag/0.6.1) - 2023-06-06
 ---------------------------------------------------------------------
 
-### Changed 
+### Changed
 - Fix sat index test and unbound assignment (#2154)
 - Updated install.sh for new repo name (#2155)
 
@@ -67,8 +93,8 @@ Changelog
 
 ### Misc
 - Switch CI back to stable clippy (#2108)
-- Update dependencies (#2068) 
-- Use struct variants in Origin enum (#2067) 
+- Update dependencies (#2068)
+- Use struct variants in Origin enum (#2067)
 - Fix test name typos(#2043)
 - Switch to nightly clippy (#2037)
 

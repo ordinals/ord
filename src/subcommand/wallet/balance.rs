@@ -9,8 +9,10 @@ pub(crate) fn run(options: Options) -> Result {
   let index = Index::open(&options)?;
   index.update()?;
 
+  let unspent_outputs = index.get_unspent_outputs(Wallet::load(&options)?)?;
+
   let inscription_outputs = index
-    .get_inscriptions(None)?
+    .get_inscriptions(unspent_outputs)?
     .keys()
     .map(|satpoint| satpoint.outpoint)
     .collect::<BTreeSet<OutPoint>>();

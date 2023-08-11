@@ -3,7 +3,11 @@
 use {
   self::{command_builder::CommandBuilder, expected::Expected, test_server::TestServer},
   bip39::Mnemonic,
-  bitcoin::{blockdata::constants::COIN_VALUE, Network, OutPoint, Txid},
+  bitcoin::{
+    address::{Address, NetworkUnchecked},
+    blockdata::constants::COIN_VALUE,
+    Network, OutPoint, Txid,
+  },
   executable_path::executable_path,
   pretty_assertions::assert_eq as pretty_assert_eq,
   regex::Regex,
@@ -70,18 +74,20 @@ fn create_wallet(rpc_server: &test_bitcoincore_rpc::Handle) {
 }
 
 mod command_builder;
+mod expected;
+mod test_server;
+
 mod core;
 mod epochs;
-mod expected;
 mod find;
 mod index;
 mod info;
+mod json_api;
 mod list;
 mod parse;
 mod server;
 mod subsidy;
 mod supply;
-mod test_server;
 mod traits;
 mod version;
 mod wallet;

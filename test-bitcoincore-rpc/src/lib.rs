@@ -3,14 +3,18 @@
 use {
   api::Api,
   bitcoin::{
+    address::{Address, NetworkUnchecked},
+    amount::SignedAmount,
+    block::Header,
     blockdata::constants::COIN_VALUE,
-    blockdata::script,
+    blockdata::{block::Version, script},
     consensus::encode::{deserialize, serialize},
-    hash_types::BlockHash,
+    hash_types::{BlockHash, TxMerkleNode},
     hashes::Hash,
-    util::amount::SignedAmount,
-    Address, Amount, Block, BlockHeader, Network, OutPoint, PackedLockTime, Script, Sequence,
-    Transaction, TxIn, TxMerkleNode, TxOut, Txid, Witness, Wtxid,
+    locktime::absolute::LockTime,
+    pow::CompactTarget,
+    Amount, Block, Network, OutPoint, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid, Witness,
+    Wtxid,
   },
   bitcoincore_rpc::json::{
     Bip125Replaceable, CreateRawTransactionInput, Descriptor, EstimateMode, GetBalancesResult,
@@ -228,6 +232,7 @@ impl Handle {
       Network::Testnet => Network::Testnet.to_string(),
       Network::Signet => Network::Signet.to_string(),
       Network::Regtest => Network::Regtest.to_string(),
+      _ => panic!(),
     }
   }
 

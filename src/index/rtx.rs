@@ -9,8 +9,7 @@ impl Rtx<'_> {
         .0
         .open_table(HEIGHT_TO_BLOCK_HASH)?
         .range(0..)?
-        .rev()
-        .next()
+        .next_back()
         .and_then(|result| result.ok())
         .map(|(height, _hash)| Height(height.value())),
     )
@@ -22,8 +21,7 @@ impl Rtx<'_> {
         .0
         .open_table(HEIGHT_TO_BLOCK_HASH)?
         .range(0..)?
-        .rev()
-        .next()
+        .next_back()
         .and_then(|result| result.ok())
         .map(|(height, _hash)| height.value() + 1)
         .unwrap_or(0),
@@ -44,8 +42,7 @@ impl Rtx<'_> {
           .0
           .open_table(HEIGHT_TO_BLOCK_HASH)?
           .range(0..)?
-          .rev()
-          .next()
+          .next_back()
           .and_then(|result| result.ok())
           .map(|(_height, hash)| BlockHash::load(*hash.value())),
       ),

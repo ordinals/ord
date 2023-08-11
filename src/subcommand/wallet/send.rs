@@ -2,7 +2,7 @@ use {super::*, crate::wallet::Wallet};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
-  address: Address,
+  address: Address<NetworkUnchecked>,
   outgoing: Outgoing,
   #[clap(long, help = "Use fee rate of <FEE_RATE> sats/vB")]
   fee_rate: FeeRate,
@@ -15,9 +15,7 @@ pub struct Output {
 
 impl Send {
   pub(crate) fn run(self, options: Options) -> Result {
-    options
-      .chain()
-      .check_address_is_valid_for_network(&self.address)?;
+    let address = self.address.require_network(options.chain().network())?;
 
     let index = Index::open(&options)?;
     index.update()?;
@@ -26,7 +24,7 @@ impl Send {
 
     let unspent_outputs = index.get_unspent_outputs(Wallet::load(&options)?)?;
 
-    let inscriptions = index.get_inscriptions(None)?;
+    let inscriptions = index.get_inscriptions(unspent_outputs.clone())?;
 
     let satpoint = match self.outgoing {
       Outgoing::SatPoint(satpoint) => {
@@ -56,8 +54,7 @@ impl Send {
           bail!("failed to lock ordinal UTXOs");
         }
 
-        let txid =
-          client.send_to_address(&self.address, amount, None, None, None, None, None, None)?;
+        let txid = client.send_to_address(&address, amount, None, None, None, None, None, None)?;
 
         print_json(Output { transaction: txid })?;
 
@@ -65,13 +62,16 @@ impl Send {
       }
     };
 
-    let change = [get_change_address(&client)?, get_change_address(&client)?];
+    let change = [
+      get_change_address(&client, &options)?,
+      get_change_address(&client, &options)?,
+    ];
 
     let unsigned_transaction = TransactionBuilder::build_transaction_with_postage(
       satpoint,
       inscriptions,
       unspent_outputs,
-      self.address,
+      address,
       change,
       self.fee_rate,
     )?;
