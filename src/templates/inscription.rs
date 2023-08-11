@@ -16,6 +16,58 @@ pub(crate) struct InscriptionHtml {
   pub(crate) timestamp: DateTime<Utc>,
 }
 
+#[derive(Debug, PartialEq, Serialize)]
+pub struct InscriptionJson {
+  inscription_id: InscriptionId,
+  number: i64,
+  genesis_height: u64,
+  genesis_fee: u64,
+  output_value: Option<u64>,
+  address: Option<Address>,
+  sat: Option<Sat>,
+  satpoint: SatPoint,
+  content_type: Option<String>,
+  content_length: Option<usize>,
+  timestamp: i64,
+  previous: Option<InscriptionId>,
+  next: Option<InscriptionId>,
+}
+
+impl InscriptionJson {
+  pub fn new(
+    chain: Chain,
+    genesis_fee: u64,
+    genesis_height: u64,
+    inscription: Inscription,
+    inscription_id: InscriptionId,
+    next: Option<InscriptionId>,
+    number: i64,
+    output: Option<TxOut>,
+    previous: Option<InscriptionId>,
+    sat: Option<Sat>,
+    satpoint: SatPoint,
+    timestamp: DateTime<Utc>,
+  ) -> Self {
+    Self {
+      inscription_id,
+      number,
+      genesis_height,
+      genesis_fee,
+      output_value: output.as_ref().map(|o| o.value),
+      address: output
+        .as_ref()
+        .and_then(|o| chain.address_from_script(&o.script_pubkey).ok()),
+      sat,
+      satpoint,
+      content_type: inscription.content_type().map(|s| s.to_string()),
+      content_length: inscription.content_length(),
+      timestamp: timestamp.timestamp(),
+      previous,
+      next,
+    }
+  }
+}
+
 impl PageContent for InscriptionHtml {
   fn title(&self) -> String {
     format!("Inscription {}", self.number)

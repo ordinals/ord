@@ -25,7 +25,7 @@ mod clock;
 mod home;
 mod iframe;
 mod input;
-mod inscription;
+pub mod inscription;
 mod inscriptions;
 mod output;
 mod preview;
