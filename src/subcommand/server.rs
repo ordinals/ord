@@ -1041,7 +1041,7 @@ impl Server {
     n: usize,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
-    let (inscriptions, prev, next, highest, lowest) =
+    let (inscriptions, prev, next, lowest, highest) =
       index.get_latest_inscriptions_with_prev_and_next(n, from)?;
     Ok(if accept_json.0 {
       axum::Json(InscriptionsJson::new(
