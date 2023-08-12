@@ -400,9 +400,16 @@ impl Server {
     Path(DeserializeFromStr(sat)): Path<DeserializeFromStr<Sat>>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
-    let satpoint = index.rare_sat_satpoint(sat)?;
-    let blocktime = index.block_time(sat.height())?;
     let inscriptions = index.get_inscription_ids_by_sat(sat)?;
+    let satpoint = index.rare_sat_satpoint(sat)?.or_else(|| {
+      inscriptions.first().and_then(|&first_inscription_id| {
+        index
+          .get_inscription_satpoint_by_id(first_inscription_id)
+          .ok()
+          .flatten()
+      })
+    });
+    let blocktime = index.block_time(sat.height())?;
     Ok(if accept_json.0 {
       Json(SatJson {
         number: sat.0,
@@ -417,7 +424,7 @@ impl Server {
         rarity: sat.rarity(),
         percentile: sat.percentile(),
         satpoint,
-        timestamp: blocktime.timestamp().to_string(),
+        timestamp: blocktime.timestamp().timestamp(),
         inscriptions,
       })
       .into_response()
