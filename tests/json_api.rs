@@ -1,3 +1,5 @@
+use ord::templates::inscription::InscriptionJson;
+
 use {
   super::*, ord::inscription_id::InscriptionId, ord::rarity::Rarity, ord::templates::sat::SatJson,
   ord::SatPoint,
@@ -76,44 +78,7 @@ fn get_sat_with_inscription_and_sat_index() {
 }
 
 #[test]
-fn get_inscription() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
-
-  create_wallet(&rpc_server);
-
-  let Inscribe { reveal, .. } = inscribe(&rpc_server);
-  let inscription_id = InscriptionId::from(reveal);
-
-  let response = TestServer::spawn_with_args(&rpc_server, &["--index-sats", "--enable-json-api"])
-    .json_request(format!("/sat/{}", 50 * COIN_VALUE));
-
-  assert_eq!(response.status(), StatusCode::OK);
-
-  let sat_json: SatJson = serde_json::from_str(&response.text().unwrap()).unwrap();
-
-  pretty_assert_eq!(
-    sat_json,
-    SatJson {
-      number: 50 * COIN_VALUE,
-      decimal: "1.0".into(),
-      degree: "0°1′1″0‴".into(),
-      name: "nvtcsezkbth".into(),
-      block: 1,
-      cycle: 0,
-      epoch: 0,
-      period: 0,
-      offset: 0,
-      rarity: Rarity::Uncommon,
-      percentile: "0.00023809523835714296%".into(),
-      satpoint: Some(SatPoint::from_str(&format!("{}:{}:{}", reveal, 0, 0)).unwrap()),
-      timestamp: 1,
-      inscriptions: vec![inscription_id],
-    }
-  )
-}
-
-#[test]
-fn get_inscription_on_common_sat_and_not_first() {
+fn get_sat_with_inscription_on_common_sat_and_more_inscriptions() {
   let rpc_server = test_bitcoincore_rpc::spawn();
 
   create_wallet(&rpc_server);
@@ -157,6 +122,45 @@ fn get_inscription_on_common_sat_and_not_first() {
       satpoint: Some(SatPoint::from_str(&format!("{}:{}:{}", reveal, 0, 0)).unwrap()),
       timestamp: 3,
       inscriptions: vec![inscription_id],
+    }
+  )
+}
+
+#[test]
+fn get_inscription() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  create_wallet(&rpc_server);
+
+  let Inscribe { reveal, .. } = inscribe(&rpc_server);
+  let inscription_id = InscriptionId::from(reveal);
+
+  let response = TestServer::spawn_with_args(&rpc_server, &["--index-sats", "--enable-json-api"])
+    .json_request(format!("/inscription/{}", inscription_id));
+
+  assert_eq!(response.status(), StatusCode::OK);
+
+  let mut inscription_json: InscriptionJson =
+    serde_json::from_str(&response.text().unwrap()).unwrap();
+  assert_regex_match!(inscription_json.address.unwrap(), r"bc1p.*");
+  inscription_json.address = None;
+
+  pretty_assert_eq!(
+    inscription_json,
+    InscriptionJson {
+      inscription_id,
+      number: 0,
+      genesis_height: 2,
+      genesis_fee: 138,
+      output_value: Some(10000),
+      address: None,
+      sat: Some(ord::Sat(50 * COIN_VALUE)),
+      satpoint: SatPoint::from_str(&format!("{}:{}:{}", reveal, 0, 0)).unwrap(),
+      content_type: Some("text/plain;charset=utf-8".to_string()),
+      content_length: Some(3),
+      timestamp: 2,
+      previous: None,
+      next: None
     }
   )
 }

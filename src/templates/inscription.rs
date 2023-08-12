@@ -16,21 +16,21 @@ pub(crate) struct InscriptionHtml {
   pub(crate) timestamp: DateTime<Utc>,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct InscriptionJson {
-  inscription_id: InscriptionId,
-  number: i64,
-  genesis_height: u64,
-  genesis_fee: u64,
-  output_value: Option<u64>,
-  address: Option<Address>,
-  sat: Option<Sat>,
-  satpoint: SatPoint,
-  content_type: Option<String>,
-  content_length: Option<usize>,
-  timestamp: i64,
-  previous: Option<InscriptionId>,
-  next: Option<InscriptionId>,
+  pub inscription_id: InscriptionId,
+  pub number: i64,
+  pub genesis_height: u64,
+  pub genesis_fee: u64,
+  pub output_value: Option<u64>,
+  pub address: Option<String>,
+  pub sat: Option<Sat>,
+  pub satpoint: SatPoint,
+  pub content_type: Option<String>,
+  pub content_length: Option<usize>,
+  pub timestamp: i64,
+  pub previous: Option<InscriptionId>,
+  pub next: Option<InscriptionId>,
 }
 
 impl InscriptionJson {
@@ -56,7 +56,8 @@ impl InscriptionJson {
       output_value: output.as_ref().map(|o| o.value),
       address: output
         .as_ref()
-        .and_then(|o| chain.address_from_script(&o.script_pubkey).ok()),
+        .and_then(|o| chain.address_from_script(&o.script_pubkey).ok())
+        .map(|address| address.to_string()),
       sat,
       satpoint,
       content_type: inscription.content_type().map(|s| s.to_string()),
