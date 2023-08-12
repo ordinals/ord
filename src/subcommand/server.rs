@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use crate::templates::inscriptions::InscriptionsJson;
+
 use {
   self::{
     accept_json::AcceptJson,
@@ -177,6 +179,7 @@ impl Server {
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_id", get(Self::inscription))
         .route("/inscriptions", get(Self::inscriptions))
+        .route("/inscriptions/block/:n", get(Self::inscriptions_block))
         .route("/inscriptions/:from", get(Self::inscriptions_from))
         .route("/inscriptions/:from/:n", get(Self::inscriptions_from_n))
         .route("/install.sh", get(Self::install_script))
@@ -995,6 +998,26 @@ impl Server {
     Self::inscriptions_inner(page_config, index, None, 100, accept_json).await
   }
 
+  async fn inscriptions_block(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(block_height): Path<u64>,
+    accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
+    let inscriptions = index.get_inscriptions_from_block(block_height)?;
+    Ok(if accept_json.0 {
+      axum::Json(InscriptionsJson::new(inscriptions, None, None, None, None)).into_response()
+    } else {
+      InscriptionsHtml {
+        inscriptions,
+        prev: None,
+        next: None,
+      }
+      .page(page_config, index.has_sat_index()?)
+      .into_response()
+    })
+  }
+
   async fn inscriptions_from(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
@@ -1020,11 +1043,17 @@ impl Server {
     n: usize,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
-    let (inscriptions, highest, prev, next) =
+    let (inscriptions, prev, next, highest, lowest) =
       index.get_latest_inscriptions_with_prev_and_next(n, from)?;
     Ok(if accept_json.0 {
-      axum::Json(serde_json::json!({"inscriptions": inscriptions, "next": next, "prev": prev, "highest":highest}))
-        .into_response()
+      axum::Json(InscriptionsJson::new(
+        inscriptions,
+        prev,
+        next,
+        Some(lowest),
+        Some(highest),
+      ))
+      .into_response()
     } else {
       InscriptionsHtml {
         inscriptions,
