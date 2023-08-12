@@ -6,7 +6,7 @@ pub(crate) struct AcceptJson(pub(crate) bool);
 #[async_trait::async_trait]
 impl<S> axum::extract::FromRequestParts<S> for AcceptJson
 where
-  Arc<ServerState>: FromRef<S>,
+  Arc<ServerConfig>: FromRef<S>,
   S: Send + Sync,
 {
   type Rejection = (StatusCode, &'static str);
@@ -25,7 +25,7 @@ where
     if json_header && json_api_enabled {
       Ok(Self(true))
     } else if json_header && !json_api_enabled {
-      Err((StatusCode::NOT_ACCEPTABLE, "JSON API disabled"))
+      Err((StatusCode::NOT_ACCEPTABLE, "JSON API not enabled"))
     } else {
       Ok(Self(false))
     }

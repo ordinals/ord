@@ -1,7 +1,5 @@
 use std::sync::Arc;
 
-use crate::templates::inscriptions::InscriptionsJson;
-
 use {
   self::{
     accept_json::AcceptJson,
@@ -11,8 +9,8 @@ use {
   super::*,
   crate::page_config::PageConfig,
   crate::templates::{
-    inscription::InscriptionJson, BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml,
-    InscriptionsHtml, OutputHtml, PageContent, PageHtml, PreviewAudioHtml, PreviewImageHtml,
+    BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson, InscriptionsHtml,
+    InscriptionsJson, OutputHtml, PageContent, PageHtml, PreviewAudioHtml, PreviewImageHtml,
     PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt,
     SatHtml, SatJson, TransactionHtml,
   },
@@ -46,7 +44,7 @@ mod accept_json;
 mod error;
 
 #[derive(Clone)]
-pub struct ServerState {
+pub struct ServerConfig {
   pub is_json_api_enabled: bool,
 }
 
@@ -158,7 +156,7 @@ impl Server {
         domain: acme_domains.first().cloned(),
       });
 
-      let server_state = Arc::new(ServerState {
+      let server_config = Arc::new(ServerConfig {
         is_json_api_enabled: index.is_json_api_enabled(),
       });
 
@@ -211,7 +209,7 @@ impl Server {
             .allow_origin(Any),
         )
         .layer(CompressionLayer::new())
-        .with_state(server_state);
+        .with_state(server_config);
 
       match (self.http_port(), self.https_port()) {
         (Some(http_port), None) => {
