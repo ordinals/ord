@@ -123,8 +123,8 @@ fn get_inscription_on_common_sat_and_not_first() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let Inscribe { reveal, .. } = CommandBuilder::new(format!(
-    "wallet inscribe --satpoint {} --fee-rate 1 foo.txt",
-    format!("{}:0:1", txid)
+    "wallet inscribe --satpoint {}:0:1 --fee-rate 1 foo.txt",
+    txid
   ))
   .write("foo.txt", "FOO")
   .rpc_server(&rpc_server)
