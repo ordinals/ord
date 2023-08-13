@@ -929,6 +929,7 @@ impl Index {
     &self,
     block_height: u64,
   ) -> Result<Vec<InscriptionId>> {
+    // This is a naive approach and will require optimization, but we don't have an index by block
     let block_inscriptions = self
       .database
       .begin_read()?

@@ -1,7 +1,8 @@
 use {
   super::*, ord::inscription_id::InscriptionId, ord::rarity::Rarity,
   ord::templates::inscription::InscriptionJson, ord::templates::inscriptions::InscriptionsJson,
-  ord::templates::sat::SatJson, ord::SatPoint, test_bitcoincore_rpc::TransactionTemplate,
+  ord::templates::output::OutputJson, ord::templates::sat::SatJson, ord::SatPoint,
+  test_bitcoincore_rpc::TransactionTemplate,
 };
 
 #[test]
@@ -220,6 +221,7 @@ fn get_inscriptions() {
   let inscriptions_json: InscriptionsJson =
     serde_json::from_str(&response.text().unwrap()).unwrap();
 
+  // 100 latest (blessed) inscriptions
   assert_eq!(inscriptions_json.inscriptions.len(), 100);
   pretty_assert_eq!(
     inscriptions_json,
@@ -236,6 +238,7 @@ fn get_inscriptions() {
     }
   );
 
+  // get all inscriptions
   let response = server.json_request(format!("/inscriptions/{}/{}", 200, 400));
   assert_eq!(response.status(), StatusCode::OK);
 
@@ -252,8 +255,131 @@ fn get_inscriptions() {
       .iter()
       .cloned()
       .rev()
-      .chain(cursed_inscriptions)
+      .chain(cursed_inscriptions.clone())
       .collect::<Vec<_>>()
+  );
+
+  // iterate over all inscriptions 1 by 1
+  let all_inscriptions = cursed_inscriptions
+    .clone()
+    .iter()
+    .cloned()
+    .rev()
+    .chain(blessed_inscriptions.clone())
+    .collect::<Vec<_>>(); // from lowest to highest inscription number
+
+  let (lowest, highest) = (
+    inscriptions_json.lowest.unwrap(),
+    inscriptions_json.highest.unwrap(),
+  );
+  for i in lowest..=highest {
+    let response = server.json_request(format!("/inscriptions/{}/1", i));
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let inscriptions_json: InscriptionsJson =
+      serde_json::from_str(&response.text().unwrap()).unwrap();
+
+    assert_eq!(inscriptions_json.inscriptions.len(), 1);
+    assert_eq!(
+      inscriptions_json.inscriptions[0],
+      all_inscriptions[(i - lowest) as usize]
+    );
+
+    let response = server.json_request(format!(
+      "/inscription/{}",
+      inscriptions_json.inscriptions[0]
+    ));
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let inscription_json: InscriptionJson =
+      serde_json::from_str(&response.text().unwrap()).unwrap();
+
+    assert_eq!(
+      inscription_json.inscription_id,
+      inscriptions_json.inscriptions[0]
+    );
+    assert_eq!(inscription_json.number, i);
+  }
+}
+
+#[test]
+fn get_inscriptions_from_block() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(10);
+
+  let txid = rpc_server.broadcast_tx(TransactionTemplate {
+    inputs: &[(1, 0, 0), (2, 0, 0), (3, 0, 0)],
+    witness: envelope(&[b"ord", &[1], b"text/plain;charset=utf-8", &[], b"bar"]),
+    ..Default::default()
+  });
+  rpc_server.mine_blocks(1);
+
+  for _ in 0..10 {
+    inscribe(&rpc_server);
+  }
+  rpc_server.mine_blocks(1);
+
+  let server = TestServer::spawn_with_args(&rpc_server, &["--index-sats", "--enable-json-api"]);
+
+  // get all inscriptions from block 11
+  let response = server.json_request(format!("/inscriptions/block/{}", 11));
+  assert_eq!(response.status(), StatusCode::OK);
+
+  let inscriptions_json: InscriptionsJson =
+    serde_json::from_str(&response.text().unwrap()).unwrap();
+
+  assert_eq!(inscriptions_json.inscriptions.len(), 3);
+  pretty_assert_eq!(
+    inscriptions_json.inscriptions,
+    vec![
+      InscriptionId { txid, index: 2 },
+      InscriptionId { txid, index: 1 },
+      InscriptionId { txid, index: 0 }
+    ]
+  );
+}
+
+#[test]
+fn get_output() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(3);
+
+  let txid = rpc_server.broadcast_tx(TransactionTemplate {
+    inputs: &[(1, 0, 0), (2, 0, 0), (3, 0, 0)],
+    witness: envelope(&[b"ord", &[1], b"text/plain;charset=utf-8", &[], b"bar"]),
+    ..Default::default()
+  });
+  rpc_server.mine_blocks(1);
+
+  let server = TestServer::spawn_with_args(&rpc_server, &["--index-sats", "--enable-json-api"]);
+
+  let response = server.json_request(format!("/output/{}:0", txid));
+  assert_eq!(response.status(), StatusCode::OK);
+
+  let output_json: OutputJson = serde_json::from_str(&response.text().unwrap()).unwrap();
+
+  pretty_assert_eq!(
+    output_json,
+    OutputJson {
+      value: 3 * 50 * COIN_VALUE,
+      script_pubkey: "".to_string(),
+      address: None,
+      transaction: txid.to_string(),
+      sat_ranges: Some(vec![
+        (5000000000, 10000000000,),
+        (10000000000, 15000000000,),
+        (15000000000, 20000000000,),
+      ],),
+      inscriptions: vec![
+        InscriptionId { txid, index: 0 },
+        InscriptionId { txid, index: 2 },
+        InscriptionId { txid, index: 1 }
+      ]
+    }
   );
 }
 
