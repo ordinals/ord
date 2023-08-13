@@ -193,11 +193,10 @@ fn create_210_inscriptions(
 
   // Create another 60 non cursed
   for _ in 0..60 {
-    let Inscribe { reveal, .. } =
-      CommandBuilder::new(format!("wallet inscribe --fee-rate 1 foo.txt"))
-        .write("foo.txt", "FOO")
-        .rpc_server(&rpc_server)
-        .run_and_check_output();
+    let Inscribe { reveal, .. } = CommandBuilder::new("wallet inscribe --fee-rate 1 foo.txt")
+      .write("foo.txt", "FOO")
+      .rpc_server(rpc_server)
+      .run_and_check_output();
     rpc_server.mine_blocks(1);
     blessed_inscriptions.push(InscriptionId::from(reveal));
   }
@@ -216,7 +215,7 @@ fn get_inscriptions() {
 
   let server = TestServer::spawn_with_args(&rpc_server, &["--index-sats", "--enable-json-api"]);
 
-  let response = server.json_request(format!("/inscriptions"));
+  let response = server.json_request("/inscriptions");
   assert_eq!(response.status(), StatusCode::OK);
   let inscriptions_json: InscriptionsJson =
     serde_json::from_str(&response.text().unwrap()).unwrap();
@@ -237,7 +236,7 @@ fn get_inscriptions() {
     }
   );
 
-  let response = server.json_request(format!("/inscriptions/200/500"));
+  let response = server.json_request(format!("/inscriptions/{}/{}", 200, 400));
   assert_eq!(response.status(), StatusCode::OK);
 
   let inscriptions_json: InscriptionsJson =
