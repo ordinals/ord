@@ -1,8 +1,7 @@
-use ord::templates::inscription::InscriptionJson;
-
 use {
-  super::*, ord::inscription_id::InscriptionId, ord::rarity::Rarity, ord::templates::sat::SatJson,
-  ord::SatPoint,
+  super::*, ord::inscription_id::InscriptionId, ord::rarity::Rarity,
+  ord::templates::inscription::InscriptionJson, ord::templates::inscriptions::InscriptionsJson,
+  ord::templates::sat::SatJson, ord::SatPoint, test_bitcoincore_rpc::TransactionTemplate,
 };
 
 #[test]
@@ -163,6 +162,100 @@ fn get_inscription() {
       next: None
     }
   )
+}
+
+fn create_210_inscriptions(
+  rpc_server: &test_bitcoincore_rpc::Handle,
+) -> (Vec<InscriptionId>, Vec<InscriptionId>) {
+  let witness = envelope(&[b"ord", &[1], b"text/plain;charset=utf-8", &[], b"bar"]);
+
+  let mut blessed_inscriptions = Vec::new();
+  let mut cursed_inscriptions = Vec::new();
+
+  // Create 150 inscriptions, 50 non-cursed and 100 cursed
+  for i in 0..50 {
+    rpc_server.mine_blocks(1);
+    rpc_server.mine_blocks(1);
+    rpc_server.mine_blocks(1);
+
+    let txid = rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(i * 3 + 1, 0, 0), (i * 3 + 2, 0, 0), (i * 3 + 3, 0, 0)],
+      witness: witness.clone(),
+      ..Default::default()
+    });
+
+    blessed_inscriptions.push(InscriptionId { txid, index: 0 });
+    cursed_inscriptions.push(InscriptionId { txid, index: 1 });
+    cursed_inscriptions.push(InscriptionId { txid, index: 2 });
+  }
+
+  rpc_server.mine_blocks(1);
+
+  // Create another 60 non cursed
+  for _ in 0..60 {
+    let Inscribe { reveal, .. } =
+      CommandBuilder::new(format!("wallet inscribe --fee-rate 1 foo.txt"))
+        .write("foo.txt", "FOO")
+        .rpc_server(&rpc_server)
+        .run_and_check_output();
+    rpc_server.mine_blocks(1);
+    blessed_inscriptions.push(InscriptionId::from(reveal));
+  }
+
+  rpc_server.mine_blocks(1);
+
+  (blessed_inscriptions, cursed_inscriptions)
+}
+
+#[test]
+fn get_inscriptions() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  create_wallet(&rpc_server);
+  let (blessed_inscriptions, cursed_inscriptions) = create_210_inscriptions(&rpc_server);
+
+  let server = TestServer::spawn_with_args(&rpc_server, &["--index-sats", "--enable-json-api"]);
+
+  let response = server.json_request(format!("/inscriptions"));
+  assert_eq!(response.status(), StatusCode::OK);
+  let inscriptions_json: InscriptionsJson =
+    serde_json::from_str(&response.text().unwrap()).unwrap();
+
+  assert_eq!(inscriptions_json.inscriptions.len(), 100);
+  pretty_assert_eq!(
+    inscriptions_json,
+    InscriptionsJson {
+      inscriptions: blessed_inscriptions[10..110]
+        .iter()
+        .cloned()
+        .rev()
+        .collect(),
+      prev: Some(9),
+      next: None,
+      lowest: Some(-100),
+      highest: Some(109),
+    }
+  );
+
+  let response = server.json_request(format!("/inscriptions/200/500"));
+  assert_eq!(response.status(), StatusCode::OK);
+
+  let inscriptions_json: InscriptionsJson =
+    serde_json::from_str(&response.text().unwrap()).unwrap();
+
+  assert_eq!(
+    inscriptions_json.inscriptions.len(),
+    blessed_inscriptions.len() + cursed_inscriptions.len()
+  );
+  pretty_assert_eq!(
+    inscriptions_json.inscriptions,
+    blessed_inscriptions
+      .iter()
+      .cloned()
+      .rev()
+      .chain(cursed_inscriptions)
+      .collect::<Vec<_>>()
+  );
 }
 
 #[test]
