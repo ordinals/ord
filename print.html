@@ -281,7 +281,7 @@ new sats created in every block is cut in half.</p>
 <p><em>Cycles</em>: Every six halvings, something magical happens: the halving and the
 difficulty adjustment coincide. This is called a conjunction, and the time
 period between conjunctions a cycle. A conjunction occurs roughly every 24
-years. The first conjunction should happen some time in 2032.</p>
+years. The first conjunction should happen sometime in 2032.</p>
 </li>
 </ul>
 <p>This gives us the following rarity levels:</p>
@@ -306,14 +306,14 @@ for <em>A</em>, <em>B</em>, <em>C</em>, and <em>D</em>, respectively.</p>
 <p>Now for some examples. This satoshi is common:</p>
 <pre><code>1°1′1″1‴
 │ │ │ ╰─ Not first sat in block
-│ │ ╰─── Not first block in difficutly adjustment period
+│ │ ╰─── Not first block in difficulty adjustment period
 │ ╰───── Not first block in halving epoch
 ╰─────── Second cycle
 </code></pre>
 <p>This satoshi is uncommon:</p>
 <pre><code>1°1′1″0‴
 │ │ │ ╰─ First sat in block
-│ │ ╰─── Not first block in difficutly adjustment period
+│ │ ╰─── Not first block in difficulty adjustment period
 │ ╰───── Not first block in halving epoch
 ╰─────── Second cycle
 </code></pre>
@@ -348,7 +348,7 @@ for <em>A</em>, <em>B</em>, <em>C</em>, and <em>D</em>, respectively.</p>
 <p>If the block offset is zero, it may be omitted. This is the uncommon satoshi
 from above:</p>
 <pre><code>1°1′1″
-│ │ ╰─ Not first block in difficutly adjustment period
+│ │ ╰─ Not first block in difficulty adjustment period
 │ ╰─── Not first block in halving epoch
 ╰───── Second cycle
 </code></pre>
@@ -381,7 +381,7 @@ short and get longer, but then all the good, short names would be trapped in
 the unspendable genesis block.</p>
 <p>As an example, 1905530482684727°'s name is &quot;iaiufjszmoba&quot;. The name of the last
 satoshi to be mined is &quot;a&quot;. Every combination of 10 characters or less is out
-there, or will be out there, some day.</p>
+there, or will be out there, someday.</p>
 <h2 id="exotics"><a class="header" href="#exotics">Exotics</a></h2>
 <p>Satoshis may be prized for reasons other than their name or rarity. This might
 be due to a quality of the number itself, like having an integer square or cube
@@ -416,7 +416,7 @@ especially early ordinals, are certainly of historical interest.</p>
 ordinals were independently discovered on at least two separate occasions, long
 before the era of modern NFTs began.</p>
 <p>On August 21st, 2012, Charlie Lee <a href="https://bitcointalk.org/index.php?topic=102355.0">posted a proposal to add proof-of-stake to
-Bitcoin to the Bitocin Talk
+Bitcoin to the Bitcoin Talk
 forum</a>. This wasn't an asset
 scheme, but did use the ordinal algorithm, and was implemented but never
 deployed.</p>
@@ -511,7 +511,7 @@ OP_ENDIF
 </code></pre>
 <p>First the string <code>ord</code> is pushed, to disambiguate inscriptions from other uses
 of envelopes.</p>
-<p><code>OP_PUSH 1</code> indicates that the next push contains the content type, and <code>OP_PUSH 0</code>indicates that subsequent data pushes contain the content itself. Multiple data
+<p><code>OP_PUSH 1</code> indicates that the next push contains the content type, and <code>OP_PUSH 0</code> indicates that subsequent data pushes contain the content itself. Multiple data
 pushes must be used for large inscriptions, as one of taproot's few
 restrictions is that individual data pushes may not be larger than 520 bytes.</p>
 <p>The inscription content is contained within the input of a reveal transaction,
@@ -559,7 +559,7 @@ combined, collage-style, in unique combinations in multiple inscriptions.</p>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-theory-faq"><a class="header" href="#ordinal-theory-faq">Ordinal Theory FAQ</a></h1>
 <h2 id="what-is-ordinal-theory"><a class="header" href="#what-is-ordinal-theory">What is ordinal theory?</a></h2>
-<p>Ordinal theory is is a protocol for assigning serial numbers to satoshis, the
+<p>Ordinal theory is a protocol for assigning serial numbers to satoshis, the
 smallest subdivision of a bitcoin, and tracking those satoshis as they are
 spent by transactions.</p>
 <p>These serial numbers are large numbers, like this 804766073970493. Every
@@ -748,7 +748,7 @@ features like globally unique symbols and enhanced provenance.</p>
 <p><em>Inscriptions do not support on-chain royalties.</em> This is negative, but only
 depending on how you look at it. On-chain royalties have been a boon for
 creators, but have also created a huge amount of confusion in the Ethereum NFT
-ecosystem. The ecosystem now grapples with this issue, and is is engaged in a
+ecosystem. The ecosystem now grapples with this issue, and is engaged in a
 race to the bottom, towards a royalties-optional future. Inscriptions have no
 support for on-chain royalties, because they are technically infeasible. If you
 choose to create inscriptions, there are many ways you can work around this
@@ -839,7 +839,7 @@ quickly, and if you take the wrong tack, you won't have wasted much time.</p>
 <li>Find an issue that needs more research, and do that research and summarize it
 in a comment</li>
 <li>Find an out-of-date issue and comment that it can be closed</li>
-<li>Find an issue that shouldn't be done, and provide constrictive feedback
+<li>Find an issue that shouldn't be done, and provide constructive feedback
 detailing why you think that is the case</li>
 </ul>
 <h2 id="merge-early-and-often"><a class="header" href="#merge-early-and-often">Merge early and often</a></h2>
@@ -849,7 +849,7 @@ This can be merged, and the next step can be to fix the bug and unignore the
 test. Do research or testing, and report on your results. Break a feature into
 small sub-features, and implement them one at a time.</p>
 <p>Figuring out how to break down a larger PR into smaller PRs where each can be
-merged is a art form well-worth practicing. The hard part is that each PR must
+merged is an art form well-worth practicing. The hard part is that each PR must
 itself be an improvement.</p>
 <p>I strive to follow this advice myself, and am always better off when I do.</p>
 <p>Small changes are fast to write, review, and merge, which is much more fun than
@@ -882,7 +882,7 @@ entirely funded by donations. If you can, please consider donating!</p>
 <a href="https://twitter.com/realizingerin">erin</a>,
 <a href="https://twitter.com/rodarmor">rodarmor</a>, and
 <a href="https://twitter.com/veryordinally">ordinally</a>.</p>
-<p>Donations received will go towards funding maintainance and development of <code>ord</code>,
+<p>Donations received will go towards funding maintenance and development of <code>ord</code>,
 as well as hosting costs for <a href="https://ordinals.com">ordinals.com</a>.</p>
 <p>Thank you for donating!</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-theory-guides"><a class="header" href="#ordinal-theory-guides">Ordinal Theory Guides</a></h1>
