@@ -844,9 +844,8 @@ impl Server {
       header::CONTENT_TYPE,
       inscription
         .content_type()
-        .unwrap_or("application/octet-stream")
-        .parse()
-        .unwrap(),
+        .and_then(|content_type| content_type.parse().ok())
+        .unwrap_or(HeaderValue::from_static("application/octet-stream")),
     );
     headers.insert(
       header::CONTENT_SECURITY_POLICY,
@@ -2287,6 +2286,18 @@ mod tests {
   fn content_response_no_content_type() {
     let (headers, body) =
       Server::content_response(Inscription::new(None, Some(Vec::new()))).unwrap();
+
+    assert_eq!(headers["content-type"], "application/octet-stream");
+    assert!(body.is_empty());
+  }
+
+  #[test]
+  fn content_response_bad_content_type() {
+    let (headers, body) = Server::content_response(Inscription::new(
+      Some("\n".as_bytes().to_vec()),
+      Some(Vec::new()),
+    ))
+    .unwrap();
 
     assert_eq!(headers["content-type"], "application/octet-stream");
     assert!(body.is_empty());
