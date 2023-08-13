@@ -54,6 +54,8 @@ pub(crate) struct Options {
   pub(crate) testnet: bool,
   #[clap(long, default_value = "ord", help = "Use wallet named <WALLET>.")]
   pub(crate) wallet: String,
+  #[clap(long, short, help = "Enable JSON API.")]
+  pub(crate) enable_json_api: bool,
 }
 
 impl Options {
@@ -82,13 +84,15 @@ impl Options {
   }
 
   pub(crate) fn rpc_url(&self) -> String {
-    self.rpc_url.clone().unwrap_or_else(|| {
+    if let Some(rpc_url) = &self.rpc_url {
+      format!("{rpc_url}/wallet/{}", self.wallet)
+    } else {
       format!(
         "127.0.0.1:{}/wallet/{}",
         self.chain().default_rpc_port(),
         self.wallet
       )
-    })
+    }
   }
 
   pub(crate) fn cookie_file(&self) -> Result<PathBuf> {
@@ -285,7 +289,7 @@ mod tests {
       .unwrap()
       .options
       .rpc_url(),
-      "127.0.0.1:1234"
+      "127.0.0.1:1234/wallet/ord"
     );
   }
 

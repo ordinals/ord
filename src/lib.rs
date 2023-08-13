@@ -33,11 +33,12 @@ use {
   anyhow::{anyhow, bail, Context, Error},
   bip39::Mnemonic,
   bitcoin::{
+    address::{Address, NetworkUnchecked},
     blockdata::constants::COIN_VALUE,
     consensus::{self, Decodable, Encodable},
     hash_types::BlockHash,
     hashes::Hash,
-    Address, Amount, Block, Network, OutPoint, Script, Sequence, Transaction, TxIn, TxOut, Txid,
+    Amount, Block, Network, OutPoint, Script, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid,
   },
   bitcoincore_rpc::{Client, RpcApi},
   chain::Chain,
@@ -107,19 +108,19 @@ mod fee_rate;
 mod height;
 mod index;
 mod inscription;
-mod inscription_id;
+pub mod inscription_id;
 mod media;
 mod object;
 mod options;
 mod outgoing;
 mod page_config;
-mod rarity;
+pub mod rarity;
 mod representation;
-mod sat;
+pub mod sat;
 mod sat_point;
 pub mod subcommand;
 mod tally;
-mod templates;
+pub mod templates;
 mod wallet;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;

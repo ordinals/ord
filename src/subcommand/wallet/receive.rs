@@ -2,7 +2,7 @@ use super::*;
 
 #[derive(Deserialize, Serialize)]
 pub struct Output {
-  pub address: Address,
+  pub address: Address<NetworkUnchecked>,
 }
 
 pub(crate) fn run(options: Options) -> Result {
