@@ -10,9 +10,9 @@ use {
   crate::page_config::PageConfig,
   crate::templates::{
     BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson, InscriptionsHtml,
-    InscriptionsJson, OutputHtml, PageContent, PageHtml, PreviewAudioHtml, PreviewImageHtml,
-    PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt,
-    SatHtml, SatJson, TransactionHtml,
+    InscriptionsJson, OutputHtml, OutputJson, PageContent, PageHtml, PreviewAudioHtml,
+    PreviewImageHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
+    RangeHtml, RareTxt, SatHtml, SatJson, TransactionHtml,
   },
   axum::{
     body,
@@ -449,7 +449,8 @@ impl Server {
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(outpoint): Path<OutPoint>,
-  ) -> ServerResult<PageHtml<OutputHtml>> {
+    accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
     let list = if index.has_sat_index()? {
       index.list(outpoint)?
     } else {
@@ -481,7 +482,16 @@ impl Server {
 
     let inscriptions = index.get_inscriptions_on_output(outpoint)?;
 
-    Ok(
+    Ok(if accept_json.0 {
+      Json(OutputJson::new(
+        outpoint,
+        list,
+        page_config.chain,
+        output,
+        inscriptions,
+      ))
+      .into_response()
+    } else {
       OutputHtml {
         outpoint,
         inscriptions,
@@ -489,8 +499,9 @@ impl Server {
         chain: page_config.chain,
         output,
       }
-      .page(page_config, index.has_sat_index()?),
-    )
+      .page(page_config, index.has_sat_index()?)
+      .into_response()
+    })
   }
 
   async fn range(
@@ -953,7 +964,7 @@ impl Server {
     let next = index.get_inscription_id_by_inscription_number(entry.number + 1)?;
 
     Ok(if accept_json.0 {
-      axum::Json(InscriptionJson::new(
+      Json(InscriptionJson::new(
         page_config.chain,
         entry.fee,
         entry.height,
@@ -1004,7 +1015,7 @@ impl Server {
   ) -> ServerResult<Response> {
     let inscriptions = index.get_inscriptions_from_block(block_height)?;
     Ok(if accept_json.0 {
-      axum::Json(InscriptionsJson::new(inscriptions, None, None, None, None)).into_response()
+      Json(InscriptionsJson::new(inscriptions, None, None, None, None)).into_response()
     } else {
       InscriptionsHtml {
         inscriptions,
@@ -1044,7 +1055,7 @@ impl Server {
     let (inscriptions, prev, next, lowest, highest) =
       index.get_latest_inscriptions_with_prev_and_next(n, from)?;
     Ok(if accept_json.0 {
-      axum::Json(InscriptionsJson::new(
+      Json(InscriptionsJson::new(
         inscriptions,
         prev,
         next,

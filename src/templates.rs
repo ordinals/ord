@@ -8,7 +8,7 @@ pub(crate) use {
   input::InputHtml,
   inscription::{InscriptionHtml, InscriptionJson},
   inscriptions::{InscriptionsHtml, InscriptionsJson},
-  output::OutputHtml,
+  output::{OutputHtml, OutputJson},
   page_config::PageConfig,
   preview::{
     PreviewAudioHtml, PreviewImageHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
