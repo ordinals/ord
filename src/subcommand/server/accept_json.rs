@@ -1,5 +1,4 @@
-use super::*;
-use axum::extract::FromRef;
+use {super::*, axum::extract::FromRef};
 
 pub(crate) struct AcceptJson(pub(crate) bool);
 

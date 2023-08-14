@@ -925,10 +925,7 @@ impl Index {
     Ok((inscriptions, prev, next, lowest, highest))
   }
 
-  pub(crate) fn get_inscriptions_from_block(
-    &self,
-    block_height: u64,
-  ) -> Result<Vec<InscriptionId>> {
+  pub(crate) fn get_inscriptions_in_block(&self, block_height: u64) -> Result<Vec<InscriptionId>> {
     // This is a naive approach and will require optimization, but we don't have an index by block
     let block_inscriptions = self
       .database
