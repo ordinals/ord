@@ -303,7 +303,7 @@ fn get_inscriptions() {
 }
 
 #[test]
-fn get_inscriptions_from_block() {
+fn get_inscriptions_in_block() {
   let rpc_server = test_bitcoincore_rpc::spawn();
 
   create_wallet(&rpc_server);
