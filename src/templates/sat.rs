@@ -22,7 +22,7 @@ pub struct SatJson {
   pub rarity: Rarity,
   pub percentile: String,
   pub satpoint: Option<SatPoint>,
-  pub timestamp: String,
+  pub timestamp: i64,
   pub inscriptions: Vec<InscriptionId>,
 }
 

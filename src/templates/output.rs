@@ -9,6 +9,41 @@ pub(crate) struct OutputHtml {
   pub(crate) inscriptions: Vec<InscriptionId>,
 }
 
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct OutputJson {
+  pub value: u64,
+  pub script_pubkey: String,
+  pub address: Option<String>,
+  pub transaction: String,
+  pub sat_ranges: Option<Vec<(u64, u64)>>,
+  pub inscriptions: Vec<InscriptionId>,
+}
+
+impl OutputJson {
+  pub fn new(
+    outpoint: OutPoint,
+    list: Option<List>,
+    chain: Chain,
+    output: TxOut,
+    inscriptions: Vec<InscriptionId>,
+  ) -> Self {
+    Self {
+      value: output.value,
+      script_pubkey: output.script_pubkey.to_asm_string(),
+      address: chain
+        .address_from_script(&output.script_pubkey)
+        .ok()
+        .map(|address| address.to_string()),
+      transaction: outpoint.txid.to_string(),
+      sat_ranges: match list {
+        Some(List::Unspent(ranges)) => Some(ranges),
+        _ => None,
+      },
+      inscriptions,
+    }
+  }
+}
+
 impl PageContent for OutputHtml {
   fn title(&self) -> String {
     format!("Output {}", self.outpoint)
