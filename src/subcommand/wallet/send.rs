@@ -77,6 +77,12 @@ impl Send {
       get_change_address(&client, &options)?,
     ];
 
+    let (target_postage, max_postage) = if let Some(target_postage) = self.target_postage {
+      (target_postage, 2 * target_postage)
+    } else {
+      (TransactionBuilder::DEFAULT_TARGET_POSTAGE, TransactionBuilder::DEFAULT_MAX_POSTAGE)
+    };
+
     let unsigned_transaction = TransactionBuilder::build_transaction_with_postage(
       satpoint,
       inscriptions,
@@ -84,14 +90,8 @@ impl Send {
       address,
       change,
       self.fee_rate,
-      match self.target_postage {
-        Some(target_postage) => target_postage,
-        _ => TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-      },
-      match self.max_postage {
-        Some(max_postage) => max_postage,
-        _ => TransactionBuilder::DEFAULT_MAX_POSTAGE,
-      },
+      target_postage,
+      max_postage,
     )?;
 
     let signed_tx = client
