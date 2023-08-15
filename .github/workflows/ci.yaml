@@ -4,11 +4,11 @@ on:
   push:
     branches:
     - master
-    - kafka
+    - 6.x
   pull_request:
     branches:
     - master
-    - kafka
+    - 6.x
 
 defaults:
   run:

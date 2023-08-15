@@ -60,7 +60,9 @@ impl Sats {
   }
 }
 
-pub(crate) fn rare_sats(utxos: Vec<(OutPoint, Vec<(u64, u64)>)>) -> Vec<(OutPoint, Sat, u64, Rarity)> {
+pub(crate) fn rare_sats(
+  utxos: Vec<(OutPoint, Vec<(u64, u64)>)>,
+) -> Vec<(OutPoint, Sat, u64, Rarity)> {
   utxos
     .into_iter()
     .flat_map(|(outpoint, sat_ranges)| {

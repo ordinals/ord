@@ -75,8 +75,8 @@ use {
 };
 
 pub use crate::{
-  fee_rate::FeeRate, object::Object, rarity::Rarity, sat::Sat, sat_point::SatPoint,
-  subcommand::wallet::transaction_builder::TransactionBuilder,
+  block_rarity::BlockRarity, fee_rate::FeeRate, object::Object, rarity::Rarity, sat::Sat,
+  sat_point::SatPoint, subcommand::wallet::transaction_builder::TransactionBuilder,
 };
 
 #[cfg(test)]
@@ -97,6 +97,7 @@ macro_rules! tprintln {
 }
 
 mod arguments;
+mod block_rarity;
 mod blocktime;
 mod chain;
 mod config;
