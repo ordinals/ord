@@ -424,16 +424,14 @@ fn inscribe_works_with_postage() {
   create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
-  CommandBuilder::new(format!(
-    "wallet inscribe foo.txt --postage 5btc --fee-rate 10"
-  ))
-  .write("foo.txt", [0; 350])
-  .rpc_server(&rpc_server)
-  .run_and_check_output::<Inscribe>();
+  CommandBuilder::new("wallet inscribe foo.txt --postage 5btc --fee-rate 10".to_string())
+    .write("foo.txt", [0; 350])
+    .rpc_server(&rpc_server)
+    .run_and_check_output::<Inscribe>();
 
   rpc_server.mine_blocks(1);
 
-  let inscriptions = CommandBuilder::new(format!("wallet inscriptions"))
+  let inscriptions = CommandBuilder::new("wallet inscriptions".to_string())
     .write("foo.txt", [0; 350])
     .rpc_server(&rpc_server)
     .run_and_check_output::<Vec<ord::subcommand::wallet::inscriptions::Output>>();

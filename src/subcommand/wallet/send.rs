@@ -78,7 +78,7 @@ impl Send {
       Target::Postage
     };
 
-    let unsigned_transaction = TransactionBuilder::build_transaction_with_postage(
+    let unsigned_transaction = TransactionBuilder::new(
       satpoint,
       inscriptions,
       unspent_outputs,
@@ -86,7 +86,8 @@ impl Send {
       change,
       self.fee_rate,
       postage,
-    )?;
+    )?
+    .build_transaction()?;
 
     let signed_tx = client
       .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?

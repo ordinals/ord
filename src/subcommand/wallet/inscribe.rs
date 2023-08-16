@@ -1,6 +1,6 @@
 use {
   super::*,
-  crate::wallet::Wallet,
+  crate::{subcommand::wallet::transaction_builder::Target, wallet::Wallet},
   bitcoin::{
     blockdata::{opcodes, script},
     key::PrivateKey,
@@ -230,15 +230,16 @@ impl Inscribe {
       &reveal_script,
     );
 
-    let unsigned_commit_tx = TransactionBuilder::build_transaction_with_value(
+    let unsigned_commit_tx = TransactionBuilder::new(
       satpoint,
       inscriptions,
       utxos,
       commit_tx_address.clone(),
       change,
       commit_fee_rate,
-      reveal_fee + postage,
-    )?;
+      Target::Value(reveal_fee + postage),
+    )?
+    .build_transaction()?;
 
     let (vout, output) = unsigned_commit_tx
       .output

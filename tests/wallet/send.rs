@@ -362,8 +362,6 @@ fn wallet_send_with_fee_rate_and_target_postage() {
   .stdout_regex("[[:xdigit:]]{64}\n")
   .run_and_extract_stdout();
 
-  dbg!(&rpc_server.mempool());
-
   let tx = &rpc_server.mempool()[0];
   let mut fee = 0;
   for input in &tx.input {
@@ -379,6 +377,5 @@ fn wallet_send_with_fee_rate_and_target_postage() {
   let fee_rate = fee as f64 / tx.vsize() as f64;
 
   pretty_assert_eq!(fee_rate, 2.0);
-  dbg!(&tx.output);
   pretty_assert_eq!(tx.output[0].value, 77_000);
 }
