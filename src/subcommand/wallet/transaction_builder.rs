@@ -63,9 +63,10 @@ pub enum Error {
 }
 
 #[derive(Debug, PartialEq)]
-enum Target {
+pub enum Target {
   Value(Amount),
   Postage,
+  ExactPostage(Amount),
 }
 
 impl fmt::Display for Error {
@@ -110,8 +111,6 @@ pub struct TransactionBuilder {
   unused_change_addresses: Vec<Address>,
   utxos: BTreeSet<OutPoint>,
   target: Target,
-  target_postage: Amount,
-  max_postage: Amount,
 }
 
 type Result<T> = std::result::Result<T, Error>;
@@ -120,8 +119,40 @@ impl TransactionBuilder {
   const ADDITIONAL_INPUT_VBYTES: usize = 58;
   const ADDITIONAL_OUTPUT_VBYTES: usize = 43;
   const SCHNORR_SIGNATURE_SIZE: usize = 64;
-  pub(crate) const DEFAULT_MAX_POSTAGE: Amount = Amount::from_sat(2 * 10_000);
-  pub(crate) const DEFAULT_TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
+  pub(crate) const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
+  pub(crate) const MAX_POSTAGE: Amount = Amount::from_sat(2 * 10_000);
+
+  fn new(
+    outgoing: SatPoint,
+    inscriptions: BTreeMap<SatPoint, InscriptionId>,
+    amounts: BTreeMap<OutPoint, Amount>,
+    recipient: Address,
+    change: [Address; 2],
+    fee_rate: FeeRate,
+    target: Target,
+  ) -> Result<Self> {
+    if change.contains(&recipient) {
+      return Err(Error::DuplicateAddress(recipient));
+    }
+
+    if change[0] == change[1] {
+      return Err(Error::DuplicateAddress(change[0].clone()));
+    }
+
+    Ok(Self {
+      utxos: amounts.keys().cloned().collect(),
+      amounts,
+      change_addresses: change.iter().cloned().collect(),
+      fee_rate,
+      inputs: Vec::new(),
+      inscriptions,
+      outgoing,
+      outputs: Vec::new(),
+      recipient,
+      unused_change_addresses: change.to_vec(),
+      target,
+    })
+  }
 
   pub fn build_transaction_with_postage(
     outgoing: SatPoint,
@@ -130,8 +161,7 @@ impl TransactionBuilder {
     recipient: Address,
     change: [Address; 2],
     fee_rate: FeeRate,
-    target_postage: Amount,
-    max_postage: Amount,
+    target: Target,
   ) -> Result<Transaction> {
     Self::new(
       outgoing,
@@ -140,9 +170,7 @@ impl TransactionBuilder {
       recipient,
       change,
       fee_rate,
-      Target::Postage,
-      target_postage,
-      max_postage,
+      target,
     )?
     .build_transaction()
   }
@@ -173,8 +201,6 @@ impl TransactionBuilder {
       change,
       fee_rate,
       Target::Value(output_value),
-      Amount::from_sat(0),
-      Amount::from_sat(0),
     )?
     .build_transaction()
   }
@@ -190,41 +216,6 @@ impl TransactionBuilder {
       .build()
   }
 
-  fn new(
-    outgoing: SatPoint,
-    inscriptions: BTreeMap<SatPoint, InscriptionId>,
-    amounts: BTreeMap<OutPoint, Amount>,
-    recipient: Address,
-    change: [Address; 2],
-    fee_rate: FeeRate,
-    target: Target,
-    target_postage: Amount,
-    max_postage: Amount,
-  ) -> Result<Self> {
-    if change.contains(&recipient) {
-      return Err(Error::DuplicateAddress(recipient));
-    }
-
-    if change[0] == change[1] {
-      return Err(Error::DuplicateAddress(change[0].clone()));
-    }
-
-    Ok(Self {
-      utxos: amounts.keys().cloned().collect(),
-      amounts,
-      change_addresses: change.iter().cloned().collect(),
-      fee_rate,
-      inputs: Vec::new(),
-      inscriptions,
-      outgoing,
-      outputs: Vec::new(),
-      recipient,
-      unused_change_addresses: change.to_vec(),
-      target,
-      target_postage,
-      max_postage,
-    })
-  }
 
   fn select_outgoing(mut self) -> Result<Self> {
     for (inscribed_satpoint, inscription_id) in &self.inscriptions {
@@ -326,7 +317,9 @@ impl TransactionBuilder {
     let estimated_fee = self.estimate_fee();
 
     let min_value = match self.target {
-      Target::Postage => self.outputs.last().unwrap().0.script_pubkey().dust_value(),
+      Target::Postage | Target::ExactPostage(_) => {
+        self.outputs.last().unwrap().0.script_pubkey().dust_value()
+      }
       Target::Value(value) => value,
     };
 
@@ -384,7 +377,8 @@ impl TransactionBuilder {
 
     if let Some(excess) = value.checked_sub(self.fee_rate.fee(self.estimate_vbytes())) {
       let (max, target) = match self.target {
-        Target::Postage => (self.max_postage, self.target_postage),
+        Target::ExactPostage(postage) => (postage, postage),
+        Target::Postage => (Self::TARGET_POSTAGE, Self::MAX_POSTAGE),
         Target::Value(value) => (value, value),
       };
 
@@ -473,7 +467,7 @@ impl TransactionBuilder {
           previous_output: OutPoint::null(),
           script_sig: ScriptBuf::new(),
           sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-          witness: Witness::from_slice(&[&[0; TransactionBuilder::SCHNORR_SIGNATURE_SIZE]]),
+          witness: Witness::from_slice(&[&[0; Self::SCHNORR_SIGNATURE_SIZE]]),
         })
         .collect(),
       output: outputs
@@ -596,7 +590,13 @@ impl TransactionBuilder {
         match self.target {
           Target::Postage => {
             assert!(
-              Amount::from_sat(output.value) <= self.max_postage + slop,
+              Amount::from_sat(output.value) <= Self::MAX_POSTAGE + slop,
+              "invariant: excess postage is stripped"
+            );
+          }
+          Target::ExactPostage(postage) => {
+            assert!(
+              Amount::from_sat(output.value) <= postage + slop,
               "invariant: excess postage is stripped"
             );
           }
@@ -758,8 +758,6 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
-      TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-      TransactionBuilder::DEFAULT_MAX_POSTAGE,
     )
     .unwrap()
     .select_outgoing()
@@ -803,8 +801,6 @@ mod tests {
         (change(1), Amount::from_sat(1_724)),
       ],
       target: Target::Postage,
-      target_postage: TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-      max_postage: TransactionBuilder::DEFAULT_MAX_POSTAGE,
     };
 
     pretty_assert_eq!(
@@ -833,8 +829,7 @@ mod tests {
       recipient(),
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
-      TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-      TransactionBuilder::DEFAULT_MAX_POSTAGE,
+      Target::Postage,
     )
     .unwrap()
     .is_explicitly_rbf())
@@ -852,8 +847,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
-        TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-        TransactionBuilder::DEFAULT_MAX_POSTAGE,
+        Target::Postage,
       ),
       Ok(Transaction {
         version: 1,
@@ -877,8 +871,6 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
-      TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-      TransactionBuilder::DEFAULT_MAX_POSTAGE,
     )
     .unwrap()
     .select_outgoing()
@@ -903,8 +895,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
-        TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-        TransactionBuilder::DEFAULT_MAX_POSTAGE,
+        Target::Postage,
       ),
       Ok(Transaction {
         version: 1,
@@ -927,8 +918,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
-        TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-        TransactionBuilder::DEFAULT_MAX_POSTAGE,
+        Target::Postage,
       ),
       Err(Error::NotEnoughCardinalUtxos),
     )
@@ -949,8 +939,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
-        TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-        TransactionBuilder::DEFAULT_MAX_POSTAGE,
+        Target::Postage
       ),
       Err(Error::NotEnoughCardinalUtxos),
     )
@@ -971,8 +960,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
-        TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-        TransactionBuilder::DEFAULT_MAX_POSTAGE,
+        Target::Postage,
       ),
       Ok(Transaction {
         version: 1,
@@ -980,10 +968,7 @@ mod tests {
         input: vec![tx_in(outpoint(1)), tx_in(outpoint(2))],
         output: vec![
           tx_out(4_950, change(1)),
-          tx_out(
-            TransactionBuilder::DEFAULT_TARGET_POSTAGE.to_sat(),
-            recipient()
-          ),
+          tx_out(TransactionBuilder::TARGET_POSTAGE.to_sat(), recipient()),
           tx_out(14_831, change(0)),
         ],
       })
@@ -1003,8 +988,6 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
-      TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-      TransactionBuilder::DEFAULT_MAX_POSTAGE,
     )
     .unwrap()
     .build()
@@ -1024,8 +1007,6 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
-      TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-      TransactionBuilder::DEFAULT_MAX_POSTAGE,
     )
     .unwrap()
     .build()
@@ -1045,8 +1026,6 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
-      TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-      TransactionBuilder::DEFAULT_MAX_POSTAGE,
     )
     .unwrap()
     .build()
@@ -1066,8 +1045,6 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
-      TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-      TransactionBuilder::DEFAULT_MAX_POSTAGE,
     )
     .unwrap()
     .select_outgoing()
@@ -1094,8 +1071,6 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
-      TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-      TransactionBuilder::DEFAULT_MAX_POSTAGE,
     )
     .unwrap()
     .select_outgoing()
@@ -1118,18 +1093,14 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
-        TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-        TransactionBuilder::DEFAULT_MAX_POSTAGE,
+        Target::Postage,
       ),
       Ok(Transaction {
         version: 1,
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
         output: vec![
-          tx_out(
-            TransactionBuilder::DEFAULT_TARGET_POSTAGE.to_sat(),
-            recipient()
-          ),
+          tx_out(TransactionBuilder::TARGET_POSTAGE.to_sat(), recipient()),
           tx_out(989_870, change(1))
         ],
       })
@@ -1149,8 +1120,6 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
-      TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-      TransactionBuilder::DEFAULT_MAX_POSTAGE,
     )
     .unwrap()
     .select_outgoing()
@@ -1171,8 +1140,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
-        TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-        TransactionBuilder::DEFAULT_MAX_POSTAGE,
+        Target::Postage,
       ),
       Ok(Transaction {
         version: 1,
@@ -1198,8 +1166,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
-        TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-        TransactionBuilder::DEFAULT_MAX_POSTAGE,
+        Target::Postage,
       ),
       Ok(Transaction {
         version: 1,
@@ -1223,8 +1190,6 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
-      TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-      TransactionBuilder::DEFAULT_MAX_POSTAGE,
     )
     .unwrap()
     .select_outgoing()
@@ -1253,8 +1218,6 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
-      TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-      TransactionBuilder::DEFAULT_MAX_POSTAGE,
     )
     .unwrap()
     .select_outgoing()
@@ -1281,8 +1244,6 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
-      TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-      TransactionBuilder::DEFAULT_MAX_POSTAGE,
     )
     .unwrap()
     .select_outgoing()
@@ -1306,8 +1267,6 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
-      TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-      TransactionBuilder::DEFAULT_MAX_POSTAGE,
     )
     .unwrap()
     .select_outgoing()
@@ -1341,8 +1300,6 @@ mod tests {
         (change(1), Amount::from_sat(1_774)),
       ],
       target: Target::Postage,
-      target_postage: TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-      max_postage: TransactionBuilder::DEFAULT_MAX_POSTAGE,
     }
     .build()
     .unwrap();
@@ -1372,8 +1329,6 @@ mod tests {
         (change(0), Amount::from_sat(1_774)),
       ],
       target: Target::Postage,
-      target_postage: TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-      max_postage: TransactionBuilder::DEFAULT_MAX_POSTAGE,
     }
     .build()
     .unwrap();
@@ -1394,8 +1349,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
-        TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-        TransactionBuilder::DEFAULT_MAX_POSTAGE,
+        Target::Postage,
       ),
       Err(Error::NotEnoughCardinalUtxos)
     )
@@ -1413,8 +1367,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
-        TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-        TransactionBuilder::DEFAULT_MAX_POSTAGE,
+        Target::Postage,
       ),
       Err(Error::UtxoContainsAdditionalInscription {
         outgoing_satpoint: satpoint(1, 0),
@@ -1437,8 +1390,7 @@ mod tests {
       recipient(),
       [change(0), change(1)],
       fee_rate,
-      TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-      TransactionBuilder::DEFAULT_MAX_POSTAGE,
+      Target::Postage,
     )
     .unwrap();
 
@@ -1625,8 +1577,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
-        TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-        TransactionBuilder::DEFAULT_MAX_POSTAGE,
+        Target::Postage,
       ),
       Ok(Transaction {
         version: 1,
@@ -1749,8 +1700,7 @@ mod tests {
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(250.0).unwrap(),
-        TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-        TransactionBuilder::DEFAULT_MAX_POSTAGE,
+        Target::Postage,
       ),
       Ok(Transaction {
         version: 1,
@@ -1780,8 +1730,6 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Value(Amount::from_sat(10_000)),
-      TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-      TransactionBuilder::DEFAULT_MAX_POSTAGE,
     )
     .unwrap()
     .select_outgoing()
@@ -1827,8 +1775,6 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Value(Amount::from_sat(10_000)),
-      TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-      TransactionBuilder::DEFAULT_MAX_POSTAGE,
     )
     .unwrap()
     .select_outgoing()
@@ -1881,8 +1827,6 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Value(Amount::from_sat(10_000)),
-      TransactionBuilder::DEFAULT_TARGET_POSTAGE,
-      TransactionBuilder::DEFAULT_MAX_POSTAGE,
     )
     .unwrap();
 
@@ -1922,5 +1866,39 @@ mod tests {
       false,
       Amount::from_sat(20_000),
     );
+  }
+
+  #[test]
+  fn build_transaction_with_custom_postage() {
+    let utxos = vec![(outpoint(1), Amount::from_sat(1_000_000))];
+
+    let fee_rate = FeeRate::try_from(17.3).unwrap();
+
+    let transaction = TransactionBuilder::build_transaction_with_postage(
+      satpoint(1, 0),
+      BTreeMap::from([(satpoint(1, 0), inscription_id(1))]),
+      utxos.into_iter().collect(),
+      recipient(),
+      [change(0), change(1)],
+      fee_rate,
+      Target::ExactPostage(Amount::from_sat(66_000)),
+    )
+    .unwrap();
+
+    let fee =
+      fee_rate.fee(transaction.vsize() + TransactionBuilder::SCHNORR_SIGNATURE_SIZE / 4 + 1);
+
+    pretty_assert_eq!(
+      transaction,
+      Transaction {
+        version: 1,
+        lock_time: LockTime::ZERO,
+        input: vec![tx_in(outpoint(1))],
+        output: vec![
+          tx_out(66_000, recipient()),
+          tx_out(1_000_000 - 66_000 - fee.to_sat(), change(1))
+        ],
+      }
+    )
   }
 }

@@ -53,7 +53,7 @@ pub(crate) struct Inscribe {
   pub(crate) destination: Option<Address<NetworkUnchecked>>,
   #[clap(
     long,
-    help = "Amount of postage to include in the inscription. Default `10000 sats`"
+    help = "Amount of postage to include in the inscription. Default `10000sat`"
   )]
   pub(crate) postage: Option<Amount>,
 }
@@ -95,7 +95,7 @@ impl Inscribe {
         self.no_limit,
         match self.postage {
           Some(postage) => postage,
-          _ => TransactionBuilder::DEFAULT_TARGET_POSTAGE,
+          _ => TransactionBuilder::TARGET_POSTAGE,
         },
       )?;
 
@@ -403,7 +403,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
       false,
-      TransactionBuilder::DEFAULT_TARGET_POSTAGE,
+      TransactionBuilder::TARGET_POSTAGE,
     )
     .unwrap();
 
@@ -435,7 +435,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
       false,
-      TransactionBuilder::DEFAULT_TARGET_POSTAGE,
+      TransactionBuilder::TARGET_POSTAGE,
     )
     .unwrap();
 
@@ -471,7 +471,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
       false,
-      TransactionBuilder::DEFAULT_TARGET_POSTAGE,
+      TransactionBuilder::TARGET_POSTAGE,
     )
     .unwrap_err()
     .to_string();
@@ -514,7 +514,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
       false,
-      TransactionBuilder::DEFAULT_TARGET_POSTAGE,
+      TransactionBuilder::TARGET_POSTAGE,
     )
     .is_ok())
   }
@@ -551,7 +551,7 @@ mod tests {
       FeeRate::try_from(fee_rate).unwrap(),
       FeeRate::try_from(fee_rate).unwrap(),
       false,
-      TransactionBuilder::DEFAULT_TARGET_POSTAGE,
+      TransactionBuilder::TARGET_POSTAGE,
     )
     .unwrap();
 
@@ -614,7 +614,7 @@ mod tests {
       FeeRate::try_from(commit_fee_rate).unwrap(),
       FeeRate::try_from(fee_rate).unwrap(),
       false,
-      TransactionBuilder::DEFAULT_TARGET_POSTAGE,
+      TransactionBuilder::TARGET_POSTAGE,
     )
     .unwrap();
 
@@ -664,7 +664,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
       false,
-      TransactionBuilder::DEFAULT_TARGET_POSTAGE,
+      TransactionBuilder::TARGET_POSTAGE,
     )
     .unwrap_err()
     .to_string();
@@ -696,7 +696,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
       true,
-      TransactionBuilder::DEFAULT_TARGET_POSTAGE,
+      TransactionBuilder::TARGET_POSTAGE,
     )
     .unwrap();
 

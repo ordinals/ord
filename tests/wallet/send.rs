@@ -346,3 +346,39 @@ fn user_must_provide_fee_rate_to_send() {
   )
   .run_and_extract_stdout();
 }
+
+#[test]
+fn wallet_send_with_fee_rate_and_target_postage() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  let Inscribe { inscription, .. } = inscribe(&rpc_server);
+
+  CommandBuilder::new(format!(
+    "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {inscription} --fee-rate 2.0 --postage 77000sat"
+  ))
+  .rpc_server(&rpc_server)
+  .stdout_regex("[[:xdigit:]]{64}\n")
+  .run_and_extract_stdout();
+
+  dbg!(&rpc_server.mempool());
+
+  let tx = &rpc_server.mempool()[0];
+  let mut fee = 0;
+  for input in &tx.input {
+    fee += rpc_server
+      .get_utxo_amount(&input.previous_output)
+      .unwrap()
+      .to_sat();
+  }
+  for output in &tx.output {
+    fee -= output.value;
+  }
+
+  let fee_rate = fee as f64 / tx.vsize() as f64;
+
+  pretty_assert_eq!(fee_rate, 2.0);
+  dbg!(&tx.output);
+  pretty_assert_eq!(tx.output[0].value, 77_000);
+}

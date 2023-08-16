@@ -1,4 +1,4 @@
-use {super::*, crate::wallet::Wallet};
+use {super::*, crate::subcommand::wallet::transaction_builder::Target, crate::wallet::Wallet};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
@@ -8,14 +8,9 @@ pub(crate) struct Send {
   fee_rate: FeeRate,
   #[clap(
     long,
-    help = "Target amount of postage to include in the sent output. Default `10000 sats`"
+    help = "Target amount of postage to include with sent inscriptions. Default `10000sat`"
   )]
-  pub(crate) target_postage: Option<Amount>,
-  #[clap(
-    long,
-    help = "Maximum amount of postage to include in the sent output. Default `20000 sats`"
-  )]
-  pub(crate) max_postage: Option<Amount>,
+  pub(crate) postage: Option<Amount>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -77,10 +72,10 @@ impl Send {
       get_change_address(&client, &options)?,
     ];
 
-    let (target_postage, max_postage) = if let Some(target_postage) = self.target_postage {
-      (target_postage, 2 * target_postage)
+    let postage = if let Some(postage) = self.postage {
+      Target::ExactPostage(postage)
     } else {
-      (TransactionBuilder::DEFAULT_TARGET_POSTAGE, TransactionBuilder::DEFAULT_MAX_POSTAGE)
+      Target::Postage
     };
 
     let unsigned_transaction = TransactionBuilder::build_transaction_with_postage(
@@ -90,8 +85,7 @@ impl Send {
       address,
       change,
       self.fee_rate,
-      target_postage,
-      max_postage,
+      postage,
     )?;
 
     let signed_tx = client
