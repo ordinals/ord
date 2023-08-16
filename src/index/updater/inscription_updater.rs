@@ -1,7 +1,7 @@
 mod stream;
 
-use stream::StreamEvent;
 use crate::inscription::TransactionInscription;
+use stream::StreamEvent;
 use {super::*, inscription::Curse};
 
 #[derive(Debug, Clone)]
