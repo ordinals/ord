@@ -140,6 +140,7 @@ pub(crate) struct Index {
   genesis_block_coinbase_transaction: Transaction,
   genesis_block_coinbase_txid: Txid,
   height_limit: Option<u64>,
+  block_to_lowest_inscription_number: Vec<Option<(i64,i64)>>,
   options: Options,
   unrecoverably_reorged: AtomicBool,
 }
@@ -260,6 +261,7 @@ impl Index {
       first_inscription_height: options.first_inscription_height(),
       genesis_block_coinbase_transaction,
       height_limit: options.height_limit,
+      block_to_lowest_inscription_number: Vec::new(),
       options: options.clone(),
       unrecoverably_reorged: AtomicBool::new(false),
     })
