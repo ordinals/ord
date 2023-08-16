@@ -13,6 +13,7 @@ use {
   bitcoincore_rpc::{json::GetBlockHeaderResult, Client},
   chrono::SubsecRound,
   indicatif::{ProgressBar, ProgressStyle},
+  itertools::Itertools,
   log::log_enabled,
   redb::{
     Database, MultimapTable, MultimapTableDefinition, ReadableMultimapTable, ReadableTable, Table,
@@ -57,7 +58,7 @@ define_table! { STATISTIC_TO_COUNT, u64, u64 }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u64, u128 }
 
 #[derive(Debug, PartialEq)]
-pub(crate) enum List {
+pub enum List {
   Spent,
   Unspent(Vec<(u64, u64)>),
 }
@@ -877,19 +878,23 @@ impl Index {
     &self,
     n: usize,
     from: Option<i64>,
-  ) -> Result<(Vec<InscriptionId>, Option<i64>, Option<i64>)> {
+  ) -> Result<(Vec<InscriptionId>, Option<i64>, Option<i64>, i64, i64)> {
     let rtx = self.database.begin_read()?;
 
     let inscription_number_to_inscription_id =
       rtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
 
-    let latest = match inscription_number_to_inscription_id.iter()?.next_back() {
+    let highest = match inscription_number_to_inscription_id.iter()?.next_back() {
       Some(Ok((number, _id))) => number.value(),
-      Some(Err(_)) => return Ok(Default::default()),
-      None => return Ok(Default::default()),
+      Some(Err(_)) | None => return Ok(Default::default()),
     };
 
-    let from = from.unwrap_or(latest);
+    let lowest = match inscription_number_to_inscription_id.iter()?.next() {
+      Some(Ok((number, _id))) => number.value(),
+      Some(Err(_)) | None => return Ok(Default::default()),
+    };
+
+    let from = from.unwrap_or(highest);
 
     let prev = if let Some(prev) = from.checked_sub(n.try_into()?) {
       inscription_number_to_inscription_id
@@ -899,12 +904,12 @@ impl Index {
       None
     };
 
-    let next = if from < latest {
+    let next = if from < highest {
       Some(
         from
           .checked_add(n.try_into()?)
-          .unwrap_or(latest)
-          .min(latest),
+          .unwrap_or(highest)
+          .min(highest),
       )
     } else {
       None
@@ -917,7 +922,32 @@ impl Index {
       .flat_map(|result| result.map(|(_number, id)| Entry::load(*id.value())))
       .collect();
 
-    Ok((inscriptions, prev, next))
+    Ok((inscriptions, prev, next, lowest, highest))
+  }
+
+  pub(crate) fn get_inscriptions_in_block(&self, block_height: u64) -> Result<Vec<InscriptionId>> {
+    // This is a naive approach and will require optimization, but we don't have an index by block
+    let block_inscriptions = self
+      .database
+      .begin_read()?
+      .open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?
+      .iter()?
+      .filter_map(|result| match result {
+        Ok((key, entry_value)) => {
+          let entry = InscriptionEntry::load(entry_value.value());
+          if entry.height == block_height {
+            Some((InscriptionId::load(*key.value()), entry.number))
+          } else {
+            None
+          }
+        }
+        Err(_) => None,
+      })
+      .sorted_by_key(|&(_id, number)| number)
+      .map(|(id, _)| id)
+      .collect();
+
+    Ok(block_inscriptions)
   }
 
   pub(crate) fn get_feed_inscriptions(&self, n: usize) -> Result<Vec<(i64, InscriptionId)>> {
@@ -2447,7 +2477,7 @@ mod tests {
 
       context.mine_blocks(1);
 
-      let (inscriptions, prev, next) = context
+      let (inscriptions, prev, next, _, _) = context
         .index
         .get_latest_inscriptions_with_prev_and_next(100, None)
         .unwrap();
@@ -2476,15 +2506,17 @@ mod tests {
 
       ids.reverse();
 
-      let (inscriptions, prev, next) = context
+      let (inscriptions, prev, next, lowest, highest) = context
         .index
         .get_latest_inscriptions_with_prev_and_next(100, None)
         .unwrap();
       assert_eq!(inscriptions, &ids[..100]);
       assert_eq!(prev, Some(2));
       assert_eq!(next, None);
+      assert_eq!(highest, 102);
+      assert_eq!(lowest, 0);
 
-      let (inscriptions, prev, next) = context
+      let (inscriptions, prev, next, _lowest, _highest) = context
         .index
         .get_latest_inscriptions_with_prev_and_next(100, Some(101))
         .unwrap();
@@ -2492,7 +2524,7 @@ mod tests {
       assert_eq!(prev, Some(1));
       assert_eq!(next, Some(102));
 
-      let (inscriptions, prev, next) = context
+      let (inscriptions, prev, next, _lowest, _highest) = context
         .index
         .get_latest_inscriptions_with_prev_and_next(100, Some(0))
         .unwrap();

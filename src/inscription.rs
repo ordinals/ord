@@ -23,7 +23,7 @@ pub(crate) enum Curse {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub(crate) struct Inscription {
+pub struct Inscription {
   body: Option<Vec<u8>>,
   content_type: Option<Vec<u8>>,
 }
