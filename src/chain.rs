@@ -40,7 +40,7 @@ impl Chain {
 
   pub(crate) fn first_inscription_height(self) -> u64 {
     match self {
-      Self::Mainnet => 0, // FIXME 767430,
+      Self::Mainnet => 767430,
       Self::Regtest => 0,
       Self::Signet => 112402,
       Self::Testnet => 2413343,

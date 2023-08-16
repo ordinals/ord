@@ -1,10 +1,10 @@
 use {
   self::{
-    block_index::BlockIndex,
     entry::{
       BlockHashValue, Entry, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
       OutPointValue, SatPointValue, SatRange,
     },
+    index::block_index::BlockIndex,
     reorg::*,
     updater::Updater,
   },
@@ -926,8 +926,12 @@ impl Index {
     Ok((inscriptions, prev, next, lowest, highest))
   }
 
-  pub(crate) fn get_inscriptions_in_block(&self, block_index : &BlockIndex, block_height: u64) -> Result<Vec<InscriptionId>> {
-    block_index.get_inscriptions_in_block(block_height)
+  pub(crate) fn get_inscriptions_in_block(
+    &self,
+    block_index: &BlockIndex,
+    block_height: u64,
+  ) -> Result<Vec<InscriptionId>> {
+    block_index.get_inscriptions_in_block(self, block_height)
   }
 
   pub(crate) fn get_feed_inscriptions(&self, n: usize) -> Result<Vec<(i64, InscriptionId)>> {
