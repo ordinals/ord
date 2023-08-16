@@ -1,3 +1,5 @@
+use crate::index::block_index::BlockIndex;
+
 use {
   self::{
     accept_json::AcceptJson,
@@ -42,8 +44,9 @@ mod accept_json;
 mod error;
 
 #[derive(Clone)]
-pub struct ServerConfig {
+pub struct ServerState {
   pub is_json_api_enabled: bool,
+  pub block_index: BlockIndex<'static>,
 }
 
 enum BlockQuery {
@@ -154,8 +157,9 @@ impl Server {
         domain: acme_domains.first().cloned(),
       });
 
-      let server_config = Arc::new(ServerConfig {
+      let server_config = Arc::new(ServerState {
         is_json_api_enabled: index.is_json_api_enabled(),
+        block_index: BlockIndex::new(&index)?,
       });
 
       let router = Router::new()
@@ -1010,6 +1014,7 @@ impl Server {
     Path(block_height): Path<u64>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
+    let block_index = 
     let inscriptions = index.get_inscriptions_in_block(block_height)?;
     Ok(if accept_json.0 {
       Json(InscriptionsJson::new(inscriptions, None, None, None, None)).into_response()
