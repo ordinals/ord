@@ -31,18 +31,8 @@ impl BlockIndex {
 
     let gap = inscribed_block_count.try_into().unwrap_or(isize::MAX) - indexed_up_to;
 
-    log::info!(
-      "Indexed up to {} ({} inscribed blocks, {} indexed blocks, {} gap, {} lowest indexed cursed, {} highest indexed blessed)",
-      indexed_up_to,
-      inscribed_block_count,
-      indexed_up_to,
-      gap,
-      self.lowest_indexed_cursed,
-      self.highest_indexed_blessed,
-    );
-
     if gap > 0 {
-      log::info!(
+      log::debug!(
         "Updating block index for {} new blocks ({} to {})",
         gap,
         indexed_up_to,
@@ -98,9 +88,6 @@ impl BlockIndex {
           let inscription_id = InscriptionId::load(*id.value());
           if let Some(entry) = index.get_inscription_entry(inscription_id)? {
             let current_height = entry.height.try_into().unwrap_or(usize::MAX);
-            if current_height % 5000 == 0 {
-              log::debug!("Updating block index at {}", current_height);
-            }
             if prev_block_height != current_height {
               prev_block_height = current_height;
               if number.value() < 0 {
@@ -119,7 +106,7 @@ impl BlockIndex {
           }
         }
       }
-      log::info!(
+      log::debug!(
         "Updated block index for {} new blocks ({} to {})",
         gap,
         indexed_up_to,
@@ -179,13 +166,6 @@ impl BlockIndex {
     let lowest_blessed = self.lowest_blessed_by_block
       [usize::try_from(block_height.saturating_sub(self.first_inscription_height))?];
 
-    log::info!(
-      "Getting inscriptions in block {} ({} - {})",
-      block_height,
-      lowest_cursed,
-      lowest_blessed
-    );
-
     let mut inscriptions =
       self.get_inscriptions_in_block_from(index, block_height, lowest_cursed)?;
     inscriptions.extend(self.get_inscriptions_in_block_from(
@@ -193,10 +173,13 @@ impl BlockIndex {
       block_height,
       lowest_blessed,
     )?);
-    log::info!(
-      "Got {} inscriptions in block {}",
+
+    log::debug!(
+      "Got {} inscriptions in block {} ({} - {})",
       inscriptions.len(),
-      block_height
+      block_height,
+      lowest_cursed,
+      lowest_blessed
     );
 
     Ok(inscriptions)
