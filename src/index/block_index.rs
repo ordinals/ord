@@ -55,36 +55,66 @@ impl BlockIndex {
         .lowest_cursed_by_block
         .resize(usize::try_from(inscribed_block_count)?, i64::MAX);
 
-      let mut prev_block_height = usize::MAX;
-
-      let rtx = index.database.begin_read()?;
-      for result in rtx
-        .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
-        .iter()?
-      {
-        let (number, id) = result?;
-        if number.value() >= self.lowest_indexed_cursed
-          && number.value() <= self.highest_indexed_blessed
+      if indexed_up_to == 0 {
+        // Use a more efficient approach for the initial index - since we have to traverse all inscriptions, it is most efficient to do so using one table.
+        let rtx = index.database.begin_read()?;
+        for result in rtx
+          .open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?
+          .iter()?
         {
-          continue;
-        }
-
-        let inscription_id = InscriptionId::load(*id.value());
-        if let Some(entry) = index.get_inscription_entry(inscription_id)? {
-          let current_height = entry.height.try_into().unwrap_or(usize::MAX);
-          if current_height % 5000 == 0 {
-            log::debug!("Updating block index at {}", current_height);
+          let (_inscription_id, entry) = result?;
+          let entry = InscriptionEntry::load(entry.value());
+          let height_index: usize = entry
+            .height
+            .try_into()
+            .unwrap_or(usize::MAX)
+            .saturating_sub(self.first_inscription_height.try_into().unwrap());
+          if entry.number < 0 {
+            self.lowest_cursed_by_block[height_index] =
+              cmp::min(self.lowest_cursed_by_block[height_index], entry.number);
+            self.lowest_indexed_cursed = cmp::min(self.lowest_indexed_cursed, entry.number);
+          } else {
+            self.lowest_blessed_by_block[height_index] =
+              cmp::min(self.lowest_blessed_by_block[height_index], entry.number);
+            self.highest_indexed_blessed = cmp::max(self.highest_indexed_blessed, entry.number);
           }
-          if prev_block_height != current_height {
-            prev_block_height = current_height;
-            if number.value() < 0 {
-              self.lowest_cursed_by_block[prev_block_height
-                .saturating_sub(usize::try_from(self.first_inscription_height)?)] = number.value();
-              self.lowest_indexed_cursed = cmp::min(self.lowest_indexed_cursed, number.value());
-            } else {
-              self.lowest_blessed_by_block[prev_block_height
-                .saturating_sub(usize::try_from(self.first_inscription_height)?)] = number.value();
-              self.highest_indexed_blessed = cmp::max(self.highest_indexed_blessed, number.value());
+        }
+      } else {
+        // Use default approach where we iterate in order of inscription number so we can easily skip over already indexed inscriptions.
+        let mut prev_block_height = usize::MAX;
+
+        let rtx = index.database.begin_read()?;
+        for result in rtx
+          .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
+          .iter()?
+        {
+          let (number, id) = result?;
+          if number.value() >= self.lowest_indexed_cursed
+            && number.value() <= self.highest_indexed_blessed
+          {
+            continue;
+          }
+
+          let inscription_id = InscriptionId::load(*id.value());
+          if let Some(entry) = index.get_inscription_entry(inscription_id)? {
+            let current_height = entry.height.try_into().unwrap_or(usize::MAX);
+            if current_height % 5000 == 0 {
+              log::debug!("Updating block index at {}", current_height);
+            }
+            if prev_block_height != current_height {
+              prev_block_height = current_height;
+              if number.value() < 0 {
+                self.lowest_cursed_by_block[prev_block_height
+                  .saturating_sub(usize::try_from(self.first_inscription_height)?)] =
+                  number.value();
+                self.lowest_indexed_cursed = cmp::min(self.lowest_indexed_cursed, number.value());
+              } else {
+                self.lowest_blessed_by_block[prev_block_height
+                  .saturating_sub(usize::try_from(self.first_inscription_height)?)] =
+                  number.value();
+                self.highest_indexed_blessed =
+                  cmp::max(self.highest_indexed_blessed, number.value());
+              }
             }
           }
         }
