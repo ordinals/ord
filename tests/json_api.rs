@@ -321,7 +321,15 @@ fn get_inscriptions_in_block() {
   }
   rpc_server.mine_blocks(1);
 
-  let server = TestServer::spawn_with_args(&rpc_server, &["--index-sats", "--enable-json-api"]);
+  let server = TestServer::spawn_with_args(
+    &rpc_server,
+    &[
+      "--index-sats",
+      "--enable-json-api",
+      "--first-inscription-height",
+      "0",
+    ],
+  );
 
   // get all inscriptions from block 11
   let response = server.json_request(format!("/inscriptions/block/{}", 11));
@@ -330,7 +338,6 @@ fn get_inscriptions_in_block() {
   let inscriptions_json: InscriptionsJson =
     serde_json::from_str(&response.text().unwrap()).unwrap();
 
-  assert_eq!(inscriptions_json.inscriptions.len(), 3);
   pretty_assert_eq!(
     inscriptions_json.inscriptions,
     vec![
