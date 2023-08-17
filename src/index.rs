@@ -4,6 +4,7 @@ use {
       BlockHashValue, Entry, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
       OutPointValue, SatPointValue, SatRange,
     },
+    index::block_index::BlockIndex,
     reorg::*,
     updater::Updater,
   },
@@ -13,7 +14,6 @@ use {
   bitcoincore_rpc::{json::GetBlockHeaderResult, Client},
   chrono::SubsecRound,
   indicatif::{ProgressBar, ProgressStyle},
-  itertools::Itertools,
   log::log_enabled,
   redb::{
     Database, MultimapTable, MultimapTableDefinition, ReadableMultimapTable, ReadableTable, Table,
@@ -23,6 +23,7 @@ use {
   std::io::{BufWriter, Read, Write},
 };
 
+pub mod block_index;
 mod entry;
 mod fetcher;
 mod reorg;
@@ -925,29 +926,12 @@ impl Index {
     Ok((inscriptions, prev, next, lowest, highest))
   }
 
-  pub(crate) fn get_inscriptions_in_block(&self, block_height: u64) -> Result<Vec<InscriptionId>> {
-    // This is a naive approach and will require optimization, but we don't have an index by block
-    let block_inscriptions = self
-      .database
-      .begin_read()?
-      .open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?
-      .iter()?
-      .filter_map(|result| match result {
-        Ok((key, entry_value)) => {
-          let entry = InscriptionEntry::load(entry_value.value());
-          if entry.height == block_height {
-            Some((InscriptionId::load(*key.value()), entry.number))
-          } else {
-            None
-          }
-        }
-        Err(_) => None,
-      })
-      .sorted_by_key(|&(_id, number)| number)
-      .map(|(id, _)| id)
-      .collect();
-
-    Ok(block_inscriptions)
+  pub(crate) fn get_inscriptions_in_block(
+    &self,
+    block_index: &BlockIndex,
+    block_height: u64,
+  ) -> Result<Vec<InscriptionId>> {
+    block_index.get_inscriptions_in_block(self, block_height)
   }
 
   pub(crate) fn get_feed_inscriptions(&self, n: usize) -> Result<Vec<(i64, InscriptionId)>> {
