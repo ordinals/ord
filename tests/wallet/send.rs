@@ -211,16 +211,34 @@ fn inscriptions_cannot_be_sent_by_satpoint() {
 }
 
 #[test]
-fn send_btc() {
+fn send_btc_with_fee_rate() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
   rpc_server.mine_blocks(1);
 
   let output =
-    CommandBuilder::new("wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc")
+    CommandBuilder::new("wallet send --fee-rate 13.3 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc")
       .rpc_server(&rpc_server)
       .run_and_check_output::<Output>();
+
+  dbg!(&rpc_server.mempool());
+
+  let tx = &rpc_server.mempool()[0];
+  let mut fee = 0;
+  for input in &tx.input {
+    fee += rpc_server
+      .get_utxo_amount(&input.previous_output)
+      .unwrap()
+      .to_sat();
+  }
+  for output in &tx.output {
+    fee -= output.value;
+  }
+
+  let fee_rate = fee as f64 / tx.vsize() as f64;
+
+  assert_eq!(fee_rate, 13.3);
 
   assert_eq!(
     output.transaction,
@@ -239,7 +257,7 @@ fn send_btc() {
         .assume_checked(),
       locked: Vec::new(),
     }]
-  )
+  );
 }
 
 #[test]

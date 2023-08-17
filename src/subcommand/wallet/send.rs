@@ -53,10 +53,6 @@ impl Send {
         print_json(Output { transaction: txid })?;
         return Ok(());
       }
-      Outgoing::All | Outgoing::Max => {
-        self.send_all_or_max(&client, &address, inscriptions, unspent_outputs)?;
-        return Ok(());
-      }
     };
 
     let change = [
@@ -81,32 +77,6 @@ impl Send {
 
     println!("{txid}");
 
-    Ok(())
-  }
-
-  fn send_all_or_max(
-    &self,
-    client: &Client,
-    address: &Address,
-    inscriptions: BTreeMap<SatPoint, InscriptionId>,
-    unspent_outputs: BTreeMap<bitcoin::OutPoint, bitcoin::Amount>,
-  ) -> Result {
-    Self::lock_inscriptions(client, inscriptions, unspent_outputs)?;
-    let result: SendAllOutput = client.call(
-      "sendall",
-      &[
-        vec![serde_json::to_value(address.to_string())?].into(), //  1. recipients
-        serde_json::Value::Null, //                                         2. conf_target
-        serde_json::Value::Null, //                                         3. estimate_mode
-        self.fee_rate.fee(1).to_sat().into(), //                            4. fee_rate
-        serde_json::from_str(if self.outgoing == Outgoing::Max {
-          "{\"send_max\": true}" //                                         5. options
-        } else {
-          "{\"send_max\": false}"
-        })?,
-      ],
-    )?;
-    print_json(result)?;
     Ok(())
   }
 
