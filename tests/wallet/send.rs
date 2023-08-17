@@ -217,12 +217,11 @@ fn send_btc_with_fee_rate() {
 
   rpc_server.mine_blocks(1);
 
-  let output =
-    CommandBuilder::new("wallet send --fee-rate 13.3 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc")
-      .rpc_server(&rpc_server)
-      .run_and_check_output::<Output>();
-
-  dbg!(&rpc_server.mempool());
+  let output = CommandBuilder::new(
+    "wallet send --fee-rate 13.3 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc",
+  )
+  .rpc_server(&rpc_server)
+  .run_and_check_output::<Output>();
 
   let tx = &rpc_server.mempool()[0];
   let mut fee = 0;
@@ -238,7 +237,7 @@ fn send_btc_with_fee_rate() {
 
   let fee_rate = fee as f64 / tx.vsize() as f64;
 
-  assert_eq!(fee_rate, 13.3);
+  assert!(f64::abs(fee_rate - 13.3) < 0.1);
 
   assert_eq!(
     output.transaction,

@@ -49,7 +49,7 @@ impl Send {
         .ok_or_else(|| anyhow!("Inscription {id} not found"))?,
       Outgoing::Amount(amount) => {
         Self::lock_inscriptions(&client, inscriptions, unspent_outputs)?;
-        let txid = client.send_to_address(&address, amount, None, None, None, None, None, None)?;
+        let txid = Self::send_amount(&client, amount, address, self.fee_rate.n())?;
         print_json(Output { transaction: txid })?;
         return Ok(());
       }
@@ -101,5 +101,23 @@ impl Send {
     }
 
     Ok(())
+  }
+
+  fn send_amount(client: &Client, amount: Amount, address: Address, fee_rate: f64) -> Result<Txid> {
+    Ok(client.call(
+      "sendtoaddress",
+      &[
+        address.to_string().into(), //  1. address
+        amount.to_btc().into(),     //  2. amount
+        serde_json::Value::Null,    //  3. comment
+        serde_json::Value::Null,    //  4. comment_to
+        serde_json::Value::Null,    //  5. subtractfeefromamount
+        serde_json::Value::Null,    //  6. replaceable
+        serde_json::Value::Null,    //  7. conf_target
+        serde_json::Value::Null,    //  8. estimate_mode
+        serde_json::Value::Null,    //  9. avoid_reuse
+        fee_rate.into(),            // 10. fee_rate
+      ],
+    )?)
   }
 }

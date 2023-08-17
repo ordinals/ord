@@ -280,7 +280,7 @@ impl Api for Server {
     confirmation_target: Option<u32>,
     estimate_mode: Option<EstimateMode>,
     avoid_reuse: Option<bool>,
-    _fee_rate: Option<f64>,
+    fee_rate: Option<f64>,
     verbose: Option<bool>,
   ) -> Result<Txid, jsonrpc_core::Error> {
     assert_eq!(comment, None);
@@ -294,6 +294,41 @@ impl Api for Server {
 
     let mut state = self.state.lock().unwrap();
     let locked = state.locked.iter().cloned().collect();
+
+    let value = Amount::from_btc(amount).expect("error converting amount to sat");
+
+    let utxo = state.utxos.first_entry().expect("failed to get a utxo");
+    let outpoint = utxo.key();
+    let utxo_amount = utxo.get();
+
+    let mut transaction = Transaction {
+      version: 1,
+      lock_time: LockTime::ZERO,
+      input: vec![TxIn {
+        previous_output: *outpoint,
+        script_sig: ScriptBuf::new(),
+        sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+        witness: Witness::new(),
+      }],
+      output: vec![
+        TxOut {
+          value: value.to_sat(),
+          script_pubkey: address.payload.script_pubkey(),
+        },
+        TxOut {
+          value: (*utxo_amount - value).to_sat(),
+          script_pubkey: address.payload.script_pubkey(),
+        },
+      ],
+    };
+
+    #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_sign_loss)]
+    let fee = (fee_rate.unwrap_or(1.0) * transaction.vsize() as f64).round() as u64;
+
+    transaction.output[1].value -= fee;
+
+    state.mempool.push(transaction);
 
     state.sent.push(Sent {
       address: address.assume_checked(),
