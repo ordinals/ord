@@ -2,7 +2,7 @@ use {super::*, clap::ValueEnum};
 
 #[derive(Default, ValueEnum, Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
-pub(crate) enum Chain {
+pub enum Chain {
   #[default]
   #[clap(alias("main"))]
   Mainnet,

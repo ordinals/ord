@@ -40,7 +40,7 @@ This address is 2 of 4 multisig wallet with keys held by
 [rodarmor](https://twitter.com/rodarmor), and
 [ordinally](https://twitter.com/veryordinally).
 
-Bitcoin received will go towards funding maintainance and development of `ord`,
+Bitcoin received will go towards funding maintenance and development of `ord`,
 as well as hosting costs for [ordinals.com](https://ordinals.com).
 
 Thank you for donating!
@@ -141,7 +141,7 @@ cargo test --all
 cargo test --all -- --ignored
 ```
 
-Have look at the [justfile](justfile) to see some more helpful recipes
+Have a look at the [justfile](justfile) to see some more helpful recipes
 (commands). Here are a couple more good ones:
 
 ```
@@ -174,7 +174,7 @@ See `ord --help` for details.
 `bitcoind` RPC Authentication
 -----------------------------
 
-`ord` makes RPC calls to `bitcoind`, which usually require a username and
+`ord` makes RPC calls to `bitcoind`, which usually requires a username and
 password.
 
 By default, `ord` looks a username and password in the cookie file created by

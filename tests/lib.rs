@@ -62,6 +62,24 @@ fn inscribe(rpc_server: &test_bitcoincore_rpc::Handle) -> Inscribe {
   output
 }
 
+fn envelope(payload: &[&[u8]]) -> bitcoin::Witness {
+  let mut builder = bitcoin::script::Builder::new()
+    .push_opcode(bitcoin::opcodes::OP_FALSE)
+    .push_opcode(bitcoin::opcodes::all::OP_IF);
+
+  for data in payload {
+    let mut buf = bitcoin::script::PushBytesBuf::new();
+    buf.extend_from_slice(data).unwrap();
+    builder = builder.push_slice(buf);
+  }
+
+  let script = builder
+    .push_opcode(bitcoin::opcodes::all::OP_ENDIF)
+    .into_script();
+
+  bitcoin::Witness::from_slice(&[script.into_bytes(), Vec::new()])
+}
+
 #[derive(Deserialize)]
 struct Create {
   mnemonic: Mnemonic,
@@ -74,18 +92,20 @@ fn create_wallet(rpc_server: &test_bitcoincore_rpc::Handle) {
 }
 
 mod command_builder;
+mod expected;
+mod test_server;
+
 mod core;
 mod epochs;
-mod expected;
 mod find;
 mod index;
 mod info;
+mod json_api;
 mod list;
 mod parse;
 mod server;
 mod subsidy;
 mod supply;
-mod test_server;
 mod traits;
 mod version;
 mod wallet;
