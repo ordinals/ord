@@ -338,7 +338,6 @@ fn get_inscriptions_in_block() {
   let inscriptions_json: InscriptionsJson =
     serde_json::from_str(&response.text().unwrap()).unwrap();
 
-  assert_eq!(inscriptions_json.inscriptions.len(), 3);
   pretty_assert_eq!(
     inscriptions_json.inscriptions,
     vec![

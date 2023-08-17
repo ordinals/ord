@@ -123,19 +123,24 @@ impl BlockIndex {
     index: &Index,
     block_height: u64,
     from_number: i64,
+    cursed: bool,
   ) -> Result<Vec<InscriptionId>> {
     let mut block_inscriptions = Vec::new();
 
     let rtx = index.database.begin_read()?;
     let inscription_id_by_number = rtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
 
-    let highest = match inscription_id_by_number.iter()?.next_back() {
-      Some(Ok((number, _id))) => number.value(),
-      Some(Err(err)) => return Err(err.into()),
-      None => i64::MIN,
+    let highest = if cursed {
+      -1
+    } else {
+      match inscription_id_by_number.iter()?.next_back() {
+        Some(Ok((number, _id))) => number.value(),
+        Some(Err(err)) => return Err(err.into()),
+        None => i64::MIN,
+      }
     };
 
-    for number in from_number..highest {
+    for number in from_number..=highest {
       match inscription_id_by_number.get(number)? {
         Some(inscription_id) => {
           let inscription_id = InscriptionId::load(*inscription_id.value());
@@ -167,11 +172,11 @@ impl BlockIndex {
       [usize::try_from(block_height.saturating_sub(self.first_inscription_height))?];
 
     let mut inscriptions =
-      self.get_inscriptions_in_block_from(index, block_height, lowest_cursed)?;
+      self.get_inscriptions_in_block_from(index, block_height, lowest_cursed, true)?;
     inscriptions.extend(self.get_inscriptions_in_block_from(
       index,
       block_height,
-      lowest_blessed,
+      lowest_blessed, false
     )?);
 
     log::debug!(
