@@ -238,7 +238,7 @@ impl Inscribe {
       change,
       commit_fee_rate,
       Target::Value(reveal_fee + postage),
-    )?
+    )
     .build_transaction()?;
 
     let (vout, output) = unsigned_commit_tx

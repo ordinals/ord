@@ -130,30 +130,8 @@ impl TransactionBuilder {
     change: [Address; 2],
     fee_rate: FeeRate,
     target: Target,
-  ) -> Result<Self> {
-    if change.contains(&recipient) {
-      return Err(Error::DuplicateAddress(recipient));
-    }
-
-    if change[0] == change[1] {
-      return Err(Error::DuplicateAddress(change[0].clone()));
-    }
-
-    match target {
-      Target::Value(output_value) | Target::ExactPostage(output_value) => {
-        let dust_value = recipient.script_pubkey().dust_value();
-
-        if output_value < dust_value {
-          return Err(Error::Dust {
-            output_value,
-            dust_value,
-          });
-        }
-      }
-      _ => (),
-    }
-
-    Ok(Self {
+  ) -> Self {
+    Self {
       utxos: amounts.keys().cloned().collect(),
       amounts,
       change_addresses: change.iter().cloned().collect(),
@@ -165,10 +143,34 @@ impl TransactionBuilder {
       recipient,
       unused_change_addresses: change.to_vec(),
       target,
-    })
+    }
   }
 
   pub(crate) fn build_transaction(self) -> Result<Transaction> {
+    if self.change_addresses.len() < 2 {
+      return Err(Error::DuplicateAddress(
+        self.change_addresses.first().unwrap().clone(),
+      ));
+    }
+
+    if self.change_addresses.contains(&self.recipient) {
+      return Err(Error::DuplicateAddress(self.recipient));
+    }
+
+    match self.target {
+      Target::Value(output_value) | Target::ExactPostage(output_value) => {
+        let dust_value = self.recipient.script_pubkey().dust_value();
+
+        if output_value < dust_value {
+          return Err(Error::Dust {
+            output_value,
+            dust_value,
+          });
+        }
+      }
+      _ => (),
+    }
+
     self
       .select_outgoing()?
       .align_outgoing()
@@ -719,7 +721,6 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-    .unwrap()
     .select_outgoing()
     .unwrap();
 
@@ -791,7 +792,6 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-    .unwrap()
     .build_transaction()
     .unwrap()
     .is_explicitly_rbf())
@@ -811,7 +811,6 @@ mod tests {
         FeeRate::try_from(1.0).unwrap(),
         Target::Postage,
       )
-      .unwrap()
       .build_transaction(),
       Ok(Transaction {
         version: 1,
@@ -836,7 +835,6 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-    .unwrap()
     .select_outgoing()
     .unwrap()
     .align_outgoing()
@@ -861,7 +859,6 @@ mod tests {
         FeeRate::try_from(1.0).unwrap(),
         Target::Postage,
       )
-      .unwrap()
       .build_transaction(),
       Ok(Transaction {
         version: 1,
@@ -886,7 +883,6 @@ mod tests {
         FeeRate::try_from(1.0).unwrap(),
         Target::Postage,
       )
-      .unwrap()
       .build_transaction(),
       Err(Error::NotEnoughCardinalUtxos),
     )
@@ -909,7 +905,6 @@ mod tests {
         FeeRate::try_from(1.0).unwrap(),
         Target::Postage
       )
-      .unwrap()
       .build_transaction(),
       Err(Error::NotEnoughCardinalUtxos),
     )
@@ -932,7 +927,6 @@ mod tests {
         FeeRate::try_from(1.0).unwrap(),
         Target::Postage,
       )
-      .unwrap()
       .build_transaction(),
       Ok(Transaction {
         version: 1,
@@ -961,7 +955,6 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-    .unwrap()
     .build()
     .unwrap();
   }
@@ -980,7 +973,6 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-    .unwrap()
     .build()
     .unwrap();
   }
@@ -999,7 +991,6 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-    .unwrap()
     .build()
     .unwrap();
   }
@@ -1018,7 +1009,6 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-    .unwrap()
     .select_outgoing()
     .unwrap();
 
@@ -1044,7 +1034,6 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-    .unwrap()
     .select_outgoing()
     .unwrap();
 
@@ -1067,7 +1056,6 @@ mod tests {
         FeeRate::try_from(1.0).unwrap(),
         Target::Postage,
       )
-      .unwrap()
       .build_transaction(),
       Ok(Transaction {
         version: 1,
@@ -1095,7 +1083,6 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-    .unwrap()
     .select_outgoing()
     .unwrap()
     .build()
@@ -1116,7 +1103,6 @@ mod tests {
         FeeRate::try_from(1.0).unwrap(),
         Target::Postage,
       )
-      .unwrap()
       .build_transaction(),
       Ok(Transaction {
         version: 1,
@@ -1144,7 +1130,6 @@ mod tests {
         FeeRate::try_from(1.0).unwrap(),
         Target::Postage,
       )
-      .unwrap()
       .build_transaction(),
       Ok(Transaction {
         version: 1,
@@ -1169,7 +1154,6 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-    .unwrap()
     .select_outgoing()
     .unwrap()
     .align_outgoing()
@@ -1197,7 +1181,6 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-    .unwrap()
     .select_outgoing()
     .unwrap()
     .align_outgoing()
@@ -1223,7 +1206,6 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-    .unwrap()
     .select_outgoing()
     .unwrap()
     .strip_value()
@@ -1246,7 +1228,6 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Postage,
     )
-    .unwrap()
     .select_outgoing()
     .unwrap()
     .strip_value()
@@ -1329,7 +1310,6 @@ mod tests {
         FeeRate::try_from(1.0).unwrap(),
         Target::Postage,
       )
-      .unwrap()
       .build_transaction(),
       Err(Error::NotEnoughCardinalUtxos)
     )
@@ -1349,7 +1329,6 @@ mod tests {
         FeeRate::try_from(1.0).unwrap(),
         Target::Postage,
       )
-      .unwrap()
       .build_transaction(),
       Err(Error::UtxoContainsAdditionalInscription {
         outgoing_satpoint: satpoint(1, 0),
@@ -1374,7 +1353,6 @@ mod tests {
       fee_rate,
       Target::Postage,
     )
-    .unwrap()
     .build_transaction()
     .unwrap();
 
@@ -1406,7 +1384,6 @@ mod tests {
         FeeRate::try_from(1.0).unwrap(),
         Target::Value(Amount::from_sat(1000))
       )
-      .unwrap()
       .build_transaction(),
       Ok(Transaction {
         version: 1,
@@ -1434,7 +1411,6 @@ mod tests {
         FeeRate::try_from(1.0).unwrap(),
         Target::Value(Amount::from_sat(1500))
       )
-      .unwrap()
       .build_transaction(),
       Ok(Transaction {
         version: 1,
@@ -1458,7 +1434,8 @@ mod tests {
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
         Target::Value(Amount::from_sat(1))
-      ),
+      )
+      .build_transaction(),
       Err(Error::Dust {
         output_value: Amount::from_sat(1),
         dust_value: Amount::from_sat(294)
@@ -1483,7 +1460,6 @@ mod tests {
         FeeRate::try_from(1.0).unwrap(),
         Target::Value(Amount::from_sat(1000))
       )
-      .unwrap()
       .build_transaction(),
       Err(Error::NotEnoughCardinalUtxos),
     )
@@ -1506,7 +1482,6 @@ mod tests {
         FeeRate::try_from(4.0).unwrap(),
         Target::Value(Amount::from_sat(1000))
       )
-      .unwrap()
       .build_transaction(),
       Err(Error::NotEnoughCardinalUtxos),
     )
@@ -1548,7 +1523,6 @@ mod tests {
         FeeRate::try_from(1.0).unwrap(),
         Target::Value(Amount::from_sat(707))
       )
-      .unwrap()
       .build_transaction(),
       Ok(Transaction {
         version: 1,
@@ -1573,7 +1547,6 @@ mod tests {
         FeeRate::try_from(1.0).unwrap(),
         Target::Postage,
       )
-      .unwrap()
       .build_transaction(),
       Ok(Transaction {
         version: 1,
@@ -1598,7 +1571,6 @@ mod tests {
         FeeRate::try_from(5.0).unwrap(),
         Target::Value(Amount::from_sat(1000))
       )
-      .unwrap()
       .build_transaction(),
       Ok(Transaction {
         version: 1,
@@ -1623,7 +1595,6 @@ mod tests {
         FeeRate::try_from(6.0).unwrap(),
         Target::Value(Amount::from_sat(1000))
       )
-      .unwrap()
       .build_transaction(),
       Err(Error::NotEnoughCardinalUtxos)
     );
@@ -1642,7 +1613,8 @@ mod tests {
         [recipient(), change(1)],
         FeeRate::try_from(0.0).unwrap(),
         Target::Value(Amount::from_sat(1000))
-      ),
+      )
+      .build_transaction(),
       Err(Error::DuplicateAddress(recipient()))
     );
   }
@@ -1660,7 +1632,8 @@ mod tests {
         [change(0), change(0)],
         FeeRate::try_from(0.0).unwrap(),
         Target::Value(Amount::from_sat(1000))
-      ),
+      )
+      .build_transaction(),
       Err(Error::DuplicateAddress(change(0)))
     );
   }
@@ -1679,7 +1652,6 @@ mod tests {
         FeeRate::try_from(2.0).unwrap(),
         Target::Value(Amount::from_sat(1500))
       )
-      .unwrap()
       .build_transaction(),
       Ok(Transaction {
         version: 1,
@@ -1704,7 +1676,6 @@ mod tests {
         FeeRate::try_from(250.0).unwrap(),
         Target::Postage,
       )
-      .unwrap()
       .build_transaction(),
       Ok(Transaction {
         version: 1,
@@ -1735,7 +1706,6 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Value(Amount::from_sat(10_000)),
     )
-    .unwrap()
     .select_outgoing()
     .unwrap()
     .add_value()
@@ -1780,7 +1750,6 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       Target::Value(Amount::from_sat(10_000)),
     )
-    .unwrap()
     .select_outgoing()
     .unwrap()
     .align_outgoing()
@@ -1831,8 +1800,7 @@ mod tests {
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
       Target::Value(Amount::from_sat(10_000)),
-    )
-    .unwrap();
+    );
 
     assert_eq!(
       tx_builder
@@ -1887,7 +1855,6 @@ mod tests {
       fee_rate,
       Target::ExactPostage(Amount::from_sat(66_000)),
     )
-    .unwrap()
     .build_transaction()
     .unwrap();
 

@@ -86,7 +86,7 @@ impl Send {
       change,
       self.fee_rate,
       postage,
-    )?
+    )
     .build_transaction()?;
 
     let signed_tx = client
