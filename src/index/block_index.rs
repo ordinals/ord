@@ -12,7 +12,7 @@ pub struct BlockIndex {
 impl BlockIndex {
   pub(crate) fn new(index: &Index) -> Result<BlockIndex> {
     Ok(BlockIndex {
-      first_inscription_height: index.options.chain().first_inscription_height(),
+      first_inscription_height: index.options.first_inscription_height(),
       lowest_blessed_by_block: Vec::new(),
       lowest_cursed_by_block: Vec::new(),
       highest_indexed_blessed: i64::MIN,
@@ -78,14 +78,12 @@ impl BlockIndex {
           if prev_block_height != current_height {
             prev_block_height = current_height;
             if number.value() < 0 {
-              self.lowest_cursed_by_block[usize::try_from(
-                prev_block_height - usize::try_from(self.first_inscription_height)?,
-              )?] = number.value();
+              self.lowest_cursed_by_block[prev_block_height
+                .saturating_sub(usize::try_from(self.first_inscription_height)?)] = number.value();
               self.lowest_indexed_cursed = cmp::min(self.lowest_indexed_cursed, number.value());
             } else {
-              self.lowest_blessed_by_block[usize::try_from(
-                prev_block_height - usize::try_from(self.first_inscription_height)?,
-              )?] = number.value();
+              self.lowest_blessed_by_block[prev_block_height
+                .saturating_sub(usize::try_from(self.first_inscription_height)?)] = number.value();
               self.highest_indexed_blessed = cmp::max(self.highest_indexed_blessed, number.value());
             }
           }
@@ -143,13 +141,14 @@ impl BlockIndex {
     index: &Index,
     block_height: u64,
   ) -> Result<Vec<InscriptionId>> {
-    if block_height >= index.block_count()? {
+    if block_height >= index.block_count()? || block_height < self.first_inscription_height {
       return Ok(Vec::new());
     }
-    let lowest_cursed =
-      self.lowest_cursed_by_block[usize::try_from(block_height - self.first_inscription_height)?];
-    let lowest_blessed =
-      self.lowest_blessed_by_block[usize::try_from(block_height - self.first_inscription_height)?];
+    let lowest_cursed = self.lowest_cursed_by_block
+      [usize::try_from(block_height.saturating_sub(self.first_inscription_height))?];
+    let lowest_blessed = self.lowest_blessed_by_block
+      [usize::try_from(block_height.saturating_sub(self.first_inscription_height))?];
+
     log::info!(
       "Getting inscriptions in block {} ({} - {})",
       block_height,
