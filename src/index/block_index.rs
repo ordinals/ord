@@ -176,7 +176,8 @@ impl BlockIndex {
     inscriptions.extend(self.get_inscriptions_in_block_from(
       index,
       block_height,
-      lowest_blessed, false
+      lowest_blessed,
+      false,
     )?);
 
     log::debug!(
