@@ -5,6 +5,7 @@ use {
     error::{OptionExt, ServerError, ServerResult},
   },
   super::*,
+  crate::index::block_index::BlockIndex,
   crate::page_config::PageConfig,
   crate::templates::{
     BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson, InscriptionsHtml,
@@ -29,7 +30,7 @@ use {
     caches::DirCache,
     AcmeConfig,
   },
-  std::{cmp::Ordering, str, sync::Arc},
+  std::{cmp::Ordering, str, sync::Arc, sync::RwLock},
   tokio_stream::StreamExt,
   tower_http::{
     compression::CompressionLayer,
@@ -44,6 +45,10 @@ mod error;
 #[derive(Clone)]
 pub struct ServerConfig {
   pub is_json_api_enabled: bool,
+}
+
+struct BlockIndexState {
+  block_index: RwLock<BlockIndex>,
 }
 
 enum BlockQuery {
@@ -134,17 +139,37 @@ pub(crate) struct Server {
 impl Server {
   pub(crate) fn run(self, options: Options, index: Arc<Index>, handle: Handle) -> Result {
     Runtime::new()?.block_on(async {
+      let block_index_state = BlockIndexState {
+        block_index: RwLock::new(BlockIndex::new(&index)?),
+      };
+
+      let block_index_state = Arc::new(block_index_state);
+
       let index_clone = index.clone();
+      let block_index_clone = block_index_state.clone();
+
       let index_thread = thread::spawn(move || loop {
         if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
           break;
         }
         if let Err(error) = index_clone.update() {
-          log::warn!("{error}");
+          log::warn!("Updating index: {error}");
+        }
+        if let Err(error) = block_index_clone
+          .block_index
+          .write()
+          .unwrap()
+          .update(&index_clone)
+        {
+          log::warn!("Updating block index: {error}");
         }
         thread::sleep(Duration::from_millis(5000));
       });
       INDEXER.lock().unwrap().replace(index_thread);
+
+      let server_config = Arc::new(ServerConfig {
+        is_json_api_enabled: index.is_json_api_enabled(),
+      });
 
       let config = options.load_config()?;
       let acme_domains = self.acme_domains()?;
@@ -152,10 +177,6 @@ impl Server {
       let page_config = Arc::new(PageConfig {
         chain: options.chain(),
         domain: acme_domains.first().cloned(),
-      });
-
-      let server_config = Arc::new(ServerConfig {
-        is_json_api_enabled: index.is_json_api_enabled(),
       });
 
       let router = Router::new()
@@ -193,6 +214,7 @@ impl Server {
         .layer(Extension(index))
         .layer(Extension(page_config))
         .layer(Extension(Arc::new(config)))
+        .layer(Extension(block_index_state))
         .layer(SetResponseHeaderLayer::if_not_present(
           header::CONTENT_SECURITY_POLICY,
           HeaderValue::from_static("default-src 'self'"),
@@ -1007,10 +1029,12 @@ impl Server {
   async fn inscriptions_in_block(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
+    Extension(block_index_state): Extension<Arc<BlockIndexState>>,
     Path(block_height): Path<u64>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
-    let inscriptions = index.get_inscriptions_in_block(block_height)?;
+    let inscriptions = index
+      .get_inscriptions_in_block(&block_index_state.block_index.read().unwrap(), block_height)?;
     Ok(if accept_json.0 {
       Json(InscriptionsJson::new(inscriptions, None, None, None, None)).into_response()
     } else {

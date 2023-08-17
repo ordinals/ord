@@ -24,7 +24,7 @@ pub mod receive;
 mod restore;
 pub mod sats;
 pub mod send;
-pub(crate) mod transaction_builder;
+pub mod transaction_builder;
 pub mod transactions;
 
 #[derive(Debug, Parser)]
