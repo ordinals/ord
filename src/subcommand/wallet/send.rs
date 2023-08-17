@@ -18,12 +18,6 @@ pub struct Output {
   pub transaction: Txid,
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct SendAllOutput {
-  pub txid: Txid,
-  pub complete: bool,
-}
-
 impl Send {
   pub(crate) fn run(self, options: Options) -> Result {
     let address = self
