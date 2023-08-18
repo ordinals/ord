@@ -33,11 +33,12 @@ use {
   anyhow::{anyhow, bail, Context, Error},
   bip39::Mnemonic,
   bitcoin::{
+    address::{Address, NetworkUnchecked},
     blockdata::constants::COIN_VALUE,
     consensus::{self, Decodable, Encodable},
     hash_types::BlockHash,
     hashes::Hash,
-    Address, Amount, Block, Network, OutPoint, Script, Sequence, Transaction, TxIn, TxOut, Txid,
+    Amount, Block, Network, OutPoint, Script, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid,
   },
   bitcoincore_rpc::{Client, RpcApi},
   chain::Chain,
@@ -68,6 +69,7 @@ use {
     thread,
     time::{Duration, Instant, SystemTime},
   },
+  sysinfo::{System, SystemExt},
   tempfile::TempDir,
   tokio::{runtime::Runtime, task},
 };
@@ -106,19 +108,19 @@ mod fee_rate;
 mod height;
 mod index;
 mod inscription;
-mod inscription_id;
+pub mod inscription_id;
 mod media;
 mod object;
 mod options;
 mod outgoing;
 mod page_config;
-mod rarity;
+pub mod rarity;
 mod representation;
-mod sat;
+pub mod sat;
 mod sat_point;
 pub mod subcommand;
 mod tally;
-mod templates;
+pub mod templates;
 mod wallet;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
@@ -130,6 +132,7 @@ const CYCLE_EPOCHS: u64 = 6;
 
 static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);
 static LISTENERS: Mutex<Vec<axum_server::Handle>> = Mutex::new(Vec::new());
+static INDEXER: Mutex<Option<thread::JoinHandle<()>>> = Mutex::new(Option::None);
 
 fn integration_test() -> bool {
   env::var_os("ORD_INTEGRATION_TEST")
@@ -148,21 +151,32 @@ fn unbound_outpoint() -> OutPoint {
   }
 }
 
+fn gracefully_shutdown_indexer() {
+  if let Some(indexer) = INDEXER.lock().unwrap().take() {
+    // We explicitly set this to true to notify the thread to not take on new work
+    SHUTTING_DOWN.store(true, atomic::Ordering::Relaxed);
+    log::info!("Waiting for index thread to finish...");
+    if indexer.join().is_err() {
+      log::warn!("Index thread panicked; join failed");
+    }
+  }
+}
+
 pub fn main() {
   env_logger::init();
 
   ctrlc::set_handler(move || {
+    if SHUTTING_DOWN.fetch_or(true, atomic::Ordering::Relaxed) {
+      process::exit(1);
+    }
+
+    println!("Shutting down gracefully. Press <CTRL-C> again to shutdown immediately.");
+
     LISTENERS
       .lock()
       .unwrap()
       .iter()
       .for_each(|handle| handle.graceful_shutdown(Some(Duration::from_millis(100))));
-
-    println!("Shutting down gracefully. Press <CTRL-C> again to shutdown immediately.");
-
-    if SHUTTING_DOWN.fetch_or(true, atomic::Ordering::Relaxed) {
-      process::exit(1);
-    }
   })
   .expect("Error setting <CTRL-C> handler");
 
@@ -178,6 +192,11 @@ pub fn main() {
     {
       eprintln!("{}", err.backtrace());
     }
+
+    gracefully_shutdown_indexer();
+
     process::exit(1);
   }
+
+  gracefully_shutdown_indexer();
 }

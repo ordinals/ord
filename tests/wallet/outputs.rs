@@ -11,7 +11,7 @@ fn outputs() {
 
   let output = CommandBuilder::new("wallet outputs")
     .rpc_server(&rpc_server)
-    .output::<Vec<Output>>();
+    .run_and_check_output::<Vec<Output>>();
 
   assert_eq!(output[0].output, outpoint);
   assert_eq!(output[0].amount, amount);
@@ -30,7 +30,7 @@ fn outputs_includes_locked_outputs() {
 
   let output = CommandBuilder::new("wallet outputs")
     .rpc_server(&rpc_server)
-    .output::<Vec<Output>>();
+    .run_and_check_output::<Vec<Output>>();
 
   assert_eq!(output[0].output, outpoint);
   assert_eq!(output[0].amount, amount);

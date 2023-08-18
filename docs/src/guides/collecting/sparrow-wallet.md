@@ -48,7 +48,7 @@ You now have a wallet which is compatible with `ord`, and can be imported into `
 
 Each time you want to receive you should use a brand-new address, and not re-use existing addresses.
 
-Note that bitcoin is different to some other blockchain wallets, in that this wallet can generate an unlimited number of new addreses. You can generate a new address by clicking on the `Get Next Address` button. You can see all of your addresses in the `Addresses` tab of the app.
+Note that bitcoin is different to some other blockchain wallets, in that this wallet can generate an unlimited number of new addresses. You can generate a new address by clicking on the `Get Next Address` button. You can see all of your addresses in the `Addresses` tab of the app.
 
 You can add a label to each address, so you can keep track of what it was used for.
 

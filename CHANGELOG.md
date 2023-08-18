@@ -1,6 +1,133 @@
 Changelog
 =========
 
+[0.8.2](https://github.com/ordinals/ord/releases/tag/0.8.2) - 2023-08-17
+---------------------------------------------------------------------
+
+### Added
+
+- Allow setting custom postage (#2331)
+- Make retrieving inscriptions in block fast (#2333)
+- JSON API for `/inscription`, `/inscriptions` and `/output` (#2323)
+- Ignore invalid content type header values (#2326)
+- Add reorg resistance  (#2320)
+- Add JSON API endpoint `/sat/<SAT>` (#2250)
+- Add `amount` field to `wallet inscriptions` output. (#1928)
+
+
+### Changed
+
+- Only fetch inscriptions that are owned by the ord wallet (#2310)
+- Inform user when redb starts in recovery mode (#2304)
+- Select multiple utxos (#2303)
+
+
+### Fixed
+
+- Use `--fee-rate` when sending an amount (#1922)
+- Fix typos in documentation (#2328)
+- Fix dust limit for padding in `TransactionBuilder` (#1929)
+- Fix remote RPC wallet commands (#1766)
+
+
+[0.8.1](https://github.com/ordinals/ord/releases/tag/0.8.1) - 2023-07-23
+---------------------------------------------------------------------
+
+### Added
+
+- Add retry to fetcher (#2297)
+- Add satpoint and address to index export (#2284)
+- Don't create default data directory if --index overrides it (#1991)
+- Implement clean index shutdown to prevent index corruption (with clippy updates for Rust 1.71) (#2275)
+- Set lower max age for not found (#2240)
+
+### Changed
+
+- Fix justfile recipe (#2299)
+- Clean up deploy scripts (#2298)
+- Update redb (#2294)
+- Update bitcoin dependencies (#2281)
+- Fix ordering for reinscriptions and show all reinscriptions for sat (#2279)
+- Modify `ord list` output to include the end of each range (#1998)
+
+### Documentation
+
+- Fix docs inconsistency (#2276)
+- Add contributing section (#2261)
+
+
+[0.8.0](https://github.com/ordinals/ord/releases/tag/0.8.0) - 2023-07-01
+---------------------------------------------------------------------
+
+### Added
+
+- Dev server deploy script (#2228)
+- Set DB cache size (#2224)
+- Update redb from 0.13.0 to 1.0.2 (#2141)
+- Fix typo in BIP (#2220)
+
+
+[0.7.0](https://github.com/ordinals/ord/releases/tag/0.7.0) - 2023-06-23
+---------------------------------------------------------------------
+
+### Added
+- Tweak publish recipe (#2212)
+- Handle cursed inscriptions edge cases (#2209)
+- Add export command for <INSCRIPTION_NUMBER_TO_INSCRIPTION_ID> table (#2208)
+- Add Markdown media type (#2206)
+- Add blob urls to Content Security Policy headers (#2203)
+- Check inscribe destination address network (#2189)
+
+
+[0.6.2](https://github.com/ordinals/ord/releases/tag/0.6.2) - 2023-06-15
+---------------------------------------------------------------------
+
+### Added
+- Recursive endpoints: `/blockhash, /blockheight, /blocktime` (#2175)
+- Document recursion (#2174)
+- Add CSS and JavaScript media types (#2173)
+- Recursive Inscriptions (#2167)
+
+### Misc
+- Update ord dependency in lockfile (#2168)
+
+
+[0.6.1](https://github.com/ordinals/ord/releases/tag/0.6.1) - 2023-06-06
+---------------------------------------------------------------------
+
+### Changed
+- Fix sat index test and unbound assignment (#2154)
+- Updated install.sh for new repo name (#2155)
+
+
+[0.6.0](https://github.com/ordinals/ord/releases/tag/0.6.0) - 2023-06-04
+---------------------------------------------------------------------
+
+### Added
+- Cursed Inscriptions [1/n] (#2145)
+- Authenticate to bitcoin using a username and password (#1527)
+- Add example config file (#2044)
+
+### Changed
+- Unbind inscriptions from zero-sat transactions (#2107)
+
+### Documentation
+- Tweak doc: Inscriptions made on first sat of input (#2148)
+- `OP_PUSH` instead of `OP_1` in inscription docs (#2135)
+- Document bitcoind RPC authentication options (#2056)
+- Fix typo in Sparrow Wallet docs (#2077)
+- Update donate.md for inscriptions donations. (#2125)
+- Promote raphjaph to lead maintainer 🫡 (#2119)
+- Improve donation page (#2034)
+
+### Misc
+- Switch CI back to stable clippy (#2108)
+- Update dependencies (#2068)
+- Use struct variants in Origin enum (#2067)
+- Fix test name typos(#2043)
+- Switch to nightly clippy (#2037)
+
+
 [0.5.2](https://github.com/ordinals/ord/releases/tag/0.5.2) - 2023-04-17
 ---------------------------------------------------------------------
 

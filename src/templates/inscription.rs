@@ -8,12 +8,65 @@ pub(crate) struct InscriptionHtml {
   pub(crate) inscription: Inscription,
   pub(crate) inscription_id: InscriptionId,
   pub(crate) next: Option<InscriptionId>,
-  pub(crate) number: u64,
+  pub(crate) number: i64,
   pub(crate) output: Option<TxOut>,
   pub(crate) previous: Option<InscriptionId>,
   pub(crate) sat: Option<Sat>,
   pub(crate) satpoint: SatPoint,
   pub(crate) timestamp: DateTime<Utc>,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct InscriptionJson {
+  pub inscription_id: InscriptionId,
+  pub number: i64,
+  pub genesis_height: u64,
+  pub genesis_fee: u64,
+  pub output_value: Option<u64>,
+  pub address: Option<String>,
+  pub sat: Option<Sat>,
+  pub satpoint: SatPoint,
+  pub content_type: Option<String>,
+  pub content_length: Option<usize>,
+  pub timestamp: i64,
+  pub previous: Option<InscriptionId>,
+  pub next: Option<InscriptionId>,
+}
+
+impl InscriptionJson {
+  pub fn new(
+    chain: Chain,
+    genesis_fee: u64,
+    genesis_height: u64,
+    inscription: Inscription,
+    inscription_id: InscriptionId,
+    next: Option<InscriptionId>,
+    number: i64,
+    output: Option<TxOut>,
+    previous: Option<InscriptionId>,
+    sat: Option<Sat>,
+    satpoint: SatPoint,
+    timestamp: DateTime<Utc>,
+  ) -> Self {
+    Self {
+      inscription_id,
+      number,
+      genesis_height,
+      genesis_fee,
+      output_value: output.as_ref().map(|o| o.value),
+      address: output
+        .as_ref()
+        .and_then(|o| chain.address_from_script(&o.script_pubkey).ok())
+        .map(|address| address.to_string()),
+      sat,
+      satpoint,
+      content_type: inscription.content_type().map(|s| s.to_string()),
+      content_length: inscription.content_length(),
+      timestamp: timestamp.timestamp(),
+      previous,
+      next,
+    }
+  }
 }
 
 impl PageContent for InscriptionHtml {
@@ -179,6 +232,42 @@ mod tests {
         <a class=next href=/inscription/3{64}i3>❯</a>
         </div>
         .*
+      "
+      .unindent()
+    );
+  }
+
+  #[test]
+  fn with_cursed_and_unbound() {
+    assert_regex_match!(
+      InscriptionHtml {
+        chain: Chain::Mainnet,
+        genesis_fee: 1,
+        genesis_height: 0,
+        inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
+        inscription_id: inscription_id(2),
+        next: None,
+        number: -1,
+        output: Some(tx_out(1, address())),
+        previous: None,
+        sat: None,
+        satpoint: SatPoint {
+          outpoint: unbound_outpoint(),
+          offset: 0
+        },
+        timestamp: timestamp(0),
+      },
+      "
+        <h1>Inscription -1 \\(unstable\\)</h1>
+        .*
+        <dl>
+          .*
+          <dt>location</dt>
+          <dd class=monospace>0{64}:0:0 \\(unbound\\)</dd>
+          <dt>output</dt>
+          <dd><a class=monospace href=/output/0{64}:0>0{64}:0 \\(unbound\\)</a></dd>
+          .*
+        </dl>
       "
       .unindent()
     );
