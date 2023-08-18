@@ -28,3 +28,11 @@ next
   <li><a href=/tx/{{txid}}>{{txid}}</a></li>
 %% }
 </ul>
+%% if self.inscriptions.len() > 0 {
+  <h2>{{"Inscription".tally(self.inscriptions.len())}}</h2>
+<ul class=monospace>
+%% for inscription in &self.inscriptions {
+  <li><a href=/inscription/{{inscription}}>{{inscription}}</a></li>
+%% }
+</ul>
+%% }
