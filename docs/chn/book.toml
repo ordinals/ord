@@ -1,0 +1,16 @@
+[book]
+title = "序数理论手册"
+language = "zh"
+src = "src"
+
+[build]
+build-dir = "build"
+create-missing = false
+
+[output.html]
+cname = "docs.ordinals.com/chn"
+default-theme = "coal"
+git-repository-url = "https://github.com/ordinals/ord"
+preferred-dark-theme = "coal"
+
+[output.linkcheck]
