@@ -1,93 +1,94 @@
-Collecting Inscriptions and Ordinals with Sparrow Wallet
+使用麻雀Sparrow钱包收藏铭文
 =====================
 
-Users who cannot or have not yet set up the [ord](https://github.com/ordinals/ord) wallet can receive inscriptions and ordinals with alternative bitcoin wallets, as long as they are _very_ careful about how they spend from that wallet.
+那些无法活着尚未设置[ord](https://github.com/ordinals/ord) 钱包的用户可以使用其他比特币钱包接收铭文和序数，只要他们在使用该钱包时非常小心。
 
-This guide gives some basic steps on how to create a wallet with [Sparrow Wallet](https://sparrowwallet.com/) which is compatible with `ord` and can be later imported into `ord`
+本指南提供了一些基本步骤，说明如何使用 [Sparrow Wallet](https://sparrowwallet.com/) 创建一个与`ord`兼容的钱包，稍后可以将其导入到`ord`
 
-## ⚠️⚠️ Warning!! ⚠️⚠️
-As a general rule if you take this approach, you should use this wallet with the Sparrow software as a receive-only wallet.
+## ⚠️⚠️ 警告!! ⚠️⚠️
+一般来说，如果你选择这种方法，你应该将这个钱包作为接收款项的钱包，使用Sparrow软件。
 
-Do not spend any satoshis from this wallet unless you are sure you know what you are doing. You could very easily inadvertently lose access to your ordinals and inscriptions if you don't heed this warning.
+除非你确定知道自己在做什么，否则不要从这个钱包中花费任何比特币。如果你不注意这个警告，你可能会很容易无意间失去对序数和铭文的访问权限。
 
-## Wallet Setup & Receiving
+## 钱包设置和接收
 
-Download the Sparrow Wallet from the [releases page](https://sparrowwallet.com/download/) for your particular operating system.
+根据你的操作系统从 [发布页面](https://sparrowwallet.com/download/) 下载Sparrow钱包。
 
-Select `File -> New Wallet` and create a new wallet called `ord`.
+选择 `File -> New Wallet`并创建一个名为`ord`的新钱包。
 
 ![](images/wallet_setup_01.png)
 
-Change the `Script Type` to `Taproot (P2TR)` and select the `New or Imported Software Wallet` option.
+将`Script Type`更改为`Taproot (P2TR)`，然后选择`New or Imported Software Wallet`选项。
+
 
 ![](images/wallet_setup_02.png)
 
-Select `Use 12 Words` and then click `Generate New`. Leave the passphrase blank.
+选择`Use 12 Words`，然后点击 `Generate New`。密码短语留空。
 
 ![](images/wallet_setup_03.png)
 
-A new 12 word BIP39 seed phrase will be generated for you. Write this down somewhere safe as this is your backup to get access to your wallet. NEVER share or show this seed phrase to anyone else.
+将为你生成一个新的12词BIP39种子短语。将此短语写在安全的地方，这是获取钱包访问权限的备份。切勿与他人分享或显示这个种子短语。
 
-Once you have written down the seed phrase click `Confirm Backup`.
+一旦你把种子短语写下来，点击 `Confirm Backup`.
 
 ![](images/wallet_setup_04.png)
 
-Re-enter the seed phrase which you wrote down, and then click `Create Keystore`.
+重新输入你记下的种子短语，然后点击 `Create Keystore`.
 
 ![](images/wallet_setup_05.png)
 
-Click `Import Keystore`.
+点击 `Import Keystore`.
 
 ![](images/wallet_setup_06.png)
 
-Click `Apply`. Add a password for the wallet if you want to.
+点击 `Apply`。如果你想的话，可以为钱包添加一个密码。
 
 ![](images/wallet_setup_07.png)
 
-You now have a wallet which is compatible with `ord`, and can be imported into `ord` using the BIP39 Seed Phrase. To receive ordinals or inscriptions, click on the `Receive` tab and copy a new address.
+你现在有了一个兼容`ord`的钱包，可以使用BIP39种子短语导入到 `ord`。要接收序数或铭文，点击 `Receive`选项卡并复制一个新地址。
 
-Each time you want to receive you should use a brand-new address, and not re-use existing addresses.
+每次你想接收时，都应该使用一个全新的地址，而不是重复使用现有的地址。
 
-Note that bitcoin is different to some other blockchain wallets, in that this wallet can generate an unlimited number of new addresses. You can generate a new address by clicking on the `Get Next Address` button. You can see all of your addresses in the `Addresses` tab of the app.
+注意，比特币与一些其他区块链钱包不同，这个钱包可以生成无限数量的新地址。你可以通过点击获取下一个地址按钮生成新地址。你可以在应用程序的`Addresses`选项卡中看到所有的地址。
 
-You can add a label to each address, so you can keep track of what it was used for.
+你可以给每个地址添加一个标签，这样你就可以跟踪它的用途。
 
 ![](images/wallet_setup_08.png)
 
-## Validating / Viewing Received Inscriptions
+## 验证/查看收到的铭文
 
-Once you have received an inscription you will see a new transaction in the `Transactions` tab of Sparrow, as well as a new UTXO in the `UTXOs` tab.
+一旦你收到一条铭文，你将在 Sparrow 的 `Transactions` 选项卡中看到一个新的交易，以及在`UTXOs`选项卡中看到一个新的 UTXO。
 
-Initially this transaction may have an "Unconfirmed" status, and you will need to wait for it to be mined into a bitcoin block before it is fully received.
+最初，这笔交易可能有一个"未确认"的状态，你需要等待它被挖矿到一个比特币块中，才算真正收到。
 
 ![](images/validating_viewing_01.png)
 
-To track the status of your transaction you can right-click on it,  select `Copy Transaction ID` and then paste that transaction id into [mempool.space](https://mempool.space).
+要跟踪你的交易状态，你可以右键点击它，选择`Copy Transaction ID`，然后将该交易 id 粘贴到 [mempool.space](https://mempool.space)。
 
 ![](images/validating_viewing_02.png)
 
-Once the transaction has confirmed, you can validate and view your inscription by heading over to the `UTXOs` tab, finding the UTXO you want to check, right-clicking on the `Output` and selecting `Copy Transaction Output`. This transaction output id can then be pasted into the [ordinals.com](https://ordinals.com) search.
+一旦交易被确认，你可以通过前往`UTXOs`选项卡，找到你想要检查的 UTXO，右键点击 `Output` 并选择 `Copy Transaction Output` 来验证和查看你的铭文。然后，这个交易输出 id 可以粘贴到 [ordinals.com](https://ordinals.com) 搜索。
 
+## 冻结 UTXO
+如上所述，你的每一条铭文都存储在一个未花费的交易输出 (UTXO) 中。你需要非常小心不要意外花费你的铭文，而冻结 UTXO 是使这种情况发生的难度增加的一种方式。
 
-## Freezing UTXO's
-As explained above, each of your inscriptions is stored in an Unspent Transaction Output (UTXO). You want to be very careful not to accidentally spend your inscriptions, and one way to make it harder for this to happen is to freeze the UTXO.
+要做到这一点，去 UTXOs 选项卡，找到你想要冻结的 `UTXOs`，右键点击 `Output`  并选择`Freeze UTXO`。
 
-To do this, go to the `UTXOs` tab, find the UTXO you want to freeze, right-click on the `Output` and select `Freeze UTXO`.
+这个 UTXO (铭文) 现在在 Sparrow 钱包中是不可消费的，直到你解冻它。
 
-This UTXO (Inscription) is now un-spendable within the Sparrow Wallet until you unfreeze it.
+## 倒入 `ord` 钱包
 
-## Importing into `ord` wallet
+关于设置比特币核心和 `ord` 钱包的详细信息，请查看[铭文指南](../inscriptions.md)
 
-For details on setting up Bitcoin Core and the `ord` wallet check out the [Inscriptions Guide](../inscriptions.md)
+设置 `ord` 时，你可以使用 `ord wallet restore "BIP39 SEED PHRASE"` 命令和你用Sparrow Wallet生成的种子短语，导入你现有的钱包，而不是运行 `ord wallet create` 来创建一个全新的钱包。
 
-When setting up `ord`, instead of running `ord wallet create` to create a brand-new wallet, you can import your existing wallet using `ord wallet restore "BIP39 SEED PHRASE"` using the seed phrase you generated with Sparrow Wallet.
+目前存在一个[程序错误](https://github.com/ordinals/ord/issues/1589) 导致导入的钱包无法自动重新扫描区块链。为解决这个问题，你需要手动触发重新扫描，使用比特币核心命令行界面：
 
-There is currently a [bug](https://github.com/ordinals/ord/issues/1589) which causes an imported wallet to not be automatically rescanned against the blockchain. To work around this you will need to manually trigger a rescan using the bitcoin core cli:
 `bitcoin-cli -rpcwallet=ord rescanblockchain 767430`
 
-You can then check your wallet's inscriptions using `ord wallet inscriptions`
+然后，你可以使用`ord wallet inscriptions`检查你的钱包的铭文。 
 
-Note that if you have previously created a wallet with `ord`, then you will already have a wallet with the default name, and will need to give your imported wallet a different name. You can use the `--wallet` parameter in all `ord` commands to reference a different wallet, eg:
+注意，如果你之前已经用 `ord` 创建过一个钱包，那么你已经有一个默认名称的钱包，需要给你导入的钱包取一个不同的名称。你可以在所有的 `ord`命令中使用 `--wallet` 参数来引用不同的钱包，例如：
 
 `ord --wallet ord_from_sparrow wallet restore "BIP39 SEED PHRASE"`
 
@@ -95,89 +96,92 @@ Note that if you have previously created a wallet with `ord`, then you will alre
 
 `bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430`
 
-## Sending inscriptions with Sparrow Wallet
+## 使用 Sparrow 钱包发送铭文
 
-#### ⚠️⚠️ Warning ⚠️⚠️
-While it is highly recommended that you set up a bitcoin core node and run the `ord` software, there are certain limited ways you can send inscriptions out of Sparrow Wallet in a safe way. Please note that this is not recommended, and you should only do this if you fully understand what you are doing.
+#### ⚠️⚠️ 警告 ⚠️⚠️
+虽然强烈建议你设置一个比特币核心节点并运行 `ord` 软件，但是你可以通过一些安全的方式在 Sparrow 钱包中发送铭文。请注意，这并不推荐，只有在你完全理解你正在做什么的情况下才能这么做。
 
-Using the `ord` software will remove much of the complexity we are describing here, as it is able to automatically and safely handle sending inscriptions in an easy way.
+使用 `ord` 软件将大大简化我们在这里描述的复杂性，因为它能以一种简单的方式自动并安全地处理发送铭文。"
 
-#### ⚠️⚠️ Additional Warning ⚠️⚠️
-Don't use your sparrow inscriptions wallet to do general sends of non-inscription bitcoin. You can setup a separate wallet in sparrow if you need to do normal bitcoin transactions, and keep your inscriptions wallet separate.
+#### ⚠️⚠️ 额外警告 ⚠️⚠️
 
-#### Bitcoin's UTXO model
-Before sending any transaction it's important that you have a good mental model for bitcoin's Unspent Transaction Output (UTXO) system. The way Bitcoin works is fundamentally different to many other blockchains such as Ethereum. In Ethereum generally you have a single address in which you store ETH, and you cannot differentiate between any of the ETH -  it is just all a single value of the total amount in that address. Bitcoin works very differently in that we generate a new address in the wallet for each receive, and every time you receive sats to an address in your wallet you are creating a new UTXO. Each UTXO can be seen and managed individually. You can select specific UTXO's which you want to spend, and you can choose not to spend certain UTXO's.
+不要用你的sparrow麻雀铭文钱包去发送非铭文比特币。如果你需要进行普通的比特币交易，你可以在麻雀中设置一个单独的钱包，并保持你的铭文钱包独立。
 
-Some Bitcoin wallets do not expose this level of detail, and they just show you a single summed up value of all the bitcoin in your wallet. However, when sending inscriptions it is important that you use a wallet like Sparrow which allows for UTXO control.
+#### 比特币的UTXO模型
+在发送任何交易之前，你必须对比特币的未消费交易输出（UTXO）系统有一个良好的理解。比特币的工作方式与以太坊等许多其他区块链有着根本的不同。在以太坊中，通常你有一个存储ETH的单一地址，你无法区分其中的任何ETH - 它们只是该地址中的总金额的单一值。而比特币的工作方式完全不同，我们为每个接收生成一个新地址，每次你向钱包中的一个地址接收sats时，你都在创建一个新的UTXO。每个UTXO都可以单独查看和管理。你可以选择想要花费的特定UTXO，也可以选择不花费某些UTXO。
 
-#### Inspecting your inscription before sending
-Like we have previously described inscriptions are inscribed onto sats, and sats are stored within UTXOs. UTXO's are a collection of satoshis with some particular value of the number of satoshis (the output value). Usually (but not always) the inscription will be inscribed on the first satoshi in the UTXO.
+有些比特币钱包并不显示这个级别的详细信息，它们只向你显示钱包中所有比特币的单一总和值。然而，当发送铭文时，使用如麻雀这样允许UTXO控制的钱包非常重要。
 
-When inspecting your inscription before sending the main thing you will want to check is which satoshi in the UTXO your inscription is inscribed on.
+#### 在发送之前检查你的铭文
+如我们之前所述，铭文是刻在sats上的，sats存储在UTXO中。UTXO是具有某个特定数量的satoshi（输出值）的satoshi集合。通常（但不总是）铭文会被刻在UTXO中的第一个satoshi上。
 
-To do this, you can follow the [Validating / Viewing Received Inscriptions](./sparrow-wallet.md#validating--viewing-received-inscriptions) described above to find the inscription page for your inscription on ordinals.com
+在发送前检查你的铭文时，你主要要检查的是你的铭文刻在UTXO中的哪个satoshi上。
 
-There you will find some metadata about your inscription which looks like the following:
+为此，你可以按照上述 [验证/查看收到的铭文](./sparrow-wallet.md#validating--viewing-received-inscriptions) 来找到ordinals.com上你的铭文的铭文页面。
+
+在那里，你会找到一些关于你铭文的元数据，如下所示：
 
 ![](images/sending_01.png)
 
-There is a few of important things to check here:
-* The `output` identifier matches the identifier of the UTXO you are going to send
-* The `offset` of the inscription is `0` (this means that the inscription is located on the first sat in the UTXO)
-* the `output_value` has enough sats to cover the transaction fee (postage) for sending the transaction. The exact amount you will need depends on the fee rate you will select for the transaction
+以下是需要检查的几个重要事项：
+*  `output` 标识符与您将要发送的UTXO的标识符匹配
+*  铭文的`offset`是 `0` (这意味着铭文位于UTXO的第一个sat上)
+*  `output_value` 有足够的sats来支付发送交易的交易费（邮资），您需要的确切金额取决于您为交易选择的费率 
 
-If all of the above are true for your inscription, it should be safe for you to send it using the method below.
+如果以上所有内容对于您的铭文都是正确的，那么您应该可以安全地使用以下方法发送它。
 
-⚠️⚠️ Be very careful sending your inscription particularly if the `offset` value is not `0`. It is not recommended to use this method if that is the case, as doing so you could accidentally send your inscription to a bitcoin miner unless you know what you are doing.
+⚠️⚠️ 发送铭文时要非常小心，特别是如果`offset` 值不是`0`。如果是这种情况，不建议使用这种方法，否则您可能会无意中将您的雕文发送给比特币矿工，除非您知道自己在做什么。
 
-#### Sending your inscription
-To send an inscription navigate to the `UTXOs` tab, and find the UTXO which you previously validated contains your inscription.
+#### 发送您的铭文
+要发送铭文，请导航到`UTXOs`选项卡，并找到您之前验证包含您的雕文的UTXO。
 
-If you previously froze the UXTO you will need to right-click on it and unfreeze it.
+如果您之前冻结了UXTO，您将需要右键单击它并解冻它。
 
-Select the UTXO you want to send, and ensure that is the _only_ UTXO is selected. You should see `UTXOs 1/1` in the interface. Once you are sure this is the case you can hit `Send Selected`.
+选择您想要发送的UTXO，并确保这是唯一选中的UTXO。在界面中，您应该看到`UTXOs 1/1`。确定这个后，您可以点击`Send Selected`。
+
 
 ![](images/sending_02.png)
 
-You will then be presented with the transaction construction interface. There is a few things you need to check here to make sure that this is a safe send:
+然后，您将看到交易构建界面。在这里，您需要检查几件事以确保这是一个安全的发送：
 
-* The transaction should have only 1 input, and this should be the UTXO with the label you want to send
-* The transaction should have only 1 output, which is the address/label where you want to send the inscription
+* 交易应该只有1个输入，这应该是您想要发送的带有标签的UTXO
+* 交易应该只有1个输出，这是您想要发送铭文的地址/标签
 
-If your transaction looks any different, for example you have multiple inputs, or multiple outputs then this may not be a safe transfer of your inscription, and you should abandon sending until you understand more, or can import into the `ord` wallet.
+如果您的交易看起来与此不同，例如您有多个输入或多个输出，那么这可能不是一种安全的铭文传输方式，您应该放弃发送，直到您更了解或可以导入到`ord`钱包。
 
-You should set an appropriate transaction fee, Sparrow will usually recommend a reasonable one, but you can also check [mempool.space](https://mempool.space) to see what the recommended fee rate is for sending a transaction.
+您应该设置合适的交易费用，Sparrow通常会推荐一个合理的费用，但您也可以查看[mempool.space](https://mempool.space) 以查看发送交易的推荐费率。
 
-You should add a label for the recipient address, a label like `alice address for inscription #123` would be ideal.
+您应该为收件人地址添加一个标签，如`alice address for inscription #123`就很理想。
 
-Once you have checked the transaction is a safe transaction using the checks above, and you are confident to send it you can click `Create Transaction`.
+在使用上述检查确认交易是安全的交易，并且有信心发送它后，您可以点击`Create Transaction`。
 
 ![](images/sending_03.png)
 
-Here again you can double check that your transaction looks safe, and once you are confident you can click `Finalize Transaction for Signing`.
+在这里，您可以再次确认您的交易是否安全，在确认后，您可以点击`Finalize Transaction for Signing`。
 
 ![](images/sending_04.png)
 
-Here you can triple check everything before hitting `Sign`.
+在这里，你可以在点击`Sign`之前再次确认所有内容。 
 
 ![](images/sending_05.png)
 
-And then actually you get very very last chance to check everything before hitting `Broadcast Transaction`. Once you broadcast the transaction it is sent to the bitcoin network, and starts being propagated into the mempool.
+然后实际上在点击`Broadcast Transaction`之前，你有最后一次检查所有内容的机会。一旦你广播交易，它就会被发送到比特币网络，并开始在mempool中传播。
 
 ![](images/sending_06.png)
 
-If you want to track the status of your transaction you can copy the `Transaction Id (Txid)` and paste that into [mempool.space](https://mempool.space)
+如果你想跟踪你的交易状态，你可以复制`Transaction Id (Txid)`并粘贴到[mempool.space](https://mempool.space)
 
-Once the transaction has confirmed you can check the inscription page on [ordinals.com](https://ordinals.com) to validate that it has moved to the new output location and address.
+一旦交易确认，你可以在[ordinals.com](https://ordinals.com) 的铭文页面上验证它是否已移动到新的输出位置和地址。
 
-## Troubleshooting
 
-#### Sparrow wallet is not showing a transaction/UTXO, but I can see it on mempool.space!
+## 故障排除
 
-Make sure that your wallet is connected to a bitcoin node. To validate this, head into the `Preferences`-> `Server` settings, and click `Edit Existing Connection`.
+#### Sparrow钱包没有显示交易/UTXO，但我在mempool.space上看到了！
+
+确保你的钱包连接到一个比特币节点。要验证这一点，转到`Preferences`-> `Server` 设置，并点击 `Edit Existing Connection`。
 
 ![](images/troubleshooting_01.png)
 
-From there you can select a node and click `Test Connection` to validate that Sparrow is able to connect successfully.
+从那里你可以选择一个节点并点击 `Test Connection` 来验证Sparrow是否能够成功连接。
 
 ![](images/troubleshooting_02.png)
