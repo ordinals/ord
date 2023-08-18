@@ -8,10 +8,10 @@ use {
   crate::index::block_index::BlockIndex,
   crate::page_config::PageConfig,
   crate::templates::{
-    BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson, InscriptionsHtml,
-    InscriptionsJson, OutputHtml, OutputJson, PageContent, PageHtml, PreviewAudioHtml,
-    PreviewImageHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
-    RangeHtml, RareTxt, SatHtml, SatJson, TransactionHtml,
+    BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson,
+    InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson, PageContent,
+    PageHtml, PreviewAudioHtml, PreviewImageHtml, PreviewPdfHtml, PreviewTextHtml,
+    PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, SatHtml, SatJson, TransactionHtml,
   },
   axum::{
     body,
@@ -1038,10 +1038,19 @@ impl Server {
     Ok(if accept_json.0 {
       Json(InscriptionsJson::new(inscriptions, None, None, None, None)).into_response()
     } else {
-      InscriptionsHtml {
+      InscriptionsBlockHtml {
+        block: block_height,
         inscriptions,
-        prev: None,
-        next: None,
+        prev: if block_height == 0 {
+          None
+        } else {
+          Some(block_height - 1)
+        },
+        next: if block_height >= index.block_count()? {
+          None
+        } else {
+          Some(block_height + 1)
+        },
       }
       .page(page_config, index.has_sat_index()?)
       .into_response()
