@@ -30,6 +30,7 @@ use {
     caches::DirCache,
     AcmeConfig,
   },
+  sha2::{Digest, Sha256},
   std::{cmp::Ordering, str, sync::Arc, sync::RwLock},
   tokio_stream::StreamExt,
   tower_http::{
@@ -193,6 +194,7 @@ impl Server {
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
         .route("/feed.xml", get(Self::feed))
+        .route("/hash/:inscription_id", get(Self::hash))
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_id", get(Self::inscription))
         .route("/inscriptions", get(Self::inscriptions))
@@ -887,6 +889,25 @@ impl Server {
     );
 
     Some((headers, body?))
+  }
+
+  async fn hash(
+    Extension(index): Extension<Arc<Index>>,
+    Path(inscription_id): Path<InscriptionId>,
+  ) -> ServerResult<String> {
+    let inscription = index
+      .get_inscription_by_id(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    if let Some(body_data) = inscription.into_body() {
+      let mut hasher = Sha256::new();
+      hasher.update(&body_data);
+      let result = hasher.finalize();
+
+      Ok(format!("{:x}", result))
+    } else {
+      Ok(String::new()) // FIXME
+    }
   }
 
   async fn preview(

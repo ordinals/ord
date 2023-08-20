@@ -5,6 +5,7 @@ use {
       OutPointValue, SatPointValue, SatRange,
     },
     index::block_index::BlockIndex,
+    index::schema_migrator::SchemaMigrator,
     reorg::*,
     updater::Updater,
   },
@@ -28,9 +29,10 @@ mod entry;
 mod fetcher;
 mod reorg;
 mod rtx;
+mod schema_migrator;
 mod updater;
 
-const SCHEMA_VERSION: u64 = 5;
+const SCHEMA_VERSION: u64 = 6;
 
 macro_rules! define_table {
   ($name:ident, $key:ty, $value:ty) => {
@@ -45,6 +47,7 @@ macro_rules! define_multimap_table {
   };
 }
 
+define_multimap_table! { HASH_TO_INSCRIPTION_ID, &inscription::ContentHashValue, &InscriptionIdValue }
 define_table! { HEIGHT_TO_BLOCK_HASH, u64, &BlockHashValue }
 define_table! { INSCRIPTION_ID_TO_INSCRIPTION_ENTRY, &InscriptionIdValue, InscriptionEntryValue }
 define_table! { INSCRIPTION_ID_TO_SATPOINT, &InscriptionIdValue, &SatPointValue }
@@ -200,18 +203,23 @@ impl Index {
           .map(|x| x.value())
           .unwrap_or(0);
 
-        match schema_version.cmp(&SCHEMA_VERSION) {
-          cmp::Ordering::Less =>
-            bail!(
-              "index at `{}` appears to have been built with an older, incompatible version of ord, consider deleting and rebuilding the index: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
-              path.display()
-            ),
-          cmp::Ordering::Greater =>
-            bail!(
-              "index at `{}` appears to have been built with a newer, incompatible version of ord, consider updating ord: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
-              path.display()
-            ),
-          cmp::Ordering::Equal => {
+        if schema_version != SCHEMA_VERSION {
+          // Attempt migration first
+          if !SchemaMigrator::migrate(schema_version, SCHEMA_VERSION, &database, &client)? {
+            match schema_version.cmp(&SCHEMA_VERSION) {
+            cmp::Ordering::Less =>
+              bail!(
+                "index at `{}` appears to have been built with an older, incompatible version of ord, consider deleting and rebuilding the index: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
+                path.display()
+              ),
+            cmp::Ordering::Greater =>
+              bail!(
+                "index at `{}` appears to have been built with a newer, incompatible version of ord, consider updating ord: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
+                path.display()
+              ),
+            cmp::Ordering::Equal => {
+            }
+            }
           }
         }
 
@@ -226,6 +234,7 @@ impl Index {
 
         tx.set_durability(redb::Durability::Immediate);
 
+        tx.open_multimap_table(HASH_TO_INSCRIPTION_ID)?;
         tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
         tx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
         tx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;

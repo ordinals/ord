@@ -8,6 +8,7 @@ use {
     taproot::TAPROOT_ANNEX_PREFIX,
     ScriptBuf, Witness,
   },
+  sha2::{Digest, Sha256},
   std::{iter::Peekable, str},
 };
 
@@ -21,6 +22,8 @@ pub(crate) enum Curse {
   NotAtOffsetZero,
   Reinscription,
 }
+
+pub type ContentHashValue = [u8; 32];
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Inscription {
@@ -134,6 +137,14 @@ impl Inscription {
 
   pub(crate) fn content_type(&self) -> Option<&str> {
     str::from_utf8(self.content_type.as_ref()?).ok()
+  }
+
+  pub(crate) fn content_hash(&self) -> Option<ContentHashValue> {
+    self.body.as_ref().map(|body_data| {
+      let mut hasher = Sha256::new();
+      hasher.update(&body_data);
+      hasher.finalize().into()
+    })
   }
 
   #[cfg(test)]
