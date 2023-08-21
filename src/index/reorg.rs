@@ -56,6 +56,10 @@ impl Reorg {
   pub(crate) fn handle_reorg(index: &Index, height: u64, depth: u64) -> Result {
     log::info!("rolling back database after reorg of depth {depth} at height {height}");
 
+    if let redb::Durability::None = index.durability {
+      panic!("set index durability to `Durability::Immediate` to test reorg handling");
+    }
+
     let mut wtx = index.begin_write()?;
 
     let oldest_savepoint =
