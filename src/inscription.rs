@@ -142,7 +142,7 @@ impl Inscription {
   pub(crate) fn content_hash(&self) -> Option<ContentHashValue> {
     self.body.as_ref().map(|body_data| {
       let mut hasher = Sha256::new();
-      hasher.update(&body_data);
+      hasher.update(body_data);
       hasher.finalize().into()
     })
   }

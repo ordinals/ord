@@ -30,7 +30,6 @@ use {
     caches::DirCache,
     AcmeConfig,
   },
-  sha2::{Digest, Sha256},
   std::{cmp::Ordering, str, sync::Arc, sync::RwLock},
   tokio_stream::StreamExt,
   tower_http::{
@@ -898,15 +897,13 @@ impl Server {
     let inscription = index
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
-
-    if let Some(body_data) = inscription.into_body() {
-      let mut hasher = Sha256::new();
-      hasher.update(&body_data);
-      let result = hasher.finalize();
-
-      Ok(format!("{:x}", result))
+    if let Some(content_hash) = inscription.content_hash() {
+      Ok(hex::encode(content_hash))
     } else {
-      Ok(String::new()) // FIXME
+      Err(ServerError::NotFound(format!(
+        "{} unable to compute content hash",
+        inscription_id
+      )))
     }
   }
 

@@ -26,7 +26,7 @@ impl SchemaMigrator {
       from_schema_version,
       to_schema_version
     );
-    return Ok(false);
+    Ok(false)
   }
 
   fn create_content_hashes(tx: &mut WriteTransaction, client: &Client) -> Result {
