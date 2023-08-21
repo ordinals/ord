@@ -47,7 +47,7 @@ macro_rules! define_multimap_table {
   };
 }
 
-define_multimap_table! { HASH_TO_INSCRIPTION_ID, &inscription::ContentHashValue, &InscriptionIdValue }
+define_multimap_table! { CONTENT_HASH_TO_INSCRIPTION_ID, &inscription::ContentHashValue, &InscriptionIdValue }
 define_table! { HEIGHT_TO_BLOCK_HASH, u64, &BlockHashValue }
 define_table! { INSCRIPTION_ID_TO_INSCRIPTION_ENTRY, &InscriptionIdValue, InscriptionEntryValue }
 define_table! { INSCRIPTION_ID_TO_SATPOINT, &InscriptionIdValue, &SatPointValue }
@@ -234,7 +234,7 @@ impl Index {
 
         tx.set_durability(redb::Durability::Immediate);
 
-        tx.open_multimap_table(HASH_TO_INSCRIPTION_ID)?;
+        tx.open_multimap_table(CONTENT_HASH_TO_INSCRIPTION_ID)?;
         tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
         tx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
         tx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
