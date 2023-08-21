@@ -21,6 +21,12 @@ prev
 next
 %% }
 </div>
+<h2>{{"Inscription".tally(self.inscriptions.len())}}</h2>
+<div class=thumbnails>
+%% for id in &self.inscriptions {
+  {{Iframe::thumbnail(*id)}}
+%% }
+</div>
 <h2>{{"Transaction".tally(self.block.txdata.len())}}</h2>
 <ul class=monospace>
 %% for tx in &self.block.txdata {

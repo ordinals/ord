@@ -566,6 +566,7 @@ impl Server {
   async fn block(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
+    Extension(block_index_state): Extension<Arc<BlockIndexState>>,
     Path(DeserializeFromStr(query)): Path<DeserializeFromStr<BlockQuery>>,
   ) -> ServerResult<PageHtml<BlockHtml>> {
     let (block, height) = match query {
@@ -589,9 +590,20 @@ impl Server {
       }
     };
 
+    let inscriptions = block_index_state
+      .block_index
+      .read()
+      .unwrap()
+      .get_highest_paying_inscriptions_in_block(&index, height, 2000)?;
+
     Ok(
-      BlockHtml::new(block, Height(height), Self::index_height(&index)?)
-        .page(page_config, index.has_sat_index()?),
+      BlockHtml::new(
+        block,
+        Height(height),
+        Self::index_height(&index)?,
+        inscriptions,
+      )
+      .page(page_config, index.has_sat_index()?),
     )
   }
 
