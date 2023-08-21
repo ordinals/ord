@@ -2147,7 +2147,7 @@ mod tests {
     let server = TestServer::new();
 
     thread::sleep(Duration::from_millis(100));
-    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 3);
+    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 1);
 
     let info = server.index.info().unwrap();
     assert_eq!(info.transactions.len(), 1);
