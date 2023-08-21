@@ -75,6 +75,10 @@ impl Reorg {
   }
 
   pub(crate) fn update_savepoints(index: &Index, height: u64) -> Result {
+    if let redb::Durability::None = index.durability {
+      return Ok(());
+    }
+
     if (height < SAVEPOINT_INTERVAL || height % SAVEPOINT_INTERVAL == 0)
       && index
         .client
