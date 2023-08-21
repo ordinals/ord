@@ -374,7 +374,8 @@ fn inscribe_to_specific_destination() {
     .address;
 
   let txid = CommandBuilder::new(format!(
-    "wallet inscribe --destination {destination} degenerate.png --fee-rate 1"
+    "wallet inscribe --destination {} degenerate.png --fee-rate 1",
+    destination.clone().assume_checked()
   ))
   .write("degenerate.png", [1; 520])
   .rpc_server(&rpc_server)
@@ -385,7 +386,7 @@ fn inscribe_to_specific_destination() {
   assert_eq!(reveal_tx.txid(), txid);
   assert_eq!(
     reveal_tx.output.first().unwrap().script_pubkey,
-    destination.script_pubkey()
+    destination.payload.script_pubkey()
   );
 }
 
@@ -401,7 +402,7 @@ fn inscribe_to_address_on_different_network() {
   .write("degenerate.png", [1; 520])
   .rpc_server(&rpc_server)
   .expected_exit_code(1)
-  .stderr_regex("error: Address `tb1qsgx55dp6gn53tsmyjjv4c2ye403hgxynxs0dnm` is not valid for mainnet\n")
+  .stderr_regex("error: address tb1qsgx55dp6gn53tsmyjjv4c2ye403hgxynxs0dnm belongs to network testnet which is different from required bitcoin\n")
   .run_and_extract_stdout();
 }
 
@@ -415,4 +416,25 @@ fn inscribe_with_no_limit() {
   CommandBuilder::new("wallet inscribe --no-limit degenerate.png --fee-rate 1")
     .write("degenerate.png", four_megger)
     .rpc_server(&rpc_server);
+}
+
+#[test]
+fn inscribe_works_with_postage() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  CommandBuilder::new("wallet inscribe foo.txt --postage 5btc --fee-rate 10".to_string())
+    .write("foo.txt", [0; 350])
+    .rpc_server(&rpc_server)
+    .run_and_check_output::<Inscribe>();
+
+  rpc_server.mine_blocks(1);
+
+  let inscriptions = CommandBuilder::new("wallet inscriptions".to_string())
+    .write("foo.txt", [0; 350])
+    .rpc_server(&rpc_server)
+    .run_and_check_output::<Vec<ord::subcommand::wallet::inscriptions::Output>>();
+
+  pretty_assert_eq!(inscriptions[0].postage, 5 * COIN_VALUE);
 }

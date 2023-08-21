@@ -1,6 +1,61 @@
 Changelog
 =========
 
+[0.8.2](https://github.com/ordinals/ord/releases/tag/0.8.2) - 2023-08-17
+---------------------------------------------------------------------
+
+### Added
+
+- Allow setting custom postage (#2331)
+- Make retrieving inscriptions in block fast (#2333)
+- JSON API for `/inscription`, `/inscriptions` and `/output` (#2323)
+- Ignore invalid content type header values (#2326)
+- Add reorg resistance  (#2320)
+- Add JSON API endpoint `/sat/<SAT>` (#2250)
+- Add `amount` field to `wallet inscriptions` output. (#1928)
+
+
+### Changed
+
+- Only fetch inscriptions that are owned by the ord wallet (#2310)
+- Inform user when redb starts in recovery mode (#2304)
+- Select multiple utxos (#2303)
+
+
+### Fixed
+
+- Use `--fee-rate` when sending an amount (#1922)
+- Fix typos in documentation (#2328)
+- Fix dust limit for padding in `TransactionBuilder` (#1929)
+- Fix remote RPC wallet commands (#1766)
+
+
+[0.8.1](https://github.com/ordinals/ord/releases/tag/0.8.1) - 2023-07-23
+---------------------------------------------------------------------
+
+### Added
+
+- Add retry to fetcher (#2297)
+- Add satpoint and address to index export (#2284)
+- Don't create default data directory if --index overrides it (#1991)
+- Implement clean index shutdown to prevent index corruption (with clippy updates for Rust 1.71) (#2275)
+- Set lower max age for not found (#2240)
+
+### Changed
+
+- Fix justfile recipe (#2299)
+- Clean up deploy scripts (#2298)
+- Update redb (#2294)
+- Update bitcoin dependencies (#2281)
+- Fix ordering for reinscriptions and show all reinscriptions for sat (#2279)
+- Modify `ord list` output to include the end of each range (#1998)
+
+### Documentation
+
+- Fix docs inconsistency (#2276)
+- Add contributing section (#2261)
+
+
 [0.8.0](https://github.com/ordinals/ord/releases/tag/0.8.0) - 2023-07-01
 ---------------------------------------------------------------------
 
@@ -40,7 +95,7 @@ Changelog
 [0.6.1](https://github.com/ordinals/ord/releases/tag/0.6.1) - 2023-06-06
 ---------------------------------------------------------------------
 
-### Changed 
+### Changed
 - Fix sat index test and unbound assignment (#2154)
 - Updated install.sh for new repo name (#2155)
 
@@ -67,8 +122,8 @@ Changelog
 
 ### Misc
 - Switch CI back to stable clippy (#2108)
-- Update dependencies (#2068) 
-- Use struct variants in Origin enum (#2067) 
+- Update dependencies (#2068)
+- Use struct variants in Origin enum (#2067)
 - Fix test name typos(#2043)
 - Switch to nightly clippy (#2037)
 
