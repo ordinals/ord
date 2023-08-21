@@ -43,7 +43,7 @@
   <dt>content type</dt>
   <dd>{{ content_type }}</dd>
 %% }
-%% if let Some(content_hash) = self.inscription.content_hash().map(|hash| hex::encode(hash)) {
+%% if let Some(content_hash) = self.inscription.content_hash().map(hex::encode) {
   <dt>content hash</dt>
   <dd>{{ content_hash }}</dd>
 %% }

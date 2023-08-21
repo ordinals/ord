@@ -63,7 +63,7 @@ impl InscriptionJson {
       satpoint,
       content_type: inscription.content_type().map(|s| s.to_string()),
       content_length: inscription.content_length(),
-      content_hash: inscription.content_hash().map(|hash| hex::encode(hash)),
+      content_hash: inscription.content_hash().map(hex::encode),
       timestamp: timestamp.timestamp(),
       previous,
       next,
@@ -120,6 +120,8 @@ mod tests {
           <dd>10 bytes</dd>
           <dt>content type</dt>
           <dd>text/plain;charset=utf-8</dd>
+          <dt>content hash</dt>
+          <dd>0b21b7db59cd154904fac6336fa7d2be1bab38d632794f281549584068cdcb74</dd>
           <dt>timestamp</dt>
           <dd><time>1970-01-01 00:00:00 UTC</time></dd>
           <dt>genesis height</dt>

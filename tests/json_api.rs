@@ -158,6 +158,9 @@ fn get_inscription() {
       satpoint: SatPoint::from_str(&format!("{}:{}:{}", reveal, 0, 0)).unwrap(),
       content_type: Some("text/plain;charset=utf-8".to_string()),
       content_length: Some(3),
+      content_hash: Some(
+        "9520437ce8902eb379a7d8aaa98fc4c94eeb07b6684854868fa6f72bf34b0fd3".to_string()
+      ),
       timestamp: 2,
       previous: None,
       next: None
