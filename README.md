@@ -151,6 +151,10 @@ just doc
 just watch ltest --all
 ```
 
+If the tests are failing or hanging, you might need to increase the maximum
+number of open files by running `ulimit -n 1024` in your shell before you run
+the tests, or in your shell configuration.
+
 We also try to follow a TDD (Test-Driven-Development) approach, which means we
 use tests as a way to get visibility into the code. Tests have to run fast for that
 reason so that the feedback loop between making a change, running the test and

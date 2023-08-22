@@ -2165,7 +2165,7 @@ mod tests {
     let server = TestServer::new();
 
     thread::sleep(Duration::from_millis(100));
-    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 3);
+    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 1);
 
     let info = server.index.info().unwrap();
     assert_eq!(info.transactions.len(), 1);
@@ -2173,7 +2173,7 @@ mod tests {
 
     server.index.update().unwrap();
 
-    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 3);
+    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 1);
 
     let info = server.index.info().unwrap();
     assert_eq!(info.transactions.len(), 1);
@@ -2184,7 +2184,7 @@ mod tests {
     thread::sleep(Duration::from_millis(10));
     server.index.update().unwrap();
 
-    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 6);
+    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 2);
 
     let info = server.index.info().unwrap();
     assert_eq!(info.transactions.len(), 2);

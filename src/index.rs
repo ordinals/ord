@@ -137,12 +137,13 @@ impl<T> BitcoinCoreRpcResultExt<T> for Result<T, bitcoincore_rpc::Error> {
 pub(crate) struct Index {
   client: Client,
   database: Database,
-  path: PathBuf,
+  durability: redb::Durability,
   first_inscription_height: u64,
   genesis_block_coinbase_transaction: Transaction,
   genesis_block_coinbase_txid: Txid,
   height_limit: Option<u64>,
   options: Options,
+  path: PathBuf,
   unrecoverably_reorged: AtomicBool,
 }
 
@@ -188,6 +189,12 @@ impl Index {
 
     log::info!("Setting DB cache size to {} bytes", db_cache_size);
 
+    let durability = if cfg!(test) {
+      redb::Durability::None
+    } else {
+      redb::Durability::Immediate
+    };
+
     let database = match Database::builder()
       .set_cache_size(db_cache_size)
       .open(&path)
@@ -224,7 +231,7 @@ impl Index {
 
         let mut tx = database.begin_write()?;
 
-        tx.set_durability(redb::Durability::Immediate);
+        tx.set_durability(durability);
 
         tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
         tx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
@@ -258,13 +265,19 @@ impl Index {
       genesis_block_coinbase_txid: genesis_block_coinbase_transaction.txid(),
       client,
       database,
-      path,
+      durability,
       first_inscription_height: options.first_inscription_height(),
       genesis_block_coinbase_transaction,
       height_limit: options.height_limit,
       options: options.clone(),
+      path,
       unrecoverably_reorged: AtomicBool::new(false),
     })
+  }
+
+  #[cfg(test)]
+  fn set_durability(&mut self, durability: redb::Durability) {
+    self.durability = durability;
   }
 
   pub(crate) fn get_unspent_outputs(&self, _wallet: Wallet) -> Result<BTreeMap<OutPoint, Amount>> {
@@ -500,7 +513,9 @@ impl Index {
   }
 
   fn begin_write(&self) -> Result<WriteTransaction> {
-    Ok(self.database.begin_write()?)
+    let mut tx = self.database.begin_write()?;
+    tx.set_durability(self.durability);
+    Ok(tx)
   }
 
   fn increment_statistic(wtx: &WriteTransaction, statistic: Statistic, n: u64) -> Result {
@@ -3298,7 +3313,9 @@ mod tests {
 
   #[test]
   fn recover_from_reorg() {
-    for context in Context::configurations() {
+    for mut context in Context::configurations() {
+      context.index.set_durability(redb::Durability::Immediate);
+
       context.mine_blocks(1);
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -3348,7 +3365,9 @@ mod tests {
 
   #[test]
   fn recover_from_3_block_deep_and_consecutive_reorg() {
-    for context in Context::configurations() {
+    for mut context in Context::configurations() {
+      context.index.set_durability(redb::Durability::Immediate);
+
       context.mine_blocks(1);
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -3401,7 +3420,9 @@ mod tests {
 
   #[test]
   fn recover_from_very_unlikely_7_block_deep_reorg() {
-    for context in Context::configurations() {
+    for mut context in Context::configurations() {
+      context.index.set_durability(redb::Durability::Immediate);
+
       context.mine_blocks(1);
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
