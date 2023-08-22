@@ -43,7 +43,7 @@ impl Reorg {
             .into_option()?;
 
           if index_block_hash == bitcoind_block_hash {
-            return Err(anyhow!(ReorgError::Recoverable((depth, height))));
+            return Err(anyhow!(ReorgError::Recoverable((height, depth))));
           }
         }
 
