@@ -9,6 +9,14 @@ use {
     Network, OutPoint, Txid,
   },
   executable_path::executable_path,
+  ord::inscription_id::InscriptionId,
+  ord::rarity::Rarity,
+  ord::subcommand::wallet::send::Output,
+  ord::templates::inscription::InscriptionJson,
+  ord::templates::inscriptions::InscriptionsJson,
+  ord::templates::output::OutputJson,
+  ord::templates::sat::SatJson,
+  ord::SatPoint,
   pretty_assertions::assert_eq as pretty_assert_eq,
   regex::Regex,
   reqwest::{StatusCode, Url},
@@ -24,6 +32,7 @@ use {
   },
   tempfile::TempDir,
   test_bitcoincore_rpc::Sent,
+  test_bitcoincore_rpc::TransactionTemplate,
 };
 
 macro_rules! assert_regex_match {
