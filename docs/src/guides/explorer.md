@@ -14,17 +14,10 @@ To specify a port add the `--http-port` flag:
 
 `ord server --http-port 8080`
 
-To run the server in regtest to test out your inscriptions:
+To test how your inscriptions will look you can run:
 
 ```
-bitcoind -regtest -txindex
-ord -r wallet create
-ord -r wallet receive
-bitcoin-cli -regtest generatetoaddress 101 <receiveAddress>
-ord -r wallet balance
-ord -r wallet inscribe <file> --fee-rate 1
-bitcoin-cli -regtest generatetoaddress 1 <receiveAddress>
-ord -r server --http-port 8080
+ord preview <FILE1> <FILE2> ...
 ```
 
 Search
@@ -76,4 +69,3 @@ Or by percentile, the percentage of bitcoin's supply that has been or will have
 been issued when they are mined:
 
 [100%](https://ordinals.com/search/100%)
-
