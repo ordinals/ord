@@ -5,6 +5,19 @@ The `ord` binary includes a block explorer. We host a instance of the block
 explorer on mainnet at [ordinals.com](https://ordinals.com), and on signet at
 [signet.ordinals.com](https://signet.ordinals.com).
 
+### Running The Explorer
+The server can be run locally with:
+
+`ord server`
+
+To specify a port add the `--http-port` flag:
+
+`ord server --http-port 8080`
+
+To test how your inscriptions will look you can run:
+
+`ord preview <FILE1> <FILE2> ...`
+
 Search
 ------
 

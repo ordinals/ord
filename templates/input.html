@@ -10,7 +10,7 @@
   <dt>witness</dt><dd class=monospace>{{hex::encode(consensus::serialize(&self.input.witness))}}</dd>
 %% }
 %% if !self.input.script_sig.is_empty() {
-  <dt>script sig</dt><dd class=monospace>{{self.input.script_sig.asm()}}</dd>
+  <dt>script sig</dt><dd class=monospace>{{self.input.script_sig.to_asm_string()}}</dd>
   <dt>text</dt><dd>{{String::from_utf8_lossy(self.input.script_sig.as_bytes())}}</dd>
 %% }
 </dl>

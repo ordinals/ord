@@ -5,7 +5,7 @@ use {
     All, Secp256k1,
   },
   bitcoin::{
-    util::bip32::{ChildNumber, DerivationPath, ExtendedPrivKey, Fingerprint},
+    bip32::{ChildNumber, DerivationPath, ExtendedPrivKey, Fingerprint},
     Network,
   },
   bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, Timestamp},
@@ -15,6 +15,7 @@ use {
 };
 
 pub mod balance;
+pub mod cardinals;
 pub mod create;
 pub(crate) mod inscribe;
 pub mod inscriptions;
@@ -23,7 +24,7 @@ pub mod receive;
 mod restore;
 pub mod sats;
 pub mod send;
-pub(crate) mod transaction_builder;
+pub mod transaction_builder;
 pub mod transactions;
 
 #[derive(Debug, Parser)]
@@ -46,8 +47,10 @@ pub(crate) enum Wallet {
   Send(send::Send),
   #[clap(about = "See wallet transactions")]
   Transactions(transactions::Transactions),
-  #[clap(about = "List wallet outputs")]
+  #[clap(about = "List all unspent outputs in wallet")]
   Outputs,
+  #[clap(about = "List unspent cardinal outputs in wallet")]
+  Cardinals,
 }
 
 impl Wallet {
@@ -63,14 +66,18 @@ impl Wallet {
       Self::Send(send) => send.run(options),
       Self::Transactions(transactions) => transactions.run(options),
       Self::Outputs => outputs::run(options),
+      Self::Cardinals => cardinals::run(options),
     }
   }
 }
 
-fn get_change_address(client: &Client) -> Result<Address> {
-  client
-    .call("getrawchangeaddress", &["bech32m".into()])
-    .context("could not get change addresses from wallet")
+fn get_change_address(client: &Client, options: &Options) -> Result<Address> {
+  Ok(
+    client
+      .call::<Address<NetworkUnchecked>>("getrawchangeaddress", &["bech32m".into()])
+      .context("could not get change addresses from wallet")?
+      .require_network(options.chain().network())?,
+  )
 }
 
 pub(crate) fn initialize_wallet(options: &Options, seed: [u8; 64]) -> Result {
@@ -136,7 +143,7 @@ fn derive_and_import_descriptor(
     active: Some(true),
     range: None,
     next_index: None,
-    internal: Some(!change),
+    internal: Some(change),
     label: None,
   })?;
 

@@ -9,6 +9,10 @@ use {super::*, bitcoincore_rpc::Auth};
 pub(crate) struct Options {
   #[clap(long, help = "Load Bitcoin Core data dir from <BITCOIN_DATA_DIR>.")]
   pub(crate) bitcoin_data_dir: Option<PathBuf>,
+  #[clap(long, help = "Authenticate to Bitcoin Core RPC with <RPC_PASS>.")]
+  pub(crate) bitcoin_rpc_pass: Option<String>,
+  #[clap(long, help = "Authenticate to Bitcoin Core RPC as <RPC_USER>.")]
+  pub(crate) bitcoin_rpc_user: Option<String>,
   #[clap(
     long = "chain",
     arg_enum,
@@ -24,6 +28,11 @@ pub(crate) struct Options {
   pub(crate) cookie_file: Option<PathBuf>,
   #[clap(long, help = "Store index in <DATA_DIR>.")]
   pub(crate) data_dir: Option<PathBuf>,
+  #[clap(
+    long,
+    help = "Set index cache to <DB_CACHE_SIZE> bytes. By default takes 1/4 of available RAM."
+  )]
+  pub(crate) db_cache_size: Option<usize>,
   #[clap(
     long,
     help = "Don't look for inscriptions below <FIRST_INSCRIPTION_HEIGHT>."
@@ -45,6 +54,8 @@ pub(crate) struct Options {
   pub(crate) testnet: bool,
   #[clap(long, default_value = "ord", help = "Use wallet named <WALLET>.")]
   pub(crate) wallet: String,
+  #[clap(long, short, help = "Enable JSON API.")]
+  pub(crate) enable_json_api: bool,
 }
 
 impl Options {
@@ -73,13 +84,15 @@ impl Options {
   }
 
   pub(crate) fn rpc_url(&self) -> String {
-    self.rpc_url.clone().unwrap_or_else(|| {
+    if let Some(rpc_url) = &self.rpc_url {
+      format!("{rpc_url}/wallet/{}", self.wallet)
+    } else {
       format!(
         "127.0.0.1:{}/wallet/{}",
         self.chain().default_rpc_port(),
         self.wallet
       )
-    })
+    }
   }
 
   pub(crate) fn cookie_file(&self) -> Result<PathBuf> {
@@ -91,11 +104,11 @@ impl Options {
       bitcoin_data_dir.clone()
     } else if cfg!(target_os = "linux") {
       dirs::home_dir()
-        .ok_or_else(|| anyhow!("failed to retrieve home dir"))?
+        .ok_or_else(|| anyhow!("failed to get cookie file path: could not get home dir"))?
         .join(".bitcoin")
     } else {
       dirs::data_dir()
-        .ok_or_else(|| anyhow!("failed to retrieve data dir"))?
+        .ok_or_else(|| anyhow!("failed to get cookie file path: could not get data dir"))?
         .join("Bitcoin")
     };
 
@@ -136,25 +149,71 @@ impl Options {
     )
   }
 
-  pub(crate) fn bitcoin_rpc_client(&self) -> Result<Client> {
-    let cookie_file = self
-      .cookie_file()
-      .map_err(|err| anyhow!("failed to get cookie file path: {err}"))?;
+  fn derive_var(
+    arg_value: Option<&str>,
+    env_key: Option<&str>,
+    config_value: Option<&str>,
+    default_value: Option<&str>,
+  ) -> Result<Option<String>> {
+    let env_value = match env_key {
+      Some(env_key) => match env::var(format!("ORD_{env_key}")) {
+        Ok(env_value) => Some(env_value),
+        Err(err @ env::VarError::NotUnicode(_)) => return Err(err.into()),
+        Err(env::VarError::NotPresent) => None,
+      },
+      None => None,
+    };
 
+    Ok(
+      arg_value
+        .or(env_value.as_deref())
+        .or(config_value)
+        .or(default_value)
+        .map(str::to_string),
+    )
+  }
+
+  pub(crate) fn auth(&self) -> Result<Auth> {
+    let config = self.load_config()?;
+
+    let rpc_user = Options::derive_var(
+      self.bitcoin_rpc_user.as_deref(),
+      Some("BITCOIN_RPC_USER"),
+      config.bitcoin_rpc_user.as_deref(),
+      None,
+    )?;
+
+    let rpc_pass = Options::derive_var(
+      self.bitcoin_rpc_pass.as_deref(),
+      Some("BITCOIN_RPC_PASS"),
+      config.bitcoin_rpc_pass.as_deref(),
+      None,
+    )?;
+
+    match (rpc_user, rpc_pass) {
+      (Some(rpc_user), Some(rpc_pass)) => Ok(Auth::UserPass(rpc_user, rpc_pass)),
+      (None, Some(_rpc_pass)) => Err(anyhow!("no bitcoind rpc user specified")),
+      (Some(_rpc_user), None) => Err(anyhow!("no bitcoind rpc password specified")),
+      _ => Ok(Auth::CookieFile(self.cookie_file()?)),
+    }
+  }
+
+  pub(crate) fn bitcoin_rpc_client(&self) -> Result<Client> {
     let rpc_url = self.rpc_url();
 
-    log::info!(
-      "Connecting to Bitcoin Core RPC server at {rpc_url} using credentials from `{}`",
-      cookie_file.display()
-    );
+    let auth = self.auth()?;
 
-    let client =
-      Client::new(&rpc_url, Auth::CookieFile(cookie_file.clone())).with_context(|| {
-        format!(
-          "failed to connect to Bitcoin Core RPC at {rpc_url} using cookie file {}",
-          cookie_file.display()
-        )
-      })?;
+    log::info!("Connecting to Bitcoin Core at {}", self.rpc_url());
+
+    if let Auth::CookieFile(cookie_file) = &auth {
+      log::info!(
+        "Using credentials from cookie file at `{}`",
+        cookie_file.display()
+      );
+    }
+
+    let client = Client::new(&rpc_url, auth)
+      .with_context(|| format!("failed to connect to Bitcoin Core RPC at {rpc_url}"))?;
 
     let rpc_chain = match client.get_blockchain_info()?.chain.as_str() {
       "main" => Chain::Mainnet,
@@ -220,29 +279,41 @@ mod tests {
   #[test]
   fn rpc_url_overrides_network() {
     assert_eq!(
-      Arguments::try_parse_from(["ord", "--rpc-url=127.0.0.1:1234", "--chain=signet", "index"])
-        .unwrap()
-        .options
-        .rpc_url(),
-      "127.0.0.1:1234"
+      Arguments::try_parse_from([
+        "ord",
+        "--rpc-url=127.0.0.1:1234",
+        "--chain=signet",
+        "index",
+        "run"
+      ])
+      .unwrap()
+      .options
+      .rpc_url(),
+      "127.0.0.1:1234/wallet/ord"
     );
   }
 
   #[test]
   fn cookie_file_overrides_network() {
     assert_eq!(
-      Arguments::try_parse_from(["ord", "--cookie-file=/foo/bar", "--chain=signet", "index"])
-        .unwrap()
-        .options
-        .cookie_file()
-        .unwrap(),
+      Arguments::try_parse_from([
+        "ord",
+        "--cookie-file=/foo/bar",
+        "--chain=signet",
+        "index",
+        "run"
+      ])
+      .unwrap()
+      .options
+      .cookie_file()
+      .unwrap(),
       Path::new("/foo/bar")
     );
   }
 
   #[test]
   fn use_default_network() {
-    let arguments = Arguments::try_parse_from(["ord", "index"]).unwrap();
+    let arguments = Arguments::try_parse_from(["ord", "index", "run"]).unwrap();
 
     assert_eq!(arguments.options.rpc_url(), "127.0.0.1:8332/wallet/ord");
 
@@ -255,7 +326,7 @@ mod tests {
 
   #[test]
   fn uses_network_defaults() {
-    let arguments = Arguments::try_parse_from(["ord", "--chain=signet", "index"]).unwrap();
+    let arguments = Arguments::try_parse_from(["ord", "--chain=signet", "index", "run"]).unwrap();
 
     assert_eq!(arguments.options.rpc_url(), "127.0.0.1:38332/wallet/ord");
 
@@ -274,7 +345,7 @@ mod tests {
 
   #[test]
   fn mainnet_cookie_file_path() {
-    let cookie_file = Arguments::try_parse_from(["ord", "index"])
+    let cookie_file = Arguments::try_parse_from(["ord", "index", "run"])
       .unwrap()
       .options
       .cookie_file()
@@ -293,7 +364,7 @@ mod tests {
 
   #[test]
   fn othernet_cookie_file_path() {
-    let arguments = Arguments::try_parse_from(["ord", "--chain=signet", "index"]).unwrap();
+    let arguments = Arguments::try_parse_from(["ord", "--chain=signet", "index", "run"]).unwrap();
 
     let cookie_file = arguments
       .options
@@ -313,9 +384,14 @@ mod tests {
 
   #[test]
   fn cookie_file_defaults_to_bitcoin_data_dir() {
-    let arguments =
-      Arguments::try_parse_from(["ord", "--bitcoin-data-dir=foo", "--chain=signet", "index"])
-        .unwrap();
+    let arguments = Arguments::try_parse_from([
+      "ord",
+      "--bitcoin-data-dir=foo",
+      "--chain=signet",
+      "index",
+      "run",
+    ])
+    .unwrap();
 
     let cookie_file = arguments
       .options
@@ -333,7 +409,7 @@ mod tests {
 
   #[test]
   fn mainnet_data_dir() {
-    let data_dir = Arguments::try_parse_from(["ord", "index"])
+    let data_dir = Arguments::try_parse_from(["ord", "index", "run"])
       .unwrap()
       .options
       .data_dir()
@@ -348,7 +424,7 @@ mod tests {
 
   #[test]
   fn othernet_data_dir() {
-    let data_dir = Arguments::try_parse_from(["ord", "--chain=signet", "index"])
+    let data_dir = Arguments::try_parse_from(["ord", "--chain=signet", "index", "run"])
       .unwrap()
       .options
       .data_dir()
@@ -368,7 +444,7 @@ mod tests {
   #[test]
   fn network_is_joined_with_data_dir() {
     let data_dir =
-      Arguments::try_parse_from(["ord", "--chain=signet", "--data-dir", "foo", "index"])
+      Arguments::try_parse_from(["ord", "--chain=signet", "--data-dir", "foo", "index", "run"])
         .unwrap()
         .options
         .data_dir()
@@ -388,7 +464,7 @@ mod tests {
   #[test]
   fn network_accepts_aliases() {
     fn check_network_alias(alias: &str, suffix: &str) {
-      let data_dir = Arguments::try_parse_from(["ord", "--chain", alias, "index"])
+      let data_dir = Arguments::try_parse_from(["ord", "--chain", alias, "index", "run"])
         .unwrap()
         .options
         .data_dir()
@@ -463,48 +539,51 @@ mod tests {
 
   #[test]
   fn chain_flags() {
-    Arguments::try_parse_from(["ord", "--signet", "--chain", "signet", "index"]).unwrap_err();
+    Arguments::try_parse_from(["ord", "--signet", "--chain", "signet", "index", "run"])
+      .unwrap_err();
     assert_eq!(
-      Arguments::try_parse_from(["ord", "--signet", "index"])
+      Arguments::try_parse_from(["ord", "--signet", "index", "run"])
         .unwrap()
         .options
         .chain(),
       Chain::Signet
     );
     assert_eq!(
-      Arguments::try_parse_from(["ord", "-s", "index"])
+      Arguments::try_parse_from(["ord", "-s", "index", "run"])
         .unwrap()
         .options
         .chain(),
       Chain::Signet
     );
 
-    Arguments::try_parse_from(["ord", "--regtest", "--chain", "signet", "index"]).unwrap_err();
+    Arguments::try_parse_from(["ord", "--regtest", "--chain", "signet", "index", "run"])
+      .unwrap_err();
     assert_eq!(
-      Arguments::try_parse_from(["ord", "--regtest", "index"])
+      Arguments::try_parse_from(["ord", "--regtest", "index", "run"])
         .unwrap()
         .options
         .chain(),
       Chain::Regtest
     );
     assert_eq!(
-      Arguments::try_parse_from(["ord", "-r", "index"])
+      Arguments::try_parse_from(["ord", "-r", "index", "run"])
         .unwrap()
         .options
         .chain(),
       Chain::Regtest
     );
 
-    Arguments::try_parse_from(["ord", "--testnet", "--chain", "signet", "index"]).unwrap_err();
+    Arguments::try_parse_from(["ord", "--testnet", "--chain", "signet", "index", "run"])
+      .unwrap_err();
     assert_eq!(
-      Arguments::try_parse_from(["ord", "--testnet", "index"])
+      Arguments::try_parse_from(["ord", "--testnet", "index", "run"])
         .unwrap()
         .options
         .chain(),
       Chain::Testnet
     );
     assert_eq!(
-      Arguments::try_parse_from(["ord", "-t", "index"])
+      Arguments::try_parse_from(["ord", "-t", "index", "run"])
         .unwrap()
         .options
         .chain(),
@@ -534,7 +613,7 @@ mod tests {
   #[test]
   fn default_config_is_returned_if_config_option_is_not_passed() {
     assert_eq!(
-      Arguments::try_parse_from(["ord", "index"])
+      Arguments::try_parse_from(["ord", "index", "run"])
         .unwrap()
         .options
         .load_config()
@@ -554,13 +633,38 @@ mod tests {
     fs::write(&path, format!("hidden:\n- \"{id}\"")).unwrap();
 
     assert_eq!(
-      Arguments::try_parse_from(["ord", "--config", path.to_str().unwrap(), "index",])
+      Arguments::try_parse_from(["ord", "--config", path.to_str().unwrap(), "index", "run"])
         .unwrap()
         .options
         .load_config()
         .unwrap(),
       Config {
         hidden: iter::once(id).collect(),
+        ..Default::default()
+      }
+    );
+  }
+
+  #[test]
+  fn config_with_rpc_user_pass() {
+    let tempdir = TempDir::new().unwrap();
+    let path = tempdir.path().join("ord.yaml");
+    fs::write(
+      &path,
+      "hidden:\nbitcoin_rpc_user: foo\nbitcoin_rpc_pass: bar",
+    )
+    .unwrap();
+
+    assert_eq!(
+      Arguments::try_parse_from(["ord", "--config", path.to_str().unwrap(), "index", "run"])
+        .unwrap()
+        .options
+        .load_config()
+        .unwrap(),
+      Config {
+        bitcoin_rpc_user: Some("foo".into()),
+        bitcoin_rpc_pass: Some("bar".into()),
+        ..Default::default()
       }
     );
   }
@@ -585,6 +689,7 @@ mod tests {
         "--config-dir",
         tempdir.path().to_str().unwrap(),
         "index",
+        "run"
       ])
       .unwrap()
       .options
@@ -592,7 +697,89 @@ mod tests {
       .unwrap(),
       Config {
         hidden: iter::once(id).collect(),
+        ..Default::default()
       }
     );
+  }
+
+  #[test]
+  fn test_derive_var() {
+    assert_eq!(Options::derive_var(None, None, None, None).unwrap(), None);
+
+    assert_eq!(
+      Options::derive_var(None, None, None, Some("foo")).unwrap(),
+      Some("foo".into())
+    );
+
+    assert_eq!(
+      Options::derive_var(None, None, Some("bar"), Some("foo")).unwrap(),
+      Some("bar".into())
+    );
+
+    assert_eq!(
+      Options::derive_var(Some("qux"), None, Some("bar"), Some("foo")).unwrap(),
+      Some("qux".into())
+    );
+
+    assert_eq!(
+      Options::derive_var(Some("qux"), None, None, Some("foo")).unwrap(),
+      Some("qux".into()),
+    );
+  }
+
+  #[test]
+  fn auth_missing_rpc_pass_is_an_error() {
+    let options = Options {
+      bitcoin_rpc_user: Some("foo".into()),
+      ..Default::default()
+    };
+    assert_eq!(
+      options.auth().unwrap_err().to_string(),
+      "no bitcoind rpc password specified"
+    );
+  }
+
+  #[test]
+  fn auth_missing_rpc_user_is_an_error() {
+    let options = Options {
+      bitcoin_rpc_pass: Some("bar".into()),
+      ..Default::default()
+    };
+    assert_eq!(
+      options.auth().unwrap_err().to_string(),
+      "no bitcoind rpc user specified"
+    );
+  }
+
+  #[test]
+  fn auth_with_user_and_pass() {
+    let options = Options {
+      bitcoin_rpc_user: Some("foo".into()),
+      bitcoin_rpc_pass: Some("bar".into()),
+      ..Default::default()
+    };
+    assert_eq!(
+      options.auth().unwrap(),
+      Auth::UserPass("foo".into(), "bar".into())
+    );
+  }
+
+  #[test]
+  fn auth_with_cookie_file() {
+    let options = Options {
+      cookie_file: Some("/var/lib/Bitcoin/.cookie".into()),
+      ..Default::default()
+    };
+    assert_eq!(
+      options.auth().unwrap(),
+      Auth::CookieFile("/var/lib/Bitcoin/.cookie".into())
+    );
+  }
+
+  #[test]
+  fn setting_db_cache_size() {
+    let arguments =
+      Arguments::try_parse_from(["ord", "--db-cache-size", "16000000000", "index", "run"]).unwrap();
+    assert_eq!(arguments.options.db_cache_size, Some(16000000000));
   }
 }

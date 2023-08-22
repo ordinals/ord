@@ -15,7 +15,7 @@ fn inscriptions_can_be_sent() {
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(r".*")
-  .run();
+  .run_and_extract_stdout();
 
   let txid = rpc_server.mempool()[0].txid();
   assert_eq!(format!("{txid}\n"), stdout);
@@ -56,7 +56,7 @@ fn send_unknown_inscription() {
   .rpc_server(&rpc_server)
   .expected_stderr(format!("error: Inscription {txid}i0 not found\n"))
   .expected_exit_code(1)
-  .run();
+  .run_and_extract_stdout();
 }
 
 #[test]
@@ -74,7 +74,7 @@ fn send_inscribed_sat() {
   ))
   .rpc_server(&rpc_server)
   .stdout_regex("[[:xdigit:]]{64}\n")
-  .run();
+  .run_and_extract_stdout();
 
   rpc_server.mine_blocks(1);
 
@@ -96,14 +96,14 @@ fn send_on_mainnnet_works_with_wallet_named_foo() {
 
   CommandBuilder::new("--wallet foo wallet create")
     .rpc_server(&rpc_server)
-    .output::<Create>();
+    .run_and_check_output::<Create>();
 
   CommandBuilder::new(format!(
     "--wallet foo wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0"
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(r"[[:xdigit:]]{64}\n")
-  .run();
+  .run_and_extract_stdout();
 }
 
 #[test]
@@ -117,10 +117,10 @@ fn send_addresses_must_be_valid_for_network() {
   ))
   .rpc_server(&rpc_server)
   .expected_stderr(
-    "error: Address `tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz` is not valid for mainnet\n",
+    "error: address tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz belongs to network testnet which is different from required bitcoin\n",
   )
   .expected_exit_code(1)
-  .run();
+  .run_and_extract_stdout();
 }
 
 #[test]
@@ -134,7 +134,7 @@ fn send_on_mainnnet_works_with_wallet_named_ord() {
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(r".*")
-  .run();
+  .run_and_extract_stdout();
 
   let txid = rpc_server.mempool()[0].txid();
   assert_eq!(format!("{txid}\n"), stdout);
@@ -151,7 +151,7 @@ fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
   ))
   .write("degenerate.png", [1; 100])
   .rpc_server(&rpc_server)
-  .output::<Inscribe>();
+  .run_and_check_output::<Inscribe>();
 
   let txid = rpc_server.mine_blocks_with_subsidy(1, 100)[0].txdata[0].txid();
   CommandBuilder::new(format!(
@@ -160,7 +160,7 @@ fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
   .rpc_server(&rpc_server)
   .expected_exit_code(1)
   .expected_stderr("error: wallet does not contain enough cardinal UTXOs, please add additional funds to wallet.\n")
-  .run();
+  .run_and_extract_stdout();
 }
 
 #[test]
@@ -189,7 +189,7 @@ fn do_not_send_within_dust_limit_of_an_inscription() {
   .expected_stderr(format!(
     "error: cannot send {output}:329 without also sending inscription {inscription} at {output}:0\n"
   ))
-  .run();
+  .run_and_extract_stdout();
 }
 
 #[test]
@@ -229,20 +229,37 @@ fn inscriptions_cannot_be_sent_by_satpoint() {
   .rpc_server(&rpc_server)
   .expected_stderr("error: inscriptions must be sent by inscription ID\n")
   .expected_exit_code(1)
-  .run();
+  .run_and_extract_stdout();
 }
 
 #[test]
-fn send_btc() {
+fn send_btc_with_fee_rate() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
   rpc_server.mine_blocks(1);
 
-  let output =
-    CommandBuilder::new("wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc")
-      .rpc_server(&rpc_server)
-      .output::<Output>();
+  let output = CommandBuilder::new(
+    "wallet send --fee-rate 13.3 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc",
+  )
+  .rpc_server(&rpc_server)
+  .run_and_check_output::<Output>();
+
+  let tx = &rpc_server.mempool()[0];
+  let mut fee = 0;
+  for input in &tx.input {
+    fee += rpc_server
+      .get_utxo_amount(&input.previous_output)
+      .unwrap()
+      .to_sat();
+  }
+  for output in &tx.output {
+    fee -= output.value;
+  }
+
+  let fee_rate = fee as f64 / tx.vsize() as f64;
+
+  assert!(f64::abs(fee_rate - 13.3) < 0.1);
 
   assert_eq!(
     output.transaction,
@@ -256,11 +273,12 @@ fn send_btc() {
     &[Sent {
       amount: 1.0,
       address: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
-        .parse()
-        .unwrap(),
+        .parse::<Address<NetworkUnchecked>>()
+        .unwrap()
+        .assume_checked(),
       locked: Vec::new(),
     }]
-  )
+  );
 }
 
 #[test]
@@ -275,7 +293,7 @@ fn send_btc_locks_inscriptions() {
   let output =
     CommandBuilder::new("wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc")
       .rpc_server(&rpc_server)
-      .output::<Output>();
+      .run_and_check_output::<Output>();
 
   assert_eq!(
     output.transaction,
@@ -289,8 +307,9 @@ fn send_btc_locks_inscriptions() {
     &[Sent {
       amount: 1.0,
       address: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
-        .parse()
-        .unwrap(),
+        .parse::<Address<NetworkUnchecked>>()
+        .unwrap()
+        .assume_checked(),
       locked: vec![OutPoint {
         txid: reveal,
         vout: 0,
@@ -312,7 +331,7 @@ fn send_btc_fails_if_lock_unspent_fails() {
     .rpc_server(&rpc_server)
     .expected_stderr("error: failed to lock ordinal UTXOs\n")
     .expected_exit_code(1)
-    .run();
+    .run_and_extract_stdout();
 }
 
 #[test]
@@ -328,7 +347,7 @@ fn wallet_send_with_fee_rate() {
   ))
   .rpc_server(&rpc_server)
   .stdout_regex("[[:xdigit:]]{64}\n")
-  .run();
+  .run_and_extract_stdout();
 
   let tx = &rpc_server.mempool()[0];
   let mut fee = 0;
@@ -364,5 +383,38 @@ fn user_must_provide_fee_rate_to_send() {
     ".*error: The following required arguments were not provided:
 .*--fee-rate <FEE_RATE>.*",
   )
-  .run();
+  .run_and_extract_stdout();
+}
+
+#[test]
+fn wallet_send_with_fee_rate_and_target_postage() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  let Inscribe { inscription, .. } = inscribe(&rpc_server);
+
+  CommandBuilder::new(format!(
+    "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {inscription} --fee-rate 2.0 --postage 77000sat"
+  ))
+  .rpc_server(&rpc_server)
+  .stdout_regex("[[:xdigit:]]{64}\n")
+  .run_and_extract_stdout();
+
+  let tx = &rpc_server.mempool()[0];
+  let mut fee = 0;
+  for input in &tx.input {
+    fee += rpc_server
+      .get_utxo_amount(&input.previous_output)
+      .unwrap()
+      .to_sat();
+  }
+  for output in &tx.output {
+    fee -= output.value;
+  }
+
+  let fee_rate = fee as f64 / tx.vsize() as f64;
+
+  pretty_assert_eq!(fee_rate, 2.0);
+  pretty_assert_eq!(tx.output[0].value, 77_000);
 }
