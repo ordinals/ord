@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -euxo pipefail
+
+until [ -f /Volumes/OPENDIME/README.txt ]; do
+  sleep 1
+done
+
+dd if=/dev/urandom of=/Volumes/OPENDIME/entro.bin bs=1024 count=256
+
+until [ -f /Volumes/OPENDIME/address.txt ]; do
+  sleep 1
+done
+
+cat /Volumes/OPENDIME/address.txt | tr -d '\r\n'

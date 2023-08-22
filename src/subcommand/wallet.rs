@@ -5,7 +5,7 @@ use {
     All, Secp256k1,
   },
   bitcoin::{
-    util::bip32::{ChildNumber, DerivationPath, ExtendedPrivKey, Fingerprint},
+    bip32::{ChildNumber, DerivationPath, ExtendedPrivKey, Fingerprint},
     Network,
   },
   bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, Timestamp},
@@ -14,24 +14,25 @@ use {
   transaction_builder::TransactionBuilder,
 };
 
-mod balance;
-pub(crate) mod create;
+pub mod balance;
+pub mod cardinals;
+pub mod create;
 pub(crate) mod inscribe;
-mod inscriptions;
-mod outputs;
-mod receive;
+pub mod inscriptions;
+pub mod outputs;
+pub mod receive;
 mod restore;
-mod sats;
-mod send;
-pub(crate) mod transaction_builder;
-mod transactions;
+pub mod sats;
+pub mod send;
+pub mod transaction_builder;
+pub mod transactions;
 
 #[derive(Debug, Parser)]
 pub(crate) enum Wallet {
   #[clap(about = "Get wallet balance")]
   Balance,
   #[clap(about = "Create new wallet")]
-  Create,
+  Create(create::Create),
   #[clap(about = "Create inscription")]
   Inscribe(inscribe::Inscribe),
   #[clap(about = "List wallet inscriptions")]
@@ -46,15 +47,17 @@ pub(crate) enum Wallet {
   Send(send::Send),
   #[clap(about = "See wallet transactions")]
   Transactions(transactions::Transactions),
-  #[clap(about = "List wallet outputs")]
+  #[clap(about = "List all unspent outputs in wallet")]
   Outputs,
+  #[clap(about = "List unspent cardinal outputs in wallet")]
+  Cardinals,
 }
 
 impl Wallet {
   pub(crate) fn run(self, options: Options) -> Result {
     match self {
       Self::Balance => balance::run(options),
-      Self::Create => create::run(options),
+      Self::Create(create) => create.run(options),
       Self::Inscribe(inscribe) => inscribe.run(options),
       Self::Inscriptions => inscriptions::run(options),
       Self::Receive => receive::run(options),
@@ -63,64 +66,21 @@ impl Wallet {
       Self::Send(send) => send.run(options),
       Self::Transactions(transactions) => transactions.run(options),
       Self::Outputs => outputs::run(options),
+      Self::Cardinals => cardinals::run(options),
     }
   }
 }
 
-fn get_unspent_output_ranges(
-  options: &Options,
-  index: &Index,
-) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
-  get_unspent_outputs(options)?
-    .into_keys()
-    .map(|outpoint| match index.list(outpoint)? {
-      Some(List::Unspent(sat_ranges)) => Ok((outpoint, sat_ranges)),
-      Some(List::Spent) => bail!("output {outpoint} in wallet but is spent according to index"),
-      None => bail!("index has not seen {outpoint}"),
-    })
-    .collect()
-}
-
-fn get_unspent_outputs(options: &Options) -> Result<BTreeMap<OutPoint, Amount>> {
-  let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
-
-  let mut utxos = BTreeMap::new();
-
-  utxos.extend(
+fn get_change_address(client: &Client, options: &Options) -> Result<Address> {
+  Ok(
     client
-      .list_unspent(None, None, None, None, None)?
-      .into_iter()
-      .map(|utxo| {
-        let outpoint = OutPoint::new(utxo.txid, utxo.vout);
-        let amount = utxo.amount;
-
-        (outpoint, amount)
-      }),
-  );
-
-  #[derive(Deserialize)]
-  pub(crate) struct JsonOutPoint {
-    txid: bitcoin::Txid,
-    vout: u32,
-  }
-
-  for JsonOutPoint { txid, vout } in client.call::<Vec<JsonOutPoint>>("listlockunspent", &[])? {
-    utxos.insert(
-      OutPoint { txid, vout },
-      Amount::from_sat(client.get_raw_transaction(&txid, None)?.output[vout as usize].value),
-    );
-  }
-
-  Ok(utxos)
+      .call::<Address<NetworkUnchecked>>("getrawchangeaddress", &["bech32m".into()])
+      .context("could not get change addresses from wallet")?
+      .require_network(options.chain().network())?,
+  )
 }
 
-fn get_change_address(client: &Client) -> Result<Address> {
-  client
-    .call("getrawchangeaddress", &["bech32m".into()])
-    .context("could not get change addresses from wallet")
-}
-
-fn initialize_wallet(options: &Options, seed: [u8; 64]) -> Result {
+pub(crate) fn initialize_wallet(options: &Options, seed: [u8; 64]) -> Result {
   let client = options.bitcoin_rpc_client_for_wallet_command(true)?;
   let network = options.chain().network();
 
@@ -183,7 +143,7 @@ fn derive_and_import_descriptor(
     active: Some(true),
     range: None,
     next_index: None,
-    internal: Some(!change),
+    internal: Some(change),
     label: None,
   })?;
 

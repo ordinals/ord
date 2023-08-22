@@ -6,6 +6,14 @@ pub(crate) struct Info {
   transactions: bool,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct TransactionsOutput {
+  pub start: u64,
+  pub end: u64,
+  pub count: u64,
+  pub elapsed: f64,
+}
+
 impl Info {
   pub(crate) fn run(self, options: Options) -> Result {
     let index = Index::open(&options)?;
@@ -13,19 +21,18 @@ impl Info {
     let info = index.info()?;
 
     if self.transactions {
-      println!("start\tend\tcount\telapsed");
-
+      let mut output = Vec::new();
       for window in info.transactions.windows(2) {
         let start = &window[0];
         let end = &window[1];
-        println!(
-          "{}\t{}\t{}\t{:.2}",
-          start.starting_block_count,
-          end.starting_block_count,
-          end.starting_block_count - start.starting_block_count,
-          (end.starting_timestamp - start.starting_timestamp) as f64 / 1000.0 / 60.0
-        );
+        output.push(TransactionsOutput {
+          start: start.starting_block_count,
+          end: end.starting_block_count,
+          count: end.starting_block_count - start.starting_block_count,
+          elapsed: (end.starting_timestamp - start.starting_timestamp) as f64 / 1000.0 / 60.0,
+        });
       }
+      print_json(output)?;
     } else {
       print_json(info)?;
     }

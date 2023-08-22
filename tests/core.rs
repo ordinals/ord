@@ -33,6 +33,7 @@ fn preview() {
         .unwrap()
         .into()
     })
+    .filter(|example| example != "examples/av1.mp4")
     .collect::<Vec<String>>();
 
   let mut args = vec![

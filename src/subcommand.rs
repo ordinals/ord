@@ -1,17 +1,17 @@
 use super::*;
 
-mod epochs;
-mod find;
+pub mod epochs;
+pub mod find;
 mod index;
-mod info;
-mod list;
-mod parse;
+pub mod info;
+pub mod list;
+pub mod parse;
 mod preview;
 mod server;
-mod subsidy;
-mod supply;
-mod traits;
-pub(crate) mod wallet;
+pub mod subsidy;
+pub mod supply;
+pub mod traits;
+pub mod wallet;
 
 fn print_json(output: impl Serialize) -> Result {
   serde_json::to_writer_pretty(io::stdout(), &output)?;
@@ -27,8 +27,8 @@ pub(crate) enum Subcommand {
   Preview(preview::Preview),
   #[clap(about = "Find a satoshi's current location")]
   Find(find::Find),
-  #[clap(about = "Update the index")]
-  Index,
+  #[clap(subcommand, about = "Index commands")]
+  Index(index::IndexSubcommand),
   #[clap(about = "Display index statistics")]
   Info(info::Info),
   #[clap(about = "List the satoshis in an output")]
@@ -53,7 +53,7 @@ impl Subcommand {
       Self::Epochs => epochs::run(),
       Self::Preview(preview) => preview.run(),
       Self::Find(find) => find.run(options),
-      Self::Index => index::run(options),
+      Self::Index(index) => index.run(options),
       Self::Info(info) => info.run(options),
       Self::List(list) => list.run(options),
       Self::Parse(parse) => parse.run(),

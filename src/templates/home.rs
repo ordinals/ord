@@ -57,7 +57,7 @@ mod tests {
   <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
   <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
 </div>
-<div class=center><a href=/inscriptions>more…</a></div>
+<div class=center><a href=/inscriptions>more</a></div>
 <h2>Latest Blocks</h2>
 <ol start=1260001 reversed class=blocks>
   <li><a href=/block/1{64}>1{64}</a></li>

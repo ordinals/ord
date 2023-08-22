@@ -6,8 +6,15 @@ pub(crate) struct Transactions {
   limit: Option<u16>,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct Output {
+  pub transaction: Txid,
+  pub confirmations: i32,
+}
+
 impl Transactions {
   pub(crate) fn run(self, options: Options) -> Result {
+    let mut output = Vec::new();
     for tx in options
       .bitcoin_rpc_client_for_wallet_command(false)?
       .list_transactions(
@@ -17,8 +24,13 @@ impl Transactions {
         None,
       )?
     {
-      println!("{}\t{}", tx.info.txid, tx.info.confirmations);
+      output.push(Output {
+        transaction: tx.info.txid,
+        confirmations: tx.info.confirmations,
+      });
     }
+
+    print_json(output)?;
 
     Ok(())
   }

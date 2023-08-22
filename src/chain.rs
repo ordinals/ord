@@ -2,7 +2,7 @@ use {super::*, clap::ValueEnum};
 
 #[derive(Default, ValueEnum, Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
-pub(crate) enum Chain {
+pub enum Chain {
   #[default]
   #[clap(alias("main"))]
   Mainnet,
@@ -54,7 +54,7 @@ impl Chain {
   pub(crate) fn address_from_script(
     self,
     script: &Script,
-  ) -> Result<Address, bitcoin::util::address::Error> {
+  ) -> Result<Address, bitcoin::address::Error> {
     Address::from_script(script, self.network())
   }
 

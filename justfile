@@ -12,7 +12,7 @@ forbid:
   ./bin/forbid
 
 fmt:
-  cargo fmt
+  cargo fmt --all
 
 clippy:
   cargo clippy --all --all-targets -- -D warnings
@@ -28,13 +28,22 @@ deploy branch chain domain:
   rsync -avz deploy/checkout root@{{domain}}:deploy/checkout
   ssh root@{{domain}} 'cd deploy && ./checkout {{branch}} {{chain}} {{domain}}'
 
-deploy-mainnet: (deploy "master" "main" "ordinals.com")
+deploy-all: deploy-testnet deploy-signet deploy-mainnet
 
-deploy-signet branch="master": (deploy branch "signet" "signet.ordinals.com")
+deploy-mainnet branch="master": (deploy branch "main" "ordinals.net")
 
-deploy-testnet branch="master": (deploy branch "test" "testnet.ordinals.com")
+deploy-signet branch="master": (deploy branch "signet" "signet.ordinals.net")
 
-log unit="ord" domain="ordinals.com":
+deploy-testnet branch="master": (deploy branch "test" "testnet.ordinals.net")
+
+deploy-ord-dev branch="master" chain="main" domain="ordinals-dev.com": (deploy branch chain domain)
+
+save-ord-dev-state domain="ordinals-dev.com":
+  $EDITOR ./deploy/save-ord-dev-state
+  scp ./deploy/save-ord-dev-state root@{{domain}}:~
+  ssh root@{{domain}} "./save-ord-dev-state"
+
+log unit="ord" domain="ordinals.net":
   ssh root@{{domain}} 'journalctl -fu {{unit}}'
 
 test-deploy:
@@ -58,8 +67,8 @@ profile-tests:
     | sed -n 's/^test \(.*\) ... ok <\(.*\)s>/\2 \1/p' | sort -n \
     | tee test-times.txt
 
-fuzz case='':
-  RUSTFLAGS='-C debuginfo=1' cargo +nightly fuzz run transaction-builder {{case}}
+fuzz:
+  cd fuzz && cargo +nightly fuzz run transaction-builder
 
 open:
   open http://localhost
@@ -67,26 +76,30 @@ open:
 doc:
   cargo doc --all --open
 
-update-ord-dev:
-  ./bin/update-ord-dev
+prepare-release revision='master':
+  #!/usr/bin/env bash
+  set -euxo pipefail
+  git checkout {{ revision }}
+  git pull origin {{ revision }}
+  echo >> CHANGELOG.md
+  git log --pretty='format:- %s' >> CHANGELOG.md
+  $EDITOR CHANGELOG.md
+  $EDITOR Cargo.toml
+  VERSION=`sed -En 's/version[[:space:]]*=[[:space:]]*"([^"]+)"/\1/p' Cargo.toml | head -1`
+  cargo check
+  git checkout -b release-$VERSION
+  git add -u
+  git commit -m "Release $VERSION"
+  git tag -a $VERSION -m "Release $VERSION"
+  gh pr create --web
 
-rebuild-ord-dev-database: && update-ord-dev
-  systemctl stop ord-dev
-  rm -f /var/lib/ord-dev/index.redb
-  rm -f /var/lib/ord-dev/*/index.redb
-  journalctl --unit ord-dev --rotate
-  journalctl --unit ord-dev --vacuum-time 1s
-
-# publish current GitHub master branch
-publish:
+publish-release revision='master':
   #!/usr/bin/env bash
   set -euxo pipefail
   rm -rf tmp/release
-  git clone git@github.com:casey/ord.git tmp/release
+  git clone https://github.com/ordinals/ord.git tmp/release
   cd tmp/release
-  VERSION=`sed -En 's/version[[:space:]]*=[[:space:]]*"([^"]+)"/\1/p' Cargo.toml | head -1`
-  git tag -a $VERSION -m "Release $VERSION"
-  git push origin $VERSION
+  git checkout {{ revision }}
   cargo publish
   cd ../..
   rm -rf tmp/release
@@ -100,11 +113,11 @@ update-modern-normalize:
     https://raw.githubusercontent.com/sindresorhus/modern-normalize/main/modern-normalize.css \
     > static/modern-normalize.css
 
-download-log unit='ord' host='ordinals.com':
+download-log unit='ord' host='ordinals.net':
   ssh root@{{host}} 'mkdir -p tmp && journalctl -u {{unit}} > tmp/{{unit}}.log'
   rsync --progress --compress root@{{host}}:tmp/{{unit}}.log tmp/{{unit}}.log
 
-download-index unit='ord' host='ordinals.com':
+download-index unit='ord' host='ordinals.net':
   rsync --progress --compress root@{{host}}:/var/lib/{{unit}}/index.redb tmp/{{unit}}.index.redb
 
 graph log:
@@ -117,12 +130,12 @@ benchmark index height-limit:
   ./bin/benchmark $1 $2
 
 benchmark-revision rev:
-  ssh root@ordinals.com "mkdir -p benchmark \
+  ssh root@ordinals.net "mkdir -p benchmark \
     && apt-get update --yes \
     && apt-get upgrade --yes \
     && apt-get install --yes git rsync"
-  rsync -avz benchmark/checkout root@ordinals.com:benchmark/checkout
-  ssh root@ordinals.com 'cd benchmark && ./checkout {{rev}}'
+  rsync -avz benchmark/checkout root@ordinals.net:benchmark/checkout
+  ssh root@ordinals.net 'cd benchmark && ./checkout {{rev}}'
 
 build-snapshots:
   #!/usr/bin/env bash
@@ -151,6 +164,7 @@ build-docs:
   mdbook build docs
 
 update-changelog:
+  echo >> CHANGELOG.md
   git log --pretty='format:- %s' >> CHANGELOG.md
 
 preview-examples:

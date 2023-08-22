@@ -1,8 +1,8 @@
 use super::*;
 
 #[derive(Debug, PartialEq)]
-pub(crate) enum Object {
-  Address(Address),
+pub enum Object {
+  Address(Address<NetworkUnchecked>),
   Hash([u8; 32]),
   InscriptionId(InscriptionId),
   Integer(u128),
@@ -21,7 +21,7 @@ impl FromStr for Object {
       Address => Ok(Self::Address(s.parse()?)),
       Decimal | Degree | Percentile | Name => Ok(Self::Sat(s.parse()?)),
       Hash => Ok(Self::Hash(
-        bitcoin::hashes::sha256::Hash::from_str(s)?.into_inner(),
+        bitcoin::hashes::sha256::Hash::from_str(s)?.to_byte_array(),
       )),
       InscriptionId => Ok(Self::InscriptionId(s.parse()?)),
       Integer => Ok(Self::Integer(s.parse()?)),
@@ -34,7 +34,7 @@ impl FromStr for Object {
 impl Display for Object {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     match self {
-      Self::Address(address) => write!(f, "{}", address),
+      Self::Address(address) => write!(f, "{}", address.clone().assume_checked()),
       Self::Hash(hash) => {
         for byte in hash {
           write!(f, "{byte:02x}")?;
@@ -43,10 +43,28 @@ impl Display for Object {
       }
       Self::InscriptionId(inscription_id) => write!(f, "{inscription_id}"),
       Self::Integer(integer) => write!(f, "{integer}"),
-      Self::OutPoint(outpoint) => write!(f, "{}", outpoint),
+      Self::OutPoint(outpoint) => write!(f, "{outpoint}"),
       Self::Sat(sat) => write!(f, "{sat}"),
-      Self::SatPoint(satpoint) => write!(f, "{}", satpoint),
+      Self::SatPoint(satpoint) => write!(f, "{satpoint}"),
     }
+  }
+}
+
+impl Serialize for Object {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    serializer.collect_str(self)
+  }
+}
+
+impl<'de> Deserialize<'de> for Object {
+  fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+  where
+    D: Deserializer<'de>,
+  {
+    Ok(DeserializeFromStr::deserialize(deserializer)?.0)
   }
 }
 

@@ -1,10 +1,7 @@
-use super::*;
-
-#[derive(Deserialize)]
-struct Inscription {
-  inscription: String,
-  location: String,
-}
+use {
+  super::*,
+  ord::subcommand::wallet::{inscriptions::Output, receive},
+};
 
 #[test]
 fn inscriptions() {
@@ -18,40 +15,43 @@ fn inscriptions() {
     ..
   } = inscribe(&rpc_server);
 
-  let inscriptions = CommandBuilder::new("wallet inscriptions")
+  let output = CommandBuilder::new("wallet inscriptions")
     .rpc_server(&rpc_server)
-    .expected_stdout(format!("{inscription}\t{reveal}:0:0\n"))
-    .output::<Vec<Inscription>>();
+    .run_and_check_output::<Vec<Output>>();
 
-  assert_eq!(inscriptions.len(), 1);
-  assert_eq!(inscriptions[0].inscription, inscription);
-  assert_eq!(inscriptions[0].location, format!("{reveal}:0:0"));
+  assert_eq!(output.len(), 1);
+  assert_eq!(output[0].inscription, inscription.parse().unwrap());
+  assert_eq!(output[0].location, format!("{reveal}:0:0").parse().unwrap());
+  assert_eq!(
+    output[0].explorer,
+    format!("https://ordinals.com/inscription/{inscription}")
+  );
 
-  let stdout = CommandBuilder::new("wallet receive")
+  let address = CommandBuilder::new("wallet receive")
     .rpc_server(&rpc_server)
-    .expected_exit_code(0)
-    .stdout_regex(".*")
-    .run();
+    .run_and_check_output::<receive::Output>()
+    .address;
 
-  let address = stdout.trim();
-
-  let stdout = CommandBuilder::new(format!("wallet send {address} {inscription}"))
-    .rpc_server(&rpc_server)
-    .expected_exit_code(0)
-    .stdout_regex(".*")
-    .run();
+  let stdout = CommandBuilder::new(format!(
+    "wallet send --fee-rate 1 {} {inscription}",
+    address.assume_checked()
+  ))
+  .rpc_server(&rpc_server)
+  .expected_exit_code(0)
+  .stdout_regex(".*")
+  .run_and_extract_stdout();
 
   rpc_server.mine_blocks(1);
 
   let txid = Txid::from_str(stdout.trim()).unwrap();
 
-  let inscriptions = CommandBuilder::new("wallet inscriptions")
+  let output = CommandBuilder::new("wallet inscriptions")
     .rpc_server(&rpc_server)
-    .output::<Vec<Inscription>>();
+    .run_and_check_output::<Vec<Output>>();
 
-  assert_eq!(inscriptions.len(), 1);
-  assert_eq!(inscriptions[0].inscription, inscription);
-  assert_eq!(inscriptions[0].location, format!("{txid}:0:0"));
+  assert_eq!(output.len(), 1);
+  assert_eq!(output[0].inscription, inscription.parse().unwrap());
+  assert_eq!(output[0].location, format!("{txid}:0:0").parse().unwrap());
 }
 
 #[test]
@@ -74,11 +74,48 @@ fn inscriptions_includes_locked_utxos() {
     vout: 0,
   });
 
-  let inscriptions = CommandBuilder::new("wallet inscriptions")
+  let output = CommandBuilder::new("wallet inscriptions")
     .rpc_server(&rpc_server)
-    .output::<Vec<Inscription>>();
+    .run_and_check_output::<Vec<Output>>();
 
-  assert_eq!(inscriptions.len(), 1);
-  assert_eq!(inscriptions[0].inscription, inscription);
-  assert_eq!(inscriptions[0].location, format!("{reveal}:0:0"));
+  assert_eq!(output.len(), 1);
+  assert_eq!(output[0].inscription, inscription.parse().unwrap());
+  assert_eq!(output[0].location, format!("{reveal}:0:0").parse().unwrap());
+}
+
+#[test]
+fn inscriptions_with_postage() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  let Inscribe { inscription, .. } = inscribe(&rpc_server);
+
+  let output = CommandBuilder::new("wallet inscriptions")
+    .rpc_server(&rpc_server)
+    .run_and_check_output::<Vec<Output>>();
+
+  assert_eq!(output[0].postage, 10000);
+
+  let address = CommandBuilder::new("wallet receive")
+    .rpc_server(&rpc_server)
+    .run_and_check_output::<receive::Output>()
+    .address;
+
+  CommandBuilder::new(format!(
+    "wallet send --fee-rate 1 {} {inscription}",
+    address.assume_checked()
+  ))
+  .rpc_server(&rpc_server)
+  .expected_exit_code(0)
+  .stdout_regex(".*")
+  .run_and_extract_stdout();
+
+  rpc_server.mine_blocks(1);
+
+  let output = CommandBuilder::new("wallet inscriptions")
+    .rpc_server(&rpc_server)
+    .run_and_check_output::<Vec<Output>>();
+
+  assert_eq!(output[0].postage, 9889);
 }

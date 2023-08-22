@@ -1,9 +1,9 @@
 use super::*;
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Copy, Clone, Hash, Eq)]
 pub struct InscriptionId {
-  pub(crate) txid: Txid,
-  pub(crate) index: u32,
+  pub txid: Txid,
+  pub index: u32,
 }
 
 impl<'de> Deserialize<'de> for InscriptionId {

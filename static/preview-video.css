@@ -1,0 +1,16 @@
+html {
+  background-color: #131516;
+  height: 100%;
+}
+
+body {
+  align-items: center;
+  display: flex;
+  height: 100%;
+  margin: 0;
+}
+
+video {
+  height: 100%;
+  width: 100%;
+}

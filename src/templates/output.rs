@@ -9,6 +9,41 @@ pub(crate) struct OutputHtml {
   pub(crate) inscriptions: Vec<InscriptionId>,
 }
 
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct OutputJson {
+  pub value: u64,
+  pub script_pubkey: String,
+  pub address: Option<String>,
+  pub transaction: String,
+  pub sat_ranges: Option<Vec<(u64, u64)>>,
+  pub inscriptions: Vec<InscriptionId>,
+}
+
+impl OutputJson {
+  pub fn new(
+    outpoint: OutPoint,
+    list: Option<List>,
+    chain: Chain,
+    output: TxOut,
+    inscriptions: Vec<InscriptionId>,
+  ) -> Self {
+    Self {
+      value: output.value,
+      script_pubkey: output.script_pubkey.to_asm_string(),
+      address: chain
+        .address_from_script(&output.script_pubkey)
+        .ok()
+        .map(|address| address.to_string()),
+      transaction: outpoint.txid.to_string(),
+      sat_ranges: match list {
+        Some(List::Unspent(ranges)) => Some(ranges),
+        _ => None,
+      },
+      inscriptions,
+    }
+  }
+}
+
 impl PageContent for OutputHtml {
   fn title(&self) -> String {
     format!("Output {}", self.outpoint)
@@ -19,7 +54,7 @@ impl PageContent for OutputHtml {
 mod tests {
   use {
     super::*,
-    bitcoin::{blockdata::script, PubkeyHash, Script},
+    bitcoin::{blockdata::script, PubkeyHash},
   };
 
   #[test]
@@ -32,14 +67,14 @@ mod tests {
         chain: Chain::Mainnet,
         output: TxOut {
           value: 3,
-          script_pubkey: Script::new_p2pkh(&PubkeyHash::all_zeros()),
+          script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()),
         },
       },
       "
         <h1>Output <span class=monospace>1{64}:1</span></h1>
         <dl>
           <dt>value</dt><dd>3</dd>
-          <dt>script pubkey</dt><dd class=data>OP_DUP OP_HASH160 OP_PUSHBYTES_20 0{40} OP_EQUALVERIFY OP_CHECKSIG</dd>
+          <dt>script pubkey</dt><dd class=monospace>OP_DUP OP_HASH160 OP_PUSHBYTES_20 0{40} OP_EQUALVERIFY OP_CHECKSIG</dd>
           <dt>address</dt><dd class=monospace>1111111111111111111114oLvT2</dd>
           <dt>transaction</dt><dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
         </dl>
@@ -70,7 +105,7 @@ mod tests {
         <h1>Output <span class=monospace>1{64}:1</span></h1>
         <dl>
           <dt>value</dt><dd>1</dd>
-          <dt>script pubkey</dt><dd class=data>OP_0</dd>
+          <dt>script pubkey</dt><dd class=monospace>OP_0</dd>
           <dt>transaction</dt><dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
         </dl>
         <p>Output has been spent.</p>
@@ -89,7 +124,7 @@ mod tests {
         chain: Chain::Mainnet,
         output: TxOut {
           value: 3,
-          script_pubkey: Script::new_p2pkh(&PubkeyHash::all_zeros()),
+          script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()),
         },
       }
       .to_string(),
@@ -97,7 +132,7 @@ mod tests {
         <h1>Output <span class=monospace>1{64}:1</span></h1>
         <dl>
           <dt>value</dt><dd>3</dd>
-          <dt>script pubkey</dt><dd class=data>OP_DUP OP_HASH160 OP_PUSHBYTES_20 0{40} OP_EQUALVERIFY OP_CHECKSIG</dd>
+          <dt>script pubkey</dt><dd class=monospace>OP_DUP OP_HASH160 OP_PUSHBYTES_20 0{40} OP_EQUALVERIFY OP_CHECKSIG</dd>
           <dt>address</dt><dd class=monospace>1111111111111111111114oLvT2</dd>
           <dt>transaction</dt><dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
         </dl>
@@ -116,7 +151,7 @@ mod tests {
         chain: Chain::Mainnet,
         output: TxOut {
           value: 3,
-          script_pubkey: Script::new_p2pkh(&PubkeyHash::all_zeros()),
+          script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()),
         },
       },
       "

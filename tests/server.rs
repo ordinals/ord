@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, crate::command_builder::ToArgs};
 
 #[test]
 fn run() {
@@ -10,7 +10,8 @@ fn run() {
     .unwrap()
     .port();
 
-  let builder = CommandBuilder::new(format!("server --http-port {}", port)).rpc_server(&rpc_server);
+  let builder = CommandBuilder::new(format!("server --address 127.0.0.1 --http-port {port}"))
+    .rpc_server(&rpc_server);
 
   let mut command = builder.command();
 
@@ -48,9 +49,11 @@ fn inscription_page() {
   TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
     format!("/inscription/{inscription}"),
     format!(
-      ".*<meta property=og:image content='/content/{inscription}'>.*
+      ".*<meta property=og:title content='Inscription 0'>.*
+.*<meta property=og:image content='https://.*/favicon.png'>.*
+.*<meta property=twitter:card content=summary>.*
 <h1>Inscription 0</h1>
-.*<a href=/preview/{inscription}><iframe .* src=/preview/{inscription}></iframe></a>.*
+.*<iframe .* src=/preview/{inscription}></iframe>.*
 <dl>
   <dt>id</dt>
   <dd class=monospace>{inscription}</dd>
@@ -58,6 +61,8 @@ fn inscription_page() {
   <dd class=monospace>bc1.*</dd>
   <dt>output value</dt>
   <dd>10000</dd>
+  <dt>preview</dt>
+  <dd><a href=/preview/{inscription}>link</a></dd>
   <dt>content</dt>
   <dd><a href=/content/{inscription}>link</a></dd>
   <dt>content length</dt>
@@ -65,9 +70,11 @@ fn inscription_page() {
   <dt>content type</dt>
   <dd>text/plain;charset=utf-8</dd>
   <dt>timestamp</dt>
-  <dd>1970-01-01 00:00:02</dd>
+  <dd><time>1970-01-01 00:00:02 UTC</time></dd>
   <dt>genesis height</dt>
-  <dd>2</dd>
+  <dd><a href=/block/2>2</a></dd>
+  <dt>genesis fee</dt>
+  <dd>138</dd>
   <dt>genesis transaction</dt>
   <dd><a class=monospace href=/tx/{reveal}>{reveal}</a></dd>
   <dt>location</dt>
@@ -137,11 +144,11 @@ fn inscription_page_after_send() {
   );
 
   let txid = CommandBuilder::new(format!(
-    "wallet send bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {inscription}"
+    "wallet send --fee-rate 1 bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {inscription}"
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(".*")
-  .run();
+  .run_and_extract_stdout();
 
   rpc_server.mine_blocks(1);
 
@@ -168,7 +175,7 @@ fn inscription_content() {
   rpc_server.mine_blocks(1);
 
   let response =
-    TestServer::spawn_with_args(&rpc_server, &[]).request(&format!("/content/{inscription}"));
+    TestServer::spawn_with_args(&rpc_server, &[]).request(format!("/content/{inscription}"));
 
   assert_eq!(response.status(), StatusCode::OK);
   assert_eq!(
@@ -176,8 +183,15 @@ fn inscription_content() {
     "text/plain;charset=utf-8"
   );
   assert_eq!(
-    response.headers().get("content-security-policy").unwrap(),
-    "default-src 'unsafe-eval' 'unsafe-inline'"
+    response
+      .headers()
+      .get_all("content-security-policy")
+      .into_iter()
+      .collect::<Vec<&http::HeaderValue>>(),
+    &[
+      "default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:",
+      "default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime 'unsafe-eval' 'unsafe-inline' data: blob:",
+    ]
   );
   assert_eq!(response.bytes().unwrap(), "FOO");
 }
@@ -274,10 +288,84 @@ fn inscriptions_page_has_next_and_previous() {
     format!(
       ".*<h1>Inscription 1</h1>.*
 <div class=inscription>
-<a class=previous href=/inscription/{a}>❮</a>
-<a href=/preview/{b}>.*</a>
+<a class=prev href=/inscription/{a}>❮</a>
+<iframe .* src=/preview/{b}></iframe>
 <a class=next href=/inscription/{c}>❯</a>
 </div>.*",
     ),
   );
+}
+
+#[test]
+fn expected_sat_time_is_rounded() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
+    "/sat/2099999997689999",
+    r".*<dt>timestamp</dt><dd><time>.* \d+:\d+:\d+ UTC</time> \(expected\)</dd>.*",
+  );
+}
+
+#[test]
+fn server_runs_with_rpc_user_and_pass_as_env_vars() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  rpc_server.mine_blocks(1);
+
+  let tempdir = TempDir::new().unwrap();
+  let port = TcpListener::bind("127.0.0.1:0")
+    .unwrap()
+    .local_addr()
+    .unwrap()
+    .port();
+
+  let mut child = Command::new(executable_path("ord"))
+    .args(format!(
+      "--rpc-url {} --bitcoin-data-dir {} --data-dir {} server --http-port {port} --address 127.0.0.1",
+      rpc_server.url(),
+      tempdir.path().display(),
+      tempdir.path().display()).to_args()
+      )
+      .env("ORD_BITCOIN_RPC_PASS", "bar")
+      .env("ORD_BITCOIN_RPC_USER", "foo")
+      .env("ORD_INTEGRATION_TEST", "1")
+      .current_dir(&tempdir)
+      .spawn().unwrap();
+
+  for i in 0.. {
+    match reqwest::blocking::get(format!("http://127.0.0.1:{port}/status")) {
+      Ok(_) => break,
+      Err(err) => {
+        if i == 400 {
+          panic!("Server failed to start: {err}");
+        }
+      }
+    }
+
+    thread::sleep(Duration::from_millis(25));
+  }
+
+  rpc_server.mine_blocks(1);
+
+  let response = reqwest::blocking::get(format!("http://127.0.0.1:{port}/blockcount")).unwrap();
+  assert_eq!(response.status(), StatusCode::OK);
+  assert_eq!(response.text().unwrap(), "2");
+
+  child.kill().unwrap();
+}
+
+#[test]
+fn missing_credentials() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  CommandBuilder::new("--bitcoin-rpc-user foo server")
+    .rpc_server(&rpc_server)
+    .expected_exit_code(1)
+    .expected_stderr("error: no bitcoind rpc password specified\n")
+    .run_and_extract_stdout();
+
+  CommandBuilder::new("--bitcoin-rpc-pass bar server")
+    .rpc_server(&rpc_server)
+    .expected_exit_code(1)
+    .expected_stderr("error: no bitcoind rpc user specified\n")
+    .run_and_extract_stdout();
 }

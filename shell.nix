@@ -6,7 +6,9 @@ in
   stdenv.mkDerivation {
     name = "ord-shell";
     buildInputs = [
-      nixpkgs.latest.rustChannels.stable.rust
       just
+      nixpkgs.latest.rustChannels.stable.rust
+      openssl
+      pkg-config
     ];
   }

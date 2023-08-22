@@ -61,13 +61,6 @@ impl CommandBuilder {
     }
   }
 
-  pub(crate) fn expected_stdout(self, expected_stdout: impl AsRef<str>) -> Self {
-    Self {
-      expected_stdout: Expected::String(expected_stdout.as_ref().to_owned()),
-      ..self
-    }
-  }
-
   pub(crate) fn stdout_regex(self, expected_stdout: impl AsRef<str>) -> Self {
     Self {
       expected_stdout: Expected::regex(expected_stdout.as_ref()),
@@ -94,6 +87,10 @@ impl CommandBuilder {
       expected_exit_code,
       ..self
     }
+  }
+
+  pub(crate) fn temp_dir(self, tempdir: TempDir) -> Self {
+    Self { tempdir, ..self }
   }
 
   pub(crate) fn command(&self) -> Command {
@@ -123,11 +120,27 @@ impl CommandBuilder {
     command
   }
 
-  pub(crate) fn run(self) -> String {
+  pub(crate) fn run_and_extract_file(self, path: impl AsRef<Path>) -> String {
     let output = self.command().output().unwrap();
     let stdout = str::from_utf8(&output.stdout).unwrap();
     let stderr = str::from_utf8(&output.stderr).unwrap();
+    if output.status.code() != Some(self.expected_exit_code) {
+      panic!(
+        "Test failed: {}\nstdout:\n{}\nstderr:\n{}",
+        output.status, stdout, stderr
+      );
+    }
 
+    self.expected_stderr.assert_match(stderr);
+    self.expected_stdout.assert_match(stdout);
+
+    fs::read_to_string(self.tempdir.path().join(path)).unwrap()
+  }
+
+  pub(crate) fn run_and_extract_stdout(self) -> String {
+    let output = self.command().output().unwrap();
+    let stdout = str::from_utf8(&output.stdout).unwrap();
+    let stderr = str::from_utf8(&output.stderr).unwrap();
     if output.status.code() != Some(self.expected_exit_code) {
       panic!(
         "Test failed: {}\nstdout:\n{}\nstderr:\n{}",
@@ -141,8 +154,8 @@ impl CommandBuilder {
     stdout.into()
   }
 
-  pub(crate) fn output<T: DeserializeOwned>(self) -> T {
-    let stdout = self.stdout_regex(".*").run();
+  pub(crate) fn run_and_check_output<T: DeserializeOwned>(self) -> T {
+    let stdout = self.stdout_regex(".*").run_and_extract_stdout();
     serde_json::from_str(&stdout)
       .unwrap_or_else(|err| panic!("Failed to deserialize JSON: {err}\n{stdout}"))
   }

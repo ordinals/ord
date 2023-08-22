@@ -21,8 +21,8 @@ html {
 }
 
 main {
-  margin: 0 auto 0 auto;
-  padding: 0 1rem 0 1rem;
+  margin: 0 auto;
+  padding: 0 1rem 1rem;
   max-width: 100%;
   width: 50rem;
 }
@@ -37,7 +37,6 @@ h1 {
 iframe {
   aspect-ratio: 1 / 1;
   border: none;
-  pointer-events: none;
 }
 
 a {
@@ -88,6 +87,14 @@ input[type=text] {
   min-width: 0;
 }
 
+dl {
+  overflow-wrap: break-word;
+}
+
+ol, ul {
+  overflow: hidden;
+}
+
 @media (max-width: 38rem) {
   nav {
     flex-direction: column;
@@ -97,7 +104,7 @@ input[type=text] {
 .blocks {
   font-family: monospace, monospace;
   list-style-position: inside;
-  padding-inline-start: 0;
+  padding-inline-start: 1rem;
   white-space: nowrap;
 }
 
@@ -109,15 +116,10 @@ input[type=text] {
   font-family: monospace, monospace;
 }
 
-.data {
-  font-family: monospace, monospace;
-  overflow-wrap: break-word;
-}
-
 span.common, span.uncommon, span.rare, span.epic, span.legendary, span.mythic {
   border-radius: 0.25rem;
   color: white;
-  padding: 0.125rem 0.25rem 0.125rem 0.25rem;
+  padding: 0.125rem 0.25rem;
 }
 
 span.common {
@@ -182,6 +184,7 @@ a.mythic {
 
 .thumbnails iframe {
   height: 100%;
+  pointer-events: none;
   width: 100%;
 }
 
@@ -191,18 +194,17 @@ a.mythic {
 }
 
 .inscription > *:nth-child(1), .inscription > *:nth-child(3) {
-  color: var(--dark-fg);
+  color: var(--dark-bg);
   flex: 1;
   font-size: 200%;
   text-decoration: none;
   display: flex;
   justify-content: center;
   align-items: center;
-  opacity: 0;
 }
 
 .inscription > a:nth-child(1):hover, .inscription > a:nth-child(3):hover {
-  opacity: 1;
+  color: var(--dark-fg);
 }
 
 .inscription > *:nth-child(2) {

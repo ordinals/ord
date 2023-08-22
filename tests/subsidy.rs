@@ -1,31 +1,51 @@
-use super::*;
+use {super::*, ord::subcommand::subsidy::Output};
 
 #[test]
 fn genesis() {
-  CommandBuilder::new("subsidy 0")
-    .expected_stdout("0\t5000000000\tnvtdijuwxlp\n")
-    .run();
+  assert_eq!(
+    CommandBuilder::new("subsidy 0").run_and_check_output::<Output>(),
+    Output {
+      first: 0,
+      subsidy: 5000000000,
+      name: "nvtdijuwxlp".into(),
+    }
+  );
 }
 
 #[test]
 fn second_block() {
-  CommandBuilder::new("subsidy 1")
-    .expected_stdout("5000000000\t5000000000\tnvtcsezkbth\n")
-    .run();
+  assert_eq!(
+    CommandBuilder::new("subsidy 1").run_and_check_output::<Output>(),
+    Output {
+      first: 5000000000,
+      subsidy: 5000000000,
+      name: "nvtcsezkbth".into(),
+    }
+  );
 }
 
 #[test]
 fn second_to_last_block_with_subsidy() {
-  CommandBuilder::new("subsidy 6929998")
-    .expected_stdout("2099999997689998\t1\tb\n")
-    .run();
+  assert_eq!(
+    CommandBuilder::new("subsidy 6929998").run_and_check_output::<Output>(),
+    Output {
+      first: 2099999997689998,
+      subsidy: 1,
+      name: "b".into(),
+    }
+  );
 }
 
 #[test]
 fn last_block_with_subsidy() {
-  CommandBuilder::new("subsidy 6929999")
-    .expected_stdout("2099999997689999\t1\ta\n")
-    .run();
+  assert_eq!(
+    CommandBuilder::new("subsidy 6929999").run_and_check_output::<Output>(),
+    Output {
+      first: 2099999997689999,
+      subsidy: 1,
+      name: "a".into(),
+    }
+  );
 }
 
 #[test]
@@ -33,5 +53,5 @@ fn first_block_without_subsidy() {
   CommandBuilder::new("subsidy 6930000")
     .expected_stderr("error: block 6930000 has no subsidy\n")
     .expected_exit_code(1)
-    .run();
+    .run_and_extract_stdout();
 }

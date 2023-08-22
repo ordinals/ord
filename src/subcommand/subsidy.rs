@@ -6,6 +6,13 @@ pub(crate) struct Subsidy {
   height: Height,
 }
 
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct Output {
+  pub first: u64,
+  pub subsidy: u64,
+  pub name: String,
+}
+
 impl Subsidy {
   pub(crate) fn run(self) -> Result {
     let first = self.height.starting_sat();
@@ -16,7 +23,11 @@ impl Subsidy {
       bail!("block {} has no subsidy", self.height);
     }
 
-    println!("{}\t{}\t{}", first, self.height.subsidy(), first.name());
+    print_json(Output {
+      first: first.0,
+      subsidy,
+      name: first.name(),
+    })?;
 
     Ok(())
   }
