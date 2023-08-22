@@ -96,15 +96,56 @@ Inscription IDs
 ---------------
 
 The inscriptions are contained within the inputs of a reveal transaction. In
-order to uniquely identify them they are assigned an ID of the form
-`521f8eccffa4c41a3a7728dd012ea5a4a02feed81f41159231251ecf1e5c79dai0`, where the
-part in front of the `i` is the transaction ID (`txid`) of the reveal
+order to uniquely identify them they are assigned an ID of the form:
+
+`521f8eccffa4c41a3a7728dd012ea5a4a02feed81f41159231251ecf1e5c79dai0`
+
+The part in front of the `i` is the transaction ID (`txid`) of the reveal
 transaction. The last number defines the index (starting at 0) of new inscriptions
 being inscribed in the reveal transaction.
 
 Inscriptions can either be located in different inputs, within the same input or
 a combination of both. In any case the ordering is clear, since a parser would
 go through the inputs consecutively and look for all inscription `envelopes`.
+
+<table style="text-align: center;">
+<thead>
+  <tr>
+    <th>Input</th>
+    <th>Inscription Count</th>
+    <th>Indices</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td>0</td>
+    <td>2</td>
+    <td>i0, i1</td>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>1</td>
+    <td>i2</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>3</td>
+    <td>i3, i4, i5</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>0</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>1</td>
+    <td>i6</td>
+  </tr>
+</tbody>
+</table>
+<div style="clear: both;"></div>
+
 
 Sandboxing
 ----------
