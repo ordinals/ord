@@ -3,6 +3,7 @@ use {super::*, boilerplate::Boilerplate};
 pub(crate) use {
   block::BlockHtml,
   clock::ClockSvg,
+  content_hash::{ContentHashHtml, ContentHashJson},
   home::HomeHtml,
   iframe::Iframe,
   input::InputHtml,
@@ -22,6 +23,7 @@ pub(crate) use {
 
 mod block;
 mod clock;
+mod content_hash;
 mod home;
 mod iframe;
 mod input;

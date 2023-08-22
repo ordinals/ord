@@ -24,6 +24,8 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   height: u64,
   id_to_satpoint: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, &'static SatPointValue>,
   value_receiver: &'a mut Receiver<u64>,
+  content_hash_to_id:
+    &'a mut MultimapTable<'db, 'tx, &'static ContentHashValue, &'static InscriptionIdValue>,
   id_to_entry: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, InscriptionEntryValue>,
   pub(super) lost_sats: u64,
   next_cursed_number: i64,
@@ -45,6 +47,12 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     height: u64,
     id_to_satpoint: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, &'static SatPointValue>,
     value_receiver: &'a mut Receiver<u64>,
+    content_hash_to_id: &'a mut MultimapTable<
+      'db,
+      'tx,
+      &'static ContentHashValue,
+      &'static InscriptionIdValue,
+    >,
     id_to_entry: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, InscriptionEntryValue>,
     lost_sats: u64,
     number_to_id: &'a mut Table<'db, 'tx, i64, &'static InscriptionIdValue>,
@@ -80,6 +88,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       height,
       id_to_satpoint,
       value_receiver,
+      content_hash_to_id,
       id_to_entry,
       lost_sats,
       next_cursed_number,
@@ -163,6 +172,12 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           txid,
           index: id_counter,
         };
+
+        if let Some(content_hash) = inscription.inscription.content_hash() {
+          self
+            .content_hash_to_id
+            .insert(&content_hash.hash, &inscription_id.store())?;
+        }
 
         let curse = if inscription.tx_in_index != 0 {
           Some(Curse::NotInFirstInput)

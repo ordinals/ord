@@ -63,7 +63,9 @@ impl InscriptionJson {
       satpoint,
       content_type: inscription.content_type().map(|s| s.to_string()),
       content_length: inscription.content_length(),
-      content_hash: inscription.content_hash().map(hex::encode),
+      content_hash: inscription
+        .content_hash()
+        .map(|hash| hex::encode(hash.hash)),
       timestamp: timestamp.timestamp(),
       previous,
       next,

@@ -1,5 +1,6 @@
 use {
   self::{
+    content_hash::{ContentHash, ContentHashValue},
     entry::{
       BlockHashValue, Entry, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
       OutPointValue, SatPointValue, SatRange,
@@ -20,6 +21,7 @@ use {
     Database, MultimapTable, MultimapTableDefinition, ReadableMultimapTable, ReadableTable, Table,
     TableDefinition, WriteTransaction,
   },
+  std::cmp::Ordering,
   std::collections::HashMap,
   std::io::{BufWriter, Read, Write},
 };
@@ -47,7 +49,7 @@ macro_rules! define_multimap_table {
   };
 }
 
-define_multimap_table! { CONTENT_HASH_TO_INSCRIPTION_ID, &inscription::ContentHashValue, &InscriptionIdValue }
+define_multimap_table! { CONTENT_HASH_TO_INSCRIPTION_ID, &ContentHashValue, &InscriptionIdValue }
 define_table! { HEIGHT_TO_BLOCK_HASH, u64, &BlockHashValue }
 define_table! { INSCRIPTION_ID_TO_INSCRIPTION_ENTRY, &InscriptionIdValue, InscriptionEntryValue }
 define_table! { INSCRIPTION_ID_TO_SATPOINT, &InscriptionIdValue, &SatPointValue }
@@ -112,6 +114,37 @@ pub(crate) struct Info {
 pub(crate) struct TransactionInfo {
   pub(crate) starting_block_count: u64,
   pub(crate) starting_timestamp: u128,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+struct InscriptionOrder {
+  height: u64,
+  number: i64,
+}
+
+impl InscriptionOrder {
+  fn special_cmp_key(&self) -> (u64, u64) {
+    let number_key = if self.number < 0 {
+      // cursed inscriptions should be sorted after all blessed inscriptions of same height
+      u64::MAX - self.number.unsigned_abs()
+    } else {
+      self.number.unsigned_abs()
+    };
+
+    (self.height, number_key)
+  }
+}
+
+impl Ord for InscriptionOrder {
+  fn cmp(&self, other: &Self) -> Ordering {
+    self.special_cmp_key().cmp(&other.special_cmp_key())
+  }
+}
+
+impl PartialOrd for InscriptionOrder {
+  fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+    Some(self.cmp(other))
+  }
 }
 
 trait BitcoinCoreRpcResultExt<T> {
@@ -644,6 +677,49 @@ impl Index {
           _ => 0,
         },
       );
+    }
+
+    Ok(ids)
+  }
+
+  pub(crate) fn get_inscription_ids_by_content_hash(
+    &self,
+    hash: ContentHash,
+  ) -> Result<Vec<InscriptionId>> {
+    let rtx = &self.database.begin_read()?;
+
+    let mut ids = rtx
+      .open_multimap_table(CONTENT_HASH_TO_INSCRIPTION_ID)?
+      .get(&hash.hash)?
+      .filter_map(|result| {
+        result
+          .ok()
+          .map(|inscription_id| InscriptionId::load(*inscription_id.value()))
+      })
+      .collect::<Vec<InscriptionId>>();
+
+    if ids.len() > 1 {
+      let id_to_inscription_entry = rtx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
+      ids.sort_by_cached_key(|inscription_id| {
+        match id_to_inscription_entry
+          .get(&inscription_id.store())
+          .map(|value| {
+            InscriptionEntry::load(
+              value
+                .expect("inscription entry exists for every inscription id")
+                .value(),
+            )
+          }) {
+          Ok(entry) => InscriptionOrder {
+            height: entry.height,
+            number: entry.number,
+          },
+          _ => InscriptionOrder {
+            height: 0,
+            number: 0,
+          },
+        }
+      });
     }
 
     Ok(ids)

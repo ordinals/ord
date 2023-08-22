@@ -1,0 +1,17 @@
+<h1>Content hash {{ self.hash }}</h1>
+%% if self.inscriptions.len() > 0 {
+<div class=inscription>
+  <div>❮</div>
+  {{Iframe::main(self.inscriptions[0])}}
+  <div>❯</div>
+</div>
+%% }
+<dl>
+  <dt>occurences</dt><dd>{{self.inscriptions.len()}}</dd>
+</dl>
+<h2>{{"Inscription".tally(self.inscriptions.len())}}</h2>
+<ul class=monospace>
+%% for id in &self.inscriptions {
+  <li><a href=/inscription/{{id}}>{{id}}</a></li>
+%% }
+</ul>

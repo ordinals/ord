@@ -1,5 +1,6 @@
 use {
   super::*,
+  crate::content_hash::ContentHash,
   bitcoin::{
     blockdata::{
       opcodes,
@@ -22,8 +23,6 @@ pub(crate) enum Curse {
   NotAtOffsetZero,
   Reinscription,
 }
-
-pub type ContentHashValue = [u8; 32];
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Inscription {
@@ -139,11 +138,13 @@ impl Inscription {
     str::from_utf8(self.content_type.as_ref()?).ok()
   }
 
-  pub(crate) fn content_hash(&self) -> Option<ContentHashValue> {
+  pub(crate) fn content_hash(&self) -> Option<ContentHash> {
     self.body.as_ref().map(|body_data| {
       let mut hasher = Sha256::new();
       hasher.update(body_data);
-      hasher.finalize().into()
+      ContentHash {
+        hash: hasher.finalize().into(),
+      }
     })
   }
 

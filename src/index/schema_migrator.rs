@@ -51,8 +51,8 @@ impl SchemaMigrator {
           Inscription::from_transaction(&tx).get(id.index as usize)
         {
           let inscription = transaction_inscription.inscription.clone();
-          if let Some(hash) = inscription.content_hash() {
-            content_hash_to_inscription_id.insert(&hash, db_id.value())?;
+          if let Some(content_hash) = inscription.content_hash() {
+            content_hash_to_inscription_id.insert(&content_hash.hash, db_id.value())?;
 
             processed_entries += 1;
             if processed_entries % 100_000 == 0 {

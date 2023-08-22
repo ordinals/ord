@@ -8,10 +8,10 @@ use {
   crate::index::block_index::BlockIndex,
   crate::page_config::PageConfig,
   crate::templates::{
-    BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson, InscriptionsHtml,
-    InscriptionsJson, OutputHtml, OutputJson, PageContent, PageHtml, PreviewAudioHtml,
-    PreviewImageHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
-    RangeHtml, RareTxt, SatHtml, SatJson, TransactionHtml,
+    BlockHtml, ClockSvg, ContentHashHtml, ContentHashJson, HomeHtml, InputHtml, InscriptionHtml,
+    InscriptionJson, InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson, PageContent,
+    PageHtml, PreviewAudioHtml, PreviewImageHtml, PreviewPdfHtml, PreviewTextHtml,
+    PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, SatHtml, SatJson, TransactionHtml,
   },
   axum::{
     body,
@@ -190,12 +190,16 @@ impl Server {
         .route("/bounties", get(Self::bounties))
         .route("/clock", get(Self::clock))
         .route("/content/:inscription_id", get(Self::content))
+        .route("/contenthash/:hash", get(Self::contenthash))
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
         .route("/feed.xml", get(Self::feed))
-        .route("/hash/:inscription_id", get(Self::hash))
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_id", get(Self::inscription))
+        .route(
+          "/inscription/:inscription_id/contenthash",
+          get(Self::inscription_contenthash),
+        )
         .route("/inscriptions", get(Self::inscriptions))
         .route("/inscriptions/block/:n", get(Self::inscriptions_in_block))
         .route("/inscriptions/:from", get(Self::inscriptions_from))
@@ -890,7 +894,25 @@ impl Server {
     Some((headers, body?))
   }
 
-  async fn hash(
+  async fn contenthash(
+    Extension(index): Extension<Arc<Index>>,
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Path(DeserializeFromStr(hash)): Path<DeserializeFromStr<content_hash::ContentHash>>,
+    accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
+    log::info!("Content hash {}", hash);
+
+    let inscriptions = index.get_inscription_ids_by_content_hash(hash)?;
+    Ok(if accept_json.0 {
+      Json(ContentHashJson::new(hash, inscriptions)).into_response()
+    } else {
+      ContentHashHtml::new(hash, inscriptions)
+        .page(page_config, index.has_sat_index()?)
+        .into_response()
+    })
+  }
+
+  async fn inscription_contenthash(
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<String> {
@@ -898,7 +920,7 @@ impl Server {
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
     if let Some(content_hash) = inscription.content_hash() {
-      Ok(hex::encode(content_hash))
+      Ok(content_hash.to_string())
     } else {
       Err(ServerError::NotFound(format!(
         "{} unable to compute content hash",

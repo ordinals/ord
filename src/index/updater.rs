@@ -375,6 +375,8 @@ impl<'index> Updater<'_> {
     }
 
     let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
+    let mut content_hash_to_inscription_id =
+      wtx.open_multimap_table(CONTENT_HASH_TO_INSCRIPTION_ID)?;
     let mut inscription_id_to_inscription_entry =
       wtx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
     let mut inscription_id_to_satpoint = wtx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
@@ -399,6 +401,7 @@ impl<'index> Updater<'_> {
       self.height,
       &mut inscription_id_to_satpoint,
       value_receiver,
+      &mut content_hash_to_inscription_id,
       &mut inscription_id_to_inscription_entry,
       lost_sats,
       &mut inscription_number_to_inscription_id,

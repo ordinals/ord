@@ -100,6 +100,7 @@ mod arguments;
 mod blocktime;
 mod chain;
 mod config;
+pub mod content_hash;
 mod decimal;
 mod degree;
 mod deserialize_from_str;
