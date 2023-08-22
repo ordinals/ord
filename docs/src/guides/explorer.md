@@ -16,9 +16,7 @@ To specify a port add the `--http-port` flag:
 
 To test how your inscriptions will look you can run:
 
-```
-ord preview <FILE1> <FILE2> ...
-```
+`ord preview <FILE1> <FILE2> ...`
 
 Search
 ------
