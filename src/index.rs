@@ -417,7 +417,7 @@ impl Index {
           log::info!("{}", err.to_string());
 
           match err.downcast_ref() {
-            Some(&ReorgError::Recoverable((height, depth))) => {
+            Some(&ReorgError::Recoverable { height, depth }) => {
               Reorg::handle_reorg(self, height, depth)?;
 
               updater = Updater::new(self)?;
