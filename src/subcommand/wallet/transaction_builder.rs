@@ -189,6 +189,7 @@ impl TransactionBuilder {
       .script_pubkey()
       .dust_value()
       .to_sat();
+
     for (inscribed_satpoint, inscription_id) in self.inscriptions.iter().rev() {
       if self.outgoing.outpoint == inscribed_satpoint.outpoint
         && self.outgoing.offset != inscribed_satpoint.offset
