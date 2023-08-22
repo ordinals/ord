@@ -69,6 +69,38 @@ Content
 The data model of inscriptions is that of a HTTP response, allowing inscription
 content to be served by a web server and viewed in a web browser.
 
+Tags
+----
+
+Inscriptions can be given extra fields by preceding data pushes with pre-defined
+numbers. The most basic inscription has two tags:
+
+`1`: The `content-type` tag where the subsequent data pushes define the MIME type
+of the body.
+
+`0`: The `body` tag where the subsequent data pushes contain the actual data.
+
+Furthermore, to give users flexibility and at the same time keep the core
+protocol extensible tags are classified into two kinds: `odd` and `even`. Users
+can add their own `odd` tags and then clients and explorers can opt-in to show
+them. On the other hand `even` tags are reserved for future extensions of the
+protocol so any inscription that contains an unknown `even` tag is not
+recognized as an inscription and not assigned an inscription ID.
+
+Inscription IDs
+---------------
+
+The inscriptions are contained within the inputs of a reveal transaction. In
+order to uniquely identify them they are assigned an ID of the form
+`521f8eccffa4c41a3a7728dd012ea5a4a02feed81f41159231251ecf1e5c79dai0`, where the
+part in front of the `i` is the transaction ID (`txid`) of the reveal
+transaction. The last number defines the index (starting at 0) of new inscriptions
+being inscribed in the reveal transaction.
+
+Inscriptions can either be located in different inputs, within the same input or
+a combination of both. In any case the ordering is clear, since a parser would
+go through the inputs consecutively and look for all inscription `envelopes`.
+
 Sandboxing
 ----------
 
@@ -78,31 +110,3 @@ off-chain content, thus keeping inscriptions immutable and self-contained.
 This is accomplished by loading HTML and SVG inscriptions inside `iframes` with
 the `sandbox` attribute, as well as serving inscription content with
 `Content-Security-Policy` headers.
-
-Recursion
----------
-
-An important exception to sandboxing is recursion: access to `ord`'s `/content`
-endpoint is permitted, allowing inscriptions to access the content of other
-inscriptions by requesting `/content/<INSCRIPTION_ID>`.
-
-This has a number of interesting use-cases:
-
-- Remixing the content of existing inscriptions.
-
-- Publishing snippets of code, images, audio, or stylesheets as shared public
-  resources.
-
-- Generative art collections where an algorithm is inscribed as JavaScript,
-  and instantiated from multiple inscriptions with unique seeds.
-
-- Generative profile picture collections where accessories and attributes are
-  inscribed as individual images, or in a shared texture atlas, and then
-  combined, collage-style, in unique combinations in multiple inscriptions.
-
-A couple other endpoints that inscriptions may access are the following:
-
-- `/blockheight`: latest block height.
-- `/blockhash`: latest block hash.
-- `/blockhash/<HEIGHT>`: block hash at given block height.
-- `/blocktime`: UNIX time stamp of latest block.
