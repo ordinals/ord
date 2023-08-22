@@ -7,7 +7,7 @@ fn restore_generates_same_descriptors() {
 
     let Create { mnemonic } = CommandBuilder::new("wallet create")
       .rpc_server(&rpc_server)
-      .output::<Create>();
+      .run_and_check_output::<Create>();
 
     (mnemonic, rpc_server.descriptors())
   };
@@ -16,7 +16,7 @@ fn restore_generates_same_descriptors() {
 
   CommandBuilder::new(["wallet", "restore", &mnemonic.to_string()])
     .rpc_server(&rpc_server)
-    .run();
+    .run_and_extract_stdout();
 
   assert_eq!(rpc_server.descriptors(), descriptors);
 }
@@ -29,7 +29,7 @@ fn restore_generates_same_descriptors_with_passphrase() {
 
     let Create { mnemonic } = CommandBuilder::new(["wallet", "create", "--passphrase", passphrase])
       .rpc_server(&rpc_server)
-      .output::<Create>();
+      .run_and_check_output::<Create>();
 
     (mnemonic, rpc_server.descriptors())
   };
@@ -44,7 +44,7 @@ fn restore_generates_same_descriptors_with_passphrase() {
     &mnemonic.to_string(),
   ])
   .rpc_server(&rpc_server)
-  .run();
+  .run_and_extract_stdout();
 
   assert_eq!(rpc_server.descriptors(), descriptors);
 }

@@ -36,14 +36,14 @@ impl PageContent for TransactionHtml {
 mod tests {
   use {
     super::*,
-    bitcoin::{blockdata::script, PackedLockTime, TxOut},
+    bitcoin::{blockdata::script, locktime::absolute::LockTime, TxOut},
   };
 
   #[test]
   fn html() {
     let transaction = Transaction {
       version: 0,
-      lock_time: PackedLockTime(0),
+      lock_time: LockTime::ZERO,
       input: vec![TxIn {
         sequence: Default::default(),
         previous_output: Default::default(),
@@ -104,7 +104,7 @@ mod tests {
   fn with_blockhash() {
     let transaction = Transaction {
       version: 0,
-      lock_time: PackedLockTime(0),
+      lock_time: LockTime::ZERO,
       input: Vec::new(),
       output: vec![
         TxOut {
