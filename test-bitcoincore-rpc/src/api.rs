@@ -72,6 +72,9 @@ pub trait Api {
     replaceable: Option<bool>,
     confirmation_target: Option<u32>,
     estimate_mode: Option<EstimateMode>,
+    avoid_reuse: Option<bool>,
+    fee_rate: Option<f64>,
+    verbose: Option<bool>,
   ) -> Result<Txid, jsonrpc_core::Error>;
 
   #[rpc(name = "gettransaction")]

@@ -1,4 +1,4 @@
-use {super::*, crate::wallet::Wallet};
+use {super::*, crate::subcommand::wallet::transaction_builder::Target, crate::wallet::Wallet};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
@@ -6,6 +6,11 @@ pub(crate) struct Send {
   outgoing: Outgoing,
   #[clap(long, help = "Use fee rate of <FEE_RATE> sats/vB")]
   fee_rate: FeeRate,
+  #[clap(
+    long,
+    help = "Target amount of postage to include with sent inscriptions. Default `10000sat`"
+  )]
+  pub(crate) postage: Option<Amount>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -15,7 +20,10 @@ pub struct Output {
 
 impl Send {
   pub(crate) fn run(self, options: Options) -> Result {
-    let address = self.address.require_network(options.chain().network())?;
+    let address = self
+      .address
+      .clone()
+      .require_network(options.chain().network())?;
 
     let index = Index::open(&options)?;
     index.update()?;
@@ -39,25 +47,9 @@ impl Send {
         .get_inscription_satpoint_by_id(id)?
         .ok_or_else(|| anyhow!("Inscription {id} not found"))?,
       Outgoing::Amount(amount) => {
-        let all_inscription_outputs = inscriptions
-          .keys()
-          .map(|satpoint| satpoint.outpoint)
-          .collect::<HashSet<OutPoint>>();
-
-        let wallet_inscription_outputs = unspent_outputs
-          .keys()
-          .filter(|utxo| all_inscription_outputs.contains(utxo))
-          .cloned()
-          .collect::<Vec<OutPoint>>();
-
-        if !client.lock_unspent(&wallet_inscription_outputs)? {
-          bail!("failed to lock ordinal UTXOs");
-        }
-
-        let txid = client.send_to_address(&address, amount, None, None, None, None, None, None)?;
-
+        Self::lock_inscriptions(&client, inscriptions, unspent_outputs)?;
+        let txid = Self::send_amount(&client, amount, address, self.fee_rate.n())?;
         print_json(Output { transaction: txid })?;
-
         return Ok(());
       }
     };
@@ -67,14 +59,22 @@ impl Send {
       get_change_address(&client, &options)?,
     ];
 
-    let unsigned_transaction = TransactionBuilder::build_transaction_with_postage(
+    let postage = if let Some(postage) = self.postage {
+      Target::ExactPostage(postage)
+    } else {
+      Target::Postage
+    };
+
+    let unsigned_transaction = TransactionBuilder::new(
       satpoint,
       inscriptions,
       unspent_outputs,
-      address,
+      address.clone(),
       change,
       self.fee_rate,
-    )?;
+      postage,
+    )
+    .build_transaction()?;
 
     let signed_tx = client
       .sign_raw_transaction_with_wallet(&unsigned_transaction, None, None)?
@@ -85,5 +85,46 @@ impl Send {
     println!("{txid}");
 
     Ok(())
+  }
+
+  fn lock_inscriptions(
+    client: &Client,
+    inscriptions: BTreeMap<SatPoint, InscriptionId>,
+    unspent_outputs: BTreeMap<bitcoin::OutPoint, bitcoin::Amount>,
+  ) -> Result {
+    let all_inscription_outputs = inscriptions
+      .keys()
+      .map(|satpoint| satpoint.outpoint)
+      .collect::<HashSet<OutPoint>>();
+
+    let wallet_inscription_outputs = unspent_outputs
+      .keys()
+      .filter(|utxo| all_inscription_outputs.contains(utxo))
+      .cloned()
+      .collect::<Vec<OutPoint>>();
+
+    if !client.lock_unspent(&wallet_inscription_outputs)? {
+      bail!("failed to lock ordinal UTXOs");
+    }
+
+    Ok(())
+  }
+
+  fn send_amount(client: &Client, amount: Amount, address: Address, fee_rate: f64) -> Result<Txid> {
+    Ok(client.call(
+      "sendtoaddress",
+      &[
+        address.to_string().into(), //  1. address
+        amount.to_btc().into(),     //  2. amount
+        serde_json::Value::Null,    //  3. comment
+        serde_json::Value::Null,    //  4. comment_to
+        serde_json::Value::Null,    //  5. subtractfeefromamount
+        serde_json::Value::Null,    //  6. replaceable
+        serde_json::Value::Null,    //  7. conf_target
+        serde_json::Value::Null,    //  8. estimate_mode
+        serde_json::Value::Null,    //  9. avoid_reuse
+        fee_rate.into(),            // 10. fee_rate
+      ],
+    )?)
   }
 }

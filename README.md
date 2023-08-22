@@ -40,7 +40,7 @@ This address is 2 of 4 multisig wallet with keys held by
 [rodarmor](https://twitter.com/rodarmor), and
 [ordinally](https://twitter.com/veryordinally).
 
-Bitcoin received will go towards funding maintainance and development of `ord`,
+Bitcoin received will go towards funding maintenance and development of `ord`,
 as well as hosting costs for [ordinals.com](https://ordinals.com).
 
 Thank you for donating!
@@ -141,7 +141,7 @@ cargo test --all
 cargo test --all -- --ignored
 ```
 
-Have look at the [justfile](justfile) to see some more helpful recipes
+Have a look at the [justfile](justfile) to see some more helpful recipes
 (commands). Here are a couple more good ones:
 
 ```
@@ -150,6 +150,10 @@ just fuzz
 just doc
 just watch ltest --all
 ```
+
+If the tests are failing or hanging, you might need to increase the maximum
+number of open files by running `ulimit -n 1024` in your shell before you run
+the tests, or in your shell configuration.
 
 We also try to follow a TDD (Test-Driven-Development) approach, which means we
 use tests as a way to get visibility into the code. Tests have to run fast for that
@@ -174,7 +178,7 @@ See `ord --help` for details.
 `bitcoind` RPC Authentication
 -----------------------------
 
-`ord` makes RPC calls to `bitcoind`, which usually require a username and
+`ord` makes RPC calls to `bitcoind`, which usually requires a username and
 password.
 
 By default, `ord` looks a username and password in the cookie file created by

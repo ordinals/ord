@@ -4,6 +4,7 @@ use {
       BlockHashValue, Entry, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
       OutPointValue, SatPointValue, SatRange,
     },
+    index::block_index::BlockIndex,
     reorg::*,
     updater::Updater,
   },
@@ -22,6 +23,7 @@ use {
   std::io::{BufWriter, Read, Write},
 };
 
+pub mod block_index;
 mod entry;
 mod fetcher;
 mod reorg;
@@ -57,7 +59,7 @@ define_table! { STATISTIC_TO_COUNT, u64, u64 }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u64, u128 }
 
 #[derive(Debug, PartialEq)]
-pub(crate) enum List {
+pub enum List {
   Spent,
   Unspent(Vec<(u64, u64)>),
 }
@@ -135,12 +137,13 @@ impl<T> BitcoinCoreRpcResultExt<T> for Result<T, bitcoincore_rpc::Error> {
 pub(crate) struct Index {
   client: Client,
   database: Database,
-  path: PathBuf,
+  durability: redb::Durability,
   first_inscription_height: u64,
   genesis_block_coinbase_transaction: Transaction,
   genesis_block_coinbase_txid: Txid,
   height_limit: Option<u64>,
   options: Options,
+  path: PathBuf,
   unrecoverably_reorged: AtomicBool,
 }
 
@@ -186,6 +189,12 @@ impl Index {
 
     log::info!("Setting DB cache size to {} bytes", db_cache_size);
 
+    let durability = if cfg!(test) {
+      redb::Durability::None
+    } else {
+      redb::Durability::Immediate
+    };
+
     let database = match Database::builder()
       .set_cache_size(db_cache_size)
       .open(&path)
@@ -222,7 +231,7 @@ impl Index {
 
         let mut tx = database.begin_write()?;
 
-        tx.set_durability(redb::Durability::Immediate);
+        tx.set_durability(durability);
 
         tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
         tx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
@@ -256,13 +265,19 @@ impl Index {
       genesis_block_coinbase_txid: genesis_block_coinbase_transaction.txid(),
       client,
       database,
-      path,
+      durability,
       first_inscription_height: options.first_inscription_height(),
       genesis_block_coinbase_transaction,
       height_limit: options.height_limit,
       options: options.clone(),
+      path,
       unrecoverably_reorged: AtomicBool::new(false),
     })
+  }
+
+  #[cfg(test)]
+  fn set_durability(&mut self, durability: redb::Durability) {
+    self.durability = durability;
   }
 
   pub(crate) fn get_unspent_outputs(&self, _wallet: Wallet) -> Result<BTreeMap<OutPoint, Amount>> {
@@ -498,7 +513,9 @@ impl Index {
   }
 
   fn begin_write(&self) -> Result<WriteTransaction> {
-    Ok(self.database.begin_write()?)
+    let mut tx = self.database.begin_write()?;
+    tx.set_durability(self.durability);
+    Ok(tx)
   }
 
   fn increment_statistic(wtx: &WriteTransaction, statistic: Statistic, n: u64) -> Result {
@@ -877,19 +894,23 @@ impl Index {
     &self,
     n: usize,
     from: Option<i64>,
-  ) -> Result<(Vec<InscriptionId>, Option<i64>, Option<i64>)> {
+  ) -> Result<(Vec<InscriptionId>, Option<i64>, Option<i64>, i64, i64)> {
     let rtx = self.database.begin_read()?;
 
     let inscription_number_to_inscription_id =
       rtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
 
-    let latest = match inscription_number_to_inscription_id.iter()?.next_back() {
+    let highest = match inscription_number_to_inscription_id.iter()?.next_back() {
       Some(Ok((number, _id))) => number.value(),
-      Some(Err(_)) => return Ok(Default::default()),
-      None => return Ok(Default::default()),
+      Some(Err(_)) | None => return Ok(Default::default()),
     };
 
-    let from = from.unwrap_or(latest);
+    let lowest = match inscription_number_to_inscription_id.iter()?.next() {
+      Some(Ok((number, _id))) => number.value(),
+      Some(Err(_)) | None => return Ok(Default::default()),
+    };
+
+    let from = from.unwrap_or(highest);
 
     let prev = if let Some(prev) = from.checked_sub(n.try_into()?) {
       inscription_number_to_inscription_id
@@ -899,12 +920,12 @@ impl Index {
       None
     };
 
-    let next = if from < latest {
+    let next = if from < highest {
       Some(
         from
           .checked_add(n.try_into()?)
-          .unwrap_or(latest)
-          .min(latest),
+          .unwrap_or(highest)
+          .min(highest),
       )
     } else {
       None
@@ -917,7 +938,15 @@ impl Index {
       .flat_map(|result| result.map(|(_number, id)| Entry::load(*id.value())))
       .collect();
 
-    Ok((inscriptions, prev, next))
+    Ok((inscriptions, prev, next, lowest, highest))
+  }
+
+  pub(crate) fn get_inscriptions_in_block(
+    &self,
+    block_index: &BlockIndex,
+    block_height: u64,
+  ) -> Result<Vec<InscriptionId>> {
+    block_index.get_inscriptions_in_block(self, block_height)
   }
 
   pub(crate) fn get_feed_inscriptions(&self, n: usize) -> Result<Vec<(i64, InscriptionId)>> {
@@ -2447,7 +2476,7 @@ mod tests {
 
       context.mine_blocks(1);
 
-      let (inscriptions, prev, next) = context
+      let (inscriptions, prev, next, _, _) = context
         .index
         .get_latest_inscriptions_with_prev_and_next(100, None)
         .unwrap();
@@ -2476,15 +2505,17 @@ mod tests {
 
       ids.reverse();
 
-      let (inscriptions, prev, next) = context
+      let (inscriptions, prev, next, lowest, highest) = context
         .index
         .get_latest_inscriptions_with_prev_and_next(100, None)
         .unwrap();
       assert_eq!(inscriptions, &ids[..100]);
       assert_eq!(prev, Some(2));
       assert_eq!(next, None);
+      assert_eq!(highest, 102);
+      assert_eq!(lowest, 0);
 
-      let (inscriptions, prev, next) = context
+      let (inscriptions, prev, next, _lowest, _highest) = context
         .index
         .get_latest_inscriptions_with_prev_and_next(100, Some(101))
         .unwrap();
@@ -2492,7 +2523,7 @@ mod tests {
       assert_eq!(prev, Some(1));
       assert_eq!(next, Some(102));
 
-      let (inscriptions, prev, next) = context
+      let (inscriptions, prev, next, _lowest, _highest) = context
         .index
         .get_latest_inscriptions_with_prev_and_next(100, Some(0))
         .unwrap();
@@ -3282,7 +3313,9 @@ mod tests {
 
   #[test]
   fn recover_from_reorg() {
-    for context in Context::configurations() {
+    for mut context in Context::configurations() {
+      context.index.set_durability(redb::Durability::Immediate);
+
       context.mine_blocks(1);
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -3332,7 +3365,9 @@ mod tests {
 
   #[test]
   fn recover_from_3_block_deep_and_consecutive_reorg() {
-    for context in Context::configurations() {
+    for mut context in Context::configurations() {
+      context.index.set_durability(redb::Durability::Immediate);
+
       context.mine_blocks(1);
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -3385,7 +3420,9 @@ mod tests {
 
   #[test]
   fn recover_from_very_unlikely_7_block_deep_reorg() {
-    for context in Context::configurations() {
+    for mut context in Context::configurations() {
+      context.index.set_durability(redb::Durability::Immediate);
+
       context.mine_blocks(1);
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {

@@ -5,11 +5,13 @@ use {
     error::{OptionExt, ServerError, ServerResult},
   },
   super::*,
+  crate::index::block_index::BlockIndex,
   crate::page_config::PageConfig,
   crate::templates::{
-    BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionsHtml, OutputHtml,
-    PageContent, PageHtml, PreviewAudioHtml, PreviewImageHtml, PreviewPdfHtml, PreviewTextHtml,
-    PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, SatHtml, SatJson, TransactionHtml,
+    BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson, InscriptionsHtml,
+    InscriptionsJson, OutputHtml, OutputJson, PageContent, PageHtml, PreviewAudioHtml,
+    PreviewImageHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
+    RangeHtml, RareTxt, SatHtml, SatJson, TransactionHtml,
   },
   axum::{
     body,
@@ -28,7 +30,7 @@ use {
     caches::DirCache,
     AcmeConfig,
   },
-  std::{cmp::Ordering, str},
+  std::{cmp::Ordering, str, sync::Arc, sync::RwLock},
   tokio_stream::StreamExt,
   tower_http::{
     compression::CompressionLayer,
@@ -39,6 +41,15 @@ use {
 
 mod accept_json;
 mod error;
+
+#[derive(Clone)]
+pub struct ServerConfig {
+  pub is_json_api_enabled: bool,
+}
+
+struct BlockIndexState {
+  block_index: RwLock<BlockIndex>,
+}
 
 enum BlockQuery {
   Height(u64),
@@ -128,17 +139,37 @@ pub(crate) struct Server {
 impl Server {
   pub(crate) fn run(self, options: Options, index: Arc<Index>, handle: Handle) -> Result {
     Runtime::new()?.block_on(async {
+      let block_index_state = BlockIndexState {
+        block_index: RwLock::new(BlockIndex::new(&index)?),
+      };
+
+      let block_index_state = Arc::new(block_index_state);
+
       let index_clone = index.clone();
+      let block_index_clone = block_index_state.clone();
+
       let index_thread = thread::spawn(move || loop {
         if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
           break;
         }
         if let Err(error) = index_clone.update() {
-          log::warn!("{error}");
+          log::warn!("Updating index: {error}");
+        }
+        if let Err(error) = block_index_clone
+          .block_index
+          .write()
+          .unwrap()
+          .update(&index_clone)
+        {
+          log::warn!("Updating block index: {error}");
         }
         thread::sleep(Duration::from_millis(5000));
       });
       INDEXER.lock().unwrap().replace(index_thread);
+
+      let server_config = Arc::new(ServerConfig {
+        is_json_api_enabled: index.is_json_api_enabled(),
+      });
 
       let config = options.load_config()?;
       let acme_domains = self.acme_domains()?;
@@ -165,7 +196,9 @@ impl Server {
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_id", get(Self::inscription))
         .route("/inscriptions", get(Self::inscriptions))
+        .route("/inscriptions/block/:n", get(Self::inscriptions_in_block))
         .route("/inscriptions/:from", get(Self::inscriptions_from))
+        .route("/inscriptions/:from/:n", get(Self::inscriptions_from_n))
         .route("/install.sh", get(Self::install_script))
         .route("/ordinal/:sat", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
@@ -181,6 +214,7 @@ impl Server {
         .layer(Extension(index))
         .layer(Extension(page_config))
         .layer(Extension(Arc::new(config)))
+        .layer(Extension(block_index_state))
         .layer(SetResponseHeaderLayer::if_not_present(
           header::CONTENT_SECURITY_POLICY,
           HeaderValue::from_static("default-src 'self'"),
@@ -194,7 +228,8 @@ impl Server {
             .allow_methods([http::Method::GET])
             .allow_origin(Any),
         )
-        .layer(CompressionLayer::new());
+        .layer(CompressionLayer::new())
+        .with_state(server_config);
 
       match (self.http_port(), self.https_port()) {
         (Some(http_port), None) => {
@@ -386,31 +421,34 @@ impl Server {
     Path(DeserializeFromStr(sat)): Path<DeserializeFromStr<Sat>>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
-    let satpoint = index.rare_sat_satpoint(sat)?;
-    let blocktime = index.block_time(sat.height())?;
     let inscriptions = index.get_inscription_ids_by_sat(sat)?;
+    let satpoint = index.rare_sat_satpoint(sat)?.or_else(|| {
+      inscriptions.first().and_then(|&first_inscription_id| {
+        index
+          .get_inscription_satpoint_by_id(first_inscription_id)
+          .ok()
+          .flatten()
+      })
+    });
+    let blocktime = index.block_time(sat.height())?;
     Ok(if accept_json.0 {
-      if index.is_json_api_enabled() {
-        Json(SatJson {
-          number: sat.0,
-          decimal: sat.decimal().to_string(),
-          degree: sat.degree().to_string(),
-          name: sat.name(),
-          block: sat.height().0,
-          cycle: sat.cycle(),
-          epoch: sat.epoch().0,
-          period: sat.period(),
-          offset: sat.third(),
-          rarity: sat.rarity(),
-          percentile: sat.percentile(),
-          satpoint,
-          timestamp: blocktime.timestamp().to_string(),
-          inscriptions,
-        })
-        .into_response()
-      } else {
-        StatusCode::NOT_ACCEPTABLE.into_response()
-      }
+      Json(SatJson {
+        number: sat.0,
+        decimal: sat.decimal().to_string(),
+        degree: sat.degree().to_string(),
+        name: sat.name(),
+        block: sat.height().0,
+        cycle: sat.cycle(),
+        epoch: sat.epoch().0,
+        period: sat.period(),
+        offset: sat.third(),
+        rarity: sat.rarity(),
+        percentile: sat.percentile(),
+        satpoint,
+        timestamp: blocktime.timestamp().timestamp(),
+        inscriptions,
+      })
+      .into_response()
     } else {
       SatHtml {
         sat,
@@ -431,7 +469,8 @@ impl Server {
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(outpoint): Path<OutPoint>,
-  ) -> ServerResult<PageHtml<OutputHtml>> {
+    accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
     let list = if index.has_sat_index()? {
       index.list(outpoint)?
     } else {
@@ -463,7 +502,16 @@ impl Server {
 
     let inscriptions = index.get_inscriptions_on_output(outpoint)?;
 
-    Ok(
+    Ok(if accept_json.0 {
+      Json(OutputJson::new(
+        outpoint,
+        list,
+        page_config.chain,
+        output,
+        inscriptions,
+      ))
+      .into_response()
+    } else {
       OutputHtml {
         outpoint,
         inscriptions,
@@ -471,8 +519,9 @@ impl Server {
         chain: page_config.chain,
         output,
       }
-      .page(page_config, index.has_sat_index()?),
-    )
+      .page(page_config, index.has_sat_index()?)
+      .into_response()
+    })
   }
 
   async fn range(
@@ -815,9 +864,8 @@ impl Server {
       header::CONTENT_TYPE,
       inscription
         .content_type()
-        .unwrap_or("application/octet-stream")
-        .parse()
-        .unwrap(),
+        .and_then(|content_type| content_type.parse().ok())
+        .unwrap_or(HeaderValue::from_static("application/octet-stream")),
     );
     headers.insert(
       header::CONTENT_SECURITY_POLICY,
@@ -902,7 +950,8 @@ impl Server {
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
-  ) -> ServerResult<PageHtml<InscriptionHtml>> {
+    accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
     let entry = index
       .get_inscription_entry(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
@@ -933,7 +982,23 @@ impl Server {
 
     let next = index.get_inscription_id_by_inscription_number(entry.number + 1)?;
 
-    Ok(
+    Ok(if accept_json.0 {
+      Json(InscriptionJson::new(
+        page_config.chain,
+        entry.fee,
+        entry.height,
+        inscription,
+        inscription_id,
+        next,
+        entry.number,
+        output,
+        previous,
+        entry.sat,
+        satpoint,
+        timestamp(entry.timestamp),
+      ))
+      .into_response()
+    } else {
       InscriptionHtml {
         chain: page_config.chain,
         genesis_fee: entry.fee,
@@ -948,39 +1013,86 @@ impl Server {
         satpoint,
         timestamp: timestamp(entry.timestamp),
       }
-      .page(page_config, index.has_sat_index()?),
-    )
+      .page(page_config, index.has_sat_index()?)
+      .into_response()
+    })
   }
 
   async fn inscriptions(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
-  ) -> ServerResult<PageHtml<InscriptionsHtml>> {
-    Self::inscriptions_inner(page_config, index, None).await
+    accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
+    Self::inscriptions_inner(page_config, index, None, 100, accept_json).await
+  }
+
+  async fn inscriptions_in_block(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Extension(block_index_state): Extension<Arc<BlockIndexState>>,
+    Path(block_height): Path<u64>,
+    accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
+    let inscriptions = index
+      .get_inscriptions_in_block(&block_index_state.block_index.read().unwrap(), block_height)?;
+    Ok(if accept_json.0 {
+      Json(InscriptionsJson::new(inscriptions, None, None, None, None)).into_response()
+    } else {
+      InscriptionsHtml {
+        inscriptions,
+        prev: None,
+        next: None,
+      }
+      .page(page_config, index.has_sat_index()?)
+      .into_response()
+    })
   }
 
   async fn inscriptions_from(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(from): Path<i64>,
-  ) -> ServerResult<PageHtml<InscriptionsHtml>> {
-    Self::inscriptions_inner(page_config, index, Some(from)).await
+    accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
+    Self::inscriptions_inner(page_config, index, Some(from), 100, accept_json).await
+  }
+
+  async fn inscriptions_from_n(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path((from, n)): Path<(i64, usize)>,
+    accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
+    Self::inscriptions_inner(page_config, index, Some(from), n, accept_json).await
   }
 
   async fn inscriptions_inner(
     page_config: Arc<PageConfig>,
     index: Arc<Index>,
     from: Option<i64>,
-  ) -> ServerResult<PageHtml<InscriptionsHtml>> {
-    let (inscriptions, prev, next) = index.get_latest_inscriptions_with_prev_and_next(100, from)?;
-    Ok(
+    n: usize,
+    accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
+    let (inscriptions, prev, next, lowest, highest) =
+      index.get_latest_inscriptions_with_prev_and_next(n, from)?;
+    Ok(if accept_json.0 {
+      Json(InscriptionsJson::new(
+        inscriptions,
+        prev,
+        next,
+        Some(lowest),
+        Some(highest),
+      ))
+      .into_response()
+    } else {
       InscriptionsHtml {
         inscriptions,
         next,
         prev,
       }
-      .page(page_config, index.has_sat_index()?),
-    )
+      .page(page_config, index.has_sat_index()?)
+      .into_response()
+    })
   }
 
   async fn redirect_http_to_https(
@@ -2034,8 +2146,8 @@ mod tests {
   fn commits_are_tracked() {
     let server = TestServer::new();
 
-    thread::sleep(Duration::from_millis(25));
-    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 3);
+    thread::sleep(Duration::from_millis(100));
+    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 1);
 
     let info = server.index.info().unwrap();
     assert_eq!(info.transactions.len(), 1);
@@ -2043,7 +2155,7 @@ mod tests {
 
     server.index.update().unwrap();
 
-    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 3);
+    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 1);
 
     let info = server.index.info().unwrap();
     assert_eq!(info.transactions.len(), 1);
@@ -2054,7 +2166,7 @@ mod tests {
     thread::sleep(Duration::from_millis(10));
     server.index.update().unwrap();
 
-    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 6);
+    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 2);
 
     let info = server.index.info().unwrap();
     assert_eq!(info.transactions.len(), 2);
@@ -2196,6 +2308,18 @@ mod tests {
   fn content_response_no_content_type() {
     let (headers, body) =
       Server::content_response(Inscription::new(None, Some(Vec::new()))).unwrap();
+
+    assert_eq!(headers["content-type"], "application/octet-stream");
+    assert!(body.is_empty());
+  }
+
+  #[test]
+  fn content_response_bad_content_type() {
+    let (headers, body) = Server::content_response(Inscription::new(
+      Some("\n".as_bytes().to_vec()),
+      Some(Vec::new()),
+    ))
+    .unwrap();
 
     assert_eq!(headers["content-type"], "application/octet-stream");
     assert!(body.is_empty());

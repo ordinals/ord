@@ -28,6 +28,10 @@ impl FeeRate {
     #[allow(clippy::cast_sign_loss)]
     Amount::from_sat((self.0 * vsize as f64).round() as u64)
   }
+
+  pub(crate) fn n(&self) -> f64 {
+    self.0
+  }
 }
 
 #[cfg(test)]
