@@ -211,7 +211,7 @@ fn can_send_after_dust_limit_from_an_inscription() {
   ))
   .rpc_server(&rpc_server)
   .stdout_regex("[[:xdigit:]]{64}\n")
-  .run();
+  .run_and_extract_stdout();
 }
 
 #[test]
