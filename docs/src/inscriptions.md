@@ -69,23 +69,28 @@ Content
 The data model of inscriptions is that of a HTTP response, allowing inscription
 content to be served by a web server and viewed in a web browser.
 
-Tags
-----
+Fields
+------
 
-Inscriptions can be given extra fields by preceding data pushes with pre-defined
-numbers. The most basic inscription has two tags:
+Inscriptions may include fields before an optional body. Each field consists of
+two data pushes, a tag and a value.
 
-`1`: The `content-type` tag where the subsequent data pushes define the MIME type
-of the body.
+Currently, the only defined field is `content-type`, with a tag of `1`, whose
+value is the MIME type of the body.
 
-`0`: The `body` tag where the subsequent data pushes contain the actual data.
+The beginning of the body and end of fields is indicated with an empty data
+push.
 
-Furthermore, to give users flexibility and at the same time keep the core
-protocol extensible tags are classified into two kinds: `odd` and `even`. Users
-can add their own `odd` tags and then clients and explorers can opt-in to show
-them. On the other hand `even` tags are reserved for future extensions of the
-protocol so any inscription that contains an unknown `even` tag is not
-recognized as an inscription and not assigned an inscription ID.
+Unrecognized tags are interpreted differently depending on whether they are
+even or odd, following the "it's okay to be odd" rule used by the Lightning
+Network.
+
+Even tags are used for fields which may affect creation, initial assignment, or
+transfer of an inscription. Thus, inscriptions with unrecognized even fields
+must be displayed as "unbound", that is, without a location.
+
+Odd tags are used for fields which do not affect creation, initial assignment,
+or transfer, such as additional metadata, and thus are safe to ignore.
 
 Inscription IDs
 ---------------
