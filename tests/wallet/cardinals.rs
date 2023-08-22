@@ -1,6 +1,6 @@
 use {
   super::*,
-  ord::subcommand::wallet::{cardinals::Cardinal, outputs::Output},
+  ord::subcommand::wallet::{cardinals::CardinalUtxo, outputs::Output},
 };
 
 #[test]
@@ -16,7 +16,7 @@ fn cardinals() {
 
   let cardinal_outputs = CommandBuilder::new("wallet cardinals")
     .rpc_server(&rpc_server)
-    .run_and_check_output::<Vec<Cardinal>>();
+    .run_and_check_output::<Vec<CardinalUtxo>>();
 
   assert_eq!(all_outputs.len() - cardinal_outputs.len(), 1);
 }

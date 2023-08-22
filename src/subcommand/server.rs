@@ -137,7 +137,7 @@ pub(crate) struct Server {
 }
 
 impl Server {
-  pub(crate) fn run(self, options: Options, index: Arc<Index>, handle: Handle) -> Result {
+  pub(crate) fn run(self, options: Options, index: Arc<Index>, handle: Handle) -> SubcommandResult {
     Runtime::new()?.block_on(async {
       let block_index_state = BlockIndexState {
         block_index: RwLock::new(BlockIndex::new(&index)?),
@@ -272,7 +272,7 @@ impl Server {
         (None, None) => unreachable!(),
       }
 
-      Ok(())
+      Ok(Box::new(Empty {}) as Box<dyn Output>)
     })
   }
 
