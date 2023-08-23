@@ -2,7 +2,7 @@ use super::*;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
 
-#[derive(Debug, PartialEq, PartialOrd)]
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum BlockRarity {
   Vintage,
   Nakamoto,

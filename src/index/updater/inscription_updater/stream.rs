@@ -1,4 +1,3 @@
-
 use crate::inscription::TransactionInscription;
 use crate::subcommand::traits::Output;
 use base64::{engine::general_purpose, Engine as _};
