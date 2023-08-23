@@ -80,6 +80,7 @@ fn export_inscription_number_to_id_tsv() {
   let tsv = CommandBuilder::new("index export --tsv foo.tsv")
     .rpc_server(&rpc_server)
     .temp_dir(temp_dir)
+    .stdout_regex(r"\{\}\n")
     .run_and_extract_file("foo.tsv");
 
   let entries: std::collections::BTreeMap<i64, ord::Object> = tsv
