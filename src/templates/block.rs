@@ -11,11 +11,9 @@ pub(crate) struct BlockHtml {
 
 impl BlockHtml {
   pub(crate) fn new(block: Block, height: Height, best_height: Height) -> Self {
-    let mut target = block.header.target().to_be_bytes();
-    target.reverse();
     Self {
       hash: block.header.block_hash(),
-      target: BlockHash::from_inner(target),
+      target: BlockHash::from_raw_hash(Hash::from_byte_array(block.header.target().to_be_bytes())),
       block,
       height,
       best_height,

@@ -1,7 +1,10 @@
 pub(crate) use {
   super::*,
-  bitcoin::blockdata::{opcodes, script},
-  bitcoin::Witness,
+  crate::inscription::TransactionInscription,
+  bitcoin::{
+    blockdata::{opcodes, script, script::PushBytesBuf},
+    ScriptBuf, Witness,
+  },
   pretty_assertions::assert_eq as pretty_assert_eq,
   std::iter,
   test_bitcoincore_rpc::TransactionTemplate,
@@ -68,14 +71,16 @@ pub(crate) fn satpoint(n: u64, offset: u64) -> SatPoint {
 
 pub(crate) fn address() -> Address {
   "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
-    .parse()
+    .parse::<Address<NetworkUnchecked>>()
     .unwrap()
+    .assume_checked()
 }
 
 pub(crate) fn recipient() -> Address {
   "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
-    .parse()
+    .parse::<Address<NetworkUnchecked>>()
     .unwrap()
+    .assume_checked()
 }
 
 pub(crate) fn change(n: u64) -> Address {
@@ -85,14 +90,15 @@ pub(crate) fn change(n: u64) -> Address {
     2 => "tb1qxz9yk0td0yye009gt6ayn7jthz5p07a75luryg",
     _ => panic!(),
   }
-  .parse()
+  .parse::<Address<NetworkUnchecked>>()
   .unwrap()
+  .assume_checked()
 }
 
 pub(crate) fn tx_in(previous_output: OutPoint) -> TxIn {
   TxIn {
     previous_output,
-    script_sig: Script::new(),
+    script_sig: ScriptBuf::new(),
     sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
     witness: Witness::new(),
   }
@@ -107,6 +113,19 @@ pub(crate) fn tx_out(value: u64, address: Address) -> TxOut {
 
 pub(crate) fn inscription(content_type: &str, body: impl AsRef<[u8]>) -> Inscription {
   Inscription::new(Some(content_type.into()), Some(body.as_ref().into()))
+}
+
+pub(crate) fn transaction_inscription(
+  content_type: &str,
+  body: impl AsRef<[u8]>,
+  tx_in_index: u32,
+  tx_in_offset: u32,
+) -> TransactionInscription {
+  TransactionInscription {
+    inscription: inscription(content_type, body),
+    tx_in_index,
+    tx_in_offset,
+  }
 }
 
 pub(crate) fn inscription_id(n: u32) -> InscriptionId {
@@ -125,10 +144,12 @@ pub(crate) fn envelope(payload: &[&[u8]]) -> Witness {
     .push_opcode(opcodes::all::OP_IF);
 
   for data in payload {
-    builder = builder.push_slice(data);
+    let mut buf = PushBytesBuf::new();
+    buf.extend_from_slice(data).unwrap();
+    builder = builder.push_slice(buf);
   }
 
   let script = builder.push_opcode(opcodes::all::OP_ENDIF).into_script();
 
-  Witness::from_vec(vec![script.into_bytes(), Vec::new()])
+  Witness::from_slice(&[script.into_bytes(), Vec::new()])
 }

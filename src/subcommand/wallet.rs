@@ -5,7 +5,7 @@ use {
     All, Secp256k1,
   },
   bitcoin::{
-    util::bip32::{ChildNumber, DerivationPath, ExtendedPrivKey, Fingerprint},
+    bip32::{ChildNumber, DerivationPath, ExtendedPrivKey, Fingerprint},
     Network,
   },
   bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, Timestamp},
@@ -17,14 +17,14 @@ use {
 pub mod balance;
 pub mod cardinals;
 pub mod create;
-pub(crate) mod inscribe;
+pub mod inscribe;
 pub mod inscriptions;
 pub mod outputs;
 pub mod receive;
 mod restore;
 pub mod sats;
 pub mod send;
-pub(crate) mod transaction_builder;
+pub mod transaction_builder;
 pub mod transactions;
 
 #[derive(Debug, Parser)]
@@ -54,7 +54,7 @@ pub(crate) enum Wallet {
 }
 
 impl Wallet {
-  pub(crate) fn run(self, options: Options) -> Result {
+  pub(crate) fn run(self, options: Options) -> SubcommandResult {
     match self {
       Self::Balance => balance::run(options),
       Self::Create(create) => create.run(options),
@@ -71,10 +71,13 @@ impl Wallet {
   }
 }
 
-fn get_change_address(client: &Client) -> Result<Address> {
-  client
-    .call("getrawchangeaddress", &["bech32m".into()])
-    .context("could not get change addresses from wallet")
+fn get_change_address(client: &Client, options: &Options) -> Result<Address> {
+  Ok(
+    client
+      .call::<Address<NetworkUnchecked>>("getrawchangeaddress", &["bech32m".into()])
+      .context("could not get change addresses from wallet")?
+      .require_network(options.chain().network())?,
+  )
 }
 
 pub(crate) fn initialize_wallet(options: &Options, seed: [u8; 64]) -> Result {

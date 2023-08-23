@@ -1,4 +1,4 @@
-use {super::*, crate::command_builder::ToArgs};
+use {super::*, crate::command_builder::ToArgs, ord::subcommand::wallet::send::Output};
 
 #[test]
 fn run() {
@@ -148,17 +148,16 @@ fn inscription_page_after_send() {
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(".*")
-  .run();
+  .run_and_deserialize_output::<Output>()
+  .transaction;
 
   rpc_server.mine_blocks(1);
-
-  let send = txid.trim();
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
     format!("/inscription/{inscription}"),
     format!(
-      r".*<h1>Inscription 0</h1>.*<dt>address</dt>\s*<dd class=monospace>bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv</dd>.*<dt>location</dt>\s*<dd class=monospace>{send}:0:0</dd>.*",
+      r".*<h1>Inscription 0</h1>.*<dt>address</dt>\s*<dd class=monospace>bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv</dd>.*<dt>location</dt>\s*<dd class=monospace>{txid}:0:0</dd>.*",
     ),
   )
 }
@@ -183,8 +182,15 @@ fn inscription_content() {
     "text/plain;charset=utf-8"
   );
   assert_eq!(
-    response.headers().get("content-security-policy").unwrap(),
-    "default-src 'unsafe-eval' 'unsafe-inline' data:"
+    response
+      .headers()
+      .get_all("content-security-policy")
+      .into_iter()
+      .collect::<Vec<&http::HeaderValue>>(),
+    &[
+      "default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:",
+      "default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime 'unsafe-eval' 'unsafe-inline' data: blob:",
+    ]
   );
   assert_eq!(response.bytes().unwrap(), "FOO");
 }
@@ -339,7 +345,7 @@ fn server_runs_with_rpc_user_and_pass_as_env_vars() {
 
   rpc_server.mine_blocks(1);
 
-  let response = reqwest::blocking::get(format!("http://127.0.0.1:{port}/block-count")).unwrap();
+  let response = reqwest::blocking::get(format!("http://127.0.0.1:{port}/blockcount")).unwrap();
   assert_eq!(response.status(), StatusCode::OK);
   assert_eq!(response.text().unwrap(), "2");
 
@@ -354,11 +360,11 @@ fn missing_credentials() {
     .rpc_server(&rpc_server)
     .expected_exit_code(1)
     .expected_stderr("error: no bitcoind rpc password specified\n")
-    .run();
+    .run_and_extract_stdout();
 
   CommandBuilder::new("--bitcoin-rpc-pass bar server")
     .rpc_server(&rpc_server)
     .expected_exit_code(1)
     .expected_stderr("error: no bitcoind rpc user specified\n")
-    .run();
+    .run_and_extract_stdout();
 }

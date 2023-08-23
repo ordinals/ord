@@ -13,12 +13,6 @@ pub mod supply;
 pub mod traits;
 pub mod wallet;
 
-fn print_json(output: impl Serialize) -> Result {
-  serde_json::to_writer_pretty(io::stdout(), &output)?;
-  println!();
-  Ok(())
-}
-
 #[derive(Debug, Parser)]
 pub(crate) enum Subcommand {
   #[clap(about = "List the first satoshis of each reward epoch")]
@@ -27,8 +21,8 @@ pub(crate) enum Subcommand {
   Preview(preview::Preview),
   #[clap(about = "Find a satoshi's current location")]
   Find(find::Find),
-  #[clap(about = "Update the index")]
-  Index,
+  #[clap(subcommand, about = "Index commands")]
+  Index(index::IndexSubcommand),
   #[clap(about = "Display index statistics")]
   Info(info::Info),
   #[clap(about = "List the satoshis in an output")]
@@ -48,12 +42,12 @@ pub(crate) enum Subcommand {
 }
 
 impl Subcommand {
-  pub(crate) fn run(self, options: Options) -> Result {
+  pub(crate) fn run(self, options: Options) -> SubcommandResult {
     match self {
       Self::Epochs => epochs::run(),
       Self::Preview(preview) => preview.run(),
       Self::Find(find) => find.run(options),
-      Self::Index => index::run(options),
+      Self::Index(index) => index.run(options),
       Self::Info(info) => info.run(options),
       Self::List(list) => list.run(options),
       Self::Parse(parse) => parse.run(),
@@ -70,3 +64,22 @@ impl Subcommand {
     }
   }
 }
+
+#[derive(Serialize, Deserialize)]
+pub struct Empty {}
+
+pub(crate) trait Output: Send {
+  fn print_json(&self);
+}
+
+impl<T> Output for T
+where
+  T: Serialize + Send,
+{
+  fn print_json(&self) {
+    serde_json::to_writer_pretty(io::stdout(), self).ok();
+    println!();
+  }
+}
+
+pub(crate) type SubcommandResult = Result<Box<dyn Output>>;

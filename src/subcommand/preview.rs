@@ -16,7 +16,7 @@ impl Drop for KillOnDrop {
 }
 
 impl Preview {
-  pub(crate) fn run(self) -> Result {
+  pub(crate) fn run(self) -> SubcommandResult {
     let tmpdir = TempDir::new()?;
 
     let rpc_port = TcpListener::bind("127.0.0.1:0")?.local_addr()?.port();
@@ -68,8 +68,9 @@ impl Preview {
 
     let rpc_client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
-    let address =
-      rpc_client.get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))?;
+    let address = rpc_client
+      .get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))?
+      .require_network(Network::Regtest)?;
 
     rpc_client.generate_to_address(101, &address)?;
 
@@ -86,6 +87,7 @@ impl Preview {
             dry_run: false,
             no_limit: false,
             destination: None,
+            postage: Some(TransactionBuilder::TARGET_POSTAGE),
           },
         )),
       }
@@ -100,8 +102,6 @@ impl Preview {
       options,
       subcommand: Subcommand::Server(self.server),
     }
-    .run()?;
-
-    Ok(())
+    .run()
   }
 }
