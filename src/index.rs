@@ -2552,110 +2552,110 @@ mod tests {
     }
   }
 
-  //  #[test]
-  //  fn unrecognized_even_field_inscriptions_are_cursed_and_unbound() {
-  //    for context in Context::configurations() {
-  //      context.mine_blocks(1);
-  //
-  //      let witness = envelope(&[
-  //        b"ord",
-  //        &[1],
-  //        b"text/plain;charset=utf-8",
-  //        &[2],
-  //        b"bar",
-  //        &[4],
-  //        b"ord",
-  //      ]);
-  //
-  //      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
-  //        inputs: &[(1, 0, 0)],
-  //        witness,
-  //        ..Default::default()
-  //      });
-  //
-  //      let inscription_id = InscriptionId { txid, index: 0 };
-  //
-  //      context.mine_blocks(1);
-  //
-  //      context.index.assert_inscription_location(
-  //        inscription_id,
-  //        SatPoint {
-  //          outpoint: unbound_outpoint(),
-  //          offset: 0,
-  //        },
-  //        None,
-  //      );
-  //
-  //      assert_eq!(
-  //        context
-  //          .index
-  //          .get_inscription_entry(inscription_id)
-  //          .unwrap()
-  //          .unwrap()
-  //          .number,
-  //        -1
-  //      );
-  //    }
-  //  }
+  #[test]
+  fn unrecognized_even_field_inscriptions_are_cursed_and_unbound() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
 
-  //  #[test]
-  //  fn cursed_inscriptions_assigned_negative_numbers() {
-  //    for context in Context::configurations() {
-  //      context.mine_blocks(1);
-  //
-  //      let witness = envelope(&[
-  //        b"ord",
-  //        &[1],
-  //        b"text/plain;charset=utf-8",
-  //        &[2],
-  //        b"bar",
-  //        &[4],
-  //        b"ord",
-  //      ]);
-  //
-  //      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
-  //        inputs: &[(1, 0, 0)],
-  //        witness,
-  //        ..Default::default()
-  //      });
-  //
-  //      let inscription_id = InscriptionId { txid, index: 0 };
-  //
-  //      context.mine_blocks(1);
-  //
-  //      assert_eq!(
-  //        context
-  //          .index
-  //          .get_inscription_entry(inscription_id)
-  //          .unwrap()
-  //          .unwrap()
-  //          .number,
-  //        -1
-  //      );
-  //
-  //      let witness = envelope(&[b"ord", &[1], b"text/plain;charset=utf-8", &[66], b"zoo"]);
-  //
-  //      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
-  //        inputs: &[(2, 0, 0)],
-  //        witness,
-  //        ..Default::default()
-  //      });
-  //
-  //      let inscription_id = InscriptionId { txid, index: 0 };
-  //
-  //      context.mine_blocks(1);
-  //
-  //      assert_eq!(
-  //        context
-  //          .index
-  //          .get_inscription_entry(inscription_id)
-  //          .unwrap()
-  //          .unwrap()
-  //          .number,
-  //        -2
-  //      );
-  //    }
-  //  }
+      let witness = envelope(&[
+        b"ord",
+        &[1],
+        b"text/plain;charset=utf-8",
+        &[2],
+        b"bar",
+        &[4],
+        b"ord",
+      ]);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0)],
+        witness,
+        ..Default::default()
+      });
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      context.mine_blocks(1);
+
+      context.index.assert_inscription_location(
+        inscription_id,
+        SatPoint {
+          outpoint: unbound_outpoint(),
+          offset: 0,
+        },
+        None,
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_entry(inscription_id)
+          .unwrap()
+          .unwrap()
+          .number,
+        -1
+      );
+    }
+  }
+
+  #[test]
+  fn cursed_inscriptions_assigned_negative_numbers() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let witness = envelope(&[
+        b"ord",
+        &[1],
+        b"text/plain;charset=utf-8",
+        &[2],
+        b"bar",
+        &[4],
+        b"ord",
+      ]);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0)],
+        witness,
+        ..Default::default()
+      });
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      context.mine_blocks(1);
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_entry(inscription_id)
+          .unwrap()
+          .unwrap()
+          .number,
+        -1
+      );
+
+      let witness = envelope(&[b"ord", &[1], b"text/plain;charset=utf-8", &[66], b"zoo"]);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(2, 0, 0)],
+        witness,
+        ..Default::default()
+      });
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      context.mine_blocks(1);
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_entry(inscription_id)
+          .unwrap()
+          .unwrap()
+          .number,
+        -2
+      );
+    }
+  }
 
   #[test]
   // https://github.com/ordinals/ord/issues/2062

@@ -164,7 +164,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           index: id_counter,
         };
 
-        let curse = if inscription.tx_in_index != 0 {
+        let curse = if inscription.inscription.unrecognized_even_field {
+          Some(Curse::UnrecognizedEvenField)
+        } else if inscription.tx_in_index != 0 {
           Some(Curse::NotInFirstInput)
         } else if inscription.tx_in_offset != 0 {
           Some(Curse::NotAtOffsetZero)
@@ -214,7 +216,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           curse.is_some()
         };
 
-        let unbound = input_value == 0 || inscription.tx_in_offset != 0;
+        let unbound = input_value == 0 || inscription.tx_in_offset != 0 || curse == Some(Curse::UnrecognizedEvenField);
 
         if curse.is_some() || unbound {
           log::info!(
