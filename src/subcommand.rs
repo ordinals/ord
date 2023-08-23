@@ -66,7 +66,7 @@ impl Subcommand {
 }
 
 #[derive(Serialize, Deserialize)]
-pub(crate) struct Empty {}
+pub struct Empty {}
 
 pub(crate) trait Output: Send {
   fn print_json(&self);
