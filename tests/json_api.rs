@@ -1,9 +1,4 @@
-use {
-  super::*, ord::inscription_id::InscriptionId, ord::rarity::Rarity,
-  ord::templates::inscription::InscriptionJson, ord::templates::inscriptions::InscriptionsJson,
-  ord::templates::output::OutputJson, ord::templates::sat::SatJson, ord::SatPoint,
-  test_bitcoincore_rpc::TransactionTemplate,
-};
+use super::*;
 
 #[test]
 fn get_sat_without_sat_index() {

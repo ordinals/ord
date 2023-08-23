@@ -1,4 +1,4 @@
-use {super::*, ord::subcommand::wallet::send::Output};
+use super::*;
 
 #[test]
 fn inscriptions_can_be_sent() {
@@ -160,7 +160,7 @@ fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
 }
 
 #[test]
-fn do_not_accidentally_send_an_inscription() {
+fn do_not_send_within_dust_limit_of_an_inscription() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
@@ -178,13 +178,131 @@ fn do_not_accidentally_send_an_inscription() {
   };
 
   CommandBuilder::new(format!(
-    "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {output}:55"
+    "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {output}:329"
   ))
   .rpc_server(&rpc_server)
   .expected_exit_code(1)
   .expected_stderr(format!(
-    "error: cannot send {output}:55 without also sending inscription {inscription} at {output}:0\n"
+    "error: cannot send {output}:329 without also sending inscription {inscription} at {output}:0\n"
   ))
+  .run_and_extract_stdout();
+}
+
+#[test]
+fn can_send_after_dust_limit_from_an_inscription() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+
+  let Inscribe { reveal, .. } = inscribe(&rpc_server);
+
+  rpc_server.mine_blocks(1);
+
+  let output = OutPoint {
+    txid: reveal,
+    vout: 0,
+  };
+
+  CommandBuilder::new(format!(
+    "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {output}:330"
+  ))
+  .rpc_server(&rpc_server)
+  .stdout_regex("[[:xdigit:]]{64}\n")
+  .run_and_extract_stdout();
+}
+
+#[test]
+fn splitting_merged_inscriptions_is_possible() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(3);
+
+  // merging 3 inscriptions into one utxo
+  let reveal_txid = rpc_server.broadcast_tx(TransactionTemplate {
+    inputs: &[(1, 0, 0), (2, 0, 0), (3, 0, 0)],
+    witness: envelope(&[b"ord", &[1], b"text/plain;charset=utf-8", &[], b"bar"]),
+    outputs: 1,
+    ..Default::default()
+  });
+
+  rpc_server.mine_blocks(1);
+
+  let server = TestServer::spawn_with_args(&rpc_server, &["--index-sats", "--enable-json-api"]);
+
+  let response = server.json_request(format!("/output/{}:0", reveal_txid));
+  assert_eq!(response.status(), StatusCode::OK);
+
+  let output_json: OutputJson = serde_json::from_str(&response.text().unwrap()).unwrap();
+
+  pretty_assert_eq!(
+    output_json,
+    OutputJson {
+      value: 3 * 50 * COIN_VALUE,
+      script_pubkey: "".to_string(),
+      address: None,
+      transaction: reveal_txid.to_string(),
+      sat_ranges: Some(vec![
+        (5000000000, 10000000000,),
+        (10000000000, 15000000000,),
+        (15000000000, 20000000000,),
+      ],),
+      inscriptions: vec![
+        InscriptionId {
+          txid: reveal_txid,
+          index: 0
+        },
+        InscriptionId {
+          txid: reveal_txid,
+          index: 2
+        },
+        InscriptionId {
+          txid: reveal_txid,
+          index: 1
+        }
+      ]
+    }
+  );
+
+  // try and fail to send first
+  CommandBuilder::new(format!(
+    "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {}i0",
+    reveal_txid,
+  ))
+  .rpc_server(&rpc_server)
+  .expected_exit_code(1)
+  .expected_stderr(format!(
+    "error: cannot send {reveal_txid}:0:0 without also sending inscription {reveal_txid}i2 at {reveal_txid}:0:{}\n", 100 * COIN_VALUE
+  ))
+  .run_and_extract_stdout();
+
+  // splitting out last
+  CommandBuilder::new(format!(
+    "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {}i2",
+    reveal_txid,
+  ))
+  .rpc_server(&rpc_server)
+  .stdout_regex("[[:xdigit:]]{64}\n")
+  .run_and_extract_stdout();
+
+  rpc_server.mine_blocks(1);
+
+  // splitting second to last
+  CommandBuilder::new(format!(
+    "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {}i1",
+    reveal_txid,
+  ))
+  .rpc_server(&rpc_server)
+  .stdout_regex("[[:xdigit:]]{64}\n")
+  .run_and_extract_stdout();
+
+  rpc_server.mine_blocks(1);
+
+  // splitting send first
+  CommandBuilder::new(format!(
+    "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {}i0",
+    reveal_txid,
+  ))
+  .rpc_server(&rpc_server)
+  .stdout_regex("[[:xdigit:]]{64}\n")
   .run_and_extract_stdout();
 }
 
