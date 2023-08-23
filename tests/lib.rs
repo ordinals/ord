@@ -5,21 +5,22 @@ use {
   bitcoin::{
     address::{Address, NetworkUnchecked},
     blockdata::constants::COIN_VALUE,
-    Network, OutPoint, Txid,
+    Network, OutPoint,
   },
   executable_path::executable_path,
-  ord::inscription_id::InscriptionId,
-  ord::rarity::Rarity,
-  ord::subcommand::wallet::send::Output,
-  ord::templates::inscription::InscriptionJson,
-  ord::templates::inscriptions::InscriptionsJson,
-  ord::templates::output::OutputJson,
-  ord::templates::sat::SatJson,
-  ord::SatPoint,
+  ord::{
+    inscription_id::InscriptionId,
+    rarity::Rarity,
+    templates::{
+      inscription::InscriptionJson, inscriptions::InscriptionsJson, output::OutputJson,
+      sat::SatJson,
+    },
+    SatPoint,
+  },
   pretty_assertions::assert_eq as pretty_assert_eq,
   regex::Regex,
   reqwest::{StatusCode, Url},
-  serde::{de::DeserializeOwned, Deserialize},
+  serde::de::DeserializeOwned,
   std::{
     fs,
     net::TcpListener,
@@ -30,8 +31,7 @@ use {
     time::Duration,
   },
   tempfile::TempDir,
-  test_bitcoincore_rpc::Sent,
-  test_bitcoincore_rpc::TransactionTemplate,
+  test_bitcoincore_rpc::{Sent, TransactionTemplate},
 };
 
 macro_rules! assert_regex_match {
@@ -48,14 +48,7 @@ macro_rules! assert_regex_match {
   };
 }
 
-#[derive(Deserialize, Debug)]
-struct Inscribe {
-  #[allow(dead_code)]
-  commit: Txid,
-  inscription: String,
-  reveal: Txid,
-  fees: u64,
-}
+type Inscribe = ord::subcommand::wallet::inscribe::Output;
 
 fn inscribe(rpc_server: &test_bitcoincore_rpc::Handle) -> Inscribe {
   rpc_server.mine_blocks(1);

@@ -19,12 +19,12 @@ use {
   std::collections::BTreeSet,
 };
 
-#[derive(Serialize)]
-struct Output {
-  commit: Txid,
-  inscription: InscriptionId,
-  reveal: Txid,
-  fees: u64,
+#[derive(Serialize, Deserialize)]
+pub struct Output {
+  pub commit: Txid,
+  pub inscription: InscriptionId,
+  pub reveal: Txid,
+  pub fees: u64,
 }
 
 #[derive(Debug, Parser)]

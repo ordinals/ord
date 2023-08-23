@@ -20,7 +20,7 @@ fn inscriptions() {
     .run_and_deserialize_output::<Vec<inscriptions::Output>>();
 
   assert_eq!(output.len(), 1);
-  assert_eq!(output[0].inscription, inscription.parse().unwrap());
+  assert_eq!(output[0].inscription, inscription);
   assert_eq!(output[0].location, format!("{reveal}:0:0").parse().unwrap());
   assert_eq!(
     output[0].explorer,
@@ -49,7 +49,7 @@ fn inscriptions() {
     .run_and_deserialize_output::<Vec<inscriptions::Output>>();
 
   assert_eq!(output.len(), 1);
-  assert_eq!(output[0].inscription, inscription.parse().unwrap());
+  assert_eq!(output[0].inscription, inscription);
   assert_eq!(output[0].location, format!("{txid}:0:0").parse().unwrap());
 }
 
@@ -78,7 +78,7 @@ fn inscriptions_includes_locked_utxos() {
     .run_and_deserialize_output::<Vec<inscriptions::Output>>();
 
   assert_eq!(output.len(), 1);
-  assert_eq!(output[0].inscription, inscription.parse().unwrap());
+  assert_eq!(output[0].inscription, inscription);
   assert_eq!(output[0].location, format!("{reveal}:0:0").parse().unwrap());
 }
 

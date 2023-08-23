@@ -97,6 +97,6 @@ fn export_inscription_number_to_id_tsv() {
 
   assert_eq!(
     entries.get(&2).unwrap(),
-    &ord::Object::from_str(&inscription).unwrap()
-  )
+    &ord::Object::InscriptionId(inscription),
+  );
 }
