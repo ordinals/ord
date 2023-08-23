@@ -73,7 +73,6 @@ fn send_inscribed_sat() {
     "wallet send --fee-rate 1 bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {inscription}",
   ))
   .rpc_server(&rpc_server)
-  .stdout_regex("[[:xdigit:]]{64}\n")
   .run_and_deserialize_output::<Output>();
 
   rpc_server.mine_blocks(1);
@@ -102,8 +101,7 @@ fn send_on_mainnnet_works_with_wallet_named_foo() {
     "--wallet foo wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0"
   ))
   .rpc_server(&rpc_server)
-  .stdout_regex(r"[[:xdigit:]]{64}\n")
-  .run_and_extract_stdout();
+  .run_and_deserialize_output::<Output>();
 }
 
 #[test]
@@ -129,15 +127,13 @@ fn send_on_mainnnet_works_with_wallet_named_ord() {
   let txid = rpc_server.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0].txid();
   create_wallet(&rpc_server);
 
-  let stdout = CommandBuilder::new(format!(
+  let output = CommandBuilder::new(format!(
     "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0"
   ))
   .rpc_server(&rpc_server)
-  .stdout_regex(r".*")
-  .run_and_extract_stdout();
+  .run_and_deserialize_output::<Output>();
 
-  let txid = rpc_server.mempool()[0].txid();
-  assert_eq!(format!("{txid}\n"), stdout);
+  assert_eq!(rpc_server.mempool()[0].txid(), output.transaction);
 }
 
 #[test]
@@ -324,8 +320,7 @@ fn wallet_send_with_fee_rate() {
     "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {inscription} --fee-rate 2.0"
   ))
   .rpc_server(&rpc_server)
-  .stdout_regex("[[:xdigit:]]{64}\n")
-  .run_and_extract_stdout();
+  .run_and_deserialize_output::<Output>();
 
   let tx = &rpc_server.mempool()[0];
   let mut fee = 0;
@@ -376,8 +371,7 @@ fn wallet_send_with_fee_rate_and_target_postage() {
     "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {inscription} --fee-rate 2.0 --postage 77000sat"
   ))
   .rpc_server(&rpc_server)
-  .stdout_regex("[[:xdigit:]]{64}\n")
-  .run_and_extract_stdout();
+  .run_and_deserialize_output::<Output>();
 
   let tx = &rpc_server.mempool()[0];
   let mut fee = 0;
