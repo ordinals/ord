@@ -7,7 +7,7 @@ fn restore_generates_same_descriptors() {
 
     let Create { mnemonic } = CommandBuilder::new("wallet create")
       .rpc_server(&rpc_server)
-      .run_and_check_output::<Create>();
+      .run_and_deserialize_output::<Create>();
 
     (mnemonic, rpc_server.descriptors())
   };
@@ -29,7 +29,7 @@ fn restore_generates_same_descriptors_with_passphrase() {
 
     let Create { mnemonic } = CommandBuilder::new(["wallet", "create", "--passphrase", passphrase])
       .rpc_server(&rpc_server)
-      .run_and_check_output::<Create>();
+      .run_and_deserialize_output::<Create>();
 
     (mnemonic, rpc_server.descriptors())
   };

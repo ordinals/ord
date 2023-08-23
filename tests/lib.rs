@@ -55,7 +55,7 @@ fn inscribe(rpc_server: &test_bitcoincore_rpc::Handle) -> Inscribe {
   let output = CommandBuilder::new("wallet inscribe --fee-rate 1 foo.txt")
     .write("foo.txt", "FOO")
     .rpc_server(rpc_server)
-    .run_and_check_output();
+    .run_and_deserialize_output();
 
   rpc_server.mine_blocks(1);
 
@@ -88,7 +88,7 @@ struct Create {
 fn create_wallet(rpc_server: &test_bitcoincore_rpc::Handle) {
   CommandBuilder::new(format!("--chain {} wallet create", rpc_server.network()))
     .rpc_server(rpc_server)
-    .run_and_check_output::<Create>();
+    .run_and_deserialize_output::<Create>();
 }
 
 mod command_builder;

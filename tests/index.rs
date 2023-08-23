@@ -11,7 +11,7 @@ fn custom_index_path() {
 
   CommandBuilder::new(format!("--index {} index run", index_path.display()))
     .rpc_server(&rpc_server)
-    .run_and_check_output::<Empty>();
+    .run_and_deserialize_output::<Empty>();
 
   assert!(index_path.is_file())
 }
@@ -27,13 +27,13 @@ fn re_opening_database_does_not_trigger_schema_check() {
 
   CommandBuilder::new(format!("--index {} index run", index_path.display()))
     .rpc_server(&rpc_server)
-    .run_and_check_output::<Empty>();
+    .run_and_deserialize_output::<Empty>();
 
   assert!(index_path.is_file());
 
   CommandBuilder::new(format!("--index {} index run", index_path.display()))
     .rpc_server(&rpc_server)
-    .run_and_check_output::<Empty>();
+    .run_and_deserialize_output::<Empty>();
 }
 
 #[test]

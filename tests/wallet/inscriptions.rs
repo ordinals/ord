@@ -17,7 +17,7 @@ fn inscriptions() {
 
   let output = CommandBuilder::new("wallet inscriptions")
     .rpc_server(&rpc_server)
-    .run_and_check_output::<Vec<Output>>();
+    .run_and_deserialize_output::<Vec<Output>>();
 
   assert_eq!(output.len(), 1);
   assert_eq!(output[0].inscription, inscription.parse().unwrap());
@@ -29,7 +29,7 @@ fn inscriptions() {
 
   let address = CommandBuilder::new("wallet receive")
     .rpc_server(&rpc_server)
-    .run_and_check_output::<receive::Output>()
+    .run_and_deserialize_output::<receive::Output>()
     .address;
 
   let stdout = CommandBuilder::new(format!(
@@ -47,7 +47,7 @@ fn inscriptions() {
 
   let output = CommandBuilder::new("wallet inscriptions")
     .rpc_server(&rpc_server)
-    .run_and_check_output::<Vec<Output>>();
+    .run_and_deserialize_output::<Vec<Output>>();
 
   assert_eq!(output.len(), 1);
   assert_eq!(output[0].inscription, inscription.parse().unwrap());
@@ -76,7 +76,7 @@ fn inscriptions_includes_locked_utxos() {
 
   let output = CommandBuilder::new("wallet inscriptions")
     .rpc_server(&rpc_server)
-    .run_and_check_output::<Vec<Output>>();
+    .run_and_deserialize_output::<Vec<Output>>();
 
   assert_eq!(output.len(), 1);
   assert_eq!(output[0].inscription, inscription.parse().unwrap());
@@ -93,13 +93,13 @@ fn inscriptions_with_postage() {
 
   let output = CommandBuilder::new("wallet inscriptions")
     .rpc_server(&rpc_server)
-    .run_and_check_output::<Vec<Output>>();
+    .run_and_deserialize_output::<Vec<Output>>();
 
   assert_eq!(output[0].postage, 10000);
 
   let address = CommandBuilder::new("wallet receive")
     .rpc_server(&rpc_server)
-    .run_and_check_output::<receive::Output>()
+    .run_and_deserialize_output::<receive::Output>()
     .address;
 
   CommandBuilder::new(format!(
@@ -115,7 +115,7 @@ fn inscriptions_with_postage() {
 
   let output = CommandBuilder::new("wallet inscriptions")
     .rpc_server(&rpc_server)
-    .run_and_check_output::<Vec<Output>>();
+    .run_and_deserialize_output::<Vec<Output>>();
 
   assert_eq!(output[0].postage, 9889);
 }

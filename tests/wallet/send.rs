@@ -96,7 +96,7 @@ fn send_on_mainnnet_works_with_wallet_named_foo() {
 
   CommandBuilder::new("--wallet foo wallet create")
     .rpc_server(&rpc_server)
-    .run_and_check_output::<Create>();
+    .run_and_deserialize_output::<Create>();
 
   CommandBuilder::new(format!(
     "--wallet foo wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0"
@@ -151,7 +151,7 @@ fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
   ))
   .write("degenerate.png", [1; 100])
   .rpc_server(&rpc_server)
-  .run_and_check_output::<Inscribe>();
+  .run_and_deserialize_output::<Inscribe>();
 
   let txid = rpc_server.mine_blocks_with_subsidy(1, 100)[0].txdata[0].txid();
   CommandBuilder::new(format!(
@@ -221,7 +221,7 @@ fn send_btc_with_fee_rate() {
     "wallet send --fee-rate 13.3 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc",
   )
   .rpc_server(&rpc_server)
-  .run_and_check_output::<Output>();
+  .run_and_deserialize_output::<Output>();
 
   let tx = &rpc_server.mempool()[0];
   let mut fee = 0;
@@ -271,7 +271,7 @@ fn send_btc_locks_inscriptions() {
   let output =
     CommandBuilder::new("wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc")
       .rpc_server(&rpc_server)
-      .run_and_check_output::<Output>();
+      .run_and_deserialize_output::<Output>();
 
   assert_eq!(
     output.transaction,
