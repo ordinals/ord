@@ -5,7 +5,7 @@ pub struct Output {
   pub cardinal: u64,
 }
 
-pub(crate) fn run(options: Options) -> Result {
+pub(crate) fn run(options: Options) -> SubcommandResult {
   let index = Index::open(&options)?;
   index.update()?;
 
@@ -24,7 +24,5 @@ pub(crate) fn run(options: Options) -> Result {
     }
   }
 
-  print_json(Output { cardinal: balance })?;
-
-  Ok(())
+  Ok(Box::new(Output { cardinal: balance }))
 }

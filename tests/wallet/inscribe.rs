@@ -35,7 +35,7 @@ fn inscribe_works_with_huge_expensive_inscriptions() {
   ))
   .write("foo.txt", [0; 350_000])
   .rpc_server(&rpc_server)
-  .run_and_check_output::<Inscribe>();
+  .run_and_deserialize_output::<Inscribe>();
 }
 
 #[test]
@@ -61,7 +61,7 @@ fn inscribe_no_backup() {
   CommandBuilder::new("wallet inscribe hello.txt --no-backup --fee-rate 1")
     .write("hello.txt", "HELLOWORLD")
     .rpc_server(&rpc_server)
-    .run_and_check_output::<Inscribe>();
+    .run_and_deserialize_output::<Inscribe>();
 
   assert_eq!(rpc_server.descriptors().len(), 2);
 }
@@ -205,7 +205,7 @@ fn inscribe_with_optional_satpoint_arg() {
   ))
   .write("foo.txt", "FOO")
   .rpc_server(&rpc_server)
-  .run_and_check_output();
+  .run_and_deserialize_output();
 
   rpc_server.mine_blocks(1);
 
@@ -227,7 +227,7 @@ fn inscribe_with_fee_rate() {
   CommandBuilder::new("--index-sats wallet inscribe degenerate.png --fee-rate 2.0")
     .write("degenerate.png", [1; 520])
     .rpc_server(&rpc_server)
-    .run_and_check_output::<Inscribe>();
+    .run_and_deserialize_output::<Inscribe>();
 
   let tx1 = &rpc_server.mempool()[0];
   let mut fee = 0;
@@ -270,7 +270,7 @@ fn inscribe_with_commit_fee_rate() {
   )
   .write("degenerate.png", [1; 520])
   .rpc_server(&rpc_server)
-  .run_and_check_output::<Inscribe>();
+  .run_and_deserialize_output::<Inscribe>();
 
   let tx1 = &rpc_server.mempool()[0];
   let mut fee = 0;
@@ -308,14 +308,14 @@ fn inscribe_with_wallet_named_foo() {
 
   CommandBuilder::new("--wallet foo wallet create")
     .rpc_server(&rpc_server)
-    .run_and_check_output::<Create>();
+    .run_and_deserialize_output::<ord::subcommand::wallet::create::Output>();
 
   rpc_server.mine_blocks(1);
 
   CommandBuilder::new("--wallet foo wallet inscribe degenerate.png --fee-rate 1")
     .write("degenerate.png", [1; 520])
     .rpc_server(&rpc_server)
-    .run_and_check_output::<Inscribe>();
+    .run_and_deserialize_output::<Inscribe>();
 }
 
 #[test]
@@ -327,14 +327,14 @@ fn inscribe_with_dry_run_flag() {
   CommandBuilder::new("wallet inscribe --dry-run degenerate.png --fee-rate 1")
     .write("degenerate.png", [1; 520])
     .rpc_server(&rpc_server)
-    .run_and_check_output::<Inscribe>();
+    .run_and_deserialize_output::<Inscribe>();
 
   assert!(rpc_server.mempool().is_empty());
 
   CommandBuilder::new("wallet inscribe degenerate.png --fee-rate 1")
     .write("degenerate.png", [1; 520])
     .rpc_server(&rpc_server)
-    .run_and_check_output::<Inscribe>();
+    .run_and_deserialize_output::<Inscribe>();
 
   assert_eq!(rpc_server.mempool().len(), 2);
 }
@@ -349,14 +349,14 @@ fn inscribe_with_dry_run_flag_fees_inscrease() {
     CommandBuilder::new("wallet inscribe --dry-run degenerate.png --fee-rate 1")
       .write("degenerate.png", [1; 520])
       .rpc_server(&rpc_server)
-      .run_and_check_output::<Inscribe>()
+      .run_and_deserialize_output::<Inscribe>()
       .fees;
 
   let total_fee_normal =
     CommandBuilder::new("wallet inscribe --dry-run degenerate.png --fee-rate 1.1")
       .write("degenerate.png", [1; 520])
       .rpc_server(&rpc_server)
-      .run_and_check_output::<Inscribe>()
+      .run_and_deserialize_output::<Inscribe>()
       .fees;
 
   assert!(total_fee_dry_run < total_fee_normal);
@@ -370,7 +370,7 @@ fn inscribe_to_specific_destination() {
 
   let destination = CommandBuilder::new("wallet receive")
     .rpc_server(&rpc_server)
-    .run_and_check_output::<ord::subcommand::wallet::receive::Output>()
+    .run_and_deserialize_output::<ord::subcommand::wallet::receive::Output>()
     .address;
 
   let txid = CommandBuilder::new(format!(
@@ -379,7 +379,7 @@ fn inscribe_to_specific_destination() {
   ))
   .write("degenerate.png", [1; 520])
   .rpc_server(&rpc_server)
-  .run_and_check_output::<Inscribe>()
+  .run_and_deserialize_output::<Inscribe>()
   .reveal;
 
   let reveal_tx = &rpc_server.mempool()[1]; // item 0 is the commit, item 1 is the reveal.
@@ -427,14 +427,14 @@ fn inscribe_works_with_postage() {
   CommandBuilder::new("wallet inscribe foo.txt --postage 5btc --fee-rate 10".to_string())
     .write("foo.txt", [0; 350])
     .rpc_server(&rpc_server)
-    .run_and_check_output::<Inscribe>();
+    .run_and_deserialize_output::<Inscribe>();
 
   rpc_server.mine_blocks(1);
 
   let inscriptions = CommandBuilder::new("wallet inscriptions".to_string())
     .write("foo.txt", [0; 350])
     .rpc_server(&rpc_server)
-    .run_and_check_output::<Vec<ord::subcommand::wallet::inscriptions::Output>>();
+    .run_and_deserialize_output::<Vec<ord::subcommand::wallet::inscriptions::Output>>();
 
   pretty_assert_eq!(inscriptions[0].postage, 5 * COIN_VALUE);
 }

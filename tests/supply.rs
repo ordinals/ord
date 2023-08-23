@@ -3,7 +3,7 @@ use {super::*, ord::subcommand::supply::Output};
 #[test]
 fn genesis() {
   assert_eq!(
-    CommandBuilder::new("supply").run_and_check_output::<Output>(),
+    CommandBuilder::new("supply").run_and_deserialize_output::<Output>(),
     Output {
       supply: 2099999997690000,
       first: 0,

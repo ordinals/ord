@@ -154,7 +154,7 @@ impl CommandBuilder {
     stdout.into()
   }
 
-  pub(crate) fn run_and_check_output<T: DeserializeOwned>(self) -> T {
+  pub(crate) fn run_and_deserialize_output<T: DeserializeOwned>(self) -> T {
     let stdout = self.stdout_regex(".*").run_and_extract_stdout();
     serde_json::from_str(&stdout)
       .unwrap_or_else(|err| panic!("Failed to deserialize JSON: {err}\n{stdout}"))

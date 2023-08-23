@@ -19,7 +19,7 @@ pub struct Output {
 }
 
 impl Send {
-  pub(crate) fn run(self, options: Options) -> Result {
+  pub(crate) fn run(self, options: Options) -> SubcommandResult {
     let address = self
       .address
       .clone()
@@ -49,8 +49,7 @@ impl Send {
       Outgoing::Amount(amount) => {
         Self::lock_inscriptions(&client, inscriptions, unspent_outputs)?;
         let txid = Self::send_amount(&client, amount, address, self.fee_rate.n())?;
-        print_json(Output { transaction: txid })?;
-        return Ok(());
+        return Ok(Box::new(Output { transaction: txid }));
       }
     };
 
@@ -82,9 +81,7 @@ impl Send {
 
     let txid = client.send_raw_transaction(&signed_tx)?;
 
-    println!("{txid}");
-
-    Ok(())
+    Ok(Box::new(Output { transaction: txid }))
   }
 
   fn lock_inscriptions(
