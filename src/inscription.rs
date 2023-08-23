@@ -40,7 +40,11 @@ pub(crate) struct TransactionInscription {
 impl Inscription {
   #[cfg(test)]
   pub(crate) fn new(content_type: Option<Vec<u8>>, body: Option<Vec<u8>>) -> Self {
-    Self { content_type, body, unrecognized_even_field: false }
+    Self {
+      content_type,
+      body,
+      unrecognized_even_field: false,
+    }
   }
 
   pub(crate) fn from_transaction(tx: &Transaction) -> Vec<TransactionInscription> {
@@ -161,7 +165,6 @@ pub(crate) enum InscriptionError {
   KeyPathSpend,
   NoInscription,
   Script(script::Error),
-  UnrecognizedEvenField(Inscription),
 }
 
 type Result<T, E = InscriptionError> = std::result::Result<T, E>;
