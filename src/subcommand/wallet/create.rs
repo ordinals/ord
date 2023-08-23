@@ -1,9 +1,9 @@
 use super::*;
 
-#[derive(Serialize)]
-struct Output {
-  mnemonic: Mnemonic,
-  passphrase: Option<String>,
+#[derive(Serialize, Deserialize)]
+pub struct Output {
+  pub mnemonic: Mnemonic,
+  pub passphrase: Option<String>,
 }
 
 #[derive(Debug, Parser)]

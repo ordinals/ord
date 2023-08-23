@@ -2,13 +2,13 @@
 
 use {
   self::{command_builder::CommandBuilder, expected::Expected, test_server::TestServer},
-  bip39::Mnemonic,
   bitcoin::{
     address::{Address, NetworkUnchecked},
     blockdata::constants::COIN_VALUE,
     Network, OutPoint, Txid,
   },
   executable_path::executable_path,
+  ord::subcommand::wallet::create,
   pretty_assertions::assert_eq as pretty_assert_eq,
   regex::Regex,
   reqwest::{StatusCode, Url},
@@ -80,15 +80,10 @@ fn envelope(payload: &[&[u8]]) -> bitcoin::Witness {
   bitcoin::Witness::from_slice(&[script.into_bytes(), Vec::new()])
 }
 
-#[derive(Deserialize)]
-struct Create {
-  mnemonic: Mnemonic,
-}
-
 fn create_wallet(rpc_server: &test_bitcoincore_rpc::Handle) {
   CommandBuilder::new(format!("--chain {} wallet create", rpc_server.network()))
     .rpc_server(rpc_server)
-    .run_and_deserialize_output::<Create>();
+    .run_and_deserialize_output::<create::Output>();
 }
 
 mod command_builder;

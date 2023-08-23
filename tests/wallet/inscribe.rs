@@ -308,7 +308,7 @@ fn inscribe_with_wallet_named_foo() {
 
   CommandBuilder::new("--wallet foo wallet create")
     .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<Create>();
+    .run_and_deserialize_output::<ord::subcommand::wallet::create::Output>();
 
   rpc_server.mine_blocks(1);
 

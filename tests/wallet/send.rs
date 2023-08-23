@@ -10,19 +10,19 @@ fn inscriptions_can_be_sent() {
 
   rpc_server.mine_blocks(1);
 
-  let stdout = CommandBuilder::new(format!(
+  let output = CommandBuilder::new(format!(
     "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {inscription}",
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(r".*")
-  .run_and_extract_stdout();
+  .run_and_deserialize_output::<Output>();
 
   let txid = rpc_server.mempool()[0].txid();
-  assert_eq!(format!("{txid}\n"), stdout);
+  assert_eq!(txid, output.transaction);
 
   rpc_server.mine_blocks(1);
 
-  let send_txid = stdout.trim();
+  let send_txid = output.transaction;
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
@@ -96,7 +96,7 @@ fn send_on_mainnnet_works_with_wallet_named_foo() {
 
   CommandBuilder::new("--wallet foo wallet create")
     .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<Create>();
+    .run_and_deserialize_output::<ord::subcommand::wallet::create::Output>();
 
   CommandBuilder::new(format!(
     "--wallet foo wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0"
