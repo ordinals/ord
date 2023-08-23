@@ -206,8 +206,7 @@ fn can_send_after_dust_limit_from_an_inscription() {
     "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {output}:330"
   ))
   .rpc_server(&rpc_server)
-  .stdout_regex("[[:xdigit:]]{64}\n")
-  .run_and_extract_stdout();
+  .run_and_deserialize_output::<Output>();
 }
 
 #[test]
@@ -280,8 +279,7 @@ fn splitting_merged_inscriptions_is_possible() {
     reveal_txid,
   ))
   .rpc_server(&rpc_server)
-  .stdout_regex("[[:xdigit:]]{64}\n")
-  .run_and_extract_stdout();
+  .run_and_deserialize_output::<Output>();
 
   rpc_server.mine_blocks(1);
 
@@ -291,8 +289,7 @@ fn splitting_merged_inscriptions_is_possible() {
     reveal_txid,
   ))
   .rpc_server(&rpc_server)
-  .stdout_regex("[[:xdigit:]]{64}\n")
-  .run_and_extract_stdout();
+  .run_and_deserialize_output::<Output>();
 
   rpc_server.mine_blocks(1);
 
@@ -302,8 +299,7 @@ fn splitting_merged_inscriptions_is_possible() {
     reveal_txid,
   ))
   .rpc_server(&rpc_server)
-  .stdout_regex("[[:xdigit:]]{64}\n")
-  .run_and_extract_stdout();
+  .run_and_deserialize_output::<Output>();
 }
 
 #[test]
