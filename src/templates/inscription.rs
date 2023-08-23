@@ -1,17 +1,5 @@
 use super::*;
 
-pub(crate) fn ordinal_string(n: usize) -> String {
-  match n {
-    11 | 12 | 13 => format!("{}th", n),
-    _ => match n % 10 {
-      1 => format!("{}st", n),
-      2 => format!("{}nd", n),
-      3 => format!("{}rd", n),
-      _ => format!("{}th", n),
-    },
-  }
-}
-
 #[derive(Boilerplate)]
 pub(crate) struct InscriptionHtml {
   pub(crate) chain: Chain,
@@ -139,7 +127,8 @@ mod tests {
           <dt>content type</dt>
           <dd>text/plain;charset=utf-8</dd>
           <dt>content hash</dt>
-          <dd>0b21b7db59cd154904fac6336fa7d2be1bab38d632794f281549584068cdcb74</dd>
+          <dd><a class=monospace href=/contenthash/0b21b7db59cd154904fac6336fa7d2be1bab38d632794f281549584068cdcb74>0b21b7db59cd154904fac6336fa7d2be1bab38d632794f281549584068cdcb74</a></dd>
+          <dd>1 of 1</dd>
           <dt>timestamp</dt>
           <dd><time>1970-01-01 00:00:00 UTC</time></dd>
           <dt>genesis height</dt>

@@ -70,7 +70,8 @@ fn inscription_page() {
   <dt>content type</dt>
   <dd>text/plain;charset=utf-8</dd>
   <dt>content hash</dt>
-  <dd>9520437ce8902eb379a7d8aaa98fc4c94eeb07b6684854868fa6f72bf34b0fd3</dd>
+  <dd><a class=monospace href=/contenthash/9520437ce8902eb379a7d8aaa98fc4c94eeb07b6684854868fa6f72bf34b0fd3>9520437ce8902eb379a7d8aaa98fc4c94eeb07b6684854868fa6f72bf34b0fd3</a></dd>
+  <dd>1 of 1</dd>
   <dt>timestamp</dt>
   <dd><time>1970-01-01 00:00:02 UTC</time></dd>
   <dt>genesis height</dt>

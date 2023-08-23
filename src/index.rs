@@ -748,7 +748,7 @@ impl Index {
       let rtx = &self.database.begin_read()?;
       let id_to_inscription_entry = rtx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
       match ids.binary_search_by_key(
-        &self.get_inscription_order(&inscription_id, &id_to_inscription_entry),
+        &self.get_inscription_order(inscription_id, &id_to_inscription_entry),
         |id| self.get_inscription_order(id, &id_to_inscription_entry),
       ) {
         Ok(index) => Ok((ids, index)),
