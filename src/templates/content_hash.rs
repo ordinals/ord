@@ -49,9 +49,6 @@ mod tests {
           <iframe sandbox=allow-scripts scrolling=no loading=lazy src=/preview/1111111111111111111111111111111111111111111111111111111111111111i1></iframe>
           <div>.*</div>
         </div>
-        <dl>
-          <dt>occurences</dt><dd>2</dd>
-        </dl>
         <h2>2 Inscriptions</h2>
         <ul class=monospace>
           <li><a href=/inscription/1111111111111111111111111111111111111111111111111111111111111111i1>1111111111111111111111111111111111111111111111111111111111111111i1</a></li>

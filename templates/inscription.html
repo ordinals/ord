@@ -45,7 +45,8 @@
 %% }
 %% if let Some(content_hash) = self.inscription.content_hash().map(|hash| hex::encode(hash.hash)) {
   <dt>content hash</dt>
-  <dd>{{ content_hash }}</dd>
+  <dd><a class=monospace href=/contenthash/{{ content_hash }}>{{ content_hash }}</a></dd>
+  <dd>{{ordinal_string(self.content_hash_index + 1)}} of {{self.content_hash_count}}</dd>
 %% }
   <dt>timestamp</dt>
   <dd><time>{{ self.timestamp }}</time></dd>

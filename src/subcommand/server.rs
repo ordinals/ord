@@ -1022,6 +1022,9 @@ impl Server {
 
     let next = index.get_inscription_id_by_inscription_number(entry.number + 1)?;
 
+    let (content_hash_ids, content_hash_index) =
+      index.get_inscription_ids_with_identical_content_hash(&inscription_id, &inscription)?;
+
     Ok(if accept_json.0 {
       Json(InscriptionJson::new(
         page_config.chain,
@@ -1041,6 +1044,8 @@ impl Server {
     } else {
       InscriptionHtml {
         chain: page_config.chain,
+        content_hash_count: content_hash_ids.len(),
+        content_hash_index,
         genesis_fee: entry.fee,
         genesis_height: entry.height,
         inscription,

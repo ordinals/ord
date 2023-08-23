@@ -1,8 +1,22 @@
 use super::*;
 
+pub(crate) fn ordinal_string(n: usize) -> String {
+  match n {
+    11 | 12 | 13 => format!("{}th", n),
+    _ => match n % 10 {
+      1 => format!("{}st", n),
+      2 => format!("{}nd", n),
+      3 => format!("{}rd", n),
+      _ => format!("{}th", n),
+    },
+  }
+}
+
 #[derive(Boilerplate)]
 pub(crate) struct InscriptionHtml {
   pub(crate) chain: Chain,
+  pub(crate) content_hash_index: usize,
+  pub(crate) content_hash_count: usize,
   pub(crate) genesis_fee: u64,
   pub(crate) genesis_height: u64,
   pub(crate) inscription: Inscription,
@@ -92,6 +106,8 @@ mod tests {
     assert_regex_match!(
       InscriptionHtml {
         chain: Chain::Mainnet,
+        content_hash_count: 1,
+        content_hash_index: 0,
         genesis_fee: 1,
         genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
@@ -149,6 +165,8 @@ mod tests {
     assert_regex_match!(
       InscriptionHtml {
         chain: Chain::Mainnet,
+        content_hash_count: 1,
+        content_hash_index: 0,
         genesis_fee: 1,
         genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
@@ -186,6 +204,8 @@ mod tests {
     assert_regex_match!(
       InscriptionHtml {
         chain: Chain::Mainnet,
+        content_hash_count: 1,
+        content_hash_index: 0,
         genesis_fee: 1,
         genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
@@ -218,6 +238,8 @@ mod tests {
     assert_regex_match!(
       InscriptionHtml {
         chain: Chain::Mainnet,
+        content_hash_count: 1,
+        content_hash_index: 0,
         genesis_fee: 1,
         genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
@@ -248,6 +270,8 @@ mod tests {
     assert_regex_match!(
       InscriptionHtml {
         chain: Chain::Mainnet,
+        content_hash_count: 1,
+        content_hash_index: 0,
         genesis_fee: 1,
         genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),

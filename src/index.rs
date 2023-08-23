@@ -1,3 +1,5 @@
+use redb::ReadOnlyTable;
+
 use {
   self::{
     content_hash::{ContentHash, ContentHashValue},
@@ -126,7 +128,7 @@ impl InscriptionOrder {
   fn special_cmp_key(&self) -> (u64, u64) {
     let number_key = if self.number < 0 {
       // cursed inscriptions should be sorted after all blessed inscriptions of same height
-      u64::MAX - self.number.unsigned_abs()
+      i64::MAX as u64 + self.number.unsigned_abs()
     } else {
       self.number.unsigned_abs()
     };
@@ -682,6 +684,31 @@ impl Index {
     Ok(ids)
   }
 
+  fn get_inscription_order(
+    &self,
+    inscription_id: &InscriptionId,
+    id_to_inscription_entry: &ReadOnlyTable<&InscriptionIdValue, InscriptionEntryValue>,
+  ) -> InscriptionOrder {
+    match id_to_inscription_entry
+      .get(&inscription_id.store())
+      .map(|value| {
+        InscriptionEntry::load(
+          value
+            .expect("inscription entry should exist for every inscription id")
+            .value(),
+        )
+      }) {
+      Ok(entry) => InscriptionOrder {
+        height: entry.height,
+        number: entry.number,
+      },
+      _ => InscriptionOrder {
+        height: 0,
+        number: 0,
+      },
+    }
+  }
+
   pub(crate) fn get_inscription_ids_by_content_hash(
     &self,
     hash: ContentHash,
@@ -701,28 +728,39 @@ impl Index {
     if ids.len() > 1 {
       let id_to_inscription_entry = rtx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
       ids.sort_by_cached_key(|inscription_id| {
-        match id_to_inscription_entry
-          .get(&inscription_id.store())
-          .map(|value| {
-            InscriptionEntry::load(
-              value
-                .expect("inscription entry exists for every inscription id")
-                .value(),
-            )
-          }) {
-          Ok(entry) => InscriptionOrder {
-            height: entry.height,
-            number: entry.number,
-          },
-          _ => InscriptionOrder {
-            height: 0,
-            number: 0,
-          },
-        }
+        self.get_inscription_order(inscription_id, &id_to_inscription_entry)
       });
     }
-
     Ok(ids)
+  }
+
+  pub(crate) fn get_inscription_ids_with_identical_content_hash(
+    &self,
+    inscription_id: &InscriptionId,
+    inscription: &Inscription,
+  ) -> Result<(Vec<InscriptionId>, usize)> {
+    let content_hash = inscription
+      .content_hash()
+      .ok_or_else(|| anyhow!("inscription should have content hash"))?;
+    let ids = self.get_inscription_ids_by_content_hash(content_hash)?;
+
+    if ids.len() > 1 {
+      let rtx = &self.database.begin_read()?;
+      let id_to_inscription_entry = rtx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
+      match ids.binary_search_by_key(
+        &self.get_inscription_order(&inscription_id, &id_to_inscription_entry),
+        |id| self.get_inscription_order(id, &id_to_inscription_entry),
+      ) {
+        Ok(index) => Ok((ids, index)),
+        Err(_) => Err(anyhow!(
+          "inscription id {} not in set of inscriptions for content hash {}",
+          inscription_id,
+          content_hash
+        )),
+      }
+    } else {
+      Ok((ids, 0))
+    }
   }
 
   pub(crate) fn get_inscription_id_by_inscription_number(
