@@ -38,6 +38,8 @@ Links
 - [GitHub](https://github.com/ordinals/ord/)
 - [BIP](https://github.com/ordinals/ord/blob/master/bip.mediawiki)
 - [Discord](https://discord.gg/ordinals)
+- [X](https://twitter.com/ordinalsorg)
+- [ordinals.org](https://ordinals.org/)
 - [Mainnet Block Explorer](https://ordinals.com)
 - [Signet Block Explorer](https://signet.ordinals.com)
 
