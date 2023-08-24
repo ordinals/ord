@@ -83,7 +83,15 @@ impl Reorg {
       return Ok(());
     }
 
-    if (height < SAVEPOINT_INTERVAL || height % SAVEPOINT_INTERVAL == 0)
+    let last_save_point_height = index
+      .begin_read()?
+      .0
+      .open_table(STATISTIC_TO_COUNT)?
+      .get(&Statistic::LastSavePointHeight.key())?
+      .map(|last_save_point_height| last_save_point_height.value())
+      .unwrap_or(0);
+
+    if (height < SAVEPOINT_INTERVAL || height - last_save_point_height >= SAVEPOINT_INTERVAL)
       && index
         .client
         .get_blockchain_info()?
@@ -106,6 +114,10 @@ impl Reorg {
 
       log::debug!("creating savepoint at height {}", height);
       wtx.persistent_savepoint()?;
+
+      wtx
+        .open_table(STATISTIC_TO_COUNT)?
+        .insert(&Statistic::LastSavePointHeight.key(), &height)?;
 
       Index::increment_statistic(&wtx, Statistic::Commits, 1)?;
       wtx.commit()?;

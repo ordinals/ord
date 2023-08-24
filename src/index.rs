@@ -73,6 +73,7 @@ pub(crate) enum Statistic {
   OutputsTraversed = 3,
   SatRanges = 4,
   UnboundInscriptions = 5,
+  LastSavePointHeight = 6,
 }
 
 impl Statistic {
