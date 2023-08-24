@@ -1,0 +1,23 @@
+# Summary
+
+
+[introduction المقدمة](./introduction.md)
+- [Overview النظرة العامة](./Overview.md)
+- [Digital Artifacts التحف الرقمية](./DigitalArtifacts.md)
+- [Inscriptions](./Inscriptions.md)
+     - [Recursion التكرار](./Recursion.md)
+- [FAQ الأسئلة الشائعة](./FAQ.md)
+- [Contributing المساهمة](./Contributing.md)
+- [Donate التبرع](./Donate.md)
+- [Guides إرشادات](./Guides.md)
+  - [Explorer متصفح](./Explorer.md)
+  - [Inscriptions](./Inscriptions.md)
+  - [Sat Hunting جمع الساتوشي](./SatHunting.md)
+  - [Collecting ordinals جمع الأوردينال](./Collecting.md)
+    - [Sparrow Wallet محفظه سبارو ](./SparrowWallet.md)
+  - [Moderation الإشراف](./Moderation.md)
+- [Bounties المكافآت](./Bounties.md)
+  - [Bounty 0: 100,000 sats Claimed!](./Bounty0.md)
+  - [Bounty 1: 200,000 sats Claimed!](./Bounty1.md)
+  - [Bounty 2: 300,000 sats Claimed!](./Bounty2.md)
+  - [Bounty 3: 400,000 sats](./Bounty3.md)
