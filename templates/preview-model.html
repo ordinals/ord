@@ -5,6 +5,6 @@
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.1.1/model-viewer.min.js"></script>
   </head>
   <body>
-    <model-viewer src="/content/{{ self.inscription_id }}"></model-viewer>
+    <model-viewer src="/content/{{ self.inscription_id }}" shadow-intensity="1" camera-controls="true" auto-rotate="true" controls="true" action="pan-y" ar-status="not-presenting" style="width: 100%; min-height: 400px; overflow: hidden;"></model-viewer>
   </body>
 </html>
