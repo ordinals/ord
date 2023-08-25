@@ -113,7 +113,10 @@ impl Inscribe {
       print_json(Output {
         commit: unsigned_commit_tx.txid(),
         reveal: reveal_tx.txid(),
-        inscription: reveal_tx.txid().into(),
+        inscription: InscriptionId {
+          txid: reveal_tx.txid(),
+          index: 0,
+        },
         fees,
       })?;
     } else {
@@ -136,7 +139,10 @@ impl Inscribe {
       print_json(Output {
         commit,
         reveal,
-        inscription: reveal.into(),
+        inscription: InscriptionId {
+          txid: reveal,
+          index: 0,
+        },
         fees,
       })?;
     };

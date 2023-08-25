@@ -600,7 +600,7 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(txid): Path<Txid>,
   ) -> ServerResult<PageHtml<TransactionHtml>> {
-    let inscription = index.get_inscription_by_id(txid.into())?;
+    let inscription = index.get_inscription_by_id(InscriptionId { txid, index: 0 })?;
 
     let blockhash = index.get_transaction_blockhash(txid)?;
 
@@ -610,7 +610,7 @@ impl Server {
           .get_transaction(txid)?
           .ok_or_not_found(|| format!("transaction {txid}"))?,
         blockhash,
-        inscription.map(|_| txid.into()),
+        inscription.map(|_| InscriptionId { txid, index: 0 }),
         page_config.chain,
       )
       .page(page_config, index.has_sat_index()?),
