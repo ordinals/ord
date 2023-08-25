@@ -9,11 +9,11 @@ pub(crate) enum Media {
   Audio,
   Iframe,
   Image,
+  Model,
   Pdf,
   Text,
   Unknown,
   Video,
-  Model,
 }
 
 impl Media {
