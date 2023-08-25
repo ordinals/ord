@@ -27,3 +27,8 @@ pub(crate) struct PreviewUnknownHtml;
 pub(crate) struct PreviewVideoHtml {
   pub(crate) inscription_id: InscriptionId,
 }
+
+#[derive(boilerplate::Boilerplate)]
+pub(crate) struct PreviewModelHtml {
+  pub(crate) inscription_id: InscriptionId,
+}

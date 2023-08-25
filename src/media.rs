@@ -13,6 +13,7 @@ pub(crate) enum Media {
   Text,
   Unknown,
   Video,
+  Model,
 }
 
 impl Media {
@@ -31,7 +32,7 @@ impl Media {
     ("image/png", Media::Image, &["png"]),
     ("image/svg+xml", Media::Iframe, &["svg"]),
     ("image/webp", Media::Image, &["webp"]),
-    ("model/gltf-binary", Media::Unknown, &["glb"]),
+    ("model/gltf-binary", Media::Model, &["glb", "gltf"]),
     ("model/stl", Media::Unknown, &["stl"]),
     ("text/css", Media::Text, &["css"]),
     ("text/html", Media::Iframe, &[]),

@@ -12,7 +12,7 @@ pub(crate) use {
   page_config::PageConfig,
   preview::{
     PreviewAudioHtml, PreviewImageHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
-    PreviewVideoHtml,
+    PreviewVideoHtml, PreviewModelHtml,
   },
   range::RangeHtml,
   rare::RareTxt,
