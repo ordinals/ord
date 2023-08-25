@@ -18,7 +18,7 @@ pub struct Output {
 }
 
 impl List {
-  pub(crate) fn run(self, options: Options) -> Result {
+  pub(crate) fn run(self, options: Options) -> SubcommandResult {
     let index = Index::open(&options)?;
 
     index.update()?;
@@ -47,9 +47,7 @@ impl List {
           });
         }
 
-        print_json(outputs)?;
-
-        Ok(())
+        Ok(Box::new(outputs))
       }
       Some(crate::index::List::Spent) => Err(anyhow!("output spent.")),
       None => Err(anyhow!("output not found")),
@@ -92,8 +90,8 @@ mod tests {
     offset: u64,
     rarity: Rarity,
     name: String,
-  ) -> Output {
-    Output {
+  ) -> super::Output {
+    super::Output {
       output,
       start,
       end,

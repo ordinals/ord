@@ -27,7 +27,7 @@ use {
     options::Options,
     outgoing::Outgoing,
     representation::Representation,
-    subcommand::Subcommand,
+    subcommand::{Subcommand, SubcommandResult},
     tally::Tally,
   },
   anyhow::{anyhow, bail, Context, Error},
@@ -181,22 +181,25 @@ pub fn main() {
   })
   .expect("Error setting <CTRL-C> handler");
 
-  if let Err(err) = Arguments::parse().run() {
-    eprintln!("error: {err}");
-    err
-      .chain()
-      .skip(1)
-      .for_each(|cause| eprintln!("because: {cause}"));
-    if env::var_os("RUST_BACKTRACE")
-      .map(|val| val == "1")
-      .unwrap_or_default()
-    {
-      eprintln!("{}", err.backtrace());
+  match Arguments::parse().run() {
+    Err(err) => {
+      eprintln!("error: {err}");
+      err
+        .chain()
+        .skip(1)
+        .for_each(|cause| eprintln!("because: {cause}"));
+      if env::var_os("RUST_BACKTRACE")
+        .map(|val| val == "1")
+        .unwrap_or_default()
+      {
+        eprintln!("{}", err.backtrace());
+      }
+
+      gracefully_shutdown_indexer();
+
+      process::exit(1);
     }
-
-    gracefully_shutdown_indexer();
-
-    process::exit(1);
+    Ok(output) => output.print_json(),
   }
 
   gracefully_shutdown_indexer();

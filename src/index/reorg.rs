@@ -2,14 +2,14 @@ use {super::*, updater::BlockData};
 
 #[derive(Debug, PartialEq)]
 pub(crate) enum ReorgError {
-  Recoverable((u64, u64)),
+  Recoverable { height: u64, depth: u64 },
   Unrecoverable,
 }
 
 impl fmt::Display for ReorgError {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self {
-      ReorgError::Recoverable((height, depth)) => {
+      ReorgError::Recoverable { height, depth } => {
         write!(f, "{depth} block deep reorg detected at height {height}")
       }
       ReorgError::Unrecoverable => write!(f, "unrecoverable reorg detected"),
@@ -43,7 +43,7 @@ impl Reorg {
             .into_option()?;
 
           if index_block_hash == bitcoind_block_hash {
-            return Err(anyhow!(ReorgError::Recoverable((depth, height))));
+            return Err(anyhow!(ReorgError::Recoverable { height, depth }));
           }
         }
 
@@ -55,6 +55,10 @@ impl Reorg {
 
   pub(crate) fn handle_reorg(index: &Index, height: u64, depth: u64) -> Result {
     log::info!("rolling back database after reorg of depth {depth} at height {height}");
+
+    if let redb::Durability::None = index.durability {
+      panic!("set index durability to `Durability::Immediate` to test reorg handling");
+    }
 
     let mut wtx = index.begin_write()?;
 
@@ -75,6 +79,10 @@ impl Reorg {
   }
 
   pub(crate) fn update_savepoints(index: &Index, height: u64) -> Result {
+    if let redb::Durability::None = index.durability {
+      return Ok(());
+    }
+
     if (height < SAVEPOINT_INTERVAL || height % SAVEPOINT_INTERVAL == 0)
       && index
         .client
