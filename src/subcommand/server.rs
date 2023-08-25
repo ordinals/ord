@@ -943,7 +943,16 @@ impl Server {
       }
       Media::Unknown => Ok(PreviewUnknownHtml.into_response()),
       Media::Video => Ok(PreviewVideoHtml { inscription_id }.into_response()),
-      Media::Model => Ok(PreviewModelHtml { inscription_id }.into_response()),
+      Media::Model => Ok(
+        (
+          [(
+            header::CONTENT_SECURITY_POLICY,
+            "script-src-elem 'self' https://ajax.googleapis.com/",
+          )],
+          PreviewModelHtml { inscription_id },
+        )
+          .into_response(),
+      ),
     }
   }
 
