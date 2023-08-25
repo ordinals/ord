@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, ord::subcommand::wallet::create::Output};
 
 #[test]
 fn create() {
@@ -8,16 +8,16 @@ fn create() {
 
   CommandBuilder::new("wallet create")
     .rpc_server(&rpc_server)
-    .run_and_check_output::<Create>();
+    .run_and_deserialize_output::<Output>();
 
   assert!(rpc_server.wallets().contains("ord"));
 }
 
 #[test]
 fn seed_phrases_are_twelve_words_long() {
-  let Create { mnemonic } = CommandBuilder::new("wallet create")
+  let Output { mnemonic, .. } = CommandBuilder::new("wallet create")
     .rpc_server(&test_bitcoincore_rpc::spawn())
-    .run_and_check_output::<Create>();
+    .run_and_deserialize_output();
 
   assert_eq!(mnemonic.word_count(), 12);
 }
@@ -28,7 +28,7 @@ fn wallet_creates_correct_mainnet_taproot_descriptor() {
 
   CommandBuilder::new("wallet create")
     .rpc_server(&rpc_server)
-    .run_and_check_output::<Create>();
+    .run_and_deserialize_output::<Output>();
 
   assert_eq!(rpc_server.descriptors().len(), 2);
   assert_regex_match!(
@@ -49,7 +49,7 @@ fn wallet_creates_correct_test_network_taproot_descriptor() {
 
   CommandBuilder::new("--chain signet wallet create")
     .rpc_server(&rpc_server)
-    .run_and_check_output::<Create>();
+    .run_and_deserialize_output::<Output>();
 
   assert_eq!(rpc_server.descriptors().len(), 2);
   assert_regex_match!(
@@ -68,7 +68,7 @@ fn detect_wrong_descriptors() {
 
   CommandBuilder::new("wallet create")
     .rpc_server(&rpc_server)
-    .run_and_check_output::<Create>();
+    .run_and_deserialize_output::<Output>();
 
   rpc_server.import_descriptor("wpkh([aslfjk])#a23ad2l".to_string());
 
@@ -89,7 +89,7 @@ fn create_with_different_name() {
 
   CommandBuilder::new("--wallet inscription-wallet wallet create")
     .rpc_server(&rpc_server)
-    .run_and_check_output::<Create>();
+    .run_and_deserialize_output::<Output>();
 
   assert!(rpc_server.wallets().contains("inscription-wallet"));
 }

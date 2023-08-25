@@ -69,6 +69,53 @@ Content
 The data model of inscriptions is that of a HTTP response, allowing inscription
 content to be served by a web server and viewed in a web browser.
 
+Fields
+------
+
+Inscriptions may include fields before an optional body. Each field consists of
+two data pushes, a tag and a value.
+
+Currently, the only defined field is `content-type`, with a tag of `1`, whose
+value is the MIME type of the body.
+
+The beginning of the body and end of fields is indicated with an empty data
+push.
+
+Unrecognized tags are interpreted differently depending on whether they are
+even or odd, following the "it's okay to be odd" rule used by the Lightning
+Network.
+
+Even tags are used for fields which may affect creation, initial assignment, or
+transfer of an inscription. Thus, inscriptions with unrecognized even fields
+must be displayed as "unbound", that is, without a location.
+
+Odd tags are used for fields which do not affect creation, initial assignment,
+or transfer, such as additional metadata, and thus are safe to ignore.
+
+Inscription IDs
+---------------
+
+The inscriptions are contained within the inputs of a reveal transaction. In
+order to uniquely identify them they are assigned an ID of the form:
+
+`521f8eccffa4c41a3a7728dd012ea5a4a02feed81f41159231251ecf1e5c79dai0`
+
+The part in front of the `i` is the transaction ID (`txid`) of the reveal
+transaction. The number after the `i` defines the index (starting at 0) of new inscriptions
+being inscribed in the reveal transaction.
+
+Inscriptions can either be located in different inputs, within the same input or
+a combination of both. In any case the ordering is clear, since a parser would
+go through the inputs consecutively and look for all inscription `envelopes`.
+
+| Input | Inscription Count | Indices    |
+|:-----:|:-----------------:|:----------:|
+| 0     | 2                 | i0, i1     |
+| 1     | 1                 | i2         |
+| 2     | 3                 | i3, i4, i5 |
+| 3     | 0                 |            |
+| 4     | 1                 | i6         |
+
 Sandboxing
 ----------
 
@@ -78,31 +125,3 @@ off-chain content, thus keeping inscriptions immutable and self-contained.
 This is accomplished by loading HTML and SVG inscriptions inside `iframes` with
 the `sandbox` attribute, as well as serving inscription content with
 `Content-Security-Policy` headers.
-
-Recursion
----------
-
-An important exception to sandboxing is recursion: access to `ord`'s `/content`
-endpoint is permitted, allowing inscriptions to access the content of other
-inscriptions by requesting `/content/<INSCRIPTION_ID>`.
-
-This has a number of interesting use-cases:
-
-- Remixing the content of existing inscriptions.
-
-- Publishing snippets of code, images, audio, or stylesheets as shared public
-  resources.
-
-- Generative art collections where an algorithm is inscribed as JavaScript,
-  and instantiated from multiple inscriptions with unique seeds.
-
-- Generative profile picture collections where accessories and attributes are
-  inscribed as individual images, or in a shared texture atlas, and then
-  combined, collage-style, in unique combinations in multiple inscriptions.
-
-A couple other endpoints that inscriptions may access are the following:
-
-- `/blockheight`: latest block height.
-- `/blockhash`: latest block hash.
-- `/blockhash/<HEIGHT>`: block hash at given block height.
-- `/blocktime`: UNIX time stamp of latest block.

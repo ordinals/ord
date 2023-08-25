@@ -1,12 +1,12 @@
 use {super::*, crate::wallet::Wallet, std::collections::BTreeSet};
 
 #[derive(Serialize, Deserialize)]
-pub struct Cardinal {
+pub struct CardinalUtxo {
   pub output: OutPoint,
   pub amount: u64,
 }
 
-pub(crate) fn run(options: Options) -> Result {
+pub(crate) fn run(options: Options) -> SubcommandResult {
   let index = Index::open(&options)?;
   index.update()?;
 
@@ -24,15 +24,13 @@ pub(crate) fn run(options: Options) -> Result {
       if inscribed_utxos.contains(output) {
         None
       } else {
-        Some(Cardinal {
+        Some(CardinalUtxo {
           output: *output,
           amount: amount.to_sat(),
         })
       }
     })
-    .collect::<Vec<Cardinal>>();
+    .collect::<Vec<CardinalUtxo>>();
 
-  print_json(cardinal_utxos)?;
-
-  Ok(())
+  Ok(Box::new(cardinal_utxos))
 }
