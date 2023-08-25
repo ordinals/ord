@@ -3,7 +3,7 @@ use {super::*, ord::subcommand::parse::Output, ord::Object};
 #[test]
 fn name() {
   assert_eq!(
-    CommandBuilder::new("parse a").run_and_check_output::<Output>(),
+    CommandBuilder::new("parse a").run_and_deserialize_output::<Output>(),
     Output {
       object: Object::Integer(2099999997689999),
     }
@@ -14,7 +14,7 @@ fn name() {
 fn hash() {
   assert_eq!(
     CommandBuilder::new("parse 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
-      .run_and_check_output::<Output>(),
+      .run_and_deserialize_output::<Output>(),
     Output {
       object: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
         .parse::<Object>()

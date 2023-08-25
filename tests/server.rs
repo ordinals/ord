@@ -1,4 +1,4 @@
-use {super::*, crate::command_builder::ToArgs};
+use {super::*, crate::command_builder::ToArgs, ord::subcommand::wallet::send::Output};
 
 #[test]
 fn run() {
@@ -148,17 +148,16 @@ fn inscription_page_after_send() {
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(".*")
-  .run_and_extract_stdout();
+  .run_and_deserialize_output::<Output>()
+  .transaction;
 
   rpc_server.mine_blocks(1);
-
-  let send = txid.trim();
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
     format!("/inscription/{inscription}"),
     format!(
-      r".*<h1>Inscription 0</h1>.*<dt>address</dt>\s*<dd class=monospace>bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv</dd>.*<dt>location</dt>\s*<dd class=monospace>{send}:0:0</dd>.*",
+      r".*<h1>Inscription 0</h1>.*<dt>address</dt>\s*<dd class=monospace>bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv</dd>.*<dt>location</dt>\s*<dd class=monospace>{txid}:0:0</dd>.*",
     ),
   )
 }
