@@ -1043,7 +1043,8 @@ impl Server {
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
     let inscriptions = index
-      .get_inscriptions_in_block(&block_index_state.block_index.read().unwrap(), block_height)?;
+      .get_inscriptions_in_block(&block_index_state.block_index.read().unwrap(), block_height)
+      .map_err(|e| ServerError::NotFound(format!("Failed to get inscriptions in block: {}", e)))?;
     Ok(if accept_json.0 {
       Json(InscriptionsJson::new(inscriptions, None, None, None, None)).into_response()
     } else {
