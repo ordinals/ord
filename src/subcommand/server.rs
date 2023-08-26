@@ -10,8 +10,9 @@ use {
   crate::templates::{
     BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson,
     InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson, PageContent,
-    PageHtml, PreviewAudioHtml, PreviewImageHtml, PreviewPdfHtml, PreviewTextHtml,
-    PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, SatHtml, SatJson, TransactionHtml,
+    PageHtml, PreviewAudioHtml, PreviewImageHtml, PreviewModelHtml, PreviewPdfHtml,
+    PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, SatHtml, SatJson,
+    TransactionHtml,
   },
   axum::{
     body,
