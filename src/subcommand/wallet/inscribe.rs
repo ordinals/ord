@@ -113,7 +113,10 @@ impl Inscribe {
       Ok(Box::new(Output {
         commit: unsigned_commit_tx.txid(),
         reveal: reveal_tx.txid(),
-        inscription: reveal_tx.txid().into(),
+        inscription: InscriptionId {
+          txid: reveal_tx.txid(),
+          index: 0,
+        },
         fees,
       }))
     } else {
@@ -136,7 +139,10 @@ impl Inscribe {
       Ok(Box::new(Output {
         commit,
         reveal,
-        inscription: reveal.into(),
+        inscription: InscriptionId {
+          txid: reveal,
+          index: 0,
+        },
         fees,
       }))
     }

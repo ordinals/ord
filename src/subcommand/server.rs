@@ -8,10 +8,11 @@ use {
   crate::index::block_index::BlockIndex,
   crate::page_config::PageConfig,
   crate::templates::{
-    BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson, InscriptionsHtml,
-    InscriptionsJson, OutputHtml, OutputJson, PageContent, PageHtml, PreviewAudioHtml,
-    PreviewImageHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
-    RangeHtml, RareTxt, SatHtml, SatJson, TransactionHtml,
+    BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson,
+    InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson, PageContent,
+    PageHtml, PreviewAudioHtml, PreviewImageHtml, PreviewModelHtml, PreviewPdfHtml,
+    PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, SatHtml, SatJson,
+    TransactionHtml,
   },
   axum::{
     body,
@@ -196,7 +197,14 @@ impl Server {
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_id", get(Self::inscription))
         .route("/inscriptions", get(Self::inscriptions))
-        .route("/inscriptions/block/:n", get(Self::inscriptions_in_block))
+        .route(
+          "/inscriptions/block/:height",
+          get(Self::inscriptions_in_block),
+        )
+        .route(
+          "/inscriptions/block/:height/:page_index",
+          get(Self::inscriptions_in_block_from_page),
+        )
         .route("/inscriptions/:from", get(Self::inscriptions_from))
         .route("/inscriptions/:from/:n", get(Self::inscriptions_from_n))
         .route("/install.sh", get(Self::install_script))
@@ -552,20 +560,30 @@ impl Server {
   async fn home(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
+    Extension(block_index_state): Extension<Arc<BlockIndexState>>,
   ) -> ServerResult<PageHtml<HomeHtml>> {
-    Ok(
-      HomeHtml::new(index.blocks(100)?, index.get_homepage_inscriptions()?)
-        .page(page_config, index.has_sat_index()?),
-    )
+    let blocks = index.blocks(100)?;
+    let mut featured_blocks = BTreeMap::new();
+    for (height, hash) in blocks.iter().take(5) {
+      let inscriptions = block_index_state
+        .block_index
+        .read()
+        .unwrap()
+        .get_highest_paying_inscriptions_in_block(&index, *height, 8)?;
+      featured_blocks.insert(*hash, inscriptions);
+    }
+
+    Ok(HomeHtml::new(blocks, featured_blocks).page(page_config, index.has_sat_index()?))
   }
 
   async fn install_script() -> Redirect {
-    Redirect::to("https://raw.githubusercontent.com/casey/ord/master/install.sh")
+    Redirect::to("https://raw.githubusercontent.com/ordinals/ord/master/install.sh")
   }
 
   async fn block(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
+    Extension(block_index_state): Extension<Arc<BlockIndexState>>,
     Path(DeserializeFromStr(query)): Path<DeserializeFromStr<BlockQuery>>,
   ) -> ServerResult<PageHtml<BlockHtml>> {
     let (block, height) = match query {
@@ -589,9 +607,17 @@ impl Server {
       }
     };
 
+    let inscriptions =
+      index.get_inscriptions_in_block(&block_index_state.block_index.read().unwrap(), height)?;
+
     Ok(
-      BlockHtml::new(block, Height(height), Self::index_height(&index)?)
-        .page(page_config, index.has_sat_index()?),
+      BlockHtml::new(
+        block,
+        Height(height),
+        Self::index_height(&index)?,
+        inscriptions,
+      )
+      .page(page_config, index.has_sat_index()?),
     )
   }
 
@@ -600,7 +626,7 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(txid): Path<Txid>,
   ) -> ServerResult<PageHtml<TransactionHtml>> {
-    let inscription = index.get_inscription_by_id(txid.into())?;
+    let inscription = index.get_inscription_by_id(InscriptionId { txid, index: 0 })?;
 
     let blockhash = index.get_transaction_blockhash(txid)?;
 
@@ -610,7 +636,7 @@ impl Server {
           .get_transaction(txid)?
           .ok_or_not_found(|| format!("transaction {txid}"))?,
         blockhash,
-        inscription.map(|_| txid.into()),
+        inscription.map(|_| InscriptionId { txid, index: 0 }),
         page_config.chain,
       )
       .page(page_config, index.has_sat_index()?),
@@ -919,6 +945,16 @@ impl Server {
         )
           .into_response(),
       ),
+      Media::Model => Ok(
+        (
+          [(
+            header::CONTENT_SECURITY_POLICY,
+            "script-src-elem 'self' https://ajax.googleapis.com",
+          )],
+          PreviewModelHtml { inscription_id },
+        )
+          .into_response(),
+      ),
       Media::Pdf => Ok(
         (
           [(
@@ -1033,18 +1069,39 @@ impl Server {
     Path(block_height): Path<u64>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
+    Self::inscriptions_in_block_from_page(
+      Extension(page_config),
+      Extension(index),
+      Extension(block_index_state),
+      Path((block_height, 0)),
+      accept_json,
+    )
+    .await
+  }
+
+  async fn inscriptions_in_block_from_page(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Extension(block_index_state): Extension<Arc<BlockIndexState>>,
+    Path((block_height, page_index)): Path<(u64, usize)>,
+    accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
     let inscriptions = index
-      .get_inscriptions_in_block(&block_index_state.block_index.read().unwrap(), block_height)?;
+      .get_inscriptions_in_block(&block_index_state.block_index.read().unwrap(), block_height)
+      .map_err(|e| ServerError::NotFound(format!("Failed to get inscriptions in block: {}", e)))?;
+
     Ok(if accept_json.0 {
       Json(InscriptionsJson::new(inscriptions, None, None, None, None)).into_response()
     } else {
-      InscriptionsHtml {
-        inscriptions,
-        prev: None,
-        next: None,
-      }
-      .page(page_config, index.has_sat_index()?)
-      .into_response()
+      InscriptionsBlockHtml::new(block_height, index.block_count()?, inscriptions, page_index)
+        .map_err(|e| {
+          ServerError::NotFound(format!(
+            "Failed to get inscriptions in inscriptions block page: {}",
+            e
+          ))
+        })?
+        .page(page_config, index.has_sat_index()?)
+        .into_response()
     })
   }
 
@@ -1497,7 +1554,7 @@ mod tests {
   fn install_sh_redirects_to_github() {
     TestServer::new().assert_redirect(
       "/install.sh",
-      "https://raw.githubusercontent.com/casey/ord/master/install.sh",
+      "https://raw.githubusercontent.com/ordinals/ord/master/install.sh",
     );
   }
 
@@ -1872,7 +1929,7 @@ mod tests {
 
     server.mine_blocks(1);
 
-    let inscription_id = InscriptionId::from(txid);
+    let inscription_id = InscriptionId { txid, index: 0 };
 
     server.assert_response_regex(
       format!("/inscription/{}", inscription_id),
@@ -1912,15 +1969,21 @@ mod tests {
     test_server.mine_blocks(1);
 
     test_server.assert_response_regex(
-    "/",
-    StatusCode::OK,
-    ".*<title>Ordinals</title>.*
-<h2>Latest Blocks</h2>
-<ol start=1 reversed class=blocks>
-  <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
-  <li><a href=/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f>000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</a></li>
+      "/",
+      StatusCode::OK,
+      ".*<title>Ordinals</title>.*
+<div class=block>
+  <h2><a href=/block/1>Block 1</a></h2>
+  <div class=thumbnails>
+  </div>
+</div>
+<div class=block>
+  <h2><a href=/block/0>Block 0</a></h2>
+  <div class=thumbnails>
+  </div>
+</div>
 </ol>.*",
-  );
+    );
   }
 
   #[test]
@@ -1941,7 +2004,7 @@ mod tests {
     test_server.assert_response_regex(
     "/",
     StatusCode::OK,
-    ".*<ol start=101 reversed class=blocks>\n(  <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){100}</ol>.*"
+    ".*<ol start=96 reversed class=block-list>\n(  <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){95}</ol>.*"
   );
   }
 
@@ -2339,7 +2402,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_csp(
-      format!("/preview/{}", InscriptionId::from(txid)),
+      format!("/preview/{}", InscriptionId { txid, index: 0 }),
       StatusCode::OK,
       "default-src 'self'",
       ".*<pre>hello</pre>.*",
@@ -2360,7 +2423,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response(
-      format!("/preview/{}", InscriptionId::from(txid)),
+      format!("/preview/{}", InscriptionId { txid, index: 0 }),
       StatusCode::INTERNAL_SERVER_ERROR,
       "Internal Server Error",
     );
@@ -2384,7 +2447,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_csp(
-      format!("/preview/{}", InscriptionId::from(txid)),
+      format!("/preview/{}", InscriptionId { txid, index: 0 }),
       StatusCode::OK,
       "default-src 'self'",
       r".*<pre>&lt;script&gt;alert\(&apos;hello&apos;\);&lt;/script&gt;</pre>.*",
@@ -2401,7 +2464,7 @@ mod tests {
       witness: inscription("audio/flac", "hello").to_witness(),
       ..Default::default()
     });
-    let inscription_id = InscriptionId::from(txid);
+    let inscription_id = InscriptionId { txid, index: 0 };
 
     server.mine_blocks(1);
 
@@ -2422,7 +2485,7 @@ mod tests {
       witness: inscription("application/pdf", "hello").to_witness(),
       ..Default::default()
     });
-    let inscription_id = InscriptionId::from(txid);
+    let inscription_id = InscriptionId { txid, index: 0 };
 
     server.mine_blocks(1);
 
@@ -2443,7 +2506,7 @@ mod tests {
       witness: inscription("image/png", "hello").to_witness(),
       ..Default::default()
     });
-    let inscription_id = InscriptionId::from(txid);
+    let inscription_id = InscriptionId { txid, index: 0 };
 
     server.mine_blocks(1);
 
@@ -2469,7 +2532,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_csp(
-      format!("/preview/{}", InscriptionId::from(txid)),
+      format!("/preview/{}", InscriptionId { txid, index: 0 }),
       StatusCode::OK,
       "default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:",
       "hello",
@@ -2490,7 +2553,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_csp(
-      format!("/preview/{}", InscriptionId::from(txid)),
+      format!("/preview/{}", InscriptionId { txid, index: 0 }),
       StatusCode::OK,
       "default-src 'self'",
       fs::read_to_string("templates/preview-unknown.html").unwrap(),
@@ -2507,7 +2570,7 @@ mod tests {
       witness: inscription("video/webm", "hello").to_witness(),
       ..Default::default()
     });
-    let inscription_id = InscriptionId::from(txid);
+    let inscription_id = InscriptionId { txid, index: 0 };
 
     server.mine_blocks(1);
 
@@ -2532,7 +2595,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_regex(
-      format!("/inscription/{}", InscriptionId::from(txid)),
+      format!("/inscription/{}", InscriptionId { txid, index: 0 }),
       StatusCode::OK,
       ".*<title>Inscription 0</title>.*",
     );
@@ -2552,7 +2615,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_regex(
-      format!("/inscription/{}", InscriptionId::from(txid)),
+      format!("/inscription/{}", InscriptionId { txid, index: 0 }),
       StatusCode::OK,
       r".*<dt>sat</dt>\s*<dd><a href=/sat/5000000000>5000000000</a></dd>\s*<dt>preview</dt>.*",
     );
@@ -2572,7 +2635,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_regex(
-      format!("/inscription/{}", InscriptionId::from(txid)),
+      format!("/inscription/{}", InscriptionId { txid, index: 0 }),
       StatusCode::OK,
       r".*<dt>output value</dt>\s*<dd>5000000000</dd>\s*<dt>preview</dt>.*",
     );
@@ -2621,7 +2684,7 @@ mod tests {
       ..Default::default()
     });
 
-    let inscription_id = InscriptionId::from(txid);
+    let inscription_id = InscriptionId { txid, index: 0 };
 
     server.mine_blocks(1);
 
@@ -2643,7 +2706,7 @@ mod tests {
       ..Default::default()
     });
 
-    let inscription_id = InscriptionId::from(txid);
+    let inscription_id = InscriptionId { txid, index: 0 };
 
     server.mine_blocks(1);
 
@@ -2667,7 +2730,7 @@ mod tests {
 
     server.mine_blocks(1);
 
-    let response = server.get(format!("/content/{}", InscriptionId::from(txid)));
+    let response = server.get(format!("/content/{}", InscriptionId { txid, index: 0 }));
 
     assert_eq!(response.status(), StatusCode::OK);
     assert_eq!(
@@ -2782,7 +2845,7 @@ mod tests {
       witness: inscription("text/plain;charset=utf-8", "hello").to_witness(),
       ..Default::default()
     });
-    let inscription = InscriptionId::from(txid);
+    let inscription = InscriptionId { txid, index: 0 };
     bitcoin_rpc_server.mine_blocks(1);
 
     let server = TestServer::new_with_bitcoin_rpc_server_and_config(
