@@ -273,7 +273,7 @@ impl<'index> Updater<'_> {
           // There's no try_iter on tokio::sync::mpsc::Receiver like std::sync::mpsc::Receiver.
           // So we just loop until BATCH_SIZE doing try_recv until it returns None.
           let mut outpoints = vec![outpoint];
-          for _ in 0..BATCH_SIZE-1 {
+          for _ in 0..BATCH_SIZE - 1 {
             let Ok(outpoint) = outpoint_receiver.try_recv() else {
               break;
             };
@@ -296,7 +296,10 @@ impl<'index> Updater<'_> {
           };
           // Send all tx output values back in order
           for (i, tx) in txs.iter().flatten().enumerate() {
-            let Ok(_) = value_sender.send(tx.output[usize::try_from(outpoints[i].vout).unwrap()].value).await else {
+            let Ok(_) = value_sender
+              .send(tx.output[usize::try_from(outpoints[i].vout).unwrap()].value)
+              .await
+            else {
               log::error!("Value channel closed unexpectedly");
               return;
             };

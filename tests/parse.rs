@@ -26,7 +26,7 @@ fn hash() {
 #[test]
 fn unrecognized_object() {
   CommandBuilder::new("parse A")
-    .stderr_regex(r#"error: .*: unrecognized object\n.*"#)
+    .stderr_regex(r"error: .*: unrecognized object\n.*")
     .expected_exit_code(2)
     .run_and_extract_stdout();
 }
