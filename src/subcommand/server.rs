@@ -1085,7 +1085,12 @@ impl Server {
       Json(InscriptionsJson::new(inscriptions, None, None, None, None)).into_response()
     } else {
       InscriptionsBlockHtml::new(block_height, index.block_count()?, inscriptions, page_index)
-        .map_err(|e| ServerError::NotFound(format!("Failed to get inscriptions in inscriptions block page: {}", e)))?
+        .map_err(|e| {
+          ServerError::NotFound(format!(
+            "Failed to get inscriptions in inscriptions block page: {}",
+            e
+          ))
+        })?
         .page(page_config, index.has_sat_index()?)
         .into_response()
     })
