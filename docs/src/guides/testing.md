@@ -1,10 +1,11 @@
 Testing
-================
+=======
 
-Ord can be tested using the following flags to specify the test network. For more information on runing bitcoin core for testing, see [Bitcoins developer documentation](https://developer.bitcoin.org/examples/testing.html).
+Ord can be tested using the following flags to specify the test network. For more
+information on running Bitcoin Core for testing, see [Bitcoin's developer documentation](https://developer.bitcoin.org/examples/testing.html).
 
-Most ord commands in [inscriptions](inscriptions.md) and [explorer](explorer.md) can be run with the following network flags:
-
+Most `ord` commands in [inscriptions](inscriptions.md) and [explorer](explorer.md)
+can be run with the following network flags:
 
 | Network | Flag |
 |---------|------|
@@ -12,8 +13,11 @@ Most ord commands in [inscriptions](inscriptions.md) and [explorer](explorer.md)
 | Signet  | `--signet` or `-s` |
 | Regtest | `--regtest` or `-r` |
 
-Regtest doesnt require downloading the blockchain or indexing ord.
-### Example ord regtest workflow
+Regtest doesn't require downloading the blockchain or indexing ord.
+
+Example
+-------
+
 Run bitcoind in regtest with:
 ```
 bitcoind -regtest -txindex
@@ -26,7 +30,7 @@ Get a regtest receive address with:
 ```
 ord -r wallet receive
 ```
-Mine 101 blocks with: 
+Mine 101 blocks with:
 ```
 bitcoin-cli generatetoaddress 101 <receive address>
 ```
@@ -44,5 +48,9 @@ ord -r server
 ```
 
 Testing Recursion
----------
-When testing out [recursion](../inscriptions/recursion.md), inscribe those dependencies first. The blocks don't need to be mined yet. The new regtest `inscriptionId` can then be used to test the recursion. Multiple blocks might need to be mined depending on how many files are being inscribed.
+-----------------
+
+When testing out [recursion](../inscriptions/recursion.md), inscribe the
+dependencies first. The blocks don't need to be mined yet. The new regtest
+`inscriptionId` can then be used to test the recursion. Multiple blocks might
+need to be mined depending on how many files are being inscribed.
