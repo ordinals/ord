@@ -36,7 +36,7 @@ impl InscriptionsBlockHtml {
       } else {
         None
       },
-      next_page: if page_index * 100 > num_inscriptions {
+      next_page: if page_index * 100 <= num_inscriptions {
         Some(page_index + 1)
       } else {
         None
@@ -67,7 +67,7 @@ mod tests {
         next_page: None,
       },
       "
-        <h1>Inscriptions in Block 21</h1>
+        <h1>Inscriptions in <a href=/block/21>Block 21</a></h1>
         <div class=thumbnails>
           <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
           <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
@@ -93,16 +93,18 @@ mod tests {
         prev_page: Some(1),
       },
       "
-        <h1>Inscriptions in Block 21</h1>
+        <h1>Inscriptions in <a href=/block/21>Block 21</a></h1>
         <div class=thumbnails>
           <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
           <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
         </div>
         .*
-          <a class=prev href=/inscriptions/block/20>Block 20</a>
+          <a class=prev href=/inscriptions/block/20>20</a>
+        &bull;
           <a class=prev href=/inscriptions/block/21/1>prev</a>
           <a class=next href=/inscriptions/block/21/3>next</a>
-          <a class=next href=/inscriptions/block/22>Block 22</a>
+        &bull;
+          <a class=next href=/inscriptions/block/22>22</a>
         .*
       "
       .unindent()
