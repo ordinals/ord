@@ -8,10 +8,11 @@ use {
   crate::index::block_index::BlockIndex,
   crate::page_config::PageConfig,
   crate::templates::{
-    BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson, InscriptionsHtml,
-    InscriptionsJson, OutputHtml, OutputJson, PageContent, PageHtml, PreviewAudioHtml,
-    PreviewImageHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
-    PreviewVideoHtml, RangeHtml, RareTxt, SatHtml, SatJson, TransactionHtml,
+    BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson,
+    InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson, PageContent,
+    PageHtml, PreviewAudioHtml, PreviewImageHtml, PreviewModelHtml, PreviewPdfHtml,
+    PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, SatHtml, SatJson,
+    TransactionHtml,
   },
   axum::{
     body,
@@ -196,7 +197,14 @@ impl Server {
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_id", get(Self::inscription))
         .route("/inscriptions", get(Self::inscriptions))
-        .route("/inscriptions/block/:n", get(Self::inscriptions_in_block))
+        .route(
+          "/inscriptions/block/:height",
+          get(Self::inscriptions_in_block),
+        )
+        .route(
+          "/inscriptions/block/:height/:page_index",
+          get(Self::inscriptions_in_block_from_page),
+        )
         .route("/inscriptions/:from", get(Self::inscriptions_from))
         .route("/inscriptions/:from/:n", get(Self::inscriptions_from_n))
         .route("/install.sh", get(Self::install_script))
@@ -566,6 +574,7 @@ impl Server {
   async fn block(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
+    Extension(block_index_state): Extension<Arc<BlockIndexState>>,
     Path(DeserializeFromStr(query)): Path<DeserializeFromStr<BlockQuery>>,
   ) -> ServerResult<PageHtml<BlockHtml>> {
     let (block, height) = match query {
@@ -589,9 +598,17 @@ impl Server {
       }
     };
 
+    let inscriptions =
+      index.get_inscriptions_in_block(&block_index_state.block_index.read().unwrap(), height)?;
+
     Ok(
-      BlockHtml::new(block, Height(height), Self::index_height(&index)?)
-        .page(page_config, index.has_sat_index()?),
+      BlockHtml::new(
+        block,
+        Height(height),
+        Self::index_height(&index)?,
+        inscriptions,
+      )
+      .page(page_config, index.has_sat_index()?),
     )
   }
 
@@ -1043,18 +1060,39 @@ impl Server {
     Path(block_height): Path<u64>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
+    Self::inscriptions_in_block_from_page(
+      Extension(page_config),
+      Extension(index),
+      Extension(block_index_state),
+      Path((block_height, 0)),
+      accept_json,
+    )
+    .await
+  }
+
+  async fn inscriptions_in_block_from_page(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Extension(block_index_state): Extension<Arc<BlockIndexState>>,
+    Path((block_height, page_index)): Path<(u64, usize)>,
+    accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
     let inscriptions = index
-      .get_inscriptions_in_block(&block_index_state.block_index.read().unwrap(), block_height)?;
+      .get_inscriptions_in_block(&block_index_state.block_index.read().unwrap(), block_height)
+      .map_err(|e| ServerError::NotFound(format!("Failed to get inscriptions in block: {}", e)))?;
+
     Ok(if accept_json.0 {
       Json(InscriptionsJson::new(inscriptions, None, None, None, None)).into_response()
     } else {
-      InscriptionsHtml {
-        inscriptions,
-        prev: None,
-        next: None,
-      }
-      .page(page_config, index.has_sat_index()?)
-      .into_response()
+      InscriptionsBlockHtml::new(block_height, index.block_count()?, inscriptions, page_index)
+        .map_err(|e| {
+          ServerError::NotFound(format!(
+            "Failed to get inscriptions in inscriptions block page: {}",
+            e
+          ))
+        })?
+        .page(page_config, index.has_sat_index()?)
+        .into_response()
     })
   }
 
