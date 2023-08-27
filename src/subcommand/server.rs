@@ -560,15 +560,24 @@ impl Server {
   async fn home(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
+    Extension(block_index_state): Extension<Arc<BlockIndexState>>,
   ) -> ServerResult<PageHtml<HomeHtml>> {
-    Ok(
-      HomeHtml::new(index.blocks(100)?, index.get_homepage_inscriptions()?)
-        .page(page_config, index.has_sat_index()?),
-    )
+    let blocks = index.blocks(100)?;
+    let mut featured_blocks = BTreeMap::new();
+    for (height, hash) in blocks.iter().take(5) {
+      let inscriptions = block_index_state
+        .block_index
+        .read()
+        .unwrap()
+        .get_highest_paying_inscriptions_in_block(&index, *height, 8)?;
+      featured_blocks.insert(*hash, inscriptions);
+    }
+
+    Ok(HomeHtml::new(blocks, featured_blocks).page(page_config, index.has_sat_index()?))
   }
 
   async fn install_script() -> Redirect {
-    Redirect::to("https://raw.githubusercontent.com/casey/ord/master/install.sh")
+    Redirect::to("https://raw.githubusercontent.com/ordinals/ord/master/install.sh")
   }
 
   async fn block(
@@ -1545,7 +1554,7 @@ mod tests {
   fn install_sh_redirects_to_github() {
     TestServer::new().assert_redirect(
       "/install.sh",
-      "https://raw.githubusercontent.com/casey/ord/master/install.sh",
+      "https://raw.githubusercontent.com/ordinals/ord/master/install.sh",
     );
   }
 
@@ -1960,15 +1969,21 @@ mod tests {
     test_server.mine_blocks(1);
 
     test_server.assert_response_regex(
-    "/",
-    StatusCode::OK,
-    ".*<title>Ordinals</title>.*
-<h2>Latest Blocks</h2>
-<ol start=1 reversed class=blocks>
-  <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
-  <li><a href=/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f>000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</a></li>
+      "/",
+      StatusCode::OK,
+      ".*<title>Ordinals</title>.*
+<div class=block>
+  <h2><a href=/block/1>Block 1</a></h2>
+  <div class=thumbnails>
+  </div>
+</div>
+<div class=block>
+  <h2><a href=/block/0>Block 0</a></h2>
+  <div class=thumbnails>
+  </div>
+</div>
 </ol>.*",
-  );
+    );
   }
 
   #[test]
@@ -1989,7 +2004,7 @@ mod tests {
     test_server.assert_response_regex(
     "/",
     StatusCode::OK,
-    ".*<ol start=101 reversed class=blocks>\n(  <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){100}</ol>.*"
+    ".*<ol start=96 reversed class=block-list>\n(  <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){95}</ol>.*"
   );
   }
 
