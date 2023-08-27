@@ -19,12 +19,12 @@ use {
   std::collections::BTreeSet,
 };
 
-#[derive(Serialize)]
-struct Output {
-  commit: Txid,
-  inscription: InscriptionId,
-  reveal: Txid,
-  fees: u64,
+#[derive(Serialize, Deserialize)]
+pub struct Output {
+  pub commit: Txid,
+  pub inscription: InscriptionId,
+  pub reveal: Txid,
+  pub fees: u64,
 }
 
 #[derive(Debug, Parser)]
@@ -59,7 +59,7 @@ pub(crate) struct Inscribe {
 }
 
 impl Inscribe {
-  pub(crate) fn run(self, options: Options) -> Result {
+  pub(crate) fn run(self, options: Options) -> SubcommandResult {
     let inscription = Inscription::from_file(options.chain(), &self.file)?;
 
     let index = Index::open(&options)?;
@@ -110,12 +110,15 @@ impl Inscribe {
       Self::calculate_fee(&unsigned_commit_tx, &utxos) + Self::calculate_fee(&reveal_tx, &utxos);
 
     if self.dry_run {
-      print_json(Output {
+      Ok(Box::new(Output {
         commit: unsigned_commit_tx.txid(),
         reveal: reveal_tx.txid(),
-        inscription: reveal_tx.txid().into(),
+        inscription: InscriptionId {
+          txid: reveal_tx.txid(),
+          index: 0,
+        },
         fees,
-      })?;
+      }))
     } else {
       if !self.no_backup {
         Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
@@ -133,15 +136,16 @@ impl Inscribe {
         .send_raw_transaction(&reveal_tx)
         .context("Failed to send reveal transaction")?;
 
-      print_json(Output {
+      Ok(Box::new(Output {
         commit,
         reveal,
-        inscription: reveal.into(),
+        inscription: InscriptionId {
+          txid: reveal,
+          index: 0,
+        },
         fees,
-      })?;
-    };
-
-    Ok(())
+      }))
+    }
   }
 
   fn calculate_fee(tx: &Transaction, utxos: &BTreeMap<OutPoint, Amount>) -> u64 {

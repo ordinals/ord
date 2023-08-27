@@ -42,7 +42,10 @@ fn get_sat_with_inscription_and_sat_index() {
   create_wallet(&rpc_server);
 
   let Inscribe { reveal, .. } = inscribe(&rpc_server);
-  let inscription_id = InscriptionId::from(reveal);
+  let inscription_id = InscriptionId {
+    txid: reveal,
+    index: 0,
+  };
 
   let response = TestServer::spawn_with_args(&rpc_server, &["--index-sats", "--enable-json-api"])
     .json_request(format!("/sat/{}", 50 * COIN_VALUE));
@@ -88,10 +91,13 @@ fn get_sat_with_inscription_on_common_sat_and_more_inscriptions() {
   ))
   .write("foo.txt", "FOO")
   .rpc_server(&rpc_server)
-  .run_and_check_output();
+  .run_and_deserialize_output();
 
   rpc_server.mine_blocks(1);
-  let inscription_id = InscriptionId::from(reveal);
+  let inscription_id = InscriptionId {
+    txid: reveal,
+    index: 0,
+  };
 
   let response = TestServer::spawn_with_args(&rpc_server, &["--index-sats", "--enable-json-api"])
     .json_request(format!("/sat/{}", 3 * 50 * COIN_VALUE + 1));
@@ -128,7 +134,10 @@ fn get_inscription() {
   create_wallet(&rpc_server);
 
   let Inscribe { reveal, .. } = inscribe(&rpc_server);
-  let inscription_id = InscriptionId::from(reveal);
+  let inscription_id = InscriptionId {
+    txid: reveal,
+    index: 0,
+  };
 
   let response = TestServer::spawn_with_args(&rpc_server, &["--index-sats", "--enable-json-api"])
     .json_request(format!("/inscription/{}", inscription_id));
@@ -192,9 +201,12 @@ fn create_210_inscriptions(
     let Inscribe { reveal, .. } = CommandBuilder::new("wallet inscribe --fee-rate 1 foo.txt")
       .write("foo.txt", "FOO")
       .rpc_server(rpc_server)
-      .run_and_check_output();
+      .run_and_deserialize_output();
     rpc_server.mine_blocks(1);
-    blessed_inscriptions.push(InscriptionId::from(reveal));
+    blessed_inscriptions.push(InscriptionId {
+      txid: reveal,
+      index: 0,
+    });
   }
 
   rpc_server.mine_blocks(1);
