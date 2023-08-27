@@ -10,8 +10,8 @@ use {
   crate::templates::{
     BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson, InscriptionsHtml,
     InscriptionsJson, OutputHtml, OutputJson, PageContent, PageHtml, PreviewAudioHtml,
-    PreviewImageHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
-    RangeHtml, RareTxt, SatHtml, SatJson, TransactionHtml,
+    PreviewImageHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
+    PreviewVideoHtml, RangeHtml, RareTxt, SatHtml, SatJson, TransactionHtml,
   },
   axum::{
     body,
@@ -137,7 +137,7 @@ pub(crate) struct Server {
 }
 
 impl Server {
-  pub(crate) fn run(self, options: Options, index: Arc<Index>, handle: Handle) -> Result {
+  pub(crate) fn run(self, options: Options, index: Arc<Index>, handle: Handle) -> SubcommandResult {
     Runtime::new()?.block_on(async {
       let block_index_state = BlockIndexState {
         block_index: RwLock::new(BlockIndex::new(&index)?),
@@ -272,7 +272,7 @@ impl Server {
         (None, None) => unreachable!(),
       }
 
-      Ok(())
+      Ok(Box::new(Empty {}) as Box<dyn Output>)
     })
   }
 
@@ -612,7 +612,7 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(txid): Path<Txid>,
   ) -> ServerResult<PageHtml<TransactionHtml>> {
-    let inscription = index.get_inscription_by_id(txid.into())?;
+    let inscription = index.get_inscription_by_id(InscriptionId { txid, index: 0 })?;
 
     let blockhash = index.get_transaction_blockhash(txid)?;
 
@@ -622,7 +622,7 @@ impl Server {
           .get_transaction(txid)?
           .ok_or_not_found(|| format!("transaction {txid}"))?,
         blockhash,
-        inscription.map(|_| txid.into()),
+        inscription.map(|_| InscriptionId { txid, index: 0 }),
         page_config.chain,
       )
       .page(page_config, index.has_sat_index()?),
@@ -928,6 +928,16 @@ impl Server {
             "default-src 'self' 'unsafe-inline'",
           )],
           PreviewImageHtml { inscription_id },
+        )
+          .into_response(),
+      ),
+      Media::Model => Ok(
+        (
+          [(
+            header::CONTENT_SECURITY_POLICY,
+            "script-src-elem 'self' https://ajax.googleapis.com",
+          )],
+          PreviewModelHtml { inscription_id },
         )
           .into_response(),
       ),
@@ -1884,7 +1894,7 @@ mod tests {
 
     server.mine_blocks(1);
 
-    let inscription_id = InscriptionId::from(txid);
+    let inscription_id = InscriptionId { txid, index: 0 };
 
     server.assert_response_regex(
       format!("/inscription/{}", inscription_id),
@@ -2159,7 +2169,7 @@ mod tests {
     let server = TestServer::new();
 
     thread::sleep(Duration::from_millis(100));
-    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 3);
+    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 1);
 
     let info = server.index.info().unwrap();
     assert_eq!(info.transactions.len(), 1);
@@ -2167,7 +2177,7 @@ mod tests {
 
     server.index.update().unwrap();
 
-    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 3);
+    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 1);
 
     let info = server.index.info().unwrap();
     assert_eq!(info.transactions.len(), 1);
@@ -2178,7 +2188,7 @@ mod tests {
     thread::sleep(Duration::from_millis(10));
     server.index.update().unwrap();
 
-    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 6);
+    assert_eq!(server.index.statistic(crate::index::Statistic::Commits), 2);
 
     let info = server.index.info().unwrap();
     assert_eq!(info.transactions.len(), 2);
@@ -2351,7 +2361,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_csp(
-      format!("/preview/{}", InscriptionId::from(txid)),
+      format!("/preview/{}", InscriptionId { txid, index: 0 }),
       StatusCode::OK,
       "default-src 'self'",
       ".*<pre>hello</pre>.*",
@@ -2372,7 +2382,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response(
-      format!("/preview/{}", InscriptionId::from(txid)),
+      format!("/preview/{}", InscriptionId { txid, index: 0 }),
       StatusCode::INTERNAL_SERVER_ERROR,
       "Internal Server Error",
     );
@@ -2396,7 +2406,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_csp(
-      format!("/preview/{}", InscriptionId::from(txid)),
+      format!("/preview/{}", InscriptionId { txid, index: 0 }),
       StatusCode::OK,
       "default-src 'self'",
       r".*<pre>&lt;script&gt;alert\(&apos;hello&apos;\);&lt;/script&gt;</pre>.*",
@@ -2413,7 +2423,7 @@ mod tests {
       witness: inscription("audio/flac", "hello").to_witness(),
       ..Default::default()
     });
-    let inscription_id = InscriptionId::from(txid);
+    let inscription_id = InscriptionId { txid, index: 0 };
 
     server.mine_blocks(1);
 
@@ -2434,7 +2444,7 @@ mod tests {
       witness: inscription("application/pdf", "hello").to_witness(),
       ..Default::default()
     });
-    let inscription_id = InscriptionId::from(txid);
+    let inscription_id = InscriptionId { txid, index: 0 };
 
     server.mine_blocks(1);
 
@@ -2455,7 +2465,7 @@ mod tests {
       witness: inscription("image/png", "hello").to_witness(),
       ..Default::default()
     });
-    let inscription_id = InscriptionId::from(txid);
+    let inscription_id = InscriptionId { txid, index: 0 };
 
     server.mine_blocks(1);
 
@@ -2481,7 +2491,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_csp(
-      format!("/preview/{}", InscriptionId::from(txid)),
+      format!("/preview/{}", InscriptionId { txid, index: 0 }),
       StatusCode::OK,
       "default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:",
       "hello",
@@ -2502,7 +2512,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_csp(
-      format!("/preview/{}", InscriptionId::from(txid)),
+      format!("/preview/{}", InscriptionId { txid, index: 0 }),
       StatusCode::OK,
       "default-src 'self'",
       fs::read_to_string("templates/preview-unknown.html").unwrap(),
@@ -2519,7 +2529,7 @@ mod tests {
       witness: inscription("video/webm", "hello").to_witness(),
       ..Default::default()
     });
-    let inscription_id = InscriptionId::from(txid);
+    let inscription_id = InscriptionId { txid, index: 0 };
 
     server.mine_blocks(1);
 
@@ -2544,7 +2554,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_regex(
-      format!("/inscription/{}", InscriptionId::from(txid)),
+      format!("/inscription/{}", InscriptionId { txid, index: 0 }),
       StatusCode::OK,
       ".*<title>Inscription 0</title>.*",
     );
@@ -2564,7 +2574,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_regex(
-      format!("/inscription/{}", InscriptionId::from(txid)),
+      format!("/inscription/{}", InscriptionId { txid, index: 0 }),
       StatusCode::OK,
       r".*<dt>sat</dt>\s*<dd><a href=/sat/5000000000>5000000000</a></dd>\s*<dt>preview</dt>.*",
     );
@@ -2584,7 +2594,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_regex(
-      format!("/inscription/{}", InscriptionId::from(txid)),
+      format!("/inscription/{}", InscriptionId { txid, index: 0 }),
       StatusCode::OK,
       r".*<dt>output value</dt>\s*<dd>5000000000</dd>\s*<dt>preview</dt>.*",
     );
@@ -2633,7 +2643,7 @@ mod tests {
       ..Default::default()
     });
 
-    let inscription_id = InscriptionId::from(txid);
+    let inscription_id = InscriptionId { txid, index: 0 };
 
     server.mine_blocks(1);
 
@@ -2655,7 +2665,7 @@ mod tests {
       ..Default::default()
     });
 
-    let inscription_id = InscriptionId::from(txid);
+    let inscription_id = InscriptionId { txid, index: 0 };
 
     server.mine_blocks(1);
 
@@ -2679,7 +2689,7 @@ mod tests {
 
     server.mine_blocks(1);
 
-    let response = server.get(format!("/content/{}", InscriptionId::from(txid)));
+    let response = server.get(format!("/content/{}", InscriptionId { txid, index: 0 }));
 
     assert_eq!(response.status(), StatusCode::OK);
     assert_eq!(
@@ -2794,7 +2804,7 @@ mod tests {
       witness: inscription("text/plain;charset=utf-8", "hello").to_witness(),
       ..Default::default()
     });
-    let inscription = InscriptionId::from(txid);
+    let inscription = InscriptionId { txid, index: 0 };
     bitcoin_rpc_server.mine_blocks(1);
 
     let server = TestServer::new_with_bitcoin_rpc_server_and_config(

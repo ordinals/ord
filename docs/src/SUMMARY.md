@@ -3,6 +3,7 @@
 - [Overview](overview.md)
 - [Digital Artifacts](digital-artifacts.md)
 - [Inscriptions](inscriptions.md)
+  - [Recursion](inscriptions/recursion.md)
 - [FAQ](faq.md)
 - [Contributing](contributing.md)
 - [Donate](donate.md)
