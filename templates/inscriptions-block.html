@@ -1,18 +1,24 @@
-<h1>Inscriptions (Block {{self.block}})</h1>
+<h1>Inscriptions in Block {{ &self.block }}</h1>
 <div class=thumbnails>
 %% for id in &self.inscriptions {
-  {{Iframe::thumbnail(*id)}}
+  {{ Iframe::thumbnail(*id) }}
 %% }
 </div>
 <div class=center>
-%% if let Some(prev) = self.prev {
-<a class=prev href=/inscriptions/block/{{prev}}>prev</a>
+%% if let Some(prev_block) = &self.prev_block {
+  <a class=prev href=/inscriptions/block/{{ prev_block }}>Block {{ prev_block }}</a>
+%% }
+%% if let Some(prev_page) = &self.prev_page {
+  <a class=prev href=/inscriptions/block/{{ &self.block }}/{{ prev_page }}>prev</a>
 %% } else {
 prev
 %% }
-%% if let Some(next) = self.next {
-<a class=next href=/inscriptions/block/{{next}}>next</a>
+%% if let Some(next_page) = &self.next_page {
+  <a class=next href=/inscriptions/block/{{ &self.block }}/{{ next_page }}>next</a>
 %% } else {
 next
+%% }
+%% if let Some(next_block) = &self.next_block {
+  <a class=next href=/inscriptions/block/{{ next_block }}>Block {{ next_block }}</a>
 %% }
 </div>

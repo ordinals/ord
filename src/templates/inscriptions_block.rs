@@ -4,8 +4,45 @@ use super::*;
 pub(crate) struct InscriptionsBlockHtml {
   pub(crate) block: u64,
   pub(crate) inscriptions: Vec<InscriptionId>,
-  pub(crate) prev: Option<u64>,
-  pub(crate) next: Option<u64>,
+  pub(crate) prev_block: Option<u64>,
+  pub(crate) next_block: Option<u64>,
+  pub(crate) prev_page: Option<usize>,
+  pub(crate) next_page: Option<usize>,
+}
+
+impl InscriptionsBlockHtml {
+  pub(crate) fn new(
+    block: u64,
+    current_blockheight: u64,
+    inscriptions: Vec<InscriptionId>,
+    page_index: usize,
+  ) -> Result<Self> {
+    let start = page_index * 100;
+    let end = start + 100;
+    let num_inscriptions = inscriptions.len();
+    let inscriptions = inscriptions[start..end].to_vec();
+
+    Ok(Self {
+      block,
+      inscriptions,
+      prev_block: if block == 0 { None } else { Some(block - 1) },
+      next_block: if block >= current_blockheight {
+        None
+      } else {
+        Some(block + 1)
+      },
+      prev_page: if page_index > 0 {
+        Some(page_index - 1)
+      } else {
+        None
+      },
+      next_page: if page_index * 100 > num_inscriptions {
+        Some(page_index + 1)
+      } else {
+        None
+      },
+    })
+  }
 }
 
 impl PageContent for InscriptionsBlockHtml {
@@ -24,11 +61,13 @@ mod tests {
       InscriptionsBlockHtml {
         block: 21,
         inscriptions: vec![inscription_id(1), inscription_id(2)],
-        prev: None,
-        next: None,
+        prev_block: None,
+        next_block: None,
+        prev_page: None,
+        next_page: None,
       },
       "
-        <h1>Inscriptions \\(Block 21\\)</h1>
+        <h1>Inscriptions in Block 21</h1>
         <div class=thumbnails>
           <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
           <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
@@ -48,18 +87,22 @@ mod tests {
       InscriptionsBlockHtml {
         block: 21,
         inscriptions: vec![inscription_id(1), inscription_id(2)],
-        prev: Some(20),
-        next: Some(22),
+        prev_block: Some(20),
+        next_block: Some(22),
+        next_page: Some(3),
+        prev_page: Some(1),
       },
       "
-        <h1>Inscriptions \\(Block 21\\)</h1>
+        <h1>Inscriptions in Block 21</h1>
         <div class=thumbnails>
           <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
           <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
         </div>
         .*
-        <a class=prev href=/inscriptions/block/20>prev</a>
-        <a class=next href=/inscriptions/block/22>next</a>
+          <a class=prev href=/inscriptions/block/20>Block 20</a>
+          <a class=prev href=/inscriptions/block/21/1>prev</a>
+          <a class=next href=/inscriptions/block/21/3>next</a>
+          <a class=next href=/inscriptions/block/22>Block 22</a>
         .*
       "
       .unindent()
