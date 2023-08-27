@@ -7,7 +7,8 @@ pub(crate) struct BlockHtml {
   best_height: Height,
   block: Block,
   height: Height,
-  inscriptions: Vec<InscriptionId>,
+  num_inscriptions: usize,
+  txid_to_inscription_ids: BTreeMap<Txid, Vec<InscriptionId>>,
 }
 
 impl BlockHtml {
@@ -23,7 +24,17 @@ impl BlockHtml {
       block,
       height,
       best_height,
-      inscriptions,
+      num_inscriptions: inscriptions.len(),
+      txid_to_inscription_ids: inscriptions.into_iter().fold(
+        BTreeMap::<Txid, Vec<InscriptionId>>::new(),
+        |mut acc, inscription_id| {
+          acc
+            .entry(inscription_id.txid)
+            .and_modify(|inscription_ids| inscription_ids.push(inscription_id))
+            .or_insert(vec![inscription_id]);
+          acc
+        },
+      ),
     }
   }
 }
@@ -45,7 +56,7 @@ mod tests {
         Chain::Mainnet.genesis_block(),
         Height(0),
         Height(0),
-        vec![inscription_id(1), inscription_id(2)]
+        Vec::new()
       ),
       "
         <h1>Block 0</h1>
@@ -60,12 +71,7 @@ mod tests {
         prev
         next
         .*
-        <h2>2 Inscriptions</h2>
-        <div class=thumbnails>
-          <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
-          <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
-        </div>
-        <h2>1 Transaction</h2>
+        <h2>1 Transaction and 0 Inscriptions</h2>
         <ul class=monospace>
           <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
         </ul>
@@ -77,7 +83,12 @@ mod tests {
   #[test]
   fn next_active_when_not_last() {
     assert_regex_match!(
-      BlockHtml::new(Chain::Mainnet.genesis_block(), Height(0), Height(1), vec![]),
+      BlockHtml::new(
+        Chain::Mainnet.genesis_block(),
+        Height(0),
+        Height(1),
+        Vec::new()
+      ),
       r"<h1>Block 0</h1>.*prev\s*<a class=next href=/block/1>next</a>.*"
     );
   }
@@ -85,7 +96,12 @@ mod tests {
   #[test]
   fn prev_active_when_not_first() {
     assert_regex_match!(
-      BlockHtml::new(Chain::Mainnet.genesis_block(), Height(1), Height(1), vec![]),
+      BlockHtml::new(
+        Chain::Mainnet.genesis_block(),
+        Height(1),
+        Height(1),
+        Vec::new()
+      ),
       r"<h1>Block 1</h1>.*<a class=prev href=/block/0>prev</a>\s*next.*",
     );
   }
