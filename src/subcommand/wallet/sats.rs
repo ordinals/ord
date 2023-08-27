@@ -24,7 +24,7 @@ pub struct OutputRare {
 }
 
 impl Sats {
-  pub(crate) fn run(&self, options: Options) -> Result {
+  pub(crate) fn run(&self, options: Options) -> SubcommandResult {
     let index = Index::open(&options)?;
     index.update()?;
 
@@ -42,7 +42,7 @@ impl Sats {
           output: outpoint,
         });
       }
-      print_json(output)?;
+      Ok(Box::new(output))
     } else {
       let mut output = Vec::new();
       for (outpoint, sat, offset, rarity) in rare_sats(utxos) {
@@ -53,10 +53,8 @@ impl Sats {
           rarity,
         });
       }
-      print_json(output)?;
+      Ok(Box::new(output))
     }
-
-    Ok(())
   }
 }
 

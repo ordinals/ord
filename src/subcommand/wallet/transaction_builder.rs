@@ -182,9 +182,18 @@ impl TransactionBuilder {
   }
 
   fn select_outgoing(mut self) -> Result<Self> {
-    for (inscribed_satpoint, inscription_id) in &self.inscriptions {
+    let dust_limit = self
+      .unused_change_addresses
+      .last()
+      .unwrap()
+      .script_pubkey()
+      .dust_value()
+      .to_sat();
+
+    for (inscribed_satpoint, inscription_id) in self.inscriptions.iter().rev() {
       if self.outgoing.outpoint == inscribed_satpoint.outpoint
         && self.outgoing.offset != inscribed_satpoint.offset
+        && self.outgoing.offset < inscribed_satpoint.offset + dust_limit
       {
         return Err(Error::UtxoContainsAdditionalInscription {
           outgoing_satpoint: self.outgoing,

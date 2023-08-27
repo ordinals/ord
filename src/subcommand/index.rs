@@ -9,7 +9,7 @@ pub(crate) enum IndexSubcommand {
 }
 
 impl IndexSubcommand {
-  pub(crate) fn run(self, options: Options) -> Result {
+  pub(crate) fn run(self, options: Options) -> SubcommandResult {
     match self {
       Self::Export(export) => export.run(options),
       Self::Run => index::run(options),
@@ -30,20 +30,20 @@ pub(crate) struct Export {
 }
 
 impl Export {
-  pub(crate) fn run(self, options: Options) -> Result {
+  pub(crate) fn run(self, options: Options) -> SubcommandResult {
     let index = Index::open(&options)?;
 
     index.update()?;
     index.export(&self.tsv, self.include_addresses)?;
 
-    Ok(())
+    Ok(Box::new(Empty {}))
   }
 }
 
-pub(crate) fn run(options: Options) -> Result {
+pub(crate) fn run(options: Options) -> SubcommandResult {
   let index = Index::open(&options)?;
 
   index.update()?;
 
-  Ok(())
+  Ok(Box::new(Empty {}))
 }

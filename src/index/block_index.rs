@@ -183,6 +183,11 @@ impl BlockIndex {
     if block_height >= index.block_count()? || block_height < self.first_inscription_height {
       return Ok(Vec::new());
     }
+
+    if self.lowest_blessed_by_block.is_empty() {
+      return Err(anyhow!("Block index not yet initialized"));
+    }
+
     let lowest_cursed = self.lowest_cursed_by_block
       [usize::try_from(block_height.saturating_sub(self.first_inscription_height))?];
     let lowest_blessed = self.lowest_blessed_by_block

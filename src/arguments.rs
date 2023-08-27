@@ -10,7 +10,7 @@ pub(crate) struct Arguments {
 }
 
 impl Arguments {
-  pub(crate) fn run(self) -> Result {
+  pub(crate) fn run(self) -> SubcommandResult {
     self.subcommand.run(self.options)
   }
 }
