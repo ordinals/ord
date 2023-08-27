@@ -17,7 +17,7 @@ use {
 pub mod balance;
 pub mod cardinals;
 pub mod create;
-pub(crate) mod inscribe;
+pub mod inscribe;
 pub mod inscriptions;
 pub mod outputs;
 pub mod receive;
@@ -54,7 +54,7 @@ pub(crate) enum Wallet {
 }
 
 impl Wallet {
-  pub(crate) fn run(self, options: Options) -> Result {
+  pub(crate) fn run(self, options: Options) -> SubcommandResult {
     match self {
       Self::Balance => balance::run(options),
       Self::Create(create) => create.run(options),
