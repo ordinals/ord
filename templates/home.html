@@ -1,15 +1,18 @@
-%% if !&self.inscriptions.is_empty() {
-<h2>Latest Inscriptions</h2>
-<div class=thumbnails>
-%% for id in &self.inscriptions {
-  {{Iframe::thumbnail(*id)}}
+%% for (i, hash) in self.blocks.iter().enumerate() {
+%% if let Some(inscription_ids) = &self.featured_blocks.get(hash) {
+<div class=block>
+  <h2><a href=/block/{{ self.last - i as u64 }}>Block {{ self.last - i as u64 }}</a></h2>
+  <div class=thumbnails>
+%% for id in *inscription_ids {
+    {{ Iframe::thumbnail(*id) }}
 %% }
+  </div>
 </div>
-<div class=center><a href=/inscriptions>more</a></div>
+%% } else {
+%% if i == self.featured_blocks.len() {
+<ol start={{ self.last - self.featured_blocks.len() as u64 }} reversed class=block-list>
 %% }
-<h2>Latest Blocks</h2>
-<ol start={{self.last}} reversed class=blocks>
-%% for hash in &self.blocks {
-  <li><a href=/block/{{hash}}>{{hash}}</a></li>
+  <li><a href=/block/{{ hash }}>{{ hash }}</a></li>
+%% }
 %% }
 </ol>

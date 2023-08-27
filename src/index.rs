@@ -876,20 +876,6 @@ impl Index {
     Ok(result)
   }
 
-  pub(crate) fn get_homepage_inscriptions(&self) -> Result<Vec<InscriptionId>> {
-    Ok(
-      self
-        .database
-        .begin_read()?
-        .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
-        .iter()?
-        .rev()
-        .take(8)
-        .flat_map(|result| result.map(|(_number, id)| Entry::load(*id.value())))
-        .collect(),
-    )
-  }
-
   pub(crate) fn get_latest_inscriptions_with_prev_and_next(
     &self,
     n: usize,

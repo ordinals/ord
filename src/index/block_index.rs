@@ -203,4 +203,29 @@ impl BlockIndex {
 
     Ok(inscriptions)
   }
+
+  pub(crate) fn get_highest_paying_inscriptions_in_block(
+    &self,
+    index: &Index,
+    block_height: u64,
+    n: usize,
+  ) -> Result<Vec<InscriptionId>> {
+    let inscription_ids = self.get_inscriptions_in_block(index, block_height)?;
+
+    let mut inscription_to_fee: Vec<(InscriptionId, u64)> = Vec::new();
+    for id in inscription_ids {
+      inscription_to_fee.push((id, index.get_inscription_entry(id)?.unwrap().fee));
+    }
+
+    inscription_to_fee.sort_by_key(|(_, fee)| *fee);
+
+    Ok(
+      inscription_to_fee
+        .iter()
+        .map(|(id, _)| *id)
+        .rev()
+        .take(n)
+        .collect(),
+    )
+  }
 }
