@@ -41,7 +41,7 @@ impl InscriptionsBlockHtml {
       } else {
         None
       },
-      next_page: if page_index * 100 <= num_inscriptions {
+      next_page: if (page_index + 1) * 100 <= num_inscriptions {
         Some(page_index + 1)
       } else {
         None
