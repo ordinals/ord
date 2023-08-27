@@ -4,11 +4,11 @@ use super::*;
 pub(crate) struct HomeHtml {
   last: u64,
   blocks: Vec<BlockHash>,
-  inscriptions: Vec<InscriptionId>,
+  featured_blocks: BTreeMap<BlockHash, Vec<InscriptionId>>,
 }
 
 impl HomeHtml {
-  pub(crate) fn new(blocks: Vec<(u64, BlockHash)>, inscriptions: Vec<InscriptionId>) -> Self {
+  pub(crate) fn new(blocks: Vec<(u64, BlockHash)>, featured_blocks: BTreeMap<BlockHash, Vec<InscriptionId>>) -> Self {
     Self {
       last: blocks
         .get(0)
@@ -16,7 +16,7 @@ impl HomeHtml {
         .cloned()
         .unwrap_or(0),
       blocks: blocks.into_iter().map(|(_, hash)| hash).collect(),
-      inscriptions,
+      featured_blocks,
     }
   }
 }

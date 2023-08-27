@@ -560,15 +560,24 @@ impl Server {
   async fn home(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
+    Extension(block_index_state): Extension<Arc<BlockIndexState>>,
   ) -> ServerResult<PageHtml<HomeHtml>> {
-    Ok(
-      HomeHtml::new(index.blocks(100)?, index.get_homepage_inscriptions()?)
-        .page(page_config, index.has_sat_index()?),
-    )
+    let blocks = index.blocks(100)?;
+    let mut featured_blocks = BTreeMap::new();
+    for (height, hash) in blocks.iter().take(5) {
+      let inscriptions = block_index_state
+        .block_index
+        .read()
+        .unwrap()
+        .get_highest_paying_inscriptions_in_block(&index, *height, 8)?;
+      featured_blocks.insert(*hash, inscriptions);
+    }
+
+    Ok(HomeHtml::new(blocks, featured_blocks).page(page_config, index.has_sat_index()?))
   }
 
   async fn install_script() -> Redirect {
-    Redirect::to("https://raw.githubusercontent.com/casey/ord/master/install.sh")
+    Redirect::to("https://raw.githubusercontent.com/ordinals/ord/master/install.sh")
   }
 
   async fn block(
