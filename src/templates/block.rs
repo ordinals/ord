@@ -7,7 +7,8 @@ pub(crate) struct BlockHtml {
   best_height: Height,
   block: Block,
   height: Height,
-  inscriptions: Vec<InscriptionId>,
+  num_inscriptions: usize,
+  txid_to_inscription_ids: BTreeMap<Txid, Vec<InscriptionId>>,
 }
 
 impl BlockHtml {
@@ -23,7 +24,17 @@ impl BlockHtml {
       block,
       height,
       best_height,
-      inscriptions,
+      num_inscriptions: inscriptions.len(),
+      txid_to_inscription_ids: inscriptions.into_iter().fold(
+        BTreeMap::<Txid, Vec<InscriptionId>>::new(),
+        |mut acc, inscription_id| {
+          acc
+            .entry(inscription_id.txid)
+            .and_modify(|inscription_ids| inscription_ids.push(inscription_id))
+            .or_insert(vec![inscription_id]);
+          acc
+        },
+      ),
     }
   }
 }
@@ -60,7 +71,7 @@ mod tests {
         prev
         next
         .*
-        <h2>1 Transaction</h2>
+        <h2>1 Transaction and 0 Inscriptions</h2>
         <ul class=monospace>
           <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
         </ul>
