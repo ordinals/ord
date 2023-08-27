@@ -21,18 +21,17 @@ prev
 next
 %% }
 </div>
-<h2>{{"Transaction".tally(self.block.txdata.len())}}</h2>
+<h2>{{"Transaction".tally(self.block.txdata.len())}} and {{"Inscription".tally(self.num_inscriptions)}}</h2>
 <ul class=monospace>
 %% for tx in &self.block.txdata {
 %% let txid = tx.txid();
   <li><a href=/tx/{{txid}}>{{txid}}</a></li>
+%% if let Some(inscription_ids) = &self.txid_to_inscription_ids.get(&txid) {
+  <ul>
+%% for inscription_id in *inscription_ids {
+  <li><a href=/inscription/{{inscription_id}}>{{inscription_id}}</a></li>
+%% }
+  </ul>
+%% }
 %% }
 </ul>
-%% if self.inscriptions.len() > 0 {
-  <h2>{{"Inscription".tally(self.inscriptions.len())}}</h2>
-<ul class=monospace>
-%% for inscription in &self.inscriptions {
-  <li><a href=/inscription/{{inscription}}>{{inscription}}</a></li>
-%% }
-</ul>
-%% }
