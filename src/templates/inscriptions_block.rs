@@ -17,9 +17,14 @@ impl InscriptionsBlockHtml {
     inscriptions: Vec<InscriptionId>,
     page_index: usize,
   ) -> Result<Self> {
-    let start = page_index * 100;
-    let end = start + 100;
     let num_inscriptions = inscriptions.len();
+
+    let start = page_index * 100;
+    let end = usize::min(start + 100, num_inscriptions);
+
+    if start > num_inscriptions || start > end {
+      return Err(anyhow!("page index {page_index} exceeds inscription count"));
+    }
     let inscriptions = inscriptions[start..end].to_vec();
 
     Ok(Self {
@@ -36,7 +41,7 @@ impl InscriptionsBlockHtml {
       } else {
         None
       },
-      next_page: if page_index * 100 <= num_inscriptions {
+      next_page: if (page_index + 1) * 100 <= num_inscriptions {
         Some(page_index + 1)
       } else {
         None
