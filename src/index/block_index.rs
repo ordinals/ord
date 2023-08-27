@@ -171,6 +171,15 @@ impl BlockIndex {
     index: &Index,
     block_height: u64,
   ) -> Result<Vec<InscriptionId>> {
+    if index.block_count()?
+      > self.lowest_blessed_by_block.len() as u64 + self.first_inscription_height
+    {
+      return Err(anyhow!(
+        "Block index not fully indexed ({} indexed of {})",
+        self.lowest_blessed_by_block.len() as u64 + self.first_inscription_height,
+        index.block_count()?
+      ));
+    }
     if block_height >= index.block_count()? || block_height < self.first_inscription_height {
       return Ok(Vec::new());
     }
