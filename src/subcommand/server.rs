@@ -1090,7 +1090,10 @@ impl Server {
     Path((block_height, page_index)): Path<(u64, usize)>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
-    let block_index = block_index_state.block_index.read().map_err(|err| anyhow!("block index RwLock poisoned: {}", err))?;
+    let block_index = block_index_state
+      .block_index
+      .read()
+      .map_err(|err| anyhow!("block index RwLock poisoned: {}", err))?;
 
     let inscriptions = index
       .get_inscriptions_in_block(&block_index, block_height)

@@ -5,13 +5,10 @@
 %% }
 </div>
 <div class=center>
-%% let prev_block = &self.block - 1;
-%% if self.has_prev_block {
+%% if let Some(prev_block) = &self.prev_block {
   <a class=prev href=/inscriptions/block/{{ prev_block }}>{{ prev_block }}</a>
-%% } else {
-  {{ prev_block }}
-%% }
 &bull;
+%% }
 %% if let Some(prev_page) = &self.prev_page {
   <a class=prev href=/inscriptions/block/{{ &self.block }}/{{ prev_page }}>prev</a>
 %% } else {
@@ -22,11 +19,8 @@ prev
 %% } else {
 next
 %% }
+%% if let Some(next_block) = &self.next_block {
 &bull;
-%% let next_block = &self.block + 1;
-%% if self.has_next_block {
   <a class=next href=/inscriptions/block/{{ next_block }}>{{ next_block }}</a>
-%% } else {
- {{ next_block }}
-%%  }
+%% }
 </div>
