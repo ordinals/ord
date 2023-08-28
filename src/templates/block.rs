@@ -7,8 +7,8 @@ pub(crate) struct BlockHtml {
   best_height: Height,
   block: Block,
   height: Height,
-  num_inscriptions: usize,
-  txid_to_inscription_ids: BTreeMap<Txid, Vec<InscriptionId>>,
+  total_num_inscriptions: usize,
+  featured_inscriptions: Vec<InscriptionId>,
 }
 
 impl BlockHtml {
@@ -16,7 +16,8 @@ impl BlockHtml {
     block: Block,
     height: Height,
     best_height: Height,
-    inscriptions: Vec<InscriptionId>,
+    total_num_inscriptions: usize,
+    featured_inscriptions: Vec<InscriptionId>,
   ) -> Self {
     Self {
       hash: block.header.block_hash(),
@@ -24,17 +25,8 @@ impl BlockHtml {
       block,
       height,
       best_height,
-      num_inscriptions: inscriptions.len(),
-      txid_to_inscription_ids: inscriptions.into_iter().fold(
-        BTreeMap::<Txid, Vec<InscriptionId>>::new(),
-        |mut acc, inscription_id| {
-          acc
-            .entry(inscription_id.txid)
-            .and_modify(|inscription_ids| inscription_ids.push(inscription_id))
-            .or_insert(vec![inscription_id]);
-          acc
-        },
-      ),
+      total_num_inscriptions,
+      featured_inscriptions,
     }
   }
 }
@@ -56,6 +48,7 @@ mod tests {
         Chain::Mainnet.genesis_block(),
         Height(0),
         Height(0),
+        0,
         Vec::new()
       ),
       "
@@ -71,7 +64,10 @@ mod tests {
         prev
         next
         .*
-        <h2>1 Transaction and 0 Inscriptions</h2>
+        <h2>0 Inscriptions</h2>
+        <div class=thumbnails>
+        </div>
+        <h2>1 Transaction</h2>
         <ul class=monospace>
           <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
         </ul>
@@ -87,6 +83,7 @@ mod tests {
         Chain::Mainnet.genesis_block(),
         Height(0),
         Height(1),
+        0,
         Vec::new()
       ),
       r"<h1>Block 0</h1>.*prev\s*<a class=next href=/block/1>next</a>.*"
@@ -100,6 +97,7 @@ mod tests {
         Chain::Mainnet.genesis_block(),
         Height(1),
         Height(1),
+        0,
         Vec::new()
       ),
       r"<h1>Block 1</h1>.*<a class=prev href=/block/0>prev</a>\s*next.*",
