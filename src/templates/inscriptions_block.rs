@@ -30,7 +30,7 @@ impl InscriptionsBlockHtml {
     Ok(Self {
       block,
       inscriptions,
-      prev_block: if block != 0 { Some(block - 1) } else { None },
+      prev_block: block.checked_sub(1),
       next_block: if current_blockheight > block {
         Some(block + 1)
       } else {
