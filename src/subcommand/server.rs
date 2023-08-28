@@ -565,7 +565,7 @@ impl Server {
     let blocks = index.blocks(100)?;
     let mut featured_blocks = BTreeMap::new();
     for (height, hash) in blocks.iter().take(5) {
-      let inscriptions = block_index_state
+      let (inscriptions, _total_num) = block_index_state
         .block_index
         .read()
         .unwrap()
@@ -607,15 +607,19 @@ impl Server {
       }
     };
 
-    let inscriptions =
-      index.get_inscriptions_in_block(&block_index_state.block_index.read().unwrap(), height)?;
+    let (featured_inscriptions, total_num) = block_index_state
+      .block_index
+      .read()
+      .unwrap()
+      .get_highest_paying_inscriptions_in_block(&index, height, 8)?;
 
     Ok(
       BlockHtml::new(
         block,
         Height(height),
         Self::index_height(&index)?,
-        inscriptions,
+        total_num,
+        featured_inscriptions,
       )
       .page(page_config, index.has_sat_index()?),
     )
@@ -1093,15 +1097,20 @@ impl Server {
     Ok(if accept_json.0 {
       Json(InscriptionsJson::new(inscriptions, None, None, None, None)).into_response()
     } else {
-      InscriptionsBlockHtml::new(block_height, index.block_count()?, inscriptions, page_index)
-        .map_err(|e| {
-          ServerError::NotFound(format!(
-            "Failed to get inscriptions in inscriptions block page: {}",
-            e
-          ))
-        })?
-        .page(page_config, index.has_sat_index()?)
-        .into_response()
+      InscriptionsBlockHtml::new(
+        block_height,
+        index.block_count()? - 1,
+        inscriptions,
+        page_index,
+      )
+      .map_err(|e| {
+        ServerError::NotFound(format!(
+          "Failed to get inscriptions in inscriptions block page: {}",
+          e
+        ))
+      })?
+      .page(page_config, index.has_sat_index()?)
+      .into_response()
     })
   }
 

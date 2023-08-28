@@ -4,8 +4,8 @@ use super::*;
 pub(crate) struct InscriptionsBlockHtml {
   pub(crate) block: u64,
   pub(crate) inscriptions: Vec<InscriptionId>,
-  pub(crate) prev_block: Option<u64>,
-  pub(crate) next_block: Option<u64>,
+  pub(crate) has_prev_block: bool,
+  pub(crate) has_next_block: bool,
   pub(crate) prev_page: Option<usize>,
   pub(crate) next_page: Option<usize>,
 }
@@ -30,12 +30,8 @@ impl InscriptionsBlockHtml {
     Ok(Self {
       block,
       inscriptions,
-      prev_block: if block == 0 { None } else { Some(block - 1) },
-      next_block: if block >= current_blockheight {
-        None
-      } else {
-        Some(block + 1)
-      },
+      has_prev_block: block != 0,
+      has_next_block: current_blockheight > block,
       prev_page: if page_index > 0 {
         Some(page_index - 1)
       } else {
@@ -66,8 +62,8 @@ mod tests {
       InscriptionsBlockHtml {
         block: 21,
         inscriptions: vec![inscription_id(1), inscription_id(2)],
-        prev_block: None,
-        next_block: None,
+        has_prev_block: false,
+        has_next_block: false,
         prev_page: None,
         next_page: None,
       },
@@ -92,8 +88,8 @@ mod tests {
       InscriptionsBlockHtml {
         block: 21,
         inscriptions: vec![inscription_id(1), inscription_id(2)],
-        prev_block: Some(20),
-        next_block: Some(22),
+        has_prev_block: true,
+        has_next_block: true,
         next_page: Some(3),
         prev_page: Some(1),
       },

@@ -109,7 +109,7 @@ ol, ul {
 
 .block {
   background-color: var(--light-bg);
-  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px, var(--light-bg) 0px 0px 0px 3px;
+  border-radius: 0.5%;
   margin: 3%;
   padding: 0.5%;
   text-align: center;

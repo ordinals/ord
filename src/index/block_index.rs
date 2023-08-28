@@ -218,23 +218,24 @@ impl BlockIndex {
     index: &Index,
     block_height: u64,
     n: usize,
-  ) -> Result<Vec<InscriptionId>> {
+  ) -> Result<(Vec<InscriptionId>, usize)> {
     let inscription_ids = self.get_inscriptions_in_block(index, block_height)?;
 
     let mut inscription_to_fee: Vec<(InscriptionId, u64)> = Vec::new();
-    for id in inscription_ids {
-      inscription_to_fee.push((id, index.get_inscription_entry(id)?.unwrap().fee));
+    for id in &inscription_ids {
+      inscription_to_fee.push((*id, index.get_inscription_entry(*id)?.unwrap().fee));
     }
 
     inscription_to_fee.sort_by_key(|(_, fee)| *fee);
 
-    Ok(
+    Ok((
       inscription_to_fee
         .iter()
         .map(|(id, _)| *id)
         .rev()
         .take(n)
         .collect(),
-    )
+      inscription_ids.len(),
+    ))
   }
 }
