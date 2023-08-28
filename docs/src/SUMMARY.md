@@ -13,6 +13,7 @@
   - [Sat Hunting](guides/sat-hunting.md)
   - [Collecting](guides/collecting.md)
     - [Sparrow Wallet](guides/collecting/sparrow-wallet.md)
+  - [Testing](guides/testing.md)
   - [Moderation](guides/moderation.md)
 - [Bounties](bounties.md)
   - [Bounty 0: 100,000 sats Claimed!](bounty/0.md)

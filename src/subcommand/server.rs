@@ -8,8 +8,8 @@ use {
   crate::index::block_index::BlockIndex,
   crate::page_config::PageConfig,
   crate::templates::{
-    BlockHtml, ClockSvg, ContentHashHtml, ContentHashJson, HomeHtml, InputHtml, InscriptionHtml,
-    InscriptionJson, InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson, PageContent,
+    BlockHtml, ClockSvg, ContentHashHtml, ContentHashJson, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson,
+    InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson, PageContent,
     PageHtml, PreviewAudioHtml, PreviewImageHtml, PreviewModelHtml, PreviewPdfHtml,
     PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, SatHtml, SatJson,
     TransactionHtml,
@@ -202,7 +202,14 @@ impl Server {
           get(Self::inscription_contenthash),
         )
         .route("/inscriptions", get(Self::inscriptions))
-        .route("/inscriptions/block/:n", get(Self::inscriptions_in_block))
+        .route(
+          "/inscriptions/block/:height",
+          get(Self::inscriptions_in_block),
+        )
+        .route(
+          "/inscriptions/block/:height/:page_index",
+          get(Self::inscriptions_in_block_from_page),
+        )
         .route("/inscriptions/:from", get(Self::inscriptions_from))
         .route("/inscriptions/:from/:n", get(Self::inscriptions_from_n))
         .route("/install.sh", get(Self::install_script))
@@ -558,20 +565,30 @@ impl Server {
   async fn home(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
+    Extension(block_index_state): Extension<Arc<BlockIndexState>>,
   ) -> ServerResult<PageHtml<HomeHtml>> {
-    Ok(
-      HomeHtml::new(index.blocks(100)?, index.get_homepage_inscriptions()?)
-        .page(page_config, index.has_sat_index()?),
-    )
+    let blocks = index.blocks(100)?;
+    let mut featured_blocks = BTreeMap::new();
+    for (height, hash) in blocks.iter().take(5) {
+      let inscriptions = block_index_state
+        .block_index
+        .read()
+        .unwrap()
+        .get_highest_paying_inscriptions_in_block(&index, *height, 8)?;
+      featured_blocks.insert(*hash, inscriptions);
+    }
+
+    Ok(HomeHtml::new(blocks, featured_blocks).page(page_config, index.has_sat_index()?))
   }
 
   async fn install_script() -> Redirect {
-    Redirect::to("https://raw.githubusercontent.com/casey/ord/master/install.sh")
+    Redirect::to("https://raw.githubusercontent.com/ordinals/ord/master/install.sh")
   }
 
   async fn block(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
+    Extension(block_index_state): Extension<Arc<BlockIndexState>>,
     Path(DeserializeFromStr(query)): Path<DeserializeFromStr<BlockQuery>>,
   ) -> ServerResult<PageHtml<BlockHtml>> {
     let (block, height) = match query {
@@ -595,9 +612,17 @@ impl Server {
       }
     };
 
+    let inscriptions =
+      index.get_inscriptions_in_block(&block_index_state.block_index.read().unwrap(), height)?;
+
     Ok(
-      BlockHtml::new(block, Height(height), Self::index_height(&index)?)
-        .page(page_config, index.has_sat_index()?),
+      BlockHtml::new(
+        block,
+        Height(height),
+        Self::index_height(&index)?,
+        inscriptions,
+      )
+      .page(page_config, index.has_sat_index()?),
     )
   }
 
@@ -1089,18 +1114,39 @@ impl Server {
     Path(block_height): Path<u64>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
+    Self::inscriptions_in_block_from_page(
+      Extension(page_config),
+      Extension(index),
+      Extension(block_index_state),
+      Path((block_height, 0)),
+      accept_json,
+    )
+    .await
+  }
+
+  async fn inscriptions_in_block_from_page(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Extension(block_index_state): Extension<Arc<BlockIndexState>>,
+    Path((block_height, page_index)): Path<(u64, usize)>,
+    accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
     let inscriptions = index
-      .get_inscriptions_in_block(&block_index_state.block_index.read().unwrap(), block_height)?;
+      .get_inscriptions_in_block(&block_index_state.block_index.read().unwrap(), block_height)
+      .map_err(|e| ServerError::NotFound(format!("Failed to get inscriptions in block: {}", e)))?;
+
     Ok(if accept_json.0 {
       Json(InscriptionsJson::new(inscriptions, None, None, None, None)).into_response()
     } else {
-      InscriptionsHtml {
-        inscriptions,
-        prev: None,
-        next: None,
-      }
-      .page(page_config, index.has_sat_index()?)
-      .into_response()
+      InscriptionsBlockHtml::new(block_height, index.block_count()?, inscriptions, page_index)
+        .map_err(|e| {
+          ServerError::NotFound(format!(
+            "Failed to get inscriptions in inscriptions block page: {}",
+            e
+          ))
+        })?
+        .page(page_config, index.has_sat_index()?)
+        .into_response()
     })
   }
 
@@ -1553,7 +1599,7 @@ mod tests {
   fn install_sh_redirects_to_github() {
     TestServer::new().assert_redirect(
       "/install.sh",
-      "https://raw.githubusercontent.com/casey/ord/master/install.sh",
+      "https://raw.githubusercontent.com/ordinals/ord/master/install.sh",
     );
   }
 
@@ -1968,15 +2014,21 @@ mod tests {
     test_server.mine_blocks(1);
 
     test_server.assert_response_regex(
-    "/",
-    StatusCode::OK,
-    ".*<title>Ordinals</title>.*
-<h2>Latest Blocks</h2>
-<ol start=1 reversed class=blocks>
-  <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
-  <li><a href=/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f>000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</a></li>
+      "/",
+      StatusCode::OK,
+      ".*<title>Ordinals</title>.*
+<div class=block>
+  <h2><a href=/block/1>Block 1</a></h2>
+  <div class=thumbnails>
+  </div>
+</div>
+<div class=block>
+  <h2><a href=/block/0>Block 0</a></h2>
+  <div class=thumbnails>
+  </div>
+</div>
 </ol>.*",
-  );
+    );
   }
 
   #[test]
@@ -1997,7 +2049,7 @@ mod tests {
     test_server.assert_response_regex(
     "/",
     StatusCode::OK,
-    ".*<ol start=101 reversed class=blocks>\n(  <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){100}</ol>.*"
+    ".*<ol start=96 reversed class=block-list>\n(  <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){95}</ol>.*"
   );
   }
 

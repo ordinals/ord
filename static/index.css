@@ -101,13 +101,32 @@ ol, ul {
   }
 }
 
-.blocks {
+.block-list {
   font-family: monospace, monospace;
   list-style-position: inside;
-  padding-inline-start: 1rem;
   white-space: nowrap;
 }
 
+.block {
+  background-color: var(--light-bg);
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px, var(--light-bg) 0px 0px 0px 3px;
+  margin: 3%;
+  padding: 0.5%;
+  text-align: center;
+}
+
+.block a {
+  color: var(--light-fg);
+  margin-top: 1%;
+}
+
+.block h2 {
+  margin: 1%;
+}
+
+.light-fg a {
+  color: var(--light-fg);
+}
 .center {
   text-align: center;
 }

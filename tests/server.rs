@@ -199,49 +199,6 @@ fn inscription_content() {
 }
 
 #[test]
-fn home_page_includes_latest_inscriptions() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server);
-
-  let Inscribe { inscription, .. } = inscribe(&rpc_server);
-
-  TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
-    "/",
-    format!(
-      ".*<h2>Latest Inscriptions</h2>
-<div class=thumbnails>
-  <a href=/inscription/{inscription}><iframe .*></a>
-</div>.*",
-    ),
-  );
-}
-
-#[test]
-fn home_page_inscriptions_are_sorted() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server);
-
-  let mut inscriptions = String::new();
-
-  for _ in 0..8 {
-    let Inscribe { inscription, .. } = inscribe(&rpc_server);
-    inscriptions.insert_str(
-      0,
-      &format!("\n  <a href=/inscription/{inscription}><iframe .*></a>"),
-    );
-  }
-
-  TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
-    "/",
-    format!(
-      ".*<h2>Latest Inscriptions</h2>
-<div class=thumbnails>{inscriptions}
-</div>.*"
-    ),
-  );
-}
-
-#[test]
 fn inscriptions_page() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
