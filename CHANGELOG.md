@@ -1,8 +1,41 @@
 Changelog
 =========
 
+[0.8.3](https://github.com/ordinals/ord/releases/tag/0.8.3) - 2023-08-28
+------------------------------------------------------------------------
+
+### Added
+
+- Tweaks to front-end (#2381)
+- Add some links  to docs  (#2364)
+- Add testing guide for recursion (#2357)
+- Make homepage more interesting (#2374)
+- Add proper block inscriptions HTML (#2337)
+- Render GLB/GLTF models in preview (#2369)
+- Add tags and inscription id documentation (#2351)
+- Add hint about maximum number of open files for testing (#2348)
+- Reduce index durability when testing (#2347)
+- Homogenize design (#2346)
+
+
+### Fixed
+
+- Fix slice error for inscriptions block view (#2378)
+- Use correct height and depth in reorg log (#2352)
+
+
+### Changed
+
+- Remove transaction ID to inscription ID conversion (#2370)
+- Return JSON from all commands (#2355)
+- Allow splitting merged inscriptions (#1927)
+- Update explorer.md (#2215)
+- Recognize media types without explicit charset (#2349)
+
+
+
 [0.8.2](https://github.com/ordinals/ord/releases/tag/0.8.2) - 2023-08-17
----------------------------------------------------------------------
+------------------------------------------------------------------------
 
 ### Added
 
