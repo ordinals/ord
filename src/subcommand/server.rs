@@ -1099,7 +1099,7 @@ impl Server {
     } else {
       InscriptionsBlockHtml::new(
         block_height,
-        index.block_count()? - 1,
+        index.block_height()?.unwrap_or(Height(0)).n(),
         inscriptions,
         page_index,
       )
