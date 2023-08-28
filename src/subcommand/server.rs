@@ -568,7 +568,7 @@ impl Server {
       let (inscriptions, _total_num) = block_index_state
         .block_index
         .read()
-        .unwrap()
+        .map_err(|err| anyhow!("block index RwLock poisoned: {}", err))?
         .get_highest_paying_inscriptions_in_block(&index, *height, 8)?;
       featured_blocks.insert(*hash, inscriptions);
     }
@@ -610,7 +610,7 @@ impl Server {
     let (featured_inscriptions, total_num) = block_index_state
       .block_index
       .read()
-      .unwrap()
+      .map_err(|err| anyhow!("block index RwLock poisoned: {}", err))?
       .get_highest_paying_inscriptions_in_block(&index, height, 8)?;
 
     Ok(
@@ -1090,8 +1090,10 @@ impl Server {
     Path((block_height, page_index)): Path<(u64, usize)>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
+    let block_index = block_index_state.block_index.read().map_err(|err| anyhow!("block index RwLock poisoned: {}", err))?;
+
     let inscriptions = index
-      .get_inscriptions_in_block(&block_index_state.block_index.read().unwrap(), block_height)
+      .get_inscriptions_in_block(&block_index, block_height)
       .map_err(|e| ServerError::NotFound(format!("Failed to get inscriptions in block: {}", e)))?;
 
     Ok(if accept_json.0 {
