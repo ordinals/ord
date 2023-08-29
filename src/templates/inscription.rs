@@ -10,6 +10,7 @@ pub(crate) struct InscriptionHtml {
   pub(crate) next: Option<InscriptionId>,
   pub(crate) number: i64,
   pub(crate) output: Option<TxOut>,
+  pub(crate) parent: Option<InscriptionId>,
   pub(crate) previous: Option<InscriptionId>,
   pub(crate) sat: Option<Sat>,
   pub(crate) satpoint: SatPoint,
@@ -18,19 +19,20 @@ pub(crate) struct InscriptionHtml {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct InscriptionJson {
-  pub inscription_id: InscriptionId,
-  pub number: i64,
-  pub genesis_height: u64,
-  pub genesis_fee: u64,
-  pub output_value: Option<u64>,
   pub address: Option<String>,
+  pub content_length: Option<usize>,
+  pub content_type: Option<String>,
+  pub genesis_fee: u64,
+  pub genesis_height: u64,
+  pub inscription_id: InscriptionId,
+  pub next: Option<InscriptionId>,
+  pub number: i64,
+  pub output_value: Option<u64>,
+  pub previous: Option<InscriptionId>,
   pub sat: Option<Sat>,
   pub satpoint: SatPoint,
-  pub content_type: Option<String>,
-  pub content_length: Option<usize>,
   pub timestamp: i64,
-  pub previous: Option<InscriptionId>,
-  pub next: Option<InscriptionId>,
+  pub parent: Option<InscriptionId>,
 }
 
 impl InscriptionJson {
@@ -40,6 +42,7 @@ impl InscriptionJson {
     genesis_height: u64,
     inscription: Inscription,
     inscription_id: InscriptionId,
+    parent: Option<InscriptionId>,
     next: Option<InscriptionId>,
     number: i64,
     output: Option<TxOut>,
@@ -52,6 +55,7 @@ impl InscriptionJson {
       inscription_id,
       number,
       genesis_height,
+      parent,
       genesis_fee,
       output_value: output.as_ref().map(|o| o.value),
       address: output
@@ -87,6 +91,7 @@ mod tests {
   fn without_sat_nav_links_or_output() {
     assert_regex_match!(
       InscriptionHtml {
+        parent: None,
         chain: Chain::Mainnet,
         genesis_fee: 1,
         genesis_height: 0,
@@ -142,6 +147,7 @@ mod tests {
   fn with_output() {
     assert_regex_match!(
       InscriptionHtml {
+        parent: None,
         chain: Chain::Mainnet,
         genesis_fee: 1,
         genesis_height: 0,
@@ -179,6 +185,7 @@ mod tests {
   fn with_sat() {
     assert_regex_match!(
       InscriptionHtml {
+        parent: None,
         chain: Chain::Mainnet,
         genesis_fee: 1,
         genesis_height: 0,
@@ -211,6 +218,7 @@ mod tests {
   fn with_prev_and_next() {
     assert_regex_match!(
       InscriptionHtml {
+        parent: None,
         chain: Chain::Mainnet,
         genesis_fee: 1,
         genesis_height: 0,
@@ -241,6 +249,7 @@ mod tests {
   fn with_cursed_and_unbound() {
     assert_regex_match!(
       InscriptionHtml {
+        parent: None,
         chain: Chain::Mainnet,
         genesis_fee: 1,
         genesis_height: 0,
@@ -267,6 +276,64 @@ mod tests {
           <dt>output</dt>
           <dd><a class=monospace href=/output/0{64}:0>0{64}:0 \\(unbound\\)</a></dd>
           .*
+        </dl>
+      "
+      .unindent()
+    );
+  }
+
+  #[test]
+  fn with_parent() {
+    assert_regex_match!(
+      InscriptionHtml {
+        parent: Some(inscription_id(2)),
+        chain: Chain::Mainnet,
+        genesis_fee: 1,
+        genesis_height: 0,
+        inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
+        inscription_id: inscription_id(1),
+        next: None,
+        number: 1,
+        output: None,
+        previous: None,
+        sat: None,
+        satpoint: satpoint(1, 0),
+        timestamp: timestamp(0),
+      },
+      "
+        <h1>Inscription 1</h1>
+        <div class=inscription>
+        <div>❮</div>
+        <iframe .* src=/preview/1{64}i1></iframe>
+        <div>❯</div>
+        </div>
+        <dl>
+          <dt>id</dt>
+          <dd class=monospace>1{64}i1</dd>
+          <dt>parent</dt>
+          <dd><a class=monospace href=/inscription/2{64}i2>2{64}i2</a></dd>
+          <dt>preview</dt>
+          <dd><a href=/preview/1{64}i1>link</a></dd>
+          <dt>content</dt>
+          <dd><a href=/content/1{64}i1>link</a></dd>
+          <dt>content length</dt>
+          <dd>10 bytes</dd>
+          <dt>content type</dt>
+          <dd>text/plain;charset=utf-8</dd>
+          <dt>timestamp</dt>
+          <dd><time>1970-01-01 00:00:00 UTC</time></dd>
+          <dt>genesis height</dt>
+          <dd><a href=/block/0>0</a></dd>
+          <dt>genesis fee</dt>
+          <dd>1</dd>
+          <dt>genesis transaction</dt>
+          <dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
+          <dt>location</dt>
+          <dd class=monospace>1{64}:1:0</dd>
+          <dt>output</dt>
+          <dd><a class=monospace href=/output/1{64}:1>1{64}:1</a></dd>
+          <dt>offset</dt>
+          <dd>0</dd>
         </dl>
       "
       .unindent()

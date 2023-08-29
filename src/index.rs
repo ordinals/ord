@@ -30,7 +30,7 @@ mod reorg;
 mod rtx;
 mod updater;
 
-const SCHEMA_VERSION: u64 = 5;
+const SCHEMA_VERSION: u64 = 6;
 
 macro_rules! define_table {
   ($name:ident, $key:ty, $value:ty) => {
@@ -3478,6 +3478,169 @@ mod tests {
       context
         .index
         .assert_inscription_location(first_id, first_location, Some(50 * COIN_VALUE));
+    }
+  }
+
+  #[test]
+  fn inscription_without_parent_tag_has_no_parent_entry() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0)],
+        witness: inscription("text/plain", "hello").to_witness(),
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      assert!(context
+        .index
+        .get_inscription_entry(inscription_id)
+        .unwrap()
+        .unwrap()
+        .parent
+        .is_none());
+    }
+  }
+
+  #[test]
+  fn inscription_with_parent_tag_without_parent_has_no_parent_entry() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let parent_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0)],
+        witness: inscription("text/plain", "hello").to_witness(),
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let parent_inscription_id = InscriptionId {
+        txid: parent_txid,
+        index: 0,
+      };
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(2, 0, 0)],
+        witness: Inscription {
+          content_type: Some("text/plain".into()),
+          body: Some("hello".into()),
+          parent: Some(parent_inscription_id.parent_value()),
+        }
+        .to_witness(),
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      assert!(context
+        .index
+        .get_inscription_entry(inscription_id)
+        .unwrap()
+        .unwrap()
+        .parent
+        .is_none());
+    }
+  }
+
+  #[test]
+  fn inscription_with_parent_tag_and_parent_has_parent_entry() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let parent_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0)],
+        witness: inscription("text/plain", "hello").to_witness(),
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let parent_inscription_id = InscriptionId {
+        txid: parent_txid,
+        index: 0,
+      };
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(2, 1, 0)],
+        witness: Inscription {
+          content_type: Some("text/plain".into()),
+          body: Some("hello".into()),
+          parent: Some(parent_inscription_id.parent_value()),
+        }
+        .to_witness(),
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_entry(inscription_id)
+          .unwrap()
+          .unwrap()
+          .parent
+          .unwrap(),
+        parent_inscription_id
+      );
+    }
+  }
+
+  #[test]
+  fn inscription_with_invalid_parent_tag_and_parent_has_no_parent_entry() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let parent_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0)],
+        witness: inscription("text/plain", "hello").to_witness(),
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let parent_inscription_id = InscriptionId {
+        txid: parent_txid,
+        index: 0,
+      };
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(2, 1, 0)],
+        witness: Inscription {
+          content_type: Some("text/plain".into()),
+          body: Some("hello".into()),
+          parent: Some(
+            parent_inscription_id
+              .parent_value()
+              .into_iter()
+              .chain(iter::once(0))
+              .collect(),
+          ),
+        }
+        .to_witness(),
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      assert!(context
+        .index
+        .get_inscription_entry(inscription_id)
+        .unwrap()
+        .unwrap()
+        .parent
+        .is_none());
     }
   }
 }

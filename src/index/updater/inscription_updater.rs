@@ -10,8 +10,9 @@ pub(super) struct Flotsam {
 #[derive(Debug, Clone)]
 enum Origin {
   New {
-    fee: u64,
     cursed: bool,
+    fee: u64,
+    parent: Option<InscriptionId>,
     unbound: bool,
   },
   Old {
@@ -229,14 +230,34 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           inscription_id,
           offset,
           origin: Origin::New {
-            fee: 0,
             cursed,
+            fee: 0,
+            parent: inscription.inscription.parent(),
             unbound,
           },
         });
 
         new_inscriptions.next();
         id_counter += 1;
+      }
+    }
+
+    let potential_parents = floating_inscriptions
+      .iter()
+      .map(|flotsam| flotsam.inscription_id)
+      .collect::<HashSet<InscriptionId>>();
+
+    for flotsam in &mut floating_inscriptions {
+      if let Flotsam {
+        origin: Origin::New { parent, .. },
+        ..
+      } = flotsam
+      {
+        if let Some(purported_parent) = parent {
+          if !potential_parents.contains(purported_parent) {
+            *parent = None;
+          }
+        }
       }
     }
 
@@ -250,8 +271,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           offset,
           origin:
             Origin::New {
-              fee: _,
               cursed,
+              fee: _,
+              parent,
               unbound,
             },
         } = flotsam
@@ -260,8 +282,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             inscription_id,
             offset,
             origin: Origin::New {
-              fee: (input_value - total_output_value) / u64::from(id_counter),
               cursed,
+              fee: (input_value - total_output_value) / u64::from(id_counter),
+              parent,
               unbound,
             },
           }
@@ -373,8 +396,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         false
       }
       Origin::New {
-        fee,
         cursed,
+        fee,
+        parent,
         unbound,
       } => {
         let number = if cursed {
@@ -417,6 +441,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             fee,
             height: self.height,
             number,
+            parent,
             sat,
             timestamp: self.timestamp,
           }

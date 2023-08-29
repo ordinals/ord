@@ -152,6 +152,7 @@ fn get_inscription() {
   pretty_assert_eq!(
     inscription_json,
     InscriptionJson {
+      parent: None,
       inscription_id,
       number: 0,
       genesis_height: 2,
