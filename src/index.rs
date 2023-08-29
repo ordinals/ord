@@ -3576,6 +3576,7 @@ mod tests {
           content_type: Some("text/plain".into()),
           body: Some("hello".into()),
           parent: Some(parent_inscription_id.parent_value()),
+          unrecognized_even_field: false,
         }
         .to_witness(),
         ..Default::default()
@@ -3619,6 +3620,7 @@ mod tests {
           content_type: Some("text/plain".into()),
           body: Some("hello".into()),
           parent: Some(parent_inscription_id.parent_value()),
+          unrecognized_even_field: false,
         }
         .to_witness(),
         ..Default::default()
@@ -3671,6 +3673,7 @@ mod tests {
               .chain(iter::once(0))
               .collect(),
           ),
+          unrecognized_even_field: false,
         }
         .to_witness(),
         ..Default::default()
