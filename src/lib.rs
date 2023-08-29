@@ -27,7 +27,7 @@ use {
     options::Options,
     outgoing::Outgoing,
     representation::Representation,
-    subcommand::Subcommand,
+    subcommand::{Subcommand, SubcommandResult},
     tally::Tally,
   },
   anyhow::{anyhow, bail, Context, Error},
@@ -108,19 +108,19 @@ mod fee_rate;
 mod height;
 mod index;
 mod inscription;
-mod inscription_id;
+pub mod inscription_id;
 mod media;
 mod object;
 mod options;
 mod outgoing;
 mod page_config;
-mod rarity;
+pub mod rarity;
 mod representation;
-mod sat;
+pub mod sat;
 mod sat_point;
 pub mod subcommand;
 mod tally;
-mod templates;
+pub mod templates;
 mod wallet;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
@@ -180,22 +180,25 @@ pub fn main() {
   })
   .expect("Error setting <CTRL-C> handler");
 
-  if let Err(err) = Arguments::parse().run() {
-    eprintln!("error: {err}");
-    err
-      .chain()
-      .skip(1)
-      .for_each(|cause| eprintln!("because: {cause}"));
-    if env::var_os("RUST_BACKTRACE")
-      .map(|val| val == "1")
-      .unwrap_or_default()
-    {
-      eprintln!("{}", err.backtrace());
+  match Arguments::parse().run() {
+    Err(err) => {
+      eprintln!("error: {err}");
+      err
+        .chain()
+        .skip(1)
+        .for_each(|cause| eprintln!("because: {cause}"));
+      if env::var_os("RUST_BACKTRACE")
+        .map(|val| val == "1")
+        .unwrap_or_default()
+      {
+        eprintln!("{}", err.backtrace());
+      }
+
+      gracefully_shutdown_indexer();
+
+      process::exit(1);
     }
-
-    gracefully_shutdown_indexer();
-
-    process::exit(1);
+    Ok(output) => output.print_json(),
   }
 
   gracefully_shutdown_indexer();

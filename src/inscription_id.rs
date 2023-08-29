@@ -2,8 +2,8 @@ use super::*;
 
 #[derive(Debug, PartialEq, Copy, Clone, Hash, Eq)]
 pub struct InscriptionId {
-  pub(crate) txid: Txid,
-  pub(crate) index: u32,
+  pub txid: Txid,
+  pub index: u32,
 }
 
 impl<'de> Deserialize<'de> for InscriptionId {
@@ -82,12 +82,6 @@ impl FromStr for InscriptionId {
       txid: txid.parse().map_err(ParseError::Txid)?,
       index: vout.parse().map_err(ParseError::Index)?,
     })
-  }
-}
-
-impl From<Txid> for InscriptionId {
-  fn from(txid: Txid) -> Self {
-    Self { txid, index: 0 }
   }
 }
 

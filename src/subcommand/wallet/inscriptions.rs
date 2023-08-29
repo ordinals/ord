@@ -8,12 +8,12 @@ pub struct Output {
   pub postage: u64,
 }
 
-pub(crate) fn run(options: Options) -> Result {
+pub(crate) fn run(options: Options) -> SubcommandResult {
   let index = Index::open(&options)?;
   index.update()?;
 
-  let inscriptions = index.get_inscriptions(None)?;
   let unspent_outputs = index.get_unspent_outputs(Wallet::load(&options)?)?;
+  let inscriptions = index.get_inscriptions(unspent_outputs.clone())?;
 
   let explorer = match options.chain() {
     Chain::Mainnet => "https://ordinals.com/inscription/",
@@ -35,7 +35,5 @@ pub(crate) fn run(options: Options) -> Result {
     }
   }
 
-  print_json(&output)?;
-
-  Ok(())
+  Ok(Box::new(output))
 }

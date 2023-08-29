@@ -60,19 +60,7 @@ impl TestServer {
   }
 
   pub(crate) fn assert_response_regex(&self, path: impl AsRef<str>, regex: impl AsRef<str>) {
-    let client = Client::new(&self.rpc_url, Auth::None).unwrap();
-    let chain_block_count = client.get_block_count().unwrap() + 1;
-
-    for i in 0.. {
-      let response = reqwest::blocking::get(self.url().join("/blockcount").unwrap()).unwrap();
-      assert_eq!(response.status(), StatusCode::OK);
-      if response.text().unwrap().parse::<u64>().unwrap() == chain_block_count {
-        break;
-      } else if i == 20 {
-        panic!("index failed to synchronize with chain");
-      }
-      thread::sleep(Duration::from_millis(25));
-    }
+    self.sync_server();
 
     let response = reqwest::blocking::get(self.url().join(path.as_ref()).unwrap()).unwrap();
     assert_eq!(response.status(), StatusCode::OK);
@@ -80,6 +68,24 @@ impl TestServer {
   }
 
   pub(crate) fn request(&self, path: impl AsRef<str>) -> Response {
+    self.sync_server();
+
+    reqwest::blocking::get(self.url().join(path.as_ref()).unwrap()).unwrap()
+  }
+
+  pub(crate) fn json_request(&self, path: impl AsRef<str>) -> Response {
+    self.sync_server();
+
+    let client = reqwest::blocking::Client::new();
+
+    client
+      .get(self.url().join(path.as_ref()).unwrap())
+      .header(reqwest::header::ACCEPT, "application/json")
+      .send()
+      .unwrap()
+  }
+
+  fn sync_server(&self) {
     let client = Client::new(&self.rpc_url, Auth::None).unwrap();
     let chain_block_count = client.get_block_count().unwrap() + 1;
 
@@ -93,8 +99,6 @@ impl TestServer {
       }
       thread::sleep(Duration::from_millis(25));
     }
-
-    reqwest::blocking::get(self.url().join(path.as_ref()).unwrap()).unwrap()
   }
 }
 

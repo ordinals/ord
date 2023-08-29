@@ -42,7 +42,7 @@ pub(crate) enum Curse {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub(crate) struct Inscription {
+pub struct Inscription {
   body: Option<Vec<u8>>,
   content_type: Option<Vec<u8>>,
   pub(crate) uses_minimal_opcodes: bool,
@@ -72,7 +72,9 @@ impl Inscription {
   pub(crate) fn from_transaction(tx: &Transaction) -> Vec<TransactionInscription> {
     let mut result = Vec::new();
     for (index, tx_in) in tx.input.iter().enumerate() {
-      let Ok(inscriptions) = InscriptionParser::parse(&tx_in.witness) else { continue; };
+      let Ok(inscriptions) = InscriptionParser::parse(&tx_in.witness) else {
+        continue;
+      };
 
       result.extend(
         inscriptions
