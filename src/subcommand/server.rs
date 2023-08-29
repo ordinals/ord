@@ -2397,6 +2397,7 @@ mod tests {
     let (headers, body) = Server::content_response(Inscription::new(
       Some("\n".as_bytes().to_vec()),
       Some(Vec::new()),
+      false
     ))
     .unwrap();
 
