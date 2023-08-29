@@ -23,7 +23,7 @@ So to delete the database and reindex on MacOS you would have to run the followi
 commands in the terminal:
 
 ```bash
-rm /Users/Alice/Library/Application Support/ord/index.redb
+rm ~/Library/Application Support/ord/index.redb
 ord index run
 ```
 
