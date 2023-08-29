@@ -907,10 +907,10 @@ impl Server {
     );
     headers.insert(
       header::CACHE_CONTROL,
-      HeaderValue::from_static("max-age=31536000, immutable").unwrap(),
+      HeaderValue::from_static("max-age=31536000, immutable"),
     );
 
-    Some((headers, body?))
+    Some((headers, inscription.into_body()?))
   }
 
   async fn preview(
