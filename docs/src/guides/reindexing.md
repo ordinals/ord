@@ -1,7 +1,7 @@
 Reindexing
 ==========
 
-Sometimes the `ord` database has to be reindexed, which means deleting the
+Sometimes the `ord` database must be reindexed, which means deleting the
 database and restarting the indexing process with either `ord index run` or
 `ord server`. Reasons to reindex are:
 
@@ -22,7 +22,7 @@ So to delete the database and reindex on MacOS you would have to run the followi
 commands in the terminal:
 
 ```bash
-rm /Users/Alice/Library/Application Support/ord/index.redb
+rm ~/Library/Application Support/ord/index.redb
 ord index run
 ```
 
