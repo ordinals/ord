@@ -3,6 +3,24 @@ use {
   bitcoin::{
     blockdata::{
       opcodes,
+      opcodes::all::{
+        OP_PUSHNUM_1,
+        OP_PUSHNUM_2,
+        OP_PUSHNUM_3,
+        OP_PUSHNUM_4,
+        OP_PUSHNUM_5,
+        OP_PUSHNUM_6,
+        OP_PUSHNUM_7,
+        OP_PUSHNUM_8,
+        OP_PUSHNUM_9,
+        OP_PUSHNUM_10,
+        OP_PUSHNUM_11,
+        OP_PUSHNUM_12,
+        OP_PUSHNUM_13,
+        OP_PUSHNUM_14,
+        OP_PUSHNUM_15,
+        OP_PUSHNUM_16,
+      },
       script::{self, Instruction, Instructions, PushBytesBuf},
     },
     taproot::TAPROOT_ANNEX_PREFIX,
@@ -251,12 +269,25 @@ impl<'a> InscriptionParser<'a> {
         }
         // this pattern needs to be checked before we check any other opcodes
         Instruction::Op(opcodes::all::OP_ENDIF) => break,
-        Instruction::Op(op_code) => {
+        Instruction::Op(
+          op_code@ OP_PUSHNUM_1 |
+          op_code @ OP_PUSHNUM_2 |
+          op_code @ OP_PUSHNUM_3 |
+          op_code @ OP_PUSHNUM_4 |
+          op_code @ OP_PUSHNUM_5 |
+          op_code @ OP_PUSHNUM_6 |
+          op_code @ OP_PUSHNUM_7 |
+          op_code @ OP_PUSHNUM_8 |
+          op_code @ OP_PUSHNUM_9 |
+          op_code @ OP_PUSHNUM_10 |
+          op_code @ OP_PUSHNUM_11 |
+          op_code @ OP_PUSHNUM_12 |
+          op_code @ OP_PUSHNUM_13 |
+          op_code @ OP_PUSHNUM_14 |
+          op_code @ OP_PUSHNUM_15 |
+          op_code @ OP_PUSHNUM_16
+        ) => {
           let code = op_code.to_u8();
-          if !(81..=96).contains(&code) {
-            return Err(InscriptionError::InvalidInscription);
-          }
-          // we're dealing with an OP_1 through OP_16
           let number = code - 80; // a little magic number here
           let tag = vec![number];
           if fields.contains_key(&tag) {
@@ -264,7 +295,8 @@ impl<'a> InscriptionParser<'a> {
           }
           uses_minimal_opcodes = true;
           fields.insert(tag, self.expect_push()?.to_vec());
-        }
+        },
+        _ => return Err(InscriptionError::InvalidInscription),
       }
     }
 
