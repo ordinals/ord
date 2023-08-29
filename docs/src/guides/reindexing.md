@@ -1,7 +1,7 @@
 Reindexing
 ==========
 
-Sometimes the `ord` database has to be reindexed, which means deleting the
+Sometimes the `ord` database must be reindexed, which means deleting the
 database and restarting the indexing process with either `ord index run` or
 `ord server`. Reasons to reindex are:
 
