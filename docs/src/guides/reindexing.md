@@ -9,9 +9,8 @@ database and restarting the indexing process with either `ord index run` or
 2. The database got corrupted somehow
 
 The database `ord` uses is called [redb](https://github.com/cberner/redb),
-which is an embedded database with the default file name `index.redb`. By
-default we store this file in different locations depending on your operating
-system.
+so we give the index the default file name `index.redb`. By default we store this
+file in different locations depending on your operating system.
 
 |Platform | Value                                            | Example                                      |
 | ------- | ------------------------------------------------ | -------------------------------------------- |
