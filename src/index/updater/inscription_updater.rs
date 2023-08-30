@@ -154,8 +154,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       };
 
       total_input_value += current_input_value;
-      dbg!(&current_input_value);
-      dbg!(&total_input_value);
 
       // go through all inscriptions in this input
       while let Some(inscription) = new_inscriptions.peek() {
