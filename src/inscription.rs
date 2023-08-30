@@ -5,7 +5,6 @@ use {
       opcodes,
       script::{self, Instruction, Instructions, PushBytesBuf},
     },
-    taproot::TAPROOT_ANNEX_PREFIX,
     ScriptBuf, Witness,
   },
   std::{iter::Peekable, str},
@@ -162,10 +161,9 @@ impl Inscription {
 
 #[derive(Debug, PartialEq)]
 pub(crate) enum InscriptionError {
-  EmptyWitness,
   InvalidInscription,
-  KeyPathSpend,
   NoInscription,
+  NoTapscript,
   Script(script::Error),
 }
 
@@ -178,34 +176,12 @@ struct InscriptionParser<'a> {
 
 impl<'a> InscriptionParser<'a> {
   fn parse(witness: &Witness) -> Result<Vec<Inscription>> {
-    if witness.is_empty() {
-      return Err(InscriptionError::EmptyWitness);
-    }
-
-    if witness.len() == 1 {
-      return Err(InscriptionError::KeyPathSpend);
-    }
-
-    let annex = witness
-      .last()
-      .and_then(|element| element.first().map(|byte| *byte == TAPROOT_ANNEX_PREFIX))
-      .unwrap_or(false);
-
-    if witness.len() == 2 && annex {
-      return Err(InscriptionError::KeyPathSpend);
-    }
-
-    let script = witness
-      .iter()
-      .nth(if annex {
-        witness.len() - 1
-      } else {
-        witness.len() - 2
-      })
-      .unwrap();
+    let Some(tapscript) = witness.tapscript() else {
+      return Err(InscriptionError::NoTapscript);
+    };
 
     InscriptionParser {
-      instructions: ScriptBuf::from(Vec::from(script)).instructions().peekable(),
+      instructions: tapscript.instructions().peekable(),
     }
     .parse_inscriptions()
     .into_iter()
@@ -335,7 +311,7 @@ mod tests {
   fn empty() {
     assert_eq!(
       InscriptionParser::parse(&Witness::new()),
-      Err(InscriptionError::EmptyWitness)
+      Err(InscriptionError::NoTapscript)
     );
   }
 
@@ -343,7 +319,7 @@ mod tests {
   fn ignore_key_path_spends() {
     assert_eq!(
       InscriptionParser::parse(&Witness::from_slice(&[Vec::new()])),
-      Err(InscriptionError::KeyPathSpend),
+      Err(InscriptionError::NoTapscript),
     );
   }
 
@@ -351,7 +327,7 @@ mod tests {
   fn ignore_key_path_spends_with_annex() {
     assert_eq!(
       InscriptionParser::parse(&Witness::from_slice(&[Vec::new(), vec![0x50]])),
-      Err(InscriptionError::KeyPathSpend),
+      Err(InscriptionError::NoTapscript),
     );
   }
 
