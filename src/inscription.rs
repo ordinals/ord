@@ -20,12 +20,14 @@ pub(crate) enum Curse {
   NotInFirstInput,
   NotAtOffsetZero,
   Reinscription,
+  UnrecognizedEvenField,
 }
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Inscription {
   body: Option<Vec<u8>>,
   content_type: Option<Vec<u8>>,
+  pub(crate) unrecognized_even_field: bool,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -38,7 +40,11 @@ pub(crate) struct TransactionInscription {
 impl Inscription {
   #[cfg(test)]
   pub(crate) fn new(content_type: Option<Vec<u8>>, body: Option<Vec<u8>>) -> Self {
-    Self { content_type, body }
+    Self {
+      content_type,
+      body,
+      unrecognized_even_field: false,
+    }
   }
 
   pub(crate) fn from_transaction(tx: &Transaction) -> Vec<TransactionInscription> {
@@ -81,6 +87,7 @@ impl Inscription {
     Ok(Self {
       body: Some(body),
       content_type: Some(content_type.into()),
+      unrecognized_even_field: false,
     })
   }
 
@@ -160,7 +167,6 @@ pub(crate) enum InscriptionError {
   KeyPathSpend,
   NoInscription,
   Script(script::Error),
-  UnrecognizedEvenField,
 }
 
 type Result<T, E = InscriptionError> = std::result::Result<T, E>;
@@ -250,12 +256,20 @@ impl<'a> InscriptionParser<'a> {
     for tag in fields.keys() {
       if let Some(lsb) = tag.first() {
         if lsb % 2 == 0 {
-          return Err(InscriptionError::UnrecognizedEvenField);
+          return Ok(Inscription {
+            body,
+            content_type,
+            unrecognized_even_field: true,
+          });
         }
       }
     }
 
-    Ok(Inscription { body, content_type })
+    Ok(Inscription {
+      body,
+      content_type,
+      unrecognized_even_field: false,
+    })
   }
 
   fn advance(&mut self) -> Result<Instruction<'a>> {
@@ -413,6 +427,7 @@ mod tests {
       Ok(vec![Inscription {
         content_type: Some(b"text/plain;charset=utf-8".to_vec()),
         body: None,
+        unrecognized_even_field: false,
       }]),
     );
   }
@@ -424,6 +439,7 @@ mod tests {
       Ok(vec![Inscription {
         content_type: None,
         body: Some(b"foo".to_vec()),
+        unrecognized_even_field: false,
       }]),
     );
   }
@@ -754,6 +770,7 @@ mod tests {
       &Inscription {
         content_type: None,
         body: None,
+        unrecognized_even_field: false,
       }
       .append_reveal_script(script::Builder::new()),
     );
@@ -765,6 +782,7 @@ mod tests {
       vec![Inscription {
         content_type: None,
         body: None,
+        unrecognized_even_field: false,
       }]
     );
   }
@@ -776,15 +794,20 @@ mod tests {
       Ok(vec![Inscription {
         content_type: None,
         body: None,
+        unrecognized_even_field: false,
       }]),
     );
   }
 
   #[test]
-  fn unknown_even_fields_are_invalid() {
+  fn unknown_even_fields() {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[b"ord", &[2], &[0]])),
-      Err(InscriptionError::UnrecognizedEvenField),
+      Ok(vec![Inscription {
+        content_type: None,
+        body: None,
+        unrecognized_even_field: true,
+      }]),
     );
   }
 }
