@@ -14,6 +14,7 @@ defaults:
 
 env:
   RUSTFLAGS: --deny warnings
+  LANGUAGES:
 
 jobs:
   docs:
@@ -34,7 +35,18 @@ jobs:
         chmod +x mdbook-linkcheck
         pwd >> $GITHUB_PATH
 
-    - run: mdbook build docs
+    - name: Build docs
+      run: mdbook build docs -d build
+
+    - name: Build all translations for docs
+      run: |
+        for po_lang in ${{ env.LANGUAGES }}; do
+          echo "::group::Building $po_lang translation"
+          MDBOOK_BOOK__LANGUAGE=$po_lang \
+          mdbook build docs -d build/$po_lang
+          mv docs/build/$po_lang/html docs/build/html/$po_lang
+          echo "::endgroup::"
+        done
 
     - name: Deploy Pages
       uses: peaceiris/actions-gh-pages@v3
@@ -43,6 +55,7 @@ jobs:
         github_token: ${{secrets.GITHUB_TOKEN}}
         publish_branch: gh-pages
         publish_dir: docs/build/html
+
   lint:
     runs-on: ubuntu-latest
 
