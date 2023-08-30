@@ -240,11 +240,11 @@ Release x.y.z
 Translations
 ------------
 
-To translate [the docs](https://docs.ordinals.com) we follow the i18n standard,
-specifically we use this [mdBook i18n helper](https://github.com/google/mdbook-i18n-helpers).
-So please read through their [HOWTO](https://github.com/google/mdbook-i18n-helpers/blob/main/USAGE.md)
+To translate [the docs](https://docs.ordinals.com) we use this
+[mdBook i18n helper](https://github.com/google/mdbook-i18n-helpers).
+So read through their [usage guide](https://github.com/google/mdbook-i18n-helpers/blob/main/USAGE.md)
 to see the structure that translations should follow.
 
 There are some other things to watch out for but feel free to just start a
-translation and open a PR. A maintainer will then help you integrate it into out
+translation and open a PR. A maintainer will then help you integrate it into our
 build system.
