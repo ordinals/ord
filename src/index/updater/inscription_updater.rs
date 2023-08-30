@@ -137,7 +137,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       let offset = total_input_value;
 
       // multi-level cache for UTXO set to get to the input amount
-      let current_input_value = if let Some(value) = self.value_cache.remove(&tx_in.previous_output) {
+      let current_input_value = if let Some(value) = self.value_cache.remove(&tx_in.previous_output)
+      {
         value
       } else if let Some(value) = self
         .outpoint_to_value
