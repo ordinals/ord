@@ -164,10 +164,10 @@ serve-docs: build-docs
 build-docs:
   #!/usr/bin/env bash
   mdbook build docs -d build
-  for po_lang in ""; do
-    MDBOOK_BOOK__LANGUAGE=$po_lang \
-    mdbook build docs -d build/$po_lang
-    mv docs/build/$po_lang/html docs/build/html/$po_lang
+  for lang in ; do
+    MDBOOK_BOOK__LANGUAGE=$lang \
+      mdbook build docs -d build/$lang
+    mv docs/build/$lang/html docs/build/html/$lang
   done
 
 update-changelog:

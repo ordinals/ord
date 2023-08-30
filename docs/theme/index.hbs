@@ -11,16 +11,6 @@
         <base href="{{ base_url }}">
         {{/if}}
 
-        <script async src="https://www.gstatic.com/brandstudio/kato/cookie_choice_component/cookie_consent_bar.v3.js"
-                data-autoload-cookie-consent-bar="true"></script>
-
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZN78TEJMRW"></script>
-        <script>
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', 'G-ZN78TEJMRW');
-        </script>
 
         <!-- Custom HTML head -->
         {{> head}}
@@ -172,7 +162,7 @@
                     <h1 class="menu-title">{{ book_title }}</h1>
 
                     <div class="right-buttons">
-                        <button id="language-toggle" class="icon-button" type="button"
+                    <button id="language-toggle" class="icon-button" type="button"
                                 title="Change language" aria-label="Change language"
                                 aria-haspopup="true" aria-expanded="false"
                                 aria-controls="language-list">
@@ -228,18 +218,9 @@
                         </a>
                         {{/if}}
                         {{#if git_repository_edit_url}}
-                        {{#if (eq language "en")}}
-                        <a href="{{git_repository_edit_url}}" title="Suggest an edit" aria-label="Suggest an edit"
-                           target="_blank">
+                        <a href="{{git_repository_edit_url}}" title="Suggest an edit" aria-label="Suggest an edit">
                             <i id="git-edit-button" class="fa fa-edit"></i>
                         </a>
-                        {{else}}
-                        <a href="https://github.com/google/comprehensive-rust/edit/main/po/{{language}}.po"
-                           title="Suggest an edit to the translation" aria-label="Suggest an edit to the translation"
-                           target="_blank">
-                            <i id="git-edit-button" class="fa fa-edit"></i>
-                        </a>
-                        {{/if}}
                         {{/if}}
 
                     </div>

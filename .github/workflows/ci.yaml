@@ -40,11 +40,11 @@ jobs:
 
     - name: Build all translations for docs
       run: |
-        for po_lang in ${{ env.LANGUAGES }}; do
-          echo "::group::Building $po_lang translation"
-          MDBOOK_BOOK__LANGUAGE=$po_lang \
-          mdbook build docs -d build/$po_lang
-          mv docs/build/$po_lang/html docs/build/html/$po_lang
+        for lang in ${{ env.LANGUAGES }}; do
+          echo "::group::Building $lang translation"
+          MDBOOK_BOOK__LANGUAGE=$lang \
+            mdbook build docs -d build/$lang
+          mv docs/build/$lang/html docs/build/html/$lang
           echo "::endgroup::"
         done
 
