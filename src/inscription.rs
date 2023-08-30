@@ -23,11 +23,11 @@ pub(crate) enum Curse {
   UnrecognizedEvenField,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq)]
 pub struct Inscription {
-  body: Option<Vec<u8>>,
-  content_type: Option<Vec<u8>>,
-  pub(crate) unrecognized_even_field: bool,
+  pub body: Option<Vec<u8>>,
+  pub content_type: Option<Vec<u8>>,
+  pub unrecognized_even_field: bool,
 }
 
 #[derive(Debug, PartialEq, Clone)]

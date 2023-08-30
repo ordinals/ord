@@ -92,6 +92,7 @@ mod expected;
 mod test_server;
 
 mod core;
+mod decode;
 mod epochs;
 mod find;
 mod index;

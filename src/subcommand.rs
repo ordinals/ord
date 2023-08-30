@@ -1,6 +1,6 @@
 use super::*;
 
-mod decode;
+pub mod decode;
 pub mod epochs;
 pub mod find;
 mod index;

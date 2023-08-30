@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Serialize)]
+#[derive(Serialize, Eq, PartialEq, Deserialize, Debug)]
 pub struct Output {
   pub inscriptions: Vec<Inscription>,
 }
