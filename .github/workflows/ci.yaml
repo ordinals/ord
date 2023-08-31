@@ -14,7 +14,7 @@ defaults:
 
 env:
   RUSTFLAGS: --deny warnings
-  LANGUAGES:
+  LANGUAGES: zh
 
 jobs:
   docs:
@@ -22,9 +22,21 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+
+    - name: Install Rust Toolchain Components
+      uses: actions-rs/toolchain@v1
+      with:
+        override: true
+        toolchain: stable
+
+    - uses: Swatinem/rust-cache@v2
+
     - uses: peaceiris/actions-mdbook@v1
       with:
         mdbook-version: latest
+
+    - name: Install mdbook-i18n-helpers
+      run: cargo install mdbook-i18n-helpers
 
     - name: Install mdbook-linkcheck
       run: |
