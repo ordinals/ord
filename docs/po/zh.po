@@ -2121,8 +2121,8 @@ msgid ""
 msgstr "找到一个本不该做的问题，并提供建设性的反馈，详细说明您认为会出现这种情况的原因"
 
 #: src/contributing.md:42
-msgid "早合并，勤合并"
-msgstr ""
+msgid "Merge early and often"
+msgstr "早合并，勤合并"
 
 #: src/contributing.md:45
 msgid ""
@@ -3550,7 +3550,7 @@ msgstr ""
 
 #: src/guides/collecting/sparrow-wallet.md:79
 msgid "Importing into `ord` wallet"
-msgstr "倒入 `ord` 钱包"
+msgstr "导入 `ord` 钱包"
 
 #: src/guides/collecting/sparrow-wallet.md:81
 msgid ""
@@ -3998,8 +3998,8 @@ msgid "Regtest doesn't require downloading the blockchain or indexing ord."
 msgstr "Regtest不需要下载区块链或者建立ord索引"
 
 #: src/guides/testing.md:18 src/guides/reindexing.md:15
-msgid "示例"
-msgstr ""
+msgid "Example"
+msgstr "示例"
 
 #: src/guides/testing.md:21
 msgid "Run bitcoind in regtest with:"
