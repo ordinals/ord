@@ -5,7 +5,6 @@ use {
       opcodes,
       script::{self, Instruction, Instructions, PushBytesBuf},
     },
-    taproot::TAPROOT_ANNEX_PREFIX,
     ScriptBuf, Witness,
   },
   std::{iter::Peekable, str},
@@ -20,12 +19,14 @@ pub(crate) enum Curse {
   NotInFirstInput,
   NotAtOffsetZero,
   Reinscription,
+  UnrecognizedEvenField,
 }
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Inscription {
   body: Option<Vec<u8>>,
   content_type: Option<Vec<u8>>,
+  pub(crate) unrecognized_even_field: bool,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -38,7 +39,11 @@ pub(crate) struct TransactionInscription {
 impl Inscription {
   #[cfg(test)]
   pub(crate) fn new(content_type: Option<Vec<u8>>, body: Option<Vec<u8>>) -> Self {
-    Self { content_type, body }
+    Self {
+      content_type,
+      body,
+      unrecognized_even_field: false,
+    }
   }
 
   pub(crate) fn from_transaction(tx: &Transaction) -> Vec<TransactionInscription> {
@@ -81,6 +86,7 @@ impl Inscription {
     Ok(Self {
       body: Some(body),
       content_type: Some(content_type.into()),
+      unrecognized_even_field: false,
     })
   }
 
@@ -155,12 +161,10 @@ impl Inscription {
 
 #[derive(Debug, PartialEq)]
 pub(crate) enum InscriptionError {
-  EmptyWitness,
   InvalidInscription,
-  KeyPathSpend,
   NoInscription,
+  NoTapscript,
   Script(script::Error),
-  UnrecognizedEvenField,
 }
 
 type Result<T, E = InscriptionError> = std::result::Result<T, E>;
@@ -172,34 +176,12 @@ struct InscriptionParser<'a> {
 
 impl<'a> InscriptionParser<'a> {
   fn parse(witness: &Witness) -> Result<Vec<Inscription>> {
-    if witness.is_empty() {
-      return Err(InscriptionError::EmptyWitness);
-    }
-
-    if witness.len() == 1 {
-      return Err(InscriptionError::KeyPathSpend);
-    }
-
-    let annex = witness
-      .last()
-      .and_then(|element| element.first().map(|byte| *byte == TAPROOT_ANNEX_PREFIX))
-      .unwrap_or(false);
-
-    if witness.len() == 2 && annex {
-      return Err(InscriptionError::KeyPathSpend);
-    }
-
-    let script = witness
-      .iter()
-      .nth(if annex {
-        witness.len() - 1
-      } else {
-        witness.len() - 2
-      })
-      .unwrap();
+    let Some(tapscript) = witness.tapscript() else {
+      return Err(InscriptionError::NoTapscript);
+    };
 
     InscriptionParser {
-      instructions: ScriptBuf::from(Vec::from(script)).instructions().peekable(),
+      instructions: tapscript.instructions().peekable(),
     }
     .parse_inscriptions()
     .into_iter()
@@ -250,12 +232,20 @@ impl<'a> InscriptionParser<'a> {
     for tag in fields.keys() {
       if let Some(lsb) = tag.first() {
         if lsb % 2 == 0 {
-          return Err(InscriptionError::UnrecognizedEvenField);
+          return Ok(Inscription {
+            body,
+            content_type,
+            unrecognized_even_field: true,
+          });
         }
       }
     }
 
-    Ok(Inscription { body, content_type })
+    Ok(Inscription {
+      body,
+      content_type,
+      unrecognized_even_field: false,
+    })
   }
 
   fn advance(&mut self) -> Result<Instruction<'a>> {
@@ -321,7 +311,7 @@ mod tests {
   fn empty() {
     assert_eq!(
       InscriptionParser::parse(&Witness::new()),
-      Err(InscriptionError::EmptyWitness)
+      Err(InscriptionError::NoTapscript)
     );
   }
 
@@ -329,7 +319,7 @@ mod tests {
   fn ignore_key_path_spends() {
     assert_eq!(
       InscriptionParser::parse(&Witness::from_slice(&[Vec::new()])),
-      Err(InscriptionError::KeyPathSpend),
+      Err(InscriptionError::NoTapscript),
     );
   }
 
@@ -337,7 +327,7 @@ mod tests {
   fn ignore_key_path_spends_with_annex() {
     assert_eq!(
       InscriptionParser::parse(&Witness::from_slice(&[Vec::new(), vec![0x50]])),
-      Err(InscriptionError::KeyPathSpend),
+      Err(InscriptionError::NoTapscript),
     );
   }
 
@@ -413,6 +403,7 @@ mod tests {
       Ok(vec![Inscription {
         content_type: Some(b"text/plain;charset=utf-8".to_vec()),
         body: None,
+        unrecognized_even_field: false,
       }]),
     );
   }
@@ -424,6 +415,7 @@ mod tests {
       Ok(vec![Inscription {
         content_type: None,
         body: Some(b"foo".to_vec()),
+        unrecognized_even_field: false,
       }]),
     );
   }
@@ -754,6 +746,7 @@ mod tests {
       &Inscription {
         content_type: None,
         body: None,
+        unrecognized_even_field: false,
       }
       .append_reveal_script(script::Builder::new()),
     );
@@ -765,6 +758,7 @@ mod tests {
       vec![Inscription {
         content_type: None,
         body: None,
+        unrecognized_even_field: false,
       }]
     );
   }
@@ -776,15 +770,20 @@ mod tests {
       Ok(vec![Inscription {
         content_type: None,
         body: None,
+        unrecognized_even_field: false,
       }]),
     );
   }
 
   #[test]
-  fn unknown_even_fields_are_invalid() {
+  fn unknown_even_fields() {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[b"ord", &[2], &[0]])),
-      Err(InscriptionError::UnrecognizedEvenField),
+      Ok(vec![Inscription {
+        content_type: None,
+        body: None,
+        unrecognized_even_field: true,
+      }]),
     );
   }
 }

@@ -1,9 +1,10 @@
 pub(crate) use {
   super::*,
   crate::inscription::TransactionInscription,
-  bitcoin::blockdata::script::PushBytesBuf,
-  bitcoin::blockdata::{opcodes, script},
-  bitcoin::{ScriptBuf, Witness},
+  bitcoin::{
+    blockdata::{opcodes, script, script::PushBytesBuf},
+    ScriptBuf, Witness,
+  },
   pretty_assertions::assert_eq as pretty_assert_eq,
   std::iter,
   test_bitcoincore_rpc::TransactionTemplate,
