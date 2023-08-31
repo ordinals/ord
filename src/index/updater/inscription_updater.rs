@@ -105,13 +105,13 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     let mut new_inscriptions = Inscription::from_transaction(tx).into_iter().peekable();
     let mut floating_inscriptions = Vec::new();
     let mut inscribed_offsets = BTreeMap::new();
-    let mut input_value = 0;
+    let mut total_input_value = 0;
     let mut id_counter = 0;
 
     for (input_index, tx_in) in tx.input.iter().enumerate() {
       // skip subsidy since no inscriptions possible
       if tx_in.previous_output.is_null() {
-        input_value += Height(self.height).subsidy();
+        total_input_value += Height(self.height).subsidy();
         continue;
       }
 
@@ -121,7 +121,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         self.satpoint_to_id,
         tx_in.previous_output,
       )? {
-        let offset = input_value + old_satpoint.offset;
+        let offset = total_input_value + old_satpoint.offset;
         floating_inscriptions.push(Flotsam {
           offset,
           inscription_id,
@@ -134,10 +134,11 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           .or_insert((inscription_id, 0));
       }
 
-      let offset = input_value;
+      let offset = total_input_value;
 
       // multi-level cache for UTXO set to get to the input amount
-      input_value += if let Some(value) = self.value_cache.remove(&tx_in.previous_output) {
+      let current_input_value = if let Some(value) = self.value_cache.remove(&tx_in.previous_output)
+      {
         value
       } else if let Some(value) = self
         .outpoint_to_value
@@ -152,6 +153,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           )
         })?
       };
+
+      total_input_value += current_input_value;
 
       // go through all inscriptions in this input
       while let Some(inscription) = new_inscriptions.peek() {
@@ -216,7 +219,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           curse.is_some()
         };
 
-        let unbound = input_value == 0
+        let unbound = current_input_value == 0
           || inscription.tx_in_offset != 0
           || curse == Some(Curse::UnrecognizedEvenField);
 
@@ -264,7 +267,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             inscription_id,
             offset,
             origin: Origin::New {
-              fee: (input_value - total_output_value) / u64::from(id_counter),
+              fee: (total_input_value - total_output_value) / u64::from(id_counter),
               cursed,
               unbound,
             },
@@ -338,7 +341,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         offset: self.reward + flotsam.offset - output_value,
         ..flotsam
       }));
-      self.reward += input_value - output_value;
+      self.reward += total_input_value - output_value;
       Ok(())
     }
   }

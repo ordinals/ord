@@ -2654,6 +2654,51 @@ mod tests {
   }
 
   #[test]
+  fn transaction_with_inscription_inside_zero_value_2nd_input_should_be_unbound_and_cursed() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      // create zero value input
+      context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0)],
+        fee: 50 * 100_000_000,
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(2, 0, 0), (2, 1, 0)],
+        witness: inscription("text/plain", "hello").to_witness(),
+        ..Default::default()
+      });
+
+      let second_inscription_id = InscriptionId { txid, index: 1 };
+
+      context.mine_blocks(1);
+
+      context.index.assert_inscription_location(
+        second_inscription_id,
+        SatPoint {
+          outpoint: unbound_outpoint(),
+          offset: 0,
+        },
+        None,
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_entry(second_inscription_id)
+          .unwrap()
+          .unwrap()
+          .number,
+        -1
+      );
+    }
+  }
+
+  #[test]
   fn multiple_inscriptions_in_same_tx_all_but_first_input_are_cursed() {
     for context in Context::configurations() {
       context.mine_blocks(1);
