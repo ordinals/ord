@@ -398,22 +398,12 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         let sat = if unbound {
           None
         } else {
-          let mut sat = None;
-          if let Some(input_sat_ranges) = input_sat_ranges {
-            let mut offset = 0;
-            for (start, end) in input_sat_ranges {
-              let size = end - start;
-              if offset + size > flotsam.offset {
-                let n = start + flotsam.offset - offset;
-                self.sat_to_inscription_id.insert(&n, &inscription_id)?;
-                sat = Some(Sat(n));
-                break;
-              }
-              offset += size;
-            }
-          }
-          sat
+          Self::calculate_sat(input_sat_ranges, flotsam.offset)
         };
+
+        if let Some(Sat(n)) = sat {
+          self.sat_to_inscription_id.insert(&n, &inscription_id)?;
+        }
 
         self.id_to_entry.insert(
           &inscription_id,
