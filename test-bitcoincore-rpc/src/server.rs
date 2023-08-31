@@ -293,13 +293,15 @@ impl Api for Server {
     assert_eq!(verbose, None);
 
     let mut state = self.state.lock().unwrap();
-    let locked = state.locked.iter().cloned().collect();
+    let locked = state.locked.iter().cloned().collect::<Vec<OutPoint>>();
 
     let value = Amount::from_btc(amount).expect("error converting amount to sat");
 
-    let utxo = state.utxos.first_entry().expect("failed to get a utxo");
-    let outpoint = utxo.key();
-    let utxo_amount = utxo.get();
+    let (outpoint, utxo_amount) = state
+      .utxos
+      .iter()
+      .find(|(outpoint, amount)| *amount >= &value && !locked.contains(outpoint))
+      .expect("failed to get a utxo");
 
     let mut transaction = Transaction {
       version: 1,
