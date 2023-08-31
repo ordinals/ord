@@ -14,13 +14,14 @@ defaults:
 
 env:
   RUSTFLAGS: --deny warnings
-  LANGUAGES: zh
+  LANGUAGES:
 
 jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+
 
     - name: Install Rust Toolchain Components
       uses: actions-rs/toolchain@v1
@@ -30,14 +31,22 @@ jobs:
 
     - uses: Swatinem/rust-cache@v2
 
-    - name: Install mdbook
-      run: cargo install mdbook --locked --version 0.4.34
+    - uses: peaceiris/actions-mdbook@v1
+      with:
+        mdbook-version: '0.4.34'
 
     - name: Install mdbook-i18n-helpers
       run: cargo install mdbook-i18n-helpers --locked --version 0.2.2
+      shell: bash
 
     - name: Install mdbook-linkcheck
-      run: cargo install mdbook-linkcheck
+      run: |
+        mkdir -p mdbook-linkcheck
+        cd mdbook-linkcheck
+        wget https://github.com/Michael-F-Bryan/mdbook-linkcheck/releases/latest/download/mdbook-linkcheck.x86_64-unknown-linux-gnu.zip
+        unzip mdbook-linkcheck.x86_64-unknown-linux-gnu.zip
+        chmod +x mdbook-linkcheck
+        pwd >> $GITHUB_PATH
 
     - name: Build docs
       run: mdbook build docs -d build
