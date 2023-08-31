@@ -4,11 +4,14 @@ use super::*;
 pub(crate) struct HomeHtml {
   last: u64,
   blocks: Vec<BlockHash>,
-  inscriptions: Vec<InscriptionId>,
+  featured_blocks: BTreeMap<BlockHash, Vec<InscriptionId>>,
 }
 
 impl HomeHtml {
-  pub(crate) fn new(blocks: Vec<(u64, BlockHash)>, inscriptions: Vec<InscriptionId>) -> Self {
+  pub(crate) fn new(
+    blocks: Vec<(u64, BlockHash)>,
+    featured_blocks: BTreeMap<BlockHash, Vec<InscriptionId>>,
+  ) -> Self {
     Self {
       last: blocks
         .get(0)
@@ -16,7 +19,7 @@ impl HomeHtml {
         .cloned()
         .unwrap_or(0),
       blocks: blocks.into_iter().map(|(_, hash)| hash).collect(),
-      inscriptions,
+      featured_blocks,
     }
   }
 }
@@ -33,9 +36,23 @@ mod tests {
 
   #[test]
   fn html() {
+    let mut feature_blocks = BTreeMap::new();
+    feature_blocks.insert(
+      "2222222222222222222222222222222222222222222222222222222222222222"
+        .parse()
+        .unwrap(),
+      vec![inscription_id(1), inscription_id(2)],
+    );
+
     assert_regex_match!(
       &HomeHtml::new(
         vec![
+          (
+            1260002,
+            "2222222222222222222222222222222222222222222222222222222222222222"
+              .parse()
+              .unwrap()
+          ),
           (
             1260001,
             "1111111111111111111111111111111111111111111111111111111111111111"
@@ -49,21 +66,23 @@ mod tests {
               .unwrap()
           )
         ],
-        vec![inscription_id(1), inscription_id(2)],
+        feature_blocks,
       )
-      .to_string(),
-      "<h2>Latest Inscriptions</h2>
-<div class=thumbnails>
-  <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
-  <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
-</div>
-<div class=center><a href=/inscriptions>more</a></div>
-<h2>Latest Blocks</h2>
-<ol start=1260001 reversed class=blocks>
-  <li><a href=/block/1{64}>1{64}</a></li>
-  <li><a href=/block/0{64}>0{64}</a></li>
-</ol>
-",
+      .to_string()
+      .unindent(),
+      "<div class=block>
+        <h2><a href=/block/1260002>Block 1260002</a></h2>
+        <div class=thumbnails>
+          <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
+          <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
+        </div>
+      </div>
+      <ol start=1260001 reversed class=block-list>
+        <li><a href=/block/1{64}>1{64}</a></li>
+        <li><a href=/block/0{64}>0{64}</a></li>
+      </ol>
+      "
+      .unindent(),
     );
   }
 }

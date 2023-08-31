@@ -556,13 +556,13 @@ impl Index {
   }
 
   pub(crate) fn blocks(&self, take: usize) -> Result<Vec<(u64, BlockHash)>> {
-    let mut blocks = Vec::new();
-
     let rtx = self.begin_read()?;
 
     let block_count = rtx.block_count()?;
 
     let height_to_block_hash = rtx.0.open_table(HEIGHT_TO_BLOCK_HASH)?;
+
+    let mut blocks = Vec::with_capacity(block_count.try_into().unwrap());
 
     for next in height_to_block_hash.range(0..block_count)?.rev().take(take) {
       let next = next?;
@@ -874,20 +874,6 @@ impl Index {
     }
 
     Ok(result)
-  }
-
-  pub(crate) fn get_homepage_inscriptions(&self) -> Result<Vec<InscriptionId>> {
-    Ok(
-      self
-        .database
-        .begin_read()?
-        .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
-        .iter()?
-        .rev()
-        .take(8)
-        .flat_map(|result| result.map(|(_number, id)| Entry::load(*id.value())))
-        .collect(),
-    )
   }
 
   pub(crate) fn get_latest_inscriptions_with_prev_and_next(
@@ -2572,6 +2558,52 @@ mod tests {
           .unwrap_err()
           .to_string(),
         r"output in Bitcoin Core wallet but not in ord index: [[:xdigit:]]{64}:\d+"
+      );
+    }
+  }
+
+  #[test]
+  fn unrecognized_even_field_inscriptions_are_cursed_and_unbound() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let witness = envelope(&[
+        b"ord",
+        &[1],
+        b"text/plain;charset=utf-8",
+        &[2],
+        b"bar",
+        &[4],
+        b"ord",
+      ]);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0)],
+        witness,
+        ..Default::default()
+      });
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      context.mine_blocks(1);
+
+      context.index.assert_inscription_location(
+        inscription_id,
+        SatPoint {
+          outpoint: unbound_outpoint(),
+          offset: 0,
+        },
+        None,
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_entry(inscription_id)
+          .unwrap()
+          .unwrap()
+          .number,
+        -1
       );
     }
   }
