@@ -2,9 +2,9 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) enum IndexSubcommand {
-  #[clap(about = "Write inscription numbers and ids to a tab-separated file")]
+  #[command(about = "Write inscription numbers and ids to a tab-separated file")]
   Export(Export),
-  #[clap(about = "Update the index")]
+  #[command(about = "Update the index")]
   Run,
 }
 
@@ -19,13 +19,13 @@ impl IndexSubcommand {
 
 #[derive(Debug, Parser)]
 pub(crate) struct Export {
-  #[clap(
+  #[arg(
     long,
     default_value = "inscription_number_to_id.tsv",
     help = "<TSV> file to write to"
   )]
   tsv: String,
-  #[clap(long, help = "Whether to include addresses in export")]
+  #[arg(long, help = "Whether to include addresses in export")]
   include_addresses: bool,
 }
 

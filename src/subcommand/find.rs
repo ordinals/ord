@@ -2,7 +2,7 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Find {
-  #[clap(help = "Find output and offset of <SAT>.")]
+  #[arg(help = "Find output and offset of <SAT>.")]
   sat: Sat,
 }
 
