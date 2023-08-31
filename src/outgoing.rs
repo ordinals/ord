@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub(crate) enum Outgoing {
   Amount(Amount),
   InscriptionId(InscriptionId),
