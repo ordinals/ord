@@ -22,10 +22,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - uses: peaceiris/actions-mdbook@v1
-      with:
-        mdbook-version: latest
-
     - name: Install Rust Toolchain Components
       uses: actions-rs/toolchain@v1
       with:
@@ -36,14 +32,12 @@ jobs:
 
     - name: Install mdbook
       run: cargo install mdbook --locked --version 0.4.34
-      shell: bash
 
     - name: Install mdbook-i18n-helpers
       run: cargo install mdbook-i18n-helpers --locked --version 0.2.2
-      shell: bash
 
     - name: Install mdbook-linkcheck
-      run: cargo install mdbook-linkcheck --locked --version 0.4.34
+      run: cargo install mdbook-linkcheck
 
     - name: Build docs
       run: mdbook build docs -d build
