@@ -911,7 +911,7 @@ msgid ""
 "Digital artifacts are immutable. An NFT with an upgrade key is not a digital "
 "artifact."
 msgstr ""
-"- 数字文物是不可篡改的，带有升级密钥的NFT不是数字文物。"
+"数字文物是不可篡改的，带有升级密钥的NFT不是数字文物。"
 
 #: src/digital-artifacts.md:40
 msgid ""
@@ -2121,11 +2121,11 @@ msgid ""
 msgstr "找到一个本不该做的问题，并提供建设性的反馈，详细说明您认为会出现这种情况的原因"
 
 #: src/contributing.md:42
-msgid "Merge early and often"
+msgid "早合并，勤合并"
 msgstr ""
 
 #: src/contributing.md:45
-msgid "早合并，勤合并"
+msgid ""
 "Break up large tasks into multiple smaller steps that individually make "
 "progress. If there's a bug, you can open a PR that adds a failing ignored "
 "test. This can be merged, and the next step can be to fix the bug and "
@@ -2184,7 +2184,7 @@ msgstr ""
 
 #: src/contributing.md:73
 msgid "Practice hypothesis-driven debugging"
-msgstr "实践假说驱动的调试"
+msgstr "实践'假说驱动'的调试"
 
 #: src/contributing.md:76
 msgid ""
@@ -3612,7 +3612,7 @@ msgstr ""
 
 #: src/guides/collecting/sparrow-wallet.md:98
 msgid "Sending inscriptions with Sparrow Wallet"
-msgstr ""
+msgstr "使用麻雀钱包发送铭文"
 
 #: src/guides/collecting/sparrow-wallet.md:100
 msgid "⚠️⚠️ Warning ⚠️⚠️"
