@@ -29,27 +29,27 @@ pub mod transactions;
 
 #[derive(Debug, Parser)]
 pub(crate) enum Wallet {
-  #[clap(about = "Get wallet balance")]
+  #[command(about = "Get wallet balance")]
   Balance,
-  #[clap(about = "Create new wallet")]
+  #[command(about = "Create new wallet")]
   Create(create::Create),
-  #[clap(about = "Create inscription")]
+  #[command(about = "Create inscription")]
   Inscribe(inscribe::Inscribe),
-  #[clap(about = "List wallet inscriptions")]
+  #[command(about = "List wallet inscriptions")]
   Inscriptions,
-  #[clap(about = "Generate receive address")]
+  #[command(about = "Generate receive address")]
   Receive,
-  #[clap(about = "Restore wallet")]
+  #[command(about = "Restore wallet")]
   Restore(restore::Restore),
-  #[clap(about = "List wallet satoshis")]
+  #[command(about = "List wallet satoshis")]
   Sats(sats::Sats),
-  #[clap(about = "Send sat or inscription")]
+  #[command(about = "Send sat or inscription")]
   Send(send::Send),
-  #[clap(about = "See wallet transactions")]
+  #[command(about = "See wallet transactions")]
   Transactions(transactions::Transactions),
-  #[clap(about = "List all unspent outputs in wallet")]
+  #[command(about = "List all unspent outputs in wallet")]
   Outputs,
-  #[clap(about = "List unspent cardinal outputs in wallet")]
+  #[command(about = "List unspent cardinal outputs in wallet")]
   Cardinals,
 }
 

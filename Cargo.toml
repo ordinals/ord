@@ -24,7 +24,7 @@ bip39 = "2.0.0"
 bitcoin = { version = "0.30.0", features = ["rand"] }
 boilerplate = { version = "1.0.0", features = ["axum"] }
 chrono = "0.4.19"
-clap = { version = "3.2.18", features = ["derive", "deprecated"] }
+clap = { version = "4.4.2", features = ["derive"] }
 ctrlc = { version = "3.2.1", features = ["termination"] }
 derive_more = "0.99.17"
 dirs = "5.0.0"
