@@ -556,13 +556,13 @@ impl Index {
   }
 
   pub(crate) fn blocks(&self, take: usize) -> Result<Vec<(u64, BlockHash)>> {
-    let mut blocks = Vec::new();
-
     let rtx = self.begin_read()?;
 
     let block_count = rtx.block_count()?;
 
     let height_to_block_hash = rtx.0.open_table(HEIGHT_TO_BLOCK_HASH)?;
+
+    let mut blocks = Vec::with_capacity(block_count.try_into().unwrap());
 
     for next in height_to_block_hash.range(0..block_count)?.rev().take(take) {
       let next = next?;

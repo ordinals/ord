@@ -2,7 +2,7 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Traits {
-  #[clap(help = "Show traits for <SAT>.")]
+  #[arg(help = "Show traits for <SAT>.")]
   sat: Sat,
 }
 

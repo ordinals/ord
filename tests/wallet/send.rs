@@ -467,7 +467,7 @@ fn user_must_provide_fee_rate_to_send() {
   .rpc_server(&rpc_server)
   .expected_exit_code(2)
   .stderr_regex(
-    ".*error: The following required arguments were not provided:
+    ".*error: the following required arguments were not provided:
 .*--fee-rate <FEE_RATE>.*",
   )
   .run_and_extract_stdout();

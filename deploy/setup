@@ -120,6 +120,8 @@ setfacl -m ord:x $COOKIE_FILE_DIR
 setfacl -dm ord:r $COOKIE_FILE_DIR
 setfacl -m ord:r $COOKIE_FILE_DIR/.cookie
 
+journalctl --unit ord --vacuum-time 1s
+
 cp deploy/ord.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable ord
