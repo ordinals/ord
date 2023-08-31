@@ -23,6 +23,7 @@ use {
   serde::de::DeserializeOwned,
   std::{
     fs,
+    io::Write,
     net::TcpListener,
     path::Path,
     process::{Child, Command, Stdio},

@@ -7,14 +7,16 @@ pub struct Output {
 
 #[derive(Debug, Parser)]
 pub(crate) struct Decode {
-  transaction: PathBuf,
+  transaction: Option<PathBuf>,
 }
 
 impl Decode {
   pub(crate) fn run(self) -> SubcommandResult {
-    let mut file = File::open(self.transaction)?;
-
-    let transaction = Transaction::consensus_decode(&mut file)?;
+    let transaction = if let Some(path) = self.transaction {
+      Transaction::consensus_decode(&mut File::open(path)?)?
+    } else {
+      Transaction::consensus_decode(&mut io::stdin())?
+    };
 
     let inscriptions = Inscription::from_transaction(&transaction);
 
