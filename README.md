@@ -246,5 +246,6 @@ So read through their [usage guide](https://github.com/google/mdbook-i18n-helper
 to see the structure that translations should follow.
 
 There are some other things to watch out for but feel free to just start a
-translation and open a PR. A maintainer will then help you integrate it into our
+translation and open a PR. Have a look at [this commit](https://github.com/ordinals/ord/commit/329f31bf6dac207dad001507dd6f18c87fdef355)
+for an idea of what to do. A maintainer will also help you integrate it into our
 build system.
