@@ -4,9 +4,9 @@ use {super::*, clap::ValueEnum};
 #[serde(rename_all = "kebab-case")]
 pub enum Chain {
   #[default]
-  #[clap(alias("main"))]
+  #[value(alias("main"))]
   Mainnet,
-  #[clap(alias("test"))]
+  #[value(alias("test"))]
   Testnet,
   Signet,
   Regtest,
