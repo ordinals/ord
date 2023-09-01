@@ -241,8 +241,8 @@ msgid ""
 msgstr ""
 "序数是一种比特币的编号方案，允许跟踪和转移单个聪。这些数字被称作[序号](https://ordinals.com)。"
 "比特币是按照它们被挖掘的顺序编号的，并从交易输入转移到交易输出（遵循先进先出原则）。"
-"编号方案和传输方案都依赖于*顺序*，编号方案依赖于比特币被挖掘的*顺序*，而传输方案依赖于交易输入和输出的*顺序*。"
-"因此得名，*序数（Ordinals）*。"
+"编号方案和传输方案都依赖于_顺序_，编号方案依赖于比特币被挖掘的_顺序_，而传输方案依赖于交易输入和输出的_顺序_。"
+"因此得名，_序数（Ordinals）_。"
 
 #: src/overview.md:13
 msgid ""
@@ -351,8 +351,8 @@ msgid ""
 "Bitcoin has periodic events, some frequent, some more uncommon, and these "
 "naturally lend themselves to a system of rarity. These periodic events are:"
 msgstr ""
-“比特币有周期性的事件，有些频繁，有些不常见，这些事件自然而然地形成了一个稀有系统。“
-”这些周期性事件是:”
+"比特币有周期性的事件，有些频繁，有些不常见，这些事件自然而然地形成了一个稀有系统。"
+"这些周期性事件是:"
 
 #: src/overview.md:62
 msgid ""
@@ -391,7 +391,7 @@ msgstr ""
 #: src/overview.md:77
 msgid "This gives us the following rarity levels:"
 msgstr ""
-“这给了我们以下稀缺度等级:”
+"这给了我们以下稀缺度等级:"
 
 #: src/overview.md:79
 msgid "`common`: Any sat that is not the first sat of its block"
@@ -693,8 +693,8 @@ msgid ""
 "less is out there, or will be out there, someday."
 msgstr ""
 msgid ""
-"举个例子, 1905530482684727°'的名字是 \"iaiufjszmoba\".最后一个被挖掘的聪的名字会是\"a\" "
-" 每个 10 个或更少字符的组合都存在，或者总有一天会存在。"
+"举个例子, 1905530482684727°'的名字是 \"iaiufjszmoba\".最后一个被挖掘的聪的名字会是\"a\"。10个字母"
+"或更少字符的组合都会存在，或者总有一天会存在。"
 
 #: src/overview.md:208
 msgid "Exotics"
@@ -751,7 +751,7 @@ msgid ""
 "N29oF4iwCgX3lacrvaG9Kjko)"
 msgstr ""
 "致力于编目和收集早期 NFT 的活跃考古学家社区如雨后春笋般涌现 "
-" [Chainleft对历史NFT的精彩总结] (https://mirror.xyz/chainleft.eth/MzPWRsesC9mQflxlLo-N29oF4iwCgX3lacrvaG9Kjko)"
+"[Chainleft对历史NFT的精彩总结](https://mirror.xyz/chainleft.eth/MzPWRsesC9mQflxlLo-N29oF4iwCgX3lacrvaG9Kjko)"
 
 #: src/overview.md:238
 msgid ""
@@ -759,8 +759,8 @@ msgid ""
 "first ERC-721 contract, [SU SQUARES](https://tenthousandsu.com/), was "
 "deployed on Ethereum."
 msgstr ""
-"普遍接受的古老NFT 的截止日期是 2018 年 3 月 19 日，即 "
-"第一个 ERC-721 合约, [SU SQUARES](https://tenthousandsu.com/), 被部署在以太坊上的时间 "
+"普遍接受的古老NFT 的截止日期是 2018年3月19日，即 "
+"第一个 ERC-721 合约,[SU SQUARES](https://tenthousandsu.com/), 被部署在以太坊上的时间 "
 
 #: src/overview.md:242
 msgid ""
