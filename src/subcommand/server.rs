@@ -2988,6 +2988,13 @@ mod tests {
 
     assert_eq!(
       server
+        .get_json::<InscriptionJson>(format!("/inscription/{inscription_id}"))
+        .parent,
+      Some(parent_inscription_id),
+    );
+
+    assert_eq!(
+      server
         .get_json::<InscriptionJson>(format!("/inscription/{parent_inscription_id}"))
         .children,
       [inscription_id],
