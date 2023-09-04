@@ -53,14 +53,15 @@ OP_ENDIF
 First the string `ord` is pushed, to disambiguate inscriptions from other uses
 of envelopes.
 
-`OP_PUSH 1` indicates that the next push contains the content type, and `OP_PUSH
-0` indicates that subsequent data pushes contain the content itself. Multiple data
-pushes must be used for large inscriptions, as one of taproot's few
-restrictions is that individual data pushes may not be larger than 520 bytes.
+`OP_PUSH 1` indicates that the next push contains the content type, and
+`OP_PUSH 0`indicates that subsequent data pushes contain the content itself.
+Multiple data pushes must be used for large inscriptions, as one of taproot's
+few restrictions is that individual data pushes may not be larger than 520
+bytes.
 
 The inscription content is contained within the input of a reveal transaction,
-and the inscription is made on the first sat of its input. This sat can
-then be tracked using the familiar rules of ordinal theory, allowing it to be
+and the inscription is made on the first sat of its input. This sat can then be
+tracked using the familiar rules of ordinal theory, allowing it to be
 transferred, bought, sold, lost to fees, and recovered.
 
 Content

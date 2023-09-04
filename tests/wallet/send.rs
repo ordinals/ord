@@ -215,10 +215,15 @@ fn splitting_merged_inscriptions_is_possible() {
   create_wallet(&rpc_server);
   rpc_server.mine_blocks(3);
 
+  let inscription = envelope(&[b"ord", &[1], b"text/plain;charset=utf-8", &[], b"bar"]);
+
   // merging 3 inscriptions into one utxo
   let reveal_txid = rpc_server.broadcast_tx(TransactionTemplate {
-    inputs: &[(1, 0, 0), (2, 0, 0), (3, 0, 0)],
-    witness: envelope(&[b"ord", &[1], b"text/plain;charset=utf-8", &[], b"bar"]),
+    inputs: &[
+      (1, 0, 0, inscription.clone()),
+      (2, 0, 0, inscription.clone()),
+      (3, 0, 0, inscription.clone()),
+    ],
     outputs: 1,
     ..Default::default()
   });
