@@ -217,7 +217,7 @@
 <p>铭文内容是基于万维网标准的。铭文由内容类型（也称为 MIME 类型）和内容本身（字节串）组成。这允许从 Web 服务器返回铭文内容，并用于创建和使用HTML铭文并重新混合其他铭文内容。</p>
 <p>铭文内容完全在链上，存储在taproot script-path spend脚本中。 Taproot 脚本对其内容的限制很少，并且额外获得见证折扣，使得铭文内容存储相对经济。</p>
 <p>因为taproot script-path spend脚本只能从现有的 taproot 输出中产生，因此使用两阶段commit/reveal过程进行铭刻。首先，在commit中，创建一个提交到包含铭文内容的脚本的taproot 输出。 其次，在reveal交易中，使用commit交易产生的输出，来显示链上的铭文内容。</p>
-<p>铭文内容使用未执行条件中的数据推送进行序列化，称为“信封”。 信封由 OP_FALSE OP_IF … OP_ENDIF 组成，包装任意数量的数据推送。因为信封实际上是空操作，所以它们不会改变包含它们的脚本的语义，并且可以与任何其他锁定脚本结合使用。</p>
+<p>铭文内容使用未执行条件中的数据推送进行序列化，称为“信封”。信封由 OP_FALSE OP_IF … OP_ENDIF 组成，包装任意数量的数据推送。因为信封实际上是空操作，所以它们不会改变包含它们的脚本的语义，并且可以与任何其他锁定脚本结合使用。</p>
 <p>包含字符串“Hello, world!”的文本铭文 序列化如下：</p>
 <pre><code>OP_FALSE
 OP_IF
@@ -253,7 +253,7 @@ OP_ENDIF
 <tr><td style="text-align: center">4</td><td style="text-align: center">1</td><td style="text-align: center">i6</td></tr>
 </tbody></table>
 </div>
-<h2 id="沙盒"><a class="header" href="#沙盒">沙盒</a></h2>
+<h2 id="沙盒化"><a class="header" href="#沙盒化">沙盒化</a></h2>
 <p>HTML 和 SVG 铭文被沙箱化，以防止引用链下内容，从而保持铭文的不可变性和独立性。</p>
 <p>这是通过在“iframes”中加载 HTML 和 SVG 铭文来完成的<code>sandbox</code> 属性，以及提供铭文内容Content-Security-Policy”标头。</p>
 
