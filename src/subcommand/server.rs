@@ -966,9 +966,9 @@ impl Server {
       Media::Markdown => Ok(
         (
           [(
-            header::CONTENT_SECURITY_POLICY,
-            "default-src 'self' https://cdn.jsdelivr.net",
-          )],
+              header::CONTENT_SECURITY_POLICY,
+              "script-src-elem 'self' https://cdn.jsdelivr.net",
+            )],
           PreviewMarkdownHtml { inscription_id },
         )
           .into_response(),
