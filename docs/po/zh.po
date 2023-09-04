@@ -153,7 +153,7 @@ msgstr "有关序数理论的更多详细信息，请参阅 [概述](overview.md
 
 #: src/introduction.md:29
 msgid "For more details on inscriptions, see [inscriptions](inscriptions.md)."
-msgstr "有关铭文的更多详细信息，请参阅 (inscriptions.md))."
+msgstr "有关铭文的更多详细信息，请参阅[铭文](inscriptions.md)."
 
 #: src/introduction.md:31
 msgid ""
