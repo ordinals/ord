@@ -3741,7 +3741,7 @@ mod tests {
   }
 
   #[test]
-  fn parents_can_be_in_proceeding_input() {
+  fn parents_can_be_in_preceding_input() {
     for context in Context::configurations() {
       context.mine_blocks(1);
 
