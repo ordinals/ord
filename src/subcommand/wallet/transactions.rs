@@ -2,7 +2,7 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Transactions {
-  #[clap(long, help = "Fetch at most <LIMIT> transactions.")]
+  #[arg(long, help = "Fetch at most <LIMIT> transactions.")]
   limit: Option<u16>,
 }
 

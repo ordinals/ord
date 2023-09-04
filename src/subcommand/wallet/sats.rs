@@ -2,7 +2,7 @@ use {super::*, crate::wallet::Wallet};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Sats {
-  #[clap(
+  #[arg(
     long,
     help = "Find satoshis listed in first column of tab-separated value file <TSV>."
   )]
