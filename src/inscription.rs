@@ -273,16 +273,12 @@ impl<'a> InscriptionParser<'a> {
     let body = fields.remove(BODY_TAG.as_slice());
     let content_type = fields.remove(CONTENT_TYPE_TAG.as_slice());
     let parent = fields.remove(PARENT_TAG.as_slice());
+    let mut unrecognized_even_field = false;
 
     for tag in fields.keys() {
       if let Some(lsb) = tag.first() {
         if lsb % 2 == 0 {
-          return Ok(Inscription {
-            body,
-            content_type,
-            parent,
-            unrecognized_even_field: true,
-          });
+          unrecognized_even_field = true;
         }
       }
     }
@@ -291,7 +287,7 @@ impl<'a> InscriptionParser<'a> {
       body,
       content_type,
       parent,
-      unrecognized_even_field: false,
+      unrecognized_even_field,
     })
   }
 
