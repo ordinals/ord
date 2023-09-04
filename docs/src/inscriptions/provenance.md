@@ -19,7 +19,7 @@ To create a child inscription C with parent inscription P:
 - Spend the parent P in one of the inputs of T.
 - Include tag `3`, i.e. `OP_PUSH 3`, in C, with the value of the serialized
   binary inscription ID of P, serialized as the 32-byte `TXID`, followed by the
-  four-byte little-endian `INDEX`.
+  four-byte little-endian `INDEX`, with trailing zeroes omitted.
 
 _NB_ The bytes of a bitcoin transaction ID are reversed in their text
 representation, so the serialized transaction ID will be in the opposite order.
@@ -80,7 +80,3 @@ recognized and tracked by old versions of `ord`.
 
 A collection can be closed by burning the collection's parent inscription,
 which guarantees that no more items in the collection can be issued.
-
-An inscription may have multiple parents. All parents must be spent in inputs
-in the child's inscribe transaction, and each parent's ID must be included in a
-separate `3` tag.
