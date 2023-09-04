@@ -555,12 +555,14 @@ OP_ENDIF
 </code></pre>
 <p>First the string <code>ord</code> is pushed, to disambiguate inscriptions from other uses
 of envelopes.</p>
-<p><code>OP_PUSH 1</code> indicates that the next push contains the content type, and <code>OP_PUSH 0</code> indicates that subsequent data pushes contain the content itself. Multiple data
-pushes must be used for large inscriptions, as one of taproot's few
-restrictions is that individual data pushes may not be larger than 520 bytes.</p>
+<p><code>OP_PUSH 1</code> indicates that the next push contains the content type, and
+<code>OP_PUSH 0</code>indicates that subsequent data pushes contain the content itself.
+Multiple data pushes must be used for large inscriptions, as one of taproot's
+few restrictions is that individual data pushes may not be larger than 520
+bytes.</p>
 <p>The inscription content is contained within the input of a reveal transaction,
-and the inscription is made on the first sat of its input. This sat can
-then be tracked using the familiar rules of ordinal theory, allowing it to be
+and the inscription is made on the first sat of its input. This sat can then be
+tracked using the familiar rules of ordinal theory, allowing it to be
 transferred, bought, sold, lost to fees, and recovered.</p>
 <h2 id="content"><a class="header" href="#content">Content</a></h2>
 <p>The data model of inscriptions is that of a HTTP response, allowing inscription
@@ -605,9 +607,10 @@ off-chain content, thus keeping inscriptions immutable and self-contained.</p>
 the <code>sandbox</code> attribute, as well as serving inscription content with
 <code>Content-Security-Policy</code> headers.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="recursion"><a class="header" href="#recursion">Recursion</a></h1>
-<p>An important exception to <a href="inscriptions/../inscriptions.html#sandboxing">sandboxing</a> is recursion: access to <code>ord</code>'s <code>/content</code>
-endpoint is permitted, allowing inscriptions to access the content of other
-inscriptions by requesting <code>/content/&lt;INSCRIPTION_ID&gt;</code>.</p>
+<p>An important exception to <a href="inscriptions/../inscriptions.html#sandboxing">sandboxing</a> is
+recursion: access to <code>ord</code>'s <code>/content</code> endpoint is permitted, allowing
+inscriptions to access the content of other inscriptions by requesting
+<code>/content/&lt;INSCRIPTION_ID&gt;</code>.</p>
 <p>This has a number of interesting use-cases:</p>
 <ul>
 <li>
