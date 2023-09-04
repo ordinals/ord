@@ -67,4 +67,14 @@
 %% }
   <dt>offset</dt>
   <dd>{{ self.satpoint.offset }}</dd>
+%% if !self.children.is_empty() {
+  <dt>children</dt>
+  <dd>
+    <div class=thumbnails>
+%% for id in &self.children {
+      {{Iframe::thumbnail(*id)}}
+%% }
+    </div>
+  </dd>
+%% }
 </dl>

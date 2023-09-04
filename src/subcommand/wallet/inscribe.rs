@@ -76,9 +76,7 @@ impl Inscribe {
     let (parent, commit_input_offset) = if let Some(parent_id) = self.parent {
       if let Some(satpoint) = index.get_inscription_satpoint_by_id(parent_id)? {
         if !utxos.contains_key(&satpoint.outpoint) {
-          return Err(anyhow!(format!(
-            "unrelated parent {parent_id} not accepting mailman's child" // for the germans: "Kuckuckskind"
-          )));
+          return Err(anyhow!(format!("parent {parent_id} not in wallet")));
         }
 
         let output = index
@@ -271,18 +269,18 @@ impl Inscribe {
     let (mut inputs, mut outputs, commit_input_offset) =
       if let Some((parent_satpoint, output)) = parent.clone() {
         (
-          vec![parent_satpoint.outpoint, OutPoint::null()],
+          vec![OutPoint::null(), parent_satpoint.outpoint],
           vec![
-            TxOut {
-              script_pubkey: output.script_pubkey,
-              value: output.value,
-            },
             TxOut {
               script_pubkey: destination.script_pubkey(),
               value: 0,
             },
+            TxOut {
+              script_pubkey: output.script_pubkey,
+              value: output.value,
+            },
           ],
-          1,
+          0,
         )
       } else {
         (

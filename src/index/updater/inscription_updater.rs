@@ -23,6 +23,8 @@ enum Origin {
 pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   flotsam: Vec<Flotsam>,
   height: u64,
+  id_to_children:
+    &'a mut MultimapTable<'db, 'tx, &'static InscriptionIdValue, &'static InscriptionIdValue>,
   id_to_satpoint: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, &'static SatPointValue>,
   value_receiver: &'a mut Receiver<u64>,
   id_to_entry: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, InscriptionEntryValue>,
@@ -44,6 +46,12 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
 impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
   pub(super) fn new(
     height: u64,
+    id_to_children: &'a mut MultimapTable<
+      'db,
+      'tx,
+      &'static InscriptionIdValue,
+      &'static InscriptionIdValue,
+    >,
     id_to_satpoint: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, &'static SatPointValue>,
     value_receiver: &'a mut Receiver<u64>,
     id_to_entry: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, InscriptionEntryValue>,
@@ -79,6 +87,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     Ok(Self {
       flotsam: Vec::new(),
       height,
+      id_to_children,
       id_to_satpoint,
       value_receiver,
       id_to_entry,
@@ -444,6 +453,12 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           }
           .store(),
         )?;
+
+        if let Some(parent) = parent {
+          self
+            .id_to_children
+            .insert(&parent.store(), &inscription_id)?;
+        }
 
         unbound
       }

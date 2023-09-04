@@ -54,7 +54,7 @@ fn from_file() {
         body: Some(vec![0, 1, 2, 3]),
         content_type: Some(b"text/plain;charset=utf-8".to_vec()),
         unrecognized_even_field: false,
-        ..Default::default()
+        parent: None,
       }],
     }
   );
@@ -71,7 +71,7 @@ fn from_stdin() {
         body: Some(vec![0, 1, 2, 3]),
         content_type: Some(b"text/plain;charset=utf-8".to_vec()),
         unrecognized_even_field: false,
-        ..Default::default()
+        parent: None,
       }],
     }
   );
