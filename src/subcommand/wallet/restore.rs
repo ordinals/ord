@@ -2,9 +2,9 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Restore {
-  #[clap(help = "Restore wallet from <MNEMONIC>")]
+  #[arg(help = "Restore wallet from <MNEMONIC>")]
   mnemonic: Mnemonic,
-  #[clap(
+  #[arg(
     long,
     default_value = "",
     help = "Use <PASSPHRASE> when deriving wallet"

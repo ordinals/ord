@@ -15,6 +15,7 @@
     - [Sparrow Wallet](guides/collecting/sparrow-wallet.md)
   - [Testing](guides/testing.md)
   - [Moderation](guides/moderation.md)
+  - [Reindexing](guides/reindexing.md)
 - [Bounties](bounties.md)
   - [Bounty 0: 100,000 sats Claimed!](bounty/0.md)
   - [Bounty 1: 200,000 sats Claimed!](bounty/1.md)

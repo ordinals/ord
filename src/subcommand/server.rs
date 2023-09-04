@@ -103,37 +103,37 @@ impl Display for StaticHtml {
 
 #[derive(Debug, Parser)]
 pub(crate) struct Server {
-  #[clap(
+  #[arg(
     long,
     default_value = "0.0.0.0",
     help = "Listen on <ADDRESS> for incoming requests."
   )]
   address: String,
-  #[clap(
+  #[arg(
     long,
     help = "Request ACME TLS certificate for <ACME_DOMAIN>. This ord instance must be reachable at <ACME_DOMAIN>:443 to respond to Let's Encrypt ACME challenges."
   )]
   acme_domain: Vec<String>,
-  #[clap(
+  #[arg(
     long,
     help = "Listen on <HTTP_PORT> for incoming HTTP requests. [default: 80]."
   )]
   http_port: Option<u16>,
-  #[clap(
+  #[arg(
     long,
     group = "port",
     help = "Listen on <HTTPS_PORT> for incoming HTTPS requests. [default: 443]."
   )]
   https_port: Option<u16>,
-  #[clap(long, help = "Store ACME TLS certificates in <ACME_CACHE>.")]
+  #[arg(long, help = "Store ACME TLS certificates in <ACME_CACHE>.")]
   acme_cache: Option<PathBuf>,
-  #[clap(long, help = "Provide ACME contact <ACME_CONTACT>.")]
+  #[arg(long, help = "Provide ACME contact <ACME_CONTACT>.")]
   acme_contact: Vec<String>,
-  #[clap(long, help = "Serve HTTP traffic on <HTTP_PORT>.")]
+  #[arg(long, help = "Serve HTTP traffic on <HTTP_PORT>.")]
   http: bool,
-  #[clap(long, help = "Serve HTTPS traffic on <HTTPS_PORT>.")]
+  #[arg(long, help = "Serve HTTPS traffic on <HTTPS_PORT>.")]
   https: bool,
-  #[clap(long, help = "Redirect HTTP traffic to HTTPS.")]
+  #[arg(long, help = "Redirect HTTP traffic to HTTPS.")]
   redirect_http_to_https: bool,
 }
 
@@ -2961,6 +2961,7 @@ mod tests {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
             parent: Some(parent_inscription_id.parent_value()),
+            unrecognized_even_field: false,
           }
           .to_witness(),
         ),

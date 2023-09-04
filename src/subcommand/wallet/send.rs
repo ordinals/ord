@@ -1,12 +1,12 @@
 use {super::*, crate::subcommand::wallet::transaction_builder::Target, crate::wallet::Wallet};
 
-#[derive(Debug, Parser)]
+#[derive(Debug, Parser, Clone)]
 pub(crate) struct Send {
   address: Address<NetworkUnchecked>,
   outgoing: Outgoing,
-  #[clap(long, help = "Use fee rate of <FEE_RATE> sats/vB")]
+  #[arg(long, help = "Use fee rate of <FEE_RATE> sats/vB")]
   fee_rate: FeeRate,
-  #[clap(
+  #[arg(
     long,
     help = "Target amount of postage to include with sent inscriptions. Default `10000sat`"
   )]
