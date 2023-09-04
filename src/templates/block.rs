@@ -31,6 +31,35 @@ impl BlockHtml {
   }
 }
 
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct BlockJson {
+  pub hash: String,
+  pub target: String,
+  pub best_height: u64,
+  pub height: u64,
+  pub total_num_inscriptions: usize,
+  pub featured_inscriptions: Vec<InscriptionId>,
+}
+
+impl BlockJson {
+  pub(crate) fn new(
+    block: Block,
+    height: Height,
+    best_height: Height,
+    total_num_inscriptions: usize,
+    featured_inscriptions: Vec<InscriptionId>,
+  ) -> Self {
+    Self {
+      hash: block.header.block_hash().to_string(),
+      target: BlockHash::from_raw_hash(Hash::from_byte_array(block.header.target().to_be_bytes())).to_string(),
+      height: height.0,
+      best_height: best_height.0,
+      total_num_inscriptions,
+      featured_inscriptions,
+    }
+  }
+}
+
 impl PageContent for BlockHtml {
   fn title(&self) -> String {
     format!("Block {}", self.height)

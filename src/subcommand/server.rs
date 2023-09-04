@@ -8,7 +8,7 @@ use {
   crate::index::block_index::BlockIndex,
   crate::page_config::PageConfig,
   crate::templates::{
-    BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson,
+    BlockHtml, BlockJson, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson,
     InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson, PageContent,
     PageHtml, PreviewAudioHtml, PreviewImageHtml, PreviewModelHtml, PreviewPdfHtml,
     PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, SatHtml, SatJson,
@@ -585,7 +585,8 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Extension(block_index_state): Extension<Arc<BlockIndexState>>,
     Path(DeserializeFromStr(query)): Path<DeserializeFromStr<BlockQuery>>,
-  ) -> ServerResult<PageHtml<BlockHtml>> {
+    accept_json: AcceptJson,
+  ) -> ServerResult<Response> {
     let (block, height) = match query {
       BlockQuery::Height(height) => {
         let block = index
@@ -613,7 +614,16 @@ impl Server {
       .map_err(|err| anyhow!("block index RwLock poisoned: {}", err))?
       .get_highest_paying_inscriptions_in_block(&index, height, 8)?;
 
-    Ok(
+    Ok(if accept_json.0 {
+      Json(BlockJson::new(
+        block,
+        Height(height),
+        Self::index_height(&index)?,
+        total_num,
+        featured_inscriptions,
+      ))
+      .into_response()
+    } else {
       BlockHtml::new(
         block,
         Height(height),
@@ -621,8 +631,9 @@ impl Server {
         total_num,
         featured_inscriptions,
       )
-      .page(page_config, index.has_sat_index()?),
-    )
+      .page(page_config, index.has_sat_index()?)
+      .into_response()
+    })
   }
 
   async fn transaction(

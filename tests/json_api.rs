@@ -1,3 +1,5 @@
+use bitcoin::BlockHash;
+
 use super::*;
 
 #[test]
@@ -420,4 +422,33 @@ fn json_request_fails_when_not_enabled() {
     TestServer::spawn_with_args(&rpc_server, &[]).json_request("/sat/2099999997689999");
 
   assert_eq!(response.status(), StatusCode::NOT_ACCEPTABLE);
+}
+
+#[test]
+fn get_block() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+
+  rpc_server.mine_blocks(1);
+
+  // TODO: remove this?
+  std::thread::sleep(Duration::from_secs(3));
+
+  let response =
+    TestServer::spawn_with_args(&rpc_server, &["--enable-json-api"]).json_request("/block/0");
+
+  assert_eq!(response.status(), StatusCode::OK);
+
+  let block_json: BlockJson = serde_json::from_str(&response.text().unwrap()).unwrap();
+
+  assert_eq!(
+    block_json,
+    BlockJson {
+      hash: String::from("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"),
+      target: String::from("0000000000000000000000000000000000000000000000000000ffff00000000"),
+      best_height: 1,
+      height: 0,
+      total_num_inscriptions: 0,
+      featured_inscriptions: vec![],
+    }
+  );
 }
