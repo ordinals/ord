@@ -51,7 +51,8 @@ impl BlockJson {
   ) -> Self {
     Self {
       hash: block.header.block_hash().to_string(),
-      target: BlockHash::from_raw_hash(Hash::from_byte_array(block.header.target().to_be_bytes())).to_string(),
+      target: BlockHash::from_raw_hash(Hash::from_byte_array(block.header.target().to_be_bytes()))
+        .to_string(),
       height: height.0,
       best_height: best_height.0,
       total_num_inscriptions,
