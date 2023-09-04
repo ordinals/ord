@@ -2,7 +2,7 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Info {
-  #[clap(long)]
+  #[arg(long)]
   transactions: bool,
 }
 
