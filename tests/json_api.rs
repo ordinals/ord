@@ -1,5 +1,3 @@
-use bitcoin::BlockHash;
-
 use super::*;
 
 #[test]
