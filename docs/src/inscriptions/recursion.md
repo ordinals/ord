@@ -20,6 +20,10 @@ This has a number of interesting use-cases:
   inscribed as individual images, or in a shared texture atlas, and then
   combined, collage-style, in unique combinations in multiple inscriptions.
 
+- Markdown documents that reference other inscriptions
+  - Images: `![alt text](/content/<INSCRIPTION_ID>)`
+  - Links: `[link text](/content/<INSCRIPTION_ID>)`
+
 A few other endpoints that inscriptions may access are the following:
 
 - `/blockheight`: latest block height.
