@@ -1,9 +1,9 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Ordinals Theory Handbook\n"
+"Project-Id-Version: 序数理论手册\n"
 "POT-Creation-Date: \n"
 "PO-Revision-Date: 2023-08-30 10:03+0800\n"
-"Last-Translator: Michael <j@ordinals.foundation>\n"
+"Last-Translator: Dr.JingLee <j@ordinals.foundation>\n"
 "Language-Team: Chinese\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -123,7 +123,7 @@ msgstr ""
 msgid ""
 "Ordinal theory imbues satoshis with numismatic value, allowing them to be "
 "collected and traded as curios."
-msgstr "序数理论赋予 聪 以收藏价值，使它们可以作为古玩被收藏和交易。"
+msgstr "序数理论赋予聪以收藏价值，使它们可以作为古玩被收藏和交易。"
 
 #: src/introduction.md:17
 msgid ""
@@ -143,8 +143,8 @@ msgid ""
 "DNS. For now though, such use-cases are speculative, and exist only in the "
 "minds of fringe ordinal theorists."
 msgstr ""
-"其他非常规的应用也是可能的：链下彩色硬币off-chain colored-coins,、具有密钥轮换的公钥基础设施"
-"DNS 的去中心化替代品 decentralized replacement for the DNS。 "
+"其他非常规的应用也是可能的：链下染色硬币,具有密钥轮换的公钥基础设施"
+"DNS 的去中心化替代品等等。 "
 "不过就目前而言，这样的应用是推测性的，只存在于非主流的序数理论家的脑海中。"
 
 #: src/introduction.md:27
@@ -153,7 +153,7 @@ msgstr "有关序数理论的更多详细信息，请参阅 [概述](overview.md
 
 #: src/introduction.md:29
 msgid "For more details on inscriptions, see [inscriptions](inscriptions.md)."
-msgstr "有关铭文的更多详细信息，请参阅 (inscriptions.md))."
+msgstr "有关铭文的更多详细信息，请参阅[铭文](inscriptions.md)."
 
 #: src/introduction.md:31
 msgid ""
@@ -213,7 +213,7 @@ msgid ""
 "[Ordinals Workshop with Rodarmor](https://www.youtube.com/watch?"
 "v=MC_haVa6N3I)"
 msgstr ""
-"[Rodarmor的序数工作坊 ](https://www.youtube.com/watch?"
+"[CaseyRodarmor的序数理论工作坊 ](https://www.youtube.com/watch?"
 "v=MC_haVa6N3I)"
 
 #: src/introduction.md:51
@@ -241,8 +241,8 @@ msgid ""
 msgstr ""
 "序数是一种比特币的编号方案，允许跟踪和转移单个聪。这些数字被称作[序号](https://ordinals.com)。"
 "比特币是按照它们被挖掘的顺序编号的，并从交易输入转移到交易输出（遵循先进先出原则）。"
-"编号方案和传输方案都依赖于*顺序*，编号方案依赖于比特币被挖掘的*顺序*，而传输方案依赖于交易输入和输出的*顺序*。"
-"因此得名，*序数（Ordinals）*。"
+"编号方案和传输方案都依赖于_顺序_，编号方案依赖于比特币被挖掘的_顺序_，而传输方案依赖于交易输入和输出的_顺序_。"
+"因此得名，_序数（Ordinals_。"
 
 #: src/overview.md:13
 msgid ""
@@ -351,8 +351,8 @@ msgid ""
 "Bitcoin has periodic events, some frequent, some more uncommon, and these "
 "naturally lend themselves to a system of rarity. These periodic events are:"
 msgstr ""
-“比特币有周期性的事件，有些频繁，有些不常见，这些事件自然而然地形成了一个稀有系统。“
-”这些周期性事件是:”
+"比特币有周期性的事件，有些频繁，有些不常见，这些事件自然而然地形成了一个稀有度系统。"
+"这些周期性事件是:"
 
 #: src/overview.md:62
 msgid ""
@@ -391,7 +391,7 @@ msgstr ""
 #: src/overview.md:77
 msgid "This gives us the following rarity levels:"
 msgstr ""
-“这给了我们以下稀缺度等级:”
+"这给了我们以下稀缺度等级:"
 
 #: src/overview.md:79
 msgid "`common`: Any sat that is not the first sat of its block"
@@ -423,7 +423,7 @@ msgid ""
 "ordinal number in a way that makes the rarity of a satoshi easy to see at a "
 "glance:"
 msgstr ""
-"这给我们带来了度数表示法，它以一种使 satoshi 的稀有性一目了然的方式明确地表示一个序数： "
+"这给我们带来了度数表示法，它以一种使聪的稀有性一目了然的方式明确地表示一个序数： "
 
 #: src/overview.md:89
 msgid ""
@@ -693,8 +693,8 @@ msgid ""
 "less is out there, or will be out there, someday."
 msgstr ""
 msgid ""
-"举个例子, 1905530482684727°'的名字是 \"iaiufjszmoba\".最后一个被挖掘的聪的名字会是\"a\" "
-" 每个 10 个或更少字符的组合都存在，或者总有一天会存在。"
+"举个例子, 1905530482684727°'的名字是 \"iaiufjszmoba\".最后一个被挖掘的聪的名字会是\"a\"。10个字母"
+"或更少字符的组合都会存在，或者总有一天会存在。"
 
 #: src/overview.md:208
 msgid "Exotics"
@@ -751,7 +751,7 @@ msgid ""
 "N29oF4iwCgX3lacrvaG9Kjko)"
 msgstr ""
 "致力于编目和收集早期 NFT 的活跃考古学家社区如雨后春笋般涌现 "
-" [Chainleft对历史NFT的精彩总结] (https://mirror.xyz/chainleft.eth/MzPWRsesC9mQflxlLo-N29oF4iwCgX3lacrvaG9Kjko)"
+"[Chainleft对历史NFT的精彩总结](https://mirror.xyz/chainleft.eth/MzPWRsesC9mQflxlLo-N29oF4iwCgX3lacrvaG9Kjko)"
 
 #: src/overview.md:238
 msgid ""
@@ -759,8 +759,8 @@ msgid ""
 "first ERC-721 contract, [SU SQUARES](https://tenthousandsu.com/), was "
 "deployed on Ethereum."
 msgstr ""
-"普遍接受的古老NFT 的截止日期是 2018 年 3 月 19 日，即 "
-"第一个 ERC-721 合约, [SU SQUARES](https://tenthousandsu.com/), 被部署在以太坊上的时间 "
+"普遍接受的古老NFT 的截止日期是 2018年3月19日，即 "
+"第一个 ERC-721 合约,[SU SQUARES](https://tenthousandsu.com/), 被部署在以太坊上的时间 "
 
 #: src/overview.md:242
 msgid ""
@@ -988,7 +988,7 @@ msgid ""
 "they are included, and can be combined with any other locking script."
 msgstr ""
 "铭文内容使用未执行条件中的数据推送进行序列化，称为“信封”。"
-" 信封由 OP_FALSE OP_IF … OP_ENDIF 组成，包装任意数量的数据推送。"
+"信封由 OP_FALSE OP_IF … OP_ENDIF 组成，包装任意数量的数据推送。"
 "因为信封实际上是空操作，所以它们不会改变包含它们的脚本的语义，"
 "并且可以与任何其他锁定脚本结合使用。"
 
@@ -1142,7 +1142,6 @@ msgstr ""
 "铭文可以位于同一输入中的不同输入中,可以是同一个输入或两者的组合。"
 "在任何情况下，顺序都是明确的，因为解析器将连续检查输入并查找所有铭文`信封`"
 
-
 #: src/inscriptions.md:111
 msgid "Input"
 msgstr ""
@@ -1193,7 +1192,7 @@ msgstr ""
 
 #: src/inscriptions.md:119
 msgid "Sandboxing"
-msgstr "沙盒"
+msgstr "沙盒化"
 
 #: src/inscriptions.md:122
 msgid ""
@@ -1218,7 +1217,7 @@ msgid ""
 "inscriptions to access the content of other inscriptions by requesting `/"
 "content/<INSCRIPTION_ID>`."
 msgstr ""
-"[沙盒](../inscriptions.md#sandboxing)的一个重要例外是递归："
+"[沙盒化](../inscriptions.md#sandboxing)的一个重要例外是递归："
 "访问“ord”的“/content”允许端点，允许铭文访问"
 "其他端点的内容通过请求 `/content/<INSCRIPTION_ID>` 来获取铭文。"
 
@@ -1549,7 +1548,7 @@ msgid ""
 "Ethereum NFTs _can_ be immutable, but many are not, and can be changed or "
 "deleted by the NFT contract owner."
 msgstr ""
-"以太坊NFTs _可以_ 是不可更改的，但很多都不是，且是可以由 NFT 合约所有者更改或删除。"
+"以太坊NFTs_可以_是不可更改的，但很多都不是，且是可以由 NFT 合约所有者更改或删除。"
 
 #: src/faq.md:121
 msgid ""
@@ -3698,7 +3697,7 @@ msgid ""
 "not always) the inscription will be inscribed on the first satoshi in the "
 "UTXO."
 msgstr ""
-"如我们之前所述，铭文是刻在sats上的，sats存储在UTXO中。"
+"如我们之前所述，铭文是刻在聪上的，sats存储在UTXO中。"
 "UTXO是具有某个特定数量的satoshi（输出值）的satoshi集合。通常（但不总是）铭文会被刻在UTXO中"
 "的第一个satoshi上。"
 
