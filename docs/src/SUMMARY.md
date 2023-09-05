@@ -4,6 +4,7 @@
 - [Digital Artifacts](digital-artifacts.md)
 - [Inscriptions](inscriptions.md)
   - [Recursion](inscriptions/recursion.md)
+  - [Provenance](inscriptions/provenance.md)
 - [FAQ](faq.md)
 - [Contributing](contributing.md)
 - [Donate](donate.md)
