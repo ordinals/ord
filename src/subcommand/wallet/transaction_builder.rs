@@ -8,18 +8,17 @@
 //! constructing ordinal-aware transactions that take these additional
 //! conditions into account.
 //!
-//! The external interfaces are
-//! `TransactionBuilder::build_transaction_with_postage`, and
-//! `TransactionBuilder::build_transaction_with_value`. Both return a
-//! constructed transaction given the arguments, which include the outgoing sat
+//! The external interface is
+//! `TransactionBuilder::new`, which returns a
+//! constructed transaction given the `Target`, which include the outgoing sat
 //! to send, the wallets current UTXOs and their sat ranges, and the
-//! recipient's address.
+//! recipient's address. To build the transaction you call `Transaction::build_transaction`.
 //!
-//! `TransactionBuilder::build_transaction_with_postage` ensures that the
+//! `Target::Postage` ensures that the
 //! outgoing value is at most 20,000 sats, reducing it to 10,000 sats if coin
 //! selection requires adding excess value.
 //!
-//! `TransactionBuilder::build_transaction_with_value` ensures that the
+//! `Target::Value(Amount)` ensures that the
 //! outgoing value is exactly the requested amount,
 //!
 //! Internally, `TransactionBuilder` calls multiple methods that implement
@@ -28,7 +27,7 @@
 //!
 //! This module is heavily tested. For all features of transaction
 //! construction, there should be a positive test that checks that the feature
-//! is implemented correctly, an assertion in the final `Transaction::build`
+//! is implemented correctly, an assertion in the final `Transaction::build_transaction`
 //! method that the built transaction is correct with respect to the feature,
 //! and a test that the assertion fires as expected.
 
