@@ -126,6 +126,9 @@ impl Inscribe {
         },
       )?;
 
+    // dbg!(&unsigned_commit_tx);
+    // dbg!(&partially_signed_reveal_tx);
+
     utxos.insert(
       partially_signed_reveal_tx.input[commit_input_offset].previous_output,
       Amount::from_sat(
@@ -266,8 +269,9 @@ impl Inscribe {
 
     let commit_tx_address = Address::p2tr_tweaked(taproot_spend_info.output_key(), network);
 
+    // parent in second input; TODO have to splice in new input for fee
     let (mut inputs, mut outputs, commit_input_offset) =
-      if let Some((parent_satpoint, output)) = parent.clone() {
+      if let Some((parent_satpoint, parent_output)) = parent.clone() {
         (
           vec![OutPoint::null(), parent_satpoint.outpoint],
           vec![
@@ -276,8 +280,8 @@ impl Inscribe {
               value: 0,
             },
             TxOut {
-              script_pubkey: output.script_pubkey,
-              value: output.value,
+              script_pubkey: parent_output.script_pubkey,
+              value: parent_output.value,
             },
           ],
           0,
@@ -309,7 +313,12 @@ impl Inscribe {
       commit_tx_address.clone(),
       change,
       commit_fee_rate,
-      Target::Value(reveal_fee + postage),
+      if parent.is_some() {
+        // if parent-child, parent should pay reveal fee since it is the second output
+        Target::Value(postage)
+      } else {
+        Target::Value(reveal_fee + postage)
+      },
     )
     .build_transaction()?;
 
@@ -695,21 +704,27 @@ mod tests {
   }
 
   #[test]
-  fn inscribe_with_custom_fee_rate_and_parent() {
+  fn inscribe_with_custom_fee_rate_and_parent_in_second_input_and_output() {
     let utxos = vec![
       (outpoint(1), Amount::from_sat(10_000)),
       (outpoint(2), Amount::from_sat(20_000)),
     ];
-    let mut inscriptions = BTreeMap::new();
-    inscriptions.insert(
-      SatPoint {
-        outpoint: outpoint(1),
-        offset: 0,
-      },
-      inscription_id(1),
-    );
 
-    let inscription = inscription("text/plain", [b'O'; 100]);
+    let mut inscriptions = BTreeMap::new();
+
+    let parent_inscription = inscription_id(1);
+    let parent_location = SatPoint {
+      outpoint: outpoint(1),
+      offset: 0,
+    };
+    let parent_output = TxOut {
+      script_pubkey: change(0).script_pubkey(),
+      value: 10000,
+    };
+
+    inscriptions.insert(parent_location, parent_inscription);
+
+    let child_inscription = inscription("text/plain", [b'O'; 100]);
 
     let satpoint = None;
     let commit_address = change(1);
@@ -718,17 +733,8 @@ mod tests {
 
     let (commit_tx, reveal_tx, _private_key) = Inscribe::create_inscription_transactions(
       satpoint,
-      Some((
-        SatPoint {
-          outpoint: outpoint(1),
-          offset: 0,
-        },
-        TxOut {
-          script_pubkey: change(0).script_pubkey(),
-          value: 10000,
-        },
-      )),
-      inscription,
+      Some((parent_location, parent_output.clone())),
+      child_inscription,
       inscriptions,
       bitcoin::Network::Signet,
       utxos.into_iter().collect(),
@@ -763,6 +769,15 @@ mod tests {
       .to_sat();
 
     assert_eq!(fee, commit_tx.output[0].value - reveal_tx.output[1].value,);
+    assert_eq!(reveal_tx.output[1], parent_output);
+    pretty_assert_eq!(
+      reveal_tx.input[1],
+      TxIn {
+        previous_output: parent_location.outpoint,
+        sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+        ..Default::default()
+      }
+    );
   }
 
   #[test]

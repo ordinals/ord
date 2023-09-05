@@ -438,3 +438,104 @@ fn inscribe_works_with_postage() {
 
   pretty_assert_eq!(inscriptions[0].postage, 5 * COIN_VALUE);
 }
+
+#[test]
+fn inscribe_with_parent_inscription() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  let parent_id = CommandBuilder::new("wallet inscribe --fee-rate 1.0 parent.png")
+    .write("parent.png", [1; 520])
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<Inscribe>()
+    .inscription;
+
+  rpc_server.mine_blocks(1);
+
+  TestServer::spawn_with_args(&rpc_server, &[])
+    .assert_response_regex(format!("/inscription/{parent_id}"), ".*");
+
+  let child_output = CommandBuilder::new(format!(
+    "wallet inscribe --fee-rate 1.0 --parent {parent_id} child.png"
+  ))
+  .write("child.png", [1; 520])
+  .rpc_server(&rpc_server)
+  .run_and_deserialize_output::<Inscribe>();
+
+  assert_eq!(parent_id, child_output.parent.unwrap());
+
+  rpc_server.mine_blocks(1);
+
+  TestServer::spawn_with_args(&rpc_server, &[]).assert_response_regex(
+    format!("/inscription/{}", child_output.inscription),
+    format!(".*parent.*{}.*", parent_id),
+  );
+}
+
+#[test]
+fn inscribe_with_non_existent_parent_inscription() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  let parent_id = "3ac40a8f3c0d295386e1e597467a1ee0578df780834be885cd62337c2ed738a5i0";
+
+  CommandBuilder::new(format!(
+    "wallet inscribe --fee-rate 1.0 --parent {parent_id} child.png"
+  ))
+  .write("child.png", [1; 520])
+  .rpc_server(&rpc_server)
+  .expected_stderr(format!(
+    "error: specified parent {parent_id} does not exist\n"
+  ))
+  .expected_exit_code(1)
+  .run_and_extract_stdout();
+}
+
+#[test]
+fn inscribe_with_parent_inscription_and_fee_rate() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  let parent_output = CommandBuilder::new("wallet inscribe --fee-rate 5.0 parent.png")
+    .write("parent.png", [1; 520])
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<Inscribe>();
+
+  let parent_id = parent_output.inscription;
+
+  let commit_tx = &rpc_server.mempool()[0];
+  let reveal_tx = &rpc_server.mempool()[1];
+
+  assert_eq!(
+    ord::FeeRate::try_from(5.0)
+      .unwrap()
+      .fee(commit_tx.vsize() + reveal_tx.vsize())
+      .to_sat(),
+    parent_output.fees
+  );
+
+  rpc_server.mine_blocks(1);
+
+  let child_output = CommandBuilder::new(format!(
+    "wallet inscribe --fee-rate 5.0 --parent {parent_id} child.png"
+  ))
+  .write("child.png", [1; 520])
+  .rpc_server(&rpc_server)
+  .run_and_deserialize_output::<Inscribe>();
+
+  assert_eq!(parent_id, child_output.parent.unwrap());
+
+  let commit_tx = &rpc_server.mempool()[0];
+  let reveal_tx = &rpc_server.mempool()[1];
+
+  assert_eq!(
+    ord::FeeRate::try_from(5.0)
+      .unwrap()
+      .fee(commit_tx.vsize() + reveal_tx.vsize())
+      .to_sat(),
+    child_output.fees
+  );
+}
