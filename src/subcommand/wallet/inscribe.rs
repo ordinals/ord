@@ -24,7 +24,7 @@ pub struct Output {
   pub inscription: InscriptionId,
   pub parent: Option<InscriptionId>,
   pub reveal: Txid,
-  pub fees: u64,
+  pub total_fees: u64,
 }
 
 #[derive(Debug, Parser)]
@@ -69,11 +69,21 @@ impl Inscribe {
 
     let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
-    let mut utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
+    let utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
 
     let inscriptions = index.get_inscriptions(utxos.clone())?;
 
-    let (parent, commit_input_offset) = if let Some(parent_id) = self.parent {
+    let commit_tx_change = [
+      get_change_address(&client, &options)?,
+      get_change_address(&client, &options)?,
+    ];
+
+    let reveal_tx_destination = match self.destination {
+      Some(address) => address.require_network(options.chain().network())?,
+      None => get_change_address(&client, &options)?,
+    };
+
+    let parent_location = if let Some(parent_id) = self.parent {
       if let Some(satpoint) = index.get_inscription_satpoint_by_id(parent_id)? {
         if !utxos.contains_key(&satpoint.outpoint) {
           return Err(anyhow!(format!("parent {parent_id} not in wallet")));
@@ -87,34 +97,24 @@ impl Inscribe {
           .nth(satpoint.outpoint.vout.try_into().unwrap())
           .expect("current transaction output");
 
-        (Some((satpoint, output)), 1)
+        Some((satpoint, output))
       } else {
         return Err(anyhow!(format!(
           "specified parent {parent_id} does not exist"
         )));
       }
     } else {
-      (None, 0)
+      None
     };
 
-    let commit_tx_change = [
-      get_change_address(&client, &options)?,
-      get_change_address(&client, &options)?,
-    ];
-
-    let reveal_tx_destination = match self.destination {
-      Some(address) => address.require_network(options.chain().network())?,
-      None => get_change_address(&client, &options)?,
-    };
-
-    let (unsigned_commit_tx, partially_signed_reveal_tx, _recovery_key_pair) =
+    let (commit_tx, reveal_tx, recovery_key_pair, total_fees) =
       Inscribe::create_inscription_transactions(
         self.satpoint,
-        parent,
+        parent_location,
         inscription,
         inscriptions,
         options.chain().network(),
-        utxos.clone(),
+        utxos,
         commit_tx_change,
         reveal_tx_destination,
         self.commit_fee_rate.unwrap_or(self.fee_rate),
@@ -126,56 +126,51 @@ impl Inscribe {
         },
       )?;
 
-    utxos.insert(
-      partially_signed_reveal_tx.input[commit_input_offset].previous_output,
-      Amount::from_sat(
-        unsigned_commit_tx.output[partially_signed_reveal_tx.input[commit_input_offset]
-          .previous_output
-          .vout as usize]
-          .value,
-      ),
-    );
-
-    let fees = Self::calculate_fee(&unsigned_commit_tx, &utxos)
-      + Self::calculate_fee(&partially_signed_reveal_tx, &utxos);
-
     if self.dry_run {
       return Ok(Box::new(Output {
-        commit: unsigned_commit_tx.txid(),
-        reveal: partially_signed_reveal_tx.txid(),
+        commit: commit_tx.txid(),
+        reveal: reveal_tx.txid(),
         inscription: InscriptionId {
-          txid: partially_signed_reveal_tx.txid(),
+          txid: reveal_tx.txid(),
           index: 0,
         },
         parent: self.parent,
-        fees,
+        total_fees,
       }));
     }
 
-    // if !self.no_backup {
-    // Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
-    // }
-
-    let signed_raw_commit_tx = client
-      .sign_raw_transaction_with_wallet(&unsigned_commit_tx, None, None)?
+    let signed_hex_commit_tx = client
+      .sign_raw_transaction_with_wallet(&commit_tx, None, None)?
       .hex;
 
-    let commit = client
-      .send_raw_transaction(&signed_raw_commit_tx)
-      .context("Failed to send commit transaction")?;
-
-    let reveal = if self.parent.is_some() {
-      let fully_signed_raw_reveal_tx = client
-        .sign_raw_transaction_with_wallet(&partially_signed_reveal_tx, None, None)?
+    let (commit, reveal) = if self.parent.is_some() {
+      let fully_signed_hex_reveal_tx = client
+        .sign_raw_transaction_with_wallet(&reveal_tx, None, None)?
         .hex;
 
-      client
-        .send_raw_transaction(&fully_signed_raw_reveal_tx)
-        .context("Failed to send reveal transaction")?
+      if !self.no_backup {
+        Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
+      }
+
+      let commit = client.send_raw_transaction(&signed_hex_commit_tx)?;
+
+      let reveal = client
+        .send_raw_transaction(&fully_signed_hex_reveal_tx)
+        .context("Failed to send reveal transaction")?;
+
+      (commit, reveal)
     } else {
-      client
-        .send_raw_transaction(&partially_signed_reveal_tx)
-        .context("Failed to send reveal transaction")?
+      if !self.no_backup {
+        Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
+      }
+
+      let commit = client.send_raw_transaction(&signed_hex_commit_tx)?;
+
+      let reveal = client
+        .send_raw_transaction(&reveal_tx)
+        .context("Failed to send reveal transaction")?;
+
+      (commit, reveal)
     };
 
     Ok(Box::new(Output {
@@ -186,17 +181,8 @@ impl Inscribe {
         txid: reveal,
         index: 0,
       },
-      fees,
+      total_fees,
     }))
-  }
-
-  fn calculate_fee(tx: &Transaction, utxos: &BTreeMap<OutPoint, Amount>) -> u64 {
-    tx.input
-      .iter()
-      .map(|txin| utxos.get(&txin.previous_output).unwrap().to_sat())
-      .sum::<u64>()
-      .checked_sub(tx.output.iter().map(|txout| txout.value).sum::<u64>())
-      .unwrap()
   }
 
   fn create_inscription_transactions(
@@ -205,14 +191,14 @@ impl Inscribe {
     inscription: Inscription,
     inscriptions: BTreeMap<SatPoint, InscriptionId>,
     network: Network,
-    utxos: BTreeMap<OutPoint, Amount>,
+    mut utxos: BTreeMap<OutPoint, Amount>,
     change: [Address; 2],
     destination: Address,
     commit_fee_rate: FeeRate,
     reveal_fee_rate: FeeRate,
     no_limit: bool,
     postage: Amount,
-  ) -> Result<(Transaction, Transaction, TweakedKeyPair)> {
+  ) -> Result<(Transaction, Transaction, TweakedKeyPair, u64)> {
     let satpoint = if let Some(satpoint) = satpoint {
       satpoint
     } else {
@@ -305,7 +291,7 @@ impl Inscribe {
     let unsigned_commit_tx = TransactionBuilder::new(
       satpoint,
       inscriptions,
-      utxos,
+      utxos.clone(),
       commit_tx_address.clone(),
       change,
       commit_fee_rate,
@@ -410,35 +396,19 @@ impl Inscribe {
       );
     }
 
-    Ok((unsigned_commit_tx, reveal_tx, recovery_key_pair))
-  }
+    utxos.insert(
+      reveal_tx.input[commit_input_offset].previous_output,
+      Amount::from_sat(
+        unsigned_commit_tx.output
+          [reveal_tx.input[commit_input_offset].previous_output.vout as usize]
+          .value,
+      ),
+    );
 
-  fn _backup_recovery_key(
-    client: &Client,
-    recovery_key_pair: TweakedKeyPair,
-    network: Network,
-  ) -> Result {
-    let recovery_private_key = PrivateKey::new(recovery_key_pair.to_inner().secret_key(), network);
+    let total_fees =
+      Self::calculate_fee(&unsigned_commit_tx, &utxos) + Self::calculate_fee(&reveal_tx, &utxos);
 
-    let info = client.get_descriptor_info(&format!("rawtr({})", recovery_private_key.to_wif()))?;
-
-    let response = client.import_descriptors(ImportDescriptors {
-      descriptor: format!("rawtr({})#{}", recovery_private_key.to_wif(), info.checksum),
-      timestamp: Timestamp::Now,
-      active: Some(false),
-      range: None,
-      next_index: None,
-      internal: Some(false),
-      label: Some("commit tx recovery key".to_string()),
-    })?;
-
-    for result in response {
-      if !result.success {
-        return Err(anyhow!("commit tx recovery key import failed"));
-      }
-    }
-
-    Ok(())
+    Ok((unsigned_commit_tx, reveal_tx, recovery_key_pair, total_fees))
   }
 
   fn build_reveal_transaction(
@@ -487,6 +457,43 @@ impl Inscribe {
 
     (reveal_tx, fee)
   }
+
+  fn calculate_fee(tx: &Transaction, utxos: &BTreeMap<OutPoint, Amount>) -> u64 {
+    tx.input
+      .iter()
+      .map(|txin| utxos.get(&txin.previous_output).unwrap().to_sat())
+      .sum::<u64>()
+      .checked_sub(tx.output.iter().map(|txout| txout.value).sum::<u64>())
+      .unwrap()
+  }
+
+  fn backup_recovery_key(
+    client: &Client,
+    recovery_key_pair: TweakedKeyPair,
+    network: Network,
+  ) -> Result {
+    let recovery_private_key = PrivateKey::new(recovery_key_pair.to_inner().secret_key(), network);
+
+    let info = client.get_descriptor_info(&format!("rawtr({})", recovery_private_key.to_wif()))?;
+
+    let response = client.import_descriptors(ImportDescriptors {
+      descriptor: format!("rawtr({})#{}", recovery_private_key.to_wif(), info.checksum),
+      timestamp: Timestamp::Now,
+      active: Some(false),
+      range: None,
+      next_index: None,
+      internal: Some(false),
+      label: Some("commit tx recovery key".to_string()),
+    })?;
+
+    for result in response {
+      if !result.success {
+        return Err(anyhow!("commit tx recovery key import failed"));
+      }
+    }
+
+    Ok(())
+  }
 }
 
 #[cfg(test)]
@@ -500,7 +507,7 @@ mod tests {
     let commit_address = change(0);
     let reveal_address = recipient();
 
-    let (commit_tx, reveal_tx, _private_key) = Inscribe::create_inscription_transactions(
+    let (commit_tx, reveal_tx, _private_key, _) = Inscribe::create_inscription_transactions(
       Some(satpoint(1, 0)),
       None,
       inscription,
@@ -533,7 +540,7 @@ mod tests {
     let commit_address = change(0);
     let reveal_address = recipient();
 
-    let (commit_tx, reveal_tx, _) = Inscribe::create_inscription_transactions(
+    let (commit_tx, reveal_tx, _, _) = Inscribe::create_inscription_transactions(
       Some(satpoint(1, 0)),
       None,
       inscription,
@@ -652,7 +659,7 @@ mod tests {
     let reveal_address = recipient();
     let fee_rate = 3.3;
 
-    let (commit_tx, reveal_tx, _private_key) = Inscribe::create_inscription_transactions(
+    let (commit_tx, reveal_tx, _private_key, _) = Inscribe::create_inscription_transactions(
       satpoint,
       None,
       inscription,
@@ -695,14 +702,13 @@ mod tests {
   }
 
   #[test]
-  fn inscribe_with_custom_fee_rate_and_parent() {
+  fn inscribe_with_parent_and_custom_fee_rate() {
     let utxos = vec![
       (outpoint(1), Amount::from_sat(10_000)),
       (outpoint(2), Amount::from_sat(20_000)),
     ];
 
     let mut inscriptions = BTreeMap::new();
-
     let parent_inscription = inscription_id(1);
     let parent_location = SatPoint {
       outpoint: outpoint(1),
@@ -712,18 +718,16 @@ mod tests {
       script_pubkey: change(0).script_pubkey(),
       value: 10000,
     };
-
     inscriptions.insert(parent_location, parent_inscription);
 
     let child_inscription = inscription("text/plain", [b'O'; 100]);
 
-    let satpoint = None;
     let commit_address = change(1);
     let reveal_address = recipient();
     let fee_rate = 4.0;
 
-    let (commit_tx, reveal_tx, _private_key) = Inscribe::create_inscription_transactions(
-      satpoint,
+    let (commit_tx, reveal_tx, _private_key, _) = Inscribe::create_inscription_transactions(
+      None,
       Some((parent_location, parent_output.clone())),
       child_inscription,
       inscriptions,
@@ -793,7 +797,7 @@ mod tests {
     let commit_fee_rate = 3.3;
     let fee_rate = 1.0;
 
-    let (commit_tx, reveal_tx, _private_key) = Inscribe::create_inscription_transactions(
+    let (commit_tx, reveal_tx, _private_key, _) = Inscribe::create_inscription_transactions(
       satpoint,
       None,
       inscription,
@@ -877,7 +881,7 @@ mod tests {
     let commit_address = change(0);
     let reveal_address = recipient();
 
-    let (_commit_tx, reveal_tx, _private_key) = Inscribe::create_inscription_transactions(
+    let (_commit_tx, reveal_tx, _private_key, _) = Inscribe::create_inscription_transactions(
       satpoint,
       None,
       inscription,
