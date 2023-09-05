@@ -240,38 +240,30 @@ impl Inscribe {
 
     let commit_tx_address = Address::p2tr_tweaked(taproot_spend_info.output_key(), network);
 
-    let (mut inputs, mut outputs, commit_input_offset) =
-      if let Some((parent_satpoint, parent_output)) = parent.clone() {
-        (
-          vec![parent_satpoint.outpoint, OutPoint::null()],
-          vec![
-            TxOut {
-              script_pubkey: parent_output.script_pubkey,
-              value: parent_output.value,
-            },
-            TxOut {
-              script_pubkey: destination.script_pubkey(),
-              value: 0,
-            },
-          ],
-          1,
-        )
-      } else {
-        (
-          vec![OutPoint::null()],
-          vec![TxOut {
-            script_pubkey: destination.script_pubkey(),
-            value: 0,
-          }],
-          0,
-        )
-      };
+    let mut inputs = vec![OutPoint::null()];
+    let mut outputs = vec![TxOut {
+      script_pubkey: destination.script_pubkey(),
+      value: 0,
+    }];
+
+    if let Some((parent_satpoint, parent_output)) = parent.clone() {
+      inputs.insert(0, parent_satpoint.outpoint);
+      outputs.insert(
+        0,
+        TxOut {
+          script_pubkey: parent_output.script_pubkey,
+          value: parent_output.value,
+        },
+      );
+    }
+
+    let commit_input = if parent.is_some() { 1 } else { 0 };
 
     let (_, reveal_fee) = Self::build_reveal_transaction(
       &control_block,
       reveal_fee_rate,
       inputs.clone(),
-      commit_input_offset,
+      commit_input,
       outputs.clone(),
       &reveal_script,
     );
@@ -294,12 +286,12 @@ impl Inscribe {
       .find(|(_vout, output)| output.script_pubkey == commit_tx_address.script_pubkey())
       .expect("should find sat commit/inscription output");
 
-    inputs[commit_input_offset] = OutPoint {
+    inputs[commit_input] = OutPoint {
       txid: unsigned_commit_tx.txid(),
       vout: vout.try_into().unwrap(),
     };
 
-    outputs[commit_input_offset] = TxOut {
+    outputs[commit_input] = TxOut {
       script_pubkey: destination.script_pubkey(),
       value: output.value,
     };
@@ -308,18 +300,18 @@ impl Inscribe {
       &control_block,
       reveal_fee_rate,
       inputs,
-      commit_input_offset,
+      commit_input,
       outputs,
       &reveal_script,
     );
 
-    reveal_tx.output[commit_input_offset].value = reveal_tx.output[commit_input_offset]
+    reveal_tx.output[commit_input].value = reveal_tx.output[commit_input]
       .value
       .checked_sub(fee.to_sat())
       .context("commit transaction output value insufficient to pay transaction fee")?;
 
-    if reveal_tx.output[commit_input_offset].value
-      < reveal_tx.output[commit_input_offset]
+    if reveal_tx.output[commit_input].value
+      < reveal_tx.output[commit_input]
         .script_pubkey
         .dust_value()
         .to_sat()
@@ -332,7 +324,7 @@ impl Inscribe {
 
     let (prevouts, hash_ty) = if parent.is_some() {
       (
-        Prevouts::One(commit_input_offset, output),
+        Prevouts::One(commit_input, output),
         TapSighashType::AllPlusAnyoneCanPay,
       )
     } else {
@@ -343,7 +335,7 @@ impl Inscribe {
 
     let message = sighash_cache
       .taproot_script_spend_signature_hash(
-        commit_input_offset,
+        commit_input,
         &prevouts,
         TapLeafHash::from_script(&reveal_script, LeafVersion::TapScript),
         hash_ty,
@@ -357,7 +349,7 @@ impl Inscribe {
     );
 
     let witness = sighash_cache
-      .witness_mut(commit_input_offset)
+      .witness_mut(commit_input)
       .expect("getting mutable witness reference should work");
 
     witness.push(Signature { sig, hash_ty }.to_vec());
@@ -385,10 +377,9 @@ impl Inscribe {
     }
 
     utxos.insert(
-      reveal_tx.input[commit_input_offset].previous_output,
+      reveal_tx.input[commit_input].previous_output,
       Amount::from_sat(
-        unsigned_commit_tx.output
-          [reveal_tx.input[commit_input_offset].previous_output.vout as usize]
+        unsigned_commit_tx.output[reveal_tx.input[commit_input].previous_output.vout as usize]
           .value,
       ),
     );
