@@ -139,39 +139,27 @@ impl Inscribe {
       }));
     }
 
-    let signed_hex_commit_tx = client
+    let signed_commit_tx = client
       .sign_raw_transaction_with_wallet(&commit_tx, None, None)?
       .hex;
 
-    let (commit, reveal) = if self.parent.is_some() {
-      let fully_signed_hex_reveal_tx = client
+    let signed_reveal_tx = if self.parent.is_some() {
+      client
         .sign_raw_transaction_with_wallet(&reveal_tx, None, None)?
-        .hex;
-
-      if !self.no_backup {
-        Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
-      }
-
-      let commit = client.send_raw_transaction(&signed_hex_commit_tx)?;
-
-      let reveal = client
-        .send_raw_transaction(&fully_signed_hex_reveal_tx)
-        .context("Failed to send reveal transaction")?;
-
-      (commit, reveal)
+        .hex
     } else {
-      if !self.no_backup {
-        Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
-      }
-
-      let commit = client.send_raw_transaction(&signed_hex_commit_tx)?;
-
-      let reveal = client
-        .send_raw_transaction(&reveal_tx)
-        .context("Failed to send reveal transaction")?;
-
-      (commit, reveal)
+      bitcoin::consensus::encode::serialize(&reveal_tx)
     };
+
+    if !self.no_backup {
+      Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
+    }
+
+    let commit = client.send_raw_transaction(&signed_commit_tx)?;
+
+    let reveal = client
+      .send_raw_transaction(&signed_reveal_tx)
+      .context("Failed to send reveal transaction")?;
 
     Ok(Box::new(Output {
       commit,
