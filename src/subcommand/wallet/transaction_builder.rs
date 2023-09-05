@@ -67,7 +67,6 @@ pub enum Target {
   Value(Amount),
   Postage,
   ExactPostage(Amount),
-  FixedFirstInput,
 }
 
 impl fmt::Display for Error {
