@@ -2574,8 +2574,7 @@ mod tests {
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
-      inputs: &[(1, 0, 0)],
-      witness: inscription("text/markdown", "hello").to_witness(),
+      inputs: &[(1, 0, 0, inscription("text/markdown", "hello").to_witness())],
       ..Default::default()
     });
     let inscription_id = InscriptionId { txid, index: 0 };
