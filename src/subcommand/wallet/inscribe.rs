@@ -301,7 +301,7 @@ impl Inscribe {
       reveal_fee_rate,
       inputs,
       commit_input,
-      outputs,
+      outputs.clone(),
       &reveal_script,
     );
 
@@ -319,26 +319,14 @@ impl Inscribe {
       bail!("commit transaction output would be dust");
     }
 
-    // NB. This binding is to avoid borrow-checker problems
-    let prevouts_all_inputs = &[output];
-
-    let (prevouts, hash_ty) = if parent.is_some() {
-      (
-        Prevouts::One(commit_input, output),
-        TapSighashType::AllPlusAnyoneCanPay,
-      )
-    } else {
-      (Prevouts::All(prevouts_all_inputs), TapSighashType::Default)
-    };
-
     let mut sighash_cache = SighashCache::new(&mut reveal_tx);
 
     let message = sighash_cache
       .taproot_script_spend_signature_hash(
         commit_input,
-        &prevouts,
+        &Prevouts::All(&outputs),
         TapLeafHash::from_script(&reveal_script, LeafVersion::TapScript),
-        hash_ty,
+        TapSighashType::Default,
       )
       .expect("signature hash should compute");
 
@@ -352,7 +340,13 @@ impl Inscribe {
       .witness_mut(commit_input)
       .expect("getting mutable witness reference should work");
 
-    witness.push(Signature { sig, hash_ty }.to_vec());
+    witness.push(
+      Signature {
+        sig,
+        hash_ty: TapSighashType::Default,
+      }
+      .to_vec(),
+    );
 
     witness.push(reveal_script);
     witness.push(&control_block.serialize());
