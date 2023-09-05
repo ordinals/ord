@@ -1,9 +1,10 @@
 Recursion
 =========
 
-An important exception to [sandboxing](../inscriptions.md#sandboxing) is recursion: access to `ord`'s `/content`
-endpoint is permitted, allowing inscriptions to access the content of other
-inscriptions by requesting `/content/<INSCRIPTION_ID>`.
+An important exception to [sandboxing](../inscriptions.md#sandboxing) is
+recursion: access to `ord`'s `/content` endpoint is permitted, allowing
+inscriptions to access the content of other inscriptions by requesting
+`/content/<INSCRIPTION_ID>`.
 
 This has a number of interesting use-cases:
 
