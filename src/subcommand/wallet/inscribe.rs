@@ -321,7 +321,7 @@ impl Inscribe {
 
     let mut sighash_cache = SighashCache::new(&mut reveal_tx);
 
-    let message = sighash_cache
+    let sighash = sighash_cache
       .taproot_script_spend_signature_hash(
         commit_input,
         &Prevouts::All(&outputs),
@@ -331,7 +331,7 @@ impl Inscribe {
       .expect("signature hash should compute");
 
     let sig = secp256k1.sign_schnorr(
-      &secp256k1::Message::from_slice(message.as_ref())
+      &secp256k1::Message::from_slice(sighash.as_ref())
         .expect("should be cryptographically secure hash"),
       &key_pair,
     );
