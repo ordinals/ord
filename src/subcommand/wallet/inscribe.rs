@@ -126,9 +126,6 @@ impl Inscribe {
         },
       )?;
 
-    // dbg!(&unsigned_commit_tx);
-    // dbg!(&partially_signed_reveal_tx);
-
     utxos.insert(
       partially_signed_reveal_tx.input[commit_input_offset].previous_output,
       Amount::from_sat(
@@ -269,22 +266,21 @@ impl Inscribe {
 
     let commit_tx_address = Address::p2tr_tweaked(taproot_spend_info.output_key(), network);
 
-    // parent in second input; TODO have to splice in new input for fee
     let (mut inputs, mut outputs, commit_input_offset) =
       if let Some((parent_satpoint, parent_output)) = parent.clone() {
         (
-          vec![OutPoint::null(), parent_satpoint.outpoint],
+          vec![parent_satpoint.outpoint, OutPoint::null()],
           vec![
-            TxOut {
-              script_pubkey: destination.script_pubkey(),
-              value: 0,
-            },
             TxOut {
               script_pubkey: parent_output.script_pubkey,
               value: parent_output.value,
             },
+            TxOut {
+              script_pubkey: destination.script_pubkey(),
+              value: 0,
+            },
           ],
-          0,
+          1,
         )
       } else {
         (
@@ -313,12 +309,7 @@ impl Inscribe {
       commit_tx_address.clone(),
       change,
       commit_fee_rate,
-      if parent.is_some() {
-        // if parent-child, parent should pay reveal fee since it is the second output
-        Target::Value(postage)
-      } else {
-        Target::Value(reveal_fee + postage)
-      },
+      Target::Value(reveal_fee + postage),
     )
     .build_transaction()?;
 
@@ -704,7 +695,7 @@ mod tests {
   }
 
   #[test]
-  fn inscribe_with_custom_fee_rate_and_parent_in_second_input_and_output() {
+  fn inscribe_with_custom_fee_rate_and_parent() {
     let utxos = vec![
       (outpoint(1), Amount::from_sat(10_000)),
       (outpoint(2), Amount::from_sat(20_000)),
@@ -769,9 +760,9 @@ mod tests {
       .to_sat();
 
     assert_eq!(fee, commit_tx.output[0].value - reveal_tx.output[1].value,);
-    assert_eq!(reveal_tx.output[1], parent_output);
+    assert_eq!(reveal_tx.output[0], parent_output);
     pretty_assert_eq!(
-      reveal_tx.input[1],
+      reveal_tx.input[0],
       TxIn {
         previous_output: parent_location.outpoint,
         sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
