@@ -317,12 +317,18 @@ impl Inscribe {
       bail!("commit transaction output would be dust");
     }
 
+    let mut prevouts = vec![unsigned_commit_tx.output[0].clone()];
+
+    if let Some((_satpoint, tx_out)) = parent_location {
+      prevouts.insert(0, tx_out);
+    }
+
     let mut sighash_cache = SighashCache::new(&mut reveal_tx);
 
     let sighash = sighash_cache
       .taproot_script_spend_signature_hash(
         commit_input,
-        &Prevouts::All(&outputs),
+        &Prevouts::All(&prevouts),
         TapLeafHash::from_script(&reveal_script, LeafVersion::TapScript),
         TapSighashType::Default,
       )
