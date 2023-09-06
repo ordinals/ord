@@ -13,7 +13,7 @@ use {
     taproot::{ControlBlock, LeafVersion, TapLeafHash, TaprootBuilder},
     ScriptBuf, Witness,
   },
-  bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, Timestamp},
+  bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, SignRawTransactionInput, Timestamp},
   bitcoincore_rpc::Client,
   std::collections::BTreeSet,
 };
@@ -143,7 +143,24 @@ impl Inscribe {
 
     let signed_reveal_tx = if self.parent.is_some() {
       client
-        .sign_raw_transaction_with_wallet(&reveal_tx, None, None)?
+        .sign_raw_transaction_with_wallet(
+          &reveal_tx,
+          Some(
+            &commit_tx
+              .output
+              .iter()
+              .enumerate()
+              .map(|(vout, output)| SignRawTransactionInput {
+                txid: commit_tx.txid(),
+                vout: vout.try_into().unwrap(),
+                script_pub_key: output.script_pubkey.clone(),
+                redeem_script: None,
+                amount: Some(Amount::from_sat(output.value)),
+              })
+              .collect::<Vec<SignRawTransactionInput>>(),
+          ),
+          None,
+        )?
         .hex
     } else {
       bitcoin::consensus::encode::serialize(&reveal_tx)
