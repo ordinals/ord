@@ -27,6 +27,12 @@ pub struct Output {
   pub total_fees: u64,
 }
 
+#[derive(Clone)]
+struct ParentInfo {
+  location: SatPoint,
+  destination: Address,
+}
+
 #[derive(Debug, Parser)]
 pub(crate) struct Inscribe {
   #[arg(long, help = "Inscribe <SATPOINT>.")]
@@ -83,21 +89,16 @@ impl Inscribe {
       None => get_change_address(&client, &options)?,
     };
 
-    let parent_location = if let Some(parent_id) = self.parent {
+    let parent_info = if let Some(parent_id) = self.parent {
       if let Some(satpoint) = index.get_inscription_satpoint_by_id(parent_id)? {
         if !utxos.contains_key(&satpoint.outpoint) {
           return Err(anyhow!(format!("parent {parent_id} not in wallet")));
         }
 
-        let output = index
-          .get_transaction(satpoint.outpoint.txid)?
-          .expect("parent transaction not found in index")
-          .output
-          .into_iter()
-          .nth(satpoint.outpoint.vout.try_into().unwrap())
-          .expect("current transaction output");
-
-        Some((satpoint, output))
+        Some(ParentInfo {
+          location: satpoint,
+          destination: get_change_address(&client, &options)?,
+        })
       } else {
         return Err(anyhow!(format!("parent {parent_id} does not exist")));
       }
@@ -108,7 +109,7 @@ impl Inscribe {
     let (commit_tx, reveal_tx, recovery_key_pair, total_fees) =
       Inscribe::create_inscription_transactions(
         self.satpoint,
-        parent_location,
+        parent_info,
         inscription,
         inscriptions,
         options.chain().network(),
@@ -190,7 +191,7 @@ impl Inscribe {
 
   fn create_inscription_transactions(
     satpoint: Option<SatPoint>,
-    parent_location: Option<(SatPoint, TxOut)>,
+    parent_info: Option<ParentInfo>,
     inscription: Inscription,
     inscriptions: BTreeMap<SatPoint, InscriptionId>,
     network: Network,
@@ -261,18 +262,28 @@ impl Inscribe {
       value: 0,
     }];
 
-    if let Some((parent_satpoint, parent_output)) = parent_location.clone() {
-      inputs.insert(0, parent_satpoint.outpoint);
-      outputs.insert(
-        0,
-        TxOut {
-          script_pubkey: parent_output.script_pubkey,
-          value: parent_output.value,
-        },
-      );
-    }
+    let parent_tx_out = if let Some(ParentInfo {
+      location: parent_location,
+      destination: parent_destination,
+    }) = parent_info.clone()
+    {
+      let tx_out = TxOut {
+        script_pubkey: parent_destination.script_pubkey(),
+        value: utxos
+          .get(&parent_location.outpoint)
+          .expect("could not find parent utxo")
+          .to_sat(),
+      };
 
-    let commit_input = if parent_location.is_some() { 1 } else { 0 };
+      inputs.insert(0, parent_location.outpoint);
+      outputs.insert(0, tx_out.clone());
+
+      Some(tx_out)
+    } else {
+      None
+    };
+
+    let commit_input = if parent_info.is_some() { 1 } else { 0 };
 
     let (_, reveal_fee) = Self::build_reveal_transaction(
       &control_block,
@@ -336,8 +347,8 @@ impl Inscribe {
 
     let mut prevouts = vec![unsigned_commit_tx.output[0].clone()];
 
-    if let Some((_satpoint, tx_out)) = parent_location {
-      prevouts.insert(0, tx_out);
+    if let Some(parent_tx_out) = parent_tx_out {
+      prevouts.insert(0, parent_tx_out);
     }
 
     let mut sighash_cache = SighashCache::new(&mut reveal_tx);
@@ -704,15 +715,15 @@ mod tests {
 
     let mut inscriptions = BTreeMap::new();
     let parent_inscription = inscription_id(1);
-    let parent_location = SatPoint {
-      outpoint: outpoint(1),
-      offset: 0,
+    let parent_info = ParentInfo {
+      location: SatPoint {
+        outpoint: outpoint(1),
+        offset: 0,
+      },
+      destination: change(3),
     };
-    let parent_output = TxOut {
-      script_pubkey: change(0).script_pubkey(),
-      value: 10000,
-    };
-    inscriptions.insert(parent_location, parent_inscription);
+
+    inscriptions.insert(parent_info.location, parent_inscription);
 
     let child_inscription = inscription("text/plain", [b'O'; 100]);
 
@@ -722,7 +733,7 @@ mod tests {
 
     let (commit_tx, reveal_tx, _private_key, _) = Inscribe::create_inscription_transactions(
       None,
-      Some((parent_location, parent_output.clone())),
+      Some(parent_info.clone()),
       child_inscription,
       inscriptions,
       bitcoin::Network::Signet,
@@ -758,11 +769,15 @@ mod tests {
       .to_sat();
 
     assert_eq!(fee, commit_tx.output[0].value - reveal_tx.output[1].value,);
-    assert_eq!(reveal_tx.output[0], parent_output);
+    assert_eq!(
+      reveal_tx.output[0].script_pubkey,
+      parent_info.destination.script_pubkey()
+    );
+    assert_eq!(reveal_tx.output[0].value, 10000);
     pretty_assert_eq!(
       reveal_tx.input[0],
       TxIn {
-        previous_output: parent_location.outpoint,
+        previous_output: parent_info.location.outpoint,
         sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
         ..Default::default()
       }
