@@ -1,4 +1,16 @@
  html {
   color: #98a3ad;
   background-color: #131516;
+  max-width: 900px;
+  margin: 0 auto;
+  font-family:
+  system-ui,
+  -apple-system, /* Firefox supports this but not yet `system-ui` */
+  'Segoe UI',
+  Roboto,
+  Helvetica,
+  Arial,
+  sans-serif,
+  'Apple Color Emoji',
+  'Segoe UI Emoji'; /* 2 */
 }
