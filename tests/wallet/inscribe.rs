@@ -452,16 +452,14 @@ fn inscribe_with_non_existent_parent_inscription() {
   create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
-  let parent_id = "3ac40a8f3c0d295386e1e597467a1ee0578df780834be885cd62337c2ed738a5i0";
+  let parent_id = "0000000000000000000000000000000000000000000000000000000000000000i0";
 
   CommandBuilder::new(format!(
     "wallet inscribe --fee-rate 1.0 --parent {parent_id} child.png"
   ))
   .write("child.png", [1; 520])
   .rpc_server(&rpc_server)
-  .expected_stderr(format!(
-    "error: specified parent {parent_id} does not exist\n"
-  ))
+  .expected_stderr(format!("error: parent {parent_id} does not exist\n"))
   .expected_exit_code(1)
   .run_and_extract_stdout();
 }
@@ -512,5 +510,25 @@ fn inscribe_with_parent_inscription_and_fee_rate() {
       .fee(commit_tx.vsize() + reveal_tx.vsize())
       .to_sat(),
     child_output.total_fees
+  );
+
+  rpc_server.mine_blocks(1);
+
+  let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
+
+  ord_server.assert_response_regex(
+    format!("/inscription/{}", child_output.parent.unwrap()),
+    format!(
+      ".*<dt>children</dt>.*<a href=/inscription/{}>.*",
+      child_output.inscription
+    ),
+  );
+
+  ord_server.assert_response_regex(
+    format!("/inscription/{}", child_output.inscription),
+    format!(
+      ".*<dt>parent</dt>.*<a class=monospace href=/inscription/{}>.*",
+      child_output.parent.unwrap()
+    ),
   );
 }

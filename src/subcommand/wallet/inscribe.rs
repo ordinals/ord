@@ -29,16 +29,16 @@ pub struct Output {
 
 #[derive(Debug, Parser)]
 pub(crate) struct Inscribe {
-  #[arg(long, help = "Inscribe <SATPOINT>")]
+  #[arg(long, help = "Inscribe <SATPOINT>.")]
   pub(crate) satpoint: Option<SatPoint>,
-  #[arg(long, help = "Use fee rate of <FEE_RATE> sats/vB")]
+  #[arg(long, help = "Use fee rate of <FEE_RATE> sats/vB.")]
   pub(crate) fee_rate: FeeRate,
   #[arg(
     long,
     help = "Use <COMMIT_FEE_RATE> sats/vbyte for commit transaction.\nDefaults to <FEE_RATE> if unset."
   )]
   pub(crate) commit_fee_rate: Option<FeeRate>,
-  #[arg(help = "Inscribe sat with contents of <FILE>")]
+  #[arg(help = "Inscribe sat with contents of <FILE>.")]
   pub(crate) file: PathBuf,
   #[arg(long, help = "Do not back up recovery key.")]
   pub(crate) no_backup: bool,
@@ -53,10 +53,10 @@ pub(crate) struct Inscribe {
   pub(crate) destination: Option<Address<NetworkUnchecked>>,
   #[arg(
     long,
-    help = "Amount of postage to include in the inscription. Default `10000sat`"
+    help = "Amount of postage to include in the inscription. Default `10000sat`."
   )]
   pub(crate) postage: Option<Amount>,
-  #[clap(long, help = "Establish parent relationship with <PARENT>.")]
+  #[clap(long, help = "Make inscription a child of <PARENT>.")]
   pub(crate) parent: Option<InscriptionId>,
 }
 
@@ -91,7 +91,7 @@ impl Inscribe {
 
         let output = index
           .get_transaction(satpoint.outpoint.txid)?
-          .expect("not found")
+          .expect("parent transaction not found in index")
           .output
           .into_iter()
           .nth(satpoint.outpoint.vout.try_into().unwrap())
@@ -99,9 +99,7 @@ impl Inscribe {
 
         Some((satpoint, output))
       } else {
-        return Err(anyhow!(format!(
-          "specified parent {parent_id} does not exist"
-        )));
+        return Err(anyhow!(format!("parent {parent_id} does not exist")));
       }
     } else {
       None
@@ -175,7 +173,7 @@ impl Inscribe {
 
   fn create_inscription_transactions(
     satpoint: Option<SatPoint>,
-    parent: Option<(SatPoint, TxOut)>,
+    parent_location: Option<(SatPoint, TxOut)>,
     inscription: Inscription,
     inscriptions: BTreeMap<SatPoint, InscriptionId>,
     network: Network,
@@ -246,7 +244,7 @@ impl Inscribe {
       value: 0,
     }];
 
-    if let Some((parent_satpoint, parent_output)) = parent.clone() {
+    if let Some((parent_satpoint, parent_output)) = parent_location.clone() {
       inputs.insert(0, parent_satpoint.outpoint);
       outputs.insert(
         0,
@@ -257,7 +255,7 @@ impl Inscribe {
       );
     }
 
-    let commit_input = if parent.is_some() { 1 } else { 0 };
+    let commit_input = if parent_location.is_some() { 1 } else { 0 };
 
     let (_, reveal_fee) = Self::build_reveal_transaction(
       &control_block,
@@ -675,7 +673,7 @@ mod tests {
   }
 
   #[test]
-  fn inscribe_with_parent_and_custom_fee_rate() {
+  fn inscribe_with_parent() {
     let utxos = vec![
       (outpoint(1), Amount::from_sat(10_000)),
       (outpoint(2), Amount::from_sat(20_000)),

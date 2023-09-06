@@ -12,7 +12,7 @@
 //! `TransactionBuilder::new`, which returns a
 //! constructed transaction given the `Target`, which include the outgoing sat
 //! to send, the wallets current UTXOs and their sat ranges, and the
-//! recipient's address. To build the transaction you call `Transaction::build_transaction`.
+//! recipient's address. To build the transaction call `Transaction::build_transaction`.
 //!
 //! `Target::Postage` ensures that the
 //! outgoing value is at most 20,000 sats, reducing it to 10,000 sats if coin
