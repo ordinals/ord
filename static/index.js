@@ -25,7 +25,7 @@ window.addEventListener('keydown', e => {
 });
 
 const search = document.querySelector('form[action="/search"]');
-const query = document.querySelector('input[name="query"]');
+const query = search.querySelector('input[name="query"]');
 
 search.addEventListener('submit', (e) => {
   if (!query.value) {
