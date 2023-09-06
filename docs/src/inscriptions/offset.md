@@ -11,7 +11,11 @@ endian offset, with trailing zeros omitted.
 An even tag is used, so that old versions of `ord` consider the inscription to
 be unbound, instead of assigning it, incorrectly, to the first sat.
 
-### Examples
+This can be used to create multiple inscriptions in a single transaction on
+different sats, when otherwise they would be made on the same sat.
+
+Examples
+--------
 
 An inscription at offset 255:
 
