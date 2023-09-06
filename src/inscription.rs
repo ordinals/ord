@@ -73,7 +73,11 @@ impl Inscription {
     result
   }
 
-  pub(crate) fn from_file(chain: Chain, path: impl AsRef<Path>) -> Result<Self, Error> {
+  pub(crate) fn from_file(
+    chain: Chain,
+    path: impl AsRef<Path>,
+    parent: Option<InscriptionId>,
+  ) -> Result<Self, Error> {
     let path = path.as_ref();
 
     let body = fs::read(path).with_context(|| format!("io error reading {}", path.display()))?;
@@ -90,7 +94,7 @@ impl Inscription {
     Ok(Self {
       body: Some(body),
       content_type: Some(content_type.into()),
-      parent: None,
+      parent: parent.map(|id| id.parent_value()),
       unrecognized_even_field: false,
     })
   }
@@ -830,8 +834,8 @@ mod tests {
       Ok(vec![Inscription {
         content_type: None,
         body: None,
-        unrecognized_even_field: true,
         parent: None,
+        unrecognized_even_field: true,
       }]),
     );
   }
