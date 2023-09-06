@@ -24,11 +24,11 @@ window.addEventListener('keydown', e => {
   }
 });
 
-const searchForm = document.querySelector('form[action="/search"]');
-const searchInput = document.querySelector('input[name="query"]');
+const search = document.querySelector('form[action="/search"]');
+const query = document.querySelector('input[name="query"]');
 
-searchForm.addEventListener('submit', (e) => {
-  if (!searchInput.value) {
+search.addEventListener('submit', (e) => {
+  if (!query.value) {
     e.preventDefault();
   }
 });
