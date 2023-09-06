@@ -29,8 +29,9 @@ pub struct Output {
 
 #[derive(Clone)]
 struct ParentInfo {
-  location: SatPoint,
   destination: Address,
+  location: SatPoint,
+  tx_out: TxOut,
 }
 
 #[derive(Debug, Parser)]
@@ -96,8 +97,15 @@ impl Inscribe {
         }
 
         Some(ParentInfo {
-          location: satpoint,
           destination: get_change_address(&client, &options)?,
+          location: satpoint,
+          tx_out: index
+            .get_transaction(satpoint.outpoint.txid)?
+            .expect("parent transaction not found in index")
+            .output
+            .into_iter()
+            .nth(satpoint.outpoint.vout.try_into().unwrap())
+            .expect("current transaction output"),
         })
       } else {
         return Err(anyhow!(format!("parent {parent_id} does not exist")));
@@ -262,26 +270,21 @@ impl Inscribe {
       value: 0,
     }];
 
-    let parent_tx_out = if let Some(ParentInfo {
-      location: parent_location,
-      destination: parent_destination,
+    if let Some(ParentInfo {
+      location,
+      destination,
+      tx_out,
     }) = parent_info.clone()
     {
-      let tx_out = TxOut {
-        script_pubkey: parent_destination.script_pubkey(),
-        value: utxos
-          .get(&parent_location.outpoint)
-          .expect("could not find parent utxo")
-          .to_sat(),
-      };
-
-      inputs.insert(0, parent_location.outpoint);
-      outputs.insert(0, tx_out.clone());
-
-      Some(tx_out)
-    } else {
-      None
-    };
+      inputs.insert(0, location.outpoint);
+      outputs.insert(
+        0,
+        TxOut {
+          script_pubkey: destination.script_pubkey(),
+          value: tx_out.value,
+        },
+      );
+    }
 
     let commit_input = if parent_info.is_some() { 1 } else { 0 };
 
@@ -347,8 +350,8 @@ impl Inscribe {
 
     let mut prevouts = vec![unsigned_commit_tx.output[0].clone()];
 
-    if let Some(parent_tx_out) = parent_tx_out {
-      prevouts.insert(0, parent_tx_out);
+    if let Some(parent_info) = parent_info {
+      prevouts.insert(0, parent_info.tx_out);
     }
 
     let mut sighash_cache = SighashCache::new(&mut reveal_tx);
@@ -716,11 +719,15 @@ mod tests {
     let mut inscriptions = BTreeMap::new();
     let parent_inscription = inscription_id(1);
     let parent_info = ParentInfo {
+      destination: change(3),
       location: SatPoint {
         outpoint: outpoint(1),
         offset: 0,
       },
-      destination: change(3),
+      tx_out: TxOut {
+        script_pubkey: change(0).script_pubkey(),
+        value: 10000,
+      },
     };
 
     inscriptions.insert(parent_info.location, parent_inscription);
@@ -773,7 +780,7 @@ mod tests {
       reveal_tx.output[0].script_pubkey,
       parent_info.destination.script_pubkey()
     );
-    assert_eq!(reveal_tx.output[0].value, 10000);
+    assert_eq!(reveal_tx.output[0].value, parent_info.tx_out.value);
     pretty_assert_eq!(
       reveal_tx.input[0],
       TxIn {
