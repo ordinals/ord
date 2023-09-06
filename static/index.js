@@ -23,3 +23,12 @@ window.addEventListener('keydown', e => {
       return;
   }
 });
+
+const search = document.querySelector('form[action="/search"]');
+const query = search.querySelector('input[name="query"]');
+
+search.addEventListener('submit', (e) => {
+  if (!query.value) {
+    e.preventDefault();
+  }
+});

@@ -241,15 +241,16 @@ impl Api for Server {
   fn sign_raw_transaction_with_wallet(
     &self,
     tx: String,
-    utxos: Option<()>,
+    _utxos: Option<Vec<SignRawTransactionInput>>,
     sighash_type: Option<()>,
   ) -> Result<Value, jsonrpc_core::Error> {
-    assert_eq!(utxos, None, "utxos param not supported");
     assert_eq!(sighash_type, None, "sighash_type param not supported");
 
     let mut transaction: Transaction = deserialize(&hex::decode(tx).unwrap()).unwrap();
     for input in &mut transaction.input {
-      input.witness = Witness::from_slice(&[&[0; 64]]);
+      if input.witness.is_empty() {
+        input.witness = Witness::from_slice(&[&[0; 64]]);
+      }
     }
 
     Ok(

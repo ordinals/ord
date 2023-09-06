@@ -54,7 +54,7 @@ pub trait Api {
   fn sign_raw_transaction_with_wallet(
     &self,
     tx: String,
-    utxos: Option<()>,
+    utxos: Option<Vec<SignRawTransactionInput>>,
     sighash_type: Option<()>,
   ) -> Result<Value, jsonrpc_core::Error>;
 
