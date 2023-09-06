@@ -843,6 +843,7 @@ msgid ""
 "…has an owner. You. As long as you keep it safe, nobody can take it from you."
 msgstr ""
 "……一人の主人がいます。それはあなたです。あなたが大切に保管していれば、誰もあなたからそれを奪うことはできません。"
+
 #: src/digital-artifacts.md:10
 msgid "…is complete. It has no missing parts."
 msgstr "…完全です。漏れている部分はありません。"
@@ -2490,11 +2491,11 @@ msgstr " `ord wallet receive`を使って聡を取り受けます。"
 
 #: src/guides/inscriptions.md:27
 msgid "Creating inscriptions with `ord wallet inscribe`"
-msgstr "`ord wallet inscribeを使って、銘文を作り上げます。"
+msgstr "`ord wallet inscribe`を使って、銘文を作り上げます。"
 
 #: src/guides/inscriptions.md:28
 msgid "Sending inscriptions with `ord wallet send`"
-msgstr "`ord wallet sendを使って`銘文を発送します"
+msgstr "`ord wallet send`を使って`銘文を発送します"
 
 #: src/guides/inscriptions.md:29
 msgid "Receiving inscriptions with `ord wallet receive`"
@@ -2512,7 +2513,7 @@ msgid ""
 "github.com/ordinals/ord/discussions)."
 msgstr ""
 "困ったことがあったら、[Ordinals Discord Server](https://discord.com/invite/87cjuz4FYg),"
-"またはGithubの関連内容をチェックする[質問]（https://github.com/ordinals/ord/issues)と"
+"またはGithubの関連内容をチェックする[質問](https://github.com/ordinals/ord/issues)と"
 "[ディスカッション](https://github.com/ordinals/ord/discussions)."
 
 #: src/guides/inscriptions.md:42
@@ -3275,7 +3276,7 @@ msgid ""
 "supporting sat-control and sat-selection, which are required to safely store "
 "and send rare sats and inscriptions, hereafter ordinals."
 msgstr ""
-"現在、[ord]（https://github.com/ordinals/ord/)はsat-controlとsat-selectionをサポートする唯一のものです"
+"現在、[ord](https://github.com/ordinals/ord/)はsat-controlとsat-selectionをサポートする唯一のものです"
 "の財布、これは希少なsatsと銘文（以下、序数と略称する）を安全に保存して送るために必要です。"
 
 #: src/guides/collecting.md:8
