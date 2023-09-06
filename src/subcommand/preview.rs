@@ -2,7 +2,7 @@ use {super::*, fee_rate::FeeRate};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Preview {
-  #[clap(flatten)]
+  #[command(flatten)]
   server: super::server::Server,
   inscriptions: Vec<PathBuf>,
 }
@@ -87,6 +87,7 @@ impl Preview {
             dry_run: false,
             no_limit: false,
             destination: None,
+            parent: None,
             postage: Some(TransactionBuilder::TARGET_POSTAGE),
           },
         )),

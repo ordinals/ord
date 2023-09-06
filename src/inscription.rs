@@ -5,27 +5,31 @@ use {
       opcodes,
       script::{self, Instruction, Instructions, PushBytesBuf},
     },
-    taproot::TAPROOT_ANNEX_PREFIX,
     ScriptBuf, Witness,
   },
   std::{iter::Peekable, str},
 };
 
 const PROTOCOL_ID: [u8; 3] = *b"ord";
+
 const BODY_TAG: [u8; 0] = [];
 const CONTENT_TYPE_TAG: [u8; 1] = [1];
+const PARENT_TAG: [u8; 1] = [3];
 
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) enum Curse {
   NotInFirstInput,
   NotAtOffsetZero,
   Reinscription,
+  UnrecognizedEvenField,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Default)]
 pub struct Inscription {
-  body: Option<Vec<u8>>,
-  content_type: Option<Vec<u8>>,
+  pub body: Option<Vec<u8>>,
+  pub content_type: Option<Vec<u8>>,
+  pub parent: Option<Vec<u8>>,
+  pub unrecognized_even_field: bool,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -38,7 +42,12 @@ pub(crate) struct TransactionInscription {
 impl Inscription {
   #[cfg(test)]
   pub(crate) fn new(content_type: Option<Vec<u8>>, body: Option<Vec<u8>>) -> Self {
-    Self { content_type, body }
+    Self {
+      content_type,
+      body,
+      parent: None,
+      unrecognized_even_field: false,
+    }
   }
 
   pub(crate) fn from_transaction(tx: &Transaction) -> Vec<TransactionInscription> {
@@ -64,7 +73,11 @@ impl Inscription {
     result
   }
 
-  pub(crate) fn from_file(chain: Chain, path: impl AsRef<Path>) -> Result<Self, Error> {
+  pub(crate) fn from_file(
+    chain: Chain,
+    path: impl AsRef<Path>,
+    parent: Option<InscriptionId>,
+  ) -> Result<Self, Error> {
     let path = path.as_ref();
 
     let body = fs::read(path).with_context(|| format!("io error reading {}", path.display()))?;
@@ -81,6 +94,8 @@ impl Inscription {
     Ok(Self {
       body: Some(body),
       content_type: Some(content_type.into()),
+      parent: parent.map(|id| id.parent_value()),
+      unrecognized_even_field: false,
     })
   }
 
@@ -94,6 +109,12 @@ impl Inscription {
       builder = builder
         .push_slice(CONTENT_TYPE_TAG)
         .push_slice(PushBytesBuf::try_from(content_type).unwrap());
+    }
+
+    if let Some(parent) = self.parent.clone() {
+      builder = builder
+        .push_slice(PARENT_TAG)
+        .push_slice(PushBytesBuf::try_from(parent).unwrap());
     }
 
     if let Some(body) = &self.body {
@@ -138,6 +159,39 @@ impl Inscription {
     str::from_utf8(self.content_type.as_ref()?).ok()
   }
 
+  pub(crate) fn parent(&self) -> Option<InscriptionId> {
+    let value = self.parent.as_ref()?;
+
+    if value.len() < Txid::LEN {
+      return None;
+    }
+
+    if value.len() > Txid::LEN + 4 {
+      return None;
+    }
+
+    let (txid, index) = value.split_at(Txid::LEN);
+
+    if let Some(last) = index.last() {
+      if *last == 0 {
+        return None;
+      }
+    }
+
+    let txid = Txid::from_slice(txid).unwrap();
+
+    let index = [
+      index.first().copied().unwrap_or(0),
+      index.get(1).copied().unwrap_or(0),
+      index.get(2).copied().unwrap_or(0),
+      index.get(3).copied().unwrap_or(0),
+    ];
+
+    let index = u32::from_le_bytes(index);
+
+    Some(InscriptionId { txid, index })
+  }
+
   #[cfg(test)]
   pub(crate) fn to_witness(&self) -> Witness {
     let builder = script::Builder::new();
@@ -155,12 +209,10 @@ impl Inscription {
 
 #[derive(Debug, PartialEq)]
 pub(crate) enum InscriptionError {
-  EmptyWitness,
   InvalidInscription,
-  KeyPathSpend,
   NoInscription,
+  NoTapscript,
   Script(script::Error),
-  UnrecognizedEvenField,
 }
 
 type Result<T, E = InscriptionError> = std::result::Result<T, E>;
@@ -172,34 +224,12 @@ struct InscriptionParser<'a> {
 
 impl<'a> InscriptionParser<'a> {
   fn parse(witness: &Witness) -> Result<Vec<Inscription>> {
-    if witness.is_empty() {
-      return Err(InscriptionError::EmptyWitness);
-    }
-
-    if witness.len() == 1 {
-      return Err(InscriptionError::KeyPathSpend);
-    }
-
-    let annex = witness
-      .last()
-      .and_then(|element| element.first().map(|byte| *byte == TAPROOT_ANNEX_PREFIX))
-      .unwrap_or(false);
-
-    if witness.len() == 2 && annex {
-      return Err(InscriptionError::KeyPathSpend);
-    }
-
-    let script = witness
-      .iter()
-      .nth(if annex {
-        witness.len() - 1
-      } else {
-        witness.len() - 2
-      })
-      .unwrap();
+    let Some(tapscript) = witness.tapscript() else {
+      return Err(InscriptionError::NoTapscript);
+    };
 
     InscriptionParser {
-      instructions: ScriptBuf::from(Vec::from(script)).instructions().peekable(),
+      instructions: tapscript.instructions().peekable(),
     }
     .parse_inscriptions()
     .into_iter()
@@ -246,16 +276,23 @@ impl<'a> InscriptionParser<'a> {
 
     let body = fields.remove(BODY_TAG.as_slice());
     let content_type = fields.remove(CONTENT_TYPE_TAG.as_slice());
+    let parent = fields.remove(PARENT_TAG.as_slice());
+    let mut unrecognized_even_field = false;
 
     for tag in fields.keys() {
       if let Some(lsb) = tag.first() {
         if lsb % 2 == 0 {
-          return Err(InscriptionError::UnrecognizedEvenField);
+          unrecognized_even_field = true;
         }
       }
     }
 
-    Ok(Inscription { body, content_type })
+    Ok(Inscription {
+      body,
+      content_type,
+      parent,
+      unrecognized_even_field,
+    })
   }
 
   fn advance(&mut self) -> Result<Instruction<'a>> {
@@ -321,7 +358,7 @@ mod tests {
   fn empty() {
     assert_eq!(
       InscriptionParser::parse(&Witness::new()),
-      Err(InscriptionError::EmptyWitness)
+      Err(InscriptionError::NoTapscript)
     );
   }
 
@@ -329,7 +366,7 @@ mod tests {
   fn ignore_key_path_spends() {
     assert_eq!(
       InscriptionParser::parse(&Witness::from_slice(&[Vec::new()])),
-      Err(InscriptionError::KeyPathSpend),
+      Err(InscriptionError::NoTapscript),
     );
   }
 
@@ -337,7 +374,7 @@ mod tests {
   fn ignore_key_path_spends_with_annex() {
     assert_eq!(
       InscriptionParser::parse(&Witness::from_slice(&[Vec::new(), vec![0x50]])),
-      Err(InscriptionError::KeyPathSpend),
+      Err(InscriptionError::NoTapscript),
     );
   }
 
@@ -397,7 +434,7 @@ mod tests {
         b"ord",
         &[1],
         b"text/plain;charset=utf-8",
-        &[3],
+        &[5],
         b"bar",
         &[],
         b"ord",
@@ -413,6 +450,8 @@ mod tests {
       Ok(vec![Inscription {
         content_type: Some(b"text/plain;charset=utf-8".to_vec()),
         body: None,
+        parent: None,
+        unrecognized_even_field: false,
       }]),
     );
   }
@@ -423,7 +462,9 @@ mod tests {
       InscriptionParser::parse(&envelope(&[b"ord", &[], b"foo"])),
       Ok(vec![Inscription {
         content_type: None,
+        parent: None,
         body: Some(b"foo".to_vec()),
+        unrecognized_even_field: false,
       }]),
     );
   }
@@ -752,8 +793,10 @@ mod tests {
 
     witness.push(
       &Inscription {
-        content_type: None,
         body: None,
+        content_type: None,
+        parent: None,
+        unrecognized_even_field: false,
       }
       .append_reveal_script(script::Builder::new()),
     );
@@ -764,7 +807,9 @@ mod tests {
       InscriptionParser::parse(&witness).unwrap(),
       vec![Inscription {
         content_type: None,
+        parent: None,
         body: None,
+        unrecognized_even_field: false,
       }]
     );
   }
@@ -772,19 +817,176 @@ mod tests {
   #[test]
   fn unknown_odd_fields_are_ignored() {
     assert_eq!(
-      InscriptionParser::parse(&envelope(&[b"ord", &[3], &[0]])),
+      InscriptionParser::parse(&envelope(&[b"ord", &[5], &[0]])),
       Ok(vec![Inscription {
         content_type: None,
+        parent: None,
         body: None,
+        unrecognized_even_field: false,
       }]),
     );
   }
 
   #[test]
-  fn unknown_even_fields_are_invalid() {
+  fn unknown_even_fields() {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[b"ord", &[2], &[0]])),
-      Err(InscriptionError::UnrecognizedEvenField),
+      Ok(vec![Inscription {
+        content_type: None,
+        body: None,
+        parent: None,
+        unrecognized_even_field: true,
+      }]),
+    );
+  }
+
+  #[test]
+  fn inscription_with_no_parent_field_has_no_parent() {
+    assert!(Inscription {
+      parent: None,
+      ..Default::default()
+    }
+    .parent()
+    .is_none());
+  }
+
+  #[test]
+  fn inscription_with_parent_field_shorter_than_txid_length_has_no_parent() {
+    assert!(Inscription {
+      parent: Some(vec![]),
+      ..Default::default()
+    }
+    .parent()
+    .is_none());
+  }
+
+  #[test]
+  fn inscription_with_parent_field_longer_than_txid_and_index_has_no_parent() {
+    assert!(Inscription {
+      parent: Some(vec![1; 37]),
+      ..Default::default()
+    }
+    .parent()
+    .is_none());
+  }
+
+  #[test]
+  fn inscription_with_parent_field_index_with_trailing_zeroes_has_no_parent() {
+    let mut parent = vec![1; 36];
+
+    parent[35] = 0;
+
+    assert!(Inscription {
+      parent: Some(parent),
+      ..Default::default()
+    }
+    .parent()
+    .is_none());
+  }
+
+  #[test]
+  fn inscription_parent_txid_is_deserialized_correctly() {
+    assert_eq!(
+      Inscription {
+        parent: Some(vec![
+          0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e,
+          0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d,
+          0x1e, 0x1f,
+        ]),
+        ..Default::default()
+      }
+      .parent()
+      .unwrap()
+      .txid,
+      "1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100"
+        .parse()
+        .unwrap()
+    );
+  }
+
+  #[test]
+  fn inscription_parent_with_zero_byte_index_field_is_deserialized_correctly() {
+    assert_eq!(
+      Inscription {
+        parent: Some(vec![1; 32]),
+        ..Default::default()
+      }
+      .parent()
+      .unwrap()
+      .index,
+      0
+    );
+  }
+
+  #[test]
+  fn inscription_parent_with_one_byte_index_field_is_deserialized_correctly() {
+    assert_eq!(
+      Inscription {
+        parent: Some(vec![
+          0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+          0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+          0xff, 0xff, 0x01
+        ]),
+        ..Default::default()
+      }
+      .parent()
+      .unwrap()
+      .index,
+      1
+    );
+  }
+
+  #[test]
+  fn inscription_parent_with_two_byte_index_field_is_deserialized_correctly() {
+    assert_eq!(
+      Inscription {
+        parent: Some(vec![
+          0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+          0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+          0xff, 0xff, 0x01, 0x02
+        ]),
+        ..Default::default()
+      }
+      .parent()
+      .unwrap()
+      .index,
+      0x0201,
+    );
+  }
+
+  #[test]
+  fn inscription_parent_with_three_byte_index_field_is_deserialized_correctly() {
+    assert_eq!(
+      Inscription {
+        parent: Some(vec![
+          0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+          0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+          0xff, 0xff, 0x01, 0x02, 0x03
+        ]),
+        ..Default::default()
+      }
+      .parent()
+      .unwrap()
+      .index,
+      0x030201,
+    );
+  }
+
+  #[test]
+  fn inscription_parent_with_four_byte_index_field_is_deserialized_correctly() {
+    assert_eq!(
+      Inscription {
+        parent: Some(vec![
+          0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+          0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+          0xff, 0xff, 0x01, 0x02, 0x03, 0x04,
+        ]),
+        ..Default::default()
+      }
+      .parent()
+      .unwrap()
+      .index,
+      0x04030201,
     );
   }
 }
