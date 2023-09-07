@@ -169,6 +169,22 @@ impl<T> BitcoinCoreRpcResultExt<T> for Result<T, bitcoincore_rpc::Error> {
   }
 }
 
+#[derive(Serialize, Deserialize)]
+pub(crate) struct InscriptionOutput {
+  pub(crate) inscription_id: InscriptionId,
+  // pub(crate) content: String,
+  pub(crate) content_type: String,
+  pub(crate) owner: String,
+  pub(crate) location: SatPoint,
+  pub(crate) genesis_fee: u64,
+  pub(crate) genesis_height: u64,
+  pub(crate) number: i64,
+  pub(crate) explorer: String,
+  pub(crate) timestamp: u32,
+  pub(crate) output: OutPoint,
+  pub(crate) output_value: u64,
+}
+
 pub(crate) struct Index {
   client: Client,
   database: Database,
@@ -1663,6 +1679,54 @@ impl Index {
       .map(|value| InscriptionEntry::load(value.value()));
 
     Ok(entry)
+  }
+
+  // Api
+  pub(crate) fn get_inscription_by_number(
+    &self,
+    chain: Chain,
+    inscription_number: i64,
+  ) -> Result<InscriptionOutput> {
+    let inscription_id = self.get_inscription_id_by_inscription_number(inscription_number)?.unwrap();
+    let inscription = self.get_inscription_by_id(inscription_id)?.unwrap();
+    let location = self
+      .get_inscription_satpoint_by_id(inscription_id)?
+      .unwrap();
+    let entry = self.get_inscription_entry(inscription_id)?.unwrap();
+    println!("{:?}", entry);
+    let tx_output = self
+      .get_transaction(location.outpoint.txid)?
+      .unwrap()
+      .output
+      .into_iter()
+      .nth(location.outpoint.vout.try_into().unwrap())
+      .unwrap();
+
+    Ok(InscriptionOutput {
+      inscription_id,
+      // content: String::from_utf8(inscription.clone().into_body().unwrap())?,
+      content_type: String::from_utf8(inscription.content_type.unwrap())?,
+      location,
+      genesis_fee: entry.fee,
+      genesis_height: entry.height,
+      number: entry.number,
+      timestamp: entry.timestamp,
+      explorer: format!("https://ordinals.com/inscription/{inscription_id}"),
+      output: location.outpoint,
+      output_value: tx_output.value,
+      owner: chain
+        .address_from_script(&tx_output.script_pubkey)? 
+        .to_string(),
+    })
+  }
+
+  pub(crate) async fn api_get_inscription_by_number(
+    &self,
+    chain: Chain,
+    inscription_number: i64,
+  ) -> Result<InscriptionOutput> {
+    let output = self.get_inscription_by_number(chain, inscription_number)?;
+    Ok(output)
   }
 
   #[cfg(test)]

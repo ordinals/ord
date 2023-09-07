@@ -1,3 +1,5 @@
+use crate::index::InscriptionOutput;
+
 use {
   self::{
     accept_encoding::AcceptEncoding,
@@ -263,6 +265,9 @@ impl Server {
         .route("/static/*path", get(Self::static_asset))
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
+        // Api
+        .route("/api/inscription/number/:number", get(Self::inscription_by_number))
+        .route("/api/content/number/:number", get(Self::api_content))
         .layer(Extension(index))
         .layer(Extension(page_config))
         .layer(Extension(Arc::new(config)))
@@ -1080,6 +1085,38 @@ impl Server {
     };
 
     Ok(Some((headers, body)))
+  }
+
+  // Api
+  async fn inscription_by_number(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(number): Path<i64>,
+  ) -> ServerResult<Json<InscriptionOutput>> {
+    let data = index.api_get_inscription_by_number(page_config.chain, number).await?;
+    Ok(Json(data))
+  }
+
+  async fn api_content(
+    Extension(index): Extension<Arc<Index>>,
+    Extension(config): Extension<Arc<Config>>,
+    Path(number): Path<i64>,
+  ) -> ServerResult<Response> {
+    let inscription_id = index
+      .get_inscription_id_by_inscription_number(number)?.unwrap();
+    if config.is_hidden(inscription_id) {
+      return Ok(PreviewUnknownHtml.into_response());
+    }
+
+    let inscription = index
+      .get_inscription_by_id(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    Ok(
+      Self::content_response(inscription)
+        .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
+        .into_response(),
+    )
   }
 
   async fn preview(
