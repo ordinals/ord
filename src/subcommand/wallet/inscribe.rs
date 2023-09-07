@@ -65,6 +65,8 @@ pub(crate) struct Inscribe {
   pub(crate) postage: Option<Amount>,
   #[clap(long, help = "Make inscription a child of <PARENT>.")]
   pub(crate) parent: Option<InscriptionId>,
+  #[clap(long, help = "Allow reinscription.")]
+  pub(crate) reinscribe: bool,
 }
 
 impl Inscribe {
@@ -127,6 +129,7 @@ impl Inscribe {
         self.commit_fee_rate.unwrap_or(self.fee_rate),
         self.fee_rate,
         self.no_limit,
+        self.reinscribe,
         match self.postage {
           Some(postage) => postage,
           _ => TransactionBuilder::TARGET_POSTAGE,
@@ -209,6 +212,7 @@ impl Inscribe {
     commit_fee_rate: FeeRate,
     reveal_fee_rate: FeeRate,
     no_limit: bool,
+    reinscribe: bool,
     postage: Amount,
   ) -> Result<(Transaction, Transaction, TweakedKeyPair, u64)> {
     let satpoint = if let Some(satpoint) = satpoint {
@@ -229,9 +233,29 @@ impl Inscribe {
         .ok_or_else(|| anyhow!("wallet contains no cardinal utxos"))?
     };
 
+    // should work with:
+    // 1. passing a satpoint
+    // 2. passing an inscription id
+    //
+    // should fail if:
+    // 1. not  a reinscription
+    //
+    // questions:
+    // - What if satpoint not inscribed but utxo is? Should it split utxo?
+    // - What if inscription not on first sat of utxo?
+    // - What if satpoint not on first sat of utxo?
+    // -
+
     for (inscribed_satpoint, inscription_id) in &inscriptions {
-      if inscribed_satpoint == &satpoint {
-        return Err(anyhow!("sat at {} already inscribed", satpoint));
+      match (inscribed_satpoint == &satpoint, reinscribe) {
+        (true, true) => break,
+        (true, false) => return Err(anyhow!("sat at {} already inscribed", satpoint)),
+        (false, true) => {
+          return Err(anyhow!(
+            "reinscribe flag set but this would not be a reinscription"
+          ))
+        }
+        _ => (),
       }
 
       if inscribed_satpoint.outpoint == satpoint.outpoint {
@@ -527,6 +551,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
       false,
+      false,
       TransactionBuilder::TARGET_POSTAGE,
     )
     .unwrap();
@@ -542,7 +567,7 @@ mod tests {
   }
 
   #[test]
-  fn inscript_tansactions_opt_in_to_rbf() {
+  fn inscribe_tansactions_opt_in_to_rbf() {
     let utxos = vec![(outpoint(1), Amount::from_sat(20000))];
     let inscription = inscription("text/plain", "ord");
     let commit_address = change(0);
@@ -559,6 +584,7 @@ mod tests {
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
+      false,
       false,
       TransactionBuilder::TARGET_POSTAGE,
     )
@@ -596,6 +622,7 @@ mod tests {
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
+      false,
       false,
       TransactionBuilder::TARGET_POSTAGE,
     )
@@ -641,6 +668,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
       false,
+      false,
       TransactionBuilder::TARGET_POSTAGE,
     )
     .is_ok())
@@ -678,6 +706,7 @@ mod tests {
       reveal_address,
       FeeRate::try_from(fee_rate).unwrap(),
       FeeRate::try_from(fee_rate).unwrap(),
+      false,
       false,
       TransactionBuilder::TARGET_POSTAGE,
     )
@@ -749,6 +778,7 @@ mod tests {
       reveal_address,
       FeeRate::try_from(fee_rate).unwrap(),
       FeeRate::try_from(fee_rate).unwrap(),
+      false,
       false,
       TransactionBuilder::TARGET_POSTAGE,
     )
@@ -825,6 +855,7 @@ mod tests {
       FeeRate::try_from(commit_fee_rate).unwrap(),
       FeeRate::try_from(fee_rate).unwrap(),
       false,
+      false,
       TransactionBuilder::TARGET_POSTAGE,
     )
     .unwrap();
@@ -876,6 +907,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
       false,
+      false,
       TransactionBuilder::TARGET_POSTAGE,
     )
     .unwrap_err()
@@ -909,10 +941,142 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
       true,
+      false,
       TransactionBuilder::TARGET_POSTAGE,
     )
     .unwrap();
 
     assert!(reveal_tx.size() >= MAX_STANDARD_TX_WEIGHT as usize);
+  }
+
+  #[test]
+  fn reinscribe_without_setting_flag_fails() {
+    let utxos = vec![
+      (outpoint(1), Amount::from_sat(20_000)),
+      (outpoint(2), Amount::from_sat(20_000)),
+    ];
+    let mut inscriptions = BTreeMap::new();
+    inscriptions.insert(
+      SatPoint {
+        outpoint: outpoint(1),
+        offset: 0,
+      },
+      inscription_id(1),
+    );
+
+    let inscription = inscription("text/plain", "ord");
+    let satpoint = Some(SatPoint {
+      outpoint: outpoint(1),
+      offset: 0,
+    });
+    let commit_address = change(0);
+    let reveal_address = recipient();
+
+    let error = Inscribe::create_inscription_transactions(
+      satpoint,
+      None,
+      inscription,
+      inscriptions,
+      Network::Bitcoin,
+      utxos.into_iter().collect(),
+      [commit_address, change(1)],
+      reveal_address,
+      FeeRate::try_from(1.0).unwrap(),
+      FeeRate::try_from(1.0).unwrap(),
+      false,
+      false,
+      TransactionBuilder::TARGET_POSTAGE,
+    )
+    .unwrap_err()
+    .to_string();
+
+    assert!(error.contains("sat at 1111111111111111111111111111111111111111111111111111111111111111:1:0 already inscribed"));
+  }
+
+  #[test]
+  fn reinscribe_with_setting_flag_works() {
+    let utxos = vec![
+      (outpoint(1), Amount::from_sat(20_000)),
+      (outpoint(2), Amount::from_sat(20_000)),
+    ];
+    let mut inscriptions = BTreeMap::new();
+    inscriptions.insert(
+      SatPoint {
+        outpoint: outpoint(1),
+        offset: 0,
+      },
+      inscription_id(1),
+    );
+
+    let inscription = inscription("text/plain", "ord");
+    let satpoint = Some(SatPoint {
+      outpoint: outpoint(1),
+      offset: 0,
+    });
+    let commit_address = change(0);
+    let reveal_address = recipient();
+
+    let (_commit_tx, reveal_tx, _, _) = Inscribe::create_inscription_transactions(
+      satpoint,
+      None,
+      inscription.clone(),
+      inscriptions,
+      Network::Bitcoin,
+      utxos.into_iter().collect(),
+      [commit_address, change(1)],
+      reveal_address,
+      FeeRate::try_from(1.0).unwrap(),
+      FeeRate::try_from(1.0).unwrap(),
+      false,
+      true,
+      TransactionBuilder::TARGET_POSTAGE,
+    )
+    .unwrap();
+
+    pretty_assert_eq!(
+      Inscription::from_transaction(&reveal_tx)[0].inscription,
+      inscription
+    );
+  }
+
+  #[test]
+  fn setting_reinscribe_flag_but_not_actually_reinscribing_fails() {
+    let utxos = vec![
+      (outpoint(1), Amount::from_sat(20_000)),
+      (outpoint(2), Amount::from_sat(20_000)),
+    ];
+    let mut inscriptions = BTreeMap::new();
+    inscriptions.insert(
+      SatPoint {
+        outpoint: outpoint(1),
+        offset: 0,
+      },
+      inscription_id(1),
+    );
+
+    let inscription = inscription("text/plain", "ord");
+    let satpoint = None;
+    let commit_address = change(0);
+    let reveal_address = recipient();
+
+    let error = Inscribe::create_inscription_transactions(
+      satpoint,
+      None,
+      inscription.clone(),
+      inscriptions,
+      Network::Bitcoin,
+      utxos.into_iter().collect(),
+      [commit_address, change(1)],
+      reveal_address,
+      FeeRate::try_from(1.0).unwrap(),
+      FeeRate::try_from(1.0).unwrap(),
+      false,
+      true,
+      TransactionBuilder::TARGET_POSTAGE,
+    )
+    .unwrap_err()
+    .to_string();
+
+    assert!(error.contains("reinscribe flag set but this would not be a reinscription"));
   }
 }
