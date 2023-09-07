@@ -88,6 +88,7 @@ pub(crate) fn change(n: u64) -> Address {
     0 => "tb1qjsv26lap3ffssj6hfy8mzn0lg5vte6a42j75ww",
     1 => "tb1qakxxzv9n7706kc3xdcycrtfv8cqv62hnwexc0l",
     2 => "tb1qxz9yk0td0yye009gt6ayn7jthz5p07a75luryg",
+    3 => "tb1qe62s57n77pfhlw2vtqlhm87dwj75l6fguavjjq",
     _ => panic!(),
   }
   .parse::<Address<NetworkUnchecked>>()
