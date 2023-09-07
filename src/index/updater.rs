@@ -378,6 +378,7 @@ impl<'index> Updater<'_> {
     }
 
     let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
+    let mut height_to_inscription_number = wtx.open_table(HEIGHT_TO_INSCRIPTION_NUMBER)?;
     let mut inscription_id_to_inscription_entry =
       wtx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
     let mut inscription_id_to_satpoint = wtx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
@@ -512,6 +513,9 @@ impl<'index> Updater<'_> {
       }
     }
 
+    self
+      .index_block_inscription_numbers(&mut height_to_inscription_number, &inscription_updater)?;
+
     statistic_to_count.insert(&Statistic::LostSats.key(), &inscription_updater.lost_sats)?;
 
     statistic_to_count.insert(
@@ -594,6 +598,22 @@ impl<'index> Updater<'_> {
       self.range_cache.insert(outpoint.store(), sats);
       self.outputs_inserted_since_flush += 1;
     }
+
+    Ok(())
+  }
+
+  fn index_block_inscription_numbers(
+    &mut self,
+    height_to_inscription_number: &mut Table<u64, (i64, i64)>,
+    inscription_updater: &InscriptionUpdater,
+  ) -> Result {
+    height_to_inscription_number.insert(
+      &self.height,
+      (
+        inscription_updater.next_cursed_number,
+        inscription_updater.next_number,
+      ),
+    )?;
 
     Ok(())
   }
