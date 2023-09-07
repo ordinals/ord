@@ -835,11 +835,11 @@ impl Server {
   }
 
   async fn children(
-      Extension(index): Extension<Arc<Index>>,
-      Path(inscription_id): Path<InscriptionId>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(inscription_id): Path<InscriptionId>,
   ) -> ServerResult<Json<Vec<InscriptionId>>> {
-      let children = index.get_children_by_inscription_id(inscription_id)?;
-      Ok(Json(children))
+    let children = index.get_children_by_inscription_id(inscription_id)?;
+    Ok(Json(children))
   }
 
   async fn input(
@@ -1809,7 +1809,7 @@ mod tests {
 
     server.mine_blocks(1);
 
-    let child_inscription_id = InscriptionId { txid, index: 0 };  
+    let child_inscription_id = InscriptionId { txid, index: 0 };
 
     server.assert_response_regex(
       format!("/inscription/{parent_inscription_id}"),
