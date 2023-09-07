@@ -65,19 +65,27 @@ pub(crate) fn rare_sats(
 ) -> Vec<(OutPoint, Sat, u64, Rarity)> {
   utxos
     .into_iter()
-    .flat_map(|(outpoint, sat_ranges)| {
-      let mut offset = 0;
-      sat_ranges.into_iter().filter_map(move |(start, end)| {
-        let sat = Sat(start);
-        let rarity = sat.rarity();
-        let start_offset = offset;
-        offset += end - start;
-        if rarity > Rarity::Common {
-          Some((outpoint, sat, start_offset, rarity))
-        } else {
-          None
-        }
-      })
+    .flat_map(|(outpoint, sat_ranges)| rare_sats_from_outpoint(outpoint, sat_ranges))
+    .collect()
+}
+
+pub(crate) fn rare_sats_from_outpoint(
+  outpoint: OutPoint,
+  sat_ranges: Vec<(u64, u64)>,
+) -> Vec<(OutPoint, Sat, u64, Rarity)> {
+  let mut offset = 0;
+  sat_ranges
+    .into_iter()
+    .filter_map(move |(start, end)| {
+      let sat = Sat(start);
+      let rarity = sat.rarity();
+      let start_offset = offset;
+      offset += end - start;
+      if rarity > Rarity::Common {
+        Some((outpoint, sat, start_offset, rarity))
+      } else {
+        None
+      }
     })
     .collect()
 }

@@ -3,7 +3,7 @@ use crate::block_rarity::{
   is_palindrome, BLOCK78_BLOCK_HEIGHT, BLOCK9_BLOCK_HEIGHT, FIRST_TRANSACTION_SAT_RANGE,
   NAKAMOTO_BLOCK_HEIGHTS, PIZZA_RANGE_MAP, VINTAGE_BLOCK_HEIGHT,
 };
-use crate::subcommand::{traits::Output as SatDetails, wallet::sats::rare_sats};
+use crate::subcommand::{traits::Output as SatDetails, wallet::sats::rare_sats_from_outpoint};
 use axum_jrpc::{
   error::{JsonRpcError, JsonRpcErrorReason},
   JrpcResult, JsonRpcExtractor, JsonRpcResponse,
@@ -49,7 +49,6 @@ async fn get_sat_ranges(value: JsonRpcExtractor, index: Arc<Index>) -> JrpcResul
 
   #[derive(Serialize)]
   struct SatRange {
-    utxo: String,
     start: u64,
     end: u64,
     block_rarities: Vec<BlockRarityInfo>,
@@ -57,7 +56,6 @@ async fn get_sat_ranges(value: JsonRpcExtractor, index: Arc<Index>) -> JrpcResul
 
   #[derive(Serialize)]
   struct RareSat {
-    utxo: String,
     offset: u64,
     rarity: Rarity,
     sat: Sat,
@@ -65,9 +63,15 @@ async fn get_sat_ranges(value: JsonRpcExtractor, index: Arc<Index>) -> JrpcResul
   }
 
   #[derive(Serialize)]
-  struct Res {
+  struct Utxo {
+    utxo: String,
     sat_ranges: Vec<SatRange>,
     rare_sats: Vec<RareSat>,
+  }
+
+  #[derive(Serialize)]
+  struct Res {
+    utxos: Vec<Utxo>,
   }
 
   let answer_id = value.get_answer_id();
@@ -76,16 +80,17 @@ async fn get_sat_ranges(value: JsonRpcExtractor, index: Arc<Index>) -> JrpcResul
   }
 
   let req: Req = value.parse_params()?;
-  let mut res = Res {
-    sat_ranges: vec![],
-    rare_sats: vec![],
-  };
-  let mut utxos: Vec<(OutPoint, Vec<(u64, u64)>)> = vec![];
+  let mut res = Res { utxos: vec![] };
 
   for output in req.utxos {
     let outpoint = match OutPoint::from_str(output.as_str()) {
       Ok(outpoint) => outpoint,
       Err(err) => return invalid_params(answer_id, err.to_string()),
+    };
+    let mut utxo = Utxo {
+      utxo: output.clone(),
+      sat_ranges: vec![],
+      rare_sats: vec![],
     };
     let list = match index.list(outpoint) {
       Ok(list) => list,
@@ -102,8 +107,7 @@ async fn get_sat_ranges(value: JsonRpcExtractor, index: Arc<Index>) -> JrpcResul
               Err(err) => return invalid_params(answer_id, err.to_string()),
             };
 
-            res.sat_ranges.push(SatRange {
-              utxo: output.clone(),
+            utxo.sat_ranges.push(SatRange {
               start: range.0,
               end: range.1,
               block_rarities,
@@ -113,30 +117,29 @@ async fn get_sat_ranges(value: JsonRpcExtractor, index: Arc<Index>) -> JrpcResul
         }
       }
     }
-    utxos.push((outpoint, sat_ranges));
-  }
 
-  let rare_sats = rare_sats(utxos);
-  for (outpoint, sat, offset, rarity) in rare_sats {
-    let sat_details = SatDetails {
-      number: sat.n(),
-      decimal: sat.decimal().to_string(),
-      degree: sat.degree().to_string(),
-      name: sat.name(),
-      height: sat.height().0,
-      cycle: sat.cycle(),
-      epoch: sat.epoch().0,
-      period: sat.period(),
-      offset: sat.third(),
-      rarity: sat.rarity(),
-    };
-    res.rare_sats.push(RareSat {
-      utxo: outpoint.to_string(),
-      offset,
-      rarity,
-      sat,
-      sat_details,
-    });
+    for (_, sat, offset, rarity) in rare_sats_from_outpoint(outpoint, sat_ranges) {
+      let sat_details = SatDetails {
+        number: sat.n(),
+        decimal: sat.decimal().to_string(),
+        degree: sat.degree().to_string(),
+        name: sat.name(),
+        height: sat.height().0,
+        cycle: sat.cycle(),
+        epoch: sat.epoch().0,
+        period: sat.period(),
+        offset: sat.third(),
+        rarity: sat.rarity(),
+      };
+      utxo.rare_sats.push(RareSat {
+        offset,
+        rarity,
+        sat,
+        sat_details,
+      });
+    }
+
+    res.utxos.push(utxo);
   }
 
   Ok(JsonRpcResponse::success(answer_id, res))
