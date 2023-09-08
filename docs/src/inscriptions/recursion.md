@@ -26,3 +26,5 @@ A few other endpoints that inscriptions may access are the following:
 - `/blockhash`: latest block hash.
 - `/blockhash/<HEIGHT>`: block hash at given block height.
 - `/blocktime`: UNIX time stamp of latest block.
+- `/children/<INSCRIPTION_ID>`: list of children that have the given
+  inscription as their parent.
