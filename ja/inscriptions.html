@@ -1,0 +1,313 @@
+<!DOCTYPE HTML>
+<html lang="ja" class="sidebar-visible no-js coal">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>銘文 - Ordinal Theory Handbook</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="language-picker.css">
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "coal";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('coal')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">紹介</a></li><li class="chapter-item expanded "><a href="overview.html"><strong aria-hidden="true">1.</strong> 概要</a></li><li class="chapter-item expanded "><a href="digital-artifacts.html"><strong aria-hidden="true">2.</strong> 数字文物</a></li><li class="chapter-item expanded "><a href="inscriptions.html" class="active"><strong aria-hidden="true">3.</strong> 銘文</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="inscriptions/provenance.html"><strong aria-hidden="true">3.1.</strong> Provenance</a></li><li class="chapter-item expanded "><a href="inscriptions/recursion.html"><strong aria-hidden="true">3.2.</strong> 再帰</a></li></ol></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">4.</strong> 一般的問題</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> 貢献</a></li><li class="chapter-item expanded "><a href="donate.html"><strong aria-hidden="true">6.</strong> 寄付</a></li><li class="chapter-item expanded "><a href="guides.html"><strong aria-hidden="true">7.</strong> ガイド</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="guides/explorer.html"><strong aria-hidden="true">7.1.</strong> ブラウザ</a></li><li class="chapter-item expanded "><a href="guides/inscriptions.html"><strong aria-hidden="true">7.2.</strong> 銘文</a></li><li class="chapter-item expanded "><a href="guides/sat-hunting.html"><strong aria-hidden="true">7.3.</strong> 聡狩り</a></li><li class="chapter-item expanded "><a href="guides/collecting.html"><strong aria-hidden="true">7.4.</strong> コレクション</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="guides/collecting/sparrow-wallet.html"><strong aria-hidden="true">7.4.1.</strong> 雀のウォレット</a></li></ol></li><li class="chapter-item expanded "><a href="guides/testing.html"><strong aria-hidden="true">7.5.</strong> テスティング</a></li><li class="chapter-item expanded "><a href="guides/moderation.html"><strong aria-hidden="true">7.6.</strong> 調節</a></li><li class="chapter-item expanded "><a href="guides/reindexing.html"><strong aria-hidden="true">7.7.</strong> 再インデックス</a></li></ol></li><li class="chapter-item expanded "><a href="bounties.html"><strong aria-hidden="true">8.</strong> 賞金</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="bounty/0.html"><strong aria-hidden="true">8.1.</strong> ミッション 0: 100,000 sats 完成!</a></li><li class="chapter-item expanded "><a href="bounty/1.html"><strong aria-hidden="true">8.2.</strong> ミッション 1: 200,000 sats 完成!</a></li><li class="chapter-item expanded "><a href="bounty/2.html"><strong aria-hidden="true">8.3.</strong> ミッション 2: 300,000 sats 完成!</a></li><li class="chapter-item expanded "><a href="bounty/3.html"><strong aria-hidden="true">8.4.</strong> ミッション 3: 400,000 sats</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Ordinal Theory Handbook</h1>
+
+                    <div class="right-buttons">
+                        <button id="language-toggle" class="icon-button" type="button"
+                                title="Change language" aria-label="Change language"
+                                aria-haspopup="true" aria-expanded="false"
+                                aria-controls="language-list">
+                            <i class="fa fa-globe"></i>
+                        </button>
+                        <ul id="language-list" class="theme-popup" aria-label="Languages" role="menu">
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="en">English</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="zh">中文版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ja">日本語版</a>
+                          </button></li>
+                        </ul>
+
+                        <script>
+                          let langToggle = document.getElementById("language-toggle");
+                          let langList = document.getElementById("language-list");
+                          langToggle.addEventListener("click", (event) => {
+                              langList.style.display = langList.style.display == "block" ? "none" : "block";
+                          });
+                          let selectedLang = document.getElementById("ja");
+                          if (selectedLang) {
+                              selectedLang.parentNode.classList.add("theme-selected");
+                          }
+
+                          // The path to the root, taking the current
+                          // language into account.
+                          let full_path_to_root = "../";
+                          // The page path (mdbook only gives us
+                          // access to the path to the Markdown file).
+                          let path = "inscriptions.md".replace(/\.md$/, ".html");
+                          for (let lang of langList.querySelectorAll("a")) {
+                              if (lang.id == "en") {
+                                  lang.href = `${full_path_to_root}${path}`;
+                              } else {
+                                  lang.href = `${full_path_to_root}${lang.id}/${path}`;
+                              }
+                          }
+                        </script>
+
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ordinals/ord" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="銘文"><a class="header" href="#銘文">銘文</a></h1>
+<p>銘文には任意の内容が刻まれ、ビットコインネイティブのデジタル人工製品が作られました。通常NFTと呼ばれています。の銘文には側鎖や個別のトークンは必要ありません。 </p>
+<p>これらの刻まれたコングは、ビットコイン取引転送を使用してビットコインアドレスに送信され、ビットコインUTXOに保存されます。これらの取引、アドレス、UTXOはすべての点で通常のビットコイン取引、アドレス、UTXOです。は単一の聡を送るために加えて、取引は序数理論に基づいて入力と出力の順序と値を制御しなければなりません</p>
+<p>銘文の内容はワールドワイドウェブ基準に基づいている。銘文はコンテンツタイプ（MI MEタイプとも呼ばれる）とコンテンツ自体（バイト列）で構成されています。これにより、Webサーバーから銘文コンテンツを返すことができ、HTML銘文を作成して使用し、他の銘文コンテンツを再混合するために使用されます。</p>
+<p>銘文の内容は完全にチェーン上にあり、保存されているtaproot script-path spendスクリプト内。のTaprootスクリプトはその内容に対する制限が少なく、証人割引を追加で受けることで、銘文内容の保存が比較的経済的になります。</p>
+<p>taproot script-path spendスクリプトは既存のtaproot出力からしか生成できないため、そのため、は2段階のcommit/revealプロセスを使用して刻印されます。まず、commitでは、銘文の内容を含むスクリプトに提出するtaproot出力を作成します。次に、reveal取引では、commit取引による出力を使用して、チェーン上の銘文の内容を表示します。</p>
+<p>銘文の内容は、実行されていない条件のデータプッシュを使用してシリアル化され &quot;エンベロープ&quot;と呼ばれます。封筒はOP_FALSE OP_IF…OP_ENDIF任意の数のデータプッシュを構成し、ラップします。エンベロープは実際には空の操作なので、それらを含むスクリプトのセマンティクスは変更されません。となり、他のロックスクリプトと組み合わせて使用できます。</p>
+<p>文字列「Hello,world！」を含むのテキスト銘文を以下のようにシリアル化されています：</p>
+<pre><code>OP_FALSE
+OP_IF
+  OP_PUSH &quot;ord&quot;
+  OP_PUSH 1
+  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH 0
+  OP_PUSH &quot;Hello, world!&quot;
+OP_ENDIF
+</code></pre>
+<p>まず文字列'ord'がプッシュされ、銘文と封筒の他の用途との曖昧さを解消します。</p>
+<p><code>OP_PUSH 1</code> indicates that the next push contains the content type, and <code>OP_PUSH 0</code>indicates that subsequent data pushes contain the content itself. Multiple data pushes must be used for large inscriptions, as one of taproot's few restrictions is that individual data pushes may not be larger than 520 bytes.</p>
+<p>銘文の内容はreveal取引の入力に含まれ、銘文はその最初の出力の最初の聡（Satoshi）に刻まれている。私たちはよく知っている序数理論のルールを使ってこの聡satを追跡することができます。移転、購入、販売、紛失、回復を許可します。</p>
+<h2 id="内容"><a class="header" href="#内容">内容</a></h2>
+<p>銘文のデータモデルはHTTP応答のデータモデルであり、銘文がウェブサーバによってサービスされ、ウェブブラウザで閲覧することを可能にします。</p>
+<h2 id="フィールド"><a class="header" href="#フィールド">フィールド</a></h2>
+<p>銘文には、オプションの本文の前にフィールドを含めることができます。各フィールドにはの2つのデータプッシュ、1つのラベルと1つの値。</p>
+<p>現在、定義されている唯一のフィールドは『content-type』です。タグは「1」、その値は本文のMI MEタイプです。</p>
+<p>本文の先頭とフィールドの末尾には &quot;空のデータ&quot;でプッシュが表示されます。</p>
+<p>認識できないラベルの解釈は、偶数か奇数かによって異なり、稲妻ネットワーク&quot;は奇数&quot;にすることができるというルールに従います。</p>
+<p>ラベルさえも、作成、初期割り当て、または銘文の転送に影響を及ぼす可能性のあるフィールドのために使用されます。だから、識別できない銘文でも、フィールドも&quot;未バインド&quot;として表示されなければなりません。つまり、場所がありません。</p>
+<p>奇数タグは、追加のメタデータなど、作成、初期フィールド、割り当て、または転送に影響を与えないために使用され、したがって、無視することが安全であることを選択します。</p>
+<h2 id="銘文の身分id"><a class="header" href="#銘文の身分id">銘文の身分ID</a></h2>
+<p>銘文は取引を明らかにする入力に含まれている。彼らを一意に識別するために、彼らには以下の形式のIDが割り当てられています：</p>
+<p><code>521f8eccffa4c41a3a7728dd012ea5a4a02feed81f41159231251ecf1e5c79dai0</code></p>
+<p>’i’の先頭部分は、トランザクションID（’txid’）である。<code>i</code>の後の数字はを定義します。新しい銘文は、取引で常に銘記されたインデックスの位置(0から開始)</p>
+<p>銘文は、入力の中の異なる入力の中にあってもよく、同じ入力であってもよく、あるいは両者の組み合わせであってもよい。いずれにしても、パーサーは入力を連続的にチェックし、すべての銘文『封筒を検索するため、順序は明確です</p>
+<div class="table-wrapper"><table><thead><tr><th style="text-align: center">Input</th><th style="text-align: center">Inscription Count</th><th style="text-align: center">Indices</th></tr></thead><tbody>
+<tr><td style="text-align: center">0</td><td style="text-align: center">2</td><td style="text-align: center">i0, i1</td></tr>
+<tr><td style="text-align: center">1</td><td style="text-align: center">1</td><td style="text-align: center">i2</td></tr>
+<tr><td style="text-align: center">2</td><td style="text-align: center">3</td><td style="text-align: center">i3, i4, i5</td></tr>
+<tr><td style="text-align: center">3</td><td style="text-align: center">0</td><td style="text-align: center"></td></tr>
+<tr><td style="text-align: center">4</td><td style="text-align: center">1</td><td style="text-align: center">i6</td></tr>
+</tbody></table>
+</div>
+<h2 id="サンドボックス化"><a class="header" href="#サンドボックス化">サンドボックス化</a></h2>
+<p>HTML と SVG 銘文はサンドボックス化され、チェーンの下の内容を引用しないようにして、銘文の不変性と独立性を保ちます。</p>
+<p>これは、HTMLとSVGの銘文を <code>iframes</code> にロードし、銘文コンテンツを提供することによって行われる'sandbox'属性です。Content-Security-Policy”ヘッダ。</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="digital-artifacts.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="inscriptions/provenance.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="digital-artifacts.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="inscriptions/provenance.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

@@ -1,0 +1,1285 @@
+<!DOCTYPE HTML>
+<html lang="ja" class="sidebar-visible no-js coal">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Ordinal Theory Handbook</title>
+        <meta name="robots" content="noindex" />
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="language-picker.css">
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "coal";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('coal')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">紹介</a></li><li class="chapter-item expanded "><a href="overview.html"><strong aria-hidden="true">1.</strong> 概要</a></li><li class="chapter-item expanded "><a href="digital-artifacts.html"><strong aria-hidden="true">2.</strong> 数字文物</a></li><li class="chapter-item expanded "><a href="inscriptions.html"><strong aria-hidden="true">3.</strong> 銘文</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="inscriptions/provenance.html"><strong aria-hidden="true">3.1.</strong> Provenance</a></li><li class="chapter-item expanded "><a href="inscriptions/recursion.html"><strong aria-hidden="true">3.2.</strong> 再帰</a></li></ol></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">4.</strong> 一般的問題</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> 貢献</a></li><li class="chapter-item expanded "><a href="donate.html"><strong aria-hidden="true">6.</strong> 寄付</a></li><li class="chapter-item expanded "><a href="guides.html"><strong aria-hidden="true">7.</strong> ガイド</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="guides/explorer.html"><strong aria-hidden="true">7.1.</strong> ブラウザ</a></li><li class="chapter-item expanded "><a href="guides/inscriptions.html"><strong aria-hidden="true">7.2.</strong> 銘文</a></li><li class="chapter-item expanded "><a href="guides/sat-hunting.html"><strong aria-hidden="true">7.3.</strong> 聡狩り</a></li><li class="chapter-item expanded "><a href="guides/collecting.html"><strong aria-hidden="true">7.4.</strong> コレクション</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="guides/collecting/sparrow-wallet.html"><strong aria-hidden="true">7.4.1.</strong> 雀のウォレット</a></li></ol></li><li class="chapter-item expanded "><a href="guides/testing.html"><strong aria-hidden="true">7.5.</strong> テスティング</a></li><li class="chapter-item expanded "><a href="guides/moderation.html"><strong aria-hidden="true">7.6.</strong> 調節</a></li><li class="chapter-item expanded "><a href="guides/reindexing.html"><strong aria-hidden="true">7.7.</strong> 再インデックス</a></li></ol></li><li class="chapter-item expanded "><a href="bounties.html"><strong aria-hidden="true">8.</strong> 賞金</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="bounty/0.html"><strong aria-hidden="true">8.1.</strong> ミッション 0: 100,000 sats 完成!</a></li><li class="chapter-item expanded "><a href="bounty/1.html"><strong aria-hidden="true">8.2.</strong> ミッション 1: 200,000 sats 完成!</a></li><li class="chapter-item expanded "><a href="bounty/2.html"><strong aria-hidden="true">8.3.</strong> ミッション 2: 300,000 sats 完成!</a></li><li class="chapter-item expanded "><a href="bounty/3.html"><strong aria-hidden="true">8.4.</strong> ミッション 3: 400,000 sats</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Ordinal Theory Handbook</h1>
+
+                    <div class="right-buttons">
+                        <button id="language-toggle" class="icon-button" type="button"
+                                title="Change language" aria-label="Change language"
+                                aria-haspopup="true" aria-expanded="false"
+                                aria-controls="language-list">
+                            <i class="fa fa-globe"></i>
+                        </button>
+                        <ul id="language-list" class="theme-popup" aria-label="Languages" role="menu">
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="en">English</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="zh">中文版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ja">日本語版</a>
+                          </button></li>
+                        </ul>
+
+                        <script>
+                          let langToggle = document.getElementById("language-toggle");
+                          let langList = document.getElementById("language-list");
+                          langToggle.addEventListener("click", (event) => {
+                              langList.style.display = langList.style.display == "block" ? "none" : "block";
+                          });
+                          let selectedLang = document.getElementById("ja");
+                          if (selectedLang) {
+                              selectedLang.parentNode.classList.add("theme-selected");
+                          }
+
+                          // The path to the root, taking the current
+                          // language into account.
+                          let full_path_to_root = "../";
+                          // The page path (mdbook only gives us
+                          // access to the path to the Markdown file).
+                          let path = "print.md".replace(/\.md$/, ".html");
+                          for (let lang of langList.querySelectorAll("a")) {
+                              if (lang.id == "en") {
+                                  lang.href = `${full_path_to_root}${path}`;
+                              } else {
+                                  lang.href = `${full_path_to_root}${lang.id}/${path}`;
+                              }
+                          }
+                        </script>
+
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ordinals/ord" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="紹介"><a class="header" href="#紹介">紹介</a></h1>
+<p>このマニュアルは序数理論の（Ordinals Theory）ガイドです。 序数理論は聡を注目され（Satoshi）、彼らに独立な身分を付与され、追跡され、移行され、意義を付与されます。</p>
+<p>聡は（Satoshi），ビットコインではなく、ビットコインのインタネットのネイティブ貨幣と最小の単位です。一つのビットコインは100,000,000聡を細分されますが、これ以上細分できません。</p>
+<p>序数理論はビットコインブロックチェーン以外のサイドチェーンまたはトークンが必要ではなく、ビットコインインターネットに何も変更しない場合にも使うことができます。すぐに使うことができます。</p>
+<p>序数理論は聡にコレックション価値に与えられ、骨董品としてコレックションし、取引をすることができます。</p>
+<p>一つの聡はどんな内容でも刻むことができます。独特なビットコインネイティブ数字文物（Digital Artifact）を作り上げ、ビットコインウォレットの中に保存して、ビットコインの取引で送信することができます。銘文（Inscription）はビットコインのように一样長持ちして、永久、安全と分散化されます。</p>
+<p>他の非正規の応用でも可能となり、チェーンの下の染色コインはシークレットキー交替の公開キーのインフラがあります。DNSの分散化の代替品などです。 今のところこういう応用は推測的で、非主流の序数の理論家の頭だけに存在しています</p>
+<p>序数理論のより多くの詳細な情報について，  <a href="overview.html">概述</a>を閲見してください。</p>
+<p>銘文のより多くの詳細な情報について、 <a href="inscriptions.html">銘文</a>を閲見してください。</p>
+<p>準備ができて、自分でする時に、銘文は良いなスタートです。<a href="guides/inscriptions.html">銘文</a>序数理論で支持した独特な数字文物です。</p>
+<h2 id="リンク"><a class="header" href="#リンク">リンク</a></h2>
+<ul>
+<li><a href="https://github.com/ordinals/ord/">GitHub倉庫</a></li>
+<li><a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">BIP</a></li>
+<li><a href="https://discord.gg/ordinals">Discord</a></li>
+<li><a href="https://ordinals.org/">Open Ordinals Institute ウェブサイト</a></li>
+<li><a href="https://x.com/ordinalsorg">Open Ordinals Institute Xアカウント</a></li>
+<li><a href="https://ordinals.com">メインネットブロック</a></li>
+<li><a href="https://signet.ordinals.com">Signetブロックブラウザ</a></li>
+</ul>
+<h2 id="動画"><a class="header" href="#動画">動画</a></h2>
+<ul>
+<li><a href="https://www.youtube.com/watch?v=rSS0O2KQpsI">序数理論を解釈して: 聡のシリアル番号とビットコインでのNFT</a></li>
+<li><a href="https://www.youtube.com/watch?v=MC_haVa6N3I">CaseyRodarmorの序数理論のワークショップ </a></li>
+<li><a href="https://www.youtube.com/watch?v=j5V33kV3iqo">序数の芸術：ビットコインの上で自分のNFTを鋳造します。 w/ @rodarmor</a></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="序数理論の概要"><a class="header" href="#序数理論の概要">序数理論の概要</a></h1>
+<p>序数は一つのビットコインの番号プランであり、一つの聡を追跡し、移転することができます。これらの数字はシリアル番号といいます。(https://ordinals.com)。ビットコインはそれらの発掘した順序により番号を書いて、取引輸入から取引輸出まで移行します（先入れ先出しの原則に従います）。番号プランと転送プランは順序に依存して、番号プランはビットコインが発掘された順序に依存し、転送プランは取引の輸入と輸出に順序に依存します。ここで_序数と呼ばれます（Ordinals_。</p>
+<p>技術的な詳細は<a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">the BIP</a>で獲得することができます.</p>
+<p>序数理論は独特なトークン、独特なブロックチェーン、またはビットコインにどんな変更でも必要ではなくて、すぐに有効的に運行することができません。</p>
+<p>シリアル番号はいくつか異なる表示方式があります</p>
+<ul>
+<li>
+<p><em>整数符号</em>:<a href="https://ordinals.com/sat/2099994106992659"><code>2099994106992659</code></a> このシリアル番号は発掘された聡の順序に従って分配されます。</p>
+</li>
+<li>
+<p><em>十進法符号n</em>: <a href="https://ordinals.com/sat/3891094.16797"><code>3891094.16797</code></a> 最初の数字は聡のブロック高度を発掘され、 二番目の数字はブロック内の聡の定常偏差です。</p>
+</li>
+<li>
+<p><em>度数符号</em>: <a href="https://ordinals.com/sat/3%C2%B0111094%E2%80%B2214%E2%80%B316797%E2%80%B4"><code>3°111094′214″16797‴</code></a>. それについてはすぐに説明します。</p>
+</li>
+<li>
+<p><em>パーセント</em>: <a href="https://ordinals.com/sat/99.99971949060254%25"><code>99.99971949060254%</code></a> . パーセントで聡がビットコイン供給の中の位置を示します</p>
+</li>
+<li>
+<p><em>名前</em>: <a href="https://ordinals.com/sat/satoshi"><code>satoshi</code></a>. 一つのアルファベットaからbまでのシリアル番号にコーディングを書く方法です。</p>
+</li>
+</ul>
+<p>任意の資産、例えばNFT、セキュリティトークン、アカウントまたは安定した貨幣、 序数を使って、安定した標識符号として、聡に付けます。</p>
+<p>Ordinalsはオープンソースプロジェクトです、<a href="https://github.com/ordinals/ord">on GitHub</a>に配置されます. このプロジェクトは序数プランを記述するBIPを含まれます。 ビットコインのコアノードと通信して、すべての聡を追跡した索引ですシリアル番号の感知取引を許可するウォレットです。 ブロックチェーンインタラクティブな探索のブロック資源管理プログラム、数字文物で聡の機能及びこのマニュアルを嵌めます。 </p>
+<h2 id="希少度"><a class="header" href="#希少度">希少度</a></h2>
+<p>人間はコレクターです。現在、聡は追跡、移行されることができて、人々は聡をコレクションしたいです。 序数理論家は自分でどちらの聡が珍しい聡と合意的な聡であることを決めます。 ヒントがあります…</p>
+<p>ビットコインは周期的な事件があり、頻繫的なのはあるし、一般的なのはあります。これらの事件は自然にレア度システムが形成されます。この周期的な事件は:</p>
+<ul>
+<li>
+<p><em>ブロック</em>: 現在から終わるまで10分ごとに新たなブロックを発掘されます。</p>
+</li>
+<li>
+<p><em>難易度調整</em>: 2016個ごとのブロック、または約二週間ごとです ビットコインインターネットはブロックが難易度の目標に満足させることを調整して、ハッシュレートの変化に対応します。 </p>
+</li>
+<li>
+<p><em>半減</em>: 21万のブロックごとに、または約4年ごとに，各ブロックが生じた新たな聡の数が半減になります。 </p>
+</li>
+<li>
+<p>_周期＿6回ごとに半減にするたび不思議なことが起こります。半分にすることと難易度の調整は同時に起こります。これは相合と言います。相合の時間周期は一周期です。 ほぼ24年ごとに一回の相合が起こります、最初の相合は2032年のある時に起こるはずです。</p>
+</li>
+</ul>
+<p>以下の希少度のレベルを与えられました:</p>
+<ul>
+<li><code>普通</code>: 全てのそのブロック最初の聡ではないの聡</li>
+<li><code>普通ではない</code>: 各ブロックの最初の聡</li>
+<li><code>珍しく</code>: 各難易度の調整周期の最初の聡</li>
+<li><code>史詩</code>: 各半減周期の最初の聡</li>
+<li><code>伝奇</code>: 各循環周期の最初の聡</li>
+<li><code>神話</code>: 創世ブロックの最初の聡</li>
+</ul>
+<p>これは私たちに度数表記法をもたらしました。それは聡の希少性を一目で見ることができる方法で序数を明確に表しています </p>
+<pre><code>A°B′C″D‴
+│ │ │ ╰─ 聡の索引位置
+│ │ ╰─── 難易度調整期のブロックの位置
+│ ╰───── 半減周期ブロックの索引位置
+╰─────── 循環周期、０の数字からスタートします。
+</code></pre>
+<p>序理論家通常使用 &quot;時間&quot;,&quot;分&quot;、&quot;秒&quot;、そして&quot;3&quot; などの対応を専用の言叶は、a、b、<em>c、と_d</em>。 </p>
+<p>いくつか例をお見せしましょうこれは普通の聡です</p>
+<pre><code>1°1′1″1‴
+│ │ │ ╰─ ブロック最初の聡ではない
+│ │ ╰─── 難易度調整周期の最初の聡ではない
+│ ╰───── 半減周期の最初の聡ではない
+╰─────── 二番目の循環周期
+</code></pre>
+<p>これは一般的な聡ではない</p>
+<pre><code>1°1′1″0‴
+│ │ │ ╰─ ブロック最初の聡
+│ │ ╰─── 難易度調整周期の最初の聡ではない
+│ ╰───── 半減周期の最初の聡ではない
+╰─────── 二番目の循環周期
+</code></pre>
+<p>珍しい聡です。</p>
+<pre><code>1°1′0″0‴
+│ │ │ ╰─ ブロック最初の聡
+│ │ ╰─── 難易度調整周期の最初の聡ではない
+│ ╰───── 半減周期の最初の聡ではない
+╰─────── 二番目の循環周期
+</code></pre>
+<p>史詩レベルの聡です</p>
+<pre><code>1°0′1″0‴
+│ │ │ ╰─ ブロック最初の聡
+│ │ ╰─── 難易度調整周期の最初の聡ではない
+│ ╰───── 半減周期の最初の聡ではない
+╰─────── 二番目の循環周期
+</code></pre>
+<p>伝奇レベルの聡です。</p>
+<pre><code>1°0′0″0‴
+│ │ │ ╰─ ブロック最初の聡
+│ │ ╰─── 難易度調整周期の最初の聡ではない
+│ ╰───── 半減周期の最初の聡ではない
+╰─────── 二番目の循環周期
+</code></pre>
+<p>神話レベルの聡です:</p>
+<pre><code>0°0′0″0‴
+│ │ │ ╰─ ブロック最初の聡
+│ │ ╰─── 難易度調整周期の最初の聡ではない
+│ ╰───── 半減周期の最初の聡ではない
+╰─────── 二番目の循環周期
+</code></pre>
+<p>If the block offset is zero, it may be omitted. This is the uncommon satoshi from above:</p>
+<pre><code>1°1′1″
+│ │ ╰─ Not first block in difficulty adjustment period
+│ ╰─── Not first block in halving epoch
+╰───── Second cycle
+</code></pre>
+<h2 id="珍しい聡の総供給量"><a class="header" href="#珍しい聡の総供給量">珍しい聡の総供給量</a></h2>
+<h3 id="総供給量"><a class="header" href="#総供給量">総供給量</a></h3>
+<ul>
+<li><code>普通</code>: 2千100万亿</li>
+<li><code>普通ではない</code>: 6,929,999</li>
+<li><code>珍しく</code>: 3437</li>
+<li><code>史詩</code>: 32</li>
+<li><code>伝奇</code>: 5</li>
+<li><code>神話</code>: 1</li>
+</ul>
+<h3 id="現有の供給量"><a class="header" href="#現有の供給量">現有の供給量</a></h3>
+<ul>
+<li><code>普通</code>: 1千900万亿</li>
+<li><code>普通ではない</code>: 745,855</li>
+<li><code>珍しく</code>: 369</li>
+<li><code>史詩</code>: 3</li>
+<li><code>伝奇</code>: 0</li>
+<li><code>神話</code>: 1</li>
+</ul>
+<p>今は普通ではないの聡にもとても珍しいです。 この文を書くまで， もう745,855の普通ではないの聡を発掘され、およそ25.6の流通ビットコインのうちに一つがあります。 </p>
+<h2 id="名前"><a class="header" href="#名前">名前</a></h2>
+<p>それぞれの聡は名前があり、アルファベットAからZまで構成されます 随着聪被开采的时间越长聡の発掘された時間が長いほど、名前が短いです。 短い名前から始めて、ますます長くなると、それでは、すべての良い、短い名前は使用できない創世ブロックに閉じ込められます。 </p>
+<p>As an example, 1905530482684727°'s name is &quot;iaiufjszmoba&quot;. The name of the last satoshi to be mined is &quot;a&quot;. Every combination of 10 characters or less is out there, or will be out there, someday.</p>
+<h2 id="きけいです"><a class="header" href="#きけいです">きけいです。</a></h2>
+<p>彼らの名前や希少性以外にも、聡は他の理由で重視されているかもしれない。これは、整数の平方根や立方根を持つような数値自体の性質によるものかもしれません。またはそれは、ブロック477,120（SegWitによって活性化されたブロック）からのような歴史的なイベントに関連していますは2099999997689999°で、これが最後に掘り出された聡です。</p>
+<p>このビットコインは「奇妙な」と呼ばれています。どの聡が「変わった」のですか？何がそんなに重要視されているのか？」順序理論家は、彼ら自身が設計した基準に基づいて「奇妙な」コングを探すことを奨励されています。</p>
+<h2 id="銘文"><a class="header" href="#銘文">銘文</a></h2>
+<p>コングは、ビットコインネイティブのデジタルアーティファクト（デジタルアート）を作成するために、任意のコンテンツを刻印することができます。「刻印は、刻印する内容を取引に送ることで行われます。この取引はチェーンに銘文の内容を表示します。」は銘文の内容が聡と不可分なつながりを持っているため、から変えられないデジタル人工製品を創造した。このデジタル遺物は、追跡、移転、保管、購入、販売、紛失、再発見することができます。</p>
+<h2 id="考古"><a class="header" href="#考古">考古</a></h2>
+<p>初期のNFTのカタログ作成と収集に取り組む活発な考古学者コミュニティが雨後の筍のように出現しました<a href="https://mirror.xyz/chainleft.eth/MzPWRsesC9mQflxlLo-N29oF4iwCgX3lacrvaG9Kjko">Chainleftによる歴史NFTの素晴らしいまとめ</a></p>
+<p>一般的に受け入れられている古いNFTの締め切りは2018年3月19日、つまり最初のERC-721契約、<a href="https://tenthousandsu.com/">SU SQUARES</a>,がイーサリアムに配備された時間です。</p>
+<p>NFT考古学者が序数に興味を持っているかどうかは未解決の問題です！ある意味で、序数は2022年初頭に作成され、当時序数規範がに制定されています。</p>
+<p>そういう意味では歴史的な意味がありませんしかし、別の意味では、序数は実際には中本聡が2009年にビットコイン創世ブロックを採掘した時に作られました。この意味で、序数、特に初期の序数は、もちろん歴史的な意味を持っています。</p>
+<p>多くの順序理論家は後者の見方に賛成しています。これは単に序数が少なくとも2つの異なる場面で独立して発見されたからではありません。は現代のNFT時代よりはるかに早く始まった。</p>
+<p>2012年8月21日、Charlie LeeでCharlie Lee[Bitcoin Talkフォーラムに投稿する」ビットコイン権益証明Pro of-of-stake追加の提案](https://bitcointalk.org/index.php?topic=102355.0）.これは資産シナリオではありませんが、序数アルゴリズムが使用されており、実装されていますが、導入されたことはありません。</p>
+<p>2012年10月8日、jl 2012は<a href="https://bitcointalk.org/index.php?topic=117224.0">同じフォーラムで案を発表しました</a>このスキームは、10進表記法を使用し、序数を持つすべての重要な属性。その計画は議論されたが、決して実施されませんでした</p>
+<p>これらの序数の独立した発明は、序数が発見されたことをある程度示しています。または再発見されたもので、発明されたものではありません。順序数はビットコイン数学の必然性でありますはそれらの現代の文書からではなく、それらの古い起源から来ています。彼らは何年も前に最初のブロックの採掘とともに始まった一連の出来事のクライマックスです</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="数字文物"><a class="header" href="#数字文物">数字文物</a></h1>
+<p>実体のある人工物を想像してください。例えば、珍しいコインの場合、バイキングの宝庫の闇の中で何年も秘密に保管されています今、あなたの手で地下から掘り出されました。それ…</p>
+<p>……一人の主人がいます。それはあなたです。あなたが大切に保管していれば、誰もあなたからそれを奪うことはできません。</p>
+<p>…完全です。漏れている部分はありません。</p>
+<p>…あなたしか変えることができません。もしあなたがビジネスマンで、あなたが来たならの18世紀の中国では、あなた以外に印鑑を押す人はいません。</p>
+<p>……あなたしか処分するすることができません。販売、取引、または贈り物はあなたの決定であり、誰にあげたいかは誰にでもあげます。 </p>
+<p>デジタル文化財（デジタル工作物、デジタル人工物）とは？は簡単に言えば、物理的人工物のデジタル等価物であります。</p>
+<p>デジタル化されたものをデジタルアーティファクトにするには、あなたのコインのようでなければなりません。</p>
+<ul>
+<li>
+<p>デジタル文化財には所有者がいることができるので、デジタル文化財とは異なります。誰も数字を持つことができないからです。</p>
+</li>
+<li>
+<p>デジタル文化財は完全であり、IP FSまたはArweave上のチェーンの下のコンテンツを指すNFTは不完全であるため、デジタル文化財ではありません。</p>
+</li>
+<li>
+<p>デジタル文化財は許可が必要なく、印税を支払わなければ販売できないNFTは許可が必要ないわけではないので、デジタル文化財ではありません。</p>
+</li>
+<li>
+<p>デジタル文化財は審査不可能です。今日は集中元帳のデータベースエントリを変更できるかもしれませんが、明日はできないかもしれません。そのため、デジタル文化財ではありません。</p>
+</li>
+<li>
+<p>デジタルコンテンツは改ざんできません。アップグレードキーを持つNFTはデジタルコンテンツではありません。</p>
+</li>
+</ul>
+<p>デジタル文化財の定義は、その特定の性質からNFTを反映することを目的としています_べき_は何か、時には何か、そして銘文_終始_は何ですか </p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="銘文-1"><a class="header" href="#銘文-1">銘文</a></h1>
+<p>銘文には任意の内容が刻まれ、ビットコインネイティブのデジタル人工製品が作られました。通常NFTと呼ばれています。の銘文には側鎖や個別のトークンは必要ありません。 </p>
+<p>これらの刻まれたコングは、ビットコイン取引転送を使用してビットコインアドレスに送信され、ビットコインUTXOに保存されます。これらの取引、アドレス、UTXOはすべての点で通常のビットコイン取引、アドレス、UTXOです。は単一の聡を送るために加えて、取引は序数理論に基づいて入力と出力の順序と値を制御しなければなりません</p>
+<p>銘文の内容はワールドワイドウェブ基準に基づいている。銘文はコンテンツタイプ（MI MEタイプとも呼ばれる）とコンテンツ自体（バイト列）で構成されています。これにより、Webサーバーから銘文コンテンツを返すことができ、HTML銘文を作成して使用し、他の銘文コンテンツを再混合するために使用されます。</p>
+<p>銘文の内容は完全にチェーン上にあり、保存されているtaproot script-path spendスクリプト内。のTaprootスクリプトはその内容に対する制限が少なく、証人割引を追加で受けることで、銘文内容の保存が比較的経済的になります。</p>
+<p>taproot script-path spendスクリプトは既存のtaproot出力からしか生成できないため、そのため、は2段階のcommit/revealプロセスを使用して刻印されます。まず、commitでは、銘文の内容を含むスクリプトに提出するtaproot出力を作成します。次に、reveal取引では、commit取引による出力を使用して、チェーン上の銘文の内容を表示します。</p>
+<p>銘文の内容は、実行されていない条件のデータプッシュを使用してシリアル化され &quot;エンベロープ&quot;と呼ばれます。封筒はOP_FALSE OP_IF…OP_ENDIF任意の数のデータプッシュを構成し、ラップします。エンベロープは実際には空の操作なので、それらを含むスクリプトのセマンティクスは変更されません。となり、他のロックスクリプトと組み合わせて使用できます。</p>
+<p>文字列「Hello,world！」を含むのテキスト銘文を以下のようにシリアル化されています：</p>
+<pre><code>OP_FALSE
+OP_IF
+  OP_PUSH &quot;ord&quot;
+  OP_PUSH 1
+  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH 0
+  OP_PUSH &quot;Hello, world!&quot;
+OP_ENDIF
+</code></pre>
+<p>まず文字列'ord'がプッシュされ、銘文と封筒の他の用途との曖昧さを解消します。</p>
+<p><code>OP_PUSH 1</code> indicates that the next push contains the content type, and <code>OP_PUSH 0</code>indicates that subsequent data pushes contain the content itself. Multiple data pushes must be used for large inscriptions, as one of taproot's few restrictions is that individual data pushes may not be larger than 520 bytes.</p>
+<p>銘文の内容はreveal取引の入力に含まれ、銘文はその最初の出力の最初の聡（Satoshi）に刻まれている。私たちはよく知っている序数理論のルールを使ってこの聡satを追跡することができます。移転、購入、販売、紛失、回復を許可します。</p>
+<h2 id="内容"><a class="header" href="#内容">内容</a></h2>
+<p>銘文のデータモデルはHTTP応答のデータモデルであり、銘文がウェブサーバによってサービスされ、ウェブブラウザで閲覧することを可能にします。</p>
+<h2 id="フィールド"><a class="header" href="#フィールド">フィールド</a></h2>
+<p>銘文には、オプションの本文の前にフィールドを含めることができます。各フィールドにはの2つのデータプッシュ、1つのラベルと1つの値。</p>
+<p>現在、定義されている唯一のフィールドは『content-type』です。タグは「1」、その値は本文のMI MEタイプです。</p>
+<p>本文の先頭とフィールドの末尾には &quot;空のデータ&quot;でプッシュが表示されます。</p>
+<p>認識できないラベルの解釈は、偶数か奇数かによって異なり、稲妻ネットワーク&quot;は奇数&quot;にすることができるというルールに従います。</p>
+<p>ラベルさえも、作成、初期割り当て、または銘文の転送に影響を及ぼす可能性のあるフィールドのために使用されます。だから、識別できない銘文でも、フィールドも&quot;未バインド&quot;として表示されなければなりません。つまり、場所がありません。</p>
+<p>奇数タグは、追加のメタデータなど、作成、初期フィールド、割り当て、または転送に影響を与えないために使用され、したがって、無視することが安全であることを選択します。</p>
+<h2 id="銘文の身分id"><a class="header" href="#銘文の身分id">銘文の身分ID</a></h2>
+<p>銘文は取引を明らかにする入力に含まれている。彼らを一意に識別するために、彼らには以下の形式のIDが割り当てられています：</p>
+<p><code>521f8eccffa4c41a3a7728dd012ea5a4a02feed81f41159231251ecf1e5c79dai0</code></p>
+<p>’i’の先頭部分は、トランザクションID（’txid’）である。<code>i</code>の後の数字はを定義します。新しい銘文は、取引で常に銘記されたインデックスの位置(0から開始)</p>
+<p>銘文は、入力の中の異なる入力の中にあってもよく、同じ入力であってもよく、あるいは両者の組み合わせであってもよい。いずれにしても、パーサーは入力を連続的にチェックし、すべての銘文『封筒を検索するため、順序は明確です</p>
+<div class="table-wrapper"><table><thead><tr><th style="text-align: center">Input</th><th style="text-align: center">Inscription Count</th><th style="text-align: center">Indices</th></tr></thead><tbody>
+<tr><td style="text-align: center">0</td><td style="text-align: center">2</td><td style="text-align: center">i0, i1</td></tr>
+<tr><td style="text-align: center">1</td><td style="text-align: center">1</td><td style="text-align: center">i2</td></tr>
+<tr><td style="text-align: center">2</td><td style="text-align: center">3</td><td style="text-align: center">i3, i4, i5</td></tr>
+<tr><td style="text-align: center">3</td><td style="text-align: center">0</td><td style="text-align: center"></td></tr>
+<tr><td style="text-align: center">4</td><td style="text-align: center">1</td><td style="text-align: center">i6</td></tr>
+</tbody></table>
+</div>
+<h2 id="サンドボックス化"><a class="header" href="#サンドボックス化">サンドボックス化</a></h2>
+<p>HTML と SVG 銘文はサンドボックス化され、チェーンの下の内容を引用しないようにして、銘文の不変性と独立性を保ちます。</p>
+<p>これは、HTMLとSVGの銘文を <code>iframes</code> にロードし、銘文コンテンツを提供することによって行われる'sandbox'属性です。Content-Security-Policy”ヘッダ。</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="provenance"><a class="header" href="#provenance">Provenance</a></h1>
+<p>The owner of an inscription can create child inscriptions, trustlessly establishing the provenance of those children on-chain as having been created by the owner of the parent inscription. This can be used for collections, with the children of a parent inscription being members of the same collection.</p>
+<p>Children can themselves have children, allowing for complex hierarchies. For example, an artist might create an inscription representing themselves, with sub inscriptions representing collections that they create, with the children of those sub inscriptions being items in those collections.</p>
+<h3 id="specification"><a class="header" href="#specification">Specification</a></h3>
+<p>To create a child inscription C with parent inscription P:</p>
+<ul>
+<li>Create an inscribe transaction T as usual for C.</li>
+<li>Spend the parent P in one of the inputs of T.</li>
+<li>Include tag <code>3</code>, i.e. <code>OP_PUSH 3</code>, in C, with the value of the serialized binary inscription ID of P, serialized as the 32-byte <code>TXID</code>, followed by the four-byte little-endian <code>INDEX</code>, with trailing zeroes omitted.</li>
+</ul>
+<p><em>NB</em> The bytes of a bitcoin transaction ID are reversed in their text representation, so the serialized transaction ID will be in the opposite order.</p>
+<h3 id="サンプル"><a class="header" href="#サンプル">サンプル</a></h3>
+<p>An example of a child inscription of <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0</code>:</p>
+<pre><code>OP_FALSE
+OP_IF
+  OP_PUSH &quot;ord&quot;
+  OP_PUSH 1
+  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH 3
+  OP_PUSH 0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100
+  OP_PUSH 0
+  OP_PUSH &quot;Hello, world!&quot;
+OP_ENDIF
+</code></pre>
+<p>Note that the value of tag <code>3</code> is binary, not hex, and that for the child inscription to be recognized as a child, <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0</code> must be spent as one of the inputs of the inscribe transaction.</p>
+<p>Example encoding of inscription ID <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi255</code>:</p>
+<pre><code>OP_FALSE
+OP_IF
+  …
+  OP_PUSH 3
+  OP_PUSH 0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100ff
+  …
+OP_ENDIF
+</code></pre>
+<p>And of inscription ID <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi256</code>:</p>
+<pre><code>OP_FALSE
+OP_IF
+  …
+  OP_PUSH 3
+  OP_PUSH 0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a090807060504030201000001
+  …
+OP_ENDIF
+</code></pre>
+<h3 id="notes"><a class="header" href="#notes">Notes</a></h3>
+<p>The tag <code>3</code> is used because it is the first available odd tag. Unrecognized odd tags do not make an inscription unbound, so child inscriptions would be recognized and tracked by old versions of <code>ord</code>.</p>
+<p>A collection can be closed by burning the collection's parent inscription, which guarantees that no more items in the collection can be issued.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="再帰"><a class="header" href="#再帰">再帰</a></h1>
+<p><a href="inscriptions/../inscriptions.html#sandboxing">サンドボックス化</a>の重要な例外は再帰です：<code>ord</code>の /content<code>エンドポイントへのアクセスが許可され、碑文が</code>/content/&lt;INSCRIPTION_ID&gt;`をリクエストすることで他の碑文のコンテンツにアクセスできるようになります。</p>
+<p>ここは面白い用例がとても多いです：</p>
+<ul>
+<li>
+<p>既存の銘文の内容を再混合します。</p>
+</li>
+<li>
+<p>コード、イメージ、オーディオ、またはスタイルシートフラグメントを共通の共有アセットとしてパブリッシュします。</p>
+</li>
+<li>
+<p>アルゴリズムがJava Scriptを使用して刻印され、ユニークなシードを持つ複数の銘文からインスタンス化されたアートコレクションを生成します。</p>
+</li>
+<li>
+<p>アクセサリーやプロパティを含むプロファイル画像セットを生成し、個別の画像として書き込むか、共有テクスチャマップセットに書き込み、の組み合わせ、コラージュスタイル、複数の銘文の中で独特の組み合わせで。</p>
+</li>
+</ul>
+<p>銘文がアクセスできる他のいくつかのエンドポイントは以下の通りです：</p>
+<ul>
+<li><code>/blockheight</code>：最新のブロック高度。</li>
+<li><code>/blockhash</code>：最新のブロックハッシュ。</li>
+<li><code>/blockhash/&lt;HEIGHT&gt;</code>：指定されたブロック高さのブロックハッシュ。</li>
+<li><code>/blocktime</code>：最新のブロックのUNIXタイムスタンプ。</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="序数理論のよくある質問"><a class="header" href="#序数理論のよくある質問">序数理論のよくある質問</a></h1>
+<h2 id="序数理論はなんですか"><a class="header" href="#序数理論はなんですか">序数理論はなんですか</a></h2>
+<p>序数理論は、聡（satoshi、以下は「聡」と書きます。ビットコインの最小単位）シリアル番号を割り当てるプロトコル、と取引中にこれらの聡を追跡します。</p>
+<p>これらの番号はすべて大きな数字で、例えば、804766073970493.すべての聡satoshi、もビットコインの¹⁄₁₀₀₀₀₀₀₀₀はすべて序数番号を持っています</p>
+<h2 id="序数理論はサイドチェーン個別のトークンまたはビットコインに変更を加える必要がありますか"><a class="header" href="#序数理論はサイドチェーン個別のトークンまたはビットコインに変更を加える必要がありますか">序数理論はサイドチェーン、個別のトークン、またはビットコインに変更を加える必要がありますか?</a></h2>
+<p>全然いりません！序数理論は現在有効に利用可能で、サイドチェーンがなく、唯一必要なトークンはビットコイン自体であります。</p>
+<h2 id="序数理論はどんな用途がありますか"><a class="header" href="#序数理論はどんな用途がありますか">序数理論はどんな用途がありますか？</a></h2>
+<p>収集、取引、企画。序数理論は身分を個々の聡に割り当て、骨董品や貨幣価値として個別に追跡され取引されることを可能にします。</p>
+<p>序数理論はまた、任意の内容を単一のコングに付加し、ビットコインのネイティブデジタルアーティファクトにするプロトコルである銘文を与えます。</p>
+<h2 id="序数理論はどのように機能しますか"><a class="header" href="#序数理論はどのように機能しますか">序数理論はどのように機能しますか？</a></h2>
+<p>序数は採掘の順序に従って聡に割り当てられた。最初のブロックの最初のリスニングの序数は0で、2番目のリスニングの序数は1です。最初のブロックの最後のセグメントの序数は4,999,999,999です。</p>
+<p>コングは出力に存在しますが、トランザクションは出力を破壊し、新しい出力を作成します。したがって、序数理論では、取引の入力から出力にどのようにジャンプするかを決定するアルゴリズムを使用します。</p>
+<p>幸いなことに、このアルゴリズムはとても簡単です。</p>
+<p>聡は先入れ先出しの順に振り込みを行う。トランザクションの入力をスマートリストとして、出力をスロットスロットリストとして、聡の受信を待つ。入力セグメントをスロットに割り当てるには、入力セグメントの各セグメントを順番にチェックします。と表示され、出力の最初の使用可能なスロットに各スマートが割り当てられます。。</p>
+<p>3つの入力と2つの出力を持つ取引を想像してみましょう。入力は矢印の左側にあり、出力は右側にあり、値のラベルが付いています：</p>
+<pre><code>[2] [1] [3] → [4] [2]
+</code></pre>
+<p>今は、各入力に含まれる小数点以下の番号で同じトランザクションをマークし、各出力スロットに疑問符をマークします。序数は大きいので、それらをアルファベットで表します：</p>
+<pre><code>[a b] [c] [d e f] → [? ? ? ?] [? ?]
+</code></pre>
+<p>どの出力からどの出力への出力かを確認するには、入力の出力を順番にチェックし、各出力に疑問符を割り当てます：</p>
+<pre><code>[a b] [c] [d e f] → [a b c d] [e f]
+</code></pre>
+<p>取引費用を聞くかもしれませんか？いい質問だ！同じ取引を想像してみましょう。今回は2人の聡の費用です。有料取引は、で送信された音声が出力で受信された音声より多いので、私たちの取引を料金を支払う取引にするために、2番目の出力を削除します:</p>
+<pre><code>[2] [1] [3] → [4]
+</code></pre>
+<p>聡<var>e</var>と <var>f</var>今は輸出しているので、どこへも行けません</p>
+<pre><code>[a b] [c] [d e f] → [a b c d]
+</code></pre>
+<p>だから彼らは「費用」としてこのブロックを掘っている鉱山労働者のところに行きます。<a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">The BIP</a>にはもっと詳しい説明があります。しかし、簡単に言えば、取引によって支払われる料金は、Coinbase取引への追加入力とみなされ、その対応する取引に応じてブロック内にありますの順にソートされます。ブロックのCoinbaseトランザクションは次のようになる可能性があります:</p>
+<pre><code>[SUBSIDY] [e f] → [SUBSIDY e f]
+</code></pre>
+<h2 id="これらの詳細な情報はどこで見つけることができますか"><a class="header" href="#これらの詳細な情報はどこで見つけることができますか">これらの詳細な情報はどこで見つけることができますか</a></h2>
+<p><a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">The BIP!</a></p>
+<h2 id="なぜ聡の銘文はnftではなくデジタル文化財と呼ばれていますか"><a class="header" href="#なぜ聡の銘文はnftではなくデジタル文化財と呼ばれていますか">なぜ聡の銘文は「NFT」ではなく「デジタル文化財」と呼ばれていますか？</a></h2>
+<p>銘文もNFTの一種です。しかし、その代わりに「デジタル文化財」という用語が使われています。それは簡単で、啓発的で、なじみがあるからです</p>
+<p>&quot;デジタル文化財&quot;（デジタル工作物、デジタル人工物）これらの言葉は強い暗示性を持っている。「これまでこの言葉を聞いたことがない人にとってもそうだ」に比べて、NFTは頭文字の略語で、以前この用語を聞いたことがなければ、意味を説明できません。</p>
+<p>さらに、&quot;NFT&quot;は金融用語のような気がします。&quot;NFT&quot;で使われている&quot;同質化&quot;という言葉と&quot;トークン&quot;という言葉の意味は金融の文脈の外では一般的ではありません。</p>
+<h2 id="聡は他のルーンと比較します"><a class="header" href="#聡は他のルーンと比較します">聡は他のルーンと比較します</a></h2>
+<h3 id="エセリウムnft"><a class="header" href="#エセリウムnft">エセリウムNFT</a></h3>
+<p><em>銘文は永遠に変わりません</em></p>
+<p>銘文の作成者や所有者は、銘文を作成した後に修正することはできません。</p>
+<p>エセリウムNFTs_は変更不可能であることができますが、多くはそうではなく、NFT契約者によって変更または削除することができます。。</p>
+<p>特定のエセリウムNFTが不変であることを確実にするためには、契約コードを監査しなければなりません。これにはEVMとSolidityセマンティクスの詳細な理解が必要です。</p>
+<p>技術ユーザーではない人にとって、あるイーサリアムNFTが可変かどうかを判断することは困難であり、イーサリアムNFTプラットフォームもNFTが可変かどうかを区別する努力をしていません。と、契約ソースコードが利用可能で監査されているかどうかを確認します。</p>
+<p><em>銘文の内容は永遠にコンタクトします</em></p>
+<p>銘文はチェーンの下の内容を引用できない。内容が失われないので、銘文はより長持ちします。また、コンテンツのサイズに比例した費用を銘文作成者に支払わなければなりません。</p>
+<p>イーサリアムのNFTコンテンツの中にはチェーン上にあるものもありますが、ほとんどのコンテンツはチェーンの下にあり、IP FSやArweaveなどのプラットフォームに保存されています。または従来の完全に中心化されたネットワークサーバー上で。IP FSのコンテンツは引き続き利用できることを保証していません。IP FSに保存されているNFTコンテンツの一部は失われました。Arweaveのようなプラットフォームは弱い経済的仮定に依存しており、これらの経済的仮定が満たされなくなったときは壊滅的な失敗を起こす可能性が高い。一元化されたネットワークサーバはいつでも消える可能性があ。</p>
+<p>技術ユーザーではない人にとって、イーサリアムNFTのコンテンツがどこに保存されているかを特定することは困難です。</p>
+<p><em>めいぶんはよりかんたんであります</em></p>
+<p>イーサリアムNFTはイーサリアムネットワークと仮想マシンに依存しており、高度に複雑で変化し続け、下位互換性のないハードフォークによって変化をもたらします。</p>
+<p>対照的に、銘文はビットコインブロックチェーンに依存しており、比較的単純で保守的であり、後方互換性のあるソフトフォークによって変化を導入しています。</p>
+<p><em>銘文はより安全です</em></p>
+<p>銘文はビットコインの取引モデルを継承しており、ユーザーは署名する前に取引でどの銘文が転送されたかを正確に見ることができる。銘文は署名取引の一部を使用して販売することができ、取引所や市場などの第三者がユーザーの代わりにそれらを譲渡することを許可する必要はありません。</p>
+<p>対照的に、イーサリアムNFTはエンドユーザーのセキュリティホールに悩まされています。ブラインドサイン取引、ユーザーにNFTの第三者アプリケーションを付与の無限の権限と、複雑で予測不可能なスマートコントラクトとのやり取りは当たり前のことです。これはイーサリアムNFTユーザーのために作られた危険地雷原をしていますが、これらは番号理論家にとっては心配する必要はありません。</p>
+<p><em>銘文はより珍しいです</em></p>
+<p>銘文は鋳造、移転、保存するためにビットコインが必要です。表面的には、これは障害のように見えるが、デジタル文化財の存在の価値目的は希少であります。</p>
+<p>一方、イーサリアムNFTは1回の取引でほぼ無限の品質で鋳造することができ、本質的にそれほど希少ではないです。そのため、あまり価値がないかもしれません。</p>
+<p><em>銘文はチェーン上の版税を支持するふりをしません</em></p>
+<p>「チェーン上の版税」は理論的には良い考えですが、実際にはうまくいきません。複雑で侵入的な制限がなければチェーン上の版税の支払いを強制することはできません。イーサリアムNFTエコシステムは、版税をめぐる問題を解決するために努力しています。そして、は共に一つの現実に直面しています。つまり、NFTチェーン上の版税という利器を芸術家に伝えることは実際には不可能です。同時に、複数のプラットフォームが版税のサポートを削除するために競争しています</p>
+<p>銘文はこの状況を完全に迴避し、チェーン上のロイヤリティをサポートすることを虚偽で約束していません。はイーサリアムNFTのような混乱と消極的な状況を避けました。</p>
+<p><em>銘文は新たな市場を開きました</em></p>
+<p>ビットコインの市場価格と流動性はイーサリアムを大きく上回っている。イーサリアムNFTはこのような流動性の大部分を得ることができません。多くのビットコインユーザーは、シンプルさ、安全性、分散化の観点から、イーサリアムのエコシステムと対話することを望んでいないからです。</p>
+<p>イーサリアムNFTと比較して、そのようなビットコインの支持者は、新しいカテゴリのコレクターをロック解除するために、碑文に興味を持っている可能性があります。</p>
+<p><em>铭文有更丰富的数据模型</em></p>
+<p>銘文はコンテンツタイプ（MI MEタイプとも呼ばれる）とコンテンツ）任意のバイト文字列）で構成される。これは、Webで使用されるデータモデルと同じです。銘文コンテンツをウェブの発展に合わせて発展させ、基盤となるプロトコルを変更することなく、ウェブブラウザがサポートするあらゆる種類のコンテンツをサポートすることを可能に</p>
+<h3 id="rgb-和-taro-資産"><a class="header" href="#rgb-和-taro-資産">RGB 和 Taro 資産？</a></h3>
+<p>RGBとTaroはいずれもビットコインの上に構築された二層資産協定である。銘文に比べて、それらはずっと複雑ですが、より特色があります。</p>
+<p>シリアル番号理論はデジタルアーティファクト用に設計されていますが、RGBとTaroの主なユースケースは代替トークンです。そのため、銘文のユーザー体験はRGBやTaro NFTのユーザー体験よりも簡単で完璧かもしれません。</p>
+<p>RGBとTaroはどちらもチェーンの下にコンテンツを保存します。これには追加のインフラが必要で、紛失する可能性があります。に比べて、銘文の内容はチェーンに保存され、失われることはありません。</p>
+<p>序数理論、RGB、Taroは非常に初期のものなので、これは推測にすぎませんが、序数理論の重点はデジタル芸術品のにあるかもしれませんの特性には、より良いコンテンツモデルや、世界で唯一のシンボルのような特性などの利点があります。</p>
+<h3 id="counterparty资产"><a class="header" href="#counterparty资产">Counterparty资产</a></h3>
+<p>Counterpartyは独自のトークンXCPを持っています。これはいくつかの機能に必要で、ほとんどのビットコイン保有者はそれをパクリ通貨と見なしています。ビットコインの拡張や第二層ではありません</p>
+<p>序数理論はデジタル文化財のために最初から設計されたのに対し、Counterpartyは主に金融トークン発行のために設計されました。</p>
+<h2 id="銘文は"><a class="header" href="#銘文は">銘文は...</a></h2>
+<h3 id="芸術家になれます"><a class="header" href="#芸術家になれます">芸術家になれます</a></h3>
+<p>_ビットコインの銘文_ビットコインは現在最も地位が高く、長期生存の機会が最も大きいデジタル通貨であります。はあなたの芸術作品が未来に伝わることを保証したいなら、銘文より良い発表方法はありません。</p>
+<p>_チェーン上のストレージはより安価です_ビットコインあたり2万ドルとvbyteあたり1聡の最低中継料金で計算します。碑文の内容を公開するためのコストは100万バイトあたり50ドルです。</p>
+<p><em>铭文还处于项目早期</em> 铭文仍在开发中，尚未在主网上发布（建议更新）。 这使您有机会成为早期采用者，并随着媒体的发展探索它。</p>
+<p><em>铭文很简单</em> 铭文不需要你编写或理解智能合约。</p>
+<p>_銘文ロック解除新しい流動性_ビットコインの所有者にとって、銘文はより簡単に入手でき、より魅力的で、新しいコレクションをもたらします。</p>
+<p>_銘文はデジタル文化財のために設計されています_新しいデザインの銘文はNFTをサポートし、より良いデータモデルを持っています,や、世界的にユニークなシンボルや拡張ソースなどの機能です。</p>
+<p>_銘文はチェーン上のロイヤリティを奨励しない_これは良いニュースではないかもしれませんが、それをどう見るかによっても異なります。チェーン上のロイヤリティは常にクリエイターにとっての福音ですしかし、はイーサリアムNFT生態系にも大きな混乱をもたらした。イーサリアムは今この問題を解決しようと努力しています。底をついた競争でもあります。は「オプションのロイヤリティ」の未来を実現する。銘文はチェーン上のロイヤリティをサポートしていません。技術的に不可能だからです。」銘文を作成することを選択した場合、この制限を迴避する方法はたくさんあります。銘文の一部を将来の販売のために残して、将来の上昇から利益を得ます。またはオプションのロイヤリティを尊重するユーザーに追加の手当を提供します。</p>
+<h3 id="コレクター"><a class="header" href="#コレクター">コレクター</a></h3>
+<p><em>銘文は簡単です</em>、はっきりしていて事故はありません*それらは常に不変でチェーン上にあり、特別なデューデリジェンスは必要ありません。</p>
+<p>_ビットコイン上の銘文_あなたが制御するビットコインのフルノードを使用して、銘文の位置と属性を簡単に検証できます。</p>
+<h3 id="ビットコインの信仰者"><a class="header" href="#ビットコインの信仰者">ビットコインの信仰者</a></h3>
+<p>冒頭で説明しましょう。ビットコインネットワークが行っている最も重要なことは、通貨の中心化です。の他のすべてのユースケースは、序数理論を含む副次的なものです。序数理論の開発者はこれを理解し、認めています。そして、序数理論はビットコインの主要な課題に少なくともわずかに寄与すると信じています。</p>
+<p>他のパクリ通貨分野のものとは異なり、デジタル文化財には利点がある。もちろん、多くのNFTは醜い、愚か、詐欺的です。しかし、素晴らしいアイデアはたくさんあります。芸術を創造し、収蔵することはもともと人間の物語の一部です。は貿易やお金といった同じ古い技術よりも早いです。</p>
+<p>ビットコインは、安全で分散化された方法でデジタルアーティファクトを作成し、収集するための素晴らしいプラットフォームを提供しています。も同様にユーザーとアーティストを保護し、同時に価値を送受信する優れたプラットフォームを提供しています。</p>
+<p>序数と銘文はビットコインのブロックスペースの必要性を高め、ビットコインのセキュリティ予算を増加させた。はビットコインが費用依存型のセキュリティモデルに移行することを保障するために重要であります。ブロック補助金の半減はわずかになったからであります。</p>
+<p>銘文の内容はチェーンに保存されているので、銘文のためのブロック空間の需要は無限であります。これにより、すべてのビットコインのブロックスペースに最後の買い手が生まれます。これは強力な有料市場をサポートし、ビットコインが常に安全であることを保証するのに役立ちます。</p>
+<p>銘文はまた、ビットコインは拡張できない、または新しいユースケースに使用できないという説に反論した。DLC、Fedimint、Lightning、に注目するとTaroやRGBなどのプロジェクトをすると、この言い方が間違っていることがわかります。碑文は、理解しやすい反論を提供しています。そして、一般的で実証済みのユースケースについて:NFT,これにより、非常に理解しやすくなります。</p>
+<p>作者が望むように、銘文が豊富な歴史を持つデジタル文化財であることが証明され、高く支持されていればそれらはビットコインに採用される強力な魅力になります：楽しさ、豊かな芸術に惹かれて、脱中心化されたデジタル通貨のためにも残りたいです。</p>
+<p>銘文はブロック空間需要の極めて健全な源であり、安定通貨とは異なり、大手発行者がビットコインの未来をする可能性があります発展に影響を与えて；DeFiとは異なり、ビットコインにMEV、デジタルアート、コレクションを導入する機会を通じて、マイニングを集中化することができます。芸術は脱中心化されており、いかなる実体も権力を使ってビットコインを破壊することはできません。</p>
+<p>銘文ユーザーとサービスプロバイダーは、ビットコインのフルノードを実行し、追跡銘文を発行して、彼らの経済的重みを正直なチェーンに向けるように動機付けられています。</p>
+<p>序数理論と銘文はビットコインの代替可能性に大きな影響を与えない。ビットコインユーザーはこの2つを無視しても影響を受けません。</p>
+<p>序数理論がビットコインを強化し、豊かにし、別の次元の魅力と機能を与えることを望んでいます。人間の分散化された価値ストレージとしての主要なユースケースにより効率的にサービスを提供できるようにします。</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="どのようにordのために貢献しますか"><a class="header" href="#どのようにordのために貢献しますか">どのように<code>ord</code>のために貢献しますか</a></h1>
+<h2 id="お勧めの手順"><a class="header" href="#お勧めの手順">お勧めの手順</a></h2>
+<ol>
+<li>解決したい問題を見つけました。</li>
+<li>この問題を解決するための良い第一歩とは何かを明らかにします。これはコード、研究、提案の形にすることができます。またはは、それが古くなった場合、または最初から良いアイデアではない場合は、それを閉じることをお勧めします。</li>
+<li>提案した最初のステップの概要を説明し、問題についてコメントし、フィードバックを求めます。もちろん、すぐに投入して始めることもできますコードを書いたり、テストしたりする。しかし、問題がすでに時代遅れ、明確に制定されていなく、他の理由で妨げられていて、または準備ができていない場合はよく実施され、このステップは潜在的なエネルギーの浪費を避けることができます。</li>
+<li>コードの変更やエラーの修正が必要な場合は、テストPRのドラフトを開き、フィードバックを求めてください。これは保証されます誰もが同期して何をすべきか、あるいはこの問題を解決する最初のステップは何かを知っています。同様に、デバッグは必須なので、まずテストドラフトを作成し、更新が容易にテストできることを確認します。</li>
+<li>テストに合格するまでキーボードをランダムにタップし、コードをコミットする準備ができるまでリファクタリングします。</li>
+<li>PRをレビュー準備完了としてマーク。</li>
+<li>必要であれば PRを直します 。</li>
+<li>最後のの一歩！</li>
+</ol>
+<h2 id="塵を重ねば山となる"><a class="header" href="#塵を重ねば山となる">塵を重ねば、山となる</a></h2>
+<p>小さな変化はあなたに迅速に影響力を与えることができ、間違った戦略をとっても、あまり時間を無駄にしません。</p>
+<p>いくつかの小さな問題の考え:</p>
+<ul>
+<li>新しいテストまたはテストケースを追加して、テストのカバー率を高めます。</li>
+<li>ドキュメントの追加または改善</li>
+<li>より多くの研究が必要な問題を見つけ、研究を行い、コメントにまとめます</li>
+<li>古い質問を見つけ、コメントして閉じます。</li>
+<li>本来すべきではない問題を見つけ、建設的なフィードバックを提供して、このような状況が発生すると考えられる理由を詳しく説明します</li>
+</ul>
+<h2 id="早く合併しよく合併します"><a class="header" href="#早く合併しよく合併します">早く合併し、よく合併します</a></h2>
+<p>大規模なタスクを複数の小さなステップに分け、これらのステップが個別に取ることができる進展。プログラムエラーがある場合は、PRを開くこともできます。失敗した無視テストを追加します。これはマージすることができ、次のステップでエラーを修正することができますとテストを無視します。あなたの研究またはテスト結果を報告します。大きな機能を小さなサブ機能に分解します。そして、それらを一度に1つずつ段階的に実現します。</p>
+<p>大きなPRを小さなPRに分解する方法を明らかにし、すべてのPRが統合できるのは非常に練習価値があります。これもプログラミングの芸術です。難しい部分は、各PR自体が改善でなければならないことです。</p>
+<p>私は自分でこのアドバイスに従うように努力しています。そして、私がそうすると、私はいつももっと上手にできます。</p>
+<p>小さな変更は、迅速に作成、レビュー、マージすることができます。これは、永遠に作成、レビュー、マージする必要がある大規模なPRの仕事はもっと面白いです。小さな変更にはあまり時間がかからないので、小さな変更の処理を中止する必要がある場合は、何時間もの仕事を表す大きな変化に比べて、あまり時間を無駄にしません。迅速なPR獲得はプロジェクトをすぐに改善することができます。はより大きな改善を行うために長い時間を待つ必要はありません。小さな変更ではマージの競合が累積する可能性は低くなります。はアテネ人が言ったように、<em>速い者はその望みを尽くし、遅い者はその必要を併合します。</em></p>
+<h2 id="助けを求めます"><a class="header" href="#助けを求めます">助けを求めます。</a></h2>
+<p>15分以上困っている場合は、例えば、助けを求めてくださいRust Discord、Stack Exchange,またはプロジェクトの問題や議論で助けを求めます。</p>
+<h2 id="仮説駆動型のデバッグを実践します"><a class="header" href="#仮説駆動型のデバッグを実践します">「仮説駆動型」のデバッグを実践します。</a></h2>
+<p>問題の原因について仮説を立てる。この仮説をどのように検証するかを明らかにする。テストを実行します。効果があれば、それは素晴らしいことです。は問題を解決しました。または、問題を解決する方法を知っています。そうでなければ、新しい仮定を繰り返してください。。</p>
+<h2 id="エラーメッセージを注目します"><a class="header" href="#エラーメッセージを注目します">エラーメッセージを注目します</a></h2>
+<p>すべてのエラーメッセージを読み、警告を容認しないでください。</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="寄付"><a class="header" href="#寄付">寄付</a></h1>
+<p>Ordinals序数はオープンソースで、コミュニティが資金を提供するプロジェクトです。現在の『ord』のチーフメンテナンス担当者は<a href="https://github.com/raphjaph/">raphjaph</a>.「Raphの『ord』でのメンテナンスはすべて寄付金で行われました。よろしければ、寄付を検討してください！！</p>
+<p>寄与のアドレスは <a href="https://mempool.space/address/bc1q8kt9pyd6r27k2840l8g5d7zshz3cg9v6rfda0m248lva3ve5072q3sxelt">bc1q8kt9pyd6r27k2840l8g5d7zshz3cg9v6rfda0m248lva3ve5072q3sxelt</a>. 銘文の寄与のアドレスは <a href="https://mempool.space/address/bc1qn3map8m9hmk5jyqdkkwlwvt335g94zvxwd9aql7q3vdkdw9r5eyqvlvec0">bc1qn3map8m9hmk5jyqdkkwlwvt335g94zvxwd9aql7q3vdkdw9r5eyqvlvec0</a>.</p>
+<p>上記の2つの住所は以下の多署名者（2/4）が保有管理しています。[raphjaph]： <a href="https://twitter.com/raphjaph">raphjaph</a>, <a href="https://twitter.com/realizingerin">erin</a>, <a href="https://twitter.com/rodarmor">rodarmor</a>, and <a href="https://twitter.com/veryordinally">ordinally</a>.</p>
+<p>受け取った寄付金は『ord』の維持と更なる開発に資金を提供するために使われます。は同時に[ordinals.com]（https://ordinals.com)のホスト費用を支払います。</p>
+<p>ご寄与を感謝いたします！</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="序数理論の指導"><a class="header" href="#序数理論の指導">序数理論の指導</a></h1>
+<p>ガイドの一覧については、カタログを参照してください。これには、ブロックブラウザガイド、スマートフォンガイド、銘文ガイドなどがあります。</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="序数ブラウザ"><a class="header" href="#序数ブラウザ">序数ブラウザ</a></h1>
+<p><code>ord</code> ファイルにはブロックブラウザが含まれています。当社のメインネットワークブロックチェーンは <a href="https://ordinals.com">ordinals.com</a>, signet<a href="https://signet.ordinals.com">signet.ordinals.com</a>に配置します。</p>
+<h3 id="運行ブラウザ"><a class="header" href="#運行ブラウザ">運行ブラウザ</a></h3>
+<p>サーバはローカルで運行可能：</p>
+<p><code>ord server</code></p>
+<p>指定されたポートは、'--http-port'タグを使用します。</p>
+<p><code>ord server --http-port 8080</code></p>
+<p>銘文をテストして、運行できます：</p>
+<p><code>ord preview &lt;FILE1&gt; &lt;FILE2&gt; ...</code></p>
+<h2 id="検索"><a class="header" href="#検索">検索</a></h2>
+<p>検索ボックスではさまざまなオブジェクトを使用できます：</p>
+<h3 id="ブロック"><a class="header" href="#ブロック">ブロック</a></h3>
+<p>ブロックはハッシュで見つけることができます。例えば、創世ブロックです：</p>
+<p><a href="https://ordinals.com/search/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f">000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</a></p>
+<h3 id="取引"><a class="header" href="#取引">取引</a></h3>
+<p>創世記ブロックのcoinbaseトランザクションなど、ハッシュによってトランザクションを見つけることができます。：</p>
+<p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b</a></p>
+<h3 id="輸出"><a class="header" href="#輸出">輸出</a></h3>
+<p>アウトポイントを使用して、創世ブロックcoinbaseトランザクションのユニークな出力などのトランザクション出力を検索できます：</p>
+<p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</a></p>
+<h3 id="聡"><a class="header" href="#聡">聡</a></h3>
+<p>聡は整数で検索することができ、ビットコインの供給全体の中のそれらの位置：</p>
+<p><a href="https://ordinals.com/search/2099994106992659">2099994106992659</a></p>
+<p>10進数では、そのブロックとそのブロック内のオフセット：</p>
+<p><a href="https://ordinals.com/search/481824.0">481824.0</a></p>
+<p>度数、それらの週期、前回の半減以来のブロック、前回の難易度調整以来のブロック、そしてブロック内のオフセット：</p>
+<p><a href="https://ordinals.com/search/1%C2%B00%E2%80%B20%E2%80%B30%E2%80%B4">1°0′0″0‴</a></p>
+<p>名前に応じて、文字&quot;a&quot;~&quot;z&quot;の26文字の組み合わせで表されます：</p>
+<p><a href="https://ordinals.com/search/ahistorical">ahistorical</a></p>
+<p>または百分率で、採掘時にすでに発行された、または発行される予定のビットコインの供給量のパーセント：</p>
+<p><a href="https://ordinals.com/search/100%">100%</a></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="銘文のガイド"><a class="header" href="#銘文のガイド">銘文のガイド</a></h1>
+<p>単一のコングは、ビットコインウォレットに保存され、ビットコイントランザクションを使用して転送されるビットコインネイティブデジタルアーティファクトを作成するために、任意のコンテンツを刻印することができます。の銘文はビットコイン自体と同じくらい持続的で、不変で、安全で、分散化されています。</p>
+<p>銘文を使用するには、ビットコインのブロックチェーンの現在の状態を知ることができるビットコインの完全なノードが必要です。また、銘文を作成し、取引を構築することができます」他のウォレットに銘文を送信するときにスマートコントロールを実行するウォレット。</p>
+<p>Bitcoin Core ビットコインのフルノードとウォレットを提供します。しかし，Bitcoin Coreウォレットは碑文を作成できず、スマートコントロールを実行しません。</p>
+<p>これには<a href="https://github.com/ordinals/ord">'ord'</a>,序数ユーティリティ。'ord'は自分のウォレットを持っていないので、'ord wallet'サブコマンドはBitcoin Coreウォレットと対話します。</p>
+<p>このガイドの含まれ：</p>
+<ol>
+<li>Bitcoin Coreを取り付けます。</li>
+<li>ビットコインのブロックを同期します。</li>
+<li>Bitcoin Core ウォレットを作り上げます。</li>
+<li><code>ord wallet receive</code>を使って聡を取り受けます。</li>
+<li><code>ord wallet inscribe</code>を使って、銘文を作り上げます。</li>
+<li><code>ord wallet send</code>を使って`銘文を発送します</li>
+<li><code>ord wallet receive</code>を使って`銘文を受け取ります。</li>
+</ol>
+<h2 id="助けを求めます-1"><a class="header" href="#助けを求めます-1">助けを求めます。</a></h2>
+<p>困ったことがあったら、<a href="https://discord.com/invite/87cjuz4FYg">Ordinals Discord Server</a>,またはGithubの関連内容をチェックする<a href="https://github.com/ordinals/ord/issues">質問</a>と<a href="https://github.com/ordinals/ord/discussions">ディスカッション</a>.</p>
+<h2 id="bitcoin-coreを取り付けます"><a class="header" href="#bitcoin-coreを取り付けます">Bitcoin Coreを取り付けます。</a></h2>
+<p><a href="https://bitcoincore.org/">bitcoincore.org</a>で」の<a href="https://bitcoincore.org/en/download/">ダウンロードページ</a></p>
+<p>銘文を作成するにはBitcoin Core 24以降が必要です。</p>
+<p>このガイドには、Bitcoin Coreの詳細なインストール方法は含まれていません。Bitcoin Coreのインストールに成功した後、コマンドラインで'bitcoind-version'コマンドを使うことができます。</p>
+<h2 id="bitcoin-coreを配置します"><a class="header" href="#bitcoin-coreを配置します">Bitcoin Coreを配置します。</a></h2>
+<p><code>ord</code> Bitcoin Core の取引索引が必要です。</p>
+<p>トランザクションインデックスを配置するためにBitcoin Coreフェーズを設定します,'bitcoin.conf'に追加する必要があります::</p>
+<pre><code>txindex=1
+</code></pre>
+<p>または,  <code>bitcoind</code> 和 <code>-txindex</code>を運行します:</p>
+<pre><code>bitcoind -txindex
+</code></pre>
+<h2 id="ビットコインのブロックを同期にします"><a class="header" href="#ビットコインのブロックを同期にします">ビットコインのブロックを同期にします。</a></h2>
+<p>ブロックを同期にして、運行します：</p>
+<pre><code>bitcoind -txindex
+</code></pre>
+<p>… <code>getblockcount運行するまで</code>:</p>
+<pre><code>bitcoin-cli getblockcount
+</code></pre>
+<p>ブロックチェーンブラウザのように[the mempool.space block explorer]（https://mempool.space/)のようにブロックを記述する...<code>ord</code>は'bitcoind'と相互作用するので、'ord'を使用するときは'bitcoind'をバックグラウンドで実行する必要があります。</p>
+<h2 id="ord取り付けます"><a class="header" href="#ord取り付けます"><code>ord取り付けます。</code></a></h2>
+<p><code>ord</code> プログラムはRust言語で書かれており、<a href="https://github.com/ordinals/ord">ソースコード</a>インストール.事前に作成されたファイルは、<a href="https://github.com/ordinals/ord/releases">バージョンリリースページ</a>)からダウンロードできます。</p>
+<p>コマンドラインで次のコマンドを使用して、最新のファイルをインストールすることもできます。：</p>
+<pre><code class="language-sh">curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash -s
+</code></pre>
+<p>'ord'が正常にインストールされた後、あなたは実行することができます :</p>
+<pre><code>ord --version
+</code></pre>
+<p>これにより、「ord」のバージョン番号が出力されます。</p>
+<h2 id="ordという名前のbitcoin-coreウォレットを作成します"><a class="header" href="#ordという名前のbitcoin-coreウォレットを作成します">『ord』という名前のBitcoin Coreウォレットを作成します。</a></h2>
+<p><code>ord</code> Bitcoin Coreを使用して秘密鍵を管理し、トランザクションに署名し、ビットコインネットワークにトランザクションをブロードキャストします。。</p>
+<p>『ord』という名前のBitcoin Coreウォレットを作成し、運行します:</p>
+<pre><code>ord wallet create
+</code></pre>
+<h2 id="聡を取り受けます"><a class="header" href="#聡を取り受けます">聡を取り受けます。</a></h2>
+<p>銘文は、単一のコングに作成され、通常のビットコイン取引のためにコングを使用して料金を支払うので、あなたの財布はいくつかのコング（ビットコイン）を必要とします。</p>
+<p>'ord'ウォレットの新しいアドレスを作成して、実行します::</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>上記の住所に資金を発送します。</p>
+<p>以下のコマンドで取引状況を見ることができます：</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>取引が確認されたら、'ord wallet outputs'を使って取引の輸出を見ることができるはずです；</p>
+<h2 id="銘文の内容を作成します"><a class="header" href="#銘文の内容を作成します">銘文の内容を作成します。</a></h2>
+<p>聡の上ではあらゆる種類のコンテンツを書き込むことができますが、'ord'ウォレットは'ord'ブロックブラウザで表示できる種類のコンテンツしかサポートしていません。</p>
+<p>また、銘文は取引に含まれているため、内容が大きいほど銘文取引にかかる費用が高くなります。</p>
+<p>銘文の内容は取引証言に含まれ、証言割引を受ける。トランザクションへの書き込みで支払われる費用の概算を計算するには、コンテンツサイズを4で割ってから、レートを掛けてください。</p>
+<p>銘文取引は400,000重量測定単位未満でなければならない。そうでなければ、Bitcoin Coreに中継されないの1バイトの銘文内容には重み測定単位が必要です。銘文取引は銘文の内容だけではないので、銘文の内容は400、000重量計量単位以内に制限されている。390、000の重み測定単位は安全でなければならなりません。</p>
+<h2 id="銘文を作成します"><a class="header" href="#銘文を作成します">銘文を作成します。</a></h2>
+<p>『FILE』の内容で銘文を作成し、実行する必要があります:</p>
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE FILE
+</code></pre>
+<p>Ordは2つの取引IDが出力されます。1つはcommit取引、もう1つはreveal取引、そして銘文IDです。銘文IDのフォーマットは、'TXIDiN'であり、'TXID'は、取引を開示する取引IDであり、'N'は、取引における銘文を開示するインデックスであ。</p>
+<p>CommitCommitトランザクションは銘文の内容を含むtapscriptに提出され、revealトランザクションはそのtapscriptから費やされます。チェーン上のコンテンツを表示し、revealトランザクションの最初の出力の最初のsatにそれらをマークします。</p>
+<p>reveal取引が記録されるのを待っている間、あなたは使用することができます[the mempool.space block explorer]（https://mempool.space/)は取引の状態をチェックします。</p>
+<p>reveal取引が記帳を完了したら、以下のコマンドを使用して銘文IDを照会できます</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+<p>[the ordinals explorer]（https://ordinals.com/)で以下の形式で銘文にアクセスできます`.</p>
+<h2 id="銘文を発送します"><a class="header" href="#銘文を発送します">銘文を発送します</a></h2>
+<p>銘文受信者は次のコマンドを使って住所を生成する</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>コマンドを使用して銘文を発送します：</p>
+<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; &lt;ADDRESS&gt; &lt;INSCRIPTION_ID&gt;
+</code></pre>
+<p>できなかった取引状況を検査します：</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>取引が確認されると、受信者は次のコマンドを使用して受信した銘文を見ることができます</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+<h2 id="銘文を受け取ります"><a class="header" href="#銘文を受け取ります">銘文を受け取ります</a></h2>
+<p>次のコマンドを使用して新しい受信アドレスを生成する</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>送信者はコマンドを使用してあなたの住所に銘文を送信します</p>
+<pre><code>ord wallet send ADDRESS INSCRIPTION_ID
+</code></pre>
+<p>できなかった取引状況を検査します：</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>取引が確認されると、受信者は次のコマンドを使用して受信した銘文を見ることができます</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="聡狩り"><a class="header" href="#聡狩り">聡狩り</a></h1>
+<p><em>このガイドは時代遅れです。書かれて以来、'ord'インストールファイルが変更されました。「--index-sats」フラグが指定されている場合にのみ、完全なスマートインデックスが作成されます。さらに「ord」には現在、ビットコインのコアウォレットを含むウォレットが内蔵されていて、ord wallet --help`を参照してください。</em></p>
+<p>Ordinal hunting is difficult but rewarding. The feeling of owning a wallet full of UTXOs, redolent with the scent of rare and exotic sats, is beyond compare.</p>
+<p>Ordinals are numbers for satoshis. Every satoshi has an ordinal number and every ordinal number has a satoshi.</p>
+<h2 id="preparation"><a class="header" href="#preparation">Preparation</a></h2>
+<p>There are a few things you'll need before you start.</p>
+<ol>
+<li>
+<p>First, you'll need a synced Bitcoin Core node with a transaction index. To turn on transaction indexing, pass <code>-txindex</code> on the command-line:</p>
+<pre><code class="language-sh">bitcoind -txindex
+</code></pre>
+<p>Or put the following in your <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md#configuration-file-path">Bitcoin configuration file</a>:</p>
+<pre><code>txindex=1
+</code></pre>
+<p>Launch it and wait for it to catch up to the chain tip, at which point the following command should print out the current block height:</p>
+<pre><code class="language-sh">bitcoin-cli getblockcount
+</code></pre>
+</li>
+<li>
+<p>Second, you'll need a synced <code>ord</code> index.</p>
+<ul>
+<li>
+<p>Get a copy of <code>ord</code> from <a href="https://github.com/ordinals/ord/">the repo</a>.</p>
+</li>
+<li>
+<p>Run <code>RUST_LOG=info ord index</code>. It should connect to your bitcoin core node and start indexing.</p>
+</li>
+<li>
+<p>Wait for it to finish indexing.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Third, you'll need a wallet with UTXOs that you want to search.</p>
+</li>
+</ol>
+<h2 id="searching-for-rare-ordinals"><a class="header" href="#searching-for-rare-ordinals">Searching for Rare Ordinals</a></h2>
+<h3 id="searching-for-rare-ordinals-in-a-bitcoin-core-wallet"><a class="header" href="#searching-for-rare-ordinals-in-a-bitcoin-core-wallet">Searching for Rare Ordinals in a Bitcoin Core Wallet</a></h3>
+<p>The <code>ord wallet</code> command is just a wrapper around Bitcoin Core's RPC API, so searching for rare ordinals in a Bitcoin Core wallet is Easy. Assuming your wallet is named <code>foo</code>:</p>
+<ol>
+<li>
+<p>Load your wallet:</p>
+<pre><code class="language-sh">bitcoin-cli loadwallet foo
+</code></pre>
+</li>
+<li>
+<p>Display any rare ordinals wallet <code>foo</code>'s UTXOs:</p>
+<pre><code class="language-sh">ord wallet sats
+</code></pre>
+</li>
+</ol>
+<h3 id="searching-for-rare-ordinals-in-a-non-bitcoin-core-wallet"><a class="header" href="#searching-for-rare-ordinals-in-a-non-bitcoin-core-wallet">Searching for Rare Ordinals in a Non-Bitcoin Core Wallet</a></h3>
+<p>The <code>ord wallet</code> command is just a wrapper around Bitcoin Core's RPC API, so to search for rare ordinals in a non-Bitcoin Core wallet, you'll need to import your wallet's descriptors into Bitcoin Core.</p>
+<p><a href="https://github.com/bitcoin/bitcoin/blob/master/doc/descriptors.md">Descriptors</a> describe the ways that wallets generate private keys and public keys.</p>
+<p>You should only import descriptors into Bitcoin Core for your wallet's public keys, not its private keys.</p>
+<p>If your wallet's public key descriptor is compromised, an attacker will be able to see your wallet's addresses, but your funds will be safe.</p>
+<p>If your wallet's private key descriptor is compromised, an attacker can drain your wallet of funds.</p>
+<ol>
+<li>
+<p>Get the wallet descriptor from the wallet whose UTXOs you want to search for rare ordinals. It will look something like this:</p>
+<pre><code>wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29
+</code></pre>
+</li>
+<li>
+<p>Create a watch-only wallet named <code>foo-watch-only</code>:</p>
+<pre><code class="language-sh">bitcoin-cli createwallet foo-watch-only true true
+</code></pre>
+<p>Feel free to give it a better name than <code>foo-watch-only</code>!</p>
+</li>
+<li>
+<p>Load the <code>foo-watch-only</code> wallet:</p>
+<pre><code class="language-sh">bitcoin-cli loadwallet foo-watch-only
+</code></pre>
+</li>
+<li>
+<p>Import your wallet descriptors into <code>foo-watch-only</code>:</p>
+<pre><code class="language-sh">bitcoin-cli importdescriptors \
+  '[{ &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax&quot;, &quot;timestamp&quot;:0 }]'
+</code></pre>
+<p>If you know the Unix timestamp when your wallet first started receive transactions, you may use it for the value of <code>&quot;timestamp&quot;</code> instead of <code>0</code>. This will reduce the time it takes for Bitcoin Core to search for your wallet's UTXOs.</p>
+</li>
+<li>
+<p>Check that everything worked:</p>
+<pre><code class="language-sh">bitcoin-cli getwalletinfo
+</code></pre>
+</li>
+<li>
+<p>Display your wallet's rare ordinals:</p>
+<pre><code class="language-sh">ord wallet sats
+</code></pre>
+</li>
+</ol>
+<h3 id="searching-for-rare-ordinals-in-a-wallet-that-exports-multi-path-descriptors"><a class="header" href="#searching-for-rare-ordinals-in-a-wallet-that-exports-multi-path-descriptors">Searching for Rare Ordinals in a Wallet that Exports Multi-path Descriptors</a></h3>
+<p>Some descriptors describe multiple paths in one descriptor using angle brackets, e.g., <code>&lt;0;1&gt;</code>. Multi-path descriptors are not yet supported by Bitcoin Core, so you'll first need to convert them into multiple descriptors, and then import those multiple descriptors into Bitcoin Core.</p>
+<ol>
+<li>
+<p>First get the multi-path descriptor from your wallet. It will look something like this:</p>
+<pre><code>wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/&lt;0;1&gt;/*)#fw76ulgt
+</code></pre>
+</li>
+<li>
+<p>Create a descriptor for the receive address path:</p>
+<pre><code>wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)
+</code></pre>
+<p>And the change address path:</p>
+<pre><code>wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)
+</code></pre>
+</li>
+<li>
+<p>Get and note the checksum for the receive address descriptor, in this case <code>tpnxnxax</code>:</p>
+<pre><code class="language-sh">bitcoin-cli getdescriptorinfo \
+  'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)'
+</code></pre>
+<pre><code class="language-json">{
+  &quot;descriptor&quot;: &quot;wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29&quot;,
+  &quot;checksum&quot;: &quot;tpnxnxax&quot;,
+  &quot;isrange&quot;: true,
+  &quot;issolvable&quot;: true,
+  &quot;hasprivatekeys&quot;: false
+}
+</code></pre>
+<p>And for the change address descriptor, in this case <code>64k8wnd7</code>:</p>
+<pre><code class="language-sh">bitcoin-cli getdescriptorinfo \
+  'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)'
+</code></pre>
+<pre><code class="language-json">{
+  &quot;descriptor&quot;: &quot;wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#fyfc5f6a&quot;,
+  &quot;checksum&quot;: &quot;64k8wnd7&quot;,
+  &quot;isrange&quot;: true,
+  &quot;issolvable&quot;: true,
+  &quot;hasprivatekeys&quot;: false
+}
+</code></pre>
+</li>
+<li>
+<p>Load the wallet you want to import the descriptors into:</p>
+<pre><code class="language-sh">bitcoin-cli loadwallet foo-watch-only
+</code></pre>
+</li>
+<li>
+<p>Now import the descriptors, with the correct checksums, into Bitcoin Core.</p>
+<pre><code class="language-sh">bitcoin-cli \
+ importdescriptors \
+ '[
+   {
+     &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax&quot;
+     &quot;timestamp&quot;:0
+   },
+   {
+     &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#64k8wnd7&quot;,
+     &quot;timestamp&quot;:0
+   }
+ ]'
+</code></pre>
+<p>If you know the Unix timestamp when your wallet first started receive transactions, you may use it for the value of the <code>&quot;timestamp&quot;</code> fields instead of <code>0</code>. This will reduce the time it takes for Bitcoin Core to search for your wallet's UTXOs.</p>
+</li>
+<li>
+<p>Check that everything worked:</p>
+<pre><code class="language-sh">bitcoin-cli getwalletinfo
+</code></pre>
+</li>
+<li>
+<p>Display your wallet's rare ordinals:</p>
+<pre><code class="language-sh">ord wallet sats
+</code></pre>
+</li>
+</ol>
+<h3 id="exporting-descriptors"><a class="header" href="#exporting-descriptors">Exporting Descriptors</a></h3>
+<h4 id="雀のウォレット"><a class="header" href="#雀のウォレット">雀のウォレット</a></h4>
+<p>Navigate to the <code>Settings</code> tab, then to <code>Script Policy</code>, and press the edit button to display the descriptor.</p>
+<h3 id="transferring-ordinals"><a class="header" href="#transferring-ordinals">Transferring Ordinals</a></h3>
+<p>The <code>ord</code> wallet supports transferring specific satoshis. You can also use <code>bitcoin-cli</code> commands <code>createrawtransaction</code>, <code>signrawtransactionwithwallet</code>, and <code>sendrawtransaction</code>, how to do so is complex and outside the scope of this guide.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="コレクション"><a class="header" href="#コレクション">コレクション</a></h1>
+<p>現在、<a href="https://github.com/ordinals/ord/">ord</a>はsat-controlとsat-selectionをサポートする唯一のものですの財布、これは希少なsatsと銘文（以下、序数と略称する）を安全に保存して送るために必要です。</p>
+<p>送信、受信、シーケンス番号の格納方法としては、'ord'を用いることが推奨される。しかし、注意すれば安全に保管できます。場合によっては、別のウォレットを使用してシリアル番号を送信します。</p>
+<p>一般的な説明として、サポートされていないウォレットでシーケンス番号を受信することは危険ではありません。シリアル番号は任意のビットコインアドレスに送信できます。はそれらを含むUTXOが使われていない限り、安全です。しかし、ウォレットがその後ビットコインを送信するために使用された場合、はシリアル番号を含むUTXOを入力として選択し、銘文を送ったり、費用に使用したりすることがあります。。</p>
+<p>このマニュアルでは、<a href="https://sparrowwallet.com/">Sparrow Wallet</a>作成'ord'と互換性のある財布の<a href="guides/./collecting/sparrow-wallet.html">ガイド</a>.。</p>
+<p>このガイドに従う場合は、シリアル番号の送信を避けるために手動コイン選択を実行しない限り、作成したウォレットを使用してBTCを送信しないでください。。</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="スズメのsparrow財布を使って銘文をコレクションします"><a class="header" href="#スズメのsparrow財布を使って銘文をコレクションします">スズメのSparrow財布を使って銘文をコレクションします。</a></h1>
+<p>それらの生きていられないまだ設定されていない<a href="https://github.com/ordinals/ord">ord</a>ウォレットのユーザーは、ウォレットを使用する際に細心の注意を払っていれば、他のビットコインウォレットを使用して銘文と序数を受け取ることができます。。</p>
+<p>このガイドでは、<a href="https://sparrowwallet.com/">Sparrow Wallet</a>の使用方法を説明します。'ord'と互換性のあるウォレットを作成し、後で'ord'にインポートできます。`</p>
+<h2 id="-警告-"><a class="header" href="#-警告-">⚠️⚠️ 警告!! ⚠️⚠️</a></h2>
+<p>一般的に、この方法を選ぶなら、この財布をお金を受け取る財布として、Sparrowソフトウェアを使うべきです</p>
+<p>自分が何をしているか分からない限り、この財布からビットコインを使わないでください。この警告に注意しなければ、うっかり序数や銘文へのアクセスを失いやすいかもしれません</p>
+<h2 id="ウォレットの設置と取り受け"><a class="header" href="#ウォレットの設置と取り受け">ウォレットの設置と取り受け</a></h2>
+<p>オペレーティングシステムに応じて[リリースページ]から(https://sparrowwallet.com/download/)ダウンロードSparrowウォレット。</p>
+<p>『File-&gt;New Wallet』を選択し、『ord』という名前の新しいウォレットを作成します。</p>
+<p><img src="guides/collecting/images/wallet_setup_01.png" alt="" /></p>
+<p>'Script Type'を'Taproot(P 2 TR)'に変更します。そして、New or Imported Software Wallet'オプションを選択します。</p>
+<p><img src="guides/collecting/images/wallet_setup_02.png" alt="" /></p>
+<p>『Use 12 Words』を選択し、『Generate New』をクリックします。パスフレーズは空白のままにします。。</p>
+<p><img src="guides/collecting/images/wallet_setup_03.png" alt="" /></p>
+<p>あなたのために新しい12語BIP 39シードフレーズが生成されます。このフレーズを安全な場所に書いてください。これはウォレットへのアクセス権を取得するためのバックアップです。このシードフレーズを他の人と共有したり表示したりしないでください</p>
+<p>シードフレーズを書いたら、<code>Confirm Backup</code>をクリックしてください' <code>Confirm Backup</code>.</p>
+<p><img src="guides/collecting/images/wallet_setup_04.png" alt="" /></p>
+<p>メモしたシードフレーズを再入力して、'Create Key storeをクリックしてください。`.</p>
+<p><img src="guides/collecting/images/wallet_setup_05.png" alt="" /></p>
+<p><code>Import Keystoreをクリックします</code>.</p>
+<p><img src="guides/collecting/images/wallet_setup_06.png" alt="" /></p>
+<p>『Apply』をクリックします。もしあなたが望むなら、財布にパスワードを追加してもいいです。。</p>
+<p><img src="guides/collecting/images/wallet_setup_07.png" alt="" /></p>
+<p>今、BIP 39シードフレーズを使って'ord'にインポートできる'ord'互換のウォレットを持っています。序数や銘文を受け取るには、'Receive'タブをクリックし、新しいアドレスをコピーします</p>
+<p>受信するたびに、既存のアドレスを再利用するのではなく、新しいアドレスを使用する必要があります。</p>
+<p>ビットコインは他のいくつかのブロックチェーンウォレットとは異なり、無限の数の新しいアドレスを生成できることに注意してください。は次の住所を取得ボタンをクリックすることで新しい住所を生成できます。あなたはアプリケーションの'Addresses'タブですべてのアドレスを見ることができます</p>
+<p>各アドレスにタグを付けることができますので、目的を追跡することができます。</p>
+<p><img src="guides/collecting/images/wallet_setup_08.png" alt="" /></p>
+<h2 id="査証受け取った銘文を見ます"><a class="header" href="#査証受け取った銘文を見ます">査証/受け取った銘文を見ます</a></h2>
+<p>銘文を受け取ったら、Sparrowの『Transactions』タブに新しい取引が表示されます。'UTXOs'タブに新しいUTXOが表示されます。</p>
+<p>最初は、この取引には&quot;未確認&quot;の状態があるかもしれません。実際に受け取ったのはビットコインブロックに採掘されるのを待つ必要があります。</p>
+<p><img src="guides/collecting/images/validating_viewing_01.png" alt="" /></p>
+<p>取引状況を追跡するには、右クリックして'Copy Transaction ID'を選択することができます,そして、この取引idを[mempool.space]（https://mempool.space)に貼り付けます。</p>
+<p><img src="guides/collecting/images/validating_viewing_02.png" alt="" /></p>
+<p>取引が確認されたら、<code>UTXOs</code>タブに行くことによって、チェックしたい<code>UTXO</code>を見つけることができます,右クリック<code>Output</code>'Copy Transaction Out put'を選択して、あなたの銘文を確認し、確認します。そして、この取引はidを輸出しますは<a href="https://ordinals.com">ordinals.com</a>検索)に貼り付けることができます。。</p>
+<h2 id="utxoを凍結します"><a class="header" href="#utxoを凍結します">UTXOを凍結します</a></h2>
+<p>上記のように、あなたのすべての銘文は未費用の取引出力(UTXO)に保存されています。あなたの銘文を誤って使わないように細心の注意を払う必要があります」がUTXOを凍結することは、このような状況を発生させる難易度を高める一つの方法であります。</p>
+<p>これを行うには、UTXOsタブに行き、フリーズしたい'UTXOs'を見つけ、'Out put'をクリックして'Freeze UTXO'`を選択します。</p>
+<p>このUTXO（銘文）は現在Sparrowウォレットでは、解凍するまで消費できません。。</p>
+<h2 id="ord-ウォレットを導入します"><a class="header" href="#ord-ウォレットを導入します"><code>ord</code> ウォレットを導入します。</a></h2>
+<p>ビットコインコアと'ord'ウォレットの設定の詳細については、<a href="guides/collecting/../inscriptions.html">銘文ガイド</a>をご覧ください。</p>
+<p>'ord'を設定するときは、'ord wallet restore&quot;BIP 39 SE ED PHRASE&quot;'コマンドとSparrow Walletで生成されたシードフレーズを使用して、'ord wallet create'を実行する代わりに、既存のウォレットをインポートします。は新しい財布を作ります。</p>
+<p>現在、[プログラムエラー]が存在します(https://github.com/ordinals/ord/issues/1589)インポートの原因のウォレットはブロックチェーンを自動的に再スキャンできません。この問題を解決するには、手動で再スキャンをトリガーする必要があります。Bitcoinコアコマンドラインインターフェイスを使います：</p>
+<p>そして、'ord wallet inscriptions'を使用して、財布の碑文を確認することができます。.</p>
+<p>前にウォレットを'ord'で作成したことがある場合は、デフォルトの名前のウォレットを既に持っていることに注意してください。はあなたが導入した財布に違う名前を付ける必要があります。すべての'ord'コマンドで'--wallet'引数を使用できます異なる財布を引用するために、例えば：</p>
+<p><code>ord --wallet ord_from_sparrow wallet restore &quot;BIP39 SEED PHRASE&quot;</code></p>
+<p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
+<p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
+<h2 id="雀の財布を使って銘文を発送します"><a class="header" href="#雀の財布を使って銘文を発送します">雀の財布を使って銘文を発送します。</a></h2>
+<h4 id="-警告--1"><a class="header" href="#-警告--1">⚠️⚠️ 警告 ⚠️⚠️</a></h4>
+<p>ビットコインコアノードを設定し、'ord'ソフトウェアを実行することを強くお勧めしますが、いくつかの安全な方法でSparrowウォレットに銘文をお送りします。これはお勧めではないことに注意してください。あなたが何をしているのか完全に理解している場合にのみ、そうすることができます。</p>
+<p>『ord』ソフトウェアを使用すると、ここで説明した複雑さが大幅に簡素化されます。それは、簡単な方法で自動的かつ安全に碑文の送信を処理できるからです。。&quot;</p>
+<h4 id="-特別警告-"><a class="header" href="#-特別警告-">⚠️⚠️ 特別警告 ⚠️⚠️</a></h4>
+<p>sparrowスズメの銘文財布を使って非銘文ビットコインを送らないでください。通常のビットコイン取引が必要な場合は、はスズメの中に別の財布を設置して、銘文財布を独立させることができます。</p>
+<h4 id="ビットコインのutxo模型"><a class="header" href="#ビットコインのutxo模型">ビットコインのUTXO模型</a></h4>
+<p>取引を送信する前に、ビットコインの未消費取引出力（UTXO）システムをよく理解しなければなりません。ビットコインの仕組みはイーサリアムなど他の多くのブロックチェーンと根本的に異なっている。イーサリアムでは、通常、ETHを保存する単一のアドレスを持っています。これらのETHのいずれかを区別することはできません。それらはその住所の合計金額の単一の値にすぎません。ビットコインの仕組みは全く異なります。私たちは受信ごとに新しいアドレスを生成します。ウォレットのアドレスの1つにsatsを受信するたびにあなたは新しいUTXOを作っています。各UTXOは個別に表示および管理できます。特定のUTXOを使用するか、または特定のUTXOを使用しないかを選択できます。</p>
+<p>ビットコインウォレットの中には、このレベルの詳細情報を表示しないものもあります。ウォレット内のすべてのビットコインの単一の合計値しか表示しません。しかし、銘文を送るときは、スズメのようなUTXO制御を許す財布を使うことが非常に重要であります。</p>
+<h4 id="在发送之前检查你的铭文"><a class="header" href="#在发送之前检查你的铭文">在发送之前检查你的铭文</a></h4>
+<p>的第一个satoshi上前にも述べたように、銘文はは聡に刻まれ、satsはUTXOに格納されています。UTXOは、ある特定の数のsatoshi(出力値)を持つsatoshiの集合です。銘文はUTXOの最初の聡に刻まれることが多いが、いつもそうではないけど」。</p>
+<p>発送前にあなたの銘文をチェックするとき、主にチェックしなければならないのはあなたの銘文がUTXOのどのsatoshiに刻まれているかです。</p>
+<p>そのためには、上記のように[受け取った銘文を検証/見る]することができます(./sparrow-wallet.md#validating--viewing-received-inscriptions)ordinals.comのあなたの銘文の銘文ページを見つけるために来ます。</p>
+<p>そこで、あなたの銘文に関するメタデータを見つけます。以下のようになります：</p>
+<p><img src="guides/collecting/images/sending_01.png" alt="" /></p>
+<p>以下は、チェックすべき重要事項です：</p>
+<ul>
+<li><code>output</code> 識別子が送信しようとしているUTXOの識別子と一致します</li>
+<li>銘文の'off set'は'0'であり、(これは銘文がUTXOの最初のsatにあることを意味する)</li>
+<li><code>output_value</code> 取引を送るための取引料金（郵便料金）を支払うのに十分なsatsがあります。必要な正確な金額はあなたが取引に選択したレート</li>
+</ul>
+<p>上記の内容がすべてあなたの碑文に正しい場合、あなたは安全に以下の方法でそれを送ることができるはずです。</p>
+<p>⚠️⚠️ 銘文を送るときは、特に'off set'値が'0'でない場合は細心の注意を払ってください。この場合は、この方法をお勧めしません。そうしないと、自分が何をしているのか分からない限り、あなたの銘文をビットコイン鉱山労働者に送ることになるかもしれません。</p>
+<h4 id="あなたの銘文を発送します"><a class="header" href="#あなたの銘文を発送します">あなたの銘文を発送します。</a></h4>
+<p>要銘文を送信するには、'UTXOs'タブに移動し、以前にあなたの彫刻が含まれていることを確認したUTXOを見つけてください。</p>
+<p>以前にUXTOを凍結した場合、右クリックして解凍する必要があります。</p>
+<p>送信するUTXOを選択します。これが唯一選択されたUTXOであることを確認します。インターフェイスでは、'UTXOs 1/1'が表示されるはずです。これを確認した後、'Send Selected'をクリックすることができます。</p>
+<p><img src="guides/collecting/images/sending_02.png" alt="" /></p>
+<p>次に、トランザクション構築インターフェイスが表示されます。ここでは、これが安全な送信であることを確認するためにいくつかのことを確認する必要があります：</p>
+<ul>
+<li>取引には1つの入力しかないはずです。これはラベル付きのUTXOを送りたいはずです</li>
+<li>取引には1つの出力しかないはずです。これは銘文を送りたい住所/ラベルです</li>
+</ul>
+<p>取引がこれとは異なるように見える場合、例えば複数の入力や複数の出力がある場合、これは安全な碑文の転送方法ではないかもしれません。あなたがよりよく知っているか、'ord'ウォレットにインポートすることができるまで、送信を断念する必要があります。</p>
+<p>適切な取引手数料を設定する必要があります。Sparrowは通常、合理的な料金をお勧めします。しかし、[mempool.space]を見て、(https://mempool.space)送信トランザクションの推奨レートを見ます。</p>
+<p>受信者の住所にラベルを追加する必要があります。『alice address for inscription#123』は理想的です。</p>
+<p>上記のチェックを使用して、取引が安全な取引であることを確認し、それを送信する自信があることを確認したら、『Create Transaction』をクリックしてください。</p>
+<p><img src="guides/collecting/images/sending_03.png" alt="" /></p>
+<p>ここで、あなたの取引が安全かどうかを再確認できます。確認した後、『Finalize Transaction for Signing'をクリックしてください。</p>
+<p><img src="guides/collecting/images/sending_04.png" alt="" /></p>
+<p>ここでは、『Sign』をクリックする前にすべてを再確認できます。</p>
+<p><img src="guides/collecting/images/sending_05.png" alt="" /></p>
+<p>そして、実際には『Broadcast Transaction』をクリックする前に、すべてをチェックする最後の機会があります。は取引を放送すると、ビットコインネットワークに送られ、mempoolで広がり始めます。</p>
+<p><img src="guides/collecting/images/sending_06.png" alt="" /></p>
+<p>取引状態を追跡したいなら、『Transaction Id(Txid)をコピーして<a href="https://mempool.space">mempool.space</a>'に貼り付けます。</p>
+<p>取引が確認されたら、<a href="https://ordinals.com">ordinals.com</a>の銘文ページで、新しい出力場所と住所に移動したことを確認します。</p>
+<h2 id="故障排除"><a class="header" href="#故障排除">故障排除</a></h2>
+<h4 id="sparrowウォレットは取引utxoを表示していませんがmempoolspaceでを見ました"><a class="header" href="#sparrowウォレットは取引utxoを表示していませんがmempoolspaceでを見ました">Sparrowウォレットは取引/UTXOを表示していませんが、mempool.spaceでを見ました</a></h4>
+<p>ウォレットがビットコインノードに接続されていることを確認してください。これを確認するには、'Preferences'--&gt;'Server'の設定に移動します。そして、'Edit Existing Connection'をクリックしてください。。</p>
+<p><img src="guides/collecting/images/troubleshooting_01.png" alt="" /></p>
+<p>そこからノードを選択し、'Test Connection'をクリックしてSparrowが正常に接続できることを確認できます。</p>
+<p><img src="guides/collecting/images/troubleshooting_02.png" alt="" /></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="テスティング"><a class="header" href="#テスティング">テスティング</a></h1>
+<p>次のフラグを使用してテストネットワークを指定すると、フォームをテストできます。テストのためのビットコインコアの実行の詳細については、[ビットコインの開発者ドキュメント]を参照してください。</p>
+<p><a href="guides/inscriptions.html">銘文</a>および<a href="guides/explorer.html">ブラウザ</a>内のほとんどの'ord'コマンドは、次のネットワークフラグを使用して実行できます：</p>
+<div class="table-wrapper"><table><thead><tr><th>Network</th><th>Flag</th></tr></thead><tbody>
+<tr><td>Testnet</td><td><code>--testnet</code> or <code>-t</code></td></tr>
+<tr><td>Signet</td><td><code>--signet</code> or <code>-s</code></td></tr>
+<tr><td>Regtest</td><td><code>--regtest</code> or <code>-r</code></td></tr>
+</tbody></table>
+</div>
+<p>Regtestはブロックチェーンをダウンロードしたり、ordインデックスを作成したりする必要はありません</p>
+<h2 id="サンプル-1"><a class="header" href="#サンプル-1">サンプル</a></h2>
+<p>regtestの中でbitcoindを運行し、使います：</p>
+<pre><code>bitcoind -regtest -txindex
+</code></pre>
+<p>regtestの中でウォレットを作り上げます。</p>
+<pre><code>ord -r wallet create
+</code></pre>
+<p>regtest受け取りアドレスを作成します</p>
+<pre><code>ord -r wallet receive
+</code></pre>
+<p>101個のブロックを掘る（ロック解除coinbase）に使います：</p>
+<pre><code>bitcoin-cli generatetoaddress 101 &lt;receive address&gt;
+</code></pre>
+<p>regtest上で刻みます。</p>
+<pre><code>ord -r wallet inscribe --fee-rate 1 &lt;file&gt;
+</code></pre>
+<p>銘文を発掘します。</p>
+<pre><code>bitcoin-cli generatetoaddress 1 &lt;receive address&gt;
+</code></pre>
+<p>regtestブラウザで銘文を見ます。</p>
+<pre><code>ord -r server
+</code></pre>
+<h2 id="再帰のテスト"><a class="header" href="#再帰のテスト">再帰のテスト</a></h2>
+<p><a href="guides/../inscriptions/recursion.html">recursion</a> のテスト[の場合、最初に依存関係をメモします。（ <a href="https://p5js.org">p5.js</a> を例とします：</p>
+<pre><code>ord -r wallet inscribe --fee-rate 1 p5.js
+</code></pre>
+<p>これは'inscription_id'を返す必要があります。その後、再帰的な銘文でそれを参照することができます。。</p>
+<p>これは'inscription_id'を返す必要があります。その後、再帰的な銘文でそれを参照することができます。</p>
+<p>次のコマンドを使用して、再帰的な碑文を刻むことができます。：</p>
+<pre><code>ord -r wallet inscribe --fee-rate 1 recursive-inscription.html
+</code></pre>
+<p>最終的には、サーバーを開始するためにいくつかのブロックを掘ることができます：</p>
+<pre><code>bitcoin-cli generatetoaddress 6 &lt;receive address&gt;
+ord -r server
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="調節"><a class="header" href="#調節">調節</a></h1>
+<p><code>ord</code> ブロックブラウザが含まれています,あなたはローカルで'ord server`運行することができます.</p>
+<p>ブロックブラウザでは、銘文を見ることができます。銘文はユーザーが生成した内容であるため、不快または違法である可能性があります。</p>
+<p>Wordブロックブラウザのインスタンスを実行するすべてのユーザーは、不正なコンテンツに対する責任を理解し、そのインスタンスに適した監査ポリシーを決定する責任があります。</p>
+<p>特定の銘文が'ord'インスタンスに表示されないようにするには、YAML設定ファイルに含めることができます。</p>
+<p>銘文を隠れると、先ずプロファイルを作成しますその中は隠れる銘文IDが含まれます。</p>
+<pre><code class="language-yaml">hidden:
+- 0000000000000000000000000000000000000000000000000000000000000000i0
+</code></pre>
+<p>'ord'設定ファイルの推奨名は'ord.yaml'です。ただし、任意のファイル名を使用できます。</p>
+<p>その後、サービスの開始時にファイルを使います--config` :</p>
+<p><code>ord --config ord.yaml server</code></p>
+<p>注意してください。 『--config'オプションは'ord'の後で'server'サブコマンドの前にあります。</p>
+<p>'ord'は、設定ファイルの変更をロードするために再起動する必要があります。</p>
+<h2 id="ordinalscom"><a class="header" href="#ordinalscom"><code>ordinals.com</code></a></h2>
+<p>ordinals.com'インスタンスは'systemd'を使用して'ord'という名前の'ord server'サービスを実行しています。設定ファイルは『/var/lib/ord/ord.yaml'.</p>
+<p>ordinals.com 上で銘文を隠れます:</p>
+<ol>
+<li>SSHでサーバを登録します。</li>
+<li><code>/var/lib/ord/ord.yaml</code>中で銘文を増やしますID</li>
+<li><code>systemctl restart ord</code>で サービスを再起動します。</li>
+<li><code>journalctl -u ord</code> で再起動します。</li>
+</ol>
+<p>今は、ordの再起動の速度が遅いから、そのため、サイトはすぐにオンラインに戻りません。</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="再インデックス"><a class="header" href="#再インデックス">再インデックス</a></h1>
+<p>「ord」データベースを再インデックスする必要がある場合があります。これは、データベースを削除し、「ord index run」または「ord server」を使用することを意味します。を使用してデータベースを再インデックス化します。再インデックスを作成する理由は次のとおりです。：</p>
+<ol>
+<li>ord 发布新的主要版本，更改了数据库架构　新たなメインバージョンをリリースして、データベースのスキーマを変更されました。</li>
+<li>データベースは壊れるかもしれません</li>
+</ol>
+<p><code>ord</code>は 使っているデータベースは <a href="https://github.com/cberner/redb">redb</a>を呼ばれています，索引のために‘index.redb’を指定された黙認ファイル名として、黙認する場合は保存します操作システムによって、このファイルは異なる位置にあります</p>
+<div class="table-wrapper"><table><thead><tr><th>プラットフォーム</th><th>Value</th><th>サンプル</th></tr></thead><tbody>
+<tr><td>Linux</td><td><code>$XDG_DATA_HOME</code>/ord or <code>$HOME</code>/.local/share/ord</td><td>/home/alice/.local/share/ord</td></tr>
+<tr><td>macOS</td><td><code>$HOME</code>/Library/Application Support/ord</td><td>/Users/Alice/Library/Application Support/ord</td></tr>
+<tr><td>Windows</td><td><code>{FOLDERID_RoamingAppData}</code>\ord</td><td>C:\Users\Alice\AppData\Roaming\ord</td></tr>
+</tbody></table>
+</div>
+<p>ですので，MacOSの上にデータベースを削除して再索引し、ターミナルでこのコマンドを実行します。</p>
+<pre><code class="language-bash">rm ~/Library/Application Support/ord/index.redb
+ord index run
+</code></pre>
+<p>もちろん自分でデータの目録の位置を設置することができます,<code>ord --data-dir &lt;DIR&gt; index run</code> または指定された特定のファイル名とパスに‘ord --index <FILENAME>で索引運行します’。</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="ordinals賞金計画の提示"><a class="header" href="#ordinals賞金計画の提示">Ordinals賞金計画の提示</a></h1>
+<ul>
+<li>
+<p><code>ord</code> ウォレットは特定の聡を発送して、受け取れます。その他、序数理論は非常に簡単で、賢いハッカが速く最初から始めることができるはずですコードを書いて、序数理論を使って聡を操作します。</p>
+</li>
+<li>
+<p>序数理論のより多くの情報に関して，<a href="./faq.html">FAQ</a> を閲見して概要を獲得します。<a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">BIP</a> を閲見して、技術の詳細を獲得します<a href="https://github.com/ordinals/ord">ord repo</a>を閲見して、<code>ord</code>ウォレットとブラウザの情報を獲得します.</p>
+</li>
+<li>
+<p>聡は序数理論の原始の開発者であり、しかし、他の人は変なことだと、危険だと思われますが彼は自分の知識を隠れて、時間の砂漠に消えてしまいます。現在、この強い理論は発見されて、珍しい聡を研究することによって私たちを手伝っていただきます。</p>
+</li>
+</ul>
+<p>ご好運、順調に進んでいるように！</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="賞金任務-0"><a class="header" href="#賞金任務-0">賞金任務 0</a></h1>
+<h2 id="標準"><a class="header" href="#標準">標準</a></h2>
+<p>序数の“0”で終わりの聡を提出アドレスに発送します。</p>
+<p>✅: <a href="https://ordinals.com/ordinal/1857578125803250">1857578125803250</a></p>
+<p>❌: <a href="https://ordinals.com/ordinal/1857578125803251">1857578125803251</a></p>
+<p>聡はあなたが発送した“輸出”の初めての聡でなければなりません。</p>
+<h2 id="奨励"><a class="header" href="#奨励">奨励</a></h2>
+<p>100,000 sats</p>
+<h2 id="アドレスを提出する"><a class="header" href="#アドレスを提出する">アドレスを提出する</a></h2>
+<p><a href="https://mempool.space/address/1PE7u4wbDP2RqfKN6geD1bG57v9Gj9FXm3"><code>1PE7u4wbDP2RqfKN6geD1bG57v9Gj9FXm3</code></a></p>
+<h2 id="状態"><a class="header" href="#状態">状態</a></h2>
+<p><a href="https://twitter.com/rodarmor/status/1560793241473400833">@count_null</a>! 獲得</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="賞金任務-1"><a class="header" href="#賞金任務-1">賞金任務 1</a></h1>
+<h2 id="標準-1"><a class="header" href="#標準-1">標準</a></h2>
+<p>一つの最も古い聡を含まれるUTXOを提出されます。例えば、すべて提出されたUTXOの中に最も小さい数字は優勝者とします</p>
+<p>賞金はブロック高度753984 の前に有効であり、ブロック高度753984は初めての難易度の調整期374の後の初めてのブロックです。これらを含まれてまたはブロック高度753984より遅いのは考えされません。</p>
+<h2 id="奨励-1"><a class="header" href="#奨励-1">奨励</a></h2>
+<p>200,000 sats</p>
+<h2 id="アドレスを提出する-1"><a class="header" href="#アドレスを提出する-1">アドレスを提出する</a></h2>
+<p><a href="https://mempool.space/address/145Z7PFHyVrwiMWwEcUmDgFbmUbQSU9aap"><code>145Z7PFHyVrwiMWwEcUmDgFbmUbQSU9aap</code></a></p>
+<h2 id="状態-1"><a class="header" href="#状態-1">状態</a></h2>
+<p><a href="https://twitter.com/rodarmor/status/1569883266508853251">@ordinalsindex</a>は獲得！</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="賞金任務-2"><a class="header" href="#賞金任務-2">賞金任務 2</a></h1>
+<h2 id="標準-2"><a class="header" href="#標準-2">標準</a></h2>
+<p>一つ発送します<span class=uncommon>普通ではないの</span>聡は下のアドレスに✅: <a href="https://ordinals.com/sat/347100000000000">347100000000000</a></p>
+<p>❌: <a href="https://ordinals.com/sat/6685000001337">6685000001337</a></p>
+<p>提出する前に、上述のアドレスがこの前に他の珍しい聡が受け取らなかったことを確認し、最初に提出されたのは奨励を得られます。</p>
+<h2 id="奨励-2"><a class="header" href="#奨励-2">奨励</a></h2>
+<p>300,000 sats</p>
+<h2 id="アドレスを提出する-2"><a class="header" href="#アドレスを提出する-2">アドレスを提出する</a></h2>
+<p><a href="https://mempool.space/address/1Hyr94uypwWq5CQffaXHvwUMEyBPp3TUZH"><code>1Hyr94uypwWq5CQffaXHvwUMEyBPp3TUZH</code></a></p>
+<h2 id="状態-2"><a class="header" href="#状態-2">状態</a></h2>
+<p><a href="https://twitter.com/rodarmor/status/1582424455615172608">@utxoset</a> は獲得!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="賞金任務-3"><a class="header" href="#賞金任務-3">賞金任務 3</a></h1>
+<h2 id="標準-3"><a class="header" href="#標準-3">標準</a></h2>
+<p>任务3は二つの部分があり、序数の名前に基づきます_序数の名前は序数の数字を直したbase-26によって行われたコードです。短い名前を時間をかけはいけない創成プレート奨励の中に絞らないように序数の長くなるほど、序数の名前は短くなります。例えば、初めに採掘された０番の聡の名前は<code>nvtdijuwxlpで</code>、最後に採掘された2,099,999,997,689,999番の聡の名前は <code>a</code>です。</p>
+<p>賞金計画はブロック高度の840000の-第四回の半分にしたの初めてのブロックまで開放します。ブロック高度の840000及びそれ以上のブロックは考えられません</p>
+<p>二つの部分のミッションが使われ <a href="bounty/frequency.tsv">frequency.tsv</a>, 一つの単語のリスト及び <a href="http://storage.googleapis.com/books/ngrams/books/datasetsv2.html">Google Books Ngram dataset</a>で現れた回数。濾過した後、提出時間が終わるときに発掘された聡の名前だけを含まれ、これらの名称は少なくともコーパスの中で5000回以上現れます。</p>
+<p><code>frequency.tsv</code> タブ区切り値のファイルは第一列が単語で，第二列がコーパスに現れる回数ですこれらの条目は出現の最も低い頻度から最も高い頻度まで順番に並べています。</p>
+<p><code>frequency.tsv</code> [このプログラム]を使って(https://github.com/casey/onegrams)纂訳されます。.</p>
+<p><code>ord</code>ウォレットの中で<code>frequency.tsv</code>の中に含まれた聡の名前を検索して , したのを使います<a href="https://github.com/ordinals/ord"><code>ord</code></a>コマンド: </p>
+<pre><code>ord wallet sats --tsv frequency.tsv
+</code></pre>
+<p>このコマンドは聡の索引必要なので，<code>--index-sats</code> は初めに索引を作り上げる時に使います。</p>
+<h3 id="第０部分"><a class="header" href="#第０部分">第０部分</a></h3>
+<p>_珍しい聡と珍しい名前のベストマッチ</p>
+<p>提出したUTXOの中に聡の名前が含まれ、<code>frequency.tsv</code>の中に頻度が最も低い人は第0部分の優勝者であります。。</p>
+<h3 id="第1部分"><a class="header" href="#第1部分">第1部分</a></h3>
+<p><em>人気は価値の源泉です</em></p>
+<p>提出したUTXOの中に聡の名前が含まれ、<code>frequency.tsv</code>の中に頻度が最も高い人は第一部分の優勝者であります。</p>
+<h3 id="勝負なしの場合"><a class="header" href="#勝負なしの場合">勝負なしの場合</a></h3>
+<p>勝負なしの場合は二つの提出が同じ頻度でしたら、もっと早く提出した人は優勝者となります</p>
+<h2 id="奨励-3"><a class="header" href="#奨励-3">奨励</a></h2>
+<ul>
+<li>Part 0: 200,000 sats</li>
+<li>Part 1: 200,000 sats</li>
+<li>Total: 400,000 sats</li>
+</ul>
+<h2 id="アドレスを提出する-3"><a class="header" href="#アドレスを提出する-3">アドレスを提出する</a></h2>
+<p><a href="https://mempool.space/address/17m5rvMpi78zG8RUpCRd6NWWMJtWmu65kg"><code>17m5rvMpi78zG8RUpCRd6NWWMJtWmu65kg</code></a></p>
+<h2 id="状態-3"><a class="header" href="#状態-3">状態</a></h2>
+<p>依然有効です！</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+        <script>
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+
+    </div>
+    </body>
+</html>

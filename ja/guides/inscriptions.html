@@ -1,0 +1,371 @@
+<!DOCTYPE HTML>
+<html lang="ja" class="sidebar-visible no-js coal">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>銘文 - Ordinal Theory Handbook</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../language-picker.css">
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "coal";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('coal')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../introduction.html">紹介</a></li><li class="chapter-item expanded "><a href="../overview.html"><strong aria-hidden="true">1.</strong> 概要</a></li><li class="chapter-item expanded "><a href="../digital-artifacts.html"><strong aria-hidden="true">2.</strong> 数字文物</a></li><li class="chapter-item expanded "><a href="../inscriptions.html"><strong aria-hidden="true">3.</strong> 銘文</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../inscriptions/provenance.html"><strong aria-hidden="true">3.1.</strong> Provenance</a></li><li class="chapter-item expanded "><a href="../inscriptions/recursion.html"><strong aria-hidden="true">3.2.</strong> 再帰</a></li></ol></li><li class="chapter-item expanded "><a href="../faq.html"><strong aria-hidden="true">4.</strong> 一般的問題</a></li><li class="chapter-item expanded "><a href="../contributing.html"><strong aria-hidden="true">5.</strong> 貢献</a></li><li class="chapter-item expanded "><a href="../donate.html"><strong aria-hidden="true">6.</strong> 寄付</a></li><li class="chapter-item expanded "><a href="../guides.html"><strong aria-hidden="true">7.</strong> ガイド</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../guides/explorer.html"><strong aria-hidden="true">7.1.</strong> ブラウザ</a></li><li class="chapter-item expanded "><a href="../guides/inscriptions.html" class="active"><strong aria-hidden="true">7.2.</strong> 銘文</a></li><li class="chapter-item expanded "><a href="../guides/sat-hunting.html"><strong aria-hidden="true">7.3.</strong> 聡狩り</a></li><li class="chapter-item expanded "><a href="../guides/collecting.html"><strong aria-hidden="true">7.4.</strong> コレクション</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../guides/collecting/sparrow-wallet.html"><strong aria-hidden="true">7.4.1.</strong> 雀のウォレット</a></li></ol></li><li class="chapter-item expanded "><a href="../guides/testing.html"><strong aria-hidden="true">7.5.</strong> テスティング</a></li><li class="chapter-item expanded "><a href="../guides/moderation.html"><strong aria-hidden="true">7.6.</strong> 調節</a></li><li class="chapter-item expanded "><a href="../guides/reindexing.html"><strong aria-hidden="true">7.7.</strong> 再インデックス</a></li></ol></li><li class="chapter-item expanded "><a href="../bounties.html"><strong aria-hidden="true">8.</strong> 賞金</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../bounty/0.html"><strong aria-hidden="true">8.1.</strong> ミッション 0: 100,000 sats 完成!</a></li><li class="chapter-item expanded "><a href="../bounty/1.html"><strong aria-hidden="true">8.2.</strong> ミッション 1: 200,000 sats 完成!</a></li><li class="chapter-item expanded "><a href="../bounty/2.html"><strong aria-hidden="true">8.3.</strong> ミッション 2: 300,000 sats 完成!</a></li><li class="chapter-item expanded "><a href="../bounty/3.html"><strong aria-hidden="true">8.4.</strong> ミッション 3: 400,000 sats</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Ordinal Theory Handbook</h1>
+
+                    <div class="right-buttons">
+                        <button id="language-toggle" class="icon-button" type="button"
+                                title="Change language" aria-label="Change language"
+                                aria-haspopup="true" aria-expanded="false"
+                                aria-controls="language-list">
+                            <i class="fa fa-globe"></i>
+                        </button>
+                        <ul id="language-list" class="theme-popup" aria-label="Languages" role="menu">
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="en">English</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="zh">中文版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ja">日本語版</a>
+                          </button></li>
+                        </ul>
+
+                        <script>
+                          let langToggle = document.getElementById("language-toggle");
+                          let langList = document.getElementById("language-list");
+                          langToggle.addEventListener("click", (event) => {
+                              langList.style.display = langList.style.display == "block" ? "none" : "block";
+                          });
+                          let selectedLang = document.getElementById("ja");
+                          if (selectedLang) {
+                              selectedLang.parentNode.classList.add("theme-selected");
+                          }
+
+                          // The path to the root, taking the current
+                          // language into account.
+                          let full_path_to_root = "../../";
+                          // The page path (mdbook only gives us
+                          // access to the path to the Markdown file).
+                          let path = "guides/inscriptions.md".replace(/\.md$/, ".html");
+                          for (let lang of langList.querySelectorAll("a")) {
+                              if (lang.id == "en") {
+                                  lang.href = `${full_path_to_root}${path}`;
+                              } else {
+                                  lang.href = `${full_path_to_root}${lang.id}/${path}`;
+                              }
+                          }
+                        </script>
+
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ordinals/ord" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="銘文のガイド"><a class="header" href="#銘文のガイド">銘文のガイド</a></h1>
+<p>単一のコングは、ビットコインウォレットに保存され、ビットコイントランザクションを使用して転送されるビットコインネイティブデジタルアーティファクトを作成するために、任意のコンテンツを刻印することができます。の銘文はビットコイン自体と同じくらい持続的で、不変で、安全で、分散化されています。</p>
+<p>銘文を使用するには、ビットコインのブロックチェーンの現在の状態を知ることができるビットコインの完全なノードが必要です。また、銘文を作成し、取引を構築することができます」他のウォレットに銘文を送信するときにスマートコントロールを実行するウォレット。</p>
+<p>Bitcoin Core ビットコインのフルノードとウォレットを提供します。しかし，Bitcoin Coreウォレットは碑文を作成できず、スマートコントロールを実行しません。</p>
+<p>これには<a href="https://github.com/ordinals/ord">'ord'</a>,序数ユーティリティ。'ord'は自分のウォレットを持っていないので、'ord wallet'サブコマンドはBitcoin Coreウォレットと対話します。</p>
+<p>このガイドの含まれ：</p>
+<ol>
+<li>Bitcoin Coreを取り付けます。</li>
+<li>ビットコインのブロックを同期します。</li>
+<li>Bitcoin Core ウォレットを作り上げます。</li>
+<li><code>ord wallet receive</code>を使って聡を取り受けます。</li>
+<li><code>ord wallet inscribe</code>を使って、銘文を作り上げます。</li>
+<li><code>ord wallet send</code>を使って`銘文を発送します</li>
+<li><code>ord wallet receive</code>を使って`銘文を受け取ります。</li>
+</ol>
+<h2 id="助けを求めます"><a class="header" href="#助けを求めます">助けを求めます。</a></h2>
+<p>困ったことがあったら、<a href="https://discord.com/invite/87cjuz4FYg">Ordinals Discord Server</a>,またはGithubの関連内容をチェックする<a href="https://github.com/ordinals/ord/issues">質問</a>と<a href="https://github.com/ordinals/ord/discussions">ディスカッション</a>.</p>
+<h2 id="bitcoin-coreを取り付けます"><a class="header" href="#bitcoin-coreを取り付けます">Bitcoin Coreを取り付けます。</a></h2>
+<p><a href="https://bitcoincore.org/">bitcoincore.org</a>で」の<a href="https://bitcoincore.org/en/download/">ダウンロードページ</a></p>
+<p>銘文を作成するにはBitcoin Core 24以降が必要です。</p>
+<p>このガイドには、Bitcoin Coreの詳細なインストール方法は含まれていません。Bitcoin Coreのインストールに成功した後、コマンドラインで'bitcoind-version'コマンドを使うことができます。</p>
+<h2 id="bitcoin-coreを配置します"><a class="header" href="#bitcoin-coreを配置します">Bitcoin Coreを配置します。</a></h2>
+<p><code>ord</code> Bitcoin Core の取引索引が必要です。</p>
+<p>トランザクションインデックスを配置するためにBitcoin Coreフェーズを設定します,'bitcoin.conf'に追加する必要があります::</p>
+<pre><code>txindex=1
+</code></pre>
+<p>または,  <code>bitcoind</code> 和 <code>-txindex</code>を運行します:</p>
+<pre><code>bitcoind -txindex
+</code></pre>
+<h2 id="ビットコインのブロックを同期にします"><a class="header" href="#ビットコインのブロックを同期にします">ビットコインのブロックを同期にします。</a></h2>
+<p>ブロックを同期にして、運行します：</p>
+<pre><code>bitcoind -txindex
+</code></pre>
+<p>… <code>getblockcount運行するまで</code>:</p>
+<pre><code>bitcoin-cli getblockcount
+</code></pre>
+<p>ブロックチェーンブラウザのように[the mempool.space block explorer]（https://mempool.space/)のようにブロックを記述する...<code>ord</code>は'bitcoind'と相互作用するので、'ord'を使用するときは'bitcoind'をバックグラウンドで実行する必要があります。</p>
+<h2 id="ord取り付けます"><a class="header" href="#ord取り付けます"><code>ord取り付けます。</code></a></h2>
+<p><code>ord</code> プログラムはRust言語で書かれており、<a href="https://github.com/ordinals/ord">ソースコード</a>インストール.事前に作成されたファイルは、<a href="https://github.com/ordinals/ord/releases">バージョンリリースページ</a>)からダウンロードできます。</p>
+<p>コマンドラインで次のコマンドを使用して、最新のファイルをインストールすることもできます。：</p>
+<pre><code class="language-sh">curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash -s
+</code></pre>
+<p>'ord'が正常にインストールされた後、あなたは実行することができます :</p>
+<pre><code>ord --version
+</code></pre>
+<p>これにより、「ord」のバージョン番号が出力されます。</p>
+<h2 id="ordという名前のbitcoin-coreウォレットを作成します"><a class="header" href="#ordという名前のbitcoin-coreウォレットを作成します">『ord』という名前のBitcoin Coreウォレットを作成します。</a></h2>
+<p><code>ord</code> Bitcoin Coreを使用して秘密鍵を管理し、トランザクションに署名し、ビットコインネットワークにトランザクションをブロードキャストします。。</p>
+<p>『ord』という名前のBitcoin Coreウォレットを作成し、運行します:</p>
+<pre><code>ord wallet create
+</code></pre>
+<h2 id="聡を取り受けます"><a class="header" href="#聡を取り受けます">聡を取り受けます。</a></h2>
+<p>銘文は、単一のコングに作成され、通常のビットコイン取引のためにコングを使用して料金を支払うので、あなたの財布はいくつかのコング（ビットコイン）を必要とします。</p>
+<p>'ord'ウォレットの新しいアドレスを作成して、実行します::</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>上記の住所に資金を発送します。</p>
+<p>以下のコマンドで取引状況を見ることができます：</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>取引が確認されたら、'ord wallet outputs'を使って取引の輸出を見ることができるはずです；</p>
+<h2 id="銘文の内容を作成します"><a class="header" href="#銘文の内容を作成します">銘文の内容を作成します。</a></h2>
+<p>聡の上ではあらゆる種類のコンテンツを書き込むことができますが、'ord'ウォレットは'ord'ブロックブラウザで表示できる種類のコンテンツしかサポートしていません。</p>
+<p>また、銘文は取引に含まれているため、内容が大きいほど銘文取引にかかる費用が高くなります。</p>
+<p>銘文の内容は取引証言に含まれ、証言割引を受ける。トランザクションへの書き込みで支払われる費用の概算を計算するには、コンテンツサイズを4で割ってから、レートを掛けてください。</p>
+<p>銘文取引は400,000重量測定単位未満でなければならない。そうでなければ、Bitcoin Coreに中継されないの1バイトの銘文内容には重み測定単位が必要です。銘文取引は銘文の内容だけではないので、銘文の内容は400、000重量計量単位以内に制限されている。390、000の重み測定単位は安全でなければならなりません。</p>
+<h2 id="銘文を作成します"><a class="header" href="#銘文を作成します">銘文を作成します。</a></h2>
+<p>『FILE』の内容で銘文を作成し、実行する必要があります:</p>
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE FILE
+</code></pre>
+<p>Ordは2つの取引IDが出力されます。1つはcommit取引、もう1つはreveal取引、そして銘文IDです。銘文IDのフォーマットは、'TXIDiN'であり、'TXID'は、取引を開示する取引IDであり、'N'は、取引における銘文を開示するインデックスであ。</p>
+<p>CommitCommitトランザクションは銘文の内容を含むtapscriptに提出され、revealトランザクションはそのtapscriptから費やされます。チェーン上のコンテンツを表示し、revealトランザクションの最初の出力の最初のsatにそれらをマークします。</p>
+<p>reveal取引が記録されるのを待っている間、あなたは使用することができます[the mempool.space block explorer]（https://mempool.space/)は取引の状態をチェックします。</p>
+<p>reveal取引が記帳を完了したら、以下のコマンドを使用して銘文IDを照会できます</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+<p>[the ordinals explorer]（https://ordinals.com/)で以下の形式で銘文にアクセスできます`.</p>
+<h2 id="銘文を発送します"><a class="header" href="#銘文を発送します">銘文を発送します</a></h2>
+<p>銘文受信者は次のコマンドを使って住所を生成する</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>コマンドを使用して銘文を発送します：</p>
+<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; &lt;ADDRESS&gt; &lt;INSCRIPTION_ID&gt;
+</code></pre>
+<p>できなかった取引状況を検査します：</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>取引が確認されると、受信者は次のコマンドを使用して受信した銘文を見ることができます</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+<h2 id="銘文を受け取ります"><a class="header" href="#銘文を受け取ります">銘文を受け取ります</a></h2>
+<p>次のコマンドを使用して新しい受信アドレスを生成する</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>送信者はコマンドを使用してあなたの住所に銘文を送信します</p>
+<pre><code>ord wallet send ADDRESS INSCRIPTION_ID
+</code></pre>
+<p>できなかった取引状況を検査します：</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>取引が確認されると、受信者は次のコマンドを使用して受信した銘文を見ることができます</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../guides/explorer.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="../guides/sat-hunting.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../guides/explorer.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="../guides/sat-hunting.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>
