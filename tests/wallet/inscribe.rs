@@ -577,3 +577,60 @@ fn reinscribe_with_flag() {
     ),
   );
 }
+
+#[test]
+fn with_reinscribe_flag_but_not_actually_a_reinscription() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  rpc_server.mine_blocks(1);
+
+  assert_eq!(rpc_server.descriptors().len(), 0);
+
+  create_wallet(&rpc_server);
+
+  CommandBuilder::new("wallet inscribe tulip.png --fee-rate 5.0 ")
+    .write("tulip.png", [1; 520])
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<Inscribe>();
+
+  let txid = rpc_server.mine_blocks(1)[0].txdata[2].txid();
+
+  CommandBuilder::new(format!(
+    "wallet inscribe orchid.png --fee-rate 1.1 --reinscribe --satpoint {txid}:0:1000"
+  ))
+  .write("orchid.png", [1; 520])
+  .rpc_server(&rpc_server)
+  .expected_exit_code(1)
+  .stderr_regex("error: reinscribe flag set but this would not be a reinscription.*")
+  .run_and_extract_stdout();
+}
+
+#[test]
+fn try_reinscribe_without_flag() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  rpc_server.mine_blocks(1);
+
+  assert_eq!(rpc_server.descriptors().len(), 0);
+
+  create_wallet(&rpc_server);
+
+  let reveal_txid = CommandBuilder::new("wallet inscribe tulip.png --fee-rate 5.0 ")
+    .write("tulip.png", [1; 520])
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<Inscribe>()
+    .reveal;
+
+  assert_eq!(rpc_server.descriptors().len(), 3);
+
+  rpc_server.mine_blocks(1);
+
+  CommandBuilder::new(format!(
+    "wallet inscribe orchid.png --fee-rate 1.1 --satpoint {reveal_txid}:0:0"
+  ))
+  .write("orchid.png", [1; 520])
+  .rpc_server(&rpc_server)
+  .expected_exit_code(1)
+  .stderr_regex(format!(
+    "error: sat at {reveal_txid}:0:0 already inscribed.*"
+  ))
+  .run_and_extract_stdout();
+}
