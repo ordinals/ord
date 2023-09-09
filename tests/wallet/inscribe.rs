@@ -532,3 +532,48 @@ fn inscribe_with_parent_inscription_and_fee_rate() {
     ),
   );
 }
+
+#[test]
+fn reinscribe_with_flag() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  rpc_server.mine_blocks(1);
+
+  assert_eq!(rpc_server.descriptors().len(), 0);
+
+  create_wallet(&rpc_server);
+
+  let inscribe = CommandBuilder::new("wallet inscribe tulip.png --fee-rate 5.0 ")
+    .write("tulip.png", [1; 520])
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<Inscribe>();
+
+  assert_eq!(rpc_server.descriptors().len(), 3);
+
+  let txid = rpc_server.mine_blocks(1)[0].txdata[2].txid();
+
+  let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
+  let request = ord_server.request(format!("/content/{}", inscribe.inscription));
+
+  assert_eq!(request.status(), 200);
+
+  let reinscribe = CommandBuilder::new(format!(
+    "wallet inscribe orchid.png --fee-rate 1.1 --reinscribe --satpoint {txid}:0:0"
+  ))
+  .write("orchid.png", [1; 520])
+  .rpc_server(&rpc_server)
+  .run_and_deserialize_output::<Inscribe>();
+
+  rpc_server.mine_blocks(1);
+
+  let ord_server = TestServer::spawn_with_args(&rpc_server, &["--index-sats"]);
+  let request = ord_server.request(format!("/content/{}", reinscribe.inscription));
+
+  assert_eq!(request.status(), 200);
+  ord_server.assert_response_regex(
+    format!("/sat/{}", 50 * COIN_VALUE),
+    format!(
+      ".*<dt>inscriptions</dt>.*<a href=/inscription/{}>.*<a href=/inscription/{}>.*",
+      inscribe.inscription, reinscribe.inscription
+    ),
+  );
+}
