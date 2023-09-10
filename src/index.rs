@@ -953,47 +953,33 @@ impl Index {
     let inscription_id_by_number = rtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
 
     // TODO: simplify and functionalize this mess
-    if let Some((highest_blessed, lowest_cursed)) = height_to_last_inscription_number
-      .get(&block_height)?
-      .map(|ag| ag.value())
-    {
-      if let Some((lowest_blessed, highest_cursed)) = height_to_last_inscription_number
+    let block_inscriptions = match (
+      height_to_last_inscription_number
+        .get(&block_height)?
+        .map(|ag| ag.value()),
+      height_to_last_inscription_number
         .get(block_height.saturating_sub(1))?
-        .map(|ag| ag.value())
-      {
-        let mut block_inscriptions = Vec::new();
+        .map(|ag| ag.value()),
+    ) {
+      (Some((highest_blessed, lowest_cursed)), Some((lowest_blessed, highest_cursed))) => {
+        let mut block_inscriptions: Vec<InscriptionId> = (lowest_cursed..=highest_cursed)
+          .filter_map(|num| inscription_id_by_number.get(&num).ok())
+          .filter_map(|id| id.map(|inscription_id| InscriptionId::load(*inscription_id.value())))
+          .collect();
 
-        for num in lowest_cursed..=highest_cursed {
-          if let Some(inscription_id) = inscription_id_by_number
-            .get(&num)?
-            .map(|inscription_id| InscriptionId::load(*inscription_id.value()))
-          {
-            block_inscriptions.push(inscription_id);
-          } else {
-            continue;
-          }
-        }
+        block_inscriptions.extend(
+          (highest_blessed..=lowest_blessed)
+            .filter_map(|num| inscription_id_by_number.get(&num).ok())
+            .filter_map(|id| id.map(|inscription_id| InscriptionId::load(*inscription_id.value())))
+            .collect::<Vec<InscriptionId>>(),
+        );
 
-        for num in highest_blessed..=lowest_blessed {
-          if let Some(inscription_id) = inscription_id_by_number
-            .get(&num)?
-            .map(|inscription_id| InscriptionId::load(*inscription_id.value()))
-          {
-            block_inscriptions.push(inscription_id);
-          } else {
-            continue;
-          }
-        }
-
-        return Ok(block_inscriptions);
-      } else {
-        return Ok(vec![]);
+        block_inscriptions
       }
-    } else {
-      return Ok(vec![]);
-    }
+      _ => vec![],
+    };
 
-    Ok(vec![])
+    Ok(block_inscriptions)
   }
 
   pub(crate) fn get_highest_paying_inscriptions_in_block(
