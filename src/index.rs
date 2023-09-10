@@ -973,11 +973,12 @@ impl Index {
         dbg!(&lowest_cursed);
         dbg!(&highest_cursed);
 
-        for num in highest_cursed..=lowest_cursed {
+        for num in lowest_cursed..=highest_cursed {
           if let Some(inscription_id) = inscription_id_by_number
             .get(&num)?
             .map(|inscription_id| InscriptionId::load(*inscription_id.value()))
           {
+            dbg!(&inscription_id);
             block_inscriptions.push(inscription_id);
           } else {
             continue;
