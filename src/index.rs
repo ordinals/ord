@@ -4,7 +4,6 @@ use {
       BlockHashValue, Entry, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
       OutPointValue, SatPointValue, SatRange,
     },
-    index::block_index::BlockIndex,
     reorg::*,
     updater::Updater,
   },
@@ -23,7 +22,6 @@ use {
   std::io::{BufWriter, Read, Write},
 };
 
-pub mod block_index;
 mod entry;
 mod fetcher;
 mod reorg;
@@ -948,10 +946,7 @@ impl Index {
     Ok((inscriptions, prev, next, lowest, highest))
   }
 
-  pub(crate) fn get_inscriptions_in_block(
-    &self,
-    block_height: u64,
-  ) -> Result<Vec<InscriptionId>> {
+  pub(crate) fn get_inscriptions_in_block(&self, block_height: u64) -> Result<Vec<InscriptionId>> {
     let rtx = self.database.begin_read()?;
 
     let height_to_last_inscription_number = rtx.open_table(HEIGHT_TO_LAST_INSCRIPTION_NUMBER)?;
@@ -968,17 +963,11 @@ impl Index {
       {
         let mut block_inscriptions = Vec::new();
 
-        dbg!(&lowest_blessed);
-        dbg!(&highest_blessed);
-        dbg!(&lowest_cursed);
-        dbg!(&highest_cursed);
-
         for num in lowest_cursed..=highest_cursed {
           if let Some(inscription_id) = inscription_id_by_number
             .get(&num)?
             .map(|inscription_id| InscriptionId::load(*inscription_id.value()))
           {
-            dbg!(&inscription_id);
             block_inscriptions.push(inscription_id);
           } else {
             continue;
@@ -1005,6 +994,31 @@ impl Index {
     }
 
     Ok(vec![])
+  }
+
+  pub(crate) fn get_highest_paying_inscriptions_in_block(
+    &self,
+    block_height: u64,
+    n: usize,
+  ) -> Result<(Vec<InscriptionId>, usize)> {
+    let inscription_ids = self.get_inscriptions_in_block(block_height)?;
+
+    let mut inscription_to_fee: Vec<(InscriptionId, u64)> = Vec::new();
+    for id in &inscription_ids {
+      inscription_to_fee.push((*id, self.get_inscription_entry(*id)?.unwrap().fee));
+    }
+
+    inscription_to_fee.sort_by_key(|(_, fee)| *fee);
+
+    Ok((
+      inscription_to_fee
+        .iter()
+        .map(|(id, _)| *id)
+        .rev()
+        .take(n)
+        .collect(),
+      inscription_ids.len(),
+    ))
   }
 
   pub(crate) fn get_feed_inscriptions(&self, n: usize) -> Result<Vec<(i64, InscriptionId)>> {

@@ -378,7 +378,8 @@ impl<'index> Updater<'_> {
     }
 
     let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
-    let mut height_to_last_inscription_number = wtx.open_table(HEIGHT_TO_LAST_INSCRIPTION_NUMBER)?;
+    let mut height_to_last_inscription_number =
+      wtx.open_table(HEIGHT_TO_LAST_INSCRIPTION_NUMBER)?;
     let mut inscription_id_to_inscription_entry =
       wtx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
     let mut inscription_id_to_satpoint = wtx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
@@ -513,8 +514,11 @@ impl<'index> Updater<'_> {
       }
     }
 
-    self
-      .index_block_inscription_numbers(&mut height_to_last_inscription_number, &inscription_updater, index_inscriptions)?;
+    self.index_block_inscription_numbers(
+      &mut height_to_last_inscription_number,
+      &inscription_updater,
+      index_inscriptions,
+    )?;
 
     statistic_to_count.insert(&Statistic::LostSats.key(), &inscription_updater.lost_sats)?;
 
@@ -609,15 +613,14 @@ impl<'index> Updater<'_> {
     index_inscription: bool,
   ) -> Result {
     if !index_inscription {
-      return Ok(())
-
+      return Ok(());
     }
 
     height_to_inscription_number.insert(
       &self.height,
       (
-        inscription_updater.next_number,
-        inscription_updater.next_cursed_number,
+        inscription_updater.next_number.saturating_sub(1),
+        inscription_updater.next_cursed_number.saturating_add(1),
       ),
     )?;
 
