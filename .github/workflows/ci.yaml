@@ -14,7 +14,7 @@ defaults:
 
 env:
   RUSTFLAGS: --deny warnings
-  LANGUAGES: zh
+  LANGUAGES: zh ja
 
 jobs:
   docs:
