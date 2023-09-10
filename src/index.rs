@@ -952,7 +952,6 @@ impl Index {
     let height_to_last_inscription_number = rtx.open_table(HEIGHT_TO_LAST_INSCRIPTION_NUMBER)?;
     let inscription_id_by_number = rtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
 
-    // TODO: simplify and functionalize this mess
     let block_inscriptions = match (
       height_to_last_inscription_number
         .get(&block_height)?

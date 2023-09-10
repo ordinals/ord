@@ -619,8 +619,11 @@ impl<'index> Updater<'_> {
     height_to_inscription_number.insert(
       &self.height,
       (
-        inscription_updater.next_number.saturating_sub(1),
-        inscription_updater.next_cursed_number.saturating_add(1),
+        inscription_updater.next_number.saturating_sub(1).max(0),
+        inscription_updater
+          .next_cursed_number
+          .saturating_add(1)
+          .min(-1),
       ),
     )?;
 
