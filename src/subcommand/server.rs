@@ -1069,14 +1069,12 @@ impl Server {
   async fn inscriptions_in_block(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Extension(block_index_state): Extension<Arc<BlockIndexState>>,
     Path(block_height): Path<u64>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
     Self::inscriptions_in_block_from_page(
       Extension(page_config),
       Extension(index),
-      Extension(block_index_state),
       Path((block_height, 0)),
       accept_json,
     )
@@ -1086,17 +1084,11 @@ impl Server {
   async fn inscriptions_in_block_from_page(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Extension(block_index_state): Extension<Arc<BlockIndexState>>,
     Path((block_height, page_index)): Path<(u64, usize)>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
-    let block_index = block_index_state
-      .block_index
-      .read()
-      .map_err(|err| anyhow!("block index RwLock poisoned: {}", err))?;
-
     let inscriptions = index
-      .get_inscriptions_in_block(&block_index, block_height)
+      .get_inscriptions_in_block(block_height)
       .map_err(|e| ServerError::NotFound(format!("Failed to get inscriptions in block: {}", e)))?;
 
     Ok(if accept_json.0 {
