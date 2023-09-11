@@ -234,11 +234,12 @@ impl Inscribe {
     };
 
     let mut reinscription = false;
+    let mut already_inscribed = false;
 
     for (inscribed_satpoint, inscription_id) in &inscriptions {
       if *inscribed_satpoint == satpoint {
+        reinscription = true;
         if reinscribe {
-          reinscription = true;
           continue;
         } else {
           return Err(anyhow!("sat at {} already inscribed", satpoint));
@@ -246,16 +247,20 @@ impl Inscribe {
       }
 
       if inscribed_satpoint.outpoint == satpoint.outpoint {
-        return Err(anyhow!(
-          "utxo {} already inscribed with inscription {inscription_id} on sat {inscribed_satpoint}",
-          satpoint.outpoint,
-        ));
+        already_inscribed = true;
       }
     }
 
     if reinscribe && !reinscription {
       return Err(anyhow!(
         "reinscribe flag set but this would not be a reinscription"
+      ));
+    }
+
+    if already_inscribed && !reinscribe && !reinscription {
+      return Err(anyhow!(
+        "utxo {} already inscribed with inscription {inscription_id} on sat {inscribed_satpoint}",
+        satpoint.outpoint,
       ));
     }
 
