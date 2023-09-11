@@ -331,6 +331,7 @@ fn get_inscriptions_in_block() {
     ],
     ..Default::default()
   });
+
   rpc_server.mine_blocks(1);
 
   for _ in 0..10 {
