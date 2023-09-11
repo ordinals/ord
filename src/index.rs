@@ -988,7 +988,13 @@ impl Index {
 
     let mut inscription_to_fee: Vec<(InscriptionId, u64)> = Vec::new();
     for id in &inscription_ids {
-      inscription_to_fee.push((*id, self.get_inscription_entry(*id)?.unwrap().fee));
+      inscription_to_fee.push((
+        *id,
+        self
+          .get_inscription_entry(*id)?
+          .ok_or_else(|| anyhow!("could not get entry for inscription {id}"))?
+          .fee,
+      ));
     }
 
     inscription_to_fee.sort_by_key(|(_, fee)| *fee);
