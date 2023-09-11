@@ -592,10 +592,10 @@ fn with_reinscribe_flag_but_not_actually_a_reinscription() {
     .rpc_server(&rpc_server)
     .run_and_deserialize_output::<Inscribe>();
 
-  let txid = rpc_server.mine_blocks(1)[0].txdata[2].txid();
+  let coinbase = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   CommandBuilder::new(format!(
-    "wallet inscribe orchid.png --fee-rate 1.1 --reinscribe --satpoint {txid}:0:1000"
+    "wallet inscribe orchid.png --fee-rate 1.1 --reinscribe --satpoint {coinbase}:0:0"
   ))
   .write("orchid.png", [1; 520])
   .rpc_server(&rpc_server)
