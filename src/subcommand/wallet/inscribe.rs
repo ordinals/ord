@@ -233,16 +233,16 @@ impl Inscribe {
         .ok_or_else(|| anyhow!("wallet contains no cardinal utxos"))?
     };
 
+    let mut reinscription = false;
+
     for (inscribed_satpoint, inscription_id) in &inscriptions {
-      match (inscribed_satpoint == &satpoint, reinscribe) {
-        (true, true) => break,
-        (true, false) => return Err(anyhow!("sat at {} already inscribed", satpoint)),
-        (false, true) => {
-          return Err(anyhow!(
-            "reinscribe flag set but this would not be a reinscription"
-          ))
+      if *inscribed_satpoint == satpoint {
+        if reinscribe {
+          reinscription = true;
+          continue;
+        } else {
+          return Err(anyhow!("sat at {} already inscribed", satpoint));
         }
-        _ => (),
       }
 
       if inscribed_satpoint.outpoint == satpoint.outpoint {
@@ -251,6 +251,12 @@ impl Inscribe {
           satpoint.outpoint,
         ));
       }
+    }
+
+    if reinscribe && !reinscription {
+      return Err(anyhow!(
+        "reinscribe flag set but this would not be a reinscription"
+      ));
     }
 
     let secp256k1 = Secp256k1::new();
