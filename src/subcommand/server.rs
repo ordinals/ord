@@ -1059,9 +1059,7 @@ impl Server {
     Path((block_height, page_index)): Path<(u64, usize)>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
-    let inscriptions = index
-      .get_inscriptions_in_block(block_height)
-      .map_err(|e| ServerError::NotFound(format!("Failed to get inscriptions in block: {}", e)))?;
+    let inscriptions = index.get_inscriptions_in_block(block_height)?;
 
     Ok(if accept_json.0 {
       Json(InscriptionsJson::new(inscriptions, None, None, None, None)).into_response()
@@ -1071,13 +1069,7 @@ impl Server {
         index.block_height()?.unwrap_or(Height(0)).n(),
         inscriptions,
         page_index,
-      )
-      .map_err(|e| {
-        ServerError::NotFound(format!(
-          "Failed to get inscriptions in inscriptions block page: {}",
-          e
-        ))
-      })?
+      )?
       .page(page_config, index.has_sat_index()?)
       .into_response()
     })

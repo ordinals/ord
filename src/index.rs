@@ -954,28 +954,26 @@ impl Index {
 
     let block_inscriptions = match (
       height_to_last_inscription_number
+        .get(block_height.saturating_sub(1))?
+        .map(|ag| ag.value())
+        .unwrap_or((0, -1)),
+      height_to_last_inscription_number
         .get(&block_height)?
         .map(|ag| ag.value()),
-      height_to_last_inscription_number
-        .get(block_height.saturating_sub(1))?
-        .map(|ag| ag.value()),
     ) {
-      (Some((highest_blessed, lowest_cursed)), Some((lowest_blessed, highest_cursed))) => {
-        let mut block_inscriptions: Vec<InscriptionId> = (lowest_cursed..=highest_cursed)
-          .filter_map(|num| inscription_id_by_number.get(&num).ok())
-          .filter_map(|id| id.map(|inscription_id| InscriptionId::load(*inscription_id.value())))
-          .collect();
-
-        block_inscriptions.extend(
-          (highest_blessed..=lowest_blessed)
-            .filter_map(|num| inscription_id_by_number.get(&num).ok())
-            .filter_map(|id| id.map(|inscription_id| InscriptionId::load(*inscription_id.value())))
-            .collect::<Vec<InscriptionId>>(),
-        );
-
-        block_inscriptions
+      ((oldest_blessed, oldest_cursed), Some((newest_blessed, newest_cursed))) => {
+        ((newest_cursed + 1)..=oldest_cursed)
+          .chain(oldest_blessed..newest_blessed)
+          .map(|num| match inscription_id_by_number.get(&num) {
+            Ok(Some(inscription_id)) => Ok(InscriptionId::load(*inscription_id.value())),
+            Ok(None) => Err(anyhow!(
+              "could not find inscription for inscription number {num}"
+            )),
+            Err(err) => Err(anyhow!(err)),
+          })
+          .collect::<Result<Vec<InscriptionId>>>()?
       }
-      _ => vec![],
+      _ => Vec::new(),
     };
 
     Ok(block_inscriptions)
