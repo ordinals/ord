@@ -233,19 +233,6 @@ impl Inscribe {
         .ok_or_else(|| anyhow!("wallet contains no cardinal utxos"))?
     };
 
-    // should work with:
-    // 1. passing a satpoint :check:
-    // 2. passing an inscription id?
-    //
-    // should fail if:
-    // 1. not  a reinscription :check:
-    //
-    // questions:
-    // - What if satpoint not inscribed but utxo is? Should it split utxo? -> no
-    // - What if inscription not on first sat of utxo?
-    // - What if satpoint not on first sat of utxo?
-    // -
-
     for (inscribed_satpoint, inscription_id) in &inscriptions {
       match (inscribed_satpoint == &satpoint, reinscribe) {
         (true, true) => break,
