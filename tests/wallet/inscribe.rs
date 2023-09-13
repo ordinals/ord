@@ -39,6 +39,29 @@ fn inscribe_works_with_huge_expensive_inscriptions() {
 }
 
 #[test]
+fn protocol_appears_on_inscription_page() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
+
+  let inscribe = CommandBuilder::new(format!(
+    "wallet inscribe foo.txt --protocol foo --satpoint {txid}:0:0 --fee-rate 10"
+  ))
+  .write("foo.txt", [0; 350_000])
+  .rpc_server(&rpc_server)
+  .run_and_deserialize_output::<Inscribe>();
+
+  rpc_server.mine_blocks(1);
+
+  let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
+
+  ord_server.assert_response_regex(
+    format!("/inscription/{}", inscribe.inscription),
+    r".*<dt>protocol</dt>\s*<dd>foo</dd>.*",
+  );
+}
+
+#[test]
 fn inscribe_fails_if_bitcoin_core_is_too_old() {
   let rpc_server = test_bitcoincore_rpc::builder().version(230000).build();
 

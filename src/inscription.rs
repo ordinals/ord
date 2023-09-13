@@ -15,6 +15,7 @@ const PROTOCOL_ID: [u8; 3] = *b"ord";
 const BODY_TAG: [u8; 0] = [];
 const CONTENT_TYPE_TAG: [u8; 1] = [1];
 const PARENT_TAG: [u8; 1] = [3];
+const PROTOCOL_TAG: [u8; 1] = [7];
 
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) enum Curse {
@@ -29,6 +30,7 @@ pub struct Inscription {
   pub body: Option<Vec<u8>>,
   pub content_type: Option<Vec<u8>>,
   pub parent: Option<Vec<u8>>,
+  pub protocol: Option<Vec<u8>>,
   pub unrecognized_even_field: bool,
 }
 
@@ -45,8 +47,7 @@ impl Inscription {
     Self {
       content_type,
       body,
-      parent: None,
-      unrecognized_even_field: false,
+      ..Default::default()
     }
   }
 
@@ -77,6 +78,7 @@ impl Inscription {
     chain: Chain,
     path: impl AsRef<Path>,
     parent: Option<InscriptionId>,
+    protocol: Option<String>,
   ) -> Result<Self, Error> {
     let path = path.as_ref();
 
@@ -95,6 +97,7 @@ impl Inscription {
       body: Some(body),
       content_type: Some(content_type.into()),
       parent: parent.map(|id| id.parent_value()),
+      protocol: protocol.map(|protocol| protocol.into_bytes()),
       unrecognized_even_field: false,
     })
   }
@@ -109,6 +112,12 @@ impl Inscription {
       builder = builder
         .push_slice(CONTENT_TYPE_TAG)
         .push_slice(PushBytesBuf::try_from(content_type).unwrap());
+    }
+
+    if let Some(protocol) = self.protocol.clone() {
+      builder = builder
+        .push_slice(PROTOCOL_TAG)
+        .push_slice(PushBytesBuf::try_from(protocol).unwrap());
     }
 
     if let Some(parent) = self.parent.clone() {
@@ -157,6 +166,10 @@ impl Inscription {
 
   pub(crate) fn content_type(&self) -> Option<&str> {
     str::from_utf8(self.content_type.as_ref()?).ok()
+  }
+
+  pub(crate) fn protocol(&self) -> Option<&str> {
+    str::from_utf8(self.protocol.as_ref()?).ok()
   }
 
   pub(crate) fn parent(&self) -> Option<InscriptionId> {
@@ -277,6 +290,7 @@ impl<'a> InscriptionParser<'a> {
     let body = fields.remove(BODY_TAG.as_slice());
     let content_type = fields.remove(CONTENT_TYPE_TAG.as_slice());
     let parent = fields.remove(PARENT_TAG.as_slice());
+    let protocol = fields.remove(PROTOCOL_TAG.as_slice());
     let mut unrecognized_even_field = false;
 
     for tag in fields.keys() {
@@ -292,6 +306,7 @@ impl<'a> InscriptionParser<'a> {
       content_type,
       parent,
       unrecognized_even_field,
+      protocol,
     })
   }
 
@@ -434,7 +449,7 @@ mod tests {
         b"ord",
         &[1],
         b"text/plain;charset=utf-8",
-        &[5],
+        &[9],
         b"bar",
         &[],
         b"ord",
@@ -449,9 +464,7 @@ mod tests {
       InscriptionParser::parse(&envelope(&[b"ord", &[1], b"text/plain;charset=utf-8"])),
       Ok(vec![Inscription {
         content_type: Some(b"text/plain;charset=utf-8".to_vec()),
-        body: None,
-        parent: None,
-        unrecognized_even_field: false,
+        ..Default::default()
       }]),
     );
   }
@@ -461,10 +474,8 @@ mod tests {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[b"ord", &[], b"foo"])),
       Ok(vec![Inscription {
-        content_type: None,
-        parent: None,
         body: Some(b"foo".to_vec()),
-        unrecognized_even_field: false,
+        ..Default::default()
       }]),
     );
   }
@@ -791,38 +802,22 @@ mod tests {
   fn round_trip_with_no_fields() {
     let mut witness = Witness::new();
 
-    witness.push(
-      &Inscription {
-        body: None,
-        content_type: None,
-        parent: None,
-        unrecognized_even_field: false,
-      }
-      .append_reveal_script(script::Builder::new()),
-    );
+    witness.push(Inscription::default().append_reveal_script(script::Builder::new()));
 
     witness.push([]);
 
     assert_eq!(
       InscriptionParser::parse(&witness).unwrap(),
-      vec![Inscription {
-        content_type: None,
-        parent: None,
-        body: None,
-        unrecognized_even_field: false,
-      }]
+      vec![Inscription::default()]
     );
   }
 
   #[test]
   fn unknown_odd_fields_are_ignored() {
     assert_eq!(
-      InscriptionParser::parse(&envelope(&[b"ord", &[5], &[0]])),
+      InscriptionParser::parse(&envelope(&[b"ord", &[7], &[0]])),
       Ok(vec![Inscription {
-        content_type: None,
-        parent: None,
-        body: None,
-        unrecognized_even_field: false,
+        ..Default::default()
       }]),
     );
   }
@@ -832,10 +827,8 @@ mod tests {
     assert_eq!(
       InscriptionParser::parse(&envelope(&[b"ord", &[2], &[0]])),
       Ok(vec![Inscription {
-        content_type: None,
-        body: None,
-        parent: None,
         unrecognized_even_field: true,
+        ..Default::default()
       }]),
     );
   }

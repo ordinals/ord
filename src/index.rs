@@ -3717,7 +3717,7 @@ mod tests {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
             parent: Some(parent_inscription_id.parent_value()),
-            unrecognized_even_field: false,
+            ..Default::default()
           }
           .to_witness(),
         )],
@@ -3764,7 +3764,7 @@ mod tests {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
             parent: Some(parent_inscription_id.parent_value()),
-            unrecognized_even_field: false,
+            ..Default::default()
           }
           .to_witness(),
         )],
@@ -3824,7 +3824,7 @@ mod tests {
               content_type: Some("text/plain".into()),
               body: Some("hello".into()),
               parent: Some(parent_inscription_id.parent_value()),
-              unrecognized_even_field: false,
+              ..Default::default()
             }
             .to_witness(),
           ),
@@ -3884,7 +3884,7 @@ mod tests {
               content_type: Some("text/plain".into()),
               body: Some("hello".into()),
               parent: Some(parent_inscription_id.parent_value()),
-              unrecognized_even_field: false,
+              ..Default::default()
             }
             .to_witness(),
           ),
@@ -3950,7 +3950,7 @@ mod tests {
                 .chain(iter::once(0))
                 .collect(),
             ),
-            unrecognized_even_field: false,
+            ..Default::default()
           }
           .to_witness(),
         )],
