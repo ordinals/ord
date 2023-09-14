@@ -35,9 +35,9 @@
   <dt>sat</dt>
   <dd><a href=/sat/{{sat}}>{{sat}}</a></dd>
 %% }
-%% if let Some(protocol) = self.inscription.protocol() {
-  <dt>protocol</dt>
-  <dd>{{protocol}}</dd>
+%% if let Some(metaprotocol) = self.inscription.metaprotocol() {
+  <dt>metaprotocol</dt>
+  <dd>{{ metaprotocol }}</dd>
 %% }
 %% if let Some(content_length) = self.inscription.content_length() {
   <dt>preview</dt>

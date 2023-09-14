@@ -67,14 +67,14 @@ pub(crate) struct Inscribe {
   pub(crate) parent: Option<InscriptionId>,
   #[clap(long, help = "Allow reinscription.")]
   pub(crate) reinscribe: bool,
-  #[clap(long, help = "Set inscription protocol to <PROTOCOL>.")]
-  pub(crate) protocol: Option<String>,
+  #[clap(long, help = "Set inscription metaprotocol to <METAPROTOCOL>.")]
+  pub(crate) metaprotocol: Option<String>,
 }
 
 impl Inscribe {
   pub(crate) fn run(self, options: Options) -> SubcommandResult {
     let inscription =
-      Inscription::from_file(options.chain(), &self.file, self.parent, self.protocol)?;
+      Inscription::from_file(options.chain(), &self.file, self.parent, self.metaprotocol)?;
 
     let index = Index::open(&options)?;
     index.update()?;

@@ -39,13 +39,13 @@ fn inscribe_works_with_huge_expensive_inscriptions() {
 }
 
 #[test]
-fn protocol_appears_on_inscription_page() {
+fn metaprotocol_appears_on_inscription_page() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let inscribe = CommandBuilder::new(format!(
-    "wallet inscribe foo.txt --protocol foo --satpoint {txid}:0:0 --fee-rate 10"
+    "wallet inscribe foo.txt --metaprotocol foo --satpoint {txid}:0:0 --fee-rate 10"
   ))
   .write("foo.txt", [0; 350_000])
   .rpc_server(&rpc_server)
@@ -57,7 +57,7 @@ fn protocol_appears_on_inscription_page() {
 
   ord_server.assert_response_regex(
     format!("/inscription/{}", inscribe.inscription),
-    r".*<dt>protocol</dt>\s*<dd>foo</dd>.*",
+    r".*<dt>metaprotocol</dt>\s*<dd>foo</dd>.*",
   );
 }
 

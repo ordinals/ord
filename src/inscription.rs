@@ -15,7 +15,7 @@ const PROTOCOL_ID: [u8; 3] = *b"ord";
 const BODY_TAG: [u8; 0] = [];
 const CONTENT_TYPE_TAG: [u8; 1] = [1];
 const PARENT_TAG: [u8; 1] = [3];
-const PROTOCOL_TAG: [u8; 1] = [7];
+const METAPROTOCOL_TAG: [u8; 1] = [7];
 
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) enum Curse {
@@ -30,7 +30,7 @@ pub struct Inscription {
   pub body: Option<Vec<u8>>,
   pub content_type: Option<Vec<u8>>,
   pub parent: Option<Vec<u8>>,
-  pub protocol: Option<Vec<u8>>,
+  pub metaprotocol: Option<Vec<u8>>,
   pub unrecognized_even_field: bool,
 }
 
@@ -78,7 +78,7 @@ impl Inscription {
     chain: Chain,
     path: impl AsRef<Path>,
     parent: Option<InscriptionId>,
-    protocol: Option<String>,
+    metaprotocol: Option<String>,
   ) -> Result<Self, Error> {
     let path = path.as_ref();
 
@@ -97,7 +97,7 @@ impl Inscription {
       body: Some(body),
       content_type: Some(content_type.into()),
       parent: parent.map(|id| id.parent_value()),
-      protocol: protocol.map(|protocol| protocol.into_bytes()),
+      metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
       unrecognized_even_field: false,
     })
   }
@@ -114,9 +114,9 @@ impl Inscription {
         .push_slice(PushBytesBuf::try_from(content_type).unwrap());
     }
 
-    if let Some(protocol) = self.protocol.clone() {
+    if let Some(protocol) = self.metaprotocol.clone() {
       builder = builder
-        .push_slice(PROTOCOL_TAG)
+        .push_slice(METAPROTOCOL_TAG)
         .push_slice(PushBytesBuf::try_from(protocol).unwrap());
     }
 
@@ -168,8 +168,8 @@ impl Inscription {
     str::from_utf8(self.content_type.as_ref()?).ok()
   }
 
-  pub(crate) fn protocol(&self) -> Option<&str> {
-    str::from_utf8(self.protocol.as_ref()?).ok()
+  pub(crate) fn metaprotocol(&self) -> Option<&str> {
+    str::from_utf8(self.metaprotocol.as_ref()?).ok()
   }
 
   pub(crate) fn parent(&self) -> Option<InscriptionId> {
@@ -290,7 +290,7 @@ impl<'a> InscriptionParser<'a> {
     let body = fields.remove(BODY_TAG.as_slice());
     let content_type = fields.remove(CONTENT_TYPE_TAG.as_slice());
     let parent = fields.remove(PARENT_TAG.as_slice());
-    let protocol = fields.remove(PROTOCOL_TAG.as_slice());
+    let metaprotocol = fields.remove(METAPROTOCOL_TAG.as_slice());
     let mut unrecognized_even_field = false;
 
     for tag in fields.keys() {
@@ -306,7 +306,7 @@ impl<'a> InscriptionParser<'a> {
       content_type,
       parent,
       unrecognized_even_field,
-      protocol,
+      metaprotocol,
     })
   }
 
@@ -815,7 +815,7 @@ mod tests {
   #[test]
   fn unknown_odd_fields_are_ignored() {
     assert_eq!(
-      InscriptionParser::parse(&envelope(&[b"ord", &[7], &[0]])),
+      InscriptionParser::parse(&envelope(&[b"ord", &[9], &[0]])),
       Ok(vec![Inscription {
         ..Default::default()
       }]),

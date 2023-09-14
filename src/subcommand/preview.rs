@@ -88,7 +88,7 @@ impl Preview {
             no_limit: false,
             parent: None,
             postage: Some(TransactionBuilder::TARGET_POSTAGE),
-            protocol: None,
+            metaprotocol: None,
             reinscribe: false,
             satpoint: None,
           },
