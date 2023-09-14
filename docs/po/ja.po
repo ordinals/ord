@@ -29,7 +29,7 @@ msgstr "銘文"
 
 #: src/SUMMARY.md:6 src/inscriptions/provenance.md:1
 msgid "Provenance"
-msgstr ""
+msgstr "出所"
 
 #: src/SUMMARY.md:7 src/inscriptions/recursion.md:1
 msgid "Recursion"
