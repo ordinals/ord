@@ -1072,7 +1072,6 @@ msgstr ""
 "まず文字列'ord'がプッシュされ、銘文と封筒の他の用途との曖昧さを解消します。"
 
 #: src/inscriptions.md:56
-#, fuzzy
 msgid ""
 "`OP_PUSH 1` indicates that the next push contains the content type, and "
 "`OP_PUSH 0`indicates that subsequent data pushes contain the content itself. "
@@ -1296,9 +1295,9 @@ msgid "Specification"
 msgstr "規範"
 
 #: src/inscriptions/provenance.md:16
-#, fuzzy
 msgid "To create a child inscription C with parent inscription P:"
-msgstr "父の銘文Pのために子銘文Cを作り上げます。"
+msgstr ""
+"父の銘文Pのために子銘文Cを作り上げます。"
 
 #: src/inscriptions/provenance.md:18
 msgid "Create an inscribe transaction T as usual for C."
