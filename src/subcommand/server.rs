@@ -30,7 +30,11 @@ use {
     caches::DirCache,
     AcmeConfig,
   },
-  std::{cmp::Ordering, str, sync::Arc},
+  std::{
+    cmp::Ordering,
+    str, sync::Arc,
+    collections::HashMap,
+  },
   tokio_stream::StreamExt,
   tower_http::{
     compression::CompressionLayer,
@@ -171,6 +175,7 @@ impl Server {
         .route("/bounties", get(Self::bounties))
         .route("/clock", get(Self::clock))
         .route("/content/:inscription_id", get(Self::content))
+        .route("/content/sat/:sat/:page_index", get(Self::content_sat))
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
         .route("/feed.xml", get(Self::feed))
@@ -194,6 +199,7 @@ impl Server {
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
         .route("/sat/:sat", get(Self::sat))
+        .route("/sat/:sat/:page_index", get(Self::sat_from_n))
         .route("/search", get(Self::search_by_query))
         .route("/search/:query", get(Self::search_by_path))
         .route("/static/*path", get(Self::static_asset))
@@ -452,6 +458,20 @@ impl Server {
     Redirect::to(&format!("/sat/{sat}"))
   }
 
+  async fn sat_from_n(
+    Extension(index): Extension<Arc<Index>>,
+    Path((DeserializeFromStr(sat), DeserializeFromStr(n))): Path<(DeserializeFromStr<Sat>, DeserializeFromStr<i64>)>,
+  ) -> ServerResult<Json<HashMap<String, String>>> {
+    let mut inscriptions = index.get_inscription_ids_by_sat(sat)?;
+    if n < 0 {
+      inscriptions.reverse();
+    }    
+    let inscription_id = inscriptions.get(n.abs() as usize - 1).ok_or_not_found(|| "inscription")?;    
+    let mut map = HashMap::new();
+    map.insert("id".to_string(), inscription_id.to_string());
+    Ok(Json(map))
+  }
+  
   async fn output(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
@@ -859,6 +879,33 @@ impl Server {
     )
   }
 
+  async fn content_sat(
+    Extension(index): Extension<Arc<Index>>,
+    Extension(_config): Extension<Arc<Config>>,
+    Path((sat, page_index)): Path<(Option<Sat>, Option<i64>)>,
+  ) -> ServerResult<Response> {
+    let inscription_id = match (sat, page_index) {
+      (Some(sat), Some(page_index)) => {
+        let mut inscriptions = index.get_inscription_ids_by_sat(sat)?;
+        if page_index < 0 {
+          inscriptions.reverse();
+        }    
+        inscriptions.get(page_index.abs() as usize - 1).ok_or_not_found(|| "inscription")?.clone()
+      },
+      _ => return Err(ServerError::BadRequest("Invalid request".to_string())),
+    };
+    
+    let inscription = index
+      .get_inscription_by_id(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    Ok(
+      Self::content_response(inscription)
+        .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
+        .into_response(),
+    )
+  }
+
   fn content_response(inscription: Inscription) -> Option<(HeaderMap, Vec<u8>)> {
     let mut headers = HeaderMap::new();
 
@@ -875,8 +922,9 @@ impl Server {
     );
     headers.append(
       header::CONTENT_SECURITY_POLICY,
-      HeaderValue::from_static("default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime 'unsafe-eval' 'unsafe-inline' data: blob:"),
-    );
+      HeaderValue::from_static("default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime *:*/content/sat/ *:*/sat/* 'unsafe-eval' 'unsafe-inline' data: blob:"),
+  );
+
     headers.insert(
       header::CACHE_CONTROL,
       HeaderValue::from_static("max-age=31536000, immutable"),
@@ -1807,6 +1855,36 @@ mod tests {
       StatusCode::OK,
       ".*<title>Sat 0</title>.*<h1>Sat 0</h1>.*",
     );
+  }
+
+  #[test]
+  fn sat_from_n_endpoint() {
+    let server = TestServer::new_with_regtest_with_index_sats();
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/foo", "hello").to_witness())],
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let inscription_id = InscriptionId { txid, index: 0 };    
+
+    server.assert_response_regex(
+      format!("/sat/5000000000/1"),
+      StatusCode::OK,
+      format!(r#".*\{{"id":"{}"\}}.*"#, inscription_id),
+    );
+        
+    server.assert_response_regex(
+      format!("/sat/5000000000/-1"),
+      StatusCode::OK,
+      format!(r#".*\{{"id":"{}"\}}.*"#, inscription_id),
+    );
+    
+    
+
   }
 
   #[test]

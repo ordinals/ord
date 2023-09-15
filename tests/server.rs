@@ -189,7 +189,7 @@ fn inscription_content() {
       .collect::<Vec<&http::HeaderValue>>(),
     &[
       "default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:",
-      "default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime 'unsafe-eval' 'unsafe-inline' data: blob:",
+      "default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime *:*/content/sat/ *:*/sat/ 'unsafe-eval' 'unsafe-inline' data: blob:",
     ]
   );
   assert_eq!(response.bytes().unwrap(), "FOO");
