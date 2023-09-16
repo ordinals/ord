@@ -174,7 +174,11 @@ impl Inscription {
 
     if let Some(last) = index.last() {
       if *last == 0 {
-        return None;
+        log::info!(
+          "parsing parent inscription index {:?} for {:?} with trailing zeroes",
+          index,
+          txid
+        );
       }
     }
 
