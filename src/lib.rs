@@ -21,7 +21,6 @@ use {
     epoch::Epoch,
     height::Height,
     index::{Index, List},
-    inscription::Inscription,
     inscription_id::InscriptionId,
     media::Media,
     options::Options,
@@ -75,8 +74,8 @@ use {
 };
 
 pub use crate::{
-  fee_rate::FeeRate, object::Object, rarity::Rarity, sat::Sat, sat_point::SatPoint,
-  subcommand::wallet::transaction_builder::TransactionBuilder,
+  fee_rate::FeeRate, inscription::Inscription, object::Object, rarity::Rarity, sat::Sat,
+  sat_point::SatPoint, subcommand::wallet::transaction_builder::TransactionBuilder,
 };
 
 #[cfg(test)]

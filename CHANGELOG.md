@@ -1,8 +1,78 @@
 Changelog
 =========
 
+[0.9.0](https://github.com/ordinals/ord/releases/tag/0.9.0) - 2023-09-11
+------------------------------------------------------------------------
+
+### Added
+
+- Allow reinscribing with wallet (#2432)
+- Provide more detailed translation instructions (#2443)
+- Add Japanese version of handbook (#2426)
+- Add provenance to docs summary (#2427)
+- Inscribe with parent (#2388)
+- Add provenance spec (#2278)
+- Implement provenance in index (#2353)
+- Add application/protobuf media type (#2389)
+- Install mdbook-i18n-helpers in Github Workflows (#2408)
+- Add `decode` command (#2401)
+- Add Chinese version of the handbook (#2406)
+- Add language picker for docs (#2403)
+- Add reindexing docs (#2393)
+- Vaccuum log with every new deploy (#2390)
+
+### Changed
+
+- Fold BlockIndex into database (#2436)
+- Prevent search when query field is empty (#2425)
+- Make any zero-valued input inscription unbound (#2397)
+- Tweak translations intructions (#2413)
+- Remove unused itertools dependency (#2416)
+- Update dependencies (#2414)
+- Update clap (#2415)
+- Use tapscript extraction from rust-bitcoin (#2404)
+- Allocate blocks vector ahead of time (#2409)
+- Deduplicate sat range summation logic (#2402)
+- Inscriptions with unrecognized even fields are unbound and cursed (#2359)
+- Remove unused content_response match statement (#2384)
+
+### Fixed
+
+- Fix type (#2444)
+- Fix Chinese translation typos and format errors (#2419)
+- Fix UTXO selection in mock Bitcoin Core instance(#2417)
+
+[0.8.3](https://github.com/ordinals/ord/releases/tag/0.8.3) - 2023-08-28
+------------------------------------------------------------------------
+
+### Added
+
+- Tweaks to front-end (#2381)
+- Add some links  to docs  (#2364)
+- Add testing guide for recursion (#2357)
+- Make homepage more interesting (#2374)
+- Add proper block inscriptions HTML (#2337)
+- Render GLB/GLTF models in preview (#2369)
+- Add tags and inscription id documentation (#2351)
+- Add hint about maximum number of open files for testing (#2348)
+- Reduce index durability when testing (#2347)
+- Homogenize design (#2346)
+
+### Fixed
+
+- Fix slice error for inscriptions block view (#2378)
+- Use correct height and depth in reorg log (#2352)
+
+### Changed
+
+- Remove transaction ID to inscription ID conversion (#2370)
+- Return JSON from all commands (#2355)
+- Allow splitting merged inscriptions (#1927)
+- Update explorer.md (#2215)
+- Recognize media types without explicit charset (#2349)
+
 [0.8.2](https://github.com/ordinals/ord/releases/tag/0.8.2) - 2023-08-17
----------------------------------------------------------------------
+------------------------------------------------------------------------
 
 ### Added
 
@@ -14,13 +84,11 @@ Changelog
 - Add JSON API endpoint `/sat/<SAT>` (#2250)
 - Add `amount` field to `wallet inscriptions` output. (#1928)
 
-
 ### Changed
 
 - Only fetch inscriptions that are owned by the ord wallet (#2310)
 - Inform user when redb starts in recovery mode (#2304)
 - Select multiple utxos (#2303)
-
 
 ### Fixed
 
@@ -28,7 +96,6 @@ Changelog
 - Fix typos in documentation (#2328)
 - Fix dust limit for padding in `TransactionBuilder` (#1929)
 - Fix remote RPC wallet commands (#1766)
-
 
 [0.8.1](https://github.com/ordinals/ord/releases/tag/0.8.1) - 2023-07-23
 ---------------------------------------------------------------------
@@ -55,7 +122,6 @@ Changelog
 - Fix docs inconsistency (#2276)
 - Add contributing section (#2261)
 
-
 [0.8.0](https://github.com/ordinals/ord/releases/tag/0.8.0) - 2023-07-01
 ---------------------------------------------------------------------
 
@@ -65,7 +131,6 @@ Changelog
 - Set DB cache size (#2224)
 - Update redb from 0.13.0 to 1.0.2 (#2141)
 - Fix typo in BIP (#2220)
-
 
 [0.7.0](https://github.com/ordinals/ord/releases/tag/0.7.0) - 2023-06-23
 ---------------------------------------------------------------------
@@ -77,7 +142,6 @@ Changelog
 - Add Markdown media type (#2206)
 - Add blob urls to Content Security Policy headers (#2203)
 - Check inscribe destination address network (#2189)
-
 
 [0.6.2](https://github.com/ordinals/ord/releases/tag/0.6.2) - 2023-06-15
 ---------------------------------------------------------------------
@@ -91,14 +155,12 @@ Changelog
 ### Misc
 - Update ord dependency in lockfile (#2168)
 
-
 [0.6.1](https://github.com/ordinals/ord/releases/tag/0.6.1) - 2023-06-06
 ---------------------------------------------------------------------
 
 ### Changed
 - Fix sat index test and unbound assignment (#2154)
 - Updated install.sh for new repo name (#2155)
-
 
 [0.6.0](https://github.com/ordinals/ord/releases/tag/0.6.0) - 2023-06-04
 ---------------------------------------------------------------------
@@ -126,7 +188,6 @@ Changelog
 - Use struct variants in Origin enum (#2067)
 - Fix test name typos(#2043)
 - Switch to nightly clippy (#2037)
-
 
 [0.5.2](https://github.com/ordinals/ord/releases/tag/0.5.2) - 2023-04-17
 ---------------------------------------------------------------------

@@ -16,10 +16,10 @@ impl SchemaMigrator {
     database: &Database,
     client: &Client,
   ) -> Result<bool> {
-    if from_schema_version == 5 && to_schema_version == 6 {
-      return Self::migrate_5_to_6(database, client);
-    } else if from_schema_version == 6 && to_schema_version == 5 {
-      return Self::migrate_6_to_5(database);
+    if from_schema_version == 6 && to_schema_version == 7 {
+      return Self::migrate_6_to_7(database, client);
+    } else if from_schema_version == 7 && to_schema_version == 6 {
+      return Self::migrate_7_to_6(database);
     }
     log::info!(
       "Migration from schema version {} to {} not supported",
@@ -78,8 +78,8 @@ impl SchemaMigrator {
     Ok(())
   }
 
-  fn migrate_5_to_6(database: &Database, client: &Client) -> Result<bool> {
-    log::info!("Migrating from schema version 5 to schema version 6...");
+  fn migrate_6_to_7(database: &Database, client: &Client) -> Result<bool> {
+    log::info!("Migrating from schema version 6 to schema version 7...");
     let start_time = Instant::now();
 
     let mut tx = database.begin_write()?;
@@ -88,27 +88,27 @@ impl SchemaMigrator {
     Self::create_content_hashes(&mut tx, client)?;
 
     tx.open_table(STATISTIC_TO_COUNT)?
-      .insert(&Statistic::Schema.key(), 6)?;
+      .insert(&Statistic::Schema.key(), 7)?;
     tx.commit()?;
 
     log::info!(
-      "Successfully migrated from schema version 5 to schema version 6 in {}s",
+      "Successfully migrated from schema version 6 to schema version 7 in {}s",
       start_time.elapsed().as_secs()
     );
     Ok(true)
   }
 
-  fn migrate_6_to_5(database: &Database) -> std::result::Result<bool, Error> {
-    log::info!("Migrating from schema version 6 to schema version 5...");
+  fn migrate_7_to_6(database: &Database) -> std::result::Result<bool, Error> {
+    log::info!("Migrating from schema version 7 to schema version 6...");
 
     let mut tx = database.begin_write()?;
     tx.set_durability(redb::Durability::Immediate);
     tx.delete_multimap_table(CONTENT_HASH_TO_INSCRIPTION_ID)?;
     tx.open_table(STATISTIC_TO_COUNT)?
-      .insert(&Statistic::Schema.key(), 5)?;
+      .insert(&Statistic::Schema.key(), 6)?;
     tx.commit()?;
 
-    log::info!("Successfully migrated from schema version 6 to schema version 5");
+    log::info!("Successfully migrated from schema version 7 to schema version 6");
     Ok(true)
   }
 }

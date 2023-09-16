@@ -30,11 +30,11 @@ impl InscriptionsBlockHtml {
     Ok(Self {
       block,
       inscriptions,
-      prev_block: if block == 0 { None } else { Some(block - 1) },
-      next_block: if block >= current_blockheight {
-        None
-      } else {
+      prev_block: block.checked_sub(1),
+      next_block: if current_blockheight > block {
         Some(block + 1)
+      } else {
+        None
       },
       prev_page: if page_index > 0 {
         Some(page_index - 1)
