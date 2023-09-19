@@ -27,16 +27,10 @@ impl Find {
     index.update()?;
 
     match self.end {
-      Some(end) => {
-        if self.sat < end {
-          match index.find_range(self.sat.0, end.0)? {
-            Some(result) => Ok(Box::new(result)),
-            None => Err(anyhow!("range has not been mined as of index height")),
-          }
-        } else {
-          Err(anyhow!("range is empty"))
-        }
-      }
+      Some(end) => match index.find_range(self.sat.0, end.0)? {
+        Some(result) => Ok(Box::new(result)),
+        None => Err(anyhow!("range has not been mined as of index height")),
+      },
       None => match index.find(self.sat.0)? {
         Some(satpoint) => Ok(Box::new(Output { satpoint })),
         None => Err(anyhow!("sat has not been mined as of index height")),
