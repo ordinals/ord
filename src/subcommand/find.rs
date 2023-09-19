@@ -4,7 +4,7 @@ use super::*;
 pub(crate) struct Find {
   #[arg(help = "Find output and offset of <SAT>.")]
   sat: Sat,
-  #[clap(help = "Find output and offset of all sats in the range <SAT>-<END>.")]
+  #[clap(help = "Find output and offset of all sats in the range [<SAT>, <END>).")]
   end: Option<Sat>,
 }
 
