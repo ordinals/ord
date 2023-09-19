@@ -2540,7 +2540,7 @@ mod tests {
     server.assert_response_regex(
       format!("/preview/{inscription_id}"),
       StatusCode::OK,
-      format!(r".*<div data-inscription={inscription_id}></div>.*"),
+      format!(r".*<html lang=en data-inscription={inscription_id}>.*"),
     );
   }
 
