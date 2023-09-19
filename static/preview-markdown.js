@@ -1,17 +1,6 @@
 import { marked } from 'https://cdn.jsdelivr.net/npm/marked@8.0.0/+esm'
-import DOMPurify from 'https://cdn.jsdelivr.net/npm/dompurify@3.0.5/+esm'
 
-async function renderMarkdown() {
-  const divElements = document.getElementsByTagName('div');
-  const contentDiv = divElements[0];
-  
-  const inscriptionId = contentDiv.dataset.inscription;
-  const response = await fetch(`/content/${inscriptionId}`);
-  const rawMarkdown = await response.text();
-  
-  const html = DOMPurify.sanitize(marked.parse(rawMarkdown));
-
-  contentDiv.innerHTML = html;
-}
-
-window.addEventListener('DOMContentLoaded', renderMarkdown);
+const inscription = document.documentElement.dataset.inscription;
+const response = await fetch(`/content/${inscription}`);
+const markdown = await response.text();
+document.body.innerHTML = marked.parse(markdown);
