@@ -8,6 +8,7 @@ use {
     updater::Updater,
   },
   super::*,
+  crate::subcommand::find::FindRangeOutput,
   crate::wallet::Wallet,
   bitcoin::block::Header,
   bitcoincore_rpc::{json::GetBlockHeaderResult, Client},
@@ -809,6 +810,59 @@ impl Index {
     }
 
     Ok(None)
+  }
+
+  pub(crate) fn find_range(
+    &self,
+    range_start: u64,
+    range_end: u64,
+  ) -> Result<Option<Vec<FindRangeOutput>>> {
+    self.require_sat_index("find")?;
+
+    let rtx = self.begin_read()?;
+
+    if rtx.block_count()? < Sat(range_end - 1).height().n() + 1 {
+      return Ok(None);
+    }
+
+    let Some(mut remaining_sats) = range_end.checked_sub(range_start) else {
+      return Err(anyhow!("range end is before range start"));
+    };
+
+    let outpoint_to_sat_ranges = rtx.0.open_table(OUTPOINT_TO_SAT_RANGES)?;
+
+    let mut result = Vec::new();
+    for range in outpoint_to_sat_ranges.range::<&[u8; 36]>(&[0; 36]..)? {
+      let (outpoint_entry, sat_ranges_entry) = range?;
+
+      let mut offset = 0;
+      for sat_range in sat_ranges_entry.value().chunks_exact(11) {
+        let (start, end) = SatRange::load(sat_range.try_into().unwrap());
+
+        if end > range_start && start < range_end {
+          let overlap_start = start.max(range_start);
+          let overlap_end = end.min(range_end);
+
+          result.push(FindRangeOutput {
+            start: overlap_start,
+            size: overlap_end - overlap_start,
+            satpoint: SatPoint {
+              outpoint: Entry::load(*outpoint_entry.value()),
+              offset: offset + overlap_start - start,
+            },
+          });
+
+          remaining_sats -= overlap_end - overlap_start;
+
+          if remaining_sats == 0 {
+            break;
+          }
+        }
+        offset += end - start;
+      }
+    }
+
+    Ok(Some(result))
   }
 
   fn list_inner(&self, outpoint: OutPointValue) -> Result<Option<Vec<u8>>> {
