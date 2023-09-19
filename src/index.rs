@@ -840,8 +840,8 @@ impl Index {
         let (start, end) = SatRange::load(sat_range.try_into().unwrap());
 
         if end > range_start && start < range_end {
-          let overlap_start = cmp::max(start, range_start);
-          let overlap_end = cmp::min(range_end, end);
+          let overlap_start = start.max(range_start);
+          let overlap_end = end.min(range_end);
 
           result.push(FindRangeOutput {
             start: overlap_start,
