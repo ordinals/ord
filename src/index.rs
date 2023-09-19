@@ -821,7 +821,7 @@ impl Index {
 
     let rtx = self.begin_read()?;
 
-    if rtx.block_count()? <= Sat(search_end - 1).height().n() {
+    if rtx.block_count()? < Sat(search_end - 1).height().n() + 1 {
       return Ok(None);
     }
 
