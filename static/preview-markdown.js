@@ -1,4 +1,4 @@
-import { marked } from 'https://cdn.jsdelivr.net/npm/marked@8.0.0/+esm'
+import { marked } from 'https://cdn.jsdelivr.net/npm/marked@9/+esm'
 
 const inscription = document.documentElement.dataset.inscription;
 const response = await fetch(`/content/${inscription}`);
