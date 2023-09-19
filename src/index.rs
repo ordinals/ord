@@ -8,6 +8,7 @@ use {
     updater::Updater,
   },
   super::*,
+  crate::subcommand::find::FindRangeOutput,
   crate::wallet::Wallet,
   bitcoin::block::Header,
   bitcoincore_rpc::{json::GetBlockHeaderResult, Client},
@@ -132,13 +133,6 @@ impl<T> BitcoinCoreRpcResultExt<T> for Result<T, bitcoincore_rpc::Error> {
       Err(err) => Err(err.into()),
     }
   }
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct FindRangeOutput {
-  pub start: u64,
-  pub size: u64,
-  pub satpoint: SatPoint,
 }
 
 pub(crate) struct Index {
@@ -837,23 +831,27 @@ impl Index {
 
     let mut result = Vec::new();
     for range in outpoint_to_sat_ranges.range::<&[u8; 36]>(&[0; 36]..)? {
-      let (key, value) = range?;
+      let (outpoint_entry, sat_ranges_entry) = range?;
+
       let mut offset = 0;
-      for chunk in value.value().chunks_exact(11) {
-        let (start, end) = SatRange::load(chunk.try_into().unwrap());
+      for sat_range in sat_ranges_entry.value().chunks_exact(11) {
+        let (start, end) = SatRange::load(sat_range.try_into().unwrap());
+
         if start < search_end && search_start < end {
           let overlap_start = cmp::max(start, search_start);
           let overlap_end = cmp::min(search_end, end);
+
           result.push(FindRangeOutput {
             start: overlap_start,
             size: overlap_end - overlap_start,
             satpoint: SatPoint {
-              outpoint: Entry::load(*key.value()),
+              outpoint: Entry::load(*outpoint_entry.value()),
               offset: offset + overlap_start - start,
             },
           });
 
           remaining_sats -= overlap_end - overlap_start;
+
           if remaining_sats == 0 {
             break;
           }

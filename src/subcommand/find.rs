@@ -13,6 +13,13 @@ pub struct Output {
   pub satpoint: SatPoint,
 }
 
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct FindRangeOutput {
+  pub start: u64,
+  pub size: u64,
+  pub satpoint: SatPoint,
+}
+
 impl Find {
   pub(crate) fn run(self, options: Options) -> SubcommandResult {
     let index = Index::open(&options)?;
