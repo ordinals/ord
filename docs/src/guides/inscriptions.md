@@ -190,6 +190,17 @@ printed when you run:
 ord wallet inscriptions
 ```
 
+Parent Child Inscriptions
+---------------------
+
+A child inscription is an inscription that is a child of another inscription. See [provenance](../inscriptions/provenance.md) for more information.
+
+get the parent inscription id `<PARENT_INSCRIPTION_ID>` from the output of `ord wallet inscriptions`
+
+```
+ord wallet inscribe --fee-rate FEE_RATE --parent <PARENT_INSCRIPTION_ID> CHILD_FILE"
+```
+
 And when you visit [the ordinals explorer](https://ordinals.com/) at
 `ordinals.com/inscription/INSCRIPTION_ID`.
 
