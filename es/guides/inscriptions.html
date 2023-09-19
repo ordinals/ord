@@ -293,6 +293,11 @@
 <p>Una vez que la transacción de revelación haya sido minada, el ID de inscripción debería aparecer cuando ejecutes:</p>
 <pre><code>ord wallet inscriptions
 </code></pre>
+<h2 id="parent-child-inscriptions"><a class="header" href="#parent-child-inscriptions">Parent Child Inscriptions</a></h2>
+<p>A child inscription is an inscription that is a child of another inscription. See <a href="../inscriptions/provenance.html">provenance</a> for more information.</p>
+<p>get the parent inscription id <code>&lt;PARENT_INSCRIPTION_ID&gt;</code> from the output of <code>ord wallet inscriptions</code></p>
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; CHILD_FILE&quot;
+</code></pre>
 <p>Y cuando visites <a href="https://ordinals.com/">el explorador ordinals</a> en <code>ordinals.com/inscription/INSCRIPTION_ID</code>.</p>
 <h2 id="enviar-inscripciones"><a class="header" href="#enviar-inscripciones">Enviar Inscripciones</a></h2>
 <p>Pide al destinatario que genere una nueva dirección ejecutando:</p>

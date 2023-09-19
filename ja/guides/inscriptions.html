@@ -293,6 +293,11 @@
 <p>reveal取引が記帳を完了したら、以下のコマンドを使用して銘文IDを照会できます</p>
 <pre><code>ord wallet inscriptions
 </code></pre>
+<h2 id="parent-child-inscriptions"><a class="header" href="#parent-child-inscriptions">Parent Child Inscriptions</a></h2>
+<p>A child inscription is an inscription that is a child of another inscription. See <a href="../inscriptions/provenance.html">provenance</a> for more information.</p>
+<p>get the parent inscription id <code>&lt;PARENT_INSCRIPTION_ID&gt;</code> from the output of <code>ord wallet inscriptions</code></p>
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; CHILD_FILE&quot;
+</code></pre>
 <p>[the ordinals explorer]（https://ordinals.com/)で以下の形式で銘文にアクセスできます`.</p>
 <h2 id="銘文を発送します"><a class="header" href="#銘文を発送します">銘文を発送します</a></h2>
 <p>銘文受信者は次のコマンドを使って住所を生成する</p>

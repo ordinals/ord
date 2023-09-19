@@ -741,6 +741,8 @@ Esperamos que la teoría ordinal fortalezca y enriquezca a bitcoin, y le dé otr
 <p><code>ord server</code></p>
 <p>Para especificar un puerto agrega la bandera (flag) <code>--http-port</code>:</p>
 <p><code> ord server --http-port 8080</code></p>
+<p>To enable the JSON-API endpoints add the <code>--enable-json-api</code> or <code>-e</code> flag:</p>
+<p><code>ord --enable-json-api server</code></p>
 <p>Para ver como se verían tus inscripciones puedes ejecutar esto:</p>
 <p><code>ord preview &lt;ARCHIVO1&gt; &lt;ARCHIVO2&gt; ...</code></p>
 <h2 id="búsqueda"><a class="header" href="#búsqueda">Búsqueda</a></h2>
@@ -840,6 +842,11 @@ Esperamos que la teoría ordinal fortalezca y enriquezca a bitcoin, y le dé otr
 <p>Espera a que la transacción de revelación sea minada. Puedes verificar el estado de las transacciones de compromiso y revelación usando <a href="https://mempool.space/">el explorador de bloques mempool.space</a>.</p>
 <p>Una vez que la transacción de revelación haya sido minada, el ID de inscripción debería aparecer cuando ejecutes:</p>
 <pre><code>ord wallet inscriptions
+</code></pre>
+<h2 id="parent-child-inscriptions"><a class="header" href="#parent-child-inscriptions">Parent Child Inscriptions</a></h2>
+<p>A child inscription is an inscription that is a child of another inscription. See <a href="guides/../inscriptions/provenance.html">provenance</a> for more information.</p>
+<p>get the parent inscription id <code>&lt;PARENT_INSCRIPTION_ID&gt;</code> from the output of <code>ord wallet inscriptions</code></p>
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; CHILD_FILE&quot;
 </code></pre>
 <p>Y cuando visites <a href="https://ordinals.com/">el explorador ordinals</a> en <code>ordinals.com/inscription/INSCRIPTION_ID</code>.</p>
 <h2 id="enviar-inscripciones"><a class="header" href="#enviar-inscripciones">Enviar Inscripciones</a></h2>

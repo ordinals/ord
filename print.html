@@ -1046,6 +1046,8 @@ explorer on mainnet at <a href="https://ordinals.com">ordinals.com</a>, and on s
 <p><code>ord server</code></p>
 <p>To specify a port add the <code>--http-port</code> flag:</p>
 <p><code>ord server --http-port 8080</code></p>
+<p>To enable the JSON-API endpoints add the <code>--enable-json-api</code> or <code>-e</code> flag:</p>
+<p><code>ord --enable-json-api server</code></p>
 <p>To test how your inscriptions will look you can run:</p>
 <p><code>ord preview &lt;FILE1&gt; &lt;FILE2&gt; ...</code></p>
 <h2 id="search"><a class="header" href="#search">Search</a></h2>
@@ -1190,6 +1192,11 @@ explorer</a>.</p>
 <p>Once the reveal transaction has been mined, the inscription ID should be
 printed when you run:</p>
 <pre><code>ord wallet inscriptions
+</code></pre>
+<h2 id="parent-child-inscriptions"><a class="header" href="#parent-child-inscriptions">Parent Child Inscriptions</a></h2>
+<p>A child inscription is an inscription that is a child of another inscription. See <a href="guides/../inscriptions/provenance.html">provenance</a> for more information.</p>
+<p>get the parent inscription id <code>&lt;PARENT_INSCRIPTION_ID&gt;</code> from the output of <code>ord wallet inscriptions</code></p>
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; CHILD_FILE&quot;
 </code></pre>
 <p>And when you visit <a href="https://ordinals.com/">the ordinals explorer</a> at
 <code>ordinals.com/inscription/INSCRIPTION_ID</code>.</p>
