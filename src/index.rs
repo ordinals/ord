@@ -825,7 +825,7 @@ impl Index {
       return Ok(None);
     }
 
-    let Some(mut remaining_sat) = search_end.checked_sub(search_start) else {
+    let Some(mut remaining_sats) = search_end.checked_sub(search_start) else {
       return Err(anyhow!("range end is before range start"));
     };
 
