@@ -65,11 +65,16 @@ pub(crate) struct Inscribe {
   pub(crate) postage: Option<Amount>,
   #[clap(long, help = "Make inscription a child of <PARENT>.")]
   pub(crate) parent: Option<InscriptionId>,
+  #[clap(long, help = "Allow reinscription.")]
+  pub(crate) reinscribe: bool,
+  #[clap(long, help = "Set inscription metaprotocol to <METAPROTOCOL>.")]
+  pub(crate) metaprotocol: Option<String>,
 }
 
 impl Inscribe {
   pub(crate) fn run(self, options: Options) -> SubcommandResult {
-    let inscription = Inscription::from_file(options.chain(), &self.file, self.parent)?;
+    let inscription =
+      Inscription::from_file(options.chain(), &self.file, self.parent, self.metaprotocol)?;
 
     let index = Index::open(&options)?;
     index.update()?;
@@ -127,6 +132,7 @@ impl Inscribe {
         self.commit_fee_rate.unwrap_or(self.fee_rate),
         self.fee_rate,
         self.no_limit,
+        self.reinscribe,
         match self.postage {
           Some(postage) => postage,
           _ => TransactionBuilder::TARGET_POSTAGE,
@@ -209,6 +215,7 @@ impl Inscribe {
     commit_fee_rate: FeeRate,
     reveal_fee_rate: FeeRate,
     no_limit: bool,
+    reinscribe: bool,
     postage: Amount,
   ) -> Result<(Transaction, Transaction, TweakedKeyPair, u64)> {
     let satpoint = if let Some(satpoint) = satpoint {
@@ -229,9 +236,16 @@ impl Inscribe {
         .ok_or_else(|| anyhow!("wallet contains no cardinal utxos"))?
     };
 
+    let mut reinscription = false;
+
     for (inscribed_satpoint, inscription_id) in &inscriptions {
-      if inscribed_satpoint == &satpoint {
-        return Err(anyhow!("sat at {} already inscribed", satpoint));
+      if *inscribed_satpoint == satpoint {
+        reinscription = true;
+        if reinscribe {
+          continue;
+        } else {
+          return Err(anyhow!("sat at {} already inscribed", satpoint));
+        }
       }
 
       if inscribed_satpoint.outpoint == satpoint.outpoint {
@@ -240,6 +254,12 @@ impl Inscribe {
           satpoint.outpoint,
         ));
       }
+    }
+
+    if reinscribe && !reinscription {
+      return Err(anyhow!(
+        "reinscribe flag set but this would not be a reinscription"
+      ));
     }
 
     let secp256k1 = Secp256k1::new();
@@ -527,6 +547,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
       false,
+      false,
       TransactionBuilder::TARGET_POSTAGE,
     )
     .unwrap();
@@ -542,7 +563,7 @@ mod tests {
   }
 
   #[test]
-  fn inscript_tansactions_opt_in_to_rbf() {
+  fn inscribe_tansactions_opt_in_to_rbf() {
     let utxos = vec![(outpoint(1), Amount::from_sat(20000))];
     let inscription = inscription("text/plain", "ord");
     let commit_address = change(0);
@@ -559,6 +580,7 @@ mod tests {
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
+      false,
       false,
       TransactionBuilder::TARGET_POSTAGE,
     )
@@ -596,6 +618,7 @@ mod tests {
       reveal_address,
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
+      false,
       false,
       TransactionBuilder::TARGET_POSTAGE,
     )
@@ -641,6 +664,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
       false,
+      false,
       TransactionBuilder::TARGET_POSTAGE,
     )
     .is_ok())
@@ -678,6 +702,7 @@ mod tests {
       reveal_address,
       FeeRate::try_from(fee_rate).unwrap(),
       FeeRate::try_from(fee_rate).unwrap(),
+      false,
       false,
       TransactionBuilder::TARGET_POSTAGE,
     )
@@ -749,6 +774,7 @@ mod tests {
       reveal_address,
       FeeRate::try_from(fee_rate).unwrap(),
       FeeRate::try_from(fee_rate).unwrap(),
+      false,
       false,
       TransactionBuilder::TARGET_POSTAGE,
     )
@@ -825,6 +851,7 @@ mod tests {
       FeeRate::try_from(commit_fee_rate).unwrap(),
       FeeRate::try_from(fee_rate).unwrap(),
       false,
+      false,
       TransactionBuilder::TARGET_POSTAGE,
     )
     .unwrap();
@@ -876,6 +903,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
       false,
+      false,
       TransactionBuilder::TARGET_POSTAGE,
     )
     .unwrap_err()
@@ -909,6 +937,7 @@ mod tests {
       FeeRate::try_from(1.0).unwrap(),
       FeeRate::try_from(1.0).unwrap(),
       true,
+      false,
       TransactionBuilder::TARGET_POSTAGE,
     )
     .unwrap();

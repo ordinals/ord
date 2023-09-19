@@ -288,7 +288,7 @@ mv docs/build/zh/html docs/build/html/zh
 python3 -m http.server --directory docs/build/html --bind 127.0.0.1 8080
 ```
 
-6. Upon verifying everything and ensuring all is in order, you can commit the
+5. Upon verifying everything and ensuring all is in order, you can commit the
 modifications and progress to open a Pull Request (PR) on Github.
 (**Note**: Please ensure **ONLY** the **'xx.po'** file is pushed, other files
 such as '.pot' or files ending in '~' are **unnecessary** and should **NOT** be

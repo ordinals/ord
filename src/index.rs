@@ -4,7 +4,6 @@ use {
       BlockHashValue, Entry, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
       OutPointValue, SatPointValue, SatRange,
     },
-    index::block_index::BlockIndex,
     reorg::*,
     updater::Updater,
   },
@@ -23,7 +22,6 @@ use {
   std::io::{BufWriter, Read, Write},
 };
 
-pub mod block_index;
 mod entry;
 mod fetcher;
 mod reorg;
@@ -49,6 +47,7 @@ define_multimap_table! { INSCRIPTION_ID_TO_CHILDREN, &InscriptionIdValue, &Inscr
 define_multimap_table! { SATPOINT_TO_INSCRIPTION_ID, &SatPointValue, &InscriptionIdValue }
 define_multimap_table! { SAT_TO_INSCRIPTION_ID, u64, &InscriptionIdValue }
 define_table! { HEIGHT_TO_BLOCK_HASH, u64, &BlockHashValue }
+define_table! { HEIGHT_TO_LAST_INSCRIPTION_NUMBER, u64, (i64, i64) }
 define_table! { INSCRIPTION_ID_TO_INSCRIPTION_ENTRY, &InscriptionIdValue, InscriptionEntryValue }
 define_table! { INSCRIPTION_ID_TO_SATPOINT, &InscriptionIdValue, &SatPointValue }
 define_table! { INSCRIPTION_NUMBER_TO_INSCRIPTION_ID, i64, &InscriptionIdValue }
@@ -238,6 +237,7 @@ impl Index {
         tx.open_multimap_table(SATPOINT_TO_INSCRIPTION_ID)?;
         tx.open_multimap_table(SAT_TO_INSCRIPTION_ID)?;
         tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
+        tx.open_table(HEIGHT_TO_LAST_INSCRIPTION_NUMBER)?;
         tx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
         tx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
         tx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
@@ -946,12 +946,68 @@ impl Index {
     Ok((inscriptions, prev, next, lowest, highest))
   }
 
-  pub(crate) fn get_inscriptions_in_block(
+  pub(crate) fn get_inscriptions_in_block(&self, block_height: u64) -> Result<Vec<InscriptionId>> {
+    let rtx = self.database.begin_read()?;
+
+    let height_to_last_inscription_number = rtx.open_table(HEIGHT_TO_LAST_INSCRIPTION_NUMBER)?;
+    let inscription_id_by_number = rtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
+
+    let block_inscriptions = match (
+      height_to_last_inscription_number
+        .get(block_height.saturating_sub(1))?
+        .map(|ag| ag.value())
+        .unwrap_or((0, -1)),
+      height_to_last_inscription_number
+        .get(&block_height)?
+        .map(|ag| ag.value()),
+    ) {
+      ((oldest_blessed, oldest_cursed), Some((newest_blessed, newest_cursed))) => {
+        ((newest_cursed + 1)..=oldest_cursed)
+          .chain(oldest_blessed..newest_blessed)
+          .map(|num| match inscription_id_by_number.get(&num) {
+            Ok(Some(inscription_id)) => Ok(InscriptionId::load(*inscription_id.value())),
+            Ok(None) => Err(anyhow!(
+              "could not find inscription for inscription number {num}"
+            )),
+            Err(err) => Err(anyhow!(err)),
+          })
+          .collect::<Result<Vec<InscriptionId>>>()?
+      }
+      _ => Vec::new(),
+    };
+
+    Ok(block_inscriptions)
+  }
+
+  pub(crate) fn get_highest_paying_inscriptions_in_block(
     &self,
-    block_index: &BlockIndex,
     block_height: u64,
-  ) -> Result<Vec<InscriptionId>> {
-    block_index.get_inscriptions_in_block(self, block_height)
+    n: usize,
+  ) -> Result<(Vec<InscriptionId>, usize)> {
+    let inscription_ids = self.get_inscriptions_in_block(block_height)?;
+
+    let mut inscription_to_fee: Vec<(InscriptionId, u64)> = Vec::new();
+    for id in &inscription_ids {
+      inscription_to_fee.push((
+        *id,
+        self
+          .get_inscription_entry(*id)?
+          .ok_or_else(|| anyhow!("could not get entry for inscription {id}"))?
+          .fee,
+      ));
+    }
+
+    inscription_to_fee.sort_by_key(|(_, fee)| *fee);
+
+    Ok((
+      inscription_to_fee
+        .iter()
+        .map(|(id, _)| *id)
+        .rev()
+        .take(n)
+        .collect(),
+      inscription_ids.len(),
+    ))
   }
 
   pub(crate) fn get_feed_inscriptions(&self, n: usize) -> Result<Vec<(i64, InscriptionId)>> {
@@ -3661,7 +3717,7 @@ mod tests {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
             parent: Some(parent_inscription_id.parent_value()),
-            unrecognized_even_field: false,
+            ..Default::default()
           }
           .to_witness(),
         )],
@@ -3708,7 +3764,7 @@ mod tests {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
             parent: Some(parent_inscription_id.parent_value()),
-            unrecognized_even_field: false,
+            ..Default::default()
           }
           .to_witness(),
         )],
@@ -3768,7 +3824,7 @@ mod tests {
               content_type: Some("text/plain".into()),
               body: Some("hello".into()),
               parent: Some(parent_inscription_id.parent_value()),
-              unrecognized_even_field: false,
+              ..Default::default()
             }
             .to_witness(),
           ),
@@ -3828,7 +3884,7 @@ mod tests {
               content_type: Some("text/plain".into()),
               body: Some("hello".into()),
               parent: Some(parent_inscription_id.parent_value()),
-              unrecognized_even_field: false,
+              ..Default::default()
             }
             .to_witness(),
           ),
@@ -3894,7 +3950,7 @@ mod tests {
                 .chain(iter::once(0))
                 .collect(),
             ),
-            unrecognized_even_field: false,
+            ..Default::default()
           }
           .to_witness(),
         )],

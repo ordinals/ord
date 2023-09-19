@@ -1,6 +1,47 @@
 Changelog
 =========
 
+[0.9.0](https://github.com/ordinals/ord/releases/tag/0.9.0) - 2023-09-11
+------------------------------------------------------------------------
+
+### Added
+
+- Allow reinscribing with wallet (#2432)
+- Provide more detailed translation instructions (#2443)
+- Add Japanese version of handbook (#2426)
+- Add provenance to docs summary (#2427)
+- Inscribe with parent (#2388)
+- Add provenance spec (#2278)
+- Implement provenance in index (#2353)
+- Add application/protobuf media type (#2389)
+- Install mdbook-i18n-helpers in Github Workflows (#2408)
+- Add `decode` command (#2401)
+- Add Chinese version of the handbook (#2406)
+- Add language picker for docs (#2403)
+- Add reindexing docs (#2393)
+- Vaccuum log with every new deploy (#2390)
+
+### Changed
+
+- Fold BlockIndex into database (#2436)
+- Prevent search when query field is empty (#2425)
+- Make any zero-valued input inscription unbound (#2397)
+- Tweak translations intructions (#2413)
+- Remove unused itertools dependency (#2416)
+- Update dependencies (#2414)
+- Update clap (#2415)
+- Use tapscript extraction from rust-bitcoin (#2404)
+- Allocate blocks vector ahead of time (#2409)
+- Deduplicate sat range summation logic (#2402)
+- Inscriptions with unrecognized even fields are unbound and cursed (#2359)
+- Remove unused content_response match statement (#2384)
+
+### Fixed
+
+- Fix type (#2444)
+- Fix Chinese translation typos and format errors (#2419)
+- Fix UTXO selection in mock Bitcoin Core instance(#2417)
+
 [0.8.3](https://github.com/ordinals/ord/releases/tag/0.8.3) - 2023-08-28
 ------------------------------------------------------------------------
 

@@ -5,7 +5,6 @@ use {
     error::{OptionExt, ServerError, ServerResult},
   },
   super::*,
-  crate::index::block_index::BlockIndex,
   crate::page_config::PageConfig,
   crate::templates::{
     BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson,
@@ -31,7 +30,7 @@ use {
     caches::DirCache,
     AcmeConfig,
   },
-  std::{cmp::Ordering, str, sync::Arc, sync::RwLock},
+  std::{cmp::Ordering, str, sync::Arc},
   tokio_stream::StreamExt,
   tower_http::{
     compression::CompressionLayer,
@@ -46,10 +45,6 @@ mod error;
 #[derive(Clone)]
 pub struct ServerConfig {
   pub is_json_api_enabled: bool,
-}
-
-struct BlockIndexState {
-  block_index: RwLock<BlockIndex>,
 }
 
 enum BlockQuery {
@@ -140,14 +135,7 @@ pub(crate) struct Server {
 impl Server {
   pub(crate) fn run(self, options: Options, index: Arc<Index>, handle: Handle) -> SubcommandResult {
     Runtime::new()?.block_on(async {
-      let block_index_state = BlockIndexState {
-        block_index: RwLock::new(BlockIndex::new(&index)?),
-      };
-
-      let block_index_state = Arc::new(block_index_state);
-
       let index_clone = index.clone();
-      let block_index_clone = block_index_state.clone();
 
       let index_thread = thread::spawn(move || loop {
         if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
@@ -155,14 +143,6 @@ impl Server {
         }
         if let Err(error) = index_clone.update() {
           log::warn!("Updating index: {error}");
-        }
-        if let Err(error) = block_index_clone
-          .block_index
-          .write()
-          .unwrap()
-          .update(&index_clone)
-        {
-          log::warn!("Updating block index: {error}");
         }
         thread::sleep(Duration::from_millis(5000));
       });
@@ -222,7 +202,6 @@ impl Server {
         .layer(Extension(index))
         .layer(Extension(page_config))
         .layer(Extension(Arc::new(config)))
-        .layer(Extension(block_index_state))
         .layer(SetResponseHeaderLayer::if_not_present(
           header::CONTENT_SECURITY_POLICY,
           HeaderValue::from_static("default-src 'self'"),
@@ -560,16 +539,13 @@ impl Server {
   async fn home(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Extension(block_index_state): Extension<Arc<BlockIndexState>>,
   ) -> ServerResult<PageHtml<HomeHtml>> {
     let blocks = index.blocks(100)?;
     let mut featured_blocks = BTreeMap::new();
     for (height, hash) in blocks.iter().take(5) {
-      let (inscriptions, _total_num) = block_index_state
-        .block_index
-        .read()
-        .map_err(|err| anyhow!("block index RwLock poisoned: {}", err))?
-        .get_highest_paying_inscriptions_in_block(&index, *height, 8)?;
+      let (inscriptions, _total_num) =
+        index.get_highest_paying_inscriptions_in_block(*height, 8)?;
+
       featured_blocks.insert(*hash, inscriptions);
     }
 
@@ -583,7 +559,6 @@ impl Server {
   async fn block(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Extension(block_index_state): Extension<Arc<BlockIndexState>>,
     Path(DeserializeFromStr(query)): Path<DeserializeFromStr<BlockQuery>>,
   ) -> ServerResult<PageHtml<BlockHtml>> {
     let (block, height) = match query {
@@ -607,11 +582,8 @@ impl Server {
       }
     };
 
-    let (featured_inscriptions, total_num) = block_index_state
-      .block_index
-      .read()
-      .map_err(|err| anyhow!("block index RwLock poisoned: {}", err))?
-      .get_highest_paying_inscriptions_in_block(&index, height, 8)?;
+    let (featured_inscriptions, total_num) =
+      index.get_highest_paying_inscriptions_in_block(height, 8)?;
 
     Ok(
       BlockHtml::new(
@@ -1069,14 +1041,12 @@ impl Server {
   async fn inscriptions_in_block(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Extension(block_index_state): Extension<Arc<BlockIndexState>>,
     Path(block_height): Path<u64>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
     Self::inscriptions_in_block_from_page(
       Extension(page_config),
       Extension(index),
-      Extension(block_index_state),
       Path((block_height, 0)),
       accept_json,
     )
@@ -1086,18 +1056,10 @@ impl Server {
   async fn inscriptions_in_block_from_page(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Extension(block_index_state): Extension<Arc<BlockIndexState>>,
     Path((block_height, page_index)): Path<(u64, usize)>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
-    let block_index = block_index_state
-      .block_index
-      .read()
-      .map_err(|err| anyhow!("block index RwLock poisoned: {}", err))?;
-
-    let inscriptions = index
-      .get_inscriptions_in_block(&block_index, block_height)
-      .map_err(|e| ServerError::NotFound(format!("Failed to get inscriptions in block: {}", e)))?;
+    let inscriptions = index.get_inscriptions_in_block(block_height)?;
 
     Ok(if accept_json.0 {
       Json(InscriptionsJson::new(inscriptions, None, None, None, None)).into_response()
@@ -1107,13 +1069,7 @@ impl Server {
         index.block_height()?.unwrap_or(Height(0)).n(),
         inscriptions,
         page_index,
-      )
-      .map_err(|e| {
-        ServerError::NotFound(format!(
-          "Failed to get inscriptions in inscriptions block page: {}",
-          e
-        ))
-      })?
+      )?
       .page(page_config, index.has_sat_index()?)
       .into_response()
     })
@@ -2961,7 +2917,7 @@ mod tests {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
             parent: Some(parent_inscription_id.parent_value()),
-            unrecognized_even_field: false,
+            ..Default::default()
           }
           .to_witness(),
         ),
