@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Ordinals Theory Handbook\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2023-09-05 16:31+0200\n"
+"PO-Revision-Date: 2023-09-18 23:41+0200\n"
 "Last-Translator: 2168.btc\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -31,67 +31,71 @@ msgstr "Inscripciones"
 msgid "Recursion"
 msgstr "Recursión"
 
-#: src/SUMMARY.md:7
+#: src/SUMMARY.md:7 src/inscriptions/provenance.md:1
+msgid "Provenance"
+msgstr "Procedencia"
+
+#: src/SUMMARY.md:8
 msgid "FAQ"
 msgstr "FAQ"
 
-#: src/SUMMARY.md:8
+#: src/SUMMARY.md:9
 msgid "Contributing"
 msgstr "Contribuyendo"
 
-#: src/SUMMARY.md:9 src/donate.md:1
+#: src/SUMMARY.md:10 src/donate.md:1
 msgid "Donate"
 msgstr "Donar"
 
-#: src/SUMMARY.md:10
+#: src/SUMMARY.md:11
 msgid "Guides"
 msgstr "Guías"
 
-#: src/SUMMARY.md:11
+#: src/SUMMARY.md:12
 msgid "Explorer"
 msgstr "Esplorador"
 
-#: src/SUMMARY.md:13 src/guides/sat-hunting.md:1
+#: src/SUMMARY.md:14 src/guides/sat-hunting.md:1
 msgid "Sat Hunting"
 msgstr "Caza Sat"
 
-#: src/SUMMARY.md:14 src/guides/collecting.md:1
+#: src/SUMMARY.md:15 src/guides/collecting.md:1
 msgid "Collecting"
 msgstr "Colección"
 
-#: src/SUMMARY.md:15 src/guides/sat-hunting.md:239
+#: src/SUMMARY.md:16 src/guides/sat-hunting.md:239
 msgid "Sparrow Wallet"
 msgstr "Sparrow Wallet"
 
-#: src/SUMMARY.md:16 src/guides/testing.md:1
+#: src/SUMMARY.md:17 src/guides/testing.md:1
 msgid "Testing"
 msgstr "Pruebas"
 
-#: src/SUMMARY.md:17 src/guides/moderation.md:1
+#: src/SUMMARY.md:18 src/guides/moderation.md:1
 msgid "Moderation"
 msgstr "Moderación"
 
-#: src/SUMMARY.md:18 src/guides/reindexing.md:1
+#: src/SUMMARY.md:19 src/guides/reindexing.md:1
 msgid "Reindexing"
 msgstr "Reindexación"
 
-#: src/SUMMARY.md:19
+#: src/SUMMARY.md:20
 msgid "Bounties"
 msgstr "Recompensas"
 
-#: src/SUMMARY.md:20
+#: src/SUMMARY.md:21
 msgid "Bounty 0: 100,000 sats Claimed!"
 msgstr "Recompensa 0: ¡100,000 sats Reclamados!"
 
-#: src/SUMMARY.md:21
+#: src/SUMMARY.md:22
 msgid "Bounty 1: 200,000 sats Claimed!"
 msgstr "Recompensa 1: ¡200,000 sats Reclamados!"
 
-#: src/SUMMARY.md:22
+#: src/SUMMARY.md:23
 msgid "Bounty 2: 300,000 sats Claimed!"
 msgstr "Recompensa 2: ¡300,000 sats Reclamados!"
 
-#: src/SUMMARY.md:23
+#: src/SUMMARY.md:24
 msgid "Bounty 3: 400,000 sats"
 msgstr "Recompensa 3: 400,000 sats"
 
@@ -5012,3 +5016,104 @@ msgstr ""
 #: src/bounty/3.md:78
 msgid "Unclaimed!"
 msgstr "¡Sin reclamar!"
+
+#: src/inscriptions/provenance.md:4
+msgid "The owner of an inscription can create child inscriptions, trustlessly
+establishing the provenance of those children on-chain as having been created
+by the owner of the parent inscription. This can be used for collections, with
+the children of a parent inscription being members of the same collection."
+msgstr "El propietario de una inscripción puede crear inscripciones hijas,
+estableciendo de manera confiable la procedencia de esos hijos en la 
+cadena como si hubieran sido creados por el propietario de la 
+inscripción padre. Esto se puede utilizar para colecciones, donde los 
+hijos de una inscripción padre son miembros de la misma colección."
+
+#: src/inscriptions/provenance.md:9
+msgid "Children can themselves have children, allowing for complex hierarchies. For
+example, an artist might create an inscription representing themselves, with
+sub inscriptions representing collections that they create, with the children
+of those sub inscriptions being items in those collections."
+msgstr "Los hijos pueden tener a su vez hijos, lo que permite crear jerarquías 
+complejas. Por ejemplo, un artista podría crear una inscripción que los 
+represente a sí mismos, con subinscripciones que representen 
+colecciones que ellos crean, y con los hijos de esas subinscripciones 
+siendo los elementos en esas colecciones."
+
+#: src/inscriptions/provenance.md:14
+msgid "Specification"
+msgstr "Especificación"
+
+
+#: src/inscriptions/provenance.md:16
+msgid "To create a child inscription C with parent inscription P:"
+msgstr "Para crear una inscripción hija C con una inscripción padre P:"
+
+#: src/inscriptions/provenance.md:
+msgid "Create an inscribe transaction T as usual for C.
+- Spend the parent P in one of the inputs of T.
+- Include tag `3`, i.e. `OP_PUSH 3`, in C, with the value of the serialized
+  binary inscription ID of P, serialized as the 32-byte `TXID`, followed by the
+  four-byte little-endian `INDEX`, with trailing zeroes omitted."
+msgstr "- Crea una transacción de inscripción T como de costumbre para C. 
+- Gasta el padre P en una de las entradas de T. 
+- Incluye la etiqueta `3`, es decir, `OP_PUSH 3`, en C, con el valor del ID 
+de inscripción serializado de P, serializado como los 32 bytes de 
+`TXID`, seguidos por los cuatro bytes en formato little-endian de 
+`INDEX`, sin incluir ceros finales."
+
+#: src/inscriptions/provenance.md:24
+msgid "_NB_ The bytes of a bitcoin transaction ID are reversed in their text
+representation, so the serialized transaction ID will be in the opposite order."
+msgstr "_NB_: Los bytes de un ID de transacción de Bitcoin se invierten en su 
+representación de texto, por lo que el ID de transacción serializado estará 
+en orden opuesto al mencionado anteriormente."
+
+#: src/inscriptions/provenance.md:27
+msgid "Example"
+msgstr "Ejemplo"
+
+#: src/inscriptions/provenance.md:29
+msgid "An example of a child inscription of
+`000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0`:"
+msgstr "Un ejemplo de una inscripción de niño de 
+000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0"
+
+#: src/inscriptions/provenance.md:45
+msgid "Note that the value of tag `3` is binary, not hex, and that for the child
+inscription to be recognized as a child,
+`000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0` must be
+spent as one of the inputs of the inscribe transaction."
+msgstr "Tenga en cuenta que el valor de la etiqueta 3 es binario, 
+no hexadecimal, y para que la inscripción del niño sea reconocida como tal,
+000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0 debe ser 
+gastado como una de las entradas de la transacción de inscripción."
+
+#: src/inscriptions/provenance.md:50
+msgid "Example encoding of inscription ID
+`000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi255`:"
+msgstr "Ejemplo de codificación del ID de inscripción
+`000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi255`"
+
+#: src/inscriptions/provenance.md:63
+msgid "And of inscription ID `000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi256`:"
+msgstr "Y del ID de inscripción `000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi256`:"
+
+#: src/inscriptions/provenance.md:75
+msgid "Notes"
+msgstr "Notas"
+
+#: src/inscriptions/provenance.md:77
+msgid "The tag `3` is used because it is the first available odd tag. Unrecognized odd
+tags do not make an inscription unbound, so child inscriptions would be
+recognized and tracked by old versions of `ord`."
+msgstr "La etiqueta 3 se utiliza porque es la primera etiqueta impar disponible. 
+Las etiquetas impares no reconocidas no hacen que una inscripción 
+quede sin vincular, por lo que las inscripciones de hijos serían 
+reconocidas y rastreadas por versiones antiguas de ord."
+
+#: src/inscriptions/provenance.md:81
+msgid "A collection can be closed by burning the collection's parent inscription,
+which guarantees that no more items in the collection can be issued."
+msgstr "Una colección puede cerrarse quemando la inscripción principal de la 
+colección, lo que garantiza que no se puedan emitir más ítems en la 
+colección."
