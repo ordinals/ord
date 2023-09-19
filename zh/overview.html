@@ -149,6 +149,9 @@
                               <a id="en">English</a>
                           </button></li>
                           <li role="none"><button role="menuitem" class="theme">
+                              <a id="es">Español</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
                               <a id="zh">中文版</a>
                           </button></li>
                           <li role="none"><button role="menuitem" class="theme">
@@ -266,59 +269,59 @@
 </ul>
 <p>这给我们带来了度数表示法，它以一种使聪的稀有性一目了然的方式明确地表示一个序数： </p>
 <pre><code>A°B′C″D‴
-│ │ │ ╰─ 聪的索引位置
-│ │ ╰─── 难度调整期的区块位置
-│ ╰───── 减半周期区块的索引位置
-╰─────── 循环周期，从0数字开始
+│ │ │ ╰─ Index of sat in the block
+│ │ ╰─── Index of block in difficulty adjustment period
+│ ╰───── Index of block in halving epoch
+╰─────── Cycle, numbered starting from 0
 </code></pre>
 <p>序数理论家通常使用 &quot;小时&quot;, &quot;分钟&quot;, &quot;秒&quot;, 以及 &quot;第三&quot; 等专用词汇来对应的表示 <em>A</em>, <em>B</em>, <em>C</em>, 和 <em>D</em>。</p>
 <p>现在我们来举一些例子，这是一颗普通的聪</p>
 <pre><code>1°1′1″1‴
-│ │ │ ╰─ 不是区块的第一个聪
-│ │ ╰─── 不是难度调整周期的第一个聪
-│ ╰───── 不是减半周期的第一个聪
-╰─────── 第二个循环周期
+│ │ │ ╰─ Not first sat in block
+│ │ ╰─── Not first block in difficulty adjustment period
+│ ╰───── Not first block in halving epoch
+╰─────── Second cycle
 </code></pre>
 <p>这是一颗不普通的聪</p>
 <pre><code>1°1′1″0‴
-│ │ │ ╰─ 是区块的第一颗聪
-│ │ ╰─── 不是难度调整周期的第一个聪
-│ ╰───── 不是减半周期的第一个聪
-╰─────── 第二个循环周期
+│ │ │ ╰─ First sat in block
+│ │ ╰─── Not first block in difficulty adjustment period
+│ ╰───── Not first block in halving epoch
+╰─────── Second cycle
 </code></pre>
 <p>这是一颗罕见的聪</p>
 <pre><code>1°1′0″0‴
-│ │ │ ╰─ 是区块的第一颗聪
-│ │ ╰─── 是难度调整周期的第一个聪
-│ ╰───── 不是减半周期的第一个聪
-╰─────── 第二个循环周期
+│ │ │ ╰─ First sat in block
+│ │ ╰─── First block in difficulty adjustment period
+│ ╰───── Not the first block in halving epoch
+╰─────── Second cycle
 </code></pre>
 <p>这是一个史诗级的聪</p>
 <pre><code>1°0′1″0‴
-│ │ │ ╰─ 是区块的第一颗聪
-│ │ ╰─── 不是难度调整周期的第一个聪
-│ ╰───── 是减半周期的第一个聪
-╰─────── 第二个循环周期
+│ │ │ ╰─ First sat in block
+│ │ ╰─── Not first block in difficulty adjustment period
+│ ╰───── First block in halving epoch
+╰─────── Second cycle
 </code></pre>
 <p>这是一颗传奇级的聪</p>
 <pre><code>1°0′0″0‴
-│ │ │ ╰─ 是区块的第一颗聪
-│ │ ╰─── 是难度调整周期的第一个聪
-│ ╰───── 是减半周期的第一个聪
-╰─────── 第二个循环周期
+│ │ │ ╰─ First sat in block
+│ │ ╰─── First block in difficulty adjustment period
+│ ╰───── First block in halving epoch
+╰─────── Second cycle
 </code></pre>
 <p>这是神话级别的聪:</p>
 <pre><code>0°0′0″0‴
-│ │ │ ╰─ 是区块的第一颗聪
-│ │ ╰─── 是难度调整周期的第一个聪
-│ ╰───── 是减半周期的第一个聪
-╰─────── 第一个循环周期
+│ │ │ ╰─ First sat in block
+│ │ ╰─── First block in difficulty adjustment period
+│ ╰───── First block in halving epoch
+╰─────── First cycle
 </code></pre>
 <p>如果区块偏移量为零，则可以省略。这是对比以上的非普通的聪:</p>
 <pre><code>1°1′1″
-│ │ ╰─── 不是难度调整周期的第一个聪
-│ ╰───── 不是减半周期的第一个聪
-╰─────── 第二个循环周期
+│ │ ╰─ Not first block in difficulty adjustment period
+│ ╰─── Not first block in halving epoch
+╰───── Second cycle
 </code></pre>
 <h2 id="稀有聪的总供给量"><a class="header" href="#稀有聪的总供给量">稀有聪的总供给量</a></h2>
 <h3 id="总供给"><a class="header" href="#总供给">总供给</a></h3>

@@ -1,0 +1,371 @@
+<!DOCTYPE HTML>
+<html lang="es" class="sidebar-visible no-js coal">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Monedero Sparrow - Ordinal Theory Handbook</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../../highlight.css">
+        <link rel="stylesheet" href="../../tomorrow-night.css">
+        <link rel="stylesheet" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../language-picker.css">
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "coal";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('coal')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../../introduction.html">Introducción</a></li><li class="chapter-item expanded "><a href="../../overview.html"><strong aria-hidden="true">1.</strong> Descripción General</a></li><li class="chapter-item expanded "><a href="../../digital-artifacts.html"><strong aria-hidden="true">2.</strong> Artefactos Digitales</a></li><li class="chapter-item expanded "><a href="../../inscriptions.html"><strong aria-hidden="true">3.</strong> Inscripciones</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../inscriptions/provenance.html"><strong aria-hidden="true">3.1.</strong> Procedencia</a></li><li class="chapter-item expanded "><a href="../../inscriptions/recursion.html"><strong aria-hidden="true">3.2.</strong> Recursión</a></li></ol></li><li class="chapter-item expanded "><a href="../../faq.html"><strong aria-hidden="true">4.</strong> Preguntas Frecuentes</a></li><li class="chapter-item expanded "><a href="../../contributing.html"><strong aria-hidden="true">5.</strong> Contribuir</a></li><li class="chapter-item expanded "><a href="../../donate.html"><strong aria-hidden="true">6.</strong> Donaciones</a></li><li class="chapter-item expanded "><a href="../../guides.html"><strong aria-hidden="true">7.</strong> Guías</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../guides/explorer.html"><strong aria-hidden="true">7.1.</strong> Explorador</a></li><li class="chapter-item expanded "><a href="../../guides/inscriptions.html"><strong aria-hidden="true">7.2.</strong> Inscripciones</a></li><li class="chapter-item expanded "><a href="../../guides/sat-hunting.html"><strong aria-hidden="true">7.3.</strong> Caza de Sats</a></li><li class="chapter-item expanded "><a href="../../guides/collecting.html"><strong aria-hidden="true">7.4.</strong> Coleccionar</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../guides/collecting/sparrow-wallet.html" class="active"><strong aria-hidden="true">7.4.1.</strong> Monedero Sparrow</a></li></ol></li><li class="chapter-item expanded "><a href="../../guides/testing.html"><strong aria-hidden="true">7.5.</strong> Pruebas</a></li><li class="chapter-item expanded "><a href="../../guides/moderation.html"><strong aria-hidden="true">7.6.</strong> Moderación</a></li><li class="chapter-item expanded "><a href="../../guides/reindexing.html"><strong aria-hidden="true">7.7.</strong> Reindexación</a></li></ol></li><li class="chapter-item expanded "><a href="../../bounties.html"><strong aria-hidden="true">8.</strong> Recompensas</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../bounty/0.html"><strong aria-hidden="true">8.1.</strong> Recompensa Ordinal 0: 100,000 sats reclamados</a></li><li class="chapter-item expanded "><a href="../../bounty/1.html"><strong aria-hidden="true">8.2.</strong> Recompensa Ordinal 1: 200,000 sats reclamados</a></li><li class="chapter-item expanded "><a href="../../bounty/2.html"><strong aria-hidden="true">8.3.</strong> Recompensa Ordinal 2: 300,000 sats reclamados</a></li><li class="chapter-item expanded "><a href="../../bounty/3.html"><strong aria-hidden="true">8.4.</strong> Recompensa Ordinal 3: 400,000 sats</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Ordinal Theory Handbook</h1>
+
+                    <div class="right-buttons">
+                        <button id="language-toggle" class="icon-button" type="button"
+                                title="Change language" aria-label="Change language"
+                                aria-haspopup="true" aria-expanded="false"
+                                aria-controls="language-list">
+                            <i class="fa fa-globe"></i>
+                        </button>
+                        <ul id="language-list" class="theme-popup" aria-label="Languages" role="menu">
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="en">English</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="es">Español</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="zh">中文版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ja">日本語版</a>
+                          </button></li>
+                        </ul>
+
+                        <script>
+                          let langToggle = document.getElementById("language-toggle");
+                          let langList = document.getElementById("language-list");
+                          langToggle.addEventListener("click", (event) => {
+                              langList.style.display = langList.style.display == "block" ? "none" : "block";
+                          });
+                          let selectedLang = document.getElementById("es");
+                          if (selectedLang) {
+                              selectedLang.parentNode.classList.add("theme-selected");
+                          }
+
+                          // The path to the root, taking the current
+                          // language into account.
+                          let full_path_to_root = "../../../";
+                          // The page path (mdbook only gives us
+                          // access to the path to the Markdown file).
+                          let path = "guides/collecting/sparrow-wallet.md".replace(/\.md$/, ".html");
+                          for (let lang of langList.querySelectorAll("a")) {
+                              if (lang.id == "en") {
+                                  lang.href = `${full_path_to_root}${path}`;
+                              } else {
+                                  lang.href = `${full_path_to_root}${lang.id}/${path}`;
+                              }
+                          }
+                        </script>
+
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ordinals/ord" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="coleccionando-inscripciones-y-ordinals-con-sparrow"><a class="header" href="#coleccionando-inscripciones-y-ordinals-con-sparrow">Coleccionando Inscripciones y Ordinals con Sparrow</a></h1>
+<p>Los usuarios que no pueden o no han configurado aún el monedero <a href="https://github.com/ordinals/ord">ord</a> pueden recibir inscripciones y ordinals usando monederos alternativos de bitcoin, siempre y cuando sean <em>muy</em> cautelosos a la hora de realizar gastos desde ese monedero.</p>
+<p>Esta guía ofrece instrucciones básicas para crear un monedero con <a href="https://sparrowwallet.com/">Sparrow Wallet</a> el cual es compatible con <code>ord</code> y podrá ser importado a <code>ord</code> en un futuro.</p>
+<h2 id="-advertencia-"><a class="header" href="#-advertencia-">⚠️⚠️ ¡¡Advertencia!! ⚠️⚠️</a></h2>
+<p>Como regla general, si tomas este enfoque, debes usar este monedero con el software Sparrow solo como un monedero para recibir.</p>
+<p>No gastes ningún satoshi de este monedero a menos que estés seguro de lo que estás haciendo. Podrías perder fácilmente el acceso a tus ordinals e inscripciones si no haces caso a esta advertencia.</p>
+<h2 id="configuración-del-monedero-y-recibir"><a class="header" href="#configuración-del-monedero-y-recibir">Configuración del Monedero y Recibir</a></h2>
+<p>Descarga Sparrow Wallet <a href="https://sparrowwallet.com/download/">desde la página de descargas</a> para tu sistema operativo específico.</p>
+<p>Selecciona <code>File -&gt; New Wallet</code> y crea un nuevo monedero llamada <code>ord</code>.</p>
+<p><img src="images/wallet_setup_01.png" alt="" /></p>
+<p>Cambia el <code>Script Type</code> (Tipo de script) a <code>Taproot (P2TR)</code> y selecciona la opción <code>New or Imported Software Wallet</code>.</p>
+<p><img src="images/wallet_setup_02.png" alt="" /></p>
+<p>Selecciona <code>Use 12 Words</code> (Utilizar 12 palabras) y luego haz clic en <code>Generate New</code> (Generar nueva). Deja passphrase (Frase de contraseña) en blanco.</p>
+<p><img src="images/wallet_setup_03.png" alt="" /></p>
+<p>Se generará tu nueva frase semilla BIP39 de 12 palabras. Anota esto en un lugar seguro, ya que será tu respaldo para acceder a tu monedero. NUNCA compartas ni muestres esta frase semilla a nadie.</p>
+<p>Una vez que hayas anotado la frase semilla, haz clic en <code>Confirm Backup</code> (Confirmar copia de seguridad).</p>
+<p><img src="images/wallet_setup_04.png" alt="" /></p>
+<p>Ingresa la frase que anotaste y luego haz clic en<code> Create Keystore</code>.</p>
+<p><img src="images/wallet_setup_05.png" alt="" /></p>
+<p>Haz clic en <code>Import Keystore</code> (almacenamiento de llaves).</p>
+<p><img src="images/wallet_setup_06.png" alt="" /></p>
+<p>Haz clic en <code>Apply</code> (aplicar). Luego, agrega una contraseña al monedero si deseas</p>
+<p><img src="images/wallet_setup_07.png" alt="" /></p>
+<p>Ahora tienes un monedero que es compatible con <code>ord</code> y que puede ser importado a <code>ord</code> utilizando la frase semilla BIP39. Para recibir ordinals o inscripciones, dirígete a la pestaña <code>Receive</code> (Recibir) y copia una nueva dirección.</p>
+<p>Cada vez que quieras recibir, deberías usar una dirección completamente nueva y no reutilizar direcciones existentes.</p>
+<p>Ten en cuenta que bitcoin es diferente a algunos otros monederos de blockchain, en el sentido de que el monedero de bitcoin puede generar un número ilimitado de direcciones nuevas. Puedes generar una dirección nueva haciendo clic en el botón <code>Get Next Address</code> (Obtener la próxima dirección). Puedes ver todas tus direcciones en la pestaña <code>Addresses</code> (Direcciones).</p>
+<p>Puedes asignar una etiqueta a cada dirección, permitiéndote llevar un seguimiento de su propósito o uso.</p>
+<p><img src="images/wallet_setup_08.png" alt="" /></p>
+<h2 id="validando--viendo-inscripciones-recibidas"><a class="header" href="#validando--viendo-inscripciones-recibidas">Validando / Viendo Inscripciones Recibidas</a></h2>
+<p>Una vez que hayas recibido una inscripción, podrás observar una nueva transacción en la pestaña <code>Transactions</code> (transacciones) de Sparrow, así como un nuevo UTXO en la pestaña <code>UTXOs</code>.</p>
+<p>Inicialmente, esta transacción puede tener un estado &quot;Unconfirmed o No confirmado&quot;, y tendrás que esperar a que sea minada en un bloque de bitcoin antes de que la recibas por completo.</p>
+<p><img src="images/validating_viewing_01.png" alt="" /></p>
+<p>Para rastrear el estado de tu transacción, puedes hacer clic derecho sobre ella, seleccionar <code>Copy Transaction ID</code> (Copiar ID de Transacción) y luego pegar ese ID en el buscador de <a href="https://mempool.space/">mempool.space</a>.</p>
+<p><img src="images/validating_viewing_02.png" alt="" /></p>
+<p>Una vez que la transacción se confirme, puedes validar y visualizar tu inscripción dirigiéndote a la pestaña de <code>UTXOs</code>, encuentra el UTXO que deseas verificar, y haz clic derecho sobre <code>Output</code> (Salida) y selecciona <code>Copy Transaction Output</code> (Copiar Salida de Transacción). Puedes pegar este ID de salida de transacción en el buscador de <a href="https://ordinals.com/">ordinals.com</a> para proceder con la verificación.</p>
+<h2 id="congelar-utxos"><a class="header" href="#congelar-utxos">Congelar UTXO's</a></h2>
+<p>Como se explicó anteriormente, cada una de tus inscripciones está almacenada en una Salida de Transacción No Gastado (UTXO). Debes tener mucho cuidado de no gastar accidentalmente tus inscripciones. Una manera de prevenir esto es congelar el UTXO correspondiente.</p>
+<p>Para hacerlo, ve a la pestaña <code>UTXOs</code>, encuentra el UTXO que deseas congelar, haz clic derecho en <code>Output</code> y selecciona <code>Frreeze UTXO</code> (Congelar UTXO).</p>
+<p>Este UTXO (Inscripción) no se podrá gastar dentro del Monedero Sparrow hasta que lo descongeles.</p>
+<h2 id="importando-al-monedero-ord"><a class="header" href="#importando-al-monedero-ord">Importando al monedero <code>ord</code></a></h2>
+<p>Para detalles sobre configurar Bitcoin Core y el monedero ord, revisa la <a href="../inscriptions.html">Guía de Inscripciones Ordinal</a>.</p>
+<p>Cuando configures <code>ord</code>, en lugar de ejecutar<code> ord wallet create</code> para crear un nuevo monedero, puedes importar tu monedero existente usando <code>ord wallet restore &quot;BIP39 SEED PHRASE&quot;</code> con la frase semilla que generaste en el monedero Sparrow.</p>
+<p>Actualmente hay un <a href="https://github.com/ordinals/ord/issues/1589">bug</a> que impide que un monedero importado no se escanee automáticamente para encontrar su contenido en la blockchain. Para solucionar esto tendrás que ejecutar manualmente un escaneo usando el cli de bitcoin core: <code>bitcoin-cli -rpcwallet=ord rescanblockchain 767430</code></p>
+<p>Luego puedes revisar las inscripciones de tu monedero usando <code>ord wallet inscriptions</code></p>
+<p>Ten en cuenta que si has creado previamente una cartera con <code>ord</code>, ya tendrás una cartera con el nombre predeterminado y tendrás que darle un nombre diferente a tu cartera importada. Puedes usar el parámetro <code>--wallet</code> en todos los comandos de <code>ord</code> para hacer referencia a un monedero diferente, por ejemplo:</p>
+<p><code>ord --wallet ord_from_sparrow wallet restore &quot;BIP39 SEED PHRASE&quot;</code></p>
+<p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
+<p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
+<h2 id="enviar-inscripciones-con-el-monedero-sparrow"><a class="header" href="#enviar-inscripciones-con-el-monedero-sparrow">Enviar inscripciones con el Monedero Sparrow</a></h2>
+<h4 id="-advertencia--1"><a class="header" href="#-advertencia--1">⚠️⚠️ Advertencia ⚠️⚠️</a></h4>
+<p>Aunque es bastante recomendado que configures un nodo de bitcoin core y ejecutes el software <code>ord</code>, existen algunas formas limitadas de enviar inscripciones desde el monedero Sparrow de manera segura. Sin embargo, cabe señalar que esta no es la opción más recomendada y solo deberías proceder si entiendes completamente las implicaciones y riesgos de lo que estás haciendo.</p>
+<p>Usar el software de <code>ord</code> eliminará gran parte de la complejidad que estamos describiendo aquí, permitiéndote manejar el envío de inscripciones de forma automática y segura con mayor facilidad.</p>
+<h4 id="-advertencia-adicional-"><a class="header" href="#-advertencia-adicional-">⚠️⚠️ Advertencia Adicional ⚠️⚠️</a></h4>
+<p>No uses tu monedero de inscripciones de Sparrow para hacer envíos de bitcoin que no involucren inscripciones. Puedes configurar un monedero por separado en Sparrow para gestionar tus transacciones regulares de bitcoin, manteniendo así tu monedero de inscripciones aislado.</p>
+<h4 id="modelo-utxo-de-bitcoin"><a class="header" href="#modelo-utxo-de-bitcoin">Modelo UTXO de Bitcoin</a></h4>
+<p>Antes de enviar cualquier transacción, es importante que entiendas a profundidad cómo funciona el sistema de Salidas de Transacciones No Gastadas (UTXO) de Bitcoin. La forma en que funciona Bitcoin es fundamentalmente diferente a muchas otras cadenas de bloques, como Ethereum. En Ethereum, generalmente tienes una única dirección en la que almacenas ETH, y no puedes diferenciar entre ninguno de los ETH: simplemente es un valor único del total acumulado en esa dirección. Bitcoin funciona de manera muy diferente, ya que generamos una nueva dirección en el monedero para cada recepción, y cada vez que recibes sats en una dirección de tu monedero estás creando un nuevo UTXO. Cada UTXO se puede ver y gestionar individualmente. Puedes seleccionar específicamente los UTXO que deseas gastar, y puedes elegir no gastar ciertos UTXO.</p>
+<p>Algunos monederos de Bitcoin no exponen este nivel de detalle y solo te muestran un valor único que suma todo el bitcoin en tu monedero. Sin embargo, al enviar inscripciones, es importante que uses un monedero como Sparrow que permite el control de UTXO.</p>
+<h4 id="inspeccionando-tu-inscripción-antes-de-enviarla"><a class="header" href="#inspeccionando-tu-inscripción-antes-de-enviarla">Inspeccionando tu inscripción antes de enviarla</a></h4>
+<p>Como hemos descrito anteriormente, las inscripciones están inscritas en sats, y los sats se almacenan dentro de los UTXO. Los UTXO son una colección de satoshis con un valor particular del número de satoshis (el valor de salida). Usualmente (pero no siempre) la inscripción estará inscrita en el primer satoshi del UTXO.</p>
+<p>Al inspeccionar tu inscripción antes de enviar, lo principal que querrás verificar es en cual satoshi del UTXO está inscrita tu inscripción.</p>
+<p>Para hacer esto, puedes leer <code>Validando / Viendo las Inscripciones Recibidas</code> descritas anteriormente para encontrar la página de inscripción de tu inscripción en ordinals.com</p>
+<p>Allí encontrarás algunos metadatos sobre tu inscripción, se verá así:</p>
+<p><img src="images/sending_01.png" alt="" /></p>
+<p>Hay varias cosas importantes que verificar en este punto:</p>
+<ul>
+<li>Que el identificador de <code>output</code> coincida con el identificador del UTXO que vas a enviar</li>
+<li>Que el <code>offset</code> (desplazamiento) de la inscripción sea 0 (esto significa que la inscripción está ubicada en el primer sat del UTXO)</li>
+<li>Que el valor de ‘output_value’ tenga suficientes sats para cubrir la tarifa de transacción (postage) para enviar la transacción. La cantidad exacta que necesitarás dependerá de la tasa de comisión que seleccionarás para la transacción</li>
+</ul>
+<p>Si todo lo anterior se sostiene para tu inscripción, deberías poder proceder con seguridad usando el siguiente método.</p>
+<p>⚠️⚠️ Ten mucho cuidado al enviar tu inscripción, especialmente si el <code>offset</code> no es <code>0</code>. En tales casos, no se recomienda utilizar este método, ya que podrías enviar accidentalmente tu inscripción a un minero de bitcoin a menos que sepas lo que estás haciendo.</p>
+<h4 id="enviando-tu-inscripción"><a class="header" href="#enviando-tu-inscripción">Enviando tu inscripción</a></h4>
+<p>Para enviar una inscripción, ve a la pestaña <code>UTXOs</code> y encuentra el UTXO que previamente validaste y que contiene tu inscripción.</p>
+<p>Si anteriormente habías congelado este UTXO, deberás hacer clic derecho sobre él para descongelarlo.</p>
+<p>Selecciona el UTXO que deseas enviar, y asegúrate de que sea el <em>único</em> UTXO seleccionado. Deberías ver una indicación de <code>UTXOs 1/1</code> en la interfaz. Una vez estés absolutamente seguro de haber seleccionado el UTXO correcto, haz clic en <code>Send Selected</code> (Enviar seleccionados).</p>
+<p><img src="images/sending_02.png" alt="" /></p>
+<p>Luego se te presentará la interfaz de construcción de transacciones. Hay algunas cosas que debes verificar aquí para asegurarte de que se trata de un envío seguro:</p>
+<ul>
+<li>La transacción debería tener solo 1 input (entrada), y esta debería ser el UTXO con la etiqueta que quieres enviar.</li>
+<li>La transacción debería tener solo 1 output (salida), siendo esta la dirección/etiqueta a donde deseas enviar la inscripción.</li>
+</ul>
+<p>Si tu transacción luce diferente, por ejemplo, tiene múltiples entradas o múltiples salidas, entonces quizás no sea una transferencia segura de tu inscripción, y deberías detener el envío hasta entender completamente el procedimiento, o hasta que logres importarla al monedero <code>ord</code>.</p>
+<p>Es necesario fijar una comisión de transacción adecuada; Sparrow normalmente sugerirá una adecuada, aunque también puedes ir a <a href="https://mempool.space/">mempool.space</a> para conocer la tasa recomendada para enviar una transacción.</p>
+<p>Deberías añadir una etiqueta para la dirección del destinatario; una etiqueta como <code>dirección de Alice para la inscripción #123</code> sería ideal.</p>
+<p>Una vez que hayas verificado que la transacción es segura usando los criterios mencionados anteriormente, y te sientas seguro de enviarla, puedes hacer clic en <code>Create Transaction</code> (Crear Transacción).</p>
+<p><img src="images/sending_03.png" alt="" /></p>
+<p>Aquí puedes volver a revisar que tu transacción este correcta, una vez estés seguro puedes hacer clic en <code>Finalize Transaction for Signing</code> (Finalizar Transacción para Firmar).</p>
+<p><img src="images/sending_04.png" alt="" /></p>
+<p>Aquí puedes revisar toda una vez más antes de hacer clic en <code>Sign</code> (Firmar).</p>
+<p><img src="images/sending_05.png" alt="" /></p>
+<p>Y luego, de hecho, tienes la última oportunidad de verificar todo antes de hacer clic en <code>Broadcast Transaction</code> (Transmitir Transacción). Una vez que transmites la transacción, se envía a la red de Bitcoin y comenzara a propagarse en el mempool.</p>
+<p><img src="images/sending_06.png" alt="" /></p>
+<p>Si deseas rastrear el estado de tu transacción, puedes copiar el <code>Identificador de la Transacción (Txid)</code> y pegarlo en <a href="https://mempool.space/">mempool.space</a>.</p>
+<p>Cuando la transacción haya sido confirmada, puedes revisar la página de inscripciones en <a href="https://ordinals.com/">ordinals.com</a> para confirmar que ha sido movida a la nueva ubicación de salida y dirección.</p>
+<h2 id="solución-de-problemas"><a class="header" href="#solución-de-problemas">Solución de problemas</a></h2>
+<h4 id="el-monedero-sparrow-no-está-mostrando-una-transacciónutxo-pero-puedo-verla-en-mempoolspace"><a class="header" href="#el-monedero-sparrow-no-está-mostrando-una-transacciónutxo-pero-puedo-verla-en-mempoolspace">¡El monedero Sparrow no está mostrando una transacción/UTXO, pero puedo verla en mempool.space!</a></h4>
+<p>Asegúrate de que tu monedero esté conectado a un nodo de bitcoin. Para validar esto, dirígete a <code>Preferences</code>-&gt; <code>Server</code> settings y haz clic en <code>Edit Existing Connection</code> (Editar conexión existente).</p>
+<p><img src="images/troubleshooting_01.png" alt="" /></p>
+<p>Desde allí puedes seleccionar un nodo y hacer clic en <code>Test Connection</code> (Probar conexión) para validar que Sparrow pueda conectarse exitosamente.</p>
+<p><img src="images/troubleshooting_02.png" alt="" /></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../guides/collecting.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="../../guides/testing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../guides/collecting.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="../../guides/testing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

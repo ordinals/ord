@@ -149,6 +149,9 @@
                               <a id="en">English</a>
                           </button></li>
                           <li role="none"><button role="menuitem" class="theme">
+                              <a id="es">Español</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
                               <a id="zh">中文版</a>
                           </button></li>
                           <li role="none"><button role="menuitem" class="theme">
@@ -266,53 +269,53 @@
 </ul>
 <p>これは私たちに度数表記法をもたらしました。それは聡の希少性を一目で見ることができる方法で序数を明確に表しています </p>
 <pre><code>A°B′C″D‴
-│ │ │ ╰─ 聡の索引位置
-│ │ ╰─── 難易度調整期のブロックの位置
-│ ╰───── 半減周期ブロックの索引位置
-╰─────── 循環周期、０の数字からスタートします。
+│ │ │ ╰─ Index of sat in the block
+│ │ ╰─── Index of block in difficulty adjustment period
+│ ╰───── Index of block in halving epoch
+╰─────── Cycle, numbered starting from 0
 </code></pre>
 <p>序理論家通常使用 &quot;時間&quot;,&quot;分&quot;、&quot;秒&quot;、そして&quot;3&quot; などの対応を専用の言叶は、a、b、<em>c、と_d</em>。 </p>
 <p>いくつか例をお見せしましょうこれは普通の聡です</p>
 <pre><code>1°1′1″1‴
-│ │ │ ╰─ ブロック最初の聡ではない
-│ │ ╰─── 難易度調整周期の最初の聡ではない
-│ ╰───── 半減周期の最初の聡ではない
-╰─────── 二番目の循環周期
+│ │ │ ╰─ Not first sat in block
+│ │ ╰─── Not first block in difficulty adjustment period
+│ ╰───── Not first block in halving epoch
+╰─────── Second cycle
 </code></pre>
 <p>これは一般的な聡ではない</p>
 <pre><code>1°1′1″0‴
-│ │ │ ╰─ ブロック最初の聡
-│ │ ╰─── 難易度調整周期の最初の聡ではない
-│ ╰───── 半減周期の最初の聡ではない
-╰─────── 二番目の循環周期
+│ │ │ ╰─ First sat in block
+│ │ ╰─── Not first block in difficulty adjustment period
+│ ╰───── Not first block in halving epoch
+╰─────── Second cycle
 </code></pre>
 <p>珍しい聡です。</p>
 <pre><code>1°1′0″0‴
-│ │ │ ╰─ ブロック最初の聡
-│ │ ╰─── 難易度調整周期の最初の聡ではない
-│ ╰───── 半減周期の最初の聡ではない
-╰─────── 二番目の循環周期
+│ │ │ ╰─ First sat in block
+│ │ ╰─── First block in difficulty adjustment period
+│ ╰───── Not the first block in halving epoch
+╰─────── Second cycle
 </code></pre>
 <p>史詩レベルの聡です</p>
 <pre><code>1°0′1″0‴
-│ │ │ ╰─ ブロック最初の聡
-│ │ ╰─── 難易度調整周期の最初の聡ではない
-│ ╰───── 半減周期の最初の聡ではない
-╰─────── 二番目の循環周期
+│ │ │ ╰─ First sat in block
+│ │ ╰─── Not first block in difficulty adjustment period
+│ ╰───── First block in halving epoch
+╰─────── Second cycle
 </code></pre>
 <p>伝奇レベルの聡です。</p>
 <pre><code>1°0′0″0‴
-│ │ │ ╰─ ブロック最初の聡
-│ │ ╰─── 難易度調整周期の最初の聡ではない
-│ ╰───── 半減周期の最初の聡ではない
-╰─────── 二番目の循環周期
+│ │ │ ╰─ First sat in block
+│ │ ╰─── First block in difficulty adjustment period
+│ ╰───── First block in halving epoch
+╰─────── Second cycle
 </code></pre>
 <p>神話レベルの聡です:</p>
 <pre><code>0°0′0″0‴
-│ │ │ ╰─ ブロック最初の聡
-│ │ ╰─── 難易度調整周期の最初の聡ではない
-│ ╰───── 半減周期の最初の聡ではない
-╰─────── 二番目の循環周期
+│ │ │ ╰─ First sat in block
+│ │ ╰─── First block in difficulty adjustment period
+│ ╰───── First block in halving epoch
+╰─────── First cycle
 </code></pre>
 <p>If the block offset is zero, it may be omitted. This is the uncommon satoshi from above:</p>
 <pre><code>1°1′1″

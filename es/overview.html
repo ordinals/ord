@@ -1,0 +1,414 @@
+<!DOCTYPE HTML>
+<html lang="es" class="sidebar-visible no-js coal">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Descripción General - Ordinal Theory Handbook</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="language-picker.css">
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "coal";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('coal')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introducción</a></li><li class="chapter-item expanded "><a href="overview.html" class="active"><strong aria-hidden="true">1.</strong> Descripción General</a></li><li class="chapter-item expanded "><a href="digital-artifacts.html"><strong aria-hidden="true">2.</strong> Artefactos Digitales</a></li><li class="chapter-item expanded "><a href="inscriptions.html"><strong aria-hidden="true">3.</strong> Inscripciones</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="inscriptions/provenance.html"><strong aria-hidden="true">3.1.</strong> Procedencia</a></li><li class="chapter-item expanded "><a href="inscriptions/recursion.html"><strong aria-hidden="true">3.2.</strong> Recursión</a></li></ol></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">4.</strong> Preguntas Frecuentes</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> Contribuir</a></li><li class="chapter-item expanded "><a href="donate.html"><strong aria-hidden="true">6.</strong> Donaciones</a></li><li class="chapter-item expanded "><a href="guides.html"><strong aria-hidden="true">7.</strong> Guías</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="guides/explorer.html"><strong aria-hidden="true">7.1.</strong> Explorador</a></li><li class="chapter-item expanded "><a href="guides/inscriptions.html"><strong aria-hidden="true">7.2.</strong> Inscripciones</a></li><li class="chapter-item expanded "><a href="guides/sat-hunting.html"><strong aria-hidden="true">7.3.</strong> Caza de Sats</a></li><li class="chapter-item expanded "><a href="guides/collecting.html"><strong aria-hidden="true">7.4.</strong> Coleccionar</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="guides/collecting/sparrow-wallet.html"><strong aria-hidden="true">7.4.1.</strong> Monedero Sparrow</a></li></ol></li><li class="chapter-item expanded "><a href="guides/testing.html"><strong aria-hidden="true">7.5.</strong> Pruebas</a></li><li class="chapter-item expanded "><a href="guides/moderation.html"><strong aria-hidden="true">7.6.</strong> Moderación</a></li><li class="chapter-item expanded "><a href="guides/reindexing.html"><strong aria-hidden="true">7.7.</strong> Reindexación</a></li></ol></li><li class="chapter-item expanded "><a href="bounties.html"><strong aria-hidden="true">8.</strong> Recompensas</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="bounty/0.html"><strong aria-hidden="true">8.1.</strong> Recompensa Ordinal 0: 100,000 sats reclamados</a></li><li class="chapter-item expanded "><a href="bounty/1.html"><strong aria-hidden="true">8.2.</strong> Recompensa Ordinal 1: 200,000 sats reclamados</a></li><li class="chapter-item expanded "><a href="bounty/2.html"><strong aria-hidden="true">8.3.</strong> Recompensa Ordinal 2: 300,000 sats reclamados</a></li><li class="chapter-item expanded "><a href="bounty/3.html"><strong aria-hidden="true">8.4.</strong> Recompensa Ordinal 3: 400,000 sats</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Ordinal Theory Handbook</h1>
+
+                    <div class="right-buttons">
+                        <button id="language-toggle" class="icon-button" type="button"
+                                title="Change language" aria-label="Change language"
+                                aria-haspopup="true" aria-expanded="false"
+                                aria-controls="language-list">
+                            <i class="fa fa-globe"></i>
+                        </button>
+                        <ul id="language-list" class="theme-popup" aria-label="Languages" role="menu">
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="en">English</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="es">Español</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="zh">中文版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ja">日本語版</a>
+                          </button></li>
+                        </ul>
+
+                        <script>
+                          let langToggle = document.getElementById("language-toggle");
+                          let langList = document.getElementById("language-list");
+                          langToggle.addEventListener("click", (event) => {
+                              langList.style.display = langList.style.display == "block" ? "none" : "block";
+                          });
+                          let selectedLang = document.getElementById("es");
+                          if (selectedLang) {
+                              selectedLang.parentNode.classList.add("theme-selected");
+                          }
+
+                          // The path to the root, taking the current
+                          // language into account.
+                          let full_path_to_root = "../";
+                          // The page path (mdbook only gives us
+                          // access to the path to the Markdown file).
+                          let path = "overview.md".replace(/\.md$/, ".html");
+                          for (let lang of langList.querySelectorAll("a")) {
+                              if (lang.id == "en") {
+                                  lang.href = `${full_path_to_root}${path}`;
+                              } else {
+                                  lang.href = `${full_path_to_root}${lang.id}/${path}`;
+                              }
+                          }
+                        </script>
+
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ordinals/ord" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="descripción-general-de-la-teoría-ordinal"><a class="header" href="#descripción-general-de-la-teoría-ordinal">Descripción General de la Teoría Ordinal</a></h1>
+<p>Los Ordinals son un sistema de numeración para los satoshis con el cual podemos hacerles seguimiento y transferirlos de manera individual. Dichos números se denominan <a href="https://ordinals.com/">números ordinales</a>. A cada Satoshi se le otorga un número de serie que se establece según el orden en el que fueron minados y se transfieren basándose en la secuencia de las transacciones entrantes y salientes, siguiendo el proceso FIFO (First In, First Out). Tanto el esquema de numeración como el de transferencia se basan en el <em>orden secuencial</em>; el esquema de numeración en el <em>orden</em> en que se minan los satoshis, mientras que el esquema de transferencia se basa en el <em>orden</em> de las entradas y salidas de las transacciones. De allí se deriva el nombre, <em>ordinals</em>.</p>
+<p>Los detalles técnicos están disponibles en <a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">el BIP</a>.</p>
+<p>La teoría Ordinal funciona en este momento sin hacer cambios a Bitcoin y no requiere de un token aparte u otra blockchain.</p>
+<p>Los números Ordinales tienen varias representaciones:</p>
+<ul>
+<li>
+<p><em>Notación entera</em>: <a href="https://ordinals.com/sat/2099994106992659"><code>2099994106992659</code></a>. El númeroordinal, asignado según el orden en que se minó el Satoshi</p>
+</li>
+<li>
+<p><em>Notación decimal</em>: <a href="https://ordinals.com/sat/3891094.16797"><code> 3891094.16797</code></a> El primer número es la altura del bloque en el cual se minó el Satoshi, el segundo es el desplazamiento del Satoshi dentro del bloque.</p>
+</li>
+<li>
+<p><em>Notación sexagesimal</em>: <a href="https://ordinals.com/sat/3%C2%B0111094%E2%80%B2214%E2%80%B316797%E2%80%B4"><code>3°111094′214″16797‴</code></a>. Hablaremos de eso más adelante.</p>
+</li>
+<li>
+<p><em>Notación porcentual</em>: <a href="https://ordinals.com/sat/99.99971949060254%25"><code>99.99971949060254%</code></a> . La posición del Satoshi en el suministro de Bitcoin, expresado como un porcentaje.</p>
+</li>
+<li>
+<p><em>Nombre</em>: <a href="https://ordinals.com/sat/satoshi"><code>Satoshi</code></a>. Una codificación del número ordinal utilizando los caracteres de la <code>a</code> a la <code>z</code>.</p>
+</li>
+</ul>
+<p>Activos arbitrarios como los NFTs, tokens de seguridad, cuentas o stablecoins se pude adjuntar a los satoshis usando números ordinales como identificadores.</p>
+<p>Ordinals es un proyecto de código abierto, desarrollado <a href="https://github.com/ordinals/ord">en GitHub</a>. El proyecto consta de un BIP que describe el esquema de Ordinals, un índice que se comunica con un nodo de Bitcoin Core para rastrear la ubicación de todos los satoshis, un monedero que permite realizar transacciones de Ordinals, un explorador de bloques para la exploración interactiva de la blockchain, funcionalidad para inscribir artefactos digitales en los satoshis y este manual.</p>
+<h2 id="rareza"><a class="header" href="#rareza">Rareza</a></h2>
+<p>Los humanos son coleccionistas, y ahora que los satoshis se pueden rastrear y transferir, las personas querrán coleccionarlos. Los teóricos de Ordinals pueden decidir por sí mismos cuáles sats son raros y deseables, pero aquí hay algunas pistas...</p>
+<p>Bitcoin tiene eventos periódicos, algunos frecuentes y algunos menos comunes, y estos se prestan para obtener un sistema de rareza. Estos eventos periódicos son:</p>
+<ul>
+<li>
+<p><em>Bloques</em>: Se mina un bloque nuevo aproximadamente cada 10 minutos, desde ahora hasta el fin de los tiempos.</p>
+</li>
+<li>
+<p><em>Ajustes de dificultad</em>: Cada 2016 bloques, o aproximadamente cada dos semanas, la red de Bitcoin responde a cambios en la tasa de hash ajustando la dificultad que los bloques deben cumplir para ser aceptados.</p>
+</li>
+<li>
+<p><em>Halvings</em>: Cada 210,000 bloques, o aproximadamente cada cuatro años, la cantidad de nuevos Satoshis creados en cada bloque se reduce a la mitad.</p>
+</li>
+<li>
+<p><em>Ciclos</em>: Cada seis halvings, sucede algo mágico: el halving y el ajuste de dificultad suceden al mismo tiempo. Esto se llama conjunción, y el período de tiempo entre conjunciones es un ciclo. Una conjunción ocurre aproximadamente cada 24 años. La primera conjunción debería ocurrir en el 2032.</p>
+</li>
+</ul>
+<p>Esto nos conlleva a los siguientes niveles de rareza:</p>
+<ul>
+<li><code>común</code>: Cualquier sat que no es el primero en su bloque</li>
+<li><code>poco común</code>: El primer sat de cada bloque</li>
+<li><code>raro</code>: El primer sat en un periodo de ajuste de dificultad</li>
+<li><code>épico</code>: El primer satoshi después de un halving</li>
+<li><code>legendario</code>: El primer Satoshi de cada ciclo</li>
+<li><code>mítico</code>: El primer Sat del bloque génesis </li>
+</ul>
+<p>Lo cual nos trae a la notación sexagesimal esta representa un numero ordinal de tal manera que nos facilita ver la rareza de un satoshi. </p>
+<pre><code>A°B′C″D‴
+│ │ │ ╰─ Index of sat in the block
+│ │ ╰─── Index of block in difficulty adjustment period
+│ ╰───── Index of block in halving epoch
+╰─────── Cycle, numbered starting from 0
+</code></pre>
+<p>Los teóricos de Ordinals suelen usar los términos &quot;hora&quot;, &quot;minuto&quot;, &quot;segundo&quot; y &quot;tercero&quot; en referencia a <em>A</em>, <em>B</em>, <em>C</em>, y <em>D</em>.</p>
+<p>Por ejemplo, este Satoshi es común:</p>
+<pre><code>1°1′1″1‴
+│ │ │ ╰─ Not first sat in block
+│ │ ╰─── Not first block in difficulty adjustment period
+│ ╰───── Not first block in halving epoch
+╰─────── Second cycle
+</code></pre>
+<p>Este Satoshi es poco común:</p>
+<pre><code>1°1′1″0‴
+│ │ │ ╰─ First sat in block
+│ │ ╰─── Not first block in difficulty adjustment period
+│ ╰───── Not first block in halving epoch
+╰─────── Second cycle
+</code></pre>
+<p>Este Satoshi es raro:</p>
+<pre><code>1°1′0″0‴
+│ │ │ ╰─ First sat in block
+│ │ ╰─── First block in difficulty adjustment period
+│ ╰───── Not the first block in halving epoch
+╰─────── Second cycle
+</code></pre>
+<p>Este Satoshi es épico:</p>
+<pre><code>1°0′1″0‴
+│ │ │ ╰─ First sat in block
+│ │ ╰─── Not first block in difficulty adjustment period
+│ ╰───── First block in halving epoch
+╰─────── Second cycle
+</code></pre>
+<p>Este Satoshi es legendario:</p>
+<pre><code>1°0′0″0‴
+│ │ │ ╰─ First sat in block
+│ │ ╰─── First block in difficulty adjustment period
+│ ╰───── First block in halving epoch
+╰─────── Second cycle
+</code></pre>
+<p>Este Satoshi es mítico:</p>
+<pre><code>0°0′0″0‴
+│ │ │ ╰─ First sat in block
+│ │ ╰─── First block in difficulty adjustment period
+│ ╰───── First block in halving epoch
+╰─────── First cycle
+</code></pre>
+<p>Si el Satoshi es el primero en el bloque, el cero puede ser omitido. Este es el ejemplo del Satoshi poco común que explicamos previamente:</p>
+<pre><code>1°1′1″
+│ │ ╰─ Not first block in difficulty adjustment period
+│ ╰─── Not first block in halving epoch
+╰───── Second cycle
+</code></pre>
+<h2 id="suministro-de-satoshi-raros"><a class="header" href="#suministro-de-satoshi-raros">Suministro de Satoshi Raros</a></h2>
+<h3 id="suministro-total"><a class="header" href="#suministro-total">Suministro Total</a></h3>
+<ul>
+<li><code>común</code>: 2.1 mil billones</li>
+<li><code>poco común</code>: 6,929,999</li>
+<li><code>raro</code>: 3437</li>
+<li><code>épico</code>: 32</li>
+<li><code>legendario</code>: 5</li>
+<li><code>mítico</code>: 1</li>
+</ul>
+<h3 id="suministro-actual"><a class="header" href="#suministro-actual">Suministro actual:</a></h3>
+<ul>
+<li><code>común</code>: 1.9 mil billones</li>
+<li><code>poco común</code>: 745,855</li>
+<li><code>raro</code>: 369</li>
+<li><code>épico</code>: 3</li>
+<li><code>legendario</code>: 0</li>
+<li><code>mítico</code>: 1</li>
+</ul>
+<p>Por el momento, incluso los Satoshis poco comunes son bastante escasos. Hasta la fecha de este escrito, se han minado 745,855 Satoshis poco comunes - uno por cada 25.6 bitcoin en circulación.</p>
+<h2 id="nombres"><a class="header" href="#nombres">Nombres</a></h2>
+<p>Cada Satoshi tiene un nombre compuesto por las letras <em>A</em> hasta la <em>Z</em>. Este nombre se va haciendo más corto cuanto más lejos en el futuro se mine el Satoshi. Podrían comenzar con nombres cortos e irse alargando, pero esto causaría que todos los nombres cortos quedaran atrapados en el bloque génesis el cual no se puede gastar.</p>
+<p>Por ejemplo, el nombre de 1905530482684727°' es &quot;iaiufjszmoba&quot;. El nombre del último satoshi que será minado es &quot;a&quot;. Cada combinación de 10 caracteres o menos ya existe, o existirá, algún día.</p>
+<h2 id="exóticos"><a class="header" href="#exóticos">Exóticos</a></h2>
+<p>Los satoshis pueden ser valorados por otras características distintas a su nombre o rareza. Esto podría ser alguna cualidad intrínseca con el número, como tener una raíz cuadrada o cúbica. También podría ser debido a una conexión con un evento histórico, tales como los Satoshis del bloque 477,120, el bloque en el que se activó SegWit, o 2099999997689999°, el último satoshi que será minado.</p>
+<p>A estos satoshis se les denomina &quot;exóticos&quot;. Cuales Satoshis son exóticos y lo que los convierte en ello es subjetivo. A los teóricos de Ordinals se les incentiva a buscar sats exóticos basados en sus propios criterios.</p>
+<h2 id="inscripciones"><a class="header" href="#inscripciones">Inscripciones</a></h2>
+<p>Los satoshis pueden ser inscritos con contenido arbitrario, de este modo creando artefactos digitales nativos en Bitcoin. La inscripción se realiza enviando el satoshi que se desea inscribir en una transacción que revela el contenido adjuntado a la inscripción en la cadena. Este contenido queda inextricablemente vinculado a ese satoshi, convirtiéndolo en un artefacto digital inmutable que puede ser rastreado, transferido, guardado, comprado, vendido, perdido y redescubierto.</p>
+<h2 id="arqueología"><a class="header" href="#arqueología">Arqueología</a></h2>
+<p>Ha surgido una gran comunidad de arqueólogos que se dedican a catalogar y coleccionar los primeros NFTs. <a href="https://mirror.xyz/chainleft.eth/MzPWRsesC9mQflxlLo-N29oF4iwCgX3lacrvaG9Kjko">Aquí hay un gran resumen de los NFTs históricos por Chainleft</a>.</p>
+<p>El 19 de marzo del 2018, por lo general es la fecha límite para referirnos a los primeros NFT debido a que este día se implementó en Ethereum el primer contrato ERC-721, <a href="https://tenthousandsu.com/">SU SQUARES</a>.</p>
+<p>¡Si los Ordinals son de interés o no para los arqueólogos de NFT siempre será  una pregunta abierta! Los ordinals fueron creados a principios del 2022, cuando se finalizaron las especificaciones de Ordinals. En este sentido, no son de interés histórico.</p>
+<p>Pero si miramos desde otra perspectiva, los ordinals fueron creados por Satoshi Nakamoto en el 2009 cuando minó el bloque génesis de Bitcoin. Desde este punto de vista, los ordinals, y especialmente los primeros ordinals, ciertamente son de interés histórico.</p>
+<p>Muchos teóricos de ordinals favorecen este concepto. Esto se debe en parte a que los ordinals fueron descubiertos en otras dos ocasiones, mucho antes de que comenzara la era de los NFTs modernos.</p>
+<p>El 21 de agosto de 2012, Charlie Lee <a href="https://bitcointalk.org/index.php?topic=102355.0">publicó una propuesta en el foro de Bitcoin Talk para añadir el Proof of Stake (PoS) o prueba de participación a Bitcoin</a>. Esto no era un esquema de activos, pero sí utilizaba el algoritmo de ordinals, y fue implementado, pero nunca se utilizó.</p>
+<p>El 8 de octubre de 2012, jl2012 <a href="https://bitcointalk.org/index.php?topic=117224.0">publicó una propuesta en el mismo foro</a> que utiliza notación decimal y tiene todas las propiedades importantes de los ordinals. Se discutió el esquema, pero nunca fue utilizado.</p>
+<p>Estos inventos que son independientes a los ordinals indican de alguna manera que los ordinals fueron descubiertos, o redescubiertos, y no inventados. Los ordinals son algo inevitable que nace debido a la logística matemática de Bitcoin, sus raíces no provienen de su documentación moderna, sino de su génesis. Son la culminación de una secuencia de eventos que se han ido desarrollando a través de los años y comenzó cuando se minó el primer bloque.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="introduction.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="digital-artifacts.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="introduction.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="digital-artifacts.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>
