@@ -915,6 +915,16 @@ impl Server {
         )
           .into_response(),
       ),
+      Media::Markdown => Ok(
+        (
+          [(
+            header::CONTENT_SECURITY_POLICY,
+            "script-src-elem 'self' https://cdn.jsdelivr.net",
+          )],
+          PreviewMarkdownHtml { inscription_id },
+        )
+          .into_response(),
+      ),
       Media::Model => Ok(
         (
           [(
@@ -932,16 +942,6 @@ impl Server {
             "script-src-elem 'self' https://cdn.jsdelivr.net",
           )],
           PreviewPdfHtml { inscription_id },
-        )
-          .into_response(),
-      ),
-      Media::Markdown => Ok(
-        (
-          [(
-            header::CONTENT_SECURITY_POLICY,
-            "script-src-elem 'self' https://cdn.jsdelivr.net",
-          )],
-          PreviewMarkdownHtml { inscription_id },
         )
           .into_response(),
       ),
