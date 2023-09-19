@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang=en>
+  <head>
+    <meta charset=utf-8>
+    <script type=module src=https://ajax.googleapis.com/ajax/libs/model-viewer/3.1.1/model-viewer.min.js></script>
+    <style>
+      model-viewer {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <model-viewer src=/content/{{ self.inscription_id }} auto-rotate=true camera-controls=true shadow-intensity=1></model-viewer>
+  </body>
+</html>

@@ -8,9 +8,9 @@ use {
 
 mod inscription_updater;
 
-struct BlockData {
-  header: BlockHeader,
-  txdata: Vec<(Transaction, Txid)>,
+pub(crate) struct BlockData {
+  pub(crate) header: Header,
+  pub(crate) txdata: Vec<(Transaction, Txid)>,
 }
 
 impl From<Block> for BlockData {
@@ -29,9 +29,10 @@ impl From<Block> for BlockData {
   }
 }
 
-pub(crate) struct Updater {
+pub(crate) struct Updater<'index> {
   range_cache: HashMap<OutPointValue, Vec<u8>>,
   height: u64,
+  index: &'index Index,
   index_sats: bool,
   sat_ranges_since_flush: u64,
   outputs_cached: u64,
@@ -39,47 +40,33 @@ pub(crate) struct Updater {
   outputs_traversed: u64,
 }
 
-impl Updater {
-  pub(crate) fn update(index: &Index) -> Result {
-    let wtx = index.begin_write()?;
-
-    let height = wtx
-      .open_table(HEIGHT_TO_BLOCK_HASH)?
-      .range(0..)?
-      .rev()
-      .next()
-      .map(|(height, _hash)| height.value() + 1)
-      .unwrap_or(0);
-
-    wtx
-      .open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?
-      .insert(
-        &height,
-        &SystemTime::now()
-          .duration_since(SystemTime::UNIX_EPOCH)
-          .map(|duration| duration.as_millis())
-          .unwrap_or(0),
-      )?;
-
-    let mut updater = Self {
+impl<'index> Updater<'_> {
+  pub(crate) fn new(index: &'index Index) -> Result<Updater<'index>> {
+    Ok(Updater {
       range_cache: HashMap::new(),
-      height,
+      height: index.block_count()?,
+      index,
       index_sats: index.has_sat_index()?,
       sat_ranges_since_flush: 0,
       outputs_cached: 0,
       outputs_inserted_since_flush: 0,
       outputs_traversed: 0,
-    };
-
-    updater.update_index(index, wtx)
+    })
   }
 
-  fn update_index<'index>(
-    &mut self,
-    index: &'index Index,
-    mut wtx: WriteTransaction<'index>,
-  ) -> Result {
-    let starting_height = index.client.get_block_count()? + 1;
+  pub(crate) fn update_index(&mut self) -> Result {
+    let mut wtx = self.index.begin_write()?;
+    let starting_height = self.index.client.get_block_count()? + 1;
+
+    wtx
+      .open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?
+      .insert(
+        &self.height,
+        &SystemTime::now()
+          .duration_since(SystemTime::UNIX_EPOCH)
+          .map(|duration| duration.as_millis())
+          .unwrap_or(0),
+      )?;
 
     let mut progress_bar = if cfg!(test)
       || log_enabled!(log::Level::Info)
@@ -96,20 +83,15 @@ impl Updater {
       Some(progress_bar)
     };
 
-    let rx = Self::fetch_blocks_from(index, self.height, self.index_sats)?;
+    let rx = Self::fetch_blocks_from(self.index, self.height, self.index_sats)?;
 
-    let (mut outpoint_sender, mut value_receiver) = Self::spawn_fetcher(index)?;
+    let (mut outpoint_sender, mut value_receiver) = Self::spawn_fetcher(self.index)?;
 
     let mut uncommitted = 0;
     let mut value_cache = HashMap::new();
-    loop {
-      let block = match rx.recv() {
-        Ok(block) => block,
-        Err(mpsc::RecvError) => break,
-      };
-
+    while let Ok(block) = rx.recv() {
       self.index_block(
-        index,
+        self.index,
         &mut outpoint_sender,
         &mut value_receiver,
         &mut wtx,
@@ -121,7 +103,7 @@ impl Updater {
         progress_bar.inc(1);
 
         if progress_bar.position() > progress_bar.length().unwrap() {
-          if let Ok(count) = index.client.get_block_count() {
+          if let Ok(count) = self.index.client.get_block_count() {
             progress_bar.set_length(count + 1);
           } else {
             log::warn!("Failed to fetch latest block height");
@@ -135,12 +117,12 @@ impl Updater {
         self.commit(wtx, value_cache)?;
         value_cache = HashMap::new();
         uncommitted = 0;
-        wtx = index.begin_write()?;
+        wtx = self.index.begin_write()?;
         let height = wtx
           .open_table(HEIGHT_TO_BLOCK_HASH)?
           .range(0..)?
-          .rev()
-          .next()
+          .next_back()
+          .and_then(|result| result.ok())
           .map(|(height, _hash)| height.value() + 1)
           .unwrap_or(0);
         if height != self.height {
@@ -159,7 +141,7 @@ impl Updater {
           )?;
       }
 
-      if INTERRUPTS.load(atomic::Ordering::Relaxed) > 0 {
+      if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
         break;
       }
     }
@@ -184,8 +166,7 @@ impl Updater {
 
     let height_limit = index.height_limit;
 
-    let client =
-      Client::new(&index.rpc_url, index.auth.clone()).context("failed to connect to RPC URL")?;
+    let client = index.options.bitcoin_rpc_client()?;
 
     let first_inscription_height = index.first_inscription_height;
 
@@ -262,7 +243,7 @@ impl Updater {
   }
 
   fn spawn_fetcher(index: &Index) -> Result<(Sender<OutPoint>, Receiver<u64>)> {
-    let fetcher = Fetcher::new(&index.rpc_url, index.auth.clone())?;
+    let fetcher = Fetcher::new(&index.options)?;
 
     // Not sure if any block has more than 20k inputs, but none so far after first inscription block
     const CHANNEL_BUFFER_SIZE: usize = 20_000;
@@ -292,7 +273,7 @@ impl Updater {
           // There's no try_iter on tokio::sync::mpsc::Receiver like std::sync::mpsc::Receiver.
           // So we just loop until BATCH_SIZE doing try_recv until it returns None.
           let mut outpoints = vec![outpoint];
-          for _ in 0..BATCH_SIZE-1 {
+          for _ in 0..BATCH_SIZE - 1 {
             let Ok(outpoint) = outpoint_receiver.try_recv() else {
               break;
             };
@@ -315,7 +296,10 @@ impl Updater {
           };
           // Send all tx output values back in order
           for (i, tx) in txs.iter().flatten().enumerate() {
-            let Ok(_) = value_sender.send(tx.output[usize::try_from(outpoints[i].vout).unwrap()].value).await else {
+            let Ok(_) = value_sender
+              .send(tx.output[usize::try_from(outpoints[i].vout).unwrap()].value)
+              .await
+            else {
               log::error!("Value channel closed unexpectedly");
               return;
             };
@@ -336,10 +320,23 @@ impl Updater {
     block: BlockData,
     value_cache: &mut HashMap<OutPoint, u64>,
   ) -> Result<()> {
+    Reorg::detect_reorg(&block, self.height, self.index)?;
+
+    let start = Instant::now();
+    let mut sat_ranges_written = 0;
+    let mut outputs_in_block = 0;
+
+    log::info!(
+      "Block {} at {} with {} transactions…",
+      self.height,
+      timestamp(block.header.time),
+      block.txdata.len()
+    );
+
     // If value_receiver still has values something went wrong with the last block
     // Could be an assert, shouldn't recover from this and commit the last block
     let Err(TryRecvError::Empty) = value_receiver.try_recv() else {
-      return Err(anyhow!("Previous block did not consume all input values")); 
+      return Err(anyhow!("Previous block did not consume all input values"));
     };
 
     let mut outpoint_to_value = wtx.open_table(OUTPOINT_TO_VALUE)?;
@@ -381,36 +378,17 @@ impl Updater {
     }
 
     let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
-
-    let start = Instant::now();
-    let mut sat_ranges_written = 0;
-    let mut outputs_in_block = 0;
-
-    let time = timestamp(block.header.time);
-
-    log::info!(
-      "Block {} at {} with {} transactions…",
-      self.height,
-      time,
-      block.txdata.len()
-    );
-
-    if let Some(prev_height) = self.height.checked_sub(1) {
-      let prev_hash = height_to_block_hash.get(&prev_height)?.unwrap();
-
-      if prev_hash.value() != block.header.prev_blockhash.as_ref() {
-        index.reorged.store(true, atomic::Ordering::Relaxed);
-        return Err(anyhow!("reorg detected at or before {prev_height}"));
-      }
-    }
-
+    let mut height_to_last_inscription_number =
+      wtx.open_table(HEIGHT_TO_LAST_INSCRIPTION_NUMBER)?;
     let mut inscription_id_to_inscription_entry =
       wtx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
     let mut inscription_id_to_satpoint = wtx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
     let mut inscription_number_to_inscription_id =
       wtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
-    let mut sat_to_inscription_id = wtx.open_table(SAT_TO_INSCRIPTION_ID)?;
-    let mut satpoint_to_inscription_id = wtx.open_table(SATPOINT_TO_INSCRIPTION_ID)?;
+    let mut reinscription_id_to_seq_num = wtx.open_table(REINSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
+    let mut sat_to_inscription_id = wtx.open_multimap_table(SAT_TO_INSCRIPTION_ID)?;
+    let mut inscription_id_to_children = wtx.open_multimap_table(INSCRIPTION_ID_TO_CHILDREN)?;
+    let mut satpoint_to_inscription_id = wtx.open_multimap_table(SATPOINT_TO_INSCRIPTION_ID)?;
     let mut statistic_to_count = wtx.open_table(STATISTIC_TO_COUNT)?;
 
     let mut lost_sats = statistic_to_count
@@ -418,17 +396,25 @@ impl Updater {
       .map(|lost_sats| lost_sats.value())
       .unwrap_or(0);
 
+    let unbound_inscriptions = statistic_to_count
+      .get(&Statistic::UnboundInscriptions.key())?
+      .map(|unbound_inscriptions| unbound_inscriptions.value())
+      .unwrap_or(0);
+
     let mut inscription_updater = InscriptionUpdater::new(
       self.height,
+      &mut inscription_id_to_children,
       &mut inscription_id_to_satpoint,
       value_receiver,
       &mut inscription_id_to_inscription_entry,
       lost_sats,
       &mut inscription_number_to_inscription_id,
       &mut outpoint_to_value,
+      &mut reinscription_id_to_seq_num,
       &mut sat_to_inscription_id,
       &mut satpoint_to_inscription_id,
       block.header.time,
+      unbound_inscriptions,
       value_cache,
     )?;
 
@@ -524,11 +510,22 @@ impl Updater {
       }
     } else {
       for (tx, txid) in block.txdata.iter().skip(1).chain(block.txdata.first()) {
-        lost_sats += inscription_updater.index_transaction_inscriptions(tx, *txid, None)?;
+        inscription_updater.index_transaction_inscriptions(tx, *txid, None)?;
       }
     }
 
-    statistic_to_count.insert(&Statistic::LostSats.key(), &lost_sats)?;
+    self.index_block_inscription_numbers(
+      &mut height_to_last_inscription_number,
+      &inscription_updater,
+      index_inscriptions,
+    )?;
+
+    statistic_to_count.insert(&Statistic::LostSats.key(), &inscription_updater.lost_sats)?;
+
+    statistic_to_count.insert(
+      &Statistic::UnboundInscriptions.key(),
+      &inscription_updater.unbound_inscriptions,
+    )?;
 
     height_to_block_hash.insert(&self.height, &block.header.block_hash().store())?;
 
@@ -609,6 +606,27 @@ impl Updater {
     Ok(())
   }
 
+  fn index_block_inscription_numbers(
+    &mut self,
+    height_to_inscription_number: &mut Table<u64, (i64, i64)>,
+    inscription_updater: &InscriptionUpdater,
+    index_inscription: bool,
+  ) -> Result {
+    if !index_inscription {
+      return Ok(());
+    }
+
+    height_to_inscription_number.insert(
+      &self.height,
+      (
+        inscription_updater.next_number,
+        inscription_updater.next_cursed_number,
+      ),
+    )?;
+
+    Ok(())
+  }
+
   fn commit(&mut self, wtx: WriteTransaction, value_cache: HashMap<OutPoint, u64>) -> Result {
     log::info!(
       "Committing at block height {}, {} outputs traversed, {} in map, {} cached",
@@ -648,8 +666,10 @@ impl Updater {
     Index::increment_statistic(&wtx, Statistic::SatRanges, self.sat_ranges_since_flush)?;
     self.sat_ranges_since_flush = 0;
     Index::increment_statistic(&wtx, Statistic::Commits, 1)?;
-
     wtx.commit()?;
+
+    Reorg::update_savepoints(self.index, self.height)?;
+
     Ok(())
   }
 }

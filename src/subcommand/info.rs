@@ -2,7 +2,7 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Info {
-  #[clap(long)]
+  #[arg(long)]
   transactions: bool,
 }
 
@@ -15,7 +15,7 @@ pub struct TransactionsOutput {
 }
 
 impl Info {
-  pub(crate) fn run(self, options: Options) -> Result {
+  pub(crate) fn run(self, options: Options) -> SubcommandResult {
     let index = Index::open(&options)?;
     index.update()?;
     let info = index.info()?;
@@ -32,11 +32,9 @@ impl Info {
           elapsed: (end.starting_timestamp - start.starting_timestamp) as f64 / 1000.0 / 60.0,
         });
       }
-      print_json(output)?;
+      Ok(Box::new(output))
     } else {
-      print_json(info)?;
+      Ok(Box::new(info))
     }
-
-    Ok(())
   }
 }

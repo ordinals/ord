@@ -23,10 +23,14 @@ impl TryFrom<f64> for FeeRate {
 }
 
 impl FeeRate {
-  pub(crate) fn fee(&self, vsize: usize) -> Amount {
+  pub fn fee(&self, vsize: usize) -> Amount {
     #[allow(clippy::cast_possible_truncation)]
     #[allow(clippy::cast_sign_loss)]
     Amount::from_sat((self.0 * vsize as f64).round() as u64)
+  }
+
+  pub(crate) fn n(&self) -> f64 {
+    self.0
   }
 }
 

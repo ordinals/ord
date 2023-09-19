@@ -10,19 +10,19 @@ fn inscriptions_can_be_sent() {
 
   rpc_server.mine_blocks(1);
 
-  let stdout = CommandBuilder::new(format!(
+  let output = CommandBuilder::new(format!(
     "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {inscription}",
   ))
   .rpc_server(&rpc_server)
   .stdout_regex(r".*")
-  .run();
+  .run_and_deserialize_output::<Output>();
 
   let txid = rpc_server.mempool()[0].txid();
-  assert_eq!(format!("{txid}\n"), stdout);
+  assert_eq!(txid, output.transaction);
 
   rpc_server.mine_blocks(1);
 
-  let send_txid = stdout.trim();
+  let send_txid = output.transaction;
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
@@ -56,7 +56,7 @@ fn send_unknown_inscription() {
   .rpc_server(&rpc_server)
   .expected_stderr(format!("error: Inscription {txid}i0 not found\n"))
   .expected_exit_code(1)
-  .run();
+  .run_and_extract_stdout();
 }
 
 #[test]
@@ -69,16 +69,15 @@ fn send_inscribed_sat() {
 
   rpc_server.mine_blocks(1);
 
-  let stdout = CommandBuilder::new(format!(
+  let output = CommandBuilder::new(format!(
     "wallet send --fee-rate 1 bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {inscription}",
   ))
   .rpc_server(&rpc_server)
-  .stdout_regex("[[:xdigit:]]{64}\n")
-  .run();
+  .run_and_deserialize_output::<Output>();
 
   rpc_server.mine_blocks(1);
 
-  let send_txid = stdout.trim();
+  let send_txid = output.transaction;
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
   ord_server.assert_response_regex(
@@ -96,14 +95,13 @@ fn send_on_mainnnet_works_with_wallet_named_foo() {
 
   CommandBuilder::new("--wallet foo wallet create")
     .rpc_server(&rpc_server)
-    .output::<Create>();
+    .run_and_deserialize_output::<ord::subcommand::wallet::create::Output>();
 
   CommandBuilder::new(format!(
     "--wallet foo wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0"
   ))
   .rpc_server(&rpc_server)
-  .stdout_regex(r"[[:xdigit:]]{64}\n")
-  .run();
+  .run_and_deserialize_output::<Output>();
 }
 
 #[test]
@@ -117,10 +115,10 @@ fn send_addresses_must_be_valid_for_network() {
   ))
   .rpc_server(&rpc_server)
   .expected_stderr(
-    "error: Address `tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz` is not valid for mainnet\n",
+    "error: address tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz belongs to network testnet which is different from required bitcoin\n",
   )
   .expected_exit_code(1)
-  .run();
+  .run_and_extract_stdout();
 }
 
 #[test]
@@ -129,15 +127,13 @@ fn send_on_mainnnet_works_with_wallet_named_ord() {
   let txid = rpc_server.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0].txid();
   create_wallet(&rpc_server);
 
-  let stdout = CommandBuilder::new(format!(
+  let output = CommandBuilder::new(format!(
     "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0"
   ))
   .rpc_server(&rpc_server)
-  .stdout_regex(r".*")
-  .run();
+  .run_and_deserialize_output::<Output>();
 
-  let txid = rpc_server.mempool()[0].txid();
-  assert_eq!(format!("{txid}\n"), stdout);
+  assert_eq!(rpc_server.mempool()[0].txid(), output.transaction);
 }
 
 #[test]
@@ -151,7 +147,7 @@ fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
   ))
   .write("degenerate.png", [1; 100])
   .rpc_server(&rpc_server)
-  .output::<Inscribe>();
+  .run_and_deserialize_output::<Inscribe>();
 
   let txid = rpc_server.mine_blocks_with_subsidy(1, 100)[0].txdata[0].txid();
   CommandBuilder::new(format!(
@@ -160,11 +156,11 @@ fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
   .rpc_server(&rpc_server)
   .expected_exit_code(1)
   .expected_stderr("error: wallet does not contain enough cardinal UTXOs, please add additional funds to wallet.\n")
-  .run();
+  .run_and_extract_stdout();
 }
 
 #[test]
-fn do_not_accidentally_send_an_inscription() {
+fn do_not_send_within_dust_limit_of_an_inscription() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
@@ -182,14 +178,133 @@ fn do_not_accidentally_send_an_inscription() {
   };
 
   CommandBuilder::new(format!(
-    "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {output}:55"
+    "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {output}:329"
   ))
   .rpc_server(&rpc_server)
   .expected_exit_code(1)
   .expected_stderr(format!(
-    "error: cannot send {output}:55 without also sending inscription {inscription} at {output}:0\n"
+    "error: cannot send {output}:329 without also sending inscription {inscription} at {output}:0\n"
   ))
-  .run();
+  .run_and_extract_stdout();
+}
+
+#[test]
+fn can_send_after_dust_limit_from_an_inscription() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+
+  let Inscribe { reveal, .. } = inscribe(&rpc_server);
+
+  rpc_server.mine_blocks(1);
+
+  let output = OutPoint {
+    txid: reveal,
+    vout: 0,
+  };
+
+  CommandBuilder::new(format!(
+    "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {output}:330"
+  ))
+  .rpc_server(&rpc_server)
+  .run_and_deserialize_output::<Output>();
+}
+
+#[test]
+fn splitting_merged_inscriptions_is_possible() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(3);
+
+  let inscription = envelope(&[b"ord", &[1], b"text/plain;charset=utf-8", &[], b"bar"]);
+
+  // merging 3 inscriptions into one utxo
+  let reveal_txid = rpc_server.broadcast_tx(TransactionTemplate {
+    inputs: &[
+      (1, 0, 0, inscription.clone()),
+      (2, 0, 0, inscription.clone()),
+      (3, 0, 0, inscription.clone()),
+    ],
+    outputs: 1,
+    ..Default::default()
+  });
+
+  rpc_server.mine_blocks(1);
+
+  let server = TestServer::spawn_with_args(&rpc_server, &["--index-sats", "--enable-json-api"]);
+
+  let response = server.json_request(format!("/output/{}:0", reveal_txid));
+  assert_eq!(response.status(), StatusCode::OK);
+
+  let output_json: OutputJson = serde_json::from_str(&response.text().unwrap()).unwrap();
+
+  pretty_assert_eq!(
+    output_json,
+    OutputJson {
+      value: 3 * 50 * COIN_VALUE,
+      script_pubkey: "".to_string(),
+      address: None,
+      transaction: reveal_txid.to_string(),
+      sat_ranges: Some(vec![
+        (5000000000, 10000000000,),
+        (10000000000, 15000000000,),
+        (15000000000, 20000000000,),
+      ],),
+      inscriptions: vec![
+        InscriptionId {
+          txid: reveal_txid,
+          index: 0
+        },
+        InscriptionId {
+          txid: reveal_txid,
+          index: 2
+        },
+        InscriptionId {
+          txid: reveal_txid,
+          index: 1
+        }
+      ]
+    }
+  );
+
+  // try and fail to send first
+  CommandBuilder::new(format!(
+    "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {}i0",
+    reveal_txid,
+  ))
+  .rpc_server(&rpc_server)
+  .expected_exit_code(1)
+  .expected_stderr(format!(
+    "error: cannot send {reveal_txid}:0:0 without also sending inscription {reveal_txid}i2 at {reveal_txid}:0:{}\n", 100 * COIN_VALUE
+  ))
+  .run_and_extract_stdout();
+
+  // splitting out last
+  CommandBuilder::new(format!(
+    "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {}i2",
+    reveal_txid,
+  ))
+  .rpc_server(&rpc_server)
+  .run_and_deserialize_output::<Output>();
+
+  rpc_server.mine_blocks(1);
+
+  // splitting second to last
+  CommandBuilder::new(format!(
+    "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {}i1",
+    reveal_txid,
+  ))
+  .rpc_server(&rpc_server)
+  .run_and_deserialize_output::<Output>();
+
+  rpc_server.mine_blocks(1);
+
+  // splitting send first
+  CommandBuilder::new(format!(
+    "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {}i0",
+    reveal_txid,
+  ))
+  .rpc_server(&rpc_server)
+  .run_and_deserialize_output::<Output>();
 }
 
 #[test]
@@ -207,20 +322,37 @@ fn inscriptions_cannot_be_sent_by_satpoint() {
   .rpc_server(&rpc_server)
   .expected_stderr("error: inscriptions must be sent by inscription ID\n")
   .expected_exit_code(1)
-  .run();
+  .run_and_extract_stdout();
 }
 
 #[test]
-fn send_btc() {
+fn send_btc_with_fee_rate() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
   rpc_server.mine_blocks(1);
 
-  let output =
-    CommandBuilder::new("wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc")
-      .rpc_server(&rpc_server)
-      .output::<Output>();
+  let output = CommandBuilder::new(
+    "wallet send --fee-rate 13.3 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc",
+  )
+  .rpc_server(&rpc_server)
+  .run_and_deserialize_output::<Output>();
+
+  let tx = &rpc_server.mempool()[0];
+  let mut fee = 0;
+  for input in &tx.input {
+    fee += rpc_server
+      .get_utxo_amount(&input.previous_output)
+      .unwrap()
+      .to_sat();
+  }
+  for output in &tx.output {
+    fee -= output.value;
+  }
+
+  let fee_rate = fee as f64 / tx.vsize() as f64;
+
+  assert!(f64::abs(fee_rate - 13.3) < 0.1);
 
   assert_eq!(
     output.transaction,
@@ -234,11 +366,12 @@ fn send_btc() {
     &[Sent {
       amount: 1.0,
       address: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
-        .parse()
-        .unwrap(),
+        .parse::<Address<NetworkUnchecked>>()
+        .unwrap()
+        .assume_checked(),
       locked: Vec::new(),
     }]
-  )
+  );
 }
 
 #[test]
@@ -253,7 +386,7 @@ fn send_btc_locks_inscriptions() {
   let output =
     CommandBuilder::new("wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc")
       .rpc_server(&rpc_server)
-      .output::<Output>();
+      .run_and_deserialize_output::<Output>();
 
   assert_eq!(
     output.transaction,
@@ -267,8 +400,9 @@ fn send_btc_locks_inscriptions() {
     &[Sent {
       amount: 1.0,
       address: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
-        .parse()
-        .unwrap(),
+        .parse::<Address<NetworkUnchecked>>()
+        .unwrap()
+        .assume_checked(),
       locked: vec![OutPoint {
         txid: reveal,
         vout: 0,
@@ -290,7 +424,7 @@ fn send_btc_fails_if_lock_unspent_fails() {
     .rpc_server(&rpc_server)
     .expected_stderr("error: failed to lock ordinal UTXOs\n")
     .expected_exit_code(1)
-    .run();
+    .run_and_extract_stdout();
 }
 
 #[test]
@@ -305,8 +439,7 @@ fn wallet_send_with_fee_rate() {
     "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {inscription} --fee-rate 2.0"
   ))
   .rpc_server(&rpc_server)
-  .stdout_regex("[[:xdigit:]]{64}\n")
-  .run();
+  .run_and_deserialize_output::<Output>();
 
   let tx = &rpc_server.mempool()[0];
   let mut fee = 0;
@@ -339,8 +472,40 @@ fn user_must_provide_fee_rate_to_send() {
   .rpc_server(&rpc_server)
   .expected_exit_code(2)
   .stderr_regex(
-    ".*error: The following required arguments were not provided:
+    ".*error: the following required arguments were not provided:
 .*--fee-rate <FEE_RATE>.*",
   )
-  .run();
+  .run_and_extract_stdout();
+}
+
+#[test]
+fn wallet_send_with_fee_rate_and_target_postage() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  let Inscribe { inscription, .. } = inscribe(&rpc_server);
+
+  CommandBuilder::new(format!(
+    "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {inscription} --fee-rate 2.0 --postage 77000sat"
+  ))
+  .rpc_server(&rpc_server)
+  .run_and_deserialize_output::<Output>();
+
+  let tx = &rpc_server.mempool()[0];
+  let mut fee = 0;
+  for input in &tx.input {
+    fee += rpc_server
+      .get_utxo_amount(&input.previous_output)
+      .unwrap()
+      .to_sat();
+  }
+  for output in &tx.output {
+    fee -= output.value;
+  }
+
+  let fee_rate = fee as f64 / tx.vsize() as f64;
+
+  pretty_assert_eq!(fee_rate, 2.0);
+  pretty_assert_eq!(tx.output[0].value, 77_000);
 }

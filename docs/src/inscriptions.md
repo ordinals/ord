@@ -43,9 +43,9 @@ follows:
 OP_FALSE
 OP_IF
   OP_PUSH "ord"
-  OP_1
+  OP_PUSH 1
   OP_PUSH "text/plain;charset=utf-8"
-  OP_0
+  OP_PUSH 0
   OP_PUSH "Hello, world!"
 OP_ENDIF
 ```
@@ -53,12 +53,76 @@ OP_ENDIF
 First the string `ord` is pushed, to disambiguate inscriptions from other uses
 of envelopes.
 
-`OP_1` indicates that the next push contains the content type, and `OP_0`
-indicates that subsequent data pushes contain the content itself. Multiple data
-pushes must be used for large inscriptions, as one of taproot's few
-restrictions is that individual data pushes may not be larger than 520 bytes.
+`OP_PUSH 1` indicates that the next push contains the content type, and
+`OP_PUSH 0`indicates that subsequent data pushes contain the content itself.
+Multiple data pushes must be used for large inscriptions, as one of taproot's
+few restrictions is that individual data pushes may not be larger than 520
+bytes.
 
 The inscription content is contained within the input of a reveal transaction,
-and the inscription is made on the first sat of its first output. This sat can
-then be tracked using the familiar rules of ordinal theory, allowing it to be
+and the inscription is made on the first sat of its input. This sat can then be
+tracked using the familiar rules of ordinal theory, allowing it to be
 transferred, bought, sold, lost to fees, and recovered.
+
+Content
+-------
+
+The data model of inscriptions is that of a HTTP response, allowing inscription
+content to be served by a web server and viewed in a web browser.
+
+Fields
+------
+
+Inscriptions may include fields before an optional body. Each field consists of
+two data pushes, a tag and a value.
+
+Currently, the only defined field is `content-type`, with a tag of `1`, whose
+value is the MIME type of the body.
+
+The beginning of the body and end of fields is indicated with an empty data
+push.
+
+Unrecognized tags are interpreted differently depending on whether they are
+even or odd, following the "it's okay to be odd" rule used by the Lightning
+Network.
+
+Even tags are used for fields which may affect creation, initial assignment, or
+transfer of an inscription. Thus, inscriptions with unrecognized even fields
+must be displayed as "unbound", that is, without a location.
+
+Odd tags are used for fields which do not affect creation, initial assignment,
+or transfer, such as additional metadata, and thus are safe to ignore.
+
+Inscription IDs
+---------------
+
+The inscriptions are contained within the inputs of a reveal transaction. In
+order to uniquely identify them they are assigned an ID of the form:
+
+`521f8eccffa4c41a3a7728dd012ea5a4a02feed81f41159231251ecf1e5c79dai0`
+
+The part in front of the `i` is the transaction ID (`txid`) of the reveal
+transaction. The number after the `i` defines the index (starting at 0) of new inscriptions
+being inscribed in the reveal transaction.
+
+Inscriptions can either be located in different inputs, within the same input or
+a combination of both. In any case the ordering is clear, since a parser would
+go through the inputs consecutively and look for all inscription `envelopes`.
+
+| Input | Inscription Count | Indices    |
+|:-----:|:-----------------:|:----------:|
+| 0     | 2                 | i0, i1     |
+| 1     | 1                 | i2         |
+| 2     | 3                 | i3, i4, i5 |
+| 3     | 0                 |            |
+| 4     | 1                 | i6         |
+
+Sandboxing
+----------
+
+HTML and SVG inscriptions are sandboxed in order to prevent references to
+off-chain content, thus keeping inscriptions immutable and self-contained.
+
+This is accomplished by loading HTML and SVG inscriptions inside `iframes` with
+the `sandbox` attribute, as well as serving inscription content with
+`Content-Security-Policy` headers.

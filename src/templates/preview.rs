@@ -11,6 +11,16 @@ pub(crate) struct PreviewImageHtml {
 }
 
 #[derive(boilerplate::Boilerplate)]
+pub(crate) struct PreviewMarkdownHtml {
+  pub(crate) inscription_id: InscriptionId,
+}
+
+#[derive(boilerplate::Boilerplate)]
+pub(crate) struct PreviewModelHtml {
+  pub(crate) inscription_id: InscriptionId,
+}
+
+#[derive(boilerplate::Boilerplate)]
 pub(crate) struct PreviewPdfHtml {
   pub(crate) inscription_id: InscriptionId,
 }

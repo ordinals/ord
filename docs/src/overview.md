@@ -11,7 +11,7 @@ the transfer scheme on the *order* of transaction inputs and outputs. Thus the
 name, *ordinals*.
 
 Technical details are available in [the
-BIP](https://github.com/casey/ord/blob/master/bip.mediawiki).
+BIP](https://github.com/ordinals/ord/blob/master/bip.mediawiki).
 
 Ordinal theory does not require a separate token, another blockchain, or any
 changes to Bitcoin. It works right now.
@@ -43,7 +43,7 @@ Arbitrary assets, such as NFTs, security tokens, accounts, or stablecoins can
 be attached to satoshis using ordinal numbers as stable identifiers.
 
 Ordinals is an open-source project, developed [on
-GitHub](https://github.com/casey/ord). The project consists of a BIP describing
+GitHub](https://github.com/ordinals/ord). The project consists of a BIP describing
 the ordinal scheme, an index that communicates with a Bitcoin Core node to
 track the location of all satoshis, a wallet that allows making ordinal-aware
 transactions, a block explorer for interactive exploration of the blockchain,
@@ -72,7 +72,7 @@ naturally lend themselves to a system of rarity. These periodic events are:
 - *Cycles*: Every six halvings, something magical happens: the halving and the
   difficulty adjustment coincide. This is called a conjunction, and the time
   period between conjunctions a cycle. A conjunction occurs roughly every 24
-  years. The first conjunction should happen some time in 2032.
+  years. The first conjunction should happen sometime in 2032.
 
 This gives us the following rarity levels:
 
@@ -102,7 +102,7 @@ Now for some examples. This satoshi is common:
 ```
 1°1′1″1‴
 │ │ │ ╰─ Not first sat in block
-│ │ ╰─── Not first block in difficutly adjustment period
+│ │ ╰─── Not first block in difficulty adjustment period
 │ ╰───── Not first block in halving epoch
 ╰─────── Second cycle
 ```
@@ -113,7 +113,7 @@ This satoshi is uncommon:
 ```
 1°1′1″0‴
 │ │ │ ╰─ First sat in block
-│ │ ╰─── Not first block in difficutly adjustment period
+│ │ ╰─── Not first block in difficulty adjustment period
 │ ╰───── Not first block in halving epoch
 ╰─────── Second cycle
 ```
@@ -163,7 +163,7 @@ from above:
 
 ```
 1°1′1″
-│ │ ╰─ Not first block in difficutly adjustment period
+│ │ ╰─ Not first block in difficulty adjustment period
 │ ╰─── Not first block in halving epoch
 ╰───── Second cycle
 ```
@@ -203,7 +203,7 @@ the unspendable genesis block.
 
 As an example, 1905530482684727°'s name is "iaiufjszmoba". The name of the last
 satoshi to be mined is "a". Every combination of 10 characters or less is out
-there, or will be out there, some day.
+there, or will be out there, someday.
 
 Exotics
 -------
@@ -253,7 +253,7 @@ ordinals were independently discovered on at least two separate occasions, long
 before the era of modern NFTs began.
 
 On August 21st, 2012, Charlie Lee [posted a proposal to add proof-of-stake to
-Bitcoin to the Bitocin Talk
+Bitcoin to the Bitcoin Talk
 forum](https://bitcointalk.org/index.php?topic=102355.0). This wasn't an asset
 scheme, but did use the ordinal algorithm, and was implemented but never
 deployed.
