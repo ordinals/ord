@@ -825,7 +825,9 @@ impl Index {
       return Ok(None);
     }
 
-    let mut remaining_sats = search_end - search_start;
+    let Some(mut remaining_sat) = search_end.checked_sub(search_start) else {
+      return Err(anyhow!("range end is before range start"));
+    };
 
     let outpoint_to_sat_ranges = rtx.0.open_table(OUTPOINT_TO_SAT_RANGES)?;
 
