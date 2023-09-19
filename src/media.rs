@@ -19,6 +19,7 @@ pub(crate) enum Media {
 
 impl Media {
   const TABLE: &'static [(&'static str, Media, &'static [&'static str])] = &[
+    ("application/cbor", Media::Unknown, &["cbor"]),
     ("application/json", Media::Text, &["json"]),
     ("application/pdf", Media::Pdf, &["pdf"]),
     ("application/pgp-signature", Media::Text, &["asc"]),
