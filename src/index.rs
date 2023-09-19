@@ -814,18 +814,18 @@ impl Index {
 
   pub(crate) fn find_range(
     &self,
-    search_start: u64,
-    search_end: u64,
+    range_start: u64,
+    range_end: u64,
   ) -> Result<Option<Vec<FindRangeOutput>>> {
     self.require_sat_index("find")?;
 
     let rtx = self.begin_read()?;
 
-    if rtx.block_count()? < Sat(search_end - 1).height().n() + 1 {
+    if rtx.block_count()? < Sat(range_end - 1).height().n() + 1 {
       return Ok(None);
     }
 
-    let Some(mut remaining_sats) = search_end.checked_sub(search_start) else {
+    let Some(mut remaining_sats) = range_end.checked_sub(range_start) else {
       return Err(anyhow!("range end is before range start"));
     };
 
@@ -839,9 +839,9 @@ impl Index {
       for sat_range in sat_ranges_entry.value().chunks_exact(11) {
         let (start, end) = SatRange::load(sat_range.try_into().unwrap());
 
-        if start < search_end && search_start < end {
-          let overlap_start = cmp::max(start, search_start);
-          let overlap_end = cmp::min(search_end, end);
+        if range_start < end && range_end > start {
+          let overlap_start = cmp::max(start, range_start);
+          let overlap_end = cmp::min(range_end, end);
 
           result.push(FindRangeOutput {
             start: overlap_start,
