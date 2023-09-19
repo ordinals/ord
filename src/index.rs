@@ -839,7 +839,7 @@ impl Index {
       for sat_range in sat_ranges_entry.value().chunks_exact(11) {
         let (start, end) = SatRange::load(sat_range.try_into().unwrap());
 
-        if range_start < end && range_end > start {
+        if end > range_start && start < range_end {
           let overlap_start = cmp::max(start, range_start);
           let overlap_end = cmp::min(range_end, end);
 
