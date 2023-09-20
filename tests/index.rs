@@ -1,6 +1,22 @@
 use {super::*, crate::command_builder::ToArgs, ord::subcommand::Empty};
 
 #[test]
+fn run_is_an_alias_for_update() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  rpc_server.mine_blocks(1);
+
+  let tempdir = TempDir::new().unwrap();
+
+  let index_path = tempdir.path().join("foo.redb");
+
+  CommandBuilder::new(format!("--index {} index run", index_path.display()))
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<Empty>();
+
+  assert!(index_path.is_file())
+}
+
+#[test]
 fn custom_index_path() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   rpc_server.mine_blocks(1);

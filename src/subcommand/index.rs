@@ -7,7 +7,7 @@ mod update;
 pub(crate) enum IndexSubcommand {
   #[command(about = "Write inscription numbers and ids to a tab-separated file")]
   Export(export::Export),
-  #[command(about = "Update the index")]
+  #[command(about = "Update the index", alias = "run")]
   Update,
 }
 
