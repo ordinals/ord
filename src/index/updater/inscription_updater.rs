@@ -89,7 +89,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
     let next_sequence_number = sequence_number_to_id
       .iter()?
-      .next()
+      .next_back()
       .and_then(|result| result.ok())
       .map(|(number, _id)| number.value() + 1)
       .unwrap_or(0);
