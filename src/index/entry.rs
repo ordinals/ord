@@ -38,7 +38,9 @@ pub(crate) type InscriptionEntryValue = (u64, u64, i64, u64, ParentValue, u64, u
 impl Entry for InscriptionEntry {
   type Value = InscriptionEntryValue;
 
-  fn load((fee, height, inscription_number, sequence_number, parent, sat, timestamp): InscriptionEntryValue) -> Self {
+  fn load(
+    (fee, height, inscription_number, sequence_number, parent, sat, timestamp): InscriptionEntryValue,
+  ) -> Self {
     Self {
       fee,
       height,

@@ -336,19 +336,14 @@ fn get_inscriptions_in_block() {
   rpc_server.mine_blocks(1);
 
   let _ = rpc_server.broadcast_tx(TransactionTemplate {
-    inputs: &[
-      (4, 0, 0, envelope.clone()),
-      (5, 0, 0, envelope.clone()),
-    ],
+    inputs: &[(4, 0, 0, envelope.clone()), (5, 0, 0, envelope.clone())],
     ..Default::default()
   });
 
   rpc_server.mine_blocks(1);
 
   let _ = rpc_server.broadcast_tx(TransactionTemplate {
-    inputs: &[
-      (6, 0, 0, envelope.clone()),
-    ],
+    inputs: &[(6, 0, 0, envelope.clone())],
     ..Default::default()
   });
 
