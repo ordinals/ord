@@ -29,8 +29,8 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   value_receiver: &'a mut Receiver<u64>,
   id_to_entry: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, InscriptionEntryValue>,
   pub(super) lost_sats: u64,
-  pub(super) next_cursed_number: i64,
-  pub(super) next_number: i64,
+  pub(super) next_cursed_inscription_number: i64,
+  pub(super) next_inscription_number: i64,
   pub(super) next_sequence_number: u64,
   inscription_number_to_id: &'a mut Table<'db, 'tx, i64, &'static InscriptionIdValue>,
   sequence_number_to_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
@@ -73,14 +73,14 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     unbound_inscriptions: u64,
     value_cache: &'a mut HashMap<OutPoint, u64>,
   ) -> Result<Self> {
-    let next_cursed_number = inscription_number_to_id
+    let next_cursed_inscription_number = inscription_number_to_id
       .iter()?
       .next()
       .and_then(|result| result.ok())
       .map(|(number, _id)| number.value() - 1)
       .unwrap_or(-1);
 
-    let next_number = inscription_number_to_id
+    let next_inscription_number = inscription_number_to_id
       .iter()?
       .next_back()
       .and_then(|result| result.ok())
@@ -102,8 +102,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       value_receiver,
       id_to_entry,
       lost_sats,
-      next_cursed_number,
-      next_number,
+      next_cursed_inscription_number,
+      next_inscription_number,
       next_sequence_number,
       inscription_number_to_id,
       sequence_number_to_id,
@@ -429,21 +429,21 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         parent,
         unbound,
       } => {
-        let number = if cursed {
-          let next_cursed_number = self.next_cursed_number;
-          self.next_cursed_number -= 1;
+        let inscription_number = if cursed {
+          let next_cursed_inscription_number = self.next_cursed_inscription_number;
+          self.next_cursed_inscription_number -= 1;
 
-          next_cursed_number
+          next_cursed_inscription_number
         } else {
-          let next_number = self.next_number;
-          self.next_number += 1;
+          let next_inscription_number = self.next_inscription_number;
+          self.next_inscription_number += 1;
 
-          next_number
+          next_inscription_number
         };
 
         self
           .inscription_number_to_id
-          .insert(number, &inscription_id)?;
+          .insert(inscription_number, &inscription_id)?;
 
         let sequence_number = self.next_sequence_number;
         self.next_sequence_number += 1;
@@ -467,7 +467,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           &InscriptionEntry {
             fee,
             height: self.height,
-            inscription_number: number,
+            inscription_number,
             sequence_number,
             parent,
             sat,
