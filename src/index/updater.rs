@@ -378,8 +378,7 @@ impl<'index> Updater<'_> {
     }
 
     let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
-    let mut height_to_last_inscription_number =
-      wtx.open_table(HEIGHT_TO_LAST_INSCRIPTION_NUMBER)?;
+    let mut height_to_last_sequence_number = wtx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
     let mut inscription_id_to_inscription_entry =
       wtx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
     let mut inscription_id_to_satpoint = wtx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
@@ -389,6 +388,8 @@ impl<'index> Updater<'_> {
     let mut sat_to_inscription_id = wtx.open_multimap_table(SAT_TO_INSCRIPTION_ID)?;
     let mut inscription_id_to_children = wtx.open_multimap_table(INSCRIPTION_ID_TO_CHILDREN)?;
     let mut satpoint_to_inscription_id = wtx.open_multimap_table(SATPOINT_TO_INSCRIPTION_ID)?;
+    let mut sequence_number_to_inscription_id =
+      wtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ID)?;
     let mut statistic_to_count = wtx.open_table(STATISTIC_TO_COUNT)?;
 
     let mut lost_sats = statistic_to_count
@@ -409,6 +410,7 @@ impl<'index> Updater<'_> {
       &mut inscription_id_to_inscription_entry,
       lost_sats,
       &mut inscription_number_to_inscription_id,
+      &mut sequence_number_to_inscription_id,
       &mut outpoint_to_value,
       &mut reinscription_id_to_seq_num,
       &mut sat_to_inscription_id,
@@ -515,7 +517,7 @@ impl<'index> Updater<'_> {
     }
 
     self.index_block_inscription_numbers(
-      &mut height_to_last_inscription_number,
+      &mut height_to_last_sequence_number,
       &inscription_updater,
       index_inscriptions,
     )?;
@@ -608,7 +610,7 @@ impl<'index> Updater<'_> {
 
   fn index_block_inscription_numbers(
     &mut self,
-    height_to_inscription_number: &mut Table<u64, (i64, i64)>,
+    height_to_sequence_number: &mut Table<u64, u64>,
     inscription_updater: &InscriptionUpdater,
     index_inscription: bool,
   ) -> Result {
@@ -616,13 +618,7 @@ impl<'index> Updater<'_> {
       return Ok(());
     }
 
-    height_to_inscription_number.insert(
-      &self.height,
-      (
-        inscription_updater.next_number,
-        inscription_updater.next_cursed_number,
-      ),
-    )?;
+    height_to_sequence_number.insert(&self.height, inscription_updater.next_sequence_number)?;
 
     Ok(())
   }

@@ -1,7 +1,7 @@
-%% if self.number >= 0 {
-<h1>Inscription {{ self.number }}</h1>
+%% if self.inscription_number >= 0 {
+<h1>Inscription {{ self.inscription_number }}</h1>
 %% } else {
-<h1>Inscription {{ self.number }} (unstable)</h1>
+<h1>Inscription {{ self.inscription_number }} (unstable)</h1>
 %% }
 <div class=inscription>
 %% if let Some(previous) = self.previous {
@@ -23,6 +23,8 @@
   <dt>parent</dt>
   <dd><a class=monospace href=/inscription/{{ parent }}>{{ parent }}</a></dd>
 %% }
+  <dt>sequence number</dt>
+  <dd>{{ self.sequence_number }}</dd>
 %% if let Some(output) = &self.output {
 %% if let Ok(address) = self.chain.address_from_script(&output.script_pubkey ) {
   <dt>address</dt>

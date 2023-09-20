@@ -155,7 +155,8 @@ fn get_inscription() {
       parent: None,
       children: Vec::new(),
       inscription_id,
-      number: 0,
+      inscription_number: 0,
+      sequence_number: 0,
       genesis_height: 2,
       genesis_fee: 138,
       output_value: Some(10000),
@@ -310,7 +311,7 @@ fn get_inscriptions() {
       inscription_json.inscription_id,
       inscriptions_json.inscriptions[0]
     );
-    assert_eq!(inscription_json.number, i);
+    assert_eq!(inscription_json.inscription_number, i);
   }
 }
 
@@ -359,9 +360,9 @@ fn get_inscriptions_in_block() {
   pretty_assert_eq!(
     inscriptions_json.inscriptions,
     vec![
-      InscriptionId { txid, index: 2 },
+      InscriptionId { txid, index: 0 },
       InscriptionId { txid, index: 1 },
-      InscriptionId { txid, index: 0 }
+      InscriptionId { txid, index: 2 },
     ]
   );
 }

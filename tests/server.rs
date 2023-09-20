@@ -57,6 +57,8 @@ fn inscription_page() {
 <dl>
   <dt>id</dt>
   <dd class=monospace>{inscription}</dd>
+  <dt>sequence number</dt>
+  <dd>0</dd>
   <dt>address</dt>
   <dd class=monospace>bc1.*</dd>
   <dt>output value</dt>

@@ -29,7 +29,7 @@ mod reorg;
 mod rtx;
 mod updater;
 
-const SCHEMA_VERSION: u64 = 6;
+const SCHEMA_VERSION: u64 = 7;
 
 macro_rules! define_table {
   ($name:ident, $key:ty, $value:ty) => {
@@ -48,14 +48,16 @@ define_multimap_table! { INSCRIPTION_ID_TO_CHILDREN, &InscriptionIdValue, &Inscr
 define_multimap_table! { SATPOINT_TO_INSCRIPTION_ID, &SatPointValue, &InscriptionIdValue }
 define_multimap_table! { SAT_TO_INSCRIPTION_ID, u64, &InscriptionIdValue }
 define_table! { HEIGHT_TO_BLOCK_HASH, u64, &BlockHashValue }
-define_table! { HEIGHT_TO_LAST_INSCRIPTION_NUMBER, u64, (i64, i64) }
+define_table! { HEIGHT_TO_LAST_SEQUENCE_NUMBER, u64, u64 }
 define_table! { INSCRIPTION_ID_TO_INSCRIPTION_ENTRY, &InscriptionIdValue, InscriptionEntryValue }
 define_table! { INSCRIPTION_ID_TO_SATPOINT, &InscriptionIdValue, &SatPointValue }
 define_table! { INSCRIPTION_NUMBER_TO_INSCRIPTION_ID, i64, &InscriptionIdValue }
 define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_VALUE, &OutPointValue, u64}
+// maybe can get rid of this or use actual number
 define_table! { REINSCRIPTION_ID_TO_SEQUENCE_NUMBER, &InscriptionIdValue, u64 }
 define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
+define_table! { SEQUENCE_NUMBER_TO_INSCRIPTION_ID, u64, &InscriptionIdValue }
 define_table! { STATISTIC_TO_COUNT, u64, u64 }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u64, u128 }
 
@@ -238,13 +240,14 @@ impl Index {
         tx.open_multimap_table(SATPOINT_TO_INSCRIPTION_ID)?;
         tx.open_multimap_table(SAT_TO_INSCRIPTION_ID)?;
         tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
-        tx.open_table(HEIGHT_TO_LAST_INSCRIPTION_NUMBER)?;
+        tx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
         tx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
         tx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
         tx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
         tx.open_table(OUTPOINT_TO_VALUE)?;
         tx.open_table(REINSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
         tx.open_table(SAT_TO_SATPOINT)?;
+        tx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ID)?;
         tx.open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?;
 
         tx.open_table(STATISTIC_TO_COUNT)?
@@ -1003,34 +1006,32 @@ impl Index {
   pub(crate) fn get_inscriptions_in_block(&self, block_height: u64) -> Result<Vec<InscriptionId>> {
     let rtx = self.database.begin_read()?;
 
-    let height_to_last_inscription_number = rtx.open_table(HEIGHT_TO_LAST_INSCRIPTION_NUMBER)?;
-    let inscription_id_by_number = rtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
+    let height_to_last_sequence_number = rtx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
+    let inscription_id_by_sequence_number = rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ID)?;
 
-    let block_inscriptions = match (
-      height_to_last_inscription_number
-        .get(block_height.saturating_sub(1))?
-        .map(|ag| ag.value())
-        .unwrap_or((0, -1)),
-      height_to_last_inscription_number
-        .get(&block_height)?
-        .map(|ag| ag.value()),
-    ) {
-      ((oldest_blessed, oldest_cursed), Some((newest_blessed, newest_cursed))) => {
-        ((newest_cursed + 1)..=oldest_cursed)
-          .chain(oldest_blessed..newest_blessed)
-          .map(|num| match inscription_id_by_number.get(&num) {
-            Ok(Some(inscription_id)) => Ok(InscriptionId::load(*inscription_id.value())),
-            Ok(None) => Err(anyhow!(
-              "could not find inscription for inscription number {num}"
-            )),
-            Err(err) => Err(anyhow!(err)),
-          })
-          .collect::<Result<Vec<InscriptionId>>>()?
-      }
-      _ => Vec::new(),
+    let Some(next_sequence_number) = height_to_last_sequence_number
+      .get(&block_height)?
+      .map(|ag| ag.value())
+    else {
+      return Ok(Vec::new());
     };
 
-    Ok(block_inscriptions)
+    let oldest_sequence_number = height_to_last_sequence_number
+      .get(block_height.saturating_sub(1))?
+      .map(|ag| ag.value())
+      .unwrap_or(0);
+
+    Ok(
+      (oldest_sequence_number..next_sequence_number)
+        .map(|num| match inscription_id_by_sequence_number.get(&num) {
+          Ok(Some(inscription_id)) => Ok(InscriptionId::load(*inscription_id.value())),
+          Ok(None) => Err(anyhow!(
+            "could not find inscription for inscription number {num}"
+          )),
+          Err(err) => Err(anyhow!(err)),
+        })
+        .collect::<Result<Vec<InscriptionId>>>()?,
+    )
   }
 
   pub(crate) fn get_highest_paying_inscriptions_in_block(
@@ -2707,7 +2708,7 @@ mod tests {
           .get_inscription_entry(inscription_id)
           .unwrap()
           .unwrap()
-          .number,
+          .inscription_number,
         -1
       );
     }
@@ -2751,7 +2752,7 @@ mod tests {
           .get_inscription_entry(inscription_id)
           .unwrap()
           .unwrap()
-          .number,
+          .inscription_number,
         0
       );
     }
@@ -2797,7 +2798,7 @@ mod tests {
           .get_inscription_entry(second_inscription_id)
           .unwrap()
           .unwrap()
-          .number,
+          .inscription_number,
         -1
       );
     }
@@ -2860,7 +2861,7 @@ mod tests {
           .get_inscription_entry(first)
           .unwrap()
           .unwrap()
-          .number,
+          .inscription_number,
         0
       );
 
@@ -2870,7 +2871,7 @@ mod tests {
           .get_inscription_entry(second)
           .unwrap()
           .unwrap()
-          .number,
+          .inscription_number,
         -1
       );
 
@@ -2880,7 +2881,7 @@ mod tests {
           .get_inscription_entry(third)
           .unwrap()
           .unwrap()
-          .number,
+          .inscription_number,
         -2
       );
     }
@@ -2965,7 +2966,7 @@ mod tests {
           .get_inscription_entry(first)
           .unwrap()
           .unwrap()
-          .number,
+          .inscription_number,
         0
       );
 
@@ -2975,7 +2976,7 @@ mod tests {
           .get_inscription_entry(second)
           .unwrap()
           .unwrap()
-          .number,
+          .inscription_number,
         -1
       );
 
@@ -2985,7 +2986,7 @@ mod tests {
           .get_inscription_entry(third)
           .unwrap()
           .unwrap()
-          .number,
+          .inscription_number,
         -2
       );
     }
@@ -3075,7 +3076,7 @@ mod tests {
           .get_inscription_entry(first)
           .unwrap()
           .unwrap()
-          .number,
+          .inscription_number,
         0
       );
 
@@ -3085,7 +3086,7 @@ mod tests {
           .get_inscription_entry(fourth)
           .unwrap()
           .unwrap()
-          .number,
+          .inscription_number,
         -3
       );
 
@@ -3095,7 +3096,7 @@ mod tests {
           .get_inscription_entry(ninth)
           .unwrap()
           .unwrap()
-          .number,
+          .inscription_number,
         -8
       );
     }
@@ -3207,7 +3208,7 @@ mod tests {
           .get_inscription_entry(cursed)
           .unwrap()
           .unwrap()
-          .number,
+          .inscription_number,
         -1
       );
 
@@ -3243,7 +3244,7 @@ mod tests {
           .get_inscription_entry(reinscription_on_cursed)
           .unwrap()
           .unwrap()
-          .number,
+          .inscription_number,
         1
       );
     }
@@ -3288,7 +3289,7 @@ mod tests {
           .get_inscription_entry(cursed)
           .unwrap()
           .unwrap()
-          .number,
+          .inscription_number,
         -1
       );
 
@@ -3324,7 +3325,7 @@ mod tests {
           .get_inscription_entry(reinscription_on_cursed)
           .unwrap()
           .unwrap()
-          .number,
+          .inscription_number,
         1
       );
 
@@ -3360,7 +3361,7 @@ mod tests {
           .get_inscription_entry(second_reinscription_on_cursed)
           .unwrap()
           .unwrap()
-          .number,
+          .inscription_number,
         -2
       );
 

@@ -26,22 +26,24 @@ impl Entry for BlockHash {
 pub(crate) struct InscriptionEntry {
   pub(crate) fee: u64,
   pub(crate) height: u64,
-  pub(crate) number: i64,
+  pub(crate) inscription_number: i64,
+  pub(crate) sequence_number: u64,
   pub(crate) parent: Option<InscriptionId>,
   pub(crate) sat: Option<Sat>,
   pub(crate) timestamp: u32,
 }
 
-pub(crate) type InscriptionEntryValue = (u64, u64, i64, ParentValue, u64, u32);
+pub(crate) type InscriptionEntryValue = (u64, u64, i64, u64, ParentValue, u64, u32);
 
 impl Entry for InscriptionEntry {
   type Value = InscriptionEntryValue;
 
-  fn load((fee, height, number, parent, sat, timestamp): InscriptionEntryValue) -> Self {
+  fn load((fee, height, inscription_number, sequence_number, parent, sat, timestamp): InscriptionEntryValue) -> Self {
     Self {
       fee,
       height,
-      number,
+      inscription_number,
+      sequence_number,
       parent: ParentEntry::load(parent),
       sat: if sat == u64::MAX {
         None
@@ -56,7 +58,8 @@ impl Entry for InscriptionEntry {
     (
       self.fee,
       self.height,
-      self.number,
+      self.inscription_number,
+      self.sequence_number,
       self.parent.store(),
       match self.sat {
         Some(sat) => sat.n(),

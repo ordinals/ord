@@ -9,7 +9,8 @@ pub(crate) struct InscriptionHtml {
   pub(crate) inscription: Inscription,
   pub(crate) inscription_id: InscriptionId,
   pub(crate) next: Option<InscriptionId>,
-  pub(crate) number: i64,
+  pub(crate) inscription_number: i64,
+  pub(crate) sequence_number: u64,
   pub(crate) output: Option<TxOut>,
   pub(crate) parent: Option<InscriptionId>,
   pub(crate) previous: Option<InscriptionId>,
@@ -28,7 +29,8 @@ pub struct InscriptionJson {
   pub genesis_height: u64,
   pub inscription_id: InscriptionId,
   pub next: Option<InscriptionId>,
-  pub number: i64,
+  pub inscription_number: i64,
+  pub sequence_number: u64,
   pub output_value: Option<u64>,
   pub parent: Option<InscriptionId>,
   pub previous: Option<InscriptionId>,
@@ -47,7 +49,8 @@ impl InscriptionJson {
     inscription_id: InscriptionId,
     parent: Option<InscriptionId>,
     next: Option<InscriptionId>,
-    number: i64,
+    inscription_number: i64,
+    sequence_number: u64,
     output: Option<TxOut>,
     previous: Option<InscriptionId>,
     sat: Option<Sat>,
@@ -57,7 +60,8 @@ impl InscriptionJson {
     Self {
       inscription_id,
       children,
-      number,
+      inscription_number,
+      sequence_number,
       genesis_height,
       parent,
       genesis_fee,
@@ -79,7 +83,7 @@ impl InscriptionJson {
 
 impl PageContent for InscriptionHtml {
   fn title(&self) -> String {
-    format!("Inscription {}", self.number)
+    format!("Inscription {}", self.inscription_number)
   }
 
   fn preview_image_url(&self) -> Option<Trusted<String>> {
@@ -103,7 +107,8 @@ mod tests {
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
         next: None,
-        number: 1,
+        inscription_number: 1,
+        sequence_number: 1,
         output: None,
         previous: None,
         sat: None,
@@ -120,6 +125,8 @@ mod tests {
         <dl>
           <dt>id</dt>
           <dd class=monospace>1{64}i1</dd>
+          <dt>sequence number</dt>
+          <dd>1</dd>
           <dt>preview</dt>
           <dd><a href=/preview/1{64}i1>link</a></dd>
           <dt>content</dt>
@@ -160,7 +167,8 @@ mod tests {
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
         next: None,
-        number: 1,
+        inscription_number: 1,
+        sequence_number: 1,
         output: Some(tx_out(1, address())),
         previous: None,
         sat: None,
@@ -199,7 +207,8 @@ mod tests {
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
         next: None,
-        number: 1,
+        inscription_number: 1,
+        sequence_number: 1,
         output: Some(tx_out(1, address())),
         previous: None,
         sat: Some(Sat(1)),
@@ -233,7 +242,8 @@ mod tests {
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(2),
         next: Some(inscription_id(3)),
-        number: 1,
+        inscription_number: 1,
+        sequence_number: 1,
         output: Some(tx_out(1, address())),
         previous: Some(inscription_id(1)),
         sat: None,
@@ -265,7 +275,8 @@ mod tests {
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(2),
         next: None,
-        number: -1,
+        inscription_number: -1,
+        sequence_number: 2,
         output: Some(tx_out(1, address())),
         previous: None,
         sat: None,
@@ -279,6 +290,9 @@ mod tests {
         <h1>Inscription -1 \\(unstable\\)</h1>
         .*
         <dl>
+          .*
+          <dt>sequence number</dt>
+          <dd>2</dd>
           .*
           <dt>location</dt>
           <dd class=monospace>0{64}:0:0 \\(unbound\\)</dd>
@@ -303,7 +317,8 @@ mod tests {
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
         next: None,
-        number: 1,
+        inscription_number: 1,
+        sequence_number: 1,
         output: None,
         previous: None,
         sat: None,
@@ -322,6 +337,8 @@ mod tests {
           <dd class=monospace>1{64}i1</dd>
           <dt>parent</dt>
           <dd><a class=monospace href=/inscription/2{64}i2>2{64}i2</a></dd>
+          <dt>sequence number</dt>
+          <dd>1</dd>
           <dt>preview</dt>
           <dd><a href=/preview/1{64}i1>link</a></dd>
           <dt>content</dt>
@@ -362,7 +379,8 @@ mod tests {
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
         next: None,
-        number: 1,
+        inscription_number: 1,
+        sequence_number: 1,
         output: None,
         previous: None,
         sat: None,
@@ -379,6 +397,8 @@ mod tests {
         <dl>
           <dt>id</dt>
           <dd class=monospace>1{64}i1</dd>
+          <dt>sequence number</dt>
+          <dd>1</dd>
           <dt>preview</dt>
           <dd><a href=/preview/1{64}i1>link</a></dd>
           <dt>content</dt>

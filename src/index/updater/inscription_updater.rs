@@ -31,7 +31,9 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   pub(super) lost_sats: u64,
   pub(super) next_cursed_number: i64,
   pub(super) next_number: i64,
-  number_to_id: &'a mut Table<'db, 'tx, i64, &'static InscriptionIdValue>,
+  pub(super) next_sequence_number: u64,
+  inscription_number_to_id: &'a mut Table<'db, 'tx, i64, &'static InscriptionIdValue>,
+  sequence_number_to_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
   outpoint_to_value: &'a mut Table<'db, 'tx, &'static OutPointValue, u64>,
   reward: u64,
   reinscription_id_to_seq_num: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, u64>,
@@ -56,7 +58,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     value_receiver: &'a mut Receiver<u64>,
     id_to_entry: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, InscriptionEntryValue>,
     lost_sats: u64,
-    number_to_id: &'a mut Table<'db, 'tx, i64, &'static InscriptionIdValue>,
+    inscription_number_to_id: &'a mut Table<'db, 'tx, i64, &'static InscriptionIdValue>,
+    sequence_number_to_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
     outpoint_to_value: &'a mut Table<'db, 'tx, &'static OutPointValue, u64>,
     reinscription_id_to_seq_num: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, u64>,
     sat_to_inscription_id: &'a mut MultimapTable<'db, 'tx, u64, &'static InscriptionIdValue>,
@@ -70,16 +73,23 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     unbound_inscriptions: u64,
     value_cache: &'a mut HashMap<OutPoint, u64>,
   ) -> Result<Self> {
-    let next_cursed_number = number_to_id
+    let next_cursed_number = inscription_number_to_id
       .iter()?
       .next()
       .and_then(|result| result.ok())
       .map(|(number, _id)| number.value() - 1)
       .unwrap_or(-1);
 
-    let next_number = number_to_id
+    let next_number = inscription_number_to_id
       .iter()?
       .next_back()
+      .and_then(|result| result.ok())
+      .map(|(number, _id)| number.value() + 1)
+      .unwrap_or(0);
+
+    let next_sequence_number = sequence_number_to_id
+      .iter()?
+      .next()
       .and_then(|result| result.ok())
       .map(|(number, _id)| number.value() + 1)
       .unwrap_or(0);
@@ -94,7 +104,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       lost_sats,
       next_cursed_number,
       next_number,
-      number_to_id,
+      next_sequence_number,
+      inscription_number_to_id,
+      sequence_number_to_id,
       outpoint_to_value,
       reward: Height(height).subsidy(),
       reinscription_id_to_seq_num,
@@ -215,7 +227,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
               match self.id_to_entry.get(&inscription_id.store()) {
                 Ok(option) => option.map(|entry| {
                   let loaded_entry = InscriptionEntry::load(entry.value());
-                  loaded_entry.number < 0
+                  loaded_entry.inscription_number < 0
                 }),
                 Err(_) => None,
               }
@@ -429,7 +441,16 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           next_number
         };
 
-        self.number_to_id.insert(number, &inscription_id)?;
+        self
+          .inscription_number_to_id
+          .insert(number, &inscription_id)?;
+
+        let sequence_number = self.next_sequence_number;
+        self.next_sequence_number += 1;
+
+        self
+          .sequence_number_to_id
+          .insert(sequence_number, &inscription_id)?;
 
         let sat = if unbound {
           None
@@ -446,7 +467,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           &InscriptionEntry {
             fee,
             height: self.height,
-            number,
+            inscription_number: number,
+            sequence_number,
             parent,
             sat,
             timestamp: self.timestamp,
