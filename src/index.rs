@@ -1021,23 +1021,15 @@ impl Index {
       .map(|ag| ag.value())
       .unwrap_or(0);
 
-    dbg!(&sequence_number_to_inscription_id
-      .iter()?
-      .map(|result| result.ok().unwrap())
-      .map(|(a, b)| (a.value(), InscriptionId::load(*b.value())))
-      .collect::<Vec<(u64, InscriptionId)>>());
-
     Ok(
-      dbg!(oldest_sequence_number..newest_sequence_number)
-        .map(
-          |num| match sequence_number_to_inscription_id.get(dbg!(&num)) {
-            Ok(Some(inscription_id)) => Ok(InscriptionId::load(*inscription_id.value())),
-            Ok(None) => Err(anyhow!(
-              "could not find inscription for inscription number {num}"
-            )),
-            Err(err) => Err(anyhow!(err)),
-          },
-        )
+      (oldest_sequence_number..newest_sequence_number)
+        .map(|num| match sequence_number_to_inscription_id.get(&num) {
+          Ok(Some(inscription_id)) => Ok(InscriptionId::load(*inscription_id.value())),
+          Ok(None) => Err(anyhow!(
+            "could not find inscription for inscription number {num}"
+          )),
+          Err(err) => Err(anyhow!(err)),
+        })
         .collect::<Result<Vec<InscriptionId>>>()?,
     )
   }
