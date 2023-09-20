@@ -1007,9 +1007,9 @@ impl Index {
     let rtx = self.database.begin_read()?;
 
     let height_to_last_sequence_number = rtx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
-    let inscription_id_by_sequence_number = rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ID)?;
+    let sequence_number_to_inscription_id = rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ID)?;
 
-    let Some(next_sequence_number) = height_to_last_sequence_number
+    let Some(newest_sequence_number) = height_to_last_sequence_number
       .get(&block_height)?
       .map(|ag| ag.value())
     else {
@@ -1021,15 +1021,23 @@ impl Index {
       .map(|ag| ag.value())
       .unwrap_or(0);
 
+    dbg!(&sequence_number_to_inscription_id
+      .iter()?
+      .map(|result| result.ok().unwrap())
+      .map(|(a, b)| (a.value(), InscriptionId::load(*b.value())))
+      .collect::<Vec<(u64, InscriptionId)>>());
+
     Ok(
-      (oldest_sequence_number..next_sequence_number)
-        .map(|num| match inscription_id_by_sequence_number.get(&num) {
-          Ok(Some(inscription_id)) => Ok(InscriptionId::load(*inscription_id.value())),
-          Ok(None) => Err(anyhow!(
-            "could not find inscription for inscription number {num}"
-          )),
-          Err(err) => Err(anyhow!(err)),
-        })
+      dbg!(oldest_sequence_number..newest_sequence_number)
+        .map(
+          |num| match sequence_number_to_inscription_id.get(dbg!(&num)) {
+            Ok(Some(inscription_id)) => Ok(InscriptionId::load(*inscription_id.value())),
+            Ok(None) => Err(anyhow!(
+              "could not find inscription for inscription number {num}"
+            )),
+            Err(err) => Err(anyhow!(err)),
+          },
+        )
         .collect::<Result<Vec<InscriptionId>>>()?,
     )
   }

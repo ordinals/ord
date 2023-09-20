@@ -1072,7 +1072,6 @@ impl Server {
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
     let inscriptions = index.get_inscriptions_in_block(block_height)?;
-    dbg!(&inscriptions);
 
     Ok(if accept_json.0 {
       Json(InscriptionsJson::new(inscriptions, None, None, None, None)).into_response()
@@ -2004,7 +2003,7 @@ mod tests {
     );
   }
 
-  // #[test]
+  #[test]
   fn nav_displays_chain() {
     TestServer::new_with_regtest().assert_response_regex(
       "/",
