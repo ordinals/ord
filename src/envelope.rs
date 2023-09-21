@@ -131,20 +131,20 @@ impl RawEnvelope {
       return Ok(None);
     }
 
-    let mut data = Vec::new();
+    let mut payload = Vec::new();
 
     loop {
       match instructions.next().transpose()? {
         None => return Ok(None),
         Some(Instruction::Op(opcodes::all::OP_ENDIF)) => {
           return Ok(Some(Envelope {
-            payload: data,
+            payload,
             input: input.try_into().unwrap(),
             offset: offset.try_into().unwrap(),
           }));
         }
         Some(Instruction::PushBytes(push)) => {
-          data.push(push.as_bytes().to_vec());
+          payload.push(push.as_bytes().to_vec());
         }
         Some(_) => return Ok(None),
       }
