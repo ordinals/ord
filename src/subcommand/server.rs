@@ -994,10 +994,10 @@ impl Server {
       )
     };
 
-    let previous = if entry.sequence_number == 0 {
-      None
+    let previous = if let Some(n) = entry.sequence_number.checked_sub(1) {
+      index.get_inscription_id_by_sequence_number(n)?
     } else {
-      index.get_inscription_id_by_sequence_number(entry.sequence_number - 1)?
+      None
     };
 
     let next = index.get_inscription_id_by_sequence_number(entry.sequence_number + 1)?;

@@ -654,7 +654,7 @@ impl Index {
   pub(crate) fn get_inscription_ids_by_sat(&self, sat: Sat) -> Result<Vec<InscriptionId>> {
     let rtx = &self.database.begin_read()?;
 
-    let mut ids = rtx
+    let ids = rtx
       .open_multimap_table(SAT_TO_INSCRIPTION_ID)?
       .get(&sat.n())?
       .map(|result| {
@@ -666,20 +666,26 @@ impl Index {
 
     if ids.len() > 1 {
       let inscription_id_to_entry = rtx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
-      ids.sort_by_key(|inscription_id| {
-        match inscription_id_to_entry
-          .get(&inscription_id.store())
-          .unwrap()
-          .map(|value| InscriptionEntry::load(value.value()))
-          .map(|entry| entry.sequence_number)
-        {
-          Some(num) => num + 1, // remove at next index refactor
-          _ => 0,
-        }
-      });
-    }
 
-    Ok(ids)
+      let mut seq_nums = Vec::new();
+      for id in &ids {
+        seq_nums.push(
+          InscriptionEntry::load(inscription_id_to_entry.get(&id.store())?.unwrap().value())
+            .sequence_number,
+        )
+      }
+
+      let mut ids = seq_nums
+        .into_iter()
+        .zip(ids)
+        .collect::<Vec<(u64, InscriptionId)>>();
+
+      ids.sort_by_key(|(sequence_number, _)| *sequence_number);
+
+      Ok(ids.into_iter().map(|(_, id)| id).collect())
+    } else {
+      Ok(ids)
+    }
   }
 
   pub(crate) fn get_inscription_id_by_sequence_number(

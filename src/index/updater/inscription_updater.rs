@@ -29,8 +29,8 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   value_receiver: &'a mut Receiver<u64>,
   id_to_entry: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, InscriptionEntryValue>,
   pub(super) lost_sats: u64,
-  pub(super) num_cursed_inscriptions: u64,
-  pub(super) num_blessed_inscriptions: u64,
+  pub(super) cursed_inscription_count: u64,
+  pub(super) blessed_inscription_count: u64,
   pub(super) next_sequence_number: u64,
   sequence_number_to_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
   outpoint_to_value: &'a mut Table<'db, 'tx, &'static OutPointValue, u64>,
@@ -56,8 +56,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     value_receiver: &'a mut Receiver<u64>,
     id_to_entry: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, InscriptionEntryValue>,
     lost_sats: u64,
-    num_cursed_inscriptions: u64,
-    num_blessed_inscriptions: u64,
+    cursed_inscription_count: u64,
+    blessed_inscription_count: u64,
     sequence_number_to_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
     outpoint_to_value: &'a mut Table<'db, 'tx, &'static OutPointValue, u64>,
     sat_to_inscription_id: &'a mut MultimapTable<'db, 'tx, u64, &'static InscriptionIdValue>,
@@ -86,8 +86,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       value_receiver,
       id_to_entry,
       lost_sats,
-      num_cursed_inscriptions,
-      num_blessed_inscriptions,
+      cursed_inscription_count,
+      blessed_inscription_count,
       next_sequence_number,
       sequence_number_to_id,
       outpoint_to_value,
@@ -408,14 +408,14 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         unbound,
       } => {
         let inscription_number = if cursed {
-          let number: i64 = self.num_cursed_inscriptions.try_into().unwrap();
-          self.num_cursed_inscriptions += 1;
+          let number: i64 = self.cursed_inscription_count.try_into().unwrap();
+          self.cursed_inscription_count += 1;
 
           // because cursed numbers start at -1
           -(number + 1)
         } else {
-          let number: i64 = self.num_blessed_inscriptions.try_into().unwrap();
-          self.num_blessed_inscriptions += 1;
+          let number: i64 = self.blessed_inscription_count.try_into().unwrap();
+          self.blessed_inscription_count += 1;
 
           number
         };

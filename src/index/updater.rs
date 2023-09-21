@@ -394,12 +394,12 @@ impl<'index> Updater<'_> {
       .map(|lost_sats| lost_sats.value())
       .unwrap_or(0);
 
-    let num_cursed_inscription = statistic_to_count
+    let cursed_inscription_count = statistic_to_count
       .get(&Statistic::CursedInscriptions.key())?
       .map(|count| count.value())
       .unwrap_or(0);
 
-    let num_blessed_inscriptions = statistic_to_count
+    let blessed_inscription_count = statistic_to_count
       .get(&Statistic::BlessedInscriptions.key())?
       .map(|count| count.value())
       .unwrap_or(0);
@@ -416,8 +416,8 @@ impl<'index> Updater<'_> {
       value_receiver,
       &mut inscription_id_to_inscription_entry,
       lost_sats,
-      num_cursed_inscription,
-      num_blessed_inscriptions,
+      cursed_inscription_count,
+      blessed_inscription_count,
       &mut sequence_number_to_inscription_id,
       &mut outpoint_to_value,
       &mut sat_to_inscription_id,
@@ -533,12 +533,12 @@ impl<'index> Updater<'_> {
 
     statistic_to_count.insert(
       &Statistic::CursedInscriptions.key(),
-      &inscription_updater.num_cursed_inscriptions,
+      &inscription_updater.cursed_inscription_count,
     )?;
 
     statistic_to_count.insert(
       &Statistic::BlessedInscriptions.key(),
-      &inscription_updater.num_blessed_inscriptions,
+      &inscription_updater.blessed_inscription_count,
     )?;
 
     statistic_to_count.insert(
