@@ -53,8 +53,6 @@ define_table! { INSCRIPTION_ID_TO_INSCRIPTION_ENTRY, &InscriptionIdValue, Inscri
 define_table! { INSCRIPTION_ID_TO_SATPOINT, &InscriptionIdValue, &SatPointValue }
 define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_VALUE, &OutPointValue, u64}
-// maybe can get rid of this or use actual number
-define_table! { REINSCRIPTION_ID_TO_SEQUENCE_NUMBER, &InscriptionIdValue, u64 }
 define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
 define_table! { SEQUENCE_NUMBER_TO_INSCRIPTION_ID, u64, &InscriptionIdValue }
 define_table! { STATISTIC_TO_COUNT, u64, u64 }
@@ -245,7 +243,6 @@ impl Index {
         tx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
         tx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
         tx.open_table(OUTPOINT_TO_VALUE)?;
-        tx.open_table(REINSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
         tx.open_table(SAT_TO_SATPOINT)?;
         tx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ID)?;
         tx.open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?;
@@ -668,13 +665,18 @@ impl Index {
       .collect::<Result<Vec<InscriptionId>>>()?;
 
     if ids.len() > 1 {
-      let re_id_to_seq_num = rtx.open_table(REINSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
-      ids.sort_by_key(
-        |inscription_id| match re_id_to_seq_num.get(&inscription_id.store()) {
-          Ok(Some(num)) => num.value() + 1, // remove at next index refactor
+      let inscription_id_to_entry = rtx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
+      ids.sort_by_key(|inscription_id| {
+        match inscription_id_to_entry
+          .get(&inscription_id.store())
+          .unwrap()
+          .map(|value| InscriptionEntry::load(value.value()))
+          .map(|entry| entry.sequence_number)
+        {
+          Some(num) => num + 1, // remove at next index refactor
           _ => 0,
-        },
-      );
+        }
+      });
     }
 
     Ok(ids)
@@ -735,9 +737,9 @@ impl Index {
   ) -> Result<Vec<(SatPoint, InscriptionId)>> {
     let rtx = &self.database.begin_read()?;
     let sat_to_id = rtx.open_multimap_table(SATPOINT_TO_INSCRIPTION_ID)?;
-    let re_id_to_seq_num = rtx.open_table(REINSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
+    let inscription_id_to_entry = rtx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
 
-    Self::inscriptions_on_output_ordered(&re_id_to_seq_num, &sat_to_id, outpoint)
+    Self::inscriptions_on_output_ordered(&inscription_id_to_entry, &sat_to_id, outpoint)
   }
 
   pub(crate) fn get_inscriptions_on_output(
@@ -1250,7 +1252,7 @@ impl Index {
   }
 
   fn inscriptions_on_output_ordered<'a: 'tx, 'tx>(
-    re_id_to_seq_num: &'a impl ReadableTable<&'static InscriptionIdValue, u64>,
+    inscription_id_to_entry: &'a impl ReadableTable<&'static InscriptionIdValue, InscriptionEntryValue>,
     satpoint_to_id: &'a impl ReadableMultimapTable<&'static SatPointValue, &'static InscriptionIdValue>,
     outpoint: OutPoint,
   ) -> Result<Vec<(SatPoint, InscriptionId)>> {
@@ -1262,10 +1264,13 @@ impl Index {
     }
 
     result.sort_by_key(|(_satpoint, inscription_id)| {
-      match re_id_to_seq_num.get(&inscription_id.store()) {
-        Ok(Some(num)) => num.value() + 1, // remove at next index refactor
-        Ok(None) => 0,
-        _ => 0,
+      match inscription_id_to_entry
+        .get(&inscription_id.store())
+        .unwrap()
+        .map(|entry| InscriptionEntry::load(entry.value()))
+      {
+        Some(entry) => entry.sequence_number + 1, // remove at next index refactor
+        None => 0,
       }
     });
 
@@ -3437,52 +3442,6 @@ mod tests {
           .get_inscriptions_on_output_with_satpoints(OutPoint { txid, vout: 0 })
           .unwrap()
       )
-    }
-  }
-
-  #[test]
-  fn reinscriptions_sequence_numbers_are_tracked_correctly() {
-    for context in Context::configurations() {
-      context.mine_blocks(1);
-
-      let mut inscription_ids = vec![];
-      for i in 1..=5 {
-        let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
-          inputs: &[(
-            i,
-            if i == 1 { 0 } else { 1 },
-            0,
-            inscription("text/plain;charset=utf-8", &format!("hello {}", i)).to_witness(),
-          )], // for the first inscription use coinbase, otherwise use the previous tx
-          ..Default::default()
-        });
-
-        inscription_ids.push(InscriptionId { txid, index: 0 });
-
-        context.mine_blocks(1);
-      }
-
-      let rtx = context.index.database.begin_read().unwrap();
-      let re_id_to_seq_num = rtx.open_table(REINSCRIPTION_ID_TO_SEQUENCE_NUMBER).unwrap();
-
-      for (index, id) in inscription_ids.iter().enumerate() {
-        match re_id_to_seq_num.get(&id.store()) {
-          Ok(Some(num)) => {
-            let sequence_number = num.value() + 1; // remove at next index refactor
-            assert_eq!(
-              index as u64, sequence_number,
-              "sequence number mismatch for {:?}",
-              id
-            );
-          }
-          Ok(None) => assert_eq!(
-            index, 0,
-            "only first inscription should not have sequence number for {:?}",
-            id
-          ),
-          Err(error) => panic!("Error retrieving sequence number: {}", error),
-        }
-      }
     }
   }
 

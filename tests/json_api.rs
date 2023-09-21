@@ -383,8 +383,8 @@ fn get_output() {
       ],),
       inscriptions: vec![
         InscriptionId { txid, index: 0 },
+        InscriptionId { txid, index: 1 },
         InscriptionId { txid, index: 2 },
-        InscriptionId { txid, index: 1 }
       ]
     }
   );

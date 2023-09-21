@@ -35,7 +35,6 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   sequence_number_to_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
   outpoint_to_value: &'a mut Table<'db, 'tx, &'static OutPointValue, u64>,
   reward: u64,
-  reinscription_id_to_seq_num: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, u64>,
   sat_to_inscription_id: &'a mut MultimapTable<'db, 'tx, u64, &'static InscriptionIdValue>,
   satpoint_to_id:
     &'a mut MultimapTable<'db, 'tx, &'static SatPointValue, &'static InscriptionIdValue>,
@@ -61,7 +60,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     num_blessed_inscriptions: u64,
     sequence_number_to_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
     outpoint_to_value: &'a mut Table<'db, 'tx, &'static OutPointValue, u64>,
-    reinscription_id_to_seq_num: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, u64>,
     sat_to_inscription_id: &'a mut MultimapTable<'db, 'tx, u64, &'static InscriptionIdValue>,
     satpoint_to_id: &'a mut MultimapTable<
       'db,
@@ -94,7 +92,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       sequence_number_to_id,
       outpoint_to_value,
       reward: Height(height).subsidy(),
-      reinscription_id_to_seq_num,
       sat_to_inscription_id,
       satpoint_to_id,
       timestamp,
@@ -124,7 +121,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
       // find existing inscriptions on input (transfers of inscriptions)
       for (old_satpoint, inscription_id) in Index::inscriptions_on_output_ordered(
-        self.reinscription_id_to_seq_num,
+        self.id_to_entry,
         self.satpoint_to_id,
         tx_in.previous_output,
       )? {
@@ -181,15 +178,11 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         } else if inscription.tx_in_offset != 0 {
           Some(Curse::NotAtOffsetZero)
         } else if inscribed_offsets.contains_key(&offset) {
-          let seq_num = self.reinscription_id_to_seq_num.len()?;
+          let seq_num = self.id_to_entry.len()?;
 
           let sat = Self::calculate_sat(input_sat_ranges, offset);
-          log::info!("processing reinscription {inscription_id} on sat {:?}: sequence number {seq_num}, inscribed offsets {:?}", sat, inscribed_offsets);
 
-          // if reinscription track its ordering
-          self
-            .reinscription_id_to_seq_num
-            .insert(&inscription_id.store(), seq_num)?;
+          log::info!("processing reinscription {inscription_id} on sat {:?}: sequence number {seq_num}, inscribed offsets {:?}", sat, inscribed_offsets);
 
           Some(Curse::Reinscription)
         } else {
