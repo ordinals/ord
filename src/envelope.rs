@@ -107,7 +107,7 @@ impl RawEnvelope {
     let mut instructions = tapscript.instructions();
 
     while let Some(instruction) = instructions.next() {
-      if instruction? == Instruction::PushBytes((&BODY_TAG).into()) {
+      if instruction? == Instruction::PushBytes((&[]).into()) {
         if let Some(envelope) = Self::from_instructions(&mut instructions, input, envelopes.len())?
         {
           envelopes.push(envelope);
