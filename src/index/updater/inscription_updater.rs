@@ -29,10 +29,9 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   value_receiver: &'a mut Receiver<u64>,
   id_to_entry: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, InscriptionEntryValue>,
   pub(super) lost_sats: u64,
-  pub(super) next_cursed_inscription_number: i64,
-  pub(super) next_inscription_number: i64,
+  pub(super) num_cursed_inscriptions: u64,
+  pub(super) num_blessed_inscriptions: u64,
   pub(super) next_sequence_number: u64,
-  inscription_number_to_id: &'a mut Table<'db, 'tx, i64, &'static InscriptionIdValue>,
   sequence_number_to_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
   outpoint_to_value: &'a mut Table<'db, 'tx, &'static OutPointValue, u64>,
   reward: u64,
@@ -58,7 +57,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     value_receiver: &'a mut Receiver<u64>,
     id_to_entry: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, InscriptionEntryValue>,
     lost_sats: u64,
-    inscription_number_to_id: &'a mut Table<'db, 'tx, i64, &'static InscriptionIdValue>,
+    num_cursed_inscriptions: u64,
+    num_blessed_inscriptions: u64,
     sequence_number_to_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
     outpoint_to_value: &'a mut Table<'db, 'tx, &'static OutPointValue, u64>,
     reinscription_id_to_seq_num: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, u64>,
@@ -73,20 +73,6 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     unbound_inscriptions: u64,
     value_cache: &'a mut HashMap<OutPoint, u64>,
   ) -> Result<Self> {
-    let next_cursed_inscription_number = inscription_number_to_id
-      .iter()?
-      .next()
-      .and_then(|result| result.ok())
-      .map(|(number, _id)| number.value() - 1)
-      .unwrap_or(-1);
-
-    let next_inscription_number = inscription_number_to_id
-      .iter()?
-      .next_back()
-      .and_then(|result| result.ok())
-      .map(|(number, _id)| number.value() + 1)
-      .unwrap_or(0);
-
     let next_sequence_number = sequence_number_to_id
       .iter()?
       .next_back()
@@ -102,10 +88,9 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       value_receiver,
       id_to_entry,
       lost_sats,
-      next_cursed_inscription_number,
-      next_inscription_number,
+      num_cursed_inscriptions,
+      num_blessed_inscriptions,
       next_sequence_number,
-      inscription_number_to_id,
       sequence_number_to_id,
       outpoint_to_value,
       reward: Height(height).subsidy(),
@@ -430,20 +415,17 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         unbound,
       } => {
         let inscription_number = if cursed {
-          let next_cursed_inscription_number = self.next_cursed_inscription_number;
-          self.next_cursed_inscription_number -= 1;
+          let number: i64 = self.num_cursed_inscriptions.try_into().unwrap();
+          self.num_cursed_inscriptions += 1;
 
-          next_cursed_inscription_number
+          // because cursed numbers start at -1
+          -(number + 1)
         } else {
-          let next_inscription_number = self.next_inscription_number;
-          self.next_inscription_number += 1;
+          let number: i64 = self.num_blessed_inscriptions.try_into().unwrap();
+          self.num_blessed_inscriptions += 1;
 
-          next_inscription_number
+          number
         };
-
-        self
-          .inscription_number_to_id
-          .insert(inscription_number, &inscription_id)?;
 
         let sequence_number = self.next_sequence_number;
         self.next_sequence_number += 1;

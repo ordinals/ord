@@ -382,8 +382,6 @@ impl<'index> Updater<'_> {
     let mut inscription_id_to_inscription_entry =
       wtx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
     let mut inscription_id_to_satpoint = wtx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
-    let mut inscription_number_to_inscription_id =
-      wtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
     let mut reinscription_id_to_seq_num = wtx.open_table(REINSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
     let mut sat_to_inscription_id = wtx.open_multimap_table(SAT_TO_INSCRIPTION_ID)?;
     let mut inscription_id_to_children = wtx.open_multimap_table(INSCRIPTION_ID_TO_CHILDREN)?;
@@ -395,6 +393,16 @@ impl<'index> Updater<'_> {
     let mut lost_sats = statistic_to_count
       .get(&Statistic::LostSats.key())?
       .map(|lost_sats| lost_sats.value())
+      .unwrap_or(0);
+
+    let num_cursed_inscription = statistic_to_count
+      .get(&Statistic::CursedInscriptions.key())?
+      .map(|count| count.value())
+      .unwrap_or(0);
+
+    let num_blessed_inscriptions = statistic_to_count
+      .get(&Statistic::BlessedInscriptions.key())?
+      .map(|count| count.value())
       .unwrap_or(0);
 
     let unbound_inscriptions = statistic_to_count
@@ -409,7 +417,8 @@ impl<'index> Updater<'_> {
       value_receiver,
       &mut inscription_id_to_inscription_entry,
       lost_sats,
-      &mut inscription_number_to_inscription_id,
+      num_cursed_inscription,
+      num_blessed_inscriptions,
       &mut sequence_number_to_inscription_id,
       &mut outpoint_to_value,
       &mut reinscription_id_to_seq_num,
@@ -523,6 +532,16 @@ impl<'index> Updater<'_> {
     )?;
 
     statistic_to_count.insert(&Statistic::LostSats.key(), &inscription_updater.lost_sats)?;
+
+    statistic_to_count.insert(
+      &Statistic::CursedInscriptions.key(),
+      &inscription_updater.num_cursed_inscriptions,
+    )?;
+
+    statistic_to_count.insert(
+      &Statistic::BlessedInscriptions.key(),
+      &inscription_updater.num_blessed_inscriptions,
+    )?;
 
     statistic_to_count.insert(
       &Statistic::UnboundInscriptions.key(),

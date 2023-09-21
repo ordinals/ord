@@ -711,7 +711,7 @@ impl Server {
 
     let chain = page_config.chain;
     match chain {
-      Chain::Mainnet => builder.title("Inscriptions"),
+      Chain::Mainnet => builder.title("Inscriptions".to_string()),
       _ => builder.title(format!("Inscriptions – {chain:?}")),
     };
 
@@ -720,8 +720,8 @@ impl Server {
     for (number, id) in index.get_feed_inscriptions(300)? {
       builder.item(
         rss::ItemBuilder::default()
-          .title(format!("Inscription {number}"))
-          .link(format!("/inscription/{id}"))
+          .title(Some(format!("Inscription {number}")))
+          .link(Some(format!("/inscription/{id}")))
           .guid(Some(rss::Guid {
             value: format!("/inscription/{id}"),
             permalink: true,
@@ -994,9 +994,13 @@ impl Server {
       )
     };
 
-    let previous = index.get_inscription_id_by_inscription_number(entry.inscription_number - 1)?;
+    let previous = if entry.sequence_number == 0 {
+      None
+    } else {
+      index.get_inscription_id_by_sequence_number(entry.sequence_number - 1)?
+    };
 
-    let next = index.get_inscription_id_by_inscription_number(entry.inscription_number + 1)?;
+    let next = index.get_inscription_id_by_sequence_number(entry.sequence_number + 1)?;
 
     let children = index.get_children_by_inscription_id(inscription_id)?;
 
@@ -1090,7 +1094,7 @@ impl Server {
   async fn inscriptions_from(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path(from): Path<i64>,
+    Path(from): Path<u64>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
     Self::inscriptions_inner(page_config, index, Some(from), 100, accept_json).await
@@ -1099,7 +1103,7 @@ impl Server {
   async fn inscriptions_from_n(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path((from, n)): Path<(i64, usize)>,
+    Path((from, n)): Path<(u64, usize)>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
     Self::inscriptions_inner(page_config, index, Some(from), n, accept_json).await
@@ -1108,7 +1112,7 @@ impl Server {
   async fn inscriptions_inner(
     page_config: Arc<PageConfig>,
     index: Arc<Index>,
-    from: Option<i64>,
+    from: Option<u64>,
     n: usize,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {

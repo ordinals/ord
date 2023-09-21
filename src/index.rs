@@ -51,7 +51,6 @@ define_table! { HEIGHT_TO_BLOCK_HASH, u64, &BlockHashValue }
 define_table! { HEIGHT_TO_LAST_SEQUENCE_NUMBER, u64, u64 }
 define_table! { INSCRIPTION_ID_TO_INSCRIPTION_ENTRY, &InscriptionIdValue, InscriptionEntryValue }
 define_table! { INSCRIPTION_ID_TO_SATPOINT, &InscriptionIdValue, &SatPointValue }
-define_table! { INSCRIPTION_NUMBER_TO_INSCRIPTION_ID, i64, &InscriptionIdValue }
 define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_VALUE, &OutPointValue, u64}
 // maybe can get rid of this or use actual number
@@ -76,6 +75,8 @@ pub(crate) enum Statistic {
   OutputsTraversed = 3,
   SatRanges = 4,
   UnboundInscriptions = 5,
+  CursedInscriptions = 6,
+  BlessedInscriptions = 7,
 }
 
 impl Statistic {
@@ -243,7 +244,6 @@ impl Index {
         tx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
         tx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
         tx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
-        tx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
         tx.open_table(OUTPOINT_TO_VALUE)?;
         tx.open_table(REINSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
         tx.open_table(SAT_TO_SATPOINT)?;
@@ -457,11 +457,10 @@ impl Index {
 
     log::info!("exporting database tables to {filename}");
 
-    for result in rtx
-      .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
-      .iter()?
-    {
-      let (number, id) = result?;
+    let inscription_entries = rtx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
+
+    for result in rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ID)?.iter()? {
+      let (_number, id) = result?;
       let inscription_id = InscriptionId::load(*id.value());
 
       let satpoint = self
@@ -471,7 +470,10 @@ impl Index {
       write!(
         writer,
         "{}\t{}\t{}",
-        number.value(),
+        inscription_entries
+          .get(&id.value())?
+          .map(|entry| InscriptionEntry::load(entry.value()).inscription_number)
+          .unwrap(),
         inscription_id,
         satpoint
       )?;
@@ -678,15 +680,15 @@ impl Index {
     Ok(ids)
   }
 
-  pub(crate) fn get_inscription_id_by_inscription_number(
+  pub(crate) fn get_inscription_id_by_sequence_number(
     &self,
-    n: i64,
+    n: u64,
   ) -> Result<Option<InscriptionId>> {
     Ok(
       self
         .database
         .begin_read()?
-        .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
+        .open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ID)?
         .get(&n)?
         .map(|id| Entry::load(*id.value())),
     )
@@ -955,19 +957,18 @@ impl Index {
   pub(crate) fn get_latest_inscriptions_with_prev_and_next(
     &self,
     n: usize,
-    from: Option<i64>,
-  ) -> Result<(Vec<InscriptionId>, Option<i64>, Option<i64>, i64, i64)> {
+    from: Option<u64>,
+  ) -> Result<(Vec<InscriptionId>, Option<u64>, Option<u64>, u64, u64)> {
     let rtx = self.database.begin_read()?;
 
-    let inscription_number_to_inscription_id =
-      rtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
+    let sequence_number_to_inscription_id = rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ID)?;
 
-    let highest = match inscription_number_to_inscription_id.iter()?.next_back() {
+    let highest = match sequence_number_to_inscription_id.iter()?.next_back() {
       Some(Ok((number, _id))) => number.value(),
       Some(Err(_)) | None => return Ok(Default::default()),
     };
 
-    let lowest = match inscription_number_to_inscription_id.iter()?.next() {
+    let lowest = match sequence_number_to_inscription_id.iter()?.next() {
       Some(Ok((number, _id))) => number.value(),
       Some(Err(_)) | None => return Ok(Default::default()),
     };
@@ -975,9 +976,7 @@ impl Index {
     let from = from.unwrap_or(highest);
 
     let prev = if let Some(prev) = from.checked_sub(n.try_into()?) {
-      inscription_number_to_inscription_id
-        .get(&prev)?
-        .map(|_| prev)
+      sequence_number_to_inscription_id.get(&prev)?.map(|_| prev)
     } else {
       None
     };
@@ -993,7 +992,7 @@ impl Index {
       None
     };
 
-    let inscriptions = inscription_number_to_inscription_id
+    let inscriptions = sequence_number_to_inscription_id
       .range(..=from)?
       .rev()
       .take(n)
@@ -1063,12 +1062,12 @@ impl Index {
     ))
   }
 
-  pub(crate) fn get_feed_inscriptions(&self, n: usize) -> Result<Vec<(i64, InscriptionId)>> {
+  pub(crate) fn get_feed_inscriptions(&self, n: usize) -> Result<Vec<(u64, InscriptionId)>> {
     Ok(
       self
         .database
         .begin_read()?
-        .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
+        .open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ID)?
         .iter()?
         .rev()
         .take(n)
@@ -1179,7 +1178,7 @@ impl Index {
       .is_none());
 
     for range in rtx
-      .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)
+      .open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ID)
       .unwrap()
       .iter()
       .into_iter()
