@@ -23,8 +23,6 @@
   <dt>parent</dt>
   <dd><a class=monospace href=/inscription/{{ parent }}>{{ parent }}</a></dd>
 %% }
-  <dt>sequence number</dt>
-  <dd>{{ self.sequence_number }}</dd>
 %% if let Some(output) = &self.output {
 %% if let Ok(address) = self.chain.address_from_script(&output.script_pubkey ) {
   <dt>address</dt>

@@ -156,7 +156,6 @@ fn get_inscription() {
       children: Vec::new(),
       inscription_id,
       inscription_number: 0,
-      sequence_number: 0,
       genesis_height: 2,
       genesis_fee: 138,
       output_value: Some(10000),
@@ -278,7 +277,6 @@ fn get_inscriptions() {
       inscription_json.inscription_id,
       inscriptions_json.inscriptions[0]
     );
-    assert_eq!(inscription_json.sequence_number, i);
   }
 }
 

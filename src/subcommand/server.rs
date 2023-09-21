@@ -1015,7 +1015,6 @@ impl Server {
         entry.parent,
         next,
         entry.inscription_number,
-        entry.sequence_number,
         output,
         previous,
         entry.sat,
@@ -1033,7 +1032,6 @@ impl Server {
         inscription_id,
         next,
         inscription_number: entry.inscription_number,
-        sequence_number: entry.sequence_number,
         output,
         parent: entry.parent,
         previous,
@@ -1957,8 +1955,6 @@ mod tests {
         ".*<dl>
   <dt>id</dt>
   <dd class=monospace>{inscription_id}</dd>
-  <dt>sequence number</dt>
-  <dd>0</dd>
   <dt>preview</dt>.*<dt>output</dt>
   <dd><a class=monospace href=/output/0000000000000000000000000000000000000000000000000000000000000000:0>0000000000000000000000000000000000000000000000000000000000000000:0 \\(unbound\\)</a></dd>.*"
       ),
