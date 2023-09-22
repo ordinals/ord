@@ -175,6 +175,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           Some(Curse::UnrecognizedEvenField)
         } else if inscription.payload.duplicate_field {
           Some(Curse::DuplicateField)
+        } else if inscription.payload.incomplete_field {
+          Some(Curse::IncompleteField)
         } else if inscription.input != 0 {
           Some(Curse::NotInFirstInput)
         } else if inscription.offset != 0 {

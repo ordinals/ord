@@ -13,6 +13,7 @@ use {
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) enum Curse {
   DuplicateField,
+  IncompleteField,
   NotAtOffsetZero,
   NotInFirstInput,
   Reinscription,
@@ -27,6 +28,7 @@ pub struct Inscription {
   pub metaprotocol: Option<Vec<u8>>,
   pub unrecognized_even_field: bool,
   pub duplicate_field: bool,
+  pub incomplete_field: bool,
 }
 
 impl Inscription {
@@ -65,6 +67,7 @@ impl Inscription {
       metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
       duplicate_field: false,
       unrecognized_even_field: false,
+      incomplete_field: false,
     })
   }
 

@@ -34,8 +34,14 @@ impl From<RawEnvelope> for ParsedEnvelope {
 
     let mut fields: BTreeMap<&[u8], Vec<&[u8]>> = BTreeMap::new();
 
-    for item in envelope.payload[..body.unwrap_or(envelope.payload.len())].chunks_exact(2) {
-      fields.entry(&item[0]).or_default().push(&item[1]);
+    // todo: test this
+    let mut incomplete_field = false;
+
+    for item in envelope.payload[..body.unwrap_or(envelope.payload.len())].chunks(2) {
+      match item {
+        [key, value] => fields.entry(key).or_default().push(value),
+        _ => incomplete_field = true,
+      }
     }
 
     let duplicate_field = fields.iter().any(|(_key, values)| values.len() > 1);
@@ -67,6 +73,7 @@ impl From<RawEnvelope> for ParsedEnvelope {
         parent,
         unrecognized_even_field,
         duplicate_field,
+        incomplete_field,
         metaprotocol,
       },
       input: envelope.input,
