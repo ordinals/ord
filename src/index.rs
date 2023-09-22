@@ -2751,7 +2751,35 @@ mod tests {
           .get_inscription_entry(inscription_id)
           .unwrap()
           .unwrap()
-          .number,
+          .inscription_number,
+        -1
+      );
+    }
+  }
+
+  #[test]
+  fn incomplete_field_inscriptions_are_cursed() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let witness = envelope(&[b"ord", &[1]]);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, witness)],
+        ..Default::default()
+      });
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      context.mine_blocks(1);
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_entry(inscription_id)
+          .unwrap()
+          .unwrap()
+          .inscription_number,
         -1
       );
     }

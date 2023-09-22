@@ -34,7 +34,6 @@ impl From<RawEnvelope> for ParsedEnvelope {
 
     let mut fields: BTreeMap<&[u8], Vec<&[u8]>> = BTreeMap::new();
 
-    // todo: test this
     let mut incomplete_field = false;
 
     for item in envelope.payload[..body.unwrap_or(envelope.payload.len())].chunks(2) {
@@ -665,6 +664,21 @@ mod tests {
       vec![ParsedEnvelope {
         payload: Inscription {
           unrecognized_even_field: true,
+          ..Default::default()
+        },
+        input: 0,
+        offset: 0,
+      }],
+    );
+  }
+
+  #[test]
+  fn incomplete_field() {
+    assert_eq!(
+      parse(&[envelope(&[b"ord", &[99]])]),
+      vec![ParsedEnvelope {
+        payload: Inscription {
+          incomplete_field: true,
           ..Default::default()
         },
         input: 0,
