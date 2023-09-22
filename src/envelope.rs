@@ -24,6 +24,16 @@ pub(crate) struct Envelope<T> {
   pub(crate) offset: u32,
 }
 
+fn remove_field(fields: &mut BTreeMap<&[u8], Vec<&[u8]>>, field: &[u8]) -> Option<Vec<u8>> {
+  let value = fields.get_mut(field)?;
+
+  if value.is_empty() {
+    None
+  } else {
+    Some(value.remove(0).to_vec())
+  }
+}
+
 impl From<RawEnvelope> for ParsedEnvelope {
   fn from(envelope: RawEnvelope) -> Self {
     let body = envelope
@@ -45,15 +55,9 @@ impl From<RawEnvelope> for ParsedEnvelope {
 
     let duplicate_field = fields.iter().any(|(_key, values)| values.len() > 1);
 
-    let content_type = fields
-      .remove(CONTENT_TYPE_TAG.as_slice())
-      .and_then(|field| field.first().map(|first| first.to_vec()));
-    let parent = fields
-      .remove(PARENT_TAG.as_slice())
-      .and_then(|field| field.first().map(|first| first.to_vec()));
-    let metaprotocol = fields
-      .remove(METAPROTOCOL_TAG.as_slice())
-      .and_then(|field| field.first().map(|first| first.to_vec()));
+    let content_type = remove_field(&mut fields, &CONTENT_TYPE_TAG);
+    let parent = remove_field(&mut fields, &PARENT_TAG);
+    let metaprotocol = remove_field(&mut fields, &METAPROTOCOL_TAG);
 
     let unrecognized_even_field = fields
       .keys()
