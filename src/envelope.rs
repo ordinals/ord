@@ -85,27 +85,26 @@ impl From<RawEnvelope> for ParsedEnvelope {
 impl ParsedEnvelope {
   pub(crate) fn from_transaction(transaction: &Transaction) -> Vec<Self> {
     RawEnvelope::from_transaction(transaction)
-      .map(|envelopes| {
-        envelopes
-          .into_iter()
-          .map(|envelope| envelope.into())
-          .collect()
-      })
-      .unwrap_or_default()
+      .into_iter()
+      .map(|envelope| envelope.into())
+      .collect()
   }
 }
 
 impl RawEnvelope {
-  pub(crate) fn from_transaction(transaction: &Transaction) -> Result<Vec<Self>> {
+  pub(crate) fn from_transaction(transaction: &Transaction) -> Vec<Self> {
     let mut envelopes = Vec::new();
 
     for (i, input) in transaction.input.iter().enumerate() {
+      // TODO: don't parse inputs which weren't tapscript outputs
       if let Some(tapscript) = input.witness.tapscript() {
-        envelopes.extend(Self::from_tapscript(tapscript, i)?);
+        if let Ok(input_envelopes) = Self::from_tapscript(tapscript, i) {
+          envelopes.extend(input_envelopes);
+        }
       }
     }
 
-    Ok(envelopes)
+    envelopes
   }
 
   fn from_tapscript(tapscript: &Script, input: usize) -> Result<Vec<Self>> {
