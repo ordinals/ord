@@ -106,7 +106,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     txid: Txid,
     input_sat_ranges: Option<&VecDeque<(u64, u64)>>,
   ) -> Result {
-    let mut new_inscriptions = ParsedEnvelope::from_transaction(tx).into_iter().peekable();
+    let mut envelopes = ParsedEnvelope::from_transaction(tx).into_iter().peekable();
     let mut floating_inscriptions = Vec::new();
     let mut inscribed_offsets = BTreeMap::new();
     let mut total_input_value = 0;
@@ -161,7 +161,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       total_input_value += current_input_value;
 
       // go through all inscriptions in this input
-      while let Some(inscription) = new_inscriptions.peek() {
+      while let Some(inscription) = envelopes.peek() {
         if inscription.input != u32::try_from(input_index).unwrap() {
           break;
         }
@@ -247,7 +247,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           },
         });
 
-        new_inscriptions.next();
+        envelopes.next();
         id_counter += 1;
       }
     }
