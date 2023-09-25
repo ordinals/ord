@@ -256,12 +256,12 @@ fn splitting_merged_inscriptions_is_possible() {
         },
         InscriptionId {
           txid: reveal_txid,
-          index: 2
+          index: 1
         },
         InscriptionId {
           txid: reveal_txid,
-          index: 1
-        }
+          index: 2
+        },
       ]
     }
   );
