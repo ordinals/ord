@@ -2,7 +2,7 @@ Reindexing
 ==========
 
 Sometimes the `ord` database must be reindexed, which means deleting the
-database and restarting the indexing process with either `ord index run` or
+database and restarting the indexing process with either `ord index update` or
 `ord server`. Reasons to reindex are:
 
 1. A new major release of ord, which changes the database scheme
@@ -23,10 +23,9 @@ commands in the terminal:
 
 ```bash
 rm ~/Library/Application Support/ord/index.redb
-ord index run
+ord index update
 ```
 
 You can of course also set the location of the data directory yourself with `ord
---data-dir <DIR> index run` or give it a specific filename and path with `ord
---index <FILENAME> index run`.
-
+--data-dir <DIR> index update` or give it a specific filename and path with `ord
+--index <FILENAME> index update`.

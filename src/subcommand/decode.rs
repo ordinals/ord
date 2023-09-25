@@ -18,12 +18,12 @@ impl Decode {
       Transaction::consensus_decode(&mut io::stdin())?
     };
 
-    let inscriptions = Inscription::from_transaction(&transaction);
+    let inscriptions = ParsedEnvelope::from_transaction(&transaction);
 
     Ok(Box::new(Output {
       inscriptions: inscriptions
         .into_iter()
-        .map(|inscription| inscription.inscription)
+        .map(|inscription| inscription.payload)
         .collect(),
     }))
   }
