@@ -7,13 +7,13 @@ use {
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub(crate) enum Media {
   Audio,
+  Code,
   Iframe,
   Image,
   Markdown,
   Model,
   Pdf,
   Text,
-  Code,
   Unknown,
   Video,
 }
