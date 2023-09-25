@@ -731,9 +731,10 @@ impl Index {
     }
 
     Ok(self.get_transaction(inscription_id.txid)?.and_then(|tx| {
-      Inscription::from_transaction(&tx)
-        .get(inscription_id.index as usize)
-        .map(|transaction_inscription| transaction_inscription.inscription.clone())
+      ParsedEnvelope::from_transaction(&tx)
+        .into_iter()
+        .nth(inscription_id.index as usize)
+        .map(|envelope| envelope.payload)
     }))
   }
 
@@ -2709,6 +2710,68 @@ mod tests {
         },
         None,
       );
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_entry(inscription_id)
+          .unwrap()
+          .unwrap()
+          .inscription_number,
+        -1
+      );
+    }
+  }
+
+  #[test]
+  fn duplicate_field_inscriptions_are_cursed() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let witness = envelope(&[
+        b"ord",
+        &[1],
+        b"text/plain;charset=utf-8",
+        &[1],
+        b"text/plain;charset=utf-8",
+      ]);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, witness)],
+        ..Default::default()
+      });
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      context.mine_blocks(1);
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_entry(inscription_id)
+          .unwrap()
+          .unwrap()
+          .inscription_number,
+        -1
+      );
+    }
+  }
+
+  #[test]
+  fn incomplete_field_inscriptions_are_cursed() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let witness = envelope(&[b"ord", &[1]]);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, witness)],
+        ..Default::default()
+      });
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      context.mine_blocks(1);
 
       assert_eq!(
         context
