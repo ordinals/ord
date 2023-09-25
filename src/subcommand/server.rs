@@ -9,9 +9,9 @@ use {
   crate::templates::{
     BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson,
     InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson, PageContent,
-    PageHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewImageHtml, PreviewMarkdownHtml, 
-    PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RangeHtml,
-    RareTxt, SatHtml, SatJson, TransactionHtml,
+    PageHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewImageHtml, PreviewMarkdownHtml,
+    PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
+    RangeHtml, RareTxt, SatHtml, SatJson, TransactionHtml,
   },
   axum::{
     body,
@@ -970,7 +970,6 @@ impl Server {
       Media::Unknown => Ok(PreviewUnknownHtml.into_response()),
       Media::Video => Ok(PreviewVideoHtml { inscription_id }.into_response()),
     }
-    
   }
 
   async fn inscription(
@@ -2401,7 +2400,12 @@ mod tests {
     server.mine_blocks(1);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
-      inputs: &[(1, 0, 0, inscription("text/javascript", "hello").to_witness())],
+      inputs: &[(
+        1,
+        0,
+        0,
+        inscription("text/javascript", "hello").to_witness(),
+      )],
       ..Default::default()
     });
     let inscription_id = InscriptionId { txid, index: 0 };
