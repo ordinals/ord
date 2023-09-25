@@ -187,9 +187,11 @@ impl Inscribe {
 
     let commit = client.send_raw_transaction(&signed_commit_tx)?;
 
-    let reveal = client
-      .send_raw_transaction(&signed_reveal_tx)
-      .context("Failed to send reveal transaction")?;
+    let reveal = match client
+      .send_raw_transaction(&signed_reveal_tx) {
+        Ok(txid) => txid,
+        Err(err) => return Err(anyhow!("Failed to send reveal transaction: {err}\nCommit tx {commit} will be recovered once mined"))
+      };
 
     Ok(Box::new(Output {
       commit,
