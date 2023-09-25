@@ -519,7 +519,7 @@ impl<'index> Updater<'_> {
       }
     } else {
       for (tx, txid) in block.txdata.iter().skip(1).chain(block.txdata.first()) {
-        inscription_updater.index_transaction_inscriptions(tx, *txid, None)?;
+        inscription_updater.index_envelopes(tx, *txid, None)?;
       }
     }
 
@@ -571,7 +571,7 @@ impl<'index> Updater<'_> {
     index_inscriptions: bool,
   ) -> Result {
     if index_inscriptions {
-      inscription_updater.index_transaction_inscriptions(tx, txid, Some(input_sat_ranges))?;
+      inscription_updater.index_envelopes(tx, txid, Some(input_sat_ranges))?;
     }
 
     for (vout, output) in tx.output.iter().enumerate() {
