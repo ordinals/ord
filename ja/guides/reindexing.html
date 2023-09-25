@@ -218,7 +218,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="再インデックス"><a class="header" href="#再インデックス">再インデックス</a></h1>
-<p>「ord」データベースを再インデックスする必要がある場合があります。これは、データベースを削除し、「ord index run」または「ord server」を使用することを意味します。を使用してデータベースを再インデックス化します。再インデックスを作成する理由は次のとおりです。：</p>
+<p>「ord」データベースを再インデックスする必要がある場合があります。これは、データベースを削除し、「ord index update」または「ord server」を使用することを意味します。を使用してデータベースを再インデックス化します。再インデックスを作成する理由は次のとおりです。：</p>
 <ol>
 <li>ord 发布新的主要版本，更改了数据库架构　新たなメインバージョンをリリースして、データベースのスキーマを変更されました。</li>
 <li>データベースは壊れるかもしれません</li>
@@ -232,9 +232,9 @@
 </div>
 <p>ですので，MacOSの上にデータベースを削除して再索引し、ターミナルでこのコマンドを実行します。</p>
 <pre><code class="language-bash">rm ~/Library/Application Support/ord/index.redb
-ord index run
+ord index update
 </code></pre>
-<p>もちろん自分でデータの目録の位置を設置することができます,<code>ord --data-dir &lt;DIR&gt; index run</code> または指定された特定のファイル名とパスに‘ord --index <FILENAME>で索引運行します’。</p>
+<p>もちろん自分でデータの目録の位置を設置することができます,<code>ord --data-dir &lt;DIR&gt; index update</code> または指定された特定のファイル名とパスに‘ord --index <FILENAME>で索引運行します’。</p>
 
                     </main>
 

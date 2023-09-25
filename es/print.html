@@ -1225,7 +1225,7 @@ ord -r server
 </ol>
 <p>Actualmente, <code>ord</code> tarda en reiniciarse, por lo que el sitio no volverá a estar en línea inmediatamente.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="reindexación"><a class="header" href="#reindexación">Reindexación</a></h1>
-<p>En ocasiones, la base de datos de ord debe ser reindexada, esto implica eliminar la base de datos y reiniciar el proceso de indexación con el comando <code>ord index run</code> u <code>ord server</code>. Las razones para reindexar son:</p>
+<p>En ocasiones, la base de datos de ord debe ser reindexada, esto implica eliminar la base de datos y reiniciar el proceso de indexación con el comando <code>ord index update</code> u <code>ord server</code>. Las razones para reindexar son:</p>
 <ol>
 <li>Un nuevo lanzamiento grande de ord, que modifica el esquema de la base de datos</li>
 <li>Corrupción de la base de datos por alguna razón.</li>
@@ -1239,9 +1239,9 @@ ord -r server
 </div>
 <p>Para eliminar la base de datos y reindexar en MacOS, tendrías que ejecutar los siguientes comandos en la terminal:</p>
 <pre><code class="language-bash">rm ~/Library/Application Support/ord/index.redb
-ord index run
+ord index update
 </code></pre>
-<p>También tienes la opción de determinar la ubicación del directorio de datos utilizando el comando <code>ord --data-dir &lt;DIR&gt; index run</code> o asignarle un nombre de archivo y ruta específicos utilizando el comando <code>ord --index &lt;NOMBRE_DE_ARCHIVO&gt; index run</code>.</p>
+<p>También tienes la opción de determinar la ubicación del directorio de datos utilizando el comando <code>ord --data-dir &lt;DIR&gt; index update</code> o asignarle un nombre de archivo y ruta específicos utilizando el comando <code>ord --index &lt;NOMBRE_DE_ARCHIVO&gt; index update</code>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="pistas-para-la-caza-de-recompensas-de-ordinals"><a class="header" href="#pistas-para-la-caza-de-recompensas-de-ordinals">Pistas para la Caza de Recompensas de Ordinals</a></h1>
 <ul>
 <li>

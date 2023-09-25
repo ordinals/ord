@@ -1637,7 +1637,7 @@ which is called <code>ord</code>, with a config file located at <code>/var/lib/o
 immediately.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="reindexing"><a class="header" href="#reindexing">Reindexing</a></h1>
 <p>Sometimes the <code>ord</code> database must be reindexed, which means deleting the
-database and restarting the indexing process with either <code>ord index run</code> or
+database and restarting the indexing process with either <code>ord index update</code> or
 <code>ord server</code>. Reasons to reindex are:</p>
 <ol>
 <li>A new major release of ord, which changes the database scheme</li>
@@ -1655,9 +1655,9 @@ file in different locations depending on your operating system.</p>
 <p>So to delete the database and reindex on MacOS you would have to run the following
 commands in the terminal:</p>
 <pre><code class="language-bash">rm ~/Library/Application Support/ord/index.redb
-ord index run
+ord index update
 </code></pre>
-<p>You can of course also set the location of the data directory yourself with <code>ord --data-dir &lt;DIR&gt; index run</code> or give it a specific filename and path with <code>ord --index &lt;FILENAME&gt; index run</code>.</p>
+<p>You can of course also set the location of the data directory yourself with <code>ord --data-dir &lt;DIR&gt; index update</code> or give it a specific filename and path with <code>ord --index &lt;FILENAME&gt; index update</code>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-bounty-hunting-hints"><a class="header" href="#ordinal-bounty-hunting-hints">Ordinal Bounty Hunting Hints</a></h1>
 <ul>
 <li>
