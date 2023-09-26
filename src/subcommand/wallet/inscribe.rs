@@ -562,6 +562,11 @@ impl Inscribe {
 
     Ok(Address::from_str(&address_string)?.require_network(Chain::Mainnet.network())?)
   }
+
+  fn save_inscription_to_opendime(&self, path: &Path) -> Result {
+
+    Ok(())
+  }
 }
 
 #[cfg(test)]
