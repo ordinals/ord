@@ -9,6 +9,7 @@ pub(crate) enum Media {
   Audio,
   Iframe,
   Image,
+  Markdown,
   Model,
   Pdf,
   Text,
@@ -18,6 +19,7 @@ pub(crate) enum Media {
 
 impl Media {
   const TABLE: &'static [(&'static str, Media, &'static [&'static str])] = &[
+    ("application/cbor", Media::Unknown, &["cbor"]),
     ("application/json", Media::Text, &["json"]),
     ("application/pdf", Media::Pdf, &["pdf"]),
     ("application/pgp-signature", Media::Text, &["asc"]),
@@ -26,6 +28,10 @@ impl Media {
     ("audio/flac", Media::Audio, &["flac"]),
     ("audio/mpeg", Media::Audio, &["mp3"]),
     ("audio/wav", Media::Audio, &["wav"]),
+    ("font/otf", Media::Unknown, &["otf"]),
+    ("font/ttf", Media::Unknown, &["ttf"]),
+    ("font/woff", Media::Unknown, &["woff"]),
+    ("font/woff2", Media::Unknown, &["woff2"]),
     ("image/apng", Media::Image, &["apng"]),
     ("image/avif", Media::Image, &[]),
     ("image/gif", Media::Image, &["gif"]),
@@ -40,8 +46,8 @@ impl Media {
     ("text/html", Media::Iframe, &[]),
     ("text/html;charset=utf-8", Media::Iframe, &["html"]),
     ("text/javascript", Media::Text, &["js"]),
-    ("text/markdown", Media::Text, &[]),
-    ("text/markdown;charset=utf-8", Media::Text, &["md"]),
+    ("text/markdown", Media::Markdown, &[]),
+    ("text/markdown;charset=utf-8", Media::Markdown, &["md"]),
     ("text/plain", Media::Text, &[]),
     ("text/plain;charset=utf-8", Media::Text, &["txt"]),
     ("video/mp4", Media::Video, &["mp4"]),
