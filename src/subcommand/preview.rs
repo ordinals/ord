@@ -81,6 +81,7 @@ impl Preview {
           super::wallet::inscribe::Inscribe {
             commit_fee_rate: None,
             destination: None,
+            to_opendime: None,
             dry_run: false,
             fee_rate: FeeRate::try_from(1.0).unwrap(),
             file,

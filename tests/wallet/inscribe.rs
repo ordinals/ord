@@ -657,3 +657,22 @@ fn try_reinscribe_without_flag() {
   ))
   .run_and_extract_stdout();
 }
+
+#[test]
+fn inscribe_to_opendime() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  rpc_server.mine_blocks(1);
+
+  create_wallet(&rpc_server);
+
+  let usb_dir = TempDir::new().unwrap();
+
+  CommandBuilder::new(format!(
+    "wallet inscribe orchid.png --fee-rate 1.1 --to-opendime {}",
+    usb_dir.path().display()
+  ))
+  .write("orchid.png", [1; 520])
+  .rpc_server(&rpc_server)
+  .expected_exit_code(0)
+  .run_and_extract_stdout();
+}
