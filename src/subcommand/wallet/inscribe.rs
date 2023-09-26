@@ -100,8 +100,6 @@ impl Inscribe {
         None => get_change_address(&client, &options)?,
       },
     };
-    println!("{}", reveal_tx_destination);
-    panic!();
 
     let parent_info = if let Some(parent_id) = self.parent {
       if let Some(satpoint) = index.get_inscription_satpoint_by_id(parent_id)? {
@@ -536,7 +534,7 @@ impl Inscribe {
     Ok(())
   }
 
-  fn get_address_from_opendime(path: &PathBuf, options: &Options) -> Result<Address> {
+  fn get_address_from_opendime(path: &Path, options: &Options) -> Result<Address> {
     if options.chain() != Chain::Mainnet {
       return Err(anyhow!("This feature only works on mainnet."));
     }
@@ -557,9 +555,12 @@ impl Inscribe {
       std::thread::sleep(Duration::from_secs(3));
     }
 
-    let address = Address::from_str(&std::fs::read_to_string(address_file)?)?;
+    let address_string = std::fs::read_to_string(address_file.clone())?
+      .chars()
+      .filter(|&c| c != '\n' && c != '\r')
+      .collect::<String>();
 
-    Ok(address.require_network(Chain::Mainnet.network())?)
+    Ok(Address::from_str(&address_string)?.require_network(Chain::Mainnet.network())?)
   }
 }
 
