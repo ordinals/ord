@@ -9,9 +9,9 @@ use {
   crate::templates::{
     BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson,
     InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson, PageContent,
-    PageHtml, PreviewAudioHtml, PreviewImageHtml, PreviewModelHtml, PreviewPdfHtml,
-    PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt, SatHtml, SatJson,
-    TransactionHtml,
+    PageHtml, PreviewAudioHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml,
+    PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RangeHtml, RareTxt,
+    SatHtml, SatJson, TransactionHtml,
   },
   axum::{
     body,
@@ -711,7 +711,7 @@ impl Server {
 
     let chain = page_config.chain;
     match chain {
-      Chain::Mainnet => builder.title("Inscriptions"),
+      Chain::Mainnet => builder.title("Inscriptions".to_string()),
       _ => builder.title(format!("Inscriptions – {chain:?}")),
     };
 
@@ -720,8 +720,8 @@ impl Server {
     for (number, id) in index.get_feed_inscriptions(300)? {
       builder.item(
         rss::ItemBuilder::default()
-          .title(format!("Inscription {number}"))
-          .link(format!("/inscription/{id}"))
+          .title(Some(format!("Inscription {number}")))
+          .link(Some(format!("/inscription/{id}")))
           .guid(Some(rss::Guid {
             value: format!("/inscription/{id}"),
             permalink: true,
@@ -915,6 +915,16 @@ impl Server {
         )
           .into_response(),
       ),
+      Media::Markdown => Ok(
+        (
+          [(
+            header::CONTENT_SECURITY_POLICY,
+            "script-src-elem 'self' https://cdn.jsdelivr.net",
+          )],
+          PreviewMarkdownHtml { inscription_id },
+        )
+          .into_response(),
+      ),
       Media::Model => Ok(
         (
           [(
@@ -984,9 +994,13 @@ impl Server {
       )
     };
 
-    let previous = index.get_inscription_id_by_inscription_number(entry.number - 1)?;
+    let previous = if let Some(n) = entry.sequence_number.checked_sub(1) {
+      index.get_inscription_id_by_sequence_number(n)?
+    } else {
+      None
+    };
 
-    let next = index.get_inscription_id_by_inscription_number(entry.number + 1)?;
+    let next = index.get_inscription_id_by_sequence_number(entry.sequence_number + 1)?;
 
     let children = index.get_children_by_inscription_id(inscription_id)?;
 
@@ -1000,7 +1014,7 @@ impl Server {
         inscription_id,
         entry.parent,
         next,
-        entry.number,
+        entry.inscription_number,
         output,
         previous,
         entry.sat,
@@ -1017,7 +1031,7 @@ impl Server {
         inscription,
         inscription_id,
         next,
-        number: entry.number,
+        inscription_number: entry.inscription_number,
         output,
         parent: entry.parent,
         previous,
@@ -1078,7 +1092,7 @@ impl Server {
   async fn inscriptions_from(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path(from): Path<i64>,
+    Path(from): Path<u64>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
     Self::inscriptions_inner(page_config, index, Some(from), 100, accept_json).await
@@ -1087,7 +1101,7 @@ impl Server {
   async fn inscriptions_from_n(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path((from, n)): Path<(i64, usize)>,
+    Path((from, n)): Path<(u64, usize)>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
     Self::inscriptions_inner(page_config, index, Some(from), n, accept_json).await
@@ -1096,7 +1110,7 @@ impl Server {
   async fn inscriptions_inner(
     page_config: Arc<PageConfig>,
     index: Arc<Index>,
-    from: Option<i64>,
+    from: Option<u64>,
     n: usize,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
@@ -1907,7 +1921,7 @@ mod tests {
   }
 
   #[test]
-  fn unbound_output_recieves_unbound_inscriptions() {
+  fn unbound_output_receives_unbound_inscriptions() {
     let server = TestServer::new_with_regtest();
 
     server.mine_blocks(1);
@@ -2515,6 +2529,26 @@ mod tests {
   }
 
   #[test]
+  fn markdown_preview() {
+    let server = TestServer::new_with_regtest();
+    server.mine_blocks(1);
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/markdown", "hello").to_witness())],
+      ..Default::default()
+    });
+    let inscription_id = InscriptionId { txid, index: 0 };
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/preview/{inscription_id}"),
+      StatusCode::OK,
+      format!(r".*<html lang=en data-inscription={inscription_id}>.*"),
+    );
+  }
+
+  #[test]
   fn image_preview() {
     let server = TestServer::new_with_regtest();
     server.mine_blocks(1);
@@ -2917,7 +2951,7 @@ mod tests {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
             parent: Some(parent_inscription_id.parent_value()),
-            unrecognized_even_field: false,
+            ..Default::default()
           }
           .to_witness(),
         ),

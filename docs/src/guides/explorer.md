@@ -14,6 +14,10 @@ To specify a port add the `--http-port` flag:
 
 `ord server --http-port 8080`
 
+To enable the JSON-API endpoints add the `--enable-json-api` or `-e` flag:
+
+`ord --enable-json-api server`
+
 To test how your inscriptions will look you can run:
 
 `ord preview <FILE1> <FILE2> ...`

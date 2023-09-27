@@ -32,7 +32,7 @@ Ordinals is open-source and community funded. The current lead maintainer of
 entirely funded by donations. If you can, please consider donating!
 
 The donation address is
-[bc1q8kt9pyd6r27k2840l8g5d7zshz3cg9v6rfda0m248lva3ve5072q3sxelt](https://mempool.space/address/bc1q8kt9pyd6r27k2840l8g5d7zshz3cg9v6rfda0m248lva3ve5072q3sxelt).
+[bc1qguzk63exy7h5uygg8m2tcenca094a8t464jfyvrmr0s6wkt74wls3zr5m3](https://mempool.space/address/bc1qguzk63exy7h5uygg8m2tcenca094a8t464jfyvrmr0s6wkt74wls3zr5m3).
 
 This address is 2 of 4 multisig wallet with keys held by
 [raphjaph](https://twitter.com/raphjaph),

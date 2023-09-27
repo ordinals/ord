@@ -3,26 +3,26 @@ use super::*;
 #[derive(Boilerplate)]
 pub(crate) struct InscriptionsHtml {
   pub(crate) inscriptions: Vec<InscriptionId>,
-  pub(crate) prev: Option<i64>,
-  pub(crate) next: Option<i64>,
+  pub(crate) prev: Option<u64>,
+  pub(crate) next: Option<u64>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct InscriptionsJson {
   pub inscriptions: Vec<InscriptionId>,
-  pub prev: Option<i64>,
-  pub next: Option<i64>,
-  pub lowest: Option<i64>,
-  pub highest: Option<i64>,
+  pub prev: Option<u64>,
+  pub next: Option<u64>,
+  pub lowest: Option<u64>,
+  pub highest: Option<u64>,
 }
 
 impl InscriptionsJson {
   pub fn new(
     inscriptions: Vec<InscriptionId>,
-    prev: Option<i64>,
-    next: Option<i64>,
-    lowest: Option<i64>,
-    highest: Option<i64>,
+    prev: Option<u64>,
+    next: Option<u64>,
+    lowest: Option<u64>,
+    highest: Option<u64>,
   ) -> Self {
     Self {
       inscriptions,
