@@ -1,12 +1,12 @@
-Offset
-======
+Pointer
+=======
 
-In order to make an inscription on a sat other than the first of its input, an
-offset can be provided with tag `2`, causing the inscription to be made on the
-sat at the given offset. If the offset is equal to or greater than the number
+In order to make an inscription on a sat other than the first of its input, a
+pointer can be provided with tag `2`, causing the inscription to be made on the
+sat at the given position in the outputs. If the pointer is equal to or greater than the number
 of total sats in the outputs of the inscribe transaction, it is ignored, and
 the inscription is made as usual. The value of the offset tag is the little
-endian offset, with trailing zeros omitted.
+endian pointer, with trailing zeros omitted.
 
 An even tag is used, so that old versions of `ord` consider the inscription to
 be unbound, instead of assigning it, incorrectly, to the first sat.
@@ -17,7 +17,7 @@ different sats, when otherwise they would be made on the same sat.
 Examples
 --------
 
-An inscription at offset 255:
+An inscription with pointer 255:
 
 ```
 OP_FALSE
@@ -32,7 +32,7 @@ OP_IF
 OP_ENDIF
 ```
 
-An inscription at offset 256:
+An inscription with pointer 256:
 
 ```
 OP_FALSE
