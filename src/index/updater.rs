@@ -1,5 +1,5 @@
 use {
-  self::inscription_updater::InscriptionUpdater,
+  self::{inscription_updater::InscriptionUpdater, rune_updater::RuneUpdater},
   super::{fetcher::Fetcher, *},
   futures::future::try_join_all,
   std::sync::mpsc,
@@ -7,6 +7,7 @@ use {
 };
 
 mod inscription_updater;
+mod rune_updater;
 
 pub(crate) struct BlockData {
   pub(crate) header: Header,
@@ -374,6 +375,20 @@ impl<'index> Updater<'_> {
           // We don't know the value of this tx input. Send this outpoint to background thread to be fetched
           outpoint_sender.blocking_send(prev_output)?;
         }
+      }
+    }
+
+    if index.options.index_runes && index.options.chain() != Chain::Mainnet {
+      let mut outpoint_to_rune_balances = wtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
+      let mut rune_id_to_etching = wtx.open_table(RUNE_ID_TO_ETCHING)?;
+      let mut rune_to_rune_id = wtx.open_table(RUNE_TO_RUNE_ID)?;
+      let mut rune_updater = RuneUpdater::new(
+        &mut rune_id_to_etching,
+        &mut outpoint_to_rune_balances,
+        &mut rune_to_rune_id,
+      );
+      for (i, (tx, txid)) in block.txdata.iter().enumerate() {
+        rune_updater.index_runes(self.height, i, tx, *txid)?;
       }
     }
 

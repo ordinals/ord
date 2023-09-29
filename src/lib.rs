@@ -27,6 +27,7 @@ use {
     options::Options,
     outgoing::Outgoing,
     representation::Representation,
+    runes::Etching,
     subcommand::{Subcommand, SubcommandResult},
     tally::Tally,
   },
@@ -38,6 +39,8 @@ use {
     consensus::{self, Decodable, Encodable},
     hash_types::BlockHash,
     hashes::Hash,
+    opcodes,
+    script::{self, Instruction},
     Amount, Block, Network, OutPoint, Script, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid,
   },
   bitcoincore_rpc::{Client, RpcApi},
@@ -117,6 +120,7 @@ mod outgoing;
 mod page_config;
 pub mod rarity;
 mod representation;
+mod runes;
 pub mod sat;
 mod sat_point;
 pub mod subcommand;

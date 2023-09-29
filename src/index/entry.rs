@@ -22,6 +22,24 @@ impl Entry for BlockHash {
   }
 }
 
+pub(super) type EtchingValue = (u128, u128, u128);
+
+impl Entry for Etching {
+  type Value = EtchingValue;
+
+  fn load((decimals, supply, rune): EtchingValue) -> Self {
+    Self {
+      decimals,
+      supply,
+      rune: Rune(rune),
+    }
+  }
+
+  fn store(self) -> Self::Value {
+    (self.decimals, self.supply, self.rune.0)
+  }
+}
+
 #[derive(Debug)]
 pub(crate) struct InscriptionEntry {
   pub(crate) fee: u64,

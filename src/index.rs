@@ -1,10 +1,11 @@
 use {
   self::{
     entry::{
-      BlockHashValue, Entry, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
-      OutPointValue, SatPointValue, SatRange,
+      BlockHashValue, Entry, EtchingValue, InscriptionEntry, InscriptionEntryValue,
+      InscriptionIdValue, OutPointValue, SatPointValue, SatRange,
     },
     reorg::*,
+    runes::Rune,
     updater::Updater,
   },
   super::*,
@@ -29,7 +30,7 @@ mod reorg;
 mod rtx;
 mod updater;
 
-const SCHEMA_VERSION: u64 = 7;
+const SCHEMA_VERSION: u64 = 8;
 
 macro_rules! define_table {
   ($name:ident, $key:ty, $value:ty) => {
@@ -51,11 +52,14 @@ define_table! { HEIGHT_TO_BLOCK_HASH, u64, &BlockHashValue }
 define_table! { HEIGHT_TO_LAST_SEQUENCE_NUMBER, u64, u64 }
 define_table! { INSCRIPTION_ID_TO_INSCRIPTION_ENTRY, &InscriptionIdValue, InscriptionEntryValue }
 define_table! { INSCRIPTION_ID_TO_SATPOINT, &InscriptionIdValue, &SatPointValue }
+define_table! { OUTPOINT_TO_RUNE_BALANCES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_VALUE, &OutPointValue, u64}
+define_table! { RUNE_ID_TO_ETCHING, u64, EtchingValue }
 define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
 define_table! { SEQUENCE_NUMBER_TO_INSCRIPTION_ID, u64, &InscriptionIdValue }
 define_table! { STATISTIC_TO_COUNT, u64, u64 }
+define_table! { RUNE_TO_RUNE_ID, u128, u64 }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u64, u128 }
 
 #[derive(Debug, PartialEq)]
@@ -250,6 +254,12 @@ impl Index {
         tx.open_table(STATISTIC_TO_COUNT)?
           .insert(&Statistic::Schema.key(), &SCHEMA_VERSION)?;
 
+        if options.index_runes {
+          tx.open_table(RUNE_ID_TO_ETCHING)?;
+          tx.open_table(RUNE_TO_RUNE_ID)?;
+          tx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
+        }
+
         if options.index_sats {
           tx.open_table(OUTPOINT_TO_SAT_RANGES)?
             .insert(&OutPoint::null().store(), [].as_slice())?;
@@ -339,6 +349,14 @@ impl Index {
         None => bail!("index has not seen {outpoint}"),
       })
       .collect()
+  }
+
+  pub(crate) fn has_rune_index(&self) -> Result<bool> {
+    match self.begin_read()?.0.open_table(RUNE_ID_TO_ETCHING) {
+      Ok(_) => Ok(true),
+      Err(redb::TableError::TableDoesNotExist(_)) => Ok(false),
+      Err(err) => Err(err.into()),
+    }
   }
 
   pub(crate) fn has_sat_index(&self) -> Result<bool> {
@@ -606,6 +624,26 @@ impl Index {
           .get(&sat.n())?
           .map(|satpoint| Entry::load(*satpoint.value())),
       )
+    } else {
+      Ok(None)
+    }
+  }
+
+  pub(crate) fn etchings(&self) -> Result<Option<Vec<(u64, Etching)>>> {
+    if self.has_rune_index()? {
+      let mut etchings = Vec::new();
+
+      for result in self
+        .database
+        .begin_read()?
+        .open_table(RUNE_ID_TO_ETCHING)?
+        .iter()?
+      {
+        let (id, etching) = result?;
+        etchings.push((id.value(), Etching::load(etching.value())));
+      }
+
+      Ok(Some(etchings))
     } else {
       Ok(None)
     }

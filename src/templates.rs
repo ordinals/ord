@@ -17,6 +17,7 @@ pub(crate) use {
   },
   range::RangeHtml,
   rare::RareTxt,
+  runes::RunesHtml,
   sat::{SatHtml, SatJson},
   transaction::TransactionHtml,
 };
@@ -33,6 +34,7 @@ pub mod output;
 mod preview;
 mod range;
 mod rare;
+mod runes;
 pub mod sat;
 mod transaction;
 

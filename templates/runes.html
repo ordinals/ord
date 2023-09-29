@@ -1,0 +1,14 @@
+<h1>Runes</h1>
+<ul class=monospace>
+%% for (id, etching) in &self.etchings {
+  <li>
+    <h2>{{ etching.rune }}</h2>
+    <dl>
+      <dt>supply</dt>
+      <dd>{{ etching.supply }}</dd>
+      <dt>decimals</dt>
+      <dd>{{ etching.decimals }}</dd>
+    </dl>
+  </li>
+%% }
+</ul>

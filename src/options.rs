@@ -42,6 +42,8 @@ pub(crate) struct Options {
   pub(crate) height_limit: Option<u64>,
   #[arg(long, help = "Use index at <INDEX>.")]
   pub(crate) index: Option<PathBuf>,
+  #[arg(long, help = "Track location of runes.")]
+  pub(crate) index_runes: bool,
   #[arg(long, help = "Track location of all satoshis.")]
   pub(crate) index_sats: bool,
   #[arg(long, short, help = "Use regtest. Equivalent to `--chain regtest`.")]

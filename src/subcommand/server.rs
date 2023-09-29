@@ -11,7 +11,7 @@ use {
     InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson, PageContent,
     PageHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewImageHtml, PreviewMarkdownHtml,
     PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
-    RangeHtml, RareTxt, SatHtml, SatJson, TransactionHtml,
+    RangeHtml, RareTxt, RunesHtml, SatHtml, SatJson, TransactionHtml,
   },
   axum::{
     body,
@@ -193,6 +193,7 @@ impl Server {
         .route("/preview/:inscription_id", get(Self::preview))
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
+        .route("/runes", get(Self::runes))
         .route("/sat/:sat", get(Self::sat))
         .route("/search", get(Self::search_by_query))
         .route("/search/:query", get(Self::search_by_path))
@@ -534,6 +535,16 @@ impl Server {
         "tracking rare sats requires index created with `--index-sats` flag".into(),
       )
     })?))
+  }
+
+  async fn runes(Extension(index): Extension<Arc<Index>>) -> ServerResult<RunesHtml> {
+    let etchings = index.etchings()?.ok_or_else(|| {
+      ServerError::NotFound(
+        "tracking runes requires index created with `--index-runes` flag".into(),
+      )
+    })?;
+
+    Ok(RunesHtml { etchings })
   }
 
   async fn home(
