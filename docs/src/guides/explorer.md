@@ -15,7 +15,7 @@ To specify a port add the `--http-port` flag:
 `ord server --http-port 8080`
 
 To enable the JSON-API endpoints add the `--enable-json-api` or `-e` flag (see
-[here](#JSON-API) for more info):
+[here](#json-api) for more info):
 
 `ord --enable-json-api server`
 
