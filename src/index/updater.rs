@@ -382,6 +382,8 @@ impl<'index> Updater<'_> {
     let mut inscription_id_to_inscription_entry =
       wtx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
     let mut inscription_id_to_satpoint = wtx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
+    let mut inscription_number_to_inscription_id =
+      wtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
     let mut sat_to_inscription_id = wtx.open_multimap_table(SAT_TO_INSCRIPTION_ID)?;
     let mut inscription_id_to_children = wtx.open_multimap_table(INSCRIPTION_ID_TO_CHILDREN)?;
     let mut satpoint_to_inscription_id = wtx.open_multimap_table(SATPOINT_TO_INSCRIPTION_ID)?;
@@ -416,6 +418,7 @@ impl<'index> Updater<'_> {
       value_receiver,
       &mut inscription_id_to_inscription_entry,
       lost_sats,
+      &mut inscription_number_to_inscription_id,
       cursed_inscription_count,
       blessed_inscription_count,
       &mut sequence_number_to_inscription_id,
