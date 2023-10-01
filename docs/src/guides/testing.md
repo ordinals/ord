@@ -32,7 +32,7 @@ ord -r wallet receive
 ```
 Mine 101 blocks (to unlock the coinbase) with:
 ```
-bitcoin-cli generatetoaddress 101 <receive address>
+bitcoin-cli -regtest generatetoaddress 101 <receive address>
 ```
 Inscribe in regtest with:
 ```
@@ -40,7 +40,7 @@ ord -r wallet inscribe --fee-rate 1 <file>
 ```
 Mine the inscription with:
 ```
-bitcoin-cli generatetoaddress 1 <receive address>
+bitcoin-cli -regtest generatetoaddress 1 <receive address>
 ```
 View the inscription in the regtest explorer:
 ```
