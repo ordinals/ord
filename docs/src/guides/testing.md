@@ -51,7 +51,7 @@ Testing Recursion
 -----------------
 
 When testing out [recursion](../inscriptions/recursion.md), inscribe the
-dependencies first (example with [p5.js](https://p5js.org):
+dependencies first (example with [p5.js](https://p5js.org)):
 ```
 ord -r wallet inscribe --fee-rate 1 p5.js
 ```
