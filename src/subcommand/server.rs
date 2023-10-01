@@ -166,6 +166,8 @@ impl Server {
 
       let router = Router::new()
         .route("/", get(Self::home))
+        .route("/-/content/sat/:sat/:page_index", get(Self::content_sat))
+        .route("/-/sat/:sat/:page_index", get(Self::sat_from_n))
         .route("/block/:query", get(Self::block))
         .route("/blockcount", get(Self::block_count))
         .route("/blockheight", get(Self::block_height))
@@ -175,7 +177,6 @@ impl Server {
         .route("/bounties", get(Self::bounties))
         .route("/clock", get(Self::clock))
         .route("/content/:inscription_id", get(Self::content))
-        .route("/content/sat/:sat/:page_index", get(Self::content_sat))
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
         .route("/feed.xml", get(Self::feed))
@@ -199,7 +200,6 @@ impl Server {
         .route("/range/:start/:end", get(Self::range))
         .route("/rare.txt", get(Self::rare_txt))
         .route("/sat/:sat", get(Self::sat))
-        .route("/sat/:sat/:page_index", get(Self::sat_from_n))
         .route("/search", get(Self::search_by_query))
         .route("/search/:query", get(Self::search_by_path))
         .route("/static/*path", get(Self::static_asset))
@@ -879,6 +879,33 @@ impl Server {
     )
   }
 
+  fn content_response(inscription: Inscription) -> Option<(HeaderMap, Vec<u8>)> {
+    let mut headers = HeaderMap::new();
+
+    headers.insert(
+      header::CONTENT_TYPE,
+      inscription
+        .content_type()
+        .and_then(|content_type| content_type.parse().ok())
+        .unwrap_or(HeaderValue::from_static("application/octet-stream")),
+    );
+    headers.insert(
+      header::CONTENT_SECURITY_POLICY,
+      HeaderValue::from_static("default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:"),
+    );
+    headers.append(
+      header::CONTENT_SECURITY_POLICY,
+      HeaderValue::from_static("default-src *:*/-/ *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime 'unsafe-eval' 'unsafe-inline' data: blob:"),
+  );
+
+    headers.insert(
+      header::CACHE_CONTROL,
+      HeaderValue::from_static("max-age=31536000, immutable"),
+    );
+
+    Some((headers, inscription.into_body()?))
+  }
+
   async fn content_sat(
     Extension(index): Extension<Arc<Index>>,
     Extension(_config): Extension<Arc<Config>>,
@@ -904,33 +931,6 @@ impl Server {
         .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
         .into_response(),
     )
-  }
-
-  fn content_response(inscription: Inscription) -> Option<(HeaderMap, Vec<u8>)> {
-    let mut headers = HeaderMap::new();
-
-    headers.insert(
-      header::CONTENT_TYPE,
-      inscription
-        .content_type()
-        .and_then(|content_type| content_type.parse().ok())
-        .unwrap_or(HeaderValue::from_static("application/octet-stream")),
-    );
-    headers.insert(
-      header::CONTENT_SECURITY_POLICY,
-      HeaderValue::from_static("default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:"),
-    );
-    headers.append(
-      header::CONTENT_SECURITY_POLICY,
-      HeaderValue::from_static("default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime *:*/content/sat/ *:*/sat/* 'unsafe-eval' 'unsafe-inline' data: blob:"),
-  );
-
-    headers.insert(
-      header::CACHE_CONTROL,
-      HeaderValue::from_static("max-age=31536000, immutable"),
-    );
-
-    Some((headers, inscription.into_body()?))
   }
 
   async fn preview(
@@ -1872,13 +1872,13 @@ mod tests {
     let inscription_id = InscriptionId { txid, index: 0 };    
 
     server.assert_response_regex(
-      format!("/sat/5000000000/1"),
+      "/sat/5000000000/1",
       StatusCode::OK,
       format!(r#".*\{{"id":"{}"\}}.*"#, inscription_id),
     );
         
     server.assert_response_regex(
-      format!("/sat/5000000000/-1"),
+      "/sat/5000000000/-1",
       StatusCode::OK,
       format!(r#".*\{{"id":"{}"\}}.*"#, inscription_id),
     );
