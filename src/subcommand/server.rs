@@ -3108,7 +3108,7 @@ mod tests {
       server.index.rune_balances(),
       [(
         OutPoint { txid, vout: 0 },
-        vec![(id as u128, u128::max_value())]
+        vec![(u128::from(id), u128::max_value())]
       )]
     );
 

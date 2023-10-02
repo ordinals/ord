@@ -4253,7 +4253,7 @@ mod tests {
       context.index.rune_balances(),
       [(
         OutPoint { txid, vout: 0 },
-        vec![(id as u128, u128::max_value())]
+        vec![(u128::from(id), u128::max_value())]
       )]
     );
   }
@@ -4303,7 +4303,7 @@ mod tests {
       context.index.rune_balances(),
       [(
         OutPoint { txid, vout: 0 },
-        vec![(id as u128, u128::max_value())]
+        vec![(u128::from(id), u128::max_value())]
       )]
     );
   }
@@ -4360,7 +4360,7 @@ mod tests {
       context.index.rune_balances(),
       [(
         OutPoint { txid, vout: 0 },
-        vec![(id as u128, u128::max_value())]
+        vec![(u128::from(id), u128::max_value())]
       )]
     );
   }
@@ -4417,7 +4417,7 @@ mod tests {
       context.index.rune_balances(),
       [(
         OutPoint { txid, vout: 0 },
-        vec![(id as u128, u128::max_value())]
+        vec![(u128::from(id), u128::max_value())]
       )]
     );
   }
@@ -4465,7 +4465,7 @@ mod tests {
 
     assert_eq!(
       context.index.rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id as u128, 100)])]
+      [(OutPoint { txid, vout: 0 }, vec![(u128::from(id), 100)])]
     );
   }
 
@@ -4520,8 +4520,8 @@ mod tests {
     assert_eq!(
       context.index.rune_balances(),
       [
-        (OutPoint { txid, vout: 0 }, vec![(id as u128, 100)]),
-        (OutPoint { txid, vout: 1 }, vec![(id as u128, 100)])
+        (OutPoint { txid, vout: 0 }, vec![(u128::from(id), 100)]),
+        (OutPoint { txid, vout: 1 }, vec![(u128::from(id), 100)])
       ]
     );
   }
@@ -4576,7 +4576,7 @@ mod tests {
 
     assert_eq!(
       context.index.rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id as u128, 100)]),]
+      [(OutPoint { txid, vout: 0 }, vec![(u128::from(id), 100)]),]
     );
   }
 
@@ -4625,7 +4625,7 @@ mod tests {
       context.index.rune_balances(),
       [(
         OutPoint { txid, vout: 0 },
-        vec![(id as u128, u128::max_value())]
+        vec![(u128::from(id), u128::max_value())]
       )]
     );
 
@@ -4634,7 +4634,7 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: id as u128,
+            id: u128::from(id),
             amount: u128::max_value(),
             output: 0,
           }],
@@ -4663,7 +4663,7 @@ mod tests {
       context.index.rune_balances(),
       [(
         OutPoint { txid, vout: 0 },
-        vec![(id as u128, u128::max_value())]
+        vec![(u128::from(id), u128::max_value())]
       )]
     );
   }
@@ -4713,7 +4713,7 @@ mod tests {
       context.index.rune_balances(),
       [(
         OutPoint { txid, vout: 0 },
-        vec![(id as u128, u128::max_value())]
+        vec![(u128::from(id), u128::max_value())]
       )]
     );
 
@@ -4747,7 +4747,7 @@ mod tests {
       context.index.rune_balances(),
       [(
         OutPoint { txid, vout: 0 },
-        vec![(id as u128, u128::max_value())]
+        vec![(u128::from(id), u128::max_value())]
       )]
     );
   }
@@ -4798,7 +4798,7 @@ mod tests {
       context.index.rune_balances(),
       [(
         OutPoint { txid, vout: 0 },
-        vec![(id as u128, u128::max_value())]
+        vec![(u128::from(id), u128::max_value())]
       )]
     );
 
@@ -4826,7 +4826,7 @@ mod tests {
       context.index.rune_balances(),
       [(
         OutPoint { txid, vout: 0 },
-        vec![(id as u128, u128::max_value())]
+        vec![(u128::from(id), u128::max_value())]
       )]
     );
   }
@@ -4876,7 +4876,7 @@ mod tests {
       context.index.rune_balances(),
       [(
         OutPoint { txid, vout: 0 },
-        vec![(id as u128, u128::max_value())]
+        vec![(u128::from(id), u128::max_value())]
       )]
     );
 
@@ -4917,7 +4917,7 @@ mod tests {
       context.index.rune_balances(),
       [(
         OutPoint { txid, vout: 0 },
-        vec![(id as u128, u128::max_value())]
+        vec![(u128::from(id), u128::max_value())]
       )]
     );
   }
@@ -4970,7 +4970,7 @@ mod tests {
           txid: txid0,
           vout: 0
         },
-        vec![(id0 as u128, u128::max_value())]
+        vec![(u128::from(id0), u128::max_value())]
       )]
     );
 
@@ -5027,14 +5027,14 @@ mod tests {
             txid: txid0,
             vout: 0
           },
-          vec![(id0 as u128, u128::max_value())]
+          vec![(u128::from(id0), u128::max_value())]
         ),
         (
           OutPoint {
             txid: txid1,
             vout: 0
           },
-          vec![(id1 as u128, u128::max_value())]
+          vec![(u128::from(id1), u128::max_value())]
         )
       ]
     );
@@ -5076,8 +5076,8 @@ mod tests {
           vout: 0
         },
         vec![
-          (id0 as u128, u128::max_value()),
-          (id1 as u128, u128::max_value())
+          (u128::from(id0), u128::max_value()),
+          (u128::from(id1), u128::max_value())
         ]
       )]
     );
@@ -5131,7 +5131,7 @@ mod tests {
           txid: txid0,
           vout: 0
         },
-        vec![(id0 as u128, u128::max_value())]
+        vec![(u128::from(id0), u128::max_value())]
       )]
     );
 
@@ -5188,14 +5188,14 @@ mod tests {
             txid: txid0,
             vout: 0
           },
-          vec![(id0 as u128, u128::max_value())]
+          vec![(u128::from(id0), u128::max_value())]
         ),
         (
           OutPoint {
             txid: txid1,
             vout: 0
           },
-          vec![(id1 as u128, u128::max_value())]
+          vec![(u128::from(id1), u128::max_value())]
         )
       ]
     );
@@ -5237,8 +5237,8 @@ mod tests {
           vout: 0
         },
         vec![
-          (id0 as u128, u128::max_value()),
-          (id1 as u128, u128::max_value())
+          (u128::from(id0), u128::max_value()),
+          (u128::from(id1), u128::max_value())
         ]
       )]
     );
@@ -5250,12 +5250,12 @@ mod tests {
         Runestone {
           edicts: vec![
             Edict {
-              id: id0 as u128,
+              id: u128::from(id0),
               amount: u128::max_value() / 2,
               output: 1,
             },
             Edict {
-              id: id1 as u128,
+              id: u128::from(id1),
               amount: u128::max_value() / 2,
               output: 1,
             },
@@ -5300,8 +5300,8 @@ mod tests {
             vout: 0
           },
           vec![
-            (id0 as u128, u128::max_value() / 2 + 1),
-            (id1 as u128, u128::max_value() / 2 + 1)
+            (u128::from(id0), u128::max_value() / 2 + 1),
+            (u128::from(id1), u128::max_value() / 2 + 1)
           ]
         ),
         (
@@ -5310,8 +5310,8 @@ mod tests {
             vout: 1
           },
           vec![
-            (id0 as u128, u128::max_value() / 2),
-            (id1 as u128, u128::max_value() / 2)
+            (u128::from(id0), u128::max_value() / 2),
+            (u128::from(id1), u128::max_value() / 2)
           ]
         )
       ]
@@ -5366,7 +5366,7 @@ mod tests {
           txid: txid0,
           vout: 0
         },
-        vec![(id0 as u128, u128::max_value())]
+        vec![(u128::from(id0), u128::max_value())]
       )]
     );
 
@@ -5423,14 +5423,14 @@ mod tests {
             txid: txid0,
             vout: 0
           },
-          vec![(id0 as u128, u128::max_value())]
+          vec![(u128::from(id0), u128::max_value())]
         ),
         (
           OutPoint {
             txid: txid1,
             vout: 0
           },
-          vec![(id1 as u128, u128::max_value())]
+          vec![(u128::from(id1), u128::max_value())]
         )
       ]
     );
@@ -5441,12 +5441,12 @@ mod tests {
         Runestone {
           edicts: vec![
             Edict {
-              id: id0 as u128,
+              id: u128::from(id0),
               amount: u128::max_value(),
               output: 0,
             },
             Edict {
-              id: id1 as u128,
+              id: u128::from(id1),
               amount: u128::max_value(),
               output: 0,
             },
@@ -5490,8 +5490,8 @@ mod tests {
           vout: 0
         },
         vec![
-          (id0 as u128, u128::max_value()),
-          (id1 as u128, u128::max_value())
+          (u128::from(id0), u128::max_value()),
+          (u128::from(id1), u128::max_value())
         ]
       )]
     );
@@ -5543,7 +5543,7 @@ mod tests {
       context.index.rune_balances(),
       [(
         OutPoint { txid, vout: 0 },
-        vec![(id as u128, u128::max_value())]
+        vec![(u128::from(id), u128::max_value())]
       )]
     );
 
@@ -5576,7 +5576,7 @@ mod tests {
       context.index.rune_balances(),
       [(
         OutPoint { txid, vout: 1 },
-        vec![(id as u128, u128::max_value())]
+        vec![(u128::from(id), u128::max_value())]
       )]
     );
   }
