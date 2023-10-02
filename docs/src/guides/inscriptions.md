@@ -193,7 +193,7 @@ ord wallet inscriptions
 Parent-Child Inscriptions
 -------------------------
 
-Parent-Child inscriptions enable what is colloquially known as collections, see 
+Parent-child inscriptions enable what is colloquially known as collections, see 
 [provenance](../inscriptions/provenance.md) for more information.
 
 To make an inscription a child of another, the parent inscription has to be 
