@@ -30,11 +30,7 @@ use {
     caches::DirCache,
     AcmeConfig,
   },
-  std::{
-    cmp::Ordering,
-    str, sync::Arc,
-    collections::HashMap,
-  },
+  std::{cmp::Ordering, collections::HashMap, str, sync::Arc},
   tokio_stream::StreamExt,
   tower_http::{
     compression::CompressionLayer,
@@ -460,19 +456,25 @@ impl Server {
 
   async fn sat_from_n(
     Extension(index): Extension<Arc<Index>>,
-    Path((DeserializeFromStr(sat), DeserializeFromStr(n))): Path<(DeserializeFromStr<Sat>, DeserializeFromStr<i64>)>,
+    Path((DeserializeFromStr(sat), DeserializeFromStr(n))): Path<(
+      DeserializeFromStr<Sat>,
+      DeserializeFromStr<i64>,
+    )>,
   ) -> ServerResult<Json<HashMap<String, String>>> {
     let mut inscriptions = index.get_inscription_ids_by_sat(sat)?;
     if n < 0 {
       inscriptions.reverse();
-    }    
-    let n_usize = usize::try_from(n.abs()).map_err(|_| ServerError::BadRequest("Invalid request".to_string()))?;
-    let inscription_id = inscriptions.get(n_usize - 1).ok_or_not_found(|| "inscription")?;
+    }
+    let n_usize = usize::try_from(n.abs())
+      .map_err(|_| ServerError::BadRequest("Invalid request".to_string()))?;
+    let inscription_id = inscriptions
+      .get(n_usize - 1)
+      .ok_or_not_found(|| "inscription")?;
     let mut map = HashMap::new();
     map.insert("id".to_string(), inscription_id.to_string());
     Ok(Json(map))
   }
-  
+
   async fn output(
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
@@ -917,13 +919,15 @@ impl Server {
         let mut inscriptions = index.get_inscription_ids_by_sat(sat)?;
         if page_index < 0 {
           inscriptions.reverse();
-        }    
-        let index = usize::try_from(page_index.abs()).map_err(|_| ServerError::BadRequest("Invalid request".to_string()))? - 1;
+        }
+        let index = usize::try_from(page_index.abs())
+          .map_err(|_| ServerError::BadRequest("Invalid request".to_string()))?
+          - 1;
         *inscriptions.get(index).ok_or_not_found(|| "inscription")?
-      },
+      }
       _ => return Err(ServerError::BadRequest("Invalid request".to_string())),
     };
-    
+
     let inscription = index
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
@@ -1871,14 +1875,14 @@ mod tests {
 
     server.mine_blocks(1);
 
-    let inscription_id = InscriptionId { txid, index: 0 };    
+    let inscription_id = InscriptionId { txid, index: 0 };
 
     server.assert_response_regex(
       "/-/sat/5000000000/1",
       StatusCode::OK,
       format!(r#".*\{{"id":"{}"\}}.*"#, inscription_id),
     );
-        
+
     server.assert_response_regex(
       "/-/sat/5000000000/-1",
       StatusCode::OK,
