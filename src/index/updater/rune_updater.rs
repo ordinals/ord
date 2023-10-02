@@ -18,8 +18,8 @@ pub(super) struct RuneUpdater<'a, 'db, 'tx> {
 
 impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
   pub(super) fn new(
-    id_to_entry: &'a mut Table<'db, 'tx, u64, RuneEntryValue>,
     outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
+    id_to_entry: &'a mut Table<'db, 'tx, u64, RuneEntryValue>,
     rune_to_id: &'a mut Table<'db, 'tx, u128, u64>,
   ) -> Self {
     Self {

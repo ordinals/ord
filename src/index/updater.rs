@@ -380,11 +380,11 @@ impl<'index> Updater<'_> {
 
     if index.options.index_runes() {
       let mut outpoint_to_rune_balances = wtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
-      let mut rune_id_to_etching = wtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
+      let mut rune_id_to_rune_entry = wtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
       let mut rune_to_rune_id = wtx.open_table(RUNE_TO_RUNE_ID)?;
       let mut rune_updater = RuneUpdater::new(
-        &mut rune_id_to_etching,
         &mut outpoint_to_rune_balances,
+        &mut rune_id_to_rune_entry,
         &mut rune_to_rune_id,
       );
       for (i, (tx, txid)) in block.txdata.iter().enumerate() {
