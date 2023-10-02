@@ -98,7 +98,7 @@ To get a list of the latest 100 inscriptions you would do:
 curl -s -H "Accept: application/json" 'http://0.0.0.0:80/inscriptions'
 ```
 
-To see information about an UTXO, which includes inscriptions inside it, do:
+To see information about a UTXO, which includes inscriptions inside it, do:
 
 ```
 curl -s -H "Accept: application/json" 'http://0.0.0.0:80/output/bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0'
