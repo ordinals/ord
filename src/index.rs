@@ -1329,7 +1329,7 @@ impl Index {
 mod tests {
   use {
     super::*,
-    crate::runes::{varint, Edict, Etching},
+    crate::runes::{varint, Edict, Etching, Runestone},
     bitcoin::secp256k1::rand::{self, RngCore},
   };
 
