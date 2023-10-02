@@ -85,6 +85,10 @@ impl Options {
     }
   }
 
+  pub(crate) fn index_runes(&self) -> bool {
+    self.index_runes && self.chain() != Chain::Mainnet
+  }
+
   pub(crate) fn rpc_url(&self) -> String {
     if let Some(rpc_url) = &self.rpc_url {
       format!("{rpc_url}/wallet/{}", self.wallet)

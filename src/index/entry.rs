@@ -24,8 +24,8 @@ impl Entry for BlockHash {
 
 pub(crate) struct RuneEntry {
   pub(crate) decimals: u128,
-  pub(crate) supply: u128,
   pub(crate) rune: Rune,
+  pub(crate) supply: u128,
 }
 
 pub(super) type RuneEntryValue = (u128, u128, u128);
@@ -33,16 +33,16 @@ pub(super) type RuneEntryValue = (u128, u128, u128);
 impl Entry for RuneEntry {
   type Value = RuneEntryValue;
 
-  fn load((decimals, supply, rune): RuneEntryValue) -> Self {
+  fn load((decimals, rune, supply): RuneEntryValue) -> Self {
     Self {
       decimals,
-      supply,
       rune: Rune(rune),
+      supply,
     }
   }
 
   fn store(self) -> Self::Value {
-    (self.decimals, self.supply, self.rune.0)
+    (self.decimals, self.rune.0, self.supply)
   }
 }
 
