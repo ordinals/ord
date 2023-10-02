@@ -537,14 +537,17 @@ impl Server {
     })?))
   }
 
-  async fn runes(Extension(index): Extension<Arc<Index>>) -> ServerResult<RunesHtml> {
+  async fn runes(
+    Extension(page_config): Extension<Arc<PageConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+  ) -> ServerResult<PageHtml<RunesHtml>> {
     let entries = index.runes()?.ok_or_else(|| {
       ServerError::NotFound(
         "tracking runes requires index created with `--index-runes` flag".into(),
       )
     })?;
 
-    Ok(RunesHtml { entries })
+    Ok(RunesHtml { entries }.page(page_config, index.has_sat_index()?))
   }
 
   async fn home(
@@ -1171,7 +1174,13 @@ impl Server {
 
 #[cfg(test)]
 mod tests {
-  use {super::*, reqwest::Url, serde::de::DeserializeOwned, std::net::TcpListener};
+  use {
+    super::*,
+    crate::runes::{Edict, Etching, Rune, Runestone},
+    reqwest::Url,
+    serde::de::DeserializeOwned,
+    std::net::TcpListener,
+  };
 
   struct TestServer {
     bitcoin_rpc_server: test_bitcoincore_rpc::Handle,
@@ -1224,6 +1233,17 @@ mod tests {
           .build(),
         None,
         &["--chain", "regtest", "--index-sats"],
+        &[],
+      )
+    }
+
+    fn new_with_regtest_with_index_runes() -> Self {
+      Self::new_server(
+        test_bitcoincore_rpc::builder()
+          .network(bitcoin::Network::Regtest)
+          .build(),
+        None,
+        &["--chain", "regtest", "--index-runes"],
         &[],
       )
     }
@@ -3038,8 +3058,76 @@ mod tests {
   }
 
   #[test]
-  #[ignore]
   fn runes_are_displayed_on_runes_page() {
-    todo!();
+    let server = TestServer::new_with_regtest_with_index_runes();
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      "/runes",
+      StatusCode::OK,
+      ".*<title>Runes</title>.*<h1>Runes</h1>\n<ul class=monospace>\n</ul>.*",
+    );
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            decimals: 0,
+            rune: Rune(0),
+          }),
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = 2 << 16 | 1;
+
+    assert_eq!(
+      server.index.runes().unwrap().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          rune: Rune(0),
+          decimals: 0,
+          supply: u128::max_value(),
+        }
+      )]
+    );
+
+    assert_eq!(
+      server.index.rune_balances(),
+      [(
+        OutPoint { txid, vout: 0 },
+        vec![(id as u128, u128::max_value())]
+      )]
+    );
+
+    server.assert_response_regex(
+      "/runes",
+      StatusCode::OK,
+      ".*<title>Runes</title>.*
+<h1>Runes</h1>
+<ul class=monospace>
+  <li>
+    <h2>A</h2>
+    <dl>
+      <dt>supply</dt>
+      <dd>340282366920938463463374607431768211455</dd>
+      <dt>decimals</dt>
+      <dd>0</dd>
+    </dl>
+  </li>
+</ul>.*",
+    );
   }
 }

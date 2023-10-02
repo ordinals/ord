@@ -651,6 +651,39 @@ impl Index {
     }
   }
 
+  #[cfg(test)]
+  pub(crate) fn rune_balances(&self) -> Vec<(OutPoint, Vec<(u128, u128)>)> {
+    let mut result = Vec::new();
+
+    for entry in self
+      .database
+      .begin_read()
+      .unwrap()
+      .open_table(OUTPOINT_TO_RUNE_BALANCES)
+      .unwrap()
+      .iter()
+      .unwrap()
+    {
+      let (outpoint, balances_buffer) = entry.unwrap();
+      let outpoint = OutPoint::load(*outpoint.value());
+      let balances_buffer = balances_buffer.value();
+
+      let mut balances = Vec::new();
+      let mut i = 0;
+      while i < balances_buffer.len() {
+        let (id, length) = runes::varint::decode(&balances_buffer[i..]).unwrap();
+        i += length;
+        let (balance, length) = runes::varint::decode(&balances_buffer[i..]).unwrap();
+        i += length;
+        balances.push((id, balance));
+      }
+
+      result.push((outpoint, balances));
+    }
+
+    result
+  }
+
   pub(crate) fn block_header(&self, hash: BlockHash) -> Result<Option<Header>> {
     self.client.get_block_header(&hash).into_option()
   }
@@ -1329,7 +1362,7 @@ impl Index {
 mod tests {
   use {
     super::*,
-    crate::runes::{varint, Edict, Etching, Runestone},
+    crate::runes::{Edict, Etching, Runestone},
     bitcoin::secp256k1::rand::{self, RngCore},
   };
 
@@ -4117,43 +4150,11 @@ mod tests {
       .unwrap());
   }
 
-  fn rune_balances(index: &Index) -> Vec<(OutPoint, Vec<(u128, u128)>)> {
-    let mut result = Vec::new();
-
-    for entry in index
-      .database
-      .begin_read()
-      .unwrap()
-      .open_table(OUTPOINT_TO_RUNE_BALANCES)
-      .unwrap()
-      .iter()
-      .unwrap()
-    {
-      let (outpoint, balances_buffer) = entry.unwrap();
-      let outpoint = OutPoint::load(*outpoint.value());
-      let balances_buffer = balances_buffer.value();
-
-      let mut balances = Vec::new();
-      let mut i = 0;
-      while i < balances_buffer.len() {
-        let (id, length) = varint::decode(&balances_buffer[i..]).unwrap();
-        i += length;
-        let (balance, length) = varint::decode(&balances_buffer[i..]).unwrap();
-        i += length;
-        balances.push((id, balance));
-      }
-
-      result.push((outpoint, balances));
-    }
-
-    result
-  }
-
   #[test]
   fn index_starts_with_no_runes() {
     let context = Context::builder().arg("--index-runes").build();
     assert_eq!(context.index.runes().unwrap().unwrap(), []);
-    assert_eq!(rune_balances(&context.index), []);
+    assert_eq!(context.index.rune_balances(), []);
   }
 
   #[test]
@@ -4177,7 +4178,7 @@ mod tests {
     context.mine_blocks(1);
 
     assert_eq!(context.index.runes().unwrap().unwrap(), []);
-    assert_eq!(rune_balances(&context.index), []);
+    assert_eq!(context.index.rune_balances(), []);
   }
 
   #[test]
@@ -4204,7 +4205,7 @@ mod tests {
     context.mine_blocks(1);
 
     assert_eq!(context.index.runes().unwrap().unwrap(), []);
-    assert_eq!(rune_balances(&context.index), []);
+    assert_eq!(context.index.rune_balances(), []);
   }
 
   #[test]
@@ -4249,7 +4250,7 @@ mod tests {
     );
 
     assert_eq!(
-      rune_balances(&context.index),
+      context.index.rune_balances(),
       [(
         OutPoint { txid, vout: 0 },
         vec![(id as u128, u128::max_value())]
@@ -4299,7 +4300,7 @@ mod tests {
     );
 
     assert_eq!(
-      rune_balances(&context.index),
+      context.index.rune_balances(),
       [(
         OutPoint { txid, vout: 0 },
         vec![(id as u128, u128::max_value())]
@@ -4356,7 +4357,7 @@ mod tests {
     );
 
     assert_eq!(
-      rune_balances(&context.index),
+      context.index.rune_balances(),
       [(
         OutPoint { txid, vout: 0 },
         vec![(id as u128, u128::max_value())]
@@ -4413,7 +4414,7 @@ mod tests {
     );
 
     assert_eq!(
-      rune_balances(&context.index),
+      context.index.rune_balances(),
       [(
         OutPoint { txid, vout: 0 },
         vec![(id as u128, u128::max_value())]
@@ -4463,7 +4464,7 @@ mod tests {
     );
 
     assert_eq!(
-      rune_balances(&context.index),
+      context.index.rune_balances(),
       [(OutPoint { txid, vout: 0 }, vec![(id as u128, 100)])]
     );
   }
@@ -4517,7 +4518,7 @@ mod tests {
     );
 
     assert_eq!(
-      rune_balances(&context.index),
+      context.index.rune_balances(),
       [
         (OutPoint { txid, vout: 0 }, vec![(id as u128, 100)]),
         (OutPoint { txid, vout: 1 }, vec![(id as u128, 100)])
@@ -4574,7 +4575,7 @@ mod tests {
     );
 
     assert_eq!(
-      rune_balances(&context.index),
+      context.index.rune_balances(),
       [(OutPoint { txid, vout: 0 }, vec![(id as u128, 100)]),]
     );
   }
@@ -4621,7 +4622,7 @@ mod tests {
     );
 
     assert_eq!(
-      rune_balances(&context.index),
+      context.index.rune_balances(),
       [(
         OutPoint { txid, vout: 0 },
         vec![(id as u128, u128::max_value())]
@@ -4659,7 +4660,7 @@ mod tests {
     );
 
     assert_eq!(
-      rune_balances(&context.index),
+      context.index.rune_balances(),
       [(
         OutPoint { txid, vout: 0 },
         vec![(id as u128, u128::max_value())]
@@ -4709,7 +4710,7 @@ mod tests {
     );
 
     assert_eq!(
-      rune_balances(&context.index),
+      context.index.rune_balances(),
       [(
         OutPoint { txid, vout: 0 },
         vec![(id as u128, u128::max_value())]
@@ -4743,7 +4744,7 @@ mod tests {
     );
 
     assert_eq!(
-      rune_balances(&context.index),
+      context.index.rune_balances(),
       [(
         OutPoint { txid, vout: 0 },
         vec![(id as u128, u128::max_value())]
@@ -4794,7 +4795,7 @@ mod tests {
     );
 
     assert_eq!(
-      rune_balances(&context.index),
+      context.index.rune_balances(),
       [(
         OutPoint { txid, vout: 0 },
         vec![(id as u128, u128::max_value())]
@@ -4822,7 +4823,7 @@ mod tests {
     );
 
     assert_eq!(
-      rune_balances(&context.index),
+      context.index.rune_balances(),
       [(
         OutPoint { txid, vout: 0 },
         vec![(id as u128, u128::max_value())]
@@ -4872,7 +4873,7 @@ mod tests {
     );
 
     assert_eq!(
-      rune_balances(&context.index),
+      context.index.rune_balances(),
       [(
         OutPoint { txid, vout: 0 },
         vec![(id as u128, u128::max_value())]
@@ -4913,7 +4914,7 @@ mod tests {
     );
 
     assert_eq!(
-      rune_balances(&context.index),
+      context.index.rune_balances(),
       [(
         OutPoint { txid, vout: 0 },
         vec![(id as u128, u128::max_value())]
@@ -4963,7 +4964,7 @@ mod tests {
     );
 
     assert_eq!(
-      rune_balances(&context.index),
+      context.index.rune_balances(),
       [(
         OutPoint {
           txid: txid0,
@@ -5019,7 +5020,7 @@ mod tests {
     );
 
     assert_eq!(
-      rune_balances(&context.index),
+      context.index.rune_balances(),
       [
         (
           OutPoint {
@@ -5068,7 +5069,7 @@ mod tests {
     );
 
     assert_eq!(
-      rune_balances(&context.index),
+      context.index.rune_balances(),
       [(
         OutPoint {
           txid: txid2,
@@ -5124,7 +5125,7 @@ mod tests {
     );
 
     assert_eq!(
-      rune_balances(&context.index),
+      context.index.rune_balances(),
       [(
         OutPoint {
           txid: txid0,
@@ -5180,7 +5181,7 @@ mod tests {
     );
 
     assert_eq!(
-      rune_balances(&context.index),
+      context.index.rune_balances(),
       [
         (
           OutPoint {
@@ -5229,7 +5230,7 @@ mod tests {
     );
 
     assert_eq!(
-      rune_balances(&context.index),
+      context.index.rune_balances(),
       [(
         OutPoint {
           txid: txid2,
@@ -5291,7 +5292,7 @@ mod tests {
     );
 
     assert_eq!(
-      rune_balances(&context.index),
+      context.index.rune_balances(),
       [
         (
           OutPoint {
@@ -5359,7 +5360,7 @@ mod tests {
     );
 
     assert_eq!(
-      rune_balances(&context.index),
+      context.index.rune_balances(),
       [(
         OutPoint {
           txid: txid0,
@@ -5415,7 +5416,7 @@ mod tests {
     );
 
     assert_eq!(
-      rune_balances(&context.index),
+      context.index.rune_balances(),
       [
         (
           OutPoint {
@@ -5482,7 +5483,7 @@ mod tests {
     );
 
     assert_eq!(
-      rune_balances(&context.index),
+      context.index.rune_balances(),
       [(
         OutPoint {
           txid: txid2,
@@ -5539,7 +5540,7 @@ mod tests {
     );
 
     assert_eq!(
-      rune_balances(&context.index),
+      context.index.rune_balances(),
       [(
         OutPoint { txid, vout: 0 },
         vec![(id as u128, u128::max_value())]
@@ -5572,7 +5573,7 @@ mod tests {
     );
 
     assert_eq!(
-      rune_balances(&context.index),
+      context.index.rune_balances(),
       [(
         OutPoint { txid, vout: 1 },
         vec![(id as u128, u128::max_value())]
