@@ -741,7 +741,7 @@ _銘文は簡単です_、はっきりしていて事故はありません\*そ�
 <p><code>ord server</code></p>
 <p>指定されたポートは、'--http-port'タグを使用します。</p>
 <p><code>ord server --http-port 8080</code></p>
-<p>To enable the JSON-API endpoints add the <code>--enable-json-api</code> or <code>-e</code> flag:</p>
+<p>To enable the JSON-API endpoints add the <code>--enable-json-api</code> or <code>-j</code> flag (see <a href="guides/explorer.html#json-api">here</a> for more info):</p>
 <p><code>ord --enable-json-api server</code></p>
 <p>銘文をテストして、運行できます：</p>
 <p><code>ord preview &lt;FILE1&gt; &lt;FILE2&gt; ...</code></p>
@@ -767,6 +767,37 @@ _銘文は簡単です_、はっきりしていて事故はありません\*そ�
 <p><a href="https://ordinals.com/search/ahistorical">ahistorical</a></p>
 <p>または百分率で、採掘時にすでに発行された、または発行される予定のビットコインの供給量のパーセント：</p>
 <p><a href="https://ordinals.com/search/100%">100%</a></p>
+<h2 id="json-api"><a class="header" href="#json-api">JSON-API</a></h2>
+<p>You can run <code>ord</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of theses objects closely follows what is shown in the HTML. These endpoints are:</p>
+<ul>
+<li><code>/inscription/&lt;INSCRIPTION_ID&gt;</code></li>
+<li><code>/inscriptions</code></li>
+<li><code>/inscriptions/block/&lt;BLOCK_HEIGHT&gt;</code></li>
+<li><code>/inscriptions/block/&lt;BLOCK_HEIGHT&gt;/&lt;PAGE_INDEX&gt;</code></li>
+<li><code>/inscriptions/&lt;FROM&gt;</code></li>
+<li><code>/inscriptions/&lt;FROM&gt;/&lt;N&gt;</code></li>
+<li><code>/output/&lt;OUTPOINT&gt;</code></li>
+<li><code>/output/&lt;OUTPOINT&gt;</code></li>
+<li><code>/sat/&lt;SAT&gt;</code></li>
+</ul>
+<p>To get a list of the latest 100 inscriptions you would do:</p>
+<pre><code>curl -s -H &quot;Accept: application/json&quot; 'http://0.0.0.0:80/inscriptions'
+</code></pre>
+<p>To see information about a UTXO, which includes inscriptions inside it, do:</p>
+<pre><code>curl -s -H &quot;Accept: application/json&quot; 'http://0.0.0.0:80/output/bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0'
+</code></pre>
+<p>Which returns:</p>
+<pre><code>{
+  &quot;value&quot;: 10000,
+  &quot;script_pubkey&quot;: &quot;OP_PUSHNUM_1 OP_PUSHBYTES_32 156cc4878306157720607cdcb4b32afa4cc6853868458d7258b907112e5a434b&quot;,
+  &quot;address&quot;: &quot;bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf&quot;,
+  &quot;transaction&quot;: &quot;bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed&quot;,
+  &quot;sat_ranges&quot;: null,
+  &quot;inscriptions&quot;: [
+    &quot;6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0&quot;
+  ]
+}
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="銘文のガイド"><a class="header" href="#銘文のガイド">銘文のガイド</a></h1>
 <p>単一のコングは、ビットコインウォレットに保存され、ビットコイントランザクションを使用して転送されるビットコインネイティブデジタルアーティファクトを作成するために、任意のコンテンツを刻印することができます。の銘文はビットコイン自体と同じくらい持続的で、不変で、安全で、分散化されています。</p>
 <p>銘文を使用するには、ビットコインのブロックチェーンの現在の状態を知ることができるビットコインの完全なノードが必要です。また、銘文を作成し、取引を構築することができます」他のウォレットに銘文を送信するときにスマートコントロールを実行するウォレット。</p>
