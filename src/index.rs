@@ -2959,7 +2959,7 @@ mod tests {
   }
 
   #[test]
-  fn multiple_inscriptions_same_input_all_but_first_are_cursed_and_unbound() {
+  fn multiple_inscriptions_same_input_are_cursed_reinscriptions() {
     for context in Context::configurations() {
       context.rpc_server.mine_blocks(1);
 
@@ -3016,19 +3016,19 @@ mod tests {
       context.index.assert_inscription_location(
         second,
         SatPoint {
-          outpoint: unbound_outpoint(),
+          outpoint: OutPoint { txid, vout: 0 },
           offset: 0,
         },
-        None,
+        Some(50 * COIN_VALUE),
       );
 
       context.index.assert_inscription_location(
         third,
         SatPoint {
-          outpoint: unbound_outpoint(),
-          offset: 1,
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 0,
         },
-        None,
+        Some(50 * COIN_VALUE),
       );
 
       assert_eq!(
@@ -3109,13 +3109,23 @@ mod tests {
       });
 
       let first = InscriptionId { txid, index: 0 }; // normal
+      let second = InscriptionId { txid, index: 1 }; // cursed reinscription
       let fourth = InscriptionId { txid, index: 3 }; // cursed but bound
-      let ninth = InscriptionId { txid, index: 8 }; // cursed and unbound
+      let ninth = InscriptionId { txid, index: 8 }; // cursed reinscription
 
       context.mine_blocks(1);
 
       context.index.assert_inscription_location(
         first,
+        SatPoint {
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 0,
+        },
+        Some(50 * COIN_VALUE),
+      );
+
+      context.index.assert_inscription_location(
+        second,
         SatPoint {
           outpoint: OutPoint { txid, vout: 0 },
           offset: 0,
@@ -3135,10 +3145,10 @@ mod tests {
       context.index.assert_inscription_location(
         ninth,
         SatPoint {
-          outpoint: unbound_outpoint(),
-          offset: 5,
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 100 * COIN_VALUE,
         },
-        None,
+        Some(150 * COIN_VALUE),
       );
 
       assert_eq!(
