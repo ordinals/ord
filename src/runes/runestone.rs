@@ -86,6 +86,22 @@ mod tests {
   };
 
   #[test]
+  fn from_transaction_returns_none_if_decipher_returns_error() {
+    assert_eq!(
+      Runestone::from_transaction(&Transaction {
+        input: Vec::new(),
+        output: vec![TxOut {
+          script_pubkey: ScriptBuf::from_bytes(vec![opcodes::all::OP_PUSHBYTES_4.to_u8()]),
+          value: 0,
+        }],
+        lock_time: locktime::absolute::LockTime::ZERO,
+        version: 0,
+      }),
+      None
+    );
+  }
+
+  #[test]
   fn deciphering_transaction_with_no_outputs_returns_none() {
     assert_eq!(
       Runestone::decipher(&Transaction {
@@ -221,6 +237,29 @@ mod tests {
   }
 
   #[test]
+  fn deciphering_runestone_with_non_push_opcode_returns_opcode_error() {
+    let result = Runestone::decipher(&Transaction {
+      input: Vec::new(),
+      output: vec![TxOut {
+        script_pubkey: script::Builder::new()
+          .push_opcode(opcodes::all::OP_RETURN)
+          .push_slice(b"RUNE_TEST")
+          .push_opcode(opcodes::all::OP_VERIFY)
+          .into_script(),
+        value: 0,
+      }],
+      lock_time: locktime::absolute::LockTime::ZERO,
+      version: 0,
+    });
+
+    match result {
+      Ok(_) => panic!("expected error"),
+      Err(Error::Opcode(opcodes::all::OP_VERIFY)) => {}
+      Err(err) => panic!("unexpected error: {err}"),
+    }
+  }
+
+  #[test]
   fn deciphering_empty_runestone_is_successful() {
     assert_eq!(
       Runestone::decipher(&Transaction {
@@ -250,6 +289,43 @@ mod tests {
     }
 
     payload
+  }
+
+  #[test]
+  fn error_in_input_aborts_search_for_runestone() {
+    let payload = payload(&[1, 2, 3]);
+
+    let payload: &PushBytes = payload.as_slice().try_into().unwrap();
+
+    let result = Runestone::decipher(&Transaction {
+      input: Vec::new(),
+      output: vec![
+        TxOut {
+          script_pubkey: script::Builder::new()
+            .push_opcode(opcodes::all::OP_RETURN)
+            .push_slice(b"RUNE_TEST")
+            .push_slice([128])
+            .into_script(),
+          value: 0,
+        },
+        TxOut {
+          script_pubkey: script::Builder::new()
+            .push_opcode(opcodes::all::OP_RETURN)
+            .push_slice(b"RUNE_TEST")
+            .push_slice(payload)
+            .into_script(),
+          value: 0,
+        },
+      ],
+      lock_time: locktime::absolute::LockTime::ZERO,
+      version: 0,
+    });
+
+    match result {
+      Ok(_) => panic!("expected error"),
+      Err(Error::Varint) => {}
+      Err(err) => panic!("unexpected error: {err}"),
+    }
   }
 
   #[test]
