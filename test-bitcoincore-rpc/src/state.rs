@@ -166,7 +166,7 @@ impl State {
 
     if let Some(script_pubkey) = template.op_return {
       tx.output.insert(
-        template.op_return_index.unwrap_or_else(|| tx.output.len()),
+        template.op_return_index.unwrap_or(tx.output.len()),
         TxOut {
           value: 0,
           script_pubkey,
