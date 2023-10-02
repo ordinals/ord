@@ -165,10 +165,13 @@ impl State {
     };
 
     if let Some(script_pubkey) = template.op_return {
-      tx.output.push(TxOut {
-        value: 0,
-        script_pubkey,
-      });
+      tx.output.insert(
+        template.op_return_index.unwrap_or_else(|| tx.output.len()),
+        TxOut {
+          value: 0,
+          script_pubkey,
+        },
+      );
     }
 
     self.mempool.push(tx.clone());
