@@ -257,9 +257,9 @@ impl Index {
           .insert(&Statistic::Schema.key(), &SCHEMA_VERSION)?;
 
         if options.index_runes {
+          tx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
           tx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
           tx.open_table(RUNE_TO_RUNE_ID)?;
-          tx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
         }
 
         if options.index_sats {
