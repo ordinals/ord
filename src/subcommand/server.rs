@@ -466,7 +466,8 @@ impl Server {
     if n < 0 {
       inscriptions.reverse();
     }    
-    let inscription_id = inscriptions.get(n.abs() as usize - 1).ok_or_not_found(|| "inscription")?;    
+    let n_usize = usize::try_from(n.abs()).map_err(|_| ServerError::BadRequest("Invalid request".to_string()))?;
+    let inscription_id = inscriptions.get(n_usize - 1).ok_or_not_found(|| "inscription")?;
     let mut map = HashMap::new();
     map.insert("id".to_string(), inscription_id.to_string());
     Ok(Json(map))
@@ -917,7 +918,8 @@ impl Server {
         if page_index < 0 {
           inscriptions.reverse();
         }    
-        inscriptions.get(page_index.abs() as usize - 1).ok_or_not_found(|| "inscription")?.clone()
+        let index = usize::try_from(page_index.abs()).map_err(|_| ServerError::BadRequest("Invalid request".to_string()))? - 1;
+        *inscriptions.get(index).ok_or_not_found(|| "inscription")?
       },
       _ => return Err(ServerError::BadRequest("Invalid request".to_string())),
     };
@@ -1872,19 +1874,16 @@ mod tests {
     let inscription_id = InscriptionId { txid, index: 0 };    
 
     server.assert_response_regex(
-      "/sat/5000000000/1",
+      "/-/sat/5000000000/1",
       StatusCode::OK,
       format!(r#".*\{{"id":"{}"\}}.*"#, inscription_id),
     );
         
     server.assert_response_regex(
-      "/sat/5000000000/-1",
+      "/-/sat/5000000000/-1",
       StatusCode::OK,
       format!(r#".*\{{"id":"{}"\}}.*"#, inscription_id),
     );
-    
-    
-
   }
 
   #[test]
