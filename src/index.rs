@@ -58,10 +58,10 @@ define_table! { OUTPOINT_TO_RUNE_BALANCES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_VALUE, &OutPointValue, u64}
 define_table! { RUNE_ID_TO_RUNE_ENTRY, u64, RuneEntryValue }
+define_table! { RUNE_TO_RUNE_ID, u128, u64 }
 define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
 define_table! { SEQUENCE_NUMBER_TO_INSCRIPTION_ID, u64, &InscriptionIdValue }
 define_table! { STATISTIC_TO_COUNT, u64, u64 }
-define_table! { RUNE_TO_RUNE_ID, u128, u64 }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u64, u128 }
 
 #[derive(Debug, PartialEq)]
