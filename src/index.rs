@@ -4258,7 +4258,171 @@ mod tests {
   }
 
   #[test]
-  fn etching_without_max_supply_allocated_is_reflected_in_rune_entry() {
+  fn etching_with_non_zero_decimals_and_rune() {
+    let context = Context::builder().arg("--index-runes").build();
+
+    context.mine_blocks(1);
+
+    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            decimals: 1,
+            rune: Rune(1),
+          }),
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = 2 << 16 | 1;
+
+    assert_eq!(
+      context.index.runes().unwrap().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          rune: Rune(1),
+          decimals: 1,
+          supply: u128::max_value(),
+        }
+      )]
+    );
+
+    assert_eq!(
+      rune_balances(&context.index),
+      [(
+        OutPoint { txid, vout: 0 },
+        vec![(id as u128, u128::max_value())]
+      )]
+    );
+  }
+
+  #[test]
+  fn allocations_over_max_supply_are_ignored() {
+    let context = Context::builder().arg("--index-runes").build();
+
+    context.mine_blocks(1);
+
+    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![
+            Edict {
+              id: 0,
+              amount: u128::max_value(),
+              output: 0,
+            },
+            Edict {
+              id: 0,
+              amount: u128::max_value(),
+              output: 0,
+            },
+          ],
+          etching: Some(Etching {
+            decimals: 0,
+            rune: Rune(0),
+          }),
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = 2 << 16 | 1;
+
+    assert_eq!(
+      context.index.runes().unwrap().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          rune: Rune(0),
+          decimals: 0,
+          supply: u128::max_value(),
+        }
+      )]
+    );
+
+    assert_eq!(
+      rune_balances(&context.index),
+      [(
+        OutPoint { txid, vout: 0 },
+        vec![(id as u128, u128::max_value())]
+      )]
+    );
+  }
+
+  #[test]
+  fn allocations_partially_over_max_supply_are_honored() {
+    let context = Context::builder().arg("--index-runes").build();
+
+    context.mine_blocks(1);
+
+    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![
+            Edict {
+              id: 0,
+              amount: u128::max_value() / 2,
+              output: 0,
+            },
+            Edict {
+              id: 0,
+              amount: u128::max_value(),
+              output: 0,
+            },
+          ],
+          etching: Some(Etching {
+            decimals: 0,
+            rune: Rune(0),
+          }),
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = 2 << 16 | 1;
+
+    assert_eq!(
+      context.index.runes().unwrap().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          rune: Rune(0),
+          decimals: 0,
+          supply: u128::max_value(),
+        }
+      )]
+    );
+
+    assert_eq!(
+      rune_balances(&context.index),
+      [(
+        OutPoint { txid, vout: 0 },
+        vec![(id as u128, u128::max_value())]
+      )]
+    );
+  }
+
+  #[test]
+  fn etching_may_allocate_less_than_max_supply() {
     let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
@@ -4302,5 +4466,140 @@ mod tests {
       rune_balances(&context.index),
       [(OutPoint { txid, vout: 0 }, vec![(id as u128, 100)])]
     );
+  }
+
+  #[test]
+  fn etching_may_allocate_to_multiple_outputs() {
+    let context = Context::builder().arg("--index-runes").build();
+
+    context.mine_blocks(1);
+
+    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![
+            Edict {
+              id: 0,
+              amount: 100,
+              output: 0,
+            },
+            Edict {
+              id: 0,
+              amount: 100,
+              output: 1,
+            },
+          ],
+          etching: Some(Etching {
+            decimals: 0,
+            rune: Rune(0),
+          }),
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = 2 << 16 | 1;
+
+    assert_eq!(
+      context.index.runes().unwrap().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          rune: Rune(0),
+          decimals: 0,
+          supply: 200,
+        }
+      )]
+    );
+
+    assert_eq!(
+      rune_balances(&context.index),
+      [
+        (OutPoint { txid, vout: 0 }, vec![(id as u128, 100)]),
+        (OutPoint { txid, vout: 1 }, vec![(id as u128, 100)])
+      ]
+    );
+  }
+
+  #[test]
+  fn allocations_to_invalid_outputs_are_ignored() {
+    let context = Context::builder().arg("--index-runes").build();
+
+    context.mine_blocks(1);
+
+    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![
+            Edict {
+              id: 0,
+              amount: 100,
+              output: 0,
+            },
+            Edict {
+              id: 0,
+              amount: 100,
+              output: 3,
+            },
+          ],
+          etching: Some(Etching {
+            decimals: 0,
+            rune: Rune(0),
+          }),
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = 2 << 16 | 1;
+
+    assert_eq!(
+      context.index.runes().unwrap().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          rune: Rune(0),
+          decimals: 0,
+          supply: 100,
+        }
+      )]
+    );
+
+    assert_eq!(
+      rune_balances(&context.index),
+      [(OutPoint { txid, vout: 0 }, vec![(id as u128, 100)]),]
+    );
+  }
+
+  #[test]
+  #[ignore]
+  fn input_runes_may_be_allocated() {
+    todo!()
+  }
+
+  #[test]
+  #[ignore]
+  fn unallocated_runes_are_assigned_to_first_no_op_return_output() {
+    todo!()
+  }
+
+  #[test]
+  #[ignore]
+  fn duplicate_symbols_are_forbidden() {
+    todo!()
+  }
+
+  #[test]
+  #[ignore]
+  fn etching_in_transaction_with_index_over_maximum_is_ignored() {
+    todo!()
   }
 }

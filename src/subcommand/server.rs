@@ -3036,4 +3036,10 @@ mod tests {
       [inscription_id],
     );
   }
+
+  #[test]
+  #[ignore]
+  fn runes_are_displayed_on_runes_page() {
+    todo!();
+  }
 }
