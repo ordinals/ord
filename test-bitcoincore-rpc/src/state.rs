@@ -148,7 +148,7 @@ impl State {
       total_value
     );
 
-    let tx = Transaction {
+    let mut tx = Transaction {
       version: 0,
       lock_time: LockTime::ZERO,
       input,
@@ -163,6 +163,14 @@ impl State {
         })
         .collect(),
     };
+
+    if let Some(script_pubkey) = template.op_return {
+      tx.output.push(TxOut {
+        value: 0,
+        script_pubkey,
+      });
+    }
+
     self.mempool.push(tx.clone());
 
     tx.txid()

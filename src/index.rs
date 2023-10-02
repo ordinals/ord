@@ -1329,6 +1329,7 @@ impl Index {
 mod tests {
   use {
     super::*,
+    crate::runes::{Edict, Etching},
     bitcoin::secp256k1::rand::{self, RngCore},
   };
 
@@ -4143,5 +4144,111 @@ mod tests {
     context.mine_blocks(1);
 
     assert_eq!(context.index.runes().unwrap().unwrap(), []);
+  }
+
+  #[test]
+  fn etching_with_no_edicts_does_not_create_rune() {
+    let context = Context::builder().arg("--index-runes").build();
+
+    context.mine_blocks(1);
+
+    context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: Vec::new(),
+          etching: Some(Etching {
+            decimals: 0,
+            rune: Rune(0),
+          }),
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    assert_eq!(context.index.runes().unwrap().unwrap(), []);
+  }
+
+  #[test]
+  fn etching_with_edict_creates_rune() {
+    let context = Context::builder().arg("--index-runes").build();
+
+    context.mine_blocks(1);
+
+    context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 1,
+          }],
+          etching: Some(Etching {
+            decimals: 0,
+            rune: Rune(0),
+          }),
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    assert_eq!(
+      context.index.runes().unwrap().unwrap(),
+      [(
+        2 << 16 | 1,
+        RuneEntry {
+          rune: Rune(0),
+          decimals: 0,
+          supply: u128::max_value(),
+        }
+      )]
+    );
+  }
+
+  #[test]
+  fn etching_without_max_supply_allocated_is_reflected_in_rune_entry() {
+    let context = Context::builder().arg("--index-runes").build();
+
+    context.mine_blocks(1);
+
+    context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: 100,
+            output: 1,
+          }],
+          etching: Some(Etching {
+            decimals: 0,
+            rune: Rune(0),
+          }),
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    assert_eq!(
+      context.index.runes().unwrap().unwrap(),
+      [(
+        2 << 16 | 1,
+        RuneEntry {
+          rune: Rune(0),
+          decimals: 0,
+          supply: 100,
+        }
+      )]
+    );
   }
 }
