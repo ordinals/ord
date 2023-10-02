@@ -36,10 +36,6 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
     tx: &Transaction,
     txid: Txid,
   ) -> Result<()> {
-    let Ok(index) = u16::try_from(index) else {
-      return Ok(());
-    };
-
     let runestone = Runestone::from_transaction(tx);
 
     // A mapping of rune ID to un-allocated balance of that rune
@@ -78,7 +74,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             // allocated.
             match u16::try_from(index) {
               Ok(index) => Some(Allocation {
-                id: (height as u128) << 16 | index as u128,
+                id: u128::from(height) << 16 | u128::from(index),
                 balance: u128::max_value(),
                 rune: etching.rune,
                 decimals: etching.decimals,

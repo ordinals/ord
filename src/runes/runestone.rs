@@ -29,15 +29,15 @@ impl Runestone {
     let mut etching = None;
 
     for chunk in integers.chunks(3) {
-      match chunk {
-        &[id, amount, output] => edicts.push(Edict { id, amount, output }),
-        &[rune] => {
+      match *chunk {
+        [id, amount, output] => edicts.push(Edict { id, amount, output }),
+        [rune] => {
           etching = Some(Etching {
             decimals: 0,
             rune: Rune(rune),
           })
         }
-        &[rune, decimals] => {
+        [rune, decimals] => {
           etching = Some(Etching {
             decimals,
             rune: Rune(rune),
@@ -198,6 +198,29 @@ mod tests {
   }
 
   #[test]
+  fn deciphering_runestone_with_invalid_varint_returns_varint_error() {
+    let result = Runestone::decipher(&Transaction {
+      input: Vec::new(),
+      output: vec![TxOut {
+        script_pubkey: script::Builder::new()
+          .push_opcode(opcodes::all::OP_RETURN)
+          .push_slice(b"RUNE_TEST")
+          .push_slice([128])
+          .into_script(),
+        value: 0,
+      }],
+      lock_time: locktime::absolute::LockTime::ZERO,
+      version: 0,
+    });
+
+    match result {
+      Ok(_) => panic!("expected error"),
+      Err(Error::Varint) => {}
+      Err(err) => panic!("unexpected error: {err}"),
+    }
+  }
+
+  #[test]
   fn deciphering_empty_runestone_is_successful() {
     assert_eq!(
       Runestone::decipher(&Transaction {
@@ -261,7 +284,7 @@ mod tests {
   }
 
   #[test]
-  fn additional_integer_is_symbol() {
+  fn additional_integer_is_rune() {
     let payload = payload(&[1, 2, 3, 4]);
 
     let payload: &PushBytes = payload.as_slice().try_into().unwrap();
@@ -295,7 +318,7 @@ mod tests {
   }
 
   #[test]
-  fn additional_two_integers_are_symbol_and_decimals() {
+  fn additional_two_integers_are_rune_and_decimals() {
     let payload = payload(&[1, 2, 3, 4, 5]);
 
     let payload: &PushBytes = payload.as_slice().try_into().unwrap();

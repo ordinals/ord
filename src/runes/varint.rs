@@ -12,7 +12,7 @@ pub fn encode_to_vec(mut n: u128, v: &mut Vec<u8>) {
   let mut i = 18;
 
   loop {
-    let mut byte = n as u8 % 128;
+    let mut byte = n.to_le_bytes()[0] % 128;
 
     if i < 18 {
       byte |= 0b1000_0000;
@@ -36,7 +36,7 @@ pub fn decode(buffer: &[u8]) -> Result<(u128, usize)> {
   let mut i = 0;
 
   loop {
-    let b = buffer.get(i).cloned().unwrap() as u128;
+    let b = u128::from(buffer.get(i).cloned().ok_or(Error::Varint)?);
 
     if b < 128 {
       return Ok((n + b, i + 1));
@@ -121,5 +121,10 @@ mod tests {
       assert_eq!(actual, *n);
       assert_eq!(length, encoding.len());
     }
+  }
+
+  #[test]
+  fn truncated_varint_returns_error() {
+    assert_eq!(decode(&[128]), Err(Error::Varint));
   }
 }

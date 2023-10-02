@@ -10,7 +10,7 @@ impl Display for Rune {
       return write!(f, "BCGDENLQRQWDSLRUGSNLBTMFIJAV");
     }
 
-    n = n + 1;
+    n += 1;
     let mut symbol = String::new();
     while n > 0 {
       symbol.push(
