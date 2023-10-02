@@ -73,7 +73,8 @@ been issued when they are mined:
 
 [100%](https://ordinals.com/search/100%)
 
-### JSON-API
+JSON-API
+--------
 
 You can run ord with the `--enable-json-api` flag to access endpoints that
 return JSON instead of HTML if you set the HTTP `Accept: application/json`
