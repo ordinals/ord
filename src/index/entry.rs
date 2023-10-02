@@ -22,12 +22,18 @@ impl Entry for BlockHash {
   }
 }
 
-pub(super) type EtchingValue = (u128, u128, u128);
+pub(crate) struct RuneEntry {
+  pub(crate) decimals: u128,
+  pub(crate) supply: u128,
+  pub(crate) rune: Rune,
+}
 
-impl Entry for Etching {
-  type Value = EtchingValue;
+pub(super) type RuneEntryValue = (u128, u128, u128);
 
-  fn load((decimals, supply, rune): EtchingValue) -> Self {
+impl Entry for RuneEntry {
+  type Value = RuneEntryValue;
+
+  fn load((decimals, supply, rune): RuneEntryValue) -> Self {
     Self {
       decimals,
       supply,

@@ -1,8 +1,8 @@
 use {
   self::{
     entry::{
-      BlockHashValue, Entry, EtchingValue, InscriptionEntry, InscriptionEntryValue,
-      InscriptionIdValue, OutPointValue, SatPointValue, SatRange,
+      BlockHashValue, Entry, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
+      OutPointValue, RuneEntryValue, SatPointValue, SatRange,
     },
     reorg::*,
     runes::Rune,
@@ -23,6 +23,8 @@ use {
   std::collections::HashMap,
   std::io::{BufWriter, Read, Write},
 };
+
+pub(crate) use self::entry::RuneEntry;
 
 mod entry;
 mod fetcher;
@@ -55,7 +57,7 @@ define_table! { INSCRIPTION_ID_TO_SATPOINT, &InscriptionIdValue, &SatPointValue 
 define_table! { OUTPOINT_TO_RUNE_BALANCES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_VALUE, &OutPointValue, u64}
-define_table! { RUNE_ID_TO_ETCHING, u64, EtchingValue }
+define_table! { RUNE_ID_TO_RUNE_ENTRY, u64, RuneEntryValue }
 define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
 define_table! { SEQUENCE_NUMBER_TO_INSCRIPTION_ID, u64, &InscriptionIdValue }
 define_table! { STATISTIC_TO_COUNT, u64, u64 }
@@ -255,7 +257,7 @@ impl Index {
           .insert(&Statistic::Schema.key(), &SCHEMA_VERSION)?;
 
         if options.index_runes {
-          tx.open_table(RUNE_ID_TO_ETCHING)?;
+          tx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
           tx.open_table(RUNE_TO_RUNE_ID)?;
           tx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
         }
@@ -352,7 +354,7 @@ impl Index {
   }
 
   pub(crate) fn has_rune_index(&self) -> Result<bool> {
-    match self.begin_read()?.0.open_table(RUNE_ID_TO_ETCHING) {
+    match self.begin_read()?.0.open_table(RUNE_ID_TO_RUNE_ENTRY) {
       Ok(_) => Ok(true),
       Err(redb::TableError::TableDoesNotExist(_)) => Ok(false),
       Err(err) => Err(err.into()),
@@ -629,21 +631,21 @@ impl Index {
     }
   }
 
-  pub(crate) fn etchings(&self) -> Result<Option<Vec<(u64, Etching)>>> {
+  pub(crate) fn runes(&self) -> Result<Option<Vec<(u64, RuneEntry)>>> {
     if self.has_rune_index()? {
-      let mut etchings = Vec::new();
+      let mut entries = Vec::new();
 
       for result in self
         .database
         .begin_read()?
-        .open_table(RUNE_ID_TO_ETCHING)?
+        .open_table(RUNE_ID_TO_RUNE_ENTRY)?
         .iter()?
       {
-        let (id, etching) = result?;
-        etchings.push((id.value(), Etching::load(etching.value())));
+        let (id, entry) = result?;
+        entries.push((id.value(), RuneEntry::load(entry.value())));
       }
 
-      Ok(Some(etchings))
+      Ok(Some(entries))
     } else {
       Ok(None)
     }

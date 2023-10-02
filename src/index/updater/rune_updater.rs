@@ -11,19 +11,19 @@ struct Allocation {
 }
 
 pub(super) struct RuneUpdater<'a, 'db, 'tx> {
-  id_to_etching: &'a mut Table<'db, 'tx, u64, EtchingValue>,
+  id_to_entry: &'a mut Table<'db, 'tx, u64, RuneEntryValue>,
   rune_to_id: &'a mut Table<'db, 'tx, u128, u64>,
   outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
 }
 
 impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
   pub(super) fn new(
-    id_to_etching: &'a mut Table<'db, 'tx, u64, EtchingValue>,
+    id_to_entry: &'a mut Table<'db, 'tx, u64, RuneEntryValue>,
     outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
     rune_to_id: &'a mut Table<'db, 'tx, u128, u64>,
   ) -> Self {
     Self {
-      id_to_etching,
+      id_to_entry,
       outpoint_to_balances,
       rune_to_id,
     }
@@ -139,9 +139,9 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         if supply > 0 {
           let id = u64::try_from(id).unwrap();
           self.rune_to_id.insert(rune.0, id)?;
-          self.id_to_etching.insert(
+          self.id_to_entry.insert(
             id,
-            Etching {
+            RuneEntry {
               rune,
               supply,
               decimals,

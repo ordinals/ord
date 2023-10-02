@@ -1,13 +1,13 @@
 <h1>Runes</h1>
 <ul class=monospace>
-%% for (id, etching) in &self.etchings {
+%% for (id, entry) in &self.entries {
   <li>
-    <h2>{{ etching.rune }}</h2>
+    <h2>{{ entry.rune }}</h2>
     <dl>
       <dt>supply</dt>
-      <dd>{{ etching.supply }}</dd>
+      <dd>{{ entry.supply }}</dd>
       <dt>decimals</dt>
-      <dd>{{ etching.decimals }}</dd>
+      <dd>{{ entry.decimals }}</dd>
     </dl>
   </li>
 %% }

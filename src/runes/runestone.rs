@@ -35,14 +35,12 @@ impl Runestone {
           etching = Some(Etching {
             decimals: 0,
             rune: Rune(rune),
-            supply: u128::max_value(),
           })
         }
         &[rune, decimals] => {
           etching = Some(Etching {
             decimals,
             rune: Rune(rune),
-            supply: u128::max_value(),
           })
         }
         _ => unreachable!(),
@@ -216,7 +214,7 @@ mod tests {
       }),
       Ok(Some(Runestone {
         edicts: Vec::new(),
-        issuance: None,
+        etching: None,
       }))
     );
   }
@@ -257,7 +255,7 @@ mod tests {
           amount: 2,
           output: 3,
         }],
-        issuance: None,
+        etching: None,
       }))
     );
   }
@@ -288,8 +286,8 @@ mod tests {
           amount: 2,
           output: 3,
         }],
-        issuance: Some(Issuance {
-          symbol: 4,
+        etching: Some(Etching {
+          rune: Rune(4),
           decimals: 0
         }),
       }))
@@ -322,8 +320,8 @@ mod tests {
           amount: 2,
           output: 3,
         }],
-        issuance: Some(Issuance {
-          symbol: 4,
+        etching: Some(Etching {
+          rune: Rune(4),
           decimals: 5,
         }),
       }))
@@ -363,7 +361,7 @@ mod tests {
             output: 6,
           },
         ],
-        issuance: None,
+        etching: None,
       }))
     );
   }
@@ -394,8 +392,8 @@ mod tests {
           amount: 2,
           output: 3,
         }],
-        issuance: Some(Issuance {
-          symbol: 4,
+        etching: Some(Etching {
+          rune: Rune(4),
           decimals: 5,
         })
       }))

@@ -380,7 +380,7 @@ impl<'index> Updater<'_> {
 
     if index.options.index_runes && index.options.chain() != Chain::Mainnet {
       let mut outpoint_to_rune_balances = wtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
-      let mut rune_id_to_etching = wtx.open_table(RUNE_ID_TO_ETCHING)?;
+      let mut rune_id_to_etching = wtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
       let mut rune_to_rune_id = wtx.open_table(RUNE_TO_RUNE_ID)?;
       let mut rune_updater = RuneUpdater::new(
         &mut rune_id_to_etching,

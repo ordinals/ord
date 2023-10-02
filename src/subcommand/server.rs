@@ -538,13 +538,13 @@ impl Server {
   }
 
   async fn runes(Extension(index): Extension<Arc<Index>>) -> ServerResult<RunesHtml> {
-    let etchings = index.etchings()?.ok_or_else(|| {
+    let entries = index.runes()?.ok_or_else(|| {
       ServerError::NotFound(
         "tracking runes requires index created with `--index-runes` flag".into(),
       )
     })?;
 
-    Ok(RunesHtml { etchings })
+    Ok(RunesHtml { entries })
   }
 
   async fn home(
