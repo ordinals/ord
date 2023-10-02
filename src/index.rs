@@ -5579,10 +5579,4 @@ mod tests {
       )]
     );
   }
-
-  #[test]
-  #[ignore]
-  fn etching_in_transaction_with_index_over_maximum_is_ignored() {
-    todo!()
-  }
 }

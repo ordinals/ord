@@ -71,7 +71,10 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             None
           } else {
             // Construct an allocation, representing the new runes that may be
-            // allocated.
+            // allocated. Beware: Because it would require constructing a block
+            // with 2**16 + 1 transactions, there is no test that checks that
+            // an eching in a transaction with an out-of-bounds index is
+            // ignored.
             match u16::try_from(index) {
               Ok(index) => Some(Allocation {
                 id: u128::from(height) << 16 | u128::from(index),
