@@ -7,6 +7,7 @@ use {
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub(crate) enum Media {
   Audio,
+  Code,
   Iframe,
   Image,
   Markdown,
@@ -20,11 +21,11 @@ pub(crate) enum Media {
 impl Media {
   const TABLE: &'static [(&'static str, Media, &'static [&'static str])] = &[
     ("application/cbor", Media::Unknown, &["cbor"]),
-    ("application/json", Media::Text, &["json"]),
+    ("application/json", Media::Code, &["json"]),
     ("application/pdf", Media::Pdf, &["pdf"]),
     ("application/pgp-signature", Media::Text, &["asc"]),
     ("application/protobuf", Media::Unknown, &["binpb"]),
-    ("application/yaml", Media::Text, &["yaml", "yml"]),
+    ("application/yaml", Media::Code, &["yaml", "yml"]),
     ("audio/flac", Media::Audio, &["flac"]),
     ("audio/mpeg", Media::Audio, &["mp3"]),
     ("audio/wav", Media::Audio, &["wav"]),
@@ -42,10 +43,10 @@ impl Media {
     ("model/gltf+json", Media::Model, &["gltf"]),
     ("model/gltf-binary", Media::Model, &["glb"]),
     ("model/stl", Media::Unknown, &["stl"]),
-    ("text/css", Media::Text, &["css"]),
+    ("text/css", Media::Code, &["css"]),
     ("text/html", Media::Iframe, &[]),
     ("text/html;charset=utf-8", Media::Iframe, &["html"]),
-    ("text/javascript", Media::Text, &["js"]),
+    ("text/javascript", Media::Code, &["js"]),
     ("text/markdown", Media::Markdown, &[]),
     ("text/markdown;charset=utf-8", Media::Markdown, &["md"]),
     ("text/plain", Media::Text, &[]),
