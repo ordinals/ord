@@ -50,6 +50,33 @@ impl Runestone {
     Ok(Some(Self { edicts, etching }))
   }
 
+  #[cfg(test)]
+  pub(crate) fn encipher(&self) -> ScriptBuf {
+    let mut payload = Vec::new();
+
+    for edict in &self.edicts {
+      varint::encode_to_vec(edict.id, &mut payload);
+      varint::encode_to_vec(edict.amount, &mut payload);
+      varint::encode_to_vec(edict.output, &mut payload);
+    }
+
+    if let Some(etching) = self.etching {
+      varint::encode_to_vec(etching.rune.0, &mut payload);
+      varint::encode_to_vec(etching.decimals, &mut payload);
+    }
+
+    let mut builder = script::Builder::new()
+      .push_opcode(opcodes::all::OP_RETURN)
+      .push_slice(b"RUNE_TEST");
+
+    for chunk in payload.chunks(bitcoin::blockdata::constants::MAX_SCRIPT_ELEMENT_SIZE) {
+      let push: &bitcoin::script::PushBytes = chunk.try_into().unwrap();
+      builder = builder.push_slice(push);
+    }
+
+    builder.into_script()
+  }
+
   fn payload(transaction: &Transaction) -> Result<Option<Vec<u8>>> {
     for output in &transaction.output {
       let mut instructions = output.script_pubkey.instructions();

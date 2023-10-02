@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Default, Serialize, Debug, PartialEq)]
+#[derive(Default, Serialize, Debug, PartialEq, Copy, Clone)]
 pub(crate) struct Rune(pub(crate) u128);
 
 impl Display for Rune {

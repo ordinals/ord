@@ -22,6 +22,7 @@ impl Entry for BlockHash {
   }
 }
 
+#[derive(Debug, PartialEq)]
 pub(crate) struct RuneEntry {
   pub(crate) decimals: u128,
   pub(crate) rune: Rune,

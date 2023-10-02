@@ -4115,4 +4115,33 @@ mod tests {
       .has_rune_index()
       .unwrap());
   }
+
+  #[test]
+  fn rune_entries_begins_empty() {
+    let context = Context::builder().arg("--index-runes").build();
+    assert_eq!(context.index.runes().unwrap().unwrap(), []);
+  }
+
+  #[test]
+  fn empty_runestone_does_not_create_rune() {
+    let context = Context::builder().arg("--index-runes").build();
+
+    context.mine_blocks(1);
+
+    context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: Vec::new(),
+          etching: None,
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    assert_eq!(context.index.runes().unwrap().unwrap(), []);
+  }
 }
