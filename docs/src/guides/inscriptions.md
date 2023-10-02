@@ -206,7 +206,7 @@ Now inscribe the child inscription and specify the parent like so:
 ord wallet inscribe --fee-rate FEE_RATE --parent <PARENT_INSCRIPTION_ID> CHILD_FILE"
 ```
 
-This relationship cannot be instantiated retroactively, the parent has to be
+This relationship cannot be added retroactively, the parent has to be
 present at inception of the child.
 
 Sending Inscriptions
