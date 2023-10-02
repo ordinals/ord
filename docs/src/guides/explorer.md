@@ -76,7 +76,7 @@ been issued when they are mined:
 JSON-API
 --------
 
-You can run ord with the `--enable-json-api` flag to access endpoints that
+You can run `ord` with the `--enable-json-api` flag to access endpoints that
 return JSON instead of HTML if you set the HTTP `Accept: application/json`
 header. The structure of theses objects closely follows
 what is shown in the HTML, in order to make it easier to explore. The following
