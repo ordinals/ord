@@ -1334,6 +1334,7 @@ mod tests {
 
   struct ContextBuilder {
     args: Vec<OsString>,
+    chain: Chain,
     tempdir: Option<TempDir>,
   }
 
@@ -1344,7 +1345,7 @@ mod tests {
 
     fn try_build(self) -> Result<Context> {
       let rpc_server = test_bitcoincore_rpc::builder()
-        .network(Network::Regtest)
+        .network(self.chain.network())
         .build();
 
       let tempdir = self.tempdir.unwrap_or_else(|| TempDir::new().unwrap());
@@ -1359,7 +1360,7 @@ mod tests {
         tempdir.path().into(),
         "--cookie-file".into(),
         cookie_file.into(),
-        "--regtest".into(),
+        format!("--chain={}", self.chain).into(),
       ];
 
       let options = Options::try_parse_from(command.into_iter().chain(self.args)).unwrap();
@@ -1384,6 +1385,11 @@ mod tests {
       self
     }
 
+    fn chain(mut self, chain: Chain) -> Self {
+      self.chain = chain;
+      self
+    }
+
     fn tempdir(mut self, tempdir: TempDir) -> Self {
       self.tempdir = Some(tempdir);
       self
@@ -1403,6 +1409,7 @@ mod tests {
       ContextBuilder {
         args: Vec::new(),
         tempdir: None,
+        chain: Chain::Regtest,
       }
     }
 
@@ -4089,5 +4096,23 @@ mod tests {
         .parent
         .is_none());
     }
+  }
+
+  #[test]
+  fn index_only_indexes_runes_if_flag_is_passed_and_on_mainnet() {
+    assert!(!Context::builder().build().index.has_rune_index().unwrap());
+    assert!(!Context::builder()
+      .arg("--index-runes")
+      .chain(Chain::Mainnet)
+      .build()
+      .index
+      .has_rune_index()
+      .unwrap());
+    assert!(Context::builder()
+      .arg("--index-runes")
+      .build()
+      .index
+      .has_rune_index()
+      .unwrap());
   }
 }
