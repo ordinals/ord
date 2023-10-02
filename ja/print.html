@@ -1174,19 +1174,19 @@ _銘文は簡単です_、はっきりしていて事故はありません\*そ�
 <pre><code>ord -r wallet receive
 </code></pre>
 <p>101個のブロックを掘る（ロック解除coinbase）に使います：</p>
-<pre><code>bitcoin-cli generatetoaddress 101 &lt;receive address&gt;
+<pre><code>bitcoin-cli -regtest generatetoaddress 101 &lt;receive address&gt;
 </code></pre>
 <p>regtest上で刻みます。</p>
 <pre><code>ord -r wallet inscribe --fee-rate 1 &lt;file&gt;
 </code></pre>
 <p>銘文を発掘します。</p>
-<pre><code>bitcoin-cli generatetoaddress 1 &lt;receive address&gt;
+<pre><code>bitcoin-cli -regtest generatetoaddress 1 &lt;receive address&gt;
 </code></pre>
 <p>regtestブラウザで銘文を見ます。</p>
 <pre><code>ord -r server
 </code></pre>
 <h2 id="再帰のテスト"><a class="header" href="#再帰のテスト">再帰のテスト</a></h2>
-<p><a href="guides/../inscriptions/recursion.html">recursion</a> のテスト[の場合、最初に依存関係をメモします。（ <a href="https://p5js.org">p5.js</a> を例とします：</p>
+<p>When testing out <a href="guides/../inscriptions/recursion.html">recursion</a>, inscribe the dependencies first (example with <a href="https://p5js.org">p5.js</a>):</p>
 <pre><code>ord -r wallet inscribe --fee-rate 1 p5.js
 </code></pre>
 <p>これは'inscription_id'を返す必要があります。その後、再帰的な銘文でそれを参照することができます。。</p>

@@ -1174,19 +1174,19 @@ _铭文在比特币上_ 您可以使用您控制的比特币全节点轻松验�
 <pre><code>ord -r wallet receive
 </code></pre>
 <p>挖取101个区块（解锁coinbase）使用：</p>
-<pre><code>bitcoin-cli generatetoaddress 101 &lt;receive address&gt;
+<pre><code>bitcoin-cli -regtest generatetoaddress 101 &lt;receive address&gt;
 </code></pre>
 <p>在regtest上铭刻</p>
 <pre><code>ord -r wallet inscribe --fee-rate 1 &lt;file&gt;
 </code></pre>
 <p>挖取铭文</p>
-<pre><code>bitcoin-cli generatetoaddress 1 &lt;receive address&gt;
+<pre><code>bitcoin-cli -regtest generatetoaddress 1 &lt;receive address&gt;
 </code></pre>
 <p>在regtest浏览器里查看铭文</p>
 <pre><code>ord -r server
 </code></pre>
 <h2 id="测试递归"><a class="header" href="#测试递归">测试递归</a></h2>
-<p>测试 <a href="guides/../inscriptions/recursion.html">recursion</a> 时，首先记下依赖项（以 <a href="https://p5js.org">p5.js</a> 为例：</p>
+<p>When testing out <a href="guides/../inscriptions/recursion.html">recursion</a>, inscribe the dependencies first (example with <a href="https://p5js.org">p5.js</a>):</p>
 <pre><code>ord -r wallet inscribe --fee-rate 1 p5.js
 </code></pre>
 <p>这应该返回一个<code>inscription_id</code>，然后您可以在递归铭文中引用它。</p>

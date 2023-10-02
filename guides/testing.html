@@ -240,20 +240,20 @@ can be run with the following network flags:</p>
 <pre><code>ord -r wallet receive
 </code></pre>
 <p>Mine 101 blocks (to unlock the coinbase) with:</p>
-<pre><code>bitcoin-cli generatetoaddress 101 &lt;receive address&gt;
+<pre><code>bitcoin-cli -regtest generatetoaddress 101 &lt;receive address&gt;
 </code></pre>
 <p>Inscribe in regtest with:</p>
 <pre><code>ord -r wallet inscribe --fee-rate 1 &lt;file&gt;
 </code></pre>
 <p>Mine the inscription with:</p>
-<pre><code>bitcoin-cli generatetoaddress 1 &lt;receive address&gt;
+<pre><code>bitcoin-cli -regtest generatetoaddress 1 &lt;receive address&gt;
 </code></pre>
 <p>View the inscription in the regtest explorer:</p>
 <pre><code>ord -r server
 </code></pre>
 <h2 id="testing-recursion"><a class="header" href="#testing-recursion">Testing Recursion</a></h2>
 <p>When testing out <a href="../inscriptions/recursion.html">recursion</a>, inscribe the
-dependencies first (example with <a href="https://p5js.org">p5.js</a>:</p>
+dependencies first (example with <a href="https://p5js.org">p5.js</a>):</p>
 <pre><code>ord -r wallet inscribe --fee-rate 1 p5.js
 </code></pre>
 <p>This should return a <code>inscription_id</code> which you can then reference in your

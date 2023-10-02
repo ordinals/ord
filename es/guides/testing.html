@@ -238,19 +238,19 @@
 <pre><code>ord -r wallet receive
 </code></pre>
 <p>Minar 101 bloques (para desbloquear la transacción coinbase):</p>
-<pre><code>bitcoin-cli generatetoaddress 101 &lt;receive address&gt;
+<pre><code>bitcoin-cli -regtest generatetoaddress 101 &lt;receive address&gt;
 </code></pre>
 <p>Inscribir en regtest:</p>
 <pre><code>ord -r wallet inscribe --fee-rate 1 &lt;file&gt;
 </code></pre>
 <p>Minar la inscripcion:</p>
-<pre><code>bitcoin-cli generatetoaddress 1 &lt;receive address&gt;
+<pre><code>bitcoin-cli -regtest generatetoaddress 1 &lt;receive address&gt;
 </code></pre>
 <p>Visualizar la inscripción en el explorador de regtest:</p>
 <pre><code>ord -r server
 </code></pre>
 <h2 id="prueba-de-recursión"><a class="header" href="#prueba-de-recursión">Prueba de Recursión</a></h2>
-<p>Cuando estés probando la <a href="../inscriptions/recursion.html">recursión</a>, inscribe primero las dependencias (por ejemplo, con <a href="https://p5js.org/">p5.js</a>):</p>
+<p>When testing out <a href="../inscriptions/recursion.html">recursion</a>, inscribe the dependencies first (example with <a href="https://p5js.org">p5.js</a>):</p>
 <pre><code>ord -r wallet inscribe --fee-rate 1 p5.js
 </code></pre>
 <p>Esto debería proporcionar un <code>inscription_id</code> (id de inscripción) que luego puedes referenciar en tu inscripción recursiva.</p>
