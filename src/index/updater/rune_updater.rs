@@ -163,6 +163,10 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
     // update outpoint balances
     let mut buffer: Vec<u8> = Vec::new();
     for (vout, balances) in allocated.into_iter().enumerate() {
+      if balances.is_empty() {
+        continue;
+      }
+
       buffer.clear();
 
       for (id, balance) in balances {

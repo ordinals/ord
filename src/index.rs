@@ -1329,7 +1329,7 @@ impl Index {
 mod tests {
   use {
     super::*,
-    crate::runes::{Edict, Etching},
+    crate::runes::{varint, Edict, Etching},
     bitcoin::secp256k1::rand::{self, RngCore},
   };
 
@@ -4117,10 +4117,43 @@ mod tests {
       .unwrap());
   }
 
+  fn rune_balances(index: &Index) -> Vec<(OutPoint, Vec<(u128, u128)>)> {
+    let mut result = Vec::new();
+
+    for entry in index
+      .database
+      .begin_read()
+      .unwrap()
+      .open_table(OUTPOINT_TO_RUNE_BALANCES)
+      .unwrap()
+      .iter()
+      .unwrap()
+    {
+      let (outpoint, balances_buffer) = entry.unwrap();
+      let outpoint = OutPoint::load(*outpoint.value());
+      let balances_buffer = balances_buffer.value();
+
+      let mut balances = Vec::new();
+      let mut i = 0;
+      while i < balances_buffer.len() {
+        let (id, length) = varint::decode(&balances_buffer[i..]).unwrap();
+        i += length;
+        let (balance, length) = varint::decode(&balances_buffer[i..]).unwrap();
+        i += length;
+        balances.push((id, balance));
+      }
+
+      result.push((outpoint, balances));
+    }
+
+    result
+  }
+
   #[test]
-  fn rune_entries_begins_empty() {
+  fn index_starts_with_no_runes() {
     let context = Context::builder().arg("--index-runes").build();
     assert_eq!(context.index.runes().unwrap().unwrap(), []);
+    assert_eq!(rune_balances(&context.index), []);
   }
 
   #[test]
@@ -4144,6 +4177,7 @@ mod tests {
     context.mine_blocks(1);
 
     assert_eq!(context.index.runes().unwrap().unwrap(), []);
+    assert_eq!(rune_balances(&context.index), []);
   }
 
   #[test]
@@ -4170,6 +4204,7 @@ mod tests {
     context.mine_blocks(1);
 
     assert_eq!(context.index.runes().unwrap().unwrap(), []);
+    assert_eq!(rune_balances(&context.index), []);
   }
 
   #[test]
@@ -4178,14 +4213,14 @@ mod tests {
 
     context.mine_blocks(1);
 
-    context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
             id: 0,
             amount: u128::max_value(),
-            output: 1,
+            output: 0,
           }],
           etching: Some(Etching {
             decimals: 0,
@@ -4199,15 +4234,25 @@ mod tests {
 
     context.mine_blocks(1);
 
+    let id = 2 << 16 | 1;
+
     assert_eq!(
       context.index.runes().unwrap().unwrap(),
       [(
-        2 << 16 | 1,
+        id,
         RuneEntry {
           rune: Rune(0),
           decimals: 0,
           supply: u128::max_value(),
         }
+      )]
+    );
+
+    assert_eq!(
+      rune_balances(&context.index),
+      [(
+        OutPoint { txid, vout: 0 },
+        vec![(id as u128, u128::max_value())]
       )]
     );
   }
@@ -4218,14 +4263,14 @@ mod tests {
 
     context.mine_blocks(1);
 
-    context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
             id: 0,
             amount: 100,
-            output: 1,
+            output: 0,
           }],
           etching: Some(Etching {
             decimals: 0,
@@ -4239,16 +4284,23 @@ mod tests {
 
     context.mine_blocks(1);
 
+    let id = 2 << 16 | 1;
+
     assert_eq!(
       context.index.runes().unwrap().unwrap(),
       [(
-        2 << 16 | 1,
+        id,
         RuneEntry {
           rune: Rune(0),
           decimals: 0,
           supply: 100,
         }
       )]
+    );
+
+    assert_eq!(
+      rune_balances(&context.index),
+      [(OutPoint { txid, vout: 0 }, vec![(id as u128, 100)])]
     );
   }
 }
