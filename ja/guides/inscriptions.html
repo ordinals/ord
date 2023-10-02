@@ -293,12 +293,13 @@
 <p>reveal取引が記帳を完了したら、以下のコマンドを使用して銘文IDを照会できます</p>
 <pre><code>ord wallet inscriptions
 </code></pre>
-<h2 id="parent-child-inscriptions"><a class="header" href="#parent-child-inscriptions">Parent Child Inscriptions</a></h2>
-<p>A child inscription is an inscription that is a child of another inscription. See <a href="../inscriptions/provenance.html">provenance</a> for more information.</p>
-<p>get the parent inscription id <code>&lt;PARENT_INSCRIPTION_ID&gt;</code> from the output of <code>ord wallet inscriptions</code></p>
-<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; CHILD_FILE&quot;
+<h2 id="parent-child-inscriptions"><a class="header" href="#parent-child-inscriptions">Parent-Child Inscriptions</a></h2>
+<p>Parent-child inscriptions enable what is colloquially known as collections, see <a href="../inscriptions/provenance.html">provenance</a> for more information.</p>
+<p>To make an inscription a child of another, the parent inscription has to be inscribed and present in the wallet. To choose a parent run <code>ord wallet inscriptions</code> and copy the inscription id (<code>&lt;PARENT_INSCRIPTION_ID&gt;</code>).</p>
+<p>Now inscribe the child inscription and specify the parent like so:</p>
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; CHILD_FILE
 </code></pre>
-<p>[the ordinals explorer]（https://ordinals.com/)で以下の形式で銘文にアクセスできます`.</p>
+<p>This relationship cannot be added retroactively, the parent has to be present at inception of the child.</p>
 <h2 id="銘文を発送します"><a class="header" href="#銘文を発送します">銘文を発送します</a></h2>
 <p>銘文受信者は次のコマンドを使って住所を生成する</p>
 <pre><code>ord wallet receive
