@@ -797,4 +797,28 @@ mod tests {
         .unwrap();
     assert_eq!(arguments.options.db_cache_size, Some(16000000000));
   }
+
+  #[test]
+  fn index_runes_only_returns_true_if_index_runes_flag_is_passed_and_not_on_mainnnet() {
+    assert!(Arguments::try_parse_from([
+      "ord",
+      "--chain=signet",
+      "--index-runes",
+      "index",
+      "update"
+    ])
+    .unwrap()
+    .options
+    .index_runes(),);
+    assert!(
+      !Arguments::try_parse_from(["ord", "--index-runes", "index", "update"])
+        .unwrap()
+        .options
+        .index_runes(),
+    );
+    assert!(!Arguments::try_parse_from(["ord", "index", "update"])
+      .unwrap()
+      .options
+      .index_runes(),);
+  }
 }
