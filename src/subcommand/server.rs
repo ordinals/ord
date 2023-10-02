@@ -162,6 +162,13 @@ impl Server {
 
       let router = Router::new()
         .route("/", get(Self::home))
+        .route("/-/blockheight", get(Self::block_height))
+        .route("/-/blockhash", get(Self::block_hash_json))
+        .route(
+          "/-/blockhash/:height",
+          get(Self::block_hash_from_height_json),
+        )
+        .route("/-/blocktime", get(Self::block_time))
         .route("/block/:query", get(Self::block))
         .route("/blockcount", get(Self::block_count))
         .route("/blockheight", get(Self::block_height))
@@ -784,6 +791,15 @@ impl Server {
     )
   }
 
+  async fn block_hash_json(Extension(index): Extension<Arc<Index>>) -> ServerResult<Json<String>> {
+    Ok(Json(
+      index
+        .block_hash(None)?
+        .ok_or_not_found(|| "blockhash")?
+        .to_string(),
+    ))
+  }
+
   async fn block_hash_from_height(
     Extension(index): Extension<Arc<Index>>,
     Path(height): Path<u64>,
@@ -794,6 +810,18 @@ impl Server {
         .ok_or_not_found(|| "blockhash")?
         .to_string(),
     )
+  }
+
+  async fn block_hash_from_height_json(
+    Extension(index): Extension<Arc<Index>>,
+    Path(height): Path<u64>,
+  ) -> ServerResult<Json<String>> {
+    Ok(Json(
+      index
+        .block_hash(Some(height))?
+        .ok_or_not_found(|| "blockhash")?
+        .to_string(),
+    ))
   }
 
   async fn block_time(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
@@ -875,7 +903,7 @@ impl Server {
     );
     headers.append(
       header::CONTENT_SECURITY_POLICY,
-      HeaderValue::from_static("default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime 'unsafe-eval' 'unsafe-inline' data: blob:"),
+      HeaderValue::from_static("default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime *:*/-/ 'unsafe-eval' 'unsafe-inline' data: blob:"),
     );
     headers.insert(
       header::CACHE_CONTROL,
