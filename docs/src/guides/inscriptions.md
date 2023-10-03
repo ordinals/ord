@@ -58,16 +58,15 @@ index and open the rest interface, add the following to your `bitcoin.conf`:
 
 ```
 txindex=1
-rest=1
 ```
 
-Or, run `bitcoind` with `-txindex -rest`:
+Or, run `bitcoind` with `-txindex`:
 
 ```
-bitcoind -txindex -rest
+bitcoind -txindex
 ```
 
-Details on creating or modifying your `bitcoin.conf` file can be found 
+Details on creating or modifying your `bitcoin.conf` file can be found
 [here](https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md).
 
 Syncing the Bitcoin Blockchain
