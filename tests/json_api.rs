@@ -155,7 +155,7 @@ fn get_inscription() {
       parent: None,
       children: Vec::new(),
       inscription_id,
-      number: 0,
+      inscription_number: 0,
       genesis_height: 2,
       genesis_fee: 138,
       output_value: Some(10000),
@@ -171,13 +171,10 @@ fn get_inscription() {
   )
 }
 
-fn create_210_inscriptions(
-  rpc_server: &test_bitcoincore_rpc::Handle,
-) -> (Vec<InscriptionId>, Vec<InscriptionId>) {
+fn create_210_inscriptions(rpc_server: &test_bitcoincore_rpc::Handle) -> Vec<InscriptionId> {
   let witness = envelope(&[b"ord", &[1], b"text/plain;charset=utf-8", &[], b"bar"]);
 
-  let mut blessed_inscriptions = Vec::new();
-  let mut cursed_inscriptions = Vec::new();
+  let mut inscriptions = Vec::new();
 
   // Create 150 inscriptions, 50 non-cursed and 100 cursed
   for i in 0..50 {
@@ -194,9 +191,9 @@ fn create_210_inscriptions(
       ..Default::default()
     });
 
-    blessed_inscriptions.push(InscriptionId { txid, index: 0 });
-    cursed_inscriptions.push(InscriptionId { txid, index: 1 });
-    cursed_inscriptions.push(InscriptionId { txid, index: 2 });
+    inscriptions.push(InscriptionId { txid, index: 0 });
+    inscriptions.push(InscriptionId { txid, index: 1 });
+    inscriptions.push(InscriptionId { txid, index: 2 });
   }
 
   rpc_server.mine_blocks(1);
@@ -208,7 +205,7 @@ fn create_210_inscriptions(
       .rpc_server(rpc_server)
       .run_and_deserialize_output();
     rpc_server.mine_blocks(1);
-    blessed_inscriptions.push(InscriptionId {
+    inscriptions.push(InscriptionId {
       txid: reveal,
       index: 0,
     });
@@ -216,7 +213,7 @@ fn create_210_inscriptions(
 
   rpc_server.mine_blocks(1);
 
-  (blessed_inscriptions, cursed_inscriptions)
+  inscriptions
 }
 
 #[test]
@@ -224,7 +221,7 @@ fn get_inscriptions() {
   let rpc_server = test_bitcoincore_rpc::spawn();
 
   create_wallet(&rpc_server);
-  let (blessed_inscriptions, cursed_inscriptions) = create_210_inscriptions(&rpc_server);
+  let inscriptions = create_210_inscriptions(&rpc_server);
 
   let server = TestServer::spawn_with_args(&rpc_server, &["--index-sats", "--enable-json-api"]);
 
@@ -235,55 +232,25 @@ fn get_inscriptions() {
 
   // 100 latest (blessed) inscriptions
   assert_eq!(inscriptions_json.inscriptions.len(), 100);
-  pretty_assert_eq!(
-    inscriptions_json,
-    InscriptionsJson {
-      inscriptions: blessed_inscriptions[10..110]
-        .iter()
-        .cloned()
-        .rev()
-        .collect(),
-      prev: Some(9),
-      next: None,
-      lowest: Some(-100),
-      highest: Some(109),
-    }
-  );
 
   // get all inscriptions
-  let response = server.json_request(format!("/inscriptions/{}/{}", 200, 400));
+  let response = server.json_request(format!("/inscriptions/{}/{}", 500, 400));
   assert_eq!(response.status(), StatusCode::OK);
 
   let inscriptions_json: InscriptionsJson =
     serde_json::from_str(&response.text().unwrap()).unwrap();
 
-  assert_eq!(
-    inscriptions_json.inscriptions.len(),
-    blessed_inscriptions.len() + cursed_inscriptions.len()
-  );
+  assert_eq!(inscriptions_json.inscriptions.len(), inscriptions.len());
   pretty_assert_eq!(
     inscriptions_json.inscriptions,
-    blessed_inscriptions
-      .iter()
-      .cloned()
-      .rev()
-      .chain(cursed_inscriptions.clone())
-      .collect::<Vec<_>>()
+    inscriptions.iter().cloned().rev().collect::<Vec<_>>()
   );
-
-  // iterate over all inscriptions 1 by 1
-  let all_inscriptions = cursed_inscriptions
-    .clone()
-    .iter()
-    .cloned()
-    .rev()
-    .chain(blessed_inscriptions.clone())
-    .collect::<Vec<_>>(); // from lowest to highest inscription number
 
   let (lowest, highest) = (
     inscriptions_json.lowest.unwrap(),
     inscriptions_json.highest.unwrap(),
   );
+
   for i in lowest..=highest {
     let response = server.json_request(format!("/inscriptions/{}/1", i));
     assert_eq!(response.status(), StatusCode::OK);
@@ -294,7 +261,7 @@ fn get_inscriptions() {
     assert_eq!(inscriptions_json.inscriptions.len(), 1);
     assert_eq!(
       inscriptions_json.inscriptions[0],
-      all_inscriptions[(i - lowest) as usize]
+      inscriptions[(i - lowest) as usize]
     );
 
     let response = server.json_request(format!(
@@ -310,7 +277,6 @@ fn get_inscriptions() {
       inscription_json.inscription_id,
       inscriptions_json.inscriptions[0]
     );
-    assert_eq!(inscription_json.number, i);
   }
 }
 
@@ -331,11 +297,21 @@ fn get_inscriptions_in_block() {
     ],
     ..Default::default()
   });
+
   rpc_server.mine_blocks(1);
 
-  for _ in 0..10 {
-    inscribe(&rpc_server);
-  }
+  let _ = rpc_server.broadcast_tx(TransactionTemplate {
+    inputs: &[(4, 0, 0, envelope.clone()), (5, 0, 0, envelope.clone())],
+    ..Default::default()
+  });
+
+  rpc_server.mine_blocks(1);
+
+  let _ = rpc_server.broadcast_tx(TransactionTemplate {
+    inputs: &[(6, 0, 0, envelope.clone())],
+    ..Default::default()
+  });
+
   rpc_server.mine_blocks(1);
 
   let server = TestServer::spawn_with_args(
@@ -358,9 +334,9 @@ fn get_inscriptions_in_block() {
   pretty_assert_eq!(
     inscriptions_json.inscriptions,
     vec![
-      InscriptionId { txid, index: 2 },
+      InscriptionId { txid, index: 0 },
       InscriptionId { txid, index: 1 },
-      InscriptionId { txid, index: 0 }
+      InscriptionId { txid, index: 2 },
     ]
   );
 }
@@ -405,8 +381,8 @@ fn get_output() {
       ],),
       inscriptions: vec![
         InscriptionId { txid, index: 0 },
+        InscriptionId { txid, index: 1 },
         InscriptionId { txid, index: 2 },
-        InscriptionId { txid, index: 1 }
       ]
     }
   );

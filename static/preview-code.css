@@ -1,0 +1,8 @@
+@import url('https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/styles/atom-one-dark.min.css');
+
+html {
+    color: #98a3ad;
+    background-color: #131516;
+    max-width: 900px;
+    font-family: system-ui, sans-serif;
+}

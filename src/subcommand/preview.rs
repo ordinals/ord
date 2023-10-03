@@ -79,15 +79,18 @@ impl Preview {
         options: options.clone(),
         subcommand: Subcommand::Wallet(super::wallet::Wallet::Inscribe(
           super::wallet::inscribe::Inscribe {
-            fee_rate: FeeRate::try_from(1.0).unwrap(),
             commit_fee_rate: None,
+            destination: None,
+            dry_run: false,
+            fee_rate: FeeRate::try_from(1.0).unwrap(),
             file,
             no_backup: true,
-            satpoint: None,
-            dry_run: false,
             no_limit: false,
-            destination: None,
+            parent: None,
             postage: Some(TransactionBuilder::TARGET_POSTAGE),
+            metaprotocol: None,
+            reinscribe: false,
+            satpoint: None,
           },
         )),
       }
