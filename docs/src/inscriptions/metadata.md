@@ -1,10 +1,10 @@
 Metadata
 ========
 
-Inscriptions may include CBOR metadata, stored as data pushes in fields with
-tag `5`. Since data pushes are limited to 520 bytes, metadata longer than 520
-bytes must be split into multiple tag `5` fields, which will then be
-concatenated before decoding.
+Inscriptions may include [CBOR](https://cbor.io/) metadata, stored as data
+pushes in fields with tag `5`. Since data pushes are limited to 520 bytes,
+metadata longer than 520 bytes must be split into multiple tag `5` fields,
+which will then be concatenated before decoding.
 
 Metadata is human readable, and all metadata will be displayed to the user with
 its inscription. Inscribers are encouraged to consider how metadata will be
