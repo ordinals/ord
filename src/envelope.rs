@@ -35,7 +35,7 @@ fn remove_field(fields: &mut BTreeMap<&[u8], Vec<&[u8]>>, field: &[u8]) -> Optio
   }
 }
 
-fn remove_and_concatinate_field(
+fn remove_and_concatenate_field(
   fields: &mut BTreeMap<&[u8], Vec<&[u8]>>,
   field: &[u8],
 ) -> Option<Vec<u8>> {
@@ -72,7 +72,7 @@ impl From<RawEnvelope> for ParsedEnvelope {
     let content_type = remove_field(&mut fields, &CONTENT_TYPE_TAG);
     let parent = remove_field(&mut fields, &PARENT_TAG);
     let metaprotocol = remove_field(&mut fields, &METAPROTOCOL_TAG);
-    let metadata = remove_and_concatinate_field(&mut fields, &METADATA_TAG);
+    let metadata = remove_and_concatenate_field(&mut fields, &METADATA_TAG);
 
     let unrecognized_even_field = fields
       .keys()
