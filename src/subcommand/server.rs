@@ -3100,6 +3100,7 @@ mod tests {
           rune: Rune(u128::from(21_000_000 * COIN_VALUE)),
           decimals: 0,
           supply: u128::max_value(),
+          rarity: Rarity::Common,
         }
       )]
     );

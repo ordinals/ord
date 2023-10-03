@@ -25,25 +25,27 @@ impl Entry for BlockHash {
 #[derive(Debug, PartialEq)]
 pub(crate) struct RuneEntry {
   pub(crate) decimals: u128,
+  pub(crate) rarity: Rarity,
   pub(crate) rune: Rune,
   pub(crate) supply: u128,
 }
 
-pub(super) type RuneEntryValue = (u128, u128, u128);
+pub(super) type RuneEntryValue = (u128, u128, u128, u8);
 
 impl Entry for RuneEntry {
   type Value = RuneEntryValue;
 
-  fn load((decimals, rune, supply): RuneEntryValue) -> Self {
+  fn load((decimals, rune, supply, rarity): RuneEntryValue) -> Self {
     Self {
       decimals,
+      rarity: Rarity::try_from(rarity).unwrap(),
       rune: Rune(rune),
       supply,
     }
   }
 
   fn store(self) -> Self::Value {
-    (self.decimals, self.rune.0, self.supply)
+    (self.decimals, self.rune.0, self.supply, self.rarity.into())
   }
 }
 
