@@ -1,5 +1,3 @@
-use super::*;
-
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub(crate) struct RuneId {
   pub(crate) height: u64,

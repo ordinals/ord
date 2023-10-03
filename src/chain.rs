@@ -47,15 +47,6 @@ impl Chain {
     }
   }
 
-  pub(crate) fn rune_activation_height(self) -> u64 {
-    match self {
-      Self::Mainnet => 900_000,
-      Self::Regtest => 0,
-      Self::Signet => 0,
-      Self::Testnet => 0,
-    }
-  }
-
   pub(crate) fn genesis_block(self) -> Block {
     bitcoin::blockdata::constants::genesis_block(self.network())
   }
