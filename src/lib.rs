@@ -18,6 +18,7 @@ use {
     decimal::Decimal,
     degree::Degree,
     deserialize_from_str::DeserializeFromStr,
+    envelope::ParsedEnvelope,
     epoch::Epoch,
     height::Height,
     index::{Index, List},
@@ -102,6 +103,7 @@ mod config;
 mod decimal;
 mod degree;
 mod deserialize_from_str;
+mod envelope;
 mod epoch;
 mod fee_rate;
 mod height;
