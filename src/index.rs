@@ -5707,4 +5707,14 @@ mod tests {
       )]
     );
   }
+
+  #[test]
+  fn first_rune_in_block_is_uncommon() {
+    todo!();
+  }
+
+  #[test]
+  fn second_rune_in_block_is_common() {
+    todo!();
+  }
 }
