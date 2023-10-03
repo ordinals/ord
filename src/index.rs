@@ -4257,7 +4257,7 @@ mod tests {
           rune: Rune(RUNE),
           decimals: 0,
           supply: u128::max_value(),
-          rarity: Rarity::Common,
+          rarity: Rarity::Uncommon,
         }
       )]
     );
@@ -4340,7 +4340,7 @@ mod tests {
             decimals: 0,
             rune: Rune(2099984997690000),
             supply: u128::max_value(),
-            rarity: Rarity::Common,
+            rarity: Rarity::Uncommon,
           }
         )]
       );
@@ -4389,7 +4389,7 @@ mod tests {
           rune: Rune(RUNE),
           decimals: 1,
           supply: u128::max_value(),
-          rarity: Rarity::Common,
+          rarity: Rarity::Uncommon,
         }
       )]
     );
@@ -4447,7 +4447,7 @@ mod tests {
           rune: Rune(RUNE),
           decimals: 0,
           supply: u128::max_value(),
-          rarity: Rarity::Common,
+          rarity: Rarity::Uncommon,
         }
       )]
     );
@@ -4505,7 +4505,7 @@ mod tests {
           rune: Rune(RUNE),
           decimals: 0,
           supply: u128::max_value(),
-          rarity: Rarity::Common,
+          rarity: Rarity::Uncommon,
         }
       )]
     );
@@ -4556,7 +4556,7 @@ mod tests {
           rune: Rune(RUNE),
           decimals: 0,
           supply: 100,
-          rarity: Rarity::Common,
+          rarity: Rarity::Uncommon,
         }
       )]
     );
@@ -4611,7 +4611,7 @@ mod tests {
           rune: Rune(RUNE),
           decimals: 0,
           supply: 200,
-          rarity: Rarity::Common,
+          rarity: Rarity::Uncommon,
         }
       )]
     );
@@ -4669,7 +4669,7 @@ mod tests {
           rune: Rune(RUNE),
           decimals: 0,
           supply: 100,
-          rarity: Rarity::Common,
+          rarity: Rarity::Uncommon,
         }
       )]
     );
@@ -4717,7 +4717,7 @@ mod tests {
           rune: Rune(RUNE),
           decimals: 0,
           supply: u128::max_value(),
-          rarity: Rarity::Common,
+          rarity: Rarity::Uncommon,
         }
       )]
     );
@@ -4756,7 +4756,7 @@ mod tests {
           rune: Rune(RUNE),
           decimals: 0,
           supply: u128::max_value(),
-          rarity: Rarity::Common,
+          rarity: Rarity::Uncommon,
         }
       )]
     );
@@ -4807,7 +4807,7 @@ mod tests {
           rune: Rune(RUNE),
           decimals: 0,
           supply: u128::max_value(),
-          rarity: Rarity::Common,
+          rarity: Rarity::Uncommon,
         }
       )]
     );
@@ -4842,7 +4842,7 @@ mod tests {
           rune: Rune(RUNE),
           decimals: 0,
           supply: u128::max_value(),
-          rarity: Rarity::Common,
+          rarity: Rarity::Uncommon,
         }
       )]
     );
@@ -4894,7 +4894,7 @@ mod tests {
           rune: Rune(RUNE),
           decimals: 0,
           supply: u128::max_value(),
-          rarity: Rarity::Common,
+          rarity: Rarity::Uncommon,
         }
       )]
     );
@@ -4923,7 +4923,7 @@ mod tests {
           rune: Rune(RUNE),
           decimals: 0,
           supply: u128::max_value(),
-          rarity: Rarity::Common,
+          rarity: Rarity::Uncommon,
         }
       )]
     );
@@ -4974,7 +4974,7 @@ mod tests {
           rune: Rune(RUNE),
           decimals: 0,
           supply: u128::max_value(),
-          rarity: Rarity::Common,
+          rarity: Rarity::Uncommon,
         }
       )]
     );
@@ -5016,7 +5016,7 @@ mod tests {
           rune: Rune(RUNE),
           decimals: 0,
           supply: u128::max_value(),
-          rarity: Rarity::Common,
+          rarity: Rarity::Uncommon,
         }
       )]
     );
@@ -5067,7 +5067,7 @@ mod tests {
           rune: Rune(RUNE),
           decimals: 0,
           supply: u128::max_value(),
-          rarity: Rarity::Common,
+          rarity: Rarity::Uncommon,
         }
       )]
     );
@@ -5115,7 +5115,7 @@ mod tests {
             rune: Rune(RUNE),
             decimals: 0,
             supply: u128::max_value(),
-            rarity: Rarity::Common,
+            rarity: Rarity::Uncommon,
           }
         ),
         (
@@ -5124,7 +5124,7 @@ mod tests {
             rune: Rune(RUNE + 1),
             decimals: 0,
             supply: u128::max_value(),
-            rarity: Rarity::Common,
+            rarity: Rarity::Uncommon,
           }
         )
       ]
@@ -5166,7 +5166,7 @@ mod tests {
             rune: Rune(RUNE),
             decimals: 0,
             supply: u128::max_value(),
-            rarity: Rarity::Common,
+            rarity: Rarity::Uncommon,
           }
         ),
         (
@@ -5175,7 +5175,7 @@ mod tests {
             rune: Rune(RUNE + 1),
             decimals: 0,
             supply: u128::max_value(),
-            rarity: Rarity::Common,
+            rarity: Rarity::Uncommon,
           }
         )
       ]
@@ -5233,7 +5233,7 @@ mod tests {
           rune: Rune(RUNE),
           decimals: 0,
           supply: u128::max_value(),
-          rarity: Rarity::Common,
+          rarity: Rarity::Uncommon,
         }
       )]
     );
@@ -5281,7 +5281,7 @@ mod tests {
             rune: Rune(RUNE),
             decimals: 0,
             supply: u128::max_value(),
-            rarity: Rarity::Common,
+            rarity: Rarity::Uncommon,
           }
         ),
         (
@@ -5290,7 +5290,7 @@ mod tests {
             rune: Rune(RUNE + 1),
             decimals: 0,
             supply: u128::max_value(),
-            rarity: Rarity::Common,
+            rarity: Rarity::Uncommon,
           }
         )
       ]
@@ -5332,7 +5332,7 @@ mod tests {
             rune: Rune(RUNE),
             decimals: 0,
             supply: u128::max_value(),
-            rarity: Rarity::Common,
+            rarity: Rarity::Uncommon,
           }
         ),
         (
@@ -5341,7 +5341,7 @@ mod tests {
             rune: Rune(RUNE + 1),
             decimals: 0,
             supply: u128::max_value(),
-            rarity: Rarity::Common,
+            rarity: Rarity::Uncommon,
           }
         )
       ]
@@ -5396,7 +5396,7 @@ mod tests {
             rune: Rune(RUNE),
             decimals: 0,
             supply: u128::max_value(),
-            rarity: Rarity::Common,
+            rarity: Rarity::Uncommon,
           }
         ),
         (
@@ -5405,7 +5405,7 @@ mod tests {
             rune: Rune(RUNE + 1),
             decimals: 0,
             supply: u128::max_value(),
-            rarity: Rarity::Common,
+            rarity: Rarity::Uncommon,
           }
         )
       ]
@@ -5475,7 +5475,7 @@ mod tests {
           rune: Rune(RUNE),
           decimals: 0,
           supply: u128::max_value(),
-          rarity: Rarity::Common,
+          rarity: Rarity::Uncommon,
         }
       )]
     );
@@ -5523,7 +5523,7 @@ mod tests {
             rune: Rune(RUNE),
             decimals: 0,
             supply: u128::max_value(),
-            rarity: Rarity::Common,
+            rarity: Rarity::Uncommon,
           }
         ),
         (
@@ -5532,7 +5532,7 @@ mod tests {
             rune: Rune(RUNE + 1),
             decimals: 0,
             supply: u128::max_value(),
-            rarity: Rarity::Common,
+            rarity: Rarity::Uncommon,
           }
         )
       ]
@@ -5592,7 +5592,7 @@ mod tests {
             rune: Rune(RUNE),
             decimals: 0,
             supply: u128::max_value(),
-            rarity: Rarity::Common,
+            rarity: Rarity::Uncommon,
           }
         ),
         (
@@ -5601,7 +5601,7 @@ mod tests {
             rune: Rune(RUNE + 1),
             decimals: 0,
             supply: u128::max_value(),
-            rarity: Rarity::Common,
+            rarity: Rarity::Uncommon,
           }
         )
       ]
@@ -5660,7 +5660,7 @@ mod tests {
           rune: Rune(RUNE),
           decimals: 0,
           supply: u128::max_value(),
-          rarity: Rarity::Common,
+          rarity: Rarity::Uncommon,
         }
       )]
     );
@@ -5694,7 +5694,7 @@ mod tests {
           rune: Rune(RUNE),
           decimals: 0,
           supply: u128::max_value(),
-          rarity: Rarity::Common,
+          rarity: Rarity::Uncommon,
         }
       )]
     );
@@ -5709,12 +5709,97 @@ mod tests {
   }
 
   #[test]
-  fn first_rune_in_block_is_uncommon() {
-    todo!();
-  }
+  fn rune_rarity_is_assigned_correctly() {
+    let context = Context::builder().arg("--index-runes").build();
 
-  #[test]
-  fn second_rune_in_block_is_common() {
-    todo!();
+    context.mine_blocks(1);
+
+    let txid0 = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            decimals: 0,
+            rune: Rune(RUNE),
+          }),
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    let id0 = 2 << 16 | 1;
+
+    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            decimals: 0,
+            rune: Rune(RUNE + 1),
+          }),
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id1 = 2 << 16 | 2;
+
+    assert_eq!(
+      context.index.runes().unwrap().unwrap(),
+      [
+        (
+          id0,
+          RuneEntry {
+            rune: Rune(RUNE),
+            decimals: 0,
+            supply: u128::max_value(),
+            rarity: Rarity::Uncommon,
+          }
+        ),
+        (
+          id1,
+          RuneEntry {
+            rune: Rune(RUNE + 1),
+            decimals: 0,
+            supply: u128::max_value(),
+            rarity: Rarity::Common,
+          }
+        ),
+      ]
+    );
+
+    assert_eq!(
+      context.index.rune_balances(),
+      [
+        (
+          OutPoint {
+            txid: txid0,
+            vout: 0
+          },
+          vec![(u128::from(id0), u128::max_value())]
+        ),
+        (
+          OutPoint {
+            txid: txid1,
+            vout: 0
+          },
+          vec![(u128::from(id1), u128::max_value())]
+        ),
+      ]
+    );
   }
 }
