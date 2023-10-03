@@ -565,8 +565,6 @@ impl Index {
 
     let block_count = rtx.block_count()?;
 
-    let mut blocks = Vec::with_capacity(block_count as usize);
-
     let height_to_block_hash = rtx.0.open_table(HEIGHT_TO_BLOCK_HASH)?;
 
     let mut blocks = Vec::with_capacity(block_count.try_into().unwrap());
@@ -583,10 +581,9 @@ impl Index {
     if self.has_sat_index()? {
       let rtx = self.database.begin_read()?;
 
-
       let sat_to_satpoint = rtx.open_table(SAT_TO_SATPOINT)?;
 
-      let mut result = Vec::with_capacity(sat_to_satpoint.len()?);
+      let mut result = Vec::with_capacity(sat_to_satpoint.len()?.try_into().unwrap());
 
       for range in sat_to_satpoint.range(0..)? {
         let (sat, satpoint) = range?;
