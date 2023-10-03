@@ -12,11 +12,15 @@ displayed, and make metadata concise and attractive.
 
 Metadata is rendered to HTML for display as follows:
 
-- `null`, `true`, `false`, numbers, and strings are rendered as plain text.
+- `null`, `true`, `false`, numbers, floats, and strings are rendered as plain
+  text.
+- Byte strings are rendered as uppercase hexadecimal.
 - Arrays are rendered as `<ul>` tags, with every element wrapped in `<li>`
   tags.
-- Objects are rendered as `<dl>` tags, with every key wrapped in `<dt>` tags,
-  and every value wrapped in `<dd>` tags.
+- Maps are rendered as `<dl>` tags, with every key wrapped in `<dt>` tags, and
+  every value wrapped in `<dd>` tags.
+- Tags are rendered as the tag , enclosed in a `<sup>` tag, followed by the
+  value.
 
 CBOR is a complex spec with many different data types, and multiple ways of
 representing the same piece of data. Exotic data types, such as tags, floats,
