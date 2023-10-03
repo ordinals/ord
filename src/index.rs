@@ -4324,7 +4324,7 @@ mod tests {
       assert_eq!(
         context.index.runes().unwrap().unwrap(),
         [(
-          id as u64,
+          u64::try_from(id).unwrap(),
           RuneEntry {
             decimals: 0,
             rune: Rune(2099984997690000),

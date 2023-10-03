@@ -66,9 +66,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       let mut allocation = match runestone.etching {
         Some(etching) => {
           // If the issuance symbol is already taken, the issuance is ignored
-          if self.rune_to_id.get(etching.rune.0)?.is_some() {
-            None
-          } else if etching.rune < self.minimum {
+          if etching.rune < self.minimum || self.rune_to_id.get(etching.rune.0)?.is_some() {
             None
           } else {
             // Construct an allocation, representing the new runes that may be
