@@ -46,12 +46,12 @@ Making inscriptions requires Bitcoin Core 24 or newer.
 
 This guide does not cover installing Bitcoin Core in detail. Once Bitcoin Core
 is installed, you should be able to run `bitcoind -version` successfully from
-the command line.
+the command line. Do *NOT* use `bitcoin-qt`.
 
 Configuring Bitcoin Core
 ------------------------
 
-`ord` requires Bitcoin Core's transaction index.
+`ord` requires Bitcoin Core's transaction index and rest interface.
 
 To configure your Bitcoin Core node to maintain a transaction
 index, add the following to your `bitcoin.conf`:
@@ -65,6 +65,9 @@ Or, run `bitcoind` with `-txindex`:
 ```
 bitcoind -txindex
 ```
+
+Details on creating or modifying your `bitcoin.conf` file can be found
+[here](https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md).
 
 Syncing the Bitcoin Blockchain
 ------------------------------
@@ -84,6 +87,54 @@ bitcoin-cli getblockcount
 agrees with the block count on a block explorer like [the mempool.space block
 explorer](https://mempool.space/). `ord` interacts with `bitcoind`, so you
 should leave `bitcoind` running in the background when you're using `ord`.
+
+The blockchain takes about 600GB of disk space. If you have an external drive
+you want to store blocks on, use the configuration option
+`blocksdir=<external_drive_path>`. This is much simpler than using the
+`datadir` option because the cookie file will still be in the default location
+for `bitcoin-cli` and `ord` to find.
+
+Troubleshooting
+---------------
+
+Make sure you can access `bitcoind` with `bitcoin-cli -getinfo` and that it is
+fully synced.
+
+If `bitcoin-cli -getinfo` returns `Could not connect to the server`, `bitcoind`
+is not running.
+
+Make sure `rpcuser`, `rpcpassword`, or `rpcauth` are *NOT* set in your
+`bitcoin.conf` file. `ord` requires using cookie authentication. Make sure there
+is a file `.cookie` in your bitcoin data directory.
+
+If `bitcoin-cli -getinfo` returns `Could not locate RPC credentials`, then you
+must specify the cookie file location.
+If you are using a custom data directory (specifying the `datadir` option),
+then you must specify the cookie location like
+`bitcoin-cli -rpccookiefile=<your_bitcoin_datadir>/.cookie -getinfo`.
+When running `ord` you must specify the cookie file location with
+`--cookie-file=<your_bitcoin_datadir>/.cookie`.
+
+Make sure you do *NOT* have `disablewallet=1` in your `bitcoin.conf` file. If
+`bitcoin-cli listwallets` returns `Method not found` then the wallet is disabled
+and you won't be able to use `ord`.
+
+Make sure `txindex=1` is set. Run `bitcoin-cli getindexinfo` and it should
+return something like
+```json
+{
+  "txindex": {
+    "synced": true,
+    "best_block_height": 776546
+  }
+}
+```
+If it only returns `{}`, `txindex` is not set.
+If it returns `"synced": false`, `bitcoind` is still creating the `txindex`.
+Wait until `"synced": true` before using `ord`.
+
+If you have `maxuploadtarget` set it can interfere with fetching blocks for
+`ord` index. Either remove it or set `whitebind=127.0.0.1:8333`.
 
 Installing `ord`
 ----------------
