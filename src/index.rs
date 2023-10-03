@@ -4258,7 +4258,7 @@ mod tests {
         id,
         RuneEntry {
           rune: Rune(RUNE),
-          decimals: 0,
+          divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
         }
@@ -4340,7 +4340,7 @@ mod tests {
         [(
           id,
           RuneEntry {
-            decimals: 0,
+            divisibility: 0,
             rune: Rune(2099984997690000),
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
@@ -4393,7 +4393,7 @@ mod tests {
         id,
         RuneEntry {
           rune: Rune(RUNE),
-          decimals: 1,
+          divisibility: 1,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
         }
@@ -4451,7 +4451,7 @@ mod tests {
         id,
         RuneEntry {
           rune: Rune(RUNE),
-          decimals: 0,
+          divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
         }
@@ -4509,7 +4509,7 @@ mod tests {
         id,
         RuneEntry {
           rune: Rune(RUNE),
-          decimals: 0,
+          divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
         }
@@ -4560,7 +4560,7 @@ mod tests {
         id,
         RuneEntry {
           rune: Rune(RUNE),
-          decimals: 0,
+          divisibility: 0,
           supply: 100,
           rarity: Rarity::Uncommon,
         }
@@ -4618,7 +4618,7 @@ mod tests {
         id,
         RuneEntry {
           rune: Rune(RUNE),
-          decimals: 0,
+          divisibility: 0,
           supply: 200,
           rarity: Rarity::Uncommon,
         }
@@ -4679,7 +4679,7 @@ mod tests {
         id,
         RuneEntry {
           rune: Rune(RUNE),
-          decimals: 0,
+          divisibility: 0,
           supply: 100,
           rarity: Rarity::Uncommon,
         }
@@ -4730,7 +4730,7 @@ mod tests {
         id,
         RuneEntry {
           rune: Rune(RUNE),
-          decimals: 0,
+          divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
         }
@@ -4766,7 +4766,7 @@ mod tests {
         id,
         RuneEntry {
           rune: Rune(RUNE),
-          decimals: 0,
+          divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
         }
@@ -4817,7 +4817,7 @@ mod tests {
         id,
         RuneEntry {
           rune: Rune(RUNE),
-          decimals: 0,
+          divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
         }
@@ -4849,7 +4849,7 @@ mod tests {
         id,
         RuneEntry {
           rune: Rune(RUNE),
-          decimals: 0,
+          divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
         }
@@ -4901,7 +4901,7 @@ mod tests {
         id,
         RuneEntry {
           rune: Rune(RUNE),
-          decimals: 0,
+          divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
         }
@@ -4927,7 +4927,7 @@ mod tests {
         id,
         RuneEntry {
           rune: Rune(RUNE),
-          decimals: 0,
+          divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
         }
@@ -4978,7 +4978,7 @@ mod tests {
         id,
         RuneEntry {
           rune: Rune(RUNE),
-          decimals: 0,
+          divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
         }
@@ -5017,7 +5017,7 @@ mod tests {
         id,
         RuneEntry {
           rune: Rune(RUNE),
-          decimals: 0,
+          divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
         }
@@ -5068,7 +5068,7 @@ mod tests {
         id0,
         RuneEntry {
           rune: Rune(RUNE),
-          decimals: 0,
+          divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
         }
@@ -5119,7 +5119,7 @@ mod tests {
           id0,
           RuneEntry {
             rune: Rune(RUNE),
-            decimals: 0,
+            divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
           }
@@ -5128,7 +5128,7 @@ mod tests {
           id1,
           RuneEntry {
             rune: Rune(RUNE + 1),
-            decimals: 0,
+            divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
           }
@@ -5170,7 +5170,7 @@ mod tests {
           id0,
           RuneEntry {
             rune: Rune(RUNE),
-            decimals: 0,
+            divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
           }
@@ -5179,7 +5179,7 @@ mod tests {
           id1,
           RuneEntry {
             rune: Rune(RUNE + 1),
-            decimals: 0,
+            divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
           }
@@ -5237,7 +5237,7 @@ mod tests {
         id0,
         RuneEntry {
           rune: Rune(RUNE),
-          decimals: 0,
+          divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
         }
@@ -5288,7 +5288,7 @@ mod tests {
           id0,
           RuneEntry {
             rune: Rune(RUNE),
-            decimals: 0,
+            divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
           }
@@ -5297,7 +5297,7 @@ mod tests {
           id1,
           RuneEntry {
             rune: Rune(RUNE + 1),
-            decimals: 0,
+            divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
           }
@@ -5339,7 +5339,7 @@ mod tests {
           id0,
           RuneEntry {
             rune: Rune(RUNE),
-            decimals: 0,
+            divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
           }
@@ -5348,7 +5348,7 @@ mod tests {
           id1,
           RuneEntry {
             rune: Rune(RUNE + 1),
-            decimals: 0,
+            divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
           }
@@ -5400,7 +5400,7 @@ mod tests {
           id0,
           RuneEntry {
             rune: Rune(RUNE),
-            decimals: 0,
+            divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
           }
@@ -5409,7 +5409,7 @@ mod tests {
           id1,
           RuneEntry {
             rune: Rune(RUNE + 1),
-            decimals: 0,
+            divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
           }
@@ -5479,7 +5479,7 @@ mod tests {
         id0,
         RuneEntry {
           rune: Rune(RUNE),
-          decimals: 0,
+          divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
         }
@@ -5530,7 +5530,7 @@ mod tests {
           id0,
           RuneEntry {
             rune: Rune(RUNE),
-            decimals: 0,
+            divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
           }
@@ -5539,7 +5539,7 @@ mod tests {
           id1,
           RuneEntry {
             rune: Rune(RUNE + 1),
-            decimals: 0,
+            divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
           }
@@ -5599,7 +5599,7 @@ mod tests {
           id0,
           RuneEntry {
             rune: Rune(RUNE),
-            decimals: 0,
+            divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
           }
@@ -5608,7 +5608,7 @@ mod tests {
           id1,
           RuneEntry {
             rune: Rune(RUNE + 1),
-            decimals: 0,
+            divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
           }
@@ -5667,7 +5667,7 @@ mod tests {
         id,
         RuneEntry {
           rune: Rune(RUNE),
-          decimals: 0,
+          divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
         }
@@ -5698,7 +5698,7 @@ mod tests {
         id,
         RuneEntry {
           rune: Rune(RUNE),
-          decimals: 0,
+          divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
         }
@@ -5774,7 +5774,7 @@ mod tests {
           id0,
           RuneEntry {
             rune: Rune(RUNE),
-            decimals: 0,
+            divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
           }
@@ -5783,7 +5783,7 @@ mod tests {
           id1,
           RuneEntry {
             rune: Rune(RUNE + 1),
-            decimals: 0,
+            divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Common,
           }

@@ -24,7 +24,7 @@ impl Entry for BlockHash {
 
 #[derive(Debug, PartialEq)]
 pub(crate) struct RuneEntry {
-  pub(crate) decimals: u128,
+  pub(crate) divisibility: u128,
   pub(crate) rarity: Rarity,
   pub(crate) rune: Rune,
   pub(crate) supply: u128,
@@ -37,7 +37,7 @@ impl Entry for RuneEntry {
 
   fn load((decimals, rune, supply, rarity): RuneEntryValue) -> Self {
     Self {
-      decimals,
+      divisibility: decimals,
       rarity: Rarity::try_from(rarity).unwrap(),
       rune: Rune(rune),
       supply,
@@ -45,7 +45,12 @@ impl Entry for RuneEntry {
   }
 
   fn store(self) -> Self::Value {
-    (self.decimals, self.rune.0, self.supply, self.rarity.into())
+    (
+      self.divisibility,
+      self.rune.0,
+      self.supply,
+      self.rarity.into(),
+    )
   }
 }
 

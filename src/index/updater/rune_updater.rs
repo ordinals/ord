@@ -151,7 +151,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
               },
               rune,
               supply,
-              decimals,
+              divisibility: decimals,
             }
             .store(),
           )?;
