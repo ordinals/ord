@@ -977,4 +977,23 @@ mod tests {
 
     assert!(reveal_tx.size() >= MAX_STANDARD_TX_WEIGHT as usize);
   }
+
+  #[test]
+  fn cbor_and_json_metadata_flags_conflict() {
+    assert_regex_match!(
+      Arguments::try_parse_from([
+        "ord",
+        "wallet",
+        "inscribe",
+        "--cbor-metadata",
+        "foo",
+        "--json-metadata",
+        "bar",
+        "baz",
+      ])
+      .unwrap_err()
+      .to_string(),
+      ".*--cbor-metadata.*cannot be used with.*--json-metadata.*"
+    );
+  }
 }

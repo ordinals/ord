@@ -212,7 +212,7 @@ mod tests {
   use super::*;
 
   #[test]
-  fn reveal_script_chunks_data() {
+  fn reveal_script_chunks_body() {
     assert_eq!(
       inscription("foo", [])
         .append_reveal_script(script::Builder::new())
@@ -259,6 +259,64 @@ mod tests {
         .instructions()
         .count(),
       10
+    );
+  }
+
+  #[test]
+  fn reveal_script_chunks_metadata() {
+    assert_eq!(
+      Inscription {
+        metadata: None,
+        ..Default::default()
+      }
+      .append_reveal_script(script::Builder::new())
+      .instructions()
+      .count(),
+      4
+    );
+
+    assert_eq!(
+      Inscription {
+        metadata: Some(Vec::new()),
+        ..Default::default()
+      }
+      .append_reveal_script(script::Builder::new())
+      .instructions()
+      .count(),
+      4
+    );
+
+    assert_eq!(
+      Inscription {
+        metadata: Some(vec![0; 1]),
+        ..Default::default()
+      }
+      .append_reveal_script(script::Builder::new())
+      .instructions()
+      .count(),
+      6
+    );
+
+    assert_eq!(
+      Inscription {
+        metadata: Some(vec![0; 520]),
+        ..Default::default()
+      }
+      .append_reveal_script(script::Builder::new())
+      .instructions()
+      .count(),
+      6
+    );
+
+    assert_eq!(
+      Inscription {
+        metadata: Some(vec![0; 521]),
+        ..Default::default()
+      }
+      .append_reveal_script(script::Builder::new())
+      .instructions()
+      .count(),
+      8
     );
   }
 
@@ -409,6 +467,43 @@ mod tests {
       .unwrap()
       .index,
       0x04030201,
+    );
+  }
+
+  #[test]
+  fn metadata_function_decodes_metadata() {
+    assert_eq!(
+      Inscription {
+        metadata: Some(vec![0x44, 0, 1, 2, 3]),
+        ..Default::default()
+      }
+      .metadata()
+      .unwrap(),
+      Value::Bytes(vec![0, 1, 2, 3]),
+    );
+  }
+
+  #[test]
+  fn metadata_function_returns_none_if_no_metadata() {
+    assert_eq!(
+      Inscription {
+        metadata: None,
+        ..Default::default()
+      }
+      .metadata(),
+      None,
+    );
+  }
+
+  #[test]
+  fn metadata_function_returns_none_if_metadata_fails_to_parse() {
+    assert_eq!(
+      Inscription {
+        metadata: Some(vec![0x44]),
+        ..Default::default()
+      }
+      .metadata(),
+      None,
     );
   }
 }
