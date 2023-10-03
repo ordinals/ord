@@ -57,7 +57,7 @@ use {
     ffi::OsString,
     fmt::{self, Display, Formatter},
     fs::{self, File},
-    io,
+    io::{self, Cursor},
     net::{TcpListener, ToSocketAddrs},
     ops::{Add, AddAssign, Sub},
     path::{Path, PathBuf},
