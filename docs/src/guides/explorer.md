@@ -14,7 +14,8 @@ To specify a port add the `--http-port` flag:
 
 `ord server --http-port 8080`
 
-To enable the JSON-API endpoints add the `--enable-json-api` or `-e` flag:
+To enable the JSON-API endpoints add the `--enable-json-api` or `-j` flag (see
+[here](#json-api) for more info):
 
 `ord --enable-json-api server`
 
@@ -71,3 +72,48 @@ Or by percentile, the percentage of bitcoin's supply that has been or will have
 been issued when they are mined:
 
 [100%](https://ordinals.com/search/100%)
+
+JSON-API
+--------
+
+You can run `ord` with the `--enable-json-api` flag to access endpoints that
+return JSON instead of HTML if you set the HTTP `Accept: application/json`
+header. The structure of theses objects closely follows
+what is shown in the HTML. These endpoints are:
+
+- `/inscription/<INSCRIPTION_ID>`
+- `/inscriptions`
+- `/inscriptions/block/<BLOCK_HEIGHT>`
+- `/inscriptions/block/<BLOCK_HEIGHT>/<PAGE_INDEX>`
+- `/inscriptions/<FROM>`
+- `/inscriptions/<FROM>/<N>`
+- `/output/<OUTPOINT>`
+- `/output/<OUTPOINT>`
+- `/sat/<SAT>`
+
+To get a list of the latest 100 inscriptions you would do:
+
+```
+curl -s -H "Accept: application/json" 'http://0.0.0.0:80/inscriptions'
+```
+
+To see information about a UTXO, which includes inscriptions inside it, do:
+
+```
+curl -s -H "Accept: application/json" 'http://0.0.0.0:80/output/bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0'
+```
+
+Which returns:
+
+```
+{
+  "value": 10000,
+  "script_pubkey": "OP_PUSHNUM_1 OP_PUSHBYTES_32 156cc4878306157720607cdcb4b32afa4cc6853868458d7258b907112e5a434b",
+  "address": "bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf",
+  "transaction": "bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed",
+  "sat_ranges": null,
+  "inscriptions": [
+    "6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0"
+  ]
+}
+```

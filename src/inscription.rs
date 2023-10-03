@@ -7,6 +7,7 @@ use {
     },
     ScriptBuf,
   },
+  io::Cursor,
   std::str,
 };
 
@@ -24,11 +25,12 @@ pub(crate) enum Curse {
 pub struct Inscription {
   pub body: Option<Vec<u8>>,
   pub content_type: Option<Vec<u8>>,
-  pub parent: Option<Vec<u8>>,
-  pub metaprotocol: Option<Vec<u8>>,
-  pub unrecognized_even_field: bool,
   pub duplicate_field: bool,
   pub incomplete_field: bool,
+  pub metadata: Option<Vec<u8>>,
+  pub metaprotocol: Option<Vec<u8>>,
+  pub parent: Option<Vec<u8>>,
+  pub unrecognized_even_field: bool,
 }
 
 impl Inscription {
@@ -46,6 +48,7 @@ impl Inscription {
     path: impl AsRef<Path>,
     parent: Option<InscriptionId>,
     metaprotocol: Option<String>,
+    metadata: Option<Vec<u8>>,
   ) -> Result<Self, Error> {
     let path = path.as_ref();
 
@@ -63,11 +66,12 @@ impl Inscription {
     Ok(Self {
       body: Some(body),
       content_type: Some(content_type.into()),
-      parent: parent.map(|id| id.parent_value()),
-      metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
       duplicate_field: false,
-      unrecognized_even_field: false,
       incomplete_field: false,
+      metadata,
+      metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
+      parent: parent.map(|id| id.parent_value()),
+      unrecognized_even_field: false,
     })
   }
 
@@ -96,6 +100,13 @@ impl Inscription {
       builder = builder
         .push_slice(envelope::PARENT_TAG)
         .push_slice(PushBytesBuf::try_from(parent).unwrap());
+    }
+
+    if let Some(metadata) = &self.metadata {
+      for chunk in metadata.chunks(520) {
+        builder = builder.push_slice(envelope::METADATA_TAG);
+        builder = builder.push_slice(PushBytesBuf::try_from(chunk.to_vec()).unwrap());
+      }
     }
 
     if let Some(body) = &self.body {
@@ -138,6 +149,10 @@ impl Inscription {
 
   pub(crate) fn content_type(&self) -> Option<&str> {
     str::from_utf8(self.content_type.as_ref()?).ok()
+  }
+
+  pub(crate) fn metadata(&self) -> Option<Value> {
+    ciborium::from_reader(Cursor::new(self.metadata.as_ref()?)).ok()
   }
 
   pub(crate) fn metaprotocol(&self) -> Option<&str> {
@@ -197,7 +212,7 @@ mod tests {
   use super::*;
 
   #[test]
-  fn reveal_script_chunks_data() {
+  fn reveal_script_chunks_body() {
     assert_eq!(
       inscription("foo", [])
         .append_reveal_script(script::Builder::new())
@@ -244,6 +259,64 @@ mod tests {
         .instructions()
         .count(),
       10
+    );
+  }
+
+  #[test]
+  fn reveal_script_chunks_metadata() {
+    assert_eq!(
+      Inscription {
+        metadata: None,
+        ..Default::default()
+      }
+      .append_reveal_script(script::Builder::new())
+      .instructions()
+      .count(),
+      4
+    );
+
+    assert_eq!(
+      Inscription {
+        metadata: Some(Vec::new()),
+        ..Default::default()
+      }
+      .append_reveal_script(script::Builder::new())
+      .instructions()
+      .count(),
+      4
+    );
+
+    assert_eq!(
+      Inscription {
+        metadata: Some(vec![0; 1]),
+        ..Default::default()
+      }
+      .append_reveal_script(script::Builder::new())
+      .instructions()
+      .count(),
+      6
+    );
+
+    assert_eq!(
+      Inscription {
+        metadata: Some(vec![0; 520]),
+        ..Default::default()
+      }
+      .append_reveal_script(script::Builder::new())
+      .instructions()
+      .count(),
+      6
+    );
+
+    assert_eq!(
+      Inscription {
+        metadata: Some(vec![0; 521]),
+        ..Default::default()
+      }
+      .append_reveal_script(script::Builder::new())
+      .instructions()
+      .count(),
+      8
     );
   }
 
@@ -394,6 +467,43 @@ mod tests {
       .unwrap()
       .index,
       0x04030201,
+    );
+  }
+
+  #[test]
+  fn metadata_function_decodes_metadata() {
+    assert_eq!(
+      Inscription {
+        metadata: Some(vec![0x44, 0, 1, 2, 3]),
+        ..Default::default()
+      }
+      .metadata()
+      .unwrap(),
+      Value::Bytes(vec![0, 1, 2, 3]),
+    );
+  }
+
+  #[test]
+  fn metadata_function_returns_none_if_no_metadata() {
+    assert_eq!(
+      Inscription {
+        metadata: None,
+        ..Default::default()
+      }
+      .metadata(),
+      None,
+    );
+  }
+
+  #[test]
+  fn metadata_function_returns_none_if_metadata_fails_to_parse() {
+    assert_eq!(
+      Inscription {
+        metadata: Some(vec![0x44]),
+        ..Default::default()
+      }
+      .metadata(),
+      None,
     );
   }
 }
