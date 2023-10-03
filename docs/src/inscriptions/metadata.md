@@ -4,7 +4,7 @@ Metadata
 Inscriptions may include CBOR metadata, stored as data pushes in fields with
 tag `5`. Since data pushes are limited to 520 bytes, metadata longer than 520
 bytes must be split into multiple tag `5` fields, which will then be
-concatinated before decoding.
+concatenated before decoding.
 
 Metadata is human readable, and all metadata will be displayed to the user with
 its inscription. Inscribers are encouraged to consider how metadata will be
@@ -24,7 +24,7 @@ Metadata is rendered to HTML for display as follows:
 
 CBOR is a complex spec with many different data types, and multiple ways of
 representing the same data. Exotic data types, such as tags, floats, and
-bignums, and incoding such as indefinite values, may fail to display correctly
+bignums, and encoding such as indefinite values, may fail to display correctly
 or at all. Contributions to `ord` to remedy this are welcome.
 
 Example
