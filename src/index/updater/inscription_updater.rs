@@ -29,12 +29,12 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   value_receiver: &'a mut Receiver<u64>,
   id_to_entry: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, InscriptionEntryValue>,
   pub(super) lost_sats: u64,
-  pub(super) next_cursed_number: i64,
-  pub(super) next_number: i64,
-  number_to_id: &'a mut Table<'db, 'tx, i64, &'static InscriptionIdValue>,
+  pub(super) cursed_inscription_count: u64,
+  pub(super) blessed_inscription_count: u64,
+  pub(super) next_sequence_number: u64,
+  sequence_number_to_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
   outpoint_to_value: &'a mut Table<'db, 'tx, &'static OutPointValue, u64>,
   reward: u64,
-  reinscription_id_to_seq_num: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, u64>,
   sat_to_inscription_id: &'a mut MultimapTable<'db, 'tx, u64, &'static InscriptionIdValue>,
   satpoint_to_id:
     &'a mut MultimapTable<'db, 'tx, &'static SatPointValue, &'static InscriptionIdValue>,
@@ -56,9 +56,10 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     value_receiver: &'a mut Receiver<u64>,
     id_to_entry: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, InscriptionEntryValue>,
     lost_sats: u64,
-    number_to_id: &'a mut Table<'db, 'tx, i64, &'static InscriptionIdValue>,
+    cursed_inscription_count: u64,
+    blessed_inscription_count: u64,
+    sequence_number_to_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
     outpoint_to_value: &'a mut Table<'db, 'tx, &'static OutPointValue, u64>,
-    reinscription_id_to_seq_num: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, u64>,
     sat_to_inscription_id: &'a mut MultimapTable<'db, 'tx, u64, &'static InscriptionIdValue>,
     satpoint_to_id: &'a mut MultimapTable<
       'db,
@@ -70,14 +71,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     unbound_inscriptions: u64,
     value_cache: &'a mut HashMap<OutPoint, u64>,
   ) -> Result<Self> {
-    let next_cursed_number = number_to_id
-      .iter()?
-      .next()
-      .and_then(|result| result.ok())
-      .map(|(number, _id)| number.value() - 1)
-      .unwrap_or(-1);
-
-    let next_number = number_to_id
+    let next_sequence_number = sequence_number_to_id
       .iter()?
       .next_back()
       .and_then(|result| result.ok())
@@ -92,12 +86,12 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       value_receiver,
       id_to_entry,
       lost_sats,
-      next_cursed_number,
-      next_number,
-      number_to_id,
+      cursed_inscription_count,
+      blessed_inscription_count,
+      next_sequence_number,
+      sequence_number_to_id,
       outpoint_to_value,
       reward: Height(height).subsidy(),
-      reinscription_id_to_seq_num,
       sat_to_inscription_id,
       satpoint_to_id,
       timestamp,
@@ -106,13 +100,13 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     })
   }
 
-  pub(super) fn index_transaction_inscriptions(
+  pub(super) fn index_envelopes(
     &mut self,
     tx: &Transaction,
     txid: Txid,
     input_sat_ranges: Option<&VecDeque<(u64, u64)>>,
   ) -> Result {
-    let mut new_inscriptions = Inscription::from_transaction(tx).into_iter().peekable();
+    let mut envelopes = ParsedEnvelope::from_transaction(tx).into_iter().peekable();
     let mut floating_inscriptions = Vec::new();
     let mut inscribed_offsets = BTreeMap::new();
     let mut total_input_value = 0;
@@ -127,7 +121,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
       // find existing inscriptions on input (transfers of inscriptions)
       for (old_satpoint, inscription_id) in Index::inscriptions_on_output_ordered(
-        self.reinscription_id_to_seq_num,
+        self.id_to_entry,
         self.satpoint_to_id,
         tx_in.previous_output,
       )? {
@@ -167,8 +161,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       total_input_value += current_input_value;
 
       // go through all inscriptions in this input
-      while let Some(inscription) = new_inscriptions.peek() {
-        if inscription.tx_in_index != u32::try_from(input_index).unwrap() {
+      while let Some(inscription) = envelopes.peek() {
+        if inscription.input != u32::try_from(input_index).unwrap() {
           break;
         }
 
@@ -177,22 +171,22 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           index: id_counter,
         };
 
-        let curse = if inscription.inscription.unrecognized_even_field {
+        let curse = if inscription.payload.unrecognized_even_field {
           Some(Curse::UnrecognizedEvenField)
-        } else if inscription.tx_in_index != 0 {
+        } else if inscription.payload.duplicate_field {
+          Some(Curse::DuplicateField)
+        } else if inscription.payload.incomplete_field {
+          Some(Curse::IncompleteField)
+        } else if inscription.input != 0 {
           Some(Curse::NotInFirstInput)
-        } else if inscription.tx_in_offset != 0 {
+        } else if inscription.offset != 0 {
           Some(Curse::NotAtOffsetZero)
         } else if inscribed_offsets.contains_key(&offset) {
-          let seq_num = self.reinscription_id_to_seq_num.len()?;
+          let seq_num = self.id_to_entry.len()?;
 
           let sat = Self::calculate_sat(input_sat_ranges, offset);
-          log::info!("processing reinscription {inscription_id} on sat {:?}: sequence number {seq_num}, inscribed offsets {:?}", sat, inscribed_offsets);
 
-          // if reinscription track its ordering
-          self
-            .reinscription_id_to_seq_num
-            .insert(&inscription_id.store(), seq_num)?;
+          log::info!("processing reinscription {inscription_id} on sat {:?}: sequence number {seq_num}, inscribed offsets {:?}", sat, inscribed_offsets);
 
           Some(Curse::Reinscription)
         } else {
@@ -215,7 +209,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
               match self.id_to_entry.get(&inscription_id.store()) {
                 Ok(option) => option.map(|entry| {
                   let loaded_entry = InscriptionEntry::load(entry.value());
-                  loaded_entry.number < 0
+                  loaded_entry.inscription_number < 0
                 }),
                 Err(_) => None,
               }
@@ -229,9 +223,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           curse.is_some()
         };
 
-        let unbound = current_input_value == 0
-          || inscription.tx_in_offset != 0
-          || curse == Some(Curse::UnrecognizedEvenField);
+        let unbound = current_input_value == 0 || curse == Some(Curse::UnrecognizedEvenField);
 
         if curse.is_some() || unbound {
           log::info!(
@@ -248,12 +240,12 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           origin: Origin::New {
             cursed,
             fee: 0,
-            parent: inscription.inscription.parent(),
+            parent: inscription.payload.parent(),
             unbound,
           },
         });
 
-        new_inscriptions.next();
+        envelopes.next();
         id_counter += 1;
       }
     }
@@ -417,19 +409,25 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         parent,
         unbound,
       } => {
-        let number = if cursed {
-          let next_cursed_number = self.next_cursed_number;
-          self.next_cursed_number -= 1;
+        let inscription_number = if cursed {
+          let number: i64 = self.cursed_inscription_count.try_into().unwrap();
+          self.cursed_inscription_count += 1;
 
-          next_cursed_number
+          // because cursed numbers start at -1
+          -(number + 1)
         } else {
-          let next_number = self.next_number;
-          self.next_number += 1;
+          let number: i64 = self.blessed_inscription_count.try_into().unwrap();
+          self.blessed_inscription_count += 1;
 
-          next_number
+          number
         };
 
-        self.number_to_id.insert(number, &inscription_id)?;
+        let sequence_number = self.next_sequence_number;
+        self.next_sequence_number += 1;
+
+        self
+          .sequence_number_to_id
+          .insert(sequence_number, &inscription_id)?;
 
         let sat = if unbound {
           None
@@ -446,7 +444,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           &InscriptionEntry {
             fee,
             height: self.height,
-            number,
+            inscription_number,
+            sequence_number,
             parent,
             sat,
             timestamp: self.timestamp,

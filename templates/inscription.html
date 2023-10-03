@@ -1,7 +1,7 @@
-%% if self.number >= 0 {
-<h1>Inscription {{ self.number }}</h1>
+%% if self.inscription_number >= 0 {
+<h1>Inscription {{ self.inscription_number }}</h1>
 %% } else {
-<h1>Inscription {{ self.number }} (unstable)</h1>
+<h1>Inscription {{ self.inscription_number }} (unstable)</h1>
 %% }
 <div class=inscription>
 %% if let Some(previous) = self.previous {
@@ -34,6 +34,10 @@
 %% if let Some(sat) = self.sat {
   <dt>sat</dt>
   <dd><a href=/sat/{{sat}}>{{sat}}</a></dd>
+%% }
+%% if let Some(metaprotocol) = self.inscription.metaprotocol() {
+  <dt>metaprotocol</dt>
+  <dd>{{ metaprotocol }}</dd>
 %% }
 %% if let Some(content_length) = self.inscription.content_length() {
   <dt>preview</dt>

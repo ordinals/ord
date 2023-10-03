@@ -190,8 +190,24 @@ printed when you run:
 ord wallet inscriptions
 ```
 
-And when you visit [the ordinals explorer](https://ordinals.com/) at
-`ordinals.com/inscription/INSCRIPTION_ID`.
+Parent-Child Inscriptions
+-------------------------
+
+Parent-child inscriptions enable what is colloquially known as collections, see
+[provenance](../inscriptions/provenance.md) for more information.
+
+To make an inscription a child of another, the parent inscription has to be
+inscribed and present in the wallet. To choose a parent run `ord wallet inscriptions`
+and copy the inscription id (`<PARENT_INSCRIPTION_ID>`).
+
+Now inscribe the child inscription and specify the parent like so:
+
+```
+ord wallet inscribe --fee-rate FEE_RATE --parent <PARENT_INSCRIPTION_ID> CHILD_FILE
+```
+
+This relationship cannot be added retroactively, the parent has to be
+present at inception of the child.
 
 Sending Inscriptions
 --------------------
