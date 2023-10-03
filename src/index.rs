@@ -579,11 +579,11 @@ impl Index {
 
   pub(crate) fn rare_sat_satpoints(&self) -> Result<Option<Vec<(Sat, SatPoint)>>> {
     if self.has_sat_index()? {
-      let mut result = Vec::new();
-
       let rtx = self.database.begin_read()?;
 
       let sat_to_satpoint = rtx.open_table(SAT_TO_SATPOINT)?;
+
+      let mut result = Vec::with_capacity(sat_to_satpoint.len()?.try_into().unwrap());
 
       for range in sat_to_satpoint.range(0..)? {
         let (sat, satpoint) = range?;
