@@ -705,4 +705,35 @@ mod tests {
       }],
     );
   }
+
+  #[test]
+  fn metadata_is_parse_correctly() {
+    assert_eq!(
+      parse(&[envelope(&[b"ord", &[5], &[]])]),
+      vec![ParsedEnvelope {
+        payload: Inscription {
+          metadata: Some(vec![]),
+          ..Default::default()
+        },
+        input: 0,
+        offset: 0,
+      }]
+    );
+  }
+
+  #[test]
+  fn metadata_is_parse_correctly_from_chunks() {
+    assert_eq!(
+      parse(&[envelope(&[b"ord", &[5], &[0], &[5], &[1]])]),
+      vec![ParsedEnvelope {
+        payload: Inscription {
+          metadata: Some(vec![0, 1]),
+          duplicate_field: true,
+          ..Default::default()
+        },
+        input: 0,
+        offset: 0,
+      }]
+    );
+  }
 }
