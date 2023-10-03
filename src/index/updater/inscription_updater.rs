@@ -223,9 +223,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           curse.is_some()
         };
 
-        let unbound = current_input_value == 0
-          || inscription.offset != 0
-          || curse == Some(Curse::UnrecognizedEvenField);
+        let unbound = current_input_value == 0 || curse == Some(Curse::UnrecognizedEvenField);
 
         if curse.is_some() || unbound {
           log::info!(
