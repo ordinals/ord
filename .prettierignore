@@ -1,2 +1,4 @@
 # ignore everything
 /*
+# except docs
+!/docs

@@ -6,7 +6,22 @@ pub(crate) struct PreviewAudioHtml {
 }
 
 #[derive(boilerplate::Boilerplate)]
+pub(crate) struct PreviewCodeHtml {
+  pub(crate) inscription_id: InscriptionId,
+}
+
+#[derive(boilerplate::Boilerplate)]
 pub(crate) struct PreviewImageHtml {
+  pub(crate) inscription_id: InscriptionId,
+}
+
+#[derive(boilerplate::Boilerplate)]
+pub(crate) struct PreviewMarkdownHtml {
+  pub(crate) inscription_id: InscriptionId,
+}
+
+#[derive(boilerplate::Boilerplate)]
+pub(crate) struct PreviewModelHtml {
   pub(crate) inscription_id: InscriptionId,
 }
 

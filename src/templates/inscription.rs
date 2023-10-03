@@ -3,22 +3,83 @@ use super::*;
 #[derive(Boilerplate)]
 pub(crate) struct InscriptionHtml {
   pub(crate) chain: Chain,
+  pub(crate) children: Vec<InscriptionId>,
   pub(crate) genesis_fee: u64,
   pub(crate) genesis_height: u64,
   pub(crate) inscription: Inscription,
   pub(crate) inscription_id: InscriptionId,
   pub(crate) next: Option<InscriptionId>,
-  pub(crate) number: u64,
-  pub(crate) output: TxOut,
+  pub(crate) inscription_number: i64,
+  pub(crate) output: Option<TxOut>,
+  pub(crate) parent: Option<InscriptionId>,
   pub(crate) previous: Option<InscriptionId>,
   pub(crate) sat: Option<Sat>,
   pub(crate) satpoint: SatPoint,
   pub(crate) timestamp: DateTime<Utc>,
 }
 
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct InscriptionJson {
+  pub address: Option<String>,
+  pub children: Vec<InscriptionId>,
+  pub content_length: Option<usize>,
+  pub content_type: Option<String>,
+  pub genesis_fee: u64,
+  pub genesis_height: u64,
+  pub inscription_id: InscriptionId,
+  pub next: Option<InscriptionId>,
+  pub inscription_number: i64,
+  pub output_value: Option<u64>,
+  pub parent: Option<InscriptionId>,
+  pub previous: Option<InscriptionId>,
+  pub sat: Option<Sat>,
+  pub satpoint: SatPoint,
+  pub timestamp: i64,
+}
+
+impl InscriptionJson {
+  pub fn new(
+    chain: Chain,
+    children: Vec<InscriptionId>,
+    genesis_fee: u64,
+    genesis_height: u64,
+    inscription: Inscription,
+    inscription_id: InscriptionId,
+    parent: Option<InscriptionId>,
+    next: Option<InscriptionId>,
+    inscription_number: i64,
+    output: Option<TxOut>,
+    previous: Option<InscriptionId>,
+    sat: Option<Sat>,
+    satpoint: SatPoint,
+    timestamp: DateTime<Utc>,
+  ) -> Self {
+    Self {
+      inscription_id,
+      children,
+      inscription_number,
+      genesis_height,
+      parent,
+      genesis_fee,
+      output_value: output.as_ref().map(|o| o.value),
+      address: output
+        .as_ref()
+        .and_then(|o| chain.address_from_script(&o.script_pubkey).ok())
+        .map(|address| address.to_string()),
+      sat,
+      satpoint,
+      content_type: inscription.content_type().map(|s| s.to_string()),
+      content_length: inscription.content_length(),
+      timestamp: timestamp.timestamp(),
+      previous,
+      next,
+    }
+  }
+}
+
 impl PageContent for InscriptionHtml {
   fn title(&self) -> String {
-    format!("Inscription {}", self.number)
+    format!("Inscription {}", self.inscription_number)
   }
 
   fn preview_image_url(&self) -> Option<Trusted<String>> {
@@ -31,17 +92,19 @@ mod tests {
   use super::*;
 
   #[test]
-  fn without_sat_or_nav_links() {
+  fn without_sat_nav_links_or_output() {
     assert_regex_match!(
       InscriptionHtml {
+        children: Vec::new(),
+        parent: None,
         chain: Chain::Mainnet,
         genesis_fee: 1,
         genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
         next: None,
-        number: 1,
-        output: tx_out(1, address()),
+        inscription_number: 1,
+        output: None,
         previous: None,
         sat: None,
         satpoint: satpoint(1, 0),
@@ -57,10 +120,6 @@ mod tests {
         <dl>
           <dt>id</dt>
           <dd class=monospace>1{64}i1</dd>
-          <dt>address</dt>
-          <dd class=monospace>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</dd>
-          <dt>output value</dt>
-          <dd>1</dd>
           <dt>preview</dt>
           <dd><a href=/preview/1{64}i1>link</a></dd>
           <dt>content</dt>
@@ -90,17 +149,58 @@ mod tests {
   }
 
   #[test]
-  fn with_sat() {
+  fn with_output() {
     assert_regex_match!(
       InscriptionHtml {
+        children: Vec::new(),
+        parent: None,
         chain: Chain::Mainnet,
         genesis_fee: 1,
         genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(1),
         next: None,
-        number: 1,
-        output: tx_out(1, address()),
+        inscription_number: 1,
+        output: Some(tx_out(1, address())),
+        previous: None,
+        sat: None,
+        satpoint: satpoint(1, 0),
+        timestamp: timestamp(0),
+      },
+      "
+        <h1>Inscription 1</h1>
+        <div class=inscription>
+        <div>❮</div>
+        <iframe .* src=/preview/1{64}i1></iframe>
+        <div>❯</div>
+        </div>
+        <dl>
+          .*
+          <dt>address</dt>
+          <dd class=monospace>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</dd>
+          <dt>output value</dt>
+          <dd>1</dd>
+          .*
+        </dl>
+      "
+      .unindent()
+    );
+  }
+
+  #[test]
+  fn with_sat() {
+    assert_regex_match!(
+      InscriptionHtml {
+        children: Vec::new(),
+        parent: None,
+        chain: Chain::Mainnet,
+        genesis_fee: 1,
+        genesis_height: 0,
+        inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
+        inscription_id: inscription_id(1),
+        next: None,
+        inscription_number: 1,
+        output: Some(tx_out(1, address())),
         previous: None,
         sat: Some(Sat(1)),
         satpoint: satpoint(1, 0),
@@ -125,14 +225,16 @@ mod tests {
   fn with_prev_and_next() {
     assert_regex_match!(
       InscriptionHtml {
+        children: Vec::new(),
+        parent: None,
         chain: Chain::Mainnet,
         genesis_fee: 1,
         genesis_height: 0,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         inscription_id: inscription_id(2),
         next: Some(inscription_id(3)),
-        number: 1,
-        output: tx_out(1, address()),
+        inscription_number: 1,
+        output: Some(tx_out(1, address())),
         previous: Some(inscription_id(1)),
         sat: None,
         satpoint: satpoint(1, 0),
@@ -146,6 +248,167 @@ mod tests {
         <a class=next href=/inscription/3{64}i3>❯</a>
         </div>
         .*
+      "
+      .unindent()
+    );
+  }
+
+  #[test]
+  fn with_cursed_and_unbound() {
+    assert_regex_match!(
+      InscriptionHtml {
+        children: Vec::new(),
+        parent: None,
+        chain: Chain::Mainnet,
+        genesis_fee: 1,
+        genesis_height: 0,
+        inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
+        inscription_id: inscription_id(2),
+        next: None,
+        inscription_number: -1,
+        output: Some(tx_out(1, address())),
+        previous: None,
+        sat: None,
+        satpoint: SatPoint {
+          outpoint: unbound_outpoint(),
+          offset: 0
+        },
+        timestamp: timestamp(0),
+      },
+      "
+        <h1>Inscription -1 \\(unstable\\)</h1>
+        .*
+        <dl>
+          .*
+          <dt>location</dt>
+          <dd class=monospace>0{64}:0:0 \\(unbound\\)</dd>
+          <dt>output</dt>
+          <dd><a class=monospace href=/output/0{64}:0>0{64}:0 \\(unbound\\)</a></dd>
+          .*
+        </dl>
+      "
+      .unindent()
+    );
+  }
+
+  #[test]
+  fn with_parent() {
+    assert_regex_match!(
+      InscriptionHtml {
+        children: Vec::new(),
+        parent: Some(inscription_id(2)),
+        chain: Chain::Mainnet,
+        genesis_fee: 1,
+        genesis_height: 0,
+        inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
+        inscription_id: inscription_id(1),
+        next: None,
+        inscription_number: 1,
+        output: None,
+        previous: None,
+        sat: None,
+        satpoint: satpoint(1, 0),
+        timestamp: timestamp(0),
+      },
+      "
+        <h1>Inscription 1</h1>
+        <div class=inscription>
+        <div>❮</div>
+        <iframe .* src=/preview/1{64}i1></iframe>
+        <div>❯</div>
+        </div>
+        <dl>
+          <dt>id</dt>
+          <dd class=monospace>1{64}i1</dd>
+          <dt>parent</dt>
+          <dd><a class=monospace href=/inscription/2{64}i2>2{64}i2</a></dd>
+          <dt>preview</dt>
+          <dd><a href=/preview/1{64}i1>link</a></dd>
+          <dt>content</dt>
+          <dd><a href=/content/1{64}i1>link</a></dd>
+          <dt>content length</dt>
+          <dd>10 bytes</dd>
+          <dt>content type</dt>
+          <dd>text/plain;charset=utf-8</dd>
+          <dt>timestamp</dt>
+          <dd><time>1970-01-01 00:00:00 UTC</time></dd>
+          <dt>genesis height</dt>
+          <dd><a href=/block/0>0</a></dd>
+          <dt>genesis fee</dt>
+          <dd>1</dd>
+          <dt>genesis transaction</dt>
+          <dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
+          <dt>location</dt>
+          <dd class=monospace>1{64}:1:0</dd>
+          <dt>output</dt>
+          <dd><a class=monospace href=/output/1{64}:1>1{64}:1</a></dd>
+          <dt>offset</dt>
+          <dd>0</dd>
+        </dl>
+      "
+      .unindent()
+    );
+  }
+
+  #[test]
+  fn with_children() {
+    assert_regex_match!(
+      InscriptionHtml {
+        children: vec![inscription_id(2), inscription_id(3)],
+        parent: None,
+        chain: Chain::Mainnet,
+        genesis_fee: 1,
+        genesis_height: 0,
+        inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
+        inscription_id: inscription_id(1),
+        next: None,
+        inscription_number: 1,
+        output: None,
+        previous: None,
+        sat: None,
+        satpoint: satpoint(1, 0),
+        timestamp: timestamp(0),
+      },
+      "
+        <h1>Inscription 1</h1>
+        <div class=inscription>
+        <div>❮</div>
+        <iframe .* src=/preview/1{64}i1></iframe>
+        <div>❯</div>
+        </div>
+        <dl>
+          <dt>id</dt>
+          <dd class=monospace>1{64}i1</dd>
+          <dt>preview</dt>
+          <dd><a href=/preview/1{64}i1>link</a></dd>
+          <dt>content</dt>
+          <dd><a href=/content/1{64}i1>link</a></dd>
+          <dt>content length</dt>
+          <dd>10 bytes</dd>
+          <dt>content type</dt>
+          <dd>text/plain;charset=utf-8</dd>
+          <dt>timestamp</dt>
+          <dd><time>1970-01-01 00:00:00 UTC</time></dd>
+          <dt>genesis height</dt>
+          <dd><a href=/block/0>0</a></dd>
+          <dt>genesis fee</dt>
+          <dd>1</dd>
+          <dt>genesis transaction</dt>
+          <dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
+          <dt>location</dt>
+          <dd class=monospace>1{64}:1:0</dd>
+          <dt>output</dt>
+          <dd><a class=monospace href=/output/1{64}:1>1{64}:1</a></dd>
+          <dt>offset</dt>
+          <dd>0</dd>
+          <dt>children</dt>
+          <dd>
+            <div class=thumbnails>
+              <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
+              <a href=/inscription/3{64}i3><iframe .* src=/preview/3{64}i3></iframe></a>
+            </div>
+          </dd>
+        </dl>
       "
       .unindent()
     );

@@ -3,14 +3,18 @@
 use {
   api::Api,
   bitcoin::{
+    address::{Address, NetworkUnchecked},
+    amount::SignedAmount,
+    block::Header,
     blockdata::constants::COIN_VALUE,
-    blockdata::script,
+    blockdata::{block::Version, script},
     consensus::encode::{deserialize, serialize},
-    hash_types::BlockHash,
+    hash_types::{BlockHash, TxMerkleNode},
     hashes::Hash,
-    util::amount::SignedAmount,
-    Address, Amount, Block, BlockHeader, Network, OutPoint, PackedLockTime, Script, Sequence,
-    Transaction, TxIn, TxMerkleNode, TxOut, Txid, Witness, Wtxid,
+    locktime::absolute::LockTime,
+    pow::CompactTarget,
+    Amount, Block, Network, OutPoint, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid, Witness,
+    Wtxid,
   },
   bitcoincore_rpc::json::{
     Bip125Replaceable, CreateRawTransactionInput, Descriptor, EstimateMode, GetBalancesResult,
@@ -18,7 +22,8 @@ use {
     GetNetworkInfoResult, GetRawTransactionResult, GetTransactionResult,
     GetTransactionResultDetail, GetTransactionResultDetailCategory, GetWalletInfoResult,
     ImportDescriptors, ImportMultiResult, ListDescriptorsResult, ListTransactionResult,
-    ListUnspentResultEntry, LoadWalletResult, SignRawTransactionResult, Timestamp, WalletTxInfo,
+    ListUnspentResultEntry, LoadWalletResult, SignRawTransactionInput, SignRawTransactionResult,
+    Timestamp, WalletTxInfo,
   },
   jsonrpc_core::{IoHandler, Value},
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
@@ -115,10 +120,9 @@ pub fn spawn() -> Handle {
 #[derive(Clone)]
 pub struct TransactionTemplate<'a> {
   pub fee: u64,
-  pub inputs: &'a [(usize, usize, usize)],
+  pub inputs: &'a [(usize, usize, usize, Witness)],
   pub output_values: &'a [u64],
   pub outputs: usize,
-  pub witness: Witness,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -150,7 +154,6 @@ impl<'a> Default for TransactionTemplate<'a> {
       inputs: &[],
       output_values: &[],
       outputs: 1,
-      witness: Witness::default(),
     }
   }
 }
@@ -228,6 +231,7 @@ impl Handle {
       Network::Testnet => Network::Testnet.to_string(),
       Network::Signet => Network::Signet.to_string(),
       Network::Regtest => Network::Regtest.to_string(),
+      _ => panic!(),
     }
   }
 

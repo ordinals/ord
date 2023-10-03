@@ -6,7 +6,7 @@ pub struct Output {
   pub amount: u64,
 }
 
-pub(crate) fn run(options: Options) -> Result {
+pub(crate) fn run(options: Options) -> SubcommandResult {
   let index = Index::open(&options)?;
   index.update()?;
 
@@ -18,7 +18,5 @@ pub(crate) fn run(options: Options) -> Result {
     });
   }
 
-  print_json(outputs)?;
-
-  Ok(())
+  Ok(Box::new(outputs))
 }
