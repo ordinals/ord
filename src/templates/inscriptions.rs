@@ -7,6 +7,33 @@ pub(crate) struct InscriptionsHtml {
   pub(crate) next: Option<u64>,
 }
 
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct InscriptionsJson {
+  pub inscriptions: Vec<InscriptionId>,
+  pub prev: Option<u64>,
+  pub next: Option<u64>,
+  pub lowest: Option<u64>,
+  pub highest: Option<u64>,
+}
+
+impl InscriptionsJson {
+  pub fn new(
+    inscriptions: Vec<InscriptionId>,
+    prev: Option<u64>,
+    next: Option<u64>,
+    lowest: Option<u64>,
+    highest: Option<u64>,
+  ) -> Self {
+    Self {
+      inscriptions,
+      prev,
+      next,
+      lowest,
+      highest,
+    }
+  }
+}
+
 impl PageContent for InscriptionsHtml {
   fn title(&self) -> String {
     "Inscriptions".into()
