@@ -821,15 +821,16 @@ Esperamos que la teoría ordinal fortalezca y enriquezca a bitcoin, y le dé otr
 <h2 id="la-instalación-de-bitcoin-core"><a class="header" href="#la-instalación-de-bitcoin-core">La instalación de Bitcoin Core</a></h2>
 <p>Bitcoin Core está disponible en la <a href="https://bitcoincore.org/en/download/">página de descargas</a> de <a href="https://bitcoincore.org/">bitcoincore.org</a>.</p>
 <p>Para crear inscripciones es necesario tener la versión 24 de Bitcoin Core o una más reciente.</p>
-<p>Esta guía no cubre los detalles de la instalación de Bitcoin Core. Una vez que se ha instalado Bitcoin Core, deberías ser capaz de ejecutar el comando <code>bitcoind -version</code> con éxito desde la línea de comandos.</p>
+<p>This guide does not cover installing Bitcoin Core in detail. Once Bitcoin Core is installed, you should be able to run <code>bitcoind -version</code> successfully from the command line. Do <em>NOT</em> use <code>bitcoin-qt</code>.</p>
 <h2 id="configuración-de-bitcoin-core"><a class="header" href="#configuración-de-bitcoin-core">Configuración de Bitcoin Core</a></h2>
-<p><code>ord</code> requiere el índice de transacciones de Bitcoin Core.</p>
+<p><code>ord</code> requires Bitcoin Core's transaction index and rest interface.</p>
 <p>Debes configurar tu nodo de Bitcoin Core para que mantenga un índice de transacciones. Agrega lo siguiente a tu <code>bitcoin.conf</code>:</p>
 <pre><code>txindex=1
 </code></pre>
 <p>O, ejecuta <code>bitcoind</code> con <code>-txindex</code>:</p>
 <pre><code>bitcoind -txindex
 </code></pre>
+<p>Details on creating or modifying your <code>bitcoin.conf</code> file can be found <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md">here</a>.</p>
 <h2 id="sincronizando-la-blockchain-de-bitcoin"><a class="header" href="#sincronizando-la-blockchain-de-bitcoin">Sincronizando la Blockchain de Bitcoin</a></h2>
 <p>Para sincronizar la blockchain o cadena de bloques de bitcoin, ejecuta:</p>
 <pre><code>bitcoind -txindex
@@ -838,6 +839,23 @@ Esperamos que la teoría ordinal fortalezca y enriquezca a bitcoin, y le dé otr
 <pre><code>bitcoin-cli getblockcount
 </code></pre>
 <p>coincida con el recuento de bloques en un explorador de bloques como <a href="https://mempool.space/">el explorador de bloques mempool.space</a>. <code>ord</code> interactúa con <code>bitcoind</code>, así que debes dejar <code>bitcoind</code> ejecutándose en segundo plano mientras estés usando <code>ord</code>.</p>
+<p>The blockchain takes about 600GB of disk space. If you have an external drive you want to store blocks on, use the configuration option <code>blocksdir=&lt;external_drive_path&gt;</code>. This is much simpler than using the <code>datadir</code> option because the cookie file will still be in the default location for <code>bitcoin-cli</code> and <code>ord</code> to find.</p>
+<h2 id="solución-de-problemas"><a class="header" href="#solución-de-problemas">Solución de problemas</a></h2>
+<p>Make sure you can access <code>bitcoind</code> with <code>bitcoin-cli -getinfo</code> and that it is fully synced.</p>
+<p>If <code>bitcoin-cli -getinfo</code> returns <code>Could not connect to the server</code>, <code>bitcoind</code> is not running.</p>
+<p>Make sure <code>rpcuser</code>, <code>rpcpassword</code>, or <code>rpcauth</code> are <em>NOT</em> set in your <code>bitcoin.conf</code> file. <code>ord</code> requires using cookie authentication. Make sure there is a file <code>.cookie</code> in your bitcoin data directory.</p>
+<p>If <code>bitcoin-cli -getinfo</code> returns <code>Could not locate RPC credentials</code>, then you must specify the cookie file location. If you are using a custom data directory (specifying the <code>datadir</code> option), then you must specify the cookie location like <code>bitcoin-cli -rpccookiefile=&lt;your_bitcoin_datadir&gt;/.cookie -getinfo</code>. When running <code>ord</code> you must specify the cookie file location with <code>--cookie-file=&lt;your_bitcoin_datadir&gt;/.cookie</code>.</p>
+<p>Make sure you do <em>NOT</em> have <code>disablewallet=1</code> in your <code>bitcoin.conf</code> file. If <code>bitcoin-cli listwallets</code> returns <code>Method not found</code> then the wallet is disabled and you won't be able to use <code>ord</code>.</p>
+<p>Make sure <code>txindex=1</code> is set. Run <code>bitcoin-cli getindexinfo</code> and it should return something like</p>
+<pre><code class="language-json">{
+  &quot;txindex&quot;: {
+    &quot;synced&quot;: true,
+    &quot;best_block_height&quot;: 776546
+  }
+}
+</code></pre>
+<p>If it only returns <code>{}</code>, <code>txindex</code> is not set. If it returns <code>&quot;synced&quot;: false</code>, <code>bitcoind</code> is still creating the <code>txindex</code>. Wait until <code>&quot;synced&quot;: true</code> before using <code>ord</code>.</p>
+<p>If you have <code>maxuploadtarget</code> set it can interfere with fetching blocks for <code>ord</code> index. Either remove it or set <code>whitebind=127.0.0.1:8333</code>.</p>
 <h2 id="instalación-de-ord"><a class="header" href="#instalación-de-ord">Instalación de ord</a></h2>
 <p>La utilidad <code>ord</code> está escrita en Rust y puede ser construida desde el <a href="https://github.com/ordinals/ord">código fuente</a>. Los binarios preconstruidos están disponibles en la página de <a href="https://github.com/ordinals/ord/releases">lanzamientos</a>.</p>
 <p>Puedes instalar el último binario preconstruido desde la línea de comandos usando:</p>
@@ -1184,7 +1202,7 @@ Esperamos que la teoría ordinal fortalezca y enriquezca a bitcoin, y le dé otr
 <p><img src="guides/collecting/images/sending_06.png" alt="" /></p>
 <p>Si deseas rastrear el estado de tu transacción, puedes copiar el <code>Identificador de la Transacción (Txid)</code> y pegarlo en <a href="https://mempool.space/">mempool.space</a>.</p>
 <p>Cuando la transacción haya sido confirmada, puedes revisar la página de inscripciones en <a href="https://ordinals.com/">ordinals.com</a> para confirmar que ha sido movida a la nueva ubicación de salida y dirección.</p>
-<h2 id="solución-de-problemas"><a class="header" href="#solución-de-problemas">Solución de problemas</a></h2>
+<h2 id="solución-de-problemas-1"><a class="header" href="#solución-de-problemas-1">Solución de problemas</a></h2>
 <h4 id="el-monedero-sparrow-no-está-mostrando-una-transacciónutxo-pero-puedo-verla-en-mempoolspace"><a class="header" href="#el-monedero-sparrow-no-está-mostrando-una-transacciónutxo-pero-puedo-verla-en-mempoolspace">¡El monedero Sparrow no está mostrando una transacción/UTXO, pero puedo verla en mempool.space!</a></h4>
 <p>Asegúrate de que tu monedero esté conectado a un nodo de bitcoin. Para validar esto, dirígete a <code>Preferences</code>-&gt; <code>Server</code> settings y haz clic en <code>Edit Existing Connection</code> (Editar conexión existente).</p>
 <p><img src="guides/collecting/images/troubleshooting_01.png" alt="" /></p>

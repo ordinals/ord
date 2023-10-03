@@ -821,15 +821,16 @@ _铭文在比特币上_ 您可以使用您控制的比特币全节点轻松验�
 <h2 id="安装-bitcoin-core"><a class="header" href="#安装-bitcoin-core">安装 Bitcoin Core</a></h2>
 <p>Bitcoin Core 可以在 <a href="https://bitcoincore.org/">bitcoincore.org</a> 上的<a href="https://bitcoincore.org/en/download/">下载页面</a>.</p>
 <p>制作铭文需要Bitcoin Core 24 或者更新版本。</p>
-<p>本指南不包括如何详细安装 Bitcoin Core；当你成功安装Bitcoin Core以后，你应该可以在命令行使用 <code>bitcoind -version</code>命令。</p>
+<p>This guide does not cover installing Bitcoin Core in detail. Once Bitcoin Core is installed, you should be able to run <code>bitcoind -version</code> successfully from the command line. Do <em>NOT</em> use <code>bitcoin-qt</code>.</p>
 <h2 id="配置-bitcoin-core"><a class="header" href="#配置-bitcoin-core">配置 Bitcoin Core</a></h2>
-<p><code>ord</code> 需要Bitcoin Core 的交易索引</p>
+<p><code>ord</code> requires Bitcoin Core's transaction index and rest interface.</p>
 <p>配置你的Bitcoin Core阶段去维护一个交易索引，需要在<code>bitcoin.conf</code>里面添加:</p>
 <pre><code>txindex=1
 </code></pre>
 <p>或者, 运行 <code>bitcoind</code> 和 <code>-txindex</code>:</p>
 <pre><code>bitcoind -txindex
 </code></pre>
+<p>Details on creating or modifying your <code>bitcoin.conf</code> file can be found <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md">here</a>.</p>
 <h2 id="比特币区块同步"><a class="header" href="#比特币区块同步">比特币区块同步</a></h2>
 <p>区块同步，运行：</p>
 <pre><code>bitcoind -txindex
@@ -838,6 +839,23 @@ _铭文在比特币上_ 您可以使用您控制的比特币全节点轻松验�
 <pre><code>bitcoin-cli getblockcount
 </code></pre>
 <p>像区块链浏览器<a href="https://mempool.space/">the mempool.space block explorer</a>一样对区块进行记述. <code>ord</code>同<code>bitcoind</code>进行交互, 所以你在使用<code>ord</code>时候需要让<code>bitcoind</code> 在后台运行。</p>
+<p>The blockchain takes about 600GB of disk space. If you have an external drive you want to store blocks on, use the configuration option <code>blocksdir=&lt;external_drive_path&gt;</code>. This is much simpler than using the <code>datadir</code> option because the cookie file will still be in the default location for <code>bitcoin-cli</code> and <code>ord</code> to find.</p>
+<h2 id="故障排除"><a class="header" href="#故障排除">故障排除</a></h2>
+<p>Make sure you can access <code>bitcoind</code> with <code>bitcoin-cli -getinfo</code> and that it is fully synced.</p>
+<p>If <code>bitcoin-cli -getinfo</code> returns <code>Could not connect to the server</code>, <code>bitcoind</code> is not running.</p>
+<p>Make sure <code>rpcuser</code>, <code>rpcpassword</code>, or <code>rpcauth</code> are <em>NOT</em> set in your <code>bitcoin.conf</code> file. <code>ord</code> requires using cookie authentication. Make sure there is a file <code>.cookie</code> in your bitcoin data directory.</p>
+<p>If <code>bitcoin-cli -getinfo</code> returns <code>Could not locate RPC credentials</code>, then you must specify the cookie file location. If you are using a custom data directory (specifying the <code>datadir</code> option), then you must specify the cookie location like <code>bitcoin-cli -rpccookiefile=&lt;your_bitcoin_datadir&gt;/.cookie -getinfo</code>. When running <code>ord</code> you must specify the cookie file location with <code>--cookie-file=&lt;your_bitcoin_datadir&gt;/.cookie</code>.</p>
+<p>Make sure you do <em>NOT</em> have <code>disablewallet=1</code> in your <code>bitcoin.conf</code> file. If <code>bitcoin-cli listwallets</code> returns <code>Method not found</code> then the wallet is disabled and you won't be able to use <code>ord</code>.</p>
+<p>Make sure <code>txindex=1</code> is set. Run <code>bitcoin-cli getindexinfo</code> and it should return something like</p>
+<pre><code class="language-json">{
+  &quot;txindex&quot;: {
+    &quot;synced&quot;: true,
+    &quot;best_block_height&quot;: 776546
+  }
+}
+</code></pre>
+<p>If it only returns <code>{}</code>, <code>txindex</code> is not set. If it returns <code>&quot;synced&quot;: false</code>, <code>bitcoind</code> is still creating the <code>txindex</code>. Wait until <code>&quot;synced&quot;: true</code> before using <code>ord</code>.</p>
+<p>If you have <code>maxuploadtarget</code> set it can interfere with fetching blocks for <code>ord</code> index. Either remove it or set <code>whitebind=127.0.0.1:8333</code>.</p>
 <h2 id="安装-ord"><a class="header" href="#安装-ord">安装 <code>ord</code></a></h2>
 <p><code>ord</code> 程序使用Rust语言写成，可以从<a href="https://github.com/ordinals/ord">源码</a>安装. 预制文件可以从<a href="https://github.com/ordinals/ord/releases">版本发布页</a>下载。</p>
 <p>你也可以在命令行中使用下面命令来安装最新的文件：</p>
@@ -1182,7 +1200,7 @@ _铭文在比特币上_ 您可以使用您控制的比特币全节点轻松验�
 <p><img src="guides/collecting/images/sending_06.png" alt="" /></p>
 <p>如果你想跟踪你的交易状态，你可以复制<code>Transaction Id (Txid)</code>并粘贴到<a href="https://mempool.space">mempool.space</a></p>
 <p>一旦交易确认，你可以在<a href="https://ordinals.com">ordinals.com</a> 的铭文页面上验证它是否已移动到新的输出位置和地址。</p>
-<h2 id="故障排除"><a class="header" href="#故障排除">故障排除</a></h2>
+<h2 id="故障排除-1"><a class="header" href="#故障排除-1">故障排除</a></h2>
 <h4 id="sparrow钱包没有显示交易utxo但我在mempoolspace上看到了"><a class="header" href="#sparrow钱包没有显示交易utxo但我在mempoolspace上看到了">Sparrow钱包没有显示交易/UTXO，但我在mempool.space上看到了</a></h4>
 <p>确保你的钱包连接到一个比特币节点。要验证这一点，转到<code>Preferences</code>-&gt; <code>Server</code> 设置，并点击 <code>Edit Existing Connection</code>。</p>
 <p><img src="guides/collecting/images/troubleshooting_01.png" alt="" /></p>
