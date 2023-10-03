@@ -1,0 +1,319 @@
+<!DOCTYPE HTML>
+<html lang="fil" class="sidebar-visible no-js coal">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Inscriptions - Ordinal Theory Handbook</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="language-picker.css">
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "coal";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('coal')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Panimula</a></li><li class="chapter-item expanded "><a href="overview.html"><strong aria-hidden="true">1.</strong> Pangkalahatang-ideya</a></li><li class="chapter-item expanded "><a href="digital-artifacts.html"><strong aria-hidden="true">2.</strong> Digital Artifacts</a></li><li class="chapter-item expanded "><a href="inscriptions.html" class="active"><strong aria-hidden="true">3.</strong> Inscriptions</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="inscriptions/provenance.html"><strong aria-hidden="true">3.1.</strong> Provenance</a></li><li class="chapter-item expanded "><a href="inscriptions/recursion.html"><strong aria-hidden="true">3.2.</strong> Recursion</a></li></ol></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">4.</strong> Mga Madalas Itanong</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> Mag-ambag</a></li><li class="chapter-item expanded "><a href="donate.html"><strong aria-hidden="true">6.</strong> Donate</a></li><li class="chapter-item expanded "><a href="guides.html"><strong aria-hidden="true">7.</strong> Mga gabay</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="guides/explorer.html"><strong aria-hidden="true">7.1.</strong> Explorer</a></li><li class="chapter-item expanded "><a href="guides/inscriptions.html"><strong aria-hidden="true">7.2.</strong> Inscriptions</a></li><li class="chapter-item expanded "><a href="guides/sat-hunting.html"><strong aria-hidden="true">7.3.</strong> Sat Hunting</a></li><li class="chapter-item expanded "><a href="guides/collecting.html"><strong aria-hidden="true">7.4.</strong> Pagkolekta</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="guides/collecting/sparrow-wallet.html"><strong aria-hidden="true">7.4.1.</strong> Sparrow Wallet</a></li></ol></li><li class="chapter-item expanded "><a href="guides/testing.html"><strong aria-hidden="true">7.5.</strong> Pagsuri</a></li><li class="chapter-item expanded "><a href="guides/moderation.html"><strong aria-hidden="true">7.6.</strong> Moderation</a></li><li class="chapter-item expanded "><a href="guides/reindexing.html"><strong aria-hidden="true">7.7.</strong> Reindexing</a></li></ol></li><li class="chapter-item expanded "><a href="bounties.html"><strong aria-hidden="true">8.</strong> Bounties</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="bounty/0.html"><strong aria-hidden="true">8.1.</strong> Bounty 0: 100,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="bounty/1.html"><strong aria-hidden="true">8.2.</strong> Bounty 1: 200,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="bounty/2.html"><strong aria-hidden="true">8.3.</strong> Bounty 2: 300,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="bounty/3.html"><strong aria-hidden="true">8.4.</strong> Bounty 3: 400,000 sats</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Ordinal Theory Handbook</h1>
+
+                    <div class="right-buttons">
+                        <button id="language-toggle" class="icon-button" type="button"
+                                title="Change language" aria-label="Change language"
+                                aria-haspopup="true" aria-expanded="false"
+                                aria-controls="language-list">
+                            <i class="fa fa-globe"></i>
+                        </button>
+                        <ul id="language-list" class="theme-popup" aria-label="Languages" role="menu">
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="en">English</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="es">Español</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="zh">中文版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ja">日本語版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fil">Filipino</a>
+                          </button></li>
+                        </ul>
+
+                        <script>
+                          let langToggle = document.getElementById("language-toggle");
+                          let langList = document.getElementById("language-list");
+                          langToggle.addEventListener("click", (event) => {
+                              langList.style.display = langList.style.display == "block" ? "none" : "block";
+                          });
+                          let selectedLang = document.getElementById("fil");
+                          if (selectedLang) {
+                              selectedLang.parentNode.classList.add("theme-selected");
+                          }
+
+                          // The path to the root, taking the current
+                          // language into account.
+                          let full_path_to_root = "../";
+                          // The page path (mdbook only gives us
+                          // access to the path to the Markdown file).
+                          let path = "inscriptions.md".replace(/\.md$/, ".html");
+                          for (let lang of langList.querySelectorAll("a")) {
+                              if (lang.id == "en") {
+                                  lang.href = `${full_path_to_root}${path}`;
+                              } else {
+                                  lang.href = `${full_path_to_root}${lang.id}/${path}`;
+                              }
+                          }
+                        </script>
+
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ordinals/ord" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="inscriptions"><a class="header" href="#inscriptions">Inscriptions</a></h1>
+<p>Ang inscriptions ay sats na naglalaman ng arbitraryong content, na lumilikha ng bitcoin-native digital artifact, na mas karaniwang kilala bilang NFTs. Ang mga inskripsiyon ay hindi nangangailangan ng sidechain o hiwalay na token.</p>
+<p>Ang mga naka-inscribe na sat na ito ay maaaring ilipat gamit ang mga transaksyon sa bitcoin, ipadala sa mga bitcoin address, at gamitin sa mga bitcoin UTXO. Ang mga transaksyon, address, at UTXO na ito ay normal na mga transaksyon sa bitcoin, address, at UTXOS sa lahat ng aspeto, maliban nalang para makapagpadala ng mga indibidwal na sats, dapat kontrolin ng transaksyon ang pagkakasunud-sunod at halaga ng mga input at output ayon sa ordinal theory.</p>
+<p>Ang modelo ng inscription content ay sa web. Ang isang inskripsiyon ay binubuo ng isang uri ng nilalaman, na kilala rin bilang MIME type, at ang nilalaman mismo ay isang byte string. Ito ay nagbibigay-daan sa nilalaman ng inskripsiyon na maibalik mula sa isang web server, at para sa paglikha ng mga HTML inscriptions na gumagamit at nagbubuo ng nilalaman ng iba pang mga inskripsiyon.</p>
+<p>Ang nilalaman ng inskripsiyon ay on-chain, na naka-imbak sa taproot script-path spend scripts. Ang mga script ng Taproot ay may limitasyon sa kanilang nilalaman, at bukod pa rito ay tumatanggap ng witness discount, na ginagawang matipid ang pag-iimbak ang nilalaman ng isang inskripsiyon.</p>
+<p>Dahil ang spend ng taproot script ay maaari lamang gawin mula sa mga kasalukuyang taproot output, ang mga inskripsiyon ay ginawa gamit ang isang two-phase commit/reveal procedure. Una, sa commit transaction, isang taproot output na nag-committ sa isang script na naglalaman ng inskripsyon ay nabuo. Pangalawa, sa reveal ng transaksyon, ang output na nilikha ng commit na transaksyon ay ginamit sa pagbayad, na mag-rereveal ng inscription content sa on-chain.</p>
+<p>Ang nilalaman ng inskripsiyon ay naka-serialize gamit ang data pushes sa loob ng mga hindi naisagawang kondisyon, na tinatawag na &quot;envelopes&quot;. Ang envelopes ay binubuo ng isang <code>OP_FALSE OP_IF ...OP_ENDIF</code> na nag-wawrap sa kahit anong numero ng data pushes. Dahil ang envelopes ay epektibong no-ops, hindi nito binabago ang semantika ng script kung saan kasama ang mga ito, at maaaring isama sa anumang iba pang locking script.</p>
+<p>Isang text inscription na naglalaman ng string na &quot;Hello, world!&quot; ay serialized tulad ng sumusunod:</p>
+<pre><code>OP_FALSE
+OP_IF
+  OP_PUSH &quot;ord&quot;
+  OP_PUSH 1
+  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH 0
+  OP_PUSH &quot;Hello, world!&quot;
+OP_ENDIF
+</code></pre>
+<p>Una ang string na <code>ord</code> ay pushed, upang i-dismbiguate ang mga inskripsiyon mula sa iba pang gamit ng envelopes.</p>
+<p>Ang <code>OP_PUSH 1</code> ay nagpapahiwatig na ang susunod na push ay naglalaman ng content type, at <code>OP_PUSH 0</code> naman ay nagpapahiwatig na ang mga kasunod na data ay naglalaman ng content mismo. Dapat gumamit ng maraming push data para sa isang malalaking inskripsiyon, dahil ito sa limitasyon ng taproot, na kung saan hindi maaring lumagpas sa 520 bytes ang bawat isang data push.</p>
+<p>Ang nilalaman ng inskripsyon ay nakapaloob sa input ng isang naka-reveal na transaksyon sa Bitcoin, at ang inskripsyon ay nagawa sa unang sat ng input nito. Ang sat na ito ay maaaring masubaybayan gamit ang pamilyar na mga panuntunan ng ordinal theory, na nagreresulta sa ito na ilipat, bilhin, ibenta, mawala sa mga fees, at ma-recover.</p>
+<h2 id="content"><a class="header" href="#content">Content</a></h2>
+<p>Ang data model ng mga inskripsiyon ay isang HTTP response, na nagbibigay-daan sa nilalaman ng inskripsiyon na maipakita gamit ang web server at nang web browser.</p>
+<h2 id="fields"><a class="header" href="#fields">Fields</a></h2>
+<p>Ang inskripsiyon ay maaring magkaroon ng fields bago ang optional body. Ang bawat field ay binubuo ng dalawang data pushes, isang tag at isang value.</p>
+<p>Sa itaas na halimbawa, ang tanging tinukoy na field ay <code>content-type</code>, na may tag na <code>1</code>, na ang halaga ay ang uri ng MIME ng body (text/plain;charset=utf-8).</p>
+<p>Ang simula ng body at dulo ng mga fields ay mayroong isang walang laman na data push.</p>
+<p>Ang mga hindi unkown tag ay sinusuri depende sa kung even o odd ang mga ito, na sumusunod sa panuntunang &quot;it's okay to be odd&quot; na ginagamit ng Lightning Network.</p>
+<p>Ang mga tag na ginagamit para sa fields ay maaaring makaapekto sa pag-create, paunang pagtatalaga, o paglipat ng isang inskripsiyon. Kaya, ang mga inskripsiyon na unknown at kahit na ang fields ay dapat na ipakita bilang &quot;unbound&quot;, iyon ay, walang lokasyon.</p>
+<p>Odd tags ay hindi nakakaapekto sa paggawa, paunang pagtatalaga, o paglilipat, gaya ng karagdagang metadata, at sa gayon ay ligtas na huwag pansinin.</p>
+<h2 id="inscription-ids"><a class="header" href="#inscription-ids">Inscription IDs</a></h2>
+<p>Ang nilalaman ng inskripsyon ay nakapaloob sa input ng isang naka-reveal na transaksyon. Upang natatanging makilala ang mga ito, binibigyan sila ng ID, tulad ng:</p>
+<p><code>521f8eccffa4c41a3a7728dd012ea5a4a02feed81f41159231251ecf1e5c79dai0</code></p>
+<p>Ang bahagi sa harap na <code>i</code> ay ang transaction ID (txid) ng reveal na transaksyon. Ang numero pagkatapos ng <code>i</code> ay tumutukoy sa index (nagsisimula sa 0) ng mga bagong inskripsiyon ng transaksyon.</p>
+<p>Maaaring matatagpuan ang mga inskripsiyon sa iba't ibang input, sa loob ng parehong input o kumbinasyon ng pareho. Sa anumang kaso ang order ay madaling makita, dahil ang parser nage-scan sa mga input nang sunud-sunod at hahanapin ang lahat ng inskripsiyon na may <code>envelopes</code>.</p>
+<div class="table-wrapper"><table><thead><tr><th style="text-align: center">Input</th><th style="text-align: center">Inscription Count</th><th style="text-align: center">Indices</th></tr></thead><tbody>
+<tr><td style="text-align: center">0</td><td style="text-align: center">2</td><td style="text-align: center">i0, i1</td></tr>
+<tr><td style="text-align: center">1</td><td style="text-align: center">1</td><td style="text-align: center">i2</td></tr>
+<tr><td style="text-align: center">2</td><td style="text-align: center">3</td><td style="text-align: center">i3, i4, i5</td></tr>
+<tr><td style="text-align: center">3</td><td style="text-align: center">0</td><td style="text-align: center"></td></tr>
+<tr><td style="text-align: center">4</td><td style="text-align: center">1</td><td style="text-align: center">i6</td></tr>
+</tbody></table>
+</div>
+<h2 id="sandboxing"><a class="header" href="#sandboxing">Sandboxing</a></h2>
+<p>Ang mga inskripsiyon na gaya ng HTML at SVG ay nasa-sandbox upang maiwasan ang ma-reference sa off-chain content, sa gayo'y pinapanatili ang mga inskripsiyon na hindi nababago at self-contained.</p>
+<p>Nagagawa ito sa pamamagitan ng pag-load sa mga HTML at SVG na inskripsiyon sa loob <code>iframes</code> na may <code>sandbox</code> na katangian, pati na rin ang pag-serve ng nilalaman ng inskripsiyon na may <code>Content-Security-Policy</code> sa header.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="digital-artifacts.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="inscriptions/provenance.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="digital-artifacts.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="inscriptions/provenance.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

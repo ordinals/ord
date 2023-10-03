@@ -1,0 +1,1397 @@
+<!DOCTYPE HTML>
+<html lang="fil" class="sidebar-visible no-js coal">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Ordinal Theory Handbook</title>
+        <meta name="robots" content="noindex" />
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="language-picker.css">
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "coal";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('coal')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Panimula</a></li><li class="chapter-item expanded "><a href="overview.html"><strong aria-hidden="true">1.</strong> Pangkalahatang-ideya</a></li><li class="chapter-item expanded "><a href="digital-artifacts.html"><strong aria-hidden="true">2.</strong> Digital Artifacts</a></li><li class="chapter-item expanded "><a href="inscriptions.html"><strong aria-hidden="true">3.</strong> Inscriptions</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="inscriptions/provenance.html"><strong aria-hidden="true">3.1.</strong> Provenance</a></li><li class="chapter-item expanded "><a href="inscriptions/recursion.html"><strong aria-hidden="true">3.2.</strong> Recursion</a></li></ol></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">4.</strong> Mga Madalas Itanong</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> Mag-ambag</a></li><li class="chapter-item expanded "><a href="donate.html"><strong aria-hidden="true">6.</strong> Donate</a></li><li class="chapter-item expanded "><a href="guides.html"><strong aria-hidden="true">7.</strong> Mga gabay</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="guides/explorer.html"><strong aria-hidden="true">7.1.</strong> Explorer</a></li><li class="chapter-item expanded "><a href="guides/inscriptions.html"><strong aria-hidden="true">7.2.</strong> Inscriptions</a></li><li class="chapter-item expanded "><a href="guides/sat-hunting.html"><strong aria-hidden="true">7.3.</strong> Sat Hunting</a></li><li class="chapter-item expanded "><a href="guides/collecting.html"><strong aria-hidden="true">7.4.</strong> Pagkolekta</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="guides/collecting/sparrow-wallet.html"><strong aria-hidden="true">7.4.1.</strong> Sparrow Wallet</a></li></ol></li><li class="chapter-item expanded "><a href="guides/testing.html"><strong aria-hidden="true">7.5.</strong> Pagsuri</a></li><li class="chapter-item expanded "><a href="guides/moderation.html"><strong aria-hidden="true">7.6.</strong> Moderation</a></li><li class="chapter-item expanded "><a href="guides/reindexing.html"><strong aria-hidden="true">7.7.</strong> Reindexing</a></li></ol></li><li class="chapter-item expanded "><a href="bounties.html"><strong aria-hidden="true">8.</strong> Bounties</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="bounty/0.html"><strong aria-hidden="true">8.1.</strong> Bounty 0: 100,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="bounty/1.html"><strong aria-hidden="true">8.2.</strong> Bounty 1: 200,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="bounty/2.html"><strong aria-hidden="true">8.3.</strong> Bounty 2: 300,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="bounty/3.html"><strong aria-hidden="true">8.4.</strong> Bounty 3: 400,000 sats</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Ordinal Theory Handbook</h1>
+
+                    <div class="right-buttons">
+                        <button id="language-toggle" class="icon-button" type="button"
+                                title="Change language" aria-label="Change language"
+                                aria-haspopup="true" aria-expanded="false"
+                                aria-controls="language-list">
+                            <i class="fa fa-globe"></i>
+                        </button>
+                        <ul id="language-list" class="theme-popup" aria-label="Languages" role="menu">
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="en">English</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="es">Español</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="zh">中文版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ja">日本語版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fil">Filipino</a>
+                          </button></li>
+                        </ul>
+
+                        <script>
+                          let langToggle = document.getElementById("language-toggle");
+                          let langList = document.getElementById("language-list");
+                          langToggle.addEventListener("click", (event) => {
+                              langList.style.display = langList.style.display == "block" ? "none" : "block";
+                          });
+                          let selectedLang = document.getElementById("fil");
+                          if (selectedLang) {
+                              selectedLang.parentNode.classList.add("theme-selected");
+                          }
+
+                          // The path to the root, taking the current
+                          // language into account.
+                          let full_path_to_root = "../";
+                          // The page path (mdbook only gives us
+                          // access to the path to the Markdown file).
+                          let path = "print.md".replace(/\.md$/, ".html");
+                          for (let lang of langList.querySelectorAll("a")) {
+                              if (lang.id == "en") {
+                                  lang.href = `${full_path_to_root}${path}`;
+                              } else {
+                                  lang.href = `${full_path_to_root}${lang.id}/${path}`;
+                              }
+                          }
+                        </script>
+
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ordinals/ord" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="panimula"><a class="header" href="#panimula">Panimula</a></h1>
+<p>Ang handbook na ito ay isang gabay sa pagunawa ng Ordinal Theory. Ang Ordinal Theory ay may kinalaman sa satoshi, kung saan nagbibigay ito ng indibidwal na pagkakakilanlan at nagpapahintulot sa kanila na masubaybayan, mailipat, at magbigay ng kahulugan.</p>
+<p>Ang Satoshis, ay ang atomic, “native currency” ng Bitcoin network. Ang isang bitcoin ay maaaring hatiin sa 100,000,000 satoshis, at wala nang iba pa.</p>
+<p>Ang Ordinal theory ay hindi nangangailangan ng sidechain o token bukod sa Bitcoin, at maaaring gamitin nang walang anumang pagbabago sa Bitcoin network.</p>
+<p>Ang Ordinal theory ay nagbibigay sa satoshi ng numismatic na halaga, na nagdudulot para sa mga ito kolektahin at ipagpalit bilang mga ‘rare’ na bagay.</p>
+<p>Ang mga indibidwal na satoshi ay maaaring ma-inscribe ng kahit anong arbitraryo nilalaman, na lumilikha ng mga natatanging “Bitcoin-native” digital na artifact na maaaring itago sa Bitcoin wallet at ilipat gamit ang mga transaksyong Bitcoin. Ang mga inskripsiyon ay hindi nababago, secure, at desentralisado gaya ng mismong Bitcoin.</p>
+<p>At iba pa na hindi pangkaraniwang gamit nito ay: mga off-chain colored-coin, pampublikong imprastraktura ng key na may key rotation, isang desentralisadong kapalit ng DNS. Gayunpaman, sa ngayon, ang mga ganitong espekulasyon ng paggamit ay haka-haka, at umiiral lamang sa isipan ng mga “fringe ordinal theorists”.</p>
+<p>Para sa higit pang mga detalye sa Ordinal Theory, tingnan ang <a href="overview.html">pangkalahatang-ideya</a></p>
+<p>Para sa higit pang mga detalye sa mga inskripsiyon, tingnan ang mga <a href="inscriptions.html">inskripsiyon</a>.</p>
+<p>Kapag handa ka na, isang magandang lugar na maaring magsimula ay ang <a href="guides/inscriptions.html">mga inskripsiyon</a>, isang kakaibang uri ng digital artifact na pinagana ng Ordinal Theory.</p>
+<h2 id="mga-link"><a class="header" href="#mga-link">Mga Link</a></h2>
+<ul>
+<li><a href="https://github.com/ordinals/ord/">GitHub</a></li>
+<li><a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">BIP</a></li>
+<li><a href="https://discord.gg/ordinals">Discord</a></li>
+<li><a href="https://ordinals.org/">Open Ordinals Institute Website</a></li>
+<li><a href="https://x.com/ordinalsorg">Open Ordinals Institute X</a></li>
+<li><a href="https://ordinals.com">Mainnet Block Explorer</a></li>
+<li><a href="https://signet.ordinals.com">Signet Block Explorer</a></li>
+</ul>
+<h2 id="mga-video"><a class="header" href="#mga-video">Mga Video</a></h2>
+<ul>
+<li><a href="https://www.youtube.com/watch?v=rSS0O2KQpsI">Ordinal Theory Explained: Satoshi Serial Numbers and NFTs on Bitcoin</a></li>
+<li><a href="https://www.youtube.com/watch?v=MC_haVa6N3I">Ordinals Workshop with Rodarmor</a></li>
+<li><a href="https://www.youtube.com/watch?v=j5V33kV3iqo">Ordinal Art: Mint Your own NFTs on Bitcoin w/ @rodarmor</a></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="pangkalahatang-ideya-ng-ordinal-theory"><a class="header" href="#pangkalahatang-ideya-ng-ordinal-theory">Pangkalahatang-ideya ng Ordinal Theory</a></h1>
+<p>Ang mga ordinal ay isang scheme ng pagnunumero sa satoshi na nagbibigay-daan sa pagsubaybay at paglilipat ng mga indibidwal na sat. Ang mga numerong ito ay tinatawag na <a href="https://ordinals.com">ordinal numbers</a>. Satoshis ay binibilang sa pagkakasunud-sunod kung kelan ito na-mina, at inilipat mula sa transaction input patungo sa transaction output na first-in-first-out (FIFO). Parehong umaasa ang numbering scheme at ang transfer scheme sa <em>order</em>, ang numbering scheme sa pagkakasunud-sunod kung saan na-mina ang satoshi, at ang transfer scheme ng sa pagkakasunud-sunod ng mga input at output ng transaksyon.Kaya naman pinangalanan itong “Ordinal”.</p>
+<p>Ang mga teknikal na detalye ay makikita sa <a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">BIP</a>.</p>
+<p>Ang Ordinal theory ay hindi nangangailangan ng isang hiwalay na token, isa pang blockchain, o anumang mga pagbabago sa Bitcoin.</p>
+<p>Ang mga ordinal numbers ay may ilang magkakaibang representasyon:</p>
+<ul>
+<li>
+<p><em>Integer notation</em>: <a href="https://ordinals.com/sat/2099994106992659"><code>2099994106992659</code></a> Ang ordinal na numero, na itinalaga ayon sa pagkakasunud-sunod kung saan ang satoshi ay na-mina.</p>
+</li>
+<li>
+<p><em>Decimal notation</em>: <a href="https://ordinals.com/sat/3891094.16797"><code>3891094.16797</code></a> Ang unang numero ay ang taas ng block kung saan na-mina ang satoshi, ang pangalawa ay offset ng satoshi sa loob ng block.</p>
+</li>
+<li>
+<p><em>Degree notation</em>: <a href="https://ordinals.com/sat/3%C2%B0111094%E2%80%B2214%E2%80%B316797%E2%80%B4"><code>3°111094′214″16797‴</code></a>. Ating tatalakayin sa ilang sandali.</p>
+</li>
+<li>
+<p><em>Percentile notation</em>: <a href="https://ordinals.com/sat/99.99971949060254%25"><code>99.99971949060254%</code></a> . Ang posisyon ng satoshi sa supply ng Bitcoin, na bilang isang porsyento.</p>
+</li>
+<li>
+<p><em>Name</em>: <a href="https://ordinals.com/sat/satoshi"><code>satoshi</code></a>. Isang encoding ng ordinal number gamit ang mga character <code>a</code> hanggang <code>z</code>.</p>
+</li>
+</ul>
+<p>Ang mga arbitrary na asset, gaya ng mga NFT, security token, account, o stablecoin ay maaaring i-attach sa satoshis gamit ang ordinal numbers bilang stable identifier.</p>
+<p>Ordinals is an open-source project, developed <a href="https://github.com/ordinals/ord">on GitHub</a>. The project consists of a BIP describing the ordinal scheme, an index that communicates with a Bitcoin Core node to track the location of all satoshis, a wallet that allows making ordinal-aware transactions, a block explorer for interactive exploration of the blockchain, functionality for inscribing satoshis with digital artifacts, and this manual.</p>
+<h2 id="rarity"><a class="header" href="#rarity">Rarity</a></h2>
+<p>Ang mga tao ay likas na kolektor, at dahil sa ang satoshi ay maaari na ngayong subaybayan at ilipat, ang mga tao ay natural na nais nang kolektahin ang mga ito. Ang mga Ordinal theorists ay maaaring magpasya para sa kanilang sarili kung aling mga sats ang rare at kanais-nais, ngunit may mga ilang pahiwatig...</p>
+<p>Ang Bitcoin ay may mga pana-panahong kaganapan, ang ilan ay madalas, ang ilan ay hindi karaniwan, at ang mga ito ay natural. Ang mga pana-panahong pangyayaring ito ay:</p>
+<ul>
+<li>
+<p><em>Blocks</em>: Ang isang bagong bloke ay na-mimina humigit-kumulang bawat 10 minuto, mula ngayon hanggang sa katapusan ng panahon.</p>
+</li>
+<li>
+<p><em>Difficulty adjustments</em>: Bawat 2016 block, o humigit-kumulang bawat dalawang linggo, ang Bitcoin network ay tumutugon sa mga pagbabago sa hashrate sa pamamagitan ng pagsasaayos sa difficulty target kung aling mga bloke ang dapat matugunan upang matanggap.</p>
+</li>
+<li>
+<p><em>Halvings</em>: Bawat 210,000 block, o humigit-kumulang bawat apat na taon, ang dami ng mga bagong sats na nalikha sa bawat block ay hinahati sa kalahati.</p>
+</li>
+<li>
+<p><em>Cycles</em>: Bawat anim na paghahati, may mahiwagang nangyayari: ang paghahati at ang difficulty target ay nagsasabay. Ito ay tinatawag na conjunction, at ang yugto ng panahon sa pagitan ng mga conjunction ay isang cycle. Ang isang conjunction ay nangyayari halos bawat 24 na taon. Inaasahan na mangyayari ang unang conjunction sa 2023.</p>
+</li>
+</ul>
+<p>Nagbibigay ito sa atin ng mga sumusunod na antas ng rarity:</p>
+<ul>
+<li><code>common</code>: Mga sat na hindi na-una sa block</li>
+<li><code>uncommon</code>: Ang unang sat sa bawat block</li>
+<li><code>rare</code>: Ang unang sat sa bawat difficulty target</li>
+<li><code>epic</code>: Ang unang sat ng bawat halvings</li>
+<li><code>legendary</code>: Ang unang sat ng bawat cycle</li>
+<li><code>mythic</code>: Ang kauna-unahang sat ng pinaka-unang block</li>
+</ul>
+<p>Na nagdadala sa atin sa degree notation, na malinaw na kumakatawan sa isang ordinal number sa paraang ginagawang madaling makita ang rarity ng isang satoshi sa isang sulyap:</p>
+<pre><code>A°B′C″D‴
+│ │ │ ╰─ Index of sat in the block
+│ │ ╰─── Index of block in difficulty adjustment period
+│ ╰───── Index of block in halving epoch
+╰─────── Cycle, numbered starting from 0
+</code></pre>
+<p>Ang Ordinal theorists ay kadalasang gumagamit ng mga termino &quot;hour&quot;, &quot;minute&quot;, &quot;second&quot;, at &quot;third&quot; for <em>A</em>, <em>B</em>, <em>C</em>, and <em>D</em>, ayon sa pagkakabanggit.</p>
+<p>Ngayon para sa ilang mga halimbawa. Ang satoshi na ito ay common:</p>
+<pre><code>1°1′1″1‴
+│ │ │ ╰─ Not first sat in block
+│ │ ╰─── Not first block in difficulty adjustment period
+│ ╰───── Not first block in halving epoch
+╰─────── Second cycle
+</code></pre>
+<p>Ang satoshi na ito ay uncommon:</p>
+<pre><code>1°1′1″0‴
+│ │ │ ╰─ First sat in block
+│ │ ╰─── Not first block in difficulty adjustment period
+│ ╰───── Not first block in halving epoch
+╰─────── Second cycle
+</code></pre>
+<p>Ang satoshi na ito ay rare:</p>
+<pre><code>1°1′0″0‴
+│ │ │ ╰─ First sat in block
+│ │ ╰─── First block in difficulty adjustment period
+│ ╰───── Not the first block in halving epoch
+╰─────── Second cycle
+</code></pre>
+<p>Ang satoshi na ito ay epic:</p>
+<pre><code>1°0′1″0‴
+│ │ │ ╰─ First sat in block
+│ │ ╰─── Not first block in difficulty adjustment period
+│ ╰───── First block in halving epoch
+╰─────── Second cycle
+</code></pre>
+<p>Ang satoshi na ito ay legendary:</p>
+<pre><code>1°0′0″0‴
+│ │ │ ╰─ First sat in block
+│ │ ╰─── First block in difficulty adjustment period
+│ ╰───── First block in halving epoch
+╰─────── Second cycle
+</code></pre>
+<p>At ang mythic na satoshi:</p>
+<pre><code>0°0′0″0‴
+│ │ │ ╰─ First sat in block
+│ │ ╰─── First block in difficulty adjustment period
+│ ╰───── First block in halving epoch
+╰─────── First cycle
+</code></pre>
+<p>Kung ang block offset ay zero, maaari itong alisin. Ito ang hindi pangkaraniwang satoshi mula sa itaas:</p>
+<pre><code>1°1′1″
+│ │ ╰─ Not first block in difficulty adjustment period
+│ ╰─── Not first block in halving epoch
+╰───── Second cycle
+</code></pre>
+<h2 id="rare-satoshi-supply"><a class="header" href="#rare-satoshi-supply">Rare Satoshi Supply</a></h2>
+<h3 id="kabuuang-supply"><a class="header" href="#kabuuang-supply">Kabuuang Supply</a></h3>
+<ul>
+<li><code>common</code>: 2.1 quadrillion</li>
+<li><code>uncommon</code>: 6,929,999</li>
+<li><code>rare</code>: 3437</li>
+<li><code>epic</code>: 32</li>
+<li><code>legendary</code>: 5</li>
+<li><code>mythic</code>: 1</li>
+</ul>
+<h3 id="kasalukuyang-supply"><a class="header" href="#kasalukuyang-supply">Kasalukuyang Supply</a></h3>
+<ul>
+<li><code>common</code>: 1.9 quadrillion</li>
+<li><code>uncommon</code>: 808,262</li>
+<li><code>rare</code>: 369</li>
+<li><code>epic</code>: 3</li>
+<li><code>legendary</code>: 0</li>
+<li><code>mythic</code>: 1</li>
+</ul>
+<p>Sa ngayon, kahit na ang hindi pangkaraniwang satoshi ay medyo bihira. Sa pagsulat na ito, 745,855 na hindi pangkaraniwang satoshi ang namina - isa sa bawat 25.6 bitcoin ng sirkulasyon.</p>
+<h2 id="mga-pangalan"><a class="header" href="#mga-pangalan">Mga pangalan</a></h2>
+<p>Ang bawat satoshi ay may pangalan, na binubuo ng mga letrang <em>A</em> hanggang <em>Z</em>, na nagiging mas mas maikli sa hinaharap na pag-mina ang satoshi. Maaari silang magsimula nang mas maikli at mas mahaba, ngunit pagkatapos ay ang lahat ng magagandang, maiikling pangalan ay maiipit sa hindi magugugol na genesis block.</p>
+<p>Bilang halimbawa, ang pangalan ng 1905530482684727°'s ay &quot;iaiufjszmoba&quot;. Ang pangalan ng huling satoshi na namina ay &quot;a&quot;. Ang bawat kumbinasyon ng 10 character o mas kakaunti ay lalabas doon, balang araw.</p>
+<h2 id="exotics"><a class="header" href="#exotics">Exotics</a></h2>
+<p>Maaaring mahalaga ang Satoshi para sa mga dahilan maliban sa kanilang pangalan o rarity. Maaaring dahil ito sa kalidad ng numero mismo, tulad ng pagkakaroon ng integer square o cube root. O maaaring dahil ito sa isang koneksyon sa isang makasaysayang kaganapan, tulad ng satoshis mula sa block 477,120, ang block kung saan na-activate ang SegWit, o 2099999997689999°, ang huling satoshi na mamimina.</p>
+<p>Ang ganitong mga satoshi ay tinatawag na &quot;exotic&quot;. Aling satoshi ang kakaiba at kung ano ang dahilan ng mga ito ay subjective. Ang mga ordinal na theorist ay hinihikayat na maghanap ng mga exotics batay sa pamantayan ng kanilang sariling interpertasyon.</p>
+<h2 id="inscriptions"><a class="header" href="#inscriptions">Inscriptions</a></h2>
+<p>Satoshis can be inscribed with arbitrary content, creating Bitcoin-native digital artifacts. Inscribing is done by sending the satoshi to be inscribed in a transaction that reveals the inscription content on-chain. This content is then inextricably linked to that satoshi, turning it into an immutable digital artifact that can be tracked, transferred, hoarded, bought, sold, lost, and rediscovered.</p>
+<h2 id="arkeolohiya"><a class="header" href="#arkeolohiya">Arkeolohiya</a></h2>
+<p>Ang isang komunidad ng mga arkeologo na nakatuon sa pag-catalog at pagkolekta ng mga maagang NFT ay lumitaw. Narito ang isang buod ng mga makasaysayang NFT ng <a href="https://mirror.xyz/chainleft.eth/MzPWRsesC9mQflxlLo-N29oF4iwCgX3lacrvaG9Kjko">Chainleft.</a></p>
+<p>Ang karaniwang tinatanggap na cut-off para sa mga maagang NFT ay Marso 19, 2018, ang petsa na ang unang kontrata ng ERC-721, <a href="https://tenthousandsu.com/">SU SQUARES</a>, ay na-deploy sa Ethereum.</p>
+<p>Kung ang NFT archaeologists ay interesado o hindi sa ordinals ay wala pang kasagutan! Sa isang kahulugan, ginawa ang mga ordinal noong unang bahagi ng 2022, nang ang detalye ng Ordinal ay na-finalize. Sa ganitong kahulugan, hindi sila kabilang bilang isang historical interest.</p>
+<p>Gayunpaman, sa ibang kahulugan, ang mga ordinal ay sa katunayan ay nilikha ni Satoshi Nakamoto noong 2009 nang siya ay nag-mina ng Bitcoin genesis block. Sa ganitong diwa, ang mga ordinal, at lalo na ang mga maagang ordinal, ay tiyak na may interes sa kasaysayan.</p>
+<p>Maraming ordinal theorists ang pumapabor sa huling pananaw. Ito ay hindi bababa sa dahil ang mga ordinal ay natuklasan sa hindi bababa sa dalawang magkahiwalay na okasyon, bago pa nagsimula ang panahon ng mga modernong NFT.</p>
+<p>Noong Agosto 21, 2012, nag-post si Charlie Lee ng <a href="https://bitcointalk.org/index.php?topic=102355.0">panukalang magdagdag ng proof-of-stake sa Bitcoin sa Bitcoin Talk forum</a>. Hindi ito isang scheme ng asset, ngunit ginamit ang ordinal na algorithm, at ipinatupad ngunit hindi kailanman na-deploy.</p>
+<p>Noong ika-8 ng Oktubre, 2012, <a href="https://bitcointalk.org/index.php?topic=117224.0">nag-post si jl2012 ng scheme sa parehong forum</a> na gumagamit ng decimal notation at mayroong lahat ng mahahalagang katangian ng mga ordinal. Napag-usapan ang iskema ngunit hindi naipatupad.</p>
+<p>Ang mga imbensyon ng mga ordinal na ito ay nagpapahiwatig sa ilang paraan na ang mga ordinal ay natuklasan, o muling natuklasan, at hindi naimbento. Ang mga ordinal ay isang hindi maiiwasang mathematics ng Bitcoin, hindi nagmumula sa kanilang modernong dokumentasyon, ngunit mula sa kanilang sinaunang genesis. Ang mga ito ay ang paghantong ng isang pagkakasunud-sunod ng mga kaganapan na itinakda sa pagmimina ng unang bloke, napakaraming taon na ang nakalilipas.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="digital-artifacts"><a class="header" href="#digital-artifacts">Digital Artifacts</a></h1>
+<p>Isipin ang isang pisikal na artifact. Ang isang rare na barya, halimbawa, ay itinatago sa loob ng maraming taon sa dilim, lihim na pagkakahawak ng isang Viking hoard, na ngayon ay hinukay mula sa lupa sa pamamagitan ng iyong mga kamay na nakahawak. Ito...</p>
+<p>...ay may may-ari. Ikaw. Hangga't pinapanatili mo itong ligtas, walang sinuman ang makakakuha nito mula sa iyo.</p>
+<p>...ay kumpleto. Wala itong nawawalang bahagi.</p>
+<p>...ay mapapalitan mo lang. Kung ikaw ay isang mangangalakal, at nagpunta ka sa ika-18 siglong Tsina, maaari mong tatakan ito ng iyong chop-mark.</p>
+<p>...ay maaari mo itapon. Ang pagbebenta, pangangalakal, o regalo, sa sinumang nais mo.</p>
+<p>Ano ang mga digital artifact? Sa madaling salita, sila ang digital na katumbas ng mga pisikal na artifact.</p>
+<p>Para maging isang digital na artifact ang isang digital na bagay, dapat itong katulad ng barya mo:</p>
+<ul>
+<li>
+<p>Maaaring magkaroon ng mga may-ari ang mga digital artifact. Ang isang numero ay hindi isang digital na artifact, dahil walang sinuman ang maaaring magmay-ari nito.</p>
+</li>
+<li>
+<p>Kumpleto ang digital artifact. Ang isang NFT na nasa off-chain na IPFS o Arweave ay hindi kumpleto, at sa gayon ay hindi isang digital na artifact.</p>
+</li>
+<li>
+<p>Ang mga digital artifact ay permissionless. Ang isang NFT na hindi maaaring ibenta nang hindi nagbabayad ng royalty ay hindi permissionless, at sa gayon ay hindi isang digital artifact.</p>
+</li>
+<li>
+<p>Ang mga digital artifact ay uncensorable. Marahil ay maaari mong baguhin ang isang database entry sa isang sentralisadong ledger ngayon, ngunit maaaring hindi bukas, at sa gayon ang isa ay hindi maaaring maging isang digital artifact.</p>
+</li>
+<li>
+<p>Ang mga digital artifact ay hindi nababago. Ang isang NFT na may upgrade key ay hindi isang digital artifact.</p>
+</li>
+</ul>
+<p>Ang kahulugan ng isang digital artifact ay nilayon upang ipakita kung ano <em>dapat</em> ang mga NFT, kung minsan, at kung <em>ano</em> ang inskripsiyon, ayon sa kanilang likas na katangian.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="inscriptions-1"><a class="header" href="#inscriptions-1">Inscriptions</a></h1>
+<p>Ang inscriptions ay sats na naglalaman ng arbitraryong content, na lumilikha ng bitcoin-native digital artifact, na mas karaniwang kilala bilang NFTs. Ang mga inskripsiyon ay hindi nangangailangan ng sidechain o hiwalay na token.</p>
+<p>Ang mga naka-inscribe na sat na ito ay maaaring ilipat gamit ang mga transaksyon sa bitcoin, ipadala sa mga bitcoin address, at gamitin sa mga bitcoin UTXO. Ang mga transaksyon, address, at UTXO na ito ay normal na mga transaksyon sa bitcoin, address, at UTXOS sa lahat ng aspeto, maliban nalang para makapagpadala ng mga indibidwal na sats, dapat kontrolin ng transaksyon ang pagkakasunud-sunod at halaga ng mga input at output ayon sa ordinal theory.</p>
+<p>Ang modelo ng inscription content ay sa web. Ang isang inskripsiyon ay binubuo ng isang uri ng nilalaman, na kilala rin bilang MIME type, at ang nilalaman mismo ay isang byte string. Ito ay nagbibigay-daan sa nilalaman ng inskripsiyon na maibalik mula sa isang web server, at para sa paglikha ng mga HTML inscriptions na gumagamit at nagbubuo ng nilalaman ng iba pang mga inskripsiyon.</p>
+<p>Ang nilalaman ng inskripsiyon ay on-chain, na naka-imbak sa taproot script-path spend scripts. Ang mga script ng Taproot ay may limitasyon sa kanilang nilalaman, at bukod pa rito ay tumatanggap ng witness discount, na ginagawang matipid ang pag-iimbak ang nilalaman ng isang inskripsiyon.</p>
+<p>Dahil ang spend ng taproot script ay maaari lamang gawin mula sa mga kasalukuyang taproot output, ang mga inskripsiyon ay ginawa gamit ang isang two-phase commit/reveal procedure. Una, sa commit transaction, isang taproot output na nag-committ sa isang script na naglalaman ng inskripsyon ay nabuo. Pangalawa, sa reveal ng transaksyon, ang output na nilikha ng commit na transaksyon ay ginamit sa pagbayad, na mag-rereveal ng inscription content sa on-chain.</p>
+<p>Ang nilalaman ng inskripsiyon ay naka-serialize gamit ang data pushes sa loob ng mga hindi naisagawang kondisyon, na tinatawag na &quot;envelopes&quot;. Ang envelopes ay binubuo ng isang <code>OP_FALSE OP_IF ...OP_ENDIF</code> na nag-wawrap sa kahit anong numero ng data pushes. Dahil ang envelopes ay epektibong no-ops, hindi nito binabago ang semantika ng script kung saan kasama ang mga ito, at maaaring isama sa anumang iba pang locking script.</p>
+<p>Isang text inscription na naglalaman ng string na &quot;Hello, world!&quot; ay serialized tulad ng sumusunod:</p>
+<pre><code>OP_FALSE
+OP_IF
+  OP_PUSH &quot;ord&quot;
+  OP_PUSH 1
+  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH 0
+  OP_PUSH &quot;Hello, world!&quot;
+OP_ENDIF
+</code></pre>
+<p>Una ang string na <code>ord</code> ay pushed, upang i-dismbiguate ang mga inskripsiyon mula sa iba pang gamit ng envelopes.</p>
+<p>Ang <code>OP_PUSH 1</code> ay nagpapahiwatig na ang susunod na push ay naglalaman ng content type, at <code>OP_PUSH 0</code> naman ay nagpapahiwatig na ang mga kasunod na data ay naglalaman ng content mismo. Dapat gumamit ng maraming push data para sa isang malalaking inskripsiyon, dahil ito sa limitasyon ng taproot, na kung saan hindi maaring lumagpas sa 520 bytes ang bawat isang data push.</p>
+<p>Ang nilalaman ng inskripsyon ay nakapaloob sa input ng isang naka-reveal na transaksyon sa Bitcoin, at ang inskripsyon ay nagawa sa unang sat ng input nito. Ang sat na ito ay maaaring masubaybayan gamit ang pamilyar na mga panuntunan ng ordinal theory, na nagreresulta sa ito na ilipat, bilhin, ibenta, mawala sa mga fees, at ma-recover.</p>
+<h2 id="content"><a class="header" href="#content">Content</a></h2>
+<p>Ang data model ng mga inskripsiyon ay isang HTTP response, na nagbibigay-daan sa nilalaman ng inskripsiyon na maipakita gamit ang web server at nang web browser.</p>
+<h2 id="fields"><a class="header" href="#fields">Fields</a></h2>
+<p>Ang inskripsiyon ay maaring magkaroon ng fields bago ang optional body. Ang bawat field ay binubuo ng dalawang data pushes, isang tag at isang value.</p>
+<p>Sa itaas na halimbawa, ang tanging tinukoy na field ay <code>content-type</code>, na may tag na <code>1</code>, na ang halaga ay ang uri ng MIME ng body (text/plain;charset=utf-8).</p>
+<p>Ang simula ng body at dulo ng mga fields ay mayroong isang walang laman na data push.</p>
+<p>Ang mga hindi unkown tag ay sinusuri depende sa kung even o odd ang mga ito, na sumusunod sa panuntunang &quot;it's okay to be odd&quot; na ginagamit ng Lightning Network.</p>
+<p>Ang mga tag na ginagamit para sa fields ay maaaring makaapekto sa pag-create, paunang pagtatalaga, o paglipat ng isang inskripsiyon. Kaya, ang mga inskripsiyon na unknown at kahit na ang fields ay dapat na ipakita bilang &quot;unbound&quot;, iyon ay, walang lokasyon.</p>
+<p>Odd tags ay hindi nakakaapekto sa paggawa, paunang pagtatalaga, o paglilipat, gaya ng karagdagang metadata, at sa gayon ay ligtas na huwag pansinin.</p>
+<h2 id="inscription-ids"><a class="header" href="#inscription-ids">Inscription IDs</a></h2>
+<p>Ang nilalaman ng inskripsyon ay nakapaloob sa input ng isang naka-reveal na transaksyon. Upang natatanging makilala ang mga ito, binibigyan sila ng ID, tulad ng:</p>
+<p><code>521f8eccffa4c41a3a7728dd012ea5a4a02feed81f41159231251ecf1e5c79dai0</code></p>
+<p>Ang bahagi sa harap na <code>i</code> ay ang transaction ID (txid) ng reveal na transaksyon. Ang numero pagkatapos ng <code>i</code> ay tumutukoy sa index (nagsisimula sa 0) ng mga bagong inskripsiyon ng transaksyon.</p>
+<p>Maaaring matatagpuan ang mga inskripsiyon sa iba't ibang input, sa loob ng parehong input o kumbinasyon ng pareho. Sa anumang kaso ang order ay madaling makita, dahil ang parser nage-scan sa mga input nang sunud-sunod at hahanapin ang lahat ng inskripsiyon na may <code>envelopes</code>.</p>
+<div class="table-wrapper"><table><thead><tr><th style="text-align: center">Input</th><th style="text-align: center">Inscription Count</th><th style="text-align: center">Indices</th></tr></thead><tbody>
+<tr><td style="text-align: center">0</td><td style="text-align: center">2</td><td style="text-align: center">i0, i1</td></tr>
+<tr><td style="text-align: center">1</td><td style="text-align: center">1</td><td style="text-align: center">i2</td></tr>
+<tr><td style="text-align: center">2</td><td style="text-align: center">3</td><td style="text-align: center">i3, i4, i5</td></tr>
+<tr><td style="text-align: center">3</td><td style="text-align: center">0</td><td style="text-align: center"></td></tr>
+<tr><td style="text-align: center">4</td><td style="text-align: center">1</td><td style="text-align: center">i6</td></tr>
+</tbody></table>
+</div>
+<h2 id="sandboxing"><a class="header" href="#sandboxing">Sandboxing</a></h2>
+<p>Ang mga inskripsiyon na gaya ng HTML at SVG ay nasa-sandbox upang maiwasan ang ma-reference sa off-chain content, sa gayo'y pinapanatili ang mga inskripsiyon na hindi nababago at self-contained.</p>
+<p>Nagagawa ito sa pamamagitan ng pag-load sa mga HTML at SVG na inskripsiyon sa loob <code>iframes</code> na may <code>sandbox</code> na katangian, pati na rin ang pag-serve ng nilalaman ng inskripsiyon na may <code>Content-Security-Policy</code> sa header.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="provenance"><a class="header" href="#provenance">Provenance</a></h1>
+<p>Ang may-ari ng isang inscription ay maaaring lumikha ng mga child inscription, na sinisiguro na ng pinagmulan ng mga child inscription na nasa on-chain na kabilang sa nilikha ng may-ari ng isang parent inscription. Magagamit ito para sa mga koleksyon, kung saan ang mga child inscription ng parent inscription ay mga miyembro ng parehong koleksyon.</p>
+<p>Kahit ang mga child inscription ay maaaring magkaroon ng mga child inscriptions, na nagbibigay-daan para magkaroon ng hierarchy. Halimbawa, maaring gumawa ang artist ng parent inscription na maraming child inscription na kung saan may mga sub inscription pa ang mga ito, na kung saan ang mga children at may sub inscription na kabilang din sa mga koleksyon.</p>
+<h3 id="pagtutukoy"><a class="header" href="#pagtutukoy">Pagtutukoy</a></h3>
+<p>Upang lumikha ng child inscription C na may parent inscription P:</p>
+<ul>
+<li>Gumawa ng inscribe transaction T gaya ng dati para sa C.</li>
+<li>I-spend ang parent inscription P sa isa sa mga input ng T.</li>
+<li>Isama ang tag <code>3</code>, ibig sabihin <code>OP_PUSH 3</code>, sa C, na may value ng serialized binary inscription ID ng P, na naka-serialize bilang 32-byte <code>TXID</code>, na sinusundan ng apat na byte na little-endian <code>INDEX</code>, kung saan ang mga trailing zeroes ay hindi kasama.</li>
+</ul>
+<p><em>NB</em> Ang mga byte ng isang bitcoin transaction ID ay nababaligtad sa kanilang text representation, kaya ang serialized transaction ID ay nasa kabaligtaran ang pagkakasunodsunod.</p>
+<h3 id="halimbawa"><a class="header" href="#halimbawa">Halimbawa</a></h3>
+<p>Isang halimbawa ng child inscription <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0</code>:</p>
+<pre><code>OP_FALSE
+OP_IF
+  OP_PUSH &quot;ord&quot;
+  OP_PUSH 1
+  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH 3
+  OP_PUSH 0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100
+  OP_PUSH 0
+  OP_PUSH &quot;Hello, world!&quot;
+OP_ENDIF
+</code></pre>
+<p>Tandaan na ang halaga ng tag <code>3</code> ay binary, hindi hex, at para makilala ang child inscription bilang isang child, <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0</code> dapat na gastusin bilang isa sa mga input ng inscription transaction.</p>
+<p>Halimbawang pag-encode ng inscription ID <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi255</code>:</p>
+<pre><code>OP_FALSE
+OP_IF
+  …
+  OP_PUSH 3
+  OP_PUSH 0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100ff
+  …
+OP_ENDIF
+</code></pre>
+<p>At ng inskripsiyong ID <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi256</code>:</p>
+<pre><code>OP_FALSE
+OP_IF
+  …
+  OP_PUSH 3
+  OP_PUSH 0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a090807060504030201000001
+  …
+OP_ENDIF
+</code></pre>
+<h3 id="tandaan"><a class="header" href="#tandaan">Tandaan</a></h3>
+<p><code>3</code> Ginagamit ang tag dahil ito ang unang available na odd tag. Ang mga hindi kilalang odd tag ay hindi gumagawa ng isang inskripsiyon na unbound, kaya ang mga child inscription ay makikilala at masusubaybayan ng mga lumang bersyon ng ord.</p>
+<p>Maaaring i-close ang isang koleksyon sa pamamagitan ng pag-burn sa parent isncription ng koleksyon, na ginagarantiyahan na wala nang mga item sa koleksyon ang maaaring maibigay.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="recursion"><a class="header" href="#recursion">Recursion</a></h1>
+<p>Ang isang eksepsyon sa <a href="inscriptions/../inscriptions.html#sandboxing">sandboxing</a> ay ang recursion: pinahihintulutan ang pag-access sa endpoint ng <code>ord’s</code> <code>/content</code>, na nagdudulot sa mga inskripsiyon na ma-access ang nilalaman ng iba pang mga inskripsiyon sa pamamagitan ng paggamit ng <code>/content/&lt;INSCRIPTION_ID&gt;</code>.</p>
+<p>Ito ay nagdudulot ng magagandang use-cases:</p>
+<ul>
+<li>
+<p>Paggamit sa mga existing na inskripsyon.</p>
+</li>
+<li>
+<p>Pag-publish ng mga snippet ng code, mga larawan, audio, o mga stylesheet bilang pampublikong resources.</p>
+</li>
+<li>
+<p>Mga generative na koleksyon kung saan ang isang algorithm ay nakalagay bilang JavaScript, na nag awtomatiko sa pag-create ng maraming inskripsyon na may kanya-kanyang katangian.</p>
+</li>
+<li>
+<p>Mga generative na koleksyon ng profile picture kung saan ang mga accessory at attribute ay naka-inscribe bilang mga indibidwal na larawan, o sa isang shared texture atlas, at pagkatapos ay pinagsama, parang collage, na may kanya kanyang combinasyon.</p>
+</li>
+</ul>
+<p>Ang ilan pang mga endpoint na maaaring ma-access ng mga inskripsiyon ay ang mga sumusunod:</p>
+<ul>
+<li><code>/blockheight</code>: pinakabagong block height.</li>
+<li><code>/blockhash</code>: pinakabagong block hash.</li>
+<li><code>/blockhash/&lt;HEIGHT&gt;</code>: block hash sa ibinigay na block height.</li>
+<li><code>/blocktime</code>: UNIX time stamp ng pinakabagong block.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="mga-madalas-itanong"><a class="header" href="#mga-madalas-itanong">Mga Madalas Itanong</a></h1>
+<h2 id="ano-ang-ordinal-theory"><a class="header" href="#ano-ang-ordinal-theory">Ano ang Ordinal Theory?</a></h2>
+<p>Ang Ordinal Theory ay isang protocol para sa pagtatalaga ng mga serial number sa satoshis, ang pinakamaliit na subdivision ng isang bitcoin, at pagsubaybay sa mga satoshi na iyon habang ginagastos sila sa mga transaksyon.</p>
+<p>Ang mga serial number na ito ay malalaking numero, tulad nito 804766073970493. Ang bawat satoshi, na kumakatawan sa ¹⁄₁₀₀₀₀₀₀₀₀ ng isang Bitcoin, ay may ordinal number.</p>
+<h2 id="nangangailangan-ba-ang-ordinal-theory-ng-pangalawang-chain-hiwalay-na-token-o-mga-pagbabago-ng-bitcoin"><a class="header" href="#nangangailangan-ba-ang-ordinal-theory-ng-pangalawang-chain-hiwalay-na-token-o-mga-pagbabago-ng-bitcoin">Nangangailangan ba ang Ordinal Theory ng pangalawang chain, hiwalay na token, o mga pagbabago ng Bitcoin?</a></h2>
+<p>Hindi. Gumagana ang ordinal theory sa ngayon, nang walang pangalawang chain, at ang tanging token na kailangan ay ang Bitcoin mismo.</p>
+<h2 id="ano-ang-magandang-gamit-ng-ordinal-theory"><a class="header" href="#ano-ang-magandang-gamit-ng-ordinal-theory">Ano ang magandang gamit ng Ordinal Theory?</a></h2>
+<p>Mangolekta, mag-trade at magnegosyo. Ang Ordinal Theory ay nagbibigay ng mga pagkakakilanlan sa mga indibidwal na satoshi, upang ang mga ito ay masubaybayan at i-trade, bilang mga rare o para sa kanilang numismatic na halaga.</p>
+<p>Ang Ordinal Theory ay nagbibigay-daan din sa mga inscriptions, isang protocol para sa pag-attach ng kahit anong content sa mga indibidwal na satoshi, at dahil dito sila ay nagiging mga bitcoin-native na digital artifacts.</p>
+<h2 id="paano-gumagana-ang-ordinal-theory"><a class="header" href="#paano-gumagana-ang-ordinal-theory">Paano gumagana ang Ordinal Theory?</a></h2>
+<p>Ang ordinal numbers ay itinalaga sa satoshi na magkakasunud-sunod kung saan ang mga ito ay na-mine. Ang unang satoshi sa unang bloke ay may ordinal na numerong <code>0</code>, ang pangalawa ay may ordinal na numerong <code>1</code>, at ang huling satoshi sa unang bloke ay may ordinal na numero 4,999,999,999.</p>
+<p>Ang Satoshi ay nasa mga output, ngunit sinisira ng mga transaksyon ang mga output na ito at lumikha ng mga bago muli. Samakatuwid, ang Ordinal Theory ay gumagamit ng isang algorithm upang matukoy kung paano nai-pasa ang satoshi mula sa mga input ng isang transaksyon patungo sa mga output nito.</p>
+<p>At ang algorithm na ito ay napaka-simple.</p>
+<p>Ang Satoshi ay isang <code>first in, first out</code> order. Isipin ang mga input sa isang transaksyon bilang isang listahan ng satoshi, at ang mga output bilang isang listahan ng mga slot, naghihintay na makatanggap ng satoshi. Upang mag-assign ng satoshi input sa mga slot, dapat isa-isa ang bawat input na satoshi na may  pagkakasunud-sunod papunta sa mga bakanteng output slot.</p>
+<p>Isipin ang isang transaksyon na may tatlong input at dalawang output. Ang mga input ay nasa kaliwa ng arrow at ang mga output sa kanan, lahat ay may label ng kanilang mga halaga:</p>
+<pre><code>[2] [1] [3] → [4] [2]
+</code></pre>
+<p>Ngayon lagyan ng label ang parehong transaksyon gamit ang ordinal numbers ng satoshi na naglalaman ng bawat entry, at mga tandang pananong para sa bawat exit slot. Dahil ang ordinal numbers ay malaki, gamitin natin ang mga titik upang kumatawan sa kanila:</p>
+<pre><code>[a b] [c] [d e f] → [? ? ? ?] [? ?]
+</code></pre>
+<p>Upang malaman kung aling satoshi ang pupunta sa aling exit, kailangan mong dumaan sa input na satoshis sa pagkakasunud-sunod at italaga ang bawat isa sa mga tandang pananong:</p>
+<pre><code>[a b] [c] [d e f] → [a b c d] [e f]
+</code></pre>
+<p>Paano ang tungkol sa fees? Magandang tanong! Isipin natin ang parehong transaksyon, sa pagkakataong ito ay may bayad na dalawang satoshi. Ang mga transaksyong may mga bayarin ay nagpapadala ng mas maraming satoshi sa mga input kaysa sa natatanggap nila sa mga output, kaya para gawing isang transaksyon ang nagbabayad, aalisin natin ang pangalawang output:</p>
+<pre><code>[2] [1] [3] → [4]
+</code></pre>
+<p>Ang Satoshis<var>e</var>at <var>f</var>ay wala nang slot sa output:```
+[a b] [c] [d e f] → [a b c d]</p>
+<pre><code>
+Kaya't bumalik sila sa miner na nagmimina ng block bilang bayad. Para sa detalyeng kaalaman, mabuting bisitahin ang [BIP](https://github.com/ordinals/ord/blob/master/bip.mediawiki), ngunit sa kabuuan, ang mga bayarin na binayaran ng mga transaksyon ay itinuturing bilang karagdagang mga entry sa transaksyon ng coinbase, at ordered sa parehong paraan tulad ng mga kaukulang transaksyon na ordered sa block. Maaaring ganito ang hitsura ng transaksyon sa coinbase ng block:
+
+</code></pre>
+<p>[SUBSIDY] [e f] → [SUBSIDY e f]</p>
+<pre><code>
+## Saan ko mahahanap ang pinakatiyak na mga detalye?
+
+Dito sa [The BIP](https://github.com/ordinals/ord/blob/master/bip.mediawiki)
+
+## Bakit tinatawag na &quot;digital artifacts&quot; ang mga sat inscriptions sa halip na &quot;NFTs&quot;?
+
+Ang isang inskripsiyon ay isang NFT, ngunit ang terminong &quot;digital artifact&quot; ay ginamit sa halip, dahil ito ay simple, nagpapahiwatig at pamilyar.
+
+Ang terminong &quot;digital artifact&quot; ay madaling maunawaan, kahit na para sa isang taong hindi pa nakarinig ng terminong ito dati. Sa paghahambing, ang NFT ay isang acronym na hindi nagbibigay ng indikasyon kung ano ang ibig sabihin nito.
+
+Gayundin, ang &quot;NFT&quot; ay napagkakamalang may kinalaman sa pananalapi, at ang salitang &quot;fungible&quot; pati na rin ang kahulugan ng salitang &quot;token&quot; na ginamit sa &quot;NFT&quot; ay hindi karaniwan sa mga konteksto sa pananalapi.
+
+## How do sat inscriptions compare to…
+
+### NFT Ethereum?
+
+_Ang mga inscription ay hindi nababago or immutable, kailanman._
+
+Walang paraan para sa creator ng isang inscription, o sa may-ari ng isang inscription, na i-edit ito pagkatapos itong magawa.
+
+Maaaring hindi nababago ang mga Ethereum NFT, ngunit maaaring baguhin o sirain ng may-ari ang contract ng NFT.
+
+Upang matiyak na ang isang partikular na Ethereum NFT ay hindi nababago o immutable, ang code ng kontrata ay dapat na i-audit, na nangangailangan ng detalyadong kaalaman sa EVM at Solidity semantics.
+
+Napakahirap para sa isang hindi teknikal na user na matukoy kung ang isang partikular na Ethereum NFT ay nababago o hindi nababago, at ang mga Ethereum NFT platform ay hindi nagsisikap na makilala kung ang isang NFT ay nababago o hindi nababago, at kung ang source code ng kontrata ay magagamit at na-audit.
+
+_Ang content ng inscription ay laging on-chain._
+
+Walang paraan para sa isang inscription para i-refer ang sarili nito sa off-chain. Ginagawa nitong mas matibay ang mga inscription, dahil hindi mawawala ang content, at mas bihira, dahil dapat magbayad ang mga creator ng katumbas na proporsyonal na laki ng content.
+
+Ang ilan sa nilalaman ng Ethereum NFT ay on-chain, ngunit karamihan sa mga ito ay off-chain at naka-imbak sa mga platform tulad ng IPFS o Arweave, o isang sentralisadong tradisyonal na mga web server. Ang paggamit sa IPFS ay hindi safe, at ang ilang nilalaman ng NFT na nakaimbak sa IPFS ay maaring mawala. Ang mga platform tulad ng Arweave ay umaasa sa mga dami ng gumagamit nito at malamang na makakaranas ng malaking problema kapag hindi na natugunan ang mga pangangailangan na ito. At ang mga sentralisadong web server ay maaaring mawala anumang oras.
+
+Napakahirap para sa isang hindi teknikal na user ang gumagamit na matukoy kung saan nakaimbak ang nilalaman ng isang partikular na Ethereum NFT.
+
+_Ang mga inscription ay mas simple._
+
+Ang mga Ethereum NFT ay nakadepende sa Ethereum network at virtual machine, na napakakomplikado, patuloy na nagbabago at nagdudulot ng mga pagbabago sa pamamagitan ng mga backward compatible na hard forks.
+
+Ang mga inscriptions, sa kabilang banda, ay umaasa sa Bitcoin blockchain, na simple at konserbatibo, at nagdudulot ng mga pagbabago sa pamamagitan ng backward-compatible na soft forks.
+
+_Ang mga inscription ay mas ligtas._
+
+Ang inscriptions ay direktang gumagamit ng Bitcoin transaction model, na nagbibigay-daan sa isang user na makita kung aling inscriptions ang inililipat ng isang transaksyon bagoito ma-sign. Maaring maibenta ang inscriptions gamit ang partially signed transactions, na hindi nangangailangan ng pagpapahintulot sa isang third party, tulad ng isang exchange o marketplace, na ilipat ang mga ito sa ngalan ng user.
+
+Sa paghahambing, ang mga Ethereum NFT ay maraming kahinaan sa seguridad ng end-user. Karaniwang mahirap unawain ang pag-sign ng isang transaksyon, mga hindi inaasahang permission access, at mga smart contract na may hindi kanais nais na function tulad ng pagkuha sa iyong mga assets. Lumilikha ito ng isang panganib para sa mga gumagamit ng Ethereum NFT na sadyang hindi nakakabahala para sa mga ordinal theorists.
+
+_Mas bihira inscriptions._
+
+Ang inscriptions ay nangangailangan ng mga bitcoin na malikha, mailipat at maiimbak. Ito ay tila isang downside sa unang tingin, ngunit ang buong punto ng digital artifacts ay bihira at samakatuwid ay mahalaga.
+
+Ang mga Ethereum NFT, sa kabilang banda, ay maaaring ma-mint sa halos walang limitasyong mga katangian sa isang transaksyon, na ginagawa itong likas na hindi gaanong bihira, at samakatuwid ay potensyal na hindi gaanong mahalaga.
+
+_Hindi inaangkin ng inscriptions ang pag-suportahan sa mga on-chain royalty ng blockchain._
+
+Ang mga on-chain royalty ng blockchain ay isang magandang ideya sa teorya, ngunit hindi sa parati. Ang pagbabayad ng royalties ay hindi maaaring ipataw sa blockchain nang walang kumplikado at invasive na mga paghihigpit. Ang Ethereum NFT ecosystem ay kasalukuyang nakikipagbuno sa pagkalito sa mga royalty, at sama-samang nauunawaan ang katotohanan na ang on-chain royalties, na ipinadala sa mga artista bilang isang bentahe ng mga NFT, ay hindi posible, habang ang mga platform ay nagpapaunhan ibaba at alisin ang suporta sa royalty.
+
+Ganap na iniiwasan ng inscriptions ang sitwasyong ito sa pamamagitan ng hindi paggawa ng mga maling pangako upang suportahan ang  on-chain royalties sa blockchain, sa gayon ay iniiwasan ang pagkalito, kaguluhan at negatibiti tulad ng sa Ethereum NFT.
+
+_Ang inscriptions ay nagbubukas ng mga bagong ideya at posibilidad._
+
+Ang market capitalization at liquidity ng Bitcoin ay higit na mataas kaysa sa Ethereum. Karamihan sa liquidity na ito ay hindi available para sa Ethereum NFTs, dahil mas gusto ng maraming bitcoiners na huwag makipag-ugnayan sa Ethereum ecosystem dahil sa mga alalahanin tungkol sa pagiging simple, seguridad, at desentralisasyon.
+
+Ang mga bitcoiner na ito ay maaaring mas interesado sa inscriptions kaysa sa mga Ethereum NFT, na nagbubukas ng mga bagong klase ng mga kolektor.
+
+_Ang inscriptions ay may mas magandang data model._
+
+Ang inscriptions ay binubuo ng content type, na kilala rin bilang MIME type, at content, na isang arbitrary na byte string. Ito ang parehong data model na ginagamit ng web, na nagbibigay-daan sa inscription ng content na mag-evolve kasama ang web at suportahan ang lahat ng uri ng nilalaman na sinusuportahan ng mga web browser, nang hindi kinakailangang baguhin ang pinagbabatayan na protocol.
+
+### RGB and Taro assets?
+
+Ang RGB at Taro ay parehong Bitcoin-based na sidechain asset protocol. Kung ikukumpara sa mga inscriptions, ang mga ito ay mas kumplikado, ngunit mas maraming feature.
+
+Ang Ordinal Theory ay idinisenyo mula sa simula para sa mga digital artifact, samantalang ang pangunahing kaso ng paggamit para sa RGB at Taro ay para sa mga fungible na token, kaya ang karanasan ng user para sa mga pag-signup ay malamang na maging mas simple at mas malinis kaysa sa karanasan ng user para sa mga NFT mula sa RGB at Taro.
+
+Parehong nag-iimbak ang RGB at Taro ng off-chain na content, na nangangailangan ng karagdagang imprastraktura at maaaring mawala. Sa kabilang banda, ang nilalaman ng inskripsiyon ay nakaimbak sa on-chain at hindi maaaring mawala.
+
+Ang Ordinal Theory, RGB, at Taro ay bago lamang, kaya haka-haka lamang ito, ngunit ang direksyon ng Ordinal Theory ay maaaring magbigay ng edge para sa digital artifacts, kabilang ang isang pinakamahusay na data model at mga natatanging simbolo.
+
+### Iba pang mga assets?
+
+Ang Counterparty ay may sariling token, XCP, na kinakailangan para sa ilang partikular na functionality, kaya itinuturing ito ng karamihan sa mga bitcoiner na isang altcoin, hindi isang extension o pangalawang layer para sa bitcoin.
+
+Ang Ordinal Theory ay dinisenyo mula sa simula para sa mga digital na artifact, samantalang ang counterparty ay pangunahing idinisenyo para sa pag-isyu ng mga financial token.
+
+## Inscriptions for…
+
+### Mga Artists
+
+_Ang inscriptions ay nasa Bitcoin._ Ang Bitcoin ay may pinakamataas na tsansa na mag survive bilang isa kilalang digital currency. Kung gusto mong tiyakin ang pangmatagalan ng iyong sining, mas mabuti na opsyon na i-likha ang mga ito bilang isang inscriptions.
+
+_Mas murang on-chain na storage._ Sa $20,000 bawat BTC at isang minimum na bayad na 1 satoshi bawat vbyte, ang pag-post ng nilalaman ng inscription ay nagkakahalaga lamang ng $50 bawat 1 milyong bytes.
+
+_Ang inscriptions ay bago pa lang!_ Ang mga inscription ay nasa ilalim pa rin ng development at hindi pa nailunsad sa mainnet. Nagbibigay ito sa iyo ng pagkakataong maging isang maagang pag-adopt at tuklasin ang medium habang bago pa ito.
+
+_Ang inscriptions ay simple._ Ang mga pagpaparehistro ay hindi nangangailangan ng paggawa o pag-unawa sa mga smart contract.
+
+_Ang inscriptions ay nagbubukas ng karagdagang liquidity._ Ang inscriptions ay mas naa-access at kaakit-akit sa mga Bitcoin holder, na nagbubukas ng posibilidad sa isang bagong kategorya ng mga kolektor.
+
+_Ang inscriptions ay idinisenyo para sa digital artifacts._ Ang mga inscription ay idinisenyo mula sa simula upang suportahan ang mga NFT, at nagpapakita ng mas mahusay na data model, pati na rin ang mga tampok tulad ng mga unique symbol at pagberipika ng mga pinagmulan.
+
+_Ang inscriptions ay walang on-chain royalties._ Ito ay isang negatibo, ngunit ito ay depende sa kung paano mo ito titingnan. Ang mga royalty ng blockchain ay naging pakinabang para sa mga creator, ngunit lumikha din ng malaking kalituhan sa Ethereum NFT ecosystem. Ang ecosystem ay nakikipagbuno na ngayon sa problemang ito at nagsimula sa isang shift para ibaba ang royalty papunta sa 0 royalty. Ang mga inscription ay hindi sumusuporta sa mga royalty, dahil ang mga ito ay teknikal na hindi magagawa. Kung magpasya kang lumikha ng mga inscription, maaari mong iwasan ang limitasyong ito sa maraming paraan: magkaroon ng porsyento sa mga future sales, o marahil ay mag-aalok ng mga benepisyo sa mga user na sumusuporta sa mga opsyonal na royalties.
+
+### Mga kolektor
+
+_Ang inscriptions ay simple, malinaw at secure._ Hindi nababago at on-chain, nang hindi kailangan ng espesyal na effot.
+
+_Ang inscriptions ay nasa Bitcoin._ Madali mong mabe-verify ang lokasyon at mga katangian ng mga inscription sa pamamagitan ng pag-setup ng sariling full Bitcoin node.
+
+### (Bitcoiners) Mga tumatangkilik sa Bitcoin
+
+Ang pinakamahalagang bagay na ginagawa ng Bitcoin network ay ang pagkakaroon ng desentralisado na pera. Kabilang na dito ang Ordinal Theory. Ang mga nag-develop ng Ordinal Theory ay nauunawaan at kinikilala ito, at naniniwala na ang Ordinal Theory ay nag-aambag, kahit sa maliit na paraan, sa pangunahing misyon ng Bitcoin.
+
+Hindi tulad ng altcoins, may merito ang mga digital artifact. Siyempre, maraming NFT na pangit, hangal, at mapanlinlang. Ang paglikha at koleksyon ng mga likhang sining ay bahagi na ng kasaysayan ng sangkatauhan mula nang ito ay mabuo at nauna pa sa komersiyo at pananalapi, na mga sinaunang teknolohiya din.
+
+Nagbibigay ang Bitcoin ng isang platform para sa paglikha at pagkolekta ng mga digital artifact sa isang secure at desentralisadong paraan, na nagpoprotekta sa mga user at artist sa parehong paraan na nagbibigay ito ng isang platform para sa pagpapadala at pagtanggap, at para sa lahat ng parehong dahilan.
+
+Ang mga ordinal at inscription ay nagpapataas ng demand para sa Bitcoin block space, na nagdaragdag sa badyet na mahalaga upang mapangalagaan ang seguridad ng Bitcoin at pag-transition nito sa fee-dependent security model, dahil ang block subsidy ay hinahati sa hindi gaanong kahalagahan.
+
+Ang mga nilalaman ng inscriptions ay naka-imbak on-chain, kaya ang block space demand para sa inscriptions ay walang limitasyon. Lumilikha ito ng isang buyer kung tawagin, para sa bawat block ng Bitcoin. Makakatulong ito sa pagsuporta sa isang matatag na market fee, na nagpapanatili sa Bitcoin na maging secure.
+
+Ang inscriptions ay sumasalungat sa ideya na ang Bitcoin ay hindi maaaring palawigin o gamitin para sa mga bagong idea. Kung susundin mo ang mga proyekto tulad ng mga DLC, Fedimint, Lightning, Taro, at RGB, alam mong mali ang claim na ito, ngunit nagbibigay ang inscriptions ng kontra-argumento na madaling maunawaan, at napatunayang model sa paggamit nito tulad nalamang ng mga NFTs, lubos na legible.
+
+Kung ang inscriptions ay lumabas, gaya ng inaasahan ng mga may-akda, magdudulot ito ng isang matagumpay na model para sa Bitcoin adoption: para sa kasiyahan, mayamang sining, at manatiling desentralisadong digital money.
+
+Ang mga inskripsiyon ay isang napakahusay na mapagkukunan ng pangangailangan para sa block space. Hindi tulad, halimbawa, ng mga stablecoin, na posibleng magbigay ng malaking impluwensya ng mga issuer sa hinaharap sa pag-unlad ng Bitcoin, o DeFi, na maaaring isentro ang pagmimina sa pamamagitan ng pagpapakilala ng opportunities para sa MEV, digital art at mga collectable sa Bitcoin, ay malamang na hindi makagawa ng mga indibidwal na entity na may sapat na kakayahan upang sirain ang Bitcoin. Ang sining ay desentralisado.
+
+Ang mga user ng inscription at mga service provider ay binibigyang insentibo na magpatakbo ng buong Bitcoin node, mag-publish at subaybayan ang mga inscription, at sa gayon ay maging mataas ang integrity ng chain.
+
+Ang Ordinal Theory at inscription ay hindi gaanong nakakaapekto sa pagiging epektibo ng Bitcoin. Maaaring balewalain ng mga gumagamit ng Bitcoin ang pareho at manatiling hindi maaapektuhan.
+
+Umaasa kami na ang Ordinal Theory ay magpapalakas at magpapayaman sa Bitcoin, at binibigyan ito ng appeal at functionality, na nagbibigay-daan dito na mas epektibong magsilbi sa paggamit nito bilang isang desentralisadong model sa sangkatauhan.</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="mag-ambag-sa-ord"><a class="header" href="#mag-ambag-sa-ord">Mag-ambag sa <code>ord</code></a></h1>
+<h2 id="mga-iminungkahing-hakbang"><a class="header" href="#mga-iminungkahing-hakbang">Mga iminungkahing hakbang</a></h2>
+<ol>
+<li>Maghanap ng isyu na gusto mong ayusin.</li>
+<li>Tukuyin kung ano ang magiging magandang unang hakbang patungo sa paglutas ng isyu. Ito ay maaaring nasa anyo ng code, pananaliksik, panukala, o sa pamamagitan ng pagmumungkahi na i-close ito, kung ito ay lipas na o hindi magandang ideya sa simula pa lang.</li>
+<li>Magkomento sa problema, at humihingi ng feedback. Maaari kang sumali at magsimulang magsulat ng code o mag test, ngunit nakakatipid sa oras ang pagberipika kung ang paksa ay luma na, kung hindi ito malinaw, kung ito ay hindi pa handang ipatupad.</li>
+<li>Kung ang isyu ay nangangailangan ng pagbabago ng code o pag-aayos sa isang bug, magbukas ng PR (pull request) draft na may kasamang test, at humingi ng feedback. Nakakatulong ito na matiyak na ang lahat ay sumasang-ayon sa kung ano ang kailangang gawin o ang unang hakbang sa paglutas ng problema. Dapat tandaan na ang paggawa ng tests at mahalaga upang madali at mabilis ma peripika ang iyong PR.</li>
+<li>Gumawa ng maraming test, at i-tweak ang code hanggang sa handa na itong isumite.</li>
+<li>Markahan ang PR ng “ready to review”.</li>
+<li>Baguhin ang PR kung kinakailangan.</li>
+<li>At sa huli, maari itong mai-merge!</li>
+</ol>
+<h2 id="magsimula-sa-maliit"><a class="header" href="#magsimula-sa-maliit">Magsimula sa maliit</a></h2>
+<p>Ang mga maliliit pagbabago ay magbibigay-daan sayo na makapag-ambag ng mabilis, at kung hindi, hindi ka mag-aaksaya ng maraming oras.</p>
+<p>Mga ideya:</p>
+<ul>
+<li>Magdagdag ng bagong test o test cases</li>
+<li>Magdagdag o pagbutihin ang dokumentasyon</li>
+<li>Maghanap ng isyu na nangangailangan ng higit pang pananaliksik, gawin ang pagsasaliksik na iyon, at ibuod ito sa isang komento.</li>
+<li>Maghanap ng out-of-date na isyu.</li>
+<li>Maghanap ng isyu na hindi dapat gawin, at magbigay ng constructive na feedback na nagdedetalye kung bakit sa tingin mo ay ganito ang sitwasyon.</li>
+</ul>
+<h2 id="mag-merge-nang-maaga-at-madalas"><a class="header" href="#mag-merge-nang-maaga-at-madalas">Mag-merge nang maaga at madalas</a></h2>
+<p>Hatiin ang malalaking gawain sa mas maliliit na hakbang. Kung mayroong isang bug, maaari kang magbukas ng PR na nagdaragdag ng isang failing ignored test. Maaari itong i-merge, at ang susunod na hakbang ay ang pag-ayos ng bug at karagdagang tests. Magsagawa ng pananaliksik o pag-testing, at iulat ang iyong mga resulta. Hatiin ang isang feature sa maliliit na sub-feature at isa-isang i-fix ang mga ito.</p>
+<p>Ang paghahanap ng paraan upang hatiin ang isang malaking PR sa mas maliliit na PR ay isang form of art na magandang practice bilang isang contributor. Ang mahirap na bahagi ay ang bawat PR ay dapat na isang improvement.</p>
+<p>Sinisikap kong sundin ang payo na ito sa aking sarili, at palaging mas maganda kapag ginagawa ko.</p>
+<p>Ang mga maliliit na changes ay mabilis na bumalangkas, nagre-rebisa, at nagsasama, na mas maganda kaysa sa pagtatrabaho sa isang malaking PR na tumatagal nang walang hanggan sa pag-draft, pagbabago, at pagsasama. Ang maliliit na changes ay hindi tumatagal ng maraming oras, kaya kung kailangan mong huminto sa paggawa sa isang maliit na changes, hindi ka magsasayang ng maraming oras kumpara sa isang mas malaking changes. Ang mabilis pag-PR ay nakakatulong na mapabuti ang proyekto kaagad, imbes na maghintay ng mahabang panahon para sa mas malaking changes. Ang maliliit na changes ay mas malamang na magdulot kakaunting conflict sa pagme-merge. Gaya ng sinabi ng mga taga-Athenians: <em>The fast commit what they will, the slow merge what they must.</em></p>
+<h2 id="humingi-ng-tulong"><a class="header" href="#humingi-ng-tulong">Humingi ng tulong</a></h2>
+<p>Kung natigil ka nang higit sa 15 minuto, humingi ng tulong, halimbawa sa Rust Discord, Stack Exchange, o sa project issue or discussion board.</p>
+<h2 id="i-practice-ang-hypothesis-driven-debugging"><a class="header" href="#i-practice-ang-hypothesis-driven-debugging">I-practice ang hypothesis-driven debugging</a></h2>
+<p>Bumuo ng hypothesis tungkol sa sanhi ng problema. Alamin kung paano i-test ang hypothesis na ito. Gawin ang test na ito. Kung ito ay gumana, maaari mong malutas ang problema o ngayon alam kung paano ayusin ito. Kung hindi, magsimulang muli sa isang bagong hypothesis.</p>
+<h2 id="bigyang-pansin-ang-mga-mensahe-ng-error"><a class="header" href="#bigyang-pansin-ang-mga-mensahe-ng-error">Bigyang-pansin ang mga mensahe ng error</a></h2>
+<p>Basahin ang lahat ng mga mensahe ng error at huwag i-tolerate ang mga warnings.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="donate"><a class="header" href="#donate">Donate</a></h1>
+<p>Ang Ordinals ay open-source na software na pinondohan ng komunidad. Ang kasalukuyang maintainer ng <code>ord</code> ay si <a href="https://github.com/raphjaph/">raphjaph</a>. Ang trabaho ni Raph sa <code>ord</code> ay ganap na pinondohan ng mga donasyon. Maari kang magbigay ng donasyon kung gusto mo suportahan ang development ng <code>ord</code>.</p>
+<p>Ang Bitcoin address para sa donasyon ay <a href="https://mempool.space/address/bc1q8kt9pyd6r27k2840l8g5d7zshz3cg9v6rfda0m248lva3ve5072q3sxelt">bc1q8kt9pyd6r27k2840l8g5d7zshz3cg9v6rfda0m248lva3ve5072q3sxelt</a>. At ang Ordinal address naman ay <a href="https://mempool.space/address/bc1qn3map8m9hmk5jyqdkkwlwvt335g94zvxwd9aql7q3vdkdw9r5eyqvlvec0">bc1qn3map8m9hmk5jyqdkkwlwvt335g94zvxwd9aql7q3vdkdw9r5eyqvlvec0</a>.</p>
+<p>Ang parehong mga address ay nasa 2 sa 4 na multisig na wallet na ang mga secret key ay hawak nina <a href="https://twitter.com/raphjaph">raphjaph</a>, <a href="https://twitter.com/realizingerin">erin</a>, <a href="https://twitter.com/rodarmor">rodarmor</a>, at <a href="https://twitter.com/veryordinally">ordinally</a>.</p>
+<p>Ang mga natanggap na donasyon ay gagamitin upang tustusan ang pagpapanatili at pagpapaunlad ng <code>ord</code>, gayundin ang mga gastos sa pagho-host ng <a href="https://ordinals.com">ordinals.com</a>.</p>
+<p>Salamat sa mga donasyon!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-theory-guides"><a class="header" href="#ordinal-theory-guides">Ordinal Theory Guides</a></h1>
+<p>Tingnan ang listahan ng mga gabay, kabilang ang guide sa ordinal explorer, sats hunter, at guide sa inscriptions.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-explorer"><a class="header" href="#ordinal-explorer">Ordinal Explorer</a></h1>
+<p>Ang <code>ord</code> binary ay may kasamang block explorer. Nagho-host kami ng block explorer sa mainnet ng <a href="https://ordinals.com">ordinals.com</a>, at sa signet sa <a href="https://signet.ordinals.com">signet.ordinals.com</a>.</p>
+<h3 id="pagpapagana-sa-explorer"><a class="header" href="#pagpapagana-sa-explorer">Pagpapagana sa Explorer</a></h3>
+<p>Ang server ay maaring i-run sa iyong computer gamit ang:</p>
+<p><code>ord server</code></p>
+<p>Para mag specify ng port i-add ang <code>--http-port</code> na flag:</p>
+<p><code>ord server --http-port 8080</code></p>
+<p>Para ma-enable ang JSON-API endpoints i-add ang <code>--enable-json-api</code> or <code>-j</code> flag (tingnan <a href="guides/explorer.html#json-api">sa</a> para karagdagang impormasyon):</p>
+<p><code>ord --enable-json-api server</code></p>
+<p>Maaring i-test ang iyong inscriptions gamit naman ang:</p>
+<p><code>ord preview &lt;FILE1&gt; &lt;FILE2&gt; ...</code></p>
+<h2 id="search"><a class="header" href="#search">Search</a></h2>
+<p>Tumatanggap ng paghahanap ng iba't ibang representasyon ng object.</p>
+<h3 id="blocks"><a class="header" href="#blocks">Blocks</a></h3>
+<p>Maaaring hanapin ang mga block sa pamamagitan ng hash, halimbawa, ang genesis block:</p>
+<p><a href="https://ordinals.com/search/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f">000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</a></p>
+<h3 id="transactions"><a class="header" href="#transactions">Transactions</a></h3>
+<p>Maaaring hanapin ang mga transaksyon sa pamamagitan ng hash, halimbawa, ang genesis block coinbase na transaksyon:</p>
+<p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b</a></p>
+<h3 id="outputs"><a class="header" href="#outputs">Outputs</a></h3>
+<p>Maaaring hanapin ang mga output ng transaksyon sa pamamagitan ng outpoint, halimbawa, ang solong output ng genesis block coinbase na transaksyon:</p>
+<p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</a></p>
+<h3 id="sats"><a class="header" href="#sats">Sats</a></h3>
+<p>Maaaring hanapin ang Sats sa pamamagitan ng buong numero, ang kanilang posisyon sa buong supply ng bitcoin:</p>
+<p><a href="https://ordinals.com/search/2099994106992659">2099994106992659</a></p>
+<p>Sa pamamagitan ng decimal, ang kanilang block at ang kanilang offset sa block:</p>
+<p><a href="https://ordinals.com/search/481824.0">481824.0</a></p>
+<p>Ayon sa antas, ang kanilang cycle, mga bloke mula noong huling halving, mga bloke mula noong huling difficulty adjustment, at offset sa kanilang mga bloke:</p>
+<p><a href="https://ordinals.com/search/1%C2%B00%E2%80%B20%E2%80%B30%E2%80%B4">1°0′0″0‴</a></p>
+<p>Sa kanilang pangalan, ang kanilang representasyon sa base-26 gamit ang mga letrang &quot;a&quot; hanggang &quot;z&quot;:</p>
+<p><a href="https://ordinals.com/search/ahistorical">ahistorical</a></p>
+<p>O ayon sa percentile, ang porsyento ng supply ng bitcoin na ibibigay o ibibigay kapag na-mina:</p>
+<p><a href="https://ordinals.com/search/100%">100%</a></p>
+<h2 id="json-api"><a class="header" href="#json-api">JSON-API</a></h2>
+<p>Maaari mong patakbuhin ang <code>ord</code> gamit ang <code>--enable-json-api</code> flag upang ma-access ang mga endpoint na ibalik ang JSON sa halip na HTML kung na-set mo ang HTTP <code>Accept: application/json</code> header. Ang istraktura ng mga bagay na ito ay malapit na sumusunod sa kung ano ang ipinapakita sa HTML. Ang mga endpoint na ito ay:</p>
+<ul>
+<li><code>/inscription/&lt;INSCRIPTION_ID&gt;</code></li>
+<li>/inscriptions</li>
+<li><code>/inscriptions/block/&lt;BLOCK_HEIGHT&gt;</code></li>
+<li><code>/inscriptions/block/&lt;BLOCK_HEIGHT&gt;/&lt;PAGE_INDEX&gt;</code></li>
+<li><code>/inscriptions/&lt;FROM&gt;</code></li>
+<li><code>/inscriptions/&lt;FROM&gt;/&lt;N&gt;</code></li>
+<li><code>/output/&lt;OUTPOINT&gt;</code></li>
+<li><code>/output/&lt;OUTPOINT&gt;</code></li>
+<li><code>/sat/&lt;SAT&gt;</code></li>
+</ul>
+<p>Para makakuha ng listahan ng pinakabagong 100 inskripsiyon na gagawin mo:</p>
+<pre><code>curl -s -H &quot;Accept: application/json&quot; 'http://0.0.0.0:80/inscriptions'
+</code></pre>
+<p>Upang makakita ng impormasyon tungkol sa isang UTXO, na may kasamang mga inskripsiyon sa loob nito, gawin ang:</p>
+<pre><code>curl -s -H &quot;Accept: application/json&quot; 'http://0.0.0.0:80/output/bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0'
+</code></pre>
+<p>Na mag re-return ng:</p>
+<pre><code>{
+  &quot;value&quot;: 10000,
+  &quot;script_pubkey&quot;: &quot;OP_PUSHNUM_1 OP_PUSHBYTES_32 156cc4878306157720607cdcb4b32afa4cc6853868458d7258b907112e5a434b&quot;,
+  &quot;address&quot;: &quot;bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf&quot;,
+  &quot;transaction&quot;: &quot;bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed&quot;,
+  &quot;sat_ranges&quot;: null,
+  &quot;inscriptions&quot;: [
+    &quot;6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0&quot;
+  ]
+}
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="gabay-sa-ordinal-inscriptions"><a class="header" href="#gabay-sa-ordinal-inscriptions">Gabay sa Ordinal inscriptions</a></h1>
+<p>Ang mga indibidwal na sat ay maaaring ma-inscribe ng arbitrary na content, na lumilikha ng mga digital artifact na pinagana ng Bitcoin na maaaring i-store sa isang Bitcoin wallet at ilipat sa pamamagitan ng mga transaksyon sa Bitcoin. Ang mga inscription ay hindi nababago, secure, at desentralisado gaya ng mismong Bitcoin.</p>
+<p>Ang pagtratrabaho sa inscriptions ay nangangailangan ng isang Bitcoin full node, upang mabigyan ka ng view ng kasalukuyang estado ng Bitcoin blockchain, at isang wallet na maaaring lumikha ng mga inscription at magsagawa ng sat check kapag gumagawa ng mga transaksyon upang magpadala ng mga inscription sa ibang wallet.</p>
+<p>Ang Bitcoin Core ay nagbibigay ng parehong buong node at isang Bitcoin wallet. Gayunpaman, ang Bitcoin Core Wallet ay hindi makakalikha ng inscriptions at hindi nagsasagawa ng mga sat control.</p>
+<p>Nangangailangan ito ng <a href="https://github.com/ordinals/ord"><code>ord</code></a>, ang ordinal utility. Hindi nagpapatupad ang <code>ord</code> ng sarili nitong wallet, kaya ang mga subcommand ng ord wallet ay nakikipag-ugnayan sa mga wallet ng Bitcoin Core.</p>
+<p>Sinasaklaw ng gabay na ito ang mga sumusunod na punto:</p>
+<ol>
+<li>Pag-install ng Bitcoin Core</li>
+<li>Pag-synchronize ng Bitcoin Blockchain</li>
+<li>Gumawa ng Bitcoin Core wallet</li>
+<li>Gamitin ang <code>ord wallet receive</code> para makatanggap ng sats</li>
+<li>Gumawa ng inscriptions gamit ang <code>ord wallet inscribe</code></li>
+<li>Magpadala ng inscriptions gamit ang <code>ord wallet send</code></li>
+<li>Pagtanggap ng inscriptions gamit ang <code>ord wallet receive</code></li>
+</ol>
+<h2 id="kumuha-ng-tulong"><a class="header" href="#kumuha-ng-tulong">Kumuha ng tulong</a></h2>
+<p>Kung natigil ka, subukang humingi ng tulong sa server ng <a href="https://discord.com/invite/87cjuz4FYg">Ordinals Discord</a>, o tingnan ang GitHub para sa mga <a href="https://github.com/ordinals/ord/issues">isyu</a> at <a href="https://github.com/ordinals/ord/discussions">discussions</a>.</p>
+<h2 id="pag-install-ng-bitcoin-core"><a class="header" href="#pag-install-ng-bitcoin-core">Pag-install ng Bitcoin Core</a></h2>
+<p>Ang Bitcoin Core ay mada-download sa <a href="https://bitcoincore.org/">bitcoincore.org</a> sa pahina ng <a href="https://bitcoincore.org/en/download/">pag-download</a>.</p>
+<p>Ang inscriptions ay nangangailangan ng Bitcoin Core 24 o mas bago.</p>
+<p>Hindi saklaw ng gabay na ito ang pag-install ng Bitcoin Core nang detalyado. Kapag na-install na ang Bitcoin Core, dapat ay matagumpay mong mapatakbo ang <code>bitcoind -version</code> mula sa command line.</p>
+<h2 id="bitcoin-core-setup"><a class="header" href="#bitcoin-core-setup">Bitcoin Core Setup</a></h2>
+<p>Ang <code>ord</code> ay nangangailangan ng index ng transaksyon ng Bitcoin Core.</p>
+<p>I-configure ang iyong Bitcoin Core node upang mapanatili ang index ng mga transaksyon, idagdag ang sumusunod sa iyong bitcoin.conf file:</p>
+<pre><code>txindex=1
+</code></pre>
+<p>O, patakbuhin ang <code>bitcoind</code> gamit ang <code>-txindex</code>:</p>
+<pre><code>bitcoind -txindex
+</code></pre>
+<h2 id="pag-synchronize-ng-bitcoin-blockchain"><a class="header" href="#pag-synchronize-ng-bitcoin-blockchain">Pag-synchronize ng Bitcoin Blockchain</a></h2>
+<p>Upang i-sync ang blockchain patakbuhin ang sumusunod na command</p>
+<pre><code>bitcoind -txindex
+</code></pre>
+<p>…and leave it running until <code>getblockcount</code>:</p>
+<pre><code>bitcoin-cli getblockcount
+</code></pre>
+<p>tumutugma sa bilang ng mga bloke tulad nalamang ng <a href="https://mempool.space/">mempool.space block explorer</a>. Nakikipag-ugnayan ang <code>ord</code> sa <code>bitcoind</code>, kaya dapat mong iwanan ang <code>bitcoind</code> na tumatakbo sa background kapag gumagamit ng <code>ord</code>.</p>
+<h2 id="pag-install-ng-ord"><a class="header" href="#pag-install-ng-ord">Pag-install ng <code>ord</code></a></h2>
+<p>Ang <code>ord</code> utility ay nakasulat sa Rust at maaaring i-compile mula sa <a href="https://github.com/ordinals/ord">source</a>. Available ang mga pre-built na binary sa page ng mga <a href="https://github.com/ordinals/ord/releases">release page</a>.</p>
+<p>Maaari mong i-install ang pinakabagong prebuilt binary mula sa command line gamit ang:</p>
+<pre><code class="language-sh">curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash -s
+</code></pre>
+<p>Kapag na-install na ang ord, dapat mong patakbuhin ang:</p>
+<pre><code>ord --version
+</code></pre>
+<p>na magpapakita ng numero ng bersyon ng <code>ord</code>.</p>
+<h2 id="paglikha-ng-bitcoin-core-wallet"><a class="header" href="#paglikha-ng-bitcoin-core-wallet">Paglikha ng Bitcoin Core Wallet</a></h2>
+<p>Ang <code>ord</code> ay gumagamit ng Bitcoin Core upang pamahalaan ang mga private key, lagdaan ang mga transaksyon, at i-broadcast ang mga ito sa network ng Bitcoin.</p>
+<p>Para gumawa ng Bitcoin Core wallet na ang pangalan ay <code>ord</code> para gamitin sa <code>ord</code>, patakbuhin ang:</p>
+<pre><code>ord wallet create
+</code></pre>
+<h2 id="tumanggap-ng-sats"><a class="header" href="#tumanggap-ng-sats">Tumanggap ng sats</a></h2>
+<p>Ang mga inscription ay ginagawa sa mga indibidwal na sats, gamit ang mga normal na transaksyon sa Bitcoin na nagbabayad ng gamit ang sats, kaya ang iyong wallet ay mangangailangan ng mga sats.</p>
+<p>Kumuha ng bagong address mula sa iyong ord wallet sa pamamagitan ng:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>At magpadala ng pondo.</p>
+<p>Maaari mong tingnan ang mga kasalukuyang transaksyon gamit ang:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>Kapag nakumpirma na ang transaksyon, dapat mong makita ang mga resulta ng transaksyon sa mga<code>ord wallet outputs</code>.</p>
+<h2 id="lumikha-ng-inscription-content"><a class="header" href="#lumikha-ng-inscription-content">Lumikha ng Inscription Content</a></h2>
+<p>Maaaring i-inscribe ang Sats sa anumang uri ng content, ngunit sinusuportahan lamang ng ord wallet ang mga uri ng content na maaaring i-display ng <code>ord</code> block explorer.</p>
+<p>Gayundin, ang mga inscription ay kasama sa mga transaksyon, kaya kung mas maraming nilalaman, mas mataas ang bayad para sa transaksyon sa incription.</p>
+<p>Ang nilalaman ng inscription ay kasama sa mga witnesses transaksyon, na tumatanggap ng diskwento. Upang kalkulahin ang tinatayang bayad na babayaran ng isang inscribe na transaksyon, hatiin ang laki ng content sa apat at i-multiply sa rate ng bayad.</p>
+<p>Ang mga transaksyon sa inscription ay dapat na mas mababa sa 400,00, o hindi sila ipapadala ng Bitcoin Core. Ang isang byte na nilalaman ng inscription ay nagkakahalaga ng isang yunit ng timbang. Dahil ang isang transaksyon sa inscription ay hindi kasama lamang ang nilalaman ng inscription, angkop na limitahan ang nilalaman ng pagpapatala sa mas mababa sa 400,000. Dapat ay sapat na ang 390,000 weight units.</p>
+<h2 id="paglikha-ng-mga-inscription"><a class="header" href="#paglikha-ng-mga-inscription">Paglikha ng mga inscription</a></h2>
+<p>Upang lumikha ng inscription na may mga nilalaman na <code>FILE</code>, patakbuhin ang:</p>
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE FILE
+</code></pre>
+<p>Maglalabas ang Ord ng dalawang transaction ID, isa para sa commit transaction at isa para sa reveal transaction, kasama ang inscription ID. Ang mga Inscription ID ay nasa anyong <code>TXIDiN</code>, kung saan ang <code>TXID</code> ay ang transaction ID ng reveal na transaksyon, at ang <code>N</code> ay ang index ng pag-inscribe sa reveal na transaksyon.</p>
+<p>Ang commit na transaksyon ay commit sa isang tapscript na naglalaman ng content ng inscription, at ang reveal na transaction ay gumagastos mula sa tapscript na iyon, na nire-reveal ang content sa string at nii-inscribe ito sa unang sat ng input na naglalaman ng kaukulang tapscript.</p>
+<p>Hintaying mamimina ang reveal na transaksyon. Maaari mong suriin ang status ng commit at i-reveal ang mga transaksyon gamit ang <a href="https://mempool.space/">mempool.space block explorer</a>.</p>
+<p>Kapag ang inscription na transaksyon ay nakuha na, ang inscription ID ay dapat na mai-print gamit ang:</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+<h2 id="parent-child-inscriptions"><a class="header" href="#parent-child-inscriptions">Parent-Child Inscriptions</a></h2>
+<p>Ang Parent-child inscriptions ay nagbibigay-daan sa kung ano ang karaniwang kilala bilang mga koleksyon, tingnan ang <a href="guides/../inscriptions/provenance.html">provenance</a> para sa higit pang impormasyon.</p>
+<p>To make an inscription a child of another, the parent inscription has to be inscribed and present in the wallet. To choose a parent run <code>ord wallet inscriptions</code> and copy the inscription id (<code>&lt;PARENT_INSCRIPTION_ID&gt;</code>).</p>
+<p>Now inscribe the child inscription and specify the parent like so:</p>
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; CHILD_FILE
+</code></pre>
+<p>This relationship cannot be added retroactively, the parent has to be present at inception of the child.</p>
+<h2 id="magpadala-ng-mga-inscription"><a class="header" href="#magpadala-ng-mga-inscription">Magpadala ng mga inscription</a></h2>
+<p>Mag-generate ng bagong address gamit ang:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>Send the inscription by running:</p>
+<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; &lt;ADDRESS&gt; &lt;INSCRIPTION_ID&gt;
+</code></pre>
+<p>Tingnan ang mga pending na transaction gamit ang:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>Kapag nakumpirma na ang transaksyon sa pagpapadala, maaaring kumpirmahin ng tatanggap sa pamamagitan ng:</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+<h2 id="pagtanggap-ng-mga-inscriptions"><a class="header" href="#pagtanggap-ng-mga-inscriptions">Pagtanggap ng mga inscriptions</a></h2>
+<p>Bumuo ng bagong address sa pagtanggap gamit ang:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>Maaaring ipasa ng nagpadala ang inscription sa iyong address gamit ang:</p>
+<pre><code>ord wallet send ADDRESS INSCRIPTION_ID
+</code></pre>
+<p>Tingnan ang mga pending na transaction gamit ang:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>Kapag nakumpirma na ang transaksyon sa pagpapadala, maaari mong kumpirmahin sa pamamagitan ng:</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="sat-hunting"><a class="header" href="#sat-hunting">Sat Hunting</a></h1>
+<p>Ang gabay na ito ay hindi na napapanahon. Ang <code>ord</code> binary ay binago upang bumuo lamang ng buong satoshi index kapag ang <code>--index-sats</code> na opsyon ay ibinigay. Bukod pa rito, mayroon na ngayong built-in na wallet ang <code>ord</code> na nakapaloob sa isang Bitcoin Core wallet. Tingnan ang <code>ord wallet --help</code> na command.</p>
+<p>Ang ordinal hunting ay mahirap ngunit kapaki-pakinabang. Ang pakiramdam ng pagmamay-ari ng pitaka puno ng mga UTXOs, nag naglalaman ng mga rare at exotic sats, lubos na mahalaga.</p>
+<p>Ang mga ordinal ay mga numero para sa mga satoshi. Ang bawat satoshi ay may ordinal na numero at bawat ordinal na numero ay may satoshi.</p>
+<h2 id="paghahanda"><a class="header" href="#paghahanda">Paghahanda</a></h2>
+<p>Mayroong ilang mga bagay na kakailanganin mo bago ka magsimula.</p>
+<ol>
+<li>
+<p>Una, kakailanganin mo ng naka-sync na Bitcoin Core node na may transaction index. Upang i-on ang pag-index ng transaksyon, ipasa ang <code>-txindex</code> sa command-line:</p>
+<pre><code class="language-sh">bitcoind -txindex
+</code></pre>
+<p>O ilagay ang sumusunod sa iyong <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md#configuration-file-path">Bitcoin configuration file</a>:</p>
+<pre><code>txindex=1
+</code></pre>
+<p>I-launch ito at hintayin itong makaabot sa dulo ng chain, kung saan ang sumusunod na command ay dapat mag-print ng kasalukuyang taas ng bloke:</p>
+<pre><code class="language-sh">bitcoin-cli getblockcount
+</code></pre>
+</li>
+<li>
+<p>Pangalawa, kakailanganin mo ng naka-sync na <code>ord</code> index.</p>
+<ul>
+<li>
+<p>Kumuha ng kopya ng <code>ord</code> mula sa <a href="https://github.com/ordinals/ord/">repo</a>.</p>
+</li>
+<li>
+<p>I-run ang <code>RUST_LOG=info ord index</code>. Dapat itong kumonekta sa iyong bitcoin core node at simulan ang pag-index.</p>
+</li>
+<li>
+<p>Hintaying matapos ang pag-index.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Pangatlo, kakailanganin mo ng wallet na may mga UTXO na gusto mong hanapin.</p>
+</li>
+</ol>
+<h2 id="paghahanap-ng-rare-ordinals"><a class="header" href="#paghahanap-ng-rare-ordinals">Paghahanap ng Rare Ordinals</a></h2>
+<h3 id="paghahanap-ng-rare-ordinals-sa-isang-bitcoin-core-wallet"><a class="header" href="#paghahanap-ng-rare-ordinals-sa-isang-bitcoin-core-wallet">Paghahanap ng Rare Ordinals sa isang Bitcoin Core Wallet</a></h3>
+<p>Ang command na <code>ord wallet</code> ay isang wrapper lamang sa RPC API ng Bitcoin Core, kaya madali ang paghahanap ng mga rare ordinals sa isang Bitcoin Core wallet. Ipagpalagay na ang iyong wallet ay pinangalanang <code>foo</code>:</p>
+<ol>
+<li>
+<p>I-load ang iyong wallet:</p>
+<pre><code class="language-sh">bitcoin-cli loadwallet foo
+</code></pre>
+</li>
+<li>
+<p>Ipakita ang anumang mga bihirang ordinals wallet na <code>foo</code>'s UTXOs:</p>
+<pre><code class="language-sh">ord wallet sats
+</code></pre>
+</li>
+</ol>
+<h3 id="paghahanap-ng-rare-ordinals-sa-non-bitcoin-core-wallet"><a class="header" href="#paghahanap-ng-rare-ordinals-sa-non-bitcoin-core-wallet">Paghahanap ng Rare Ordinals sa Non-Bitcoin Core Wallet</a></h3>
+<p>Ang command na <code>ord wallet</code> ay isang wrapper lamang sa RPC API ng Bitcoin Core, kaya upang maghanap ng mga rate ordinals sa isang wallet na hindi Bitcoin Core, kakailanganin mong i-import ang mga descriptor ng iyong wallet sa Bitcoin Core.</p>
+<p><a href="https://github.com/bitcoin/bitcoin/blob/master/doc/descriptors.md">Mga Deskriptor</a> naglalarawan ng mga paraan kung saan ang mga wallet ay nag-generate ng mga private kets at public keys.</p>
+<p>Dapat ka lang mag-import ng mga deskriptor sa Bitcoin Core para sa iyong wallet public keys, hindi ang mga private keys.</p>
+<p>Kung nakompromiso ang public key descriptor ng iyong wallet, ang isang attacker ay maaring makit ang mga address ng iyong wallet, ngunit magiging ligtas ang iyong mga funds.</p>
+<p>Kung ang deskriptor ng private key ng iyong wallet ay nakompromiso, ang isang attacker ay maaaring ubusin ang iyong pitaka ng mga funds.</p>
+<ol>
+<li>
+<p>Kunin ang wallet descriptor mula sa wallet na may mga UTXO na gusto mong hanaping rare ordinals. Magiging ganito ang hitsura:</p>
+<pre><code>wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29
+</code></pre>
+</li>
+<li>
+<p>Gumawa ng watch-only wallet na <code>foo-watch-only</code>:</p>
+<pre><code class="language-sh">bitcoin-cli createwallet foo-watch-only true true
+</code></pre>
+<p>Huwag mag-atubiling bigyan ito ng mas magandang pangalan kaysa sa <code>foo-watch-only</code>!</p>
+</li>
+<li>
+<p>I-load ang wallet na <code>foo-watch-only</code>:</p>
+<pre><code class="language-sh">bitcoin-cli loadwallet foo-watch-only
+</code></pre>
+</li>
+<li>
+<p>I-import ang iyong mga deskriptor ng wallet sa <code>foo-watch-only</code>:</p>
+<pre><code class="language-sh">bitcoin-cli importdescriptors \
+  '[{ &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax&quot;, &quot;timestamp&quot;:0 }]'
+</code></pre>
+<p>Kung alam mo ang timestamp ng Unix noong unang nagsimulang makatanggap ang iyong wallet transactions, maaari mo itong gamitin para sa halaga ng <code>&quot;timestamp&quot;</code> sa halip na <code>0</code>. Ito ay magbabawas sa oras na kinakailangan ng Bitcoin Core upang mahanap ang iyong mga UTXOs.</p>
+</li>
+<li>
+<p>Suriin kung gumagana ang lahat:</p>
+<pre><code class="language-sh">bitcoin-cli getwalletinfo
+</code></pre>
+</li>
+<li>
+<p>Ipakita ang mga rare ordinal ng iyong wallet:</p>
+<pre><code class="language-sh">ord wallet sats
+</code></pre>
+</li>
+</ol>
+<h3 id="paghahanap-ng-rare-ordinals-sa-isang-wallet-na-nag-e-export-ng-multi-path-descriptors"><a class="header" href="#paghahanap-ng-rare-ordinals-sa-isang-wallet-na-nag-e-export-ng-multi-path-descriptors">Paghahanap ng Rare Ordinals sa isang Wallet na Nag-e-export ng Multi-path Descriptors</a></h3>
+<p>Ang ilang mga deskriptor ay naglalarawan ng maraming mga paths sa isang deskriptor gamit ang angle bracket, hal., <code>&lt;0;1&gt;</code>. Ang mga multi-path descriptor ay hindi pa sinusuportahan ng Bitcoin Core, kaya kailangan mo munang i-convert ang mga ito sa maramihang mga descriptor, at pagkatapos ay i-import ang maraming mga descriptor na iyon sa Bitcoin Core.</p>
+<ol>
+<li>
+<p>Kunin mo muna ang multi-path descriptor mula sa iyong wallet. Magmumukha itong isang bagay ganito:</p>
+<pre><code>wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/&lt;0;1&gt;/*)#fw76ulgt
+</code></pre>
+</li>
+<li>
+<p>Lumikha ng descriptor para sa path ng receive address:</p>
+<pre><code>wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)
+</code></pre>
+<p>At ang path ng pagbabago ng address:</p>
+<pre><code>wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)
+</code></pre>
+</li>
+<li>
+<p>Kunin at tandaan ang checksum para sa receive address descriptor, sa case na ito <code>tpnxnxax</code>:</p>
+<pre><code class="language-sh">bitcoin-cli getdescriptorinfo \
+  'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)'
+</code></pre>
+<pre><code class="language-json">{
+  &quot;descriptor&quot;: &quot;wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29&quot;,
+  &quot;checksum&quot;: &quot;tpnxnxax&quot;,
+  &quot;isrange&quot;: true,
+  &quot;issolvable&quot;: true,
+  &quot;hasprivatekeys&quot;: false
+}
+</code></pre>
+<p>At para sa change address descriptor, sa case na ito <code>64k8wnd7</code>:</p>
+<pre><code class="language-sh">bitcoin-cli getdescriptorinfo \
+  'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)'
+</code></pre>
+<pre><code class="language-json">{
+  &quot;descriptor&quot;: &quot;wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#fyfc5f6a&quot;,
+  &quot;checksum&quot;: &quot;64k8wnd7&quot;,
+  &quot;isrange&quot;: true,
+  &quot;issolvable&quot;: true,
+  &quot;hasprivatekeys&quot;: false
+}
+</code></pre>
+</li>
+<li>
+<p>I-load ang wallet na gusto mong i-import ang mga descriptor sa:</p>
+<pre><code class="language-sh">bitcoin-cli loadwallet foo-watch-only
+</code></pre>
+</li>
+<li>
+<p>Ngayon i-import ang mga descriptor, na may tamang mga checksum, sa Bitcoin Core.</p>
+<pre><code class="language-sh">bitcoin-cli \
+ importdescriptors \
+ '[
+   {
+     &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax&quot;
+     &quot;timestamp&quot;:0
+   },
+   {
+     &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#64k8wnd7&quot;,
+     &quot;timestamp&quot;:0
+   }
+ ]'
+</code></pre>
+<p>Kung alam mo ang timestamp ng Unix noong unang nagsimulang makatanggap ang iyong wallet transactions, maaari mo itong gamitin para sa value ng mga field na <code>&quot;timestamp&quot;</code> sa halip na <code>0</code>. Babawasan nito ang oras na kinakailangan para sa Bitcoin Core sa hanapin ang mga UTXOs.</p>
+</li>
+<li>
+<p>Suriin kung gumagana ang lahat:</p>
+<pre><code class="language-sh">bitcoin-cli getwalletinfo
+</code></pre>
+</li>
+<li>
+<p>Ipakita ang mga rare ordinal ng iyong wallet:</p>
+<pre><code class="language-sh">ord wallet sats
+</code></pre>
+</li>
+</ol>
+<h3 id="pag-export-ng-mga-descriptors"><a class="header" href="#pag-export-ng-mga-descriptors">Pag-export ng mga Descriptors</a></h3>
+<h4 id="sparrow-wallet"><a class="header" href="#sparrow-wallet">Sparrow Wallet</a></h4>
+<p>Mag-navigate sa tab na <code>Setting</code>, pagkatapos ay sa <code>Script Policy</code>, at pindutin ang i-edit button to display the descriptor.</p>
+<h3 id="pag-transfer-ng-ordinals"><a class="header" href="#pag-transfer-ng-ordinals">Pag-transfer ng Ordinals</a></h3>
+<p>Sinusuportahan ng <code>ord</code> wallet ang pag-transfer ng mga partikular na satoshi. Maaari mo ring gamitin ang <code>bitcoin-cli</code> commands <code>createrawtransaction</code>,<code>signrawtransactionwithwallet</code>, at <code>sendrawtransaction</code>, kung paano gawin ito ay kumplikado at sa labas ng saklaw ng gabay na ito.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="pagkolekta"><a class="header" href="#pagkolekta">Pagkolekta</a></h1>
+<p>Sa kasalukuyan, ang <a href="https://github.com/ordinals/ord/">ord</a> ay ang tanging wallet na sumusuporta sa sat control at selection, na kinakailangan upang ligtas na mag-store at magpadala ng mga rare sats at inscription, pagkatapos ay tinutukoy bilang mga ordinal.</p>
+<p>Inirerekomenda na magpadala, tumanggap at mag-imbak ng mga ordinal na may <code>ord</code>, ngunit kung ikaw ay maingat, posible na mag-store, at sa ilang mga kaso, magpadala ng mga ordinal nang ligtas kasama ng iba pang mga wallet.</p>
+<p>Sa pangkalahatan, hindi mapanganib na makatanggap ng mga ordinal sa isang hindi supported na wallet. Ang mga ordinal ay maaaring ipadala sa anumang bitcoin address at ligtas hangga't ang UTXO na naglalaman ng mga ito ay hindi ginagastos. Gayunpaman, kung gagamitin ang wallet na ito upang magpadala ng mga bitcoin, maaari nitong piliin ang UTXO na naglalaman ng ordinal bilang input, at maaaring ipadala ang inscription o funds upang magbayad ng fees.</p>
+<p>Ang <a href="guides/./collecting/sparrow-wallet.html">gabay</a> sa paggawa ng <code>ord</code>-compatible na wallet na <a href="https://sparrowwallet.com/">Sparrow Wallet</a>, ay available sa handbook na ito.</p>
+<p>Pakitandaan na kung sinusunod mo ang gabay na ito, hindi mo dapat gamitin ang wallet na nilikha mo upang magpadala ng BTC maliban kung gagawa ka ng manu-manong pagpili ng coin upang maiwasan ang pagpapadala ng mga ordinal.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="pagkolekta-ng-mga-inscription-at-ordinal-gamit-ang-sparrow-wallet"><a class="header" href="#pagkolekta-ng-mga-inscription-at-ordinal-gamit-ang-sparrow-wallet">Pagkolekta ng mga Inscription at Ordinal gamit ang Sparrow Wallet</a></h1>
+<p>Ang mga user na hindi o hindi pa nakakapag-set up ng <a href="https://github.com/ordinals/ord">ord</a> wallet ay maaaring makatanggap ng mga inscription at ordinal sa iba pang bitcoin wallet, basta't <em>maingat</em> sila kung paano nila ginagastos ang pera mula sa wallet na iyon.</p>
+<p>Nagbibigay ang gabay na ito ng ilang pangunahing hakbang kung paano gumawa ng <a href="https://sparrowwallet.com/">Sparrow Wallet</a> na tugma sa <code>ord</code> at maaring ma-import sa <code>ord</code></p>
+<h2 id="-warning-"><a class="header" href="#-warning-">⚠️⚠️ Warning!! ⚠️⚠️</a></h2>
+<p>Sa pangkalahatan, kung gagawin mo ang diskarteng ito, dapat mong gamitin ang wallet na ito gamit ang Sparrow software bilang receive wallet lamang.</p>
+<p>Huwag gumastos ng satoshi mula sa wallet na ito maliban kung sigurado kang alam mo ang iyong ginagawa. Madali mong hindi sinasadyang mawalan ng access sa iyong mga ordinal at inscription kung babalewalain mo ang babalang ito.</p>
+<h2 id="wallet-setup-at-receiving"><a class="header" href="#wallet-setup-at-receiving">Wallet Setup at Receiving</a></h2>
+<p>I-download ang Sparrow Wallet mula sa <a href="https://sparrowwallet.com/download/">releases page</a> para sa iyong partikular na operating system.</p>
+<p>Piliin ang <code>File -&gt; New Wallet</code> at gumawa ng bagong wallet na tinatawag na <code>ord</code>.</p>
+<p><img src="guides/collecting/images/wallet_setup_01.png" alt="" /></p>
+<p>Palitan ang <code>Script Type</code> sa <code>Taproot (P2TR)</code> at piliin ang `<code>New or Imported Software Wallet\</code> option.</p>
+<p><img src="guides/collecting/images/wallet_setup_02.png" alt="" /></p>
+<p>Piliin ang <code>Use 12 Words</code> at pagkatapos ay i-click ang <code>Generate New</code>. Iwanan ang passphrase na blangko.</p>
+<p><img src="guides/collecting/images/wallet_setup_03.png" alt="" /></p>
+<p>Ma-ge-generate para sa iyo ang isang bagong BIP39 12 word seed phrase. Isulat ito sa isang lugar na ligtas dahil ito ang iyong backup para makakuha ng access sa iyong wallet. HUWAG ibahagi o ipakita ang seed na pariralang ito sa iba.</p>
+<p>Kapag naisulat mo na ang seed phrase i-click ang <code>Confirm Backup</code>.</p>
+<p><img src="guides/collecting/images/wallet_setup_04.png" alt="" /></p>
+<p>Muling i-enter ang seed phrase na iyong isinulat, at pagkatapos ay i-click ang <code>Create Keystore</code>.</p>
+<p><img src="guides/collecting/images/wallet_setup_05.png" alt="" /></p>
+<p>I-click <code>Import Keystore</code>.</p>
+<p><img src="guides/collecting/images/wallet_setup_06.png" alt="" /></p>
+<p>I-click ang <code>Apply</code>. I-add ang password para sa wallet kung gusto mo.</p>
+<p><img src="guides/collecting/images/wallet_setup_07.png" alt="" /></p>
+<p>Mayroon ka na ngayong wallet na compatible sa <code>ord</code>, at maaaring i-import sa <code>ord</code> gamit ang BIP39 Seed Phrase. Upang makatanggap ng mga ordinal o inskripsiyon, mag-click sa tab na <code>Receive</code> at kumopya ng bagong address.</p>
+<p>Sa tuwing gusto mong makatanggap dapat kang gumamit ng bagong address, at hindi muling-gumamit ng mga kasalukuyang address.</p>
+<p>Tandaan na ang bitcoin ay iba sa ibang mga wallet ng blockchain, sa maaaring bumuo ang wallet na ito ng walang limitasyong bilang ng mga bagong address. Maaari mong i-generate ng bagong address sa pamamagitan ng pag-click sa <code>Get Next Address</code> na buton. Maaari mong tingnan ang lahat ng iyong address sa tab na <code>Addresses</code> ng app.</p>
+<p>Maaari kang magdagdag ng label sa bawat address, para masubaybayan mo kung ano iyon at ginagamit para saan.</p>
+<p><img src="guides/collecting/images/wallet_setup_08.png" alt="" /></p>
+<h2 id="pagpapatunay--pagtingin-sa-mga-natanggap-na-inskripsiyon"><a class="header" href="#pagpapatunay--pagtingin-sa-mga-natanggap-na-inskripsiyon">Pagpapatunay / Pagtingin sa Mga Natanggap na Inskripsiyon</a></h2>
+<p>Kapag nakatanggap ka ng inskripsiyon makakakita ka ng bagong transaksyon sa tab ng <code>Transactions</code> ng Sparrow, pati na rin ang isang bagong UTXO sa tab na <code>UTXOs</code>.</p>
+<p>Sa una ang transaksyong ito ay maaaring magkaroon ng isang &quot;Unconfirmed&quot; na status, at ikaw ay kailangan maghintay na ito ay mamina sa isang bitcoin block bago ito ganap na matanggap.</p>
+<p><img src="guides/collecting/images/validating_viewing_01.png" alt="" /></p>
+<p>Upang subaybayan ang status ng iyong transaksyon maaari kang mag-right click dito, piliin ang <code>Copy Transaction ID</code> at pagkatapos ay i-paste ang transaction id sa <a href="https://mempool.space">mempool.space</a>.</p>
+<p><img src="guides/collecting/images/validating_viewing_02.png" alt="" /></p>
+<p>Kapag nakumpirma na ang transaksyon, maaari mong i-validate at tingnan ang iyong inskripsyon sa pamamagitan ng pagpunta sa tab na <code>UTXOs</code>, paghahanap ng UTXO na gusto mong suriin, pag-right-click sa <code>Output</code> at pagpili sa <code>Copy Transaction Output</code>. Ang output id ng transaksyon na ito ay maaaring i-paste sa <a href="https://ordinals.com">ordinals.com</a> search.</p>
+<h2 id="pag-freeze-ng-utxos"><a class="header" href="#pag-freeze-ng-utxos">Pag-freeze ng UTXO's</a></h2>
+<p>Tulad ng ipinaliwanag sa itaas, ang bawat isa sa iyong mga inskripsiyon ay naka-store sa isang Unspent Transaction Output (UTXO). Gusto mong maging maingat na hindi aksidenteng ma-gastos mo ang iyong mga inskripsiyon, at isang paraan para mas mahirap itong mangyari ay upang i-freeze ang UTXO.</p>
+<p>Upang gawin ito, pumunta sa tab na <code>UTXOs</code>, hanapin ang UTXO na gusto mong i-freeze, i-right--click sa <code>Output</code> at piliin ang <code>Freeze UTXO</code>.</p>
+<p>Ang UTXO (Inscription) na ito ay hindi na gagastusin sa loob ng Sparrow Wallet hanggang sa i-unfreeze mo ito.</p>
+<h2 id="pag-import-sa-ord-wallet"><a class="header" href="#pag-import-sa-ord-wallet">Pag-import sa <code>ord</code> wallet</a></h2>
+<p>Para sa mga detalye sa pagse-set up ng Bitcoin Core at ang <code>ord</code> wallet tingnan ang <a href="guides/collecting/../inscriptions.html">Inscriptions Guide</a></p>
+<p>Kapag nagse-set up ng <code>ord</code>, sa halip na i-run ang <code>ord wallet create</code> upang lumikha ng isang bagong-bagong pitaka, maaari mong i-import ang iyong existing na pitaka gamit ang <code>ord wallet restore &quot;BIP39 SEED PHRASE&quot;</code> gamit ang seed phrase na nabuo mo gamit ang Sparrow Wallet.</p>
+<p>Kasalukuyang may <a href="https://github.com/ordinals/ord/issues/1589">bug</a> na nagiging sanhi ng isang na-import na wallet upang hindi awtomatikong muling i-scan versus sa blockchain. Upang magawa ito, kailangan mong manu-manong mag-trigger ang rescan gamit ang bitcoin core cli: <code>bitcoin-cli -rpcwallet=ord rescanblockchain 767430</code></p>
+<p>Pagkatapos ay maaari mong suriin ang mga inskripsiyon ng iyong wallet gamit ang <code>ord wallet inscriptions</code></p>
+<p>Tandaan na kung nakagawa ka dati ng wallet na may <code>ord</code>, pagkatapos ay mayroon nang wallet na may default na pangalan, at kakailanganing ibigay ang iyong imported na wallet ng bagong pangalan. Maaari mong gamitin ang parameter na <code>--wallet</code> sa lahat ng commands ng <code>ord</code> para ma-reference sa ibang wallet, hal:</p>
+<p><code>ord --wallet ord_from_sparrow wallet restore &quot;BIP39 SEED PHRASE&quot;</code></p>
+<p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
+<p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
+<h2 id="pagpapadala-ng-mga-inskripsiyon-gamit-ang-sparrow-wallet"><a class="header" href="#pagpapadala-ng-mga-inskripsiyon-gamit-ang-sparrow-wallet">Pagpapadala ng mga inskripsiyon gamit ang Sparrow Wallet</a></h2>
+<h4 id="-warning--1"><a class="header" href="#-warning--1">⚠️⚠️ Warning ⚠️⚠️</a></h4>
+<p>Habang lubos na inirerekomenda na mag-set up ka ng bitcoin core node at magpatakbo ng <code>ord</code> software, may ilang partikular na limitadong paraan na maaari kang magpadala ng mga inskripsiyon mula sa Sparrow Wallet sa ligtas na paraan. Pakitandaan na hindi ito inirerekomenda, at dapat mo lang gawin ito kung lubos mong naiintindihan kung ano ang iyong ginagawa.</p>
+<p>Ang paggamit ng <code>ord</code> software ay mag-aalis sa pagiging kumplikado sa paglalarawan dito, dahil awtomatiko at ligtas nitong pangasiwaan ang pagpapadala ng mga inskripsiyon sa madaling paraan.</p>
+<h4 id="-additional-warning-"><a class="header" href="#-additional-warning-">⚠️⚠️ Additional Warning ⚠️⚠️</a></h4>
+<p>Huwag gamitin ang iyong sparrow inscriptions wallet para gumawa ng mga pangkalahatang pagpapadala ng non-inscription bitcoin. Maaari kang mag-set up ng hiwalay na wallet sa sparrow kung kailangan mong gawin ang mga normal na transaksyon sa bitcoin, at panatilihin ang iyong inscription wallet na hiwalay.</p>
+<h4 id="bitcoins-utxo-model"><a class="header" href="#bitcoins-utxo-model">Bitcoin's UTXO model</a></h4>
+<p>Bago magpadala ng anumang transaksyon, mahalaga na mayroon kang mabuting modelo para sa sistema ng Unspent Transaction Output (UTXO) ng bitcoin. Ang paraan ng Bitcoin ay pangunahing naiiba sa maraming iba pang mga blockchain tulad ng Ethereum. Sa Ethereum sa pangkalahatan ay mayroon kang isang address kung saan ka nag-iimbak ETH, at hindi ka makakapag-iba sa pagitan ng alinman sa ETH - ito ay isang mahalagang kabuuang halaga sa address na iyon. Kakaiba gumana ang Bitcoin sa paggawa namin ng bagong address sa wallet para sa bawat tumatanggap, at sa tuwing makakatanggap ka sats sa isang address sa iyong wallet ikaw ay lumilikha ng bagong UTXO. Ang bawat UTXO ay makikita at pag-manage nang paisa-isa. Ikaw ay maaaring pumili ng mga partikular na UTXO na gusto mong gastusin, at maaari mong piliin na huwag gumastos ng ilang mga UTXO.</p>
+<p>Ang ilang mga wallet ng Bitcoin ay hindi inilalantad ang antas ng detalyeng ito, at ipinapakita lang nila ang summed up na halaga ng lahat ng bitcoin sa iyong wallet. Gayunpaman, kapag nagpapadala ng mga inskripsiyon, mahalaga na gumamit ka ng wallet tulad ng Sparrow na nagpapahintulot para sa kontrol ng UTXO.</p>
+<h4 id="pag-susuri-ng-iyong-inskripsiyon-bago-ipadala"><a class="header" href="#pag-susuri-ng-iyong-inskripsiyon-bago-ipadala">Pag-susuri ng iyong inskripsiyon bago ipadala</a></h4>
+<p>Tulad ng inilarawan natin dati, ang mga inskripsiyon ay nakasulat sa sats, at ang mga sats ay nakaimbak sa loob ng mga UTXO. Ang mga UTXO ay isang koleksyon ng mga satoshi na may ilang partikular na halaga ng bilang ng mga satoshi (ang output value). Karaniwan (ngunit hindi palagi) ang inskripsiyon ay isusulat sa unang satoshi sa UTXO.</p>
+<p>Kapag sinisiyasat ang iyong inskripsiyon bago ipadala ang pangunahing bagay na gusto mong tingnan kung saang satoshi sa UTXO nakalagay ang inskripsiyon mo.</p>
+<p>Upang gawin ito, maaari mong sundin ang <a href="guides/collecting/./sparrow-wallet.html#validating--viewing-received-inscriptions">Validating / Viewing Received Inscriptions</a> inilarawan sa itaas upang mahanap ang pahina ng inskripsyon para sa iyong inskripsyon sa ordinals.com</p>
+<p>Doon makikita mo ang ilang metadata tungkol sa iyong inskripsiyon na mukhang ang mga sumusunod:</p>
+<p><img src="guides/collecting/images/sending_01.png" alt="" /></p>
+<p>Mayroong ilang mahahalagang bagay na dapat suriin dito:</p>
+<ul>
+<li>Ang <code>output</code> identifier ay tumutugma sa identifier ng UTXO na ipapadala</li>
+<li>Ang <code>offset</code> ng inskripsiyon ay <code>0</code> (ito ay nangangahulugan na ang inskripsiyon ay matatagpuan sa unang sat sa UTXO)</li>
+<li>ang <code>output_value</code> ay may sapat na sats upang mabayaran ang bayad sa transaksyon (postage) para sa pagpapadala ng transaksyon. Ang eksaktong halaga na kakailanganin mo ay depende sa rate ng bayad na pipiliin mo para sa transaksyon</li>
+</ul>
+<p>Kung ang lahat ng nasa itaas ay totoo para sa iyong inskripsiyon, ito ay dapat na ligtas para sa iyo upang ipadala ito gamit ang paraan sa ibaba.</p>
+<p>⚠️⚠️ Maging maingat sa pagpapadala ng iyong inskripsiyon lalo na kung ang <code>offset</code> value ay hindi <code>0</code>. Hindi inirerekomenda na gamitin ang paraang ito kung iyon ang kaso, sa paggawa nito maaari mong hindi sinasadyang ipadala ang iyong inskripsiyon sa isang bitcoin miner maliban kung alam mo ang iyong ginagawa.</p>
+<h4 id="pag-padala-ng-iyong-inscription"><a class="header" href="#pag-padala-ng-iyong-inscription">Pag-padala ng iyong inscription</a></h4>
+<p>Upang magpadala ng inskripsiyon, mag-navigate sa tab na <code>UTXOs</code>, at hanapin ang UTXO na dati mong na-validate ay naglalaman ng iyong inskripsiyon.</p>
+<p>Kung dati mong na-freeze ang UXTO kakailanganin mong i-right-click ito at i-unfreeze ito.</p>
+<p>Piliin ang UTXO na gusto mong ipadala, at tiyaking iyon ang <em>only</em> UTXO na napili. Dapat mong makita ang <code>UTXOs 1/1</code> sa interface. Kapag sigurado ka na ito ang case na maaari mong pindutin ang <code>Send Selected</code>.</p>
+<p><img src="guides/collecting/images/sending_02.png" alt="" /></p>
+<p>Pagkatapos ay ipapakita sa iyo ang interface ng pagbuo ng transaksyon.May ilang bagay na kailangan mong suriin dito upang matiyak na ito ay isang ligtas na ipadala:</p>
+<ul>
+<li>Ang transaksyon ay dapat magkaroon lamang ng 1 input, at ito ay dapat na ang UTXO na may label na gusto mong ipadala</li>
+<li>Ang transaksyon ay dapat magkaroon lamang ng 1 output, na kung saan ay ang address/label kung saan gusto mong ipadala ang inskripsiyon</li>
+</ul>
+<p>Kung iba ang hitsura ng iyong transaksyon, halimbawa marami kang mga input, o maramihang mga output kung gayon ito ay maaaring hindi isang ligtas na paglipat ng iyong inskripsyon, at dapat mong iwanan ang pagpapadala hanggang sa mas maunawaan mo, o maaaring mag-import sa <code>ord</code> wallet.</p>
+<p>Dapat kang magtakda ng naaangkop na bayarin sa transaksyon, ang Sparrow ay karaniwang magrekomenda ng rate, ngunit maaari mo ring tingnan ang <a href="https://mempool.space">mempool.space</a> upang makita kung ano ang inirerekomendang rate ng bayad para sa pagpapadala ng transaksyon.</p>
+<p>Dapat kang magdagdag ng label para sa address ng tatanggap, isang label tulad ng <code>alice address para sa inscription #123</code> ay magiging perpekto.</p>
+<p>Kapag nasuri mo na ang transaksyon ay isang ligtas na transaksyon gamit ang mga tseke sa itaas, at tiwala kang maipadala ito maaari mong i-click ang <code>Create Transaction</code>.</p>
+<p><img src="guides/collecting/images/sending_03.png" alt="" /></p>
+<p>Dito muli, maaari mong i-double check kung ang iyong transaksyon ay mukhang ligtas, at kapag tiwala ka na, maaari mong i-click ang <code>Finalize Transaction for Signing</code>.</p>
+<p><img src="guides/collecting/images/sending_04.png" alt="" /></p>
+<p>Dito maaari mong i-triple check ang lahat bago pindutin ang <code>Sign</code>.</p>
+<p><img src="guides/collecting/images/sending_05.png" alt="" /></p>
+<p>At pagkatapos ay talagang makakakuha ka ng huling pagkakataon upang suriin ang lahat bago pindutin ang <code>Broadcast Transaction</code>. Kapag nai-broadcast mo ang transaksyon ito ay ipapadala sa bitcoin network, at nagsimulang i-reveal sa mempool.</p>
+<p><img src="guides/collecting/images/sending_06.png" alt="" /></p>
+<p>Kung gusto mong subaybayan ang status ng iyong transaksyon maaari mong kopyahin ang <code>Transaction Id (Txid)</code> at i-paste iyon sa <a href="https://mempool.space">mempool.space</a></p>
+<p>Kapag nakumpirma na ang transaksyon maaari mong tingnan ang pahina ng inskripsiyon sa <a href="https://ordinals.com">ordinals.com</a> upang ma-validate na lumipat ito sa bagong lokasyon at address ng output.</p>
+<h2 id="pag-troubleshoot"><a class="header" href="#pag-troubleshoot">Pag-Troubleshoot</a></h2>
+<h4 id="hindi-nagpapakita-ng-transaksyonutxo-ang-sparrow-wallet-ngunit-nakikita-ko-ito-sa-mempoolspace"><a class="header" href="#hindi-nagpapakita-ng-transaksyonutxo-ang-sparrow-wallet-ngunit-nakikita-ko-ito-sa-mempoolspace">Hindi nagpapakita ng transaksyon/UTXO ang Sparrow wallet, ngunit nakikita ko ito sa mempool.space!</a></h4>
+<p>Tiyaking nakakonekta ang iyong wallet sa isang bitcoin node. Para mapatunayan ito, pumunta sa <code>Preferences</code>-&gt; <code>Server</code> na mga setting, at i-click ang <code>Edit Existing Connection</code>.</p>
+<p><img src="guides/collecting/images/troubleshooting_01.png" alt="" /></p>
+<p>Mula doon maaari kang pumili ng isang node at i-click ang <code>Test Connection</code> upang ma-validate na matagumpay na nakakonekta ang Sparrow.</p>
+<p><img src="guides/collecting/images/troubleshooting_02.png" alt="" /></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="pagsuri"><a class="header" href="#pagsuri">Pagsuri</a></h1>
+<p>Maaaring subukan ang Ord gamit ang mga sumusunod na flag upang tukuyin ang test network. Para sa higit pang impormasyon sa pagpapatakbo ng Bitcoin Core para sa testing, tingnan ang <a href="https://developer.bitcoin.org/examples/testing.html">Bitcoin's developer documentation</a>.</p>
+<p>Karamihan sa commands ng <code>ord</code> sa <a href="guides/inscriptions.html">inscriptions</a> at <a href="guides/explorer.html">explorer</a> ay maaaring i-run gamit ang mga sumusunod na flag ng network:</p>
+<div class="table-wrapper"><table><thead><tr><th>Network</th><th>Flag</th></tr></thead><tbody>
+<tr><td>Testnet</td><td><code>--testnet</code> or <code>-t</code></td></tr>
+<tr><td>Signet</td><td><code>--signet</code> or <code>-s</code></td></tr>
+<tr><td>Regtest</td><td><code>--regtest</code> or <code>-r</code></td></tr>
+</tbody></table>
+</div>
+<p>Ang regtest ay hindi nangangailangan ng pag-download ng blockchain o indexing ord.</p>
+<h2 id="halimbawa-1"><a class="header" href="#halimbawa-1">Halimbawa</a></h2>
+<p>I-run ang bitcoind sa regtest gamit ang:</p>
+<pre><code>bitcoind -regtest -txindex
+</code></pre>
+<p>Gumawa ng wallet bilang regtest gamit ang:</p>
+<pre><code>ord -r wallet create
+</code></pre>
+<p>Kumuha ng isang regtest receive address na may:</p>
+<pre><code>ord -r wallet receive
+</code></pre>
+<p>Mine 101 blocks (upang i-unlock ang coinbase) gamit ang:</p>
+<pre><code>bitcoin-cli -regtest generatetoaddress 101 &lt;receive address&gt;
+</code></pre>
+<p>I-inscribe sa regtest kasama:</p>
+<pre><code>ord -r wallet inscribe --fee-rate 1 &lt;file&gt;
+</code></pre>
+<p>Mine the inscription with:</p>
+<pre><code>bitcoin-cli -regtest generatetoaddress 1 &lt;receive address&gt;
+</code></pre>
+<p>Tingnan ang inskripsiyon sa regtest explorer:</p>
+<pre><code>ord -r server
+</code></pre>
+<h2 id="pag-test-ng-recursion"><a class="header" href="#pag-test-ng-recursion">Pag-test ng Recursion</a></h2>
+<p>Kapag sinusubukan ang <a href="guides/../inscriptions/recursion.html">recursion</a>, isulat ang mga dependencies muna (halimbawa sa <a href="https://p5js.org">p5.js</a>):</p>
+<pre><code>ord -r wallet inscribe --fee-rate 1 p5.js
+</code></pre>
+<p>Dapat itong magbalik ng <code>inscription_id</code> na maaari mong ireference sa iyong recursive inscription.</p>
+<p>PANSIN: Magiging iba ang mga id na ito kapag nag-inscribe sa mainnet o signet, kaya siguraduhing baguhin ang mga nasa iyong recursive inscription para sa bawat chain.</p>
+<p>Pagkatapos ay maaari mong isulat ang iyong recursive inscription ng:</p>
+<pre><code>ord -r wallet inscribe --fee-rate 1 recursive-inscription.html
+</code></pre>
+<p>Sa wakas, kakailanganin mong mag-mine ng ilang mga bloke at simulan ang server:</p>
+<pre><code>bitcoin-cli generatetoaddress 6 &lt;receive address&gt;
+ord -r server
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="moderation"><a class="header" href="#moderation">Moderation</a></h1>
+<p>Ang <code>ord</code> ay may kasamang block explorer, na maaari mong patakbuhin sa local gamit ang <code>ord server</code>.</p>
+<p>Nagbibigay ito ng kakayahan sayo na tingnan ang mga inskripsiyon sa block explorer. Ang mga inscription ay maaaring hindi kanais-nais o ilegal.</p>
+<p>Responsibilidad ng bawat tao na namamahala sa isang instance ng ordinal block explorer na maunawaan ang kanilang mga responsibilidad tungkol sa lumalabag na content at magpasya sa naaangkop na patakaran sa pagmo-moderate para sa kanilang instance.</p>
+<p>Upang maiwasang maipakita ang mga partikular na inscription sa isang <code>ord</code> instance, maaaring isama ang mga ito sa isang configuration file ng YAML, na may kasamang opsyong na <code>--config</code>.</p>
+<p>Upang itago ang mga inscription, gumawa muna ng configuration file, na may ID ng inscription na gusto mong itago:</p>
+<pre><code class="language-yaml">hidden:
+- 0000000000000000000000000000000000000000000000000000000000000000i0
+</code></pre>
+<p>Ang pangalan ng  file ng pagsasaayos ng <code>ord</code> ay <code>ord.yaml</code>, ngunit maaaring gamitin ang anumang filename.</p>
+<p>Pagkatapos ay ipasa ang file sa <code>--config</code> kapag sinimulan ang server:</p>
+<p><code>ord --config ord.yaml server</code></p>
+<p>Tandaan na ang <code>--config</code> na opsyon ay pagkatapos ng <code>ord</code> ngunit bago ang <code>server</code> subcommand.</p>
+<p>Ang <code>ord</code> ay dapat na i-restart upang ang mga pagbabagong ginawa sa configuration file ay ma-apply.</p>
+<h2 id="ordinalscom"><a class="header" href="#ordinalscom"><code>ordinals.com</code></a></h2>
+<p>Ang instance ng ordinals.com ay gumagamit ng <code>systemd</code> upang patakbuhin ang service ng <code>ord server</code>, na tinatawag na <code>ord</code>, na may configuration file na matatagpuan sa <code>/var/lib/ord/ord.yaml</code>.</p>
+<p>Upang itago ang isang inscription sa <code>ordinals.com</code>:</p>
+<ol>
+<li>Kumonekta sa SSH server</li>
+<li>Idagdag ang inscription ID sa <code>/var/lib/ord/ord.yaml</code></li>
+<li>I-restart ang serbisyo gamit ang <code>systemctl restart ord</code></li>
+<li>Subaybayan ang pag-reboot gamit ang <code>journalctl -u ord</code></li>
+</ol>
+<p>Sa kasalukuyan, ang <code>ord</code> ay mabagal na mag-restart, kaya ang site ay hindi babalik kaagad online.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="reindexing"><a class="header" href="#reindexing">Reindexing</a></h1>
+<p>Minsan ang database ng <code>ord</code> ay dapat na i-reindex, na nangangahulugan ng pagtanggal ng database at i-restart ang proseso ng pag-index gamit ang alinman sa <code>ord index update</code> o <code>ord server</code>. Ang mga dahilan para muling i-index ay:</p>
+<ol>
+<li>Isang bagong pangunahing release ng ord, na nagbabago sa scheme ng database</li>
+<li>Na-corrupt ang database</li>
+</ol>
+<p>Ang database na ginagamit ng <code>ord</code> ay tinatawag na <a href="https://github.com/cberner/redb">redb</a>, kaya binibigyan namin ang index ng default na pangalan ng file na <code>index.redb</code>. Bilang default, ni-store namin ang file na ito sa iba't ibang lokasyon depende sa iyong operating system.</p>
+<div class="table-wrapper"><table><thead><tr><th>Platform</th><th>Value</th><th>Halimbawa</th></tr></thead><tbody>
+<tr><td>Linux</td><td><code>$XDG_DATA_HOME</code>/ord or <code>$HOME</code>/.local/share/ord</td><td>/home/alice/.local/share/ord</td></tr>
+<tr><td>macOS</td><td><code>$HOME</code>/Library/Application Support/ord</td><td>/Users/Alice/Library/Application Support/ord</td></tr>
+<tr><td>Windows</td><td><code>{FOLDERID_RoamingAppData}</code>\ord</td><td>C:\Users\Alice\AppData\Roaming\ord</td></tr>
+</tbody></table>
+</div>
+<p>Kaya para tanggalin ang database at reindex sa MacOS kailangan mong i-run ang sumusunod sa mga commands sa terminal:</p>
+<pre><code class="language-bash">rm ~/Library/Application Support/ord/index.redb
+ord index update
+</code></pre>
+<p>Siyempre maaari mo ring itakda ang lokasyon ng direktoryo ng data sa iyong sarili gamit ang <code>ord --data-dir &lt;DIR&gt; index update</code> o bigyan ito ng partikular na filename at path na may <code>ord --index &lt;FILENAME&gt; index update</code>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-bounty-hunting-hints"><a class="header" href="#ordinal-bounty-hunting-hints">Ordinal Bounty Hunting Hints</a></h1>
+<ul>
+<li>
+<p>Ang <code>ord</code> wallet ay maaaring magpadala at tumanggap ng partikular na satoshi. Gayundin, ang ordinal theory ay napakasimple. Ang isang matalinong hacker ay dapat na makapagsulat ng code mula sa simula upang manipulahin ang mga satoshi gamit ang ordinal theory.</p>
+</li>
+<li>
+<p>Para sa higit pang impormasyon sa Ordinal Theory, tingnan ang FAQ para sa isang pangkalahatang-ideya, ang <a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">BIP</a> para sa mga teknikal na detalye, at ang <a href="https://github.com/ordinals/ord">ord repository</a> para sa ord wallet at block explorer.</p>
+</li>
+<li>
+<p>Satoshi ang unang bumuo ng Ordinal Theory. Gayunpaman, alam niyang ituturing siya ng iba na erehe at mapanganib, kaya itinago niya ang kanyang kaalaman at nawala ito sa paglipas panahon. Ang makapangyarihang teoryang ito ay ngayon lamang muling natuklasan. Maaari kang mag-ambag dito sa pamamagitan ng paghahanap ng mga bihirang satoshi.</p>
+</li>
+</ul>
+<p>Good luck and godspeed!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-bounty-0"><a class="header" href="#ordinal-bounty-0">Ordinal Bounty 0</a></h1>
+<h2 id="criteria"><a class="header" href="#criteria">Criteria</a></h2>
+<p>Magpadala ng isang sat na ang ordinal na numero ay nagtatapos sa isang zero sa address ng pagsusumite:</p>
+<p>✅: <a href="https://ordinals.com/ordinal/1857578125803250">1857578125803250</a></p>
+<p>❌: <a href="https://ordinals.com/ordinal/1857578125803251">1857578125803251</a></p>
+<p>Ang sat ay dapat ang unang sat ng output na iyong ipinadala.</p>
+<h2 id="reward"><a class="header" href="#reward">Reward</a></h2>
+<p>100,000 sats</p>
+<h2 id="submission-address"><a class="header" href="#submission-address">Submission Address</a></h2>
+<p><a href="https://mempool.space/address/1PE7u4wbDP2RqfKN6geD1bG57v9Gj9FXm3"><code>1PE7u4wbDP2RqfKN6geD1bG57v9Gj9FXm3</code></a></p>
+<h2 id="status"><a class="header" href="#status">Status</a></h2>
+<p>Claimed ni <a href="https://twitter.com/rodarmor/status/1560793241473400833">@count_null</a>!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-bounty-1"><a class="header" href="#ordinal-bounty-1">Ordinal Bounty 1</a></h1>
+<h2 id="criteria-1"><a class="header" href="#criteria-1">Criteria</a></h2>
+<p>Ang transaksyon na nagsusumite ng UTXO na naglalaman ng pinakamatandang sat, ibig sabihin, na may pinakamababang bilang, sa lahat ng isinumiteng UTXO ay huhusgahan ang winner.</p>
+<p>Bukas ang bounty para sa mga pagsusumite hanggang block 753984-ang unang block ng difficulty adjustment period 374. Kasama ang mga pagsusumite sa block 753984 o pataas ay hindi isasaalang-alang.</p>
+<h2 id="reward-1"><a class="header" href="#reward-1">Reward</a></h2>
+<p>200,000 sats</p>
+<h2 id="submission-address-1"><a class="header" href="#submission-address-1">Submission Address</a></h2>
+<p><a href="https://mempool.space/address/145Z7PFHyVrwiMWwEcUmDgFbmUbQSU9aap"><code>145Z7PFHyVrwiMWwEcUmDgFbmUbQSU9aap</code></a></p>
+<h2 id="status-1"><a class="header" href="#status-1">Status</a></h2>
+<p>Claimed ni <a href="https://twitter.com/rodarmor/status/1569883266508853251">@ordinalsindex</a>!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-bounty-2"><a class="header" href="#ordinal-bounty-2">Ordinal Bounty 2</a></h1>
+<h2 id="criteria-2"><a class="header" href="#criteria-2">Criteria</a></h2>
+<p>Send an <span class=uncommon>uncommon</span>sat sa address ng pagsusumite:✅: <a href="https://ordinals.com/sat/347100000000000">347100000000000</a></p>
+<p>❌: <a href="https://ordinals.com/sat/6685000001337">6685000001337</a></p>
+<p>I-confirm na ang submission address ay hindi nakatanggap ng mga transaksyon bago pagsusumite ng iyong entry. Tanging ang unang matagumpay na pagsusumite ay gagantimpalaan.</p>
+<h2 id="reward-2"><a class="header" href="#reward-2">Reward</a></h2>
+<p>300,000 sats</p>
+<h2 id="submission-address-2"><a class="header" href="#submission-address-2">Submission Address</a></h2>
+<p><a href="https://mempool.space/address/1Hyr94uypwWq5CQffaXHvwUMEyBPp3TUZH"><code>1Hyr94uypwWq5CQffaXHvwUMEyBPp3TUZH</code></a></p>
+<h2 id="status-2"><a class="header" href="#status-2">Status</a></h2>
+<p>Claimed ni <a href="https://twitter.com/rodarmor/status/1582424455615172608">@utxoset</a>!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-bounty-3"><a class="header" href="#ordinal-bounty-3">Ordinal Bounty 3</a></h1>
+<h2 id="criteria-3"><a class="header" href="#criteria-3">Criteria</a></h2>
+<p>Ang Ordinal bounty 3 ay may dalawang bahagi, na parehong nakabatay sa <em>ordinal names</em>.Ang mga ordinal names ay isang modified base-26 encoding ng ordinal numbers. Upang maiwasan ang pag-lock ng shot names sa loob ng unspendable genesis block coinbase reward, ordinal names ay maagiging <em>shorter</em> habang ang ordinal number ay nagiging <em>longer</em>. Ang pangalan ng sat 0, ang unang sat na na-mina ay <code>nvtdijuwxlp</code> at ang pangalan ng sat ay 2,099,999,997,689,999, ang huling sat na miminahin, ay <code>a</code>.</p>
+<p>Bukas ang bounty para sa mga pagsusumite hanggang block 840000-ang unang block pagkatapos ng fourth halvening. Ang mga pagsusumite na kasama sa block 840000 o mas bago ay hindi ikonsidera.</p>
+<p>Ang parehong bahagi ay gumagamit ng <a href="bounty/frequency.tsv">frequency.tsv</a>, isang listahan ng mga salita at ang bilang ng beses na nangyari ang mga ito sa <a href="http://storage.googleapis.com/books/ngrams/books/datasetsv2.html">Google Books Ngram dataset</a>. na-filter lamang sa isama ang mga pangalan ng sats na mamimina sa pagtatapos ng panahon ng pagsusumite, na lilitaw nang hindi bababa sa 5000 beses sa corpus.</p>
+<p>Ang <code>frequency.tsv</code> ay isang file ng mga tab-separated values. Ang unang column ay ang word, at ang pangalawa ay ang bilang ng beses na ito ay lumabas sa corpus. Ang entries ay pinagsunod-sunod mula sa hindi pinakamadalas na nangyayari hanggang sa pinaka-madalas nangyayari.</p>
+<p>Ang <code>frequency.tsv</code> ay compiled gamit ang <a href="https://github.com/casey/onegrams">program na ito</a>.</p>
+<p>Upang maghanap ng <code>ord</code> wallet para sa sats na may pangalan sa <code>frequency.tsv</code>, gamitin ang sumusunod sa <a href="https://github.com/ordinals/ord"><code>ord</code></a> na command:</p>
+<pre><code>ord wallet sats --tsv frequency.tsv
+</code></pre>
+<p>Ang command na ito ay nangangailangan ng sat index, kaya ang <code>--index-sats</code> ay dapat ipasa sa ord noong unang gumawa ng index.</p>
+<h3 id="part-0"><a class="header" href="#part-0">Part 0</a></h3>
+<p><em>Rare sats pair best with rare words.</em></p>
+<p>Ang transaksyon na nagsusumite ng UTXO na naglalaman ng sat na ang pangalan ay lumalabas na may pinakamababang bilang ng occurrences sa <code>frequency.tsv</code> ang siyang mananalo ng part 0.</p>
+<h3 id="part-1"><a class="header" href="#part-1">Part 1</a></h3>
+<p><em>Popularity is the font of value.</em></p>
+<p>Ang transaksyon na nagsusumite ng UTXO na naglalaman ng sat na ang pangalan ay lumalabas na may pinakamataas na bilang ng occurrences sa <code>frequency.tsv</code> ay ang nagwagi sa part 1.</p>
+<h3 id="tie-breaking"><a class="header" href="#tie-breaking">Tie Breaking</a></h3>
+<p>Sa kaso ng isang tie, kung saan ang dalawang pagsusumite ay nagaganap na may parehong frequency, ang naunang pagsusumite ay siyang mananalo.</p>
+<h2 id="reward-3"><a class="header" href="#reward-3">Reward</a></h2>
+<ul>
+<li>Part 0: 200,000 sats</li>
+<li>Part 1: 200,000 sats</li>
+<li>Total: 400,000 sats</li>
+</ul>
+<h2 id="submission-address-3"><a class="header" href="#submission-address-3">Submission Address</a></h2>
+<p><a href="https://mempool.space/address/17m5rvMpi78zG8RUpCRd6NWWMJtWmu65kg"><code>17m5rvMpi78zG8RUpCRd6NWWMJtWmu65kg</code></a></p>
+<h2 id="status-3"><a class="header" href="#status-3">Status</a></h2>
+<p>Unclaimed!</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+        <script>
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+
+    </div>
+    </body>
+</html>

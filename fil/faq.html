@@ -1,0 +1,439 @@
+<!DOCTYPE HTML>
+<html lang="fil" class="sidebar-visible no-js coal">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Mga Madalas Itanong - Ordinal Theory Handbook</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="language-picker.css">
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "coal";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('coal')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Panimula</a></li><li class="chapter-item expanded "><a href="overview.html"><strong aria-hidden="true">1.</strong> Pangkalahatang-ideya</a></li><li class="chapter-item expanded "><a href="digital-artifacts.html"><strong aria-hidden="true">2.</strong> Digital Artifacts</a></li><li class="chapter-item expanded "><a href="inscriptions.html"><strong aria-hidden="true">3.</strong> Inscriptions</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="inscriptions/provenance.html"><strong aria-hidden="true">3.1.</strong> Provenance</a></li><li class="chapter-item expanded "><a href="inscriptions/recursion.html"><strong aria-hidden="true">3.2.</strong> Recursion</a></li></ol></li><li class="chapter-item expanded "><a href="faq.html" class="active"><strong aria-hidden="true">4.</strong> Mga Madalas Itanong</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> Mag-ambag</a></li><li class="chapter-item expanded "><a href="donate.html"><strong aria-hidden="true">6.</strong> Donate</a></li><li class="chapter-item expanded "><a href="guides.html"><strong aria-hidden="true">7.</strong> Mga gabay</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="guides/explorer.html"><strong aria-hidden="true">7.1.</strong> Explorer</a></li><li class="chapter-item expanded "><a href="guides/inscriptions.html"><strong aria-hidden="true">7.2.</strong> Inscriptions</a></li><li class="chapter-item expanded "><a href="guides/sat-hunting.html"><strong aria-hidden="true">7.3.</strong> Sat Hunting</a></li><li class="chapter-item expanded "><a href="guides/collecting.html"><strong aria-hidden="true">7.4.</strong> Pagkolekta</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="guides/collecting/sparrow-wallet.html"><strong aria-hidden="true">7.4.1.</strong> Sparrow Wallet</a></li></ol></li><li class="chapter-item expanded "><a href="guides/testing.html"><strong aria-hidden="true">7.5.</strong> Pagsuri</a></li><li class="chapter-item expanded "><a href="guides/moderation.html"><strong aria-hidden="true">7.6.</strong> Moderation</a></li><li class="chapter-item expanded "><a href="guides/reindexing.html"><strong aria-hidden="true">7.7.</strong> Reindexing</a></li></ol></li><li class="chapter-item expanded "><a href="bounties.html"><strong aria-hidden="true">8.</strong> Bounties</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="bounty/0.html"><strong aria-hidden="true">8.1.</strong> Bounty 0: 100,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="bounty/1.html"><strong aria-hidden="true">8.2.</strong> Bounty 1: 200,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="bounty/2.html"><strong aria-hidden="true">8.3.</strong> Bounty 2: 300,000 sats Claimed!</a></li><li class="chapter-item expanded "><a href="bounty/3.html"><strong aria-hidden="true">8.4.</strong> Bounty 3: 400,000 sats</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Ordinal Theory Handbook</h1>
+
+                    <div class="right-buttons">
+                        <button id="language-toggle" class="icon-button" type="button"
+                                title="Change language" aria-label="Change language"
+                                aria-haspopup="true" aria-expanded="false"
+                                aria-controls="language-list">
+                            <i class="fa fa-globe"></i>
+                        </button>
+                        <ul id="language-list" class="theme-popup" aria-label="Languages" role="menu">
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="en">English</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="es">Español</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="zh">中文版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ja">日本語版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fil">Filipino</a>
+                          </button></li>
+                        </ul>
+
+                        <script>
+                          let langToggle = document.getElementById("language-toggle");
+                          let langList = document.getElementById("language-list");
+                          langToggle.addEventListener("click", (event) => {
+                              langList.style.display = langList.style.display == "block" ? "none" : "block";
+                          });
+                          let selectedLang = document.getElementById("fil");
+                          if (selectedLang) {
+                              selectedLang.parentNode.classList.add("theme-selected");
+                          }
+
+                          // The path to the root, taking the current
+                          // language into account.
+                          let full_path_to_root = "../";
+                          // The page path (mdbook only gives us
+                          // access to the path to the Markdown file).
+                          let path = "faq.md".replace(/\.md$/, ".html");
+                          for (let lang of langList.querySelectorAll("a")) {
+                              if (lang.id == "en") {
+                                  lang.href = `${full_path_to_root}${path}`;
+                              } else {
+                                  lang.href = `${full_path_to_root}${lang.id}/${path}`;
+                              }
+                          }
+                        </script>
+
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ordinals/ord" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="mga-madalas-itanong"><a class="header" href="#mga-madalas-itanong">Mga Madalas Itanong</a></h1>
+<h2 id="ano-ang-ordinal-theory"><a class="header" href="#ano-ang-ordinal-theory">Ano ang Ordinal Theory?</a></h2>
+<p>Ang Ordinal Theory ay isang protocol para sa pagtatalaga ng mga serial number sa satoshis, ang pinakamaliit na subdivision ng isang bitcoin, at pagsubaybay sa mga satoshi na iyon habang ginagastos sila sa mga transaksyon.</p>
+<p>Ang mga serial number na ito ay malalaking numero, tulad nito 804766073970493. Ang bawat satoshi, na kumakatawan sa ¹⁄₁₀₀₀₀₀₀₀₀ ng isang Bitcoin, ay may ordinal number.</p>
+<h2 id="nangangailangan-ba-ang-ordinal-theory-ng-pangalawang-chain-hiwalay-na-token-o-mga-pagbabago-ng-bitcoin"><a class="header" href="#nangangailangan-ba-ang-ordinal-theory-ng-pangalawang-chain-hiwalay-na-token-o-mga-pagbabago-ng-bitcoin">Nangangailangan ba ang Ordinal Theory ng pangalawang chain, hiwalay na token, o mga pagbabago ng Bitcoin?</a></h2>
+<p>Hindi. Gumagana ang ordinal theory sa ngayon, nang walang pangalawang chain, at ang tanging token na kailangan ay ang Bitcoin mismo.</p>
+<h2 id="ano-ang-magandang-gamit-ng-ordinal-theory"><a class="header" href="#ano-ang-magandang-gamit-ng-ordinal-theory">Ano ang magandang gamit ng Ordinal Theory?</a></h2>
+<p>Mangolekta, mag-trade at magnegosyo. Ang Ordinal Theory ay nagbibigay ng mga pagkakakilanlan sa mga indibidwal na satoshi, upang ang mga ito ay masubaybayan at i-trade, bilang mga rare o para sa kanilang numismatic na halaga.</p>
+<p>Ang Ordinal Theory ay nagbibigay-daan din sa mga inscriptions, isang protocol para sa pag-attach ng kahit anong content sa mga indibidwal na satoshi, at dahil dito sila ay nagiging mga bitcoin-native na digital artifacts.</p>
+<h2 id="paano-gumagana-ang-ordinal-theory"><a class="header" href="#paano-gumagana-ang-ordinal-theory">Paano gumagana ang Ordinal Theory?</a></h2>
+<p>Ang ordinal numbers ay itinalaga sa satoshi na magkakasunud-sunod kung saan ang mga ito ay na-mine. Ang unang satoshi sa unang bloke ay may ordinal na numerong <code>0</code>, ang pangalawa ay may ordinal na numerong <code>1</code>, at ang huling satoshi sa unang bloke ay may ordinal na numero 4,999,999,999.</p>
+<p>Ang Satoshi ay nasa mga output, ngunit sinisira ng mga transaksyon ang mga output na ito at lumikha ng mga bago muli. Samakatuwid, ang Ordinal Theory ay gumagamit ng isang algorithm upang matukoy kung paano nai-pasa ang satoshi mula sa mga input ng isang transaksyon patungo sa mga output nito.</p>
+<p>At ang algorithm na ito ay napaka-simple.</p>
+<p>Ang Satoshi ay isang <code>first in, first out</code> order. Isipin ang mga input sa isang transaksyon bilang isang listahan ng satoshi, at ang mga output bilang isang listahan ng mga slot, naghihintay na makatanggap ng satoshi. Upang mag-assign ng satoshi input sa mga slot, dapat isa-isa ang bawat input na satoshi na may  pagkakasunud-sunod papunta sa mga bakanteng output slot.</p>
+<p>Isipin ang isang transaksyon na may tatlong input at dalawang output. Ang mga input ay nasa kaliwa ng arrow at ang mga output sa kanan, lahat ay may label ng kanilang mga halaga:</p>
+<pre><code>[2] [1] [3] → [4] [2]
+</code></pre>
+<p>Ngayon lagyan ng label ang parehong transaksyon gamit ang ordinal numbers ng satoshi na naglalaman ng bawat entry, at mga tandang pananong para sa bawat exit slot. Dahil ang ordinal numbers ay malaki, gamitin natin ang mga titik upang kumatawan sa kanila:</p>
+<pre><code>[a b] [c] [d e f] → [? ? ? ?] [? ?]
+</code></pre>
+<p>Upang malaman kung aling satoshi ang pupunta sa aling exit, kailangan mong dumaan sa input na satoshis sa pagkakasunud-sunod at italaga ang bawat isa sa mga tandang pananong:</p>
+<pre><code>[a b] [c] [d e f] → [a b c d] [e f]
+</code></pre>
+<p>Paano ang tungkol sa fees? Magandang tanong! Isipin natin ang parehong transaksyon, sa pagkakataong ito ay may bayad na dalawang satoshi. Ang mga transaksyong may mga bayarin ay nagpapadala ng mas maraming satoshi sa mga input kaysa sa natatanggap nila sa mga output, kaya para gawing isang transaksyon ang nagbabayad, aalisin natin ang pangalawang output:</p>
+<pre><code>[2] [1] [3] → [4]
+</code></pre>
+<p>Ang Satoshis<var>e</var>at <var>f</var>ay wala nang slot sa output:```
+[a b] [c] [d e f] → [a b c d]</p>
+<pre><code>
+Kaya't bumalik sila sa miner na nagmimina ng block bilang bayad. Para sa detalyeng kaalaman, mabuting bisitahin ang [BIP](https://github.com/ordinals/ord/blob/master/bip.mediawiki), ngunit sa kabuuan, ang mga bayarin na binayaran ng mga transaksyon ay itinuturing bilang karagdagang mga entry sa transaksyon ng coinbase, at ordered sa parehong paraan tulad ng mga kaukulang transaksyon na ordered sa block. Maaaring ganito ang hitsura ng transaksyon sa coinbase ng block:
+
+</code></pre>
+<p>[SUBSIDY] [e f] → [SUBSIDY e f]</p>
+<pre><code>
+## Saan ko mahahanap ang pinakatiyak na mga detalye?
+
+Dito sa [The BIP](https://github.com/ordinals/ord/blob/master/bip.mediawiki)
+
+## Bakit tinatawag na &quot;digital artifacts&quot; ang mga sat inscriptions sa halip na &quot;NFTs&quot;?
+
+Ang isang inskripsiyon ay isang NFT, ngunit ang terminong &quot;digital artifact&quot; ay ginamit sa halip, dahil ito ay simple, nagpapahiwatig at pamilyar.
+
+Ang terminong &quot;digital artifact&quot; ay madaling maunawaan, kahit na para sa isang taong hindi pa nakarinig ng terminong ito dati. Sa paghahambing, ang NFT ay isang acronym na hindi nagbibigay ng indikasyon kung ano ang ibig sabihin nito.
+
+Gayundin, ang &quot;NFT&quot; ay napagkakamalang may kinalaman sa pananalapi, at ang salitang &quot;fungible&quot; pati na rin ang kahulugan ng salitang &quot;token&quot; na ginamit sa &quot;NFT&quot; ay hindi karaniwan sa mga konteksto sa pananalapi.
+
+## How do sat inscriptions compare to…
+
+### NFT Ethereum?
+
+_Ang mga inscription ay hindi nababago or immutable, kailanman._
+
+Walang paraan para sa creator ng isang inscription, o sa may-ari ng isang inscription, na i-edit ito pagkatapos itong magawa.
+
+Maaaring hindi nababago ang mga Ethereum NFT, ngunit maaaring baguhin o sirain ng may-ari ang contract ng NFT.
+
+Upang matiyak na ang isang partikular na Ethereum NFT ay hindi nababago o immutable, ang code ng kontrata ay dapat na i-audit, na nangangailangan ng detalyadong kaalaman sa EVM at Solidity semantics.
+
+Napakahirap para sa isang hindi teknikal na user na matukoy kung ang isang partikular na Ethereum NFT ay nababago o hindi nababago, at ang mga Ethereum NFT platform ay hindi nagsisikap na makilala kung ang isang NFT ay nababago o hindi nababago, at kung ang source code ng kontrata ay magagamit at na-audit.
+
+_Ang content ng inscription ay laging on-chain._
+
+Walang paraan para sa isang inscription para i-refer ang sarili nito sa off-chain. Ginagawa nitong mas matibay ang mga inscription, dahil hindi mawawala ang content, at mas bihira, dahil dapat magbayad ang mga creator ng katumbas na proporsyonal na laki ng content.
+
+Ang ilan sa nilalaman ng Ethereum NFT ay on-chain, ngunit karamihan sa mga ito ay off-chain at naka-imbak sa mga platform tulad ng IPFS o Arweave, o isang sentralisadong tradisyonal na mga web server. Ang paggamit sa IPFS ay hindi safe, at ang ilang nilalaman ng NFT na nakaimbak sa IPFS ay maaring mawala. Ang mga platform tulad ng Arweave ay umaasa sa mga dami ng gumagamit nito at malamang na makakaranas ng malaking problema kapag hindi na natugunan ang mga pangangailangan na ito. At ang mga sentralisadong web server ay maaaring mawala anumang oras.
+
+Napakahirap para sa isang hindi teknikal na user ang gumagamit na matukoy kung saan nakaimbak ang nilalaman ng isang partikular na Ethereum NFT.
+
+_Ang mga inscription ay mas simple._
+
+Ang mga Ethereum NFT ay nakadepende sa Ethereum network at virtual machine, na napakakomplikado, patuloy na nagbabago at nagdudulot ng mga pagbabago sa pamamagitan ng mga backward compatible na hard forks.
+
+Ang mga inscriptions, sa kabilang banda, ay umaasa sa Bitcoin blockchain, na simple at konserbatibo, at nagdudulot ng mga pagbabago sa pamamagitan ng backward-compatible na soft forks.
+
+_Ang mga inscription ay mas ligtas._
+
+Ang inscriptions ay direktang gumagamit ng Bitcoin transaction model, na nagbibigay-daan sa isang user na makita kung aling inscriptions ang inililipat ng isang transaksyon bagoito ma-sign. Maaring maibenta ang inscriptions gamit ang partially signed transactions, na hindi nangangailangan ng pagpapahintulot sa isang third party, tulad ng isang exchange o marketplace, na ilipat ang mga ito sa ngalan ng user.
+
+Sa paghahambing, ang mga Ethereum NFT ay maraming kahinaan sa seguridad ng end-user. Karaniwang mahirap unawain ang pag-sign ng isang transaksyon, mga hindi inaasahang permission access, at mga smart contract na may hindi kanais nais na function tulad ng pagkuha sa iyong mga assets. Lumilikha ito ng isang panganib para sa mga gumagamit ng Ethereum NFT na sadyang hindi nakakabahala para sa mga ordinal theorists.
+
+_Mas bihira inscriptions._
+
+Ang inscriptions ay nangangailangan ng mga bitcoin na malikha, mailipat at maiimbak. Ito ay tila isang downside sa unang tingin, ngunit ang buong punto ng digital artifacts ay bihira at samakatuwid ay mahalaga.
+
+Ang mga Ethereum NFT, sa kabilang banda, ay maaaring ma-mint sa halos walang limitasyong mga katangian sa isang transaksyon, na ginagawa itong likas na hindi gaanong bihira, at samakatuwid ay potensyal na hindi gaanong mahalaga.
+
+_Hindi inaangkin ng inscriptions ang pag-suportahan sa mga on-chain royalty ng blockchain._
+
+Ang mga on-chain royalty ng blockchain ay isang magandang ideya sa teorya, ngunit hindi sa parati. Ang pagbabayad ng royalties ay hindi maaaring ipataw sa blockchain nang walang kumplikado at invasive na mga paghihigpit. Ang Ethereum NFT ecosystem ay kasalukuyang nakikipagbuno sa pagkalito sa mga royalty, at sama-samang nauunawaan ang katotohanan na ang on-chain royalties, na ipinadala sa mga artista bilang isang bentahe ng mga NFT, ay hindi posible, habang ang mga platform ay nagpapaunhan ibaba at alisin ang suporta sa royalty.
+
+Ganap na iniiwasan ng inscriptions ang sitwasyong ito sa pamamagitan ng hindi paggawa ng mga maling pangako upang suportahan ang  on-chain royalties sa blockchain, sa gayon ay iniiwasan ang pagkalito, kaguluhan at negatibiti tulad ng sa Ethereum NFT.
+
+_Ang inscriptions ay nagbubukas ng mga bagong ideya at posibilidad._
+
+Ang market capitalization at liquidity ng Bitcoin ay higit na mataas kaysa sa Ethereum. Karamihan sa liquidity na ito ay hindi available para sa Ethereum NFTs, dahil mas gusto ng maraming bitcoiners na huwag makipag-ugnayan sa Ethereum ecosystem dahil sa mga alalahanin tungkol sa pagiging simple, seguridad, at desentralisasyon.
+
+Ang mga bitcoiner na ito ay maaaring mas interesado sa inscriptions kaysa sa mga Ethereum NFT, na nagbubukas ng mga bagong klase ng mga kolektor.
+
+_Ang inscriptions ay may mas magandang data model._
+
+Ang inscriptions ay binubuo ng content type, na kilala rin bilang MIME type, at content, na isang arbitrary na byte string. Ito ang parehong data model na ginagamit ng web, na nagbibigay-daan sa inscription ng content na mag-evolve kasama ang web at suportahan ang lahat ng uri ng nilalaman na sinusuportahan ng mga web browser, nang hindi kinakailangang baguhin ang pinagbabatayan na protocol.
+
+### RGB and Taro assets?
+
+Ang RGB at Taro ay parehong Bitcoin-based na sidechain asset protocol. Kung ikukumpara sa mga inscriptions, ang mga ito ay mas kumplikado, ngunit mas maraming feature.
+
+Ang Ordinal Theory ay idinisenyo mula sa simula para sa mga digital artifact, samantalang ang pangunahing kaso ng paggamit para sa RGB at Taro ay para sa mga fungible na token, kaya ang karanasan ng user para sa mga pag-signup ay malamang na maging mas simple at mas malinis kaysa sa karanasan ng user para sa mga NFT mula sa RGB at Taro.
+
+Parehong nag-iimbak ang RGB at Taro ng off-chain na content, na nangangailangan ng karagdagang imprastraktura at maaaring mawala. Sa kabilang banda, ang nilalaman ng inskripsiyon ay nakaimbak sa on-chain at hindi maaaring mawala.
+
+Ang Ordinal Theory, RGB, at Taro ay bago lamang, kaya haka-haka lamang ito, ngunit ang direksyon ng Ordinal Theory ay maaaring magbigay ng edge para sa digital artifacts, kabilang ang isang pinakamahusay na data model at mga natatanging simbolo.
+
+### Iba pang mga assets?
+
+Ang Counterparty ay may sariling token, XCP, na kinakailangan para sa ilang partikular na functionality, kaya itinuturing ito ng karamihan sa mga bitcoiner na isang altcoin, hindi isang extension o pangalawang layer para sa bitcoin.
+
+Ang Ordinal Theory ay dinisenyo mula sa simula para sa mga digital na artifact, samantalang ang counterparty ay pangunahing idinisenyo para sa pag-isyu ng mga financial token.
+
+## Inscriptions for…
+
+### Mga Artists
+
+_Ang inscriptions ay nasa Bitcoin._ Ang Bitcoin ay may pinakamataas na tsansa na mag survive bilang isa kilalang digital currency. Kung gusto mong tiyakin ang pangmatagalan ng iyong sining, mas mabuti na opsyon na i-likha ang mga ito bilang isang inscriptions.
+
+_Mas murang on-chain na storage._ Sa $20,000 bawat BTC at isang minimum na bayad na 1 satoshi bawat vbyte, ang pag-post ng nilalaman ng inscription ay nagkakahalaga lamang ng $50 bawat 1 milyong bytes.
+
+_Ang inscriptions ay bago pa lang!_ Ang mga inscription ay nasa ilalim pa rin ng development at hindi pa nailunsad sa mainnet. Nagbibigay ito sa iyo ng pagkakataong maging isang maagang pag-adopt at tuklasin ang medium habang bago pa ito.
+
+_Ang inscriptions ay simple._ Ang mga pagpaparehistro ay hindi nangangailangan ng paggawa o pag-unawa sa mga smart contract.
+
+_Ang inscriptions ay nagbubukas ng karagdagang liquidity._ Ang inscriptions ay mas naa-access at kaakit-akit sa mga Bitcoin holder, na nagbubukas ng posibilidad sa isang bagong kategorya ng mga kolektor.
+
+_Ang inscriptions ay idinisenyo para sa digital artifacts._ Ang mga inscription ay idinisenyo mula sa simula upang suportahan ang mga NFT, at nagpapakita ng mas mahusay na data model, pati na rin ang mga tampok tulad ng mga unique symbol at pagberipika ng mga pinagmulan.
+
+_Ang inscriptions ay walang on-chain royalties._ Ito ay isang negatibo, ngunit ito ay depende sa kung paano mo ito titingnan. Ang mga royalty ng blockchain ay naging pakinabang para sa mga creator, ngunit lumikha din ng malaking kalituhan sa Ethereum NFT ecosystem. Ang ecosystem ay nakikipagbuno na ngayon sa problemang ito at nagsimula sa isang shift para ibaba ang royalty papunta sa 0 royalty. Ang mga inscription ay hindi sumusuporta sa mga royalty, dahil ang mga ito ay teknikal na hindi magagawa. Kung magpasya kang lumikha ng mga inscription, maaari mong iwasan ang limitasyong ito sa maraming paraan: magkaroon ng porsyento sa mga future sales, o marahil ay mag-aalok ng mga benepisyo sa mga user na sumusuporta sa mga opsyonal na royalties.
+
+### Mga kolektor
+
+_Ang inscriptions ay simple, malinaw at secure._ Hindi nababago at on-chain, nang hindi kailangan ng espesyal na effot.
+
+_Ang inscriptions ay nasa Bitcoin._ Madali mong mabe-verify ang lokasyon at mga katangian ng mga inscription sa pamamagitan ng pag-setup ng sariling full Bitcoin node.
+
+### (Bitcoiners) Mga tumatangkilik sa Bitcoin
+
+Ang pinakamahalagang bagay na ginagawa ng Bitcoin network ay ang pagkakaroon ng desentralisado na pera. Kabilang na dito ang Ordinal Theory. Ang mga nag-develop ng Ordinal Theory ay nauunawaan at kinikilala ito, at naniniwala na ang Ordinal Theory ay nag-aambag, kahit sa maliit na paraan, sa pangunahing misyon ng Bitcoin.
+
+Hindi tulad ng altcoins, may merito ang mga digital artifact. Siyempre, maraming NFT na pangit, hangal, at mapanlinlang. Ang paglikha at koleksyon ng mga likhang sining ay bahagi na ng kasaysayan ng sangkatauhan mula nang ito ay mabuo at nauna pa sa komersiyo at pananalapi, na mga sinaunang teknolohiya din.
+
+Nagbibigay ang Bitcoin ng isang platform para sa paglikha at pagkolekta ng mga digital artifact sa isang secure at desentralisadong paraan, na nagpoprotekta sa mga user at artist sa parehong paraan na nagbibigay ito ng isang platform para sa pagpapadala at pagtanggap, at para sa lahat ng parehong dahilan.
+
+Ang mga ordinal at inscription ay nagpapataas ng demand para sa Bitcoin block space, na nagdaragdag sa badyet na mahalaga upang mapangalagaan ang seguridad ng Bitcoin at pag-transition nito sa fee-dependent security model, dahil ang block subsidy ay hinahati sa hindi gaanong kahalagahan.
+
+Ang mga nilalaman ng inscriptions ay naka-imbak on-chain, kaya ang block space demand para sa inscriptions ay walang limitasyon. Lumilikha ito ng isang buyer kung tawagin, para sa bawat block ng Bitcoin. Makakatulong ito sa pagsuporta sa isang matatag na market fee, na nagpapanatili sa Bitcoin na maging secure.
+
+Ang inscriptions ay sumasalungat sa ideya na ang Bitcoin ay hindi maaaring palawigin o gamitin para sa mga bagong idea. Kung susundin mo ang mga proyekto tulad ng mga DLC, Fedimint, Lightning, Taro, at RGB, alam mong mali ang claim na ito, ngunit nagbibigay ang inscriptions ng kontra-argumento na madaling maunawaan, at napatunayang model sa paggamit nito tulad nalamang ng mga NFTs, lubos na legible.
+
+Kung ang inscriptions ay lumabas, gaya ng inaasahan ng mga may-akda, magdudulot ito ng isang matagumpay na model para sa Bitcoin adoption: para sa kasiyahan, mayamang sining, at manatiling desentralisadong digital money.
+
+Ang mga inskripsiyon ay isang napakahusay na mapagkukunan ng pangangailangan para sa block space. Hindi tulad, halimbawa, ng mga stablecoin, na posibleng magbigay ng malaking impluwensya ng mga issuer sa hinaharap sa pag-unlad ng Bitcoin, o DeFi, na maaaring isentro ang pagmimina sa pamamagitan ng pagpapakilala ng opportunities para sa MEV, digital art at mga collectable sa Bitcoin, ay malamang na hindi makagawa ng mga indibidwal na entity na may sapat na kakayahan upang sirain ang Bitcoin. Ang sining ay desentralisado.
+
+Ang mga user ng inscription at mga service provider ay binibigyang insentibo na magpatakbo ng buong Bitcoin node, mag-publish at subaybayan ang mga inscription, at sa gayon ay maging mataas ang integrity ng chain.
+
+Ang Ordinal Theory at inscription ay hindi gaanong nakakaapekto sa pagiging epektibo ng Bitcoin. Maaaring balewalain ng mga gumagamit ng Bitcoin ang pareho at manatiling hindi maaapektuhan.
+
+Umaasa kami na ang Ordinal Theory ay magpapalakas at magpapayaman sa Bitcoin, at binibigyan ito ng appeal at functionality, na nagbibigay-daan dito na mas epektibong magsilbi sa paggamit nito bilang isang desentralisadong model sa sangkatauhan.</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="inscriptions/recursion.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="contributing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="inscriptions/recursion.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="contributing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>
