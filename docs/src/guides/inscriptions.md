@@ -54,7 +54,7 @@ Configuring Bitcoin Core
 `ord` requires Bitcoin Core's transaction index and rest interface.
 
 To configure your Bitcoin Core node to maintain a transaction
-index and open the rest interface, add the following to your `bitcoin.conf`:
+index, add the following to your `bitcoin.conf`:
 
 ```
 txindex=1
