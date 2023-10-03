@@ -63,6 +63,18 @@ pub(crate) struct Inscribe {
     help = "Amount of postage to include in the inscription. Default `10000sat`."
   )]
   pub(crate) postage: Option<Amount>,
+  #[arg(
+    long,
+    help = "Include CBOR in file at <METADATA> as inscription metadata",
+    conflicts_with = "json_metadata"
+  )]
+  pub(crate) cbor_metadata: Option<PathBuf>,
+  #[arg(
+    long,
+    help = "Include JSON in file at <METADATA> convered to CBOR as inscription metadata",
+    conflicts_with = "cbor_metadata"
+  )]
+  pub(crate) json_metadata: Option<PathBuf>,
   #[clap(long, help = "Make inscription a child of <PARENT>.")]
   pub(crate) parent: Option<InscriptionId>,
   #[clap(long, help = "Allow reinscription.")]
@@ -73,8 +85,24 @@ pub(crate) struct Inscribe {
 
 impl Inscribe {
   pub(crate) fn run(self, options: Options) -> SubcommandResult {
-    let inscription =
-      Inscription::from_file(options.chain(), &self.file, self.parent, self.metaprotocol)?;
+    let metadata = if let Some(path) = self.cbor_metadata {
+      Some(fs::read(path)?)
+    } else if let Some(path) = self.json_metadata {
+      let value: serde_json::Value = serde_json::from_reader(File::open(path)?)?;
+      let mut cbor = Vec::new();
+      ciborium::into_writer(&value, &mut cbor)?;
+      Some(cbor)
+    } else {
+      None
+    };
+
+    let inscription = Inscription::from_file(
+      options.chain(),
+      &self.file,
+      self.parent,
+      self.metaprotocol,
+      metadata,
+    )?;
 
     let index = Index::open(&options)?;
     index.update()?;

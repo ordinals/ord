@@ -43,6 +43,7 @@ use {
   bitcoincore_rpc::{Client, RpcApi},
   chain::Chain,
   chrono::{DateTime, TimeZone, Utc},
+  ciborium::Value,
   clap::{ArgGroup, Parser},
   derive_more::{Display, FromStr},
   html_escaper::{Escape, Trusted},
