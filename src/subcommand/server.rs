@@ -3090,7 +3090,10 @@ mod tests {
 
     server.mine_blocks(1);
 
-    let id = 2 << 16 | 1;
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
 
     assert_eq!(
       server.index.runes().unwrap().unwrap(),
@@ -3107,10 +3110,7 @@ mod tests {
 
     assert_eq!(
       server.index.rune_balances(),
-      [(
-        OutPoint { txid, vout: 0 },
-        vec![(u128::from(id), u128::max_value())]
-      )]
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
 
     server.assert_response_regex(

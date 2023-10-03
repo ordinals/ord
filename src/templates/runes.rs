@@ -2,7 +2,7 @@ use super::*;
 
 #[derive(Boilerplate)]
 pub(crate) struct RunesHtml {
-  pub(crate) entries: Vec<(u64, RuneEntry)>,
+  pub(crate) entries: Vec<(RuneId, RuneEntry)>,
 }
 
 impl PageContent for RunesHtml {

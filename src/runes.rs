@@ -1,6 +1,8 @@
 use {self::error::Error, super::*};
 
-pub(crate) use {edict::Edict, etching::Etching, rune::Rune, runestone::Runestone};
+pub(crate) use {
+  edict::Edict, etching::Etching, rune::Rune, rune_id::RuneId, runestone::Runestone,
+};
 
 mod edict;
 mod error;

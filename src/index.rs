@@ -5,7 +5,7 @@ use {
       OutPointValue, RuneEntryValue, SatPointValue, SatRange,
     },
     reorg::*,
-    runes::Rune,
+    runes::{Rune, RuneId},
     updater::Updater,
   },
   super::*,
@@ -631,7 +631,7 @@ impl Index {
     }
   }
 
-  pub(crate) fn runes(&self) -> Result<Option<Vec<(u64, RuneEntry)>>> {
+  pub(crate) fn runes(&self) -> Result<Option<Vec<(RuneId, RuneEntry)>>> {
     if self.has_rune_index()? {
       let mut entries = Vec::new();
 
@@ -642,7 +642,7 @@ impl Index {
         .iter()?
       {
         let (id, entry) = result?;
-        entries.push((id.value(), RuneEntry::load(entry.value())));
+        entries.push((RuneId::load(id.value()), RuneEntry::load(entry.value())));
       }
 
       Ok(Some(entries))
@@ -652,7 +652,7 @@ impl Index {
   }
 
   #[cfg(test)]
-  pub(crate) fn rune_balances(&self) -> Vec<(OutPoint, Vec<(u128, u128)>)> {
+  pub(crate) fn rune_balances(&self) -> Vec<(OutPoint, Vec<(RuneId, u128)>)> {
     let mut result = Vec::new();
 
     for entry in self
@@ -675,7 +675,7 @@ impl Index {
         i += length;
         let (balance, length) = runes::varint::decode(&balances_buffer[i..]).unwrap();
         i += length;
-        balances.push((id, balance));
+        balances.push((RuneId::load(id.try_into().unwrap()), balance));
       }
 
       result.push((outpoint, balances));
@@ -1362,7 +1362,7 @@ impl Index {
 mod tests {
   use {
     super::*,
-    crate::runes::{Edict, Etching, Runestone},
+    crate::runes::{Edict, Etching, RuneId, Runestone},
     bitcoin::secp256k1::rand::{self, RngCore},
   };
 
@@ -4247,7 +4247,10 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let id = 2 << 16 | 1;
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
 
     assert_eq!(
       context.index.runes().unwrap().unwrap(),
@@ -4264,10 +4267,7 @@ mod tests {
 
     assert_eq!(
       context.index.rune_balances(),
-      [(
-        OutPoint { txid, vout: 0 },
-        vec![(u128::from(id), u128::max_value())]
-      )]
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
   }
 
@@ -4330,12 +4330,15 @@ mod tests {
 
       context.mine_blocks(1);
 
-      let id = 2 << 16 | 1;
+      let id = RuneId {
+        height: 2,
+        index: 1,
+      };
 
       assert_eq!(
         context.index.runes().unwrap().unwrap(),
         [(
-          u64::try_from(id).unwrap(),
+          id,
           RuneEntry {
             decimals: 0,
             rune: Rune(2099984997690000),
@@ -4379,7 +4382,10 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let id = 2 << 16 | 1;
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
 
     assert_eq!(
       context.index.runes().unwrap().unwrap(),
@@ -4396,10 +4402,7 @@ mod tests {
 
     assert_eq!(
       context.index.rune_balances(),
-      [(
-        OutPoint { txid, vout: 0 },
-        vec![(u128::from(id), u128::max_value())]
-      )]
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
   }
 
@@ -4437,7 +4440,10 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let id = 2 << 16 | 1;
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
 
     assert_eq!(
       context.index.runes().unwrap().unwrap(),
@@ -4454,10 +4460,7 @@ mod tests {
 
     assert_eq!(
       context.index.rune_balances(),
-      [(
-        OutPoint { txid, vout: 0 },
-        vec![(u128::from(id), u128::max_value())]
-      )]
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
   }
 
@@ -4495,7 +4498,10 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let id = 2 << 16 | 1;
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
 
     assert_eq!(
       context.index.runes().unwrap().unwrap(),
@@ -4512,10 +4518,7 @@ mod tests {
 
     assert_eq!(
       context.index.rune_balances(),
-      [(
-        OutPoint { txid, vout: 0 },
-        vec![(u128::from(id), u128::max_value())]
-      )]
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
   }
 
@@ -4546,7 +4549,10 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let id = 2 << 16 | 1;
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
 
     assert_eq!(
       context.index.runes().unwrap().unwrap(),
@@ -4563,7 +4569,7 @@ mod tests {
 
     assert_eq!(
       context.index.rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(u128::from(id), 100)])]
+      [(OutPoint { txid, vout: 0 }, vec![(id, 100)])]
     );
   }
 
@@ -4601,7 +4607,10 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let id = 2 << 16 | 1;
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
 
     assert_eq!(
       context.index.runes().unwrap().unwrap(),
@@ -4619,8 +4628,8 @@ mod tests {
     assert_eq!(
       context.index.rune_balances(),
       [
-        (OutPoint { txid, vout: 0 }, vec![(u128::from(id), 100)]),
-        (OutPoint { txid, vout: 1 }, vec![(u128::from(id), 100)])
+        (OutPoint { txid, vout: 0 }, vec![(id, 100)]),
+        (OutPoint { txid, vout: 1 }, vec![(id, 100)])
       ]
     );
   }
@@ -4659,7 +4668,10 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let id = 2 << 16 | 1;
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
 
     assert_eq!(
       context.index.runes().unwrap().unwrap(),
@@ -4676,7 +4688,7 @@ mod tests {
 
     assert_eq!(
       context.index.rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(u128::from(id), 100)]),]
+      [(OutPoint { txid, vout: 0 }, vec![(id, 100)]),]
     );
   }
 
@@ -4707,7 +4719,10 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let id = 2 << 16 | 1;
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
 
     assert_eq!(
       context.index.runes().unwrap().unwrap(),
@@ -4724,10 +4739,7 @@ mod tests {
 
     assert_eq!(
       context.index.rune_balances(),
-      [(
-        OutPoint { txid, vout: 0 },
-        vec![(u128::from(id), u128::max_value())]
-      )]
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
 
     let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -4735,7 +4747,7 @@ mod tests {
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
-            id: u128::from(id),
+            id: id.into(),
             amount: u128::max_value(),
             output: 0,
           }],
@@ -4763,10 +4775,7 @@ mod tests {
 
     assert_eq!(
       context.index.rune_balances(),
-      [(
-        OutPoint { txid, vout: 0 },
-        vec![(u128::from(id), u128::max_value())]
-      )]
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
   }
 
@@ -4797,7 +4806,10 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let id = 2 << 16 | 1;
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
 
     assert_eq!(
       context.index.runes().unwrap().unwrap(),
@@ -4814,10 +4826,7 @@ mod tests {
 
     assert_eq!(
       context.index.rune_balances(),
-      [(
-        OutPoint { txid, vout: 0 },
-        vec![(u128::from(id), u128::max_value())]
-      )]
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
 
     let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -4849,10 +4858,7 @@ mod tests {
 
     assert_eq!(
       context.index.rune_balances(),
-      [(
-        OutPoint { txid, vout: 0 },
-        vec![(u128::from(id), u128::max_value())]
-      )]
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
   }
 
@@ -4884,7 +4890,10 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let id = 2 << 16 | 1;
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
 
     assert_eq!(
       context.index.runes().unwrap().unwrap(),
@@ -4901,10 +4910,7 @@ mod tests {
 
     assert_eq!(
       context.index.rune_balances(),
-      [(
-        OutPoint { txid, vout: 0 },
-        vec![(u128::from(id), u128::max_value())]
-      )]
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
 
     let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -4930,10 +4936,7 @@ mod tests {
 
     assert_eq!(
       context.index.rune_balances(),
-      [(
-        OutPoint { txid, vout: 0 },
-        vec![(u128::from(id), u128::max_value())]
-      )]
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
   }
 
@@ -4964,7 +4967,10 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let id = 2 << 16 | 1;
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
 
     assert_eq!(
       context.index.runes().unwrap().unwrap(),
@@ -4981,10 +4987,7 @@ mod tests {
 
     assert_eq!(
       context.index.rune_balances(),
-      [(
-        OutPoint { txid, vout: 0 },
-        vec![(u128::from(id), u128::max_value())]
-      )]
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
 
     context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -5023,10 +5026,7 @@ mod tests {
 
     assert_eq!(
       context.index.rune_balances(),
-      [(
-        OutPoint { txid, vout: 0 },
-        vec![(u128::from(id), u128::max_value())]
-      )]
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
   }
 
@@ -5057,7 +5057,10 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let id0 = 2 << 16 | 1;
+    let id0 = RuneId {
+      height: 2,
+      index: 1,
+    };
 
     assert_eq!(
       context.index.runes().unwrap().unwrap(),
@@ -5079,7 +5082,7 @@ mod tests {
           txid: txid0,
           vout: 0
         },
-        vec![(u128::from(id0), u128::max_value())]
+        vec![(id0, u128::max_value())]
       )]
     );
 
@@ -5104,7 +5107,10 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let id1 = 3 << 16 | 1;
+    let id1 = RuneId {
+      height: 3,
+      index: 1,
+    };
 
     assert_eq!(
       context.index.runes().unwrap().unwrap(),
@@ -5138,14 +5144,14 @@ mod tests {
             txid: txid1,
             vout: 0
           },
-          vec![(u128::from(id1), u128::max_value())]
+          vec![(id1, u128::max_value())]
         ),
         (
           OutPoint {
             txid: txid0,
             vout: 0
           },
-          vec![(u128::from(id0), u128::max_value())]
+          vec![(id0, u128::max_value())]
         ),
       ]
     );
@@ -5188,10 +5194,7 @@ mod tests {
           txid: txid2,
           vout: 0
         },
-        vec![
-          (u128::from(id0), u128::max_value()),
-          (u128::from(id1), u128::max_value())
-        ]
+        vec![(id0, u128::max_value()), (id1, u128::max_value())]
       )]
     );
   }
@@ -5223,7 +5226,10 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let id0 = 2 << 16 | 1;
+    let id0 = RuneId {
+      height: 2,
+      index: 1,
+    };
 
     assert_eq!(
       context.index.runes().unwrap().unwrap(),
@@ -5245,7 +5251,7 @@ mod tests {
           txid: txid0,
           vout: 0
         },
-        vec![(u128::from(id0), u128::max_value())]
+        vec![(id0, u128::max_value())]
       )]
     );
 
@@ -5270,7 +5276,10 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let id1 = 3 << 16 | 1;
+    let id1 = RuneId {
+      height: 3,
+      index: 1,
+    };
 
     assert_eq!(
       context.index.runes().unwrap().unwrap(),
@@ -5304,14 +5313,14 @@ mod tests {
             txid: txid1,
             vout: 0
           },
-          vec![(u128::from(id1), u128::max_value())]
+          vec![(id1, u128::max_value())]
         ),
         (
           OutPoint {
             txid: txid0,
             vout: 0
           },
-          vec![(u128::from(id0), u128::max_value())]
+          vec![(id0, u128::max_value())]
         ),
       ]
     );
@@ -5354,10 +5363,7 @@ mod tests {
           txid: txid2,
           vout: 0
         },
-        vec![
-          (u128::from(id0), u128::max_value()),
-          (u128::from(id1), u128::max_value())
-        ]
+        vec![(id0, u128::max_value()), (id1, u128::max_value())]
       )]
     );
 
@@ -5368,12 +5374,12 @@ mod tests {
         Runestone {
           edicts: vec![
             Edict {
-              id: u128::from(id0),
+              id: id0.into(),
               amount: u128::max_value() / 2,
               output: 1,
             },
             Edict {
-              id: u128::from(id1),
+              id: id1.into(),
               amount: u128::max_value() / 2,
               output: 1,
             },
@@ -5420,8 +5426,8 @@ mod tests {
             vout: 0
           },
           vec![
-            (u128::from(id0), u128::max_value() / 2 + 1),
-            (u128::from(id1), u128::max_value() / 2 + 1)
+            (id0, u128::max_value() / 2 + 1),
+            (id1, u128::max_value() / 2 + 1)
           ]
         ),
         (
@@ -5429,10 +5435,7 @@ mod tests {
             txid: txid3,
             vout: 1
           },
-          vec![
-            (u128::from(id0), u128::max_value() / 2),
-            (u128::from(id1), u128::max_value() / 2)
-          ]
+          vec![(id0, u128::max_value() / 2), (id1, u128::max_value() / 2)]
         )
       ]
     );
@@ -5465,7 +5468,10 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let id0 = 2 << 16 | 1;
+    let id0 = RuneId {
+      height: 2,
+      index: 1,
+    };
 
     assert_eq!(
       context.index.runes().unwrap().unwrap(),
@@ -5487,7 +5493,7 @@ mod tests {
           txid: txid0,
           vout: 0
         },
-        vec![(u128::from(id0), u128::max_value())]
+        vec![(id0, u128::max_value())]
       )]
     );
 
@@ -5512,7 +5518,10 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let id1 = 3 << 16 | 1;
+    let id1 = RuneId {
+      height: 3,
+      index: 1,
+    };
 
     assert_eq!(
       context.index.runes().unwrap().unwrap(),
@@ -5546,14 +5555,14 @@ mod tests {
             txid: txid1,
             vout: 0
           },
-          vec![(u128::from(id1), u128::max_value())]
+          vec![(id1, u128::max_value())]
         ),
         (
           OutPoint {
             txid: txid0,
             vout: 0
           },
-          vec![(u128::from(id0), u128::max_value())]
+          vec![(id0, u128::max_value())]
         )
       ]
     );
@@ -5564,12 +5573,12 @@ mod tests {
         Runestone {
           edicts: vec![
             Edict {
-              id: u128::from(id0),
+              id: id0.into(),
               amount: u128::max_value(),
               output: 0,
             },
             Edict {
-              id: u128::from(id1),
+              id: id1.into(),
               amount: u128::max_value(),
               output: 0,
             },
@@ -5614,10 +5623,7 @@ mod tests {
           txid: txid2,
           vout: 0
         },
-        vec![
-          (u128::from(id0), u128::max_value()),
-          (u128::from(id1), u128::max_value())
-        ]
+        vec![(id0, u128::max_value()), (id1, u128::max_value())]
       )]
     );
   }
@@ -5650,7 +5656,10 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let id = 2 << 16 | 1;
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
 
     assert_eq!(
       context.index.runes().unwrap().unwrap(),
@@ -5667,10 +5676,7 @@ mod tests {
 
     assert_eq!(
       context.index.rune_balances(),
-      [(
-        OutPoint { txid, vout: 0 },
-        vec![(u128::from(id), u128::max_value())]
-      )]
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
 
     let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -5701,10 +5707,7 @@ mod tests {
 
     assert_eq!(
       context.index.rune_balances(),
-      [(
-        OutPoint { txid, vout: 1 },
-        vec![(u128::from(id), u128::max_value())]
-      )]
+      [(OutPoint { txid, vout: 1 }, vec![(id, u128::max_value())])]
     );
   }
 
@@ -5733,7 +5736,10 @@ mod tests {
       ..Default::default()
     });
 
-    let id0 = 2 << 16 | 1;
+    let id0 = RuneId {
+      height: 2,
+      index: 1,
+    };
 
     let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, Witness::new())],
@@ -5756,7 +5762,10 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let id1 = 2 << 16 | 2;
+    let id1 = RuneId {
+      height: 2,
+      index: 2,
+    };
 
     assert_eq!(
       context.index.runes().unwrap().unwrap(),
@@ -5790,14 +5799,14 @@ mod tests {
             txid: txid0,
             vout: 0
           },
-          vec![(u128::from(id0), u128::max_value())]
+          vec![(id0, u128::max_value())]
         ),
         (
           OutPoint {
             txid: txid1,
             vout: 0
           },
-          vec![(u128::from(id1), u128::max_value())]
+          vec![(id1, u128::max_value())]
         ),
       ]
     );

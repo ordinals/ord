@@ -49,6 +49,29 @@ impl Entry for RuneEntry {
   }
 }
 
+impl Entry for RuneId {
+  type Value = u64;
+
+  fn load(value: u64) -> Self {
+    let bytes = value.to_le_bytes();
+    Self {
+      height: u64::from_le_bytes([
+        bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7], 0, 0,
+      ]),
+      index: u16::from_le_bytes([bytes[0], bytes[1]]),
+    }
+  }
+
+  fn store(self) -> Self::Value {
+    let height = self.height.to_le_bytes();
+    let index = self.index.to_le_bytes();
+
+    u64::from_le_bytes([
+      index[0], index[1], height[0], height[1], height[2], height[3], height[4], height[5],
+    ])
+  }
+}
+
 #[derive(Debug)]
 pub(crate) struct InscriptionEntry {
   pub(crate) fee: u64,
