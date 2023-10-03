@@ -33,7 +33,7 @@ impl Runestone {
         [id, amount, output] => edicts.push(Edict { id, amount, output }),
         [rune] => {
           etching = Some(Etching {
-            decimals: 0,
+            decimals: 18,
             rune: Rune(rune),
           })
         }
@@ -414,7 +414,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Rune(4),
-          decimals: 0
+          decimals: 18,
         }),
       }))
     );
