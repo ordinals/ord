@@ -192,10 +192,7 @@ impl Server {
         .route("/favicon.ico", get(Self::favicon))
         .route("/feed.xml", get(Self::feed))
         .route("/input/:block/:transaction/:input", get(Self::input))
-        .route(
-          "/inscription/:inscription_id_or_number",
-          get(Self::inscription),
-        )
+        .route("/inscription/:inscription_query", get(Self::inscription))
         .route("/inscriptions", get(Self::inscriptions))
         .route(
           "/inscriptions/block/:height",
@@ -3055,7 +3052,7 @@ mod tests {
 
   #[test]
   fn inscription_number_endpoint() {
-    let server = TestServer::new();
+    let server = TestServer::new_with_regtest();
     server.mine_blocks(2);
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
@@ -3076,19 +3073,20 @@ mod tests {
       format!("/inscription/{inscription_id}"),
       StatusCode::OK,
       format!(
-        ".*<title>Inscription 0</title>.*
-      <dt>id</dt>
-      <dd class=monospace>{inscription_id}</dd>.*"
+        ".*<h1>Inscription 0</h1>.*
+<dl>
+  <dt>id</dt>
+  <dd class=monospace>{inscription_id}</dd>.*"
       ),
     );
-
     server.assert_response_regex(
       "/inscription/0",
       StatusCode::OK,
       format!(
-        ".*<title>Inscription 0</title>.*
-          <dt>id</dt>
-          <dd class=monospace>{inscription_id}</dd>.*"
+        ".*<h1>Inscription 0</h1>.*
+<dl>
+  <dt>id</dt>
+  <dd class=monospace>{inscription_id}</dd>.*"
       ),
     );
 
@@ -3096,9 +3094,10 @@ mod tests {
       "/inscription/-1",
       StatusCode::OK,
       format!(
-        ".*<title>Inscription -1\\(unstable\\)</title>.*
-          <dt>id</dt>
-          <dd class=monospace>{cursed_inscription_id}</dd>.*"
+        ".*<h1>Inscription -1 \\(unstable\\)</h1>.*
+<dl>
+  <dt>id</dt>
+  <dd class=monospace>{cursed_inscription_id}</dd>.*"
       ),
     )
   }
