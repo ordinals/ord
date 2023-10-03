@@ -6,6 +6,7 @@ mod edict;
 mod error;
 mod etching;
 mod rune;
+mod rune_id;
 mod runestone;
 pub(crate) mod varint;
 
