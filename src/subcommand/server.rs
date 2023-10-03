@@ -3080,7 +3080,7 @@ mod tests {
           }],
           etching: Some(Etching {
             decimals: 0,
-            rune: Rune(0),
+            rune: Rune(u128::from(21_000_000 * COIN_VALUE)),
           }),
         }
         .encipher(),
@@ -3097,7 +3097,7 @@ mod tests {
       [(
         id,
         RuneEntry {
-          rune: Rune(0),
+          rune: Rune(u128::from(21_000_000 * COIN_VALUE)),
           decimals: 0,
           supply: u128::max_value(),
         }
@@ -3119,7 +3119,7 @@ mod tests {
 <h1>Runes</h1>
 <ul class=monospace>
   <li>
-    <h2>A</h2>
+    <h2>NVTDIJZYIPU</h2>
     <dl>
       <dt>supply</dt>
       <dd>340282366920938463463374607431768211455</dd>

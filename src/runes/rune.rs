@@ -1,7 +1,15 @@
 use super::*;
 
-#[derive(Default, Serialize, Debug, PartialEq, Copy, Clone)]
+#[derive(Default, Serialize, Debug, PartialEq, Copy, Clone, PartialOrd)]
 pub(crate) struct Rune(pub(crate) u128);
+
+impl Rune {
+  pub(crate) fn minimum_at_height(height: Height) -> Self {
+    Self(u128::from(
+      Sat::SUPPLY - height.starting_sat().0 - height.subsidy(),
+    ))
+  }
+}
 
 impl Display for Rune {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
@@ -35,7 +43,7 @@ mod tests {
   use super::*;
 
   #[test]
-  fn foo() {
+  fn to_string() {
     assert_eq!(Rune(0).to_string(), "A");
     assert_eq!(Rune(1).to_string(), "B");
     assert_eq!(Rune(2).to_string(), "C");
@@ -73,6 +81,19 @@ mod tests {
     assert_eq!(
       Rune(u128::max_value()).to_string(),
       "BCGDENLQRQWDSLRUGSNLBTMFIJAV"
+    );
+  }
+
+  #[test]
+  fn minimum_for_height() {
+    assert_eq!(Rune::minimum_at_height(Sat::LAST.height()).to_string(), "A");
+    assert_eq!(
+      Rune::minimum_at_height(Height(0)).to_string(),
+      Sat(50 * COIN_VALUE - 1).name().to_uppercase()
+    );
+    assert_eq!(
+      Rune::minimum_at_height(Height(1)).to_string(),
+      Sat(100 * COIN_VALUE - 1).name().to_uppercase()
     );
   }
 }

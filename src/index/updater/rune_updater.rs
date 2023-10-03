@@ -11,31 +11,30 @@ struct Allocation {
 }
 
 pub(super) struct RuneUpdater<'a, 'db, 'tx> {
+  height: u64,
   id_to_entry: &'a mut Table<'db, 'tx, u64, RuneEntryValue>,
-  rune_to_id: &'a mut Table<'db, 'tx, u128, u64>,
+  minimum: Rune,
   outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
+  rune_to_id: &'a mut Table<'db, 'tx, u128, u64>,
 }
 
 impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
   pub(super) fn new(
+    height: u64,
     outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
     id_to_entry: &'a mut Table<'db, 'tx, u64, RuneEntryValue>,
     rune_to_id: &'a mut Table<'db, 'tx, u128, u64>,
   ) -> Self {
     Self {
+      height,
       id_to_entry,
+      minimum: Rune::minimum_at_height(Height(height)),
       outpoint_to_balances,
       rune_to_id,
     }
   }
 
-  pub(super) fn index_runes(
-    &mut self,
-    height: u64,
-    index: usize,
-    tx: &Transaction,
-    txid: Txid,
-  ) -> Result<()> {
+  pub(super) fn index_runes(&mut self, index: usize, tx: &Transaction, txid: Txid) -> Result<()> {
     let runestone = Runestone::from_transaction(tx);
 
     // A mapping of rune ID to un-allocated balance of that rune
@@ -69,6 +68,8 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
           // If the issuance symbol is already taken, the issuance is ignored
           if self.rune_to_id.get(etching.rune.0)?.is_some() {
             None
+          } else if etching.rune < self.minimum {
+            None
           } else {
             // Construct an allocation, representing the new runes that may be
             // allocated. Beware: Because it would require constructing a block
@@ -77,7 +78,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             // ignored.
             match u16::try_from(index) {
               Ok(index) => Some(Allocation {
-                id: u128::from(height) << 16 | u128::from(index),
+                id: u128::from(self.height) << 16 | u128::from(index),
                 balance: u128::max_value(),
                 rune: etching.rune,
                 decimals: etching.decimals,
