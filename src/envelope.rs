@@ -707,7 +707,7 @@ mod tests {
   }
 
   #[test]
-  fn metadata_is_parse_correctly() {
+  fn metadata_is_parsed_correctly() {
     assert_eq!(
       parse(&[envelope(&[b"ord", &[5], &[]])]),
       vec![ParsedEnvelope {
@@ -722,7 +722,7 @@ mod tests {
   }
 
   #[test]
-  fn metadata_is_parse_correctly_from_chunks() {
+  fn metadata_is_parsed_correctly_from_chunks() {
     assert_eq!(
       parse(&[envelope(&[b"ord", &[5], &[0], &[5], &[1]])]),
       vec![ParsedEnvelope {
