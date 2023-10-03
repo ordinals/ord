@@ -83,6 +83,11 @@ mod tests {
   }
 
   #[test]
+  fn float() {
+    assert_eq!(MetadataHtml(&Value::Float(0.5)).to_string(), "0.5");
+  }
+
+  #[test]
   fn array() {
     assert_eq!(
       MetadataHtml(&Value::Array(vec![
