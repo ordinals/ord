@@ -220,7 +220,7 @@ fn get_block_rarity_chunks(block_rarity: &BlockRarity, start: u64, end: u64) -> 
       }
     }
     BlockRarity::Palindrome => {
-      if end - start <= 2_000_000 {
+      if end - start <= 10_000 {
         for i in start..end {
           if is_palindrome(&i) {
             chunks.push((i, i + 1));
