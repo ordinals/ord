@@ -51,6 +51,7 @@ define_table! { HEIGHT_TO_BLOCK_HASH, u64, &BlockHashValue }
 define_table! { HEIGHT_TO_LAST_SEQUENCE_NUMBER, u64, u64 }
 define_table! { INSCRIPTION_ID_TO_INSCRIPTION_ENTRY, &InscriptionIdValue, InscriptionEntryValue }
 define_table! { INSCRIPTION_ID_TO_SATPOINT, &InscriptionIdValue, &SatPointValue }
+define_table! { INSCRIPTION_NUMBER_TO_INSCRIPTION_ID, i64, &InscriptionIdValue }
 define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_VALUE, &OutPointValue, u64}
 define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
@@ -242,6 +243,7 @@ impl Index {
         tx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
         tx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
         tx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
+        tx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
         tx.open_table(OUTPOINT_TO_VALUE)?;
         tx.open_table(SAT_TO_SATPOINT)?;
         tx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ID)?;
@@ -697,6 +699,20 @@ impl Index {
         .database
         .begin_read()?
         .open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ID)?
+        .get(&n)?
+        .map(|id| Entry::load(*id.value())),
+    )
+  }
+
+  pub(crate) fn get_inscription_id_by_inscription_number(
+    &self,
+    n: i64,
+  ) -> Result<Option<InscriptionId>> {
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?
         .get(&n)?
         .map(|id| Entry::load(*id.value())),
     )
@@ -3159,6 +3175,15 @@ mod tests {
           .unwrap()
           .inscription_number,
         0
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_id_by_inscription_number(-3)
+          .unwrap()
+          .unwrap(),
+        fourth
       );
 
       assert_eq!(
