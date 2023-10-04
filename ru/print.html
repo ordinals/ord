@@ -1,0 +1,1472 @@
+<!DOCTYPE HTML>
+<html lang="ru" class="sidebar-visible no-js coal">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Ordinal Theory Handbook</title>
+        <meta name="robots" content="noindex" />
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="language-picker.css">
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "coal";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('coal')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Вступление</a></li><li class="chapter-item expanded "><a href="overview.html"><strong aria-hidden="true">1.</strong> Обзор</a></li><li class="chapter-item expanded "><a href="digital-artifacts.html"><strong aria-hidden="true">2.</strong> Цифровые артефакты</a></li><li class="chapter-item expanded "><a href="inscriptions.html"><strong aria-hidden="true">3.</strong> Надписи</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="inscriptions/metadata.html"><strong aria-hidden="true">3.1.</strong> Metadata</a></li><li class="chapter-item expanded "><a href="inscriptions/provenance.html"><strong aria-hidden="true">3.2.</strong> Провенанс</a></li><li class="chapter-item expanded "><a href="inscriptions/recursion.html"><strong aria-hidden="true">3.3.</strong> Рекурсия</a></li></ol></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">4.</strong> ЧАВО</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> Вклад</a></li><li class="chapter-item expanded "><a href="donate.html"><strong aria-hidden="true">6.</strong> Пожертвование</a></li><li class="chapter-item expanded "><a href="guides.html"><strong aria-hidden="true">7.</strong> Руководства</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="guides/explorer.html"><strong aria-hidden="true">7.1.</strong> Проводник</a></li><li class="chapter-item expanded "><a href="guides/inscriptions.html"><strong aria-hidden="true">7.2.</strong> Надписи</a></li><li class="chapter-item expanded "><a href="guides/sat-hunting.html"><strong aria-hidden="true">7.3.</strong> Охота на сатоши</a></li><li class="chapter-item expanded "><a href="guides/collecting.html"><strong aria-hidden="true">7.4.</strong> Коллекционирование</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="guides/collecting/sparrow-wallet.html"><strong aria-hidden="true">7.4.1.</strong> Sparrow Wallet</a></li></ol></li><li class="chapter-item expanded "><a href="guides/testing.html"><strong aria-hidden="true">7.5.</strong> Тестирование</a></li><li class="chapter-item expanded "><a href="guides/moderation.html"><strong aria-hidden="true">7.6.</strong> Модерация</a></li><li class="chapter-item expanded "><a href="guides/reindexing.html"><strong aria-hidden="true">7.7.</strong> Переиндексация</a></li></ol></li><li class="chapter-item expanded "><a href="bounties.html"><strong aria-hidden="true">8.</strong> Награды</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="bounty/0.html"><strong aria-hidden="true">8.1.</strong> Награда 0: 100 000 sats Собрано!</a></li><li class="chapter-item expanded "><a href="bounty/1.html"><strong aria-hidden="true">8.2.</strong> Награда 1: 200 000 sats Собрано!</a></li><li class="chapter-item expanded "><a href="bounty/2.html"><strong aria-hidden="true">8.3.</strong> Награда 2: 300 000 sats Собрано!</a></li><li class="chapter-item expanded "><a href="bounty/3.html"><strong aria-hidden="true">8.4.</strong> Награда 3: 400 000 sats</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Ordinal Theory Handbook</h1>
+
+                    <div class="right-buttons">
+                        <button id="language-toggle" class="icon-button" type="button"
+                                title="Change language" aria-label="Change language"
+                                aria-haspopup="true" aria-expanded="false"
+                                aria-controls="language-list">
+                            <i class="fa fa-globe"></i>
+                        </button>
+                        <ul id="language-list" class="theme-popup" aria-label="Languages" role="menu">
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="en">English</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="es">Español</a>
+                          </button></li>
+                           <li role="none"><button role="menuitem" class="theme">
+                              <a id="ru">Русский</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="zh">中文版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ja">日本語版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fil">Filipino</a>
+                          </button></li>
+                        </ul>
+
+                        <script>
+                          let langToggle = document.getElementById("language-toggle");
+                          let langList = document.getElementById("language-list");
+                          langToggle.addEventListener("click", (event) => {
+                              langList.style.display = langList.style.display == "block" ? "none" : "block";
+                          });
+                          let selectedLang = document.getElementById("ru");
+                          if (selectedLang) {
+                              selectedLang.parentNode.classList.add("theme-selected");
+                          }
+
+                          // The path to the root, taking the current
+                          // language into account.
+                          let full_path_to_root = "../";
+                          // The page path (mdbook only gives us
+                          // access to the path to the Markdown file).
+                          let path = "print.md".replace(/\.md$/, ".html");
+                          for (let lang of langList.querySelectorAll("a")) {
+                              if (lang.id == "en") {
+                                  lang.href = `${full_path_to_root}${path}`;
+                              } else {
+                                  lang.href = `${full_path_to_root}${lang.id}/${path}`;
+                              }
+                          }
+                        </script>
+
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ordinals/ord" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="Вступление"><a class="header" href="#Вступление">Вступление</a></h1>
+<p>Данное пособие является руководством по ordinal theory. Ordinal theory занимается сатоши, наделяя их индивидуальностью и позволяя отслеживать, передавать и наделять смыслом.</p>
+<p>Сатоши, а не биткоин, являются основной атомарной валютой сети Bitcoin. Один биткоин может быть разделен на 100,000,000 сатоши, но не более.</p>
+<p>Ordinal theory не требует сайдчейна или токена помимо Bitcoin и может использоваться без каких-либо изменений в сети Bitcoin. Она работает уже сейчас.</p>
+<p>Ordinal theory наделяет сатоши нумизматической ценностью, позволяя коллекционировать их и торговать ими как сувенирами.</p>
+<p>На отдельные сатоши можно наносить надписи произвольного содержания, создавая уникальные цифровые артефакты, характерные для биткоина, которые можно хранить в биткоин-кошельках и передавать с помощью биткоин-транзакций. Надписи так же долговечны, неизменяемы, безопасны и децентрализованы, как и сам Биткойн.</p>
+<p>Возможны и другие, более необычные варианты использования: colored-coins вне блокчейна, инфраструктура открытых ключей с ротацией ключей, децентрализованная замена для DNS. Однако пока такие варианты использования являются умозрительными и существуют только в головах сторонних ordinal теоритиков.</p>
+<p>Подробнее о порядковой теории смотрите в <a href="overview.html">Обзор Ordinal theory</a>.</p>
+<p>Подробнее об inscriptions смотрите в разделе <a href="inscriptions.html">inscriptions</a>.</p>
+<p>Если вы готовы замарать руки, то начать стоит с [надписей] (guides/inscriptions.md) - любопытного вида цифровых артефактов, созданных на основе ordinal theory.</p>
+<h2 id="Ссылки"><a class="header" href="#Ссылки">Ссылки</a></h2>
+<ul>
+<li><a href="https://github.com/ordinals/ord/">GitHub</a></li>
+<li><a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">BIP</a></li>
+<li><a href="https://discord.gg/ordinals">Discord</a></li>
+<li><a href="https://ordinals.org/">Сайт Open Ordinals Institute</a></li>
+<li><a href="https://x.com/ordinalsorg">Open Ordinals Institute X</a></li>
+<li><a href="https://ordinals.com">Mainnet Block Explorer</a></li>
+<li><a href="https://signet.ordinals.com">Signet Block Explorer</a></li>
+</ul>
+<h2 id="Видео"><a class="header" href="#Видео">Видео</a></h2>
+<ul>
+<li><a href="https://www.youtube.com/watch?v=rSS0O2KQpsI">Объяснение Ordinal Theory: Серийные Номера Сатоши и NFT в Bitcoin</a></li>
+<li><a href="https://www.youtube.com/watch?v=MC_haVa6N3I">Семинар по Ordinals с Rodarmor</a></li>
+<li><a href="https://www.youtube.com/watch?v=j5V33kV3iqo">Ordinal Art: Mint собственных NFT на Bitcoin с @rodarmor</a></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="Обзор-ordinal-theory"><a class="header" href="#Обзор-ordinal-theory">Обзор Ordinal Theory</a></h1>
+<p>Ordinals - это схема нумерации сатоши, позволяющая отслеживать и передавать отдельные сатоши. Эти номера называются <a href="https://ordinals.com">ordinal numbers</a>. Сатоши нумеруются в том порядке, в котором они добываются, и передаются от входов транзакций к выходам транзакций в порядке: первым пришёл - первым ушёл (FIFO). И схема нумерации, и схема перевода зависят от <em>порядка</em>, причем схема нумерации - от <em>порядка</em> добычи сатоши, а схема перевода - от <em>порядка</em> входов и выходов транзакций. Отсюда и название - <em>ordinals</em>.</p>
+<p>Техническая информация представлена в <a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">the BIP</a>.</p>
+<p>Ordinal theory не требует создания отдельного токена, другого блокчейна или каких-либо изменений в Bitcoin. Она работает прямо сейчас.</p>
+<p>Ordinal numbers имеют несколько различных представлений:</p>
+<ul>
+<li>
+<p><em>Целочисленные обозначения</em>: <a href="https://ordinals.com/sat/2099994106992659"><code>2099994106992659</code></a> Ordinal numer, присваиваемый в соответствии с порядком, в котором были добыты сатоши.</p>
+</li>
+<li>
+<p><em>Десятичные обозначения</em>: <a href="https://ordinals.com/sat/3891094.16797"><code>3891094.16797</code></a> Первое число - это высота блока, в котором был добыт сатоши, второе - смещение сатоши внутри блока.</p>
+</li>
+<li>
+<p><em>Обозначение степени</em>: <a href="https://ordinals.com/sat/3%C2%B0111094%E2%80%B2214%E2%80%B316797%E2%80%B4"><code>3°111094′214″16797‴</code></a>. К этому мы вернемся в ближайшее время.</p>
+</li>
+<li>
+<p><em>Процентное обозначение</em>: <a href="https://ordinals.com/sat/99.99971949060254%25"><code>99.99971949060254%</code></a> . Положение сатоши в Bitcoin supply, выраженное в процентах.</p>
+</li>
+<li>
+<p><em>Название</em>: <a href="https://ordinals.com/sat/satoshi"><code>satoshi</code></a>. Кодировка порядкового номера с помощью символов от <code>a</code> до <code>z</code>.</p>
+</li>
+</ul>
+<p>К сатоши могут быть присоединены произвольные активы, такие как NFT, безопасные токены, счета или стейблкоины, с использованием ordinal numbers в качестве стабильных идентификаторов.</p>
+<p>Ordinals - это проект с открытым исходным кодом, разрабатываемый <a href="https://github.com/ordinals/ord">на GitHub</a>. Проект состоит из BIP, описывающего ordinal схему, индекса, взаимодействующего с Bitcoin Core node для отслеживания местоположения всех сатоши, кошелька, позволяющего совершать осведомленные транзакции с учетом ordinal, обозревать блоки для интерактивного изучения блокчейна, функциональности для надписи сатоши цифровыми артефактами, а также данного руководства.</p>
+<h2 id="Редкость"><a class="header" href="#Редкость">Редкость</a></h2>
+<p>Люди - коллекционеры, и поскольку сатоши теперь можно отслеживать и передавать, люди, естественно, захотят их собирать. Ordinal теоретики могут сами решить, какие сатоши являются редкими и желанными, но есть некоторые подсказки…</p>
+<p>В биткоине периодически происходят события, одни из которых происходят часто, другие - более редко, и они естественным образом приводят к появлению системы редкости. К таким периодическим событиям относятся:</p>
+<ul>
+<li>
+<p><em>Блоки</em>: Новый блок добывается примерно каждые 10 минут, начиная с настоящего момента и до конца времен.</p>
+</li>
+<li>
+<p><em>Корректировка сложности</em>: Каждые 2016 блоков, или примерно раз в две недели, сеть Bitcoin реагирует на изменения хешрейта, изменяя целевой уровень сложности, которому должны соответствовать блоки, чтобы быть принятыми.</p>
+</li>
+<li>
+<p><em>Халвинг</em>: Каждые 210 000 блоков или примерно раз в четыре года, количество новых sats, создаваемых в каждом блоке, сокращается вдвое.</p>
+</li>
+<li>
+<p><em>Циклы</em>: Каждые шесть халвингов происходит нечто волшебное: халвинг и корректировка сложности совпадают. Это называется объединением, а период времени между объединениями - циклом. Объединение происходит примерно раз в 24 года. Первое объединение должно произойти в 2032 году.</p>
+</li>
+</ul>
+<p>Таким образом, мы получаем следующие уровни редкости:</p>
+<ul>
+<li><code>common</code>: Любой sat, который не является первым sat в своем блоке</li>
+<li><code>uncommon</code>: Первый sat каждого блока</li>
+<li><code>rare</code>: Первый sat каждого периода корректировки сложности</li>
+<li><code>epic</code>: Первый sat каждой эпохи халвинга</li>
+<li><code>legendary</code>: Первый sat каждого цикла</li>
+<li><code>mythic</code>: Первый sat genesis блока</li>
+</ul>
+<p>Это приводит нас к обозначению степени, которая однозначно представляет ordinal number таким образом, что редкость сатоши легко увидеть с первого взгляда:</p>
+<pre><code>A°B′C″D‴
+│ │ │ ╰─ Index of sat in the block
+│ │ ╰─── Index of block in difficulty adjustment period
+│ ╰───── Index of block in halving epoch
+╰─────── Cycle, numbered starting from 0
+</code></pre>
+<p>Ordinal теоретики часто используют термины &quot;час&quot;, &quot;минута&quot;, &quot;секунда&quot; и &quot;треть&quot; для обозначения <em>A</em>, <em>B</em>, <em>C</em>, и <em>D</em>, соответственно.</p>
+<p>Теперь несколько примеров. Этот сатоши является common:</p>
+<pre><code>1°1′1″1‴
+│ │ │ ╰─ Not first sat in block
+│ │ ╰─── Not first block in difficulty adjustment period
+│ ╰───── Not first block in halving epoch
+╰─────── Second cycle
+</code></pre>
+<p>Этот сатоши uncommon:</p>
+<pre><code>1°1′1″0‴
+│ │ │ ╰─ First sat in block
+│ │ ╰─── Not first block in difficulty adjustment period
+│ ╰───── Not first block in halving epoch
+╰─────── Second cycle
+</code></pre>
+<p>Это rare сатоши:</p>
+<pre><code>1°1′0″0‴
+│ │ │ ╰─ First sat in block
+│ │ ╰─── First block in difficulty adjustment period
+│ ╰───── Not the first block in halving epoch
+╰─────── Second cycle
+</code></pre>
+<p>Это epic сатоши:</p>
+<pre><code>1°0′1″0‴
+│ │ │ ╰─ First sat in block
+│ │ ╰─── Not first block in difficulty adjustment period
+│ ╰───── First block in halving epoch
+╰─────── Second cycle
+</code></pre>
+<p>Это legendary сатоши:</p>
+<pre><code>1°0′0″0‴
+│ │ │ ╰─ First sat in block
+│ │ ╰─── First block in difficulty adjustment period
+│ ╰───── First block in halving epoch
+╰─────── Second cycle
+</code></pre>
+<p>И это mithic сатоши:</p>
+<pre><code>0°0′0″0‴
+│ │ │ ╰─ First sat in block
+│ │ ╰─── First block in difficulty adjustment period
+│ ╰───── First block in halving epoch
+╰─────── First cycle
+</code></pre>
+<p>Если смещение блока равно нулю, то его можно не указывать. Это и есть uncommon сатоши, о котором говорилось выше:</p>
+<pre><code>1°1′1″
+│ │ ╰─ Not first block in difficulty adjustment period
+│ ╰─── Not first block in halving epoch
+╰───── Second cycle
+</code></pre>
+<h2 id="Количество-rare-сатоши"><a class="header" href="#Количество-rare-сатоши">Количество rare сатоши</a></h2>
+<h3 id="Общее-количество"><a class="header" href="#Общее-количество">Общее количество</a></h3>
+<ul>
+<li><code>common</code>: 2.1 квадриллион</li>
+<li><code>uncommon</code>: 6,929,999</li>
+<li><code>rare</code>: 3437</li>
+<li><code>epic</code>: 32</li>
+<li><code>legendary</code>: 5</li>
+<li><code>mythic</code>: 1</li>
+</ul>
+<h3 id="Текущее-количество"><a class="header" href="#Текущее-количество">Текущее количество</a></h3>
+<ul>
+<li><code>common</code>: 1.9 квадриллион</li>
+<li><code>uncommon</code>: 808,262</li>
+<li><code>rare</code>: 369</li>
+<li><code>epic</code>: 3</li>
+<li><code>legendary</code>: 0</li>
+<li><code>mythic</code>: 1</li>
+</ul>
+<p>В настоящее время даже uncommon сатоши являются довольно большой редкостью. На данный момент добыто 745 855 uncommon сатоши - по одному на 25,6 биткоина в обороте.</p>
+<h2 id="Названия"><a class="header" href="#Названия">Названия</a></h2>
+<p>Каждый сатоши имеет название, состоящее из букв <em>A</em> - <em>Z</em>, которое становится короче по мере добычи сатоши в будущем. Они могли бы начинаться с коротких и становиться длиннее, но тогда все хорошие, короткие названия оказались бы запертыми в неизрасходованном  genesis блоке .</p>
+<p>Например, название 1905530482684727° - &quot;iaiufjszmoba&quot;. Название последнего добытого сатоши - &quot;a&quot;. Все комбинации из 10 символов или меньше уже существуют или когда-нибудь будут существовать.</p>
+<h2 id="Экзотика"><a class="header" href="#Экзотика">Экзотика</a></h2>
+<p>Сатоши могут цениться не только по причине их названия или редкости. Это может быть связано с качеством самого числа, например, с наличием целого квадратного или кубического корня. Или это может быть связано с историческим событием, например, сатоши из блока 477 120 - блока, в котором активировался SegWit, или 2099999997689999° - последнего сатоши, который когда-либо будет добыт.</p>
+<p>Такие сатоши называются &quot;экзотическими&quot;. Какие сатоши являются экзотическими и что их делает таковыми - вопрос субъективный. Теоретикам ordinal предлагается искать экзотику по собственным критериям.</p>
+<h2 id="Надписи"><a class="header" href="#Надписи">Надписи</a></h2>
+<p>На сатоши можно нанести произвольное содержание, создавая цифровые артефакты, характерные для Биткойна. Нанесение надписи осуществляется путем отправки сатоши в транзакции, которая раскрывает содержание on-chain надписи. Затем это содержимое неразрывно связывается с сатоши, превращая его в неизменяемый цифровой артефакт, который можно отслеживать, передавать, накапливать, покупать, продавать, терять и вновь находить.</p>
+<h2 id="Археология"><a class="header" href="#Археология">Археология</a></h2>
+<p>Возникло активное сообщество археологов, занимающихся каталогизацией и коллекционированием ранних NFT. <a href="https://mirror.xyz/chainleft.eth/MzPWRsesC9mQflxlLo-N29oF4iwCgX3lacrvaG9Kjko">Вот отличный обзор исторических NFT, составленный Chainleft.</a></p>
+<p>Общепринятой точкой отсчета для ранних NFT считается 19 марта 2018 года, когда на Ethereum был развернут первый контракт ERC-721. <a href="https://tenthousandsu.com/">SU SQUARES</a></p>
+<p>Вопрос о том, представляют ли ординалы интерес для археологов NFT, остается открытым! С одной стороны, ordinals были созданы в начале 2022 года, когда была завершена работа над спецификацией Ordinal. В этом смысле они не представляют исторического интереса.</p>
+<p>С другой стороны, ordinals были фактически созданы Сатоши Накамото в 2009 году при майнинге генезисного блока Bitcoin. В этом смысле ordinals, и особенно ранние ordinals, безусловно, представляют исторический интерес.</p>
+<p>Многие ordinal теоретики придерживаются последней точки зрения. Не в последнюю очередь это связано с тем, что ordianls были независимо обнаружены, по крайней мере, в двух отдельных случаях, задолго до начала эры современных NFT.</p>
+<p>21 августа 2012 года Чарли Ли <a href="https://bitcointalk.org/index.php?topic=102355.0">разместил на форуме Bitcoin Talk предложение добавить в биткоин proof-of-stake</a>. Это не было схемой активов, но использовало ordinal алгоритм и было реализовано, но так и не было развернуто.</p>
+<p>8 октября 2012 г., jl2012 <a href="https://bitcointalk.org/index.php?topic=117224.0">разместил схему на том же форуме</a> которая использует десятичную систему обозначений и обладает всеми важными свойствами ordinal. Эта схема обсуждалась, но так и не была реализована.</p>
+<p>Эти независимые изобретения ordinals в какой-то мере указывают на то, что ordinals были открыты или заново открыты, а не изобретены. Ordinals - это неизбежность математики биткоина, вытекающая не из их современного документирования, а из их древнего генезиса. Они являются кульминацией последовательности событий, начавшихся много лет назад с момента добычи первого блока.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="Цифровые-артефакты"><a class="header" href="#Цифровые-артефакты">Цифровые артефакты</a></h1>
+<p>Представьте себе физический артефакт. Редкая монета, скажем, хранившаяся несметное количество лет в темных тайниках клада викингов, а теперь выкопанная из земли вашими цепкими руками. Она…</p>
+<p>...имеет владельца. Вы. Пока вы храните его в безопасности, никто не может его у вас отнять.</p>
+<p>...завершен. В нем нет недостающих частей.</p>
+<p>...может быть изменен только вами. Если бы вы были торговцем и попали в Китай XVIII века, никто, кроме вас, не смог бы поставить на нем свой знак.</p>
+<p>...может быть отчужден только вами. Продать, обменять или подарить - это ваше право, кому бы вы ни пожелали.</p>
+<p>Что такое цифровые артефакты? Проще говоря, это цифровой эквивалент физических артефактов.</p>
+<p>Чтобы цифровая вещь стала цифровым артефактом, она должна быть похожа на вашу монету:</p>
+<ul>
+<li>
+<p>У цифровых артефактов могут быть владельцы. Число не является цифровым артефактом, поскольку никто не может им владеть.</p>
+</li>
+<li>
+<p>Цифровые артефакты полностью готовы. NFT, указывающий на содержимое вне цепочки на IPFS или Arweave, является неполным, а значит, не является цифровым артефактом.</p>
+</li>
+<li>
+<p>Цифровые артефакты не имеют разрешений. NFT, который нельзя продать без оплаты роялти, не является безразрешительным, а значит, не является цифровым артефактом.</p>
+</li>
+<li>
+<p>Цифровые артефакты не поддаются цензуре. Возможно, вы можете изменить запись в базе данных централизованном Ledger сегодня, но, возможно, не сможете завтра, и поэтому она не может быть цифровым артефактом.</p>
+</li>
+<li>
+<p>Цифровые артефакты неизменяемы. NFT с ключом обновления не является цифровым артефактом.</p>
+</li>
+</ul>
+<p>Определение цифрового артефакта призвано отразить то, чем NFT <em>должны</em> быть, иногда являются, и то, чем надписи <em>всегда</em> являются по своей природе.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="Надписи-1"><a class="header" href="#Надписи-1">Надписи</a></h1>
+<p>Надписи содержат sat c произвольным содержанием, создавая цифровые артефакты, характерные для биткоина, более известные как NFT. Надписи не требуют сайдчейна или отдельного токена.</p>
+<p>Эти надписанные sats могут передаваться с помощью биткоин-транзакций, отправляться на биткоин-адреса и храниться в биткоин UTXO. Эти транзакции, адреса и UTXO во всех отношениях являются обычными биткойн-транзакциями, адресами и UTXOS, за исключением того, что для отправки отдельных sats, транзакции должны контролировать порядок и значение входов и выходов в соответствии с ordinal theory.</p>
+<p>Модель содержания надписей соответствует модели содержания web. Надпись состоит из типа содержимого, известного также как тип-MIME, и самого содержимого, которое представляет собой байтовую строку. Это позволяет возвращать содержимое надписи с веб-сервера, а также создавать HTML-надписи, использующие и переделывающие содержимое других надписей.</p>
+<p>Содержимое надписей полностью находится on-chain и хранится в скриптах taproot script-path spend. Скрипты taproot имеют очень мало ограничений на содержимое и дополнительно получают скидку свидетеля, что делает хранение содержимого надписей относительно экономичным.</p>
+<p>Поскольку траты taproot script-path spend могут осуществляться только из существующих выходов taproot, надписи делаются с помощью двухфазной процедуры commit/reveal. Во-первых, в транзакции commit создается выход taproot, фиксирующий скрипт, содержащий содержимое надписи. Во-вторых, в транзакции reveal созданный транзакцией commit выход расходуется, раскрывая содержимое on-chain надписи.</p>
+<p>Сериализация содержимого надписи осуществляется с помощью data pushes внутри неисполняемых условий, называемых &quot;конвертами&quot;. Конверты состоят из <code>OP_FALSE OP_IF … OP_ENDIF</code> обертывающих любое количество data pushes. Поскольку конверты являются фактически no-ops, они не изменяют семантику скрипта, в который включены, и могут быть объединены с любым другим блокирующим скриптом.</p>
+<p>Текстовая надпись, содержащая строку &quot;Hello, world!&quot; сериализуется следующим образом:</p>
+<pre><code>OP_FALSE
+OP_IF
+  OP_PUSH &quot;ord&quot;
+  OP_PUSH 1
+  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH 0
+  OP_PUSH &quot;Hello, world!&quot;
+OP_ENDIF
+</code></pre>
+<p>Сначала вводится строка <code>ord</code>, чтобы отделить надписи от других видов использования конвертов.</p>
+<p><code>OP_PUSH 1</code> указывает, что следующий push содержит тип содержимого, а <code>OP_PUSH 0</code> - что последующие push-файлы содержат само содержимое. Для больших надписей необходимо использовать несколько push данных, так как одно из немногих ограничений taproot заключается в том, что размер отдельных push данных не может превышать 520 байт.</p>
+<p>Содержание надписи содержится во входе reveal транзакции, и надпись делается на первом sat ее входа. Затем этот sat может быть отслежен по известным правилам ordinal theory, что позволяет передавать, покупать, продавать, терять в комиссиях и восстанавливать его.</p>
+<h2 id="Содержимое"><a class="header" href="#Содержимое">Содержимое</a></h2>
+<p>Модель данных надписей представляет собой HTTP-ответ, что позволяет обслуживать содержимое надписей на веб-сервере и просматривать его в браузере.</p>
+<h2 id="Поля"><a class="header" href="#Поля">Поля</a></h2>
+<p>Надписи могут включать поля перед необязательным текстом. Каждое поле состоит из двух push данных - тега и значения.</p>
+<p>В настоящее время единственным определяемым полем является <code>content-type</code>, с тегом <code>1</code>, значением которого является тип-MIME текста.</p>
+<p>Начало основного текста и конец полей обозначаются пустым вводом данных.</p>
+<p>Нераспознанные метки интерпретируются по-разному в зависимости от того, четные они или нечетные, в соответствии с правилом &quot;нормально быть нечетным&quot;, используемым в Lightning Network.</p>
+<p>Четные метки используются для полей, которые могут повлиять на создание, первичное присвоение или перенос надписи. Таким образом, надписи с нераспознанными четными полями должны отображаться как &quot;несвязанные&quot;, т.е. без указания местоположения.</p>
+<p>Нечетные теги используются для полей, которые не влияют на создание, первоначальное назначение или передачу, например, дополнительные метаданные, и поэтому их можно игнорировать.</p>
+<h2 id="id-надписей"><a class="header" href="#id-надписей">ID надписей</a></h2>
+<p>Надписи содержатся во входах транзакции раскрытия. Для их однозначной идентификации им присваивается ID вида:</p>
+<p><code>521f8eccffa4c41a3a7728dd012ea5a4a02feed81f41159231251ecf1e5c79dai0</code></p>
+<p>Часть перед <code>i</code> - это ID транзакции (<code>txid</code>) транзакции раскрытия. Число после <code>i</code> определяет индекс (начиная с 0) новых надписей, заносимых в транзакцию раскрытия.</p>
+<p>Надписи могут располагаться либо в разных входах, либо в одном входе, либо в комбинации обоих вариантов. В любом случае порядок следования понятен, так как синтаксический анализатор будет последовательно просматривать входы и искать все надписи-&quot;конверты&quot;.</p>
+<div class="table-wrapper"><table><thead><tr><th style="text-align: center">Вход</th><th style="text-align: center">Inscription Count</th><th style="text-align: center">Indices</th></tr></thead><tbody>
+<tr><td style="text-align: center">0</td><td style="text-align: center">2</td><td style="text-align: center">i0, i1</td></tr>
+<tr><td style="text-align: center">1</td><td style="text-align: center">1</td><td style="text-align: center">i2</td></tr>
+<tr><td style="text-align: center">2</td><td style="text-align: center">3</td><td style="text-align: center">i3, i4, i5</td></tr>
+<tr><td style="text-align: center">3</td><td style="text-align: center">0</td><td style="text-align: center"></td></tr>
+<tr><td style="text-align: center">4</td><td style="text-align: center">1</td><td style="text-align: center">i6</td></tr>
+</tbody></table>
+</div>
+<h2 id="Песочница"><a class="header" href="#Песочница">Песочница</a></h2>
+<p>Надписи HTML и SVG находятся в песочнице для предотвращения ссылок на off-chain содержимое, что позволяет сохранить неизменяемость и самодостаточность надписей.</p>
+<p>Это достигается за счет загрузки HTML и SVG-надписей внутри <code>iframe</code> с атрибутом <code>sandbox</code>, а также предоставления содержимого надписей с заголовками <code>Content-Security-Policy</code>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="metadata"><a class="header" href="#metadata">Metadata</a></h1>
+<p>Inscriptions may include <a href="https://cbor.io/">CBOR</a> metadata, stored as data pushes in fields with tag <code>5</code>. Since data pushes are limited to 520 bytes, metadata longer than 520 bytes must be split into multiple tag <code>5</code> fields, which will then be concatenated before decoding.</p>
+<p>Metadata is human readable, and all metadata will be displayed to the user with its inscription. Inscribers are encouraged to consider how metadata will be displayed, and make metadata concise and attractive.</p>
+<p>Metadata is rendered to HTML for display as follows:</p>
+<ul>
+<li><code>null</code>, <code>true</code>, <code>false</code>, numbers, floats, and strings are rendered as plain text.</li>
+<li>Byte strings are rendered as uppercase hexadecimal.</li>
+<li>Arrays are rendered as <code>&lt;ul&gt;</code> tags, with every element wrapped in <code>&lt;li&gt;</code> tags.</li>
+<li>Maps are rendered as <code>&lt;dl&gt;</code> tags, with every key wrapped in <code>&lt;dt&gt;</code> tags, and every value wrapped in <code>&lt;dd&gt;</code> tags.</li>
+<li>Tags are rendered as the tag , enclosed in a <code>&lt;sup&gt;</code> tag, followed by the value.</li>
+</ul>
+<p>CBOR is a complex spec with many different data types, and multiple ways of representing the same data. Exotic data types, such as tags, floats, and bignums, and encoding such as indefinite values, may fail to display correctly or at all. Contributions to <code>ord</code> to remedy this are welcome.</p>
+<h2 id="Пример"><a class="header" href="#Пример">Пример</a></h2>
+<p>Since CBOR is not human readable, in these examples it is represented as JSON. Keep in mind that this is <em>only</em> for these examples, and JSON metadata will <em>not</em> be displayed correctly.</p>
+<p>The metadata <code>{&quot;foo&quot;:&quot;bar&quot;,&quot;baz&quot;:[null,true,false,0]}</code> would be included in an inscription as:</p>
+<pre><code>OP_FALSE
+OP_IF
+    ...
+    OP_PUSH 0x05 OP_PUSH '{&quot;foo&quot;:&quot;bar&quot;,&quot;baz&quot;:[null,true,false,0]}'
+    ...
+OP_ENDIF
+</code></pre>
+<p>And rendered as:</p>
+<pre><code>&lt;dl&gt;
+  ...
+  &lt;dt&gt;metadata&lt;/dt&gt;
+  &lt;dd&gt;
+    &lt;dl&gt;
+      &lt;dt&gt;foo&lt;/dt&gt;
+      &lt;dd&gt;bar&lt;/dd&gt;
+      &lt;dt&gt;baz&lt;/dt&gt;
+      &lt;dd&gt;
+        &lt;ul&gt;
+          &lt;li&gt;null&lt;/li&gt;
+          &lt;li&gt;true&lt;/li&gt;
+          &lt;li&gt;false&lt;/li&gt;
+          &lt;li&gt;0&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/dd&gt;
+    &lt;/dl&gt;
+  &lt;/dd&gt;
+  ...
+&lt;/dl&gt;
+</code></pre>
+<p>Metadata longer than 520 bytes must be split into multiple fields:</p>
+<pre><code>OP_FALSE
+OP_IF
+    ...
+    OP_PUSH 0x05 OP_PUSH '{&quot;very&quot;:&quot;long&quot;,&quot;metadata&quot;:'
+    OP_PUSH 0x05 OP_PUSH '&quot;is&quot;,&quot;finally&quot;:&quot;done&quot;}'
+    ...
+OP_ENDIF
+</code></pre>
+<p>Which would then be concatinated into <code>{&quot;very&quot;:&quot;long&quot;,&quot;metadata&quot;:&quot;is&quot;,&quot;finally&quot;:&quot;done&quot;}</code>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="Провенанс"><a class="header" href="#Провенанс">Провенанс</a></h1>
+<p>Владелец надписи может создавать дочерние надписи, не сомневаясь в том, что эти дочерние on-chain надписи были созданы владельцем родительской надписи. Это может быть использовано для коллекций, когда дочерние надписи от родительской надписи являются членами одной коллекции.</p>
+<p>Дети могут создавать дочерние элементы, что позволяет создавать комплексные иерархии. Например, художник может создать надпись, представляющую его самого, с вложенными надписями, представляющими созданные им коллекции, а дочерними элементами этих sub надписей являются предметы этих коллекций.</p>
+<h3 id="Описание"><a class="header" href="#Описание">Описание</a></h3>
+<p>Чтобы создать child надпись C с parent надписью P:</p>
+<ul>
+<li>Создайте транзакцию надписи T, как обычно, для C.</li>
+<li>Проведите parent P по одному из входов T.</li>
+<li>Включите в C тег <code>3</code>, т.е. <code>OP_PUSH 3</code>, со значением сериализованного двоичного ID надписи P, сериализованного как 32-байтовый <code>TXID</code>, за которым следует четырехбайтовый little-endian <code>INDEX</code>, с опущенными задними нулями.</li>
+</ul>
+<p><em>NB</em> В текстовом представлении байты ID транзакции биткоина расположены в обратном порядке, поэтому сериализованные ID транзакции будут расположены в обратном порядке.</p>
+<h3 id="Пример-1"><a class="header" href="#Пример-1">Пример</a></h3>
+<p>Пример child надписи из <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0</code>:</p>
+<pre><code>OP_FALSE
+OP_IF
+  OP_PUSH &quot;ord&quot;
+  OP_PUSH 1
+  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH 3
+  OP_PUSH 0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100
+  OP_PUSH 0
+  OP_PUSH &quot;Hello, world!&quot;
+OP_ENDIF
+</code></pre>
+<p>Заметим, что значение метки <code>3</code> двоичное, а не шестнадцатеричное, и что для того, чтобы надпись была признана детской, <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0</code> должен быть потрачен как один из входов inscribe транзакции.</p>
+<p>Пример кодировки ID надписи <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi255</code>:</p>
+<pre><code>OP_FALSE
+OP_IF
+  …
+  OP_PUSH 3
+  OP_PUSH 0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100ff
+  …
+OP_ENDIF
+</code></pre>
+<p>И ID надписи <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi256</code>:</p>
+<pre><code>OP_FALSE
+OP_IF
+  …
+  OP_PUSH 3
+  OP_PUSH 0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a090807060504030201000001
+  …
+OP_ENDIF
+</code></pre>
+<h3 id="Примечаниe"><a class="header" href="#Примечаниe">Примечаниe</a></h3>
+<p>Метка <code>3</code> используется потому что это первая доступная нечетная метка. Нераспознанные нечетные метки не делают надпись несвязанной, поэтому дочерние надписи будут распознаваться и отслеживаться старыми версиями <code>ord</code>.</p>
+<p>Коллекция может быть закрыта путем сжигания родительской надписи коллекции, что гарантирует, что больше ни один предмет коллекции не может быть выпущен.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="Рекурсия"><a class="header" href="#Рекурсия">Рекурсия</a></h1>
+<p>Важным исключением из <a href="inscriptions/../inscriptions.html#sandboxing">песочницы</a> является рекурсия: доступ к конечной точке <code>ord</code>'s <code>/content</code> разрешен, что позволяет надписям получать доступ к содержимому других надписей, запрашивая <code>/content/&lt;INSCRIPTION_ID&gt;</code>.</p>
+<p>Это имеет ряд интересных вариантов использования:</p>
+<ul>
+<li>
+<p>Ремикс содержания существующих надписей.</p>
+</li>
+<li>
+<p>Публикация фрагментов кода, изображений, аудио или таблиц стилей в качестве общедоступных ресурсов.</p>
+</li>
+<li>
+<p>Генеративные художественные коллекции, в которых алгоритм записан как JavaScript и инстанцирован из множества надписей с уникальными seeds.</p>
+</li>
+<li>
+<p>Генеративные коллекции изображений профиля (PFP), в которых аксессуары и атрибуты вписываются в виде отдельных изображений или в общий атлас текстур, а затем комбинируются, в стиле коллажа, в уникальных сочетаниях в нескольких надписях.</p>
+</li>
+</ul>
+<p>Среди других конечных точек, к которым могут обращаться надписи, можно назвать следующие:</p>
+<ul>
+<li><code>/blockheight</code>: высота последнего блока.</li>
+<li><code>/blockhash</code>: хэш последнего блока.</li>
+<li><code>/blockhash/&lt;HEIGHT&gt;</code>: хэш блока при заданной высоте блока.</li>
+<li><code>/blocktime</code>: UNIX-метка времени последнего блока.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="ЧАВО-по-ordinals-theory"><a class="header" href="#ЧАВО-по-ordinals-theory">ЧАВО по Ordinals Theory</a></h1>
+<h2 id="Что-такое-ordinal-theory"><a class="header" href="#Что-такое-ordinal-theory">Что такое ordinal theory?</a></h2>
+<p>Ordinal theory - это протокол для присвоения порядковых номеров сатоши, наименьшей части биткоина, и отслеживания этих сатоши по мере их расходования в ходе транзакций.</p>
+<p>Эти серийные номера представляют собой большие числа, как, например, этот 804766073970493. Каждый сатоши, который представляет собой ¹⁄₁₀₀₀₀₀₀₀₀ биткоина, имеет порядковый номер.</p>
+<h2 id="Требует-ли-ordinal-theory-создания-side-chain-отдельного-токена-или-изменений-в-bitcoin"><a class="header" href="#Требует-ли-ordinal-theory-создания-side-chain-отдельного-токена-или-изменений-в-bitcoin">Требует ли ordinal theory создания side chain, отдельного токена или изменений в Bitcoin?</a></h2>
+<p>Нет! Ordinal theory работает прямо сейчас, без side chain, и единственным необходимым токеном является сам биткоин.</p>
+<h2 id="Чем-полезна-ordinal-theory"><a class="header" href="#Чем-полезна-ordinal-theory">Чем полезна ordinal theory?</a></h2>
+<p>Коллекционирование, торговля и интриги. Ordinal theory присваивает идентификацию отдельным сатоши, что позволяет отслеживать их по отдельности и торговать ими как диковинами и нумизматическими ценностями.</p>
+<p>Ordinal theory также позволяет создавать надписи - протокол для прикрепления произвольного содержимого к отдельным сатоши, превращая их в цифровые артефакты с поддержкой биткоина.</p>
+<h2 id="Как-работает-ordinal-theory"><a class="header" href="#Как-работает-ordinal-theory">Как работает ordinal theory?</a></h2>
+<p>Порядковые номера присваиваются сатоши в том порядке, в котором они добываются. Первый сатоши в первом блоке имеет порядковый номер 0, второй имеет порядковый номер - 1, а последний сатоши первого блока имеет порядковый номер 4,999,999,999.</p>
+<p>Сатоши живут в выходах, но транзакции разрушают выходы и создают новые, поэтому порядковая теория использует алгоритм для определения того, как сатоши переходят от входов транзакции к ее выходам.</p>
+<p>К счастью, этот алгоритм очень прост.</p>
+<p>Сатоши передаются по принципу первым пришёл - первым вышел. Считайте, что на входе транзакции находится список сатоши, а на выходе - список слотов, ожидающих получения сатоши. Чтобы распределить входные сатоши по слотам, переберите все сатоши на входах по порядку и распределите их по первому свободному слоту на выходах.</p>
+<p>Представим себе транзакцию с тремя входами и двумя выходами. Входы расположены слева от стрелки, а выходы - справа, все они помечены своими значениями:</p>
+<pre><code>[2] [1] [3] → [4] [2]
+</code></pre>
+<p>Теперь обозначим ту же операцию порядковыми номерами сатоши, которые содержит каждый вход, и вопросительными знаками - каждый выходной слот. Порядковые номера большие, поэтому для их обозначения будем использовать буквы:</p>
+<pre><code>[a b] [c] [d e f] → [? ? ? ?] [? ?]
+</code></pre>
+<p>Чтобы выяснить, какой сатоши соответствует какому выходу, пройдите по порядку все входные сатоши и присвойте каждому из них вопросительный знак:</p>
+<pre><code>[a b] [c] [d e f] → [a b c d] [e f]
+</code></pre>
+<p>А что насчет комиссий, спросите вы? Хороший вопрос! Представим себе ту же транзакцию, но с комиссией в два сатоши. Транзакции с комиссией отправляют на входы больше сатоши, чем получают на выходы, поэтому, чтобы превратить нашу транзакцию в транзакцию которая оплачивает комиссию, мы удалим второй выход:</p>
+<pre><code>[2] [1] [3] → [4]
+</code></pre>
+<p>Сатоши <var>e</var>и <var>f</var>теперь некуда девать на выходах:```
+[a b] [c] [d e f] → [a b c d]</p>
+<pre><code>
+Поэтому они поступают майнеру, добывшему блок, в качестве вознаграждения. [В BIP](https://github.com/ordinals/ord/blob/master/bip.mediawiki) описаны подробности, но вкратце, комиссии, уплаченные транзакциями, рассматриваются как дополнительные входы в транзакцию coinbase и упорядочиваются так, как упорядочены соответствующие им транзакции в блоке. Транзакция блока coinbase может выглядеть следующим образом:
+
+</code></pre>
+<p>[SUBSIDY] [e f] → [SUBSIDY e f]</p>
+<pre><code>
+## Где я могу найти подробную информацию?
+
+[В BIP!](https://github.com/ordinals/ord/blob/master/bip.mediawiki)
+
+## Почему sat надписи называются &quot;цифровыми артефактами&quot;, а не &quot;NFT&quot;?
+
+Надпись - это NFT, но вместо нее используется термин &quot;цифровой артефакт&quot;, поскольку он прост, наводит на размышления и хорошо знаком.
+
+Фраза &quot;цифровой артефакт&quot; наводит на размышления даже тех, кто никогда раньше не слышал этого термина. Для сравнения, NFT - это аббревиатура, которая не дает никаких указаний на то, что она означает, если вы не слышали этот термин раньше.
+
+Кроме того, в &quot;NFT&quot; чувствуется финансовая терминология, а слова &quot;fungible&quot; и смысл слова &quot;token&quot;, используемые в &quot;NFT&quot;, нередки вне финансового контекста.
+
+## Чем sat-надписи отличаются от…
+
+### NFT на Ethereum?
+
+_Надписи всегда неизменны._
+
+Для создателя надписи или ее владельца просто не существует возможности изменить ее после создания.
+
+Ethereum NFT _могут_ быть неизменяемыми, но многие из них не являются таковыми и могут быть изменены или удалены владельцем NFT контракта.
+
+Для того чтобы убедиться в неизменяемости конкретного Ethereum NFT, необходимо провести аудит кода контракта, что требует детального знания семантики EVM и Solidity.
+
+Нетехническому пользователю очень сложно определить, является ли данный Ethereum NFT изменяемым или неизменяемым, а платформы Ethereum NFT не предпринимают никаких усилий, чтобы отличить, является ли NFT изменяемым или неизменяемым, а также доступен ли исходный код контракта и прошел ли он аудит.
+
+_Содержимое надписей всегда находится on-chain._
+
+Надпись не может ссылаться на off-chain контент. Это делает надписи более долговечными, поскольку контент не может быть потерян, и более редкими, поскольку создатели надписей должны платить за них комиссию, пропорциональную размеру контента.
+
+Часть контента Ethereum NFT находится on-chain, но большая часть - off-chain, и хранится на таких платформах, как IPFS или Arweave, или на традиционных, полностью централизованных веб-серверах. Доступность контента на IPFS не гарантирована, а часть NFT-контента, хранящегося на IPFS, уже потеряна. Платформы типа Arweave опираются на слабые экономические предположения и, скорее всего, потерпят катастрофический крах, когда эти экономические предположения перестанут выполняться. Централизованные веб-серверы могут исчезнуть в любой момент.
+
+Нетехническому пользователю очень сложно определить, где хранится содержимое того или иного Ethereum NFT.
+
+_Надписи гораздо проще._
+
+Ethereum NFT зависит от сети и виртуальной машины Ethereum, которые очень сложны, постоянно меняются и вносят изменения через обратно-несовместимые хард форки.
+
+С другой стороны, надписи зависят от блокчейна Bitcoin, который относительно прост и консервативен, а изменения в него вносятся через обратно совместимые софт форки.
+
+_Надписи более надежны._
+
+Надписи наследуют модель Bitcoin транзакций, позволяющую пользователю до подписания транзакции видеть, какие именно надписи передаются по ней. Надписи могут быть выставлены на продажу с помощью частично подписанных транзакций, которые не требуют разрешения третьей стороне, например бирже или торговой площадке, передавать их от имени пользователя.
+
+Для сравнения, NFT на Ethereum страдают от уязвимостей безопасности конечных пользователей. Обычным явлением является слепая подпись транзакций, предоставление сторонним приложениям неограниченных прав доступа к NFT пользователя, а также взаимодействие со сложными и непредсказуемыми смарт-контрактами. Это создает минное поле опасностей для пользователей Ethereum NFT, которые просто не волнуют ordinal теоретиков.
+
+_Надписи встречаются все реже._
+
+Для нанесения надписей, их передачи и хранения требуется биткоин. На первый взгляд, это недостаток, но смысл существования цифровых артефактов заключается в том, чтобы быть дефицитными и, следовательно, ценными.
+
+С другой стороны, Ethereum NFT можно майнить практически в неограниченном количестве за одну транзакцию, что делает их по своей сути менее дефицитными, а значит, потенциально менее ценными.
+
+_Надписи не претендуют на поддержку on-chain роялти._
+
+On-chain Роялти - хорошая идея в теории, но не на практике. Выплата on-chain роялти не может быть обеспечена без сложных и инвазивных ограничений. Экосистема Ethereum NFT в настоящее время борется с путаницей вокруг роялти и коллективно приходит к пониманию того, что on-chain роялти, которые были заявлены художникам в качестве преимущества NFT, невозможны, в то время как платформы гонятся за дном и убирают поддержку роялти.
+
+Надписи полностью исключают подобную ситуацию, не давая ложных обещаний о поддержке on-chain роялти, что позволяет избежать путаницы, хаоса и негатива, характерных для ситуации с NFT на Ethereum.
+
+_Надписи открывают новые рынки._
+
+Рыночная капитализация и ликвидность Bitcoin значительно превосходят Ethereum за счёт большей маржи. Значительная часть этой ликвидности недоступна для Ethereum NFT, поскольку многие Bitcoiners предпочитают не взаимодействовать с экосистемой Ethereum из-за опасений, связанных с простотой, безопасностью и децентрализацией.
+
+Такие Bitcoiners могут быть более заинтересованы в надписях, чем в Ethereum NFT, что открывает новые классы коллекционеров.
+
+_Надписи имеют более богатую модель данных._
+
+Надписи состоят из типа содержимого, известного также как тип-MIME, и содержимого, представляющего собой произвольную байтовую строку. Это та же модель данных, которая используется в web, и позволяет содержимому надписей развиваться вместе с web и поддерживать любой тип содержимого, поддерживаемый браузерами, не требуя изменений в базовом протоколе.
+
+### RGB и активы Taro?
+
+RGB и Taro - протоколы активов второго уровня, построенные на базе Bitcoin. По сравнению с надписями они гораздо сложнее, но и гораздо более функциональны.
+
+Ordinal theory была разработана с нуля для цифровых артефактов, в то время как основной сферой использования RGB и Taro являются взаимозаменяемые токены, поэтому пользовательский опыт для надписей, скорее всего, будет более простым и отточенным, чем пользовательский опыт для NFT RGB и Taro.
+
+RGB и Taro хранят off-chain контент, что требует дополнительной инфраструктуры и может быть утеряно. В отличие от них, содержимое надписей хранится on-chain и не может быть потеряно.
+
+Ordinal theory, RGB и Taro находятся на очень ранних стадиях развития, поэтому это лишь предположение, но то, что ordinal theory уделяет больше внимания цифровым артефактам, может дать ей преимущество в плане возможностей для них, включая лучшую модель контента и такие возможности, как глобально уникальные символы.
+
+### Активы Counterparty?
+
+У Counterparty есть собственный токен XCP, который необходим для работы с некоторыми функциями, что заставляет большинство bitcoiners рассматривать его как альткоин, а не как расширение или второй уровень биткоина.
+
+Ordinal theory была разработана с нуля для цифровых артефактов, в то время как Counterparty в первую очередь предназначалась для выпуска финансовых токенов.
+
+## Надписи для…
+
+### Художников
+
+_Надписи на Bitcoin._ Bitcoin - это цифровая валюта с самым высоким статусом и наибольшими шансами на долгосрочное выживание. Если вы хотите гарантировать, что ваше искусство сохранится в будущем, нет лучшего способа опубликовать его, чем в виде надписей.
+
+_Более дешевое on-chain хранение._ При цене $20 000 за BTC и минимальной комиссии за ретрансляцию в размере 1 сатоши за один байт публикация on-chain контента обходится в $50 за 1 млн байт.
+
+_Надписи все еще являются ранними!_ Надписи находятся в стадии разработки и еще не запущены в основной сети. Это дает вам возможность стать ранним последователем и изучать среду по мере ее развития.
+
+_Надписи просты._ Надписи не требуют написания или понимания смарт-контрактов.
+
+_Надписи открывают новую ликвидность._ Надписи становятся более доступными и привлекательными для держателей биткоинов, открывая совершенно новый класс коллекционеров.
+
+_Надписи предназначены для цифровых артефактов._ Надписи разработаны с нуля для поддержки NFT, имеют улучшенную модель данных, а также такие функции, как глобально уникальные символы и улучшенное подтверждение подлинности.
+
+_Надписи не поддерживают on-chain роялти._ Это негативный момент, но только в зависимости от того, как на него посмотреть. On-chain роялти стали благом для создателей, но в то же время внесли огромную путаницу в экосистему NFT на Ethereum. В настоящее время экосистема решает эту проблему и участвует в гонке на понижение, стремясь к будущему без роялти. Надписи не поддерживают on-chain роялти, поскольку это технически неосуществимо. Если вы решите создавать надписи, есть много способов обойти это ограничение: придержать часть надписей для будущей продажи, чтобы получить выгоду от будущего роста стоимости, или, возможно, предложить привилегии для пользователей, соблюдающих необязательные роялти.
+
+### Коллекционеры
+
+_Надписи просты, понятны и не содержат сюрпризов._ Они всегда неизменны и находятсяon-chain, не требуя специальной проверки.
+
+_Надписи находятся на Bitcoin._ Вы можете легко проверить местоположение и свойства надписей с помощью Bitcoin fill node, который вы контролируете.
+
+### Bitcoiners
+
+Начну этот раздел с того, что самое главное, что делает сеть Bitcoin, - это децентрализация денег. Все остальные варианты использования, в том числе и ordinal theory, являются вторичными. Разработчики ordinal theory понимают и признают это, и считают, что ordinal theory хотя бы в малой степени способствует выполнению основной миссии Биткойна.
+
+В отличие от многих других вещей в альткоин пространстве, цифровые артефакты имеют свои достоинства. Конечно, существует огромное количество NFT, которые являются уродливыми, глупыми и мошенническими. Однако есть и множество фантастически креативных, а создание и коллекционирование произведений искусства было частью истории человечества с момента его зарождения и предшествовало даже торговле и деньгам, которые также являются древними технологиями.
+
+Bitcoin предоставляет потрясающую платформу для создания и сбора цифровых артефактов безопасным, децентрализованным способом, который защищает пользователей и художников точно так же, как и платформа для отправки и получения ценностей, и по всем тем же причинам.
+
+Ordinals и надписи увеличивают спрос на место в блоке Bitcoin, что увеличивает бюджет Bitcoin безопасности, который крайне важен для обеспечения перехода Bitcoin на платно-зависимую модель безопасности, так как субсидия на блок сокращается вдвое и становится незначительной.
+
+Содержимое надписей хранится on-chain, и поэтому спрос на блокчейн для использования в надписях неограничен. Это создает покупателя последней инстанции для _всего_ блокчейна Bitcoin. Это поможет поддержать надежный рынок вознаграждений, что обеспечит безопасность биткойна.
+
+Надписи также противостоят утверждению, что Bitcoin не может быть расширен или использован для новых целей. Если вы следите за такими проектами, как DLCs, Fedimint, Lightning, Taro и RGB, вы знаете, что это утверждение неверно, но надписи предоставляют контраргумент, который легко понять, и который нацелен на популярный и проверенный пример использования - NFT, что делает его весьма наглядным.
+
+Если надписи, как надеются авторы, окажутся востребованными цифровыми артефактами с богатой историей, они послужат мощным крючком для внедрения Bitcoin: приходите за интересным, богатым искусством, оставайтесь за децентрализованными цифровыми деньгами.
+
+Надписи - это исключительно доброкачественный источник спроса на блокчейн. В отличие, например, от стабильных монеток, которые потенциально дают крупным эмитентам стабильных монеток возможность влиять на будущее развитие Биткоина, или DeFi, которые могут централизовать майнинг, создавая возможности для MEV, цифровое искусство и коллекционные предметы на Биткоине вряд ли приведут к появлению отдельных субъектов, обладающих достаточной властью, чтобы коррумпировать Биткоин. Искусство децентрализовано.
+
+Пользователи надписей и поставщики услуг получают стимул запускать Bitcoin full nodes, публиковать и отслеживать надписи и тем самым поддерживать честную цепочку своим экономическим весом.
+
+Ordinal theory и надписи не оказывают существенного влияния на взаимозаменяемость Биткоина. Пользователи Биткоина могут игнорировать и то, и другое, и это их не затронет.
+
+Мы надеемся, что ordinal theory укрепит и обогатит Биткоин, придаст ему еще одно измерение привлекательности и функциональности, это позволит ему более эффективно выполнять свою основную функцию децентрализованного хранилища ценностей человечества.</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="Вклад-в-развитие-ord"><a class="header" href="#Вклад-в-развитие-ord">Вклад в развитие <code>ord</code></a></h1>
+<h2 id="Предлагаемые-шаги"><a class="header" href="#Предлагаемые-шаги">Предлагаемые шаги</a></h2>
+<ol>
+<li>Найдите проблему, над которой вы хотите поработать.</li>
+<li>Определите, что будет хорошим первым шагом к решению проблемы. Это может быть в форме кода, исследование, коммерческое предложение или предложение закрыть проблему, если она устарела или вообще не является хорошей идеей.</li>
+<li>Прокомментируйте проблему, изложив в общих чертах свой первый шаг, и попросите откликнуться. Конечно, можно сразу же приступить к написанию кода или тестов, но это позволит избежать потенциально напрасных усилий, если проблема устарела, нечетко сформулирована, заблокирована на чем-то другом или иным образом не готова к реализации.</li>
+<li>Если проблема требует изменения кода или исправления ошибки, откройте PR проект с тестами и попросите высказать свое мнение. Это позволит убедиться, что все согласны с тем, что нужно сделать, или с тем, каким должен быть первый шаг в решении проблемы. Кроме того, поскольку тесты необходимы, написание тестов вначале позволяет легко убедиться в том, что изменение можно легко протестировать.</li>
+<li>Нажимайте на клавиатуру в произвольном порядке, пока тесты не пройдут, и дорабатывайте код до тех пор, пока он не будет готов к отправке.</li>
+<li>Пометьте PR как готовый к рассмотрению.</li>
+<li>Пересмотрите PR по мере необходимости.</li>
+<li>И, наконец, слияние!</li>
+</ol>
+<h2 id="Начните-с-малого"><a class="header" href="#Начните-с-малого">Начните с малого</a></h2>
+<p>Небольшие изменения позволят вам быстро добиться результата, а если вы выберете неверный путь, то не потеряете много времени.</p>
+<p>Идеи для решения мелких проблем:</p>
+<ul>
+<li>Добавление нового теста или тестового случая, увеличивающего площадь покрытия теста</li>
+<li>Добавление или улучшение документации</li>
+<li>Найдите проблему, которая нуждается в дополнительном исследовании, проведите это исследование и обобщите его в комментарии</li>
+<li>Найти устаревший вопрос и прокомментировать, что его можно закрыть</li>
+<li>Найдите проблему, которую не следует решать, и предоставьте конструктивный фидбек, подробно объяснив, почему вы так считаете</li>
+</ul>
+<h2 id="Слияние-на-ранней-стадии-и-часто"><a class="header" href="#Слияние-на-ранней-стадии-и-часто">Слияние на ранней стадии и часто</a></h2>
+<p>Разбивайте большие задачи на множество мелких шагов, которые по отдельности обеспечивают прогресс. Если есть ошибка, можно открыть PR с добавлением игнорируемого теста. Он может быть объединен, и следующим шагом может быть исправление ошибки и снятие игнорирования теста. Проведите исследование или тестирование и сообщите о результатах. Разбейте функцию на небольшие подфункции и реализуйте их по одной.</p>
+<p>Понять, как разбить большой PR на более мелкие, чтобы каждый из них можно было объединить, - это целое искусство, которым стоит заниматься. Сложность заключается в том, что каждый PR должен сам по себе быть улучшением.</p>
+<p>Я и сам стараюсь следовать этому совету и всегда чувствую себя лучше.</p>
+<p>Небольшие изменения быстро пишутся, рецензируются и объединяются, что гораздо интереснее, чем трудиться над одним огромным PR, на написание, рецензирование и объединение которого уходит целая вечность. Небольшие изменения не занимают много времени, поэтому, если вам нужно прекратить работу над небольшим изменением, вы не потеряете много времени, по сравнению с большим изменением, которое представляет собой многочасовую работу. Быстрое внесение PR улучшает проект сразу же, вместо того чтобы долго ждать более значительных улучшений. Небольшие изменения с меньшей вероятностью приведут к конфликту в процессе слияния. Как говорили Афиняне: <em>Быстрые фиксируют то, что хотят, медленные сливают то, что должны.</em></p>
+<h2 id="Обратиться-за-помощью"><a class="header" href="#Обратиться-за-помощью">Обратиться за помощью</a></h2>
+<p>Если вы застряли более чем на 15 минут, попросите помощи, например, в Rust Discord, Stack Exchange или в чате обсуждения проекта.</p>
+<h2 id="Практика-отладки-основанной-на-гипотезах"><a class="header" href="#Практика-отладки-основанной-на-гипотезах">Практика отладки, основанной на гипотезах</a></h2>
+<p>Сформулируйте гипотезу о том, что является причиной проблемы. Придумайте, как проверить эту гипотезу. Проведите тестирование. Если она работает, то вы устранили проблему или теперь знаете, как ее устранить. Если нет, повторите тест с новой гипотезой.</p>
+<h2 id="Обращайте-внимание-на-сообщения-об-ошибке"><a class="header" href="#Обращайте-внимание-на-сообщения-об-ошибке">Обращайте внимание на сообщения об ошибке</a></h2>
+<p>Читайте все сообщения об ошибке и не миритесь с предупреждениями.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="Пожертвование"><a class="header" href="#Пожертвование">Пожертвование</a></h1>
+<p>Ordinals имеет открытый исходный код и финансируется сообществом. В настоящее время ведущий специалист по сопровождению <code>ord</code> это <a href="https://github.com/raphjaph/">raphjaph</a>. Работа Рафа над <code>ord</code> полностью финансируется за счет пожертвований. Если вы можете, пожалуйста, рассмотрите возможность пожертвования!</p>
+<p>Адрес для пожертвований в Bitcoin <a href="https://mempool.space/address/bc1q8kt9pyd6r27k2840l8g5d7zshz3cg9v6rfda0m248lva3ve5072q3sxelt">bc1q8kt9pyd6r27k2840l8g5d7zshz3cg9v6rfda0m248lva3ve5072q3sxelt</a>. Адрес для пожертвований в виде надписей <a href="https://mempool.space/address/bc1qn3map8m9hmk5jyqdkkwlwvt335g94zvxwd9aql7q3vdkdw9r5eyqvlvec0">bc1qn3map8m9hmk5jyqdkkwlwvt335g94zvxwd9aql7q3vdkdw9r5eyqvlvec0</a>.</p>
+<p>Оба адреса находятся в 2 из 4 мультисиг кошельке, ключи от которого принадлежат <a href="https://twitter.com/raphjaph">raphjaph</a>, <a href="https://twitter.com/realizingerin">erin</a>, <a href="https://twitter.com/rodarmor">rodarmor</a>, и <a href="https://twitter.com/veryordinally">ordinally</a>.</p>
+<p>Полученные пожертвования пойдут на поддержание и развитие <code>ord</code>, а также на оплату хостинга для <a href="https://ordinals.com">ordinals.com</a>.</p>
+<p>Благодарим Вас за пожертвование!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="Руководство-по-ordinal-theory"><a class="header" href="#Руководство-по-ordinal-theory">Руководство по ordinal theory</a></h1>
+<p>Список руководств приведен в оглавлении, включая руководство для обозревателя, руководство для охотников на sat и руководство по надписям.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-обозреватель"><a class="header" href="#ordinal-обозреватель">Ordinal обозреватель</a></h1>
+<p>Двоичный код <code>ord</code> включает в себя обозреватель блоков. Мы размещаем экземпляр обозревателя блоков в mainnet по адресу <a href="https://ordinals.com">ordinals.com</a>, и в signet по адресу <a href="https://signet.ordinals.com">signet.ordinals.com</a>.</p>
+<h3 id="Запуск-обозревателя"><a class="header" href="#Запуск-обозревателя">Запуск обозревателя</a></h3>
+<p>Сервер может быть запущен локально с помощью команды:</p>
+<p><code>ord server</code></p>
+<p>Для указания порта добавьте <code>--http-port</code> flag:</p>
+<p><code>ord server --http-port 8080</code></p>
+<p>To enable the JSON-API endpoints add the <code>--enable-json-api</code> or <code>-j</code> flag (see <a href="guides/explorer.html#json-api">here</a> for more info):</p>
+<p>ord --enable-json-api server</p>
+<p>Чтобы проверить, как будут выглядеть ваши надписи, вы можете запустить:</p>
+<p><code>ord preview &lt;FILE1&gt; &lt;FILE2&gt; ...</code></p>
+<h2 id="Поиск"><a class="header" href="#Поиск">Поиск</a></h2>
+<p>Поле поиска принимает различные представления объектов.</p>
+<h3 id="Блоки"><a class="header" href="#Блоки">Блоки</a></h3>
+<p>Блоки можно искать по хэшу, например, блок genesis:</p>
+<p><a href="https://ordinals.com/search/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f">000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</a></p>
+<h3 id="Транзакции"><a class="header" href="#Транзакции">Транзакции</a></h3>
+<p>Транзакции можно искать по хэшу, например, транзакция coinbase на блоке genesis:</p>
+<p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b</a></p>
+<h3 id="Выходы"><a class="header" href="#Выходы">Выходы</a></h3>
+<p>Выходы транзакций могут искаться по выходной точке, например, единственный выход транзакции coinbase на блоке genesis:</p>
+<p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</a></p>
+<h3 id="sats"><a class="header" href="#sats">Sats</a></h3>
+<p>Sats можно искать по целому числу, по их положению во всем запасе Биткоинов:</p>
+<p><a href="https://ordinals.com/search/2099994106992659">2099994106992659</a></p>
+<p>По десятичному числу - по блоку и смещению внутри блока:</p>
+<p><a href="https://ordinals.com/search/481824.0">481824.0</a></p>
+<p>По степени, их циклу, блокам с момента последнего халвинга, блокам с момента последней корректировки сложности и смещению внутри их блока:</p>
+<p><a href="https://ordinals.com/search/1%C2%B00%E2%80%B20%E2%80%B30%E2%80%B4">1°0′0″0‴</a></p>
+<p>По названию, их базовое представление 26 с использованием букв от &quot;a&quot; до &quot;z&quot;:</p>
+<p><a href="https://ordinals.com/search/ahistorical">внеисторический</a></p>
+<p>Или по процентному соотношению - процент от количества Биткоинов, которые были или будут выпущены при их майнинге:</p>
+<p><a href="https://ordinals.com/search/100%">100%</a></p>
+<h2 id="json-api"><a class="header" href="#json-api">JSON-API</a></h2>
+<p>You can run <code>ord</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of theses objects closely follows what is shown in the HTML. These endpoints are:</p>
+<ul>
+<li><code>/inscription/&lt;INSCRIPTION_ID&gt;</code></li>
+<li><code>/inscriptions</code></li>
+<li><code>/inscriptions/block/&lt;BLOCK_HEIGHT&gt;</code></li>
+<li><code>/inscriptions/block/&lt;BLOCK_HEIGHT&gt;/&lt;PAGE_INDEX&gt;</code></li>
+<li><code>/inscriptions/&lt;FROM&gt;</code></li>
+<li><code>/inscriptions/&lt;FROM&gt;/&lt;N&gt;</code></li>
+<li><code>/output/&lt;OUTPOINT&gt;</code></li>
+<li><code>/output/&lt;OUTPOINT&gt;</code></li>
+<li><code>/sat/&lt;SAT&gt;</code></li>
+</ul>
+<p>To get a list of the latest 100 inscriptions you would do:</p>
+<pre><code>curl -s -H &quot;Accept: application/json&quot; 'http://0.0.0.0:80/inscriptions'
+</code></pre>
+<p>To see information about a UTXO, which includes inscriptions inside it, do:</p>
+<pre><code>curl -s -H &quot;Accept: application/json&quot; 'http://0.0.0.0:80/output/bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0'
+</code></pre>
+<p>Which returns:</p>
+<pre><code>{
+  &quot;value&quot;: 10000,
+  &quot;script_pubkey&quot;: &quot;OP_PUSHNUM_1 OP_PUSHBYTES_32 156cc4878306157720607cdcb4b32afa4cc6853868458d7258b907112e5a434b&quot;,
+  &quot;address&quot;: &quot;bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf&quot;,
+  &quot;transaction&quot;: &quot;bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed&quot;,
+  &quot;sat_ranges&quot;: null,
+  &quot;inscriptions&quot;: [
+    &quot;6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0&quot;
+  ]
+}
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="Руководство-по-надписям-ordinal"><a class="header" href="#Руководство-по-надписям-ordinal">Руководство по надписям ordinal</a></h1>
+<p>На отдельные sats можно наносить надписи с произвольным содержанием, создавая цифровые артефакты, основанные на Биткоинах, которые можно хранить в биткоин-кошельке и передавать с помощью биткоин-транзакций. Надписи столь же долговечны, неизменяемы, безопасны и децентрализованы, как и сам Биткоин.</p>
+<p>Для работы с надписями требуется Bitcoin full node, позволяющий видеть текущее состояние блокчейна Bitcoin, и кошелек, способный создавать надписи и осуществлять sat контроль при построении транзакций для отправки надписей на другой кошелек.</p>
+<p>Bitcoin Core предоставляет как Bitcoin full node, так и кошелек. Однако кошелек Bitcoin Core не может создавать надписи и не осуществляет sat контроль.</p>
+<p>Для этого требуется <a href="https://github.com/ordinals/ord"><code>ord</code></a>, ordinal utility. <code>ord</code> не реализует собственный кошелек, поэтому подкоманды <code>ord wallet</code> взаимодействуют с кошельками Bitcoin Core.</p>
+<p>В этом руководстве рассматриваются:</p>
+<ol>
+<li>Установка Bitcoin Core</li>
+<li>Синхронизация блокчейна Bitcoin</li>
+<li>Создание кошелька Bitcoin Core</li>
+<li>Использование <code>ord wallet receive</code> для получения sats</li>
+<li>Создание надписей с помощью <code>ord wallet inscribe</code></li>
+<li>Отправка надписей с помощью <code>ord wallet send</code></li>
+<li>Получение надписей с помощью <code>ord wallet receive</code></li>
+</ol>
+<h2 id="Получение-помощи"><a class="header" href="#Получение-помощи">Получение помощи</a></h2>
+<p>Если вы застряли, попробуйте обратиться за помощью к <a href="https://discord.com/invite/87cjuz4FYg">Ordinals Discord Server</a>, или проверить GitHub на наличие <a href="https://github.com/ordinals/ord/issues">проблем</a> и для <a href="https://github.com/ordinals/ord/discussions">обсуждений</a>.</p>
+<h2 id="Установка-bitcoin-core"><a class="header" href="#Установка-bitcoin-core">Установка Bitcoin Core</a></h2>
+<p>Установка Bitcoin Core доступна на сайте <a href="https://bitcoincore.org/">bitcoincore.org</a> на <a href="https://bitcoincore.org/en/download/">странице загрузки</a>.</p>
+<p>Для создания надписей требуется Bitcoin Core 24 или новее.</p>
+<p>This guide does not cover installing Bitcoin Core in detail. Once Bitcoin Core is installed, you should be able to run <code>bitcoind -version</code> successfully from the command line. Do <em>NOT</em> use <code>bitcoin-qt</code>.</p>
+<h2 id="Настройка-bitcoin-core"><a class="header" href="#Настройка-bitcoin-core">Настройка Bitcoin Core</a></h2>
+<p><code>ord</code> requires Bitcoin Core's transaction index and rest interface.</p>
+<p>Чтобы настроить Bitcoin Core node на ведение индекса транзакций, добавьте следующее в <code>bitcoin.conf</code>:</p>
+<pre><code>txindex=1
+</code></pre>
+<p>Или запустите <code>bitcoind</code> с помощью <code>-txindex</code>:</p>
+<pre><code>bitcoind -txindex
+</code></pre>
+<p>Details on creating or modifying your <code>bitcoin.conf</code> file can be found <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md">here</a>.</p>
+<h2 id="Синхронизация-блокчейна-bitcoin"><a class="header" href="#Синхронизация-блокчейна-bitcoin">Синхронизация блокчейна Bitcoin</a></h2>
+<p>Чтобы синхронизировать сеть, выполните команду:</p>
+<pre><code>bitcoind -txindex
+</code></pre>
+<p>...и оставьте его запущенным до получения <code>getblockcount</code>:</p>
+<pre><code>bitcoin-cli getblockcount
+</code></pre>
+<p>совпадает с количеством блоков в обозревателе блоков, например <a href="https://mempool.space/">в mempool.space block explorer</a>. <code>ord</code> взаимодействует с <code>bitcoind</code>, поэтому вы должны оставить<code>bitcoind</code> включенным в фоновом режиме, пока используете <code>ord</code>.</p>
+<p>The blockchain takes about 600GB of disk space. If you have an external drive you want to store blocks on, use the configuration option <code>blocksdir=&lt;external_drive_path&gt;</code>. This is much simpler than using the <code>datadir</code> option because the cookie file will still be in the default location for <code>bitcoin-cli</code> and <code>ord</code> to find.</p>
+<h2 id="Устранение-проблем"><a class="header" href="#Устранение-проблем">Устранение проблем</a></h2>
+<p>Make sure you can access <code>bitcoind</code> with <code>bitcoin-cli -getinfo</code> and that it is fully synced.</p>
+<p>If <code>bitcoin-cli -getinfo</code> returns <code>Could not connect to the server</code>, <code>bitcoind</code> is not running.</p>
+<p>Make sure <code>rpcuser</code>, <code>rpcpassword</code>, or <code>rpcauth</code> are <em>NOT</em> set in your <code>bitcoin.conf</code> file. <code>ord</code> requires using cookie authentication. Make sure there is a file <code>.cookie</code> in your bitcoin data directory.</p>
+<p>If <code>bitcoin-cli -getinfo</code> returns <code>Could not locate RPC credentials</code>, then you must specify the cookie file location. If you are using a custom data directory (specifying the <code>datadir</code> option), then you must specify the cookie location like <code>bitcoin-cli -rpccookiefile=&lt;your_bitcoin_datadir&gt;/.cookie -getinfo</code>. When running <code>ord</code> you must specify the cookie file location with <code>--cookie-file=&lt;your_bitcoin_datadir&gt;/.cookie</code>.</p>
+<p>Make sure you do <em>NOT</em> have <code>disablewallet=1</code> in your <code>bitcoin.conf</code> file. If <code>bitcoin-cli listwallets</code> returns <code>Method not found</code> then the wallet is disabled and you won't be able to use <code>ord</code>.</p>
+<p>Make sure <code>txindex=1</code> is set. Run <code>bitcoin-cli getindexinfo</code> and it should return something like</p>
+<pre><code class="language-json">{
+  &quot;txindex&quot;: {
+    &quot;synced&quot;: true,
+    &quot;best_block_height&quot;: 776546
+  }
+}
+</code></pre>
+<p>If it only returns <code>{}</code>, <code>txindex</code> is not set. If it returns <code>&quot;synced&quot;: false</code>, <code>bitcoind</code> is still creating the <code>txindex</code>. Wait until <code>&quot;synced&quot;: true</code> before using <code>ord</code>.</p>
+<p>If you have <code>maxuploadtarget</code> set it can interfere with fetching blocks for <code>ord</code> index. Either remove it or set <code>whitebind=127.0.0.1:8333</code>.</p>
+<h2 id="Установка-ord"><a class="header" href="#Установка-ord">Установка <code>ord</code></a></h2>
+<p><code>ord</code> написана на языке Rust и может быть собрана из <a href="https://github.com/ordinals/ord">исходного кода</a>. Предварительно собранные бинарные файлы доступны на <a href="https://github.com/ordinals/ord/releases">странице релизов</a>.</p>
+<p>Вы можете установить последний предварительно собранный двоичный файл из командной строки с помощью команды:</p>
+<pre><code class="language-sh">curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash -s
+</code></pre>
+<p>После установки <code>ord</code> вы сможете выполнить команду:</p>
+<pre><code>ord --version
+</code></pre>
+<p>В результате которой будет выведен номер версии <code>ord</code>.</p>
+<h2 id="Создание-кошелька-bitcoin-core"><a class="header" href="#Создание-кошелька-bitcoin-core">Создание кошелька Bitcoin Core</a></h2>
+<p>Для управления закрытыми ключами, подписания транзакций и трансляции транзакций в сеть Биткоин, в <code>ord</code> используется Bitcoin Core.</p>
+<p>Чтобы создать кошелек Bitcoin Core с именем <code>ord</code> для использования с <code>ord</code>, выполните команду:</p>
+<pre><code>ord wallet create
+</code></pre>
+<h2 id="Получение-sats"><a class="header" href="#Получение-sats">Получение sats</a></h2>
+<p>Надписи делаются на отдельных sats с использованием обычных Биткоин-транзакций, комиссии которых оплачиваются в sats, поэтому вашему кошельку потребуется некоторое количество sats.</p>
+<p>Получите новый адрес из кошелька <code>ord</code>, выполнив команду:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>И отправьте на него немного средств.</p>
+<p>Вы можете посмотреть ожидающие транзакции, выполнив команду:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>Как только транзакция подтвердится, вы сможете увидеть выходные данные транзакций с помощью команды <code>ord wallet outputs</code>.</p>
+<h2 id="Создание-контента-для-надписи"><a class="header" href="#Создание-контента-для-надписи">Создание контента для надписи</a></h2>
+<p>Sats могут содержать любые надписи, но кошелек <code>ord</code> поддерживает только те типы надписей, которые могут быть отображены в проводнике блоков <code>ord</code>.</p>
+<p>Кроме того, надписи включаются в транзакции, поэтому чем больше содержимое, тем выше комиссия за транзакцию с надписью.</p>
+<p>Содержание надписи входит в состав свидетелей транзакций, которые получают льготу свидетеля. Чтобы рассчитать приблизительную комиссию, которую заплатит транзакция inscribe, разделите размер надписи на четыре и умножьте на размер комиссии.</p>
+<p>Транзакции с надписями должны быть менее 400 000 весовых единиц, иначе они не будут переданы Bitcoin Core. Один байт содержимого надписи стоит одну весовую единицу. Поскольку транзакция с надписью включает в себя не только содержимое надписи, ограничьте размер транзакции с надписью до менее чем 400 000 весовых единиц. 390 000 весовых единиц должно быть безопасно.</p>
+<h2 id="Создание-надписей"><a class="header" href="#Создание-надписей">Создание надписей</a></h2>
+<p>Чтобы создать надпись с контентом <code>FILE</code>, выполните команду:</p>
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE FILE
+</code></pre>
+<p>Ord выдаст два ID транзакций, один для транзакции commit, другой для транзакции reveal, а также ID надписи. ID надписей имеют вид <code>TXIDiN</code>, где <code>TXID</code> - ID транзакции reveal, а N - индекс надписи в транзакции reveal.</p>
+<p>Транзакция commit фиксирует tapscript, содержащий содержимое надписи, а транзакция reveal использует этот tapscript, раскрывая содержимое по цепочке и прописывая его на первом sat ввода, содержащем соответствующий tapscript.</p>
+<p>Дождитесь, пока транзакция reveal будет добыта. Проверить статус транзакций commit и reveal можно с помощью <a href="https://mempool.space/">mempool.space block explorer</a>.</p>
+<p>После того как транзакция reveal будет добыта, при запуске должен быть выведен ID надписи:</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+<h2 id="parent-child-inscriptions"><a class="header" href="#parent-child-inscriptions">Parent-Child Inscriptions</a></h2>
+<p>Parent-child inscriptions enable what is colloquially known as collections, see <a href="guides/../inscriptions/provenance.html">provenance</a> for more information.</p>
+<p>To make an inscription a child of another, the parent inscription has to be inscribed and present in the wallet. To choose a parent run <code>ord wallet inscriptions</code> and copy the inscription id (<code>&lt;PARENT_INSCRIPTION_ID&gt;</code>).</p>
+<p>Now inscribe the child inscription and specify the parent like so:</p>
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; CHILD_FILE
+</code></pre>
+<p>This relationship cannot be added retroactively, the parent has to be present at inception of the child.</p>
+<h2 id="Отправка-надписей"><a class="header" href="#Отправка-надписей">Отправка надписей</a></h2>
+<p>Попросите получателя сгенерировать новый адрес, выполнив команду:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>Отправьте надпись запуском команды:</p>
+<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; &lt;ADDRESS&gt; &lt;INSCRIPTION_ID&gt;
+</code></pre>
+<p>Посмотреть транзакцию, находящуюся в ожидании, можно с помощью команды:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>Как только транзакция отправки подтвердится, получатель может подтвердить получение, выполнив команду:</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+<h2 id="Получение-надписей"><a class="header" href="#Получение-надписей">Получение надписей</a></h2>
+<p>Сгенерируйте новый адрес получения с помощью команды:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>Отправитель может передать надпись на ваш адрес с помощью:</p>
+<pre><code>ord wallet send ADDRESS INSCRIPTION_ID
+</code></pre>
+<p>Посмотреть транзакцию, находящуюся в ожидании, можно с помощью команды:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>После подтверждения транзакции отправки вы можете подтвердить ее получение, выполнив команду:</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="Охота-на-сатоши"><a class="header" href="#Охота-на-сатоши">Охота на сатоши</a></h1>
+<p><em>Данное руководство устарело. С момента его написания бинарник <code>ord</code> был изменен таким образом, чтобы собирать полный индекс сатоши только при наличии флага <code>--index-sats</code>. Кроме того, <code>ord</code> теперь имеет встроенный кошелек, который оборачивает кошелек Bitcoin Core. Смотрите раздел <code>ord wallet --help</code>.</em></p>
+<p>Охота на ordinal - трудное, но вознаграждаемое занятие. Ощущения от обладания кошельком, полным UTXO, наполненным ароматом редких и экзотических сатов, вне сравнения.</p>
+<p>Ordinals - это числа для сатоши. Каждый сатоши имеет порядковый номер, а каждый порядковый номер имеет свой сатоши.</p>
+<h2 id="Подготовка"><a class="header" href="#Подготовка">Подготовка</a></h2>
+<p>Перед началом работы вам потребуется несколько вещей.</p>
+<ol>
+<li>
+<p>Во-первых, вам потребуется синхронизированный Bitcoin Core node с индексом транзакций. Чтобы включить индексирование транзакций, передайте в командной строке команду <code>-txindex</code>:</p>
+<pre><code class="language-sh">bitcoind -txindex
+</code></pre>
+<p>Или поместите в <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md#configuration-file-path">файл конфигурации Bitcoin</a>:</p>
+<pre><code>txindex=1
+</code></pre>
+<p>Запустите его и дождитесь, пока он догонит вершину цепи, после чего следующая команда должна вывести текущую высоту блока:</p>
+<pre><code class="language-sh">bitcoin-cli getblockcount
+</code></pre>
+</li>
+<li>
+<p>Во-вторых, вам понадобится синхронизированный индекс <code>ord</code>.</p>
+<ul>
+<li>
+<p>Получить копию <code>ord</code> из <a href="https://github.com/ordinals/ord/">репозитория</a>.</p>
+</li>
+<li>
+<p>Выполните команду <code>RUST_LOG=info ord index</code>. Он должен подключиться к вашему bitcoin core node и начать индексирование.</p>
+</li>
+<li>
+<p>Дождитесь окончания индексации.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>В-третьих, вам понадобится кошелек с UTXO, которые вы хотите найти.</p>
+</li>
+</ol>
+<h2 id="Поиск-rare-ordinals"><a class="header" href="#Поиск-rare-ordinals">Поиск Rare Ordinals</a></h2>
+<h3 id="Поиск-rare-ordinals-в-bitcoin-core-wallet"><a class="header" href="#Поиск-rare-ordinals-в-bitcoin-core-wallet">Поиск Rare Ordinals в Bitcoin Core Wallet</a></h3>
+<p>Команда <code>ord wallet</code> - это просто обертка вокруг RPC API Bitcoin Core, поэтому найти rare ordinals в Bitcoin Core wallet довольно легко . Предположим, что ваш кошелек имеет имя <code>foo</code>:</p>
+<ol>
+<li>
+<p>Загрузите свой кошелек:</p>
+<pre><code class="language-sh">bitcoin-cli loadwallet foo
+</code></pre>
+</li>
+<li>
+<p>Отображение любых rare ordinals кошелька <code>foo</code> UTXOs:</p>
+<pre><code class="language-sh">ord wallet sats
+</code></pre>
+</li>
+</ol>
+<h3 id="Поиск-rare-ordinals-в-кошельке-не-относящемся-к-bitcoin-core-wallet"><a class="header" href="#Поиск-rare-ordinals-в-кошельке-не-относящемся-к-bitcoin-core-wallet">Поиск Rare Ordinals в кошельке, не относящемся к Bitcoin Core Wallet</a></h3>
+<p>Команда <code>ord wallet</code> является лишь оберткой для RPC API Bitcoin Core, поэтому для поиска rare ordinals в кошельке, не принадлежащем Bitcoin Core wallet, необходимо импортировать дескрипторы кошелька в Bitcoin Core.</p>
+<p><a href="https://github.com/bitcoin/bitcoin/blob/master/doc/descriptors.md">Дескрипторы</a> описывают способы генерации кошельками закрытых и открытых ключей.</p>
+<p>В Bitcoin Core следует импортировать дескрипторы только для открытых ключей кошелька, но не для его закрытых ключей.</p>
+<p>Если дескриптор открытого ключа вашего кошелька будет скомпрометирован, злоумышленник сможет увидеть адреса вашего кошелька, но ваши средства будут в безопасности.</p>
+<p>Если дескриптор закрытого ключа вашего кошелька скомпрометирован, злоумышленник может вывести с него ваши средства.</p>
+<ol>
+<li>
+<p>Получите дескриптор кошелька, в кошельке которого вы хотите искать rare ordinals UTXO. Он будет выглядеть примерно так:</p>
+<pre><code>wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29
+</code></pre>
+</li>
+<li>
+<p>Создайте кошелек с именем <code>foo-watch-only</code>, предназначенный только для просмотра:</p>
+<pre><code class="language-sh">bitcoin-cli createwallet foo-watch-only true true
+</code></pre>
+<p>Не стесняйтесь дать ему более подходящее название, чем <code>foo-watch-only</code>!</p>
+</li>
+<li>
+<p>Загрузите кошелек <code>foo-watch-only</code>:</p>
+<pre><code class="language-sh">bitcoin-cli loadwallet foo-watch-only
+</code></pre>
+</li>
+<li>
+<p>Импортируйте дескрипторы вашего кошелька в <code>foo-watch-only</code>:</p>
+<pre><code class="language-sh">bitcoin-cli importdescriptors \
+  '[{ &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax&quot;, &quot;timestamp&quot;:0 }]'
+</code></pre>
+<p>Если вам известна временная метка Unix, когда ваш кошелек впервые начал принимать транзакции, вы можете использовать ее в качестве значения <code>&quot;timestamp&quot;</code> вместо <code>0</code>. Это позволит сократить время поиска UTXO кошелька для Bitcoin Core.</p>
+</li>
+<li>
+<p>Проверьте, что все работает:</p>
+<pre><code class="language-sh">bitcoin-cli getwalletinfo
+</code></pre>
+</li>
+<li>
+<p>Отображение rare ordinals в кошельке:</p>
+<pre><code class="language-sh">ord wallet sats
+</code></pre>
+</li>
+</ol>
+<h3 id="Поиск-rare-ordinals-в-кошельке-экспортирующем-многопутевые-дескрипторы"><a class="header" href="#Поиск-rare-ordinals-в-кошельке-экспортирующем-многопутевые-дескрипторы">Поиск Rare Ordinals в кошельке, экспортирующем многопутевые дескрипторы</a></h3>
+<p>Некоторые дескрипторы описывают несколько путей в одном дескрипторе с помощью угловых скобок, например,<code>&lt;0;1&gt;</code>. Bitcoin Core пока не поддерживает многопутевые дескрипторы, поэтому сначала их необходимо преобразовать в многопутевые дескрипторы, а затем импортировать эти многопутевые дескрипторы в Bitcoin Core.</p>
+<ol>
+<li>
+<p>Сначала получите многопутевой дескриптор из вашего кошелька. Он будет выглядеть примерно так:</p>
+<pre><code>wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/&lt;0;1&gt;/*)#fw76ulgt
+</code></pre>
+</li>
+<li>
+<p>Создайте дескриптор для пути адреса приема:</p>
+<pre><code>wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)
+</code></pre>
+<p>И путь смены адреса:</p>
+<pre><code>wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)
+</code></pre>
+</li>
+<li>
+<p>Получите и запишите контрольную сумму для дескриптора адреса приема, в данном случае <code>tpnxnxax</code>:</p>
+<pre><code class="language-sh">bitcoin-cli getdescriptorinfo \
+  'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)'
+</code></pre>
+<pre><code class="language-json">{
+  &quot;descriptor&quot;: &quot;wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29&quot;,
+  &quot;checksum&quot;: &quot;tpnxnxax&quot;,
+  &quot;isrange&quot;: true,
+  &quot;issolvable&quot;: true,
+  &quot;hasprivatekeys&quot;: false
+}
+</code></pre>
+<p>И для дескриптора адреса изменения, в данном случае <code>64k8wnd7</code>:</p>
+<pre><code class="language-sh">bitcoin-cli getdescriptorinfo \
+  'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)'
+</code></pre>
+<pre><code class="language-json">{
+  &quot;descriptor&quot;: &quot;wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#fyfc5f6a&quot;,
+  &quot;checksum&quot;: &quot;64k8wnd7&quot;,
+  &quot;isrange&quot;: true,
+  &quot;issolvable&quot;: true,
+  &quot;hasprivatekeys&quot;: false
+}
+</code></pre>
+</li>
+<li>
+<p>Загрузите кошелек, в который вы хотите импортировать дескрипторы:</p>
+<pre><code class="language-sh">bitcoin-cli loadwallet foo-watch-only
+</code></pre>
+</li>
+<li>
+<p>Теперь импортируйте дескрипторы с правильными контрольными суммами в Bitcoin Core.</p>
+<pre><code class="language-sh">bitcoin-cli \
+ importdescriptors \
+ '[
+   {
+     &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax&quot;
+     &quot;timestamp&quot;:0
+   },
+   {
+     &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#64k8wnd7&quot;,
+     &quot;timestamp&quot;:0
+   }
+ ]'
+</code></pre>
+<p>Если вам известна временная метка Unix, когда ваш кошелек впервые начал принимать транзакции, вы можете использовать ее в качестве значения <code>&quot;timestamp&quot;</code> вместо <code>0</code>. Это позволит сократить время поиска UTXO кошелька для Bitcoin Core.</p>
+</li>
+<li>
+<p>Проверьте, что все работает:</p>
+<pre><code class="language-sh">bitcoin-cli getwalletinfo
+</code></pre>
+</li>
+<li>
+<p>Отображение rare ordinals в кошельке:</p>
+<pre><code class="language-sh">ord wallet sats
+</code></pre>
+</li>
+</ol>
+<h3 id="Экспорт-дескрипторов"><a class="header" href="#Экспорт-дескрипторов">Экспорт дескрипторов</a></h3>
+<h4 id="sparrow-wallet"><a class="header" href="#sparrow-wallet">Sparrow Wallet</a></h4>
+<p>Перейдите на вкладку <code>Settings</code>, затем на вкладку <code>Script Policy</code> и нажмите кнопку редактирования для отображения дескриптора.</p>
+<h3 id="Отправка-ordinals"><a class="header" href="#Отправка-ordinals">Отправка Ordinals</a></h3>
+<p>Кошелек <code>ord</code> поддерживает перевод определенных сатоши. Вы также можете использовать команды <code>bitcoin-cli</code> <code>createrawtransaction</code>, <code>signrawtransactionwwallet</code> и <code>sendrawtransaction</code>, но их выполнение является сложным и не входит в рамки данного руководства.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="Коллекционирование"><a class="header" href="#Коллекционирование">Коллекционирование</a></h1>
+<p>В настоящее время, <a href="https://github.com/ordinals/ord/">ord</a> является единственным кошельком, поддерживающим функции sat-control и sat-selection, необходимые для безопасного хранения и отправки редких сатов и надписей, далее ordinals.</p>
+<p>Рекомендуемый способ отправки, получения и хранения ordinals - <code>ord</code>, но если быть осторожным, то можно безопасно хранить, а в некоторых случаях и отправлять ordinals с помощью других кошельков.</p>
+<p>Как правило, получение ordinals на неподдерживаемый кошелек не представляет опасности. Ordinals могут быть отправлены на любой биткоин-адрес и безопасны до тех пор, пока содержащий их UTXO не будет потрачен. Однако если этот кошелек будет использоваться для отправки биткоинов, он может выбрать UTXO, содержащий ordinal, в качестве входного, и отправить надпись или потратить ее на оплату комиссии.</p>
+<p>В <a href="guides/./collecting/sparrow-wallet.html">руководстве</a> содержится информация по созданию <code>ord</code>-совместимого кошелька с <a href="https://sparrowwallet.com/">Sparrow Wallet</a>.</p>
+<p>Обратите внимание, что если вы следуете этому руководству, то не должны использовать созданный вами кошелек для отправки BTC, если только вы не проводите отправку вручную, чтобы избежать отправки ordinals.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="Коллекционирование-надписей-и-ordinals-с-помощью-sparrow-wallet"><a class="header" href="#Коллекционирование-надписей-и-ordinals-с-помощью-sparrow-wallet">Коллекционирование надписей и Ordinals с помощью Sparrow Wallet</a></h1>
+<p>Пользователи, которые не могут или не успели создать кошелек <a href="https://github.com/ordinals/ord">ord</a>, могут получать надписи и ordinals с помощью альтернативных биткоин-кошельков, при условии, что они <em>очень</em> внимательно относятся к тому, как тратят средства с этого кошелька.</p>
+<p>В данном руководстве приведены основные шаги по созданию кошелька с помощью <a href="https://sparrowwallet.com/">Sparrow Wallet</a>, который совместим с <code>ord</code> и может быть впоследствии импортирован в <code>ord</code></p>
+<h2 id="-Внимание-"><a class="header" href="#-Внимание-">⚠️⚠️ Внимание!! ⚠️⚠️</a></h2>
+<p>Как правило, при таком подходе следует использовать этот кошелек с программой Sparrow в качестве кошелька только для приема транзакций.</p>
+<p>Не тратьте сатоши из этого кошелька, если не уверены, что знаете, что делаете. Если вы не прислушаетесь к этому предупреждению, то очень легко можете случайно потерять доступ к своим ordinals и надписям.</p>
+<h2 id="Установка-кошелька-и-получение"><a class="header" href="#Установка-кошелька-и-получение">Установка кошелька и получение</a></h2>
+<p>Загрузите Sparrow Wallet <a href="https://sparrowwallet.com/download/">со страницы</a> для вашей конкретной операционной системы.</p>
+<p>Выберите <code>File -&gt; New Wallet</code> и создайте новый кошелек с названием <code>ord</code>.</p>
+<p><img src="guides/collecting/images/wallet_setup_01.png" alt="" /></p>
+<p>Измените <code>Script Type</code> на <code>Taproot (P2TR)</code> и выберите опцию <code>New or Imported Software Wallet</code>.</p>
+<p><img src="guides/collecting/images/wallet_setup_02.png" alt="" /></p>
+<p>Выберите <code>Use 12 Words</code> и нажмите <code>Generate New</code>. Оставьте блан пароля пустой.</p>
+<p><img src="guides/collecting/images/wallet_setup_03.png" alt="" /></p>
+<p>Для вас будет сгенерирована новая начальная фраза BIP39 из 12 слов. Запишите ее в надежном месте, так как это ваш запасной вариант для получения доступа к кошельку. НИКОГДА не сообщайте и не показывайте эту seed-фразу никому другому.</p>
+<p>После того как вы записали seed-фразу, нажмите кнопку <code>Confirm Backup</code>.</p>
+<p><img src="guides/collecting/images/wallet_setup_04.png" alt="" /></p>
+<p>Вновь введите записанную вами seed-фразу и нажмите кнопку <code>Create Keystore</code>.</p>
+<p><img src="guides/collecting/images/wallet_setup_05.png" alt="" /></p>
+<p>Нажмите кнопку <code>Import Keystore</code>.</p>
+<p><img src="guides/collecting/images/wallet_setup_06.png" alt="" /></p>
+<p>Нажмите кнопку <code>Apply</code>. При необходимости добавьте пароль для кошелька.</p>
+<p><img src="guides/collecting/images/wallet_setup_07.png" alt="" /></p>
+<p>Теперь у вас есть кошелек, который совместим с <code>ord</code> и может быть импортирован в <code>ord</code> с помощью seed-фразы BIP39. Чтобы получить ordinals или надписи, перейдите на вкладку <code>Receive</code> и скопируйте новый адрес.</p>
+<p>Каждый раз для получения необходимо использовать совершенно новый адрес, а не повторно использовать существующие.</p>
+<p>Обратите внимание, что биткоин отличается от некоторых других блокчейн кошельков тем, что этот кошелек может генерировать неограниченное количество новых адресов. Сгенерировать новый адрес можно, нажав на кнопку <code>Get Next Address</code>. Все адреса можно посмотреть на вкладке <code>Addresses</code> приложения.</p>
+<p>К каждому адресу можно добавить лейбл, чтобы отслеживать, для чего он был использован.</p>
+<p><img src="guides/collecting/images/wallet_setup_08.png" alt="" /></p>
+<h2 id="Проверкапросмотр-полученных-надписей"><a class="header" href="#Проверкапросмотр-полученных-надписей">Проверка/просмотр полученных надписей</a></h2>
+<p>После получения надписи вы увидите новую транзакцию на вкладке <code>Transactions</code> в Sparrow, а также новый UTXO на вкладке <code>UTXOs</code>.</p>
+<p>Первоначально эта транзакция может иметь статус &quot;Unconfirmed&quot;, и вам придется подождать, пока она будет добыта в блокчейне биткоина, прежде чем она будет полностью получена.</p>
+<p><img src="guides/collecting/images/validating_viewing_01.png" alt="" /></p>
+<p>Для отслеживания статуса транзакции можно щелкнуть на ней правой кнопкой мыши, выбрать <code>Copy Transaction ID</code> и затем вставить этот ID транзакции в <a href="https://mempool.space">mempool.space</a>.</p>
+<p><img src="guides/collecting/images/validating_viewing_02.png" alt="" /></p>
+<p>После подтверждения транзакции вы можете проверить и просмотреть свою надпись, перейдя на вкладку <code>UTXOs</code>, найдя UTXO, который вы хотите проверить, щелкнув правой кнопкой мыши на <code>Output</code> и выбрав <code>Copy Transaction Output</code>. Затем этот идентификатор транзакционного выхода можно вставить в поиск <a href="https://ordinals.com">ordinals.com</a>.</p>
+<h2 id="Заморозка-utxo"><a class="header" href="#Заморозка-utxo">Заморозка UTXO</a></h2>
+<p>Как объяснялось выше, каждая из ваших надписей хранится в Unspent Transaction Output (UTXO). Вы должны быть очень осторожны, чтобы случайно не потратить свои надписи, и один из способов затруднить это - заморозить UTXO.</p>
+<p>Для этого перейдите на вкладку <code>UTXOs</code>, найдите UTXO, который необходимо заморозить, щелкните правой кнопкой мыши на <code>Output</code> и выберите <code>Freeze UTXO</code>.</p>
+<p>Этот UTXO (Inscription) теперь нельзя расходовать в Sparrow Wallet до тех пор, пока вы его не разморозите.</p>
+<h2 id="Импорт-в-кошелек-ord"><a class="header" href="#Импорт-в-кошелек-ord">Импорт в кошелек <code>ord</code></a></h2>
+<p>Подробнее о настройке Bitcoin Core и кошелька <code>ord</code> читайте в <a href="guides/collecting/../inscriptions.html">руководстве по надписям</a></p>
+<p>При настройке <code>ord</code> вместо того, чтобы запускать команду <code>ord wallet create</code> для создания нового кошелька, можно импортировать существующий кошелек с помощью команды <code>ord wallet restore &quot;BIP39 SEED PHRASE&quot;</code>, используя seed-фразу, созданную с помощью Sparrow Wallet.</p>
+<p>В настоящее время существует <a href="https://github.com/ordinals/ord/issues/1589">ошибка</a> из-за которой импортированный кошелек не может быть автоматически пересканирован на блокчейн. Чтобы решить эту проблему, необходимо вручную запустить повторное сканирование с помощью программы bitcoin core cli: <code>bitcoin-cli -rpcwallet=ord rescanblockchain 767430</code></p>
+<p>Затем вы можете проверить количество надписей в кошельке, используя команду <code>ord wallet inscriptions</code></p>
+<p>Обратите внимание, что если вы ранее создали кошелек с помощью <code>ord</code>, то у вас уже будет кошелек с именем по умолчанию, и вам необходимо будет дать импортируемому кошельку другое имя. Для ссылки на другой кошелек можно использовать параметр <code>--wallet</code> во всех командах <code>ord</code>, например:</p>
+<p><code>ord --wallet ord_from_sparrow wallet restore &quot;BIP39 SEED PHRASE&quot;</code></p>
+<p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
+<p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
+<h2 id="Отправка-надписей-с-помощью-sparrow-wallet"><a class="header" href="#Отправка-надписей-с-помощью-sparrow-wallet">Отправка надписей с помощью Sparrow Wallet</a></h2>
+<h4 id="-Внимание--1"><a class="header" href="#-Внимание--1">⚠️⚠️ Внимание ⚠️⚠️</a></h4>
+<p>Хотя настоятельно рекомендуется установить bitcoin core node и запустить программное обеспечение <code>ord</code>, существуют некоторые ограниченные способы безопасной отправки надписей из Sparrow Wallet. Обратите внимание, что делать это не рекомендуется и следует только в том случае, если вы полностью понимаете, что делаете.</p>
+<p>Использование программы <code>ord</code> устранит большую часть сложностей, которые мы здесь описываем, поскольку она способна автоматически и безопасно обрабатывать отправку надписей в простой форме.</p>
+<h4 id="-Дополнительное-предупреждение-"><a class="header" href="#-Дополнительное-предупреждение-">⚠️⚠️ Дополнительное предупреждение ⚠️⚠️</a></h4>
+<p>Не используйте свой sparrow inscriptions wallet для общей отправки биткоинов. Вы можете создать отдельный кошелек в Sparrow, если вам нужно совершать обычные транзакции с биткойнами, и держать кошелек для надписей отдельно.</p>
+<h4 id="Модель-utxo-биткоина"><a class="header" href="#Модель-utxo-биткоина">Модель UTXO биткоина</a></h4>
+<p>Перед отправкой любой транзакции важно хорошо представлять себе систему вывода Unspent Transaction Output (UTXO) в биткоине. Принцип работы биткоина фундаментально отличается от многих других блокчейнов, таких как Ethereum. В Ethereum, как правило, у вас есть один адрес, на котором вы храните ETH, и вы не можете различать ни один из ETH - все они просто представляют собой единое значение общей суммы, находящейся на этом адресе. Биткоин работает совсем по-другому: для каждого приема мы генерируем новый адрес в кошельке, и каждый раз, когда вы получаете саты на адрес в кошельке, вы создаете новый UTXO. Каждый UTXO можно видеть и управлять им индивидуально. Вы можете выбрать конкретные UTXO, которые хотите потратить, и не тратить определенные UTXO.</p>
+<p>Некоторые биткоин-кошельки не предоставляют такой детализации, а просто показывают суммарное значение всех биткоинов в кошельке. Однако при отправке надписей важно использовать такой кошелек, как Sparrow, который позволяет контролировать UTXO.</p>
+<h4 id="Проверка-надписи-перед-отправкой"><a class="header" href="#Проверка-надписи-перед-отправкой">Проверка надписи перед отправкой</a></h4>
+<p>Как мы уже описывали ранее, надписи наносятся на сатоши, а сатоши хранятся в UTXO. UTXO представляют собой набор сатоши с некоторым определенным значением количества сатоши (выходное значение). Обычно (но не всегда) надпись наносится на первый сатоши в UTXO.</p>
+<p>При проверке надписи перед отправкой главное, что вы захотите проверить, на каком сатоши в UTXO сделана ваша надпись.</p>
+<p>Для этого, следуя описанным выше инструкциям <a href="guides/collecting/./sparrow-wallet.html#validating--viewing-received-inscriptions">Validating / Viewing Received Inscriptions</a> можно найти страницу надписи на сайте ordinals.com</p>
+<p>Там вы найдете метаданные о вашей надписи, которые выглядят следующим образом:</p>
+<p><img src="guides/collecting/images/sending_01.png" alt="" /></p>
+<p>Здесь необходимо проверить несколько важных моментов:</p>
+<ul>
+<li>Идентификатор <code>output</code> совпадает с идентификатором UTXO, который вы собираетесь отправить</li>
+<li><code>offset</code> надписи равно <code>0</code> (это означает, что надпись расположена на первом сате в UTXO)</li>
+<li><code>output_value</code> имеет достаточное количество sats, чтобы покрыть комиссию за отправку транзакции. Точная сумма, которая вам потребуется, зависит от выбранной вами ставки комиссии за транзакцию</li>
+</ul>
+<p>Если все вышеперечисленное соответствует для вашей надписи, то ее можно смело отправлять указанным ниже способом.</p>
+<p>⚠️⚠️ Будьте очень осторожны при отправке надписи, особенно если значение <code>offset</code> не равно <code>0</code>. Не рекомендуется использовать этот метод, так как в этом случае вы можете случайно отправить надпись майнеру биткоинов, если вы не знаете, что делаете.</p>
+<h4 id="Отправка-вашей-надписи"><a class="header" href="#Отправка-вашей-надписи">Отправка вашей надписи</a></h4>
+<p>Для отправки надписи перейдите на вкладку <code>UTXOs</code> и найдите UTXO, который, как вы ранее подтвердили, содержит вашу надпись.</p>
+<p>Если ранее UXTO был заморожен, необходимо щелкнуть на нем правой кнопкой мыши и разморозить его.</p>
+<p>Выберите UTXO, который вы хотите отправить, и убедитесь, что выбран <em>единственный</em> UTXO. В интерфейсе должна появиться надпись <code>UTXOs 1/1</code>. Убедившись, что это так, нажмите кнопку <code>Send Selected</code>.</p>
+<p><img src="guides/collecting/images/sending_02.png" alt="" /></p>
+<p>После этого появится интерфейс создания транзакции. Здесь необходимо проверить несколько моментов, чтобы убедиться в безопасности отправки:</p>
+<ul>
+<li>Транзакция должна иметь только один вход, и это должен быть UTXO с лейблом, которую вы хотите отправить</li>
+<li>Транзакция должна иметь только один выход - адрес/лейбл, на который необходимо отправить надпись</li>
+</ul>
+<p>Если ваша транзакция выглядит иначе, например, у вас несколько входов или несколько выходов, то это может быть небезопасной передачей вашей надписи, и вам следует отказаться от отправки, пока вы не поймете больше или не сможете импортировать в кошелек <code>ord</code>.</p>
+<p>Вы должны установить соответствующую плату за транзакцию, обычно Sparrow рекомендует разумную, но вы также можете проверить <a href="https://mempool.space">mempool.space</a>, чтобы узнать, какова рекомендуемая ставка платы комиссии за отправку транзакции.</p>
+<p>Необходимо добавить лейбл для адреса получателя, идеальным вариантом будет метка типа <code>alice address for inscription #123</code>.</p>
+<p>После того как вы убедились в безопасности транзакции с помощью описанных выше проверок и уверены в ее отправке, вы можете нажать кнопку <code>Create Transaction</code>.</p>
+<p><img src="guides/collecting/images/sending_03.png" alt="" /></p>
+<p>Здесь вы можете еще раз убедиться в безопасности транзакции и, убедившись в этом, нажать кнопку <code>Finalize Transaction for Signing</code>.</p>
+<p><img src="guides/collecting/images/sending_04.png" alt="" /></p>
+<p>Здесь вы можете трижды проверить все, прежде чем нажать кнопку <code>Sign</code>.</p>
+<p><img src="guides/collecting/images/sending_05.png" alt="" /></p>
+<p>И тут у вас появляется самый последний шанс все проверить, прежде чем нажать кнопку <code>Broadcast Transaction</code>. Как только вы передали транзакцию, она отправляется в сеть bitcoin и начинает распространяться в mempool.</p>
+<p><img src="guides/collecting/images/sending_06.png" alt="" /></p>
+<p>Если вы хотите отслеживать статус вашей транзакции, вы можете скопировать <code>Transaction Id (Txid)</code> и вставить его в <a href="https://mempool.space">mempool.space</a></p>
+<p>После подтверждения транзакции вы можете проверить страницу надписи на сайте <a href="https://ordinals.com">ordinals.com</a>, чтобы убедиться, что она переместилась на новое место и адрес вывода.</p>
+<h2 id="Устранение-проблем-1"><a class="header" href="#Устранение-проблем-1">Устранение проблем</a></h2>
+<h4 id="sparrow-wallet-не-показывает-транзакциюutxo-но-я-вижу-ее-в-mempoolspace"><a class="header" href="#sparrow-wallet-не-показывает-транзакциюutxo-но-я-вижу-ее-в-mempoolspace">Sparrow wallet не показывает транзакцию/UTXO, но я вижу ее в mempool.space!</a></h4>
+<p>Убедитесь, что ваш кошелек подключен к Bitcoin node. Чтобы проверить это, зайдите в настройки <code>Preferences</code>-&gt; <code>Server</code> settings и нажмите кнопку <code>Edit Existing Connection</code>.</p>
+<p><img src="guides/collecting/images/troubleshooting_01.png" alt="" /></p>
+<p>После этого можно выбрать node и нажать кнопку <code>Test Connection</code>, чтобы убедиться, что Sparrow успешно подключился.</p>
+<p><img src="guides/collecting/images/troubleshooting_02.png" alt="" /></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="Тестирование"><a class="header" href="#Тестирование">Тестирование</a></h1>
+<p>Ord можно протестировать, используя следующие флаги для указания тестовой сети. Более подробную информацию о запуске Bitcoin Core для тестирования смотрите в <a href="https://developer.bitcoin.org/examples/testing.html">документации разработчика Bitcoin</a>.</p>
+<p>Большинство команд <code>ord</code> в <a href="guides/inscriptions.html">inscriptions</a> и <a href="guides/explorer.html">explorer</a> могут быть запущены со следующими нетворк флагами:</p>
+<div class="table-wrapper"><table><thead><tr><th>Network</th><th>Flag</th></tr></thead><tbody>
+<tr><td>Testnet</td><td><code>--testnet</code> or <code>-t</code></td></tr>
+<tr><td>Signet</td><td><code>--signet</code> or <code>-s</code></td></tr>
+<tr><td>Regtest</td><td><code>--regtest</code> or <code>-r</code></td></tr>
+</tbody></table>
+</div>
+<p>Regtest не требует загрузки блокчейна или индексации ord.</p>
+<h2 id="Пример-2"><a class="header" href="#Пример-2">Пример</a></h2>
+<p>Запустите bitcoind в regtest с:</p>
+<pre><code>bitcoind -regtest -txindex
+</code></pre>
+<p>Создать кошелек в regtest с:</p>
+<pre><code>ord -r wallet create
+</code></pre>
+<p>Получите regtest адрес для приема с помощью:</p>
+<pre><code>ord -r wallet receive
+</code></pre>
+<p>Добыть 101 блок (для разблокировки coinbase) с помощью:</p>
+<pre><code>bitcoin-cli -regtest generatetoaddress 101 &lt;receive address&gt;
+</code></pre>
+<p>Inscribe в regtest с:</p>
+<pre><code>ord -r wallet inscribe --fee-rate 1 &lt;file&gt;
+</code></pre>
+<p>Добыть надпись с:</p>
+<pre><code>bitcoin-cli -regtest generatetoaddress 1 &lt;receive address&gt;
+</code></pre>
+<p>Посмотреть надпись в regtest explorer:</p>
+<pre><code>ord -r server
+</code></pre>
+<h2 id="Тестирование-рекурсии"><a class="header" href="#Тестирование-рекурсии">Тестирование рекурсии</a></h2>
+<p>When testing out <a href="guides/../inscriptions/recursion.html">recursion</a>, inscribe the dependencies first (example with <a href="https://p5js.org">p5.js</a>):</p>
+<pre><code>ord -r wallet inscribe --fee-rate 1 p5.js
+</code></pre>
+<p>Это должно вернуть значение <code>inscription_id</code>, на которое затем можно ссылаться в рекурсивной надписи.</p>
+<p>ВНИМАНИЕ: Эти ID будут отличаться при вписывании в mainnet и signet, поэтому не забудьте изменить их в рекурсивном вписывании для каждого чейна.</p>
+<p>Затем можно нанести рекурсивную надпись с помощью:</p>
+<pre><code>ord -r wallet inscribe --fee-rate 1 recursive-inscription.html
+</code></pre>
+<p>Наконец, нужно добыть несколько блоков и запустить сервер:</p>
+<pre><code>bitcoin-cli generatetoaddress 6 &lt;receive address&gt;
+ord -r server
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="Модерация"><a class="header" href="#Модерация">Модерация</a></h1>
+<p>В состав <code>ord</code> входит обозреватель блоков, который можно запустить локально с помощью <code>ord server</code>.</p>
+<p>Обозреватель блоков позволяет просматривать надписи. Надписи - это пользовательский контент, который может быть нежелательным или противозаконным.</p>
+<p>Каждый пользователь, управляющий экземпляром ordinal block explorer, обязан понимать свою ответственность в отношении противоправного контента и решать, какая политика модерирования подходит для его экземпляра.</p>
+<p>Для того чтобы запретить отображение определенных надписей на экземпляре <code>ord</code>, их можно включить в конфиг файл YAML, который загружается с помощью опции <code>--config</code>.</p>
+<p>Чтобы скрыть надписи, сначала создайте файл конфиг с ID надписи, которую необходимо скрыть:</p>
+<pre><code class="language-yaml">hidden:
+- 0000000000000000000000000000000000000000000000000000000000000000i0
+</code></pre>
+<p>Предлагаемое имя конфиг файлов <code>ord</code> - <code>ord.yaml</code>, но можно использовать любое имя.</p>
+<p>Затем передайте этот файл в <code>--config</code> при запуске сервера:</p>
+<p><code>ord --config ord.yaml server</code></p>
+<p>Обратите внимание, что опция <code>--config</code> идет после <code>ord</code>, но перед подкомандой <code>server</code>.</p>
+<p>Для загрузки изменений в конфиг файл необходимо перезапустить <code>ord</code>.</p>
+<h2 id="ordinalscom"><a class="header" href="#ordinalscom"><code>ordinals.com</code></a></h2>
+<p>Экземпляры <code>ordinals.com</code> используют <code>systemd</code> для запуска службы <code>ord server</code>, которая называется <code>ord</code>, с файлом конфига, расположенным по адресу <code>/var/lib/ord/ord.yaml</code>.</p>
+<p>Чтобы скрыть надпись на <code>ordinals.com</code>:</p>
+<ol>
+<li>SSH на сервер</li>
+<li>Добавьте ID надписи в <code>/var/lib/ord/ord.yaml</code></li>
+<li>Перезапустите службу с помощью команды <code>systemctl restart ord</code></li>
+<li>Мониторинг перезапуска с помощью команды <code>journalctl -u ord</code></li>
+</ol>
+<p>В настоящее время <code>ord</code> медленно перезапускается, поэтому сайт вернется в онлайн не сразу.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="Переиндексация"><a class="header" href="#Переиндексация">Переиндексация</a></h1>
+<p>Sometimes the <code>ord</code> database must be reindexed, which means deleting the database and restarting the indexing process with either <code>ord index update</code> or <code>ord server</code>. Reasons to reindex are:</p>
+<ol>
+<li>Новый основной релиз ord, в котором изменена схема базы данных</li>
+<li>База данных каким-то образом была повреждена</li>
+</ol>
+<p>База данных, которую использует <code>ord</code>, называется <a href="https://github.com/cberner/redb">redb</a>, поэтому по умолчанию мы присваиваем индексу имя файла <code>index.redb</code>. По умолчанию мы храним этот файл в разных местах в зависимости от операционной системы.</p>
+<div class="table-wrapper"><table><thead><tr><th>OC</th><th>Value</th><th>Пример</th></tr></thead><tbody>
+<tr><td>Linux</td><td><code>$XDG_DATA_HOME</code>/ord or <code>$HOME</code>/.local/share/ord</td><td>/home/alice/.local/share/ord</td></tr>
+<tr><td>macOS</td><td><code>$HOME</code>/Library/Application Support/ord</td><td>/Users/Alice/Library/Application Support/ord</td></tr>
+<tr><td>Windows</td><td><code>{FOLDERID_RoamingAppData}</code>\ord</td><td>C:\Users\Alice\AppData\Roaming\ord</td></tr>
+</tbody></table>
+</div>
+<p>Поэтому для удаления базы данных и повторной индексации на MacOS необходимо выполнить в терминале следующие команды:</p>
+<pre><code class="language-bash">rm ~/Library/Application Support/ord/index.redb
+ord index update
+</code></pre>
+<p>You can of course also set the location of the data directory yourself with <code>ord --data-dir &lt;DIR&gt; index update</code> or give it a specific filename and path with <code>ord --index &lt;FILENAME&gt; index update</code>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="Подсказки-по-охоте-на-ordinal"><a class="header" href="#Подсказки-по-охоте-на-ordinal">Подсказки по охоте на Ordinal</a></h1>
+<ul>
+<li>
+<p>Кошелек <code>ord</code> может отправлять и получать определенные сатоши. Кроме того, ordinal theory чрезвычайно проста. Умный хакер сможет с нуля написать код для манипуляций с сатоши с помощью ordinal theory в кратчайшие сроки.</p>
+</li>
+<li>
+<p>Более подробную информацию о теории порядков можно найти в <a href="./faq.html">ЧАВО</a> для общего обзора, в <a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">BIP</a> для технических деталей, а также в <a href="https://github.com/ordinals/ord">ord repo</a> для кошелька <code>ord</code> и обозревателя блоков.</p>
+</li>
+<li>
+<p>Сатоши Накамото был первым разработчиком ordinal theory. Однако он знал, что другие сочтут ее еретической и опасной, поэтому скрыл свои знания, и они были утеряны в песках времени. Только сейчас эту мощную теорию открывают заново. Вы можете помочь в этом, исследуя редкие сатоши.</p>
+</li>
+</ul>
+<p>Удачи, и да прибудет с вами сила!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-вознаграждение-0"><a class="header" href="#ordinal-вознаграждение-0">Ordinal вознаграждение 0</a></h1>
+<h2 id="Критерии"><a class="header" href="#Критерии">Критерии</a></h2>
+<p>Отправить sat, ordinal номер которого заканчивается нулем, по адресу отправки:</p>
+<p>✅: <a href="https://ordinals.com/ordinal/1857578125803250">1857578125803250</a></p>
+<p>❌: <a href="https://ordinals.com/ordinal/1857578125803251">1857578125803251</a></p>
+<p>Значение sat должно быть первым sat в передаваемом выводе.</p>
+<h2 id="Награда"><a class="header" href="#Награда">Награда</a></h2>
+<p>100,000 sats</p>
+<h2 id="Адрес-для-отправки"><a class="header" href="#Адрес-для-отправки">Адрес для отправки</a></h2>
+<p><a href="https://mempool.space/address/1PE7u4wbDP2RqfKN6geD1bG57v9Gj9FXm3"><code>1PE7u4wbDP2RqfKN6geD1bG57v9Gj9FXm3</code></a></p>
+<h2 id="Статус"><a class="header" href="#Статус">Статус</a></h2>
+<p>Собрано<a href="https://twitter.com/rodarmor/status/1560793241473400833">@count_null</a>!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-вознаграждение-1"><a class="header" href="#ordinal-вознаграждение-1">Ordinal вознаграждение 1</a></h1>
+<h2 id="Критерии-1"><a class="header" href="#Критерии-1">Критерии</a></h2>
+<p>Победителем будет признана та сделка, которая представит UTXO, содержащий самый старый sat, т.е. имеющий наименьший номер, среди всех представленных UTXO.</p>
+<p>Заявки на участие в конкурсе принимаются до блока 753984 - первого блока 374 периода корректировки сложности. Заявки, поданные в блок 753984 или позже, рассматриваться не будут.</p>
+<h2 id="Награда-1"><a class="header" href="#Награда-1">Награда</a></h2>
+<p>200,000 sats</p>
+<h2 id="Адрес-для-отправки-1"><a class="header" href="#Адрес-для-отправки-1">Адрес для отправки</a></h2>
+<p><a href="https://mempool.space/address/145Z7PFHyVrwiMWwEcUmDgFbmUbQSU9aap"><code>145Z7PFHyVrwiMWwEcUmDgFbmUbQSU9aap</code></a></p>
+<h2 id="Статус-1"><a class="header" href="#Статус-1">Статус</a></h2>
+<p>Собрано <a href="https://twitter.com/rodarmor/status/1569883266508853251">@ordinalsindex</a>!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-вознаграждение-2"><a class="header" href="#ordinal-вознаграждение-2">Ordinal вознаграждение 2</a></h1>
+<h2 id="Критерии-2"><a class="header" href="#Критерии-2">Критерии</a></h2>
+<p>Отправить <span class=uncommon>uncommon</span>sat на адрес для отправки:✅: <a href="https://ordinals.com/sat/347100000000000">347100000000000</a></p>
+<p>❌: <a href="https://ordinals.com/sat/6685000001337">6685000001337</a></p>
+<p>Перед отправкой заявки убедитесь в том, что по адресу отправки не было транзакций. Только первая успешная заявка будет вознаграждена.</p>
+<h2 id="Награда-2"><a class="header" href="#Награда-2">Награда</a></h2>
+<p>300,000 sats</p>
+<h2 id="Адрес-для-отправки-2"><a class="header" href="#Адрес-для-отправки-2">Адрес для отправки</a></h2>
+<p><a href="https://mempool.space/address/1Hyr94uypwWq5CQffaXHvwUMEyBPp3TUZH"><code>1Hyr94uypwWq5CQffaXHvwUMEyBPp3TUZH</code></a></p>
+<h2 id="Статус-2"><a class="header" href="#Статус-2">Статус</a></h2>
+<p>Собрано <a href="https://twitter.com/rodarmor/status/1582424455615172608">@utxoset</a>!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-вознаграждение-3"><a class="header" href="#ordinal-вознаграждение-3">Ordinal вознаграждение 3</a></h1>
+<h2 id="Критерии-3"><a class="header" href="#Критерии-3">Критерии</a></h2>
+<p>Ordinal вознаграждение 3 состоит из двух частей, обе из которых основаны на <em>ordinal именах</em>. Ordinal имена представляют собой модифицированную кодировку порядковых чисел base-26. Чтобы избежать блокировки коротких имен внутри неизрасходованного вознаграждения coinbase блока genesis, порядковые имена становятся <em>короче</em> по мере того, как порядковый номер становится <em>длиннее</em>. Имя сата 0, первого sat, который будет добыт, - <code>nvtdijuwxlp</code>, а имя sat 2 099 999 997 689 999, последнего sat, который будет добыт, - <code>a</code>.</p>
+<p>Заявки на участие в конкурсе принимаются до блока 840000 - первого блока после четвертого халвинга. Заявки, включенные в блок 840000 или позже, рассматриваться не будут.</p>
+<p>В обеих частях используется <a href="bounty/frequency.tsv">frequency.tsv</a> - список слов и количество их повторений в <a href="http://storage.googleapis.com/books/ngrams/books/datasetsv2.html">Google Books Ngram dataset</a>, отфильтрованный для включения только тех названий sats, которые будут добыты к концу периода подачи заявок и которые встречаются в корпусе не менее 5000 раз.</p>
+<p><code>frequency.tsv</code> представляет собой файл значений, разделенных табуляцией. Первый столбец - это слово, второй - количество раз, которое оно встречается в корпусе. Записи отсортированы от наименее часто встречающегося к наиболее часто встречающемуся.</p>
+<p><code>frequency.tsv</code> был скомпилирован с помощью <a href="https://github.com/casey/onegrams">этой программы</a>.</p>
+<p>Для поиска в кошельке <code>ord</code> sats с именем в файле <code>frequency.tsv</code> используйте следующую команду <a href="https://github.com/ordinals/ord"><code>ord</code></a>:</p>
+<pre><code>ord wallet sats --tsv frequency.tsv
+</code></pre>
+<p>Эта команда требует индекса sat, поэтому при первом создании индекса в ord необходимо передать <code>--index-sats</code>.</p>
+<h3 id="Часть-0"><a class="header" href="#Часть-0">Часть 0</a></h3>
+<p><em>Пара редких sats лучше всего сочетаются с парой редких слов.</em></p>
+<p>Победителем 0 части становится транзакция, представившая UTXO, содержащий sat, название которого встречается в файле <code>frequency.tsv</code> с наименьшим числом повторений.</p>
+<h3 id="Часть-1"><a class="header" href="#Часть-1">Часть 1</a></h3>
+<p><em>Популярность - это шрифт ценности.</em></p>
+<p>Победителем в части 1 становится транзакция, представившая UTXO, содержащий sat, название которого встречается в файле <code>frequency.tsv</code> с наибольшим числом повторений.</p>
+<h3 id="Разрыв-равенства"><a class="header" href="#Разрыв-равенства">Разрыв равенства</a></h3>
+<p>В случае равенства, когда две заявки происходят с одинаковой частотой, победителем признается более ранняя заявка.</p>
+<h2 id="Награда-3"><a class="header" href="#Награда-3">Награда</a></h2>
+<ul>
+<li>Част 0: 200,000 sats</li>
+<li>Часть 1: 200,000 sats</li>
+<li>Итого: 400,000 sats</li>
+</ul>
+<h2 id="Адрес-для-отправки-3"><a class="header" href="#Адрес-для-отправки-3">Адрес для отправки</a></h2>
+<p><a href="https://mempool.space/address/17m5rvMpi78zG8RUpCRd6NWWMJtWmu65kg"><code>17m5rvMpi78zG8RUpCRd6NWWMJtWmu65kg</code></a></p>
+<h2 id="Статус-3"><a class="header" href="#Статус-3">Статус</a></h2>
+<p>Не собрано!</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+        <script>
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+
+    </div>
+    </body>
+</html>

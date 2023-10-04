@@ -1,0 +1,404 @@
+<!DOCTYPE HTML>
+<html lang="ru" class="sidebar-visible no-js coal">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Надписи - Ordinal Theory Handbook</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../language-picker.css">
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "coal";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('coal')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../introduction.html">Вступление</a></li><li class="chapter-item expanded "><a href="../overview.html"><strong aria-hidden="true">1.</strong> Обзор</a></li><li class="chapter-item expanded "><a href="../digital-artifacts.html"><strong aria-hidden="true">2.</strong> Цифровые артефакты</a></li><li class="chapter-item expanded "><a href="../inscriptions.html"><strong aria-hidden="true">3.</strong> Надписи</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../inscriptions/metadata.html"><strong aria-hidden="true">3.1.</strong> Metadata</a></li><li class="chapter-item expanded "><a href="../inscriptions/provenance.html"><strong aria-hidden="true">3.2.</strong> Провенанс</a></li><li class="chapter-item expanded "><a href="../inscriptions/recursion.html"><strong aria-hidden="true">3.3.</strong> Рекурсия</a></li></ol></li><li class="chapter-item expanded "><a href="../faq.html"><strong aria-hidden="true">4.</strong> ЧАВО</a></li><li class="chapter-item expanded "><a href="../contributing.html"><strong aria-hidden="true">5.</strong> Вклад</a></li><li class="chapter-item expanded "><a href="../donate.html"><strong aria-hidden="true">6.</strong> Пожертвование</a></li><li class="chapter-item expanded "><a href="../guides.html"><strong aria-hidden="true">7.</strong> Руководства</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../guides/explorer.html"><strong aria-hidden="true">7.1.</strong> Проводник</a></li><li class="chapter-item expanded "><a href="../guides/inscriptions.html" class="active"><strong aria-hidden="true">7.2.</strong> Надписи</a></li><li class="chapter-item expanded "><a href="../guides/sat-hunting.html"><strong aria-hidden="true">7.3.</strong> Охота на сатоши</a></li><li class="chapter-item expanded "><a href="../guides/collecting.html"><strong aria-hidden="true">7.4.</strong> Коллекционирование</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../guides/collecting/sparrow-wallet.html"><strong aria-hidden="true">7.4.1.</strong> Sparrow Wallet</a></li></ol></li><li class="chapter-item expanded "><a href="../guides/testing.html"><strong aria-hidden="true">7.5.</strong> Тестирование</a></li><li class="chapter-item expanded "><a href="../guides/moderation.html"><strong aria-hidden="true">7.6.</strong> Модерация</a></li><li class="chapter-item expanded "><a href="../guides/reindexing.html"><strong aria-hidden="true">7.7.</strong> Переиндексация</a></li></ol></li><li class="chapter-item expanded "><a href="../bounties.html"><strong aria-hidden="true">8.</strong> Награды</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../bounty/0.html"><strong aria-hidden="true">8.1.</strong> Награда 0: 100 000 sats Собрано!</a></li><li class="chapter-item expanded "><a href="../bounty/1.html"><strong aria-hidden="true">8.2.</strong> Награда 1: 200 000 sats Собрано!</a></li><li class="chapter-item expanded "><a href="../bounty/2.html"><strong aria-hidden="true">8.3.</strong> Награда 2: 300 000 sats Собрано!</a></li><li class="chapter-item expanded "><a href="../bounty/3.html"><strong aria-hidden="true">8.4.</strong> Награда 3: 400 000 sats</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Ordinal Theory Handbook</h1>
+
+                    <div class="right-buttons">
+                        <button id="language-toggle" class="icon-button" type="button"
+                                title="Change language" aria-label="Change language"
+                                aria-haspopup="true" aria-expanded="false"
+                                aria-controls="language-list">
+                            <i class="fa fa-globe"></i>
+                        </button>
+                        <ul id="language-list" class="theme-popup" aria-label="Languages" role="menu">
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="en">English</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="es">Español</a>
+                          </button></li>
+                           <li role="none"><button role="menuitem" class="theme">
+                              <a id="ru">Русский</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="zh">中文版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ja">日本語版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fil">Filipino</a>
+                          </button></li>
+                        </ul>
+
+                        <script>
+                          let langToggle = document.getElementById("language-toggle");
+                          let langList = document.getElementById("language-list");
+                          langToggle.addEventListener("click", (event) => {
+                              langList.style.display = langList.style.display == "block" ? "none" : "block";
+                          });
+                          let selectedLang = document.getElementById("ru");
+                          if (selectedLang) {
+                              selectedLang.parentNode.classList.add("theme-selected");
+                          }
+
+                          // The path to the root, taking the current
+                          // language into account.
+                          let full_path_to_root = "../../";
+                          // The page path (mdbook only gives us
+                          // access to the path to the Markdown file).
+                          let path = "guides/inscriptions.md".replace(/\.md$/, ".html");
+                          for (let lang of langList.querySelectorAll("a")) {
+                              if (lang.id == "en") {
+                                  lang.href = `${full_path_to_root}${path}`;
+                              } else {
+                                  lang.href = `${full_path_to_root}${lang.id}/${path}`;
+                              }
+                          }
+                        </script>
+
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ordinals/ord" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="Руководство-по-надписям-ordinal"><a class="header" href="#Руководство-по-надписям-ordinal">Руководство по надписям ordinal</a></h1>
+<p>На отдельные sats можно наносить надписи с произвольным содержанием, создавая цифровые артефакты, основанные на Биткоинах, которые можно хранить в биткоин-кошельке и передавать с помощью биткоин-транзакций. Надписи столь же долговечны, неизменяемы, безопасны и децентрализованы, как и сам Биткоин.</p>
+<p>Для работы с надписями требуется Bitcoin full node, позволяющий видеть текущее состояние блокчейна Bitcoin, и кошелек, способный создавать надписи и осуществлять sat контроль при построении транзакций для отправки надписей на другой кошелек.</p>
+<p>Bitcoin Core предоставляет как Bitcoin full node, так и кошелек. Однако кошелек Bitcoin Core не может создавать надписи и не осуществляет sat контроль.</p>
+<p>Для этого требуется <a href="https://github.com/ordinals/ord"><code>ord</code></a>, ordinal utility. <code>ord</code> не реализует собственный кошелек, поэтому подкоманды <code>ord wallet</code> взаимодействуют с кошельками Bitcoin Core.</p>
+<p>В этом руководстве рассматриваются:</p>
+<ol>
+<li>Установка Bitcoin Core</li>
+<li>Синхронизация блокчейна Bitcoin</li>
+<li>Создание кошелька Bitcoin Core</li>
+<li>Использование <code>ord wallet receive</code> для получения sats</li>
+<li>Создание надписей с помощью <code>ord wallet inscribe</code></li>
+<li>Отправка надписей с помощью <code>ord wallet send</code></li>
+<li>Получение надписей с помощью <code>ord wallet receive</code></li>
+</ol>
+<h2 id="Получение-помощи"><a class="header" href="#Получение-помощи">Получение помощи</a></h2>
+<p>Если вы застряли, попробуйте обратиться за помощью к <a href="https://discord.com/invite/87cjuz4FYg">Ordinals Discord Server</a>, или проверить GitHub на наличие <a href="https://github.com/ordinals/ord/issues">проблем</a> и для <a href="https://github.com/ordinals/ord/discussions">обсуждений</a>.</p>
+<h2 id="Установка-bitcoin-core"><a class="header" href="#Установка-bitcoin-core">Установка Bitcoin Core</a></h2>
+<p>Установка Bitcoin Core доступна на сайте <a href="https://bitcoincore.org/">bitcoincore.org</a> на <a href="https://bitcoincore.org/en/download/">странице загрузки</a>.</p>
+<p>Для создания надписей требуется Bitcoin Core 24 или новее.</p>
+<p>This guide does not cover installing Bitcoin Core in detail. Once Bitcoin Core is installed, you should be able to run <code>bitcoind -version</code> successfully from the command line. Do <em>NOT</em> use <code>bitcoin-qt</code>.</p>
+<h2 id="Настройка-bitcoin-core"><a class="header" href="#Настройка-bitcoin-core">Настройка Bitcoin Core</a></h2>
+<p><code>ord</code> requires Bitcoin Core's transaction index and rest interface.</p>
+<p>Чтобы настроить Bitcoin Core node на ведение индекса транзакций, добавьте следующее в <code>bitcoin.conf</code>:</p>
+<pre><code>txindex=1
+</code></pre>
+<p>Или запустите <code>bitcoind</code> с помощью <code>-txindex</code>:</p>
+<pre><code>bitcoind -txindex
+</code></pre>
+<p>Details on creating or modifying your <code>bitcoin.conf</code> file can be found <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md">here</a>.</p>
+<h2 id="Синхронизация-блокчейна-bitcoin"><a class="header" href="#Синхронизация-блокчейна-bitcoin">Синхронизация блокчейна Bitcoin</a></h2>
+<p>Чтобы синхронизировать сеть, выполните команду:</p>
+<pre><code>bitcoind -txindex
+</code></pre>
+<p>...и оставьте его запущенным до получения <code>getblockcount</code>:</p>
+<pre><code>bitcoin-cli getblockcount
+</code></pre>
+<p>совпадает с количеством блоков в обозревателе блоков, например <a href="https://mempool.space/">в mempool.space block explorer</a>. <code>ord</code> взаимодействует с <code>bitcoind</code>, поэтому вы должны оставить<code>bitcoind</code> включенным в фоновом режиме, пока используете <code>ord</code>.</p>
+<p>The blockchain takes about 600GB of disk space. If you have an external drive you want to store blocks on, use the configuration option <code>blocksdir=&lt;external_drive_path&gt;</code>. This is much simpler than using the <code>datadir</code> option because the cookie file will still be in the default location for <code>bitcoin-cli</code> and <code>ord</code> to find.</p>
+<h2 id="Устранение-проблем"><a class="header" href="#Устранение-проблем">Устранение проблем</a></h2>
+<p>Make sure you can access <code>bitcoind</code> with <code>bitcoin-cli -getinfo</code> and that it is fully synced.</p>
+<p>If <code>bitcoin-cli -getinfo</code> returns <code>Could not connect to the server</code>, <code>bitcoind</code> is not running.</p>
+<p>Make sure <code>rpcuser</code>, <code>rpcpassword</code>, or <code>rpcauth</code> are <em>NOT</em> set in your <code>bitcoin.conf</code> file. <code>ord</code> requires using cookie authentication. Make sure there is a file <code>.cookie</code> in your bitcoin data directory.</p>
+<p>If <code>bitcoin-cli -getinfo</code> returns <code>Could not locate RPC credentials</code>, then you must specify the cookie file location. If you are using a custom data directory (specifying the <code>datadir</code> option), then you must specify the cookie location like <code>bitcoin-cli -rpccookiefile=&lt;your_bitcoin_datadir&gt;/.cookie -getinfo</code>. When running <code>ord</code> you must specify the cookie file location with <code>--cookie-file=&lt;your_bitcoin_datadir&gt;/.cookie</code>.</p>
+<p>Make sure you do <em>NOT</em> have <code>disablewallet=1</code> in your <code>bitcoin.conf</code> file. If <code>bitcoin-cli listwallets</code> returns <code>Method not found</code> then the wallet is disabled and you won't be able to use <code>ord</code>.</p>
+<p>Make sure <code>txindex=1</code> is set. Run <code>bitcoin-cli getindexinfo</code> and it should return something like</p>
+<pre><code class="language-json">{
+  &quot;txindex&quot;: {
+    &quot;synced&quot;: true,
+    &quot;best_block_height&quot;: 776546
+  }
+}
+</code></pre>
+<p>If it only returns <code>{}</code>, <code>txindex</code> is not set. If it returns <code>&quot;synced&quot;: false</code>, <code>bitcoind</code> is still creating the <code>txindex</code>. Wait until <code>&quot;synced&quot;: true</code> before using <code>ord</code>.</p>
+<p>If you have <code>maxuploadtarget</code> set it can interfere with fetching blocks for <code>ord</code> index. Either remove it or set <code>whitebind=127.0.0.1:8333</code>.</p>
+<h2 id="Установка-ord"><a class="header" href="#Установка-ord">Установка <code>ord</code></a></h2>
+<p><code>ord</code> написана на языке Rust и может быть собрана из <a href="https://github.com/ordinals/ord">исходного кода</a>. Предварительно собранные бинарные файлы доступны на <a href="https://github.com/ordinals/ord/releases">странице релизов</a>.</p>
+<p>Вы можете установить последний предварительно собранный двоичный файл из командной строки с помощью команды:</p>
+<pre><code class="language-sh">curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash -s
+</code></pre>
+<p>После установки <code>ord</code> вы сможете выполнить команду:</p>
+<pre><code>ord --version
+</code></pre>
+<p>В результате которой будет выведен номер версии <code>ord</code>.</p>
+<h2 id="Создание-кошелька-bitcoin-core"><a class="header" href="#Создание-кошелька-bitcoin-core">Создание кошелька Bitcoin Core</a></h2>
+<p>Для управления закрытыми ключами, подписания транзакций и трансляции транзакций в сеть Биткоин, в <code>ord</code> используется Bitcoin Core.</p>
+<p>Чтобы создать кошелек Bitcoin Core с именем <code>ord</code> для использования с <code>ord</code>, выполните команду:</p>
+<pre><code>ord wallet create
+</code></pre>
+<h2 id="Получение-sats"><a class="header" href="#Получение-sats">Получение sats</a></h2>
+<p>Надписи делаются на отдельных sats с использованием обычных Биткоин-транзакций, комиссии которых оплачиваются в sats, поэтому вашему кошельку потребуется некоторое количество sats.</p>
+<p>Получите новый адрес из кошелька <code>ord</code>, выполнив команду:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>И отправьте на него немного средств.</p>
+<p>Вы можете посмотреть ожидающие транзакции, выполнив команду:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>Как только транзакция подтвердится, вы сможете увидеть выходные данные транзакций с помощью команды <code>ord wallet outputs</code>.</p>
+<h2 id="Создание-контента-для-надписи"><a class="header" href="#Создание-контента-для-надписи">Создание контента для надписи</a></h2>
+<p>Sats могут содержать любые надписи, но кошелек <code>ord</code> поддерживает только те типы надписей, которые могут быть отображены в проводнике блоков <code>ord</code>.</p>
+<p>Кроме того, надписи включаются в транзакции, поэтому чем больше содержимое, тем выше комиссия за транзакцию с надписью.</p>
+<p>Содержание надписи входит в состав свидетелей транзакций, которые получают льготу свидетеля. Чтобы рассчитать приблизительную комиссию, которую заплатит транзакция inscribe, разделите размер надписи на четыре и умножьте на размер комиссии.</p>
+<p>Транзакции с надписями должны быть менее 400 000 весовых единиц, иначе они не будут переданы Bitcoin Core. Один байт содержимого надписи стоит одну весовую единицу. Поскольку транзакция с надписью включает в себя не только содержимое надписи, ограничьте размер транзакции с надписью до менее чем 400 000 весовых единиц. 390 000 весовых единиц должно быть безопасно.</p>
+<h2 id="Создание-надписей"><a class="header" href="#Создание-надписей">Создание надписей</a></h2>
+<p>Чтобы создать надпись с контентом <code>FILE</code>, выполните команду:</p>
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE FILE
+</code></pre>
+<p>Ord выдаст два ID транзакций, один для транзакции commit, другой для транзакции reveal, а также ID надписи. ID надписей имеют вид <code>TXIDiN</code>, где <code>TXID</code> - ID транзакции reveal, а N - индекс надписи в транзакции reveal.</p>
+<p>Транзакция commit фиксирует tapscript, содержащий содержимое надписи, а транзакция reveal использует этот tapscript, раскрывая содержимое по цепочке и прописывая его на первом sat ввода, содержащем соответствующий tapscript.</p>
+<p>Дождитесь, пока транзакция reveal будет добыта. Проверить статус транзакций commit и reveal можно с помощью <a href="https://mempool.space/">mempool.space block explorer</a>.</p>
+<p>После того как транзакция reveal будет добыта, при запуске должен быть выведен ID надписи:</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+<h2 id="parent-child-inscriptions"><a class="header" href="#parent-child-inscriptions">Parent-Child Inscriptions</a></h2>
+<p>Parent-child inscriptions enable what is colloquially known as collections, see <a href="../inscriptions/provenance.html">provenance</a> for more information.</p>
+<p>To make an inscription a child of another, the parent inscription has to be inscribed and present in the wallet. To choose a parent run <code>ord wallet inscriptions</code> and copy the inscription id (<code>&lt;PARENT_INSCRIPTION_ID&gt;</code>).</p>
+<p>Now inscribe the child inscription and specify the parent like so:</p>
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; CHILD_FILE
+</code></pre>
+<p>This relationship cannot be added retroactively, the parent has to be present at inception of the child.</p>
+<h2 id="Отправка-надписей"><a class="header" href="#Отправка-надписей">Отправка надписей</a></h2>
+<p>Попросите получателя сгенерировать новый адрес, выполнив команду:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>Отправьте надпись запуском команды:</p>
+<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; &lt;ADDRESS&gt; &lt;INSCRIPTION_ID&gt;
+</code></pre>
+<p>Посмотреть транзакцию, находящуюся в ожидании, можно с помощью команды:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>Как только транзакция отправки подтвердится, получатель может подтвердить получение, выполнив команду:</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+<h2 id="Получение-надписей"><a class="header" href="#Получение-надписей">Получение надписей</a></h2>
+<p>Сгенерируйте новый адрес получения с помощью команды:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>Отправитель может передать надпись на ваш адрес с помощью:</p>
+<pre><code>ord wallet send ADDRESS INSCRIPTION_ID
+</code></pre>
+<p>Посмотреть транзакцию, находящуюся в ожидании, можно с помощью команды:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>После подтверждения транзакции отправки вы можете подтвердить ее получение, выполнив команду:</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../guides/explorer.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="../guides/sat-hunting.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../guides/explorer.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="../guides/sat-hunting.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>
