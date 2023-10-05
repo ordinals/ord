@@ -182,6 +182,8 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       buffer.clear();
 
       let mut balances = balances.into_iter().collect::<Vec<(u128, u128)>>();
+
+      // Sort balances by id so tests can assert balances in a fixed order
       balances.sort();
 
       for (id, balance) in balances {
