@@ -682,7 +682,7 @@ mod tests {
   }
 
   #[test]
-  fn unallocated_runes_are_assigned_to_first_no_op_return_output() {
+  fn unallocated_runes_are_assigned_to_first_non_op_return_output() {
     let context = Context::builder()
       .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
       .build();
@@ -767,8 +767,8 @@ mod tests {
   }
 
   #[test]
-  fn unallocated_runes_in_transactions_with_no_runestone_are_assigned_to_first_no_op_return_output()
-  {
+  fn unallocated_runes_in_transactions_with_no_runestone_are_assigned_to_first_non_op_return_output(
+  ) {
     let context = Context::builder()
       .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
       .build();
@@ -1543,8 +1543,8 @@ mod tests {
   }
 
   #[test]
-  fn unallocated_runes_are_assigned_to_first_no_op_return_output_when_op_return_is_not_last_output()
-  {
+  fn unallocated_runes_are_assigned_to_first_non_op_return_output_when_op_return_is_not_last_output(
+  ) {
     let context = Context::builder()
       .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
       .build();
