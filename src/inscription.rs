@@ -30,6 +30,7 @@ pub struct Inscription {
   pub metadata: Option<Vec<u8>>,
   pub metaprotocol: Option<Vec<u8>>,
   pub parent: Option<Vec<u8>>,
+  pub pointer: Option<Vec<u8>>,
   pub unrecognized_even_field: bool,
 }
 
@@ -47,6 +48,7 @@ impl Inscription {
     chain: Chain,
     path: impl AsRef<Path>,
     parent: Option<InscriptionId>,
+    pointer: Option<u64>,
     metaprotocol: Option<String>,
     metadata: Option<Vec<u8>>,
   ) -> Result<Self, Error> {
@@ -71,6 +73,7 @@ impl Inscription {
       metadata,
       metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
       parent: parent.map(|id| id.parent_value()),
+      pointer: pointer.map(|pointer| pointer.to_le_bytes().to_vec()),
       unrecognized_even_field: false,
     })
   }
@@ -100,6 +103,12 @@ impl Inscription {
       builder = builder
         .push_slice(envelope::PARENT_TAG)
         .push_slice(PushBytesBuf::try_from(parent).unwrap());
+    }
+
+    if let Some(pointer) = self.pointer.clone() {
+      builder = builder
+        .push_slice(envelope::POINTER_TAG)
+        .push_slice(PushBytesBuf::try_from(pointer).unwrap());
     }
 
     if let Some(metadata) = &self.metadata {
@@ -190,6 +199,27 @@ impl Inscription {
     let index = u32::from_le_bytes(index);
 
     Some(InscriptionId { txid, index })
+  }
+
+  pub(crate) fn pointer(&self) -> Option<u64> {
+    let value = self.pointer.as_ref()?;
+
+    if value.len() > 8 {
+      return None;
+    }
+
+    let pointer = [
+      value.first().copied().unwrap_or(0),
+      value.get(1).copied().unwrap_or(0),
+      value.get(2).copied().unwrap_or(0),
+      value.get(3).copied().unwrap_or(0),
+      value.get(4).copied().unwrap_or(0),
+      value.get(5).copied().unwrap_or(0),
+      value.get(6).copied().unwrap_or(0),
+      value.get(7).copied().unwrap_or(0),
+    ];
+
+    Some(u64::from_le_bytes(pointer))
   }
 
   #[cfg(test)]

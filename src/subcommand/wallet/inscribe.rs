@@ -104,6 +104,7 @@ impl Inscribe {
       options.chain(),
       &self.file,
       self.parent,
+      None,
       self.metaprotocol,
       metadata,
     )?;
