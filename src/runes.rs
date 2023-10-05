@@ -88,7 +88,7 @@ mod tests {
           edicts: Vec::new(),
           etching: Some(Etching {
             divisibility: 0,
-            rune: Rune(0),
+            rune: Rune(RUNE),
           }),
         }
         .encipher(),
