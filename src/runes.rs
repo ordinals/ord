@@ -229,7 +229,7 @@ mod tests {
           id,
           RuneEntry {
             divisibility: 0,
-            rune: Rune(2099984997690000),
+            rune: Rune(u128::from(Sat::SUPPLY - 150 * COIN_VALUE)),
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
           }
