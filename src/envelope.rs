@@ -11,6 +11,7 @@ pub(crate) const PROTOCOL_ID: [u8; 3] = *b"ord";
 pub(crate) const BODY_TAG: [u8; 0] = [];
 pub(crate) const CONTENT_TYPE_TAG: [u8; 1] = [1];
 pub(crate) const PARENT_TAG: [u8; 1] = [3];
+pub(crate) const METADATA_TAG: [u8; 1] = [5];
 pub(crate) const METAPROTOCOL_TAG: [u8; 1] = [7];
 
 type Result<T> = std::result::Result<T, script::Error>;
@@ -31,6 +32,19 @@ fn remove_field(fields: &mut BTreeMap<&[u8], Vec<&[u8]>>, field: &[u8]) -> Optio
     None
   } else {
     Some(value.remove(0).to_vec())
+  }
+}
+
+fn remove_and_concatenate_field(
+  fields: &mut BTreeMap<&[u8], Vec<&[u8]>>,
+  field: &[u8],
+) -> Option<Vec<u8>> {
+  let value = fields.remove(field)?;
+
+  if value.is_empty() {
+    None
+  } else {
+    Some(value.into_iter().flatten().cloned().collect())
   }
 }
 
@@ -58,6 +72,7 @@ impl From<RawEnvelope> for ParsedEnvelope {
     let content_type = remove_field(&mut fields, &CONTENT_TYPE_TAG);
     let parent = remove_field(&mut fields, &PARENT_TAG);
     let metaprotocol = remove_field(&mut fields, &METAPROTOCOL_TAG);
+    let metadata = remove_and_concatenate_field(&mut fields, &METADATA_TAG);
 
     let unrecognized_even_field = fields
       .keys()
@@ -78,6 +93,7 @@ impl From<RawEnvelope> for ParsedEnvelope {
         duplicate_field,
         incomplete_field,
         metaprotocol,
+        metadata,
       },
       input: envelope.input,
       offset: envelope.offset,
@@ -687,6 +703,37 @@ mod tests {
         input: 0,
         offset: 0,
       }],
+    );
+  }
+
+  #[test]
+  fn metadata_is_parsed_correctly() {
+    assert_eq!(
+      parse(&[envelope(&[b"ord", &[5], &[]])]),
+      vec![ParsedEnvelope {
+        payload: Inscription {
+          metadata: Some(vec![]),
+          ..Default::default()
+        },
+        input: 0,
+        offset: 0,
+      }]
+    );
+  }
+
+  #[test]
+  fn metadata_is_parsed_correctly_from_chunks() {
+    assert_eq!(
+      parse(&[envelope(&[b"ord", &[5], &[0], &[5], &[1]])]),
+      vec![ParsedEnvelope {
+        payload: Inscription {
+          metadata: Some(vec![0, 1]),
+          duplicate_field: true,
+          ..Default::default()
+        },
+        input: 0,
+        offset: 0,
+      }]
     );
   }
 }

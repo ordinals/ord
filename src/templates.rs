@@ -9,6 +9,7 @@ pub(crate) use {
   inscription::{InscriptionHtml, InscriptionJson},
   inscriptions::{InscriptionsHtml, InscriptionsJson},
   inscriptions_block::InscriptionsBlockHtml,
+  metadata::MetadataHtml,
   output::{OutputHtml, OutputJson},
   page_config::PageConfig,
   preview::{
@@ -30,6 +31,7 @@ mod input;
 pub mod inscription;
 pub mod inscriptions;
 mod inscriptions_block;
+mod metadata;
 pub mod output;
 mod preview;
 mod range;
