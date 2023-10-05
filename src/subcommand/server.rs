@@ -3107,7 +3107,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            decimals: 0,
+            divisibility: 0,
             rune: Rune(u128::from(21_000_000 * COIN_VALUE)),
           }),
         }

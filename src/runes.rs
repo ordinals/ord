@@ -87,7 +87,7 @@ mod tests {
         Runestone {
           edicts: Vec::new(),
           etching: Some(Etching {
-            decimals: 0,
+            divisibility: 0,
             rune: Rune(0),
           }),
         }
@@ -120,7 +120,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            decimals: 0,
+            divisibility: 0,
             rune: Rune(RUNE),
           }),
         }
@@ -174,7 +174,7 @@ mod tests {
               output: 0,
             }],
             etching: Some(Etching {
-              decimals: 0,
+              divisibility: 0,
               rune: Rune(u128::from(Sat::SUPPLY - 150 * COIN_VALUE - 1)),
             }),
           }
@@ -207,7 +207,7 @@ mod tests {
               output: 0,
             }],
             etching: Some(Etching {
-              decimals: 0,
+              divisibility: 0,
               rune: Rune(u128::from(Sat::SUPPLY - 150 * COIN_VALUE)),
             }),
           }
@@ -244,7 +244,7 @@ mod tests {
   }
 
   #[test]
-  fn etching_with_non_zero_decimals_and_rune() {
+  fn etching_with_non_zero_divisibility_and_rune() {
     let context = Context::builder()
       .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
       .build();
@@ -261,7 +261,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            decimals: 1,
+            divisibility: 1,
             rune: Rune(RUNE),
           }),
         }
@@ -321,7 +321,7 @@ mod tests {
             },
           ],
           etching: Some(Etching {
-            decimals: 0,
+            divisibility: 0,
             rune: Rune(RUNE),
           }),
         }
@@ -381,7 +381,7 @@ mod tests {
             },
           ],
           etching: Some(Etching {
-            decimals: 0,
+            divisibility: 0,
             rune: Rune(RUNE),
           }),
         }
@@ -434,7 +434,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            decimals: 0,
+            divisibility: 0,
             rune: Rune(RUNE),
           }),
         }
@@ -494,7 +494,7 @@ mod tests {
             },
           ],
           etching: Some(Etching {
-            decimals: 0,
+            divisibility: 0,
             rune: Rune(RUNE),
           }),
         }
@@ -557,7 +557,7 @@ mod tests {
             },
           ],
           etching: Some(Etching {
-            decimals: 0,
+            divisibility: 0,
             rune: Rune(RUNE),
           }),
         }
@@ -610,7 +610,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            decimals: 0,
+            divisibility: 0,
             rune: Rune(RUNE),
           }),
         }
@@ -699,7 +699,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            decimals: 0,
+            divisibility: 0,
             rune: Rune(RUNE),
           }),
         }
@@ -785,7 +785,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            decimals: 0,
+            divisibility: 0,
             rune: Rune(RUNE),
           }),
         }
@@ -864,7 +864,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            decimals: 0,
+            divisibility: 0,
             rune: Rune(RUNE),
           }),
         }
@@ -908,7 +908,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            decimals: 0,
+            divisibility: 0,
             rune: Rune(RUNE),
           }),
         }
@@ -956,7 +956,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            decimals: 0,
+            divisibility: 0,
             rune: Rune(RUNE),
           }),
         }
@@ -1006,7 +1006,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            decimals: 0,
+            divisibility: 0,
             rune: Rune(RUNE + 1),
           }),
         }
@@ -1127,7 +1127,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            decimals: 0,
+            divisibility: 0,
             rune: Rune(RUNE),
           }),
         }
@@ -1177,7 +1177,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            decimals: 0,
+            divisibility: 0,
             rune: Rune(RUNE + 1),
           }),
         }
@@ -1371,7 +1371,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            decimals: 0,
+            divisibility: 0,
             rune: Rune(RUNE),
           }),
         }
@@ -1421,7 +1421,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            decimals: 0,
+            divisibility: 0,
             rune: Rune(RUNE + 1),
           }),
         }
@@ -1561,7 +1561,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            decimals: 0,
+            divisibility: 0,
             rune: Rune(RUNE),
           }),
         }
@@ -1645,7 +1645,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            decimals: 0,
+            divisibility: 0,
             rune: Rune(RUNE),
           }),
         }
@@ -1669,7 +1669,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            decimals: 0,
+            divisibility: 0,
             rune: Rune(RUNE + 1),
           }),
         }

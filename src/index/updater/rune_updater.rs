@@ -5,7 +5,7 @@ use {
 
 struct Allocation {
   balance: u128,
-  decimals: u128,
+  divisibility: u128,
   id: u128,
   rune: Rune,
 }
@@ -83,7 +83,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
                 id: u128::from(self.height) << 16 | u128::from(index),
                 balance: u128::max_value(),
                 rune: etching.rune,
-                decimals: etching.decimals,
+                divisibility: etching.divisibility,
               }),
               Err(_) => None,
             }
@@ -131,7 +131,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         id,
         balance,
         rune,
-        decimals,
+        divisibility,
       }) = allocation
       {
         // Calculate the allocated supply
@@ -151,7 +151,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
               },
               rune,
               supply,
-              divisibility: decimals,
+              divisibility,
             }
             .store(),
           )?;

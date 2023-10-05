@@ -33,13 +33,13 @@ impl Runestone {
         [id, amount, output] => edicts.push(Edict { id, amount, output }),
         [rune] => {
           etching = Some(Etching {
-            decimals: 18,
+            divisibility: 18,
             rune: Rune(rune),
           })
         }
-        [rune, decimals] => {
+        [rune, divisibility] => {
           etching = Some(Etching {
-            decimals,
+            divisibility,
             rune: Rune(rune),
           })
         }
@@ -62,7 +62,7 @@ impl Runestone {
 
     if let Some(etching) = self.etching {
       varint::encode_to_vec(etching.rune.0, &mut payload);
-      varint::encode_to_vec(etching.decimals, &mut payload);
+      varint::encode_to_vec(etching.divisibility, &mut payload);
     }
 
     let mut builder = script::Builder::new()
@@ -414,14 +414,14 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Rune(4),
-          decimals: 18,
+          divisibility: 18,
         }),
       }))
     );
   }
 
   #[test]
-  fn additional_two_integers_are_rune_and_decimals() {
+  fn additional_two_integers_are_rune_and_divisibility() {
     let payload = payload(&[1, 2, 3, 4, 5]);
 
     let payload: &PushBytes = payload.as_slice().try_into().unwrap();
@@ -448,7 +448,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Rune(4),
-          decimals: 5,
+          divisibility: 5,
         }),
       }))
     );
@@ -520,7 +520,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Rune(4),
-          decimals: 5,
+          divisibility: 5,
         })
       }))
     );

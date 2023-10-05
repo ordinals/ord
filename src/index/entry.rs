@@ -35,9 +35,9 @@ pub(super) type RuneEntryValue = (u128, u128, u128, u8);
 impl Entry for RuneEntry {
   type Value = RuneEntryValue;
 
-  fn load((decimals, rune, supply, rarity): RuneEntryValue) -> Self {
+  fn load((divisibility, rune, supply, rarity): RuneEntryValue) -> Self {
     Self {
-      divisibility: decimals,
+      divisibility,
       rarity: Rarity::try_from(rarity).unwrap(),
       rune: Rune(rune),
       supply,
