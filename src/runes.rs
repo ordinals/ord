@@ -1628,13 +1628,12 @@ mod tests {
   }
 
   #[test]
-  #[ignore]
   fn rune_rarity_is_assigned_correctly() {
     let context = Context::builder()
       .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
       .build();
 
-    context.mine_blocks(1);
+    context.mine_blocks(2);
 
     let txid0 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, Witness::new())],
@@ -1656,12 +1655,12 @@ mod tests {
     });
 
     let id0 = RuneId {
-      height: 2,
+      height: 3,
       index: 1,
     };
 
     let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
-      inputs: &[(1, 0, 0, Witness::new())],
+      inputs: &[(2, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
@@ -1682,7 +1681,7 @@ mod tests {
     context.mine_blocks(1);
 
     let id1 = RuneId {
-      height: 2,
+      height: 3,
       index: 2,
     };
 
@@ -1715,17 +1714,17 @@ mod tests {
       [
         (
           OutPoint {
-            txid: txid0,
-            vout: 0
-          },
-          vec![(id0, u128::max_value())]
-        ),
-        (
-          OutPoint {
             txid: txid1,
             vout: 0
           },
           vec![(id1, u128::max_value())]
+        ),
+        (
+          OutPoint {
+            txid: txid0,
+            vout: 0
+          },
+          vec![(id0, u128::max_value())]
         ),
       ]
     );
