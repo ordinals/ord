@@ -357,43 +357,33 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     }
 
     for (new_satpoint, mut flotsam) in new_locations.into_iter() {
-      let new_satpoint = if let Origin::New {
-        cursed: _,
-        fee: _,
-        parent: _,
-        pointer,
-        unbound: _,
-      } = flotsam.origin
-      {
-        if let Some(pointer) = pointer {
-          if pointer < output_value {
-            // find output and offset of that pointer
-            // TODO: pointer to existing inscription -> reinscription, cursed, etc...
-            let Some((vout, offset)) = range_to_vout
-              .iter()
-              .find(|((start, end), _)| pointer >= *start && pointer < *end)
-              .map(|((start, _), vout)| (vout, pointer - start))
-            else {
-              todo!()
-            };
+      let new_satpoint = match flotsam.origin {
+        Origin::New {
+          pointer: Some(pointer),
+          ..
+        } if pointer < output_value => {
+          let (vout, offset) = range_to_vout
+            .iter()
+            .find_map(|((start, end), vout)| {
+              if pointer >= *start && pointer < *end {
+                Some((vout, pointer - start))
+              } else {
+                None
+              }
+            })
+            .unwrap_or_else(|| todo!());
 
-            flotsam.offset = pointer;
+          flotsam.offset = pointer;
 
-            SatPoint {
-              outpoint: OutPoint { txid, vout: *vout },
-              offset,
-            }
-          } else {
-            new_satpoint
+          SatPoint {
+            outpoint: OutPoint { txid, vout: *vout },
+            offset,
           }
-        } else {
-          new_satpoint
         }
-      } else {
-        new_satpoint
+        _ => new_satpoint,
       };
 
-      self.update_inscription_location(input_sat_ranges, dbg!(flotsam), new_satpoint)?;
+      self.update_inscription_location(input_sat_ranges, flotsam, new_satpoint)?;
     }
 
     if is_coinbase {
@@ -453,7 +443,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         cursed,
         fee,
         parent,
-        pointer,
+        pointer: _,
         unbound,
       } => {
         let inscription_number = if cursed {
@@ -483,14 +473,12 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         let sat = if unbound {
           None
         } else {
-          Self::calculate_sat(input_sat_ranges, dbg!(flotsam.offset))
+          Self::calculate_sat(input_sat_ranges, flotsam.offset)
         };
 
         if let Some(Sat(n)) = sat {
           self.sat_to_inscription_id.insert(&n, &inscription_id)?;
         }
-
-        dbg!(&sat);
 
         self.id_to_entry.insert(
           &inscription_id,
