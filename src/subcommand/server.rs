@@ -3152,7 +3152,7 @@ mod tests {
     <dl>
       <dt>supply</dt>
       <dd>340282366920938463463374607431768211455</dd>
-      <dt>decimals</dt>
+      <dt>divisibility</dt>
       <dd>0</dd>
       <dt>rarity</dt>
       <dd>uncommon</dd>
