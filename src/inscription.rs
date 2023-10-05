@@ -17,6 +17,7 @@ pub(crate) enum Curse {
   IncompleteField,
   NotAtOffsetZero,
   NotInFirstInput,
+  Pushnum,
   Reinscription,
   UnrecognizedEvenField,
 }
