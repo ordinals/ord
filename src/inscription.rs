@@ -19,6 +19,7 @@ pub(crate) enum Curse {
   NotInFirstInput,
   Reinscription,
   UnrecognizedEvenField,
+  Pushnum,
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Default)]
