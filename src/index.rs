@@ -4094,7 +4094,7 @@ mod tests {
       let inscription = Inscription {
         content_type: Some("text/plain".into()),
         body: Some("hello".into()),
-        pointer: Some(100_u64.to_le_bytes().to_vec()), //Todo: remove trailing zeros?
+        pointer: Some(100_u64.to_le_bytes().to_vec()),
         ..Default::default()
       };
 

@@ -362,22 +362,17 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           pointer: Some(pointer),
           ..
         } if pointer < output_value => {
-          let (vout, offset) = range_to_vout
-            .iter()
-            .find_map(|((start, end), vout)| {
-              if pointer >= *start && pointer < *end {
-                Some((vout, pointer - start))
-              } else {
-                None
+          match range_to_vout.iter().find_map(|((start, end), vout)| {
+            (pointer >= *start && pointer < *end).then(|| (vout, pointer - start))
+          }) {
+            Some((vout, offset)) => {
+              flotsam.offset = pointer;
+              SatPoint {
+                outpoint: OutPoint { txid, vout: *vout },
+                offset,
               }
-            })
-            .unwrap_or_else(|| todo!());
-
-          flotsam.offset = pointer;
-
-          SatPoint {
-            outpoint: OutPoint { txid, vout: *vout },
-            offset,
+            }
+            _ => new_satpoint,
           }
         }
         _ => new_satpoint,
