@@ -4173,14 +4173,14 @@ mod tests {
   fn index_only_indexes_runes_if_flag_is_passed_and_on_mainnet() {
     assert!(!Context::builder().build().index.has_rune_index().unwrap());
     assert!(!Context::builder()
-      .arg("--index-runes")
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
       .chain(Chain::Mainnet)
       .build()
       .index
       .has_rune_index()
       .unwrap());
     assert!(Context::builder()
-      .arg("--index-runes")
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
       .build()
       .index
       .has_rune_index()
@@ -4189,14 +4189,18 @@ mod tests {
 
   #[test]
   fn index_starts_with_no_runes() {
-    let context = Context::builder().arg("--index-runes").build();
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
     assert_eq!(context.index.runes().unwrap().unwrap(), []);
     assert_eq!(context.index.rune_balances(), []);
   }
 
   #[test]
   fn empty_runestone_does_not_create_rune() {
-    let context = Context::builder().arg("--index-runes").build();
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
 
     context.mine_blocks(1);
 
@@ -4220,7 +4224,9 @@ mod tests {
 
   #[test]
   fn etching_with_no_edicts_does_not_create_rune() {
-    let context = Context::builder().arg("--index-runes").build();
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
 
     context.mine_blocks(1);
 
@@ -4247,7 +4253,9 @@ mod tests {
 
   #[test]
   fn etching_with_edict_creates_rune() {
-    let context = Context::builder().arg("--index-runes").build();
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
 
     context.mine_blocks(1);
 
@@ -4299,7 +4307,9 @@ mod tests {
   #[test]
   fn sat_corresponding_to_rune_must_have_been_mined() {
     {
-      let context = Context::builder().arg("--index-runes").build();
+      let context = Context::builder()
+        .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+        .build();
 
       context.mine_blocks(1);
 
@@ -4330,7 +4340,9 @@ mod tests {
     }
 
     {
-      let context = Context::builder().arg("--index-runes").build();
+      let context = Context::builder()
+        .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+        .build();
 
       context.mine_blocks(1);
 
@@ -4382,7 +4394,9 @@ mod tests {
 
   #[test]
   fn etching_with_non_zero_decimals_and_rune() {
-    let context = Context::builder().arg("--index-runes").build();
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
 
     context.mine_blocks(1);
 
@@ -4433,7 +4447,9 @@ mod tests {
 
   #[test]
   fn allocations_over_max_supply_are_ignored() {
-    let context = Context::builder().arg("--index-runes").build();
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
 
     context.mine_blocks(1);
 
@@ -4491,7 +4507,9 @@ mod tests {
 
   #[test]
   fn allocations_partially_over_max_supply_are_honored() {
-    let context = Context::builder().arg("--index-runes").build();
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
 
     context.mine_blocks(1);
 
@@ -4549,7 +4567,9 @@ mod tests {
 
   #[test]
   fn etching_may_allocate_less_than_max_supply() {
-    let context = Context::builder().arg("--index-runes").build();
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
 
     context.mine_blocks(1);
 
@@ -4600,7 +4620,9 @@ mod tests {
 
   #[test]
   fn etching_may_allocate_to_multiple_outputs() {
-    let context = Context::builder().arg("--index-runes").build();
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
 
     context.mine_blocks(1);
 
@@ -4661,7 +4683,9 @@ mod tests {
 
   #[test]
   fn allocations_to_invalid_outputs_are_ignored() {
-    let context = Context::builder().arg("--index-runes").build();
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
 
     context.mine_blocks(1);
 
@@ -4719,7 +4743,9 @@ mod tests {
 
   #[test]
   fn input_runes_may_be_allocated() {
-    let context = Context::builder().arg("--index-runes").build();
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
 
     context.mine_blocks(1);
 
@@ -4806,7 +4832,9 @@ mod tests {
 
   #[test]
   fn unallocated_runes_are_assigned_to_first_no_op_return_output() {
-    let context = Context::builder().arg("--index-runes").build();
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
 
     context.mine_blocks(1);
 
@@ -4890,7 +4918,9 @@ mod tests {
   #[test]
   fn unallocated_runes_in_transactions_with_no_runestone_are_assigned_to_first_no_op_return_output()
   {
-    let context = Context::builder().arg("--index-runes").build();
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
 
     context.mine_blocks(1);
 
@@ -4967,7 +4997,9 @@ mod tests {
 
   #[test]
   fn duplicate_runes_are_forbidden() {
-    let context = Context::builder().arg("--index-runes").build();
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
 
     context.mine_blocks(1);
 
@@ -5057,7 +5089,9 @@ mod tests {
 
   #[test]
   fn outpoint_may_hold_multiple_runes() {
-    let context = Context::builder().arg("--index-runes").build();
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
 
     context.mine_blocks(1);
 
@@ -5226,7 +5260,9 @@ mod tests {
 
   #[test]
   fn multiple_input_runes_on_the_same_input_may_be_allocated() {
-    let context = Context::builder().arg("--index-runes").build();
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
 
     context.mine_blocks(1);
 
@@ -5468,7 +5504,9 @@ mod tests {
 
   #[test]
   fn multiple_input_runes_on_different_inputs_may_be_allocated() {
-    let context = Context::builder().arg("--index-runes").build();
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
 
     context.mine_blocks(1);
 
@@ -5656,7 +5694,9 @@ mod tests {
   #[test]
   fn unallocated_runes_are_assigned_to_first_no_op_return_output_when_op_return_is_not_last_output()
   {
-    let context = Context::builder().arg("--index-runes").build();
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
 
     context.mine_blocks(1);
 
@@ -5738,7 +5778,9 @@ mod tests {
 
   #[test]
   fn rune_rarity_is_assigned_correctly() {
-    let context = Context::builder().arg("--index-runes").build();
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
 
     context.mine_blocks(1);
 
