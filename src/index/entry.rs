@@ -22,7 +22,7 @@ impl Entry for BlockHash {
   }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub(crate) struct RuneEntry {
   pub(crate) divisibility: u128,
   pub(crate) rarity: Rarity,
@@ -371,5 +371,19 @@ mod tests {
       <Option<InscriptionId> as Entry>::load((0, 0, 1)),
       inscription_id
     );
+  }
+
+  #[test]
+  fn rune_entry() {
+    let rune_entry = RuneEntry {
+      divisibility: 1,
+      rarity: Rarity::Rare,
+      rune: Rune(3),
+      supply: 4,
+    };
+
+    assert_eq!(rune_entry.store(), (1, 3, 4, 2));
+
+    assert_eq!(RuneEntry::load((1, 3, 4, 2)), rune_entry);
   }
 }
