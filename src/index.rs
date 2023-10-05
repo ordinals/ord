@@ -4117,4 +4117,87 @@ mod tests {
       );
     }
   }
+
+  #[test]
+  fn inscription_with_pointer_to_parent_is_cursed_reinscription() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let parent_txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, inscription("text/plain", "parent").to_witness())],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let parent_inscription_id = InscriptionId {
+        txid: parent_txid,
+        index: 0,
+      };
+
+      let child_inscription = Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some("pointer-child".into()),
+        parent: Some(parent_inscription_id.parent_value()),
+        pointer: Some(0_u64.to_le_bytes().to_vec()),
+        ..Default::default()
+      };
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(2, 1, 0, child_inscription.to_witness())],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let child_inscription_id = InscriptionId { txid, index: 0 };
+
+      context.index.assert_inscription_location(
+        parent_inscription_id,
+        SatPoint {
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 0,
+        },
+        Some(50 * COIN_VALUE),
+      );
+
+      context.index.assert_inscription_location(
+        child_inscription_id,
+        SatPoint {
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 0,
+        },
+        Some(50 * COIN_VALUE),
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_entry(child_inscription_id)
+          .unwrap()
+          .unwrap()
+          .inscription_number,
+        -1
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_entry(child_inscription_id)
+          .unwrap()
+          .unwrap()
+          .parent
+          .unwrap(),
+        parent_inscription_id
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_children_by_inscription_id(parent_inscription_id)
+          .unwrap(),
+        vec![child_inscription_id]
+      );
+    }
+  }
 }
