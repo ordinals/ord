@@ -220,16 +220,38 @@ fn get_block_rarity_chunks(block_rarity: &BlockRarity, start: u64, end: u64) -> 
       }
     }
     BlockRarity::Palindrome => {
-      if end - start <= 10_000 {
-        for i in start..end {
-          if is_palindrome(&i) {
-            chunks.push((i, i + 1));
-          }
-        }
+      for palindrome in get_palindromes_from_sat_range(start, end) {
+        chunks.push((palindrome, palindrome + 1))
       }
     }
   }
   chunks
+}
+
+fn get_palindromes_from_sat_range(start: u64, end: u64) -> Vec<u64> {
+  let mut res = vec![];
+  let s = start.to_string();
+  let e = end.to_string();
+
+  if end - start > 1_000_000 {
+    return res;
+  }
+
+  // Below magic numbers are only applicable for <= 1 million sats ranges.
+  // Will change to the long term solution in the future.
+  if s.len() == e.len()
+    && s.len() >= 14
+    && s.chars().nth(6) != s.chars().nth(s.len() - 7)
+    && e.chars().nth(6) != e.chars().nth(e.len() - 7)
+  {
+    return res;
+  }
+  for i in start..end {
+    if is_palindrome(&i) {
+      res.push(i);
+    }
+  }
+  res
 }
 
 #[cfg(test)]
@@ -349,5 +371,16 @@ mod tests {
         ]
       },]
     );
+  }
+
+  #[test]
+  fn test_get_palindromes_from_sat_range() {
+    env_logger::init();
+    let mut palindromes = get_palindromes_from_sat_range(3153515_5000000, 3153515_6000000);
+    assert_eq!(palindromes, vec![31535155153513]);
+    palindromes = get_palindromes_from_sat_range(1999999_9999999, 2000000_0999999);
+    assert_eq!(palindromes, vec![20000000000002]);
+    palindromes = get_palindromes_from_sat_range(3153515_6000000, 3153515_7000000);
+    assert_eq!(palindromes.len(), 0);
   }
 }

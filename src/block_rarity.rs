@@ -100,6 +100,9 @@ impl<'de> Deserialize<'de> for BlockRarity {
 
 pub(crate) fn is_palindrome(n: &u64) -> bool {
   let s = n.to_string();
+  if s.chars().nth(0) != s.chars().last() {
+    return false;
+  }
   let reversed = s.chars().rev().collect::<String>();
   s == reversed
 }
@@ -126,6 +129,12 @@ fn is_pizza_sat(sat: &Sat) -> bool {
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  #[test]
+  fn test_is_palindrome() {
+    assert!(is_palindrome(&164114646411461u64));
+    assert!(!is_palindrome(&164114646411462u64));
+  }
 
   #[test]
   fn block_rarities() {
