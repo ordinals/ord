@@ -93,13 +93,13 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       };
 
       for Edict { id, amount, output } in runestone.edicts {
-        // Skip directives not referring to valid outputs
+        // Skip edicts not referring to valid outputs
         if output >= tx.output.len() as u128 {
           continue;
         }
 
         let (balance, id) = if id == 0 {
-          // If this directive allocates new issuance runes, skip it
+          // If this edict allocates new issuance runes, skip it
           // if no issuance was present, or if the issuance was invalid.
           // Additionally, replace ID 0 with the newly assigned ID, and
           // get the unallocated balance of the issuance.
