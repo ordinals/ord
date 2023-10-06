@@ -1729,4 +1729,561 @@ mod tests {
       ]
     );
   }
+
+  #[test]
+  fn edicts_with_id_zero_are_skipped() {
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
+
+    context.mine_blocks(1);
+
+    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            divisibility: 0,
+            rune: Rune(RUNE),
+          }),
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    assert_eq!(
+      context.index.runes().unwrap().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          rune: Rune(RUNE),
+          divisibility: 0,
+          supply: u128::max_value(),
+          rarity: Rarity::Uncommon,
+        }
+      )]
+    );
+
+    assert_eq!(
+      context.index.rune_balances(),
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+    );
+
+    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 1, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![
+            Edict {
+              id: id.into(),
+              amount: u128::max_value(),
+              output: 0,
+            },
+            Edict {
+              id: 0,
+              amount: 100,
+              output: 0,
+            },
+          ],
+          etching: None,
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    assert_eq!(
+      context.index.runes().unwrap().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          rune: Rune(RUNE),
+          divisibility: 0,
+          supply: u128::max_value(),
+          rarity: Rarity::Uncommon,
+        }
+      )]
+    );
+
+    assert_eq!(
+      context.index.rune_balances(),
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+    );
+  }
+
+  #[test]
+  fn edicts_which_refer_to_input_rune_with_no_balance_are_skipped() {
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
+
+    context.mine_blocks(1);
+
+    let txid0 = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            divisibility: 0,
+            rune: Rune(RUNE),
+          }),
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id0 = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    assert_eq!(
+      context.index.runes().unwrap().unwrap(),
+      [(
+        id0,
+        RuneEntry {
+          rune: Rune(RUNE),
+          divisibility: 0,
+          supply: u128::max_value(),
+          rarity: Rarity::Uncommon,
+        }
+      )]
+    );
+
+    assert_eq!(
+      context.index.rune_balances(),
+      [(
+        OutPoint {
+          txid: txid0,
+          vout: 0
+        },
+        vec![(id0, u128::max_value())]
+      )]
+    );
+
+    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            divisibility: 0,
+            rune: Rune(RUNE + 1),
+          }),
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id1 = RuneId {
+      height: 3,
+      index: 1,
+    };
+
+    assert_eq!(
+      context.index.runes().unwrap().unwrap(),
+      [
+        (
+          id0,
+          RuneEntry {
+            rune: Rune(RUNE),
+            divisibility: 0,
+            supply: u128::max_value(),
+            rarity: Rarity::Uncommon,
+          }
+        ),
+        (
+          id1,
+          RuneEntry {
+            rune: Rune(RUNE + 1),
+            divisibility: 0,
+            supply: u128::max_value(),
+            rarity: Rarity::Uncommon,
+          }
+        )
+      ]
+    );
+
+    assert_eq!(
+      context.index.rune_balances(),
+      [
+        (
+          OutPoint {
+            txid: txid1,
+            vout: 0
+          },
+          vec![(id1, u128::max_value())]
+        ),
+        (
+          OutPoint {
+            txid: txid0,
+            vout: 0
+          },
+          vec![(id0, u128::max_value())]
+        )
+      ]
+    );
+
+    let txid2 = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 1, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![
+            Edict {
+              id: id0.into(),
+              amount: u128::max_value(),
+              output: 0,
+            },
+            Edict {
+              id: id1.into(),
+              amount: u128::max_value(),
+              output: 0,
+            },
+          ],
+          etching: None,
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    assert_eq!(
+      context.index.runes().unwrap().unwrap(),
+      [
+        (
+          id0,
+          RuneEntry {
+            rune: Rune(RUNE),
+            divisibility: 0,
+            supply: u128::max_value(),
+            rarity: Rarity::Uncommon,
+          }
+        ),
+        (
+          id1,
+          RuneEntry {
+            rune: Rune(RUNE + 1),
+            divisibility: 0,
+            supply: u128::max_value(),
+            rarity: Rarity::Uncommon,
+          }
+        )
+      ]
+    );
+
+    assert_eq!(
+      context.index.rune_balances(),
+      [
+        (
+          OutPoint {
+            txid: txid2,
+            vout: 0
+          },
+          vec![(id0, u128::max_value())]
+        ),
+        (
+          OutPoint {
+            txid: txid1,
+            vout: 0
+          },
+          vec![(id1, u128::max_value())]
+        ),
+      ]
+    );
+  }
+
+  #[test]
+  fn edicts_over_max_inputs_are_ignored() {
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
+
+    context.mine_blocks(1);
+
+    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value() / 2,
+            output: 0,
+          }],
+          etching: Some(Etching {
+            divisibility: 0,
+            rune: Rune(RUNE),
+          }),
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    assert_eq!(
+      context.index.runes().unwrap().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          rune: Rune(RUNE),
+          divisibility: 0,
+          supply: u128::max_value() / 2,
+          rarity: Rarity::Uncommon,
+        }
+      )]
+    );
+
+    assert_eq!(
+      context.index.rune_balances(),
+      [(
+        OutPoint { txid, vout: 0 },
+        vec![(id, u128::max_value() / 2)]
+      )]
+    );
+
+    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 1, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: id.into(),
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: None,
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    assert_eq!(
+      context.index.runes().unwrap().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          rune: Rune(RUNE),
+          divisibility: 0,
+          supply: u128::max_value() / 2,
+          rarity: Rarity::Uncommon,
+        }
+      )]
+    );
+
+    assert_eq!(
+      context.index.rune_balances(),
+      [(
+        OutPoint { txid, vout: 0 },
+        vec![(id, u128::max_value() / 2)]
+      )]
+    );
+  }
+
+  #[test]
+  fn edicts_may_transfer_runes_to_op_return_outputs() {
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
+
+    context.mine_blocks(1);
+
+    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 1,
+          }],
+          etching: Some(Etching {
+            divisibility: 0,
+            rune: Rune(RUNE),
+          }),
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    assert_eq!(
+      context.index.runes().unwrap().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          rune: Rune(RUNE),
+          divisibility: 0,
+          supply: u128::max_value(),
+          rarity: Rarity::Uncommon,
+        }
+      )]
+    );
+
+    assert_eq!(
+      context.index.rune_balances(),
+      [(OutPoint { txid, vout: 1 }, vec![(id, u128::max_value())])]
+    );
+  }
+
+  #[test]
+  fn outputs_with_no_runes_have_no_balance() {
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
+
+    context.mine_blocks(1);
+
+    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      outputs: 2,
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            divisibility: 0,
+            rune: Rune(RUNE),
+          }),
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    assert_eq!(
+      context.index.runes().unwrap().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          rune: Rune(RUNE),
+          divisibility: 0,
+          supply: u128::max_value(),
+          rarity: Rarity::Uncommon,
+        }
+      )]
+    );
+
+    assert_eq!(
+      context.index.rune_balances(),
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+    );
+  }
+
+  #[test]
+  fn edicts_which_transfer_no_runes_to_output_create_no_balance_entry() {
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
+
+    context.mine_blocks(1);
+
+    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      outputs: 2,
+      op_return: Some(
+        Runestone {
+          edicts: vec![
+            Edict {
+              id: 0,
+              amount: u128::max_value(),
+              output: 0,
+            },
+            Edict {
+              id: 0,
+              amount: 0,
+              output: 1,
+            },
+          ],
+          etching: Some(Etching {
+            divisibility: 0,
+            rune: Rune(RUNE),
+          }),
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    assert_eq!(
+      context.index.runes().unwrap().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          rune: Rune(RUNE),
+          divisibility: 0,
+          supply: u128::max_value(),
+          rarity: Rarity::Uncommon,
+        }
+      )]
+    );
+
+    assert_eq!(
+      context.index.rune_balances(),
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+    );
+  }
 }
