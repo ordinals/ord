@@ -563,13 +563,13 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(DeserializeFromStr(rune)): Path<DeserializeFromStr<Rune>>,
   ) -> ServerResult<PageHtml<RuneHtml>> {
-    let entry = index.rune(rune)?.ok_or_else(|| {
+    let (id, entry) = index.rune(rune)?.ok_or_else(|| {
       ServerError::NotFound(
         "tracking runes requires index created with `--index-runes-pre-alpha-i-agree-to-get-rekt` flag".into(),
       )
     })?;
 
-    Ok(RuneHtml { entry }.page(page_config, index.has_sat_index()?))
+    Ok(RuneHtml { id, entry }.page(page_config, index.has_sat_index()?))
   }
 
   async fn runes(
@@ -3231,6 +3231,8 @@ mod tests {
         ".*<title>Rune NVTDIJZYIPU</title>.*
 <h1>Rune NVTDIJZYIPU</h1>
 <dl>
+  <dt>id</dt>
+  <dd>2/1</dd>
   <dt>supply</dt>
   <dd>340282366920938463463374607431768211455</dd>
   <dt>divisibility</dt>

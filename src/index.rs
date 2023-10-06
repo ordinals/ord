@@ -636,7 +636,7 @@ impl Index {
     }
   }
 
-  pub(crate) fn rune(&self, rune: Rune) -> Result<Option<RuneEntry>> {
+  pub(crate) fn rune(&self, rune: Rune) -> Result<Option<(RuneId, RuneEntry)>> {
     if self.has_rune_index()? {
       let rtx = self.database.begin_read()?;
 
@@ -644,7 +644,7 @@ impl Index {
         Some(id) => rtx
           .open_table(RUNE_ID_TO_RUNE_ENTRY)?
           .get(id.value())?
-          .map(|entry| RuneEntry::load(entry.value())),
+          .map(|entry| (RuneId::load(id.value()), RuneEntry::load(entry.value()))),
         None => None,
       };
 
