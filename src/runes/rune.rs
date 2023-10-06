@@ -38,50 +38,78 @@ impl Display for Rune {
   }
 }
 
+impl FromStr for Rune {
+  type Err = crate::Error;
+
+  fn from_str(s: &str) -> crate::Result<Self> {
+    let mut x = 0u128;
+    for (i, c) in s.chars().enumerate() {
+      if i > 0 {
+        x += 1;
+      }
+      x *= 26;
+      match c {
+        'A'..='Z' => {
+          x = x
+            .checked_add(c as u128 - 'A' as u128)
+            .ok_or_else(|| anyhow!("out of range"))?;
+        }
+        _ => bail!("invalid character in rune name: {c}"),
+      }
+    }
+    Ok(Rune(x))
+  }
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
 
   #[test]
-  fn to_string() {
-    assert_eq!(Rune(0).to_string(), "A");
-    assert_eq!(Rune(1).to_string(), "B");
-    assert_eq!(Rune(2).to_string(), "C");
-    assert_eq!(Rune(3).to_string(), "D");
-    assert_eq!(Rune(4).to_string(), "E");
-    assert_eq!(Rune(5).to_string(), "F");
-    assert_eq!(Rune(6).to_string(), "G");
-    assert_eq!(Rune(7).to_string(), "H");
-    assert_eq!(Rune(8).to_string(), "I");
-    assert_eq!(Rune(9).to_string(), "J");
-    assert_eq!(Rune(10).to_string(), "K");
-    assert_eq!(Rune(11).to_string(), "L");
-    assert_eq!(Rune(12).to_string(), "M");
-    assert_eq!(Rune(13).to_string(), "N");
-    assert_eq!(Rune(14).to_string(), "O");
-    assert_eq!(Rune(15).to_string(), "P");
-    assert_eq!(Rune(16).to_string(), "Q");
-    assert_eq!(Rune(17).to_string(), "R");
-    assert_eq!(Rune(18).to_string(), "S");
-    assert_eq!(Rune(19).to_string(), "T");
-    assert_eq!(Rune(20).to_string(), "U");
-    assert_eq!(Rune(21).to_string(), "V");
-    assert_eq!(Rune(22).to_string(), "W");
-    assert_eq!(Rune(23).to_string(), "X");
-    assert_eq!(Rune(24).to_string(), "Y");
-    assert_eq!(Rune(25).to_string(), "Z");
-    assert_eq!(Rune(26).to_string(), "AA");
-    assert_eq!(Rune(27).to_string(), "AB");
-    assert_eq!(Rune(51).to_string(), "AZ");
-    assert_eq!(Rune(52).to_string(), "BA");
-    assert_eq!(
-      Rune(u128::max_value() - 1).to_string(),
-      "BCGDENLQRQWDSLRUGSNLBTMFIJAU"
-    );
-    assert_eq!(
-      Rune(u128::max_value()).to_string(),
-      "BCGDENLQRQWDSLRUGSNLBTMFIJAV"
-    );
+  fn round_trip() {
+    fn case(n: u128, s: &str) {
+      assert_eq!(Rune(n).to_string(), s);
+      assert_eq!(s.parse::<Rune>().unwrap(), Rune(n));
+    }
+
+    case(0, "A");
+    case(1, "B");
+    case(2, "C");
+    case(3, "D");
+    case(4, "E");
+    case(5, "F");
+    case(6, "G");
+    case(7, "H");
+    case(8, "I");
+    case(9, "J");
+    case(10, "K");
+    case(11, "L");
+    case(12, "M");
+    case(13, "N");
+    case(14, "O");
+    case(15, "P");
+    case(16, "Q");
+    case(17, "R");
+    case(18, "S");
+    case(19, "T");
+    case(20, "U");
+    case(21, "V");
+    case(22, "W");
+    case(23, "X");
+    case(24, "Y");
+    case(25, "Z");
+    case(26, "AA");
+    case(27, "AB");
+    case(51, "AZ");
+    case(52, "BA");
+    case(u128::max_value() - 2, "BCGDENLQRQWDSLRUGSNLBTMFIJAT");
+    case(u128::max_value() - 1, "BCGDENLQRQWDSLRUGSNLBTMFIJAU");
+    case(u128::max_value(), "BCGDENLQRQWDSLRUGSNLBTMFIJAV");
+  }
+
+  #[test]
+  fn from_str_out_of_range() {
+    "BCGDENLQRQWDSLRUGSNLBTMFIJAW".parse::<Rune>().unwrap_err();
   }
 
   #[test]
