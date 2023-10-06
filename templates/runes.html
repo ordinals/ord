@@ -1,16 +1,6 @@
 <h1>Runes</h1>
-<ul class=monospace>
+<ul>
 %% for (id, entry) in &self.entries {
-  <li>
-    <h2>{{ entry.rune }}</h2>
-    <dl>
-      <dt>supply</dt>
-      <dd>{{ entry.supply }}</dd>
-      <dt>divisibility</dt>
-      <dd>{{ entry.divisibility }}</dd>
-      <dt>rarity</dt>
-      <dd>{{ entry.rarity }}</dd>
-    </dl>
-  </li>
+  <li><a href=/rune/{{ entry.rune }}>{{ entry.rune }}</a></li>
 %% }
 </ul>

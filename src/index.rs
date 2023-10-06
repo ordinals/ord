@@ -636,6 +636,24 @@ impl Index {
     }
   }
 
+  pub(crate) fn rune(&self, rune: Rune) -> Result<Option<RuneEntry>> {
+    if self.has_rune_index()? {
+      let rtx = self.database.begin_read()?;
+
+      let entry = match rtx.open_table(RUNE_TO_RUNE_ID)?.get(rune.0)? {
+        Some(id) => rtx
+          .open_table(RUNE_ID_TO_RUNE_ENTRY)?
+          .get(id.value())?
+          .map(|entry| RuneEntry::load(entry.value())),
+        None => None,
+      };
+
+      Ok(entry)
+    } else {
+      Ok(None)
+    }
+  }
+
   pub(crate) fn runes(&self) -> Result<Option<Vec<(RuneId, RuneEntry)>>> {
     if self.has_rune_index()? {
       let mut entries = Vec::new();
