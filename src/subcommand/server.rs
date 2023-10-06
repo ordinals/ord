@@ -3228,18 +3228,17 @@ mod tests {
       format!("/rune/{rune}"),
       StatusCode::OK,
       format!(
-        ".*<title>Rune {rune}</title>.*
-<h1>Rune {rune}</h1>
+        ".*<title>Rune NVTDIJZYIPU</title>.*
+<h1>Rune NVTDIJZYIPU</h1>
 <dl>
   <dt>supply</dt>
-  <dd>{}</dd>
+  <dd>340282366920938463463374607431768211455</dd>
   <dt>divisibility</dt>
   <dd>0</dd>
   <dt>rarity</dt>
   <dd><span class=uncommon>uncommon</span></dd>
 </dl>
-.*",
-        u128::max_value()
+.*"
       ),
     );
   }
