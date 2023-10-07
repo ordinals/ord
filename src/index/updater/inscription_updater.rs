@@ -185,6 +185,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           Some(Curse::NotInFirstInput)
         } else if inscription.offset != 0 {
           Some(Curse::NotAtOffsetZero)
+        } else if inscription.pushnum {
+          Some(Curse::Pushnum)
         } else if inscribed_offsets.contains_key(&offset) {
           let seq_num = self.id_to_entry.len()?;
 
