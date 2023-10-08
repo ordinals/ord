@@ -4650,4 +4650,35 @@ mod tests {
       );
     }
   }
+
+  #[test]
+  fn inscribe_into_fee() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let inscription = Inscription::default();
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, inscription.to_witness())],
+        fee: 50 * COIN_VALUE,
+        ..Default::default()
+      });
+
+      let blocks = context.mine_blocks(1);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      context.index.assert_inscription_location(
+        inscription_id,
+        SatPoint {
+          outpoint: OutPoint {
+            txid: blocks[0].txdata[0].txid(),
+            vout: 0,
+          },
+          offset: 50 * COIN_VALUE,
+        },
+        Some(50 * COIN_VALUE),
+      );
+    }
+  }
 }
