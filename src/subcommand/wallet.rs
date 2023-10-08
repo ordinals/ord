@@ -29,6 +29,8 @@ pub mod transactions;
 
 #[derive(Debug, Parser)]
 pub(crate) enum Wallet {
+  #[command(about = "Create a batch of inscriptions")]
+  BatchInscribe(inscribe::batch_inscribe::BatchInscribe),
   #[command(about = "Get wallet balance")]
   Balance,
   #[command(about = "Create new wallet")]
@@ -57,6 +59,7 @@ impl Wallet {
   pub(crate) fn run(self, options: Options) -> SubcommandResult {
     match self {
       Self::Balance => balance::run(options),
+      Self::BatchInscribe(_batch_inscribe) => todo!(),
       Self::Create(create) => create.run(options),
       Self::Inscribe(inscribe) => inscribe.run(options),
       Self::Inscriptions => inscriptions::run(options),

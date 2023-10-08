@@ -18,8 +18,6 @@ use {
   std::collections::BTreeSet,
 };
 
-pub mod batch_inscribe;
-
 #[derive(Serialize, Deserialize)]
 pub struct Output {
   pub commit: Txid,
