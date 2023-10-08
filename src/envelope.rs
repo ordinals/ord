@@ -28,14 +28,14 @@ pub(crate) struct Envelope<T> {
 }
 
 fn remove_field(fields: &mut BTreeMap<&[u8], Vec<&[u8]>>, field: &[u8]) -> Option<Vec<u8>> {
-  let field_value = fields.get_mut(field)?;
+  let values = fields.get_mut(field)?;
 
-  if field_value.is_empty() {
+  if values.is_empty() {
     None
   } else {
-    let value = field_value.remove(0).to_vec();
+    let value = values.remove(0).to_vec();
 
-    if field_value.is_empty() {
+    if values.is_empty() {
       fields.remove(field);
     }
 
