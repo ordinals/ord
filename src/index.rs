@@ -4131,7 +4131,7 @@ mod tests {
       let inscription = Inscription {
         content_type: Some("text/plain".into()),
         body: Some("hello".into()),
-        pointer: Some(100_u64.to_le_bytes().to_vec()),
+        pointer: Some(100u64.to_le_bytes().to_vec()),
         ..Default::default()
       };
 
@@ -4176,7 +4176,7 @@ mod tests {
         content_type: Some("text/plain".into()),
         body: Some("pointer-child".into()),
         parent: Some(parent_inscription_id.parent_value()),
-        pointer: Some(0_u64.to_le_bytes().to_vec()),
+        pointer: Some(0u64.to_le_bytes().to_vec()),
         ..Default::default()
       };
 
@@ -4250,7 +4250,7 @@ mod tests {
         .push_slice([1])
         .push_slice(b"text/plain;charset=utf-8")
         .push_slice([2])
-        .push_slice(100_u64.to_le_bytes())
+        .push_slice(100u64.to_le_bytes())
         .push_slice([])
         .push_slice(b"foo")
         .push_opcode(opcodes::all::OP_ENDIF)
@@ -4260,7 +4260,7 @@ mod tests {
         .push_slice([1])
         .push_slice(b"text/plain;charset=utf-8")
         .push_slice([2])
-        .push_slice(300_000_u64.to_le_bytes())
+        .push_slice(300_000u64.to_le_bytes())
         .push_slice([])
         .push_slice(b"bar")
         .push_opcode(opcodes::all::OP_ENDIF)
@@ -4270,7 +4270,7 @@ mod tests {
         .push_slice([1])
         .push_slice(b"text/plain;charset=utf-8")
         .push_slice([2])
-        .push_slice(1_000_000_u64.to_le_bytes())
+        .push_slice(1_000_000u64.to_le_bytes())
         .push_slice([])
         .push_slice(b"qix")
         .push_opcode(opcodes::all::OP_ENDIF)
@@ -4330,7 +4330,7 @@ mod tests {
         .push_slice([1])
         .push_slice(b"text/plain;charset=utf-8")
         .push_slice([2])
-        .push_slice(100_u64.to_le_bytes())
+        .push_slice(100u64.to_le_bytes())
         .push_slice([])
         .push_slice(b"foo")
         .push_opcode(opcodes::all::OP_ENDIF)
@@ -4340,7 +4340,7 @@ mod tests {
         .push_slice([1])
         .push_slice(b"text/plain;charset=utf-8")
         .push_slice([2])
-        .push_slice(100_111_u64.to_le_bytes())
+        .push_slice(100_111u64.to_le_bytes())
         .push_slice([])
         .push_slice(b"bar")
         .push_opcode(opcodes::all::OP_ENDIF)
@@ -4350,7 +4350,7 @@ mod tests {
         .push_slice([1])
         .push_slice(b"text/plain;charset=utf-8")
         .push_slice([2])
-        .push_slice(299_999_u64.to_le_bytes())
+        .push_slice(299_999u64.to_le_bytes())
         .push_slice([])
         .push_slice(b"qix")
         .push_opcode(opcodes::all::OP_ENDIF)
@@ -4421,7 +4421,7 @@ mod tests {
       let inscription_for_first_output = Inscription {
         content_type: Some("text/plain".into()),
         body: Some("hello world".into()),
-        pointer: Some(0_u64.to_le_bytes().to_vec()),
+        pointer: Some(0u64.to_le_bytes().to_vec()),
         ..Default::default()
       };
 
@@ -4484,14 +4484,14 @@ mod tests {
       let second_inscription = Inscription {
         content_type: Some("text/plain".into()),
         body: Some("hello mars".into()),
-        pointer: Some(1_u64.to_le_bytes().to_vec()),
+        pointer: Some(1u64.to_le_bytes().to_vec()),
         ..Default::default()
       };
 
       let third_inscription = Inscription {
         content_type: Some("text/plain".into()),
         body: Some("hello world".into()),
-        pointer: Some(2_u64.to_le_bytes().to_vec()),
+        pointer: Some(2u64.to_le_bytes().to_vec()),
         ..Default::default()
       };
 

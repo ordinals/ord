@@ -597,4 +597,25 @@ mod tests {
       None,
     );
   }
+
+  #[test]
+  fn pointer_encode() {
+    assert_eq!(
+      Inscription {
+        pointer: None,
+        ..Default::default()
+      }
+      .to_witness(),
+      envelope(&[b"ord"]),
+    );
+
+    assert_eq!(
+      Inscription {
+        pointer: Some(vec![1, 2, 3]),
+        ..Default::default()
+      }
+      .to_witness(),
+      envelope(&[b"ord", &[2], &[1, 2, 3]]),
+    );
+  }
 }
