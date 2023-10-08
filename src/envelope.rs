@@ -11,17 +11,19 @@ pub(crate) const PROTOCOL_ID: [u8; 3] = *b"ord";
 pub(crate) const BODY_TAG: [u8; 0] = [];
 pub(crate) const CONTENT_TYPE_TAG: [u8; 1] = [1];
 pub(crate) const PARENT_TAG: [u8; 1] = [3];
+pub(crate) const METADATA_TAG: [u8; 1] = [5];
 pub(crate) const METAPROTOCOL_TAG: [u8; 1] = [7];
 
 type Result<T> = std::result::Result<T, script::Error>;
 type RawEnvelope = Envelope<Vec<Vec<u8>>>;
 pub(crate) type ParsedEnvelope = Envelope<Inscription>;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Default, PartialEq, Clone)]
 pub(crate) struct Envelope<T> {
   pub(crate) payload: T,
   pub(crate) input: u32,
   pub(crate) offset: u32,
+  pub(crate) pushnum: bool,
 }
 
 fn remove_field(fields: &mut BTreeMap<&[u8], Vec<&[u8]>>, field: &[u8]) -> Option<Vec<u8>> {
@@ -31,6 +33,19 @@ fn remove_field(fields: &mut BTreeMap<&[u8], Vec<&[u8]>>, field: &[u8]) -> Optio
     None
   } else {
     Some(value.remove(0).to_vec())
+  }
+}
+
+fn remove_and_concatenate_field(
+  fields: &mut BTreeMap<&[u8], Vec<&[u8]>>,
+  field: &[u8],
+) -> Option<Vec<u8>> {
+  let value = fields.remove(field)?;
+
+  if value.is_empty() {
+    None
+  } else {
+    Some(value.into_iter().flatten().cloned().collect())
   }
 }
 
@@ -58,6 +73,7 @@ impl From<RawEnvelope> for ParsedEnvelope {
     let content_type = remove_field(&mut fields, &CONTENT_TYPE_TAG);
     let parent = remove_field(&mut fields, &PARENT_TAG);
     let metaprotocol = remove_field(&mut fields, &METAPROTOCOL_TAG);
+    let metadata = remove_and_concatenate_field(&mut fields, &METADATA_TAG);
 
     let unrecognized_even_field = fields
       .keys()
@@ -78,9 +94,11 @@ impl From<RawEnvelope> for ParsedEnvelope {
         duplicate_field,
         incomplete_field,
         metaprotocol,
+        metadata,
       },
       input: envelope.input,
       offset: envelope.offset,
+      pushnum: envelope.pushnum,
     }
   }
 }
@@ -139,6 +157,8 @@ impl RawEnvelope {
       return Ok(None);
     }
 
+    let mut pushnum = false;
+
     let mut payload = Vec::new();
 
     loop {
@@ -146,10 +166,79 @@ impl RawEnvelope {
         None => return Ok(None),
         Some(Instruction::Op(opcodes::all::OP_ENDIF)) => {
           return Ok(Some(Envelope {
-            payload,
             input: input.try_into().unwrap(),
             offset: offset.try_into().unwrap(),
+            payload,
+            pushnum,
           }));
+        }
+        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_NEG1)) => {
+          pushnum = true;
+          payload.push(vec![0x81]);
+        }
+        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_1)) => {
+          pushnum = true;
+          payload.push(vec![1]);
+        }
+        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_2)) => {
+          pushnum = true;
+          payload.push(vec![2]);
+        }
+        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_3)) => {
+          pushnum = true;
+          payload.push(vec![3]);
+        }
+        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_4)) => {
+          pushnum = true;
+          payload.push(vec![4]);
+        }
+        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_5)) => {
+          pushnum = true;
+          payload.push(vec![5]);
+        }
+        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_6)) => {
+          pushnum = true;
+          payload.push(vec![6]);
+        }
+        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_7)) => {
+          pushnum = true;
+          payload.push(vec![7]);
+        }
+        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_8)) => {
+          pushnum = true;
+          payload.push(vec![8]);
+        }
+        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_9)) => {
+          pushnum = true;
+          payload.push(vec![9]);
+        }
+        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_10)) => {
+          pushnum = true;
+          payload.push(vec![10]);
+        }
+        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_11)) => {
+          pushnum = true;
+          payload.push(vec![11]);
+        }
+        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_12)) => {
+          pushnum = true;
+          payload.push(vec![12]);
+        }
+        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_13)) => {
+          pushnum = true;
+          payload.push(vec![13]);
+        }
+        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_14)) => {
+          pushnum = true;
+          payload.push(vec![14]);
+        }
+        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_15)) => {
+          pushnum = true;
+          payload.push(vec![15]);
+        }
+        Some(Instruction::Op(opcodes::all::OP_PUSHNUM_16)) => {
+          pushnum = true;
+          payload.push(vec![16]);
         }
         Some(Instruction::PushBytes(push)) => {
           payload.push(push.as_bytes().to_vec());
@@ -231,9 +320,7 @@ mod tests {
         Vec::new()
       ])]),
       vec![ParsedEnvelope {
-        payload: Inscription::default(),
-        input: 0,
-        offset: 0,
+        ..Default::default()
       }]
     );
   }
@@ -275,8 +362,7 @@ mod tests {
           duplicate_field: true,
           ..Default::default()
         },
-        input: 0,
-        offset: 0,
+        ..Default::default()
       }]
     );
   }
@@ -293,8 +379,7 @@ mod tests {
       ])]),
       vec![ParsedEnvelope {
         payload: inscription("text/plain;charset=utf-8", "ord"),
-        input: 0,
-        offset: 0,
+        ..Default::default()
       }]
     );
   }
@@ -313,8 +398,7 @@ mod tests {
       ])]),
       vec![ParsedEnvelope {
         payload: inscription("text/plain;charset=utf-8", "ord"),
-        input: 0,
-        offset: 0,
+        ..Default::default()
       }]
     );
   }
@@ -328,8 +412,7 @@ mod tests {
           content_type: Some(b"text/plain;charset=utf-8".to_vec()),
           ..Default::default()
         },
-        input: 0,
-        offset: 0
+        ..Default::default()
       }],
     );
   }
@@ -343,8 +426,7 @@ mod tests {
           body: Some(b"foo".to_vec()),
           ..Default::default()
         },
-        input: 0,
-        offset: 0
+        ..Default::default()
       }],
     );
   }
@@ -362,8 +444,7 @@ mod tests {
       ])]),
       vec![ParsedEnvelope {
         payload: inscription("text/plain;charset=utf-8", "foobar"),
-        input: 0,
-        offset: 0
+        ..Default::default()
       }],
     );
   }
@@ -374,8 +455,7 @@ mod tests {
       parse(&[envelope(&[b"ord", &[1], b"text/plain;charset=utf-8", &[]])]),
       vec![ParsedEnvelope {
         payload: inscription("text/plain;charset=utf-8", ""),
-        input: 0,
-        offset: 0
+        ..Default::default()
       }]
     );
   }
@@ -396,8 +476,7 @@ mod tests {
       ])]),
       vec![ParsedEnvelope {
         payload: inscription("text/plain;charset=utf-8", ""),
-        input: 0,
-        offset: 0
+        ..Default::default()
       }],
     );
   }
@@ -420,8 +499,7 @@ mod tests {
       parse(&[Witness::from_slice(&[script.into_bytes(), Vec::new()])]),
       vec![ParsedEnvelope {
         payload: inscription("text/plain;charset=utf-8", "ord"),
-        input: 0,
-        offset: 0
+        ..Default::default()
       }],
     );
   }
@@ -444,8 +522,7 @@ mod tests {
       parse(&[Witness::from_slice(&[script.into_bytes(), Vec::new()])]),
       vec![ParsedEnvelope {
         payload: inscription("text/plain;charset=utf-8", "ord"),
-        input: 0,
-        offset: 0
+        ..Default::default()
       }],
     );
   }
@@ -476,13 +553,12 @@ mod tests {
       vec![
         ParsedEnvelope {
           payload: inscription("text/plain;charset=utf-8", "foo"),
-          input: 0,
-          offset: 0
+          ..Default::default()
         },
         ParsedEnvelope {
           payload: inscription("text/plain;charset=utf-8", "bar"),
-          input: 0,
-          offset: 1
+          offset: 1,
+          ..Default::default()
         },
       ],
     );
@@ -500,8 +576,7 @@ mod tests {
       ])]),
       vec![ParsedEnvelope {
         payload: inscription("text/plain;charset=utf-8", [0b10000000]),
-        input: 0,
-        offset: 0
+        ..Default::default()
       },],
     );
   }
@@ -556,8 +631,7 @@ mod tests {
       ])]),
       vec![ParsedEnvelope {
         payload: inscription("text/plain;charset=utf-8", "ord"),
-        input: 0,
-        offset: 0,
+        ..Default::default()
       }],
     );
   }
@@ -569,7 +643,7 @@ mod tests {
       vec![ParsedEnvelope {
         payload: inscription("foo", [1; 1040]),
         input: 1,
-        offset: 0,
+        ..Default::default()
       }]
     );
   }
@@ -588,13 +662,12 @@ mod tests {
       vec![
         ParsedEnvelope {
           payload: inscription("foo", [1; 100]),
-          input: 0,
-          offset: 0,
+          ..Default::default()
         },
         ParsedEnvelope {
           payload: inscription("bar", [1; 100]),
-          input: 0,
           offset: 1,
+          ..Default::default()
         }
       ]
     );
@@ -606,8 +679,7 @@ mod tests {
       parse(&[envelope(&[b"ord", &[1], b"image/png", &[], &[1; 100]])]),
       vec![ParsedEnvelope {
         payload: inscription("image/png", [1; 100]),
-        input: 0,
-        offset: 0,
+        ..Default::default()
       }]
     );
   }
@@ -624,8 +696,7 @@ mod tests {
       parse(&[witness]),
       vec![ParsedEnvelope {
         payload: inscription("foo", [1; 1040]),
-        input: 0,
-        offset: 0,
+        ..Default::default()
       }]
     );
   }
@@ -642,8 +713,7 @@ mod tests {
       parse(&[witness]),
       vec![ParsedEnvelope {
         payload: Inscription::default(),
-        input: 0,
-        offset: 0,
+        ..Default::default()
       }],
     );
   }
@@ -654,8 +724,7 @@ mod tests {
       parse(&[envelope(&[b"ord", &[9], &[0]])]),
       vec![ParsedEnvelope {
         payload: Inscription::default(),
-        input: 0,
-        offset: 0,
+        ..Default::default()
       }],
     );
   }
@@ -669,8 +738,7 @@ mod tests {
           unrecognized_even_field: true,
           ..Default::default()
         },
-        input: 0,
-        offset: 0,
+        ..Default::default()
       }],
     );
   }
@@ -684,9 +752,83 @@ mod tests {
           incomplete_field: true,
           ..Default::default()
         },
-        input: 0,
-        offset: 0,
+        ..Default::default()
       }],
     );
+  }
+
+  #[test]
+  fn metadata_is_parsed_correctly() {
+    assert_eq!(
+      parse(&[envelope(&[b"ord", &[5], &[]])]),
+      vec![ParsedEnvelope {
+        payload: Inscription {
+          metadata: Some(vec![]),
+          ..Default::default()
+        },
+        ..Default::default()
+      }]
+    );
+  }
+
+  #[test]
+  fn metadata_is_parsed_correctly_from_chunks() {
+    assert_eq!(
+      parse(&[envelope(&[b"ord", &[5], &[0], &[5], &[1]])]),
+      vec![ParsedEnvelope {
+        payload: Inscription {
+          metadata: Some(vec![0, 1]),
+          duplicate_field: true,
+          ..Default::default()
+        },
+        ..Default::default()
+      }]
+    );
+  }
+
+  #[test]
+  fn pushnum_opcodes_are_parsed_correctly() {
+    const PUSHNUMS: &[(opcodes::All, u8)] = &[
+      (opcodes::all::OP_PUSHNUM_NEG1, 0x81),
+      (opcodes::all::OP_PUSHNUM_1, 1),
+      (opcodes::all::OP_PUSHNUM_2, 2),
+      (opcodes::all::OP_PUSHNUM_3, 3),
+      (opcodes::all::OP_PUSHNUM_4, 4),
+      (opcodes::all::OP_PUSHNUM_5, 5),
+      (opcodes::all::OP_PUSHNUM_6, 6),
+      (opcodes::all::OP_PUSHNUM_7, 7),
+      (opcodes::all::OP_PUSHNUM_8, 8),
+      (opcodes::all::OP_PUSHNUM_9, 9),
+      (opcodes::all::OP_PUSHNUM_10, 10),
+      (opcodes::all::OP_PUSHNUM_11, 11),
+      (opcodes::all::OP_PUSHNUM_12, 12),
+      (opcodes::all::OP_PUSHNUM_13, 13),
+      (opcodes::all::OP_PUSHNUM_14, 14),
+      (opcodes::all::OP_PUSHNUM_15, 15),
+      (opcodes::all::OP_PUSHNUM_16, 16),
+    ];
+
+    for &(op, value) in PUSHNUMS {
+      let script = script::Builder::new()
+        .push_opcode(opcodes::OP_FALSE)
+        .push_opcode(opcodes::all::OP_IF)
+        .push_slice(b"ord")
+        .push_opcode(opcodes::OP_FALSE)
+        .push_opcode(op)
+        .push_opcode(opcodes::all::OP_ENDIF)
+        .into_script();
+
+      assert_eq!(
+        parse(&[Witness::from_slice(&[script.into_bytes(), Vec::new()])]),
+        vec![ParsedEnvelope {
+          payload: Inscription {
+            body: Some(vec![value]),
+            ..Default::default()
+          },
+          pushnum: true,
+          ..Default::default()
+        }],
+      );
+    }
   }
 }

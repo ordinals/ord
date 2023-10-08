@@ -32,6 +32,7 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   pub(super) cursed_inscription_count: u64,
   pub(super) blessed_inscription_count: u64,
   pub(super) next_sequence_number: u64,
+  inscription_number_to_id: &'a mut Table<'db, 'tx, i64, &'static InscriptionIdValue>,
   sequence_number_to_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
   outpoint_to_value: &'a mut Table<'db, 'tx, &'static OutPointValue, u64>,
   reward: u64,
@@ -56,6 +57,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     value_receiver: &'a mut Receiver<u64>,
     id_to_entry: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, InscriptionEntryValue>,
     lost_sats: u64,
+    inscription_number_to_id: &'a mut Table<'db, 'tx, i64, &'static InscriptionIdValue>,
     cursed_inscription_count: u64,
     blessed_inscription_count: u64,
     sequence_number_to_id: &'a mut Table<'db, 'tx, u64, &'static InscriptionIdValue>,
@@ -90,6 +92,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
       blessed_inscription_count,
       next_sequence_number,
       sequence_number_to_id,
+      inscription_number_to_id,
       outpoint_to_value,
       reward: Height(height).subsidy(),
       sat_to_inscription_id,
@@ -181,6 +184,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           Some(Curse::NotInFirstInput)
         } else if inscription.offset != 0 {
           Some(Curse::NotAtOffsetZero)
+        } else if inscription.pushnum {
+          Some(Curse::Pushnum)
         } else if inscribed_offsets.contains_key(&offset) {
           let seq_num = self.id_to_entry.len()?;
 
@@ -223,9 +228,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           curse.is_some()
         };
 
-        let unbound = current_input_value == 0
-          || inscription.offset != 0
-          || curse == Some(Curse::UnrecognizedEvenField);
+        let unbound = current_input_value == 0 || curse == Some(Curse::UnrecognizedEvenField);
 
         if curse.is_some() || unbound {
           log::info!(
@@ -423,6 +426,10 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
 
           number
         };
+
+        self
+          .inscription_number_to_id
+          .insert(inscription_number, &inscription_id)?;
 
         let sequence_number = self.next_sequence_number;
         self.next_sequence_number += 1;
