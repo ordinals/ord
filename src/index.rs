@@ -4578,4 +4578,76 @@ mod tests {
       );
     }
   }
+
+  #[test]
+  fn inscriptions_with_pointers_to_same_sat_one_becomes_cursed_reinscriptions() {
+    for context in Context::configurations() {
+      context.mine_blocks(2);
+
+      let inscription = Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some("hello jupiter".into()),
+        ..Default::default()
+      };
+
+      let cursed_reinscription = Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some("hello mars".into()),
+        pointer: Some(0u64.to_le_bytes().to_vec()),
+        ..Default::default()
+      };
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[
+          (1, 0, 0, inscription.to_witness()),
+          (2, 0, 0, cursed_reinscription.to_witness()),
+        ],
+        outputs: 2,
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+      let cursed_reinscription_id = InscriptionId { txid, index: 1 };
+
+      context.index.assert_inscription_location(
+        inscription_id,
+        SatPoint {
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 0,
+        },
+        Some(50 * COIN_VALUE),
+      );
+
+      context.index.assert_inscription_location(
+        cursed_reinscription_id,
+        SatPoint {
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 0,
+        },
+        Some(50 * COIN_VALUE),
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_entry(inscription_id)
+          .unwrap()
+          .unwrap()
+          .inscription_number,
+        0
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_entry(cursed_reinscription_id)
+          .unwrap()
+          .unwrap()
+          .inscription_number,
+        -1
+      );
+    }
+  }
 }
