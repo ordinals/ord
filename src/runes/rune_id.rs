@@ -2,7 +2,7 @@ use super::*;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub(crate) struct RuneId {
-  pub(crate) height: u64,
+  pub(crate) height: u32,
   pub(crate) index: u16,
 }
 
@@ -31,6 +31,18 @@ mod tests {
         index: 1,
       }
       .into()
+    );
+  }
+
+  #[test]
+  fn display() {
+    assert_eq!(
+      RuneId {
+        height: 1,
+        index: 2
+      }
+      .to_string(),
+      "1/2"
     );
   }
 }
