@@ -49,7 +49,6 @@ impl Inscription {
     chain: Chain,
     path: impl AsRef<Path>,
     parent: Option<InscriptionId>,
-    pointer: Option<u64>,
     metaprotocol: Option<String>,
     metadata: Option<Vec<u8>>,
   ) -> Result<Self, Error> {
@@ -69,13 +68,10 @@ impl Inscription {
     Ok(Self {
       body: Some(body),
       content_type: Some(content_type.into()),
-      duplicate_field: false,
-      incomplete_field: false,
       metadata,
       metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
       parent: parent.map(|id| id.parent_value()),
-      pointer: pointer.map(|pointer| pointer.to_le_bytes().to_vec()),
-      unrecognized_even_field: false,
+      ..Default::default()
     })
   }
 
