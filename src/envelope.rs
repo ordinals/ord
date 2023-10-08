@@ -753,6 +753,22 @@ mod tests {
   }
 
   #[test]
+  fn duplicate_pointer_field_makes_inscription_unbound() {
+    assert_eq!(
+      parse(&[envelope(&[b"ord", &[2], &[1], &[2], &[0]])]),
+      vec![ParsedEnvelope {
+        payload: Inscription {
+          pointer: Some(vec![1]),
+          duplicate_field: true,
+          unrecognized_even_field: true,
+          ..Default::default()
+        },
+        ..Default::default()
+      }],
+    );
+  }
+
+  #[test]
   fn incomplete_field() {
     assert_eq!(
       parse(&[envelope(&[b"ord", &[99]])]),
