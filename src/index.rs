@@ -4308,40 +4308,27 @@ mod tests {
     for context in Context::configurations() {
       context.mine_blocks(1);
 
-      let script = script::Builder::new()
-        .push_opcode(opcodes::OP_FALSE)
-        .push_opcode(opcodes::all::OP_IF)
-        .push_slice(b"ord")
-        .push_slice([1])
-        .push_slice(b"text/plain;charset=utf-8")
-        .push_slice([2])
-        .push_slice(100u64.to_le_bytes())
-        .push_slice([])
-        .push_slice(b"foo")
-        .push_opcode(opcodes::all::OP_ENDIF)
-        .push_opcode(opcodes::OP_FALSE)
-        .push_opcode(opcodes::all::OP_IF)
-        .push_slice(b"ord")
-        .push_slice([1])
-        .push_slice(b"text/plain;charset=utf-8")
-        .push_slice([2])
-        .push_slice(300_000u64.to_le_bytes())
-        .push_slice([])
-        .push_slice(b"bar")
-        .push_opcode(opcodes::all::OP_ENDIF)
-        .push_opcode(opcodes::OP_FALSE)
-        .push_opcode(opcodes::all::OP_IF)
-        .push_slice(b"ord")
-        .push_slice([1])
-        .push_slice(b"text/plain;charset=utf-8")
-        .push_slice([2])
-        .push_slice(1_000_000u64.to_le_bytes())
-        .push_slice([])
-        .push_slice(b"qix")
-        .push_opcode(opcodes::all::OP_ENDIF)
-        .into_script();
+      let builder = script::Builder::new();
 
-      let witness = Witness::from_slice(&[script.into_bytes(), Vec::new()]);
+      let builder = Inscription {
+        pointer: Some(100u64.to_le_bytes().to_vec()),
+        ..Default::default()
+      }
+      .append_reveal_script_to_builder(builder);
+
+      let builder = Inscription {
+        pointer: Some(300_000u64.to_le_bytes().to_vec()),
+        ..Default::default()
+      }
+      .append_reveal_script_to_builder(builder);
+
+      let builder = Inscription {
+        pointer: Some(1_000_000u64.to_le_bytes().to_vec()),
+        ..Default::default()
+      }
+      .append_reveal_script_to_builder(builder);
+
+      let witness = Witness::from_slice(&[builder.into_bytes(), Vec::new()]);
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0, witness)],
@@ -4388,40 +4375,27 @@ mod tests {
     for context in Context::configurations() {
       context.mine_blocks_with_subsidy(1, 300_000);
 
-      let script = script::Builder::new()
-        .push_opcode(opcodes::OP_FALSE)
-        .push_opcode(opcodes::all::OP_IF)
-        .push_slice(b"ord")
-        .push_slice([1])
-        .push_slice(b"text/plain;charset=utf-8")
-        .push_slice([2])
-        .push_slice(100u64.to_le_bytes())
-        .push_slice([])
-        .push_slice(b"foo")
-        .push_opcode(opcodes::all::OP_ENDIF)
-        .push_opcode(opcodes::OP_FALSE)
-        .push_opcode(opcodes::all::OP_IF)
-        .push_slice(b"ord")
-        .push_slice([1])
-        .push_slice(b"text/plain;charset=utf-8")
-        .push_slice([2])
-        .push_slice(100_111u64.to_le_bytes())
-        .push_slice([])
-        .push_slice(b"bar")
-        .push_opcode(opcodes::all::OP_ENDIF)
-        .push_opcode(opcodes::OP_FALSE)
-        .push_opcode(opcodes::all::OP_IF)
-        .push_slice(b"ord")
-        .push_slice([1])
-        .push_slice(b"text/plain;charset=utf-8")
-        .push_slice([2])
-        .push_slice(299_999u64.to_le_bytes())
-        .push_slice([])
-        .push_slice(b"qix")
-        .push_opcode(opcodes::all::OP_ENDIF)
-        .into_script();
+      let builder = script::Builder::new();
 
-      let witness = Witness::from_slice(&[script.into_bytes(), Vec::new()]);
+      let builder = Inscription {
+        pointer: Some(100u64.to_le_bytes().to_vec()),
+        ..Default::default()
+      }
+      .append_reveal_script_to_builder(builder);
+
+      let builder = Inscription {
+        pointer: Some(100_111u64.to_le_bytes().to_vec()),
+        ..Default::default()
+      }
+      .append_reveal_script_to_builder(builder);
+
+      let builder = Inscription {
+        pointer: Some(299_999u64.to_le_bytes().to_vec()),
+        ..Default::default()
+      }
+      .append_reveal_script_to_builder(builder);
+
+      let witness = Witness::from_slice(&[builder.into_bytes(), Vec::new()]);
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0, witness)],
