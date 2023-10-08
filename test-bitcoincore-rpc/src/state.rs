@@ -143,6 +143,7 @@ impl State {
     }
 
     let value_per_output = (total_value - template.fee) / template.outputs as u64;
+
     assert_eq!(
       value_per_output * template.outputs as u64 + template.fee,
       total_value

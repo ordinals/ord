@@ -343,9 +343,10 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           offset: flotsam.offset - output_value,
         };
 
-        range_to_vout.insert((output_value, end), new_satpoint.outpoint.vout);
         new_locations.push((new_satpoint, inscriptions.next().unwrap()));
       }
+
+      range_to_vout.insert((output_value, end), vout.try_into().unwrap());
 
       output_value = end;
 

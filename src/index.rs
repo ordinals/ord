@@ -4237,4 +4237,306 @@ mod tests {
       );
     }
   }
+
+  #[test]
+  fn inscriptions_in_same_input_with_pointers_to_same_output() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let script = script::Builder::new()
+        .push_opcode(opcodes::OP_FALSE)
+        .push_opcode(opcodes::all::OP_IF)
+        .push_slice(b"ord")
+        .push_slice([1])
+        .push_slice(b"text/plain;charset=utf-8")
+        .push_slice([2])
+        .push_slice(100_u64.to_le_bytes())
+        .push_slice([])
+        .push_slice(b"foo")
+        .push_opcode(opcodes::all::OP_ENDIF)
+        .push_opcode(opcodes::OP_FALSE)
+        .push_opcode(opcodes::all::OP_IF)
+        .push_slice(b"ord")
+        .push_slice([1])
+        .push_slice(b"text/plain;charset=utf-8")
+        .push_slice([2])
+        .push_slice(300_000_u64.to_le_bytes())
+        .push_slice([])
+        .push_slice(b"bar")
+        .push_opcode(opcodes::all::OP_ENDIF)
+        .push_opcode(opcodes::OP_FALSE)
+        .push_opcode(opcodes::all::OP_IF)
+        .push_slice(b"ord")
+        .push_slice([1])
+        .push_slice(b"text/plain;charset=utf-8")
+        .push_slice([2])
+        .push_slice(1_000_000_u64.to_le_bytes())
+        .push_slice([])
+        .push_slice(b"qix")
+        .push_opcode(opcodes::all::OP_ENDIF)
+        .into_script();
+
+      let witness = Witness::from_slice(&[script.into_bytes(), Vec::new()]);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, witness)],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let first = InscriptionId { txid, index: 0 };
+      let second = InscriptionId { txid, index: 1 };
+      let third = InscriptionId { txid, index: 2 };
+
+      context.index.assert_inscription_location(
+        first,
+        SatPoint {
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 100,
+        },
+        Some(50 * COIN_VALUE + 100),
+      );
+
+      context.index.assert_inscription_location(
+        second,
+        SatPoint {
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 300_000,
+        },
+        Some(50 * COIN_VALUE + 300_000),
+      );
+
+      context.index.assert_inscription_location(
+        third,
+        SatPoint {
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 1_000_000,
+        },
+        Some(50 * COIN_VALUE + 1_000_000),
+      );
+    }
+  }
+
+  #[test]
+  fn inscriptions_in_same_input_with_pointers_to_different_outputs() {
+    for context in Context::configurations() {
+      context.mine_blocks_with_subsidy(1, 300_000);
+
+      let script = script::Builder::new()
+        .push_opcode(opcodes::OP_FALSE)
+        .push_opcode(opcodes::all::OP_IF)
+        .push_slice(b"ord")
+        .push_slice([1])
+        .push_slice(b"text/plain;charset=utf-8")
+        .push_slice([2])
+        .push_slice(100_u64.to_le_bytes())
+        .push_slice([])
+        .push_slice(b"foo")
+        .push_opcode(opcodes::all::OP_ENDIF)
+        .push_opcode(opcodes::OP_FALSE)
+        .push_opcode(opcodes::all::OP_IF)
+        .push_slice(b"ord")
+        .push_slice([1])
+        .push_slice(b"text/plain;charset=utf-8")
+        .push_slice([2])
+        .push_slice(100_111_u64.to_le_bytes())
+        .push_slice([])
+        .push_slice(b"bar")
+        .push_opcode(opcodes::all::OP_ENDIF)
+        .push_opcode(opcodes::OP_FALSE)
+        .push_opcode(opcodes::all::OP_IF)
+        .push_slice(b"ord")
+        .push_slice([1])
+        .push_slice(b"text/plain;charset=utf-8")
+        .push_slice([2])
+        .push_slice(299_999_u64.to_le_bytes())
+        .push_slice([])
+        .push_slice(b"qix")
+        .push_opcode(opcodes::all::OP_ENDIF)
+        .into_script();
+
+      let witness = Witness::from_slice(&[script.into_bytes(), Vec::new()]);
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, witness)],
+        outputs: 3,
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let first = InscriptionId { txid, index: 0 };
+      let second = InscriptionId { txid, index: 1 };
+      let third = InscriptionId { txid, index: 2 };
+
+      context.index.assert_inscription_location(
+        first,
+        SatPoint {
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 100,
+        },
+        Some(50 * COIN_VALUE + 100),
+      );
+
+      context.index.assert_inscription_location(
+        second,
+        SatPoint {
+          outpoint: OutPoint { txid, vout: 1 },
+          offset: 111,
+        },
+        Some(50 * COIN_VALUE + 100_111),
+      );
+
+      context.index.assert_inscription_location(
+        third,
+        SatPoint {
+          outpoint: OutPoint { txid, vout: 2 },
+          offset: 99_999,
+        },
+        Some(50 * COIN_VALUE + 299_999),
+      );
+    }
+  }
+
+  #[test]
+  fn inscriptions_in_different_inputs_with_pointers_to_different_outputs() {
+    for context in Context::configurations() {
+      context.mine_blocks(3);
+
+      let inscription_for_second_output = Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some("hello jupiter".into()),
+        pointer: Some((50 * COIN_VALUE).to_le_bytes().to_vec()),
+        ..Default::default()
+      };
+
+      let inscription_for_third_output = Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some("hello mars".into()),
+        pointer: Some((100 * COIN_VALUE).to_le_bytes().to_vec()),
+        ..Default::default()
+      };
+
+      let inscription_for_first_output = Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some("hello world".into()),
+        pointer: Some(0_u64.to_le_bytes().to_vec()),
+        ..Default::default()
+      };
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[
+          (1, 0, 0, inscription_for_second_output.to_witness()),
+          (2, 0, 0, inscription_for_third_output.to_witness()),
+          (3, 0, 0, inscription_for_first_output.to_witness()),
+        ],
+        outputs: 3,
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let inscription_for_second_output = InscriptionId { txid, index: 0 };
+      let inscription_for_third_output = InscriptionId { txid, index: 1 };
+      let inscription_for_first_output = InscriptionId { txid, index: 2 };
+
+      context.index.assert_inscription_location(
+        inscription_for_second_output,
+        SatPoint {
+          outpoint: OutPoint { txid, vout: 1 },
+          offset: 0,
+        },
+        Some(100 * COIN_VALUE),
+      );
+
+      context.index.assert_inscription_location(
+        inscription_for_third_output,
+        SatPoint {
+          outpoint: OutPoint { txid, vout: 2 },
+          offset: 0,
+        },
+        Some(150 * COIN_VALUE),
+      );
+
+      context.index.assert_inscription_location(
+        inscription_for_first_output,
+        SatPoint {
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 0,
+        },
+        Some(50 * COIN_VALUE),
+      );
+    }
+  }
+
+  #[test]
+  fn inscriptions_in_different_inputs_with_pointers_to_same_output() {
+    for context in Context::configurations() {
+      context.mine_blocks(3);
+
+      let first_inscription = Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some("hello jupiter".into()),
+        ..Default::default()
+      };
+
+      let second_inscription = Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some("hello mars".into()),
+        pointer: Some(1_u64.to_le_bytes().to_vec()),
+        ..Default::default()
+      };
+
+      let third_inscription = Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some("hello world".into()),
+        pointer: Some(2_u64.to_le_bytes().to_vec()),
+        ..Default::default()
+      };
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[
+          (1, 0, 0, first_inscription.to_witness()),
+          (2, 0, 0, second_inscription.to_witness()),
+          (3, 0, 0, third_inscription.to_witness()),
+        ],
+        outputs: 1,
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let first_inscription_id = InscriptionId { txid, index: 0 };
+      let second_inscription_id = InscriptionId { txid, index: 1 };
+      let third_inscription_id = InscriptionId { txid, index: 2 };
+
+      context.index.assert_inscription_location(
+        first_inscription_id,
+        SatPoint {
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 0,
+        },
+        Some(50 * COIN_VALUE),
+      );
+
+      context.index.assert_inscription_location(
+        second_inscription_id,
+        SatPoint {
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 1,
+        },
+        Some(50 * COIN_VALUE + 1),
+      );
+
+      context.index.assert_inscription_location(
+        third_inscription_id,
+        SatPoint {
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 2,
+        },
+        Some(50 * COIN_VALUE + 2),
+      );
+    }
+  }
 }
