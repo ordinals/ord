@@ -404,9 +404,6 @@ fn get_block() {
 
   rpc_server.mine_blocks(1);
 
-  // TODO: remove this?
-  std::thread::sleep(Duration::from_secs(3));
-
   let response =
     TestServer::spawn_with_args(&rpc_server, &["--enable-json-api"]).json_request("/block/0");
 
