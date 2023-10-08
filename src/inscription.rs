@@ -205,7 +205,7 @@ impl Inscription {
   pub(crate) fn pointer(&self) -> Option<u64> {
     let value = self.pointer.as_ref()?;
 
-    if value.len() > 8 {
+    if value.iter().skip(8).copied().any(|byte| byte != 0) {
       return None;
     }
 
@@ -534,6 +534,66 @@ mod tests {
         ..Default::default()
       }
       .metadata(),
+      None,
+    );
+  }
+
+  #[test]
+  fn pointer_decode() {
+    assert_eq!(
+      Inscription {
+        pointer: None,
+        ..Default::default()
+      }
+      .pointer(),
+      None
+    );
+    assert_eq!(
+      Inscription {
+        pointer: Some(vec![0]),
+        ..Default::default()
+      }
+      .pointer(),
+      Some(0),
+    );
+    assert_eq!(
+      Inscription {
+        pointer: Some(vec![1, 2, 3, 4, 5, 6, 7, 8]),
+        ..Default::default()
+      }
+      .pointer(),
+      Some(0x0807060504030201),
+    );
+    assert_eq!(
+      Inscription {
+        pointer: Some(vec![1, 2, 3, 4, 5, 6]),
+        ..Default::default()
+      }
+      .pointer(),
+      Some(0x0000060504030201),
+    );
+    assert_eq!(
+      Inscription {
+        pointer: Some(vec![1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 0, 0, 0]),
+        ..Default::default()
+      }
+      .pointer(),
+      Some(0x0807060504030201),
+    );
+    assert_eq!(
+      Inscription {
+        pointer: Some(vec![1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 0, 0, 1]),
+        ..Default::default()
+      }
+      .pointer(),
+      None,
+    );
+    assert_eq!(
+      Inscription {
+        pointer: Some(vec![1, 2, 3, 4, 5, 6, 7, 8, 1]),
+        ..Default::default()
+      }
+      .pointer(),
       None,
     );
   }
