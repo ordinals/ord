@@ -4163,7 +4163,7 @@ mod tests {
       let inscription = Inscription {
         content_type: Some("text/plain".into()),
         body: Some("hello".into()),
-        pointer: Some((50 * COIN_VALUE + 1).to_le_bytes().to_vec()),
+        pointer: Some((50 * COIN_VALUE).to_le_bytes().to_vec()),
         ..Default::default()
       };
 
