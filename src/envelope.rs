@@ -753,6 +753,20 @@ mod tests {
   }
 
   #[test]
+  fn pointer_field_is_recognized() {
+    assert_eq!(
+      parse(&[envelope(&[b"ord", &[2], &[1]])]),
+      vec![ParsedEnvelope {
+        payload: Inscription {
+          pointer: Some(vec![1]),
+          ..Default::default()
+        },
+        ..Default::default()
+      }],
+    );
+  }
+
+  #[test]
   fn duplicate_pointer_field_makes_inscription_unbound() {
     assert_eq!(
       parse(&[envelope(&[b"ord", &[2], &[1], &[2], &[0]])]),
