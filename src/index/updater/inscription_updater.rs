@@ -441,8 +441,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         cursed,
         fee,
         parent,
-        pointer: _,
         unbound,
+        ..
       } => {
         let inscription_number = if cursed {
           let number: i64 = self.cursed_inscription_count.try_into().unwrap();
