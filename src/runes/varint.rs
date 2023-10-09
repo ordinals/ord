@@ -20,7 +20,7 @@ pub fn encode_to_vec(mut n: u128, v: &mut Vec<u8>) {
 
     out[i] = byte;
 
-    if n < 0b0111_1111 {
+    if n < 0b1000_0000 {
       break;
     }
 
