@@ -49,7 +49,6 @@ impl Inscription {
     chain: Chain,
     path: impl AsRef<Path>,
     parent: Option<InscriptionId>,
-    pointer: Option<u64>,
     metaprotocol: Option<String>,
     metadata: Option<Vec<u8>>,
   ) -> Result<Self, Error> {
@@ -69,13 +68,10 @@ impl Inscription {
     Ok(Self {
       body: Some(body),
       content_type: Some(content_type.into()),
-      duplicate_field: false,
-      incomplete_field: false,
       metadata,
       metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
       parent: parent.map(|id| id.parent_value()),
-      pointer: pointer.map(|pointer| pointer.to_le_bytes().to_vec()),
-      unrecognized_even_field: false,
+      ..Default::default()
     })
   }
 
@@ -205,7 +201,7 @@ impl Inscription {
   pub(crate) fn pointer(&self) -> Option<u64> {
     let value = self.pointer.as_ref()?;
 
-    if value.len() > 8 {
+    if value.iter().skip(8).copied().any(|byte| byte != 0) {
       return None;
     }
 
@@ -535,6 +531,87 @@ mod tests {
       }
       .metadata(),
       None,
+    );
+  }
+
+  #[test]
+  fn pointer_decode() {
+    assert_eq!(
+      Inscription {
+        pointer: None,
+        ..Default::default()
+      }
+      .pointer(),
+      None
+    );
+    assert_eq!(
+      Inscription {
+        pointer: Some(vec![0]),
+        ..Default::default()
+      }
+      .pointer(),
+      Some(0),
+    );
+    assert_eq!(
+      Inscription {
+        pointer: Some(vec![1, 2, 3, 4, 5, 6, 7, 8]),
+        ..Default::default()
+      }
+      .pointer(),
+      Some(0x0807060504030201),
+    );
+    assert_eq!(
+      Inscription {
+        pointer: Some(vec![1, 2, 3, 4, 5, 6]),
+        ..Default::default()
+      }
+      .pointer(),
+      Some(0x0000060504030201),
+    );
+    assert_eq!(
+      Inscription {
+        pointer: Some(vec![1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 0, 0, 0]),
+        ..Default::default()
+      }
+      .pointer(),
+      Some(0x0807060504030201),
+    );
+    assert_eq!(
+      Inscription {
+        pointer: Some(vec![1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 0, 0, 1]),
+        ..Default::default()
+      }
+      .pointer(),
+      None,
+    );
+    assert_eq!(
+      Inscription {
+        pointer: Some(vec![1, 2, 3, 4, 5, 6, 7, 8, 1]),
+        ..Default::default()
+      }
+      .pointer(),
+      None,
+    );
+  }
+
+  #[test]
+  fn pointer_encode() {
+    assert_eq!(
+      Inscription {
+        pointer: None,
+        ..Default::default()
+      }
+      .to_witness(),
+      envelope(&[b"ord"]),
+    );
+
+    assert_eq!(
+      Inscription {
+        pointer: Some(vec![1, 2, 3]),
+        ..Default::default()
+      }
+      .to_witness(),
+      envelope(&[b"ord", &[2], &[1, 2, 3]]),
     );
   }
 }

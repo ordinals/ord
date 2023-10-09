@@ -4131,7 +4131,7 @@ mod tests {
       let inscription = Inscription {
         content_type: Some("text/plain".into()),
         body: Some("hello".into()),
-        pointer: Some(100_u64.to_le_bytes().to_vec()),
+        pointer: Some(100u64.to_le_bytes().to_vec()),
         ..Default::default()
       };
 
@@ -4151,6 +4151,71 @@ mod tests {
           offset: 100,
         },
         Some(50 * COIN_VALUE + 100),
+      );
+    }
+  }
+
+  #[test]
+  fn inscription_with_pointer_greater_than_output_value_assigned_default() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let inscription = Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some("hello".into()),
+        pointer: Some((50 * COIN_VALUE).to_le_bytes().to_vec()),
+        ..Default::default()
+      };
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, inscription.to_witness())],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      context.index.assert_inscription_location(
+        inscription_id,
+        SatPoint {
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 0,
+        },
+        Some(50 * COIN_VALUE),
+      );
+    }
+  }
+
+  #[test]
+  fn inscription_with_pointer_into_fee_ignored_and_assigned_default_location() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let inscription = Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some("hello".into()),
+        pointer: Some((25 * COIN_VALUE).to_le_bytes().to_vec()),
+        ..Default::default()
+      };
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, inscription.to_witness())],
+        fee: 25 * COIN_VALUE,
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      context.index.assert_inscription_location(
+        inscription_id,
+        SatPoint {
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 0,
+        },
+        Some(50 * COIN_VALUE),
       );
     }
   }
@@ -4176,7 +4241,7 @@ mod tests {
         content_type: Some("text/plain".into()),
         body: Some("pointer-child".into()),
         parent: Some(parent_inscription_id.parent_value()),
-        pointer: Some(0_u64.to_le_bytes().to_vec()),
+        pointer: Some(0u64.to_le_bytes().to_vec()),
         ..Default::default()
       };
 
@@ -4243,40 +4308,27 @@ mod tests {
     for context in Context::configurations() {
       context.mine_blocks(1);
 
-      let script = script::Builder::new()
-        .push_opcode(opcodes::OP_FALSE)
-        .push_opcode(opcodes::all::OP_IF)
-        .push_slice(b"ord")
-        .push_slice([1])
-        .push_slice(b"text/plain;charset=utf-8")
-        .push_slice([2])
-        .push_slice(100_u64.to_le_bytes())
-        .push_slice([])
-        .push_slice(b"foo")
-        .push_opcode(opcodes::all::OP_ENDIF)
-        .push_opcode(opcodes::OP_FALSE)
-        .push_opcode(opcodes::all::OP_IF)
-        .push_slice(b"ord")
-        .push_slice([1])
-        .push_slice(b"text/plain;charset=utf-8")
-        .push_slice([2])
-        .push_slice(300_000_u64.to_le_bytes())
-        .push_slice([])
-        .push_slice(b"bar")
-        .push_opcode(opcodes::all::OP_ENDIF)
-        .push_opcode(opcodes::OP_FALSE)
-        .push_opcode(opcodes::all::OP_IF)
-        .push_slice(b"ord")
-        .push_slice([1])
-        .push_slice(b"text/plain;charset=utf-8")
-        .push_slice([2])
-        .push_slice(1_000_000_u64.to_le_bytes())
-        .push_slice([])
-        .push_slice(b"qix")
-        .push_opcode(opcodes::all::OP_ENDIF)
-        .into_script();
+      let builder = script::Builder::new();
 
-      let witness = Witness::from_slice(&[script.into_bytes(), Vec::new()]);
+      let builder = Inscription {
+        pointer: Some(100u64.to_le_bytes().to_vec()),
+        ..Default::default()
+      }
+      .append_reveal_script_to_builder(builder);
+
+      let builder = Inscription {
+        pointer: Some(300_000u64.to_le_bytes().to_vec()),
+        ..Default::default()
+      }
+      .append_reveal_script_to_builder(builder);
+
+      let builder = Inscription {
+        pointer: Some(1_000_000u64.to_le_bytes().to_vec()),
+        ..Default::default()
+      }
+      .append_reveal_script_to_builder(builder);
+
+      let witness = Witness::from_slice(&[builder.into_bytes(), Vec::new()]);
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0, witness)],
@@ -4323,40 +4375,27 @@ mod tests {
     for context in Context::configurations() {
       context.mine_blocks_with_subsidy(1, 300_000);
 
-      let script = script::Builder::new()
-        .push_opcode(opcodes::OP_FALSE)
-        .push_opcode(opcodes::all::OP_IF)
-        .push_slice(b"ord")
-        .push_slice([1])
-        .push_slice(b"text/plain;charset=utf-8")
-        .push_slice([2])
-        .push_slice(100_u64.to_le_bytes())
-        .push_slice([])
-        .push_slice(b"foo")
-        .push_opcode(opcodes::all::OP_ENDIF)
-        .push_opcode(opcodes::OP_FALSE)
-        .push_opcode(opcodes::all::OP_IF)
-        .push_slice(b"ord")
-        .push_slice([1])
-        .push_slice(b"text/plain;charset=utf-8")
-        .push_slice([2])
-        .push_slice(100_111_u64.to_le_bytes())
-        .push_slice([])
-        .push_slice(b"bar")
-        .push_opcode(opcodes::all::OP_ENDIF)
-        .push_opcode(opcodes::OP_FALSE)
-        .push_opcode(opcodes::all::OP_IF)
-        .push_slice(b"ord")
-        .push_slice([1])
-        .push_slice(b"text/plain;charset=utf-8")
-        .push_slice([2])
-        .push_slice(299_999_u64.to_le_bytes())
-        .push_slice([])
-        .push_slice(b"qix")
-        .push_opcode(opcodes::all::OP_ENDIF)
-        .into_script();
+      let builder = script::Builder::new();
 
-      let witness = Witness::from_slice(&[script.into_bytes(), Vec::new()]);
+      let builder = Inscription {
+        pointer: Some(100u64.to_le_bytes().to_vec()),
+        ..Default::default()
+      }
+      .append_reveal_script_to_builder(builder);
+
+      let builder = Inscription {
+        pointer: Some(100_111u64.to_le_bytes().to_vec()),
+        ..Default::default()
+      }
+      .append_reveal_script_to_builder(builder);
+
+      let builder = Inscription {
+        pointer: Some(299_999u64.to_le_bytes().to_vec()),
+        ..Default::default()
+      }
+      .append_reveal_script_to_builder(builder);
+
+      let witness = Witness::from_slice(&[builder.into_bytes(), Vec::new()]);
 
       let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0, witness)],
@@ -4421,7 +4460,7 @@ mod tests {
       let inscription_for_first_output = Inscription {
         content_type: Some("text/plain".into()),
         body: Some("hello world".into()),
-        pointer: Some(0_u64.to_le_bytes().to_vec()),
+        pointer: Some(0u64.to_le_bytes().to_vec()),
         ..Default::default()
       };
 
@@ -4484,14 +4523,14 @@ mod tests {
       let second_inscription = Inscription {
         content_type: Some("text/plain".into()),
         body: Some("hello mars".into()),
-        pointer: Some(1_u64.to_le_bytes().to_vec()),
+        pointer: Some(1u64.to_le_bytes().to_vec()),
         ..Default::default()
       };
 
       let third_inscription = Inscription {
         content_type: Some("text/plain".into()),
         body: Some("hello world".into()),
-        pointer: Some(2_u64.to_le_bytes().to_vec()),
+        pointer: Some(2u64.to_le_bytes().to_vec()),
         ..Default::default()
       };
 
@@ -4536,6 +4575,140 @@ mod tests {
           offset: 2,
         },
         Some(50 * COIN_VALUE + 2),
+      );
+    }
+  }
+
+  #[test]
+  fn inscriptions_with_pointers_to_same_sat_one_becomes_cursed_reinscriptions() {
+    for context in Context::configurations() {
+      context.mine_blocks(2);
+
+      let inscription = Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some("hello jupiter".into()),
+        ..Default::default()
+      };
+
+      let cursed_reinscription = Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some("hello mars".into()),
+        pointer: Some(0u64.to_le_bytes().to_vec()),
+        ..Default::default()
+      };
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[
+          (1, 0, 0, inscription.to_witness()),
+          (2, 0, 0, cursed_reinscription.to_witness()),
+        ],
+        outputs: 2,
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+      let cursed_reinscription_id = InscriptionId { txid, index: 1 };
+
+      context.index.assert_inscription_location(
+        inscription_id,
+        SatPoint {
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 0,
+        },
+        Some(50 * COIN_VALUE),
+      );
+
+      context.index.assert_inscription_location(
+        cursed_reinscription_id,
+        SatPoint {
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 0,
+        },
+        Some(50 * COIN_VALUE),
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_entry(inscription_id)
+          .unwrap()
+          .unwrap()
+          .inscription_number,
+        0
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_entry(cursed_reinscription_id)
+          .unwrap()
+          .unwrap()
+          .inscription_number,
+        -1
+      );
+    }
+  }
+
+  #[test]
+  fn inscribe_into_fee() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let inscription = Inscription::default();
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, inscription.to_witness())],
+        fee: 50 * COIN_VALUE,
+        ..Default::default()
+      });
+
+      let blocks = context.mine_blocks(1);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      context.index.assert_inscription_location(
+        inscription_id,
+        SatPoint {
+          outpoint: OutPoint {
+            txid: blocks[0].txdata[0].txid(),
+            vout: 0,
+          },
+          offset: 50 * COIN_VALUE,
+        },
+        Some(50 * COIN_VALUE),
+      );
+    }
+  }
+
+  #[test]
+  fn inscribe_into_fee_with_reduced_subsidy() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let inscription = Inscription::default();
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, inscription.to_witness())],
+        fee: 50 * COIN_VALUE,
+        ..Default::default()
+      });
+
+      let blocks = context.mine_blocks_with_subsidy(1, 25 * COIN_VALUE);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      context.index.assert_inscription_location(
+        inscription_id,
+        SatPoint {
+          outpoint: OutPoint {
+            txid: blocks[0].txdata[0].txid(),
+            vout: 0,
+          },
+          offset: 50 * COIN_VALUE,
+        },
+        Some(50 * COIN_VALUE),
       );
     }
   }
