@@ -525,4 +525,81 @@ mod tests {
       }))
     );
   }
+
+  #[test]
+  fn runestone_may_be_in_second_output() {
+    let payload = payload(&[1, 2, 3]);
+
+    let payload: &PushBytes = payload.as_slice().try_into().unwrap();
+
+    assert_eq!(
+      Runestone::decipher(&Transaction {
+        input: Vec::new(),
+        output: vec![
+          TxOut {
+            script_pubkey: ScriptBuf::new(),
+            value: 0,
+          },
+          TxOut {
+            script_pubkey: script::Builder::new()
+              .push_opcode(opcodes::all::OP_RETURN)
+              .push_slice(b"RUNE_TEST")
+              .push_slice(payload)
+              .into_script(),
+            value: 0
+          }
+        ],
+        lock_time: locktime::absolute::LockTime::ZERO,
+        version: 0,
+      }),
+      Ok(Some(Runestone {
+        edicts: vec![Edict {
+          id: 1,
+          amount: 2,
+          output: 3,
+        },],
+        etching: None,
+      }))
+    );
+  }
+
+  #[test]
+  fn runestone_may_be_after_non_matching_op_return() {
+    let payload = payload(&[1, 2, 3]);
+
+    let payload: &PushBytes = payload.as_slice().try_into().unwrap();
+
+    assert_eq!(
+      Runestone::decipher(&Transaction {
+        input: Vec::new(),
+        output: vec![
+          TxOut {
+            script_pubkey: script::Builder::new()
+              .push_opcode(opcodes::all::OP_RETURN)
+              .push_slice(b"FOO")
+              .into_script(),
+            value: 0,
+          },
+          TxOut {
+            script_pubkey: script::Builder::new()
+              .push_opcode(opcodes::all::OP_RETURN)
+              .push_slice(b"RUNE_TEST")
+              .push_slice(payload)
+              .into_script(),
+            value: 0
+          }
+        ],
+        lock_time: locktime::absolute::LockTime::ZERO,
+        version: 0,
+      }),
+      Ok(Some(Runestone {
+        edicts: vec![Edict {
+          id: 1,
+          amount: 2,
+          output: 3,
+        },],
+        etching: None,
+      }))
+    );
+  }
 }
