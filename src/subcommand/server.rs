@@ -3227,8 +3227,7 @@ mod tests {
     server.assert_response_regex(
       format!("/rune/{rune}"),
       StatusCode::OK,
-      format!(
-        ".*<title>Rune NVTDIJZYIPU</title>.*
+      ".*<title>Rune NVTDIJZYIPU</title>.*
 <h1>Rune NVTDIJZYIPU</h1>
 <dl>
   <dt>id</dt>
@@ -3240,8 +3239,7 @@ mod tests {
   <dt>rarity</dt>
   <dd><span class=uncommon>uncommon</span></dd>
 </dl>
-.*"
-      ),
+.*",
     );
   }
 

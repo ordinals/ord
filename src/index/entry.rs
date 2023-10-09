@@ -387,6 +387,21 @@ mod tests {
 
   #[test]
   fn rune_id_entry() {
-    todo!()
+    assert_eq!(
+      RuneId {
+        height: 3,
+        index: 1
+      }
+      .store(),
+      0b11_0000_0000_0000_0001,
+    );
+
+    assert_eq!(
+      RuneId {
+        height: 3,
+        index: 1
+      },
+      RuneId::load(0b11_0000_0000_0000_0001),
+    );
   }
 }
