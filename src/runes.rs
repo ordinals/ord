@@ -1788,13 +1788,13 @@ mod tests {
         Runestone {
           edicts: vec![
             Edict {
-              id: id.into(),
-              amount: u128::max_value(),
+              id: 0,
+              amount: 100,
               output: 0,
             },
             Edict {
-              id: 0,
-              amount: 100,
+              id: id.into(),
+              amount: u128::max_value(),
               output: 0,
             },
           ],
