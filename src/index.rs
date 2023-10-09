@@ -2,9 +2,10 @@ use {
   self::{
     entry::{
       BlockHashValue, Entry, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
-      OutPointValue, SatPointValue, SatRange,
+      OutPointValue, RuneEntryValue, RuneIdValue, SatPointValue, SatRange,
     },
     reorg::*,
+    runes::{Rune, RuneId},
     updater::Updater,
   },
   super::*,
@@ -23,13 +24,18 @@ use {
   std::io::{BufWriter, Read, Write},
 };
 
+pub(crate) use self::entry::RuneEntry;
+
 mod entry;
 mod fetcher;
 mod reorg;
 mod rtx;
 mod updater;
 
-const SCHEMA_VERSION: u64 = 7;
+#[cfg(test)]
+pub(crate) mod testing;
+
+const SCHEMA_VERSION: u64 = 8;
 
 macro_rules! define_table {
   ($name:ident, $key:ty, $value:ty) => {
@@ -52,8 +58,11 @@ define_table! { HEIGHT_TO_LAST_SEQUENCE_NUMBER, u64, u64 }
 define_table! { INSCRIPTION_ID_TO_INSCRIPTION_ENTRY, &InscriptionIdValue, InscriptionEntryValue }
 define_table! { INSCRIPTION_ID_TO_SATPOINT, &InscriptionIdValue, &SatPointValue }
 define_table! { INSCRIPTION_NUMBER_TO_INSCRIPTION_ID, i64, &InscriptionIdValue }
+define_table! { OUTPOINT_TO_RUNE_BALANCES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_VALUE, &OutPointValue, u64}
+define_table! { RUNE_ID_TO_RUNE_ENTRY, RuneIdValue, RuneEntryValue }
+define_table! { RUNE_TO_RUNE_ID, u128, RuneIdValue }
 define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
 define_table! { SEQUENCE_NUMBER_TO_INSCRIPTION_ID, u64, &InscriptionIdValue }
 define_table! { STATISTIC_TO_COUNT, u64, u64 }
@@ -252,6 +261,12 @@ impl Index {
         tx.open_table(STATISTIC_TO_COUNT)?
           .insert(&Statistic::Schema.key(), &SCHEMA_VERSION)?;
 
+        if options.index_runes() {
+          tx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
+          tx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
+          tx.open_table(RUNE_TO_RUNE_ID)?;
+        }
+
         if options.index_sats {
           tx.open_table(OUTPOINT_TO_SAT_RANGES)?
             .insert(&OutPoint::null().store(), [].as_slice())?;
@@ -341,6 +356,14 @@ impl Index {
         None => bail!("index has not seen {outpoint}"),
       })
       .collect()
+  }
+
+  pub(crate) fn has_rune_index(&self) -> Result<bool> {
+    match self.begin_read()?.0.open_table(RUNE_ID_TO_RUNE_ENTRY) {
+      Ok(_) => Ok(true),
+      Err(redb::TableError::TableDoesNotExist(_)) => Ok(false),
+      Err(err) => Err(err.into()),
+    }
   }
 
   pub(crate) fn has_sat_index(&self) -> Result<bool> {
@@ -611,6 +634,77 @@ impl Index {
     } else {
       Ok(None)
     }
+  }
+
+  pub(crate) fn rune(&self, rune: Rune) -> Result<Option<(RuneId, RuneEntry)>> {
+    if self.has_rune_index()? {
+      let rtx = self.database.begin_read()?;
+
+      let entry = match rtx.open_table(RUNE_TO_RUNE_ID)?.get(rune.0)? {
+        Some(id) => rtx
+          .open_table(RUNE_ID_TO_RUNE_ENTRY)?
+          .get(id.value())?
+          .map(|entry| (RuneId::load(id.value()), RuneEntry::load(entry.value()))),
+        None => None,
+      };
+
+      Ok(entry)
+    } else {
+      Ok(None)
+    }
+  }
+
+  pub(crate) fn runes(&self) -> Result<Option<Vec<(RuneId, RuneEntry)>>> {
+    if self.has_rune_index()? {
+      let mut entries = Vec::new();
+
+      for result in self
+        .database
+        .begin_read()?
+        .open_table(RUNE_ID_TO_RUNE_ENTRY)?
+        .iter()?
+      {
+        let (id, entry) = result?;
+        entries.push((RuneId::load(id.value()), RuneEntry::load(entry.value())));
+      }
+
+      Ok(Some(entries))
+    } else {
+      Ok(None)
+    }
+  }
+
+  #[cfg(test)]
+  pub(crate) fn rune_balances(&self) -> Vec<(OutPoint, Vec<(RuneId, u128)>)> {
+    let mut result = Vec::new();
+
+    for entry in self
+      .database
+      .begin_read()
+      .unwrap()
+      .open_table(OUTPOINT_TO_RUNE_BALANCES)
+      .unwrap()
+      .iter()
+      .unwrap()
+    {
+      let (outpoint, balances_buffer) = entry.unwrap();
+      let outpoint = OutPoint::load(*outpoint.value());
+      let balances_buffer = balances_buffer.value();
+
+      let mut balances = Vec::new();
+      let mut i = 0;
+      while i < balances_buffer.len() {
+        let (id, length) = runes::varint::decode(&balances_buffer[i..]).unwrap();
+        i += length;
+        let (balance, length) = runes::varint::decode(&balances_buffer[i..]).unwrap();
+        i += length;
+        balances.push((RuneId::try_from(id).unwrap(), balance));
+      }
+
+      result.push((outpoint, balances));
+    }
+
+    result
   }
 
   pub(crate) fn block_header(&self, hash: BlockHash) -> Result<Option<Header>> {
@@ -1305,102 +1399,9 @@ impl Index {
 mod tests {
   use {
     super::*,
+    crate::index::testing::Context,
     bitcoin::secp256k1::rand::{self, RngCore},
   };
-
-  struct ContextBuilder {
-    args: Vec<OsString>,
-    tempdir: Option<TempDir>,
-  }
-
-  impl ContextBuilder {
-    fn build(self) -> Context {
-      self.try_build().unwrap()
-    }
-
-    fn try_build(self) -> Result<Context> {
-      let rpc_server = test_bitcoincore_rpc::builder()
-        .network(Network::Regtest)
-        .build();
-
-      let tempdir = self.tempdir.unwrap_or_else(|| TempDir::new().unwrap());
-      let cookie_file = tempdir.path().join("cookie");
-      fs::write(&cookie_file, "username:password").unwrap();
-
-      let command: Vec<OsString> = vec![
-        "ord".into(),
-        "--rpc-url".into(),
-        rpc_server.url().into(),
-        "--data-dir".into(),
-        tempdir.path().into(),
-        "--cookie-file".into(),
-        cookie_file.into(),
-        "--regtest".into(),
-      ];
-
-      let options = Options::try_parse_from(command.into_iter().chain(self.args)).unwrap();
-      let index = Index::open(&options)?;
-      index.update().unwrap();
-
-      Ok(Context {
-        options,
-        rpc_server,
-        tempdir,
-        index,
-      })
-    }
-
-    fn arg(mut self, arg: impl Into<OsString>) -> Self {
-      self.args.push(arg.into());
-      self
-    }
-
-    fn args<T: Into<OsString>, I: IntoIterator<Item = T>>(mut self, args: I) -> Self {
-      self.args.extend(args.into_iter().map(|arg| arg.into()));
-      self
-    }
-
-    fn tempdir(mut self, tempdir: TempDir) -> Self {
-      self.tempdir = Some(tempdir);
-      self
-    }
-  }
-
-  struct Context {
-    options: Options,
-    rpc_server: test_bitcoincore_rpc::Handle,
-    #[allow(unused)]
-    tempdir: TempDir,
-    index: Index,
-  }
-
-  impl Context {
-    fn builder() -> ContextBuilder {
-      ContextBuilder {
-        args: Vec::new(),
-        tempdir: None,
-      }
-    }
-
-    fn mine_blocks(&self, n: u64) -> Vec<Block> {
-      let blocks = self.rpc_server.mine_blocks(n);
-      self.index.update().unwrap();
-      blocks
-    }
-
-    fn mine_blocks_with_subsidy(&self, n: u64, subsidy: u64) -> Vec<Block> {
-      let blocks = self.rpc_server.mine_blocks_with_subsidy(n, subsidy);
-      self.index.update().unwrap();
-      blocks
-    }
-
-    fn configurations() -> Vec<Context> {
-      vec![
-        Context::builder().build(),
-        Context::builder().arg("--index-sats").build(),
-      ]
-    }
-  }
 
   #[test]
   fn height_limit() {
