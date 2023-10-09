@@ -389,19 +389,19 @@ mod tests {
   fn rune_id_entry() {
     assert_eq!(
       RuneId {
-        height: 3,
-        index: 1
+        height: 0x06050403,
+        index: 0x0201,
       }
       .store(),
-      0b11_0000_0000_0000_0001,
+      0x060504030201,
     );
 
     assert_eq!(
       RuneId {
-        height: 3,
-        index: 1
+        height: 0x06050403,
+        index: 0x0201,
       },
-      RuneId::load(0b11_0000_0000_0000_0001),
+      RuneId::load(0x060504030201),
     );
   }
 }
