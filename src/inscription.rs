@@ -31,6 +31,7 @@ pub struct Inscription {
   pub metadata: Option<Vec<u8>>,
   pub metaprotocol: Option<Vec<u8>>,
   pub parent: Option<Vec<u8>>,
+  pub pointer: Option<Vec<u8>>,
   pub unrecognized_even_field: bool,
 }
 
@@ -67,12 +68,10 @@ impl Inscription {
     Ok(Self {
       body: Some(body),
       content_type: Some(content_type.into()),
-      duplicate_field: false,
-      incomplete_field: false,
       metadata,
       metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
       parent: parent.map(|id| id.parent_value()),
-      unrecognized_even_field: false,
+      ..Default::default()
     })
   }
 
@@ -101,6 +100,12 @@ impl Inscription {
       builder = builder
         .push_slice(envelope::PARENT_TAG)
         .push_slice(PushBytesBuf::try_from(parent).unwrap());
+    }
+
+    if let Some(pointer) = self.pointer.clone() {
+      builder = builder
+        .push_slice(envelope::POINTER_TAG)
+        .push_slice(PushBytesBuf::try_from(pointer).unwrap());
     }
 
     if let Some(metadata) = &self.metadata {
@@ -191,6 +196,27 @@ impl Inscription {
     let index = u32::from_le_bytes(index);
 
     Some(InscriptionId { txid, index })
+  }
+
+  pub(crate) fn pointer(&self) -> Option<u64> {
+    let value = self.pointer.as_ref()?;
+
+    if value.iter().skip(8).copied().any(|byte| byte != 0) {
+      return None;
+    }
+
+    let pointer = [
+      value.first().copied().unwrap_or(0),
+      value.get(1).copied().unwrap_or(0),
+      value.get(2).copied().unwrap_or(0),
+      value.get(3).copied().unwrap_or(0),
+      value.get(4).copied().unwrap_or(0),
+      value.get(5).copied().unwrap_or(0),
+      value.get(6).copied().unwrap_or(0),
+      value.get(7).copied().unwrap_or(0),
+    ];
+
+    Some(u64::from_le_bytes(pointer))
   }
 
   #[cfg(test)]
@@ -505,6 +531,87 @@ mod tests {
       }
       .metadata(),
       None,
+    );
+  }
+
+  #[test]
+  fn pointer_decode() {
+    assert_eq!(
+      Inscription {
+        pointer: None,
+        ..Default::default()
+      }
+      .pointer(),
+      None
+    );
+    assert_eq!(
+      Inscription {
+        pointer: Some(vec![0]),
+        ..Default::default()
+      }
+      .pointer(),
+      Some(0),
+    );
+    assert_eq!(
+      Inscription {
+        pointer: Some(vec![1, 2, 3, 4, 5, 6, 7, 8]),
+        ..Default::default()
+      }
+      .pointer(),
+      Some(0x0807060504030201),
+    );
+    assert_eq!(
+      Inscription {
+        pointer: Some(vec![1, 2, 3, 4, 5, 6]),
+        ..Default::default()
+      }
+      .pointer(),
+      Some(0x0000060504030201),
+    );
+    assert_eq!(
+      Inscription {
+        pointer: Some(vec![1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 0, 0, 0]),
+        ..Default::default()
+      }
+      .pointer(),
+      Some(0x0807060504030201),
+    );
+    assert_eq!(
+      Inscription {
+        pointer: Some(vec![1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 0, 0, 1]),
+        ..Default::default()
+      }
+      .pointer(),
+      None,
+    );
+    assert_eq!(
+      Inscription {
+        pointer: Some(vec![1, 2, 3, 4, 5, 6, 7, 8, 1]),
+        ..Default::default()
+      }
+      .pointer(),
+      None,
+    );
+  }
+
+  #[test]
+  fn pointer_encode() {
+    assert_eq!(
+      Inscription {
+        pointer: None,
+        ..Default::default()
+      }
+      .to_witness(),
+      envelope(&[b"ord"]),
+    );
+
+    assert_eq!(
+      Inscription {
+        pointer: Some(vec![1, 2, 3]),
+        ..Default::default()
+      }
+      .to_witness(),
+      envelope(&[b"ord", &[2], &[1, 2, 3]]),
     );
   }
 }
