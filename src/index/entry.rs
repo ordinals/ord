@@ -380,9 +380,9 @@ mod tests {
       supply: 4,
     };
 
-    assert_eq!(rune_entry.store(), (1, 3, 4, 2));
+    assert_eq!(rune_entry.store(), (1, 2, 3, 4));
 
-    assert_eq!(RuneEntry::load((1, 3, 4, 2)), rune_entry);
+    assert_eq!(RuneEntry::load((1, 2, 3, 4)), rune_entry);
   }
 
   #[test]
