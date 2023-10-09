@@ -455,7 +455,7 @@ mod tests {
   }
 
   #[test]
-  fn runestone_may_contain_multipe_directives() {
+  fn runestone_may_contain_multiple_edicts() {
     let payload = payload(&[1, 2, 3, 4, 5, 6]);
 
     let payload: &PushBytes = payload.as_slice().try_into().unwrap();
