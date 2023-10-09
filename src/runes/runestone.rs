@@ -493,7 +493,7 @@ mod tests {
   }
 
   #[test]
-  fn payload_pushes_are_concatinated() {
+  fn payload_pushes_are_concatenated() {
     assert_eq!(
       Runestone::decipher(&Transaction {
         input: Vec::new(),
