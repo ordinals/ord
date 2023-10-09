@@ -13,10 +13,10 @@ struct Allocation {
 pub(super) struct RuneUpdater<'a, 'db, 'tx> {
   count: usize,
   height: u64,
-  id_to_entry: &'a mut Table<'db, 'tx, u64, RuneEntryValue>,
+  id_to_entry: &'a mut Table<'db, 'tx, RuneIdValue, RuneEntryValue>,
   minimum: Rune,
   outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
-  rune_to_id: &'a mut Table<'db, 'tx, u128, u64>,
+  rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
   rarity: Rarity,
 }
 
@@ -24,8 +24,8 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
   pub(super) fn new(
     height: u64,
     outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
-    id_to_entry: &'a mut Table<'db, 'tx, u64, RuneEntryValue>,
-    rune_to_id: &'a mut Table<'db, 'tx, u128, u64>,
+    id_to_entry: &'a mut Table<'db, 'tx, RuneIdValue, RuneEntryValue>,
+    rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
   ) -> Self {
     Self {
       count: 0,
@@ -139,10 +139,10 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
 
         // If no runes were allocated, ignore this issuance
         if supply > 0 {
-          let id = u64::try_from(id).unwrap();
-          self.rune_to_id.insert(rune.0, id)?;
+          let id = RuneId::try_from(id).unwrap();
+          self.rune_to_id.insert(rune.0, id.store())?;
           self.id_to_entry.insert(
-            id,
+            id.store(),
             RuneEntry {
               rarity: if self.count == 0 {
                 self.rarity

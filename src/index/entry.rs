@@ -54,24 +54,17 @@ impl Entry for RuneEntry {
   }
 }
 
-impl Entry for RuneId {
-  type Value = u64;
+pub(super) type RuneIdValue = (u32, u16);
 
-  fn load(value: u64) -> Self {
-    let bytes = value.to_le_bytes();
-    Self {
-      height: u32::from_le_bytes([bytes[2], bytes[3], bytes[4], bytes[5]]),
-      index: u16::from_le_bytes([bytes[0], bytes[1]]),
-    }
+impl Entry for RuneId {
+  type Value = RuneIdValue;
+
+  fn load((height, index): Self::Value) -> Self {
+    Self { height, index }
   }
 
   fn store(self) -> Self::Value {
-    let height = self.height.to_le_bytes();
-    let index = self.index.to_le_bytes();
-
-    u64::from_le_bytes([
-      index[0], index[1], height[0], height[1], height[2], height[3], 0, 0,
-    ])
+    (self.height, self.index)
   }
 }
 
@@ -389,19 +382,19 @@ mod tests {
   fn rune_id_entry() {
     assert_eq!(
       RuneId {
-        height: 0x06050403,
-        index: 0x0201,
+        height: 1,
+        index: 2,
       }
       .store(),
-      0x060504030201,
+      (1, 2),
     );
 
     assert_eq!(
       RuneId {
-        height: 0x06050403,
-        index: 0x0201,
+        height: 1,
+        index: 2,
       },
-      RuneId::load(0x060504030201),
+      RuneId::load((1, 2)),
     );
   }
 }

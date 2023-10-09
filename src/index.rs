@@ -2,7 +2,7 @@ use {
   self::{
     entry::{
       BlockHashValue, Entry, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
-      OutPointValue, RuneEntryValue, SatPointValue, SatRange,
+      OutPointValue, RuneEntryValue, RuneIdValue, SatPointValue, SatRange,
     },
     reorg::*,
     runes::{Rune, RuneId},
@@ -61,8 +61,8 @@ define_table! { INSCRIPTION_NUMBER_TO_INSCRIPTION_ID, i64, &InscriptionIdValue }
 define_table! { OUTPOINT_TO_RUNE_BALANCES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_SAT_RANGES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_VALUE, &OutPointValue, u64}
-define_table! { RUNE_ID_TO_RUNE_ENTRY, u64, RuneEntryValue }
-define_table! { RUNE_TO_RUNE_ID, u128, u64 }
+define_table! { RUNE_ID_TO_RUNE_ENTRY, RuneIdValue, RuneEntryValue }
+define_table! { RUNE_TO_RUNE_ID, u128, RuneIdValue }
 define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
 define_table! { SEQUENCE_NUMBER_TO_INSCRIPTION_ID, u64, &InscriptionIdValue }
 define_table! { STATISTIC_TO_COUNT, u64, u64 }
@@ -698,7 +698,7 @@ impl Index {
         i += length;
         let (balance, length) = runes::varint::decode(&balances_buffer[i..]).unwrap();
         i += length;
-        balances.push((RuneId::load(id.try_into().unwrap()), balance));
+        balances.push((RuneId::try_from(id).unwrap(), balance));
       }
 
       result.push((outpoint, balances));
