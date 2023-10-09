@@ -30,12 +30,12 @@ pub(crate) struct RuneEntry {
   pub(crate) supply: u128,
 }
 
-pub(super) type RuneEntryValue = (u128, u128, u128, u8);
+pub(super) type RuneEntryValue = (u128, u8, u128, u128);
 
 impl Entry for RuneEntry {
   type Value = RuneEntryValue;
 
-  fn load((divisibility, rune, supply, rarity): RuneEntryValue) -> Self {
+  fn load((divisibility, rarity, rune, supply): RuneEntryValue) -> Self {
     Self {
       divisibility,
       rarity: Rarity::try_from(rarity).unwrap(),
@@ -47,9 +47,9 @@ impl Entry for RuneEntry {
   fn store(self) -> Self::Value {
     (
       self.divisibility,
+      self.rarity.into(),
       self.rune.0,
       self.supply,
-      self.rarity.into(),
     )
   }
 }
