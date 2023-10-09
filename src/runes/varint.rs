@@ -12,7 +12,7 @@ pub fn encode_to_vec(mut n: u128, v: &mut Vec<u8>) {
   let mut i = 18;
 
   loop {
-    let mut byte = n.to_le_bytes()[0] % 128;
+    let mut byte = n.to_le_bytes()[0] & 0b0111_1111;
 
     if i < 18 {
       byte |= 0b1000_0000;
@@ -20,7 +20,7 @@ pub fn encode_to_vec(mut n: u128, v: &mut Vec<u8>) {
 
     out[i] = byte;
 
-    if n < 128 {
+    if n < 0b0111_1111 {
       break;
     }
 
