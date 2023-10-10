@@ -1051,17 +1051,17 @@ mod tests {
       [
         (
           OutPoint {
-            txid: txid1,
-            vout: 0
-          },
-          vec![(id1, u128::max_value())]
-        ),
-        (
-          OutPoint {
             txid: txid0,
             vout: 0
           },
           vec![(id0, u128::max_value())]
+        ),
+        (
+          OutPoint {
+            txid: txid1,
+            vout: 0
+          },
+          vec![(id1, u128::max_value())]
         ),
       ]
     );
@@ -1222,17 +1222,17 @@ mod tests {
       [
         (
           OutPoint {
-            txid: txid1,
-            vout: 0
-          },
-          vec![(id1, u128::max_value())]
-        ),
-        (
-          OutPoint {
             txid: txid0,
             vout: 0
           },
           vec![(id0, u128::max_value())]
+        ),
+        (
+          OutPoint {
+            txid: txid1,
+            vout: 0
+          },
+          vec![(id1, u128::max_value())]
         ),
       ]
     );
@@ -1466,18 +1466,18 @@ mod tests {
       [
         (
           OutPoint {
+            txid: txid0,
+            vout: 0
+          },
+          vec![(id0, u128::max_value())]
+        ),
+        (
+          OutPoint {
             txid: txid1,
             vout: 0
           },
           vec![(id1, u128::max_value())]
         ),
-        (
-          OutPoint {
-            txid: txid0,
-            vout: 0
-          },
-          vec![(id0, u128::max_value())]
-        )
       ]
     );
 
@@ -1714,17 +1714,17 @@ mod tests {
       [
         (
           OutPoint {
-            txid: txid1,
-            vout: 0
-          },
-          vec![(id1, u128::max_value())]
-        ),
-        (
-          OutPoint {
             txid: txid0,
             vout: 0
           },
           vec![(id0, u128::max_value())]
+        ),
+        (
+          OutPoint {
+            txid: txid1,
+            vout: 0
+          },
+          vec![(id1, u128::max_value())]
         ),
       ]
     );
@@ -1939,18 +1939,18 @@ mod tests {
       [
         (
           OutPoint {
+            txid: txid0,
+            vout: 0
+          },
+          vec![(id0, u128::max_value())]
+        ),
+        (
+          OutPoint {
             txid: txid1,
             vout: 0
           },
           vec![(id1, u128::max_value())]
         ),
-        (
-          OutPoint {
-            txid: txid0,
-            vout: 0
-          },
-          vec![(id0, u128::max_value())]
-        )
       ]
     );
 

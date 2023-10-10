@@ -62,7 +62,10 @@ impl Runestone {
 
     if let Some(etching) = self.etching {
       varint::encode_to_vec(etching.rune.0, &mut payload);
-      varint::encode_to_vec(etching.divisibility, &mut payload);
+
+      if etching.divisibility != 0 {
+        varint::encode_to_vec(etching.divisibility, &mut payload);
+      }
     }
 
     let mut builder = script::Builder::new()
