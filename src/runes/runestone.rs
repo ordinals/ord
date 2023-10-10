@@ -37,9 +37,9 @@ impl Runestone {
             rune: Rune(rune),
           })
         }
-        [rune, divisibility] => {
+        [rune, parameters] => {
           etching = Some(Etching {
-            divisibility,
+            divisibility: u8::try_from(parameters & 0b11_1111).unwrap(),
             rune: Rune(rune),
           })
         }
@@ -62,7 +62,7 @@ impl Runestone {
 
     if let Some(etching) = self.etching {
       varint::encode_to_vec(etching.rune.0, &mut payload);
-      varint::encode_to_vec(etching.divisibility, &mut payload);
+      varint::encode_to_vec(etching.divisibility.into(), &mut payload);
     }
 
     let mut builder = script::Builder::new()
