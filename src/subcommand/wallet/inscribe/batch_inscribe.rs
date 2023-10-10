@@ -1,4 +1,4 @@
-use {super::mode::Mode, super::*};
+use super::*;
 
 #[derive(Deserialize, Default, PartialEq, Debug)]
 #[serde(deny_unknown_fields)]
@@ -25,8 +25,12 @@ pub(crate) struct BatchConfig {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct BatchOutput {
-  pub outputs: Vec<inscribe::Output>,
+pub struct Output {
+  pub commit: Txid,
+  pub reveal: Txid,
+  pub total_fees: u64,
+  pub parent: Option<InscriptionId>,
+  pub inscriptions: Vec<InscriptionId>,
 }
 
 #[derive(Debug, Parser)]
@@ -39,24 +43,35 @@ impl BatchInscribe {
   pub(crate) fn run(self, options: Options) -> SubcommandResult {
     let batch_config = self.load_batch_config()?;
 
-    let mut inscriptions = Vec::new();
-    for entry in &batch_config.batch {
-      inscriptions.push(Inscription::from_file(
-        options.chain(),
-        &entry.inscription,
-        batch_config.parent,
-        None,
-        entry.metaprotocol.clone(),
-        entry.metadata()?,
-      )?)
-    }
-
     let index = Index::open(&options)?;
     index.update()?;
 
     let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
     let utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
+
+    let parent_info =
+      Inscribe::get_parent_info(batch_config.parent, &index, &utxos, &client, &options)?;
+
+    let mut pointer = if let Some(info) = parent_info.clone() {
+      info.tx_out.value // Inscribe in first sat after parent output
+    } else {
+      0
+    };
+
+    let mut inscriptions = Vec::new();
+    for entry in &batch_config.batch {
+      inscriptions.push(Inscription::from_file(
+        options.chain(),
+        &entry.inscription,
+        batch_config.parent,
+        Some(pointer),
+        entry.metaprotocol.clone(),
+        entry.metadata()?,
+      )?);
+
+      pointer += TransactionBuilder::TARGET_POSTAGE.to_sat();
+    }
 
     let wallet_inscriptions = index.get_inscriptions(utxos.clone())?;
 
@@ -67,14 +82,11 @@ impl BatchInscribe {
 
     let reveal_tx_destination = get_change_address(&client, &options)?;
 
-    let parent_info =
-      Inscribe::get_parent_info(batch_config.parent, &index, &utxos, &client, &options)?;
-
-    let (_commit_tx, _reveal_tx, _recovery_key_pair, _total_fees) =
+    let (commit_tx, reveal_tx, recovery_key_pair, total_fees) =
       BatchInscribe::create_batch_inscription_transactions(
         &batch_config,
         parent_info,
-        inscriptions,
+        &inscriptions,
         wallet_inscriptions,
         options.chain().network(),
         utxos,
@@ -83,8 +95,71 @@ impl BatchInscribe {
         TransactionBuilder::TARGET_POSTAGE,
       )?;
 
-    Ok(Box::new(BatchOutput {
-      outputs: Vec::new(),
+    if batch_config.dry_run {
+      return Ok(Box::new(Output {
+        commit: commit_tx.txid(),
+        reveal: reveal_tx.txid(),
+        total_fees,
+        parent: batch_config.parent,
+        inscriptions: vec![],
+      }));
+    }
+
+    let signed_commit_tx = client
+      .sign_raw_transaction_with_wallet(&commit_tx, None, None)?
+      .hex;
+
+    let signed_reveal_tx = if batch_config.parent.is_some() {
+      client
+        .sign_raw_transaction_with_wallet(
+          &reveal_tx,
+          Some(
+            &commit_tx
+              .output
+              .iter()
+              .enumerate()
+              .map(|(vout, output)| SignRawTransactionInput {
+                txid: commit_tx.txid(),
+                vout: vout.try_into().unwrap(),
+                script_pub_key: output.script_pubkey.clone(),
+                redeem_script: None,
+                amount: Some(Amount::from_sat(output.value)),
+              })
+              .collect::<Vec<SignRawTransactionInput>>(),
+          ),
+          None,
+        )?
+        .hex
+    } else {
+      bitcoin::consensus::encode::serialize(&reveal_tx)
+    };
+
+    Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
+
+    let commit = client.send_raw_transaction(&signed_commit_tx)?;
+
+    let reveal = match client.send_raw_transaction(&signed_reveal_tx) {
+      Ok(txid) => txid,
+      Err(err) => {
+        return Err(anyhow!(
+        "Failed to send reveal transaction: {err}\nCommit tx {commit} will be recovered once mined"
+      ))
+      }
+    };
+
+    Ok(Box::new(Output {
+      commit,
+      reveal,
+      total_fees,
+      parent: batch_config.parent,
+      inscriptions: inscriptions
+        .iter()
+        .enumerate()
+        .map(|(index, _inscription)| InscriptionId {
+          txid: reveal,
+          index: index.try_into().unwrap(),
+        })
+        .collect(),
     }))
   }
 
@@ -95,7 +170,7 @@ impl BatchInscribe {
   fn create_batch_inscription_transactions(
     batch_config: &BatchConfig,
     parent_info: Option<ParentInfo>,
-    inscriptions: Vec<Inscription>,
+    inscriptions: &Vec<Inscription>,
     wallet_inscriptions: BTreeMap<SatPoint, InscriptionId>,
     network: Network,
     mut utxos: BTreeMap<OutPoint, Amount>,

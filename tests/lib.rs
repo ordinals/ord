@@ -64,6 +64,8 @@ fn inscribe(rpc_server: &test_bitcoincore_rpc::Handle) -> Inscribe {
   output
 }
 
+type BatchInscribe = ord::subcommand::wallet::inscribe::batch_inscribe::Output;
+
 fn envelope(payload: &[&[u8]]) -> bitcoin::Witness {
   let mut builder = bitcoin::script::Builder::new()
     .push_opcode(bitcoin::opcodes::OP_FALSE)

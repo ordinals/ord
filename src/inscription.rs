@@ -132,7 +132,7 @@ impl Inscription {
   }
 
   pub(crate) fn append_batch_reveal_script_to_builder(
-    inscriptions: Vec<Inscription>,
+    inscriptions: &Vec<Inscription>,
     mut builder: script::Builder,
   ) -> script::Builder {
     builder = builder
@@ -184,7 +184,7 @@ impl Inscription {
   }
 
   pub(crate) fn append_batch_reveal_script(
-    inscriptions: Vec<Inscription>,
+    inscriptions: &Vec<Inscription>,
     builder: script::Builder,
   ) -> ScriptBuf {
     Inscription::append_batch_reveal_script_to_builder(inscriptions, builder).into_script()

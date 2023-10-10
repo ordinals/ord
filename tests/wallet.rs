@@ -1,6 +1,7 @@
 use super::*;
 
 mod balance;
+mod batch_inscribe;
 mod cardinals;
 mod create;
 mod inscribe;
