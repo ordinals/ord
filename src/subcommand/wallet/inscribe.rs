@@ -85,20 +85,7 @@ pub(crate) struct Inscribe {
 
 impl Inscribe {
   pub(crate) fn run(self, options: Options) -> SubcommandResult {
-    let metadata = if let Some(path) = self.cbor_metadata {
-      let cbor = fs::read(path)?;
-      let _value: Value = ciborium::from_reader(Cursor::new(cbor.clone()))
-        .context("failed to parse CBOR metadata")?;
-      Some(cbor)
-    } else if let Some(path) = self.json_metadata {
-      let value: serde_json::Value =
-        serde_json::from_reader(File::open(path)?).context("failed to parse JSON metadata")?;
-      let mut cbor = Vec::new();
-      ciborium::into_writer(&value, &mut cbor)?;
-      Some(cbor)
-    } else {
-      None
-    };
+    let metadata = Inscribe::parse_metadata(self.cbor_metadata, self.json_metadata)?;
 
     let inscription = Inscription::from_file(
       options.chain(),
@@ -127,29 +114,8 @@ impl Inscribe {
       None => get_change_address(&client, &options)?,
     };
 
-    let parent_info = if let Some(parent_id) = self.parent {
-      if let Some(satpoint) = index.get_inscription_satpoint_by_id(parent_id)? {
-        if !utxos.contains_key(&satpoint.outpoint) {
-          return Err(anyhow!(format!("parent {parent_id} not in wallet")));
-        }
-
-        Some(ParentInfo {
-          destination: get_change_address(&client, &options)?,
-          location: satpoint,
-          tx_out: index
-            .get_transaction(satpoint.outpoint.txid)?
-            .expect("parent transaction not found in index")
-            .output
-            .into_iter()
-            .nth(satpoint.outpoint.vout.try_into().unwrap())
-            .expect("current transaction output"),
-        })
-      } else {
-        return Err(anyhow!(format!("parent {parent_id} does not exist")));
-      }
-    } else {
-      None
-    };
+    let parent_info =
+      Inscribe::get_parent_info(self.parent, &index, &utxos, &client, &options)?;
 
     let (commit_tx, reveal_tx, recovery_key_pair, total_fees) =
       Inscribe::create_inscription_transactions(
@@ -238,6 +204,57 @@ impl Inscribe {
       },
       total_fees,
     }))
+  }
+
+  fn parse_metadata(json: Option<PathBuf>, cbor: Option<PathBuf>) -> Result<Option<Vec<u8>>> {
+    if let Some(path) = cbor {
+      let cbor = fs::read(path)?;
+      let _value: Value = ciborium::from_reader(Cursor::new(cbor.clone()))
+        .context("failed to parse CBOR metadata")?;
+
+      Ok(Some(cbor))
+    } else if let Some(path) = json {
+      let value: serde_json::Value =
+        serde_json::from_reader(File::open(path)?).context("failed to parse JSON metadata")?;
+      let mut cbor = Vec::new();
+      ciborium::into_writer(&value, &mut cbor)?;
+
+      Ok(Some(cbor))
+    } else {
+      Ok(None)
+    }
+  }
+
+  fn get_parent_info(
+    parent: Option<InscriptionId>,
+    index: &Index,
+    utxos: &BTreeMap<OutPoint, Amount>,
+    client: &Client,
+    options: &Options,
+  ) -> Result<Option<ParentInfo>> {
+    if let Some(parent_id) = parent {
+      if let Some(satpoint) = index.get_inscription_satpoint_by_id(parent_id)? {
+        if !utxos.contains_key(&satpoint.outpoint) {
+          return Err(anyhow!(format!("parent {parent_id} not in wallet")));
+        }
+
+        Ok(Some(ParentInfo {
+          destination: get_change_address(&client, &options)?,
+          location: satpoint,
+          tx_out: index
+            .get_transaction(satpoint.outpoint.txid)?
+            .expect("parent transaction not found in index")
+            .output
+            .into_iter()
+            .nth(satpoint.outpoint.vout.try_into().unwrap())
+            .expect("current transaction output"),
+        }))
+      } else {
+        return Err(anyhow!(format!("parent {parent_id} does not exist")));
+      }
+    } else {
+      Ok(None)
+    }
   }
 
   fn create_inscription_transactions(
