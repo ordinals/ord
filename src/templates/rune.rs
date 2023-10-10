@@ -14,7 +14,7 @@ impl PageContent for RuneHtml {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+  use {super::*, crate::runes::Rune};
 
   #[test]
   fn supply_is_displayed_using_divisibility() {
