@@ -1,4 +1,4 @@
-use {super::*, crate::subcommand::wallet::inscribe::mode::Mode};
+use {super::mode::Mode, super::*};
 
 #[derive(Deserialize, Default, PartialEq, Debug)]
 #[serde(deny_unknown_fields)]
@@ -33,7 +33,7 @@ pub(crate) struct BatchInscribe {
 
 impl BatchInscribe {
   pub(crate) fn run(self, _options: Options) -> SubcommandResult {
-    let batch = self.load_batch()?;
+    let batch = self.load_batch_config()?;
 
     let _batch = batch.batch;
 
@@ -42,7 +42,7 @@ impl BatchInscribe {
     }))
   }
 
-  pub(crate) fn load_batch(&self) -> Result<BatchConfig> {
+  pub(crate) fn load_batch_config(&self) -> Result<BatchConfig> {
     Ok(serde_yaml::from_reader(File::open(self.file.clone())?)?)
   }
 }
@@ -90,7 +90,7 @@ mod tests {
       .subcommand
       {
         Subcommand::Wallet(wallet::Wallet::BatchInscribe(batch_inscribe)) =>
-          batch_inscribe.load_batch().unwrap(),
+          batch_inscribe.load_batch_config().unwrap(),
         _ => panic!(),
       },
       BatchConfig {
@@ -141,7 +141,7 @@ mod tests {
     .subcommand
     {
       Subcommand::Wallet(wallet::Wallet::BatchInscribe(batch_inscribe)) =>
-        batch_inscribe.load_batch().is_err(),
+        batch_inscribe.load_batch_config().is_err(),
       _ => panic!(),
     })
   }
@@ -174,7 +174,7 @@ mod tests {
     .subcommand
     {
       Subcommand::Wallet(wallet::Wallet::BatchInscribe(batch_inscribe)) =>
-        batch_inscribe.load_batch().is_err(),
+        batch_inscribe.load_batch_config().is_err(),
       _ => panic!(),
     })
   }
