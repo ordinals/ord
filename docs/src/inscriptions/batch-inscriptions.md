@@ -7,8 +7,6 @@ Example
 -------
 
 ```yaml
-# Example batch file
-
 # All inscriptions can either be put into a `shared-output` or put into `separate-outputs`
 mode: shared-output
 
