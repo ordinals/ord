@@ -145,6 +145,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             id.store(),
             RuneEntry {
               divisibility,
+              etching: txid,
               rarity: if self.count == 0 {
                 self.rarity
               } else {
@@ -152,7 +153,6 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
               },
               rune,
               supply,
-              transaction: txid,
             }
             .store(),
           )?;

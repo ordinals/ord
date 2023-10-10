@@ -570,7 +570,7 @@ impl Server {
     })?;
 
     let inscription = InscriptionId {
-      txid: entry.transaction,
+      txid: entry.etching,
       index: 0,
     };
 
@@ -3162,11 +3162,11 @@ mod tests {
       [(
         id,
         RuneEntry {
-          rune: Rune(u128::from(21_000_000 * COIN_VALUE)),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid,
           rarity: Rarity::Uncommon,
-          transaction: txid,
+          rune: Rune(u128::from(21_000_000 * COIN_VALUE)),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -3228,11 +3228,11 @@ mod tests {
       [(
         id,
         RuneEntry {
-          rune,
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid,
           rarity: Rarity::Uncommon,
-          transaction: txid,
+          rune,
+          supply: u128::max_value(),
         }
       )]
     );
@@ -3257,7 +3257,7 @@ mod tests {
   <dd>0</dd>
   <dt>rarity</dt>
   <dd><span class=uncommon>uncommon</span></dd>
-  <dt>origin</dt>
+  <dt>etching</dt>
   <dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
   <dt>inscription</dt>
   <dd><a class=monospace href=/inscription/{txid}i0>{txid}i0</a></dd>

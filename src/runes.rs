@@ -141,11 +141,11 @@ mod tests {
       [(
         id,
         RuneEntry {
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid,
           rarity: Rarity::Uncommon,
-          transaction: txid,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -230,10 +230,10 @@ mod tests {
           id,
           RuneEntry {
             divisibility: 0,
+            etching: txid,
             rune: Rune(u128::from(Sat::SUPPLY - 150 * COIN_VALUE)),
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
-            transaction: txid,
           }
         )]
       );
@@ -285,10 +285,10 @@ mod tests {
         id,
         RuneEntry {
           rune: Rune(RUNE),
+          etching: txid,
           divisibility: 1,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
-          transaction: txid,
         }
       )]
     );
@@ -345,11 +345,11 @@ mod tests {
       [(
         id,
         RuneEntry {
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid,
           rarity: Rarity::Uncommon,
-          transaction: txid,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -406,11 +406,11 @@ mod tests {
       [(
         id,
         RuneEntry {
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid,
           rarity: Rarity::Uncommon,
-          transaction: txid,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -460,11 +460,11 @@ mod tests {
       [(
         id,
         RuneEntry {
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: 100,
+          etching: txid,
           rarity: Rarity::Uncommon,
-          transaction: txid,
+          rune: Rune(RUNE),
+          supply: 100,
         }
       )]
     );
@@ -521,11 +521,11 @@ mod tests {
       [(
         id,
         RuneEntry {
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: 200,
+          etching: txid,
           rarity: Rarity::Uncommon,
-          transaction: txid,
+          rune: Rune(RUNE),
+          supply: 200,
         }
       )]
     );
@@ -585,11 +585,11 @@ mod tests {
       [(
         id,
         RuneEntry {
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: 100,
+          etching: txid,
           rarity: Rarity::Uncommon,
-          transaction: txid,
+          rune: Rune(RUNE),
+          supply: 100,
         }
       )]
     );
@@ -639,11 +639,11 @@ mod tests {
       [(
         id,
         RuneEntry {
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid0,
           rarity: Rarity::Uncommon,
-          transaction: txid0,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -682,11 +682,11 @@ mod tests {
       [(
         id,
         RuneEntry {
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid0,
           rarity: Rarity::Uncommon,
-          transaction: txid0,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -742,11 +742,11 @@ mod tests {
       [(
         id,
         RuneEntry {
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid0,
           rarity: Rarity::Uncommon,
-          transaction: txid0,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -781,11 +781,11 @@ mod tests {
       [(
         id,
         RuneEntry {
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid0,
           rarity: Rarity::Uncommon,
-          transaction: txid0,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -842,11 +842,11 @@ mod tests {
       [(
         id,
         RuneEntry {
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid0,
           rarity: Rarity::Uncommon,
-          transaction: txid0,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -875,11 +875,11 @@ mod tests {
       [(
         id,
         RuneEntry {
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid0,
           rarity: Rarity::Uncommon,
-          transaction: txid0,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -935,11 +935,11 @@ mod tests {
       [(
         id,
         RuneEntry {
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid,
           rarity: Rarity::Uncommon,
-          transaction: txid,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -975,11 +975,11 @@ mod tests {
       [(
         id,
         RuneEntry {
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid,
           rarity: Rarity::Uncommon,
-          transaction: txid,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -1029,11 +1029,11 @@ mod tests {
       [(
         id0,
         RuneEntry {
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid0,
           rarity: Rarity::Uncommon,
-          transaction: txid0,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -1081,21 +1081,21 @@ mod tests {
         (
           id0,
           RuneEntry {
-            rune: Rune(RUNE),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid0,
             rarity: Rarity::Uncommon,
-            transaction: txid0,
+            rune: Rune(RUNE),
+            supply: u128::max_value(),
           }
         ),
         (
           id1,
           RuneEntry {
-            rune: Rune(RUNE + 1),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid1,
             rarity: Rarity::Uncommon,
-            transaction: txid1,
+            rune: Rune(RUNE + 1),
+            supply: u128::max_value(),
           }
         )
       ]
@@ -1134,21 +1134,21 @@ mod tests {
         (
           id0,
           RuneEntry {
-            rune: Rune(RUNE),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid0,
             rarity: Rarity::Uncommon,
-            transaction: txid0,
+            rune: Rune(RUNE),
+            supply: u128::max_value(),
           }
         ),
         (
           id1,
           RuneEntry {
-            rune: Rune(RUNE + 1),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid1,
             rarity: Rarity::Uncommon,
-            transaction: txid1,
+            rune: Rune(RUNE + 1),
+            supply: u128::max_value(),
           }
         )
       ]
@@ -1205,11 +1205,11 @@ mod tests {
       [(
         id0,
         RuneEntry {
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid0,
           rarity: Rarity::Uncommon,
-          transaction: txid0,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -1257,21 +1257,21 @@ mod tests {
         (
           id0,
           RuneEntry {
-            rune: Rune(RUNE),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid0,
             rarity: Rarity::Uncommon,
-            transaction: txid0,
+            rune: Rune(RUNE),
+            supply: u128::max_value(),
           }
         ),
         (
           id1,
           RuneEntry {
-            rune: Rune(RUNE + 1),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid1,
             rarity: Rarity::Uncommon,
-            transaction: txid1,
+            rune: Rune(RUNE + 1),
+            supply: u128::max_value(),
           }
         )
       ]
@@ -1310,21 +1310,21 @@ mod tests {
         (
           id0,
           RuneEntry {
-            rune: Rune(RUNE),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid0,
             rarity: Rarity::Uncommon,
-            transaction: txid0,
+            rune: Rune(RUNE),
+            supply: u128::max_value(),
           }
         ),
         (
           id1,
           RuneEntry {
-            rune: Rune(RUNE + 1),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid1,
             rarity: Rarity::Uncommon,
-            transaction: txid1,
+            rune: Rune(RUNE + 1),
+            supply: u128::max_value(),
           }
         )
       ]
@@ -1373,21 +1373,21 @@ mod tests {
         (
           id0,
           RuneEntry {
-            rune: Rune(RUNE),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid0,
             rarity: Rarity::Uncommon,
-            transaction: txid0,
+            rune: Rune(RUNE),
+            supply: u128::max_value(),
           }
         ),
         (
           id1,
           RuneEntry {
-            rune: Rune(RUNE + 1),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid1,
             rarity: Rarity::Uncommon,
-            transaction: txid1,
+            rune: Rune(RUNE + 1),
+            supply: u128::max_value(),
           }
         )
       ]
@@ -1456,11 +1456,11 @@ mod tests {
       [(
         id0,
         RuneEntry {
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid0,
           rarity: Rarity::Uncommon,
-          transaction: txid0,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -1508,21 +1508,21 @@ mod tests {
         (
           id0,
           RuneEntry {
-            rune: Rune(RUNE),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid0,
             rarity: Rarity::Uncommon,
-            transaction: txid0,
+            rune: Rune(RUNE),
+            supply: u128::max_value(),
           }
         ),
         (
           id1,
           RuneEntry {
-            rune: Rune(RUNE + 1),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid1,
             rarity: Rarity::Uncommon,
-            transaction: txid1,
+            rune: Rune(RUNE + 1),
+            supply: u128::max_value(),
           }
         )
       ]
@@ -1579,21 +1579,21 @@ mod tests {
         (
           id0,
           RuneEntry {
-            rune: Rune(RUNE),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid0,
             rarity: Rarity::Uncommon,
-            transaction: txid0,
+            rune: Rune(RUNE),
+            supply: u128::max_value(),
           }
         ),
         (
           id1,
           RuneEntry {
-            rune: Rune(RUNE + 1),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid1,
             rarity: Rarity::Uncommon,
-            transaction: txid1,
+            rune: Rune(RUNE + 1),
+            supply: u128::max_value(),
           }
         )
       ]
@@ -1651,11 +1651,11 @@ mod tests {
       [(
         id,
         RuneEntry {
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid0,
           rarity: Rarity::Uncommon,
-          transaction: txid0,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -1689,11 +1689,11 @@ mod tests {
       [(
         id,
         RuneEntry {
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid0,
           rarity: Rarity::Uncommon,
-          transaction: txid0,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -1768,21 +1768,21 @@ mod tests {
         (
           id0,
           RuneEntry {
-            rune: Rune(RUNE),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid0,
             rarity: Rarity::Uncommon,
-            transaction: txid0,
+            rune: Rune(RUNE),
+            supply: u128::max_value(),
           }
         ),
         (
           id1,
           RuneEntry {
-            rune: Rune(RUNE + 1),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid1,
             rarity: Rarity::Common,
-            transaction: txid1,
+            rune: Rune(RUNE + 1),
+            supply: u128::max_value(),
           }
         ),
       ]
@@ -1848,11 +1848,11 @@ mod tests {
       [(
         id,
         RuneEntry {
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid0,
           rarity: Rarity::Uncommon,
-          transaction: txid0,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -1898,11 +1898,11 @@ mod tests {
       [(
         id,
         RuneEntry {
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid0,
           rarity: Rarity::Uncommon,
-          transaction: txid0,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -1958,11 +1958,11 @@ mod tests {
       [(
         id0,
         RuneEntry {
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid0,
           rarity: Rarity::Uncommon,
-          transaction: txid0,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -2010,21 +2010,21 @@ mod tests {
         (
           id0,
           RuneEntry {
-            rune: Rune(RUNE),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid0,
             rarity: Rarity::Uncommon,
-            transaction: txid0,
+            rune: Rune(RUNE),
+            supply: u128::max_value(),
           }
         ),
         (
           id1,
           RuneEntry {
-            rune: Rune(RUNE + 1),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid1,
             rarity: Rarity::Uncommon,
-            transaction: txid1,
+            rune: Rune(RUNE + 1),
+            supply: u128::max_value(),
           }
         )
       ]
@@ -2081,21 +2081,21 @@ mod tests {
         (
           id0,
           RuneEntry {
-            rune: Rune(RUNE),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid0,
             rarity: Rarity::Uncommon,
-            transaction: txid0,
+            rune: Rune(RUNE),
+            supply: u128::max_value(),
           }
         ),
         (
           id1,
           RuneEntry {
-            rune: Rune(RUNE + 1),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid1,
             rarity: Rarity::Uncommon,
-            transaction: txid1,
+            rune: Rune(RUNE + 1),
+            supply: u128::max_value(),
           }
         )
       ]
@@ -2161,11 +2161,11 @@ mod tests {
       [(
         id,
         RuneEntry {
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value() / 2,
+          etching: txid0,
           rarity: Rarity::Uncommon,
-          transaction: txid0,
+          rune: Rune(RUNE),
+          supply: u128::max_value() / 2,
         }
       )]
     );
@@ -2204,11 +2204,11 @@ mod tests {
       [(
         id,
         RuneEntry {
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value() / 2,
+          etching: txid0,
           rarity: Rarity::Uncommon,
-          transaction: txid0,
+          rune: Rune(RUNE),
+          supply: u128::max_value() / 2,
         }
       )]
     );
@@ -2264,11 +2264,11 @@ mod tests {
       [(
         id,
         RuneEntry {
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid,
           rarity: Rarity::Uncommon,
-          transaction: txid,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -2319,11 +2319,11 @@ mod tests {
       [(
         id,
         RuneEntry {
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid,
           rarity: Rarity::Uncommon,
-          transaction: txid,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -2381,11 +2381,11 @@ mod tests {
       [(
         id,
         RuneEntry {
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid,
           rarity: Rarity::Uncommon,
-          transaction: txid,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
