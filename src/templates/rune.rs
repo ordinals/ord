@@ -18,7 +18,7 @@ mod tests {
   use {super::*, crate::runes::Rune};
 
   #[test]
-  fn supply_is_displayed_using_divisibility() {
+  fn display() {
     assert_eq!(
       RuneHtml {
         entry: RuneEntry {
@@ -26,11 +26,16 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(u128::max_value()),
           supply: 123456789123456789,
+          etching: Txid::all_zeros(),
         },
         id: RuneId {
           height: 10,
           index: 9,
         },
+        inscription: Some(InscriptionId {
+          txid: Txid::all_zeros(),
+          index: 0,
+        }),
       }
       .to_string(),
       "<h1>Rune BCGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
