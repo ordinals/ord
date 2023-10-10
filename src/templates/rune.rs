@@ -19,7 +19,7 @@ mod tests {
 
   #[test]
   fn display() {
-    assert_eq!(
+    assert_regex_match!(
       RuneHtml {
         entry: RuneEntry {
           divisibility: 9,
@@ -36,8 +36,7 @@ mod tests {
           txid: Txid::all_zeros(),
           index: 0,
         }),
-      }
-      .to_string(),
+      },
       "<h1>Rune BCGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
 <dl>
   <dt>id</dt>
@@ -48,6 +47,10 @@ mod tests {
   <dd>9</dd>
   <dt>rarity</dt>
   <dd><span class=uncommon>uncommon</span></dd>
+  <dt>etching</dt>
+  <dd><a class=monospace href=/tx/0{64}>0{64}</a></dd>
+  <dt>inscription</dt>
+  <dd><a class=monospace href=/inscription/0{64}i0>0{64}i0</a></dd>
 </dl>
 "
     );
