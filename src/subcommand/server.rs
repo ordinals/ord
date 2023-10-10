@@ -3236,6 +3236,8 @@ mod tests {
   <dd>2/1</dd>
   <dt>supply</dt>
   <dd>340282366920938463463374607431768211455</dd>
+  <dt>burned</dt>
+  <dd>0</dd>
   <dt>divisibility</dt>
   <dd>0</dd>
   <dt>rarity</dt>
