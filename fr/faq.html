@@ -1,0 +1,445 @@
+<!DOCTYPE HTML>
+<html lang="fr" class="sidebar-visible no-js coal">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>FAQ - Ordinal Theory Handbook</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="language-picker.css">
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "coal";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('coal')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="overview.html"><strong aria-hidden="true">1.</strong> Aperçu</a></li><li class="chapter-item expanded "><a href="digital-artifacts.html"><strong aria-hidden="true">2.</strong> Artéfacts numériques</a></li><li class="chapter-item expanded "><a href="inscriptions.html"><strong aria-hidden="true">3.</strong> Inscriptions</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="inscriptions/metadata.html"><strong aria-hidden="true">3.1.</strong> Métadonnées</a></li><li class="chapter-item expanded "><a href="inscriptions/provenance.html"><strong aria-hidden="true">3.2.</strong> Provenance</a></li><li class="chapter-item expanded "><a href="inscriptions/recursion.html"><strong aria-hidden="true">3.3.</strong> Récursion</a></li></ol></li><li class="chapter-item expanded "><a href="faq.html" class="active"><strong aria-hidden="true">4.</strong> FAQ</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> Contribuer</a></li><li class="chapter-item expanded "><a href="donate.html"><strong aria-hidden="true">6.</strong> Faire un don</a></li><li class="chapter-item expanded "><a href="guides.html"><strong aria-hidden="true">7.</strong> Guides</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="guides/explorer.html"><strong aria-hidden="true">7.1.</strong> Explorateur</a></li><li class="chapter-item expanded "><a href="guides/inscriptions.html"><strong aria-hidden="true">7.2.</strong> Inscriptions</a></li><li class="chapter-item expanded "><a href="guides/sat-hunting.html"><strong aria-hidden="true">7.3.</strong> Chasse aux sats</a></li><li class="chapter-item expanded "><a href="guides/collecting.html"><strong aria-hidden="true">7.4.</strong> Collectionner</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="guides/collecting/sparrow-wallet.html"><strong aria-hidden="true">7.4.1.</strong> Portefeuille Sparrow</a></li></ol></li><li class="chapter-item expanded "><a href="guides/testing.html"><strong aria-hidden="true">7.5.</strong> Tests</a></li><li class="chapter-item expanded "><a href="guides/moderation.html"><strong aria-hidden="true">7.6.</strong> Modération</a></li><li class="chapter-item expanded "><a href="guides/reindexing.html"><strong aria-hidden="true">7.7.</strong> Réindexation</a></li></ol></li><li class="chapter-item expanded "><a href="bounties.html"><strong aria-hidden="true">8.</strong> Récompenses</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="bounty/0.html"><strong aria-hidden="true">8.1.</strong> Récompense 0 : 100 000 sats Réclamés !</a></li><li class="chapter-item expanded "><a href="bounty/1.html"><strong aria-hidden="true">8.2.</strong> Récompense 1 : 200 000 sats Réclamés !</a></li><li class="chapter-item expanded "><a href="bounty/2.html"><strong aria-hidden="true">8.3.</strong> Récompense 2 : 300 000 sats Réclamés !</a></li><li class="chapter-item expanded "><a href="bounty/3.html"><strong aria-hidden="true">8.4.</strong> Récompense 3 : 400 000 sats</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Ordinal Theory Handbook</h1>
+
+                    <div class="right-buttons">
+                        <button id="language-toggle" class="icon-button" type="button"
+                                title="Change language" aria-label="Change language"
+                                aria-haspopup="true" aria-expanded="false"
+                                aria-controls="language-list">
+                            <i class="fa fa-globe"></i>
+                        </button>
+                        <ul id="language-list" class="theme-popup" aria-label="Languages" role="menu">
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="en">English</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fr">Français</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="es">Español</a>
+                          </button></li>
+                           <li role="none"><button role="menuitem" class="theme">
+                              <a id="ru">Русский</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="zh">中文版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ja">日本語版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fil">Filipino</a>
+                          </button></li>
+                        </ul>
+
+                        <script>
+                          let langToggle = document.getElementById("language-toggle");
+                          let langList = document.getElementById("language-list");
+                          langToggle.addEventListener("click", (event) => {
+                              langList.style.display = langList.style.display == "block" ? "none" : "block";
+                          });
+                          let selectedLang = document.getElementById("fr");
+                          if (selectedLang) {
+                              selectedLang.parentNode.classList.add("theme-selected");
+                          }
+
+                          // The path to the root, taking the current
+                          // language into account.
+                          let full_path_to_root = "../";
+                          // The page path (mdbook only gives us
+                          // access to the path to the Markdown file).
+                          let path = "faq.md".replace(/\.md$/, ".html");
+                          for (let lang of langList.querySelectorAll("a")) {
+                              if (lang.id == "en") {
+                                  lang.href = `${full_path_to_root}${path}`;
+                              } else {
+                                  lang.href = `${full_path_to_root}${lang.id}/${path}`;
+                              }
+                          }
+                        </script>
+
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ordinals/ord" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="faq-de-la-théorie-ordinale"><a class="header" href="#faq-de-la-théorie-ordinale">FAQ de la théorie ordinale</a></h1>
+<h2 id="quest-ce-que-la-théorie-ordinale-"><a class="header" href="#quest-ce-que-la-théorie-ordinale-">Qu’est-ce que la théorie ordinale ?</a></h2>
+<p>La théorie ordinale est un protocole permettant d’attribuer des nombres de série aux satoshis, la plus petite unité de bitcoin, et de suivre ces satoshis au fur et à mesure qu’ils sont dépensés dans des transactions.</p>
+<p>Ces numéros de série sont de grands nombres, par exemple le nombre 804766073970493. Chaque satoshi, qui est ¹⁄₁₀₀₀₀₀₀₀₀ d’un bitcoin, a un numéro ordinal.</p>
+<h2 id="la-théorie-ordinale-nécessite-t-elle-une-chaîne-latérale-un-token-séparé-ou-des-modifications-sur-bitcoin-"><a class="header" href="#la-théorie-ordinale-nécessite-t-elle-une-chaîne-latérale-un-token-séparé-ou-des-modifications-sur-bitcoin-">La théorie ordinale nécessite-t-elle une chaîne latérale, un token séparé ou des modifications sur Bitcoin ?</a></h2>
+<p>Non ! La théorie ordinale fonctionne dès maintenant, sans chaîne latérale, et le seul token nécessaire est tout simplement le bitcoin.</p>
+<h2 id="À-quoi-sert-la-théorie-ordinale-"><a class="header" href="#À-quoi-sert-la-théorie-ordinale-">À quoi sert la théorie ordinale ?</a></h2>
+<p>À collectionner, échanger et innover. La théorie ordinale attribue une identité aux satoshis, ce qui permet de les suivre et de les échanger, à la fois comme curiosités et pour leur valeur numismatique.</p>
+<p>La théorie ordinale permet également les inscriptions, un protocole capable d’attacher du contenu arbitraire à des satoshis individuels, les transformant ainsi en artefacts numériques natifs de Bitcoin.</p>
+<h2 id="comment-fonctionne-la-théorie-ordinale-"><a class="header" href="#comment-fonctionne-la-théorie-ordinale-">Comment fonctionne la théorie ordinale ?</a></h2>
+<p>Les nombres ordinaux sont attribués aux satoshis dans l’ordre dans lequel ils sont minés. Le premier satoshi du premier bloc a le nombre ordinal 0, le deuxième a le nombre ordinal 1 et le dernier satoshi du premier bloc a le nombre ordinal 4 999 999 999.</p>
+<p>Les satoshis se trouvent dans les sorties de transactions, mais les transactions sont détruites lorsqu’elles sont émises et de nouvelles transactions sont créées. La théorie ordinale utilise donc un algorithme pour déterminer comment les satoshis se déplacent entre les sorties de transactions et les entrées de transactions.</p>
+<p>Heureusement, cet algorithme est très simple.</p>
+<p>Les satoshis sont transférés selon le principe FIFO (First In, First Out). Considérez les entrées d’une transaction comme une liste de satoshis, et les sorties comme une liste d’emplacements, en attente de recevoir un satoshi. Pour attribuer les satoshis des entrées aux emplacements disponibles, parcourez-les dans l’ordre et attribuez chaque satoshi au premier emplacement disponible dans les sorties.</p>
+<p>Imaginons une transaction avec trois entrées et deux sorties. Les entrées sont à gauche de la flèche et les sorties sont à droite, avec leurs valeurs respectives :</p>
+<pre><code>[2] [1] [3] → [4] [2]
+</code></pre>
+<p>Voyons maintenant la même opération avec les nombres ordinaux de satoshis contenus dans chaque entrée. Nous mettrons des points d’interrogation pour chaque espace de sortie libre. Comme les nombres ordinaux sont grands, nous utiliserons des lettres pour les représenter :</p>
+<pre><code>[a b] [c] [d e f] → [? ? ? ?] [? ?]
+</code></pre>
+<p>Pour déterminer quel satoshi sera placé dans quelle sortie, parcourez les satoshis d’entrée dans l’ordre et attribuez un point d’interrogation à chacun d’eux :</p>
+<pre><code>[a b] [c] [d e f] → [a b c d] [e f]
+</code></pre>
+<p>À ce stade, vous vous demandez peut-être ce qu’il adviendra des frais... Bonne question ! Imaginons la même transaction, cette fois avec des frais de deux satoshis. Les transactions avec frais contiennent plus de satoshis dans les entrées que les sorties de transactions n’en reçoivent, donc pour convertir notre transaction en une transaction avec frais, nous allons supprimer la deuxième sortie de transaction :</p>
+<pre><code>[2] [1] [3] → [4]
+</code></pre>
+<p>Les satoshis <var>e</var>et <var>f</var>n’ont désormais nulle part où aller dans les sorties :```
+[a b] [c] [d e f] → [a b c d]</p>
+<pre><code>
+Ils vont donc au mineur qui a miné le bloc en tant que frais. [Le BIP](https://github.com/ordinals/ord/blob/master/bip.mediawiki) donne les détails, mais en résumé, les frais payés par les transactions sont traités comme des entrées supplémentaires dans la transaction coinbase, et sont organisés selon l’ordre de leurs transactions correspondantes dans le bloc. La transaction coinbase du bloc pourrait ressembler à ceci :
+
+</code></pre>
+<p>[SUBSIDY] [e f] → [SUBSIDY e f]</p>
+<pre><code>
+## Où puis-je trouver les détails techniques approfondis ?
+
+Dans [le BIP !](https://github.com/ordinals/ord/blob/master/bip.mediawiki)
+
+## Pourquoi les inscriptions de satoshis sont-elles appelées « artefacts numériques » au lieu de « NFTs » ?
+
+Une inscription est un NFT, mais le terme « artefact numérique » est utilisé à la place, parce qu’il est simple, suggestif et familier.
+
+L’expression « artefact numérique » est très suggestive, même pour quelqu’un qui n’a jamais entendu ce terme auparavant. En comparaison, le terme « NFT » est un acronyme qui ne donne aucune indication sur ce qu’il signifie si l’on n’a jamais entendu ce terme auparavant.
+
+En outre, « NFT » ressemble à une terminologie financière, et le mot « fongible » ainsi que le sens du mot « token » tel qu’il est utilisé dans « NFT » ne sont pas courants en dehors des contextes financiers.
+
+## Comment les inscriptions de satoshis se comparent-elles…
+
+### Aux NFTs sur Ethereum ?
+
+_Les inscriptions sont toujours immuables._
+
+Il n’y a tout simplement aucun moyen pour le créateur d’une inscription, ou le propriétaire d’une inscription, de la modifier après qu’elle a été créée.
+
+Les NFTs sur Ethereum peuvent être _immuables_, mais beaucoup ne le sont pas et peuvent être modifiés ou supprimés par le propriétaire du contrat NFT.
+
+Pour s’assurer qu’un NFT sur Ethereum est immuable, le code du contrat doit être analysé, ce qui nécessite une connaissance approfondie de l’EVM et de la sémantique Solidity.
+
+Pour un utilisateur ne disposant pas de compétences techniques, il est assez difficile de déterminer si un NFT sur Ethereum est mutable ou immuable, et les plateformes de NFTs sur Ethereum ne font aucun effort pour distinguer si un NFT est mutable ou immuable et si le code source du contrat est disponible et a été vérifié.
+
+_Le contenu de l’inscription se trouve toujours sur la blockchain du Bitcoin._
+
+Il est impossible pour une inscription de se référer à un contenu qui se trouve en dehors de la blockchain du Bitcoin. Cela rend les inscriptions plus durables, car le contenu ne peut pas être perdu, mais aussi plus rares, car les créateurs d’inscriptions doivent payer des commissions proportionnelles à la taille du contenu.
+
+Le contenu de certains NFTs sur Ethereum est sur la blockchain, mais beaucoup ne l’est pas et est stocké sur des plateformes telles que IPFS ou Arweave, ou sur des serveurs web centralisés. Il n’y a aucune garantie que le contenu stocké sur IPFS continuera d’être disponible ; en fait, quelques contenus de NFTs qui étaient stockés sur IPFS ont déjà été perdus. Les plateformes telles qu’Arweave reposent sur des hypothèses économiques et sont susceptibles d’échouer de manière catastrophique lorsque ces hypothèses ne seront plus satisfaites. Les serveurs web centralisés pourraient disparaître à tout moment.
+
+Il est très difficile pour un utilisateur non technique de déterminer où est stocké le contenu d’un NFT sur Ethereum.
+
+_Les inscriptions sont beaucoup plus simples._
+
+Les NFTs sur Ethereum dépendent du réseau et de la machine virtuelle Ethereum, qui sont très complexes, évoluent constamment et introduisent des changements par le biais de hard forks incompatibles avec des versions précédentes.
+
+D’autre part, les inscriptions dépendent de la blockchain du Bitcoin, qui est relativement simple et conservatrice, et qui introduit des changements par le biais de « soft forks » compatibles avec des versions précédentes.
+
+_Les inscriptions sont plus sûres._
+
+Les inscriptions héritent du modèle de transaction de Bitcoin, ce qui permet à l’utilisateur de voir exactement quelles inscriptions sont transférées dans une transaction avant de la signer. Les inscriptions peuvent être mises en vente par le biais de transactions partiellement signées, ce qui ne nécessite pas l’autorisation d’un tiers, tel qu’une place de marché ou une plateforme d’échange, pour les transférer au nom de l’utilisateur.
+
+En comparaison, les NFTs sur Ethereum sont criblés de vulnérabilités en matière de sécurité pour l’utilisateur final. Il est courant de signer des transactions à l’aveugle, d’accorder des autorisations illimitées à des applications tierces sur les NFTs d’un utilisateur et d’interagir avec des smart contracts complexes et imprévisibles. Cela crée un champ de mines plein de dangers pour les utilisateurs de NFTs sur Ethereum qui ne sont tout simplement pas une préoccupation pour les théoriciens d’Ordinals.
+
+_Les inscriptions sont plus rares._
+
+Les inscriptions nécessitent des bitcoins pour être créées, transférées et stockées. Cela semble être un inconvénient à première vue, mais la raison d’être des artefacts numériques est d’être rares et donc précieux.
+
+Les NFTs sur Ethereum, en revanche, peuvent être créés en quantités virtuellement illimitées en une seule transaction, ce qui les rend intrinsèquement moins rares, et donc potentiellement moins précieux.
+
+_Les inscriptions ne prétendent pas prendre en charge les redevances sur la blockchain._
+
+En théorie, la mise en œuvre des redevances dans le cadre de la blockchain semble être une bonne chose, mais sa mise en pratique pose des problèmes importants. Les paiements de redevances ne peuvent pas être implémentés sur la blockchain sans restrictions complexes et intrusives. À l’heure actuelle, l’écosystème des NFTs sur Ethereum est confronté à des problèmes dus à la confusion générée autour des redevances et réalise collectivement que les redevances sur la blockchain, qui ont été présentées aux artistes comme un avantage des NFTs, ne sont pas possibles, tandis que les plateformes sont entraînées dans une course vers le bas et éliminent déjà la prise en charge des redevances.
+
+Les inscriptions évitent totalement cette situation en ne faisant aucune fausse promesse de prise en charge des redevances sur la blockchain, évitant ainsi la confusion, le chaos et la négativité de la situation qui survient avec les NFTs sur Ethereum.
+
+_Les inscriptions ouvrent la voie à de nouveaux marchés._
+
+La capitalisation du marché de Bitcoin et sa liquidité sont nettement supérieures à celles d’Ethereum. Une grande partie de cette liquidité n’est pas accessible aux NFTs sur Ethereum, car de nombreux bitcoiners préfèrent ne pas interagir avec l’écosystème Ethereum en raison de préoccupations liées à la simplicité, la sécurité et la décentralisation.
+
+Ces bitcoiners pourraient être plus intéressés par les inscriptions que par les NFTs Ethereum, ce qui ouvrirait la porte à d’autres types de collectionneurs.
+
+_Les inscriptions disposent d’un modèle de données plus riche._
+
+Une entrée se compose du type de contenu, appelé type MIME, et d’une chaîne d’octets arbitraire constituant le contenu. Il s’agit du même modèle de données que celui utilisé par le web, qui permet au contenu de l’inscription d’évoluer avec le web et de prendre en charge tout type de contenu supporté par les navigateurs web, sans qu’il soit nécessaire de modifier le protocole sous-jacent.
+
+### Aux actifs RGB et Taro ?
+
+RGB et Taro sont tous deux des protocoles d’actifs de deuxième couche basés sur Bitcoin. Comparés aux inscriptions, ils sont beaucoup plus compliqués, mais offrent beaucoup plus de fonctionnalités.
+
+La théorie ordinale a été conçue dès le départ pour les artefacts numériques, tandis que RGB et Taro se concentrent sur les jetons fongibles, de sorte que l’expérience utilisateur des inscriptions est susceptible d’être plus simple et plus raffinée que celle des NFTs de RGB et Taro.
+
+RGB et Taro stockent le contenu en dehors de la blockchain, ce qui nécessite une infrastructure supplémentaire qui pourrait être perdue. En revanche, le contenu des inscriptions est stocké sur la blockchain et ne peut pas être perdu.
+
+La théorie ordinale, RGB et Taro n’en sont qu’à leurs débuts, il ne s’agit donc que de spéculations, mais l’approche de la théorie ordinale pourrait lui donner un avantage en termes de fonctionnalité pour les artefacts numériques, notamment un meilleur modèle de contenu et des fonctionnalités telles que des symboles globalement uniques.
+
+### Aux actifs de Counterparty ?
+
+Counterparty possède son propre token, XCP, qui est nécessaire pour certaines fonctionnalités, ce qui fait que la plupart des bitcoiners le considèrent comme un altcoin, plutôt que comme une extension ou une seconde couche de Bitcoin.
+
+La théorie ordinale a été conçue dès le départ pour les artefacts numériques, alors que Counterparty a été principalement conçue pour l’émission de tokens financiers.
+
+## Les inscriptions pour…
+
+### Les artistes
+
+_Les inscriptions sont sur Bitcoin._ Le bitcoin est la monnaie numérique la plus prestigieuse et la plus susceptible de survivre à long terme. Si vous souhaitez garantir que votre art perdure dans le futur, il n’y a pas de meilleur moyen de le publier que sous forme d’inscriptions.
+
+_Le stockage sur la blockchain est moins coûteux._ Avec 20 000 dollars par BTC et des frais de transaction minimum de 1 satoshi par vbyte, publier du contenu d’inscriptions coûte 50 dollars pour 1 million d’octets.
+
+_Les inscriptions n’en sont qu’à leurs débuts !_ Les inscriptions sont encore en cours de développement et n’ont pas encore été lancées sur le réseau principal. Cela vous donne l’occasion d’être un adopteur précoce et d’explorer ce medium à mesure qu’il évolue.
+
+_Les inscriptions sont simples._ Il n’est pas nécessaire d’écrire ou de comprendre les smart contracts.
+
+_Les inscriptions ouvrent la porte à de nouvelles sources de liquidités._ Les inscriptions sont plus accessibles et plus attrayantes pour les détenteurs de bitcoins, ce qui ouvre la porte à une toute nouvelle catégorie de collectionneurs.
+
+_Les inscriptions sont conçues pour les artefacts numériques._ Les inscriptions sont conçues dès le départ pour prendre en charge les NFTs, et présentent un meilleur modèle de données, avec des caractéristiques telles que des symboles globalement uniques et une provenance améliorée.
+
+_Les inscriptions ne prennent pas en charge les redevances sur la blockchain._ Cela peut être considéré comme un point négatif, mais cela dépend du point de vue de chacun. Bien que les redevances sur la blockchain aient grandement bénéficié aux créateurs, elles ont également généré une grande confusion dans l’écosystème des NFTs sur Ethereum. À l’heure actuelle, l’écosystème est aux prises avec ce problème et s’est engagé dans une course vers le bas, vers un avenir où les redevances seront facultatives. Les inscriptions ne prennent pas en charge les redevances sur la blockchain, car elles sont techniquement irréalisables. Si vous décidez de créer des inscriptions, vous pouvez contourner cette limitation de plusieurs manières : en retenant une partie de vos inscriptions pour les vendre ultérieurement, afin de bénéficier d’une appréciation future, ou en offrant peut-être des avantages aux utilisateurs qui respectent les redevances facultatives.
+
+### Les collectionneurs
+
+_Les inscriptions sont simples, claires et ne réservent aucune surprise._ Elles sont toujours immuables et sur la blockchain Bitcoin, sans qu’aucune diligence particulière ne soit requise.
+
+_Les inscriptions sont sur Bitcoin._ Vous pouvez facilement vérifier l’emplacement et les propriétés des inscriptions à l’aide d’un nœud complet (full node) Bitcoin que vous contrôlez.
+
+### Les bitcoiners
+
+Permettez-moi de commencer cette section en disant que la fonction principale du réseau Bitcoin est la décentralisation de l’argent. Toutes les autres utilisations sont secondaires, y compris la théorie ordinale. Les développeurs de la théorie ordinale le comprennent très bien et considèrent que leur travail contribue, ne serait-ce qu’un peu, à la mission première de Bitcoin.
+
+Contrairement à beaucoup d’autres choses dans l’espace altcoin, les artefacts numériques ont du mérite. Il est vrai que beaucoup de NFTs sont laids, stupides et frauduleux. Cependant, il y en a aussi beaucoup qui se distinguent par leur incroyable créativité. La création et la collection d’œuvres d’art font partie de l’histoire de l’humanité depuis ses débuts, précédant même le commerce et l’argent, qui sont également des technologies anciennes.
+
+Bitcoin fournit une plateforme extraordinaire pour créer et collectionner des artefacts numériques de manière sécurisée et décentralisée, protégeant à la fois les utilisateurs et les artistes, et fournissant une plateforme extraordinaire pour transmettre et recevoir de la valeur.
+
+Les ordinals et les inscriptions augmentent la demande d’espace de bloc Bitcoin, ce qui accroît le budget de sécurité de Bitcoin – ce qui est vital pour préserver la transition de Bitcoin vers un modèle de sécurité dépendant des frais, car la subvention de bloc est réduite de moitié au point de devenir insignifiante.
+
+Le contenu des inscriptions est stocké sur la blockchain et, de ce fait, la demande d’espace de bloc pour les inscriptions est donc illimitée. Cela crée un acheteur de dernier recours pour _tout_ l’espace de bloc Bitcoin, contribuant à soutenir un marché de frais robuste, ce qui aide à préserver la sécurité de Bitcoin.
+
+Les inscriptions vont également à l’encontre de l’idée selon laquelle il n’est pas possible de développer ou d’utiliser Bitcoin pour de nouveaux cas d’utilisation. Si vous suivez des projets comme DLC, Fedimint, Lightning, Taro et RGB, vous savez que ce discours est faux, mais les inscriptions fournissent un contre-argument qui est facile à comprendre et qui cible un cas d’utilisation populaire et éprouvé, les NFTs, ce qui le rend très intelligible.
+
+Si les inscriptions s’avèrent, comme l’espèrent les auteurs, être des artefacts numériques très recherchés et dotés d’une riche histoire, elles serviront d’accroche puissante pour l’adoption de Bitcoin : venez pour l’art amusant et riche, restez pour la monnaie numérique décentralisée.
+
+Les inscriptions sont une source extrêmement bénigne de demande d’espace de bloc. Contrairement, par exemple, aux stablecoins, qui peuvent donner aux émetteurs de stablecoins une grande influence sur le développement futur de Bitcoin, ou au DeFi, qui pourrait centraliser le minage en introduisant des opportunités de MEV, il est peu probable que l’art numérique et les objets de collection sur Bitcoin produisent des entités individuelles ayant suffisamment de pouvoir pour corrompre Bitcoin. L’art est décentralisé.
+
+Les utilisateurs et les fournisseurs de services d’inscriptions sont incités à exploiter des nœuds complets Bitcoin, à publier et à suivre les inscriptions, contribuant ainsi à renforcer la blockchain légitime grâce à leur poids économique.
+
+La théorie ordinale et les inscriptions n’affectent pas la fongibilité de Bitcoin de manière significative. Les utilisateurs de Bitcoin peuvent ignorer les deux et ne pas être affectés.
+
+Nous espérons que la théorie ordinale renforcera et enrichira Bitcoin, et lui donnera une autre dimension d’attrait et de fonctionnalité, lui permettant de mieux servir son cas d’utilisation principal en tant que réserve de valeur décentralisée de l’humanité.</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="inscriptions/recursion.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="contributing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="inscriptions/recursion.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="contributing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

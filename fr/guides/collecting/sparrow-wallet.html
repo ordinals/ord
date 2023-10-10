@@ -1,0 +1,380 @@
+<!DOCTYPE HTML>
+<html lang="fr" class="sidebar-visible no-js coal">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Portefeuille Sparrow - Ordinal Theory Handbook</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../../highlight.css">
+        <link rel="stylesheet" href="../../tomorrow-night.css">
+        <link rel="stylesheet" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../language-picker.css">
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "coal";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('coal')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../../introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="../../overview.html"><strong aria-hidden="true">1.</strong> Aperçu</a></li><li class="chapter-item expanded "><a href="../../digital-artifacts.html"><strong aria-hidden="true">2.</strong> Artéfacts numériques</a></li><li class="chapter-item expanded "><a href="../../inscriptions.html"><strong aria-hidden="true">3.</strong> Inscriptions</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../inscriptions/metadata.html"><strong aria-hidden="true">3.1.</strong> Métadonnées</a></li><li class="chapter-item expanded "><a href="../../inscriptions/provenance.html"><strong aria-hidden="true">3.2.</strong> Provenance</a></li><li class="chapter-item expanded "><a href="../../inscriptions/recursion.html"><strong aria-hidden="true">3.3.</strong> Récursion</a></li></ol></li><li class="chapter-item expanded "><a href="../../faq.html"><strong aria-hidden="true">4.</strong> FAQ</a></li><li class="chapter-item expanded "><a href="../../contributing.html"><strong aria-hidden="true">5.</strong> Contribuer</a></li><li class="chapter-item expanded "><a href="../../donate.html"><strong aria-hidden="true">6.</strong> Faire un don</a></li><li class="chapter-item expanded "><a href="../../guides.html"><strong aria-hidden="true">7.</strong> Guides</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../guides/explorer.html"><strong aria-hidden="true">7.1.</strong> Explorateur</a></li><li class="chapter-item expanded "><a href="../../guides/inscriptions.html"><strong aria-hidden="true">7.2.</strong> Inscriptions</a></li><li class="chapter-item expanded "><a href="../../guides/sat-hunting.html"><strong aria-hidden="true">7.3.</strong> Chasse aux sats</a></li><li class="chapter-item expanded "><a href="../../guides/collecting.html"><strong aria-hidden="true">7.4.</strong> Collectionner</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../guides/collecting/sparrow-wallet.html" class="active"><strong aria-hidden="true">7.4.1.</strong> Portefeuille Sparrow</a></li></ol></li><li class="chapter-item expanded "><a href="../../guides/testing.html"><strong aria-hidden="true">7.5.</strong> Tests</a></li><li class="chapter-item expanded "><a href="../../guides/moderation.html"><strong aria-hidden="true">7.6.</strong> Modération</a></li><li class="chapter-item expanded "><a href="../../guides/reindexing.html"><strong aria-hidden="true">7.7.</strong> Réindexation</a></li></ol></li><li class="chapter-item expanded "><a href="../../bounties.html"><strong aria-hidden="true">8.</strong> Récompenses</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../bounty/0.html"><strong aria-hidden="true">8.1.</strong> Récompense 0 : 100 000 sats Réclamés !</a></li><li class="chapter-item expanded "><a href="../../bounty/1.html"><strong aria-hidden="true">8.2.</strong> Récompense 1 : 200 000 sats Réclamés !</a></li><li class="chapter-item expanded "><a href="../../bounty/2.html"><strong aria-hidden="true">8.3.</strong> Récompense 2 : 300 000 sats Réclamés !</a></li><li class="chapter-item expanded "><a href="../../bounty/3.html"><strong aria-hidden="true">8.4.</strong> Récompense 3 : 400 000 sats</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Ordinal Theory Handbook</h1>
+
+                    <div class="right-buttons">
+                        <button id="language-toggle" class="icon-button" type="button"
+                                title="Change language" aria-label="Change language"
+                                aria-haspopup="true" aria-expanded="false"
+                                aria-controls="language-list">
+                            <i class="fa fa-globe"></i>
+                        </button>
+                        <ul id="language-list" class="theme-popup" aria-label="Languages" role="menu">
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="en">English</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fr">Français</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="es">Español</a>
+                          </button></li>
+                           <li role="none"><button role="menuitem" class="theme">
+                              <a id="ru">Русский</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="zh">中文版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ja">日本語版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fil">Filipino</a>
+                          </button></li>
+                        </ul>
+
+                        <script>
+                          let langToggle = document.getElementById("language-toggle");
+                          let langList = document.getElementById("language-list");
+                          langToggle.addEventListener("click", (event) => {
+                              langList.style.display = langList.style.display == "block" ? "none" : "block";
+                          });
+                          let selectedLang = document.getElementById("fr");
+                          if (selectedLang) {
+                              selectedLang.parentNode.classList.add("theme-selected");
+                          }
+
+                          // The path to the root, taking the current
+                          // language into account.
+                          let full_path_to_root = "../../../";
+                          // The page path (mdbook only gives us
+                          // access to the path to the Markdown file).
+                          let path = "guides/collecting/sparrow-wallet.md".replace(/\.md$/, ".html");
+                          for (let lang of langList.querySelectorAll("a")) {
+                              if (lang.id == "en") {
+                                  lang.href = `${full_path_to_root}${path}`;
+                              } else {
+                                  lang.href = `${full_path_to_root}${lang.id}/${path}`;
+                              }
+                          }
+                        </script>
+
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ordinals/ord" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="collectionner-des-inscriptions-et-des-ordinals-avec-le-portefeuille-sparrow"><a class="header" href="#collectionner-des-inscriptions-et-des-ordinals-avec-le-portefeuille-sparrow">Collectionner des inscriptions et des ordinals avec le portefeuille Sparrow</a></h1>
+<p>Les utilisateurs qui ne peuvent pas ou n’ont pas encore mis en place le portefeuille <a href="https://github.com/ordinals/ord">ord</a>peuvent recevoir des inscriptions et des ordinals en utilisant d’autres portefeuilles Bitcoin, à condition qu’ils soient <em>très</em> prudents à la manière dont ils dépensent l’argent de ce portefeuille.</p>
+<p>Ce guide fournit des instructions de base pour créer un portefeuille avec <a href="https://sparrowwallet.com/">Sparrow Wallet</a> qui soit compatible avec <code>ord</code> et qui puisse être importé dans ord par la suite</p>
+<h2 id="-avertissement-"><a class="header" href="#-avertissement-">⚠️⚠️ Avertissement!! ⚠️⚠️</a></h2>
+<p>En règle générale, si vous adoptez cette approche, vous devriez utiliser ce portefeuille avec le logiciel Sparrow uniquement en tant que portefeuille de réception.</p>
+<p>Ne dépensez pas de satoshis à partir de ce portefeuille à moins d’être sûr de savoir ce que vous faites. Vous pourriez très facilement perdre l’accès à vos ordinals et à vos inscriptions par inadvertance si vous ne tenez pas compte de cet avertissement.</p>
+<h2 id="configuration-du-portefeuille-et-réception"><a class="header" href="#configuration-du-portefeuille-et-réception">Configuration du portefeuille et réception</a></h2>
+<p>Téléchargez Sparrow Wallet à partir de la <a href="https://sparrowwallet.com/download/">page de téléchargement</a> correspondant à votre système d’exploitation.</p>
+<p>Sélectionnez <code>File -&gt; New Wallet</code> et créez un nouveau portefeuille appelé <code>ord</code>.</p>
+<p><img src="images/wallet_setup_01.png" alt="" /></p>
+<p>Modifiez le <code>Script Type</code> (type de script) en choisissant <code>Taproot (P2TR)</code> et sélectionnez l’option <code>New or Imported Software Wallet</code> (Portefeuille de logiciel nouveau ou importé).</p>
+<p><img src="images/wallet_setup_02.png" alt="" /></p>
+<p>Sélectionnez <code>Use 12 Words</code> (utiliser 12 mots), puis cliquez sur <code>Generate New</code> (Créer nouveau). Laissez la passphrase (phrase secrète) vide.</p>
+<p><img src="images/wallet_setup_03.png" alt="" /></p>
+<p>Une nouvelle phrase de récupération BIP39 contenant 12 mots sera générée pour vous. Notez-la dans un endroit sûr, car elle vous servira de référence pour accéder à votre portefeuille. Ne communiquez ou ne montrez JAMAIS cette phrase de récupération à qui que ce soit.</p>
+<p>Une fois que vous avez noté la phrase de récupération, cliquez sur <code>Confirm Backup</code> (confirmer la sauvegarde).</p>
+<p><img src="images/wallet_setup_04.png" alt="" /></p>
+<p>Saisissez à nouveau la phrase de récupération que vous avez notée, puis cliquez sur <code>Create Keystore</code> (Créer le Keystore).</p>
+<p><img src="images/wallet_setup_05.png" alt="" /></p>
+<p>Cliquez sur <code>Import Keystore</code>.(Importer le Keystore).</p>
+<p><img src="images/wallet_setup_06.png" alt="" /></p>
+<p>Cliquez sur <code>Apply</code> (Appliquer). Ajoutez un mot de passe pour le portefeuille si vous le souhaitez.</p>
+<p><img src="images/wallet_setup_07.png" alt="" /></p>
+<p>Vous disposez maintenant d’un portefeuille compatible avec <code>ord</code>, qui peut être importé dans <code>ord</code> à l’aide de la phrase de récupération BIP39. Pour recevoir des ordinals ou des inscriptions, cliquez sur l’onglet <code>Receive</code> (recevoir) et copiez une nouvelle adresse.</p>
+<p>Chaque fois que vous voulez recevoir, vous devriez utiliser une toute nouvelle adresse et ne pas réutiliser les adresses existantes.</p>
+<p>Veuillez noter que le portefeuille Bitcoin est différent de certains autres portefeuilles de blockchain dans la mesure où il peut générer un nombre illimité de nouvelles adresses. Vous pouvez générer une nouvelle adresse en cliquant sur le bouton <code>Get Next Address</code> (Obtenir l’adresse suivante). Vous pouvez voir toutes vos adresses dans l’onglet <code>Addresses</code> (Adresses) de l’application.</p>
+<p>Vous pouvez ajouter une étiquette à chaque adresse, afin de garder une trace de sa fonction ou de son utilisation.</p>
+<p><img src="images/wallet_setup_08.png" alt="" /></p>
+<h2 id="validation--visualisation-des-inscriptions-reçues"><a class="header" href="#validation--visualisation-des-inscriptions-reçues">Validation / visualisation des inscriptions reçues</a></h2>
+<p>Une fois que vous avez reçu une inscription, vous verrez une nouvelle transaction dans l’onglet <code>Transactions</code> de Sparrow, ainsi qu’un nouvel UTXO dans l’onglet <code>UTXOs</code>.</p>
+<p>Au départ, cette transaction peut avoir un statut « non confirmé », et vous devrez attendre qu’elle soit minée dans un bloc de bitcoins avant de la recevoir dans son intégralité.</p>
+<p><img src="images/validating_viewing_01.png" alt="" /></p>
+<p>Pour suivre le statut de votre transaction, vous pouvez faire un clic droit dessus, sélectionner <code>Copy Transaction ID</code> (Copier l’identifiant de la transaction) et ensuite coller cet identifiant de transaction dans <a href="https://mempool.space">mempool.space</a>.</p>
+<p><img src="images/validating_viewing_02.png" alt="" /></p>
+<p>Une fois la transaction confirmée, vous pouvez valider et visualiser votre inscription en allant dans l’onglet <code>UTXOs</code>, en trouvant l’UTXO que vous souhaitez vérifier, en faisant un clic droit sur <code>Output</code> (sortie) et en sélectionnant <code>Copy Transaction Output</code> (Copier sortie de transaction). Cet identifiant de sortie de transaction peut ensuite être collé dans le champ de recherche sur ordinals.com](https://ordinals.com).</p>
+<h2 id="gel-des-utxos"><a class="header" href="#gel-des-utxos">Gel des UTXOs</a></h2>
+<p>Comme expliqué ci-dessus, chacune de vos inscriptions est stockée dans une sortie de transaction non dépensée (UTXO). Vous devez faire très attention à ne pas dépenser accidentellement vos inscriptions. Une façon d’éviter cela est de geler l’UTXO correspondant.</p>
+<p>Pour ce faire, allez dans l’onglet <code>UTXOs</code>, trouvez l’UTXO que vous voulez geler, faites un clic droit sur <code>Output</code> et sélectionnez <code>Freeze UTXO</code> (congeler UTXO).</p>
+<p>Cet UTXO (Inscription) dans le portefeuille Sparrow ne pourra pas être dépensé jusqu’à ce que vous le dégeliez.</p>
+<h2 id="importation-dans-le-portefeuille-ord"><a class="header" href="#importation-dans-le-portefeuille-ord">Importation dans le portefeuille <code>ord</code></a></h2>
+<p>Pour plus de détails sur la configuration de Bitcoin Core et du portefeuille <code>ord</code>, consultez le [guide des inscriptions](../inscriptions.md.</p>
+<p>Lors de la configuration d’<code>ord</code>, au lieu d’exécuter <code>ord wallet create</code> pour créer un nouveau portefeuille, vous pouvez importer votre portefeuille existant en utilisant <code>ord wallet restore &quot;BIP39 SEED PHRASE&quot;</code> avec la phrase de récupération que vous avez générée dans le portefeuille Sparrow.</p>
+<p>Il existe actuellement un <a href="https://github.com/ordinals/ord/issues/1589">bug</a> qui empêche un portefeuille importé d’être re-scanné automatiquement pour trouver son contenu sur la blockchain. Pour contourner ce problème, vous devrez manuellement déclencher un rescan à l’aide de bitcoin core cli: <code>bitcoin-cli -rpcwallet=ord rescanblockchain 767430</code></p>
+<p>Vous pouvez ensuite vérifier les inscriptions de votre portefeuille en utilisant <code>ord wallet inscriptions</code></p>
+<p>Notez que si vous avez précédemment créé un portefeuille avec <code>ord</code>, vous aurez alors déjà un portefeuille avec le nom par défaut, et vous devrez donner un nom différent à votre portefeuille importé. Vous pouvez utiliser le paramètre <code>--wallet</code> dans toutes les commandes <code>ord</code> pour référencer un portefeuille différent, par exemple :</p>
+<p><code>ord --wallet ord_from_sparrow wallet restore &quot;BIP39 SEED PHRASE&quot;</code></p>
+<p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
+<p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
+<h2 id="envoyer-des-inscriptions-avec-le-portefeuille-sparrow"><a class="header" href="#envoyer-des-inscriptions-avec-le-portefeuille-sparrow">Envoyer des inscriptions avec le portefeuille Sparrow</a></h2>
+<h4 id="-avertissement--1"><a class="header" href="#-avertissement--1">⚠️⚠️ Avertissement ⚠️⚠️</a></h4>
+<p>Bien qu’il soit fortement recommandé de mettre en place un nœud Bitcoin Core et d’exécuter le logiciel <code>ord</code>, il existe quelques moyens limités d’envoyer des inscriptions à partir du portefeuille Sparrow en toute sécurité. Veuillez noter que cela n’est pas recommandé et que vous ne devez le faire que si vous comprenez parfaitement ce que vous faites.</p>
+<p>Le fait d’utiliser le logiciel <code>ord</code> supprimera une grande partie de la complexité que nous décrivons ici, car il est capable de gérer automatiquement et en toute sécurité l’envoi d’inscriptions de manière simple.</p>
+<h4 id="-avertissement-supplémentaire-"><a class="header" href="#-avertissement-supplémentaire-">⚠️⚠️ Avertissement supplémentaire ⚠️⚠️</a></h4>
+<p>N’utilisez pas votre portefeuille d’inscriptions Sparrow pour effectuer des transactions de bitcoins qui n’impliquent pas des inscriptions. Vous pouvez créer un portefeuille séparé dans Sparrow pour gérer vos transactions régulières de bitcoins, et maintenir votre portefeuille d’inscriptions séparé.</p>
+<h4 id="le-modèle-utxo-de-bitcoin"><a class="header" href="#le-modèle-utxo-de-bitcoin">Le modèle UTXO de Bitcoin</a></h4>
+<p>Avant d’envoyer une transaction, il est important que vous ayez une bonne compréhension du système UTXO (Unspent Transaction Output) de Bitcoin. Le fonctionnement du Bitcoin est fondamentalement différent de celui de nombreuses autres blockchains telles que Ethereum. Sur Ethereum, vous avez généralement une seule adresse dans laquelle vous stockez l’ETH, et vous ne pouvez pas faire de distinction entre chacun des ETH – il s’agit simplement d’une valeur unique du montant total dans cette adresse. Bitcoin fonctionne très différemment dans la mesure où nous générons une nouvelle adresse dans le portefeuille pour chaque réception, et chaque fois que vous recevez des sats à une adresse de votre portefeuille, vous créez un nouvel UTXO. Chaque UTXO peut être consulté et géré individuellement. Vous pouvez sélectionner des UTXOs spécifiques que vous souhaitez dépenser, et vous pouvez choisir de ne pas dépenser certains UTXOs.</p>
+<p>Certains portefeuilles Bitcoin n’exposent pas ce niveau de détail et se contentent d’afficher une valeur unique correspondant à l’ensemble des bitcoins dans votre portefeuille. Cependant, lorsque vous envoyez des inscriptions, il est important que vous utilisiez un portefeuille comme Sparrow qui permet le contrôle d’UTXOs.</p>
+<h4 id="inspecter-son-inscription-avant-de-lenvoyer"><a class="header" href="#inspecter-son-inscription-avant-de-lenvoyer">Inspecter son inscription avant de l’envoyer</a></h4>
+<p>Comme décrit ci-dessus, les inscriptions sont inscrites sur des sats, et les sats sont stockés dans des UTXOs. Les UTXOs sont une collection de satoshis avec une valeur particulière du nombre de satoshis (la valeur de sortie). En général (mais pas toujours), l’inscription est inscrite sur le premier satoshi de l’UTXO.</p>
+<p>Lorsque vous inspectez votre inscription avant de l’envoyer, la principale chose à vérifier est sur quel satoshi de l’UTXO votre inscription est inscrite.</p>
+<p>Pour ce faire, vous pouvez suivre la procédure de <a href="./sparrow-wallet.html#validating--viewing-received-inscriptions">validation / visualisation des inscriptions reçues</a> décrite ci-dessus pour trouver la page d’inscription de votre inscription sur ordinals.com</p>
+<p>Vous y trouverez des métadonnées sur votre inscription qui ressemblent à ce qui suit :</p>
+<p><img src="images/sending_01.png" alt="" /></p>
+<p>Il y a plusieurs points importants à vérifier à ce stade :</p>
+<ul>
+<li>L’identifiant <code>output</code> correspond à l’identifiant de l’UTXO que vous allez envoyer.</li>
+<li>Le <code>offset</code> (déplacement) de l’inscription correspond à <code>0</code> (cela signifie que l’inscription est située sur le premier sat de l’UTXO)</li>
+<li>la valeur <code>output_value</code> contient suffisamment de sats pour couvrir les frais de transaction (postage) liés à l’envoi de la transaction. Le montant exact dont vous aurez besoin dépend du taux de frais que vous choisirez pour la transaction</li>
+</ul>
+<p>Si tous les points ci-dessus s’appliquent à votre inscription, vous pouvez l’envoyer en toute sécurité en utilisant la méthode ci-dessous.</p>
+<p>⚠️⚠️ Soyez très prudent lorsque vous envoyez votre inscription, en particulier si la valeur <code>offset</code> est différente de 0. Il n’est pas recommandé d’utiliser cette méthode si c’est le cas, car vous pourriez accidentellement envoyer votre inscription à un mineur de bitcoins, à moins que vous ne sachiez ce que vous faites.</p>
+<h4 id="envoyer-votre-inscription"><a class="header" href="#envoyer-votre-inscription">Envoyer votre inscription</a></h4>
+<p>Pour envoyer une inscription, allez dans l’onglet <code>UTXOs</code> et recherchez l’UTXO que vous avez validé précédemment comme contenant votre inscription.</p>
+<p>Si vous avez précédemment gelé cet UTXO, vous devrez faire un clic droit dessus et le dégeler.</p>
+<p>Sélectionnez l’UTXO que vous souhaitez envoyer et assurez-vous que c’est le <em>seul</em> UTXO sélectionné. Vous devriez voir <code>UTXOs 1/1</code> dans l’interface. Une fois que vous êtes absolument sûr d’avoir sélectionné le bon UTXO, vous pouvez cliquer sur <code>Send Selected</code> (envoyer la sélection).</p>
+<p><img src="images/sending_02.png" alt="" /></p>
+<p>Vous verrez alors apparaître l’interface de construction de transactions. Il y a quelques points que vous devez vérifier ici pour vous assurer que cet envoi est sûr :</p>
+<ul>
+<li>La transaction ne doit avoir que 1 input (entrée), et celle-ci doit être l’UTXO avec l’étiquette que vous voulez envoyer.</li>
+<li>La transaction ne doit avoir que 1 output (sortie), qui est l’adresse/l’étiquette où vous voulez envoyer l’inscription</li>
+</ul>
+<p>Si votre transaction semble différente, par exemple si elle a plusieurs entrées ou plusieurs sorties, il se peut que le transfert de votre inscription ne soit pas sûr et que vous deviez renoncer à l’envoyer jusqu’à ce que vous en sachiez plus ou jusqu’à ce que vous puissiez l’importer dans le portefeuille <code>ord</code>.</p>
+<p>Vous devez fixer des frais de transaction appropriés. Sparrow en recommande généralement des raisonnables, mais vous pouvez également consulter <a href="https://mempool.space">mempool.space</a> pour voir quel taux de frais est recommandé pour l’envoi d’une transaction.</p>
+<p>Vous devriez ajouter une étiquette pour l’adresse du destinataire ; une étiquette telle que <code>alice address for inscription #123</code> (adresse Alice pour inscription #123) serait idéal.</p>
+<p>Une fois que vous avez vérifié que la transaction est sûre en utilisant les critères mentionnés ci-dessus, et que vous êtes confiant pour l’envoyer, vous pouvez cliquer sur <code>Create Transaction</code> (créer transaction).</p>
+<p><img src="images/sending_03.png" alt="" /></p>
+<p>Ici, vous pouvez à nouveau vérifier que votre transaction semble sûre et, une fois que vous êtes sûr de vous, vous pouvez cliquer sur <code>Finalize Transaction for Signing</code> (Finaliser la transaction pour la signer).</p>
+<p><img src="images/sending_04.png" alt="" /></p>
+<p>Ici, vous pouvez tout vérifier une troisième fois avant de cliquer sur <code>Sign</code> (Signer).</p>
+<p><img src="images/sending_05.png" alt="" /></p>
+<p>Ensuite, vous avez en réalité une toute dernière chance de tout vérifier avant de cliquer sur <code>Broadcast Transaction</code> (Diffuser la transaction). Une fois la transaction diffusée, elle est envoyée au réseau Bitcoin et commence à se propager dans le mempool.</p>
+<p><img src="images/sending_06.png" alt="" /></p>
+<p>Si vous souhaitez suivre l’état de votre transaction, vous pouvez copier <code>Transaction Id (Txid)</code> (l’identifiant de transaction) et le coller dans <a href="https://mempool.space">mempool.space</a></p>
+<p>Une fois la transaction confirmée, vous pouvez consulter la page d’inscriptions sur <a href="https://ordinals.com">ordinals.com</a> pour vérifier qu’elle a bien été transférée vers le nouvel emplacement de sortie et la nouvelle adresse.</p>
+<h2 id="résolution-des-problèmes"><a class="header" href="#résolution-des-problèmes">Résolution des problèmes</a></h2>
+<h4 id="le-portefeuille-sparrow-naffiche-pas-une-transactionutxo-mais-je-peux-la-voir-sur-mempoolspace-"><a class="header" href="#le-portefeuille-sparrow-naffiche-pas-une-transactionutxo-mais-je-peux-la-voir-sur-mempoolspace-">Le portefeuille Sparrow n’affiche pas une transaction/UTXO, mais je peux la voir sur mempool.space !</a></h4>
+<p>Assurez-vous que votre portefeuille est connecté à un nœud Bitcoin. Pour valider cela, allez dans les paramètres <code>Preferences</code>-&gt; <code>Server</code>, et cliquez sur <code>Edit Existing Connection</code> (Modifier connexion existante).</p>
+<p><img src="images/troubleshooting_01.png" alt="" /></p>
+<p>De là, vous pouvez sélectionner un nœud et cliquer sur <code>Test Connection</code> (Tester connexion) pour valider que Sparrow est capable de se connecter avec succès.</p>
+<p><img src="images/troubleshooting_02.png" alt="" /></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../guides/collecting.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="../../guides/testing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../guides/collecting.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="../../guides/testing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>
