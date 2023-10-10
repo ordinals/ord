@@ -24,19 +24,21 @@ impl Entry for BlockHash {
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub(crate) struct RuneEntry {
+  pub(crate) burned: u128,
   pub(crate) divisibility: u8,
   pub(crate) rarity: Rarity,
   pub(crate) rune: Rune,
   pub(crate) supply: u128,
 }
 
-pub(super) type RuneEntryValue = (u8, u8, u128, u128);
+pub(super) type RuneEntryValue = (u128, u8, u8, u128, u128);
 
 impl Entry for RuneEntry {
   type Value = RuneEntryValue;
 
-  fn load((divisibility, rarity, rune, supply): RuneEntryValue) -> Self {
+  fn load((burned, divisibility, rarity, rune, supply): RuneEntryValue) -> Self {
     Self {
+      burned,
       divisibility,
       rarity: Rarity::try_from(rarity).unwrap(),
       rune: Rune(rune),
@@ -46,6 +48,7 @@ impl Entry for RuneEntry {
 
   fn store(self) -> Self::Value {
     (
+      self.burned,
       self.divisibility,
       self.rarity.into(),
       self.rune.0,
@@ -367,15 +370,16 @@ mod tests {
   #[test]
   fn rune_entry() {
     let rune_entry = RuneEntry {
-      divisibility: 1,
-      rarity: Rarity::Rare,
-      rune: Rune(3),
-      supply: 4,
+      burned: 1,
+      divisibility: 2,
+      rarity: Rarity::Epic,
+      rune: Rune(4),
+      supply: 5,
     };
 
-    assert_eq!(rune_entry.store(), (1, 2, 3, 4));
+    assert_eq!(rune_entry.store(), (1, 2, 3, 4, 5));
 
-    assert_eq!(RuneEntry::load((1, 2, 3, 4)), rune_entry);
+    assert_eq!(RuneEntry::load((1, 2, 3, 4, 5)), rune_entry);
   }
 
   #[test]

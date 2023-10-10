@@ -144,6 +144,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
           rune: Rune(RUNE),
           divisibility: 0,
           supply: u128::max_value(),
@@ -231,6 +232,7 @@ mod tests {
         [(
           id,
           RuneEntry {
+            burned: 0,
             divisibility: 0,
             rune: Rune(u128::from(Sat::SUPPLY - 150 * COIN_VALUE)),
             supply: u128::max_value(),
@@ -285,6 +287,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
           rune: Rune(RUNE),
           divisibility: 1,
           supply: u128::max_value(),
@@ -345,6 +348,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
           rune: Rune(RUNE),
           divisibility: 0,
           supply: u128::max_value(),
@@ -405,6 +409,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
           rune: Rune(RUNE),
           divisibility: 0,
           supply: u128::max_value(),
@@ -458,6 +463,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
           rune: Rune(RUNE),
           divisibility: 0,
           supply: 100,
@@ -518,6 +524,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 100,
           rune: Rune(RUNE),
           divisibility: 0,
           supply: 200,
@@ -581,6 +588,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
           rune: Rune(RUNE),
           divisibility: 0,
           supply: 100,
@@ -634,6 +642,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
           rune: Rune(RUNE),
           divisibility: 0,
           supply: u128::max_value(),
@@ -670,6 +679,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
           rune: Rune(RUNE),
           divisibility: 0,
           supply: u128::max_value(),
@@ -723,6 +733,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
           rune: Rune(RUNE),
           divisibility: 0,
           supply: u128::max_value(),
@@ -755,6 +766,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
           rune: Rune(RUNE),
           divisibility: 0,
           supply: u128::max_value(),
@@ -809,6 +821,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
           rune: Rune(RUNE),
           divisibility: 0,
           supply: u128::max_value(),
@@ -835,6 +848,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
           rune: Rune(RUNE),
           divisibility: 0,
           supply: u128::max_value(),
@@ -888,6 +902,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
           rune: Rune(RUNE),
           divisibility: 0,
           supply: u128::max_value(),
@@ -927,6 +942,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
           rune: Rune(RUNE),
           divisibility: 0,
           supply: u128::max_value(),
@@ -980,6 +996,7 @@ mod tests {
       [(
         id0,
         RuneEntry {
+          burned: 0,
           rune: Rune(RUNE),
           divisibility: 0,
           supply: u128::max_value(),
@@ -1031,6 +1048,7 @@ mod tests {
         (
           id0,
           RuneEntry {
+            burned: 0,
             rune: Rune(RUNE),
             divisibility: 0,
             supply: u128::max_value(),
@@ -1040,6 +1058,7 @@ mod tests {
         (
           id1,
           RuneEntry {
+            burned: 0,
             rune: Rune(RUNE + 1),
             divisibility: 0,
             supply: u128::max_value(),
@@ -1082,6 +1101,7 @@ mod tests {
         (
           id0,
           RuneEntry {
+            burned: 0,
             rune: Rune(RUNE),
             divisibility: 0,
             supply: u128::max_value(),
@@ -1091,6 +1111,7 @@ mod tests {
         (
           id1,
           RuneEntry {
+            burned: 0,
             rune: Rune(RUNE + 1),
             divisibility: 0,
             supply: u128::max_value(),
@@ -1151,6 +1172,7 @@ mod tests {
       [(
         id0,
         RuneEntry {
+          burned: 0,
           rune: Rune(RUNE),
           divisibility: 0,
           supply: u128::max_value(),
@@ -1202,6 +1224,7 @@ mod tests {
         (
           id0,
           RuneEntry {
+            burned: 0,
             rune: Rune(RUNE),
             divisibility: 0,
             supply: u128::max_value(),
@@ -1211,6 +1234,7 @@ mod tests {
         (
           id1,
           RuneEntry {
+            burned: 0,
             rune: Rune(RUNE + 1),
             divisibility: 0,
             supply: u128::max_value(),
@@ -1253,6 +1277,7 @@ mod tests {
         (
           id0,
           RuneEntry {
+            burned: 0,
             rune: Rune(RUNE),
             divisibility: 0,
             supply: u128::max_value(),
@@ -1262,6 +1287,7 @@ mod tests {
         (
           id1,
           RuneEntry {
+            burned: 0,
             rune: Rune(RUNE + 1),
             divisibility: 0,
             supply: u128::max_value(),
@@ -1314,6 +1340,7 @@ mod tests {
         (
           id0,
           RuneEntry {
+            burned: 0,
             rune: Rune(RUNE),
             divisibility: 0,
             supply: u128::max_value(),
@@ -1323,6 +1350,7 @@ mod tests {
         (
           id1,
           RuneEntry {
+            burned: 0,
             rune: Rune(RUNE + 1),
             divisibility: 0,
             supply: u128::max_value(),
@@ -1395,6 +1423,7 @@ mod tests {
       [(
         id0,
         RuneEntry {
+          burned: 0,
           rune: Rune(RUNE),
           divisibility: 0,
           supply: u128::max_value(),
@@ -1446,6 +1475,7 @@ mod tests {
         (
           id0,
           RuneEntry {
+            burned: 0,
             rune: Rune(RUNE),
             divisibility: 0,
             supply: u128::max_value(),
@@ -1455,6 +1485,7 @@ mod tests {
         (
           id1,
           RuneEntry {
+            burned: 0,
             rune: Rune(RUNE + 1),
             divisibility: 0,
             supply: u128::max_value(),
@@ -1515,6 +1546,7 @@ mod tests {
         (
           id0,
           RuneEntry {
+            burned: 0,
             rune: Rune(RUNE),
             divisibility: 0,
             supply: u128::max_value(),
@@ -1524,6 +1556,7 @@ mod tests {
         (
           id1,
           RuneEntry {
+            burned: 0,
             rune: Rune(RUNE + 1),
             divisibility: 0,
             supply: u128::max_value(),
@@ -1585,6 +1618,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
           rune: Rune(RUNE),
           divisibility: 0,
           supply: u128::max_value(),
@@ -1616,6 +1650,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
           rune: Rune(RUNE),
           divisibility: 0,
           supply: u128::max_value(),
@@ -1694,6 +1729,7 @@ mod tests {
         (
           id0,
           RuneEntry {
+            burned: 0,
             rune: Rune(RUNE),
             divisibility: 0,
             supply: u128::max_value(),
@@ -1703,6 +1739,7 @@ mod tests {
         (
           id1,
           RuneEntry {
+            burned: 0,
             rune: Rune(RUNE + 1),
             divisibility: 0,
             supply: u128::max_value(),
@@ -1772,6 +1809,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
           rune: Rune(RUNE),
           divisibility: 0,
           supply: u128::max_value(),
@@ -1815,6 +1853,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
           rune: Rune(RUNE),
           divisibility: 0,
           supply: u128::max_value(),
@@ -1868,6 +1907,7 @@ mod tests {
       [(
         id0,
         RuneEntry {
+          burned: 0,
           rune: Rune(RUNE),
           divisibility: 0,
           supply: u128::max_value(),
@@ -1919,6 +1959,7 @@ mod tests {
         (
           id0,
           RuneEntry {
+            burned: 0,
             rune: Rune(RUNE),
             divisibility: 0,
             supply: u128::max_value(),
@@ -1928,6 +1969,7 @@ mod tests {
         (
           id1,
           RuneEntry {
+            burned: 0,
             rune: Rune(RUNE + 1),
             divisibility: 0,
             supply: u128::max_value(),
@@ -1988,6 +2030,7 @@ mod tests {
         (
           id0,
           RuneEntry {
+            burned: 0,
             rune: Rune(RUNE),
             divisibility: 0,
             supply: u128::max_value(),
@@ -1997,6 +2040,7 @@ mod tests {
         (
           id1,
           RuneEntry {
+            burned: 0,
             rune: Rune(RUNE + 1),
             divisibility: 0,
             supply: u128::max_value(),
@@ -2066,6 +2110,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
           rune: Rune(RUNE),
           divisibility: 0,
           supply: u128::max_value() / 2,
@@ -2105,6 +2150,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
           rune: Rune(RUNE),
           divisibility: 0,
           supply: u128::max_value() / 2,
@@ -2161,6 +2207,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: u128::max_value(),
           rune: Rune(RUNE),
           divisibility: 0,
           supply: u128::max_value(),
@@ -2215,6 +2262,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
           rune: Rune(RUNE),
           divisibility: 0,
           supply: u128::max_value(),
@@ -2276,6 +2324,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
           rune: Rune(RUNE),
           divisibility: 0,
           supply: u128::max_value(),
