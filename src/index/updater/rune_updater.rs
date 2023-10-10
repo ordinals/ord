@@ -144,6 +144,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
           self.id_to_entry.insert(
             id.store(),
             RuneEntry {
+              burned: 0,
               rarity: if self.count == 0 {
                 self.rarity
               } else {
@@ -172,11 +173,19 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       }
     }
 
+    let mut burned: HashMap<u128, u128> = HashMap::new();
+
     // update outpoint balances
     let mut buffer: Vec<u8> = Vec::new();
     for (vout, balances) in allocated.into_iter().enumerate() {
       if balances.is_empty() {
         continue;
+      }
+
+      if tx.output[vout].script_pubkey.is_op_return() {
+        for (id, balance) in &balances {
+          *burned.entry(*id).or_default() += balance;
+        }
       }
 
       buffer.clear();
@@ -199,6 +208,13 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         .store(),
         buffer.as_slice(),
       )?;
+    }
+
+    for (id, amount) in burned {
+      let id = RuneId::try_from(id).unwrap().store();
+      let mut entry = RuneEntry::load(self.id_to_entry.get(id)?.unwrap().value());
+      entry.burned += amount;
+      self.id_to_entry.insert(id, entry.store())?;
     }
 
     Ok(())

@@ -3146,6 +3146,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
           rune: Rune(u128::from(21_000_000 * COIN_VALUE)),
           divisibility: 0,
           supply: u128::max_value(),
@@ -3211,6 +3212,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
           rune,
           divisibility: 0,
           supply: u128::max_value(),
