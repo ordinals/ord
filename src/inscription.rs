@@ -135,12 +135,12 @@ impl Inscription {
     inscriptions: &Vec<Inscription>,
     mut builder: script::Builder,
   ) -> script::Builder {
-    builder = builder
-      .push_opcode(opcodes::OP_FALSE)
-      .push_opcode(opcodes::all::OP_IF)
-      .push_slice(envelope::PROTOCOL_ID);
-
     for inscription in inscriptions {
+      builder = builder
+        .push_opcode(opcodes::OP_FALSE)
+        .push_opcode(opcodes::all::OP_IF)
+        .push_slice(envelope::PROTOCOL_ID);
+
       if let Some(content_type) = inscription.content_type.clone() {
         builder = builder
           .push_slice(envelope::CONTENT_TYPE_TAG)
@@ -178,9 +178,11 @@ impl Inscription {
           builder = builder.push_slice(PushBytesBuf::try_from(chunk.to_vec()).unwrap());
         }
       }
+
+      builder = builder.push_opcode(opcodes::all::OP_ENDIF);
     }
 
-    builder.push_opcode(opcodes::all::OP_ENDIF)
+    builder
   }
 
   pub(crate) fn append_batch_reveal_script(
