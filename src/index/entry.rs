@@ -28,19 +28,30 @@ pub(crate) struct RuneEntry {
   pub(crate) rarity: Rarity,
   pub(crate) rune: Rune,
   pub(crate) supply: u128,
+  pub(crate) transaction: Txid,
 }
 
-pub(super) type RuneEntryValue = (u128, u8, u128, u128);
+pub(super) type RuneEntryValue = (u128, u8, u128, u128, (u128, u128));
 
 impl Entry for RuneEntry {
   type Value = RuneEntryValue;
 
-  fn load((divisibility, rarity, rune, supply): RuneEntryValue) -> Self {
+  fn load((divisibility, rarity, rune, supply, transaction): RuneEntryValue) -> Self {
     Self {
       divisibility,
       rarity: Rarity::try_from(rarity).unwrap(),
       rune: Rune(rune),
       supply,
+      transaction: {
+        let low = transaction.0.to_le_bytes();
+        let high = transaction.1.to_le_bytes();
+        Txid::from_byte_array([
+          low[0], low[1], low[2], low[3], low[4], low[5], low[6], low[7], low[8], low[9], low[10],
+          low[11], low[12], low[13], low[14], low[15], high[0], high[1], high[2], high[3], high[4],
+          high[5], high[6], high[7], high[8], high[9], high[10], high[11], high[12], high[13],
+          high[14], high[15],
+        ])
+      },
     }
   }
 
@@ -50,6 +61,19 @@ impl Entry for RuneEntry {
       self.rarity.into(),
       self.rune.0,
       self.supply,
+      {
+        let bytes = self.transaction.to_byte_array();
+        (
+          u128::from_le_bytes([
+            bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
+            bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15],
+          ]),
+          u128::from_le_bytes([
+            bytes[16], bytes[17], bytes[18], bytes[19], bytes[20], bytes[21], bytes[22], bytes[23],
+            bytes[24], bytes[25], bytes[26], bytes[27], bytes[28], bytes[29], bytes[30], bytes[31],
+          ]),
+        )
+      },
     )
   }
 }
@@ -371,11 +395,40 @@ mod tests {
       rarity: Rarity::Rare,
       rune: Rune(3),
       supply: 4,
+      transaction: Txid::from_byte_array([
+        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E,
+        0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D,
+        0x1E, 0x1F,
+      ]),
     };
 
-    assert_eq!(rune_entry.store(), (1, 2, 3, 4));
+    assert_eq!(
+      rune_entry.store(),
+      (
+        1,
+        2,
+        3,
+        4,
+        (
+          0x0F0E0D0C0B0A09080706050403020100,
+          0x1F1E1D1C1B1A19181716151413121110
+        )
+      )
+    );
 
-    assert_eq!(RuneEntry::load((1, 2, 3, 4)), rune_entry);
+    assert_eq!(
+      RuneEntry::load((
+        1,
+        2,
+        3,
+        4,
+        (
+          0x0F0E0D0C0B0A09080706050403020100,
+          0x1F1E1D1C1B1A19181716151413121110
+        )
+      )),
+      rune_entry
+    );
   }
 
   #[test]

@@ -145,6 +145,7 @@ mod tests {
           divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
+          transaction: txid,
         }
       )]
     );
@@ -232,6 +233,7 @@ mod tests {
             rune: Rune(u128::from(Sat::SUPPLY - 150 * COIN_VALUE)),
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
+            transaction: txid,
           }
         )]
       );
@@ -286,6 +288,7 @@ mod tests {
           divisibility: 1,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
+          transaction: txid,
         }
       )]
     );
@@ -346,6 +349,7 @@ mod tests {
           divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
+          transaction: txid,
         }
       )]
     );
@@ -406,6 +410,7 @@ mod tests {
           divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
+          transaction: txid,
         }
       )]
     );
@@ -459,6 +464,7 @@ mod tests {
           divisibility: 0,
           supply: 100,
           rarity: Rarity::Uncommon,
+          transaction: txid,
         }
       )]
     );
@@ -519,6 +525,7 @@ mod tests {
           divisibility: 0,
           supply: 200,
           rarity: Rarity::Uncommon,
+          transaction: txid,
         }
       )]
     );
@@ -582,6 +589,7 @@ mod tests {
           divisibility: 0,
           supply: 100,
           rarity: Rarity::Uncommon,
+          transaction: txid,
         }
       )]
     );
@@ -600,7 +608,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid0 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -635,16 +643,23 @@ mod tests {
           divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
+          transaction: txid0,
         }
       )]
     );
 
     assert_eq!(
       context.index.rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+      [(
+        OutPoint {
+          txid: txid0,
+          vout: 0
+        },
+        vec![(id, u128::max_value())]
+      )]
     );
 
-    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 1, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -671,13 +686,20 @@ mod tests {
           divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
+          transaction: txid0,
         }
       )]
     );
 
     assert_eq!(
       context.index.rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+      [(
+        OutPoint {
+          txid: txid1,
+          vout: 0
+        },
+        vec![(id, u128::max_value())]
+      )]
     );
   }
 
@@ -689,7 +711,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid0 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -724,16 +746,23 @@ mod tests {
           divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
+          transaction: txid0,
         }
       )]
     );
 
     assert_eq!(
       context.index.rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+      [(
+        OutPoint {
+          txid: txid0,
+          vout: 0
+        },
+        vec![(id, u128::max_value())]
+      )]
     );
 
-    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 1, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -756,13 +785,20 @@ mod tests {
           divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
+          transaction: txid0,
         }
       )]
     );
 
     assert_eq!(
       context.index.rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+      [(
+        OutPoint {
+          txid: txid1,
+          vout: 0
+        },
+        vec![(id, u128::max_value())]
+      )]
     );
   }
 
@@ -775,7 +811,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid0 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -810,16 +846,23 @@ mod tests {
           divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
+          transaction: txid0,
         }
       )]
     );
 
     assert_eq!(
       context.index.rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+      [(
+        OutPoint {
+          txid: txid0,
+          vout: 0
+        },
+        vec![(id, u128::max_value())]
+      )]
     );
 
-    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 1, 0, Witness::new())],
       op_return: None,
       ..Default::default()
@@ -836,13 +879,20 @@ mod tests {
           divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
+          transaction: txid0,
         }
       )]
     );
 
     assert_eq!(
       context.index.rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+      [(
+        OutPoint {
+          txid: txid1,
+          vout: 0
+        },
+        vec![(id, u128::max_value())]
+      )]
     );
   }
 
@@ -889,6 +939,7 @@ mod tests {
           divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
+          transaction: txid,
         }
       )]
     );
@@ -928,6 +979,7 @@ mod tests {
           divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
+          transaction: txid,
         }
       )]
     );
@@ -981,6 +1033,7 @@ mod tests {
           divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
+          transaction: txid0,
         }
       )]
     );
@@ -1032,6 +1085,7 @@ mod tests {
             divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
+            transaction: txid0,
           }
         ),
         (
@@ -1041,6 +1095,7 @@ mod tests {
             divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
+            transaction: txid1,
           }
         )
       ]
@@ -1083,6 +1138,7 @@ mod tests {
             divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
+            transaction: txid0,
           }
         ),
         (
@@ -1092,6 +1148,7 @@ mod tests {
             divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
+            transaction: txid1,
           }
         )
       ]
@@ -1152,6 +1209,7 @@ mod tests {
           divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
+          transaction: txid0,
         }
       )]
     );
@@ -1203,6 +1261,7 @@ mod tests {
             divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
+            transaction: txid0,
           }
         ),
         (
@@ -1212,6 +1271,7 @@ mod tests {
             divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
+            transaction: txid1,
           }
         )
       ]
@@ -1254,6 +1314,7 @@ mod tests {
             divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
+            transaction: txid0,
           }
         ),
         (
@@ -1263,6 +1324,7 @@ mod tests {
             divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
+            transaction: txid1,
           }
         )
       ]
@@ -1315,6 +1377,7 @@ mod tests {
             divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
+            transaction: txid0,
           }
         ),
         (
@@ -1324,6 +1387,7 @@ mod tests {
             divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
+            transaction: txid1,
           }
         )
       ]
@@ -1396,6 +1460,7 @@ mod tests {
           divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
+          transaction: txid0,
         }
       )]
     );
@@ -1447,6 +1512,7 @@ mod tests {
             divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
+            transaction: txid0,
           }
         ),
         (
@@ -1456,6 +1522,7 @@ mod tests {
             divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
+            transaction: txid1,
           }
         )
       ]
@@ -1516,6 +1583,7 @@ mod tests {
             divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
+            transaction: txid0,
           }
         ),
         (
@@ -1525,6 +1593,7 @@ mod tests {
             divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
+            transaction: txid1,
           }
         )
       ]
@@ -1551,7 +1620,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid0 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -1586,13 +1655,20 @@ mod tests {
           divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
+          transaction: txid0,
         }
       )]
     );
 
     assert_eq!(
       context.index.rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+      [(
+        OutPoint {
+          txid: txid0,
+          vout: 0
+        },
+        vec![(id, u128::max_value())]
+      )]
     );
 
     let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -1617,6 +1693,7 @@ mod tests {
           divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
+          transaction: txid0,
         }
       )]
     );
@@ -1695,6 +1772,7 @@ mod tests {
             divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
+            transaction: txid0,
           }
         ),
         (
@@ -1704,6 +1782,7 @@ mod tests {
             divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Common,
+            transaction: txid1,
           }
         ),
       ]
@@ -1738,7 +1817,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid0 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -1773,16 +1852,23 @@ mod tests {
           divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
+          transaction: txid0,
         }
       )]
     );
 
     assert_eq!(
       context.index.rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+      [(
+        OutPoint {
+          txid: txid0,
+          vout: 0
+        },
+        vec![(id, u128::max_value())]
+      )]
     );
 
-    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 1, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -1816,13 +1902,20 @@ mod tests {
           divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
+          transaction: txid0,
         }
       )]
     );
 
     assert_eq!(
       context.index.rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+      [(
+        OutPoint {
+          txid: txid1,
+          vout: 0
+        },
+        vec![(id, u128::max_value())]
+      )]
     );
   }
 
@@ -1869,6 +1962,7 @@ mod tests {
           divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
+          transaction: txid0,
         }
       )]
     );
@@ -1920,6 +2014,7 @@ mod tests {
             divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
+            transaction: txid0,
           }
         ),
         (
@@ -1929,6 +2024,7 @@ mod tests {
             divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
+            transaction: txid1,
           }
         )
       ]
@@ -1989,6 +2085,7 @@ mod tests {
             divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
+            transaction: txid0,
           }
         ),
         (
@@ -1998,6 +2095,7 @@ mod tests {
             divisibility: 0,
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
+            transaction: txid1,
           }
         )
       ]
@@ -2032,7 +2130,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid0 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -2067,6 +2165,7 @@ mod tests {
           divisibility: 0,
           supply: u128::max_value() / 2,
           rarity: Rarity::Uncommon,
+          transaction: txid0,
         }
       )]
     );
@@ -2074,12 +2173,15 @@ mod tests {
     assert_eq!(
       context.index.rune_balances(),
       [(
-        OutPoint { txid, vout: 0 },
+        OutPoint {
+          txid: txid0,
+          vout: 0
+        },
         vec![(id, u128::max_value() / 2)]
       )]
     );
 
-    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 1, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -2106,6 +2208,7 @@ mod tests {
           divisibility: 0,
           supply: u128::max_value() / 2,
           rarity: Rarity::Uncommon,
+          transaction: txid0,
         }
       )]
     );
@@ -2113,7 +2216,10 @@ mod tests {
     assert_eq!(
       context.index.rune_balances(),
       [(
-        OutPoint { txid, vout: 0 },
+        OutPoint {
+          txid: txid1,
+          vout: 0
+        },
         vec![(id, u128::max_value() / 2)]
       )]
     );
@@ -2162,6 +2268,7 @@ mod tests {
           divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
+          transaction: txid,
         }
       )]
     );
@@ -2216,6 +2323,7 @@ mod tests {
           divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
+          transaction: txid,
         }
       )]
     );
@@ -2277,6 +2385,7 @@ mod tests {
           divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
+          transaction: txid,
         }
       )]
     );

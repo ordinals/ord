@@ -144,6 +144,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
           self.id_to_entry.insert(
             id.store(),
             RuneEntry {
+              divisibility,
               rarity: if self.count == 0 {
                 self.rarity
               } else {
@@ -151,7 +152,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
               },
               rune,
               supply,
-              divisibility,
+              transaction: txid,
             }
             .store(),
           )?;

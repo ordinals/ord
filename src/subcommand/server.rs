@@ -569,7 +569,23 @@ impl Server {
       )
     })?;
 
-    Ok(RuneHtml { id, entry }.page(page_config, index.has_sat_index()?))
+    let inscription = InscriptionId {
+      txid: entry.transaction,
+      index: 0,
+    };
+
+    let inscription = index
+      .inscription_exists(inscription)?
+      .then_some(inscription);
+
+    Ok(
+      RuneHtml {
+        id,
+        entry,
+        inscription,
+      }
+      .page(page_config, index.has_sat_index()?),
+    )
   }
 
   async fn runes(
@@ -3150,6 +3166,7 @@ mod tests {
           divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
+          transaction: txid,
         }
       )]
     );
@@ -3181,7 +3198,7 @@ mod tests {
     server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
-      inputs: &[(1, 0, 0, Witness::new())],
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
@@ -3215,6 +3232,7 @@ mod tests {
           divisibility: 0,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
+          transaction: txid,
         }
       )]
     );
@@ -3227,7 +3245,8 @@ mod tests {
     server.assert_response_regex(
       format!("/rune/{rune}"),
       StatusCode::OK,
-      ".*<title>Rune NVTDIJZYIPU</title>.*
+      format!(
+        ".*<title>Rune NVTDIJZYIPU</title>.*
 <h1>Rune NVTDIJZYIPU</h1>
 <dl>
   <dt>id</dt>
@@ -3238,8 +3257,13 @@ mod tests {
   <dd>0</dd>
   <dt>rarity</dt>
   <dd><span class=uncommon>uncommon</span></dd>
+  <dt>origin</dt>
+  <dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
+  <dt>inscription</dt>
+  <dd><a class=monospace href=/inscription/{txid}i0>{txid}i0</a></dd>
 </dl>
-.*",
+.*"
+      ),
     );
   }
 

@@ -4,6 +4,7 @@ use super::*;
 pub(crate) struct RuneHtml {
   pub(crate) entry: RuneEntry,
   pub(crate) id: RuneId,
+  pub(crate) inscription: Option<InscriptionId>,
 }
 
 impl PageContent for RuneHtml {
