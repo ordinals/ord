@@ -3,7 +3,6 @@ use {super::*, crate::subcommand::wallet::inscribe::mode::Mode};
 #[derive(Deserialize, Default, PartialEq, Debug)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct BatchEntry {
-  destination: Option<Address<NetworkUnchecked>>,
   inscription: PathBuf,
   metadata: Option<PathBuf>,
   metaprotocol: Option<String>,
@@ -59,11 +58,14 @@ mod tests {
       .unwrap();
 
     let tempdir = TempDir::new().unwrap();
-    let batch_path = tempdir.path().join("batch.yaml");
+
     let inscription_path = tempdir.path().join("tulip.txt");
     let metadata_path = tempdir.path().join("metadata.json");
+    fs::write(&inscription_path, "tulips are pretty").unwrap();
+
     let brc20_path = tempdir.path().join("token.json");
 
+    let batch_path = tempdir.path().join("batch.yaml");
     fs::write(
       &batch_path,
       format!(
@@ -74,8 +76,6 @@ mod tests {
       ),
     )
     .unwrap();
-
-    fs::write(&inscription_path, "tulips are pretty").unwrap();
 
     pretty_assert_eq!(
       match Arguments::try_parse_from([
@@ -110,5 +110,72 @@ mod tests {
         mode: Mode::SharedOutput,
       }
     );
+  }
+
+  #[test]
+  fn batch_with_invalid_field_value_throws_error() {
+    let tempdir = TempDir::new().unwrap();
+
+    let inscription_path = tempdir.path().join("tulip.txt");
+    fs::write(&inscription_path, "tulips are pretty").unwrap();
+
+    let batch_path = tempdir.path().join("batch.yaml");
+    fs::write(
+      &batch_path,
+      format!(
+        "mode: wrong-mode\nbatch:\n- inscription: {}\n",
+        inscription_path.display(),
+      ),
+    )
+    .unwrap();
+
+    assert!(match Arguments::try_parse_from([
+      "ord",
+      "wallet",
+      "batch-inscribe",
+      batch_path.to_str().unwrap(),
+      "--fee-rate",
+      "2.1"
+    ])
+    .unwrap()
+    .subcommand
+    {
+      Subcommand::Wallet(wallet::Wallet::BatchInscribe(batch_inscribe)) =>
+        batch_inscribe.load_batch().is_err(),
+      _ => panic!(),
+    })
+  }
+
+  #[test]
+  fn batch_is_unknown_field_throws_error() {
+    let tempdir = TempDir::new().unwrap();
+    let inscription_path = tempdir.path().join("tulip.txt");
+    fs::write(&inscription_path, "tulips are pretty").unwrap();
+
+    let batch_path = tempdir.path().join("batch.yaml");
+    fs::write(
+      &batch_path,
+      format!(
+        "mode: shared-output\nbatch:\n- inscription: {}\nunknown: 1.)what",
+        inscription_path.display(),
+      ),
+    )
+    .unwrap();
+
+    assert!(match Arguments::try_parse_from([
+      "ord",
+      "wallet",
+      "batch-inscribe",
+      batch_path.to_str().unwrap(),
+      "--fee-rate",
+      "2.1"
+    ])
+    .unwrap()
+    .subcommand
+    {
+      Subcommand::Wallet(wallet::Wallet::BatchInscribe(batch_inscribe)) =>
+        batch_inscribe.load_batch().is_err(),
+      _ => panic!(),
+    })
   }
 }
