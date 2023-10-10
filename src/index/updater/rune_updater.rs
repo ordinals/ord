@@ -5,7 +5,7 @@ use {
 
 struct Allocation {
   balance: u128,
-  divisibility: u128,
+  divisibility: u8,
   id: u128,
   rune: Rune,
 }

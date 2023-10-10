@@ -27,7 +27,7 @@ use {
     options::Options,
     outgoing::Outgoing,
     representation::Representation,
-    runes::RuneId,
+    runes::{Pile, RuneId},
     subcommand::{Subcommand, SubcommandResult},
     tally::Tally,
   },
