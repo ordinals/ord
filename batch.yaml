@@ -3,8 +3,10 @@
 # All inscriptions can either be put into a `shared-output` or put into `separate-outputs`
 mode: shared-output
 
+# If true transactions won't be broadcasted
 dry_run: true
 
+# Set the fee rate of the commit and reveal transactions
 fee_rate: 2.1
 
 # Specify parent for all inscriptions
