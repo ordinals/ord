@@ -7,22 +7,22 @@ pub(crate) struct Pile {
 
 impl Display for Pile {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-    let x = 10u128.pow(self.divisibility.into());
+    let cutoff = 10u128.pow(self.divisibility.into());
 
-    let whole = self.amount / x;
-    let mut fractional = self.amount % x;
+    let whole = self.amount / cutoff;
+    let mut fractional = self.amount % cutoff;
 
-    let mut width = self.divisibility;
-    while fractional > 0 && fractional % 10 == 0 {
+    if fractional == 0 {
+      return write!(f, "{whole}");
+    }
+
+    let mut width = usize::from(self.divisibility);
+    while fractional % 10 == 0 {
       fractional /= 10;
       width -= 1;
     }
 
-    if fractional > 0 {
-      write!(f, "{whole}.{fractional:0>width$}", width = width.into())
-    } else {
-      write!(f, "{whole}")
-    }
+    write!(f, "{whole}.{fractional:0>width$}")
   }
 }
 
