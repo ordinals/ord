@@ -1,5 +1,7 @@
 use super::*;
 
+// todo: strip trailing zeros
+
 pub(crate) struct Pile {
   pub(crate) amount: u128,
   pub(crate) divisibility: u8,
@@ -7,7 +9,7 @@ pub(crate) struct Pile {
 
 impl Display for Pile {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-    let x = 10u128.pow(self.divisibility.into());
+    let x = 10u128.pow(dbg!(self.divisibility.into()));
 
     let whole = self.amount / x;
     let fractional = self.amount % x;
@@ -101,6 +103,14 @@ mod tests {
       }
       .to_string(),
       "340282366920938463463.374607431768211455"
+    );
+    assert_eq!(
+      Pile {
+        amount: u128::max_value(),
+        divisibility: MAX_DIVISIBILITY,
+      }
+      .to_string(),
+      "3.40282366920938463463374607431768211455"
     );
   }
 }

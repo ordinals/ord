@@ -39,7 +39,9 @@ impl Runestone {
         }
         [rune, parameters] => {
           etching = Some(Etching {
-            divisibility: u8::try_from(parameters & 0b11_1111).unwrap(),
+            divisibility: u8::try_from(parameters & 0b11_1111)
+              .unwrap()
+              .min(MAX_DIVISIBILITY),
             rune: Rune(rune),
           })
         }
@@ -449,6 +451,74 @@ mod tests {
         etching: Some(Etching {
           rune: Rune(4),
           divisibility: 5,
+        }),
+      }))
+    );
+  }
+
+  #[test]
+  fn divisibility_above_max_is_clamped() {
+    let payload = payload(&[1, 2, 3, 4, (MAX_DIVISIBILITY + 1).into()]);
+
+    let payload: &PushBytes = payload.as_slice().try_into().unwrap();
+
+    assert_eq!(
+      Runestone::decipher(&Transaction {
+        input: Vec::new(),
+        output: vec![TxOut {
+          script_pubkey: script::Builder::new()
+            .push_opcode(opcodes::all::OP_RETURN)
+            .push_slice(b"RUNE_TEST")
+            .push_slice(payload)
+            .into_script(),
+          value: 0
+        }],
+        lock_time: locktime::absolute::LockTime::ZERO,
+        version: 0,
+      }),
+      Ok(Some(Runestone {
+        edicts: vec![Edict {
+          id: 1,
+          amount: 2,
+          output: 3,
+        }],
+        etching: Some(Etching {
+          rune: Rune(4),
+          divisibility: MAX_DIVISIBILITY,
+        }),
+      }))
+    );
+  }
+
+  #[test]
+  fn divisibility_is_taken_from_lower_six_bits_of_parameter() {
+    let payload = payload(&[1, 2, 3, 4, 0b110_0000u128.into()]);
+
+    let payload: &PushBytes = payload.as_slice().try_into().unwrap();
+
+    assert_eq!(
+      Runestone::decipher(&Transaction {
+        input: Vec::new(),
+        output: vec![TxOut {
+          script_pubkey: script::Builder::new()
+            .push_opcode(opcodes::all::OP_RETURN)
+            .push_slice(b"RUNE_TEST")
+            .push_slice(payload)
+            .into_script(),
+          value: 0
+        }],
+        lock_time: locktime::absolute::LockTime::ZERO,
+        version: 0,
+      }),
+      Ok(Some(Runestone {
+        edicts: vec![Edict {
+          id: 1,
+          amount: 2,
+          output: 3,
+        }],
+        etching: Some(Etching {
+          rune: Rune(4),
+          divisibility: 0b10_0000,
         }),
       }))
     );
