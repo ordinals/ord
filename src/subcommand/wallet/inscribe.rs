@@ -19,6 +19,7 @@ use {
 };
 
 pub mod batch_inscribe;
+mod mode;
 
 #[derive(Serialize, Deserialize)]
 pub struct Output {

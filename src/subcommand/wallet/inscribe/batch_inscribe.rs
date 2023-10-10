@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, crate::subcommand::wallet::inscribe::mode::Mode};
 
 #[derive(Deserialize, Default, PartialEq, Debug)]
 #[serde(deny_unknown_fields)]
@@ -7,39 +7,15 @@ pub(crate) struct BatchEntry {
   inscription: PathBuf,
   metadata: Option<PathBuf>,
   metaprotocol: Option<String>,
-  parent: Option<InscriptionId>,
 }
 
 #[derive(Deserialize, Default, PartialEq, Debug)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct BatchConfig {
   batch: Vec<BatchEntry>,
-  // mode: Option<Mode>,
+  parent: Option<InscriptionId>,
+  mode: Mode,
 }
-
-//pub(crate) enum Mode {
-//  SharedOutput,
-//  SeperateOutputs,
-//}
-//
-//impl fmt::Display for Mode {
-//  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-//    write!(
-//      f,
-//      "{}",
-//      match self {
-//        Mode::SharedOutput => "shared-output",
-//        Mode::SeperateOutputs => "seperate-outputs",
-//      }
-//    )
-//  }
-//}
-//
-//impl Default for Mode {
-//  fn default() -> Self {
-//    Mode::SeperateOutputs
-//  }
-//}
 
 #[derive(Serialize, Deserialize)]
 pub struct BatchOutput {
@@ -89,7 +65,7 @@ mod tests {
     fs::write(
       &batch_path,
       format!(
-        "batch:\n- inscription: {}\n  parent: {parent}\n",
+        "mode: shared-output\nparent: {parent}\nbatch:\n- inscription: {}\n",
         inscription_path.display()
       ),
     )
@@ -116,9 +92,10 @@ mod tests {
       BatchConfig {
         batch: vec![BatchEntry {
           inscription: inscription_path,
-          parent: Some(parent),
           ..Default::default()
         }],
+        parent: Some(parent),
+        mode: Mode::SharedOutput,
       }
     );
   }
