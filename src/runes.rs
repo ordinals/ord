@@ -1,12 +1,15 @@
 use {self::error::Error, super::*};
 
 pub(crate) use {
-  edict::Edict, etching::Etching, rune::Rune, rune_id::RuneId, runestone::Runestone,
+  edict::Edict, etching::Etching, pile::Pile, rune::Rune, rune_id::RuneId, runestone::Runestone,
 };
+
+const MAX_DIVISIBILITY: u8 = 38;
 
 mod edict;
 mod error;
 mod etching;
+mod pile;
 mod rune;
 mod rune_id;
 mod runestone;
@@ -1106,17 +1109,17 @@ mod tests {
       [
         (
           OutPoint {
-            txid: txid1,
-            vout: 0
-          },
-          vec![(id1, u128::max_value())]
-        ),
-        (
-          OutPoint {
             txid: txid0,
             vout: 0
           },
           vec![(id0, u128::max_value())]
+        ),
+        (
+          OutPoint {
+            txid: txid1,
+            vout: 0
+          },
+          vec![(id1, u128::max_value())]
         ),
       ]
     );
@@ -1282,17 +1285,17 @@ mod tests {
       [
         (
           OutPoint {
-            txid: txid1,
-            vout: 0
-          },
-          vec![(id1, u128::max_value())]
-        ),
-        (
-          OutPoint {
             txid: txid0,
             vout: 0
           },
           vec![(id0, u128::max_value())]
+        ),
+        (
+          OutPoint {
+            txid: txid1,
+            vout: 0
+          },
+          vec![(id1, u128::max_value())]
         ),
       ]
     );
@@ -1533,18 +1536,18 @@ mod tests {
       [
         (
           OutPoint {
+            txid: txid0,
+            vout: 0
+          },
+          vec![(id0, u128::max_value())]
+        ),
+        (
+          OutPoint {
             txid: txid1,
             vout: 0
           },
           vec![(id1, u128::max_value())]
         ),
-        (
-          OutPoint {
-            txid: txid0,
-            vout: 0
-          },
-          vec![(id0, u128::max_value())]
-        )
       ]
     );
 
@@ -1793,17 +1796,17 @@ mod tests {
       [
         (
           OutPoint {
-            txid: txid1,
-            vout: 0
-          },
-          vec![(id1, u128::max_value())]
-        ),
-        (
-          OutPoint {
             txid: txid0,
             vout: 0
           },
           vec![(id0, u128::max_value())]
+        ),
+        (
+          OutPoint {
+            txid: txid1,
+            vout: 0
+          },
+          vec![(id1, u128::max_value())]
         ),
       ]
     );
@@ -2035,18 +2038,18 @@ mod tests {
       [
         (
           OutPoint {
+            txid: txid0,
+            vout: 0
+          },
+          vec![(id0, u128::max_value())]
+        ),
+        (
+          OutPoint {
             txid: txid1,
             vout: 0
           },
           vec![(id1, u128::max_value())]
         ),
-        (
-          OutPoint {
-            txid: txid0,
-            vout: 0
-          },
-          vec![(id0, u128::max_value())]
-        )
       ]
     );
 

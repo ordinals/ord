@@ -24,14 +24,14 @@ impl Entry for BlockHash {
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub(crate) struct RuneEntry {
-  pub(crate) divisibility: u128,
+  pub(crate) divisibility: u8,
   pub(crate) etching: Txid,
   pub(crate) rarity: Rarity,
   pub(crate) rune: Rune,
   pub(crate) supply: u128,
 }
 
-pub(super) type RuneEntryValue = (u128, (u128, u128), u8, u128, u128);
+pub(super) type RuneEntryValue = (u8, (u128, u128), u8, u128, u128);
 
 impl Entry for RuneEntry {
   type Value = RuneEntryValue;
