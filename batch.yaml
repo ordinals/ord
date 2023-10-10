@@ -3,6 +3,10 @@
 # All inscriptions can either be put into a `shared-output` or put into `separate-outputs`
 mode: shared-output
 
+dry_run: true
+
+fee_rate: 2.1
+
 # Specify parent for all inscriptions
 # In the future this can be set for each inscription individually
 parent: 6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0

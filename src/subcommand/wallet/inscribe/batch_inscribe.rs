@@ -8,10 +8,12 @@ pub(crate) struct BatchEntry {
   metaprotocol: Option<String>,
 }
 
-#[derive(Deserialize, Default, PartialEq, Debug)]
+#[derive(Deserialize, PartialEq, Debug)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct BatchConfig {
   batch: Vec<BatchEntry>,
+  dry_run: bool,
+  fee_rate: FeeRate,
   parent: Option<InscriptionId>,
   mode: Mode,
 }
@@ -23,19 +25,15 @@ pub struct BatchOutput {
 
 #[derive(Debug, Parser)]
 pub(crate) struct BatchInscribe {
-  #[arg(long, help = "Don't sign or broadcast transactions.")]
-  pub(crate) dry_run: bool,
-  #[arg(long, help = "Use fee rate of <FEE_RATE> sats/vB.")]
-  pub(crate) fee_rate: FeeRate,
   #[arg(help = "Read YAML batch <FILE> that specifies all inscription info.")]
   pub(crate) file: PathBuf,
 }
 
 impl BatchInscribe {
   pub(crate) fn run(self, _options: Options) -> SubcommandResult {
-    let batch = self.load_batch_config()?;
+    let batch_config = self.load_batch_config()?;
 
-    let _batch = batch.batch;
+
 
     Ok(Box::new(BatchOutput {
       outputs: Vec::new(),
@@ -69,7 +67,7 @@ mod tests {
     fs::write(
       &batch_path,
       format!(
-        "mode: shared-output\nparent: {parent}\nbatch:\n- inscription: {}\n  metadata: {}\n- inscription: {}\n  metaprotocol: brc-20\n",
+        "dry_run: false\nfee_rate: 2.1\nmode: shared-output\nparent: {parent}\nbatch:\n- inscription: {}\n  metadata: {}\n- inscription: {}\n  metaprotocol: brc-20\n",
         inscription_path.display(),
         metadata_path.display(),
         brc20_path.display()
@@ -83,8 +81,6 @@ mod tests {
         "wallet",
         "batch-inscribe",
         batch_path.to_str().unwrap(),
-        "--fee-rate",
-        "2.1"
       ])
       .unwrap()
       .subcommand
@@ -106,6 +102,8 @@ mod tests {
             ..Default::default()
           }
         ],
+        dry_run: false,
+        fee_rate: FeeRate::try_from(2.1).unwrap(),
         parent: Some(parent),
         mode: Mode::SharedOutput,
       }
@@ -134,8 +132,6 @@ mod tests {
       "wallet",
       "batch-inscribe",
       batch_path.to_str().unwrap(),
-      "--fee-rate",
-      "2.1"
     ])
     .unwrap()
     .subcommand
@@ -167,8 +163,6 @@ mod tests {
       "wallet",
       "batch-inscribe",
       batch_path.to_str().unwrap(),
-      "--fee-rate",
-      "2.1"
     ])
     .unwrap()
     .subcommand
