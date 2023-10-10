@@ -144,9 +144,11 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
           divisibility: 0,
           etching: txid,
           rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
           rune: Rune(RUNE),
           supply: u128::max_value(),
         }
@@ -232,6 +234,7 @@ mod tests {
         [(
           id,
           RuneEntry {
+            burned: 0,
             divisibility: 0,
             etching: txid,
             rune: Rune(u128::from(Sat::SUPPLY - 150 * COIN_VALUE)),
@@ -287,6 +290,7 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
           rune: Rune(RUNE),
           etching: txid,
           divisibility: 1,
@@ -348,6 +352,8 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
+          rune: Rune(RUNE),
           divisibility: 0,
           etching: txid,
           rarity: Rarity::Uncommon,
@@ -409,6 +415,8 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
+          rune: Rune(RUNE),
           divisibility: 0,
           etching: txid,
           rarity: Rarity::Uncommon,
@@ -463,6 +471,8 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
+          rune: Rune(RUNE),
           divisibility: 0,
           etching: txid,
           rarity: Rarity::Uncommon,
@@ -524,6 +534,8 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 100,
+          rune: Rune(RUNE),
           divisibility: 0,
           etching: txid,
           rarity: Rarity::Uncommon,
@@ -588,6 +600,8 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
+          rune: Rune(RUNE),
           divisibility: 0,
           etching: txid,
           rarity: Rarity::Uncommon,
@@ -642,6 +656,8 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
+          rune: Rune(RUNE),
           divisibility: 0,
           etching: txid0,
           rarity: Rarity::Uncommon,
@@ -685,6 +701,8 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
+          rune: Rune(RUNE),
           divisibility: 0,
           etching: txid0,
           rarity: Rarity::Uncommon,
@@ -745,6 +763,8 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
+          rune: Rune(RUNE),
           divisibility: 0,
           etching: txid0,
           rarity: Rarity::Uncommon,
@@ -784,6 +804,8 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
+          rune: Rune(RUNE),
           divisibility: 0,
           etching: txid0,
           rarity: Rarity::Uncommon,
@@ -845,6 +867,8 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
+          rune: Rune(RUNE),
           divisibility: 0,
           etching: txid0,
           rarity: Rarity::Uncommon,
@@ -878,6 +902,8 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
+          rune: Rune(RUNE),
           divisibility: 0,
           etching: txid0,
           rarity: Rarity::Uncommon,
@@ -938,6 +964,8 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
+          rune: Rune(RUNE),
           divisibility: 0,
           etching: txid,
           rarity: Rarity::Uncommon,
@@ -978,6 +1006,8 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
+          rune: Rune(RUNE),
           divisibility: 0,
           etching: txid,
           rarity: Rarity::Uncommon,
@@ -1032,6 +1062,8 @@ mod tests {
       [(
         id0,
         RuneEntry {
+          burned: 0,
+          rune: Rune(RUNE),
           divisibility: 0,
           etching: txid0,
           rarity: Rarity::Uncommon,
@@ -1084,6 +1116,8 @@ mod tests {
         (
           id0,
           RuneEntry {
+            burned: 0,
+            rune: Rune(RUNE),
             divisibility: 0,
             etching: txid0,
             rarity: Rarity::Uncommon,
@@ -1094,6 +1128,8 @@ mod tests {
         (
           id1,
           RuneEntry {
+            burned: 0,
+            rune: Rune(RUNE + 1),
             divisibility: 0,
             etching: txid1,
             rarity: Rarity::Uncommon,
@@ -1137,6 +1173,8 @@ mod tests {
         (
           id0,
           RuneEntry {
+            burned: 0,
+            rune: Rune(RUNE),
             divisibility: 0,
             etching: txid0,
             rarity: Rarity::Uncommon,
@@ -1147,6 +1185,8 @@ mod tests {
         (
           id1,
           RuneEntry {
+            burned: 0,
+            rune: Rune(RUNE + 1),
             divisibility: 0,
             etching: txid1,
             rarity: Rarity::Uncommon,
@@ -1208,6 +1248,8 @@ mod tests {
       [(
         id0,
         RuneEntry {
+          burned: 0,
+          rune: Rune(RUNE),
           divisibility: 0,
           etching: txid0,
           rarity: Rarity::Uncommon,
@@ -1260,6 +1302,8 @@ mod tests {
         (
           id0,
           RuneEntry {
+            burned: 0,
+            rune: Rune(RUNE),
             divisibility: 0,
             etching: txid0,
             rarity: Rarity::Uncommon,
@@ -1270,6 +1314,8 @@ mod tests {
         (
           id1,
           RuneEntry {
+            burned: 0,
+            rune: Rune(RUNE + 1),
             divisibility: 0,
             etching: txid1,
             rarity: Rarity::Uncommon,
@@ -1313,6 +1359,8 @@ mod tests {
         (
           id0,
           RuneEntry {
+            burned: 0,
+            rune: Rune(RUNE),
             divisibility: 0,
             etching: txid0,
             rarity: Rarity::Uncommon,
@@ -1323,6 +1371,8 @@ mod tests {
         (
           id1,
           RuneEntry {
+            burned: 0,
+            rune: Rune(RUNE + 1),
             divisibility: 0,
             etching: txid1,
             rarity: Rarity::Uncommon,
@@ -1376,6 +1426,8 @@ mod tests {
         (
           id0,
           RuneEntry {
+            burned: 0,
+            rune: Rune(RUNE),
             divisibility: 0,
             etching: txid0,
             rarity: Rarity::Uncommon,
@@ -1386,6 +1438,8 @@ mod tests {
         (
           id1,
           RuneEntry {
+            burned: 0,
+            rune: Rune(RUNE + 1),
             divisibility: 0,
             etching: txid1,
             rarity: Rarity::Uncommon,
@@ -1459,6 +1513,8 @@ mod tests {
       [(
         id0,
         RuneEntry {
+          burned: 0,
+          rune: Rune(RUNE),
           divisibility: 0,
           etching: txid0,
           rarity: Rarity::Uncommon,
@@ -1511,6 +1567,8 @@ mod tests {
         (
           id0,
           RuneEntry {
+            burned: 0,
+            rune: Rune(RUNE),
             divisibility: 0,
             etching: txid0,
             rarity: Rarity::Uncommon,
@@ -1521,6 +1579,8 @@ mod tests {
         (
           id1,
           RuneEntry {
+            burned: 0,
+            rune: Rune(RUNE + 1),
             divisibility: 0,
             etching: txid1,
             rarity: Rarity::Uncommon,
@@ -1582,6 +1642,8 @@ mod tests {
         (
           id0,
           RuneEntry {
+            burned: 0,
+            rune: Rune(RUNE),
             divisibility: 0,
             etching: txid0,
             rarity: Rarity::Uncommon,
@@ -1592,6 +1654,8 @@ mod tests {
         (
           id1,
           RuneEntry {
+            burned: 0,
+            rune: Rune(RUNE + 1),
             divisibility: 0,
             etching: txid1,
             rarity: Rarity::Uncommon,
@@ -1654,6 +1718,8 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
+          rune: Rune(RUNE),
           divisibility: 0,
           etching: txid0,
           rarity: Rarity::Uncommon,
@@ -1692,6 +1758,8 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
+          rune: Rune(RUNE),
           divisibility: 0,
           etching: txid0,
           rarity: Rarity::Uncommon,
@@ -1771,6 +1839,8 @@ mod tests {
         (
           id0,
           RuneEntry {
+            burned: 0,
+            rune: Rune(RUNE),
             divisibility: 0,
             etching: txid0,
             rarity: Rarity::Uncommon,
@@ -1781,6 +1851,8 @@ mod tests {
         (
           id1,
           RuneEntry {
+            burned: 0,
+            rune: Rune(RUNE + 1),
             divisibility: 0,
             etching: txid1,
             rarity: Rarity::Common,
@@ -1851,6 +1923,8 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
+          rune: Rune(RUNE),
           divisibility: 0,
           etching: txid0,
           rarity: Rarity::Uncommon,
@@ -1901,6 +1975,8 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
+          rune: Rune(RUNE),
           divisibility: 0,
           etching: txid0,
           rarity: Rarity::Uncommon,
@@ -1961,6 +2037,8 @@ mod tests {
       [(
         id0,
         RuneEntry {
+          burned: 0,
+          rune: Rune(RUNE),
           divisibility: 0,
           etching: txid0,
           rarity: Rarity::Uncommon,
@@ -2013,6 +2091,8 @@ mod tests {
         (
           id0,
           RuneEntry {
+            burned: 0,
+            rune: Rune(RUNE),
             divisibility: 0,
             etching: txid0,
             rarity: Rarity::Uncommon,
@@ -2023,6 +2103,8 @@ mod tests {
         (
           id1,
           RuneEntry {
+            burned: 0,
+            rune: Rune(RUNE + 1),
             divisibility: 0,
             etching: txid1,
             rarity: Rarity::Uncommon,
@@ -2084,6 +2166,8 @@ mod tests {
         (
           id0,
           RuneEntry {
+            burned: 0,
+            rune: Rune(RUNE),
             divisibility: 0,
             etching: txid0,
             rarity: Rarity::Uncommon,
@@ -2094,6 +2178,8 @@ mod tests {
         (
           id1,
           RuneEntry {
+            burned: 0,
+            rune: Rune(RUNE + 1),
             divisibility: 0,
             etching: txid1,
             rarity: Rarity::Uncommon,
@@ -2164,6 +2250,8 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
+          rune: Rune(RUNE),
           divisibility: 0,
           etching: txid0,
           rarity: Rarity::Uncommon,
@@ -2207,6 +2295,8 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
+          rune: Rune(RUNE),
           divisibility: 0,
           etching: txid0,
           rarity: Rarity::Uncommon,
@@ -2267,6 +2357,8 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: u128::max_value(),
+          rune: Rune(RUNE),
           divisibility: 0,
           etching: txid,
           rarity: Rarity::Uncommon,
@@ -2322,6 +2414,8 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
+          rune: Rune(RUNE),
           divisibility: 0,
           etching: txid,
           rarity: Rarity::Uncommon,
@@ -2384,6 +2478,8 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
+          rune: Rune(RUNE),
           divisibility: 0,
           etching: txid,
           rarity: Rarity::Uncommon,

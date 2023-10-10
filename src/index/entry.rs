@@ -24,6 +24,7 @@ impl Entry for BlockHash {
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub(crate) struct RuneEntry {
+  pub(crate) burned: u128,
   pub(crate) divisibility: u8,
   pub(crate) etching: Txid,
   pub(crate) rarity: Rarity,
@@ -31,13 +32,14 @@ pub(crate) struct RuneEntry {
   pub(crate) supply: u128,
 }
 
-pub(super) type RuneEntryValue = (u8, (u128, u128), u8, u128, u128);
+pub(super) type RuneEntryValue = (u128, u8, (u128, u128), u8, u128, u128);
 
 impl Entry for RuneEntry {
   type Value = RuneEntryValue;
 
-  fn load((divisibility, etching, rarity, rune, supply): RuneEntryValue) -> Self {
+  fn load((burned, divisibility, etching, rarity, rune, supply): RuneEntryValue) -> Self {
     Self {
+      burned,
       divisibility,
       etching: {
         let low = etching.0.to_le_bytes();
@@ -57,6 +59,7 @@ impl Entry for RuneEntry {
 
   fn store(self) -> Self::Value {
     (
+      self.burned,
       self.divisibility,
       {
         let bytes = self.etching.to_byte_array();
@@ -391,41 +394,44 @@ mod tests {
   #[test]
   fn rune_entry() {
     let rune_entry = RuneEntry {
-      divisibility: 1,
+      burned: 1,
+      divisibility: 2,
       etching: Txid::from_byte_array([
         0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E,
         0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D,
         0x1E, 0x1F,
       ]),
-      rarity: Rarity::Rare,
-      rune: Rune(3),
-      supply: 4,
+      rarity: Rarity::Epic,
+      rune: Rune(4),
+      supply: 5,
     };
 
     assert_eq!(
       rune_entry.store(),
       (
         1,
+        2,
         (
           0x0F0E0D0C0B0A09080706050403020100,
           0x1F1E1D1C1B1A19181716151413121110
         ),
-        2,
         3,
         4,
+        5,
       )
     );
 
     assert_eq!(
       RuneEntry::load((
         1,
+        2,
         (
           0x0F0E0D0C0B0A09080706050403020100,
           0x1F1E1D1C1B1A19181716151413121110
         ),
-        2,
         3,
         4,
+        5,
       )),
       rune_entry
     );

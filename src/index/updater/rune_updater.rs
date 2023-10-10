@@ -80,10 +80,10 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             // ignored.
             match u16::try_from(index) {
               Ok(index) => Some(Allocation {
-                id: u128::from(self.height) << 16 | u128::from(index),
                 balance: u128::max_value(),
-                rune: etching.rune,
                 divisibility: etching.divisibility,
+                id: u128::from(self.height) << 16 | u128::from(index),
+                rune: etching.rune,
               }),
               Err(_) => None,
             }
@@ -128,10 +128,10 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       }
 
       if let Some(Allocation {
-        id,
         balance,
-        rune,
         divisibility,
+        id,
+        rune,
       }) = allocation
       {
         // Calculate the allocated supply
@@ -144,6 +144,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
           self.id_to_entry.insert(
             id.store(),
             RuneEntry {
+              burned: 0,
               divisibility,
               etching: txid,
               rarity: if self.count == 0 {
@@ -173,11 +174,20 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       }
     }
 
+    let mut burned: HashMap<u128, u128> = HashMap::new();
+
     // update outpoint balances
     let mut buffer: Vec<u8> = Vec::new();
     for (vout, balances) in allocated.into_iter().enumerate() {
       if balances.is_empty() {
         continue;
+      }
+
+      // increment burned balances
+      if tx.output[vout].script_pubkey.is_op_return() {
+        for (id, balance) in &balances {
+          *burned.entry(*id).or_default() += balance;
+        }
       }
 
       buffer.clear();
@@ -200,6 +210,14 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         .store(),
         buffer.as_slice(),
       )?;
+    }
+
+    // increment entries with burned runes
+    for (id, amount) in burned {
+      let id = RuneId::try_from(id).unwrap().store();
+      let mut entry = RuneEntry::load(self.id_to_entry.get(id)?.unwrap().value());
+      entry.burned += amount;
+      self.id_to_entry.insert(id, entry.store())?;
     }
 
     Ok(())

@@ -22,6 +22,7 @@ mod tests {
     assert_regex_match!(
       RuneHtml {
         entry: RuneEntry {
+          burned: 123456789123456789,
           divisibility: 9,
           rarity: Rarity::Uncommon,
           rune: Rune(u128::max_value()),
@@ -42,6 +43,8 @@ mod tests {
   <dt>id</dt>
   <dd>10/9</dd>
   <dt>supply</dt>
+  <dd>123456789.123456789</dd>
+  <dt>burned</dt>
   <dd>123456789.123456789</dd>
   <dt>divisibility</dt>
   <dd>9</dd>

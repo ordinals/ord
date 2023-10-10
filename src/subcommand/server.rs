@@ -3162,6 +3162,8 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
+          rune: Rune(u128::from(21_000_000 * COIN_VALUE)),
           divisibility: 0,
           etching: txid,
           rarity: Rarity::Uncommon,
@@ -3228,6 +3230,8 @@ mod tests {
       [(
         id,
         RuneEntry {
+          burned: 0,
+          rune,
           divisibility: 0,
           etching: txid,
           rarity: Rarity::Uncommon,
@@ -3253,6 +3257,8 @@ mod tests {
   <dd>2/1</dd>
   <dt>supply</dt>
   <dd>340282366920938463463374607431768211455</dd>
+  <dt>burned</dt>
+  <dd>0</dd>
   <dt>divisibility</dt>
   <dd>0</dd>
   <dt>rarity</dt>
