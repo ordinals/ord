@@ -6,6 +6,7 @@
   - [Metadata](inscriptions/metadata.md)
   - [Provenance](inscriptions/provenance.md)
   - [Recursion](inscriptions/recursion.md)
+  - [Batch Inscriptions](inscriptions/batch-inscriptions.md)
 - [FAQ](faq.md)
 - [Contributing](contributing.md)
 - [Donate](donate.md)

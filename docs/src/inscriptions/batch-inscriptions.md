@@ -1,0 +1,33 @@
+Batch Inscriptions
+==================
+
+Write something smart here
+
+Example
+-------
+
+```yaml
+# Example batch file
+
+# All inscriptions can either be put into a `shared-output` or put into `separate-outputs`
+mode: shared-output
+
+# If true transactions won't be broadcasted
+dry_run: true
+
+# Set the fee rate of the commit and reveal transactions
+fee_rate: 2.1
+
+# Specify parent for all inscriptions
+# In the future this can be set for each inscription individually
+parent: 6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0
+
+# List of inscriptions with info.
+# This will be the order in which they will be inscribed
+batch:
+  - inscription: ./mango.avif
+
+  - inscription: ./token.json
+    metaprotocol: brc-20
+    metadata: ./token-metadata.json
+```
