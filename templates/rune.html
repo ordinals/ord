@@ -10,4 +10,10 @@
   <dd>{{ self.entry.divisibility }}</dd>
   <dt>rarity</dt>
   <dd><span class={{ self.entry.rarity }}>{{ self.entry.rarity }}</span></dd>
+  <dt>etching</dt>
+  <dd><a class=monospace href=/tx/{{ self.entry.etching }}>{{ self.entry.etching }}</a></dd>
+%% if let Some(inscription) = self.inscription {
+  <dt>inscription</dt>
+  <dd><a class=monospace href=/inscription/{{ inscription }}>{{ inscription }}</a></dd>
+%% }
 </dl>

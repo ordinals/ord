@@ -80,10 +80,10 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             // ignored.
             match u16::try_from(index) {
               Ok(index) => Some(Allocation {
-                id: u128::from(self.height) << 16 | u128::from(index),
                 balance: u128::max_value(),
-                rune: etching.rune,
                 divisibility: etching.divisibility,
+                id: u128::from(self.height) << 16 | u128::from(index),
+                rune: etching.rune,
               }),
               Err(_) => None,
             }
@@ -128,10 +128,10 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       }
 
       if let Some(Allocation {
-        id,
         balance,
-        rune,
         divisibility,
+        id,
+        rune,
       }) = allocation
       {
         // Calculate the allocated supply
@@ -145,6 +145,8 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             id.store(),
             RuneEntry {
               burned: 0,
+              divisibility,
+              etching: txid,
               rarity: if self.count == 0 {
                 self.rarity
               } else {
@@ -152,7 +154,6 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
               },
               rune,
               supply,
-              divisibility,
             }
             .store(),
           )?;

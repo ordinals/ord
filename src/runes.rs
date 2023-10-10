@@ -145,10 +145,11 @@ mod tests {
         id,
         RuneEntry {
           burned: 0,
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid,
           rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -234,6 +235,7 @@ mod tests {
           RuneEntry {
             burned: 0,
             divisibility: 0,
+            etching: txid,
             rune: Rune(u128::from(Sat::SUPPLY - 150 * COIN_VALUE)),
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
@@ -289,6 +291,7 @@ mod tests {
         RuneEntry {
           burned: 0,
           rune: Rune(RUNE),
+          etching: txid,
           divisibility: 1,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
@@ -349,10 +352,11 @@ mod tests {
         id,
         RuneEntry {
           burned: 0,
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid,
           rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -410,10 +414,11 @@ mod tests {
         id,
         RuneEntry {
           burned: 0,
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid,
           rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -464,10 +469,11 @@ mod tests {
         id,
         RuneEntry {
           burned: 0,
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: 100,
+          etching: txid,
           rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: 100,
         }
       )]
     );
@@ -525,10 +531,11 @@ mod tests {
         id,
         RuneEntry {
           burned: 100,
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: 200,
+          etching: txid,
           rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: 200,
         }
       )]
     );
@@ -589,10 +596,11 @@ mod tests {
         id,
         RuneEntry {
           burned: 0,
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: 100,
+          etching: txid,
           rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: 100,
         }
       )]
     );
@@ -611,7 +619,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid0 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -643,20 +651,27 @@ mod tests {
         id,
         RuneEntry {
           burned: 0,
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid0,
           rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
 
     assert_eq!(
       context.index.rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+      [(
+        OutPoint {
+          txid: txid0,
+          vout: 0
+        },
+        vec![(id, u128::max_value())]
+      )]
     );
 
-    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 1, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -680,17 +695,24 @@ mod tests {
         id,
         RuneEntry {
           burned: 0,
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid0,
           rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
 
     assert_eq!(
       context.index.rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+      [(
+        OutPoint {
+          txid: txid1,
+          vout: 0
+        },
+        vec![(id, u128::max_value())]
+      )]
     );
   }
 
@@ -702,7 +724,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid0 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -734,20 +756,27 @@ mod tests {
         id,
         RuneEntry {
           burned: 0,
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid0,
           rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
 
     assert_eq!(
       context.index.rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+      [(
+        OutPoint {
+          txid: txid0,
+          vout: 0
+        },
+        vec![(id, u128::max_value())]
+      )]
     );
 
-    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 1, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -767,17 +796,24 @@ mod tests {
         id,
         RuneEntry {
           burned: 0,
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid0,
           rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
 
     assert_eq!(
       context.index.rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+      [(
+        OutPoint {
+          txid: txid1,
+          vout: 0
+        },
+        vec![(id, u128::max_value())]
+      )]
     );
   }
 
@@ -790,7 +826,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid0 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -822,20 +858,27 @@ mod tests {
         id,
         RuneEntry {
           burned: 0,
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid0,
           rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
 
     assert_eq!(
       context.index.rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+      [(
+        OutPoint {
+          txid: txid0,
+          vout: 0
+        },
+        vec![(id, u128::max_value())]
+      )]
     );
 
-    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 1, 0, Witness::new())],
       op_return: None,
       ..Default::default()
@@ -849,17 +892,24 @@ mod tests {
         id,
         RuneEntry {
           burned: 0,
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid0,
           rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
 
     assert_eq!(
       context.index.rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+      [(
+        OutPoint {
+          txid: txid1,
+          vout: 0
+        },
+        vec![(id, u128::max_value())]
+      )]
     );
   }
 
@@ -903,10 +953,11 @@ mod tests {
         id,
         RuneEntry {
           burned: 0,
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid,
           rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -943,10 +994,11 @@ mod tests {
         id,
         RuneEntry {
           burned: 0,
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid,
           rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -997,10 +1049,11 @@ mod tests {
         id0,
         RuneEntry {
           burned: 0,
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid0,
           rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -1049,20 +1102,22 @@ mod tests {
           id0,
           RuneEntry {
             burned: 0,
-            rune: Rune(RUNE),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid0,
             rarity: Rarity::Uncommon,
+            rune: Rune(RUNE),
+            supply: u128::max_value(),
           }
         ),
         (
           id1,
           RuneEntry {
             burned: 0,
-            rune: Rune(RUNE + 1),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid1,
             rarity: Rarity::Uncommon,
+            rune: Rune(RUNE + 1),
+            supply: u128::max_value(),
           }
         )
       ]
@@ -1102,20 +1157,22 @@ mod tests {
           id0,
           RuneEntry {
             burned: 0,
-            rune: Rune(RUNE),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid0,
             rarity: Rarity::Uncommon,
+            rune: Rune(RUNE),
+            supply: u128::max_value(),
           }
         ),
         (
           id1,
           RuneEntry {
             burned: 0,
-            rune: Rune(RUNE + 1),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid1,
             rarity: Rarity::Uncommon,
+            rune: Rune(RUNE + 1),
+            supply: u128::max_value(),
           }
         )
       ]
@@ -1173,10 +1230,11 @@ mod tests {
         id0,
         RuneEntry {
           burned: 0,
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid0,
           rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -1225,20 +1283,22 @@ mod tests {
           id0,
           RuneEntry {
             burned: 0,
-            rune: Rune(RUNE),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid0,
             rarity: Rarity::Uncommon,
+            rune: Rune(RUNE),
+            supply: u128::max_value(),
           }
         ),
         (
           id1,
           RuneEntry {
             burned: 0,
-            rune: Rune(RUNE + 1),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid1,
             rarity: Rarity::Uncommon,
+            rune: Rune(RUNE + 1),
+            supply: u128::max_value(),
           }
         )
       ]
@@ -1278,20 +1338,22 @@ mod tests {
           id0,
           RuneEntry {
             burned: 0,
-            rune: Rune(RUNE),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid0,
             rarity: Rarity::Uncommon,
+            rune: Rune(RUNE),
+            supply: u128::max_value(),
           }
         ),
         (
           id1,
           RuneEntry {
             burned: 0,
-            rune: Rune(RUNE + 1),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid1,
             rarity: Rarity::Uncommon,
+            rune: Rune(RUNE + 1),
+            supply: u128::max_value(),
           }
         )
       ]
@@ -1341,20 +1403,22 @@ mod tests {
           id0,
           RuneEntry {
             burned: 0,
-            rune: Rune(RUNE),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid0,
             rarity: Rarity::Uncommon,
+            rune: Rune(RUNE),
+            supply: u128::max_value(),
           }
         ),
         (
           id1,
           RuneEntry {
             burned: 0,
-            rune: Rune(RUNE + 1),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid1,
             rarity: Rarity::Uncommon,
+            rune: Rune(RUNE + 1),
+            supply: u128::max_value(),
           }
         )
       ]
@@ -1424,10 +1488,11 @@ mod tests {
         id0,
         RuneEntry {
           burned: 0,
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid0,
           rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -1476,20 +1541,22 @@ mod tests {
           id0,
           RuneEntry {
             burned: 0,
-            rune: Rune(RUNE),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid0,
             rarity: Rarity::Uncommon,
+            rune: Rune(RUNE),
+            supply: u128::max_value(),
           }
         ),
         (
           id1,
           RuneEntry {
             burned: 0,
-            rune: Rune(RUNE + 1),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid1,
             rarity: Rarity::Uncommon,
+            rune: Rune(RUNE + 1),
+            supply: u128::max_value(),
           }
         )
       ]
@@ -1547,20 +1614,22 @@ mod tests {
           id0,
           RuneEntry {
             burned: 0,
-            rune: Rune(RUNE),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid0,
             rarity: Rarity::Uncommon,
+            rune: Rune(RUNE),
+            supply: u128::max_value(),
           }
         ),
         (
           id1,
           RuneEntry {
             burned: 0,
-            rune: Rune(RUNE + 1),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid1,
             rarity: Rarity::Uncommon,
+            rune: Rune(RUNE + 1),
+            supply: u128::max_value(),
           }
         )
       ]
@@ -1587,7 +1656,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid0 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -1619,17 +1688,24 @@ mod tests {
         id,
         RuneEntry {
           burned: 0,
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid0,
           rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
 
     assert_eq!(
       context.index.rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+      [(
+        OutPoint {
+          txid: txid0,
+          vout: 0
+        },
+        vec![(id, u128::max_value())]
+      )]
     );
 
     let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
@@ -1651,10 +1727,11 @@ mod tests {
         id,
         RuneEntry {
           burned: 0,
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid0,
           rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -1730,20 +1807,22 @@ mod tests {
           id0,
           RuneEntry {
             burned: 0,
-            rune: Rune(RUNE),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid0,
             rarity: Rarity::Uncommon,
+            rune: Rune(RUNE),
+            supply: u128::max_value(),
           }
         ),
         (
           id1,
           RuneEntry {
             burned: 0,
-            rune: Rune(RUNE + 1),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid1,
             rarity: Rarity::Common,
+            rune: Rune(RUNE + 1),
+            supply: u128::max_value(),
           }
         ),
       ]
@@ -1778,7 +1857,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid0 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -1810,20 +1889,27 @@ mod tests {
         id,
         RuneEntry {
           burned: 0,
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid0,
           rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
 
     assert_eq!(
       context.index.rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+      [(
+        OutPoint {
+          txid: txid0,
+          vout: 0
+        },
+        vec![(id, u128::max_value())]
+      )]
     );
 
-    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 1, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -1854,17 +1940,24 @@ mod tests {
         id,
         RuneEntry {
           burned: 0,
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid0,
           rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
 
     assert_eq!(
       context.index.rune_balances(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+      [(
+        OutPoint {
+          txid: txid1,
+          vout: 0
+        },
+        vec![(id, u128::max_value())]
+      )]
     );
   }
 
@@ -1908,10 +2001,11 @@ mod tests {
         id0,
         RuneEntry {
           burned: 0,
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid0,
           rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -1960,20 +2054,22 @@ mod tests {
           id0,
           RuneEntry {
             burned: 0,
-            rune: Rune(RUNE),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid0,
             rarity: Rarity::Uncommon,
+            rune: Rune(RUNE),
+            supply: u128::max_value(),
           }
         ),
         (
           id1,
           RuneEntry {
             burned: 0,
-            rune: Rune(RUNE + 1),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid1,
             rarity: Rarity::Uncommon,
+            rune: Rune(RUNE + 1),
+            supply: u128::max_value(),
           }
         )
       ]
@@ -2031,20 +2127,22 @@ mod tests {
           id0,
           RuneEntry {
             burned: 0,
-            rune: Rune(RUNE),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid0,
             rarity: Rarity::Uncommon,
+            rune: Rune(RUNE),
+            supply: u128::max_value(),
           }
         ),
         (
           id1,
           RuneEntry {
             burned: 0,
-            rune: Rune(RUNE + 1),
             divisibility: 0,
-            supply: u128::max_value(),
+            etching: txid1,
             rarity: Rarity::Uncommon,
+            rune: Rune(RUNE + 1),
+            supply: u128::max_value(),
           }
         )
       ]
@@ -2079,7 +2177,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid0 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -2111,10 +2209,11 @@ mod tests {
         id,
         RuneEntry {
           burned: 0,
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value() / 2,
+          etching: txid0,
           rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: u128::max_value() / 2,
         }
       )]
     );
@@ -2122,12 +2221,15 @@ mod tests {
     assert_eq!(
       context.index.rune_balances(),
       [(
-        OutPoint { txid, vout: 0 },
+        OutPoint {
+          txid: txid0,
+          vout: 0
+        },
         vec![(id, u128::max_value() / 2)]
       )]
     );
 
-    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(2, 1, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -2151,10 +2253,11 @@ mod tests {
         id,
         RuneEntry {
           burned: 0,
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value() / 2,
+          etching: txid0,
           rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: u128::max_value() / 2,
         }
       )]
     );
@@ -2162,7 +2265,10 @@ mod tests {
     assert_eq!(
       context.index.rune_balances(),
       [(
-        OutPoint { txid, vout: 0 },
+        OutPoint {
+          txid: txid1,
+          vout: 0
+        },
         vec![(id, u128::max_value() / 2)]
       )]
     );
@@ -2208,10 +2314,11 @@ mod tests {
         id,
         RuneEntry {
           burned: u128::max_value(),
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid,
           rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -2263,10 +2370,11 @@ mod tests {
         id,
         RuneEntry {
           burned: 0,
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid,
           rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );
@@ -2325,10 +2433,11 @@ mod tests {
         id,
         RuneEntry {
           burned: 0,
-          rune: Rune(RUNE),
           divisibility: 0,
-          supply: u128::max_value(),
+          etching: txid,
           rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
         }
       )]
     );

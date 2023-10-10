@@ -4,6 +4,7 @@ use super::*;
 pub(crate) struct RuneHtml {
   pub(crate) entry: RuneEntry,
   pub(crate) id: RuneId,
+  pub(crate) inscription: Option<InscriptionId>,
 }
 
 impl PageContent for RuneHtml {
@@ -17,8 +18,8 @@ mod tests {
   use {super::*, crate::runes::Rune};
 
   #[test]
-  fn supply_is_displayed_using_divisibility() {
-    assert_eq!(
+  fn display() {
+    assert_regex_match!(
       RuneHtml {
         entry: RuneEntry {
           burned: 123456789123456789,
@@ -26,13 +27,17 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(u128::max_value()),
           supply: 123456789123456789,
+          etching: Txid::all_zeros(),
         },
         id: RuneId {
           height: 10,
           index: 9,
         },
-      }
-      .to_string(),
+        inscription: Some(InscriptionId {
+          txid: Txid::all_zeros(),
+          index: 0,
+        }),
+      },
       "<h1>Rune BCGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
 <dl>
   <dt>id</dt>
@@ -45,6 +50,10 @@ mod tests {
   <dd>9</dd>
   <dt>rarity</dt>
   <dd><span class=uncommon>uncommon</span></dd>
+  <dt>etching</dt>
+  <dd><a class=monospace href=/tx/0{64}>0{64}</a></dd>
+  <dt>inscription</dt>
+  <dd><a class=monospace href=/inscription/0{64}i0>0{64}i0</a></dd>
 </dl>
 "
     );
