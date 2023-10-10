@@ -49,6 +49,7 @@ impl Inscription {
     chain: Chain,
     path: impl AsRef<Path>,
     parent: Option<InscriptionId>,
+    pointer: Option<u64>,
     metaprotocol: Option<String>,
     metadata: Option<Vec<u8>>,
   ) -> Result<Self, Error> {
@@ -71,6 +72,7 @@ impl Inscription {
       metadata,
       metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
       parent: parent.map(|id| id.parent_value()),
+      pointer: pointer.map(|pointer| pointer.to_le_bytes().to_vec()),
       ..Default::default()
     })
   }
@@ -127,6 +129,65 @@ impl Inscription {
 
   pub(crate) fn append_reveal_script(&self, builder: script::Builder) -> ScriptBuf {
     self.append_reveal_script_to_builder(builder).into_script()
+  }
+
+  pub(crate) fn append_batch_reveal_script_to_builder(
+    inscriptions: Vec<Inscription>,
+    mut builder: script::Builder,
+  ) -> script::Builder {
+    builder = builder
+      .push_opcode(opcodes::OP_FALSE)
+      .push_opcode(opcodes::all::OP_IF)
+      .push_slice(envelope::PROTOCOL_ID);
+
+    for inscription in inscriptions {
+      if let Some(content_type) = inscription.content_type.clone() {
+        builder = builder
+          .push_slice(envelope::CONTENT_TYPE_TAG)
+          .push_slice(PushBytesBuf::try_from(content_type).unwrap());
+      }
+
+      if let Some(protocol) = inscription.metaprotocol.clone() {
+        builder = builder
+          .push_slice(envelope::METAPROTOCOL_TAG)
+          .push_slice(PushBytesBuf::try_from(protocol).unwrap());
+      }
+
+      if let Some(parent) = inscription.parent.clone() {
+        builder = builder
+          .push_slice(envelope::PARENT_TAG)
+          .push_slice(PushBytesBuf::try_from(parent).unwrap());
+      }
+
+      if let Some(pointer) = inscription.pointer.clone() {
+        builder = builder
+          .push_slice(envelope::POINTER_TAG)
+          .push_slice(PushBytesBuf::try_from(pointer).unwrap());
+      }
+
+      if let Some(metadata) = &inscription.metadata {
+        for chunk in metadata.chunks(520) {
+          builder = builder.push_slice(envelope::METADATA_TAG);
+          builder = builder.push_slice(PushBytesBuf::try_from(chunk.to_vec()).unwrap());
+        }
+      }
+
+      if let Some(body) = &inscription.body {
+        builder = builder.push_slice(envelope::BODY_TAG);
+        for chunk in body.chunks(520) {
+          builder = builder.push_slice(PushBytesBuf::try_from(chunk.to_vec()).unwrap());
+        }
+      }
+    }
+
+    builder.push_opcode(opcodes::all::OP_ENDIF)
+  }
+
+  pub(crate) fn append_batch_reveal_script(
+    inscriptions: Vec<Inscription>,
+    builder: script::Builder,
+  ) -> ScriptBuf {
+    Inscription::append_batch_reveal_script_to_builder(inscriptions, builder).into_script()
   }
 
   pub(crate) fn media(&self) -> Media {
