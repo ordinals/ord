@@ -492,7 +492,7 @@ mod tests {
 
   #[test]
   fn divisibility_is_taken_from_lower_six_bits_of_parameter() {
-    let payload = payload(&[1, 2, 3, 4, 0b110_0000u128.into()]);
+    let payload = payload(&[1, 2, 3, 4, 0b110_0000]);
 
     let payload: &PushBytes = payload.as_slice().try_into().unwrap();
 
