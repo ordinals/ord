@@ -848,6 +848,17 @@ impl Index {
     }))
   }
 
+  pub(crate) fn inscription_exists(&self, inscription_id: InscriptionId) -> Result<bool> {
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(INSCRIPTION_ID_TO_SATPOINT)?
+        .get(&inscription_id.store())?
+        .is_some(),
+    )
+  }
+
   pub(crate) fn get_inscriptions_on_output_with_satpoints(
     &self,
     outpoint: OutPoint,
