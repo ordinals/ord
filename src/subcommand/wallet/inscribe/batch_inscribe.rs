@@ -61,19 +61,23 @@ mod tests {
     let tempdir = TempDir::new().unwrap();
     let batch_path = tempdir.path().join("batch.yaml");
     let inscription_path = tempdir.path().join("tulip.txt");
+    let metadata_path = tempdir.path().join("metadata.json");
+    let brc20_path = tempdir.path().join("token.json");
 
     fs::write(
       &batch_path,
       format!(
-        "mode: shared-output\nparent: {parent}\nbatch:\n- inscription: {}\n",
-        inscription_path.display()
+        "mode: shared-output\nparent: {parent}\nbatch:\n- inscription: {}\n  metadata: {}\n- inscription: {}\n  metaprotocol: brc-20\n",
+        inscription_path.display(),
+        metadata_path.display(),
+        brc20_path.display()
       ),
     )
     .unwrap();
 
     fs::write(&inscription_path, "tulips are pretty").unwrap();
 
-    assert_eq!(
+    pretty_assert_eq!(
       match Arguments::try_parse_from([
         "ord",
         "wallet",
@@ -90,10 +94,18 @@ mod tests {
         _ => panic!(),
       },
       BatchConfig {
-        batch: vec![BatchEntry {
-          inscription: inscription_path,
-          ..Default::default()
-        }],
+        batch: vec![
+          BatchEntry {
+            inscription: inscription_path,
+            metadata: Some(metadata_path),
+            ..Default::default()
+          },
+          BatchEntry {
+            inscription: brc20_path,
+            metaprotocol: Some("brc-20".to_string()),
+            ..Default::default()
+          }
+        ],
         parent: Some(parent),
         mode: Mode::SharedOutput,
       }
