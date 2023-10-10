@@ -59,7 +59,7 @@ impl Wallet {
   pub(crate) fn run(self, options: Options) -> SubcommandResult {
     match self {
       Self::Balance => balance::run(options),
-      Self::BatchInscribe(_batch_inscribe) => todo!(),
+      Self::BatchInscribe(batch_inscribe) => batch_inscribe.run(options),
       Self::Create(create) => create.run(options),
       Self::Inscribe(inscribe) => inscribe.run(options),
       Self::Inscriptions => inscriptions::run(options),

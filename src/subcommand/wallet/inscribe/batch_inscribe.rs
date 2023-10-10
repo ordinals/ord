@@ -12,7 +12,7 @@ pub(crate) struct BatchEntry {
 
 #[derive(Deserialize, Default, PartialEq, Debug)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct Batch {
+pub(crate) struct BatchConfig {
   batch: Vec<BatchEntry>,
   // mode: Option<Mode>,
 }
@@ -41,6 +41,11 @@ pub(crate) struct Batch {
 //  }
 //}
 
+#[derive(Serialize, Deserialize)]
+pub struct BatchOutput {
+  pub outputs: Vec<inscribe::Output>,
+}
+
 #[derive(Debug, Parser)]
 pub(crate) struct BatchInscribe {
   #[arg(long, help = "Don't sign or broadcast transactions.")]
@@ -52,13 +57,17 @@ pub(crate) struct BatchInscribe {
 }
 
 impl BatchInscribe {
-  pub(crate) fn run(self, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, _options: Options) -> SubcommandResult {
     let batch = self.load_batch()?;
 
-    Ok(todo!())
+    let _batch = batch.batch;
+
+    Ok(Box::new(BatchOutput {
+      outputs: Vec::new(),
+    }))
   }
 
-  pub(crate) fn load_batch(&self) -> Result<Batch> {
+  pub(crate) fn load_batch(&self) -> Result<BatchConfig> {
     Ok(serde_yaml::from_reader(File::open(self.file.clone())?)?)
   }
 }
@@ -100,13 +109,11 @@ mod tests {
       .unwrap()
       .subcommand
       {
-        Subcommand::Wallet(command) => match command {
-          wallet::Wallet::BatchInscribe(batch_inscribe) => batch_inscribe.load_batch().unwrap(),
-          _ => unreachable!(),
-        },
-        _ => unreachable!(),
+        Subcommand::Wallet(wallet::Wallet::BatchInscribe(batch_inscribe)) =>
+          batch_inscribe.load_batch().unwrap(),
+        _ => panic!(),
       },
-      Batch {
+      BatchConfig {
         batch: vec![BatchEntry {
           inscription: inscription_path,
           parent: Some(parent),
