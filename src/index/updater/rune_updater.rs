@@ -182,6 +182,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         continue;
       }
 
+      // increment burned balances
       if tx.output[vout].script_pubkey.is_op_return() {
         for (id, balance) in &balances {
           *burned.entry(*id).or_default() += balance;
@@ -210,6 +211,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       )?;
     }
 
+    // increment entries with burned runes
     for (id, amount) in burned {
       let id = RuneId::try_from(id).unwrap().store();
       let mut entry = RuneEntry::load(self.id_to_entry.get(id)?.unwrap().value());
