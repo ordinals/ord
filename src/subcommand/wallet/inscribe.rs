@@ -114,8 +114,7 @@ impl Inscribe {
       None => get_change_address(&client, &options)?,
     };
 
-    let parent_info =
-      Inscribe::get_parent_info(self.parent, &index, &utxos, &client, &options)?;
+    let parent_info = Inscribe::get_parent_info(self.parent, &index, &utxos, &client, &options)?;
 
     let (commit_tx, reveal_tx, recovery_key_pair, total_fees) =
       Inscribe::create_inscription_transactions(
@@ -206,7 +205,7 @@ impl Inscribe {
     }))
   }
 
-  fn parse_metadata(json: Option<PathBuf>, cbor: Option<PathBuf>) -> Result<Option<Vec<u8>>> {
+  fn parse_metadata(cbor: Option<PathBuf>, json: Option<PathBuf>) -> Result<Option<Vec<u8>>> {
     if let Some(path) = cbor {
       let cbor = fs::read(path)?;
       let _value: Value = ciborium::from_reader(Cursor::new(cbor.clone()))
@@ -239,7 +238,7 @@ impl Inscribe {
         }
 
         Ok(Some(ParentInfo {
-          destination: get_change_address(&client, &options)?,
+          destination: get_change_address(client, options)?,
           location: satpoint,
           tx_out: index
             .get_transaction(satpoint.outpoint.txid)?
@@ -250,7 +249,7 @@ impl Inscribe {
             .expect("current transaction output"),
         }))
       } else {
-        return Err(anyhow!(format!("parent {parent_id} does not exist")));
+        Err(anyhow!(format!("parent {parent_id} does not exist")))
       }
     } else {
       Ok(None)
