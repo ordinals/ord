@@ -1,29 +1,5 @@
 use super::*;
 
-#[derive(Deserialize, Default, PartialEq, Debug)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct BatchEntry {
-  inscription: PathBuf,
-  json_metadata: Option<PathBuf>,
-  metaprotocol: Option<String>,
-}
-
-impl BatchEntry {
-  fn metadata(&self) -> Result<Option<Vec<u8>>> {
-    Inscribe::parse_metadata(None, self.json_metadata.clone())
-  }
-}
-
-#[derive(Deserialize, PartialEq, Debug)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct BatchConfig {
-  batch: Vec<BatchEntry>,
-  dry_run: bool,
-  fee_rate: FeeRate,
-  parent: Option<InscriptionId>,
-  mode: Mode,
-}
-
 #[derive(Serialize, Deserialize)]
 pub struct Output {
   pub commit: Txid,
@@ -53,26 +29,6 @@ impl BatchInscribe {
     let parent_info =
       Inscribe::get_parent_info(batch_config.parent, &index, &utxos, &client, &options)?;
 
-    let mut pointer = if let Some(info) = parent_info.clone() {
-      info.tx_out.value // Inscribe in first sat after parent output
-    } else {
-      0
-    };
-
-    let mut inscriptions = Vec::new();
-    for entry in &batch_config.batch {
-      inscriptions.push(Inscription::from_file(
-        options.chain(),
-        &entry.inscription,
-        batch_config.parent,
-        Some(pointer),
-        entry.metaprotocol.clone(),
-        entry.metadata()?,
-      )?);
-
-      pointer += TransactionBuilder::TARGET_POSTAGE.to_sat();
-    }
-
     let wallet_inscriptions = index.get_inscriptions(utxos.clone())?;
 
     let commit_tx_change = [
@@ -82,17 +38,20 @@ impl BatchInscribe {
 
     let reveal_tx_destination = get_change_address(&client, &options)?;
 
+    let (inscriptions, postage) =
+      batch_config.inscriptions(options.chain(), parent_info.clone())?;
+
     let (commit_tx, reveal_tx, recovery_key_pair, total_fees) =
       BatchInscribe::create_batch_inscription_transactions(
-        &batch_config,
         parent_info,
         &inscriptions,
         wallet_inscriptions,
-        options.chain().network(),
+        options.chain(),
         utxos,
         commit_tx_change,
         reveal_tx_destination,
-        TransactionBuilder::TARGET_POSTAGE,
+        batch_config.fee_rate,
+        postage,
       )?;
 
     if batch_config.dry_run {
@@ -168,14 +127,14 @@ impl BatchInscribe {
   }
 
   fn create_batch_inscription_transactions(
-    batch_config: &BatchConfig,
     parent_info: Option<ParentInfo>,
     inscriptions: &Vec<Inscription>,
     wallet_inscriptions: BTreeMap<SatPoint, InscriptionId>,
-    network: Network,
+    chain: Chain,
     mut utxos: BTreeMap<OutPoint, Amount>,
     change: [Address; 2],
     destination: Address,
+    fee_rate: FeeRate,
     postage: Amount,
   ) -> Result<(Transaction, Transaction, TweakedKeyPair, u64)> {
     let satpoint = {
@@ -228,7 +187,7 @@ impl BatchInscribe {
       .control_block(&(reveal_script.clone(), LeafVersion::TapScript))
       .expect("should compute control block");
 
-    let commit_tx_address = Address::p2tr_tweaked(taproot_spend_info.output_key(), network);
+    let commit_tx_address = Address::p2tr_tweaked(taproot_spend_info.output_key(), chain.network());
 
     let mut inputs = vec![OutPoint::null()];
     let mut outputs = vec![TxOut {
@@ -256,7 +215,7 @@ impl BatchInscribe {
 
     let (_, reveal_fee) = Inscribe::build_reveal_transaction(
       &control_block,
-      batch_config.fee_rate,
+      fee_rate,
       inputs.clone(),
       commit_input,
       outputs.clone(),
@@ -269,7 +228,7 @@ impl BatchInscribe {
       utxos.clone(),
       commit_tx_address.clone(),
       change,
-      batch_config.fee_rate,
+      fee_rate,
       Target::Value(reveal_fee + postage),
     )
     .build_transaction()?;
@@ -293,7 +252,7 @@ impl BatchInscribe {
 
     let (mut reveal_tx, fee) = Inscribe::build_reveal_transaction(
       &control_block,
-      batch_config.fee_rate,
+      fee_rate,
       inputs,
       commit_input,
       outputs.clone(),
@@ -358,7 +317,7 @@ impl BatchInscribe {
     assert_eq!(
       Address::p2tr_tweaked(
         TweakedPublicKey::dangerous_assume_tweaked(x_only_pub_key),
-        network,
+        chain.network(),
       ),
       commit_tx_address
     );
@@ -512,5 +471,192 @@ mod tests {
         batch_inscribe.load_batch_config().is_err(),
       _ => panic!(),
     })
+  }
+
+  #[test]
+  fn batch_inscribe_with_parent() {
+    let utxos = vec![
+      (outpoint(1), Amount::from_sat(10_000)),
+      (outpoint(2), Amount::from_sat(50_000)),
+    ];
+
+    let parent = inscription_id(1);
+
+    let parent_info = ParentInfo {
+      destination: change(3),
+      location: SatPoint {
+        outpoint: outpoint(1),
+        offset: 0,
+      },
+      tx_out: TxOut {
+        script_pubkey: change(0).script_pubkey(),
+        value: 10000,
+      },
+    };
+
+    let mut wallet_inscriptions = BTreeMap::new();
+    wallet_inscriptions.insert(parent_info.location, parent);
+
+    let commit_address = change(1);
+    let reveal_address = recipient();
+
+    let batch_config = BatchConfig {
+      fee_rate: 4.0.try_into().unwrap(),
+      ..Default::default()
+    };
+
+    let inscriptions = vec![
+      inscription("text/plain", [b'O'; 100]),
+      inscription("text/plain", [b'O'; 111]),
+      inscription("text/plain", [b'O'; 222]),
+    ];
+
+    let postage = Amount::from_sat(30_000);
+
+    let (commit_tx, reveal_tx, _private_key, _) =
+      BatchInscribe::create_batch_inscription_transactions(
+        Some(parent_info.clone()),
+        &inscriptions,
+        wallet_inscriptions,
+        Chain::Signet,
+        utxos.into_iter().collect(),
+        [commit_address, change(2)],
+        reveal_address,
+        batch_config.fee_rate,
+        postage,
+      )
+      .unwrap();
+
+    let sig_vbytes = 17;
+    let fee = batch_config
+      .fee_rate
+      .fee(commit_tx.vsize() + sig_vbytes)
+      .to_sat();
+
+    let reveal_value = commit_tx
+      .output
+      .iter()
+      .map(|o| o.value)
+      .reduce(|acc, i| acc + i)
+      .unwrap();
+
+    assert_eq!(reveal_value, 50_000 - fee);
+
+    let sig_vbytes = 16;
+    let fee = batch_config
+      .fee_rate
+      .fee(reveal_tx.vsize() + sig_vbytes)
+      .to_sat();
+
+    assert_eq!(fee, commit_tx.output[0].value - reveal_tx.output[1].value,);
+    assert_eq!(
+      reveal_tx.output[0].script_pubkey,
+      parent_info.destination.script_pubkey()
+    );
+    assert_eq!(reveal_tx.output[0].value, parent_info.tx_out.value);
+    pretty_assert_eq!(
+      reveal_tx.input[0],
+      TxIn {
+        previous_output: parent_info.location.outpoint,
+        sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+        ..Default::default()
+      }
+    );
+  }
+
+  #[test]
+  fn batch_inscribe_with_parent_not_enough_cardinals_utxos() {
+    let utxos = vec![
+      (outpoint(1), Amount::from_sat(10_000)),
+      (outpoint(2), Amount::from_sat(20_000)),
+    ];
+
+    let parent = inscription_id(1);
+
+    let parent_info = ParentInfo {
+      destination: change(3),
+      location: SatPoint {
+        outpoint: outpoint(1),
+        offset: 0,
+      },
+      tx_out: TxOut {
+        script_pubkey: change(0).script_pubkey(),
+        value: 10000,
+      },
+    };
+
+    let mut wallet_inscriptions = BTreeMap::new();
+    wallet_inscriptions.insert(parent_info.location, parent);
+
+    let inscriptions = vec![
+      inscription("text/plain", [b'O'; 100]),
+      inscription("text/plain", [b'O'; 111]),
+      inscription("text/plain", [b'O'; 222]),
+    ];
+
+    let commit_address = change(1);
+    let reveal_address = recipient();
+    let batch_config = BatchConfig {
+      fee_rate: 4.0.try_into().unwrap(),
+      parent: Some(parent),
+      ..Default::default()
+    };
+
+    let error = BatchInscribe::create_batch_inscription_transactions(
+      Some(parent_info.clone()),
+      &inscriptions,
+      wallet_inscriptions,
+      Chain::Signet,
+      utxos.into_iter().collect(),
+      [commit_address, change(2)],
+      reveal_address,
+      batch_config.fee_rate,
+      Amount::from_sat(30_000),
+    )
+    .unwrap_err()
+    .to_string();
+
+    assert!(error.contains(
+      "wallet does not contain enough cardinal UTXOs, please add additional funds to wallet."
+    ));
+  }
+
+  #[test]
+  fn batch_inscribe_over_max_standard_tx_weight() {
+    let utxos = vec![(outpoint(1), Amount::from_sat(50 * COIN_VALUE))];
+
+    let wallet_inscriptions = BTreeMap::new();
+
+    let inscriptions = vec![
+      inscription("text/plain", [0; MAX_STANDARD_TX_WEIGHT as usize / 3]),
+      inscription("text/plain", [0; MAX_STANDARD_TX_WEIGHT as usize / 3]),
+      inscription("text/plain", [0; MAX_STANDARD_TX_WEIGHT as usize / 3]),
+    ];
+
+    let commit_address = change(1);
+    let reveal_address = recipient();
+    let batch_config = BatchConfig {
+      ..Default::default()
+    };
+
+    let error = BatchInscribe::create_batch_inscription_transactions(
+      None,
+      &inscriptions,
+      wallet_inscriptions,
+      Chain::Signet,
+      utxos.into_iter().collect(),
+      [commit_address, change(2)],
+      reveal_address,
+      batch_config.fee_rate,
+      Amount::from_sat(30_000),
+    )
+    .unwrap_err()
+    .to_string();
+
+    assert!(
+      error.contains(&format!("reveal transaction weight greater than {MAX_STANDARD_TX_WEIGHT} (MAX_STANDARD_TX_WEIGHT): 402841")),
+      "{}",
+      error
+    );
   }
 }

@@ -18,9 +18,10 @@ use {
   std::collections::BTreeSet,
 };
 
+mod batch;
 pub mod batch_inscribe;
 mod mode;
-use mode::Mode;
+use {batch::*, mode::Mode};
 
 #[derive(Serialize, Deserialize)]
 pub struct Output {
@@ -32,7 +33,7 @@ pub struct Output {
 }
 
 #[derive(Clone)]
-struct ParentInfo {
+pub(crate) struct ParentInfo {
   destination: Address,
   location: SatPoint,
   tx_out: TxOut,
