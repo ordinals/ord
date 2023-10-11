@@ -13,6 +13,7 @@ enum Origin {
     cursed: bool,
     fee: u64,
     parent: Option<InscriptionId>,
+    pointer: Option<u64>,
     unbound: bool,
   },
   Old {
@@ -246,6 +247,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
             cursed,
             fee: 0,
             parent: inscription.payload.parent(),
+            pointer: inscription.payload.pointer(),
             unbound,
           },
         });
@@ -287,6 +289,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
               cursed,
               fee: _,
               parent,
+              pointer,
               unbound,
             },
         } = flotsam
@@ -298,6 +301,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
               fee: (total_input_value - total_output_value) / u64::from(id_counter),
               cursed,
               parent,
+              pointer,
               unbound,
             },
           }
@@ -320,6 +324,8 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     floating_inscriptions.sort_by_key(|flotsam| flotsam.offset);
     let mut inscriptions = floating_inscriptions.into_iter().peekable();
 
+    let mut range_to_vout = BTreeMap::new();
+    let mut new_locations = Vec::new();
     let mut output_value = 0;
     for (vout, tx_out) in tx.output.iter().enumerate() {
       let end = output_value + tx_out.value;
@@ -337,12 +343,10 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           offset: flotsam.offset - output_value,
         };
 
-        self.update_inscription_location(
-          input_sat_ranges,
-          inscriptions.next().unwrap(),
-          new_satpoint,
-        )?;
+        new_locations.push((new_satpoint, inscriptions.next().unwrap()));
       }
+
+      range_to_vout.insert((output_value, end), vout.try_into().unwrap());
 
       output_value = end;
 
@@ -353,6 +357,31 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         },
         tx_out.value,
       );
+    }
+
+    for (new_satpoint, mut flotsam) in new_locations.into_iter() {
+      let new_satpoint = match flotsam.origin {
+        Origin::New {
+          pointer: Some(pointer),
+          ..
+        } if pointer < output_value => {
+          match range_to_vout.iter().find_map(|((start, end), vout)| {
+            (pointer >= *start && pointer < *end).then(|| (vout, pointer - start))
+          }) {
+            Some((vout, offset)) => {
+              flotsam.offset = pointer;
+              SatPoint {
+                outpoint: OutPoint { txid, vout: *vout },
+                offset,
+              }
+            }
+            _ => new_satpoint,
+          }
+        }
+        _ => new_satpoint,
+      };
+
+      self.update_inscription_location(input_sat_ranges, flotsam, new_satpoint)?;
     }
 
     if is_coinbase {
@@ -413,6 +442,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
         fee,
         parent,
         unbound,
+        ..
       } => {
         let inscription_number = if cursed {
           let number: i64 = self.cursed_inscription_count.try_into().unwrap();
