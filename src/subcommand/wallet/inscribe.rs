@@ -833,6 +833,7 @@ mod tests {
       inscriptions,
       bitcoin::Network::Signet,
       utxos.into_iter().collect(),
+      BTreeSet::new(),
       [commit_address, change(2)],
       reveal_address,
       FeeRate::try_from(fee_rate).unwrap(),
