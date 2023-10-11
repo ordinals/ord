@@ -157,11 +157,18 @@ build-snapshots:
     printf "$height_limit\t$((b - a))\n" >> time.txt
   done
 
-serve-docs:
-  mdbook serve docs --open
+serve-docs: build-docs
+  open http://127.0.0.1:8080
+  python3 -m http.server --directory docs/build/html --bind 127.0.0.1 8080
 
 build-docs:
-  mdbook build docs
+  #!/usr/bin/env bash
+  mdbook build docs -d build
+  for lang in "fr" "zh" "ja" "es" "fil" "ru"; do
+    MDBOOK_BOOK__LANGUAGE=$lang \
+      mdbook build docs -d build/$lang
+    mv docs/build/$lang/html docs/build/html/$lang
+  done
 
 update-changelog:
   echo >> CHANGELOG.md

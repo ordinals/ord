@@ -1,60 +1,65 @@
 use {super::*, bitcoincore_rpc::Auth};
 
 #[derive(Clone, Default, Debug, Parser)]
-#[clap(group(
+#[command(group(
   ArgGroup::new("chains")
     .required(false)
-    .args(&["chain-argument", "signet", "regtest", "testnet"]),
+    .args(&["chain_argument", "signet", "regtest", "testnet"]),
 ))]
 pub(crate) struct Options {
-  #[clap(long, help = "Load Bitcoin Core data dir from <BITCOIN_DATA_DIR>.")]
+  #[arg(long, help = "Load Bitcoin Core data dir from <BITCOIN_DATA_DIR>.")]
   pub(crate) bitcoin_data_dir: Option<PathBuf>,
-  #[clap(long, help = "Authenticate to Bitcoin Core RPC with <RPC_PASS>.")]
+  #[arg(long, help = "Authenticate to Bitcoin Core RPC with <RPC_PASS>.")]
   pub(crate) bitcoin_rpc_pass: Option<String>,
-  #[clap(long, help = "Authenticate to Bitcoin Core RPC as <RPC_USER>.")]
+  #[arg(long, help = "Authenticate to Bitcoin Core RPC as <RPC_USER>.")]
   pub(crate) bitcoin_rpc_user: Option<String>,
-  #[clap(
+  #[arg(
     long = "chain",
-    arg_enum,
+    value_enum,
     default_value = "mainnet",
     help = "Use <CHAIN>."
   )]
   pub(crate) chain_argument: Chain,
-  #[clap(long, help = "Load configuration from <CONFIG>.")]
+  #[arg(long, help = "Load configuration from <CONFIG>.")]
   pub(crate) config: Option<PathBuf>,
-  #[clap(long, help = "Load configuration from <CONFIG_DIR>.")]
+  #[arg(long, help = "Load configuration from <CONFIG_DIR>.")]
   pub(crate) config_dir: Option<PathBuf>,
-  #[clap(long, help = "Load Bitcoin Core RPC cookie file from <COOKIE_FILE>.")]
+  #[arg(long, help = "Load Bitcoin Core RPC cookie file from <COOKIE_FILE>.")]
   pub(crate) cookie_file: Option<PathBuf>,
-  #[clap(long, help = "Store index in <DATA_DIR>.")]
+  #[arg(long, help = "Store index in <DATA_DIR>.")]
   pub(crate) data_dir: Option<PathBuf>,
-  #[clap(
+  #[arg(
     long,
     help = "Set index cache to <DB_CACHE_SIZE> bytes. By default takes 1/4 of available RAM."
   )]
   pub(crate) db_cache_size: Option<usize>,
-  #[clap(
+  #[arg(
     long,
     help = "Don't look for inscriptions below <FIRST_INSCRIPTION_HEIGHT>."
   )]
   pub(crate) first_inscription_height: Option<u64>,
-  #[clap(long, help = "Limit index to <HEIGHT_LIMIT> blocks.")]
+  #[arg(long, help = "Limit index to <HEIGHT_LIMIT> blocks.")]
   pub(crate) height_limit: Option<u64>,
-  #[clap(long, help = "Use index at <INDEX>.")]
+  #[arg(long, help = "Use index at <INDEX>.")]
   pub(crate) index: Option<PathBuf>,
-  #[clap(long, help = "Track location of all satoshis.")]
+  #[arg(
+    long,
+    help = "Track location of runes. RUNES ARE IN AN UNFINISHED PRE-ALPHA STATE AND SUBJECT TO CHANGE AT ANY TIME."
+  )]
+  pub(crate) index_runes_pre_alpha_i_agree_to_get_rekt: bool,
+  #[arg(long, help = "Track location of all satoshis.")]
   pub(crate) index_sats: bool,
-  #[clap(long, short, help = "Use regtest. Equivalent to `--chain regtest`.")]
+  #[arg(long, short, help = "Use regtest. Equivalent to `--chain regtest`.")]
   pub(crate) regtest: bool,
-  #[clap(long, help = "Connect to Bitcoin Core RPC at <RPC_URL>.")]
+  #[arg(long, help = "Connect to Bitcoin Core RPC at <RPC_URL>.")]
   pub(crate) rpc_url: Option<String>,
-  #[clap(long, short, help = "Use signet. Equivalent to `--chain signet`.")]
+  #[arg(long, short, help = "Use signet. Equivalent to `--chain signet`.")]
   pub(crate) signet: bool,
-  #[clap(long, short, help = "Use testnet. Equivalent to `--chain testnet`.")]
+  #[arg(long, short, help = "Use testnet. Equivalent to `--chain testnet`.")]
   pub(crate) testnet: bool,
-  #[clap(long, default_value = "ord", help = "Use wallet named <WALLET>.")]
+  #[arg(long, default_value = "ord", help = "Use wallet named <WALLET>.")]
   pub(crate) wallet: String,
-  #[clap(long, short, help = "Enable JSON API.")]
+  #[arg(long, short = 'j', help = "Enable JSON API.")]
   pub(crate) enable_json_api: bool,
 }
 
@@ -81,6 +86,10 @@ impl Options {
         .first_inscription_height
         .unwrap_or_else(|| self.chain().first_inscription_height())
     }
+  }
+
+  pub(crate) fn index_runes(&self) -> bool {
+    self.index_runes_pre_alpha_i_agree_to_get_rekt && self.chain() != Chain::Mainnet
   }
 
   pub(crate) fn rpc_url(&self) -> String {
@@ -284,7 +293,7 @@ mod tests {
         "--rpc-url=127.0.0.1:1234",
         "--chain=signet",
         "index",
-        "run"
+        "update"
       ])
       .unwrap()
       .options
@@ -301,7 +310,7 @@ mod tests {
         "--cookie-file=/foo/bar",
         "--chain=signet",
         "index",
-        "run"
+        "update"
       ])
       .unwrap()
       .options
@@ -313,7 +322,7 @@ mod tests {
 
   #[test]
   fn use_default_network() {
-    let arguments = Arguments::try_parse_from(["ord", "index", "run"]).unwrap();
+    let arguments = Arguments::try_parse_from(["ord", "index", "update"]).unwrap();
 
     assert_eq!(arguments.options.rpc_url(), "127.0.0.1:8332/wallet/ord");
 
@@ -326,7 +335,8 @@ mod tests {
 
   #[test]
   fn uses_network_defaults() {
-    let arguments = Arguments::try_parse_from(["ord", "--chain=signet", "index", "run"]).unwrap();
+    let arguments =
+      Arguments::try_parse_from(["ord", "--chain=signet", "index", "update"]).unwrap();
 
     assert_eq!(arguments.options.rpc_url(), "127.0.0.1:38332/wallet/ord");
 
@@ -345,7 +355,7 @@ mod tests {
 
   #[test]
   fn mainnet_cookie_file_path() {
-    let cookie_file = Arguments::try_parse_from(["ord", "index", "run"])
+    let cookie_file = Arguments::try_parse_from(["ord", "index", "update"])
       .unwrap()
       .options
       .cookie_file()
@@ -364,7 +374,8 @@ mod tests {
 
   #[test]
   fn othernet_cookie_file_path() {
-    let arguments = Arguments::try_parse_from(["ord", "--chain=signet", "index", "run"]).unwrap();
+    let arguments =
+      Arguments::try_parse_from(["ord", "--chain=signet", "index", "update"]).unwrap();
 
     let cookie_file = arguments
       .options
@@ -389,7 +400,7 @@ mod tests {
       "--bitcoin-data-dir=foo",
       "--chain=signet",
       "index",
-      "run",
+      "update",
     ])
     .unwrap();
 
@@ -409,7 +420,7 @@ mod tests {
 
   #[test]
   fn mainnet_data_dir() {
-    let data_dir = Arguments::try_parse_from(["ord", "index", "run"])
+    let data_dir = Arguments::try_parse_from(["ord", "index", "update"])
       .unwrap()
       .options
       .data_dir()
@@ -424,7 +435,7 @@ mod tests {
 
   #[test]
   fn othernet_data_dir() {
-    let data_dir = Arguments::try_parse_from(["ord", "--chain=signet", "index", "run"])
+    let data_dir = Arguments::try_parse_from(["ord", "--chain=signet", "index", "update"])
       .unwrap()
       .options
       .data_dir()
@@ -443,14 +454,20 @@ mod tests {
 
   #[test]
   fn network_is_joined_with_data_dir() {
-    let data_dir =
-      Arguments::try_parse_from(["ord", "--chain=signet", "--data-dir", "foo", "index", "run"])
-        .unwrap()
-        .options
-        .data_dir()
-        .unwrap()
-        .display()
-        .to_string();
+    let data_dir = Arguments::try_parse_from([
+      "ord",
+      "--chain=signet",
+      "--data-dir",
+      "foo",
+      "index",
+      "update",
+    ])
+    .unwrap()
+    .options
+    .data_dir()
+    .unwrap()
+    .display()
+    .to_string();
     assert!(
       data_dir.ends_with(if cfg!(windows) {
         r"foo\signet"
@@ -464,7 +481,7 @@ mod tests {
   #[test]
   fn network_accepts_aliases() {
     fn check_network_alias(alias: &str, suffix: &str) {
-      let data_dir = Arguments::try_parse_from(["ord", "--chain", alias, "index", "run"])
+      let data_dir = Arguments::try_parse_from(["ord", "--chain", alias, "index", "update"])
         .unwrap()
         .options
         .data_dir()
@@ -539,51 +556,51 @@ mod tests {
 
   #[test]
   fn chain_flags() {
-    Arguments::try_parse_from(["ord", "--signet", "--chain", "signet", "index", "run"])
+    Arguments::try_parse_from(["ord", "--signet", "--chain", "signet", "index", "update"])
       .unwrap_err();
     assert_eq!(
-      Arguments::try_parse_from(["ord", "--signet", "index", "run"])
+      Arguments::try_parse_from(["ord", "--signet", "index", "update"])
         .unwrap()
         .options
         .chain(),
       Chain::Signet
     );
     assert_eq!(
-      Arguments::try_parse_from(["ord", "-s", "index", "run"])
+      Arguments::try_parse_from(["ord", "-s", "index", "update"])
         .unwrap()
         .options
         .chain(),
       Chain::Signet
     );
 
-    Arguments::try_parse_from(["ord", "--regtest", "--chain", "signet", "index", "run"])
+    Arguments::try_parse_from(["ord", "--regtest", "--chain", "signet", "index", "update"])
       .unwrap_err();
     assert_eq!(
-      Arguments::try_parse_from(["ord", "--regtest", "index", "run"])
+      Arguments::try_parse_from(["ord", "--regtest", "index", "update"])
         .unwrap()
         .options
         .chain(),
       Chain::Regtest
     );
     assert_eq!(
-      Arguments::try_parse_from(["ord", "-r", "index", "run"])
+      Arguments::try_parse_from(["ord", "-r", "index", "update"])
         .unwrap()
         .options
         .chain(),
       Chain::Regtest
     );
 
-    Arguments::try_parse_from(["ord", "--testnet", "--chain", "signet", "index", "run"])
+    Arguments::try_parse_from(["ord", "--testnet", "--chain", "signet", "index", "update"])
       .unwrap_err();
     assert_eq!(
-      Arguments::try_parse_from(["ord", "--testnet", "index", "run"])
+      Arguments::try_parse_from(["ord", "--testnet", "index", "update"])
         .unwrap()
         .options
         .chain(),
       Chain::Testnet
     );
     assert_eq!(
-      Arguments::try_parse_from(["ord", "-t", "index", "run"])
+      Arguments::try_parse_from(["ord", "-t", "index", "update"])
         .unwrap()
         .options
         .chain(),
@@ -613,7 +630,7 @@ mod tests {
   #[test]
   fn default_config_is_returned_if_config_option_is_not_passed() {
     assert_eq!(
-      Arguments::try_parse_from(["ord", "index", "run"])
+      Arguments::try_parse_from(["ord", "index", "update"])
         .unwrap()
         .options
         .load_config()
@@ -633,7 +650,7 @@ mod tests {
     fs::write(&path, format!("hidden:\n- \"{id}\"")).unwrap();
 
     assert_eq!(
-      Arguments::try_parse_from(["ord", "--config", path.to_str().unwrap(), "index", "run"])
+      Arguments::try_parse_from(["ord", "--config", path.to_str().unwrap(), "index", "update"])
         .unwrap()
         .options
         .load_config()
@@ -656,7 +673,7 @@ mod tests {
     .unwrap();
 
     assert_eq!(
-      Arguments::try_parse_from(["ord", "--config", path.to_str().unwrap(), "index", "run"])
+      Arguments::try_parse_from(["ord", "--config", path.to_str().unwrap(), "index", "update"])
         .unwrap()
         .options
         .load_config()
@@ -689,7 +706,7 @@ mod tests {
         "--config-dir",
         tempdir.path().to_str().unwrap(),
         "index",
-        "run"
+        "update"
       ])
       .unwrap()
       .options
@@ -779,7 +796,35 @@ mod tests {
   #[test]
   fn setting_db_cache_size() {
     let arguments =
-      Arguments::try_parse_from(["ord", "--db-cache-size", "16000000000", "index", "run"]).unwrap();
+      Arguments::try_parse_from(["ord", "--db-cache-size", "16000000000", "index", "update"])
+        .unwrap();
     assert_eq!(arguments.options.db_cache_size, Some(16000000000));
+  }
+
+  #[test]
+  fn index_runes_only_returns_true_if_index_runes_flag_is_passed_and_not_on_mainnnet() {
+    assert!(Arguments::try_parse_from([
+      "ord",
+      "--chain=signet",
+      "--index-runes-pre-alpha-i-agree-to-get-rekt",
+      "index",
+      "update"
+    ])
+    .unwrap()
+    .options
+    .index_runes(),);
+    assert!(!Arguments::try_parse_from([
+      "ord",
+      "--index-runes-pre-alpha-i-agree-to-get-rekt",
+      "index",
+      "update"
+    ])
+    .unwrap()
+    .options
+    .index_runes(),);
+    assert!(!Arguments::try_parse_from(["ord", "index", "update"])
+      .unwrap()
+      .options
+      .index_runes(),);
   }
 }

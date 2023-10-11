@@ -23,6 +23,7 @@ use {
   serde::de::DeserializeOwned,
   std::{
     fs,
+    io::Write,
     net::TcpListener,
     path::Path,
     process::{Child, Command, Stdio},
@@ -92,6 +93,7 @@ mod expected;
 mod test_server;
 
 mod core;
+mod decode;
 mod epochs;
 mod find;
 mod index;

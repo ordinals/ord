@@ -22,7 +22,8 @@ use {
     GetNetworkInfoResult, GetRawTransactionResult, GetTransactionResult,
     GetTransactionResultDetail, GetTransactionResultDetailCategory, GetWalletInfoResult,
     ImportDescriptors, ImportMultiResult, ListDescriptorsResult, ListTransactionResult,
-    ListUnspentResultEntry, LoadWalletResult, SignRawTransactionResult, Timestamp, WalletTxInfo,
+    ListUnspentResultEntry, LoadWalletResult, SignRawTransactionInput, SignRawTransactionResult,
+    Timestamp, WalletTxInfo,
   },
   jsonrpc_core::{IoHandler, Value},
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
@@ -119,10 +120,11 @@ pub fn spawn() -> Handle {
 #[derive(Clone)]
 pub struct TransactionTemplate<'a> {
   pub fee: u64,
-  pub inputs: &'a [(usize, usize, usize)],
+  pub inputs: &'a [(usize, usize, usize, Witness)],
+  pub op_return: Option<ScriptBuf>,
+  pub op_return_index: Option<usize>,
   pub output_values: &'a [u64],
   pub outputs: usize,
-  pub witness: Witness,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -152,9 +154,10 @@ impl<'a> Default for TransactionTemplate<'a> {
     Self {
       fee: 0,
       inputs: &[],
+      op_return: None,
+      op_return_index: None,
       output_values: &[],
       outputs: 1,
-      witness: Witness::default(),
     }
   }
 }

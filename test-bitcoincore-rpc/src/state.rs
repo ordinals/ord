@@ -131,24 +131,25 @@ impl State {
   pub(crate) fn broadcast_tx(&mut self, template: TransactionTemplate) -> Txid {
     let mut total_value = 0;
     let mut input = Vec::new();
-    for (height, tx, vout) in template.inputs.iter() {
+    for (height, tx, vout, witness) in template.inputs.iter() {
       let tx = &self.blocks.get(&self.hashes[*height]).unwrap().txdata[*tx];
       total_value += tx.output[*vout].value;
       input.push(TxIn {
         previous_output: OutPoint::new(tx.txid(), *vout as u32),
         script_sig: ScriptBuf::new(),
         sequence: Sequence::MAX,
-        witness: template.witness.clone(),
+        witness: witness.clone(),
       });
     }
 
     let value_per_output = (total_value - template.fee) / template.outputs as u64;
+
     assert_eq!(
       value_per_output * template.outputs as u64 + template.fee,
       total_value
     );
 
-    let tx = Transaction {
+    let mut tx = Transaction {
       version: 0,
       lock_time: LockTime::ZERO,
       input,
@@ -163,6 +164,17 @@ impl State {
         })
         .collect(),
     };
+
+    if let Some(script_pubkey) = template.op_return {
+      tx.output.insert(
+        template.op_return_index.unwrap_or(tx.output.len()),
+        TxOut {
+          value: 0,
+          script_pubkey,
+        },
+      );
+    }
+
     self.mempool.push(tx.clone());
 
     tx.txid()

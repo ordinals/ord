@@ -2,7 +2,7 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct List {
-  #[clap(help = "List sats in <OUTPOINT>.")]
+  #[arg(help = "List sats in <OUTPOINT>.")]
   outpoint: OutPoint,
 }
 

@@ -241,15 +241,16 @@ impl Api for Server {
   fn sign_raw_transaction_with_wallet(
     &self,
     tx: String,
-    utxos: Option<()>,
+    _utxos: Option<Vec<SignRawTransactionInput>>,
     sighash_type: Option<()>,
   ) -> Result<Value, jsonrpc_core::Error> {
-    assert_eq!(utxos, None, "utxos param not supported");
     assert_eq!(sighash_type, None, "sighash_type param not supported");
 
     let mut transaction: Transaction = deserialize(&hex::decode(tx).unwrap()).unwrap();
     for input in &mut transaction.input {
-      input.witness = Witness::from_slice(&[&[0; 64]]);
+      if input.witness.is_empty() {
+        input.witness = Witness::from_slice(&[&[0; 64]]);
+      }
     }
 
     Ok(
@@ -293,13 +294,15 @@ impl Api for Server {
     assert_eq!(verbose, None);
 
     let mut state = self.state.lock().unwrap();
-    let locked = state.locked.iter().cloned().collect();
+    let locked = state.locked.iter().cloned().collect::<Vec<OutPoint>>();
 
     let value = Amount::from_btc(amount).expect("error converting amount to sat");
 
-    let utxo = state.utxos.first_entry().expect("failed to get a utxo");
-    let outpoint = utxo.key();
-    let utxo_amount = utxo.get();
+    let (outpoint, utxo_amount) = state
+      .utxos
+      .iter()
+      .find(|(outpoint, amount)| *amount >= &value && !locked.contains(outpoint))
+      .expect("failed to get a utxo");
 
     let mut transaction = Transaction {
       version: 1,

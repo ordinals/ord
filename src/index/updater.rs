@@ -1,5 +1,5 @@
 use {
-  self::inscription_updater::InscriptionUpdater,
+  self::{inscription_updater::InscriptionUpdater, rune_updater::RuneUpdater},
   super::{fetcher::Fetcher, *},
   futures::future::try_join_all,
   std::sync::mpsc,
@@ -7,6 +7,7 @@ use {
 };
 
 mod inscription_updater;
+mod rune_updater;
 
 pub(crate) struct BlockData {
   pub(crate) header: Header,
@@ -377,20 +378,48 @@ impl<'index> Updater<'_> {
       }
     }
 
+    if index.options.index_runes() {
+      let mut outpoint_to_rune_balances = wtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
+      let mut rune_id_to_rune_entry = wtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
+      let mut rune_to_rune_id = wtx.open_table(RUNE_TO_RUNE_ID)?;
+      let mut rune_updater = RuneUpdater::new(
+        self.height,
+        &mut outpoint_to_rune_balances,
+        &mut rune_id_to_rune_entry,
+        &mut rune_to_rune_id,
+      );
+      for (i, (tx, txid)) in block.txdata.iter().enumerate() {
+        rune_updater.index_runes(i, tx, *txid)?;
+      }
+    }
+
     let mut height_to_block_hash = wtx.open_table(HEIGHT_TO_BLOCK_HASH)?;
+    let mut height_to_last_sequence_number = wtx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
     let mut inscription_id_to_inscription_entry =
       wtx.open_table(INSCRIPTION_ID_TO_INSCRIPTION_ENTRY)?;
     let mut inscription_id_to_satpoint = wtx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
     let mut inscription_number_to_inscription_id =
       wtx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
-    let mut reinscription_id_to_seq_num = wtx.open_table(REINSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
     let mut sat_to_inscription_id = wtx.open_multimap_table(SAT_TO_INSCRIPTION_ID)?;
+    let mut inscription_id_to_children = wtx.open_multimap_table(INSCRIPTION_ID_TO_CHILDREN)?;
     let mut satpoint_to_inscription_id = wtx.open_multimap_table(SATPOINT_TO_INSCRIPTION_ID)?;
+    let mut sequence_number_to_inscription_id =
+      wtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ID)?;
     let mut statistic_to_count = wtx.open_table(STATISTIC_TO_COUNT)?;
 
     let mut lost_sats = statistic_to_count
       .get(&Statistic::LostSats.key())?
       .map(|lost_sats| lost_sats.value())
+      .unwrap_or(0);
+
+    let cursed_inscription_count = statistic_to_count
+      .get(&Statistic::CursedInscriptions.key())?
+      .map(|count| count.value())
+      .unwrap_or(0);
+
+    let blessed_inscription_count = statistic_to_count
+      .get(&Statistic::BlessedInscriptions.key())?
+      .map(|count| count.value())
       .unwrap_or(0);
 
     let unbound_inscriptions = statistic_to_count
@@ -400,13 +429,16 @@ impl<'index> Updater<'_> {
 
     let mut inscription_updater = InscriptionUpdater::new(
       self.height,
+      &mut inscription_id_to_children,
       &mut inscription_id_to_satpoint,
       value_receiver,
       &mut inscription_id_to_inscription_entry,
       lost_sats,
       &mut inscription_number_to_inscription_id,
+      cursed_inscription_count,
+      blessed_inscription_count,
+      &mut sequence_number_to_inscription_id,
       &mut outpoint_to_value,
-      &mut reinscription_id_to_seq_num,
       &mut sat_to_inscription_id,
       &mut satpoint_to_inscription_id,
       block.header.time,
@@ -506,11 +538,27 @@ impl<'index> Updater<'_> {
       }
     } else {
       for (tx, txid) in block.txdata.iter().skip(1).chain(block.txdata.first()) {
-        inscription_updater.index_transaction_inscriptions(tx, *txid, None)?;
+        inscription_updater.index_envelopes(tx, *txid, None)?;
       }
     }
 
+    self.index_block_inscription_numbers(
+      &mut height_to_last_sequence_number,
+      &inscription_updater,
+      index_inscriptions,
+    )?;
+
     statistic_to_count.insert(&Statistic::LostSats.key(), &inscription_updater.lost_sats)?;
+
+    statistic_to_count.insert(
+      &Statistic::CursedInscriptions.key(),
+      &inscription_updater.cursed_inscription_count,
+    )?;
+
+    statistic_to_count.insert(
+      &Statistic::BlessedInscriptions.key(),
+      &inscription_updater.blessed_inscription_count,
+    )?;
 
     statistic_to_count.insert(
       &Statistic::UnboundInscriptions.key(),
@@ -542,7 +590,7 @@ impl<'index> Updater<'_> {
     index_inscriptions: bool,
   ) -> Result {
     if index_inscriptions {
-      inscription_updater.index_transaction_inscriptions(tx, txid, Some(input_sat_ranges))?;
+      inscription_updater.index_envelopes(tx, txid, Some(input_sat_ranges))?;
     }
 
     for (vout, output) in tx.output.iter().enumerate() {
@@ -592,6 +640,21 @@ impl<'index> Updater<'_> {
       self.range_cache.insert(outpoint.store(), sats);
       self.outputs_inserted_since_flush += 1;
     }
+
+    Ok(())
+  }
+
+  fn index_block_inscription_numbers(
+    &mut self,
+    height_to_sequence_number: &mut Table<u64, u64>,
+    inscription_updater: &InscriptionUpdater,
+    index_inscription: bool,
+  ) -> Result {
+    if !index_inscription {
+      return Ok(());
+    }
+
+    height_to_sequence_number.insert(&self.height, inscription_updater.next_sequence_number)?;
 
     Ok(())
   }

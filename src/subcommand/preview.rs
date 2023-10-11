@@ -2,7 +2,7 @@ use {super::*, fee_rate::FeeRate};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Preview {
-  #[clap(flatten)]
+  #[command(flatten)]
   server: super::server::Server,
   inscriptions: Vec<PathBuf>,
 }
@@ -79,15 +79,20 @@ impl Preview {
         options: options.clone(),
         subcommand: Subcommand::Wallet(super::wallet::Wallet::Inscribe(
           super::wallet::inscribe::Inscribe {
-            fee_rate: FeeRate::try_from(1.0).unwrap(),
+            cbor_metadata: None,
             commit_fee_rate: None,
-            file,
-            no_backup: true,
-            satpoint: None,
-            dry_run: false,
-            no_limit: false,
             destination: None,
+            dry_run: false,
+            fee_rate: FeeRate::try_from(1.0).unwrap(),
+            file,
+            json_metadata: None,
+            metaprotocol: None,
+            no_backup: true,
+            no_limit: false,
+            parent: None,
             postage: Some(TransactionBuilder::TARGET_POSTAGE),
+            reinscribe: false,
+            satpoint: None,
           },
         )),
       }
