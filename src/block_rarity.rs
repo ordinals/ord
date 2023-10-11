@@ -100,7 +100,7 @@ impl<'de> Deserialize<'de> for BlockRarity {
 
 pub(crate) fn is_palindrome(n: &u64) -> bool {
   let s = n.to_string();
-  if s.chars().nth(0) != s.chars().last() {
+  if s.chars().next() != s.chars().last() {
     return false;
   }
   let reversed = s.chars().rev().collect::<String>();
