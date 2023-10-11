@@ -67,7 +67,7 @@ impl Inscribe {
 
     let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
-    let mut utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
+    let utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
     let locked_utxos = index.get_locked_outputs(Wallet::load(&options)?)?;
 
     let inscriptions = index.get_inscriptions(utxos.clone())?;
@@ -88,8 +88,8 @@ impl Inscribe {
         inscription,
         inscriptions,
         options.chain().network(),
-        utxos.clone(),
-        locked_utxos.clone(),
+        utxos,
+        locked_utxos,
         commit_tx_change,
         reveal_tx_destination,
         self.commit_fee_rate.unwrap_or(self.fee_rate),
@@ -164,7 +164,7 @@ impl Inscribe {
     inscription: Inscription,
     inscriptions: BTreeMap<SatPoint, InscriptionId>,
     network: Network,
-    utxos: BTreeMap<OutPoint, Amount>,
+    mut utxos: BTreeMap<OutPoint, Amount>,
     locked_utxos: BTreeSet<OutPoint>,
     change: [Address; 2],
     destination: Address,
@@ -240,7 +240,7 @@ impl Inscribe {
     let unsigned_commit_tx = TransactionBuilder::new(
       satpoint,
       inscriptions,
-      utxos,
+      utxos.clone(),
       locked_utxos,
       commit_tx_address.clone(),
       change,
