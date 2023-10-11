@@ -1896,6 +1896,33 @@ mod tests {
   }
 
   #[test]
+  fn select_cardinal_utxo_ignores_locked_utxos() {
+    let utxos = vec![
+      (outpoint(1), Amount::from_sat(500)),
+    ];
+    let locked_utxos = vec![
+      outpoint(1),
+    ];
+
+    let mut tx_builder = TransactionBuilder::new(
+      satpoint(0, 0),
+      BTreeMap::new(),
+      utxos.into_iter().collect(),
+      locked_utxos.into_iter().collect(),
+      recipient(),
+      [change(0), change(1)],
+      FeeRate::try_from(1.0).unwrap(),
+      Target::Value(Amount::from_sat(10_000)),
+    );
+
+    assert_eq!(
+      tx_builder
+        .select_cardinal_utxo(Amount::from_sat(500), false),
+      Err(Error::NotEnoughCardinalUtxos),
+    );
+  }
+
+  #[test]
   fn build_transaction_with_custom_postage() {
     let utxos = vec![(outpoint(1), Amount::from_sat(1_000_000))];
 
