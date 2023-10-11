@@ -719,8 +719,9 @@ impl Server {
   fn search_inner(index: &Index, query: &str) -> ServerResult<Redirect> {
     lazy_static! {
       static ref HASH: Regex = Regex::new(r"^[[:xdigit:]]{64}$").unwrap();
-      static ref OUTPOINT: Regex = Regex::new(r"^[[:xdigit:]]{64}:\d+$").unwrap();
       static ref INSCRIPTION_ID: Regex = Regex::new(r"^[[:xdigit:]]{64}i\d+$").unwrap();
+      static ref OUTPOINT: Regex = Regex::new(r"^[[:xdigit:]]{64}:\d+$").unwrap();
+      static ref RUNE: Regex = Regex::new(r"^[A-Z]+$").unwrap();
     }
 
     let query = query.trim();
@@ -735,6 +736,8 @@ impl Server {
       Ok(Redirect::to(&format!("/output/{query}")))
     } else if INSCRIPTION_ID.is_match(query) {
       Ok(Redirect::to(&format!("/inscription/{query}")))
+    } else if RUNE.is_match(query) {
+      Ok(Redirect::to(&format!("/rune/{query}")))
     } else {
       Ok(Redirect::to(&format!("/sat/{query}")))
     }
@@ -1695,6 +1698,11 @@ mod tests {
   }
 
   #[test]
+  fn search_by_query_returns_rune() {
+    TestServer::new().assert_redirect("/search?query=ABCD", "/rune/ABCD");
+  }
+
+  #[test]
   fn search_by_query_returns_inscription() {
     TestServer::new().assert_redirect(
       "/search?query=0000000000000000000000000000000000000000000000000000000000000000i0",
@@ -1742,6 +1750,11 @@ mod tests {
       "/search/0000000000000000000000000000000000000000000000000000000000000000i0",
       "/inscription/0000000000000000000000000000000000000000000000000000000000000000i0",
     );
+  }
+
+  #[test]
+  fn search_by_path_returns_rune() {
+    TestServer::new().assert_redirect("/search/ABCD", "/rune/ABCD");
   }
 
   #[test]
