@@ -3169,6 +3169,11 @@ msgid ""
 "`datadir` option because the cookie file will still be in the default "
 "location for `bitcoin-cli` and `ord` to find."
 msgstr ""
+"Ang blockchain ay humigit-kumulang 600GB disk space. Kung mayroon kang external "
+"drive na gamitin para mag-store ng blocks, gamitin ang configuration option "
+"`blocksdir=<external_drive_path>`. Ito ay mas simple kaysa sa paggamit ng "
+"`datadir` na opsyon dahil ang cookie file ay nasa default pa ring "
+"lokasyon para mahanap ang `bitcoin-cli` at `ord`."
 
 #: src/guides/inscriptions.md:97 src/guides/collecting/sparrow-wallet.md:173
 msgid "Troubleshooting"
@@ -3179,12 +3184,16 @@ msgid ""
 "Make sure you can access `bitcoind` with `bitcoin-cli -getinfo` and that it "
 "is fully synced."
 msgstr ""
+"Tiyaking maa-access mo ang `bitcoind` gamit ang `bitcoin-cli -getinfo` at ito ay "
+"ay ganap na naka-sync."
 
 #: src/guides/inscriptions.md:103
 msgid ""
 "If `bitcoin-cli -getinfo` returns `Could not connect to the server`, "
 "`bitcoind` is not running."
 msgstr ""
+"Kung ibabalik ng `bitcoin-cli -getinfo` ang `Could not connect to the server`, "
+"Hindi tumatakbo ang iyong `bitcoind`."
 
 #: src/guides/inscriptions.md:106
 msgid ""
@@ -3192,6 +3201,9 @@ msgid ""
 "`bitcoin.conf` file. `ord` requires using cookie authentication. Make sure "
 "there is a file `.cookie` in your bitcoin data directory."
 msgstr ""
+"Tiyaking `rpcuser`, `rpcpassword`, o `rpcauth` ay _HINDI_ naka-set sa iyong "
+"`bitcoin.conf` file. Ang `ord` ay nangangailangan ng paggamit ng cookie authentication. Tiyaking "
+"may file na `.cookie` sa iyong bitcoin data directory."
 
 #: src/guides/inscriptions.md:110
 msgid ""
@@ -3202,6 +3214,12 @@ msgid ""
 "cookie -getinfo`. When running `ord` you must specify the cookie file "
 "location with `--cookie-file=<your_bitcoin_datadir>/.cookie`."
 msgstr ""
+"Kung ibabalik ng `bitcoin-cli -getinfo` ang `Could not locate RPC credentials`, kung gayon "
+"dapat mong tukuyin ang lokasyon ng cookie file. Kung gumagamit ka ng custom na data "
+"directory (tumutukoy sa `datadir`), dapat mong tukuyin ang "
+"lokasyon ng cookie tulad ng `bitcoin-cli -rpccookiefile=<your_bitcoin_datadir>/."
+"cookie -getinfo`. Kapag nagpapatakbo ng `ord` dapat mong tukuyin ang cookie file "
+"location na may `--cookie-file=<your_bitcoin_datadir>/.cookie`."
 
 #: src/guides/inscriptions.md:118
 msgid ""
@@ -3209,12 +3227,17 @@ msgid ""
 "If `bitcoin-cli listwallets` returns `Method not found` then the wallet is "
 "disabled and you won't be able to use `ord`."
 msgstr ""
+"Tiyaking _WALA_ kang `disablewallet=1` sa iyong `bitcoin.conf` file."
+"Kung ibabalik ng `bitcoin-cli listwallet` ang `Method not found` ang wallet ay "
+"naka-disable at hindi mo magagamit ang `ord`."
 
 #: src/guides/inscriptions.md:122
 msgid ""
 "Make sure `txindex=1` is set. Run `bitcoin-cli getindexinfo` and it should "
 "return something like"
 msgstr ""
+"Tiyaking nakatakda ang `txindex=1`. Patakbuhin ang `bitcoin-cli getindexinfo` at dapat itong "
+"ibalik ang isang bagay tulad ng"
 
 #: src/guides/inscriptions.md:124
 msgid ""
@@ -3227,6 +3250,14 @@ msgid ""
 "}\n"
 "```"
 msgstr ""
+"```json\n"
+"{\n"
+"  \"txindex\": {\n"
+"    \"synced\": true,\n"
+"    \"best_block_height\": 776546\n"
+"  }\n"
+"}\n"
+"```"
 
 #: src/guides/inscriptions.md:132
 msgid ""
@@ -3234,12 +3265,17 @@ msgid ""
 "false`, `bitcoind` is still creating the `txindex`. Wait until `\"synced\": "
 "true` before using `ord`."
 msgstr ""
+"Kung ibinabalik nito ang `{}`, hindi naka-set ang `txindex`. Kung ibinabalik nito ang `\"naka-sync\": "
+"false`, ginagawa pa rin ng `bitcoind` ang `txindex`. Maghintay ang `\"synced\": "
+"true` bago gamitin ang `ord`."
 
 #: src/guides/inscriptions.md:136
 msgid ""
 "If you have `maxuploadtarget` set it can interfere with fetching blocks for "
 "`ord` index. Either remove it or set `whitebind=127.0.0.1:8333`."
 msgstr ""
+"Kung mayroon kang naka-set na `maxuploadtarget` maaari itong makagambala sa pagkuha ng mga bloke para sa "
+"index ng `ord`. Alisin ito o i-set ang `whitebind=127.0.0.1:8333`."
 
 #: src/guides/inscriptions.md:139
 msgid "Installing `ord`"
