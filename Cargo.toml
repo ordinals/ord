@@ -24,6 +24,7 @@ bip39 = "2.0.0"
 bitcoin = { version = "0.30.0", features = ["rand"] }
 boilerplate = { version = "1.0.0", features = ["axum"] }
 chrono = "0.4.19"
+ciborium = "0.2.1"
 clap = { version = "4.4.2", features = ["derive"] }
 ctrlc = { version = "3.2.1", features = ["termination"] }
 derive_more = "0.99.17"
@@ -49,7 +50,7 @@ rust-embed = "8.0.0"
 rustls = "0.21.1"
 rustls-acme = { version = "0.7.1", features = ["axum"] }
 serde = { version = "1.0.137", features = ["derive"] }
-serde_json = { version = "1.0.81" }
+serde_json = { version = "1.0.81", features = ["preserve_order"] }
 serde_yaml = "0.9.17"
 sysinfo = "0.29.2"
 tempfile = "3.2.0"

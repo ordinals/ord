@@ -22,26 +22,103 @@ impl Entry for BlockHash {
   }
 }
 
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub(crate) struct RuneEntry {
+  pub(crate) burned: u128,
+  pub(crate) divisibility: u8,
+  pub(crate) etching: Txid,
+  pub(crate) rarity: Rarity,
+  pub(crate) rune: Rune,
+  pub(crate) supply: u128,
+}
+
+pub(super) type RuneEntryValue = (u128, u8, (u128, u128), u8, u128, u128);
+
+impl Entry for RuneEntry {
+  type Value = RuneEntryValue;
+
+  fn load((burned, divisibility, etching, rarity, rune, supply): RuneEntryValue) -> Self {
+    Self {
+      burned,
+      divisibility,
+      etching: {
+        let low = etching.0.to_le_bytes();
+        let high = etching.1.to_le_bytes();
+        Txid::from_byte_array([
+          low[0], low[1], low[2], low[3], low[4], low[5], low[6], low[7], low[8], low[9], low[10],
+          low[11], low[12], low[13], low[14], low[15], high[0], high[1], high[2], high[3], high[4],
+          high[5], high[6], high[7], high[8], high[9], high[10], high[11], high[12], high[13],
+          high[14], high[15],
+        ])
+      },
+      rarity: Rarity::try_from(rarity).unwrap(),
+      rune: Rune(rune),
+      supply,
+    }
+  }
+
+  fn store(self) -> Self::Value {
+    (
+      self.burned,
+      self.divisibility,
+      {
+        let bytes = self.etching.to_byte_array();
+        (
+          u128::from_le_bytes([
+            bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
+            bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15],
+          ]),
+          u128::from_le_bytes([
+            bytes[16], bytes[17], bytes[18], bytes[19], bytes[20], bytes[21], bytes[22], bytes[23],
+            bytes[24], bytes[25], bytes[26], bytes[27], bytes[28], bytes[29], bytes[30], bytes[31],
+          ]),
+        )
+      },
+      self.rarity.into(),
+      self.rune.0,
+      self.supply,
+    )
+  }
+}
+
+pub(super) type RuneIdValue = (u32, u16);
+
+impl Entry for RuneId {
+  type Value = RuneIdValue;
+
+  fn load((height, index): Self::Value) -> Self {
+    Self { height, index }
+  }
+
+  fn store(self) -> Self::Value {
+    (self.height, self.index)
+  }
+}
+
 #[derive(Debug)]
 pub(crate) struct InscriptionEntry {
   pub(crate) fee: u64,
   pub(crate) height: u64,
-  pub(crate) number: i64,
+  pub(crate) inscription_number: i64,
+  pub(crate) sequence_number: u64,
   pub(crate) parent: Option<InscriptionId>,
   pub(crate) sat: Option<Sat>,
   pub(crate) timestamp: u32,
 }
 
-pub(crate) type InscriptionEntryValue = (u64, u64, i64, ParentValue, u64, u32);
+pub(crate) type InscriptionEntryValue = (u64, u64, i64, u64, ParentValue, u64, u32);
 
 impl Entry for InscriptionEntry {
   type Value = InscriptionEntryValue;
 
-  fn load((fee, height, number, parent, sat, timestamp): InscriptionEntryValue) -> Self {
+  fn load(
+    (fee, height, inscription_number, sequence_number, parent, sat, timestamp): InscriptionEntryValue,
+  ) -> Self {
     Self {
       fee,
       height,
-      number,
+      inscription_number,
+      sequence_number,
       parent: ParentEntry::load(parent),
       sat: if sat == u64::MAX {
         None
@@ -56,7 +133,8 @@ impl Entry for InscriptionEntry {
     (
       self.fee,
       self.height,
-      self.number,
+      self.inscription_number,
+      self.sequence_number,
       self.parent.store(),
       match self.sat {
         Some(sat) => sat.n(),
@@ -310,6 +388,72 @@ mod tests {
     assert_eq!(
       <Option<InscriptionId> as Entry>::load((0, 0, 1)),
       inscription_id
+    );
+  }
+
+  #[test]
+  fn rune_entry() {
+    let rune_entry = RuneEntry {
+      burned: 1,
+      divisibility: 2,
+      etching: Txid::from_byte_array([
+        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E,
+        0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D,
+        0x1E, 0x1F,
+      ]),
+      rarity: Rarity::Epic,
+      rune: Rune(4),
+      supply: 5,
+    };
+
+    assert_eq!(
+      rune_entry.store(),
+      (
+        1,
+        2,
+        (
+          0x0F0E0D0C0B0A09080706050403020100,
+          0x1F1E1D1C1B1A19181716151413121110
+        ),
+        3,
+        4,
+        5,
+      )
+    );
+
+    assert_eq!(
+      RuneEntry::load((
+        1,
+        2,
+        (
+          0x0F0E0D0C0B0A09080706050403020100,
+          0x1F1E1D1C1B1A19181716151413121110
+        ),
+        3,
+        4,
+        5,
+      )),
+      rune_entry
+    );
+  }
+
+  #[test]
+  fn rune_id_entry() {
+    assert_eq!(
+      RuneId {
+        height: 1,
+        index: 2,
+      }
+      .store(),
+      (1, 2),
+    );
+
+    assert_eq!(
+      RuneId {
+        height: 1,
+        index: 2,
+      },
+      RuneId::load((1, 2)),
     );
   }
 }
