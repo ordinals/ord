@@ -219,15 +219,16 @@ fn get_block_rarity_chunks(block_rarity: &BlockRarity, start: u64, end: u64) -> 
         }
       }
     }
-    // BlockRarity::Palindrome => {
-    //   for palindrome in get_palindromes_from_sat_range(start, end) {
-    //     chunks.push((palindrome, palindrome + 1))
-    //   }
-    // }
+    BlockRarity::Palindrome => {
+      // for palindrome in get_palindromes_from_sat_range(start, end) {
+      //   chunks.push((palindrome, palindrome + 1))
+      // }
+    }
   }
   chunks
 }
 
+#[allow(dead_code)]
 fn get_palindromes_from_sat_range(start: u64, end: u64) -> Vec<u64> {
   let mut res = vec![];
   let s = start.to_string();
