@@ -219,11 +219,11 @@ fn get_block_rarity_chunks(block_rarity: &BlockRarity, start: u64, end: u64) -> 
         }
       }
     }
-    BlockRarity::Palindrome => {
-      for palindrome in get_palindromes_from_sat_range(start, end) {
-        chunks.push((palindrome, palindrome + 1))
-      }
-    }
+    // BlockRarity::Palindrome => {
+    //   for palindrome in get_palindromes_from_sat_range(start, end) {
+    //     chunks.push((palindrome, palindrome + 1))
+    //   }
+    // }
   }
   chunks
 }
