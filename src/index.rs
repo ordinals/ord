@@ -2,7 +2,7 @@ use {
   self::{
     entry::{
       BlockHashValue, Entry, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
-      OutPointValue, RuneEntryValue, RuneIdValue, SatPointValue, SatRange,
+      OutPointValue, RuneEntryValue, RuneIdValue, SatPointValue, SatRange, TxidValue,
     },
     reorg::*,
     runes::{Rune, RuneId},
@@ -66,6 +66,7 @@ define_table! { RUNE_TO_RUNE_ID, u128, RuneIdValue }
 define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
 define_table! { SEQUENCE_NUMBER_TO_INSCRIPTION_ID, u64, &InscriptionIdValue }
 define_table! { STATISTIC_TO_COUNT, u64, u64 }
+define_table! { TRANSACTION_ID_TO_RUNE, &TxidValue, u128 }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u64, u128 }
 
 #[derive(Debug, PartialEq)]
@@ -265,6 +266,7 @@ impl Index {
           tx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
           tx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
           tx.open_table(RUNE_TO_RUNE_ID)?;
+          tx.open_table(TRANSACTION_ID_TO_RUNE)?;
         }
 
         if options.index_sats {
@@ -655,23 +657,23 @@ impl Index {
   }
 
   pub(crate) fn runes(&self) -> Result<Option<Vec<(RuneId, RuneEntry)>>> {
-    if self.has_rune_index()? {
-      let mut entries = Vec::new();
-
-      for result in self
-        .database
-        .begin_read()?
-        .open_table(RUNE_ID_TO_RUNE_ENTRY)?
-        .iter()?
-      {
-        let (id, entry) = result?;
-        entries.push((RuneId::load(id.value()), RuneEntry::load(entry.value())));
-      }
-
-      Ok(Some(entries))
-    } else {
-      Ok(None)
+    if !self.has_rune_index()? {
+      return Ok(None);
     }
+
+    let mut entries = Vec::new();
+
+    for result in self
+      .database
+      .begin_read()?
+      .open_table(RUNE_ID_TO_RUNE_ENTRY)?
+      .iter()?
+    {
+      let (id, entry) = result?;
+      entries.push((RuneId::load(id.value()), RuneEntry::load(entry.value())));
+    }
+
+    Ok(Some(entries))
   }
 
   #[cfg(test)]
@@ -745,6 +747,21 @@ impl Index {
           .map_err(|err| err.into())
       })
       .collect()
+  }
+
+  pub(crate) fn get_etching(&self, txid: Txid) -> Result<Option<Rune>> {
+    if !self.has_rune_index()? {
+      return Ok(None);
+    }
+
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(TRANSACTION_ID_TO_RUNE)?
+        .get(&txid.store())?
+        .map(|entry| Rune(entry.value())),
+    )
   }
 
   pub(crate) fn get_inscription_ids_by_sat(&self, sat: Sat) -> Result<Vec<InscriptionId>> {

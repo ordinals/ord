@@ -16,8 +16,9 @@ pub(super) struct RuneUpdater<'a, 'db, 'tx> {
   id_to_entry: &'a mut Table<'db, 'tx, RuneIdValue, RuneEntryValue>,
   minimum: Rune,
   outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
-  rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
   rarity: Rarity,
+  rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
+  transaction_id_to_rune: &'a mut Table<'db, 'tx, &'static TxidValue, u128>,
 }
 
 impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
@@ -26,15 +27,17 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
     outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
     id_to_entry: &'a mut Table<'db, 'tx, RuneIdValue, RuneEntryValue>,
     rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
+    transaction_id_to_rune: &'a mut Table<'db, 'tx, &'static TxidValue, u128>,
   ) -> Self {
     Self {
       count: 0,
-      rarity: Height(height).starting_sat().rarity(),
       height,
       id_to_entry,
       minimum: Rune::minimum_at_height(Height(height)),
       outpoint_to_balances,
+      rarity: Height(height).starting_sat().rarity(),
       rune_to_id,
+      transaction_id_to_rune,
     }
   }
 
@@ -147,6 +150,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         if supply > 0 {
           let id = RuneId::try_from(id).unwrap();
           self.rune_to_id.insert(rune.0, id.store())?;
+          self.transaction_id_to_rune.insert(&txid.store(), rune.0)?;
           self.id_to_entry.insert(
             id.store(),
             RuneEntry {

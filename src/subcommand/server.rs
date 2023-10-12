@@ -680,6 +680,7 @@ impl Server {
         blockhash,
         inscription.map(|_| InscriptionId { txid, index: 0 }),
         page_config.chain,
+        index.get_etching(txid)?,
       )
       .page(page_config, index.has_sat_index()?),
     )
@@ -2219,6 +2220,8 @@ mod tests {
       StatusCode::OK,
       format!(
         ".*<title>Transaction {txid}</title>.*<h1>Transaction <span class=monospace>{txid}</span></h1>
+<dl>
+</dl>
 <h2>1 Input</h2>
 <ul>
   <li><a class=monospace href=/output/0000000000000000000000000000000000000000000000000000000000000000:4294967295>0000000000000000000000000000000000000000000000000000000000000000:4294967295</a></li>
@@ -3330,5 +3333,74 @@ mod tests {
   <dd class=monospace>{cursed_inscription_id}</dd>.*"
       ),
     )
+  }
+
+  #[test]
+  fn transactions_link_to_etching() {
+    let server = TestServer::new_with_regtest_with_index_runes();
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      "/runes",
+      StatusCode::OK,
+      ".*<title>Runes</title>.*<h1>Runes</h1>\n<ul>\n</ul>.*",
+    );
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            divisibility: 0,
+            rune: Rune(u128::from(21_000_000 * COIN_VALUE)),
+          }),
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    assert_eq!(
+      server.index.runes().unwrap().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          burned: 0,
+          divisibility: 0,
+          etching: txid,
+          rarity: Rarity::Uncommon,
+          rune: Rune(u128::from(21_000_000 * COIN_VALUE)),
+          supply: u128::max_value(),
+          timestamp: 2,
+        }
+      )]
+    );
+
+    assert_eq!(
+      server.index.rune_balances(),
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+    );
+
+    server.assert_response_regex(
+      format!("/tx/{txid}"),
+      StatusCode::OK,
+      ".*
+  <dt>etching</dt>
+  <dd><a href=/rune/NVTDIJZYIPU>NVTDIJZYIPU</a></dd>
+.*",
+    );
   }
 }
