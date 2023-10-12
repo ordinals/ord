@@ -511,7 +511,7 @@ impl Server {
 
     let inscriptions = index.get_inscriptions_on_output(outpoint)?;
 
-    let runes = index.rune_balance(outpoint)?;
+    let runes = index.get_rune_balances_for_outpoint(outpoint)?;
 
     Ok(if accept_json.0 {
       Json(OutputJson::new(
@@ -3180,7 +3180,7 @@ mod tests {
     );
 
     assert_eq!(
-      server.index.rune_balances(),
+      server.index.get_rune_balances(),
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
 
@@ -3247,7 +3247,7 @@ mod tests {
     );
 
     assert_eq!(
-      server.index.rune_balances(),
+      server.index.get_rune_balances(),
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
 
@@ -3384,7 +3384,7 @@ mod tests {
     let output = OutPoint { txid, vout: 0 };
 
     assert_eq!(
-      server.index.rune_balances(),
+      server.index.get_rune_balances(),
       [(output, vec![(id, u128::max_value())])]
     );
 

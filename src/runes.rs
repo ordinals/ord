@@ -47,7 +47,7 @@ mod tests {
       .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
       .build();
     assert_eq!(context.index.runes().unwrap().unwrap(), []);
-    assert_eq!(context.index.rune_balances(), []);
+    assert_eq!(context.index.get_rune_balances(), []);
   }
 
   #[test]
@@ -73,7 +73,7 @@ mod tests {
     context.mine_blocks(1);
 
     assert_eq!(context.index.runes().unwrap().unwrap(), []);
-    assert_eq!(context.index.rune_balances(), []);
+    assert_eq!(context.index.get_rune_balances(), []);
   }
 
   #[test]
@@ -102,7 +102,7 @@ mod tests {
     context.mine_blocks(1);
 
     assert_eq!(context.index.runes().unwrap().unwrap(), []);
-    assert_eq!(context.index.rune_balances(), []);
+    assert_eq!(context.index.get_rune_balances(), []);
   }
 
   #[test]
@@ -155,7 +155,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
   }
@@ -192,7 +192,7 @@ mod tests {
 
       assert_eq!(context.index.runes().unwrap().unwrap(), []);
 
-      assert_eq!(context.index.rune_balances(), []);
+      assert_eq!(context.index.get_rune_balances(), []);
     }
 
     {
@@ -244,7 +244,7 @@ mod tests {
       );
 
       assert_eq!(
-        context.index.rune_balances(),
+        context.index.get_rune_balances(),
         [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
       );
     }
@@ -300,7 +300,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
   }
@@ -362,7 +362,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
   }
@@ -424,7 +424,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
   }
@@ -479,7 +479,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(OutPoint { txid, vout: 0 }, vec![(id, 100)])]
     );
   }
@@ -541,7 +541,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [
         (OutPoint { txid, vout: 0 }, vec![(id, 100)]),
         (OutPoint { txid, vout: 1 }, vec![(id, 100)])
@@ -606,7 +606,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(OutPoint { txid, vout: 0 }, vec![(id, 100)]),]
     );
   }
@@ -661,7 +661,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid0,
@@ -705,7 +705,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid1,
@@ -766,7 +766,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid0,
@@ -806,7 +806,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid1,
@@ -868,7 +868,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid0,
@@ -902,7 +902,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid1,
@@ -963,7 +963,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
 
@@ -1004,7 +1004,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
   }
@@ -1059,7 +1059,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid0,
@@ -1124,7 +1124,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [
         (
           OutPoint {
@@ -1179,7 +1179,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid2,
@@ -1240,7 +1240,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid0,
@@ -1305,7 +1305,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [
         (
           OutPoint {
@@ -1360,7 +1360,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid2,
@@ -1425,7 +1425,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [
         (
           OutPoint {
@@ -1498,7 +1498,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid0,
@@ -1563,7 +1563,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [
         (
           OutPoint {
@@ -1636,7 +1636,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid2,
@@ -1698,7 +1698,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid0,
@@ -1737,7 +1737,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(OutPoint { txid, vout: 1 }, vec![(id, u128::max_value())])]
     );
   }
@@ -1829,7 +1829,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [
         (
           OutPoint {
@@ -1899,7 +1899,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid0,
@@ -1950,7 +1950,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid1,
@@ -2011,7 +2011,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid0,
@@ -2076,7 +2076,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [
         (
           OutPoint {
@@ -2149,7 +2149,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [
         (
           OutPoint {
@@ -2219,7 +2219,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid0,
@@ -2263,7 +2263,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid1,
@@ -2324,7 +2324,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(OutPoint { txid, vout: 1 }, vec![(id, u128::max_value())])]
     );
   }
@@ -2380,7 +2380,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
   }
@@ -2443,7 +2443,7 @@ mod tests {
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
   }

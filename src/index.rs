@@ -674,7 +674,10 @@ impl Index {
     }
   }
 
-  pub(crate) fn rune_balance(&self, outpoint: OutPoint) -> Result<Vec<(Rune, Pile)>> {
+  pub(crate) fn get_rune_balances_for_outpoint(
+    &self,
+    outpoint: OutPoint,
+  ) -> Result<Vec<(Rune, Pile)>> {
     if !self.has_rune_index()? {
       return Ok(Vec::new());
     }
@@ -716,7 +719,7 @@ impl Index {
   }
 
   #[cfg(test)]
-  pub(crate) fn rune_balances(&self) -> Vec<(OutPoint, Vec<(RuneId, u128)>)> {
+  pub(crate) fn get_rune_balances(&self) -> Vec<(OutPoint, Vec<(RuneId, u128)>)> {
     let mut result = Vec::new();
 
     for entry in self
