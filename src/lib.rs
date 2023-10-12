@@ -121,7 +121,7 @@ mod outgoing;
 mod page_config;
 pub mod rarity;
 mod representation;
-mod runes;
+pub mod runes;
 pub mod sat;
 mod sat_point;
 pub mod subcommand;

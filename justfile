@@ -68,7 +68,16 @@ profile-tests:
     | tee test-times.txt
 
 fuzz:
-  cd fuzz && cargo +nightly fuzz run transaction-builder
+  #!/usr/bin/env bash
+  set -euxo pipefail
+
+  cd fuzz
+
+  while true; do
+    cargo +nightly fuzz run runestone-decipher -- -max_total_time=60
+    cargo +nightly fuzz run varint-decode -- -max_total_time=60
+    cargo +nightly fuzz run varint-encode -- -max_total_time=60
+  done
 
 open:
   open http://localhost
