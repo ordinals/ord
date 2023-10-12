@@ -1312,6 +1312,7 @@ mod tests {
           "--chain",
           "regtest",
           "--index-runes-pre-alpha-i-agree-to-get-rekt",
+          "--enable-json-api",
         ],
         &[],
       )
@@ -3341,7 +3342,7 @@ mod tests {
     server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
 
     let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
-      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      inputs: &[(1, 0, 0, Default::default())],
       op_return: Some(
         Runestone {
           edicts: vec![Edict {
@@ -3408,6 +3409,24 @@ mod tests {
   </dd>
 .*"
       ),
+    );
+
+    assert_eq!(
+      server.get_json::<OutputJson>(format!("/output/{output}")),
+      OutputJson {
+        value: 5000000000,
+        script_pubkey: String::new(),
+        address: None,
+        transaction: txid.to_string(),
+        sat_ranges: None,
+        inscriptions: Vec::new(),
+        runes: vec![(
+          Rune(2100000000000000),
+          340282366920938463463374607431768211455
+        )]
+        .into_iter()
+        .collect(),
+      }
     );
   }
 }
