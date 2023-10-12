@@ -150,6 +150,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
         }
       )]
     );
@@ -239,6 +240,7 @@ mod tests {
             rune: Rune(u128::from(Sat::SUPPLY - 150 * COIN_VALUE)),
             supply: u128::max_value(),
             rarity: Rarity::Uncommon,
+            timestamp: 2,
           }
         )]
       );
@@ -295,6 +297,7 @@ mod tests {
           divisibility: 1,
           supply: u128::max_value(),
           rarity: Rarity::Uncommon,
+          timestamp: 2,
         }
       )]
     );
@@ -357,6 +360,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
         }
       )]
     );
@@ -419,6 +423,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
         }
       )]
     );
@@ -474,6 +479,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: 100,
+          timestamp: 2,
         }
       )]
     );
@@ -536,6 +542,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: 200,
+          timestamp: 2,
         }
       )]
     );
@@ -601,6 +608,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: 100,
+          timestamp: 2,
         }
       )]
     );
@@ -656,6 +664,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
         }
       )]
     );
@@ -700,6 +709,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
         }
       )]
     );
@@ -761,6 +771,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
         }
       )]
     );
@@ -801,6 +812,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
         }
       )]
     );
@@ -863,6 +875,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
         }
       )]
     );
@@ -897,6 +910,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
         }
       )]
     );
@@ -958,6 +972,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
         }
       )]
     );
@@ -999,6 +1014,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
         }
       )]
     );
@@ -1054,6 +1070,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
         }
       )]
     );
@@ -1107,6 +1124,7 @@ mod tests {
             rarity: Rarity::Uncommon,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            timestamp: 2,
           }
         ),
         (
@@ -1118,6 +1136,7 @@ mod tests {
             rarity: Rarity::Uncommon,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            timestamp: 3,
           }
         )
       ]
@@ -1162,6 +1181,7 @@ mod tests {
             rarity: Rarity::Uncommon,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            timestamp: 2,
           }
         ),
         (
@@ -1173,6 +1193,7 @@ mod tests {
             rarity: Rarity::Uncommon,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            timestamp: 3,
           }
         )
       ]
@@ -1235,6 +1256,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
         }
       )]
     );
@@ -1288,6 +1310,7 @@ mod tests {
             rarity: Rarity::Uncommon,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            timestamp: 2,
           }
         ),
         (
@@ -1299,6 +1322,7 @@ mod tests {
             rarity: Rarity::Uncommon,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            timestamp: 3,
           }
         )
       ]
@@ -1343,6 +1367,7 @@ mod tests {
             rarity: Rarity::Uncommon,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            timestamp: 2,
           }
         ),
         (
@@ -1354,6 +1379,7 @@ mod tests {
             rarity: Rarity::Uncommon,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            timestamp: 3,
           }
         )
       ]
@@ -1408,6 +1434,7 @@ mod tests {
             rarity: Rarity::Uncommon,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            timestamp: 2,
           }
         ),
         (
@@ -1419,6 +1446,7 @@ mod tests {
             rarity: Rarity::Uncommon,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            timestamp: 3,
           }
         )
       ]
@@ -1493,6 +1521,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
         }
       )]
     );
@@ -1546,6 +1575,7 @@ mod tests {
             rarity: Rarity::Uncommon,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            timestamp: 2,
           }
         ),
         (
@@ -1557,6 +1587,7 @@ mod tests {
             rarity: Rarity::Uncommon,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            timestamp: 3,
           }
         )
       ]
@@ -1619,6 +1650,7 @@ mod tests {
             rarity: Rarity::Uncommon,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            timestamp: 2,
           }
         ),
         (
@@ -1630,6 +1662,7 @@ mod tests {
             rarity: Rarity::Uncommon,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            timestamp: 3,
           }
         )
       ]
@@ -1693,6 +1726,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
         }
       )]
     );
@@ -1732,6 +1766,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
         }
       )]
     );
@@ -1812,6 +1847,7 @@ mod tests {
             rarity: Rarity::Uncommon,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            timestamp: 3,
           }
         ),
         (
@@ -1823,6 +1859,7 @@ mod tests {
             rarity: Rarity::Common,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            timestamp: 3,
           }
         ),
       ]
@@ -1894,6 +1931,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
         }
       )]
     );
@@ -1945,6 +1983,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
         }
       )]
     );
@@ -2006,6 +2045,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
         }
       )]
     );
@@ -2059,6 +2099,7 @@ mod tests {
             rarity: Rarity::Uncommon,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            timestamp: 2,
           }
         ),
         (
@@ -2070,6 +2111,7 @@ mod tests {
             rarity: Rarity::Uncommon,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            timestamp: 3,
           }
         )
       ]
@@ -2132,6 +2174,7 @@ mod tests {
             rarity: Rarity::Uncommon,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            timestamp: 2,
           }
         ),
         (
@@ -2143,6 +2186,7 @@ mod tests {
             rarity: Rarity::Uncommon,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            timestamp: 3,
           }
         )
       ]
@@ -2214,6 +2258,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value() / 2,
+          timestamp: 2,
         }
       )]
     );
@@ -2258,6 +2303,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value() / 2,
+          timestamp: 2,
         }
       )]
     );
@@ -2319,6 +2365,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
         }
       )]
     );
@@ -2375,6 +2422,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
         }
       )]
     );
@@ -2438,6 +2486,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          timestamp: 2,
         }
       )]
     );

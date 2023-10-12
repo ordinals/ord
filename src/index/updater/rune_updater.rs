@@ -38,7 +38,13 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
     }
   }
 
-  pub(super) fn index_runes(&mut self, index: usize, tx: &Transaction, txid: Txid) -> Result<()> {
+  pub(super) fn index_runes(
+    &mut self,
+    timestamp: u32,
+    index: usize,
+    tx: &Transaction,
+    txid: Txid,
+  ) -> Result<()> {
     let runestone = Runestone::from_transaction(tx);
 
     // A mapping of rune ID to un-allocated balance of that rune
@@ -154,6 +160,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
               },
               rune,
               supply,
+              timestamp,
             }
             .store(),
           )?;

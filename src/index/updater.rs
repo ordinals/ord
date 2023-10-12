@@ -389,7 +389,7 @@ impl<'index> Updater<'_> {
         &mut rune_to_rune_id,
       );
       for (i, (tx, txid)) in block.txdata.iter().enumerate() {
-        rune_updater.index_runes(i, tx, *txid)?;
+        rune_updater.index_runes(block.header.time, i, tx, *txid)?;
       }
     }
 

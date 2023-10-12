@@ -2,6 +2,12 @@
 <dl>
   <dt>id</dt>
   <dd>{{ self.id }}</dd>
+  <dt>timestamp</dt>
+  <dd><time>{{ self.timestamp }}</time></dd>
+  <dt>etching block height</dt>
+  <dd><a href=/block/{{ self.id.height }}>{{ self.id.height }}</a></dd>
+  <dt>etching transaction index</dt>
+  <dd>{{ self.id.index }}</dd>
   <dt>supply</dt>
   <dd>{{ Pile{ amount: self.entry.supply, divisibility: self.entry.divisibility } }}</dd>
   <dt>burned</dt>

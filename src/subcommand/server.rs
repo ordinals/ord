@@ -580,9 +580,10 @@ impl Server {
 
     Ok(
       RuneHtml {
-        id,
         entry,
+        id,
         inscription,
+        timestamp: timestamp(entry.timestamp),
       }
       .page(page_config, index.has_sat_index()?),
     )
@@ -3168,6 +3169,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(u128::from(21_000_000 * COIN_VALUE)),
           supply: u128::max_value(),
+          timestamp: 2,
         }
       )]
     );
@@ -3235,6 +3237,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune,
           supply: u128::max_value(),
+          timestamp: 2,
         }
       )]
     );
@@ -3253,6 +3256,12 @@ mod tests {
 <dl>
   <dt>id</dt>
   <dd>2/1</dd>
+  <dt>timestamp</dt>
+  <dd><time>1970-01-01 00:00:02 UTC</time></dd>
+  <dt>etching block height</dt>
+  <dd><a href=/block/2>2</a></dd>
+  <dt>etching transaction index</dt>
+  <dd>1</dd>
   <dt>supply</dt>
   <dd>340282366920938463463374607431768211455</dd>
   <dt>burned</dt>
