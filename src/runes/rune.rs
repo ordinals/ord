@@ -1,7 +1,6 @@
 use super::*;
 
-#[derive(Default, Serialize, Deserialize, Debug, PartialEq, Copy, Clone, PartialOrd, Ord, Eq)]
-#[serde(transparent)]
+#[derive(Default, Debug, PartialEq, Copy, Clone, PartialOrd, Ord, Eq)]
 pub struct Rune(pub u128);
 
 impl Rune {
@@ -9,6 +8,24 @@ impl Rune {
     Self(u128::from(
       Sat::SUPPLY - height.starting_sat().0 - height.subsidy(),
     ))
+  }
+}
+
+impl Serialize for Rune {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    serializer.collect_str(self)
+  }
+}
+
+impl<'de> Deserialize<'de> for Rune {
+  fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+  where
+    D: Deserializer<'de>,
+  {
+    Ok(DeserializeFromStr::deserialize(deserializer)?.0)
   }
 }
 
@@ -124,5 +141,13 @@ mod tests {
       Rune::minimum_at_height(Height(1)).to_string(),
       Sat(100 * COIN_VALUE - 1).name().to_uppercase()
     );
+  }
+
+  #[test]
+  fn serde() {
+    let rune = Rune(0);
+    let json = "\"A\"";
+    assert_eq!(serde_json::to_string(&rune).unwrap(), json);
+    assert_eq!(serde_json::from_str::<Rune>(json).unwrap(), rune);
   }
 }

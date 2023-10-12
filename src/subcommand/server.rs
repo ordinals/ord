@@ -3350,7 +3350,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            divisibility: 0,
+            divisibility: 1,
             rune,
           }),
         }
@@ -3372,7 +3372,7 @@ mod tests {
         id,
         RuneEntry {
           burned: 0,
-          divisibility: 0,
+          divisibility: 1,
           etching: txid,
           rarity: Rarity::Uncommon,
           rune,
@@ -3402,7 +3402,7 @@ mod tests {
       </tr>
       <tr>
         <td><a href=/rune/NVTDIJZYIPU>NVTDIJZYIPU</a></td>
-        <td>340282366920938463463374607431768211455</td>
+        <td>34028236692093846346337460743176821145.5</td>
       </tr>
     </table>
   </dd>
