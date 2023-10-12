@@ -511,6 +511,8 @@ impl Server {
 
     let inscriptions = index.get_inscriptions_on_output(outpoint)?;
 
+    let runes = index.rune_balance(outpoint)?;
+
     Ok(if accept_json.0 {
       Json(OutputJson::new(
         outpoint,
@@ -518,6 +520,10 @@ impl Server {
         page_config.chain,
         output,
         inscriptions,
+        runes
+          .into_iter()
+          .map(|(rune, pile)| (rune, pile.amount))
+          .collect(),
       ))
       .into_response()
     } else {
@@ -527,6 +533,7 @@ impl Server {
         list,
         chain: page_config.chain,
         output,
+        runes,
       }
       .page(page_config, index.has_sat_index()?)
       .into_response()
@@ -3321,5 +3328,86 @@ mod tests {
   <dd class=monospace>{cursed_inscription_id}</dd>.*"
       ),
     )
+  }
+
+  #[test]
+  fn runes_are_displayed_on_output_page() {
+    let server = TestServer::new_with_regtest_with_index_runes();
+
+    server.mine_blocks(1);
+
+    let rune = Rune(u128::from(21_000_000 * COIN_VALUE));
+
+    server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            divisibility: 0,
+            rune,
+          }),
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    assert_eq!(
+      server.index.runes().unwrap().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          burned: 0,
+          divisibility: 0,
+          etching: txid,
+          rarity: Rarity::Uncommon,
+          rune,
+          supply: u128::max_value(),
+        }
+      )]
+    );
+
+    let output = OutPoint { txid, vout: 0 };
+
+    assert_eq!(
+      server.index.rune_balances(),
+      [(output, vec![(id, u128::max_value())])]
+    );
+
+    server.assert_response_regex(
+      format!("/output/{output}"),
+      StatusCode::OK,
+      format!(
+        ".*<title>Output {output}</title>.*<h1>Output <span class=monospace>{output}</span></h1>.*
+  <dt>runes</dt>
+  <dd>
+    <table>
+      <tr>
+        <th>rune</th>
+        <th>balance</th>
+      </tr>
+      <tr>
+        <td><a href=/rune/NVTDIJZYIPU>NVTDIJZYIPU</a></td>
+        <td>340282366920938463463374607431768211455</td>
+      </tr>
+    </table>
+  </dd>
+.*"
+      ),
+    );
   }
 }

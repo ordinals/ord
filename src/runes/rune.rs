@@ -1,7 +1,8 @@
 use super::*;
 
-#[derive(Default, Serialize, Debug, PartialEq, Copy, Clone, PartialOrd)]
-pub(crate) struct Rune(pub(crate) u128);
+#[derive(Default, Serialize, Deserialize, Debug, PartialEq, Copy, Clone, PartialOrd, Ord, Eq)]
+#[serde(transparent)]
+pub struct Rune(pub u128);
 
 impl Rune {
   pub(crate) fn minimum_at_height(height: Height) -> Self {

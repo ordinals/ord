@@ -674,6 +674,47 @@ impl Index {
     }
   }
 
+  pub(crate) fn rune_balance(&self, outpoint: OutPoint) -> Result<Vec<(Rune, Pile)>> {
+    if !self.has_rune_index()? {
+      return Ok(Vec::new());
+    }
+
+    let rtx = &self.database.begin_read()?;
+
+    let outpoint_to_balances = rtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
+
+    let id_to_rune_entries = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
+
+    let Some(balances) = outpoint_to_balances.get(&outpoint.store())? else {
+      return Ok(Vec::new());
+    };
+
+    let balances_buffer = balances.value();
+
+    let mut balances = Vec::new();
+    let mut i = 0;
+    while i < balances_buffer.len() {
+      let (id, length) = runes::varint::decode(&balances_buffer[i..]).unwrap();
+      i += length;
+      let (amount, length) = runes::varint::decode(&balances_buffer[i..]).unwrap();
+      i += length;
+
+      let id = RuneId::try_from(id).unwrap();
+
+      let entry = RuneEntry::load(id_to_rune_entries.get(id.store())?.unwrap().value());
+
+      balances.push((
+        entry.rune,
+        Pile {
+          amount,
+          divisibility: entry.divisibility,
+        },
+      ));
+    }
+
+    Ok(balances)
+  }
+
   #[cfg(test)]
   pub(crate) fn rune_balances(&self) -> Vec<(OutPoint, Vec<(RuneId, u128)>)> {
     let mut result = Vec::new();
