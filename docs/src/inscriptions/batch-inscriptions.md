@@ -1,7 +1,7 @@
 Batch Inscriptions
 ==================
 
-Using the [pointer field](../pointer.md) it is now possible to do batch
+Using the [pointer field](./pointer.md) it is now possible to do batch
 inscriptions. This is especially helpful for collections, since the parent can
 be passed into a transaction and have multiple children at once. There is a lot
 that can be expanded in functionality but for now all children land in the same
