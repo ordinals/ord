@@ -88,13 +88,9 @@ impl BatchInscribe {
               location: SatPoint {
                 outpoint: OutPoint {
                   txid,
-                  vout: if batch_config.parent.is_some() {
-                    1
-                  } else {
-                    0
-                  },
+                  vout: if batch_config.parent.is_some() { 1 } else { 0 },
                 },
-                offset: index as u64 * TransactionBuilder::TARGET_POSTAGE.to_sat(),
+                offset: u64::from(index) * TransactionBuilder::TARGET_POSTAGE.to_sat(),
               },
             }
           })
@@ -161,13 +157,9 @@ impl BatchInscribe {
             location: SatPoint {
               outpoint: OutPoint {
                 txid,
-                vout: if let Some(parent) = batch_config.parent {
-                  1
-                } else {
-                  0
-                },
+                vout: if batch_config.parent.is_some() { 1 } else { 0 },
               },
-              offset: index as u64 * TransactionBuilder::TARGET_POSTAGE.to_sat(),
+              offset: u64::from(index) * TransactionBuilder::TARGET_POSTAGE.to_sat(),
             },
           }
         })

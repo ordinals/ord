@@ -14,7 +14,7 @@ impl BatchEntry {
   }
 }
 
-#[derive(Deserialize, PartialEq, Debug)]
+#[derive(Deserialize, PartialEq, Debug, Default)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct BatchConfig {
   pub(crate) mode: Mode,
@@ -49,15 +49,5 @@ impl BatchConfig {
     }
 
     Ok((inscriptions, Amount::from_sat(pointer)))
-  }
-}
-
-impl Default for BatchConfig {
-  fn default() -> Self {
-    BatchConfig {
-      batch: Vec::new(),
-      parent: None,
-      ..Default::default()
-    }
   }
 }

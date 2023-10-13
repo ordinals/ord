@@ -1,7 +1,8 @@
 use super::*;
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Default)]
 pub(crate) enum Mode {
+  #[default]
   SharedOutput,
 }
 

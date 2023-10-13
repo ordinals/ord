@@ -161,7 +161,6 @@ fn batch_in_same_output_but_different_satpoints() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   rpc_server.mine_blocks(1);
 
-
   create_wallet(&rpc_server);
 
   let output = CommandBuilder::new("wallet batch-inscribe --fee-rate 1 batch.yaml")
@@ -170,7 +169,7 @@ fn batch_in_same_output_but_different_satpoints() {
     .write("meow.wav", [0; 2048])
     .write(
       "batch.yaml",
-      format!("mode: shared-output\nbatch:\n- inscription: inscription.txt\n- inscription: tulip.png\n- inscription: meow.wav\n")
+      "mode: shared-output\nbatch:\n- inscription: inscription.txt\n- inscription: tulip.png\n- inscription: meow.wav\n"
     )
     .rpc_server(&rpc_server)
     .run_and_deserialize_output::<BatchInscribe>();
@@ -183,17 +182,26 @@ fn batch_in_same_output_but_different_satpoints() {
 
   ord_server.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[0].id),
-    format!(r".*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*", outpoint),
+    format!(
+      r".*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*",
+      outpoint
+    ),
   );
 
   ord_server.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[1].id),
-    format!(r".*<dt>location</dt>.*<dd class=monospace>{}:10000</dd>.*", outpoint),
+    format!(
+      r".*<dt>location</dt>.*<dd class=monospace>{}:10000</dd>.*",
+      outpoint
+    ),
   );
 
   ord_server.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[2].id),
-    format!(r".*<dt>location</dt>.*<dd class=monospace>{}:20000</dd>.*", outpoint),
+    format!(
+      r".*<dt>location</dt>.*<dd class=monospace>{}:20000</dd>.*",
+      outpoint
+    ),
   );
 
   ord_server.assert_response_regex(
