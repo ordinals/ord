@@ -1,7 +1,14 @@
 Batch Inscriptions
 ==================
 
-Write something smart here
+Using the [pointer field](../pointer.md) it is now possible to do batch
+inscriptions. This is especially helpful for collections, since the parent can
+be passed into a transaction and have multiple children at once. There is a lot
+that can be expanded in functionality but for now all children land in the same
+output, separated by 10000 sats. You split them out with the send command. The
+next iteration of this command will put all inscriptions into separate outputs
+for easier sending and even allow setting the destination for each individual
+inscription.
 
 Example
 -------
