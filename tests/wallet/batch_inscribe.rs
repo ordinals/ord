@@ -9,11 +9,11 @@ fn batch_inscribe_can_create_one_inscription() {
 
   create_wallet(&rpc_server);
 
-  let output = CommandBuilder::new("wallet batch-inscribe batch.yaml")
+  let output = CommandBuilder::new("wallet batch-inscribe --fee-rate 2.1 batch.yaml")
     .write("inscription.txt", "Hello World")
     .write(
       "batch.yaml",
-      "dry_run: false\nfee_rate: 2.1\nmode: shared-output\nbatch:\n- inscription: inscription.txt\n"
+      "mode: shared-output\nbatch:\n- inscription: inscription.txt\n",
     )
     .rpc_server(&rpc_server)
     .run_and_deserialize_output::<BatchInscribe>();
@@ -23,7 +23,7 @@ fn batch_inscribe_can_create_one_inscription() {
   assert_eq!(rpc_server.descriptors().len(), 3);
 
   let request = TestServer::spawn_with_args(&rpc_server, &[])
-    .request(format!("/content/{}", output.inscriptions[0]));
+    .request(format!("/content/{}", output.inscriptions[0].id));
 
   assert_eq!(request.status(), 200);
   assert_eq!(
@@ -42,13 +42,13 @@ fn batch_inscribe_with_multiple_inscriptions() {
 
   create_wallet(&rpc_server);
 
-  let output = CommandBuilder::new("wallet batch-inscribe batch.yaml")
+  let output = CommandBuilder::new("wallet batch-inscribe batch.yaml --fee-rate 55")
     .write("inscription.txt", "Hello World")
     .write("tulip.png", [0; 555])
     .write("meow.wav", [0; 2048])
     .write(
       "batch.yaml",
-      "dry_run: false\nfee_rate: 2.1\nmode: shared-output\nbatch:\n- inscription: inscription.txt\n- inscription: tulip.png\n- inscription: meow.wav\n"
+      "mode: shared-output\nbatch:\n- inscription: inscription.txt\n- inscription: tulip.png\n- inscription: meow.wav\n"
     )
     .rpc_server(&rpc_server)
     .run_and_deserialize_output::<BatchInscribe>();
@@ -58,7 +58,7 @@ fn batch_inscribe_with_multiple_inscriptions() {
   assert_eq!(rpc_server.descriptors().len(), 3);
 
   let request = TestServer::spawn_with_args(&rpc_server, &[])
-    .request(format!("/content/{}", output.inscriptions[0]));
+    .request(format!("/content/{}", output.inscriptions[0].id));
   assert_eq!(request.status(), 200);
   assert_eq!(
     request.headers().get("content-type").unwrap(),
@@ -67,12 +67,12 @@ fn batch_inscribe_with_multiple_inscriptions() {
   assert_eq!(request.text().unwrap(), "Hello World");
 
   let request = TestServer::spawn_with_args(&rpc_server, &[])
-    .request(format!("/content/{}", output.inscriptions[1]));
+    .request(format!("/content/{}", output.inscriptions[1].id));
   assert_eq!(request.status(), 200);
   assert_eq!(request.headers().get("content-type").unwrap(), "image/png");
 
   let request = TestServer::spawn_with_args(&rpc_server, &[])
-    .request(format!("/content/{}", output.inscriptions[2]));
+    .request(format!("/content/{}", output.inscriptions[2].id));
   assert_eq!(request.status(), 200);
   assert_eq!(request.headers().get("content-type").unwrap(), "audio/wav");
 }
@@ -97,13 +97,13 @@ fn batch_inscribe_with_multiple_inscriptions_with_parent() {
 
   let parent_id = parent_output.inscription;
 
-  let output = CommandBuilder::new("wallet batch-inscribe batch.yaml")
+  let output = CommandBuilder::new("wallet batch-inscribe --fee-rate 1 batch.yaml")
     .write("inscription.txt", "Hello World")
     .write("tulip.png", [0; 555])
     .write("meow.wav", [0; 2048])
     .write(
       "batch.yaml",
-      format!("parent: {parent_id}\ndry_run: false\nfee_rate: 2.1\nmode: shared-output\nbatch:\n- inscription: inscription.txt\n- inscription: tulip.png\n- inscription: meow.wav\n")
+      format!("parent: {parent_id}\nmode: shared-output\nbatch:\n- inscription: inscription.txt\n- inscription: tulip.png\n- inscription: meow.wav\n")
     )
     .rpc_server(&rpc_server)
     .run_and_deserialize_output::<BatchInscribe>();
@@ -113,17 +113,17 @@ fn batch_inscribe_with_multiple_inscriptions_with_parent() {
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
 
   ord_server.assert_response_regex(
-    format!("/inscription/{}", output.inscriptions[0]),
+    format!("/inscription/{}", output.inscriptions[0].id),
     r".*<dt>parent</dt>\s*<dd>.*</dd>.*",
   );
 
   ord_server.assert_response_regex(
-    format!("/inscription/{}", output.inscriptions[1]),
+    format!("/inscription/{}", output.inscriptions[1].id),
     r".*<dt>parent</dt>\s*<dd>.*</dd>.*",
   );
 
   let request = TestServer::spawn_with_args(&rpc_server, &[])
-    .request(format!("/content/{}", output.inscriptions[2]));
+    .request(format!("/content/{}", output.inscriptions[2].id));
   assert_eq!(request.status(), 200);
   assert_eq!(request.headers().get("content-type").unwrap(), "audio/wav");
 }

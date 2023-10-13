@@ -17,11 +17,9 @@ impl BatchEntry {
 #[derive(Deserialize, PartialEq, Debug)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct BatchConfig {
-  pub(crate) batch: Vec<BatchEntry>,
-  pub(crate) dry_run: bool,
-  pub(crate) fee_rate: FeeRate,
-  pub(crate) parent: Option<InscriptionId>,
   pub(crate) mode: Mode,
+  pub(crate) parent: Option<InscriptionId>,
+  pub(crate) batch: Vec<BatchEntry>,
 }
 
 impl BatchConfig {
@@ -58,10 +56,8 @@ impl Default for BatchConfig {
   fn default() -> Self {
     BatchConfig {
       batch: Vec::new(),
-      dry_run: false,
-      fee_rate: 1.0.try_into().unwrap(),
       parent: None,
-      mode: Default::default(),
+      ..Default::default()
     }
   }
 }

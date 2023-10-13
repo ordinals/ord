@@ -1,13 +1,9 @@
 # Example batch file
 
-# All inscriptions can either be put into a `shared-output` or put into `separate-outputs`
+# For now there is only one mode that inscribes all inscription into the same
+# output seperated by the postage (10000sat). They can be peeled off one by
+# one by using `--satpoint` when sending
 mode: shared-output
-
-# If true transactions won't be broadcasted
-dry_run: true
-
-# Set the fee rate of the commit and reveal transactions
-fee_rate: 2.1
 
 # Specify parent for all inscriptions
 # In the future this can be set for each inscription individually

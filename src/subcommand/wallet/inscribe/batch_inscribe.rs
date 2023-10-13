@@ -6,11 +6,27 @@ pub struct Output {
   pub reveal: Txid,
   pub total_fees: u64,
   pub parent: Option<InscriptionId>,
-  pub inscriptions: Vec<InscriptionId>,
+  pub inscriptions: Vec<InscriptionInfo>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct InscriptionInfo {
+  pub id: InscriptionId,
+  pub satpoint: SatPoint,
+}
+
+impl Display for InscriptionInfo {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    write!(f, "id: {}\nsatpoint: {}", self.id, self.satpoint)
+  }
 }
 
 #[derive(Debug, Parser)]
 pub(crate) struct BatchInscribe {
+  #[arg(long, help = "Don't sign or broadcast transactions.")]
+  pub(crate) dry_run: bool,
+  #[arg(long, help = "Use fee rate of <FEE_RATE> sats/vB.")]
+  pub(crate) fee_rate: FeeRate,
   #[arg(help = "Read YAML batch <FILE> that specifies all inscription info.")]
   pub(crate) file: PathBuf,
 }
@@ -50,17 +66,39 @@ impl BatchInscribe {
         utxos,
         commit_tx_change,
         reveal_tx_destination,
-        batch_config.fee_rate,
+        self.fee_rate,
         postage,
       )?;
 
-    if batch_config.dry_run {
+    if self.dry_run {
       return Ok(Box::new(Output {
         commit: commit_tx.txid(),
         reveal: reveal_tx.txid(),
         total_fees,
         parent: batch_config.parent,
-        inscriptions: vec![],
+        inscriptions: inscriptions
+          .iter()
+          .enumerate()
+          .map(|(index, _inscription)| {
+            let txid = reveal_tx.txid();
+            let index = index.try_into().unwrap();
+
+            InscriptionInfo {
+              id: InscriptionId { txid, index },
+              satpoint: SatPoint {
+                outpoint: OutPoint {
+                  txid,
+                  vout: if batch_config.parent.is_some() {
+                    1
+                  } else {
+                    0
+                  },
+                },
+                offset: index as u64 * TransactionBuilder::TARGET_POSTAGE.to_sat(),
+              },
+            }
+          })
+          .collect(),
       }));
     }
 
@@ -114,9 +152,24 @@ impl BatchInscribe {
       inscriptions: inscriptions
         .iter()
         .enumerate()
-        .map(|(index, _inscription)| InscriptionId {
-          txid: reveal,
-          index: index.try_into().unwrap(),
+        .map(|(index, _inscription)| {
+          let txid = reveal;
+          let index = index.try_into().unwrap();
+
+          InscriptionInfo {
+            id: InscriptionId { txid, index },
+            satpoint: SatPoint {
+              outpoint: OutPoint {
+                txid,
+                vout: if let Some(parent) = batch_config.parent {
+                  1
+                } else {
+                  0
+                },
+              },
+              offset: index as u64 * TransactionBuilder::TARGET_POSTAGE.to_sat(),
+            },
+          }
         })
         .collect(),
     }))
@@ -367,7 +420,7 @@ mod tests {
     fs::write(
       &batch_path,
       format!(
-        "dry_run: false\nfee_rate: 2.1\nmode: shared-output\nparent: {parent}\nbatch:\n- inscription: {}\n  json_metadata: {}\n- inscription: {}\n  metaprotocol: brc-20\n",
+        "mode: shared-output\nparent: {parent}\nbatch:\n- inscription: {}\n  json_metadata: {}\n- inscription: {}\n  metaprotocol: brc-20\n",
         inscription_path.display(),
         metadata_path.display(),
         brc20_path.display()
@@ -380,6 +433,8 @@ mod tests {
         "ord",
         "wallet",
         "batch-inscribe",
+        "--fee-rate",
+        "4.4",
         batch_path.to_str().unwrap(),
       ])
       .unwrap()
@@ -402,8 +457,6 @@ mod tests {
             ..Default::default()
           }
         ],
-        dry_run: false,
-        fee_rate: FeeRate::try_from(2.1).unwrap(),
         parent: Some(parent),
         mode: Mode::SharedOutput,
       }
@@ -431,6 +484,8 @@ mod tests {
       "ord",
       "wallet",
       "batch-inscribe",
+      "--fee-rate",
+      "5.5",
       batch_path.to_str().unwrap(),
     ])
     .unwrap()
@@ -462,6 +517,8 @@ mod tests {
       "ord",
       "wallet",
       "batch-inscribe",
+      "--fee-rate",
+      "21",
       batch_path.to_str().unwrap(),
     ])
     .unwrap()
@@ -500,11 +557,6 @@ mod tests {
     let commit_address = change(1);
     let reveal_address = recipient();
 
-    let batch_config = BatchConfig {
-      fee_rate: 4.0.try_into().unwrap(),
-      ..Default::default()
-    };
-
     let inscriptions = vec![
       inscription("text/plain", [b'O'; 100]),
       inscription("text/plain", [b'O'; 111]),
@@ -512,6 +564,8 @@ mod tests {
     ];
 
     let postage = Amount::from_sat(30_000);
+
+    let fee_rate = 4.0.try_into().unwrap();
 
     let (commit_tx, reveal_tx, _private_key, _) =
       BatchInscribe::create_batch_inscription_transactions(
@@ -522,16 +576,13 @@ mod tests {
         utxos.into_iter().collect(),
         [commit_address, change(2)],
         reveal_address,
-        batch_config.fee_rate,
+        fee_rate,
         postage,
       )
       .unwrap();
 
     let sig_vbytes = 17;
-    let fee = batch_config
-      .fee_rate
-      .fee(commit_tx.vsize() + sig_vbytes)
-      .to_sat();
+    let fee = fee_rate.fee(commit_tx.vsize() + sig_vbytes).to_sat();
 
     let reveal_value = commit_tx
       .output
@@ -543,10 +594,7 @@ mod tests {
     assert_eq!(reveal_value, 50_000 - fee);
 
     let sig_vbytes = 16;
-    let fee = batch_config
-      .fee_rate
-      .fee(reveal_tx.vsize() + sig_vbytes)
-      .to_sat();
+    let fee = fee_rate.fee(reveal_tx.vsize() + sig_vbytes).to_sat();
 
     assert_eq!(fee, commit_tx.output[0].value - reveal_tx.output[1].value,);
     assert_eq!(
@@ -596,11 +644,6 @@ mod tests {
 
     let commit_address = change(1);
     let reveal_address = recipient();
-    let batch_config = BatchConfig {
-      fee_rate: 4.0.try_into().unwrap(),
-      parent: Some(parent),
-      ..Default::default()
-    };
 
     let error = BatchInscribe::create_batch_inscription_transactions(
       Some(parent_info.clone()),
@@ -610,7 +653,7 @@ mod tests {
       utxos.into_iter().collect(),
       [commit_address, change(2)],
       reveal_address,
-      batch_config.fee_rate,
+      4.0.try_into().unwrap(),
       Amount::from_sat(30_000),
     )
     .unwrap_err()
@@ -635,9 +678,6 @@ mod tests {
 
     let commit_address = change(1);
     let reveal_address = recipient();
-    let batch_config = BatchConfig {
-      ..Default::default()
-    };
 
     let error = BatchInscribe::create_batch_inscription_transactions(
       None,
@@ -647,7 +687,7 @@ mod tests {
       utxos.into_iter().collect(),
       [commit_address, change(2)],
       reveal_address,
-      batch_config.fee_rate,
+      1.0.try_into().unwrap(),
       Amount::from_sat(30_000),
     )
     .unwrap_err()
