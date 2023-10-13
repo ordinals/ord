@@ -487,20 +487,20 @@ OP_ENDIF
 <p>Ang mga inskripsiyon na gaya ng HTML at SVG ay nasa-sandbox upang maiwasan ang ma-reference sa off-chain content, sa gayo'y pinapanatili ang mga inskripsiyon na hindi nababago at self-contained.</p>
 <p>Nagagawa ito sa pamamagitan ng pag-load sa mga HTML at SVG na inskripsiyon sa loob <code>iframes</code> na may <code>sandbox</code> na katangian, pati na rin ang pag-serve ng nilalaman ng inskripsiyon na may <code>Content-Security-Policy</code> sa header.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="metadata"><a class="header" href="#metadata">Metadata</a></h1>
-<p>Inscriptions may include <a href="https://cbor.io/">CBOR</a> metadata, stored as data pushes in fields with tag <code>5</code>. Since data pushes are limited to 520 bytes, metadata longer than 520 bytes must be split into multiple tag <code>5</code> fields, which will then be concatenated before decoding.</p>
-<p>Metadata is human readable, and all metadata will be displayed to the user with its inscription. Inscribers are encouraged to consider how metadata will be displayed, and make metadata concise and attractive.</p>
-<p>Metadata is rendered to HTML for display as follows:</p>
+<p>Ang iscriptions ay maaring magkaroon ng <a href="https://cbor.io/">CBOR</a> metadata, na naka-store bilang data pushes sa fields na may tag <code>5</code>. Dahil limitado ang data pushes sa 520 bytes, Ang metadata na mas mahaba sa 520 byte ay dapat hatiin sa maraming tag na <code>5</code> fields, at pagkatapos ay pagsasamahin bago mag-decoding.</p>
+<p>Ang metadata ay madaling basahin, at lahat ng metadata ay ipapakita sa user kasama ang inskripsiyon nito. Hinihikayat ang mga inscriber na isaalang-alang kung paano ang metadata ay ipapakita, at gagawing maigsi at kaakit-akit ang metadata.</p>
+<p>Ang metadata ay nai-render sa HTML para ipakita tulad ng sumusunod:</p>
 <ul>
-<li><code>null</code>, <code>true</code>, <code>false</code>, numbers, floats, and strings are rendered as plain text.</li>
-<li>Byte strings are rendered as uppercase hexadecimal.</li>
-<li>Arrays are rendered as <code>&lt;ul&gt;</code> tags, with every element wrapped in <code>&lt;li&gt;</code> tags.</li>
-<li>Maps are rendered as <code>&lt;dl&gt;</code> tags, with every key wrapped in <code>&lt;dt&gt;</code> tags, and every value wrapped in <code>&lt;dd&gt;</code> tags.</li>
-<li>Tags are rendered as the tag , enclosed in a <code>&lt;sup&gt;</code> tag, followed by the value.</li>
+<li><code>null</code>, <code>true</code>, <code>false</code>, numbers, floats, at strings ay rendered bilang isang plain text.</li>
+<li>Ang Byte strings ay rendered bilang isang uppercase na hexadecimal.</li>
+<li>Ang Arrays ay rendered gamit ang <code>&lt;ul&gt;</code> tags, kung saan ang mga element ay naka-wrapped sa <code>&lt;li&gt;</code> tags.</li>
+<li>Maps ay rendered gamit ang <code>&lt;dl&gt;</code> tags, kung saan ang bawat key ay wrapped sa <code>&lt;dt&gt;</code> tags, at ang value nito ay naka-wrapped sa <code>&lt;dd&gt;</code> tags.</li>
+<li>Tags ay rendered bilang tag , na naka-enclosed sa <code>&lt;sup&gt;</code> tag, kasunod ng value.</li>
 </ul>
-<p>CBOR is a complex spec with many different data types, and multiple ways of representing the same data. Exotic data types, such as tags, floats, and bignums, and encoding such as indefinite values, may fail to display correctly or at all. Contributions to <code>ord</code> to remedy this are welcome.</p>
+<p>Ang CBOR ay isang kumplikadong spec na may maraming iba't ibang uri ng data, at maraming paraan ng na kumakatawan sa parehong data. Mga kakaibang uri ng data, gaya ng mga tag, float, at Ang mga bignum, at pag-encode tulad ng mga hindi tiyak na halaga, ay maaaring mabigong ipakita tama o sa lahat. Ang mga kontribusyon sa <code>ord</code> upang malunasan ito ay malugod na tinatanggap.</p>
 <h2 id="halimbawa"><a class="header" href="#halimbawa">Halimbawa</a></h2>
-<p>Since CBOR is not human readable, in these examples it is represented as JSON. Keep in mind that this is <em>only</em> for these examples, and JSON metadata will <em>not</em> be displayed correctly.</p>
-<p>The metadata <code>{&quot;foo&quot;:&quot;bar&quot;,&quot;baz&quot;:[null,true,false,0]}</code> would be included in an inscription as:</p>
+<p>Dahil ang CBOR ay hindi madaling basahin, sa mga halimbawang ito ay kinakatawan ito bilang JSON. Tandaan na ito ay halimbawa lamang, at ang JSON metadata ay <em>hindi</em> mapapakita nang tama.</p>
+<p>Ang metadata na <code>{&quot;foo&quot;:&quot;bar&quot;,&quot;baz&quot;:[null,true,false,0]}</code> ay kasama sa isang inscription bilang:</p>
 <pre><code>OP_FALSE
 OP_IF
     ...
@@ -508,7 +508,7 @@ OP_IF
     ...
 OP_ENDIF
 </code></pre>
-<p>And rendered as:</p>
+<p>At ma-rendered bilang:</p>
 <pre><code>&lt;dl&gt;
   ...
   &lt;dt&gt;metadata&lt;/dt&gt;
@@ -530,7 +530,7 @@ OP_ENDIF
   ...
 &lt;/dl&gt;
 </code></pre>
-<p>Metadata longer than 520 bytes must be split into multiple fields:</p>
+<p>Ang metadata na mas mahaba sa 520 byte ay dapat hatiin sa maraming fields:</p>
 <pre><code>OP_FALSE
 OP_IF
     ...
@@ -539,7 +539,7 @@ OP_IF
     ...
 OP_ENDIF
 </code></pre>
-<p>Which would then be concatinated into <code>{&quot;very&quot;:&quot;long&quot;,&quot;metadata&quot;:&quot;is&quot;,&quot;finally&quot;:&quot;done&quot;}</code>.</p>
+<p>Na kung saan ay concatinated ito sa <code>{&quot;very&quot;:&quot;long&quot;,&quot;metadata&quot;:&quot;is&quot;,&quot;finally&quot;:&quot;done&quot;}</code>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="provenance"><a class="header" href="#provenance">Provenance</a></h1>
 <p>Ang may-ari ng isang inscription ay maaaring lumikha ng mga child inscription, na sinisiguro na ng pinagmulan ng mga child inscription na nasa on-chain na kabilang sa nilikha ng may-ari ng isang parent inscription. Magagamit ito para sa mga koleksyon, kung saan ang mga child inscription ng parent inscription ay mga miyembro ng parehong koleksyon.</p>
 <p>Kahit ang mga child inscription ay maaaring magkaroon ng mga child inscriptions, na nagbibigay-daan para magkaroon ng hierarchy. Halimbawa, maaring gumawa ang artist ng parent inscription na maraming child inscription na kung saan may mga sub inscription pa ang mga ito, na kung saan ang mga children at may sub inscription na kabilang din sa mga koleksyon.</p>
@@ -697,7 +697,7 @@ Ang terminong &quot;digital artifact&quot; ay madaling maunawaan, kahit na para 
 
 Gayundin, ang &quot;NFT&quot; ay napagkakamalang may kinalaman sa pananalapi, at ang salitang &quot;fungible&quot; pati na rin ang kahulugan ng salitang &quot;token&quot; na ginamit sa &quot;NFT&quot; ay hindi karaniwan sa mga konteksto sa pananalapi.
 
-## How do sat inscriptions compare to…
+## Paano maihahambing ang mga inskripsiyon sa sat sa...
 
 ### NFT Ethereum?
 
@@ -769,7 +769,7 @@ Ang Counterparty ay may sariling token, XCP, na kinakailangan para sa ilang part
 
 Ang Ordinal Theory ay dinisenyo mula sa simula para sa mga digital na artifact, samantalang ang counterparty ay pangunahing idinisenyo para sa pag-isyu ng mga financial token.
 
-## Inscriptions for…
+## Inscriptions para sa…
 
 ### Mga Artists
 
@@ -941,32 +941,32 @@ Umaasa kami na ang Ordinal Theory ay magpapalakas at magpapayaman sa Bitcoin, at
 <h2 id="pag-install-ng-bitcoin-core"><a class="header" href="#pag-install-ng-bitcoin-core">Pag-install ng Bitcoin Core</a></h2>
 <p>Ang Bitcoin Core ay mada-download sa <a href="https://bitcoincore.org/">bitcoincore.org</a> sa pahina ng <a href="https://bitcoincore.org/en/download/">pag-download</a>.</p>
 <p>Ang inscriptions ay nangangailangan ng Bitcoin Core 24 o mas bago.</p>
-<p>This guide does not cover installing Bitcoin Core in detail. Once Bitcoin Core is installed, you should be able to run <code>bitcoind -version</code> successfully from the command line. Do <em>NOT</em> use <code>bitcoin-qt</code>.</p>
+<p>Hindi saklaw ng gabay na ito ang pag-install ng Bitcoin Core nang detalyado. Kapag na-install na ang Bitcoin Core, dapat ay matagumpay mong mapatakbo ang <code>bitcoind -version</code> mula sa command line. <em>HUWAG</em> gamitin ang <code>bitcoin-qt</code>.</p>
 <h2 id="bitcoin-core-setup"><a class="header" href="#bitcoin-core-setup">Bitcoin Core Setup</a></h2>
-<p><code>ord</code> requires Bitcoin Core's transaction index and rest interface.</p>
+<p>Ang <code>ord</code> ay nangangailangan ng index ng transaksyon at rest interface ng Bitcoin Core.</p>
 <p>I-configure ang iyong Bitcoin Core node upang mapanatili ang index ng mga transaksyon, idagdag ang sumusunod sa iyong bitcoin.conf file:</p>
 <pre><code>txindex=1
 </code></pre>
 <p>O, patakbuhin ang <code>bitcoind</code> gamit ang <code>-txindex</code>:</p>
 <pre><code>bitcoind -txindex
 </code></pre>
-<p>Details on creating or modifying your <code>bitcoin.conf</code> file can be found <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md">here</a>.</p>
+<p>Ang mga detalye sa paggawa o pagbabago ng iyong <code>bitcoin.conf</code> na file ay matatagpuan <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md">dito</a>.</p>
 <h2 id="pag-synchronize-ng-bitcoin-blockchain"><a class="header" href="#pag-synchronize-ng-bitcoin-blockchain">Pag-synchronize ng Bitcoin Blockchain</a></h2>
 <p>Upang i-sync ang blockchain patakbuhin ang sumusunod na command</p>
 <pre><code>bitcoind -txindex
 </code></pre>
-<p>…and leave it running until <code>getblockcount</code>:</p>
+<p>…at hayaan itong tumakbo hanggang sa <code>getblockcount</code>:</p>
 <pre><code>bitcoin-cli getblockcount
 </code></pre>
 <p>tumutugma sa bilang ng mga bloke tulad nalamang ng <a href="https://mempool.space/">mempool.space block explorer</a>. Nakikipag-ugnayan ang <code>ord</code> sa <code>bitcoind</code>, kaya dapat mong iwanan ang <code>bitcoind</code> na tumatakbo sa background kapag gumagamit ng <code>ord</code>.</p>
-<p>The blockchain takes about 600GB of disk space. If you have an external drive you want to store blocks on, use the configuration option <code>blocksdir=&lt;external_drive_path&gt;</code>. This is much simpler than using the <code>datadir</code> option because the cookie file will still be in the default location for <code>bitcoin-cli</code> and <code>ord</code> to find.</p>
+<p>Ang blockchain ay humigit-kumulang 600GB disk space. Kung mayroon kang external drive na gamitin para mag-store ng blocks, gamitin ang configuration option <code>blocksdir=&lt;external_drive_path&gt;</code>. Ito ay mas simple kaysa sa paggamit ng <code>datadir</code> na opsyon dahil ang cookie file ay nasa default pa ring lokasyon para mahanap ang <code>bitcoin-cli</code> at <code>ord</code>.</p>
 <h2 id="pag-troubleshoot"><a class="header" href="#pag-troubleshoot">Pag-Troubleshoot</a></h2>
-<p>Make sure you can access <code>bitcoind</code> with <code>bitcoin-cli -getinfo</code> and that it is fully synced.</p>
-<p>If <code>bitcoin-cli -getinfo</code> returns <code>Could not connect to the server</code>, <code>bitcoind</code> is not running.</p>
-<p>Make sure <code>rpcuser</code>, <code>rpcpassword</code>, or <code>rpcauth</code> are <em>NOT</em> set in your <code>bitcoin.conf</code> file. <code>ord</code> requires using cookie authentication. Make sure there is a file <code>.cookie</code> in your bitcoin data directory.</p>
-<p>If <code>bitcoin-cli -getinfo</code> returns <code>Could not locate RPC credentials</code>, then you must specify the cookie file location. If you are using a custom data directory (specifying the <code>datadir</code> option), then you must specify the cookie location like <code>bitcoin-cli -rpccookiefile=&lt;your_bitcoin_datadir&gt;/.cookie -getinfo</code>. When running <code>ord</code> you must specify the cookie file location with <code>--cookie-file=&lt;your_bitcoin_datadir&gt;/.cookie</code>.</p>
-<p>Make sure you do <em>NOT</em> have <code>disablewallet=1</code> in your <code>bitcoin.conf</code> file. If <code>bitcoin-cli listwallets</code> returns <code>Method not found</code> then the wallet is disabled and you won't be able to use <code>ord</code>.</p>
-<p>Make sure <code>txindex=1</code> is set. Run <code>bitcoin-cli getindexinfo</code> and it should return something like</p>
+<p>Tiyaking maa-access mo ang <code>bitcoind</code> gamit ang <code>bitcoin-cli -getinfo</code> at ito ay ay ganap na naka-sync.</p>
+<p>Kung ibabalik ng <code>bitcoin-cli -getinfo</code> ang <code>Could not connect to the server</code>, Hindi tumatakbo ang iyong <code>bitcoind</code>.</p>
+<p>Tiyaking <code>rpcuser</code>, <code>rpcpassword</code>, o <code>rpcauth</code> ay <em>HINDI</em> naka-set sa iyong <code>bitcoin.conf</code> file. Ang <code>ord</code> ay nangangailangan ng paggamit ng cookie authentication. Tiyaking may file na <code>.cookie</code> sa iyong bitcoin data directory.</p>
+<p>Kung ibabalik ng <code>bitcoin-cli -getinfo</code> ang <code>Could not locate RPC credentials</code>, kung gayon dapat mong tukuyin ang lokasyon ng cookie file. Kung gumagamit ka ng custom na data directory (tumutukoy sa <code>datadir</code>), dapat mong tukuyin ang lokasyon ng cookie tulad ng <code>bitcoin-cli -rpccookiefile=&lt;your_bitcoin_datadir&gt;/.cookie -getinfo</code>. Kapag nagpapatakbo ng <code>ord</code> dapat mong tukuyin ang cookie file location na may <code>--cookie-file=&lt;your_bitcoin_datadir&gt;/.cookie</code>.</p>
+<p>Tiyaking <em>WALA</em> kang <code>disablewallet=1</code> sa iyong <code>bitcoin.conf</code> file.Kung ibabalik ng <code>bitcoin-cli listwallet</code> ang <code>Method not found</code> ang wallet ay naka-disable at hindi mo magagamit ang <code>ord</code>.</p>
+<p>Tiyaking nakatakda ang <code>txindex=1</code>. Patakbuhin ang <code>bitcoin-cli getindexinfo</code> at dapat itong ibalik ang isang bagay tulad ng</p>
 <pre><code class="language-json">{
   &quot;txindex&quot;: {
     &quot;synced&quot;: true,
@@ -974,8 +974,8 @@ Umaasa kami na ang Ordinal Theory ay magpapalakas at magpapayaman sa Bitcoin, at
   }
 }
 </code></pre>
-<p>If it only returns <code>{}</code>, <code>txindex</code> is not set. If it returns <code>&quot;synced&quot;: false</code>, <code>bitcoind</code> is still creating the <code>txindex</code>. Wait until <code>&quot;synced&quot;: true</code> before using <code>ord</code>.</p>
-<p>If you have <code>maxuploadtarget</code> set it can interfere with fetching blocks for <code>ord</code> index. Either remove it or set <code>whitebind=127.0.0.1:8333</code>.</p>
+<p>Kung ibinabalik nito ang <code>{}</code>, hindi naka-set ang <code>txindex</code>. Kung ibinabalik nito ang <code>&quot;naka-sync&quot;: false</code>, ginagawa pa rin ng <code>bitcoind</code> ang <code>txindex</code>. Maghintay ang <code>&quot;synced&quot;: true</code> bago gamitin ang <code>ord</code>.</p>
+<p>Kung mayroon kang naka-set na <code>maxuploadtarget</code> maaari itong makagambala sa pagkuha ng mga bloke para sa index ng <code>ord</code>. Alisin ito o i-set ang <code>whitebind=127.0.0.1:8333</code>.</p>
 <h2 id="pag-install-ng-ord"><a class="header" href="#pag-install-ng-ord">Pag-install ng <code>ord</code></a></h2>
 <p>Ang <code>ord</code> utility ay nakasulat sa Rust at maaaring i-compile mula sa <a href="https://github.com/ordinals/ord">source</a>. Available ang mga pre-built na binary sa page ng mga <a href="https://github.com/ordinals/ord/releases">release page</a>.</p>
 <p>Maaari mong i-install ang pinakabagong prebuilt binary mula sa command line gamit ang:</p>
@@ -1018,7 +1018,7 @@ Umaasa kami na ang Ordinal Theory ay magpapalakas at magpapayaman sa Bitcoin, at
 <h2 id="parent-child-inscriptions"><a class="header" href="#parent-child-inscriptions">Parent-Child Inscriptions</a></h2>
 <p>Ang Parent-child inscriptions ay nagbibigay-daan sa kung ano ang karaniwang kilala bilang mga koleksyon, tingnan ang <a href="guides/../inscriptions/provenance.html">provenance</a> para sa higit pang impormasyon.</p>
 <p>To make an inscription a child of another, the parent inscription has to be inscribed and present in the wallet. To choose a parent run <code>ord wallet inscriptions</code> and copy the inscription id (<code>&lt;PARENT_INSCRIPTION_ID&gt;</code>).</p>
-<p>Now inscribe the child inscription and specify the parent like so:</p>
+<p>Ngayon i-inscribe ang child inscription at tukuyin ang parent tulad nito:</p>
 <pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; CHILD_FILE
 </code></pre>
 <p>This relationship cannot be added retroactively, the parent has to be present at inception of the child.</p>
@@ -1278,7 +1278,7 @@ Umaasa kami na ang Ordinal Theory ay magpapalakas at magpapayaman sa Bitcoin, at
 <h4 id="-warning--1"><a class="header" href="#-warning--1">⚠️⚠️ Warning ⚠️⚠️</a></h4>
 <p>Habang lubos na inirerekomenda na mag-set up ka ng bitcoin core node at magpatakbo ng <code>ord</code> software, may ilang partikular na limitadong paraan na maaari kang magpadala ng mga inskripsiyon mula sa Sparrow Wallet sa ligtas na paraan. Pakitandaan na hindi ito inirerekomenda, at dapat mo lang gawin ito kung lubos mong naiintindihan kung ano ang iyong ginagawa.</p>
 <p>Ang paggamit ng <code>ord</code> software ay mag-aalis sa pagiging kumplikado sa paglalarawan dito, dahil awtomatiko at ligtas nitong pangasiwaan ang pagpapadala ng mga inskripsiyon sa madaling paraan.</p>
-<h4 id="-additional-warning-"><a class="header" href="#-additional-warning-">⚠️⚠️ Additional Warning ⚠️⚠️</a></h4>
+<h4 id="-dagdag-na-warning-"><a class="header" href="#-dagdag-na-warning-">⚠️⚠️ Dagdag na Warning ⚠️⚠️</a></h4>
 <p>Huwag gamitin ang iyong sparrow inscriptions wallet para gumawa ng mga pangkalahatang pagpapadala ng non-inscription bitcoin. Maaari kang mag-set up ng hiwalay na wallet sa sparrow kung kailangan mong gawin ang mga normal na transaksyon sa bitcoin, at panatilihin ang iyong inscription wallet na hiwalay.</p>
 <h4 id="bitcoins-utxo-model"><a class="header" href="#bitcoins-utxo-model">Bitcoin's UTXO model</a></h4>
 <p>Bago magpadala ng anumang transaksyon, mahalaga na mayroon kang mabuting modelo para sa sistema ng Unspent Transaction Output (UTXO) ng bitcoin. Ang paraan ng Bitcoin ay pangunahing naiiba sa maraming iba pang mga blockchain tulad ng Ethereum. Sa Ethereum sa pangkalahatan ay mayroon kang isang address kung saan ka nag-iimbak ETH, at hindi ka makakapag-iba sa pagitan ng alinman sa ETH - ito ay isang mahalagang kabuuang halaga sa address na iyon. Kakaiba gumana ang Bitcoin sa paggawa namin ng bagong address sa wallet para sa bawat tumatanggap, at sa tuwing makakatanggap ka sats sa isang address sa iyong wallet ikaw ay lumilikha ng bagong UTXO. Ang bawat UTXO ay makikita at pag-manage nang paisa-isa. Ikaw ay maaaring pumili ng mga partikular na UTXO na gusto mong gastusin, at maaari mong piliin na huwag gumastos ng ilang mga UTXO.</p>
@@ -1352,7 +1352,7 @@ Umaasa kami na ang Ordinal Theory ay magpapalakas at magpapayaman sa Bitcoin, at
 <p>I-inscribe sa regtest kasama:</p>
 <pre><code>ord -r wallet inscribe --fee-rate 1 &lt;file&gt;
 </code></pre>
-<p>Mine the inscription with:</p>
+<p>I-mine and inscription gamit ang:</p>
 <pre><code>bitcoin-cli -regtest generatetoaddress 1 &lt;receive address&gt;
 </code></pre>
 <p>Tingnan ang inskripsiyon sa regtest explorer:</p>
