@@ -2447,4 +2447,165 @@ mod tests {
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
   }
+
+  #[test]
+  fn allocate_all_remaining_runes_in_etching() {
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
+
+    context.mine_blocks(1);
+
+    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: 0,
+            output: 0,
+          }],
+          etching: Some(Etching {
+            divisibility: 0,
+            rune: Rune(RUNE),
+          }),
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    assert_eq!(
+      context.index.runes().unwrap().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          burned: 0,
+          divisibility: 0,
+          etching: txid,
+          rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
+        }
+      )]
+    );
+
+    assert_eq!(
+      context.index.rune_balances(),
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+    );
+  }
+
+  #[test]
+  fn allocate_all_remaining_runes_in_inputs() {
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
+
+    context.mine_blocks(1);
+
+    let txid0 = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            divisibility: 0,
+            rune: Rune(RUNE),
+          }),
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    assert_eq!(
+      context.index.runes().unwrap().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          burned: 0,
+          divisibility: 0,
+          etching: txid0,
+          rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
+        }
+      )]
+    );
+
+    assert_eq!(
+      context.index.rune_balances(),
+      [(
+        OutPoint {
+          txid: txid0,
+          vout: 0
+        },
+        vec![(id, u128::max_value())]
+      )]
+    );
+
+    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 1, 0, Witness::new())],
+      outputs: 2,
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: id.into(),
+            amount: 0,
+            output: 1,
+          }],
+          etching: None,
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    assert_eq!(
+      context.index.runes().unwrap().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          burned: 0,
+          divisibility: 0,
+          etching: txid0,
+          rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
+        }
+      )]
+    );
+
+    assert_eq!(
+      context.index.rune_balances(),
+      [(
+        OutPoint {
+          txid: txid1,
+          vout: 1,
+        },
+        vec![(id, u128::max_value())]
+      )]
+    );
+  }
 }

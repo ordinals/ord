@@ -116,7 +116,11 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         };
 
         // Get the allocatable amount
-        let amount = amount.min(*balance);
+        let amount = if amount == 0 {
+          *balance
+        } else {
+          amount.min(*balance)
+        };
 
         // If the amount to be allocated is greater than zero,
         // deduct it from the remaining balance, and increment
@@ -170,7 +174,9 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       .find(|(_, tx_out)| !tx_out.script_pubkey.is_op_return())
     {
       for (id, balance) in unallocated {
-        *allocated[vout].entry(id).or_default() += balance;
+        if balance > 0 {
+          *allocated[vout].entry(id).or_default() += balance;
+        }
       }
     }
 
