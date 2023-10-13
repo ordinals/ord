@@ -4431,10 +4431,10 @@ msgstr "目前，ord 重启速度较慢，因此站点不会立即恢复在线�
 #: src/guides/reindexing.md:4
 msgid ""
 "Sometimes the `ord` database must be reindexed, which means deleting the "
-"database and restarting the indexing process with either `ord index run` or "
+"database and restarting the indexing process with either `ord index update` or "
 "`ord server`. Reasons to reindex are:"
 msgstr ""
-"有时必须重新索引‘ord’数据库，这意味着删除数据库并使用 `ord index run`或`ord "
+"有时必须重新索引‘ord’数据库，这意味着删除数据库并使用 `ord index update`或`ord "
 "server`来重新索引数据库。重新索引的原因是："
 
 #: src/guides/reindexing.md:8
@@ -4509,17 +4509,17 @@ msgstr "因此，要在 MacOS 上删除数据库并重新索引，您必须在�
 msgid ""
 "```bash\n"
 "rm ~/Library/Application Support/ord/index.redb\n"
-"ord index run\n"
+"ord index update\n"
 "```"
 msgstr ""
 
 #: src/guides/reindexing.md:29
 msgid ""
 "You can of course also set the location of the data directory yourself with "
-"`ord --data-dir <DIR> index run` or give it a specific filename and path "
-"with `ord --index <FILENAME> index run`."
+"`ord --data-dir <DIR> index update` or give it a specific filename and path "
+"with `ord --index <FILENAME> index update`."
 msgstr ""
-"您当然也可以自己设置数据目录的位置,`ord --data-dir <DIR> index run` 或为其指"
+"您当然也可以自己设置数据目录的位置,`ord --data-dir <DIR> index update` 或为其指"
 "定特定的文件名和路径,使用‘ord --index <FILENAME>索引运行’。"
 
 #: src/bounties.md:1

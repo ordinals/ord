@@ -3,6 +3,7 @@
 - [Overview](overview.md)
 - [Digital Artifacts](digital-artifacts.md)
 - [Inscriptions](inscriptions.md)
+  - [Metadata](inscriptions/metadata.md)
   - [Provenance](inscriptions/provenance.md)
   - [Recursion](inscriptions/recursion.md)
 - [FAQ](faq.md)
