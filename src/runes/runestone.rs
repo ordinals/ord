@@ -27,10 +27,17 @@ impl Runestone {
 
     let mut edicts = Vec::new();
     let mut etching = None;
-
+    let mut id = 0;
     for chunk in integers.chunks(3) {
       match *chunk {
-        [id, amount, output] => edicts.push(Edict { id, amount, output }),
+        [id_delta, amount, output] => {
+          edicts.push(Edict {
+            id: id + id_delta,
+            amount,
+            output,
+          });
+          id += id_delta;
+        }
         [rune] => {
           etching = Some(Etching {
             divisibility: 0,
@@ -56,10 +63,15 @@ impl Runestone {
   pub(crate) fn encipher(&self) -> ScriptBuf {
     let mut payload = Vec::new();
 
-    for edict in &self.edicts {
-      varint::encode_to_vec(edict.id, &mut payload);
+    let mut edicts = self.edicts.clone();
+    edicts.sort_by_key(|edict| edict.id);
+
+    let mut id = 0;
+    for edict in edicts {
+      varint::encode_to_vec(edict.id - id, &mut payload);
       varint::encode_to_vec(edict.amount, &mut payload);
       varint::encode_to_vec(edict.output, &mut payload);
+      id = edict.id;
     }
 
     if let Some(etching) = self.etching {
@@ -529,7 +541,7 @@ mod tests {
 
   #[test]
   fn runestone_may_contain_multiple_edicts() {
-    let payload = payload(&[1, 2, 3, 4, 5, 6]);
+    let payload = payload(&[1, 2, 3, 3, 5, 6]);
 
     let payload: &PushBytes = payload.as_slice().try_into().unwrap();
 
