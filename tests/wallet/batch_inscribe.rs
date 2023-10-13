@@ -155,3 +155,12 @@ fn batch_inscribe_respects_dry_run_flag() {
 
   assert_eq!(request.status(), 404);
 }
+
+#[test]
+fn can_seperate_batch() {}
+
+#[test]
+fn batch_shows_location_satpoint() {}
+
+#[test]
+fn very_large_batch() {}

@@ -613,7 +613,7 @@ mod tests {
   }
 
   #[test]
-  fn batch_inscribe_with_parent_not_enough_cardinals_utxos() {
+  fn batch_inscribe_with_parent_not_enough_cardinals_utxos_fails() {
     let utxos = vec![
       (outpoint(1), Amount::from_sat(10_000)),
       (outpoint(2), Amount::from_sat(20_000)),
