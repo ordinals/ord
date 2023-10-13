@@ -17,6 +17,7 @@ pub(crate) enum Curse {
   IncompleteField,
   NotAtOffsetZero,
   NotInFirstInput,
+  Pointer,
   Pushnum,
   Reinscription,
   UnrecognizedEvenField,
@@ -242,7 +243,9 @@ impl Inscription {
     let (txid, index) = value.split_at(Txid::LEN);
 
     if let Some(last) = index.last() {
-      if *last == 0 {
+      // Accept fixed length encoding with 4 bytes (with potential trailing zeroes)
+      // or variable length (no trailing zeroes)
+      if index.len() != 4 && *last == 0 {
         return None;
       }
     }
@@ -441,10 +444,24 @@ mod tests {
   }
 
   #[test]
-  fn inscription_with_parent_field_index_with_trailing_zeroes_has_no_parent() {
+  fn inscription_with_parent_field_index_with_trailing_zeroes_and_fixed_length_has_parent() {
     let mut parent = vec![1; 36];
 
     parent[35] = 0;
+
+    assert!(Inscription {
+      parent: Some(parent),
+      ..Default::default()
+    }
+    .parent()
+    .is_some());
+  }
+
+  #[test]
+  fn inscription_with_parent_field_index_with_trailing_zeroes_and_variable_length_has_no_parent() {
+    let mut parent = vec![1; 35];
+
+    parent[34] = 0;
 
     assert!(Inscription {
       parent: Some(parent),
