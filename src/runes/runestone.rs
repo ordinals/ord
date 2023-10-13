@@ -780,7 +780,7 @@ mod tests {
         },
       ],
       None,
-      54,
+      49,
     );
 
     case(
@@ -812,23 +812,6 @@ mod tests {
           .into(),
           output: 0,
         },
-      ],
-      None,
-      81,
-    );
-
-    case(
-      vec![
-        Edict {
-          amount: u64::max_value().into(),
-          id: RuneId {
-            height: 1_000_000,
-            index: u16::max_value(),
-          }
-          .into(),
-          output: 0,
-        };
-        4
       ],
       None,
       70,
@@ -845,10 +828,27 @@ mod tests {
           .into(),
           output: 0,
         };
+        4
+      ],
+      None,
+      55,
+    );
+
+    case(
+      vec![
+        Edict {
+          amount: u64::max_value().into(),
+          id: RuneId {
+            height: 1_000_000,
+            index: u16::max_value(),
+          }
+          .into(),
+          output: 0,
+        };
         5
       ],
       None,
-      88,
+      67,
     );
 
     case(
@@ -865,7 +865,7 @@ mod tests {
         5
       ],
       None,
-      72,
+      64,
     );
 
     case(
@@ -882,7 +882,7 @@ mod tests {
         5
       ],
       None,
-      83,
+      62,
     );
   }
 }
