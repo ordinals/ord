@@ -4,13 +4,16 @@ use super::*;
 #[serde(deny_unknown_fields)]
 pub(crate) struct BatchEntry {
   pub(crate) inscription: PathBuf,
-  pub(crate) json_metadata: Option<PathBuf>,
+  pub(crate) metadata: Option<serde_yaml::Value>,
   pub(crate) metaprotocol: Option<String>,
 }
 
 impl BatchEntry {
   pub(crate) fn metadata(&self) -> Result<Option<Vec<u8>>> {
-    Inscribe::parse_metadata(None, self.json_metadata.clone())
+    let mut cbor = Vec::new();
+    ciborium::into_writer(&self.metadata, &mut cbor)?;
+
+    Ok(Some(cbor))
   }
 }
 

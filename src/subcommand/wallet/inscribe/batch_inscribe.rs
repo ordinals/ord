@@ -1,4 +1,7 @@
-use super::*;
+use {
+  super::*,
+  serde_yaml::{Mapping, Value},
+};
 
 #[derive(Serialize, Deserialize)]
 pub struct Output {
@@ -403,7 +406,6 @@ mod tests {
     let tempdir = TempDir::new().unwrap();
 
     let inscription_path = tempdir.path().join("tulip.txt");
-    let metadata_path = tempdir.path().join("metadata.json");
     fs::write(&inscription_path, "tulips are pretty").unwrap();
 
     let brc20_path = tempdir.path().join("token.json");
@@ -412,13 +414,28 @@ mod tests {
     fs::write(
       &batch_path,
       format!(
-        "mode: shared-output\nparent: {parent}\nbatch:\n- inscription: {}\n  json_metadata: {}\n- inscription: {}\n  metaprotocol: brc-20\n",
+        "mode: shared-output
+parent: {parent}
+batch:
+- inscription: {}
+  metadata:
+    title: Lorem Ipsum
+    description: Lorem ipsum dolor sit amet, consectetur adipiscing elit. In tristique, massa nec condimentum venenatis, ante massa tempor velit, et accumsan ipsum ligula a massa. Nunc quis orci ante.
+- inscription: {}
+  metaprotocol: brc-20
+",
         inscription_path.display(),
-        metadata_path.display(),
         brc20_path.display()
       ),
     )
     .unwrap();
+
+    let mut metadata = Mapping::new();
+    metadata.insert(
+      Value::String("title".to_string()),
+      Value::String("Lorem Ipsum".to_string()),
+    );
+    metadata.insert(Value::String("description".to_string()), Value::String("Lorem ipsum dolor sit amet, consectetur adipiscing elit. In tristique, massa nec condimentum venenatis, ante massa tempor velit, et accumsan ipsum ligula a massa. Nunc quis orci ante.".to_string()));
 
     pretty_assert_eq!(
       match Arguments::try_parse_from([
@@ -440,7 +457,7 @@ mod tests {
         batch: vec![
           BatchEntry {
             inscription: inscription_path,
-            json_metadata: Some(metadata_path),
+            metadata: Some(Value::Mapping(metadata)),
             ..Default::default()
           },
           BatchEntry {
