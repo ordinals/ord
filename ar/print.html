@@ -1,0 +1,1425 @@
+<!DOCTYPE HTML>
+<html lang="ar" class="sidebar-visible no-js coal" dir="rtl">
+<script>
+  var lang = "ar"; // Get the language from the configuration
+  if (lang === "ar") {
+    // Set the direction to right-to-left for Arabic
+    document.getElementsByTagName("html")[0].setAttribute("dir", "rtl");
+  }
+</script>
+<style>
+    .custom-list {
+        list-style-type: none; /* Remove default list item marker (hyphen) */
+    }
+</style>
+<html lang="ar" class="sidebar-visible no-js coal">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Ordinal Theory Handbook</title>
+        <meta name="robots" content="noindex" />
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="language-picker.css">
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "coal";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('coal')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">المقدمة</a></li><li class="chapter-item expanded "><a href="overview.html"><strong aria-hidden="true">1.</strong> نظرة عامة</a></li><li class="chapter-item expanded "><a href="digital-artifacts.html"><strong aria-hidden="true">2.</strong> التحف الرقمية</a></li><li class="chapter-item expanded "><a href="inscriptions.html"><strong aria-hidden="true">3.</strong> إنسكريبشين</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="inscriptions/metadata.html"><strong aria-hidden="true">3.1.</strong> Metadata</a></li><li class="chapter-item expanded "><a href="inscriptions/provenance.html"><strong aria-hidden="true">3.2.</strong> Provenance</a></li><li class="chapter-item expanded "><a href="inscriptions/recursion.html"><strong aria-hidden="true">3.3.</strong> التكرار</a></li></ol></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">4.</strong> الأسئلة الشائعة</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> المساهمة</a></li><li class="chapter-item expanded "><a href="donate.html"><strong aria-hidden="true">6.</strong> التبرع</a></li><li class="chapter-item expanded "><a href="guides.html"><strong aria-hidden="true">7.</strong> إرشادات</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="guides/explorer.html"><strong aria-hidden="true">7.1.</strong> المتصفح</a></li><li class="chapter-item expanded "><a href="guides/inscriptions.html"><strong aria-hidden="true">7.2.</strong> إنسكريبشين</a></li><li class="chapter-item expanded "><a href="guides/sat-hunting.html"><strong aria-hidden="true">7.3.</strong> جمع الساتوشي</a></li><li class="chapter-item expanded "><a href="guides/collecting.html"><strong aria-hidden="true">7.4.</strong> التجميع</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="guides/collecting/sparrow-wallet.html"><strong aria-hidden="true">7.4.1.</strong> محفظة سباروو</a></li></ol></li><li class="chapter-item expanded "><a href="guides/testing.html"><strong aria-hidden="true">7.5.</strong> التجارب</a></li><li class="chapter-item expanded "><a href="guides/moderation.html"><strong aria-hidden="true">7.6.</strong> الإشراف</a></li><li class="chapter-item expanded "><a href="guides/reindexing.html"><strong aria-hidden="true">7.7.</strong> إعادة الفهرسة</a></li></ol></li><li class="chapter-item expanded "><a href="bounties.html"><strong aria-hidden="true">8.</strong> المكافآت</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="bounty/0.html"><strong aria-hidden="true">8.1.</strong> جائزة 0: 100,000 ساتوشي مكتملة!</a></li><li class="chapter-item expanded "><a href="bounty/1.html"><strong aria-hidden="true">8.2.</strong> جائزة 1: 200,000 ساتوشي مكتملة!</a></li><li class="chapter-item expanded "><a href="bounty/2.html"><strong aria-hidden="true">8.3.</strong> جائزة 2: 300,000 ساتوشي مكتملة!</a></li><li class="chapter-item expanded "><a href="bounty/3.html"><strong aria-hidden="true">8.4.</strong> جائزة 3: 400,000 ساتوشي</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Ordinal Theory Handbook</h1>
+
+                    <div class="right-buttons">
+                        <button id="language-toggle" class="icon-button" type="button"
+                                title="Change language" aria-label="Change language"
+                                aria-haspopup="true" aria-expanded="false"
+                                aria-controls="language-list">
+                            <i class="fa fa-globe"></i>
+                        </button>
+                        <ul id="language-list" class="theme-popup" aria-label="Languages" role="menu">
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="en">English</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fr">Français</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="es">Español</a>
+                          </button></li>
+                           <li role="none"><button role="menuitem" class="theme">
+                              <a id="ru">Русский</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="zh">中文版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ja">日本語版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fil">Filipino</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ar">العربية</a>
+                          </button></li>
+                        </ul>
+
+                        <script>
+                          let langToggle = document.getElementById("language-toggle");
+                          let langList = document.getElementById("language-list");
+                          langToggle.addEventListener("click", (event) => {
+                              langList.style.display = langList.style.display == "block" ? "none" : "block";
+                          });
+                          let selectedLang = document.getElementById("ar");
+                          if (selectedLang) {
+                              selectedLang.parentNode.classList.add("theme-selected");
+                          }
+
+                          // The path to the root, taking the current
+                          // language into account.
+                          let full_path_to_root = "../";
+                          // The page path (mdbook only gives us
+                          // access to the path to the Markdown file).
+                          let path = "print.md".replace(/\.md$/, ".html");
+                          for (let lang of langList.querySelectorAll("a")) {
+                              if (lang.id == "en") {
+                                  lang.href = `${full_path_to_root}${path}`;
+                              } else {
+                                  lang.href = `${full_path_to_root}${lang.id}/${path}`;
+                              }
+                          }
+                        </script>
+
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ordinals/ord" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="المقدمة"><a class="header" href="#المقدمة">المقدمة</a></h1>
+<p>مقدمة هذا الكتيب هو دليل لنظرية ordinal. تعنى بتحديد بالساتوشي، حيث تمنحها هويات فردية وتسمح لها بالتتبع والإرسال، وتمنحها معنى.</p>
+<p>الساتوشي، وليس البيتكوين، هي العملة الذرية والأصلية لشبكة البيتكوين. يمكن تقسيم البيتكوين إلى 100,000,000 ساتوشي، ولكن لا يمكن تقسيم الساتوشي إلى مقاييس أصغر.</p>
+<p>نظرية الترتيب الترتيبيّ لا تحتاج إلى سلسلة فرعية أو رمز بديل إلى جانب البيتكوين، ويمكن استخدامها دون أي تغيير في شبكة البيتكوين. وهي تعمل الآن.</p>
+<p>نظرية ordinal تُضفي قيمة عملانية على الساتوشي، مما يسمح لها بالتجميع والتداول كالكنوز.</p>
+<p>يمكن أن يتم نقش الساتوشي الفردي بمحتوى تعسفي، مما يخلق قطعًا فريدة من الأصول الرقمية الأصلية للبيتكوين يمكن الاحتفاظ بها في محافظ البيتكوين او نقلها باستخدام معاملات البيتكوين. الإنسكريبشين متينة وثابتة وآمنة ومركزية تمامًا كالبيتكوين نفسه.</p>
+<p>هناك استخدامات أخرى أكثر غرابة ممكنة: عملات ملونة خارج السلسلة، بنية البنية التحتية للمفتاح العام مع تدوير المفتاح، بديل لامركزي لنظام DNS. ومع ذلك، تعد مثل هذه الاستخدامات حاليًا موضوعية، وتكمن فقط في أذهان النظريين الترتيبيين المتطرفين.</p>
+<p>للحصول على مزيد من التفاصيل حول نظرية ordinal ، راجع <a href="overview.html">overview</a>.</p>
+<p>لمزيد من التفاصيل حول الإنسكريبشين، راجع <a href="inscriptions.html">inscriptions</a>.</p>
+<p>عندما تكون جاهزًا لبدء العمل، مكانًا جيدًا للبداية هو <a href="guides/inscriptions.html">inscriptions</a>، وهي نوع فضولي من الأصول الرقمية digital artifact الممكّنة بواسطة نظرية أوردينالس.</p>
+<h2 id="روابط"><a class="header" href="#روابط">روابط</a></h2>
+<ul>
+<li><a href="https://github.com/ordinals/ord/">GitHub</a></li>
+<li><a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">BIP</a></li>
+<li><a href="https://discord.gg/ordinals">Discord</a></li>
+<li><a href="https://ordinals.org/">Open Ordinals Institute Website</a></li>
+<li><a href="https://x.com/ordinalsorg">Open Ordinals Institute X</a></li>
+<li><a href="https://ordinals.com">Mainnet Block Explorer</a></li>
+<li><a href="https://signet.ordinals.com">Signet Block Explorer</a></li>
+</ul>
+<h2 id="فيديوهات"><a class="header" href="#فيديوهات">فيديوهات</a></h2>
+<ul>
+<li><a href="https://www.youtube.com/watch?v=rSS0O2KQpsI">Ordinal Theory Explained: Satoshi Serial Numbers and NFTs on Bitcoin</a></li>
+<li><a href="https://www.youtube.com/watch?v=MC_haVa6N3I">Ordinals Workshop with Rodarmor</a></li>
+<li><a href="https://www.youtube.com/watch?v=j5V33kV3iqo">Ordinal Art: Mint Your own NFTs on Bitcoin w/ @rodarmor</a></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="لمحة-عامة-عن-نظرية-أوردينالس"><a class="header" href="#لمحة-عامة-عن-نظرية-أوردينالس">لمحة عامة عن نظرية أوردينالس</a></h1>
+<p>الأوردينال هي نظام ترقيم للساتوشيات يسمح بتتبع ونقل الساتوشيات الفردية. يُطلق على هذه الأرقام اسم <a href="https://ordinals.com">أرقام ترتيبية</a>. يتم ترقيم الساتوشيات بحسب الترتيب الذي تم فيه تعدينها، ويتم نقلها من مداخل الصفقات  إلى مخارج الصفقات بالترتيب الذي دخلت به أولاً. كل من نظام الترقيم ونظام النقل يعتمد على الترتيب، حيث يعتمد نظام الترقيم على الترتيب الذي تم به تعدين الساتوشيات، ويعتمد نظام النقل على ترتيب مداخل ومخارج الصفقات. وبالتالي يطلق عليها اسم  <em>ordinals</em>.</p>
+<p>التفاصيل التقنية متاحة في <a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">the BIP</a>.</p>
+<p>نظريه أوردينال لا تحتاج عملة مميزة منفصلة أو بلوكشين أخرى أو أي تغييرات في بيتكوين .فهي تعمل الآن.</p>
+<p>أرقام أوردينال لها عدة تمثيلات مختلفة:</p>
+<ul>
+<li>
+<p>تمثيل العدد الصحيح: <a href="https://ordinals.com/sat/2099994106992659"><code>2099994106992659</code></a> هو عدد ترتيبي، يتم تعيينه وفقا للترتيب الذي تم به تعدين الساتوشي.</p>
+</li>
+<li>
+<p>تمثيل العدد العشري: <a href="https://ordinals.com/sat/3891094.16797"><code>3891094.16797</code></a> الرقم الأول هو ارتفاع البلوك (block) التي تم بها تعدين الساتوشي، والرقم الثاني هو الانحراف للساتوشي داخل البلوك.</p>
+</li>
+<li>
+<p>تمثيل الزاوية: <a href="https://ordinals.com/sat/3%C2%B0111094%E2%80%B2214%E2%80%B316797%E2%80%B4"><code>3°111094′214″16797‴</code></a> سنصل لذلك لاحقا.</p>
+</li>
+<li>
+<p>تمثيل النسبة المئوية: <a href="https://ordinals.com/sat/99.99971949060254%25"><code>99.99971949060254%</code></a> موضع الساتوشي في إمدادات بيتكوين، ويعبر عنه كنسبة مئوية.</p>
+</li>
+<li>
+<p>الاسم: <a href="https://ordinals.com/sat/satoshi"><code>satoshi</code></a> . ترميز للرقم الترتيبي باستخدام الأحرف من <code>a</code> إلى <code>z</code>.</p>
+</li>
+</ul>
+<p>يمكن ربط الأصول المختلفة، مثل NFTs والعملات المستقرة والحسابات والرموز الأمانية، بالساتوشيات باستخدام الأرقام الترتيبية كمُعرفات مستقرة.</p>
+<p>أوردينالس هو مشروع مفتوح المصدر، تم تطويره على منصة <a href="https://github.com/ordinals/ord">on GitHub</a>. يتكون المشروع من BIP الذي يصف لنظام أوردينال، وفهرس يتواصل مع Bitcoin Core node لتتبع موقع جميع الساتوشيات، ومحفظة تسمح بإجراء صفقات ترتيبية ordinal-aware ، ومتصفح كتل لاستكشاف التفاعلي ل البلوكشين، ووظيفته تسجيل معاملات الساتوشيات بالقطع الرقمية، وهذا الدليل.</p>
+<h2 id="الندرة"><a class="header" href="#الندرة">الندرة</a></h2>
+<p>البشر هم مجمعون، وبما أن الساتوشيات يمكن تتبعها وإرسالها الآن، سترغب الناس بشكل طبيعي في جمعهم. الجميع يمكن أن يحدد أي من الساتوشيات هي نادرة ومرغوب فيها، ولكن هناك بعض التلميحات...</p>
+<p>بيتكوين لديها أحداث دورية، بعضها متكرر وبعضها أقل انتظامًا، وهذه الأحداث تميل بشكل طبيعي إلى نظام ندرة. هذه الأحداث الدورية هي:</p>
+<ul>
+<li>
+<p><em>بلوكس</em>: يتم تعدين بلوك جديد تقريبًا كل 10 دقائق، من الآن وحتى نهاية الزمان.</p>
+</li>
+<li>
+<p><em>تعديلات الصعوبة</em>: كل 2016 بلوك ، أو تقريبًا كل أسبوعين، يستجيب شبكة بيتكوين للتغيرات في معدل الهاش بضبط هدف الصعوبة الذي يجب أن تلبيه البلوكس حتى يتم قبولها.</p>
+</li>
+<li>
+<p><em>التقسيمات</em>: كل 210,000 بلوك، أو تقريبًا كل أربع سنوات، يتم قطع كمية الساتوشيات الجديدة التي تم إنشاؤها في كل كتلة إلى النصف.</p>
+</li>
+<li>
+<p><em>الدورات</em>: كل ست تقسيمات، يحدث شيء سحري: التقسيم وتعديل الصعوبة يتزامنان. يُطلق على هذا اسم &quot;توازن&quot;، والفترة الزمنية بين التوازنات هي دورة. يحدث التوازن تقريبًا كل 24 سنة. يجب أن يحدث التوازن الأول في وقت ما بين عامي 2031 و 2032.</p>
+</li>
+</ul>
+<p>هذا يمنحنا مستويات الندرة التالية:</p>
+<ul>
+<li><code>شائع</code>: أي ساتوشي ليس أول ساتوشي في البلوك الخاص به</li>
+<li><code>غير شائع</code>: أول ساتوشي في كل بلوك</li>
+<li><code>نادر</code>: أول ساتوشي في كل فترة تعديل للصعوبة</li>
+<li><code>ملحمي</code>: أول ساتوشي في كل عصر للتقسيم</li>
+<li><code>أسطوري</code>: أول ساتوشي في كل دورة</li>
+<li><code>أسطوري بالغ</code>: أول ساتوشي في اول بلوك</li>
+</ul>
+<p>وهذا يقودنا إلى تمثيل الزاوية، الذي يُمثل رقم الأوردينال بشكل لا شك فيه بطريقة تجعل ندرة الساتوشي واضحة في نظرة واحدة:</p>
+<pre><code>A°B′C″D‴
+│ │ │ ╰─ Index of sat in the block
+│ │ ╰─── Index of block in difficulty adjustment period
+│ ╰───── Index of block in halving epoch
+╰─────── Cycle, numbered starting from 0
+</code></pre>
+<p>غالبًا ما يستخدم الناس مصطلحات «ساعة» و «دقيقة» و «ثانية» و «ثالثة» لـ A و B و C و <em>D</em> تباعا.</p>
+<p>الآن لبعض الأمثلة. هذا الساتوشي شائع :</p>
+<pre><code>1°1′1″1‴
+│ │ │ ╰─ Not first sat in block
+│ │ ╰─── Not first block in difficulty adjustment period
+│ ╰───── Not first block in halving epoch
+╰─────── Second cycle
+</code></pre>
+<p>هذا الساتوشي غير شائع:</p>
+<pre><code>1°1′1″0‴
+│ │ │ ╰─ First sat in block
+│ │ ╰─── Not first block in difficulty adjustment period
+│ ╰───── Not first block in halving epoch
+╰─────── Second cycle
+</code></pre>
+<p>هذا الساتوشي نادر:</p>
+<pre><code>1°1′0″0‴
+│ │ │ ╰─ First sat in block
+│ │ ╰─── First block in difficulty adjustment period
+│ ╰───── Not the first block in halving epoch
+╰─────── Second cycle
+</code></pre>
+<p>هذا الساتوشي ملحمي:</p>
+<pre><code>1°0′1″0‴
+│ │ │ ╰─ First sat in block
+│ │ ╰─── Not first block in difficulty adjustment period
+│ ╰───── First block in halving epoch
+╰─────── Second cycle
+</code></pre>
+<p>هذا الساتوشي أسطوري:</p>
+<pre><code>1°0′0″0‴
+│ │ │ ╰─ First sat in block
+│ │ ╰─── First block in difficulty adjustment period
+│ ╰───── First block in halving epoch
+╰─────── Second cycle
+</code></pre>
+<p>هذا الساتوشي أسطوري بالغ:</p>
+<pre><code>0°0′0″0‴
+│ │ │ ╰─ First sat in block
+│ │ ╰─── First block in difficulty adjustment period
+│ ╰───── First block in halving epoch
+╰─────── First cycle
+</code></pre>
+<p>إذا كان إزاحة block هي صفر، يمكن حذفها. هذا هو الساتوشي هو غير الشائع من أعلاه:</p>
+<pre><code>1°1′1″
+│ │ ╰─ Not first block in difficulty adjustment period
+│ ╰─── Not first block in halving epoch
+╰───── Second cycle
+</code></pre>
+<h2 id="إمدادات-الساتوشي-النادرة"><a class="header" href="#إمدادات-الساتوشي-النادرة">إمدادات الساتوشي النادرة</a></h2>
+<h3 id="إجمالي-الإمدادات"><a class="header" href="#إجمالي-الإمدادات">إجمالي الإمدادات</a></h3>
+<ul>
+<li><code>شائع</code>: 2.1 كوادرليون</li>
+<li><code>غير شائع</code>: 6,929,999</li>
+<li><code>نادر</code>: 3437</li>
+<li><code>ملحمي</code>: 32</li>
+<li><code>أسطوري</code>: 5</li>
+<li><code>أسطوري بالغ</code>: 1</li>
+</ul>
+<h3 id="الإمدادات-الحاليه"><a class="header" href="#الإمدادات-الحاليه">الإمدادات الحاليه</a></h3>
+<ul>
+<li><code>شائع</code>: 1.9 كوادرليون</li>
+<li><code>uncommon</code>: 808,262</li>
+<li><code>نادر</code>: 369</li>
+<li><code>ملحمي</code>: 3</li>
+<li><code>أسطوري</code>: 0</li>
+<li><code>أسطوري بالغ</code>: 1</li>
+</ul>
+<p>في الوقت الحالي، حتى الساتوشي غير الشائع نادر جدًا. اعتبارًا من هذه الكتابة، تم استخراج 745855 ساتوشي غير شائع - واحد لكل 25.6 بيتكوين متداول.</p>
+<h2 id="الأسماء"><a class="header" href="#الأسماء">الأسماء</a></h2>
+<p>لكل ساتوشي اسم مكون من الحروف من &quot;A&quot; إلى &quot;Z&quot;، وهذه الأسماء تصبح أقصر كلما تقدمنا من التعدين في المستقبل. يمكن أن تبدأ الأسماء بشكل قصير وتصبح أطول، ولكن في هذه الحالة ستصبح جميع الأسماء الجيدة والقصيرة محصورة في البلوك الأول الذي لا يمكن الوصول اليه.</p>
+<p>على سبيل المثال، اسم 1905530482684727° هو &quot;iaiufjszmoba&quot;. واسم آخر ساتوشي سيتم تعدينه هو &quot;a&quot;. كل تسلسل مكون من 10 أحرف أو أقل موجود، أو سيكون موجودًا يومًا ما.</p>
+<h2 id="نوادر"><a class="header" href="#نوادر">نوادر</a></h2>
+<p>قد يتم تقدير الساتوشيات لأسباب أخرى غير اسمها أو ندرتها. قد يكون ذلك بسبب جودة الرقم نفسه، مثل وجود جذر تربيعي أو مكعبي عددي. أو قد يكون ذلك بسبب ارتباطها بحدث تاريخي، مثل الساتوشيات من الكتلة 477،120، الكتلة التي تم فيها تفعيل سيجويت SegWit، أو 2099999997689999°،آخر ساتوشي بالعالم سيتم تعدينها.</p>
+<p>تُعرف هذه الساتوشيات بـ &quot;الأنواع النادرة&quot;. أي الساتوشيات التي تُعتبر غير عادية وما يجعلها كذلك هو موضوعي. يُشجع المنظرين Ordinals على البحث عن الساتوشيات الغريبة بناءً على معايير محددة.</p>
+<h2 id="إنسكريبشين"><a class="header" href="#إنسكريبشين">إنسكريبشين</a></h2>
+<p>يمكن تحديد الساتوشيات بمحتوى تقني بما يخلق القطع الفنية الرقمية الأصلية digital artifacts للبيتكوين. يتم ذلك من خلال إرسال الساتوشي المراد الكتابة عليه في عملية تداول تكشف عن محتوى الكتابة على الشبكة. يتم ربط هذا المحتوى بشكل لا يمكن فصله بالساتوشي، مما يحوله إلى قطعة فنية رقمية لا يمكن تغييرها يمكن تتبعها وتداولها وتخزينها وشرائها وبيعها ووفقدها واكتشافها مرة أخرى.</p>
+<h2 id="الآثار"><a class="header" href="#الآثار">الآثار</a></h2>
+<p>قد ظهر مجتمع نشط من علماء الآثار المكرسين لتصنيف وجمع العملات الفنية الرقمية المبكرة (NFTs) مؤخرًا. <a href="https://mirror.xyz/chainleft.eth/MzPWRsesC9mQflxlLo-N29oF4iwCgX3lacrvaG9Kjko">ها هو ملخص رائع لـ NFTs التاريخية من قبل Chainleft.</a></p>
+<p>تاريخ معروف عمومًا للـ NFTs المبكرة هو 19 مارس 2018، وهو تاريخ نشر أول عقد ERC-721، وهو عقد <a href="https://tenthousandsu.com/">SU SQUARES</a>، على منصة إيثيريوم.</p>
+<p>سواء كانت أوردينال مثيرة لاهتمام علماء الآثار لـ NFTs او لا فهو سؤال مفتوح! من ناحية، تم إنشاء أوردينالس في أوائل عام 2022، عندما تم تحديد مواصفاتها. من هذا المعنى، فهي ليست ذات أهمية تاريخية.</p>
+<p>من ناحية أخرى، تم إنشاء أوردينالس في الواقع من قبل ساتوشي ناكاموتو في عام 2009 عندما قام بتعدين genesis block للبيتكوين. من هذا المعنى، تكون أوردينالس ، وخصوصا المبكرة، من ذوي الاهتمام التاريخي بالتأكيد.</p>
+<p>العديد من نظريات أوردينالس تفضل الرأي الأخير. ويكون ذلك ليس على الأقل لأن تم اكتشافها بشكل مستقل في مرتين على الأقل في مناسبتين منفصلتين، وذلك قبل عصر NFTs الحديث.</p>
+<p>في 21 أغسطس 2012، قام تشارلي لي <a href="https://bitcointalk.org/index.php?topic=102355.0">بنشر اقتراح لإضافة إثبات حصة إلى بيتكوين</a> على موقع Bitcoin Talk. لم يكن هذا مخطط له، ولكنه استخدم خوارزمية ordinal ، وتم تنفيذها ولكن لم يتم نشرها.</p>
+<p>في 8 أكتوبر 2012، قام jl2012 بنشر <a href="https://bitcointalk.org/index.php?topic=117224.0">خطة على نفس الموقع تستخدم تدوين العددي ولديها جميع الخصائص المهمة</a> ل أوردينال. تم مناقشة الخطة ولكن لم يتم تنفيذها.</p>
+<p>هذه الاختراعات المستقلة ل أوردينال تشير بطريقة ما إلى أن تم اكتشافها أو اكتشافها مرة أخرى، وليس اختراعها. إن أوردينال نتيجة حتمية لرياضيات البيتكوين، وذلك لا يعود إلى وثائقها الحديثة، ولكن من نشأتهم القديمة. إنها ذروة تسلسل من الأحداث التي تم تشغيلها مع البلوك الأول، منذ سنوات عديدة.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="التحف-الرقمية"><a class="header" href="#التحف-الرقمية">التحف الرقمية</a></h1>
+<p>تخيل تحفه أثرية في الواقع. عملة نادرة، على سبيل المثال، عمله سرية للفايكنج محفوظة بأمان لسنوات طويله و مخبأة ، ثم عثرت عليها أنت. فهي...</p>
+<p>...لديها مالك. وهو أنت. طالما أنك تحتفظ بها بأمان، لا يمكن لأحد أن يأخذها منك.</p>
+<p>... كاملة. ليس لديها أجزاء ناقصة.</p>
+<p>... يمكن تغييرها فقط بواسطتك. إذا كنت تاجرًا، ووصلت إلى الصين في القرن الثامن عشر، لا يمكن لأحد سواك أن يختمها بعلامتك التجارية.</p>
+<p>...مكن التخلص منها فقط بواسطتك. البيع، التبادل، أو الهدية لمن تشاء هو قرارك وحدك.</p>
+<p>ما هي الأصول/التحف الرقمية؟ ببساطة، إنها المعادلة الرقمية للتحفة الفعلية.</p>
+<p>لكي يكون الشيء الرقمي تحفة رقمية، يجب أن يكون مثل تلك العملة التي لديك:</p>
+<ul>
+<li>
+<p>التحفه الرقمية يمكن أن تمتلك أصحابًا. الرقم ليس تحفة رقمية، لأنه لا يمكن لأحد أن يمتلكه.</p>
+</li>
+<li>
+<p>التحف الرقمية هي كاملة. ال NFT الذي  يشير إلى محتوى خارج الشبكة على IPFS أو Arweave غير كامل، وبالتالي ليس تحفة رقمية.</p>
+</li>
+<li>
+<p>التحف الرقمية هي غير مقيدة بأذونات. ال NFT لا يمكن بيعها بدون دفع عمولة وبذالك هي مقيدة بأذونات، وبالتالي ليست تحفة رقمية.</p>
+</li>
+<li>
+<p>التحف الرقمية غير قابلة للرقابة. قد يكون لديك الإمكانية بتغيير قاعدة البيانات المركزي على ledger اليوم، ولكن ربما لا يمكن ذلك غدًا، وبالتالي لا يمكن أن تكون تحفه رقمية.</p>
+</li>
+<li>
+<p>التحف الرقمية لا تتغير. NFT مع قابليه الترقية لا تعد تحفة رقمية.</p>
+</li>
+</ul>
+<p>تعريف التحف الرقمية يهدف إلى اثبات ما يجب أن يكون ال NFTs، وفي بعض الأحيان ما هي عليه، والتحف هي <em>دائمًا</em> كذلك بالطبيعة التامة.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="إنسكريبشين-1"><a class="header" href="#إنسكريبشين-1">إنسكريبشين</a></h1>
+<p>الأنسكريبشين توصف الساتوشي بمحتوى تعسفي، مما يخلق محتويات رقمية digital artifacts منشأة في البيتكوين، والمعروفة عادة باسم NFTs. وهي لا تحتاج إلى شبكه جانبية أو عملات منفصله.</p>
+<p>هذه الساتوشي يمكن ارسالها عن طريق شبكه بيتكوين والاحتفاظ بها في محافظ البيتكوين على شكل UTXOs (مخرجات المعاملات الغير مُنفقة) في البيتكوين. هذه الصفقات والعناوين ومخرجات الصفقات هي عمليات وعناوين ومخرجات صفقات بيتكوين عادية بكل معنى الكلمة، باستثناء أنه من أجل إرسال ساتوشيات فردية، يجب أن تتحكم الصفقات في ترتيب وقيمة المدخلات والمخرجات وفقًا لنظرية أوردينال.</p>
+<p>نموذج محتوى أوردينال يتبع نمط الويب. يتألف كل انسكريبشين Inscription في نوع المحتوى، والمعروف أيضا باسم MIME، جنبا إلى جنب مع المحتوى نفسه بصيغة سلسلة بايت. يسمح هذا الإعداد يسمح محتوى الأنسكريبشين الى العودة من خادم الويب، مما يتيح إنشاء Inscription HTML تستخدم وتعيد تكوين محتوى Inscription أخرى.</p>
+<p>جميع محتوى الأنسكريبشين يتم تخزينه بالكامل على الشبكة، وذلك في البرامج النصية الخاصة بسحب مسارات تابروت (Taproot) . تتمتع برامج تابروت بقليل من القيود على محتواها وبالإضافة إلى ذلك تحصل على خصم الشاهد، مما يجعل تخزين المحتوى مكلفًا نسبيًا.</p>
+<p>نظرًا لطبيعة صفقات برامج تابروت، التي يمكن أن تتم فقط من مخرجات تابروت الموجودة بالفعل، يتم إنشاء الأنسكريبشين على مرحليتين باستخدام عملية تأكيد/كشف . في البداية، ينشئ صفقة تأكيد مخرج تابروت يلتزم ببرنامج يحتوي على محتوى الأنسكريبشين. في المرحلة التالية، تنفق عمليه الكشف المخرج الذي تم إنشاؤه في عمليه التأكيد، مما يكشف عن المحتوى على الشبكة البيانية.</p>
+<p>يتم تسلسل المحتوى باستخدام دفعات بيانات ضمن شروط غير مؤداه، والتي تُعرف بـ &quot;envelopes&quot;. تتألف من أمر <code>OP_FALSE OP_IF … OP_ENDIF</code> الذي يحيط بأي عدد من دفعات البيانات. نظرًا لأنها تعمل كعمليات فارغة بفعالية، فإنها لا تغير دلالة النص البرمجي الذي يتم تضمينها فيه، ويمكن دمجها مع أي نص برمجي مقفول آخر .</p>
+<p>على سبيل المثال يوجد نص انسكريبشين يحتوي على جملة : &quot;Hello, world!&quot; يتسلسل على النحو التالي:</p>
+<pre><code>OP_FALSE
+OP_IF
+  OP_PUSH &quot;ord&quot;
+  OP_PUSH 1
+  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH 0
+  OP_PUSH &quot;Hello, world!&quot;
+OP_ENDIF
+</code></pre>
+<p>أولاً، يتم دفع سلسلة <code>ord</code> للتفريق بين الكتابات وبين استخدامات أخرى للظروف.</p>
+<p><code>OP_PUSH 1</code> indicates that the next push contains the content type, and <code>OP_PUSH 0</code>indicates that subsequent data pushes contain the content itself. Multiple data pushes must be used for large inscriptions, as one of taproot's few restrictions is that individual data pushes may not be larger than 520 bytes.</p>
+<p>يتم تضمين محتوى الأنسكريبشين داخل مدخل عملية الكشف، وتتم الكتابة على أول ساتوشي في المدخل. يمكن بعد ذلك تتبع هذا الساتوشي باستخدام قواعد نظرية أوردينال المعتادة، مما يسمح بنقله، وشرائه، وبيعه، وفقده بسبب الرسوم، واستعادته.</p>
+<h2 id="المحتوى"><a class="header" href="#المحتوى">المحتوى</a></h2>
+<p>نموذج بيانات الكتابات هو نفس نموذج الاستجابة HTTP، مما يتيح لمحتوى انسكريبشين أن يتم تقديمه من خلال خادم ويب وعرضه في متصفح ويب.</p>
+<h2 id="الحقول"><a class="header" href="#الحقول">الحقول</a></h2>
+<p>قد تشمل الأنسكريبشين حقولًا قبل هيكل اختياري. يتألف كل حقل من توجيهين للبيانات، علامة وقيمة.</p>
+<p>حاليًا، الحقل المعرف الوحيد <code>content-type</code>, بعلامة <code>1 </code>، والذي قيمته نوع MIME للهيكل.</p>
+<p>يتم توضيح بداية الهيكل ونهاية الحقول باستخدام دفعة بيانات فارغة.</p>
+<p>العلامات غير المعترف بها تفسر بشكل مختلف اعتمادًا على ما إذا كانت زوجية أم فردية، وذلك وفقًا لقاعدة &quot;من الجيد أن تكون فردية&quot; المستخدمة في شبكة Lightning.</p>
+<p>تُستخدم العلامات الزوجية للحقول التي قد تؤثر على إنشاء الأنسكريبشين، وتعيينه الأولي، أو نقله. بالتالي، يجب عرض الأنسكريبشين ذات الحقول الزوجية غير المعترف بها على أنها &quot;غير مُرتبطة&quot;، أي بدون موقع.</p>
+<p>تُستخدم العلامات الفردية للحقول التي لا تؤثر على إنشاء الأنسكريبشين، وتعيينه الأولي، أو نقله، مثل البيانات الوصفية الإضافية، وبالتالي يمكن تجاهلها بأمان.</p>
+<h2 id="مُعرفات-الانسكريبشين"><a class="header" href="#مُعرفات-الانسكريبشين">مُعرفات الانسكريبشين</a></h2>
+<p>تتمثل الأنسكريبشين في المدخلات (inputs) لعملية الكشف (reveal) التي تعلن الأنسكريبشين. لتحديد هويتها بشكل فريد، يتم تعيينها بمعرف بالشكل التالي:</p>
+<p><code>521f8eccffa4c41a3a7728dd012ea5a4a02feed81f41159231251ecf1e5c79dai0</code></p>
+<p>الجزء الذي يسبق الـ <code>i</code> هو معرف المعاملة (<code>txid</code>) لعملية الكشف. العدد بعد الـ <code>i</code> يحدد المؤشر (بدءًا من 0) الأنسكريبشين الجديدة التي يتم تدوينها في عملية الكشف.</p>
+<p>يمكن أن تكون الأنسكريبشينس موجودة إما في مدخلات مختلفة، داخل نفس المدخل أو مزيجًا من الاثنين. في أي حالة، الترتيب واضح، حيث يتابع جهاز تحليل البيانات المدخلات ويبحث عن جميع أظرف الأنسكريبشينس<code>envelopes</code>.</p>
+<div class="table-wrapper"><table><thead><tr><th style="text-align: center">Input</th><th style="text-align: center">Inscription Count</th><th style="text-align: center">Indices</th></tr></thead><tbody>
+<tr><td style="text-align: center">0</td><td style="text-align: center">2</td><td style="text-align: center">i0, i1</td></tr>
+<tr><td style="text-align: center">1</td><td style="text-align: center">1</td><td style="text-align: center">i2</td></tr>
+<tr><td style="text-align: center">2</td><td style="text-align: center">3</td><td style="text-align: center">i3, i4, i5</td></tr>
+<tr><td style="text-align: center">3</td><td style="text-align: center">0</td><td style="text-align: center"></td></tr>
+<tr><td style="text-align: center">4</td><td style="text-align: center">1</td><td style="text-align: center">i6</td></tr>
+</tbody></table>
+</div>
+<h2 id="عزل-البيئة"><a class="header" href="#عزل-البيئة">عزل البيئة</a></h2>
+<p>يتم عزل الأنسكريبشين HTML و SVG من أجل منع الإشارات إلى المحتوى الخارجي على الشبكة، وبالتالي الحفاظ على الأنسكريبشين بلا تغيير ومكتملة ذاتياً.</p>
+<p>يتم تحقيق ذلك من خلال تحميل HTML و SVG انسكريبشين داخل <code>iframes</code> مع صفة <code>sandbox</code>، بالإضافة إلى تقديم محتوى انسكريبشين باستخدام <code>Content-Security-Policy</code> .</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="metadata"><a class="header" href="#metadata">Metadata</a></h1>
+<p>Inscriptions may include <a href="https://cbor.io/">CBOR</a> metadata, stored as data pushes in fields with tag <code>5</code>. Since data pushes are limited to 520 bytes, metadata longer than 520 bytes must be split into multiple tag <code>5</code> fields, which will then be concatenated before decoding.</p>
+<p>Metadata is human readable, and all metadata will be displayed to the user with its inscription. Inscribers are encouraged to consider how metadata will be displayed, and make metadata concise and attractive.</p>
+<p>Metadata is rendered to HTML for display as follows:</p>
+<ul>
+<li><code>null</code>, <code>true</code>, <code>false</code>, numbers, floats, and strings are rendered as plain text.</li>
+<li>Byte strings are rendered as uppercase hexadecimal.</li>
+<li>Arrays are rendered as <code>&lt;ul&gt;</code> tags, with every element wrapped in <code>&lt;li&gt;</code> tags.</li>
+<li>Maps are rendered as <code>&lt;dl&gt;</code> tags, with every key wrapped in <code>&lt;dt&gt;</code> tags, and every value wrapped in <code>&lt;dd&gt;</code> tags.</li>
+<li>Tags are rendered as the tag , enclosed in a <code>&lt;sup&gt;</code> tag, followed by the value.</li>
+</ul>
+<p>CBOR is a complex spec with many different data types, and multiple ways of representing the same data. Exotic data types, such as tags, floats, and bignums, and encoding such as indefinite values, may fail to display correctly or at all. Contributions to <code>ord</code> to remedy this are welcome.</p>
+<h2 id="مثال"><a class="header" href="#مثال">مثال</a></h2>
+<p>Since CBOR is not human readable, in these examples it is represented as JSON. Keep in mind that this is <em>only</em> for these examples, and JSON metadata will <em>not</em> be displayed correctly.</p>
+<p>The metadata <code>{&quot;foo&quot;:&quot;bar&quot;,&quot;baz&quot;:[null,true,false,0]}</code> would be included in an inscription as:</p>
+<pre><code>OP_FALSE
+OP_IF
+    ...
+    OP_PUSH 0x05 OP_PUSH '{&quot;foo&quot;:&quot;bar&quot;,&quot;baz&quot;:[null,true,false,0]}'
+    ...
+OP_ENDIF
+</code></pre>
+<p>And rendered as:</p>
+<pre><code>&lt;dl&gt;
+  ...
+  &lt;dt&gt;metadata&lt;/dt&gt;
+  &lt;dd&gt;
+    &lt;dl&gt;
+      &lt;dt&gt;foo&lt;/dt&gt;
+      &lt;dd&gt;bar&lt;/dd&gt;
+      &lt;dt&gt;baz&lt;/dt&gt;
+      &lt;dd&gt;
+        &lt;ul&gt;
+          &lt;li&gt;null&lt;/li&gt;
+          &lt;li&gt;true&lt;/li&gt;
+          &lt;li&gt;false&lt;/li&gt;
+          &lt;li&gt;0&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/dd&gt;
+    &lt;/dl&gt;
+  &lt;/dd&gt;
+  ...
+&lt;/dl&gt;
+</code></pre>
+<p>Metadata longer than 520 bytes must be split into multiple fields:</p>
+<pre><code>OP_FALSE
+OP_IF
+    ...
+    OP_PUSH 0x05 OP_PUSH '{&quot;very&quot;:&quot;long&quot;,&quot;metadata&quot;:'
+    OP_PUSH 0x05 OP_PUSH '&quot;is&quot;,&quot;finally&quot;:&quot;done&quot;}'
+    ...
+OP_ENDIF
+</code></pre>
+<p>Which would then be concatinated into <code>{&quot;very&quot;:&quot;long&quot;,&quot;metadata&quot;:&quot;is&quot;,&quot;finally&quot;:&quot;done&quot;}</code>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="provenance"><a class="header" href="#provenance">Provenance</a></h1>
+<p>The owner of an inscription can create child inscriptions, trustlessly establishing the provenance of those children on-chain as having been created by the owner of the parent inscription. This can be used for collections, with the children of a parent inscription being members of the same collection.</p>
+<p>Children can themselves have children, allowing for complex hierarchies. For example, an artist might create an inscription representing themselves, with sub inscriptions representing collections that they create, with the children of those sub inscriptions being items in those collections.</p>
+<h3 id="specification"><a class="header" href="#specification">Specification</a></h3>
+<p>To create a child inscription C with parent inscription P:</p>
+<ul>
+<li>Create an inscribe transaction T as usual for C.</li>
+<li>Spend the parent P in one of the inputs of T.</li>
+<li>Include tag <code>3</code>, i.e. <code>OP_PUSH 3</code>, in C, with the value of the serialized binary inscription ID of P, serialized as the 32-byte <code>TXID</code>, followed by the four-byte little-endian <code>INDEX</code>, with trailing zeroes omitted.</li>
+</ul>
+<p><em>NB</em> The bytes of a bitcoin transaction ID are reversed in their text representation, so the serialized transaction ID will be in the opposite order.</p>
+<h3 id="مثال-1"><a class="header" href="#مثال-1">مثال</a></h3>
+<p>An example of a child inscription of <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0</code>:</p>
+<pre><code>OP_FALSE
+OP_IF
+  OP_PUSH &quot;ord&quot;
+  OP_PUSH 1
+  OP_PUSH &quot;text/plain;charset=utf-8&quot;
+  OP_PUSH 3
+  OP_PUSH 0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100
+  OP_PUSH 0
+  OP_PUSH &quot;Hello, world!&quot;
+OP_ENDIF
+</code></pre>
+<p>Note that the value of tag <code>3</code> is binary, not hex, and that for the child inscription to be recognized as a child, <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0</code> must be spent as one of the inputs of the inscribe transaction.</p>
+<p>Example encoding of inscription ID <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi255</code>:</p>
+<pre><code>OP_FALSE
+OP_IF
+  …
+  OP_PUSH 3
+  OP_PUSH 0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100ff
+  …
+OP_ENDIF
+</code></pre>
+<p>And of inscription ID <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi256</code>:</p>
+<pre><code>OP_FALSE
+OP_IF
+  …
+  OP_PUSH 3
+  OP_PUSH 0x1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a090807060504030201000001
+  …
+OP_ENDIF
+</code></pre>
+<h3 id="notes"><a class="header" href="#notes">Notes</a></h3>
+<p>The tag <code>3</code> is used because it is the first available odd tag. Unrecognized odd tags do not make an inscription unbound, so child inscriptions would be recognized and tracked by old versions of <code>ord</code>.</p>
+<p>A collection can be closed by burning the collection's parent inscription, which guarantees that no more items in the collection can be issued.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="التكرار"><a class="header" href="#التكرار">التكرار</a></h1>
+<p>إستثناء مهم من تطبيق البيئة العازلة<a href="inscriptions/../inscriptions.html#sandboxing">sandboxing</a>هو التكرار recursion: يُسمح بالوصول إلى نقطة النهاية <code>ord</code>'s <code>/content</code>، مما يتيح inscription الوصول إلى محتوى inscription آخر من خلال طلب<code>/content/&lt;INSCRIPTION_ID&gt;</code>.</p>
+<p>العديد من الاستخدامات المثيرة للاهتمام:</p>
+<ul>
+<li>
+<p>إعادة مزج محتوى الحالي من الإنسكريبشين.</p>
+</li>
+<li>
+<p>نشر مقتطفات من الشفرة، والصور، والصوت، أو ورقات الأنماط كموارد عامة مشتركة.</p>
+</li>
+<li>
+<p>مجموعات الفن التوليدية حيث يتم توثيق خوارزمية باستخدام JavaScript، ويتم تفعيلها من خلال إنسكريبشين متعددة ببذور فريدة.</p>
+</li>
+<li>
+<p>مجموعات صور الملف الشخصي التوليدية حيث يتم تدوين الإكسسوارات والسمات كصور فردية، أو ضمن أطلس للنسيج المشترك، ثم يتم دمجها، على طريقة التراص، في تركيبات فريدة في عدد من الإنسكريبشينس.</p>
+</li>
+</ul>
+<p>نقاط أخرى التي يمكن الإنسكريبشين الوصول إليها هي كما يلي:</p>
+<ul>
+<li><code>/blockheight</code>: latest block height.</li>
+<li><code>/blockhash</code>: latest block hash.</li>
+<li><code>/blockhash/&lt;HEIGHT&gt;</code>: block hash at given block height.</li>
+<li><code>/blocktime</code>: UNIX time stamp of latest block.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="الأسئلة-الشائعة-لنظرية-أوردينال"><a class="header" href="#الأسئلة-الشائعة-لنظرية-أوردينال">الأسئلة الشائعة لنظرية أوردينال</a></h1>
+<h2 id="ما-هي-نظرية-أوردينال"><a class="header" href="#ما-هي-نظرية-أوردينال">ما هي نظرية أوردينال؟</a></h2>
+<p>نظرية أوردينال هي بروتوكول لتخصيص أرقام تسلسلية للساتوشي، وهي أصغر وحدة فرعية من البيتكوين، ويمكن تتبع تلك الساتوشي أثناء استعمالها من خلال المعاملات.</p>
+<p>تلك الأرقام التسلسلية هي أرقام كبيرة، مثل هذا الرقم 804766073970493. كل ساتوشي، والذي هو واحد من أصل مليون من بيتكوين واحد، لديه رقم ترتيبي.</p>
+<h2 id="هل-تتطلب-نظرية-أوردينال-شبكه-فرعية-sidechain-أو-عمله-منفصله-token-أو-تغييرات-في-البيتكوين"><a class="header" href="#هل-تتطلب-نظرية-أوردينال-شبكه-فرعية-sidechain-أو-عمله-منفصله-token-أو-تغييرات-في-البيتكوين">هل تتطلب نظرية أوردينال شبكه فرعية (Sidechain) أو عمله منفصله (Token)، أو تغييرات في البيتكوين؟</a></h2>
+<p>لا! نظرية أوردينال تعمل حاليًا دون الحاجة إلى شبكه فرعية أو عمله منفصله، والعملة الوحيدة المطلوبة هي بيتكوين نفسه.</p>
+<h2 id="ما-فائدة-نظرية-أوردينال"><a class="header" href="#ما-فائدة-نظرية-أوردينال">ما فائدة نظرية أوردينال؟</a></h2>
+<p>لجمع وتداول والتخطيطات. تعني إعطاء هويه للساتوشيات الفردية Assign identities to individual satoshis، وتسمح لها بأن تتمتع بإمكانية التتبع والتداول بشكل فردي، وذلك لأغراض الفضول والقيمة النقدية.</p>
+<p>تمكّن نظرية أوردينال أيضًا من الإنسكريبشين، وهو بروتوكول يتيح لربط محتوى تعسفي بالساتوشيس الفردية، مما يحولها إلى فنون رقمية (digital artifacts) من نوع بيتكوين الأصلي.</p>
+<h2 id="كيف-تعمل-نظرية-أوردينال"><a class="header" href="#كيف-تعمل-نظرية-أوردينال">كيف تعمل نظرية أوردينال؟</a></h2>
+<p>تُخصص أرقام أوردينال للساتوشيس بحسب ترتيب تعدينها. أول ساتوشي في البلوك الأول لديها رقم ترتيبي صفر 0، والثانية لها رقم ترتيبي 1، وآخر ساتوشي في البلوك الأول لديها رقم ترتيبي 4,999,999,999.</p>
+<p>الساتوشيس تعيش في output ، لكن المعاملات تدمر outputs وتصنع outputs جديدة، لذا يستخدم نظرية أوردينال خوارزمية لتحديد كيفية تنقل الساتوشيس من مداخل المعاملة إلى مخرجاتها.</p>
+<p>لحسن الحظ، هذه الخوارزمية بسيطة جدًا.</p>
+<p>ترسل الساتوشي بترتيب الواصل الأول هو الخارج الأول. اعتبر مداخل المعاملة قائمة بالساتوشيس، والمخرجات قائمة بالفتحات، تنتظر استقبال الساتوشي. لتعيين الساتوشي المدخلة إلى الفتحات، قم بمراجعة كل ساتوشي في المداخل ب بالترتيب، وقم بتعيين كل منها إلى أول فتحة متاحة في المخرجات.</p>
+<p>لنتخيل معاملة تحتوي على ثلاثة مداخل ومخرجين. تظهر المداخل على يمين السهم والمخرجات على يساره، وكل منها مُحدد بقيمته:</p>
+<pre><code>[2] [1] [3] → [4] [2]
+</code></pre>
+<p>الآن لنضع علامات على نفس المعاملة باستخدام أرقام ترتيبية للساتوشيس في كل مدخل، وعلامات استفهام لكل فتحة خروج. الأرقام الترتيبية كبيرة، لذلك دعونا نستخدم الحروف لتمثيلها:</p>
+<pre><code>[a b] [c] [d e f] → [? ? ? ?] [? ?]
+</code></pre>
+<p>لمعرفة أي ساتوشي سيذهب إلى أي فتحة، قم بمراجعة الساتوشيس المدخلة بالترتيب وقم بتعيين كل واحد إلى علامة استفهام:</p>
+<pre><code>[a b] [c] [d e f] → [a b c d] [e f]
+</code></pre>
+<p>قد تسأل ماذا عن الرسوم؟ سؤال جيد! لنتخيل نفس المعاملة، وهذه المرة مع اثنان ساتوشي كرسوم. المعاملات ذات الرسوم ترسل مزيدًا من الساتوشي في المداخل مقارنة بما يتم استقباله في المخارج، لذا من أجل تحويل معاملتنا إلى معاملة تدفع رسومًا، سنقوم بإزالة الفتحة الثانية:</p>
+<pre><code>[2] [1] [3] → [4]
+</code></pre>
+<p>The satoshis <var>e</var> and <var>f</var> now have nowhere to go in the outputs:</p>
+<pre><code>[a b] [c] [d e f] → [a b c d]
+</code></pre>
+<p>لذا سيذهبون إلى عائد العامل الذي قام بتعدين الكتلة كرسوم.<a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">The BIP</a> المعيار المعني به هنا يمتلك التفاصيل، لكن بشكل موجز، يتم التعامل مع الرسوم التي يتم دفعها من خلال المعاملات على أنها مداخل إضافية لمعاملة العملة الأساسية، وتتم ترتيبها بناءً على ترتيب معاملاتها المقابلة في الكتلة. قد يبدو معامل العملة الأساسية في البلوك كما يلي:</p>
+<pre><code>[SUBSIDY] [e f] → [SUBSIDY e f]
+</code></pre>
+<h2 id="أين-يمكنني-العثور-على-تفاصيل-البنية-الدقيقة"><a class="header" href="#أين-يمكنني-العثور-على-تفاصيل-البنية-الدقيقة">أين يمكنني العثور على تفاصيل البنية الدقيقة؟</a></h2>
+<p><a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">The BIP!</a></p>
+<h2 id="لماذا-يُطلق-على-سات-إنسكريبشين-ديجاتل-ارتيفاكت-digital-artifact-بدلاً-من-الرموز-غير-القابلة-للتماثل-nfts"><a class="header" href="#لماذا-يُطلق-على-سات-إنسكريبشين-ديجاتل-ارتيفاكت-digital-artifact-بدلاً-من-الرموز-غير-القابلة-للتماثل-nfts">لماذا يُطلق على سات إنسكريبشين ديجاتل ارتيفاكت &quot;digital artifact&quot; بدلاً من &quot;الرموز غير القابلة للتماثل&quot; &quot;NFTs&quot;؟</a></h2>
+<p>الرسوم الرقمية digital artifact هي في الأساس NFTs، ولكن يتم استخدام مصطلح &quot;الآثار الرقمية&quot; بدلاً من ذلك؛ لأنه أكثر بساطة وتلميحيًا وعامًا.</p>
+<p>عبارة &quot;الآثار الرقمية&quot; digital artifact تحمل معانٍ قوية حتى لمن لم يسمع بهذا المصطلح من قبل. وعلى عكس ذلك، اختصار NFT هو اختصار، ولا يوفر أي مؤشر على معناه إذا لم تكن قد سمعت بهذا المصطلح من قبل.</p>
+<p>بالإضافة إلى ذلك، يبدو &quot;NFT&quot; كمصطلح مالي، وكلمتا &quot;غير قابلة للتماثل&quot; و&quot;رمز&quot; كما يُستخدمان في &quot;NFT&quot; غير شائعتين خارج السياقات المالية.</p>
+<h2 id="كيف-تقارن-سات-إنسكريبشين-مع"><a class="header" href="#كيف-تقارن-سات-إنسكريبشين-مع">كيف تقارن سات إنسكريبشين مع…</a></h2>
+<h3 id="إيثريوم-nfts"><a class="header" href="#إيثريوم-nfts">إيثريوم (NFTs)؟</a></h3>
+<p><em>الأنسكريبشين غير قابلة للتغيير</em></p>
+<p>لا يوجد أي طريقة لصانع الإنسكريبشين أو مالكها لتعديلها بعد إنشائها.</p>
+<p>قد تكون NFTs في إيثيريوم قابلة للتغيير، ويمكن تغييرها أو حذفها من قبل صاحب العقد نفسه.</p>
+<p>من أجل التأكد من أن NFT معين في إيثيريوم غير قابل للتغيير، يجب مراجعة الكود الموجود في العقد، والذي يتطلب معرفة تفصيلية بشبكة EVM وسياقات Solidity.</p>
+<p>من الصعب جدًا على المستخدم الغير الفني تحديد ما إذا كان NFT الإيثيريوم قابلًا للتغيير أم لا، ومنصات NFT في إيثيريوم لا تبذل جهدًا للتمييز بين NFT اذا هي قابلة للتغيير أو لا ، وإذا كان كود المصدر قد تمت مراجعته.</p>
+<p><em>محتوى الإنسكريبشين دائماً على السلسلة الرئيسية.</em></p>
+<p>لا يوجد طريقة للإشارة إلى محتوى خارج السلسلة. هذا يجعل الإنسكريبشين أكثر دوامًا، لأن المحتوى لا يمكن أن يتم فقده، وأكثر ندرة، لأن صانعيه الإنسكريبشين يجب أن يدفعوا رسومًا تتناسب مع حجم المحتوى.</p>
+<p>بعض محتوى NFT في إيثيريوم على الشبكة، ولكن الكثير منها خارجها، ويتم تخزينها على منصات مثل IPFS أو Arweave، أو على خوادم ويب تقليدية مركزية تمامًا. ليس هناك ضمان لاستمرارية المحتوى على IPFS، وبعض محتوى NFT المخزن على IPFS قد تم فقدانه بالفعل. تعتمد منصات مثل Arweave على افتراضات اقتصادية ضعيفة، ومن المحتمل أن تفشل بشكل كارثي عندما لا تُلبى هذه الافتراضات الاقتصادية بعد الآن. يمكن أن تختفي الخوادم المركزية في أي وقت.</p>
+<p>من الصعب جدًا على المستخدم الغير الفني تحديد مكان تخزين محتوى NFT معين في إيثيريوم.</p>
+<p><em>الإنسكريبشين بسيط جدا</em></p>
+<p>إيثيريوم NFT تعتمد على شبكة إيثيريوم والجهاز الظاهري للماكينات (EVM)، والتي هي معقدة للغاية ومتغيرة باستمرار، والتي تقوم بإدخال التغييرات من خلال تشعبات صعبة غير متوافقة مع الإصدارات السابقة.</p>
+<p>على الجانب الآخر، تعتمد الإنسكريبشين على شبكه البيتكوين، والتي تعتبر بسيطة ومحافظة، والتي تدخل التغييرات من خلال تفرعات ناعمة متوافقة مع الإصدارات السابقة.</p>
+<p><em>الإنسكريبشين أكثر أمان</em></p>
+<p>الإنسكريبشين ترث نموذج المعاملات الخاص بيتكوين، الذي يتيح للمستخدم رؤية الإنسكريبشين التي يتم نقلها بالمعاملة قبل أن يوقعوها. يمكن عرضها للبيع باستخدام معاملات موقعة جزئيًا، التي لا تتطلب من المستخدم السماح لجهة ثالثة، مثل البورصة أو سوق، بنقلها نيابة عن المستخدم.</p>
+<p>بالمقارنة، تواجه NFTs في إيثيريوم مشاكل أمان للمستخدم النهائي. من الشائع أن تُوقع عمليات موقعة ضمنية، وتُمنح لتطبيقات الطرف الثالث أذونات غير محدودة على NFTs للمستخدم، والتفاعل مع عقود ذكية معقدة وغير متوقعة. هذا يخلق ساحة ملغومة بمخاطر لمستخدمي NFT في إيثيريوم، والتي ليست هذه هي الحالة بالنسبة لمؤيدي نظرية أوردينال.</p>
+<p><em>الإنسكريبشين أكثر ندره</em></p>
+<p>الإنسكريبشين تتطلب بيتكوين للضبط والنقل والتخزين. قد يبدو ذلك سلبيا من الخارج، ولكن الهدف الأساسي من digital artifacts هو أن تكون نادرة وبالتالي قيمة.</p>
+<p>بالمقابل، يمكن إصدار NFTs في إيثيريوم بكميات لا حصر لها بمعاملة واحدة فقط، مما يجعلها أقل ندرة من طبيعتها، وبالتالي، ربما تكون أقل قيمة.</p>
+<p><em>الإنسكريبشين لا تُظهر دعمًا كبيرًا للفوائد على الشبكة.</em></p>
+<p>الفوائد على الشبكة فكرة جيدة نظريًا وليست عمليًا. لا يمكن تنفيذ دفع الفوائد على الشبكة دون قيود معقدة ومُعضِلة. يواجه نظام NFTs في إيثيريوم الآن ارتباكًا حول العوائد، ويأتي معه فيساق كل منصة إلى القاع ويزيل دعم الفوائد.</p>
+<p>تجنب الإنسكريبشين هذا الوضع بالكامل من خلال عدم إصدار وعود كاذبة بدعم العوائد على السلسلة، وبالتالي تجنب الارتباك والفوضى والسلبية المرتبطة بالوضع الحالي لـ NFTs في إيثيريوم.</p>
+<p><em>الإنسكريبشين تفتح أسواقًا جديدة.</em></p>
+<p>رأس المال السوقي والسيولة للبيتكوين أكبر بكثير من إيثيريوم بفارق كبير. والكثير من هذه السيولة غير متاحة لـ NFTs في إيثيريوم، حيث يفضل كثيرون من مالكي بيتكوين عدم التفاعل مع بيئة إيثيريوم بسبب مخاوف تتعلق بالبساطة والأمان واللامركزية.</p>
+<p>قد يكون هؤلاء المالكون أكثر اهتمامًا بال قد يكون هؤلاء المالكون أكثر اهتمامًا ب الإنسكريبشين مقارنةً بـ NFTs في إيثيريوم، مما يفتح أصنافًا جديدة من المجمعين. مقارنةً بـ NFTs في إيثيريوم، مما يفتح أصنافًا جديدة من المجمعين.</p>
+<p><em>الإنسكريبشين لديها نموذج بيانات أكثر غنى.</em></p>
+<p>الإنسكريبشين تتألف من نوع المحتوى، المعروف أيضًا باسم نوع MIME، والمحتوى، وهو سلسلة بايت عشوائية. هذا هو نفس نموذج البيانات المستخدم في الويب، ويسمح بتطور محتوى الإنسكريبشين مع الويب، ودعم أي نوع من المحتوى المدعوم من قبل متصفحات الويب، دون الحاجة إلى تغيير البروتوكول الأساسي.</p>
+<h3 id="أصول-rgb-و-taro-"><a class="header" href="#أصول-rgb-و-taro-">أصول RGB و Taro ؟</a></h3>
+<p>ال RGB وTaro هما بروتوكولين للأصول من الطبقة الثانية تم بناؤهما على بيتكوين. بالمقارنة مع ال inscriptions، فإنهما أكثر تعقيدًا بكثير، ولكنهما يتمتعان بميزات أكثر.</p>
+<p>تم تصميم نظرية أوردينال من الألف إلى الياء digital artifacts، بينما يكمن استخدام RGB وTaro الرئيسي في الرموز المتجانسة، لذا فإن تجربة المستخدم للنقوش من المحتمل أن تكون أبسط وأكثر اتقانًا من تجربة المستخدم لرموز RGB وTaro NFT.</p>
+<p>ال RGB وTaro يخزنان كلاهما المحتوى خارج الشبكة الرئيسية، مما يتطلب بنية تحتية إضافية، والتي قد تفقد. على العكس من ذلك، يتم تخزين محتوى الإنسكريبشين داخل الشبكة الرئيسية ولا يمكن فقده.</p>
+<p>نظرية أوردينال، RGB، وTaro كلها في مراحل مبكرة جدًا، لذلك هذه مجرد تكهنات، ولكن تركيز نظرية أوردينال قد يمنحها ميزة فيما يتعلق بالميزات المخصصة للأشياء الرقمية، بما في ذلك نموذج المحتوى الأفضل، وميزات مثل الرموز الفريدة عالميًا.</p>
+<h3 id="أصول-counterparty"><a class="header" href="#أصول-counterparty">أصول Counterparty؟</a></h3>
+<p>كاونتربارتي Counterparty لديها عملتها الخاصة، XCP، والتي تُطلب لبعض الوظائف، مما يجعل معظم مالكي بيتكوين يعتبرونها عملة رقمية بديلة وليست تمديدًا أو طبقة ثانية للبيتكوين.</p>
+<p>تم تصميم نظرية أوردينال من البداية digital artifacts، بينما تم تصميم Counterparty أساسًا لإصدار الرموز المالية.</p>
+<h2 id="الإنسكريبشين-هي-ل"><a class="header" href="#الإنسكريبشين-هي-ل">الإنسكريبشين هي ل…</a></h2>
+<h3 id="الفنانين"><a class="header" href="#الفنانين">الفنانين</a></h3>
+<p><em>الإنسكريبشين هي على بيتكوين</em> بيتكوين هو العملة الرقمية ذات المكانة الأعلى ومن اعلى الفرص للبقاء على المدى الطويل. إذا كنت ترغب في ضمان بقاء فنك في المستقبل، فلا توجد طريقة أفضل لنشره إلا من خلال الإنسكريبشين.</p>
+<p><em>تخزين أرخص على الشبكة.</em> اذا افترضنا سعر البيتكوين عشرون الف دولار بتكلفه الرسوم تبلغ واحد ساتوشي لكل vbyte، يكلف نشر محتوى الإنسكريبشين خمسون دولار لكل مليون بايت.</p>
+<p><em>الإنسكريبشين مبكره جدا!</em> الإنسكريبشين مازالت في مرحلة التطوير. هذا يتيح لك فرصة أن تكون من المستخدمين المبكرين، وتستكشف هذه الوسيلة بمجرد أن تتطور.</p>
+<p><em>الإنسكريبشين بسيطة.</em> وهي لا تتطلب كتابة أو فهم عقود ذكية.</p>
+<p><em>الإنسكريبشين تحرر سيولة الجديدة.</em> وسهلة الوصول لمالكي عمله بيتكوين، مما يفتح فئة جديده تمامًا من المجمعين.</p>
+<p><em>الإنسكريبشين صممت لدعم ديجاتيل ارتيفاكت.</em> تم تصميمها من نقطه الصفر لدعم NFTs، وتتميز بنموذج بيانات أفضل، وميزات مثل الرموز الفريدة عالميًا والأصول بطريقه محسنة.</p>
+<p><em>الإنسكريبشين لا تدعم الفوائد على الشبكة</em>. هذا سلبي، ولكن هذا فقط يعتمد على كيفية نظرتك إليه. الفوائد على الشبكة كانت نعمة للمبدعين، ولكنها أيضًا خلقت كمية كبيرة من الارتباك في بيئة NFTs على الإيثيريوم. البيئة تتعامل الآن مع هذه المسألة، وكل يتشارك في سباق نحو القاع وإزالة دعم الفوائد المفرضه. الإنسكريبشين  ليس لها دعم للفوائد على الشبكة، لأنها تعتبر غير ممكنة تقنيًا. إذا اخترت إنشائها، يمكنك اللجوء الى عدد من الطرق: احتفظ بجزء من المجموعة للبيع في المستقبل، للاستفادة من ارتفاع المستقبلي في القيمة، أو ربما قدم مزايا للمستخدمين الذين يحترمون الفوائد الاختيارية.</p>
+<h3 id="المجمعين"><a class="header" href="#المجمعين">المجمعين</a></h3>
+<p>الإنسكريبشين بسيطة، واضحة، ولا تحمل مفاجآت. غير قابلة للتغيير وعلى الشبكة، دون الحاجة إلى الاطلاع على العقود الذكية بشكل خاص.</p>
+<p>الإنسكريبشين على البيتكوين ذاته . يمكنك التحقق من الموقع والخصائص بسهولة باستخدام بيتكوين نود الكامل التي تتحكم بها.</p>
+<h3 id="البيتكوينير"><a class="header" href="#البيتكوينير">البيتكوينير</a></h3>
+<p>لنبدأ هذا القسم بالقول: أهم شيء تقوم به شبكة بيتكوين هو اللامركزية للأموال. جميع الاستخدامات الأخرى هي ثانوية، بما في ذلك نظرية أوردينال. يفهم مطورو نظرية أوردينال ويقرون بذلك، ويعتقدون أن نظرية أوردينال تساعد، على الأقل بشكل طفيف، في مهمة بيتكوين الرئيسية.</p>
+<p>على عكس العديد من الأشياء في مجال العملات البديلة، الآثار الرقمية (digital artifacts) لديها جدارة. هناك بالطبع الكثير من NFTs التي هي قبيحة وغبية واحتيالية. ومع ذلك، هناك العديد من الأعمال الإبداعية بشكل رائع، وإنشاء وجمع الفن كان جزءًا من قصة الإنسان منذ بدايتها، وتسبق حتى التجارة والأموال، التي هي أيضًا تقنيات قديمة.</p>
+<p>تقدم بيتكوين منصة رائعة لإنشاء وجمع الآثار الرقمية بطريقة آمنة ولامركزية، تحمي المستخدمين والفنانين بنفس الطريقة التي تقدم بها منصة رائعة لإرسال واستقبال القيمة، وبالأسباب نفسها.</p>
+<p>تزيد نظرية أوردينال والآثار الرقمية من الطلب على مساحة  البلوكس في بيتكوين، مما يزيد من ميزانية الأمان للبيتكوين، وهو أمر حيوي لحماية انتقال بيتكوين إلى نموذج أمان يعتمد على الرسوم، حيث يتم تقليص مكافأة البلوك إلى الأذى.</p>
+<p>محتوى الرسوم الرقمية الإنسكريبشين يُخزن على السلسلة / الشبكة ذاتها، وبالتالي فإن الطلب على مساحة البلوك لا حدود له. هذا يخلق مشتريًا من آخر فرصة لمساحة البلوكس على البيتكوين. سيساعد ذلك في دعم السوق بشكل عام ، الذي يضمن أن البيتكوين سيبقى آمنًا.</p>
+<p>الإنسكريبشين تبرهن أيضًا على السيناريو الذي يُفترض أنه لا يمكن للبيتكوين تمديدها أو استخدامها لحالات جديدة . إذا تابعت مشاريع مثل DLCs و Fedimint و Lightning و Taro و RGB، فستعرف أن هذا السيناريو غير صحيح، ولكن الإنسكريبشين تقدم حجة مضادة تكون سهلة الفهم، والتي تستهدف حالات استخدام شائعة ومثبتة، NFTs، والتي تجعلها سهلة الفهم.</p>
+<p>إذا ثبت أن الإنسكريبشين كما نأمل ، كي تكون بشكل كبير ولها تاريخ غني، ستكون سلاحًا قويًا لتبني بيتكوين: تأتي من أجل المتعة والفن الغني، وتبقى للنقود الرقمية المتميزة.</p>
+<p>الإنسكريبشين هي مصدر طلب عالي للمساحات في البلوكس بشكل سلمي للغاية. وعلى عكس العملات المستقرة في سبيل المثال، التي قد تمنح المصدرين الكبار لعملات المستقرة نفوذًا على مستقبل تطوير بيتكوين، أو DeFi، التي قد تركز التعدين من خلال تقديم فرص للربح من الفرص، فإن الفن وجمع المجمعات على بيتكوين غير مرجح أن تنتج كيانات فردية لديها قوة كافية لتفسير بيتكوين. الفن هو لامركزي.</p>
+<p>المستخدمين ومقدمي الخدمات من الإنسكريبشين متحفزون لتشغيل النود الكامل للبيتكوين، للنشر والتتبع ، وبالتالي إلقاء ثقلها الاقتصادي وراء الشبكة الصادقة.</p>
+<p>نظرية أوردينال والرسوم الرقمية الإنسكريبشين لا تؤثر بشكل كبير على تماثل البيتكوين. يمكن لمستخدمي عمله البيتكوين تجاهل كليهما ولا يتأثرون بهما.</p>
+<p>نأمل أن تقوي نظرية أوردينال وتثري بيتكوين، وتضيف لها بعدًا آخر من الجاذبية والوظائف، مما يمكنها  تحقيق مهمتها الأساسية كمتجر قيمة لامركزي للبشرية بشكل أكثر فعالية.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="المساهمة-في-أورد"><a class="header" href="#المساهمة-في-أورد">المساهمة في أورد</a></h1>
+<h2 id="خطوات-مقترحة"><a class="header" href="#خطوات-مقترحة">خطوات مقترحة</a></h2>
+<ol>
+<li>ابحث عن مشكلة ترغب في العمل عليها.</li>
+<li>حدد ما هي أول خطوة جيدة لحل المشكلة. يمكن أن يكون ذلك على شكل كود أو بحث أو اقتراح، أو اقتراح إغلاق المشكلة إذا كانت قديمة أو ليست فكرة جيدة من الأساس.</li>
+<li>قم بوضع تعليق على المشكلة مع تحديد للخطوة الأولى المقترحة من قبلك، واطلب بعض الاقتراحات. بالطبع، يمكنك أن تقوم فوراً بالبدء في كتابة الكود أو الاختبارات، ولكن هذا يمكن أن يجنبك الجهد الضائع في حال كانت المشكلة قديمة أو لم يتم تحديدها بوضوح، أو محظورة من الناحية الأخرى، أو غير جاهزة للتنفيذ من الأساس.</li>
+<li>إذا كانت المشكلة تتطلب تغييرًا في الكود أو إصلاحًا للأخطاء، قم بفتح PR (Pull Request) مؤقت (Draft) مع الاختبارات، واطلب بعض الاقتراحات. وهذا يأكد من أن الجميع على نفس الصفحة بشأن العمل الذي تريد القيام به، أو ما يجب أن تكون الخطوة الأولى في حل المشكلة. وأيضًا، نظرًا لأن الاختبارات مطلوبة، فإن كتابة الاختبارات أولاً يجعل من السهل التحقق من أن التغيير يمكن اختباره بسهولة.</li>
+<li>اضغط على لوحة المفاتيح بشكل عشوائي حتى تنجح الاختبارات، وقم بإعادة التنظيم حتى يكون الكود جاهزًا للإرسال.</li>
+<li>علم PR كجاهز للمراجعة.</li>
+<li>قم بمراجعة ال PR حسب الحاجة.</li>
+<li>وأخيراً، دمج ال PRs!</li>
+</ol>
+<h2 id="ابدأ-بشكل-صغير"><a class="header" href="#ابدأ-بشكل-صغير">ابدأ بشكل صغير</a></h2>
+<p>التغييرات الصغيرة ستسمح لك بإحداث تأثير بسرعة، وإذا اتخذت الطريقة الخاطئة، فلن تكون قد أضعت الكثير من الوقت.</p>
+<p>أفكار لمشكلات صغيرة:</p>
+<ul>
+<li>أضف اختبارًا جديدًا أو اختبر حاله زياده نطاك الاختبار</li>
+<li>أضف أو قم بتحسين الوثائق</li>
+<li>ابحث عن مشكلة تحتاج إلى مزيد من البحث، وقم بذلك البحث وخصصه بإضافة تعليق</li>
+<li>ابحث عن مشكلة قديمة وأضف تعليق على أنه يمكن إغلاقها</li>
+<li>ابحث عن مشكلة يجب ألا تتم، وقدم ملاحظات مرتبه بناءً على اعتقادك</li>
+</ul>
+<h2 id="قم-بالدمج-بشكل-مبكر-ومتكرر"><a class="header" href="#قم-بالدمج-بشكل-مبكر-ومتكرر">قم بالدمج بشكل مبكر ومتكرر</a></h2>
+<p>قم بتقسيم المهام الكبيرة إلى خطوات صغيرة متعددة تساهم بشكل فردي في التقدم. إذا كان هناك خطأ، يمكنك فتح PR الذي يضيف اختبار فاشل تم تجاوزه. هذا يمكن دمجه ، والخطوة التالية يمكن أن تكون إصلاح الخطأ وإلغاء تجاوز الاختبار. قم بالبحث أو الاختبار، وأبلغ عن حاله نتائجك. قم بتقسيم ميزة إلى ميزات فرعية صغيرة، وقم بتنفيذها واحدة تلو الأخرى.</p>
+<p>معرفة كيفية تقسيم PR أكبر إلى PRs أصغر حيث يمكن دمج كل منها بشكل فردي هو فن يستحق الممارسة والتعلم. الجزء الصعب هو أن كل PR يجب أن يكون في حد ذاته تحسينًا.</p>
+<p>أسعى دائمًا لاتباع هذه النصائح بنفسي، وأكون دائمًا في وضع أفضل عندما أفعل ذلك.</p>
+<p>التغييرات الصغيرة تكون سريعة الكتابة والمراجعة والدمج، مما يعزز المرح أكثر من العمل على PR كبير واحد يستغرق وقتًا طويلاً للكتابة والمراجعة والدمج. التغييرات الصغيرة لا تأخذ وقتًا كبيرًا، لذا إذا كنت بحاجة للتوقف عن العمل على تغيير صغير، فلن تكون قد أضعت الكثير من الوقت مقارنة بتغيير أكبر الذي يحتاج للعديد من الساعات للعمل. الحصول على PR بسرعة يحسن المشروع بشكل سريع بعض الأحيان مباشرة ، بدلاً من الانتظار لفترة طويلة من الزمن لتحسين أكبر. التغييرات الصغيرة أقل عرضة لتراكم الأخطاء في عمليه الدمج. كما قال الأثينيون: <em>الذين يتماشون بسرعة ما يشاؤون، والذين يدمجون ببطء ما يجب عليهم.</em></p>
+<h2 id="اطلب-المساعدة"><a class="header" href="#اطلب-المساعدة">اطلب المساعدة</a></h2>
+<p>إذا علقت لأكثر من 15 دقيقة، اطلب المساعدة، مثل ديسكورد أو Stack Exchange أو في المشروع في قسم الاقتراحات أو المناقشة.</p>
+<h2 id="ممارسة-تصحيح-الأخطاء-المبنية-على-الفرضيات"><a class="header" href="#ممارسة-تصحيح-الأخطاء-المبنية-على-الفرضيات">ممارسة تصحيح الأخطاء المبنية على الفرضيات</a></h2>
+<p>صيغ فرضية بشأن ما الذي يتسبب في المشكلة. اكتشف كيفية اختبار تلك الفرضية. قم بأداء هذه الاختبارات. إذا نجحت، فهذا رائع، لقد حلت المشكلة و الآن تعرف كيفية حل المشكلة. إذا لم ينجح، كرر العملية مع فرضية جديدة.</p>
+<h2 id="أعطي-الانتباه-لرسائل-الخطأ"><a class="header" href="#أعطي-الانتباه-لرسائل-الخطأ">أعطي الانتباه لرسائل الخطأ</a></h2>
+<p>اقرأ جميع رسائل الخطأ ولا تتسامح مع التحذيرات.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="التبرع"><a class="header" href="#التبرع">التبرع</a></h1>
+<p>أوردينال مشروعًا مفتوح المصدر وممولًا من قبل المجتمع. المشرف الرئيسي الحالي لـ <code>Ord</code> هو <a href="https://github.com/raphjaph/">raphjaph</a>. يتم تمويل عمل Raph في مشروع <code>Ord</code> بالكامل من خلال التبرعات. إذا كان بإمكانك، يُرجى النظر في التبرع!</p>
+<p>التبرع بعمله البيتكوين:<a href="https://mempool.space/address/bc1q8kt9pyd6r27k2840l8g5d7zshz3cg9v6rfda0m248lva3ve5072q3sxelt">bc1q8kt9pyd6r27k2840l8g5d7zshz3cg9v6rfda0m248lva3ve5072q3sxelt</a> التبرع بواسطه الأنسكريبشين : <a href="https://mempool.space/address/bc1qn3map8m9hmk5jyqdkkwlwvt335g94zvxwd9aql7q3vdkdw9r5eyqvlvec0">bc1qn3map8m9hmk5jyqdkkwlwvt335g94zvxwd9aql7q3vdkdw9r5eyqvlvec0</a></p>
+<p>كلا العنوانين موجودين في محفظة متعددة التوقيع 2 من 4، ويتم الاحتفاظ بهذه المفاتيح بواسطة <a href="https://twitter.com/raphjaph">raphjaph</a> و <a href="https://twitter.com/realizingerin">erin</a> و <a href="https://twitter.com/rodarmor">rodarmor</a> و <a href="https://twitter.com/veryordinally">ordinally</a>.</p>
+<p>سيتم استخدام التبرعات المستلمة لتمويل صيانة وتطوير <code>ord</code>، بالإضافة إلى تكاليف موقع <a href="https://ordinals.com">ordinals.com</a>.</p>
+<p>شكرًا لك على التبرع!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="دليل-نظرية-أوردينال"><a class="header" href="#دليل-نظرية-أوردينال">دليل نظرية أوردينال</a></h1>
+<p>جدول المحتويات للحصول على قائمة في بعض المحتوى بما في ذلك دليل للموقع، ودليل لصيادي الساتوشي، ودليل الإنسكريبشين.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="متصفح-أوردينال"><a class="header" href="#متصفح-أوردينال">متصفح أوردينال</a></h1>
+<p>يتضمن البرنامج الثنائي للأورد إكسبلورر كتل. نحن نستضيف مثيلًا من إكسبلورر الكتل على الشبكة الرئيسية على موقع <a href="https://%D8%A3%D9%88%D8%B1%D8%AF%D9%8A%D9%86%D8%A7%D9%84s.com/">أوردينالs.com</a>، وعلى شبكة الاختبار signet على موقع <a href="https://signet.%D8%A3%D9%88%D8%B1%D8%AF%D9%8A%D9%86%D8%A7%D9%84s.com/">signet.أوردينالs.com</a>.</p>
+<h3 id="تشغيل-المتصفح"><a class="header" href="#تشغيل-المتصفح">تشغيل المتصفح</a></h3>
+<p>يمكن تشغيل المتصفح محليا على:</p>
+<p><code>ord server</code></p>
+<p>لتحديد البورت <code>http-port-- </code>حدد:</p>
+<p><code>ord server --http-port 8080</code></p>
+<p>To enable the JSON-API endpoints add the <code>--enable-json-api</code> or <code>-j</code> flag (see <a href="guides/explorer.html#json-api">here</a> for more info):</p>
+<p><code>ord --enable-json-api server</code></p>
+<p>لاختبار كيف سيبدو الإنسكريبشين يمكنك إضافة الأمر التالي:</p>
+<p><code> ...ord preview &lt;FILE1&gt; &lt;FILE2&gt;</code></p>
+<h2 id="البحث"><a class="header" href="#البحث">البحث</a></h2>
+<p>صندوق البحث يقبل مجموعة متنوعة من تمثيلات.</p>
+<h3 id="بلوكس"><a class="header" href="#بلوكس">بلوكس</a></h3>
+<p>يمكن البحث عن البلوكس عبر الهاش، على سبيل المثال، block genesis :</p>
+<p><a href="https://ordinals.com/search/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f">000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</a></p>
+<h3 id="المعاملات"><a class="header" href="#المعاملات">المعاملات</a></h3>
+<p>يمكن البحث عن المعاملات عبر الهاش، على سبيل المثال، معاملة العملات النقدية في block genesis :</p>
+<p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b</a></p>
+<h3 id="المخرجات"><a class="header" href="#المخرجات">المخرجات</a></h3>
+<p>البحث عن مخرجات المعاملات عبر نقطة الإخراج Outputs، على سبيل المثال، الناتج الوحيد لمعاملة العملات النقدية في block genesis :</p>
+<p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</a></p>
+<h3 id="الساتس"><a class="header" href="#الساتس">الساتس</a></h3>
+<p>يمكن البحث عن الساتس (Sats) عبر العدد الصحيح، وموقعها ضمن إجمالي إمدادات البيتكوين:</p>
+<p><a href="https://ordinals.com/search/2099994106992659">2099994106992659</a></p>
+<p>بالعشري، وموقعها في البلوك والإزاحة ضمن ذلك البلوك:</p>
+<p><a href="https://ordinals.com/search/481824.0">481824.0</a></p>
+<p>بالزاوية، والدورة، بلوكس منذ آخر تقسيم و بلوكس منذ آخر تعديل للصعوبة، والإزاحة ضمن البلوك:</p>
+<p><a href="https://ordinals.com/search/1%C2%B00%E2%80%B20%E2%80%B30%E2%80%B4">1°0′0″0‴</a></p>
+<p>بالاسم، والتمثيل الأساسي الـ 26 باستخدام الأحرف &quot;a&quot; حتى &quot;z&quot;:</p>
+<p><a href="https://ordinals.com/search/ahistorical">ahistorical</a></p>
+<p>أو بالنسبة المئوية، نسبة إمداد بيتكوين التي تم إصدارها أو سيتم إصدارها عندما يتم تعدينها:</p>
+<p><a href="https://ordinals.com/search/100%">100%</a></p>
+<h2 id="json-api"><a class="header" href="#json-api">JSON-API</a></h2>
+<p>You can run <code>ord</code> with the <code>--enable-json-api</code> flag to access endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of theses objects closely follows what is shown in the HTML. These endpoints are:</p>
+<ul>
+<li><code>/inscription/&lt;INSCRIPTION_ID&gt;</code></li>
+<li><code>/inscriptions</code></li>
+<li><code>/inscriptions/block/&lt;BLOCK_HEIGHT&gt;</code></li>
+<li><code>/inscriptions/block/&lt;BLOCK_HEIGHT&gt;/&lt;PAGE_INDEX&gt;</code></li>
+<li><code>/inscriptions/&lt;FROM&gt;</code></li>
+<li><code>/inscriptions/&lt;FROM&gt;/&lt;N&gt;</code></li>
+<li><code>/output/&lt;OUTPOINT&gt;</code></li>
+<li><code>/output/&lt;OUTPOINT&gt;</code></li>
+<li><code>/sat/&lt;SAT&gt;</code></li>
+</ul>
+<p>To get a list of the latest 100 inscriptions you would do:</p>
+<pre><code>curl -s -H &quot;Accept: application/json&quot; 'http://0.0.0.0:80/inscriptions'
+</code></pre>
+<p>To see information about a UTXO, which includes inscriptions inside it, do:</p>
+<pre><code>curl -s -H &quot;Accept: application/json&quot; 'http://0.0.0.0:80/output/bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0'
+</code></pre>
+<p>Which returns:</p>
+<pre><code>{
+  &quot;value&quot;: 10000,
+  &quot;script_pubkey&quot;: &quot;OP_PUSHNUM_1 OP_PUSHBYTES_32 156cc4878306157720607cdcb4b32afa4cc6853868458d7258b907112e5a434b&quot;,
+  &quot;address&quot;: &quot;bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf&quot;,
+  &quot;transaction&quot;: &quot;bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed&quot;,
+  &quot;sat_ranges&quot;: null,
+  &quot;inscriptions&quot;: [
+    &quot;6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0&quot;
+  ]
+}
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="دليل-صناعه-الأوردينال"><a class="header" href="#دليل-صناعه-الأوردينال">دليل صناعه الأوردينال</a></h1>
+<p>يمكن أن تُرسم العملات الفردية بمحتوى تعسفي، مما يُنشئ قطع فنية رقمية متناسبة مع بيتكوين يمكن الاحتفاظ بها في محفظة بيتكوين ونقلها باستخدام المعاملات المالية في بيتكوين. إن النقوش متينة وثابتة وآمنة ولامركزية تمامًا مثل بيتكوين نفسه.</p>
+<p>العمل مع الأنسكريبشين يتطلب وجود نود بيتكوين كاملة لمنحك نظرة على الحالة الحالية لسلسلة كتل بيتكوين، ومحفظة قادرة على إنشاء الأنسكريبشين وأداء التحكم في العملات عند بناء المعاملات لإرسالها إلى محفظة أخرى.</p>
+<p>توفر Bitcoin Core كل من نود بيتكوين كاملة ومحفظة. ومع ذلك، لا يمكن لمحفظة Bitcoin Core إنشاء النقوش ولا تؤدي إلى التحكم في العملات.</p>
+<p>هذا يتطلب <a href="https://github.com/ordinals/ord"><code>ord</code></a>, وهو أداة ترتيبية. أورد لا تنفذ محفظة خاصة بها، لذا تفاعل أوامر محفظة أورد مع محافظ Bitcoin Core.</p>
+<p>تشمل هذه الدليل الفقرات التالية:</p>
+<ol>
+<li>تثبيت Bitcoin Core</li>
+<li>مزامنة Bitcoin blockchain</li>
+<li>إنشاء محفظة Bitcoin Core</li>
+<li>استخدام <code>ord wallet receive</code> لاستقبال العملات</li>
+<li>إنشاء الأنسكريبشين باستخدام <code>ord wallet inscribe</code></li>
+<li>إرسال الأنسكريبشين باستخدام <code>ord wallet send</code></li>
+<li>استقبال الأنسكريبشين باستخدام <code>ord wallet receive</code></li>
+</ol>
+<h2 id="الحصول-على-المساعدة"><a class="header" href="#الحصول-على-المساعدة">الحصول على المساعدة</a></h2>
+<p>إذا واجهتك مشكلة، جرب أن تطلب المساعدة على <a href="https://discord.com/invite/87cjuz4FYg">الديسكورد</a> ، أو تفقد موقع<a href="https://github.com/ordinals/ord/issues">issues</a> <a href="https://github.com/ordinals/ord/discussions">discussions</a> GitHub للقضايا والمناقشات ذات الصلة.</p>
+<h2 id="تثبيت-bitcoin-core"><a class="header" href="#تثبيت-bitcoin-core">تثبيت Bitcoin Core</a></h2>
+<p>يتوفر Bitcoin Core من موقع <a href="https://bitcoincore.org/">bitcoincore.org</a> على <a href="https://bitcoincore.org/en/download/">صفحه التحميل</a>.</p>
+<p>إن إجراء الإنسكريبشين يتطلب Bitcoin Core 24 أو الإصدارات الأحدث.</p>
+<p>This guide does not cover installing Bitcoin Core in detail. Once Bitcoin Core is installed, you should be able to run <code>bitcoind -version</code> successfully from the command line. Do <em>NOT</em> use <code>bitcoin-qt</code>.</p>
+<h2 id="تهيئة-bitcoin-core"><a class="header" href="#تهيئة-bitcoin-core">تهيئة Bitcoin Core</a></h2>
+<p><code>ord</code> requires Bitcoin Core's transaction index and rest interface.</p>
+<p>لتهيئة نود Bitcoin Core الخاص بك للحفاظ على فهرس المعاملات، أضف ما يلي إلى ملف bitcoin.conf الخاص بك:</p>
+<pre><code>txindex=1
+</code></pre>
+<p>Or, run <code>bitcoind</code> with <code>-txindex</code>:</p>
+<pre><code>bitcoind -txindex
+</code></pre>
+<p>Details on creating or modifying your <code>bitcoin.conf</code> file can be found <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md">here</a>.</p>
+<h2 id="مزامنة-شبكه-البيتكوين"><a class="header" href="#مزامنة-شبكه-البيتكوين">مزامنة شبكه البيتكوين</a></h2>
+<p>لبدء مزامنه السلسلة:</p>
+<pre><code>bitcoind -txindex
+</code></pre>
+<p>...واتركها تعمل حتى يتم استدعاء الأمر <code>getblockcount</code>:</p>
+<pre><code>bitcoin-cli getblockcount
+</code></pre>
+<p>يتم قبول عدد البلوكات من خلال المتصفح مثل <a href="https://mempool.space/">the mempool.space block explorer</a>.ال <code>ord</code> يتفاعل مع <code>bitcoind</code> لذالك يجب أن تبقي النود فعال بلخلفيه عند استعمالك له.</p>
+<p>The blockchain takes about 600GB of disk space. If you have an external drive you want to store blocks on, use the configuration option <code>blocksdir=&lt;external_drive_path&gt;</code>. This is much simpler than using the <code>datadir</code> option because the cookie file will still be in the default location for <code>bitcoin-cli</code> and <code>ord</code> to find.</p>
+<h2 id="مشكلات-وحلول"><a class="header" href="#مشكلات-وحلول">مشكلات وحلول</a></h2>
+<p>Make sure you can access <code>bitcoind</code> with <code>bitcoin-cli -getinfo</code> and that it is fully synced.</p>
+<p>If <code>bitcoin-cli -getinfo</code> returns <code>Could not connect to the server</code>, <code>bitcoind</code> is not running.</p>
+<p>Make sure <code>rpcuser</code>, <code>rpcpassword</code>, or <code>rpcauth</code> are <em>NOT</em> set in your <code>bitcoin.conf</code> file. <code>ord</code> requires using cookie authentication. Make sure there is a file <code>.cookie</code> in your bitcoin data directory.</p>
+<p>If <code>bitcoin-cli -getinfo</code> returns <code>Could not locate RPC credentials</code>, then you must specify the cookie file location. If you are using a custom data directory (specifying the <code>datadir</code> option), then you must specify the cookie location like <code>bitcoin-cli -rpccookiefile=&lt;your_bitcoin_datadir&gt;/.cookie -getinfo</code>. When running <code>ord</code> you must specify the cookie file location with <code>--cookie-file=&lt;your_bitcoin_datadir&gt;/.cookie</code>.</p>
+<p>Make sure you do <em>NOT</em> have <code>disablewallet=1</code> in your <code>bitcoin.conf</code> file. If <code>bitcoin-cli listwallets</code> returns <code>Method not found</code> then the wallet is disabled and you won't be able to use <code>ord</code>.</p>
+<p>Make sure <code>txindex=1</code> is set. Run <code>bitcoin-cli getindexinfo</code> and it should return something like</p>
+<pre><code class="language-json">{
+  &quot;txindex&quot;: {
+    &quot;synced&quot;: true,
+    &quot;best_block_height&quot;: 776546
+  }
+}
+</code></pre>
+<p>If it only returns <code>{}</code>, <code>txindex</code> is not set. If it returns <code>&quot;synced&quot;: false</code>, <code>bitcoind</code> is still creating the <code>txindex</code>. Wait until <code>&quot;synced&quot;: true</code> before using <code>ord</code>.</p>
+<p>If you have <code>maxuploadtarget</code> set it can interfere with fetching blocks for <code>ord</code> index. Either remove it or set <code>whitebind=127.0.0.1:8333</code>.</p>
+<h2 id="تحميل-برنامج-أورد-ord"><a class="header" href="#تحميل-برنامج-أورد-ord">تحميل برنامج أورد <code>ord</code></a></h2>
+<p>أدوات <code>ord</code> مكتوبه بلغه الداست ويمكن بنائها من<a href="https://github.com/ordinals/ord">المصدر</a>.الثنائيات المبنية مسبقًا متوفرة على <a href="https://github.com/ordinals/ord/releases">صفحه الإصدار</a>.</p>
+<p>يمكنك تحميل الثنائيات المبنية مسبقًا بإعطاء الأمر التالي:</p>
+<pre><code class="language-sh">curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash -s
+</code></pre>
+<p>بمجرد الانتهاء من تحميل ال <code>ord</code>، يجب أن تكون قادرًا على تشغيل:</p>
+<pre><code>ord --version
+</code></pre>
+<p>والذي يشير الى الإصدار <code>ord</code> الحالي.</p>
+<h2 id="إنشاء-محفظة-بيتكوين-كور"><a class="header" href="#إنشاء-محفظة-بيتكوين-كور">إنشاء محفظة بيتكوين كور</a></h2>
+<p>أورد <code>ord</code> يستخدم بيتكوين كور ليدير المفاتيح الخاصة وتواقيع المعاملات وإرسالها الى شبكه البيتكوين.</p>
+<p>لإنشاء محفظة Bitcoin Core تحمل اسم <code>ord</code> واستخدامها, اعطي الأمر:</p>
+<pre><code>ord wallet create
+</code></pre>
+<h2 id="استقبال-الساتس"><a class="header" href="#استقبال-الساتس">استقبال الساتس</a></h2>
+<p>يتم إنشاء الأنسكريبشين على الساتوشيات فردية باستخدام معاملات بيتكوين العادية التي تدفع الرسوم بوحدات الساتوشي، لذا ستحتاج محفظتك إلى بعض الساتوشيات.</p>
+<p>إحصل على عنوان جديد من محفظة ال <code>ord</code> من خلال الأمر التالي:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>وأرسل لها بعض التمويل.</p>
+<p>يمكنك رؤية المعاملات المعلقة بالأمر التالي:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>بمجرد تأكيد الصفقة، يجب أن تكون قادرًا على رؤية المعاملات من خلال <code>ord wallet outputs</code>.</p>
+<h2 id="إنشاء-محتوى-إنسكريبشين"><a class="header" href="#إنشاء-محتوى-إنسكريبشين">إنشاء محتوى إنسكريبشين</a></h2>
+<p>يمكن إنسكرايب الساتوشيات بأي نوع من المحتوى، ولكن محفظة <code>ord</code> تدعم فقط أنواع المحتوى التي يمكن عرضها عبر مستكشف الكتل <code>ord</code>.</p>
+<p>بالإضافة إلى ذلك، تُدرج الإنسكريبشين في المعاملات، لذلك كلما زاد حجم المحتوى، زادت الرسوم التي يجب دفعها لعملية الإنسكريبشين .</p>
+<p>يتم تضمين محتوى الإنسكريبشين في شهادات المعاملات، والتي تحصل على الشاهد. لحساب الرسوم التقريبية التي ستدفعها معاملة الإنسكريبشين ، قسم حجم المحتوى على أربعة ثم اضرب الناتج بمعدل الرسوم.</p>
+<p>يجب أن تكون المعاملات أقل من 400,000 وحدة وزنية، وإلا فلن يتم نقلها بواسطة بيتكوين كور. بايت واحد من المحتوى يكلف وحدة وزنية واحدة. نظرًا لأن المعاملات لا تشمل فقط المحتوى ، يجب تقييد محتوى الإنسكريبشين لأقل من 400,000 وحدة وزنية. 390,000 وحدة وزنية يجب أن تكون آمنة وصحيحه.</p>
+<h2 id="إنشاء-الإنسكريبشينس"><a class="header" href="#إنشاء-الإنسكريبشينس">إنشاء الإنسكريبشينس</a></h2>
+<p>لإنشاء الإنسكريبشين مع محتوى <code>FILE</code> , اعطي الأمر:</p>
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE FILE
+</code></pre>
+<p>أورد سيقوم بإخراج رقمين معرّفين للمعاملات، واحد لمعاملة الالتزام، وآخر لمعاملة الكشف، وكذلك مُعرف إنسكريبشين . مُعرفات إنسكريبشين على الشكل <code>TXIDiN</code>، حيث <code>TXID</code> هو مُعرّف المعاملة لمعاملة الكشف، و <code>N</code> هو المؤشر الإنسكريبشين في معاملة الكشف.</p>
+<p>تُؤكد معاملة الالتزام على tapscript يحتوي على محتوى الإنسكريبشين، وتقوم معاملة الكشف بإنفاق من هذا الـ tapscript، مكشفةً المحتوى على الشبكة وتسجيله على أول ساتوشي في المدخل الذي يحتوي على الـ tapscript المقابل.</p>
+<p>إنتظر حتى يتم تعدين المعاملة. يمكنك التحقق منها من خلال<a href="https://mempool.space/">the mempool.space block explorer</a>.</p>
+<p>بمجرد أن يتم تعدين الصفقة (reveal transaction)، يجب أن يتم طباعة معرّف الإنسكريبشين (inscription ID) عند تشغيل الأمر:</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+<h2 id="parent-child-inscriptions"><a class="header" href="#parent-child-inscriptions">Parent-Child Inscriptions</a></h2>
+<p>Parent-child inscriptions enable what is colloquially known as collections, see <a href="guides/../inscriptions/provenance.html">provenance</a> for more information.</p>
+<p>To make an inscription a child of another, the parent inscription has to be inscribed and present in the wallet. To choose a parent run <code>ord wallet inscriptions</code> and copy the inscription id (<code>&lt;PARENT_INSCRIPTION_ID&gt;</code>).</p>
+<p>Now inscribe the child inscription and specify the parent like so:</p>
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; CHILD_FILE
+</code></pre>
+<p>This relationship cannot be added retroactively, the parent has to be present at inception of the child.</p>
+<h2 id="إرسال-الإنسكريبشينس"><a class="header" href="#إرسال-الإنسكريبشينس">إرسال الإنسكريبشينس</a></h2>
+<p>أطلب من المستلم إنشاء عنوان جديد عن طريق تشغيل:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>أرسل الإنسكريبشين من خلال:</p>
+<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; &lt;ADDRESS&gt; &lt;INSCRIPTION_ID&gt;
+</code></pre>
+<p>تفقد حاله المعاملة من خلال:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>بمجرد تأكيد المعاملة المرسلة، يمكن للمستلم تأكيد الاستلام عن طريق الأمر :</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+<h2 id="استقبال-الإنسكريبشينس"><a class="header" href="#استقبال-الإنسكريبشينس">استقبال الإنسكريبشينس</a></h2>
+<p>قم بإنشاء عنوان استقبال جديد باستخدام:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>يمكن للمرسل نقل الإنسكريبشين إلى عنوانك باستخدام:</p>
+<pre><code>ord wallet send ADDRESS INSCRIPTION_ID
+</code></pre>
+<p>تفقد حاله المعاملة من خلال:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>بمجرد تأكيد المعاملة المرسلة، يمكن للمستلم تأكيد الاستلام عن طريق الأمر :</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="جمع-الساتوشي"><a class="header" href="#جمع-الساتوشي">جمع الساتوشي</a></h1>
+<p>هذا الدليل غير محدّث. منذ كتابته، تم تغيير البرنامج <code>ord</code> الثنائي لبناء فهرس الساتوشي الكامل فقط عندما يتم توفير <code>ord</code> ,<code>--index-sats</code> الآن يحتوي على محفظة مدمجة تلتف حول محفظة بيتكوين الأساسية. راجع <code>ord wallet --help</code>._</p>
+<p>صيد الأوردينال أمرٌ صعب ولكنه مكافئ. الشعور بامتلاك محفظة مليئة بـ UTXOs، محملة بالساتوشي النادرة والاستثنائية، لا يمكن وصفه.</p>
+<p>أوردينالس هي أعداد تُستخدم للساتوشي. كل ساتوشي لديه رقم ترتيبي وكل رقم ترتيبي لديه ساتوشي.</p>
+<h2 id="التحضير"><a class="header" href="#التحضير">التحضير</a></h2>
+<p>قبل البدء ستحتاج الى بعض الأشياء.</p>
+<ol>
+<li>
+<p>أولا, ستحتاج الى بيتكوين نود مزامن بالكامل. لبدأ تحميل المعاملات اعطي الأمر <code>txindex-</code>على سطر الأوامر:</p>
+<pre><code class="language-sh">bitcoind -txindex
+</code></pre>
+<p>أو استخدم [Bitcoin configuration file] و (https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md#configuration-file-path):</p>
+<pre><code>txindex=1
+</code></pre>
+<p>قم بتشغيله وانتظر حتى يلحق بنهاية السلسلة (chain tip)، في هذا الوقت يجب أن يتم طباعة ارتفاع الكتلة الحالي باستخدام الأمر التالي:</p>
+<pre><code class="language-sh">bitcoin-cli getblockcount
+</code></pre>
+</li>
+<li>
+<p>ثانيا, ستحتاج لفهرسة <code>ord</code>.</p>
+<ul>
+<li>
+<p>إحصل على نسخه من <code>ord</code> من خلال <a href="https://github.com/ordinals/ord/">the repo</a>.</p>
+</li>
+<li>
+<p>قم بتشغيل الأمر <code>RUST_LOG=info ord index</code>. يجب أن يتصل بنود Bitcoin Core الخاص بك ويبدأ عملية الفهرسة.</p>
+</li>
+<li>
+<p>انتظر حتى انتهاء عملية الفهرسة.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>ثالثًا، ستحتاج إلى محفظة تحتوي على مخرجات غير مُنفقة (UTXOs) التي ترغب في البحث عنها.</p>
+</li>
+</ol>
+<h2 id="البحث-عن-أوردينالس-نادرة"><a class="header" href="#البحث-عن-أوردينالس-نادرة">البحث عن أوردينالس نادرة</a></h2>
+<h3 id="البحث-عن-أوردينال-النادرة-في-محفظة-bitcoin-core"><a class="header" href="#البحث-عن-أوردينال-النادرة-في-محفظة-bitcoin-core">البحث عن أوردينال النادرة في محفظة Bitcoin Core</a></h3>
+<p>أمر <code>ord wallet</code> هو مجرد ملف تغليفي حول واجهة برمجة تطبيقات Bitcoin Core's RPC API، لذا البحث عن الإنسكريبشين النادرة في محفظة Bitcoin Core يعتبر سهلاً. افترض أن اسم محفظتك هو <code>foo</code>:</p>
+<ol>
+<li>
+<p>قم بتحميل محفظتك:</p>
+<pre><code class="language-sh">bitcoin-cli loadwallet foo
+</code></pre>
+</li>
+<li>
+<p>عرض أي من الساتوشي النادرة في محفظة <code>foo</code> من مخرجات UTXO:</p>
+<pre><code class="language-sh">ord wallet sats
+</code></pre>
+</li>
+</ol>
+<h3 id="البحث-عن-العلامات-النادرة-في-محفظة-غير-تابعة-لبيتكوين-كور"><a class="header" href="#البحث-عن-العلامات-النادرة-في-محفظة-غير-تابعة-لبيتكوين-كور">البحث عن العلامات النادرة في محفظة غير تابعة لبيتكوين كور</a></h3>
+<p>أمر <code>ord wallet</code> هو مجرد غلاف حول واجهة برمجة التطبيقات (RPC) لبيتكوين كور. لذا، إذا كنت ترغب في البحث عن العلامات النادرة في محفظة غير تابعة لبيتكوين كور، ستحتاج إلى استيراد مسارات محفظتك إلى بيتكوين كور.</p>
+<p><a href="https://github.com/bitcoin/bitcoin/blob/master/doc/descriptors.md">Descriptors</a> describe the ways that wallets generate private keys and public keys.</p>
+<p>يجب عليك استيراد الوصفات فقط في بيتكوين كور للمفاتيح العامة لمحفظتك، وليس لمفاتيحها الخاصة.</p>
+<p>إذا تم التعرض للخطر واكتشاف وصف المفتاح العام الخاص بمحفظتك، فإن الهاجم سيكون قادرًا على رؤية عناوين محفظتك، ولكن أموالك ستكون آمنة.</p>
+<p>إذا تم التعرض للخطر واكتشاف وصف المفتاح الخاص بمحفظتك، فإن الهاجم قد يستولي على أموال محفظتك.</p>
+<ol>
+<li>
+<p>قم بالحصول على وصف المحفظة من المحفظة التي ترغب في البحث في أموالها عن الأرقام الترتيبية النادرة. سيبدو هذا التوصيف مشابهًا لهذا:</p>
+<pre><code>wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29
+</code></pre>
+</li>
+<li>
+<p>أنشئ محفظة رصدية باسم <code>foo-watch-only</code>:</p>
+<pre><code class="language-sh">bitcoin-cli createwallet foo-watch-only true true
+</code></pre>
+<p>لا تتردد في إعطائه اسمًا أفضل من <code>foo-watch-only</code> إذا كنت ترغب!</p>
+</li>
+<li>
+<p>قم بتحميل محفظة &quot;foo-watch-only&quot; باستخدام الأمر التالي:</p>
+<pre><code class="language-sh">bitcoin-cli loadwallet foo-watch-only
+</code></pre>
+</li>
+<li>
+<p>قم بتحميل واجهات محفظتك إلى المحفظة &quot;foo-watch-only&quot; باستخدام الأمر التالي:</p>
+<pre><code class="language-sh">bitcoin-cli importdescriptors \
+  '[{ &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax&quot;, &quot;timestamp&quot;:0 }]'
+</code></pre>
+<p>إذا كنت تعرف الطابع الزمني لنظام Unix عندما بدأت محفظتك في استقبال المعاملات لأول مرة، فيمكنك استخدامه كقيمة لـ &quot;timestamp&quot; بدلاً من 0. سيساعد ذلك في تقليل الوقت اللازم لبحث Bitcoin Core عن UTXOs في محفظتك.</p>
+</li>
+<li>
+<p>تحقق مما إذا كان كل شيء عمل بشكل صحيح:</p>
+<pre><code class="language-sh">bitcoin-cli getwalletinfo
+</code></pre>
+</li>
+<li>
+<p>عرض أوردينالس في محفظتك:</p>
+<pre><code class="language-sh">ord wallet sats
+</code></pre>
+</li>
+</ol>
+<h3 id="البحث-عن-الأوردينال-النادرة-في-محفظة-تصدر-وصفوف-مسار-متعددة"><a class="header" href="#البحث-عن-الأوردينال-النادرة-في-محفظة-تصدر-وصفوف-مسار-متعددة">البحث عن الأوردينال النادرة في محفظة تصدر وصفوف مسار متعددة</a></h3>
+<p>بعض الوصوف تصف مسارات متعددة في وصف واحد باستخدام الزوايا الزوجية، مثل <code>&lt;0;1&gt;</code>. الوصوف متعددة المسارات لا تزال غير مدعومة بواسطة Bitcoin Core حتى الآن، لذا ستحتاج أولاً إلى تحويلها إلى وصوف متعددة، ثم استيراد تلك الوصوف المتعددة إلى Bitcoin Core.</p>
+<ol>
+<li>
+<p>أولاً، قم بالحصول على الوصف المتعدد المسارات من محفظتك. سيبدو هذا على النحو التالي:</p>
+<pre><code>wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/&lt;0;1&gt;/*)#fw76ulgt
+</code></pre>
+</li>
+<li>
+<p>أنشئ وصفًا لمسار عنوان الاستلام:</p>
+<pre><code>wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)
+</code></pre>
+<p>وأيضًا مسار عنوان التغيير:</p>
+<pre><code>wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)
+</code></pre>
+</li>
+<li>
+<p>احصل على وادرِ الفحص لوصف عنوان الاستلام وقم بتسجيله، في هذه الحالة هو <code>tpnxnxax</code>:</p>
+<pre><code class="language-sh">bitcoin-cli getdescriptorinfo \
+  'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)'
+</code></pre>
+<pre><code class="language-json">{
+  &quot;descriptor&quot;: &quot;wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29&quot;,
+  &quot;checksum&quot;: &quot;tpnxnxax&quot;,
+  &quot;isrange&quot;: true,
+  &quot;issolvable&quot;: true,
+  &quot;hasprivatekeys&quot;: false
+}
+</code></pre>
+<p>وكذلك لوصف عنوان التغيير، في هذه الحالة هو <code>64k8wnd7</code>:</p>
+<pre><code class="language-sh">bitcoin-cli getdescriptorinfo \
+  'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)'
+</code></pre>
+<pre><code class="language-json">{
+  &quot;descriptor&quot;: &quot;wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#fyfc5f6a&quot;,
+  &quot;checksum&quot;: &quot;64k8wnd7&quot;,
+  &quot;isrange&quot;: true,
+  &quot;issolvable&quot;: true,
+  &quot;hasprivatekeys&quot;: false
+}
+</code></pre>
+</li>
+<li>
+<p>قم بتحميل المحفظة التي تريد استيراد الوصفات إليها:</p>
+<pre><code class="language-sh">bitcoin-cli loadwallet foo-watch-only
+</code></pre>
+</li>
+<li>
+<p>الآن قم ب استيراد الوصفات، مع التحقق الصحيح، إلى Bitcoin Core.</p>
+<pre><code class="language-sh">bitcoin-cli \
+ importdescriptors \
+ '[
+   {
+     &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax&quot;
+     &quot;timestamp&quot;:0
+   },
+   {
+     &quot;desc&quot;: &quot;wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#64k8wnd7&quot;,
+     &quot;timestamp&quot;:0
+   }
+ ]'
+</code></pre>
+<p>إذا كنت تعرف الطابع الزمني (Unix timestamp) الذي بدأت فيه محفظتك استقبال المعاملات، يمكنك استخدامه كقيمة في حقول <code>&quot;timestamp&quot;</code> بدلاً من القيمة <code>0</code>. سيساعد ذلك في تقليل الوقت الذي يحتاجه Bitcoin Core للبحث عن UTXOs الخاصة بمحفظتك.</p>
+</li>
+<li>
+<p>تحقق مما إذا كان كل شيء عمل بشكل صحيح:</p>
+<pre><code class="language-sh">bitcoin-cli getwalletinfo
+</code></pre>
+</li>
+<li>
+<p>عرض أوردينالس في محفظتك:</p>
+<pre><code class="language-sh">ord wallet sats
+</code></pre>
+</li>
+</ol>
+<h3 id="exporting-descriptors"><a class="header" href="#exporting-descriptors">Exporting Descriptors</a></h3>
+<h4 id="محفظة-سباروو"><a class="header" href="#محفظة-سباروو">محفظة سباروو</a></h4>
+<p>انتقل إلى علامة التبويب &quot;الإعدادات&quot; <code>Settings</code> ثم انتقل إلى &quot;سياسة النص&quot; <code>Script Policy</code> واضغط على زر التحرير (Edit) لعرض الوصف (descriptor).</p>
+<h3 id="إرسال-الأوردينالس"><a class="header" href="#إرسال-الأوردينالس">إرسال الأوردينالس</a></h3>
+<p>محفظة <code>ord</code> تدعم نقل الساتوشيات الخاصة. يمكنك أيضًا استخدام أوامر <code>bitcoin-cli</code> مثل <code>createrawtransaction</code> و <code>signrawtransactionwithwallet</code> و <code>sendrawtransaction</code> للقيام بذلك، وكيفية القيام بذلك هو معقد وخارج نطاق هذا الدليل.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="التجميع"><a class="header" href="#التجميع">التجميع</a></h1>
+<p>حالياً، يعتبر <a href="https://github.com/ordinals/ord/">ord</a> هو المحفظة الوحيدة التي تدعم التحكم في الساتوشيات واختيارها، واللذين يُعتبران ضروريين لتخزين وإرسال الساتوشيات والأشياء الرقمية النادرة بأمان، والتي ستُعرف فيما بعد بـ أوردينال.</p>
+<p>الطريقة الموصي بها لإرسال واستقبال وتخزين أوردينال هي باستخدام محفظة  <code>ord</code>، ولكن إذا كنت حذرًا، يمكنك تخزين أوردينال بأمان في محافظ أخرى، وفي بعض الحالات حتى إرسالها.</p>
+<p>كملاحظة عامة، استقبال أوردينال في محفظة غير مدعومة ليس خطيرًا. يمكن إرسال أوردينال إلى أي عنوان بيتكوين، وهم آمنين طالما أن الإخراج الذي يحتوي عليهم لم يتم إنفاقه. ومع ذلك، إذا تم استخدام تلك المحفظة لإرسال بيتكوين، قد تختار المحفظة الإخراج الذي يحتوي على الـأوردينال كإدخال، وترسل الشهادة أو تنفقها على الرسوم.</p>
+<p>يتوفر <a href="guides/./collecting/sparrow-wallet.html">guide</a> لإنشاء محفظة متوافقة مع <code>ord</code> باستخدام محفظة <a href="https://sparrowwallet.com/">Sparrow Wallet</a> في هذا الدليل.</p>
+<p>يرجى ملاحظة أنه إذا قمت باتباع هذا الدليل، يجب عليك عدم استخدام المحفظة التي تنشئها لإرسال BTC، إلا إذا قمت بإجراء اختيار يدوي للعملات لتجنب إرسال الأوردينال.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="جمع-أوردينالس-و-الإنسكريبشين-باستخدام-محفظة-sparrow"><a class="header" href="#جمع-أوردينالس-و-الإنسكريبشين-باستخدام-محفظة-sparrow">جمع أوردينالس و الإنسكريبشين باستخدام محفظة Sparrow</a></h1>
+<p>المستخدمون الذين لا يستطيعون أو لم ينشئوا محفظة ord بعد يمكنهم تلقي أوردينالس والأرقام السرية باستخدام محافظ البيتكوين البديلة، طالما أنهم يكونون حذرين جداً في كيفية إنفاق من تلك المحفظة.</p>
+<p>يقدم هذا الدليل بعض الخطوات الأساسية حول كيفية إنشاء محفظة باستخدام محفظة <a href="https://sparrowwallet.com/">Sparrow Wallet</a> والتي تكون متوافقة مع محفظة <code>ord</code> ويمكن استيرادها لاحقًا إلى محفظة <code>ord</code></p>
+<h2 id="-تحذير-"><a class="header" href="#-تحذير-">⚠️⚠️ تحذير!! ⚠️⚠️</a></h2>
+<p>كقاعدة عامة، إذا اتبعت هذا النهج، يجب عليك استخدام هذه المحفظة مع برنامج Sparrow كمحفظة للتلقي فقط.</p>
+<p>لا تنفق أي ساتوشي من هذه المحفظة ما لم تكن متأكدًا من أنك تعرف ما تفعله. يمكن أن تفقد بسهولة وبشكل غير مقصود الوصول إلى الأرقام السرية والنقوش الخاصة بك إذا لم تلتزم بهذا التحذير.</p>
+<h2 id="إعداد-المحفظة-والتلقي"><a class="header" href="#إعداد-المحفظة-والتلقي">إعداد المحفظة والتلقي</a></h2>
+<p>قم <a href="https://sparrowwallet.com/download/">بتنزيل</a> محفظة Sparrow من صفحة الإصدارات الخاصة بنظام التشغيل الخاص بك.</p>
+<p>اختر <code>File -&gt; New Wallet</code> قم بإنشاء محفظة جديدة تسمى <code>ord</code>.</p>
+<p><img src="guides/collecting/images/wallet_setup_01.png" alt="" /></p>
+<p>قم بتغيير نوع النص إلى <code>Taproot (P2TR)</code> واختر الخيار <code>New or Imported Software Wallet</code>.</p>
+<p><img src="guides/collecting/images/wallet_setup_02.png" alt="" /></p>
+<p>اختر <code>Use 12 Words</code> ثم انقر فوق <code>Generate New</code>. اترك مجال العبور فارغًا.</p>
+<p><img src="guides/collecting/images/wallet_setup_03.png" alt="" /></p>
+<p>سيتم إنشاء عبارة مفتاح عشوائي BIP39 مكونة من 12 كلمة بالنسبة لك. اكتبها في مكان آمن حيث تعد هذه نسختك الاحتياطية للوصول إلى محفظتك. لا تشارك أو تعرض هذه العبارة لأي شخص آخر أبدًا.</p>
+<p>بمجرد أن تكتب العبارة، انقر فوق <code>Confirm Backup</code>.</p>
+<p><img src="guides/collecting/images/wallet_setup_04.png" alt="" /></p>
+<p>أعد إدخال العبارة التي كتبتها، ثم انقر فوق <code>Create Keystore</code>.</p>
+<p><img src="guides/collecting/images/wallet_setup_05.png" alt="" /></p>
+<p>انقر فوق <code>Import Keystore</code>.</p>
+<p><img src="guides/collecting/images/wallet_setup_06.png" alt="" /></p>
+<p>انقر فوق <code>Apply</code>. أضف كلمة مرور للمحفظة إذا كنت ترغب.</p>
+<p><img src="guides/collecting/images/wallet_setup_07.png" alt="" /></p>
+<p>لآن لديك محفظة متوافقة مع <code>ord</code>، ويمكن استيرادها إلى <code>ord</code> باستخدام عبارة البذرة BIP39. لاستقبال الأعداد أو النقوش، انقر على علامة <code>Receive</code> وانسخ عنوانًا جديدًا.</p>
+<p>في كل مرة تريد فيها الاستقبال، يجب أن تستخدم عنوانًا جديدًا تمامًا، ولا تستخدم عناوين موجودة بالفعل.</p>
+<p>يرجى ملاحظة أن البيتكوين مختلف عن بعض المحافظ الأخرى للبلوكشين، حيث يمكن لهذه المحفظة إنشاء عدد غير محدود من العناوين الجديدة. يمكنك إنشاء عنوان جديد عن طريق النقر فوق زر <code>Get Next Address</code>. يمكنك رؤية جميع عناوينك في علامة <code>Addresses</code> في التطبيق.</p>
+<p>يمكنك إضافة تصنيف لكل عنوان، لتتمكن من تتبع ما تم استخدامه لأغراضه.</p>
+<p><img src="guides/collecting/images/wallet_setup_08.png" alt="" /></p>
+<h2 id="التحقق--عرض-الأوردينالس-المستلمة"><a class="header" href="#التحقق--عرض-الأوردينالس-المستلمة">التحقق / عرض الأوردينالس المستلمة</a></h2>
+<p>بمجرد استلامك لنقش، ستظهر صفقة جديدة في علامة <code>Transactions</code> في Sparrow، وكذلك ستظهرUTXO جديدة في علامة <code>UTXOs</code>.</p>
+<p>بداية، قد تكون هذه الصفقة غير مؤكدة &quot;Unconfirmed&quot;، وسيتعين عليك الانتظار حتى تُعدد في كتلة بيتكوين قبل أن تستقبل بشكل كامل.</p>
+<p><img src="guides/collecting/images/validating_viewing_01.png" alt="" /></p>
+<p>لتتبع حالة صفقتك، يمكنك النقر بزر الماوس الأيمن عليها، ثم اختيار <code>Copy Transaction ID</code> ومن ثم لصق هذا المعرف في <a href="https://mempool.space/">mempool.space</a>.</p>
+<p><img src="guides/collecting/images/validating_viewing_02.png" alt="" /></p>
+<p>بمجرد تأكيد الصفقة، يمكنك التحقق وعرض النقش الخاص بك عن طريق الانتقال إلى علامة <code>UTXOs</code>، والبحث عنUTXO التي ترغب في التحقق منها، ثم النقر بزر الماوس الأيمن على<code>Output</code> واختيار <code>Copy Transaction Output</code>. يمكن لكتلة الإخراج هذه أن تُلصق في محرك البحث على موقع <a href="https://ordinals.com">ordinals.com</a>.</p>
+<h2 id="تجميد-utxos"><a class="header" href="#تجميد-utxos">تجميد UTXO's</a></h2>
+<p>كما تم شرحه أعلاه، يتم تخزين كل من الإنسكريبشين في ناتج الصفقة غير المنفقة (UTXO). يجب أن تكون حذرًا جدًا لكي لا تنفق الإنسكريبشين عن طريق الخطأ، وطريقة لجعلها أصعب هو تجميدها.</p>
+<p>للقيام بذلك، انتقل إلى علامة &quot;UTXOs&quot;، وابحث عن نقدة التي ترغب في تجميدها، ثم انقر بزر الماوس الأيمن على الإخراج واختر &quot;Freeze UTXO&quot;.</p>
+<p>ستكون هذه UTXO (الإنسكريبشين) غير قابلة للإنفاق داخل محفظة Sparrow حتى تُلغى تجميدها.</p>
+<h2 id="استيرادها-إلى-محفظة-ord"><a class="header" href="#استيرادها-إلى-محفظة-ord">استيرادها إلى محفظة <code>ord</code></a></h2>
+<p>للحصول على التفاصيل حول إعداد Bitcoin Core ومحفظة <code>ord</code>، تحقق من دليل<a href="guides/collecting/../inscriptions.html">Inscriptions Guide</a></p>
+<p>عند إعداد <code>ord</code>، بدلاً من تشغيل <code>ord wallet create</code> لإنشاء محفظة جديدة تمامًا، يمكنك استيراد محفظتك الحالية باستخدام <code>&quot;ord wallet restore &quot;BIP39 SEED PHRASE</code>باستخدام عبارة البذرة التي أنشأتها باستخدام محفظة Sparrow.</p>
+<p>هناك <a href="https://github.com/ordinals/ord/issues/1589">خلل</a> حاليًا يجعل من المحفظة المستوردة ألا تُمسح تلقائياً ضد سلسلة الكتل. للتغلب على ذلك، ستحتاج إلى تشغيل عملية مسح يدويًا باستخدام واجهة سطر الأوامر للنود البيتكوين: <code>bitcoin-cli -rpcwallet=ord rescanblockchain 767430</code></p>
+<p>بعد ذلك، يمكنك التحقق من الإنسكريبشين محفظتك باستخدام <code>ord wallet inscriptions</code></p>
+<p>يرجى ملاحظة أنه إذا كنت قد أنشأت بالفعل محفظة بواسطة ord في السابق، فسيكون لديك محفظة بالاسم الافتراضي بالفعل، وستحتاج إلى تعيين اسم محفظتك المستوردة باسم مختلف. يمكنك استخدام <code>wallet--</code> براميتير في جميع أوامر <code>ord</code> للإشارة إلى محفظة مختلفة، على سبيل المثال:</p>
+<p><code>ord --wallet ord_from_sparrow wallet restore &quot;BIP39 SEED PHRASE&quot;</code></p>
+<p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
+<p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
+<h2 id="جمع-الإنسكريبشين-باستخدام-محفظة-سباروو-sparrow"><a class="header" href="#جمع-الإنسكريبشين-باستخدام-محفظة-سباروو-sparrow">جمع الإنسكريبشين باستخدام محفظة سباروو Sparrow</a></h2>
+<h4 id="-تحذير--1"><a class="header" href="#-تحذير--1">⚠️⚠️ تحذير ⚠️⚠️</a></h4>
+<p>على الرغم من أنه من المستحسن بشدة إعداد بيتكوين نود Bitcoin Core وتشغيل برنامج <code>ord</code>، إلا أن هناك طرقًا محدودة يمكنك من خلالها إرسال الإنسكريبشين من محفظة Sparrow بطريقة آمنة. يرجى ملاحظة أن هذا غير مستحسن ويجب أن تقوم به فقط إذا كنت تفهم تمامًا ما تقوم به.</p>
+<p>استخدام برنامج <code>ord</code> سيقلل بشكل كبير من التعقيد الذي نصفه هنا، حيث يمكن للبرنامج التعامل تلقائيًا وبأمان مع إرسال النقاشات بطريقة سهلة.</p>
+<h4 id="-تحذير-إضافي-"><a class="header" href="#-تحذير-إضافي-">⚠️⚠️ تحذير إضافي ⚠️⚠️</a></h4>
+<p>لا تستخدم محفظة Sparrow الخاصة بالتسجيلات لإرسال بيتكوين عامة غير مرتبطة بالتسجيلات. يمكنك إعداد محفظة منفصلة في Sparrow إذا كنت بحاجة إلى إجراء معاملات بيتكوين العادية، والاحتفاظ بمحفظتك للتسجيلات بشكل منفصلة.</p>
+<h4 id="نموذج-utxo-في-البيتكوين"><a class="header" href="#نموذج-utxo-في-البيتكوين">نموذج UTXO في البيتكوين</a></h4>
+<p>قبل إجراء أي عملية إرسال، من المهم أن يكون لديك نموذج عقلي جيد لنظام ناتج الصفقات غير المنفقة (UTXO) في البيتكوين. الطريقة التي يعمل بها البيتكوين مختلفة بشكل جوهري عن العديد من البلوكشين الأخرى مثل إيثيريوم. عمومًا في إيثيريوم، لديك عنوان واحد عادةً تقوم بتخزين ETH فيه، ولا يمكنك التمييز بين أي مبلغ من ETH - فهو مجموعة واحدة من القيمة الإجمالية في تلك العنوان. يعمل البيتكوين بطريقة مختلفة تمامًا حيث نقوم بإنشاء عنوان جديد في المحفظة لكل عملية استقبال، وفي كل مرة تستقبل فيها ساتوشي إلى عنوان في محفظتك، فأنت تقوم بإنشاء ناتج صفقة جديد. يمكن رؤية وإدارة كل ناتج صفقة غير المنفقة على حدة. يمكنك تحديد ناتج صفقة معين ترغب في الإنفاق عليه، ويمكنك اختيار عدم إنفاق بعض نواتج الصفقات.</p>
+<p>بعض محافظ البيتكوين لا تعرض هذا المستوى من التفاصيل، وهي تعرض لك قيمة واحدة مجمعة لجميع البيتكوين في محفظتك. ومع ذلك، عند إرسال النقوش من المهم استخدام محفظة مثل Sparrow التي تسمح بالتحكم في نواتج الصفقات.</p>
+<h4 id="تفحص-الإنسكريبشين-قبل-الإرسال"><a class="header" href="#تفحص-الإنسكريبشين-قبل-الإرسال">تفحص الإنسكريبشين قبل الإرسال</a></h4>
+<p>كما تم وصفه سابقًا، تُنقش النقوش على الساتوشي، والساتوشي تُخزن داخل ناتج الصفقة غير المنفقة (UTXO). تعد نواتج الصفقات (UTXO) مجموعة من الساتوشي مع قيمة محددة لعدد الساتوشي (قيمة الإخراج). عادةً (وليس دائمًا) ستكون الأنسكريبشين منقشه على أول ساتوشي في نواتج الصفقات ال UTXO.</p>
+<p>عند فحص تسجيلك قبل إرساله، سترغب في التحقق أساسًا من الساتوشي الذي تم تسجيله في UTXO الخاص بك.</p>
+<p>للقيام بذلك، يمكنك اتباع الخطوات الموجودة في [التحقق / عرض التسجيلات المستلمة] <a href="guides/collecting/./sparrow-wallet.html#validating--viewing-received-inscriptions">Validating / Viewing Received Inscriptions</a> الموجودة أعلاه للعثور على صفحة التسجيل الخاصة بتسجيلك على موقع ordinals.com</p>
+<p>ستجد هناك بعض البيانات الوصفية حول تسجيلك تبدو على النحو التالي:</p>
+<p><img src="guides/collecting/images/sending_01.png" alt="" /></p>
+<p>يوجد بعض الأمور الهامة التي يجب التحقق منها هنا:</p>
+<ul>
+<li>معرف <code>output</code> يتطابق مع معرف UTXO الذي ستقوم بإرساله</li>
+<li>ال <code>offset</code> للإنسكريبشين هو <code>0</code> (وهذا يعني أن الإنسكريبشين موجودة في أول ساتوشي في ناتج الصفقةUTXO)</li>
+<li>تحتوي قيمة الإخراج <code>output_value</code> على عدد كافٍ من الساتوشي لتغطية رسوم الصفقة (البريد) لإرسال النقشة. تعتمد الكمية الدقيقة التي ستحتاجها على معدل الرسوم الذي ستختاره للصفقة</li>
+</ul>
+<p>إذا كانت جميع الشروط أعلاه صحيحة بالنسبة للنقشة الخاصة بك، يجب أن يكون آمنًا لك إرسالها باستخدام الطريقة الموضحة أدناه.</p>
+<p>⚠️⚠️ كن حذرًا جدًا عند إرسال الإنسكريبشين، خاصة إذا كانت القيمة النسبية ليست 0. لا يوصى باستخدام هذه الطريقة إذا كانت هذه هي الحالة، حيث يمكن أن ترسل الإنسكريبشين عن طريق الخطأ إلى منقبي بيتكوين ما لم تكن تعرف ما تفعله.</p>
+<h4 id="إرسال-الإنسكريبشين"><a class="header" href="#إرسال-الإنسكريبشين">إرسال الإنسكريبشين</a></h4>
+<p>لإرسال الإنسكريبشين، انتقل إلى علامة <code>UTXOs</code>، وابحث عن ناتج الصفقة UTXO التي قمت بالتحقق منها سابقًا.</p>
+<p>إذا كنت قد قمت بتجميد ال UTXO، سيتعين عليك النقر بزر الماوس الأيمن عليها وإلغاء تجميدها.</p>
+<p>حدد UTXO الذي ترغب في إرساله، وتأكد من أنه هو الوحيد المحدد. يجب أن ترى <code>UTXOs 1/1</code> في واجهة البرنامج. بمجرد التأكد من ذلك، يمكنك النقر على<code>Send Selected</code>.</p>
+<p><img src="guides/collecting/images/sending_02.png" alt="" /></p>
+<p>ستُعرض لك واجهة إعداد الصفقة. هناك عدة أشياء يجب عليك التحقق منها للتأكد من أن هذا إرسال آمن:</p>
+<ul>
+<li>يجب أن تحتوي الصفقة على إدخال واحد فقط، ويجب أن يكون هذا هو ناتج الصفقة الذي تريد إرساله</li>
+<li>يجب أن تحتوي الصفقة على إخراج واحد فقط، وهو العنوان/التصنيف الذي ترغب في إرسال الإنسكريبشين</li>
+</ul>
+<p>إذا كانت الصفقة تبدو مختلفة عن ذلك، على سبيل المثال لديك إدخالات متعددة أو إخراجات متعددة، فقد لا يكون هذا إرسالًا آمنًا للإنسكريبشين، ويجب أن تترك الإرسال حتى تفهم المزيد، أو تستورد إلى محفظة <code>ord</code>.</p>
+<p>يجب أن تحدد رسوم الصفقة المناسبة، عادةً ما يقترح Sparrow معدل رسوم معقول، ولكن يمكنك أيضًا التحقق من <a href="https://mempool.space">mempool.space</a> لمعرفة ما هو معدل الرسوم الموصي به لإرسال الصفقة.</p>
+<p>يجب أن تضيف تصنيفًا لعنوان المستلم، يكون التصنيف مثل <code>alice address for inscription #123</code> هو الأمثل.</p>
+<p>بمجرد التحقق من أن الصفقة آمنة باستخدام الفحوصات أعلاه، وأنك واثق من إرسالها، يمكنك النقر على <code>Create Transaction</code>.</p>
+<p><img src="guides/collecting/images/sending_03.png" alt="" /></p>
+<p>هنا يمكنك التحقق مرة أخرى من أن الصفقة تبدو آمنة، وبمجرد أن تكون واثقًا يمكنك النقر على <code>Finalize Transaction for Signing</code>.</p>
+<p><img src="guides/collecting/images/sending_04.png" alt="" /></p>
+<p>هنا يمكنك التحقق ثلاث مرات من كل شيء قبل النقر على <code>Sign</code>.</p>
+<p><img src="guides/collecting/images/sending_05.png" alt="" /></p>
+<p>وأخيرًا، ستحصل على فرصة أخيرة للتحقق من كل شيء قبل النقر على <code>Broadcast Transaction</code>. بمجرد بث الصفقة، ستُرسل إلى شبكة بيتكوين وتبدأ في الانتشار في mempool.</p>
+<p><img src="guides/collecting/images/sending_06.png" alt="" /></p>
+<p>إذا كنت ترغب في تتبع حالة الصفقة، يمكنك نسخ معرف الصفقة <code>Transaction Id (Txid)</code> ولصقه في <a href="https://mempool.space">mempool.space</a></p>
+<p>بمجرد تأكيد الصفقة، يمكنك التحقق من صفحة الإنسكريبشين على موقع <a href="https://ordinals.com">أوردينال</a> للتحقق من أنها انتقلت إلى الموقع والعنوان الجديدين.</p>
+<h2 id="مشكلات-وحلول-1"><a class="header" href="#مشكلات-وحلول-1">مشكلات وحلول</a></h2>
+<h4 id="محفظة-sparrow-لا-تعرض-صفقةutxo-ولكن-يمكنني-رؤيتها-على-mempoolspace"><a class="header" href="#محفظة-sparrow-لا-تعرض-صفقةutxo-ولكن-يمكنني-رؤيتها-على-mempoolspace">محفظة Sparrow لا تعرض صفقة/UTXO، ولكن يمكنني رؤيتها على mempool.space!</a></h4>
+<p>تأكد من أن محفظتك متصلة بنود بيتكوين. للتحقق من ذلك، انتقل إلى <code>Preferences</code>-&gt; <code>Server</code> ، وانقر فوق <code>Edit Existing Connection</code>.</p>
+<p><img src="guides/collecting/images/troubleshooting_01.png" alt="" /></p>
+<p>من هنا، يمكنك تحديد نود والنقر على <code>Test Connection</code> للتحقق من أن Sparrow قادر على الاتصال بنجاح.</p>
+<p><img src="guides/collecting/images/troubleshooting_02.png" alt="" /></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="التجارب"><a class="header" href="#التجارب">التجارب</a></h1>
+<p>يمكن اختبار Ord باستخدام الأعلام التالية لتحديد شبكة الاختبار. لمزيد من المعلومات حول تشغيل Bitcoin Core لأغراض الاختبار، انظر <a href="https://developer.bitcoin.org/examples/testing.html">Bitcoin's developer documentation</a>.</p>
+<p>معظم أوامر <code>ord</code> في <a href="guides/inscriptions.html">inscriptions</a> و<a href="guides/explorer.html">explorer</a> يمكن تشغيلها باستخدام الأعلام الشبكية التالية:</p>
+<div class="table-wrapper"><table><thead><tr><th>Network</th><th>Flag</th></tr></thead><tbody>
+<tr><td>Testnet</td><td><code>testnet</code> or <code>-t--</code></td></tr>
+<tr><td>Signet</td><td><code>signet</code> or <code>-s--</code></td></tr>
+<tr><td>Regtest</td><td><code>regtest</code> or <code>-r--</code></td></tr>
+</tbody></table>
+</div>
+<p>رغ تيست (Regtest) لا يتطلب تنزيل سلسلة الكتل/البلوكشين أو فهرسه الأورد.</p>
+<h2 id="مثال-2"><a class="header" href="#مثال-2">مثال</a></h2>
+<p>تشغيل <code>bitcoind</code> في وضع الاختبار المحلي باستخدام الأمر:</p>
+<pre><code>bitcoind -regtest -txindex
+</code></pre>
+<p>أنشئ محفظة جديدة باستخدام الأمر:</p>
+<pre><code>ord -r wallet create
+</code></pre>
+<p>أنشئ عوان للاستقبال باستخدام الأمر:</p>
+<pre><code>ord -r wallet receive
+</code></pre>
+<p>إبدا بتعدين البلوكس باستخدام الأمر:</p>
+<pre><code>bitcoin-cli -regtest generatetoaddress 101 &lt;receive address&gt;
+</code></pre>
+<p>إنسكرايب بوسطه الريغيست باستخدام الأمر:</p>
+<pre><code>ord -r wallet inscribe --fee-rate 1 &lt;file&gt;
+</code></pre>
+<p>عدن الإنسكريبشين باستخدام الأمر:</p>
+<pre><code>bitcoin-cli -regtest generatetoaddress 1 &lt;receive address&gt;
+</code></pre>
+<p>أعرض الإنسكريبشين باستخدام الأمر:</p>
+<pre><code>ord -r server
+</code></pre>
+<h2 id="اختبار-التكرار"><a class="header" href="#اختبار-التكرار">اختبار التكرار</a></h2>
+<p>When testing out <a href="guides/../inscriptions/recursion.html">recursion</a>, inscribe the dependencies first (example with <a href="https://p5js.org">p5.js</a>):</p>
+<pre><code>ord -r wallet inscribe --fee-rate 1 p5.js
+</code></pre>
+<p>سيعيد هذا <code>inscription_id</code> الذي يمكنك بعد ذلك الرجوع إليه في الإنسكريبشين لتكراري.</p>
+<p>تنبيه: سيكون هذه الهويات مختلفة عندما تكون الإنسكريبشين على شبكة mainnet أو signet ، لذا تأكد من تغييرها في تسجيلك التكراري لكل سلسلة.</p>
+<p>ثم يمكنك تسجيل السجل التكراري الخاص بك باستخدام الأمر:</p>
+<pre><code>ord -r wallet inscribe --fee-rate 1 recursive-inscription.html
+</code></pre>
+<p>أخيرًا، ستحتاج إلى تعدين بعض الكتل وبدء الخادم باستخدام الأمر:</p>
+<pre><code>bitcoin-cli generatetoaddress 6 &lt;receive address&gt;
+ord -r server
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="الإشراف"><a class="header" href="#الإشراف">الإشراف</a></h1>
+<p>أورد <code>ord</code> يتضمن مستكشف كتل يمكنك تشغيله محليًا باستخدام الأمر <code>ord server</code>.</p>
+<p>مستكشف الكتل يتيح رؤية الإنسكريبشين. الإنسكريبشين هي محتوى تم إنشاؤه من قبل المستخدمين وقد يكون مثيرًا للرفض أو غير قانوني.</p>
+<p>مسؤولية كل فرد يقوم بتشغيل مثيل مستكشف كتل أوردينال هي فهم مسؤولياتهم فيما يتعلق بالمحتوى غير القانوني، واتخاذ قرار بشأن السياسة الملائمة للتعديل لمثيلهم.</p>
+<p>من أجل منع ظهور إنسكريبشين معينة على <code>ord</code>، يمكن تضمينها في ملف تكوين YAML، والذي يتم تحميله باستخدام الخيار <code>config--</code>.</p>
+<p>لإخفائها، أنشئ أولاً ملف تكوين، وقم بوضع المعرف الذي تريد إخفائه:</p>
+<pre><code class="language-yaml">hidden:
+- 0000000000000000000000000000000000000000000000000000000000000000i0
+</code></pre>
+<p>الاسم المقترح لملفات تكوين <code>ord</code> هو <code>ord.yaml</code>، ولكن يمكن استخدام أي اسم ملف.</p>
+<p>ثم قم بتمرير الملف باستخدام <code>config--</code> عند بدء تشغيل الخادم:</p>
+<p><code>ord --config ord.yaml server</code></p>
+<p>يرجى ملاحظة أن الخيار <code>config--</code> يأتي بعد <code>ord</code> ولكن قبل <code>server</code>.</p>
+<p>يجب إعادة تشغيل <code>ord</code> لتحميل التغييرات.</p>
+<h2 id="ordinalscom"><a class="header" href="#ordinalscom"><code>ordinals.com</code></a></h2>
+<p>تستخدم <code>ordinals.com</code> لتشغيل خدمة <code>ord server</code>، والتي تسمى <code>ord</code>، باستخدام ملف تكوين يقع في المسار <code>var/lib/ord/ord.yaml/</code>.</p>
+<p>لإخفاء إنسكريبشين على <code>ordinals.com</code>:</p>
+<ol>
+<li>اتصل بخادم SSH</li>
+<li>أضف معرف إنسكريبشين إلى <code>var/lib/ord/ord.yaml/</code></li>
+<li>أعد تشغيل الخدمة باستخدام <code>systemctl restart ord</code></li>
+<li>راقب إعادة التشغيل باستخدام <code>journalctl -u ord</code></li>
+</ol>
+<p>حاليًا، يستغرق إعادة تشغيل <code>ord</code> وقتًا طويلاً، لذا قد لا يعود الموقع اونلاين فورا.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="إعادة-الفهرسة"><a class="header" href="#إعادة-الفهرسة">إعادة الفهرسة</a></h1>
+<p>Sometimes the <code>ord</code> database must be reindexed, which means deleting the database and restarting the indexing process with either <code>ord index update</code> or <code>ord server</code>. Reasons to reindex are:</p>
+<ol>
+<li>صدور إصدار جديد رئيسي لـ ord والذي يغير مخطط قاعدة البيانات</li>
+<li>تلف قاعدة البيانات بشكل ما بطريقة ما</li>
+</ol>
+<p>قاعدة البيانات التي يستخدمها <code>ord</code> تسمى <a href="https://github.com/cberner/redb">redb</a>، لذا نعطي للفهرس اسم الملف الافتراضي <code>index.redb</code>. عادةً ما نخزن هذا الملف في مواقع مختلفة اعتمادًا على نظام التشغيل الخاص بك.</p>
+<div class="table-wrapper"><table><thead><tr><th>Platform</th><th>Value</th><th>مثال</th></tr></thead><tbody>
+<tr><td>Linux</td><td><code>$XDG_DATA_HOME</code>/ord or <code>$HOME</code>/.local/share/ord</td><td>/home/alice/.local/share/ord</td></tr>
+<tr><td>macOS</td><td><code>$HOME</code>/Library/Application Support/ord</td><td>/Users/Alice/Library/Application Support/ord</td></tr>
+<tr><td>Windows</td><td><code>{FOLDERID_RoamingAppData}</code>\ord</td><td>C:\Users\Alice\AppData\Roaming\ord</td></tr>
+</tbody></table>
+</div>
+<p>لحذف قاعدة البيانات وإعادة فهرستها على نظام MacOS، يمكنك تشغيل الأوامر التالية في الطرفية (الترمينال):</p>
+<pre><code class="language-bash">rm ~/Library/Application Support/ord/index.redb
+ord index update
+</code></pre>
+<p>You can of course also set the location of the data directory yourself with <code>ord --data-dir &lt;DIR&gt; index update</code> or give it a specific filename and path with <code>ord --index &lt;FILENAME&gt; index update</code>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="نصائح-لصيد-جوائز-أوردينال"><a class="header" href="#نصائح-لصيد-جوائز-أوردينال">نصائح لصيد جوائز أوردينال</a></h1>
+<ul>
+<li>
+<p>محفظة <code>أورد</code> يمكنها إرسال واستقبال ساتوشي محددة. بالإضافة إلى ذلك، نظرية أوردينال بسيطة للغاية. يجب أن يكون لدى الهاكرز الذكيين القدرة على كتابة الشيفرات من البداية للتلاعب بالساتوشي باستخدام النظرية في وقت قصير جدا.</p>
+</li>
+<li>
+<p>لمزيد من المعلومات حول نظرية أوردينال، تفضل بزيارة <a href="./faq.html">الأسئلة الشائعة</a> للحصول على نظرة عامة، وال <a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">BIP</a> للتفاصيل الفنية وال <a href="https://github.com/ordinals/ord">ord repo</a> لمحفظة <code>أورد</code> ومستكشف الكتل.</p>
+</li>
+<li>
+<p>ساتوشي هو المطور الأصلي لنظرية أوردينال. ومع ذلك، كان يعلم أن آخرين سيعتبرونها هرطقة وخطيرة، لذلك أخفى معرفته،وضاعت هذه المعرفة في زمن النسيان. هذه النظرية الفعّالة تم اكتشافها من جديد فقط الآن. يمكنك المساعدة من خلال البحث عن الساتوشي النادرة.</p>
+</li>
+</ul>
+<p>حظًا موفقًا!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="جائزة-أوردينال-0"><a class="header" href="#جائزة-أوردينال-0">جائزة أوردينال 0</a></h1>
+<h2 id="الشروط"><a class="header" href="#الشروط">الشروط</a></h2>
+<p>أرسل ساتوشي الذي يحمل رقم ترتيبي ينتهي بصفر إلى عنوان التقديم:</p>
+<p>✅: <a href="https://ordinals.com/ordinal/1857578125803250">1857578125803250</a></p>
+<p>❌: <a href="https://ordinals.com/ordinal/1857578125803251">1857578125803251</a></p>
+<p>يجب أن يكون الساتوشي هو أول ساتوشي في الإخراج الذي ترسله.</p>
+<h2 id="المكافأة"><a class="header" href="#المكافأة">المكافأة</a></h2>
+<p>100,000 sats</p>
+<h2 id="عنوان-التقديم"><a class="header" href="#عنوان-التقديم">عنوان التقديم</a></h2>
+<p><a href="https://mempool.space/address/1PE7u4wbDP2RqfKN6geD1bG57v9Gj9FXm3"><code>1PE7u4wbDP2RqfKN6geD1bG57v9Gj9FXm3</code></a></p>
+<h2 id="الحالة"><a class="header" href="#الحالة">الحالة</a></h2>
+<p>تم الاستحواذ عليها من قِبَل <a href="https://twitter.com/rodarmor/status/1560793241473400833">@count_null</a>!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="جائزة-أوردينال-1"><a class="header" href="#جائزة-أوردينال-1">جائزة أوردينال 1</a></h1>
+<h2 id="الشروط-1"><a class="header" href="#الشروط-1">الشروط</a></h2>
+<p>سيتم اختيار الصفقة التي تقدم UTXO يحتوي على أقدم ساتوشي، أي الذي يحمل أقل رقم، من بين جميع الـ UTXO المقدمة كالفائزة.</p>
+<p>الجائزة متاحة للتقديم حتى الكتلة رقم 753984—، وهي أول كتلة في فترة ضبط الصعوبة رقم 374. لن يتم النظر في التقديمات المدرجة في الكتلة رقم 753984 أو فيما بعدها .</p>
+<h2 id="المكافأة-1"><a class="header" href="#المكافأة-1">المكافأة</a></h2>
+<p>200,000 sats</p>
+<h2 id="عنوان-التقديم-1"><a class="header" href="#عنوان-التقديم-1">عنوان التقديم</a></h2>
+<p><a href="https://mempool.space/address/145Z7PFHyVrwiMWwEcUmDgFbmUbQSU9aap"><code>145Z7PFHyVrwiMWwEcUmDgFbmUbQSU9aap</code></a></p>
+<h2 id="الحالة-1"><a class="header" href="#الحالة-1">الحالة</a></h2>
+<p>تم الاستحواذ عليها من قِبَل <a href="https://twitter.com/rodarmor/status/1569883266508853251">@ordinalsindex</a>!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="جائزة-أوردينال-2"><a class="header" href="#جائزة-أوردينال-2">جائزة أوردينال 2</a></h1>
+<h2 id="الشروط-2"><a class="header" href="#الشروط-2">الشروط</a></h2>
+<p>Send an <span class=uncommon>uncommon</span> sat to the submission address:</p>
+<p>✅: <a href="https://ordinals.com/sat/347100000000000">347100000000000</a></p>
+<p>❌: <a href="https://ordinals.com/sat/6685000001337">6685000001337</a></p>
+<p>تأكد من أن عنوان التقديم لم يستقبل معاملات من قبل تقديم إدخالك. سيتم مكافأة التقديم الناجح الأول فقط.</p>
+<h2 id="المكافأة-2"><a class="header" href="#المكافأة-2">المكافأة</a></h2>
+<p>300,000 sats</p>
+<h2 id="عنوان-التقديم-2"><a class="header" href="#عنوان-التقديم-2">عنوان التقديم</a></h2>
+<p><a href="https://mempool.space/address/1Hyr94uypwWq5CQffaXHvwUMEyBPp3TUZH"><code>1Hyr94uypwWq5CQffaXHvwUMEyBPp3TUZH</code></a></p>
+<h2 id="الحالة-2"><a class="header" href="#الحالة-2">الحالة</a></h2>
+<p>تم الاستحواذ عليها من قِبَل <a href="https://twitter.com/rodarmor/status/1582424455615172608">@utxoset</a>!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="جائزة-أوردينال-3"><a class="header" href="#جائزة-أوردينال-3">جائزة أوردينال 3</a></h1>
+<h2 id="الشروط-3"><a class="header" href="#الشروط-3">الشروط</a></h2>
+<p>جائزة أوردينال 3 لها جزأين، وكليهما مستندان إلى أسماء أوردينالس.<em>أسماء أوردينالس</em>. هي ترميز معدل بنظام الـ 26 استنادًا إلى أرقامهم . لتجنب قفل الأسماء القصيرة داخل مكافأة كوينبيس genesis block التي لا يمكن إنفاقها، تقصر أسماء Ordinal كلما زاد الرقم Ordinal في الطول. اسم السات 0، وهو أول سات تم تعدينه، هو <code>nvtdijuwxlp</code>، واسم سات 2,099,999,997,689,999، وهو آخر سات سيتم تعدينه، هو <code>a</code>.</p>
+<p>الجائزة متاحة للتقديم حتى الكتلة رقم 840000 - أول كتلة بعد الحدث التقسيمي الرابع. لن يتم النظر في التقديمات التي تم تضمينها في الكتلة 840000 أو بعد ذلك.</p>
+<p>كلا الجزءين يستخدمان <a href="bounty/frequency.tsv">frequency.tsv</a>، وهو قائمة بالكلمات وعدد المرات التي تظهر في <a href="http://storage.googleapis.com/books/ngrams/books/datasetsv2.html">Google Books Ngram dataset</a>. حيث تم تصفيتها لتشمل فقط أسماء الساتوشي التي سيتم تعدينها بحلول نهاية فترة التقديم، والتي تظهر على الأقل 5000 مرة في النصوص.</p>
+<p>ملف <code>frequency.tsv</code> هو ملف يحتوي على قيم مفصولة بعلامات التبويب. العمود الأول هو الكلمة، والعمود الثاني هو عدد مرات ظهورها في النص. القيم مرتبة من أقل تكرار إلى أعلى تكرار.</p>
+<p>تم تجميع <code>frequency.tsv</code> باستخدام هذا <a href="https://github.com/casey/onegrams">this program</a>.</p>
+<p>للبحث في محفظة ord عن ساتوشي بأسماء موجودة في <code>frequency.tsv</code>، استخدم أمر <a href="https://github.com/ordinals/ord"><code>ord</code></a> التالي:</p>
+<pre><code>ord wallet sats --tsv frequency.tsv
+</code></pre>
+<p>هذا الأمر يتطلب فهرسة الساتوشي، لذا يجب تمرير<code>index-sats--</code> إلى ord عند إنشاء الفهرس للمرة الأولى.</p>
+<h3 id="الجزء-0"><a class="header" href="#الجزء-0">الجزء 0</a></h3>
+<p><em>السات النادر يتناسب مع الكلمات النادرة.</em></p>
+<p>سيكون الفائز في الجزء 0 هو التقديم الذي يحتوي على ساتوشي مع اسم يظهر بأدنى عدد من المرات في <code>frequency.tsv.</code>.</p>
+<h3 id="الجزء-1"><a class="header" href="#الجزء-1">الجزء 1</a></h3>
+<p><em>الشهره هي مصدر القيمة.</em></p>
+<p>سيكون الفائز في الجزء 1 هو التقديم الذي يحتوي على ساتوشي مع اسم يظهر بأعلى عدد من المرات في<code>frequency.tsv</code>.</p>
+<h3 id="التعادل"><a class="header" href="#التعادل">التعادل</a></h3>
+<p>في حالة التعادل، حيث يتم التقديم بنفس التكرار، سيتم اعتبار المقدم الأول كفائز.</p>
+<h2 id="المكافأة-3"><a class="header" href="#المكافأة-3">المكافأة</a></h2>
+<ul>
+<li>الجزء 0: 200,000 ساتس</li>
+<li>الجزء 1: 200,000 ساتس</li>
+<li>الإجمالي: 400,000 ساتس</li>
+</ul>
+<h2 id="عنوان-التقديم-3"><a class="header" href="#عنوان-التقديم-3">عنوان التقديم</a></h2>
+<p><a href="https://mempool.space/address/17m5rvMpi78zG8RUpCRd6NWWMJtWmu65kg"><code>17m5rvMpi78zG8RUpCRd6NWWMJtWmu65kg</code></a></p>
+<h2 id="الحالة-3"><a class="header" href="#الحالة-3">الحالة</a></h2>
+<p>لم يتم الاستحواذ عليها!</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+        <script>
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+
+    </div>
+    </body>
+</html>

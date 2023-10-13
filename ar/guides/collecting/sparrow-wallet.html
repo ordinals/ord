@@ -1,0 +1,396 @@
+<!DOCTYPE HTML>
+<html lang="ar" class="sidebar-visible no-js coal" dir="rtl">
+<script>
+  var lang = "ar"; // Get the language from the configuration
+  if (lang === "ar") {
+    // Set the direction to right-to-left for Arabic
+    document.getElementsByTagName("html")[0].setAttribute("dir", "rtl");
+  }
+</script>
+<style>
+    .custom-list {
+        list-style-type: none; /* Remove default list item marker (hyphen) */
+    }
+</style>
+<html lang="ar" class="sidebar-visible no-js coal">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>محفظة سباروو - Ordinal Theory Handbook</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../../highlight.css">
+        <link rel="stylesheet" href="../../tomorrow-night.css">
+        <link rel="stylesheet" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../language-picker.css">
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "coal";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('coal')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../../introduction.html">المقدمة</a></li><li class="chapter-item expanded "><a href="../../overview.html"><strong aria-hidden="true">1.</strong> نظرة عامة</a></li><li class="chapter-item expanded "><a href="../../digital-artifacts.html"><strong aria-hidden="true">2.</strong> التحف الرقمية</a></li><li class="chapter-item expanded "><a href="../../inscriptions.html"><strong aria-hidden="true">3.</strong> إنسكريبشين</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../inscriptions/metadata.html"><strong aria-hidden="true">3.1.</strong> Metadata</a></li><li class="chapter-item expanded "><a href="../../inscriptions/provenance.html"><strong aria-hidden="true">3.2.</strong> Provenance</a></li><li class="chapter-item expanded "><a href="../../inscriptions/recursion.html"><strong aria-hidden="true">3.3.</strong> التكرار</a></li></ol></li><li class="chapter-item expanded "><a href="../../faq.html"><strong aria-hidden="true">4.</strong> الأسئلة الشائعة</a></li><li class="chapter-item expanded "><a href="../../contributing.html"><strong aria-hidden="true">5.</strong> المساهمة</a></li><li class="chapter-item expanded "><a href="../../donate.html"><strong aria-hidden="true">6.</strong> التبرع</a></li><li class="chapter-item expanded "><a href="../../guides.html"><strong aria-hidden="true">7.</strong> إرشادات</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../guides/explorer.html"><strong aria-hidden="true">7.1.</strong> المتصفح</a></li><li class="chapter-item expanded "><a href="../../guides/inscriptions.html"><strong aria-hidden="true">7.2.</strong> إنسكريبشين</a></li><li class="chapter-item expanded "><a href="../../guides/sat-hunting.html"><strong aria-hidden="true">7.3.</strong> جمع الساتوشي</a></li><li class="chapter-item expanded "><a href="../../guides/collecting.html"><strong aria-hidden="true">7.4.</strong> التجميع</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../guides/collecting/sparrow-wallet.html" class="active"><strong aria-hidden="true">7.4.1.</strong> محفظة سباروو</a></li></ol></li><li class="chapter-item expanded "><a href="../../guides/testing.html"><strong aria-hidden="true">7.5.</strong> التجارب</a></li><li class="chapter-item expanded "><a href="../../guides/moderation.html"><strong aria-hidden="true">7.6.</strong> الإشراف</a></li><li class="chapter-item expanded "><a href="../../guides/reindexing.html"><strong aria-hidden="true">7.7.</strong> إعادة الفهرسة</a></li></ol></li><li class="chapter-item expanded "><a href="../../bounties.html"><strong aria-hidden="true">8.</strong> المكافآت</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../bounty/0.html"><strong aria-hidden="true">8.1.</strong> جائزة 0: 100,000 ساتوشي مكتملة!</a></li><li class="chapter-item expanded "><a href="../../bounty/1.html"><strong aria-hidden="true">8.2.</strong> جائزة 1: 200,000 ساتوشي مكتملة!</a></li><li class="chapter-item expanded "><a href="../../bounty/2.html"><strong aria-hidden="true">8.3.</strong> جائزة 2: 300,000 ساتوشي مكتملة!</a></li><li class="chapter-item expanded "><a href="../../bounty/3.html"><strong aria-hidden="true">8.4.</strong> جائزة 3: 400,000 ساتوشي</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Ordinal Theory Handbook</h1>
+
+                    <div class="right-buttons">
+                        <button id="language-toggle" class="icon-button" type="button"
+                                title="Change language" aria-label="Change language"
+                                aria-haspopup="true" aria-expanded="false"
+                                aria-controls="language-list">
+                            <i class="fa fa-globe"></i>
+                        </button>
+                        <ul id="language-list" class="theme-popup" aria-label="Languages" role="menu">
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="en">English</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fr">Français</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="es">Español</a>
+                          </button></li>
+                           <li role="none"><button role="menuitem" class="theme">
+                              <a id="ru">Русский</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="zh">中文版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ja">日本語版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fil">Filipino</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ar">العربية</a>
+                          </button></li>
+                        </ul>
+
+                        <script>
+                          let langToggle = document.getElementById("language-toggle");
+                          let langList = document.getElementById("language-list");
+                          langToggle.addEventListener("click", (event) => {
+                              langList.style.display = langList.style.display == "block" ? "none" : "block";
+                          });
+                          let selectedLang = document.getElementById("ar");
+                          if (selectedLang) {
+                              selectedLang.parentNode.classList.add("theme-selected");
+                          }
+
+                          // The path to the root, taking the current
+                          // language into account.
+                          let full_path_to_root = "../../../";
+                          // The page path (mdbook only gives us
+                          // access to the path to the Markdown file).
+                          let path = "guides/collecting/sparrow-wallet.md".replace(/\.md$/, ".html");
+                          for (let lang of langList.querySelectorAll("a")) {
+                              if (lang.id == "en") {
+                                  lang.href = `${full_path_to_root}${path}`;
+                              } else {
+                                  lang.href = `${full_path_to_root}${lang.id}/${path}`;
+                              }
+                          }
+                        </script>
+
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ordinals/ord" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="جمع-أوردينالس-و-الإنسكريبشين-باستخدام-محفظة-sparrow"><a class="header" href="#جمع-أوردينالس-و-الإنسكريبشين-باستخدام-محفظة-sparrow">جمع أوردينالس و الإنسكريبشين باستخدام محفظة Sparrow</a></h1>
+<p>المستخدمون الذين لا يستطيعون أو لم ينشئوا محفظة ord بعد يمكنهم تلقي أوردينالس والأرقام السرية باستخدام محافظ البيتكوين البديلة، طالما أنهم يكونون حذرين جداً في كيفية إنفاق من تلك المحفظة.</p>
+<p>يقدم هذا الدليل بعض الخطوات الأساسية حول كيفية إنشاء محفظة باستخدام محفظة <a href="https://sparrowwallet.com/">Sparrow Wallet</a> والتي تكون متوافقة مع محفظة <code>ord</code> ويمكن استيرادها لاحقًا إلى محفظة <code>ord</code></p>
+<h2 id="-تحذير-"><a class="header" href="#-تحذير-">⚠️⚠️ تحذير!! ⚠️⚠️</a></h2>
+<p>كقاعدة عامة، إذا اتبعت هذا النهج، يجب عليك استخدام هذه المحفظة مع برنامج Sparrow كمحفظة للتلقي فقط.</p>
+<p>لا تنفق أي ساتوشي من هذه المحفظة ما لم تكن متأكدًا من أنك تعرف ما تفعله. يمكن أن تفقد بسهولة وبشكل غير مقصود الوصول إلى الأرقام السرية والنقوش الخاصة بك إذا لم تلتزم بهذا التحذير.</p>
+<h2 id="إعداد-المحفظة-والتلقي"><a class="header" href="#إعداد-المحفظة-والتلقي">إعداد المحفظة والتلقي</a></h2>
+<p>قم <a href="https://sparrowwallet.com/download/">بتنزيل</a> محفظة Sparrow من صفحة الإصدارات الخاصة بنظام التشغيل الخاص بك.</p>
+<p>اختر <code>File -&gt; New Wallet</code> قم بإنشاء محفظة جديدة تسمى <code>ord</code>.</p>
+<p><img src="images/wallet_setup_01.png" alt="" /></p>
+<p>قم بتغيير نوع النص إلى <code>Taproot (P2TR)</code> واختر الخيار <code>New or Imported Software Wallet</code>.</p>
+<p><img src="images/wallet_setup_02.png" alt="" /></p>
+<p>اختر <code>Use 12 Words</code> ثم انقر فوق <code>Generate New</code>. اترك مجال العبور فارغًا.</p>
+<p><img src="images/wallet_setup_03.png" alt="" /></p>
+<p>سيتم إنشاء عبارة مفتاح عشوائي BIP39 مكونة من 12 كلمة بالنسبة لك. اكتبها في مكان آمن حيث تعد هذه نسختك الاحتياطية للوصول إلى محفظتك. لا تشارك أو تعرض هذه العبارة لأي شخص آخر أبدًا.</p>
+<p>بمجرد أن تكتب العبارة، انقر فوق <code>Confirm Backup</code>.</p>
+<p><img src="images/wallet_setup_04.png" alt="" /></p>
+<p>أعد إدخال العبارة التي كتبتها، ثم انقر فوق <code>Create Keystore</code>.</p>
+<p><img src="images/wallet_setup_05.png" alt="" /></p>
+<p>انقر فوق <code>Import Keystore</code>.</p>
+<p><img src="images/wallet_setup_06.png" alt="" /></p>
+<p>انقر فوق <code>Apply</code>. أضف كلمة مرور للمحفظة إذا كنت ترغب.</p>
+<p><img src="images/wallet_setup_07.png" alt="" /></p>
+<p>لآن لديك محفظة متوافقة مع <code>ord</code>، ويمكن استيرادها إلى <code>ord</code> باستخدام عبارة البذرة BIP39. لاستقبال الأعداد أو النقوش، انقر على علامة <code>Receive</code> وانسخ عنوانًا جديدًا.</p>
+<p>في كل مرة تريد فيها الاستقبال، يجب أن تستخدم عنوانًا جديدًا تمامًا، ولا تستخدم عناوين موجودة بالفعل.</p>
+<p>يرجى ملاحظة أن البيتكوين مختلف عن بعض المحافظ الأخرى للبلوكشين، حيث يمكن لهذه المحفظة إنشاء عدد غير محدود من العناوين الجديدة. يمكنك إنشاء عنوان جديد عن طريق النقر فوق زر <code>Get Next Address</code>. يمكنك رؤية جميع عناوينك في علامة <code>Addresses</code> في التطبيق.</p>
+<p>يمكنك إضافة تصنيف لكل عنوان، لتتمكن من تتبع ما تم استخدامه لأغراضه.</p>
+<p><img src="images/wallet_setup_08.png" alt="" /></p>
+<h2 id="التحقق--عرض-الأوردينالس-المستلمة"><a class="header" href="#التحقق--عرض-الأوردينالس-المستلمة">التحقق / عرض الأوردينالس المستلمة</a></h2>
+<p>بمجرد استلامك لنقش، ستظهر صفقة جديدة في علامة <code>Transactions</code> في Sparrow، وكذلك ستظهرUTXO جديدة في علامة <code>UTXOs</code>.</p>
+<p>بداية، قد تكون هذه الصفقة غير مؤكدة &quot;Unconfirmed&quot;، وسيتعين عليك الانتظار حتى تُعدد في كتلة بيتكوين قبل أن تستقبل بشكل كامل.</p>
+<p><img src="images/validating_viewing_01.png" alt="" /></p>
+<p>لتتبع حالة صفقتك، يمكنك النقر بزر الماوس الأيمن عليها، ثم اختيار <code>Copy Transaction ID</code> ومن ثم لصق هذا المعرف في <a href="https://mempool.space/">mempool.space</a>.</p>
+<p><img src="images/validating_viewing_02.png" alt="" /></p>
+<p>بمجرد تأكيد الصفقة، يمكنك التحقق وعرض النقش الخاص بك عن طريق الانتقال إلى علامة <code>UTXOs</code>، والبحث عنUTXO التي ترغب في التحقق منها، ثم النقر بزر الماوس الأيمن على<code>Output</code> واختيار <code>Copy Transaction Output</code>. يمكن لكتلة الإخراج هذه أن تُلصق في محرك البحث على موقع <a href="https://ordinals.com">ordinals.com</a>.</p>
+<h2 id="تجميد-utxos"><a class="header" href="#تجميد-utxos">تجميد UTXO's</a></h2>
+<p>كما تم شرحه أعلاه، يتم تخزين كل من الإنسكريبشين في ناتج الصفقة غير المنفقة (UTXO). يجب أن تكون حذرًا جدًا لكي لا تنفق الإنسكريبشين عن طريق الخطأ، وطريقة لجعلها أصعب هو تجميدها.</p>
+<p>للقيام بذلك، انتقل إلى علامة &quot;UTXOs&quot;، وابحث عن نقدة التي ترغب في تجميدها، ثم انقر بزر الماوس الأيمن على الإخراج واختر &quot;Freeze UTXO&quot;.</p>
+<p>ستكون هذه UTXO (الإنسكريبشين) غير قابلة للإنفاق داخل محفظة Sparrow حتى تُلغى تجميدها.</p>
+<h2 id="استيرادها-إلى-محفظة-ord"><a class="header" href="#استيرادها-إلى-محفظة-ord">استيرادها إلى محفظة <code>ord</code></a></h2>
+<p>للحصول على التفاصيل حول إعداد Bitcoin Core ومحفظة <code>ord</code>، تحقق من دليل<a href="../inscriptions.html">Inscriptions Guide</a></p>
+<p>عند إعداد <code>ord</code>، بدلاً من تشغيل <code>ord wallet create</code> لإنشاء محفظة جديدة تمامًا، يمكنك استيراد محفظتك الحالية باستخدام <code>&quot;ord wallet restore &quot;BIP39 SEED PHRASE</code>باستخدام عبارة البذرة التي أنشأتها باستخدام محفظة Sparrow.</p>
+<p>هناك <a href="https://github.com/ordinals/ord/issues/1589">خلل</a> حاليًا يجعل من المحفظة المستوردة ألا تُمسح تلقائياً ضد سلسلة الكتل. للتغلب على ذلك، ستحتاج إلى تشغيل عملية مسح يدويًا باستخدام واجهة سطر الأوامر للنود البيتكوين: <code>bitcoin-cli -rpcwallet=ord rescanblockchain 767430</code></p>
+<p>بعد ذلك، يمكنك التحقق من الإنسكريبشين محفظتك باستخدام <code>ord wallet inscriptions</code></p>
+<p>يرجى ملاحظة أنه إذا كنت قد أنشأت بالفعل محفظة بواسطة ord في السابق، فسيكون لديك محفظة بالاسم الافتراضي بالفعل، وستحتاج إلى تعيين اسم محفظتك المستوردة باسم مختلف. يمكنك استخدام <code>wallet--</code> براميتير في جميع أوامر <code>ord</code> للإشارة إلى محفظة مختلفة، على سبيل المثال:</p>
+<p><code>ord --wallet ord_from_sparrow wallet restore &quot;BIP39 SEED PHRASE&quot;</code></p>
+<p><code>ord --wallet ord_from_sparrow wallet inscriptions</code></p>
+<p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
+<h2 id="جمع-الإنسكريبشين-باستخدام-محفظة-سباروو-sparrow"><a class="header" href="#جمع-الإنسكريبشين-باستخدام-محفظة-سباروو-sparrow">جمع الإنسكريبشين باستخدام محفظة سباروو Sparrow</a></h2>
+<h4 id="-تحذير--1"><a class="header" href="#-تحذير--1">⚠️⚠️ تحذير ⚠️⚠️</a></h4>
+<p>على الرغم من أنه من المستحسن بشدة إعداد بيتكوين نود Bitcoin Core وتشغيل برنامج <code>ord</code>، إلا أن هناك طرقًا محدودة يمكنك من خلالها إرسال الإنسكريبشين من محفظة Sparrow بطريقة آمنة. يرجى ملاحظة أن هذا غير مستحسن ويجب أن تقوم به فقط إذا كنت تفهم تمامًا ما تقوم به.</p>
+<p>استخدام برنامج <code>ord</code> سيقلل بشكل كبير من التعقيد الذي نصفه هنا، حيث يمكن للبرنامج التعامل تلقائيًا وبأمان مع إرسال النقاشات بطريقة سهلة.</p>
+<h4 id="-تحذير-إضافي-"><a class="header" href="#-تحذير-إضافي-">⚠️⚠️ تحذير إضافي ⚠️⚠️</a></h4>
+<p>لا تستخدم محفظة Sparrow الخاصة بالتسجيلات لإرسال بيتكوين عامة غير مرتبطة بالتسجيلات. يمكنك إعداد محفظة منفصلة في Sparrow إذا كنت بحاجة إلى إجراء معاملات بيتكوين العادية، والاحتفاظ بمحفظتك للتسجيلات بشكل منفصلة.</p>
+<h4 id="نموذج-utxo-في-البيتكوين"><a class="header" href="#نموذج-utxo-في-البيتكوين">نموذج UTXO في البيتكوين</a></h4>
+<p>قبل إجراء أي عملية إرسال، من المهم أن يكون لديك نموذج عقلي جيد لنظام ناتج الصفقات غير المنفقة (UTXO) في البيتكوين. الطريقة التي يعمل بها البيتكوين مختلفة بشكل جوهري عن العديد من البلوكشين الأخرى مثل إيثيريوم. عمومًا في إيثيريوم، لديك عنوان واحد عادةً تقوم بتخزين ETH فيه، ولا يمكنك التمييز بين أي مبلغ من ETH - فهو مجموعة واحدة من القيمة الإجمالية في تلك العنوان. يعمل البيتكوين بطريقة مختلفة تمامًا حيث نقوم بإنشاء عنوان جديد في المحفظة لكل عملية استقبال، وفي كل مرة تستقبل فيها ساتوشي إلى عنوان في محفظتك، فأنت تقوم بإنشاء ناتج صفقة جديد. يمكن رؤية وإدارة كل ناتج صفقة غير المنفقة على حدة. يمكنك تحديد ناتج صفقة معين ترغب في الإنفاق عليه، ويمكنك اختيار عدم إنفاق بعض نواتج الصفقات.</p>
+<p>بعض محافظ البيتكوين لا تعرض هذا المستوى من التفاصيل، وهي تعرض لك قيمة واحدة مجمعة لجميع البيتكوين في محفظتك. ومع ذلك، عند إرسال النقوش من المهم استخدام محفظة مثل Sparrow التي تسمح بالتحكم في نواتج الصفقات.</p>
+<h4 id="تفحص-الإنسكريبشين-قبل-الإرسال"><a class="header" href="#تفحص-الإنسكريبشين-قبل-الإرسال">تفحص الإنسكريبشين قبل الإرسال</a></h4>
+<p>كما تم وصفه سابقًا، تُنقش النقوش على الساتوشي، والساتوشي تُخزن داخل ناتج الصفقة غير المنفقة (UTXO). تعد نواتج الصفقات (UTXO) مجموعة من الساتوشي مع قيمة محددة لعدد الساتوشي (قيمة الإخراج). عادةً (وليس دائمًا) ستكون الأنسكريبشين منقشه على أول ساتوشي في نواتج الصفقات ال UTXO.</p>
+<p>عند فحص تسجيلك قبل إرساله، سترغب في التحقق أساسًا من الساتوشي الذي تم تسجيله في UTXO الخاص بك.</p>
+<p>للقيام بذلك، يمكنك اتباع الخطوات الموجودة في [التحقق / عرض التسجيلات المستلمة] <a href="./sparrow-wallet.html#validating--viewing-received-inscriptions">Validating / Viewing Received Inscriptions</a> الموجودة أعلاه للعثور على صفحة التسجيل الخاصة بتسجيلك على موقع ordinals.com</p>
+<p>ستجد هناك بعض البيانات الوصفية حول تسجيلك تبدو على النحو التالي:</p>
+<p><img src="images/sending_01.png" alt="" /></p>
+<p>يوجد بعض الأمور الهامة التي يجب التحقق منها هنا:</p>
+<ul>
+<li>معرف <code>output</code> يتطابق مع معرف UTXO الذي ستقوم بإرساله</li>
+<li>ال <code>offset</code> للإنسكريبشين هو <code>0</code> (وهذا يعني أن الإنسكريبشين موجودة في أول ساتوشي في ناتج الصفقةUTXO)</li>
+<li>تحتوي قيمة الإخراج <code>output_value</code> على عدد كافٍ من الساتوشي لتغطية رسوم الصفقة (البريد) لإرسال النقشة. تعتمد الكمية الدقيقة التي ستحتاجها على معدل الرسوم الذي ستختاره للصفقة</li>
+</ul>
+<p>إذا كانت جميع الشروط أعلاه صحيحة بالنسبة للنقشة الخاصة بك، يجب أن يكون آمنًا لك إرسالها باستخدام الطريقة الموضحة أدناه.</p>
+<p>⚠️⚠️ كن حذرًا جدًا عند إرسال الإنسكريبشين، خاصة إذا كانت القيمة النسبية ليست 0. لا يوصى باستخدام هذه الطريقة إذا كانت هذه هي الحالة، حيث يمكن أن ترسل الإنسكريبشين عن طريق الخطأ إلى منقبي بيتكوين ما لم تكن تعرف ما تفعله.</p>
+<h4 id="إرسال-الإنسكريبشين"><a class="header" href="#إرسال-الإنسكريبشين">إرسال الإنسكريبشين</a></h4>
+<p>لإرسال الإنسكريبشين، انتقل إلى علامة <code>UTXOs</code>، وابحث عن ناتج الصفقة UTXO التي قمت بالتحقق منها سابقًا.</p>
+<p>إذا كنت قد قمت بتجميد ال UTXO، سيتعين عليك النقر بزر الماوس الأيمن عليها وإلغاء تجميدها.</p>
+<p>حدد UTXO الذي ترغب في إرساله، وتأكد من أنه هو الوحيد المحدد. يجب أن ترى <code>UTXOs 1/1</code> في واجهة البرنامج. بمجرد التأكد من ذلك، يمكنك النقر على<code>Send Selected</code>.</p>
+<p><img src="images/sending_02.png" alt="" /></p>
+<p>ستُعرض لك واجهة إعداد الصفقة. هناك عدة أشياء يجب عليك التحقق منها للتأكد من أن هذا إرسال آمن:</p>
+<ul>
+<li>يجب أن تحتوي الصفقة على إدخال واحد فقط، ويجب أن يكون هذا هو ناتج الصفقة الذي تريد إرساله</li>
+<li>يجب أن تحتوي الصفقة على إخراج واحد فقط، وهو العنوان/التصنيف الذي ترغب في إرسال الإنسكريبشين</li>
+</ul>
+<p>إذا كانت الصفقة تبدو مختلفة عن ذلك، على سبيل المثال لديك إدخالات متعددة أو إخراجات متعددة، فقد لا يكون هذا إرسالًا آمنًا للإنسكريبشين، ويجب أن تترك الإرسال حتى تفهم المزيد، أو تستورد إلى محفظة <code>ord</code>.</p>
+<p>يجب أن تحدد رسوم الصفقة المناسبة، عادةً ما يقترح Sparrow معدل رسوم معقول، ولكن يمكنك أيضًا التحقق من <a href="https://mempool.space">mempool.space</a> لمعرفة ما هو معدل الرسوم الموصي به لإرسال الصفقة.</p>
+<p>يجب أن تضيف تصنيفًا لعنوان المستلم، يكون التصنيف مثل <code>alice address for inscription #123</code> هو الأمثل.</p>
+<p>بمجرد التحقق من أن الصفقة آمنة باستخدام الفحوصات أعلاه، وأنك واثق من إرسالها، يمكنك النقر على <code>Create Transaction</code>.</p>
+<p><img src="images/sending_03.png" alt="" /></p>
+<p>هنا يمكنك التحقق مرة أخرى من أن الصفقة تبدو آمنة، وبمجرد أن تكون واثقًا يمكنك النقر على <code>Finalize Transaction for Signing</code>.</p>
+<p><img src="images/sending_04.png" alt="" /></p>
+<p>هنا يمكنك التحقق ثلاث مرات من كل شيء قبل النقر على <code>Sign</code>.</p>
+<p><img src="images/sending_05.png" alt="" /></p>
+<p>وأخيرًا، ستحصل على فرصة أخيرة للتحقق من كل شيء قبل النقر على <code>Broadcast Transaction</code>. بمجرد بث الصفقة، ستُرسل إلى شبكة بيتكوين وتبدأ في الانتشار في mempool.</p>
+<p><img src="images/sending_06.png" alt="" /></p>
+<p>إذا كنت ترغب في تتبع حالة الصفقة، يمكنك نسخ معرف الصفقة <code>Transaction Id (Txid)</code> ولصقه في <a href="https://mempool.space">mempool.space</a></p>
+<p>بمجرد تأكيد الصفقة، يمكنك التحقق من صفحة الإنسكريبشين على موقع <a href="https://ordinals.com">أوردينال</a> للتحقق من أنها انتقلت إلى الموقع والعنوان الجديدين.</p>
+<h2 id="مشكلات-وحلول"><a class="header" href="#مشكلات-وحلول">مشكلات وحلول</a></h2>
+<h4 id="محفظة-sparrow-لا-تعرض-صفقةutxo-ولكن-يمكنني-رؤيتها-على-mempoolspace"><a class="header" href="#محفظة-sparrow-لا-تعرض-صفقةutxo-ولكن-يمكنني-رؤيتها-على-mempoolspace">محفظة Sparrow لا تعرض صفقة/UTXO، ولكن يمكنني رؤيتها على mempool.space!</a></h4>
+<p>تأكد من أن محفظتك متصلة بنود بيتكوين. للتحقق من ذلك، انتقل إلى <code>Preferences</code>-&gt; <code>Server</code> ، وانقر فوق <code>Edit Existing Connection</code>.</p>
+<p><img src="images/troubleshooting_01.png" alt="" /></p>
+<p>من هنا، يمكنك تحديد نود والنقر على <code>Test Connection</code> للتحقق من أن Sparrow قادر على الاتصال بنجاح.</p>
+<p><img src="images/troubleshooting_02.png" alt="" /></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../guides/collecting.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="../../guides/testing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../guides/collecting.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="../../guides/testing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

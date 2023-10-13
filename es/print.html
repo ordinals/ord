@@ -1,4 +1,17 @@
 <!DOCTYPE HTML>
+<html lang="es" class="sidebar-visible no-js coal" dir="ltr">
+<script>
+  var lang = "es"; // Get the language from the configuration
+  if (lang === "ar") {
+    // Set the direction to right-to-left for Arabic
+    document.getElementsByTagName("html")[0].setAttribute("dir", "rtl");
+  }
+</script>
+<style>
+    .custom-list {
+        list-style-type: none; /* Remove default list item marker (hyphen) */
+    }
+</style>
 <html lang="es" class="sidebar-visible no-js coal">
     <head>
         <!-- Book generated using mdBook -->
@@ -166,6 +179,9 @@
                           </button></li>
                           <li role="none"><button role="menuitem" class="theme">
                               <a id="fil">Filipino</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ar">العربية</a>
                           </button></li>
                         </ul>
 
