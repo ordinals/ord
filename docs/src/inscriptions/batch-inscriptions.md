@@ -11,7 +11,7 @@ Example
 
 # For now there is only one mode that inscribes all inscription into the same
 # output seperated by the postage (10000sat). They can be peeled off one by
-# one by using `--satpoint` when sending
+# one by using `ord wallet send` (last out first).
 mode: shared-output
 
 # Specify parent for all inscriptions

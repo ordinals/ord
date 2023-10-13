@@ -12,12 +12,12 @@ pub struct Output {
 #[derive(Serialize, Deserialize)]
 pub struct InscriptionInfo {
   pub id: InscriptionId,
-  pub satpoint: SatPoint,
+  pub location: SatPoint,
 }
 
 impl Display for InscriptionInfo {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-    write!(f, "id: {}\nsatpoint: {}", self.id, self.satpoint)
+    write!(f, "id: {}\nlocation: {}", self.id, self.location)
   }
 }
 
@@ -85,7 +85,7 @@ impl BatchInscribe {
 
             InscriptionInfo {
               id: InscriptionId { txid, index },
-              satpoint: SatPoint {
+              location: SatPoint {
                 outpoint: OutPoint {
                   txid,
                   vout: if batch_config.parent.is_some() {
@@ -158,7 +158,7 @@ impl BatchInscribe {
 
           InscriptionInfo {
             id: InscriptionId { txid, index },
-            satpoint: SatPoint {
+            location: SatPoint {
               outpoint: OutPoint {
                 txid,
                 vout: if let Some(parent) = batch_config.parent {
