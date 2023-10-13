@@ -675,4 +675,202 @@ mod tests {
       }))
     );
   }
+
+  #[test]
+  fn runestone_size() {
+    #[track_caller]
+    fn case(edicts: Vec<Edict>, etching: Option<Etching>, size: usize) {
+      assert_eq!(
+        Runestone { edicts, etching }.encipher().len() - 1 - b"RUNE_TEST".len(),
+        size
+      );
+    }
+
+    case(Vec::new(), None, 1);
+
+    case(
+      Vec::new(),
+      Some(Etching {
+        divisibility: 0,
+        rune: Rune(0),
+      }),
+      3,
+    );
+
+    case(
+      Vec::new(),
+      Some(Etching {
+        divisibility: MAX_DIVISIBILITY,
+        rune: Rune(0),
+      }),
+      4,
+    );
+
+    case(
+      Vec::new(),
+      Some(Etching {
+        divisibility: 0,
+        rune: Rune(u128::max_value()),
+      }),
+      21,
+    );
+
+    case(
+      vec![Edict {
+        amount: u128::max_value(),
+        id: RuneId {
+          height: 0,
+          index: 0,
+        }
+        .into(),
+        output: 0,
+      }],
+      Some(Etching {
+        divisibility: MAX_DIVISIBILITY,
+        rune: Rune(u128::max_value()),
+      }),
+      43,
+    );
+
+    case(
+      vec![Edict {
+        amount: u128::max_value(),
+        id: RuneId {
+          height: 1_000_000,
+          index: u16::max_value(),
+        }
+        .into(),
+        output: 0,
+      }],
+      None,
+      28,
+    );
+
+    case(
+      vec![
+        Edict {
+          amount: u128::max_value(),
+          id: RuneId {
+            height: 1_000_000,
+            index: u16::max_value(),
+          }
+          .into(),
+          output: 0,
+        },
+        Edict {
+          amount: u128::max_value(),
+          id: RuneId {
+            height: 1_000_000,
+            index: u16::max_value(),
+          }
+          .into(),
+          output: 0,
+        },
+      ],
+      None,
+      54,
+    );
+
+    case(
+      vec![
+        Edict {
+          amount: u128::max_value(),
+          id: RuneId {
+            height: 1_000_000,
+            index: u16::max_value(),
+          }
+          .into(),
+          output: 0,
+        },
+        Edict {
+          amount: u128::max_value(),
+          id: RuneId {
+            height: 1_000_000,
+            index: u16::max_value(),
+          }
+          .into(),
+          output: 0,
+        },
+        Edict {
+          amount: u128::max_value(),
+          id: RuneId {
+            height: 1_000_000,
+            index: u16::max_value(),
+          }
+          .into(),
+          output: 0,
+        },
+      ],
+      None,
+      81,
+    );
+
+    case(
+      vec![
+        Edict {
+          amount: u64::max_value().into(),
+          id: RuneId {
+            height: 1_000_000,
+            index: u16::max_value(),
+          }
+          .into(),
+          output: 0,
+        };
+        4
+      ],
+      None,
+      70,
+    );
+
+    case(
+      vec![
+        Edict {
+          amount: u64::max_value().into(),
+          id: RuneId {
+            height: 1_000_000,
+            index: u16::max_value(),
+          }
+          .into(),
+          output: 0,
+        };
+        5
+      ],
+      None,
+      88,
+    );
+
+    case(
+      vec![
+        Edict {
+          amount: u64::max_value().into(),
+          id: RuneId {
+            height: 0,
+            index: u16::max_value(),
+          }
+          .into(),
+          output: 0,
+        };
+        5
+      ],
+      None,
+      72,
+    );
+
+    case(
+      vec![
+        Edict {
+          amount: 1_000_000_000_000_000_000,
+          id: RuneId {
+            height: 1_000_000,
+            index: u16::max_value(),
+          }
+          .into(),
+          output: 0,
+        };
+        5
+      ],
+      None,
+      83,
+    );
+  }
 }
