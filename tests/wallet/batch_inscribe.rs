@@ -183,21 +183,21 @@ fn batch_in_same_output_but_different_satpoints() {
 
   ord_server.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[0].id),
-    format!(r".*<dt class=monospace>location</dt>.*<dd>{}:0</dd>.*", outpoint),
+    format!(r".*<dt>location</dt>.*<dd class=monospace>{}:0</dd>.*", outpoint),
   );
 
   ord_server.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[1].id),
-    format!(r".*<dt class=monospace>location</dt>.*<dd>{}:10000</dd>.*", outpoint),
+    format!(r".*<dt>location</dt>.*<dd class=monospace>{}:10000</dd>.*", outpoint),
   );
 
   ord_server.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[2].id),
-    format!(r".*<dt class=monospace>location</dt>.*<dd>{}:20000</dd>.*", outpoint),
+    format!(r".*<dt>location</dt>.*<dd class=monospace>{}:20000</dd>.*", outpoint),
   );
 
   ord_server.assert_response_regex(
     format!("/output/{}", output.inscriptions[0].location.outpoint),
-    format!(r".*<a href=.*>{}</a>.*<a href=.*>{}</a>.*<a href=.*>{}</a>.*", output.inscriptions[0].id, output.inscriptions[1].id, output.inscriptions[2].id),
+    format!(r".*<a href=/inscription/{}>.*</a>.*<a href=/inscription/{}>.*</a>.*<a href=/inscription/{}>.*</a>.*", output.inscriptions[0].id, output.inscriptions[1].id, output.inscriptions[2].id),
   );
 }
