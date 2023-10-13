@@ -1,7 +1,4 @@
-use {
-  super::*,
-  serde_yaml::{Mapping, Value},
-};
+use super::*;
 
 #[derive(Serialize, Deserialize)]
 pub struct Output {
@@ -395,7 +392,10 @@ impl BatchInscribe {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+  use {
+    super::*,
+    serde_yaml::{Mapping, Value},
+  };
 
   #[test]
   fn batch_is_loaded_from_yaml_file() {
