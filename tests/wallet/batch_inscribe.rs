@@ -127,3 +127,31 @@ fn batch_inscribe_with_multiple_inscriptions_with_parent() {
   assert_eq!(request.status(), 200);
   assert_eq!(request.headers().get("content-type").unwrap(), "audio/wav");
 }
+
+#[test]
+fn batch_inscribe_respects_dry_run_flag() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  rpc_server.mine_blocks(1);
+
+  assert_eq!(rpc_server.descriptors().len(), 0);
+
+  create_wallet(&rpc_server);
+
+  let output = CommandBuilder::new("wallet batch-inscribe --fee-rate 2.1 batch.yaml --dry-run")
+    .write("inscription.txt", "Hello World")
+    .write(
+      "batch.yaml",
+      "mode: shared-output\nbatch:\n- inscription: inscription.txt\n",
+    )
+    .rpc_server(&rpc_server)
+    .run_and_deserialize_output::<BatchInscribe>();
+
+  rpc_server.mine_blocks(1);
+
+  assert!(rpc_server.mempool().is_empty());
+
+  let request = TestServer::spawn_with_args(&rpc_server, &[])
+    .request(format!("/content/{}", output.inscriptions[0].id));
+
+  assert_eq!(request.status(), 404);
+}
