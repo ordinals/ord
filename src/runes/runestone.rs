@@ -27,16 +27,12 @@ impl Runestone {
 
     let mut edicts = Vec::new();
     let mut etching = None;
-    let mut id = 0;
+    let mut id = 0u128;
     for chunk in integers.chunks(3) {
       match *chunk {
         [id_delta, amount, output] => {
-          edicts.push(Edict {
-            id: id + id_delta,
-            amount,
-            output,
-          });
-          id += id_delta;
+          id = id.saturating_add(id_delta);
+          edicts.push(Edict { id, amount, output });
         }
         [rune] => {
           etching = Some(Etching {
@@ -568,6 +564,44 @@ mod tests {
           },
           Edict {
             id: 4,
+            amount: 5,
+            output: 6,
+          },
+        ],
+        etching: None,
+      }))
+    );
+  }
+
+  #[test]
+  fn id_deltas_saturate_to_max() {
+    let payload = payload(&[1, 2, 3, u128::max_value(), 5, 6]);
+
+    let payload: &PushBytes = payload.as_slice().try_into().unwrap();
+
+    assert_eq!(
+      Runestone::decipher(&Transaction {
+        input: Vec::new(),
+        output: vec![TxOut {
+          script_pubkey: script::Builder::new()
+            .push_opcode(opcodes::all::OP_RETURN)
+            .push_slice(b"RUNE_TEST")
+            .push_slice(payload)
+            .into_script(),
+          value: 0
+        }],
+        lock_time: locktime::absolute::LockTime::ZERO,
+        version: 0,
+      }),
+      Ok(Some(Runestone {
+        edicts: vec![
+          Edict {
+            id: 1,
+            amount: 2,
+            output: 3,
+          },
+          Edict {
+            id: u128::max_value(),
             amount: 5,
             output: 6,
           },
