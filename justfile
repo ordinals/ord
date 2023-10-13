@@ -164,7 +164,7 @@ serve-docs: build-docs
 build-docs:
   #!/usr/bin/env bash
   mdbook build docs -d build
-  for lang in "fr" "es" "ru" "zh" "ja" "fil" "ar"; do
+  for lang in "de" "fr" "es" "ru" "zh" "ja" "fil" "ar"; do
     MDBOOK_BOOK__LANGUAGE=$lang \
       mdbook build docs -d build/$lang
     mv docs/build/$lang/html docs/build/html/$lang
