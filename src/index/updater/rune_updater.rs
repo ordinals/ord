@@ -94,9 +94,12 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
 
       for Edict { id, amount, output } in runestone.edicts {
         // Skip edicts not referring to valid outputs
-        if output >= tx.output.len() as u128 {
+        if output > tx.output.len() as u128 {
           continue;
         }
+
+        // divide runes evenly between all non op-return outputs
+        // send amount runes to all non op-return outputs
 
         let (balance, id) = if id == 0 {
           // If this edict allocates new issuance runes, skip it
@@ -115,15 +118,45 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
           }
         };
 
-        // Get the allocatable amount
-        let amount = amount.min(*balance);
+        if output == tx.output.len() as u128 {
+          // find non-OP_RETURN outputs
+          let destinations = tx
+            .output
+            .iter()
+            .enumerate()
+            .filter_map(|(output, tx_out)| (!tx_out.script_pubkey.is_op_return()).then_some(output))
+            .collect::<Vec<usize>>();
 
-        // If the amount to be allocated is greater than zero,
-        // deduct it from the remaining balance, and increment
-        // the allocated entry.
-        if amount > 0 {
-          *balance -= amount;
-          *allocated[output as usize].entry(id).or_default() += amount;
+          if amount == 0 {
+            // if amount is zero, divide balance between eligible outputs
+            let amount = *balance / destinations.len() as u128;
+
+            for output in destinations {
+              *balance -= amount;
+              *allocated[output].entry(id).or_default() += amount;
+            }
+          } else {
+            // if amount is non-zero, distribute amount to eligible outputs
+            for output in destinations {
+              let amount = amount.min(*balance);
+
+              if amount > 0 {
+                *balance -= amount;
+                *allocated[output].entry(id).or_default() += amount;
+              }
+            }
+          }
+        } else {
+          // Get the allocatable amount
+          let amount = amount.min(*balance);
+
+          // If the amount to be allocated is greater than zero,
+          // deduct it from the remaining balance, and increment
+          // the allocated entry.
+          if amount > 0 {
+            *balance -= amount;
+            *allocated[output as usize].entry(id).or_default() += amount;
+          }
         }
       }
 
