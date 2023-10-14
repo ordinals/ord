@@ -569,23 +569,14 @@ impl Server {
       )
     })?;
 
-    let inscription = InscriptionId {
+    let parent = InscriptionId {
       txid: entry.etching,
       index: 0,
     };
 
-    let inscription = index
-      .inscription_exists(inscription)?
-      .then_some(inscription);
+    let parent = index.inscription_exists(parent)?.then_some(parent);
 
-    Ok(
-      RuneHtml {
-        id,
-        entry,
-        inscription,
-      }
-      .page(page_config, index.has_sat_index()?),
-    )
+    Ok(RuneHtml { id, entry, parent }.page(page_config, index.has_sat_index()?))
   }
 
   async fn runes(
@@ -3264,7 +3255,7 @@ mod tests {
   <dd><span class=uncommon>uncommon</span></dd>
   <dt>etching</dt>
   <dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
-  <dt>inscription</dt>
+  <dt>parent</dt>
   <dd><a class=monospace href=/inscription/{txid}i0>{txid}i0</a></dd>
 </dl>
 .*"

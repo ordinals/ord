@@ -4,7 +4,7 @@ use super::*;
 pub(crate) struct RuneHtml {
   pub(crate) entry: RuneEntry,
   pub(crate) id: RuneId,
-  pub(crate) inscription: Option<InscriptionId>,
+  pub(crate) parent: Option<InscriptionId>,
 }
 
 impl PageContent for RuneHtml {
@@ -33,7 +33,7 @@ mod tests {
           height: 10,
           index: 9,
         },
-        inscription: Some(InscriptionId {
+        parent: Some(InscriptionId {
           txid: Txid::all_zeros(),
           index: 0,
         }),
@@ -53,7 +53,7 @@ mod tests {
   <dd><span class=uncommon>uncommon</span></dd>
   <dt>etching</dt>
   <dd><a class=monospace href=/tx/0{64}>0{64}</a></dd>
-  <dt>inscription</dt>
+  <dt>parent</dt>
   <dd><a class=monospace href=/inscription/0{64}i0>0{64}i0</a></dd>
 </dl>
 "
