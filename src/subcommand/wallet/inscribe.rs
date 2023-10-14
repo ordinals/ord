@@ -71,10 +71,6 @@ pub(crate) struct Inscribe {
     help = "Do not check that transactions are equal to or below the MAX_STANDARD_TX_WEIGHT of 400,000 weight units. Transactions over this limit are currently nonstandard and will not be relayed by bitcoind in its default configuration. Do not use this flag unless you understand the implications."
   )]
   pub(crate) no_limit: bool,
-  #[arg(long, help = "Don't sign or broadcast transactions.")]
-  pub(crate) dry_run: bool,
-  #[arg(long, help = "Send inscription to <DESTINATION>.")]
-  pub(crate) destination: Option<Address<NetworkUnchecked>>,
   #[clap(long, help = "Inscribe to an Opendime.")]
   pub(crate) to_opendime: Option<PathBuf>,
   #[clap(long, help = "Make inscription a child of <PARENT>.")]
@@ -613,11 +609,6 @@ impl Inscribe {
       .collect::<String>();
 
     Ok(Address::from_str(&address_string)?.require_network(Chain::Mainnet.network())?)
-  }
-
-  fn save_inscription_to_opendime(&self, path: &Path) -> Result {
-
-    Ok(())
   }
 }
 

@@ -717,6 +717,7 @@ fn inscribe_to_opendime_with_signet_fails() {
   .rpc_server(&rpc_server)
   .expected_exit_code(1)
   .stderr_regex("error: This feature only works on mainnet.\n");
+}
 
 #[test]
 fn no_metadata_appears_on_inscription_page_if_no_metadata_is_passed() {
