@@ -42,6 +42,11 @@ pub(crate) struct Options {
   pub(crate) height_limit: Option<u64>,
   #[arg(long, help = "Use index at <INDEX>.")]
   pub(crate) index: Option<PathBuf>,
+  #[arg(
+    long,
+    help = "Track location of runes. RUNES ARE IN AN UNFINISHED PRE-ALPHA STATE AND SUBJECT TO CHANGE AT ANY TIME."
+  )]
+  pub(crate) index_runes_pre_alpha_i_agree_to_get_rekt: bool,
   #[arg(long, help = "Track location of all satoshis.")]
   pub(crate) index_sats: bool,
   #[arg(long, short, help = "Use regtest. Equivalent to `--chain regtest`.")]
@@ -54,7 +59,7 @@ pub(crate) struct Options {
   pub(crate) testnet: bool,
   #[arg(long, default_value = "ord", help = "Use wallet named <WALLET>.")]
   pub(crate) wallet: String,
-  #[arg(long, short, help = "Enable JSON API.")]
+  #[arg(long, short = 'j', help = "Enable JSON API.")]
   pub(crate) enable_json_api: bool,
 }
 
@@ -81,6 +86,10 @@ impl Options {
         .first_inscription_height
         .unwrap_or_else(|| self.chain().first_inscription_height())
     }
+  }
+
+  pub(crate) fn index_runes(&self) -> bool {
+    self.index_runes_pre_alpha_i_agree_to_get_rekt && self.chain() != Chain::Mainnet
   }
 
   pub(crate) fn rpc_url(&self) -> String {
@@ -790,5 +799,32 @@ mod tests {
       Arguments::try_parse_from(["ord", "--db-cache-size", "16000000000", "index", "update"])
         .unwrap();
     assert_eq!(arguments.options.db_cache_size, Some(16000000000));
+  }
+
+  #[test]
+  fn index_runes_only_returns_true_if_index_runes_flag_is_passed_and_not_on_mainnnet() {
+    assert!(Arguments::try_parse_from([
+      "ord",
+      "--chain=signet",
+      "--index-runes-pre-alpha-i-agree-to-get-rekt",
+      "index",
+      "update"
+    ])
+    .unwrap()
+    .options
+    .index_runes(),);
+    assert!(!Arguments::try_parse_from([
+      "ord",
+      "--index-runes-pre-alpha-i-agree-to-get-rekt",
+      "index",
+      "update"
+    ])
+    .unwrap()
+    .options
+    .index_runes(),);
+    assert!(!Arguments::try_parse_from(["ord", "index", "update"])
+      .unwrap()
+      .options
+      .index_runes(),);
   }
 }

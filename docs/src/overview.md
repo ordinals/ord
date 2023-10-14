@@ -183,7 +183,7 @@ Rare Satoshi Supply
 ### Current Supply
 
 - `common`: 1.9 quadrillion
-- `uncommon`: 745,855
+- `uncommon`: 808,262
 - `rare`: 369
 - `epic`: 3
 - `legendary`: 0

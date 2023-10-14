@@ -9,14 +9,17 @@ pub(crate) use {
   inscription::{InscriptionHtml, InscriptionJson},
   inscriptions::{InscriptionsHtml, InscriptionsJson},
   inscriptions_block::InscriptionsBlockHtml,
+  metadata::MetadataHtml,
   output::{OutputHtml, OutputJson},
   page_config::PageConfig,
   preview::{
-    PreviewAudioHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml,
-    PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
+    PreviewAudioHtml, PreviewCodeHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml,
+    PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
   },
   range::RangeHtml,
   rare::RareTxt,
+  rune::RuneHtml,
+  runes::RunesHtml,
   sat::{SatHtml, SatJson},
   transaction::TransactionHtml,
 };
@@ -29,10 +32,13 @@ mod input;
 pub mod inscription;
 pub mod inscriptions;
 mod inscriptions_block;
+mod metadata;
 pub mod output;
 mod preview;
 mod range;
 mod rare;
+mod rune;
+mod runes;
 pub mod sat;
 mod transaction;
 
