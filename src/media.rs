@@ -25,6 +25,7 @@ impl Media {
     ("application/pdf", Media::Pdf, &["pdf"]),
     ("application/pgp-signature", Media::Text, &["asc"]),
     ("application/protobuf", Media::Unknown, &["binpb"]),
+    ("text/x-python", Media::Code, &["py"]),
     ("application/yaml", Media::Code, &["yaml", "yml"]),
     ("audio/flac", Media::Audio, &["flac"]),
     ("audio/mpeg", Media::Audio, &["mp3"]),
