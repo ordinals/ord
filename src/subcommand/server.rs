@@ -3151,6 +3151,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(u128::from(21_000_000 * COIN_VALUE)),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -3176,6 +3177,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune: Rune(u128::from(21_000_000 * COIN_VALUE)),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
@@ -3218,6 +3220,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune,
+            symbol: None,
           }),
         }
         .encipher(),
@@ -3243,6 +3246,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune,
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
@@ -3353,6 +3357,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 1,
             rune,
+            symbol: None,
           }),
         }
         .encipher(),
@@ -3378,6 +3383,7 @@ mod tests {
           rarity: Rarity::Uncommon,
           rune,
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );

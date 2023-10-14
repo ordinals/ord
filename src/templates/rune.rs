@@ -28,6 +28,7 @@ mod tests {
           rune: Rune(u128::max_value()),
           supply: 123456789123456789,
           etching: Txid::all_zeros(),
+          symbol: None,
         },
         id: RuneId {
           height: 10,

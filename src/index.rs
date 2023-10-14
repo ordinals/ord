@@ -711,6 +711,7 @@ impl Index {
         Pile {
           amount,
           divisibility: entry.divisibility,
+          symbol: entry.symbol,
         },
       ));
     }

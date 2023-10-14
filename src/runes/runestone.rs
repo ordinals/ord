@@ -35,6 +35,7 @@ impl Runestone {
           etching = Some(Etching {
             divisibility: 0,
             rune: Rune(rune),
+            symbol: None,
           })
         }
         [rune, parameters] => {
@@ -43,6 +44,14 @@ impl Runestone {
               .unwrap()
               .min(MAX_DIVISIBILITY),
             rune: Rune(rune),
+            symbol: {
+              let symbol = u32::try_from(parameters >> 6 & 0xFFFFFFFF).unwrap();
+              if symbol > 0 {
+                char::from_u32(symbol)
+              } else {
+                None
+              }
+            },
           })
         }
         _ => unreachable!(),
@@ -65,8 +74,11 @@ impl Runestone {
     if let Some(etching) = self.etching {
       varint::encode_to_vec(etching.rune.0, &mut payload);
 
-      if etching.divisibility != 0 {
-        varint::encode_to_vec(etching.divisibility.into(), &mut payload);
+      let parameters =
+        u128::from(etching.symbol.unwrap_or_default()) << 6 | u128::from(etching.divisibility);
+
+      if parameters != 0 {
+        varint::encode_to_vec(parameters, &mut payload);
       }
     }
 
@@ -420,6 +432,7 @@ mod tests {
         etching: Some(Etching {
           rune: Rune(4),
           divisibility: 0,
+          symbol: None,
         }),
       }))
     );
@@ -454,6 +467,7 @@ mod tests {
         etching: Some(Etching {
           rune: Rune(4),
           divisibility: 5,
+          symbol: None,
         }),
       }))
     );
@@ -488,13 +502,14 @@ mod tests {
         etching: Some(Etching {
           rune: Rune(4),
           divisibility: MAX_DIVISIBILITY,
+          symbol: None,
         }),
       }))
     );
   }
 
   #[test]
-  fn divisibility_is_taken_from_lower_six_bits_of_parameter() {
+  fn divisibility_is_taken_from_bits_five_to_zero() {
     let payload = payload(&[1, 2, 3, 4, 0b110_0000]);
 
     let payload: &PushBytes = payload.as_slice().try_into().unwrap();
@@ -522,6 +537,42 @@ mod tests {
         etching: Some(Etching {
           rune: Rune(4),
           divisibility: 0b10_0000,
+          symbol: Some(1.into()),
+        }),
+      }))
+    );
+  }
+
+  #[test]
+  fn symbol_is_taken_from_bits_thirty_seven_to_six() {
+    let payload = payload(&[1, 2, 3, 4, u128::from('a') << 6]);
+
+    let payload: &PushBytes = payload.as_slice().try_into().unwrap();
+
+    assert_eq!(
+      Runestone::decipher(&Transaction {
+        input: Vec::new(),
+        output: vec![TxOut {
+          script_pubkey: script::Builder::new()
+            .push_opcode(opcodes::all::OP_RETURN)
+            .push_slice(b"RUNE_TEST")
+            .push_slice(payload)
+            .into_script(),
+          value: 0
+        }],
+        lock_time: locktime::absolute::LockTime::ZERO,
+        version: 0,
+      }),
+      Ok(Some(Runestone {
+        edicts: vec![Edict {
+          id: 1,
+          amount: 2,
+          output: 3,
+        }],
+        etching: Some(Etching {
+          rune: Rune(4),
+          divisibility: 0,
+          symbol: Some('a'),
         }),
       }))
     );
@@ -594,6 +645,7 @@ mod tests {
         etching: Some(Etching {
           rune: Rune(4),
           divisibility: 5,
+          symbol: None,
         })
       }))
     );

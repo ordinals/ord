@@ -192,7 +192,8 @@ mod tests {
           Rune(0),
           Pile {
             amount: 11,
-            divisibility: 1
+            divisibility: 1,
+            symbol: None,
           }
         )],
       },
