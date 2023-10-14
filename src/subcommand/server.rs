@@ -178,6 +178,7 @@ impl Server {
       let page_config = Arc::new(PageConfig {
         chain: options.chain(),
         domain: acme_domains.first().cloned(),
+        index_sats: index.has_sat_index(),
       });
 
       let router = Router::new()
@@ -465,7 +466,7 @@ impl Server {
         blocktime,
         inscriptions,
       }
-      .page(page_config, index.has_sat_index()?)
+      .page(page_config)
       .into_response()
     })
   }
@@ -480,11 +481,7 @@ impl Server {
     Path(outpoint): Path<OutPoint>,
     accept_json: AcceptJson,
   ) -> ServerResult<Response> {
-    let list = if index.has_sat_index()? {
-      index.list(outpoint)?
-    } else {
-      None
-    };
+    let list = index.list(outpoint)?;
 
     let output = if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
       let mut value = 0;
@@ -528,14 +525,13 @@ impl Server {
         chain: page_config.chain,
         output,
       }
-      .page(page_config, index.has_sat_index()?)
+      .page(page_config)
       .into_response()
     })
   }
 
   async fn range(
     Extension(page_config): Extension<Arc<PageConfig>>,
-    Extension(index): Extension<Arc<Index>>,
     Path((DeserializeFromStr(start), DeserializeFromStr(end))): Path<(
       DeserializeFromStr<Sat>,
       DeserializeFromStr<Sat>,
@@ -546,16 +542,12 @@ impl Server {
       Ordering::Greater => Err(ServerError::BadRequest(
         "range start greater than range end".to_string(),
       )),
-      Ordering::Less => Ok(RangeHtml { start, end }.page(page_config, index.has_sat_index()?)),
+      Ordering::Less => Ok(RangeHtml { start, end }.page(page_config)),
     }
   }
 
   async fn rare_txt(Extension(index): Extension<Arc<Index>>) -> ServerResult<RareTxt> {
-    Ok(RareTxt(index.rare_sat_satpoints()?.ok_or_else(|| {
-      ServerError::NotFound(
-        "tracking rare sats requires index created with `--index-sats` flag".into(),
-      )
-    })?))
+    Ok(RareTxt(index.rare_sat_satpoints()?))
   }
 
   async fn rune(
@@ -584,7 +576,7 @@ impl Server {
         entry,
         inscription,
       }
-      .page(page_config, index.has_sat_index()?),
+      .page(page_config),
     )
   }
 
@@ -592,13 +584,12 @@ impl Server {
     Extension(page_config): Extension<Arc<PageConfig>>,
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<PageHtml<RunesHtml>> {
-    let entries = index.runes()?.ok_or_else(|| {
-      ServerError::NotFound(
-        "tracking runes requires index created with `--index-runes-pre-alpha-i-agree-to-get-rekt` flag".into(),
-      )
-    })?;
-
-    Ok(RunesHtml { entries }.page(page_config, index.has_sat_index()?))
+    Ok(
+      RunesHtml {
+        entries: index.runes()?,
+      }
+      .page(page_config),
+    )
   }
 
   async fn home(
@@ -614,7 +605,7 @@ impl Server {
       featured_blocks.insert(*hash, inscriptions);
     }
 
-    Ok(HomeHtml::new(blocks, featured_blocks).page(page_config, index.has_sat_index()?))
+    Ok(HomeHtml::new(blocks, featured_blocks).page(page_config))
   }
 
   async fn install_script() -> Redirect {
@@ -658,7 +649,7 @@ impl Server {
         total_num,
         featured_inscriptions,
       )
-      .page(page_config, index.has_sat_index()?),
+      .page(page_config),
     )
   }
 
@@ -680,7 +671,7 @@ impl Server {
         inscription.map(|_| InscriptionId { txid, index: 0 }),
         page_config.chain,
       )
-      .page(page_config, index.has_sat_index()?),
+      .page(page_config),
     )
   }
 
@@ -893,7 +884,7 @@ impl Server {
       .nth(path.2)
       .ok_or_not_found(not_found)?;
 
-    Ok(InputHtml { path, input }.page(page_config, index.has_sat_index()?))
+    Ok(InputHtml { path, input }.page(page_config))
   }
 
   async fn faq() -> Redirect {
@@ -1121,7 +1112,7 @@ impl Server {
         satpoint,
         timestamp: timestamp(entry.timestamp),
       }
-      .page(page_config, index.has_sat_index()?)
+      .page(page_config)
       .into_response()
     })
   }
@@ -1166,7 +1157,7 @@ impl Server {
         inscriptions,
         page_index,
       )?
-      .page(page_config, index.has_sat_index()?)
+      .page(page_config)
       .into_response()
     })
   }
@@ -1213,7 +1204,7 @@ impl Server {
         next,
         prev,
       }
-      .page(page_config, index.has_sat_index()?)
+      .page(page_config)
       .into_response()
     })
   }
@@ -2267,15 +2258,6 @@ mod tests {
   }
 
   #[test]
-  fn rare_without_sat_index() {
-    TestServer::new().assert_response(
-      "/rare.txt",
-      StatusCode::NOT_FOUND,
-      "tracking rare sats requires index created with `--index-sats` flag",
-    );
-  }
-
-  #[test]
   fn show_rare_txt_in_header_with_sat_index() {
     TestServer::new_with_sat_index().assert_response_regex(
       "/",
@@ -3158,7 +3140,7 @@ mod tests {
     };
 
     assert_eq!(
-      server.index.runes().unwrap().unwrap(),
+      server.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -3225,7 +3207,7 @@ mod tests {
     };
 
     assert_eq!(
-      server.index.runes().unwrap().unwrap(),
+      server.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
