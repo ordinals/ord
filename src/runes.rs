@@ -77,14 +77,14 @@ mod tests {
   }
 
   #[test]
-  fn etching_with_no_edicts_does_not_create_rune() {
+  fn etching_with_no_edicts_creates_rune() {
     let context = Context::builder()
       .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
       .build();
 
     context.mine_blocks(1);
 
-    context.rpc_server.broadcast_tx(TransactionTemplate {
+    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
@@ -101,7 +101,26 @@ mod tests {
 
     context.mine_blocks(1);
 
-    assert_eq!(context.index.runes().unwrap().unwrap(), []);
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    assert_eq!(
+      context.index.runes().unwrap().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          burned: 0,
+          divisibility: 0,
+          etching: txid,
+          rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: 0,
+        }
+      )]
+    );
+
     assert_eq!(context.index.rune_balances(), []);
   }
 

@@ -136,28 +136,24 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       {
         // Calculate the allocated supply
         let supply = u128::max_value() - balance;
-
-        // If no runes were allocated, ignore this issuance
-        if supply > 0 {
-          let id = RuneId::try_from(id).unwrap();
-          self.rune_to_id.insert(rune.0, id.store())?;
-          self.id_to_entry.insert(
-            id.store(),
-            RuneEntry {
-              burned: 0,
-              divisibility,
-              etching: txid,
-              rarity: if self.count == 0 {
-                self.rarity
-              } else {
-                Rarity::Common
-              },
-              rune,
-              supply,
-            }
-            .store(),
-          )?;
-        }
+        let id = RuneId::try_from(id).unwrap();
+        self.rune_to_id.insert(rune.0, id.store())?;
+        self.id_to_entry.insert(
+          id.store(),
+          RuneEntry {
+            burned: 0,
+            divisibility,
+            etching: txid,
+            rarity: if self.count == 0 {
+              self.rarity
+            } else {
+              Rarity::Common
+            },
+            rune,
+            supply,
+          }
+          .store(),
+        )?;
         self.count += 1;
       }
     }
