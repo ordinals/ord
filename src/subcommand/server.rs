@@ -3250,6 +3250,7 @@ mod tests {
       format!(
         ".*<title>Rune NVTDIJZYIPU</title>.*
 <h1>Rune NVTDIJZYIPU</h1>
+<iframe .* src=/preview/{txid}i0></iframe>
 <dl>
   <dt>id</dt>
   <dd>2/1</dd>

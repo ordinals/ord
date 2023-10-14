@@ -1,4 +1,7 @@
 <h1>Rune {{ self.entry.rune }}</h1>
+%% if let Some(inscription) = self.inscription {
+{{Iframe::main(inscription)}}
+%% }
 <dl>
   <dt>id</dt>
   <dd>{{ self.id }}</dd>

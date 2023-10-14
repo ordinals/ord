@@ -39,6 +39,7 @@ mod tests {
         }),
       },
       "<h1>Rune BCGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
+<iframe .* src=/preview/0{64}i0></iframe>
 <dl>
   <dt>id</dt>
   <dd>10/9</dd>
