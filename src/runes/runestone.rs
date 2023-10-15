@@ -809,6 +809,16 @@ mod tests {
     case(
       Vec::new(),
       Some(Etching {
+        divisibility: MAX_DIVISIBILITY,
+        rune: Rune(0),
+        symbol: Some('$'),
+      }),
+      5,
+    );
+
+    case(
+      Vec::new(),
+      Some(Etching {
         divisibility: 0,
         rune: Rune(u128::max_value()),
         symbol: None,
