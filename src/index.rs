@@ -689,8 +689,53 @@ impl Index {
     }
   }
 
+  pub(crate) fn get_rune_balances_for_outpoint(
+    &self,
+    outpoint: OutPoint,
+  ) -> Result<Vec<(Rune, Pile)>> {
+    if !self.has_rune_index()? {
+      return Ok(Vec::new());
+    }
+
+    let rtx = &self.database.begin_read()?;
+
+    let outpoint_to_balances = rtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
+
+    let id_to_rune_entries = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
+
+    let Some(balances) = outpoint_to_balances.get(&outpoint.store())? else {
+      return Ok(Vec::new());
+    };
+
+    let balances_buffer = balances.value();
+
+    let mut balances = Vec::new();
+    let mut i = 0;
+    while i < balances_buffer.len() {
+      let (id, length) = runes::varint::decode(&balances_buffer[i..]).unwrap();
+      i += length;
+      let (amount, length) = runes::varint::decode(&balances_buffer[i..]).unwrap();
+      i += length;
+
+      let id = RuneId::try_from(id).unwrap();
+
+      let entry = RuneEntry::load(id_to_rune_entries.get(id.store())?.unwrap().value());
+
+      balances.push((
+        entry.rune,
+        Pile {
+          amount,
+          divisibility: entry.divisibility,
+          symbol: entry.symbol,
+        },
+      ));
+    }
+
+    Ok(balances)
+  }
+
   #[cfg(test)]
-  pub(crate) fn rune_balances(&self) -> Vec<(OutPoint, Vec<(RuneId, u128)>)> {
+  pub(crate) fn get_rune_balances(&self) -> Vec<(OutPoint, Vec<(RuneId, u128)>)> {
     let mut result = Vec::new();
 
     for entry in self
@@ -4243,6 +4288,48 @@ mod tests {
           offset: 0,
         },
         Some(50 * COIN_VALUE),
+      );
+    }
+  }
+
+  #[test]
+  fn inscription_with_pointer_is_cursed() {
+    for context in Context::configurations() {
+      context.mine_blocks(1);
+
+      let inscription = Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some("pointer-child".into()),
+        pointer: Some(0u64.to_le_bytes().to_vec()),
+        ..Default::default()
+      };
+
+      let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, inscription.to_witness())],
+        ..Default::default()
+      });
+
+      context.mine_blocks(1);
+
+      let inscription_id = InscriptionId { txid, index: 0 };
+
+      context.index.assert_inscription_location(
+        inscription_id,
+        SatPoint {
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 0,
+        },
+        Some(50 * COIN_VALUE),
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_entry(inscription_id)
+          .unwrap()
+          .unwrap()
+          .inscription_number,
+        -1
       );
     }
   }

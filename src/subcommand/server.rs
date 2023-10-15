@@ -511,6 +511,8 @@ impl Server {
 
     let inscriptions = index.get_inscriptions_on_output(outpoint)?;
 
+    let runes = index.get_rune_balances_for_outpoint(outpoint)?;
+
     Ok(if accept_json.0 {
       Json(OutputJson::new(
         outpoint,
@@ -518,6 +520,10 @@ impl Server {
         page_config.chain,
         output,
         inscriptions,
+        runes
+          .into_iter()
+          .map(|(rune, pile)| (rune, pile.amount))
+          .collect(),
       ))
       .into_response()
     } else {
@@ -527,6 +533,7 @@ impl Server {
         list,
         chain: page_config.chain,
         output,
+        runes,
       }
       .page(page_config, index.has_sat_index()?)
       .into_response()
@@ -1317,6 +1324,7 @@ mod tests {
           "--chain",
           "regtest",
           "--index-runes-pre-alpha-i-agree-to-get-rekt",
+          "--enable-json-api",
         ],
         &[],
       )
@@ -3208,6 +3216,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(u128::from(21_000_000 * COIN_VALUE)),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -3230,15 +3239,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid,
-          rarity: Rarity::Uncommon,
           rune: Rune(u128::from(21_000_000 * COIN_VALUE)),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      server.index.rune_balances(),
+      server.index.get_rune_balances(),
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
 
@@ -3275,6 +3284,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune,
+            symbol: Some('$'),
           }),
         }
         .encipher(),
@@ -3297,15 +3307,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid,
-          rarity: Rarity::Uncommon,
           rune,
           supply: u128::max_value(),
+          symbol: Some('$'),
         }
       )]
     );
 
     assert_eq!(
-      server.index.rune_balances(),
+      server.index.get_rune_balances(),
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
 
@@ -3313,19 +3323,19 @@ mod tests {
       format!("/rune/{rune}"),
       StatusCode::OK,
       format!(
-        ".*<title>Rune NVTDIJZYIPU</title>.*
+        r".*<title>Rune NVTDIJZYIPU</title>.*
 <h1>Rune NVTDIJZYIPU</h1>
 <dl>
   <dt>id</dt>
   <dd>2/1</dd>
   <dt>supply</dt>
-  <dd>340282366920938463463374607431768211455</dd>
+  <dd>\$340282366920938463463374607431768211455</dd>
   <dt>burned</dt>
-  <dd>0</dd>
+  <dd>\$0</dd>
   <dt>divisibility</dt>
   <dd>0</dd>
-  <dt>rarity</dt>
-  <dd><span class=uncommon>uncommon</span></dd>
+  <dt>symbol</dt>
+  <dd>\$</dd>
   <dt>etching</dt>
   <dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
   <dt>inscription</dt>
@@ -3386,5 +3396,105 @@ mod tests {
   <dd class=monospace>{cursed_inscription_id}</dd>.*"
       ),
     )
+  }
+
+  #[test]
+  fn runes_are_displayed_on_output_page() {
+    let server = TestServer::new_with_regtest_with_index_runes();
+
+    server.mine_blocks(1);
+
+    let rune = Rune(u128::from(21_000_000 * COIN_VALUE));
+
+    server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
+
+    let txid = server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Default::default())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            divisibility: 1,
+            rune,
+            symbol: None,
+          }),
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    assert_eq!(
+      server.index.runes().unwrap().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          burned: 0,
+          divisibility: 1,
+          etching: txid,
+          rune,
+          supply: u128::max_value(),
+          symbol: None,
+        }
+      )]
+    );
+
+    let output = OutPoint { txid, vout: 0 };
+
+    assert_eq!(
+      server.index.get_rune_balances(),
+      [(output, vec![(id, u128::max_value())])]
+    );
+
+    server.assert_response_regex(
+      format!("/output/{output}"),
+      StatusCode::OK,
+      format!(
+        ".*<title>Output {output}</title>.*<h1>Output <span class=monospace>{output}</span></h1>.*
+  <dt>runes</dt>
+  <dd>
+    <table>
+      <tr>
+        <th>rune</th>
+        <th>balance</th>
+      </tr>
+      <tr>
+        <td><a href=/rune/NVTDIJZYIPU>NVTDIJZYIPU</a></td>
+        <td>34028236692093846346337460743176821145.5</td>
+      </tr>
+    </table>
+  </dd>
+.*"
+      ),
+    );
+
+    assert_eq!(
+      server.get_json::<OutputJson>(format!("/output/{output}")),
+      OutputJson {
+        value: 5000000000,
+        script_pubkey: String::new(),
+        address: None,
+        transaction: txid.to_string(),
+        sat_ranges: None,
+        inscriptions: Vec::new(),
+        runes: vec![(
+          Rune(2100000000000000),
+          340282366920938463463374607431768211455
+        )]
+        .into_iter()
+        .collect(),
+      }
+    );
   }
 }
