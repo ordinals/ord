@@ -4,4 +4,5 @@ use super::*;
 pub struct Etching {
   pub(crate) divisibility: u8,
   pub(crate) rune: Rune,
+  pub(crate) symbol: Option<char>,
 }
