@@ -2255,7 +2255,7 @@ mod tests {
   }
 
   #[test]
-  fn rare_with_index() {
+  fn rare_with_sat_index() {
     TestServer::new_with_sat_index().assert_response(
       "/rare.txt",
       StatusCode::OK,
@@ -2266,8 +2266,8 @@ mod tests {
   }
 
   #[test]
-  fn rare_without_index() {
-    TestServer::new_with_sat_index().assert_response(
+  fn rare_without_sat_index() {
+    TestServer::new().assert_response(
       "/rare.txt",
       StatusCode::OK,
       "sat\tsatpoint
