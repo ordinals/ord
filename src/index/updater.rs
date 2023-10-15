@@ -385,13 +385,14 @@ impl<'index> Updater<'_> {
       let mut transaction_id_to_rune = wtx.open_table(TRANSACTION_ID_TO_RUNE)?;
       let mut rune_updater = RuneUpdater::new(
         self.height,
-        &mut outpoint_to_rune_balances,
         &mut rune_id_to_rune_entry,
+        &mut outpoint_to_rune_balances,
         &mut rune_to_rune_id,
+        block.header.time,
         &mut transaction_id_to_rune,
       );
       for (i, (tx, txid)) in block.txdata.iter().enumerate() {
-        rune_updater.index_runes(block.header.time, i, tx, *txid)?;
+        rune_updater.index_runes(i, tx, *txid)?;
       }
     }
 

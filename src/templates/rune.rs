@@ -25,10 +25,10 @@ mod tests {
         entry: RuneEntry {
           burned: 123456789123456789,
           divisibility: 9,
-          rarity: Rarity::Uncommon,
           rune: Rune(u128::max_value()),
           supply: 123456789123456789,
           etching: Txid::all_zeros(),
+          symbol: Some('$'),
           timestamp: 0,
         },
         id: RuneId {
@@ -41,7 +41,7 @@ mod tests {
         }),
         timestamp: timestamp(0),
       },
-      "<h1>Rune BCGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
+      r"<h1>Rune BCGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
 <dl>
   <dt>id</dt>
   <dd>10/9</dd>
@@ -52,13 +52,13 @@ mod tests {
   <dt>etching transaction index</dt>
   <dd>9</dd>
   <dt>supply</dt>
-  <dd>123456789.123456789</dd>
+  <dd>\$123456789.123456789</dd>
   <dt>burned</dt>
-  <dd>123456789.123456789</dd>
+  <dd>\$123456789.123456789</dd>
   <dt>divisibility</dt>
   <dd>9</dd>
-  <dt>rarity</dt>
-  <dd><span class=uncommon>uncommon</span></dd>
+  <dt>symbol</dt>
+  <dd>\$</dd>
   <dt>etching</dt>
   <dd><a class=monospace href=/tx/0{64}>0{64}</a></dd>
   <dt>inscription</dt>

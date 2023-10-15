@@ -27,19 +27,19 @@ pub(crate) struct RuneEntry {
   pub(crate) burned: u128,
   pub(crate) divisibility: u8,
   pub(crate) etching: Txid,
-  pub(crate) rarity: Rarity,
   pub(crate) rune: Rune,
   pub(crate) supply: u128,
+  pub(crate) symbol: Option<char>,
   pub(crate) timestamp: u32,
 }
 
-pub(super) type RuneEntryValue = (u128, u8, (u128, u128), u8, u128, u128, u32);
+pub(super) type RuneEntryValue = (u128, u8, (u128, u128), u128, u128, u32, u32);
 
 impl Entry for RuneEntry {
   type Value = RuneEntryValue;
 
   fn load(
-    (burned, divisibility, etching, rarity, rune, supply, timestamp): RuneEntryValue,
+    (burned, divisibility, etching, rune, supply, symbol, timestamp): RuneEntryValue,
   ) -> Self {
     Self {
       burned,
@@ -54,9 +54,9 @@ impl Entry for RuneEntry {
           high[14], high[15],
         ])
       },
-      rarity: Rarity::try_from(rarity).unwrap(),
       rune: Rune(rune),
       supply,
+      symbol: char::from_u32(symbol),
       timestamp,
     }
   }
@@ -78,9 +78,12 @@ impl Entry for RuneEntry {
           ]),
         )
       },
-      self.rarity.into(),
       self.rune.0,
       self.supply,
+      match self.symbol {
+        Some(symbol) => symbol.into(),
+        None => u32::max_value(),
+      },
       self.timestamp,
     )
   }
@@ -406,9 +409,9 @@ mod tests {
         0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D,
         0x1E, 0x1F,
       ]),
-      rarity: Rarity::Epic,
-      rune: Rune(4),
-      supply: 5,
+      rune: Rune(3),
+      supply: 4,
+      symbol: Some('a'),
       timestamp: 6,
     };
 
@@ -423,7 +426,7 @@ mod tests {
         ),
         3,
         4,
-        5,
+        u32::from('a'),
         6,
       )
     );
@@ -438,7 +441,44 @@ mod tests {
         ),
         3,
         4,
-        5,
+        u32::from('a'),
+        6,
+      )),
+      rune_entry
+    );
+
+    let rune_entry = RuneEntry {
+      symbol: None,
+      ..rune_entry
+    };
+
+    assert_eq!(
+      rune_entry.store(),
+      (
+        1,
+        2,
+        (
+          0x0F0E0D0C0B0A09080706050403020100,
+          0x1F1E1D1C1B1A19181716151413121110
+        ),
+        3,
+        4,
+        u32::max_value(),
+        6,
+      )
+    );
+
+    assert_eq!(
+      RuneEntry::load((
+        1,
+        2,
+        (
+          0x0F0E0D0C0B0A09080706050403020100,
+          0x1F1E1D1C1B1A19181716151413121110
+        ),
+        3,
+        4,
+        u32::max_value(),
         6,
       )),
       rune_entry

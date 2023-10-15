@@ -8,46 +8,40 @@ struct Allocation {
   divisibility: u8,
   id: u128,
   rune: Rune,
+  symbol: Option<char>,
 }
 
 pub(super) struct RuneUpdater<'a, 'db, 'tx> {
-  count: usize,
   height: u64,
   id_to_entry: &'a mut Table<'db, 'tx, RuneIdValue, RuneEntryValue>,
   minimum: Rune,
   outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
-  rarity: Rarity,
   rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
+  timestamp: u32,
   transaction_id_to_rune: &'a mut Table<'db, 'tx, &'static TxidValue, u128>,
 }
 
 impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
   pub(super) fn new(
     height: u64,
-    outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
     id_to_entry: &'a mut Table<'db, 'tx, RuneIdValue, RuneEntryValue>,
+    outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
     rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
+    timestamp: u32,
     transaction_id_to_rune: &'a mut Table<'db, 'tx, &'static TxidValue, u128>,
   ) -> Self {
     Self {
-      count: 0,
       height,
       id_to_entry,
       minimum: Rune::minimum_at_height(Height(height)),
       outpoint_to_balances,
-      rarity: Height(height).starting_sat().rarity(),
       rune_to_id,
+      timestamp,
       transaction_id_to_rune,
     }
   }
 
-  pub(super) fn index_runes(
-    &mut self,
-    timestamp: u32,
-    index: usize,
-    tx: &Transaction,
-    txid: Txid,
-  ) -> Result<()> {
+  pub(super) fn index_runes(&mut self, index: usize, tx: &Transaction, txid: Txid) -> Result<()> {
     let runestone = Runestone::from_transaction(tx);
 
     // A mapping of rune ID to un-allocated balance of that rune
@@ -93,6 +87,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
                 divisibility: etching.divisibility,
                 id: u128::from(self.height) << 16 | u128::from(index),
                 rune: etching.rune,
+                symbol: etching.symbol,
               }),
               Err(_) => None,
             }
@@ -125,7 +120,11 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         };
 
         // Get the allocatable amount
-        let amount = amount.min(*balance);
+        let amount = if amount == 0 {
+          *balance
+        } else {
+          amount.min(*balance)
+        };
 
         // If the amount to be allocated is greater than zero,
         // deduct it from the remaining balance, and increment
@@ -141,35 +140,25 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         divisibility,
         id,
         rune,
+        symbol,
       }) = allocation
       {
-        // Calculate the allocated supply
-        let supply = u128::max_value() - balance;
-
-        // If no runes were allocated, ignore this issuance
-        if supply > 0 {
-          let id = RuneId::try_from(id).unwrap();
-          self.rune_to_id.insert(rune.0, id.store())?;
-          self.transaction_id_to_rune.insert(&txid.store(), rune.0)?;
-          self.id_to_entry.insert(
-            id.store(),
-            RuneEntry {
-              burned: 0,
-              divisibility,
-              etching: txid,
-              rarity: if self.count == 0 {
-                self.rarity
-              } else {
-                Rarity::Common
-              },
-              rune,
-              supply,
-              timestamp,
-            }
-            .store(),
-          )?;
-        }
-        self.count += 1;
+        let id = RuneId::try_from(id).unwrap();
+        self.rune_to_id.insert(rune.0, id.store())?;
+        self.transaction_id_to_rune.insert(&txid.store(), rune.0)?;
+        self.id_to_entry.insert(
+          id.store(),
+          RuneEntry {
+            burned: 0,
+            divisibility,
+            etching: txid,
+            rune,
+            supply: u128::max_value() - balance,
+            symbol,
+            timestamp: self.timestamp,
+          }
+          .store(),
+        )?;
       }
     }
 
@@ -181,7 +170,9 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       .find(|(_, tx_out)| !tx_out.script_pubkey.is_op_return())
     {
       for (id, balance) in unallocated {
-        *allocated[vout].entry(id).or_default() += balance;
+        if balance > 0 {
+          *allocated[vout].entry(id).or_default() += balance;
+        }
       }
     }
 
