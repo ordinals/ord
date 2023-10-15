@@ -113,6 +113,7 @@ mod tests {
         sat: None,
         satpoint: satpoint(1, 0),
         timestamp: timestamp(0),
+        runes: Vec::new(),
       },
       "
         <h1>Inscription 1</h1>
@@ -170,6 +171,7 @@ mod tests {
         sat: None,
         satpoint: satpoint(1, 0),
         timestamp: timestamp(0),
+        runes: Vec::new(),
       },
       "
         <h1>Inscription 1</h1>
@@ -209,6 +211,7 @@ mod tests {
         sat: Some(Sat(1)),
         satpoint: satpoint(1, 0),
         timestamp: timestamp(0),
+        runes: Vec::new(),
       },
       "
         <h1>Inscription 1</h1>
@@ -243,6 +246,7 @@ mod tests {
         sat: None,
         satpoint: satpoint(1, 0),
         timestamp: timestamp(0),
+        runes: Vec::new(),
       },
       "
         <h1>Inscription 1</h1>
@@ -278,6 +282,7 @@ mod tests {
           offset: 0
         },
         timestamp: timestamp(0),
+        runes: Vec::new(),
       },
       "
         <h1>Inscription -1 \\(unstable\\)</h1>
@@ -313,6 +318,7 @@ mod tests {
         sat: None,
         satpoint: satpoint(1, 0),
         timestamp: timestamp(0),
+        runes: Vec::new(),
       },
       "
         <h1>Inscription 1</h1>
@@ -372,6 +378,7 @@ mod tests {
         sat: None,
         satpoint: satpoint(1, 0),
         timestamp: timestamp(0),
+        runes: Vec::new(),
       },
       "
         <h1>Inscription 1</h1>

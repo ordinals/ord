@@ -751,6 +751,27 @@ impl Index {
       .collect()
   }
 
+  pub(crate) fn get_runes_by_inscription_id(
+    &self,
+    inscription_id: InscriptionId,
+  ) -> Result<Vec<Rune>> {
+    if !self.has_rune_index()? {
+      return Ok(Vec::new());
+    }
+
+    self
+      .database
+      .begin_read()?
+      .open_multimap_table(INSCRIPTION_ID_TO_RUNES)?
+      .get(&inscription_id.store())?
+      .map(|result| {
+        result
+          .map(|entry| Rune(entry.value()))
+          .map_err(|err| err.into())
+      })
+      .collect()
+  }
+
   pub(crate) fn get_inscription_ids_by_sat(&self, sat: Sat) -> Result<Vec<InscriptionId>> {
     let rtx = &self.database.begin_read()?;
 

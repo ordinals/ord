@@ -1077,7 +1077,7 @@ impl Server {
 
     let children = index.get_children_by_inscription_id(inscription_id)?;
 
-    let runes = todo!();
+    let runes = index.get_runes_by_inscription_id(inscription_id)?;
 
     Ok(if accept_json.0 {
       Json(InscriptionJson::new(
@@ -3261,6 +3261,24 @@ mod tests {
   <dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
   <dt>parent</dt>
   <dd><a class=monospace href=/inscription/{txid}i0>{txid}i0</a></dd>
+</dl>
+.*"
+      ),
+    );
+
+    server.assert_response_regex(
+      format!("/inscription/{txid}i0"),
+      StatusCode::OK,
+      format!(
+        ".*
+<dl>
+  .*
+  <dt>runes</dt>
+  <dd>
+    <ul>
+      <li><a href=/rune/NVTDIJZYIPU>NVTDIJZYIPU</a></li>
+    </ul>
+  </dd>
 </dl>
 .*"
       ),
