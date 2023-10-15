@@ -47,7 +47,7 @@ mod tests {
       .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
       .build();
     assert_eq!(context.index.runes().unwrap().unwrap(), []);
-    assert_eq!(context.index.rune_balances(), []);
+    assert_eq!(context.index.get_rune_balances(), []);
   }
 
   #[test]
@@ -73,40 +73,11 @@ mod tests {
     context.mine_blocks(1);
 
     assert_eq!(context.index.runes().unwrap().unwrap(), []);
-    assert_eq!(context.index.rune_balances(), []);
+    assert_eq!(context.index.get_rune_balances(), []);
   }
 
   #[test]
-  fn etching_with_no_edicts_does_not_create_rune() {
-    let context = Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build();
-
-    context.mine_blocks(1);
-
-    context.rpc_server.broadcast_tx(TransactionTemplate {
-      inputs: &[(1, 0, 0, Witness::new())],
-      op_return: Some(
-        Runestone {
-          edicts: Vec::new(),
-          etching: Some(Etching {
-            divisibility: 0,
-            rune: Rune(RUNE),
-          }),
-        }
-        .encipher(),
-      ),
-      ..Default::default()
-    });
-
-    context.mine_blocks(1);
-
-    assert_eq!(context.index.runes().unwrap().unwrap(), []);
-    assert_eq!(context.index.rune_balances(), []);
-  }
-
-  #[test]
-  fn etching_with_edict_creates_rune() {
+  fn etching_with_no_edicts_creates_rune() {
     let context = Context::builder()
       .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
       .build();
@@ -117,14 +88,11 @@ mod tests {
       inputs: &[(1, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
-          edicts: vec![Edict {
-            id: 0,
-            amount: u128::max_value(),
-            output: 0,
-          }],
+          edicts: Vec::new(),
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -147,15 +115,68 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid,
-          rarity: Rarity::Uncommon,
+          rune: Rune(RUNE),
+          supply: 0,
+          symbol: None,
+        }
+      )]
+    );
+
+    assert_eq!(context.index.get_rune_balances(), []);
+  }
+
+  #[test]
+  fn etching_with_edict_creates_rune() {
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
+
+    context.mine_blocks(1);
+
+    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            divisibility: 0,
+            rune: Rune(RUNE),
+            symbol: None,
+          }),
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    assert_eq!(
+      context.index.runes().unwrap().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          burned: 0,
+          divisibility: 0,
+          etching: txid,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
   }
@@ -181,6 +202,7 @@ mod tests {
             etching: Some(Etching {
               divisibility: 0,
               rune: Rune(u128::from(Sat::SUPPLY - 150 * COIN_VALUE - 1)),
+              symbol: None,
             }),
           }
           .encipher(),
@@ -192,7 +214,7 @@ mod tests {
 
       assert_eq!(context.index.runes().unwrap().unwrap(), []);
 
-      assert_eq!(context.index.rune_balances(), []);
+      assert_eq!(context.index.get_rune_balances(), []);
     }
 
     {
@@ -214,6 +236,7 @@ mod tests {
             etching: Some(Etching {
               divisibility: 0,
               rune: Rune(u128::from(Sat::SUPPLY - 150 * COIN_VALUE)),
+              symbol: None,
             }),
           }
           .encipher(),
@@ -238,13 +261,13 @@ mod tests {
             etching: txid,
             rune: Rune(u128::from(Sat::SUPPLY - 150 * COIN_VALUE)),
             supply: u128::max_value(),
-            rarity: Rarity::Uncommon,
+            symbol: None,
           }
         )]
       );
 
       assert_eq!(
-        context.index.rune_balances(),
+        context.index.get_rune_balances(),
         [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
       );
     }
@@ -270,6 +293,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 1,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -294,13 +318,13 @@ mod tests {
           etching: txid,
           divisibility: 1,
           supply: u128::max_value(),
-          rarity: Rarity::Uncommon,
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
   }
@@ -332,6 +356,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -354,15 +379,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
   }
@@ -394,6 +419,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -416,15 +442,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
   }
@@ -449,6 +475,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -471,15 +498,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: 100,
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(OutPoint { txid, vout: 0 }, vec![(id, 100)])]
     );
   }
@@ -511,6 +538,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -533,15 +561,15 @@ mod tests {
           burned: 100,
           divisibility: 0,
           etching: txid,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: 200,
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [
         (OutPoint { txid, vout: 0 }, vec![(id, 100)]),
         (OutPoint { txid, vout: 1 }, vec![(id, 100)])
@@ -576,6 +604,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -598,15 +627,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: 100,
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(OutPoint { txid, vout: 0 }, vec![(id, 100)]),]
     );
   }
@@ -631,6 +660,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -653,15 +683,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid0,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid0,
@@ -697,15 +727,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid0,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid1,
@@ -736,6 +766,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -758,15 +789,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid0,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid0,
@@ -798,15 +829,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid0,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid1,
@@ -838,6 +869,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -860,15 +892,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid0,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid0,
@@ -894,15 +926,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid0,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid1,
@@ -933,6 +965,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -955,15 +988,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
 
@@ -979,6 +1012,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -996,15 +1030,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
   }
@@ -1029,6 +1063,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -1051,15 +1086,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid0,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid0,
@@ -1081,6 +1116,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE + 1),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -1104,9 +1140,9 @@ mod tests {
             burned: 0,
             divisibility: 0,
             etching: txid0,
-            rarity: Rarity::Uncommon,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            symbol: None,
           }
         ),
         (
@@ -1115,16 +1151,16 @@ mod tests {
             burned: 0,
             divisibility: 0,
             etching: txid1,
-            rarity: Rarity::Uncommon,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            symbol: None,
           }
         )
       ]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [
         (
           OutPoint {
@@ -1159,9 +1195,9 @@ mod tests {
             burned: 0,
             divisibility: 0,
             etching: txid0,
-            rarity: Rarity::Uncommon,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            symbol: None,
           }
         ),
         (
@@ -1170,16 +1206,16 @@ mod tests {
             burned: 0,
             divisibility: 0,
             etching: txid1,
-            rarity: Rarity::Uncommon,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            symbol: None,
           }
         )
       ]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid2,
@@ -1210,6 +1246,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -1232,15 +1269,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid0,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid0,
@@ -1262,6 +1299,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE + 1),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -1285,9 +1323,9 @@ mod tests {
             burned: 0,
             divisibility: 0,
             etching: txid0,
-            rarity: Rarity::Uncommon,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            symbol: None,
           }
         ),
         (
@@ -1296,16 +1334,16 @@ mod tests {
             burned: 0,
             divisibility: 0,
             etching: txid1,
-            rarity: Rarity::Uncommon,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            symbol: None,
           }
         )
       ]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [
         (
           OutPoint {
@@ -1340,9 +1378,9 @@ mod tests {
             burned: 0,
             divisibility: 0,
             etching: txid0,
-            rarity: Rarity::Uncommon,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            symbol: None,
           }
         ),
         (
@@ -1351,16 +1389,16 @@ mod tests {
             burned: 0,
             divisibility: 0,
             etching: txid1,
-            rarity: Rarity::Uncommon,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            symbol: None,
           }
         )
       ]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid2,
@@ -1405,9 +1443,9 @@ mod tests {
             burned: 0,
             divisibility: 0,
             etching: txid0,
-            rarity: Rarity::Uncommon,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            symbol: None,
           }
         ),
         (
@@ -1416,16 +1454,16 @@ mod tests {
             burned: 0,
             divisibility: 0,
             etching: txid1,
-            rarity: Rarity::Uncommon,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            symbol: None,
           }
         )
       ]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [
         (
           OutPoint {
@@ -1468,6 +1506,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -1490,15 +1529,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid0,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid0,
@@ -1520,6 +1559,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE + 1),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -1543,9 +1583,9 @@ mod tests {
             burned: 0,
             divisibility: 0,
             etching: txid0,
-            rarity: Rarity::Uncommon,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            symbol: None,
           }
         ),
         (
@@ -1554,16 +1594,16 @@ mod tests {
             burned: 0,
             divisibility: 0,
             etching: txid1,
-            rarity: Rarity::Uncommon,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            symbol: None,
           }
         )
       ]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [
         (
           OutPoint {
@@ -1616,9 +1656,9 @@ mod tests {
             burned: 0,
             divisibility: 0,
             etching: txid0,
-            rarity: Rarity::Uncommon,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            symbol: None,
           }
         ),
         (
@@ -1627,16 +1667,16 @@ mod tests {
             burned: 0,
             divisibility: 0,
             etching: txid1,
-            rarity: Rarity::Uncommon,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            symbol: None,
           }
         )
       ]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid2,
@@ -1668,6 +1708,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -1690,15 +1731,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid0,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid0,
@@ -1729,15 +1770,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid0,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(OutPoint { txid, vout: 1 }, vec![(id, u128::max_value())])]
     );
   }
@@ -1762,6 +1803,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -1786,6 +1828,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE + 1),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -1809,9 +1852,9 @@ mod tests {
             burned: 0,
             divisibility: 0,
             etching: txid0,
-            rarity: Rarity::Uncommon,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            symbol: None,
           }
         ),
         (
@@ -1820,16 +1863,16 @@ mod tests {
             burned: 0,
             divisibility: 0,
             etching: txid1,
-            rarity: Rarity::Common,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            symbol: None,
           }
         ),
       ]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [
         (
           OutPoint {
@@ -1869,6 +1912,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -1891,15 +1935,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid0,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid0,
@@ -1942,15 +1986,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid0,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid1,
@@ -1981,6 +2025,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -2003,15 +2048,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid0,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid0,
@@ -2033,6 +2078,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE + 1),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -2056,9 +2102,9 @@ mod tests {
             burned: 0,
             divisibility: 0,
             etching: txid0,
-            rarity: Rarity::Uncommon,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            symbol: None,
           }
         ),
         (
@@ -2067,16 +2113,16 @@ mod tests {
             burned: 0,
             divisibility: 0,
             etching: txid1,
-            rarity: Rarity::Uncommon,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            symbol: None,
           }
         )
       ]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [
         (
           OutPoint {
@@ -2129,9 +2175,9 @@ mod tests {
             burned: 0,
             divisibility: 0,
             etching: txid0,
-            rarity: Rarity::Uncommon,
             rune: Rune(RUNE),
             supply: u128::max_value(),
+            symbol: None,
           }
         ),
         (
@@ -2140,16 +2186,16 @@ mod tests {
             burned: 0,
             divisibility: 0,
             etching: txid1,
-            rarity: Rarity::Uncommon,
             rune: Rune(RUNE + 1),
             supply: u128::max_value(),
+            symbol: None,
           }
         )
       ]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [
         (
           OutPoint {
@@ -2189,6 +2235,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -2211,15 +2258,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid0,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value() / 2,
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid0,
@@ -2255,15 +2302,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid0,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value() / 2,
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid1,
@@ -2294,6 +2341,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -2316,15 +2364,15 @@ mod tests {
           burned: u128::max_value(),
           divisibility: 0,
           etching: txid,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(OutPoint { txid, vout: 1 }, vec![(id, u128::max_value())])]
     );
   }
@@ -2350,6 +2398,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -2372,15 +2421,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
   }
@@ -2413,6 +2462,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -2435,15 +2485,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
     );
   }
@@ -2469,6 +2519,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -2491,15 +2542,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: (u128::max_value() / 4) * 4,
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [
         (
           OutPoint { txid, vout: 0 },
@@ -2549,6 +2600,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -2571,15 +2623,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: 1000 + ((u128::max_value() - 1000) / 4) * 4,
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [
         (
           OutPoint { txid, vout: 0 },
@@ -2629,6 +2681,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -2651,15 +2704,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [
         (
           OutPoint { txid, vout: 0 },
@@ -2702,6 +2755,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -2724,15 +2778,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: 4000,
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [
         (OutPoint { txid, vout: 0 }, vec![(id, 1000)]),
         (OutPoint { txid, vout: 1 }, vec![(id, 1000)]),
@@ -2770,6 +2824,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -2792,15 +2847,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [
         (
           OutPoint { txid, vout: 0 },
@@ -2840,6 +2895,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -2862,15 +2918,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [
         (
           OutPoint { txid, vout: 0 },
@@ -2903,6 +2959,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -2925,15 +2982,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid0,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid0,
@@ -2970,15 +3027,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid0,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [
         (
           OutPoint {
@@ -3018,6 +3075,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -3040,15 +3098,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid0,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid0,
@@ -3092,15 +3150,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid0,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [
         (
           OutPoint {
@@ -3140,6 +3198,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -3162,15 +3221,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid0,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid0,
@@ -3214,15 +3273,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid0,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [
         (
           OutPoint {
@@ -3262,6 +3321,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -3284,15 +3344,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid0,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid0,
@@ -3329,15 +3389,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid0,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [
         (
           OutPoint {
@@ -3377,6 +3437,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -3399,15 +3460,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid0,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid0,
@@ -3451,15 +3512,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid0,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [
         (
           OutPoint {
@@ -3499,6 +3560,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -3521,15 +3583,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid0,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [(
         OutPoint {
           txid: txid0,
@@ -3573,15 +3635,15 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid0,
-          rarity: Rarity::Uncommon,
           rune: Rune(RUNE),
           supply: u128::max_value(),
+          symbol: None,
         }
       )]
     );
 
     assert_eq!(
-      context.index.rune_balances(),
+      context.index.get_rune_balances(),
       [
         (
           OutPoint {
@@ -3612,6 +3674,225 @@ mod tests {
           vec![(id, 1000)]
         )
       ]
+    );
+  }
+
+  #[test]
+  fn etching_may_specify_symbol() {
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
+
+    context.mine_blocks(1);
+
+    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            divisibility: 0,
+            rune: Rune(RUNE),
+            symbol: Some('$'),
+          }),
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    assert_eq!(
+      context.index.runes().unwrap().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          burned: 0,
+          divisibility: 0,
+          etching: txid,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
+          symbol: Some('$'),
+        }
+      )]
+    );
+
+    assert_eq!(
+      context.index.get_rune_balances(),
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+    );
+  }
+
+  #[test]
+  fn allocate_all_remaining_runes_in_etching() {
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
+
+    context.mine_blocks(1);
+
+    let txid = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: 0,
+            output: 0,
+          }],
+          etching: Some(Etching {
+            divisibility: 0,
+            rune: Rune(RUNE),
+            symbol: None,
+          }),
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    assert_eq!(
+      context.index.runes().unwrap().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          burned: 0,
+          divisibility: 0,
+          etching: txid,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
+          symbol: None,
+        }
+      )]
+    );
+
+    assert_eq!(
+      context.index.get_rune_balances(),
+      [(OutPoint { txid, vout: 0 }, vec![(id, u128::max_value())])]
+    );
+  }
+
+  #[test]
+  fn allocate_all_remaining_runes_in_inputs() {
+    let context = Context::builder()
+      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
+      .build();
+
+    context.mine_blocks(1);
+
+    let txid0 = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            divisibility: 0,
+            rune: Rune(RUNE),
+            symbol: None,
+          }),
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = RuneId {
+      height: 2,
+      index: 1,
+    };
+
+    assert_eq!(
+      context.index.runes().unwrap().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          burned: 0,
+          divisibility: 0,
+          etching: txid0,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
+          symbol: None,
+        }
+      )]
+    );
+
+    assert_eq!(
+      context.index.get_rune_balances(),
+      [(
+        OutPoint {
+          txid: txid0,
+          vout: 0
+        },
+        vec![(id, u128::max_value())]
+      )]
+    );
+
+    let txid1 = context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 1, 0, Witness::new())],
+      outputs: 2,
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: id.into(),
+            amount: 0,
+            output: 1,
+          }],
+          etching: None,
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    assert_eq!(
+      context.index.runes().unwrap().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          burned: 0,
+          divisibility: 0,
+          etching: txid0,
+          rune: Rune(RUNE),
+          supply: u128::max_value(),
+          symbol: None,
+        }
+      )]
+    );
+
+    assert_eq!(
+      context.index.get_rune_balances(),
+      [(
+        OutPoint {
+          txid: txid1,
+          vout: 1,
+        },
+        vec![(id, u128::max_value())]
+      )]
     );
   }
 }
