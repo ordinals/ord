@@ -791,6 +791,7 @@ mod tests {
       Some(Etching {
         divisibility: 0,
         rune: Rune(0),
+        symbol: None,
       }),
       3,
     );
@@ -800,6 +801,7 @@ mod tests {
       Some(Etching {
         divisibility: MAX_DIVISIBILITY,
         rune: Rune(0),
+        symbol: None,
       }),
       4,
     );
@@ -809,6 +811,7 @@ mod tests {
       Some(Etching {
         divisibility: 0,
         rune: Rune(u128::max_value()),
+        symbol: None,
       }),
       21,
     );
@@ -826,6 +829,7 @@ mod tests {
       Some(Etching {
         divisibility: MAX_DIVISIBILITY,
         rune: Rune(u128::max_value()),
+        symbol: None,
       }),
       43,
     );
