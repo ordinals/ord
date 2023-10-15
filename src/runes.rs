@@ -28,7 +28,7 @@ mod tests {
     let context = Context::builder()
       .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
       .build();
-    assert_eq!(context.index.runes().unwrap().unwrap(), []);
+    assert_eq!(context.index.runes().unwrap(), []);
     assert_eq!(context.index.get_rune_balances(), []);
   }
 
@@ -50,6 +50,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune: Rune(RUNE),
+            symbol: None,
           }),
         }
         .encipher(),
@@ -86,7 +87,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    assert_eq!(context.index.runes().unwrap().unwrap(), []);
+    assert_eq!(context.index.runes().unwrap(), []);
     assert_eq!(context.index.get_rune_balances(), []);
   }
 
@@ -2499,7 +2500,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -2555,7 +2556,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -2611,7 +2612,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -2656,7 +2657,7 @@ mod tests {
     context.mine_blocks(1);
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {

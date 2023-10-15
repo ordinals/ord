@@ -673,10 +673,6 @@ impl Index {
     &self,
     outpoint: OutPoint,
   ) -> Result<Vec<(Rune, Pile)>> {
-    if !self.has_rune_index()? {
-      return Ok(Vec::new());
-    }
-
     let rtx = &self.database.begin_read()?;
 
     let outpoint_to_balances = rtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;

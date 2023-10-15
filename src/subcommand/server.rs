@@ -2266,6 +2266,16 @@ mod tests {
   }
 
   #[test]
+  fn rare_without_index() {
+    TestServer::new_with_sat_index().assert_response(
+      "/rare.txt",
+      StatusCode::OK,
+      "sat\tsatpoint
+",
+    );
+  }
+
+  #[test]
   fn show_rare_txt_in_header_with_sat_index() {
     TestServer::new_with_sat_index().assert_response_regex(
       "/",
@@ -3353,7 +3363,7 @@ mod tests {
     };
 
     assert_eq!(
-      server.index.runes().unwrap().unwrap(),
+      server.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
