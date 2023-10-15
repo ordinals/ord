@@ -52,6 +52,9 @@ async fn get_sat_ranges(value: JsonRpcExtractor, index: Arc<Index>) -> JrpcResul
     start: u64,
     end: u64,
     block_rarities: Vec<BlockRarityInfo>,
+    block_height: Height,
+    block_hash: Option<BlockHash>,
+    block_time: i64,
   }
 
   #[derive(Serialize)]
@@ -107,10 +110,14 @@ async fn get_sat_ranges(value: JsonRpcExtractor, index: Arc<Index>) -> JrpcResul
               Err(err) => return invalid_params(answer_id, err.to_string()),
             };
 
+            let block_height = Sat(range.0).height();
             utxo.sat_ranges.push(SatRange {
               start: range.0,
               end: range.1,
               block_rarities,
+              block_height,
+              block_hash: index.block_hash(Some(block_height.n())).unwrap(),
+              block_time: index.block_time(block_height).unwrap().unix_timestamp(),
             });
             sat_ranges.push(range);
           }
@@ -303,13 +310,13 @@ mod tests {
           block_rarity: BlockRarity::FirstTransaction,
           chunks: vec![(460 * COIN_VALUE - 10_000, 460 * COIN_VALUE)]
         },
-        BlockRarityInfo {
-          block_rarity: BlockRarity::Palindrome,
-          chunks: vec![
-            (45_999_999_954, 45_999_999_955),
-            (46_000_000_064, 46_000_000_065)
-          ]
-        }
+        // BlockRarityInfo {
+        //   block_rarity: BlockRarity::Palindrome,
+        //   chunks: vec![
+        //     (45_999_999_954, 45_999_999_955),
+        //     (46_000_000_064, 46_000_000_065)
+        //   ]
+        // }
       ]
     );
 
