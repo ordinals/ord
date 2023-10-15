@@ -1247,6 +1247,8 @@ mod tests {
     std::net::TcpListener,
   };
 
+  const RUNE: u128 = 99246114928149462;
+
   struct TestServer {
     bitcoin_rpc_server: test_bitcoincore_rpc::Handle,
     index: Arc<Index>,
@@ -3150,7 +3152,7 @@ mod tests {
           }],
           etching: Some(Etching {
             divisibility: 0,
-            rune: Rune(u128::from(21_000_000 * COIN_VALUE)),
+            rune: Rune(RUNE),
             symbol: None,
           }),
         }
@@ -3174,7 +3176,7 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid,
-          rune: Rune(u128::from(21_000_000 * COIN_VALUE)),
+          rune: Rune(RUNE),
           supply: u128::max_value(),
           symbol: None,
         }
@@ -3192,7 +3194,7 @@ mod tests {
       ".*<title>Runes</title>.*
 <h1>Runes</h1>
 <ul>
-  <li><a href=/rune/NVTDIJZYIPU>NVTDIJZYIPU</a></li>
+  <li><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></li>
 </ul>.*",
     );
   }
@@ -3203,7 +3205,7 @@ mod tests {
 
     server.mine_blocks(1);
 
-    let rune = Rune(u128::from(21_000_000 * COIN_VALUE));
+    let rune = Rune(RUNE);
 
     server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
 
@@ -3258,8 +3260,8 @@ mod tests {
       format!("/rune/{rune}"),
       StatusCode::OK,
       format!(
-        r".*<title>Rune NVTDIJZYIPU</title>.*
-<h1>Rune NVTDIJZYIPU</h1>
+        r".*<title>Rune AAAAAAAAAAAAA</title>.*
+<h1>Rune AAAAAAAAAAAAA</h1>
 <dl>
   <dt>id</dt>
   <dd>2/1</dd>
@@ -3339,7 +3341,7 @@ mod tests {
 
     server.mine_blocks(1);
 
-    let rune = Rune(u128::from(21_000_000 * COIN_VALUE));
+    let rune = Rune(RUNE);
 
     server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
 
@@ -3405,7 +3407,7 @@ mod tests {
         <th>balance</th>
       </tr>
       <tr>
-        <td><a href=/rune/NVTDIJZYIPU>NVTDIJZYIPU</a></td>
+        <td><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></td>
         <td>34028236692093846346337460743176821145.5</td>
       </tr>
     </table>
@@ -3423,12 +3425,9 @@ mod tests {
         transaction: txid.to_string(),
         sat_ranges: None,
         inscriptions: Vec::new(),
-        runes: vec![(
-          Rune(2100000000000000),
-          340282366920938463463374607431768211455
-        )]
-        .into_iter()
-        .collect(),
+        runes: vec![(Rune(RUNE), 340282366920938463463374607431768211455)]
+          .into_iter()
+          .collect(),
       }
     );
   }
