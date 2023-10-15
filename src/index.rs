@@ -636,6 +636,21 @@ impl Index {
     }
   }
 
+  pub(crate) fn get_rune_by_id(&self, id: RuneId) -> Result<Option<Rune>> {
+    if self.has_rune_index()? {
+      Ok(
+        self
+          .database
+          .begin_read()?
+          .open_table(RUNE_ID_TO_RUNE_ENTRY)?
+          .get(&id.store())?
+          .map(|entry| RuneEntry::load(entry.value()).rune),
+      )
+    } else {
+      Ok(None)
+    }
+  }
+
   pub(crate) fn rune(&self, rune: Rune) -> Result<Option<(RuneId, RuneEntry)>> {
     if self.has_rune_index()? {
       let rtx = self.database.begin_read()?;

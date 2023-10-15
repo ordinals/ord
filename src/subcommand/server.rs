@@ -217,7 +217,7 @@ impl Server {
         .route("/runes", get(Self::runes))
         .route("/sat/:sat", get(Self::sat))
         .route("/search", get(Self::search_by_query))
-        .route("/search/:query", get(Self::search_by_path))
+        .route("/search/*query", get(Self::search_by_path))
         .route("/static/*path", get(Self::static_asset))
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
@@ -722,6 +722,7 @@ impl Server {
       static ref INSCRIPTION_ID: Regex = Regex::new(r"^[[:xdigit:]]{64}i\d+$").unwrap();
       static ref OUTPOINT: Regex = Regex::new(r"^[[:xdigit:]]{64}:\d+$").unwrap();
       static ref RUNE: Regex = Regex::new(r"^[A-Z]+$").unwrap();
+      static ref RUNE_ID: Regex = Regex::new(r"^[0-9]+/[0-9]+$").unwrap();
     }
 
     let query = query.trim();
@@ -738,6 +739,14 @@ impl Server {
       Ok(Redirect::to(&format!("/inscription/{query}")))
     } else if RUNE.is_match(query) {
       Ok(Redirect::to(&format!("/rune/{query}")))
+    } else if RUNE_ID.is_match(query) {
+      let id = query
+        .parse::<RuneId>()
+        .map_err(|err| ServerError::BadRequest(err.to_string()))?;
+
+      let rune = index.get_rune_by_id(id)?.ok_or_not_found(|| "rune ID")?;
+
+      Ok(Redirect::to(&format!("/rune/{rune}")))
     } else {
       Ok(Redirect::to(&format!("/sat/{query}")))
     }
@@ -1755,6 +1764,49 @@ mod tests {
   #[test]
   fn search_by_path_returns_rune() {
     TestServer::new().assert_redirect("/search/ABCD", "/rune/ABCD");
+  }
+
+  #[test]
+  fn search_by_rune_id_returns_rune() {
+    let server = TestServer::new_with_regtest_with_index_runes();
+
+    server.mine_blocks(1);
+
+    let rune = Rune(u128::from(21_000_000 * COIN_VALUE));
+
+    server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
+
+    server.bitcoin_rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            divisibility: 0,
+            rune,
+          }),
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    server.mine_blocks(1);
+
+    server.assert_redirect("/search/2/1", "/rune/NVTDIJZYIPU");
+    server.assert_redirect("/search?query=2/1", "/rune/NVTDIJZYIPU");
+
+    server.assert_response_regex(format!("/rune/100/200"), StatusCode::NOT_FOUND, ".*");
+
+    server.assert_response_regex(
+      format!("/search/100000000000000000000/200000000000000000"),
+      StatusCode::BAD_REQUEST,
+      ".*",
+    );
   }
 
   #[test]
