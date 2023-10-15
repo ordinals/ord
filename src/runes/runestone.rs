@@ -721,6 +721,7 @@ mod tests {
       }))
     );
   }
+<<<<<<< HEAD
 
   #[test]
   fn runestone_size() {
