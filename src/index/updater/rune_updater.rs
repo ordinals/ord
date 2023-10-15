@@ -96,9 +96,6 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
           continue;
         }
 
-        // divide runes evenly between all non op-return outputs
-        // send amount runes to all non op-return outputs
-
         let (balance, id) = if id == 0 {
           // If this edict allocates new issuance runes, skip it
           // if no issuance was present, or if the issuance was invalid.
