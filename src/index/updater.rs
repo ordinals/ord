@@ -563,7 +563,7 @@ impl<'index> Updater<'_> {
         self.height,
         &mut outpoint_to_rune_balances,
         &mut rune_id_to_rune_entry,
-        &mut inscription_id_to_inscription_entry,
+        &inscription_id_to_inscription_entry,
         &mut inscription_id_to_runes,
         &mut rune_to_rune_id,
       );

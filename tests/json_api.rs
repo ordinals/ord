@@ -166,7 +166,8 @@ fn get_inscription() {
       content_length: Some(3),
       timestamp: 2,
       previous: None,
-      next: None
+      next: None,
+      runes: Vec::new(),
     }
   )
 }
@@ -383,7 +384,8 @@ fn get_output() {
         InscriptionId { txid, index: 0 },
         InscriptionId { txid, index: 1 },
         InscriptionId { txid, index: 2 },
-      ]
+      ],
+      runes: BTreeMap::new(),
     }
   );
 }
