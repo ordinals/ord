@@ -8,8 +8,10 @@
   <dd>{{ Pile{ amount: self.entry.burned, divisibility: self.entry.divisibility, symbol: self.entry.symbol } }}</dd>
   <dt>divisibility</dt>
   <dd>{{ self.entry.divisibility }}</dd>
-  <dt>rarity</dt>
-  <dd><span class={{ self.entry.rarity }}>{{ self.entry.rarity }}</span></dd>
+%% if let Some(symbol) = self.entry.symbol {
+  <dt>symbol</dt>
+  <dd>{{ symbol }}</dd>
+%% }
   <dt>etching</dt>
   <dd><a class=monospace href=/tx/{{ self.entry.etching }}>{{ self.entry.etching }}</a></dd>
 %% if let Some(inscription) = self.inscription {

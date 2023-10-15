@@ -12,13 +12,11 @@ struct Allocation {
 }
 
 pub(super) struct RuneUpdater<'a, 'db, 'tx> {
-  count: usize,
   height: u64,
   id_to_entry: &'a mut Table<'db, 'tx, RuneIdValue, RuneEntryValue>,
   minimum: Rune,
   outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
   rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
-  rarity: Rarity,
 }
 
 impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
@@ -29,8 +27,6 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
     rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
   ) -> Self {
     Self {
-      count: 0,
-      rarity: Height(height).starting_sat().rarity(),
       height,
       id_to_entry,
       minimum: Rune::minimum_at_height(Height(height)),
@@ -150,11 +146,6 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
               burned: 0,
               divisibility,
               etching: txid,
-              rarity: if self.count == 0 {
-                self.rarity
-              } else {
-                Rarity::Common
-              },
               rune,
               supply,
               symbol,
@@ -162,7 +153,6 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             .store(),
           )?;
         }
-        self.count += 1;
       }
     }
 

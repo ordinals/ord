@@ -3174,7 +3174,6 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid,
-          rarity: Rarity::Uncommon,
           rune: Rune(u128::from(21_000_000 * COIN_VALUE)),
           supply: u128::max_value(),
           symbol: None,
@@ -3220,7 +3219,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune,
-            symbol: None,
+            symbol: Some('$'),
           }),
         }
         .encipher(),
@@ -3243,10 +3242,9 @@ mod tests {
           burned: 0,
           divisibility: 0,
           etching: txid,
-          rarity: Rarity::Uncommon,
           rune,
           supply: u128::max_value(),
-          symbol: None,
+          symbol: Some('$'),
         }
       )]
     );
@@ -3260,19 +3258,19 @@ mod tests {
       format!("/rune/{rune}"),
       StatusCode::OK,
       format!(
-        ".*<title>Rune NVTDIJZYIPU</title>.*
+        r".*<title>Rune NVTDIJZYIPU</title>.*
 <h1>Rune NVTDIJZYIPU</h1>
 <dl>
   <dt>id</dt>
   <dd>2/1</dd>
   <dt>supply</dt>
-  <dd>340282366920938463463374607431768211455</dd>
+  <dd>\$340282366920938463463374607431768211455</dd>
   <dt>burned</dt>
-  <dd>0</dd>
+  <dd>\$0</dd>
   <dt>divisibility</dt>
   <dd>0</dd>
-  <dt>rarity</dt>
-  <dd><span class=uncommon>uncommon</span></dd>
+  <dt>symbol</dt>
+  <dd>\$</dd>
   <dt>etching</dt>
   <dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
   <dt>inscription</dt>
@@ -3380,7 +3378,6 @@ mod tests {
           burned: 0,
           divisibility: 1,
           etching: txid,
-          rarity: Rarity::Uncommon,
           rune,
           supply: u128::max_value(),
           symbol: None,
