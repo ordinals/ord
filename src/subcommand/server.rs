@@ -1077,6 +1077,8 @@ impl Server {
 
     let children = index.get_children_by_inscription_id(inscription_id)?;
 
+    let runes = todo!();
+
     Ok(if accept_json.0 {
       Json(InscriptionJson::new(
         page_config.chain,
@@ -1093,6 +1095,7 @@ impl Server {
         entry.sat,
         satpoint,
         timestamp(entry.timestamp),
+        runes,
       ))
       .into_response()
     } else {
@@ -1111,6 +1114,7 @@ impl Server {
         sat: entry.sat,
         satpoint,
         timestamp: timestamp(entry.timestamp),
+        runes,
       }
       .page(page_config, index.has_sat_index()?)
       .into_response()

@@ -8,11 +8,12 @@ pub(crate) struct InscriptionHtml {
   pub(crate) genesis_height: u64,
   pub(crate) inscription: Inscription,
   pub(crate) inscription_id: InscriptionId,
-  pub(crate) next: Option<InscriptionId>,
   pub(crate) inscription_number: i64,
+  pub(crate) next: Option<InscriptionId>,
   pub(crate) output: Option<TxOut>,
   pub(crate) parent: Option<InscriptionId>,
   pub(crate) previous: Option<InscriptionId>,
+  pub(crate) runes: Vec<Rune>,
   pub(crate) sat: Option<Sat>,
   pub(crate) satpoint: SatPoint,
   pub(crate) timestamp: DateTime<Utc>,
@@ -27,14 +28,15 @@ pub struct InscriptionJson {
   pub genesis_fee: u64,
   pub genesis_height: u64,
   pub inscription_id: InscriptionId,
-  pub next: Option<InscriptionId>,
   pub inscription_number: i64,
+  pub next: Option<InscriptionId>,
   pub output_value: Option<u64>,
   pub parent: Option<InscriptionId>,
   pub previous: Option<InscriptionId>,
   pub sat: Option<Sat>,
   pub satpoint: SatPoint,
   pub timestamp: i64,
+  pub runes: Vec<Rune>,
 }
 
 impl InscriptionJson {
@@ -53,6 +55,7 @@ impl InscriptionJson {
     sat: Option<Sat>,
     satpoint: SatPoint,
     timestamp: DateTime<Utc>,
+    runes: Vec<Rune>,
   ) -> Self {
     Self {
       inscription_id,
@@ -73,6 +76,7 @@ impl InscriptionJson {
       timestamp: timestamp.timestamp(),
       previous,
       next,
+      runes,
     }
   }
 }
