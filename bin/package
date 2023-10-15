@@ -19,14 +19,14 @@ if [[ $OS == windows-latest ]]; then
 fi
 
 echo "Copying release files..."
-mkdir -p dist/ord-$VERSION
+mkdir dist
 cp \
   $EXECUTABLE \
   Cargo.lock \
   Cargo.toml \
   LICENSE \
   README.md \
-  $DIST/ord-$VERSION
+  $DIST
 
 cd $DIST
 echo "Creating release archive..."

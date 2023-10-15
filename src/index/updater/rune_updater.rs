@@ -8,16 +8,15 @@ struct Allocation {
   divisibility: u8,
   id: u128,
   rune: Rune,
+  symbol: Option<char>,
 }
 
 pub(super) struct RuneUpdater<'a, 'db, 'tx> {
-  count: usize,
   height: u64,
   id_to_entry: &'a mut Table<'db, 'tx, RuneIdValue, RuneEntryValue>,
   minimum: Rune,
   outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
   rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
-  rarity: Rarity,
 }
 
 impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
@@ -28,8 +27,6 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
     rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
   ) -> Self {
     Self {
-      count: 0,
-      rarity: Height(height).starting_sat().rarity(),
       height,
       id_to_entry,
       minimum: Rune::minimum_at_height(Height(height)),
@@ -84,6 +81,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
                 divisibility: etching.divisibility,
                 id: u128::from(self.height) << 16 | u128::from(index),
                 rune: etching.rune,
+                symbol: etching.symbol,
               }),
               Err(_) => None,
             }
@@ -116,7 +114,11 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         };
 
         // Get the allocatable amount
-        let amount = amount.min(*balance);
+        let amount = if amount == 0 {
+          *balance
+        } else {
+          amount.min(*balance)
+        };
 
         // If the amount to be allocated is greater than zero,
         // deduct it from the remaining balance, and increment
@@ -132,33 +134,23 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
         divisibility,
         id,
         rune,
+        symbol,
       }) = allocation
       {
-        // Calculate the allocated supply
-        let supply = u128::max_value() - balance;
-
-        // If no runes were allocated, ignore this issuance
-        if supply > 0 {
-          let id = RuneId::try_from(id).unwrap();
-          self.rune_to_id.insert(rune.0, id.store())?;
-          self.id_to_entry.insert(
-            id.store(),
-            RuneEntry {
-              burned: 0,
-              divisibility,
-              etching: txid,
-              rarity: if self.count == 0 {
-                self.rarity
-              } else {
-                Rarity::Common
-              },
-              rune,
-              supply,
-            }
-            .store(),
-          )?;
-        }
-        self.count += 1;
+        let id = RuneId::try_from(id).unwrap();
+        self.rune_to_id.insert(rune.0, id.store())?;
+        self.id_to_entry.insert(
+          id.store(),
+          RuneEntry {
+            burned: 0,
+            divisibility,
+            etching: txid,
+            rune,
+            supply: u128::max_value() - balance,
+            symbol,
+          }
+          .store(),
+        )?;
       }
     }
 
@@ -170,7 +162,9 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       .find(|(_, tx_out)| !tx_out.script_pubkey.is_op_return())
     {
       for (id, balance) in unallocated {
-        *allocated[vout].entry(id).or_default() += balance;
+        if balance > 0 {
+          *allocated[vout].entry(id).or_default() += balance;
+        }
       }
     }
 
