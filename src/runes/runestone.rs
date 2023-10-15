@@ -27,10 +27,13 @@ impl Runestone {
 
     let mut edicts = Vec::new();
     let mut etching = None;
-
+    let mut id = 0u128;
     for chunk in integers.chunks(3) {
       match *chunk {
-        [id, amount, output] => edicts.push(Edict { id, amount, output }),
+        [id_delta, amount, output] => {
+          id = id.saturating_add(id_delta);
+          edicts.push(Edict { id, amount, output });
+        }
         [rune] => {
           etching = Some(Etching {
             divisibility: 0,
@@ -65,10 +68,15 @@ impl Runestone {
   pub(crate) fn encipher(&self) -> ScriptBuf {
     let mut payload = Vec::new();
 
-    for edict in &self.edicts {
-      varint::encode_to_vec(edict.id, &mut payload);
+    let mut edicts = self.edicts.clone();
+    edicts.sort_by_key(|edict| edict.id);
+
+    let mut id = 0;
+    for edict in edicts {
+      varint::encode_to_vec(edict.id - id, &mut payload);
       varint::encode_to_vec(edict.amount, &mut payload);
       varint::encode_to_vec(edict.output, &mut payload);
+      id = edict.id;
     }
 
     if let Some(etching) = self.etching {
@@ -580,7 +588,7 @@ mod tests {
 
   #[test]
   fn runestone_may_contain_multiple_edicts() {
-    let payload = payload(&[1, 2, 3, 4, 5, 6]);
+    let payload = payload(&[1, 2, 3, 3, 5, 6]);
 
     let payload: &PushBytes = payload.as_slice().try_into().unwrap();
 
@@ -607,6 +615,44 @@ mod tests {
           },
           Edict {
             id: 4,
+            amount: 5,
+            output: 6,
+          },
+        ],
+        etching: None,
+      }))
+    );
+  }
+
+  #[test]
+  fn id_deltas_saturate_to_max() {
+    let payload = payload(&[1, 2, 3, u128::max_value(), 5, 6]);
+
+    let payload: &PushBytes = payload.as_slice().try_into().unwrap();
+
+    assert_eq!(
+      Runestone::decipher(&Transaction {
+        input: Vec::new(),
+        output: vec![TxOut {
+          script_pubkey: script::Builder::new()
+            .push_opcode(opcodes::all::OP_RETURN)
+            .push_slice(b"RUNE_TEST")
+            .push_slice(payload)
+            .into_script(),
+          value: 0
+        }],
+        lock_time: locktime::absolute::LockTime::ZERO,
+        version: 0,
+      }),
+      Ok(Some(Runestone {
+        edicts: vec![
+          Edict {
+            id: 1,
+            amount: 2,
+            output: 3,
+          },
+          Edict {
+            id: u128::max_value(),
             amount: 5,
             output: 6,
           },
@@ -725,6 +771,204 @@ mod tests {
         },],
         etching: None,
       }))
+    );
+  }
+
+  #[test]
+  fn runestone_size() {
+    #[track_caller]
+    fn case(edicts: Vec<Edict>, etching: Option<Etching>, size: usize) {
+      assert_eq!(
+        Runestone { edicts, etching }.encipher().len() - 1 - b"RUNE_TEST".len(),
+        size
+      );
+    }
+
+    case(Vec::new(), None, 1);
+
+    case(
+      Vec::new(),
+      Some(Etching {
+        divisibility: 0,
+        rune: Rune(0),
+      }),
+      3,
+    );
+
+    case(
+      Vec::new(),
+      Some(Etching {
+        divisibility: MAX_DIVISIBILITY,
+        rune: Rune(0),
+      }),
+      4,
+    );
+
+    case(
+      Vec::new(),
+      Some(Etching {
+        divisibility: 0,
+        rune: Rune(u128::max_value()),
+      }),
+      21,
+    );
+
+    case(
+      vec![Edict {
+        amount: u128::max_value(),
+        id: RuneId {
+          height: 0,
+          index: 0,
+        }
+        .into(),
+        output: 0,
+      }],
+      Some(Etching {
+        divisibility: MAX_DIVISIBILITY,
+        rune: Rune(u128::max_value()),
+      }),
+      43,
+    );
+
+    case(
+      vec![Edict {
+        amount: u128::max_value(),
+        id: RuneId {
+          height: 1_000_000,
+          index: u16::max_value(),
+        }
+        .into(),
+        output: 0,
+      }],
+      None,
+      28,
+    );
+
+    case(
+      vec![
+        Edict {
+          amount: u128::max_value(),
+          id: RuneId {
+            height: 1_000_000,
+            index: u16::max_value(),
+          }
+          .into(),
+          output: 0,
+        },
+        Edict {
+          amount: u128::max_value(),
+          id: RuneId {
+            height: 1_000_000,
+            index: u16::max_value(),
+          }
+          .into(),
+          output: 0,
+        },
+      ],
+      None,
+      49,
+    );
+
+    case(
+      vec![
+        Edict {
+          amount: u128::max_value(),
+          id: RuneId {
+            height: 1_000_000,
+            index: u16::max_value(),
+          }
+          .into(),
+          output: 0,
+        },
+        Edict {
+          amount: u128::max_value(),
+          id: RuneId {
+            height: 1_000_000,
+            index: u16::max_value(),
+          }
+          .into(),
+          output: 0,
+        },
+        Edict {
+          amount: u128::max_value(),
+          id: RuneId {
+            height: 1_000_000,
+            index: u16::max_value(),
+          }
+          .into(),
+          output: 0,
+        },
+      ],
+      None,
+      70,
+    );
+
+    case(
+      vec![
+        Edict {
+          amount: u64::max_value().into(),
+          id: RuneId {
+            height: 1_000_000,
+            index: u16::max_value(),
+          }
+          .into(),
+          output: 0,
+        };
+        4
+      ],
+      None,
+      55,
+    );
+
+    case(
+      vec![
+        Edict {
+          amount: u64::max_value().into(),
+          id: RuneId {
+            height: 1_000_000,
+            index: u16::max_value(),
+          }
+          .into(),
+          output: 0,
+        };
+        5
+      ],
+      None,
+      67,
+    );
+
+    case(
+      vec![
+        Edict {
+          amount: u64::max_value().into(),
+          id: RuneId {
+            height: 0,
+            index: u16::max_value(),
+          }
+          .into(),
+          output: 0,
+        };
+        5
+      ],
+      None,
+      64,
+    );
+
+    case(
+      vec![
+        Edict {
+          amount: 1_000_000_000_000_000_000,
+          id: RuneId {
+            height: 1_000_000,
+            index: u16::max_value(),
+          }
+          .into(),
+          output: 0,
+        };
+        5
+      ],
+      None,
+      62,
     );
   }
 }
