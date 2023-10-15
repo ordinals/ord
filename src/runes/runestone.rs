@@ -859,7 +859,7 @@ mod tests {
         rune: Rune(u128::max_value()),
         symbol: None,
       }),
-      43,
+      25,
     );
 
     case(
