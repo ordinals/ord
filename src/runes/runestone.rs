@@ -4,9 +4,11 @@ const TAG_BODY: u128 = 0;
 const TAG_DIVISIBILITY: u128 = 1;
 const TAG_RUNE: u128 = 2;
 const TAG_SYMBOL: u128 = 3;
+const TAG_LIMIT: u128 = 4;
+const TAG_TERM: u128 = 6;
 
 #[allow(unused)]
-const TAG_BURN: u128 = 4;
+const TAG_BURN: u128 = 8;
 
 #[derive(Default, Serialize, Debug, PartialEq)]
 pub struct Runestone {
@@ -74,16 +76,22 @@ impl Runestone {
     let Message { mut fields, body } = Message::from_integers(&integers);
 
     let etching = fields.remove(&TAG_RUNE).map(|rune| Etching {
-      rune: Rune(rune),
       divisibility: fields
         .remove(&TAG_DIVISIBILITY)
         .and_then(|divisibility| u8::try_from(divisibility).ok())
         .and_then(|divisibility| (divisibility <= MAX_DIVISIBILITY).then_some(divisibility))
         .unwrap_or_default(),
+      limit: fields
+        .remove(&TAG_LIMIT)
+        .and_then(|limit| (limit <= MAX_LIMIT).then_some(limit)),
+      rune: Rune(rune),
       symbol: fields
         .remove(&TAG_SYMBOL)
         .and_then(|symbol| u32::try_from(symbol).ok())
         .and_then(char::from_u32),
+      term: fields
+        .remove(&TAG_TERM)
+        .and_then(|term| u64::try_from(term).ok()),
     });
 
     Ok(Some(Self {
@@ -109,6 +117,16 @@ impl Runestone {
       if let Some(symbol) = etching.symbol {
         varint::encode_to_vec(TAG_SYMBOL, &mut payload);
         varint::encode_to_vec(symbol.into(), &mut payload);
+      }
+
+      if let Some(limit) = etching.limit {
+        varint::encode_to_vec(TAG_LIMIT, &mut payload);
+        varint::encode_to_vec(limit, &mut payload);
+      }
+
+      if let Some(term) = etching.term {
+        varint::encode_to_vec(TAG_TERM, &mut payload);
+        varint::encode_to_vec(term.into(), &mut payload);
       }
     }
 
@@ -795,6 +813,7 @@ mod tests {
           rune: Rune(4),
           divisibility: 1,
           symbol: Some('a'),
+          ..Default::default()
         }),
         ..Default::default()
       }))
@@ -1073,6 +1092,7 @@ mod tests {
         divisibility: MAX_DIVISIBILITY,
         rune: Rune(0),
         symbol: Some('$'),
+        ..Default::default()
       }),
       8,
     );

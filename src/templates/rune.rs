@@ -30,7 +30,7 @@ mod tests {
           rune: Rune(u128::max_value()),
           supply: 123456789123456789,
           symbol: Some('$'),
-          timestamp: 0,
+          ..Default::default()
         },
         id: RuneId {
           height: 10,
