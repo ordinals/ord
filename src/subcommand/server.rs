@@ -3153,6 +3153,7 @@ mod tests {
             rune: Rune(u128::from(21_000_000 * COIN_VALUE)),
             symbol: None,
           }),
+          ..Default::default()
         }
         .encipher(),
       ),
@@ -3221,6 +3222,7 @@ mod tests {
             rune,
             symbol: Some('$'),
           }),
+          ..Default::default()
         }
         .encipher(),
       ),
@@ -3357,6 +3359,7 @@ mod tests {
             rune,
             symbol: None,
           }),
+          ..Default::default()
         }
         .encipher(),
       ),
