@@ -1,6 +1,7 @@
 use crate::inscription::TransactionInscription;
 use crate::subcommand::traits::Output;
 use base64::{engine::general_purpose, Engine as _};
+use log::warn;
 
 use super::*;
 use rdkafka::{
@@ -260,29 +261,34 @@ impl StreamEvent {
 
   pub(crate) fn with_transfer(&mut self, old_satpoint: SatPoint, index: &Index) -> &mut Self {
     self.old_location = Some(old_satpoint);
-    if let Some(inscription) = index
+    self.old_owner = index
+      .get_transaction(old_satpoint.outpoint.txid)
+      .unwrap_or(None)
+      .and_then(|tx| {
+        tx.output
+          .get(old_satpoint.outpoint.vout as usize)
+          .and_then(|txout| {
+            Address::from_script(&txout.script_pubkey, StreamEvent::get_network())
+              .map_err(|e| {
+                log::error!(
+                  "StreamEvent::with_transfer could not parse old_owner address: {}",
+                  e
+                );
+              })
+              .ok()
+          })
+      });
+    match index
       .get_inscription_by_id_unsafe(self.inscription_id)
-      .unwrap_or_else(|_| panic!("Inscription should exist: {}", self.inscription_id))
+      .unwrap_or(None)
     {
-      self.enrich_content(inscription);
-      self.old_owner = index
-        .get_transaction(old_satpoint.outpoint.txid)
-        .unwrap_or(None)
-        .and_then(|tx| {
-          tx.output
-            .get(old_satpoint.outpoint.vout as usize)
-            .and_then(|txout| {
-              Address::from_script(&txout.script_pubkey, StreamEvent::get_network())
-                .map_err(|e| {
-                  log::error!(
-                    "StreamEvent::with_transfer could not parse old_owner address: {}",
-                    e
-                  );
-                })
-                .ok()
-            })
-        });
-    };
+      Some(inscription) => {
+        self.enrich_content(inscription);
+      }
+      None => {
+        warn!("could not find inscription for id {}", self.inscription_id);
+      }
+    }
     self
   }
 
