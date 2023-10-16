@@ -102,6 +102,7 @@ mod info;
 mod json_api;
 mod list;
 mod parse;
+mod runes;
 mod server;
 mod subsidy;
 mod supply;

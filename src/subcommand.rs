@@ -8,6 +8,7 @@ pub mod info;
 pub mod list;
 pub mod parse;
 mod preview;
+pub mod runes;
 mod server;
 pub mod subsidy;
 pub mod supply;
@@ -32,6 +33,8 @@ pub(crate) enum Subcommand {
   List(list::List),
   #[command(about = "Parse a satoshi from ordinal notation")]
   Parse(parse::Parse),
+  #[command(about = "List etched runes")]
+  Runes,
   #[command(about = "Display information about a block's subsidy")]
   Subsidy(subsidy::Subsidy),
   #[command(about = "Run the explorer server")]
@@ -55,6 +58,7 @@ impl Subcommand {
       Self::Info(info) => info.run(options),
       Self::List(list) => list.run(options),
       Self::Parse(parse) => parse.run(),
+      Self::Runes => runes::run(options),
       Self::Subsidy(subsidy) => subsidy.run(),
       Self::Server(server) => {
         let index = Arc::new(Index::open(&options)?);
