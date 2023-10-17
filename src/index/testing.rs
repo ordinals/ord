@@ -53,11 +53,6 @@ impl ContextBuilder {
     self
   }
 
-  pub(crate) fn chain(mut self, chain: Chain) -> Self {
-    self.chain = chain;
-    self
-  }
-
   pub(crate) fn tempdir(mut self, tempdir: TempDir) -> Self {
     self.tempdir = Some(tempdir);
     self
