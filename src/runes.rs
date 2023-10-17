@@ -3662,7 +3662,7 @@ mod tests {
             txid: txid1,
             vout: 0
           },
-          vec![(id, u128::max_value() - 3000)]
+          vec![(id, 1000 + u128::max_value() - 4000)]
         ),
         (
           OutPoint {
