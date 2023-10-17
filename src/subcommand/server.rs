@@ -1796,6 +1796,7 @@ mod tests {
           etching: Some(Etching {
             divisibility: 0,
             rune,
+            symbol: None,
           }),
         }
         .encipher(),
@@ -1808,10 +1809,10 @@ mod tests {
     server.assert_redirect("/search/2/1", "/rune/NVTDIJZYIPU");
     server.assert_redirect("/search?query=2/1", "/rune/NVTDIJZYIPU");
 
-    server.assert_response_regex(format!("/rune/100/200"), StatusCode::NOT_FOUND, ".*");
+    server.assert_response_regex("/rune/100/200", StatusCode::NOT_FOUND, ".*");
 
     server.assert_response_regex(
-      format!("/search/100000000000000000000/200000000000000000"),
+      "/search/100000000000000000000/200000000000000000",
       StatusCode::BAD_REQUEST,
       ".*",
     );
