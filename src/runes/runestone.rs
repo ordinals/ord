@@ -522,7 +522,7 @@ mod tests {
 
   #[test]
   fn unrecognized_even_tag_is_ignored() {
-    let payload = payload(&[126, 0, 1, 2, 3]);
+    let payload = payload(&[127, 100, 0, 1, 2, 3]);
 
     let payload: &PushBytes = payload.as_slice().try_into().unwrap();
 
@@ -693,7 +693,7 @@ mod tests {
 
   #[test]
   fn symbol_above_max_is_ignored() {
-    let payload = payload(&[2, 4, 3, u32::from(char::MAX) + 1, 0, 1, 2, 3]);
+    let payload = payload(&[2, 4, 3, u128::from(u32::from(char::MAX) + 1), 0, 1, 2, 3]);
 
     let payload: &PushBytes = payload.as_slice().try_into().unwrap();
 
