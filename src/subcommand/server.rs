@@ -1794,9 +1794,8 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            divisibility: 0,
             rune,
-            symbol: None,
+            ..Default::default()
           }),
         }
         .encipher(),
