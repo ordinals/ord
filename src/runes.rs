@@ -721,7 +721,7 @@ mod tests {
   }
 
   #[test]
-  fn etching_rune_is_burned_if_an_unrecognized_even_tag_is_encountered() {
+  fn etched_rune_is_burned_if_an_unrecognized_even_tag_is_encountered() {
     let context = Context::builder()
       .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
       .build();
