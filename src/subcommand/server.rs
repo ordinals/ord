@@ -976,7 +976,7 @@ impl Server {
         (
           [(
             header::CONTENT_SECURITY_POLICY,
-            "script-src-elem 'self' https://cdn.jsdelivr.net; href-src 'self' https://cdn.jsdelivr.net",
+            "script-src-elem 'self'; href-src 'self'",
           )],
           PreviewCodeHtml { inscription_id },
         )
@@ -1001,7 +1001,7 @@ impl Server {
         (
           [(
             header::CONTENT_SECURITY_POLICY,
-            "script-src-elem 'self' https://cdn.jsdelivr.net",
+            "script-src-elem 'self'",
           )],
           PreviewMarkdownHtml { inscription_id },
         )
