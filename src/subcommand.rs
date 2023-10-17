@@ -20,8 +20,6 @@ pub(crate) enum Subcommand {
   Decode(decode::Decode),
   #[command(about = "List the first satoshis of each reward epoch")]
   Epochs,
-  #[command(about = "Run an explorer server populated with inscriptions")]
-  Preview(preview::Preview),
   #[command(about = "Find a satoshi's current location")]
   Find(find::Find),
   #[command(subcommand, about = "Index commands")]
@@ -32,10 +30,12 @@ pub(crate) enum Subcommand {
   List(list::List),
   #[command(about = "Parse a satoshi from ordinal notation")]
   Parse(parse::Parse),
-  #[command(about = "Display information about a block's subsidy")]
-  Subsidy(subsidy::Subsidy),
+  #[command(about = "Run an explorer server populated with inscriptions")]
+  Preview(preview::Preview),
   #[command(about = "Run the explorer server")]
   Server(server::Server),
+  #[command(about = "Display information about a block's subsidy")]
+  Subsidy(subsidy::Subsidy),
   #[command(about = "Display Bitcoin supply information")]
   Supply,
   #[command(about = "Display satoshi traits")]
@@ -49,19 +49,19 @@ impl Subcommand {
     match self {
       Self::Decode(decode) => decode.run(),
       Self::Epochs => epochs::run(),
-      Self::Preview(preview) => preview.run(),
       Self::Find(find) => find.run(options),
       Self::Index(index) => index.run(options),
       Self::Info(info) => info.run(options),
       Self::List(list) => list.run(options),
       Self::Parse(parse) => parse.run(),
-      Self::Subsidy(subsidy) => subsidy.run(),
+      Self::Preview(preview) => preview.run(),
       Self::Server(server) => {
         let index = Arc::new(Index::open(&options)?);
         let handle = axum_server::Handle::new();
         LISTENERS.lock().unwrap().push(handle.clone());
         server.run(options, index, handle)
       }
+      Self::Subsidy(subsidy) => subsidy.run(),
       Self::Supply => supply::run(),
       Self::Traits(traits) => traits.run(),
       Self::Wallet(wallet) => wallet.run(options),
