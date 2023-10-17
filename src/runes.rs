@@ -1,8 +1,8 @@
 use {self::error::Error, super::*};
 
-pub(crate) use {
-  edict::Edict, etching::Etching, pile::Pile, rune::Rune, rune_id::RuneId, runestone::Runestone,
-};
+pub use runestone::Runestone;
+
+pub(crate) use {edict::Edict, etching::Etching, pile::Pile, rune::Rune, rune_id::RuneId};
 
 const MAX_DIVISIBILITY: u8 = 38;
 
@@ -13,7 +13,7 @@ mod pile;
 mod rune;
 mod rune_id;
 mod runestone;
-pub(crate) mod varint;
+pub mod varint;
 
 type Result<T, E = Error> = std::result::Result<T, E>;
 
