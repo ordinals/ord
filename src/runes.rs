@@ -99,9 +99,8 @@ mod tests {
       op_return: Some(
         Runestone {
           etching: Some(Etching {
-            divisibility: 0,
             rune: Rune(RUNE),
-            symbol: None,
+            ..Default::default()
           }),
           ..Default::default()
         }
@@ -122,17 +121,13 @@ mod tests {
       [(
         id,
         RuneEntry {
-          burned: 0,
-          divisibility: 0,
           etching: txid,
           rune: Rune(RUNE),
-          supply: 0,
-          symbol: None,
+          ..Default::default()
         }
       )]
     );
 
-    assert_eq!(context.index.runes().unwrap(), []);
     assert_eq!(context.index.get_rune_balances(), []);
   }
 
