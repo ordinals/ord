@@ -38,7 +38,6 @@ impl Message {
             output: chunk[2],
           });
         }
-
         break;
       }
 
@@ -522,6 +521,41 @@ mod tests {
   }
 
   #[test]
+  fn unrecognized_even_tag_is_ignored() {
+    let payload = payload(&[126, 0, 1, 2, 3]);
+
+    let payload: &PushBytes = payload.as_slice().try_into().unwrap();
+
+    assert_eq!(
+      Runestone::decipher(&Transaction {
+        input: Vec::new(),
+        output: vec![TxOut {
+          script_pubkey: script::Builder::new()
+            .push_opcode(opcodes::all::OP_RETURN)
+            .push_slice(b"RUNE_TEST")
+            .push_slice(payload)
+            .into_script(),
+          value: 0
+        }],
+        lock_time: locktime::absolute::LockTime::ZERO,
+        version: 0,
+      }),
+      Ok(Some(Runestone {
+        edicts: vec![Edict {
+          id: 1,
+          amount: 2,
+          output: 3,
+        }],
+        etching: Some(Etching {
+          rune: Rune(4),
+          ..Default::default()
+        }),
+        ..Default::default()
+      }))
+    );
+  }
+
+  #[test]
   fn tag_with_no_value_is_ignored() {
     let payload = payload(&[2, 4, 2]);
 
@@ -625,6 +659,41 @@ mod tests {
   #[test]
   fn divisibility_above_max_is_ignored() {
     let payload = payload(&[2, 4, 1, (MAX_DIVISIBILITY + 1).into(), 0, 1, 2, 3]);
+
+    let payload: &PushBytes = payload.as_slice().try_into().unwrap();
+
+    assert_eq!(
+      Runestone::decipher(&Transaction {
+        input: Vec::new(),
+        output: vec![TxOut {
+          script_pubkey: script::Builder::new()
+            .push_opcode(opcodes::all::OP_RETURN)
+            .push_slice(b"RUNE_TEST")
+            .push_slice(payload)
+            .into_script(),
+          value: 0
+        }],
+        lock_time: locktime::absolute::LockTime::ZERO,
+        version: 0,
+      }),
+      Ok(Some(Runestone {
+        edicts: vec![Edict {
+          id: 1,
+          amount: 2,
+          output: 3,
+        }],
+        etching: Some(Etching {
+          rune: Rune(4),
+          ..Default::default()
+        }),
+        ..Default::default()
+      }))
+    );
+  }
+
+  #[test]
+  fn symbol_above_max_is_ignored() {
+    let payload = payload(&[2, 4, 3, u32::from(char::MAX) + 1, 0, 1, 2, 3]);
 
     let payload: &PushBytes = payload.as_slice().try_into().unwrap();
 
