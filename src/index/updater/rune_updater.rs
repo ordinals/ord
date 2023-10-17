@@ -97,8 +97,12 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
 
       if !burn {
         for Edict { id, amount, output } in runestone.edicts {
+          let Ok(output) = usize::try_from(output) else {
+            continue;
+          };
+
           // Skip edicts not referring to valid outputs
-          if output > tx.output.len() as u128 {
+          if output > tx.output.len() {
             continue;
           }
 
@@ -119,7 +123,14 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
             }
           };
 
-          if output == tx.output.len() as u128 {
+          let mut allocate = |balance: &mut u128, amount: u128, output: usize| {
+            if amount > 0 {
+              *balance -= amount;
+              *allocated[output].entry(id).or_default() += amount;
+            }
+          };
+
+          if output == tx.output.len() {
             // find non-OP_RETURN outputs
             let destinations = tx
               .output
@@ -135,18 +146,12 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
               let amount = *balance / destinations.len() as u128;
 
               for output in destinations {
-                *balance -= amount;
-                *allocated[output].entry(id).or_default() += amount;
+                allocate(balance, amount, output);
               }
             } else {
               // if amount is non-zero, distribute amount to eligible outputs
               for output in destinations {
-                let amount = amount.min(*balance);
-
-                if amount > 0 {
-                  *balance -= amount;
-                  *allocated[output].entry(id).or_default() += amount;
-                }
+                allocate(balance, amount.min(*balance), output);
               }
             }
           } else {
@@ -157,13 +162,7 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
               amount.min(*balance)
             };
 
-            // If the amount to be allocated is greater than zero,
-            // deduct it from the remaining balance, and increment
-            // the allocated entry.
-            if amount > 0 {
-              *balance -= amount;
-              *allocated[output as usize].entry(id).or_default() += amount;
-            }
+            allocate(balance, amount, output);
           }
         }
       }
