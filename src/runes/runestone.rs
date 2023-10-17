@@ -479,8 +479,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Rune(4),
-          divisibility: 0,
-          symbol: None,
+          ..Default::default()
         }),
         ..Default::default()
       }))
@@ -515,8 +514,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Rune(4),
-          divisibility: 0,
-          symbol: None,
+          ..Default::default()
         }),
         ..Default::default()
       }))
@@ -546,8 +544,7 @@ mod tests {
       Ok(Some(Runestone {
         etching: Some(Etching {
           rune: Rune(4),
-          divisibility: 0,
-          symbol: None,
+          ..Default::default()
         }),
         ..Default::default()
       }))
@@ -582,8 +579,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Rune(4),
-          divisibility: 0,
-          symbol: None,
+          ..Default::default()
         }),
         ..Default::default()
       }))
@@ -619,7 +615,7 @@ mod tests {
         etching: Some(Etching {
           rune: Rune(4),
           divisibility: 5,
-          symbol: None,
+          ..Default::default()
         }),
         ..Default::default()
       }))
@@ -654,8 +650,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Rune(4),
-          divisibility: 0,
-          symbol: None,
+          ..Default::default()
         }),
         ..Default::default()
       }))
@@ -690,8 +685,8 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Rune(4),
-          divisibility: 0,
           symbol: Some('a'),
+          ..Default::default()
         }),
         ..Default::default()
       }))
@@ -762,8 +757,7 @@ mod tests {
         }],
         etching: Some(Etching {
           rune: Rune(4),
-          divisibility: 0,
-          symbol: None,
+          ..Default::default()
         }),
         ..Default::default()
       }))
@@ -878,7 +872,7 @@ mod tests {
         etching: Some(Etching {
           rune: Rune(4),
           divisibility: 5,
-          symbol: None,
+          ..Default::default()
         }),
         ..Default::default()
       }))
@@ -985,9 +979,8 @@ mod tests {
     case(
       Vec::new(),
       Some(Etching {
-        divisibility: 0,
         rune: Rune(0),
-        symbol: None,
+        ..Default::default()
       }),
       4,
     );
@@ -997,7 +990,7 @@ mod tests {
       Some(Etching {
         divisibility: MAX_DIVISIBILITY,
         rune: Rune(0),
-        symbol: None,
+        ..Default::default()
       }),
       6,
     );
@@ -1015,9 +1008,8 @@ mod tests {
     case(
       Vec::new(),
       Some(Etching {
-        divisibility: 0,
         rune: Rune(u128::max_value()),
-        symbol: None,
+        ..Default::default()
       }),
       22,
     );
@@ -1035,7 +1027,7 @@ mod tests {
       Some(Etching {
         divisibility: MAX_DIVISIBILITY,
         rune: Rune(u128::max_value()),
-        symbol: None,
+        ..Default::default()
       }),
       28,
     );
@@ -1053,9 +1045,33 @@ mod tests {
       Some(Etching {
         divisibility: MAX_DIVISIBILITY,
         rune: Rune(u128::max_value()),
-        symbol: None,
+        ..Default::default()
       }),
       46,
+    );
+
+    case(
+      vec![Edict {
+        amount: 0,
+        id: RuneId {
+          height: 1_000_000,
+          index: u16::max_value(),
+        }
+        .into(),
+        output: 0,
+      }],
+      None,
+      11,
+    );
+
+    case(
+      vec![Edict {
+        amount: 0,
+        id: 1 << 48,
+        output: 0,
+      }],
+      None,
+      12,
     );
 
     case(
