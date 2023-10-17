@@ -79,8 +79,13 @@ use {
 };
 
 pub use crate::{
-  fee_rate::FeeRate, inscription::Inscription, object::Object, rarity::Rarity, sat::Sat,
-  sat_point::SatPoint, subcommand::wallet::transaction_builder::TransactionBuilder,
+  fee_rate::FeeRate,
+  inscription::Inscription,
+  object::Object,
+  rarity::Rarity,
+  sat::Sat,
+  sat_point::SatPoint,
+  subcommand::wallet::transaction_builder::{Target, TransactionBuilder},
 };
 
 #[cfg(test)]
@@ -121,7 +126,7 @@ mod outgoing;
 mod page_config;
 pub mod rarity;
 mod representation;
-mod runes;
+pub mod runes;
 pub mod sat;
 mod sat_point;
 pub mod subcommand;
