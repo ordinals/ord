@@ -83,6 +83,7 @@ pub(crate) enum Statistic {
   IndexSats,
   LostSats,
   OutputsTraversed,
+  Runes,
   SatRanges,
   Schema,
   UnboundInscriptions,
