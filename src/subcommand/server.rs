@@ -2124,7 +2124,7 @@ mod tests {
   <dt>id</dt>
   <dd class=monospace>{inscription_id}</dd>
   <dt>preview</dt>.*<dt>output</dt>
-  <dd><a class=monospace href=/output/0000000000000000000000000000000000000000000000000000000000000000:0>0000000000000000000000000000000000000000000000000000000000000000:0 \\(unbound\\)</a></dd>.*"
+  <dd><a class=monospace href=/output/0000000000000000000000000000000000000000000000000000000000000000:0>0000000000000000000000000000000000000000000000000000000000000000:0</a></dd>.*"
       ),
     );
   }
@@ -3381,7 +3381,7 @@ mod tests {
       "/inscription/-1",
       StatusCode::OK,
       format!(
-        ".*<h1>Inscription -1 \\(unstable\\)</h1>.*
+        ".*<h1>Inscription -1</h1>.*
 <dl>
   <dt>id</dt>
   <dd class=monospace>{cursed_inscription_id}</dd>.*"
