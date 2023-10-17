@@ -1797,6 +1797,7 @@ mod tests {
             rune,
             ..Default::default()
           }),
+          ..Default::default()
         }
         .encipher(),
       ),
