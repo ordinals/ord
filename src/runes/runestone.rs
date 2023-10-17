@@ -546,10 +546,6 @@ mod tests {
           amount: 2,
           output: 3,
         }],
-        etching: Some(Etching {
-          rune: Rune(4),
-          ..Default::default()
-        }),
         ..Default::default()
       }))
     );
