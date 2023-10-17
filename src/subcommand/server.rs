@@ -3141,10 +3141,10 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            divisibility: 0,
             rune: Rune(u128::from(21_000_000 * COIN_VALUE)),
-            symbol: None,
+            ..Default::default()
           }),
+          ..Default::default()
         }
         .encipher(),
       ),
@@ -3163,12 +3163,10 @@ mod tests {
       [(
         id,
         RuneEntry {
-          burned: 0,
-          divisibility: 0,
           etching: txid,
           rune: Rune(u128::from(21_000_000 * COIN_VALUE)),
           supply: u128::max_value(),
-          symbol: None,
+          ..Default::default()
         }
       )]
     );
@@ -3209,10 +3207,11 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching {
-            divisibility: 0,
             rune,
             symbol: Some('$'),
+            ..Default::default()
           }),
+          ..Default::default()
         }
         .encipher(),
       ),
@@ -3231,12 +3230,11 @@ mod tests {
       [(
         id,
         RuneEntry {
-          burned: 0,
-          divisibility: 0,
           etching: txid,
           rune,
           supply: u128::max_value(),
           symbol: Some('$'),
+          ..Default::default()
         }
       )]
     );
@@ -3347,8 +3345,9 @@ mod tests {
           etching: Some(Etching {
             divisibility: 1,
             rune,
-            symbol: None,
+            ..Default::default()
           }),
+          ..Default::default()
         }
         .encipher(),
       ),
@@ -3367,12 +3366,11 @@ mod tests {
       [(
         id,
         RuneEntry {
-          burned: 0,
           divisibility: 1,
           etching: txid,
           rune,
           supply: u128::max_value(),
-          symbol: None,
+          ..Default::default()
         }
       )]
     );
