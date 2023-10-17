@@ -24,29 +24,45 @@ mod tests {
   const RUNE: u128 = (21_000_000 * COIN_VALUE) as u128;
 
   #[test]
-  fn index_only_indexes_runes_if_flag_is_passed_and_on_mainnet() {
-    assert!(!Context::builder().build().index.has_rune_index().unwrap());
-    assert!(!Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .chain(Chain::Mainnet)
-      .build()
-      .index
-      .has_rune_index()
-      .unwrap());
-    assert!(Context::builder()
-      .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
-      .build()
-      .index
-      .has_rune_index()
-      .unwrap());
-  }
-
-  #[test]
   fn index_starts_with_no_runes() {
     let context = Context::builder()
       .arg("--index-runes-pre-alpha-i-agree-to-get-rekt")
       .build();
-    assert_eq!(context.index.runes().unwrap().unwrap(), []);
+    assert_eq!(context.index.runes().unwrap(), []);
+    assert_eq!(context.index.get_rune_balances(), []);
+  }
+
+  #[test]
+  fn default_index_does_not_index_runes() {
+    let context = Context::builder().build();
+
+    context.mine_blocks(1);
+
+    context.rpc_server.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Witness::new())],
+      op_return: Some(
+        Runestone {
+          edicts: vec![Edict {
+            id: 0,
+            amount: u128::max_value(),
+            output: 0,
+          }],
+          etching: Some(Etching {
+            divisibility: 0,
+            rune: Rune(RUNE),
+            symbol: None,
+          }),
+          ..Default::default()
+        }
+        .encipher(),
+      ),
+      ..Default::default()
+    });
+
+    context.mine_blocks(1);
+
+    assert_eq!(context.index.runes().unwrap(), []);
+
     assert_eq!(context.index.get_rune_balances(), []);
   }
 
@@ -66,7 +82,7 @@ mod tests {
 
     context.mine_blocks(1);
 
-    assert_eq!(context.index.runes().unwrap().unwrap(), []);
+    assert_eq!(context.index.runes().unwrap(), []);
     assert_eq!(context.index.get_rune_balances(), []);
   }
 
@@ -101,7 +117,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -151,7 +167,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -200,7 +216,7 @@ mod tests {
 
       context.mine_blocks(1);
 
-      assert_eq!(context.index.runes().unwrap().unwrap(), []);
+      assert_eq!(context.index.runes().unwrap(), []);
 
       assert_eq!(context.index.get_rune_balances(), []);
     }
@@ -240,7 +256,7 @@ mod tests {
       };
 
       assert_eq!(
-        context.index.runes().unwrap().unwrap(),
+        context.index.runes().unwrap(),
         [(
           id,
           RuneEntry {
@@ -296,7 +312,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -358,7 +374,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -419,7 +435,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -474,7 +490,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -535,7 +551,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -600,7 +616,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -654,7 +670,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -696,7 +712,7 @@ mod tests {
     context.mine_blocks(1);
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -756,7 +772,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -806,7 +822,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -844,7 +860,7 @@ mod tests {
     context.mine_blocks(1);
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -896,7 +912,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -928,7 +944,7 @@ mod tests {
     context.mine_blocks(1);
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -989,7 +1005,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -1021,7 +1037,7 @@ mod tests {
     context.mine_blocks(1);
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -1081,7 +1097,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -1121,7 +1137,7 @@ mod tests {
     context.mine_blocks(1);
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -1175,7 +1191,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id0,
         RuneEntry {
@@ -1226,7 +1242,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [
         (
           id0,
@@ -1277,7 +1293,7 @@ mod tests {
     context.mine_blocks(1);
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [
         (
           id0,
@@ -1348,7 +1364,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id0,
         RuneEntry {
@@ -1399,7 +1415,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [
         (
           id0,
@@ -1450,7 +1466,7 @@ mod tests {
     context.mine_blocks(1);
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [
         (
           id0,
@@ -1511,7 +1527,7 @@ mod tests {
     context.mine_blocks(1);
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [
         (
           id0,
@@ -1594,7 +1610,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id0,
         RuneEntry {
@@ -1645,7 +1661,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [
         (
           id0,
@@ -1714,7 +1730,7 @@ mod tests {
     context.mine_blocks(1);
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [
         (
           id0,
@@ -1786,7 +1802,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -1823,7 +1839,7 @@ mod tests {
     context.mine_blocks(1);
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -1902,7 +1918,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [
         (
           id0,
@@ -1982,7 +1998,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -2031,7 +2047,7 @@ mod tests {
     context.mine_blocks(1);
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -2091,7 +2107,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id0,
         RuneEntry {
@@ -2142,7 +2158,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [
         (
           id0,
@@ -2211,7 +2227,7 @@ mod tests {
     context.mine_blocks(1);
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [
         (
           id0,
@@ -2291,7 +2307,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -2333,7 +2349,7 @@ mod tests {
     context.mine_blocks(1);
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -2393,7 +2409,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -2449,7 +2465,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -2511,7 +2527,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -2566,7 +2582,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -2621,7 +2637,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -2675,7 +2691,7 @@ mod tests {
     };
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
@@ -2718,7 +2734,7 @@ mod tests {
     context.mine_blocks(1);
 
     assert_eq!(
-      context.index.runes().unwrap().unwrap(),
+      context.index.runes().unwrap(),
       [(
         id,
         RuneEntry {
