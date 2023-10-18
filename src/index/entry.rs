@@ -32,6 +32,19 @@ pub(crate) struct RuneEntry {
   pub(crate) symbol: Option<char>,
 }
 
+impl Default for RuneEntry {
+  fn default() -> Self {
+    Self {
+      burned: 0,
+      divisibility: 0,
+      etching: Txid::all_zeros(),
+      rune: Rune(0),
+      supply: 0,
+      symbol: None,
+    }
+  }
+}
+
 pub(super) type RuneEntryValue = (u128, u8, (u128, u128), u128, u128, u32);
 
 impl Entry for RuneEntry {

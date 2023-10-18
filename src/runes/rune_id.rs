@@ -29,6 +29,21 @@ impl Display for RuneId {
   }
 }
 
+impl FromStr for RuneId {
+  type Err = crate::Error;
+
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    let (height, index) = s
+      .split_once('/')
+      .ok_or_else(|| anyhow!("invalid rune ID: {s}"))?;
+
+    Ok(Self {
+      height: height.parse()?,
+      index: index.parse()?,
+    })
+  }
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
@@ -54,6 +69,22 @@ mod tests {
       }
       .to_string(),
       "1/2"
+    );
+  }
+
+  #[test]
+  fn from_str() {
+    assert!("/".parse::<RuneId>().is_err());
+    assert!("1/".parse::<RuneId>().is_err());
+    assert!("/2".parse::<RuneId>().is_err());
+    assert!("a/2".parse::<RuneId>().is_err());
+    assert!("1/a".parse::<RuneId>().is_err());
+    assert_eq!(
+      "1/2".parse::<RuneId>().unwrap(),
+      RuneId {
+        height: 1,
+        index: 2
+      }
     );
   }
 
