@@ -35,7 +35,7 @@ mod updater;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 8;
+const SCHEMA_VERSION: u64 = 9;
 
 macro_rules! define_table {
   ($name:ident, $key:ty, $value:ty) => {
@@ -77,16 +77,17 @@ pub enum List {
 }
 
 #[derive(Copy, Clone)]
-#[repr(u64)]
 pub(crate) enum Statistic {
-  Schema = 0,
-  Commits = 1,
-  LostSats = 2,
-  OutputsTraversed = 3,
-  SatRanges = 4,
-  UnboundInscriptions = 5,
-  CursedInscriptions = 6,
-  BlessedInscriptions = 7,
+  BlessedInscriptions,
+  Commits,
+  CursedInscriptions,
+  IndexRunes,
+  IndexSats,
+  LostSats,
+  OutputsTraversed,
+  SatRanges,
+  Schema,
+  UnboundInscriptions,
 }
 
 impl Statistic {
@@ -156,6 +157,8 @@ pub(crate) struct Index {
   genesis_block_coinbase_transaction: Transaction,
   genesis_block_coinbase_txid: Txid,
   height_limit: Option<u64>,
+  index_runes: bool,
+  index_sats: bool,
   options: Options,
   path: PathBuf,
   unrecoverably_reorged: AtomicBool,
@@ -209,19 +212,23 @@ impl Index {
       redb::Durability::Immediate
     };
 
+    let index_runes;
+    let index_sats;
+
     let database = match Database::builder()
       .set_cache_size(db_cache_size)
       .open(&path)
     {
       Ok(database) => {
-        let schema_version = database
-          .begin_read()?
-          .open_table(STATISTIC_TO_COUNT)?
-          .get(&Statistic::Schema.key())?
-          .map(|x| x.value())
-          .unwrap_or(0);
+        {
+          let tx = database.begin_read()?;
+          let schema_version = tx
+            .open_table(STATISTIC_TO_COUNT)?
+            .get(&Statistic::Schema.key())?
+            .map(|x| x.value())
+            .unwrap_or(0);
 
-        match schema_version.cmp(&SCHEMA_VERSION) {
+          match schema_version.cmp(&SCHEMA_VERSION) {
           cmp::Ordering::Less =>
             bail!(
               "index at `{}` appears to have been built with an older, incompatible version of ord, consider deleting and rebuilding the index: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
@@ -236,6 +243,20 @@ impl Index {
           }
         }
 
+          let statistics = tx.open_table(STATISTIC_TO_COUNT)?;
+
+          index_runes = statistics
+            .get(&Statistic::IndexRunes.key())?
+            .unwrap()
+            .value()
+            != 0;
+          index_sats = statistics
+            .get(&Statistic::IndexSats.key())?
+            .unwrap()
+            .value()
+            != 0;
+        }
+
         database
       }
       Err(_) => {
@@ -248,6 +269,7 @@ impl Index {
         tx.set_durability(durability);
 
         tx.open_multimap_table(INSCRIPTION_ID_TO_CHILDREN)?;
+        tx.open_multimap_table(INSCRIPTION_ID_TO_RUNES)?;
         tx.open_multimap_table(SATPOINT_TO_INSCRIPTION_ID)?;
         tx.open_multimap_table(SAT_TO_INSCRIPTION_ID)?;
         tx.open_table(HEIGHT_TO_BLOCK_HASH)?;
@@ -256,24 +278,31 @@ impl Index {
         tx.open_table(INSCRIPTION_ID_TO_RUNE)?;
         tx.open_table(INSCRIPTION_ID_TO_SATPOINT)?;
         tx.open_table(INSCRIPTION_NUMBER_TO_INSCRIPTION_ID)?;
+        tx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
         tx.open_table(OUTPOINT_TO_VALUE)?;
+        tx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
+        tx.open_table(RUNE_TO_RUNE_ID)?;
         tx.open_table(SAT_TO_SATPOINT)?;
         tx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ID)?;
         tx.open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?;
 
-        tx.open_table(STATISTIC_TO_COUNT)?
-          .insert(&Statistic::Schema.key(), &SCHEMA_VERSION)?;
+        {
+          let mut outpoint_to_sat_ranges = tx.open_table(OUTPOINT_TO_SAT_RANGES)?;
+          let mut statistics = tx.open_table(STATISTIC_TO_COUNT)?;
 
-        if options.index_runes() {
-          tx.open_multimap_table(INSCRIPTION_ID_TO_RUNES)?;
-          tx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
-          tx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
-          tx.open_table(RUNE_TO_RUNE_ID)?;
-        }
+          if options.index_sats {
+            outpoint_to_sat_ranges.insert(&OutPoint::null().store(), [].as_slice())?;
+          }
 
-        if options.index_sats {
-          tx.open_table(OUTPOINT_TO_SAT_RANGES)?
-            .insert(&OutPoint::null().store(), [].as_slice())?;
+          index_runes = options.index_runes();
+          index_sats = options.index_sats;
+
+          statistics.insert(
+            &Statistic::IndexRunes.key(),
+            &u64::from(options.index_runes()),
+          )?;
+          statistics.insert(&Statistic::IndexSats.key(), &u64::from(options.index_sats))?;
+          statistics.insert(&Statistic::Schema.key(), &SCHEMA_VERSION)?;
         }
 
         tx.commit()?;
@@ -294,6 +323,8 @@ impl Index {
       genesis_block_coinbase_transaction,
       height_limit: options.height_limit,
       options: options.clone(),
+      index_runes,
+      index_sats,
       path,
       unrecoverably_reorged: AtomicBool::new(false),
     })
@@ -362,28 +393,8 @@ impl Index {
       .collect()
   }
 
-  pub(crate) fn has_rune_index(&self) -> Result<bool> {
-    match self.begin_read()?.0.open_table(RUNE_ID_TO_RUNE_ENTRY) {
-      Ok(_) => Ok(true),
-      Err(redb::TableError::TableDoesNotExist(_)) => Ok(false),
-      Err(err) => Err(err.into()),
-    }
-  }
-
-  pub(crate) fn has_sat_index(&self) -> Result<bool> {
-    match self.begin_read()?.0.open_table(OUTPOINT_TO_SAT_RANGES) {
-      Ok(_) => Ok(true),
-      Err(redb::TableError::TableDoesNotExist(_)) => Ok(false),
-      Err(err) => Err(err.into()),
-    }
-  }
-
-  fn require_sat_index(&self, feature: &str) -> Result {
-    if !self.has_sat_index()? {
-      bail!("{feature} requires index created with `--index-sats` flag")
-    }
-
-    Ok(())
+  pub(crate) fn has_sat_index(&self) -> bool {
+    self.index_sats
   }
 
   pub(crate) fn info(&self) -> Result<Info> {
@@ -606,86 +617,77 @@ impl Index {
     Ok(blocks)
   }
 
-  pub(crate) fn rare_sat_satpoints(&self) -> Result<Option<Vec<(Sat, SatPoint)>>> {
-    if self.has_sat_index()? {
-      let rtx = self.database.begin_read()?;
+  pub(crate) fn rare_sat_satpoints(&self) -> Result<Vec<(Sat, SatPoint)>> {
+    let rtx = self.database.begin_read()?;
 
-      let sat_to_satpoint = rtx.open_table(SAT_TO_SATPOINT)?;
+    let sat_to_satpoint = rtx.open_table(SAT_TO_SATPOINT)?;
 
-      let mut result = Vec::with_capacity(sat_to_satpoint.len()?.try_into().unwrap());
+    let mut result = Vec::with_capacity(sat_to_satpoint.len()?.try_into().unwrap());
 
-      for range in sat_to_satpoint.range(0..)? {
-        let (sat, satpoint) = range?;
-        result.push((Sat(sat.value()), Entry::load(*satpoint.value())));
-      }
-
-      Ok(Some(result))
-    } else {
-      Ok(None)
+    for range in sat_to_satpoint.range(0..)? {
+      let (sat, satpoint) = range?;
+      result.push((Sat(sat.value()), Entry::load(*satpoint.value())));
     }
+
+    Ok(result)
   }
 
   pub(crate) fn rare_sat_satpoint(&self, sat: Sat) -> Result<Option<SatPoint>> {
-    if self.has_sat_index()? {
-      Ok(
-        self
-          .database
-          .begin_read()?
-          .open_table(SAT_TO_SATPOINT)?
-          .get(&sat.n())?
-          .map(|satpoint| Entry::load(*satpoint.value())),
-      )
-    } else {
-      Ok(None)
-    }
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(SAT_TO_SATPOINT)?
+        .get(&sat.n())?
+        .map(|satpoint| Entry::load(*satpoint.value())),
+    )
   }
 
-  pub(crate) fn rune(&self, rune: Rune) -> Result<Option<(RuneId, RuneEntry)>> {
-    if self.has_rune_index()? {
-      let rtx = self.database.begin_read()?;
-
-      let entry = match rtx.open_table(RUNE_TO_RUNE_ID)?.get(rune.0)? {
-        Some(id) => rtx
-          .open_table(RUNE_ID_TO_RUNE_ENTRY)?
-          .get(id.value())?
-          .map(|entry| (RuneId::load(id.value()), RuneEntry::load(entry.value()))),
-        None => None,
-      };
-
-      Ok(entry)
-    } else {
-      Ok(None)
-    }
-  }
-
-  pub(crate) fn runes(&self) -> Result<Option<Vec<(RuneId, RuneEntry)>>> {
-    if self.has_rune_index()? {
-      let mut entries = Vec::new();
-
-      for result in self
+  pub(crate) fn get_rune_by_id(&self, id: RuneId) -> Result<Option<Rune>> {
+    Ok(
+      self
         .database
         .begin_read()?
         .open_table(RUNE_ID_TO_RUNE_ENTRY)?
-        .iter()?
-      {
-        let (id, entry) = result?;
-        entries.push((RuneId::load(id.value()), RuneEntry::load(entry.value())));
-      }
+        .get(&id.store())?
+        .map(|entry| RuneEntry::load(entry.value()).rune),
+    )
+  }
 
-      Ok(Some(entries))
-    } else {
-      Ok(None)
+  pub(crate) fn rune(&self, rune: Rune) -> Result<Option<(RuneId, RuneEntry)>> {
+    let rtx = self.database.begin_read()?;
+
+    let entry = match rtx.open_table(RUNE_TO_RUNE_ID)?.get(rune.0)? {
+      Some(id) => rtx
+        .open_table(RUNE_ID_TO_RUNE_ENTRY)?
+        .get(id.value())?
+        .map(|entry| (RuneId::load(id.value()), RuneEntry::load(entry.value()))),
+      None => None,
+    };
+
+    Ok(entry)
+  }
+
+  pub(crate) fn runes(&self) -> Result<Vec<(RuneId, RuneEntry)>> {
+    let mut entries = Vec::new();
+
+    for result in self
+      .database
+      .begin_read()?
+      .open_table(RUNE_ID_TO_RUNE_ENTRY)?
+      .iter()?
+    {
+      let (id, entry) = result?;
+      entries.push((RuneId::load(id.value()), RuneEntry::load(entry.value())));
     }
+
+    Ok(entries)
   }
 
   pub(crate) fn get_rune_balances_for_outpoint(
     &self,
     outpoint: OutPoint,
   ) -> Result<Vec<(Rune, Pile)>> {
-    if !self.has_rune_index()? {
-      return Ok(Vec::new());
-    }
-
     let rtx = &self.database.begin_read()?;
 
     let outpoint_to_balances = rtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
@@ -800,10 +802,6 @@ impl Index {
     &self,
     inscription_id: InscriptionId,
   ) -> Result<Vec<Rune>> {
-    if !self.has_rune_index()? {
-      return Ok(Vec::new());
-    }
-
     self
       .database
       .begin_read()?
@@ -989,8 +987,6 @@ impl Index {
   }
 
   pub(crate) fn find(&self, sat: u64) -> Result<Option<SatPoint>> {
-    self.require_sat_index("find")?;
-
     let rtx = self.begin_read()?;
 
     if rtx.block_count()? <= Sat(sat).height().n() {
@@ -1022,8 +1018,6 @@ impl Index {
     range_start: u64,
     range_end: u64,
   ) -> Result<Option<Vec<FindRangeOutput>>> {
-    self.require_sat_index("find")?;
-
     let rtx = self.begin_read()?;
 
     if rtx.block_count()? < Sat(range_end - 1).height().n() + 1 {
@@ -1082,7 +1076,9 @@ impl Index {
   }
 
   pub(crate) fn list(&self, outpoint: OutPoint) -> Result<Option<List>> {
-    self.require_sat_index("list")?;
+    if !self.index_sats {
+      return Ok(None);
+    }
 
     let array = outpoint.store();
 
@@ -1326,7 +1322,7 @@ impl Index {
 
     match sat {
       Some(sat) => {
-        if self.has_sat_index().unwrap() {
+        if self.index_sats {
           // unbound inscriptions should not be assigned to a sat
           assert!(satpoint.outpoint != unbound_outpoint());
           assert!(rtx
@@ -1354,7 +1350,7 @@ impl Index {
         }
       }
       None => {
-        if self.has_sat_index().unwrap() {
+        if self.index_sats {
           assert!(satpoint.outpoint == unbound_outpoint())
         }
       }
@@ -1403,19 +1399,17 @@ impl Index {
       }
     }
 
-    if self.has_sat_index().unwrap() {
-      for range in rtx
-        .open_multimap_table(SAT_TO_INSCRIPTION_ID)
-        .unwrap()
-        .iter()
-        .into_iter()
-      {
-        for entry in range.into_iter() {
-          let (_sat, ids) = entry.unwrap();
-          assert!(!ids
-            .into_iter()
-            .any(|id| InscriptionId::load(*id.unwrap().value()) == inscription_id))
-        }
+    for range in rtx
+      .open_multimap_table(SAT_TO_INSCRIPTION_ID)
+      .unwrap()
+      .iter()
+      .into_iter()
+    {
+      for entry in range.into_iter() {
+        let (_sat, ids) = entry.unwrap();
+        assert!(!ids
+          .into_iter()
+          .any(|id| InscriptionId::load(*id.unwrap().value()) == inscription_id))
       }
     }
   }
