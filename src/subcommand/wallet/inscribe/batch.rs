@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Deserialize, Default, PartialEq, Debug)]
+#[derive(Deserialize, Default, PartialEq, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct BatchEntry {
   pub(crate) inscription: PathBuf,
@@ -17,7 +17,7 @@ impl BatchEntry {
   }
 }
 
-#[derive(Deserialize, PartialEq, Debug, Default)]
+#[derive(Deserialize, PartialEq, Debug, Default, Clone)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct BatchConfig {
   pub(crate) mode: Mode,

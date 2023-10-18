@@ -4,11 +4,8 @@ Batch Inscriptions
 Using the [pointer field](./pointer.md) it is now possible to do batch
 inscriptions. This is especially helpful for collections, since the parent can
 be passed into a transaction and have multiple children at once. There is a lot
-that can be expanded in functionality but for now all children land in the same
-output, separated by 10000 sats. You split them out with the send command. The
-next iteration of this command will put all inscriptions into separate outputs
-for easier sending and even allow setting the destination for each individual
-inscription.
+that can be expanded in functionality like setting destination individually or
+creating more modes like `reinscribe` and `consecutive-sats`.
 
 Example
 -------
@@ -16,9 +13,9 @@ Example
 ```yaml
 # Example batch file
 
-# For now there is only one mode that inscribes all inscription into the same
-# output seperated by the postage (10000sat). They can be peeled off one by
-# one by using `ord wallet send` (last out first).
+# For now there is only two modes:
+# `separate-outputs`: all inscriptions in separate outputs with an output size of 10000sat.
+# `shared-output`: all inscriptions in same output separated by the postage (10000sat).
 mode: shared-output
 
 # Specify parent for all inscriptions
@@ -29,8 +26,10 @@ parent: 6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0
 # This will be the order in which they will be inscribed
 batch:
   - inscription: ./mango.avif
+    metadata:
+      title: Delicious Mangos
+      description: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam semper, ligula ornare laoreet tincidunt, odio nisi euismod tortor, vel blandit metus est et odio. Nullam venenatis, urna et molestie vestibulum, orci mi efficitur risus, eu malesuada diam lorem sed velit. Nam fermentum dolor et luctus euismod.
 
   - inscription: ./token.json
     metaprotocol: brc-20
-    metadata: ./token-metadata.json
 ```

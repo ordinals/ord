@@ -1,7 +1,8 @@
 use super::*;
 
-#[derive(PartialEq, Debug, Default)]
+#[derive(PartialEq, Debug, Default, Clone)]
 pub(crate) enum Mode {
+  SeparateOutputs,
   #[default]
   SharedOutput,
 }
@@ -12,6 +13,7 @@ impl Display for Mode {
       f,
       "{}",
       match self {
+        Mode::SeparateOutputs => "separate-outputs",
         Mode::SharedOutput => "shared-output",
       }
     )
@@ -23,6 +25,7 @@ impl FromStr for Mode {
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
     match s {
+      "separate-outputs" => Ok(Mode::SeparateOutputs),
       "shared-output" => Ok(Mode::SharedOutput),
       _ => Err(format!("'{}' is not a valid Mode", s)),
     }
