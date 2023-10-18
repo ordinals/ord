@@ -355,7 +355,7 @@ mod tests {
           amount: 2,
           output: 3,
         }],
-        etching: None,
+        ..Default::default()
       },
     );
   }
