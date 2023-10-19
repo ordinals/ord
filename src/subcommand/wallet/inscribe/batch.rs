@@ -54,7 +54,12 @@ impl BatchConfig {
         .unwrap_or(TransactionBuilder::TARGET_POSTAGE.to_sat());
     }
 
-    Ok((inscriptions, Amount::from_sat(pointer)))
+    let total_postage = u64::try_from(inscriptions.len()).unwrap()
+      * self
+        .postage
+        .unwrap_or(TransactionBuilder::TARGET_POSTAGE.to_sat());
+
+    Ok((inscriptions, Amount::from_sat(total_postage)))
   }
 
   pub(crate) fn inscribe(
