@@ -35,7 +35,11 @@ impl BatchInscribe {
   pub(crate) fn run(self, options: Options) -> SubcommandResult {
     let batch_config = self.load_batch_config()?;
 
-    batch_config.inscribe(&options, self.fee_rate, self.dry_run)
+    Ok(Box::new(batch_config.inscribe(
+      &options,
+      self.fee_rate,
+      self.dry_run,
+    )?))
   }
 
   pub(crate) fn load_batch_config(&self) -> Result<BatchConfig> {
@@ -232,7 +236,7 @@ batch:
     let fee_rate = 4.0.try_into().unwrap();
 
     let (commit_tx, reveal_tx, _private_key, _) =
-      BatchInscribe::create_batch_inscription_transactions(
+      BatchConfig::create_batch_inscription_transactions(
         Some(parent_info.clone()),
         &inscriptions,
         wallet_inscriptions,
@@ -310,7 +314,7 @@ batch:
     let commit_address = change(1);
     let reveal_addresses = vec![recipient()];
 
-    let error = BatchInscribe::create_batch_inscription_transactions(
+    let error = BatchConfig::create_batch_inscription_transactions(
       Some(parent_info.clone()),
       &inscriptions,
       wallet_inscriptions,
@@ -366,7 +370,7 @@ batch:
     let commit_address = change(1);
     let reveal_addresses = vec![recipient(), recipient()];
 
-    let _ = BatchInscribe::create_batch_inscription_transactions(
+    let _ = BatchConfig::create_batch_inscription_transactions(
       Some(parent_info.clone()),
       &inscriptions,
       wallet_inscriptions,
@@ -395,7 +399,7 @@ batch:
     let commit_address = change(1);
     let reveal_addresses = vec![recipient()];
 
-    let error = BatchInscribe::create_batch_inscription_transactions(
+    let error = BatchConfig::create_batch_inscription_transactions(
       None,
       &inscriptions,
       wallet_inscriptions,
@@ -441,7 +445,7 @@ batch:
     let fee_rate = 4.0.try_into().unwrap();
 
     let (_commit_tx, reveal_tx, _private_key, _) =
-      BatchInscribe::create_batch_inscription_transactions(
+      BatchConfig::create_batch_inscription_transactions(
         None,
         &inscriptions,
         wallet_inscriptions,
@@ -520,7 +524,7 @@ batch:
     let fee_rate = 4.0.try_into().unwrap();
 
     let (_commit_tx, reveal_tx, _private_key, _) =
-      BatchInscribe::create_batch_inscription_transactions(
+      BatchConfig::create_batch_inscription_transactions(
         Some(parent_info.clone()),
         &inscriptions,
         wallet_inscriptions,

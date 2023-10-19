@@ -100,7 +100,15 @@ impl Inscribe {
       }],
     };
 
-    return batch.inscribe(&options, self.fee_rate, self.dry_run);
+    let output = batch.inscribe(&options, self.fee_rate, self.dry_run)?;
+
+    return Ok(Box::new(Output {
+      commit: output.commit,
+      inscription: output.inscriptions[0].id,
+      reveal: output.reveal,
+      parent: output.parent,
+      total_fees: output.total_fees,
+    }));
 
     // let metadata = Inscribe::parse_metadata(self.cbor_metadata, self.json_metadata)?;
 

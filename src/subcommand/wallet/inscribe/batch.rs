@@ -59,7 +59,7 @@ impl BatchConfig {
     options: &Options,
     fee_rate: FeeRate,
     dry_run: bool,
-  ) -> SubcommandResult {
+  ) -> Result<crate::subcommand::wallet::inscribe::batch_inscribe::Output> {
     let index = Index::open(&options)?;
     index.update()?;
 
@@ -165,7 +165,7 @@ impl BatchConfig {
     ))
   }
 
-  fn create_batch_inscription_transactions(
+  pub(crate) fn create_batch_inscription_transactions(
     parent_info: Option<ParentInfo>,
     inscriptions: &Vec<Inscription>,
     wallet_inscriptions: BTreeMap<SatPoint, InscriptionId>,
@@ -399,7 +399,7 @@ impl BatchConfig {
     batch_config: BatchConfig,
     total_fees: u64,
     inscriptions: Vec<Inscription>,
-  ) -> Box<crate::subcommand::wallet::inscribe::batch_inscribe::Output> {
+  ) -> crate::subcommand::wallet::inscribe::batch_inscribe::Output {
     let mut inscriptions_output = Vec::new();
     for index in 0..inscriptions.len() {
       let txid = reveal;
@@ -421,14 +421,12 @@ impl BatchConfig {
       )
     }
 
-    Box::new(
-      crate::subcommand::wallet::inscribe::batch_inscribe::Output {
-        commit,
-        reveal,
-        total_fees,
-        parent: batch_config.parent,
-        inscriptions: inscriptions_output,
-      },
-    )
+    crate::subcommand::wallet::inscribe::batch_inscribe::Output {
+      commit,
+      reveal,
+      total_fees,
+      parent: batch_config.parent,
+      inscriptions: inscriptions_output,
+    }
   }
 }
