@@ -137,6 +137,7 @@ impl BatchConfig {
         self.postage,
         satpoint,
         reinscribe,
+        false,
       )?;
 
     if dry_run {
@@ -204,7 +205,7 @@ impl BatchConfig {
 
   pub(crate) fn create_batch_inscription_transactions(
     parent_info: Option<ParentInfo>,
-    inscriptions: &Vec<Inscription>,
+    inscriptions: &[Inscription],
     wallet_inscriptions: BTreeMap<SatPoint, InscriptionId>,
     chain: Chain,
     mut utxos: BTreeMap<OutPoint, Amount>,
@@ -217,6 +218,7 @@ impl BatchConfig {
     postage: Option<u64>,
     satpoint: Option<SatPoint>,
     reinscribe: bool,
+    no_limit: bool,
   ) -> Result<(Transaction, Transaction, TweakedKeyPair, u64)> {
     if satpoint.is_some() {
       assert_eq!(
@@ -437,7 +439,7 @@ impl BatchConfig {
 
     let reveal_weight = reveal_tx.weight();
 
-    if reveal_weight > bitcoin::Weight::from_wu(MAX_STANDARD_TX_WEIGHT.into()) {
+    if !no_limit && reveal_weight > bitcoin::Weight::from_wu(MAX_STANDARD_TX_WEIGHT.into()) {
       bail!(
         "reveal transaction weight greater than {MAX_STANDARD_TX_WEIGHT} (MAX_STANDARD_TX_WEIGHT): {reveal_weight}"
       );

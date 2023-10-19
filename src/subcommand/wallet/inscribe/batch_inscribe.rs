@@ -258,6 +258,7 @@ batch:
         None,
         None,
         false,
+        false,
       )
       .unwrap();
 
@@ -340,6 +341,7 @@ batch:
       None,
       None,
       false,
+      false,
     )
     .unwrap_err()
     .to_string();
@@ -400,6 +402,7 @@ batch:
       None,
       None,
       false,
+      false,
     );
   }
 
@@ -432,6 +435,7 @@ batch:
       Mode::SharedOutput,
       None,
       None,
+      false,
       false,
     )
     .unwrap_err()
@@ -482,6 +486,7 @@ batch:
         mode,
         None,
         None,
+        false,
         false,
       )
       .unwrap();
@@ -565,6 +570,7 @@ batch:
         mode,
         None,
         None,
+        false,
         false,
       )
       .unwrap();

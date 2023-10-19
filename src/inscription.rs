@@ -128,6 +128,7 @@ impl Inscription {
     builder.push_opcode(opcodes::all::OP_ENDIF)
   }
 
+  #[cfg(test)]
   pub(crate) fn append_reveal_script(&self, builder: script::Builder) -> ScriptBuf {
     self.append_reveal_script_to_builder(builder).into_script()
   }
@@ -144,7 +145,7 @@ impl Inscription {
   }
 
   pub(crate) fn append_batch_reveal_script(
-    inscriptions: &Vec<Inscription>,
+    inscriptions: &[Inscription],
     builder: script::Builder,
   ) -> ScriptBuf {
     Inscription::append_batch_reveal_script_to_builder(inscriptions, builder).into_script()
