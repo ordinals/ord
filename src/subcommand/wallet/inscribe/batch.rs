@@ -200,6 +200,14 @@ impl BatchConfig {
     satpoint: Option<SatPoint>,
     reinscribe: bool,
   ) -> Result<(Transaction, Transaction, TweakedKeyPair, u64)> {
+    if satpoint.is_some() {
+      assert_eq!(
+        inscriptions.len(),
+        1,
+        "invariant: satpoint may only be specified when making a single inscription",
+      );
+    }
+
     match batch_mode {
       Mode::SeparateOutputs => assert_eq!(
         destinations.len(),
