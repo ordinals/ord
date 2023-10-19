@@ -40,6 +40,7 @@ impl BatchInscribe {
       self.fee_rate,
       self.dry_run,
       None,
+      false,
     )?))
   }
 
@@ -251,6 +252,7 @@ batch:
         mode,
         None,
         None,
+        false,
       )
       .unwrap();
 
@@ -331,6 +333,7 @@ batch:
       Mode::SharedOutput,
       None,
       None,
+      false,
     )
     .unwrap_err()
     .to_string();
@@ -389,6 +392,7 @@ batch:
       Mode::SharedOutput,
       None,
       None,
+      false,
     );
   }
 
@@ -420,6 +424,7 @@ batch:
       Mode::SharedOutput,
       None,
       None,
+      false,
     )
     .unwrap_err()
     .to_string();
@@ -468,6 +473,7 @@ batch:
         mode,
         None,
         None,
+        false,
       )
       .unwrap();
 
@@ -549,6 +555,7 @@ batch:
         mode,
         None,
         None,
+        false,
       )
       .unwrap();
 

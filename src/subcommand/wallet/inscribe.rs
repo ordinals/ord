@@ -106,7 +106,13 @@ impl Inscribe {
       }],
     };
 
-    let output = batch.inscribe(&options, self.fee_rate, self.dry_run, self.satpoint)?;
+    let output = batch.inscribe(
+      &options,
+      self.fee_rate,
+      self.dry_run,
+      self.satpoint,
+      self.reinscribe,
+    )?;
 
     return Ok(Box::new(Output {
       commit: output.commit,

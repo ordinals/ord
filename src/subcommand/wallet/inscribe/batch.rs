@@ -68,6 +68,7 @@ impl BatchConfig {
     fee_rate: FeeRate,
     dry_run: bool,
     satpoint: Option<SatPoint>,
+    reinscribe: bool,
   ) -> Result<crate::subcommand::wallet::inscribe::batch_inscribe::Output> {
     let index = Index::open(&options)?;
     index.update()?;
@@ -113,6 +114,7 @@ impl BatchConfig {
         self.mode.clone(),
         self.postage,
         satpoint,
+        reinscribe,
       )?;
 
     if dry_run {
@@ -189,6 +191,7 @@ impl BatchConfig {
     batch_mode: Mode,
     postage: Option<u64>,
     satpoint: Option<SatPoint>,
+    reinscribe: bool,
   ) -> Result<(Transaction, Transaction, TweakedKeyPair, u64)> {
     match batch_mode {
       Mode::SeparateOutputs => assert_eq!(
@@ -221,9 +224,16 @@ impl BatchConfig {
         .ok_or_else(|| anyhow!("wallet contains no cardinal utxos"))?
     };
 
+    let mut reinscription = false;
+
     for (inscribed_satpoint, inscription_id) in &wallet_inscriptions {
       if *inscribed_satpoint == satpoint {
-        return Err(anyhow!("sat at {} already inscribed", satpoint));
+        reinscription = true;
+        if reinscribe {
+          continue;
+        } else {
+          return Err(anyhow!("sat at {} already inscribed", satpoint));
+        }
       }
 
       if inscribed_satpoint.outpoint == satpoint.outpoint {
@@ -232,6 +242,12 @@ impl BatchConfig {
           satpoint.outpoint,
         ));
       }
+    }
+
+    if reinscribe && !reinscription {
+      return Err(anyhow!(
+        "reinscribe flag set but this would not be a reinscription"
+      ));
     }
 
     let secp256k1 = Secp256k1::new();
