@@ -224,7 +224,7 @@ fn inscribe_with_optional_satpoint_arg() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let Inscribe { inscription, .. } = CommandBuilder::new(format!(
-    "wallet inscribe foo.txt --satpoint {txid}:0:0 --fee-rate 1"
+    "wallet inscribe foo.txt --satpoint {txid}:0:10000 --fee-rate 1"
   ))
   .write("foo.txt", "FOO")
   .rpc_server(&rpc_server)
@@ -233,7 +233,7 @@ fn inscribe_with_optional_satpoint_arg() {
   rpc_server.mine_blocks(1);
 
   TestServer::spawn_with_args(&rpc_server, &["--index-sats"]).assert_response_regex(
-    "/sat/5000000000",
+    "/sat/5000010000",
     format!(".*<a href=/inscription/{inscription}>.*"),
   );
 

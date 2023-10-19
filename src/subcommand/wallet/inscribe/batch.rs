@@ -67,6 +67,7 @@ impl BatchConfig {
     options: &Options,
     fee_rate: FeeRate,
     dry_run: bool,
+    satpoint: Option<SatPoint>,
   ) -> Result<crate::subcommand::wallet::inscribe::batch_inscribe::Output> {
     let index = Index::open(&options)?;
     index.update()?;
@@ -111,6 +112,7 @@ impl BatchConfig {
         postage,
         self.mode.clone(),
         self.postage,
+        satpoint,
       )?;
 
     if dry_run {
@@ -186,6 +188,7 @@ impl BatchConfig {
     total_postage: Amount,
     batch_mode: Mode,
     postage: Option<u64>,
+    satpoint: Option<SatPoint>,
   ) -> Result<(Transaction, Transaction, TweakedKeyPair, u64)> {
     match batch_mode {
       Mode::SeparateOutputs => assert_eq!(
@@ -200,7 +203,9 @@ impl BatchConfig {
       ),
     }
 
-    let satpoint = {
+    let satpoint = if let Some(satpoint) = satpoint {
+      satpoint
+    } else {
       let inscribed_utxos = wallet_inscriptions
         .keys()
         .map(|satpoint| satpoint.outpoint)

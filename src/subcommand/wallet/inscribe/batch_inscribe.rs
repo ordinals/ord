@@ -39,6 +39,7 @@ impl BatchInscribe {
       &options,
       self.fee_rate,
       self.dry_run,
+      None,
     )?))
   }
 
@@ -249,6 +250,7 @@ batch:
         postage,
         mode,
         None,
+        None,
       )
       .unwrap();
 
@@ -328,6 +330,7 @@ batch:
       Amount::from_sat(30_000),
       Mode::SharedOutput,
       None,
+      None,
     )
     .unwrap_err()
     .to_string();
@@ -385,6 +388,7 @@ batch:
       Amount::from_sat(30_000),
       Mode::SharedOutput,
       None,
+      None,
     );
   }
 
@@ -414,6 +418,7 @@ batch:
       1.0.try_into().unwrap(),
       Amount::from_sat(30_000),
       Mode::SharedOutput,
+      None,
       None,
     )
     .unwrap_err()
@@ -461,6 +466,7 @@ batch:
         fee_rate,
         total_postage,
         mode,
+        None,
         None,
       )
       .unwrap();
@@ -541,6 +547,7 @@ batch:
         fee_rate,
         postage,
         mode,
+        None,
         None,
       )
       .unwrap();
