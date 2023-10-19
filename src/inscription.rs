@@ -78,7 +78,6 @@ impl Inscription {
     })
   }
 
-  #[allow(dead_code)]
   pub(crate) fn append_reveal_script_to_builder(
     &self,
     mut builder: script::Builder,
@@ -129,60 +128,16 @@ impl Inscription {
     builder.push_opcode(opcodes::all::OP_ENDIF)
   }
 
-  #[allow(dead_code)]
   pub(crate) fn append_reveal_script(&self, builder: script::Builder) -> ScriptBuf {
     self.append_reveal_script_to_builder(builder).into_script()
   }
 
   pub(crate) fn append_batch_reveal_script_to_builder(
-    inscriptions: &Vec<Inscription>,
+    inscriptions: &[Inscription],
     mut builder: script::Builder,
   ) -> script::Builder {
     for inscription in inscriptions {
-      builder = builder
-        .push_opcode(opcodes::OP_FALSE)
-        .push_opcode(opcodes::all::OP_IF)
-        .push_slice(envelope::PROTOCOL_ID);
-
-      if let Some(content_type) = inscription.content_type.clone() {
-        builder = builder
-          .push_slice(envelope::CONTENT_TYPE_TAG)
-          .push_slice(PushBytesBuf::try_from(content_type).unwrap());
-      }
-
-      if let Some(protocol) = inscription.metaprotocol.clone() {
-        builder = builder
-          .push_slice(envelope::METAPROTOCOL_TAG)
-          .push_slice(PushBytesBuf::try_from(protocol).unwrap());
-      }
-
-      if let Some(parent) = inscription.parent.clone() {
-        builder = builder
-          .push_slice(envelope::PARENT_TAG)
-          .push_slice(PushBytesBuf::try_from(parent).unwrap());
-      }
-
-      if let Some(pointer) = inscription.pointer.clone() {
-        builder = builder
-          .push_slice(envelope::POINTER_TAG)
-          .push_slice(PushBytesBuf::try_from(pointer).unwrap());
-      }
-
-      if let Some(metadata) = &inscription.metadata {
-        for chunk in metadata.chunks(520) {
-          builder = builder.push_slice(envelope::METADATA_TAG);
-          builder = builder.push_slice(PushBytesBuf::try_from(chunk.to_vec()).unwrap());
-        }
-      }
-
-      if let Some(body) = &inscription.body {
-        builder = builder.push_slice(envelope::BODY_TAG);
-        for chunk in body.chunks(520) {
-          builder = builder.push_slice(PushBytesBuf::try_from(chunk.to_vec()).unwrap());
-        }
-      }
-
-      builder = builder.push_opcode(opcodes::all::OP_ENDIF);
+      builder = inscription.append_reveal_script_to_builder(builder);
     }
 
     builder
