@@ -69,6 +69,7 @@ impl BatchConfig {
   pub(crate) fn inscribe(
     &self,
     options: &Options,
+    commit_fee_rate: Option<FeeRate>,
     fee_rate: FeeRate,
     dry_run: bool,
     satpoint: Option<SatPoint>,
@@ -113,6 +114,7 @@ impl BatchConfig {
         utxos,
         commit_tx_change,
         reveal_tx_destinations,
+        commit_fee_rate,
         fee_rate,
         postage,
         self.mode.clone(),
@@ -190,6 +192,7 @@ impl BatchConfig {
     mut utxos: BTreeMap<OutPoint, Amount>,
     change: [Address; 2],
     destinations: Vec<Address>,
+    commit_fee_rate: Option<FeeRate>,
     fee_rate: FeeRate,
     total_postage: Amount,
     batch_mode: Mode,
@@ -322,7 +325,7 @@ impl BatchConfig {
       utxos.clone(),
       commit_tx_address.clone(),
       change,
-      fee_rate,
+      commit_fee_rate.unwrap_or(fee_rate),
       Target::Value(reveal_fee + total_postage),
     )
     .build_transaction()?;

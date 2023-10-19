@@ -108,6 +108,7 @@ impl Inscribe {
 
     let output = batch.inscribe(
       &options,
+      self.commit_fee_rate,
       self.fee_rate,
       self.dry_run,
       self.satpoint,
