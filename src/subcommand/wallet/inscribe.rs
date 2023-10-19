@@ -113,6 +113,11 @@ impl Inscribe {
       self.dry_run,
       self.satpoint,
       self.reinscribe,
+      match self.destination {
+        Some(destination) => Some(destination.require_network(options.chain().network())?),
+        None => None,
+      },
+      self.no_backup,
     )?;
 
     return Ok(Box::new(Output {

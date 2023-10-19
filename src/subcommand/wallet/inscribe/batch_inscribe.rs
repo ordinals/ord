@@ -42,6 +42,8 @@ impl BatchInscribe {
       self.dry_run,
       None,
       false,
+      None,
+      false,
     )?))
   }
 

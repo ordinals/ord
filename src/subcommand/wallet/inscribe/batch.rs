@@ -74,6 +74,8 @@ impl BatchConfig {
     dry_run: bool,
     satpoint: Option<SatPoint>,
     reinscribe: bool,
+    destination: Option<Address>,
+    no_backup: bool,
   ) -> Result<crate::subcommand::wallet::inscribe::batch_inscribe::Output> {
     let index = Index::open(&options)?;
     index.update()?;
@@ -93,17 +95,17 @@ impl BatchConfig {
 
     let (inscriptions, postage) = self.inscriptions(options.chain(), parent_info.clone())?;
 
-    let reveal_tx_destinations = match self.mode {
-      Mode::SharedOutput => vec![get_change_address(&client, &options)?],
-      Mode::SeparateOutputs => {
-        let mut addresses = Vec::new();
-        for _i in 0..inscriptions.len() {
-          addresses.push(get_change_address(&client, &options)?)
-        }
-
-        addresses
-      }
+    let reveal_tx_destination_count = match self.mode {
+      Mode::SharedOutput => 1,
+      Mode::SeparateOutputs => inscriptions.len(),
     };
+
+    let reveal_tx_destinations = (0..reveal_tx_destination_count)
+      .map(|_| match &destination {
+        Some(destination) => Ok(destination.clone()),
+        None => get_change_address(&client, &options),
+      })
+      .collect::<Result<Vec<Address>>>()?;
 
     let (commit_tx, reveal_tx, recovery_key_pair, total_fees) =
       Self::create_batch_inscription_transactions(
@@ -162,7 +164,9 @@ impl BatchConfig {
       bitcoin::consensus::encode::serialize(&reveal_tx)
     };
 
-    Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
+    if !no_backup {
+      Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
+    }
 
     let commit = client.send_raw_transaction(&signed_commit_tx)?;
 
