@@ -10,10 +10,14 @@ pub(crate) struct BatchEntry {
 
 impl BatchEntry {
   pub(crate) fn metadata(&self) -> Result<Option<Vec<u8>>> {
-    let mut cbor = Vec::new();
-    ciborium::into_writer(&self.metadata, &mut cbor)?;
-
-    Ok(Some(cbor))
+    Ok(match &self.metadata {
+      None => None,
+      Some(metadata) => {
+        let mut cbor = Vec::new();
+        ciborium::into_writer(&metadata, &mut cbor)?;
+        Some(cbor)
+      }
+    })
   }
 }
 
