@@ -44,6 +44,7 @@ impl BatchInscribe {
       false,
       None,
       false,
+      None,
     )?))
   }
 

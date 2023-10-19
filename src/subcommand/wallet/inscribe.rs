@@ -90,6 +90,8 @@ pub(crate) struct Inscribe {
 
 impl Inscribe {
   pub(crate) fn run(self, options: Options) -> SubcommandResult {
+    let metadata = Inscribe::parse_metadata(self.cbor_metadata, self.json_metadata)?;
+
     let batch = BatchConfig {
       postage: Some(
         self
@@ -118,6 +120,7 @@ impl Inscribe {
         None => None,
       },
       self.no_backup,
+      metadata,
     )?;
 
     return Ok(Box::new(Output {
@@ -127,8 +130,6 @@ impl Inscribe {
       parent: output.parent,
       total_fees: output.total_fees,
     }));
-
-    // let metadata = Inscribe::parse_metadata(self.cbor_metadata, self.json_metadata)?;
 
     // let inscription = Inscription::from_file(
     //   options.chain(),

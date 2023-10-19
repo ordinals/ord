@@ -35,7 +35,12 @@ impl BatchConfig {
     &self,
     chain: Chain,
     parent_info: Option<ParentInfo>,
+    metadata: Option<Vec<u8>>,
   ) -> Result<(Vec<Inscription>, Amount)> {
+    if metadata.is_some() {
+      assert!(!self.batch.iter().any(|entry| entry.metadata.is_some()));
+    }
+
     let mut pointer = if let Some(info) = parent_info.clone() {
       info.tx_out.value // Inscribe in first sat after parent output
     } else {
@@ -50,7 +55,10 @@ impl BatchConfig {
         self.parent,
         if i == 0 { None } else { Some(pointer) },
         entry.metaprotocol.clone(),
-        entry.metadata()?,
+        match &metadata {
+          Some(metadata) => Some(metadata.clone()),
+          None => entry.metadata()?,
+        },
       )?);
 
       pointer += self
@@ -76,7 +84,12 @@ impl BatchConfig {
     reinscribe: bool,
     destination: Option<Address>,
     no_backup: bool,
+    metadata: Option<Vec<u8>>,
   ) -> Result<crate::subcommand::wallet::inscribe::batch_inscribe::Output> {
+    if metadata.is_some() {
+      assert!(!self.batch.iter().any(|entry| entry.metadata.is_some()));
+    }
+
     let index = Index::open(&options)?;
     index.update()?;
 
@@ -93,7 +106,8 @@ impl BatchConfig {
       get_change_address(&client, &options)?,
     ];
 
-    let (inscriptions, postage) = self.inscriptions(options.chain(), parent_info.clone())?;
+    let (inscriptions, postage) =
+      self.inscriptions(options.chain(), parent_info.clone(), metadata)?;
 
     let reveal_tx_destination_count = match self.mode {
       Mode::SharedOutput => 1,
