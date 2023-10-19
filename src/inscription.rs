@@ -78,6 +78,7 @@ impl Inscription {
     })
   }
 
+  #[allow(dead_code)]
   pub(crate) fn append_reveal_script_to_builder(
     &self,
     mut builder: script::Builder,
@@ -128,6 +129,7 @@ impl Inscription {
     builder.push_opcode(opcodes::all::OP_ENDIF)
   }
 
+  #[allow(dead_code)]
   pub(crate) fn append_reveal_script(&self, builder: script::Builder) -> ScriptBuf {
     self.append_reveal_script_to_builder(builder).into_script()
   }

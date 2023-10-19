@@ -90,127 +90,140 @@ pub(crate) struct Inscribe {
 
 impl Inscribe {
   pub(crate) fn run(self, options: Options) -> SubcommandResult {
-    let metadata = Inscribe::parse_metadata(self.cbor_metadata, self.json_metadata)?;
-
-    let inscription = Inscription::from_file(
-      options.chain(),
-      &self.file,
-      self.parent,
-      None,
-      self.metaprotocol,
-      metadata,
-    )?;
-
-    let index = Index::open(&options)?;
-    index.update()?;
-
-    let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
-
-    let utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
-
-    let inscriptions = index.get_inscriptions(utxos.clone())?;
-
-    let commit_tx_change = [
-      get_change_address(&client, &options)?,
-      get_change_address(&client, &options)?,
-    ];
-
-    let reveal_tx_destination = match self.destination {
-      Some(address) => address.require_network(options.chain().network())?,
-      None => get_change_address(&client, &options)?,
-    };
-
-    let parent_info = Inscribe::get_parent_info(self.parent, &index, &utxos, &client, &options)?;
-
-    let (commit_tx, reveal_tx, recovery_key_pair, total_fees) =
-      Inscribe::create_inscription_transactions(
-        self.satpoint,
-        parent_info,
-        inscription,
-        inscriptions,
-        options.chain().network(),
-        utxos,
-        commit_tx_change,
-        reveal_tx_destination,
-        self.commit_fee_rate.unwrap_or(self.fee_rate),
-        self.fee_rate,
-        self.no_limit,
-        self.reinscribe,
-        match self.postage {
-          Some(postage) => postage,
-          _ => TransactionBuilder::TARGET_POSTAGE,
-        },
-      )?;
-
-    if self.dry_run {
-      return Ok(Box::new(Output {
-        commit: commit_tx.txid(),
-        reveal: reveal_tx.txid(),
-        inscription: InscriptionId {
-          txid: reveal_tx.txid(),
-          index: 0,
-        },
-        parent: self.parent,
-        total_fees,
-      }));
-    }
-
-    let signed_commit_tx = client
-      .sign_raw_transaction_with_wallet(&commit_tx, None, None)?
-      .hex;
-
-    let signed_reveal_tx = if self.parent.is_some() {
-      client
-        .sign_raw_transaction_with_wallet(
-          &reveal_tx,
-          Some(
-            &commit_tx
-              .output
-              .iter()
-              .enumerate()
-              .map(|(vout, output)| SignRawTransactionInput {
-                txid: commit_tx.txid(),
-                vout: vout.try_into().unwrap(),
-                script_pub_key: output.script_pubkey.clone(),
-                redeem_script: None,
-                amount: Some(Amount::from_sat(output.value)),
-              })
-              .collect::<Vec<SignRawTransactionInput>>(),
-          ),
-          None,
-        )?
-        .hex
-    } else {
-      bitcoin::consensus::encode::serialize(&reveal_tx)
-    };
-
-    if !self.no_backup {
-      Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
-    }
-
-    let commit = client.send_raw_transaction(&signed_commit_tx)?;
-
-    let reveal = match client.send_raw_transaction(&signed_reveal_tx) {
-      Ok(txid) => txid,
-      Err(err) => {
-        return Err(anyhow!(
-        "Failed to send reveal transaction: {err}\nCommit tx {commit} will be recovered once mined"
-      ))
-      }
-    };
-
-    Ok(Box::new(Output {
-      commit,
-      reveal,
+    let batch = BatchConfig {
+      mode: Mode::SeparateOutputs,
       parent: self.parent,
-      inscription: InscriptionId {
-        txid: reveal,
-        index: 0,
-      },
-      total_fees,
-    }))
+      batch: vec![BatchEntry {
+        inscription: self.file.clone(),
+        metadata: None,
+        metaprotocol: self.metaprotocol.clone(),
+      }],
+    };
+
+    return batch.inscribe(&options, self.fee_rate, self.dry_run);
+
+    // let metadata = Inscribe::parse_metadata(self.cbor_metadata, self.json_metadata)?;
+
+    // let inscription = Inscription::from_file(
+    //   options.chain(),
+    //   &self.file,
+    //   self.parent,
+    //   None,
+    //   self.metaprotocol,
+    //   metadata,
+    // )?;
+
+    // let index = Index::open(&options)?;
+    // index.update()?;
+
+    // let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
+
+    // let utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
+
+    // let inscriptions = index.get_inscriptions(utxos.clone())?;
+
+    // let commit_tx_change = [
+    //   get_change_address(&client, &options)?,
+    //   get_change_address(&client, &options)?,
+    // ];
+
+    // let reveal_tx_destination = match self.destination {
+    //   Some(address) => address.require_network(options.chain().network())?,
+    //   None => get_change_address(&client, &options)?,
+    // };
+
+    // let parent_info = Inscribe::get_parent_info(self.parent, &index, &utxos, &client, &options)?;
+
+    // let (commit_tx, reveal_tx, recovery_key_pair, total_fees) =
+    //   Inscribe::create_inscription_transactions(
+    //     self.satpoint,
+    //     parent_info,
+    //     inscription,
+    //     inscriptions,
+    //     options.chain().network(),
+    //     utxos,
+    //     commit_tx_change,
+    //     reveal_tx_destination,
+    //     self.commit_fee_rate.unwrap_or(self.fee_rate),
+    //     self.fee_rate,
+    //     self.no_limit,
+    //     self.reinscribe,
+    //     match self.postage {
+    //       Some(postage) => postage,
+    //       _ => TransactionBuilder::TARGET_POSTAGE,
+    //     },
+    //   )?;
+
+    // if self.dry_run {
+    //   return Ok(Box::new(Output {
+    //     commit: commit_tx.txid(),
+    //     reveal: reveal_tx.txid(),
+    //     inscription: InscriptionId {
+    //       txid: reveal_tx.txid(),
+    //       index: 0,
+    //     },
+    //     parent: self.parent,
+    //     total_fees,
+    //   }));
+    // }
+
+    // let signed_commit_tx = client
+    //   .sign_raw_transaction_with_wallet(&commit_tx, None, None)?
+    //   .hex;
+
+    // let signed_reveal_tx = if self.parent.is_some() {
+    //   client
+    //     .sign_raw_transaction_with_wallet(
+    //       &reveal_tx,
+    //       Some(
+    //         &commit_tx
+    //           .output
+    //           .iter()
+    //           .enumerate()
+    //           .map(|(vout, output)| SignRawTransactionInput {
+    //             txid: commit_tx.txid(),
+    //             vout: vout.try_into().unwrap(),
+    //             script_pub_key: output.script_pubkey.clone(),
+    //             redeem_script: None,
+    //             amount: Some(Amount::from_sat(output.value)),
+    //           })
+    //           .collect::<Vec<SignRawTransactionInput>>(),
+    //       ),
+    //       None,
+    //     )?
+    //     .hex
+    // } else {
+    //   bitcoin::consensus::encode::serialize(&reveal_tx)
+    // };
+
+    // if !self.no_backup {
+    //   Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
+    // }
+
+    // let commit = client.send_raw_transaction(&signed_commit_tx)?;
+
+    // let reveal = match client.send_raw_transaction(&signed_reveal_tx) {
+    //   Ok(txid) => txid,
+    //   Err(err) => {
+    //     return Err(anyhow!(
+    //     "Failed to send reveal transaction: {err}\nCommit tx {commit} will be recovered once mined"
+    //   ))
+    //   }
+    // };
+
+    // Ok(Box::new(Output {
+    //   commit,
+    //   reveal,
+    //   parent: self.parent,
+    //   inscription: InscriptionId {
+    //     txid: reveal,
+    //     index: 0,
+    //   },
+    //   total_fees,
+    // }))
   }
 
+  #[allow(dead_code)]
   fn parse_metadata(cbor: Option<PathBuf>, json: Option<PathBuf>) -> Result<Option<Vec<u8>>> {
     if let Some(path) = cbor {
       let cbor = fs::read(path)?;
@@ -262,6 +275,7 @@ impl Inscribe {
     }
   }
 
+  #[allow(dead_code)]
   fn create_inscription_transactions(
     satpoint: Option<SatPoint>,
     parent_info: Option<ParentInfo>,
