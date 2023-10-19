@@ -20,6 +20,7 @@ impl BatchEntry {
 #[derive(Deserialize, PartialEq, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct BatchConfig {
+  pub(crate) postage: Option<u64>,
   pub(crate) mode: Mode,
   pub(crate) parent: Option<InscriptionId>,
   pub(crate) batch: Vec<BatchEntry>,
@@ -38,17 +39,19 @@ impl BatchConfig {
     };
 
     let mut inscriptions = Vec::new();
-    for entry in &self.batch {
+    for (i, entry) in self.batch.iter().enumerate() {
       inscriptions.push(Inscription::from_file(
         chain,
         &entry.inscription,
         self.parent,
-        Some(pointer),
+        if i == 0 { None } else { Some(pointer) },
         entry.metaprotocol.clone(),
         entry.metadata()?,
       )?);
 
-      pointer += TransactionBuilder::TARGET_POSTAGE.to_sat();
+      pointer += self
+        .postage
+        .unwrap_or(TransactionBuilder::TARGET_POSTAGE.to_sat());
     }
 
     Ok((inscriptions, Amount::from_sat(pointer)))
@@ -102,6 +105,7 @@ impl BatchConfig {
         fee_rate,
         postage,
         self.mode.clone(),
+        self.postage,
       )?;
 
     if dry_run {
@@ -176,6 +180,7 @@ impl BatchConfig {
     fee_rate: FeeRate,
     total_postage: Amount,
     batch_mode: Mode,
+    postage: Option<u64>,
   ) -> Result<(Transaction, Transaction, TweakedKeyPair, u64)> {
     match batch_mode {
       Mode::SeparateOutputs => assert_eq!(
@@ -248,7 +253,7 @@ impl BatchConfig {
       .map(|destination| TxOut {
         script_pubkey: destination.script_pubkey(),
         value: match batch_mode {
-          Mode::SeparateOutputs => TransactionBuilder::TARGET_POSTAGE.to_sat(),
+          Mode::SeparateOutputs => postage.unwrap_or(TransactionBuilder::TARGET_POSTAGE.to_sat()),
           Mode::SharedOutput => total_postage.to_sat(),
         },
       })

@@ -91,6 +91,12 @@ pub(crate) struct Inscribe {
 impl Inscribe {
   pub(crate) fn run(self, options: Options) -> SubcommandResult {
     let batch = BatchConfig {
+      postage: Some(
+        self
+          .postage
+          .unwrap_or(TransactionBuilder::TARGET_POSTAGE)
+          .to_sat(),
+      ),
       mode: Mode::SeparateOutputs,
       parent: self.parent,
       batch: vec![BatchEntry {

@@ -111,6 +111,7 @@ batch:
         _ => panic!(),
       },
       BatchConfig {
+        postage: None,
         batch: vec![
           BatchEntry {
             inscription: inscription_path,
@@ -247,6 +248,7 @@ batch:
         fee_rate,
         postage,
         mode,
+        None,
       )
       .unwrap();
 
@@ -325,6 +327,7 @@ batch:
       4.0.try_into().unwrap(),
       Amount::from_sat(30_000),
       Mode::SharedOutput,
+      None,
     )
     .unwrap_err()
     .to_string();
@@ -381,6 +384,7 @@ batch:
       4.0.try_into().unwrap(),
       Amount::from_sat(30_000),
       Mode::SharedOutput,
+      None,
     );
   }
 
@@ -410,6 +414,7 @@ batch:
       1.0.try_into().unwrap(),
       Amount::from_sat(30_000),
       Mode::SharedOutput,
+      None,
     )
     .unwrap_err()
     .to_string();
@@ -456,6 +461,7 @@ batch:
         fee_rate,
         total_postage,
         mode,
+        None,
       )
       .unwrap();
 
@@ -535,6 +541,7 @@ batch:
         fee_rate,
         postage,
         mode,
+        None,
       )
       .unwrap();
 
