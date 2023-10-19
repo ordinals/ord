@@ -1896,12 +1896,8 @@ mod tests {
 
   #[test]
   fn select_cardinal_utxo_ignores_locked_utxos_and_errors_if_none_available() {
-    let utxos = vec![
-      (outpoint(1), Amount::from_sat(500)),
-    ];
-    let locked_utxos = vec![
-      outpoint(1),
-    ];
+    let utxos = vec![(outpoint(1), Amount::from_sat(500))];
+    let locked_utxos = vec![outpoint(1)];
 
     let mut tx_builder = TransactionBuilder::new(
       satpoint(0, 0),
@@ -1915,8 +1911,7 @@ mod tests {
     );
 
     assert_eq!(
-      tx_builder
-        .select_cardinal_utxo(Amount::from_sat(500), false),
+      tx_builder.select_cardinal_utxo(Amount::from_sat(500), false),
       Err(Error::NotEnoughCardinalUtxos),
     );
   }
@@ -1927,9 +1922,7 @@ mod tests {
       (outpoint(1), Amount::from_sat(500)),
       (outpoint(2), Amount::from_sat(500)),
     ];
-    let locked_utxos = vec![
-      outpoint(1),
-    ];
+    let locked_utxos = vec![outpoint(1)];
 
     let mut tx_builder = TransactionBuilder::new(
       satpoint(0, 0),

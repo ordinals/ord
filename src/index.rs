@@ -366,11 +366,16 @@ impl Index {
 
     let locked_utxos: BTreeSet<OutPoint> = self.get_locked_outputs(_wallet)?;
 
-    for outpoint in locked_utxos
-    {
+    for outpoint in locked_utxos {
       utxos.insert(
         outpoint,
-        Amount::from_sat(self.client.get_raw_transaction(&outpoint.txid, None)?.output[outpoint.vout as usize].value),
+        Amount::from_sat(
+          self
+            .client
+            .get_raw_transaction(&outpoint.txid, None)?
+            .output[outpoint.vout as usize]
+            .value
+        ),
       );
     }
     let rtx = self.database.begin_read()?;
