@@ -20,7 +20,25 @@ libfuzzer-sys = "0.4"
 ord = { path = ".." }
 
 [[bin]]
+name = "runestone-decipher"
+path = "fuzz_targets/runestone_decipher.rs"
+test = false
+doc = false
+
+[[bin]]
 name = "transaction-builder"
 path = "fuzz_targets/transaction_builder.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "varint-encode"
+path = "fuzz_targets/varint_encode.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "varint-decode"
+path = "fuzz_targets/varint_decode.rs"
 test = false
 doc = false

@@ -122,7 +122,7 @@ impl TransactionBuilder {
   pub(crate) const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
   pub(crate) const MAX_POSTAGE: Amount = Amount::from_sat(2 * 10_000);
 
-  pub(crate) fn new(
+  pub fn new(
     outgoing: SatPoint,
     inscriptions: BTreeMap<SatPoint, InscriptionId>,
     amounts: BTreeMap<OutPoint, Amount>,
@@ -148,7 +148,7 @@ impl TransactionBuilder {
     }
   }
 
-  pub(crate) fn build_transaction(self) -> Result<Transaction> {
+  pub fn build_transaction(self) -> Result<Transaction> {
     if self.change_addresses.len() < 2 {
       return Err(Error::DuplicateAddress(
         self.change_addresses.first().unwrap().clone(),
