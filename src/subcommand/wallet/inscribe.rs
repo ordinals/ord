@@ -1392,25 +1392,24 @@ batch:
 
     let fee_rate = 4.0.try_into().unwrap();
 
-    let (commit_tx, reveal_tx, _private_key, _) =
-      BatchConfig::create_batch_inscription_transactions(
-        Some(parent_info.clone()),
-        inscriptions,
-        wallet_inscriptions,
-        Chain::Signet,
-        utxos.into_iter().collect(),
-        [commit_address, change(2)],
-        reveal_addresses,
-        None,
-        fee_rate,
-        postage,
-        mode,
-        None,
-        None,
-        false,
-        false,
-      )
-      .unwrap();
+    let (commit_tx, reveal_tx, _private_key, _) = Inscribe::create_inscription_transactions(
+      None,
+      Some(parent_info.clone()),
+      inscriptions,
+      wallet_inscriptions,
+      Chain::Signet,
+      utxos.into_iter().collect(),
+      [commit_address, change(2)],
+      reveal_addresses,
+      fee_rate,
+      fee_rate,
+      false,
+      false,
+      Amount::from_sat(10_000),
+      postage,
+      mode,
+    )
+    .unwrap();
 
     let sig_vbytes = 17;
     let fee = fee_rate.fee(commit_tx.vsize() + sig_vbytes).to_sat();
@@ -1476,7 +1475,8 @@ batch:
     let commit_address = change(1);
     let reveal_addresses = vec![recipient()];
 
-    let error = BatchConfig::create_batch_inscription_transactions(
+    let error = Inscribe::create_inscription_transactions(
+      None,
       Some(parent_info.clone()),
       inscriptions,
       wallet_inscriptions,
@@ -1484,14 +1484,13 @@ batch:
       utxos.into_iter().collect(),
       [commit_address, change(2)],
       reveal_addresses,
-      None,
       4.0.try_into().unwrap(),
+      4.0.try_into().unwrap(),
+      false,
+      false,
+      Amount::from_sat(10_000),
       Amount::from_sat(30_000),
       Mode::SharedOutput,
-      None,
-      None,
-      false,
-      false,
     )
     .unwrap_err()
     .to_string();
@@ -1537,7 +1536,8 @@ batch:
     let commit_address = change(1);
     let reveal_addresses = vec![recipient(), recipient()];
 
-    let _ = BatchConfig::create_batch_inscription_transactions(
+    let _ = Inscribe::create_inscription_transactions(
+      None,
       Some(parent_info.clone()),
       inscriptions,
       wallet_inscriptions,
@@ -1545,14 +1545,13 @@ batch:
       utxos.into_iter().collect(),
       [commit_address, change(2)],
       reveal_addresses,
-      None,
       4.0.try_into().unwrap(),
+      4.0.try_into().unwrap(),
+      false,
+      false,
+      Amount::from_sat(10_000),
       Amount::from_sat(30_000),
       Mode::SharedOutput,
-      None,
-      None,
-      false,
-      false,
     );
   }
 
@@ -1571,7 +1570,8 @@ batch:
     let commit_address = change(1);
     let reveal_addresses = vec![recipient()];
 
-    let error = BatchConfig::create_batch_inscription_transactions(
+    let error = Inscribe::create_inscription_transactions(
+      None,
       None,
       inscriptions,
       wallet_inscriptions,
@@ -1579,14 +1579,13 @@ batch:
       utxos.into_iter().collect(),
       [commit_address, change(2)],
       reveal_addresses,
-      None,
       1.0.try_into().unwrap(),
+      1.0.try_into().unwrap(),
+      false,
+      false,
+      Amount::from_sat(30_000),
       Amount::from_sat(30_000),
       Mode::SharedOutput,
-      None,
-      None,
-      false,
-      false,
     )
     .unwrap_err()
     .to_string();
@@ -1621,25 +1620,24 @@ batch:
 
     let fee_rate = 4.0.try_into().unwrap();
 
-    let (_commit_tx, reveal_tx, _private_key, _) =
-      BatchConfig::create_batch_inscription_transactions(
-        None,
-        inscriptions,
-        wallet_inscriptions,
-        Chain::Signet,
-        utxos.into_iter().collect(),
-        [commit_address, change(2)],
-        reveal_addresses,
-        None,
-        fee_rate,
-        total_postage,
-        mode,
-        None,
-        None,
-        false,
-        false,
-      )
-      .unwrap();
+    let (_commit_tx, reveal_tx, _private_key, _) = Inscribe::create_inscription_transactions(
+      None,
+      None,
+      inscriptions,
+      wallet_inscriptions,
+      Chain::Signet,
+      utxos.into_iter().collect(),
+      [commit_address, change(2)],
+      reveal_addresses,
+      fee_rate,
+      fee_rate,
+      false,
+      false,
+      Amount::from_sat(10_000),
+      total_postage,
+      mode,
+    )
+    .unwrap();
 
     //let sig_vbytes = 17;
     //let fee = fee_rate.fee(commit_tx.vsize() + sig_vbytes).to_sat();
@@ -1705,25 +1703,24 @@ batch:
 
     let fee_rate = 4.0.try_into().unwrap();
 
-    let (_commit_tx, reveal_tx, _private_key, _) =
-      BatchConfig::create_batch_inscription_transactions(
-        Some(parent_info.clone()),
-        inscriptions,
-        wallet_inscriptions,
-        Chain::Signet,
-        utxos.into_iter().collect(),
-        [commit_address, change(2)],
-        reveal_addresses,
-        None,
-        fee_rate,
-        postage,
-        mode,
-        None,
-        None,
-        false,
-        false,
-      )
-      .unwrap();
+    let (_commit_tx, reveal_tx, _private_key, _) = Inscribe::create_inscription_transactions(
+      None,
+      Some(parent_info.clone()),
+      inscriptions,
+      wallet_inscriptions,
+      Chain::Signet,
+      utxos.into_iter().collect(),
+      [commit_address, change(2)],
+      reveal_addresses,
+      fee_rate,
+      fee_rate,
+      false,
+      false,
+      Amount::from_sat(10_000),
+      postage,
+      mode,
+    )
+    .unwrap();
 
     //let sig_vbytes = 17;
     //let fee = fee_rate.fee(commit_tx.vsize() + sig_vbytes).to_sat();
