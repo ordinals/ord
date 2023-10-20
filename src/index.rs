@@ -20,8 +20,8 @@ use {
     Database, MultimapTable, MultimapTableDefinition, ReadableMultimapTable, ReadableTable, Table,
     TableDefinition, WriteTransaction,
   },
-  std::collections::HashMap,
   std::collections::BTreeSet,
+  std::collections::HashMap,
   std::io::{BufWriter, Read, Write},
 };
 
@@ -374,7 +374,7 @@ impl Index {
             .client
             .get_raw_transaction(&outpoint.txid, None)?
             .output[outpoint.vout as usize]
-            .value
+            .value,
         ),
       );
     }
