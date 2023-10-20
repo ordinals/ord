@@ -1,0 +1,402 @@
+<!DOCTYPE HTML>
+<html lang="ko" class="sidebar-visible no-js coal" dir="ltr">
+<script>
+  var lang = "ko"; // Get the language from the configuration
+  if (lang === "ar") {
+    // Set the direction to right-to-left for Arabic
+    document.getElementsByTagName("html")[0].setAttribute("dir", "rtl");
+  }
+</script>
+<style>
+    .custom-list {
+        list-style-type: none; /* Remove default list item marker (hyphen) */
+    }
+</style>
+<html lang="ko" class="sidebar-visible no-js coal">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>스패로우 월렛 - Ordinal Theory Handbook</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../../highlight.css">
+        <link rel="stylesheet" href="../../tomorrow-night.css">
+        <link rel="stylesheet" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../language-picker.css">
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "coal";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('coal')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../../introduction.html">서론</a></li><li class="chapter-item expanded "><a href="../../overview.html"><strong aria-hidden="true">1.</strong> 개요</a></li><li class="chapter-item expanded "><a href="../../digital-artifacts.html"><strong aria-hidden="true">2.</strong> 디지털 아티팩트</a></li><li class="chapter-item expanded "><a href="../../inscriptions.html"><strong aria-hidden="true">3.</strong> 인스크립션</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../inscriptions/metadata.html"><strong aria-hidden="true">3.1.</strong> 메타 데이터</a></li><li class="chapter-item expanded "><a href="../../inscriptions/provenance.html"><strong aria-hidden="true">3.2.</strong> 기원</a></li><li class="chapter-item expanded "><a href="../../inscriptions/recursion.html"><strong aria-hidden="true">3.3.</strong> 리커젼</a></li><li class="chapter-item expanded "><a href="../../inscriptions/pointer.html"><strong aria-hidden="true">3.4.</strong> Pointer</a></li></ol></li><li class="chapter-item expanded "><a href="../../faq.html"><strong aria-hidden="true">4.</strong> 자주 묻는 질문</a></li><li class="chapter-item expanded "><a href="../../contributing.html"><strong aria-hidden="true">5.</strong> 기여하는 방법</a></li><li class="chapter-item expanded "><a href="../../donate.html"><strong aria-hidden="true">6.</strong> 기부하는 방법</a></li><li class="chapter-item expanded "><a href="../../guides.html"><strong aria-hidden="true">7.</strong> 안내서들</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../guides/explorer.html"><strong aria-hidden="true">7.1.</strong> 탐색기</a></li><li class="chapter-item expanded "><a href="../../guides/inscriptions.html"><strong aria-hidden="true">7.2.</strong> 인스크립션</a></li><li class="chapter-item expanded "><a href="../../guides/sat-hunting.html"><strong aria-hidden="true">7.3.</strong> SAT 헌팅</a></li><li class="chapter-item expanded "><a href="../../guides/collecting.html"><strong aria-hidden="true">7.4.</strong> 수집</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../guides/collecting/sparrow-wallet.html" class="active"><strong aria-hidden="true">7.4.1.</strong> 스패로우 월렛</a></li></ol></li><li class="chapter-item expanded "><a href="../../guides/testing.html"><strong aria-hidden="true">7.5.</strong> 테스팅</a></li><li class="chapter-item expanded "><a href="../../guides/moderation.html"><strong aria-hidden="true">7.6.</strong> 중재</a></li><li class="chapter-item expanded "><a href="../../guides/reindexing.html"><strong aria-hidden="true">7.7.</strong> 재인덱싱</a></li></ol></li><li class="chapter-item expanded "><a href="../../bounties.html"><strong aria-hidden="true">8.</strong> 현상금</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../bounty/0.html"><strong aria-hidden="true">8.1.</strong> 현상금 0: 100,000 SAT 획득!</a></li><li class="chapter-item expanded "><a href="../../bounty/1.html"><strong aria-hidden="true">8.2.</strong> 현상금 1: 200,000 SAT 획득!</a></li><li class="chapter-item expanded "><a href="../../bounty/2.html"><strong aria-hidden="true">8.3.</strong> 현상금 2: 300,000 SAT 획득!</a></li><li class="chapter-item expanded "><a href="../../bounty/3.html"><strong aria-hidden="true">8.4.</strong> 현상금 3: 400,000 SAT</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Ordinal Theory Handbook</h1>
+
+                    <div class="right-buttons">
+                        <button id="language-toggle" class="icon-button" type="button"
+                                title="Change language" aria-label="Change language"
+                                aria-haspopup="true" aria-expanded="false"
+                                aria-controls="language-list">
+                            <i class="fa fa-globe"></i>
+                        </button>
+                        <ul id="language-list" class="theme-popup" aria-label="Languages" role="menu">
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="en">English</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="de">Deutsch</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fr">Français</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="es">Español</a>
+                          </button></li>
+                           <li role="none"><button role="menuitem" class="theme">
+                              <a id="ru">Русский</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="zh">中文版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ja">日本語版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ko">한국어</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fil">Filipino</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ar">العربية</a>
+                          </button></li>
+                        </ul>
+
+                        <script>
+                          let langToggle = document.getElementById("language-toggle");
+                          let langList = document.getElementById("language-list");
+                          langToggle.addEventListener("click", (event) => {
+                              langList.style.display = langList.style.display == "block" ? "none" : "block";
+                          });
+                          let selectedLang = document.getElementById("ko");
+                          if (selectedLang) {
+                              selectedLang.parentNode.classList.add("theme-selected");
+                          }
+
+                          // The path to the root, taking the current
+                          // language into account.
+                          let full_path_to_root = "../../../";
+                          // The page path (mdbook only gives us
+                          // access to the path to the Markdown file).
+                          let path = "guides/collecting/sparrow-wallet.md".replace(/\.md$/, ".html");
+                          for (let lang of langList.querySelectorAll("a")) {
+                              if (lang.id == "en") {
+                                  lang.href = `${full_path_to_root}${path}`;
+                              } else {
+                                  lang.href = `${full_path_to_root}${lang.id}/${path}`;
+                              }
+                          }
+                        </script>
+
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ordinals/ord" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="스패로우-월렛으로-인스크립션과-오디널-수집하기"><a class="header" href="#스패로우-월렛으로-인스크립션과-오디널-수집하기">스패로우 월렛으로 인스크립션과 오디널 수집하기</a></h1>
+<p><a href="https://github.com/ordinals/ord">ord</a> 지갑을 설정할 수 없거나 아직 설정하지 않은 사용자는 해당 지갑에서 지출하는 방식에 <em>매우</em> 주의를 기울인다면 대체 비트코인 지갑으로 인스크립션과 오디널을 받을 수 있다.</p>
+<p>이 가이드는 <code>ord</code>와 호환되며 나중에 <code>ord</code>로 가져오기 할 수 있는 <a href="https://sparrowwallet.com/">스패로우 월렛</a>을 사용해 지갑을 어떻게 생성하는지에 기본 단계를 설명한다</p>
+<h2 id="-경고-"><a class="header" href="#-경고-">⚠️⚠️ 경고!! ⚠️⚠️</a></h2>
+<p>일반적으로 이 방법을 사용하는 경우, 이 지갑을 스패로우 소프트웨어에 사용해 수신 전용(receive-only) 지갑으로 사용해야 한다.</p>
+<p>어떻게 하는지 확실하지 않다면 이 지갑에서 사토시를 사용(spend) 하지 말자. 이 경고에 주의하지 않으면 실수로 오디널과 인스크립션 대한 액세스를 아주 쉽게 잃을 수 있다.</p>
+<h2 id="지갑-설정-및-수신하기"><a class="header" href="#지갑-설정-및-수신하기">지갑 설정 및 수신하기</a></h2>
+<p><a href="https://sparrowwallet.com/download/">릴리즈 페이지</a>에서 당신 운영체제의 맞는 스패로우 월렛을 다운로드한다.</p>
+<p><code>File -&gt; New Wallet</code>을 선택하고 <code>ord</code>라는 새 지갑을 생성한다.</p>
+<p><img src="images/wallet_setup_01.png" alt="" /></p>
+<p><code>Script Type</code>을 <code>Taproot (P2TR)</code>로 변경하고 <code>New or Imported Software Wallet</code> 옵션을 선택한다.</p>
+<p><img src="images/wallet_setup_02.png" alt="" /></p>
+<p><code>Use 12 Words</code>을 선택한 다음 <code>Generate New</code>를 클릭한다. 비밀번호는 비워둔다.</p>
+<p><img src="images/wallet_setup_03.png" alt="" /></p>
+<p>새로운 12단어 BIP39 시드 문구가 생성된다. 지갑에 액세스하기 위한 백업용이므로 안전한 곳에 적어두자. 절대로 이 시드 문구를 다른 사람에게 공유하거나 보여주지 말자.</p>
+<p>시드 문구를 적었으면 <code>Confirm Backup</code>을 클릭한다.</p>
+<p><img src="images/wallet_setup_04.png" alt="" /></p>
+<p>적어둔 시드 문구를 다시 입력한 다음 <code>Create Keystore</code>을 클릭한다.</p>
+<p><img src="images/wallet_setup_05.png" alt="" /></p>
+<p><code>Import Keystore</code>를 클릭한다.</p>
+<p><img src="images/wallet_setup_06.png" alt="" /></p>
+<p><code>Apply</code>를 클릭한다. 원하는 경우 지갑의 비밀번호를 설정한다.</p>
+<p><img src="images/wallet_setup_07.png" alt="" /></p>
+<p>이제 <code>ord</code>와 호환되는 지갑을 갖게 되었으며, BIP39 시드 문구를 사용하여 <code>ord</code>로 가져오기 할 수 있다. 오디널 또는 인스크립션을 받으려면 <code>Receive</code> 탭을 클릭하고 새 주소를 복사한다.</p>
+<p>수신을 원할 때마다 기존 주소를 재사용하지 말고 새 주소를 사용해야 한다.</p>
+<p>비트코인은 다른 블록체인 지갑들과 달리 새 주소를 무제한으로 생성할 수 있다는 점을 유의하자. <code>Get Next Address</code> 버튼을 클릭하면 새 주소를 생성할 수 있다. 앱의 <code>Addresses</code> 탭에서 모든 주소를 확인할 수 있다.</p>
+<p>각 주소에 레이블(label)을 추가하여 사용 용도를 추적할 수 있다.</p>
+<p><img src="images/wallet_setup_08.png" alt="" /></p>
+<h2 id="수신된-인스크립션-확인하기보기"><a class="header" href="#수신된-인스크립션-확인하기보기">수신된 인스크립션 확인하기/보기</a></h2>
+<p>인스크립션을 받으면 스패로우의 <code>Transactions</code> 탭에 새 트랜잭션이 표시되고, <code>UTXOs</code> 탭에 새 UTXO가 표시된다.</p>
+<p>처음에 이 트랜잭션은 &quot;미확인”(“Unconfirmed”) 상태일 수 있으며, 완전히 수신하려면 이 트랜잭션이 비트코인 블록으로 채굴될 때까지 기다려야 한다.</p>
+<p><img src="images/validating_viewing_01.png" alt="" /></p>
+<p>트랜잭션의 상태를 추적하려면 트랜잭션을 마우스 오른쪽 버튼으로 클릭하고 <code>Copy Transaction ID</code>를 선택한 다음 해당 트랜잭션 ID를 <a href="https://mempool.space">mempool.space</a>에 붙여넣기 하면 된다.</p>
+<p><img src="images/validating_viewing_02.png" alt="" /></p>
+<p>트랜잭션이 확인되면 <code>UTXOs</code> 탭으로 이동하여 확인하려는 UTXO를 찾아 <code>Output</code>을 마우스 오른쪽 버튼으로 클릭하고 <code>Copy Transaction Output</code>를 선택하여 인스크립션의 유효성을 검사하고 확인할 수 있다. 그런 다음 이 트랜잭션 출력 ID를 <a href="https://ordinals.com">ordinals.com</a> 검색에 붙여넣을 수 있다.</p>
+<h2 id="utxo-동결하기"><a class="header" href="#utxo-동결하기">UTXO 동결하기</a></h2>
+<p>위에서 설명한 것처럼, 각 인스크립션은 미사용 트랜잭션 출력값(UTXO)에 저장된다. 실수로 인스크립션을 사용하지 않도록 매우 주의해야 하며, 이런 일이 발생하지 않도록 하는 한 가지 방법은 UTXO를 동결(freeze)하는 것이다.</p>
+<p>이렇게 하려면 <code>UTXOs</code> 탭으로 이동하여 동결하려는 UTXO를 찾은 다음 <code>Output</code>을 마우스 오른쪽 버튼으로 클릭하고 <code>Freeze UTXO</code>을 선택한다.</p>
+<p>이 UTXO(인스크립션)는 이제 동결을 해제할 때까지 스패로우 지갑 내에서 사용할 수 없다.</p>
+<h2 id="ord-지갑으로-가져오기"><a class="header" href="#ord-지갑으로-가져오기"><code>ord</code> 지갑으로 가져오기</a></h2>
+<p>Bitcoin Core 및 <code>ord</code> 지갑 설정에 대한 자세한 내용은 <a href="../inscriptions.html">인스크립션 가이드</a>를 확인하자</p>
+<p><code>ord</code>를 설정할 때 <code>ord wallet create</code>을 실행하여 새로운 지갑을 생성하는 대신, 스패로우 월렛에서 생성한 시드 문구와 <code>ord wallet restore “BIP39 SEED PHRASE”</code>를 사용하여 기존 지갑을 가져오기 할 수 있다.</p>
+<p>현재 가져오기 한 지갑이 블록체인에 대해 자동으로 재스캔되지 않는 <a href="https://github.com/ordinals/ord/issues/1589">버그</a>가 있다. 이 문제를 해결하려면 bitcoin core cli(<code>bitcoin-cli -rpcwallet=ord rescanblockchain 767430</code>)를 사용하여 수동으로 재스캔을 트리거해야 한다</p>
+<p>그런 다음 <code>ord wallet inscriptions</code>을 사용하여 지갑의 인스크립션을 확인할 수 있다</p>
+<p>이전에 <code>ord</code>로 지갑을 생성한 적이 있다면 기본 이름의 지갑이 이미 있을 것이므로 가져오기 한 지갑에 다른 이름을 지정해야 한다. 모든 <code>ord</code> 명령에 <code>--wallet</code> 매개변수를 사용하여 다른 지갑을 참조할 수 있다. 예시:</p>
+<p><code>ord —wallet ord_from_sparrow wallet restore “BIP39 SEED PHRASE”</code></p>
+<p><code>ord —wallet ord_from_sparrow wallet inscriptions</code></p>
+<p><code>bitcoin-cli -rpcwallet=ord_from_sparrow rescanblockchain 767430</code></p>
+<h2 id="스패로우-월렛으로-인스크립션-보내기"><a class="header" href="#스패로우-월렛으로-인스크립션-보내기">스패로우 월렛으로 인스크립션 보내기</a></h2>
+<h4 id="-경고--1"><a class="header" href="#-경고--1">⚠️⚠️ 경고 ⚠️⚠️</a></h4>
+<p>Bitcoin Core 노드를 설정하고 <code>ord</code> 소프트웨어를 실행하는 것을 적극 권장하지만, 스패로우 월렛에서 안전한 방법으로 인스크립션을 전송할 수 있는 몇 가지 제한된 방법이 있다. 이 방법은 권장되지 않으며, 자신이 무엇을 하는지 완전히 이해하는 경우에만 이 방법을 사용해야 한다는 점에 유의하기 바란다.</p>
+<p><code>ord</code> 소프트웨어를 사용하면 인스크립션 전송을 자동으로 안전하게 처리할 수 있으므로 여기서 설명하는 복잡성을 상당 부분 제거할 수 있다.</p>
+<h4 id="-추가-경고-"><a class="header" href="#-추가-경고-">⚠️⚠️ 추가 경고 ⚠️⚠️</a></h4>
+<p>스패로우 인스크립션 지갑을 사용해 인스크립션이 아닌 일반 비트코인을 송금하지 말자. 일반적인 비트코인 거래를 해야 하는 경우 스패로우에서 별도의 지갑을 설정하고 인스크립션 지갑을 따로 보관할 수 있다.</p>
+<h4 id="비트코인의-utxo-모델"><a class="header" href="#비트코인의-utxo-모델">비트코인의 UTXO 모델</a></h4>
+<p>트랜잭션을 전송하기 전에 비트코인의 미사용 트랜잭션 출력값(UTXO) 시스템에 대한 올바른 멘털 모델을 갖추는 것이 중요하다. 비트코인의 작동 방식은 이더리움과 같은 다른 블록체인과 근본적으로 다르다. 이더리움에서는 일반적으로 이더를 저장하는 단일 주소가 있으며, 이더를 구분할 수 없으므로 이것은 단지 그 주소에 있는 총금액의 단일 값일 뿐이다. 비트코인은 매번 수신 때마다 지갑에 새 주소를 생성한다는 점에서 매우 다르게 작동하며, 지갑에 있는 주소로 SAT를 받을 때마다 새로운 UTXO를 생성하게 된다. 각 UTXO는 개별적으로 보고 관리할 수 있다. 사용하고자 하는 특정 UTXO를 선택할 수 있으며, 특정 UTXO를 사용하지 않도록 선택할 수도 있다.</p>
+<p>일부 비트코인 지갑은 이러한 수준의 세부 정보를 노출하지 않으며, 지갑에 있는 모든 비트코인의 합산된 가치만 보여준다. 하지만 인스크립션을 전송할 때는 UTXO 제어가 가능한 스패로우와 같은 지갑을 사용하는 것이 중요하다.</p>
+<h4 id="보내기-전에-인스크립션-검사하기"><a class="header" href="#보내기-전에-인스크립션-검사하기">보내기 전에 인스크립션 검사하기</a></h4>
+<p>앞서 설명한 것처럼 인스크립션은 SAT에 새겨지며, SAT는 UTXO 내에 저장된다. UTXO는 특정 값의 사토시 수(출력 값)를 가진 사토시의 모음이다. 일반적으로 (항상 그런 것은 아니지만) 인스크립션은 UTXO의 첫 번째 사토시에 새겨진다.</p>
+<p>전송하기 전에 인스크립션을 검사할 때 가장 중요하게 확인해야 할 것은 UTXO의 사토시 중 인스크립션이 새겨진 사토시가 어느 것인지다.</p>
+<p>이것을 하려면 위에서 설명한 <a href="./sparrow-wallet.html#validating--viewing-received-inscriptions">수신된 인스크립션 확인하기/보기</a>를 따라 ordinals.com에서 해당 인스크립션에 대한 인스크립션 페이지를 찾을 수 있다</p>
+<p>여기에서 다음과 같은 해당 인스크립션에 대한 메타데이터를 찾을 수 있다:</p>
+<p><img src="images/sending_01.png" alt="" /></p>
+<p>여기서 확인해야 할 몇 가지 중요한 사항이 있다:</p>
+<ul>
+<li><code>output</code> 식별자가 전송하려는 UTXO의 식별자와 일치한</li>
+<li>인스크립션의 <code>offset</code>은 <code>0</code>이다 (이는 인스크립션이 UTXO의 첫 번째 SAT에 위치한다는 의미)</li>
+<li><code>output_value</code>에 트랜잭션 전송 수수료(우송료)를 충당할 수 있는 충분한 SAT가 있는지 확인한다. 필요한 정확한 금액은 트랜잭션에 대해 선택할 수수료율에 따라 다르다</li>
+</ul>
+<p>위의 모든 사항이 당신 인스크립션에 해당하면 아래 방법을 사용하여 인스크립션을 보내도 안전할 것이다.</p>
+<p>⚠️⚠️ 특히 <code>offset</code> 값이 <code>0</code>이 아닌 경우 인스크립션을 보낼 때 매우 주의하라. 이 경우 이 방법을 권장하지 않는다. 자신이 무엇을 하고 있는지 모르는 상태에서 이 방법을 사용하면 실수로 비트코인 채굴자에게 인스크립션을 전송할 수 있기 때문이다.</p>
+<h4 id="인스크립션-보내기"><a class="header" href="#인스크립션-보내기">인스크립션 보내기</a></h4>
+<p>인스크립션을 보내려면 <code>UTXOs</code> 탭으로 이동하여 이전에 유효성을 확인한 인스크립션이 포함된 UTXO를 찾는다.</p>
+<p>이전에 UXTO를 동결했다면 마우스 오른쪽 버튼으로 클릭한 후 동결 해제해야 한다.</p>
+<p>전송하려는 UTXO를 선택하고, 이 UTXO <em>만</em> 이 선택되어 있는지 확인한다. 인터페이스에 <code>UTXO 1/1</code>이 표시될 것이다. 이 것이 확인되면 <code>Send Selected</code>를 누르면 된다.</p>
+<p><img src="images/sending_02.png" alt="" /></p>
+<p>그러면 트랜잭션 생성(create transaction) 인터페이스가 표시된다. 안전한 송금인지 확인하기 위해 여기서 확인해야 할 몇 가지 사항이 있다:</p>
+<ul>
+<li>트랜잭션에는 입력(input)이 1개만 있어야 하며, 이 입력은 전송하려는 레이블이 있는 UTXO여야 한다</li>
+<li>트랜잭션에는 출력(output)이 1개만 있어야 하며 이는 인스크립션을 보낼 주소/레이블이다</li>
+</ul>
+<p>예를 들어 입력이 여러 개이거나 출력이 여러 개인 등 거래가 조금이라도 다르게 보인다면 안전한 송금이 아닐 수 있으니, 더 많은 정보를 파악하거나 <code>ord</code> 지갑으로 가져오기 할 수 있을 때까지 전송을 중단해야 한다.</p>
+<p>적절한 트랜잭션 수수료를 설정해야 하며, 보통 스패로우에서 합리적인 수수료를 추천해 주지만, 트랜잭션 전송에 대한 권장 수수료율을 확인하려면 <a href="https://mempool.space">mempool.space</a>에서 확인할 수도 있다.</p>
+<p>받는 사람 주소에 레이블을 추가해야 하는데, <code>alice address for inscription #123</code>와 같은 레이블이 이상적이다.</p>
+<p>위의 확인사항을 통해 안전한 트랜잭션인지 확인하고 송금에 확신이 들면 <code>Create Transaction</code>을 클릭한다.</p>
+<p><img src="images/sending_03.png" alt="" /></p>
+<p>여기서도 거래가 안전한지 다시 한 번 확인할 수 있으며, 확신이 들면 <code>Finalize Transaction for Signing</code>을 클릭한다.</p>
+<p><img src="images/sending_04.png" alt="" /></p>
+<p>여기에서 <code>Sign</code>을 누르기 전에 모든 것을 다시 한 번 확인할 수 있다.</p>
+<p><img src="images/sending_05.png" alt="" /></p>
+<p>그리고 실제로 <code>Broadcast Transaction</code>을 누르기 전에 모든 것을 확인할 수 있는 마지막 기회가 주어진다. 트랜잭션을 브로드캐스트하면 비트코인 네트워크로 전송되고 멤풀로 전파되기 시작한다.</p>
+<p><img src="images/sending_06.png" alt="" /></p>
+<p>트랜잭션의 상태를 추적하려면 <code>Transaction Id (Txid)</code>를 복사하여 <a href="https://mempool.space">mempool.space</a>에 붙여넣으면 된다</p>
+<p>트랜잭션이 확인되면 <a href="https://ordinals.com">ordinals.com</a>에서 인스크립션 페이지를 확인하여 새 출력 위치(output location) 및 주소로 이동했는지 확인할 수 있다.</p>
+<h2 id="트러블-슈팅"><a class="header" href="#트러블-슈팅">트러블 슈팅</a></h2>
+<h4 id="스패로우-지갑에-트랜잭션utxo가-표시되지-않지만-나는-mempoolspace에서는-볼-수-있다"><a class="header" href="#스패로우-지갑에-트랜잭션utxo가-표시되지-않지만-나는-mempoolspace에서는-볼-수-있다">스패로우 지갑에 트랜잭션/UTXO가 표시되지 않지만, 나는 mempool.space에서는 볼 수 있다!</a></h4>
+<p>지갑이 비트코인 노드에 연결되어 있는지 확인하자. 이를 확인하려면 <code>Preferences</code>-&gt; <code>Server</code> 설정으로 이동하여 <code>Edit Existing Connection</code>을 클릭한다.</p>
+<p><img src="images/troubleshooting_01.png" alt="" /></p>
+<p>여기에서 노드를 선택하고 <code>Test Connection</code>를 클릭하여 스패로우가 성공적으로 연결할 수 있는지 확인할 수 있다.</p>
+<p><img src="images/troubleshooting_02.png" alt="" /></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../guides/collecting.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="../../guides/testing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../guides/collecting.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="../../guides/testing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

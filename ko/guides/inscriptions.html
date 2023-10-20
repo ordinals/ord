@@ -1,0 +1,429 @@
+<!DOCTYPE HTML>
+<html lang="ko" class="sidebar-visible no-js coal" dir="ltr">
+<script>
+  var lang = "ko"; // Get the language from the configuration
+  if (lang === "ar") {
+    // Set the direction to right-to-left for Arabic
+    document.getElementsByTagName("html")[0].setAttribute("dir", "rtl");
+  }
+</script>
+<style>
+    .custom-list {
+        list-style-type: none; /* Remove default list item marker (hyphen) */
+    }
+</style>
+<html lang="ko" class="sidebar-visible no-js coal">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>인스크립션 - Ordinal Theory Handbook</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../language-picker.css">
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "coal";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('coal')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../introduction.html">서론</a></li><li class="chapter-item expanded "><a href="../overview.html"><strong aria-hidden="true">1.</strong> 개요</a></li><li class="chapter-item expanded "><a href="../digital-artifacts.html"><strong aria-hidden="true">2.</strong> 디지털 아티팩트</a></li><li class="chapter-item expanded "><a href="../inscriptions.html"><strong aria-hidden="true">3.</strong> 인스크립션</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../inscriptions/metadata.html"><strong aria-hidden="true">3.1.</strong> 메타 데이터</a></li><li class="chapter-item expanded "><a href="../inscriptions/provenance.html"><strong aria-hidden="true">3.2.</strong> 기원</a></li><li class="chapter-item expanded "><a href="../inscriptions/recursion.html"><strong aria-hidden="true">3.3.</strong> 리커젼</a></li><li class="chapter-item expanded "><a href="../inscriptions/pointer.html"><strong aria-hidden="true">3.4.</strong> Pointer</a></li></ol></li><li class="chapter-item expanded "><a href="../faq.html"><strong aria-hidden="true">4.</strong> 자주 묻는 질문</a></li><li class="chapter-item expanded "><a href="../contributing.html"><strong aria-hidden="true">5.</strong> 기여하는 방법</a></li><li class="chapter-item expanded "><a href="../donate.html"><strong aria-hidden="true">6.</strong> 기부하는 방법</a></li><li class="chapter-item expanded "><a href="../guides.html"><strong aria-hidden="true">7.</strong> 안내서들</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../guides/explorer.html"><strong aria-hidden="true">7.1.</strong> 탐색기</a></li><li class="chapter-item expanded "><a href="../guides/inscriptions.html" class="active"><strong aria-hidden="true">7.2.</strong> 인스크립션</a></li><li class="chapter-item expanded "><a href="../guides/sat-hunting.html"><strong aria-hidden="true">7.3.</strong> SAT 헌팅</a></li><li class="chapter-item expanded "><a href="../guides/collecting.html"><strong aria-hidden="true">7.4.</strong> 수집</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../guides/collecting/sparrow-wallet.html"><strong aria-hidden="true">7.4.1.</strong> 스패로우 월렛</a></li></ol></li><li class="chapter-item expanded "><a href="../guides/testing.html"><strong aria-hidden="true">7.5.</strong> 테스팅</a></li><li class="chapter-item expanded "><a href="../guides/moderation.html"><strong aria-hidden="true">7.6.</strong> 중재</a></li><li class="chapter-item expanded "><a href="../guides/reindexing.html"><strong aria-hidden="true">7.7.</strong> 재인덱싱</a></li></ol></li><li class="chapter-item expanded "><a href="../bounties.html"><strong aria-hidden="true">8.</strong> 현상금</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../bounty/0.html"><strong aria-hidden="true">8.1.</strong> 현상금 0: 100,000 SAT 획득!</a></li><li class="chapter-item expanded "><a href="../bounty/1.html"><strong aria-hidden="true">8.2.</strong> 현상금 1: 200,000 SAT 획득!</a></li><li class="chapter-item expanded "><a href="../bounty/2.html"><strong aria-hidden="true">8.3.</strong> 현상금 2: 300,000 SAT 획득!</a></li><li class="chapter-item expanded "><a href="../bounty/3.html"><strong aria-hidden="true">8.4.</strong> 현상금 3: 400,000 SAT</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Ordinal Theory Handbook</h1>
+
+                    <div class="right-buttons">
+                        <button id="language-toggle" class="icon-button" type="button"
+                                title="Change language" aria-label="Change language"
+                                aria-haspopup="true" aria-expanded="false"
+                                aria-controls="language-list">
+                            <i class="fa fa-globe"></i>
+                        </button>
+                        <ul id="language-list" class="theme-popup" aria-label="Languages" role="menu">
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="en">English</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="de">Deutsch</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fr">Français</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="es">Español</a>
+                          </button></li>
+                           <li role="none"><button role="menuitem" class="theme">
+                              <a id="ru">Русский</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="zh">中文版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ja">日本語版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ko">한국어</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fil">Filipino</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ar">العربية</a>
+                          </button></li>
+                        </ul>
+
+                        <script>
+                          let langToggle = document.getElementById("language-toggle");
+                          let langList = document.getElementById("language-list");
+                          langToggle.addEventListener("click", (event) => {
+                              langList.style.display = langList.style.display == "block" ? "none" : "block";
+                          });
+                          let selectedLang = document.getElementById("ko");
+                          if (selectedLang) {
+                              selectedLang.parentNode.classList.add("theme-selected");
+                          }
+
+                          // The path to the root, taking the current
+                          // language into account.
+                          let full_path_to_root = "../../";
+                          // The page path (mdbook only gives us
+                          // access to the path to the Markdown file).
+                          let path = "guides/inscriptions.md".replace(/\.md$/, ".html");
+                          for (let lang of langList.querySelectorAll("a")) {
+                              if (lang.id == "en") {
+                                  lang.href = `${full_path_to_root}${path}`;
+                              } else {
+                                  lang.href = `${full_path_to_root}${lang.id}/${path}`;
+                              }
+                          }
+                        </script>
+
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ordinals/ord" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="오디널-인스크립션-가이드"><a class="header" href="#오디널-인스크립션-가이드">오디널 인스크립션 가이드</a></h1>
+<p>각 SAT에 임의의 콘텐츠를 새길 수 있으며, 이로써 비트코인 지갑에 보관하고 비트코인 거래를 통해 전송할 수 있는 고유한 비트코인 자체 디지털 아티팩트를 만들 수 있다. 인스크립션은 비트코인만큼이나 내구성이 있고, 불변하며, 안전하고, 탈중앙화되어 있다.</p>
+<p>인스크립션 작업에는 비트코인 블록체인의 현재 상태를 볼 수 있는 비트코인 풀 노드와 인스크립션을 생성하고 다른 지갑으로 인스크립션을 전송하는 트랜잭션을 만들 때 SAT 제어를 수행할 수 있는 지갑이 필요하다.</p>
+<p>Bitcoin Core는 비트코인 풀노드와 지갑을 모두 제공한다. 그러나 Bitcoin Core 지갑은 인스크립션을 생성할 수 없으며, SAT 제어를 수행하지 않는다.</p>
+<p>이를 위해서는 오디널 유틸리티인 <a href="https://github.com/ordinals/ord"><code>ord</code></a>가 필요하다. <code>ord</code>는 자체 지갑을 구현하지 않으므로 <code>ord wallet</code> 하위 명령은 Bitcoin Core 지갑과 상호작용한다.</p>
+<p>이 가이드에서 다룰 토픽:</p>
+<ol>
+<li>Bitcoin Core 설치</li>
+<li>비트코인 블록체인 동기화</li>
+<li>Bitcoin Core 지갑 만들기</li>
+<li><code>ord wallet receive</code>을 사용하여 SAT 받기</li>
+<li><code>ord wallet inscribe</code>으로 인스크립션 만들기</li>
+<li><code>ord wallet send</code>로 인스크립션 보내기</li>
+<li><code>ord wallet receive</code>로 인스크립션 받기</li>
+</ol>
+<h2 id="도움-받기"><a class="header" href="#도움-받기">도움 받기</a></h2>
+<p>문제가 해결되지 않는다면, <a href="https://discord.com/invite/87cjuz4FYg">오디널스 디스코드 서버</a>에서 도움을 요청해 보거나 깃허브에서 관련 <a href="https://github.com/ordinals/ord/issues">이슈</a> 및 <a href="https://github.com/ordinals/ord/discussions">토론</a>을 확인해 보자.</p>
+<h2 id="bitcoin-core-설치"><a class="header" href="#bitcoin-core-설치">Bitcoin Core 설치</a></h2>
+<p>Bitcoin Core는 <a href="https://bitcoincore.org/">bitcoincore.org</a>의 <a href="https://bitcoincore.org/en/download/">다운로드 페이지</a>에서 이용할 수 있다.</p>
+<p>인스립션을 만들려면 Bitcoin Core 24 이상이 필요하다.</p>
+<p>이 가이드에서는 Bitcoin Core 설치에 대해 자세히 다루지 않는다. Bitcoin Core가 설치되면 명령줄에서 <code>bitcoind -version</code>을 성공적으로 실행할 수 있어야 한다. <code>bitcoin-qt</code>는 사용하지 말라.</p>
+<h2 id="bitcoin-core-설정하기"><a class="header" href="#bitcoin-core-설정하기">Bitcoin Core 설정하기</a></h2>
+<p><code>ord</code>는 Bitcoin Core의 트랜잭션 인덱스와 rest 인터페이스가 필요하다.</p>
+<p>트랜잭션 인덱스를 유지하도록 Bitcoin Core 노드를 설정하려면, <code>bitcoin.conf</code>에 다음을 추가한다:</p>
+<pre><code>txindex=1
+</code></pre>
+<p>또는 <code>-txindex</code>와 함께 <code>bitcoind</code>를 실행한다:</p>
+<pre><code>bitcoind -txindex
+</code></pre>
+<p><code>bitcoin.conf</code> 파일 생성 또는 수정에 대한 자세한 내용은 <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md">여기</a>에서 확인할 수 있다.</p>
+<h2 id="비트코인-블록체인-동기화"><a class="header" href="#비트코인-블록체인-동기화">비트코인 블록체인 동기화</a></h2>
+<p>체인을 동기화하려면 다음을 실행한다:</p>
+<pre><code>bitcoind -txindex
+</code></pre>
+<p>...그리고 <code>getblockcount</code>가:</p>
+<pre><code>bitcoin-cli getblockcount
+</code></pre>
+<p><a href="https://mempool.space/">mempool.space block explorer</a>와 같은 블록 탐색기의 블록 수와 일치할때까지 실행한다. <code>ord</code>는 <code>bitcoind</code>와 상호 작용하므로 <code>ord</code>을 사용할 때는 <code>bitcoind</code>를 백그라운드에서 실행하도록 두어야 한다.</p>
+<p>블록체인은 약 600GB의 디스크 공간을 필요로 한다. 블록을 저장할 외장 드라이브가 있는 경우, 설정 옵션 <code>blocksdir=&lt;external_drive_path&gt;</code>를 사용한다. 이렇게 하면 쿠키 파일이 여전히 <code>bitcoin-cli</code>와 <code>ord</code>가 찾을 수 있는 기본 위치에 있기 때문에 <code>datadir</code> 옵션을 사용하는 것보다 훨씬 간단하다.</p>
+<h2 id="트러블-슈팅"><a class="header" href="#트러블-슈팅">트러블 슈팅</a></h2>
+<p><code>bitcoind</code>를 <code>bitcoin-cli -getinfo</code>로 액세스할 수 있는지 그리고 이것이 완전히 동기화되었는지를 확인한다.</p>
+<p><code>bitcoin-cli -getinfo</code>가 <code>Could not connect to the server</code>을 반환하면 <code>bitcoind</code>가 실행되고 있지 않은 것이다.</p>
+<p><code>rpcuser</code>, <code>rpcpassword</code> 또는 <code>rpcauth</code>가 <code>bitcoin.conf</code> 파일에 설정되어 있지 <em>않는</em> 것을 확인하자. <code>ord</code>는 쿠키 인증에 사용을 요구한다. 비트코인 데이터 디렉토리에 <code>.cookie</code> 파일이 있는지 확인하자.</p>
+<p><code>bitcoin-cli -getinfo</code>가 <code>Could not locate RPC credentials</code>을 반환하면 쿠키 파일 위치를 지정해야 한다. 사용자 지정 데이터 디렉터리를 사용하는 경우(<code>datadir</code> 옵션을 지정) <code>bitcoin-cli -rpccookiefile=&lt;your_bitcoin_datadir&gt;/.cookie -getinfo</code>와 같이 쿠키 위치를 지정해야 한다. <code>ord</code>을 실행할 때는 <code>--cookie-file=&lt;your_bitcoin_datadir&gt;/.cookie</code>로 쿠키 파일 위치를 지정해야 한다.</p>
+<p><code>bitcoin.conf</code> 파일에 <code>disablewallet=1</code>이 <em>없는</em> 것을 확인하자. <code>bitcoin-cli listwallets</code>가 <code>Method not found</code>을 반환하면 지갑이 비활성화된 것이며 <code>ord</code>를 사용할 수 없다.</p>
+<p><code>txindex=1</code>이 설정되어 있는지 확인한다. <code>bitcoin-cli getindexinfo</code>를 실행하면 다음과 같은 결과가 반환되어야 한다</p>
+<pre><code class="language-json">{
+  &quot;txindex&quot;: {
+    &quot;synced&quot;: true,
+    &quot;best_block_height&quot;: 776546
+  }
+}
+</code></pre>
+<p>만약 <code>{}</code>만 반환하면 <code>txindex</code>가 설정되지 않은 것이다. <code>”synced”: false</code>를 반환하면 <code>bitcoind</code>가 여전히 <code>txindex</code>를 생성하고 있는 것이다. <code>”synced”: true</code>가 될 때까지 기다렸다가 <code>ord</code>를 사용하라.</p>
+<p><code>maxuploadtarget</code>이 설정되어 있으면 <code>ord</code> 인덱스를 위해 블록을 가져오는 데 방해가 될 수 있다. 이를 제거하거나 <code>whitebind=127.0.0.1:8333</code>을 설정하라.</p>
+<h2 id="ord-설치"><a class="header" href="#ord-설치"><code>ord</code> 설치</a></h2>
+<p>'ord` 유틸리티는 Rust로 작성되었으며 <a href="https://github.com/ordinals/ord">소스</a>에서 빌드할 수 있다. 미리 빌드된 바이너리는 <a href="https://github.com/ordinals/ord/releases">릴리스 페이지</a>에서 사용할 수 있다.</p>
+<p>명령줄에서 다음을 사용하여 미리 빌드된 최신 바이너리를 설치할 수 있다:</p>
+<pre><code class="language-sh">curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash -s
+</code></pre>
+<p><code>ord</code>가 설치되면 다음을 실행할 수 있어야 한다:</p>
+<pre><code>ord --version
+</code></pre>
+<p>이것이 <code>ord</code>의 버전 번호를 출력한다.</p>
+<h2 id="bitcoin-core-지갑-만들기"><a class="header" href="#bitcoin-core-지갑-만들기">Bitcoin Core 지갑 만들기</a></h2>
+<p>'ord'는 비트코인 코어를 사용해 개인 키를 관리하고, 트랜잭션에 서명하고, 비트코인 네트워크로 트랜잭션을 브로드캐스트한다.</p>
+<p><code>ord</code>와 함께 사용할 <code>ord</code>이라는 이름을 가진 Bitcoin Core 지갑을 만들려면 다음을 실행한다:</p>
+<pre><code>ord wallet create
+</code></pre>
+<h2 id="sat-받기"><a class="header" href="#sat-받기">SAT 받기</a></h2>
+<p>인스크립션은 SAT로 수수료를 지불하는 일반 비트코인 거래를 사용하여 개별 SAT에 새김 됨으로 지갑에 약간의 SAT가 필요하다.</p>
+<p>다음을 실행하여 <code>ord</code> 지갑에서 새 주소를 가져온다:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>그리고 자금을 조금 보내자.</p>
+<p>다음을 사용하여 펜딩 트랜잭션을 확인할 수 있다:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>트랜잭션이 컨펌되면 <code>ord wallet outputs</code>으로 트랜잭션 출력을 확인할 수 있다.</p>
+<h2 id="인스크립션-콘텐츠-만들기"><a class="header" href="#인스크립션-콘텐츠-만들기">인스크립션 콘텐츠 만들기</a></h2>
+<p>SAT에는 모든 종류의 콘텐츠를 새길 수 있지만, <code>ord</code> 지갑은 <code>ord</code> 블록 탐색기에서 표시할 수 있는 콘텐츠 유형만 지원한다.</p>
+<p>또한 인스크립션은 트랜잭션에 포함되므로 콘텐츠가 클수록 인스크립션 트랜잭션에서 지불해야 하는 수수료가 높아진다.</p>
+<p>인스크립션 콘텐츠는 트랜잭션 증인에 포함되며, 증인 할인(witness discount)을 받는다. 인스크립트 트랜잭션이 지불할 대략의 수수료를 계산하려면 콘텐츠 크기를 4로 나눈 다음 수수료율을 곱하면 된다.</p>
+<p>인스크립션 트랜잭션은 400,000 가중치 단위(weight unit) 미만이어야 하며, 그렇지 않으면 Bitcoin Core에서 릴레이 되지 않는다. 1바이트의 인스크립션 콘텐츠는 1 가중치 단위의 비용이 든다. 인스크립션 트랜잭션에는 인스크립션 콘텐츠만 포함되지 않으므로, 인스크립션 콘텐츠를 400,000 가중치 단위 미만으로 제한하라. 390,000 개의 가중치 단위미만은 안전할 것이다.</p>
+<h2 id="인스크립션-생성하기"><a class="header" href="#인스크립션-생성하기">인스크립션 생성하기</a></h2>
+<p><code>FILE</code>의 내용으로 인스크립션을 만들려면 다음을 실행한다:</p>
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE FILE
+</code></pre>
+<p>Ord는 커밋 트랜잭션과 리빌 트랜잭션에 대한 두 개의 트랜잭션 ID와 인스크립션 ID를 출력한다. 인스크립션 ID는 <code>TXIDiN</code> 형식이며, 여기서 <code>TXID</code>는 리빌 트랜잭션의 트랜잭션 ID이고 <code>N</code>은 리빌 트랜잭션안에 있는 인스크립션의 인덱스이다.</p>
+<p>커밋 트랜잭션은 인스크립션 콘텐츠가 포함된 탭스크립트(tapscript)에 커밋하고, 리빌 트랜잭션은 해당 탭스크립트에서 지출하여 체인에서 콘텐츠를 공개하고 해당 탭스크립트가 포함된 입력의 첫 번째 SAT에 인스크립션을 새긴다.</p>
+<p>리빌 트랜잭션이 채굴될 때까지 기다린다. <a href="https://mempool.space/">Mempool.space 블록 탐색기</a>를 사용하여 커밋 및 리빌 트랜잭션의 상태를 확인할 수 있다.</p>
+<p>리빌 트랜잭션이 채굴되면 다음을 실행할 때 인스크립션 ID가 출력되어야 한다:</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+<h2 id="부모-자식-인스크립션"><a class="header" href="#부모-자식-인스크립션">부모-자식 인스크립션</a></h2>
+<p>부모-자식 인스크립션은 구어체로 컬렉션이라고 하는 것을 가능하게 한다. 자세한 내용은 <a href="../inscriptions/provenance.html">기원</a>을 참조하자.</p>
+<p>인스크립션을 다른 인스크립션의 자식으로 만들려면 부모 인스크립션이 새김되어 있고 지갑에 있어야 한다. 부모를 선택하려면 <code>ord wallet inscriptions</code>을 실행하고 인스크립션 ID(<code>&lt;PARENT_INSCRIPTION_ID&gt;</code>)를 복사한다.</p>
+<p>이제 자식 인스크립션을 새기고 부모를 다음과 같이 지정한다:</p>
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; CHILD_FILE
+</code></pre>
+<p>이 관계는 소급하여 추가할 수 없으며, 부모는 자녀가 시작될 때 이미 존재해야 한다.</p>
+<h2 id="인스크립션-보내기"><a class="header" href="#인스크립션-보내기">인스크립션 보내기</a></h2>
+<p>수신자에게 다음을 실행해 새 주소를 생성하도록 요청한다:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>다음을 실행하여 인스크립션을 보낸다:</p>
+<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; &lt;ADDRESS&gt; &lt;INSCRIPTION_ID&gt;
+</code></pre>
+<p>다음을 실행하여 펜딩 트랜잭션을 확인한다:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>전송 트랜잭션이 확인되면 수신자는 다음을 실행하여 수신을 확인할 수 있다:</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+<h2 id="인스크립션-받기"><a class="header" href="#인스크립션-받기">인스크립션 받기</a></h2>
+<p>다음을 사용하여 새 수신 주소를 생성한다:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>발신자는 다음을 사용하여 인스크립션을 당신의 주소로 전송할 수 있다:</p>
+<pre><code>ord wallet send ADDRESS INSCRIPTION_ID
+</code></pre>
+<p>다음을 실행하여 펜딩 트랜잭션을 확인한다:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>전송 트랜잭션이 확인되면 다음을 실행하여 수신을 확인할 수 있다:</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../guides/explorer.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="../guides/sat-hunting.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../guides/explorer.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="../guides/sat-hunting.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

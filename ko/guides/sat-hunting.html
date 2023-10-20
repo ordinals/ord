@@ -1,0 +1,474 @@
+<!DOCTYPE HTML>
+<html lang="ko" class="sidebar-visible no-js coal" dir="ltr">
+<script>
+  var lang = "ko"; // Get the language from the configuration
+  if (lang === "ar") {
+    // Set the direction to right-to-left for Arabic
+    document.getElementsByTagName("html")[0].setAttribute("dir", "rtl");
+  }
+</script>
+<style>
+    .custom-list {
+        list-style-type: none; /* Remove default list item marker (hyphen) */
+    }
+</style>
+<html lang="ko" class="sidebar-visible no-js coal">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>SAT 헌팅 - Ordinal Theory Handbook</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../language-picker.css">
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "coal";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('coal')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../introduction.html">서론</a></li><li class="chapter-item expanded "><a href="../overview.html"><strong aria-hidden="true">1.</strong> 개요</a></li><li class="chapter-item expanded "><a href="../digital-artifacts.html"><strong aria-hidden="true">2.</strong> 디지털 아티팩트</a></li><li class="chapter-item expanded "><a href="../inscriptions.html"><strong aria-hidden="true">3.</strong> 인스크립션</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../inscriptions/metadata.html"><strong aria-hidden="true">3.1.</strong> 메타 데이터</a></li><li class="chapter-item expanded "><a href="../inscriptions/provenance.html"><strong aria-hidden="true">3.2.</strong> 기원</a></li><li class="chapter-item expanded "><a href="../inscriptions/recursion.html"><strong aria-hidden="true">3.3.</strong> 리커젼</a></li><li class="chapter-item expanded "><a href="../inscriptions/pointer.html"><strong aria-hidden="true">3.4.</strong> Pointer</a></li></ol></li><li class="chapter-item expanded "><a href="../faq.html"><strong aria-hidden="true">4.</strong> 자주 묻는 질문</a></li><li class="chapter-item expanded "><a href="../contributing.html"><strong aria-hidden="true">5.</strong> 기여하는 방법</a></li><li class="chapter-item expanded "><a href="../donate.html"><strong aria-hidden="true">6.</strong> 기부하는 방법</a></li><li class="chapter-item expanded "><a href="../guides.html"><strong aria-hidden="true">7.</strong> 안내서들</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../guides/explorer.html"><strong aria-hidden="true">7.1.</strong> 탐색기</a></li><li class="chapter-item expanded "><a href="../guides/inscriptions.html"><strong aria-hidden="true">7.2.</strong> 인스크립션</a></li><li class="chapter-item expanded "><a href="../guides/sat-hunting.html" class="active"><strong aria-hidden="true">7.3.</strong> SAT 헌팅</a></li><li class="chapter-item expanded "><a href="../guides/collecting.html"><strong aria-hidden="true">7.4.</strong> 수집</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../guides/collecting/sparrow-wallet.html"><strong aria-hidden="true">7.4.1.</strong> 스패로우 월렛</a></li></ol></li><li class="chapter-item expanded "><a href="../guides/testing.html"><strong aria-hidden="true">7.5.</strong> 테스팅</a></li><li class="chapter-item expanded "><a href="../guides/moderation.html"><strong aria-hidden="true">7.6.</strong> 중재</a></li><li class="chapter-item expanded "><a href="../guides/reindexing.html"><strong aria-hidden="true">7.7.</strong> 재인덱싱</a></li></ol></li><li class="chapter-item expanded "><a href="../bounties.html"><strong aria-hidden="true">8.</strong> 현상금</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../bounty/0.html"><strong aria-hidden="true">8.1.</strong> 현상금 0: 100,000 SAT 획득!</a></li><li class="chapter-item expanded "><a href="../bounty/1.html"><strong aria-hidden="true">8.2.</strong> 현상금 1: 200,000 SAT 획득!</a></li><li class="chapter-item expanded "><a href="../bounty/2.html"><strong aria-hidden="true">8.3.</strong> 현상금 2: 300,000 SAT 획득!</a></li><li class="chapter-item expanded "><a href="../bounty/3.html"><strong aria-hidden="true">8.4.</strong> 현상금 3: 400,000 SAT</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Ordinal Theory Handbook</h1>
+
+                    <div class="right-buttons">
+                        <button id="language-toggle" class="icon-button" type="button"
+                                title="Change language" aria-label="Change language"
+                                aria-haspopup="true" aria-expanded="false"
+                                aria-controls="language-list">
+                            <i class="fa fa-globe"></i>
+                        </button>
+                        <ul id="language-list" class="theme-popup" aria-label="Languages" role="menu">
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="en">English</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="de">Deutsch</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fr">Français</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="es">Español</a>
+                          </button></li>
+                           <li role="none"><button role="menuitem" class="theme">
+                              <a id="ru">Русский</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="zh">中文版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ja">日本語版</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ko">한국어</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="fil">Filipino</a>
+                          </button></li>
+                          <li role="none"><button role="menuitem" class="theme">
+                              <a id="ar">العربية</a>
+                          </button></li>
+                        </ul>
+
+                        <script>
+                          let langToggle = document.getElementById("language-toggle");
+                          let langList = document.getElementById("language-list");
+                          langToggle.addEventListener("click", (event) => {
+                              langList.style.display = langList.style.display == "block" ? "none" : "block";
+                          });
+                          let selectedLang = document.getElementById("ko");
+                          if (selectedLang) {
+                              selectedLang.parentNode.classList.add("theme-selected");
+                          }
+
+                          // The path to the root, taking the current
+                          // language into account.
+                          let full_path_to_root = "../../";
+                          // The page path (mdbook only gives us
+                          // access to the path to the Markdown file).
+                          let path = "guides/sat-hunting.md".replace(/\.md$/, ".html");
+                          for (let lang of langList.querySelectorAll("a")) {
+                              if (lang.id == "en") {
+                                  lang.href = `${full_path_to_root}${path}`;
+                              } else {
+                                  lang.href = `${full_path_to_root}${lang.id}/${path}`;
+                              }
+                          }
+                        </script>
+
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ordinals/ord" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="sat-헌팅"><a class="header" href="#sat-헌팅">SAT 헌팅</a></h1>
+<p><em>이 가이드는 오래되었다. 이 가이드가 작성된 이후, <code>ord</code> 바이너리는 <code>--index-sats</code> 플래그가 제공될 때만 풀 사토시 인덱스를 빌드하도록 변경되다. 또한 <code>ord</code>에는 이제 Bitcoin Core 지갑을 감싸는 지갑이 내장되어 있다. <code>ord wallet —help</code>를 참조하자.</em></p>
+<p>오디널 헌팅은 어렵지만 보람이 있다. 희귀하고 이색적인 SAT의 향기가 풍기는 UTXO가 가득한 지갑을 소유했을 때의 기분은 그 무엇과도 비교할 수 없다.</p>
+<p>오디널은 사토시를 나타내는 숫자이다. 모든 사토시에는 서수가 있고 모든 서수에는 사토시가 있다.</p>
+<h2 id="준비"><a class="header" href="#준비">준비</a></h2>
+<p>시작하기 전에 몇 가지 준비해야 할 사항이 있다.</p>
+<ol>
+<li>
+<p>첫째, 트랜잭션 인덱스가 있는 동기화된 Bitcoin Core 노드가 필요하다. 트랜잭션 인덱싱을 활성화하려면 명령줄에 <code>-txindex</code>를 입력한다:</p>
+<pre><code class="language-sh">bitcoind -txindex
+</code></pre>
+<p>또는 다음을 <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md#configuration-file-path">Bitcoin configuration file</a>에 입력한다:</p>
+<pre><code>txindex=1
+</code></pre>
+<p>이를 실행하고 체인 끝을 따라잡을 때까지 기다린 후 다음 명령을 입력하면 현재 블록 높이를 출력할 것이다:</p>
+<pre><code class="language-sh">bitcoin-cli getblockcount
+</code></pre>
+</li>
+<li>
+<p>둘째, 동기화된 <code>ord</code> 인덱스가 필요하다.</p>
+<ul>
+<li>
+<p><a href="https://github.com/ordinals/ord/">the repo</a>에서 <code>ord</code>의 사본을 가져오자.</p>
+</li>
+<li>
+<p><code>RUST_LOG=info ord index</code>를 실행한다. Bitcoin Core 노드에 연결되고 인덱싱을 시작할 것이다.</p>
+</li>
+<li>
+<p>인덱싱이 완료될 때까지 기다린다.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>셋째, 검색하려는 UTXO가 있는 지갑이 필요하다.</p>
+</li>
+</ol>
+<h2 id="희귀-오디널스-검색하기"><a class="header" href="#희귀-오디널스-검색하기">희귀 오디널스 검색하기</a></h2>
+<h3 id="bitcoin-core-지갑에서-희귀-오디널스-검색하기"><a class="header" href="#bitcoin-core-지갑에서-희귀-오디널스-검색하기">Bitcoin Core 지갑에서 희귀 오디널스 검색하기</a></h3>
+<p><code>ord wallet</code> 명령은 Bitcoin Core의 RPC API를 감싸는 래퍼일 뿐이므로 Bitcoin Core 지갑에서 희귀한 오디널스를 검색하는 것은 쉽다. 지갑의 이름이 <code>foo</code>이라는 가정하에:</p>
+<ol>
+<li>
+<p>지갑을 로드한다:</p>
+<pre><code class="language-sh">bitcoin-cli loadwallet foo
+</code></pre>
+</li>
+<li>
+<p>희귀한 오디널스 지갑 <code>foo</code>의 UTXO를 표시한다:</p>
+<pre><code class="language-sh">ord wallet sats
+</code></pre>
+</li>
+</ol>
+<h3 id="bitcoin-core-지갑이-아닌-지갑에서-희귀-오디널스-검색하기"><a class="header" href="#bitcoin-core-지갑이-아닌-지갑에서-희귀-오디널스-검색하기">Bitcoin Core 지갑이 아닌 지갑에서 희귀 오디널스 검색하기</a></h3>
+<p><code>ord wallet</code> 명령은 Bitcoin Core의 RPC API를 감싸는 래퍼일 뿐이므로, Bitcoin Core가 아닌 지갑에서 희귀 오디널스를 검색하려면 지갑의 기술자(discriptors)를 Bitcoin Core로 가져오기 해야 한다.</p>
+<p><a href="https://github.com/bitcoin/bitcoin/blob/master/doc/descriptors.md">기술자</a>는 지갑이 개인 키와 공개 키를 생성하는 방법을 설명한다.</p>
+<p>지갑의 공개 키에 대한 기술자만 Bitcoin Core로 가져와야 하며, 개인 키는 가져오지 않아야 한다.</p>
+<p>지갑의 공개 키 기술자가 유출되면 공격자가 지갑 주소를 볼 수 있지만 자금은 안전할 것이다.</p>
+<p>지갑의 개인 키 기술자가 유출되면 공격자가 지갑에서 자금을 탈취할 수 있다.</p>
+<ol>
+<li>
+<p>희귀 오디널스를 검색하려는 지갑에서 지갑 기술자를 가져온다. 다음과 같은 형태일 것이다:</p>
+<pre><code>wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29
+</code></pre>
+</li>
+<li>
+<p>‘foo-watch-only’라는 이름으로 Watch-only 지갑을 생성한다:</p>
+<pre><code class="language-sh">bitcoin-cli createwallet foo-watch-only true true
+</code></pre>
+<p>당신 마음대로 <code>foo-watch-only</code>보다 더 좋은 이름으로 지어주자!</p>
+</li>
+<li>
+<p><code>foo-watch-only</code> 지갑을 로드한다:</p>
+<pre><code class="language-sh">bitcoin-cli loadwallet foo-watch-only
+</code></pre>
+</li>
+<li>
+<p>지갑 기술자를 'foo-watch-only'로 가져온다:</p>
+<pre><code class="language-sh">bitcoin-cli importdescriptors \
+  ‘[{ “desc”: “wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax”, “timestamp”:0 }]’
+</code></pre>
+<p>지갑이 처음 트랜잭션을 받기 시작한 유닉스 타임스탬프를 알고 있다면, <code>0</code> 대신 <code>”timestamp”</code> 값에 사용할 수 있다. 이렇게 하면 Bitcoin Core가 당신 지갑의 UTXO를 검색하는 데 걸리는 시간을 줄일 수 있다.</p>
+</li>
+<li>
+<p>모든 것이 제대로 되었는지 확인한다:</p>
+<pre><code class="language-sh">bitcoin-cli getwalletinfo
+</code></pre>
+</li>
+<li>
+<p>당신 지갑의 희귀 오디널스를 표시한다:</p>
+<pre><code class="language-sh">ord wallet sats
+</code></pre>
+</li>
+</ol>
+<h3 id="다중-경로-기술자를-내보내기-하는-지갑에서-희귀-오디널스-검색하기"><a class="header" href="#다중-경로-기술자를-내보내기-하는-지갑에서-희귀-오디널스-검색하기">다중 경로 기술자를 내보내기 하는 지갑에서 희귀 오디널스 검색하기</a></h3>
+<p>일부 기술자는 꺾쇠 괄호(예: <code>&lt;0;1&gt;</code>)를 사용하여 하나의 기술자 안에 다수에 경로를 기술한다. 다중 경로 기술자는 아직 Bitcoin Core에서 지원되지 않으므로, 먼저 다수에 기술자들로 변환한 다음 Bitcoin Core로 해당 기술자들을 가져오기 해야 한다.</p>
+<ol>
+<li>
+<p>먼저 지갑에서 다중 경로 기술자를 가져온다. 다음과 같은 형태가 될 것이다:</p>
+<pre><code>wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/&lt;0;1&gt;/*)#fw76ulgt
+</code></pre>
+</li>
+<li>
+<p>수신 주소 경로에 대한 기술자를 만든다:</p>
+<pre><code>wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)
+</code></pre>
+<p>그리고 주소 변경 경로에 대한 기술자를 만든다:</p>
+<pre><code>wpkh([bf1dd55e/84'/0'/0']xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)
+</code></pre>
+</li>
+<li>
+<p>수신 주소 기술자의 체크섬(이 경우 <code>tpnxnxax</code>)을 가져와 기록한다:</p>
+<pre><code class="language-sh">bitcoin-cli getdescriptorinfo \
+  'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)'
+</code></pre>
+<pre><code class="language-json">{
+  “descriptor”: “wpkh([bf1dd55e/84’/0’/0’]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#csvefu29”,
+  “checksum”: “tpnxnxax”,
+  “isrange”: true,
+  “issolvable”: true,
+  “hasprivatekeys”: false
+}
+</code></pre>
+<p>그리고 변경 주소 설명자의 체크섬(이 경우 <code>64k8wnd7</code>)를 가져와 기록한다:</p>
+<pre><code class="language-sh">bitcoin-cli getdescriptorinfo \
+  'wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)'
+</code></pre>
+<pre><code class="language-json">{
+  “descriptor”: “wpkh([bf1dd55e/84’/0’/0’]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#fyfc5f6a”,
+  “checksum”: “64k8wnd7”,
+  “isrange”: true,
+  “issolvable”: true,
+  “hasprivatekeys”: false
+}
+</code></pre>
+</li>
+<li>
+<p>기술자를 가져오기 할 지갑을 로드한다:</p>
+<pre><code class="language-sh">bitcoin-cli loadwallet foo-watch-only
+</code></pre>
+</li>
+<li>
+<p>이제 올바른 체크섬과 기술자를 Bitcoin Core로 가져오기 한다.</p>
+<pre><code class="language-sh">bitcoin-cli \
+ importdescriptors \
+ ‘[
+   {
+     “desc”: “wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax”
+     “timestamp”:0
+   },
+   {
+     “desc”: “wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/1/*)#64k8wnd7”,
+     “timestamp”:0
+   }
+ ]’
+</code></pre>
+<p>지갑이 처음 트랜잭션을 받기 시작한 유닉스 타임스탬프를 알고 있다면, <code>0</code> 대신 <code>”timestamp”</code> 값에 사용할 수 있다. 이렇게 하면 Bitcoin Core가 당신 지갑의 UTXO를 검색하는 데 걸리는 시간을 줄일 수 있다.</p>
+</li>
+<li>
+<p>모든 것이 제대로 되었는지 확인한다:</p>
+<pre><code class="language-sh">bitcoin-cli getwalletinfo
+</code></pre>
+</li>
+<li>
+<p>당신 지갑의 희귀 오디널스를 표시한다:</p>
+<pre><code class="language-sh">ord wallet sats
+</code></pre>
+</li>
+</ol>
+<h3 id="기술자-내보내기"><a class="header" href="#기술자-내보내기">기술자 내보내기</a></h3>
+<h4 id="스패로우-월렛"><a class="header" href="#스패로우-월렛">스패로우 월렛</a></h4>
+<p><code>Settings</code> 탭으로 이동한 다음 <code>Script Policy</code>로 이동한 후 편집 버튼을 눌러 기술자를 표시한다.</p>
+<h3 id="오디널스-전송하기"><a class="header" href="#오디널스-전송하기">오디널스 전송하기</a></h3>
+<p><code>ord</code> 지갑은 특정 사토시 전송을 지원한다. <code>bitcoin-cli</code> 명령어인 <code>createrawtransaction</code>, <code>signrawtransactionwithwallet</code>, <code>sendrawtransaction</code>을 사용할 수도 있지만, 이 방법들은 복잡하며 이 가이드의 범위를 벗어난다.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../guides/inscriptions.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="../guides/collecting.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../guides/inscriptions.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="../guides/collecting.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>
