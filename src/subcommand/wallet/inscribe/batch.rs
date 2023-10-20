@@ -31,21 +31,21 @@ pub(crate) struct BatchConfig {
 }
 
 impl BatchConfig {
+  pub(crate) fn load(path: &Path) -> Result<BatchConfig> {
+    Ok(serde_yaml::from_reader(File::open(path)?)?)
+  }
+
   pub(crate) fn inscriptions(
     &self,
     chain: Chain,
-    parent_info: Option<ParentInfo>,
+    parent_value: Option<u64>,
     metadata: Option<Vec<u8>>,
   ) -> Result<(Vec<Inscription>, Amount)> {
     if metadata.is_some() {
       assert!(!self.batch.iter().any(|entry| entry.metadata.is_some()));
     }
 
-    let mut pointer = if let Some(info) = parent_info.clone() {
-      info.tx_out.value // Inscribe in first sat after parent output
-    } else {
-      0
-    };
+    let mut pointer = parent_value.unwrap_or_default();
 
     let mut inscriptions = Vec::new();
     for (i, entry) in self.batch.iter().enumerate() {
@@ -106,8 +106,11 @@ impl BatchConfig {
       get_change_address(&client, options)?,
     ];
 
-    let (inscriptions, postage) =
-      self.inscriptions(options.chain(), parent_info.clone(), metadata)?;
+    let (inscriptions, postage) = self.inscriptions(
+      options.chain(),
+      parent_info.as_ref().map(|info| info.tx_out.value),
+      metadata,
+    )?;
 
     let reveal_tx_destination_count = match self.mode {
       Mode::SharedOutput => 1,
