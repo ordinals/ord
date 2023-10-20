@@ -123,13 +123,13 @@ impl Inscribe {
       metadata,
     )?;
 
-    return Ok(Box::new(Output {
+    Ok(Box::new(Output {
       commit: output.commit,
       inscription: output.inscriptions[0].id,
       reveal: output.reveal,
       parent: output.parent,
       total_fees: output.total_fees,
-    }));
+    }))
   }
 
   fn parse_metadata(cbor: Option<PathBuf>, json: Option<PathBuf>) -> Result<Option<Vec<u8>>> {

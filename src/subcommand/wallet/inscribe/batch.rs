@@ -90,20 +90,20 @@ impl BatchConfig {
       assert!(!self.batch.iter().any(|entry| entry.metadata.is_some()));
     }
 
-    let index = Index::open(&options)?;
+    let index = Index::open(options)?;
     index.update()?;
 
     let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
-    let utxos = index.get_unspent_outputs(Wallet::load(&options)?)?;
+    let utxos = index.get_unspent_outputs(Wallet::load(options)?)?;
 
-    let parent_info = Inscribe::get_parent_info(self.parent, &index, &utxos, &client, &options)?;
+    let parent_info = Inscribe::get_parent_info(self.parent, &index, &utxos, &client, options)?;
 
     let wallet_inscriptions = index.get_inscriptions(utxos.clone())?;
 
     let commit_tx_change = [
-      get_change_address(&client, &options)?,
-      get_change_address(&client, &options)?,
+      get_change_address(&client, options)?,
+      get_change_address(&client, options)?,
     ];
 
     let (inscriptions, postage) =
@@ -117,7 +117,7 @@ impl BatchConfig {
     let reveal_tx_destinations = (0..reveal_tx_destination_count)
       .map(|_| match &destination {
         Some(destination) => Ok(destination.clone()),
-        None => get_change_address(&client, &options),
+        None => get_change_address(&client, options),
       })
       .collect::<Result<Vec<Address>>>()?;
 
