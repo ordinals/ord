@@ -26,7 +26,7 @@ use {batch::*, mode::Mode};
 #[derive(Serialize, Deserialize)]
 pub struct Output {
   pub commit: Txid,
-  pub inscription: InscriptionId,
+  pub inscriptions: Vec<subcommand::wallet::inscribe::batch_inscribe::InscriptionInfo>,
   pub parent: Option<InscriptionId>,
   pub reveal: Txid,
   pub total_fees: u64,
@@ -61,7 +61,7 @@ pub(crate) struct Inscribe {
   #[arg(long, help = "Use fee rate of <FEE_RATE> sats/vB.")]
   pub(crate) fee_rate: FeeRate,
   #[arg(help = "Inscribe sat with contents of <FILE>.")]
-  pub(crate) file: PathBuf,
+  pub(crate) file: Option<PathBuf>,
   #[arg(
     long,
     help = "Include JSON in file at <METADATA> convered to CBOR as inscription metadata",
@@ -220,14 +220,12 @@ impl Batch {
       )
     }
 
-    assert_eq!(inscriptions.len(), 1);
-
     Output {
       commit,
       reveal,
       total_fees,
       parent: self.parent,
-      inscription: inscriptions_output[0].id,
+      inscriptions: inscriptions_output,
     }
   }
 
@@ -519,7 +517,7 @@ impl Inscribe {
     } else {
       inscriptions = vec![Inscription::from_file(
         options.chain(),
-        self.file.clone(),
+        self.file.clone().unwrap(),
         self.parent,
         None,
         self.metaprotocol.clone(),

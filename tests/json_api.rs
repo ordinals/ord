@@ -41,11 +41,7 @@ fn get_sat_with_inscription_and_sat_index() {
 
   create_wallet(&rpc_server);
 
-  let Inscribe { reveal, .. } = inscribe(&rpc_server);
-  let inscription_id = InscriptionId {
-    txid: reveal,
-    index: 0,
-  };
+  let (inscription_id, reveal) = inscribe(&rpc_server);
 
   let response = TestServer::spawn_with_args(&rpc_server, &["--index-sats", "--enable-json-api"])
     .json_request(format!("/sat/{}", 50 * COIN_VALUE));
@@ -133,11 +129,7 @@ fn get_inscription() {
 
   create_wallet(&rpc_server);
 
-  let Inscribe { reveal, .. } = inscribe(&rpc_server);
-  let inscription_id = InscriptionId {
-    txid: reveal,
-    index: 0,
-  };
+  let (inscription_id, reveal) = inscribe(&rpc_server);
 
   let response = TestServer::spawn_with_args(&rpc_server, &["--index-sats", "--enable-json-api"])
     .json_request(format!("/inscription/{}", inscription_id));

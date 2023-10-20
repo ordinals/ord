@@ -85,7 +85,7 @@ impl Preview {
             destination: None,
             dry_run: false,
             fee_rate: FeeRate::try_from(1.0).unwrap(),
-            file,
+            file: Some(file),
             json_metadata: None,
             metaprotocol: None,
             no_backup: true,
