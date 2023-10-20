@@ -29,8 +29,6 @@ pub mod transactions;
 
 #[derive(Debug, Parser)]
 pub(crate) enum Wallet {
-  #[command(about = "Create a batch of inscriptions")]
-  BatchInscribe(inscribe::batch_inscribe::BatchInscribe),
   #[command(about = "Get wallet balance")]
   Balance,
   #[command(about = "Create new wallet")]
@@ -59,7 +57,6 @@ impl Wallet {
   pub(crate) fn run(self, options: Options) -> SubcommandResult {
     match self {
       Self::Balance => balance::run(options),
-      Self::BatchInscribe(batch_inscribe) => batch_inscribe.run(options),
       Self::Create(create) => create.run(options),
       Self::Inscribe(inscribe) => inscribe.run(options),
       Self::Inscriptions => inscriptions::run(options),
@@ -74,6 +71,7 @@ impl Wallet {
   }
 }
 
+// todo: make this just take a chain, and see if we can get rid of options args in inscribe
 fn get_change_address(client: &Client, options: &Options) -> Result<Address> {
   Ok(
     client
