@@ -6,7 +6,7 @@ fn inscriptions_can_be_sent() {
   create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
-  let Inscribe { inscription, .. } = inscribe(&rpc_server);
+  let (inscription, _) = inscribe(&rpc_server);
 
   rpc_server.mine_blocks(1);
 
@@ -65,7 +65,7 @@ fn send_inscribed_sat() {
   create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
-  let Inscribe { inscription, .. } = inscribe(&rpc_server);
+  let (inscription, _) = inscribe(&rpc_server);
 
   rpc_server.mine_blocks(1);
 
@@ -164,11 +164,7 @@ fn do_not_send_within_dust_limit_of_an_inscription() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  let Inscribe {
-    reveal,
-    inscription,
-    ..
-  } = inscribe(&rpc_server);
+  let (inscription, reveal) = inscribe(&rpc_server);
 
   rpc_server.mine_blocks(1);
 
@@ -193,7 +189,7 @@ fn can_send_after_dust_limit_from_an_inscription() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  let Inscribe { reveal, .. } = inscribe(&rpc_server);
+  let (_, reveal) = inscribe(&rpc_server);
 
   rpc_server.mine_blocks(1);
 
@@ -313,7 +309,7 @@ fn inscriptions_cannot_be_sent_by_satpoint() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  let Inscribe { reveal, .. } = inscribe(&rpc_server);
+  let (_, reveal) = inscribe(&rpc_server);
 
   rpc_server.mine_blocks(1);
 
@@ -382,7 +378,7 @@ fn send_btc_locks_inscriptions() {
 
   rpc_server.mine_blocks(1);
 
-  let Inscribe { reveal, .. } = inscribe(&rpc_server);
+  let (_, reveal) = inscribe(&rpc_server);
 
   let output =
     CommandBuilder::new("wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc")
@@ -434,7 +430,7 @@ fn wallet_send_with_fee_rate() {
   create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
-  let Inscribe { inscription, .. } = inscribe(&rpc_server);
+  let (inscription, _) = inscribe(&rpc_server);
 
   CommandBuilder::new(format!(
     "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {inscription} --fee-rate 2.0"
@@ -465,7 +461,7 @@ fn user_must_provide_fee_rate_to_send() {
   create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
-  let Inscribe { inscription, .. } = inscribe(&rpc_server);
+  let (inscription, _) = inscribe(&rpc_server);
 
   CommandBuilder::new(format!(
     "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {inscription}"
@@ -485,7 +481,7 @@ fn wallet_send_with_fee_rate_and_target_postage() {
   create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
-  let Inscribe { inscription, .. } = inscribe(&rpc_server);
+  let (inscription, _) = inscribe(&rpc_server);
 
   CommandBuilder::new(format!(
     "wallet send bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {inscription} --fee-rate 2.0 --postage 77000sat"

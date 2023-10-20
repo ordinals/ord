@@ -9,7 +9,7 @@ fn inscribe_creates_inscriptions() {
 
   create_wallet(&rpc_server);
 
-  let Inscribe { inscription, .. } = inscribe(&rpc_server);
+  let (inscription, _) = inscribe(&rpc_server);
 
   assert_eq!(rpc_server.descriptors().len(), 3);
 
@@ -56,7 +56,7 @@ fn metaprotocol_appears_on_inscription_page() {
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
 
   ord_server.assert_response_regex(
-    format!("/inscription/{}", inscribe.inscription),
+    format!("/inscription/{}", inscribe.inscriptions[0].id),
     r".*<dt>metaprotocol</dt>\s*<dd>foo</dd>.*",
   );
 }
@@ -175,7 +175,7 @@ fn refuse_to_reinscribe_sats() {
 
   rpc_server.mine_blocks(1);
 
-  let Inscribe { reveal, .. } = inscribe(&rpc_server);
+  let (_, reveal) = inscribe(&rpc_server);
 
   rpc_server.mine_blocks_with_subsidy(1, 100);
 
@@ -194,11 +194,7 @@ fn refuse_to_inscribe_already_inscribed_utxo() {
   let rpc_server = test_bitcoincore_rpc::spawn();
   create_wallet(&rpc_server);
 
-  let Inscribe {
-    reveal,
-    inscription,
-    ..
-  } = inscribe(&rpc_server);
+  let (inscription, reveal) = inscribe(&rpc_server);
 
   let output = OutPoint {
     txid: reveal,
@@ -223,12 +219,13 @@ fn inscribe_with_optional_satpoint_arg() {
   create_wallet(&rpc_server);
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
-  let Inscribe { inscription, .. } = CommandBuilder::new(format!(
+  let Inscribe { inscriptions, .. } = CommandBuilder::new(format!(
     "wallet inscribe foo.txt --satpoint {txid}:0:10000 --fee-rate 1"
   ))
   .write("foo.txt", "FOO")
   .rpc_server(&rpc_server)
   .run_and_deserialize_output();
+  let inscription = inscriptions[0].id;
 
   rpc_server.mine_blocks(1);
 
@@ -499,7 +496,7 @@ fn inscribe_with_parent_inscription_and_fee_rate() {
     .run_and_deserialize_output::<Inscribe>();
 
   assert_eq!(rpc_server.descriptors().len(), 3);
-  let parent_id = parent_output.inscription;
+  let parent_id = parent_output.inscriptions[0].id;
 
   let commit_tx = &rpc_server.mempool()[0];
   let reveal_tx = &rpc_server.mempool()[1];
@@ -543,12 +540,12 @@ fn inscribe_with_parent_inscription_and_fee_rate() {
     format!("/inscription/{}", child_output.parent.unwrap()),
     format!(
       ".*<dt>children</dt>.*<a href=/inscription/{}>.*",
-      child_output.inscription
+      child_output.inscriptions[0].id
     ),
   );
 
   ord_server.assert_response_regex(
-    format!("/inscription/{}", child_output.inscription),
+    format!("/inscription/{}", child_output.inscriptions[0].id),
     format!(
       ".*<dt>parent</dt>.*<a class=monospace href=/inscription/{}>.*",
       child_output.parent.unwrap()
@@ -575,7 +572,7 @@ fn reinscribe_with_flag() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[2].txid();
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
-  let request = ord_server.request(format!("/content/{}", inscribe.inscription));
+  let request = ord_server.request(format!("/content/{}", inscribe.inscriptions[0].id));
 
   assert_eq!(request.status(), 200);
 
@@ -589,14 +586,14 @@ fn reinscribe_with_flag() {
   rpc_server.mine_blocks(1);
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &["--index-sats"]);
-  let request = ord_server.request(format!("/content/{}", reinscribe.inscription));
+  let request = ord_server.request(format!("/content/{}", reinscribe.inscriptions[0].id));
 
   assert_eq!(request.status(), 200);
   ord_server.assert_response_regex(
     format!("/sat/{}", 50 * COIN_VALUE),
     format!(
       ".*<dt>inscriptions</dt>.*<a href=/inscription/{}>.*<a href=/inscription/{}>.*",
-      inscribe.inscription, reinscribe.inscription
+      inscribe.inscriptions[0].id, reinscribe.inscriptions[0].id
     ),
   );
 }
@@ -664,11 +661,13 @@ fn no_metadata_appears_on_inscription_page_if_no_metadata_is_passed() {
   create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
-  let Inscribe { inscription, .. } =
+  let Inscribe { inscriptions, .. } =
     CommandBuilder::new("wallet inscribe --fee-rate 1 content.png")
       .write("content.png", [1; 520])
       .rpc_server(&rpc_server)
       .run_and_deserialize_output();
+
+  let inscription = inscriptions[0].id;
 
   rpc_server.mine_blocks(1);
 
@@ -687,12 +686,14 @@ fn json_metadata_appears_on_inscription_page() {
   create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
-  let Inscribe { inscription, .. } =
+  let Inscribe { inscriptions, .. } =
     CommandBuilder::new("wallet inscribe --fee-rate 1 --json-metadata metadata.json content.png")
       .write("content.png", [1; 520])
       .write("metadata.json", r#"{"foo": "bar", "baz": 1}"#)
       .rpc_server(&rpc_server)
       .run_and_deserialize_output();
+
+  let inscription = inscriptions[0].id;
 
   rpc_server.mine_blocks(1);
 
@@ -710,7 +711,7 @@ fn cbor_metadata_appears_on_inscription_page() {
   create_wallet(&rpc_server);
   rpc_server.mine_blocks(1);
 
-  let Inscribe { inscription, .. } =
+  let Inscribe { inscriptions, .. } =
     CommandBuilder::new("wallet inscribe --fee-rate 1 --cbor-metadata metadata.cbor content.png")
       .write("content.png", [1; 520])
       .write(
@@ -721,6 +722,8 @@ fn cbor_metadata_appears_on_inscription_page() {
       )
       .rpc_server(&rpc_server)
       .run_and_deserialize_output();
+
+  let inscription = inscriptions[0].id;
 
   rpc_server.mine_blocks(1);
 

@@ -9,7 +9,7 @@ fn batch_inscribe_can_create_one_inscription() {
 
   create_wallet(&rpc_server);
 
-  let output = CommandBuilder::new("wallet batch-inscribe --fee-rate 2.1 batch.yaml")
+  let output = CommandBuilder::new("wallet inscribe --fee-rate 2.1 --batch batch.yaml")
     .write("inscription.txt", "Hello World")
     .write(
       "batch.yaml",
@@ -42,7 +42,7 @@ fn batch_inscribe_with_multiple_inscriptions() {
 
   create_wallet(&rpc_server);
 
-  let output = CommandBuilder::new("wallet batch-inscribe batch.yaml --fee-rate 55")
+  let output = CommandBuilder::new("wallet inscribe --batch batch.yaml --fee-rate 55")
     .write("inscription.txt", "Hello World")
     .write("tulip.png", [0; 555])
     .write("meow.wav", [0; 2048])
@@ -95,9 +95,9 @@ fn batch_inscribe_with_multiple_inscriptions_with_parent() {
 
   assert_eq!(rpc_server.descriptors().len(), 3);
 
-  let parent_id = parent_output.inscription;
+  let parent_id = parent_output.inscriptions[0].id;
 
-  let output = CommandBuilder::new("wallet batch-inscribe --fee-rate 1 batch.yaml")
+  let output = CommandBuilder::new("wallet inscribe --fee-rate 1 --batch batch.yaml")
     .write("inscription.txt", "Hello World")
     .write("tulip.png", [0; 555])
     .write("meow.wav", [0; 2048])
@@ -137,7 +137,7 @@ fn batch_inscribe_respects_dry_run_flag() {
 
   create_wallet(&rpc_server);
 
-  let output = CommandBuilder::new("wallet batch-inscribe --fee-rate 2.1 batch.yaml --dry-run")
+  let output = CommandBuilder::new("wallet inscribe --fee-rate 2.1 --batch batch.yaml --dry-run")
     .write("inscription.txt", "Hello World")
     .write(
       "batch.yaml",
@@ -163,7 +163,7 @@ fn batch_in_same_output_but_different_satpoints() {
 
   create_wallet(&rpc_server);
 
-  let output = CommandBuilder::new("wallet batch-inscribe --fee-rate 1 batch.yaml")
+  let output = CommandBuilder::new("wallet inscribe --fee-rate 1 --batch batch.yaml")
     .write("inscription.txt", "Hello World")
     .write("tulip.png", [0; 555])
     .write("meow.wav", [0; 2048])
@@ -228,9 +228,9 @@ fn batch_in_separate_outputs_with_parent() {
 
   assert_eq!(rpc_server.descriptors().len(), 3);
 
-  let parent_id = parent_output.inscription;
+  let parent_id = parent_output.inscriptions[0].id;
 
-  let output = CommandBuilder::new("wallet batch-inscribe --fee-rate 1 batch.yaml")
+  let output = CommandBuilder::new("wallet inscribe --fee-rate 1 --batch batch.yaml")
     .write("inscription.txt", "Hello World")
     .write("tulip.png", [0; 555])
     .write("meow.wav", [0; 2048])
