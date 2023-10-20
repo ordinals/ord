@@ -28,8 +28,8 @@ impl Batch {
     let wallet_inscriptions = index.get_inscriptions(utxos.clone())?;
 
     let commit_tx_change = [
-      get_change_address(&client, options)?,
-      get_change_address(&client, options)?,
+      get_change_address(client, options)?,
+      get_change_address(client, options)?,
     ];
 
     let (commit_tx, reveal_tx, recovery_key_pair, total_fees) = self
@@ -80,7 +80,7 @@ impl Batch {
     };
 
     if !self.no_backup {
-      Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
+      Inscribe::backup_recovery_key(client, recovery_key_pair, options.chain().network())?;
     }
 
     let commit = client.send_raw_transaction(&signed_commit_tx)?;
