@@ -489,20 +489,19 @@ impl Inscribe {
 
     let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
-    let destination = match self.destination.clone() {
-      Some(destination) => destination.require_network(options.chain().network())?,
-      None => get_change_address(&client, &options)?,
-    };
-
-    let parent_info = Inscribe::get_parent_info(self.parent, &index, &utxos, &client, &options)?;
-
     let inscriptions;
     let mode;
     let postage;
     let total_postage;
+    let parent_info;
+    let destinations;
+    let parent;
 
     if let Some(batch) = self.batch {
       let batch_config = BatchConfig::load(&batch)?;
+
+      parent_info =
+        Inscribe::get_parent_info(batch_config.parent, &index, &utxos, &client, &options)?;
 
       (inscriptions, total_postage) = batch_config.inscriptions(
         options.chain(),
@@ -514,7 +513,21 @@ impl Inscribe {
         .map(Amount::from_sat)
         .unwrap_or(TransactionBuilder::TARGET_POSTAGE);
       mode = batch_config.mode;
+
+      assert!(self.destination.is_none());
+
+      let destination_count = match batch_config.mode {
+        Mode::SharedOutput => 1,
+        Mode::SeparateOutputs => inscriptions.len(),
+      };
+
+      destinations = (0..destination_count)
+        .map(|_| get_change_address(&client, &options))
+        .collect::<Result<Vec<Address>>>()?;
+
+      parent = batch_config.parent;
     } else {
+      parent_info = Inscribe::get_parent_info(self.parent, &index, &utxos, &client, &options)?;
       inscriptions = vec![Inscription::from_file(
         options.chain(),
         self.file.clone().unwrap(),
@@ -526,14 +539,19 @@ impl Inscribe {
       mode = Mode::SeparateOutputs;
       postage = self.postage.unwrap_or(TransactionBuilder::TARGET_POSTAGE);
       total_postage = postage;
+      destinations = vec![match self.destination.clone() {
+        Some(destination) => destination.require_network(options.chain().network())?,
+        None => get_change_address(&client, &options)?,
+      }];
+      parent = self.parent;
     }
 
     Batch {
       mode,
-      parent: self.parent,
+      parent,
       postage,
       inscriptions,
-      destinations: vec![destination],
+      destinations,
       commit_fee_rate: self.commit_fee_rate.unwrap_or(self.fee_rate),
       reveal_fee_rate: self.fee_rate,
       dry_run: self.dry_run,
