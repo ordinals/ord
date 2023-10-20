@@ -16,7 +16,7 @@ fn batch_inscribe_can_create_one_inscription() {
       "mode: shared-output\nbatch:\n- inscription: inscription.txt\n",
     )
     .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<BatchInscribe>();
+    .run_and_deserialize_output::<Inscribe>();
 
   rpc_server.mine_blocks(1);
 
@@ -51,7 +51,7 @@ fn batch_inscribe_with_multiple_inscriptions() {
       "mode: shared-output\nbatch:\n- inscription: inscription.txt\n- inscription: tulip.png\n- inscription: meow.wav\n"
     )
     .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<BatchInscribe>();
+    .run_and_deserialize_output::<Inscribe>();
 
   rpc_server.mine_blocks(1);
 
@@ -106,7 +106,7 @@ fn batch_inscribe_with_multiple_inscriptions_with_parent() {
       format!("parent: {parent_id}\nmode: shared-output\nbatch:\n- inscription: inscription.txt\n- inscription: tulip.png\n- inscription: meow.wav\n")
     )
     .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<BatchInscribe>();
+    .run_and_deserialize_output::<Inscribe>();
 
   rpc_server.mine_blocks(1);
 
@@ -144,7 +144,7 @@ fn batch_inscribe_respects_dry_run_flag() {
       "mode: shared-output\nbatch:\n- inscription: inscription.txt\n",
     )
     .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<BatchInscribe>();
+    .run_and_deserialize_output::<Inscribe>();
 
   rpc_server.mine_blocks(1);
 
@@ -172,7 +172,7 @@ fn batch_in_same_output_but_different_satpoints() {
       "mode: shared-output\nbatch:\n- inscription: inscription.txt\n- inscription: tulip.png\n- inscription: meow.wav\n"
     )
     .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<BatchInscribe>();
+    .run_and_deserialize_output::<Inscribe>();
 
   rpc_server.mine_blocks(1);
 
@@ -239,7 +239,7 @@ fn batch_in_separate_outputs_with_parent() {
       format!("parent: {parent_id}\nmode: separate-outputs\nbatch:\n- inscription: inscription.txt\n- inscription: tulip.png\n- inscription: meow.wav\n")
     )
     .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<BatchInscribe>();
+    .run_and_deserialize_output::<Inscribe>();
 
   rpc_server.mine_blocks(1);
 
