@@ -14,6 +14,7 @@ use {
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) enum Curse {
   DuplicateField,
+  GuiltByAssociation,
   IncompleteField,
   NotAtOffsetZero,
   NotInFirstInput,
