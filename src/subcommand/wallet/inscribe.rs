@@ -124,10 +124,12 @@ impl Inscribe {
         parent_info.as_ref().map(|info| info.tx_out.value),
         metadata,
       )?;
+
       postage = batch_config
         .postage
         .map(Amount::from_sat)
         .unwrap_or(TransactionBuilder::TARGET_POSTAGE);
+
       mode = batch_config.mode;
 
       assert!(self.destination.is_none());
