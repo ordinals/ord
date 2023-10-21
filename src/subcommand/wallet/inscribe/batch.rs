@@ -1,18 +1,18 @@
 use super::*;
 
 pub(super) struct Batch {
-  pub(super) postage: Amount,
-  pub(super) mode: Mode,
-  pub(super) parent: Option<InscriptionId>,
-  pub(super) inscriptions: Vec<Inscription>,
-  pub(super) destinations: Vec<Address>,
-  pub(super) no_backup: bool,
-  pub(super) reveal_fee_rate: FeeRate,
   pub(super) commit_fee_rate: FeeRate,
+  pub(super) destinations: Vec<Address>,
   pub(super) dry_run: bool,
-  pub(super) satpoint: Option<SatPoint>,
-  pub(super) reinscribe: bool,
+  pub(super) inscriptions: Vec<Inscription>,
+  pub(super) mode: Mode,
+  pub(super) no_backup: bool,
   pub(super) no_limit: bool,
+  pub(super) parent: Option<InscriptionId>,
+  pub(super) postage: Amount,
+  pub(super) reinscribe: bool,
+  pub(super) reveal_fee_rate: FeeRate,
+  pub(super) satpoint: Option<SatPoint>,
   pub(super) total_postage: Amount,
 }
 
@@ -418,10 +418,10 @@ impl BatchEntry {
 #[derive(Deserialize, PartialEq, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct Batchfile {
-  pub(crate) postage: Option<u64>,
+  pub(crate) batch: Vec<BatchEntry>,
   pub(crate) mode: Mode,
   pub(crate) parent: Option<InscriptionId>,
-  pub(crate) batch: Vec<BatchEntry>,
+  pub(crate) postage: Option<u64>,
 }
 
 impl Batchfile {

@@ -163,18 +163,18 @@ impl Inscribe {
     }
 
     Batch {
+      commit_fee_rate: self.commit_fee_rate.unwrap_or(self.fee_rate),
+      destinations,
+      dry_run: self.dry_run,
+      inscriptions,
       mode,
+      no_backup: self.no_backup,
+      no_limit: self.no_limit,
       parent,
       postage,
-      inscriptions,
-      destinations,
-      commit_fee_rate: self.commit_fee_rate.unwrap_or(self.fee_rate),
-      reveal_fee_rate: self.fee_rate,
-      dry_run: self.dry_run,
-      no_backup: self.no_backup,
       reinscribe: self.reinscribe,
+      reveal_fee_rate: self.fee_rate,
       satpoint: self.satpoint,
-      no_limit: self.no_limit,
       total_postage,
     }
     .inscribe(&options, &index, &client, &utxos, parent_info)
