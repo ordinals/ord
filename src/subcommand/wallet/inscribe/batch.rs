@@ -417,15 +417,15 @@ impl BatchEntry {
 
 #[derive(Deserialize, PartialEq, Debug, Clone)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct BatchConfig {
+pub(crate) struct Batchfile {
   pub(crate) postage: Option<u64>,
   pub(crate) mode: Mode,
   pub(crate) parent: Option<InscriptionId>,
   pub(crate) batch: Vec<BatchEntry>,
 }
 
-impl BatchConfig {
-  pub(crate) fn load(path: &Path) -> Result<BatchConfig> {
+impl Batchfile {
+  pub(crate) fn load(path: &Path) -> Result<Batchfile> {
     Ok(serde_yaml::from_reader(File::open(path)?)?)
   }
 

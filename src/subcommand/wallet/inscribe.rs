@@ -1,5 +1,5 @@
 use {
-  self::batch::{Batch, BatchConfig, Mode},
+  self::batch::{Batch, Batchfile, Mode},
   super::*,
   crate::{subcommand::wallet::transaction_builder::Target, wallet::Wallet},
   bitcoin::{
@@ -114,7 +114,7 @@ impl Inscribe {
     let parent;
 
     if let Some(batch) = self.batch {
-      let batch_config = BatchConfig::load(&batch)?;
+      let batch_config = Batchfile::load(&batch)?;
 
       parent_info =
         Inscribe::get_parent_info(batch_config.parent, &index, &utxos, &client, &options)?;
@@ -877,7 +877,7 @@ batch:
           batch_inscribe.load_batch_config().unwrap(),
         _ => panic!(),
       },
-      BatchConfig {
+      Batchfile {
         postage: None,
         batch: vec![
           BatchEntry {
