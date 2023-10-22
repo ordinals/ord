@@ -14,7 +14,7 @@ hljs.registerLanguage('python', python);
 const inscription = document.documentElement.dataset.inscription;
 const response = await fetch(`/content/${inscription}`);
 const contentType = response.headers.get("content-type");
-const language = contentType.split("/")[1];
+let language = contentType.split("/")[1];
+if (language.includes("python")) language = "python";
 const code = await response.text();
-
 document.body.innerHTML = `<pre><code>${hljs.highlight(code, {language, ignoreIllegals: true}).value}</code></pre>`;
