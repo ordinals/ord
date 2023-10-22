@@ -91,7 +91,6 @@ impl PageContent for InscriptionHtml {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use teleburn_address::EthereumTeleburnAddress;
 
   #[test]
   fn without_sat_nav_links_or_output() {
@@ -110,7 +109,7 @@ mod tests {
         previous: None,
         sat: None,
         satpoint: satpoint(1, 0),
-        teleburn_address: EthereumTeleburnAddress::from(inscription_id(1)).address,
+        teleburn_address: teleburn::Ethereum::from(inscription_id(1)).address,
         timestamp: timestamp(0),
       },
       "
@@ -170,7 +169,7 @@ mod tests {
         previous: None,
         sat: None,
         satpoint: satpoint(1, 0),
-        teleburn_address: EthereumTeleburnAddress::from(inscription_id(1)).address,
+        teleburn_address: teleburn::Ethereum::from(inscription_id(1)).address,
         timestamp: timestamp(0),
       },
       "
@@ -210,7 +209,7 @@ mod tests {
         previous: None,
         sat: Some(Sat(1)),
         satpoint: satpoint(1, 0),
-        teleburn_address: EthereumTeleburnAddress::from(inscription_id(1)).address,
+        teleburn_address: teleburn::Ethereum::from(inscription_id(1)).address,
         timestamp: timestamp(0),
       },
       "
@@ -245,7 +244,7 @@ mod tests {
         previous: Some(inscription_id(1)),
         sat: None,
         satpoint: satpoint(1, 0),
-        teleburn_address: EthereumTeleburnAddress::from(inscription_id(2)).address,
+        teleburn_address: teleburn::Ethereum::from(inscription_id(2)).address,
         timestamp: timestamp(0),
       },
       "
@@ -281,7 +280,7 @@ mod tests {
           outpoint: unbound_outpoint(),
           offset: 0
         },
-        teleburn_address: EthereumTeleburnAddress::from(inscription_id(2)).address,
+        teleburn_address: teleburn::Ethereum::from(inscription_id(2)).address,
         timestamp: timestamp(0),
       },
       "
@@ -317,7 +316,7 @@ mod tests {
         previous: None,
         sat: None,
         satpoint: satpoint(1, 0),
-        teleburn_address: EthereumTeleburnAddress::from(inscription_id(1)).address,
+        teleburn_address: teleburn::Ethereum::from(inscription_id(1)).address,
         timestamp: timestamp(0),
       },
       "
@@ -379,7 +378,7 @@ mod tests {
         previous: None,
         sat: None,
         satpoint: satpoint(1, 0),
-        teleburn_address: EthereumTeleburnAddress::from(inscription_id(1)).address,
+        teleburn_address: teleburn::Ethereum::from(inscription_id(1)).address,
         timestamp: timestamp(0),
       },
       "

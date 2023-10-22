@@ -1,11 +1,11 @@
 use {super::*, crate::index::entry::Entry, sha3::Digest, sha3::Keccak256};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub(crate) struct EthereumTeleburnAddress {
+pub(crate) struct Ethereum {
   pub(crate) address: String,
 }
 
-impl From<InscriptionId> for EthereumTeleburnAddress {
+impl From<InscriptionId> for Ethereum {
   fn from(inscription_id: InscriptionId) -> Self {
     let digest = bitcoin::hashes::sha256::Hash::hash(&inscription_id.store());
     Self {
@@ -20,20 +20,18 @@ fn create_address_with_checksum(address: &str) -> String {
   assert_eq!(address.len(), 40);
   assert!(address
     .chars()
-    .all(|c| c.is_digit(16) && (!c.is_alphabetic() || c.is_lowercase())));
+    .all(|c| c.is_ascii_hexdigit() && (!c.is_alphabetic() || c.is_lowercase())));
+
+  let hash = hex::encode(&Keccak256::digest(address.as_bytes())[..20]);
+  assert_eq!(hash.len(), 40);
 
   "0x"
     .chars()
-    .chain(
-      address
-        .chars()
-        .zip(hex::encode(&Keccak256::digest(address.as_bytes())[..20]).chars())
-        .map(|(a, h)| match h {
-          '0'..='7' => a,
-          '8'..='9' | 'a'..='f' => a.to_ascii_uppercase(),
-          _ => unreachable!(),
-        }),
-    )
+    .chain(address.chars().zip(hash.chars()).map(|(a, h)| match h {
+      '0'..='7' => a,
+      '8'..='9' | 'a'..='f' => a.to_ascii_uppercase(),
+      _ => unreachable!(),
+    }))
     .collect()
 }
 
@@ -77,10 +75,7 @@ mod tests {
         "0xe43A06530BdF8A4e067581f48Fae3b535559dA9e",
       ),
     ] {
-      assert_eq!(
-        *addr,
-        EthereumTeleburnAddress::from(*inscription_id).address
-      );
+      assert_eq!(*addr, Ethereum::from(*inscription_id).address);
     }
   }
 }

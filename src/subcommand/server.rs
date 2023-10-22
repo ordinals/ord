@@ -8,7 +8,6 @@ use {
   crate::{
     page_config::PageConfig,
     runes::Rune,
-    teleburn_address::EthereumTeleburnAddress,
     templates::{
       BlockHtml, ClockSvg, HomeHtml, InputHtml, InscriptionHtml, InscriptionJson,
       InscriptionsBlockHtml, InscriptionsHtml, InscriptionsJson, OutputHtml, OutputJson,
@@ -1073,7 +1072,7 @@ impl Server {
       .get_inscription_satpoint_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
-    let teleburn_address = EthereumTeleburnAddress::from(inscription_id).address;
+    let teleburn_address = crate::teleburn::Ethereum::from(inscription_id).address;
 
     let output = if satpoint.outpoint == unbound_outpoint() {
       None
