@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Stops, copies index and exports state of running instance
+systemctl stop ord
+
+cd /var/lib/ord
+
+mkdir -p /var/lib/ord/$REVISION
+
+# Still have to manually set --index-sats or --heigh-limit
+#  --height-limit 100000 \
+/usr/local/bin/ord --bitcoin-data-dir /var/lib/bitcoind \
+  --data-dir /var/lib/ord \
+  --index-sats \
+  index export
+
+mv inscription_number_to_id.tsv ./$REVISION/inscription_number_to_id-$BRANCH-$COMMIT.tsv
+
+mv index.redb ./$REVISION/index-$BRANCH-$COMMIT.redb
+

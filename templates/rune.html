@@ -1,0 +1,21 @@
+<h1>Rune {{ self.entry.rune }}</h1>
+<dl>
+  <dt>id</dt>
+  <dd>{{ self.id }}</dd>
+  <dt>supply</dt>
+  <dd>{{ Pile{ amount: self.entry.supply, divisibility: self.entry.divisibility, symbol: self.entry.symbol } }}</dd>
+  <dt>burned</dt>
+  <dd>{{ Pile{ amount: self.entry.burned, divisibility: self.entry.divisibility, symbol: self.entry.symbol } }}</dd>
+  <dt>divisibility</dt>
+  <dd>{{ self.entry.divisibility }}</dd>
+%% if let Some(symbol) = self.entry.symbol {
+  <dt>symbol</dt>
+  <dd>{{ symbol }}</dd>
+%% }
+  <dt>etching</dt>
+  <dd><a class=monospace href=/tx/{{ self.entry.etching }}>{{ self.entry.etching }}</a></dd>
+%% if let Some(inscription) = self.inscription {
+  <dt>inscription</dt>
+  <dd><a class=monospace href=/inscription/{{ inscription }}>{{ inscription }}</a></dd>
+%% }
+</dl>

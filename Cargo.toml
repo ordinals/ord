@@ -1,7 +1,7 @@
 [package]
 name = "ord"
 description = "◉ Ordinal wallet and block explorer"
-version = "0.6.1"
+version = "0.9.0"
 license = "CC0-1.0"
 edition = "2021"
 autotests = false
@@ -15,16 +15,18 @@ members = [".", "test-bitcoincore-rpc"]
 
 [dependencies]
 anyhow = { version = "1.0.56", features = ["backtrace"] }
+async-trait = "0.1.72"
 axum = { version = "0.6.1", features = ["headers"] }
 axum-server = "0.5.0"
 base64 = "0.21.0"
 bech32 = "0.9.1"
 bip39 = "2.0.0"
-bitcoin = { version = "0.29.1", features = ["rand"] }
-boilerplate = { version = "0.2.3", features = ["axum"] }
+bitcoin = { version = "0.30.0", features = ["rand"] }
+boilerplate = { version = "1.0.0", features = ["axum"] }
 chrono = "0.4.19"
-clap = { version = "3.2.18", features = ["derive", "deprecated"] }
-ctrlc = "3.2.1"
+ciborium = "0.2.1"
+clap = { version = "4.4.2", features = ["derive"] }
+ctrlc = { version = "3.2.1", features = ["termination"] }
 derive_more = "0.99.17"
 dirs = "5.0.0"
 env_logger = "0.10.0"
@@ -38,20 +40,20 @@ lazy_static = "1.4.0"
 log = "0.4.14"
 mime = "0.3.16"
 mime_guess = "2.0.4"
-miniscript = "9.0.1"
-mp4 = "0.13.0"
-ord-bitcoincore-rpc = "0.16.5"
-redb = "0.13.0"
+miniscript = "10.0.0"
+mp4 = "0.14.0"
+ord-bitcoincore-rpc = "0.17.1"
+redb = "1.0.5"
 regex = "1.6.0"
 rss = "2.0.1"
 rust-crypto = "0.2"
-rust-embed = "6.4.0"
+rust-embed = "8.0.0"
 rustls = "0.21.1"
 rustls-acme = { version = "0.7.1", features = ["axum"] }
 serde = { version = "1.0.137", features = ["derive"] }
-serde_json = { version = "1.0.81" }
+serde_json = { version = "1.0.81", features = ["preserve_order"] }
 serde_yaml = "0.9.17"
-sys-info = "0.9.1"
+sysinfo = "0.29.2"
 tempfile = "3.2.0"
 tokio = { version = "1.17.0", features = ["rt-multi-thread"] }
 tokio-stream = "0.1.9"
@@ -61,7 +63,7 @@ tower-http = { version = "0.4.0", features = ["compression-br", "compression-gzi
 [dev-dependencies]
 executable-path = "1.0.0"
 pretty_assertions = "1.2.1"
-reqwest = { version = "0.11.10", features = ["blocking"] }
+reqwest = { version = "0.11.10", features = ["blocking", "json"] }
 test-bitcoincore-rpc = { path = "test-bitcoincore-rpc" }
 unindent = "0.2.1"
 

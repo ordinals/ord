@@ -1,5 +1,5 @@
 use {
-  super::*, crate::index::entry::Entry, bitcoin::hashes::hex::ToHex, crypto::digest::Digest,
+  super::*, crate::index::entry::Entry, crypto::digest::Digest,
   crypto::sha3::Sha3,
 };
 
@@ -12,7 +12,7 @@ impl From<InscriptionId> for EthereumTeleburnAddress {
   fn from(inscription_id: InscriptionId) -> Self {
     let digest = bitcoin::hashes::sha256::Hash::hash(&inscription_id.store());
     Self {
-      address: create_address_with_checksum(&digest[0..20].to_hex()),
+      address: create_address_with_checksum(&hex::encode(&digest[0..20])),
     }
   }
 }

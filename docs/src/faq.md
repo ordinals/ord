@@ -4,7 +4,7 @@ Ordinal Theory FAQ
 What is ordinal theory?
 -----------------------
 
-Ordinal theory is is a protocol for assigning serial numbers to satoshis, the
+Ordinal theory is a protocol for assigning serial numbers to satoshis, the
 smallest subdivision of a bitcoin, and tracking those satoshis as they are
 spent by transactions.
 
@@ -268,7 +268,7 @@ features like globally unique symbols and enhanced provenance.
 *Inscriptions do not support on-chain royalties.* This is negative, but only
 depending on how you look at it. On-chain royalties have been a boon for
 creators, but have also created a huge amount of confusion in the Ethereum NFT
-ecosystem. The ecosystem now grapples with this issue, and is is engaged in a
+ecosystem. The ecosystem now grapples with this issue, and is engaged in a
 race to the bottom, towards a royalties-optional future. Inscriptions have no
 support for on-chain royalties, because they are technically infeasible. If you
 choose to create inscriptions, there are many ways you can work around this

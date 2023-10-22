@@ -15,4 +15,7 @@ cd ord
 git fetch origin
 git checkout -B $BRANCH
 git reset --hard origin/$BRANCH
-./deploy/setup $CHAIN $DOMAIN
+
+COMMIT=$(git rev-parse --short HEAD)
+
+./deploy/setup $CHAIN $DOMAIN $BRANCH $COMMIT
