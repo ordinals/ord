@@ -19,7 +19,7 @@ pub(super) struct Batch {
 impl Batch {
   pub(crate) fn inscribe(
     &self,
-    options: &Options,
+    chain: Chain,
     index: &Index,
     client: &Client,
     utxos: &BTreeMap<OutPoint, Amount>,
@@ -27,14 +27,14 @@ impl Batch {
     let wallet_inscriptions = index.get_inscriptions(utxos.clone())?;
 
     let commit_tx_change = [
-      get_change_address(client, options)?,
-      get_change_address(client, options)?,
+      get_change_address(client, chain)?,
+      get_change_address(client, chain)?,
     ];
 
     let (commit_tx, reveal_tx, recovery_key_pair, total_fees) = self
       .create_batch_inscription_transactions(
         wallet_inscriptions,
-        options.chain(),
+        chain,
         utxos.clone(),
         commit_tx_change,
       )?;
@@ -78,7 +78,7 @@ impl Batch {
     };
 
     if !self.no_backup {
-      Inscribe::backup_recovery_key(client, recovery_key_pair, options.chain().network())?;
+      Inscribe::backup_recovery_key(client, recovery_key_pair, chain.network())?;
     }
 
     let commit = client.send_raw_transaction(&signed_commit_tx)?;
@@ -245,7 +245,7 @@ impl Batch {
 
     if let Some(ParentInfo {
       location,
-      id,
+      id: _,
       destination,
       tx_out,
     }) = self.parent_info.clone()

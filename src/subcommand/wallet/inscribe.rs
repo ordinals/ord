@@ -110,6 +110,8 @@ impl Inscribe {
 
     let client = options.bitcoin_rpc_client_for_wallet_command(false)?;
 
+    let chain = options.chain();
+
     let inscriptions;
     let mode;
     let postage;
@@ -120,11 +122,10 @@ impl Inscribe {
     if let Some(batch) = self.batch {
       let batch_config = Batchfile::load(&batch)?;
 
-      parent_info =
-        Inscribe::get_parent_info(batch_config.parent, &index, &utxos, &client, &options)?;
+      parent_info = Inscribe::get_parent_info(batch_config.parent, &index, &utxos, &client, chain)?;
 
       (inscriptions, total_postage) = batch_config.inscriptions(
-        options.chain(),
+        chain,
         parent_info.as_ref().map(|info| info.tx_out.value),
         metadata,
       )?;
@@ -144,12 +145,12 @@ impl Inscribe {
       };
 
       destinations = (0..destination_count)
-        .map(|_| get_change_address(&client, &options))
+        .map(|_| get_change_address(&client, chain))
         .collect::<Result<Vec<Address>>>()?;
     } else {
-      parent_info = Inscribe::get_parent_info(self.parent, &index, &utxos, &client, &options)?;
+      parent_info = Inscribe::get_parent_info(self.parent, &index, &utxos, &client, chain)?;
       inscriptions = vec![Inscription::from_file(
-        options.chain(),
+        chain,
         self.file.clone().unwrap(),
         self.parent,
         None,
@@ -160,8 +161,8 @@ impl Inscribe {
       postage = self.postage.unwrap_or(TransactionBuilder::TARGET_POSTAGE);
       total_postage = postage;
       destinations = vec![match self.destination.clone() {
-        Some(destination) => destination.require_network(options.chain().network())?,
-        None => get_change_address(&client, &options)?,
+        Some(destination) => destination.require_network(chain.network())?,
+        None => get_change_address(&client, chain)?,
       }];
     }
 
@@ -180,7 +181,7 @@ impl Inscribe {
       satpoint: self.satpoint,
       total_postage,
     }
-    .inscribe(&options, &index, &client, &utxos)
+    .inscribe(chain, &index, &client, &utxos)
   }
 
   fn parse_metadata(cbor: Option<PathBuf>, json: Option<PathBuf>) -> Result<Option<Vec<u8>>> {
@@ -207,7 +208,7 @@ impl Inscribe {
     index: &Index,
     utxos: &BTreeMap<OutPoint, Amount>,
     client: &Client,
-    options: &Options,
+    chain: Chain,
   ) -> Result<Option<ParentInfo>> {
     if let Some(parent_id) = parent {
       if let Some(satpoint) = index.get_inscription_satpoint_by_id(parent_id)? {
@@ -216,7 +217,7 @@ impl Inscribe {
         }
 
         Ok(Some(ParentInfo {
-          destination: get_change_address(client, options)?,
+          destination: get_change_address(client, chain)?,
           id: parent_id,
           location: satpoint,
           tx_out: index
@@ -361,7 +362,11 @@ impl Inscribe {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+  use {
+    self::batch::BatchEntry,
+    super::*,
+    serde_yaml::{Mapping, Value},
+  };
 
   #[test]
   fn reveal_transaction_pays_fee() {
@@ -819,7 +824,6 @@ mod tests {
   }
 
   #[test]
-  #[cfg(any())]
   fn batch_is_loaded_from_yaml_file() {
     let parent = "8d363b28528b0cb86b5fd48615493fb175bdf132d2a3d20b4251bba3f130a5abi0"
       .parse::<InscriptionId>()
@@ -859,23 +863,8 @@ batch:
     );
     metadata.insert(Value::String("description".to_string()), Value::String("Lorem ipsum dolor sit amet, consectetur adipiscing elit. In tristique, massa nec condimentum venenatis, ante massa tempor velit, et accumsan ipsum ligula a massa. Nunc quis orci ante.".to_string()));
 
-    pretty_assert_eq!(
-      match Arguments::try_parse_from([
-        "ord",
-        "wallet",
-        "inscribe",
-        "--fee-rate",
-        "4.4",
-        "--batch",
-        batch_path.to_str().unwrap(),
-      ])
-      .unwrap()
-      .subcommand
-      {
-        Subcommand::Wallet(wallet::Wallet::Inscribe(batch_inscribe)) =>
-          batch_inscribe.load_batch_config().unwrap(),
-        _ => panic!(),
-      },
+    assert_eq!(
+      Batchfile::load(&batch_path).unwrap(),
       Batchfile {
         postage: None,
         batch: vec![
@@ -897,7 +886,6 @@ batch:
   }
 
   #[test]
-  #[cfg(any())]
   fn batch_with_invalid_field_value_throws_error() {
     let tempdir = TempDir::new().unwrap();
 
@@ -914,25 +902,10 @@ batch:
     )
     .unwrap();
 
-    assert!(match Arguments::try_parse_from([
-      "ord",
-      "wallet",
-      "batch-inscribe",
-      "--fee-rate",
-      "5.5",
-      batch_path.to_str().unwrap(),
-    ])
-    .unwrap()
-    .subcommand
-    {
-      Subcommand::Wallet(wallet::Wallet::BatchInscribe(batch_inscribe)) =>
-        batch_inscribe.load_batch_config().is_err(),
-      _ => panic!(),
-    })
+    assert!(Batchfile::load(&batch_path).is_err());
   }
 
   #[test]
-  #[cfg(any())]
   fn batch_is_unknown_field_throws_error() {
     let tempdir = TempDir::new().unwrap();
     let inscription_path = tempdir.path().join("tulip.txt");
@@ -948,21 +921,7 @@ batch:
     )
     .unwrap();
 
-    assert!(match Arguments::try_parse_from([
-      "ord",
-      "wallet",
-      "batch-inscribe",
-      "--fee-rate",
-      "21",
-      batch_path.to_str().unwrap(),
-    ])
-    .unwrap()
-    .subcommand
-    {
-      Subcommand::Wallet(wallet::Wallet::BatchInscribe(batch_inscribe)) =>
-        batch_inscribe.load_batch_config().is_err(),
-      _ => panic!(),
-    })
+    assert!(Batchfile::load(&batch_path).is_err());
   }
 
   #[test]

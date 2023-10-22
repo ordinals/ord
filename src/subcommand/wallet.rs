@@ -71,13 +71,12 @@ impl Wallet {
   }
 }
 
-// todo: make this just take a chain, and see if we can get rid of options args in inscribe
-fn get_change_address(client: &Client, options: &Options) -> Result<Address> {
+fn get_change_address(client: &Client, chain: Chain) -> Result<Address> {
   Ok(
     client
       .call::<Address<NetworkUnchecked>>("getrawchangeaddress", &["bech32m".into()])
       .context("could not get change addresses from wallet")?
-      .require_network(options.chain().network())?,
+      .require_network(chain.network())?,
   )
 }
 
