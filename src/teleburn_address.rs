@@ -1,4 +1,4 @@
-use {super::*, crate::index::entry::Entry, crypto::digest::Digest, crypto::sha3::Sha3};
+use {super::*, crate::index::entry::Entry, sha3::Digest, sha3::Keccak256};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub(crate) struct EthereumTeleburnAddress {
@@ -14,51 +14,45 @@ impl From<InscriptionId> for EthereumTeleburnAddress {
   }
 }
 
-/// Given an Ethereum address, return that address with a checksum
-/// as per https://eips.ethereum.org/EIPS/eip-55
-fn create_address_with_checksum(addr: &str) -> String {
-  let mut hasher = Sha3::keccak256();
-  hasher.input(addr.as_bytes());
-  let hashed_addr = hasher.result_str();
-  addr
-    .char_indices()
-    .fold("0x".to_string(), |mut buf, (idx, c)| {
-      buf.push(match c {
-        '0'..='9' => c,
-        'a'..='f' => {
-          // safe to unwrap because we have a hex string
-          let value =
-            u8::from_str_radix(&hashed_addr.chars().nth(idx).unwrap().to_string(), 16).unwrap();
-          if value > 7 {
-            c.to_ascii_uppercase()
-          } else {
-            c
-          }
-        }
-        _ => unreachable!(),
-      });
-      buf
-    })
+/// Given the hex digits of an Ethereum address, return that address with a
+/// checksum as per https://eips.ethereum.org/EIPS/eip-55
+fn create_address_with_checksum(address: &str) -> String {
+  assert_eq!(address.len(), 40);
+  assert!(address
+    .chars()
+    .all(|c| c.is_digit(16) && (!c.is_alphabetic() || c.is_lowercase())));
+
+  "0x"
+    .chars()
+    .chain(
+      address
+        .chars()
+        .zip(hex::encode(&Keccak256::digest(address.as_bytes())[..20]).chars())
+        .map(|(a, h)| match h {
+          '0'..='7' => a,
+          '8'..='9' | 'a'..='f' => a.to_ascii_uppercase(),
+          _ => unreachable!(),
+        }),
+    )
+    .collect()
 }
 
 #[cfg(test)]
 mod tests {
-  use {
-    crate::inscription_id::InscriptionId,
-    crate::teleburn_address::{create_address_with_checksum, EthereumTeleburnAddress},
-    bitcoin::hashes::Hash,
-    bitcoin::Txid,
-    std::str::FromStr,
-  };
+  use super::*;
 
   #[test]
   fn test_eth_checksum_generation() {
     // test addresses from https://eips.ethereum.org/EIPS/eip-55
     for addr in &[
+      "0x27b1fdb04752bbc536007a920d24acb045561c26",
+      "0x52908400098527886E0F7030069857D2E4169EE7",
       "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed",
-      "0xfB6916095ca1df60bB79Ce92cE3Ea74c37c5d359",
-      "0xdbF03B407c01E7cD3CBea99509d93f8DDDC8C6FB",
+      "0x8617E340B3D01FA5F11F306F4090FD50E238070D",
       "0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb",
+      "0xdbF03B407c01E7cD3CBea99509d93f8DDDC8C6FB",
+      "0xde709f2102306220921060314715629080e2fb77",
+      "0xfB6916095ca1df60bB79Ce92cE3Ea74c37c5d359",
     ] {
       let lowercased = String::from(&addr[2..]).to_ascii_lowercase();
       assert_eq!(addr.to_string(), create_address_with_checksum(&lowercased));
