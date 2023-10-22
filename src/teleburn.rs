@@ -2,7 +2,7 @@ use {super::*, crate::index::entry::Entry, sha3::Digest, sha3::Keccak256};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub(crate) struct Ethereum {
-  pub(crate) address: String,
+  address: String,
 }
 
 impl From<InscriptionId> for Ethereum {
@@ -11,6 +11,12 @@ impl From<InscriptionId> for Ethereum {
     Self {
       address: create_address_with_checksum(&hex::encode(&digest[0..20])),
     }
+  }
+}
+
+impl Display for Ethereum {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    write!(f, "{}", self.address)
   }
 }
 

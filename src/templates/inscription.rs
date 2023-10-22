@@ -15,7 +15,6 @@ pub(crate) struct InscriptionHtml {
   pub(crate) previous: Option<InscriptionId>,
   pub(crate) sat: Option<Sat>,
   pub(crate) satpoint: SatPoint,
-  pub(crate) teleburn_address: String,
   pub(crate) timestamp: DateTime<Utc>,
 }
 

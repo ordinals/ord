@@ -1072,8 +1072,6 @@ impl Server {
       .get_inscription_satpoint_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
-    let teleburn_address = crate::teleburn::Ethereum::from(inscription_id).address;
-
     let output = if satpoint.outpoint == unbound_outpoint() {
       None
     } else {
@@ -1131,7 +1129,6 @@ impl Server {
         previous,
         sat: entry.sat,
         satpoint,
-        teleburn_address,
         timestamp: timestamp(entry.timestamp),
       }
       .page(page_config)
