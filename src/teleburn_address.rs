@@ -3,7 +3,7 @@ use {
   crypto::sha3::Sha3,
 };
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub(crate) struct EthereumTeleburnAddress {
   pub(crate) address: String,
 }

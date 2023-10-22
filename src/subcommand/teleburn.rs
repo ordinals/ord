@@ -5,16 +5,15 @@ pub(crate) struct Teleburn {
   recipient: InscriptionId,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Output {
   ethereum: EthereumTeleburnAddress,
 }
 
 impl Teleburn {
-  pub(crate) fn run(self) -> Result {
-    print_json(Output {
+  pub(crate) fn run(self) -> SubcommandResult {
+    Ok(Box::new(Output {
       ethereum: self.recipient.into(),
-    })?;
-    Ok(())
+    }))
   }
 }
