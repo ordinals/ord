@@ -39,7 +39,7 @@ pub(crate) enum Subcommand {
   Subsidy(subsidy::Subsidy),
   #[command(about = "Display Bitcoin supply information")]
   Supply,
-  #[command(about = "Generate an Ethereum teleburn address")]
+  #[command(about = "Generate teleburn addresses")]
   Teleburn(teleburn::Teleburn),
   #[command(about = "Display satoshi traits")]
   Traits(traits::Traits),
