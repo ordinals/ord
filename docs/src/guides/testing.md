@@ -71,3 +71,6 @@ Finally you will have to mine some blocks and start the server:
 bitcoin-cli generatetoaddress 6 <receive address>
 ord -r server
 ```
+## Ord Package Manager
+
+[Ord Package Manager](https://github.com/cypherpunklab/opm) is a simple package manager for ord with an html template engine. Provides automation to test and manaage inscribed packages in regtest with recursion.
