@@ -112,11 +112,15 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
   ) -> Result {
     let envelopes = ParsedEnvelope::from_transaction(tx);
 
-    let guilt_by_association = envelopes.iter().any(|envelope| {
-      envelope.payload.unrecognized_even_field
-        || envelope.payload.duplicate_field
-        || envelope.payload.incomplete_field
-    });
+    let guilty_by_association = envelopes
+      .iter()
+      .flat_map(|envelope| {
+        (envelope.payload.unrecognized_even_field
+          || envelope.payload.duplicate_field
+          || envelope.payload.incomplete_field)
+          .then_some(envelope.input)
+      })
+      .collect::<HashSet<u32>>();
 
     let mut envelopes = envelopes.into_iter().peekable();
     let mut floating_inscriptions = Vec::new();
@@ -205,7 +209,7 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
           log::info!("processing reinscription {inscription_id} on sat {:?}: sequence number {seq_num}, inscribed offsets {:?}", sat, inscribed_offsets);
 
           Some(Curse::Reinscription)
-        } else if guilt_by_association {
+        } else if guilty_by_association.contains(&inscription.input) {
           Some(Curse::GuiltByAssociation)
         } else {
           None
