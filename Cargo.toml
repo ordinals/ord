@@ -46,6 +46,7 @@ ord-bitcoincore-rpc = "0.17.1"
 redb = "1.0.5"
 regex = "1.6.0"
 rss = "2.0.1"
+rust-crypto = "0.2"
 rust-embed = "8.0.0"
 rustls = "0.21.1"
 rustls-acme = { version = "0.7.1", features = ["axum"] }

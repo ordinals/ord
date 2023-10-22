@@ -1,7 +1,4 @@
-use {
-  super::*, crate::index::entry::Entry, crypto::digest::Digest,
-  crypto::sha3::Sha3,
-};
+use {super::*, crate::index::entry::Entry, crypto::digest::Digest, crypto::sha3::Sha3};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub(crate) struct EthereumTeleburnAddress {
