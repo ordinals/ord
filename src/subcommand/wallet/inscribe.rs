@@ -39,6 +39,7 @@ pub struct Output {
 #[derive(Clone)]
 pub(crate) struct ParentInfo {
   destination: Address,
+  id: InscriptionId,
   location: SatPoint,
   tx_out: TxOut,
 }
@@ -111,7 +112,6 @@ impl Inscribe {
     let total_postage;
     let parent_info;
     let destinations;
-    let parent;
 
     if let Some(batch) = self.batch {
       let batch_config = Batchfile::load(&batch)?;
@@ -143,7 +143,6 @@ impl Inscribe {
         .map(|_| get_change_address(&client, &options))
         .collect::<Result<Vec<Address>>>()?;
 
-      parent = batch_config.parent;
     } else {
       parent_info = Inscribe::get_parent_info(self.parent, &index, &utxos, &client, &options)?;
       inscriptions = vec![Inscription::from_file(
@@ -161,7 +160,6 @@ impl Inscribe {
         Some(destination) => destination.require_network(options.chain().network())?,
         None => get_change_address(&client, &options)?,
       }];
-      parent = self.parent;
     }
 
     Batch {
@@ -172,14 +170,14 @@ impl Inscribe {
       mode,
       no_backup: self.no_backup,
       no_limit: self.no_limit,
-      parent,
+      parent_info,
       postage,
       reinscribe: self.reinscribe,
       reveal_fee_rate: self.fee_rate,
       satpoint: self.satpoint,
       total_postage,
     }
-    .inscribe(&options, &index, &client, &utxos, parent_info)
+    .inscribe(&options, &index, &client, &utxos)
   }
 
   fn parse_metadata(cbor: Option<PathBuf>, json: Option<PathBuf>) -> Result<Option<Vec<u8>>> {
@@ -216,6 +214,7 @@ impl Inscribe {
 
         Ok(Some(ParentInfo {
           destination: get_change_address(client, options)?,
+          id: parent_id,
           location: satpoint,
           tx_out: index
             .get_transaction(satpoint.outpoint.txid)?
@@ -267,10 +266,9 @@ impl Inscribe {
       total_postage,
       // todo: actually write a unit test where we assert that the created transaction
       //   has the correct parent
-      parent: None,
+      parent_info,
     }
     .create_batch_inscription_transactions(
-      parent_info,
       wallet_inscriptions,
       chain,
       utxos,
@@ -594,6 +592,7 @@ mod tests {
     let parent_inscription = inscription_id(1);
     let parent_info = ParentInfo {
       destination: change(3),
+      id: parent_inscription,
       location: SatPoint {
         outpoint: outpoint(1),
         offset: 0,
@@ -979,6 +978,7 @@ batch:
 
     let parent_info = ParentInfo {
       destination: change(3),
+      id: parent,
       location: SatPoint {
         outpoint: outpoint(1),
         offset: 0,
@@ -1068,6 +1068,7 @@ batch:
 
     let parent_info = ParentInfo {
       destination: change(3),
+      id: parent,
       location: SatPoint {
         outpoint: outpoint(1),
         offset: 0,
@@ -1129,6 +1130,7 @@ batch:
 
     let parent_info = ParentInfo {
       destination: change(3),
+      id: parent,
       location: SatPoint {
         outpoint: outpoint(1),
         offset: 0,
@@ -1290,6 +1292,7 @@ batch:
 
     let parent_info = ParentInfo {
       destination: change(3),
+      id: parent,
       location: SatPoint {
         outpoint: outpoint(1),
         offset: 0,

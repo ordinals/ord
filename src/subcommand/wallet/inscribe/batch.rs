@@ -8,7 +8,7 @@ pub(super) struct Batch {
   pub(super) mode: Mode,
   pub(super) no_backup: bool,
   pub(super) no_limit: bool,
-  pub(super) parent: Option<InscriptionId>,
+  pub(super) parent_info: Option<ParentInfo>,
   pub(super) postage: Amount,
   pub(super) reinscribe: bool,
   pub(super) reveal_fee_rate: FeeRate,
@@ -23,7 +23,6 @@ impl Batch {
     index: &Index,
     client: &Client,
     utxos: &BTreeMap<OutPoint, Amount>,
-    parent_info: Option<ParentInfo>,
   ) -> SubcommandResult {
     let wallet_inscriptions = index.get_inscriptions(utxos.clone())?;
 
@@ -34,7 +33,6 @@ impl Batch {
 
     let (commit_tx, reveal_tx, recovery_key_pair, total_fees) = self
       .create_batch_inscription_transactions(
-        parent_info,
         wallet_inscriptions,
         options.chain(),
         utxos.clone(),
@@ -54,7 +52,7 @@ impl Batch {
       .sign_raw_transaction_with_wallet(&commit_tx, None, None)?
       .hex;
 
-    let signed_reveal_tx = if self.parent.is_some() {
+    let signed_reveal_tx = if self.parent_info.is_some() {
       client
         .sign_raw_transaction_with_wallet(
           &reveal_tx,
@@ -113,7 +111,7 @@ impl Batch {
     for index in 0..inscriptions.len() {
       let txid = reveal;
       let index = index.try_into().unwrap();
-      let vout = if self.parent.is_some() {
+      let vout = if self.parent_info.is_some() {
         index + 1
       } else {
         index
@@ -132,14 +130,13 @@ impl Batch {
       commit,
       reveal,
       total_fees,
-      parent: self.parent,
+      parent: self.parent_info.clone().map(|info| info.id),
       inscriptions: inscriptions_output,
     }
   }
 
   pub(crate) fn create_batch_inscription_transactions(
     &self,
-    parent_info: Option<ParentInfo>,
     wallet_inscriptions: BTreeMap<SatPoint, InscriptionId>,
     chain: Chain,
     mut utxos: BTreeMap<OutPoint, Amount>,
@@ -248,9 +245,10 @@ impl Batch {
 
     if let Some(ParentInfo {
       location,
+      id,
       destination,
       tx_out,
-    }) = parent_info.clone()
+    }) = self.parent_info.clone()
     {
       reveal_inputs.insert(0, location.outpoint);
       reveal_outputs.insert(
@@ -262,7 +260,7 @@ impl Batch {
       );
     }
 
-    let commit_input = if parent_info.is_some() { 1 } else { 0 };
+    let commit_input = if self.parent_info.is_some() { 1 } else { 0 };
 
     let (_, reveal_fee) = Inscribe::build_reveal_transaction(
       &control_block,
@@ -316,7 +314,7 @@ impl Batch {
 
     let mut prevouts = vec![unsigned_commit_tx.output[vout].clone()];
 
-    if let Some(parent_info) = parent_info {
+    if let Some(parent_info) = self.parent_info.clone() {
       prevouts.insert(0, parent_info.tx_out);
     }
 
