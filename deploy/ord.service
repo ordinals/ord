@@ -13,7 +13,7 @@ ExecStart=/usr/local/bin/ord \
   --data-dir /var/lib/ord \
   --config-dir /var/lib/ord \
   --chain ${CHAIN} \
-  --index-sats \
+#  --index-sats \
   server \
   --acme-contact mailto:casey@rodarmor.com \
   --http \
