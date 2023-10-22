@@ -46,7 +46,11 @@ pub(crate) struct ParentInfo {
 
 #[derive(Debug, Parser)]
 pub(crate) struct Inscribe {
-  #[arg(long)]
+  #[arg(
+    long,
+    help = "Inscribe a multiple inscriptions defines in a yaml <BATCH_FILE>.",
+    conflicts_with_all = &["file", "destination", "cbor_metadata", "json_metadata", "commit_fee_rate", "no_backup", "satpoint", "reinscribe", "postage", "metaprotocol", "parent", "no_limit"]
+  )]
   pub(crate) batch: Option<PathBuf>,
   #[arg(
     long,
@@ -142,7 +146,6 @@ impl Inscribe {
       destinations = (0..destination_count)
         .map(|_| get_change_address(&client, &options))
         .collect::<Result<Vec<Address>>>()?;
-
     } else {
       parent_info = Inscribe::get_parent_info(self.parent, &index, &utxos, &client, &options)?;
       inscriptions = vec![Inscription::from_file(
@@ -268,12 +271,7 @@ impl Inscribe {
       //   has the correct parent
       parent_info,
     }
-    .create_batch_inscription_transactions(
-      wallet_inscriptions,
-      chain,
-      utxos,
-      change,
-    )
+    .create_batch_inscription_transactions(wallet_inscriptions, chain, utxos, change)
   }
 
   fn build_reveal_transaction(
