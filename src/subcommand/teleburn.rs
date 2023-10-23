@@ -2,7 +2,7 @@ use {super::*, crate::teleburn};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Teleburn {
-  #[arg(help = "Generate teleburn addresses for <DESTINATION> inscription.")]
+  #[arg(help = "Generate teleburn addresses for inscription <DESTINATION>.")]
   destination: InscriptionId,
 }
 
