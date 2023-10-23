@@ -112,12 +112,13 @@ impl Inscribe {
 
     let chain = options.chain();
 
+    let postage = self.postage.unwrap_or(TransactionBuilder::TARGET_POSTAGE);
+
+    let destinations;
     let inscriptions;
     let mode;
-    let postage;
-    let total_postage;
     let parent_info;
-    let destinations;
+    let total_postage;
 
     if let Some(batch) = self.batch {
       let batch_config = Batchfile::load(&batch)?;
@@ -128,12 +129,8 @@ impl Inscribe {
         chain,
         parent_info.as_ref().map(|info| info.tx_out.value),
         metadata,
+        postage,
       )?;
-
-      postage = batch_config
-        .postage
-        .map(Amount::from_sat)
-        .unwrap_or(TransactionBuilder::TARGET_POSTAGE);
 
       mode = batch_config.mode;
 
@@ -158,7 +155,6 @@ impl Inscribe {
         metadata.clone(),
       )?];
       mode = Mode::SeparateOutputs;
-      postage = self.postage.unwrap_or(TransactionBuilder::TARGET_POSTAGE);
       total_postage = postage;
       destinations = vec![match self.destination.clone() {
         Some(destination) => destination.require_network(chain.network())?,
@@ -859,7 +855,6 @@ batch:
     assert_eq!(
       Batchfile::load(&batch_path).unwrap(),
       Batchfile {
-        postage: None,
         batch: vec![
           BatchEntry {
             inscription: inscription_path,

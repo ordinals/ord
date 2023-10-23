@@ -446,7 +446,6 @@ pub(crate) struct Batchfile {
   pub(crate) batch: Vec<BatchEntry>,
   pub(crate) mode: Mode,
   pub(crate) parent: Option<InscriptionId>,
-  pub(crate) postage: Option<u64>,
 }
 
 impl Batchfile {
@@ -459,6 +458,7 @@ impl Batchfile {
     chain: Chain,
     parent_value: Option<u64>,
     metadata: Option<Vec<u8>>,
+    postage: Amount,
   ) -> Result<(Vec<Inscription>, Amount)> {
     if metadata.is_some() {
       assert!(!self.batch.iter().any(|entry| entry.metadata.is_some()));
@@ -480,15 +480,10 @@ impl Batchfile {
         },
       )?);
 
-      pointer += self
-        .postage
-        .unwrap_or(TransactionBuilder::TARGET_POSTAGE.to_sat());
+      pointer += postage.to_sat();
     }
 
-    let total_postage = u64::try_from(inscriptions.len()).unwrap()
-      * self
-        .postage
-        .unwrap_or(TransactionBuilder::TARGET_POSTAGE.to_sat());
+    let total_postage = u64::try_from(inscriptions.len()).unwrap() * postage.to_sat();
 
     Ok((inscriptions, Amount::from_sat(total_postage)))
   }
