@@ -26,7 +26,7 @@ use {
 
 pub(crate) use self::entry::RuneEntry;
 
-mod entry;
+pub(crate) mod entry;
 mod fetcher;
 mod reorg;
 mod rtx;
