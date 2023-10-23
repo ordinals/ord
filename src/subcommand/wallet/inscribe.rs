@@ -69,7 +69,7 @@ pub(crate) struct Inscribe {
   pub(crate) dry_run: bool,
   #[arg(long, help = "Use fee rate of <FEE_RATE> sats/vB.")]
   pub(crate) fee_rate: FeeRate,
-  #[arg(help = "Inscribe sat with contents of <FILE>.")]
+  #[arg(long, help = "Inscribe sat with contents of <FILE>.")]
   pub(crate) file: Option<PathBuf>,
   #[arg(
     long,
@@ -804,6 +804,7 @@ mod tests {
         "foo",
         "--json-metadata",
         "bar",
+        "--file",
         "baz",
       ])
       .unwrap_err()

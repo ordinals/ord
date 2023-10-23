@@ -55,7 +55,7 @@ type Inscribe = ord::subcommand::wallet::inscribe::Output;
 fn inscribe(rpc_server: &test_bitcoincore_rpc::Handle) -> (InscriptionId, Txid) {
   rpc_server.mine_blocks(1);
 
-  let output = CommandBuilder::new("wallet inscribe --fee-rate 1 foo.txt")
+  let output = CommandBuilder::new("wallet inscribe --fee-rate 1 --file foo.txt")
     .write("foo.txt", "FOO")
     .rpc_server(rpc_server)
     .run_and_deserialize_output::<Inscribe>();

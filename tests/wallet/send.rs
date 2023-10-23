@@ -143,7 +143,7 @@ fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
 
   let txid = rpc_server.mine_blocks_with_subsidy(1, 10_000)[0].txdata[0].txid();
   CommandBuilder::new(format!(
-    "wallet inscribe --satpoint {txid}:0:0 degenerate.png --fee-rate 0"
+    "wallet inscribe --satpoint {txid}:0:0 --file degenerate.png --fee-rate 0"
   ))
   .write("degenerate.png", [1; 100])
   .rpc_server(&rpc_server)

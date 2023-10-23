@@ -82,7 +82,7 @@ fn get_sat_with_inscription_on_common_sat_and_more_inscriptions() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let Inscribe { reveal, .. } = CommandBuilder::new(format!(
-    "wallet inscribe --satpoint {}:0:1 --fee-rate 1 foo.txt",
+    "wallet inscribe --satpoint {}:0:1 --fee-rate 1 --file foo.txt",
     txid
   ))
   .write("foo.txt", "FOO")
@@ -192,10 +192,11 @@ fn create_210_inscriptions(rpc_server: &test_bitcoincore_rpc::Handle) -> Vec<Ins
 
   // Create another 60 non cursed
   for _ in 0..60 {
-    let Inscribe { reveal, .. } = CommandBuilder::new("wallet inscribe --fee-rate 1 foo.txt")
-      .write("foo.txt", "FOO")
-      .rpc_server(rpc_server)
-      .run_and_deserialize_output();
+    let Inscribe { reveal, .. } =
+      CommandBuilder::new("wallet inscribe --fee-rate 1 --file foo.txt")
+        .write("foo.txt", "FOO")
+        .rpc_server(rpc_server)
+        .run_and_deserialize_output();
     rpc_server.mine_blocks(1);
     inscriptions.push(InscriptionId {
       txid: reveal,
