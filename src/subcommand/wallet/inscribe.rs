@@ -1089,7 +1089,7 @@ batch:
   #[should_panic(
     expected = "invariant: destination addresses and number of inscriptions doesn't match"
   )]
-  fn batch_inscribe_with_inconsistent_reveal_addreses_panics() {
+  fn batch_inscribe_with_inconsistent_reveal_addresses_panics() {
     let utxos = vec![
       (outpoint(1), Amount::from_sat(10_000)),
       (outpoint(2), Amount::from_sat(80_000)),
@@ -1365,6 +1365,6 @@ batch:
 
   #[test]
   fn example_batchfile_deserializes_successfully() {
-    todo!()
+    Batchfile::load(Path::new("batch.yaml")).unwrap();
   }
 }
