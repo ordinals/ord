@@ -832,11 +832,11 @@ mod tests {
         "mode: separate-outputs
 parent: {parent}
 inscriptions:
-- inscription: {}
+- file: {}
   metadata:
     title: Lorem Ipsum
     description: Lorem ipsum dolor sit amet, consectetur adipiscing elit. In tristique, massa nec condimentum venenatis, ante massa tempor velit, et accumsan ipsum ligula a massa. Nunc quis orci ante.
-- inscription: {}
+- file: {}
   metaprotocol: brc-20
 ",
         inscription_path.display(),
@@ -857,12 +857,12 @@ inscriptions:
       Batchfile {
         inscriptions: vec![
           BatchEntry {
-            inscription: inscription_path,
+            file: inscription_path,
             metadata: Some(Value::Mapping(metadata)),
             ..Default::default()
           },
           BatchEntry {
-            inscription: brc20_path,
+            file: brc20_path,
             metaprotocol: Some("brc-20".to_string()),
             ..Default::default()
           }
@@ -884,7 +884,7 @@ inscriptions:
     fs::write(
       &batch_path,
       format!(
-        "mode: wrong-mode\ninscriptions:\n- inscription: {}\n",
+        "mode: wrong-mode\ninscriptions:\n- file: {}\n",
         inscription_path.display(),
       ),
     )
@@ -903,7 +903,7 @@ inscriptions:
     fs::write(
       &batch_path,
       format!(
-        "mode: shared-output\ninscriptions:\n- inscription: {}\nunknown: 1.)what",
+        "mode: shared-output\ninscriptions:\n- file: {}\nunknown: 1.)what",
         inscription_path.display(),
       ),
     )

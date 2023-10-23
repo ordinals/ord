@@ -16,7 +16,7 @@ parent: 6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0
 # `metadata`: inscription metadata (optional)
 # `metaprotocol`: inscription metaprotocol (optional)
 inscriptions:
-  - inscription: mango.avif
+  - file: mango.avif
     metadata:
       title: Delicious Mangos
       description: >
@@ -26,9 +26,9 @@ inscriptions:
         mi efficitur risus, eu malesuada diam lorem sed velit. Nam fermentum
         dolor et luctus euismod.
 
-  - inscription: token.json
+  - file: token.json
     metaprotocol: brc-20
 
-  - inscription: tulip.png
+  - file: tulip.png
     metadata:
       author: Satoshi Nakamoto

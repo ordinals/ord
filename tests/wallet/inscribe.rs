@@ -768,7 +768,7 @@ fn batch_inscribe_can_create_one_inscription() {
     .write("inscription.txt", "Hello World")
     .write(
       "batch.yaml",
-      "mode: shared-output\ninscriptions:\n- inscription: inscription.txt\n",
+      "mode: shared-output\ninscriptions:\n- file: inscription.txt\n",
     )
     .rpc_server(&rpc_server)
     .run_and_deserialize_output::<Inscribe>();
@@ -803,7 +803,7 @@ fn batch_inscribe_with_multiple_inscriptions() {
     .write("meow.wav", [0; 2048])
     .write(
       "batch.yaml",
-      "mode: shared-output\ninscriptions:\n- inscription: inscription.txt\n- inscription: tulip.png\n- inscription: meow.wav\n"
+      "mode: shared-output\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n"
     )
     .rpc_server(&rpc_server)
     .run_and_deserialize_output::<Inscribe>();
@@ -858,7 +858,7 @@ fn batch_inscribe_with_multiple_inscriptions_with_parent() {
     .write("meow.wav", [0; 2048])
     .write(
       "batch.yaml",
-      format!("parent: {parent_id}\nmode: shared-output\ninscriptions:\n- inscription: inscription.txt\n- inscription: tulip.png\n- inscription: meow.wav\n")
+      format!("parent: {parent_id}\nmode: shared-output\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
     )
     .rpc_server(&rpc_server)
     .run_and_deserialize_output::<Inscribe>();
@@ -896,7 +896,7 @@ fn batch_inscribe_respects_dry_run_flag() {
     .write("inscription.txt", "Hello World")
     .write(
       "batch.yaml",
-      "mode: shared-output\ninscriptions:\n- inscription: inscription.txt\n",
+      "mode: shared-output\ninscriptions:\n- file: inscription.txt\n",
     )
     .rpc_server(&rpc_server)
     .run_and_deserialize_output::<Inscribe>();
@@ -924,7 +924,7 @@ fn batch_in_same_output_but_different_satpoints() {
     .write("meow.wav", [0; 2048])
     .write(
       "batch.yaml",
-      "mode: shared-output\ninscriptions:\n- inscription: inscription.txt\n- inscription: tulip.png\n- inscription: meow.wav\n"
+      "mode: shared-output\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n"
     )
     .rpc_server(&rpc_server)
     .run_and_deserialize_output::<Inscribe>();
@@ -991,7 +991,7 @@ fn batch_in_separate_outputs_with_parent() {
     .write("meow.wav", [0; 2048])
     .write(
       "batch.yaml",
-      format!("parent: {parent_id}\nmode: separate-outputs\ninscriptions:\n- inscription: inscription.txt\n- inscription: tulip.png\n- inscription: meow.wav\n")
+      format!("parent: {parent_id}\nmode: separate-outputs\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
     )
     .rpc_server(&rpc_server)
     .run_and_deserialize_output::<Inscribe>();

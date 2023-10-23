@@ -422,7 +422,7 @@ pub(crate) enum Mode {
 #[derive(Deserialize, Default, PartialEq, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct BatchEntry {
-  pub(crate) inscription: PathBuf,
+  pub(crate) file: PathBuf,
   pub(crate) metadata: Option<serde_yaml::Value>,
   pub(crate) metaprotocol: Option<String>,
 }
@@ -473,7 +473,7 @@ impl Batchfile {
     for (i, entry) in self.inscriptions.iter().enumerate() {
       inscriptions.push(Inscription::from_file(
         chain,
-        &entry.inscription,
+        &entry.file,
         self.parent,
         if i == 0 { None } else { Some(pointer) },
         entry.metaprotocol.clone(),
