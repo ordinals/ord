@@ -2,7 +2,8 @@ use {super::*, crate::teleburn};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Teleburn {
-  recipient: InscriptionId,
+  #[arg(help = "Generate teleburn addresses for <DESTINATION> inscription.")]
+  destination: InscriptionId,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -13,7 +14,7 @@ pub struct Output {
 impl Teleburn {
   pub(crate) fn run(self) -> SubcommandResult {
     Ok(Box::new(Output {
-      ethereum: self.recipient.into(),
+      ethereum: self.destination.into(),
     }))
   }
 }
