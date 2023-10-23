@@ -71,6 +71,13 @@ mod tests {
       ),
       (
         InscriptionId::from_str(
+          "6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i7",
+        )
+        .unwrap(),
+        "0xEb26fEFA572a25F0ED7B41C5249bCba2Ca976475",
+      ),
+      (
+        InscriptionId::from_str(
           "6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0",
         )
         .unwrap(),
