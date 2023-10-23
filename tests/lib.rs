@@ -21,7 +21,6 @@ use {
   regex::Regex,
   reqwest::{StatusCode, Url},
   serde::de::DeserializeOwned,
-  serde::{Deserialize, Serialize},
   std::{
     collections::BTreeMap,
     fs,
@@ -88,21 +87,6 @@ fn create_wallet(rpc_server: &test_bitcoincore_rpc::Handle) {
   CommandBuilder::new(format!("--chain {} wallet create", rpc_server.network()))
     .rpc_server(rpc_server)
     .run_and_deserialize_output::<ord::subcommand::wallet::create::Output>();
-}
-
-#[derive(Serialize, Deserialize)]
-struct EthereumTeleburnAddress {
-  address: String,
-}
-#[derive(Serialize, Deserialize)]
-struct Teleburn {
-  ethereum: EthereumTeleburnAddress,
-}
-
-fn teleburn(rpc_server: &test_bitcoincore_rpc::Handle, inscription_id: InscriptionId) -> Teleburn {
-  CommandBuilder::new(format!("teleburn {inscription_id}"))
-    .rpc_server(rpc_server)
-    .run_and_deserialize_output()
 }
 
 mod command_builder;

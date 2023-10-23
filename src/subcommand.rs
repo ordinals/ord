@@ -11,7 +11,7 @@ mod preview;
 mod server;
 pub mod subsidy;
 pub mod supply;
-mod teleburn;
+pub mod teleburn;
 pub mod traits;
 pub mod wallet;
 

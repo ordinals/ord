@@ -1,22 +1,18 @@
 use {super::*, crate::index::entry::Entry, sha3::Digest, sha3::Keccak256};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub(crate) struct Ethereum {
-  address: String,
-}
+pub struct Ethereum(String);
 
 impl From<InscriptionId> for Ethereum {
   fn from(inscription_id: InscriptionId) -> Self {
     let digest = bitcoin::hashes::sha256::Hash::hash(&inscription_id.store());
-    Self {
-      address: create_address_with_checksum(&hex::encode(&digest[0..20])),
-    }
+    Self(create_address_with_checksum(&hex::encode(&digest[0..20])))
   }
 }
 
 impl Display for Ethereum {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-    write!(f, "{}", self.address)
+    write!(f, "{}", self.0)
   }
 }
 
@@ -81,7 +77,7 @@ mod tests {
         "0xe43A06530BdF8A4e067581f48Fae3b535559dA9e",
       ),
     ] {
-      assert_eq!(*addr, Ethereum::from(*inscription_id).address);
+      assert_eq!(*addr, Ethereum::from(*inscription_id).0);
     }
   }
 }

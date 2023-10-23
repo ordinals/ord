@@ -8,7 +8,7 @@ pub(crate) struct Teleburn {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Output {
-  ethereum: teleburn::Ethereum,
+  pub ethereum: teleburn::Ethereum,
 }
 
 impl Teleburn {
