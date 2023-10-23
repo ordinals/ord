@@ -586,7 +586,10 @@ mod tests {
 
     inscriptions.insert(parent_info.location, parent_inscription);
 
-    let child_inscription = inscription("text/plain", [b'O'; 100]);
+    let child_inscription = InscriptionTemplate {
+      parent: Some(parent_inscription),
+    }
+    .into();
 
     let commit_address = change(1);
     let reveal_address = recipient();
@@ -943,9 +946,18 @@ batch:
     let reveal_addresses = vec![recipient()];
 
     let inscriptions = vec![
-      inscription("text/plain", [b'O'; 100]),
-      inscription("text/plain", [b'O'; 111]),
-      inscription("text/plain", [b'O'; 222]),
+      InscriptionTemplate {
+        parent: Some(parent),
+      }
+      .into(),
+      InscriptionTemplate {
+        parent: Some(parent),
+      }
+      .into(),
+      InscriptionTemplate {
+        parent: Some(parent),
+      }
+      .into(),
     ];
 
     let postage = Amount::from_sat(30_000);
@@ -1033,9 +1045,18 @@ batch:
     wallet_inscriptions.insert(parent_info.location, parent);
 
     let inscriptions = vec![
-      inscription("text/plain", [b'O'; 100]),
-      inscription("text/plain", [b'O'; 111]),
-      inscription("text/plain", [b'O'; 222]),
+      InscriptionTemplate {
+        parent: Some(parent),
+      }
+      .into(),
+      InscriptionTemplate {
+        parent: Some(parent),
+      }
+      .into(),
+      InscriptionTemplate {
+        parent: Some(parent),
+      }
+      .into(),
     ];
 
     let commit_address = change(1);
@@ -1098,9 +1119,18 @@ batch:
     wallet_inscriptions.insert(parent_info.location, parent);
 
     let inscriptions = vec![
-      inscription("text/plain", [b'O'; 100]),
-      inscription("text/plain", [b'O'; 111]),
-      inscription("text/plain", [b'O'; 222]),
+      InscriptionTemplate {
+        parent: Some(parent),
+      }
+      .into(),
+      InscriptionTemplate {
+        parent: Some(parent),
+      }
+      .into(),
+      InscriptionTemplate {
+        parent: Some(parent),
+      }
+      .into(),
     ];
 
     let commit_address = change(1);
@@ -1254,9 +1284,18 @@ batch:
     let reveal_addresses = vec![recipient(), recipient(), recipient()];
 
     let inscriptions = vec![
-      inscription("text/plain", [b'O'; 100]),
-      inscription("text/plain", [b'O'; 111]),
-      inscription("text/plain", [b'O'; 222]),
+      InscriptionTemplate {
+        parent: Some(parent),
+      }
+      .into(),
+      InscriptionTemplate {
+        parent: Some(parent),
+      }
+      .into(),
+      InscriptionTemplate {
+        parent: Some(parent),
+      }
+      .into(),
     ];
 
     let postage = Amount::from_sat(30_000);
