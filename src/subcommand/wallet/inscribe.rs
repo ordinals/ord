@@ -1362,4 +1362,9 @@ batch:
       }
     );
   }
+
+  #[test]
+  fn example_batchfile_deserializes_successfully() {
+    todo!()
+  }
 }
