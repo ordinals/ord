@@ -443,7 +443,7 @@ impl BatchEntry {
 #[derive(Deserialize, PartialEq, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct Batchfile {
-  pub(crate) batch: Vec<BatchEntry>,
+  pub(crate) inscriptions: Vec<BatchEntry>,
   pub(crate) mode: Mode,
   pub(crate) parent: Option<InscriptionId>,
 }
@@ -461,13 +461,16 @@ impl Batchfile {
     postage: Amount,
   ) -> Result<(Vec<Inscription>, Amount)> {
     if metadata.is_some() {
-      assert!(!self.batch.iter().any(|entry| entry.metadata.is_some()));
+      assert!(!self
+        .inscriptions
+        .iter()
+        .any(|entry| entry.metadata.is_some()));
     }
 
     let mut pointer = parent_value.unwrap_or_default();
 
     let mut inscriptions = Vec::new();
-    for (i, entry) in self.batch.iter().enumerate() {
+    for (i, entry) in self.inscriptions.iter().enumerate() {
       inscriptions.push(Inscription::from_file(
         chain,
         &entry.inscription,

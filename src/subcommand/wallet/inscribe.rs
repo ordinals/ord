@@ -831,7 +831,7 @@ mod tests {
       format!(
         "mode: separate-outputs
 parent: {parent}
-batch:
+inscriptions:
 - inscription: {}
   metadata:
     title: Lorem Ipsum
@@ -855,7 +855,7 @@ batch:
     assert_eq!(
       Batchfile::load(&batch_path).unwrap(),
       Batchfile {
-        batch: vec![
+        inscriptions: vec![
           BatchEntry {
             inscription: inscription_path,
             metadata: Some(Value::Mapping(metadata)),
@@ -884,7 +884,7 @@ batch:
     fs::write(
       &batch_path,
       format!(
-        "mode: wrong-mode\nbatch:\n- inscription: {}\n",
+        "mode: wrong-mode\ninscriptions:\n- inscription: {}\n",
         inscription_path.display(),
       ),
     )
@@ -903,7 +903,7 @@ batch:
     fs::write(
       &batch_path,
       format!(
-        "mode: shared-output\nbatch:\n- inscription: {}\nunknown: 1.)what",
+        "mode: shared-output\ninscriptions:\n- inscription: {}\nunknown: 1.)what",
         inscription_path.display(),
       ),
     )
