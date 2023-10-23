@@ -16,6 +16,26 @@ pub(super) struct Batch {
   pub(super) total_postage: Amount,
 }
 
+impl Default for Batch {
+  fn default() -> Batch {
+    Batch {
+      commit_fee_rate: 1.0.try_into().unwrap(),
+      destinations: Vec::new(),
+      dry_run: false,
+      inscriptions: Vec::new(),
+      mode: Mode::SharedOutput,
+      no_backup: false,
+      no_limit: false,
+      parent_info: None,
+      postage: Amount::from_sat(10_000),
+      reinscribe: false,
+      reveal_fee_rate: 1.0.try_into().unwrap(),
+      satpoint: None,
+      total_postage: Amount::from_sat(10_000),
+    }
+  }
+}
+
 impl Batch {
   pub(crate) fn inscribe(
     &self,
@@ -142,6 +162,13 @@ impl Batch {
     mut utxos: BTreeMap<OutPoint, Amount>,
     change: [Address; 2],
   ) -> Result<(Transaction, Transaction, TweakedKeyPair, u64)> {
+    if let Some(parent_info) = &self.parent_info {
+      assert!(self
+        .inscriptions
+        .iter()
+        .all(|inscription| inscription.parent().unwrap() == parent_info.id))
+    }
+
     if self.satpoint.is_some() {
       assert_eq!(
         self.inscriptions.len(),

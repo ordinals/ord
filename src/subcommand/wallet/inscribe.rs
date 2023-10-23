@@ -36,7 +36,7 @@ pub struct Output {
   pub total_fees: u64,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub(crate) struct ParentInfo {
   destination: Address,
   id: InscriptionId,
@@ -236,45 +236,6 @@ impl Inscribe {
     }
   }
 
-  #[cfg(test)]
-  // todo: actually make sure these args are all being used
-  fn create_inscription_transactions(
-    satpoint: Option<SatPoint>,
-    parent_info: Option<ParentInfo>,
-    inscriptions: Vec<Inscription>,
-    wallet_inscriptions: BTreeMap<SatPoint, InscriptionId>,
-    chain: Chain,
-    utxos: BTreeMap<OutPoint, Amount>,
-    change: [Address; 2],
-    destinations: Vec<Address>,
-    commit_fee_rate: FeeRate,
-    reveal_fee_rate: FeeRate,
-    no_limit: bool,
-    reinscribe: bool,
-    postage: Amount,
-    total_postage: Amount,
-    mode: Mode,
-  ) -> Result<(Transaction, Transaction, TweakedKeyPair, u64)> {
-    Batch {
-      postage,
-      commit_fee_rate,
-      reveal_fee_rate,
-      dry_run: false,
-      no_limit,
-      no_backup: false,
-      mode,
-      inscriptions,
-      destinations,
-      satpoint,
-      reinscribe,
-      total_postage,
-      // todo: actually write a unit test where we assert that the created transaction
-      //   has the correct parent
-      parent_info,
-    }
-    .create_batch_inscription_transactions(wallet_inscriptions, chain, utxos, change)
-  }
-
   fn build_reveal_transaction(
     control_block: &ControlBlock,
     fee_rate: FeeRate,
@@ -374,23 +335,27 @@ mod tests {
     let inscription = inscription("text/plain", "ord");
     let commit_address = change(0);
     let reveal_address = recipient();
+    let change = [commit_address, change(1)];
 
-    let (commit_tx, reveal_tx, _private_key, _) = Inscribe::create_inscription_transactions(
-      Some(satpoint(1, 0)),
-      None,
-      vec![inscription],
+    let (commit_tx, reveal_tx, _private_key, _) = Batch {
+      satpoint: Some(satpoint(1, 0)),
+      parent_info: None,
+      inscriptions: vec![inscription],
+      destinations: vec![reveal_address],
+      commit_fee_rate: FeeRate::try_from(1.0).unwrap(),
+      reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
+      no_limit: false,
+      reinscribe: false,
+      postage: TransactionBuilder::TARGET_POSTAGE,
+      total_postage: TransactionBuilder::TARGET_POSTAGE,
+      mode: Mode::SharedOutput,
+      ..Default::default()
+    }
+    .create_batch_inscription_transactions(
       BTreeMap::new(),
       Chain::Mainnet,
       utxos.into_iter().collect(),
-      [commit_address, change(1)],
-      vec![reveal_address],
-      FeeRate::try_from(1.0).unwrap(),
-      FeeRate::try_from(1.0).unwrap(),
-      false,
-      false,
-      TransactionBuilder::TARGET_POSTAGE,
-      TransactionBuilder::TARGET_POSTAGE,
-      Mode::SharedOutput,
+      change,
     )
     .unwrap();
 
@@ -410,23 +375,27 @@ mod tests {
     let inscription = inscription("text/plain", "ord");
     let commit_address = change(0);
     let reveal_address = recipient();
+    let change = [commit_address, change(1)];
 
-    let (commit_tx, reveal_tx, _, _) = Inscribe::create_inscription_transactions(
-      Some(satpoint(1, 0)),
-      None,
-      vec![inscription],
+    let (commit_tx, reveal_tx, _, _) = Batch {
+      satpoint: Some(satpoint(1, 0)),
+      parent_info: None,
+      inscriptions: vec![inscription],
+      destinations: vec![reveal_address],
+      commit_fee_rate: FeeRate::try_from(1.0).unwrap(),
+      reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
+      no_limit: false,
+      reinscribe: false,
+      postage: TransactionBuilder::TARGET_POSTAGE,
+      total_postage: TransactionBuilder::TARGET_POSTAGE,
+      mode: Mode::SharedOutput,
+      ..Default::default()
+    }
+    .create_batch_inscription_transactions(
       BTreeMap::new(),
       Chain::Mainnet,
       utxos.into_iter().collect(),
-      [commit_address, change(1)],
-      vec![reveal_address],
-      FeeRate::try_from(1.0).unwrap(),
-      FeeRate::try_from(1.0).unwrap(),
-      false,
-      false,
-      TransactionBuilder::TARGET_POSTAGE,
-      TransactionBuilder::TARGET_POSTAGE,
-      Mode::SharedOutput,
+      change,
     )
     .unwrap();
 
@@ -451,22 +420,25 @@ mod tests {
     let commit_address = change(0);
     let reveal_address = recipient();
 
-    let error = Inscribe::create_inscription_transactions(
+    let error = Batch {
       satpoint,
-      None,
-      vec![inscription],
+      parent_info: None,
+      inscriptions: vec![inscription],
+      destinations: vec![reveal_address],
+      commit_fee_rate: FeeRate::try_from(1.0).unwrap(),
+      reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
+      no_limit: false,
+      reinscribe: false,
+      postage: TransactionBuilder::TARGET_POSTAGE,
+      total_postage: TransactionBuilder::TARGET_POSTAGE,
+      mode: Mode::SharedOutput,
+      ..Default::default()
+    }
+    .create_batch_inscription_transactions(
       inscriptions,
       Chain::Mainnet,
       utxos.into_iter().collect(),
       [commit_address, change(1)],
-      vec![reveal_address],
-      FeeRate::try_from(1.0).unwrap(),
-      FeeRate::try_from(1.0).unwrap(),
-      false,
-      false,
-      TransactionBuilder::TARGET_POSTAGE,
-      TransactionBuilder::TARGET_POSTAGE,
-      Mode::SharedOutput,
     )
     .unwrap_err()
     .to_string();
@@ -498,22 +470,25 @@ mod tests {
     let commit_address = change(0);
     let reveal_address = recipient();
 
-    assert!(Inscribe::create_inscription_transactions(
+    assert!(Batch {
       satpoint,
-      None,
-      vec![inscription],
+      parent_info: None,
+      inscriptions: vec![inscription],
+      destinations: vec![reveal_address],
+      commit_fee_rate: FeeRate::try_from(1.0).unwrap(),
+      reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
+      no_limit: false,
+      reinscribe: false,
+      postage: TransactionBuilder::TARGET_POSTAGE,
+      total_postage: TransactionBuilder::TARGET_POSTAGE,
+      mode: Mode::SharedOutput,
+      ..Default::default()
+    }
+    .create_batch_inscription_transactions(
       inscriptions,
       Chain::Mainnet,
       utxos.into_iter().collect(),
       [commit_address, change(1)],
-      vec![reveal_address],
-      FeeRate::try_from(1.0).unwrap(),
-      FeeRate::try_from(1.0).unwrap(),
-      false,
-      false,
-      TransactionBuilder::TARGET_POSTAGE,
-      TransactionBuilder::TARGET_POSTAGE,
-      Mode::SharedOutput,
     )
     .is_ok())
   }
@@ -539,22 +514,25 @@ mod tests {
     let reveal_address = recipient();
     let fee_rate = 3.3;
 
-    let (commit_tx, reveal_tx, _private_key, _) = Inscribe::create_inscription_transactions(
+    let (commit_tx, reveal_tx, _private_key, _) = Batch {
       satpoint,
-      None,
-      vec![inscription],
+      parent_info: None,
+      inscriptions: vec![inscription],
+      destinations: vec![reveal_address],
+      commit_fee_rate: FeeRate::try_from(fee_rate).unwrap(),
+      reveal_fee_rate: FeeRate::try_from(fee_rate).unwrap(),
+      no_limit: false,
+      reinscribe: false,
+      postage: TransactionBuilder::TARGET_POSTAGE,
+      total_postage: TransactionBuilder::TARGET_POSTAGE,
+      mode: Mode::SharedOutput,
+      ..Default::default()
+    }
+    .create_batch_inscription_transactions(
       inscriptions,
       Chain::Signet,
       utxos.into_iter().collect(),
       [commit_address, change(1)],
-      vec![reveal_address],
-      FeeRate::try_from(fee_rate).unwrap(),
-      FeeRate::try_from(fee_rate).unwrap(),
-      false,
-      false,
-      TransactionBuilder::TARGET_POSTAGE,
-      TransactionBuilder::TARGET_POSTAGE,
-      Mode::SharedOutput,
     )
     .unwrap();
 
@@ -614,22 +592,25 @@ mod tests {
     let reveal_address = recipient();
     let fee_rate = 4.0;
 
-    let (commit_tx, reveal_tx, _private_key, _) = Inscribe::create_inscription_transactions(
-      None,
-      Some(parent_info.clone()),
-      vec![child_inscription],
+    let (commit_tx, reveal_tx, _private_key, _) = Batch {
+      satpoint: None,
+      parent_info: Some(parent_info.clone()),
+      inscriptions: vec![child_inscription],
+      destinations: vec![reveal_address],
+      commit_fee_rate: FeeRate::try_from(fee_rate).unwrap(),
+      reveal_fee_rate: FeeRate::try_from(fee_rate).unwrap(),
+      no_limit: false,
+      reinscribe: false,
+      postage: TransactionBuilder::TARGET_POSTAGE,
+      total_postage: TransactionBuilder::TARGET_POSTAGE,
+      mode: Mode::SharedOutput,
+      ..Default::default()
+    }
+    .create_batch_inscription_transactions(
       inscriptions,
       Chain::Signet,
       utxos.into_iter().collect(),
       [commit_address, change(2)],
-      vec![reveal_address],
-      FeeRate::try_from(fee_rate).unwrap(),
-      FeeRate::try_from(fee_rate).unwrap(),
-      false,
-      false,
-      TransactionBuilder::TARGET_POSTAGE,
-      TransactionBuilder::TARGET_POSTAGE,
-      Mode::SharedOutput,
     )
     .unwrap();
 
@@ -692,22 +673,25 @@ mod tests {
     let commit_fee_rate = 3.3;
     let fee_rate = 1.0;
 
-    let (commit_tx, reveal_tx, _private_key, _) = Inscribe::create_inscription_transactions(
+    let (commit_tx, reveal_tx, _private_key, _) = Batch {
       satpoint,
-      None,
-      vec![inscription],
+      parent_info: None,
+      inscriptions: vec![inscription],
+      destinations: vec![reveal_address],
+      commit_fee_rate: FeeRate::try_from(commit_fee_rate).unwrap(),
+      reveal_fee_rate: FeeRate::try_from(fee_rate).unwrap(),
+      no_limit: false,
+      reinscribe: false,
+      postage: TransactionBuilder::TARGET_POSTAGE,
+      total_postage: TransactionBuilder::TARGET_POSTAGE,
+      mode: Mode::SharedOutput,
+      ..Default::default()
+    }
+    .create_batch_inscription_transactions(
       inscriptions,
       Chain::Signet,
       utxos.into_iter().collect(),
       [commit_address, change(1)],
-      vec![reveal_address],
-      FeeRate::try_from(commit_fee_rate).unwrap(),
-      FeeRate::try_from(fee_rate).unwrap(),
-      false,
-      false,
-      TransactionBuilder::TARGET_POSTAGE,
-      TransactionBuilder::TARGET_POSTAGE,
-      Mode::SharedOutput,
     )
     .unwrap();
 
@@ -746,22 +730,25 @@ mod tests {
     let commit_address = change(0);
     let reveal_address = recipient();
 
-    let error = Inscribe::create_inscription_transactions(
+    let error = Batch {
       satpoint,
-      None,
-      vec![inscription],
+      parent_info: None,
+      inscriptions: vec![inscription],
+      destinations: vec![reveal_address],
+      commit_fee_rate: FeeRate::try_from(1.0).unwrap(),
+      reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
+      no_limit: false,
+      reinscribe: false,
+      postage: TransactionBuilder::TARGET_POSTAGE,
+      total_postage: TransactionBuilder::TARGET_POSTAGE,
+      mode: Mode::SharedOutput,
+      ..Default::default()
+    }
+    .create_batch_inscription_transactions(
       BTreeMap::new(),
       Chain::Mainnet,
       utxos.into_iter().collect(),
       [commit_address, change(1)],
-      vec![reveal_address],
-      FeeRate::try_from(1.0).unwrap(),
-      FeeRate::try_from(1.0).unwrap(),
-      false,
-      false,
-      TransactionBuilder::TARGET_POSTAGE,
-      TransactionBuilder::TARGET_POSTAGE,
-      Mode::SharedOutput,
     )
     .unwrap_err()
     .to_string();
@@ -782,22 +769,25 @@ mod tests {
     let commit_address = change(0);
     let reveal_address = recipient();
 
-    let (_commit_tx, reveal_tx, _private_key, _) = Inscribe::create_inscription_transactions(
+    let (_commit_tx, reveal_tx, _private_key, _) = Batch {
       satpoint,
-      None,
-      vec![inscription],
+      parent_info: None,
+      inscriptions: vec![inscription],
+      destinations: vec![reveal_address],
+      commit_fee_rate: FeeRate::try_from(1.0).unwrap(),
+      reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
+      no_limit: true,
+      reinscribe: false,
+      postage: TransactionBuilder::TARGET_POSTAGE,
+      total_postage: TransactionBuilder::TARGET_POSTAGE,
+      mode: Mode::SharedOutput,
+      ..Default::default()
+    }
+    .create_batch_inscription_transactions(
       BTreeMap::new(),
       Chain::Mainnet,
       utxos.into_iter().collect(),
       [commit_address, change(1)],
-      vec![reveal_address],
-      FeeRate::try_from(1.0).unwrap(),
-      FeeRate::try_from(1.0).unwrap(),
-      true,
-      false,
-      TransactionBuilder::TARGET_POSTAGE,
-      TransactionBuilder::TARGET_POSTAGE,
-      Mode::SharedOutput,
     )
     .unwrap();
 
@@ -964,22 +954,25 @@ batch:
 
     let fee_rate = 4.0.try_into().unwrap();
 
-    let (commit_tx, reveal_tx, _private_key, _) = Inscribe::create_inscription_transactions(
-      None,
-      Some(parent_info.clone()),
+    let (commit_tx, reveal_tx, _private_key, _) = Batch {
+      satpoint: None,
+      parent_info: Some(parent_info.clone()),
       inscriptions,
+      destinations: reveal_addresses,
+      commit_fee_rate: fee_rate,
+      reveal_fee_rate: fee_rate,
+      no_limit: false,
+      reinscribe: false,
+      postage: Amount::from_sat(10_000),
+      total_postage: postage,
+      mode,
+      ..Default::default()
+    }
+    .create_batch_inscription_transactions(
       wallet_inscriptions,
       Chain::Signet,
       utxos.into_iter().collect(),
       [commit_address, change(2)],
-      reveal_addresses,
-      fee_rate,
-      fee_rate,
-      false,
-      false,
-      Amount::from_sat(10_000),
-      postage,
-      mode,
     )
     .unwrap();
 
@@ -1048,22 +1041,25 @@ batch:
     let commit_address = change(1);
     let reveal_addresses = vec![recipient()];
 
-    let error = Inscribe::create_inscription_transactions(
-      None,
-      Some(parent_info.clone()),
+    let error = Batch {
+      satpoint: None,
+      parent_info: Some(parent_info.clone()),
       inscriptions,
+      destinations: reveal_addresses,
+      commit_fee_rate: 4.0.try_into().unwrap(),
+      reveal_fee_rate: 4.0.try_into().unwrap(),
+      no_limit: false,
+      reinscribe: false,
+      postage: Amount::from_sat(10_000),
+      total_postage: Amount::from_sat(30_000),
+      mode: Mode::SharedOutput,
+      ..Default::default()
+    }
+    .create_batch_inscription_transactions(
       wallet_inscriptions,
       Chain::Signet,
       utxos.into_iter().collect(),
       [commit_address, change(2)],
-      reveal_addresses,
-      4.0.try_into().unwrap(),
-      4.0.try_into().unwrap(),
-      false,
-      false,
-      Amount::from_sat(10_000),
-      Amount::from_sat(30_000),
-      Mode::SharedOutput,
     )
     .unwrap_err()
     .to_string();
@@ -1110,22 +1106,25 @@ batch:
     let commit_address = change(1);
     let reveal_addresses = vec![recipient(), recipient()];
 
-    let _ = Inscribe::create_inscription_transactions(
-      None,
-      Some(parent_info.clone()),
+    let _ = Batch {
+      satpoint: None,
+      parent_info: Some(parent_info.clone()),
       inscriptions,
+      destinations: reveal_addresses,
+      commit_fee_rate: 4.0.try_into().unwrap(),
+      reveal_fee_rate: 4.0.try_into().unwrap(),
+      no_limit: false,
+      reinscribe: false,
+      postage: Amount::from_sat(10_000),
+      total_postage: Amount::from_sat(30_000),
+      mode: Mode::SharedOutput,
+      ..Default::default()
+    }
+    .create_batch_inscription_transactions(
       wallet_inscriptions,
       Chain::Signet,
       utxos.into_iter().collect(),
       [commit_address, change(2)],
-      reveal_addresses,
-      4.0.try_into().unwrap(),
-      4.0.try_into().unwrap(),
-      false,
-      false,
-      Amount::from_sat(10_000),
-      Amount::from_sat(30_000),
-      Mode::SharedOutput,
     );
   }
 
@@ -1144,22 +1143,25 @@ batch:
     let commit_address = change(1);
     let reveal_addresses = vec![recipient()];
 
-    let error = Inscribe::create_inscription_transactions(
-      None,
-      None,
+    let error = Batch {
+      satpoint: None,
+      parent_info: None,
       inscriptions,
+      destinations: reveal_addresses,
+      commit_fee_rate: 1.0.try_into().unwrap(),
+      reveal_fee_rate: 1.0.try_into().unwrap(),
+      no_limit: false,
+      reinscribe: false,
+      postage: Amount::from_sat(30_000),
+      total_postage: Amount::from_sat(30_000),
+      mode: Mode::SharedOutput,
+      ..Default::default()
+    }
+    .create_batch_inscription_transactions(
       wallet_inscriptions,
       Chain::Signet,
       utxos.into_iter().collect(),
       [commit_address, change(2)],
-      reveal_addresses,
-      1.0.try_into().unwrap(),
-      1.0.try_into().unwrap(),
-      false,
-      false,
-      Amount::from_sat(30_000),
-      Amount::from_sat(30_000),
-      Mode::SharedOutput,
     )
     .unwrap_err()
     .to_string();
@@ -1194,43 +1196,28 @@ batch:
 
     let fee_rate = 4.0.try_into().unwrap();
 
-    let (_commit_tx, reveal_tx, _private_key, _) = Inscribe::create_inscription_transactions(
-      None,
-      None,
+    let (_commit_tx, reveal_tx, _private_key, _) = Batch {
+      satpoint: None,
+      parent_info: None,
       inscriptions,
+      destinations: reveal_addresses,
+      commit_fee_rate: fee_rate,
+      reveal_fee_rate: fee_rate,
+      no_limit: false,
+      reinscribe: false,
+      postage: Amount::from_sat(10_000),
+      total_postage,
+      mode,
+      ..Default::default()
+    }
+    .create_batch_inscription_transactions(
       wallet_inscriptions,
       Chain::Signet,
       utxos.into_iter().collect(),
       [commit_address, change(2)],
-      reveal_addresses,
-      fee_rate,
-      fee_rate,
-      false,
-      false,
-      Amount::from_sat(10_000),
-      total_postage,
-      mode,
     )
     .unwrap();
 
-    //let sig_vbytes = 17;
-    //let fee = fee_rate.fee(commit_tx.vsize() + sig_vbytes).to_sat();
-
-    //let reveal_value = commit_tx
-    //  .output
-    //  .iter()
-    //  .map(|o| o.value)
-    //  .reduce(|acc, i| acc + i)
-    //  .unwrap();
-
-    // let sig_vbytes = 17;
-    // let fee = fee_rate.fee(reveal_tx.vsize() + sig_vbytes).to_sat();
-
-    //assert_eq!(
-    //  fee,
-    //  commit_tx.output[0].value - reveal_tx.output.iter().map(|o| o.value).sum::<u64>()
-    //);
-    // assert_eq!(commit_tx.output[0].value, total_postage.to_sat() + fee);
     assert_eq!(reveal_tx.output.len(), 3);
     assert!(reveal_tx
       .output
@@ -1278,41 +1265,55 @@ batch:
 
     let fee_rate = 4.0.try_into().unwrap();
 
-    let (_commit_tx, reveal_tx, _private_key, _) = Inscribe::create_inscription_transactions(
-      None,
-      Some(parent_info.clone()),
+    let (commit_tx, reveal_tx, _private_key, _) = Batch {
+      satpoint: None,
+      parent_info: Some(parent_info.clone()),
       inscriptions,
+      destinations: reveal_addresses,
+      commit_fee_rate: fee_rate,
+      reveal_fee_rate: fee_rate,
+      no_limit: false,
+      reinscribe: false,
+      postage: Amount::from_sat(10_000),
+      total_postage: postage,
+      mode,
+      ..Default::default()
+    }
+    .create_batch_inscription_transactions(
       wallet_inscriptions,
       Chain::Signet,
       utxos.into_iter().collect(),
       [commit_address, change(2)],
-      reveal_addresses,
-      fee_rate,
-      fee_rate,
-      false,
-      false,
-      Amount::from_sat(10_000),
-      postage,
-      mode,
     )
     .unwrap();
 
-    //let sig_vbytes = 17;
-    //let fee = fee_rate.fee(commit_tx.vsize() + sig_vbytes).to_sat();
+    assert_eq!(
+      parent,
+      ParsedEnvelope::from_transaction(&reveal_tx)[0]
+        .payload
+        .parent()
+        .unwrap()
+    );
+    assert_eq!(
+      parent,
+      ParsedEnvelope::from_transaction(&reveal_tx)[1]
+        .payload
+        .parent()
+        .unwrap()
+    );
 
-    //let reveal_value = commit_tx
-    //  .output
-    //  .iter()
-    //  .map(|o| o.value)
-    //  .reduce(|acc, i| acc + i)
-    //  .unwrap();
+    let sig_vbytes = 17;
+    let fee = fee_rate.fee(commit_tx.vsize() + sig_vbytes).to_sat();
 
-    //assert_eq!(reveal_value, 50_000 - fee);
+    let reveal_value = commit_tx
+      .output
+      .iter()
+      .map(|o| o.value)
+      .reduce(|acc, i| acc + i)
+      .unwrap();
 
-    //let sig_vbytes = 16;
-    //let fee = fee_rate.fee(reveal_tx.vsize() + sig_vbytes).to_sat();
+    assert_eq!(reveal_value, 50_000 - fee);
 
-    //assert_eq!(fee, commit_tx.output[0].value - reveal_tx.output[1].value,);
     assert_eq!(
       reveal_tx.output[0].script_pubkey,
       parent_info.destination.script_pubkey()
