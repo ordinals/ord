@@ -21,7 +21,7 @@ impl BlockHtml {
   ) -> Self {
     Self {
       hash: block.header.block_hash(),
-      target: BlockHash::from_raw_hash(Hash::from_byte_array(block.header.target().to_be_bytes())),
+      target: BlockHash::from_raw_hash(Hash::from_byte_array(block.header.target().to_le_bytes())),
       block,
       height,
       best_height,
@@ -51,7 +51,7 @@ impl BlockJson {
   ) -> Self {
     Self {
       hash: block.header.block_hash().to_string(),
-      target: BlockHash::from_raw_hash(Hash::from_byte_array(block.header.target().to_be_bytes()))
+      target: BlockHash::from_raw_hash(Hash::from_byte_array(block.header.target().to_le_bytes()))
         .to_string(),
       height: height.0,
       best_height: best_height.0,

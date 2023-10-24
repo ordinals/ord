@@ -409,7 +409,7 @@ fn get_block() {
     block_json,
     BlockJson {
       hash: String::from("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"),
-      target: String::from("0000000000000000000000000000000000000000000000000000ffff00000000"),
+      target: String::from("00000000ffff0000000000000000000000000000000000000000000000000000"),
       best_height: 1,
       height: 0,
       total_num_inscriptions: 0,
