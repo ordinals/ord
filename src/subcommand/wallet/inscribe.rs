@@ -21,7 +21,7 @@ use {
 
 mod batch;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct InscriptionInfo {
   pub id: InscriptionId,
   pub location: SatPoint,

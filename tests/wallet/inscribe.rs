@@ -960,6 +960,17 @@ fn batch_in_same_output_but_different_satpoints() {
     .rpc_server(&rpc_server)
     .run_and_deserialize_output::<Inscribe>();
 
+  let outpoint = output.inscriptions[0].location.outpoint;
+  for (i, inscription) in output.inscriptions.iter().enumerate() {
+    assert_eq!(
+      inscription.location,
+      SatPoint {
+        outpoint,
+        offset: u64::try_from(i).unwrap() * 10_000,
+      }
+    );
+  }
+
   rpc_server.mine_blocks(1);
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
@@ -1013,6 +1024,17 @@ fn batch_in_same_output_with_non_default_postage() {
     )
     .rpc_server(&rpc_server)
     .run_and_deserialize_output::<Inscribe>();
+
+  let outpoint = output.inscriptions[0].location.outpoint;
+  for (i, inscription) in output.inscriptions.iter().enumerate() {
+    assert_eq!(
+      inscription.location,
+      SatPoint {
+        outpoint,
+        offset: u64::try_from(i).unwrap() * 777,
+      }
+    );
+  }
 
   rpc_server.mine_blocks(1);
 
@@ -1081,6 +1103,18 @@ fn batch_in_separate_outputs_with_parent() {
     .rpc_server(&rpc_server)
     .run_and_deserialize_output::<Inscribe>();
 
+  for inscription in &output.inscriptions {
+    assert_eq!(inscription.location.offset, 0);
+  }
+  let mut outpoints = output
+    .inscriptions
+    .iter()
+    .map(|inscription| inscription.location.outpoint)
+    .collect::<Vec<OutPoint>>();
+  outpoints.sort();
+  outpoints.dedup();
+  assert_eq!(outpoints.len(), output.inscriptions.len());
+
   rpc_server.mine_blocks(1);
 
   let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
@@ -1144,6 +1178,19 @@ fn batch_in_separate_outputs_with_parent_and_non_default_postage() {
     )
     .rpc_server(&rpc_server)
     .run_and_deserialize_output::<Inscribe>();
+
+  for inscription in &output.inscriptions {
+    assert_eq!(inscription.location.offset, 0);
+  }
+
+  let mut outpoints = output
+    .inscriptions
+    .iter()
+    .map(|inscription| inscription.location.outpoint)
+    .collect::<Vec<OutPoint>>();
+  outpoints.sort();
+  outpoints.dedup();
+  assert_eq!(outpoints.len(), output.inscriptions.len());
 
   rpc_server.mine_blocks(1);
 
