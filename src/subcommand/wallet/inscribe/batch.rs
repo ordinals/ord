@@ -42,7 +42,7 @@ impl Batch {
     client: &Client,
     utxos: &BTreeMap<OutPoint, Amount>,
   ) -> SubcommandResult {
-    let wallet_inscriptions = index.get_inscriptions(utxos.clone())?;
+    let wallet_inscriptions = index.get_inscriptions(utxos)?;
 
     let commit_tx_change = [
       get_change_address(client, chain)?,

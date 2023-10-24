@@ -13,7 +13,7 @@ pub(crate) fn run(options: Options) -> SubcommandResult {
   let unspent_outputs = index.get_unspent_outputs(Wallet::load(&options)?)?;
 
   let inscribed_utxos = index
-    .get_inscriptions(unspent_outputs.clone())?
+    .get_inscriptions(&unspent_outputs)?
     .keys()
     .map(|satpoint| satpoint.outpoint)
     .collect::<BTreeSet<OutPoint>>();

@@ -124,7 +124,7 @@ impl Inscribe {
 
       parent_info = Inscribe::get_parent_info(batch_config.parent, &index, &utxos, &client, chain)?;
 
-      (inscriptions) = batch_config.inscriptions(
+      inscriptions = batch_config.inscriptions(
         chain,
         parent_info.as_ref().map(|info| info.tx_out.value),
         metadata,
@@ -132,8 +132,6 @@ impl Inscribe {
       )?;
 
       mode = batch_config.mode;
-
-      assert!(self.destination.is_none());
 
       let destination_count = match batch_config.mode {
         Mode::SharedOutput => 1,
@@ -159,8 +157,6 @@ impl Inscribe {
         None => get_change_address(&client, chain)?,
       }];
     }
-
-    let total_postage = postage * u64::try_from(inscriptions.len()).unwrap();
 
     Batch {
       commit_fee_rate: self.commit_fee_rate.unwrap_or(self.fee_rate),

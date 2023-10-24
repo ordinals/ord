@@ -1115,7 +1115,7 @@ impl Index {
 
   pub(crate) fn get_inscriptions(
     &self,
-    utxos: BTreeMap<OutPoint, Amount>,
+    utxos: &BTreeMap<OutPoint, Amount>,
   ) -> Result<BTreeMap<SatPoint, InscriptionId>> {
     let rtx = self.database.begin_read()?;
 
