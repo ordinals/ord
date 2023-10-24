@@ -338,7 +338,7 @@ mod tests {
           script_pubkey: script::Builder::new()
             .push_opcode(opcodes::all::OP_RETURN)
             .push_slice(b"RUNE_TEST")
-            .push_slice([1])
+            .push_slice([0, 1])
             .push_opcode(opcodes::all::OP_VERIFY)
             .push_slice([2, 3])
             .into_script(),
