@@ -568,23 +568,14 @@ impl Server {
       )
     })?;
 
-    let inscription = InscriptionId {
+    let parent = InscriptionId {
       txid: entry.etching,
       index: 0,
     };
 
-    let inscription = index
-      .inscription_exists(inscription)?
-      .then_some(inscription);
+    let parent = index.inscription_exists(parent)?.then_some(parent);
 
-    Ok(
-      RuneHtml {
-        id,
-        entry,
-        inscription,
-      }
-      .page(page_config),
-    )
+    Ok(RuneHtml { id, entry, parent }.page(page_config))
   }
 
   async fn runes(
@@ -1096,6 +1087,8 @@ impl Server {
 
     let children = index.get_children_by_inscription_id(inscription_id)?;
 
+    let rune = index.get_rune_by_inscription_id(inscription_id)?;
+
     Ok(if accept_json.0 {
       Json(InscriptionJson::new(
         page_config.chain,
@@ -1112,6 +1105,7 @@ impl Server {
         entry.sat,
         satpoint,
         timestamp(entry.timestamp),
+        rune,
       ))
       .into_response()
     } else {
@@ -1130,6 +1124,7 @@ impl Server {
         sat: entry.sat,
         satpoint,
         timestamp: timestamp(entry.timestamp),
+        rune,
       }
       .page(page_config)
       .into_response()
@@ -3316,6 +3311,7 @@ mod tests {
       format!(
         r".*<title>Rune NVTDIJZYIPU</title>.*
 <h1>Rune NVTDIJZYIPU</h1>
+<iframe .* src=/preview/{txid}i0></iframe>
 <dl>
   <dt>id</dt>
   <dd>2/1</dd>
@@ -3331,11 +3327,23 @@ mod tests {
   <dd>\$</dd>
   <dt>etching</dt>
   <dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
-  <dt>inscription</dt>
+  <dt>parent</dt>
   <dd><a class=monospace href=/inscription/{txid}i0>{txid}i0</a></dd>
 </dl>
 .*"
       ),
+    );
+
+    server.assert_response_regex(
+      format!("/inscription/{txid}i0"),
+      StatusCode::OK,
+      ".*
+<dl>
+  .*
+  <dt>rune</dt>
+  <dd><a href=/rune/NVTDIJZYIPU>NVTDIJZYIPU</a></dd>
+</dl>
+.*",
     );
   }
 
