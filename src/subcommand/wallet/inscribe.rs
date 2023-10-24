@@ -226,62 +226,6 @@ impl Inscribe {
       Ok(None)
     }
   }
-
-  fn build_reveal_transaction(
-    control_block: &ControlBlock,
-    fee_rate: FeeRate,
-    inputs: Vec<OutPoint>,
-    commit_input_index: usize,
-    outputs: Vec<TxOut>,
-    script: &Script,
-  ) -> (Transaction, Amount) {
-    let reveal_tx = Transaction {
-      input: inputs
-        .iter()
-        .map(|outpoint| TxIn {
-          previous_output: *outpoint,
-          script_sig: script::Builder::new().into_script(),
-          witness: Witness::new(),
-          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-        })
-        .collect(),
-      output: outputs,
-      lock_time: LockTime::ZERO,
-      version: 1,
-    };
-
-    let fee = {
-      let mut reveal_tx = reveal_tx.clone();
-
-      for (current_index, txin) in reveal_tx.input.iter_mut().enumerate() {
-        // add dummy inscription witness for reveal input/commit output
-        if current_index == commit_input_index {
-          txin.witness.push(
-            Signature::from_slice(&[0; SCHNORR_SIGNATURE_SIZE])
-              .unwrap()
-              .to_vec(),
-          );
-          txin.witness.push(script);
-          txin.witness.push(&control_block.serialize());
-        } else {
-          txin.witness = Witness::from_slice(&[&[0; SCHNORR_SIGNATURE_SIZE]]);
-        }
-      }
-
-      fee_rate.fee(reveal_tx.vsize())
-    };
-
-    (reveal_tx, fee)
-  }
-
-  fn calculate_fee(tx: &Transaction, utxos: &BTreeMap<OutPoint, Amount>) -> u64 {
-    tx.input
-      .iter()
-      .map(|txin| utxos.get(&txin.previous_output).unwrap().to_sat())
-      .sum::<u64>()
-      .checked_sub(tx.output.iter().map(|txout| txout.value).sum::<u64>())
-      .unwrap()
-  }
 }
 
 #[cfg(test)]

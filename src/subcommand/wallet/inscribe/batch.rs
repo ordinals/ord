@@ -127,21 +127,40 @@ impl Batch {
   ) -> super::Output {
     let mut inscriptions_output = Vec::new();
     for index in 0..inscriptions.len() {
+      let index = u32::try_from(index).unwrap();
+
+      let vout = match self.mode {
+        Mode::SharedOutput => {
+          if self.parent_info.is_some() {
+            1
+          } else {
+            0
+          }
+        }
+        Mode::SeparateOutputs => {
+          if self.parent_info.is_some() {
+            index + 1
+          } else {
+            index
+          }
+        }
+      };
+
+      let offset = match self.mode {
+        Mode::SharedOutput => u64::from(index) * self.postage.to_sat(),
+        Mode::SeparateOutputs => 0,
+      };
+
       let txid = reveal;
       let index = index.try_into().unwrap();
-      let vout = if self.parent_info.is_some() {
-        index + 1
-      } else {
-        index
-      };
 
       inscriptions_output.push(InscriptionInfo {
         id: InscriptionId { txid, index },
         location: SatPoint {
           outpoint: OutPoint { txid, vout },
-          offset: u64::from(index) * TransactionBuilder::TARGET_POSTAGE.to_sat(),
+          offset,
         },
-      })
+      });
     }
 
     super::Output {
@@ -289,7 +308,7 @@ impl Batch {
 
     let commit_input = if self.parent_info.is_some() { 1 } else { 0 };
 
-    let (_, reveal_fee) = Inscribe::build_reveal_transaction(
+    let (_, reveal_fee) = Self::build_reveal_transaction(
       &control_block,
       self.reveal_fee_rate,
       reveal_inputs.clone(),
@@ -321,7 +340,7 @@ impl Batch {
       vout: vout.try_into().unwrap(),
     };
 
-    let (mut reveal_tx, _fee) = Inscribe::build_reveal_transaction(
+    let (mut reveal_tx, _fee) = Self::build_reveal_transaction(
       &control_block,
       self.reveal_fee_rate,
       reveal_inputs,
@@ -404,8 +423,8 @@ impl Batch {
       ),
     );
 
-    let total_fees = Inscribe::calculate_fee(&unsigned_commit_tx, &utxos)
-      + Inscribe::calculate_fee(&reveal_tx, &utxos);
+    let total_fees =
+      Self::calculate_fee(&unsigned_commit_tx, &utxos) + Self::calculate_fee(&reveal_tx, &utxos);
 
     Ok((unsigned_commit_tx, reveal_tx, recovery_key_pair, total_fees))
   }
@@ -436,6 +455,62 @@ impl Batch {
     }
 
     Ok(())
+  }
+
+  fn build_reveal_transaction(
+    control_block: &ControlBlock,
+    fee_rate: FeeRate,
+    inputs: Vec<OutPoint>,
+    commit_input_index: usize,
+    outputs: Vec<TxOut>,
+    script: &Script,
+  ) -> (Transaction, Amount) {
+    let reveal_tx = Transaction {
+      input: inputs
+        .iter()
+        .map(|outpoint| TxIn {
+          previous_output: *outpoint,
+          script_sig: script::Builder::new().into_script(),
+          witness: Witness::new(),
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+        })
+        .collect(),
+      output: outputs,
+      lock_time: LockTime::ZERO,
+      version: 1,
+    };
+
+    let fee = {
+      let mut reveal_tx = reveal_tx.clone();
+
+      for (current_index, txin) in reveal_tx.input.iter_mut().enumerate() {
+        // add dummy inscription witness for reveal input/commit output
+        if current_index == commit_input_index {
+          txin.witness.push(
+            Signature::from_slice(&[0; SCHNORR_SIGNATURE_SIZE])
+              .unwrap()
+              .to_vec(),
+          );
+          txin.witness.push(script);
+          txin.witness.push(&control_block.serialize());
+        } else {
+          txin.witness = Witness::from_slice(&[&[0; SCHNORR_SIGNATURE_SIZE]]);
+        }
+      }
+
+      fee_rate.fee(reveal_tx.vsize())
+    };
+
+    (reveal_tx, fee)
+  }
+
+  fn calculate_fee(tx: &Transaction, utxos: &BTreeMap<OutPoint, Amount>) -> u64 {
+    tx.input
+      .iter()
+      .map(|txin| utxos.get(&txin.previous_output).unwrap().to_sat())
+      .sum::<u64>()
+      .checked_sub(tx.output.iter().map(|txout| txout.value).sum::<u64>())
+      .unwrap()
   }
 }
 
