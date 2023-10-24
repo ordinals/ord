@@ -564,10 +564,10 @@ impl Batchfile {
     postage: Amount,
   ) -> Result<Vec<Inscription>> {
     if metadata.is_some() {
-      assert!(!self
+      assert!(self
         .inscriptions
         .iter()
-        .any(|entry| entry.metadata.is_some()));
+        .all(|entry| entry.metadata.is_none()));
     }
 
     let mut pointer = parent_value.unwrap_or_default();
