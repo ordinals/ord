@@ -73,9 +73,19 @@ impl Inscription {
       metadata,
       metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
       parent: parent.map(|id| id.parent_value()),
-      pointer: pointer.map(|pointer| pointer.to_le_bytes().to_vec()),
+      pointer: pointer.map(Self::pointer_value),
       ..Default::default()
     })
+  }
+
+  fn pointer_value(pointer: u64) -> Vec<u8> {
+    let mut bytes = pointer.to_le_bytes().to_vec();
+
+    while let Some(&0) = bytes.last() {
+      bytes.pop();
+    }
+
+    bytes
   }
 
   pub(crate) fn append_reveal_script_to_builder(
