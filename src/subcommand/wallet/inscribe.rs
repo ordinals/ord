@@ -946,8 +946,6 @@ inscriptions:
       .into(),
     ];
 
-    let postage = Amount::from_sat(30_000);
-
     let mode = Mode::SharedOutput;
 
     let fee_rate = 4.0.try_into().unwrap();
@@ -1204,7 +1202,6 @@ inscriptions:
     ];
 
     let mode = Mode::SeparateOutputs;
-    let total_postage = Amount::from_sat(30_000);
 
     let fee_rate = 4.0.try_into().unwrap();
 
@@ -1278,8 +1275,6 @@ inscriptions:
       }
       .into(),
     ];
-
-    let postage = Amount::from_sat(30_000);
 
     let mode = Mode::SeparateOutputs;
 
