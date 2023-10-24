@@ -49,7 +49,9 @@ pub(crate) struct Inscribe {
   #[arg(
     long,
     help = "Inscribe a multiple inscriptions defines in a yaml <BATCH_FILE>.",
-    conflicts_with_all = &["file", "destination", "cbor_metadata", "json_metadata", "commit_fee_rate", "no_backup", "satpoint", "reinscribe", "postage", "metaprotocol", "parent", "no_limit"]
+    conflicts_with_all = &[
+      "file", "destination", "cbor_metadata", "json_metadata", "satpoint", "reinscribe", "metaprotocol", "parent"
+    ]
   )]
   pub(crate) batch: Option<PathBuf>,
   #[arg(
@@ -1258,5 +1260,48 @@ inscriptions:
   #[test]
   fn example_batchfile_deserializes_successfully() {
     Batchfile::load(Path::new("batch.yaml")).unwrap();
+  }
+
+  #[test]
+  fn flags_conflict_with_batch() {
+    for (flag, value) in [
+      ("--file", Some("foo")),
+      (
+        "--destination",
+        Some("tb1qsgx55dp6gn53tsmyjjv4c2ye403hgxynxs0dnm"),
+      ),
+      ("--cbor-metadata", Some("foo")),
+      ("--json-metadata", Some("foo")),
+      (
+        "--satpoint",
+        Some("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0"),
+      ),
+      ("--reinscribe", None),
+      ("--metaprotocol", Some("foo")),
+      (
+        "--parent",
+        Some("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33bi0"),
+      ),
+    ] {
+      let mut args = vec![
+        "ord",
+        "wallet",
+        "inscribe",
+        "--fee-rate",
+        "1",
+        "--batch",
+        "foo.yaml",
+        flag,
+      ];
+
+      if let Some(value) = value {
+        args.push(value);
+      }
+
+      assert!(
+        dbg!(Arguments::try_parse_from(args).unwrap_err().to_string())
+          .contains("the argument '--batch <BATCH>' cannot be used with")
+      );
+    }
   }
 }
