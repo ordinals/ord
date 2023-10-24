@@ -81,7 +81,7 @@ impl Inscription {
   fn pointer_value(pointer: u64) -> Vec<u8> {
     let mut bytes = pointer.to_le_bytes().to_vec();
 
-    while let Some(&0) = bytes.last() {
+    while bytes.last().copied() == Some(0) {
       bytes.pop();
     }
 
@@ -270,7 +270,7 @@ impl Inscription {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+  use {super::*, std::io::Write};
 
   #[test]
   fn reveal_script_chunks_body() {
@@ -661,5 +661,32 @@ mod tests {
       .to_witness(),
       envelope(&[b"ord", &[2], &[1, 2, 3]]),
     );
+  }
+
+  #[test]
+  fn pointer_value() {
+    let mut file = tempfile::Builder::new().suffix(".txt").tempfile().unwrap();
+
+    write!(file, "foo").unwrap();
+
+    let inscription =
+      Inscription::from_file(Chain::Mainnet, file.path(), None, None, None, None).unwrap();
+
+    assert_eq!(inscription.pointer, None);
+
+    let inscription =
+      Inscription::from_file(Chain::Mainnet, file.path(), None, Some(0), None, None).unwrap();
+
+    assert_eq!(inscription.pointer, Some(Vec::new()));
+
+    let inscription =
+      Inscription::from_file(Chain::Mainnet, file.path(), None, Some(1), None, None).unwrap();
+
+    assert_eq!(inscription.pointer, Some(vec![1]));
+
+    let inscription =
+      Inscription::from_file(Chain::Mainnet, file.path(), None, Some(256), None, None).unwrap();
+
+    assert_eq!(inscription.pointer, Some(vec![0, 1]));
   }
 }
