@@ -793,7 +793,7 @@ fn batch_inscribe_can_create_one_inscription() {
     .write("inscription.txt", "Hello World")
     .write(
       "batch.yaml",
-      "mode: shared-output\ninscriptions:\n- file: inscription.txt\n",
+      "mode: shared-output\ninscriptions:\n- file: inscription.txt\n  metadata: 123\n  metaprotocol: foo",
     )
     .rpc_server(&rpc_server)
     .run_and_deserialize_output::<Inscribe>();
@@ -802,8 +802,9 @@ fn batch_inscribe_can_create_one_inscription() {
 
   assert_eq!(rpc_server.descriptors().len(), 3);
 
-  let request = TestServer::spawn_with_args(&rpc_server, &[])
-    .request(format!("/content/{}", output.inscriptions[0].id));
+  let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
+
+  let request = ord_server.request(format!("/content/{}", output.inscriptions[0].id));
 
   assert_eq!(request.status(), 200);
   assert_eq!(
@@ -811,6 +812,11 @@ fn batch_inscribe_can_create_one_inscription() {
     "text/plain;charset=utf-8"
   );
   assert_eq!(request.text().unwrap(), "Hello World");
+
+  ord_server.assert_response_regex(
+    format!("/inscription/{}", output.inscriptions[0].id),
+    r".*<dt>metadata</dt>\s*<dd>\n    123\n  </dd>.*<dt>metaprotocol</dt>\s*<dd>foo</dd>.*",
+  );
 }
 
 #[test]
