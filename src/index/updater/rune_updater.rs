@@ -14,6 +14,9 @@ struct Allocation {
 pub(super) struct RuneUpdater<'a, 'db, 'tx> {
   height: u64,
   id_to_entry: &'a mut Table<'db, 'tx, RuneIdValue, RuneEntryValue>,
+  inscription_id_to_inscription_entry:
+    &'a Table<'db, 'tx, &'static InscriptionIdValue, InscriptionEntryValue>,
+  inscription_id_to_rune: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, u128>,
   minimum: Rune,
   outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
   rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
@@ -26,6 +29,13 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
     height: u64,
     outpoint_to_balances: &'a mut Table<'db, 'tx, &'static OutPointValue, &'static [u8]>,
     id_to_entry: &'a mut Table<'db, 'tx, RuneIdValue, RuneEntryValue>,
+    inscription_id_to_inscription_entry: &'a Table<
+      'db,
+      'tx,
+      &'static InscriptionIdValue,
+      InscriptionEntryValue,
+    >,
+    inscription_id_to_rune: &'a mut Table<'db, 'tx, &'static InscriptionIdValue, u128>,
     rune_to_id: &'a mut Table<'db, 'tx, u128, RuneIdValue>,
     statistic_to_count: &'a mut Table<'db, 'tx, u64, u64>,
   ) -> Result<Self> {
@@ -38,6 +48,8 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
       id_to_entry,
       minimum: Rune::minimum_at_height(Height(height)),
       outpoint_to_balances,
+      inscription_id_to_inscription_entry,
+      inscription_id_to_rune,
       rune_to_id,
       runes,
       statistic_to_count,
@@ -204,6 +216,18 @@ impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
           }
           .store(),
         )?;
+
+        let inscription_id = InscriptionId { txid, index: 0 };
+
+        if self
+          .inscription_id_to_inscription_entry
+          .get(&inscription_id.store())?
+          .is_some()
+        {
+          self
+            .inscription_id_to_rune
+            .insert(&inscription_id.store(), rune.0)?;
+        }
       }
     }
 
