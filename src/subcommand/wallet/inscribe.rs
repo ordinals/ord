@@ -118,14 +118,13 @@ impl Inscribe {
     let inscriptions;
     let mode;
     let parent_info;
-    let total_postage;
 
     if let Some(batch) = self.batch {
       let batch_config = Batchfile::load(&batch)?;
 
       parent_info = Inscribe::get_parent_info(batch_config.parent, &index, &utxos, &client, chain)?;
 
-      (inscriptions, total_postage) = batch_config.inscriptions(
+      (inscriptions) = batch_config.inscriptions(
         chain,
         parent_info.as_ref().map(|info| info.tx_out.value),
         metadata,
@@ -155,12 +154,13 @@ impl Inscribe {
         metadata.clone(),
       )?];
       mode = Mode::SeparateOutputs;
-      total_postage = postage;
       destinations = vec![match self.destination.clone() {
         Some(destination) => destination.require_network(chain.network())?,
         None => get_change_address(&client, chain)?,
       }];
     }
+
+    let total_postage = postage * u64::try_from(inscriptions.len()).unwrap();
 
     Batch {
       commit_fee_rate: self.commit_fee_rate.unwrap_or(self.fee_rate),
@@ -175,7 +175,6 @@ impl Inscribe {
       reinscribe: self.reinscribe,
       reveal_fee_rate: self.fee_rate,
       satpoint: self.satpoint,
-      total_postage,
     }
     .inscribe(chain, &index, &client, &utxos)
   }
@@ -343,7 +342,6 @@ mod tests {
       no_limit: false,
       reinscribe: false,
       postage: TransactionBuilder::TARGET_POSTAGE,
-      total_postage: TransactionBuilder::TARGET_POSTAGE,
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -383,7 +381,6 @@ mod tests {
       no_limit: false,
       reinscribe: false,
       postage: TransactionBuilder::TARGET_POSTAGE,
-      total_postage: TransactionBuilder::TARGET_POSTAGE,
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -426,7 +423,6 @@ mod tests {
       no_limit: false,
       reinscribe: false,
       postage: TransactionBuilder::TARGET_POSTAGE,
-      total_postage: TransactionBuilder::TARGET_POSTAGE,
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -476,7 +472,6 @@ mod tests {
       no_limit: false,
       reinscribe: false,
       postage: TransactionBuilder::TARGET_POSTAGE,
-      total_postage: TransactionBuilder::TARGET_POSTAGE,
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -520,7 +515,6 @@ mod tests {
       no_limit: false,
       reinscribe: false,
       postage: TransactionBuilder::TARGET_POSTAGE,
-      total_postage: TransactionBuilder::TARGET_POSTAGE,
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -601,7 +595,6 @@ mod tests {
       no_limit: false,
       reinscribe: false,
       postage: TransactionBuilder::TARGET_POSTAGE,
-      total_postage: TransactionBuilder::TARGET_POSTAGE,
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -682,7 +675,6 @@ mod tests {
       no_limit: false,
       reinscribe: false,
       postage: TransactionBuilder::TARGET_POSTAGE,
-      total_postage: TransactionBuilder::TARGET_POSTAGE,
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -739,7 +731,6 @@ mod tests {
       no_limit: false,
       reinscribe: false,
       postage: TransactionBuilder::TARGET_POSTAGE,
-      total_postage: TransactionBuilder::TARGET_POSTAGE,
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -778,7 +769,6 @@ mod tests {
       no_limit: true,
       reinscribe: false,
       postage: TransactionBuilder::TARGET_POSTAGE,
-      total_postage: TransactionBuilder::TARGET_POSTAGE,
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -972,7 +962,6 @@ inscriptions:
       no_limit: false,
       reinscribe: false,
       postage: Amount::from_sat(10_000),
-      total_postage: postage,
       mode,
       ..Default::default()
     }
@@ -1068,7 +1057,6 @@ inscriptions:
       no_limit: false,
       reinscribe: false,
       postage: Amount::from_sat(10_000),
-      total_postage: Amount::from_sat(30_000),
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -1142,7 +1130,6 @@ inscriptions:
       no_limit: false,
       reinscribe: false,
       postage: Amount::from_sat(10_000),
-      total_postage: Amount::from_sat(30_000),
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -1179,7 +1166,6 @@ inscriptions:
       no_limit: false,
       reinscribe: false,
       postage: Amount::from_sat(30_000),
-      total_postage: Amount::from_sat(30_000),
       mode: Mode::SharedOutput,
       ..Default::default()
     }
@@ -1232,7 +1218,6 @@ inscriptions:
       no_limit: false,
       reinscribe: false,
       postage: Amount::from_sat(10_000),
-      total_postage,
       mode,
       ..Default::default()
     }
@@ -1310,7 +1295,6 @@ inscriptions:
       no_limit: false,
       reinscribe: false,
       postage: Amount::from_sat(10_000),
-      total_postage: postage,
       mode,
       ..Default::default()
     }

@@ -13,7 +13,6 @@ pub(super) struct Batch {
   pub(super) reinscribe: bool,
   pub(super) reveal_fee_rate: FeeRate,
   pub(super) satpoint: Option<SatPoint>,
-  pub(super) total_postage: Amount,
 }
 
 impl Default for Batch {
@@ -31,7 +30,6 @@ impl Default for Batch {
       reinscribe: false,
       reveal_fee_rate: 1.0.try_into().unwrap(),
       satpoint: None,
-      total_postage: Amount::from_sat(10_000),
     }
   }
 }
@@ -257,6 +255,8 @@ impl Batch {
 
     let commit_tx_address = Address::p2tr_tweaked(taproot_spend_info.output_key(), chain.network());
 
+    let total_postage = self.postage * u64::try_from(self.inscriptions.len()).unwrap();
+
     let mut reveal_inputs = vec![OutPoint::null()];
     let mut reveal_outputs = self
       .destinations
@@ -265,7 +265,7 @@ impl Batch {
         script_pubkey: destination.script_pubkey(),
         value: match self.mode {
           Mode::SeparateOutputs => self.postage.to_sat(),
-          Mode::SharedOutput => self.total_postage.to_sat(),
+          Mode::SharedOutput => total_postage.to_sat(),
         },
       })
       .collect::<Vec<TxOut>>();
@@ -305,7 +305,7 @@ impl Batch {
       commit_tx_address.clone(),
       change,
       self.commit_fee_rate,
-      Target::Value(reveal_fee + self.total_postage),
+      Target::Value(reveal_fee + total_postage),
     )
     .build_transaction()?;
 
@@ -459,7 +459,7 @@ impl Batchfile {
     parent_value: Option<u64>,
     metadata: Option<Vec<u8>>,
     postage: Amount,
-  ) -> Result<(Vec<Inscription>, Amount)> {
+  ) -> Result<Vec<Inscription>> {
     if metadata.is_some() {
       assert!(!self
         .inscriptions
@@ -486,8 +486,6 @@ impl Batchfile {
       pointer += postage.to_sat();
     }
 
-    let total_postage = u64::try_from(inscriptions.len()).unwrap() * postage.to_sat();
-
-    Ok((inscriptions, Amount::from_sat(total_postage)))
+    Ok(inscriptions)
   }
 }
