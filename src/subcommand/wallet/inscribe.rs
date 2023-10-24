@@ -779,42 +779,19 @@ inscriptions:
   }
 
   #[test]
-  fn batch_with_invalid_field_value_throws_error() {
+  fn batch_with_unknown_field_throws_error() {
     let tempdir = TempDir::new().unwrap();
-
-    let inscription_path = tempdir.path().join("tulip.txt");
-    fs::write(&inscription_path, "tulips are pretty").unwrap();
-
     let batch_path = tempdir.path().join("batch.yaml");
     fs::write(
       &batch_path,
-      format!(
-        "mode: wrong-mode\ninscriptions:\n- file: {}\n",
-        inscription_path.display(),
-      ),
+      "mode: shared-output\ninscriptions:\n- file: meow.wav\nunknown: 1.)what",
     )
     .unwrap();
 
-    assert!(Batchfile::load(&batch_path).is_err());
-  }
-
-  #[test]
-  fn batch_is_unknown_field_throws_error() {
-    let tempdir = TempDir::new().unwrap();
-    let inscription_path = tempdir.path().join("tulip.txt");
-    fs::write(&inscription_path, "tulips are pretty").unwrap();
-
-    let batch_path = tempdir.path().join("batch.yaml");
-    fs::write(
-      &batch_path,
-      format!(
-        "mode: shared-output\ninscriptions:\n- file: {}\nunknown: 1.)what",
-        inscription_path.display(),
-      ),
-    )
-    .unwrap();
-
-    assert!(Batchfile::load(&batch_path).is_err());
+    assert!(Batchfile::load(&batch_path)
+      .unwrap_err()
+      .to_string()
+      .contains("unknown field `unknown`"));
   }
 
   #[test]
