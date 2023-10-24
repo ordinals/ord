@@ -41,11 +41,7 @@ fn get_sat_with_inscription_and_sat_index() {
 
   create_wallet(&rpc_server);
 
-  let Inscribe { reveal, .. } = inscribe(&rpc_server);
-  let inscription_id = InscriptionId {
-    txid: reveal,
-    index: 0,
-  };
+  let (inscription_id, reveal) = inscribe(&rpc_server);
 
   let response = TestServer::spawn_with_args(&rpc_server, &["--index-sats", "--enable-json-api"])
     .json_request(format!("/sat/{}", 50 * COIN_VALUE));
@@ -86,7 +82,7 @@ fn get_sat_with_inscription_on_common_sat_and_more_inscriptions() {
   let txid = rpc_server.mine_blocks(1)[0].txdata[0].txid();
 
   let Inscribe { reveal, .. } = CommandBuilder::new(format!(
-    "wallet inscribe --satpoint {}:0:1 --fee-rate 1 foo.txt",
+    "wallet inscribe --satpoint {}:0:1 --fee-rate 1 --file foo.txt",
     txid
   ))
   .write("foo.txt", "FOO")
@@ -133,11 +129,7 @@ fn get_inscription() {
 
   create_wallet(&rpc_server);
 
-  let Inscribe { reveal, .. } = inscribe(&rpc_server);
-  let inscription_id = InscriptionId {
-    txid: reveal,
-    index: 0,
-  };
+  let (inscription_id, reveal) = inscribe(&rpc_server);
 
   let response = TestServer::spawn_with_args(&rpc_server, &["--index-sats", "--enable-json-api"])
     .json_request(format!("/inscription/{}", inscription_id));
@@ -200,10 +192,11 @@ fn create_210_inscriptions(rpc_server: &test_bitcoincore_rpc::Handle) -> Vec<Ins
 
   // Create another 60 non cursed
   for _ in 0..60 {
-    let Inscribe { reveal, .. } = CommandBuilder::new("wallet inscribe --fee-rate 1 foo.txt")
-      .write("foo.txt", "FOO")
-      .rpc_server(rpc_server)
-      .run_and_deserialize_output();
+    let Inscribe { reveal, .. } =
+      CommandBuilder::new("wallet inscribe --fee-rate 1 --file foo.txt")
+        .write("foo.txt", "FOO")
+        .rpc_server(rpc_server)
+        .run_and_deserialize_output();
     rpc_server.mine_blocks(1);
     inscriptions.push(InscriptionId {
       txid: reveal,
@@ -383,7 +376,8 @@ fn get_output() {
         InscriptionId { txid, index: 0 },
         InscriptionId { txid, index: 1 },
         InscriptionId { txid, index: 2 },
-      ]
+      ],
+      runes: BTreeMap::new(),
     }
   );
 }

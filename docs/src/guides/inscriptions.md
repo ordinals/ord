@@ -27,6 +27,7 @@ This guide covers:
 5. Creating inscriptions with `ord wallet inscribe`
 6. Sending inscriptions with `ord wallet send`
 7. Receiving inscriptions with `ord wallet receive`
+8. Batch inscribing with `ord wallet inscribe --batch`
 
 Getting Help
 ------------
