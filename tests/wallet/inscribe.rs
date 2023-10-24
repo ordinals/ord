@@ -657,3 +657,97 @@ fn try_reinscribe_without_flag() {
   ))
   .run_and_extract_stdout();
 }
+
+#[test]
+fn no_metadata_appears_on_inscription_page_if_no_metadata_is_passed() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  let Inscribe { inscription, .. } =
+    CommandBuilder::new("wallet inscribe --fee-rate 1 content.png")
+      .write("content.png", [1; 520])
+      .rpc_server(&rpc_server)
+      .run_and_deserialize_output();
+
+  rpc_server.mine_blocks(1);
+
+  let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
+
+  assert!(!ord_server
+    .request(format!("/inscription/{inscription}"),)
+    .text()
+    .unwrap()
+    .contains("metadata"));
+}
+
+#[test]
+fn json_metadata_appears_on_inscription_page() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  let Inscribe { inscription, .. } =
+    CommandBuilder::new("wallet inscribe --fee-rate 1 --json-metadata metadata.json content.png")
+      .write("content.png", [1; 520])
+      .write("metadata.json", r#"{"foo": "bar", "baz": 1}"#)
+      .rpc_server(&rpc_server)
+      .run_and_deserialize_output();
+
+  rpc_server.mine_blocks(1);
+
+  let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
+
+  ord_server.assert_response_regex(
+    format!("/inscription/{inscription}"),
+    ".*<dt>metadata</dt>.*<dl><dt>foo</dt><dd>bar</dd><dt>baz</dt><dd>1</dd></dl>.*",
+  );
+}
+
+#[test]
+fn cbor_metadata_appears_on_inscription_page() {
+  let rpc_server = test_bitcoincore_rpc::spawn();
+  create_wallet(&rpc_server);
+  rpc_server.mine_blocks(1);
+
+  let Inscribe { inscription, .. } =
+    CommandBuilder::new("wallet inscribe --fee-rate 1 --cbor-metadata metadata.cbor content.png")
+      .write("content.png", [1; 520])
+      .write(
+        "metadata.cbor",
+        [
+          0xA2, 0x63, b'f', b'o', b'o', 0x63, b'b', b'a', b'r', 0x63, b'b', b'a', b'z', 0x01,
+        ],
+      )
+      .rpc_server(&rpc_server)
+      .run_and_deserialize_output();
+
+  rpc_server.mine_blocks(1);
+
+  let ord_server = TestServer::spawn_with_args(&rpc_server, &[]);
+
+  ord_server.assert_response_regex(
+    format!("/inscription/{inscription}"),
+    ".*<dt>metadata</dt>.*<dl><dt>foo</dt><dd>bar</dd><dt>baz</dt><dd>1</dd></dl>.*",
+  );
+}
+
+#[test]
+fn error_message_when_parsing_json_metadata_is_reasonable() {
+  CommandBuilder::new("wallet inscribe --fee-rate 1 --json-metadata metadata.json content.png")
+    .write("content.png", [1; 520])
+    .write("metadata.json", "{")
+    .stderr_regex(".*failed to parse JSON metadata.*")
+    .expected_exit_code(1)
+    .run_and_extract_stdout();
+}
+
+#[test]
+fn error_message_when_parsing_cbor_metadata_is_reasonable() {
+  CommandBuilder::new("wallet inscribe --fee-rate 1 --cbor-metadata metadata.cbor content.png")
+    .write("content.png", [1; 520])
+    .write("metadata.cbor", [0x61])
+    .stderr_regex(".*failed to parse CBOR metadata.*")
+    .expected_exit_code(1)
+    .run_and_extract_stdout();
+}
