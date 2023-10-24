@@ -1,4 +1,6 @@
-# Summary
+Summary
+=======
+
 [Introduction](introduction.md)
 - [Overview](overview.md)
 - [Digital Artifacts](digital-artifacts.md)
@@ -15,6 +17,7 @@
   - [Inscriptions](guides/inscriptions.md)
   - [Batch Inscribing](guides/batch-inscribing.md)
   - [Sat Hunting](guides/sat-hunting.md)
+  - [Teleburning](guides/teleburning.md)
   - [Collecting](guides/collecting.md)
     - [Sparrow Wallet](guides/collecting/sparrow-wallet.md)
   - [Testing](guides/testing.md)
