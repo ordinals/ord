@@ -142,6 +142,8 @@ mod tests {
           <dd><a class=monospace href=/output/1{64}:1>1{64}:1</a></dd>
           <dt>offset</dt>
           <dd>0</dd>
+          <dt>ethereum teleburn address</dt>
+          <dd>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
         </dl>
       "
       .unindent()
@@ -344,6 +346,8 @@ mod tests {
           <dd><a class=monospace href=/output/1{64}:1>1{64}:1</a></dd>
           <dt>offset</dt>
           <dd>0</dd>
+          <dt>ethereum teleburn address</dt>
+          <dd>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
         </dl>
       "
       .unindent()
@@ -401,6 +405,8 @@ mod tests {
           <dd><a class=monospace href=/output/1{64}:1>1{64}:1</a></dd>
           <dt>offset</dt>
           <dd>0</dd>
+          <dt>ethereum teleburn address</dt>
+          <dd>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
           <dt>children</dt>
           <dd>
             <div class=thumbnails>
